@@ -132,7 +132,7 @@ export default function CustomCliCard({
                 {translateOrFallback("custom", "Custom")}
               </span>
             </div>
-            <p className="text-xs text-text-muted truncate">{tool.description}</p>
+            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.custom")}</p>
           </div>
         </div>
         <span

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
 type LeaderboardScope = "global" | "weekly" | "monthly" | "tokens_shared";
@@ -11,11 +11,11 @@ interface LeaderboardEntry {
   score: number;
 }
 
-const SCOPE_LABELS: Record<LeaderboardScope, string> = {
-  global: "All Time",
-  weekly: "Weekly",
-  monthly: "Monthly",
-  tokens_shared: "Tokens Shared",
+const SCOPE_LABEL_KEYS: Record<LeaderboardScope, string> = {
+  global: "leaderboardScopes.allTime",
+  weekly: "leaderboardScopes.weekly",
+  monthly: "leaderboardScopes.monthly",
+  tokens_shared: "leaderboardScopes.tokensShared",
 };
 
 const MEDAL_COLORS = [
@@ -28,6 +28,8 @@ const MEDAL_EMOJI = ["🥇", "🥈", "🥉"];
 
 export default function LeaderboardPage() {
   const t = useTranslations("common");
+  const tg = useTranslations("gamification");
+  const locale = useLocale();
   const [scope, setScope] = useState<LeaderboardScope>("global");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
@@ -35,24 +37,27 @@ export default function LeaderboardPage() {
   const [error, setError] = useState("");
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  const fetchLeaderboard = useCallback(async (s: LeaderboardScope) => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`/api/gamification/leaderboard?scope=${s}&limit=50`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setEntries(data.entries || []);
-      setMyRank(data.myRank ?? null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load leaderboard");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchLeaderboard = useCallback(
+    async (s: LeaderboardScope) => {
+      try {
+        const res = await fetch(`/api/gamification/leaderboard?scope=${s}&limit=50`);
+        if (!res.ok) throw new Error(tg("leaderboardLoadFailed", { status: res.status }));
+        const data = await res.json();
+        setEntries(data.entries || []);
+        setMyRank(data.myRank ?? null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : tg("leaderboardLoadFailed"));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [tg]
+  );
 
   useEffect(() => {
-    fetchLeaderboard(scope);
+    const loadTimer = window.setTimeout(() => {
+      void fetchLeaderboard(scope);
+    }, 0);
 
     // SSE real-time updates
     const es = new EventSource(`/api/gamification/stream?scope=${scope}`);
@@ -80,6 +85,7 @@ export default function LeaderboardPage() {
     };
 
     return () => {
+      window.clearTimeout(loadTimer);
       es.close();
       eventSourceRef.current = null;
     };
@@ -92,17 +98,21 @@ export default function LeaderboardPage() {
     <div className="flex flex-col gap-6">
       {/* Scope selector */}
       <div className="flex items-center gap-2 flex-wrap">
-        {(Object.keys(SCOPE_LABELS) as LeaderboardScope[]).map((s) => (
+        {(Object.keys(SCOPE_LABEL_KEYS) as LeaderboardScope[]).map((s) => (
           <button
             key={s}
-            onClick={() => setScope(s)}
+            onClick={() => {
+              setLoading(true);
+              setError("");
+              setScope(s);
+            }}
             className={`px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
               scope === s
                 ? "bg-violet-500 border-violet-500 text-white"
                 : "border-border text-text-muted hover:text-text-main hover:border-violet-500/50"
             }`}
           >
-            {SCOPE_LABELS[s]}
+            {tg(SCOPE_LABEL_KEYS[s])}
           </button>
         ))}
       </div>
@@ -116,8 +126,8 @@ export default function LeaderboardPage() {
               <p className="text-3xl font-bold mt-1">#{myRank}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-text-muted">Scope</p>
-              <p className="text-lg font-semibold">{SCOPE_LABELS[scope]}</p>
+              <p className="text-sm text-text-muted">{tg("scope")}</p>
+              <p className="text-lg font-semibold">{tg(SCOPE_LABEL_KEYS[scope])}</p>
             </div>
           </div>
         </Card>
@@ -145,9 +155,11 @@ export default function LeaderboardPage() {
                       <p className="text-sm text-text-muted truncate">
                         {entry.apiKeyId.slice(0, 8)}...
                       </p>
-                      <p className="text-2xl font-bold mt-1">{entry.score.toLocaleString()}</p>
+                      <p className="text-2xl font-bold mt-1">
+                        {entry.score.toLocaleString(locale)}
+                      </p>
                       <p className="text-xs text-text-muted">
-                        {scope === "tokens_shared" ? "tokens shared" : "points"}
+                        {scope === "tokens_shared" ? tg("tokensShared") : tg("points")}
                       </p>
                     </div>
                     <div className="text-5xl font-black text-text-muted/20">{idx + 1}</div>
@@ -164,9 +176,9 @@ export default function LeaderboardPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="text-left text-sm text-text-muted border-b border-border">
-                      <th className="pb-3 font-medium w-16">Rank</th>
-                      <th className="pb-3 font-medium">Name</th>
-                      <th className="pb-3 font-medium text-right">Score</th>
+                      <th className="pb-3 font-medium w-16">{tg("rank")}</th>
+                      <th className="pb-3 font-medium">{tg("name")}</th>
+                      <th className="pb-3 font-medium text-right">{tg("score")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -178,7 +190,7 @@ export default function LeaderboardPage() {
                         <td className="py-3 text-text-muted font-mono">{idx + 4}</td>
                         <td className="py-3 font-medium">{entry.apiKeyId.slice(0, 12)}...</td>
                         <td className="py-3 text-right font-mono">
-                          {entry.score.toLocaleString()}
+                          {entry.score.toLocaleString(locale)}
                         </td>
                       </tr>
                     ))}
@@ -190,9 +202,7 @@ export default function LeaderboardPage() {
 
           {entries.length === 0 && !error && (
             <Card>
-              <div className="text-center py-12 text-text-muted">
-                No entries yet for this scope. Start using OmniRoute to earn points!
-              </div>
+              <div className="text-center py-12 text-text-muted">{tg("leaderboardEmpty")}</div>
             </Card>
           )}
         </>

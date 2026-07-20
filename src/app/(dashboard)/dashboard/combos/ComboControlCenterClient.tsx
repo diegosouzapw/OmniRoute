@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import Card from "@/shared/components/Card";
 import { CardSkeleton } from "@/shared/components/Loading";
@@ -89,8 +90,8 @@ function fmtDate(value: string | null | undefined): string {
   return date.toLocaleString();
 }
 
-function shortId(value: string | null | undefined, max = 10): string {
-  if (!value) return "dynamic";
+function shortId(value: string | null | undefined, fallback: string, max = 10): string {
+  if (!value) return fallback;
   return value.length > max ? `${value.slice(0, max)}…` : value;
 }
 
@@ -104,11 +105,28 @@ function metricValue(label: string, value: string, hint?: string) {
   );
 }
 
-function stateLabel(state: ComboControlCenterSummary["healthState"]): string {
-  if (state === "healthy") return "Healthy";
-  if (state === "warning") return "Needs attention";
-  if (state === "critical") return "Critical";
-  return "Idle";
+function stateLabel(
+  state: ComboControlCenterSummary["healthState"],
+  t: ReturnType<typeof useTranslations>
+): string {
+  return t(`state.${state}`);
+}
+
+function healthReasonLabel(reason: string, t: ReturnType<typeof useTranslations>): string {
+  const keyByReason: Record<string, string> = {
+    "No recent combo traffic": "noRecentTraffic",
+    "Low success rate": "lowSuccessRate",
+    "Success rate below target": "successBelowTarget",
+    "High fallback rate": "highFallbackRate",
+    "Elevated fallback rate": "elevatedFallbackRate",
+    "At least one quota is exhausted": "quotaExhausted",
+    "Quota is nearly exhausted": "quotaNearlyExhausted",
+    "Quota is getting low": "quotaGettingLow",
+    "Traffic distribution is highly skewed": "trafficHighlySkewed",
+    "Combo looks healthy": "comboHealthy",
+  };
+  const key = keyByReason[reason];
+  return key ? t(`healthReason.${key}`) : reason;
 }
 
 function targetHealthTone(target: ComboControlCenterTarget | ComboControlCenterTargetHealth) {
@@ -124,6 +142,7 @@ function targetHealthTone(target: ComboControlCenterTarget | ComboControlCenterT
 }
 
 function TargetConfiguredRow({ target }: { target: ComboControlCenterTarget }) {
+  const t = useTranslations("comboControl");
   return (
     <div className="rounded-xl border border-border bg-surface p-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -133,31 +152,31 @@ function TargetConfiguredRow({ target }: { target: ComboControlCenterTarget }) {
               {target.index + 1}
             </span>
             <span className="rounded-full border border-border bg-bg-subtle px-2 py-0.5 text-[11px] uppercase tracking-wide text-text-muted">
-              {target.kind === "combo-ref" ? "Nested combo" : "Model target"}
+              {target.kind === "combo-ref" ? t("nestedCombo") : t("modelTarget")}
             </span>
             {target.weight > 0 && (
               <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[11px] text-amber-300">
-                {target.weight}% weight
+                {t("weight", { value: target.weight })}
               </span>
             )}
           </div>
           <p className="mt-2 truncate font-mono text-sm text-text-main">{target.label}</p>
           <p className="mt-1 text-xs text-text-muted">
-            {target.provider ? getProviderDisplayName(target.provider) : "Combo reference"} ·
-            account {shortId(target.connectionId)}
+            {target.provider ? getProviderDisplayName(target.provider) : t("comboReference")} ·{" "}
+            {t("accountShort", { id: shortId(target.connectionId, t("dynamic")) })}
           </p>
         </div>
         <div className={`rounded-lg border px-3 py-2 text-xs ${targetHealthTone(target)}`}>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-            <span>Requests</span>
+            <span>{t("requests")}</span>
             <span className="text-right font-semibold">{target.health?.requests ?? 0}</span>
-            <span>Success</span>
+            <span>{t("success")}</span>
             <span className="text-right font-semibold">
               {fmtPercent(target.health?.successRate)}
             </span>
-            <span>Latency</span>
+            <span>{t("latency")}</span>
             <span className="text-right font-semibold">{fmtMs(target.health?.avgLatencyMs)}</span>
-            <span>Quota</span>
+            <span>{t("quota")}</span>
             <span className="text-right font-semibold">
               {fmtPercent(target.health?.quotaRemainingPct)}
             </span>
@@ -169,19 +188,27 @@ function TargetConfiguredRow({ target }: { target: ComboControlCenterTarget }) {
 }
 
 function ResolvedTargetRow({ target }: { target: ComboControlCenterTargetHealth }) {
+  const t = useTranslations("comboControl");
   return (
     <div className="rounded-xl border border-border bg-surface p-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <p className="truncate font-mono text-sm text-text-main">{target.model || "unknown"}</p>
+          <p className="truncate font-mono text-sm text-text-main">
+            {target.model || t("unknown")}
+          </p>
           <p className="mt-1 text-xs text-text-muted">
-            {target.provider ? getProviderDisplayName(target.provider) : "unknown provider"} ·
-            account {shortId(target.connectionId)} · key {shortId(target.executionKey)}
+            {target.provider ? getProviderDisplayName(target.provider) : t("unknownProvider")} ·{" "}
+            {t("accountShort", { id: shortId(target.connectionId, t("dynamic")) })} ·{" "}
+            {t("keyShort", { id: shortId(target.executionKey, t("dynamic")) })}
           </p>
         </div>
         <div className={`rounded-lg border px-3 py-2 text-xs ${targetHealthTone(target)}`}>
-          {target.requests ?? 0} req · {fmtPercent(target.successRate)} success ·{" "}
-          {fmtMs(target.avgLatencyMs)} · quota {fmtPercent(target.quotaRemainingPct)}
+          {t("resolvedTargetMetrics", {
+            requests: target.requests ?? 0,
+            success: fmtPercent(target.successRate),
+            latency: fmtMs(target.avgLatencyMs),
+            quota: fmtPercent(target.quotaRemainingPct),
+          })}
         </div>
       </div>
     </div>
@@ -189,6 +216,7 @@ function ResolvedTargetRow({ target }: { target: ComboControlCenterTargetHealth 
 }
 
 function RecentLogRow({ log }: { log: CallLogEntry }) {
+  const t = useTranslations("comboControl");
   const ok = typeof log.status === "number" && log.status >= 200 && log.status < 400;
   return (
     <div className="rounded-lg border border-border bg-surface px-3 py-2">
@@ -196,11 +224,13 @@ function RecentLogRow({ log }: { log: CallLogEntry }) {
         <div className="min-w-0">
           <p className="truncate text-sm text-text-main">
             <span className={ok ? "text-emerald-400" : "text-red-400"}>{log.status || "—"}</span>{" "}
-            {log.model || "unknown model"}
+            {log.model || t("unknownModel")}
           </p>
           <p className="text-xs text-text-muted">
-            {fmtDate(log.timestamp)} · {log.provider || "unknown provider"} · step{" "}
-            {shortId(log.comboStepId || log.comboExecutionKey)}
+            {fmtDate(log.timestamp)} · {log.provider || t("unknownProvider")} ·{" "}
+            {t("stepShort", {
+              id: shortId(log.comboStepId || log.comboExecutionKey, t("dynamic")),
+            })}
           </p>
         </div>
         <div className="text-xs text-text-muted">{fmtMs(log.duration)}</div>
@@ -211,6 +241,7 @@ function RecentLogRow({ log }: { log: CallLogEntry }) {
 }
 
 export default function ComboControlCenterClient({ comboId }: { comboId: string }) {
+  const t = useTranslations("comboControl");
   const [combo, setCombo] = useState<ComboControlCenterCombo | null>(null);
   const [metrics, setMetrics] = useState<ComboControlCenterMetrics | null>(null);
   const [health, setHealth] = useState<ComboControlCenterHealth | null>(null);
@@ -241,11 +272,11 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
       setLogs(toArray<CallLogEntry>(logsData));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load combo control center");
+      setError(err instanceof Error ? err.message : t("loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [comboId, range]);
+  }, [comboId, range, t]);
 
   useEffect(() => {
     void load();
@@ -276,10 +307,10 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
     return (
       <div className="space-y-4">
         <Link href="/dashboard/combos" className="text-sm text-primary hover:underline">
-          ← Back to Combos
+          ← {t("backToCombos")}
         </Link>
         <Card className="border border-red-500/20 bg-red-500/10 p-6">
-          <h1 className="text-lg font-semibold text-red-300">Combo Control Center unavailable</h1>
+          <h1 className="text-lg font-semibold text-red-300">{t("unavailable")}</h1>
           <p className="mt-2 text-sm text-red-200">{error}</p>
         </Card>
       </div>
@@ -293,22 +324,23 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <Link href="/dashboard/combos" className="text-sm text-primary hover:underline">
-            ← Back to Combos
+            ← {t("backToCombos")}
           </Link>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold text-text-main">Combo Control Center</h1>
+            <h1 className="text-2xl font-semibold text-text-main">{t("title")}</h1>
             <span
               className={`rounded-full border px-3 py-1 text-xs font-medium ${STATE_STYLES[summary.healthState]}`}
             >
-              {stateLabel(summary.healthState)}
+              {stateLabel(summary.healthState, t)}
             </span>
             <span className="rounded-full border border-border bg-bg-subtle px-3 py-1 text-xs text-text-muted">
-              {summary.isActive ? "Active" : "Disabled"}
+              {summary.isActive ? t("active") : t("disabled")}
             </span>
           </div>
           <p className="mt-2 max-w-3xl text-sm text-text-muted">
-            Central read-only view for routing behavior, health, quota, runtime metrics and recent
-            decisions for <code className="font-mono text-text-main">{combo.name}</code>.
+            {t.rich("description", {
+              combo: () => <code className="font-mono text-text-main">{combo.name}</code>,
+            })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -317,35 +349,33 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
             onClick={() => void load()}
             className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main transition-colors hover:bg-surface/80"
           >
-            Refresh
+            {t("refresh")}
           </button>
           <Link
             href="/dashboard/combos"
             className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-primary transition-colors hover:bg-primary/20"
           >
-            Edit in Combos
+            {t("editInCombos")}
           </Link>
         </div>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {metricValue("Requests", String(summary.totalRequests), `${range} window`)}
-        {metricValue("Success", fmtPercent(summary.successRate), "runtime/health blend")}
-        {metricValue("Latency", fmtMs(summary.avgLatencyMs), "average response time")}
+        {metricValue(t("requests"), String(summary.totalRequests), t("rangeWindow", { range }))}
+        {metricValue(t("success"), fmtPercent(summary.successRate), t("runtimeHealthBlend"))}
+        {metricValue(t("latency"), fmtMs(summary.avgLatencyMs), t("averageResponseTime"))}
         {metricValue(
-          "Worst quota",
+          t("worstQuota"),
           fmtPercent(summary.worstQuotaRemainingPct),
-          "provider/account telemetry"
+          t("providerAccountTelemetry")
         )}
       </div>
 
       <Card className="p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-text-main">Overview</h2>
-            <p className="mt-1 text-sm text-text-muted">
-              Strategy, runtime status and control links for this combo.
-            </p>
+            <h2 className="text-lg font-semibold text-text-main">{t("overview")}</h2>
+            <p className="mt-1 text-sm text-text-muted">{t("overviewDescription")}</p>
           </div>
           <div className="flex flex-wrap gap-1 rounded-xl border border-border bg-bg-subtle p-1">
             {TIME_RANGES.map((item) => (
@@ -367,30 +397,33 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
 
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <div className="rounded-xl border border-border bg-bg-subtle p-3">
-            <p className="text-xs uppercase tracking-wide text-text-muted">Strategy</p>
+            <p className="text-xs uppercase tracking-wide text-text-muted">{t("strategy")}</p>
             <p className="mt-1 font-semibold text-text-main">{summary.strategy}</p>
           </div>
           <div className="rounded-xl border border-border bg-bg-subtle p-3">
-            <p className="text-xs uppercase tracking-wide text-text-muted">Targets</p>
+            <p className="text-xs uppercase tracking-wide text-text-muted">{t("targets")}</p>
             <p className="mt-1 font-semibold text-text-main">
-              {summary.targetCount} configured · {resolvedTargets.length} resolved
+              {t("targetCounts", {
+                configured: summary.targetCount,
+                resolved: resolvedTargets.length,
+              })}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-bg-subtle p-3">
-            <p className="text-xs uppercase tracking-wide text-text-muted">Providers</p>
+            <p className="text-xs uppercase tracking-wide text-text-muted">{t("providers")}</p>
             <p className="mt-1 font-semibold text-text-main">{summary.providerCount}</p>
           </div>
         </div>
 
         <div className="mt-4 rounded-xl border border-border bg-surface p-3">
-          <p className="text-sm font-medium text-text-main">Health reasons</p>
+          <p className="text-sm font-medium text-text-main">{t("healthReasons")}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {summary.healthReasons.map((reason) => (
               <span
                 key={reason}
                 className="rounded-full border border-border bg-bg-subtle px-2 py-1 text-xs text-text-muted"
               >
-                {reason}
+                {healthReasonLabel(reason, t)}
               </span>
             ))}
           </div>
@@ -401,15 +434,13 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
         <Card className="p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-text-main">Configured targets</h2>
-              <p className="mt-1 text-sm text-text-muted">
-                The saved combo steps, enriched with matching health data when available.
-              </p>
+              <h2 className="text-lg font-semibold text-text-main">{t("configuredTargets")}</h2>
+              <p className="mt-1 text-sm text-text-muted">{t("configuredTargetsDescription")}</p>
             </div>
           </div>
           <div className="mt-4 space-y-3">
             {configuredTargets.length === 0 ? (
-              <p className="text-sm text-text-muted">No targets configured.</p>
+              <p className="text-sm text-text-muted">{t("noConfiguredTargets")}</p>
             ) : (
               configuredTargets.map((target) => (
                 <TargetConfiguredRow key={target.id} target={target} />
@@ -419,11 +450,11 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-lg font-semibold text-text-main">Runtime config</h2>
-          <p className="mt-1 text-sm text-text-muted">Selected advanced settings for this combo.</p>
+          <h2 className="text-lg font-semibold text-text-main">{t("runtimeConfig")}</h2>
+          <p className="mt-1 text-sm text-text-muted">{t("runtimeConfigDescription")}</p>
           <div className="mt-4 space-y-2">
             {Object.keys(runtimeConfig).length === 0 ? (
-              <p className="text-sm text-text-muted">No custom runtime config.</p>
+              <p className="text-sm text-text-muted">{t("noRuntimeConfig")}</p>
             ) : (
               Object.entries(runtimeConfig).map(([key, value]) => (
                 <div
@@ -442,13 +473,11 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
       </div>
 
       <Card className="p-5">
-        <h2 className="text-lg font-semibold text-text-main">Resolved runtime targets</h2>
-        <p className="mt-1 text-sm text-text-muted">
-          Flattened targets after nested combo resolution and target-level metrics.
-        </p>
+        <h2 className="text-lg font-semibold text-text-main">{t("resolvedTargets")}</h2>
+        <p className="mt-1 text-sm text-text-muted">{t("resolvedTargetsDescription")}</p>
         <div className="mt-4 space-y-3">
           {resolvedTargets.length === 0 ? (
-            <p className="text-sm text-text-muted">No resolved target health yet.</p>
+            <p className="text-sm text-text-muted">{t("noResolvedTargetHealth")}</p>
           ) : (
             resolvedTargets.map((target) => (
               <ResolvedTargetRow
@@ -462,10 +491,10 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="p-5">
-          <h2 className="text-lg font-semibold text-text-main">Quota and distribution</h2>
+          <h2 className="text-lg font-semibold text-text-main">{t("quotaDistribution")}</h2>
           <div className="mt-4 space-y-3">
             {(health?.quotaHealth?.providers || []).length === 0 ? (
-              <p className="text-sm text-text-muted">No quota snapshots for this combo window.</p>
+              <p className="text-sm text-text-muted">{t("noQuotaSnapshots")}</p>
             ) : (
               health?.quotaHealth?.providers?.map((provider) => (
                 <div
@@ -484,19 +513,18 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
               ))
             )}
             <div className="rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm text-text-muted">
-              Usage skew: <span className="text-text-main">{summary.usageSkew.toFixed(2)}</span>
+              {t("usageSkew")}:{" "}
+              <span className="text-text-main">{summary.usageSkew.toFixed(2)}</span>
             </div>
           </div>
         </Card>
 
         <Card className="p-5">
-          <h2 className="text-lg font-semibold text-text-main">Recent routing decisions</h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Recent call logs filtered by this combo name. Open Analytics for full explainability.
-          </p>
+          <h2 className="text-lg font-semibold text-text-main">{t("recentDecisions")}</h2>
+          <p className="mt-1 text-sm text-text-muted">{t("recentDecisionsDescription")}</p>
           <div className="mt-4 space-y-2">
             {logs.length === 0 ? (
-              <p className="text-sm text-text-muted">No recent combo call logs found.</p>
+              <p className="text-sm text-text-muted">{t("noRecentLogs")}</p>
             ) : (
               logs.map((log) => (
                 <RecentLogRow key={log.id || `${log.timestamp}-${log.model}`} log={log} />
@@ -507,15 +535,15 @@ export default function ComboControlCenterClient({ comboId }: { comboId: string 
       </div>
 
       <Card className="p-5">
-        <h2 className="text-lg font-semibold text-text-main">Quick links</h2>
+        <h2 className="text-lg font-semibold text-text-main">{t("quickLinks")}</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {[
-            ["Combo Health", "/dashboard/analytics/combo-health"],
-            ["Call Logs", "/dashboard/logs"],
-            ["Costs", "/dashboard/costs"],
-            ["Quota", "/dashboard/quota"],
-            ["Playground", "/dashboard/playground"],
-            ["Providers", "/dashboard/providers"],
+            [t("comboHealth"), "/dashboard/analytics/combo-health"],
+            [t("callLogs"), "/dashboard/logs"],
+            [t("costs"), "/dashboard/costs"],
+            [t("quota"), "/dashboard/quota"],
+            [t("playground"), "/dashboard/playground"],
+            [t("providers"), "/dashboard/providers"],
           ].map(([label, href]) => (
             <Link
               key={href}

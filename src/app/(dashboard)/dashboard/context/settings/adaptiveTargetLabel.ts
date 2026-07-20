@@ -15,3 +15,27 @@ export function formatAdaptiveTarget(
   const target = computeTarget(config.policy, representativeModelContextLimit, null, config);
   return `Adaptive (${config.mode}, policy: ${config.policy}) — target ≈ ${target.toLocaleString()} tokens (for a ${representativeModelContextLimit.toLocaleString()}-token window)`;
 }
+
+export type AdaptiveTargetSummary =
+  | { enabled: false }
+  | {
+      enabled: true;
+      mode: ContextBudgetConfig["mode"];
+      policy: ContextBudgetConfig["policy"];
+      target: number;
+      contextLimit: number;
+    };
+
+export function getAdaptiveTargetSummary(
+  config: ContextBudgetConfig,
+  representativeModelContextLimit: number
+): AdaptiveTargetSummary {
+  if (config.mode === "off") return { enabled: false };
+  return {
+    enabled: true,
+    mode: config.mode,
+    policy: config.policy,
+    target: computeTarget(config.policy, representativeModelContextLimit, null, config),
+    contextLimit: representativeModelContextLimit,
+  };
+}

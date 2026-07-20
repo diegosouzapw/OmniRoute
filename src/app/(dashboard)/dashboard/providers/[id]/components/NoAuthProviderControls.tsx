@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { NoAuthAccountCard, NoAuthProviderCard } from "@/shared/components";
 import { getProviderAlias, supportsNoAuthProviderProxy } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
-import { useTranslations } from "next-intl";
 
 const ACCOUNT_PROVIDER_NAMES: Record<string, string> = {
   mimocode: "MiMoCode",
@@ -25,6 +25,7 @@ export default function NoAuthProviderControls({
   providerProxy,
   onConfigureProviderProxy,
 }: NoAuthProviderControlsProps) {
+  const noAuthT = useTranslations("noAuthProvider");
   const notify = useNotificationStore();
   const t = useTranslations("providers");
   const [blockedProviders, setBlockedProviders] = useState<string[]>([]);
@@ -74,18 +75,22 @@ export default function NoAuthProviderControls({
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data?.error?.message || data?.error || "Failed to update provider");
+          throw new Error(data?.error?.message || data?.error || noAuthT("updateProviderFailed"));
         }
         setBlockedProviders(Array.isArray(data.blockedProviders) ? data.blockedProviders : next);
-        notify.success(`${providerName} ${nextEnabled ? "enabled" : "disabled"}`);
+        notify.success(
+          nextEnabled
+            ? noAuthT("providerEnabled", { provider: providerName })
+            : noAuthT("providerDisabled", { provider: providerName })
+        );
       } catch (error) {
         setBlockedProviders(previous);
-        notify.error(error instanceof Error ? error.message : "Failed to update provider");
+        notify.error(error instanceof Error ? error.message : noAuthT("updateProviderFailed"));
       } finally {
         setSavingEnabled(false);
       }
     },
-    [blockedProviders, notify, providerAlias, providerId, providerName]
+    [blockedProviders, noAuthT, notify, providerAlias, providerId, providerName]
   );
 
   const accountProviderName = ACCOUNT_PROVIDER_NAMES[providerId];

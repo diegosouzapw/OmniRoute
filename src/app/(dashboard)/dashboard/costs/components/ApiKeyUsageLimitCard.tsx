@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
 export interface ApiKeyUsageLimitPayload {
@@ -46,16 +47,18 @@ function parseUsdInput(value: string): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
-function formatResetHint(resetAtIso: string | null): string {
-  if (!resetAtIso) return "fallback: rolling 7 days";
+function formatResetHint(resetAtIso: string | null, t: ReturnType<typeof useTranslations>): string {
+  if (!resetAtIso) return t("fallbackRollingDays", { days: 7 });
   const resetMs = Date.parse(resetAtIso);
-  if (!Number.isFinite(resetMs)) return "fallback: rolling 7 days";
+  if (!Number.isFinite(resetMs)) return t("fallbackRollingDays", { days: 7 });
   const deltaMs = resetMs - Date.now();
-  if (deltaMs <= 0) return "reset due now";
+  if (deltaMs <= 0) return t("resetDueNow");
   const hourMs = 60 * 60 * 1000;
   const dayMs = 24 * hourMs;
-  if (deltaMs < dayMs) return `resets in ${Math.max(1, Math.ceil(deltaMs / hourMs))}h`;
-  return `resets in ${Math.max(1, Math.ceil(deltaMs / dayMs))}d`;
+  if (deltaMs < dayMs) {
+    return t("resetsInHours", { count: Math.max(1, Math.ceil(deltaMs / hourMs)) });
+  }
+  return t("resetsInDays", { count: Math.max(1, Math.ceil(deltaMs / dayMs)) });
 }
 
 function UsageQuotaMetric({ label, value }: { label: string; value: string }) {
@@ -78,6 +81,7 @@ export function ApiKeyUsageLimitCard({
   locale: string;
   onSave: (next: ApiKeyUsageLimitSavePayload) => Promise<void>;
 }) {
+  const t = useTranslations("usageLimits");
   const [enabled, setEnabled] = useState(false);
   const [dailyLimit, setDailyLimit] = useState("");
   const [weeklyLimit, setWeeklyLimit] = useState("");
@@ -113,7 +117,7 @@ export function ApiKeyUsageLimitCard({
         weeklyUsageLimitUsd: parseUsdInput(weeklyLimit),
       });
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Failed to save usage limits");
+      setError(saveError instanceof Error ? saveError.message : t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -125,17 +129,14 @@ export function ApiKeyUsageLimitCard({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-emerald-400 text-lg">paid</span>
-            <h3 className="text-sm font-semibold text-text-main">API key USD quota</h3>
+            <h3 className="text-sm font-semibold text-text-main">{t("apiKeyUsdQuota")}</h3>
             {payload?.key.name && (
               <span className="truncate rounded bg-surface px-2 py-0.5 text-xs text-text-muted">
                 {payload.key.name}
               </span>
             )}
           </div>
-          <p className="mt-1 text-xs text-text-muted">
-            When enabled, @@om-usage returns daily quota, weekly quota, daily spend, and weekly
-            spend in USD. Weekly follows the cached Claude reset when available.
-          </p>
+          <p className="mt-1 text-xs text-text-muted">{t("apiKeyUsdQuotaDescription")}</p>
         </div>
         <button
           type="button"
@@ -150,22 +151,22 @@ export function ApiKeyUsageLimitCard({
           } ${loading || !payload ? "opacity-50" : ""}`}
         >
           <span className="material-symbols-outlined text-[14px]">paid</span>
-          {enabled ? "Enabled" : "Disabled"}
+          {enabled ? t("enabled") : t("disabled")}
         </button>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <UsageQuotaMetric
-          label="Daily spend"
+          label={t("dailySpend")}
           value={loading || !status ? "..." : formatter.format(status.dailySpentUsd)}
         />
         <UsageQuotaMetric
-          label="Weekly spend"
+          label={t("weeklySpend")}
           value={loading || !status ? "..." : formatter.format(status.weeklySpentUsd)}
         />
         <div className="rounded-lg border border-border/20 bg-surface/20 px-4 py-3">
           <label className="text-xs uppercase tracking-wide text-text-muted font-semibold">
-            Daily quota
+            {t("dailyQuota")}
           </label>
           <input
             type="number"
@@ -179,7 +180,7 @@ export function ApiKeyUsageLimitCard({
         </div>
         <div className="rounded-lg border border-border/20 bg-surface/20 px-4 py-3">
           <label className="text-xs uppercase tracking-wide text-text-muted font-semibold">
-            Weekly quota
+            {t("weeklyQuota")}
           </label>
           <input
             type="number"
@@ -191,7 +192,7 @@ export function ApiKeyUsageLimitCard({
             placeholder="0.00"
           />
           <p className="mt-1 text-[10px] text-text-muted">
-            {formatResetHint(status?.weeklyResetAtIso ?? null)}
+            {formatResetHint(status?.weeklyResetAtIso ?? null, t)}
           </p>
         </div>
       </div>
@@ -207,7 +208,7 @@ export function ApiKeyUsageLimitCard({
           <span className="material-symbols-outlined text-[14px]">
             {saving ? "hourglass_empty" : "save"}
           </span>
-          {saving ? "Saving..." : "Save quota"}
+          {saving ? t("saving") : t("saveQuota")}
         </button>
       </div>
     </Card>

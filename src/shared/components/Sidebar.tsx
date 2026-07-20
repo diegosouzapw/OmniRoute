@@ -537,7 +537,7 @@ export default function Sidebar({
         )}
 
         <nav
-          aria-label="Main navigation"
+          aria-label={t("mainNavigation")}
           className={cn(
             "min-h-0 flex-1 overflow-y-auto py-1 custom-scrollbar",
             collapsed ? "px-2 space-y-0.5" : "px-3"

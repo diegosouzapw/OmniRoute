@@ -182,10 +182,12 @@ export function WeeklyPatternCard({
   title,
   rows,
   locale,
+  tokensLabel,
 }: {
   title: string;
   rows: Array<{ day: string; avgTokens: number; totalTokens: number }>;
   locale: string;
+  tokensLabel: string;
 }) {
   const chartData = rows.map((row) => ({
     day: row.day,
@@ -219,7 +221,7 @@ export function WeeklyPatternCard({
             />
             <Tooltip
               formatter={(value: number) =>
-                `${new Intl.NumberFormat(locale).format(value || 0)} tokens`
+                `${new Intl.NumberFormat(locale).format(value || 0)} ${tokensLabel}`
               }
               contentStyle={{
                 background: "var(--surface)",

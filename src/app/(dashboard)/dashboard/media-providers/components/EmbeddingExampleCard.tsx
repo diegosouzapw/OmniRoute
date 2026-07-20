@@ -29,7 +29,7 @@ export function EmbeddingExampleCard({ providerId }: Props) {
 
   const firstModel = models[0]?.id ?? "";
   const [model, setModel] = useState<string>("");
-  const [inputText, setInputText] = useState<string>("Hello, world!");
+  const [inputText, setInputText] = useState<string>(() => t("embeddingSample"));
   const [running, setRunning] = useState<boolean>(false);
   const [result, setResult] = useState<{ data: unknown; latencyMs: number } | undefined>();
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +73,7 @@ export function EmbeddingExampleCard({ providerId }: Props) {
         setResult({ data, latencyMs });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : t("requestFailed"));
     } finally {
       setRunning(false);
     }
@@ -83,7 +83,7 @@ export function EmbeddingExampleCard({ providerId }: Props) {
 
   return (
     <PlaygroundCard
-      kindLabel="Embedding"
+      kindLabel={t("embedding")}
       apiEndpoint={ENDPOINT_PATH}
       onRun={handleRun}
       curlSnippet={curlSnippet}
@@ -113,7 +113,7 @@ export function EmbeddingExampleCard({ providerId }: Props) {
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Hello, world!"
+          placeholder={t("embeddingSample")}
           className="w-full rounded-md border border-border bg-bg-subtle text-sm px-2 py-1.5 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>

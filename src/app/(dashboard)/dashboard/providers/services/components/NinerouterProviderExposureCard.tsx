@@ -5,13 +5,24 @@
  */
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Toggle } from "@/shared/components";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
 const NAME = "9router";
 
+function renderPrefix(chunks: ReactNode) {
+  return <code className="font-mono bg-bg-subtle px-1 rounded">{chunks}</code>;
+}
+
+function renderSmallPrefix(chunks: ReactNode) {
+  return <code className="font-mono bg-bg-subtle px-1 rounded text-xs">{chunks}</code>;
+}
+
 export function NinerouterProviderExposureCard() {
+  const t = useTranslations("embeddedServices");
   const { data, mutate } = useServiceStatus(NAME);
   const [pending, setPending] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -28,14 +39,16 @@ export function NinerouterProviderExposureCard() {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const errorMsg =
-          body?.error?.message ?? body?.message ?? `Failed to update (HTTP ${res.status})`;
+          body?.error?.message ??
+          body?.message ??
+          t("providerExposureUpdateFailed", { status: res.status });
         setMsg({ ok: false, text: errorMsg });
         return;
       }
       setMsg(null);
       mutate();
     } catch {
-      setMsg({ ok: false, text: "Network error — could not update provider exposure setting" });
+      setMsg({ ok: false, text: t("providerExposureNetworkFailed") });
     } finally {
       setPending(false);
     }
@@ -48,10 +61,11 @@ export function NinerouterProviderExposureCard() {
           <span className="material-symbols-outlined text-purple-500 text-xl">hub</span>
         </div>
         <div>
-          <h3 className="font-medium text-sm">Provider Exposure</h3>
+          <h3 className="font-medium text-sm">{t("providerExposure")}</h3>
           <p className="text-xs text-text-muted">
-            Expose 9Router models as a routing target under the{" "}
-            <code className="font-mono bg-bg-subtle px-1 rounded">9router/</code> prefix.
+            {t.rich("providerExposureDescription", {
+              prefix: renderPrefix,
+            })}
           </p>
         </div>
       </div>
@@ -74,12 +88,11 @@ export function NinerouterProviderExposureCard() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm">
-            Expose as{" "}
-            <code className="font-mono bg-bg-subtle px-1 rounded text-xs">9router/...</code>
+            {t.rich("providerExposureLabel", {
+              prefix: renderSmallPrefix,
+            })}
           </p>
-          <p className="text-xs text-text-muted mt-0.5">
-            When enabled, discovered models appear in provider selects across OmniRoute.
-          </p>
+          <p className="text-xs text-text-muted mt-0.5">{t("providerExposureHint")}</p>
         </div>
         <Toggle
           checked={data?.providerExpose ?? false}

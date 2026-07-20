@@ -1,6 +1,7 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import { useTranslations } from "next-intl";
 import { Badge, Button } from "@/shared/components";
 
 export type BackupCleanupOptions = {
@@ -73,33 +74,35 @@ export default function DatabaseBackupRetentionCard({
   onSaveRetention,
   onCleanupBackups,
 }: DatabaseBackupRetentionCardProps) {
+  const t = useTranslations("settings");
+
   return (
     <div className={`p-3 rounded-lg bg-bg border border-border ${className}`}>
       <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
         <div>
           <p className="text-sm font-medium text-text-main">{title}</p>
           <p className="text-xs text-text-muted">
-            Automatic SQLite backups are stored in <code>db_backups</code>. Configure how many
-            snapshots to keep and optionally delete backups older than N days.
+            {t("storageBackupRetentionDescription")} <code>db_backups</code>.{" "}
+            {t("storageBackupRetentionHelp")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="default" size="sm">
-            {storageHealth.backupCount || 0} backups
+            {t("storageBackupCount", { count: storageHealth.backupCount || 0 })}
           </Badge>
           <Badge variant="default" size="sm">
-            Max {storageHealth.backupRetention.maxFiles}
+            {t("storageBackupMaximum", { count: storageHealth.backupRetention.maxFiles })}
           </Badge>
           <Badge variant="default" size="sm">
             {storageHealth.backupRetention.days > 0
-              ? `${storageHealth.backupRetention.days}d retention`
-              : "Age retention off"}
+              ? t("storageBackupAgeRetention", { count: storageHealth.backupRetention.days })
+              : t("storageBackupAgeRetentionOff")}
           </Badge>
         </div>
       </div>
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-xs text-text-muted">
-          Keep latest backups
+          {t("storageBackupKeepLatest")}
           <input
             type="number"
             min={1}
@@ -117,7 +120,7 @@ export default function DatabaseBackupRetentionCard({
           />
         </label>
         <label className="flex flex-col gap-1 text-xs text-text-muted">
-          Delete older than days
+          {t("storageBackupDeleteOlderThan")}
           <input
             type="number"
             min={0}
@@ -143,7 +146,7 @@ export default function DatabaseBackupRetentionCard({
           <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
             save
           </span>
-          Save retention
+          {t("storageBackupSaveRetention")}
         </Button>
         <Button
           variant="outline"
@@ -154,7 +157,7 @@ export default function DatabaseBackupRetentionCard({
           <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
             auto_delete
           </span>
-          Clean old backups
+          {t("storageBackupCleanOld")}
         </Button>
       </div>
       <StatusAlert status={backupRetentionStatus} />

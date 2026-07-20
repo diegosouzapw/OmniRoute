@@ -176,7 +176,7 @@ export default function CopilotToolCard({
         <div className="flex items-center gap-3">
           <div className="size-8 rounded-lg flex items-center justify-center shrink-0">
             <Image
-              src={tool.image || "/providers/copilot.png"}
+              src={tool.image || "/providers/copilot.svg"}
               alt={tool.name}
               width={32}
               height={32}
@@ -195,7 +195,7 @@ export default function CopilotToolCard({
                 {t("guide")}
               </span>
             </div>
-            <p className="text-xs text-text-muted truncate">{tool.description}</p>
+            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.copilot")}</p>
           </div>
         </div>
         <span
@@ -215,12 +215,11 @@ export default function CopilotToolCard({
               <div className="text-sm text-blue-700 dark:text-blue-300">
                 <p className="font-medium">{t("copilotConfigGenerator")}</p>
                 <p className="mt-1 text-xs opacity-80">
-                  Generates the{" "}
+                  {t("copilotGeneratorDescriptionPrefix")}{" "}
                   <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
                     chatLanguageModels.json
                   </code>{" "}
-                  block for VS Code GitHub Copilot using the Azure vendor pattern. Select the models
-                  you want, then copy the JSON into your config file.
+                  {t("copilotGeneratorDescriptionSuffix")}
                 </p>
               </div>
             </div>
@@ -229,10 +228,10 @@ export default function CopilotToolCard({
             <div className="flex items-start gap-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
               <span className="material-symbols-outlined text-yellow-500 text-lg">warning</span>
               <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                This configuration uses the Azure vendor workaround for custom model lists. Tested
-                with <strong>VS Code ≥ 1.109</strong> and{" "}
-                <strong>GitHub Copilot Chat ≥ v0.37</strong>. Future extension updates may change
-                this behavior.
+                {t.rich("copilotCompatibilityWarning", {
+                  vscode: (chunks) => <strong>{chunks}</strong>,
+                  copilot: (chunks) => <strong>{chunks}</strong>,
+                })}
               </p>
             </div>
 
@@ -273,7 +272,10 @@ export default function CopilotToolCard({
                     {cloudEnabled && apiKeys?.length > 0 ? "2" : "1"}
                   </div>
                   <span className="font-medium text-sm">
-                    Select Models ({selectedModels.size}/{availableModels.length})
+                    {t("copilotSelectModels", {
+                      selected: selectedModels.size,
+                      total: availableModels.length,
+                    })}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -281,13 +283,13 @@ export default function CopilotToolCard({
                     onClick={selectAll}
                     className="px-2 py-1 text-xs bg-bg-secondary hover:bg-bg-tertiary rounded border border-border transition-colors"
                   >
-                    Select All
+                    {t("selectAll")}
                   </button>
                   <button
                     onClick={deselectAll}
                     className="px-2 py-1 text-xs bg-bg-secondary hover:bg-bg-tertiary rounded border border-border transition-colors"
                   >
-                    Clear
+                    {t("clear")}
                   </button>
                 </div>
               </div>
@@ -308,7 +310,7 @@ export default function CopilotToolCard({
                   <span className="material-symbols-outlined animate-spin text-base">
                     progress_activity
                   </span>
-                  <span>Loading models...</span>
+                  <span>{t("loadingModels")}</span>
                 </div>
               ) : availableModels.length === 0 && allModels.length === 0 ? (
                 <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
@@ -343,7 +345,7 @@ export default function CopilotToolCard({
                 <span className="material-symbols-outlined text-base group-open:rotate-90 transition-transform">
                   chevron_right
                 </span>
-                Advanced Options
+                {t("advancedOptions")}
               </summary>
               <div className="mt-3 grid grid-cols-2 gap-3 pl-6">
                 <div>
@@ -384,7 +386,7 @@ export default function CopilotToolCard({
                     onChange={(e) => setVision(e.target.checked)}
                     className="rounded border-border accent-[#1F6FEB]"
                   />
-                  <span className="text-sm">Vision</span>
+                  <span className="text-sm">{t("vision")}</span>
                 </label>
               </div>
             </details>
@@ -401,8 +403,7 @@ export default function CopilotToolCard({
                       {cloudEnabled && apiKeys?.length > 0 ? "3" : "2"}
                     </div>
                     <span className="font-medium text-sm">
-                      Copy Config ({selectedModels.size} model{selectedModels.size !== 1 ? "s" : ""}
-                      )
+                      {t("copilotCopyConfigForModels", { count: selectedModels.size })}
                     </span>
                   </div>
                   <Button
@@ -430,9 +431,7 @@ export default function CopilotToolCard({
                       ~/.config/Code/User/chatLanguageModels.json
                     </code>
                   </p>
-                  <p className="text-xs text-text-muted mt-1">
-                    Then reload VS Code and set the API key in the input prompt.
-                  </p>
+                  <p className="text-xs text-text-muted mt-1">{t("copilotReloadInstruction")}</p>
                 </div>
               </div>
             )}

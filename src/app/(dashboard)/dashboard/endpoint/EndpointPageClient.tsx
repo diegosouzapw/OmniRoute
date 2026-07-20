@@ -110,11 +110,11 @@ type EndpointTunnelVisibility = {
 
 type EndpointTab = "apis" | "mcp" | "a2a" | "context-sources";
 
-const ENDPOINT_TABS: Array<{ value: EndpointTab; label: string; icon: string }> = [
-  { value: "apis", label: "APIs", icon: "api" },
-  { value: "mcp", label: "MCP", icon: "extension" },
-  { value: "a2a", label: "A2A", icon: "hub" },
-  { value: "context-sources", label: "Context Sources", icon: "database" },
+const ENDPOINT_TABS: Array<{ value: EndpointTab; labelKey: string; icon: string }> = [
+  { value: "apis", labelKey: "tabApis", icon: "api" },
+  { value: "mcp", labelKey: "tabMcp", icon: "extension" },
+  { value: "a2a", labelKey: "tabA2a", icon: "hub" },
+  { value: "context-sources", labelKey: "tabContextSources", icon: "database" },
 ];
 
 const DEFAULT_TUNNEL_VISIBILITY: EndpointTunnelVisibility = {
@@ -1113,9 +1113,9 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const activeUrls = [
     ...activeTunnelUrls,
     ...(cloudEnabled && cloudEndpointNew
-      ? [{ label: "Cloud", url: cloudEndpointNew, key: "active_cloud" }]
+      ? [{ label: t("activeCloud"), url: cloudEndpointNew, key: "active_cloud" }]
       : []),
-    { label: "Local", url: localApiUrl, key: "active_local" },
+    { label: t("activeLocal"), url: localApiUrl, key: "active_local" },
   ].filter(
     (candidate, index, candidates) =>
       candidates.findIndex((other) => other.url === candidate.url) === index
@@ -1248,10 +1248,10 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   return (
     <div className="flex flex-col gap-8">
       <SegmentedControl
-        options={ENDPOINT_TABS}
+        options={ENDPOINT_TABS.map((tab) => ({ ...tab, label: t(tab.labelKey) }))}
         value={activeEndpointTab}
         onChange={(value) => setActiveEndpointTab(value as EndpointTab)}
-        aria-label="Endpoint sections"
+        aria-label={t("endpointSections")}
         className="w-fit"
       />
 
@@ -1300,7 +1300,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
         {activeUrls.length > 0 && (
           <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
             <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">
-              Active Endpoints
+              {t("activeEndpoints")}
             </p>
             <div className="flex flex-col gap-1.5">
               {activeUrls.map(({ label, url, key }) => (
@@ -1341,7 +1341,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                   <button
                     key={url}
                     onClick={() => void copy(url, `lan_${url}`)}
-                    title={`Copy ${url}`}
+                    title={t("copyUrlTitle", { url })}
                     className="inline-flex items-center gap-0.5 text-[10px] text-text-muted hover:text-text transition-colors"
                   >
                     <code className="font-mono">{url.replace(/^https?:\/\//, "")}</code>
@@ -1354,7 +1354,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </div>
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 border border-green-500/30 text-green-400 shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              Running
+              {t("statusRunning")}
             </span>
             <button
               onClick={() => void copy(localApiUrl, "endpoint_url")}
@@ -1373,11 +1373,14 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               network_node
             </span>
             <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-              Tunnels
+              {t("tunnels")}
             </span>
             <div className="flex-1 h-px bg-border/50" />
             <span className="text-[10px] text-text-muted">
-              {activeTunnelCount} / {visibleTunnelCount} active
+              {t("activeTunnelCount", {
+                active: activeTunnelCount,
+                total: visibleTunnelCount,
+              })}
             </span>
           </div>
 
@@ -1399,7 +1402,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${cloudEnabled ? "bg-green-400 animate-pulse" : "bg-text-muted"}`}
               />
-              {cloudEnabled ? "Active" : "Disabled"}
+              {cloudEnabled ? tc("active") : tc("disabled")}
             </span>
             {cloudEnabled ? (
               <Button
@@ -1425,7 +1428,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               </Button>
             ) : (
               <span className="text-xs text-text-muted shrink-0 px-2 py-1 rounded border border-border/70 bg-surface">
-                Not configured
+                {tc("notConfigured")}
               </span>
             )}
           </div>

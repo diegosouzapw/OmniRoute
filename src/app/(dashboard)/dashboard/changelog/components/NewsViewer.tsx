@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import {
   NEWS_JSON_URL,
@@ -9,6 +10,7 @@ import {
 } from "@/shared/utils/releaseNotes";
 
 export default function NewsViewer() {
+  const t = useTranslations("changelogPage");
   const [news, setNews] = useState<NewsAnnouncement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -49,7 +51,7 @@ export default function NewsViewer() {
         <span className="material-symbols-outlined text-[48px] text-red-500/50 mb-4">
           error_outline
         </span>
-        <p>Could not load announcements. Please try again later.</p>
+        <p>{t("announcementsLoadFailed")}</p>
       </div>
     );
   }
@@ -60,7 +62,7 @@ export default function NewsViewer() {
         <span className="material-symbols-outlined text-[48px] opacity-50 mb-4">
           notifications_off
         </span>
-        <p>No new announcements at this time.</p>
+        <p>{t("noAnnouncements")}</p>
       </div>
     );
   }
@@ -83,7 +85,7 @@ export default function NewsViewer() {
           <div className="shrink-0 md:ml-auto">
             <a href={news.link} target="_blank" rel="noopener noreferrer">
               <Button variant="primary" className="gap-2">
-                {news.linkLabel || "Learn More"}
+                {news.linkLabel || t("learnMore")}
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </Button>
             </a>

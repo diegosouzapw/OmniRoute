@@ -155,6 +155,24 @@ const CHART_COLORS = [
   "#ec4899",
 ];
 
+const SHORT_WEEKDAY_INDEX: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+function formatWeekdayLabel(day: string, locale: string): string {
+  const index = SHORT_WEEKDAY_INDEX[day.slice(0, 3)];
+  if (index === undefined) return day;
+  return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(
+    new Date(Date.UTC(2024, 0, 7 + index))
+  );
+}
+
 export function createCurrencyFormatter(locale: string) {
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -877,12 +895,14 @@ export default function CostOverviewTab() {
                 title={t("weeklyUsagePattern")}
                 rows={analytics?.weeklyPattern || []}
                 locale={locale}
+                tokensLabel={t("tokens")}
               />
               <ActivityHeatmap
                 title={t("activityHeatmap")}
                 activityMap={analytics?.activityMap || {}}
                 lessLabel={t("less")}
                 moreLabel={t("more")}
+                tokensLabel={t("tokens")}
                 locale={locale}
               />
             </div>
@@ -1102,12 +1122,14 @@ function ActivityHeatmap({
   activityMap,
   lessLabel,
   moreLabel,
+  tokensLabel,
   locale,
 }: {
   title: string;
   activityMap: Record<string, number>;
   lessLabel: string;
   moreLabel: string;
+  tokensLabel: string;
   locale: string;
 }) {
   const days: Array<{ date: string; value: number }> = [];
@@ -1151,7 +1173,7 @@ function ActivityHeatmap({
                   className={`w-2.75 h-2.75 rounded-xs ${getIntensity(day.value)}`}
                   title={`${day.date}: ${
                     day.value > 0
-                      ? `${new Intl.NumberFormat(locale).format(day.value)} tokens`
+                      ? `${new Intl.NumberFormat(locale).format(day.value)} ${tokensLabel}`
                       : "No activity"
                   }`}
                 />

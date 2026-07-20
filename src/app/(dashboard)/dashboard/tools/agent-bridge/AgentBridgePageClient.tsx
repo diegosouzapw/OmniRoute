@@ -74,6 +74,7 @@ export default function AgentBridgePageClient({
   hasProviders,
 }: AgentBridgePageClientProps) {
   const t = useTranslations("agentBridge");
+  const tc = useTranslations("common");
   const { data, refresh } = useAgentBridgeState({ initialData });
   const [actionError, setActionError] = useState<string | null>(null);
   const [certGuide, setCertGuide] = useState<CertManualGuide | null>(null);
@@ -106,45 +107,51 @@ export default function AgentBridgePageClient({
         }
         await refresh();
       } catch (err) {
-        setActionError(err instanceof Error ? err.message : "Unknown error");
+        setActionError(err instanceof Error ? err.message : t("unknownError"));
       }
     },
-    [refresh]
+    [refresh, t]
   );
 
   // ── Upstream CA ───────────────────────────────────────────────────────────
 
-  const handleUpstreamCaSave = useCallback(async (path: string) => {
-    setActionError(null);
-    try {
-      const res = await fetch("/api/tools/agent-bridge/upstream-ca", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      await refresh();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unknown error");
-    }
-  }, [refresh]);
+  const handleUpstreamCaSave = useCallback(
+    async (path: string) => {
+      setActionError(null);
+      try {
+        const res = await fetch("/api/tools/agent-bridge/upstream-ca", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await refresh();
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : t("unknownError"));
+      }
+    },
+    [refresh, t]
+  );
 
   // ── Bypass list ───────────────────────────────────────────────────────────
 
-  const handleBypassSave = useCallback(async (patterns: string[]) => {
-    setActionError(null);
-    try {
-      const res = await fetch("/api/tools/agent-bridge/bypass", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patterns }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      await refresh();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Unknown error");
-    }
-  }, [refresh]);
+  const handleBypassSave = useCallback(
+    async (patterns: string[]) => {
+      setActionError(null);
+      try {
+        const res = await fetch("/api/tools/agent-bridge/bypass", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ patterns }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await refresh();
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : t("unknownError"));
+      }
+    },
+    [refresh, t]
+  );
 
   // ── DNS toggle ────────────────────────────────────────────────────────────
 
@@ -160,10 +167,10 @@ export default function AgentBridgePageClient({
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         await refresh();
       } catch (err) {
-        setActionError(err instanceof Error ? err.message : "Unknown error");
+        setActionError(err instanceof Error ? err.message : t("unknownError"));
       }
     },
-    [refresh]
+    [refresh, t]
   );
 
   // ── Mappings save ─────────────────────────────────────────────────────────
@@ -180,10 +187,10 @@ export default function AgentBridgePageClient({
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         await refresh();
       } catch (err) {
-        setActionError(err instanceof Error ? err.message : "Unknown error");
+        setActionError(err instanceof Error ? err.message : t("unknownError"));
       }
     },
-    [refresh]
+    [refresh, t]
   );
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -205,7 +212,7 @@ export default function AgentBridgePageClient({
             type="button"
             onClick={() => setActionError(null)}
             className="ml-auto text-red-500 hover:text-red-400"
-            aria-label="Dismiss"
+            aria-label={tc("dismissNotification")}
           >
             <span className="material-symbols-outlined text-[16px]">close</span>
           </button>
@@ -220,13 +227,12 @@ export default function AgentBridgePageClient({
         >
           <div className="flex items-center gap-2 font-medium">
             <span className="material-symbols-outlined text-[16px]">info</span>
-            {t("certManualTitle") ||
-              "Certificate couldn't be installed automatically (e.g. inside a container). The bridge can still run — trust the CA manually:"}
+            {t("certManualTitle")}
             <button
               type="button"
               onClick={() => setCertGuide(null)}
               className="ml-auto text-amber-600 hover:text-amber-500"
-              aria-label="Dismiss"
+              aria-label={tc("dismissNotification")}
             >
               <span className="material-symbols-outlined text-[16px]">close</span>
             </button>
@@ -244,7 +250,7 @@ export default function AgentBridgePageClient({
             className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium underline hover:no-underline"
           >
             <span className="material-symbols-outlined text-[14px]">download</span>
-            {t("downloadCert") || "Download Cert"}
+            {t("downloadCert")}
           </a>
         </div>
       )}
@@ -287,7 +293,7 @@ export default function AgentBridgePageClient({
           {/* Quick links */}
           <div className="rounded-xl border border-border/40 bg-card px-5 py-4">
             <h3 className="text-xs font-semibold text-text-muted mb-2 uppercase tracking-wide">
-              {t("quickLinks") || "Quick links"}
+              {t("quickLinks")}
             </h3>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -295,14 +301,14 @@ export default function AgentBridgePageClient({
                 className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
               >
                 <span className="material-symbols-outlined text-[14px]">dns</span>
-                {t("quickLinkProviders") || "Configure providers"}
+                {t("quickLinkProviders")}
               </Link>
               <Link
                 href="/dashboard/tools/traffic-inspector"
                 className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
               >
                 <span className="material-symbols-outlined text-[14px]">network_check</span>
-                {t("quickLinkInspector") || "View traffic in Traffic Inspector"}
+                {t("quickLinkInspector")}
               </Link>
             </div>
           </div>

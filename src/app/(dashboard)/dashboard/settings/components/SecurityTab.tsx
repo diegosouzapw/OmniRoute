@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Input, Toggle, Modal } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 import IPFilterSection from "./IPFilterSection";
 import SessionInfoCard from "./SessionInfoCard";
 import AuthzSection from "./AuthzSection";
@@ -358,12 +359,16 @@ export default function SecurityTab() {
                         : t("blockProviderTitle", { provider: provider.name })
                     }
                   >
-                    <span
-                      className="material-symbols-outlined text-[14px]"
-                      style={{ color: isBlocked ? undefined : provider.color }}
-                    >
-                      {isBlocked ? "block" : provider.icon}
-                    </span>
+                    {isBlocked ? (
+                      <span className="material-symbols-outlined text-[14px]">block</span>
+                    ) : (
+                      <ProviderIcon
+                        providerId={provider.id}
+                        size={14}
+                        className="shrink-0"
+                        style={{ color: provider.color }}
+                      />
+                    )}
                     {provider.name}
                     {isBlocked && (
                       <span className="material-symbols-outlined text-[12px] text-red-500">

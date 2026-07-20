@@ -11,8 +11,8 @@
  * 1. Theme-aware static SVGs (`THEMED_SVGS`, e.g. arena-light/dark for lmarena)
  * 2. Try /providers/{id}.svg (local SVG assets — fastest, cached separately from JS bundle)
  * 3. Try @lobehub/icons direct React components (no @lobehub/ui peer runtime)
- * 4. Fall back to thesvg.org CDN (external SVG)
- * 5. Fall back to /providers/{id}.png (legacy static assets)
+ * 4. Try /providers/{id}.png (legacy static assets)
+ * 5. Fall back to thesvg.org CDN (external SVG)
  * 6. Fall back to a generic AI icon
  *
  * Usage:
@@ -284,6 +284,12 @@ const THEMED_SVGS: Record<string, { light: string; dark: string }> = {
   },
 };
 
+const PROVIDER_ICON_ALIASES: Record<string, string> = {
+  "opencode-go": "opencode",
+  "opencode-zen": "opencode",
+  "poe-web": "poe",
+};
+
 const ProviderIcon = memo(function ProviderIcon({
   providerId,
   size = 24,
@@ -296,7 +302,7 @@ const ProviderIcon = memo(function ProviderIcon({
   fallbackColor,
 }: ProviderIconProps) {
   const { isDark } = useTheme();
-  const normalizedId = providerId.toLowerCase();
+  const normalizedId = PROVIDER_ICON_ALIASES[providerId.toLowerCase()] || providerId.toLowerCase();
   const localSvgId = LOCAL_SVG_ALIASES[normalizedId] || normalizedId;
   const lobeIcon = getLobeProviderIcon(normalizedId, type);
   const themedSvg = THEMED_SVGS[normalizedId];
@@ -417,27 +423,7 @@ const ProviderIcon = memo(function ProviderIcon({
     );
   }
 
-  // Tier 4: thesvg.org CDN — external SVG fallback for unknown providers
-  if (!theSvgFailed) {
-    return (
-      <span
-        className={className}
-        style={{ display: "inline-flex", alignItems: "center", ...style }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element -- external SVG from thesvg.org, not a static/known asset */}
-        <img
-          src={`https://thesvg.org/icons/${normalizedId}/default.svg`}
-          alt={providerId}
-          width={size}
-          height={size}
-          style={{ objectFit: "contain", flex: "none" }}
-          onError={() => setFailedAssets((current) => ({ ...current, [theSvgKey]: true }))}
-        />
-      </span>
-    );
-  }
-
-  // Tier 5: Local PNG — last resort before generic icon
+  // Tier 4: Known local PNG — avoid a failing external request when a bundled asset exists
   if (hasPng && !pngFailed) {
     return (
       <span
@@ -452,6 +438,26 @@ const ProviderIcon = memo(function ProviderIcon({
           style={{ objectFit: "contain" }}
           onError={() => setFailedAssets((current) => ({ ...current, [pngKey]: true }))}
           unoptimized
+        />
+      </span>
+    );
+  }
+
+  // Tier 5: thesvg.org CDN — external SVG fallback for unknown providers
+  if (!theSvgFailed) {
+    return (
+      <span
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center", ...style }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- external SVG from thesvg.org, not a static/known asset */}
+        <img
+          src={`https://thesvg.org/icons/${normalizedId}/default.svg`}
+          alt={providerId}
+          width={size}
+          height={size}
+          style={{ objectFit: "contain", flex: "none" }}
+          onError={() => setFailedAssets((current) => ({ ...current, [theSvgKey]: true }))}
         />
       </span>
     );

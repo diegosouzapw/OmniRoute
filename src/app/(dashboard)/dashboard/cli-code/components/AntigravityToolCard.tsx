@@ -109,9 +109,7 @@ export default function AntigravityToolCard({
   // browser hitting a Windows server does not (#822).
   const serverIsWindows = status?.isWin === true;
   const canRunWithoutPassword =
-    serverIsWindows ||
-    status?.hasCachedPassword === true ||
-    status?.needsSudoPassword === false;
+    serverIsWindows || status?.hasCachedPassword === true || status?.needsSudoPassword === false;
 
   const handleStart = () => {
     if (canRunWithoutPassword) {
@@ -220,7 +218,10 @@ export default function AntigravityToolCard({
     if (currentEditingAlias) {
       setModelMappings((prev) => ({
         ...prev,
-        [currentEditingAlias]: { ...getMappingEntry(prev, currentEditingAlias), model: model.value },
+        [currentEditingAlias]: {
+          ...getMappingEntry(prev, currentEditingAlias),
+          model: model.value,
+        },
       }));
     }
   };
@@ -290,7 +291,7 @@ export default function AntigravityToolCard({
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-text-muted truncate">{tool.description}</p>
+            <p className="text-xs text-text-muted truncate">{t(`toolDescriptions.${tool.id}`)}</p>
           </div>
         </div>
         <span
@@ -522,7 +523,9 @@ export default function AntigravityToolCard({
         onClose={() => setModalOpen(false)}
         onSelect={handleModelSelect}
         selectedModel={
-          currentEditingAlias ? getMappingEntry(modelMappings, currentEditingAlias).model || null : null
+          currentEditingAlias
+            ? getMappingEntry(modelMappings, currentEditingAlias).model || null
+            : null
         }
         activeProviders={activeProviders}
         modelAliases={modelAliases}

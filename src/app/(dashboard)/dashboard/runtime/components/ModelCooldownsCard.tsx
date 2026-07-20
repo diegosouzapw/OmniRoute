@@ -34,11 +34,11 @@ export default function ModelCooldownsCard() {
       if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
       setItems(Array.isArray(json.items) ? json.items : []);
     } catch (error) {
-      notify.error(error instanceof Error ? error.message : "Failed to load cooldowns");
+      notify.error(error instanceof Error ? error.message : t("modelCooldownsLoadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [notify]);
+  }, [notify, t]);
 
   useEffect(() => {
     void load();
@@ -60,15 +60,15 @@ export default function ModelCooldownsCard() {
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
-        notify.success(`Model reactivated: ${provider}/${model}`);
+        notify.success(t("modelCooldownReactivated", { model: `${provider}/${model}` }));
         await load();
       } catch (error) {
-        notify.error(error instanceof Error ? error.message : "Failed to clear cooldown");
+        notify.error(error instanceof Error ? error.message : t("modelCooldownClearFailed"));
       } finally {
         setBusyKey(null);
       }
     },
-    [load, notify]
+    [load, notify, t]
   );
 
   const clearAll = useCallback(async () => {
@@ -81,14 +81,14 @@ export default function ModelCooldownsCard() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
-      notify.success("All models in cooldown have been reactivated.");
+      notify.success(t("modelCooldownsAllReactivated"));
       await load();
     } catch (error) {
-      notify.error(error instanceof Error ? error.message : "Failed to clear cooldowns");
+      notify.error(error instanceof Error ? error.message : t("modelCooldownsClearFailed"));
     } finally {
       setBusyKey(null);
     }
-  }, [load, notify]);
+  }, [load, notify, t]);
 
   const hasItems = items.length > 0;
   const sorted = useMemo(() => [...items].sort((a, b) => b.remainingMs - a.remainingMs), [items]);
@@ -98,14 +98,11 @@ export default function ModelCooldownsCard() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-text-main">{t("modelCooldownsTitle")}</h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Models temporarily isolated after a failure. When the cooldown expires they come back
-            automatically.
-          </p>
+          <p className="mt-1 text-sm text-text-muted">{t("modelCooldownsDescription")}</p>
         </div>
         <div className="flex gap-2">
           <Button size="sm" variant="secondary" onClick={() => void load()} disabled={loading}>
-            Refresh
+            {t("refresh")}
           </Button>
           <Button
             size="sm"
@@ -113,14 +110,14 @@ export default function ModelCooldownsCard() {
             onClick={() => void clearAll()}
             disabled={!hasItems || busyKey === "ALL"}
           >
-            Reactivate all
+            {t("modelCooldownsReactivateAll")}
           </Button>
         </div>
       </div>
 
       <div className="mt-4 space-y-2">
         {loading ? (
-          <p className="text-sm text-text-muted">Loading...</p>
+          <p className="text-sm text-text-muted">{t("loading")}</p>
         ) : !hasItems ? (
           <p className="text-sm text-text-muted">{t("modelCooldownsEmpty")}</p>
         ) : (
@@ -136,7 +133,10 @@ export default function ModelCooldownsCard() {
                     {item.provider}/{item.model}
                   </p>
                   <p className="text-xs text-text-muted">
-                    reason: {item.reason} • remaining: {formatRemaining(item.remainingMs)}
+                    {t("modelCooldownsReasonRemaining", {
+                      reason: item.reason,
+                      remaining: formatRemaining(item.remainingMs),
+                    })}
                   </p>
                 </div>
                 <Button
@@ -145,7 +145,7 @@ export default function ModelCooldownsCard() {
                   onClick={() => void clearOne(item.provider, item.model)}
                   disabled={busyKey === rowKey}
                 >
-                  Reactivate
+                  {t("modelCooldownsReactivate")}
                 </Button>
               </div>
             );
