@@ -20,7 +20,7 @@
  * `pathToFileURL()` is a trusted, fully-parsed URL — no sanitization ambiguity.
  */
 import { pathToFileURL } from "node:url";
-import { join } from "node:path";
+import { join, relative, isAbsolute } from "node:path";
 import { existsSync } from "node:fs";
 
 let ROOT = "";
@@ -38,7 +38,15 @@ function tryResolveAliasFsPath(specifier) {
   const rest = specifier.slice(2);
   // Guard against absolute-ish escapes (`@//etc/passwd`, `@/\x00`).
   if (rest.startsWith("/") || rest.startsWith("\\")) return null;
-  const base = join(ROOT, "src", rest);
+  // Guard against path-traversal escapes (`@/../../../etc/hostname`). Reject
+  // any `..` path segment outright, then double-check with path.relative()
+  // that the joined path cannot land outside <root>/src even after `join()`
+  // normalizes the segments.
+  const segments = rest.split(/[\\/]+/);
+  if (segments.includes("..")) return null;
+  const srcRoot = join(ROOT, "src");
+  const base = join(srcRoot, rest);
+  if (!isWithinSrcRoot(srcRoot, base)) return null;
   if (existsSync(base)) return base;
   for (const ext of EXTENSIONS) {
     const candidate = base + ext;
@@ -51,6 +59,20 @@ function tryResolveAliasFsPath(specifier) {
     if (existsSync(candidate)) return candidate;
   }
   return null;
+}
+
+/**
+ * True when `candidate` resolves to a location inside `srcRoot` (or is
+ * `srcRoot` itself). Second, path-normalization-aware layer of defense
+ * against traversal beyond the literal `..` segment check above.
+ *
+ * @param {string} srcRoot
+ * @param {string} candidate
+ * @returns {boolean}
+ */
+function isWithinSrcRoot(srcRoot, candidate) {
+  const rel = relative(srcRoot, candidate);
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
 export function resolve(specifier, context, nextResolve) {

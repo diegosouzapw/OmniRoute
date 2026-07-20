@@ -74,6 +74,19 @@ describe("aliasResolver.resolveAlias (pure)", () => {
     assert.equal(resolveAlias("@/\\etc/passwd", REPO_ROOT), null);
   });
 
+  it("rejects @/../ path-traversal escapes outside <root>/src", () => {
+    // `@/../../../etc/hostname` must NOT escape <root>/src onto the real
+    // filesystem — even though it does not start with `/` or `\`, `join()`
+    // would otherwise normalize it to a path outside the intended root.
+    assert.equal(resolveAlias("@/../../../etc/hostname", REPO_ROOT), null);
+    assert.equal(resolveAlias("@/..", REPO_ROOT), null);
+    assert.equal(resolveAlias("@/foo/../../bar", REPO_ROOT), null);
+    // A `..` segment that stays inside <root>/src after normalization is
+    // still rejected — the guard is a literal segment check, not just a
+    // containment check, so it fails closed even in ambiguous cases.
+    assert.equal(resolveAlias("@/shared/../shared/utils/featureFlags", REPO_ROOT), null);
+  });
+
   it("preserves an explicit .ts extension if the file exists", () => {
     // `@/shared/utils/featureFlags.ts` exists on disk → resolves to it
     const got = resolveAlias("@/shared/utils/featureFlags.ts", REPO_ROOT);

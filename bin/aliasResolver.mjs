@@ -17,7 +17,7 @@
  */
 
 import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, relative, isAbsolute } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 /** Prefix that triggers alias rewriting. Exported for tests/consumers. */
@@ -40,9 +40,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  *   `.cjs`, `.json`), then `<dir>/index.*`. Returns the first existing match
  *   as a `file://` URL.
  * - Returns `null` for specifiers that do not start with `@/`, for malformed
- *   escapes (`@//etc/...`), or when no corresponding source file exists on
- *   disk. The caller (the ESM loader, or test code) treats `null` as "defer
- *   to the default resolver".
+ *   escapes (`@//etc/...`), for path-traversal attempts (`@/../../../etc/...`),
+ *   or when no corresponding source file exists on disk. The caller (the ESM
+ *   loader, or test code) treats `null` as "defer to the default resolver".
  *
  * This is the exact same logic the loader hook in HOOK_SOURCE runs, factored
  * out so it can be unit-tested without spawning a worker.
@@ -63,7 +63,20 @@ export function resolveAlias(specifier, root) {
   if (rest.startsWith("/") || rest.startsWith("\\")) {
     return null;
   }
-  const base = join(root, "src", rest);
+  // Guard against path-traversal escapes (`@/../../../etc/hostname`). Reject
+  // any `..` path segment outright, then double-check with path.relative()
+  // that the joined path cannot land outside <root>/src even after `join()`
+  // normalizes the segments — belt-and-suspenders against any encoding this
+  // literal segment check might miss.
+  const segments = rest.split(/[\\/]+/);
+  if (segments.includes("..")) {
+    return null;
+  }
+  const srcRoot = join(root, "src");
+  const base = join(srcRoot, rest);
+  if (!isWithinSrcRoot(srcRoot, base)) {
+    return null;
+  }
   if (existsSync(base)) return pathToFileURL(base).href;
   for (const ext of SOURCE_EXTENSIONS) {
     const candidate = base + ext;
@@ -76,6 +89,20 @@ export function resolveAlias(specifier, root) {
     if (existsSync(candidate)) return pathToFileURL(candidate).href;
   }
   return null;
+}
+
+/**
+ * True when `candidate` resolves to a location inside `srcRoot` (or is
+ * `srcRoot` itself). Used as a second, path-normalization-aware layer of
+ * defense against traversal beyond the literal `..` segment check above.
+ *
+ * @param {string} srcRoot
+ * @param {string} candidate
+ * @returns {boolean}
+ */
+function isWithinSrcRoot(srcRoot, candidate) {
+  const rel = relative(srcRoot, candidate);
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }
 
 /**
