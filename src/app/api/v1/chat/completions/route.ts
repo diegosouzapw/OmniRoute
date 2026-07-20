@@ -12,6 +12,7 @@ import {
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import {
   admitChatRequest,
+  releaseChatAdmissionAfterHandler,
   releaseChatAdmissionWhenDone,
 } from "@/shared/middleware/chatBodyAdmission";
 import {
@@ -139,7 +140,10 @@ export async function POST(request) {
       // Wrap the real handler response, not the synthetic early-keepalive response. If the
       // client cancels while handleChat is still pending, earlyStreamKeepalive will cancel the
       // eventual handler body; only that confirmed cleanup releases heavyweight capacity.
-      const handlerResponse = handleChat(request, null, parsedBody, reqId).then(finishAdmission);
+      const handlerResponse = releaseChatAdmissionAfterHandler(
+        handleChat(request, null, parsedBody, reqId),
+        admission.lease
+      );
       const streamedResponse = await withEarlyStreamKeepalive(handlerResponse, {
         signal: request.signal,
         thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),

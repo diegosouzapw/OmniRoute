@@ -190,6 +190,19 @@ export async function admitChatRequest(
   return { admit: true, request: rebuildRequest(request, body), lease };
 }
 
+/** Release a lease if a handler rejects; otherwise bind it to the returned response lifecycle. */
+export async function releaseChatAdmissionAfterHandler(
+  responsePromise: Promise<Response>,
+  lease: ChatAdmissionLease | null
+): Promise<Response> {
+  try {
+    return releaseChatAdmissionWhenDone(await responsePromise, lease);
+  } catch (error) {
+    lease?.release();
+    throw error;
+  }
+}
+
 /** Hold a heavyweight lease through an SSE response without buffering the response body. */
 export function releaseChatAdmissionWhenDone(
   response: Response,

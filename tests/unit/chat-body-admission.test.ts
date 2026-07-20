@@ -2,8 +2,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { admitChatRequest, ChatAdmissionController, releaseChatAdmissionWhenDone } =
-  await import("../../src/shared/middleware/chatBodyAdmission.ts");
+const {
+  admitChatRequest,
+  ChatAdmissionController,
+  releaseChatAdmissionAfterHandler,
+  releaseChatAdmissionWhenDone,
+} = await import("../../src/shared/middleware/chatBodyAdmission.ts");
 const { withEarlyStreamKeepalive } = await import("../../open-sse/utils/earlyStreamKeepalive.ts");
 
 function chatRequest(body: string, contentLength: string | null = String(body.length)): Request {
@@ -251,6 +255,34 @@ test("pre-aborted early keepalive cancels the eventual handler body and releases
   assert.equal(cancelledBeforeTimeout, true, "pre-aborted signal must cancel the handler body");
   assert.equal(admissionController.activeHeavy, 0, "pre-abort must not retain admission");
   await outer.body?.cancel();
+});
+
+test("handler rejection releases the heavyweight lease", async () => {
+  const controller = new ChatAdmissionController(1);
+  const lease = controller.tryAcquireHeavy();
+  assert.ok(lease);
+
+  await assert.rejects(
+    releaseChatAdmissionAfterHandler(Promise.reject(new Error("handler failed")), lease),
+    /handler failed/
+  );
+  assert.equal(controller.activeHeavy, 0);
+});
+
+test("pre-aborted keepalive handles a bodyless handler response", async () => {
+  const abortController = new AbortController();
+  abortController.abort("client already disconnected");
+
+  const outer = await withEarlyStreamKeepalive(
+    Promise.resolve(new Response(null, { status: 204 })),
+    {
+      thresholdMs: 0,
+      intervalMs: 250,
+      signal: abortController.signal,
+    }
+  );
+
+  await assert.doesNotReject(outer.text());
 });
 
 test("stream read error releases the heavyweight lease", async () => {

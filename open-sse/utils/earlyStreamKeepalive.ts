@@ -157,7 +157,9 @@ export async function withEarlyStreamKeepalive(
         if (aborted) {
           // The synthetic keepalive response can be cancelled before the handler resolves.
           // Cancel the eventual real response so its upstream work and lifecycle hooks finish.
-          if (result.ok) await result.response.body?.cancel().catch(() => undefined);
+          if (result.ok && result.response.body) {
+            await result.response.body.cancel().catch(() => undefined);
+          }
           return;
         }
 
