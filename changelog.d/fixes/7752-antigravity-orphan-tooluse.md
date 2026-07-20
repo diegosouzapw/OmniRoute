@@ -1,0 +1,1 @@
+- fix(sse): strip orphaned tool_use blocks before dispatching to Antigravity/Vertex Claude models, mirroring the mainline Claude executor's #2382 guard (#7752)
