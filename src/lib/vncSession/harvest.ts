@@ -1,204 +1,429 @@
-/**
- * vncSession cookie harvester.
- *
- * Connects to the VNC container's browser via the DevTools Protocol and reads
- * the live cookie jar for the target origin plus any localStorage bearer/token
- * values, then returns a normalized structure the session service writes back
- * into `provider_connections`.
- *
- * The default container image (jlesage/firefox) exposes the remote-debugging
- * port on 0.0.0.0, so the harvester talks to the plain host-published CDP port.
- * With a Chromium-based image (Chrome ≥130 forces the debugger to 127.0.0.1) an
- * in-container TCP bridge is required to republish it — see docker/README.
- *
- * We use a raw WebSocket (`ws`, a dependency OmniRoute already ships) instead
- * of Playwright's CDP client: Playwright's connectOverCDP transport can hang
- * when tunneled through a simple TCP bridge, whereas raw CDP over a single
- * WebSocket works reliably.
- */
-
 import WebSocket from "ws";
 import type { VncProviderEntry } from "./manifest";
 
+export interface HarvestCookie {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+}
+
 export interface HarvestResult {
-  cookies: Array<{ name: string; value: string; domain: string; path: string }>;
+  cookies: HarvestCookie[];
+  /** Declared values discovered in localStorage, sessionStorage, or page URLs. */
   localStorage: Record<string, string>;
+  /** Full Cookie header for the provider origin, only when the canonical contract allows it. */
   cookieHeader: string;
   hasCredential: boolean;
 }
 
 interface Pending {
-  res: (v: any) => void;
-  rej: (e: any) => void;
+  resolve: (value: any) => void;
+  reject: (error: Error) => void;
+  cleanup: () => void;
+}
+
+export interface CdpTargetInfo {
+  targetId: string;
+  type: string;
+  url?: string;
 }
 
 class CdpClient {
-  private ws: WebSocket;
+  private readonly ws: WebSocket;
   private nextId = 1;
-  private pending = new Map<number, Pending>();
+  private readonly pending = new Map<number, Pending>();
   private sessionId: string | null = null;
+  private closed = false;
 
   constructor(wsUrl: string) {
     this.ws = new WebSocket(wsUrl);
-    this.ws.on("message", (d) => this.onMessage(d));
+    this.ws.on("message", (data) => this.onMessage(data));
+    this.ws.on("close", () => this.rejectAll(new Error("CDP websocket closed")));
+    this.ws.on("error", (error) => this.rejectAll(toError(error, "CDP websocket error")));
   }
 
-  ready(): Promise<void> {
+  ready(timeoutMs = 15_000, signal?: AbortSignal): Promise<void> {
+    if (this.ws.readyState === WebSocket.OPEN) return Promise.resolve();
+    if (this.ws.readyState === WebSocket.CLOSING || this.ws.readyState === WebSocket.CLOSED) {
+      return Promise.reject(new Error("CDP websocket is closed"));
+    }
+
     return new Promise((resolve, reject) => {
-      this.ws.on("open", () => resolve());
-      this.ws.on("error", (e) => reject(e));
-      const to = setTimeout(() => reject(new Error("cdp open timeout")), 15_000);
-      this.ws.on("open", () => clearTimeout(to));
+      let settled = false;
+      const finish = (error?: Error) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (error) reject(error);
+        else resolve();
+      };
+      const onOpen = () => finish();
+      const onError = (error: Error) => finish(toError(error, "CDP websocket error"));
+      const onAbort = () => {
+        this.close();
+        finish(new Error("CDP connection aborted"));
+      };
+      const timer = setTimeout(() => {
+        this.close();
+        finish(new Error("CDP open timeout"));
+      }, timeoutMs);
+      const cleanup = () => {
+        clearTimeout(timer);
+        this.ws.off("open", onOpen);
+        this.ws.off("error", onError);
+        signal?.removeEventListener("abort", onAbort);
+      };
+
+      this.ws.once("open", onOpen);
+      this.ws.once("error", onError);
+      if (signal) {
+        if (signal.aborted) onAbort();
+        else signal.addEventListener("abort", onAbort, { once: true });
+      }
     });
   }
 
-  private onMessage(d: WebSocket.RawData) {
-    let msg: any;
+  private onMessage(data: WebSocket.RawData): void {
+    let message: any;
     try {
-      msg = JSON.parse(d.toString());
+      message = JSON.parse(data.toString());
     } catch {
       return;
     }
-    if (msg.id && this.pending.has(msg.id)) {
-      const p = this.pending.get(msg.id)!;
-      this.pending.delete(msg.id);
-      msg.error ? p.rej(new Error(msg.error.message)) : p.res(msg.result);
+
+    if (typeof message.id !== "number") return;
+    const pending = this.pending.get(message.id);
+    if (!pending) return;
+
+    this.pending.delete(message.id);
+    pending.cleanup();
+    if (message.error) {
+      pending.reject(new Error(message.error.message || "CDP command failed"));
+    } else {
+      pending.resolve(message.result);
     }
   }
 
-  send(method: string, params: Record<string, any> = {}, sessionId?: string): Promise<any> {
-    return new Promise((res, rej) => {
+  private rejectAll(error: Error): void {
+    for (const [id, pending] of this.pending) {
+      this.pending.delete(id);
+      pending.cleanup();
+      pending.reject(error);
+    }
+  }
+
+  send(
+    method: string,
+    params: Record<string, unknown> = {},
+    sessionId?: string,
+    timeoutMs = 10_000,
+    signal?: AbortSignal
+  ): Promise<any> {
+    if (this.ws.readyState !== WebSocket.OPEN) {
+      return Promise.reject(new Error("CDP websocket is not open"));
+    }
+
+    return new Promise((resolve, reject) => {
       const id = this.nextId++;
-      this.pending.set(id, { res, rej });
-      this.ws.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
+      let settled = false;
+      const finishReject = (error: Error) => {
+        if (settled) return;
+        settled = true;
+        this.pending.delete(id);
+        cleanup();
+        reject(error);
+      };
+      const onAbort = () => finishReject(new Error(`CDP command aborted: ${method}`));
+      const timer = setTimeout(
+        () => finishReject(new Error(`CDP command timed out: ${method}`)),
+        timeoutMs
+      );
+      const cleanup = () => {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", onAbort);
+      };
+
+      this.pending.set(id, {
+        resolve: (value) => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          resolve(value);
+        },
+        reject: finishReject,
+        cleanup,
+      });
+
+      if (signal) {
+        if (signal.aborted) {
+          onAbort();
+          return;
+        }
+        signal.addEventListener("abort", onAbort, { once: true });
+      }
+
+      try {
+        this.ws.send(
+          JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }),
+          (error) => {
+            if (error) finishReject(toError(error, `Failed to send CDP command: ${method}`));
+          }
+        );
+      } catch (error) {
+        finishReject(toError(error, `Failed to send CDP command: ${method}`));
+      }
     });
   }
 
-  async attachToPage(): Promise<void> {
-    const { targetInfos } = await this.send("Target.getTargets");
-    const page = (targetInfos || []).find((t: any) => t.type === "page") || targetInfos?.[0];
-    if (!page) throw new Error("no page target in browser");
-    const { sessionId } = await this.send("Target.attachToTarget", {
-      targetId: page.targetId,
-      flatten: true,
-    });
+  async attachToPage(targetOrigin: string, signal?: AbortSignal): Promise<void> {
+    const { targetInfos } = await this.send("Target.getTargets", {}, undefined, 10_000, signal);
+    const page = selectPageTarget(targetInfos || [], targetOrigin);
+    const { sessionId } = await this.send(
+      "Target.attachToTarget",
+      { targetId: page.targetId, flatten: true },
+      undefined,
+      10_000,
+      signal
+    );
     this.sessionId = sessionId;
   }
 
-  async getCookies(): Promise<any[]> {
-    const r = await this.send("Network.getCookies", {}, this.sessionId!);
-    return r.cookies || [];
+  async getCookies(url: string, signal?: AbortSignal): Promise<any[]> {
+    if (!this.sessionId) throw new Error("CDP page target is not attached");
+    const result = await this.send(
+      "Network.getCookies",
+      { urls: [url] },
+      this.sessionId,
+      10_000,
+      signal
+    );
+    return result.cookies || [];
   }
 
-  async getLocalStorage(): Promise<Record<string, string>> {
-    try {
-      const r = await this.send(
-        "Runtime.evaluate",
-        { expression: "JSON.stringify(Object.fromEntries(Object.entries(localStorage)))" },
-        this.sessionId!
-      );
-      const raw = r?.result?.result?.value;
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
+  async getDeclaredStorage(
+    keys: readonly string[],
+    signal?: AbortSignal
+  ): Promise<Record<string, string>> {
+    if (!this.sessionId) throw new Error("CDP page target is not attached");
+
+    const expression = `(() => {
+      const keys = ${JSON.stringify([...keys])};
+      const out = {};
+      for (const store of [window.localStorage, window.sessionStorage]) {
+        for (const key of keys) {
+          const value = store.getItem(key);
+          if (typeof value === "string" && value.length > 0) out[key] = value;
+        }
+      }
+      const urls = [window.location.href, ...performance.getEntriesByType("resource").map((e) => e.name)];
+      for (const raw of urls) {
+        try {
+          const url = new URL(raw, window.location.href);
+          for (const key of keys) {
+            const value = url.searchParams.get(key);
+            if (value && !out[key]) out[key] = value;
+          }
+        } catch {}
+      }
+      return out;
+    })()`;
+
+    const result = await this.send(
+      "Runtime.evaluate",
+      { expression, returnByValue: true },
+      this.sessionId,
+      10_000,
+      signal
+    );
+    const value = result?.result?.value;
+    return value && typeof value === "object" ? value : {};
   }
 
   close(): void {
+    if (this.closed) return;
+    this.closed = true;
+    this.rejectAll(new Error("CDP client closed"));
     try {
       this.ws.close();
     } catch {
-      /* noop */
+      // Best-effort close.
     }
   }
 }
 
-/**
- * Harvest cookies + tokens from a running VNC container's Chromium.
- * @param cdpPort  Host port the container maps 9223 → (bridged CDP).
- * @param provider Provider manifest entry (url + cookieNames + kind).
- */
+export async function waitForCdpReady(cdpPort: number, timeoutMs: number): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  let lastError: Error | null = null;
+
+  while (Date.now() < deadline) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2_000);
+    try {
+      const version = await fetchJson(`http://127.0.0.1:${cdpPort}/json/version`, controller.signal);
+      if (version?.webSocketDebuggerUrl) return;
+      lastError = new Error("CDP endpoint did not return a websocket URL");
+    } catch (error) {
+      lastError = toError(error, "CDP endpoint is not ready");
+    } finally {
+      clearTimeout(timer);
+    }
+    await delay(500);
+  }
+
+  throw new Error(`Browser did not become ready: ${lastError?.message || "CDP timeout"}`);
+}
+
 export async function harvestFromContainer(
   cdpPort: number,
   provider: VncProviderEntry,
   timeoutMs = 20_000
 ): Promise<HarvestResult> {
-  const version = await fetchJson(`http://127.0.0.1:${cdpPort}/json/version`);
-  const browserWs = version.webSocketDebuggerUrl;
-  if (!browserWs) throw new Error("no CDP websocket endpoint from container");
-  const client = new CdpClient(browserWs);
-  await client.ready();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  let client: CdpClient | null = null;
+
   try {
-    await client.attachToPage();
-    const cookiesRaw = await client.getCookies();
-    const localStorage = await client.getLocalStorage();
-    client.close();
+    const version = await fetchJson(
+      `http://127.0.0.1:${cdpPort}/json/version`,
+      controller.signal
+    );
+    const debuggerUrl = version?.webSocketDebuggerUrl;
+    if (typeof debuggerUrl !== "string" || !debuggerUrl) {
+      throw new Error("No CDP websocket endpoint from browser container");
+    }
+
+    client = new CdpClient(rewriteDebuggerUrl(debuggerUrl, cdpPort));
+    await client.ready(Math.min(timeoutMs, 15_000), controller.signal);
 
     const origin = new URL(provider.url).origin;
-    const cookies = cookiesRaw
-      .filter((c: any) => domainMatches(c.domain, origin))
-      .map((c: any) => ({ name: c.name, value: c.value, domain: c.domain, path: c.path }));
+    await client.attachToPage(origin, controller.signal);
+    const [cookiesRaw, declaredStorage] = await Promise.all([
+      client.getCookies(provider.url, controller.signal),
+      client.getDeclaredStorage(provider.requirement.storageKeys, controller.signal),
+    ]);
 
-    const cookieHeader = cookies.length
-      ? cookies.map((c) => `${c.name}=${c.value}`).join("; ")
+    const cookies = cookiesRaw
+      .filter((cookie: any) => domainMatches(cookie.domain, origin))
+      .map((cookie: any) => ({
+        name: String(cookie.name || ""),
+        value: String(cookie.value || ""),
+        domain: String(cookie.domain || ""),
+        path: String(cookie.path || "/"),
+      }))
+      .filter((cookie: HarvestCookie) => cookie.name.length > 0 && cookie.value.length > 0);
+
+    const cookieHeader = provider.requirement.acceptsFullCookieHeader
+      ? cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join("; ")
       : "";
 
+    const baseResult: HarvestResult = {
+      cookies,
+      localStorage: declaredStorage,
+      cookieHeader,
+      hasCredential: false,
+    };
+    const credentials = harvestToCredentials(baseResult, provider);
     const hasCredential =
-      provider.kind === "token"
-        ? Object.keys(localStorage).length > 0 ||
-          cookies.some((c) => ["access_token", "userToken", "token"].includes(c.name))
-        : cookieHeader.length > 0;
+      typeof credentials.apiKey === "string" ||
+      Object.values(credentials.providerSpecificData).some(
+        (value) => typeof value === "string" && value.length > 0
+      );
 
-    return { cookies, localStorage, cookieHeader, hasCredential };
+    return { ...baseResult, hasCredential };
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error(`Browser credential harvest timed out after ${timeoutMs}ms`);
+    }
+    throw error;
   } finally {
-    client.close();
+    clearTimeout(timeout);
+    client?.close();
   }
 }
 
-function fetchJson(url: string): Promise<any> {
-  // Node 22 global fetch.
-  return fetch(url).then((r) => r.json());
+export function harvestToCredentials(
+  harvest: HarvestResult,
+  provider: VncProviderEntry
+): { providerSpecificData: Record<string, string>; apiKey: string | null } {
+  const requirement = provider.requirement;
+  const providerSpecificData: Record<string, string> = {};
+
+  for (const key of requirement.storageKeys) {
+    if (key === "cookie") continue;
+    const value =
+      harvest.localStorage[key] || harvest.cookies.find((cookie) => cookie.name === key)?.value;
+    if (value) providerSpecificData[key] = value;
+  }
+
+  if (requirement.kind === "token") {
+    const tokenValue =
+      requirement.storageKeys.map((key) => providerSpecificData[key]).find(Boolean) || null;
+    if (tokenValue && requirement.storageKeys.includes("token")) {
+      providerSpecificData.token = tokenValue;
+    }
+    return { providerSpecificData, apiKey: tokenValue };
+  }
+
+  if (
+    requirement.acceptsFullCookieHeader &&
+    requirement.storageKeys.includes("cookie") &&
+    harvest.cookieHeader
+  ) {
+    providerSpecificData.cookie = harvest.cookieHeader;
+  }
+
+  return { providerSpecificData, apiKey: null };
+}
+
+export function rewriteDebuggerUrl(debuggerUrl: string, cdpPort: number): string {
+  const url = new URL(debuggerUrl);
+  url.protocol = "ws:";
+  url.hostname = "127.0.0.1";
+  url.port = String(cdpPort);
+  return url.toString();
+}
+
+export function selectPageTarget(
+  targetInfos: CdpTargetInfo[],
+  targetOrigin: string
+): CdpTargetInfo {
+  const pages = targetInfos.filter((target) => target.type === "page");
+  const matching = pages.find((target) => safeOrigin(target.url) === targetOrigin);
+  if (matching) return matching;
+  throw new Error(`No browser page is open for ${targetOrigin}`);
+}
+
+function safeOrigin(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchJson(url: string, signal: AbortSignal): Promise<any> {
+  const response = await fetch(url, { signal });
+  if (!response.ok) throw new Error(`CDP endpoint returned HTTP ${response.status}`);
+  return response.json();
 }
 
 function domainMatches(cookieDomain: string, origin: string): boolean {
   try {
-    const o = new URL(origin);
-    const host = o.host;
-    const d = cookieDomain.startsWith(".") ? cookieDomain.slice(1) : cookieDomain;
-    return host === d || host.endsWith("." + d);
+    const host = new URL(origin).hostname;
+    const domain = cookieDomain.startsWith(".") ? cookieDomain.slice(1) : cookieDomain;
+    return host === domain || host.endsWith(`.${domain}`);
   } catch {
     return false;
   }
 }
 
-/**
- * Convert a HarvestResult into the { providerSpecificData, apiKey } the
- * provider_connections row expects, per the provider's credential kind.
- */
-export function harvestToCredentials(
-  harvest: HarvestResult,
-  provider: VncProviderEntry
-): { providerSpecificData: Record<string, string>; apiKey: string | null } {
-  const psd: Record<string, string> = {};
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  if (provider.kind === "token") {
-    const tokenKey =
-      provider.cookieNames.find((n) => harvest.localStorage[n]) ||
-      harvest.cookies.find((c) => ["access_token", "userToken", "token"].includes(c.name))?.name;
-    const tokenVal =
-      (tokenKey && harvest.localStorage[tokenKey]) ||
-      harvest.cookies.find((c) => ["access_token", "userToken", "token"].includes(c.name))?.value ||
-      "";
-    if (tokenVal) psd.token = tokenVal;
-    for (const [k, v] of Object.entries(harvest.localStorage)) psd[k] = v;
-    return { providerSpecificData: psd, apiKey: tokenVal || null };
-  }
-
-  for (const c of harvest.cookies) {
-    if (provider.cookieNames.length === 0 || provider.cookieNames.includes(c.name)) {
-      psd[c.name] = c.value;
-    }
-  }
-  if (harvest.cookieHeader) psd.cookie = harvest.cookieHeader;
-  return { providerSpecificData: psd, apiKey: null };
+function toError(error: unknown, fallback: string): Error {
+  if (error instanceof Error) return error;
+  return new Error(typeof error === "string" && error ? error : fallback);
 }
