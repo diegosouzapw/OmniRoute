@@ -175,6 +175,22 @@ test("createResponsesApiTransformStream handles native reasoning content and too
   );
 });
 
+test("createResponsesApiTransformStream hides the internal reasoning replay placeholder", async () => {
+  const output = await runTransformStream([
+    'data: {"choices":[{"index":0,"delta":{"reasoning_content":"(prior reasoning summary unavailable)"}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"content":"Visible answer"},"finish_reason":null}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  assert.equal(
+    events.some((event) => event.event === "response.reasoning_summary_text.delta"),
+    false
+  );
+  assert.equal(output.includes("prior reasoning summary unavailable"), false);
+  assert.equal(output.includes("Visible answer"), true);
+});
+
 test("createResponsesLogger persists input and output event logs on flush", async () => {
   const logsDir = mkdtempSync(join(tmpdir(), "responses-transformer-"));
   const logger = createResponsesLogger("gpt-4o", logsDir);

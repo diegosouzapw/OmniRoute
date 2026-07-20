@@ -1,5 +1,6 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
+import { isInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -456,7 +457,7 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
           }
 
           // Handle reasoning_content (OpenAI native format)
-          if (delta.reasoning_content) {
+          if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
             startReasoning(controller, idx);
             emitReasoningDelta(controller, delta.reasoning_content);
           }

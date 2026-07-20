@@ -2,6 +2,9 @@
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts";
 import { getModelTargetFormat } from "../../config/providerModels.ts";
+import { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../utils/reasoningPlaceholder.ts";
+
+export { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../utils/reasoningPlaceholder.ts";
 
 // MiniMax exposes a Claude-compatible endpoint but rejects Anthropic's extended
 // `output_config` parameter (used to steer reasoning effort and structured output)
@@ -9,10 +12,7 @@ import { getModelTargetFormat } from "../../config/providerModels.ts";
 // dispatching Claude-shape requests to these providers. Anthropic Claude and
 // other Claude-compatible upstreams that do accept it are unaffected.
 // Ported from upstream decolua/9router#820 by @hiepau1231.
-const CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG = new Set<string>([
-  "minimax",
-  "minimax-cn",
-]);
+const CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG = new Set<string>(["minimax", "minimax-cn"]);
 
 // Placeholder thinking text used as last-resort fallback when:
 //   - Target upstream is a non-Anthropic Claude-shape provider
@@ -21,8 +21,6 @@ const CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG = new Set<string>([
 //   - reasoningCache has no entry for the corresponding tool_use.id
 // Must be non-empty: kimi-coding treats empty `thinking.thinking` as
 // `reasoning_content missing` and 400s.
-export const NON_ANTHROPIC_THINKING_PLACEHOLDER = "(prior reasoning summary unavailable)";
-
 type ClaudeContentBlock = {
   type?: string;
   text?: string;
@@ -468,7 +466,11 @@ export function prepareClaudeRequest(
               ? typeof b.data === "string" && (b.data as string).length > 0
               : typeof b.signature === "string" && b.signature.length > 0
         );
-        if (latestHasExistingThinking && supportsRedactedThinking && latestHasGenuineThinkingSignature) {
+        if (
+          latestHasExistingThinking &&
+          supportsRedactedThinking &&
+          latestHasGenuineThinkingSignature
+        ) {
           // Anthropic: skip all thinking-block rewrites entirely — the
           // blocks must remain verbatim (type, thinking, signature, data).
           continue;

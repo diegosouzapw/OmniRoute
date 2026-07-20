@@ -7,6 +7,7 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
+import { isInternalReasoningPlaceholder } from "../../utils/reasoningPlaceholder.ts";
 import {
   normalizeToolName,
   stripEmptyOptionalToolArgs,
@@ -161,7 +162,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     });
   }
 
-  if (delta.reasoning_content) {
+  if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
     startReasoning(state, emit, idx);
     emitReasoningDelta(state, emit, delta.reasoning_content);
   }
@@ -641,6 +642,7 @@ function markResponsesReasoningDeltaEmitted(state, itemId) {
 // its thinking panel (`reasoning_content`, or `reasoning_text` for Copilot-compatible
 // clients). Mirrors the `response.reasoning_summary_text.delta` branch.
 function buildResponsesReasoningDeltaChunk(state, text) {
+  if (isInternalReasoningPlaceholder(text)) return null;
   const delta = state.copilotCompatibleReasoning
     ? { reasoning_text: text }
     : { reasoning_content: text };
