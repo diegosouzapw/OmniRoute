@@ -3031,10 +3031,11 @@ export function createOmniRouteProviderHook(
 /**
  * Build a `fetch`-compatible interceptor that injects `Authorization: Bearer`
  * (and a default `Content-Type`) only onto same-origin requests targeting
- * `/v1/chat/completions` or `/v1/models`. Management, MCP, and unrelated
- * inference paths pass through untouched. The apiKey is treated as a secret
- * bound to both the configured OmniRoute origin and these intended inference
- * endpoints, and MUST NOT leak elsewhere.
+ * `<base>/chat/completions` or `<base>/models`, where `<base>` is the
+ * configured baseURL path normalized to end in `/v1`. Management, MCP, and
+ * unrelated inference paths pass through untouched. The apiKey is treated as
+ * a secret bound to both the configured OmniRoute origin and these intended
+ * inference endpoints, and MUST NOT leak elsewhere.
  *
  * Ported from Alph4d0g's `opencode-omniroute-auth@1.2.1` `createFetchInterceptor`
  * (their `dist/src/plugin.js:477-516`) with these intentional deviations:
@@ -3062,14 +3063,17 @@ export function createOmniRouteFetchInterceptor(config: {
   baseURL: string;
 }): typeof fetch {
   let baseOrigin: string | undefined;
+  const inferencePaths = new Set<string>();
   try {
-    baseOrigin = new URL(config.baseURL).origin;
+    const baseUrl = new URL(config.baseURL);
+    baseOrigin = baseUrl.origin;
+    const basePath = ensureV1Suffix(baseUrl.pathname);
+    inferencePaths.add(`${basePath}/chat/completions`);
+    inferencePaths.add(`${basePath}/models`);
   } catch {
     // Credential-attached base URLs are not schema-validated. A malformed
     // value must disable injection rather than broaden the credential scope.
   }
-
-  const inferencePaths = new Set(["/v1/chat/completions", "/v1/models"]);
   return async (input, init = {}) => {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
