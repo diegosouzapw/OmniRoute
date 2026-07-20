@@ -8,6 +8,7 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { register } from "../registry.ts";
 import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
+import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
 import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 import {
   JsonRecord,
@@ -17,7 +18,6 @@ import {
   TOOL_SEARCH_TOOL_TYPES,
   IMAGE_GENERATION_TOOL_TYPES,
   toRecord,
-  toArray,
   toString,
   normalizeVerbosity,
   normalizeResponsesReasoningEffort,
@@ -46,9 +46,12 @@ export function openaiResponsesToOpenAIRequest(
   if (root.input === undefined) return body;
   const credentialRecord = toRecord(credentials);
   const storeEnabled = isOpenAIResponsesStoreEnabled(credentialRecord.providerSpecificData);
+  const rawInputItems = normalizeResponsesInputForChat(root.input);
 
-  // Validate tool types — only function tools can be translated to Chat Completions
-  const tools = toArray(root.tools);
+  // Tools may be declared at the Responses top level or in one or more
+  // `additional_tools` input items. Normalize both forms before validation/conversion so
+  // every downgraded provider receives the same available tool set.
+  const tools = collectResponsesTools(root.tools, rawInputItems);
   if (tools.length > 0) {
     for (const toolValue of tools) {
       const tool = toRecord(toolValue);
@@ -138,7 +141,6 @@ export function openaiResponsesToOpenAIRequest(
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
   // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
-  const rawInputItems = normalizeResponsesInputForChat(root.input);
   const inputItems: unknown[] =
     rawInputItems.length === 0
       ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]
@@ -343,8 +345,8 @@ export function openaiResponsesToOpenAIRequest(
   }
 
   // Convert tools format
-  if (Array.isArray(root.tools)) {
-    result.tools = root.tools
+  if (tools.length > 0) {
+    result.tools = tools
       .filter((toolValue) => {
         const tool = toRecord(toolValue);
         const toolType = toString(tool.type);
