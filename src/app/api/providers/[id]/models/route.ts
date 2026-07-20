@@ -1870,25 +1870,6 @@ export async function GET(
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
         : deriveConfigFromRegistryModelsUrl(provider);
-    // Static model providers (no remote /models API)
-    // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
-    if (provider === "qwen" && connection.authType === "oauth") {
-      const qwenModels = getModelsByProviderId("qwen");
-      return buildResponse({
-        provider,
-        connectionId,
-        models: qwenModels.map((m: any) => ({
-          id: m.id,
-          name: m.name || m.id,
-          owned_by: "qwen",
-        })),
-        source: "local_catalog",
-        // #5460/#5465 — Qwen OAuth has no OAuth-compatible remote /models list;
-        // the static catalog is intentional, so model-sync should import it.
-        intentional: true,
-      });
-    }
-
     if (provider === "codex") {
       // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
       // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.

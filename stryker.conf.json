@@ -240,6 +240,7 @@
       "tests/unit/route-explainability.test.ts",
       "tests/unit/route-guard-forge-jcode-settings-local-only.test.ts",
       "tests/unit/route-guard-grok-build-settings-local-only.test.ts",
+      "tests/unit/route-guard-qwen-settings-local-only.test.ts",
       "tests/unit/route-guard-middleware-local-only.test.ts",
       "tests/unit/route-guard-plugins-local-only.test.ts",
       "tests/unit/route-guard-private-lan.test.ts",

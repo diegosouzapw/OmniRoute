@@ -12,7 +12,7 @@ OmniRoute integrates with three categories of CLI tools spread across three dedi
 
 | Page           | Route                   | Concept                                                                   | Count        |
 | -------------- | ----------------------- | ------------------------------------------------------------------------- | ------------ |
-| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 20           |
+| **CLI Code's** | `/dashboard/cli-code`   | Coding tools you point at OmniRoute (Client → CLI → OmniRoute → Provider) | 21           |
 | **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents you point at OmniRoute (same flow, broader scope)       | 6            |
 | **ACP Agents** | `/dashboard/acp-agents` | CLIs that OmniRoute spawns as backend via stdio/ACP (reverse flow)        | see registry |
 
@@ -60,7 +60,7 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 
 Each accepts `--remote <url> --api-key <key>` (configure a local tool against a
 remote OmniRoute), `--dry-run` (preview without writing), and `--port`. Tools
-without model auto-discovery (Cline, Kilo, Roo, Goose, Qwen, Aider, Gemini) take
+without model auto-discovery (Cline, Kilo, Roo, Goose, Aider, Gemini) take
 `--model <id>` (and `--yes` for non-interactive runs). The launchers
 `omniroute launch` (Claude Code) and `omniroute launch-codex` (Codex) spawn the CLI
 with the right env injected and write no config at all.
@@ -102,7 +102,6 @@ All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none
 | kilo | Kilo Code | Kilo-Org | full | custom | false |
 | roo | Roo Code | Roo (OSS) | full | guide | false |
 | continue | Continue | continue.dev | full | guide | false |
-| qwen | Qwen Code | Alibaba | full | guide | true |
 | aider | Aider | OSS (P. Gauthier) | full | guide | true |
 | forge | ForgeCode | Antinomy HQ | full | custom | true |
 | jcode | jcode | 1jehuang (OSS) | full | custom | false |
@@ -116,6 +115,7 @@ All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none
 | pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
 | grok-build | Grok Build | xAI | full | custom | false |
 | crush | Crush | OSS (Charm) | full | custom | false |
+| qwen | Qwen Code | Alibaba | full | guide | true |
 | cursor | Cursor | Anysphere | none | guide | false |
 | antigravity | Antigravity | Google | none | mitm | false |
 | hermes | Hermes | Nous Research | none | guide | false |
@@ -123,7 +123,6 @@ All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none
 | custom | Custom CLI | — | full | custom-builder | false |
 
 Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
-
 ---
 
 ## 2. CLI Agents Catalog (8 tools)
@@ -146,7 +145,6 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 ## 3. ACP Agents (/dashboard/acp-agents)
 
 This page (renamed from `/dashboard/agents`) shows CLIs that OmniRoute can **spawn** as backend execution engines via stdio/ACP protocol. The catalog is maintained separately in `src/lib/acp/registry.ts` and is **not** the same as `CLI_TOOLS`.
-
 
 ---
 
@@ -212,6 +210,7 @@ New tools with `configType: "custom"` have dedicated settings API routes:
 | `POST /api/cli-tools/smelt-settings`        | Smelt                          |
 | `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
 | `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`) |
+| `POST /api/cli-tools/qwen-settings`         | Qwen Code (`~/.qwen/settings.json` + dedicated `.env` key) |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 
@@ -302,7 +301,7 @@ npm install -g cline
 # KiloCode
 npm install -g kilocode
 
-# Qwen Code (Alibaba)
+# Qwen Code
 npm install -g @qwen-code/qwen-code
 
 # Aider
@@ -529,55 +528,6 @@ kiro-cli status
 
 For the **Kiro IDE** desktop app, use the MITM endpoint exposed by OmniRoute
 under `/dashboard/cli-tools → Kiro`.
-
----
-
-#### Qwen Code (Alibaba)
-
-Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
-
-> Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with
-> `bailian-coding-plan` / `alibaba` / `alibaba-cn` / `openrouter` / `anthropic` /
-> `gemini` providers instead.
-
-**Option 1: Environment variables (`~/.qwen/.env`)**
-
-```bash
-mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
-OPENAI_API_KEY="sk-your-omniroute-key"
-OPENAI_BASE_URL="http://localhost:20128/v1"
-OPENAI_MODEL="auto"
-EOF
-```
-
-**Option 2: `settings.json` with `security.auth`**
-
-```json
-// ~/.qwen/settings.json
-{
-  "security": {
-    "auth": {
-      "selectedType": "openai",
-      "apiKey": "sk-your-omniroute-key",
-      "baseUrl": "http://localhost:20128/v1"
-    }
-  },
-  "model": {
-    "name": "claude-sonnet-4-6"
-  }
-}
-```
-
-**Option 3: Inline CLI flags**
-
-```bash
-OPENAI_BASE_URL="http://localhost:20128/v1" \
-OPENAI_API_KEY="sk-your-omniroute-key" \
-OPENAI_MODEL="auto" \
-qwen
-```
-
-> For a **remote server** replace `localhost:20128` with the server IP or domain.
 
 ---
 

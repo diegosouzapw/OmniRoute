@@ -76,10 +76,6 @@ export const OAUTH_ENDPOINTS = {
     token: "https://api.anthropic.com/v1/oauth/token",
     auth: "https://api.anthropic.com/v1/oauth/authorize",
   },
-  qwen: {
-    token: "https://chat.qwen.ai/api/v1/oauth2/token", // From CLIProxyAPI
-    auth: "https://chat.qwen.ai/api/v1/oauth2/device/code", // From CLIProxyAPI
-  },
   qoder: {
     token: process.env.QODER_OAUTH_TOKEN_URL || "",
     auth: process.env.QODER_OAUTH_AUTHORIZE_URL || "",

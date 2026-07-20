@@ -15,7 +15,6 @@ import { codex } from "./codex";
 import { antigravity } from "./antigravity";
 import { agy } from "./agy";
 import { qoder } from "./qoder";
-import { qwen } from "./qwen";
 import { kimiCoding } from "./kimi-coding";
 import { github } from "./github";
 import { gheCopilot } from "./ghe-copilot";
@@ -38,7 +37,6 @@ export const PROVIDERS = {
   antigravity,
   agy,
   qoder,
-  qwen,
   "kimi-coding": kimiCoding,
   github,
   "ghe-copilot": gheCopilot,
