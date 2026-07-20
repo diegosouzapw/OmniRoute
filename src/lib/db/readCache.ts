@@ -65,6 +65,7 @@ const PRICING_TTL_MS = 30_000;
 const CONNECTIONS_TTL_MS = 5_000;
 const settingsCache = new TTLCache<Record<string, unknown>>(SETTINGS_TTL_MS);
 const pricingCache = new TTLCache<Record<string, unknown>>(PRICING_TTL_MS);
+const connectionsCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS, 500);
 
 /**
  * Cached wrapper for getSettings.
@@ -93,16 +94,25 @@ export async function getCachedPricing(): Promise<Record<string, unknown>> {
   pricingCache.set("pricing", value);
   return value;
 }
-
 /**
  * Cached wrapper for getProviderConnections.
- * Used in request hot-paths (usageStats, callLogs, usageHistory).
+ * Used in request hot-paths (usageStats, callLogs, usageHistory, catalog, virtualFactory).
+ * Now caches ALL query variants (filtered and unfiltered) for 5s.
  */
 export async function getCachedProviderConnections(
   filter?: Record<string, unknown>
 ): Promise<unknown[]> {
+  const cacheKey = filter && Object.keys(filter).length > 0
+    ? JSON.stringify(filter)
+    : "all";
+
+  const cached = connectionsCache.get(cacheKey);
+  if (cached) return cached;
+
   const { getProviderConnections } = await import("@/lib/db/providers");
-  return getProviderConnections(filter || {});
+  const value = await getProviderConnections(filter);
+  connectionsCache.set(cacheKey, value);
+  return value;
 }
 
 const rawConnectionsCache = new TTLCache<unknown[]>(CONNECTIONS_TTL_MS, 500);
@@ -259,6 +269,7 @@ export function invalidateDbCache(
   if (!scope || scope === "settings") settingsCache.invalidate();
   if (!scope || scope === "pricing") pricingCache.invalidate();
   if (!scope || scope === "connections") {
+    connectionsCache.invalidate();
     rawConnectionsCache.invalidate();
     if (id) {
       connectionByIdCache.invalidate(id);
