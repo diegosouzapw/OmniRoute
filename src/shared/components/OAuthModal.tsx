@@ -9,6 +9,10 @@ import LinkifiedText from "./LinkifiedText";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
+import {
+  looksLikeCodexSessionJson,
+  parseCodexSessionJson,
+} from "@/lib/oauth/utils/codexSessionImport";
 
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
@@ -22,6 +26,27 @@ const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "xai-oauth"]);
  * Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
  */
 const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
+
+// POST a bare Codex access token to the access-token-only import endpoint
+// (#1290); shared by the bare-JWT and session-JSON paste branches (#6636).
+async function submitCodexAccessToken(
+  accessToken: string,
+  name: string | undefined,
+  setStep: (s: string) => void,
+  onSuccess?: () => void
+): Promise<void> {
+  const res = await fetch("/api/oauth/codex/import-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken, name }),
+  });
+  const data = (await parseResponseBody(res)) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+  }
+  setStep("success");
+  onSuccess?.();
+}
 
 type OAuthModalProps = {
   isOpen: boolean;
@@ -672,17 +697,24 @@ export default function OAuthModal({
       // raw-token paste pattern. Routed through the access-token-only import
       // endpoint (#1290) instead of the authorization-code exchange below.
       if (provider === "codex" && /^eyJ/.test(callbackUrl.trim())) {
-        const res = await fetch("/api/oauth/codex/import-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken: callbackUrl.trim() }),
-        });
-        const data = (await parseResponseBody(res)) as Record<string, unknown>;
-        if (!res.ok) {
-          throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+        await submitCodexAccessToken(callbackUrl.trim(), undefined, setStep, onSuccess);
+        return;
+      }
+
+      // Codex: full session JSON from chatgpt.com/api/auth/session
+      // (`{user, accessToken, expires}`), not just the bare token (#6636).
+      if (provider === "codex" && looksLikeCodexSessionJson(callbackUrl)) {
+        const result = parseCodexSessionJson(JSON.parse(callbackUrl.trim()));
+        if (result.ok === false) {
+          setError(result.error);
+          return;
         }
-        setStep("success");
-        onSuccess?.();
+        await submitCodexAccessToken(
+          result.session.accessToken,
+          result.session.email,
+          setStep,
+          onSuccess
+        );
         return;
       }
 

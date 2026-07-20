@@ -599,7 +599,7 @@
   },
   "tests/unit/base-executor-sanitize-effort.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 45
+      "count": 48
     }
   },
   "tests/unit/batch_api.test.ts": {
@@ -1024,7 +1024,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 261
+      "count": 269
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
@@ -1670,11 +1670,6 @@
   "tests/unit/perplexity-web-streaming-tools-5927.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/unit/perplexity-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
     }
   },
   "tests/unit/persist-429-cooldown-account-fallback.test.ts": {

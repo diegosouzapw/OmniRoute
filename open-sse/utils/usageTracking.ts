@@ -120,6 +120,13 @@ function getTimeString() {
 export function addBufferToUsage(usage) {
   if (!usage || typeof usage !== "object") return usage;
 
+  // Heuristic estimates (web/cookie providers with no upstream metering) should
+  // not get the safety buffer — otherwise a 6-token "hi"/"PONG" becomes a flat
+  // ~2000 for every request and looks like fake metering.
+  if ((usage as { estimated?: unknown }).estimated === true) {
+    return usage;
+  }
+
   const buffer = getBufferTokens();
   if (buffer === 0) return usage;
 

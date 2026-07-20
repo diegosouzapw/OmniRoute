@@ -1,0 +1,1 @@
+- Rebaseline the cyclomatic-complexity ceiling (2059 → 2072) and cognitive-complexity ceiling (890 → 900) to absorb a cluster of clean contributor feature PRs whose per-PR +1/+2 own-growth collectively exceeded the tip's 3-unit slack. Owner-approved; structural shrink remains tracked in #3501.

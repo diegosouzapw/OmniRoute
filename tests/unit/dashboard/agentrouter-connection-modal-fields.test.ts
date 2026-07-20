@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {
   assignEditApiKeyProviderSpecificData,
   buildAddProviderSpecificData,
-} from "../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/connectionProviderSpecificData.ts";
+} from "../../../src/app/(dashboard)/dashboard/providers/[id]/components/modals/connectionProviderSpecificData.ts";
 
 // #6850 — the AgentRouter quota tracker (open-sse/services/agentrouterQuotaFetcher.ts)
 // reads connection.providerSpecificData.consoleApiKey (New-API System Access Token) and
@@ -58,7 +58,9 @@ function baseAddOptions(overrides: Partial<Parameters<typeof buildAddProviderSpe
   };
 }
 
-function baseEditOptions(overrides: Partial<Parameters<typeof assignEditApiKeyProviderSpecificData>[0]>) {
+function baseEditOptions(
+  overrides: Partial<Parameters<typeof assignEditApiKeyProviderSpecificData>[0]>
+) {
   return {
     provider: "agentrouter",
     formData: BASE_FORM_DATA,
@@ -107,7 +109,11 @@ test("buildAddProviderSpecificData still supports bailian-coding-plan consoleApi
   const data = buildAddProviderSpecificData(
     baseAddOptions({
       provider: "bailian-coding-plan",
-      formData: { ...BASE_FORM_DATA, consoleApiKey: "oracle-token", newApiUserId: "should-not-persist" },
+      formData: {
+        ...BASE_FORM_DATA,
+        consoleApiKey: "oracle-token",
+        newApiUserId: "should-not-persist",
+      },
     })
   );
 
