@@ -7,6 +7,9 @@ import path from "node:path";
 // #7847: /v1/chat/completions already threads its parsed body into handleChat, so cloning
 // the Request before parsing tees and retains an unused serialized-body branch. These tests
 // pin the memory-sensitive contract: consume the original body once without cloning it.
+// #7853 moved the single materialization into admitChatRequest()'s bounded byte reader —
+// the ORIGINAL request must now see zero json() calls and zero clone() calls; the one
+// parse happens on the admission-rebuilt request over the already-buffered bytes.
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chat-parse-once-7847-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -62,7 +65,11 @@ test("#7847 non-streaming requests parse the original body once without cloning"
 
   await chatRoute.POST(counting.request);
 
-  assert.equal(counting.jsonCalls(), 1, "the original request must be parsed exactly once");
+  assert.equal(
+    counting.jsonCalls(),
+    0,
+    "admission ingests the body via its bounded reader — the original must never be json()-parsed"
+  );
   assert.equal(counting.cloneCalls(), 0, "the request body stream must not be teed");
 });
 
@@ -72,7 +79,11 @@ test("#7847 streaming requests parse the original body once without cloning", as
   const response = await chatRoute.POST(counting.request);
   await response.text();
 
-  assert.equal(counting.jsonCalls(), 1, "early keepalive must reuse the parsed body");
+  assert.equal(
+    counting.jsonCalls(),
+    0,
+    "admission ingests the body once; keepalive reuses the parsed object, never the original"
+  );
   assert.equal(counting.cloneCalls(), 0, "streaming must not retain an unread body branch");
 });
 
