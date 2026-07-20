@@ -65,7 +65,7 @@ export async function POST(request) {
   }
 
   // Heap-pressure-aware admission: shed a large body with 503 (or 413 if pathological)
-  // BEFORE the request is cloned + JSON-parsed below. A large coding-agent compact body
+  // BEFORE the request is JSON-parsed below. A large coding-agent compact body
   // amplifies into hundreds of MB of transient JS objects on the combo path; under a
   // burst of concurrent compacts that stacks past the V8 heap ceiling and OOM-crashes the
   // whole process. Shedding the marginal request here turns a pod-wide crash into a single
@@ -90,8 +90,7 @@ export async function POST(request) {
   // residency on the hot path and fed the OOM crash-loop (#4380).
   let parsedBody = null;
   try {
-    const cloned = request.clone();
-    parsedBody = await cloned.json().catch(() => null);
+    parsedBody = await request.json().catch(() => null);
     if (parsedBody) {
       const { blocked, result } = injectionGuard(parsedBody);
       if (blocked) {
