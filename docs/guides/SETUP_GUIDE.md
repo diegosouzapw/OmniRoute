@@ -149,7 +149,7 @@ omniroute providers validate
 ```txt
 Base URL: http://localhost:20128/v1
 API Key:  [copy from Endpoint page]
-Model:    if/kimi-k2-thinking (or any provider/model prefix)
+Model:    if/qwen3.8-max-preview (or any provider/model prefix)
 ```
 
 If your editor cannot send `Authorization: Bearer ...`, use the tokenized compatibility base instead:

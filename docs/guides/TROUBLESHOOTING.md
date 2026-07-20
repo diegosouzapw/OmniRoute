@@ -194,7 +194,7 @@ omniroute
 
 **Fix:**
 
-- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
 - Use GLM/MiniMax as cheap backup
 
 ### OAuth Token Expired
