@@ -1,0 +1,1 @@
+- **fix(i18n):** backfill the four `usage.*` quota-visibility keys #7251 added to en.json into vi.json (hideQuotaRow, showQuotaRow, hiddenQuotaRowsLabel, quotaVisibilityUpdateFailed) — their absence left `__MISSING__` markers that failed `i18n-vi-completeness` on the release tip for every fresh PR run.

@@ -1395,10 +1395,13 @@ export async function handleChatCore({
           // models, which is intentionally NOT `false` so the gate still preserves images.
           supportsVision: getResolvedModelCapabilities({ provider, model: effectiveModel })
             .supportsVision,
-          // Rota direta oficial ('anthropic') vs agregadores: o engine omniglyph
-          // exige 'direct' — agregadores redimensionam imagens (medido 2026-07-06).
+          // Rotas diretas oficiais ('anthropic' API key e 'claude' OAuth) vs agregadores:
+          // o engine omniglyph exige 'direct' — agregadores redimensionam imagens
+          // (medido 2026-07-06). OAuth 'claude' é rota direta oficial (#7863).
           providerTransport:
-            provider === "anthropic" ? ("direct" as const) : ("aggregator" as const),
+            provider === "anthropic" || provider === "claude"
+              ? ("direct" as const)
+              : ("aggregator" as const),
           config: compressionConfig,
           cachingContext: cacheCtx,
           principalId: compressionPrincipalId,

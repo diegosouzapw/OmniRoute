@@ -6232,7 +6232,11 @@
     "updatedShort": "تم التحديث",
     "lastRefreshed": "آخر تحديث",
     "providerQuota": "حصة المزود",
-    "providerQuotaHomeHint": "الحالة المباشرة عبر الحسابات المتصلة"
+    "providerQuotaHomeHint": "الحالة المباشرة عبر الحسابات المتصلة",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "في انتظار التصريح",

@@ -160,6 +160,29 @@
       "stream": "https://api.ai21.com/studio/v1/chat/completions"
     }
   },
+  "aihorde": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://oai.aihorde.net/v1/chat/completions",
+      "stream": "https://oai.aihorde.net/v1/chat/completions"
+    }
+  },
   "aimlapi": {
     "format": "openai",
     "headers": {
@@ -2794,8 +2817,8 @@
       }
     },
     "url": {
-      "nonStream": "https://api.liquid.ai/v1/chat/completions",
-      "stream": "https://api.liquid.ai/v1/chat/completions"
+      "nonStream": "https://inference.liquid.ai/v1/chat/completions",
+      "stream": "https://inference.liquid.ai/v1/chat/completions"
     }
   },
   "llamagate": {
@@ -3193,6 +3216,32 @@
     "url": {
       "nonStream": "https://nano-gpt.com/api/v1/chat/completions",
       "stream": "https://nano-gpt.com/api/v1/chat/completions"
+    }
+  },
+  "navy": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "OmniRoute/1.0"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "OmniRoute/1.0"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "OmniRoute/1.0"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.navy/v1/chat/completions",
+      "stream": "https://api.navy/v1/chat/completions"
     }
   },
   "nebius": {

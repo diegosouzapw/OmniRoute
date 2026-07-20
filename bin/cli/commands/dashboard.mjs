@@ -49,22 +49,22 @@ export async function runDashboardCommand(opts = {}) {
   return 0;
 }
 
+/**
+ * Resolve the command and args to open a URL in the default browser
+ * for a given platform. Exported for testing — callers should use openFallback().
+ * @param {"darwin"|"win32"|string} platform
+ * @param {string} url
+ * @returns {{ cmd: string, args: string[] }}
+ */
+export function resolveOpenCommand(platform, url) {
+  if (platform === "darwin") return { cmd: "open", args: [url] };
+  if (platform === "win32") return { cmd: "rundll32", args: ["url.dll,FileProtocolHandler", url] };
+  return { cmd: "xdg-open", args: [url] };
+}
+
 function openFallback(url) {
   return new Promise((resolve) => {
-    const { platform } = process;
-    let cmd, args;
-
-    if (platform === "darwin") {
-      cmd = "open";
-      args = [url];
-    } else if (platform === "win32") {
-      cmd = "cmd";
-      args = ["/c", "start", "", url];
-    } else {
-      cmd = "xdg-open";
-      args = [url];
-    }
-
+    const { cmd, args } = resolveOpenCommand(process.platform, url);
     execFile(cmd, args, { stdio: "ignore" }, () => resolve());
   });
 }
