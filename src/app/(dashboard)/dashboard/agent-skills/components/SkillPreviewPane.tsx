@@ -62,7 +62,9 @@ export function SkillPreviewPane({
         className="flex flex-col items-center justify-center h-full min-h-[300px] rounded-xl border border-dashed border-border bg-bg-subtle/30 p-8 text-center"
         data-testid="skill-preview-empty"
       >
-        <span className="material-symbols-outlined text-[32px] text-text-muted mb-3">article</span>
+        <span className="material-symbols-outlined text-[32px] text-text-muted mb-3">
+          article
+        </span>
         <p className="text-sm text-text-muted">{t("previewEmpty")}</p>
       </div>
     );
@@ -84,7 +86,7 @@ export function SkillPreviewPane({
               onClick={onRefresh}
               disabled={loading}
               className="flex items-center gap-1 rounded px-2 py-1 text-xs text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors disabled:opacity-50"
-              aria-label={t("refresh")}
+              aria-label="Refresh"
             >
               <span
                 className={`material-symbols-outlined text-[14px] ${loading ? "animate-spin" : ""}`}

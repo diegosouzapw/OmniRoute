@@ -20,7 +20,12 @@ type GenerationResult = {
   audioUrl?: string;
 };
 type MediaModelConfig = { id: string; name: string };
-type MediaProviderConfig = { id: string; models: MediaModelConfig[] };
+type MediaProviderConfig = {
+  id: string;
+  authType: string;
+  supportedFormats?: string[];
+  models: MediaModelConfig[];
+};
 type ProviderModelGroup = {
   id: string;
   name: string;
@@ -40,56 +45,79 @@ function toProviderModels(registry: Record<string, MediaProviderConfig>): Provid
   }));
 }
 
+function providersRequiringCredentials(registry: Record<string, MediaProviderConfig>): string[] {
+  return Object.entries(registry)
+    .filter(([, config]) => config.authType !== "none")
+    .map(([providerId]) => providerId);
+}
+
 const IMAGE_PROVIDER_MODELS = toProviderModels(IMAGE_PROVIDERS);
 const VIDEO_PROVIDER_MODELS = toProviderModels(VIDEO_PROVIDERS);
 const MUSIC_PROVIDER_MODELS = toProviderModels(MUSIC_PROVIDERS);
 const SPEECH_PROVIDER_MODELS = toProviderModels(AUDIO_SPEECH_PROVIDERS);
 const TRANSCRIPTION_PROVIDER_MODELS = toProviderModels(AUDIO_TRANSCRIPTION_PROVIDERS);
 
+const IMAGE_PROVIDERS_REQUIRING_CREDENTIALS = providersRequiringCredentials(IMAGE_PROVIDERS);
+const VIDEO_PROVIDERS_REQUIRING_CREDENTIALS = providersRequiringCredentials(VIDEO_PROVIDERS);
+const MUSIC_PROVIDERS_REQUIRING_CREDENTIALS = providersRequiringCredentials(MUSIC_PROVIDERS);
+const SPEECH_PROVIDERS_REQUIRING_CREDENTIALS =
+  providersRequiringCredentials(AUDIO_SPEECH_PROVIDERS);
+const TRANSCRIPTION_PROVIDERS_REQUIRING_CREDENTIALS = providersRequiringCredentials(
+  AUDIO_TRANSCRIPTION_PROVIDERS
+);
+
 const MODALITY_CONFIG: Record<
   Modality,
   {
     icon: string;
     endpoint: string;
-    labelKey: string;
-    placeholderKey?: string;
+    label: string;
+    placeholder?: string;
     color: string;
+    textLabel?: string;
+    needsCredentials: string[];
   }
 > = {
   image: {
     icon: "image",
     endpoint: "/api/v1/images/generations",
-    labelKey: "imageGeneration",
-    placeholderKey: "imagePromptPlaceholder",
+    label: "Image Generation",
+    placeholder: "A serene landscape with mountains at sunset...",
     color: "from-purple-500 to-pink-500",
+    needsCredentials: IMAGE_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   video: {
     icon: "videocam",
     endpoint: "/api/v1/videos/generations",
-    labelKey: "videoGeneration",
-    placeholderKey: "videoPromptPlaceholder",
+    label: "Video Generation",
+    placeholder: "A timelapse of a flower blooming...",
     color: "from-blue-500 to-cyan-500",
+    needsCredentials: VIDEO_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   music: {
     icon: "music_note",
     endpoint: "/api/v1/music/generations",
-    labelKey: "musicGeneration",
-    placeholderKey: "musicPromptPlaceholder",
+    label: "Music Generation",
+    placeholder: "Upbeat electronic music with synth pads...",
     color: "from-orange-500 to-yellow-500",
+    needsCredentials: MUSIC_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   speech: {
     icon: "record_voice_over",
     endpoint: "/api/v1/audio/speech",
-    labelKey: "textToSpeech",
-    placeholderKey: "speechTextPlaceholder",
+    label: "Text to Speech",
+    placeholder: "Hello! Welcome to OmniRoute, your intelligent AI gateway...",
     color: "from-green-500 to-teal-500",
+    textLabel: "Text",
+    needsCredentials: SPEECH_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   transcription: {
     icon: "mic",
     endpoint: "/api/v1/audio/transcriptions",
-    labelKey: "transcription",
-    placeholderKey: "transcriptionPlaceholder",
+    label: "Transcription",
+    placeholder: "Upload an audio file to transcribe...",
     color: "from-indigo-500 to-blue-500",
+    needsCredentials: TRANSCRIPTION_PROVIDERS_REQUIRING_CREDENTIALS,
   },
 };
 
@@ -311,11 +339,7 @@ function getVoiceList(providerId: string) {
 }
 
 /** Parse a human-readable error from the API error response */
-function parseApiError(
-  raw: any,
-  statusCode: number,
-  fallbackMessage: string
-): { message: string; isCredentials: boolean } {
+function parseApiError(raw: any, statusCode: number): { message: string; isCredentials: boolean } {
   const readErrorMessage = (value: any): string | null => {
     if (!value) return null;
     if (typeof value === "string") return value;
@@ -348,7 +372,7 @@ function parseApiError(
     raw?.message ||
     raw?.detail ||
     (typeof raw === "string" ? raw : null) ||
-    fallbackMessage;
+    `Request failed (${statusCode})`;
 
   const isCredentials =
     typeof msg === "string" &&
@@ -376,7 +400,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-function fileToDataUrl(file: File, errorMessage: string): Promise<string> {
+function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -384,20 +408,23 @@ function fileToDataUrl(file: File, errorMessage: string): Promise<string> {
         resolve(reader.result);
         return;
       }
-      reject(new Error(errorMessage));
+      reject(new Error("Failed to read file"));
     };
-    reader.onerror = () => reject(reader.error || new Error(errorMessage));
+    reader.onerror = () => reject(reader.error || new Error("Failed to read file"));
     reader.readAsDataURL(file);
   });
 }
 
 /** Render image result thumbnails */
 function ImageResults({ data }: { data: any }) {
-  const t = useTranslations("media");
   const images: Array<{ url?: string; b64_json?: string; revised_prompt?: string }> =
     data?.data || [];
   if (images.length === 0) {
-    return <p className="text-sm text-text-muted italic">{t("noImagesReturned")}</p>;
+    return (
+      <p className="text-sm text-text-muted italic">
+        No images returned. The provider might have accepted the request but returned empty data.
+      </p>
+    );
   }
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -412,7 +439,7 @@ function ImageResults({ data }: { data: any }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src}
-              alt={img.revised_prompt || t("generatedImageAlt", { index: i + 1 })}
+              alt={img.revised_prompt || `Generated image ${i + 1}`}
               className="w-full"
             />
             <a
@@ -421,7 +448,7 @@ function ImageResults({ data }: { data: any }) {
               className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
             >
               <span className="material-symbols-outlined text-[13px]">download</span>
-              {t("save")}
+              Save
             </a>
             {img.revised_prompt && (
               <p
@@ -562,7 +589,7 @@ export default function MediaPageClient() {
 
       if (activeTab === "speech") {
         if (!promptValue) {
-          setError(t("enterTextToSynthesize"));
+          setError("Please enter text to synthesize.");
           setLoading(false);
           return;
         }
@@ -578,11 +605,7 @@ export default function MediaPageClient() {
         });
         if (!res.ok) {
           const raw = await res.json().catch(() => ({}));
-          const { message, isCredentials } = parseApiError(
-            raw,
-            res.status,
-            t("requestFailed", { status: res.status })
-          );
+          const { message, isCredentials } = parseApiError(raw, res.status);
           setIsCredentialsError(isCredentials);
           throw new Error(message);
         }
@@ -600,7 +623,7 @@ export default function MediaPageClient() {
 
       if (activeTab === "transcription") {
         if (!audioFile) {
-          setError(t("selectAudioToTranscribe"));
+          setError("Please select an audio file to transcribe.");
           setLoading(false);
           return;
         }
@@ -610,25 +633,25 @@ export default function MediaPageClient() {
         const res = await fetch(config.endpoint, { method: "POST", body: form });
         if (!res.ok) {
           const raw = await res.json().catch(() => ({}));
-          const { message, isCredentials } = parseApiError(
-            raw,
-            res.status,
-            t("requestFailed", { status: res.status })
-          );
+          const { message, isCredentials } = parseApiError(raw, res.status);
           setIsCredentialsError(isCredentials);
           throw new Error(message);
         }
         const data = await res.json();
         // Check for noSpeechDetected flag (music, silence, etc.) — NOT a credential error
         if (data?.noSpeechDetected) {
-          setError(t("noSpeechDetected", { provider: selectedProvider }));
+          setError(
+            `No speech detected in the audio file. If you uploaded music or a silent file, try an audio file with spoken words. Provider: "${selectedProvider}".`
+          );
           setIsCredentialsError(false);
           setLoading(false);
           return;
         }
         // Warn if text is empty without the noSpeechDetected flag (unexpected)
         if (data && typeof data.text === "string" && data.text.trim() === "") {
-          setError(t("emptyTranscription", { provider: selectedProvider }));
+          setError(
+            `Transcription returned empty text. The audio may contain no recognizable speech, or the "${selectedProvider}" API key may be invalid. Check Dashboard → Logs → Proxy for details.`
+          );
           // Only mark as credential error if we can confirm it from context
           setIsCredentialsError(false);
           setLoading(false);
@@ -640,14 +663,14 @@ export default function MediaPageClient() {
       }
 
       if (activeTab === "image" && selectedProvider === "topaz" && !imageInputFile) {
-        setError(t("topazRequiresImage"));
+        setError("Topaz requires an input image.");
         setLoading(false);
         return;
       }
 
       if (!prompt.trim()) {
         if (activeTab !== "image" || selectedProvider !== "topaz") {
-          setError(t("enterPrompt"));
+          setError("Please enter a prompt.");
           setLoading(false);
           return;
         }
@@ -657,18 +680,18 @@ export default function MediaPageClient() {
         model: modelId,
         prompt:
           promptValue ||
-          (activeTab === "image" && selectedProvider === "topaz" ? t("enhanceThisImage") : ""),
+          (activeTab === "image" && selectedProvider === "topaz" ? "Enhance this image" : ""),
         ...(activeTab === "image" ? { size: "1024x1024", n: 1 } : {}),
       };
 
       if (activeTab === "image" && imageInputFile) {
-        const imageDataUrl = await fileToDataUrl(imageInputFile, t("failedToReadFile"));
+        const imageDataUrl = await fileToDataUrl(imageInputFile);
         payload.image_url = imageDataUrl;
         payload.imageUrls = [imageDataUrl];
       }
 
       if (activeTab === "image" && imageMaskFile) {
-        const maskDataUrl = await fileToDataUrl(imageMaskFile, t("failedToReadFile"));
+        const maskDataUrl = await fileToDataUrl(imageMaskFile);
         payload.mask = maskDataUrl;
         payload.mask_url = maskDataUrl;
       }
@@ -680,18 +703,14 @@ export default function MediaPageClient() {
       });
       if (!res.ok) {
         const raw = await res.json().catch(() => ({}));
-        const { message, isCredentials } = parseApiError(
-          raw,
-          res.status,
-          t("requestFailed", { status: res.status })
-        );
+        const { message, isCredentials } = parseApiError(raw, res.status);
         setIsCredentialsError(isCredentials);
         throw new Error(message);
       }
       const data = await res.json();
       setResult({ type: activeTab, data, timestamp: Date.now() });
     } catch (err: any) {
-      setError(err.message || t("generationFailed"));
+      setError(err.message || "Generation failed");
     }
     setLoading(false);
   };
@@ -728,7 +747,7 @@ export default function MediaPageClient() {
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">{cfg.icon}</span>
-              {t(cfg.labelKey)}
+              {cfg.label}
             </button>
           );
         })}
@@ -740,7 +759,7 @@ export default function MediaPageClient() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Provider dropdown */}
           <div>
-            <label className="block text-sm font-medium text-text-main mb-2">{t("provider")}</label>
+            <label className="block text-sm font-medium text-text-main mb-2">Provider</label>
             <select
               value={selectedProvider}
               onChange={(e) => handleProviderChange(e.target.value)}
@@ -775,17 +794,13 @@ export default function MediaPageClient() {
         {selectedProvider && !["sdwebui", "comfyui", "qwen"].includes(selectedProvider) && (
           <p className="text-xs text-text-muted flex items-center gap-1.5">
             <span className="material-symbols-outlined text-[14px] text-amber-500">info</span>
-            {t.rich("credentialsRequired", {
-              provider: () => <strong className="capitalize">{selectedProvider}</strong>,
-              providers: (chunks) => (
-                <Link
-                  href="/dashboard/providers"
-                  className="text-primary underline underline-offset-2 hover:text-primary/80"
-                >
-                  {chunks}
-                </Link>
-              ),
-            })}
+            Requires <strong className="capitalize">{selectedProvider}</strong> API key in{" "}
+            <Link
+              href="/dashboard/providers"
+              className="text-primary underline underline-offset-2 hover:text-primary/80"
+            >
+              Providers
+            </Link>
           </p>
         )}
 
@@ -793,7 +808,7 @@ export default function MediaPageClient() {
         {activeTab === "speech" && (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-text-main mb-2">{t("voice")}</label>
+              <label className="block text-sm font-medium text-text-main mb-2">Voice</label>
               <select
                 value={speechVoice}
                 onChange={(e) => setSpeechVoice(e.target.value)}
@@ -807,7 +822,7 @@ export default function MediaPageClient() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-main mb-2">{t("format")}</label>
+              <label className="block text-sm font-medium text-text-main mb-2">Format</label>
               <select
                 value={speechFormat}
                 onChange={(e) => setSpeechFormat(e.target.value)}
@@ -827,7 +842,7 @@ export default function MediaPageClient() {
         {activeTab === "transcription" ? (
           <div>
             <label className="block text-sm font-medium text-text-main mb-2">
-              {t("audioVideoFile")}
+              Audio / Video File
             </label>
             <input
               type="file"
@@ -837,7 +852,7 @@ export default function MediaPageClient() {
                 setFileSizeError(null);
                 if (file && file.size > MAX_TRANSCRIPTION_FILE_SIZE) {
                   setFileSizeError(
-                    t("fileTooLarge", { size: formatFileSize(file.size), max: "4 GB" })
+                    `File too large (${formatFileSize(file.size)}). Maximum allowed: 4 GB.`
                   );
                   setAudioFile(null);
                   e.target.value = "";
@@ -858,7 +873,9 @@ export default function MediaPageClient() {
                 {audioFile.name} ({formatFileSize(audioFile.size)})
               </p>
             )}
-            <p className="text-[10px] text-text-muted/60 mt-1">{t("audioVideoFileHint")}</p>
+            <p className="text-[10px] text-text-muted/60 mt-1">
+              Supports audio and video files up to 4 GB
+            </p>
           </div>
         ) : (
           <>
@@ -866,7 +883,7 @@ export default function MediaPageClient() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-text-main mb-2">
-                    {t("sourceImage")}
+                    Source Image
                   </label>
                   <input
                     type="file"
@@ -879,11 +896,13 @@ export default function MediaPageClient() {
                       {imageInputFile.name} ({formatFileSize(imageInputFile.size)})
                     </p>
                   )}
-                  <p className="text-[10px] text-text-muted/60 mt-1">{t("sourceImageHint")}</p>
+                  <p className="text-[10px] text-text-muted/60 mt-1">
+                    Optional for image-to-image, editing and upscale workflows.
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-text-main mb-2">
-                    {t("maskImage")}
+                    Mask Image
                   </label>
                   <input
                     type="file"
@@ -896,7 +915,9 @@ export default function MediaPageClient() {
                       {imageMaskFile.name} ({formatFileSize(imageMaskFile.size)})
                     </p>
                   )}
-                  <p className="text-[10px] text-text-muted/60 mt-1">{t("maskImageHint")}</p>
+                  <p className="text-[10px] text-text-muted/60 mt-1">
+                    Optional. Used by inpaint-style models that support masks.
+                  </p>
                 </div>
               </div>
             )}
@@ -905,9 +926,9 @@ export default function MediaPageClient() {
             <div>
               <label className="block text-sm font-medium text-text-main mb-2">
                 {activeTab === "speech"
-                  ? t("text")
+                  ? "Text"
                   : activeTab === "image" && selectedProvider === "topaz"
-                    ? t("promptOptional")
+                    ? "Prompt (optional)"
                     : t("prompt")}
               </label>
               <textarea
@@ -916,10 +937,8 @@ export default function MediaPageClient() {
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder={
                   activeTab === "image" && selectedProvider === "topaz"
-                    ? t("enhancementInstructionsPlaceholder")
-                    : config.placeholderKey
-                      ? t(config.placeholderKey)
-                      : undefined
+                    ? "Optional enhancement instructions..."
+                    : config.placeholder
                 }
                 className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
               />
@@ -943,9 +962,9 @@ export default function MediaPageClient() {
                 progress_activity
               </span>
               {activeTab === "speech"
-                ? t("synthesizing")
+                ? "Synthesizing..."
                 : activeTab === "transcription"
-                  ? t("transcribing")
+                  ? "Transcribing..."
                   : t("generating")}
             </>
           ) : (
@@ -958,10 +977,10 @@ export default function MediaPageClient() {
                     : "auto_awesome"}
               </span>
               {activeTab === "speech"
-                ? t("synthesizeSpeech")
+                ? "Synthesize Speech"
                 : activeTab === "transcription"
-                  ? t("transcribeAudio")
-                  : t("generateModality", { modality: t(config.labelKey) })}
+                  ? "Transcribe Audio"
+                  : `${t("generate")} ${config.label}`}
             </>
           )}
         </button>
@@ -981,7 +1000,7 @@ export default function MediaPageClient() {
             <p
               className={`text-sm font-medium ${isCredentialsError ? "text-amber-500" : "text-red-500"}`}
             >
-              {isCredentialsError ? t("apiKeyRequired") : t("error")}
+              {isCredentialsError ? "API Key Required" : t("error")}
             </p>
             <p className="text-sm text-text-muted mt-1 break-words">{error}</p>
             {isCredentialsError && (
@@ -990,7 +1009,7 @@ export default function MediaPageClient() {
                 className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline"
               >
                 <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-                {t("configureApiKeys")} →
+                Configure API keys in Providers →
               </Link>
             )}
           </div>
@@ -1021,7 +1040,7 @@ export default function MediaPageClient() {
                 className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
               >
                 <span className="material-symbols-outlined text-[16px]">download</span>
-                {t("downloadFormat", { format: result.data?.format?.toUpperCase() || "MP3" })}
+                Download {result.data?.format?.toUpperCase() || "MP3"}
               </a>
             </div>
           ) : result.type === "image" ? (
@@ -1030,13 +1049,13 @@ export default function MediaPageClient() {
             <div className="space-y-3">
               <div className="bg-surface rounded-lg p-4 text-sm text-text-main leading-relaxed whitespace-pre-wrap">
                 {result.data?.text || (
-                  <span className="text-text-muted italic">{t("noTextReturned")}</span>
+                  <span className="text-text-muted italic">No text returned</span>
                 )}
               </div>
               {result.data?.words && (
                 <details className="mt-2">
                   <summary className="text-xs text-text-muted cursor-pointer hover:text-text-main">
-                    {t("wordTimestamps", { count: result.data.words.length })}
+                    Word-level timestamps ({result.data.words.length} words)
                   </summary>
                   <pre className="bg-surface rounded mt-2 p-3 text-xs text-text-muted overflow-auto max-h-48 custom-scrollbar">
                     {JSON.stringify(result.data.words, null, 2)}
@@ -1070,11 +1089,9 @@ export default function MediaPageClient() {
                     {cfg.icon}
                   </span>
                 </div>
-                <span className="text-sm font-medium text-text-main">{t(cfg.labelKey)}</span>
+                <span className="text-sm font-medium text-text-main">{cfg.label}</span>
               </div>
-              <p className="text-xs text-text-muted">
-                {t("providerCount", { count: providerCount })}
-              </p>
+              <p className="text-xs text-text-muted">{providerCount} providers</p>
               <code className="block mt-2 text-xs text-primary/70 bg-primary/5 rounded px-2 py-1">
                 POST {cfg.endpoint}
               </code>

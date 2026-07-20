@@ -19,15 +19,10 @@ import type { AdvancedSlug, TranslatorTab } from "./types";
 
 export default function TranslatorPageClient() {
   return (
-    <Suspense fallback={<TranslatorLoading />}>
+    <Suspense fallback={<div className="p-8 text-text-muted">Loading…</div>}>
       <TranslatorPageClientInner />
     </Suspense>
   );
-}
-
-function TranslatorLoading() {
-  const t = useTranslations("translator");
-  return <div className="p-8 text-text-muted">{t("loading")}</div>;
 }
 
 function TranslatorPageClientInner() {
@@ -56,7 +51,7 @@ function TranslatorPageClientInner() {
         return fallback;
       }
     },
-    [t]
+    [t],
   );
 
   // Build PipelineStep[] from session.result so PipelineView reflects real state
@@ -82,9 +77,7 @@ function TranslatorPageClientInner() {
       name: tr("pipelineStepFormatDetected", "Format Detected"),
       description: tr("pipelineStepFormatDetectedDesc", "Auto-detected source format"),
       format: r.detected ?? null,
-      content: r.detected
-        ? JSON.stringify({ detectedFormat: r.detected, confidence: "high" }, null, 2)
-        : "",
+      content: r.detected ? JSON.stringify({ detectedFormat: r.detected, confidence: "high" }, null, 2) : "",
       status: r.detected ? "done" : r.status === "translating" ? "active" : "pending",
     });
 
@@ -187,7 +180,9 @@ function TranslatorPageClientInner() {
 
       {state.tab === "translate" && advancedSlot}
 
-      {state.tab === "monitor" && <MonitorTab onGoToTranslate={() => setTab("translate")} />}
+      {state.tab === "monitor" && (
+        <MonitorTab onGoToTranslate={() => setTab("translate")} />
+      )}
     </div>
   );
 }
@@ -206,7 +201,9 @@ function AutoFeaturesCard() {
         className="flex w-full items-center justify-between p-4 text-left"
       >
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[20px] text-primary">auto_fix_high</span>
+          <span className="material-symbols-outlined text-[20px] text-primary">
+            auto_fix_high
+          </span>
           <h3 className="text-sm font-semibold text-text-main">{t("autoFeaturesTitle")}</h3>
           <Badge variant="primary" size="sm">
             {t("autoFeaturesCount")}

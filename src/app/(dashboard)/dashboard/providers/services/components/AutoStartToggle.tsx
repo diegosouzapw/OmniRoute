@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
 import { Card, Toggle } from "@/shared/components";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
@@ -12,12 +11,11 @@ interface AutoStartToggleProps {
 }
 
 export function AutoStartToggle({ name, label, description }: AutoStartToggleProps) {
-  const t = useTranslations("embeddedServices");
   const { data, mutate } = useServiceStatus(name);
   const [pending, setPending] = useState(false);
 
-  const displayLabel = label ?? t("autoStart");
-  const displayDescription = description ?? t("autoStartDescription", { name });
+  const displayLabel = label ?? "Auto-start";
+  const displayDescription = description ?? `Launch ${name} automatically when OmniRoute starts`;
 
   async function handleToggle(enabled: boolean) {
     setPending(true);

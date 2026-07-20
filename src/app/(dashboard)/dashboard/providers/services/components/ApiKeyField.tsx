@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useTranslations } from "next-intl";
 import { Card, Button, ConfirmModal } from "@/shared/components";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
@@ -12,7 +11,6 @@ interface ApiKeyFieldProps {
 }
 
 export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFieldProps) {
-  const t = useTranslations("embeddedServices");
   const { data, mutate } = useServiceStatus(name);
   const [pending, setPending] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -45,10 +43,10 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
     try {
       const res = await fetch(`/api/services/${name}/rotate-key`, { method: "POST" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setMsg({ ok: true, text: t("keyRotated", { name: label }) });
+      setMsg({ ok: true, text: `Key rotated — ${label} restarted to apply the new key` });
       mutate();
     } catch {
-      setMsg({ ok: false, text: t("keyRotateFailed") });
+      setMsg({ ok: false, text: "Failed to rotate key" });
     } finally {
       setPending(false);
     }
@@ -66,10 +64,10 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
         setPlainKey(body.apiKeyPlain);
         setMsg(null);
       } else {
-        setMsg({ ok: false, text: t("keyRevealEmpty") });
+        setMsg({ ok: false, text: "Reveal failed: key not returned" });
       }
     } catch {
-      setMsg({ ok: false, text: t("keyRevealFailed") });
+      setMsg({ ok: false, text: "Failed to reveal key" });
     } finally {
       setRevealPending(false);
       setRevealModalOpen(false);
@@ -84,8 +82,10 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
             <span className="material-symbols-outlined text-amber-500 text-xl">key</span>
           </div>
           <div>
-            <h3 className="font-medium text-sm">{t("apiKey")}</h3>
-            <p className="text-xs text-text-muted">{t("apiKeyDescription", { name: label })}</p>
+            <h3 className="font-medium text-sm">API Key</h3>
+            <p className="text-xs text-text-muted">
+              Key used by OmniRoute to authenticate with {label}
+            </p>
           </div>
         </div>
 
@@ -116,7 +116,7 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
               disabled={revealPending || !data?.installedVersion}
               className="shrink-0"
             >
-              {t("reveal")}
+              Reveal
             </Button>
           )}
           {plainKey && (
@@ -126,7 +126,7 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
               onClick={() => setPlainKey(null)}
               className="shrink-0"
             >
-              {t("hide")}
+              Hide
             </Button>
           )}
           <Button
@@ -136,11 +136,15 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
             disabled={pending || !data?.installedVersion}
             className="shrink-0"
           >
-            {pending ? t("rotating") : t("rotateKey")}
+            {pending ? "Rotating…" : "Rotate key"}
           </Button>
         </div>
 
-        {plainKey && <p className="mt-2 text-[11px] text-text-muted">{t("keyAutoHide")}</p>}
+        {plainKey && (
+          <p className="mt-2 text-[11px] text-text-muted">
+            Key will be hidden automatically in 30 seconds.
+          </p>
+        )}
       </Card>
 
       {showReveal && (
@@ -148,10 +152,10 @@ export function ApiKeyField({ name, serviceLabel, showReveal = false }: ApiKeyFi
           isOpen={revealModalOpen}
           onClose={() => setRevealModalOpen(false)}
           onConfirm={confirmReveal}
-          title={t("revealTitle")}
-          message={t("revealConfirm")}
-          confirmText={revealPending ? t("revealing") : t("reveal")}
-          cancelText={t("cancel")}
+          title="Reveal API Key"
+          message="Revealing the API key will be logged in the audit trail. Continue?"
+          confirmText={revealPending ? "Revealing…" : "Reveal"}
+          cancelText="Cancel"
           variant="secondary"
           loading={revealPending}
         />

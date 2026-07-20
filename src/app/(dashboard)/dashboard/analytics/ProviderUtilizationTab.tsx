@@ -22,6 +22,13 @@ import type {
   UtilizationTimeRange,
 } from "@/shared/types/utilization";
 
+const RANGE_LABELS: Record<UtilizationTimeRange, string> = {
+  "1h": "Last hour",
+  "24h": "Last 24 hours",
+  "7d": "Last 7 days",
+  "30d": "Last 30 days",
+};
+
 const PROVIDER_COLORS = [
   "var(--color-primary)",
   "var(--color-accent)",
@@ -189,7 +196,7 @@ export default function ProviderUtilizationTab() {
     <div className="flex flex-col gap-6">
       <Card
         title={t("providerUtilizationTitle")}
-        subtitle={t(`utilizationRange.${range}`)}
+        subtitle={RANGE_LABELS[range]}
         icon="monitoring"
         action={
           <div className="flex items-center gap-4">
@@ -203,7 +210,7 @@ export default function ProviderUtilizationTab() {
                 }`}
               >
                 <span className="material-symbols-outlined text-[14px]">dns</span>
-                {t("providerUtilizationGlobalView")}
+                Global View
               </button>
               <button
                 onClick={() => setAggregateBy("connection")}
@@ -214,7 +221,7 @@ export default function ProviderUtilizationTab() {
                 }`}
               >
                 <span className="material-symbols-outlined text-[14px]">account_tree</span>
-                {t("providerUtilizationAccountSplit")}
+                Account Split
               </button>
             </div>
             <TimeRangeSelector value={range} onChange={setRange} />
@@ -227,7 +234,7 @@ export default function ProviderUtilizationTab() {
             <span className="material-symbols-outlined mr-2 animate-spin text-[18px]">
               progress_activity
             </span>
-            {t("providerUtilizationLoading")}
+            Loading utilization data…
           </div>
         ) : error ? (
           <div className="flex min-h-80 flex-col items-center justify-center gap-4 text-center">
@@ -249,12 +256,12 @@ export default function ProviderUtilizationTab() {
                   <span className="material-symbols-outlined animate-spin text-[18px]">
                     progress_activity
                   </span>
-                  {t("retrying")}
+                  Retrying…
                 </>
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[18px]">refresh</span>
-                  {t("retry")}
+                  Retry
                 </>
               )}
             </button>
@@ -267,7 +274,7 @@ export default function ProviderUtilizationTab() {
             <div className="flex flex-col gap-2">
               <p className="text-sm font-medium text-text-main">{t("providerUtilizationNoData")}</p>
               <p className="max-w-md text-sm text-text-muted">
-                {t("providerUtilizationNoDataDescription")}
+                Provider quota snapshots will appear here after utilization data is collected.
               </p>
             </div>
             <div className="rounded-lg border border-black/5 bg-black/[0.02] p-4 dark:border-white/5 dark:bg-white/[0.02]">
@@ -280,22 +287,22 @@ export default function ProviderUtilizationTab() {
                     check_circle
                   </span>
                   <span>
-                    {t.rich("providerUtilizationStepConnect", {
-                      strong: (chunks) => <strong>{chunks}</strong>,
-                    })}
+                    Connect providers via OAuth or API keys in <strong>Providers</strong>
                   </span>
                 </li>
                 <li className="mt-1 flex items-start gap-2">
                   <span className="material-symbols-outlined text-[14px] text-primary">
                     check_circle
                   </span>
-                  <span>{t("providerUtilizationStepEnable")}</span>
+                  <span>
+                    Enable quota tracking by using the provider in a combo or direct request
+                  </span>
                 </li>
                 <li className="mt-1 flex items-start gap-2">
                   <span className="material-symbols-outlined text-[14px] text-primary">
                     check_circle
                   </span>
-                  <span>{t("providerUtilizationStepAutomatic")}</span>
+                  <span>Data will appear automatically as quota snapshots are collected</span>
                 </li>
               </ul>
             </div>
@@ -386,11 +393,7 @@ export default function ProviderUtilizationTab() {
                               : "bg-success/10 text-success"
                         }`}
                       >
-                        {point.isExhausted
-                          ? t("statusExhausted")
-                          : isLow
-                            ? t("statusLow")
-                            : t("statusHealthy")}
+                        {point.isExhausted ? "Exhausted" : isLow ? "Low" : "Healthy"}
                       </span>
                     </div>
 
@@ -420,7 +423,7 @@ export default function ProviderUtilizationTab() {
                       </div>
                       <div className="flex items-center justify-between text-xs text-text-muted">
                         <span>0%</span>
-                        <span>{t("remainingQuota")}</span>
+                        <span>Remaining quota</span>
                         <span>100%</span>
                       </div>
                     </div>

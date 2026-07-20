@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, Button, Input, Badge } from "@/shared/components";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ const CLOUD_AGENTS = [
     id: "jules",
     name: "Jules",
     provider: "Google",
-    descriptionKey: "agentDescriptions.jules",
+    description: "Google's autonomous coding agent",
     icon: "smart_toy",
     iconBg: "bg-yellow-500/10",
     iconColor: "text-yellow-600",
@@ -47,7 +47,7 @@ const CLOUD_AGENTS = [
     id: "devin",
     name: "Devin",
     provider: "Cognition",
-    descriptionKey: "agentDescriptions.devin",
+    description: "Cognition's AI software engineer",
     icon: "psychology",
     iconBg: "bg-blue-500/10",
     iconColor: "text-blue-600",
@@ -56,7 +56,7 @@ const CLOUD_AGENTS = [
     id: "codex-cloud",
     name: "Codex Cloud",
     provider: "OpenAI",
-    descriptionKey: "agentDescriptions.codexCloud",
+    description: "OpenAI's cloud-based coding agent",
     icon: "cloud",
     iconBg: "bg-emerald-500/10",
     iconColor: "text-emerald-600",
@@ -65,7 +65,7 @@ const CLOUD_AGENTS = [
     id: "cursor-cloud",
     name: "Cursor Cloud",
     provider: "Cursor",
-    descriptionKey: "agentDescriptions.cursorCloud",
+    description: "Cursor's Background / Cloud Agents (official API key)",
     icon: "cloud",
     iconBg: "bg-slate-500/10",
     iconColor: "text-slate-600",
@@ -101,7 +101,6 @@ function formatDuration(start: string, end: string) {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function CloudAgentsPage() {
-  const locale = useLocale();
   const [activeTab, setActiveTab] = useState<TabId>("tasks");
   const t = useTranslations("cloudAgents");
 
@@ -138,15 +137,12 @@ export default function CloudAgentsPage() {
   // ── Load settings from localStorage ──────────────────────────────────────
 
   useEffect(() => {
-    const loadSettings = setTimeout(() => {
-      try {
-        const stored = localStorage.getItem("omniroute-cloud-agents-settings");
-        if (stored) setSettings(JSON.parse(stored));
-      } catch {
-        // Ignore malformed or unavailable local storage.
-      }
-    }, 0);
-    return () => clearTimeout(loadSettings);
+    try {
+      const stored = localStorage.getItem("omniroute-cloud-agents-settings");
+      if (stored) setSettings(JSON.parse(stored));
+    } catch {
+      // ignore
+    }
   }, []);
 
   const updateSetting = (key: keyof typeof settings, value: boolean) => {
@@ -184,8 +180,7 @@ export default function CloudAgentsPage() {
   }, []);
 
   useEffect(() => {
-    const initialFetch = setTimeout(() => void fetchTasks(), 0);
-    return () => clearTimeout(initialFetch);
+    fetchTasks();
   }, [fetchTasks]);
 
   // ── Auto-poll when tasks are running/queued ──────────────────────────────
@@ -217,9 +212,7 @@ export default function CloudAgentsPage() {
   // ── Tab mount effects ────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (activeTab !== "agents") return;
-    const healthFetch = setTimeout(() => void fetchAgentHealth(), 0);
-    return () => clearTimeout(healthFetch);
+    if (activeTab === "agents") fetchAgentHealth();
   }, [activeTab, fetchAgentHealth]);
 
   // ── Filtered tasks ───────────────────────────────────────────────────────
@@ -503,7 +496,7 @@ export default function CloudAgentsPage() {
                     onChange={(e) => setNewTask({ ...newTask, autoCreatePr: e.target.checked })}
                     className="h-4 w-4 rounded border-border/60"
                   />
-                  {t("settingAutoPR")}
+                  Auto-create PR
                 </label>
               </div>
               <div className="flex justify-end">
@@ -588,7 +581,7 @@ export default function CloudAgentsPage() {
                               {task.prompt || t("untitledTask")}
                             </p>
                             <p className="text-xs text-text-muted">
-                              {agent.name} · {new Date(task.createdAt).toLocaleString(locale)}
+                              {agent.name} · {new Date(task.createdAt).toLocaleString()}
                             </p>
                           </div>
                         </div>
@@ -616,7 +609,7 @@ export default function CloudAgentsPage() {
                       <div>
                         <p className="font-medium">{getAgentInfo(selectedTask.providerId).name}</p>
                         <p className="text-xs text-text-muted">
-                          {t("created")}: {new Date(selectedTask.createdAt).toLocaleString(locale)}
+                          {t("created")}: {new Date(selectedTask.createdAt).toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -675,9 +668,7 @@ export default function CloudAgentsPage() {
                                 : "bg-surface/40 text-text-main"
                             }`}
                           >
-                            <span className="font-medium">
-                              {t(`activityTypes.${activity.type}`)}:{" "}
-                            </span>
+                            <span className="font-medium capitalize">{activity.type}: </span>
                             {activity.content}
                           </div>
                         ))}
@@ -797,7 +788,7 @@ export default function CloudAgentsPage() {
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm text-text-muted">{t(agent.descriptionKey)}</p>
+                  <p className="text-sm text-text-muted">{agent.description}</p>
 
                   {/* Connection status */}
                   <div className="flex items-center gap-2">

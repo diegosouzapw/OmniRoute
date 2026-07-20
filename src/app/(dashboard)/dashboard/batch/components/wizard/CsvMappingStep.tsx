@@ -41,7 +41,7 @@ function parseCsvRow(line: string): string[] {
 }
 
 const MAPPING_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: "", label: "" },
+  { value: "", label: "— ignore —" },
   { value: "custom_id", label: "custom_id" },
   { value: "body.messages[0].content", label: "body.messages[0].content" },
   { value: "body.messages[0].role", label: "body.messages[0].role" },
@@ -133,7 +133,7 @@ export default function CsvMappingStep({
       <p className="text-sm font-medium text-[var(--color-text)]">{t("wizardCsvMappingTitle")}</p>
 
       {columns.length === 0 && (
-        <p className="text-xs text-[var(--color-text-muted)]">{t("wizardCsvNoColumns")}</p>
+        <p className="text-xs text-[var(--color-text-muted)]">No columns detected in CSV header.</p>
       )}
 
       <div className="flex flex-col gap-3">
@@ -150,7 +150,7 @@ export default function CsvMappingStep({
             >
               {MAPPING_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.value === "" ? t("wizardCsvIgnoreColumn") : opt.label}
+                  {opt.label}
                 </option>
               ))}
             </select>
@@ -167,7 +167,7 @@ export default function CsvMappingStep({
             {hasCustomId ? "check_circle" : "radio_button_unchecked"}
           </span>
           <span className={hasCustomId ? "text-emerald-400" : "text-[var(--color-text-muted)]"}>
-            {t("wizardCsvCustomIdMapped")}
+            custom_id mapped
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs">
@@ -177,7 +177,7 @@ export default function CsvMappingStep({
             {hasContent ? "check_circle" : "radio_button_unchecked"}
           </span>
           <span className={hasContent ? "text-emerald-400" : "text-[var(--color-text-muted)]"}>
-            {t("wizardCsvContentMapped")}
+            Content field mapped (messages, input, or prompt)
           </span>
         </div>
       </div>
@@ -189,23 +189,19 @@ export default function CsvMappingStep({
         onClick={handleApply}
         className="self-start rounded-lg px-4 py-2 text-sm font-medium bg-[var(--color-accent)] text-white disabled:opacity-40 hover:opacity-90 transition-opacity"
       >
-        {t("wizardCsvApplyMapping")}
+        Apply mapping
       </button>
 
       {/* Conversion feedback */}
       {conversionResult && (
         <div className="flex flex-col gap-1 text-xs">
-          <span className="text-emerald-400">
-            {t("wizardCsvRowsParsed", { count: conversionResult.rowsParsed })}
-          </span>
+          <span className="text-emerald-400">{conversionResult.rowsParsed} rows parsed</span>
           {conversionResult.rowsSkipped > 0 && (
-            <span className="text-yellow-400">
-              {t("wizardCsvRowsSkipped", { count: conversionResult.rowsSkipped })}
-            </span>
+            <span className="text-yellow-400">{conversionResult.rowsSkipped} rows skipped</span>
           )}
           {conversionResult.errors.slice(0, 5).map((e) => (
             <span key={e.row} className="text-red-400">
-              {t("wizardCsvRowError", { row: e.row, reason: e.reason })}
+              Row {e.row}: {e.reason}
             </span>
           ))}
         </div>

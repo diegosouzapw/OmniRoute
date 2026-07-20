@@ -109,7 +109,9 @@ export default function AntigravityToolCard({
   // browser hitting a Windows server does not (#822).
   const serverIsWindows = status?.isWin === true;
   const canRunWithoutPassword =
-    serverIsWindows || status?.hasCachedPassword === true || status?.needsSudoPassword === false;
+    serverIsWindows ||
+    status?.hasCachedPassword === true ||
+    status?.needsSudoPassword === false;
 
   const handleStart = () => {
     if (canRunWithoutPassword) {
@@ -288,7 +290,7 @@ export default function AntigravityToolCard({
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-text-muted truncate">{t(`toolDescriptions.${tool.id}`)}</p>
+            <p className="text-xs text-text-muted truncate">{tool.description}</p>
           </div>
         </div>
         <span

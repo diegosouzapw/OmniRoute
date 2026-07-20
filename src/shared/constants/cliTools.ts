@@ -9,7 +9,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   claude: {
     id: "claude",
     name: "Claude Code",
-    image: "/providers/claude.svg",
+    icon: "terminal",
     color: "#D97757",
     description: "Anthropic Claude Code CLI — ANTHROPIC_BASE_URL points to OmniRoute",
     docsUrl: "https://docs.anthropic.com/en/docs/claude-code/overview",
@@ -71,7 +71,6 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   codex: {
     id: "codex",
     name: "OpenAI Codex CLI",
-    image: "/providers/codex.svg",
     color: "#10A37F",
     description: "OpenAI Codex CLI — OpenAI-compatible base URL targets OmniRoute",
     docsUrl: "https://github.com/openai/codex",
@@ -99,7 +98,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   openclaw: {
     id: "openclaw",
     name: "Open Claw",
-    image: "/providers/openclaw.svg",
+    image: "/providers/openclaw.png",
     color: "#FF6B35",
     description: "Open Claw — open-source multi-backend agent CLI (OSS, P. Steinberger)",
     docsUrl: "/docs?section=cli-tools&tool=openclaw",
@@ -113,7 +112,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   cursor: {
     id: "cursor",
     name: "Cursor",
-    image: "/providers/cursor.svg",
+    image: "/providers/cursor.png",
     color: "#000000",
     // Cursor App routes via its own cloud server — local base URL not supported.
     // Use cursor-cli entry for headless/agent CLI mode with custom endpoint.
@@ -145,7 +144,6 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   cline: {
     id: "cline",
     name: "Cline",
-    image: "/providers/cline.svg",
     color: "#00D1B2",
     description: "Cline — open-source VS Code coding agent with OpenAI-compatible base URL",
     docsUrl: "https://docs.cline.bot/",
@@ -173,7 +171,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   continue: {
     id: "continue",
     name: "Continue",
-    image: "/providers/continue.svg",
+    image: "/providers/continue.png",
     color: "#7C3AED",
     description: "Continue — open-source AI coding assistant with full provider config",
     docsUrl: "https://docs.continue.dev/",
@@ -244,7 +242,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   copilot: {
     id: "copilot",
     name: "GitHub Copilot",
-    image: "/providers/copilot.svg",
+    image: "/providers/copilot.png",
     color: "#1F6FEB",
     // D-nota: copilot suporta COPILOT_PROVIDER_BASE_URL desde v1.0.19+
     description: "GitHub Copilot Chat — VS Code extension with COPILOT_PROVIDER_BASE_URL support",
@@ -404,7 +402,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   qwen: {
     id: "qwen",
     name: "Qwen Code",
-    image: "/providers/qwen.svg",
+    icon: "psychology",
     color: "#10B981",
     description:
       "Alibaba Qwen Code CLI — supports OpenAI, Anthropic & Gemini providers via OmniRoute",
@@ -590,7 +588,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   "cursor-cli": {
     id: "cursor-cli",
     name: "Cursor Agent CLI",
-    image: "/providers/cursor.svg",
+    icon: "terminal",
     color: "#000000",
     description: "Cursor Agent CLI — headless agent mode with custom provider endpoint",
     docsUrl: "https://docs.cursor.com/advanced/api",
@@ -614,7 +612,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   roo: {
     id: "roo",
     name: "Roo Code",
-    image: "/providers/roocode.svg",
+    icon: "terminal",
     color: "#7C3AED",
     description: "Roo Code AI Assistant — VS Code extension with OpenAI-compatible custom base URL",
     docsUrl: "https://docs.roocode.com/",
@@ -657,7 +655,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   "deepseek-tui": {
     id: "deepseek-tui",
     name: "DeepSeek TUI",
-    image: "/providers/deepseek.svg",
+    icon: "terminal",
     color: "#4F46E5",
     description: "DeepSeek TUI — Rust-based coding agent CLI with OPENAI_BASE_URL support",
     docsUrl: "https://github.com/hunterbown/deepseek-tui",

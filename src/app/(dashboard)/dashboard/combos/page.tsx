@@ -3903,16 +3903,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         }
                         className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-surface-1 focus:border-primary focus:outline-none"
                       >
-                        <option value="flatten">
-                          {getI18nOrFallback(t, "nestedComboFlatten", "Flatten nested combos")}
-                        </option>
-                        <option value="execute">
-                          {getI18nOrFallback(
-                            t,
-                            "nestedComboExecute",
-                            "Execute nested combos as targets"
-                          )}
-                        </option>
+                        <option value="flatten">Flatten nested combos</option>
+                        <option value="execute">Execute nested combos as targets</option>
                       </select>
                     </div>
                     {/* #6168: per-combo session-stickiness override (tri-state so it can

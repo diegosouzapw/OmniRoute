@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import type { OmniSkill } from "./OmniSkillCard";
 
 interface SkillDetail extends OmniSkill {
@@ -36,7 +36,6 @@ export function SkillInspectorPane({
   onSetMode,
   onUninstall,
 }: SkillInspectorPaneProps): JSX.Element {
-  const locale = useLocale();
   const t = useTranslations("skills");
   const [activeTab, setActiveTab] = useState<InspectorTab>("schema");
   const [detail, setDetail] = useState<SkillDetail | null>(null);
@@ -94,8 +93,10 @@ export function SkillInspectorPane({
   if (!selectedSkillId || !skill) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-text-muted text-sm text-center p-6">
-        <span className="material-symbols-outlined text-[40px] mb-3 opacity-30">manage_search</span>
-        <span>{t("selectSkillToInspect")}</span>
+        <span className="material-symbols-outlined text-[40px] mb-3 opacity-30">
+          manage_search
+        </span>
+        <span>Selecione uma skill à esquerda para inspecionar.</span>
       </div>
     );
   }
@@ -103,8 +104,8 @@ export function SkillInspectorPane({
   const effectiveMode = skill.mode || (skill.enabled ? "on" : "off");
 
   const tabs: { id: InspectorTab; label: string }[] = [
-    { id: "schema", label: t("schemaTab") },
-    { id: "handler", label: t("handlerTab") },
+    { id: "schema", label: "Schema" },
+    { id: "handler", label: "Handler" },
     { id: "executions", label: t("executionsTab") },
     { id: "sandbox", label: t("sandboxTab") },
   ];
@@ -161,7 +162,7 @@ export function SkillInspectorPane({
           <div className="space-y-3">
             <div>
               <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1.5">
-                {t("inputSchema")}
+                Input Schema
               </p>
               <pre className="text-xs bg-surface/40 rounded-lg p-3 overflow-auto max-h-[200px] text-text-main font-mono whitespace-pre-wrap">
                 {JSON.stringify(detail?.schema?.input ?? {}, null, 2) || "{}"}
@@ -169,7 +170,7 @@ export function SkillInspectorPane({
             </div>
             <div>
               <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1.5">
-                {t("outputSchema")}
+                Output Schema
               </p>
               <pre className="text-xs bg-surface/40 rounded-lg p-3 overflow-auto max-h-[200px] text-text-main font-mono whitespace-pre-wrap">
                 {JSON.stringify(detail?.schema?.output ?? {}, null, 2) || "{}"}
@@ -181,10 +182,10 @@ export function SkillInspectorPane({
         {activeTab === "handler" && (
           <div>
             <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1.5">
-              {t("handlerCode")}
+              Handler Code
             </p>
             <pre className="text-xs bg-surface/40 rounded-lg p-3 overflow-auto max-h-[400px] text-text-main font-mono whitespace-pre-wrap">
-              {detail?.handler ?? `// ${t("handlerUnavailable")}`}
+              {detail?.handler ?? "// Handler not available"}
             </pre>
           </div>
         )}
@@ -222,7 +223,7 @@ export function SkillInspectorPane({
                       </td>
                       <td className="py-2 text-text-muted">{exec.duration}ms</td>
                       <td className="py-2 text-text-muted">
-                        {new Date(exec.createdAt).toLocaleString(locale)}
+                        {new Date(exec.createdAt).toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -255,7 +256,7 @@ export function SkillInspectorPane({
               </div>
             ))}
             <button className="w-full mt-3 px-3 py-2 text-xs font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:border-violet-500/50 transition-colors">
-              {t("runTestPlaceholder")}
+              Run test (placeholder)
             </button>
           </div>
         )}
@@ -267,7 +268,7 @@ export function SkillInspectorPane({
           <button
             key={mode}
             onClick={() => onSetMode(skill.id, mode)}
-            aria-label={t("setModeAria", { mode })}
+            aria-label={`Set mode ${mode}`}
             className={`flex-1 text-xs px-2 py-1.5 rounded border transition-colors ${
               effectiveMode === mode
                 ? mode === "on"
@@ -283,7 +284,7 @@ export function SkillInspectorPane({
         ))}
         <button
           onClick={() => onUninstall(skill.id)}
-          aria-label={t("uninstallSkill")}
+          aria-label="Uninstall skill"
           className="flex-1 text-xs px-2 py-1.5 rounded border border-border text-red-400 hover:bg-red-500/10 transition-colors"
         >
           {t("delete")}

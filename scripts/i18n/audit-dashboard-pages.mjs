@@ -75,26 +75,6 @@ function extractNamespaces(source) {
   return namespaces;
 }
 
-/**
- * Components that receive `t` from a page hook do not declare
- * useTranslations() locally. Infer their namespace from the dashboard area so
- * valid keys are not reported as missing merely because translation ownership
- * lives in the parent composition hook.
- */
-function inferNamespaces(filePath, extracted) {
-  if (extracted.length > 0) return extracted;
-  const areaNamespaces = [
-    ["/dashboard/providers/", "providers"],
-    ["/dashboard/webhooks/", "webhooks"],
-    ["/dashboard/chaos/", "chaosConfig"],
-    ["/dashboard/translator/", "translator"],
-    ["/dashboard/combos/", "combos"],
-  ];
-  const normalizedPath = filePath.replaceAll("\\", "/");
-  const match = areaNamespaces.find(([area]) => normalizedPath.includes(area));
-  return match ? [match[1]] : [null];
-}
-
 /** Extract every t("key", ...) and t.rich("key", ...) — capture the literal key only */
 function extractTCalls(source) {
   const out = new Set();
@@ -144,30 +124,6 @@ const TS_TYPE_NOISE = new Set([
   "void | Promise",
   "Promise | undefined",
 ]);
-
-const TECHNICAL_LITERAL_ALLOWLIST = new Set([
-  "MCP",
-  "Vercel Relay",
-  "= warning : value",
-  "0) return",
-  "ntn_... or secret_...",
-]);
-
-function isTechnicalLiteral(value) {
-  if (TECHNICAL_LITERAL_ALLOWLIST.has(value)) return true;
-  if (/^(GET|POST|PUT|PATCH|DELETE|WS)\s+\//.test(value)) return true;
-  if (/^(&lt;\/&gt;|&rarr;)$/.test(value)) return true;
-  if (/^(https?:\/\/|~\/|\/Users\/|#)/.test(value)) return true;
-  if (/^(provider\/model|choices\[.*|[\w.-]+\/[\w./-]+)$/.test(value)) return true;
-  if (/^(sk[-_]|as-|ddo_|vercel_pat_|workspace_|auth=|__Secure-|@preset\/)/.test(value))
-    return true;
-  if (/^(ENABLE_[A-Z0-9_]+=|x-[a-z-]+$)/.test(value)) return true;
-  if (/^(e\.g\. \^|https\?:|\/path\/to\/)/.test(value)) return true;
-  if (/^(012345|my-app\/|omniroute_memory$|cloudflare-api-token$|your-)/.test(value)) return true;
-  if (/^(user@example\.com|OmniRoute|omniroute-deno-relay)$/.test(value)) return true;
-  if (/^(gpt-|codex\/|openai\/|[*.][\w.-]+&#10;)/.test(value)) return true;
-  return false;
-}
 
 function findHardcodedStrings(source) {
   const findings = [];
@@ -244,7 +200,7 @@ function findHardcodedStrings(source) {
     }
   }
 
-  return findings.filter((finding) => !isTechnicalLiteral(finding.value));
+  return findings;
 }
 
 /** Find t() calls whose key does NOT exist in en.json */
@@ -275,17 +231,15 @@ const report = [];
 for (const file of files) {
   const rel = relative(REPO_ROOT, file);
   const src = readFileSync(file, "utf8");
-  const extractedNamespaces = extractNamespaces(src);
-  const namespaces = inferNamespaces(rel, extractedNamespaces);
+  const namespaces = extractNamespaces(src);
   const tCalls = extractTCalls(src);
   const hardcoded = findHardcodedStrings(src);
-  const missing = findMissingKeys(namespaces, tCalls);
+  const missing = findMissingKeys(namespaces.length ? namespaces : [null], tCalls);
   // Only include files that have ANY user-visible content
-  if (!extractedNamespaces.length && !tCalls.length && !hardcoded.length) continue;
+  if (!namespaces.length && !tCalls.length && !hardcoded.length) continue;
   report.push({
     file: rel,
-    namespaces: extractedNamespaces,
-    resolvedNamespaces: namespaces,
+    namespaces,
     tCallCount: tCalls.length,
     missingKeys: missing,
     hardcodedCount: hardcoded.length,

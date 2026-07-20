@@ -1,7 +1,6 @@
 "use client";
 
 import { useId } from "react";
-import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
 interface SelectOption {
@@ -23,7 +22,7 @@ export default function Select({
   options = [],
   value,
   onChange,
-  placeholder,
+  placeholder = "Select an option",
   error,
   hint,
   disabled = false,
@@ -34,7 +33,6 @@ export default function Select({
   children,
   ...props
 }: SelectProps) {
-  const t = useTranslations("common");
   const generatedId = useId();
   const selectId = externalId || generatedId;
   const errorId = error ? `${selectId}-error` : undefined;
@@ -74,9 +72,9 @@ export default function Select({
           )}
           {...props}
         >
-          {!children && (placeholder ?? t("selectOption")) && (
+          {!children && placeholder && (
             <option value="" disabled className="bg-surface text-text-muted">
-              {placeholder ?? t("selectOption")}
+              {placeholder}
             </option>
           )}
           {!children &&

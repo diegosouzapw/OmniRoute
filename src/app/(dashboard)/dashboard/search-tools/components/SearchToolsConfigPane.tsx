@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
 import { Select } from "@/shared/components";
 import type { SearchProviderCatalogItem } from "@/shared/schemas/searchTools";
 import type { ActiveTab } from "./SearchToolsTopBar";
@@ -29,7 +28,6 @@ export default function SearchToolsConfigPane({
   activeTab,
   rerankModels = [],
 }: SearchToolsConfigPaneProps) {
-  const t = useTranslations("search");
   const [historyExpanded, setHistoryExpanded] = useState(false);
 
   const searchProviders = providers.filter((p) => p.kind === "search" && p.status !== "missing");
@@ -42,18 +40,18 @@ export default function SearchToolsConfigPane({
     <aside
       className="w-[220px] shrink-0 border-l border-border bg-bg-alt overflow-y-auto flex flex-col"
       data-testid="search-tools-config-pane"
-      aria-label={t("configurationPane")}
+      aria-label="Configuration pane"
     >
       <div className="p-3 border-b border-border">
         <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-          {t("configuration")}
+          Configuration
         </span>
       </div>
 
       {/* Provider selector */}
       <div className="p-3 border-b border-border space-y-2">
         <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
-          {t("provider")}
+          Provider
         </label>
         <Select
           value={config.provider}
@@ -61,7 +59,7 @@ export default function SearchToolsConfigPane({
             onConfigChange({ provider: e.target.value })
           }
           options={[
-            { value: "auto", label: t("autoProvider") },
+            { value: "auto", label: "Auto (cheapest)" },
             ...relevantProviders.map((p) => ({ value: p.id, label: p.name })),
           ]}
           className="w-full"
@@ -71,14 +69,14 @@ export default function SearchToolsConfigPane({
         {selectedProvider && (
           <div className="text-[10px] text-text-muted space-y-0.5">
             <div>
-              {`${t("cost")}: `}
+              Cost:{" "}
               <span className="text-text-main font-medium">
                 ${selectedProvider.costPerQuery.toFixed(4)}/query
               </span>
             </div>
             {selectedProvider.freeMonthlyQuota > 0 && (
               <div>
-                {`${t("freeQuota")}: `}
+                Free quota:{" "}
                 <span className="text-text-main font-medium">
                   {selectedProvider.freeMonthlyQuota >= 1000
                     ? `${(selectedProvider.freeMonthlyQuota / 1000).toFixed(0)}k`
@@ -88,7 +86,7 @@ export default function SearchToolsConfigPane({
               </div>
             )}
             <div className="flex items-center gap-1">
-              {`${t("status")}: `}
+              Status:{" "}
               <span
                 className={
                   selectedProvider.status === "configured"
@@ -99,10 +97,10 @@ export default function SearchToolsConfigPane({
                 }
               >
                 {selectedProvider.status === "configured"
-                  ? t("configuredStatus")
+                  ? "Configured"
                   : selectedProvider.status === "rate_limited"
-                    ? t("rateLimitedStatus")
-                    : t("noCredential")}
+                    ? "Rate limited"
+                    : "Missing credential"}
               </span>
             </div>
           </div>
@@ -113,7 +111,7 @@ export default function SearchToolsConfigPane({
       {activeTab === "search" && (
         <div className="p-3 border-b border-border space-y-2">
           <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
-            {t("searchType")}
+            Search type
           </label>
           <Select
             value={config.searchType}
@@ -121,8 +119,8 @@ export default function SearchToolsConfigPane({
               onConfigChange({ searchType: e.target.value as "web" | "news" })
             }
             options={[
-              { value: "web", label: t("searchTypeWeb") },
-              { value: "news", label: t("searchTypeNews") },
+              { value: "web", label: "Web" },
+              { value: "news", label: "News" },
             ]}
             className="w-full"
           />
@@ -133,7 +131,7 @@ export default function SearchToolsConfigPane({
       {activeTab === "scrape" && (
         <div className="p-3 border-b border-border space-y-2">
           <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
-            {t("scrapeFormat")}
+            Format
           </label>
           <Select
             value={config.fetchFormat}
@@ -141,9 +139,9 @@ export default function SearchToolsConfigPane({
               onConfigChange({ fetchFormat: e.target.value as ConfigState["fetchFormat"] })
             }
             options={[
-              { value: "markdown", label: t("formatMarkdown") },
+              { value: "markdown", label: "Markdown" },
               { value: "html", label: "HTML" },
-              { value: "text", label: t("formatText") },
+              { value: "text", label: "Text" },
             ]}
             className="w-full"
           />
@@ -154,7 +152,7 @@ export default function SearchToolsConfigPane({
               onChange={(e) => onConfigChange({ fullPage: e.target.checked })}
               className="rounded"
             />
-            <span className="text-xs text-text-main">{t("scrapeFullPage")}</span>
+            <span className="text-xs text-text-main">Full page</span>
           </label>
         </div>
       )}
@@ -162,7 +160,9 @@ export default function SearchToolsConfigPane({
       {/* Compare tab options */}
       {activeTab === "compare" && (
         <div className="p-3 border-b border-border">
-          <div className="text-[10px] text-text-muted">{t("compareProviderHint")}</div>
+          <div className="text-[10px] text-text-muted">
+            Select up to 4 providers on the Compare tab to compare them side by side.
+          </div>
         </div>
       )}
 
@@ -170,14 +170,14 @@ export default function SearchToolsConfigPane({
       {activeTab === "search" && rerankModels.length > 0 && (
         <div className="p-3 border-b border-border space-y-1">
           <label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
-            {t("rerankModelLabel")}
+            Rerank model
           </label>
           <Select
             value={config.rerankModel}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
               onConfigChange({ rerankModel: e.target.value })
             }
-            options={[{ value: "", label: t("noneOption") }, ...rerankModels]}
+            options={[{ value: "", label: "None" }, ...rerankModels]}
             className="w-full"
           />
         </div>
@@ -191,14 +191,16 @@ export default function SearchToolsConfigPane({
           aria-expanded={historyExpanded}
         >
           <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-            {t("history")}
+            History
           </span>
           <span className="text-text-muted text-xs" aria-hidden="true">
             {historyExpanded ? "▼" : "▶"}
           </span>
         </button>
         {historyExpanded && (
-          <div className="mt-2 text-[10px] text-text-muted">{t("historyHint")}</div>
+          <div className="mt-2 text-[10px] text-text-muted">
+            History is available on the Search tab.
+          </div>
         )}
       </div>
     </aside>

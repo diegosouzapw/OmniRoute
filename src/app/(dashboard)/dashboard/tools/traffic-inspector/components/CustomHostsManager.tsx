@@ -22,11 +22,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const HostInputSchema = z
-    .string()
-    .min(1)
-    .max(253)
-    .regex(/^[a-z0-9.-]+$/i, t("invalidHostname"));
+  const HostInputSchema = z.string().min(1).max(253).regex(/^[a-z0-9.-]+$/i, "Invalid hostname");
 
   const fetchHosts = async () => {
     setLoading(true);
@@ -49,7 +45,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
     setError(null);
     const parsed = HostInputSchema.safeParse(input.trim());
     if (!parsed.success) {
-      setError(parsed.error.errors[0]?.message ?? t("invalidHost"));
+      setError(parsed.error.errors[0]?.message ?? "Invalid host");
       return;
     }
     const host = parsed.data;
@@ -61,13 +57,13 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
-        setError(body?.error?.message ?? t("addHostFailed"));
+        setError(body?.error?.message ?? "Failed to add host");
         return;
       }
       setInput("");
       await fetchHosts();
     } catch {
-      setError(t("networkError"));
+      setError("Network error");
     }
   };
 
@@ -91,11 +87,9 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
             type="button"
             onClick={onClose}
             className="text-text-muted hover:text-text-main focus-ring rounded"
-            aria-label={t("close")}
+            aria-label="Close"
           >
-            <span className="material-symbols-outlined" aria-hidden="true">
-              close
-            </span>
+            <span className="material-symbols-outlined" aria-hidden="true">close</span>
           </button>
         </div>
 
@@ -133,7 +127,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
                 type="button"
                 onClick={() => deleteHost(h.host)}
                 className="text-text-muted hover:text-red-400 focus-ring rounded"
-                aria-label={t("removeHost", { host: h.host })}
+                aria-label={`Remove ${h.host}`}
               >
                 <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
                   delete

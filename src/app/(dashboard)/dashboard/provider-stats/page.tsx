@@ -8,7 +8,6 @@
  */
 
 import { useState, useEffect, useCallback, Fragment } from "react";
-import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 
@@ -64,7 +63,6 @@ function successRate(successful: number, total: number): string {
 }
 
 export default function ProviderStatsPage() {
-  const t = useTranslations("providerStats");
   const nodeMap = useProviderNodeMap();
   const [data, setData] = useState<{
     providers: ProviderStat[];
@@ -88,9 +86,9 @@ export default function ProviderStatsPage() {
       setError(null);
       setLastRefresh(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("unknownError"));
+      setError(err instanceof Error ? err.message : "Unknown error");
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -153,7 +151,7 @@ export default function ProviderStatsPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          <p className="text-text-muted mt-4">{t("loading")}</p>
+          <p className="text-text-muted mt-4">Loading provider stats...</p>
         </div>
       </div>
     );
@@ -164,12 +162,12 @@ export default function ProviderStatsPage() {
       <div>
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
           <span className="material-symbols-outlined text-red-500 text-[32px] mb-2">error</span>
-          <p className="text-red-400">{t("loadFailed", { error })}</p>
+          <p className="text-red-400">Failed to load provider stats: {error}</p>
           <button
             onClick={fetchData}
             className="mt-4 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors"
           >
-            {t("retry")}
+            Retry
           </button>
         </div>
       </div>
@@ -182,13 +180,13 @@ export default function ProviderStatsPage() {
       <div className="flex items-center justify-end gap-3">
         {lastRefresh && (
           <span className="text-xs text-text-muted">
-            {t("updated", { time: lastRefresh.toLocaleTimeString() })}
+            Updated {lastRefresh.toLocaleTimeString()}
           </span>
         )}
         <button
           onClick={fetchData}
           className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
-          title={t("refresh")}
+          title="Refresh"
         >
           <span className="material-symbols-outlined text-[18px]">refresh</span>
         </button>
@@ -201,7 +199,7 @@ export default function ProviderStatsPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary">
               <span className="material-symbols-outlined text-[18px]">analytics</span>
             </div>
-            <span className="text-sm text-text-muted">{t("totalRequests")}</span>
+            <span className="text-sm text-text-muted">Total Requests</span>
           </div>
           <p className="text-xl font-semibold text-text-main">{formatNumber(totalRequests)}</p>
         </Card>
@@ -211,7 +209,7 @@ export default function ProviderStatsPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-blue-500/10 text-blue-500">
               <span className="material-symbols-outlined text-[18px]">timer</span>
             </div>
-            <span className="text-sm text-text-muted">{t("avgLatency")}</span>
+            <span className="text-sm text-text-muted">Avg Latency</span>
           </div>
           <p className="text-xl font-semibold text-text-main">{formatLatency(avgLatency)}</p>
         </Card>
@@ -221,7 +219,7 @@ export default function ProviderStatsPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-green-500/10 text-green-500">
               <span className="material-symbols-outlined text-[18px]">check_circle</span>
             </div>
-            <span className="text-sm text-text-muted">{t("successRate")}</span>
+            <span className="text-sm text-text-muted">Success Rate</span>
           </div>
           <p className="text-xl font-semibold text-text-main">
             {successRate(totalSuccessful, totalRequests)}
@@ -233,7 +231,7 @@ export default function ProviderStatsPage() {
             <div className="flex items-center justify-center size-8 rounded-lg bg-purple-500/10 text-purple-500">
               <span className="material-symbols-outlined text-[18px]">dns</span>
             </div>
-            <span className="text-sm text-text-muted">{t("activeProviders")}</span>
+            <span className="text-sm text-text-muted">Active Providers</span>
           </div>
           <p className="text-xl font-semibold text-text-main">{activeProviders}</p>
         </Card>
@@ -244,60 +242,58 @@ export default function ProviderStatsPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
             <span className="material-symbols-outlined text-[20px] text-primary">table_chart</span>
-            {t("providerBreakdown")}
+            Provider Breakdown
           </h2>
-          <span className="text-xs text-text-muted">
-            {t("providerCount", { count: activeProviders })}
-          </span>
+          <span className="text-xs text-text-muted">{activeProviders} providers</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-2 px-3 text-text-muted font-medium">{t("provider")}</th>
+                <th className="text-left py-2 px-3 text-text-muted font-medium">Provider</th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("totalRequests")}
                 >
-                  {t("requests")} <SortIcon column="totalRequests" />
+                  Requests <SortIcon column="totalRequests" />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("successfulRequests")}
                 >
-                  {t("success")} <SortIcon column="successfulRequests" />
+                  Success <SortIcon column="successfulRequests" />
                 </th>
-                <th className="text-right py-2 px-3 text-text-muted font-medium">{t("rate")}</th>
+                <th className="text-right py-2 px-3 text-text-muted font-medium">Rate</th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("avgLatencyMs")}
                 >
-                  {t("avgLatency")} <SortIcon column="avgLatencyMs" />
+                  Avg Latency <SortIcon column="avgLatencyMs" />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("totalTokensIn")}
                 >
-                  {t("tokensIn")} <SortIcon column="totalTokensIn" />
+                  Tokens In <SortIcon column="totalTokensIn" />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("totalTokensOut")}
                 >
-                  {t("tokensOut")} <SortIcon column="totalTokensOut" />
+                  Tokens Out <SortIcon column="totalTokensOut" />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("avgTtftAfterToolMs")}
                 >
-                  {t("ttftAfterTool")} <SortIcon column="avgTtftAfterToolMs" />
+                  TTFT After Tool <SortIcon column="avgTtftAfterToolMs" />
                 </th>
                 <th
                   className="text-right py-2 px-3 text-text-muted font-medium cursor-pointer hover:text-text-main transition-colors select-none"
                   onClick={() => handleSort("avgGapAfterToolMs")}
                 >
-                  {t("gapAfterTool")} <SortIcon column="avgGapAfterToolMs" />
+                  Gap After Tool <SortIcon column="avgGapAfterToolMs" />
                 </th>
                 <th className="py-2 px-3 w-8" />
               </tr>
@@ -374,20 +370,12 @@ export default function ProviderStatsPage() {
                             <table className="w-full text-xs">
                               <thead>
                                 <tr className="text-text-muted">
-                                  <th className="text-left py-1.5 px-6 pl-12 font-medium">
-                                    {t("model")}
-                                  </th>
+                                  <th className="text-left py-1.5 px-6 pl-12 font-medium">Model</th>
+                                  <th className="text-right py-1.5 px-3 font-medium">Requests</th>
+                                  <th className="text-right py-1.5 px-3 font-medium">Success</th>
+                                  <th className="text-right py-1.5 px-3 font-medium">Rate</th>
                                   <th className="text-right py-1.5 px-3 font-medium">
-                                    {t("requests")}
-                                  </th>
-                                  <th className="text-right py-1.5 px-3 font-medium">
-                                    {t("success")}
-                                  </th>
-                                  <th className="text-right py-1.5 px-3 font-medium">
-                                    {t("rate")}
-                                  </th>
-                                  <th className="text-right py-1.5 px-3 font-medium">
-                                    {t("avgLatency")}
+                                    Avg Latency
                                   </th>
                                   <th className="px-3 w-8" />
                                 </tr>
@@ -439,7 +427,7 @@ export default function ProviderStatsPage() {
               {sortedProviders.length === 0 && (
                 <tr>
                   <td colSpan={10} className="py-8 text-center text-text-muted">
-                    {t("noProviderData")}
+                    No provider data recorded yet.
                   </td>
                 </tr>
               )}
@@ -451,8 +439,8 @@ export default function ProviderStatsPage() {
       {/* In-Memory Metrics */}
       {data?.comboMetrics && Object.keys(data.comboMetrics).length > 0 && (
         <Card
-          title={t("comboMetrics")}
-          subtitle={t("comboMetricsDescription")}
+          title="Combo Metrics"
+          subtitle="Per-combo latency and throughput from streaming"
           icon="speed"
           className="p-5"
         >
@@ -461,18 +449,10 @@ export default function ProviderStatsPage() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-2 px-3 text-text-muted font-medium">Combo</th>
-                  <th className="text-right py-2 px-3 text-text-muted font-medium">
-                    {t("requests")}
-                  </th>
-                  <th className="text-right py-2 px-3 text-text-muted font-medium">
-                    {t("avgTtft")}
-                  </th>
-                  <th className="text-right py-2 px-3 text-text-muted font-medium">
-                    {t("avgTotal")}
-                  </th>
-                  <th className="text-right py-2 px-3 text-text-muted font-medium">
-                    {t("success")}
-                  </th>
+                  <th className="text-right py-2 px-3 text-text-muted font-medium">Requests</th>
+                  <th className="text-right py-2 px-3 text-text-muted font-medium">Avg TTFT</th>
+                  <th className="text-right py-2 px-3 text-text-muted font-medium">Avg Total</th>
+                  <th className="text-right py-2 px-3 text-text-muted font-medium">Success</th>
                 </tr>
               </thead>
               <tbody>
@@ -507,8 +487,8 @@ export default function ProviderStatsPage() {
       {/* Telemetry Phase Breakdown */}
       {data?.telemetry && Object.keys(data.telemetry).length > 0 && (
         <Card
-          title={t("requestTelemetry")}
-          subtitle={t("requestTelemetryDescription")}
+          title="Request Telemetry"
+          subtitle="7-phase pipeline breakdown (last 5 minutes)"
           icon="route"
           className="p-5"
         >

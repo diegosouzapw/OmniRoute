@@ -325,14 +325,14 @@ export default function ProviderParamFilterSection({
         label={t("paramFiltersBlockedLabel")}
         hint={t("paramFiltersBlockedHint")}
         value={blockText}
-        placeholder={t("paramFiltersBlockedPlaceholder")}
+        placeholder="thinking, reasoning_budget, … (comma-separated)"
         onChange={setBlockText}
       />
       <ParamListField
         label={t("paramFiltersAllowedLabel")}
         hint={t("paramFiltersAllowedHint")}
         value={allowText}
-        placeholder={t("paramFiltersAllowedPlaceholder")}
+        placeholder="reasoning, … (comma-separated)"
         onChange={setAllowText}
       />
       <AutoLearnToggle t={t} checked={autoLearn} onChange={setAutoLearn} />

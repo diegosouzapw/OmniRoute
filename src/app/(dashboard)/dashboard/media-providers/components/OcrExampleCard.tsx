@@ -77,7 +77,7 @@ export function OcrExampleCard({ providerId }: Props) {
         setResult({ data, latencyMs });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("requestFailed"));
+      setError(err instanceof Error ? err.message : "Request failed");
     } finally {
       setRunning(false);
     }
@@ -112,7 +112,7 @@ export function OcrExampleCard({ providerId }: Props) {
       </div>
       {/* Document URL */}
       <div>
-        <label className="block text-xs text-text-muted mb-1">{t("documentUrl")}</label>
+        <label className="block text-xs text-text-muted mb-1">Document URL</label>
         <input
           type="text"
           value={documentUrl}

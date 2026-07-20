@@ -3,7 +3,14 @@
 import { useTranslations } from "next-intl";
 
 export type EventCategory =
-  "all" | "providers" | "combos" | "apikeys" | "settings" | "quota" | "auth" | "system";
+  | "all"
+  | "providers"
+  | "combos"
+  | "apikeys"
+  | "settings"
+  | "quota"
+  | "auth"
+  | "system";
 
 interface EventTypeFilterProps {
   value: EventCategory;
@@ -53,7 +60,11 @@ export default function EventTypeFilter({ value, onChange }: EventTypeFilterProp
   };
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label={t("filterAria")}>
+    <div
+      className="flex flex-wrap gap-2"
+      role="group"
+      aria-label="Filter by event type"
+    >
       {CATEGORIES.map((cat) => (
         <button
           key={cat}

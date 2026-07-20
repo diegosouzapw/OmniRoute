@@ -24,13 +24,13 @@ import { fileURLToPath } from "node:url";
 const SYNC_ENV_PATH = fileURLToPath(new URL("../../scripts/dev/sync-env.mjs", import.meta.url));
 
 const mod = (await import("../../scripts/dev/sync-env.mjs")) as {
-  getEnvSyncPlan: (opts?: { rootDir?: string; envDir?: string; scope?: string }) => {
+  getEnvSyncPlan: (opts?: { rootDir?: string; scope?: string }) => {
     available: boolean;
     created: boolean;
     added: number;
     missingEntries: Array<{ key: string; value: string }>;
   };
-  syncEnv: (opts?: { rootDir?: string; envDir?: string; quiet?: boolean; scope?: string }) => {
+  syncEnv: (opts?: { rootDir?: string; quiet?: boolean; scope?: string }) => {
     created: boolean;
     added: number;
   };

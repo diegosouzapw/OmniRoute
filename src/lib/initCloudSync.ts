@@ -6,6 +6,7 @@ import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 // Initialize runtime background sync services once per server process.
 let initialized = false;
 
+
 export function shouldSkipCloudSyncInitialization(
   env: NodeJS.ProcessEnv = process.env,
   argv: string[] = process.argv

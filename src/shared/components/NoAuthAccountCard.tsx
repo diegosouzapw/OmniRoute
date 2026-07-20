@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
-import { useTranslations } from "next-intl";
 import Card from "./Card";
 import Button from "./Button";
 import DistributeProxiesButton from "./DistributeProxiesButton";
@@ -93,16 +92,13 @@ export default function NoAuthAccountCard({
   generateAccountId,
   generateApiKey,
   dataKey = "fingerprints",
-  description,
-  addLabel,
+  description = "Ready to use — no signup needed. Add accounts for rate-limit rotation.",
+  addLabel = "Add Account",
   enabled = true,
   savingEnabled = false,
   onEnabledChange,
   providerProxyControl,
 }: NoAuthAccountCardProps) {
-  const t = useTranslations("noAuthProvider");
-  const resolvedDescription = description || t("accountDescription");
-  const resolvedAddLabel = addLabel || t("addAccount");
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -148,12 +144,8 @@ export default function NoAuthAccountCard({
   }, []);
 
   useEffect(() => {
-    const loadTimer = window.setTimeout(() => {
-      void fetchConnections();
-      void fetchSavedProxies();
-    }, 0);
-
-    return () => window.clearTimeout(loadTimer);
+    void fetchConnections();
+    void fetchSavedProxies();
   }, [fetchConnections, fetchSavedProxies]);
 
   useEffect(() => {
@@ -184,14 +176,14 @@ export default function NoAuthAccountCard({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             provider: providerId,
-            name: t("accountName", { provider: providerName, number: 1 }),
+            name: `${providerName} Account 1`,
             ...(apiKey ? { apiKey } : {}),
             providerSpecificData: { [dataKey]: [accountId] },
           }),
         });
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData?.error || t("createConnectionFailed"));
+          throw new Error(errData?.error || `Failed to create connection (${res.status})`);
         }
       } else {
         const updated = [...allAccountIds, accountId];
@@ -202,7 +194,7 @@ export default function NoAuthAccountCard({
             providerSpecificData: { [dataKey]: updated },
           }),
         });
-        if (!res.ok) throw new Error(t("updateConnectionFailed"));
+        if (!res.ok) throw new Error("Failed to update connection");
       }
       await fetchConnections();
     } catch (err) {
@@ -310,11 +302,11 @@ export default function NoAuthAccountCard({
     if (!conn || allAccountIds.length === 0) return;
 
     const proxiesRes = await fetch("/api/settings/proxies");
-    if (!proxiesRes.ok) throw new Error(t("fetchProxiesFailed"));
+    if (!proxiesRes.ok) throw new Error("Failed to fetch proxies");
     const proxiesData = await proxiesRes.json();
     const savedProxies = (proxiesData?.items || []).filter((p: any) => p.status === "active");
     if (savedProxies.length === 0) {
-      throw new Error(t("noSavedProxiesError"));
+      throw new Error("No saved proxies found. Add proxies in Settings → Proxy first.");
     }
 
     // #5217 (Gap 1): distribute stores by-id references too, so editing a pool
@@ -331,7 +323,7 @@ export default function NoAuthAccountCard({
         providerSpecificData: { accountProxies: updatedProxies },
       }),
     });
-    if (!res.ok) throw new Error(t("updateConnectionFailed"));
+    if (!res.ok) throw new Error("Failed to update connection");
 
     await fetchConnections();
   };
@@ -344,8 +336,8 @@ export default function NoAuthAccountCard({
             <span className="material-symbols-outlined text-[20px]">lock_open</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium">{t("title")}</p>
-            <p className="text-xs text-text-muted">{resolvedDescription}</p>
+            <p className="text-sm font-medium">No authentication required</p>
+            <p className="text-xs text-text-muted">{description}</p>
           </div>
         </div>
         <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
@@ -362,7 +354,7 @@ export default function NoAuthAccountCard({
       <div className="border-t border-border pt-3 mt-3">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-medium">
-            {t("accounts", { count: loading ? "..." : allAccountIds.length })}
+            Accounts ({loading ? "..." : allAccountIds.length})
           </span>
           <div className="flex items-center justify-end gap-2">
             {!loading && allAccountIds.length > 0 && (
@@ -373,14 +365,14 @@ export default function NoAuthAccountCard({
               />
             )}
             <Button size="sm" icon="add" onClick={handleAddAccount} disabled={adding || !enabled}>
-              {adding ? t("adding") : resolvedAddLabel}
+              {adding ? "Adding..." : addLabel}
             </Button>
           </div>
         </div>
 
         {!loading && allAccountIds.length === 0 && (
           <p className="text-xs text-text-muted py-2">
-            {t("autoGeneratedAccount", { addLabel: resolvedAddLabel })}
+            Using auto-generated account. Click &quot;{addLabel}&quot; for rate-limit rotation.
           </p>
         )}
 
@@ -413,11 +405,9 @@ export default function NoAuthAccountCard({
                     title={
                       proxy
                         ? `Proxy: ${proxy.type}://${proxy.host}:${proxy.port}`
-                        : t("configureProxy")
+                        : "Configure proxy"
                     }
-                    aria-label={
-                      proxy ? t("proxyConfigured", { host: proxy.host }) : t("configureProxy")
-                    }
+                    aria-label={proxy ? `Proxy configured: ${proxy.host}` : "Configure proxy"}
                   >
                     <span
                       className="material-symbols-outlined text-[16px]"
@@ -430,7 +420,7 @@ export default function NoAuthAccountCard({
                     type="button"
                     onClick={() => handleRemoveAccount(id)}
                     className="shrink-0 rounded p-1 text-text-muted opacity-0 transition-colors hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100"
-                    aria-label={t("removeAccount")}
+                    aria-label="Remove account"
                   >
                     <span className="material-symbols-outlined text-[16px]">delete</span>
                   </button>
@@ -447,9 +437,7 @@ export default function NoAuthAccountCard({
               className="w-80 max-w-full rounded-lg border border-black/10 bg-surface p-4 shadow-lg dark:border-white/10"
             >
               <p className="mb-3 text-sm font-medium">
-                {t("proxyForAccount", {
-                  number: allAccountIds.indexOf(proxyAccountId) + 1,
-                })}
+                Proxy for Account {allAccountIds.indexOf(proxyAccountId) + 1}
               </p>
               <div className="space-y-3">
                 {/* #5217 (Gap 1): pick a pre-saved Proxy Pool entry by reference,
@@ -464,7 +452,7 @@ export default function NoAuthAccountCard({
                         : "text-text-muted hover:text-text-main"
                     }`}
                   >
-                    {t("saved")}
+                    Saved
                   </button>
                   <button
                     type="button"
@@ -475,7 +463,7 @@ export default function NoAuthAccountCard({
                         : "text-text-muted hover:text-text-main"
                     }`}
                   >
-                    {t("custom")}
+                    Custom
                   </button>
                 </div>
 
@@ -486,7 +474,9 @@ export default function NoAuthAccountCard({
                     className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
                   >
                     <option value="">
-                      {savedProxies.length === 0 ? t("noSavedProxies") : t("directConnection")}
+                      {savedProxies.length === 0
+                        ? "No saved proxies — add one in Settings → Proxy"
+                        : "Direct (no proxy)"}
                     </option>
                     {savedProxies.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -512,14 +502,14 @@ export default function NoAuthAccountCard({
                         type="text"
                         value={proxyHost}
                         onChange={(e) => setProxyHost(e.target.value)}
-                        placeholder={t("host")}
+                        placeholder="Host"
                         className="flex-1 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
                       />
                       <input
                         type="text"
                         value={proxyPort}
                         onChange={(e) => setProxyPort(e.target.value)}
-                        placeholder={t("port")}
+                        placeholder="Port"
                         className="w-16 rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
                       />
                     </div>
@@ -527,14 +517,14 @@ export default function NoAuthAccountCard({
                       type="text"
                       value={proxyUsername}
                       onChange={(e) => setProxyUsername(e.target.value)}
-                      placeholder={t("usernameOptional")}
+                      placeholder="Username (optional)"
                       className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
                     />
                     <input
                       type="password"
                       value={proxyPassword}
                       onChange={(e) => setProxyPassword(e.target.value)}
-                      placeholder={t("passwordOptional")}
+                      placeholder="Password (optional)"
                       className="w-full rounded-md border border-black/10 bg-bg px-2.5 py-1.5 text-xs dark:border-white/10"
                     />
                   </>
@@ -544,14 +534,14 @@ export default function NoAuthAccountCard({
                     onClick={() => setProxyAccountId(null)}
                     className="rounded-md px-3 py-1.5 text-xs text-text-muted transition-colors hover:bg-black/5 hover:text-text-main dark:hover:bg-white/5"
                   >
-                    {t("cancel")}
+                    Cancel
                   </button>
                   <button
                     onClick={handleSaveProxy}
                     disabled={savingProxy}
                     className="rounded-md bg-primary/10 px-3 py-1.5 text-xs text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
                   >
-                    {savingProxy ? t("saving") : t("save")}
+                    {savingProxy ? "Saving..." : "Save"}
                   </button>
                 </div>
               </div>

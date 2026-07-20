@@ -1,11 +1,9 @@
 "use client";
-import { useTranslations } from "next-intl";
 import type { EncoderComparison } from "./compressionFlowModel";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
 export function EncoderComparisonTable({ comparison }: { comparison: EncoderComparison }) {
-  const t = useTranslations("compressionStudio");
   if (!comparison || comparison.arraysCompared === 0) return null;
   const rows: Array<{
     key: "gcf" | "toon" | "json";
@@ -20,17 +18,17 @@ export function EncoderComparisonTable({ comparison }: { comparison: EncoderComp
   return (
     <section data-testid="encoder-comparison" className="rounded border p-2 text-xs">
       <header className="mb-1 font-semibold">
-        {t("encoderComparison", { count: comparison.arraysCompared })}{" "}
+        Encoder A/B — {comparison.arraysCompared} array(s){" "}
         <span data-testid="encoder-winner" className="font-mono">
-          {t("encoderWinner", { winner: comparison.winner })}
+          vencedor: {comparison.winner}
         </span>
       </header>
       <table className="w-full font-mono">
         <thead>
           <tr className="text-left text-muted-foreground">
-            <th>{t("encoder")}</th>
-            <th>{t("bytes")}</th>
-            <th>{t("tokensCl100k")}</th>
+            <th>encoder</th>
+            <th>bytes</th>
+            <th>tokens (cl100k)</th>
           </tr>
         </thead>
         <tbody>

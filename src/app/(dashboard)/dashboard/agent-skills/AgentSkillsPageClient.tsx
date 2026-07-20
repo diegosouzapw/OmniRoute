@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { SkillsConceptCard } from "@/shared/components/SkillsConceptCard";
-import { matchesSearch } from "@/shared/utils/turkishText";
 import { CoverageBar } from "./components/CoverageBar";
 import { McpA2aLinksBar } from "./components/McpA2aLinksBar";
 import { SkillCard } from "./components/SkillCard";
@@ -109,7 +108,7 @@ export function AgentSkillsPageClient(): JSX.Element {
         setLoadingPreview(false);
       }
     },
-    [markdownCache]
+    [markdownCache],
   );
 
   // ── Debounced preview load (200ms) ───────────────────────────────────────
@@ -121,9 +120,12 @@ export function AgentSkillsPageClient(): JSX.Element {
     return () => clearTimeout(timer);
   }, [selectedId, loadPreview]);
 
-  const handleSelectCard = useCallback((id: string) => {
-    setSelectedId(id);
-  }, []);
+  const handleSelectCard = useCallback(
+    (id: string) => {
+      setSelectedId(id);
+    },
+    [],
+  );
 
   const handleRefreshPreview = useCallback(() => {
     if (!selectedId) return;
@@ -162,34 +164,22 @@ export function AgentSkillsPageClient(): JSX.Element {
   }, [t]);
 
   // ── Filtering + search ────────────────────────────────────────────────────
-  const localizedCatalog = useMemo(
-    () =>
-      catalog.map((skill) => {
-        const nameKey = `catalog.${skill.id}.name`;
-        const descriptionKey = `catalog.${skill.id}.description`;
-        return {
-          ...skill,
-          name: t.has(nameKey) ? t(nameKey) : skill.name,
-          description: t.has(descriptionKey) ? t(descriptionKey) : skill.description,
-        };
-      }),
-    [catalog, t]
-  );
-
-  const filteredSkills = localizedCatalog.filter((s) => {
+  const filteredSkills = catalog.filter((s) => {
     if (filter !== "all" && s.category !== filter) return false;
     if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
       return (
-        matchesSearch(s.name, searchTerm) ||
-        matchesSearch(s.description, searchTerm) ||
-        matchesSearch(s.id, searchTerm)
+        s.name.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q) ||
+        s.id.toLowerCase().includes(q)
       );
     }
     return true;
   });
 
-  const selectedMarkdown = selectedId ? (markdownCache.get(selectedId) ?? null) : null;
-  const coverageTotal = coverage !== null ? coverage.api.have + coverage.cli.have : null;
+  const selectedMarkdown = selectedId ? markdownCache.get(selectedId) ?? null : null;
+  const coverageTotal =
+    coverage !== null ? coverage.api.have + coverage.cli.have : null;
   const showGenerateButton = coverageTotal !== null && coverageTotal < 42;
 
   return (
@@ -221,7 +211,11 @@ export function AgentSkillsPageClient(): JSX.Element {
               </button>
             )}
           </div>
-          {coverage ? <CoverageBar coverage={coverage} /> : <CoverageBarSkeleton />}
+          {coverage ? (
+            <CoverageBar coverage={coverage} />
+          ) : (
+            <CoverageBarSkeleton />
+          )}
         </div>
 
         {/* MCP + A2A links */}
@@ -270,7 +264,10 @@ export function AgentSkillsPageClient(): JSX.Element {
       {/* Two-column grid: left = skill cards, right = preview */}
       <div className="grid grid-cols-12 gap-4" data-testid="skills-grid">
         {/* Left: skill cards list (col-span 7) */}
-        <div className="col-span-12 lg:col-span-7 flex flex-col gap-2" data-testid="skills-list">
+        <div
+          className="col-span-12 lg:col-span-7 flex flex-col gap-2"
+          data-testid="skills-list"
+        >
           {loadingCatalog ? (
             Array.from({ length: 6 }).map((_, i) => <SkillCardSkeleton key={i} />)
           ) : filteredSkills.length === 0 ? (

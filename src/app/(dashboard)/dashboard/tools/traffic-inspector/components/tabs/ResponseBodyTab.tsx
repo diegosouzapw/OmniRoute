@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 import { parseSseStream, mergeStream } from "@/mitm/inspector/sseMerger";
 import { JsonViewer } from "../shared/JsonViewer";
@@ -12,12 +11,11 @@ interface ResponseBodyTabProps {
 }
 
 export function ResponseBodyTab({ request }: ResponseBodyTabProps) {
-  const t = useTranslations("trafficInspector");
   const [showRaw, setShowRaw] = useState(false);
 
   const body = request.responseBody;
   if (!body) {
-    return <p className="p-4 text-sm text-text-muted">{t("noResponseBody")}</p>;
+    return <p className="p-4 text-sm text-text-muted">No response body.</p>;
   }
 
   const isSSE = body.startsWith("data:") || body.includes("\ndata:");
@@ -42,12 +40,12 @@ export function ResponseBodyTab({ request }: ResponseBodyTabProps) {
             onClick={() => setShowRaw((r) => !r)}
             className="text-xs text-text-muted hover:text-text-main border border-border rounded px-2 py-0.5 focus-ring"
           >
-            {showRaw ? t("mergedView") : t("rawEvents")}
+            {showRaw ? "Merged view" : "Raw events"}
           </button>
         )}
         <span className="ml-auto text-xs text-text-muted">{request.responseSize} B</span>
         {request.status === "in-flight" && (
-          <span className="text-xs text-amber-400 animate-pulse">{t("streaming")}</span>
+          <span className="text-xs text-amber-400 animate-pulse">streaming…</span>
         )}
       </div>
       <div className="flex-1 overflow-auto bg-bg-subtle rounded border border-border p-2">
@@ -56,9 +54,7 @@ export function ResponseBodyTab({ request }: ResponseBodyTabProps) {
         ) : isSSE && merged ? (
           <div className="space-y-2">
             {merged.text && (
-              <pre className="text-xs font-mono text-text-main whitespace-pre-wrap break-words">
-                {merged.text}
-              </pre>
+              <pre className="text-xs font-mono text-text-main whitespace-pre-wrap break-words">{merged.text}</pre>
             )}
             {merged.toolCalls && merged.toolCalls.length > 0 && (
               <JsonViewer data={merged.toolCalls} />
@@ -67,9 +63,7 @@ export function ResponseBodyTab({ request }: ResponseBodyTabProps) {
         ) : parsed ? (
           <JsonViewer data={parsed} />
         ) : (
-          <pre className="text-xs font-mono text-text-main whitespace-pre-wrap break-all">
-            {body}
-          </pre>
+          <pre className="text-xs font-mono text-text-main whitespace-pre-wrap break-all">{body}</pre>
         )}
       </div>
     </div>

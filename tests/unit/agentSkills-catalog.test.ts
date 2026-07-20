@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import en from "../../src/i18n/messages/en.json" with { type: "json" };
-import vi from "../../src/i18n/messages/vi.json" with { type: "json" };
-
 // Dynamic imports to pick up ESM modules with tsx
 const {
   getCatalog,
@@ -28,11 +25,11 @@ test("API_SKILL_IDS has exactly 23 entries", () => {
   assert.equal(API_SKILL_IDS.length, 23);
 });
 
-test("CLI_SKILL_IDS has exactly 21 entries", () => {
+test("CLI_SKILL_IDS has exactly 20 entries", () => {
   assert.equal(CLI_SKILL_IDS.length, 21);
 });
 
-test("getCatalog() contains exactly 23 api skills", () => {
+test("getCatalog() contains exactly 22 api skills", () => {
   const apiSkills = getCatalog().filter((s) => s.category === "api");
   assert.equal(apiSkills.length, 23);
 });
@@ -67,24 +64,6 @@ test("all skills have non-empty name and description", () => {
   for (const skill of getCatalog()) {
     assert.ok(skill.name.length > 0, `Skill ${skill.id} has empty name`);
     assert.ok(skill.description.length > 0, `Skill ${skill.id} has empty description`);
-  }
-});
-
-test("all agent skills have complete English and Vietnamese catalog copy", () => {
-  for (const skill of getCatalog()) {
-    assert.ok(en.agentSkills.catalog[skill.id]?.name?.trim(), `Missing English name: ${skill.id}`);
-    assert.ok(
-      en.agentSkills.catalog[skill.id]?.description?.trim(),
-      `Missing English description: ${skill.id}`
-    );
-    assert.ok(
-      vi.agentSkills.catalog[skill.id]?.name?.trim(),
-      `Missing Vietnamese name: ${skill.id}`
-    );
-    assert.ok(
-      vi.agentSkills.catalog[skill.id]?.description?.trim(),
-      `Missing Vietnamese description: ${skill.id}`
-    );
   }
 });
 

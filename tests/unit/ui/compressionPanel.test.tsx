@@ -2,14 +2,16 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { ENGINE_IDS } from "../../../open-sse/services/compression/engineCatalog.ts";
+import {
+  ENGINE_IDS,
+  engineMeta,
+} from "../../../open-sse/services/compression/engineCatalog.ts";
 
 // i18n does not resolve to a real locale in vitest/jsdom, so mock next-intl to echo
-// the key. This test therefore asserts on translation keys, engine ids,
-// data-testid hooks, and the PUT request body.
+// the key. This test therefore asserts ONLY on i18n-independent strings: catalog
+// labels/descriptions, engine ids, data-testid hooks, and the PUT request body.
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string, values?: Record<string, unknown>) =>
-    values ? `${key} ${Object.values(values).join(" ")}` : key,
+  useTranslations: () => (key: string) => key,
   useLocale: () => "en",
 }));
 
@@ -123,8 +125,9 @@ function setupFetchMock(): { puts: CapturedPut[] } {
 describe("CompressionPanel", () => {
   it("renders a row for every engine id in the catalog", async () => {
     setupFetchMock();
-    const { default: CompressionPanel } =
-      await import("../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel");
+    const { default: CompressionPanel } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel"
+    );
 
     let container!: HTMLElement;
     await act(async () => {
@@ -135,14 +138,16 @@ describe("CompressionPanel", () => {
     for (const id of ENGINE_IDS) {
       const row = container.querySelector(`[data-testid="engine-row-${id}"]`);
       expect(row, `expected a row for engine "${id}"`).toBeTruthy();
-      expect(container.textContent).toContain(`compressionEngine.${id}.label`);
+      // Catalog label/description are hardcoded English (i18n-independent).
+      expect(container.textContent).toContain(engineMeta(id).label);
     }
   });
 
   it("shows the rtk level 'standard' as selected", async () => {
     setupFetchMock();
-    const { default: CompressionPanel } =
-      await import("../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel");
+    const { default: CompressionPanel } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel"
+    );
 
     let container!: HTMLElement;
     await act(async () => {
@@ -159,8 +164,9 @@ describe("CompressionPanel", () => {
 
   it("toggling caveman PUTs engines.caveman.enabled === true", async () => {
     const { puts } = setupFetchMock();
-    const { default: CompressionPanel } =
-      await import("../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel");
+    const { default: CompressionPanel } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel"
+    );
 
     let container!: HTMLElement;
     await act(async () => {
@@ -196,8 +202,9 @@ describe("CompressionPanel", () => {
 
   it("derived-pipeline preview reflects the enabled engines", async () => {
     setupFetchMock();
-    const { default: CompressionPanel } =
-      await import("../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel");
+    const { default: CompressionPanel } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/settings/CompressionPanel"
+    );
 
     let container!: HTMLElement;
     await act(async () => {

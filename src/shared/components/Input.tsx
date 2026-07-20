@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useState, useCallback } from "react";
-import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -30,7 +29,6 @@ export default function Input({
   onKeyUp: externalOnKeyUp,
   ...props
 }: InputProps) {
-  const t = useTranslations("common");
   const generatedId = useId();
   const inputId = externalId || generatedId;
   const errorId = error ? `${inputId}-error` : undefined;
@@ -136,7 +134,7 @@ export default function Input({
           <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
             keyboard_capslock
           </span>
-          {t("capsLockOn")}
+          Caps Lock is on
         </p>
       )}
       {error && (

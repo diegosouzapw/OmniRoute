@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
@@ -12,7 +11,6 @@ interface ServiceLifecycleButtonsProps {
 type Action = "start" | "stop" | "restart" | "update" | "install";
 
 export function ServiceLifecycleButtons({ name }: ServiceLifecycleButtonsProps) {
-  const t = useTranslations("embeddedServices");
   const { data, mutate } = useServiceStatus(name);
   const [pending, setPending] = useState<Action | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +51,7 @@ export function ServiceLifecycleButtons({ name }: ServiceLifecycleButtonsProps) 
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         <Button size="sm" disabled={busy || running} onClick={() => action("start")}>
-          {pending === "start" ? t("starting") : t("start")}
+          {pending === "start" ? "Starting…" : "Start"}
         </Button>
         <Button
           size="sm"
@@ -61,7 +59,7 @@ export function ServiceLifecycleButtons({ name }: ServiceLifecycleButtonsProps) 
           disabled={busy || !running}
           onClick={() => action("stop")}
         >
-          {pending === "stop" ? t("stopping") : t("stop")}
+          {pending === "stop" ? "Stopping…" : "Stop"}
         </Button>
         <Button
           size="sm"
@@ -69,10 +67,10 @@ export function ServiceLifecycleButtons({ name }: ServiceLifecycleButtonsProps) 
           disabled={busy || !running}
           onClick={() => action("restart")}
         >
-          {pending === "restart" ? t("restarting") : t("restart")}
+          {pending === "restart" ? "Restarting…" : "Restart"}
         </Button>
         <Button size="sm" variant="outline" disabled={busy} onClick={() => action("update")}>
-          {pending === "update" ? t("updating") : t("update")}
+          {pending === "update" ? "Updating…" : "Update"}
         </Button>
       </div>
       {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
@@ -83,7 +81,7 @@ export function ServiceLifecycleButtons({ name }: ServiceLifecycleButtonsProps) 
     return (
       <div className="space-y-2">
         <Button size="sm" disabled={busy} onClick={() => action("install")}>
-          {pending === "install" ? t("installing") : t("install")}
+          {pending === "install" ? "Installing…" : "Install"}
         </Button>
         {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>

@@ -364,13 +364,13 @@ export default function ModelCompatPopover({
                       setParamDirty(true);
                     }}
                     onBlur={() => saveModelParamFilters()}
-                    placeholder={t("compatBlockedParamsPlaceholder")}
+                    placeholder="thinking, … (comma-separated)"
                     disabled={disabled}
                     className="mb-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
                   />
                   <p className="text-[10px] text-text-muted">
                     {t("compatBlockedParamsHint") ?? "Blocked params (stripped from requests)"}
-                    {paramSaving && ` ● ${t("compatSaving")}`}
+                    {paramSaving && " ● saving…"}
                   </p>
                 </div>
                 <div>
@@ -382,7 +382,7 @@ export default function ModelCompatPopover({
                       setParamDirty(true);
                     }}
                     onBlur={() => saveModelParamFilters()}
-                    placeholder={t("compatAllowedParamsPlaceholder")}
+                    placeholder="reasoning, … (comma-separated)"
                     disabled={disabled}
                     className="mb-1 w-full rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-mono text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 dark:border-zinc-600 dark:bg-zinc-900"
                   />

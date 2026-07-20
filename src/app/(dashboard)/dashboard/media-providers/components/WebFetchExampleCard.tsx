@@ -80,7 +80,7 @@ export function WebFetchExampleCard({ providerId }: Props) {
         setResult({ data, latencyMs });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("requestFailed"));
+      setError(err instanceof Error ? err.message : "Request failed");
     } finally {
       setRunning(false);
     }
@@ -88,7 +88,7 @@ export function WebFetchExampleCard({ providerId }: Props) {
 
   return (
     <PlaygroundCard
-      kindLabel={t("webFetch")}
+      kindLabel="Web Fetch"
       apiEndpoint={ENDPOINT_PATH}
       onRun={handleRun}
       curlSnippet={curlSnippet}

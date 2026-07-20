@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 import { JsonViewer } from "../shared/JsonViewer";
 import { SecretMaskToggle } from "../shared/SecretMaskToggle";
@@ -21,13 +20,12 @@ function maskSecrets(text: string): string {
 }
 
 export function RequestBodyTab({ request }: RequestBodyTabProps) {
-  const t = useTranslations("trafficInspector");
   const [masked, setMasked] = useState(true);
   const [raw, setRaw] = useState(false);
 
   const body = request.requestBody;
   if (!body) {
-    return <p className="p-4 text-sm text-text-muted">{t("noRequestBody")}</p>;
+    return <p className="p-4 text-sm text-text-muted">No request body.</p>;
   }
 
   const display = masked ? maskSecrets(body) : body;
@@ -47,15 +45,13 @@ export function RequestBodyTab({ request }: RequestBodyTabProps) {
           onClick={() => setRaw((r) => !r)}
           className="text-xs text-text-muted hover:text-text-main border border-border rounded px-2 py-0.5 focus-ring"
         >
-          {raw ? t("formatted") : t("raw")}
+          {raw ? "Formatted" : "Raw"}
         </button>
         <span className="ml-auto text-xs text-text-muted">{request.requestSize} B</span>
       </div>
       <div className="flex-1 overflow-auto bg-bg-subtle rounded border border-border p-2">
         {raw || !parsed ? (
-          <pre className="text-xs font-mono text-text-main whitespace-pre-wrap break-all">
-            {display}
-          </pre>
+          <pre className="text-xs font-mono text-text-main whitespace-pre-wrap break-all">{display}</pre>
         ) : (
           <JsonViewer data={parsed} />
         )}

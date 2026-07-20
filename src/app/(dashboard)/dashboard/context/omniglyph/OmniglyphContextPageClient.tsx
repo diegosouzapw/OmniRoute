@@ -5,12 +5,13 @@
 // a real before→after (dense text vs the rendered PNG page), the fail-closed gate
 // flow, and the enable control (wired to /api/settings/compression, preview engine).
 //
-// The sample in ./sampleData.ts is a REAL render from the omniglyph package, not a mockup.
+// Engine-facing copy is hardcoded English (matches the catalog convention — engine
+// text stays deterministic, not i18n). The sample in ./sampleData.ts is a REAL render
+// from the omniglyph package, not a mockup.
 //
 // Card/Toggle are imported from their direct module paths (not the @/shared/components
 // barrel) — the barrel pulls a Node-only module that hangs vitest/jsdom.
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import Toggle from "@/shared/components/Toggle";
 import { SAMPLE_BEFORE_TEXT, SAMPLE_PAGE_PNG_DATA_URI, SAMPLE_METRICS } from "./sampleData";
@@ -23,56 +24,67 @@ type EngineMap = Record<string, { enabled: boolean; level?: string }>;
 
 /** The measured fail-closed gate chain, in evaluation order. Every no-op is telemetered
  *  as `skip:<reason>`; the engine only fires when all pass. */
-const GATES = [
+const GATES: ReadonlyArray<{ label: string; pass: string; why: string }> = [
   {
-    id: "model",
+    label: "Model",
+    pass: "claude-fable-5",
+    why: "Only Fable 5 reads dense pages at 100% (measured, n=30). GPT-5.5 and Gemini 2.5-flash are blocked.",
   },
   {
-    id: "transport",
+    label: "Transport",
+    pass: "direct Anthropic",
+    why: "Aggregators resample images and destroy legibility — only the direct route is authoritative.",
   },
   {
-    id: "format",
+    label: "Format",
+    pass: "native Claude",
+    why: "The body must be Claude-format (never a system role inside messages).",
   },
   {
-    id: "profitable",
+    label: "Profitable",
+    pass: "dense enough",
+    why: "The exact 28px-patch cost gate decides per request; small or sparse text passes through untouched.",
   },
-] as const;
+];
 
-const ECONOMICS = [
-  { value: "~10×", id: "fewerTokens" },
-  { value: "59–70%", id: "savings" },
-  { value: "1456", id: "imageTokens" },
-  { value: "100%", id: "accuracy" },
-] as const;
+const ECONOMICS: ReadonlyArray<{ value: string; label: string }> = [
+  { value: "~10×", label: "fewer tokens on the converted block" },
+  { value: "59–70%", label: "end-to-end savings (measured)" },
+  { value: "1456", label: "image tokens for a 1568×728 page (~28k chars)" },
+  { value: "100%", label: "reading accuracy on Fable 5 (n=30)" },
+];
 
 // Section components are split out of the page component so each function stays
 // under the complexity gate's 80-line cap; the page composes them.
 
 function PageHeader() {
-  const t = useTranslations("omniglyph");
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-semibold">OmniGlyph</h1>
         <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-          {t("preview")}
+          Preview
         </span>
       </div>
-      <p className="max-w-2xl text-sm text-text-muted">{t("description")}</p>
+      <p className="max-w-2xl text-sm text-text-muted">
+        Context-as-image compression. Renders the system prompt, tool docs and dense history as
+        compact PNG pages that Claude Fable 5 reads instead of the text — image tokens are billed by
+        dimensions, not characters, so the converted block costs ~10× less. Direct Anthropic route
+        only.
+      </p>
     </div>
   );
 }
 
 function EconomicsCard() {
-  const t = useTranslations("omniglyph");
   return (
     <Card className="p-6">
-      <h2 className="mb-4 text-lg font-semibold">{t("economicsTitle")}</h2>
+      <h2 className="mb-4 text-lg font-semibold">The economics</h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {ECONOMICS.map((e) => (
-          <div key={e.id} className="flex flex-col gap-1">
+          <div key={e.label} className="flex flex-col gap-1">
             <span className="text-2xl font-semibold tabular-nums">{e.value}</span>
-            <span className="text-xs text-text-muted">{t(`economics.${e.id}`)}</span>
+            <span className="text-xs text-text-muted">{e.label}</span>
           </div>
         ))}
       </div>
@@ -81,22 +93,21 @@ function EconomicsCard() {
 }
 
 function BeforeAfterCard() {
-  const t = useTranslations("omniglyph");
   return (
     <Card className="p-6">
       <div className="mb-1 flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold">{t("beforeAfterTitle")}</h2>
+        <h2 className="text-lg font-semibold">Before → after</h2>
         <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-          {t("blockSavings", { percent: SAMPLE_METRICS.savingsPct })}
+          −{SAMPLE_METRICS.savingsPct}% tokens on this block
         </span>
       </div>
       <p className="mb-4 text-xs text-text-muted">
-        {t("realRender", { characters: SAMPLE_METRICS.beforeChars })}
+        A real render of {SAMPLE_METRICS.beforeChars} characters of dense tool docs — not a mockup.
       </p>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
-            {t("textTokens", { tokens: SAMPLE_METRICS.textTokens })}
+            Text · ≈ {SAMPLE_METRICS.textTokens} tokens
           </span>
           <pre className="max-h-60 overflow-auto rounded border border-black/10 bg-black/5 p-3 text-[11px] leading-relaxed dark:border-white/10 dark:bg-white/5">
             {SAMPLE_BEFORE_TEXT}
@@ -104,16 +115,13 @@ function BeforeAfterCard() {
         </div>
         <div className="flex flex-col gap-2">
           <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
-            {t("renderedTokens", { tokens: SAMPLE_METRICS.imageTokens })}
+            Rendered page · ≈ {SAMPLE_METRICS.imageTokens} tokens
           </span>
           <div className="overflow-auto rounded border border-black/10 bg-white p-3 dark:border-white/10">
             {/* eslint-disable-next-line @next/next/no-img-element -- data URI, no loader needed */}
             <img
               src={SAMPLE_PAGE_PNG_DATA_URI}
-              alt={t("renderedImageAlt", {
-                width: SAMPLE_METRICS.pageWidth,
-                height: SAMPLE_METRICS.pageHeight,
-              })}
+              alt={`Rendered dense page, ${SAMPLE_METRICS.pageWidth}×${SAMPLE_METRICS.pageHeight}px`}
               width={SAMPLE_METRICS.pageWidth}
               height={SAMPLE_METRICS.pageHeight}
               className="max-w-full"
@@ -126,29 +134,24 @@ function BeforeAfterCard() {
 }
 
 function GatesCard() {
-  const t = useTranslations("omniglyph");
   return (
     <Card className="p-6">
-      <h2 className="mb-1 text-lg font-semibold">{t("gatesTitle")}</h2>
+      <h2 className="mb-1 text-lg font-semibold">When it fires</h2>
       <p className="mb-4 text-xs text-text-muted">
-        {t.rich("gatesDescription", {
-          code: (chunks) => <code>{chunks}</code>,
-        })}
+        Fail-closed: every gate must pass, or the request passes through untouched (each skip is
+        telemetered as <code>skip:&lt;reason&gt;</code>).
       </p>
       <ol className="flex flex-col gap-3">
         {GATES.map((g, i) => (
-          <li key={g.id} className="flex gap-3">
+          <li key={g.label} className="flex gap-3">
             <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-black/5 text-xs font-semibold tabular-nums dark:bg-white/10">
               {i + 1}
             </span>
             <div className="flex flex-col">
               <span className="text-sm font-medium">
-                {t(`gates.${g.id}.label`)} —{" "}
-                <span className="text-emerald-600 dark:text-emerald-400">
-                  {t(`gates.${g.id}.pass`)}
-                </span>
+                {g.label} — <span className="text-emerald-600 dark:text-emerald-400">{g.pass}</span>
               </span>
-              <span className="text-xs text-text-muted">{t(`gates.${g.id}.why`)}</span>
+              <span className="text-xs text-text-muted">{g.why}</span>
             </div>
           </li>
         ))}
@@ -163,22 +166,21 @@ function EnableCard(props: {
   status: "" | "saved" | "error";
   onToggle: (next: boolean) => void;
 }) {
-  const t = useTranslations("omniglyph");
   return (
     <Card className="p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h2 className="text-lg font-semibold">{t("enableTitle")}</h2>
+          <h2 className="text-lg font-semibold">Enable the engine</h2>
           <p className="max-w-xl text-sm text-text-muted">
-            {t.rich("enableDescription", {
-              code: (chunks) => <code>{chunks}</code>,
-            })}
+            Runs last in the stack (after RTK/Caveman clean the text, OmniGlyph images the residual)
+            and also standalone via the <code>omniglyph</code> mode. Preview — off by default until
+            the end-to-end validation lands.
           </p>
           <span className="mt-1 h-4 text-xs text-text-muted" aria-live="polite">
             {props.status === "saved"
-              ? t("saved")
+              ? "Saved."
               : props.status === "error"
-                ? t("saveFailed")
+                ? "Could not save."
                 : ""}
           </span>
         </div>
@@ -188,7 +190,7 @@ function EnableCard(props: {
             checked={props.enabled}
             onChange={props.onToggle}
             disabled={props.disabled}
-            ariaLabel={t("enableAria")}
+            ariaLabel="Enable the OmniGlyph engine"
           />
         </span>
       </div>

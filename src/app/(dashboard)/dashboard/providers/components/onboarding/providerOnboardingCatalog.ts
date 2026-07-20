@@ -26,6 +26,7 @@ export type WizardProviderDefinition = {
 export type WizardProviderOption = {
   id: string;
   name: string;
+  icon: string;
   color?: string;
   alias?: string;
   description: string;
@@ -63,6 +64,7 @@ function toProviderOption(
   return {
     id: provider.id,
     name,
+    icon: provider.icon || (authKind === "oauth" ? "account_circle" : "key"),
     color: provider.color,
     alias: provider.alias,
     description: provider.apiHint || provider.authHint || provider.freeNote || fallbackDescription,

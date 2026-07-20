@@ -6,7 +6,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
 // ── Pure validator (exported for unit tests) ──────────────────────────────────
@@ -14,12 +13,7 @@ import { Card } from "@/shared/components";
 /** Result of parsing the textarea value. */
 export type MappingParseResult =
   | { ok: true; value: Record<string, string> }
-  | {
-      ok: false;
-      error: string;
-      messageKey: "mappingInvalidJson" | "mappingMustBeObject" | "mappingValueMustBeString";
-      messageValues?: { key: string };
-    };
+  | { ok: false; error: string };
 
 /**
  * Parse and validate the raw textarea string.
@@ -31,15 +25,11 @@ export function parseMappingJson(raw: string): MappingParseResult {
     parsed = JSON.parse(raw);
   } catch (e) {
     const msg = e instanceof SyntaxError ? e.message : "Invalid JSON";
-    return { ok: false, error: msg, messageKey: "mappingInvalidJson" };
+    return { ok: false, error: msg };
   }
 
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return {
-      ok: false,
-      error: "Must be a JSON object (not an array or primitive)",
-      messageKey: "mappingMustBeObject",
-    };
+    return { ok: false, error: "Must be a JSON object (not an array or primitive)" };
   }
 
   const obj = parsed as Record<string, unknown>;
@@ -48,8 +38,6 @@ export function parseMappingJson(raw: string): MappingParseResult {
       return {
         ok: false,
         error: `Value for key "${key}" must be a string, got ${Array.isArray(val) ? "array" : typeof val}`,
-        messageKey: "mappingValueMustBeString",
-        messageValues: { key },
       };
     }
   }
@@ -66,16 +54,7 @@ function formatMapping(value: Record<string, string> | null): string {
   return JSON.stringify(value, null, 2);
 }
 
-function getMappingValidationMessage(
-  result: MappingParseResult,
-  t: ReturnType<typeof useTranslations>
-): string | null {
-  if ("messageKey" in result) return t(result.messageKey, result.messageValues);
-  return null;
-}
-
 export function CliproxyModelMappingEditor() {
-  const t = useTranslations("embeddedServices");
   const [rawText, setRawText] = useState<string>(EMPTY_MAPPING);
   const [savedText, setSavedText] = useState<string>(EMPTY_MAPPING);
   const [loaded, setLoaded] = useState(false);
@@ -114,7 +93,6 @@ export function CliproxyModelMappingEditor() {
 
   const parseResult = parseMappingJson(rawText);
   const isValid = parseResult.ok;
-  const validationMessage = getMappingValidationMessage(parseResult, t);
   const isDirty = rawText !== savedText;
   const canSave = isValid && isDirty && !saving;
 
@@ -133,9 +111,9 @@ export function CliproxyModelMappingEditor() {
       const formatted = formatMapping(parseResult.value);
       setSavedText(formatted);
       setRawText(formatted);
-      showMsg(true, t("mappingSaved"));
+      showMsg(true, "Mapping saved");
     } catch {
-      showMsg(false, t("mappingSaveFailed"));
+      showMsg(false, "Failed to save mapping");
     } finally {
       setSaving(false);
     }
@@ -150,15 +128,13 @@ export function CliproxyModelMappingEditor() {
           <span className="material-symbols-outlined text-violet-500 text-xl">account_tree</span>
         </div>
         <div>
-          <h3 className="font-medium text-sm">{t("modelMapping")}</h3>
+          <h3 className="font-medium text-sm">Model Mapping</h3>
           <p className="text-xs text-text-muted">
-            {t.rich("modelMappingDescription", {
-              example: () => (
-                <code className="font-mono bg-bg-subtle px-1 rounded">
-                  {'"gpt-4o": "openai-gpt-4o"'}
-                </code>
-              ),
-            })}
+            Map OmniRoute model IDs to CLIProxyAPI model IDs (e.g.{" "}
+            <code className="font-mono bg-bg-subtle px-1 rounded">
+              {'"gpt-4o": "openai-gpt-4o"'}
+            </code>
+            )
           </p>
         </div>
       </div>
@@ -190,13 +166,13 @@ export function CliproxyModelMappingEditor() {
           setMsg(null);
         }}
         spellCheck={false}
-        aria-label={t("modelMappingEditor")}
+        aria-label="Model mapping JSON editor"
       />
 
-      {validationMessage && rawText !== EMPTY_MAPPING && (
+      {!isValid && rawText !== EMPTY_MAPPING && (
         <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-start gap-1">
           <span className="material-symbols-outlined text-[12px] mt-0.5 shrink-0">error</span>
-          {validationMessage}
+          {parseResult.error}
         </p>
       )}
 
@@ -215,7 +191,7 @@ export function CliproxyModelMappingEditor() {
               progress_activity
             </span>
           )}
-          {t("save")}
+          Save
         </button>
       </div>
     </Card>

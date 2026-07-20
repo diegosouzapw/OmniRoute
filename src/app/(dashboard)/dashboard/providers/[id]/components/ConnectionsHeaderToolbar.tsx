@@ -173,7 +173,7 @@ export default function ConnectionsHeaderToolbar({
                 handleChangeCodexGlobalServiceMode(event.target.value as CodexGlobalServiceMode)
               }
               disabled={savingCodexGlobalServiceMode || !codexSettingsLoaded}
-              aria-label={providerText(t, "globalCodexServiceMode", "Global Codex service mode")}
+              aria-label="Global Codex service mode"
               className="rounded-md border border-border bg-bg px-2 py-1 text-xs text-text-main outline-none transition-colors focus:border-primary disabled:opacity-60"
             >
               {codexGlobalServiceModeOptions.map((option) => (
@@ -285,7 +285,7 @@ export default function ConnectionsHeaderToolbar({
                     )
                   }
                 >
-                  {providerText(t, "connect", "Connect")}
+                  Connect
                 </Button>
                 <Button
                   size="sm"
@@ -293,13 +293,13 @@ export default function ConnectionsHeaderToolbar({
                   icon="add"
                   onClick={() => gateConnectionFlow(openApiKeyAddFlow)}
                 >
-                  {providerText(t, "manualApiKey", "Manual API key")}
+                  Manual API key
                 </Button>
               </>
             ) : (
               <>
                 <Button size="sm" icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
-                  {providerSupportsPat ? providerText(t, "addPat", "Add PAT") : t("add")}
+                  {providerSupportsPat ? "Add PAT" : t("add")}
                 </Button>
                 {providerId === "qoder" && (
                   <Button
@@ -307,7 +307,7 @@ export default function ConnectionsHeaderToolbar({
                     variant="secondary"
                     onClick={() => gateConnectionFlow(onOpenOAuthModal)}
                   >
-                    {providerText(t, "experimentalOauth", "Experimental OAuth")}
+                    Experimental OAuth
                   </Button>
                 )}
                 {providerId === "codex" && (
@@ -337,7 +337,9 @@ export default function ConnectionsHeaderToolbar({
                     icon="upload_file"
                     onClick={() => gateConnectionFlow(onOpenImportCodex)}
                   >
-                    {providerText(t, "importCodexAuth", "Import auth")}
+                    {typeof (t as any).has === "function" && (t as any).has("importCodexAuth")
+                      ? t("importCodexAuth")
+                      : "Import auth"}
                   </Button>
                 )}
                 {providerId === "claude" && (
@@ -347,7 +349,9 @@ export default function ConnectionsHeaderToolbar({
                     icon="upload_file"
                     onClick={() => gateConnectionFlow(onOpenImportClaude)}
                   >
-                    {providerText(t, "importClaudeAuth", "Import auth")}
+                    {typeof (t as any).has === "function" && (t as any).has("importClaudeAuth")
+                      ? t("importClaudeAuth")
+                      : "Import auth"}
                   </Button>
                 )}
                 {providerId === "grok-cli" && (
@@ -357,7 +361,7 @@ export default function ConnectionsHeaderToolbar({
                     icon="upload_file"
                     onClick={() => gateConnectionFlow(onOpenImportGrokCli)}
                   >
-                    {providerText(t, "importGrokAuth", "Import auth")}
+                    Import auth
                   </Button>
                 )}
               </>

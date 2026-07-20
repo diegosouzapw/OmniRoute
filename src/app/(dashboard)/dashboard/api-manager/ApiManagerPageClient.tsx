@@ -259,7 +259,7 @@ export default function ApiManagerPageClient() {
     fetchModels();
     fetchCombos();
     fetchConnections();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- initial dashboard load only
+  }, []);
 
   useEffect(() => {
     if (!showAddModal || !nameError) return;
@@ -562,8 +562,9 @@ export default function ApiManagerPageClient() {
 
     // 4. search query (case-insensitive substring on name and key)
     if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
       list = list.filter(
-        (k) => matchesSearch(k.name, searchQuery) || matchesSearch(k.key, searchQuery)
+        (k) => k.name.toLowerCase().includes(q) || k.key.toLowerCase().includes(q)
       );
     }
 
@@ -2130,7 +2131,9 @@ const PermissionsModal = memo(function PermissionsModal({
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-text-main">{t("maxActiveSessions")}</p>
-            <p className="text-xs text-text-muted">{t("maxActiveSessionsDescription")}</p>
+            <p className="text-xs text-text-muted">
+              0 = unlimited. Return 429 when this key exceeds concurrent sticky sessions.
+            </p>
           </div>
           <div className="w-32">
             <Input
@@ -2149,8 +2152,10 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Soft Throttle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">{t("throttleDelay")}</p>
-            <p className="text-xs text-text-muted">{t("throttleDelayDescription")}</p>
+            <p className="text-sm font-medium text-text-main">Throttle Delay</p>
+            <p className="text-xs text-text-muted">
+              Add a fixed delay before requests for this key are routed. 0 = no slowdown.
+            </p>
           </div>
           <div className="w-36">
             <Input
@@ -2639,7 +2644,7 @@ const PermissionsModal = memo(function PermissionsModal({
                           type="button"
                           onClick={() => setClaudeCodeFamiliesExpanded((prev) => !prev)}
                           className="inline-flex items-center gap-1 font-mono text-text-main"
-                          title={t("expandClaudeCodeFamilies")}
+                          title="Expand Claude Code families"
                           aria-expanded={claudeCodeFamiliesExpanded}
                         >
                           <span className="truncate max-w-[140px]" title={modelId}>
@@ -2653,7 +2658,7 @@ const PermissionsModal = memo(function PermissionsModal({
                           type="button"
                           onClick={() => handleToggleModel(modelId)}
                           className="text-text-muted hover:text-red-500 transition-colors"
-                          title={t("removeClaudeCodeDefault")}
+                          title="Remove Claude Code default"
                         >
                           <span className="material-symbols-outlined text-[12px]">close</span>
                         </button>
@@ -2934,9 +2939,7 @@ const PermissionsModal = memo(function PermissionsModal({
                               {conn.name || conn.id.slice(0, 8)}
                             </span>
                             {!conn.isActive && (
-                              <span className="text-[9px] text-red-400 shrink-0">
-                                {tc("inactive")}
-                              </span>
+                              <span className="text-[9px] text-red-400 shrink-0">inactive</span>
                             )}
                           </button>
                         );
@@ -2952,7 +2955,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {allCombos.length > 0 && (
           <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-text-main">{t("allowedCombos")}</p>
+              <p className="text-sm font-medium text-text-main">Allowed Combos</p>
               <div className="flex gap-1 p-0.5 bg-surface rounded-md">
                 <button
                   onClick={() => {
@@ -2965,7 +2968,7 @@ const PermissionsModal = memo(function PermissionsModal({
                       : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
                   }`}
                 >
-                  {tc("all")}
+                  All
                 </button>
                 <button
                   onClick={() => setAllowAllCombos(false)}
@@ -2975,14 +2978,14 @@ const PermissionsModal = memo(function PermissionsModal({
                       : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
                   }`}
                 >
-                  {t("restrict")}
+                  Restrict
                 </button>
               </div>
             </div>
             <p className="text-xs text-text-muted">
               {allowAllCombos
-                ? t("allCombosAllowed")
-                : t("restrictedComboCount", { count: selectedCombos.length })}
+                ? "This key can use any combo."
+                : `Restricted to ${selectedCombos.length} combo${selectedCombos.length !== 1 ? "s" : ""}.`}
             </p>
             {!allowAllCombos && (
               <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">

@@ -2,9 +2,11 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { NextIntlClientProvider } from "next-intl";
-import messages from "../../../src/i18n/messages/en.json";
 import { SAMPLE_METRICS } from "../../../src/app/(dashboard)/dashboard/context/omniglyph/sampleData.ts";
+
+// i18n is not resolved in vitest/jsdom; the page hardcodes its engine copy in English
+// anyway (catalog convention), so no next-intl mock is needed. Asserts are on
+// i18n-independent content: headings, measured numbers, gate labels, data-testid hooks.
 
 // ── Harness (mirrors tests/unit/ui/compressionPanel.test.tsx) ──────────────────
 const containers: HTMLElement[] = [];
@@ -17,11 +19,7 @@ function mount(ui: React.ReactElement): HTMLElement {
   const root = createRoot(container);
   roots.push(root);
   act(() => {
-    root.render(
-      <NextIntlClientProvider locale="en" messages={{ omniglyph: messages.omniglyph }}>
-        {ui}
-      </NextIntlClientProvider>
-    );
+    root.render(ui);
   });
   return container;
 }
@@ -87,8 +85,9 @@ function setupFetchMock(): { puts: CapturedPut[] } {
 describe("OmniglyphContextPage", () => {
   it("renders the four sections with the measured numbers and the real render", async () => {
     setupFetchMock();
-    const { default: Page } =
-      await import("../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient");
+    const { default: Page } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient"
+    );
     let container!: HTMLElement;
     await act(async () => {
       container = mount(<Page />);
@@ -116,17 +115,16 @@ describe("OmniglyphContextPage", () => {
 
   it("enabling the engine PUTs the full engines map with omniglyph on, preserving the others", async () => {
     const { puts } = setupFetchMock();
-    const { default: Page } =
-      await import("../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient");
+    const { default: Page } = await import(
+      "../../../src/app/(dashboard)/dashboard/context/omniglyph/OmniglyphContextPageClient"
+    );
     let container!: HTMLElement;
     await act(async () => {
       container = mount(<Page />);
     });
     await flush();
 
-    const toggle = container.querySelector(
-      '[data-testid="omniglyph-enable-toggle"] button'
-    ) as HTMLButtonElement | null;
+    const toggle = container.querySelector('[data-testid="omniglyph-enable-toggle"] button') as HTMLButtonElement | null;
     expect(toggle, "enable toggle button must exist").toBeTruthy();
     await act(async () => {
       toggle!.click();

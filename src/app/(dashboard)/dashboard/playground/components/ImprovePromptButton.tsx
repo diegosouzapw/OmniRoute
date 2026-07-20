@@ -3,7 +3,6 @@
 // src/app/(dashboard)/dashboard/playground/components/ImprovePromptButton.tsx
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
 import { useImprovePrompt } from "../hooks/useImprovePrompt";
 import type { ConfigState } from "./StudioConfigPane";
 
@@ -20,11 +19,7 @@ interface ImprovePromptButtonProps {
  *
  * D8: uses the model configured in the Config pane (never overrides with cheap model).
  */
-export default function ImprovePromptButton({
-  configState,
-  setConfigState,
-}: ImprovePromptButtonProps) {
-  const t = useTranslations("playground");
+export default function ImprovePromptButton({ configState, setConfigState }: ImprovePromptButtonProps) {
   const { loading, error, improve } = useImprovePrompt();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [improveError, setImproveError] = useState<string | null>(null);
@@ -35,7 +30,7 @@ export default function ImprovePromptButton({
 
     const model = configState.model.trim();
     if (!model) {
-      setImproveError(t("setModelInConfigFirst"));
+      setImproveError("Please set a model in the Config pane first.");
       return;
     }
 
@@ -45,7 +40,7 @@ export default function ImprovePromptButton({
     });
 
     if (result == null) {
-      setImproveError(error ?? t("improvePromptFailed"));
+      setImproveError(error ?? "Improve prompt failed.");
       return;
     }
 
@@ -71,14 +66,16 @@ export default function ImprovePromptButton({
           }}
           disabled={isDisabled}
           className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded border border-border text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed self-start"
-          aria-label={t("improvePromptAria")}
-          title={!configState.model.trim() ? t("setModelFirst") : t("improvePromptTitle")}
+          aria-label="Improve prompt using AI"
+          title={!configState.model.trim() ? "Set a model first" : "Improve your prompt with AI"}
         >
           <span className="text-[13px]">✨</span>
-          {loading ? t("improvingPrompt") : t("improvePrompt")}
+          {loading ? "Improving…" : "Improve prompt"}
         </button>
 
-        {improveError && <p className="text-[11px] text-destructive">{improveError}</p>}
+        {improveError && (
+          <p className="text-[11px] text-destructive">{improveError}</p>
+        )}
       </div>
 
       {/* Quota confirmation modal */}
@@ -88,7 +85,7 @@ export default function ImprovePromptButton({
           onClick={() => setConfirmOpen(false)}
           role="dialog"
           aria-modal="true"
-          aria-label={t("confirmImprovePrompt")}
+          aria-label="Confirm improve prompt"
         >
           <div
             className="bg-surface border border-border rounded-xl p-5 w-80 shadow-2xl"
@@ -97,16 +94,16 @@ export default function ImprovePromptButton({
             <div className="flex items-start gap-3 mb-4">
               <span className="text-[24px] shrink-0">✨</span>
               <div>
-                <h3 className="text-sm font-semibold text-text-main mb-1">{t("improvePrompt")}</h3>
+                <h3 className="text-sm font-semibold text-text-main mb-1">
+                  Improve prompt
+                </h3>
                 <p className="text-xs text-text-muted">
-                  {t.rich("improvePromptDescription", {
-                    model: () => (
-                      <code className="font-mono text-primary">{configState.model}</code>
-                    ),
-                  })}
+                  This will send your current system prompt to{" "}
+                  <code className="font-mono text-primary">{configState.model}</code>
+                  {" "}to generate an improved version.
                 </p>
                 <p className="text-xs text-text-muted mt-1.5 font-medium">
-                  {t("improveQuotaWarning")}
+                  This action will consume model quota.
                 </p>
               </div>
             </div>
@@ -116,14 +113,14 @@ export default function ImprovePromptButton({
                 onClick={() => setConfirmOpen(false)}
                 className="text-xs px-3 py-1.5 rounded border border-border text-text-muted hover:text-text-main transition-colors"
               >
-                {t("cancel")}
+                Cancel
               </button>
               <button
                 onClick={() => void handleConfirm()}
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded bg-primary text-white hover:bg-primary/90 transition-colors"
               >
                 <span className="text-[12px]">✨</span>
-                {t("improveConfirm")}
+                Improve
               </button>
             </div>
           </div>

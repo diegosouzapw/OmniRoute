@@ -1,20 +1,14 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useTranslations } from "next-intl";
 import { Button, Card } from "@/shared/components";
 
 type ZedImportCardProps = {
   fetchConnections: () => Promise<void>;
-  notify: {
-    success: (msg: string) => void;
-    error: (msg: string) => void;
-    info: (msg: string) => void;
-  };
+  notify: { success: (msg: string) => void; error: (msg: string) => void; info: (msg: string) => void };
 };
 
 export default function ZedImportCard({ fetchConnections, notify }: ZedImportCardProps) {
-  const t = useTranslations("providers");
   const [importingZed, setImportingZed] = useState(false);
   const [showZedManual, setShowZedManual] = useState(false);
   const [zedManualProvider, setZedManualProvider] = useState("openai");
@@ -31,29 +25,28 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
         if (data.zedDockerEnvironment) {
           setShowZedManual(true);
         }
-        notify.error(data.error || t("zedImportFailed"));
+        notify.error(data.error || "Zed import failed");
       } else if (!data.count) {
         const found = data.credentials?.length ?? 0;
         if (found === 0) {
-          notify.info(t("zedNoCredentials"));
+          notify.info("No Zed credentials found in keychain");
         } else {
-          notify.info(t("zedUnsupportedCredentials", { count: found }));
+          notify.info(
+            `Found ${found} keychain credential(s), but none matched supported providers`
+          );
         }
       } else {
         notify.success(
-          t("zedImportSuccess", {
-            credentials: data.count,
-            providers: data.providers?.length ?? 0,
-          })
+          `Imported ${data.count} credential(s) from Zed for ${data.providers?.length ?? 0} provider(s)`
         );
         await fetchConnections();
       }
     } catch (e: any) {
-      notify.error(e?.message || t("zedImportFailed"));
+      notify.error(e?.message || "Zed import failed");
     } finally {
       setImportingZed(false);
     }
-  }, [fetchConnections, importingZed, notify, t]);
+  }, [importingZed, notify, fetchConnections]);
 
   const handleZedManualImport = useCallback(async () => {
     if (importingZedManual || !zedManualToken.trim()) return;
@@ -66,18 +59,18 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
-        notify.error(data.error?.message ?? data.error ?? t("zedManualImportFailed"));
+        notify.error(data.error?.message ?? data.error ?? "Manual import failed");
       } else {
-        notify.success(t("zedManualImportSuccess", { provider: zedManualProvider }));
+        notify.success(`Imported ${zedManualProvider} token from Zed`);
         setZedManualToken("");
         await fetchConnections();
       }
     } catch (e: any) {
-      notify.error(e?.message || t("zedManualImportFailed"));
+      notify.error(e?.message || "Manual import failed");
     } finally {
       setImportingZedManual(false);
     }
-  }, [fetchConnections, importingZedManual, notify, t, zedManualProvider, zedManualToken]);
+  }, [importingZedManual, zedManualProvider, zedManualToken, notify, fetchConnections]);
 
   return (
     <>
@@ -86,9 +79,13 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px]">download</span>
-              {t("zedImportTitle")}
+              Import from Zed Keychain
             </h2>
-            <p className="text-sm text-text-muted mt-1">{t("zedImportDescription")}</p>
+            <p className="text-sm text-text-muted mt-1">
+              Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that
+              Zed IDE stored in the OS keychain and import them as connections. Requires Zed IDE
+              installed on this machine.
+            </p>
           </div>
           <Button
             size="sm"
@@ -97,7 +94,7 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
             onClick={handleZedImport}
             disabled={importingZed}
           >
-            {importingZed ? t("zedImporting") : t("zedImportButton")}
+            {importingZed ? "Importing…" : "Import from Zed"}
           </Button>
         </div>
       </Card>
@@ -109,7 +106,7 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
           >
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px]">edit</span>
-              {t("zedManualTitle")}
+              Manual Token Import
             </h2>
             <span className="material-symbols-outlined text-[18px] text-text-muted">
               {showZedManual ? "expand_less" : "expand_more"}
@@ -118,9 +115,10 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
           {showZedManual && (
             <div className="flex flex-col gap-3 mt-1">
               <p className="text-sm text-text-muted">
-                {t.rich("zedManualDescription", {
-                  path: (chunks) => <code className="font-mono text-xs">{chunks}</code>,
-                })}
+                Use this when OmniRoute runs in Docker or the keychain is unavailable. Paste the
+                API key that Zed stored under{" "}
+                <code className="font-mono text-xs">~/.config/zed/settings.json</code> or copy
+                it from the Zed AI settings panel.
               </p>
               <div className="flex gap-2 flex-col sm:flex-row">
                 <select
@@ -139,7 +137,7 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
                 <input
                   type="password"
                   className="input input-sm flex-1"
-                  placeholder={t("zedPasteApiKey")}
+                  placeholder="Paste API key…"
                   value={zedManualToken}
                   onChange={(e) => setZedManualToken(e.target.value)}
                 />
@@ -150,7 +148,7 @@ export default function ZedImportCard({ fetchConnections, notify }: ZedImportCar
                   onClick={handleZedManualImport}
                   disabled={importingZedManual || !zedManualToken.trim()}
                 >
-                  {importingZedManual ? t("zedSaving") : t("zedImportAction")}
+                  {importingZedManual ? "Saving…" : "Import"}
                 </Button>
               </div>
             </div>

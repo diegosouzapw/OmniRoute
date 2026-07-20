@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import React from "react";
-import { useTranslations } from "next-intl";
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -48,72 +47,20 @@ function fmt(n: number): string {
   return String(n);
 }
 
-interface FreeBudgetLabels {
-  title: string;
-  remaining: (remaining: string, percent: number, total: string) => string;
-  steadyMonth: string;
-  firstMonth: string;
-  usedThisMonth: string;
-  segmentHint: string;
-  boost: (tokens: string) => string;
-  uncapped: string;
-  tosRestricted: (count: number) => string;
-  provider: string;
-  model: string;
-  type: string;
-  tokensMonth: string;
-  credit: (tokens: string) => string;
-  freeTypes: Record<string, string>;
-  tosTitles: Record<string, string>;
-}
-
-const DEFAULT_LABELS: FreeBudgetLabels = {
-  title: "Free-token budget",
-  remaining: (remaining, percent, total) => `${remaining} remaining · ${percent}% of ${total}`,
-  steadyMonth: "Steady / month",
-  firstMonth: "First month (+ credits)",
-  usedThisMonth: "Used this month",
-  segmentHint:
-    "Each segment = one free pool · pool-deduped, honest counting (no inflated rate-limit ceilings).",
-  boost: (tokens) =>
-    `Unlock ~${tokens} more/mo with a one-time $10 OpenRouter top-up (50 → 1000 req/day)`,
-  uncapped:
-    "Permanently free, no published cap (rate-limited) — real access, not counted in the headline:",
-  tosRestricted: (count) =>
-    `${count} model${count === 1 ? "" : "s"} flagged as ToS-restricted — you decide`,
-  provider: "Provider",
-  model: "Model",
-  type: "Type",
-  tokensMonth: "Tokens/mo",
-  credit: (tokens) => `${tokens} credit`,
-  freeTypes: {
-    "recurring-daily": "daily",
-    "recurring-monthly": "monthly",
-    "recurring-credit": "credit/mo",
-    "recurring-uncapped": "uncapped",
-    "one-time-initial": "signup credit",
-    keyless: "keyless",
-    discontinued: "discontinued",
-  },
-  tosTitles: {
-    avoid: "ToS-restricted — review terms",
-    caution: "Caution — personal-use / proxy clauses",
-    ok: "Generally permissive",
-  },
+const FREE_TYPE_LABEL: Record<string, string> = {
+  "recurring-daily": "daily",
+  "recurring-monthly": "monthly",
+  "recurring-credit": "credit/mo",
+  "recurring-uncapped": "uncapped",
+  "one-time-initial": "signup credit",
+  keyless: "keyless",
+  discontinued: "discontinued",
 };
 
 // Distinct hues for stacked bar segments (cycling)
 const BAR_HUES = [
-  "#6366f1",
-  "#10b981",
-  "#f59e0b",
-  "#3b82f6",
-  "#ec4899",
-  "#14b8a6",
-  "#f97316",
-  "#8b5cf6",
-  "#06b6d4",
-  "#84cc16",
+  "#6366f1", "#10b981", "#f59e0b", "#3b82f6", "#ec4899",
+  "#14b8a6", "#f97316", "#8b5cf6", "#06b6d4", "#84cc16",
 ];
 
 const RECURRING_TYPES = new Set(["recurring-daily", "recurring-monthly", "keyless"]);
@@ -156,11 +103,7 @@ function buildBarSegments(perModel: FreeBudgetPerModel[]): BarSegment[] {
           color: colorFor(m.provider),
         });
       } else if (m.monthlyTokens > existing.tokens) {
-        seenPools.set(m.poolKey, {
-          ...existing,
-          tokens: m.monthlyTokens,
-          label: `${m.displayName} (${m.provider})`,
-        });
+        seenPools.set(m.poolKey, { ...existing, tokens: m.monthlyTokens, label: `${m.displayName} (${m.provider})` });
       }
     } else {
       looseSegments.push({
@@ -187,25 +130,14 @@ function sortRows(rows: FreeBudgetPerModel[], sort: FreeBudgetSort): FreeBudgetP
   const copy = rows.slice();
   if (sort === "name") return copy.sort((a, b) => a.displayName.localeCompare(b.displayName));
   if (sort === "provider")
-    return copy.sort(
-      (a, b) => a.provider.localeCompare(b.provider) || b.monthlyTokens - a.monthlyTokens
-    );
+    return copy.sort((a, b) => a.provider.localeCompare(b.provider) || b.monthlyTokens - a.monthlyTokens);
   return copy.sort((a, b) => b.monthlyTokens - a.monthlyTokens || b.creditTokens - a.creditTokens);
 }
 
-function tosBadge(
-  tos: string,
-  labels: FreeBudgetLabels
-): { icon: string; cls: string; title: string } | null {
-  if (tos === "avoid") {
-    return { icon: "warning", cls: "text-amber-400", title: labels.tosTitles.avoid };
-  }
-  if (tos === "caution") {
-    return { icon: "bolt", cls: "text-text-muted", title: labels.tosTitles.caution };
-  }
-  if (tos === "ok") {
-    return { icon: "check_circle", cls: "text-emerald-500", title: labels.tosTitles.ok };
-  }
+function tosBadge(tos: string): { icon: string; cls: string; title: string } | null {
+  if (tos === "avoid") return { icon: "warning", cls: "text-amber-400", title: "ToS-restricted — review terms" };
+  if (tos === "caution") return { icon: "bolt", cls: "text-text-muted", title: "Caution — personal-use / proxy clauses" };
+  if (tos === "ok") return { icon: "check_circle", cls: "text-emerald-500", title: "Generally permissive" };
   return null;
 }
 
@@ -217,9 +149,7 @@ function Kpi({ label, value, valueClass }: { label: string; value: string; value
   return (
     <div className="flex flex-col gap-0.5 px-3 py-2 rounded-md border border-border bg-black/[0.015] dark:bg-white/[0.015]">
       <span className="text-[10px] uppercase tracking-wide text-text-muted">{label}</span>
-      <span className={`text-[19px] font-bold tabular-nums ${valueClass ?? "text-text-main"}`}>
-        {value}
-      </span>
+      <span className={`text-[19px] font-bold tabular-nums ${valueClass ?? "text-text-main"}`}>{value}</span>
     </div>
   );
 }
@@ -232,12 +162,10 @@ export function FreeBudgetView({
   data,
   sort = "tokens",
   hideAvoid = false,
-  labels = DEFAULT_LABELS,
 }: {
   data: FreeBudgetData;
   sort?: FreeBudgetSort;
   hideAvoid?: boolean;
-  labels?: FreeBudgetLabels;
 }) {
   const {
     steadyRecurringTokens,
@@ -266,21 +194,17 @@ export function FreeBudgetView({
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
         <span className="material-symbols-outlined text-[14px] text-text-muted">savings</span>
-        <span className="text-[13px] font-semibold text-text-main">{labels.title}</span>
+        <span className="text-[13px] font-semibold text-text-main">Free-token budget</span>
         <span className="ml-auto text-[11px] text-text-muted tabular-nums">
-          {labels.remaining(fmt(remaining), pct, fmt(steadyRecurringTokens))}
+          {fmt(remaining)} remaining · {pct}% of {fmt(steadyRecurringTokens)}
         </span>
       </div>
 
       {/* KPI tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 px-3 pt-3">
-        <Kpi label={labels.steadyMonth} value={`~${fmt(steadyRecurringTokens)}`} />
-        <Kpi
-          label={labels.firstMonth}
-          value={`~${fmt(firstMonthRealisticTokens)}`}
-          valueClass="text-emerald-500"
-        />
-        <Kpi label={labels.usedThisMonth} value={fmt(usedThisMonth)} valueClass="text-text-muted" />
+        <Kpi label="Steady / month" value={`~${fmt(steadyRecurringTokens)}`} />
+        <Kpi label="First month (+ credits)" value={`~${fmt(firstMonthRealisticTokens)}`} valueClass="text-emerald-500" />
+        <Kpi label="Used this month" value={fmt(usedThisMonth)} valueClass="text-text-muted" />
       </div>
 
       {/* Stacked bar — pool-deduped; segments sum to steadyRecurringTokens */}
@@ -288,8 +212,7 @@ export function FreeBudgetView({
         <div className="px-3 pt-3">
           <div className="flex h-3 rounded-sm overflow-hidden w-full" data-testid="budget-bar">
             {barSegments.map((seg) => {
-              const width =
-                totalBarTokens > 0 ? ((seg.tokens / totalBarTokens) * 100).toFixed(2) : "0";
+              const width = totalBarTokens > 0 ? ((seg.tokens / totalBarTokens) * 100).toFixed(2) : "0";
               return (
                 <div
                   key={seg.key}
@@ -300,7 +223,9 @@ export function FreeBudgetView({
               );
             })}
           </div>
-          <p className="mt-1 text-[10.5px] text-text-muted">{labels.segmentHint}</p>
+          <p className="mt-1 text-[10.5px] text-text-muted">
+            Each segment = one free pool · pool-deduped, honest counting (no inflated rate-limit ceilings).
+          </p>
         </div>
       )}
 
@@ -309,13 +234,15 @@ export function FreeBudgetView({
         <div className="mx-3 mt-2 flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5">
           <span className="material-symbols-outlined text-[14px] text-emerald-500">bolt</span>
           <span className="text-[11px] text-emerald-500">
-            {labels.boost(fmt(boostMonthlyTokens))}
+            Unlock ~{fmt(boostMonthlyTokens)} more/mo with a one-time $10 OpenRouter top-up (50 → 1000 req/day)
           </span>
         </div>
       )}
       {uncappedProviders.length > 0 && (
         <div className="mx-3 mt-2 rounded-md border border-border bg-black/[0.015] dark:bg-white/[0.015] px-3 py-2">
-          <span className="text-[11px] text-text-muted">{labels.uncapped}</span>
+          <span className="text-[11px] text-text-muted">
+            Permanently free, no published cap (rate-limited) — real access, not counted in the headline:
+          </span>
           <div className="mt-1 flex flex-wrap gap-1">
             {uncappedProviders.map((p) => (
               <span
@@ -335,7 +262,7 @@ export function FreeBudgetView({
         <div className="mx-3 mt-2 flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5">
           <span className="material-symbols-outlined text-[14px] text-text-muted">warning</span>
           <span className="text-[11px] text-amber-400">
-            {labels.tosRestricted(avoidModels.length)}
+            {avoidModels.length} model{avoidModels.length !== 1 ? "s" : ""} flagged as ToS-restricted — you decide
           </span>
         </div>
       )}
@@ -346,21 +273,21 @@ export function FreeBudgetView({
           <table className="w-full text-[11px]" data-testid="budget-table">
             <thead>
               <tr className="text-text-muted text-left border-b border-border">
-                <th className="font-medium py-1 pr-2">{labels.provider}</th>
-                <th className="font-medium py-1 pr-2">{labels.model}</th>
-                <th className="font-medium py-1 pr-2">{labels.type}</th>
-                <th className="font-medium py-1 pr-2 text-right">{labels.tokensMonth}</th>
+                <th className="font-medium py-1 pr-2">Provider</th>
+                <th className="font-medium py-1 pr-2">Model</th>
+                <th className="font-medium py-1 pr-2">Type</th>
+                <th className="font-medium py-1 pr-2 text-right">Tokens/mo</th>
                 <th className="font-medium py-1 pr-1 text-center">ToS</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((m) => {
-                const badge = tosBadge(m.tos, labels);
+                const badge = tosBadge(m.tos);
                 const amount =
                   m.monthlyTokens > 0
                     ? fmt(m.monthlyTokens)
                     : m.creditTokens > 0
-                      ? labels.credit(fmt(m.creditTokens))
+                      ? `${fmt(m.creditTokens)} credit`
                       : "—";
                 return (
                   <tr
@@ -376,15 +303,10 @@ export function FreeBudgetView({
                         <span className="text-text-muted">{m.provider}</span>
                       </span>
                     </td>
-                    <td
-                      className="py-1 pr-2 text-text-main truncate max-w-[180px]"
-                      title={m.modelId}
-                    >
+                    <td className="py-1 pr-2 text-text-main truncate max-w-[180px]" title={m.modelId}>
                       {m.displayName}
                     </td>
-                    <td className="py-1 pr-2 text-text-muted">
-                      {labels.freeTypes[m.freeType] ?? m.freeType}
-                    </td>
+                    <td className="py-1 pr-2 text-text-muted">{FREE_TYPE_LABEL[m.freeType] ?? m.freeType}</td>
                     <td className="py-1 pr-2 text-right text-text-main tabular-nums">{amount}</td>
                     <td className="py-1 pr-1 text-center">
                       {badge && (
@@ -412,7 +334,6 @@ export function FreeBudgetView({
 // ────────────────────────────────────────────────────────────────────────────
 
 export default function FreeBudgetCard() {
-  const t = useTranslations("freeBudget");
   const [data, setData] = useState<FreeBudgetData | null>(null);
   const [sort, setSort] = useState<FreeBudgetSort>("tokens");
   const [hideAvoid, setHideAvoid] = useState(false);
@@ -441,56 +362,22 @@ export default function FreeBudgetCard() {
             onChange={(e) => setHideAvoid(e.target.checked)}
             className="accent-indigo-500"
           />
-          {t("hideTosRestricted")}
+          Hide ToS-restricted
         </label>
         <span className="ml-auto inline-flex items-center gap-1.5">
-          {t("sort")}
+          Sort
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as FreeBudgetSort)}
             className="rounded border border-border bg-surface px-1.5 py-0.5 text-[11px] text-text-main"
           >
-            <option value="tokens">{t("tokensMonth")}</option>
-            <option value="provider">{t("provider")}</option>
-            <option value="name">{t("modelName")}</option>
+            <option value="tokens">Tokens/mo</option>
+            <option value="provider">Provider</option>
+            <option value="name">Model name</option>
           </select>
         </span>
       </div>
-      <FreeBudgetView
-        data={data}
-        sort={sort}
-        hideAvoid={hideAvoid}
-        labels={{
-          title: t("title"),
-          remaining: (remaining, percent, total) => t("remaining", { remaining, percent, total }),
-          steadyMonth: t("steadyMonth"),
-          firstMonth: t("firstMonth"),
-          usedThisMonth: t("usedThisMonth"),
-          segmentHint: t("segmentHint"),
-          boost: (tokens) => t("boost", { tokens }),
-          uncapped: t("uncapped"),
-          tosRestricted: (count) => t("tosRestricted", { count }),
-          provider: t("provider"),
-          model: t("model"),
-          type: t("type"),
-          tokensMonth: t("tokensMonth"),
-          credit: (tokens) => t("credit", { tokens }),
-          freeTypes: {
-            "recurring-daily": t("freeType.daily"),
-            "recurring-monthly": t("freeType.monthly"),
-            "recurring-credit": t("freeType.creditMonthly"),
-            "recurring-uncapped": t("freeType.uncapped"),
-            "one-time-initial": t("freeType.signupCredit"),
-            keyless: t("freeType.keyless"),
-            discontinued: t("freeType.discontinued"),
-          },
-          tosTitles: {
-            avoid: t("tosTitle.avoid"),
-            caution: t("tosTitle.caution"),
-            ok: t("tosTitle.ok"),
-          },
-        }}
-      />
+      <FreeBudgetView data={data} sort={sort} hideAvoid={hideAvoid} />
     </div>
   );
 }

@@ -4,7 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { AuditLogEntry } from "@/lib/compliance/index";
 import ActivityFeed from "./components/ActivityFeed";
-import EventTypeFilter, { type EventCategory, matchesCategory } from "./components/EventTypeFilter";
+import EventTypeFilter, {
+  type EventCategory,
+  matchesCategory,
+} from "./components/EventTypeFilter";
 
 const FEED_LIMIT = 200;
 
@@ -33,7 +36,7 @@ export default function ActivityFeedClient() {
       referenceNowMs.current = Date.now();
       setAllEntries(Array.isArray(data) ? data : []);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t("fetchFailed");
+      const msg = err instanceof Error ? err.message : "Failed to fetch activity";
       setError(msg);
     } finally {
       setLoading(false);
@@ -65,7 +68,7 @@ export default function ActivityFeedClient() {
           onClick={() => fetchEntries()}
           disabled={loading}
           className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] transition-colors disabled:opacity-50"
-          aria-label={t("refreshAria")}
+          aria-label="Refresh activity feed"
         >
           {loading ? (
             <span className="flex items-center gap-2">
@@ -75,14 +78,14 @@ export default function ActivityFeedClient() {
               >
                 progress_activity
               </span>
-              {t("loading")}
+              Loading
             </span>
           ) : (
             <span className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
                 refresh
               </span>
-              {t("refresh")}
+              Refresh
             </span>
           )}
         </button>
@@ -111,7 +114,7 @@ export default function ActivityFeedClient() {
             >
               progress_activity
             </span>
-            <span className="text-sm">{t("loadingActivity")}</span>
+            <span className="text-sm">Loading activity…</span>
           </div>
         ) : (
           <ActivityFeed entries={filtered} referenceNowMs={referenceNowMs.current} />

@@ -25,11 +25,7 @@ interface SearchResponse {
   results: SearchResult[];
   cached: boolean;
   usage: { queries_used: number; search_cost_usd: number };
-  metrics: {
-    response_time_ms: number;
-    upstream_latency_ms: number;
-    total_results_available: number | null;
-  };
+  metrics: { response_time_ms: number; upstream_latency_ms: number; total_results_available: number | null };
 }
 
 interface SearchProvider {
@@ -49,15 +45,8 @@ interface SearchTabProps {
 }
 
 import { useState, useRef } from "react";
-import { useTranslations } from "next-intl";
 
-export default function SearchTab({
-  configState,
-  providers,
-  catalogProviders,
-  onMetrics,
-}: SearchTabProps) {
-  const t = useTranslations("search");
+export default function SearchTab({ configState, providers, catalogProviders, onMetrics }: SearchTabProps) {
   const [response, setResponse] = useState<SearchResponse | null>(null);
   const [rawJson, setRawJson] = useState("");
   const [loading, setLoading] = useState(false);
@@ -103,10 +92,7 @@ export default function SearchTab({
 
       if (res.ok) {
         setResponse(data);
-        onMetrics?.(
-          data.metrics?.response_time_ms ?? duration,
-          data.usage?.search_cost_usd ?? null
-        );
+        onMetrics?.(data.metrics?.response_time_ms ?? duration, data.usage?.search_cost_usd ?? null);
       } else {
         setError(data.error?.message || data.error || `Error ${res.status}`);
         onMetrics?.(duration, null);
@@ -114,9 +100,9 @@ export default function SearchTab({
     } catch (err: unknown) {
       setDuration(Date.now() - start);
       if (err instanceof Error && err.name === "AbortError") {
-        setError(t("requestTimedOut", { seconds: 15 }));
+        setError("Request timed out after 15s");
       } else {
-        setError(err instanceof Error ? err.message : t("networkError"));
+        setError(err instanceof Error ? err.message : "Network error");
       }
     } finally {
       setLoading(false);
@@ -128,11 +114,7 @@ export default function SearchTab({
     abortRef.current?.abort();
   };
 
-  const handleHistoryReplay = (entry: {
-    query: string;
-    provider: string;
-    filters: Record<string, unknown>;
-  }) => {
+  const handleHistoryReplay = (entry: { query: string; provider: string; filters: Record<string, unknown> }) => {
     handleSearch({
       query: entry.query,
       provider: entry.provider || "",
@@ -176,7 +158,7 @@ export default function SearchTab({
               <span className="text-primary text-sm" aria-hidden="true">
                 &#8645;
               </span>
-              <span className="text-xs text-text-muted">{t("rerank")}</span>
+              <span className="text-xs text-text-muted">Rerank</span>
             </button>
           </div>
         )}

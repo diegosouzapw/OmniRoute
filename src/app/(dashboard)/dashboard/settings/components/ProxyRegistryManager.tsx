@@ -9,11 +9,7 @@ import { ProxyStatusBadge } from "./ProxyStatusBadge";
 import { ProxyHealthCell } from "./ProxyHealthCell";
 import { ProxyBatchActions } from "./ProxyBatchActions";
 import { ProxyCheckboxCell } from "./ProxyCheckboxCell";
-import {
-  parseBulkImportText,
-  type ParsedProxyEntry,
-  type ParseError,
-} from "./parseBulkProxyImport";
+import { parseBulkImportText, type ParsedProxyEntry, type ParseError } from "./parseBulkProxyImport";
 import { POOL_STRATEGY_OPTIONS, isPoolStrategy, type PoolStrategy } from "./proxyStrategyOptions";
 import type { ProxyItem } from "./proxyRegistryTypes";
 
@@ -93,6 +89,7 @@ const BULK_IMPORT_TEMPLATE = `# Proxy Bulk Import
 # 138.99.147.218:50101:myuser:mypass
 # 200.234.177.62:50101:otheruser:otherpass
 #`;
+
 
 export default function ProxyRegistryManager({
   onRedeployRelay,
@@ -830,7 +827,7 @@ export default function ProxyRegistryManager({
                             !allSelected && items.some((item) => selectedIds.has(item.id));
                       }}
                       onChange={() => hookToggleSelectAll(allSelected, items)}
-                      aria-label={t("selectAllProxies")}
+                      aria-label="Select all proxies"
                     />
                   </th>
                   <th className="py-2 pr-3">{t("tableName")}</th>
@@ -849,7 +846,7 @@ export default function ProxyRegistryManager({
                       <ProxyCheckboxCell
                         checked={selectedIds.has(item.id)}
                         onChange={() => toggleSelect(item.id)}
-                        label={t("selectProxy", { name: item.name })}
+                        label={`Select ${item.name}`}
                       />
                       <td className="py-2 pr-3">
                         <div className="font-medium text-text-main">{item.name}</div>

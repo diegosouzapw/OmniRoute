@@ -73,22 +73,19 @@ function ModeBar({
   tokensSaved: number;
   skipped?: number;
 }) {
-  const t = useTranslations("analytics");
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between text-sm">
         <span className="font-medium text-text capitalize">{mode}</span>
         <span className="text-text-muted">
-          {t("compressionAnalyticsModeStats", {
-            count,
-            tokens: tokensSaved.toLocaleString(),
-          })}
+          {count} requests · {tokensSaved.toLocaleString()} tokens saved
           {skipped > 0 && (
             // #4268: attempted-but-no-op runs (e.g. Stacked saved nothing) are
             // recorded now, so this mode is visible even when count is 0.
             <span className="text-text-muted/70">
-              {t("compressionAnalyticsSkipped", { count: skipped.toLocaleString() })}
+              {" "}
+              · {skipped.toLocaleString()} skipped (no-op)
             </span>
           )}
         </span>
@@ -115,17 +112,13 @@ function ProviderBar({
   total: number;
   tokensSaved: number;
 }) {
-  const t = useTranslations("analytics");
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between text-sm">
         <span className="font-medium text-text">{provider}</span>
         <span className="text-text-muted">
-          {t("compressionAnalyticsModeStats", {
-            count,
-            tokens: tokensSaved.toLocaleString(),
-          })}
+          {count} requests · {tokensSaved.toLocaleString()} tokens saved
         </span>
       </div>
       <div className="h-2 rounded-full bg-bg-muted overflow-hidden">
@@ -164,7 +157,7 @@ export default function CompressionAnalyticsTab() {
     return (
       <div className="flex items-center justify-center py-16 text-text-muted">
         <span className="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-        {t("compressionAnalyticsLoading")}
+        Loading compression analytics…
       </div>
     );
   }
@@ -173,8 +166,11 @@ export default function CompressionAnalyticsTab() {
     return (
       <div className="card p-6 text-center text-text-muted">
         <span className="material-symbols-outlined text-[32px] mb-2 block">compress</span>
-        {error || t("compressionAnalyticsNoDataYet")}
-        <p className="text-xs mt-2">{t("compressionAnalyticsNoDataDescription")}</p>
+        {error || "No compression data yet."}
+        <p className="text-xs mt-2">
+          Compression requests will appear here after the first request via /v1/chat/completions
+          with compression enabled.
+        </p>
       </div>
     );
   }
@@ -202,12 +198,12 @@ export default function CompressionAnalyticsTab() {
             }`}
           >
             {range === "24h"
-              ? t("rangeLast24h")
+              ? "Last 24h"
               : range === "7d"
-                ? t("rangeLast7d")
+                ? "Last 7d"
                 : range === "30d"
-                  ? t("rangeLast30d")
-                  : t("rangeAllTime")}
+                  ? "Last 30d"
+                  : "All time"}
           </button>
         ))}
       </div>
@@ -238,15 +234,13 @@ export default function CompressionAnalyticsTab() {
           icon="receipt_long"
           label={t("compressionAnalyticsReceipts")}
           value={stats.realUsage.requestsWithReceipts.toLocaleString()}
-          sub={t("compressionAnalyticsRealTokens", {
-            count: stats.realUsage.totalTokens.toLocaleString(),
-          })}
+          sub={`${stats.realUsage.totalTokens.toLocaleString()} real tokens`}
         />
         <StatCard
           icon="verified"
           label={t("compressionAnalyticsFallbacks")}
           value={stats.validationFallbacks.toLocaleString()}
-          sub={t("compressionAnalyticsValidationRestores")}
+          sub="validation restores"
         />
       </div>
 
@@ -254,7 +248,7 @@ export default function CompressionAnalyticsTab() {
         <div className="card p-5">
           <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
-            {t("compressionAnalyticsRealUsageReceipts")}
+            Real Usage Receipts
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
             <div>
@@ -284,7 +278,7 @@ export default function CompressionAnalyticsTab() {
               </div>
             </div>
             <div>
-              <div className="text-text-muted">{t("compressionAnalyticsSources")}</div>
+              <div className="text-text-muted">Sources</div>
               <div className="text-lg font-semibold text-text">
                 {Object.entries(stats.realUsage.bySource)
                   .map(([source, count]) => `${source}: ${count}`)
@@ -300,7 +294,7 @@ export default function CompressionAnalyticsTab() {
         <div className="card p-5">
           <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[20px]">tune</span>
-            {t("compressionAnalyticsModeBreakdown")}
+            Mode Breakdown
           </h3>
           <div className="flex flex-col gap-4">
             {modes.map(([mode, data]) => (
@@ -322,7 +316,7 @@ export default function CompressionAnalyticsTab() {
         <div className="card p-5">
           <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[20px]">hub</span>
-            {t("compressionAnalyticsProviderBreakdown")}
+            Provider Breakdown
           </h3>
           <div className="flex flex-col gap-4">
             {providers.map(([prov, data]) => (
@@ -343,7 +337,7 @@ export default function CompressionAnalyticsTab() {
         <div className="card p-5">
           <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[20px]">show_chart</span>
-            {t("compressionAnalyticsLast24HoursActivity")}
+            Last 24 Hours (Activity)
           </h3>
           <div className="flex items-end gap-2 h-48">
             {stats.last24h.map((entry, idx) => {
@@ -354,11 +348,7 @@ export default function CompressionAnalyticsTab() {
                   <div
                     className="w-full rounded-t-sm bg-gradient-to-b from-primary to-primary/70 transition-all hover:opacity-80 cursor-pointer group relative"
                     style={{ height: `${Math.max(countPct, 5)}%` }}
-                    title={t("compressionAnalyticsChartPoint", {
-                      hour: entry.hour,
-                      count: entry.count,
-                      tokens: entry.tokensSaved.toLocaleString(),
-                    })}
+                    title={`${entry.hour}: ${entry.count} requests, ${entry.tokensSaved.toLocaleString()} tokens saved`}
                   >
                     <div className="absolute -top-6 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-text-muted whitespace-nowrap text-center">
                       {entry.count}
@@ -372,12 +362,8 @@ export default function CompressionAnalyticsTab() {
             })}
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-text-muted">
-            <div>{t("compressionAnalyticsMaxRequests", { count: maxCountPerHour })}</div>
-            <div>
-              {t("compressionAnalyticsMaxTokens", {
-                count: maxTokensPerHour.toLocaleString(),
-              })}
-            </div>
+            <div>Max requests/hour: {maxCountPerHour}</div>
+            <div>Max tokens/hour: {maxTokensPerHour.toLocaleString()}</div>
           </div>
         </div>
       )}
@@ -390,9 +376,8 @@ export default function CompressionAnalyticsTab() {
           </span>
           <p className="font-medium text-text">{t("compressionAnalyticsNoDataYet")}</p>
           <p className="text-sm mt-1">
-            {t.rich("compressionAnalyticsStartTracking", {
-              code: (chunks) => <code className="bg-bg-muted px-1 rounded">{chunks}</code>,
-            })}
+            Use <code className="bg-bg-muted px-1 rounded">POST /v1/chat/completions</code> with
+            compression configuration to start tracking compression analytics.
           </p>
         </div>
       )}
@@ -401,9 +386,9 @@ export default function CompressionAnalyticsTab() {
       <div className="text-xs text-text-muted border border-border rounded-lg p-3 flex items-start gap-2">
         <span className="material-symbols-outlined text-[16px] text-blue-500 mt-0.5">info</span>
         <span>
-          {t.rich("compressionAnalyticsInfo", {
-            strong: (chunks) => <strong>{chunks}</strong>,
-          })}
+          <strong>Compression analytics:</strong> Token savings tracked per mode (off, lite,
+          standard, aggressive, ultra, RTK, stacked), engine, compression combo, and provider. Hover
+          over charts for details. Use the time selector to view different time periods.
         </span>
       </div>
     </div>

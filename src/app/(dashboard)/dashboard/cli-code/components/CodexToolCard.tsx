@@ -606,7 +606,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                 {/* Reasoning Effort */}
                 <div className="flex items-center gap-2">
                   <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                    {t("reasoningEffort")}
+                    Reasoning Effort
                   </span>
                   <span className="material-symbols-outlined text-text-muted text-[14px]">
                     arrow_forward
@@ -616,20 +616,20 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                     onChange={(e) => setReasoningEffort(e.target.value)}
                     className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                   >
-                    <option value="none">{t("effortNone")}</option>
-                    <option value="low">{t("effortLow")}</option>
-                    <option value="medium">{t("effortMedium")}</option>
-                    <option value="high">{t("effortHigh")}</option>
-                    <option value="xhigh">{t("effortExtraHigh")}</option>
-                    <option value="max">{t("effortMax")}</option>
-                    <option value="ultra">{t("effortUltra")}</option>
+                    <option value="none">None</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="xhigh">XHigh</option>
+                    <option value="max">Max</option>
+                    <option value="ultra">Ultra</option>
                   </select>
                 </div>
 
                 {/* Wire API */}
                 <div className="flex items-center gap-2">
                   <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                    {t("wireApi")}
+                    Wire API
                   </span>
                   <span className="material-symbols-outlined text-text-muted text-[14px]">
                     arrow_forward
@@ -647,7 +647,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                 <div className="h-px bg-border/50 my-2"></div>
 
                 <div className="text-[11px] text-text-muted mb-2 font-medium uppercase tracking-wider text-right">
-                  {t("modelAliases")} ([notice.model_migrations])
+                  Model Aliases ([notice.model_migrations])
                 </div>
                 {CODEX_DEFAULT_MODELS.map((defaultModel) => (
                   <div key={defaultModel} className="flex items-center gap-2 group">
@@ -673,7 +673,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                       onChange={(e) =>
                         setModelMappings({ ...modelMappings, [defaultModel]: e.target.value })
                       }
-                      placeholder={t("routeModelPlaceholder", { model: defaultModel })}
+                      placeholder={`Route ${defaultModel} to...`}
                       className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                     />
                     {modelMappings[defaultModel] && (

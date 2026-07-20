@@ -15,10 +15,8 @@
  */
 
 import { useState, useRef, useEffect } from "react";
-import { useTranslations } from "next-intl";
 
 export default function ColumnToggle({ columns = [], visible = {}, onToggle }) {
-  const t = useTranslations("common");
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -36,7 +34,7 @@ export default function ColumnToggle({ columns = [], visible = {}, onToggle }) {
     <div ref={ref} style={{ position: "relative" }}>
       <button
         onClick={() => setOpen(!open)}
-        title={t("toggleColumns")}
+        title="Toggle columns"
         style={{
           padding: "6px 10px",
           borderRadius: "6px",
@@ -51,7 +49,7 @@ export default function ColumnToggle({ columns = [], visible = {}, onToggle }) {
         }}
       >
         <span style={{ fontSize: "14px" }}>⚙️</span>
-        {t("columns")}
+        Columns
       </button>
 
       {open && (

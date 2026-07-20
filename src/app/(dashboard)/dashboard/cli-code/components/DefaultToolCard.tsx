@@ -24,7 +24,6 @@ export default function DefaultToolCard({
   const t = useTranslations("cliTools");
   const translateOrFallback = useCallback(
     (key, fallback, values = undefined) => {
-      if (!t.has(key)) return fallback;
       try {
         return t(key, values);
       } catch {
@@ -100,44 +99,40 @@ export default function DefaultToolCard({
 
   // Persist and restore model selection per tool via localStorage
   useEffect(() => {
-    const restoreTimer = window.setTimeout(() => {
-      const savedModel = localStorage.getItem(`omniroute-cli-model-${toolId}`);
-      if (savedModel) {
-        if (isMultiModelTool) {
-          try {
-            const parsed = JSON.parse(savedModel);
-            if (Array.isArray(parsed)) {
-              const normalized = parsed.map((value) => String(value || "").trim()).filter(Boolean);
-              setModelValues(normalized);
-              setModelValue(normalized[0] || "");
-            } else {
-              setModelValue(savedModel);
-              setModelValues([savedModel]);
-            }
-          } catch {
+    const savedModel = localStorage.getItem(`omniroute-cli-model-${toolId}`);
+    if (savedModel) {
+      if (isMultiModelTool) {
+        try {
+          const parsed = JSON.parse(savedModel);
+          if (Array.isArray(parsed)) {
+            const normalized = parsed.map((value) => String(value || "").trim()).filter(Boolean);
+            setModelValues(normalized);
+            setModelValue(normalized[0] || "");
+          } else {
             setModelValue(savedModel);
             setModelValues([savedModel]);
           }
-        } else {
+        } catch {
           setModelValue(savedModel);
+          setModelValues([savedModel]);
         }
+      } else {
+        setModelValue(savedModel);
       }
-      const savedKey = localStorage.getItem(`omniroute-cli-key-${toolId}`);
-      // (#523) localStorage may contain a masked key string from before the fix —
-      // match by prefix/suffix against known keys to find the id.
-      if (savedKey && apiKeys?.length > 0) {
-        const prefix = savedKey.slice(0, 8);
-        const suffix = savedKey.slice(-4);
-        const matchedKey = apiKeys.find(
-          (k) =>
-            (k.rawKey && k.rawKey.startsWith(prefix) && k.rawKey.endsWith(suffix)) ||
-            (k.key && k.key.startsWith(prefix) && k.key.endsWith(suffix))
-        );
-        if (matchedKey) setSelectedApiKeyId(matchedKey.id);
-      }
-    }, 0);
-
-    return () => window.clearTimeout(restoreTimer);
+    }
+    const savedKey = localStorage.getItem(`omniroute-cli-key-${toolId}`);
+    // (#523) localStorage may contain a masked key string from before the fix —
+    // match by prefix/suffix against known keys to find the id.
+    if (savedKey && apiKeys?.length > 0) {
+      const prefix = savedKey.slice(0, 8);
+      const suffix = savedKey.slice(-4);
+      const matchedKey = apiKeys.find(
+        (k) =>
+          (k.rawKey && k.rawKey.startsWith(prefix) && k.rawKey.endsWith(suffix)) ||
+          (k.key && k.key.startsWith(prefix) && k.key.endsWith(suffix))
+      );
+      if (matchedKey) setSelectedApiKeyId(matchedKey.id);
+    }
   }, [toolId, apiKeys, isMultiModelTool]);
 
   const handleModelChange = useCallback(
@@ -200,7 +195,7 @@ export default function DefaultToolCard({
         .replace(/\{\{apiKey\}\}/g, keyToUse)
         .replace(/\{\{model\}\}/g, getSelectedModelLabels()[0] || t("modelPlaceholder"));
     },
-    [baseUrlWithV1, getSelectedModelLabels, resolveApiKeyValue, t]
+    [baseUrl, getSelectedModelLabels, resolveApiKeyValue, t]
   );
 
   const handleCopy = async (text, field) => {
@@ -231,12 +226,12 @@ export default function DefaultToolCard({
       2
     );
   }, [
-    baseUrlWithV1,
+    baseUrl,
     getSelectedModels,
     getSelectedModelLabelMap,
     replaceVars,
     resolveApiKeyValue,
-    tool.codeBlock,
+    tool.codeBlock?.code,
     usesOpenCodePreview,
   ]);
 

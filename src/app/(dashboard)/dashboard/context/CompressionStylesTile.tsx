@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 interface Summary {
   totalRuns: number;
@@ -23,7 +23,6 @@ const EMPTY: Summary = {
 
 export default function CompressionStylesTile() {
   const t = useTranslations("settings");
-  const locale = useLocale();
   const [summary, setSummary] = useState<Summary>(EMPTY);
 
   useEffect(() => {
@@ -44,20 +43,18 @@ export default function CompressionStylesTile() {
     >
       <p className="text-sm font-medium text-text-main">{t("compressionStylesTileTitle")}</p>
       <p className="mt-1 text-2xl font-semibold text-text-main">
-        {summary.totalTokensSaved.toLocaleString(locale, { useGrouping: false })}
+        {summary.totalTokensSaved.toLocaleString("en-US", { useGrouping: false })}
       </p>
-      <p className="text-xs text-text-muted">
-        {t("compressionStylesTileSummary", {
-          tokens: summary.totalTokensSaved,
-          runs: summary.runsWithStyles,
-        })}
-      </p>
+      <p className="text-xs text-text-muted">tokens saved · {summary.runsWithStyles} runs styled</p>
       <div className="mt-2 flex flex-wrap gap-1">
         {styles.length === 0 ? (
-          <span className="text-xs text-text-muted">{t("compressionStylesTileEmpty")}</span>
+          <span className="text-xs text-text-muted">No styled runs yet.</span>
         ) : (
           styles.map(([id, count]) => (
-            <span key={id} className="rounded bg-border/30 px-2 py-0.5 text-xs text-text-main">
+            <span
+              key={id}
+              className="rounded bg-border/30 px-2 py-0.5 text-xs text-text-main"
+            >
               {id} · {count}
             </span>
           ))

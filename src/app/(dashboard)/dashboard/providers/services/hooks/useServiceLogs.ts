@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useTranslations } from "next-intl";
 
 export interface LogLine {
   ts: number;
@@ -29,7 +28,6 @@ export function useServiceLogs(
   name: string,
   options: UseServiceLogsOptions = {}
 ): UseServiceLogsResult {
-  const t = useTranslations("embeddedServices");
   const [lines, setLines] = useState<LogLine[]>([]);
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +79,7 @@ export function useServiceLogs(
     });
 
     es.onerror = () => {
-      setError(t("logStreamFailed", { name }));
+      setError(`Unable to stream ${name} logs. Check local access and service status.`);
       es.close();
     };
 
@@ -89,7 +87,7 @@ export function useServiceLogs(
       es.close();
       esRef.current = null;
     };
-  }, [name, filter, options.tail, t]);
+  }, [name, filter, options.tail]);
 
   return { lines, isPaused, error, togglePause, clear, setFilter };
 }

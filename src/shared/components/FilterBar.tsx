@@ -21,18 +21,16 @@
  */
 
 import { useState, useCallback } from "react";
-import { useTranslations } from "next-intl";
 
 export default function FilterBar({
   searchValue = "",
   onSearchChange,
-  placeholder,
+  placeholder = "Search...",
   filters = [],
   activeFilters = {},
   onFilterChange,
   children,
 }) {
-  const t = useTranslations("common");
   const [expandedFilter, setExpandedFilter] = useState(null);
 
   const handleClear = useCallback(() => {
@@ -59,7 +57,7 @@ export default function FilterBar({
           type="text"
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder={placeholder || t("search")}
+          placeholder={placeholder}
           style={{
             width: "100%",
             padding: "8px 12px 8px 32px",
@@ -141,7 +139,7 @@ export default function FilterBar({
                   borderRadius: "4px",
                 }}
               >
-                {t("all")}
+                All
               </button>
               {(filter.options || []).map((opt) => (
                 <button
@@ -188,7 +186,7 @@ export default function FilterBar({
             cursor: "pointer",
           }}
         >
-          {t("clear")}
+          Clear
         </button>
       )}
 

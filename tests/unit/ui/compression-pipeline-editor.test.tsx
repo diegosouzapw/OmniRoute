@@ -7,11 +7,10 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { NextIntlClientProvider } from "next-intl";
-import messages from "../../../src/i18n/messages/en.json";
 
-const { CompressionPipelineEditor } =
-  await import("../../../src/shared/components/compression/CompressionPipelineEditor");
+const { CompressionPipelineEditor } = await import(
+  "../../../src/shared/components/compression/CompressionPipelineEditor"
+);
 
 const TABLE = {
   rtk: ["standard", "aggressive"],
@@ -35,13 +34,11 @@ afterEach(() => {
 function render(steps: { engine: string; intensity?: string }[], onChange: (s: unknown) => void) {
   act(() => {
     root.render(
-      <NextIntlClientProvider locale="en" messages={{ contextCombos: messages.contextCombos }}>
-        <CompressionPipelineEditor
-          steps={steps}
-          onChange={onChange}
-          engineIntensities={TABLE as unknown as Record<string, readonly string[]>}
-        />
-      </NextIntlClientProvider>
+      <CompressionPipelineEditor
+        steps={steps}
+        onChange={onChange}
+        engineIntensities={TABLE as unknown as Record<string, readonly string[]>}
+      />
     );
   });
 }
@@ -66,9 +63,7 @@ describe("CompressionPipelineEditor (T06)", () => {
     render([{ engine: "rtk", intensity: "standard" }], (s) => {
       received = s as typeof received;
     });
-    const addBtn = container.querySelector(
-      '[data-testid="pipeline-add-step"]'
-    ) as HTMLButtonElement;
+    const addBtn = container.querySelector('[data-testid="pipeline-add-step"]') as HTMLButtonElement;
     act(() => addBtn.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(received).not.toBeNull();
     expect(received!.length).toBe(2);

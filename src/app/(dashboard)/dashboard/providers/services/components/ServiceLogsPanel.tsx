@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { useServiceLogs } from "../hooks/useServiceLogs";
 import type { LogLine } from "../hooks/useServiceLogs";
@@ -10,8 +9,8 @@ interface ServiceLogsPanelProps {
   name: string;
 }
 
-function LogLineRow({ line, locale }: { line: LogLine; locale: string }) {
-  const ts = new Date(line.ts).toLocaleTimeString(locale, { hour12: false });
+function LogLineRow({ line }: { line: LogLine }) {
+  const ts = new Date(line.ts).toLocaleTimeString("en", { hour12: false });
   return (
     <div className="flex gap-2 text-[11px] leading-5 font-mono hover:bg-bg-subtle/50 px-2">
       <span className="text-text-muted shrink-0 select-none">{ts}</span>
@@ -29,8 +28,6 @@ function LogLineRow({ line, locale }: { line: LogLine; locale: string }) {
 }
 
 export function ServiceLogsPanel({ name }: ServiceLogsPanelProps) {
-  const locale = useLocale();
-  const t = useTranslations("embeddedServices");
   const [filterInput, setFilterInput] = useState("");
   const { lines, isPaused, error, togglePause, clear, setFilter } = useServiceLogs(name, {
     tail: 200,
@@ -66,7 +63,7 @@ export function ServiceLogsPanel({ name }: ServiceLogsPanelProps) {
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-bg-subtle">
         <input
           type="text"
-          placeholder={t("filterLogs")}
+          placeholder="Filter logs…"
           value={filterInput}
           onChange={(e) => applyFilter(e.target.value)}
           className="flex-1 bg-transparent text-xs outline-none placeholder:text-text-muted min-w-0"
@@ -76,30 +73,30 @@ export function ServiceLogsPanel({ name }: ServiceLogsPanelProps) {
           onClick={togglePause}
           className="text-xs text-text-muted hover:text-text-primary shrink-0"
         >
-          {isPaused ? t("resume") : t("pause")}
+          {isPaused ? "Resume" : "Pause"}
         </button>
         <button
           type="button"
           onClick={clear}
           className="text-xs text-text-muted hover:text-text-primary shrink-0"
         >
-          {t("clear")}
+          Clear
         </button>
         <button
           type="button"
           onClick={downloadLogs}
           className="text-xs text-text-muted hover:text-text-primary shrink-0"
         >
-          {t("download")}
+          Download
         </button>
       </div>
       <div className="h-80 overflow-y-auto bg-bg-main py-1">
         {error ? (
           <p className="text-xs text-red-600 dark:text-red-400 px-4 py-4">{error}</p>
         ) : lines.length === 0 ? (
-          <p className="text-xs text-text-muted px-4 py-4">{t("noLogs")}</p>
+          <p className="text-xs text-text-muted px-4 py-4">No log output yet.</p>
         ) : (
-          lines.map((l, i) => <LogLineRow key={i} line={l} locale={locale} />)
+          lines.map((l, i) => <LogLineRow key={i} line={l} />)
         )}
         <div ref={bottomRef} />
       </div>

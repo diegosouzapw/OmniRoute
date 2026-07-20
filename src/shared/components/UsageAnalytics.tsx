@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import Card from "./Card";
 import { CardSkeleton } from "./Loading";
 import { fmtCompact as fmt, fmtFull, fmtCost } from "@/shared/utils/formatting";
@@ -31,7 +31,6 @@ import {
 // ============================================================================
 
 export default function UsageAnalytics() {
-  const locale = useLocale();
   const t = useTranslations("analytics");
   const tCommon = useTranslations("common");
   const [range, setRange] = useState("30d");
@@ -88,8 +87,7 @@ export default function UsageAnalytics() {
   }, [range, customStart, customEnd, selectedApiKeys, tCommon]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void fetchAnalytics(), 0);
-    return () => window.clearTimeout(timer);
+    fetchAnalytics();
   }, [fetchAnalytics]);
 
   const handleRangeSelect = useCallback((value: string) => {
@@ -113,7 +111,7 @@ export default function UsageAnalytics() {
     if (range !== "custom" || !customStart || !customEnd) return null;
     const fmt = (iso: string) => {
       const d = new Date(iso);
-      return d.toLocaleDateString(locale, {
+      return d.toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
         hour: "2-digit",
@@ -121,7 +119,7 @@ export default function UsageAnalytics() {
       });
     };
     return `${fmt(customStart)} — ${fmt(customEnd)}`;
-  }, [range, customStart, customEnd, locale]);
+  }, [range, customStart, customEnd]);
 
   const ranges = [
     { value: "1d", label: t("period1D") },
@@ -146,13 +144,8 @@ export default function UsageAnalytics() {
     const wp = analytics?.weeklyPattern || [];
     if (!wp.length) return "—";
     const max = wp.reduce((a, b) => (a.avgTokens > b.avgTokens ? a : b), wp[0]);
-    if (max.avgTokens <= 0) return "—";
-    const weekdayIndex = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(max.day);
-    if (weekdayIndex < 0) return max.day;
-    return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(
-      new Date(2024, 0, 7 + weekdayIndex)
-    );
-  }, [analytics, locale]);
+    return max.avgTokens > 0 ? max.day : "—";
+  }, [analytics]);
 
   const providerCount = useMemo(() => {
     return (analytics?.byProvider || []).length;

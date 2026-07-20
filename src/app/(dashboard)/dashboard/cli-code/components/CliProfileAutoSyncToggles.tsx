@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 import { Toggle } from "@/shared/components";
 
 type FlagEntry = { key: string; effectiveValue: string };
@@ -20,7 +19,6 @@ function isOn(value: string | undefined): boolean {
  * sync regenerate that tool's profile files from the live catalog.
  */
 export default function CliProfileAutoSyncToggles() {
-  const t = useTranslations("cliTools");
   const [codexOn, setCodexOn] = useState(false);
   const [claudeOn, setClaudeOn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,11 +36,11 @@ export default function CliProfileAutoSyncToggles() {
       setClaudeOn(isOn(flags.find((f) => f.key === CLAUDE_KEY)?.effectiveValue));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("profileSyncLoadFailed"));
+      setError(err instanceof Error ? err.message : "Failed to load settings");
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     load();
@@ -62,34 +60,37 @@ export default function CliProfileAutoSyncToggles() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
       } catch (err) {
         apply(previous); // revert on failure
-        setError(err instanceof Error ? err.message : t("failedSave"));
+        setError(err instanceof Error ? err.message : "Failed to save");
       } finally {
         setSavingKey(null);
       }
     },
-    [t]
+    []
   );
 
   return (
     <div className="rounded-xl border border-border bg-surface/40 p-4">
       <div className="mb-3">
-        <h3 className="text-sm font-semibold text-text-main">{t("profileSyncTitle")}</h3>
-        <p className="text-xs text-text-muted">{t("profileSyncDescription")}</p>
+        <h3 className="text-sm font-semibold text-text-main">CLI profile auto-sync</h3>
+        <p className="text-xs text-text-muted">
+          After a provider model sync, automatically regenerate CLI tool profiles from the live
+          catalog. Off by default — only profile files are written, never the active/default config.
+        </p>
       </div>
       <div className="flex flex-col gap-3">
         <Toggle
           checked={codexOn}
           disabled={loading || savingKey === CODEX_KEY}
           onChange={(v) => persist(CODEX_KEY, v, codexOn, setCodexOn)}
-          label={t("codexProfiles")}
-          description={t("codexProfilesDescription")}
+          label="Codex profiles"
+          description="Regenerate ~/.codex/*.config.toml after model discovery."
         />
         <Toggle
           checked={claudeOn}
           disabled={loading || savingKey === CLAUDE_KEY}
           onChange={(v) => persist(CLAUDE_KEY, v, claudeOn, setClaudeOn)}
-          label={t("claudeProfiles")}
-          description={t("claudeProfilesDescription")}
+          label="Claude Code profiles"
+          description="Regenerate ~/.claude/profiles/<name>/settings.json after model discovery."
         />
       </div>
       {error ? <p className="mt-2 text-xs text-red-500">{error}</p> : null}

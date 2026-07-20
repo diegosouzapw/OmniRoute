@@ -1,7 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-
 type ModelEntry = {
   weight?: number;
   [key: string]: unknown;
@@ -37,7 +35,6 @@ export function effectiveSharePercent(weight: number, total: number): number {
 }
 
 export default function WeightTotalBar({ models }: WeightTotalBarProps) {
-  const t = useTranslations("combos");
   const total = models.reduce((sum, m) => sum + (m.weight || 0), 0);
   const isValid = total === 100;
 
@@ -68,7 +65,10 @@ export default function WeightTotalBar({ models }: WeightTotalBarProps) {
                   {m.weight}%
                   {/* #6147 — show the *effective* routing share when weights don't sum to 100 */}
                   {total > 0 && total !== 100 && (
-                    <span className="text-text-muted/70" title={t("effectiveRoutingShare")}>
+                    <span
+                      className="text-text-muted/70"
+                      title="Effective routing share (weight ÷ total)"
+                    >
                       {" → "}
                       {Math.round(effectiveSharePercent(m.weight, total))}%
                     </span>

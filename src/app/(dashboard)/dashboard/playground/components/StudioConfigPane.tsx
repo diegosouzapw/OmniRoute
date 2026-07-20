@@ -18,7 +18,10 @@ import {
 } from "@/shared/constants/providers";
 import { filterModelsByQuery, pickDefaultModel, resolveModelFilterKey } from "./modelSelection";
 import ReasoningControls from "./ReasoningControls";
-import { resolveReasoningControls, type ReasoningControlSpec } from "./reasoningControlUtils";
+import {
+  resolveReasoningControls,
+  type ReasoningControlSpec,
+} from "./reasoningControlUtils";
 
 export interface ConfigState {
   endpoint: PlaygroundEndpoint;
@@ -38,20 +41,20 @@ interface StudioConfigPaneProps {
   setConfigState: (s: ConfigState) => void;
 }
 
-const ENDPOINT_OPTIONS: Array<{ value: PlaygroundEndpoint; labelKey: string }> = [
-  { value: "chat.completions", labelKey: "chat" },
-  { value: "responses", labelKey: "responses" },
-  { value: "completions", labelKey: "completions" },
-  { value: "embeddings", labelKey: "embeddings" },
-  { value: "images", labelKey: "images" },
-  { value: "audio.transcriptions", labelKey: "transcription" },
-  { value: "audio.speech", labelKey: "speech" },
-  { value: "video", labelKey: "video" },
-  { value: "music", labelKey: "music" },
-  { value: "moderations", labelKey: "moderations" },
-  { value: "rerank", labelKey: "rerank" },
-  { value: "search", labelKey: "search" },
-  { value: "web.fetch", labelKey: "webFetch" },
+const ENDPOINT_OPTIONS: Array<{ value: PlaygroundEndpoint; label: string }> = [
+  { value: "chat.completions", label: "Chat completions" },
+  { value: "responses", label: "Responses" },
+  { value: "completions", label: "Completions" },
+  { value: "embeddings", label: "Embeddings" },
+  { value: "images", label: "Images" },
+  { value: "audio.transcriptions", label: "Audio transcriptions" },
+  { value: "audio.speech", label: "Audio speech" },
+  { value: "video", label: "Video" },
+  { value: "music", label: "Music" },
+  { value: "moderations", label: "Moderations" },
+  { value: "rerank", label: "Rerank" },
+  { value: "search", label: "Search" },
+  { value: "web.fetch", label: "Web fetch" },
 ];
 
 /**
@@ -62,7 +65,6 @@ const ENDPOINT_OPTIONS: Array<{ value: PlaygroundEndpoint; labelKey: string }> =
  */
 export default function StudioConfigPane({ configState, setConfigState }: StudioConfigPaneProps) {
   const t = useTranslations("common");
-  const tp = useTranslations("playground");
   const [collapsed, setCollapsed] = useState(false);
   // #4086: search/filter query for the Model dropdown — flat provider catalogs (e.g.
   // 50+ OpenRouter models) made the plain <select> unusable without scrolling.
@@ -91,11 +93,8 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
     selectedProviderOption?.modelPrefix,
     isCompatibleConnectionId
   );
-  const {
-    availableModels,
-    modelCapabilities,
-    loading: loadingModels,
-  } = useAvailableModels(modelFilterKey);
+  const { availableModels, modelCapabilities, loading: loadingModels } =
+    useAvailableModels(modelFilterKey);
 
   // #4086: filter the dropdown by the search query, but always keep the currently selected
   // model in the list even when it doesn't match — otherwise typing a query would silently
@@ -143,8 +142,8 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
         <button
           onClick={() => setCollapsed(false)}
           className="mt-2 p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-          title={tp("expandConfig")}
-          aria-label={tp("expandConfig")}
+          title="Expand config pane"
+          aria-label="Expand config pane"
         >
           <span className="material-symbols-outlined text-[18px]">settings</span>
         </button>
@@ -155,18 +154,18 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
   return (
     <aside
       className="w-72 shrink-0 border-l border-border bg-bg-alt flex flex-col overflow-y-auto"
-      aria-label={tp("configPane")}
+      aria-label="Config pane"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-          {tp("configPane")}
+          Config
         </span>
         <button
           onClick={() => setCollapsed(true)}
           className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-          title={tp("collapseConfig")}
-          aria-label={tp("collapseConfig")}
+          title="Collapse config pane"
+          aria-label="Collapse config pane"
         >
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         </button>
@@ -179,7 +178,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
         {/* Endpoint */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
-            {tp("endpointLabel")}
+            Endpoint
           </label>
           <select
             value={configState.endpoint}
@@ -188,7 +187,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
           >
             {ENDPOINT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
-                {tp(`endpointOptions.${opt.labelKey}`)} — {endpointToPath(opt.value)}
+                {opt.label} — {endpointToPath(opt.value)}
               </option>
             ))}
           </select>
@@ -197,7 +196,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
         {/* Provider */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
-            {tp("provider")}
+            Provider
           </label>
           <select
             value={provider}
@@ -209,7 +208,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
             disabled={loadingProviders}
             className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
           >
-            <option value="">{tp("autoProvider")}</option>
+            <option value="">Auto</option>
             {providerOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -221,7 +220,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
         {/* Model */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
-            {tp("model")}
+            Model
           </label>
           {availableModels.length > 0 ? (
             <>
@@ -253,7 +252,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
               type="text"
               value={configState.model}
               onChange={(e) => update("model", e.target.value)}
-              placeholder={tp("modelPlaceholder")}
+              placeholder="e.g. openai/gpt-4o"
               className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
             />
           )}
@@ -262,12 +261,12 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
         {/* System prompt */}
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
-            {tp("systemPrompt")}
+            System prompt
           </label>
           <textarea
             value={configState.systemPrompt}
             onChange={(e) => update("systemPrompt", e.target.value)}
-            placeholder={tp("systemPromptPlaceholder")}
+            placeholder="You are a helpful assistant."
             rows={4}
             className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main resize-y"
           />
@@ -278,7 +277,7 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
         {/* Param sliders */}
         <div className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
-            {tp("parametersLabel")}
+            Parameters
           </span>
           <ParamSliders params={configState.params} setParams={(p) => update("params", p)} />
         </div>

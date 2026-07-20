@@ -62,16 +62,16 @@ export default function DiversityScoreCard() {
 
   let riskColor = "text-green-500";
   let gaugeColor = "bg-green-500";
-  let riskLabel = t("diversityHealthy");
+  let riskLabel = "Healthy Distribution";
 
   if (scorePercentage < 40) {
     riskColor = "text-red-500";
     gaugeColor = "bg-red-500";
-    riskLabel = t("diversityRiskHigh");
+    riskLabel = "High Vendor Lock-in Risk";
   } else if (scorePercentage < 70) {
     riskColor = "text-amber-500";
     gaugeColor = "bg-amber-500";
-    riskLabel = t("diversityRiskModerate");
+    riskLabel = "Moderate Distribution";
   }
 
   const providerEntries = Object.entries(data.providers || {})
@@ -86,15 +86,12 @@ export default function DiversityScoreCard() {
           <span className="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
           <h3 className="font-semibold text-text-main">{t("diversityScoreTitle")}</h3>
           <span className="text-xs text-text-muted hidden sm:inline">
-            — {t("diversityScoreDesc")}
+            — Provider concentration snapshot for the recent traffic window.
           </span>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-text-muted hidden md:inline">
-            {t("diversityWindow", {
-              count: data.windowSize,
-              mins: Math.round(data.ttlMs / 60000),
-            })}
+            Window: {data.windowSize} reqs · Last {Math.round(data.ttlMs / 60000)} mins
           </span>
           <span
             className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
@@ -105,7 +102,7 @@ export default function DiversityScoreCard() {
                   : "bg-green-500/10 text-green-500"
             }`}
           >
-            {t("diversityShannonEntropy")}
+            Shannon entropy
           </span>
         </div>
       </div>
@@ -136,9 +133,7 @@ export default function DiversityScoreCard() {
             <span className={`text-lg font-semibold tabular-nums ${riskColor}`}>
               {scorePercentage}%
             </span>
-            <span className="text-[9px] uppercase tracking-[0.15em] text-text-muted">
-              {t("diversityScoreLabel")}
-            </span>
+            <span className="text-[9px] uppercase tracking-[0.15em] text-text-muted">score</span>
           </div>
         </div>
 
@@ -146,7 +141,7 @@ export default function DiversityScoreCard() {
         <div className="shrink-0 text-center sm:text-left">
           <div className={`text-sm font-medium ${riskColor}`}>{riskLabel}</div>
           <div className="text-xs text-text-muted mt-0.5 max-w-[200px]">
-            {t("diversityHigherExplanation")}
+            Higher values mean traffic is spread across multiple providers.
           </div>
         </div>
 
@@ -156,7 +151,9 @@ export default function DiversityScoreCard() {
         {/* Provider bars */}
         <div className="flex-1 min-w-0 w-full">
           {providerEntries.length === 0 ? (
-            <div className="text-sm text-text-muted text-center py-2">{t("diversityNoData")}</div>
+            <div className="text-sm text-text-muted text-center py-2">
+              No recent usage data available.
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
               {providerEntries.map(([provider, stat]) => (

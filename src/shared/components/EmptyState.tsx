@@ -35,7 +35,6 @@ export default function EmptyState({
 }: EmptyStateProps) {
   const t = useTranslations("common");
   const resolvedTitle = title ?? t("nothingHere");
-  const usesMaterialSymbol = /^[a-z][a-z0-9_]*$/.test(icon);
   return (
     <div
       style={{
@@ -58,13 +57,7 @@ export default function EmptyState({
         role="img"
         aria-hidden="true"
       >
-        {usesMaterialSymbol ? (
-          <span className="material-symbols-outlined" style={{ fontSize: "inherit" }}>
-            {icon}
-          </span>
-        ) : (
-          icon
-        )}
+        {icon}
       </div>
       <h3
         style={{

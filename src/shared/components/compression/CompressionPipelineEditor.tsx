@@ -6,6 +6,10 @@
 // (parent owns the state + persistence). All mutations go through the pure
 // `compressionPipelineModel` so invariants (valid intensity, non-empty pipeline) hold.
 //
+// Hydration note: this lives under the combos screen, which deliberately uses NO
+// `useTranslations` (an earlier redesign failed to hydrate on the production build with a
+// page-level `useTranslations`). Strings are literal English to match `CompressionHub`.
+
 import {
   DndContext,
   closestCenter,
@@ -22,7 +26,6 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useTranslations } from "next-intl";
 import {
   allowedIntensities,
   addLayer,
@@ -54,7 +57,6 @@ function SortableRow(props: {
   onPatch: (patch: Partial<PipelineStep>) => void;
   onRemove: () => void;
 }) {
-  const t = useTranslations("contextCombos");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: props.id,
   });
@@ -72,7 +74,7 @@ function SortableRow(props: {
     >
       <button
         type="button"
-        aria-label={t("dragToReorder")}
+        aria-label="Drag to reorder step"
         data-testid={`pipeline-drag-${props.index}`}
         className="cursor-grab rounded-lg border border-border px-2 py-2 text-sm text-text-muted"
         {...attributes}
@@ -81,7 +83,7 @@ function SortableRow(props: {
         ⠿
       </button>
       <select
-        aria-label={t("engine")}
+        aria-label="Engine"
         value={props.step.engine}
         onChange={(event) => props.onPatch({ engine: event.target.value })}
         className={SELECT_CLASS}
@@ -93,7 +95,7 @@ function SortableRow(props: {
         ))}
       </select>
       <select
-        aria-label={t("intensity")}
+        aria-label="Intensity"
         value={props.step.intensity ?? ""}
         onChange={(event) => props.onPatch({ intensity: event.target.value })}
         className={SELECT_CLASS}
@@ -111,14 +113,13 @@ function SortableRow(props: {
         data-testid={`pipeline-remove-${props.index}`}
         className="rounded-lg border border-border px-3 py-2 text-sm text-text-main disabled:opacity-50"
       >
-        {t("removeStep")}
+        Remove
       </button>
     </div>
   );
 }
 
 export function CompressionPipelineEditor({ steps, onChange, engineIntensities }: Props) {
-  const t = useTranslations("contextCombos");
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -140,14 +141,14 @@ export function CompressionPipelineEditor({ steps, onChange, engineIntensities }
   return (
     <div className="space-y-3" data-testid="compression-pipeline-editor">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-text-main">{t("pipeline")}</h3>
+        <h3 className="text-sm font-semibold text-text-main">Pipeline</h3>
         <button
           type="button"
           data-testid="pipeline-add-step"
           onClick={() => onChange(addLayer(steps, { engine: firstEngine }, engineIntensities))}
           className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
         >
-          {t("addStep")}
+          Add step
         </button>
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

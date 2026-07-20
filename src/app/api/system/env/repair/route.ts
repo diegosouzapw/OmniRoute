@@ -6,7 +6,7 @@
  * Safety: Only fills missing OAuth defaults from .env.example.
  */
 import { copyFileSync, existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 // @ts-expect-error - .mjs without types
@@ -16,20 +16,15 @@ async function loadSyncHelpers() {
   return { getEnvSyncPlan, syncEnv };
 }
 
-function resolveEnvTargetDir() {
-  const configured = process.env.DATA_DIR?.trim();
-  return configured ? resolve(configured) : process.cwd();
-}
-
-function createEnvBackup(envDir: string) {
-  const envPath = join(envDir, ".env");
+function createEnvBackup() {
+  const envPath = join(process.cwd(), ".env");
 
   if (!existsSync(envPath)) {
     return null;
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupPath = join(envDir, `.env.backup-${timestamp}`);
+  const backupPath = join(process.cwd(), `.env.backup-${timestamp}`);
   copyFileSync(envPath, backupPath);
   return backupPath;
 }
@@ -43,13 +38,11 @@ export async function GET(request: Request) {
 
   try {
     const { getEnvSyncPlan } = await loadSyncHelpers();
-    // The standalone server runs from dist/, which is intentionally read-only.
-    // Read .env.example from there, but inspect the writable DATA_DIR/.env.
-    const plan = getEnvSyncPlan({
-      scope: "oauth",
-      rootDir: process.cwd(),
-      envDir: resolveEnvTargetDir(),
-    });
+    // Pass an explicit rootDir so the helper never derives the root from a
+    // webpack-frozen `import.meta.url` (build-machine path) — that froze the
+    // path and 500'd this route on packaged installs (#5006). cwd matches the
+    // `.env` target used by createEnvBackup() above.
+    const plan = getEnvSyncPlan({ scope: "oauth", rootDir: process.cwd() });
 
     return NextResponse.json({
       available: plan.available,
@@ -73,11 +66,10 @@ export async function POST(request: Request) {
 
   try {
     const { syncEnv, getEnvSyncPlan } = await loadSyncHelpers();
-    const envDir = resolveEnvTargetDir();
-    const backupPath = createEnvBackup(envDir);
-    const syncOptions = { scope: "oauth", rootDir: process.cwd(), envDir };
-    const result = syncEnv({ ...syncOptions, quiet: true });
-    const plan = getEnvSyncPlan(syncOptions);
+    const backupPath = createEnvBackup();
+    // Explicit rootDir (cwd) — see GET above (#5006).
+    const result = syncEnv({ scope: "oauth", quiet: true, rootDir: process.cwd() });
+    const plan = getEnvSyncPlan({ scope: "oauth", rootDir: process.cwd() });
 
     return NextResponse.json({
       success: true,
