@@ -3212,8 +3212,8 @@
       }
     },
     "url": {
-      "nonStream": "https://www.notion.so/api/v3/runInferenceTranscript",
-      "stream": "https://www.notion.so/api/v3/runInferenceTranscript"
+      "nonStream": "https://app.notion.com/api/v3/runInferenceTranscript",
+      "stream": "https://app.notion.com/api/v3/runInferenceTranscript"
     }
   },
   "nous-research": {

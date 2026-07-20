@@ -705,7 +705,7 @@ export default function OAuthModal({
       // (`{user, accessToken, expires}`), not just the bare token (#6636).
       if (provider === "codex" && looksLikeCodexSessionJson(callbackUrl)) {
         const result = parseCodexSessionJson(JSON.parse(callbackUrl.trim()));
-        if (!result.ok) {
+        if (result.ok === false) {
           setError(result.error);
           return;
         }
