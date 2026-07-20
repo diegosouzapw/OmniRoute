@@ -107,10 +107,7 @@ test("VB-S05: passthroughs when visionBridgeEnabled is false", async () => {
         role: "user",
         content: [
           { type: "text", text: "What is in this image?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
+          { type: "image_url", image_url: { url: "https://example.com/image.png" } },
         ],
       },
     ],
@@ -237,7 +234,7 @@ test("VB-S04: passthroughs when messages array is empty", async () => {
 
 // ── VB-S12: Auto-prefix skip ────────────────────────────────────────────────
 
-test("VB-S12: skips guardrail for auto/ prefix model (auto/vision)", async () => {
+test("VB-S12: reroutes auto/ prefix model to vision model (auto/vision)", async () => {
   const guardrail = createGuardrail();
 
   const payload = createPayload({
@@ -247,10 +244,7 @@ test("VB-S12: skips guardrail for auto/ prefix model (auto/vision)", async () =>
         role: "user",
         content: [
           { type: "text", text: "What is in this image?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
+          { type: "image_url", image_url: { url: "https://example.com/image.png" } },
         ],
       },
     ],
@@ -258,11 +252,17 @@ test("VB-S12: skips guardrail for auto/ prefix model (auto/vision)", async () =>
 
   const result = await guardrail.preCall(payload, createContext({ model: "auto/vision" }));
   assert.strictEqual(result.block, false);
-  assert.strictEqual(result.modifiedPayload, undefined, "auto/vision should passthrough");
-  assert.strictEqual(visionCallCount, 0, "should NOT call vision API for auto prefix");
+  assert.ok(result.modifiedPayload, "auto/vision should reroute to vision model");
+  assert.strictEqual(
+    result.modifiedPayload?.model,
+    "openai/gpt-4o-mini",
+    "should reroute to configured vision model"
+  );
+  assert.strictEqual(result.meta?.rerouted, true, "rerouted meta should be set");
+  assert.strictEqual(visionCallCount, 0, "should NOT call vision API (reroute, not describe)");
 });
 
-test("VB-S12b: skips guardrail for bare auto prefix", async () => {
+test("VB-S12b: reroutes auto prefix to best vision model when images present", async () => {
   const guardrail = createGuardrail();
 
   const payload = createPayload({
@@ -272,10 +272,7 @@ test("VB-S12b: skips guardrail for bare auto prefix", async () => {
         role: "user",
         content: [
           { type: "text", text: "What is in this image?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
+          { type: "image_url", image_url: { url: "https://example.com/image.png" } },
         ],
       },
     ],
@@ -283,7 +280,13 @@ test("VB-S12b: skips guardrail for bare auto prefix", async () => {
 
   const result = await guardrail.preCall(payload, createContext({ model: "auto" }));
   assert.strictEqual(result.block, false);
-  assert.strictEqual(result.modifiedPayload, undefined, "auto should passthrough");
+  assert.ok(result.modifiedPayload, "auto should reroute to vision model");
+  assert.strictEqual(
+    result.modifiedPayload?.model,
+    "openai/gpt-4o-mini",
+    "should reroute to configured vision model"
+  );
+  assert.strictEqual(result.meta?.rerouted, true, "rerouted meta should be set");
 });
 
 // ── VB-S01: Single image → reroute (individual non-vision model) ───────────
@@ -298,10 +301,7 @@ test("VB-S01: reroutes non-vision model with images to best vision model", async
         role: "user",
         content: [
           { type: "text", text: "What is in this image?" },
-          {
-            type: "image_url",
-            image_url: { url: "https://example.com/image.png" },
-          },
+          { type: "image_url", image_url: { url: "https://example.com/image.png" } },
         ],
       },
     ],

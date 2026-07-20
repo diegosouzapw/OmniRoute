@@ -245,16 +245,17 @@ export function runJsonMigration(
         )
       `);
       for (const row of data.usageHistory) {
-        const connection = importedConnections.get(row.connection_id);
+        const connectionId = row.connection_id ?? row.connectionId ?? null;
+        const connection = connectionId ? importedConnections.get(connectionId) : undefined;
         const fallbackIdentity = connection
           ? resolveUsageAccountIdentity(connection)
-          : resolveOrphanedUsageAccountIdentity(row.provider, row.connection_id);
+          : resolveOrphanedUsageAccountIdentity(row.provider, connectionId);
         const identity = resolveImportedUsageAccountIdentity(row, fallbackIdentity);
         insertUsageHistory.run({
           id: row.id,
           provider: row.provider ?? null,
           model: row.model ?? null,
-          connection_id: row.connection_id ?? null,
+          connection_id: connectionId,
           account_key: identity.accountKey,
           account_label: identity.accountLabel,
           account_label_priority: identity.accountLabelPriority,
