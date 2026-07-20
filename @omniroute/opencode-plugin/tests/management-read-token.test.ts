@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 import {
   createOmniRouteAuthHook,
@@ -157,7 +160,7 @@ test("config hook: managementReadToken stays out of provider inference and MCP c
   );
 });
 
-test("auth fetch: /v1 keeps apiKey and neither token leaks cross-origin", async () => {
+test("auth fetch: only intended same-origin inference paths receive apiKey", async () => {
   const calls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -167,22 +170,36 @@ test("auth fetch: /v1 keeps apiKey and neither token leaks cross-origin", async 
 
   try {
     const hook = createOmniRouteAuthHook({
-      baseURL: BASE_URL,
+      baseURL: `${BASE_URL}/`,
       managementReadToken: MANAGEMENT_READ_TOKEN,
     });
     const loaded = await hook.loader!(async () => apiAuth(API_KEY) as never, {} as never);
     const interceptedFetch = (loaded as { fetch: typeof fetch }).fetch;
 
-    await interceptedFetch(`${BASE_URL}/chat/completions`, { method: "POST", body: "{}" });
+    const streamingBody = '{"stream":true}';
+    await interceptedFetch(`${BASE_URL}/chat/completions?trace=1`, {
+      method: "POST",
+      body: streamingBody,
+      headers: { Accept: "text/event-stream" },
+    });
+    await interceptedFetch(`${BASE_URL}/models/?refresh=1`);
+    await interceptedFetch("https://or.example.com/api/combos");
+    await interceptedFetch("https://or.example.com/api/mcp/stream");
+    await interceptedFetch("https://or.example.com/v1/embeddings");
     await interceptedFetch("https://third-party.example/v1/chat/completions", {
       method: "POST",
       body: "{}",
     });
 
-    const sameOriginHeaders = new Headers(calls[0]?.init?.headers);
-    const crossOriginHeaders = new Headers(calls[1]?.init?.headers);
-    assert.equal(sameOriginHeaders.get("Authorization"), `Bearer ${API_KEY}`);
-    assert.equal(crossOriginHeaders.get("Authorization"), null);
+    const headers = calls.map(({ init }) => new Headers(init?.headers));
+    assert.equal(headers[0]?.get("Authorization"), `Bearer ${API_KEY}`);
+    assert.equal(headers[1]?.get("Authorization"), `Bearer ${API_KEY}`);
+    for (const index of [2, 3, 4, 5]) {
+      assert.equal(headers[index]?.get("Authorization"), null);
+    }
+    assert.equal(calls[0]?.input, `${BASE_URL}/chat/completions?trace=1`);
+    assert.equal(calls[0]?.init?.body, streamingBody);
+    assert.equal(headers[0]?.get("Accept"), "text/event-stream");
     assert.equal(
       calls.some(({ init }) =>
         [...new Headers(init?.headers).values()].some((value) =>
@@ -194,5 +211,61 @@ test("auth fetch: /v1 keeps apiKey and neither token leaks cross-origin", async 
     );
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("disk cache: snapshot written under management token A is rejected under token B", async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-token-snapshot-"));
+  const previousDataDir = process.env.OPENCODE_DATA_DIR;
+  process.env.OPENCODE_DATA_DIR = tmp;
+
+  try {
+    const commonDeps = {
+      readAuthJson: async () => ({
+        "opencode-omniroute": {
+          type: "api" as const,
+          key: API_KEY,
+          baseURL: BASE_URL,
+        },
+      }),
+      combosFetcher: async () => [],
+      logger: { warn: () => {} },
+    };
+    const features = {
+      enrichment: false,
+      autoCombos: false,
+      diskCache: true,
+    } as const;
+
+    const tokenAHook = createOmniRouteConfigHook(
+      { managementReadToken: "token-A", features },
+      {
+        ...commonDeps,
+        fetcher: async () => RAW_MODELS,
+      }
+    );
+    await tokenAHook({} as never);
+
+    const tokenBHook = createOmniRouteConfigHook(
+      { managementReadToken: "token-B", features },
+      {
+        ...commonDeps,
+        fetcher: async () => {
+          throw new Error("offline");
+        },
+      }
+    );
+    const input: { provider?: Record<string, { models: Record<string, unknown> }> } = {};
+    await tokenBHook(input as never);
+
+    assert.deepEqual(
+      input.provider?.["opencode-omniroute"]?.models,
+      {},
+      "catalog from token A must not hydrate after switching to token B"
+    );
+  } finally {
+    if (previousDataDir === undefined) delete process.env.OPENCODE_DATA_DIR;
+    else process.env.OPENCODE_DATA_DIR = previousDataDir;
+    fs.rmSync(tmp, { recursive: true, force: true });
   }
 });

@@ -126,8 +126,9 @@ import {
  *                           provider's API key (from auth.json) when unset.
  *                           Useful when a narrower-scoped MCP-only key is
  *                           preferred over the chat/inference key.
- *  - `fetchInterceptor`     Inject Authorization: Bearer + Content-Type on
- *                           every outbound request to baseURL. Default true.
+ *  - `fetchInterceptor`     Inject Authorization: Bearer + Content-Type only
+ *                           on same-origin `/v1/chat/completions` and
+ *                           `/v1/models` requests. Default true.
  *  - `debugLog`             Capture every outbound request + response to a
  *                           JSONL file at
  *                           `~/.local/share/opencode/plugins/omniroute-debug-{providerId}.jsonl`.
@@ -3023,17 +3024,17 @@ export function createOmniRouteProviderHook(
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Fetch interceptor (T-04) — Bearer + Content-Type injection on outbound
-// provider requests targeting the configured OmniRoute baseURL
+// Fetch interceptor (T-04) — Bearer + Content-Type injection on intended
+// same-origin OmniRoute inference requests only
 // ────────────────────────────────────────────────────────────────────────────
 
 /**
  * Build a `fetch`-compatible interceptor that injects `Authorization: Bearer`
- * (and a default `Content-Type`) onto outbound requests targeting the given
- * `baseURL`. Requests to any other host pass through untouched — the apiKey
- * is treated as a secret bound to the configured OmniRoute instance and
- * MUST NOT leak to third-party endpoints (a vector AI-SDKs occasionally
- * exercise when a tool call rewrites the URL mid-flight).
+ * (and a default `Content-Type`) only onto same-origin requests targeting
+ * `/v1/chat/completions` or `/v1/models`. Management, MCP, and unrelated
+ * inference paths pass through untouched. The apiKey is treated as a secret
+ * bound to both the configured OmniRoute origin and these intended inference
+ * endpoints, and MUST NOT leak elsewhere.
  *
  * Ported from Alph4d0g's `opencode-omniroute-auth@1.2.1` `createFetchInterceptor`
  * (their `dist/src/plugin.js:477-516`) with these intentional deviations:
@@ -3060,17 +3061,32 @@ export function createOmniRouteFetchInterceptor(config: {
   apiKey: string;
   baseURL: string;
 }): typeof fetch {
-  const trimmed = trimTrailingSlashes(config.baseURL);
-  // Use `<base>/` for prefix matching to prevent suffix-spoof attacks
-  // (e.g. baseURL `https://or.example.com/v1` should NOT match
-  // `https://or.example.com/v1-attacker.evil/...`).
-  const prefix = `${trimmed}/`;
+  let baseOrigin: string | undefined;
+  try {
+    baseOrigin = new URL(config.baseURL).origin;
+  } catch {
+    // Credential-attached base URLs are not schema-validated. A malformed
+    // value must disable injection rather than broaden the credential scope.
+  }
+
+  const inferencePaths = new Set(["/v1/chat/completions", "/v1/models"]);
   return async (input, init = {}) => {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
-    const targetsOmniRoute = url === trimmed || url.startsWith(prefix);
-    if (!targetsOmniRoute) {
+    let requestUrl: URL | undefined;
+    try {
+      requestUrl = new URL(url);
+    } catch {
+      // Native fetch will report malformed/relative URLs as usual. We only
+      // decline to attach credentials before forwarding the original input.
+    }
+    const normalizedPath = requestUrl ? trimTrailingSlashes(requestUrl.pathname) || "/" : undefined;
+    const targetsInference =
+      requestUrl?.origin === baseOrigin &&
+      normalizedPath !== undefined &&
+      inferencePaths.has(normalizedPath);
+    if (!targetsInference) {
       return fetch(input, init);
     }
 
@@ -4012,7 +4028,9 @@ type AuthJsonShape = Record<string, AuthJsonApiEntry | { type?: string; [k: stri
 
 /** Disk snapshot envelope. Versioned for forward-compat. */
 interface OmniRouteDiskSnapshot {
-  v: 1;
+  v: 2;
+  /** Opaque identity for normalized baseURL + both effective credentials. */
+  identityFingerprint: string;
   rawModels: OmniRouteRawModelEntry[];
   rawCombos: OmniRouteRawCombo[];
   rawAutoCombos?: OmniRouteRawAutoCombo[];
@@ -4032,22 +4050,53 @@ export function diskSnapshotPath(providerId: string): string {
 
 export type OmniRouteDiskSnapshotWriter = (
   providerId: string,
-  entry: Omit<OmniRouteFetchCacheEntry, "expiresAt">
+  entry: Omit<OmniRouteFetchCacheEntry, "expiresAt">,
+  identityFingerprint: string
 ) => Promise<void>;
 
 export type OmniRouteDiskSnapshotReader = (
-  providerId: string
+  providerId: string,
+  identityFingerprint: string
 ) => Promise<Omit<OmniRouteFetchCacheEntry, "expiresAt"> | undefined>;
 
+/**
+ * Bind a snapshot to the endpoint and effective credential tuple without
+ * persisting any raw token. This opaque value is only stored and compared;
+ * it is never logged or included in generated provider configuration.
+ */
+function diskSnapshotIdentityFingerprint(
+  baseURL: string,
+  apiKey: string,
+  managementReadToken: string
+): string {
+  let normalizedBaseURL: string;
+  try {
+    const parsed = new URL(baseURL);
+    parsed.hash = "";
+    parsed.pathname = trimTrailingSlashes(parsed.pathname) || "/";
+    normalizedBaseURL = parsed.toString();
+  } catch {
+    normalizedBaseURL = trimTrailingSlashes(baseURL);
+  }
+  return createHash("sha256")
+    .update(JSON.stringify([normalizedBaseURL, apiKey, managementReadToken]))
+    .digest("hex");
+}
+
 /** Best-effort disk write. Soft-fails on any I/O error (no exception thrown). */
-export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (providerId, entry) => {
+export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (
+  providerId,
+  entry,
+  identityFingerprint
+) => {
   try {
     const file = diskSnapshotPath(providerId);
     // Restrict perms to the owner: the snapshot lives alongside auth.json
     // (0o600) and embeds provider topology + masked connection records.
     await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
     const snapshot: OmniRouteDiskSnapshot = {
-      v: 1,
+      v: 2,
+      identityFingerprint,
       rawModels: entry.rawModels,
       rawCombos: entry.rawCombos,
       rawAutoCombos: entry.rawAutoCombos,
@@ -4066,12 +4115,22 @@ export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (pro
 };
 
 /** Best-effort disk read. Returns `undefined` when missing/corrupt/unreadable. */
-export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (providerId) => {
+export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (
+  providerId,
+  identityFingerprint
+) => {
   try {
     const file = diskSnapshotPath(providerId);
     const body = await readFile(file, "utf8");
     const parsed = JSON.parse(body) as Partial<OmniRouteDiskSnapshot>;
-    if (!parsed || parsed.v !== 1) return undefined;
+    if (
+      !parsed ||
+      parsed.v !== 2 ||
+      typeof parsed.identityFingerprint !== "string" ||
+      parsed.identityFingerprint !== identityFingerprint
+    ) {
+      return undefined;
+    }
     return {
       rawModels: Array.isArray(parsed.rawModels) ? parsed.rawModels : [],
       rawCombos: Array.isArray(parsed.rawCombos) ? parsed.rawCombos : [],
@@ -4515,6 +4574,11 @@ export function createOmniRouteConfigHook(
     // populated it moments earlier; on OC ≤1.14.48 only this hook runs but
     // the cache still works (single producer + consumer through one Map).
     const cacheKey = modelsCacheKey(baseURL, `${apiKey}\0${managementReadToken}`);
+    const snapshotFingerprint = diskSnapshotIdentityFingerprint(
+      baseURL,
+      apiKey,
+      managementReadToken
+    );
     const t = now();
     const cached = cache.get(cacheKey);
 
@@ -4629,7 +4693,7 @@ export function createOmniRouteConfigHook(
       // a healthy refresh; staleness is bounded only by how recently the
       // user was online.
       if (modelsFetchThrew && wantDiskCache) {
-        const snapshot = await diskSnapshotReader(resolved.providerId);
+        const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
         if (snapshot && snapshot.rawModels.length > 0) {
           logger.warn(
             `[omniroute-plugin] config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
@@ -4674,14 +4738,18 @@ export function createOmniRouteConfigHook(
       // Best-effort; soft-fail keeps us moving when the data dir isn't
       // writable (e.g. read-only container).
       if (modelsFetchOk && wantDiskCache) {
-        await diskSnapshotWriter(resolved.providerId, {
-          rawModels,
-          rawCombos,
-          rawAutoCombos,
-          rawEnrichment,
-          rawCompressionCombos,
-          rawConnections,
-        });
+        await diskSnapshotWriter(
+          resolved.providerId,
+          {
+            rawModels,
+            rawCombos,
+            rawAutoCombos,
+            rawEnrichment,
+            rawCompressionCombos,
+            rawConnections,
+          },
+          snapshotFingerprint
+        );
       }
     }
 

@@ -259,7 +259,7 @@ test("loader integration: wired interceptor actually injects Bearer when invoked
       {} as never
     );
     const wiredFetch = (result as { fetch: typeof fetch }).fetch;
-    await wiredFetch(`${BASE}/v1/models`, {});
+    await wiredFetch(`${BASE}/models`, {});
     assert.equal(calls.length, 1);
     const sentHeaders = new Headers((calls[0]!.init as RequestInit).headers);
     assert.equal(sentHeaders.get("Authorization"), `Bearer ${KEY}`);
