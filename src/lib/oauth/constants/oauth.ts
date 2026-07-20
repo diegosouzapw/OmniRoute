@@ -13,6 +13,12 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+import {
+  GROK_BUILD_DEVICE_CODE_URL,
+  GROK_BUILD_OAUTH_ISSUER,
+  GROK_BUILD_OAUTH_SCOPES,
+  GROK_BUILD_TOKEN_URL,
+} from "@omniroute/open-sse/config/grokBuild.ts";
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
@@ -110,11 +116,14 @@ export const CODEBUDDY_CN_CONFIG = {
   pollInterval: 5000,
 };
 
-// Grok Build (xAI) OAuth Configuration (Import-Token Flow with refresh)
+// Grok Build (xAI) OAuth Configuration (Device Code + import-token fallback)
 // Public client_id resolved through resolvePublicCred so it is never a literal.
 export const GROK_CLI_CONFIG = {
   clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
-  tokenUrl: "https://auth.x.ai/oauth2/token",
+  issuer: GROK_BUILD_OAUTH_ISSUER,
+  deviceCodeUrl: GROK_BUILD_DEVICE_CODE_URL,
+  tokenUrl: GROK_BUILD_TOKEN_URL,
+  scope: GROK_BUILD_OAUTH_SCOPES.join(" "),
 };
 
 // xAI API OAuth Configuration (Authorization Code Flow with PKCE)

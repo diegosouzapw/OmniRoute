@@ -1,4 +1,9 @@
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import {
+  GROK_BUILD_DEFAULT_CONTEXT_WINDOW,
+  getGrokBuildModelsHeaders,
+  GROK_BUILD_MODELS_URL,
+} from "@omniroute/open-sse/config/grokBuild.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
@@ -76,6 +81,11 @@ export function parseAlibabaModelStudioModels(data: any): any[] {
 export function parseQwenCloudTextModels(data: any): any[] {
   return parseCuratedDashscopeModels(data, QWEN_CLOUD_TEXT_MODELS, QWEN_CLOUD_TEXT_MODEL_IDS);
 }
+type ProviderModelsHeaderContext = {
+  authType?: string;
+  providerSpecificData?: unknown;
+  email?: string | null;
+};
 
 export type ProviderModelsConfigEntry = {
   url: string;
@@ -85,7 +95,10 @@ export type ProviderModelsConfigEntry = {
   authPrefix?: string;
   authQuery?: string;
   body?: unknown;
-  buildHeaders?: (token: string, connection?: any) => Record<string, string>;
+  buildHeaders?: (
+    token: string,
+    connection?: ProviderModelsHeaderContext
+  ) => Record<string, string>;
   parseResponse: (data: any) => any;
 };
 
@@ -173,6 +186,118 @@ export function parseKimiCodingModels(data: any): any[] {
   return models
     .filter((model: any) => typeof model?.id === "string" && model.id.length > 0)
     .map(normalizeKimiCodingModel);
+}
+
+type GrokBuildModelRecord = Record<string, unknown>;
+
+function asGrokBuildRecord(value: unknown): GrokBuildModelRecord {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as GrokBuildModelRecord)
+    : {};
+}
+
+function grokBuildString(...values: unknown[]): string | undefined {
+  return values
+    .find((value): value is string => typeof value === "string" && value.trim().length > 0)
+    ?.trim();
+}
+
+function grokBuildPositiveNumber(...values: unknown[]): number | undefined {
+  return values.find(
+    (value): value is number => typeof value === "number" && Number.isFinite(value) && value > 0
+  );
+}
+
+function getGrokBuildModelItems(data: unknown): unknown[] {
+  const envelope = asGrokBuildRecord(data);
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(envelope.data)) return envelope.data;
+  return Array.isArray(envelope.models) ? envelope.models : [];
+}
+
+function hasGrokBuildReasoning(model: GrokBuildModelRecord, metadata: GrokBuildModelRecord) {
+  const flags = [
+    model.supportsReasoningEffort,
+    model.supports_reasoning_effort,
+    metadata.supportsReasoningEffort,
+    metadata.supports_reasoning_effort,
+  ];
+  const effortLists = [
+    model.reasoningEfforts,
+    model.reasoning_efforts,
+    metadata.reasoningEfforts,
+    metadata.reasoning_efforts,
+  ];
+  return (
+    flags.some((value) => value === true) ||
+    grokBuildString(
+      model.reasoningEffort,
+      model.reasoning_effort,
+      metadata.reasoningEffort,
+      metadata.reasoning_effort
+    ) !== undefined ||
+    effortLists.some((value) => Array.isArray(value) && value.length > 0)
+  );
+}
+
+function normalizeGrokBuildModel(value: unknown): GrokBuildModelRecord | null {
+  const model = asGrokBuildRecord(value);
+  const metadata = asGrokBuildRecord(model._meta);
+  const catalogId = grokBuildString(model.id);
+  const id = grokBuildString(
+    model.model,
+    model.modelId,
+    catalogId,
+    metadata.model,
+    metadata.modelId
+  );
+  const hidden = model.hidden === true || metadata.hidden === true;
+  // grok-cli always uses OAuth session auth. Official Grok Build visibility
+  // keeps supported_in_api=false models available to session users and only
+  // hides them from API-key users.
+  if (!id || hidden) return null;
+
+  const backend = grokBuildString(
+    model.apiBackend,
+    model.api_backend,
+    metadata.apiBackend,
+    metadata.api_backend
+  );
+  // This provider currently executes against /v1/responses. Grok Build can
+  // advertise chat_completions or messages backends too, but exposing those
+  // here would route their request shape to the wrong upstream endpoint.
+  if (backend !== "responses") return null;
+
+  const inputTokenLimit =
+    grokBuildPositiveNumber(
+      model.contextWindow,
+      model.context_window,
+      metadata.contextWindow,
+      metadata.totalContextTokens
+    ) || GROK_BUILD_DEFAULT_CONTEXT_WINDOW;
+  const outputTokenLimit = grokBuildPositiveNumber(
+    model.maxCompletionTokens,
+    model.max_completion_tokens
+  );
+  const description = grokBuildString(model.description);
+
+  return {
+    id,
+    name: grokBuildString(model.name, id) || id,
+    owned_by: "grok-cli",
+    ...(description ? { description } : {}),
+    inputTokenLimit,
+    ...(outputTokenLimit ? { outputTokenLimit } : {}),
+    ...(hasGrokBuildReasoning(model, metadata) ? { supportsThinking: true } : {}),
+    apiFormat: "responses",
+    supportedEndpoints: ["responses"],
+  };
+}
+
+function parseGrokBuildModels(data: unknown): GrokBuildModelRecord[] {
+  return getGrokBuildModelItems(data)
+    .map(normalizeGrokBuildModel)
+    .filter((model): model is GrokBuildModelRecord => model !== null);
 }
 
 const KIMI_CODING_MODELS_CONFIG: ProviderModelsConfigEntry = {
@@ -315,6 +440,21 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || [],
+  },
+  "grok-cli": {
+    url: GROK_BUILD_MODELS_URL,
+    method: "GET",
+    headers: {},
+    buildHeaders: (token, context) => {
+      const providerData = asGrokBuildRecord(context?.providerSpecificData);
+      return getGrokBuildModelsHeaders({
+        token,
+        userId: grokBuildString(providerData.userId),
+        email: grokBuildString(context?.email, providerData.email),
+        principalType: grokBuildString(providerData.principalType),
+      });
+    },
+    parseResponse: parseGrokBuildModels,
   },
   openrouter: {
     url: "https://openrouter.ai/api/v1/models",

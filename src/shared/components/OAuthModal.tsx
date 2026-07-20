@@ -6,7 +6,7 @@ import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
 import LinkifiedText from "./LinkifiedText";
-import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { OAuthDeviceCodePanel, OAuthManualInputPanel } from "./OAuthModalPanels";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
 import {
@@ -15,18 +15,26 @@ import {
 } from "@/lib/oauth/utils/codexSessionImport";
 import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
 
+export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
+
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
 const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "xai-oauth"]);
 
-/**
- * Phase 1 hotfix (2026-05-29): windsurf & devin-cli only support import-token.
- * Their PKCE flow targeting app.devin.ai/editor/signin returned 404 post-rebrand.
- * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
- * Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
- */
-const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
+const DEVICE_CODE_PROVIDERS = new Set([
+  "github",
+  "kiro",
+  "amazon-q",
+  "kimi-coding",
+  "kilocode",
+  "codebuddy-cn",
+  "grok-cli",
+  "ghe-copilot",
+]);
+
+const TOKEN_PASTE_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
+const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 // POST a bare Codex access token to the access-token-only import endpoint
 // (#1290); shared by the bare-JWT and session-JSON paste branches (#6636).
@@ -59,6 +67,39 @@ type OAuthModalProps = {
   reauthConnection?: null | { id?: string };
 };
 
+type DevicePollResult =
+  { status: "pending" | "slow_down" | "success" } | { status: "error"; message: string };
+
+function positiveNumberOr(value: unknown, fallback: number): number {
+  return Math.max(1, Number(value) || fallback);
+}
+
+async function pollDeviceCodeOnce(
+  provider: string | undefined,
+  payload: Record<string, unknown>
+): Promise<DevicePollResult> {
+  try {
+    const res = await fetch(`/api/oauth/${provider}/poll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = (await parseResponseBody(res)) as Record<string, unknown>;
+
+    if (data.success) return { status: "success" };
+    if (data.error === "slow_down") return { status: "slow_down" };
+    if (data.error && !data.pending) {
+      return { status: "error", message: String(data.errorDescription || data.error) };
+    }
+    return { status: "pending" };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Authorization failed",
+    };
+  }
+}
+
 /**
  * OAuth Modal Component
  * - Localhost: Auto callback via popup message
@@ -82,20 +123,17 @@ export default function OAuthModal({
   const [deviceData, setDeviceData] = useState(null);
   const [gheUrl, setGheUrl] = useState("");
   const [polling, setPolling] = useState(false);
-  // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
-  const [showPasteToken, setShowPasteToken] = useState(
-    provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli"
-  );
+  const [deviceCodeExpiresAt, setDeviceCodeExpiresAt] = useState<number | null>(null);
+  const [deviceCodeSecondsRemaining, setDeviceCodeSecondsRemaining] = useState<number | null>(null);
+  // API-key paste mode for direct-token providers.
+  const [showPasteToken, setShowPasteToken] = useState(IMPORT_TOKEN_ONLY_PROVIDERS.has(provider));
   const [pasteToken, setPasteToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
 
-  const supportsTokenPaste =
-    provider === "windsurf" || provider === "devin-cli" || provider === "grok-cli";
-  // Phase 1 hotfix (2026-05-29): windsurf/devin-cli are import-token-only.
-  // Hide the "Browser Login" tab — Phase 2 will restore it via Firebase OAuth.
+  const supportsTokenPaste = TOKEN_PASTE_PROVIDERS.has(provider);
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
   const popupRef = useRef(null);
-  const { copied, copy } = useCopyToClipboard();
+  const deviceFlowRunRef = useRef(0);
   const deviceVerificationUrl =
     deviceData?.verification_uri_complete || deviceData?.verification_uri || "";
 
@@ -128,6 +166,13 @@ export default function OAuthModal({
   const { isLocalhost, isTrueLocalhost, placeholderUrl } = runtimeLocation;
   const callbackProcessedRef = useRef(false);
   const flowStartedRef = useRef(false);
+
+  const invalidateDeviceFlow = useCallback(() => {
+    deviceFlowRunRef.current += 1;
+    setPolling(false);
+    setDeviceCodeExpiresAt(null);
+    setDeviceCodeSecondsRemaining(null);
+  }, []);
 
   // Define all useCallback hooks BEFORE the useEffects that reference them
 
@@ -234,52 +279,56 @@ export default function OAuthModal({
 
   // Poll for device code token
   const startPolling = useCallback(
-    async (deviceCode, codeVerifier, interval, extraData) => {
+    async (deviceCode, codeVerifier, interval, expiresIn, extraData) => {
+      const runId = ++deviceFlowRunRef.current;
+      const safeInterval = positiveNumberOr(interval, 5);
+      const safeExpiresIn = positiveNumberOr(expiresIn, safeInterval * 60);
+      const deadline = Date.now() + safeExpiresIn * 1000;
+      let currentInterval = safeInterval;
+
       setPolling(true);
-      const maxAttempts = 60;
+      setDeviceCodeExpiresAt(deadline);
 
-      for (let i = 0; i < maxAttempts; i++) {
-        await new Promise((r) => setTimeout(r, interval * 1000));
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, currentInterval * 1000));
+        if (runId !== deviceFlowRunRef.current || Date.now() >= deadline) break;
 
-        try {
-          const res = await fetch(`/api/oauth/${provider}/poll`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              deviceCode,
-              connectionId: reauthConnection?.id,
-              codeVerifier,
-              extraData,
-            }),
-          });
+        const result = await pollDeviceCodeOnce(provider, {
+          deviceCode,
+          connectionId: reauthConnection?.id,
+          codeVerifier,
+          extraData,
+        });
+        if (runId !== deviceFlowRunRef.current) return;
 
-          const data = (await parseResponseBody(res)) as Record<string, unknown>;
+        if (result.status === "success") {
+          setStep("success");
+          setPolling(false);
+          setDeviceCodeExpiresAt(null);
+          onSuccess?.();
+          return;
+        }
 
-          if (data.success) {
-            setStep("success");
-            setPolling(false);
-            onSuccess?.();
-            return;
-          }
+        if (result.status === "slow_down") {
+          currentInterval = Math.min(currentInterval + 5, 30);
+          continue;
+        }
 
-          if (data.error === "expired_token" || data.error === "access_denied") {
-            throw new Error(data.errorDescription || data.error);
-          }
-
-          if (data.error === "slow_down") {
-            interval = Math.min(interval + 5, 30);
-          }
-        } catch (err) {
-          setError(err.message);
+        if (result.status === "error") {
+          setError(result.message);
           setStep("error");
           setPolling(false);
+          setDeviceCodeExpiresAt(null);
           return;
         }
       }
 
-      setError("Authorization timeout");
-      setStep("error");
-      setPolling(false);
+      if (runId === deviceFlowRunRef.current) {
+        setError("Authorization timeout");
+        setStep("error");
+        setPolling(false);
+        setDeviceCodeExpiresAt(null);
+      }
     },
     [provider, onSuccess, reauthConnection]
   );
@@ -290,17 +339,11 @@ export default function OAuthModal({
     try {
       setError(null);
 
-      // Device code flow (GitHub, Kiro, Kimi Coding, KiloCode, GHE Copilot)
-      if (
-        provider === "github" ||
-        provider === "ghe-copilot" ||
-        provider === "kiro" ||
-        provider === "amazon-q" ||
-        provider === "kimi-coding" ||
-        provider === "kilocode" ||
-        provider === "codebuddy-cn"
-      ) {
+      // Device code flow
+      if (DEVICE_CODE_PROVIDERS.has(provider)) {
+        invalidateDeviceFlow();
         setIsDeviceCode(true);
+        setDeviceData(null);
         setStep("waiting");
 
         // GHE Copilot needs the enterprise URL collected first (see ghe-config step)
@@ -338,7 +381,7 @@ export default function OAuthModal({
 
         // Open verification URL
         const verifyUrl = data.verification_uri_complete || data.verification_uri;
-        if (verifyUrl) window.open(verifyUrl, "oauth_verify");
+        if (typeof verifyUrl === "string" && verifyUrl) window.open(verifyUrl, "oauth_verify");
 
         // Start polling - pass extraData for Kiro (contains _clientId, _clientSecret)
         const extraData =
@@ -351,7 +394,13 @@ export default function OAuthModal({
             : provider === "ghe-copilot" && gheUrl.trim()
               ? { gheUrl: gheUrl.trim() }
               : null;
-        startPolling(data.device_code, data.codeVerifier, data.interval || 5, extraData);
+        startPolling(
+          data.device_code,
+          data.codeVerifier,
+          data.interval || 5,
+          data.expires_in,
+          extraData
+        );
         return;
       }
 
@@ -519,29 +568,57 @@ export default function OAuthModal({
     reauthConnection,
     idcConfig,
     gheUrl,
+    invalidateDeviceFlow,
   ]);
 
-  // Reset guard when modal closes
+  useEffect(() => {
+    if (!deviceCodeExpiresAt) {
+      setDeviceCodeSecondsRemaining(null);
+      return;
+    }
+
+    const updateRemaining = () => {
+      setDeviceCodeSecondsRemaining(
+        Math.max(0, Math.ceil((deviceCodeExpiresAt - Date.now()) / 1000))
+      );
+    };
+    updateRemaining();
+    const timer = window.setInterval(updateRemaining, 1000);
+    return () => window.clearInterval(timer);
+  }, [deviceCodeExpiresAt]);
+
+  useEffect(() => {
+    invalidateDeviceFlow();
+    flowStartedRef.current = false;
+  }, [provider, invalidateDeviceFlow]);
+
   useEffect(() => {
     if (!isOpen) {
+      invalidateDeviceFlow();
       flowStartedRef.current = false;
     }
-  }, [isOpen]);
+  }, [isOpen, invalidateDeviceFlow]);
+
+  useEffect(
+    () => () => {
+      deviceFlowRunRef.current += 1;
+    },
+    []
+  );
 
   // Reset state and start OAuth when modal opens
   useEffect(() => {
-    if (isOpen && provider) {
-      if (flowStartedRef.current) return; // Already started, prevent duplicate
-      flowStartedRef.current = true;
-      setAuthData(null);
-      setCallbackUrl("");
-      setError(null);
-      setIsDeviceCode(false);
-      setDeviceData(null);
-      setPolling(false);
-      // Auto start OAuth
-      startOAuthFlow();
-    }
+    if (!isOpen || !provider || flowStartedRef.current) return;
+    flowStartedRef.current = true;
+    const startsInPasteMode = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
+    setShowPasteToken(startsInPasteMode);
+    setAuthData(null);
+    setCallbackUrl("");
+    setError(null);
+    setIsDeviceCode(false);
+    setDeviceData(null);
+    setPolling(false);
+    if (!startsInPasteMode) startOAuthFlow();
   }, [isOpen, provider, startOAuthFlow]);
 
   // Listen for OAuth callback via multiple methods
@@ -774,32 +851,45 @@ export default function OAuthModal({
     }
   };
 
+  const handleClose = useCallback(() => {
+    invalidateDeviceFlow();
+    onClose();
+  }, [invalidateDeviceFlow, onClose]);
+
+  const handlePasteMode = useCallback(() => {
+    invalidateDeviceFlow();
+    setShowPasteToken(true);
+  }, [invalidateDeviceFlow]);
+
+  const handleBrowserMode = useCallback(() => {
+    setShowPasteToken(false);
+    startOAuthFlow();
+  }, [startOAuthFlow]);
+
   if (!provider || !providerInfo) return null;
 
   return (
     <Modal
       isOpen={isOpen}
       title={t("title", { providerName: providerInfo.name })}
-      onClose={onClose}
+      onClose={handleClose}
       size="lg"
     >
       <div className="flex flex-col gap-4">
-        {/* Paste-token tab toggle (Windsurf / Devin CLI only).
-            Phase 1 hotfix: when importTokenOnly is true, hide the entire toggle —
-            there is no "Browser Login" tab to switch to until Phase 2 ships. */}
+        {/* Browser login with an optional token-import fallback. */}
         {supportsTokenPaste && !importTokenOnly && step !== "success" && (
           <div className="flex gap-2 border-b border-border pb-3">
             <button
               className={`text-sm px-3 py-1 rounded-t ${!showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
-              onClick={() => setShowPasteToken(false)}
+              onClick={handleBrowserMode}
             >
               Browser Login
             </button>
             <button
               className={`text-sm px-3 py-1 rounded-t ${showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
-              onClick={() => setShowPasteToken(true)}
+              onClick={handlePasteMode}
             >
-              Paste API Key
+              {provider === "grok-cli" ? "JWT Token" : "Paste API Key"}
             </button>
           </div>
         )}
@@ -830,7 +920,7 @@ export default function OAuthModal({
               >
                 {savingToken ? "Saving…" : "Save Connection"}
               </Button>
-              <Button onClick={onClose} variant="ghost" fullWidth>
+              <Button onClick={handleClose} variant="ghost" fullWidth>
                 Cancel
               </Button>
             </div>
@@ -870,142 +960,28 @@ export default function OAuthModal({
 
             {/* Device Code Flow - Waiting */}
             {step === "waiting" && isDeviceCode && deviceData && (
-              <>
-                <div className="text-center py-4">
-                  <p className="text-sm text-text-muted mb-4">{t("deviceCodeVisitUrl")}</p>
-                  <div className="bg-sidebar p-4 rounded-lg mb-4">
-                    <p className="text-xs text-text-muted mb-1">{t("deviceCodeVerificationUrl")}</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 text-sm break-all">{deviceVerificationUrl}</code>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        icon={copied === "verify_url" ? "check" : "content_copy"}
-                        onClick={() => copy(deviceVerificationUrl, "verify_url")}
-                      />
-                    </div>
-                  </div>
-                  <div className="bg-primary/10 p-4 rounded-lg">
-                    <p className="text-xs text-text-muted mb-1">{t("deviceCodeYourCode")}</p>
-                    <div className="flex items-center justify-center gap-2">
-                      <p className="text-2xl font-mono font-bold text-primary">
-                        {deviceData.user_code}
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        icon={copied === "user_code" ? "check" : "content_copy"}
-                        onClick={() => copy(deviceData.user_code, "user_code")}
-                      />
-                    </div>
-                  </div>
-                </div>
-                {polling && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
-                    <span className="material-symbols-outlined animate-spin">
-                      progress_activity
-                    </span>
-                    {t("deviceCodeWaiting")}
-                  </div>
-                )}
-              </>
+              <OAuthDeviceCodePanel
+                deviceData={deviceData}
+                verificationUrl={deviceVerificationUrl}
+                secondsRemaining={deviceCodeSecondsRemaining}
+                polling={polling}
+              />
             )}
 
             {/* Manual Input Step */}
             {step === "input" && !isDeviceCode && (
-              <>
-                <div className="space-y-4">
-                  {/* Remote/LAN server info for Google OAuth providers */}
-                  {!isTrueLocalhost && GOOGLE_OAUTH_PROVIDERS.has(provider) && (
-                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-                      <span className="material-symbols-outlined text-sm align-middle mr-1">
-                        warning
-                      </span>
-                      <strong>
-                        {t.rich("googleOAuthWarning", {
-                          code: (c) => <code className="font-mono">{c}</code>,
-                          a: (c) => (
-                            <a
-                              href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="underline"
-                            >
-                              {c}
-                            </a>
-                          ),
-                        })}
-                      </strong>
-                    </div>
-                  )}
-                  {/* Actionable remote paste instruction — shown for ALL remote providers,
-                      including Google OAuth (antigravity/agy). The Google
-                      loopback creds redirect to 127.0.0.1:<port>/callback, which on a
-                      remotely-accessed dashboard lands on the operator's own machine and
-                      shows a "can't reach this page" error. That is expected: the URL bar
-                      still carries ?code=…, and pasting it below completes the login. Before
-                      this, Google providers only saw the discouraging loopback warning and
-                      never the "copy the URL and paste it" step, so remote login appeared to
-                      hang. */}
-                  {!isTrueLocalhost && (
-                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
-                      <span className="material-symbols-outlined text-sm align-middle mr-1">
-                        info
-                      </span>
-                      {t("remoteAccessInfo")}
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium mb-2">{t("step1OpenUrl")}</p>
-                    <div className="flex gap-2">
-                      <Input
-                        value={authData?.authUrl || ""}
-                        readOnly
-                        className="flex-1 font-mono text-xs"
-                      />
-                      <Button
-                        variant="secondary"
-                        icon={copied === "auth_url" ? "check" : "content_copy"}
-                        onClick={() => copy(authData?.authUrl, "auth_url")}
-                      >
-                        {t("copy")}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2">{t("step2PasteCallback")}</p>
-                    <p className="text-xs text-text-muted mb-2">
-                      {t.rich("step2Hint", {
-                        code: (c) => <code className="font-mono">{c}</code>,
-                      })}
-                    </p>
-                    <Input
-                      value={callbackUrl}
-                      onChange={(e) => setCallbackUrl(e.target.value)}
-                      placeholder={
-                        provider === "claude" || provider === "cline"
-                          ? "code#state or /callback?code=..."
-                          : placeholderUrl
-                      }
-                      className="font-mono text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleManualSubmit}
-                    fullWidth
-                    disabled={!callbackUrl || (!authData && !isCredentialBlob(callbackUrl))}
-                  >
-                    {t("connect")}
-                  </Button>
-                  <Button onClick={onClose} variant="ghost" fullWidth>
-                    {t("cancel")}
-                  </Button>
-                </div>
-              </>
+              <OAuthManualInputPanel
+                provider={provider}
+                isGoogleOAuth={GOOGLE_OAUTH_PROVIDERS.has(provider)}
+                isTrueLocalhost={isTrueLocalhost}
+                authUrl={typeof authData?.authUrl === "string" ? authData.authUrl : ""}
+                callbackUrl={callbackUrl}
+                placeholderUrl={placeholderUrl}
+                canSubmit={Boolean(callbackUrl && (authData || isCredentialBlob(callbackUrl)))}
+                onCallbackUrlChange={setCallbackUrl}
+                onSubmit={handleManualSubmit}
+                onClose={handleClose}
+              />
             )}
           </>
         )}
@@ -1022,7 +998,7 @@ export default function OAuthModal({
             <p className="text-sm text-text-muted mb-4">
               {t("successMessage", { providerName: providerInfo.name })}
             </p>
-            <Button onClick={onClose} fullWidth>
+            <Button onClick={handleClose} fullWidth>
               {t("done")}
             </Button>
           </div>
@@ -1042,7 +1018,7 @@ export default function OAuthModal({
               <Button onClick={startOAuthFlow} variant="secondary" fullWidth>
                 {t("tryAgain")}
               </Button>
-              <Button onClick={onClose} variant="ghost" fullWidth>
+              <Button onClick={handleClose} variant="ghost" fullWidth>
                 {t("cancel")}
               </Button>
             </div>
