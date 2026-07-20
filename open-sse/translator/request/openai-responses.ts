@@ -104,6 +104,20 @@ export function openaiResponsesToOpenAIRequest(
   // `text` object (a strict Chat endpoint 400s on unknown fields).
   const responsesVerbosity = normalizeVerbosity(toRecord(result.text).verbosity);
   if (responsesVerbosity && isOpenAIDestination) result.verbosity = responsesVerbosity;
+  const responsesTextFormat = toRecord(toRecord(result.text).format);
+  if (responsesTextFormat.type === "json_schema" && responsesTextFormat.schema !== undefined) {
+    const jsonSchema: JsonRecord = {
+      name: toString(responsesTextFormat.name, "response"),
+      schema: responsesTextFormat.schema,
+    };
+    if (responsesTextFormat.description !== undefined) {
+      jsonSchema.description = responsesTextFormat.description;
+    }
+    if (responsesTextFormat.strict !== undefined) jsonSchema.strict = responsesTextFormat.strict;
+    result.response_format = { type: "json_schema", json_schema: jsonSchema };
+  } else if (responsesTextFormat.type === "json_object") {
+    result.response_format = { type: "json_object" };
+  }
   delete result.text;
 
   // background: true requests a deferred Responses API run (the upstream
