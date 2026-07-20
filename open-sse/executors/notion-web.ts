@@ -882,7 +882,13 @@ export class NotionWebExecutor extends BaseExecutor {
     // First user turn → createThread:true + new UUID. Follow-ups with prior turns in
     // messages[] → createThread:false + same threadId (one Notion AI chat).
     // ExecuteInput exposes client request headers as clientHeaders (not headers).
-    const clientThreadId = readClientThreadId(requestBody, input.clientHeaders as Record<string, string> | undefined);
+    // Defensive: also accept a misnamed headers bag if a future caller attaches one.
+    const inboundHeaders =
+      (input.clientHeaders as Record<string, string> | null | undefined) ??
+      ((input as { headers?: Record<string, string> }).headers as
+        | Record<string, string>
+        | undefined);
+    const clientThreadId = readClientThreadId(requestBody, inboundHeaders ?? undefined);
     const cachedThreadId = notionThreadSessionLookup(spaceId, messages);
     const isFollowUp = Boolean(clientThreadId || cachedThreadId);
     const threadId = clientThreadId || cachedThreadId || randomUUID();
