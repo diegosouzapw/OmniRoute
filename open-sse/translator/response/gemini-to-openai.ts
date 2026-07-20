@@ -8,7 +8,10 @@ import {
   parseTextualToolCallCandidate,
   containsTextualToolCallMarker,
 } from "../../utils/textualToolCall.ts";
-import { normalizeOpenAICompatibleFinishReasonString } from "../../utils/finishReason.ts";
+import {
+  normalizeOpenAICompatibleFinishReasonString,
+  isMalformedToolCallFinishReason,
+} from "../../utils/finishReason.ts";
 import { stripAnsiCodes } from "../../utils/streamHelpers.ts";
 
 type GeminiToOpenAIState = {
@@ -726,6 +729,38 @@ export function geminiToOpenAIResponse(chunk, state) {
       }
     }
 
+    // Live incident (dashboard log id 1784489701456-d8c0e9): MALFORMED_FUNCTION_CALL /
+    // UNEXPECTED_TOOL_CALL mean Gemini's OWN parser rejected an attempted tool call —
+    // there is no real functionCall part to translate, only a human-readable
+    // finishMessage. Passing "malformed_function_call" through raw as finish_reason
+    // (the 9router#2462 fix below) is honest but useless to a real OpenAI-format
+    // client: it isn't one of the 5 values the spec defines, so a client like OpenClaw
+    // has no handling for it at all and just silently never notices the turn failed.
+    // Synthesize a tool_calls entry instead so finish_reason becomes the standard
+    // "tool_calls" — that routes the failure into the ordinary "tool call arguments
+    // didn't parse" path every OpenAI-compatible agent loop already handles, instead
+    // of an unrecognized enum value nothing is watching for. Skip synthesis if a real
+    // tool call was already captured this turn (state.toolCalls.size > 0) — the model
+    // can legitimately abort a LATER attempt after an earlier one already succeeded;
+    // that real tool call must win, not get a synthetic one piled on top of it (still
+    // handled below: finish_reason becomes "tool_calls" either way).
+    const isMalformedToolCall = isMalformedToolCallFinishReason(candidate.finishReason);
+    if (isMalformedToolCall && state.toolCalls.size === 0) {
+      emitFunctionCallPart(
+        {
+          functionCall: {
+            name: "malformed_tool_call",
+            args: {
+              error: candidate.finishReason,
+              message: typeof candidate.finishMessage === "string" ? candidate.finishMessage : null,
+            },
+          },
+        },
+        state,
+        results
+      );
+    }
+
     // normalizeOpenAICompatibleFinishReasonString lowercases, maps max_tokens→length,
     // and folds Gemini safety reasons (safety/recitation/blocklist/...) → content_filter
     // so downstream clients can distinguish a blocked completion from a normal stop.
@@ -736,7 +771,12 @@ export function geminiToOpenAIResponse(chunk, state) {
     // uses downstream to recognize this raw value and keep it off a clean end_turn
     // (9router#2462 sub-bug #2).
     let finishReason = normalizeOpenAICompatibleFinishReasonString(candidate.finishReason);
-    if (finishReason === "stop" && state.toolCalls.size > 0) {
+    if ((finishReason === "stop" || isMalformedToolCall) && state.toolCalls.size > 0) {
+      // Covers three cases: (1) a clean stop with tool calls already accumulated
+      // (pre-existing behavior, unchanged), (2) this turn's malformed call was just
+      // synthesized above (size went 0→1), and (3) a REAL tool call already existed
+      // and THIS abort is a later, malformed attempt — the real call still wins the
+      // finish_reason, not the raw "malformed_function_call" string.
       finishReason = "tool_calls";
     }
 
