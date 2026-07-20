@@ -12,6 +12,9 @@ import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { saveCallLog } from "@/lib/usageDb";
+import { resolveProxyForConnection } from "@/lib/db/settings";
+import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import * as log from "@/sse/utils/logger";
 
 /**
  * Build authorization header for a rerank provider
@@ -107,6 +110,7 @@ function buildAuthHeader(providerConfig, token) {
  * @param {number} [options.top_n] - Number of top results to return
  * @param {boolean} [options.return_documents] - Whether to include document text in results
  * @param {Object} options.credentials - Provider credentials { apiKey, accessToken }
+ * @param {string} [options.connectionId] - Connection ID for per-connection proxy resolution
  * @returns {Response}
  */
 /** @returns {Promise<unknown>} */
@@ -117,6 +121,7 @@ export async function handleRerank({
   top_n,
   return_documents,
   credentials,
+  connectionId = null,
 }) {
   const startTime = Date.now();
   if (!model) return errorResponse(400, "model is required");
@@ -156,8 +161,20 @@ export async function handleRerank({
       ? `${providerConfig.baseUrl}/${modelId}`
       : providerConfig.baseUrl;
 
-  try {
-    const res = await fetch(rerankUrl, {
+  // Resolve per-connection proxy so rerank honors the same proxy pinning as chat
+  // and embeddings (#7350). Without this, rerank requests egress directly and fail
+  // when the provider blocks certain IP ranges (e.g. Voyage AI from Russian IPs).
+  let proxyInfo: Awaited<ReturnType<typeof resolveProxyForConnection>> | null = null;
+  if (connectionId) {
+    try {
+      proxyInfo = await resolveProxyForConnection(connectionId);
+    } catch (err) {
+      log.error("RERANK", `Proxy resolution failed for connection ${connectionId}: ${err}`);
+    }
+  }
+
+  const doFetch = () =>
+    fetch(rerankUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -165,6 +182,11 @@ export async function handleRerank({
       },
       body: JSON.stringify(requestBody),
     });
+
+  try {
+    const res = connectionId
+      ? await runWithProxyContext(proxyInfo?.proxy || null, doFetch)
+      : await doFetch();
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
