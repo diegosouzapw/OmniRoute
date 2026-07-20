@@ -519,7 +519,6 @@ export const USAGE_FETCHER_PROVIDERS = [
   "amazon-q",
   "kimi-coding",
   "kimi-coding-apikey",
-  "qwen",
   "qoder",
   "glm",
   "glm-cn",
@@ -584,8 +583,6 @@ export async function getUsageForProvider(
     case "kimi-coding":
     case "kimi-coding-apikey":
       return await getKimiUsage(accessToken, apiKey, providerSpecificData);
-    case "qwen":
-      return await getQwenUsage(accessToken, providerSpecificData);
     case "qoder":
       // Qoder PATs live in `apiKey` (decrypted) or `providerSpecificData.qoderPat`,
       // never in `accessToken`.
@@ -882,24 +879,6 @@ async function getVertexUsage(connectionId: string, provider: string) {
     };
   } catch (error) {
     return { message: `Vertex usage tracking error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Qwen Usage
- */
-async function getQwenUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
-  void accessToken;
-  try {
-    const resourceUrl = providerSpecificData?.resourceUrl;
-    if (!resourceUrl) {
-      return { message: "Qwen connected. No resource URL available." };
-    }
-
-    // Qwen may have usage endpoint at resource URL
-    return { message: "Qwen connected. Usage tracked per request." };
-  } catch (error) {
-    return { message: "Unable to fetch Qwen usage." };
   }
 }
 

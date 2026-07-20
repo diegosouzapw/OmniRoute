@@ -470,7 +470,6 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Public client.                                                                                                                                                                                                                                  |
 | `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Requires matching `_SECRET`.                                                                                                                                                                                                                    |
 | `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                                                                                                                                                                               |
-| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Public client.                                                                                                                                                                                                                                  |
 | `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Public client.                                                                                                                                                                                                                                  |
 | `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                                                                                                                                                                                    |
 | `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                                                                                                                                                                               |
@@ -529,7 +528,6 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 | `KIRO_OAUTH_CLIENT_ID`           | `kiro-cli`                                    | Override the Kiro social device-code `clientId` (public id)                                      |
 | `KIRO_VERIFY_FULL_CRC`           | `false`                                       | Opt-in: full per-frame message CRC validation on the Kiro event stream (debug corrupted streams) |
 | `QODER_USER_AGENT`               | `Qoder-Cli`                                   | When Qoder CLI updates                                                                           |
-| `QWEN_USER_AGENT`                | `QwenCode/0.19.3 (linux; x64)`                | When Qwen Code updates                                                                           |
 | `CURSOR_USER_AGENT`              | `Cursor/3.3`                                  | When Cursor updates                                                                              |
 
 > [!TIP]
@@ -555,7 +553,6 @@ When enabled, OmniRoute reorders HTTP headers and JSON body fields to match the 
 | `CLI_COMPAT_KIMI_CODING` | `=1`       | Mimics Kimi Coding request signature    |
 | `CLI_COMPAT_KILOCODE`    | `=1`       | Mimics Kilo Code request signature      |
 | `CLI_COMPAT_CLINE`       | `=1`       | Mimics Cline request signature          |
-| `CLI_COMPAT_QWEN`        | `=1`       | Mimics Qwen Code request signature      |
 
 ### Global
 

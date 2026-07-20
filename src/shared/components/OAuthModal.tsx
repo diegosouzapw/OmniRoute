@@ -290,11 +290,10 @@ export default function OAuthModal({
     try {
       setError(null);
 
-      // Device code flow (GitHub, Qwen, Kiro, Kimi Coding, KiloCode, GHE Copilot)
+      // Device code flow (GitHub, Kiro, Kimi Coding, KiloCode, GHE Copilot)
       if (
         provider === "github" ||
         provider === "ghe-copilot" ||
-        provider === "qwen" ||
         provider === "kiro" ||
         provider === "amazon-q" ||
         provider === "kimi-coding" ||

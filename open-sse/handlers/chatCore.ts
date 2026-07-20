@@ -256,12 +256,6 @@ import {
 } from "./chatCore/serviceTier.ts";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
-import {
-  setDetectedToolLimit,
-  parseToolLimitFromError,
-  shouldDetectLimit,
-} from "../services/toolLimitDetector.ts";
-
 import { isCompactResponsesEndpoint } from "../executors/codex.ts";
 import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
@@ -1741,9 +1735,7 @@ export async function handleChatCore({
     finalCompressionBody?.messages ||
     body?.contents ||
     body?.request?.contents ||
-    (body?.input && typeof body.input === "object" && !Array.isArray(body.input)
-      ? body.input
-      : []);
+    (body?.input && typeof body.input === "object" && !Array.isArray(body.input) ? body.input : []);
   const finalEstimatedInputTokens =
     estimateTokens(finalMessages) +
     (Array.isArray(body?.tools) ? estimateTokens(body.tools) : 0) +
@@ -2476,7 +2468,7 @@ export async function handleChatCore({
     const execute = async () => {
       // Upstream body preparation extracted to chatCore/upstreamBody.ts (#3501 — first internal
       // sub-slice of executeProviderRequest); produces the body sent upstream (payload rules +
-      // tool-limit truncation + qwen oauth user backfill + prompt_cache_key injection).
+      // tool-limit truncation + prompt_cache_key injection).
       let bodyToSend = await prepareUpstreamBody({
         translatedBody,
         modelToCall,
@@ -2497,13 +2489,7 @@ export async function handleChatCore({
         const rawResult = await (async () => {
           let attempts = 0;
           const isModelScopeForRequest = isModelScope();
-          const maxAttempts = isModelScopeForRequest
-            ? 3
-            : provider === "qwen"
-              ? 3
-              : provider === "codex"
-                ? 3
-                : 1;
+          const maxAttempts = isModelScopeForRequest ? 3 : provider === "codex" ? 3 : 1;
 
           // ── Codex 429 account-rotation state ─────────────────────────────────
           // Track excluded connection IDs for codex failover across attempts.
@@ -2606,26 +2592,6 @@ export async function handleChatCore({
 
               if (res.response.status === 401 && execCreds?.connectionId) {
                 recordKeyHealthStatus(401, execCreds);
-              }
-
-              // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
-              if (
-                provider === "qwen" &&
-                res.response.status === 429 &&
-                attempts < maxAttempts - 1
-              ) {
-                const bodyPeek = await res.response
-                  .clone()
-                  .text()
-                  .catch(() => "");
-                if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
-                  const delay = 1500 * (attempts + 1);
-                  log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
-                  releaseAccountSemaphore();
-                  await new Promise((r) => setTimeout(r, delay));
-                  attempts++;
-                  continue;
-                }
               }
 
               if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
@@ -3193,38 +3159,11 @@ export async function handleChatCore({
       upstreamErrorType
     );
   }
-  // We need to peek at the error text if it's 400 for Qwen
   let upstreamErrorParsed = false;
   let parsedStatusCode = providerResponse.status;
   let parsedMessage = "";
   let parsedRetryAfterMs: number | null = null;
   let upstreamErrorBody: unknown = null;
-
-  if (provider === "qwen" && providerResponse.status === HTTP_STATUS.BAD_REQUEST) {
-    const errorDetails = await parseUpstreamError(providerResponse, provider);
-    parsedStatusCode = errorDetails.statusCode;
-    parsedMessage = errorDetails.message;
-    parsedRetryAfterMs = errorDetails.retryAfterMs;
-    upstreamErrorBody = errorDetails.responseBody;
-    upstreamErrorParsed = true;
-  }
-
-  const errorMessageForToolDetection =
-    typeof upstreamErrorBody === "string"
-      ? upstreamErrorBody
-      : JSON.stringify(upstreamErrorBody ?? {});
-  if (shouldDetectLimit(errorMessageForToolDetection, parsedStatusCode)) {
-    const detectedLimit = parseToolLimitFromError(errorMessageForToolDetection);
-    if (detectedLimit) {
-      setDetectedToolLimit(provider, detectedLimit);
-      log?.info?.("TOOL_LIMIT", `Detected tool limit ${detectedLimit} for ${provider}`);
-    }
-  }
-
-  const isQwenExpiredError =
-    provider === "qwen" &&
-    parsedStatusCode === HTTP_STATUS.BAD_REQUEST &&
-    parsedMessage?.toLowerCase().includes("session has expired");
 
   // Track whether stream_options was present and stripped — if so, 401/403 after
   // that may be from the modification rather than a genuine auth failure, so we
@@ -3235,11 +3174,10 @@ export async function handleChatCore({
     delete translatedBody.stream_options;
   }
 
-  // Handle 401/403 (and Qwen explicit expiration) - try token refresh using executor
+  // Handle 401/403 - try token refresh using executor
   if (
     (providerResponse.status === HTTP_STATUS.UNAUTHORIZED ||
-      providerResponse.status === HTTP_STATUS.FORBIDDEN ||
-      isQwenExpiredError) &&
+      providerResponse.status === HTTP_STATUS.FORBIDDEN) &&
     !hadStreamOptions // Skip refresh if failure may be from stream_options removal, not auth
   ) {
     // Fix A: wrap refreshCredentials in runWithOnPersist so the persist callback

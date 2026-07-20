@@ -51,7 +51,7 @@ The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth
 
 ## 🔌 Providers
 
-Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Qwen, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
+Manage AI provider connections: OAuth providers (Claude Code, Codex), API key providers (Groq, DeepSeek, OpenRouter), and free providers (Qoder, Kiro). Kiro accounts include credit balance tracking — remaining credits, total allowance, and renewal date visible in Dashboard → Usage.
 
 OpenRouter connections can store a per-connection `preset` in Advanced Settings. When set, OmniRoute sends it as the OpenRouter top-level request field, for example `"preset": "email-copywriter"`, unless the client request already supplied its own `preset`.
 

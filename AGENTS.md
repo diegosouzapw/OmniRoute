@@ -267,8 +267,8 @@ Zod schemas, and unit tests aligned when editing.
 
 ### Provider Categories
 
-- **Free** (3): Qoder AI, Qwen Code, Kiro AI
-- **OAuth** (14): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline, Qwen (⚠️ free tier discontinued 2026-04-15), Kiro, Qoder, Gemini, Windsurf (v3.8), GitLab Duo (v3.8)
+- **Free** (2): Qoder AI, Kiro AI
+- **OAuth** (13): Claude Code, Antigravity, Codex, GitHub Copilot, Cursor, Kimi Coding, Kilo Code, Cline, Kiro, Qoder, Gemini, Windsurf (v3.8), GitLab Duo (v3.8)
 - **API Key** (120+): OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Perplexity,
   Together, Fireworks, Cerebras, Cohere, NVIDIA, Nebius, SiliconFlow, Hyperbolic,
   HuggingFace, OpenRouter, Vertex AI, Cloudflare AI, Scaleway, AI/ML API, Pollinations,
