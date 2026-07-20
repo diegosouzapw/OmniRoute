@@ -15,7 +15,10 @@ vi.mock("next-intl", () => ({
 }));
 vi.mock("next/dynamic", () => ({
   default: () => (props: Record<string, unknown>) => (
-    <div data-testid="provider-topology" data-providers={String((props.providers as unknown[])?.length ?? 0)} />
+    <div
+      data-testid="provider-topology"
+      data-providers={String((props.providers as unknown[])?.length ?? 0)}
+    />
   ),
 }));
 vi.mock("@/shared/components", () => ({
@@ -26,9 +29,8 @@ vi.mock("@/hooks/useLiveDashboard", () => ({
   useLiveRequests: () => liveRequestsMock(),
 }));
 
-const { HomeProviderTopologySection } = await import(
-  "../../../src/app/(dashboard)/dashboard/HomeProviderTopologySection"
-);
+const { HomeProviderTopologySection } =
+  await import("../../../src/app/(dashboard)/dashboard/HomeProviderTopologySection");
 
 let container: HTMLDivElement;
 let root: ReturnType<typeof createRoot>;
@@ -63,4 +65,8 @@ it("renders the topology card and forwards providers to ProviderTopology", () =>
   const topology = container.querySelector("[data-testid='provider-topology']");
   expect(topology).not.toBeNull();
   expect(topology?.getAttribute("data-providers")).toBe("2");
+  expect(container.textContent).toContain("activeError");
+  expect(container.textContent).toContain("active");
+  expect(container.textContent).toContain("recent");
+  expect(container.textContent).toContain("modelStatusError");
 });

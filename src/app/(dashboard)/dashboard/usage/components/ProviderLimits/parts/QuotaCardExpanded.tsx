@@ -50,6 +50,23 @@ export function getVisibleQuotas(sortedQuotas: any[], expanded: boolean): any[] 
   return expanded ? sortedQuotas : sortedQuotas.slice(0, DEFAULT_VISIBLE_ROWS);
 }
 
+/**
+ * Pure helper — the loading placeholder replaces the entire quota section
+ * with a spinner. Swapping rows for a spinner mid-refresh collapses the card
+ * height, which rebalances the outer CSS multi-column layout (provider groups
+ * visibly jump between columns). Only the initial load (nothing to display
+ * yet) may show the placeholder; a refresh keeps the stale rows rendered
+ * while the refresh button icon spins, and the UI updates once new data
+ * arrives.
+ */
+export function shouldShowLoadingPlaceholder(
+  loading: boolean,
+  quotaCount: number,
+  message?: string | null
+): boolean {
+  return loading && quotaCount === 0 && !message;
+}
+
 interface Props {
   quotas: any[];
   providerId?: string;
@@ -61,11 +78,12 @@ interface Props {
   onRefresh: () => void;
   onOpenCutoff: () => void;
   onOpenCost: () => void;
-  onRedeemResetCredit?: () => void;
+  onOpenResetCredits?: () => void;
   canEditCutoff: boolean;
   hasCutoffOverrides: boolean;
   canRedeemResetCredit?: boolean;
   redeemingResetCredit?: boolean;
+  loadingResetCredits?: boolean;
   /** Per-operator quota row visibility (upstream 9router#2371 port). */
   hiddenQuotaRows?: any[];
   onHideQuota?: (quota: any) => void;
@@ -75,9 +93,13 @@ interface Props {
 function QuotaDetailRow({
   q,
   onHideQuota,
+  onOpenResetCredits,
+  loadingResetCredits = false,
 }: {
   q: any;
   onHideQuota?: (quota: any) => void;
+  onOpenResetCredits?: () => void;
+  loadingResetCredits?: boolean;
 }) {
   const t = useTranslations("usage");
   const canHide = typeof onHideQuota === "function" && !q.isCredits && !q.isResetCredits;
@@ -99,12 +121,25 @@ function QuotaDetailRow({
             {translateUsageOrFallback(t, "resetCreditsLabel", "Reset credits")}
           </span>
         </span>
-        <span
-          className="inline-flex h-6 shrink-0 items-center text-[12px] font-bold leading-none tabular-nums"
+        <button
+          type="button"
+          disabled={!onOpenResetCredits || loadingResetCredits}
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenResetCredits?.();
+          }}
+          aria-label={translateUsageOrFallback(t, "viewResetCredits", "View reset credits")}
+          className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md px-1.5 text-[12px] font-bold leading-none tabular-nums hover:bg-black/[0.05] disabled:cursor-default dark:hover:bg-white/[0.05]"
           style={{ color: colors.text }}
         >
+          {loadingResetCredits && (
+            <span className="material-symbols-outlined animate-spin text-[12px]">
+              progress_activity
+            </span>
+          )}
           {count.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-        </span>
+          <span className="material-symbols-outlined text-[13px]">chevron_right</span>
+        </button>
       </div>
     );
   }
@@ -206,11 +241,12 @@ export default function QuotaCardExpanded({
   onRefresh,
   onOpenCutoff,
   onOpenCost,
-  onRedeemResetCredit,
+  onOpenResetCredits,
   canEditCutoff,
   hasCutoffOverrides,
   canRedeemResetCredit = false,
   redeemingResetCredit = false,
+  loadingResetCredits = false,
   hiddenQuotaRows = [],
   onHideQuota,
   onShowQuota,
@@ -241,7 +277,7 @@ export default function QuotaCardExpanded({
 
   return (
     <div className="border-t border-border bg-bg-subtle/30 px-3 py-2.5 flex flex-col gap-1.5">
-      {loading ? (
+      {shouldShowLoadingPlaceholder(loading, sortedQuotas.length, message) ? (
         <div className="text-[11px] text-text-muted flex items-center gap-1.5">
           <span className="material-symbols-outlined animate-spin text-[13px]">
             progress_activity
@@ -266,6 +302,8 @@ export default function QuotaCardExpanded({
               key={`${q.name}-${q.modelKey ?? ""}-${i}`}
               q={q}
               onHideQuota={onHideQuota}
+              onOpenResetCredits={q.isResetCredits ? onOpenResetCredits : undefined}
+              loadingResetCredits={loadingResetCredits}
             />
           ))}
         </div>
@@ -292,7 +330,7 @@ export default function QuotaCardExpanded({
         </div>
       )}
 
-      {!loading && !error && sortedQuotas.length > DEFAULT_VISIBLE_ROWS && (
+      {!error && sortedQuotas.length > DEFAULT_VISIBLE_ROWS && (
         <button
           type="button"
           onClick={(e) => {
@@ -329,21 +367,21 @@ export default function QuotaCardExpanded({
           {canRedeemResetCredit && (
             <button
               type="button"
-              disabled={loading || redeemingResetCredit}
+              disabled={loading || redeemingResetCredit || loadingResetCredits}
               onClick={(e) => {
                 e.stopPropagation();
-                onRedeemResetCredit?.();
+                onOpenResetCredits?.();
               }}
               className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-md border border-primary/40 text-primary bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
               <span
                 className={`material-symbols-outlined text-[12px] ${
-                  redeemingResetCredit ? "animate-spin" : ""
+                  redeemingResetCredit || loadingResetCredits ? "animate-spin" : ""
                 }`}
               >
-                {redeemingResetCredit ? "progress_activity" : "restart_alt"}
+                {redeemingResetCredit || loadingResetCredits ? "progress_activity" : "restart_alt"}
               </span>
-              {tr("redeemResetCredit", "Redeem reset")}
+              {tr("manageResetCredits", "View credits")}
             </button>
           )}
           <button

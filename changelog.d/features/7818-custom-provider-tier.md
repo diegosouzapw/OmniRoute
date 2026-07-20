@@ -1,0 +1,1 @@
+- feat(providers): let any provider connection — built-in or custom — be pinned to an explicit routing tier (free/cheap/premium) via a new `/api/settings/tier-config` route and an Advanced Settings tier selector; `TierCoverageWidget` now honors the override too (#7818)

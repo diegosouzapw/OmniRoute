@@ -131,6 +131,12 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
   return detectFormat(body);
 }
 
+// Thin wrapper for call sites that only have the full request URL (not the bare endpoint
+// path chatCore already threads) — single source of truth stays detectFormatFromEndpoint.
+export function detectFormatFromUrl(body, requestUrl) {
+  return detectFormatFromEndpoint(body, new URL(requestUrl).pathname);
+}
+
 // Detect request format from body structure
 export function detectFormat(body) {
   // OpenAI Responses API:

@@ -1,8 +1,10 @@
+import { z } from "zod";
 import {
   getSyncedAvailableModelsForConnection,
   replaceSyncedAvailableModelsForConnection,
   type SyncedAvailableModel,
 } from "@/lib/db/models";
+import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -56,6 +58,52 @@ export function detectVisionInput(record: JsonRecord): boolean {
     if ((inputPart || "").includes("image")) return true;
   }
   return false;
+}
+
+// #7694: nested `reasoning.supported_efforts` shape some OpenAI-compatible upstreams
+// expose (as opposed to the flat `supportedThinkingEfforts` field OmniRoute's own
+// import format already emits). Hard Rule #7 — validate the untrusted upstream
+// payload with Zod before it is trusted/stored; a malformed shape degrades to
+// `undefined` instead of throwing, so one bad record never fails the whole sync.
+const reasoningSupportedEffortsSchema = z
+  .object({ supported_efforts: z.array(z.string()).optional() })
+  .partial()
+  .nullable()
+  .optional();
+
+// Maps common upstream synonyms onto OmniRoute's canonical effort vocabulary
+// (`src/shared/reasoning/effortStandardization.ts`). Values already in
+// `CANONICAL_EFFORT_VALUES`, and any unrecognized provider-native tier (e.g.
+// Codex's own "ultra"), pass through unchanged — only known synonyms are mapped.
+const EFFORT_SYNONYMS: Record<string, string> = { max: "xhigh" };
+
+function normalizeSupportedEffort(effort: string): string {
+  if ((CANONICAL_EFFORT_VALUES as readonly string[]).includes(effort)) return effort;
+  return EFFORT_SYNONYMS[effort.toLowerCase()] || effort;
+}
+
+/**
+ * #7694: read the nested `record.reasoning.supported_efforts` shape and normalize each
+ * tier onto the canonical vocabulary. Returns `undefined` (never throws) when the field
+ * is absent or malformed, so it can be used as a fallback alongside the pre-existing flat
+ * `record.supportedThinkingEfforts` field without disturbing that field's current
+ * pass-through behavior.
+ */
+export function detectSupportedThinkingEfforts(record: JsonRecord): string[] | undefined {
+  const parsed = reasoningSupportedEffortsSchema.safeParse(record.reasoning);
+  if (!parsed.success || !parsed.data) return undefined;
+
+  const rawEfforts = parsed.data.supported_efforts;
+  if (!Array.isArray(rawEfforts)) return undefined;
+
+  const efforts = Array.from(
+    new Set(
+      rawEfforts
+        .filter((effort): effort is string => typeof effort === "string" && effort.length > 0)
+        .map(normalizeSupportedEffort)
+    )
+  );
+  return efforts.length > 0 ? efforts : undefined;
 }
 
 export function isAutoFetchModelsEnabled(providerSpecificData: unknown): boolean {
@@ -121,11 +169,44 @@ export function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel
       ...(toNonEmptyString(record.apiFormat)
         ? { apiFormat: toNonEmptyString(record.apiFormat)! }
         : {}),
+      ...(toNonEmptyString(record.targetFormat)
+        ? { targetFormat: toNonEmptyString(record.targetFormat)! }
+        : {}),
+      ...(toNonEmptyString(record.upstreamProtocol)
+        ? { upstreamProtocol: toNonEmptyString(record.upstreamProtocol)! }
+        : {}),
       ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
+      ...(() => {
+        // #7694: the flat field (OmniRoute's own import format) wins verbatim when
+        // present, unchanged from its current pass-through behavior; only fall back to
+        // the nested `reasoning.supported_efforts` shape (normalized onto the canonical
+        // vocabulary) when the flat field is absent.
+        if (Array.isArray(record.supportedThinkingEfforts)) {
+          return {
+            supportedThinkingEfforts: record.supportedThinkingEfforts.filter(
+              (effort): effort is string => typeof effort === "string" && effort.length > 0
+            ),
+          };
+        }
+        const nested = detectSupportedThinkingEfforts(record);
+        return nested ? { supportedThinkingEfforts: nested } : {};
+      })(),
+      ...(toNonEmptyString(record.defaultThinkingEffort)
+        ? { defaultThinkingEffort: toNonEmptyString(record.defaultThinkingEffort)! }
+        : {}),
       ...(typeof inputTokenLimit === "number" ? { inputTokenLimit } : {}),
       ...(typeof outputTokenLimit === "number" ? { outputTokenLimit } : {}),
       ...(typeof record.description === "string" ? { description: record.description } : {}),
-      ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+      ...(typeof record.supportsThinking === "boolean"
+        ? { supportsThinking: record.supportsThinking }
+        : {}),
+      ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
+      ...(typeof record.supportsTools === "boolean"
+        ? { supportsTools: record.supportsTools }
+        : {}),
+      ...(typeof record.supportsVideo === "boolean"
+        ? { supportsVideo: record.supportsVideo }
+        : {}),
       ...(supportsVision ? { supportsVision: true } : {}),
     });
   }

@@ -198,6 +198,25 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://opencode.ai/go",
     anonymousFallback: true,
   },
+  dahl: {
+    id: "dahl",
+    alias: "dahl",
+    name: "Dahl",
+    icon: "dahl",
+    color: "#6B7280",
+    textIcon: "DA",
+    website: "https://inference.dahl.global",
+    hasFree: true,
+    freeNote: "Free — MiniMax M2.7, Kimi K2.6. Click 'Add Account' to auto-generate a token.",
+    authHint: "Click 'Add Account' to auto-generate a token.",
+    apiHint: "No manual API key needed. Click 'Add Account' to auto-generate a token.",
+    apiKeyUrl: "https://inference.dahl.global/tokens",
+    passthroughModels: false,
+    managedAccount: true,
+    notice: {
+      text: "Dahl auto-generates tokens via https://inference.dahl.global/tokens. No signup needed. Rate limits apply.",
+    },
+  },
   puter: {
     id: "puter",
     alias: "pu",
@@ -250,6 +269,81 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     freeNote: "Free OpenAI-compatible gateway — sign up via Discord for an API key.",
     passthroughModels: true,
     authHint: "Join the FreeTheAi Discord to get your free API key.",
+  },
+  "g4f-groq": {
+    id: "g4f-groq",
+    alias: "g4fgroq",
+    name: "g4f.space — Groq",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key reverse proxy to Groq (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
+  "g4f-gemini": {
+    id: "g4f-gemini",
+    alias: "g4fgem",
+    name: "g4f.space — Gemini",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key reverse proxy to Gemini (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
+  "g4f-pollinations": {
+    id: "g4f-pollinations",
+    alias: "g4fpol",
+    name: "g4f.space — Pollinations",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key reverse proxy to Pollinations (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
+  "g4f-ollama": {
+    id: "g4f-ollama",
+    alias: "g4foll",
+    name: "g4f.space — Ollama",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key hosted Ollama gateway (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
+  },
+  "g4f-nvidia": {
+    id: "g4f-nvidia",
+    alias: "g4fnv",
+    name: "g4f.space — NVIDIA",
+    icon: "bolt",
+    color: "#F97316",
+    textIcon: "G4F",
+    website: "https://g4f.space",
+    hasFree: true,
+    freeNote:
+      "Free no-key reverse proxy to NVIDIA NIM (gpt4free project) — rate-limited to 5 req/min.",
+    passthroughModels: true,
+    authHint:
+      "No auth required. Free tier is limited to 5 requests/minute — sign up at g4f.dev/members.html for higher limits.",
   },
   "vercel-ai-gateway": {
     id: "vercel-ai-gateway",
@@ -618,5 +712,24 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
       "Use your Kenari API key (kn-...) in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://kenari.id/v1.",
     apiHint:
       "Kenari exposes an OpenAI-compatible chat completions endpoint at https://kenari.id/v1/chat/completions, plus a live /v1/models catalog covering Claude, GPT, DeepSeek, GLM, Kimi and more. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
+  },
+  navy: {
+    id: "navy",
+    alias: "navy",
+    name: "NavyAI",
+    icon: "hub",
+    color: "#1E3A8A",
+    textIcon: "NV",
+    passthroughModels: true,
+    website: "https://api.navy",
+    hasFree: true,
+    freeNote:
+      "Free plan is one shared 150K tokens/day pool at 20 RPM. Each model carries a " +
+      "token multiplier, so heavier models drain the pool faster (grok-4 at 10x is ~15K real tokens/day).",
+    authHint:
+      "Create a free API key from the NavyAI dashboard, then paste it here as a Bearer token.",
+    apiHint:
+      "OpenAI-compatible endpoint at https://api.navy/v1 with a live /v1/models catalog that exposes " +
+      "per-model token_multiplier and premium flags. Upstream requires an explicit User-Agent header.",
   },
 };

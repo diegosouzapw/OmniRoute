@@ -6,6 +6,7 @@ import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { invalidateDbCache } from "./readCache";
+import { encrypt, decrypt } from "./encryption";
 import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
@@ -89,6 +90,23 @@ function withFamilyDefault(value: ProxyValue): ProxyValue {
 
 // ──────────────── Settings ────────────────
 
+/**
+ * #7274: read-fallback for the codexSessionAffinityTtlMs -> sessionAffinityTtlMs
+ * rename. Migration 124 already backfills the new key from any pre-existing
+ * old-key row for the common case, but this covers callers reading settings
+ * before that migration has had a chance to run (or any drift between the
+ * two). Only applies when the generic key was never explicitly persisted —
+ * an operator-set `sessionAffinityTtlMs` (including an explicit 0) always wins.
+ * Extracted to a leaf helper so `getSettings()` stays under the max-lines-per-
+ * function ratchet.
+ */
+function applySessionAffinityLegacyFallback(settings: Record<string, unknown>): void {
+  if (settings.sessionAffinityTtlMs === undefined) {
+    settings.sessionAffinityTtlMs =
+      typeof settings.codexSessionAffinityTtlMs === "number" ? settings.codexSessionAffinityTtlMs : 0;
+  }
+}
+
 export async function getSettings() {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'").all();
@@ -111,6 +129,13 @@ export async function getSettings() {
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
+    oidcEnabled: false,
+    oidcIssuer: "",
+    oidcClientId: "",
+    oidcClientSecret: "",
+    oidcScopes: ["openid", "profile", "email"],
+    oidcRedirectPath: "/api/auth/oidc/callback",
+    oidcAllowedSubjects: [], // optional sub or email whitelist
     mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
@@ -130,6 +155,7 @@ export async function getSettings() {
     // open-sse/handlers/chatCore/claudeClassifierCompat.ts for the detector + builder.
     claudeClassifierCompat: "off",
     autoRefreshProviderQuota: false,
+    credentialRedactionEnabled: false,
     autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
     comboAutoPromoteEnabled: false,
@@ -138,7 +164,11 @@ export async function getSettings() {
       enabled: false,
       supportedModels: ["claude-fable-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"],
     },
-    codexSessionAffinityTtlMs: 0,
+    // #7274: renamed from codexSessionAffinityTtlMs — session affinity now
+    // applies to any provider, not just Codex. No default here on purpose:
+    // the read-fallback below only kicks in while `sessionAffinityTtlMs` has
+    // never been explicitly persisted, so it can tell "never configured"
+    // apart from "operator explicitly set 0" on the new key.
     responsesPreviousResponseIdMode: DEFAULT_RESPONSES_PREVIOUS_RESPONSE_ID_MODE,
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
@@ -186,6 +216,11 @@ export async function getSettings() {
     }
   }
 
+  if (typeof settings.oidcClientSecret === "string") {
+    settings.oidcClientSecret = decrypt(settings.oidcClientSecret) ?? "";
+  }
+  applySessionAffinityLegacyFallback(settings);
+
   // Auto-complete onboarding for pre-configured deployments (Docker/VM)
   // If INITIAL_PASSWORD is set via env, this is a headless deploy — skip the wizard
   if (!settings.setupComplete && process.env.INITIAL_PASSWORD) {
@@ -220,7 +255,8 @@ export async function updateSettings(updates: Record<string, unknown>) {
   );
   const tx = db.transaction(() => {
     for (const [key, value] of Object.entries(updates)) {
-      insert.run(key, JSON.stringify(value));
+      const toStore = key === "oidcClientSecret" ? encrypt(value as string) : value;
+      insert.run(key, JSON.stringify(toStore));
     }
   });
   tx();
@@ -394,8 +430,16 @@ export async function deleteProxyForLevel(level: string, id: string | null) {
   return setProxyForLevel(level, id, null);
 }
 
-export async function resolveProxyForConnection(connectionId: string, apiKeyId?: string) {
-  const cacheKey = apiKeyId ? `${connectionId}:${apiKeyId}` : connectionId;
+export async function resolveProxyForConnection(
+  connectionId: string,
+  apiKeyId?: string,
+  providerId?: string
+) {
+  const cacheKey = providerId
+    ? `${connectionId}:${apiKeyId || ""}:${providerId}`
+    : apiKeyId
+      ? `${connectionId}:${apiKeyId}`
+      : connectionId;
   const startGeneration = proxyConfigGeneration;
   const startRegistryGeneration = getProxyRegistryGeneration();
   const cached = proxyResolutionCache.get(cacheKey);
@@ -616,7 +660,7 @@ export async function resolveProxyForConnection(connectionId: string, apiKeyId?:
   // them — a provider-level proxy assigned to a no-auth provider was silently
   // ignored. Best-effort fallback: scan the known no-auth provider ids directly.
   if (!connectionRecord) {
-    const noAuthFallback = await resolveNoAuthSharedProviderProxy(config.providers);
+    const noAuthFallback = await resolveNoAuthSharedProviderProxy(config.providers, providerId);
     if (noAuthFallback) {
       cacheProxyResolution(cacheKey, startGeneration, startRegistryGeneration, noAuthFallback);
       return noAuthFallback;

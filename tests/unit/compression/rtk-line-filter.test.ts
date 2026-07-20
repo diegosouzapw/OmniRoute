@@ -36,4 +36,20 @@ describe("RTK line filters", () => {
     assert.ok(result.text.includes("On branch"));
     assert.ok(!result.text.includes("nothing added"));
   });
+
+  it("does not truncate within a combined RTK TOML head and tail limit", () => {
+    const filter = {
+      ...loadRtkFilters().find((item) => item.id === "generic-output")!,
+      id: "toml-head-tail",
+      sourceFormat: "rtk-toml-v1" as const,
+      rtkTomlHeadLines: 2,
+      rtkTomlTailLines: 2,
+    };
+
+    const result = applyLineFilter("first\nsecond\nthird", filter);
+
+    assert.equal(result.text, "first\nsecond\nthird");
+    assert.ok(!result.appliedRules.includes("toml-head-tail:rtk-head"));
+    assert.ok(!result.appliedRules.includes("toml-head-tail:rtk-head-tail"));
+  });
 });

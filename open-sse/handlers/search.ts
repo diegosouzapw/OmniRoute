@@ -17,6 +17,7 @@ import { randomUUID } from "crypto";
  */
 
 import { getSearchProvider, type SearchProviderConfig } from "../config/searchRegistry.ts";
+import { buildPerplexityRequest, parsePerplexitySearchOptions } from "./search/perplexitySearch.ts";
 import { freeWebSearch } from "../services/freeWebSearch.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
@@ -318,24 +319,6 @@ function buildBraveRequest(
     init: {
       method: "GET",
       headers: { Accept: "application/json", "X-Subscription-Token": params.token },
-    },
-  };
-}
-
-function buildPerplexityRequest(
-  config: SearchProviderConfig,
-  params: SearchRequestParams
-): { url: string; init: RequestInit } {
-  const body: Record<string, unknown> = { query: params.query, max_results: params.maxResults };
-  if (params.country) body.country = params.country;
-  if (params.language) body.search_language_filter = [params.language];
-  if (params.domainFilter?.length) body.search_domain_filter = params.domainFilter;
-  return {
-    url: config.baseUrl,
-    init: {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${params.token}` },
-      body: JSON.stringify(body),
     },
   };
 }
@@ -1246,6 +1229,13 @@ export async function handleSearch(options: SearchHandlerOptions): Promise<Searc
     contentOptions,
     providerOptions,
   };
+
+  if (primaryConfig.id === "perplexity-search") {
+    const perplexityValidation = parsePerplexitySearchOptions(requestParams);
+    if (perplexityValidation.error) {
+      return { success: false, status: 400, error: perplexityValidation.error };
+    }
+  }
 
   // 4. Try primary provider
   const result = await tryProvider(primaryConfig, requestParams, credentials, startTime, log);

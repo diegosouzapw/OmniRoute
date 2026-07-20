@@ -6,6 +6,7 @@ import {
 } from "@/lib/compliance/providerAudit";
 import {
   getProviderConnections,
+  getProviderConnectionsCount,
   createProviderConnection,
   deleteProviderConnections,
   updateProviderConnection,
@@ -44,7 +45,18 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const connections = await getProviderConnections();
+    const url = new URL(request.url);
+    const limitValue = url.searchParams.get("limit");
+    const offsetValue = url.searchParams.get("offset");
+    const parsedLimit = limitValue ? Number.parseInt(limitValue, 10) : undefined;
+    const parsedOffset = offsetValue ? Number.parseInt(offsetValue, 10) : undefined;
+    const limit =
+      Number.isInteger(parsedLimit) && parsedLimit && parsedLimit > 0 ? parsedLimit : undefined;
+    const offset =
+      Number.isInteger(parsedOffset) && parsedOffset && parsedOffset > 0 ? parsedOffset : 0;
+
+    const connections = await getProviderConnections({}, limit, offset);
+    const total = getProviderConnectionsCount();
     const revealKeys = isApiKeyRevealEnabled();
 
     // Hide or mask sensitive fields
@@ -59,7 +71,7 @@ export async function GET(request: Request) {
         : undefined,
     }));
 
-    return NextResponse.json({ connections: safeConnections });
+    return NextResponse.json({ connections: safeConnections, total });
   } catch (error) {
     console.log("Error fetching providers:", error);
     return NextResponse.json({ error: "Failed to fetch providers" }, { status: 500 });

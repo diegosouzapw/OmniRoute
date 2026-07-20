@@ -82,6 +82,17 @@ export async function ensureDbReadyForBoot(
   } catch (err: unknown) {
     const normalized = normalizeBootError(err);
     if (!TRANSIENT_DB_CLOSED_RE.test(normalized.message)) {
+      // Fatal, non-transient boot-time DB init failure (e.g. the entire
+      // better-sqlite3 -> node:sqlite -> sql.js driver cascade failed, as on
+      // Termux/Android when no SQLite driver is usable). This runs BEFORE
+      // initConsoleInterceptor() is wired up, so this is the only chance to
+      // get the real root cause into stdout/app.log — without it, the
+      // process keeps its HTTP listener up while every DB-touching route
+      // 500s forever with a permanently empty log (#7773).
+      console.error(
+        "[STARTUP] Fatal: Database driver initialization failed:",
+        normalized.message
+      );
       throw normalized;
     }
     console.warn(
@@ -91,7 +102,12 @@ export async function ensureDbReadyForBoot(
     try {
       await ensureDbInitialized();
     } catch (retryErr: unknown) {
-      throw normalizeBootError(retryErr);
+      const normalizedRetryErr = normalizeBootError(retryErr);
+      console.error(
+        "[STARTUP] Fatal: Database driver initialization failed after retry:",
+        normalizedRetryErr.message
+      );
+      throw normalizedRetryErr;
     }
   }
 }
@@ -141,6 +157,59 @@ async function ensureSecrets(): Promise<void> {
         "[STARTUP] API_KEY_SECRET auto-generated and persisted (random 64-char hex secret)"
       );
     }
+  }
+}
+
+/**
+ * Warm the model catalog's durable, apiKey-independent sub-caches at startup
+ * so real /v1/models traffic (any client, any API key) avoids paying their
+ * cold-build cost on first use. Fire-and-forget from the caller, non-fatal.
+ *
+ * getUnifiedModelsResponse()'s own top-level Response cache (`catalogCache`
+ * in catalog.ts) is keyed by prefix/isCodex/apiKey AND has only a 1.5s TTL
+ * (CATALOG_CACHE_TTL_MS — a burst-dedup window added for #6408 to coalesce
+ * concurrent SDK/dashboard requests, not a startup-warm cache). Warming that
+ * cache with an unauthenticated dummy request has essentially no lasting
+ * effect: real traffic almost never arrives within 1.5s of this warmup
+ * completing, regardless of whether its cache key happens to match a real
+ * client's apiKey. The one genuinely durable, apiKey-independent cost in the
+ * catalog build is getOpenRouterCatalog()'s 24h disk-cached network fetch
+ * (src/lib/catalog/openrouterCatalog.ts) — buildUnifiedModelsResponseCore()
+ * calls it unconditionally whenever an OpenRouter connection is configured,
+ * decoupled from the per-key Response cache entirely, so warming it directly
+ * here benefits every subsequent /v1/models request regardless of that
+ * request's own apiKey. Only fetched when an OpenRouter connection actually
+ * exists, so deployments that never use OpenRouter don't pay an unconditional
+ * third-party network call at every boot.
+ *
+ * Exported (rather than left inline in registerNodejs()) so it can be unit
+ * tested directly without exercising the rest of the startup sequence.
+ */
+export async function warmModelCatalogCache(): Promise<void> {
+  try {
+    const { getUnifiedModelsResponse } = await import("@/app/api/v1/models/catalog");
+    await getUnifiedModelsResponse(new Request("http://127.0.0.1/v1/models"));
+    console.log("[STARTUP] Model catalog cache warmed");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Model catalog warmup failed (non-fatal):", msg);
+  }
+  try {
+    const [{ getProviderConnections }, { getOpenRouterCatalog }] = await Promise.all([
+      import("@/lib/db/providers"),
+      import("@/lib/catalog/openrouterCatalog"),
+    ]);
+    const openrouterConnections = await getProviderConnections({
+      provider: "openrouter",
+      isActive: true,
+    });
+    if (openrouterConnections.length > 0) {
+      await getOpenRouterCatalog();
+      console.log("[STARTUP] OpenRouter model catalog cache warmed");
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] OpenRouter catalog warmup failed (non-fatal):", msg);
   }
 }
 
@@ -227,6 +296,9 @@ export async function registerNodejs(): Promise<void> {
 
   // Proxy health scheduler (auto-removes dead proxies on interval)
   await import("@/lib/proxyHealth/scheduler");
+
+  // Free-proxy auto-sync scheduler (re-fetches free-proxy sources on interval, #7079)
+  await import("@/lib/freeProxyProviders/scheduler");
 
   initGracefulShutdown();
   initApiBridgeServer();
@@ -326,6 +398,22 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not restore runtime settings:", msg);
   }
 
+  // Proactively start the credential-health sweep at boot so stale web-session
+  // connections (cookies that expired overnight) get re-probed and recovered on
+  // startup — instead of staying red until the first real request lazily imports
+  // the on-demand credentialGate. Idempotent; self-disables via
+  // OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK and its cadence is tunable via
+  // CREDENTIAL_HEALTH_CHECK_INTERVAL. NOTE: this MUST live here (the real Next.js
+  // instrumentation startup), NOT in the unused src/server-init.ts.
+  try {
+    const { initCredentialHealthCheck } = await import("@/lib/credentialHealth/scheduler");
+    initCredentialHealthCheck();
+    console.log("[STARTUP] Credential health scheduler started");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not start credential health scheduler:", msg);
+  }
+
   try {
     const { initAuditLog, cleanupExpiredLogs } = await import("@/lib/compliance/index");
     initAuditLog();
@@ -357,6 +445,11 @@ export async function registerNodejs(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[STARTUP] Could not initialize vacuum scheduler (non-fatal):", msg);
   }
+
+  // Warm the model catalog's durable, apiKey-independent sub-caches at
+  // startup — see warmModelCatalogCache() for why the top-level Response
+  // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
+  void warmModelCatalogCache();
 
   if (!isBackgroundServicesDisabled()) {
     try {

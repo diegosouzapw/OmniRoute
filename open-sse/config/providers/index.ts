@@ -26,6 +26,7 @@ import { lmarenaProvider } from "./registry/lmarena/index.ts";
 import { kilocodeProvider } from "./registry/kilocode/index.ts";
 import { github_modelsProvider } from "./registry/github/models/index.ts";
 import { githubProvider } from "./registry/github/index.ts";
+import { gheCopilotProvider } from "./registry/ghe-copilot/index.ts";
 import { difyProvider } from "./registry/dify/index.ts";
 import { ovhcloudProvider } from "./registry/ovhcloud/index.ts";
 import { claudeProvider } from "./registry/claude/index.ts";
@@ -66,6 +67,11 @@ import { cursorProvider } from "./registry/cursor/index.ts";
 import { volcengineProvider } from "./registry/volcengine/index.ts";
 import { hackclubProvider } from "./registry/hackclub/index.ts";
 import { freetheaiProvider } from "./registry/freetheai/index.ts";
+import { g4f_groqProvider } from "./registry/g4f-groq/index.ts";
+import { g4f_geminiProvider } from "./registry/g4f-gemini/index.ts";
+import { g4f_pollinationsProvider } from "./registry/g4f-pollinations/index.ts";
+import { g4f_ollamaProvider } from "./registry/g4f-ollama/index.ts";
+import { g4f_nvidiaProvider } from "./registry/g4f-nvidia/index.ts";
 import { tencentProvider } from "./registry/tencent/index.ts";
 import { cozeProvider } from "./registry/coze/index.ts";
 import { ai21Provider } from "./registry/ai21/index.ts";
@@ -118,6 +124,8 @@ import { gitlawbProvider } from "./registry/gitlawb/index.ts";
 import { liquidProvider } from "./registry/liquid/index.ts";
 import { deepinfraProvider } from "./registry/deepinfra/index.ts";
 import { agyProvider } from "./registry/agy/index.ts";
+import { agnesProvider } from "./registry/agnes/index.ts";
+import { aihordeProvider } from "./registry/aihorde/index.ts";
 import { udioProvider } from "./registry/udio/index.ts";
 import { longcatProvider } from "./registry/longcat/index.ts";
 import { vertex_partnerProvider } from "./registry/vertex/partner/index.ts";
@@ -125,6 +133,7 @@ import { vertexProvider } from "./registry/vertex/index.ts";
 import { duckduckgo_webProvider } from "./registry/duckduckgo-web/index.ts";
 import { felo_webProvider } from "./registry/felo-web/index.ts";
 import { xaiProvider } from "./registry/xai/index.ts";
+import { xai_oauthProvider } from "./registry/xai-oauth/index.ts";
 import { morphProvider } from "./registry/morph/index.ts";
 import { siliconflowProvider } from "./registry/siliconflow/index.ts";
 import { gitlab_duoProvider } from "./registry/gitlab-duo/index.ts";
@@ -163,6 +172,7 @@ import { v0_vercelProvider } from "./registry/v0-vercel/index.ts";
 import { opencode_zenProvider } from "./registry/opencode/zen/index.ts";
 import { opencode_goProvider } from "./registry/opencode/go/index.ts";
 import { opencodeProvider } from "./registry/opencode/index.ts";
+import { dahlProvider } from "./registry/dahl/index.ts";
 import { maritalkProvider } from "./registry/maritalk/index.ts";
 import { basetenProvider } from "./registry/baseten/index.ts";
 import { geminiProvider } from "./registry/gemini/index.ts";
@@ -187,6 +197,7 @@ import { zenmux_freeProvider } from "./registry/zenmux-free/index.ts";
 import { sumopodProvider } from "./registry/sumopod/index.ts";
 import { x5labProvider } from "./registry/x5lab/index.ts";
 import { kenariProvider } from "./registry/kenari/index.ts";
+import { navyProvider } from "./registry/navy/index.ts";
 import { requestyProvider } from "./registry/requesty/index.ts";
 import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
@@ -216,6 +227,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   kilocode: kilocodeProvider,
   "github-models": github_modelsProvider,
   github: githubProvider,
+  "ghe-copilot": gheCopilotProvider,
   dify: difyProvider,
   ovhcloud: ovhcloudProvider,
   claude: claudeProvider,
@@ -256,6 +268,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   volcengine: volcengineProvider,
   hackclub: hackclubProvider,
   freetheai: freetheaiProvider,
+  "g4f-groq": g4f_groqProvider,
+  "g4f-gemini": g4f_geminiProvider,
+  "g4f-pollinations": g4f_pollinationsProvider,
+  "g4f-ollama": g4f_ollamaProvider,
+  "g4f-nvidia": g4f_nvidiaProvider,
   tencent: tencentProvider,
   coze: cozeProvider,
   ai21: ai21Provider,
@@ -308,6 +325,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   liquid: liquidProvider,
   deepinfra: deepinfraProvider,
   agy: agyProvider,
+  agnes: agnesProvider,
+  aihorde: aihordeProvider,
   udio: udioProvider,
   longcat: longcatProvider,
   "vertex-partner": vertex_partnerProvider,
@@ -315,6 +334,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "duckduckgo-web": duckduckgo_webProvider,
   "felo-web": felo_webProvider,
   xai: xaiProvider,
+  "xai-oauth": xai_oauthProvider,
   morph: morphProvider,
   siliconflow: siliconflowProvider,
   "gitlab-duo": gitlab_duoProvider,
@@ -352,6 +372,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "opencode-zen": opencode_zenProvider,
   "opencode-go": opencode_goProvider,
   opencode: opencodeProvider,
+  dahl: dahlProvider,
   maritalk: maritalkProvider,
   baseten: basetenProvider,
   gemini: geminiProvider,
@@ -379,6 +400,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   sumopod: sumopodProvider,
   x5lab: x5labProvider,
   kenari: kenariProvider,
+  navy: navyProvider,
   requesty: requestyProvider,
   digitalocean: digitaloceanProvider,
   hcnsec: hcnsecProvider,

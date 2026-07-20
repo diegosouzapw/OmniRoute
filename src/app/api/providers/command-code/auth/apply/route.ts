@@ -2,9 +2,9 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { consumeCommandCodeAuthSecret } from "@/lib/db/commandCodeAuth";
 import {
   createProviderConnection,
-  getProviderConnectionById,
   updateProviderConnection,
 } from "@/lib/db/providers";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { sanitizeProviderSpecificDataForResponse } from "@/lib/providers/requestDefaults";
 
 import { commandCodeApplySchema, noStoreJson, stateHashFromState } from "../shared";
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
   let existing: Record<string, unknown> | null = null;
   if (parsed.data.connectionId) {
-    existing = (await getProviderConnectionById(parsed.data.connectionId)) as Record<
+    existing = (await getCachedProviderConnectionById(parsed.data.connectionId)) as Record<
       string,
       unknown
     > | null;

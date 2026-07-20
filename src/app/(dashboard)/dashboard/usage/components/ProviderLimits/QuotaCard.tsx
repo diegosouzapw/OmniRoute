@@ -44,10 +44,11 @@ interface QuotaCardProps {
   providerLabel: string;
   onRefresh: () => void;
   onOpenCutoff: () => void;
-  onRedeemResetCredit?: () => void;
+  onOpenResetCredits?: () => void;
   onToggleActive: (nextActive: boolean) => void;
   togglingActive: boolean;
   redeemingResetCredit?: boolean;
+  loadingResetCredits?: boolean;
   /** Per-operator quota row visibility (upstream 9router#2371 port). */
   quotaVisibility?: Record<string, { hidden?: string[] }>;
   onHideQuota?: (quota: any) => void;
@@ -64,10 +65,11 @@ export default function QuotaCard({
   providerLabel,
   onRefresh,
   onOpenCutoff,
-  onRedeemResetCredit,
+  onOpenResetCredits,
   onToggleActive,
   togglingActive,
   redeemingResetCredit = false,
+  loadingResetCredits = false,
   quotaVisibility,
   onHideQuota,
   onShowQuota,
@@ -141,7 +143,7 @@ export default function QuotaCard({
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
         onOpenCost={() => setCostModalOpen(true)}
-        onRedeemResetCredit={onRedeemResetCredit}
+        onOpenResetCredits={onOpenResetCredits}
         hiddenQuotaRows={hiddenQuotaRows}
         onHideQuota={onHideQuota}
         onShowQuota={onShowQuota}
@@ -149,6 +151,7 @@ export default function QuotaCard({
         hasCutoffOverrides={hasOverrides}
         canRedeemResetCredit={canRedeemResetCredit}
         redeemingResetCredit={redeemingResetCredit}
+        loadingResetCredits={loadingResetCredits}
       />
       <ProviderUsdCostModal
         isOpen={costModalOpen}
