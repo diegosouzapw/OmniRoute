@@ -1,57 +1,70 @@
-# VNC login browser containers
+# Browser-login container
 
-This directory supports the **persistent web-login** feature (`/api/vnc-session`).
-When a cookie/token web provider (ChatGPT Web, Gemini Web, Claude Web, …) needs an
-interactive browser login, OmniRoute starts a containerized browser that exposes a
-**noVNC web UI**. The operator logs in through that UI, and OmniRoute harvests the
-resulting cookies / localStorage back into the provider's `provider_connections`
-row over the browser's DevTools Protocol (CDP).
+OmniRoute can open an isolated browser for provider connections that require an interactive web login. The operator signs in through the browser UI, then OmniRoute reads only the credential fields declared for that provider through the Chrome DevTools Protocol (CDP) and writes them to the selected `provider_connections` row.
 
-## Default image: Firefox (recommended)
+The feature is exposed through the management-authenticated `/api/vnc-session` routes. Browser and CDP ports are published on `127.0.0.1` only; they are not intended to be exposed directly to a network.
 
-The default image is [`jlesage/firefox`](https://hub.docker.com/r/jlesage/firefox).
-It is used because Firefox's remote-debugging port binds `0.0.0.0` inside the
-container, so a plain published port is enough to harvest cookies.
+## Build the required image
 
-No build step is required — the image is pulled on first use:
-
-```bash
-docker pull jlesage/firefox:latest
-```
-
-Ports (per session, allocated from `vncBasePort`):
-
-| Purpose        | Container | Host (example) |
-| -------------- | --------- | -------------- |
-| noVNC web UI   | `5800`    | `6080`         |
-| DevTools (CDP) | `9222`    | `6081`         |
-
-## Optional image: Chromium + CDP bridge
-
-Chrome/Chromium ≥130 **force** the DevTools debugger to bind `127.0.0.1` and
-ignore `--remote-debugging-address=0.0.0.0`. To harvest cookies from a Chromium
-container you therefore need a tiny in-container TCP bridge that republishes the
-loopback CDP port on `0.0.0.0`. The `chromium/` subdirectory contains such an
-image (based on `linuxserver/chromium`). Build and select it with:
+The current implementation uses the Chromium image in this directory. Build it before starting a browser-login session:
 
 ```bash
 docker build -t omniroute-vnc-chromium:local docker/vnc-browser/chromium
-OMNIROUTE_VNC_IMAGE=omniroute-vnc-chromium:local \
-OMNIROUTE_VNC_CONTAINER_VNC_PORT=3000 \
-OMNIROUTE_VNC_CONTAINER_CDP_PORT=9223 \
-  omniroute serve
 ```
 
-## Configuration (env)
+`omniroute-vnc-chromium:local` is the default image. Set `OMNIROUTE_VNC_IMAGE` only when using a compatible image that provides:
 
-| Variable                              | Default                     | Meaning                                  |
-| ------------------------------------- | --------------------------- | ---------------------------------------- |
-| `OMNIROUTE_VNC_IMAGE`                 | `jlesage/firefox:latest`    | Container image                          |
-| `OMNIROUTE_VNC_CONTAINER_VNC_PORT`    | `5800`                      | noVNC port inside the container          |
-| `OMNIROUTE_VNC_CONTAINER_CDP_PORT`    | `9222`                      | CDP port inside the container            |
-| `OMNIROUTE_VNC_CONTAINER_PROFILE_DIR` | `/config`                   | Persistent profile mount point           |
-| `OMNIROUTE_VNC_PROFILE_DIR`           | `~/.omniroute/vnc-profiles` | Host profile storage root                |
-| `OMNIROUTE_VNC_IDLE_MS`               | `600000`                    | Idle auto-stop (ms)                      |
-| `OMNIROUTE_VNC_MAX_MS`                | `0`                         | Hard session lifetime cap (0 = none)     |
-| `OMNIROUTE_VNC_MAX_SESSIONS`          | `12`                        | Max concurrent sessions                  |
-| `OMNIROUTE_DOCKER_BIN`                | `docker`                    | Docker CLI binary                        |
+- a browser UI on the configured container VNC port;
+- a reachable CDP endpoint on the configured container CDP port;
+- support for the `CHROME_CLI` environment variable used to pass the provider login URL and Chromium arguments;
+- persistent browser data under the configured profile directory.
+
+The container image includes a local bridge because modern Chromium binds its debugger to loopback inside the container.
+
+## Ports and access
+
+Docker assigns ephemeral host ports and binds them to loopback:
+
+| Purpose | Default container port | Host exposure |
+| --- | ---: | --- |
+| Browser web UI | `3000` | `127.0.0.1:<ephemeral>` |
+| DevTools/CDP bridge | `9223` | `127.0.0.1:<ephemeral>` |
+
+Remote operators must access the browser UI through an authenticated application proxy or an SSH tunnel. Do not publish either port on `0.0.0.0`.
+
+## Configuration
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `OMNIROUTE_VNC_IMAGE` | `omniroute-vnc-chromium:local` | Compatible browser image |
+| `OMNIROUTE_VNC_CONTAINER_VNC_PORT` | `3000` | Browser UI port inside the container |
+| `OMNIROUTE_VNC_CONTAINER_CDP_PORT` | `9223` | CDP bridge port inside the container |
+| `OMNIROUTE_VNC_CONTAINER_PROFILE_DIR` | `/config` | Profile mount point inside the container |
+| `OMNIROUTE_VNC_PROFILE_DIR` | `$HOME/.omniroute/browser-login-profiles` | Host profile root |
+| `OMNIROUTE_VNC_PERSIST_PROFILES` | `false` | Reuse a connection profile across sessions |
+| `OMNIROUTE_VNC_IDLE_MS` | `600000` | Idle-session timeout in milliseconds |
+| `OMNIROUTE_VNC_MAX_MS` | `1800000` | Maximum session lifetime in milliseconds |
+| `OMNIROUTE_VNC_MAX_SESSIONS` | `4` | Maximum concurrent sessions |
+| `OMNIROUTE_VNC_READY_MS` | `45000` | Browser/CDP startup timeout in milliseconds |
+| `OMNIROUTE_VNC_HARVEST_MS` | `20000` | Credential-harvest timeout in milliseconds |
+| `OMNIROUTE_VNC_CHROMIUM_ARGS` | see `manifest.ts` | Chromium command-line arguments |
+| `OMNIROUTE_DOCKER_BIN` | `docker` | Docker-compatible CLI executable |
+
+## Security and lifecycle
+
+- Sessions are scoped to a specific provider connection and use random session IDs.
+- Container names and persistent-profile path segments are sanitized.
+- Only declared cookie or storage keys are retained; arbitrary local or session storage is not copied into the database.
+- Startup failures remove the in-memory session, container, and non-persistent profile.
+- Concurrent stop requests are idempotent, and shutdown removes managed containers.
+- Harvest and CDP commands have bounded timeouts.
+- API responses must sanitize internal Docker, filesystem, CDP, and database errors.
+
+## Basic verification
+
+```bash
+npm test -- tests/unit/vnc-session.test.ts
+npm run typecheck
+```
+
+For an end-to-end check, build the image, start OmniRoute, create or select a supported web-provider connection, start a browser-login session through the management API, complete login through the returned UI URL, harvest credentials, and verify that the selected connection—not another account for the same provider—was updated.
