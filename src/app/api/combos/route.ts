@@ -9,6 +9,7 @@ import { createComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
+import { computeComboContextLength } from "@/lib/combos/comboContext";
 
 // GET /api/combos - Get all combos
 export async function GET(request: Request) {
@@ -17,7 +18,11 @@ export async function GET(request: Request) {
 
   try {
     const combos = await getCombos();
-    return NextResponse.json({ combos });
+    const withContext = combos.map((combo) => ({
+      ...combo,
+      computed_context_length: computeComboContextLength(combo, combos),
+    }));
+    return NextResponse.json({ combos: withContext });
   } catch (error) {
     console.log("Error fetching combos:", error);
     return NextResponse.json({ error: "Failed to fetch combos" }, { status: 500 });
