@@ -171,3 +171,22 @@ test("Responses -> Chat converts refusal history to valid Chat text content", ()
     },
   ]);
 });
+
+test("Responses -> Chat strips Responses-only execution and cache fields", () => {
+  const result = translate({
+    input: "Hello",
+    max_tool_calls: 3,
+    conversation: "conv_123",
+    prompt_cache_options: { retention: "24h" },
+    prompt_cache_retention: "24h",
+    metadata: { keep: true },
+    parallel_tool_calls: true,
+  });
+
+  assert.equal(result.max_tool_calls, undefined);
+  assert.equal(result.conversation, undefined);
+  assert.equal(result.prompt_cache_options, undefined);
+  assert.equal(result.prompt_cache_retention, undefined);
+  assert.deepEqual(result.metadata, { keep: true });
+  assert.equal(result.parallel_tool_calls, true);
+});

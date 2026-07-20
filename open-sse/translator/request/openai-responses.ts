@@ -649,6 +649,12 @@ export function openaiResponsesToOpenAIRequest(
   // Completions equivalent. Strict non-OpenAI upstreams (e.g. NVIDIA NIM) reject
   // it with HTTP 400 "Unsupported parameter(s): truncation" (#2311).
   delete result.truncation;
+  // These fields configure Responses-owned state, caching, and tool execution limits.
+  // Chat Completions has no equivalent and strict compatible endpoints reject them.
+  delete result.max_tool_calls;
+  delete result.conversation;
+  delete result.prompt_cache_options;
+  delete result.prompt_cache_retention;
 
   return result;
 }
