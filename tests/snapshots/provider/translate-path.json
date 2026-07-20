@@ -1876,6 +1876,54 @@
       "stream": "https://gemini.google.com/app"
     }
   },
+  "ghe-copilot": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Initiator": "user",
+        "copilot-integration-id": "vscode-chat",
+        "editor-plugin-version": "copilot-chat/0.54.0",
+        "editor-version": "vscode/1.126.0",
+        "openai-intent": "conversation-panel",
+        "user-agent": "GitHubCopilotChat/0.54.0",
+        "x-github-api-version": "2026-06-01",
+        "x-vscode-user-agent-library-version": "electron-fetch"
+      },
+      "nonStream": {
+        "Accept": "application/json",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Initiator": "user",
+        "copilot-integration-id": "vscode-chat",
+        "editor-plugin-version": "copilot-chat/0.54.0",
+        "editor-version": "vscode/1.126.0",
+        "openai-intent": "conversation-panel",
+        "user-agent": "GitHubCopilotChat/0.54.0",
+        "x-github-api-version": "2026-06-01",
+        "x-vscode-user-agent-library-version": "electron-fetch"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Initiator": "user",
+        "copilot-integration-id": "vscode-chat",
+        "editor-plugin-version": "copilot-chat/0.54.0",
+        "editor-version": "vscode/1.126.0",
+        "openai-intent": "conversation-panel",
+        "user-agent": "GitHubCopilotChat/0.54.0",
+        "x-github-api-version": "2026-06-01",
+        "x-vscode-user-agent-library-version": "electron-fetch"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.githubcopilot.com/chat/completions",
+      "stream": "https://api.githubcopilot.com/chat/completions"
+    }
+  },
   "gigachat": {
     "format": "openai",
     "headers": {

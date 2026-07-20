@@ -7243,6 +7243,7 @@
     "restartServerWithNewPassword": "Reinicie o servidor - ele usará a nova senha",
     "backToLogin": "Voltar para o Login",
     "forgotPassword": "Esqueceu a senha?",
+    "continueWithOidc": "Continuar com OIDC",
     "defaultPasswordHint": "Default password: CHANGEME (unless INITIAL_PASSWORD was set)",
     "Authorization": "Autorização",
     "Content-Disposition": "Disposição de conteúdo",
