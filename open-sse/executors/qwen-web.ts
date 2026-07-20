@@ -67,6 +67,7 @@ const MODEL_ALIASES: Record<string, string> = {
 };
 
 const DEFAULT_MODEL = "qwen3.7-max";
+const REQUIRED_THINKING_MODELS = new Set(["qwen3.8-max-preview"]);
 
 function mapModel(modelId: string): string {
   return MODEL_ALIASES[modelId] || modelId;
@@ -297,7 +298,8 @@ export class QwenWebExecutor extends BaseExecutor {
     requestedModel: string
   ): Record<string, unknown> {
     const fid = uuid();
-    const enableThinking = /think|reason|r1/i.test(requestedModel);
+    const enableThinking =
+      REQUIRED_THINKING_MODELS.has(modelId) || /think|reason|r1/i.test(requestedModel);
     const featureConfig: Record<string, unknown> = {
       thinking_enabled: enableThinking,
       output_schema: "phase",
