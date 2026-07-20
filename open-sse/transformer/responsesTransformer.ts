@@ -641,6 +641,8 @@ export function createResponsesApiTransformStream(
                 delete state.funcCallIds[tcIdx];
                 delete state.funcNames[tcIdx];
                 delete state.funcArgsBuf[tcIdx];
+                delete state.funcItemAdded[tcIdx];
+                delete state.funcItemTypes[tcIdx];
                 delete state.funcArgsDone[tcIdx];
                 delete state.funcItemDone[tcIdx];
               }
