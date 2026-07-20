@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   getVncProvider,
   isVncProvider,
-  VNC_PROVIDER_MANIFEST,
+  listVncProviders,
   VNC_CONFIG,
 } from "@/lib/vncSession/manifest";
 import { harvestToCredentials, type HarvestResult } from "@/lib/vncSession/harvest";
@@ -16,22 +16,28 @@ test("manifest lookup resolves known providers and rejects unknown", () => {
   assert.equal(getVncProvider("gemini-web")?.url, "https://gemini.google.com");
 });
 
-test("every manifest entry has a well-formed https url and self-consistent id", () => {
-  for (const [key, entry] of Object.entries(VNC_PROVIDER_MANIFEST)) {
-    assert.equal(entry.id, key, `id mismatch for ${key}`);
-    assert.match(entry.url, /^https:\/\//, `bad url for ${key}`);
-    assert.ok(["cookie", "token"].includes(entry.kind), `bad kind for ${key}`);
-    assert.ok(Array.isArray(entry.cookieNames), `cookieNames not array for ${key}`);
+test("provider list has well-formed URLs, unique IDs, and canonical requirements", () => {
+  const providers = listVncProviders();
+  assert.ok(providers.length > 0);
+  assert.equal(new Set(providers.map((entry) => entry.id)).size, providers.length);
+
+  for (const entry of providers) {
+    assert.match(entry.url, /^https:\/\//, `bad url for ${entry.id}`);
+    assert.ok(["cookie", "token"].includes(entry.requirement.kind), `bad kind for ${entry.id}`);
+    assert.ok(Array.isArray(entry.requirement.storageKeys), `storageKeys not array for ${entry.id}`);
+    assert.equal(getVncProvider(entry.id)?.id, entry.id);
   }
 });
 
-test("VNC_CONFIG defaults to the Firefox image with 0.0.0.0-friendly ports", () => {
-  assert.match(VNC_CONFIG.image, /firefox/i);
-  assert.equal(VNC_CONFIG.containerVncPort, 5800);
-  assert.equal(VNC_CONFIG.containerCdpPort, 9222);
+test("VNC_CONFIG defaults to the bundled Chromium browser image", () => {
+  assert.equal(VNC_CONFIG.image, "omniroute-vnc-chromium:local");
+  assert.equal(VNC_CONFIG.containerVncPort, 3000);
+  assert.equal(VNC_CONFIG.containerCdpPort, 9223);
+  assert.equal(VNC_CONFIG.persistProfiles, false);
+  assert.match(VNC_CONFIG.chromiumArgs, /--remote-debugging-port=9222/);
 });
 
-test("harvestToCredentials builds a cookie header + psd for cookie providers", () => {
+test("harvestToCredentials builds a cookie header and allowlisted provider data", () => {
   const provider = getVncProvider("claude-web")!;
   const harvest: HarvestResult = {
     cookies: [
@@ -43,7 +49,6 @@ test("harvestToCredentials builds a cookie header + psd for cookie providers", (
     hasCredential: true,
   };
   const { providerSpecificData, apiKey } = harvestToCredentials(harvest, provider);
-  // claude-web declares cookieNames: ["sessionKey"] → only that cookie is kept in psd keys
   assert.equal(providerSpecificData.sessionKey, "abc123");
   assert.equal(providerSpecificData.other, undefined);
   assert.equal(providerSpecificData.cookie, "sessionKey=abc123; other=zzz");
@@ -55,26 +60,30 @@ test("harvestToCredentials extracts a token for token-kind providers", () => {
   const harvest: HarvestResult = {
     cookies: [{ name: "userToken", value: "tok-xyz", domain: ".deepseek.com", path: "/" }],
     localStorage: { userToken: "tok-xyz" },
-    cookieHeader: "userToken=tok-xyz",
+    cookieHeader: "",
     hasCredential: true,
   };
   const { providerSpecificData, apiKey } = harvestToCredentials(harvest, provider);
   assert.equal(apiKey, "tok-xyz");
   assert.equal(providerSpecificData.token, "tok-xyz");
+  assert.equal(providerSpecificData.userToken, "tok-xyz");
 });
 
-test("harvestToCredentials with empty cookieNames keeps the whole jar (grok-web)", () => {
+test("harvestToCredentials preserves declared multi-cookie credentials", () => {
   const provider = getVncProvider("grok-web")!;
   const harvest: HarvestResult = {
     cookies: [
       { name: "sso", value: "1", domain: ".grok.com", path: "/" },
       { name: "sso-rw", value: "2", domain: ".grok.com", path: "/" },
+      { name: "unrelated", value: "3", domain: ".grok.com", path: "/" },
     ],
     localStorage: {},
-    cookieHeader: "sso=1; sso-rw=2",
+    cookieHeader: "sso=1; sso-rw=2; unrelated=3",
     hasCredential: true,
   };
   const { providerSpecificData } = harvestToCredentials(harvest, provider);
   assert.equal(providerSpecificData.sso, "1");
   assert.equal(providerSpecificData["sso-rw"], "2");
+  assert.equal(providerSpecificData.unrelated, undefined);
+  assert.equal(providerSpecificData.cookie, "sso=1; sso-rw=2; unrelated=3");
 });
