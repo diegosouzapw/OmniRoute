@@ -1,1 +1,0 @@
-- fix(docs): document CREDENTIAL_REDACTION_ENABLED (#7683) and GHE_COPILOT_OAUTH_CLIENT_ID (#7546) in .env.example + ENVIRONMENT.md

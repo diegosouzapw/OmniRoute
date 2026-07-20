@@ -82,6 +82,17 @@ export async function ensureDbReadyForBoot(
   } catch (err: unknown) {
     const normalized = normalizeBootError(err);
     if (!TRANSIENT_DB_CLOSED_RE.test(normalized.message)) {
+      // Fatal, non-transient boot-time DB init failure (e.g. the entire
+      // better-sqlite3 -> node:sqlite -> sql.js driver cascade failed, as on
+      // Termux/Android when no SQLite driver is usable). This runs BEFORE
+      // initConsoleInterceptor() is wired up, so this is the only chance to
+      // get the real root cause into stdout/app.log — without it, the
+      // process keeps its HTTP listener up while every DB-touching route
+      // 500s forever with a permanently empty log (#7773).
+      console.error(
+        "[STARTUP] Fatal: Database driver initialization failed:",
+        normalized.message
+      );
       throw normalized;
     }
     console.warn(
@@ -91,7 +102,12 @@ export async function ensureDbReadyForBoot(
     try {
       await ensureDbInitialized();
     } catch (retryErr: unknown) {
-      throw normalizeBootError(retryErr);
+      const normalizedRetryErr = normalizeBootError(retryErr);
+      console.error(
+        "[STARTUP] Fatal: Database driver initialization failed after retry:",
+        normalizedRetryErr.message
+      );
+      throw normalizedRetryErr;
     }
   }
 }
