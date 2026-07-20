@@ -6,30 +6,10 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 
 import { handleChatCore } from "./chatCore.ts";
 import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
-import { collectResponsesTools } from "../translator/request/openai-responses/additionalTools.ts";
+import { collectResponsesCustomToolNames } from "../translator/request/openai-responses/additionalTools.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
 import { createSseHeartbeatTransform, HEARTBEAT_SHAPES } from "../utils/sseHeartbeat.ts";
 import { SSE_HEARTBEAT_INTERVAL_MS } from "../config/constants.ts";
-
-function collectCustomToolNames(
-  tools: unknown[],
-  customToolNames: Set<string>,
-  blockedNames = new Set<string>()
-) {
-  for (const toolValue of tools) {
-    if (!toolValue || typeof toolValue !== "object" || Array.isArray(toolValue)) continue;
-    const tool = toolValue as Record<string, unknown>;
-
-    if (tool.type === "custom" && typeof tool.name === "string" && !blockedNames.has(tool.name)) {
-      const name = tool.name.trim();
-      if (name) customToolNames.add(name);
-    }
-
-    if (tool.type === "namespace" && Array.isArray(tool.tools)) {
-      collectCustomToolNames(tool.tools, customToolNames, blockedNames);
-    }
-  }
-}
 
 /**
  * Handle /v1/responses request
@@ -57,19 +37,7 @@ export async function handleResponsesCore({
   signal,
 }) {
   const inputItems = Array.isArray(body?.input) ? body.input : [];
-  const rootTools = Array.isArray(body?.tools) ? body.tools : [];
-  const topLevelToolNames = new Set(
-    rootTools
-      .filter((tool) => tool?.type !== "namespace" && typeof tool?.name === "string")
-      .map((tool) => tool.name.trim())
-      .filter(Boolean)
-  );
-  const customToolNames = new Set<string>();
-  collectCustomToolNames(
-    collectResponsesTools(body?.tools, inputItems),
-    customToolNames,
-    topLevelToolNames
-  );
+  const customToolNames = collectResponsesCustomToolNames(body?.tools, inputItems);
 
   // Convert Responses API format to Chat Completions format
   const convertedBody = convertResponsesApiFormat(body, credentials);

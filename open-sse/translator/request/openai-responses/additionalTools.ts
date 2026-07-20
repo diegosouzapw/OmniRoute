@@ -106,5 +106,24 @@ export function collectResponsesTools(rootTools: unknown, inputItems: unknown[])
       merged.push(tool);
     }
   }
+
   return merged;
+}
+
+/** Return the custom/freeform tool names after applying the same precedence rules as conversion. */
+export function collectResponsesCustomToolNames(
+  rootTools: unknown,
+  inputItems: unknown[]
+): Set<string> {
+  const names = new Set<string>();
+  const visit = (tools: unknown[]) => {
+    for (const toolValue of tools) {
+      const tool = toRecord(toolValue);
+      const name = toolName(toolValue);
+      if (tool.type === "custom" && name) names.add(name);
+      if (tool.type === "namespace" && Array.isArray(tool.tools)) visit(tool.tools);
+    }
+  };
+  visit(collectResponsesTools(rootTools, inputItems));
+  return names;
 }
