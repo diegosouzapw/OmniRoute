@@ -191,6 +191,9 @@ export function openaiResponsesToOpenAIRequest(
             if (contentItem.type === "output_text") {
               return { type: "text", text: toString(contentItem.text) };
             }
+            if (contentItem.type === "refusal") {
+              return { type: "text", text: toString(contentItem.refusal) };
+            }
             if (contentItem.type === "input_image") {
               const imgResult: JsonRecord = {
                 type: "image_url",

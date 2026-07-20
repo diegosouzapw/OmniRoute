@@ -152,3 +152,22 @@ test("Responses -> Chat consumes additional_tools input items without emitting m
   assert.equal((result.messages as unknown[]).length, 1);
   assert.equal((result.tools as Array<{ function: { name: string } }>)[0].function.name, "extra");
 });
+
+test("Responses -> Chat converts refusal history to valid Chat text content", () => {
+  const result = translate({
+    input: [
+      {
+        type: "message",
+        role: "assistant",
+        content: [{ type: "refusal", refusal: "I cannot help with that." }],
+      },
+    ],
+  });
+
+  assert.deepEqual(result.messages, [
+    {
+      role: "assistant",
+      content: [{ type: "text", text: "I cannot help with that." }],
+    },
+  ]);
+});
