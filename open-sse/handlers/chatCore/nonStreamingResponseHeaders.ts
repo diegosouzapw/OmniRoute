@@ -20,6 +20,7 @@ export function buildNonStreamingResponseHeaders(
     estimatedCost: number;
     requestId: unknown;
     compressionResponseMeta?: string | null | undefined;
+    comboStrategy?: string | null | undefined;
   },
   deps: { attachOmniRouteMetaHeaders: typeof defaultAttachMeta; now: () => number } = {
     attachOmniRouteMetaHeaders: defaultAttachMeta,
@@ -38,6 +39,7 @@ export function buildNonStreamingResponseHeaders(
     usage: args.responseUsage,
     costUsd: args.estimatedCost,
     requestId: args.requestId,
+    strategy: args.comboStrategy ?? "single",
   });
   if (args.compressionResponseMeta) {
     responseHeaders[OMNIROUTE_RESPONSE_HEADERS.compression] = args.compressionResponseMeta;
