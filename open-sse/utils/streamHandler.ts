@@ -376,7 +376,7 @@ export function createStreamController({
   return controller;
 }
 
-function buildStreamErrorChunks(
+export function buildStreamErrorChunks(
   errorMsg: string,
   statusCode: number,
   clientResponseFormat?: string | null
@@ -409,7 +409,13 @@ function buildStreamErrorChunks(
       },
     };
 
-    return encodeSseEvent(errorEvent, { event: "error" });
+    // #7699 — emit message_stop after event:error so Anthropic SDK / Claude Code
+    // see a proper terminal frame instead of a silent mid-response close.
+    // Without message_stop, clients report "Connection closed mid-response."
+    return [
+      ...encodeSseEvent(errorEvent, { event: "error" }),
+      ...encodeSseEvent({ type: "message_stop" }, { event: "message_stop" }),
+    ];
   }
 
   const errorEvent = {
@@ -486,8 +492,34 @@ export function createDisconnectAwareStream(transformStream, streamController) {
         try {
           const { done, value } = await reader.read();
           if (done) {
-            streamController.handleComplete();
-            controller.close();
+            // #7699 — upstream ended without a client-visible terminal marker.
+            // If bytes were forwarded but the stream never emitted [DONE] /
+            // response.completed / message_stop, this is a silent mid-stream
+            // drop. Emit a synthetic terminal error so Anthropic SDK / Claude
+            // Code don't see "Connection closed mid-response."
+            if (!clientTerminalSeen) {
+              streamController.handleError(
+                Object.assign(new Error("Upstream stream ended without a terminal marker"), {
+                  statusCode: 502,
+                })
+              );
+              try {
+                for (const chunk of buildStreamErrorChunks(
+                  "Upstream stream ended without a terminal marker",
+                  502,
+                  streamController.clientResponseFormat
+                )) {
+                  controller.enqueue(chunk);
+                }
+              } catch {
+                // downstream may have closed; original error already recorded
+              }
+            } else {
+              streamController.handleComplete();
+            }
+            try {
+              controller.close();
+            } catch {}
             return;
           }
           controller.enqueue(value);
