@@ -355,12 +355,8 @@ test("createDisconnectAwareStream keeps newlines escaped for Claude SSE errors",
   assert.doesNotMatch(text, /^claude line two/m);
 });
 
-// #7699/#7816 — the done-without-terminal-marker heuristic is scoped to
-// FORMATS.CLAUDE (the issue's real scope: /v1/messages). A plain successful
-// completion in any other format — including a non-SSE OpenAI passthrough
-// that forwarded bytes but has no [DONE]/response.completed/message_stop
-// equivalent — must reach the client unmodified, with no synthetic 502
-// error frame appended.
+// #7699/#7816 — heuristic is scoped to FORMATS.CLAUDE (/v1/messages); a
+// plain non-Claude completion with no [DONE]/message_stop must pass through.
 test("createDisconnectAwareStream does not append a synthetic error to a plain non-SSE OpenAI completion", async () => {
   const transformStream = {
     readable: new ReadableStream({
@@ -369,13 +365,7 @@ test("createDisconnectAwareStream does not append a synthetic error to a plain n
         controller.close();
       },
     }),
-    writable: {
-      getWriter() {
-        return {
-          abort() {},
-        };
-      },
-    },
+    writable: { getWriter: () => ({ abort() {} }) },
   };
 
   const stream = createDisconnectAwareStream(
