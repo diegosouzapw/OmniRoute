@@ -91,6 +91,10 @@ import {
  *  - `baseURL`        Override base URL for this OmniRoute instance. When
  *                     absent, the loader falls back to a credential-attached
  *                     baseURL set by `/connect`.
+ *  - `managementReadToken` Optional read-only management-plane bearer token.
+ *                     Used only for catalog GETs under `/api/*`; `/v1/*`
+ *                     inference continues to use the connected `apiKey`.
+ *                     Falls back to `apiKey` when unset.
  */
 /**
  * Optional feature toggles. Every field is opt-in/out per call; defaults
@@ -186,6 +190,7 @@ const optionsSchema = z
     displayName: z.string().min(1).optional(),
     modelCacheTtl: z.number().positive().optional(),
     baseURL: z.string().url().optional(),
+    managementReadToken: z.string().min(1).optional(),
     features: featuresSchema.optional(),
   })
   .strict();
@@ -253,7 +258,7 @@ export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Re
    * lookup fails with "No credentials for opencode-<x>".
    */
   omnirouteProviderId: string;
-} & Pick<OmniRoutePluginOptions, "baseURL" | "features"> {
+} & Pick<OmniRoutePluginOptions, "baseURL" | "managementReadToken" | "features"> {
   const rawProviderId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
   const omnirouteProviderId = trimLeadingOpencodePrefix(rawProviderId);
   // OC 1.17.8+ native-adapter gate rejects providerID not in
@@ -277,6 +282,7 @@ export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Re
     displayName,
     modelCacheTtl,
     baseURL: opts?.baseURL,
+    managementReadToken: opts?.managementReadToken,
     features: opts?.features,
   };
 }
@@ -2348,12 +2354,14 @@ export function buildComboKey(
 }
 
 /**
- * Internal cache key: `${baseURL}::sha256(apiKey)`. We hash the apiKey so
- * the key is safe to log / inspect via debugger without leaking the secret.
- * Different (baseURL, apiKey) tuples MUST keep independent cache entries:
- * a single OC user may register prod + preprod OmniRoute side-by-side with
- * distinct keys, and serving one's catalog from the other's cache would be
- * a correctness bug, not just a privacy one.
+ * Internal cache key: `${baseURL}::sha256(credentialId)`. The credential id
+ * combines the inference key and effective management-read token so catalog
+ * results fetched under different permissions never share an entry. We hash
+ * it so the cache key is safe to inspect without leaking either secret.
+ * Different credential tuples MUST keep independent cache entries: a single
+ * OC user may register prod + preprod OmniRoute side-by-side with distinct
+ * keys, and serving one's catalog from the other's cache would be a
+ * correctness bug, not just a privacy one.
  */
 // codeql[js/insufficient-password-hash]: the input here is an API-key
 // identifier we use solely to derive an in-memory cache lookup key — it is
@@ -2504,6 +2512,9 @@ export function createOmniRouteProviderHook(
         return {};
       }
       const apiKey = (auth as { key: string }).key;
+      // Management-plane catalog reads may use a narrower read-only token.
+      // Backward compatibility: when unset, retain the historical apiKey use.
+      const managementReadToken = resolved.managementReadToken ?? apiKey;
 
       // baseURL resolution: plugin opts first, then credential-attached
       // baseURL (auth backends sometimes stash it next to the key), then the
@@ -2533,7 +2544,7 @@ export function createOmniRouteProviderHook(
         return {};
       }
 
-      const cacheKey = modelsCacheKey(baseURL, apiKey);
+      const cacheKey = modelsCacheKey(baseURL, `${apiKey}\0${managementReadToken}`);
       const t = now();
       const cached = cache.get(cacheKey);
 
@@ -2565,7 +2576,7 @@ export function createOmniRouteProviderHook(
         rawCombos = [];
         if (wantCombos) {
           try {
-            rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+            rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
@@ -2580,7 +2591,7 @@ export function createOmniRouteProviderHook(
         rawAutoCombos = [];
         if (wantAutoCombos) {
           try {
-            rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 5_000);
+            rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
           } catch {
             // Already handled inside the default fetcher — this catch
             // is belt-and-suspenders for injected stubs.
@@ -2592,7 +2603,7 @@ export function createOmniRouteProviderHook(
         rawEnrichment = new Map();
         if (wantEnrichment) {
           try {
-            rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+            rawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] enrichment fetch failed, falling back to raw ids",
@@ -2606,7 +2617,11 @@ export function createOmniRouteProviderHook(
         rawCompressionCombos = [];
         if (wantCompressionMeta) {
           try {
-            rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+            rawCompressionCombos = await compressionMetaFetcher(
+              baseURL,
+              managementReadToken,
+              10_000
+            );
           } catch (err) {
             console.warn("[omniroute-plugin] compression-metadata fetch failed", err);
           }
@@ -2620,7 +2635,7 @@ export function createOmniRouteProviderHook(
         rawConnections = [];
         if (wantUsableOnly) {
           try {
-            rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+            rawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] /api/providers fetch failed; usableOnly filter disabled for this refresh",
@@ -4480,6 +4495,9 @@ export function createOmniRouteConfigHook(
       );
       return;
     }
+    // Management-plane catalog reads may use a narrower read-only token.
+    // Backward compatibility: when unset, retain the historical apiKey use.
+    const managementReadToken = resolved.managementReadToken ?? apiKey;
 
     // baseURL resolution: opts.baseURL wins, then auth.json's stored baseURL.
     // No silent localhost default — a misconfigured plugin should surface a
@@ -4496,7 +4514,7 @@ export function createOmniRouteConfigHook(
     // Try the shared cache first. On OC ≥1.14.49 the provider hook may have
     // populated it moments earlier; on OC ≤1.14.48 only this hook runs but
     // the cache still works (single producer + consumer through one Map).
-    const cacheKey = modelsCacheKey(baseURL, apiKey);
+    const cacheKey = modelsCacheKey(baseURL, `${apiKey}\0${managementReadToken}`);
     const t = now();
     const cached = cache.get(cacheKey);
 
@@ -4537,7 +4555,7 @@ export function createOmniRouteConfigHook(
 
       rawCombos = [];
       try {
-        rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+        rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
       } catch (err) {
         logger.warn(
           "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
@@ -4548,7 +4566,7 @@ export function createOmniRouteConfigHook(
       rawAutoCombos = [];
       if (wantAutoCombos) {
         try {
-          rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 5_000);
+          rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
         } catch {
           // Already handled inside the default fetcher
         }
@@ -4564,7 +4582,7 @@ export function createOmniRouteConfigHook(
       rawEnrichment = new Map();
       if (wantEnrichment) {
         try {
-          rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+          rawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
@@ -4579,7 +4597,7 @@ export function createOmniRouteConfigHook(
       rawCompressionCombos = [];
       if (wantCompressionMeta) {
         try {
-          rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+          rawCompressionCombos = await compressionMetaFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/context/combos fetch failed; publishing combos without compression suffix",
@@ -4595,7 +4613,7 @@ export function createOmniRouteConfigHook(
       rawConnections = [];
       if (wantUsableOnly) {
         try {
-          rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+          rawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh",
