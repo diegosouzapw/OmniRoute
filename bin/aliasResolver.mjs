@@ -17,11 +17,16 @@
  */
 
 import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 /** Prefix that triggers alias rewriting. Exported for tests/consumers. */
 export const ALIAS_PREFIX = "@/";
+
+// This file is ESM (no CJS __dirname global) — derive it from import.meta.url
+// so the pathToFileURL(join(__dirname, ...)) call below resolves correctly
+// regardless of the caller's cwd.
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Resolve a `@/...` specifier to an absolute file URL under `<root>/src/`.

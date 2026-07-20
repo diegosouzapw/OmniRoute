@@ -15,6 +15,11 @@ import {
   getVisibleResponsesReasoningSummaryText,
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
+import {
+  synthesizeCompletedToolCalls,
+  computeFinishReason,
+  withAssistantRoleOnFirstDelta,
+} from "./openai-responses/synthesizeCompletedToolCalls.ts";
 
 // normalizeUpstreamFailure is re-exported for external importers (tests).
 export { normalizeUpstreamFailure } from "./openai-responses/pureHelpers.ts";
@@ -407,6 +412,9 @@ function closeMessage(state, emit, idx) {
 
 function emitToolCall(state, emit, tc) {
   const tcIdx = tc.index ?? 0;
+  const outputIndex = state.reasoningId
+    ? normalizeOutputIndex(state.reasoningIndex) + 1 + normalizeOutputIndex(tcIdx)
+    : normalizeOutputIndex(tcIdx);
   const newCallId = tc.id;
   const funcName = tc.function?.name;
 
@@ -435,7 +443,7 @@ function emitToolCall(state, emit, tc) {
 
     emit("response.output_item.added", {
       type: "response.output_item.added",
-      output_index: tcIdx,
+      output_index: outputIndex,
       item: isCustomTool
         ? {
             id: `fc_${newCallId}`,
@@ -443,6 +451,7 @@ function emitToolCall(state, emit, tc) {
             input: "",
             call_id: newCallId,
             name: state.funcNames[tcIdx] || "",
+            status: "in_progress",
           }
         : {
             id: `fc_${newCallId}`,
@@ -450,6 +459,7 @@ function emitToolCall(state, emit, tc) {
             arguments: "",
             call_id: newCallId,
             name: state.funcNames[tcIdx] || "",
+            status: "in_progress",
           },
     });
   }
@@ -471,7 +481,7 @@ function emitToolCall(state, emit, tc) {
       emit(deltaEvent, {
         type: deltaEvent,
         item_id: `fc_${refCallId}`,
-        output_index: tcIdx,
+        output_index: outputIndex,
         delta: emittedDelta,
       });
     }
@@ -481,7 +491,9 @@ function emitToolCall(state, emit, tc) {
 function closeToolCall(state, emit, idx, recordAsCompleted = true) {
   const callId = state.funcCallIds[idx];
   if (callId && !state.funcItemDone[idx]) {
-    const normalizedIndex = normalizeOutputIndex(idx);
+    const normalizedIndex = state.reasoningId
+      ? normalizeOutputIndex(state.reasoningIndex) + 1 + normalizeOutputIndex(idx)
+      : normalizeOutputIndex(idx);
     const args = state.funcArgsBuf[idx] || "{}";
     const isCustomTool = (state.funcNames[idx] || "") === "apply_patch";
 
@@ -510,6 +522,7 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         input: rawInput,
         call_id: callId,
         name: state.funcNames[idx] || "",
+        status: "completed",
       };
 
       emit("response.output_item.done", {
@@ -531,6 +544,7 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         arguments: args,
         call_id: callId,
         name: state.funcNames[idx] || "",
+        status: "completed",
       };
 
       emit("response.output_item.done", {
@@ -607,42 +621,6 @@ function flushEvents(state) {
   sendCompleted(state, emit);
 
   return events;
-}
-
-/**
- * OpenAI Chat Completions streams announce the assistant role on the FIRST delta
- * (e.g. `{ "role": "assistant", "content": "" }` or `{ "role": "assistant",
- * "tool_calls": [...] }`). The Responses API has no role-announcement event, so when
- * translating Responses → Chat we must synthesize it on the first emitted chunk.
- *
- * Strict streaming clients — notably @langchain/openai's `_convertDeltaToMessageChunk`
- * (used by n8n's AI Agent) — key off the first chunk's role to build an AIMessageChunk.
- * Without it, streamed tool_call deltas are dropped and the agent returns an empty
- * response, even though the underlying tool call is well-formed.
- */
-function withAssistantRoleOnFirstDelta(state, result) {
-  if (!result || state.roleEmitted) return result;
-  const delta = result.choices?.[0]?.delta;
-  if (delta && typeof delta === "object" && !Array.isArray(delta)) {
-    delta.role = "assistant";
-    state.roleEmitted = true;
-  }
-  return result;
-}
-
-/**
- * Resolve the terminal finish_reason for a Responses→Chat stream.
- *
- * `currentToolCallId` is intentionally sticky for the current turn: it is set when a
- * function_call item is announced (`response.output_item.added`) and is only cleared once
- * the matching `response.output_item.done` advances `toolCallIndex`. If the stream ends
- * (flush or `response.completed`) after a tool call was emitted but BEFORE its
- * `output_item.done` arrived, `toolCallIndex` is still 0 while `currentToolCallId` is set.
- * Guarding on it as well lets us still finalize as `tool_calls` instead of `stop`, so
- * OpenAI-compatible clients continue tool-result processing instead of stopping prematurely.
- */
-function computeFinishReason(state): "tool_calls" | "stop" {
-  return (state.toolCallIndex || 0) > 0 || state.currentToolCallId ? "tool_calls" : "stop";
 }
 
 // #5786 — remember that a reasoning delta was streamed for a given reasoning item, so
@@ -770,6 +748,10 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     state.currentToolCallArgsBuffer = ""; // reset per-call arg buffer
     state.currentToolCallDeferred = false;
 
+    // Track this call_id so response.completed doesn't synthesize a duplicate
+    if (!state.toolCallIdsSeen) state.toolCallIdsSeen = new Set();
+    if (state.currentToolCallId) state.toolCallIdsSeen.add(state.currentToolCallId);
+
     const toolName = normalizeToolName(item.name);
     if (!toolName) {
       // Some Responses providers briefly emit placeholder/empty tool names.
@@ -848,6 +830,10 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     const callId = item.call_id || state.currentToolCallId || fallbackToolCallId();
     const toolName = normalizeToolName(item.name);
     const toolSchema = state.toolSchemas?.get(toolName);
+
+    // Track this call_id so response.completed doesn't synthesize a duplicate
+    if (!state.toolCallIdsSeen) state.toolCallIdsSeen = new Set();
+    if (callId) state.toolCallIdsSeen.add(callId);
 
     if (state.currentToolCallDeferred) {
       state.currentToolCallDeferred = false;
@@ -978,6 +964,15 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
         };
       }
     }
+
+    // #fix: synthesize tool call chunks from response.completed output[] for
+    // providers that batch everything into response.completed without prior
+    // incremental output_item.* events — including the dedup guard against
+    // providers that DO stream incrementally and also echo the same
+    // function_call items here. See synthesizeCompletedToolCalls's own
+    // doc-comment for the full rationale.
+    const synthesized = synthesizeCompletedToolCalls(state, data.response?.output);
+    if (synthesized) return synthesized;
 
     if (!state.finishReasonSent) {
       state.finishReasonSent = true;

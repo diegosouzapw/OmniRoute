@@ -19,6 +19,7 @@ import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
   PPLX_SSE_ENDPOINT,
   PPLX_USER_AGENT,
+  PPLX_STREAM_EOF_SYMBOL,
   MODEL_MAP,
   THINKING_MAP,
   cleanResponse,
@@ -423,7 +424,8 @@ export class PerplexityWebExecutor extends BaseExecutor {
         body: JSON.stringify(pplxBody),
         signal: signal ?? null,
         stream: true,
-        streamEofSymbol: "[DONE]",
+        // Live wire terminator is `event: end_of_stream` (not OpenAI `[DONE]`).
+        streamEofSymbol: PPLX_STREAM_EOF_SYMBOL,
       });
     } catch (err) {
       const isTlsUnavail = err instanceof TlsClientUnavailableError;
@@ -467,6 +469,37 @@ export class PerplexityWebExecutor extends BaseExecutor {
         { status, headers: { "Content-Type": "application/json" } }
       );
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
+    }
+
+    // If the TLS client buffered the body (looksLikeSse false-negative, or a
+    // non-streaming error page), promote a text body that still looks like SSE
+    // into a ReadableStream so extractContent can recover the answer.
+    if (!response.body && response.text) {
+      const buffered = response.text;
+      if (/^(?:\s*)(?:data|event|id|retry):/im.test(buffered) || buffered.includes("\ndata:")) {
+        const encoder = new TextEncoder();
+        response = {
+          ...response,
+          body: new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(encoder.encode(buffered));
+              controller.close();
+            },
+          }),
+          text: null,
+        };
+      } else {
+        const errResp = new Response(
+          JSON.stringify({
+            error: {
+              message: `Perplexity returned non-SSE body: ${sanitizeErrorMessage(buffered.slice(0, 240))}`,
+              type: "upstream_error",
+            },
+          }),
+          { status: 502, headers: { "Content-Type": "application/json" } }
+        );
+        return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
+      }
     }
 
     if (!response.body) {

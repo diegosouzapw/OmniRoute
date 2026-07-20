@@ -82,16 +82,16 @@ test("vscode raw models route exposes native GPT-5.6 IDs and effort tiers", asyn
   assert.equal(typeof defaultModel.created, "number");
   assert.equal(defaultModel.owned_by, "codex");
   assert.equal(defaultModel.name, "Codex GPT 5.6 Sol");
-  assert.equal(typeof defaultModel.context_length, "number");
-  assert.equal(typeof defaultModel.max_output_tokens, "number");
-  assert.equal(typeof defaultModel.max_input_tokens, "number");
+  assert.equal(defaultModel.context_length, 372000);
+  assert.equal(defaultModel.max_output_tokens, 128000);
+  assert.equal(defaultModel.max_input_tokens, 372000);
   assert.deepEqual(defaultModel.capabilities, {
     vision: true,
     tool_calling: true,
     reasoning: true,
     thinking: true,
     supportsThinking: true,
-    effort_tiers: ["none", "low", "medium", "high", "xhigh", "max", "ultra"],
+    effort_tiers: ["low", "medium", "high", "xhigh", "max", "ultra"],
   });
   for (const field of [
     "url",

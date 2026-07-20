@@ -110,7 +110,7 @@ export function getProvider(name) {
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
-  const pkce = generatePKCE();
+  const pkce = generatePKCE(provider.pkceVerifierBytes || 32);
   let codeVerifier = pkce.codeVerifier;
   const { codeChallenge, state } = pkce;
 
@@ -136,6 +136,7 @@ export function generateAuthData(providerName, redirectUri) {
       flowType: provider.flowType,
       fixedPort: provider.fixedPort,
       callbackPath: provider.callbackPath || "/callback",
+      callbackHost: provider.callbackHost || "localhost",
       supported: false,
       error,
     };
@@ -176,6 +177,7 @@ export function generateAuthData(providerName, redirectUri) {
     flowType: provider.flowType,
     fixedPort: provider.fixedPort,
     callbackPath: provider.callbackPath || "/callback",
+    callbackHost: provider.callbackHost || "localhost",
   };
 }
 
@@ -248,7 +250,7 @@ export async function pollForToken(providerName, deviceCode, codeVerifier, extra
     if (result.data.access_token) {
       let extra = null;
       if (provider.postExchange) {
-        extra = await provider.postExchange(result.data);
+        extra = await provider.postExchange(result.data, extraData || undefined);
       }
       return { success: true, tokens: provider.mapTokens(result.data, extra) };
     } else {

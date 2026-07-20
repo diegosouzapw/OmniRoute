@@ -18,6 +18,8 @@ import {
   fixInvalidId,
   formatSSE,
   unwrapGeminiChunk,
+  appendBoundedText,
+  hasActiveDeltaValue,
 } from "./streamHelpers.ts";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteSseMetadataComment } from "@/domain/omnirouteResponseMeta";
@@ -176,15 +178,6 @@ type UsageTokenRecord = Record<string, number>;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-const STREAM_SUMMARY_TEXT_LIMIT = 64 * 1024;
-
-function appendBoundedText(current: string, next: string): string {
-  if (!next) return current;
-  const combined = current + next;
-  if (combined.length <= STREAM_SUMMARY_TEXT_LIMIT) return combined;
-  return combined.slice(-STREAM_SUMMARY_TEXT_LIMIT);
 }
 
 function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
@@ -640,6 +633,24 @@ export function createSSEStream(options: StreamOptions = {}) {
     dropResponsesCommentary,
   } = options;
   const signatureNamespace = connectionId;
+  // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
+  // The size is JSON-serialised byte count; stored as a performance mark detail so monitoring
+  // tools can query performance.getEntriesByType("mark") filtered by name.
+  let bodySize = 0;
+  try {
+    bodySize = body ? Buffer.byteLength(JSON.stringify(body), "utf8") : 0;
+  } catch {
+    /* body may not be JSON-serialisable (e.g. FormData, Blob) — metric stays 0 */
+  }
+  if (bodySize > 0) {
+    // Cleared immediately: this is a fixed-name mark created on every stream, so
+    // leaving it in the global performance timeline would accumulate without bound
+    // over a long-running server's lifetime. A wired PerformanceObserver still
+    // receives the entry (delivery is queued independently of the buffer) even though
+    // clearMarks() removes it from getEntriesByName()/getEntriesByType() right after.
+    performance.mark("omni-request-body-size", { detail: bodySize });
+    performance.clearMarks("omni-request-body-size");
+  }
 
   // Drop internal commentary-phase Responses output before forwarding (#6199).
   // Explicit option wins; otherwise read the feature flag (default on). Resolved
@@ -1113,13 +1124,14 @@ export function createSSEStream(options: StreamOptions = {}) {
 
       transform(chunk, controller) {
         if (streamTimedOut) return;
-        lastChunkTime = Date.now();
+        const now = Date.now();
+        lastChunkTime = now;
         const text = decoder.decode(chunk, { stream: true });
         buffer += text;
         reqLogger?.appendProviderChunk?.(text);
-
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        const nlIdx = buffer.lastIndexOf("\n");
+        const lines = nlIdx >= 0 ? buffer.slice(0, nlIdx).split("\n") : [];
+        if (nlIdx >= 0) buffer = buffer.slice(nlIdx + 1);
 
         for (const line of multilineSseDataLineNormalizer.normalize(lines)) {
           const trimmed = line.trim();
@@ -1222,15 +1234,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                 // bootstrap chunk (assistant role + empty content) before emitting proper
                 // `response.*` events. That chunk is invalid on /v1/responses and breaks strict
                 // clients like OpenCode, so drop it only for Responses-native consumers.
-                const hasActiveDeltaValue = (value: unknown): boolean => {
-                  if (typeof value === "string") return value.length > 0;
-                  if (Array.isArray(value))
-                    return value.some((entry) => hasActiveDeltaValue(entry));
-                  if (value && typeof value === "object") {
-                    return Object.values(value).some((entry) => hasActiveDeltaValue(entry));
-                  }
-                  return value !== null && value !== undefined;
-                };
 
                 const isEmptyAssistantBootstrapChunkForResponsesClient =
                   clientExpectsResponsesStream &&
@@ -1549,8 +1552,8 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }
                   if (parsed.delta?.thinking) {
                     totalContentLength += parsed.delta.thinking.length;
-                    passthroughAccumulatedContent = appendBoundedText(
-                      passthroughAccumulatedContent,
+                    passthroughAccumulatedReasoning = appendBoundedText(
+                      passthroughAccumulatedReasoning,
                       parsed.delta.thinking
                     );
                   }
@@ -1693,7 +1696,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // T18: Track if we saw tool calls & accumulate for call log
                   if (delta?.tool_calls && delta.tool_calls.length > 0) {
                     passthroughHasToolCalls = true;
-                    lastToolCallChunkTime = Date.now();
+                    lastToolCallChunkTime = now;
                     for (const tc of delta.tool_calls) {
                       // Note: sanitizeStreamingChunk above already coerces non-string
                       // tool_call IDs, but this defensive check catches edge cases
@@ -1742,7 +1745,6 @@ export function createSSEStream(options: StreamOptions = {}) {
                       const lastChunkTs = lastToolCallChunkTime;
                       if (toolTs || lastChunkTs) {
                         contentAfterToolSeen = true;
-                        const now = Date.now();
                         try {
                           recordToolLatency(
                             provider || "unknown",
@@ -1779,7 +1781,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   const isFinishChunk = parsed.choices?.[0]?.finish_reason;
 
                   if (isFinishChunk && passthroughHasToolCalls) {
-                    toolFinishTime = Date.now();
+                    toolFinishTime = now;
                     try {
                       markToolFinish(sessionId);
                     } catch {}
@@ -1904,10 +1906,10 @@ export function createSSEStream(options: StreamOptions = {}) {
           }
 
           if (parsed.choices?.[0]?.delta?.tool_calls) {
-            lastToolCallChunkTime = Date.now();
+            lastToolCallChunkTime = now;
           }
           if (parsed.choices?.[0]?.finish_reason === "tool_calls") {
-            toolFinishTime = Date.now();
+            toolFinishTime = now;
             try {
               markToolFinish(sessionId);
             } catch {}
@@ -1926,8 +1928,8 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (parsed.delta?.thinking) {
             const t = parsed.delta.thinking;
             totalContentLength += t.length;
-            if (state?.accumulatedContent !== undefined && typeof t === "string")
-              state.accumulatedContent = appendBoundedText(state.accumulatedContent, t);
+            if (state?.accumulatedReasoning !== undefined && typeof t === "string")
+              state.accumulatedReasoning = appendBoundedText(state.accumulatedReasoning, t);
           }
 
           // OpenAI format
@@ -2018,7 +2020,6 @@ export function createSSEStream(options: StreamOptions = {}) {
             const lastChunkTs = lastToolCallChunkTime;
             if (toolTs || lastChunkTs) {
               contentAfterToolSeen = true;
-              const now = Date.now();
               try {
                 recordToolLatency(
                   provider || "unknown",

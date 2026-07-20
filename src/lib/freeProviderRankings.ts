@@ -13,6 +13,16 @@ import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { listModelIntelligence } from "./db/modelIntelligence";
 import { getProviderConnections } from "./db/providers";
 import { getCustomModels } from "./db/models";
+import type { ProviderAuthType } from "./freeProviderRankingsAuthType";
+
+// Re-exported for backward-compat / same-module ergonomics (#6915) — the
+// actual implementations live in `freeProviderRankingsAuthType.ts` (DB-free,
+// safe to import from "use client" pages; see that file's header comment).
+export type { ProviderAuthType } from "./freeProviderRankingsAuthType";
+export {
+  filterRankingsByAuthType,
+  sortRankingsAuthTypeFirst,
+} from "./freeProviderRankingsAuthType";
 
 export interface ProviderModelScore {
   modelId: string;
@@ -29,7 +39,7 @@ export interface FreeProviderRanking {
   icon: string;
   color: string;
   textIcon?: string;
-  category: "noauth" | "oauth" | "apikey";
+  category: ProviderAuthType;
   topModel: ProviderModelScore | null;
   averageScore: number;
   modelCount: number;
@@ -45,7 +55,7 @@ function getFreeProviders() {
     icon: string;
     color: string;
     textIcon?: string;
-    category: "noauth" | "oauth" | "apikey";
+    category: ProviderAuthType;
   }> = [];
 
   // No-auth providers are always free
@@ -372,7 +382,11 @@ export async function computeFreeProviderRankings(
   // limit slice, so `limit` counts providers that survive the filter.
   let filtered = rankings;
   if (opts.configuredOnly || opts.availableOnly) {
-    const connections = (await getProviderConnections({ isActive: true })) as ConnectionState[];
+    // `getProviderConnections` returns a loose JsonRecord[]; ConnectionState is a
+    // structural subset of it, so TS needs the explicit `unknown` hop (TS2352).
+    const connections = (await getProviderConnections({
+      isActive: true,
+    })) as unknown as ConnectionState[];
     filtered = filterFreeProviderRankings(rankings, connections, opts);
   }
 
