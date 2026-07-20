@@ -204,7 +204,12 @@ test("Responses -> Chat gives top-level tools precedence over namespaced members
     {
       input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "go" }] }],
       tools: [
-        { type: "function", name: "exec", parameters: { type: "object" } },
+        {
+          type: "function",
+          name: "exec",
+          description: "Explicit function tool",
+          parameters: { type: "object" },
+        },
         {
           type: "namespace",
           name: "commands",
@@ -220,7 +225,7 @@ test("Responses -> Chat gives top-level tools precedence over namespaced members
     result.tools.map((tool) => tool.function.name),
     ["exec"]
   );
-  assert.equal(result.tools[0].function.description, undefined);
+  assert.equal(result.tools[0].function.description, "Explicit function tool");
 });
 
 test("Responses -> Chat validates tools supplied through additional_tools", () => {
