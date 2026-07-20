@@ -153,6 +153,51 @@ test("Responses -> Chat preserves a namespace that shares a name with a function
   );
 });
 
+test("Responses -> Chat merges members from same-named namespaces", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "any-model",
+    {
+      input: [
+        {
+          type: "additional_tools",
+          tools: [
+            {
+              type: "namespace",
+              name: "server",
+              tools: [
+                {
+                  name: "mcp__server__write",
+                  parameters: { type: "object", properties: {} },
+                },
+              ],
+            },
+          ],
+        },
+        { type: "message", role: "user", content: [{ type: "input_text", text: "go" }] },
+      ],
+      tools: [
+        {
+          type: "namespace",
+          name: "server",
+          tools: [
+            {
+              name: "mcp__server__read",
+              parameters: { type: "object", properties: {} },
+            },
+          ],
+        },
+      ],
+    },
+    false,
+    { provider: "another-provider" }
+  ) as ChatRequest;
+
+  assert.deepEqual(
+    result.tools.map((tool) => tool.function.name),
+    ["mcp__server__read", "mcp__server__write"]
+  );
+});
+
 test("Responses -> Chat validates tools supplied through additional_tools", () => {
   assert.throws(
     () =>
