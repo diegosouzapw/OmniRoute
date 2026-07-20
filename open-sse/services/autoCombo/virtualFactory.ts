@@ -20,6 +20,8 @@ import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
+import { filterExcludedCandidates } from "./candidateOverrides";
+import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -277,7 +279,9 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
 
 export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined,
-  spec?: AutoComboSpec
+  spec?: AutoComboSpec,
+  apiKeyId?: string,
+  autoChannel?: string
 ): Promise<VirtualAutoCombo> {
   const [connections, disabledNoAuthConnections, settings] = await Promise.all([
     getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
@@ -360,6 +364,24 @@ export async function createVirtualAutoCombo(
   if (paidFilteredPool !== candidatePool) {
     candidatePool.length = 0;
     candidatePool.push(...paidFilteredPool);
+  }
+
+  // #7819 (Level 2): per-API-key candidate exclusions. Fail-open — an absent
+  // apiKeyId/autoChannel (every caller before #7819) or a DB lookup failure
+  // both leave the pool untouched, so default (unconfigured) routing stays
+  // byte-identical to pre-#7819 behavior.
+  let excludedConnectionIds: Set<string> = new Set();
+  if (apiKeyId && autoChannel) {
+    try {
+      excludedConnectionIds = await getExcludedConnectionIds(apiKeyId, autoChannel);
+    } catch (err) {
+      log.warn("AUTO", "Failed to load auto-candidate overrides; routing unfiltered", { err });
+    }
+  }
+  const overrideFilteredPool = filterExcludedCandidates(candidatePool, excludedConnectionIds);
+  if (overrideFilteredPool !== candidatePool) {
+    candidatePool.length = 0;
+    candidatePool.push(...overrideFilteredPool);
   }
 
   if (candidatePool.length === 0) {
