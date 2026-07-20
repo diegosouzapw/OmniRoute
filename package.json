@@ -340,7 +340,7 @@
     "cross-env": "^10.1.0",
     "ctrf": "^0.2.1",
     "dpdm": "^4.2.0",
-    "eslint": "^9.39.5",
+    "eslint": "^9.39.4",
     "eslint-config-next": "16.2.10",
     "eslint-plugin-sonarjs": "^4.1.0",
     "fast-check": "^4.8.0",
