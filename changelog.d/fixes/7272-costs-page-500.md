@@ -1,0 +1,1 @@
+- fix(dashboard): resolve `ReferenceError: t is not defined` crashing `/dashboard/costs` when a filtered slice has zero-cost rows (#7272)

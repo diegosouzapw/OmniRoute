@@ -53,7 +53,7 @@ test("model combo mappings CRUD joins combo names and preserves ordering", async
     enabled: false,
   });
 
-  const all = await mappingsDb.getModelComboMappings();
+  const { items: all } = await mappingsDb.getModelComboMappings();
 
   assert.equal(all.length, 2);
   assert.equal(all[0].id, first.id);

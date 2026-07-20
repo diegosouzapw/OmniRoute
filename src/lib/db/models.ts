@@ -97,7 +97,10 @@ export async function addCustomModel(
   targetFormat?: string,
   // #1294: optional per-model token limits supplied from the "add custom model"
   // form. Persisted under the same keys the /v1/models catalog reads back.
-  tokenLimits: { inputTokenLimit?: number; outputTokenLimit?: number } = {}
+  tokenLimits: { inputTokenLimit?: number; outputTokenLimit?: number } = {},
+  // #1904: optional manual vision-capability override for the "add custom model"
+  // form — read back by getCustomVisionCapabilityFields() in the /v1/models catalog.
+  supportsVision?: boolean
 ) {
   const db = getDbInstance();
   const row = db
@@ -122,6 +125,7 @@ export async function addCustomModel(
     ...(tokenLimits.outputTokenLimit != null
       ? { outputTokenLimit: tokenLimits.outputTokenLimit }
       : {}),
+    ...(typeof supportsVision === "boolean" ? { supportsVision } : {}),
   };
   models.push(model);
   db.prepare(
@@ -275,11 +279,18 @@ export interface SyncedAvailableModel {
   name: string;
   source: "imported";
   apiFormat?: string;
+  targetFormat?: string;
+  upstreamProtocol?: string;
   supportedEndpoints?: string[];
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
+  alwaysThinking?: boolean;
+  supportsTools?: boolean;
+  supportsVideo?: boolean;
   // #4264: image-input capability captured at sync time (e.g. OpenRouter
   // `architecture.input_modalities`/`modality`) so the catalog can surface vision.
   supportsVision?: boolean;
@@ -317,7 +328,23 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
     ...(toNonEmptyString(record.apiFormat)
       ? { apiFormat: toNonEmptyString(record.apiFormat)! }
       : {}),
+    ...(toNonEmptyString(record.targetFormat)
+      ? { targetFormat: toNonEmptyString(record.targetFormat)! }
+      : {}),
+    ...(toNonEmptyString(record.upstreamProtocol)
+      ? { upstreamProtocol: toNonEmptyString(record.upstreamProtocol)! }
+      : {}),
     ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
+    ...(Array.isArray(record.supportedThinkingEfforts)
+      ? {
+          supportedThinkingEfforts: record.supportedThinkingEfforts.filter(
+            (effort): effort is string => typeof effort === "string" && effort.length > 0
+          ),
+        }
+      : {}),
+    ...(toNonEmptyString(record.defaultThinkingEffort)
+      ? { defaultThinkingEffort: toNonEmptyString(record.defaultThinkingEffort)! }
+      : {}),
     ...(typeof record.inputTokenLimit === "number"
       ? { inputTokenLimit: record.inputTokenLimit }
       : {}),
@@ -325,7 +352,16 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
       ? { outputTokenLimit: record.outputTokenLimit }
       : {}),
     ...(typeof record.description === "string" ? { description: record.description } : {}),
-    ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+    ...(typeof record.supportsThinking === "boolean"
+      ? { supportsThinking: record.supportsThinking }
+      : {}),
+    ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
+    ...(typeof record.supportsTools === "boolean"
+      ? { supportsTools: record.supportsTools }
+      : {}),
+    ...(typeof record.supportsVideo === "boolean"
+      ? { supportsVideo: record.supportsVideo }
+      : {}),
     ...(record.supportsVision === true ? { supportsVision: true } : {}),
   };
 }
@@ -441,6 +477,39 @@ export async function getAllSyncedAvailableModels(): Promise<
     result[providerId] = Array.from(map.values());
   }
   return result;
+}
+
+/**
+ * Find active providers whose synchronized catalog contains an exact model ID.
+ *
+ * This keeps request-time inference aligned with the same connection-scoped
+ * syncedAvailableModels data used by /v1/models without loading every model list
+ * into application memory for each request.
+ */
+export async function getActiveProvidersWithSyncedModel(modelId: string): Promise<string[]> {
+  if (!modelId) return [];
+
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT pc.provider AS provider
+       FROM provider_connections pc
+       JOIN key_value kv
+         ON kv.namespace = 'syncedAvailableModels'
+        AND kv.key = pc.provider || ':' || pc.id
+       JOIN json_each(CASE WHEN json_valid(kv.value) THEN kv.value ELSE '[]' END) synced_model
+       WHERE pc.is_active = 1
+         AND COALESCE(
+           json_extract(synced_model.value, '$.id'),
+           json_extract(synced_model.value, '$.name'),
+           json_extract(synced_model.value, '$.model')
+         ) = ?`
+    )
+    .all(modelId) as Array<{ provider?: unknown }>;
+
+  return rows
+    .map((row) => row.provider)
+    .filter((provider): provider is string => typeof provider === "string" && provider.length > 0);
 }
 
 /**
@@ -588,6 +657,25 @@ export async function pruneStaleSyncedAvailableModelsForProvider(
   return Number(result.changes || 0);
 }
 
+/**
+ * Apply a tri-state boolean override from `updates` onto `next`:
+ * field absent → keep whatever `next` already carries; explicit `null` → clear
+ * the override (callers fall back to their heuristic); anything else → persist
+ * the coerced boolean.
+ */
+function applyTriStateBooleanOverride(
+  next: JsonRecord,
+  updates: Record<string, unknown>,
+  field: string
+): void {
+  if (!Object.prototype.hasOwnProperty.call(updates, field)) return;
+  if (updates[field] === null) {
+    delete next[field];
+    return;
+  }
+  next[field] = Boolean(updates[field]);
+}
+
 export async function updateCustomModel(
   providerId: string,
   modelId: string,
@@ -637,13 +725,10 @@ export async function updateCustomModel(
       : {}),
     ...(updates.isHidden !== undefined ? { isHidden: Boolean(updates.isHidden) } : {}),
   };
-  if (Object.prototype.hasOwnProperty.call(updates, "preserveOpenAIDeveloperRole")) {
-    if (updates.preserveOpenAIDeveloperRole === null) {
-      delete next.preserveOpenAIDeveloperRole;
-    } else {
-      next.preserveOpenAIDeveloperRole = Boolean(updates.preserveOpenAIDeveloperRole);
-    }
-  }
+  applyTriStateBooleanOverride(next, updates, "preserveOpenAIDeveloperRole");
+  // #1904: manual vision-capability override — `null` clears back to the
+  // id-based heuristic in getCustomVisionCapabilityFields().
+  applyTriStateBooleanOverride(next, updates, "supportsVision");
   if (updates.compatByProtocol !== undefined) {
     if (mergedCompat && compatByProtocolHasEntries(mergedCompat)) {
       next.compatByProtocol = mergedCompat;
@@ -685,10 +770,22 @@ function getCustomModelRow(providerId: string, modelId: string): JsonRecord | nu
   try {
     const models = JSON.parse(value) as unknown;
     if (!Array.isArray(models)) return null;
-    const m = models.find((x: unknown) => {
+    const isIdMatch = (x: unknown, id: string): boolean => {
       if (!x || typeof x !== "object" || Array.isArray(x)) return false;
-      return (x as { id?: string }).id === modelId;
-    }) as JsonRecord | undefined;
+      return (x as { id?: string }).id === id;
+    };
+    // #7364: exact match first; case-insensitive fallback so "glm-4.6V" resolves a
+    // custom model saved as "glm-4.6v" (see lookupCustomModelMeta in
+    // src/sse/services/model.ts for the sibling lookup this mirrors).
+    const m = (models.find((x: unknown) => isIdMatch(x, modelId)) ??
+      models.find(
+        (x: unknown) =>
+          x &&
+          typeof x === "object" &&
+          !Array.isArray(x) &&
+          typeof (x as { id?: string }).id === "string" &&
+          ((x as { id: string }).id as string).toLowerCase() === modelId.toLowerCase()
+      )) as JsonRecord | undefined;
     return m ?? null;
   } catch {
     return null;

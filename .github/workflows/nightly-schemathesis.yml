@@ -16,11 +16,13 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with: { node-version: "24", cache: npm }
       - run: npm ci
       - name: Build CLI bundle
-        env: { JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation }
+        env:
+          JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
+          OMNIROUTE_BUILD_BACKEND_ONLY: "1"
         run: npm run build:cli
       - name: Start OmniRoute (background)
         env:

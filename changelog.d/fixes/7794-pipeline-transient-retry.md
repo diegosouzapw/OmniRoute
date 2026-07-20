@@ -1,0 +1,1 @@
+- fix(combo): retry intermediate pipeline-strategy steps on transient upstream errors (429/502/503/504), gated by `combo.config.maxRetries`/`retryDelayMs`, without retrying terminal auth/request errors (#7794 — thanks @AndrianBalanescu)

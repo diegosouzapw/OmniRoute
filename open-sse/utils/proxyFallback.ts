@@ -177,7 +177,7 @@ export async function getProxyCandidates(targetUrl?: string): Promise<string[]> 
 
   // 2. All user-configured proxies (include secrets for auth)
   try {
-    const allProxies = await listProxies({ includeSecrets: true });
+    const { items: allProxies } = await listProxies({ includeSecrets: true });
     for (const p of allProxies) {
       if (p.host && p.port) {
         candidates.add(proxyRecordToUrl(p as unknown as ProxyShape));

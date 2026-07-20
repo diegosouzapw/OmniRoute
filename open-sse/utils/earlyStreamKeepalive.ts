@@ -28,6 +28,12 @@
 
 const ENCODER = new TextEncoder();
 const KEEPALIVE_FRAME = ENCODER.encode(": omniroute-keepalive\n\n");
+// OpenAI-compatible keepalive: a syntactically valid empty streaming chunk.
+// Some OpenAI-compatible clients parse every non-empty SSE line as JSON and
+// reject legal SSE comments before their first provider chunk arrives.
+export const OPENAI_KEEPALIVE_FRAME = ENCODER.encode(
+  'data: {"id":"omniroute-keepalive","object":"chat.completion.chunk","created":0,"model":"omniroute","choices":[{"index":0,"delta":{},"finish_reason":null}]}\n\n'
+);
 // Anthropic Messages-format keepalive: a REAL `ping` SSE event, not a comment.
 // Anthropic clients (Claude Code, the Anthropic SDK) reset their stream/first-token
 // watchdog on real SSE events but ignore SSE comments (`: ...`), so on a slow first
@@ -130,6 +136,7 @@ export async function withEarlyStreamKeepalive(
       };
 
       const onAbort = () => {
+        if (aborted) return;
         aborted = true;
         stopKeepalive();
         upstreamReader?.cancel().catch(() => {});
@@ -140,11 +147,21 @@ export async function withEarlyStreamKeepalive(
         }
       };
       signal?.addEventListener("abort", onAbort, { once: true });
+      // addEventListener does not replay an abort that happened before registration.
+      // Checking after registration closes that gap without missing a concurrent abort.
+      if (signal?.aborted) onAbort();
 
       try {
         const result = await settled;
         stopKeepalive();
-        if (aborted) return; // client disconnected while we were waiting
+        if (aborted) {
+          // The synthetic keepalive response can be cancelled before the handler resolves.
+          // Cancel the eventual real response so its upstream work and lifecycle hooks finish.
+          if (result.ok && result.response.body) {
+            await result.response.body.cancel().catch(() => undefined);
+          }
+          return;
+        }
 
         if (!result.ok) {
           // Handler rejected — emit a generic error frame (never the raw error/stack).

@@ -1,0 +1,1 @@
+- **ci:** unit fast-path sharding doubled 2→4 (halves the heaviest job's wall time) (#6781); the 3 heaviest fast-path jobs can route to the self-hosted VPS runner pool behind `USE_VPS_RUNNER` (#6691); `VPS_ALWAYS_ON` keeps the dedicated 24/7 CI host up across releases (teardown becomes a no-op) (#6693).

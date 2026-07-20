@@ -171,8 +171,8 @@ test("custom provider auth lookup search pool maps alias prefixes to internal pr
   );
   assert.match(
     authSrc,
-    /getProviderNodes\(/,
-    "auth lookup should read provider_nodes to map custom prefixes like 78code/micu back to internal provider ids"
+    /getCachedProviderNodes\(/,
+    "auth lookup should read cached provider_nodes to map custom prefixes like 78code/micu back to internal provider ids"
   );
   assert.match(
     authSrc,

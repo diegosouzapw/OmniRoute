@@ -65,11 +65,25 @@ RUN test -f package-lock.json \
 # node-gyp comes from npm's own bundled copy (deterministic, already in the image)
 # instead of `npx --yes`, which would install an arbitrary registry version
 # on-demand and run its lifecycle scripts (Sonar docker:S6505).
+#
+# tls-client-node (chatgpt-web/claude-web/grok-web/lmarena/perplexity-web TLS
+# impersonation) hits the same --ignore-scripts wall: its own postinstall.js
+# fetches a platform .so/.dylib/.dll from the bogdanfinn/tls-client GitHub
+# Releases API and is never invoked when npm ci skips lifecycle scripts. Unlike
+# better-sqlite3 above, that script never throws on failure — it only
+# `console.warn`s and exits 0 — so a rate-limited or offline build would
+# otherwise succeed silently with an empty bin/ and only fail at first request
+# in production (TlsClientUnavailableError, #7802). Run it explicitly here so
+# a broken/rate-limited fetch fails the BUILD loudly instead of shipping a
+# broken image.
 RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
   npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
   && (cd node_modules/better-sqlite3 \
       && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild) \
-  && node -e "require('better-sqlite3')(':memory:').close()"
+  && node -e "require('better-sqlite3')(':memory:').close()" \
+  && node node_modules/tls-client-node/scripts/postinstall.js \
+  && (test -n "$(find node_modules/tls-client-node/bin -mindepth 1 -print -quit 2>/dev/null)" \
+      || (echo "tls-client-node native binary missing after postinstall — GitHub API fetch likely rate-limited or failed (#7802)" >&2 && exit 1))
 
 # Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
 # TurbopackInternalError panic ("entered unreachable code: there must be a path to a
@@ -114,6 +128,12 @@ LABEL org.opencontainers.image.title="omniroute" \
 ENV NODE_ENV=production
 ENV PORT=20128
 ENV HOSTNAME=0.0.0.0
+# Runtime heap ceiling. 1024MB is enough for normal traffic but can be tight
+# for large fusion-combo panels (many models fanned out in parallel, each
+# response buffered in full — see open-sse/services/fusion.ts::FUSION_DEFAULTS
+# .maxPanel, issue #1905). Override at `docker run` time with
+# `-e OMNIROUTE_MEMORY_MB=2048` (or higher) if you raise fusionTuning.maxPanel
+# above the default cap.
 ENV OMNIROUTE_MEMORY_MB=1024
 ENV NODE_OPTIONS="--max-old-space-size=${OMNIROUTE_MEMORY_MB}"
 

@@ -1,0 +1,1 @@
+- Strengthen the `compareRouterEvalRuns` regression test to assert the actual AIQ and cost regression reasons instead of counting entries, clearing the weakened-assert (test-masking) gate on the release tip.

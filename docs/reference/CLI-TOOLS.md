@@ -90,9 +90,9 @@ Entries with `baseUrlSupport: "none"` are **not shown** in the dashboard pages �
 
 ---
 
-## 1. CLI Code's Catalog (20 tools)
+## 1. CLI Code's Catalog (25 tools)
 
-Tools that support custom base URL and appear in `/dashboard/cli-code`:
+All tools that appear in `/dashboard/cli-code`. Those with `baseUrlSupport: none` are wired through MITM or a manual guide instead of a custom base URL:
 
 | id | name | vendor | baseUrlSupport | configType | acpSpawnable |
 |----|------|--------|---------------|-----------|-------------|
@@ -114,13 +114,19 @@ Tools that support custom base URL and appear in `/dashboard/cli-code`:
 | cursor-cli | Cursor CLI | Anysphere | partial | guide | true |
 | smelt | Smelt | leonardcser (OSS) | full | custom | false |
 | pi | Pi (pi-coding-agent) | M. Zechner (OSS) | full | custom | false |
+| grok-build | Grok Build | xAI | full | custom | false |
+| crush | Crush | OSS (Charm) | full | custom | false |
+| cursor | Cursor | Anysphere | none | guide | false |
+| antigravity | Antigravity | Google | none | mitm | false |
+| hermes | Hermes | Nous Research | none | guide | false |
+| kiro | Kiro AI | Amazon | none | mitm | false |
 | custom | Custom CLI | — | full | custom-builder | false |
 
 Tools with `baseUrlSupport: "partial"` show a badge "⚠ Base URL parcial" in the dashboard card.
 
 ---
 
-## 2. CLI Agents Catalog (6 tools)
+## 2. CLI Agents Catalog (8 tools)
 
 Autonomous agents that appear in `/dashboard/cli-agents`:
 
@@ -132,6 +138,8 @@ Autonomous agents that appear in `/dashboard/cli-agents`:
 | interpreter  | Open Interpreter | OSS                      | full           | true         |
 | warp         | Warp AI          | Warp Inc.                | partial        | true         |
 | agent-deck   | Agent Deck       | asheshgoplani (OSS)      | full           | false        |
+| omp          | Oh My Pi         | OSS                      | full           | true         |
+| letta        | Letta CLI        | Letta                    | full           | false        |
 
 ---
 
@@ -203,6 +211,7 @@ New tools with `configType: "custom"` have dedicated settings API routes:
 | `POST /api/cli-tools/codewhale-settings`    | CodeWhale (OPENAI_BASE_URL, primary + legacy `~/.deepseek` sync) |
 | `POST /api/cli-tools/smelt-settings`        | Smelt                          |
 | `POST /api/cli-tools/pi-settings`           | Pi coding agent                |
+| `POST /api/cli-tools/grok-build-settings`   | Grok Build (~/.grok/config.toml, `[model.omniroute]`) |
 
 All routes use `sanitizeErrorMessage()` for error responses (Hard Rule #12).
 
@@ -652,6 +661,23 @@ omniroute reset-password                # Reset the admin password (also: omniro
 omniroute reset-encrypted-columns       # Show warning + dry-run for encrypted credential reset
 omniroute reset-encrypted-columns --force  # Actually null out encrypted credentials in SQLite
 ```
+
+### Credential Export (⚠ handle with care)
+
+```bash
+omniroute auth export                                 # Show warning + confirmation gate — no DB access
+omniroute auth export --force                          # Export ALL connections' DECRYPTED credentials to stdout as JSON
+omniroute auth export --force --id <id>                 # Export only the matching connection
+omniroute auth export --force --format env               # Emit OMNIROUTE_<PROVIDER>_<FIELD>=<value> lines
+omniroute auth export --force --out creds.json           # Write to a file (created with 0600 permissions)
+```
+
+`auth export` is **local-only** (direct SQLite read, no HTTP route) and intentionally prints/writes
+**plaintext** `apiKey`/`accessToken`/`refreshToken`/`idToken` values — that is the feature, not a
+bug. Nothing is read from the database, and nothing is decrypted, without `--force`. A stderr
+warning banner always prints before any plaintext is emitted. Requires `STORAGE_ENCRYPTION_KEY` to
+be set. A field that fails to decrypt (stale key, corrupt ciphertext) is reported as
+`<field>DecryptFailed: true` instead of aborting the whole export or leaking the underlying error.
 
 ### Other subcommands
 

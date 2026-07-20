@@ -1,4 +1,5 @@
 export { parseQuotaData } from "./quotaParsing";
+import { hasFixedQuotaOrder } from "./quotaParsing";
 
 const PROVIDER_PLAN_FALLBACKS = new Set([
   "claude code",
@@ -193,6 +194,12 @@ export function resolvePlanValue(plan, providerSpecificData) {
     psd.organizationRateLimitTier,
     psd.rateLimitTier,
     psd.organizationType,
+    // Codex OAuth bootstrap: chatgpt_plan_type is captured at import time
+    // (src/lib/oauth/services/codexImport.ts) and is the only source of the
+    // plan when the live Codex usage endpoint omits plan_type/planType (the
+    // usage service then reports the literal string "unknown" — see
+    // open-sse/services/usage/codex.ts).
+    psd.chatgptPlanType,
   ];
 
   if (livePlan && normalizePlanTier(livePlan).key !== "free") {
@@ -298,6 +305,25 @@ export function normalizePlanTier(plan) {
 
 // === Card Grid Helpers (T7) =================================================
 
+// Card action-availability derivations. Extracted from QuotaCard so its
+// `.some(...)` predicate branches don't count against the component's
+// cyclomatic-complexity budget.
+export function computeCanEditCutoff(quotas: any[]): boolean {
+  return quotas.some((q: any) => q && typeof q.name === "string" && !q.isCredits);
+}
+
+export function computeCanRedeemResetCredit(provider: string, quotas: any[]): boolean {
+  return (
+    provider === "codex" &&
+    quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0)
+  );
+}
+
+export function hasQuotaCutoffOverrides(connection: any): boolean {
+  const overrides = (connection.quotaWindowThresholds as Record<string, number> | null) || null;
+  return !!overrides && Object.keys(overrides).length > 0;
+}
+
 export const STATUS_EMOJI = {
   critical: "🔴",
   alert: "🟡",
@@ -338,8 +364,18 @@ const STATUS_ORDER: Record<"critical" | "alert" | "ok", number> = {
   ok: 2,
 };
 
-export function topQuotas(quotas: any[], n = 3): any[] {
-  return [...quotas.filter(Boolean)]
+export function topQuotas(quotas: any[], n = 3, providerId?: string): any[] {
+  const filtered = quotas.filter(Boolean);
+
+  // Providers with a deterministic fixed-window order (codex, glm family — see
+  // quotaParsing.ts's sortCodexOrder()/sortGlmOrder()) must keep the order
+  // parseQuotaData() already established rather than being re-sorted by
+  // status/remaining-%, which would undo it (#6687's collapsed-card sibling, #7764).
+  if (hasFixedQuotaOrder(providerId)) {
+    return filtered.slice(0, n);
+  }
+
+  return [...filtered]
     .sort((a, b) => {
       const sa = STATUS_ORDER[quotaStatus(a)];
       const sb = STATUS_ORDER[quotaStatus(b)];
@@ -472,6 +508,52 @@ export function filterHiddenModelQuotas(
     addQuotaModelIdVariants(candidates, provider, modelId);
     return !Array.from(candidates).some((candidate) => hidden.has(candidate));
   });
+}
+
+// --- Per-user quota row visibility (upstream 9router#2371 port) ---------
+// Distinct from collectHiddenQuotaModelIds()/filterHiddenModelQuotas() above:
+// those hide rows for models the ADMIN marked isHidden/isDeleted in the model
+// catalog. These hide rows the OPERATOR clicked "hide" on for their own view
+// (persisted per-provider in settings.quotaVisibility), independent of model
+// catalog state — e.g. temporarily decluttering a quota card without editing
+// the catalog. Both mechanisms can apply to the same row.
+
+/** Stable identity for a quota row: prefer modelKey (survives displayName i18n), fall back to name. */
+export function getQuotaVisibilityKey(quota: any): string {
+  if (!quota || typeof quota !== "object") return "";
+  return String(quota.modelKey || quota.name || "").trim();
+}
+
+function getProviderHiddenQuotaSet(
+  provider: string,
+  quotaVisibility: Record<string, { hidden?: string[] }> | undefined
+): Set<string> {
+  const hidden = quotaVisibility?.[provider]?.hidden;
+  return new Set(Array.isArray(hidden) ? hidden.map(String) : []);
+}
+
+/** Returns quotas for `provider` with any operator-hidden rows removed. */
+export function filterQuotasByVisibility(
+  provider: string,
+  quotas: any[] = [],
+  quotaVisibility: Record<string, { hidden?: string[] }> = {}
+): any[] {
+  if (!Array.isArray(quotas) || quotas.length === 0) return [];
+  const hidden = getProviderHiddenQuotaSet(provider, quotaVisibility);
+  if (hidden.size === 0) return quotas;
+  return quotas.filter((quota) => !hidden.has(getQuotaVisibilityKey(quota)));
+}
+
+/** Returns the subset of `quotas` for `provider` the operator hid (for the "Hidden: …" chip row). */
+export function getHiddenQuotaRows(
+  provider: string,
+  quotas: any[] = [],
+  quotaVisibility: Record<string, { hidden?: string[] }> = {}
+): any[] {
+  if (!Array.isArray(quotas) || quotas.length === 0) return [];
+  const hidden = getProviderHiddenQuotaSet(provider, quotaVisibility);
+  if (hidden.size === 0) return [];
+  return quotas.filter((quota) => hidden.has(getQuotaVisibilityKey(quota)));
 }
 
 // --- Provider dropdown filter (PR #769 port) -----------------------------

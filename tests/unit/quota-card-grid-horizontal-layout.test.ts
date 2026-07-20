@@ -1,13 +1,14 @@
 // #3520 — Provider Quota page should use horizontal whitespace better.
 //
 // QuotaCardGrid previously stacked provider groups vertically via a single
-// `flex flex-col` container and kept cards to a conservative 1/2/3/4-column
-// breakpoint ladder starting at `grid-cols-1`. This regression guard asserts
-// the shipped JSX structure and grouping logic directly:
+// `flex flex-col` container and sized card columns from fixed viewport
+// breakpoints. This regression guard asserts the shipped JSX structure and
+// grouping logic directly:
 //  1. Grouping still produces one header per distinct provider with the
 //     correct account count ("N account(s)").
-//  2. The per-group card grid starts multi-column (`grid-cols-2`), not
-//     single-column, so cards fill horizontal space sooner.
+//  2. Each provider group's cards auto-fit into as many 280px columns as that
+//     group's actual width supports, while a card can shrink to the group's
+//     width when its container is narrower than 280px.
 //  3. Provider groups themselves flow into multiple columns on wide screens
 //     (`columns-*`) instead of an unconditional vertical `flex flex-col`
 //     stack.
@@ -104,14 +105,19 @@ test("QuotaCardGrid (#3520) — outer container flows groups into multiple colum
   assert.notEqual(outerClassName, "flex flex-col gap-6");
 });
 
-test("QuotaCardGrid (#3520) — per-group card grid starts multi-column (grid-cols-2), not single-column", () => {
+test("QuotaCardGrid (#3520) — cards follow actual group width with a narrow-container fallback", () => {
   const classNames = extractDivClassNames(COMPONENT_PATH);
-  const cardGridClassName = classNames.find(
-    (c) => /\bgrid\b/.test(c) && /grid-cols-/.test(c)
+  const cardGridClassName = classNames.find((c) => /\bgrid\b/.test(c) && /grid-cols-/.test(c));
+  assert.ok(cardGridClassName, "expected to find the actual-width per-group card grid's className");
+  assert.match(
+    cardGridClassName,
+    /(?:^|\s)grid-cols-\[repeat\(auto-fit,minmax\(min\(100%,280px\),1fr\)\)\](?:\s|$)/,
+    "expected 280px auto-fit columns that can shrink to 100% in a narrower group container"
   );
-  assert.ok(cardGridClassName, "expected to find the per-group card grid's className");
-  assert.match(cardGridClassName!, /\bgrid-cols-2\b/);
-  assert.doesNotMatch(cardGridClassName!, /\bgrid-cols-1\b/);
+  assert.doesNotMatch(
+    cardGridClassName,
+    /(?:^|\s)(?:grid-cols-2|md:grid-cols-3|xl:grid-cols-4)(?:\s|$)/
+  );
 });
 
 test("QuotaCardGrid (#3520) — early-returns null when there are no connections", () => {

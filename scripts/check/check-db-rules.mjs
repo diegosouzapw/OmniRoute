@@ -206,8 +206,11 @@ export function findRawSql(files, allowlist = KNOWN_RAW_SQL) {
     } catch {
       continue;
     }
-    const literals = extractStringLiterals(stripComments(src));
-    if (SQL_PATTERNS.some((rx) => rx.test(literals))) {
+    // Match each literal independently. Joining literals before scanning would
+    // turn harmless code such as `update(...)` plus a later `"set"` string into
+    // a false UPDATE ... SET SQL match.
+    const literals = extractStringLiterals(stripComments(src)).split("\n\0\n");
+    if (literals.some((literal) => SQL_PATTERNS.some((rx) => rx.test(literal)))) {
       offenders.push(rel);
     }
   }

@@ -12,6 +12,8 @@
  * @module lib/gracefulShutdown
  */
 
+import { markServerStopping } from "@/lib/serverLifecycle";
+
 /** Grace period before forced exit (default 30s, configurable) */
 const SHUTDOWN_TIMEOUT_MS = parseInt(process.env.SHUTDOWN_TIMEOUT_MS || "30000", 10);
 
@@ -146,6 +148,7 @@ export function initGracefulShutdown(): void {
   const shutdown = async (signal: string) => {
     if (state.shuttingDown) return;
     state.shuttingDown = true;
+    markServerStopping();
 
     console.log(`\n[Shutdown] Received ${signal}. Draining ${state.activeRequests} request(s)...`);
 

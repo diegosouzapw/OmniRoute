@@ -8,6 +8,7 @@
 
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
+import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -150,12 +151,63 @@ export function shouldRecordProviderBreakerFailure(args: {
   status: number;
   sameProviderNext: boolean;
   skipProviderBreaker?: boolean;
+  requestScopedFailure?: boolean;
 }): boolean {
   return (
     !args.isStreamReadinessFailure &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     !args.sameProviderNext &&
-    !args.skipProviderBreaker
+    !args.skipProviderBreaker &&
+    !args.requestScopedFailure
+  );
+}
+
+const REQUEST_SCOPED_UPSTREAM_ERROR_CODES = new Set([
+  "context_length_exceeded",
+  "upstream_empty_response",
+  "upstream_response_failed",
+]);
+
+/** Request/model-specific failures must not poison provider-wide resilience state. */
+export function isRequestScopedUpstreamFailure(error?: {
+  code?: string | null;
+  type?: string | null;
+}): boolean {
+  const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
+  const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
+  return REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(code) || type === "context_length_exceeded";
+}
+
+/**
+ * #7177: whether handleSingleModelChat should skip the connection-level cooldown
+ * (markAccountUnavailable) for a failed attempt — client disconnects, a 401 when the
+ * connection has extra keys to rotate through, a known request-scoped upstream failure
+ * (e.g. context overflow — not a connection health signal), a plugin refusing the
+ * request (our own policy, not a provider fault — see below), or our own
+ * self-inflicted timeout all mean the connection itself is healthy and should not be
+ * cooled down.
+ *
+ * A plugin block (`plugin_block`) is our own policy decision, not the provider
+ * rejecting us. Banning the account here would let a working security plugin destroy
+ * the connection it protects — one block would ban the provider for every later
+ * request, valid ones included — and would trigger a pointless retry loop across other
+ * accounts the plugin would refuse identically.
+ */
+export function shouldSkipConnDisable(
+  result: { status: number; errorCode?: string | null; errorType?: string | null },
+  is401: boolean,
+  hasExtraKeys: boolean,
+  provider: string
+): boolean {
+  return (
+    result.status === 499 ||
+    result.errorCode === "client_disconnected" ||
+    result.errorType === "client_disconnected" ||
+    result.errorCode === "plugin_block" ||
+    result.errorType === "plugin_block" ||
+    (is401 && hasExtraKeys) ||
+    isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) ||
+    isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider)
   );
 }
 

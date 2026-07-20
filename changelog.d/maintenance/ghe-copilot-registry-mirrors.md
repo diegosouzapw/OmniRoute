@@ -1,0 +1,2 @@
+- fix(oauth): register `ghe-copilot` in the OAuth provider id map and the client-safe MITM host mirror, which #7546 left out of both — the gap turned the whole release branch red on `oauth-providers-config` and `mitm-tool-hosts`
+- fix(dashboard): add the ghe-copilot entry to the traffic-inspector agent map and type `GheConfigStep`'s `error` prop as a renderable string, clearing the two dashboard-typecheck regressions #7546 left behind

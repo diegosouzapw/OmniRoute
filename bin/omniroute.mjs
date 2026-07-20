@@ -4,6 +4,9 @@
  * OmniRoute CLI entry point.
  *
  * Special bypasses (handled before Commander):
+ *   --version / -V (alone)    Fast-path: print the version and exit, skipping the
+ *                             tsx/esm + polyfill imports, env-file loading, and
+ *                             Commander's ~70-command registration entirely.
  *   --mcp                     Start MCP server over stdio
  *   reset-encrypted-columns   Recovery tool for broken encrypted credentials
  *   reset-password            Reset the admin/management password
@@ -11,7 +14,7 @@
  * All other commands are routed through Commander (bin/cli/program.mjs).
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import updateNotifier from "update-notifier";
@@ -19,6 +22,26 @@ import { isNativeBinaryCompatible } from "../scripts/build/native-binary-compat.
 import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
 import { getDefaultDataDir } from "./cli/data-dir.mjs";
 import { shouldProvisionStorageKey } from "./cli/utils/storageKeyProvision.mjs";
+import { isVersionFastPath } from "./cli/utils/versionFastPath.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const ROOT = join(__dirname, "..");
+
+// Fast-path a bare `--version`/`-V` query BEFORE the tsx/esm registration, the
+// polyfill import, env-file loading, or Commander's command registration (~70
+// modules — DB, providers, OAuth, etc.) run. None of that work is needed to answer
+// "what version is this" — mirrors upstream 9router PR #2414 (fast-path help/version
+// ahead of expensive self-heal hooks), adapted to OmniRoute's Commander CLI where the
+// equivalent expensive work is eager command registration rather than npm-install-based
+// runtime self-healing. `--help` is intentionally NOT fast-pathed here: its output is
+// generated dynamically from every registered subcommand, so skipping registration
+// would truncate the help text instead of just speeding it up.
+if (isVersionFastPath(process.argv)) {
+  const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+  console.log(pkg.version);
+  process.exit(0);
+}
 
 // Register tsx so dynamic imports of .ts source files (referenced as .js per
 // TypeScript conventions) resolve correctly. The build never emits .js for
@@ -26,9 +49,14 @@ import { shouldProvisionStorageKey } from "./cli/utils/storageKeyProvision.mjs";
 await import("tsx/esm");
 await import("../open-sse/utils/setupPolyfill.ts");
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const ROOT = join(__dirname, "..");
+// #7791: tsx's tsconfig-path resolution does not apply when OmniRoute is
+// installed globally (files live under node_modules/omniroute/), so bare
+// `@/...` specifiers (declared in tsconfig.json paths as `@/* → ./src/*`)
+// fail with ERR_MODULE_NOT_FOUND. Register an ESM resolve hook that maps
+// `@/...` to absolute file URLs under <ROOT>/src/. Safe no-op in dev checkout
+// (paths already resolve via tsconfig) and when ROOT has no `src/` dir.
+const { registerAliasResolver } = await import("./aliasResolver.mjs");
+await registerAliasResolver(ROOT);
 
 // MCP stdio transport uses stdout exclusively for JSON-RPC messages.
 // Redirect console.log/warn to stderr early (before loadEnvFile and DB init)
@@ -40,6 +68,28 @@ if (process.argv.includes("--mcp")) {
   console.warn = stderrConsole.warn.bind(stderrConsole);
 }
 
+// Electron persists secrets (JWT_SECRET, API_KEY_SECRET, STORAGE_ENCRYPTION_KEY) to
+// `<DATA_DIR>/server.env` (electron/main.js), never `.env`. Migrating an existing
+// install (storage.sqlite + server.env) to the CLI left those secrets undiscoverable —
+// the CLI only ever looked for `.env`, so the STORAGE_ENCRYPTION_KEY needed to decrypt
+// the migrated database was silently dropped (#7302). One-time, one-directory migration:
+// if `<dataDir>/.env` is absent but `<dataDir>/server.env` is present, copy it to `.env`
+// so it flows through the normal env-loading path below. Never overwrites an existing
+// `.env` — an explicit `.env` always wins over a legacy `server.env`.
+function migrateElectronServerEnv(dataDir) {
+  try {
+    const envPath = join(dataDir, ".env");
+    const serverEnvPath = join(dataDir, "server.env");
+    if (existsSync(envPath) || !existsSync(serverEnvPath)) return;
+    writeFileSync(envPath, readFileSync(serverEnvPath, "utf-8"), "utf-8");
+    console.log(
+      `  \x1b[2m♻ Migrated Electron secrets from ${serverEnvPath} to ${envPath}\x1b[0m`
+    );
+  } catch {
+    // Ignore errors migrating server.env — fall back to normal env loading below.
+  }
+}
+
 function loadEnvFile() {
   const envPaths = [];
   const loadedEnvPaths = [];
@@ -49,6 +99,8 @@ function loadEnvFile() {
     seenEnvPaths.add(envPath);
     envPaths.push(envPath);
   };
+
+  migrateElectronServerEnv(process.env.DATA_DIR || getDefaultDataDir());
 
   if (process.env.DATA_DIR) {
     addEnvPath(join(process.env.DATA_DIR, ".env"));

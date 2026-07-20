@@ -169,11 +169,6 @@
       "count": 2
     }
   },
-  "open-sse/translator/helpers/claudeHelper.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "open-sse/utils/setupPolyfill.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
@@ -223,11 +218,6 @@
     }
   },
   "src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -335,11 +325,6 @@
   "tests/e2e/system-failover.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/integration/_chatPipelineHarness.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
     }
   },
   "tests/integration/_comboRoutingHarness.ts": {
@@ -614,7 +599,7 @@
   },
   "tests/unit/base-executor-sanitize-effort.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 45
+      "count": 48
     }
   },
   "tests/unit/batch_api.test.ts": {
@@ -1039,7 +1024,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 261
+      "count": 269
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
@@ -1200,6 +1185,11 @@
   "tests/unit/db-inspector-sessions.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
+    }
+  },
+  "tests/unit/db-migration-runner-account-identity.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
     }
   },
   "tests/unit/db-migration-runner.test.ts": {
@@ -1375,11 +1365,6 @@
   "tests/unit/executor-gitlab.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
-    }
-  },
-  "tests/unit/executor-kimi-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "tests/unit/executor-nlpcloud.test.ts": {
@@ -1692,11 +1677,6 @@
       "count": 2
     }
   },
-  "tests/unit/perplexity-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    }
-  },
   "tests/unit/persist-429-cooldown-account-fallback.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
@@ -1800,11 +1780,6 @@
   "tests/unit/provider-request-failure-pipeline.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
-    }
-  },
-  "tests/unit/provider-scoped-models-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 7
     }
   },
   "tests/unit/provider-validation-hardening.test.ts": {
@@ -2055,11 +2030,6 @@
   "tests/unit/sse-auth.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 13
-    }
-  },
-  "tests/unit/sse-parser.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 15
     }
   },
   "tests/unit/startup-stale-cooldown-recovery.test.ts": {

@@ -9,7 +9,8 @@ export type AgentId =
   | "zed"
   | "claude-code"
   | "open-code"
-  | "trae";
+  | "trae"
+  | "ghe-copilot";
 
 /**
  * Minimal abstract interface for MitmHandlerBase.
@@ -48,7 +49,7 @@ export type MitmTargetView = Omit<MitmTarget, "handler">;
 export const MitmTargetSchema = z.object({
   id: z.enum([
     "antigravity", "kiro", "copilot", "codex", "cursor", "zed",
-    "claude-code", "open-code", "trae",
+    "claude-code", "open-code", "trae", "ghe-copilot",
   ]),
   name: z.string(),
   icon: z.string(),

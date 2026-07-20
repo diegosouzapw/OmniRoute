@@ -2,11 +2,11 @@ import { isIP } from "node:net";
 import dns from "node:dns";
 import {
   type OutboundUrlGuardMode,
-  getProviderOutboundGuard,
   isPrivateHost,
   parseAndValidatePublicUrl,
   parseOutboundUrl,
 } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 
 const DEFAULT_MAX_REMOTE_IMAGE_BYTES = 20 * 1024 * 1024;
 const DEFAULT_MAX_REDIRECTS = 3;

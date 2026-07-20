@@ -16,6 +16,7 @@ import { applyClaudeCodeCompatibleThinkingDisplay } from "./claudeCodeCompatible
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 import { applySystemTransformPipeline, PROVIDER_CC_BRIDGE } from "./systemTransforms.ts";
 import { usesCcWireImage } from "./ccWireImageBuiltins.ts";
+import { collectClaudeMediaBlocks, convertOpenAiMediaBlock } from "./ccOpenAiMediaBlocks.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
@@ -56,6 +57,7 @@ const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
 const CONTEXT_1M_SUPPORTED_MODELS = [
   "claude-fable-5",
   "claude-sonnet-5",
+  "claude-sonnet-4-6",
   "claude-opus-4-8",
   "claude-opus-4-7",
   "claude-opus-4-6",
@@ -516,13 +518,13 @@ function buildClaudeCodeCompatibleMessages(messages: MessageLike[]) {
         message
       ): message is {
         role: "user" | "assistant";
-        content: Array<{ type: string; text: string }>;
+        content: Array<Record<string, unknown>>;
       } => !!message && message.content.length > 0
     );
 
   const merged: Array<{
     role: "user" | "assistant";
-    content: Array<{ type: string; text: string }>;
+    content: Array<Record<string, unknown>>;
   }> = [];
 
   for (const message of converted) {
@@ -718,12 +720,12 @@ function convertClaudeCodeCompatibleMessage(message: MessageLike | null | undefi
   if (!role) return null;
 
   const text = contentToText(message?.content);
-  if (!text) return null;
+  // #7777: keep the user-turn media parts that contentToText() above drops.
+  const media = role === "user" ? collectClaudeMediaBlocks(message?.content) : [];
+  const content = [...(text ? [{ type: "text", text }] : []), ...media];
+  if (content.length === 0) return null;
 
-  return {
-    role,
-    content: [{ type: "text", text }],
-  };
+  return { role, content };
 }
 
 function buildClaudeCodeCompatibleTools(
@@ -976,7 +978,7 @@ function normalizeClaudeContentBlock(block: unknown) {
     };
   }
 
-  return record;
+  return convertOpenAiMediaBlock(record) ?? record;
 }
 
 function convertClaudeCodeCompatibleClaudeMessage(

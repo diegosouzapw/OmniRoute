@@ -1,0 +1,1 @@
+- **feat(sse):** every completion response now carries an `X-OmniRoute-Decision: strategy=<name>; provider=<alias>; latency_ms=<n>` header exposing the routing decision — `<name>` is the combo strategy (`priority`, `weighted`, `fusion`, etc.) or `single` for a non-combo request — for client-side debugging/analytics without server log access (#6022 — thanks @chirag127).

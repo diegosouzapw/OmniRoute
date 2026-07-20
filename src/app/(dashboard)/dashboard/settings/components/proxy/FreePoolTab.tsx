@@ -22,6 +22,11 @@ const MAX_VISIBLE_PAGES = 7;
 
 export default function FreePoolTab() {
   const t = useTranslations("settings");
+  const translateOrFallback = (
+    key: string,
+    fallback: string,
+    values?: Record<string, string | number>
+  ) => (typeof t.has === "function" && !t.has(key) ? fallback : t(key, values));
   const [proxies, setProxies] = useState<FreeProxyRowData[]>([]);
   const [stats, setStats] = useState<FreePoolStats | null>(null);
   const [disabledSources, setDisabledSources] = useState<Set<SourceId>>(new Set());
@@ -106,9 +111,19 @@ export default function FreePoolTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setSyncErrors(data.errors ?? null);
+      const data = await res.json().catch(() => null);
+      if (data?.results) {
+        const errors: Record<string, string[]> = {};
+        for (const [source, result] of Object.entries(
+          data.results as Record<string, { errors?: string[] }>
+        )) {
+          if (Array.isArray(result?.errors) && result.errors.length > 0) {
+            errors[source] = result.errors;
+          }
+        }
+        if (Object.keys(errors).length > 0) setSyncErrors(errors);
+      } else if (!res.ok) {
+        setSyncErrors(data?.errors ?? null);
       }
       await loadData();
     } catch {}
@@ -135,6 +150,16 @@ export default function FreePoolTab() {
     setAddingIds((prev) => {
       const next = new Set(prev);
       next.delete(id);
+      return next;
+    });
+  };
+
+  const handleToggleSource = (source: SourceId) => {
+    setDisabledSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(source)) next.delete(source);
+      else next.add(source);
+      saveDisabledSources(next);
       return next;
     });
   };
@@ -212,9 +237,9 @@ export default function FreePoolTab() {
             value={filterProtocol}
             onChange={(e) => setFilterProtocol(e.target.value)}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1"
-            aria-label={t("proxyFreePoolFilterProtocol")}
+            aria-label={translateOrFallback("proxyFreePoolFilterProtocol", "Filter by protocol")}
           >
-            <option value="">{t("proxyFreePoolProtocol")}</option>
+            <option value="">{translateOrFallback("proxyFreePoolProtocol", "Protocol")}</option>
             {["http", "https", "socks4", "socks5"].map((p) => (
               <option key={p} value={p}>
                 {p.toUpperCase()}
@@ -223,24 +248,32 @@ export default function FreePoolTab() {
           </select>
           <input
             type="text"
-            placeholder={t("proxyFreePoolCountryPlaceholder")}
+            placeholder={translateOrFallback(
+              "proxyFreePoolCountryPlaceholder",
+              "Country (e.g. US)"
+            )}
             value={filterCountry}
             onChange={(e) => setFilterCountry(e.target.value.toUpperCase().slice(0, 2))}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1 w-28"
-            aria-label={t("proxyFreePoolFilterCountry")}
+            aria-label={translateOrFallback("proxyFreePoolFilterCountry", "Filter by country")}
           />
           <input
             type="number"
-            placeholder={t("proxyFreePoolMinQualityPlaceholder")}
+            placeholder={translateOrFallback("proxyFreePoolMinQualityPlaceholder", "Min quality")}
             value={minQuality}
             onChange={(e) => setMinQuality(e.target.value)}
             min={0}
             max={100}
             className="text-xs bg-surface-alt border border-border rounded px-2 py-1 w-24"
-            aria-label={t("proxyFreePoolMinQualityLabel")}
+            aria-label={translateOrFallback(
+              "proxyFreePoolMinQualityLabel",
+              "Minimum quality score"
+            )}
           />
           <Button size="sm" variant="secondary" icon="sync" onClick={handleSync} disabled={syncing}>
-            {syncing ? t("syncing") : t("proxyFreePoolSyncAll")}
+            {syncing
+              ? translateOrFallback("syncing", "Syncing...")
+              : translateOrFallback("proxyFreePoolSyncAll", "Sync all")}
           </Button>
         </div>
       </div>
@@ -248,19 +281,21 @@ export default function FreePoolTab() {
       {stats && (
         <div className="text-xs text-text-muted flex gap-4 flex-wrap">
           <span>
-            {t("proxyFreePoolTotal")}: {stats.total}
+            {translateOrFallback("proxyFreePoolTotal", "Total")}: {stats.total}
           </span>
           <span>
-            {t("proxyFreePoolInPool")}: {stats.inPool}
+            {translateOrFallback("proxyFreePoolInPool", "In pool")}: {stats.inPool}
           </span>
           {stats.avgQuality != null && (
             <span>
-              {t("proxyFreePoolAvgQuality")}: {stats.avgQuality}
+              {translateOrFallback("proxyFreePoolAvgQuality", "Average quality")}:{" "}
+              {stats.avgQuality}
             </span>
           )}
           {stats.lastSyncAt && (
-            <span>
-              {t("lastSync")}: {new Date(stats.lastSyncAt).toLocaleTimeString()}
+            <span suppressHydrationWarning>
+              {translateOrFallback("lastSync", "Last sync")}:{" "}
+              {new Date(stats.lastSyncAt).toLocaleTimeString()}
             </span>
           )}
         </div>
@@ -282,9 +317,13 @@ export default function FreePoolTab() {
 
       {selected.size > 0 && (
         <div className="flex items-center gap-2 p-2 bg-primary/10 rounded border border-primary/20">
-          <span className="text-xs">{t("proxyFreePoolSelected", { count: selected.size })}</span>
+          <span className="text-xs">
+            {translateOrFallback("proxyFreePoolSelected", `${selected.size} selected`, {
+              count: selected.size,
+            })}
+          </span>
           <Button size="sm" variant="primary" onClick={() => handleBulkAdd(Array.from(selected))}>
-            {t("proxyFreePoolAddSelected")}
+            {translateOrFallback("proxyFreePoolAddSelected", "Add selected to pool")}
           </Button>
           {bulkProgress && <span className="text-xs text-text-muted">{bulkProgress}</span>}
         </div>
@@ -297,7 +336,7 @@ export default function FreePoolTab() {
             variant="secondary"
             onClick={() => handleBulkAdd(notInPoolProxies.slice(0, 100).map((p) => p.id))}
           >
-            {t("proxyFreePoolAddVisible")}
+            {translateOrFallback("proxyFreePoolAddVisible", "Add all visible to pool")}
           </Button>
         </div>
       )}
@@ -308,22 +347,22 @@ export default function FreePoolTab() {
             <tr>
               <th className="px-3 py-2 text-left w-8" scope="col"></th>
               <th className="px-3 py-2 text-left" scope="col">
-                {t("proxyFreePoolSource")}
+                {translateOrFallback("proxyFreePoolSource", "Source")}
               </th>
               <th className="px-3 py-2 text-left" scope="col">
-                {t("proxyFreePoolHostPort")}
+                {translateOrFallback("proxyFreePoolHostPort", "Host:Port")}
               </th>
               <th className="px-3 py-2 text-left" scope="col">
-                {t("proxyFreePoolType")}
+                {translateOrFallback("proxyFreePoolType", "Type")}
               </th>
               <th className="px-3 py-2 text-left" scope="col">
-                {t("proxyFreePoolCountry")}
+                {translateOrFallback("proxyFreePoolCountry", "Country")}
               </th>
               <th className="px-3 py-2 text-left" scope="col">
-                {t("proxyFreePoolQuality")}
+                {translateOrFallback("proxyFreePoolQuality", "Quality")}
               </th>
               <th className="px-3 py-2 text-left" scope="col">
-                {t("proxyFreePoolLatency")}
+                {translateOrFallback("proxyFreePoolLatency", "Latency")}
               </th>
               <th className="px-3 py-2 text-left" scope="col"></th>
             </tr>
@@ -332,13 +371,16 @@ export default function FreePoolTab() {
             {loading ? (
               <tr>
                 <td colSpan={8} className="px-3 py-8 text-center text-text-muted">
-                  {t("loading")}
+                  {translateOrFallback("loading", "Loading...")}
                 </td>
               </tr>
             ) : proxies.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-3 py-8 text-center text-text-muted">
-                  {t("proxyFreePoolEmpty")}
+                  {translateOrFallback(
+                    "proxyFreePoolEmpty",
+                    "No proxies found. Click Sync all to fetch from sources."
+                  )}
                 </td>
               </tr>
             ) : (

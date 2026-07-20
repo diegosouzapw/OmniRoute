@@ -15,11 +15,13 @@
  * Modules repaired:
  *   - better-sqlite3 (SQLite bindings)
  *   - wreq-js (TLS client for OAuth providers)
+ *   - tls-client-node (TLS client for chatgpt-web/claude-web/grok-web/lmarena/perplexity-web)
  *
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/129
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/321
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/426
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
+ * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/7802
  */
 
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync } from "node:fs";
@@ -29,6 +31,7 @@ import { fileURLToPath } from "node:url";
 import { PUBLISHED_BUILD_ARCH, PUBLISHED_BUILD_PLATFORM } from "./native-binary-compat.mjs";
 import { hasStandaloneAppBundle, isTermux } from "./postinstallSupport.mjs";
 import { colocateLlmlinguaOptionals } from "./colocateOptionals.mjs";
+import { fixTlsClientNodeBinary } from "./fixTlsClientNodeBinary.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -344,6 +347,7 @@ async function ensureLlmlinguaOptionals() {
 
 await fixBetterSqliteBinary();
 await fixWreqJsBinary();
+await fixTlsClientNodeBinary({ rootDir: ROOT });
 await ensureSwcHelpers();
 await ensureLlmlinguaOptionals();
 await syncProjectEnv();

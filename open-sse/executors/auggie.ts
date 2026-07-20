@@ -38,8 +38,114 @@ const AUGGIE_URL = "auggie://cli/stdio";
 // untrusted-input sink. We only ever pass a model that is declared in the
 // registry entry — this closes flag-smuggling (a `model` starting with "-" would
 // otherwise be parsed by auggie as an option) and unknown-model passthrough.
+//
+// The static registry (shipped with the code) is checked first.  On first use
+// the executor also spawns `auggie model list` at runtime and merges any IDs it
+// finds — this lets the allowlist stay current when auggie adds or renames
+// models without a code update.
 const AUGGIE_MODEL_ALLOWLIST: ReadonlySet<string> = new Set(auggieProvider.models.map((m) => m.id));
 const DEFAULT_AUGGIE_MODEL = auggieProvider.models[0]?.id ?? "claude-sonnet-4.6";
+// ─── Model alias map (backward compat for saved combos) ─────────────────────
+// Old model IDs from before the v0.32.0 registry update; each maps to the
+// equivalent v0.32.0 ID so existing combos continue to work after the rename.
+const AUGGIE_MODEL_ALIASES: ReadonlyMap<string, string> = new Map([
+  // Claude
+  ["claude-sonnet-4.6", "sonnet4.6"],
+  ["claude-sonnet-4.6-thinking", "sonnet4.6"],
+  ["claude-opus-4.6", "opus4.6"],
+  ["claude-haiku-4.5", "haiku4.5"],
+  // Gemini
+  ["gemini-3.1-pro", "gemini-3.1-pro-preview"],
+  ["gemini-3.0-flash", "gemini-3.1-pro-preview"],
+  // GPT-5.x (high/medium split was synthetic — v0.32.0 has a single ID per version)
+  ["gpt-5.5-high", "gpt5.5"],
+  ["gpt-5.5-medium", "gpt5.5"],
+  ["gpt-5.4-high", "gpt5.4"],
+  ["gpt-5.4-medium", "gpt5.4"],
+]);
+
+/**
+ * Live model cache populated by `initAuggieModels()`.
+ * - `null`  = not yet attempted
+ * - `Set`   = successfully fetched IDs (possibly empty)
+ */
+let liveModelSet: Set<string> | null = null;
+
+/**
+ * Spawn `auggie model list`, parse `[model-id]` entries, and merge them into
+ * the live allowlist so the executor accepts models auggie recognises even
+ * when the static registry has not been updated yet.
+ *
+ * Safe to call repeatedly: only the first call spawns the process; subsequent
+ * calls are a no-op (including after a failed fetch — `liveModelSet` is set to
+ * an empty set so we don't retry every request).
+ */
+export async function initAuggieModels(
+  signal?: AbortSignal | null,
+  timeoutMs = 8000
+): Promise<void> {
+  if (liveModelSet !== null) return;
+  let bin: string;
+  try {
+    bin = resolveAuggieBin();
+  } catch {
+    liveModelSet = new Set();
+    return;
+  }
+  const child = spawn(bin, ["model", "list"], {
+    env: process.env,
+    stdio: ["ignore", "pipe", "pipe"],
+    shell: false,
+    windowsHide: true,
+  });
+  const fragments: string[] = [];
+  child.stdout.on("data", (d: Buffer) => fragments.push(d.toString("utf8")));
+  let settled = false;
+  const settle = (result: Set<string>) => {
+    if (settled) return;
+    settled = true;
+    liveModelSet = result;
+  };
+  const timer = setTimeout(() => {
+    if (!child.killed) child.kill("SIGKILL");
+    settle(new Set());
+  }, timeoutMs);
+  const onAbort = () => {
+    if (!child.killed) child.kill("SIGKILL");
+    clearTimeout(timer);
+    settle(new Set());
+  };
+  if (signal) {
+    if (signal.aborted) {
+      clearTimeout(timer);
+      settle(new Set());
+      return;
+    }
+    signal.addEventListener("abort", onAbort, { once: true });
+  }
+  try {
+    const code = await new Promise<number | null>((resolve, reject) => {
+      child.on("close", resolve);
+      child.on("error", (e: Error) => reject(e));
+    });
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onAbort);
+    if (code !== 0) {
+      settle(new Set());
+      return;
+    }
+    const ids = new Set<string>();
+    for (const line of fragments.join("").split("\n")) {
+      const m = line.match(/\[([^\]]+)\]/);
+      if (m) ids.add(m[1]);
+    }
+    settle(ids.size > 0 ? ids : new Set());
+  } catch {
+    clearTimeout(timer);
+    settle(new Set());
+    signal?.removeEventListener("abort", onAbort);
+  }
+}
 
 type AuggieModelResolution = { ok: true; model: string } | { ok: false; error: string };
 
@@ -47,6 +153,9 @@ type AuggieModelResolution = { ok: true; model: string } | { ok: false; error: s
  * Validate + resolve the requested model against the registry allowlist.
  * Rejects flag-smuggling (leading "-") and any id not declared in the registry.
  * An empty/absent model resolves to the registry's first (default) model.
+ *
+ * Note: `initAuggieModels()` must be called at least once before this function
+ * sees live-discovered models (the executor's `execute()` does this).
  */
 export function resolveAuggieModel(model: unknown): AuggieModelResolution {
   const requested = typeof model === "string" ? model.trim() : "";
@@ -57,15 +166,20 @@ export function resolveAuggieModel(model: unknown): AuggieModelResolution {
       error: `Invalid Auggie model "${requested}": model must not start with "-".`,
     };
   }
-  if (!AUGGIE_MODEL_ALLOWLIST.has(requested)) {
-    return {
-      ok: false,
-      error: `Unknown Auggie model "${requested}". Supported models: ${[
-        ...AUGGIE_MODEL_ALLOWLIST,
-      ].join(", ")}.`,
-    };
-  }
-  return { ok: true, model: requested };
+  // Backward-compat alias: resolve old model IDs → v0.32.0 equivalents.
+  // This lets saved combos referencing the old names keep working.
+  const requestedAlias = AUGGIE_MODEL_ALIASES.get(requested);
+  if (requestedAlias) return { ok: true, model: requestedAlias };
+  // Static registry — always authoritative for the shipped set.
+  if (AUGGIE_MODEL_ALLOWLIST.has(requested)) return { ok: true, model: requested };
+  // Live-discovered models (if loaded) extend the static list.
+  if (liveModelSet?.has(requested)) return { ok: true, model: requested };
+  const known = [...AUGGIE_MODEL_ALLOWLIST];
+  if (liveModelSet) known.push(...liveModelSet);
+  return {
+    ok: false,
+    error: `Unknown Auggie model "${requested}". Supported models: ${known.join(", ")}.`,
+  };
 }
 
 /**
@@ -151,6 +265,7 @@ export function buildAuggiePrompt(messages: OpenAIMsg[]): string {
       }
     }
     if (!text.trim()) continue;
+
     if (role === "system") {
       lines.push(`[System]\n${text}`);
     } else if (role === "assistant") {
@@ -252,7 +367,6 @@ export class AuggieExecutor extends BaseExecutor {
   ): Promise<Partial<ProviderCredentials> | null> {
     return null;
   }
-
   async execute({ model, body, stream, signal, log }: ExecuteInput): Promise<{
     response: Response;
     url: string;
@@ -265,6 +379,9 @@ export class AuggieExecutor extends BaseExecutor {
     const auggieBin = resolveAuggieBin();
     const wantsStream = stream !== false;
 
+    // On first execution, try to discover model IDs the local auggie recognises.
+    // Best-effort: missing/inactive CLI falls through to the static list.
+    await initAuggieModels(signal);
     // Argument-injection defense: never forward an unvalidated model into the argv.
     const modelResolution = resolveAuggieModel(model);
     if (!modelResolution.ok) {
@@ -600,4 +717,14 @@ function buildAuggieSseError(message: string): Response {
       Connection: "keep-alive",
     },
   });
+}
+
+// ─── Test helpers ──────────────────────────────────────────────────────────
+
+/**
+ * Reset the live model cache for testing.
+ * Not exported from the package index.
+ */
+export function __resetAuggieModels(): void {
+  liveModelSet = null;
 }

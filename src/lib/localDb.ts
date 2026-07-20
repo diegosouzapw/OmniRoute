@@ -9,30 +9,28 @@
 export {
   // Provider Connections
   getProviderConnections,
+  getProviderConnectionsCount,
   getProviderConnectionById,
   createProviderConnection,
   updateProviderConnection,
   clearConnectionErrorIfUnchanged,
+  touchConnectionLastUsed,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,
   reorderProviderConnections,
   cleanupProviderConnections,
-
-  // Provider Nodes
   getProviderNodes,
+  getProviderNodesCount,
   getProviderNodeById,
   resolveProviderNodeForConnection,
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,
-
   // T05: Rate-limit DB persistence (survives token refresh)
   setConnectionRateLimitUntil,
   isConnectionRateLimited,
   getRateLimitedConnections,
-
-  // T05 startup recovery: clear stale transient cooldowns left by a prior crash
   clearStaleCrashCooldowns,
 
   // T13: Stale quota display fix (zero out usage after window resets)
@@ -67,10 +65,10 @@ export {
   getModelIsHidden,
   setModelIsHidden,
   getHiddenModelsByProvider,
-
   // Synced Available Models
   getSyncedAvailableModels,
   getAllSyncedAvailableModels,
+  getActiveProvidersWithSyncedModel,
   replaceSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForProvider,
@@ -82,6 +80,7 @@ export type { ModelCompatPerProtocol, ModelCompatPatch, SyncedAvailableModel } f
 export {
   // Combos
   getCombos,
+  getCombosCount,
   getComboById,
   getComboByName,
   getComboByNameInsensitive,
@@ -90,15 +89,15 @@ export {
   reorderCombos,
   deleteCombo,
 } from "./db/combos";
-
 export * from "./db/compressionCacheStats";
 export * from "./db/compressionCombos";
+export * from "./db/compressionContextBudget";
 export * from "./db/compressionRunTelemetry";
 export * from "./db/modelContextOverrides";
 
 export {
-  // API Keys
   getApiKeys,
+  getApiKeysCount,
   getApiKeyById,
   createApiKey,
   deleteApiKey,
@@ -238,6 +237,9 @@ export {
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
+  getCachedRawProviderConnections,
+  getCachedProviderConnectionById,
+  getCachedProviderNodes,
   getCachedLKGP,
   setCachedLKGP,
   invalidateDbCache,
@@ -312,7 +314,8 @@ export type { FileRecord } from "./db/files";
 export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
-
+export * from "./db/reasoningRoutingRules";
+export * from "./db/autoCandidateOverrides";
 export {
   // Webhooks
   getWebhooks,
