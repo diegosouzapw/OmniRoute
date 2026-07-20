@@ -10,8 +10,8 @@ const { createResponsesApiTransformStream, createResponsesLogger } =
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-async function runTransformStream(chunks, logger = null) {
-  const stream = createResponsesApiTransformStream(logger);
+async function runTransformStream(chunks, logger = null, options = {}) {
+  const stream = createResponsesApiTransformStream(logger, 3000, options);
   const writer = stream.writable.getWriter();
   const reader = stream.readable.getReader();
 
@@ -173,6 +173,32 @@ test("createResponsesApiTransformStream handles native reasoning content and too
       })),
     [{ id: "fc_call_2", call_id: "call_2", name: "lookup", arguments: "{}" }]
   );
+});
+
+test("createResponsesApiTransformStream restores declared custom tools without changing functions", async () => {
+  const output = await runTransformStream(
+    [
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_exec","function":{"name":"exec","arguments":"{\\"input\\":\\"text(\\\\\\"pong\\\\\\")\\"}"}}]}}]}\n\n',
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"id":"call_search","function":{"name":"search","arguments":"{\\"q\\":\\"pong\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+    ],
+    null,
+    { customToolNames: new Set(["exec"]) }
+  );
+
+  const events = parseSseOutput(output);
+  const added = events
+    .filter((event) => event.event === "response.output_item.added")
+    .map((event) => JSON.parse(event.data).item);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  assert.equal(added.find((item) => item.name === "exec").type, "custom_tool_call");
+  assert.equal(added.find((item) => item.name === "search").type, "function_call");
+  assert.ok(events.some((event) => event.event === "response.custom_tool_call_input.delta"));
+  assert.ok(events.some((event) => event.event === "response.custom_tool_call_input.done"));
+  assert.equal(completed.output.find((item) => item.name === "exec").input, 'text("pong")');
+  assert.equal(completed.output.find((item) => item.name === "search").arguments, '{"q":"pong"}');
 });
 
 test("createResponsesLogger persists input and output event logs on flush", async () => {
