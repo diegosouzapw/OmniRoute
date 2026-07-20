@@ -184,3 +184,32 @@ describe("ccr engine — skip tool outputs", () => {
     assert.equal(messages[0].content[0].content, LARGE_TOOL_OUTPUT);
   });
 });
+
+it("does NOT crash on malformed user content with null / non-object parts (defensive guard)", () => {
+  // Regression guard for gemini-code-assist review on PR #7869:
+  // msg.content is parsed from external client input, so a malformed
+  // payload could deliver `null` or non-object entries in the parts
+  // array. The optional-chaining check must NOT throw a TypeError.
+  const body = {
+    model: "claude-sonnet-4-5",
+    messages: [
+      {
+        role: "user",
+        content: [
+          null,
+          { type: "tool_result", tool_use_id: "toolu_x", content: LARGE_TOOL_OUTPUT },
+        ],
+      },
+    ],
+  };
+
+  // Must not throw.
+  const result = ccrEngine.apply(body as Record<string, unknown>);
+
+  // Null is not a tool_result, so the message must NOT be skipped as
+  // a tool-only message — it falls through to the normal array path
+  // where the existing text/non-text branch handles each part.
+  // We just need the engine to not crash on the malformed payload.
+  assert.ok(result.body, "engine must return a body even with malformed content");
+  assert.equal(typeof result.compressed, "boolean");
+});

@@ -601,7 +601,7 @@ function processMessages(
     if (msg.role === "tool") return { ...msg };
     if (msg.role === "user" && Array.isArray(msg.content)) {
       const parts = msg.content as Array<Record<string, unknown>>;
-      if (parts.length > 0 && parts.every((p) => p["type"] === "tool_result")) {
+      if (parts.length > 0 && parts.every((p) => p?.["type"] === "tool_result")) {
         return { ...msg };
       }
     }
@@ -618,7 +618,7 @@ function processMessages(
     if (Array.isArray(msg.content)) {
       let changed = false;
       const newContent = msg.content.map((part) => {
-        if (part["type"] !== "text" || typeof part["text"] !== "string") return part;
+        if (part?.["type"] !== "text" || typeof part?.["text"] !== "string") return part;
         const { text, replaced } = maybeCcrReplace(
           part["text"] as string,
           minChars,
