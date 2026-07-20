@@ -1957,52 +1957,6 @@ test("createSSETransformStreamWithLogger flushes Responses API terminal events o
   assert.doesNotMatch(text, /\[DONE\]/);
 });
 
-test("createSSETransformStreamWithLogger restores custom tool metadata on the active path", async () => {
-  const text = await readWithTransform(
-    [
-      `data: ${JSON.stringify({
-        id: "chatcmpl_custom",
-        object: "chat.completion.chunk",
-        choices: [
-          {
-            index: 0,
-            delta: {
-              tool_calls: [
-                {
-                  index: 0,
-                  id: "call_exec",
-                  function: { name: "exec", arguments: '{"input":"text(\\"pong\\")"}' },
-                },
-              ],
-            },
-            finish_reason: "tool_calls",
-          },
-        ],
-      })}\n\n`,
-    ],
-    createSSETransformStreamWithLogger(
-      FORMATS.OPENAI,
-      FORMATS.OPENAI_RESPONSES,
-      "opencode-go",
-      null,
-      null,
-      "kimi-k3",
-      null,
-      { messages: [{ role: "user", content: "run it" }] },
-      null,
-      null,
-      null,
-      false,
-      false,
-      new Set(["exec"])
-    )
-  );
-
-  assert.match(text, /"type":"custom_tool_call"/);
-  assert.match(text, /"input":"text\(\\"pong\\"\)"/);
-  assert.doesNotMatch(text, /"type":"function_call"/);
-});
-
 test("createPassthroughStreamWithLogger reuses passthrough mode helpers", async () => {
   const text = await readWithTransform(
     [

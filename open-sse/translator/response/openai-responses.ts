@@ -433,8 +433,7 @@ function emitToolCall(state, emit, tc) {
 
   if (funcName) state.funcNames[tcIdx] = funcName;
 
-  // Codex custom tools (apply_patch) are surfaced to the client as custom_tool_call items
-  // and stream their raw patch via custom_tool_call_input.* events instead of the
+  // Custom tools are surfaced as custom_tool_call items and stream raw input instead of the
   // function_call_arguments.* events used for regular function tools. (#1007)
   const toolName = state.funcNames[tcIdx] || funcName || "";
   const isCustomTool =
