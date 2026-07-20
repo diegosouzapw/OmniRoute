@@ -92,6 +92,16 @@ describe("stripBooleanReasoning", () => {
     assert.equal(result, body);
   });
 
+  it("returns null/undefined/primitive bodies unchanged", () => {
+    assert.equal(stripBooleanReasoning(null as unknown as Record<string, unknown>), null);
+    assert.equal(stripBooleanReasoning(undefined as unknown as Record<string, unknown>), undefined);
+    assert.equal(
+      stripBooleanReasoning("not an object" as unknown as Record<string, unknown>),
+      "not an object"
+    );
+    assert.equal(stripBooleanReasoning(42 as unknown as Record<string, unknown>), 42);
+  });
+
   it("does not mutate the original body", () => {
     const body = { model: "glm-5.2", reasoning: true };
     const result = stripBooleanReasoning(body);

@@ -21,12 +21,7 @@ type JsonRecord = Record<string, unknown>;
  * Related: services/mimoThinking.ts uses the same pattern for Xiaomi MiMo.
  */
 
-const OPENCODE_GO_PROVIDERS = new Set([
-  "ollama-cloud",
-  "opencode-go",
-  "opencode",
-  "opencode-zen",
-]);
+const OPENCODE_GO_PROVIDERS = new Set(["ollama-cloud", "opencode-go", "opencode", "opencode-zen"]);
 
 /** True when the provider is backed by the opencode-go backend. */
 export function isOpencodeGoProvider(provider: string): boolean {
@@ -39,6 +34,7 @@ export function isOpencodeGoProvider(provider: string): boolean {
  * clone with the field removed.
  */
 export function stripBooleanReasoning(body: JsonRecord): JsonRecord {
+  if (!body || typeof body !== "object") return body;
   if (!("reasoning" in body)) return body;
   const reasoning = body.reasoning;
   // Only strip when reasoning is a boolean — object/string forms are valid
