@@ -519,6 +519,27 @@ export function buildCcrReference(
 }
 
 /**
+ * #7746 guard: how many leading characters of the original block to keep in front
+ * of the marker. `maybeCcrReplace` treats an entire message/part as ONE candidate
+ * block (see module docstring), so a bare marker alone would silently discard the
+ * ENTIRE prompt for any caller that cannot resolve `omniroute_ccr_retrieve`
+ * (every plain OpenAI-compatible client — it is only ever exposed as an MCP tool).
+ * Keeping a short, human-readable preamble means the model still sees the start
+ * of the user's intent even when the marker itself is unreachable, while the full
+ * text remains verbatim-retrievable by hash for MCP-capable callers.
+ */
+const MARKER_PREAMBLE_CHARS = 200;
+
+/**
+ * Build the text that replaces a compressed block: a short preamble of the
+ * original content followed by the retrieve marker, never the marker alone.
+ */
+function buildCcrReplacementText(text: string, marker: string): string {
+  const preamble = text.slice(0, MARKER_PREAMBLE_CHARS).trimEnd();
+  return `${preamble}… ${marker}`;
+}
+
+/**
  * Replace a large text block with a CCR marker if it shrinks the content.
  * Returns the new text and a flag indicating whether replacement happened.
  */
@@ -543,15 +564,18 @@ function maybeCcrReplace(
   }
 
   const marker = buildCcrMarker(hash, text.length);
+  // #7746: never leave a caller with ONLY the bare marker — keep a short preamble
+  // so the original prompt is not silently, totally unreachable for non-MCP callers.
+  const replacement = buildCcrReplacementText(text, marker);
 
   // Only replace if it actually shrinks
-  if (marker.length >= text.length) {
+  if (replacement.length >= text.length) {
     return { text, replaced: false, hash: null };
   }
 
   const stored = tryStoreBlock(text, principalId, { source: "compression" });
   if (!stored.stored) return { text, replaced: false, hash: null };
-  return { text: marker, replaced: true, hash };
+  return { text: replacement, replaced: true, hash };
 }
 
 /**
