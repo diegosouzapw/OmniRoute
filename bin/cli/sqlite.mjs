@@ -3,12 +3,58 @@ import { resolveDataDir, resolveStoragePath } from "./data-dir.mjs";
 import { ensureProviderSchema } from "./provider-store.mjs";
 import { ensureSettingsSchema, hashManagementPassword, updateSettings } from "./settings-store.mjs";
 
-async function loadBetterSqlite() {
+async function loadSqlite() {
+  if (process.versions.bun) {
+    return (await import("bun:sqlite")).Database;
+  }
   try {
     return (await import("better-sqlite3")).default;
   } catch {
     throw new Error("better-sqlite3 is not installed. Run npm install before using setup.");
   }
+}
+
+function openBunSqlite(Database, dbPath, options) {
+  const raw = new Database(dbPath, options);
+  const normalizeParams = (params) => {
+    if (params.length !== 1 || params[0] === null || typeof params[0] !== "object" || Array.isArray(params[0])) {
+      return params;
+    }
+    const expanded = {};
+    for (const [key, value] of Object.entries(params[0])) {
+      if (/^[:@$]/.test(key)) expanded[key] = value;
+      else {
+        expanded[`@${key}`] = value;
+        expanded[`:${key}`] = value;
+        expanded[`$${key}`] = value;
+      }
+    }
+    return [expanded];
+  };
+  const prepare = (sql) => {
+    const statement = raw.query(sql);
+    return {
+      run: (...params) => statement.run(...normalizeParams(params)),
+      get: (...params) => statement.get(...normalizeParams(params)),
+      all: (...params) => statement.all(...normalizeParams(params)),
+    };
+  };
+  return {
+    prepare,
+    query: (sql) => raw.query(sql),
+    exec: (sql) => raw.exec(sql),
+    transaction: (fn) => raw.transaction(fn),
+    close: () => raw.close(),
+    serialize: () => raw.serialize(),
+    pragma: (pragmaStr, pragmaOptions) => {
+      const statement = raw.query(`PRAGMA ${pragmaStr}`);
+      if (pragmaOptions?.simple) {
+        const row = statement.get();
+        return row ? Object.values(row)[0] ?? null : null;
+      }
+      return statement.all();
+    },
+  };
 }
 
 export function createSqliteNativeError(error) {
@@ -25,9 +71,19 @@ export function createSqliteNativeError(error) {
 }
 
 async function openSqliteDatabase(dbPath, options = {}) {
-  const Database = await loadBetterSqlite();
+  const Database = await loadSqlite();
+  if (process.versions.bun) {
+    if (options.fileMustExist && !fs.existsSync(dbPath)) {
+      throw new Error(`SQLite file does not exist: ${dbPath}`);
+    }
+    options = options.readonly
+      ? { readonly: true }
+      : { readwrite: true, create: options.fileMustExist !== true };
+  }
   try {
-    return new Database(dbPath, options);
+    return process.versions.bun
+      ? openBunSqlite(Database, dbPath, options)
+      : new Database(dbPath, options);
   } catch (error) {
     throw createSqliteNativeError(error);
   }
@@ -59,7 +115,16 @@ export async function withReadonlySqlite(dbPath, callback) {
 export async function backupSqliteFile(sourcePath, destPath) {
   const db = await openSqliteDatabase(sourcePath, { readonly: true });
   try {
-    await db.backup(destPath);
+    if (typeof db.backup === "function") {
+      await db.backup(destPath);
+    } else if (typeof db.serialize === "function") {
+      fs.writeFileSync(destPath, Buffer.from(db.serialize()));
+    } else {
+      try {
+        db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
+      } catch {}
+      fs.copyFileSync(sourcePath, destPath);
+    }
   } finally {
     db.close();
   }

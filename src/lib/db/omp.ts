@@ -1,6 +1,15 @@
 import os from "os";
 import path from "path";
-import Database from "better-sqlite3";
+import { createRequire } from "node:module";
+
+const _require = createRequire(import.meta.url);
+const Database = process.versions.bun
+  ? (_require("bun:sqlite").Database as typeof import("better-sqlite3"))
+  : (_require("better-sqlite3") as typeof import("better-sqlite3"));
+
+function databaseOptions(readonly = false) {
+  return readonly ? { readonly: true } : { readwrite: true, create: true };
+}
 
 const getOmpDir = () => path.join(os.homedir(), ".omp", "agent");
 const getOmpDbPath = () => path.join(getOmpDir(), "agent.db");
@@ -8,7 +17,7 @@ const getOmpDbPath = () => path.join(getOmpDir(), "agent.db");
 export function getOmpCredentials(providerId: string) {
   const dbPath = getOmpDbPath();
   try {
-    const db = new Database(dbPath, { readonly: true });
+    const db = new Database(dbPath, databaseOptions(true));
     const row = db
       .prepare(
         "SELECT data FROM auth_credentials WHERE provider = ? AND credential_type = 'api_key'"
@@ -28,7 +37,7 @@ export function getOmpCredentials(providerId: string) {
 
 export function saveOmpCredentials(providerId: string, apiKey: string, baseUrl: string) {
   const dbPath = getOmpDbPath();
-  const db = new Database(dbPath);
+  const db = new Database(dbPath, databaseOptions());
 
   db.prepare("DELETE FROM auth_credentials WHERE provider = ?").run(providerId);
   db.prepare(
@@ -46,7 +55,7 @@ export function saveOmpCredentials(providerId: string, apiKey: string, baseUrl: 
 
 export function deleteOmpCredentials(providerId: string) {
   const dbPath = getOmpDbPath();
-  const db = new Database(dbPath);
+  const db = new Database(dbPath, databaseOptions());
   db.prepare("DELETE FROM auth_credentials WHERE provider = ?").run(providerId);
   db.close();
 }

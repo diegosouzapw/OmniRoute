@@ -1,5 +1,7 @@
 import { createRequire } from "node:module";
+import { existsSync } from "node:fs";
 import { createBetterSqliteAdapter } from "./betterSqliteAdapter";
+import { createBunSqliteAdapter, type BunSqliteDatabaseLike } from "./bunSqliteAdapter";
 import {
   createNodeSqliteAdapterFromDatabase,
   type NodeSqliteDatabaseLike,
@@ -70,6 +72,31 @@ export function tryOpenSync(
   filePath: string,
   options?: Record<string, unknown>
 ): SqliteAdapter | null {
+  // Bun ships a supported SQLite implementation. Prefer it over the native
+  // Node addon, which Bun intentionally skips because its ABI is incompatible.
+  if (process.versions.bun) {
+    try {
+      const { Database } = _require("bun:sqlite") as {
+        Database: new (p: string, options?: Record<string, unknown>) => BunSqliteDatabaseLike;
+      };
+      if (
+        options?.fileMustExist === true &&
+        filePath !== ":memory:" &&
+        !existsSync(filePath)
+      ) {
+        throw new Error(`SQLite file does not exist: ${filePath}`);
+      }
+      const db = new Database(filePath, {
+        ...(options?.readonly === true
+          ? { readonly: true }
+          : { readwrite: true, create: options?.fileMustExist !== true }),
+      });
+      return createBunSqliteAdapter(db, filePath);
+    } catch (err) {
+      logSwallowedDriverError("bun:sqlite", err);
+    }
+  }
+
   // better-sqlite3: rápido, nativo — skip em Bun
   if (!process.versions.bun) {
     try {
@@ -157,7 +184,7 @@ export function getSqlJsAdapter(filePath: string): SqliteAdapter | null {
 
 /**
  * Factory assíncrona completa: tenta todos os drivers em cascata.
- * Ordem: better-sqlite3 → node:sqlite → sql.js
+ * Ordem: bun:sqlite → better-sqlite3 → node:sqlite → sql.js
  */
 export async function openDatabaseAsync(
   filePath: string,
