@@ -104,6 +104,8 @@ export function createResponsesApiTransformStream(
     funcArgsBuf: {},
     funcNames: {},
     funcCallIds: {},
+    funcItemAdded: {},
+    funcItemTypes: {},
     funcArgsDone: {},
     funcItemDone: {},
     completedOutputItems: [] as Array<{
@@ -277,13 +279,36 @@ export function createResponsesApiTransformStream(
     }
   };
 
+  const emitToolCallAdded = (controller, idx) => {
+    if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return;
+
+    const customTool = customToolNames.has(state.funcNames[idx] || "");
+    const itemType = customTool ? "custom_tool_call" : "function_call";
+    state.funcItemTypes[idx] = itemType;
+    state.funcItemAdded[idx] = true;
+
+    emit(controller, "response.output_item.added", {
+      type: "response.output_item.added",
+      output_index: idx,
+      item: {
+        id: `fc_${state.funcCallIds[idx]}`,
+        type: itemType,
+        ...(customTool ? { input: "" } : { arguments: "" }),
+        call_id: state.funcCallIds[idx],
+        name: state.funcNames[idx] || "",
+        ...(customTool ? { status: "in_progress" } : {}),
+      },
+    });
+  };
+
   const closeToolCall = (controller, idx, recordAsCompleted = true) => {
     const callId = state.funcCallIds[idx];
     if (callId && !state.funcItemDone[idx]) {
       const normalizedIndex = normalizeOutputIndex(idx);
       let args = state.funcArgsBuf[idx] || "{}";
       const toolName = state.funcNames[idx] || "";
-      const isCustomTool = customToolNames.has(toolName);
+      emitToolCallAdded(controller, idx);
+      const isCustomTool = state.funcItemTypes[idx] === "custom_tool_call";
 
       // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders
       try {
@@ -624,20 +649,13 @@ export function createResponsesApiTransformStream(
 
               if (!state.funcCallIds[tcIdx] && newCallId) {
                 state.funcCallIds[tcIdx] = newCallId;
-                const isCustomTool = customToolNames.has(state.funcNames[tcIdx] || "");
+              }
 
-                emit(controller, "response.output_item.added", {
-                  type: "response.output_item.added",
-                  output_index: tcIdx,
-                  item: {
-                    id: `fc_${newCallId}`,
-                    type: isCustomTool ? "custom_tool_call" : "function_call",
-                    ...(isCustomTool ? { input: "" } : { arguments: "" }),
-                    call_id: newCallId,
-                    name: state.funcNames[tcIdx] || "",
-                    ...(isCustomTool ? { status: "in_progress" } : {}),
-                  },
-                });
+              // The provider may send the call id before the function name. Defer the
+              // lifecycle item until the name is available so custom calls are not first
+              // announced as function calls.
+              if (state.funcCallIds[tcIdx] && state.funcNames[tcIdx]) {
+                emitToolCallAdded(controller, tcIdx);
               }
 
               if (!state.funcArgsBuf[tcIdx]) state.funcArgsBuf[tcIdx] = "";
@@ -667,7 +685,8 @@ export function createResponsesApiTransformStream(
                 if (
                   refCallId &&
                   emittedDelta &&
-                  !customToolNames.has(state.funcNames[tcIdx] || "")
+                  state.funcItemAdded[tcIdx] &&
+                  state.funcItemTypes[tcIdx] !== "custom_tool_call"
                 ) {
                   emit(controller, "response.function_call_arguments.delta", {
                     type: "response.function_call_arguments.delta",

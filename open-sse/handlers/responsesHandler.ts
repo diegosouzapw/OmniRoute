@@ -11,6 +11,22 @@ import { createResponsesApiTransformStream } from "../transformer/responsesTrans
 import { createSseHeartbeatTransform, HEARTBEAT_SHAPES } from "../utils/sseHeartbeat.ts";
 import { SSE_HEARTBEAT_INTERVAL_MS } from "../config/constants.ts";
 
+function collectCustomToolNames(tools: unknown[], customToolNames: Set<string>) {
+  for (const toolValue of tools) {
+    if (!toolValue || typeof toolValue !== "object" || Array.isArray(toolValue)) continue;
+    const tool = toolValue as Record<string, unknown>;
+
+    if (tool.type === "custom" && typeof tool.name === "string") {
+      const name = tool.name.trim();
+      if (name) customToolNames.add(name);
+    }
+
+    if (tool.type === "namespace" && Array.isArray(tool.tools)) {
+      collectCustomToolNames(tool.tools, customToolNames);
+    }
+  }
+}
+
 /**
  * Handle /v1/responses request
  * @param {object} options
@@ -37,12 +53,8 @@ export async function handleResponsesCore({
   signal,
 }) {
   const inputItems = Array.isArray(body?.input) ? body.input : [];
-  const customToolNames = new Set(
-    collectResponsesTools(body?.tools, inputItems)
-      .filter((tool) => tool?.type === "custom" && typeof tool.name === "string")
-      .map((tool) => tool.name.trim())
-      .filter(Boolean)
-  );
+  const customToolNames = new Set<string>();
+  collectCustomToolNames(collectResponsesTools(body?.tools, inputItems), customToolNames);
 
   // Convert Responses API format to Chat Completions format
   const convertedBody = convertResponsesApiFormat(body, credentials);

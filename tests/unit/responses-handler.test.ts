@@ -423,6 +423,27 @@ test("handleResponsesCore preserves top-level tool precedence for custom-name co
   assert.doesNotMatch(sse, /"type":"custom_tool_call"/);
 });
 
+test("handleResponsesCore restores custom tools nested in namespaces", async () => {
+  const { result } = await invokeResponsesCore({
+    body: {
+      model: "gpt-4o-mini",
+      input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "ping" }] }],
+      tools: [
+        {
+          type: "namespace",
+          name: "commands",
+          tools: [{ type: "custom", name: "exec", description: "Execute freeform code" }],
+        },
+      ],
+    },
+    responseFactory: () => buildToolCallSseResponse("exec", '{"input":"pong"}'),
+  });
+
+  const sse = await result.response.text();
+  assert.match(sse, /"type":"custom_tool_call"/);
+  assert.doesNotMatch(sse, /"type":"function_call","arguments"/);
+});
+
 test("handleResponsesCore injects SSE keepalive frames for Responses streams", async (t) => {
   // PR #2233 changed the Responses-API heartbeat shape from a SSE comment
   // (`: keepalive ...`) to a `data: {"type":"response.in_progress"}` frame,

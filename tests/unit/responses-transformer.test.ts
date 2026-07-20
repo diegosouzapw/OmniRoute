@@ -201,6 +201,35 @@ test("createResponsesApiTransformStream restores declared custom tools without c
   assert.equal(completed.output.find((item) => item.name === "search").arguments, '{"q":"pong"}');
 });
 
+test("createResponsesApiTransformStream defers custom item creation until the tool name arrives", async () => {
+  const output = await runTransformStream(
+    [
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_exec"}]}}]}\n\n',
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"name":"exec","arguments":"{\\"input\\":\\"pong\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+    ],
+    null,
+    { customToolNames: new Set(["exec"]) }
+  );
+
+  const events = parseSseOutput(output);
+  const added = events
+    .filter((event) => event.event === "response.output_item.added")
+    .map((event) => JSON.parse(event.data).item)
+    .filter((item) => item.call_id === "call_exec");
+
+  assert.deepEqual(added, [
+    {
+      id: "fc_call_exec",
+      type: "custom_tool_call",
+      input: "",
+      call_id: "call_exec",
+      name: "exec",
+      status: "in_progress",
+    },
+  ]);
+  assert.equal(events.filter((event) => event.event === "response.output_item.done").length, 1);
+});
+
 test("createResponsesLogger persists input and output event logs on flush", async () => {
   const logsDir = mkdtempSync(join(tmpdir(), "responses-transformer-"));
   const logger = createResponsesLogger("gpt-4o", logsDir);
