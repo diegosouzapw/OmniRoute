@@ -1,30 +1,20 @@
-/**
- * vncSession service — lifecycle for persistent web-login browser containers.
- *
- * When a cookie/token web provider is configured in OmniRoute, the operator can
- * start a containerized browser (noVNC web UI) here, log in interactively, and
- * have the resulting cookies/localStorage harvested back into the provider's
- * `provider_connections` row via the Chrome/Firefox DevTools Protocol.
- *
- * The container is auto-stopped when idle (no viewer + no harvest) for
- * `idleTimeoutMs`, and all containers are torn down on server shutdown.
- *
- * Docker is the only external dependency; if the `docker` CLI is missing the
- * feature degrades gracefully (start throws a clear error, shutdown is a no-op).
- */
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
-import { homedir } from "node:os";
+import { randomUUID } from "node:crypto";
+import { chmodSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { getProviderConnections, updateProviderConnection } from "@/lib/db/providers";
-import { VNC_CONFIG, getVncProvider, type VncProviderEntry } from "./manifest";
-import { harvestFromContainer, harvestToCredentials } from "./harvest";
+import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
+import { validateProviderApiKey } from "@/lib/providers/validation";
+import { VNC_CONFIG, getVncProvider } from "./manifest";
+import { harvestFromContainer, harvestToCredentials, waitForCdpReady } from "./harvest";
 
-export type VncSessionStatus = "starting" | "running" | "stopping" | "error";
+export type VncSessionStatus = "starting" | "running" | "harvesting" | "stopping" | "error";
 
 export interface VncSession {
+  sessionId: string;
+  connectionId: string;
   providerId: string;
   containerName: string;
+  profileDir: string;
   cdpPort: number;
   vncPort: number;
   url: string;
@@ -35,203 +25,361 @@ export interface VncSession {
   error?: string;
 }
 
+export interface HarvestSessionResult {
+  harvested: boolean;
+  sessionId: string;
+  connectionId: string;
+  providerId: string;
+  updatedFields: string[];
+  validation: {
+    valid: boolean;
+    unsupported: boolean;
+    error: string | null;
+  } | null;
+}
+
+const LABEL = "com.omniroute.browser-login";
 const SESSIONS = new Map<string, VncSession>();
 let idleTimer: NodeJS.Timeout | null = null;
-
-function dockerBin(): string {
-  return process.env.OMNIROUTE_DOCKER_BIN || "docker";
-}
+let reconciliationPromise: Promise<void> | null = null;
 
 function docker(
   args: string[],
   opts: { timeoutMs?: number } = {}
 ): Promise<{ code: number; out: string; err: string }> {
   return new Promise((resolve) => {
-    const child = spawn(dockerBin(), args, { stdio: ["ignore", "pipe", "pipe"] });
+    let settled = false;
     let out = "";
     let err = "";
-    const to = setTimeout(() => {
+    const child = spawn(VNC_CONFIG.dockerBin, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let timer: NodeJS.Timeout | null = null;
+    const finish = (result: { code: number; out: string; err: string }) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      resolve(result);
+    };
+    timer = setTimeout(() => {
       child.kill("SIGKILL");
-      resolve({ code: -1, out, err: err + " (docker timed out)" });
+      finish({ code: -1, out, err: `${err} (docker timed out)`.trim() });
     }, opts.timeoutMs ?? 60_000);
-    child.stdout.on("data", (d) => (out += d.toString()));
-    child.stderr.on("data", (d) => (err += d.toString()));
-    child.on("error", (e) => {
-      clearTimeout(to);
-      resolve({ code: -1, out, err: String(e?.message ?? e) });
+
+    child.stdout.on("data", (data) => {
+      out += data.toString();
+    });
+    child.stderr.on("data", (data) => {
+      err += data.toString();
+    });
+    child.on("error", (error) => {
+      finish({ code: -1, out, err: error.message });
     });
     child.on("close", (code) => {
-      clearTimeout(to);
-      resolve({ code: code ?? -1, out, err });
+      finish({ code: code ?? -1, out, err });
     });
   });
 }
 
-export function sessionKey(providerId: string): string {
-  return `omniroute-vnc-${providerId}`;
-}
-export function getSession(providerId: string): VncSession | undefined {
-  return SESSIONS.get(providerId);
-}
-export function listSessions(): VncSession[] {
-  return [...SESSIONS.values()];
+export function sessionKey(sessionId: string): string {
+  return `omniroute-browser-login-${sessionId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20)}`;
 }
 
-function pickPort(role: "vnc" | "cdp"): number {
-  const used = new Set([...SESSIONS.values()].flatMap((s) => [s.vncPort, s.cdpPort]));
-  for (let i = 0; i < VNC_CONFIG.maxSessions; i++) {
-    const p = VNC_CONFIG.vncBasePort + i * 2 + (role === "cdp" ? 1 : 0);
-    if (!used.has(p)) return p;
+export function getSession(connectionId: string, sessionId: string): VncSession | undefined {
+  const session = SESSIONS.get(sessionId);
+  return session?.connectionId === connectionId ? session : undefined;
+}
+
+export function listSessions(connectionId?: string): VncSession[] {
+  const sessions = [...SESSIONS.values()];
+  return connectionId ? sessions.filter((session) => session.connectionId === connectionId) : sessions;
+}
+
+async function reconcileStaleContainers(): Promise<void> {
+  if (!reconciliationPromise) {
+    reconciliationPromise = (async () => {
+      const listed = await docker(
+        ["ps", "-aq", "--filter", `label=${LABEL}=true`],
+        { timeoutMs: 20_000 }
+      );
+      if (listed.code !== 0) return;
+      const ids = listed.out
+        .split(/\s+/)
+        .map((value) => value.trim())
+        .filter(Boolean);
+      if (ids.length > 0) {
+        await docker(["rm", "-f", ...ids], { timeoutMs: 30_000 });
+      }
+    })();
   }
-  throw new Error("no free VNC session port");
+  await reconciliationPromise;
 }
 
-function profileRoot(): string {
-  return (
-    process.env.OMNIROUTE_VNC_PROFILE_DIR ||
-    join(process.env.HOME || homedir(), ".omniroute", "vnc-profiles")
+function findActiveSessionForConnection(connectionId: string): VncSession | undefined {
+  return [...SESSIONS.values()].find(
+    (session) =>
+      session.connectionId === connectionId &&
+      ["starting", "running", "harvesting"].includes(session.status)
   );
 }
 
-export async function startSession(providerId: string): Promise<VncSession> {
+function safePathSegment(value: string): string {
+  const safe = value.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+  if (!safe || safe === "." || safe === "..") throw new Error("Invalid profile identifier");
+  return safe;
+}
+
+function createProfileDir(connectionId: string, sessionId: string): string {
+  mkdirSync(VNC_CONFIG.profileDir, { recursive: true, mode: 0o700 });
+  chmodSync(VNC_CONFIG.profileDir, 0o700);
+  const profileName = safePathSegment(VNC_CONFIG.persistProfiles ? connectionId : sessionId);
+  const profileDir = join(VNC_CONFIG.profileDir, profileName);
+  mkdirSync(profileDir, { recursive: true, mode: 0o700 });
+  chmodSync(profileDir, 0o700);
+  return profileDir;
+}
+
+async function publishedPort(containerName: string, containerPort: number): Promise<number> {
+  const result = await docker(["port", containerName, `${containerPort}/tcp`], {
+    timeoutMs: 10_000,
+  });
+  if (result.code !== 0) {
+    throw new Error(result.err.trim() || `Could not resolve published port ${containerPort}`);
+  }
+
+  for (const line of result.out.split(/\r?\n/)) {
+    const match = line.trim().match(/:(\d+)$/);
+    if (match) return Number(match[1]);
+  }
+  throw new Error(`Docker did not publish container port ${containerPort}`);
+}
+
+export async function startSession(connectionId: string): Promise<VncSession> {
+  await reconcileStaleContainers();
+
+  const connection = await getProviderConnectionById(connectionId);
+  if (!connection) throw new Error("Provider connection not found");
+  const providerId = typeof connection.provider === "string" ? connection.provider : "";
   const provider = getVncProvider(providerId);
-  if (!provider) throw new Error(`unknown vnc provider: ${providerId}`);
-
-  const existing = SESSIONS.get(providerId);
-  if (existing && (existing.status === "running" || existing.status === "starting")) {
-    return existing;
+  if (!provider) {
+    throw new Error(`Browser login is not supported for provider '${providerId || "unknown"}'`);
   }
+
+  const existing = findActiveSessionForConnection(connectionId);
+  if (existing) return existing;
   if (SESSIONS.size >= VNC_CONFIG.maxSessions) {
-    throw new Error(`max ${VNC_CONFIG.maxSessions} concurrent VNC sessions reached`);
+    throw new Error(`Maximum ${VNC_CONFIG.maxSessions} concurrent browser-login sessions reached`);
   }
 
-  const containerName = sessionKey(providerId);
-  const vncPort = pickPort("vnc");
-  const cdpPort = pickPort("cdp");
-  const profileDir = join(profileRoot(), providerId);
-  mkdirSync(profileDir, { recursive: true });
-
+  const sessionId = randomUUID();
+  const containerName = sessionKey(sessionId);
+  const profileDir = createProfileDir(connectionId, sessionId);
   const state: VncSession = {
+    sessionId,
+    connectionId,
     providerId,
     containerName,
-    cdpPort,
-    vncPort,
+    profileDir,
+    cdpPort: 0,
+    vncPort: 0,
     url: provider.url,
     status: "starting",
     startedAt: Date.now(),
     lastViewerAt: Date.now(),
     lastHarvestAt: 0,
   };
-  SESSIONS.set(providerId, state);
+  SESSIONS.set(sessionId, state);
 
-  // Remove any stale container with the same name first.
-  await docker(["rm", "-f", containerName], { timeoutMs: 20_000 });
+  try {
+    const chromeCli = `${VNC_CONFIG.chromiumArgs} ${provider.url}`;
+    const result = await docker(
+      [
+        "run",
+        "-d",
+        "--name",
+        containerName,
+        "--restart",
+        "no",
+        "--label",
+        `${LABEL}=true`,
+        "--label",
+        `${LABEL}.session-id=${sessionId}`,
+        "--label",
+        `${LABEL}.connection-id=${connectionId}`,
+        "--shm-size",
+        "1gb",
+        "-p",
+        `127.0.0.1::${VNC_CONFIG.containerVncPort}`,
+        "-p",
+        `127.0.0.1::${VNC_CONFIG.containerCdpPort}`,
+        "-v",
+        `${profileDir}:${VNC_CONFIG.containerProfileDir}`,
+        "-e",
+        `CHROME_CLI=${chromeCli}`,
+        VNC_CONFIG.image,
+      ],
+      { timeoutMs: 120_000 }
+    );
+    if (result.code !== 0) {
+      const message = result.err.trim() || "docker run failed";
+      const buildHint =
+        VNC_CONFIG.image === "omniroute-vnc-chromium:local" &&
+        /pull access denied|unable to find image|not found/i.test(message)
+          ? " Build it with: docker build -t omniroute-vnc-chromium:local docker/vnc-browser/chromium"
+          : "";
+      throw new Error(`${message}${buildHint}`);
+    }
 
-  const args = [
-    "run",
-    "-d",
-    "--name",
-    containerName,
-    "--restart",
-    "no",
-    "-p",
-    `${vncPort}:${VNC_CONFIG.containerVncPort}`,
-    "-p",
-    `${cdpPort}:${VNC_CONFIG.containerCdpPort}`,
-    "-v",
-    `${profileDir}:${VNC_CONFIG.containerProfileDir}`,
-    "-e",
-    `VNC_START_URL=${provider.url}`,
-    VNC_CONFIG.image,
-  ];
-  const res = await docker(args, { timeoutMs: 120_000 });
-  if (res.code !== 0) {
+    state.vncPort = await publishedPort(containerName, VNC_CONFIG.containerVncPort);
+    state.cdpPort = await publishedPort(containerName, VNC_CONFIG.containerCdpPort);
+    await waitForCdpReady(state.cdpPort, VNC_CONFIG.browserReadyTimeoutMs);
+
+    state.status = "running";
+    scheduleIdleSweep();
+    return state;
+  } catch (error) {
     state.status = "error";
-    state.error = res.err.trim() || "docker run failed";
-    throw new Error(`failed to start VNC container for ${providerId}: ${state.error}`);
+    state.error = error instanceof Error ? error.message : String(error);
+    SESSIONS.delete(sessionId);
+    await docker(["rm", "-f", containerName], { timeoutMs: 20_000 });
+    cleanupProfile(state);
+    throw new Error(`Failed to start browser login for connection ${connectionId}: ${state.error}`);
   }
-
-  state.status = "running";
-  scheduleIdleSweep();
-  return state;
 }
 
-export function markViewerActive(providerId: string): void {
-  const s = SESSIONS.get(providerId);
-  if (s) s.lastViewerAt = Date.now();
+export function markViewerActive(connectionId: string, sessionId: string): void {
+  const session = getSession(connectionId, sessionId);
+  if (session) session.lastViewerAt = Date.now();
 }
 
 export async function harvestSession(
-  providerId: string
-): Promise<{ ok: boolean; credential?: string }> {
-  const s = SESSIONS.get(providerId);
-  const provider = getVncProvider(providerId);
-  if (!s || !provider) throw new Error(`no active session for ${providerId}`);
-  if (s.status !== "running")
-    throw new Error(`session for ${providerId} not running (${s.status})`);
-
-  const harvest = await harvestFromContainer(s.cdpPort, provider);
-  s.lastHarvestAt = Date.now();
-
-  if (!harvest.hasCredential) return { ok: false };
-
-  const { providerSpecificData, apiKey } = harvestToCredentials(harvest, provider);
-  await writeCredentials(providerId, providerSpecificData, apiKey);
-  return {
-    ok: true,
-    credential: apiKey
-      ? apiKey.slice(0, 8) + "…"
-      : providerSpecificData.cookie
-        ? String(providerSpecificData.cookie).slice(0, 24) + "…"
-        : undefined,
-  };
-}
-
-async function writeCredentials(
-  providerId: string,
-  psd: Record<string, unknown>,
-  apiKey: string | null
-): Promise<void> {
-  const rows = await getProviderConnections({ provider: providerId });
-  if (!rows || rows.length === 0) {
-    throw new Error(`no provider_connections row for ${providerId} to update`);
+  connectionId: string,
+  sessionId: string
+): Promise<HarvestSessionResult> {
+  const session = getSession(connectionId, sessionId);
+  if (!session) throw new Error("Browser-login session not found");
+  if (session.status !== "running") {
+    throw new Error(`Browser-login session is not running (${session.status})`);
   }
-  const row = rows[0] as Record<string, any>;
-  const merged = { ...(row.providerSpecificData || row.provider_specific_data || {}), ...psd };
-  await updateProviderConnection(row.id, {
-    providerSpecificData: merged,
-    ...(apiKey ? { apiKey } : {}),
-  });
+
+  const provider = getVncProvider(session.providerId);
+  if (!provider) throw new Error("Provider is no longer supported for browser login");
+
+  session.status = "harvesting";
+  try {
+    const harvest = await harvestFromContainer(
+      session.cdpPort,
+      provider,
+      VNC_CONFIG.harvestTimeoutMs
+    );
+    session.lastHarvestAt = Date.now();
+    if (!harvest.hasCredential) {
+      return {
+        harvested: false,
+        sessionId,
+        connectionId,
+        providerId: session.providerId,
+        updatedFields: [],
+        validation: null,
+      };
+    }
+
+    const connection = await getProviderConnectionById(connectionId);
+    if (!connection) throw new Error("Provider connection no longer exists");
+    if (connection.provider !== session.providerId) {
+      throw new Error("Provider connection changed while browser login was active");
+    }
+
+    const { providerSpecificData, apiKey } = harvestToCredentials(harvest, provider);
+    const existingData =
+      connection.providerSpecificData &&
+      typeof connection.providerSpecificData === "object" &&
+      !Array.isArray(connection.providerSpecificData)
+        ? connection.providerSpecificData
+        : {};
+    const mergedData = { ...existingData, ...providerSpecificData };
+
+    await updateProviderConnection(connectionId, {
+      providerSpecificData: mergedData,
+      ...(apiKey ? { apiKey } : {}),
+    });
+
+    const validationKey =
+      apiKey ||
+      (typeof mergedData.cookie === "string" ? mergedData.cookie : null) ||
+      (typeof connection.apiKey === "string" ? connection.apiKey : "");
+    const validationResult = await validateProviderApiKey({
+      provider: session.providerId,
+      apiKey: validationKey,
+      providerSpecificData: mergedData,
+    });
+
+    return {
+      harvested: true,
+      sessionId,
+      connectionId,
+      providerId: session.providerId,
+      updatedFields: [
+        ...Object.keys(providerSpecificData).map((key) => `providerSpecificData.${key}`),
+        ...(apiKey ? ["apiKey"] : []),
+      ],
+      validation: {
+        valid: !!validationResult.valid,
+        unsupported: !!validationResult.unsupported,
+        error:
+          typeof validationResult.error === "string" && validationResult.error.trim()
+            ? validationResult.error
+            : null,
+      },
+    };
+  } finally {
+    if (session.status === "harvesting") session.status = "running";
+  }
 }
 
-export async function stopSession(providerId: string): Promise<void> {
-  const s = SESSIONS.get(providerId);
-  if (!s) return;
-  s.status = "stopping";
-  await docker(["rm", "-f", s.containerName], { timeoutMs: 20_000 });
-  SESSIONS.delete(providerId);
+export async function stopSession(connectionId: string, sessionId: string): Promise<void> {
+  const session = getSession(connectionId, sessionId);
+  if (!session || session.status === "stopping") return;
+
+  session.status = "stopping";
+  SESSIONS.delete(sessionId);
+  try {
+    const result = await docker(["rm", "-f", session.containerName], { timeoutMs: 20_000 });
+    if (result.code !== 0 && !/no such container/i.test(result.err)) {
+      throw new Error(result.err.trim() || "Failed to remove browser container");
+    }
+  } finally {
+    cleanupProfile(session);
+  }
 }
 
 export async function stopAllSessions(): Promise<void> {
-  await Promise.all([...SESSIONS.keys()].map((p) => stopSession(p).catch(() => {})));
+  const sessions = [...SESSIONS.values()];
+  await Promise.all(
+    sessions.map((session) => stopSession(session.connectionId, session.sessionId).catch(() => {}))
+  );
   if (idleTimer) clearInterval(idleTimer);
   idleTimer = null;
+}
+
+function cleanupProfile(session: VncSession): void {
+  if (VNC_CONFIG.persistProfiles) return;
+  try {
+    rmSync(session.profileDir, { recursive: true, force: true });
+  } catch {
+    // Best-effort cleanup; the directory remains mode 0700 if removal fails.
+  }
 }
 
 function scheduleIdleSweep(): void {
   if (idleTimer) return;
   idleTimer = setInterval(async () => {
     const now = Date.now();
-    for (const s of [...SESSIONS.values()]) {
-      if (s.status !== "running") continue;
-      const idleFor = now - Math.max(s.lastViewerAt, s.lastHarvestAt);
-      const overMax = VNC_CONFIG.maxSessionMs > 0 && now - s.startedAt > VNC_CONFIG.maxSessionMs;
+    for (const session of [...SESSIONS.values()]) {
+      if (session.status !== "running") continue;
+      const idleFor = now - Math.max(session.lastViewerAt, session.lastHarvestAt);
+      const overMax =
+        VNC_CONFIG.maxSessionMs > 0 && now - session.startedAt >= VNC_CONFIG.maxSessionMs;
       if (idleFor >= VNC_CONFIG.idleTimeoutMs || overMax) {
-        try {
-          await stopSession(s.providerId);
-        } catch {
-          /* best-effort */
-        }
+        await stopSession(session.connectionId, session.sessionId).catch(() => {});
       }
     }
   }, 30_000);
