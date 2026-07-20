@@ -136,6 +136,7 @@ export async function withEarlyStreamKeepalive(
       };
 
       const onAbort = () => {
+        if (aborted) return;
         aborted = true;
         stopKeepalive();
         upstreamReader?.cancel().catch(() => {});
@@ -146,11 +147,19 @@ export async function withEarlyStreamKeepalive(
         }
       };
       signal?.addEventListener("abort", onAbort, { once: true });
+      // addEventListener does not replay an abort that happened before registration.
+      // Checking after registration closes that gap without missing a concurrent abort.
+      if (signal?.aborted) onAbort();
 
       try {
         const result = await settled;
         stopKeepalive();
-        if (aborted) return; // client disconnected while we were waiting
+        if (aborted) {
+          // The synthetic keepalive response can be cancelled before the handler resolves.
+          // Cancel the eventual real response so its upstream work and lifecycle hooks finish.
+          if (result.ok) await result.response.body?.cancel().catch(() => undefined);
+          return;
+        }
 
         if (!result.ok) {
           // Handler rejected — emit a generic error frame (never the raw error/stack).
