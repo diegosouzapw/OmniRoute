@@ -2224,6 +2224,15 @@ export function createSSEStream(options: StreamOptions = {}) {
                         }
                       }
                     }
+                    // #7800: track finish_reason in the flush path too, so a
+                    // final chunk without trailing newline still suppresses the
+                    // synthetic finish_reason synthesis.
+                    if (
+                      Array.isArray(flushedParsed.choices) &&
+                      (flushedParsed.choices[0] as JsonRecord | undefined)?.finish_reason
+                    ) {
+                      passthroughSawFinishReason = true;
+                    }
                     if (flushChanged) {
                       output = `data: ${JSON.stringify(flushedParsed)}\n\n`;
                     }
