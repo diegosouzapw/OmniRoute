@@ -2,44 +2,71 @@
  * grokCliQuotaFrame.ts — gRPC-web frame decoder for xAI's
  * `grok_api_v2.GrokBuildBilling/GetGrokCreditsConfig` response (#6844).
  *
- * No public `.proto` schema exists for this endpoint (confirmed against
- * steipete/CodexBar's `docs/grok.md` during triage), so this is a minimal
- * varint/length-delimited protobuf decoder — not a codegen'd client. It is
- * intentionally defensive: any malformed or unrecognized buffer returns
- * `null` rather than throwing, so `grokCliQuotaFetcher.ts` can fail open
- * (same "unknown never disables the connection" convention as
- * `antigravityCredits.ts`).
+ * No public `.proto` schema exists for this endpoint. The field mapping
+ * below was reverse-engineered from a LIVE capture against `grok.com` on
+ * 2026-07-20 (real bearer token, tier-4 account) — the original
+ * field-1-is-a-double / field-2-is-a-string guess (sourced from a
+ * third-party doc, steipete/CodexBar) turned out to be wrong: it always
+ * decoded the real response to `null`. It is intentionally defensive: any
+ * malformed or unrecognized buffer returns `null` rather than throwing, so
+ * `grokCliQuotaFetcher.ts` can fail open (same "unknown never disables the
+ * connection" convention as `antigravityCredits.ts`).
+ *
+ * Confirmed real response shape (119-byte capture):
+ *   top-level field 1 (length-delimited, 92B) — nested "credits info" message
+ *     subfield 1  (fixed32 float)            — usage ratio, 0..1 (1.0 = fully used)
+ *     subfield 4  (Timestamp{seconds,nanos}) — present in the wild, unused here
+ *     subfield 5  (Timestamp{seconds,nanos}) — credit-pool reset time
+ *     subfields 7/8/11/13                    — present in the wild, ignored
  *
  * gRPC-web responses may arrive in one of two shapes:
- *   - "framed": a 5-byte header (1 compression-flag byte + 4-byte
- *     big-endian length) followed by the protobuf message body.
- *   - "raw": just the protobuf message body, no frame header.
+ *   - "framed": one or more 5-byte-header frames (1 flag byte + 4-byte
+ *     big-endian length). A unary call over plain `fetch()` gets the DATA
+ *     frame (flag 0x00 uncompressed / 0x01 compressed) immediately followed
+ *     by a TRAILER frame (flag 0x80 / 0x81 — high bit set, e.g.
+ *     `grpc-status:0`, not protobuf) concatenated in the same response body.
+ *     `findDataFramePayload()` walks frame-by-frame and returns only the
+ *     first DATA frame's payload, skipping trailers — they are never handed
+ *     to the protobuf walker.
+ *   - "raw": just the protobuf message body, no frame header at all.
  *
- * `probeFrameHeader()` decides which shape a buffer is by validating the
- * header (compression flag must be 0x00/0x01 and the declared length must
- * fit the buffer) and `decodeGrokCreditsFrame()` falls back to raw parsing
- * when the probe fails.
+ * `probeFrameHeader()` validates a single frame header at a given offset
+ * (flag byte must be 0x00/0x01/0x80/0x81 and the declared length must fit
+ * the buffer); `decodeGrokCreditsFrame()` falls back to raw parsing only
+ * when the buffer doesn't look framed at all.
  *
- * Per proto3 semantics, an *omitted* `credit_usage_percent` field means 0%
- * used — we never synthesize a different default.
+ * Per proto3 semantics, an *omitted* usage-ratio subfield means 0% used —
+ * we never synthesize a different default.
  */
 
-const FIELD_CREDIT_USAGE_PERCENT = 1;
-const FIELD_RESET_AT = 2;
+const FIELD_CREDITS_INFO = 1; // top-level: nested message with ratio + timestamps
+
+const CREDITS_FIELD_USAGE_RATIO = 1; // nested: fixed32 float, 0..1 fraction used
+const CREDITS_FIELD_RESET_TIMESTAMP = 5; // nested: Timestamp{seconds,nanos} — reset time
+
+const TIMESTAMP_FIELD_SECONDS = 1;
+const TIMESTAMP_FIELD_NANOS = 2;
 
 const WIRE_TYPE_VARINT = 0;
 const WIRE_TYPE_FIXED64 = 1;
 const WIRE_TYPE_LENGTH_DELIMITED = 2;
 const WIRE_TYPE_FIXED32 = 5;
 
+// gRPC-web frame flag byte: high bit set (0x80/0x81) marks a TRAILER frame
+// (HTTP-trailer-style text, not protobuf); high bit unset (0x00/0x01) marks
+// a DATA frame.
+const GRPC_WEB_TRAILER_FLAG_BIT = 0x80;
+
 const MAX_VARINT_SHIFT_BITS = 70n;
 
 export interface GrokCreditsQuota {
+  /** Percent of the shared credit pool used, 0-100 (NOT a 0-1 fraction). */
   percentUsed: number;
   resetAt: string | null;
 }
 
 export interface FrameProbeResult {
+  flag: number;
   payloadStart: number;
   payloadLength: number;
 }
@@ -49,19 +76,21 @@ type ProtoField =
   | { wireType: typeof WIRE_TYPE_FIXED64 | typeof WIRE_TYPE_FIXED32 | typeof WIRE_TYPE_LENGTH_DELIMITED; bytes: Buffer };
 
 /**
- * Validate a gRPC-web frame header at the start of `buffer`. Returns the
- * payload window when the header looks legitimate (compression flag is
- * 0x00 or 0x01, declared length fits inside the remaining buffer) or
- * `null` when the buffer does not start with a valid frame header — the
- * caller then treats the whole buffer as raw, unframed protobuf.
+ * Validate a gRPC-web frame header at `offset` in `buffer`. Returns the
+ * flag byte plus the payload window when the header looks legitimate (flag
+ * is 0x00/0x01 data or 0x80/0x81 trailer, declared length fits inside the
+ * remaining buffer) or `null` when there is no valid frame header at that
+ * offset — the caller then treats the whole buffer as raw, unframed
+ * protobuf (when called at offset 0) or stops frame iteration.
  */
-export function probeFrameHeader(buffer: Buffer): FrameProbeResult | null {
-  if (buffer.length < 5) return null;
-  const compressionFlag = buffer[0];
-  if (compressionFlag !== 0x00 && compressionFlag !== 0x01) return null;
-  const payloadLength = buffer.readUInt32BE(1);
-  if (payloadLength > buffer.length - 5) return null;
-  return { payloadStart: 5, payloadLength };
+export function probeFrameHeader(buffer: Buffer, offset = 0): FrameProbeResult | null {
+  if (offset < 0 || buffer.length - offset < 5) return null;
+  const flag = buffer[offset];
+  if (flag !== 0x00 && flag !== 0x01 && flag !== 0x80 && flag !== 0x81) return null;
+  const payloadStart = offset + 5;
+  const payloadLength = buffer.readUInt32BE(offset + 1);
+  if (payloadLength > buffer.length - payloadStart) return null;
+  return { flag, payloadStart, payloadLength };
 }
 
 /** Read a protobuf varint starting at `offset`. Returns null past the buffer end. */
@@ -154,48 +183,85 @@ function decodeFields(buffer: Buffer): Map<number, ProtoField> | null {
   return fields;
 }
 
-function extractPercentUsed(field: ProtoField | undefined): number | null {
-  if (!field) return 0; // proto3 omission means 0% used
-  if (field.wireType === WIRE_TYPE_FIXED64) return field.bytes.readDoubleLE(0);
-  if (field.wireType === WIRE_TYPE_FIXED32) return field.bytes.readFloatLE(0);
-  if (field.wireType === WIRE_TYPE_VARINT) {
-    // Varint-encoded percent is assumed to already be a 0-100 integer scale.
-    return field.value > 1 ? field.value / 100 : field.value;
+/**
+ * Walk consecutive gRPC-web frames from the start of `buffer`, skipping
+ * TRAILER frames (flag high bit set — 0x80/0x81) and returning the first
+ * DATA frame's payload (flag high bit unset — 0x00/0x01). Returns `null`
+ * when no data frame is found before the walk runs out of valid frame
+ * headers (a trailer-only buffer, or a malformed frame mid-buffer).
+ */
+function findDataFramePayload(buffer: Buffer): Buffer | null {
+  let offset = 0;
+  while (offset < buffer.length) {
+    const frame = probeFrameHeader(buffer, offset);
+    if (!frame) return null;
+    const frameEnd = frame.payloadStart + frame.payloadLength;
+    const isTrailer = (frame.flag & GRPC_WEB_TRAILER_FLAG_BIT) !== 0;
+    if (!isTrailer) {
+      return buffer.subarray(frame.payloadStart, frameEnd);
+    }
+    offset = frameEnd;
   }
-  return null; // unexpected wire type for a known field number = malformed
+  return null;
 }
 
+/** Decode a length-delimited field's bytes as a nested protobuf message. */
+function extractNestedMessage(field: ProtoField | undefined): Map<number, ProtoField> | null {
+  if (!field || field.wireType !== WIRE_TYPE_LENGTH_DELIMITED) return null;
+  return decodeFields(field.bytes);
+}
+
+/** Read the nested credits-info message's usage-ratio subfield (fixed32 float, 0..1). */
+function extractUsageRatio(field: ProtoField | undefined): number | null {
+  if (!field) return 0; // proto3 omission means 0% used
+  if (field.wireType === WIRE_TYPE_FIXED32) return field.bytes.readFloatLE(0);
+  if (field.wireType === WIRE_TYPE_FIXED64) return field.bytes.readDoubleLE(0);
+  return null; // unexpected wire type for the usage-ratio field = malformed
+}
+
+/** Read a nested `Timestamp{seconds, nanos}` submessage field as an ISO string. */
 function extractResetAt(field: ProtoField | undefined): string | null {
   if (!field || field.wireType !== WIRE_TYPE_LENGTH_DELIMITED) return null;
-  const raw = field.bytes.toString("utf8").trim();
-  if (!raw) return null;
-  const parsed = new Date(raw);
+
+  const timestampFields = decodeFields(field.bytes);
+  if (!timestampFields) return null;
+
+  const secondsField = timestampFields.get(TIMESTAMP_FIELD_SECONDS);
+  const nanosField = timestampFields.get(TIMESTAMP_FIELD_NANOS);
+  const seconds = secondsField?.wireType === WIRE_TYPE_VARINT ? secondsField.value : 0;
+  const nanos = nanosField?.wireType === WIRE_TYPE_VARINT ? nanosField.value : 0;
+
+  const millis = seconds * 1000 + Math.round(nanos / 1_000_000);
+  const parsed = new Date(millis);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 /**
  * Decode a `GetGrokCreditsConfig` gRPC-web response buffer into
- * `{ percentUsed, resetAt }`, or `null` when the buffer is empty,
- * truncated, or otherwise unparseable. Never throws.
+ * `{ percentUsed, resetAt }` (percentUsed on a 0-100 scale), or `null` when
+ * the buffer is empty, truncated, trailer-only, or otherwise unparseable.
+ * Never throws.
  */
 export function decodeGrokCreditsFrame(buffer: Buffer): GrokCreditsQuota | null {
   if (!buffer || buffer.length === 0) return null;
 
   try {
-    const frame = probeFrameHeader(buffer);
-    const payload = frame
-      ? buffer.subarray(frame.payloadStart, frame.payloadStart + frame.payloadLength)
-      : buffer;
+    const framed = probeFrameHeader(buffer, 0) !== null;
+    const payload = framed ? findDataFramePayload(buffer) : buffer;
+    if (!payload) return null;
 
-    const fields = decodeFields(payload);
-    if (!fields) return null;
+    const topLevelFields = decodeFields(payload);
+    if (!topLevelFields) return null;
 
-    const percentUsed = extractPercentUsed(fields.get(FIELD_CREDIT_USAGE_PERCENT));
-    if (percentUsed === null || !Number.isFinite(percentUsed) || percentUsed < 0) return null;
+    const creditsInfo = extractNestedMessage(topLevelFields.get(FIELD_CREDITS_INFO));
+    if (!creditsInfo) return null;
+
+    const usageRatio = extractUsageRatio(creditsInfo.get(CREDITS_FIELD_USAGE_RATIO));
+    if (usageRatio === null || !Number.isFinite(usageRatio) || usageRatio < 0) return null;
 
     return {
-      percentUsed: Math.min(1, percentUsed),
-      resetAt: extractResetAt(fields.get(FIELD_RESET_AT)),
+      percentUsed: Math.min(100, usageRatio * 100),
+      resetAt: extractResetAt(creditsInfo.get(CREDITS_FIELD_RESET_TIMESTAMP)),
     };
   } catch {
     return null;

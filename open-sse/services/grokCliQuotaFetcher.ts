@@ -21,9 +21,12 @@
  * connection).
  *
  * `grok.com` is not behind the same Cloudflare-guarded path `grok-cli.ts`'s
- * IPv4-forced native-https helper exists for, so this fetcher uses the global
- * `fetch()` like the other quota fetchers (`v0QuotaFetcher.ts`,
- * `agentrouterQuotaFetcher.ts`) rather than `resolveGrokRequestDispatch()`.
+ * IPv4-forced native-https helper exists for — confirmed via a live `fetch()`
+ * smoke test against the real endpoint (2026-07-20: HTTP 200,
+ * `content-type: application/grpc-web+proto`, no challenge page), not merely
+ * assumed. This fetcher therefore uses the global `fetch()` like the other
+ * quota fetchers (`v0QuotaFetcher.ts`, `agentrouterQuotaFetcher.ts`) rather
+ * than `resolveGrokRequestDispatch()`.
  *
  * Cache: in-memory TTL (60s), same pattern as sibling fetchers.
  *
@@ -39,6 +42,15 @@ const GROK_CLI_CONFIG = {
   baseUrl: "https://grok.com",
   billingPath: "/grok_api_v2.GrokBuildBilling/GetGrokCreditsConfig",
 };
+
+/**
+ * Empty gRPC-web request frame: 1-byte compression flag (0x00, uncompressed)
+ * + 4-byte big-endian length (0, no message body) — `GetGrokCreditsConfig`
+ * takes no arguments, but gRPC-web still requires a request frame. Without
+ * one the upstream responds `grpc-status: 13 "Missing request message."`
+ * with a 0-byte body (confirmed live against grok.com on 2026-07-20).
+ */
+const GRPC_WEB_EMPTY_REQUEST_FRAME = Buffer.from([0, 0, 0, 0, 0]);
 
 const CACHE_TTL_MS = 60_000; // 60 seconds
 
@@ -85,14 +97,22 @@ function extractAccessToken(connection?: Record<string, unknown>): string | null
     : null;
 }
 
+/**
+ * `percentUsed` here is the decoder's 0-100 scale (see
+ * grokCliQuotaFrame.ts::decodeGrokCreditsFrame). `QuotaInfo.percentUsed`
+ * (the field returned to the rest of the quota pipeline) is a 0-1 FRACTION —
+ * `quotaPreflight.ts::remainingPercentFrom` computes `(1 - percentUsed) * 100`,
+ * so this function rescales back down before returning.
+ */
 function buildQuota(percentUsed: number, resetAt: string | null): GrokCliQuota {
-  const clamped = Math.min(1, Math.max(0, percentUsed));
+  const clampedPercent = Math.min(100, Math.max(0, percentUsed));
+  const fraction = clampedPercent / 100;
   return {
-    used: Math.round(clamped * 100),
+    used: Math.round(clampedPercent),
     total: 100,
-    percentUsed: clamped,
+    percentUsed: fraction,
     resetAt,
-    limitReached: clamped >= 1,
+    limitReached: clampedPercent >= 100,
   };
 }
 
@@ -129,6 +149,7 @@ export async function fetchGrokCliQuota(
         "Content-Type": "application/grpc-web+proto",
         "X-Grpc-Web": "1",
       },
+      body: GRPC_WEB_EMPTY_REQUEST_FRAME,
       signal: AbortSignal.timeout(8_000),
     });
 

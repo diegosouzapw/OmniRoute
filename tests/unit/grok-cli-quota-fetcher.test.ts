@@ -13,6 +13,7 @@ import { clearQuotaMonitors } from "../../open-sse/services/quotaMonitor.ts";
 interface FetchCall {
   url: string;
   headers: Record<string, string>;
+  body: unknown;
 }
 
 const originalFetch = globalThis.fetch;
@@ -22,6 +23,13 @@ test.afterEach(() => {
   clearQuotaMonitors();
 });
 
+/**
+ * Minimal protobuf encoder for test fixtures only — mirrors the REAL wire
+ * format captured live against `grok.com` on 2026-07-20 (top-level field 1 =
+ * nested "credits info" message; subfield 1 = fixed32 float usage ratio;
+ * subfield 5 = Timestamp reset). See grok-cli-quota-frame.test.ts for the
+ * full field-by-field validation of this shape.
+ */
 function encodeVarint(value: number): Buffer {
   const bytes: number[] = [];
   let v = BigInt(value);
@@ -38,20 +46,44 @@ function encodeTag(fieldNumber: number, wireType: number): Buffer {
   return encodeVarint((fieldNumber << 3) | wireType);
 }
 
-function encodeDoubleField(fieldNumber: number, value: number): Buffer {
-  const body = Buffer.alloc(8);
-  body.writeDoubleLE(value, 0);
-  return Buffer.concat([encodeTag(fieldNumber, 1), body]);
+function encodeFixed32Field(fieldNumber: number, value: number): Buffer {
+  const body = Buffer.alloc(4);
+  body.writeFloatLE(value, 0);
+  return Buffer.concat([encodeTag(fieldNumber, 5), body]);
 }
 
-function buildFramedCreditsBuffer(percentUsed: number): ArrayBuffer {
-  const payload = encodeDoubleField(1, percentUsed);
+function encodeLengthDelimited(fieldNumber: number, body: Buffer): Buffer {
+  return Buffer.concat([encodeTag(fieldNumber, 2), encodeVarint(body.length), body]);
+}
+
+function encodeVarintField(fieldNumber: number, value: number): Buffer {
+  return Buffer.concat([encodeTag(fieldNumber, 0), encodeVarint(value)]);
+}
+
+function encodeTimestampField(fieldNumber: number, seconds: number, nanos: number): Buffer {
+  const parts: Buffer[] = [];
+  if (seconds !== 0) parts.push(encodeVarintField(1, seconds));
+  if (nanos !== 0) parts.push(encodeVarintField(2, nanos));
+  return encodeLengthDelimited(fieldNumber, Buffer.concat(parts));
+}
+
+/** Build a framed gRPC-web GetGrokCreditsConfig response for a given usage fraction (0..1). */
+function buildCreditsResponseBuffer(usageRatio: number): ArrayBuffer {
+  const creditsInfo = Buffer.concat([
+    encodeFixed32Field(1, usageRatio),
+    encodeTimestampField(5, 1784825940, 867850000),
+  ]);
+  const topMessage = encodeLengthDelimited(1, creditsInfo);
+
   const header = Buffer.alloc(5);
   header[0] = 0x00;
-  header.writeUInt32BE(payload.length, 1);
-  const framed = Buffer.concat([header, payload]);
+  header.writeUInt32BE(topMessage.length, 1);
+  const framed = Buffer.concat([header, topMessage]);
   return framed.buffer.slice(framed.byteOffset, framed.byteOffset + framed.byteLength);
 }
+
+const PERCENT_TOLERANCE = 1e-4; // fixed32 (float) round-trip precision, not fixed64 (double)
+const EMPTY_GRPC_WEB_FRAME = [0, 0, 0, 0, 0];
 
 test("fetchGrokCliQuota returns null when credentials.accessToken is missing", async () => {
   const quota = await fetchGrokCliQuota(`missing-${Date.now()}`);
@@ -63,13 +95,13 @@ test("fetchGrokCliQuota returns null when connection has no nested credentials o
   assert.equal(quota, null);
 });
 
-test("fetchGrokCliQuota sends Authorization + X-Grpc-Web headers to the billing endpoint", async () => {
+test("fetchGrokCliQuota sends Authorization + X-Grpc-Web headers and a non-empty gRPC-web request frame to the billing endpoint", async () => {
   const connectionId = `grok-cli-${Date.now()}`;
   const calls: FetchCall[] = [];
 
   globalThis.fetch = (async (url: string, init: RequestInit) => {
-    calls.push({ url, headers: init.headers as Record<string, string> });
-    return new Response(buildFramedCreditsBuffer(0.3), {
+    calls.push({ url, headers: init.headers as Record<string, string>, body: init.body });
+    return new Response(buildCreditsResponseBuffer(0.3), {
       status: 200,
       headers: { "content-type": "application/grpc-web+proto" },
     });
@@ -86,8 +118,15 @@ test("fetchGrokCliQuota sends Authorization + X-Grpc-Web headers to the billing 
   );
   assert.equal(calls[0].headers["Authorization"], "Bearer grok-token");
   assert.equal(calls[0].headers["X-Grpc-Web"], "1");
+  assert.equal(calls[0].headers["Content-Type"], "application/grpc-web+proto");
+
+  // Defect 1: gRPC-web requires SOME request frame — without one the upstream
+  // responds `grpc-status: 13 "Missing request message"` with a 0-byte body.
+  assert.ok(calls[0].body, "fetch() must be called with a non-empty body");
+  assert.deepEqual(Array.from(calls[0].body as Uint8Array), EMPTY_GRPC_WEB_FRAME);
+
   assert.ok(quota);
-  assert.ok(Math.abs(quota.percentUsed - 0.3) < 1e-9);
+  assert.ok(Math.abs(quota.percentUsed - 0.3) < PERCENT_TOLERANCE);
   assert.equal(quota.used, 30);
   assert.equal(quota.limitReached, false);
 
@@ -98,7 +137,7 @@ test("fetchGrokCliQuota marks limitReached when the pool is fully used", async (
   const connectionId = `grok-cli-full-${Date.now()}`;
 
   globalThis.fetch = (async () =>
-    new Response(buildFramedCreditsBuffer(1), { status: 200 })) as typeof fetch;
+    new Response(buildCreditsResponseBuffer(1), { status: 200 })) as typeof fetch;
 
   const quota = (await fetchGrokCliQuota(connectionId, {
     credentials: { accessToken: "grok-token" },
@@ -107,6 +146,7 @@ test("fetchGrokCliQuota marks limitReached when the pool is fully used", async (
   assert.ok(quota);
   assert.equal(quota.limitReached, true);
   assert.equal(quota.percentUsed, 1);
+  assert.equal(quota.used, 100);
 
   invalidateGrokCliQuotaCache(connectionId);
 });
@@ -127,6 +167,17 @@ test("fetchGrokCliQuota fails open (returns null) on upstream 401/5xx without th
   assert.equal(quota500, null);
 });
 
+test("fetchGrokCliQuota returns null (does not throw) when the response has no body (matches the pre-fix no-request-frame response)", async () => {
+  const connectionId = `grok-cli-nobody-${Date.now()}`;
+
+  globalThis.fetch = (async () => new Response(null, { status: 200 })) as typeof fetch;
+
+  const quota = await fetchGrokCliQuota(connectionId, {
+    credentials: { accessToken: "grok-token" },
+  });
+  assert.equal(quota, null);
+});
+
 test("fetchGrokCliQuota returns null (does not throw) when the response body is unparseable", async () => {
   const connectionId = `grok-cli-malformed-${Date.now()}`;
 
@@ -145,7 +196,7 @@ test("fetchGrokCliQuota caches results within the TTL window", async () => {
 
   globalThis.fetch = (async () => {
     callCount += 1;
-    return new Response(buildFramedCreditsBuffer(0.2), { status: 200 });
+    return new Response(buildCreditsResponseBuffer(0.2), { status: 200 });
   }) as typeof fetch;
 
   const connection = { credentials: { accessToken: "grok-token" } };
@@ -162,7 +213,7 @@ test("invalidateGrokCliQuotaCache forces a re-fetch on the next call", async () 
 
   globalThis.fetch = (async () => {
     callCount += 1;
-    return new Response(buildFramedCreditsBuffer(0.1), { status: 200 });
+    return new Response(buildCreditsResponseBuffer(0.1), { status: 200 });
   }) as typeof fetch;
 
   const connection = { credentials: { accessToken: "grok-token" } };
@@ -180,7 +231,7 @@ test("registerGrokCliQuotaFetcher wires grok-cli into preflightQuota", async () 
   const connectionId = `grok-cli-preflight-${Date.now()}`;
 
   globalThis.fetch = (async () =>
-    new Response(buildFramedCreditsBuffer(1), { status: 200 })) as typeof fetch;
+    new Response(buildCreditsResponseBuffer(1), { status: 200 })) as typeof fetch;
 
   const result = await preflightQuota("grok-cli", connectionId, {
     credentials: { accessToken: "grok-token" },
