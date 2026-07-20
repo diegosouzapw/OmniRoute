@@ -10,6 +10,14 @@ import os from "os";
 let cachedRawId: string | null = null;
 
 /**
+ * Resets the cached machine ID.  Used primarily for testing so each
+ * test case starts with a clean cache.
+ */
+export function resetMachineIdCache(): void {
+  cachedRawId = null;
+}
+
+/**
  * Get raw machine ID using OS-specific methods.
  *
  * We use try/catch waterfall: try each OS method and fall through
