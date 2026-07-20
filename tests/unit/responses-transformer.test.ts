@@ -230,6 +230,37 @@ test("createResponsesApiTransformStream defers custom item creation until the to
   assert.equal(events.filter((event) => event.event === "response.output_item.done").length, 1);
 });
 
+test("createResponsesApiTransformStream replays buffered function arguments after the name arrives", async () => {
+  const output = await runTransformStream([
+    'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_search","function":{"arguments":"{\\"q\\":\\"pong\\"}"}}]}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"name":"search"}}]},"finish_reason":"tool_calls"}]}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const argumentDeltas = events
+    .filter((event) => event.event === "response.function_call_arguments.delta")
+    .map((event) => JSON.parse(event.data).delta);
+
+  assert.deepEqual(argumentDeltas, ['{"q":"pong"}']);
+});
+
+test("createResponsesApiTransformStream preserves empty custom-tool input", async () => {
+  const output = await runTransformStream(
+    [
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_exec","function":{"name":"exec","arguments":"{\\"input\\":\\"\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+    ],
+    null,
+    { customToolNames: new Set(["exec"]) }
+  );
+
+  const events = parseSseOutput(output);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  assert.equal(completed.output.find((item) => item.name === "exec").input, "");
+});
+
 test("createResponsesLogger persists input and output event logs on flush", async () => {
   const logsDir = mkdtempSync(join(tmpdir(), "responses-transformer-"));
   const logger = createResponsesLogger("gpt-4o", logsDir);

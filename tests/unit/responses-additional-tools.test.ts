@@ -198,6 +198,31 @@ test("Responses -> Chat merges members from same-named namespaces", () => {
   );
 });
 
+test("Responses -> Chat gives top-level tools precedence over namespaced members", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "any-model",
+    {
+      input: [{ type: "message", role: "user", content: [{ type: "input_text", text: "go" }] }],
+      tools: [
+        { type: "function", name: "exec", parameters: { type: "object" } },
+        {
+          type: "namespace",
+          name: "commands",
+          tools: [{ type: "custom", name: "exec", description: "Shadowed custom tool" }],
+        },
+      ],
+    },
+    false,
+    { provider: "another-provider" }
+  ) as ChatRequest;
+
+  assert.deepEqual(
+    result.tools.map((tool) => tool.function.name),
+    ["exec"]
+  );
+  assert.equal(result.tools[0].function.description, undefined);
+});
+
 test("Responses -> Chat validates tools supplied through additional_tools", () => {
   assert.throws(
     () =>

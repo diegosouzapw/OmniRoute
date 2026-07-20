@@ -280,7 +280,7 @@ export function createResponsesApiTransformStream(
   };
 
   const emitToolCallAdded = (controller, idx) => {
-    if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return;
+    if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return false;
 
     const customTool = customToolNames.has(state.funcNames[idx] || "");
     const itemType = customTool ? "custom_tool_call" : "function_call";
@@ -299,6 +299,7 @@ export function createResponsesApiTransformStream(
         ...(customTool ? { status: "in_progress" } : {}),
       },
     });
+    return true;
   };
 
   const closeToolCall = (controller, idx, recordAsCompleted = true) => {
@@ -310,24 +311,27 @@ export function createResponsesApiTransformStream(
       emitToolCallAdded(controller, idx);
       const isCustomTool = state.funcItemTypes[idx] === "custom_tool_call";
 
-      // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders
-      try {
-        const parsed = JSON.parse(args);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          let modified = false;
-          for (const [k, v] of Object.entries(parsed)) {
-            if (v === "" || (Array.isArray(v) && v.length === 0)) {
-              delete parsed[k];
-              modified = true;
+      // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders.
+      // Custom-tool input is intentionally allowed to be an empty string.
+      if (!isCustomTool) {
+        try {
+          const parsed = JSON.parse(args);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            let modified = false;
+            for (const [k, v] of Object.entries(parsed)) {
+              if (v === "" || (Array.isArray(v) && v.length === 0)) {
+                delete parsed[k];
+                modified = true;
+              }
+            }
+            if (modified) {
+              args = JSON.stringify(parsed);
+              state.funcArgsBuf[idx] = args;
             }
           }
-          if (modified) {
-            args = JSON.stringify(parsed);
-            state.funcArgsBuf[idx] = args;
-          }
+        } catch (e) {
+          // Ignore malformed JSON
         }
-      } catch (e) {
-        // Ignore malformed JSON
       }
 
       let funcItem;
@@ -657,7 +661,19 @@ export function createResponsesApiTransformStream(
               // lifecycle item until the name is available so custom calls are not first
               // announced as function calls.
               if (state.funcCallIds[tcIdx] && state.funcNames[tcIdx]) {
-                emitToolCallAdded(controller, tcIdx);
+                const itemAdded = emitToolCallAdded(controller, tcIdx);
+                if (
+                  itemAdded &&
+                  state.funcItemTypes[tcIdx] !== "custom_tool_call" &&
+                  state.funcArgsBuf[tcIdx]
+                ) {
+                  emit(controller, "response.function_call_arguments.delta", {
+                    type: "response.function_call_arguments.delta",
+                    item_id: `fc_${state.funcCallIds[tcIdx]}`,
+                    output_index: tcIdx,
+                    delta: state.funcArgsBuf[tcIdx],
+                  });
+                }
               }
 
               if (!state.funcArgsBuf[tcIdx]) state.funcArgsBuf[tcIdx] = "";

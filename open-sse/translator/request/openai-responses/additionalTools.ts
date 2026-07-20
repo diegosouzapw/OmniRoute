@@ -56,7 +56,16 @@ function mergeNamespaceTools(first: unknown, second: unknown): unknown[] {
  * function names from reaching strict upstreams.
  */
 export function collectResponsesTools(rootTools: unknown, inputItems: unknown[]): unknown[] {
-  const sources: unknown[][] = [Array.isArray(rootTools) ? rootTools : []];
+  const rootToolList = Array.isArray(rootTools) ? rootTools : [];
+  const rootNames = new Set(
+    rootToolList
+      .map((tool) => {
+        const record = toRecord(tool);
+        return record.type === "namespace" ? "" : toolName(tool);
+      })
+      .filter(Boolean)
+  );
+  const sources: unknown[][] = [rootToolList];
 
   for (const itemValue of inputItems) {
     const item = toRecord(itemValue);
@@ -74,16 +83,21 @@ export function collectResponsesTools(rootTools: unknown, inputItems: unknown[])
       if (toolRecord.type === "namespace") {
         const namespaceName = toolName(tool);
         const existingIndex = namespaceName ? namespaceIndexes.get(namespaceName) : undefined;
+        const namespaceTools = Array.isArray(toolRecord.tools)
+          ? toolRecord.tools.filter((member) => !rootNames.has(toolName(member)))
+          : toolRecord.tools;
         if (existingIndex !== undefined) {
           const existing = toRecord(merged[existingIndex]);
           merged[existingIndex] = {
             ...toolRecord,
             ...existing,
-            tools: mergeNamespaceTools(existing.tools, toolRecord.tools),
+            tools: mergeNamespaceTools(existing.tools, namespaceTools),
           };
           continue;
         }
         if (namespaceName) namespaceIndexes.set(namespaceName, merged.length);
+        merged.push({ ...toolRecord, tools: namespaceTools });
+        continue;
       }
 
       const identity = toolIdentity(tool);
