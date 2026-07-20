@@ -1,14 +1,15 @@
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import {
-  getProviderConnections,
+  getCachedRawProviderConnections,
   getCombos,
   getAllCustomModels,
   getSettings,
-  getProviderNodes,
+  getCachedProviderNodes,
   getModelIsHidden,
   getModelAliases,
 } from "@/lib/localDb";
+import { createLazyConnectionView } from "@/lib/db/providers/lazyConnectionView";
 import { extractAliasBackedModels } from "./aliasBackedModels";
 import { appendNoThinkingVariants } from "@omniroute/open-sse/utils/noThinkingAlias";
 import { appendClaudeEffortVariants } from "@omniroute/open-sse/utils/claudeEffortVariants";
@@ -323,7 +324,7 @@ async function buildUnifiedModelsResponseCore(
     let connections = [];
     let totalConnectionCount = 0; // Track if DB has ANY connections (even disabled)
     try {
-      connections = await getProviderConnections();
+      connections = (await getCachedRawProviderConnections()).map(createLazyConnectionView);
       totalConnectionCount = connections.length;
       // Filter to only active connections
       connections = connections.filter((c) => c.isActive !== false);
@@ -335,7 +336,7 @@ async function buildUnifiedModelsResponseCore(
     // Get provider nodes (for compatible providers with custom prefixes)
     let providerNodes = [];
     try {
-      providerNodes = await getProviderNodes();
+      providerNodes = await getCachedProviderNodes();
     } catch (e) {
       console.log("Could not fetch provider nodes");
     }

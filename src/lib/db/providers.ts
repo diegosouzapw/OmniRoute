@@ -10,7 +10,8 @@ import {
   decryptConnectionFields,
   migrateLegacyEncryptedString,
 } from "./encryption";
-import { invalidateDbCache } from "./readCache";
+import { createLazyRowProxy } from "./providers/lazyConnectionView";
+import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
@@ -94,7 +95,36 @@ const PROVIDER_CONNECTIONS_COLUMNS = new Set([
 
 // ──────────────── Provider Connections ────────────────
 
+/**
+ * Returns provider connections as lazy-decrypting proxies: encrypted
+ * credential fields (apiKey, accessToken, refreshToken, idToken) are only
+ * decrypted on first property access, not eagerly for every row. Column-
+ * projected reads (`columns` passed) bypass the raw-row cache — the cache
+ * key doesn't account for projection, so a projected read could otherwise
+ * poison the cache for a subsequent full-row read of the same filter.
+ */
 export async function getProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
+  const raw = columns?.length
+    ? await getRawProviderConnections(filter, columns)
+    : await getCachedRawProviderConnections(filter);
+  return raw.map(createLazyRowProxy);
+}
+
+/**
+ * Same as getProviderConnections but WITHOUT decryptConnectionFields.
+ * Returns raw rows with encrypted credential fields intact — callers
+ * that only need metadata (id, priority, backoffLevel, etc.) avoid
+ * the O(n) AES-GCM decrypt cost on every cache fill.
+ *
+ * Used by the lazy-decryption path in auth selection (auth.ts) where
+ * 10k+ connections are filtered in JS but only 1 needs its apiKey
+ * decrypted.
+ *
+ * @param filter.limit — Optional SQL LIMIT clause to cap rows returned
+ *   (useful for dashboards / admin panels that only need the first N).
+ *   Not a column filter — extracted before building WHERE conditions.
+ */
+export async function getRawProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
   const db = getDbInstance() as unknown as DbLike;
   let selectCols = "*";
   if (columns?.length) {
@@ -125,25 +155,29 @@ export async function getProviderConnections(filter: JsonRecord = {}, columns?: 
     params.authType = filter.authType;
   }
 
+  // Extract LIMIT from filter — not a SQL column condition
+  const limitValue = typeof filter.limit === "number" ? filter.limit : undefined;
+
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
   }
   sql += " ORDER BY priority ASC, updated_at DESC";
+  if (limitValue !== undefined) {
+    sql += " LIMIT " + limitValue;
+  }
 
   const rows = db.prepare(sql).all(params);
   return rows.map((r) => {
     const camelRow = rowToCamel(r);
-    return decryptConnectionFields(
-      withNullableRateLimitOverrides(
-        withNullableQuotaWindowThresholds(
-          withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
-          camelRow
-        ),
+    return withNullableRateLimitOverrides(
+      withNullableQuotaWindowThresholds(
+        withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
         camelRow
-      )
+      ),
+      camelRow
     );
   });
-}
+ }
 
 export async function getProviderConnectionById(id: string) {
   const db = getDbInstance() as unknown as DbLike;
@@ -733,6 +767,34 @@ export async function clearConnectionErrorIfUnchanged(
   return applied;
 }
 
+/**
+ * Lightweight stat bump — updates lastUsedAt and consecutiveUseCount without
+ * SELECT, re-encrypt, cache invalidation, or file backup.
+ * Safe for the hot getProviderCredentials path where only usage stats change.
+ * Fixes the cache-thrashing bug where every credential selection invalidated
+ * the 5s TTL cache and paid 3000-row decryption cost on the next request.
+ */
+export async function touchConnectionLastUsed(
+  id: string,
+  consecutiveUseCount: number
+): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      last_used_at = @lastUsedAt,
+      consecutive_use_count = @consecutiveUseCount,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    lastUsedAt: now,
+    consecutiveUseCount,
+    updatedAt: now,
+    id,
+  });
+}
+
 export async function deleteProviderConnection(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
@@ -941,9 +1003,9 @@ export {
   setConnectionRateLimitUntil,
   markConnectionRateLimitedUntil,
   clearConnectionRateLimit,
-  isConnectionRateLimited,
-  getRateLimitedConnections,
   getEffectiveQuotaUsage,
   clearStaleCrashCooldowns,
   formatResetCountdown,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
 } from "./providers/rateLimit";

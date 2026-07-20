@@ -4,7 +4,7 @@ import {
   type EmbeddingProviderNodeRow,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getProviderCredentials } from "@/sse/services/auth";
-import { getProviderNodes } from "@/lib/localDb";
+import { getCachedProviderNodes } from "@/lib/localDb";
 import type { MemorySettingsExtended } from "@/shared/schemas/memory";
 import type {
   EmbeddingResolution,
@@ -217,7 +217,7 @@ export async function listEmbeddingProviders(): Promise<EmbeddingProviderListing
   // Get dynamic local providers
   let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
   try {
-    const nodes = (await getProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
+    const nodes = (await getCachedProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
     dynamicProviders = (Array.isArray(nodes) ? nodes : [])
       .filter((n) => {
         const validTypes = ["chat", "responses", "embeddings"];

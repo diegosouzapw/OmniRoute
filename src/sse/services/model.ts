@@ -4,7 +4,7 @@ import {
   getComboByName,
   getComboById,
   getComboByNameInsensitive,
-  getProviderNodes,
+  getCachedProviderNodes,
   getCustomModels,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
@@ -282,7 +282,7 @@ export async function getModelInfo(modelStr) {
       // Match by node.prefix (user-defined alias) OR node.id (internal UUID id stored by
       // combo steps), so that combo targets using the internal node id still resolve
       // correctly (#2778).
-      const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
+      const openaiNodes = await getCachedProviderNodes({ type: "openai-compatible" });
       const matchedOpenAI = openaiNodes.find(
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
@@ -304,7 +304,7 @@ export async function getModelInfo(modelStr) {
       }
 
       // Check Anthropic Compatible nodes
-      const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
+      const anthropicNodes = await getCachedProviderNodes({ type: "anthropic-compatible" });
       const matchedAnthropic = anthropicNodes.find(
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
