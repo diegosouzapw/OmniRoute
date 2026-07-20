@@ -201,6 +201,23 @@ test("createResponsesApiTransformStream restores declared custom tools without c
   assert.equal(completed.output.find((item) => item.name === "search").arguments, '{"q":"pong"}');
 });
 
+test("createResponsesApiTransformStream preserves empty custom-tool input", async () => {
+  const output = await runTransformStream(
+    [
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_empty","function":{"name":"exec","arguments":"{\\"input\\":\\"\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+    ],
+    null,
+    { customToolNames: new Set(["exec"]) }
+  );
+  const events = parseSseOutput(output);
+  const done = events
+    .filter((event) => event.event === "response.output_item.done")
+    .map((event) => JSON.parse(event.data).item)
+    .find((item) => item.name === "exec");
+  assert.equal(done.type, "custom_tool_call");
+  assert.equal(done.input, "");
+});
+
 test("createResponsesApiTransformStream defers custom item creation until the tool name arrives", async () => {
   const output = await runTransformStream(
     [

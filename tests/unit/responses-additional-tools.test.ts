@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const { openaiResponsesToOpenAIRequest } =
   await import("../../open-sse/translator/request/openai-responses.ts");
+const { collectResponsesCustomToolNames } =
+  await import("../../open-sse/translator/request/openai-responses/additionalTools.ts");
 
 interface ChatTool {
   function: {
