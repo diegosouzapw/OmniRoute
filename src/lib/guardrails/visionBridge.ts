@@ -196,37 +196,48 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       return { block: false };
     }
 
-    // 3b. Auto/ prefix → skip guardrail (auto-combo resolver handles vision-capable model selection)
-    if (model === "auto" || model.startsWith("auto/")) {
-      return { block: false };
-    }
+    // 3b. Auto/ prefix — don't skip guardrail entirely. Images still need to be
+    // described or rerouted to a vision-capable model. The auto-combo resolver
+    // does NOT currently filter models by vision capability, so without the
+    // guardrail an image-bearing request assigned to a text-only model will
+    // fail upstream with "does not support images".
+    const isAuto = model === "auto" || model.startsWith("auto/");
 
-    const forceVisionBridge = isVisionBridgeForcedModel(model);
+    // Declare before the conditional so they're available to the rest of preCall
+    let forceVisionBridge = false;
+    let comboVisionBridgeDecision: ComboVisionBridgeDecision | undefined;
 
-    // 4. Check if model supports vision
-    const capabilities = getResolvedModelCapabilities(model);
-    const comboVisionBridgeDecision = forceVisionBridge
-      ? "process"
-      : this.deps.checkModelHasComboMapping
-        ? (await this.deps.checkModelHasComboMapping(model))
-          ? "process"
-          : "skip"
-        : await getComboVisionBridgeDecision(model);
+    if (!isAuto) {
+      forceVisionBridge = isVisionBridgeForcedModel(model);
 
-    if (comboVisionBridgeDecision === "skip") {
-      return { block: false };
-    }
+      // 4. Check if model supports vision
+      const capabilities = getResolvedModelCapabilities(model);
+      comboVisionBridgeDecision = forceVisionBridge
+        ? "process"
+        : this.deps.checkModelHasComboMapping
+          ? (await this.deps.checkModelHasComboMapping(model))
+            ? "process"
+            : "skip"
+          : await getComboVisionBridgeDecision(model);
 
-    if (capabilities.supportsVision === true && !forceVisionBridge) {
-      // The request model supports vision natively, but check if a
-      // model-combo mapping routes this model through a combo where
-      // some targets may NOT support vision. In that case, the vision
-      // bridge must process images so combo targets can describe them.
-      if (comboVisionBridgeDecision !== "process") {
+      if (comboVisionBridgeDecision === "skip") {
         return { block: false };
       }
-      // Combo mapping found — fall through to process images
+
+      if (capabilities?.supportsVision === true && !forceVisionBridge) {
+        // The request model supports vision natively, but check if a
+        // model-combo mapping routes this model through a combo where
+        // some targets may NOT support vision. In that case, the vision
+        // bridge must process images so combo targets can describe them.
+        if (comboVisionBridgeDecision !== "process") {
+          return { block: false };
+        }
+        // Combo mapping found — fall through to process images
+      }
     }
+    // For auto models (isAuto=true), force remains false and combo decision
+    // remains undefined, which makes the reroute check on line ~189 treat it
+    // like a non-combo model — exactly what we want: reroute to a vision model.
 
     // 5. Get body and check for messages
     const body = payload as Record<string, unknown>;
@@ -266,12 +277,18 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     // exists, which produced: HTTP log zai → Guardrail reroute → opencode-zen 401
     // "Missing API key" while the combo UI still showed body=zai. Fall through to
     // the image-describe path so the user's chosen model still answers.
-    if (comboVisionBridgeDecision === "not-combo" && !forceVisionBridge) {
+    //
+    // Reroute also fires for the auto/ prefix (isAuto): the auto-combo resolver
+    // does not filter candidates for vision capability, so an image-bearing
+    // request with model=auto would land on a text-only model (#7871). Keeping
+    // "auto" is never the answer there, so the keep-credentialed-model skip
+    // below does not apply to auto — only the reroute-target credential guard.
+    if ((comboVisionBridgeDecision === "not-combo" || isAuto) && !forceVisionBridge) {
       const checkCreds =
         this.deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
       const originalUsable = await checkCreds(model);
 
-      if (originalUsable === true) {
+      if (originalUsable === true && !isAuto) {
         // Keep the credentialed model; describe images below if needed.
         context.log?.debug?.(
           "VISION_BRIDGE",

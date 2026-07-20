@@ -69,6 +69,7 @@
       "tests/unit/auto-combo-scoring-clamp.test.ts",
       "tests/unit/build/check-circular-deps.test.ts",
       "tests/unit/cache-sweeps.test.ts",
+      "tests/unit/cc-bridge-openai-image-7777.test.ts",
       "tests/unit/cc-compatible-provider.test.ts",
       "tests/unit/chat-combo-live-test.test.ts",
       "tests/unit/chat-context-relay.test.ts",

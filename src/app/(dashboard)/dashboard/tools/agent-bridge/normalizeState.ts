@@ -71,6 +71,15 @@ export function normalizeAgentBridgeState(raw: unknown): AgentBridgePageData {
     if (typeof source.orphanedStateDetected === "boolean") {
       serverState.orphanedStateDetected = source.orphanedStateDetected;
     }
+    if (typeof source.hasCachedPassword === "boolean") {
+      serverState.hasCachedPassword = source.hasCachedPassword;
+    }
+    if (typeof source.needsSudoPassword === "boolean") {
+      serverState.needsSudoPassword = source.needsSudoPassword;
+    }
+    if (typeof source.isWin === "boolean") {
+      serverState.isWin = source.isWin;
+    }
   }
 
   return {
