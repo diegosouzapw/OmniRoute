@@ -814,7 +814,6 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   }
 }
 
-
 function shouldRunStartupDbHealthCheck(): boolean {
   if (process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK === "1") return true;
   return !isAutomatedTestProcess();
@@ -1185,6 +1184,9 @@ export function getDbInstance(): SqliteDatabase {
   `);
 
   runMigrations(db, { isNewDb });
+  // Fresh installs need the same post-migration index guarantee as upgraded
+  // databases, including recovery from an interrupted migration 127 attempt.
+  ensureUsageHistoryAccountIndex(db);
 
   applyStoredDatabaseOptimizationSettings(db);
 
@@ -1313,6 +1315,10 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
  */
 export function resetDbInstance() {
   closeDbInstance();
+  // Read caches outlive the SQLite singleton. A reset swaps the backing
+  // database, so retaining cached rows can leak the previous database's
+  // connections/settings into the newly opened instance (tests and restore).
+  invalidateDbCache();
 }
 
 // ──────────────── Runtime Driver Info ────────────────

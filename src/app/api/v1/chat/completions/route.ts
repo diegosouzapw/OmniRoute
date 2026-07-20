@@ -69,7 +69,7 @@ export async function POST(request) {
   }
 
   // Reserve heavyweight capacity atomically and ingest the body with a hard byte bound
-  // BEFORE clone/JSON parsing. Missing or dishonest Content-Length values cannot bypass
+  // BEFORE JSON parsing. Missing or dishonest Content-Length values cannot bypass
   // the actual-byte limit. Capacity exhaustion is retryable rather than process-fatal.
   const admission = await admitChatRequest(request);
   if (!admission.admit) return admission.response;
@@ -92,11 +92,12 @@ export async function POST(request) {
     // Prompt injection guard — inspect body before forwarding. Parse the body ONCE here
     // and thread it to handleChat so the handler does not JSON-parse the (often 270-550 KB)
     // coding-agent payload a second time — the double parse doubled the body's heap
-    // residency on the hot path and fed the OOM crash-loop (#4380).
+    // residency on the hot path and fed the OOM crash-loop (#4380). #7862 parse-once over
+    // the admission-rebuilt request: the bytes are already buffered in memory by
+    // admitChatRequest(), so json() parses them directly — no clone(), no second stream read.
     let parsedBody = null;
     try {
-      const cloned = request.clone();
-      parsedBody = await cloned.json().catch(() => null);
+      parsedBody = await request.json().catch(() => null);
       if (parsedBody) {
         const { blocked, result } = injectionGuard(parsedBody);
         if (blocked) {

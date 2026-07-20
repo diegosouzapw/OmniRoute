@@ -1,0 +1,1 @@
+- **fix(cli):** Windows `omniroute dashboard` browser fallback uses `rundll32` instead of `cmd.exe` to open the dashboard URL, avoiding an unnecessary shell spawn ([#7844](https://github.com/diegosouzapw/OmniRoute/pull/7842))

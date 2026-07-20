@@ -182,8 +182,16 @@ export function isRequestScopedUpstreamFailure(error?: {
  * #7177: whether handleSingleModelChat should skip the connection-level cooldown
  * (markAccountUnavailable) for a failed attempt — client disconnects, a 401 when the
  * connection has extra keys to rotate through, a known request-scoped upstream failure
- * (e.g. context overflow — not a connection health signal), or our own self-inflicted
- * timeout all mean the connection itself is healthy and should not be cooled down.
+ * (e.g. context overflow — not a connection health signal), a plugin refusing the
+ * request (our own policy, not a provider fault — see below), or our own
+ * self-inflicted timeout all mean the connection itself is healthy and should not be
+ * cooled down.
+ *
+ * A plugin block (`plugin_block`) is our own policy decision, not the provider
+ * rejecting us. Banning the account here would let a working security plugin destroy
+ * the connection it protects — one block would ban the provider for every later
+ * request, valid ones included — and would trigger a pointless retry loop across other
+ * accounts the plugin would refuse identically.
  */
 export function shouldSkipConnDisable(
   result: { status: number; errorCode?: string | null; errorType?: string | null },
@@ -195,6 +203,8 @@ export function shouldSkipConnDisable(
     result.status === 499 ||
     result.errorCode === "client_disconnected" ||
     result.errorType === "client_disconnected" ||
+    result.errorCode === "plugin_block" ||
+    result.errorType === "plugin_block" ||
     (is401 && hasExtraKeys) ||
     isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) ||
     isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider)

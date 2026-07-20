@@ -350,7 +350,10 @@ export async function sweep() {
       // prevent sustained bursting while reducing total sweep duration.
       if (batchEnd < total) {
         if (staggerMs > 0) {
-          await new Promise((resolve) => setTimeout(resolve, staggerMs));
+          const jitterMin = parseInt(process.env.HEALTHCHECK_JITTER_MIN_MS || "500", 10);
+          const jitterMax = parseInt(process.env.HEALTHCHECK_JITTER_MAX_MS || "5000", 10);
+          const jitter = jitterMin + Math.random() * Math.max(0, jitterMax - jitterMin);
+          await new Promise((resolve) => setTimeout(resolve, staggerMs + jitter));
         }
         // Yield a microtask so the event loop can service pending I/O
         // (DB contention, network responses) before the next batch starts.

@@ -87,7 +87,11 @@ export function hasValidContent(msg: ClaudeMessage): boolean {
       (block) =>
         (block.type === "text" && block.text?.trim()) ||
         block.type === "tool_use" ||
-        block.type === "tool_result"
+        block.type === "tool_result" ||
+        // #7777: media-only user turns are real content — dropping them
+        // silently deletes vision input on the CC bridge / Claude paths.
+        block.type === "image" ||
+        block.type === "document"
     );
   }
   return false;

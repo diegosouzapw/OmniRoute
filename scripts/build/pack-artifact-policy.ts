@@ -86,6 +86,12 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "LICENSE",
   "README.md",
+  "bin/aliasResolver.mjs",
+  // #7808: ESM loader hook split out of bin/aliasResolver.mjs to silence CodeQL
+  // js/incomplete-url-substring-sanitization (the old code built a
+  // `data:text/javascript,...` URL dynamically). Loaded via pathToFileURL() at
+  // runtime; shipped via package.json "files", so it must be allowed here.
+  "bin/aliasResolverHook.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
@@ -175,6 +181,12 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
+  // #7808: aliasResolver + its hook file. bin/omniroute.mjs imports
+  // bin/aliasResolver.mjs at startup, which in turn registers
+  // bin/aliasResolverHook.mjs as the ESM loader. Both must ship in the tarball
+  // or the CLI fails to boot — list them REQUIRED so a regression is loud.
+  "bin/aliasResolver.mjs",
+  "bin/aliasResolverHook.mjs",
   "package.json",
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",

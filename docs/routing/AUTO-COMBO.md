@@ -76,6 +76,34 @@ model: "auto/cheap"           # cheapest per token
 - ✅ **Multi-account aware:** Each provider connection becomes a separate candidate
 - ✅ **No DB writes:** Virtual combo exists only for the request, zero persistence overhead
 
+### Per-key candidate control (#7819, Level 1+2)
+
+`GET /v1/auto-combo/{channel}/candidates` (`{channel}` = the suffix after `auto/`, or
+the literal `auto` for the base channel) is a **read-only** endpoint that lists an
+`auto/*` channel's current candidate pool decorated with live reachability, reusing
+the existing resilience reads (never raw breaker `state`):
+
+- provider circuit breaker — `getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- connection cooldown — `rateLimitedUntil` / `testStatus` on the resolved
+  `provider_connections` row
+- model lockout — `isModelLocked(provider, connectionId, model)`
+
+Each candidate also carries this API key's `excluded` flag. Exclusions are stored
+per-API-key (`auto_candidate_overrides` table, migration `128`) — OmniRoute is
+single-tenant with no `users` table, so `apiKeyId` is the closest real per-caller
+identity — and enforced at the candidate-pool chokepoint in
+`open-sse/services/autoCombo/virtualFactory.ts` via the pure, unit-tested
+`filterExcludedCandidates()` (`open-sse/services/autoCombo/candidateOverrides.ts`).
+The filter is **fail-open**: an unset apiKeyId/channel or a DB lookup failure both
+leave the pool unfiltered, so an operator with no overrides configured sees routing
+byte-identical to before this feature.
+
+**Deferred to a follow-up issue:** per-candidate weights + explicit ordering (Level 3
+— feeds into the existing weighted/priority strategy paths) and pinning a specific
+`combo.ts` strategy per `auto/*` channel (Level 4). See the #7819 plan for the open
+question on whether overrides should stay per-API-key or become global given the
+single-tenant model.
+
 **Behind the scenes:**
 
 ```txt

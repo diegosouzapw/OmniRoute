@@ -21,7 +21,7 @@
  * and tests/unit/rule12-error-sanitization-sweep.test.ts). Connections are
  * created with healthCheckInterval: 0 so checkConnection() is a fast no-op
  * (returns before any network/DB-write work), letting the test control
- * timing purely via the inter-connection HEALTHCHECK_STAGGER_MS delay.
+ * timing purely via the inter-batch HEALTHCHECK_STAGGER_MS delay.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -61,13 +61,15 @@ async function resetStorage() {
 test.after(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  delete process.env.HEALTHCHECK_STAGGER_MS;
+  delete process.env.HEALTHCHECK_JITTER_MIN_MS;
+  delete process.env.HEALTHCHECK_JITTER_MAX_MS;
 });
 
 /** Read the shared health-check global state's `sweeping` flag. */
 function isSweeping(): boolean {
   const hc = (globalThis as Record<string, unknown>).__omnirouteTokenHC as
-    | { sweeping?: boolean }
-    | undefined;
+    { sweeping?: boolean } | undefined;
   return hc?.sweeping ?? false;
 }
 
@@ -87,10 +89,12 @@ async function createNoOpOauthConnections(count: number, namePrefix: string) {
 test("sweep() skips re-entrant calls while a previous sweep is still in flight", async () => {
   await resetStorage();
   process.env.HEALTHCHECK_STAGGER_MS = "300";
-  await createNoOpOauthConnections(4, "reentrancy");
+  process.env.HEALTHCHECK_JITTER_MIN_MS = "0";
+  process.env.HEALTHCHECK_JITTER_MAX_MS = "0";
+  await createNoOpOauthConnections(21, "reentrancy");
 
   const seeded = await providersDb.getProviderConnections({ authType: "oauth" });
-  assert.equal(seeded.length, 4, "precondition: 4 oauth connections exist");
+  assert.equal(seeded.length, 21, "precondition: 21 oauth connections exist");
   assert.equal(isSweeping(), false, "precondition: no sweep in flight yet");
 
   const first = sweep();
@@ -103,9 +107,9 @@ test("sweep() skips re-entrant calls while a previous sweep is still in flight",
   await sweep(); // second, concurrent call — must be skipped by the guard
   const elapsedMs = Date.now() - start;
 
-  // With 4 connections and a 300ms inter-connection stagger, a REAL second
-  // sweep would take >= 300ms just to clear a single stagger gap (and up to
-  // ~900ms for all three gaps). The guard must make this call return near-
+  // With 21 connections and a 300ms inter-batch stagger, a REAL second
+  // sweep would take >= 300ms to clear the single batch gap. The guard must
+  // make this call return near-
   // instantly instead of re-entering the loop.
   assert.ok(
     elapsedMs < 250,

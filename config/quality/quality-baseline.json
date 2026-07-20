@@ -167,6 +167,7 @@
     },
     "zizmorFindings": {
       "value": 176,
+      "_rebaseline_2026_07_20_aliasresolver_hook_split_7808": "175 -> 176 (+1). Companion to PR #7808 (CodeQL js/incomplete-url-substring-sanitization fix in bin/aliasResolver.mjs). The +1 is NOT caused by this PR's code changes (bin/* is not a workflow file) — it is a pre-existing drift that surfaced because the ratchet gate runs on this PR's CI: the zizmor scanner version on the GitHub runner gained a new rule (or extended an existing one) since the v3.8.49 baseline was seeded on 2026-07-17. Breakdown: the new finding is an unpinned-uses @vN class item on one of the existing workflows (same deliberate convention as _scanner_harden_workflows_2026_06_16 — @vN is intentional, SHA-pinning only this one would violate the convention). No new template-injection/artipacked/cache-poisoning/dangerous-triggers classes introduced. Measured by the Quality Gates (Extended) job on run 29713001401 = 176, baseline was 175. Note: by the time this landed on release/v3.8.49, the baseline was already at 176 via _rebaseline_2026_07_17_combo_recovery_hints — this entry is kept as historical record; no further bump applied.",
       "_rebaseline_2026_07_17_v3849_release": "169 -> 175 (+6). Cycle workflow drift (v3.8.48/v3.8.49): npm-publish.yml (new, WS1.3 #7092), electron-release.yml, nightly-compat.yml, nightly-release-green.yml, CI restructures (#7501 full-history base fetch, #7355 main-green, #7202 merge-queue gates, Trunk/Codecov). Breakdown vs v3.8.47: +3 unpinned-uses (@vN convention, deliberate per _scanner_harden_workflows_2026_06_16), +2 cache-poisoning (artifact upload/cache in the OWN electron-release/npm-publish RELEASE workflows -- operator-controlled, not fork-PR exploitable), +1 excessive-permissions (nightly-compat.yml permissions:issues). No new template-injection/artipacked/dangerous-triggers. Measured with zizmor 1.25.2 via `node scripts/check/check-workflows.mjs --ratchet` = 175 on da3a0be69.",
       "direction": "down",
       "dedicatedGate": true,
@@ -181,10 +182,11 @@
       "dedicatedGate": true
     },
     "bundleSize": {
-      "value": 6534,
+      "value": 6762,
       "direction": "down",
       "dedicatedGate": true,
-      "_rebaseline_2026_07_07_v3846_release_close": "5601->6534 (+933). v3.8.46 release close: gzip of the 4 bin/*.mjs entrypoints (size-limit + @size-limit/file) grew from this cycle's feature/fix merges pulled transitively into the CLI entrypoints (new providers, combo pipeline strategy #6396, effort/thinking standardization #6241, catalog cache-invalidation #6408). Measured 6534 locally via `check:bundle-size --ratchet` (deterministic gzip, matches CI). Legitimate cycle growth; shrink is separate debt."
+      "_rebaseline_2026_07_07_v3846_release_close": "5601->6534 (+933). v3.8.46 release close: gzip of the 4 bin/*.mjs entrypoints (size-limit + @size-limit/file) grew from this cycle's feature/fix merges pulled transitively into the CLI entrypoints (new providers, combo pipeline strategy #6396, effort/thinking standardization #6241, catalog cache-invalidation #6408). Measured 6534 locally via `check:bundle-size --ratchet` (deterministic gzip, matches CI). Legitimate cycle growth; shrink is separate debt.",
+      "_rebaseline_2026_07_19_7808_codeql_alias_resolver_hook": "6534->6762 (+228). PR #7808 (CodeQL js/incomplete-url-substring-sanitization fix): the ESM loader hook source moved out of the inline `HOOK_SOURCE` template literal in bin/aliasResolver.mjs into a real file bin/aliasResolverHook.mjs, loaded via pathToFileURL() instead of a dynamically-built `data:text/javascript,...` URL. The new file is now counted by size-limit as a 5th bin/*.mjs entrypoint. Net +228 = the hook's gzip size (previously hidden inside aliasResolver.mjs because the template literal was compressed away). Security-driven; no shrink opportunity."
     },
     "openapiBreaking": {
       "value": 0,

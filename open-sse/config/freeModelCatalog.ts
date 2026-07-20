@@ -20,6 +20,12 @@ export interface FreeModelBudget {
   freeType: FreeModelFreeType;
   poolKey: string | null;
   tos: TosVerdict;
+  /**
+   * Provider states it may train on user prompts. Surfaced in the UI so the
+   * privacy cost of a "free" tier is visible next to the quota. Kilo's gateway
+   * reports this per model as `mayTrainOnYourPrompts` on its public catalog.
+   */
+  trainsOnPrompts?: boolean;
 }
 
 export interface FreeModelTotals {

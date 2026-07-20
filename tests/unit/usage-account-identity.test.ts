@@ -21,7 +21,16 @@ test("Codex chatgptUserId identity is stable across UUID and label changes", () 
     providerSpecificData: { chatgptUserId: "user-production" },
   });
 
+  const emailChanged = resolveUsageAccountIdentity({
+    id: "third-uuid",
+    provider: "codex",
+    authType: "oauth",
+    email: "renamed@example.com",
+    providerSpecificData: { chatgptUserId: "user-production" },
+  });
+
   assert.equal(first.accountKey, recreated.accountKey);
+  assert.equal(first.accountKey, emailChanged.accountKey);
   assert.equal(first.accountLabel, "Production Codex");
   assert.equal(recreated.accountLabel, "member@example.com");
 });

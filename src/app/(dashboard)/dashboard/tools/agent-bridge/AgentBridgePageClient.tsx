@@ -43,6 +43,12 @@ export interface AgentBridgeServerState {
   dnsConfigured: boolean;
   /** A crash/SIGKILL left system state behind — surfaces the repair banner. */
   orphanedStateDetected: boolean;
+  /** Session-cached sudo password from a prior MITM privileged action. */
+  hasCachedPassword?: boolean;
+  /** Server OS requires a sudo password and none is cached (#7836). */
+  needsSudoPassword?: boolean;
+  /** Whether the OmniRoute server is running on Windows. */
+  isWin?: boolean;
 }
 
 export type AgentMappingsMap = Record<string, MappingRow[]>;
@@ -261,6 +267,9 @@ export default function AgentBridgePageClient({
           <AgentBridgeMaintenanceCard
             orphanedStateDetected={data.serverState.orphanedStateDetected}
             certTrusted={data.serverState.certTrusted}
+            hasCachedPassword={data.serverState.hasCachedPassword === true}
+            needsSudoPassword={data.serverState.needsSudoPassword === true}
+            isWin={data.serverState.isWin === true}
             onError={setActionError}
             onRefresh={refresh}
           />

@@ -105,7 +105,8 @@ export async function resolveAutoRoutingState(model: string): Promise<AutoRoutin
 
 export async function createVirtualAutoCombo(
   state: AutoRoutingState,
-  combo: any
+  combo: any,
+  apiKeyId?: string
 ): Promise<any | Response> {
   if (!state.isAutoRouting || combo !== null) return combo;
   if (!state.recognizedBuiltInAuto) {
@@ -118,7 +119,10 @@ export async function createVirtualAutoCombo(
   try {
     const { createVirtualAutoCombo: createVirtual } =
       await import("@omniroute/open-sse/services/autoCombo/virtualFactory.ts");
-    const virtualCombo = await createVirtual(state.variant, state.spec);
+    // #7819 (Level 2): scope candidate exclusions to this API key + the
+    // requested auto channel (e.g. "auto/best-coding"). Omitted for any
+    // caller that doesn't pass apiKeyId — routing stays unfiltered.
+    const virtualCombo = await createVirtual(state.variant, state.spec, apiKeyId, state.model);
     virtualCombo.name = state.model;
     virtualCombo.id = state.model;
     log.info(
