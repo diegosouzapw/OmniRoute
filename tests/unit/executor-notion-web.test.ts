@@ -437,13 +437,56 @@ describe("buildNotionTranscript", () => {
     assert.ok(transcript.every((t) => typeof t.id === "string" && (t.id as string).length > 0));
   });
 
-  it("drops messages with empty/non-string content but keeps config+context", () => {
+  it("drops messages with empty content but keeps config+context", () => {
     const transcript = buildNotionTranscript([
       { role: "user", content: "" },
       { role: "user", content: "keep me" },
     ]);
     assert.equal(transcript.length, 3); // config + context + user
     assert.equal(transcript[2].type, "user");
+  });
+
+  it("accepts OpenAI content-parts arrays for system + user (agent clients)", () => {
+    // Regression: array-shaped content was previously dropped entirely, so
+    // system injects (jailbreak/agentic) and multimodal user turns never
+    // reached Notion's transcript.
+    const transcript = buildNotionTranscript(
+      [
+        {
+          role: "system",
+          content: [
+            { type: "text", text: "[VP-JB] follow tools" },
+            { type: "text", text: "second system part" },
+          ] as unknown as string,
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "find icon skill" },
+          ] as unknown as string,
+        },
+      ],
+      { spaceId: "s1" }
+    );
+    assert.deepEqual(
+      transcript.map((t) => t.type),
+      ["config", "context", "user"]
+    );
+    const ctx = transcript[1].value as { instructions?: string };
+    assert.match(String(ctx.instructions), /\[VP-JB\] follow tools/);
+    assert.match(String(ctx.instructions), /second system part/);
+    assert.deepEqual(transcript[2].value, [["find icon skill"]]);
+  });
+
+  it("accepts bare string parts inside content arrays", () => {
+    const transcript = buildNotionTranscript([
+      {
+        role: "user",
+        content: ["hello", "world"] as unknown as string,
+      },
+    ]);
+    assert.equal(transcript[2].type, "user");
+    assert.deepEqual(transcript[2].value, [["hello\nworld"]]);
   });
 
   it("puts model food-codename on config when provided", () => {

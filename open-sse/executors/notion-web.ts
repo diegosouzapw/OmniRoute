@@ -187,6 +187,30 @@ function buildNotionContextValue(opts: {
   return contextValue;
 }
 
+/**
+ * Normalize OpenAI-style message content to a plain string.
+ * Accepts a string or content-parts array (`{ type:"text", text }` / `{ text }`).
+ * Previously only string content was accepted — array-shaped system/user messages
+ * (common from agent clients) were silently dropped, so system/jailbreak/agentic
+ * injects never reached Notion when any message used parts.
+ */
+function extractNotionMessageText(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  const parts: string[] = [];
+  for (const p of content) {
+    if (typeof p === "string") {
+      if (p) parts.push(p);
+      continue;
+    }
+    if (!p || typeof p !== "object") continue;
+    const o = p as Record<string, unknown>;
+    if (typeof o.text === "string" && o.text) parts.push(o.text);
+    else if (typeof o.content === "string" && o.content) parts.push(o.content);
+  }
+  return parts.join("\n");
+}
+
 /** Converts one OpenAI-style message into a transcript step, or `null` when it
  * was folded into the context (system prompts). */
 function buildNotionMessageStep(
@@ -194,13 +218,15 @@ function buildNotionMessageStep(
   contextValue: Record<string, unknown>,
   opts: { userId?: string; now: string }
 ): Record<string, unknown> | null {
-  if (typeof m?.content !== "string" || m.content.length === 0) return null;
+  // Accept string OR content-parts array (agent clients often send parts).
+  const text = extractNotionMessageText((m as { content?: unknown })?.content);
+  if (!text || text.length === 0) return null;
   const role = (m.role || "").toLowerCase();
 
   if (role === "system") {
     // Fold system prompts into context instructions rather than a separate step.
     const existing = typeof contextValue.instructions === "string" ? contextValue.instructions : "";
-    contextValue.instructions = existing ? `${existing}\n${m.content}` : m.content;
+    contextValue.instructions = existing ? `${existing}\n${text}` : text;
     return null;
   }
 
@@ -208,7 +234,7 @@ function buildNotionMessageStep(
     return {
       id: randomUUID(),
       type: "agent-inference",
-      value: [{ type: "text", content: m.content }],
+      value: [{ type: "text", content: text }],
     };
   }
 
@@ -216,7 +242,7 @@ function buildNotionMessageStep(
   const userStep: Record<string, unknown> = {
     id: randomUUID(),
     type: "user",
-    value: [[m.content]],
+    value: [[text]],
     createdAt: opts.now,
   };
   if (opts.userId) userStep.userId = opts.userId;
