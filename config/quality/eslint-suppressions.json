@@ -1672,11 +1672,6 @@
       "count": 2
     }
   },
-  "tests/unit/perplexity-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    }
-  },
   "tests/unit/persist-429-cooldown-account-fallback.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7

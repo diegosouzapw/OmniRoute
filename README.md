@@ -18,9 +18,11 @@
 
 > Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you actually have. OmniRoute aggregates the **documented** free tiers of **39 provider pools / 460+ models** into one honest number and shows it live on the dashboard (`/dashboard/free-tiers`).
 
-<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute free-tier budget card: ~1.4B free tokens per month steady, up to ~2.0B in the first month with signup credits, from the documented free tiers of 39 provider pools / 460+ models behind one endpoint. Honest pool-deduped math — each shared pool counted once (counting every rate limit 24/7 would read ~10B; not published), 15 providers ToS-flagged so you decide. Budget bar of the 21 countable free pools with per-model grid (Mistral Large 3 1B, GPT-4o mini 150M, LongCat 150M, Gemini 2.5 Flash 60M … Auto 25K), ~616M one-time first-month signup credits (vertex 300M, agentrouter 200M, predibase 25M, together 25M, glm-cn 20M, doubao 15M, ai21 10M, deepseek 5M, hyperbolic 5M), plus permanently-free no-token-cap providers (SiliconFlow, Z.AI GLM-Flash, Kilo, OpenCode Zen, baidu …) and a $10 OpenRouter top-up unlocking +24M/mo — surfaced separately so they never inflate the headline. Live used/remaining on /dashboard/free-tiers."/>
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute free-tier budget card: ~1.4B free tokens per month steady, up to ~2.0B in the first month with signup credits, from the documented free tiers of 39 provider pools / 460+ models behind one endpoint. Honest pool-deduped math — each shared pool counted once (counting every rate limit 24/7 would read ~10B; not published), 15 providers ToS-flagged so you decide. Budget bar of the 19 countable free pools with per-model grid (Mistral Large 3 1B, GPT-4o mini 150M, Gemini 2.5 Flash 60M … Claude Sonnet 4.5 25K), ~626M one-time first-month signup credits (vertex 300M, agentrouter 200M, predibase 25M, together 25M, glm-cn 20M, doubao 15M, ai21 10M, longcat 10M, deepseek 5M, hyperbolic 5M, nscale 5M), plus permanently-free no-token-cap providers (SiliconFlow, Z.AI GLM-Flash, Kilo, OpenCode Zen, baidu …) and a $10 OpenRouter top-up unlocking +24M/mo — surfaced separately so they never inflate the headline. Live used/remaining on /dashboard/free-tiers."/>
 
 > Animated summary of the live `/dashboard/free-tiers` page. Full methodology (pool dedupe, credit tiers, provider terms): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+>
+> <sub>These figures are re-audited every two weeks against the live catalog and **move both ways** — a provider ends a free tier and the number drops; a new one lands and it climbs. We publish what the catalog actually computes, never a rounded-up best case. A CI gate (`check:docs-counts`) fails the build if this headline drifts from the code.</sub>
 
 <div align="center">
 
@@ -954,7 +956,7 @@ same process on one port, so there is no separate CLI-only package today.
 
 <div align="center">
 
-## 👥 360+ Contributors
+## 👥 350+ Contributors
 
 </div>
 

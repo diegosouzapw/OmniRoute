@@ -412,6 +412,9 @@ function closeMessage(state, emit, idx) {
 
 function emitToolCall(state, emit, tc) {
   const tcIdx = tc.index ?? 0;
+  const outputIndex = state.reasoningId
+    ? normalizeOutputIndex(state.reasoningIndex) + 1 + normalizeOutputIndex(tcIdx)
+    : normalizeOutputIndex(tcIdx);
   const newCallId = tc.id;
   const funcName = tc.function?.name;
 
@@ -440,7 +443,7 @@ function emitToolCall(state, emit, tc) {
 
     emit("response.output_item.added", {
       type: "response.output_item.added",
-      output_index: tcIdx,
+      output_index: outputIndex,
       item: isCustomTool
         ? {
             id: `fc_${newCallId}`,
@@ -448,6 +451,7 @@ function emitToolCall(state, emit, tc) {
             input: "",
             call_id: newCallId,
             name: state.funcNames[tcIdx] || "",
+            status: "in_progress",
           }
         : {
             id: `fc_${newCallId}`,
@@ -455,6 +459,7 @@ function emitToolCall(state, emit, tc) {
             arguments: "",
             call_id: newCallId,
             name: state.funcNames[tcIdx] || "",
+            status: "in_progress",
           },
     });
   }
@@ -476,7 +481,7 @@ function emitToolCall(state, emit, tc) {
       emit(deltaEvent, {
         type: deltaEvent,
         item_id: `fc_${refCallId}`,
-        output_index: tcIdx,
+        output_index: outputIndex,
         delta: emittedDelta,
       });
     }
@@ -486,7 +491,9 @@ function emitToolCall(state, emit, tc) {
 function closeToolCall(state, emit, idx, recordAsCompleted = true) {
   const callId = state.funcCallIds[idx];
   if (callId && !state.funcItemDone[idx]) {
-    const normalizedIndex = normalizeOutputIndex(idx);
+    const normalizedIndex = state.reasoningId
+      ? normalizeOutputIndex(state.reasoningIndex) + 1 + normalizeOutputIndex(idx)
+      : normalizeOutputIndex(idx);
     const args = state.funcArgsBuf[idx] || "{}";
     const isCustomTool = (state.funcNames[idx] || "") === "apply_patch";
 
@@ -515,6 +522,7 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         input: rawInput,
         call_id: callId,
         name: state.funcNames[idx] || "",
+        status: "completed",
       };
 
       emit("response.output_item.done", {
@@ -536,6 +544,7 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         arguments: args,
         call_id: callId,
         name: state.funcNames[idx] || "",
+        status: "completed",
       };
 
       emit("response.output_item.done", {

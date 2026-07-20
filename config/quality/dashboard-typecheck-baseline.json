@@ -63,9 +63,6 @@
   "src/app/(dashboard)/dashboard/compression/studio/EncoderComparisonTable.tsx": {
     "TS2322": 1
   },
-  "src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx": {
-    "TS2304": 1
-  },
   "src/app/(dashboard)/dashboard/costs/quota-share/QuotaSharePageClient.tsx": {
     "TS2551": 7,
     "TS2322": 2,
@@ -183,12 +180,6 @@
   },
   "src/app/(dashboard)/dashboard/settings/components/RedisLauncherPanel.tsx": {
     "TS2345": 11
-  },
-  "src/app/(dashboard)/dashboard/settings/components/SidebarTab.tsx": {
-    "TS2322": 1
-  },
-  "src/app/(dashboard)/dashboard/settings/components/proxy/FreePoolTab.tsx": {
-    "TS2304": 1
   },
   "src/app/(dashboard)/dashboard/tools/traffic-inspector/components/CustomHostsManager.tsx": {
     "TS2339": 1

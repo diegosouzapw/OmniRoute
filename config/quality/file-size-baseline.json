@@ -327,7 +327,7 @@
     "tests/unit/model-sync-route.test.ts": 1016,
     "tests/unit/models-catalog-route.test.ts": 1605,
     "tests/unit/oauth-providers-config.test.ts": 845,
-    "tests/unit/perplexity-web.test.ts": 999,
+    "tests/unit/perplexity-web.test.ts": 1200,
     "tests/unit/provider-models-route.test.ts": 1752,
     "tests/unit/provider-validation-specialty.test.ts": 2980,
     "tests/unit/providers-page-utils.test.ts": 1294,

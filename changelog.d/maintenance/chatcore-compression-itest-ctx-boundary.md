@@ -1,0 +1,1 @@
+- fix(tests): realign the disabled-compression combo integration test with the #7379 pre-dispatch context-window boundary (body resized into the 70%-threshold↔window corridor) and add an integration lock (`chatcore-context-window-boundary`) asserting over-window requests are rejected with 400 `context_length_exceeded` before any upstream fetch
