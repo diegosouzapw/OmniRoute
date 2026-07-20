@@ -535,7 +535,55 @@ export function openaiResponsesToOpenAIRequest(
       result.tool_choice = { type: "function", function: { name: tc.name } };
     } else if (tcType === "local_shell") {
       result.tool_choice = { type: "function", function: { name: "shell" } };
-    } else if (tcType && tcType !== "function" && tcType !== "allowed_tools") {
+    } else if (tcType === "allowed_tools") {
+      const mode = toString(tc.mode);
+      if (mode !== "auto" && mode !== "required") {
+        throw unsupportedFeature(
+          `Unsupported Responses API feature: allowed_tools mode '${mode || "missing"}' is not supported by omniroute`
+        );
+      }
+      if (!Array.isArray(tc.tools) || tc.tools.length === 0) {
+        throw unsupportedFeature(
+          "Unsupported Responses API feature: allowed_tools requires at least one function tool"
+        );
+      }
+
+      const allowedNames = new Set<string>();
+      for (const allowedValue of tc.tools) {
+        const allowed = toRecord(allowedValue);
+        const allowedType = toString(allowed.type);
+        const allowedName = toString(allowed.name).trim();
+        if (allowedType !== "function" || !allowedName) {
+          throw unsupportedFeature(
+            `Unsupported Responses API feature: allowed_tools descriptor type '${allowedType || "missing"}' cannot be represented in Chat Completions`
+          );
+        }
+        allowedNames.add(allowedName);
+      }
+
+      const chatTools = Array.isArray(result.tools) ? result.tools : [];
+      const availableNames = new Set(
+        chatTools
+          .map((toolValue) => toString(toRecord(toRecord(toolValue).function).name))
+          .filter(Boolean)
+      );
+      const missingNames = [...allowedNames].filter((name) => !availableNames.has(name));
+      if (missingNames.length > 0) {
+        throw unsupportedFeature(
+          `Unsupported Responses API feature: allowed_tools references unavailable function tool(s): ${missingNames.join(", ")}`
+        );
+      }
+
+      result.tools = chatTools.filter((toolValue) =>
+        allowedNames.has(toString(toRecord(toRecord(toolValue).function).name))
+      );
+      if (result.tools.length === 0) {
+        throw unsupportedFeature(
+          "Unsupported Responses API feature: allowed_tools resolved to zero Chat Completions function tools"
+        );
+      }
+      result.tool_choice = mode;
+    } else if (tcType && tcType !== "function") {
       // Built-in tool types (web_search_preview, file_search, etc.) have no Chat equivalent
       throw unsupportedFeature(
         `Unsupported Responses API feature: tool_choice type '${tcType}' is not supported by omniroute`
