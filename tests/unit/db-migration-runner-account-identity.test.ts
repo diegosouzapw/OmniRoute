@@ -139,7 +139,7 @@ test("migration 128 promotes only user-proven snapshots after a fresh 127 backfi
     "utf8"
   );
   const migration128 = fs.readFileSync(
-    "src/lib/db/migrations/128_usage_history_codex_strong_identity.sql",
+    "src/lib/db/migrations/129_usage_history_codex_strong_identity.sql",
     "utf8"
   );
 
@@ -280,7 +280,7 @@ test("migration 128 promotes only user-proven snapshots after a fresh 127 backfi
     const applied = withMockedMigrationFs(
       {
         "127_usage_history_account_identity.sql": migration127,
-        "128_usage_history_codex_strong_identity.sql": migration128,
+        "129_usage_history_codex_strong_identity.sql": migration128,
       },
       () => runner.runMigrations(db)
     );
@@ -354,7 +354,7 @@ test("migration 128 promotes only user-proven snapshots after a fresh 127 backfi
 
     // Rerunning 128 on an up-to-date database must not rewrite anything.
     const rerun = withMockedMigrationFs(
-      { "128_usage_history_codex_strong_identity.sql": migration128 },
+      { "129_usage_history_codex_strong_identity.sql": migration128 },
       () => runner.runMigrations(db)
     );
     assert.equal(rerun, 0);
