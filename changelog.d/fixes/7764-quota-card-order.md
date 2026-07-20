@@ -1,0 +1,1 @@
+- fix(dashboard): keep session/weekly quota rows in a stable fixed order on collapsed provider-quota cards, matching the already-fixed expanded view (#7764)

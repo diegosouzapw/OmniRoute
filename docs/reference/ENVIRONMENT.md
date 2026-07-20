@@ -220,6 +220,7 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 | `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = log only, `block` = reject request with 400, `redact` = strip suspicious patterns. |
 | `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
 | `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
+| `CREDENTIAL_REDACTION_ENABLED` | `false` | `src/lib/guardrails/credentialMasker.ts` | Redact well-known API-key / secret-token patterns from request/response payloads. Opt-in; mirrors `PII_REDACTION_ENABLED`. |
 
 ### Response-Side: PII Sanitizer
 
@@ -475,6 +476,7 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                                                                                                                                                                                    |
 | `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                                                                                                                                                                               |
 | `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Public client.                                                                                                                                                                                                                                  |
+| `GHE_COPILOT_OAUTH_CLIENT_ID`     | GHE Copilot             | Optional override for GitHub Enterprise Copilot's OAuth client id. Falls back to `GITHUB_OAUTH_CLIENT_ID`'s public default when unset.                                                                                                          |
 | `WINDSURF_FIREBASE_API_KEY`       | Windsurf / Devin (v3.8) | Public Firebase Web API key used by Windsurf's Secure Token Service to refresh short-lived browser-flow tokens. Client-side credential (not a secret). Long-lived import tokens skip this entirely. Source: extracted from Devin CLI binary.    |
 | `WINDSURF_API_KEY`                | Windsurf / Devin (v3.8) | API key fallback used by `open-sse/executors/devin-cli.ts` when no per-connection credential is available. Optional.                                                                                                                            |
 | `CLI_DEVIN_BIN`                   | Devin CLI (v3.8)        | Custom path to the Devin CLI binary (`devin`). Resolved by `open-sse/executors/devin-cli.ts`.                                                                                                                                                   |
