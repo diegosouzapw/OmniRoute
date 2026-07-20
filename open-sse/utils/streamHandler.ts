@@ -463,10 +463,12 @@ export function createDisconnectAwareStream(transformStream, streamController) {
   const terminalDecoder = new TextDecoder();
   let terminalTail = "";
   let clientTerminalSeen = false;
+  let bytesWereForwarded = false;
 
   const noteClientChunk = (chunk: unknown) => {
-    if (clientTerminalSeen) return;
     if (!(chunk instanceof Uint8Array)) return;
+    bytesWereForwarded = true;
+    if (clientTerminalSeen) return;
 
     terminalTail += terminalDecoder.decode(chunk, { stream: true });
     if (terminalTail.length > 4096) {
@@ -497,7 +499,11 @@ export function createDisconnectAwareStream(transformStream, streamController) {
             // response.completed / message_stop, this is a silent mid-stream
             // drop. Emit a synthetic terminal error so Anthropic SDK / Claude
             // Code don't see "Connection closed mid-response."
-            if (!clientTerminalSeen) {
+            if (
+              bytesWereForwarded &&
+              !clientTerminalSeen &&
+              streamController.clientResponseFormat
+            ) {
               streamController.handleError(
                 Object.assign(new Error("Upstream stream ended without a terminal marker"), {
                   statusCode: 502,
