@@ -72,11 +72,15 @@ function hashBlock(text: string): string {
  * The scan observes line starts without splitting or constructing any suffix strings.
  */
 function reserveSuffixWork(text: string, passCount: number, budget: SuffixWorkBudget): boolean {
-  for (let start = 0; start <= text.length; start++) {
-    if (start !== 0 && text.charCodeAt(start - 1) !== 10) continue;
+  let start = 0;
+  while (start <= text.length) {
     const suffixChars = (text.length - start) * passCount;
     if (suffixChars > budget.remaining) return false;
     budget.remaining -= suffixChars;
+
+    const nextNewline = text.indexOf("\n", start);
+    if (nextNewline === -1) break;
+    start = nextNewline + 1;
   }
   return true;
 }
