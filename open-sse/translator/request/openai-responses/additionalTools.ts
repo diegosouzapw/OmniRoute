@@ -13,7 +13,11 @@ function toolIdentity(value: unknown): string | null {
       : typeof nestedFunction.name === "string" && nestedFunction.name.trim()
         ? nestedFunction.name.trim()
         : "";
-  return name ? `name:${name}` : null;
+  if (!name) return null;
+
+  // Namespace names are only containers. The Chat conversion flattens their nested
+  // tools, so they do not collide with a top-level function of the same name.
+  return tool.type === "namespace" ? `namespace:${name}` : `name:${name}`;
 }
 
 /**
