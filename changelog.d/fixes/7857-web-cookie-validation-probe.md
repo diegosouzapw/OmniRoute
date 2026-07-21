@@ -1,0 +1,1 @@
+- fix(providers): treat a non-401/403 response from the web-cookie `/models` validation probe (redirect, login-HTML 200, 404, 405, 429) as `unsupported` instead of `valid: true` for providers whose registry `baseUrl` is a conversation/completion endpoint rather than a real API root (#7857)
