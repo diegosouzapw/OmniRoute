@@ -113,6 +113,22 @@ describe("PromptQl — helpers", () => {
     assert.ok((q.used ?? 0) > 0);
   });
 
+  it("registers promptql on the usage-fetcher + limits allowlists", async () => {
+    const usageMain = await import("../../open-sse/services/usage.ts");
+    assert.ok(
+      (usageMain.USAGE_FETCHER_PROVIDERS as readonly string[]).includes("promptql"),
+      "USAGE_FETCHER_PROVIDERS must list promptql so generic quota fetcher can call it"
+    );
+    assert.ok((usageMain.USAGE_FETCHER_PROVIDERS as readonly string[]).includes("pql"));
+    const { USAGE_SUPPORTED_PROVIDERS } = await import(
+      "../../src/shared/constants/providers.ts"
+    );
+    assert.ok(
+      (USAGE_SUPPORTED_PROVIDERS as readonly string[]).includes("promptql"),
+      "USAGE_SUPPORTED_PROVIDERS must list promptql for provider-limits sync"
+    );
+  });
+
   it("extracts OpenAI content-parts arrays", () => {
     assert.equal(
       mod.extractMessageText([{ type: "text", text: "hi" }, { type: "text", text: " there" }]),
@@ -152,6 +168,127 @@ describe("PromptQlExecutor — auth / validation", () => {
       signal: null,
     } as never);
     assert.equal(result.response.status, 400);
+  });
+});
+
+describe("PromptQl — thread continuity (no cross-chat sticky)", () => {
+  const projectId = "01a0fe61-baf4-4e31-9311-8cc0bb3eba91";
+
+  it("two chats with the same first user text get different follow-up keys", () => {
+    mod.clearPromptQlThreadBindingsForTests();
+    const chatATurn1 = [{ role: "user", content: "hi" }];
+    const chatBTurn1 = [{ role: "user", content: "hi" }]; // same greeting
+
+    const a1 = mod.resolvePromptQlThreadBinding(projectId, chatATurn1);
+    const b1 = mod.resolvePromptQlThreadBinding(projectId, chatBTurn1);
+    assert.equal(a1.isFollowUp, false);
+    assert.equal(b1.isFollowUp, false);
+    assert.equal(a1.threadId, "");
+    assert.equal(b1.threadId, "");
+
+    // After distinct assistant replies, sticky keys diverge
+    mod.storePromptQlThreadAfterTurn(projectId, chatATurn1, "reply-A-unique", "thread-A");
+    mod.storePromptQlThreadAfterTurn(projectId, chatBTurn1, "reply-B-unique", "thread-B");
+
+    const chatATurn2 = [
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "reply-A-unique" },
+      { role: "user", content: "follow A" },
+    ];
+    const chatBTurn2 = [
+      { role: "user", content: "hi" },
+      { role: "assistant", content: "reply-B-unique" },
+      { role: "user", content: "follow B" },
+    ];
+    const a2 = mod.resolvePromptQlThreadBinding(projectId, chatATurn2);
+    const b2 = mod.resolvePromptQlThreadBinding(projectId, chatBTurn2);
+    assert.equal(a2.isFollowUp, true);
+    assert.equal(b2.isFollowUp, true);
+    assert.equal(a2.threadId, "thread-A");
+    assert.equal(b2.threadId, "thread-B");
+    assert.notEqual(a2.threadId, b2.threadId);
+  });
+
+  it("does NOT reuse a first-user-only mapping when history has no matching prefix", () => {
+    mod.clearPromptQlThreadBindingsForTests();
+    // Simulate old bug residue: someone stored under a first-user key only.
+    // New resolver ignores bare first-user stickies and only matches full prefix.
+    mod.storePromptQlThreadAfterTurn(
+      projectId,
+      [{ role: "user", content: "shared greeting" }],
+      "old-asst",
+      "old-thread"
+    );
+    // Brand-new multi-turn history that only shares the first user text but has
+    // a DIFFERENT assistant — must not stick to old-thread.
+    const otherChat = [
+      { role: "user", content: "shared greeting" },
+      { role: "assistant", content: "brand-new-asst" },
+      { role: "user", content: "next" },
+    ];
+    const r = mod.resolvePromptQlThreadBinding(projectId, otherChat);
+    assert.equal(r.isFollowUp, false);
+    assert.equal(r.threadId, "");
+  });
+
+  it("honors explicit client thread id over cache", () => {
+    mod.clearPromptQlThreadBindingsForTests();
+    mod.storePromptQlThreadAfterTurn(
+      projectId,
+      [{ role: "user", content: "x" }],
+      "y",
+      "cached-thread"
+    );
+    const msgs = [
+      { role: "user", content: "x" },
+      { role: "assistant", content: "y" },
+      { role: "user", content: "z" },
+    ];
+    const r = mod.resolvePromptQlThreadBinding(projectId, msgs, "client-thread-99");
+    assert.equal(r.isFollowUp, true);
+    assert.equal(r.threadId, "client-thread-99");
+  });
+
+  it("readClientThreadId accepts body and header variants", () => {
+    assert.equal(
+      mod.readClientThreadId({ promptql_thread_id: "t1" } as never),
+      "t1"
+    );
+    assert.equal(
+      mod.readClientThreadId({ thread_id: "t2" } as never),
+      "t2"
+    );
+    assert.equal(
+      mod.readClientThreadId({} as never, { "X-PromptQL-Thread-Id": "t3" }),
+      "t3"
+    );
+    assert.equal(
+      mod.readClientThreadId({} as never, { "x-conversation-id": "t4" }),
+      "t4"
+    );
+  });
+
+  it("system messages do not collide independent user chats", () => {
+    mod.clearPromptQlThreadBindingsForTests();
+    const sys = { role: "system", content: "same agentic pin for everyone" };
+    const a = [sys, { role: "user", content: "topic A only" }];
+    const b = [sys, { role: "user", content: "topic B only" }];
+    mod.storePromptQlThreadAfterTurn(projectId, a, "asA", "thA");
+    mod.storePromptQlThreadAfterTurn(projectId, b, "asB", "thB");
+    const a2 = mod.resolvePromptQlThreadBinding(projectId, [
+      sys,
+      { role: "user", content: "topic A only" },
+      { role: "assistant", content: "asA" },
+      { role: "user", content: "more A" },
+    ]);
+    const b2 = mod.resolvePromptQlThreadBinding(projectId, [
+      sys,
+      { role: "user", content: "topic B only" },
+      { role: "assistant", content: "asB" },
+      { role: "user", content: "more B" },
+    ]);
+    assert.equal(a2.threadId, "thA");
+    assert.equal(b2.threadId, "thB");
   });
 });
 

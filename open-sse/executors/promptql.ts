@@ -8,8 +8,13 @@
  *   - Models: FetchLlmConfigs; optional llmConfigId on start_thread (String!)
  *   - Credits: promptql_project_credit_summary on data.pro.ql.app (usage leaf)
  *
- * OpenAI multi-turn is preserved via sticky PromptQL thread_id (session cache
- * + optional X-PromptQL-Thread-Id / body.promptql_thread_id).
+ * OpenAI multi-turn is preserved via sticky PromptQL thread_id:
+ *   - Prefer body.promptql_thread_id / X-PromptQL-Thread-Id from the client
+ *   - Else history-prefix fingerprint (full user+assistant before last user)
+ *   - First turn always start_thread (never first-user-only sticky — that
+ *     collided across SkillsManager/agent sessions and routed follow-ups to
+ *     older chats)
+ * Response always echoes X-PromptQL-Thread-Id + promptql_thread_id.
  *
  * Token refresh (POST auth.pro.ql.app/ddn/project/token with session cookies)
  * is implemented best-effort and still needs production verification.
@@ -319,10 +324,24 @@ export function eventKind(eventData: unknown): string {
 }
 
 // ─── Thread session cache (multi-turn OpenAI → one PromptQL thread) ─────────
+//
+// BUG (pre-fix): cache key = sha256(projectId + first user message only).
+// Agent clients (SkillsManager, UREW pins, shared greetings) often share the
+// same first user turn across independent chats → follow-ups land on a random
+// older PromptQL thread.
+//
+// FIX (Perplexity/Notion style):
+//  1. Prefer explicit client thread id (body.promptql_thread_id / headers)
+//  2. Else lookup by fingerprint of FULL history prefix (all non-system turns
+//     BEFORE the last user message). Requires prior assistant content.
+//  3. First turn / no assistant history → always start_thread (never sticky)
+//  4. After each successful reply, store under fingerprint(full history + asst)
+//     so the next request's prefix matches exactly one conversation.
 
 type ThreadBinding = { threadId: string; projectId: string; updatedAt: number };
 
 const memoryThreads = new Map<string, ThreadBinding>();
+const THREAD_CACHE_MAX = 200;
 
 function threadCachePath(): string | null {
   const dataDir = process.env.DATA_DIR || process.env.OMNIROUTE_DATA_DIR;
@@ -351,15 +370,53 @@ function saveThreadDisk(map: Record<string, ThreadBinding>) {
   }
 }
 
-function historyRootKey(projectId: string, messages: ChatMessage[]): string {
-  // Sticky on first user turn text so multi-turn maps to one PromptQL thread.
-  const firstUser = messages.find((m) => m.role === "user");
-  const seed = extractMessageText(firstUser?.content).trim().slice(0, 500);
-  const h = createHash("sha256").update(`${projectId}\n${seed}`).digest("hex").slice(0, 24);
+/** Roles that must not participate in conversation fingerprints. */
+function isFingerprintRole(role: string): boolean {
+  const r = (role || "").toLowerCase();
+  // system/developer often carry jailbreak/agentic pins that are shared across chats
+  if (!r || r === "system" || r === "developer" || r === "tool") return false;
+  return true;
+}
+
+/**
+ * Stable fingerprint of an ordered conversation slice.
+ * Excludes system/developer/tool so shared injects cannot collapse distinct chats.
+ */
+export function conversationFingerprint(projectId: string, messages: ChatMessage[]): string {
+  const parts: string[] = [`project:${projectId}`];
+  for (const m of messages) {
+    const role = (m?.role || "").toLowerCase();
+    if (!isFingerprintRole(role)) continue;
+    const text = extractMessageText(m?.content).trim().slice(0, 2000);
+    if (!text) continue;
+    parts.push(`${role}:${text}`);
+  }
+  const h = createHash("sha256").update(parts.join("\n")).digest("hex").slice(0, 32);
   return `pql:${projectId}:${h}`;
 }
 
+/** Messages before the last user turn (OpenAI multi-turn prefix). */
+export function historyPrefixBeforeLastUser(messages: ChatMessage[]): ChatMessage[] {
+  let lastUser = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if ((messages[i]?.role || "").toLowerCase() === "user") {
+      lastUser = i;
+      break;
+    }
+  }
+  if (lastUser <= 0) return [];
+  return messages.slice(0, lastUser);
+}
+
+export function hasAssistantMessage(messages: ChatMessage[]): boolean {
+  return messages.some((m) => {
+    const r = (m?.role || "").toLowerCase();
+    return r === "assistant" || r === "ai" || r === "model";
+  });
+}
+
 function getThreadBinding(key: string): ThreadBinding | null {
+  if (!key) return null;
   const mem = memoryThreads.get(key);
   if (mem) return mem;
   const disk = loadThreadDisk()[key];
@@ -371,21 +428,39 @@ function getThreadBinding(key: string): ThreadBinding | null {
 }
 
 function setThreadBinding(key: string, binding: ThreadBinding) {
+  if (!key) return;
   memoryThreads.set(key, binding);
   const disk = loadThreadDisk();
   disk[key] = binding;
-  // prune > 200
   const keys = Object.keys(disk);
-  if (keys.length > 200) {
+  if (keys.length > THREAD_CACHE_MAX) {
     keys
       .sort((a, b) => (disk[a]!.updatedAt || 0) - (disk[b]!.updatedAt || 0))
-      .slice(0, keys.length - 200)
-      .forEach((k) => delete disk[k]);
+      .slice(0, keys.length - THREAD_CACHE_MAX)
+      .forEach((k) => {
+        delete disk[k];
+        memoryThreads.delete(k);
+      });
   }
   saveThreadDisk(disk);
 }
 
-function readClientThreadId(
+/** Test helper — clear in-memory + optional disk cache. */
+export function clearPromptQlThreadBindingsForTests(opts?: { disk?: boolean }): void {
+  memoryThreads.clear();
+  if (opts?.disk) {
+    const p = threadCachePath();
+    if (p && existsSync(p)) {
+      try {
+        writeFileSync(p, "{}", "utf8");
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+}
+
+export function readClientThreadId(
   body: PromptQlRequestBody,
   headers?: Record<string, string>
 ): string {
@@ -393,12 +468,85 @@ function readClientThreadId(
   if (fromBody) return fromBody;
   if (!headers) return "";
   const lower: Record<string, string> = {};
-  for (const [k, v] of Object.entries(headers)) lower[k.toLowerCase()] = v;
+  for (const [k, v] of Object.entries(headers)) lower[k.toLowerCase()] = String(v ?? "");
   return (
     readStr(lower["x-promptql-thread-id"]) ||
     readStr(lower["x-thread-id"]) ||
+    readStr(lower["x-conversation-id"]) ||
     ""
   );
+}
+
+export type PromptQlThreadResolve = {
+  threadId: string;
+  isFollowUp: boolean;
+  /** Key used for sticky store after this turn (prefix key at resolve time). */
+  prefixKey: string | null;
+};
+
+/**
+ * Resolve PromptQL thread for this OpenAI request.
+ * Never reuses a first-user-only sticky mapping across unrelated chats.
+ */
+export function resolvePromptQlThreadBinding(
+  projectId: string,
+  messages: ChatMessage[],
+  clientThreadId?: string
+): PromptQlThreadResolve {
+  const clientId = (clientThreadId || "").trim();
+  const prefix = historyPrefixBeforeLastUser(messages);
+  const prefixKey =
+    prefix.length > 0 && hasAssistantMessage(prefix)
+      ? conversationFingerprint(projectId, prefix)
+      : null;
+
+  if (clientId) {
+    return { threadId: clientId, isFollowUp: true, prefixKey };
+  }
+
+  if (prefixKey) {
+    const cached = getThreadBinding(prefixKey);
+    if (cached?.threadId && cached.projectId === projectId) {
+      return { threadId: cached.threadId, isFollowUp: true, prefixKey };
+    }
+    // Multi-turn history without a matching sticky entry (restart / new chat
+    // that only looks similar on the first user turn): start a NEW thread.
+    // PromptQL cannot rehydrate OpenAI history into an old thread id safely.
+    return { threadId: "", isFollowUp: false, prefixKey: null };
+  }
+
+  // First turn (or user-only history without assistant): always mint new.
+  return { threadId: "", isFollowUp: false, prefixKey: null };
+}
+
+/**
+ * Persist sticky keys so the NEXT request's history prefix resolves to this thread.
+ * Stores under fingerprint(messages + assistant) which equals the next turn's prefix.
+ */
+export function storePromptQlThreadAfterTurn(
+  projectId: string,
+  messages: ChatMessage[],
+  assistantText: string,
+  threadId: string
+): string | null {
+  if (!projectId || !threadId) return null;
+  const full: ChatMessage[] = [
+    ...messages,
+    { role: "assistant", content: assistantText || "" },
+  ];
+  // Only store if there is at least one user + assistant pair.
+  if (!hasAssistantMessage(full) || !messages.some((m) => (m.role || "").toLowerCase() === "user")) {
+    return null;
+  }
+  const key = conversationFingerprint(projectId, full);
+  const binding: ThreadBinding = { threadId, projectId, updatedAt: Date.now() };
+  setThreadBinding(key, binding);
+  // Also bind the current prefix key when present (idempotent re-touch).
+  const prefix = historyPrefixBeforeLastUser(messages);
+  if (prefix.length > 0 && hasAssistantMessage(prefix)) {
+    setThreadBinding(conversationFingerprint(projectId, prefix), binding);
+  }
+  return key;
 }
 
 // ─── GraphQL client ─────────────────────────────────────────────────────────
@@ -686,19 +834,15 @@ export class PromptQlExecutor extends BaseExecutor {
         | Record<string, string>
         | undefined);
     const clientThreadId = readClientThreadId(requestBody, inboundHeaders ?? undefined);
-    const rootKey = historyRootKey(projectId, messages);
-    const cached = getThreadBinding(rootKey);
-    const userMessageCount = messages.filter((m) => m.role === "user").length;
-    const isFollowUp =
-      Boolean(clientThreadId || cached?.threadId) && userMessageCount > 1;
+    const binding = resolvePromptQlThreadBinding(projectId, messages, clientThreadId);
 
-    let threadId = clientThreadId || cached?.threadId || "";
+    let threadId = binding.threadId;
     let afterEventId = "0";
     const agentMessage = withAgentMention(userText);
 
     try {
-      if (!isFollowUp || !threadId) {
-        // New PromptQL thread
+      if (!binding.isFollowUp || !threadId) {
+        // New PromptQL thread — never reuse first-user-only sticky from another chat
         type StartData = {
           start_thread: {
             thread_id: string;
@@ -763,35 +907,58 @@ export class PromptQlExecutor extends BaseExecutor {
         if (seed.length) {
           afterEventId = String(seed[seed.length - 1]!.thread_event_id);
         }
-        setThreadBinding(rootKey, {
-          threadId,
-          projectId,
-          updatedAt: Date.now(),
-        });
       } else {
         // Follow-up on existing thread — only the latest user turn
-        const data = await gql<{
-          send_thread_message: { thread_event_id: string | number };
-        }>(
-          PLAYGROUND_GQL,
-          token,
-          SEND_THREAD_MESSAGE,
-          {
-            message: agentMessage,
-            timezone,
-            threadId,
-            uploads: [],
-            agentResponseConfig: "force_respond",
-          },
-          "SendThreadMessage",
-          signal
-        );
-        afterEventId = String(data.send_thread_message.thread_event_id);
-        setThreadBinding(rootKey, {
-          threadId,
-          projectId,
-          updatedAt: Date.now(),
-        });
+        try {
+          const data = await gql<{
+            send_thread_message: { thread_event_id: string | number };
+          }>(
+            PLAYGROUND_GQL,
+            token,
+            SEND_THREAD_MESSAGE,
+            {
+              message: agentMessage,
+              timezone,
+              threadId,
+              uploads: [],
+              agentResponseConfig: "force_respond",
+            },
+            "SendThreadMessage",
+            signal
+          );
+          afterEventId = String(data.send_thread_message.thread_event_id);
+        } catch (sendErr) {
+          // Stale client thread id / deleted thread → fall back to a fresh start
+          // instead of failing the whole turn or (worse) guessing another cache hit.
+          const sendMsg = sendErr instanceof Error ? sendErr.message : String(sendErr);
+          if (!/not found|invalid|thread|404|400|permission/i.test(sendMsg)) {
+            throw sendErr;
+          }
+          const data = await gql<{
+            start_thread: {
+              thread_id: string;
+              thread_events?: ThreadEvent[];
+            };
+          }>(
+            PLAYGROUND_GQL,
+            token,
+            START_THREAD_ROOMLESS,
+            {
+              message: agentMessage,
+              projectId,
+              timezone,
+              uploads: [],
+              agentResponseConfig: "force_respond",
+            },
+            "StartThreadRoomless",
+            signal
+          );
+          threadId = data.start_thread.thread_id;
+          const seed = data.start_thread.thread_events || [];
+          afterEventId = seed.length
+            ? String(seed[seed.length - 1]!.thread_event_id)
+            : "0";
+        }
       }
 
       const { text } = await pollAssistantText({
@@ -809,6 +976,9 @@ export class PromptQlExecutor extends BaseExecutor {
           PLAYGROUND_GQL
         );
       }
+
+      // Sticky for next OpenAI multi-turn request (prefix = this full history)
+      storePromptQlThreadAfterTurn(projectId, messages, text, threadId);
 
       const response = wantStream
         ? pseudoStreamResponse(text, clientFacing, threadId)

@@ -540,6 +540,9 @@ export const USAGE_FETCHER_PROVIDERS = [
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
+  // PromptQL playground credits (data.pro.ql.app getCreditSummary)
+  "promptql",
+  "pql",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
