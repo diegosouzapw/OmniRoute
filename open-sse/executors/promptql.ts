@@ -379,6 +379,21 @@ function isFingerprintRole(role: string): boolean {
 }
 
 /**
+ * Normalize user/assistant text for fingerprints so proxy rewrites (UREW pins,
+ * agent_mention wrappers, whitespace) don't break multi-turn thread sticky.
+ * Live SPA (send1/send2) always reuses threadId; OpenAI multi-turn must too.
+ */
+export function normalizeForFingerprint(text: string): string {
+  let t = (text || "").replace(/\r\n/g, "\n");
+  t = t.replace(/<agent_mention\s*\/>/gi, "");
+  t = t.replace(/<\/?agent_mention>/gi, "");
+  t = t.replace(/^[\s\S]*?\bUser request:\s*/i, "");
+  t = t.replace(/^[\s\S]*?\bHere is my request:\s*/i, "");
+  t = t.replace(/\n{3,}/g, "\n\n");
+  return t.trim().slice(0, 2000);
+}
+
+/**
  * Stable fingerprint of an ordered conversation slice.
  * Excludes system/developer/tool so shared injects cannot collapse distinct chats.
  */
@@ -387,12 +402,25 @@ export function conversationFingerprint(projectId: string, messages: ChatMessage
   for (const m of messages) {
     const role = (m?.role || "").toLowerCase();
     if (!isFingerprintRole(role)) continue;
-    const text = extractMessageText(m?.content).trim().slice(0, 2000);
+    const text = normalizeForFingerprint(extractMessageText(m?.content));
     if (!text) continue;
     parts.push(`${role}:${text}`);
   }
   const h = createHash("sha256").update(parts.join("\n")).digest("hex").slice(0, 32);
   return `pql:${projectId}:${h}`;
+}
+
+/** Rolling sticky key: last assistant reply alone (survives last-user rewrites). */
+export function lastAssistantFingerprint(projectId: string, messages: ChatMessage[]): string | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const role = (messages[i]?.role || "").toLowerCase();
+    if (role !== "assistant" && role !== "ai" && role !== "model") continue;
+    const text = normalizeForFingerprint(extractMessageText(messages[i]?.content));
+    if (!text) continue;
+    const h = createHash("sha256").update(text).digest("hex").slice(0, 24);
+    return `pql:${projectId}:asst:${h}`;
+  }
+  return null;
 }
 
 /** Messages before the last user turn (OpenAI multi-turn prefix). */
@@ -487,6 +515,11 @@ export type PromptQlThreadResolve = {
 /**
  * Resolve PromptQL thread for this OpenAI request.
  * Never reuses a first-user-only sticky mapping across unrelated chats.
+ *
+ * Lookup order (mirrors live SPA send1=start_thread / send2=send_thread_message):
+ *  1. Explicit client thread id
+ *  2. Full history-prefix fingerprint (user+assistant before last user)
+ *  3. Last-assistant rolling key (survives proxy last-user rewrites / UREW)
  */
 export function resolvePromptQlThreadBinding(
   projectId: string,
@@ -509,19 +542,27 @@ export function resolvePromptQlThreadBinding(
     if (cached?.threadId && cached.projectId === projectId) {
       return { threadId: cached.threadId, isFollowUp: true, prefixKey };
     }
-    // Multi-turn history without a matching sticky entry (restart / new chat
-    // that only looks similar on the first user turn): start a NEW thread.
-    // PromptQL cannot rehydrate OpenAI history into an old thread id safely.
-    return { threadId: "", isFollowUp: false, prefixKey: null };
   }
 
-  // First turn (or user-only history without assistant): always mint new.
+  // Fallback: last assistant content (OpenAI multi-turn with rewritten user history)
+  if (hasAssistantMessage(messages)) {
+    const asstKey = lastAssistantFingerprint(projectId, prefix.length ? prefix : messages);
+    if (asstKey) {
+      const cached = getThreadBinding(asstKey);
+      if (cached?.threadId && cached.projectId === projectId) {
+        return { threadId: cached.threadId, isFollowUp: true, prefixKey: asstKey };
+      }
+    }
+  }
+
+  // First turn or no sticky match: mint a new PromptQL thread.
   return { threadId: "", isFollowUp: false, prefixKey: null };
 }
 
 /**
  * Persist sticky keys so the NEXT request's history prefix resolves to this thread.
- * Stores under fingerprint(messages + assistant) which equals the next turn's prefix.
+ * Stores under fingerprint(messages + assistant) which equals the next turn's prefix,
+ * plus a last-assistant rolling key that survives last-user rewrites.
  */
 export function storePromptQlThreadAfterTurn(
   projectId: string,
@@ -546,6 +587,9 @@ export function storePromptQlThreadAfterTurn(
   if (prefix.length > 0 && hasAssistantMessage(prefix)) {
     setThreadBinding(conversationFingerprint(projectId, prefix), binding);
   }
+  // Rolling last-assistant key (full history including this reply)
+  const asstKey = lastAssistantFingerprint(projectId, full);
+  if (asstKey) setThreadBinding(asstKey, binding);
   return key;
 }
 
@@ -928,10 +972,17 @@ export class PromptQlExecutor extends BaseExecutor {
           );
           afterEventId = String(data.send_thread_message.thread_event_id);
         } catch (sendErr) {
-          // Stale client thread id / deleted thread → fall back to a fresh start
-          // instead of failing the whole turn or (worse) guessing another cache hit.
+          // Stale client thread id / deleted thread → fall back to a fresh start.
+          // IMPORTANT: do NOT match bare "400"/"invalid" — GraphQL validation errors
+          // often include those words and would force a new thread every turn
+          // (observed: every OpenAI multi-turn became start_thread instead of
+          // send_thread_message like the live SPA send1/send2 captures).
           const sendMsg = sendErr instanceof Error ? sendErr.message : String(sendErr);
-          if (!/not found|invalid|thread|404|400|permission/i.test(sendMsg)) {
+          const isDeadThread =
+            /thread\s*(not\s*found|deleted|expired|unknown|invalid)/i.test(sendMsg) ||
+            /unknown\s*thread|no such thread|thread_id/i.test(sendMsg) ||
+            /\b404\b/.test(sendMsg);
+          if (!isDeadThread) {
             throw sendErr;
           }
           const data = await gql<{

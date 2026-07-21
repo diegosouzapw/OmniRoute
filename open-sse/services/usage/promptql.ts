@@ -1,20 +1,23 @@
 /**
  * PromptQL project credit summary → UsageQuota for Limits page.
  *
- * Live GraphQL (data.pro.ql.app):
+ * Live GraphQL (data.pro.ql.app) — captured from prompt.ql.app SPA (ge_balance.txt):
+ *   POST https://data.pro.ql.app/v1/graphql
  *   query getCreditSummary($project_id: uuid!) {
  *     promptql_project_credit_summary(where: {project_id: {_eq: $project_id}}) {
- *       remaining_credits_usd_micros
- *       total_drawn_usd_micros
- *       available_credits_usd_micros
+ *       remaining_credits_usd_micros   // e.g. 28484763 → $28.48 left
+ *       total_drawn_usd_micros         // e.g. 21515237 → $21.52 used
+ *       available_credits_usd_micros   // e.g. 50000000 → $50.00 total
  *       total_olus_used
  *       last_drawdown_at
  *     }
  *   }
  *
- * Micros → USD: remaining_credits_usd_micros / 1_000_000  (e.g. 46370444 → $46.37)
+ * Browser SPA often uses session cookies (credentials:include). Headless OmniRoute
+ * uses the playground JWT (Bearer). We send Bearer always when present and Cookie
+ * when providerSpecificData.cookie is stored.
  */
-import { type UsageQuota, parseResetTime } from "./quota.ts";
+import { type UsageQuota } from "./quota.ts";
 
 const CREDITS_GQL =
   process.env.PROMPTQL_CREDITS_ENDPOINT || "https://data.pro.ql.app/v1/graphql";
@@ -69,19 +72,22 @@ export function buildPromptQlCreditsQuota(row: {
   const available = microsToUsd(row.available_credits_usd_micros ?? 0);
   const remaining = microsToUsd(row.remaining_credits_usd_micros ?? 0);
   const drawn = microsToUsd(row.total_drawn_usd_micros ?? 0);
-  // Prefer available as total; if zero, derive total = remaining + drawn
+  // available = wallet top-line (e.g. $50); remaining + drawn should sum ≈ available
   const total = available > 0 ? available : remaining + drawn;
-  const used = Math.max(0, Math.min(total, drawn > 0 ? drawn : total - remaining));
+  const used = Math.max(0, Math.min(total, drawn > 0 ? drawn : Math.max(0, total - remaining)));
   const rem = remaining > 0 ? remaining : Math.max(0, total - used);
+  const remainingPercentage =
+    total > 0 ? Math.round((rem / total) * 1000) / 10 : rem > 0 ? 100 : 0;
   return {
     used,
     total,
     remaining: rem,
-    remainingPercentage: total > 0 ? Math.round((rem / total) * 1000) / 10 : 0,
-    resetAt: parseResetTime(row.last_drawdown_at) /* last activity, not a hard reset */,
+    remainingPercentage,
+    // last_drawdown is activity, not a hard reset — omit so UI doesn't show a false "Resets in…"
+    resetAt: null,
     unlimited: false,
     currency: "USD",
-    displayName: "PromptQL credits (USD)",
+    displayName: "Credits (USD)",
   };
 }
 
@@ -100,12 +106,13 @@ export async function getPromptQlUsage(
   providerSpecificData?: Record<string, unknown> | null
 ) {
   const token = normalizePromptQlToken(apiKey || "");
-  if (!token) {
+  const cookie = readPs(providerSpecificData, ["cookie", "sessionCookie", "authCookie"]);
+  if (!token && !cookie) {
     return { message: "PromptQL JWT not available. Paste a Bearer token to view credits." };
   }
   const projectId =
     readPs(providerSpecificData, ["projectId", "project_id", "x-hasura-project-id"]) ||
-    extractProjectIdFromToken(token);
+    (token ? extractProjectIdFromToken(token) : "");
   if (!projectId) {
     return {
       message:
@@ -114,16 +121,20 @@ export async function getPromptQlUsage(
   }
 
   try {
+    const headers: Record<string, string> = {
+      accept: "application/graphql-response+json, application/json",
+      "content-type": "application/json",
+      origin: "https://prompt.ql.app",
+      referer: "https://prompt.ql.app/",
+      "hasura-client-name": "hasura-console",
+    };
+    // SPA uses cookies for data.pro.ql.app; headless uses playground JWT Bearer.
+    if (token) headers.authorization = `Bearer ${token}`;
+    if (cookie) headers.cookie = cookie;
+
     const res = await fetch(CREDITS_GQL, {
       method: "POST",
-      headers: {
-        accept: "application/graphql-response+json, application/json",
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-        origin: "https://prompt.ql.app",
-        referer: "https://prompt.ql.app/",
-        "hasura-client-name": "hasura-console",
-      },
+      headers,
       body: JSON.stringify({
         query: GET_CREDIT_SUMMARY,
         variables: { project_id: projectId },
@@ -131,8 +142,9 @@ export async function getPromptQlUsage(
       }),
     });
     if (!res.ok) {
+      const bodyText = await res.text().catch(() => "");
       return {
-        message: `PromptQL credits HTTP ${res.status}`,
+        message: `PromptQL credits HTTP ${res.status}${bodyText ? `: ${bodyText.slice(0, 200)}` : ""}`,
         plan: "PromptQL",
       };
     }
@@ -157,7 +169,7 @@ export async function getPromptQlUsage(
     const row = json.data?.promptql_project_credit_summary?.[0];
     if (!row) {
       return {
-        message: "No credit summary for this project.",
+        message: "No credit summary for this project (empty promptql_project_credit_summary).",
         plan: "PromptQL",
       };
     }

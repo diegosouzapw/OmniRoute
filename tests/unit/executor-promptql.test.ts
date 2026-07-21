@@ -290,6 +290,57 @@ describe("PromptQl — thread continuity (no cross-chat sticky)", () => {
     assert.equal(a2.threadId, "thA");
     assert.equal(b2.threadId, "thB");
   });
+
+  it("follows up when last user turn was rewritten (UREW) but assistant matches", () => {
+    mod.clearPromptQlThreadBindingsForTests();
+    // Turn 1 as seen by executor (rewritten last user)
+    const turn1 = [
+      {
+        role: "user",
+        content: "Hi! I'm using my local workflow…\n\nUser request:\nhello",
+      },
+    ];
+    mod.storePromptQlThreadAfterTurn(projectId, turn1, "Hello there!", "thread-rewritten");
+    // Turn 2: client history has ORIGINAL user text (proxy only rewrote outbound last user)
+    const turn2 = [
+      { role: "user", content: "hello" },
+      { role: "assistant", content: "Hello there!" },
+      {
+        role: "user",
+        content: "Hi! I'm using my local workflow…\n\nUser request:\nhello 2",
+      },
+    ];
+    const r = mod.resolvePromptQlThreadBinding(projectId, turn2);
+    assert.equal(r.isFollowUp, true);
+    assert.equal(r.threadId, "thread-rewritten");
+  });
+
+  it("normalizeForFingerprint strips agent_mention and User request wrappers", () => {
+    assert.equal(mod.normalizeForFingerprint("<agent_mention /> hello"), "hello");
+    assert.equal(
+      mod.normalizeForFingerprint("noise\n\nUser request:\nhello 2"),
+      "hello 2"
+    );
+  });
+});
+
+describe("PromptQl credits (ge_balance capture)", () => {
+  it("maps micros like live getCreditSummary to used/remaining USD", () => {
+    // From promptql/ge_balance.txt live capture
+    const q = usage.buildPromptQlCreditsQuota({
+      available_credits_usd_micros: 50000000,
+      total_drawn_usd_micros: 21515237,
+      remaining_credits_usd_micros: 28484763,
+      last_drawdown_at: "2026-07-21T01:37:36.491359+00:00",
+    });
+    assert.equal(q.total, 50);
+    assert.equal(q.remaining, 28.48);
+    assert.equal(q.used, 21.52);
+    assert.ok((q.remainingPercentage ?? 0) > 50 && (q.remainingPercentage ?? 0) < 60);
+    assert.equal(q.currency, "USD");
+    assert.equal(q.displayName, "Credits (USD)");
+    assert.equal(q.resetAt, null);
+  });
 });
 
 describe("PromptQlExecutor — mocked GraphQL turn", () => {
