@@ -8,7 +8,12 @@
 import { AgentBridgeDnsActionSchema } from "@/shared/schemas/agentBridge";
 import { addDNSEntry, removeDNSEntry } from "@/mitm/dns/dnsConfig";
 import { upsertAgentBridgeState } from "@/lib/db/agentBridgeState";
-import { getCachedPassword } from "@/mitm/manager";
+import { getCachedPassword, setCachedPassword } from "@/mitm/manager";
+import {
+  isMitmSudoPasswordRequired,
+  normalizeMitmSudoPasswordInput,
+  resolveMitmSudoPassword,
+} from "@/mitm/sudoGate";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { ALL_TARGETS } from "@/mitm/targets/index";
@@ -42,14 +47,26 @@ export async function POST(request: Request, { params }: Params): Promise<Respon
 
   const { enabled } = parsed.data;
   const raw = body as Record<string, unknown>;
-  const sudoPassword =
-    typeof raw.sudoPassword === "string" ? raw.sudoPassword : (getCachedPassword() ?? "");
+  const sudoPassword = resolveMitmSudoPassword(
+    typeof raw.sudoPassword === "string" ? raw.sudoPassword : undefined,
+    getCachedPassword()
+  );
+
+  if (isMitmSudoPasswordRequired(sudoPassword)) {
+    return createErrorResponse({ status: 400, message: "Missing sudoPassword" });
+  }
 
   try {
     if (enabled) {
       await addDNSEntry(sudoPassword, id);
     } else {
       await removeDNSEntry(sudoPassword, id);
+    }
+
+    const suppliedPassword =
+      typeof raw.sudoPassword === "string" ? normalizeMitmSudoPasswordInput(raw.sudoPassword) : "";
+    if (process.platform !== "win32" && suppliedPassword) {
+      setCachedPassword(suppliedPassword);
     }
 
     upsertAgentBridgeState({ agent_id: id, dns_enabled: enabled });

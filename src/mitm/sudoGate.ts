@@ -28,3 +28,8 @@ export function isMitmSudoPasswordRequired(sudoPassword: string): boolean {
   if (normalizeMitmSudoPasswordInput(sudoPassword)) return false;
   return isSudoPasswordRequired();
 }
+
+/** Whether cert trust / DNS provisioning may run (inverse of the hard gate). */
+export function canRunPrivilegedMitmSteps(sudoPassword: string): boolean {
+  return !isMitmSudoPasswordRequired(sudoPassword);
+}

@@ -22,6 +22,7 @@ import {
   performRepairSteps,
   type RepairPlan,
 } from "./repair.ts";
+import { canRunPrivilegedMitmSteps } from "./sudoGate.ts";
 
 export { buildRepairPlan, collectManagedHosts, type RepairPlan };
 
@@ -519,30 +520,40 @@ async function startMitmInternal(
   //    bridge: in containers/headless the system trust store can't be written,
   //    so we start in "untrusted" mode and let the operator trust the CA by hand
   //    (mirrors the best-effort "continuing" pattern used for DNS below). (#4546)
+  //    Skip entirely when no sudo password is available — never spawn sudo -S
+  //    with an empty string (#7938).
   let certTrusted = false;
-  try {
-    const certResult =
-      migrationDecision === "use-root-ca"
-        ? await installCaCert(sudoPassword, certPath)
-        : await installCertResult(sudoPassword, certPath);
-    certTrusted = certResult.installed;
-    if (!certResult.installed) {
-      log.warn(
-        { reason: certResult.reason },
-        "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
-      );
+  if (canRunPrivilegedMitmSteps(sudoPassword)) {
+    try {
+      const certResult =
+        migrationDecision === "use-root-ca"
+          ? await installCaCert(sudoPassword, certPath)
+          : await installCertResult(sudoPassword, certPath);
+      certTrusted = certResult.installed;
+      if (!certResult.installed) {
+        log.warn(
+          { reason: certResult.reason },
+          "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
+        );
+      }
+    } catch (err) {
+      log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
     }
-  } catch (err) {
-    log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
+  } else {
+    log.info("Skipping MITM cert trust — no sudo password available (#7938)");
   }
 
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
   //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
-  log.info("Adding DNS entries...");
-  try {
-    await provisionDnsEntries(sudoPassword);
-  } catch (err) {
-    log.error({ err }, "DNS provisioning threw unexpectedly (continuing)");
+  if (canRunPrivilegedMitmSteps(sudoPassword)) {
+    log.info("Adding DNS entries...");
+    try {
+      await provisionDnsEntries(sudoPassword);
+    } catch (err) {
+      log.error({ err }, "DNS provisioning threw unexpectedly (continuing)");
+    }
+  } else {
+    log.info("Skipping DNS provisioning — no sudo password available (#7938)");
   }
 
   // 4. Start MITM server
