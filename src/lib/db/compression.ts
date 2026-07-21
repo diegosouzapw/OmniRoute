@@ -28,6 +28,7 @@ import {
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import { normalizeCompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
 import { DEFAULT_CONTEXT_BUDGET } from "@omniroute/open-sse/services/compression/adaptiveCompression/types.ts";
 import { normalizeContextBudgetConfig } from "./compressionContextBudget";
 import {
@@ -557,6 +558,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     liveZone: { enabled: false },
     engines: {},
     activeComboId: null,
+    exclusions: [],
   };
 
   // Tracks whether a usable stored `engines` row was found. When absent (pre-migration-102 install)
@@ -678,6 +680,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "ultraSlmPrewarm":
         config.ultraSlmPrewarm = parsed === true;
+        break;
+      case "exclusions":
+        config.exclusions = normalizeCompressionExclusions(parsed);
         break;
     }
   }

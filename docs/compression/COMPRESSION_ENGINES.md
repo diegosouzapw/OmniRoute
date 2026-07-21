@@ -299,6 +299,38 @@ Compression exposes five MCP tools:
 | `omniroute_list_compression_combos` | `read:compression`  | List compression combos          |
 | `omniroute_compression_combo_stats` | `read:compression`  | Read combo/engine analytics      |
 
+## Scope & exclusions
+
+**Embeddings are never compressed.** `open-sse/handlers/embeddings.ts` never calls any
+compression engine — the request/response bodies pass straight to the executor untouched.
+This is structural today (embeddings and chat completions are disjoint handlers), not a
+runtime check, but it means the vector-distortion concern in #8034 has no exposure surface
+in the embeddings path.
+
+**Per-model/endpoint exclusion filter (#8034).** For chat completions, an operator can name
+model ids / `provider/model` targets that must never be compressed — a guardrail useful if
+compression is ever wired closer to an embeddings-adjacent path later, and generally useful
+for any model whose exact byte-for-byte prompt matters (deterministic evals, cache-sensitive
+prefixes, etc.).
+
+- Settings field: `exclusions?: string[]` on the global compression config
+  (`GET`/`PUT /api/settings/compression`), persisted via the existing `key_value` compression
+  namespace (`src/lib/db/compression.ts`) — no new table.
+- Dashboard tab: **Dashboard → Compression → Exclusions**
+  (`/dashboard/compression/exclusions`).
+- Pattern syntax: `*` is the only wildcard. Every other regex metacharacter in a pattern is
+  escaped before matching, so `gpt-5.6` matches the literal string only, never `gpt-5x6`
+  (ReDoS-safe, bounded, no nested quantifiers). Patterns match case-insensitively against
+  both the bare model id and the `provider/model` composite — `gpt-5-6`, `openai/gpt-5-6`,
+  and `openai/*` all work, and `*` alone excludes every model.
+- Matching: `isCompressionExcluded()` / `normalizeCompressionExclusions()` in
+  `open-sse/services/compression/exclusions.ts`. `chatCore.ts` checks the excluded target
+  right after resolving compression settings, **before any engine runs**, and treats a match
+  exactly like compression being globally disabled — the request body is provably
+  byte-identical. The skip is recorded via `writeCompressionSkip(..., "excluded")` for
+  analytics visibility.
+- Default (empty/absent list): identical to pre-#8034 behavior — nothing is excluded.
+
 ## Known limitations
 
 - **LLMLingua-2 (SLM) requires co-located optional deps.** The worker only runs in a

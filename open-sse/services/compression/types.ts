@@ -244,6 +244,13 @@ export interface CompressionConfig {
   ultraSlmPrewarm?: boolean;
   /** Opt-in result memoization for deterministic engines only (default off). */
   memoizeCompressionResults?: boolean;
+  /**
+   * #8034 — per-model/endpoint compression exclusion filter. Patterns are matched
+   * case-insensitively against both the bare model id and the `provider/model`
+   * composite (`*` is the only wildcard). Absent/empty → no exclusions, default
+   * behavior unchanged. See `open-sse/services/compression/exclusions.ts`.
+   */
+  exclusions?: string[];
 }
 
 export interface CompressionStats {

@@ -320,6 +320,10 @@ export const compressionSettingsUpdateSchema = z
     activeComboId: z.string().nullable().optional(),
     ultraEngine: z.enum(["heuristic", "slm"]).optional(),
     ultraSlmPrewarm: z.boolean().optional(),
+    // #8034 — per-model/endpoint compression exclusion patterns. Bounded length/size so a
+    // pathological PUT body can't blow up the per-request matcher; normalizeCompressionExclusions
+    // (open-sse/services/compression/exclusions.ts) is the authoritative post-read normalizer.
+    exclusions: z.array(z.string().max(200)).max(200).optional(),
   })
   .strict();
 
