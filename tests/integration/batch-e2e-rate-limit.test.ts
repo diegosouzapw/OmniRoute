@@ -217,7 +217,7 @@ function createServerProcess() {
 async function waitForServer(baseUrl: string, proc: ReturnType<typeof createServerProcess>) {
   const startedAt = Date.now();
   const readinessTimeoutMs = 240_000;
-  const probeTimeoutMs = 15_000;
+  const probeTimeoutMs = 5_000;
   let lastReadiness = "";
   while (Date.now() - startedAt < readinessTimeoutMs) {
     if (proc.exitInfo) {
@@ -229,14 +229,13 @@ async function waitForServer(baseUrl: string, proc: ReturnType<typeof createServ
       );
     }
     try {
-      for (const readinessPath of ["/api/health/ping", "/api/monitoring/health"]) {
-        const resp = await fetch(`${baseUrl}${readinessPath}`, {
-          signal: AbortSignal.timeout(probeTimeoutMs),
-        });
-        if (resp.ok) return;
-        const body = await resp.text().catch(() => "");
-        lastReadiness = `${readinessPath} -> ${resp.status}: ${summarizeText(body, 200)}`;
-      }
+      const readinessPath = "/api/health/ping";
+      const resp = await fetch(`${baseUrl}${readinessPath}`, {
+        signal: AbortSignal.timeout(probeTimeoutMs),
+      });
+      if (resp.ok) return;
+      const body = await resp.text().catch(() => "");
+      lastReadiness = `${readinessPath} -> ${resp.status}: ${summarizeText(body, 200)}`;
     } catch (error) {
       lastReadiness = error instanceof Error ? error.message : String(error);
       // not ready yet
