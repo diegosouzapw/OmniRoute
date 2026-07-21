@@ -262,6 +262,55 @@ test("runUsageModelLatencyStats preserves connection and routing evidence fields
   assert.equal(parsed[0].p95LatencyMs, 390);
 });
 
+test("runUsageModelLatencyStats formats the latency schema in table output", async () => {
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = mockFetch({
+    modelLatency: {
+      entries: [
+        {
+          provider: "openai",
+          model: "gpt-4o",
+          connectionId: "primary",
+          totalRequests: 1234,
+          successRate: 0.875,
+          avgTtftMs: 120,
+          avgTokensPerSecond: 38.56,
+          p95LatencyMs: 390,
+          latencyStdDev: 35,
+        },
+        {
+          provider: "anthropic",
+          model: "claude",
+          connectionId: "fallback",
+          totalRequests: 0,
+          successRate: 0,
+          avgTtftMs: 0,
+          avgTokensPerSecond: 0,
+          p95LatencyMs: 0,
+          latencyStdDev: 0,
+        },
+      ],
+    },
+  });
+
+  try {
+    const { runUsageModelLatencyStats } = await import("../../bin/cli/commands/usage.mjs");
+    const cmd = { optsWithGlobals: () => ({ output: "table", quiet: true }) };
+    const out = await captureStdout(() => runUsageModelLatencyStats({}, cmd as CliCommand));
+
+    assert.match(out, /1,234/);
+    assert.match(out, /87\.5%/);
+    assert.match(out, /120ms/);
+    assert.match(out, /38\.6/);
+    assert.match(out, /390ms/);
+    assert.match(out, /35ms/);
+    assert.match(out, /\| 0 /);
+    assert.match(out, /\| - /);
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+});
+
 test("runBudgetSet envia POST com amount, scope e period", async () => {
   let capturedBody: unknown = null;
   const origFetch = globalThis.fetch;
