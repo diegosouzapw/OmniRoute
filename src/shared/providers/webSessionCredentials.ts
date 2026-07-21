@@ -296,9 +296,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     storageKeys: ["token", "jwt", "apiKey", "projectId", "project_id", "cookie"],
   },
   "adobe-firefly": {
+    // Accepts full Cookie header (preferred) OR IMS access_token JWT.
+    // Kind stays "cookie" so the multi-account web-session UI shows cookie UX;
+    // resolveAdobeAccessToken auto-detects JWT vs cookie blob.
     kind: "cookie",
-    credentialName: "Cookie header or IMS access_token",
-    placeholder: "full Cookie header from firefly.adobe.com, or access_token JWT",
+    credentialName: "Cookie header (preferred) or IMS access_token JWT",
+    placeholder:
+      "Cookie: paste full header from firefly.adobe.com — OR paste IMS access_token JWT (Authorization Bearer only)",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "token", "access_token", "accessToken"],
   },

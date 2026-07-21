@@ -5,21 +5,32 @@ import {
   ADOBE_FIREFLY_IMAGE_MODELS,
   ADOBE_FIREFLY_VIDEO_MODELS,
   adobeFireflyApiKey,
+  adobeFireflyBalanceApiKey,
   buildAdobeImagePayload,
   buildAdobePollHeaders,
   buildAdobeSubmitHeaders,
   buildAdobeVideoPayload,
+  extractAdobeAccountIdFromToken,
   extractAdobeCredentialToken,
   extractAdobeMediaUrl,
   extractAdobeResultLink,
   looksLikeAdobeJwt,
   normalizeAdobeAspectRatio,
   normalizeAdobeOutputResolution,
+  normalizeAdobePollUrl,
+  parseAdobeCreditsBalance,
+  parseAdobeModelsDiscovery,
   resolveAdobeImageModel,
   resolveAdobeVideoModel,
   adobeFireflyGenerateImage,
   adobeFireflyGenerateVideo,
 } from "../../open-sse/services/adobeFireflyClient.ts";
+import {
+  ADOBE_FIREFLY_FALLBACK_MODELS,
+  getAdobeFireflyFallbackCatalog,
+  mapDiscoveredToCatalog,
+} from "../../open-sse/services/adobeFireflyModels.ts";
+import { buildAdobeFireflyCreditsQuota } from "../../open-sse/services/usage/adobeFirefly.ts";
 import { handleAdobeFireflyImageGeneration } from "../../open-sse/handlers/imageGeneration/providers/adobeFirefly.ts";
 import { handleAdobeFireflyVideoGeneration } from "../../open-sse/handlers/videoGeneration/adobeFireflyHandler.ts";
 import { WEB_COOKIE_PROVIDERS } from "../../src/shared/constants/providers/web-cookie.ts";
@@ -70,9 +81,10 @@ test("getExecutor(adobe-firefly) rejects chat completions", async () => {
 
 // --- Public credential -----------------------------------------------------
 
-test("adobe_firefly_api_key embedded default decodes to projectx_webapp", () => {
-  assert.equal(resolvePublicCred("adobe_firefly_api_key"), "projectx_webapp");
-  assert.equal(adobeFireflyApiKey(), "projectx_webapp");
+test("adobe_firefly_api_key embedded default decodes to clio-playground-web", () => {
+  assert.equal(resolvePublicCred("adobe_firefly_api_key"), "clio-playground-web");
+  assert.equal(adobeFireflyApiKey(), "clio-playground-web");
+  assert.equal(adobeFireflyBalanceApiKey(), "SunbreakWebUI1");
 });
 
 // --- Pure helpers ----------------------------------------------------------
@@ -199,13 +211,95 @@ test("extractAdobeMediaUrl reads outputs[].image/video.presignedUrl", () => {
   );
 });
 
-test("buildAdobeSubmitHeaders sets Bearer + public x-api-key", () => {
+test("buildAdobeSubmitHeaders sets Bearer + clio-playground-web x-api-key", () => {
   const headers = buildAdobeSubmitHeaders("tok-1");
   assert.equal(headers.Authorization, "Bearer tok-1");
-  assert.equal(headers["x-api-key"], "projectx_webapp");
+  assert.equal(headers["x-api-key"], "clio-playground-web");
+  assert.equal(headers.origin, "https://firefly.adobe.com");
   assert.equal(headers["content-type"], "application/json");
   const poll = buildAdobePollHeaders("tok-1");
   assert.equal(poll.Authorization, "Bearer tok-1");
+  assert.equal(poll.referer, "https://firefly.adobe.com/");
+});
+
+test("normalizeAdobePollUrl rewrites firefly-epo jobs/result to BKS", () => {
+  const raw =
+    "https://firefly-epo855232.adobe.io/jobs/result/4ae9fd2a-0864-46dd-9834-cfc16e91faa6";
+  const out = normalizeAdobePollUrl(raw);
+  assert.match(out, /^https:\/\/bks-epo8552\.adobe\.io\/v2\/jobs\/result\/4ae9fd2a/);
+  assert.match(out, /host=firefly-epo855232\.adobe\.io/);
+});
+
+test("parseAdobeCreditsBalance maps total + free/plan buckets", () => {
+  const bal = parseAdobeCreditsBalance({
+    total: {
+      quota: { total: 10010, used: 10, available: 10000 },
+      availableUntil: "2026-07-28T22:48:31.576Z",
+    },
+    credits: {
+      firefly_free_credit: { quota: { total: 10, used: 0, available: 10 } },
+      firefly_plan_credit: { quota: { total: 10000, used: 10, available: 9990 } },
+    },
+  });
+  assert.equal(bal.total, 10010);
+  assert.equal(bal.used, 10);
+  assert.equal(bal.remaining, 10000);
+  assert.equal(bal.freeTotal, 10);
+  assert.equal(bal.planTotal, 10000);
+  const quota = buildAdobeFireflyCreditsQuota(bal);
+  assert.equal(quota.total, 10010);
+  assert.equal(quota.remaining, 10000);
+  assert.equal(quota.displayName, "Firefly credits");
+  assert.ok((quota.details?.length || 0) >= 2);
+});
+
+test("parseAdobeModelsDiscovery extracts image/video versions", () => {
+  const rows = parseAdobeModelsDiscovery({
+    models: [
+      {
+        modelId: "gemini-flash",
+        modelVersions: {
+          "nano-banana-2": {
+            enabled: true,
+            outputModality: ["image"],
+            modelDisplayName: "Gemini 3.0 (Nano Banana Pro)",
+            healthStatus: "HEALTHY",
+          },
+        },
+      },
+      {
+        modelId: "sora",
+        modelVersions: {
+          "sora-2": {
+            enabled: true,
+            outputModality: ["video"],
+            modelDisplayName: "Sora 2",
+          },
+        },
+      },
+    ],
+  });
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].modality, "image");
+  assert.equal(rows[1].modality, "video");
+  const catalog = mapDiscoveredToCatalog(rows);
+  assert.ok(catalog.some((m) => m.id === "nano-banana-pro"));
+  assert.ok(catalog.some((m) => m.id === "sora-2"));
+});
+
+test("fallback catalog has image and video entries from get_models capture", () => {
+  assert.ok(ADOBE_FIREFLY_FALLBACK_MODELS.length >= 10);
+  assert.ok(getAdobeFireflyFallbackCatalog("image").length >= 4);
+  assert.ok(getAdobeFireflyFallbackCatalog("video").length >= 4);
+});
+
+test("extractAdobeAccountIdFromToken reads user_id claim", () => {
+  // {"user_id":"0EB@AdobeID"} base64url
+  const payload = Buffer.from(JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token" })).toString(
+    "base64url"
+  );
+  const jwt = `eyJhbGciOiJub25lIn0.${payload}.sig`;
+  assert.equal(extractAdobeAccountIdFromToken(jwt), "0EB@AdobeID");
 });
 
 // --- Handlers (mocked fetch) ----------------------------------------------

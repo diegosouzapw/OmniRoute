@@ -1,9 +1,9 @@
 // Adobe Firefly (unofficial) image-generation handler.
 // Family: adobe-firefly-image | Provider: adobe-firefly
 //
-// Credentials: IMS access_token (JWT) or full Cookie header from
-// firefly.adobe.com / new.express.adobe.com. Cookie headers are exchanged
-// via IMS check/v6/token (public client_id projectx_webapp).
+// Credentials: IMS access_token (JWT, client_id clio-playground-web) or full
+// Cookie header from firefly.adobe.com. Cookie → IMS check/v6/token with
+// client_id clio-playground-web (Express projectx_webapp fallback).
 
 import { sanitizeErrorMessage } from "../../../utils/error.ts";
 import { saveImageErrorResult, saveImageSuccessResult } from "../../imageGeneration.ts";

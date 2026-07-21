@@ -432,7 +432,7 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "FF",
     website: "https://firefly.adobe.com",
     authHint:
-      "Sign in at firefly.adobe.com or new.express.adobe.com, then either (1) paste the full Cookie header from DevTools → Network, or (2) copy a short-lived IMS access_token from an Authorization: Bearer header. Cookie is preferred (auto-exchanged for an access token). Unofficial/experimental media provider — image + video only.",
+      "Sign in at firefly.adobe.com. Preferred: DevTools → Network → any request → Request Headers → Cookie (paste the FULL Cookie header). Alternative: open a firefly-3p.ff.adobe.io generate/discovery call and copy Authorization: Bearer JWT only (IMS access_token, client_id clio-playground-web). Do NOT paste random API keys — those return 401 invalid token. Media image/video + Limits credits. Unofficial/experimental.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },

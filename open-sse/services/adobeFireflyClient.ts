@@ -1,18 +1,24 @@
 /**
  * Adobe Firefly (unofficial) media client.
  *
- * Talks to the same Firefly 3P async APIs that Adobe Express / Firefly web use:
+ * Talks to the same Firefly 3P async APIs that firefly.adobe.com uses (live browser
+ * captures in repo `adobe/`):
  *   POST https://firefly-3p.ff.adobe.io/v2/3p-images/generate-async
  *   POST https://firefly-3p.ff.adobe.io/v2/3p-videos/generate-async
- * then polls the job status URL returned in `x-override-status-link` / links.result.
+ *   POST https://firefly-3p.ff.adobe.io/v2/models/discovery
+ *   GET  https://firefly.adobe.io/v1/credits/balance
+ * then polls BKS job result URLs rewritten from links.result.
  *
- * Auth is an Adobe IMS access token (Bearer). Callers may pass either:
- *   - a raw IMS access_token (JWT), or
- *   - a browser Cookie header from firefly.adobe.com / new.express.adobe.com
- *     which is exchanged via IMS check/v6/token (client_id = projectx_webapp).
+ * Auth is an Adobe IMS access token (Bearer, client_id = clio-playground-web).
+ * Callers may pass either:
+ *   - a raw IMS access_token JWT (from Authorization: Bearer on Firefly), or
+ *   - a browser Cookie header from firefly.adobe.com (exchanged via IMS check/v6/token
+ *     with client_id clio-playground-web; Express projectx_webapp as fallback).
  *
- * This is an unofficial, reverse-engineered integration — tokens/cookies are
- * short-lived and Adobe may change the wire contract without notice.
+ * x-api-key on generate/discovery MUST match the token's IMS client
+ * (`clio-playground-web`). Mismatch → HTTP 401 invalid token.
+ *
+ * Unofficial — tokens/cookies are short-lived; Adobe may change the wire contract.
  */
 
 import { resolvePublicCred } from "../utils/publicCreds.ts";
@@ -24,23 +30,41 @@ export const ADOBE_FIREFLY_VIDEO_SUBMIT_URL =
   "https://firefly-3p.ff.adobe.io/v2/3p-videos/generate-async";
 export const ADOBE_FIREFLY_IMAGE_UPLOAD_URL =
   "https://firefly-3p.ff.adobe.io/v2/storage/image";
+export const ADOBE_FIREFLY_MODELS_DISCOVERY_URL =
+  "https://firefly-3p.ff.adobe.io/v2/models/discovery";
+export const ADOBE_FIREFLY_CREDITS_BALANCE_URL =
+  "https://firefly.adobe.io/v1/credits/balance";
 export const ADOBE_FIREFLY_IMS_REFRESH_URL =
   "https://adobeid-na1.services.adobe.com/ims/check/v6/token?jslVersion=v2-v0.48.0-1-g1e322cb";
-export const ADOBE_FIREFLY_IMS_SCOPE = "AdobeID,firefly_api,openid";
+/** Scope set observed on live firefly.adobe.com IMS access tokens. */
+export const ADOBE_FIREFLY_IMS_SCOPE =
+  "AdobeID,firefly_api,openid,pps.read,pps.write,additional_info.projectedProductContext," +
+  "additional_info.ownerOrg,uds_read,uds_write,ab.manage,read_organizations," +
+  "additional_info.roles,account_cluster.read,creative_production,tk_platform," +
+  "tk_platform_sync,profile";
 
 const DEFAULT_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
 const DEFAULT_SEC_CH_UA =
-  '"Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"';
+  '"Not;A=Brand";v="8", "Chromium";v="150", "Google Chrome";v="150"';
 const DEFAULT_POLL_INTERVAL_MS = 3000;
 const DEFAULT_IMAGE_TIMEOUT_MS = 180_000;
 const DEFAULT_VIDEO_TIMEOUT_MS = 300_000;
+const FIREFLY_ORIGIN = "https://firefly.adobe.com";
+const FIREFLY_REFERER = "https://firefly.adobe.com/";
 
 export type AdobeFireflyImageModelId =
   | "nano-banana-pro"
   | "nano-banana"
   | "nano-banana-2"
-  | "gpt-image";
+  | "gpt-image"
+  | "gpt-image-1.5"
+  | "flux-2"
+  | "flux-pro"
+  | "flux-ultra"
+  | "seedream-4"
+  | "seedream-5-lite"
+  | "runway-gen4-image";
 
 export type AdobeFireflyVideoModelId =
   | "sora-2"
@@ -53,7 +77,8 @@ export type AdobeFireflyVideoModelId =
 export interface AdobeFireflyImageModelSpec {
   upstreamModelId: string;
   upstreamModelVersion: string;
-  family: "nano" | "gpt-image";
+  /** Payload builder family — nano uses Gemini-style size maps; gpt-image uses OpenAI detail levels. */
+  family: "nano" | "gpt-image" | "generic";
 }
 
 export interface AdobeFireflyVideoModelSpec {
@@ -66,27 +91,70 @@ export interface AdobeFireflyVideoModelSpec {
   defaultResolution: string;
 }
 
+/**
+ * Upstream modelId/modelVersion pairs from firefly-3p models/discovery
+ * (captured 2026-07 — see adobe/get_models.txt). Friendly catalog ids map here.
+ */
 export const ADOBE_FIREFLY_IMAGE_MODELS: Record<AdobeFireflyImageModelId, AdobeFireflyImageModelSpec> =
   {
+    // Gemini 3.0 (Nano Banana Pro) — discovery: gemini-flash / nano-banana-2
     "nano-banana-pro": {
       upstreamModelId: "gemini-flash",
       upstreamModelVersion: "nano-banana-2",
       family: "nano",
     },
+    // Gemini 2.5 (Nano Banana) — discovery: gemini-flash / nano-banana
     "nano-banana": {
       upstreamModelId: "gemini-flash",
-      upstreamModelVersion: "nano-banana-2",
+      upstreamModelVersion: "nano-banana",
       family: "nano",
     },
+    // Gemini 3.1 (Nano Banana 2) — discovery: gemini-flash / nano-banana-3
     "nano-banana-2": {
       upstreamModelId: "gemini-flash",
       upstreamModelVersion: "nano-banana-3",
       family: "nano",
     },
+    // GPT Image 2 — discovery + live generate body: gpt-image / 2
     "gpt-image": {
       upstreamModelId: "gpt-image",
       upstreamModelVersion: "2",
       family: "gpt-image",
+    },
+    "gpt-image-1.5": {
+      upstreamModelId: "gpt-image",
+      upstreamModelVersion: "1.5",
+      family: "gpt-image",
+    },
+    "flux-2": {
+      upstreamModelId: "flux",
+      upstreamModelVersion: "2",
+      family: "generic",
+    },
+    "flux-pro": {
+      upstreamModelId: "flux",
+      upstreamModelVersion: "fluxPro",
+      family: "generic",
+    },
+    "flux-ultra": {
+      upstreamModelId: "flux",
+      upstreamModelVersion: "fluxUltra",
+      family: "generic",
+    },
+    "seedream-4": {
+      upstreamModelId: "seedream",
+      upstreamModelVersion: "seedream_v4",
+      family: "generic",
+    },
+    "seedream-5-lite": {
+      upstreamModelId: "seedream",
+      upstreamModelVersion: "seedream_v5_lite",
+      family: "generic",
+    },
+    "runway-gen4-image": {
+      upstreamModelId: "runway-gen4-image",
+      upstreamModelVersion: "gen4_image",
+      family: "generic",
     },
   };
 
@@ -242,8 +310,55 @@ export class AdobeFireflyError extends Error {
   }
 }
 
+/** Public x-api-key + primary IMS client_id for firefly.adobe.com (`clio-playground-web`). */
 export function adobeFireflyApiKey(): string {
-  return resolvePublicCred("adobe_firefly_api_key", "ADOBE_FIREFLY_API_KEY") || "projectx_webapp";
+  return (
+    resolvePublicCred("adobe_firefly_api_key", "ADOBE_FIREFLY_API_KEY") || "clio-playground-web"
+  );
+}
+
+/** Express IMS client_id fallback for cookie exchange (`projectx_webapp`). */
+export function adobeFireflyExpressClientId(): string {
+  return (
+    resolvePublicCred("adobe_firefly_express_client_id", "ADOBE_FIREFLY_EXPRESS_CLIENT_ID") ||
+    "projectx_webapp"
+  );
+}
+
+/** Public x-api-key for GET firefly.adobe.io/v1/credits/balance (`SunbreakWebUI1`). */
+export function adobeFireflyBalanceApiKey(): string {
+  return (
+    resolvePublicCred("adobe_firefly_balance_api_key", "ADOBE_FIREFLY_BALANCE_API_KEY") ||
+    "SunbreakWebUI1"
+  );
+}
+
+/** Decode IMS JWT payload (no signature verification — client-side claim read only). */
+export function decodeAdobeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const raw = extractAdobeCredentialToken(token);
+    const part = raw.split(".")[1];
+    if (!part) return null;
+    const json = Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+    const obj = JSON.parse(json);
+    return obj && typeof obj === "object" ? (obj as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** AdobeID subject for x-account-id on balance / account_cluster calls. */
+export function extractAdobeAccountIdFromToken(token: string): string {
+  const payload = decodeAdobeJwtPayload(token);
+  if (!payload) return "";
+  const candidates = [payload.user_id, payload.aa_id, payload.sub, payload.id];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.includes("@")) return c.trim();
+  }
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim()) return c.trim();
+  }
+  return "";
 }
 
 export function looksLikeAdobeJwt(value: string): boolean {
@@ -333,8 +448,29 @@ export function resolveAdobeImageModel(model: string): {
   if (raw.includes("nano-banana")) {
     return { id: "nano-banana", spec: ADOBE_FIREFLY_IMAGE_MODELS["nano-banana"] };
   }
+  if (raw.includes("gpt-image-1.5") || raw.includes("gpt-image1.5")) {
+    return { id: "gpt-image-1.5", spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image-1.5"] };
+  }
   if (raw.includes("gpt-image") || raw === "gpt-image") {
     return { id: "gpt-image", spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"] };
+  }
+  if (raw.includes("flux-ultra") || raw.includes("fluxultra")) {
+    return { id: "flux-ultra", spec: ADOBE_FIREFLY_IMAGE_MODELS["flux-ultra"] };
+  }
+  if (raw.includes("flux-pro") || raw.includes("fluxpro")) {
+    return { id: "flux-pro", spec: ADOBE_FIREFLY_IMAGE_MODELS["flux-pro"] };
+  }
+  if (raw.includes("flux")) {
+    return { id: "flux-2", spec: ADOBE_FIREFLY_IMAGE_MODELS["flux-2"] };
+  }
+  if (raw.includes("seedream-5") || raw.includes("seedream_v5")) {
+    return { id: "seedream-5-lite", spec: ADOBE_FIREFLY_IMAGE_MODELS["seedream-5-lite"] };
+  }
+  if (raw.includes("seedream")) {
+    return { id: "seedream-4", spec: ADOBE_FIREFLY_IMAGE_MODELS["seedream-4"] };
+  }
+  if (raw.includes("runway") && raw.includes("image")) {
+    return { id: "runway-gen4-image", spec: ADOBE_FIREFLY_IMAGE_MODELS["runway-gen4-image"] };
   }
 
   if (raw in ADOBE_FIREFLY_IMAGE_MODELS) {
@@ -384,10 +520,12 @@ export function resolveAdobeVideoModel(model: string): {
 }
 
 function gptDetailLevel(quality: unknown): number {
-  const q = String(quality ?? "low").trim().toLowerCase();
+  // Live firefly.adobe.com default for gpt-image is detailLevel 3 (medium).
+  const q = String(quality ?? "medium").trim().toLowerCase();
   if (q === "high" || q === "4k" || q === "ultra") return 5;
-  if (q === "medium" || q === "2k" || q === "standard" || q === "hd") return 3;
-  return 1;
+  if (q === "low" || q === "1k") return 1;
+  if (q === "medium" || q === "2k" || q === "standard" || q === "hd" || q === "auto") return 3;
+  return 3;
 }
 
 export function buildAdobeImagePayload(opts: {
@@ -424,6 +562,7 @@ export function buildAdobeImagePayload(opts: {
       output: { storeInputs: true },
       referenceBlobs: [],
       generationMetadata: { module: "text2image", submodule: "ff-image-generate" },
+      // Live browser often sends size:"auto"; explicit WxH also accepted.
       modelSpecificPayload: { size: `${pixel.width}x${pixel.height}` },
       outputResolution: opts.outputResolution,
       generationSettings: {
@@ -440,6 +579,7 @@ export function buildAdobeImagePayload(opts: {
     return payload;
   }
 
+  // nano (Gemini Flash) + generic (Flux / Seedream / Runway image): same 3P image shape
   const sizeMap = NANO_SIZE_MAP[opts.outputResolution] || NANO_SIZE_MAP["2K"];
   const pixel = sizeMap[ratio] || sizeMap["1:1"];
   const payload: Record<string, unknown> = {
@@ -616,8 +756,8 @@ export function buildAdobeVideoPayload(opts: {
 function browserHeaders(): Record<string, string> {
   return {
     "user-agent": DEFAULT_USER_AGENT,
-    origin: "https://new.express.adobe.com",
-    referer: "https://new.express.adobe.com/",
+    origin: FIREFLY_ORIGIN,
+    referer: FIREFLY_REFERER,
     "accept-language": "en-US,en;q=0.9",
     "sec-ch-ua": DEFAULT_SEC_CH_UA,
     "sec-ch-ua-mobile": "?0",
@@ -632,6 +772,7 @@ export function buildAdobeSubmitHeaders(accessToken: string): Record<string, str
   return {
     ...browserHeaders(),
     Authorization: `Bearer ${accessToken}`,
+    // Must be clio-playground-web — same client_id that minted the IMS token.
     "x-api-key": adobeFireflyApiKey(),
     "content-type": "application/json",
     accept: "*/*",
@@ -639,14 +780,37 @@ export function buildAdobeSubmitHeaders(accessToken: string): Record<string, str
 }
 
 export function buildAdobePollHeaders(accessToken: string): Record<string, string> {
+  // Live status_check uses Bearer only (no x-api-key). Keep key for EPO hosts that require it.
   return {
     Authorization: `Bearer ${accessToken}`,
     accept: "*/*",
-    referer: "https://new.express.adobe.com/",
-    origin: "https://new.express.adobe.com",
+    referer: FIREFLY_REFERER,
+    origin: FIREFLY_ORIGIN,
     "user-agent": DEFAULT_USER_AGENT,
     "x-api-key": adobeFireflyApiKey(),
+  };
+}
+
+export function buildAdobeBalanceHeaders(accessToken: string): Record<string, string> {
+  const accountId = extractAdobeAccountIdFromToken(accessToken);
+  const headers: Record<string, string> = {
+    ...browserHeaders(),
+    Authorization: `Bearer ${accessToken}`,
+    accept: "application/json",
     "content-type": "application/json",
+    "x-api-key": adobeFireflyBalanceApiKey(),
+  };
+  if (accountId) headers["x-account-id"] = accountId;
+  return headers;
+}
+
+export function buildAdobeDiscoveryHeaders(accessToken: string): Record<string, string> {
+  return {
+    ...browserHeaders(),
+    Authorization: `Bearer ${accessToken}`,
+    "x-api-key": adobeFireflyApiKey(),
+    "content-type": "application/json",
+    accept: "*/*",
   };
 }
 
@@ -679,24 +843,40 @@ export function extractAdobeResultLink(
   return "";
 }
 
+/**
+ * Rewrite Firefly EPO result links to the BKS poll endpoint used by the SPA.
+ *
+ * Live capture (adobe/status_check.txt):
+ *   links.result = https://firefly-epo855232.adobe.io/jobs/result/{jobId}
+ *   poll URL     = https://bks-epo8552.adobe.io/v2/jobs/result/{jobId}?host=firefly-epo855232.adobe.io
+ *
+ * BKS host uses the first 4 digits of the EPO id when the id is longer (855232 → 8552).
+ */
 export function normalizeAdobePollUrl(rawUrl: string): string {
   const url = String(rawUrl || "").trim();
   if (!url) return url;
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
-    // Some Firefly EPO hosts need a BKS job result rewrite; only rewrite known pattern.
-    if (host.startsWith("firefly-epo") && parsed.pathname.includes("/v2/status")) {
-      const jobId = parsed.pathname.split("/").filter(Boolean).pop() || "";
-      if (jobId) {
-        const hostSuffix = host.slice("firefly-epo".length).split(".")[0] || "";
-        return `https://bks-epo${hostSuffix}.adobe.io/v2/jobs/result/${jobId}?host=${host}/`;
-      }
-    }
+    if (!host.startsWith("firefly-epo")) return url;
+
+    const path = parsed.pathname || "";
+    const isJobPath =
+      path.includes("/jobs/result/") ||
+      path.includes("/v2/status") ||
+      path.includes("/status/");
+    if (!isJobPath) return url;
+
+    const jobId = path.split("/").filter(Boolean).pop() || "";
+    if (!jobId || jobId === "status" || jobId === "result") return url;
+
+    const epoId = host.slice("firefly-epo".length).split(".")[0] || "";
+    // 855232 → 8552 (browser BKS host); short ids kept as-is.
+    const bksId = epoId.length > 4 ? epoId.slice(0, 4) : epoId;
+    return `https://bks-epo${bksId}.adobe.io/v2/jobs/result/${jobId}?host=${host}`;
   } catch {
-    // keep original
+    return url;
   }
-  return url;
 }
 
 export function extractAdobeMediaUrl(
@@ -771,7 +951,9 @@ export function isAdobeJobFailed(status: string): boolean {
 
 /**
  * Exchange a browser Cookie header for an Adobe IMS access_token.
- * Uses the public Express client_id (projectx_webapp) + firefly_api scope.
+ * Tries Firefly client_id (clio-playground-web) first — required so the token
+ * is accepted with x-api-key: clio-playground-web on generate-async.
+ * Falls back to Express projectx_webapp for cookies from new.express.adobe.com.
  */
 export async function exchangeAdobeCookieForAccessToken(
   cookieHeader: string,
@@ -782,41 +964,54 @@ export async function exchangeAdobeCookieForAccessToken(
     throw new AdobeFireflyError("Adobe Firefly cookie is empty", 401, "missing_cookie");
   }
 
-  const form = new URLSearchParams({
-    client_id: adobeFireflyApiKey(),
-    guest_allowed: "true",
-    scope: ADOBE_FIREFLY_IMS_SCOPE,
-  });
+  const clientIds = [adobeFireflyApiKey(), adobeFireflyExpressClientId()].filter(
+    (id, i, arr) => id && arr.indexOf(id) === i
+  );
 
-  const resp = await fetchImpl(ADOBE_FIREFLY_IMS_REFRESH_URL, {
-    method: "POST",
-    headers: {
-      Accept: "*/*",
-      "Accept-Language": "en-US,en;q=0.9",
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      Cookie: cookie,
-      Origin: "https://new.express.adobe.com",
-      Referer: "https://new.express.adobe.com/",
-      "User-Agent": DEFAULT_USER_AGENT,
-    },
-    body: form.toString(),
-  });
+  let lastError = "";
+  let lastStatus = 502;
 
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => "");
-    throw new AdobeFireflyError(
-      `Adobe IMS token exchange failed (${resp.status}): ${sanitizeErrorMessage(text.slice(0, 200))}`,
-      resp.status === 401 || resp.status === 403 ? 401 : 502,
-      "ims_refresh_failed"
-    );
+  for (const clientId of clientIds) {
+    const form = new URLSearchParams({
+      client_id: clientId,
+      guest_allowed: "true",
+      scope: ADOBE_FIREFLY_IMS_SCOPE,
+    });
+
+    const resp = await fetchImpl(ADOBE_FIREFLY_IMS_REFRESH_URL, {
+      method: "POST",
+      headers: {
+        Accept: "*/*",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        Cookie: cookie,
+        Origin: FIREFLY_ORIGIN,
+        Referer: FIREFLY_REFERER,
+        "User-Agent": DEFAULT_USER_AGENT,
+      },
+      body: form.toString(),
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      lastStatus = resp.status;
+      lastError = sanitizeErrorMessage(text.slice(0, 200));
+      continue;
+    }
+
+    const data = (await resp.json().catch(() => null)) as { access_token?: string } | null;
+    const token = String(data?.access_token || "").trim();
+    if (token) return token;
+    lastError = "IMS response missing access_token";
+    lastStatus = 401;
   }
 
-  const data = (await resp.json().catch(() => null)) as { access_token?: string } | null;
-  const token = String(data?.access_token || "").trim();
-  if (!token) {
-    throw new AdobeFireflyError("Adobe IMS response missing access_token", 401, "ims_no_token");
-  }
-  return token;
+  throw new AdobeFireflyError(
+    `Adobe IMS token exchange failed (${lastStatus}): ${lastError || "no access_token"}. ` +
+      "Paste a fresh Cookie header from firefly.adobe.com (signed in), or paste the IMS access_token JWT from Authorization: Bearer on a generate/discovery request.",
+    lastStatus === 401 || lastStatus === 403 ? 401 : 502,
+    "ims_refresh_failed"
+  );
 }
 
 /**
@@ -845,7 +1040,7 @@ export async function resolveAdobeAccessToken(
   );
   if (!raw) {
     throw new AdobeFireflyError(
-      "Adobe Firefly credentials missing. Paste an IMS access_token or the full Cookie header from firefly.adobe.com / new.express.adobe.com.",
+      "Adobe Firefly credentials missing. Paste either (1) a full Cookie header from firefly.adobe.com while signed in, or (2) an IMS access_token JWT from Authorization: Bearer on Network → generate-async / models/discovery (not a random API key).",
       401,
       "missing_credentials"
     );
@@ -855,6 +1050,183 @@ export async function resolveAdobeAccessToken(
 
   // Cookie header (or other non-JWT secret) → IMS exchange
   return exchangeAdobeCookieForAccessToken(raw, fetchImpl);
+}
+
+// ── Credits balance (Limits) ────────────────────────────────────────────────
+
+export interface AdobeFireflyCreditsBalance {
+  total: number;
+  used: number;
+  remaining: number;
+  availableUntil: string | null;
+  freeTotal: number;
+  freeUsed: number;
+  freeRemaining: number;
+  planTotal: number;
+  planUsed: number;
+  planRemaining: number;
+  raw?: unknown;
+}
+
+function readQuotaBlock(block: unknown): { total: number; used: number; available: number } {
+  if (!block || typeof block !== "object") return { total: 0, used: 0, available: 0 };
+  const q =
+    (block as Record<string, unknown>).quota &&
+    typeof (block as Record<string, unknown>).quota === "object"
+      ? ((block as Record<string, unknown>).quota as Record<string, unknown>)
+      : (block as Record<string, unknown>);
+  const total = Number(q.total ?? 0);
+  const used = Number(q.used ?? 0);
+  const available = Number(q.available ?? Math.max(0, total - used));
+  return {
+    total: Number.isFinite(total) ? total : 0,
+    used: Number.isFinite(used) ? used : 0,
+    available: Number.isFinite(available) ? available : 0,
+  };
+}
+
+/**
+ * Parse GET /v1/credits/balance JSON (adobe/balance.txt Response).
+ * total.quota = aggregate; credits.firefly_* = free + plan buckets.
+ */
+export function parseAdobeCreditsBalance(body: unknown): AdobeFireflyCreditsBalance {
+  const root = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  const totalBlock = readQuotaBlock(root.total);
+  const credits =
+    root.credits && typeof root.credits === "object"
+      ? (root.credits as Record<string, unknown>)
+      : {};
+  const free = readQuotaBlock(credits.firefly_free_credit);
+  const plan = readQuotaBlock(credits.firefly_plan_credit);
+
+  // Prefer top-level total; fall back to free+plan sum when total missing.
+  let total = totalBlock.total;
+  let used = totalBlock.used;
+  let remaining = totalBlock.available;
+  if (total <= 0 && (free.total > 0 || plan.total > 0)) {
+    total = free.total + plan.total;
+    used = free.used + plan.used;
+    remaining = free.available + plan.available;
+  }
+  if (remaining <= 0 && total > 0) remaining = Math.max(0, total - used);
+
+  const availableUntil =
+    root.total &&
+    typeof root.total === "object" &&
+    typeof (root.total as Record<string, unknown>).availableUntil === "string"
+      ? String((root.total as Record<string, unknown>).availableUntil)
+      : null;
+
+  return {
+    total,
+    used,
+    remaining,
+    availableUntil,
+    freeTotal: free.total,
+    freeUsed: free.used,
+    freeRemaining: free.available,
+    planTotal: plan.total,
+    planUsed: plan.used,
+    planRemaining: plan.available,
+    raw: body,
+  };
+}
+
+export async function fetchAdobeCreditsBalance(
+  accessToken: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<AdobeFireflyCreditsBalance> {
+  const resp = await fetchImpl(ADOBE_FIREFLY_CREDITS_BALANCE_URL, {
+    method: "GET",
+    headers: buildAdobeBalanceHeaders(accessToken),
+  });
+  if (resp.status === 401 || resp.status === 403) {
+    throw new AdobeFireflyError("Adobe Firefly balance: token invalid or expired", 401, "auth");
+  }
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => "");
+    throw new AdobeFireflyError(
+      `Adobe Firefly balance failed (${resp.status}): ${sanitizeErrorMessage(text.slice(0, 200))}`,
+      502
+    );
+  }
+  const data = await resp.json().catch(() => ({}));
+  return parseAdobeCreditsBalance(data);
+}
+
+// ── Models discovery ────────────────────────────────────────────────────────
+
+export interface AdobeFireflyDiscoveredModel {
+  modelId: string;
+  modelVersion: string;
+  displayName: string;
+  modality: "image" | "video" | "audio" | "unknown";
+  enabled: boolean;
+  healthStatus?: string;
+}
+
+/**
+ * Parse POST /v2/models/discovery response into flat model/version rows.
+ */
+export function parseAdobeModelsDiscovery(body: unknown): AdobeFireflyDiscoveredModel[] {
+  const root = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  const models = Array.isArray(root.models) ? root.models : [];
+  const out: AdobeFireflyDiscoveredModel[] = [];
+
+  for (const m of models) {
+    if (!m || typeof m !== "object") continue;
+    const rec = m as Record<string, unknown>;
+    const modelId = String(rec.modelId || "").trim();
+    if (!modelId) continue;
+    const versions =
+      rec.modelVersions && typeof rec.modelVersions === "object"
+        ? (rec.modelVersions as Record<string, unknown>)
+        : {};
+    for (const [ver, spec] of Object.entries(versions)) {
+      if (!spec || typeof spec !== "object") continue;
+      const s = spec as Record<string, unknown>;
+      if (s.enabled === false) continue;
+      const mods = Array.isArray(s.outputModality)
+        ? s.outputModality.map((x) => String(x).toLowerCase())
+        : [];
+      let modality: AdobeFireflyDiscoveredModel["modality"] = "unknown";
+      if (mods.includes("image")) modality = "image";
+      else if (mods.includes("video")) modality = "video";
+      else if (mods.includes("audio")) modality = "audio";
+      out.push({
+        modelId,
+        modelVersion: ver,
+        displayName: String(s.modelDisplayName || s.modelCaiDisplayName || ver),
+        modality,
+        enabled: s.enabled !== false,
+        healthStatus: typeof s.healthStatus === "string" ? s.healthStatus : undefined,
+      });
+    }
+  }
+  return out;
+}
+
+export async function discoverAdobeFireflyModels(
+  accessToken: string,
+  fetchImpl: typeof fetch = fetch
+): Promise<AdobeFireflyDiscoveredModel[]> {
+  const resp = await fetchImpl(ADOBE_FIREFLY_MODELS_DISCOVERY_URL, {
+    method: "POST",
+    headers: buildAdobeDiscoveryHeaders(accessToken),
+    body: JSON.stringify({ filters: { resolveSchema: true } }),
+  });
+  if (resp.status === 401 || resp.status === 403) {
+    throw new AdobeFireflyError("Adobe Firefly model discovery: token invalid or expired", 401, "auth");
+  }
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => "");
+    throw new AdobeFireflyError(
+      `Adobe Firefly model discovery failed (${resp.status}): ${sanitizeErrorMessage(text.slice(0, 200))}`,
+      502
+    );
+  }
+  const data = await resp.json().catch(() => ({}));
+  return parseAdobeModelsDiscovery(data);
 }
 
 async function sleep(ms: number): Promise<void> {

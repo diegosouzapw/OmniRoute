@@ -266,7 +266,8 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
   },
 
   // Adobe Firefly (unofficial) — same IMS/cookie credential as the image entry.
-  // Async 3P video generate + poll (Sora 2, Veo 3.1, Kling 3).
+  // Async 3P video generate + poll (Sora 2, Veo 3.1, Kling …). Fallback list
+  // from models/discovery capture (adobe/get_models.txt).
   "adobe-firefly": {
     id: "adobe-firefly",
     alias: "firefly",
@@ -280,7 +281,11 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
       { id: "veo-3.1", name: "Firefly Veo 3.1" },
       { id: "veo-3.1-fast", name: "Firefly Veo 3.1 Fast" },
       { id: "veo-3.1-ref", name: "Firefly Veo 3.1 Reference" },
-      { id: "kling-3", name: "Firefly Kling 3.0" },
+      { id: "kling-3", name: "Firefly Kling v3 Standard I2V" },
+      { id: "kling-v3-t2v", name: "Firefly Kling v3 Standard T2V" },
+      { id: "kling-v3-pro-i2v", name: "Firefly Kling v3 Pro I2V" },
+      { id: "luma-ray3", name: "Firefly Ray3" },
+      { id: "runway-gen4-turbo", name: "Firefly Runway Gen-4 Video" },
     ],
   },
 };
