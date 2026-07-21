@@ -59,6 +59,7 @@
       "processTree.js",
       "sqlite-inspection.js",
       "lib/resolveServerEntry.js",
+      "lib/resolveNodeHelper.js",
       "package.json",
       "node_modules/**/*"
     ],
