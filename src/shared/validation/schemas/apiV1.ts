@@ -31,10 +31,24 @@ export const MAX_EMBEDDING_INLINE_TOTAL_BYTES = 16 * 1024 * 1024;
 const MAX_EMBEDDING_TEXT_LENGTH = 1_000_000;
 const MAX_EMBEDDING_URL_LENGTH = 2048;
 const MAX_MEDIA_TYPE_LENGTH = 255;
+// Four base64 characters encode at most three bytes. Reject by encoded length first
+// so multi-megabyte oversize payloads never reach format validation.
+const MAX_EMBEDDING_INLINE_ITEM_BASE64_LENGTH = Math.ceil(MAX_EMBEDDING_INLINE_ITEM_BYTES / 3) * 4;
+const BASE64_CHUNK_RE = /^[A-Za-z0-9+/]{4}$/;
+const BASE64_LAST_CHUNK_RE = /^(?:[A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/;
 
 function decodedBase64Bytes(data: string): number {
   const padding = data.endsWith("==") ? 2 : data.endsWith("=") ? 1 : 0;
   return (data.length * 3) / 4 - padding;
+}
+
+/** Validate base64 without one giant RegExp over multi-megabyte strings. */
+function isValidBase64(data: string): boolean {
+  if (data.length === 0 || data.length % 4 !== 0) return false;
+  for (let i = 0; i < data.length - 4; i += 4) {
+    if (!BASE64_CHUNK_RE.test(data.slice(i, i + 4))) return false;
+  }
+  return BASE64_LAST_CHUNK_RE.test(data.slice(data.length - 4));
 }
 
 const embeddingUrlSourceSchema = z.object({
@@ -61,11 +75,22 @@ const embeddingBase64SourceSchema = z.object({
   data: z
     .string()
     .min(1)
-    .regex(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/, {
-      message: "data must be valid base64",
-    })
-    .refine((data) => decodedBase64Bytes(data) <= MAX_EMBEDDING_INLINE_ITEM_BYTES, {
-      message: "decoded inline media must not exceed 8 MiB",
+    .superRefine((data, context) => {
+      // Cheap encoded-length guard first. Same encoded length can still decode to
+      // 8 MiB + 1, so the decoded-byte check also runs before format validation.
+      if (
+        data.length > MAX_EMBEDDING_INLINE_ITEM_BASE64_LENGTH ||
+        decodedBase64Bytes(data) > MAX_EMBEDDING_INLINE_ITEM_BYTES
+      ) {
+        context.addIssue({
+          code: "custom",
+          message: "decoded inline media must not exceed 8 MiB",
+        });
+        return;
+      }
+      if (!isValidBase64(data)) {
+        context.addIssue({ code: "custom", message: "data must be valid base64" });
+      }
     }),
   media_type: z.string().trim().min(1).max(MAX_MEDIA_TYPE_LENGTH),
 });

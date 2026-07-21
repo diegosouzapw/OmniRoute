@@ -130,12 +130,29 @@ Content-Type: application/json
 Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, **GitHub Models**.
 
 Registry models that advertise multimodal support also accept up to 32 provider-neutral structured
-items. Remote sources must use a public HTTPS URL. Inline base64 media is limited to 8 MiB decoded
-per item and 16 MiB decoded across the request.
+items. Media item types are `text`, `image`, `audio`, `video`, and `document`. Their media `source`
+is either `{"type":"url","url":"https://..."}` or
+`{"type":"base64","data":"...","media_type":"..."}`.
+
+Security and transport bounds:
+
+- Remote media URLs must be public HTTPS. OmniRoute fetches them server-side with redirect
+  revalidation, timeout, decoded size limits, public DNS checks, and connection pinning to a
+  validated answer before the provider call. Providers never receive the original remote URL.
+- Inline base64 media is limited to 8 MiB decoded per item and 16 MiB decoded across the request.
+
+Provider translation (canonical items are never forwarded unchanged):
+
+- Jina multimodal models: each top-level item becomes one modality-keyed object
+  (`text` / `image` / `audio` / `video` / `pdf`) using data URIs for inline media; one vector per
+  top-level item.
+- Gemini Embedding 2 family: one top-level array becomes a single native
+  `models/{model}:embedContent` request with `content.parts` (`text` or `inline_data`).
+- Unknown/dynamic models without explicit modality metadata reject structured input with HTTP 400.
 
 ```json
 {
-  "model": "jina-ai/jina-clip-v2",
+  "model": "jina-ai/jina-embeddings-v5-omni-small",
   "input": [
     { "type": "text", "text": "A red bicycle" },
     {
@@ -148,11 +165,8 @@ per item and 16 MiB decoded across the request.
 }
 ```
 
-Media item types are `image`, `audio`, `video`, and `document`. Their `source` is either
-`{"type":"url","url":"https://..."}` or
-`{"type":"base64","data":"...","media_type":"..."}`. Unsupported model/modality
-combinations return HTTP 400 rather than coercing the item. Provider extension fields are passed
-through unchanged.
+Unsupported model/modality combinations return HTTP 400 rather than coercing the item. Non-input
+extension fields on legacy string/token requests continue to pass through unchanged.
 
 ```bash
 # List all embedding models

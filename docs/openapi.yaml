@@ -1318,8 +1318,13 @@ paths:
                   description: >-
                     Text, token IDs, or up to 32 canonical multimodal items. Structured media
                     input is accepted only when the resolved registry model advertises the
-                    requested modalities. URL sources must be public HTTPS URLs; inline media
-                    is limited to 8 MiB decoded per item and 16 MiB decoded per request.
+                    requested modalities. URL sources must be public HTTPS and are fetched
+                    server-side into bounded inline media (redirect revalidation, timeout,
+                    size limits, public DNS checks, and connection pinning) before provider
+                    submission. Inline media is limited to 8 MiB decoded per item and 16 MiB
+                    decoded per request. Canonical items are translated to provider-native
+                    request shapes (Jina modality-keyed objects / Gemini embedContent parts)
+                    rather than forwarded unchanged.
                   oneOf:
                     - type: string
                     - type: array

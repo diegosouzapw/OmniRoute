@@ -100,42 +100,113 @@ test("embedding schema rejects unsafe remote media URLs", () => {
   }
 });
 
-test("handleEmbedding forwards canonical multimodal items and extension fields losslessly", async () => {
-  const originalFetch = globalThis.fetch;
-  const calls: Array<Record<string, unknown>> = [];
-  globalThis.fetch = async (_url, options = {}) => {
-    calls.push(JSON.parse(String(options.body)));
-    return vectorResponse();
+test("translates canonical items to Jina's modality-keyed request contract", async () => {
+  const { prepareStructuredEmbeddingRequest } =
+    await import("../../open-sse/handlers/embeddingStructuredInput.ts");
+  const provider = {
+    id: "jina-ai",
+    baseUrl: "https://api.jina.ai/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    structuredInputProtocol: "jina-v1" as const,
+    models: [],
   };
-
   const input = [
-    { type: "text", text: "caption" },
-    { type: "image", source: { type: "url", url: "https://example.com/image.png" } },
+    { type: "text" as const, text: "caption" },
+    { type: "image" as const, source: { type: "url" as const, url: "https://example.com/i.png" } },
+    {
+      type: "audio" as const,
+      source: { type: "base64" as const, data: "YQ==", media_type: "audio/wav" },
+    },
+    {
+      type: "video" as const,
+      source: { type: "base64" as const, data: "dg==", media_type: "video/mp4" },
+    },
+    {
+      type: "document" as const,
+      source: { type: "base64" as const, data: "cA==", media_type: "application/pdf" },
+    },
   ];
-  try {
-    const result = await handleEmbedding({
-      body: {
-        model: "jina-ai/jina-embeddings-v5-omni-small",
-        input,
-        dimensions: 512,
-        encoding_format: "float",
-        task: "retrieval",
+  const prepared = await prepareStructuredEmbeddingRequest(
+    provider,
+    "jina-embeddings-v5-omni-small",
+    { input, dimensions: 512, task: "retrieval.query" },
+    "token",
+    { fetchMedia: async () => ({ buffer: Buffer.from("img"), contentType: "image/png" }) }
+  );
+  assert.equal(prepared.url, "https://api.jina.ai/v1/embeddings");
+  assert.deepEqual(prepared.body, {
+    input: [
+      { text: "caption" },
+      { image: "data:image/png;base64,aW1n" },
+      { audio: "data:audio/wav;base64,YQ==" },
+      { video: "data:video/mp4;base64,dg==" },
+      { pdf: "data:application/pdf;base64,cA==" },
+    ],
+    dimensions: 512,
+    task: "retrieval.query",
+    model: "jina-embeddings-v5-omni-small",
+  });
+});
+
+test("translates one canonical array to Gemini native embedContent parts", async () => {
+  const { prepareStructuredEmbeddingRequest } =
+    await import("../../open-sse/handlers/embeddingStructuredInput.ts");
+  const provider = {
+    id: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    structuredInputProtocol: "gemini-embed-content" as const,
+    models: [],
+  };
+  const prepared = await prepareStructuredEmbeddingRequest(
+    provider,
+    "gemini-embedding-2",
+    {
+      input: [
+        { type: "text", text: "caption" },
+        { type: "image", source: { type: "base64", data: "aQ==", media_type: "image/png" } },
+        { type: "audio", source: { type: "base64", data: "YQ==", media_type: "audio/mpeg" } },
+        { type: "video", source: { type: "base64", data: "dg==", media_type: "video/mp4" } },
+        {
+          type: "document",
+          source: { type: "base64", data: "cA==", media_type: "application/pdf" },
+        },
+      ],
+      dimensions: 1536,
+      task: "retrieval.query",
+    },
+    "gemini-key",
+    {
+      fetchMedia: async () => {
+        throw new Error("unexpected URL");
       },
-      credentials: { apiKey: "test-key" },
-      log: null,
-    });
-    assert.equal(result.success, true);
-    assert.deepEqual(calls[0], {
-      model: "jina-embeddings-v5-omni-small",
-      input,
-      dimensions: 512,
-      encoding_format: "float",
-      task: "retrieval",
-    });
-    assert.deepEqual(result.data.usage, { prompt_tokens: 3, total_tokens: 3 });
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+    }
+  );
+  assert.equal(
+    prepared.url,
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent"
+  );
+  assert.deepEqual(prepared.authHeader, { name: "x-goog-api-key", value: "gemini-key" });
+  assert.deepEqual(prepared.body, {
+    content: {
+      parts: [
+        { text: "caption" },
+        { inline_data: { mime_type: "image/png", data: "aQ==" } },
+        { inline_data: { mime_type: "audio/mpeg", data: "YQ==" } },
+        { inline_data: { mime_type: "video/mp4", data: "dg==" } },
+        { inline_data: { mime_type: "application/pdf", data: "cA==" } },
+      ],
+    },
+    output_dimensionality: 1536,
+    task_type: "RETRIEVAL_QUERY",
+  });
+  assert.deepEqual(prepared.normalizeResponse?.({ embedding: { values: [0.1, 0.2] } }), {
+    object: "list",
+    data: [{ object: "embedding", embedding: [0.1, 0.2], index: 0 }],
+    usage: { prompt_tokens: 0, total_tokens: 0 },
+  });
 });
 
 test("handleEmbedding clearly rejects modalities not advertised by the resolved model", async () => {

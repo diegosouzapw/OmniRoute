@@ -9,6 +9,7 @@
  */
 
 export type EmbeddingModality = "text" | "image" | "audio" | "video" | "document";
+export type StructuredEmbeddingProtocol = "jina-v1" | "gemini-embed-content";
 
 export interface EmbeddingModel {
   id: string;
@@ -31,6 +32,8 @@ export interface EmbeddingProvider {
   authType: string;
   authHeader: string;
   models: EmbeddingModel[];
+  /** Provider-native serializer required for canonical structured input. */
+  structuredInputProtocol?: StructuredEmbeddingProtocol;
 }
 
 export interface EmbeddingProviderNodeRow {
@@ -243,6 +246,7 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
 
   gemini: {
     id: "gemini",
+    structuredInputProtocol: "gemini-embed-content",
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/embeddings",
     authType: "apikey",
     authHeader: "bearer",
@@ -296,6 +300,7 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
 
   "jina-ai": {
     id: "jina-ai",
+    structuredInputProtocol: "jina-v1",
     baseUrl: "https://api.jina.ai/v1/embeddings",
     authType: "apikey",
     authHeader: "bearer",

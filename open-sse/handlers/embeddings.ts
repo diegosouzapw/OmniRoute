@@ -28,6 +28,12 @@ import { getCallLogPipelineCaptureStreamChunks } from "@/lib/logEnv";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { stripStaleEncodingHeaders } from "../utils/upstreamResponseHeaders.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import {
+  hasStructuredEmbeddingInput,
+  prepareStructuredEmbeddingRequest,
+} from "./embeddingStructuredInput.ts";
+import { MAX_EMBEDDING_INLINE_ITEM_BYTES } from "@/shared/validation/schemas/apiV1";
 
 interface ClientRawRequest {
   endpoint: string;
@@ -157,7 +163,7 @@ export async function handleEmbedding({
   // the client sent (e.g. input_type, user, truncate for NVIDIA NIM asymmetric models).
   const KNOWN_FIELDS = new Set(["model", "input", "dimensions", "encoding_format"]);
 
-  const upstreamBody: Record<string, unknown> = {
+  let upstreamBody: Record<string, unknown> = {
     model: model,
     input: body.input,
   };
@@ -198,6 +204,10 @@ export async function handleEmbedding({
     }
   }
 
+  let upstreamUrl = providerConfig.baseUrl;
+  let normalizeProviderResponse:
+    ((data: Record<string, unknown>) => Record<string, unknown>) | null = null;
+
   // Build headers
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -218,6 +228,43 @@ export async function handleEmbedding({
       status: 401,
       error: `No valid authentication token for provider ${provider}. Check provider credentials.`,
     };
+  }
+
+  if (hasStructuredEmbeddingInput(body.input)) {
+    if (!model) {
+      return {
+        success: false,
+        status: 400,
+        error: `Invalid embedding model: ${body.model}. Use format: provider/model`,
+      };
+    }
+    try {
+      const prepared = await prepareStructuredEmbeddingRequest(
+        providerConfig,
+        model,
+        body,
+        token ?? "",
+        {
+          fetchMedia: async (url) => {
+            const result = await fetchRemoteImage(url, {
+              guard: "public-only",
+              maxBytes: MAX_EMBEDDING_INLINE_ITEM_BYTES,
+            });
+            return { buffer: result.buffer, contentType: result.contentType || null };
+          },
+        }
+      );
+      upstreamBody = prepared.body;
+      upstreamUrl = prepared.url;
+      normalizeProviderResponse = prepared.normalizeResponse ?? null;
+      if (prepared.authHeader) {
+        delete headers.Authorization;
+        delete headers["x-api-key"];
+        headers[prepared.authHeader.name] = prepared.authHeader.value;
+      }
+    } catch (error) {
+      return { success: false, status: 400, error: sanitizeErrorMessage(error) };
+    }
   }
 
   if (log) {
@@ -252,9 +299,9 @@ export async function handleEmbedding({
     }
 
     // Log provider request
-    reqLogger.logTargetRequest(providerConfig.baseUrl, headers, upstreamBody);
+    reqLogger.logTargetRequest(upstreamUrl, headers, upstreamBody);
 
-    const response = await fetch(providerConfig.baseUrl, {
+    const response = await fetch(upstreamUrl, {
       method: "POST",
       headers,
       body: JSON.stringify(upstreamBody),
@@ -302,7 +349,11 @@ export async function handleEmbedding({
       };
     }
 
-    const data = await response.json();
+    const rawData = (await response.json()) as Record<string, unknown>;
+    const data = (normalizeProviderResponse ? normalizeProviderResponse(rawData) : rawData) as {
+      data?: unknown[] | unknown;
+      usage?: { prompt_tokens?: number; total_tokens?: number };
+    };
 
     // Log provider response
     reqLogger.logProviderResponse(response.status, "", response.headers, data);
@@ -337,7 +388,7 @@ export async function handleEmbedding({
       responseBody: {
         usage: data.usage || null,
         object: "list",
-        data_count: data.data?.length || 0,
+        data_count: Array.isArray(data.data) ? data.data.length : 0,
       },
       pipelinePayloads,
       apiKeyId,

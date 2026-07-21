@@ -1,5 +1,6 @@
 import { isIP } from "node:net";
 import dns from "node:dns";
+import { Agent, fetch as undiciFetch } from "undici";
 import {
   type OutboundUrlGuardMode,
   isPrivateHost,
@@ -23,6 +24,8 @@ export type RemoteImageLookup = (
 
 export interface RemoteImageFetchOptions {
   fetchImpl?: typeof fetch;
+  /** Pin the network connection to a DNS answer that passed validation. */
+  pinDns?: boolean;
   guard?: OutboundUrlGuardMode;
   maxBytes?: number;
   maxRedirects?: number;
@@ -45,33 +48,21 @@ function validateRemoteImageUrl(input: string | URL, guard: OutboundUrlGuardMode
   return guard === "public-only" ? parseAndValidatePublicUrl(input) : parseOutboundUrl(input);
 }
 
-const defaultLookup: RemoteImageLookup = (hostname) =>
-  dns.promises.lookup(hostname, { all: true });
+const defaultLookup: RemoteImageLookup = (hostname) => dns.promises.lookup(hostname, { all: true });
 
-/**
- * Defence against DNS-rebinding SSRF (GHSA-cmhj-wh2f-9cgx). The
- * `parseAndValidatePublicUrl` guard only inspects the hostname *string*, so a
- * public-looking host that resolves to a private/loopback/link-local /
- * cloud-metadata address would otherwise be fetched. Resolve the host up-front
- * and reject if ANY answer is private (defeats the multi-A trick). IP literals
- * are skipped — they're already covered by the URL guard. This narrows but
- * does not fully close the TOCTOU window with fetch's own DNS resolution;
- * pinning the connection to the validated IP via undici would close it for
- * good, but is deferred to a follow-up so this fix stays surgical and
- * dependency-free.
- */
+/** Resolve every answer, reject the host if any answer is private, then return
+ * the validated addresses so the caller can bind the connection to one of them. */
 async function assertHostnameResolvesPublic(
   url: URL,
   guard: OutboundUrlGuardMode,
   lookup: RemoteImageLookup
-): Promise<void> {
-  if (guard !== "public-only") return; // private-allowing modes skip this guard
+): Promise<Array<{ address: string; family: number }>> {
+  if (guard !== "public-only") return [];
   const hostname = url.hostname;
   const bare =
     hostname.startsWith("[") && hostname.endsWith("]") ? hostname.slice(1, -1) : hostname;
-  if (!bare) return;
-  if (isIP(bare)) return; // IP literal — already validated by the URL guard.
-
+  if (!bare) return [];
+  if (isIP(bare)) return [{ address: bare, family: isIP(bare) }];
   let resolved: Array<{ address: string; family: number }>;
   try {
     resolved = await lookup(bare);
@@ -86,8 +77,23 @@ async function assertHostnameResolvesPublic(
       throw new Error("Remote image host resolves to a blocked private address (DNS rebinding)");
     }
   }
+  return resolved;
 }
-
+function createPinnedFetch(address: string, family: number): typeof fetch {
+  const dispatcher = new Agent({
+    connect: { lookup: (_hostname, _options, callback) => callback(null, address, family) },
+  });
+  return (async (input, init) => {
+    try {
+      return (await undiciFetch(input as string | URL, {
+        ...(init as Parameters<typeof undiciFetch>[1]),
+        dispatcher,
+      })) as unknown as Response;
+    } finally {
+      await dispatcher.close();
+    }
+  }) as typeof fetch;
+}
 function combineSignals(signal: AbortSignal | undefined, timeoutMs: number) {
   const timeoutSignal = AbortSignal.timeout(timeoutMs);
   if (!signal) return timeoutSignal;
@@ -137,7 +143,8 @@ export async function fetchRemoteImage(
   input: string | URL,
   options: RemoteImageFetchOptions = {}
 ): Promise<RemoteImageFetchResult> {
-  const fetchImpl = options.fetchImpl ?? fetch;
+  const injectedFetch = options.fetchImpl;
+  const pinDns = options.pinDns ?? !injectedFetch;
   const guard = options.guard ?? getProviderOutboundGuard();
   const maxBytes = options.maxBytes ?? DEFAULT_MAX_REMOTE_IMAGE_BYTES;
   const maxRedirects = options.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
@@ -148,7 +155,12 @@ export async function fetchRemoteImage(
   for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
     // DNS-rebinding guard: validate every hop's hostname against its resolved
     // IPs before issuing the request (GHSA-cmhj-wh2f-9cgx).
-    await assertHostnameResolvesPublic(currentUrl, guard, lookup);
+    const addresses = await assertHostnameResolvesPublic(currentUrl, guard, lookup);
+    const fetchImpl =
+      injectedFetch ??
+      (pinDns && addresses.length
+        ? createPinnedFetch(addresses[0].address, addresses[0].family)
+        : fetch);
     const response = await fetchImpl(currentUrl.toString(), {
       method: "GET",
       redirect: "manual",
