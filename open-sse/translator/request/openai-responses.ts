@@ -716,6 +716,32 @@ export function openaiResponsesToOpenAIRequest(
     });
   }
 
+  // Every Responses-API input — even a plain string — gets wrapped upstream as a
+  // single-element content array (`[{ type: "input_text", text }]` via
+  // normalizeResponsesInputForChat), which this function maps straight through to
+  // `content: [{ type: "text", text }]`. That's spec-valid (OpenAI's own API
+  // accepts both shapes) but several strict/naive OpenAI-compatible backends only
+  // implement the plain-string form and reject the array form with a 500 — hit
+  // live via AI Horde's Aphrodite facade rejecting every /v1/responses request,
+  // including the simplest single-string input. A single-text-part array and a
+  // plain string are semantically identical, so collapsing is safe; real
+  // multi-part messages (text+image, text+file) are left untouched.
+  for (const message of messages) {
+    const content = (message as JsonRecord).content;
+    if (Array.isArray(content) && content.length === 1) {
+      const part = content[0];
+      if (
+        part &&
+        typeof part === "object" &&
+        !Array.isArray(part) &&
+        (part as JsonRecord).type === "text" &&
+        typeof (part as JsonRecord).text === "string"
+      ) {
+        (message as JsonRecord).content = (part as JsonRecord).text;
+      }
+    }
+  }
+
   return result;
 }
 
