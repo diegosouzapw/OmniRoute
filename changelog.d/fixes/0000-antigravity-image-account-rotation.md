@@ -1,0 +1,1 @@
+- **fix(antigravity):** rotate image-generation accounts once after an explicit quota-exhausted 429 without persisting a cooldown.

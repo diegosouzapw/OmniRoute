@@ -26,8 +26,14 @@ import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
+import { classify429 as classifyAntigravity429 } from "@omniroute/open-sse/services/antigravity429Engine.ts";
 
 export const dynamic = "force-dynamic";
+
+// A route retry is a new, non-idempotent upstream submission. Keep its total
+// work bounded even if an executor grows its own retry policy later.
+const MAX_ANTIGRAVITY_IMAGE_ATTEMPTS = 2;
+const ANTIGRAVITY_IMAGE_RETRY_DEADLINE_MS = 30_000;
 
 /**
  * Handle CORS preflight
@@ -85,6 +91,27 @@ function publicBaseUrlHeaders(headers: Headers): Record<string, string> {
     if (value !== null) out[key] = value;
   }
   return out;
+}
+
+export function isRetryableImageAccountFailure(result: {
+  success: boolean;
+  status?: number;
+  error?: unknown;
+}): boolean {
+  // HTTP 429 commonly means a provider-wide or short burst limit. Rotate only
+  // after an explicit Antigravity account/model quota signal; ambiguous 429s
+  // retain their final normalized upstream error without resubmitting.
+  if (result.success || result.status !== HTTP_STATUS.RATE_LIMITED) return false;
+  let errorText = "";
+  try {
+    errorText =
+      typeof result.error === "string" ? result.error : JSON.stringify(result.error ?? "");
+  } catch {
+    return false;
+  }
+  return (
+    classifyAntigravity429(errorText) === "quota_exhausted" || /resource exhausted/i.test(errorText)
+  );
 }
 
 async function postHandler(request, context) {
@@ -204,15 +231,15 @@ async function postHandler(request, context) {
     }
   }
 
-  // Resolve proxy for the connection if credentials exist (#1904)
-  let proxyInfo = null;
-  if (credentials?.connectionId) {
-    try {
-      proxyInfo = await resolveProxyForConnection(credentials.connectionId);
-    } catch {
-      log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
-    }
-  }
+  const retryDeadlineAt = Date.now() + ANTIGRAVITY_IMAGE_RETRY_DEADLINE_MS;
+  const budgetController = new AbortController();
+  const abortForClient = () => budgetController.abort();
+  if (request.signal.aborted) abortForClient();
+  else request.signal.addEventListener("abort", abortForClient, { once: true });
+  const retryDeadlineTimer = setTimeout(
+    () => budgetController.abort(),
+    ANTIGRAVITY_IMAGE_RETRY_DEADLINE_MS
+  );
 
   const generateImage = () =>
     handleImageGeneration({
@@ -220,45 +247,104 @@ async function postHandler(request, context) {
       credentials,
       log,
       ...(isCustomModel && { resolvedProvider: provider }),
-      signal: request.signal,
+      signal: budgetController.signal,
       clientHeaders: publicBaseUrlHeaders(request.headers),
     });
 
-  // Execute with proxy context when available, direct otherwise (#1904)
-  const result = await (credentials?.connectionId
-    ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
-        success: false,
-        status: err.statusCode || 500,
-        error: err.message,
-      }))
-    : generateImage());
+  const executeImageAttempt = async () => {
+    // This intentionally resolves the proxy for every attempt. A retry can
+    // select a different account with a different assigned proxy.
+    let proxyInfo = null;
+    if (credentials?.connectionId) {
+      try {
+        proxyInfo = await resolveProxyForConnection(credentials.connectionId);
+      } catch {
+        log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
+      }
+    }
+    return credentials?.connectionId
+      ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
+          success: false,
+          status: err.statusCode || 500,
+          error: err.message,
+        }))
+      : generateImage();
+  };
 
-  if (result.success) {
-    await clearRecoveredProviderState(credentials);
-    const n = Math.max(
-      Number(body.n) || 1,
-      (result as { data?: { data?: unknown[] } }).data?.data?.length || 0
+  let attemptCount = 1;
+  let result;
+  try {
+    result = await executeImageAttempt();
+
+    // Antigravity image requests do not pass through chatCore's account retry
+    // loop. Do not call the durable account-unavailable marker because an image
+    // quota response may be model-scoped.
+    if (provider === "antigravity") {
+      const excludedConnectionIds: string[] = [];
+      while (
+        !budgetController.signal.aborted &&
+        Date.now() < retryDeadlineAt &&
+        attemptCount < MAX_ANTIGRAVITY_IMAGE_ATTEMPTS &&
+        isRetryableImageAccountFailure(result) &&
+        typeof credentials?.connectionId === "string"
+      ) {
+        const failedConnectionId = credentials.connectionId;
+        if (!excludedConnectionIds.includes(failedConnectionId)) {
+          excludedConnectionIds.push(failedConnectionId);
+        }
+
+        const requestedModel = body.model.startsWith(`${provider}/`)
+          ? body.model.slice(provider.length + 1)
+          : body.model;
+        const nextCredentials = await getProviderCredentialsWithQuotaPreflight(
+          provider,
+          null,
+          null,
+          requestedModel,
+          { excludeConnectionIds: excludedConnectionIds }
+        ).catch(() => null);
+
+        if (!nextCredentials || nextCredentials.allRateLimited || budgetController.signal.aborted)
+          break;
+        credentials = nextCredentials;
+        result = await executeImageAttempt();
+        attemptCount++;
+      }
+    }
+
+    if (result.success) {
+      await clearRecoveredProviderState(credentials);
+      const n = Math.max(
+        Number(body.n) || 1,
+        (result as { data?: { data?: unknown[] } }).data?.data?.length || 0
+      );
+      const costUsd = await calculateModalCost("image", provider, body.model, { n });
+      const headers = new Headers({ "Content-Type": "application/json" });
+      attachOmniRouteMetaHeaders(headers, {
+        provider,
+        model: body.model,
+        costUsd,
+        latencyMs: Date.now() - startTime,
+        requestId: generateRequestId(),
+      });
+      return new Response(JSON.stringify((result as { data: unknown }).data), {
+        status: 200,
+        headers,
+      });
+    }
+
+    const errorPayload = toJsonErrorPayload(
+      (result as any).error,
+      "Image generation provider error"
     );
-    const costUsd = await calculateModalCost("image", provider, body.model, { n });
-    const headers = new Headers({ "Content-Type": "application/json" });
-    attachOmniRouteMetaHeaders(headers, {
-      provider,
-      model: body.model,
-      costUsd,
-      latencyMs: Date.now() - startTime,
-      requestId: generateRequestId(),
+    return new Response(JSON.stringify(errorPayload), {
+      status: (result as any).status,
+      headers: { "Content-Type": "application/json" },
     });
-    return new Response(JSON.stringify((result as { data: unknown }).data), {
-      status: 200,
-      headers,
-    });
+  } finally {
+    clearTimeout(retryDeadlineTimer);
+    request.signal.removeEventListener("abort", abortForClient);
   }
-
-  const errorPayload = toJsonErrorPayload((result as any).error, "Image generation provider error");
-  return new Response(JSON.stringify(errorPayload), {
-    status: (result as any).status,
-    headers: { "Content-Type": "application/json" },
-  });
 }
 
 export const POST = withInjectionGuard(postHandler);

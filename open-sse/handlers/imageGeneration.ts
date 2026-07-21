@@ -356,7 +356,7 @@ export async function handleImageGeneration({
   }
 
   if (providerConfig.format === "gemini-image") {
-    return handleGeminiImageGeneration({ model, providerConfig, body, credentials, log });
+    return handleGeminiImageGeneration({ model, providerConfig, body, credentials, log, signal });
   }
 
   if (providerConfig.format === "imagen3") {
@@ -738,7 +738,7 @@ async function handleKieImageGeneration({
  * Handle Gemini-format image generation (Antigravity / Nano Banana)
  * Uses Gemini's generateContent API with responseModalities: ["TEXT", "IMAGE"]
  */
-async function handleGeminiImageGeneration({ model, providerConfig, body, credentials, log }) {
+async function handleGeminiImageGeneration({ model, providerConfig, body, credentials, log, signal = null }) {
   const startTime = Date.now();
   const url = providerConfig.baseUrl;
   const provider = "antigravity";
@@ -820,6 +820,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       method: "POST",
       headers,
       body: JSON.stringify(antigravityBody),
+      ...(signal ? { signal } : {}),
     });
 
     if (!response.ok) {
@@ -883,6 +884,13 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       },
     };
   } catch (err) {
+    if (signal?.aborted) {
+      return {
+        success: false,
+        status: 499,
+        error: "Image generation request cancelled",
+      };
+    }
     if (log) {
       log.error("IMAGE", `antigravity fetch error: ${err.message}`);
     }
