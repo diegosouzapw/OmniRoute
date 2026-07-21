@@ -226,6 +226,12 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
     if (bare) return bare;
   }
 
+  // 4. Provider-wide fallback for providers whose limitation applies to every
+  // model they serve, not just the ones statically catalogued (e.g. AI Horde's
+  // `passthroughModels: true` roster changes as workers come and go, but no
+  // model it hosts supports tool calling — see RegistryEntry.unsupportedParams).
+  if (entry?.unsupportedParams) return entry.unsupportedParams;
+
   return [];
 }
 
