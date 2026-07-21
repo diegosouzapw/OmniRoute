@@ -235,6 +235,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "token"],
   },
+  promptql: {
+    kind: "token",
+    credentialName: "Bearer JWT (optional: projectId, session Cookie)",
+    placeholder: "eyJ...  (Authorization Bearer from prompt.ql.app)",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "jwt", "apiKey", "projectId", "project_id", "cookie"],
+  },
   lmarena: {
     kind: "cookie",
     // arena.ai's auth cookie is `arena-auth-prod-v1` (the legacy hint said `session`,

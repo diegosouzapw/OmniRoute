@@ -16,6 +16,7 @@ import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
 import { NineRouterExecutor } from "./ninerouter.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
+import { PromptQlExecutor } from "./promptql.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
 import { GeminiWebExecutor } from "./gemini-web.ts";
 import { GeminiBusinessExecutor } from "./gemini-business.ts";
@@ -98,6 +99,8 @@ const executors = {
   nr: new NineRouterExecutor(), // Alias
   "perplexity-web": new PerplexityWebExecutor(),
   "pplx-web": new PerplexityWebExecutor(), // Alias
+  promptql: new PromptQlExecutor(),
+  pql: new PromptQlExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
   "claude-web": new ClaudeWebWithAutoRefresh(),
   "cw-web": new ClaudeWebWithAutoRefresh(), // Alias
@@ -217,6 +220,7 @@ export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { NineRouterExecutor } from "./ninerouter.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
+export { PromptQlExecutor } from "./promptql.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
 export { GeminiWebExecutor } from "./gemini-web.ts";
 export { KieExecutor } from "./kie.ts";

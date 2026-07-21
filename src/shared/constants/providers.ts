@@ -416,6 +416,9 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
+  // PromptQL playground credits (getCreditSummary → USD micros)
+  "promptql",
+  "pql",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──
