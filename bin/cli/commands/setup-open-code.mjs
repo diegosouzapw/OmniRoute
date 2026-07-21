@@ -218,12 +218,18 @@ function registerPluginInOpenCodeConfig({
  * a clear "could not run opencode" message instead of a hard import
  * failure.
  */
-function runOpenCodeAuth(providerId) {
+export function runOpenCodeAuth(providerId) {
   const isWin = process.platform === "win32";
   const opencodeBin = isWin ? "opencode.cmd" : "opencode";
+  // On Windows the `opencode` binary is an npm `.cmd` shim that Node's
+  // hardened spawnSync (post CVE-2024-27980) refuses to run without a
+  // shell — spawning it with shell:false throws EINVAL (#7913). Mirror the
+  // same fix already applied to codex (resolveCodexSpawn in
+  // launch-codex.mjs, crediting #6263) and qodercli/Auggie (#6263/#6304):
+  // shell:true on win32, shell:false (unchanged) everywhere else.
   const res = spawnSync(opencodeBin, ["auth", "login", "--provider", providerId], {
     stdio: "inherit",
-    shell: false,
+    shell: isWin,
   });
   if (res.error) {
     // ENOENT = opencode is not on PATH
