@@ -2150,7 +2150,6 @@
       "antigravity": "Use quando o tráfego Antigravity/Kiro deve ser interceptado através do MITM e roteado para OmniRoute.",
       "copilot": "Use quando desejar UX no estilo de bate-papo do Copilot enquanto impõe chaves OmniRoute e regras de roteamento.",
       "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
-      "qwen": "Use quando precisar do Alibaba Qwen Code CLI para tarefas de programação.",
       "hermes": "Use quando precisar de um assistente leve de IA nativo do terminal para tarefas rápidas.",
       "hermes-agent": "Use quando precisar do Hermes Agent (pela Nousresearch) com modelos padrão, delegação, visão e auxiliares roteados pelo OmniRoute.",
       "custom": "Use quando seu CLI ou SDK não estiver hardcoded no OmniRoute, mas ainda aceitar base URL, chave de API e model string compatíveis com OpenAI."
@@ -2169,7 +2168,6 @@
       "kiro": "Amazon Kiro — IDE com IA",
       "windsurf": "Windsurf — Editor de Código com IA",
       "copilot": "GitHub Copilot — Assistente de IA",
-      "qwen": "Alibaba Qwen Code CLI",
       "amp": "CLI do assistente de codificação Sourcegraph Amp",
       "hermes": "Assistente de Terminal Hermes AI",
       "hermes-agent": "Hermes Agent (by Nousresearch) - IA de terminal avançada com suporte multi-modelo (delegação, visão, compressão, etc.)",
@@ -4626,7 +4624,7 @@
     "blackboxWebCookiePlaceholder": "Cole o valor de __Secure-authjs.session-token",
     "t3ChatWebCookieHint": "Abra t3.chat → DevTools → Aplicativo → Armazenamento local → https://t3.chat, copie 'convex-session-id'. Em seguida, abra DevTools → Rede, copie o cabeçalho completo do cookie de qualquer solicitação de chat. Cole os dois valores nos campos abaixo.",
     "t3ChatWebCookiePlaceholder": "id-de-sessão-convexa=abc123...",
-    "grokWebCookieHint": "O cookie cf_clearance do grok.com é vinculado ao IP, ao User-Agent e à impressão digital TLS do navegador de onde você o copiou — colá-lo de outra máquina/IP causa um erro 403. Cole sso e sso-rw aqui e depois abra Configurações Avançadas e preencha o Custom User-Agent com o valor EXATO do User-Agent desse mesmo navegador, usando o mesmo IP/proxy para esta conexão.",
+    "grokWebCookieHint": "Cole o cookie sso do grok.com. Um valor completo `sso=...` também funciona.",
     "blockClaudeExtraUsageDescription": "Quando habilitado, o OmniRoute marca esta conta do Claude Code como indisponível assim que a API de usage reporta `extra_usage.queued`, para que o fallback troque para outra conta antes de continuar com cobranças extras pay-as-you-go.",
     "blockClaudeExtraUsageLabel": "Bloquear Claude Extra Usage",
     "disableCoolingDescription": "__MISSING__:Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
@@ -4704,7 +4702,6 @@
     "tierFast": "Rápido",
     "antigravityProjectIdLabel": "ID do projeto do Google Cloud",
     "antigravityProjectIdPlaceholder": "meu-gcp-project-id",
-    "grokWebCookieHint": "Cole o cookie sso do grok.com. Um valor completo `sso=...` também funciona.",
     "grokWebCookiePlaceholder": "Cole o valor do cookie sso do grok.com",
     "herokuBaseUrlHint": "Obrigatório: cole a URL base do Heroku Inference. O app adicionará /v1/chat/completions.",
     "hideEmail": "Ocultar e-mail",
@@ -7130,7 +7127,11 @@
     "updatedShort": "Atualizado",
     "lastRefreshed": "Última atualização",
     "providerQuota": "Cota do Provedor",
-    "providerQuotaHomeHint": "Status em tempo real nas contas conectadas"
+    "providerQuotaHomeHint": "Status em tempo real nas contas conectadas",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "Aguardando Autorização",

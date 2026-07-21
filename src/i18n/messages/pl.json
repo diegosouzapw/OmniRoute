@@ -2160,7 +2160,6 @@
       "antigravity": "Do stosowania, gdy ruch z Antigravity/Kiro musi być przechwytywany przez MITM i kierowany do OmniRoute.",
       "copilot": "Do stosowania przy chęci korzystania z interfejsu w stylu Copilot chat z jednoczesnym wymuszaniem kluczy i reguł routingu OmniRoute.",
       "amp": "Do stosowania przy chęci korzystania ze skróconych procesów roboczych Amp z zachowaniem wymuszania aliasów i reguł routingu OmniRoute.",
-      "qwen": "Do stosowania, gdy potrzebne jest Alibaba Qwen Code CLI do zadań związanych z kodowaniem.",
       "hermes": "Do stosowania, gdy potrzebny jest lekki asystent AI działający w terminalu do szybkich zadań.",
       "hermes-agent": "Do stosowania, gdy potrzebny jest Hermes Agent (od Nousresearch) z models domyślnymi, delegowanymi, wizyjnymi i pomocniczymi kierowanymi przez OmniRoute.",
       "custom": "Do stosowania przy niestandardowych implementacjach narzędzi lub ogólnych konfiguracjach zgodnych z OpenAI."
@@ -2179,7 +2178,6 @@
       "kiro": "Amazon Kiro — IDE oparte na AI",
       "windsurf": "Edytor kodu Windsurf AI",
       "copilot": "Asystent AI GitHub Copilot",
-      "qwen": "Alibaba Qwen Code CLI",
       "amp": "CLI asystenta kodowania Sourcegraph Amp",
       "hermes": "Asystent terminalowy AI Hermes",
       "hermes-agent": "Hermes Agent (od Nousresearch) - zaawansowana terminalowa AI ze wsparciem dla wielu models (delegowanie, wizja, kompresja itp.)",
@@ -7123,7 +7121,11 @@
     "updatedShort": "Zaktualizowano",
     "lastRefreshed": "Ostatnio odświeżono",
     "providerQuota": "Provider Quota",
-    "providerQuotaHomeHint": "Status na żywo na połączonych kontach"
+    "providerQuotaHomeHint": "Status na żywo na połączonych kontach",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "Oczekiwanie na autoryzację",

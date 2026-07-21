@@ -48,18 +48,6 @@ export const OAUTH_PROVIDERS = {
     riskNoticeVariant: "oauth",
     hasFree: true,
   },
-  qwen: {
-    id: "qwen",
-    alias: "qw",
-    name: "Qwen Code",
-    icon: "psychology",
-    color: "#10B981",
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    deprecated: true,
-    deprecationReason:
-      "Qwen OAuth free tier was discontinued on 2026-04-15. Use 'bailian-coding-plan', 'alibaba', 'alibaba-cn', or 'openrouter' provider with API key instead.",
-  },
   agy: {
     id: "agy",
     alias: "agy",

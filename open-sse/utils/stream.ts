@@ -133,6 +133,7 @@ type StreamOptions = {
    * `RESPONSES_PASSTHROUGH_DROP_COMMENTARY` feature flag (default on).
    */
   dropResponsesCommentary?: boolean;
+  customToolNames?: ReadonlySet<string>;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -159,6 +160,7 @@ type TranslateState = ReturnType<typeof initState> & {
   accumulatedReasoning?: string;
   /** #6951 — per-tool JSON Schema (from request `tools[]`), keyed by tool name. */
   toolSchemas?: Map<string, Record<string, unknown>> | null;
+  customToolNames?: ReadonlySet<string>;
   upstreamError?: {
     status: number;
     type: string;
@@ -631,6 +633,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     onComplete = null,
     onFailure = null,
     dropResponsesCommentary,
+    customToolNames = new Set<string>(),
   } = options;
   const signatureNamespace = connectionId;
   // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
@@ -705,6 +708,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           accumulatedContent: "",
           accumulatedReasoning: "",
           toolSchemas: extractToolSchemaMap(body),
+          customToolNames,
         }
       : null;
 
@@ -2739,7 +2743,8 @@ export function createSSETransformStreamWithLogger(
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
   copilotCompatibleReasoning = false,
-  suppressThinkClose = false
+  suppressThinkClose = false,
+  customToolNames: ReadonlySet<string> = new Set()
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2756,6 +2761,7 @@ export function createSSETransformStreamWithLogger(
     onFailure,
     copilotCompatibleReasoning,
     suppressThinkClose,
+    customToolNames,
   });
 }
 

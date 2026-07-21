@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Button, Input, Modal } from "@/shared/components";
 import {
   runDiagnose,
   removeCaCert,
@@ -17,6 +18,12 @@ interface AgentBridgeMaintenanceCardProps {
   orphanedStateDetected: boolean;
   /** Whether the MITM root CA is currently trusted (gates the Remove-CA button). */
   certTrusted: boolean;
+  /** Session-cached sudo password from a prior MITM privileged action. */
+  hasCachedPassword: boolean;
+  /** Server OS requires a sudo password and none is cached. */
+  needsSudoPassword: boolean;
+  /** Whether the OmniRoute server is running on Windows. */
+  isWin: boolean;
   /** Report a sanitized error to the page-level alert banner. */
   onError: (msg: string | null) => void;
   /** Re-fetch page state after an action that mutates system state. */
@@ -41,15 +48,27 @@ function downloadJson(data: unknown, filename: string): void {
 export function AgentBridgeMaintenanceCard({
   orphanedStateDetected,
   certTrusted,
+  hasCachedPassword,
+  needsSudoPassword,
+  isWin,
   onError,
   onRefresh,
 }: AgentBridgeMaintenanceCardProps) {
   const t = useTranslations("agentBridge");
+  const tCli = useTranslations("cliTools");
   const [busy, setBusy] = useState<string | null>(null);
   const [report, setReport] = useState<DiagnoseResult | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmRemoveCa, setConfirmRemoveCa] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pendingPrivilegedAction, setPendingPrivilegedAction] = useState<
+    "repair" | "remove-ca" | null
+  >(null);
+  const [sudoPassword, setSudoPassword] = useState("");
+  const [passwordModalError, setPasswordModalError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const canRunWithoutPassword = isWin || hasCachedPassword || !needsSudoPassword;
 
   const run = async (action: string, fn: () => Promise<void>) => {
     setBusy(action);
@@ -69,24 +88,70 @@ export function AgentBridgeMaintenanceCard({
       setReport(await runDiagnose());
     });
 
-  const handleRepair = () =>
-    run("repair", async () => {
-      const { repaired } = await repairMitmState();
-      setNotice(
-        repaired.length === 0
-          ? t("repairNothing") || "Nothing to repair — system state is clean."
-          : (t("repairDone") || "Repaired: {items}").replace("{items}", repaired.join(", "))
-      );
-      await onRefresh();
-    });
+  const handleRepair = async (password = "") => {
+    const { repaired } = await repairMitmState(password || undefined);
+    setNotice(
+      repaired.length === 0
+        ? t("repairNothing") || "Nothing to repair — system state is clean."
+        : (t("repairDone") || "Repaired: {items}").replace("{items}", repaired.join(", "))
+    );
+    await onRefresh();
+  };
 
-  const handleRemoveCa = () =>
-    run("remove-ca", async () => {
-      await removeCaCert();
-      setConfirmRemoveCa(false);
-      setNotice(t("removeCaDone") || "MITM root CA removed from the OS trust store.");
-      await onRefresh();
-    });
+  const handleRemoveCa = async (password = "") => {
+    await removeCaCert(password || undefined);
+    setConfirmRemoveCa(false);
+    setNotice(t("removeCaDone") || "MITM root CA removed from the OS trust store.");
+    await onRefresh();
+  };
+
+  const runPrivilegedAction = async (
+    action: "repair" | "remove-ca",
+    password = ""
+  ) => {
+    if (action === "repair") {
+      await run("repair", () => handleRepair(password));
+      return;
+    }
+    await run("remove-ca", () => handleRemoveCa(password));
+  };
+
+  const requestPrivilegedAction = (action: "repair" | "remove-ca") => {
+    if (canRunWithoutPassword) {
+      void runPrivilegedAction(action);
+      return;
+    }
+    setPendingPrivilegedAction(action);
+    setPasswordModalError(null);
+    setSudoPassword("");
+    setShowPasswordModal(true);
+  };
+
+  const handleConfirmPassword = () => {
+    if (!sudoPassword.trim()) {
+      setPasswordModalError(tCli("sudoPasswordRequiredError"));
+      return;
+    }
+    const action = pendingPrivilegedAction;
+    if (!action) return;
+    setShowPasswordModal(false);
+    setPendingPrivilegedAction(null);
+    const password = sudoPassword;
+    setSudoPassword("");
+    setPasswordModalError(null);
+    void runPrivilegedAction(action, password);
+  };
+
+  const onRepairClick = () => requestPrivilegedAction("repair");
+
+  const onRemoveCaClick = () => requestPrivilegedAction("remove-ca");
+
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPendingPrivilegedAction(null);
+    setSudoPassword("");
+    setPasswordModalError(null);
+  };
 
   const handleExport = () =>
     run("export", async () => {
@@ -117,6 +182,7 @@ export function AgentBridgeMaintenanceCard({
   };
 
   return (
+    <>
     <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4">
         <div className="p-2 rounded-lg bg-primary/10">
@@ -158,7 +224,7 @@ export function AgentBridgeMaintenanceCard({
 
         <button
           type="button"
-          onClick={handleRepair}
+          onClick={onRepairClick}
           disabled={busy !== null}
           className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
             orphanedStateDetected
@@ -176,7 +242,7 @@ export function AgentBridgeMaintenanceCard({
               <span className="text-red-600 dark:text-red-400">{t("removeCaConfirm") || "Remove CA?"}</span>
               <button
                 type="button"
-                onClick={handleRemoveCa}
+                onClick={onRemoveCaClick}
                 disabled={busy !== null}
                 className="rounded bg-red-500/15 text-red-600 px-2 py-0.5 font-medium hover:bg-red-500/25 disabled:opacity-50"
               >
@@ -278,5 +344,51 @@ export function AgentBridgeMaintenanceCard({
         </div>
       )}
     </div>
+
+      <Modal
+        isOpen={showPasswordModal}
+        onClose={closePasswordModal}
+        title={tCli("sudoPasswordRequiredTitle")}
+        size="sm"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
+            <span className="material-symbols-outlined text-[20px] text-yellow-500">warning</span>
+            <p className="text-xs text-text-muted">{tCli("sudoPasswordHint")}</p>
+          </div>
+
+          <Input
+            type="password"
+            placeholder={tCli("enterSudoPassword")}
+            value={sudoPassword}
+            onChange={(event) => setSudoPassword(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && busy === null) handleConfirmPassword();
+            }}
+          />
+
+          {passwordModalError && (
+            <div className="flex items-center gap-2 rounded bg-red-500/10 px-2 py-1.5 text-xs text-red-600">
+              <span className="material-symbols-outlined text-[14px]">error</span>
+              <span>{passwordModalError}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closePasswordModal}
+              disabled={busy !== null}
+            >
+              {tCli("cancel")}
+            </Button>
+            <Button size="sm" onClick={handleConfirmPassword} disabled={busy !== null}>
+              {tCli("confirm")}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }

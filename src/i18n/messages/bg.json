@@ -2036,7 +2036,6 @@
       "antigravity": "Използвайте, когато трафикът на Antigravity/Kiro трябва да бъде прихванат чрез MITM и насочен към OmniRoute.",
       "copilot": "Използвайте, когато искате UX в стил на чат Copilot, като същевременно налагате OmniRoute ключове и правила за маршрутизиране.",
       "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
-      "qwen": "Use when you want Qwen Code CLI with OmniRoute-managed provider settings and multi-provider model access.",
       "hermes": "Използвайте, когато се нуждаете от лек асистент с изкуствен интелект за бързи задачи.",
       "hermes-agent": "__MISSING__:Use when you need Hermes Agent (by Nousresearch) with default, delegation, vision and auxiliary models routed through OmniRoute.",
       "custom": "Използвайте за внедряване на персонализирани инструменти или общи конфигурации, съвместими с OpenAI."
@@ -2055,7 +2054,6 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI",
       "amp": "Sourcegraph Amp coding assistant CLI",
       "hermes": "Hermes AI Terminal Assistant",
       "hermes-agent": "__MISSING__:Hermes Agent (by Nousresearch) - Advanced terminal AI with multi-model support (delegation, vision, compression, etc.)",
@@ -6232,7 +6230,11 @@
     "updatedShort": "__MISSING__:Updated",
     "lastRefreshed": "__MISSING__:Last refreshed",
     "providerQuota": "__MISSING__:Provider Quota",
-    "providerQuotaHomeHint": "__MISSING__:Live status across connected accounts"
+    "providerQuotaHomeHint": "__MISSING__:Live status across connected accounts",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "Изчакване на разрешение",

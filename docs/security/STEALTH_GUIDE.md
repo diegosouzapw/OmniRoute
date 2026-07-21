@@ -147,7 +147,7 @@ Touch points:
 
 ## CLI Fingerprint Registry — `open-sse/config/cliFingerprints.ts`
 
-Per-provider table that pins **exact** header ordering and JSON body field ordering captured from mitmproxy traces of the official CLIs. Currently registered: `codex`, `claude`, plus runtime-derived profiles in `providerHeaderProfiles.ts` for `antigravity`, `qwen`, `github`.
+Per-provider table that pins **exact** header ordering and JSON body field ordering captured from mitmproxy traces of the official CLIs. Currently registered: `codex`, `claude`, plus runtime-derived profiles in `providerHeaderProfiles.ts` for `antigravity` and `github`.
 
 ```ts
 interface CliFingerprint {
@@ -220,7 +220,6 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`                               |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                                     |
-| `QWEN_USER_AGENT`        | `QwenCode/0.19.3 (linux; x64)`                                  |
 | `CURSOR_USER_AGENT`      | `Cursor/3.4`                                                    |
 
 Consumed by `open-sse/executors/base.ts::buildHeaders()` via dynamic lookup. **Bump these when providers release new CLI versions** — stale UA strings start getting rejected as outdated clients.
@@ -238,7 +237,6 @@ Consumed by `open-sse/executors/base.ts::buildHeaders()` via dynamic lookup. **B
 | `CLI_COMPAT_KIMI_CODING=1` | Kimi Coding                     |
 | `CLI_COMPAT_KILOCODE=1`    | KiloCode                        |
 | `CLI_COMPAT_CLINE=1`       | Cline                           |
-| `CLI_COMPAT_QWEN=1`        | Qwen Code                       |
 | `CLI_COMPAT_ALL=1`         | Enable all of the above         |
 
 The provider IP is **always preserved** — the toggle only reshapes the request wire image, it does not switch IP egress.

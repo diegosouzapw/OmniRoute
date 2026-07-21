@@ -2144,7 +2144,6 @@
       "antigravity": "當必須通過 MITM 攔截 Antigravity/Kiro 流量並將其路由到 OmniRoute 時使用。",
       "copilot": "當您想要 Copilot 聊天風格的 UX 同時強制執行 OmniRoute 鍵和路由規則時使用。",
       "amp": "當您想要 Amp 簡寫工作流，但仍需要 OmniRoute 別名和路由規則支援時使用。",
-      "qwen": "當您需要使用阿里雲 Qwen Code CLI 進行編碼任務時使用。",
       "hermes": "當您需要輕量級終端原生 AI 助手來處理快速任務時使用。",
       "hermes-agent": "需要使用 Hermes Agent (by Nousresearch) 時使用,預設、委派、視覺與輔助模型均通過 OmniRoute 路由。",
       "custom": "用於自定義工具實現或通用 OpenAI 相容配置。"
@@ -2163,7 +2162,6 @@
       "kiro": "Amazon Kiro - AI 驅動 IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI",
       "amp": "Sourcegraph Amp 程式設計助手 CLI",
       "hermes": "Hermes AI 終端助手",
       "hermes-agent": "Hermes Agent (by Nousresearch) — 支援多模型(委派、視覺、壓縮等)的高階終端 AI。",
@@ -6970,7 +6968,11 @@
     "updatedShort": "更新於",
     "lastRefreshed": "上次重新整理",
     "providerQuota": "提供商配額",
-    "providerQuotaHomeHint": "已連線帳戶的即時狀態"
+    "providerQuotaHomeHint": "已連線帳戶的即時狀態",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "等待授權",

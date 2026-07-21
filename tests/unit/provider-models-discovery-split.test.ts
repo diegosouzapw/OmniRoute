@@ -149,6 +149,25 @@ test("providerModelsConfig aimlapi.parseResponse keeps only chat-completion mode
   assert.deepEqual(parsed, [{ id: "chat-1", name: "Chat 1" }]);
 });
 
+test("providerModelsConfig openrouter.parseResponse keeps the full catalog (LLMs not filtered out)", () => {
+  // Generic OpenRouter discovery must stay unfiltered so sync/import/pickers
+  // and /v1/models keep every LLM. STT narrowing lives on the STT card, not here.
+  const data = {
+    data: [
+      { id: "openai/gpt-4o", architecture: { modality: "text->text" } },
+      {
+        id: "openai/whisper-1",
+        architecture: { modality: "audio->transcription" },
+      },
+    ],
+  };
+  const parsed = PROVIDER_MODELS_CONFIG.openrouter.parseResponse(data);
+  assert.deepEqual(
+    parsed.map((m: { id: string }) => m.id),
+    ["openai/gpt-4o", "openai/whisper-1"]
+  );
+});
+
 // ── codex discovery leaf ────────────────────────────────────────────────────
 
 test.beforeEach(() => {

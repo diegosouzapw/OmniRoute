@@ -7,7 +7,7 @@
  * Client-side caching (e.g., Claude Code) should be preserved when:
  * 1. Client is Claude Code or similar caching-aware client
  * 2. Request will hit a deterministic target (single model or deterministic combo strategy)
- * 3. Provider supports prompt caching (Anthropic, Alibaba Qwen, etc.)
+ * 3. Provider supports prompt caching (Anthropic, etc.)
  */
 
 import type { RoutingStrategyValue } from "../../src/shared/constants/routingStrategies";
@@ -76,7 +76,6 @@ const CACHING_PROVIDERS = new Set([
   "claude",
   "anthropic",
   "zai",
-  "qwen",
   "deepseek",
   // Kimi Code's OpenAI protocol requires prompt_cache_key for Coding Plan
   // cache affinity. The OAuth card and hidden API-key compatibility ID share
@@ -97,14 +96,15 @@ const CACHING_PROVIDERS = new Set([
   "openai",
   "codex",
   "azure",
-  // #2069 — Alibaba DashScope's OpenAI-compatible endpoints (alibaba /
-  // alibaba-cn, upstream "alicode"/"alicode-intl") natively honor
+  // #2069 — DashScope's OpenAI-compatible endpoints (Alibaba Model Studio and
+  // Qwen Cloud pay-as-you-go, upstream "alicode"/"alicode-intl") natively honor
   // `cache_control: {type:"ephemeral"}` breakpoints. Without these entries
   // shouldPreserveCacheControl() returns false for Claude Code clients and the
   // OpenAI-format translator strips cache_control, so DashScope never sees the
   // hints and every request is a cache miss.
   "alibaba",
   "alibaba-cn",
+  "qwen-cloud",
 ]);
 
 /**
@@ -124,6 +124,7 @@ const OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS = new Set([
   // #2069 — DashScope OpenAI-compatible endpoints accept ephemeral breakpoints.
   "alibaba",
   "alibaba-cn",
+  "qwen-cloud",
   // #3088 — Xiaomi MiMo honors OpenAI-format cache_control breakpoints.
   "xiaomi-mimo",
 ]);

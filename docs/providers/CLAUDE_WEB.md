@@ -10,6 +10,10 @@ lastUpdated: 2026-06-28
 
 Web-cookie-based provider for **Claude AI** (`claude.ai`) using session cookie authentication.
 
+> **New to Web Cookie providers?**
+>
+> Read **`docs/getting-started/WEB-COOKIE-GUIDE.md`** for the general setup process, authentication guidance, limitations, and troubleshooting before following this provider-specific guide.
+
 ### How It Works
 
 1. User pastes their `claude.ai` session cookies into the OmniRoute dashboard

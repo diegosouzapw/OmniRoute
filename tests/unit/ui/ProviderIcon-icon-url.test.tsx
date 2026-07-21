@@ -125,3 +125,15 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
     );
   });
 });
+
+describe("ProviderIcon — Qwen Cloud local asset", () => {
+  it.each(["qwen-cloud", "qwen-cloud-token-plan"])(
+    "uses the shared Qwen Cloud SVG for %s",
+    (providerId) => {
+      const container = renderIcon({ providerId, size: 32 });
+      const img = container.querySelector("img");
+      expect(img).not.toBeNull();
+      expect(img?.getAttribute("src")).toBe("/providers/qwencloud.svg");
+    }
+  );
+});

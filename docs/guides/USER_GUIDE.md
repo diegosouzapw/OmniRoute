@@ -70,7 +70,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 Combo: "maximize-claude"
   1. cc/claude-opus-4-7        (use subscription fully)
   2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2       (free emergency fallback)
+  3. if/qwen3.8-max-preview       (free emergency fallback)
 
 Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
 vs. $20 + hitting limits = frustration
@@ -82,8 +82,8 @@ vs. $20 + hitting limits = frustration
 
 ```
 Combo: "free-forever"
-  1. if/kimi-k2       (unlimited free)
-  2. qw/qwen3-coder-plus       (unlimited free)
+  1. if/kimi-k2.7-code          (unlimited free)
+  2. kr/qwen3-coder-next        (Kiro free fallback)
 
 Monthly cost: $0
 Quality: Production-ready models
@@ -99,7 +99,7 @@ Combo: "always-on"
   2. cx/gpt-5.5                (second subscription)
   3. glm/glm-4.7               (cheap, resets daily)
   4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2       (free unlimited)
+  5. if/deepseek-v4-flash       (free unlimited)
 
 Result: 5 layers of fallback = zero downtime
 Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
@@ -111,9 +111,9 @@ Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 
 ```
 Combo: "openclaw-free"
-  1. if/qwen3-coder-plus       (unlimited free)
-  2. if/deepseek-r1            (unlimited free)
-  3. if/kimi-k2                (unlimited free)
+  1. if/qwen3.8-max-preview     (unlimited free)
+  2. if/deepseek-v4-flash       (unlimited free)
+  3. if/kimi-k2.7-code          (unlimited free)
 
 Monthly cost: $0
 Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
@@ -210,12 +210,12 @@ No-auth free providers have a switch beside **No authentication required** on th
 Turning it off disables that provider, removes it from Providers configured/compact views, and
 removes its models from `/v1/models`.
 
-#### Qoder (8 FREE models)
+#### Qoder (9 FREE models)
 
 ```bash
 Dashboard → Connect Qoder → OAuth login → Unlimited usage
 
-Models: if/kimi-k2, if/qwen3-coder-plus, if/qwen3-max, if/qwen3-235b, if/deepseek-r1, if/deepseek-v3.2
+Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
 #### Kiro (Claude FREE)
@@ -251,8 +251,8 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. if/kimi-k2 (unlimited)
-  2. qw/coder-model (unlimited)
+  1. if/kimi-k2.7-code (unlimited)
+  2. kr/qwen3-coder-next (Kiro free fallback)
 
 Cost: $0 forever!
 ```
@@ -301,7 +301,7 @@ Edit `~/.openclaw/openclaw.json`:
 {
   "agents": {
     "defaults": {
-      "model": { "primary": "omniroute/if/kimi-k2" }
+      "model": { "primary": "omniroute/if/kimi-k2.7-code" }
     }
   },
   "models": {
@@ -310,7 +310,7 @@ Edit `~/.openclaw/openclaw.json`:
         "baseUrl": "http://localhost:20128/v1",
         "apiKey": "your-omniroute-api-key",
         "api": "openai-completions",
-        "models": [{ "id": "if/kimi-k2", "name": "kimi-k2" }]
+        "models": [{ "id": "if/kimi-k2.7-code", "name": "Kimi K2.7 Code" }]
       }
     }
   }
@@ -574,9 +574,7 @@ For the full environment variable reference, see the [README](../README.md).
 
 **Kiro (`kr/`)** — FREE OAuth: `kr/auto-kiro`, `kr/claude-opus-4.7`, `kr/claude-opus-4.6`, `kr/claude-sonnet-4.6`, `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`, `kr/deepseek-3.2`, `kr/minimax-m2.5`, `kr/minimax-m2.1`, `kr/glm-5`, `kr/qwen3-coder-next`
 
-**Qoder (`if/`)** — FREE OAuth: `if/kimi-k2-0905`, `if/kimi-k2`, `if/qwen3-coder-plus`, `if/qwen3-max`, `if/qwen3-max-preview`, `if/qwen3-vl-plus`, `if/qwen3-32b`, `if/qwen3-235b-a22b-thinking-2507`, `if/qwen3-235b-a22b-instruct`, `if/qwen3-235b`, `if/deepseek-v3.2`, `if/deepseek-v3`, `if/deepseek-r1`, `if/qoder-rome-30ba3b`
-
-**Qwen (`qw/`)** — FREE OAuth (chat.qwen.ai): `qw/coder-model`, `qw/vision-model`
+**Qoder (`if/`)** — FREE OAuth: `if/qwen3.8-max-preview`, `if/qwen3.7-max`, `if/qwen3.7-plus`, `if/kimi-k3`, `if/kimi-k2.7-code`, `if/glm-5.2`, `if/deepseek-v4-pro`, `if/deepseek-v4-flash`, `if/minimax-m3`
 
 **GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — $0.2–0.6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
 

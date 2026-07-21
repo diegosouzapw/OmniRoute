@@ -1,0 +1,1 @@
+- **fix(dashboard):** Provider Quota cutoff inputs preserve unsaved values across quota refreshes instead of reverting while the operator is typing ([#7889](https://github.com/diegosouzapw/OmniRoute/issues/7889)).

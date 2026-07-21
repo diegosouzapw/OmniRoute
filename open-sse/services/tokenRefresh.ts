@@ -23,7 +23,6 @@ import { refreshKimiCodingToken } from "./tokenRefresh/providers/kimiCoding.ts";
 import { refreshGitLabDuoToken } from "./tokenRefresh/providers/gitlabDuo.ts";
 import { refreshClaudeOAuthToken } from "./tokenRefresh/providers/claudeOAuth.ts";
 import { refreshGoogleToken } from "./tokenRefresh/providers/google.ts";
-import { refreshQwenToken } from "./tokenRefresh/providers/qwen.ts";
 import { refreshCodexToken } from "./tokenRefresh/providers/codex.ts";
 import { refreshKiroToken } from "./tokenRefresh/providers/kiro.ts";
 import { refreshQoderToken } from "./tokenRefresh/providers/qoder.ts";
@@ -38,7 +37,6 @@ export {
   refreshGitLabDuoToken,
   refreshClaudeOAuthToken,
   refreshGoogleToken,
-  refreshQwenToken,
   refreshCodexToken,
   refreshKiroToken,
   refreshQoderToken,
@@ -77,7 +75,6 @@ export const REFRESH_LEAD_MS: Record<string, number> = {
   "gitlab-duo": 5 * 60 * 1000, // GitLab token family revocation on misuse
   kiro: 5 * 60 * 1000, // AWS SSO OIDC issues one-time-use refresh tokens
   "kimi-coding": 5 * 60 * 1000, // Moonshot rotates per-refresh
-  qwen: 5 * 60 * 1000, // Alibaba device-code path also rotates
   // Non-rotating providers — longer lead is safe.
   iflow: 24 * 60 * 60 * 1000, // 24 hours
   // Google OAuth refresh_tokens are permanent (non-rotating) — longer lead
@@ -391,9 +388,6 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
     case "codex":
       return await refreshCodexToken(credentials.refreshToken, log, proxyConfig);
 
-    case "qwen":
-      return await refreshQwenToken(credentials.refreshToken, log, proxyConfig);
-
     case "qoder":
       return await refreshQoderToken(credentials.refreshToken, log, proxyConfig);
 
@@ -457,7 +451,6 @@ export function supportsTokenRefresh(provider) {
     "agy",
     "claude",
     "codex",
-    "qwen",
     "qoder",
     "github",
     "kiro",
@@ -767,7 +760,6 @@ export function formatProviderCredentials(provider, credentials, log) {
       };
 
     case "codex":
-    case "qwen":
     case "qoder":
     case "openai":
     case "openrouter":

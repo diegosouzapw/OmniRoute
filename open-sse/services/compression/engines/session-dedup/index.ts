@@ -46,6 +46,15 @@ const ENGINE_ID = "session-dedup";
 const DEFAULT_MIN_BLOCK_CHARS = 80;
 /** Minimum number of lines a block must span to be a dedup candidate. */
 const MIN_BLOCK_LINES = 3;
+/**
+ * Request-wide ceiling for the suffix strings materialized by the exact pass.
+ * 32 MiB keeps ordinary sessions byte-identical while preventing line-rich inputs
+ * from retaining a quadratic graph of suffix copies.
+ */
+const MAX_SUFFIX_WORK_CHARS = 32 * 1024 * 1024;
+const SUFFIX_WORK_BUDGET_WARNING = "session-dedup: skipped (suffix work budget exceeded)";
+
+type SuffixWorkBudget = { remaining: number };
 
 // ─── hash helper (SHA-256 prefix, collision-resistant) ───────────────────────
 
@@ -57,6 +66,24 @@ function hashBlock(text: string): string {
 }
 
 // ─── suffix-block extraction ──────────────────────────────────────────────────
+
+/**
+ * Reserves the characters that findSuffixBlocks() would materialize for one text.
+ * The scan observes line starts without splitting or constructing any suffix strings.
+ */
+function reserveSuffixWork(text: string, passCount: number, budget: SuffixWorkBudget): boolean {
+  let start = 0;
+  while (start <= text.length) {
+    const suffixChars = (text.length - start) * passCount;
+    if (suffixChars > budget.remaining) return false;
+    budget.remaining -= suffixChars;
+
+    const nextNewline = text.indexOf("\n", start);
+    if (nextNewline === -1) break;
+    start = nextNewline + 1;
+  }
+  return true;
+}
 
 /**
  * For each starting line position, emit the suffix block `lines[start..end]`
@@ -118,7 +145,9 @@ function dedupeWithinMessage(
 
   for (const { block } of sortedBlocks) {
     // Only dedup blocks that appear 2+ times in the text.
-    const occurrences = (result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length;
+    const occurrences = (
+      result.match(new RegExp(block.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []
+    ).length;
     if (occurrences < 2) continue;
 
     const sha = hashBlock(block);
@@ -240,7 +269,7 @@ type MessageLike = {
 function processMessages(
   messages: MessageLike[],
   minBlockChars: number
-): { messages: MessageLike[]; dedupCount: number } {
+): { messages: MessageLike[]; dedupCount: number; suffixWorkBudgetExceeded: boolean } {
   // Collect (msgIdx, text) for non-system string-content messages.
   // For multipart, index each text part separately.
   const msgTexts: Array<{ msgIdx: number; text: string }> = [];
@@ -262,13 +291,24 @@ function processMessages(
   }
 
   if (msgTexts.length === 0) {
-    return { messages, dedupCount: 0 };
+    return { messages, dedupCount: 0, suffixWorkBudgetExceeded: false };
+  }
+
+  // Single-message exact dedup enumerates suffixes once; cross-message dedup does so
+  // in both passes. Reserve the request-wide work up front so no quadratic suffix graph
+  // is partially materialized before the engine decides to fail open.
+  const suffixWorkBudget: SuffixWorkBudget = { remaining: MAX_SUFFIX_WORK_CHARS };
+  const passCount = msgTexts.length === 1 ? 1 : 2;
+  for (const { text } of msgTexts) {
+    if (!reserveSuffixWork(text, passCount, suffixWorkBudget)) {
+      return { messages, dedupCount: 0, suffixWorkBudgetExceeded: true };
+    }
   }
 
   const { deduped, dedupCount } = dedupMessageTexts(msgTexts, minBlockChars);
 
   if (dedupCount === 0) {
-    return { messages, dedupCount: 0 };
+    return { messages, dedupCount: 0, suffixWorkBudgetExceeded: false };
   }
 
   const result = messages.map((msg, i) => {
@@ -297,7 +337,7 @@ function processMessages(
     return { ...msg };
   });
 
-  return { messages: result, dedupCount };
+  return { messages: result, dedupCount, suffixWorkBudgetExceeded: false };
 }
 
 // ─── schema & validation ──────────────────────────────────────────────────────
@@ -343,7 +383,8 @@ function validateSessionDedupConfig(config: Record<string, unknown>): EngineVali
     const f = config["fuzzy"];
     if (typeof f === "object" && f !== null) {
       const fe = (f as Record<string, unknown>)["enabled"];
-      if (fe !== undefined && typeof fe !== "boolean") errors.push("fuzzy.enabled must be a boolean");
+      if (fe !== undefined && typeof fe !== "boolean")
+        errors.push("fuzzy.enabled must be a boolean");
     } else if (typeof f !== "boolean") {
       errors.push("fuzzy must be an object { enabled } or a boolean");
     }
@@ -394,10 +435,18 @@ export const sessionDedupEngine: CompressionEngine = {
     }
 
     const start = performance.now();
-    const { messages: exactMessages, dedupCount } = processMessages(
-      messages as MessageLike[],
-      minBlockChars
-    );
+    const {
+      messages: exactMessages,
+      dedupCount,
+      suffixWorkBudgetExceeded,
+    } = processMessages(messages as MessageLike[], minBlockChars);
+
+    if (suffixWorkBudgetExceeded) {
+      const durationMs = Math.round(performance.now() - start);
+      const stats = createCompressionStats(body, body, "stacked", [], undefined, durationMs);
+      stats.validationWarnings = [SUFFIX_WORK_BUDGET_WARNING];
+      return { body, compressed: false, stats };
+    }
 
     const { messages: finalMessages, fuzzyCount } = runFuzzyPass(
       exactMessages,
