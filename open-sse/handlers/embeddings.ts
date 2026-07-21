@@ -16,7 +16,9 @@
 import {
   getEmbeddingProvider,
   getEmbeddingModelDefaultParams,
+  getEmbeddingModelModalities,
   parseEmbeddingModel,
+  type EmbeddingModality,
   type EmbeddingProvider,
 } from "../config/embeddingRegistry.ts";
 import { saveCallLog } from "@/lib/usageDb";
@@ -89,7 +91,7 @@ export async function handleEmbedding({
       enabled: detailedLoggingEnabled,
       captureStreamChunks,
       connectionId: connectionId || undefined,
-      model: model || body.model as string,
+      model: model || (body.model as string),
       provider: provider || undefined,
     }
   );
@@ -124,6 +126,31 @@ export async function handleEmbedding({
       status: 400,
       error: `Unknown embedding provider: ${provider}`,
     };
+  }
+
+  const structuredItems = Array.isArray(body.input)
+    ? body.input.filter(
+        (item): item is { type: EmbeddingModality } =>
+          typeof item === "object" && item !== null && "type" in item
+      )
+    : [];
+  if (structuredItems.length > 0) {
+    const supportedModalities = getEmbeddingModelModalities(providerConfig, model);
+    if (!supportedModalities) {
+      return {
+        success: false,
+        status: 400,
+        error: `Embedding model ${body.model} does not advertise structured embedding input support`,
+      };
+    }
+    const unsupported = structuredItems.find((item) => !supportedModalities.includes(item.type));
+    if (unsupported) {
+      return {
+        success: false,
+        status: 400,
+        error: `Embedding model ${body.model} does not support ${unsupported.type} input`,
+      };
+    }
   }
 
   // Build upstream request — start with standard fields, then forward extra fields

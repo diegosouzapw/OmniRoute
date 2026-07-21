@@ -13,6 +13,7 @@ import {
   isForbiddenCustomHeaderName,
 } from "@/shared/constants/upstreamHeaders";
 import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
+import { parseAndValidatePublicUrl } from "@/shared/network/outboundUrlGuard";
 import {
   effortRequestSchema,
   thinkingRequestSchema,
@@ -24,12 +25,92 @@ export const embeddingTokenArraySchema = z
   .array(z.number().int().min(0))
   .min(1, "input token array must contain at least one item");
 
+export const MAX_EMBEDDING_INPUT_ITEMS = 32;
+export const MAX_EMBEDDING_INLINE_ITEM_BYTES = 8 * 1024 * 1024;
+export const MAX_EMBEDDING_INLINE_TOTAL_BYTES = 16 * 1024 * 1024;
+const MAX_EMBEDDING_TEXT_LENGTH = 1_000_000;
+const MAX_EMBEDDING_URL_LENGTH = 2048;
+const MAX_MEDIA_TYPE_LENGTH = 255;
+
+function decodedBase64Bytes(data: string): number {
+  const padding = data.endsWith("==") ? 2 : data.endsWith("=") ? 1 : 0;
+  return (data.length * 3) / 4 - padding;
+}
+
+const embeddingUrlSourceSchema = z.object({
+  type: z.literal("url"),
+  url: z
+    .string()
+    .trim()
+    .min(1)
+    .max(MAX_EMBEDDING_URL_LENGTH)
+    .superRefine((value, context) => {
+      try {
+        const url = parseAndValidatePublicUrl(value);
+        if (url.protocol !== "https:") {
+          context.addIssue({ code: "custom", message: "media URLs must use HTTPS" });
+        }
+      } catch {
+        context.addIssue({ code: "custom", message: "media URL must be a safe public HTTPS URL" });
+      }
+    }),
+});
+
+const embeddingBase64SourceSchema = z.object({
+  type: z.literal("base64"),
+  data: z
+    .string()
+    .min(1)
+    .regex(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/, {
+      message: "data must be valid base64",
+    })
+    .refine((data) => decodedBase64Bytes(data) <= MAX_EMBEDDING_INLINE_ITEM_BYTES, {
+      message: "decoded inline media must not exceed 8 MiB",
+    }),
+  media_type: z.string().trim().min(1).max(MAX_MEDIA_TYPE_LENGTH),
+});
+
+const embeddingMediaSourceSchema = z.discriminatedUnion("type", [
+  embeddingUrlSourceSchema,
+  embeddingBase64SourceSchema,
+]);
+
+export const embeddingMultimodalItemSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("text"),
+    text: z.string().min(1).max(MAX_EMBEDDING_TEXT_LENGTH),
+  }),
+  ...(["image", "audio", "video", "document"] as const).map((type) =>
+    z.object({ type: z.literal(type), source: embeddingMediaSourceSchema })
+  ),
+]);
+
+const embeddingMultimodalInputSchema = z
+  .array(embeddingMultimodalItemSchema)
+  .min(1, "input must contain at least one item")
+  .max(MAX_EMBEDDING_INPUT_ITEMS, `input must contain at most ${MAX_EMBEDDING_INPUT_ITEMS} items`)
+  .superRefine((items, context) => {
+    const totalBytes = items.reduce((total, item) => {
+      if (item.type === "text" || item.source.type !== "base64") return total;
+      return total + decodedBase64Bytes(item.source.data);
+    }, 0);
+    if (totalBytes > MAX_EMBEDDING_INLINE_TOTAL_BYTES) {
+      context.addIssue({
+        code: "custom",
+        message: "decoded inline media must not exceed 16 MiB per request",
+      });
+    }
+  });
+
 export const embeddingInputSchema = z.union([
   nonEmptyStringSchema,
   z.array(nonEmptyStringSchema).min(1, "input must contain at least one item"),
   embeddingTokenArraySchema,
   z.array(embeddingTokenArraySchema).min(1, "input must contain at least one item"),
+  embeddingMultimodalInputSchema,
 ]);
+
+export type EmbeddingMultimodalItem = z.infer<typeof embeddingMultimodalItemSchema>;
 
 export const chatMessageSchema = z
   .object({

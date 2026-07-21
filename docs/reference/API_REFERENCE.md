@@ -61,22 +61,22 @@ Content-Type: application/json
 
 ### Custom Headers
 
-| Header                   | Direction | Description                                                                                                                  |
-| ------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                                                                                                |
-| `x-omniroute-no-memory`  | Request   | Set to `true` to skip memory + skills injection for this request (mirrors no-cache; avoids the per-call token/cost overhead) |
-| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                                                                                            |
-| `X-Session-Id`           | Request   | Sticky session key for external session affinity                                                                             |
-| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)                                                                               |
-| `Idempotency-Key`        | Request   | Dedup key (5s window)                                                                                                        |
-| `X-Request-Id`           | Request   | Alternative dedup key                                                                                                        |
-| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                                                                                              |
-| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                                                                                                       |
-| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                                                                                            |
-| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute                                                                                       |
-| `X-OmniRoute-Request-Id` | Response  | Request correlation id (when known)                                                                                          |
-| `X-OmniRoute-Version`    | Response  | OmniRoute build version (always present)                                                                                     |
-| `X-OmniRoute-Cost-Saved` | Response  | USD the cache avoided on a HIT (cache hits only)                                                                             |
+| Header                   | Direction | Description                                                                                                                                                                       |
+| ------------------------ | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-No-Cache`   | Request   | Set to `true` to bypass cache                                                                                                                                                     |
+| `x-omniroute-no-memory`  | Request   | Set to `true` to skip memory + skills injection for this request (mirrors no-cache; avoids the per-call token/cost overhead)                                                      |
+| `X-OmniRoute-Progress`   | Request   | Set to `true` for progress events                                                                                                                                                 |
+| `X-Session-Id`           | Request   | Sticky session key for external session affinity                                                                                                                                  |
+| `x_session_id`           | Request   | Underscore variant also accepted (direct HTTP)                                                                                                                                    |
+| `Idempotency-Key`        | Request   | Dedup key (5s window)                                                                                                                                                             |
+| `X-Request-Id`           | Request   | Alternative dedup key                                                                                                                                                             |
+| `X-OmniRoute-Cache`      | Response  | `HIT` or `MISS` (non-streaming)                                                                                                                                                   |
+| `X-OmniRoute-Idempotent` | Response  | `true` if deduplicated                                                                                                                                                            |
+| `X-OmniRoute-Progress`   | Response  | `enabled` if progress tracking on                                                                                                                                                 |
+| `X-OmniRoute-Session-Id` | Response  | Effective session ID used by OmniRoute                                                                                                                                            |
+| `X-OmniRoute-Request-Id` | Response  | Request correlation id (when known)                                                                                                                                               |
+| `X-OmniRoute-Version`    | Response  | OmniRoute build version (always present)                                                                                                                                          |
+| `X-OmniRoute-Cost-Saved` | Response  | USD the cache avoided on a HIT (cache hits only)                                                                                                                                  |
 | `X-OmniRoute-Decision`   | Response  | Routing trace: `strategy=<name>; provider=<alias>; latency_ms=<n>` (`<name>` is the combo strategy, or `single` for a non-combo request) — always present on completion responses |
 
 > Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
@@ -128,6 +128,31 @@ Content-Type: application/json
 ```
 
 Available providers: Nebius, OpenAI, Mistral, Together AI, Fireworks, NVIDIA, **OpenRouter**, **GitHub Models**.
+
+Registry models that advertise multimodal support also accept up to 32 provider-neutral structured
+items. Remote sources must use a public HTTPS URL. Inline base64 media is limited to 8 MiB decoded
+per item and 16 MiB decoded across the request.
+
+```json
+{
+  "model": "jina-ai/jina-clip-v2",
+  "input": [
+    { "type": "text", "text": "A red bicycle" },
+    {
+      "type": "image",
+      "source": { "type": "url", "url": "https://example.com/bicycle.png" }
+    }
+  ],
+  "dimensions": 512,
+  "encoding_format": "float"
+}
+```
+
+Media item types are `image`, `audio`, `video`, and `document`. Their `source` is either
+`{"type":"url","url":"https://..."}` or
+`{"type":"base64","data":"...","media_type":"..."}`. Unsupported model/modality
+combinations return HTTP 400 rather than coercing the item. Provider extension fields are passed
+through unchanged.
 
 ```bash
 # List all embedding models
@@ -429,17 +454,17 @@ Response example:
 
 ### Provider Management
 
-| Endpoint                     | Method                | Description                                    |
-| ---------------------------- | --------------------- | ---------------------------------------------- |
-| `/api/providers`             | GET/POST              | List / create providers                        |
-| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                              |
-| `/api/providers/[id]/test`   | POST                  | Test provider connection                       |
-| `/api/providers/[id]/models` | GET                   | List provider models                           |
-| `/api/providers/validate`    | POST                  | Validate provider config                       |
-| `/api/providers/bulk`        | POST                  | Bulk-add API keys for ONE provider             |
+| Endpoint                     | Method                | Description                                                                                               |
+| ---------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------- |
+| `/api/providers`             | GET/POST              | List / create providers                                                                                   |
+| `/api/providers/[id]`        | GET/PUT/DELETE        | Manage a provider                                                                                         |
+| `/api/providers/[id]/test`   | POST                  | Test provider connection                                                                                  |
+| `/api/providers/[id]/models` | GET                   | List provider models                                                                                      |
+| `/api/providers/validate`    | POST                  | Validate provider config                                                                                  |
+| `/api/providers/bulk`        | POST                  | Bulk-add API keys for ONE provider                                                                        |
 | `/api/providers/import`      | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results |
-| `/api/provider-nodes*`       | Various               | Provider node management                       |
-| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete) |
+| `/api/provider-nodes*`       | Various               | Provider node management                                                                                  |
+| `/api/provider-models`       | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                            |
 
 ### OAuth Flows
 
@@ -967,17 +992,17 @@ Persistent conversational/factual memory store, scoped per API key / session.
 
 OmniRoute ships an embedded Model Context Protocol server with 3 transports (stdio, SSE, streamable-http) and scoped tools. The dashboard endpoints below read status/audit data and proxy the HTTP transports.
 
-| Method | Path                   | Description                                                                                      |
+| Method | Path | Description |
 | ------ | ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------- |
-| GET    | `/api/mcp/status`      | Heartbeat, transport, online state, last call, top tools, 24h success rate                       |
-| GET    | `/api/mcp/tools`       | List of MCP tools with `name`, `description`, `scopes`, `phase`, `auditLevel`, `sourceEndpoints` |
-| GET    | `/api/mcp/sse`         | Open SSE stream for the SSE transport (returns `503` if MCP disabled or transport mismatch)      |
-| POST   | `/api/mcp/sse`         | Send JSON-RPC frame on the SSE transport                                                         |
-| GET    | `/api/mcp/stream`      | Open SSE side of the Streamable HTTP transport (server-initiated messages)                       |
-| POST   | `/api/mcp/stream`      | Send JSON-RPC frame on the Streamable HTTP transport                                             |
-| DELETE | `/api/mcp/stream`      | End a Streamable HTTP session                                                                    |
-| GET    | `/api/mcp/audit`       | Query audit log — `?limit=`, `?offset=`, `?tool=`, `?success=true                                | false`, `?apiKeyId=` |
-| GET    | `/api/mcp/audit/stats` | Aggregate audit stats (totals, success rate, avg duration, top tools)                            |
+| GET | `/api/mcp/status` | Heartbeat, transport, online state, last call, top tools, 24h success rate |
+| GET | `/api/mcp/tools` | List of MCP tools with `name`, `description`, `scopes`, `phase`, `auditLevel`, `sourceEndpoints` |
+| GET | `/api/mcp/sse` | Open SSE stream for the SSE transport (returns `503` if MCP disabled or transport mismatch) |
+| POST | `/api/mcp/sse` | Send JSON-RPC frame on the SSE transport |
+| GET | `/api/mcp/stream` | Open SSE side of the Streamable HTTP transport (server-initiated messages) |
+| POST | `/api/mcp/stream` | Send JSON-RPC frame on the Streamable HTTP transport |
+| DELETE | `/api/mcp/stream` | End a Streamable HTTP session |
+| GET | `/api/mcp/audit` | Query audit log — `?limit=`, `?offset=`, `?tool=`, `?success=true                                | false`, `?apiKeyId=` |
+| GET | `/api/mcp/audit/stats` | Aggregate audit stats (totals, success rate, avg duration, top tools) |
 
 **Auth:** the `sse`/`stream` transports honor the MCP-specific auth surface (Bearer API key with `mcp` scope); the `status`/`tools`/`audit*` routes are readable from the dashboard (no extra auth required beyond reaching the dashboard host).
 
@@ -1042,18 +1067,18 @@ Returns the public A2A agent card (name, description, capabilities, skill catalo
 
 ## Cloud, Evals & Assess
 
-| Method | Path                            | Description                                                                                       |
+| Method | Path | Description |
 | ------ | ------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------- |
-| POST   | `/api/cloud/auth`               | Verify a Bearer key and return masked provider connections + model aliases for cloud sync clients |
-| POST   | `/api/cloud/credentials/update` | Update encrypted credentials for a cloud-synced provider                                          |
-| POST   | `/api/cloud/model/resolve`      | Resolve a logical model id to a concrete provider/model using the local routing table             |
-| GET    | `/api/cloud/models/alias`       | List model aliases as exposed to cloud sync                                                       |
-| GET    | `/api/assess`                   | Read latest assessment categorizations (per-provider/model)                                       |
-| POST   | `/api/assess`                   | Run an assessment — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
-| GET    | `/api/evals`                    | List built-in eval suites + most recent runs                                                      |
-| POST   | `/api/evals`                    | Trigger an eval run                                                                               |
-| POST   | `/api/evals/suites`             | Create a custom eval suite — body validated by `evalSuiteSaveSchema`                              |
-| GET    | `/api/evals/suites/[id]`        | Retrieve a custom eval suite                                                                      |
+| POST | `/api/cloud/auth` | Verify a Bearer key and return masked provider connections + model aliases for cloud sync clients |
+| POST | `/api/cloud/credentials/update` | Update encrypted credentials for a cloud-synced provider |
+| POST | `/api/cloud/model/resolve` | Resolve a logical model id to a concrete provider/model using the local routing table |
+| GET | `/api/cloud/models/alias` | List model aliases as exposed to cloud sync |
+| GET | `/api/assess` | Read latest assessment categorizations (per-provider/model) |
+| POST | `/api/assess` | Run an assessment — body: `{scope: {type:"all"}                                                   | {type:"provider", providerId} | {type:"model", modelId}, trigger?}` |
+| GET | `/api/evals` | List built-in eval suites + most recent runs |
+| POST | `/api/evals` | Trigger an eval run |
+| POST | `/api/evals/suites` | Create a custom eval suite — body validated by `evalSuiteSaveSchema` |
+| GET | `/api/evals/suites/[id]` | Retrieve a custom eval suite |
 
 **Auth:** `/api/cloud/auth` validates a Bearer key directly; the other `/api/cloud/*`, `/api/evals/*`, and `/api/assess` routes require management session/API key. `/api/assess` POST uses `validateBody` with a discriminated-union scope schema.
 

@@ -8,10 +8,14 @@
  * keyed by provider ID (e.g. "nebius", "openai").
  */
 
+export type EmbeddingModality = "text" | "image" | "audio" | "video" | "document";
+
 export interface EmbeddingModel {
   id: string;
   name: string;
   dimensions?: number;
+  /** Structured input modalities explicitly supported by this registry model. */
+  modalities?: EmbeddingModality[];
   /**
    * Model-level default request parameters injected into the upstream body when
    * the client did not already supply them. Used for asymmetric embedding models
@@ -243,7 +247,18 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "gemini-embedding-2", name: "Gemini Embedding 2", dimensions: 768 },
+      {
+        id: "gemini-embedding-2",
+        name: "Gemini Embedding 2",
+        dimensions: 768,
+        modalities: ["text", "image", "audio", "video", "document"],
+      },
+      {
+        id: "gemini-embedding-2-preview",
+        name: "Gemini Embedding 2 Preview",
+        dimensions: 768,
+        modalities: ["text", "image", "audio", "video", "document"],
+      },
       { id: "gemini-embedding-001", name: "Gemini Embedding 001", dimensions: 768 },
     ],
   },
@@ -291,10 +306,32 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
         dimensions: 1024,
       },
       { id: "jina-embeddings-v5-text-nano", name: "Jina Embeddings v5 Text Nano", dimensions: 768 },
+      {
+        id: "jina-embeddings-v5-omni-small",
+        name: "Jina Embeddings v5 Omni Small",
+        dimensions: 1024,
+        modalities: ["text", "image", "audio", "video", "document"],
+      },
+      {
+        id: "jina-embeddings-v5-omni-nano",
+        name: "Jina Embeddings v5 Omni Nano",
+        dimensions: 768,
+        modalities: ["text", "image", "audio", "video", "document"],
+      },
       { id: "jina-code-embeddings-1.5b", name: "Jina Code Embeddings 1.5B", dimensions: 1536 },
       { id: "jina-code-embeddings-0.5b", name: "Jina Code Embeddings 0.5B", dimensions: 896 },
-      { id: "jina-embeddings-v4", name: "Jina Embeddings v4", dimensions: 2048 },
-      { id: "jina-clip-v2", name: "Jina CLIP v2", dimensions: 1024 },
+      {
+        id: "jina-embeddings-v4",
+        name: "Jina Embeddings v4",
+        dimensions: 2048,
+        modalities: ["text", "image", "document"],
+      },
+      {
+        id: "jina-clip-v2",
+        name: "Jina CLIP v2",
+        dimensions: 1024,
+        modalities: ["text", "image"],
+      },
       { id: "jina-colbert-v2", name: "Jina ColBERT v2", dimensions: 128 },
     ],
   },
@@ -471,6 +508,14 @@ export function getEmbeddingModelDefaultParams(
 ): Record<string, unknown> | undefined {
   if (!providerConfig || !modelId) return undefined;
   return providerConfig.models.find((m) => m.id === modelId)?.defaultParams;
+}
+
+export function getEmbeddingModelModalities(
+  providerConfig: EmbeddingProvider | null,
+  modelId: string | null
+): EmbeddingModality[] | undefined {
+  if (!providerConfig || !modelId) return undefined;
+  return providerConfig.models.find((model) => model.id === modelId)?.modalities;
 }
 
 /**
