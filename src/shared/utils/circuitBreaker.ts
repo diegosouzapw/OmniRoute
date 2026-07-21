@@ -47,6 +47,43 @@ export function isLocalStreamLifecycleError(error: unknown): boolean {
   return /controller is already closed/i.test(message);
 }
 
+/**
+ * #7907 — Detect a CLIENT-initiated abort that must NOT count as a provider
+ * failure. When the caller drops the connection mid-stream (combo race losers,
+ * model switches, tab close, user interrupt), the upstream fetch rejects with
+ * the abort reason. Only `error.name === "AbortError"` was recognized; a
+ * string abort reason (the stream controller's `"request_signal_aborted"`
+ * default, or a `"Client disconnected: …"` reason) carries no `name` and no
+ * `statusCode`, so it defaulted to HTTP 502 and flowed into account cooldown
+ * and circuit-breaker accounting as if it were a genuine upstream error.
+ * A client abort is a client lifecycle event, not a provider fault.
+ *
+ * An error that carries a real upstream HTTP status (other than our own 499
+ * client-closed marker) is an upstream response, never a local abort.
+ */
+export function isClientAbortError(error: unknown): boolean {
+  if (!error) return false;
+  if (typeof error === "object") {
+    const status =
+      (error as { status?: unknown }).status ?? (error as { statusCode?: unknown }).statusCode;
+    if (typeof status === "number") return status === 499;
+    const name = (error as { name?: unknown }).name;
+    if (name === "AbortError") return true;
+    const code = (error as { code?: unknown }).code;
+    if (code === "UND_ERR_ABORTED" || code === "ABORT_ERR") return true;
+  }
+  const message =
+    typeof error === "string"
+      ? error
+      : typeof (error as { message?: unknown }).message === "string"
+        ? ((error as { message: string }).message as string)
+        : "";
+  if (!message) return false;
+  return /request[_ ]signal[_ ]aborted|client disconnected|\boperation was aborted\b/i.test(
+    message
+  );
+}
+
 export const STATE = {
   CLOSED: "CLOSED",
   DEGRADED: "DEGRADED",

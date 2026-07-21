@@ -89,7 +89,11 @@ import { getComboFailureLogError, isRequestScopedUpstreamFailure } from "./combo
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "@/shared/utils/providerHints";
-import { getCircuitBreaker, isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
+import {
+  getCircuitBreaker,
+  isClientAbortError,
+  isLocalStreamLifecycleError,
+} from "../../shared/utils/circuitBreaker";
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
@@ -1141,7 +1145,8 @@ async function handleSingleModelChat(
     resetTimeout: providerProfile.resetTimeoutMs,
     // #4602: a local WS-bridge "Controller is already closed" throw is not an
     // upstream outage — keep it from tripping the whole-provider breaker.
-    isFailure: (e) => !isLocalStreamLifecycleError(e),
+    // #7907: same for client-initiated aborts (string abort reasons included).
+    isFailure: (e) => !isLocalStreamLifecycleError(e) && !isClientAbortError(e),
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
     ...(useHints429
