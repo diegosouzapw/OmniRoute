@@ -7192,6 +7192,10 @@
         "label": "RTK",
         "description": "Command-output filtering."
       },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
+      },
       "headroom": {
         "label": "Headroom",
         "description": "Tabular JSON compaction."
