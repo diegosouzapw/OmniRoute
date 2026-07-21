@@ -38,3 +38,35 @@ test("#7819: excluding every candidate yields an empty pool (caller's empty-pool
   const result = filterExcludedCandidates(pool, new Set(["conn-a", "conn-b", "conn-c"]));
   assert.equal(result.length, 0);
 });
+
+test("#7819: logical candidates retain only non-excluded account fallbacks", () => {
+  const logicalPool = [
+    {
+      connectionId: null,
+      allowedConnectionIds: ["conn-a", "conn-b"],
+      model: "claude",
+    },
+  ];
+
+  const result = filterExcludedCandidates(logicalPool, new Set(["conn-a"]));
+  assert.deepEqual(result, [
+    {
+      connectionId: null,
+      allowedConnectionIds: ["conn-b"],
+      model: "claude",
+    },
+  ]);
+});
+
+test("#7819: logical candidates are removed when every account fallback is excluded", () => {
+  const logicalPool = [
+    {
+      connectionId: null,
+      allowedConnectionIds: ["conn-a", "conn-b"],
+      model: "claude",
+    },
+  ];
+
+  const result = filterExcludedCandidates(logicalPool, new Set(["conn-a", "conn-b"]));
+  assert.deepEqual(result, []);
+});

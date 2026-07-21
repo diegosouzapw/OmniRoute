@@ -9,6 +9,7 @@
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
 import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
+import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -144,6 +145,13 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
  *   apply connection cooldown ONLY — never trip the whole-provider breaker.
  *
+ * #7907/#7908: also skip the breaker trip when the failure is a local stream lifecycle
+ * event (client-side abort — `request_signal_aborted`, "Client disconnected: ...", or an
+ * AbortError with no upstream status, which defaults to 502). Otherwise a client abort mid
+ * combo-target-loop still trips the whole-provider breaker exactly like a genuine upstream
+ * failure would, undermining the same #4602 policy `shouldSkipConnDisable()` already applies
+ * to connection-level cooldown.
+ *
  * Pure predicate so the breaker decision is unit-testable without the full combo harness.
  */
 export function shouldRecordProviderBreakerFailure(args: {
@@ -152,13 +160,15 @@ export function shouldRecordProviderBreakerFailure(args: {
   sameProviderNext: boolean;
   skipProviderBreaker?: boolean;
   requestScopedFailure?: boolean;
+  error?: unknown;
 }): boolean {
   return (
     !args.isStreamReadinessFailure &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     !args.sameProviderNext &&
     !args.skipProviderBreaker &&
-    !args.requestScopedFailure
+    !args.requestScopedFailure &&
+    !isLocalStreamLifecycleError(args.error)
   );
 }
 
@@ -194,7 +204,12 @@ export function isRequestScopedUpstreamFailure(error?: {
  * accounts the plugin would refuse identically.
  */
 export function shouldSkipConnDisable(
-  result: { status: number; errorCode?: string | null; errorType?: string | null },
+  result: {
+    status: number;
+    errorCode?: string | null;
+    errorType?: string | null;
+    error?: unknown;
+  },
   is401: boolean,
   hasExtraKeys: boolean,
   provider: string
@@ -203,6 +218,9 @@ export function shouldSkipConnDisable(
     result.status === 499 ||
     result.errorCode === "client_disconnected" ||
     result.errorType === "client_disconnected" ||
+    // Client abort surfaced as a bare error (no statusCode → defaults to 502):
+    // a local lifecycle event, not a provider failure (#4602 policy).
+    isLocalStreamLifecycleError(result.error) ||
     result.errorCode === "plugin_block" ||
     result.errorType === "plugin_block" ||
     (is401 && hasExtraKeys) ||
