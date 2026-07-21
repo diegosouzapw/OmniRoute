@@ -218,13 +218,29 @@ function registerPluginInOpenCodeConfig({
  * a clear "could not run opencode" message instead of a hard import
  * failure.
  */
-function runOpenCodeAuth(providerId) {
-  const isWin = process.platform === "win32";
-  const opencodeBin = isWin ? "opencode.cmd" : "opencode";
-  const res = spawnSync(opencodeBin, ["auth", "login", "--provider", providerId], {
-    stdio: "inherit",
-    shell: false,
-  });
+/**
+ * Pure resolver for the `opencode auth login` spawn descriptor. Extracted so the
+ * platform-branching logic is unit-testable without mocking child_process or
+ * mutating process.platform.
+ *
+ * On Windows the `opencode` binary is an npm `.cmd` shim that Node's hardened
+ * spawnSync (post CVE-2024-27980) refuses to run without a shell — spawning it
+ * with shell:false throws EINVAL (#7913). Mirror the same fix already applied to
+ * codex (resolveCodexSpawn in launch-codex.mjs, crediting #6263) and
+ * qodercli/Auggie (#6263/#6304): shell:true on win32, shell:false everywhere else.
+ */
+export function resolveOpenCodeAuthSpawn(providerId, platform = process.platform) {
+  const isWin = platform === "win32";
+  return {
+    command: isWin ? "opencode.cmd" : "opencode",
+    args: ["auth", "login", "--provider", providerId],
+    options: { stdio: "inherit", shell: isWin },
+  };
+}
+
+export function runOpenCodeAuth(providerId) {
+  const { command, args, options } = resolveOpenCodeAuthSpawn(providerId);
+  const res = spawnSync(command, args, options);
   if (res.error) {
     // ENOENT = opencode is not on PATH
     if (res.error.code === "ENOENT") {
