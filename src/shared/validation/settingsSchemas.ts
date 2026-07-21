@@ -218,12 +218,16 @@ export const updateSettingsSchema = z.object({
     .optional(),
   // #6168: global session-stickiness opt-out (per-combo config overrides this).
   disableSessionStickiness: z.boolean().optional(),
+  /** Keep eligible combo targets close to the provider-side prompt cache. */
+  promptCacheAffinityEnabled: z.boolean().optional(),
   /**
    * Per-operator quota row visibility on the usage dashboard, keyed by
    * provider id. Independent of the model catalog's isHidden/isDeleted flags.
    * Ported from upstream decolua/9router#2371.
    */
-  quotaVisibility: z.record(z.string().trim().min(1), z.object({ hidden: z.array(z.string()).max(500).optional() })).optional(),
+  quotaVisibility: z
+    .record(z.string().trim().min(1), z.object({ hidden: z.array(z.string()).max(500).optional() }))
+    .optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),
   maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
   maxBodySizeMb: z

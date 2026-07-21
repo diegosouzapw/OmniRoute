@@ -83,6 +83,7 @@ import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
 import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/concurrencyCaps.ts";
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
+import { applyPromptCacheAffinity } from "./combo/promptCacheAffinity.ts";
 import type { CompressionMode } from "./compression/types.ts";
 import { getCachedProviderConnections } from "../../src/lib/db/readCache";
 import {
@@ -387,7 +388,10 @@ export async function buildAutoCandidates(
   await Promise.all(
     uniqueProviders.map(async (provider) => {
       try {
-        const connections = (await getCachedProviderConnections({ provider, isActive: true })) as Array<Record<string, unknown>>;
+        const connections = (await getCachedProviderConnections({
+          provider,
+          isActive: true,
+        })) as Array<Record<string, unknown>>;
         const active = Array.isArray(connections) ? connections : [];
         connectionPoolCounts.set(provider, active.length);
         connectionsByProvider.set(provider, active);
@@ -1345,6 +1349,30 @@ export async function handleComboChat({
       );
     }
     orderedTargets = nextOrder;
+  }
+
+  // Prompt-cache locality is applied after request eligibility and task routing.
+  // Session stickiness and explicit auto-router pins remain stronger continuity
+  // decisions; quota, health, and circuit-breaker gates still run per attempt.
+  const promptCacheAffinity = applyPromptCacheAffinity(
+    orderedTargets,
+    body,
+    settings?.promptCacheAffinityEnabled !== false
+  );
+  if (promptCacheAffinity.applied) {
+    const protectedFirst =
+      (_sticky.stuck || autoUsedExplicitRouter || strategy === "quota-share") && orderedTargets[0];
+    orderedTargets = protectedFirst
+      ? [
+          protectedFirst,
+          ...promptCacheAffinity.targets.filter((target) => target !== protectedFirst),
+        ]
+      : promptCacheAffinity.targets;
+    log.debug?.("COMBO", "Prompt-cache affinity applied", {
+      source: promptCacheAffinity.source,
+      fingerprint: promptCacheAffinity.fingerprint,
+      targetCount: orderedTargets.length,
+    });
   }
 
   // Parallel pre-screen: check provider profiles and model availability for all targets
@@ -2770,7 +2798,7 @@ async function handleRoundRobinCombo({
       { code: "context_length_exceeded", type: "invalid_request_error" }
     );
   }
-  const filteredTargets = filterTargetsByRequestCompatibility(
+  let filteredTargets = filterTargetsByRequestCompatibility(
     evalRankedTargets,
     body,
     log,
@@ -2897,7 +2925,26 @@ async function handleRoundRobinCombo({
         // stickiness engages on the /v1/responses surface, not just Chat Completions.
         normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
+  const rrAffinity = applyPromptCacheAffinity(
+    filteredTargets,
+    body,
+    settings?.promptCacheAffinityEnabled !== false
+  );
+  if (rrAffinity.applied) {
+    const stickyFirst = _rrSessionSticky.stuck ? _rrSessionSticky.targets[0] : null;
+    filteredTargets = stickyFirst
+      ? [stickyFirst, ...rrAffinity.targets.filter((target) => target !== stickyFirst)]
+      : rrAffinity.targets;
+    log.debug?.("COMBO-RR", "Prompt-cache affinity applied", {
+      source: rrAffinity.source,
+      fingerprint: rrAffinity.fingerprint,
+      targetCount: filteredTargets.length,
+    });
+  }
   let rrStartIndex = startIndex;
+  if (rrAffinity.applied) {
+    rrStartIndex = 0;
+  }
   if (_rrSessionSticky.stuck) {
     const stickyIdx = filteredTargets.findIndex(
       (t) => t.connectionId === _rrSessionSticky.targets[0]?.connectionId
