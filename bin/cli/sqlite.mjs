@@ -75,6 +75,18 @@ export function createSqliteNativeError(error) {
         "(rebuilds into a user-writable runtime; works without a C++ toolchain)."
     );
   }
+  if (
+    message.includes("Could not locate the bindings file") ||
+    message.includes("MODULE_NOT_FOUND") ||
+    message.includes("Cannot find module 'better-sqlite3'")
+  ) {
+    return new Error(
+      "better-sqlite3 native binding could not be found (no prebuilt addon for this platform). " +
+        "This is common under `npx`, which runs a fresh, ephemeral install that never built the addon. " +
+        "Run: omniroute runtime repair  " +
+        "(rebuilds into a user-writable runtime; works without a C++ toolchain)."
+    );
+  }
   return error;
 }
 
