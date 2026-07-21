@@ -399,6 +399,7 @@
     "node-gyp": {
       "undici": "^6.27.0"
     },
-    "adm-zip": "^0.6.0"
+    "adm-zip": "^0.6.0",
+    "shell-quote": "^1.9.0"
   }
 }

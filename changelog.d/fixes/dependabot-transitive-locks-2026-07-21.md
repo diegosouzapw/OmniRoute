@@ -1,0 +1,1 @@
+- fix(deps): bump vulnerable transitive tar/shell-quote/js-yaml/brace-expansion (Dependabot #107-#123)
