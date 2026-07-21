@@ -222,7 +222,16 @@ export async function apiFetch(path, opts = {}) {
 }
 
 function enrichResponse(res, opts) {
-  res.exitCode = statusToExitCode(res.status);
+  // Native Response objects may already carry immutable adapter metadata.
+  // Preserve it and only add the CLI-derived code when absent.
+  if (!("exitCode" in res)) {
+    Object.defineProperty(res, "exitCode", {
+      value: statusToExitCode(res.status),
+      configurable: true,
+      enumerable: false,
+      writable: true,
+    });
+  }
   res.json = res.json.bind(res);
   res.text = res.text.bind(res);
   if (!res.ok && !opts.acceptNotOk) {
