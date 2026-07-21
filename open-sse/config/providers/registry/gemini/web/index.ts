@@ -11,6 +11,6 @@ export const gemini_webProvider: RegistryEntry = {
   models: [
     { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
     { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
-    { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite" },
+    { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", toolCalling: false },
   ],
 };
