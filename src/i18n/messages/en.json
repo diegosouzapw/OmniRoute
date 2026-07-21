@@ -6888,6 +6888,8 @@
     "minutes": "minutes",
     "compressionModeRtk": "RTK",
     "compressionModeRtkDesc": "Command-aware tool output filtering",
+    "compressionModeCodexResponses": "Responses tool output",
+    "compressionModeCodexResponsesDesc": "Conservative compression for eligible shell, patch, search, build, and JSON outputs",
     "compressionModeStacked": "Stacked",
     "compressionModeStackedDesc": "RTK tool-output filtering followed by Caveman message compression",
     "qdrantTitle": "Qdrant (Vector memory)",

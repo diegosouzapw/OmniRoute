@@ -1095,11 +1095,31 @@ export const compressionStatusTool: McpToolDefinition<
 export const compressionConfigureInput = z.object({
   enabled: z.boolean().optional(),
   strategy: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "omniglyph"])
+    .enum([
+      "off",
+      "lite",
+      "standard",
+      "aggressive",
+      "ultra",
+      "rtk",
+      "codex-responses",
+      "stacked",
+      "omniglyph",
+    ])
     .optional()
     .describe("Compression mode"),
   autoTriggerMode: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked", "omniglyph"])
+    .enum([
+      "off",
+      "lite",
+      "standard",
+      "aggressive",
+      "ultra",
+      "rtk",
+      "codex-responses",
+      "stacked",
+      "omniglyph",
+    ])
     .optional(),
   maxTokens: z
     .number()
@@ -1132,7 +1152,7 @@ export const compressionConfigureTool: McpToolDefinition<
 > = {
   name: "omniroute_compression_configure",
   description:
-    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
+    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/codex-responses/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
   inputSchema: compressionConfigureInput,
   outputSchema: compressionConfigureOutput,
   scopes: ["write:compression"],
@@ -1142,7 +1162,7 @@ export const compressionConfigureTool: McpToolDefinition<
 };
 
 export const setCompressionEngineInput = z.object({
-  engine: z.enum(["off", "caveman", "rtk", "stacked"]).optional(),
+  engine: z.enum(["off", "caveman", "rtk", "codex-responses", "stacked"]).optional(),
   cavemanIntensity: z.enum(["lite", "full", "ultra"]).optional(),
   rtkIntensity: z.enum(["minimal", "standard", "aggressive"]).optional(),
   outputMode: z.boolean().optional(),

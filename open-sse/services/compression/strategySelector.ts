@@ -30,6 +30,7 @@ import {
 } from "./stackedStepCore.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
+import { codexResponsesEngine } from "./engines/codexResponses/index.ts";
 import { applyOmniglyphSingleMode } from "./engines/omniglyphSingleMode.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
 import { adaptBodyForCompression } from "./bodyAdapter.ts";
@@ -322,11 +323,26 @@ function runCompression(
       config: { ...(options?.config?.rtkConfig ?? {}), enabled: true },
     });
   }
+  if (mode === "codex-responses") {
+    const adapter = adaptBodyForCompression(
+      body,
+      options?.config?.codexResponsesConfig?.preserveToolNames
+    );
+    const result = codexResponsesEngine.apply(adapter.body, {
+      ...options,
+      config: options?.config,
+      stepConfig: { enabled: true },
+    });
+    return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
+  }
   if (mode === "omniglyph") {
     // omniglyph is async-only — use applyCompressionAsync. Safe no-op here.
     return { body, compressed: false, stats: null };
   }
-  const adapter = adaptBodyForCompression(body);
+  const adapter = adaptBodyForCompression(
+    body,
+    options?.config?.codexResponsesConfig?.preserveToolNames
+  );
   const compressionBody = adapter.body;
   if (mode === "lite") {
     const result = applyLiteCompression(compressionBody, {
@@ -501,7 +517,10 @@ async function runCompressionAsync(
   // Single-mode omniglyph (async-only) — resolution lives in engines/omniglyphSingleMode.ts.
   if (mode === "omniglyph") return applyOmniglyphSingleMode(body, options);
   if (mode === "stacked") {
-    const adapter = adaptBodyForCompression(body);
+    const adapter = adaptBodyForCompression(
+      body,
+      options?.config?.codexResponsesConfig?.preserveToolNames
+    );
     const result = await applyStackedCompressionAsync(
       adapter.body,
       options?.config?.stackedPipeline,
@@ -545,7 +564,10 @@ async function applyUltraAsync(
   // config.ultraEngine === "slm" and the worker backend is available). This is the
   // Phase-4 (B) path; it fail-opens to the heuristic and records the resolved tier.
   if (!modelPath) {
-    const adapter = adaptBodyForCompression(body);
+    const adapter = adaptBodyForCompression(
+      body,
+      options?.config?.codexResponsesConfig?.preserveToolNames
+    );
     const messages = (adapter.body.messages ?? []) as Array<{
       role: string;
       content?: string | unknown[];
@@ -622,7 +644,7 @@ async function applyUltraAsync(
 function normalizePipelineStep(step: CompressionPipelineStep | string): CompressionPipelineStep {
   if (typeof step !== "string") return step;
   if (step === "standard") return { engine: "caveman" };
-  if (step === "rtk") return { engine: "rtk" };
+  if (step === "rtk" || step === "codex-responses") return { engine: step };
   if (step === "lite" || step === "aggressive" || step === "ultra") return { engine: step };
   return { engine: "caveman" };
 }
