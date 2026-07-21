@@ -19,9 +19,10 @@ import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 import { KiroService } from "@/lib/oauth/services/kiro";
 import { usesCcWireImage } from "@omniroute/open-sse/services/ccWireImageBuiltins.ts";
 import {
-  buildProviderHeaders,
-  buildProviderUrl,
-} from "@omniroute/open-sse/services/provider.ts";
+  isAlibabaRegionalProvider,
+  resolveAlibabaProviderBaseUrl,
+} from "@/shared/constants/alibabaProviderRegions";
+import { buildProviderHeaders, buildProviderUrl } from "@omniroute/open-sse/services/provider.ts";
 
 import {
   OPENAI_LIKE_FORMATS,
@@ -80,6 +81,7 @@ import {
   validateKieProvider,
   validateAwsPollyProvider,
   validateBailianCodingPlanProvider,
+  validateQwenCloudTokenPlanProvider,
   validateRekaProvider,
   validateMaritalkProvider,
   validateNlpCloudProvider,
@@ -501,6 +503,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
+    "qwen-cloud-token-plan": validateQwenCloudTokenPlanProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
     datarobot: validateDataRobotProvider,
@@ -823,7 +826,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   const validationEntry = entry.testKeyBaseUrl
     ? { ...entry, baseUrl: entry.testKeyBaseUrl }
     : entry;
-  const baseUrl = resolveBaseUrl(validationEntry, providerSpecificData);
+  const usesAlibabaRegionalEndpoint = isAlibabaRegionalProvider(provider);
+  const baseUrl = usesAlibabaRegionalEndpoint
+    ? resolveAlibabaProviderBaseUrl(provider, providerSpecificData, validationEntry.baseUrl)
+    : resolveBaseUrl(validationEntry, providerSpecificData);
 
   try {
     if (OPENAI_LIKE_FORMATS.has(entry.format)) {
@@ -833,7 +839,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         headers: entry.headers || {},
         providerSpecificData,
         modelId,
-        modelsUrl: entry.testKeyModelsUrl || entry.modelsUrl,
+        modelsUrl: usesAlibabaRegionalEndpoint ? "" : entry.testKeyModelsUrl || entry.modelsUrl,
         isLocal,
       });
     }

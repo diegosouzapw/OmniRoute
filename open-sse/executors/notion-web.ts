@@ -239,6 +239,9 @@ function buildNotionContextValue(opts: {
 /**
  * Normalize OpenAI-style message content to a plain string.
  * Accepts a string or content-parts array (`{ type:"text", text }` / `{ text }`).
+ * Previously only string content was accepted — array-shaped system/user messages
+ * (common from agent clients) were silently dropped, so system/jailbreak/agentic
+ * injects never reached Notion when any message used parts.
  */
 export function extractNotionMessageText(content: unknown): string {
   if (typeof content === "string") return content;
@@ -628,7 +631,8 @@ function buildNotionMessageStep(
   contextValue: Record<string, unknown>,
   opts: { userId?: string; now: string }
 ): Record<string, unknown> | null {
-  const text = extractNotionMessageText(m?.content);
+  // Accept string OR content-parts array (agent clients often send parts).
+  const text = extractNotionMessageText((m as { content?: unknown })?.content);
   if (!text || text.length === 0) return null;
   const role = (m.role || "").toLowerCase();
 
@@ -1156,16 +1160,6 @@ function buildNotionInferenceRequestBody(opts: {
       emitInferences: false,
     },
   };
-}
-
-/** @deprecated alias — prefer buildNotionInferenceRequestBody */
-function buildNotionCreateThreadRequestBody(opts: {
-  spaceId: string;
-  userId: string;
-  threadId: string;
-  transcript: unknown;
-}): Record<string, unknown> {
-  return buildNotionInferenceRequestBody({ ...opts, createThread: true });
 }
 
 function buildNotionExecuteHeaders(opts: {

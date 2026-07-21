@@ -161,7 +161,6 @@ const executors = {
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
-  qw: new QwenWebExecutor(), // Alias
   "zai-web": new ZaiWebExecutor(),
   zw: new ZaiWebExecutor(), // Alias
   theoldllm: new TheOldLlmExecutor(),

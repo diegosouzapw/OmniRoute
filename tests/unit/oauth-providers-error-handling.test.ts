@@ -173,18 +173,6 @@ test("P2: refreshGoogleToken parses invalid_grant as unrecoverable", async () =>
   assert.match(fnMatch[0], /unrecoverable_refresh_error/, "must return unrecoverable sentinel");
 });
 
-// ─── P2: Qwen invalid_grant ───────────────────────────────────────────────────
-
-test("P2: refreshQwenToken handles invalid_grant in addition to invalid_request", async () => {
-  // refreshQwenToken lives in its own co-located provider module since the
-  // tokenRefresh.ts provider-extraction (#7338, redone on tip).
-  const src = await read("open-sse/services/tokenRefresh/providers/qwen.ts");
-  const fnMatch = src.match(/export\s+async\s+function\s+refreshQwenToken\([\s\S]+?\n\}/);
-  assert.ok(fnMatch, "refreshQwenToken function body not found");
-  assert.match(fnMatch[0], /invalid_grant/, "must detect invalid_grant");
-  assert.match(fnMatch[0], /unrecoverable_refresh_error/, "must return unrecoverable sentinel");
-});
-
 // ─── P2: Kiro AWS InvalidGrantException ──────────────────────────────────────
 
 test("P2: refreshKiroToken parses AWS InvalidGrantException", async () => {

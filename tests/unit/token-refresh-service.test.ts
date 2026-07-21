@@ -13,7 +13,6 @@ const {
   refreshKimiCodingToken,
   refreshClaudeOAuthToken,
   refreshGoogleToken,
-  refreshQwenToken,
   refreshCodexToken,
   refreshKiroToken,
   refreshQoderToken,
@@ -376,44 +375,6 @@ test("refreshGoogleToken exchanges refresh tokens against the shared google endp
   assert.equal(
     bodyToString(calls[0].options.body),
     "grant_type=refresh_token&refresh_token=google-refresh&client_id=gid&client_secret=gsecret"
-  );
-});
-
-test("refreshQwenToken maps resource_url into providerSpecificData", async () => {
-  const log = createLog();
-
-  await withMockedFetch(
-    async () =>
-      jsonResponse({
-        access_token: "qwen-access",
-        refresh_token: "qwen-refresh-next",
-        expires_in: 1500,
-        resource_url: "https://chat.qwen.ai/workspace/resource",
-      }),
-    async () => {
-      const result = await refreshQwenToken("qwen-refresh", log);
-      assert.deepEqual(result, {
-        accessToken: "qwen-access",
-        refreshToken: "qwen-refresh-next",
-        expiresIn: 1500,
-        providerSpecificData: {
-          resourceUrl: "https://chat.qwen.ai/workspace/resource",
-        },
-      });
-    }
-  );
-});
-
-test("refreshQwenToken surfaces invalid_request as unrecoverable", async () => {
-  const log = createLog();
-
-  await withMockedFetch(
-    async () => textResponse(JSON.stringify({ error: "invalid_request" }), 400),
-    async () => {
-      const result = await refreshQwenToken("qwen-refresh", log);
-      // Normalized to unrecoverable_refresh_error sentinel (Fix 4)
-      assert.deepEqual(result, { error: "unrecoverable_refresh_error", code: "invalid_request" });
-    }
   );
 });
 

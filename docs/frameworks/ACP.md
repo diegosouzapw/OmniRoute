@@ -19,7 +19,7 @@ ACP (Agent Client Protocol) is a **"CLI-as-backend" transport** for OmniRoute. I
 | **No API keys needed** | Uses your existing CLI authentication      |
 | **Native protocol**    | Uses each CLI's native input/output format |
 | **Auto-discovery**     | Detects installed CLIs on your system      |
-| **14 built-in agents** | Pre-configured for popular CLI tools       |
+| **13 built-in agents** | Pre-configured for popular CLI tools       |
 | **Custom agents**      | Add your own CLI tools via settings        |
 | **Process management** | Handles lifecycle (spawn, send, kill)      |
 
@@ -27,7 +27,7 @@ ACP (Agent Client Protocol) is a **"CLI-as-backend" transport** for OmniRoute. I
 
 ## Supported CLI Agents
 
-ACP supports **14 built-in CLI agents** out of the box:
+ACP supports **13 built-in CLI agents** out of the box:
 
 | Agent ID      | Display Name       | Binary        | Protocol |
 | ------------- | ------------------ | ------------- | -------- |
@@ -38,7 +38,7 @@ ACP supports **14 built-in CLI agents** out of the box:
 | `aider`       | Aider              | `aider`       | stdio    |
 | `opencode`    | OpenCode           | `opencode`    | stdio    |
 | `cline`       | Cline              | `cline`       | stdio    |
-| `qwen-code`   | Qwen Code          | `qwen`        | stdio    |
+| `qwen`        | Qwen Code          | `qwen --acp` | stdio    |
 | `forge`       | ForgeCode          | `forge`       | stdio    |
 | `amazon-q`    | Amazon Q Developer | `q`           | stdio    |
 | `interpreter` | Open Interpreter   | `interpreter` | stdio    |
@@ -407,7 +407,7 @@ Each ACP session runs in its own child process. The process is killed when the s
 
 **Problem**: `acpManager.spawn()` throws `Unknown agent: <id>`
 
-**Solution**: Only 4 agents are allowed in `spawn()`:
+**Solution**: Only these agents are allowed in `spawn()`:
 
 - `claude`
 - `codex`
