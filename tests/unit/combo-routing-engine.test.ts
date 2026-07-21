@@ -2058,6 +2058,57 @@ test("handleComboChat eval-driven routing prioritizes higher scoring evaluated t
   assert.deepEqual(calls, ["openai/eval-high"]);
 });
 
+test("cache-optimized preserves eval routing when no reusable cache key exists", async () => {
+  evalsDb.saveEvalRun({
+    suiteId: "cache-miss-routing",
+    suiteName: "Cache Miss Routing",
+    target: { type: "model", id: "openai/cache-low", label: "Model: openai/cache-low" },
+    summary: { total: 10, passed: 2, failed: 8, passRate: 20 },
+    avgLatencyMs: 100,
+    results: [],
+    createdAt: new Date().toISOString(),
+  });
+  evalsDb.saveEvalRun({
+    suiteId: "cache-miss-routing",
+    suiteName: "Cache Miss Routing",
+    target: { type: "model", id: "openai/cache-high", label: "Model: openai/cache-high" },
+    summary: { total: 10, passed: 10, failed: 0, passRate: 100 },
+    avgLatencyMs: 100,
+    results: [],
+    createdAt: new Date().toISOString(),
+  });
+
+  const calls: string[] = [];
+  const result = await handleComboChat({
+    body: { messages: [{ role: "user", content: "First turn without reusable prefix" }] },
+    combo: {
+      name: "cache-optimized-miss",
+      strategy: "cache-optimized",
+      models: ["openai/cache-low", "openai/cache-high"],
+      config: {
+        evalRouting: {
+          enabled: true,
+          suiteIds: ["cache-miss-routing"],
+          qualityWeight: 1,
+          latencyWeight: 0,
+        },
+      },
+    },
+    handleSingleModel: async (_body: any, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: { promptCacheAffinityEnabled: false },
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["openai/cache-high"]);
+});
+
 test("handleComboChat eval-driven routing ignores stale and undersized eval runs", async () => {
   evalsDb.saveEvalRun({
     suiteId: "routing-quality",

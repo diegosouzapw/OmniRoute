@@ -1302,12 +1302,17 @@ export async function handleComboChat({
       apiKeyAllowedConnections,
     });
   }
+  // An explicit cache-optimized combo outranks the global cache-affinity default,
+  // but only protects its ordering when this request actually produced a reusable
+  // cache key. Cache misses retain the normal session/eval routing behavior.
+  const cacheStrategyAffinityApplied =
+    strategy === "cache-optimized" && applyPromptCacheAffinity(orderedTargets, body).applied;
   // #6168: session stickiness opt-out. Per-combo `config.disableSessionStickiness`
   // overrides the global `settings.disableSessionStickiness` fallback (default false,
   // preserving the #3825 prompt-cache/504 fix). When disabled, skip the reorder and
   // treat the result as a no-op so the recordStickyBinding write-back below is skipped.
   const disableSessionStickiness =
-    strategy === "cache-optimized" ||
+    cacheStrategyAffinityApplied ||
     resolveDisableSessionStickiness(
       config as Record<string, unknown> | null | undefined,
       settings as Record<string, unknown> | null | undefined
@@ -1321,7 +1326,7 @@ export async function handleComboChat({
         normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
   orderedTargets = _sticky.targets;
-  if (strategy !== "cache-optimized") {
+  if (!cacheStrategyAffinityApplied) {
     orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
   }
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
