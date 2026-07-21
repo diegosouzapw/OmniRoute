@@ -5240,6 +5240,14 @@
     "proxyPoolTab": "Pool de Proxy",
     "freePoolTab": "Pool Gratuito",
     "proxyDocumentationTab": "Documentação",
+    "proxySubscriptionsTab": "Assinaturas",
+    "proxySubscription": {
+      "error": {
+        "LOCAL_CORE_ENDPOINT_INVALID": "O endpoint do core local é inválido; nós SS/VMess/Trojan/VLESS foram ignorados.",
+        "NEEDS_CORE_NOT_CONFIGURED": "Esta assinatura tem nós que precisam de um core local (SS/VMess/Trojan/VLESS); eles não são roteados até você configurar o endpoint SOCKS5 do core local.",
+        "NO_USABLE_NODES": "A assinatura não retornou nós utilizáveis (http/https/socks5 ou nós com endpoint de core local)."
+      }
+    },
     "bulkHealthcheck": "Verificação de integridade em massa",
     "bulkHealthcheckDesc": "Teste todos os proxies configurados contra uma URL de destino para encontrar quais funcionam.",
     "healthcheckTesting": "Testando...",

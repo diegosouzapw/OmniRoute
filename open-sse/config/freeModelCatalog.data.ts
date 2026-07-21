@@ -443,7 +443,7 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "siliconflow", modelId: "zai-org/GLM-4.7", displayName: "GLM 4.7", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "siliconflow", tos: "caution" },
   { provider: "siliconflow", modelId: "openai/gpt-oss-120b", displayName: "GPT OSS 120B", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "siliconflow", tos: "caution" },
   { provider: "siliconflow", modelId: "baidu/ERNIE-4.5-300B-A47B", displayName: "ERNIE 4.5 300B", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-uncapped", poolKey: "siliconflow", tos: "caution" },
-  { provider: "sparkdesk", modelId: "general", displayName: "General", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "sparkdesk", tos: "caution" },
+  { provider: "sparkdesk", modelId: "lite", displayName: "Spark Lite", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "sparkdesk", tos: "caution" },
   { provider: "stepfun", modelId: "step-1v", displayName: "Step 1V", monthlyTokens: 0, creditTokens: 0, freeType: "one-time-initial", poolKey: "stepfun", tos: "ok" },
   { provider: "t3-web", modelId: "claude-opus-4", displayName: "Claude Opus 4 (via t3.chat)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "t3-web", tos: "avoid" },
   { provider: "t3-web", modelId: "claude-sonnet-4", displayName: "Claude Sonnet 4 (via t3.chat)", monthlyTokens: 0, creditTokens: 0, freeType: "recurring-daily", poolKey: "t3-web", tos: "avoid" },

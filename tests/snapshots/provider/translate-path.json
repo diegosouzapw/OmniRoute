@@ -2476,8 +2476,8 @@
       }
     },
     "url": {
-      "nonStream": "https://spark-api.xf-yun.com/v1/chat/completions",
-      "stream": "https://spark-api.xf-yun.com/v1/chat/completions"
+      "nonStream": "https://spark-api-open.xf-yun.com/v1/chat/completions",
+      "stream": "https://spark-api-open.xf-yun.com/v1/chat/completions"
     }
   },
   "inference-net": {
@@ -3785,6 +3785,29 @@
       "stream": "https://serving.app.predibase.com/v1/chat/completions"
     }
   },
+  "promptql": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql",
+      "stream": "https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql"
+    }
+  },
   "publicai": {
     "format": "openai",
     "headers": {
@@ -4152,8 +4175,8 @@
       }
     },
     "url": {
-      "nonStream": "https://spark-api.xf-yun.com/v3.1/chat/completions",
-      "stream": "https://spark-api.xf-yun.com/v3.1/chat/completions"
+      "nonStream": "https://spark-api-open.xf-yun.com/v1/chat/completions",
+      "stream": "https://spark-api-open.xf-yun.com/v1/chat/completions"
     }
   },
   "stepfun": {

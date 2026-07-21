@@ -5870,6 +5870,14 @@
     "proxyPoolTab": "代理池",
     "freePoolTab": "免费泳池",
     "proxyDocumentationTab": "文档",
+    "proxySubscriptionsTab": "订阅代理",
+    "proxySubscription": {
+      "error": {
+        "LOCAL_CORE_ENDPOINT_INVALID": "本地内核端点格式无效，已忽略 SS/VMess/Trojan/VLESS 节点。",
+        "NEEDS_CORE_NOT_CONFIGURED": "订阅包含需本地内核的节点（SS/VMess/Trojan/VLESS 等），配置“本地内核 SOCKS5 端点”后才会被路由。",
+        "NO_USABLE_NODES": "订阅未解析出任何可用节点（http/https/socks5 或带本地内核端点的节点）。"
+      }
+    },
     "perKeyProxyEnabled": "启用按密钥代理分配",
     "perKeyProxyEnabledDesc": "启用后，每个提供商连接可以使用自己的代理分配",
     "proxyPool": "代理池",

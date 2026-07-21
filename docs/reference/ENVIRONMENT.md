@@ -789,6 +789,19 @@ Automatic model pricing data synchronization from external sources.
 
 ---
 
+## PromptQL Playground Provider (Unofficial/Experimental)
+
+Reverse-engineered GraphQL session bridge for prompt.ql.app (`src/shared/constants/providers/web-cookie.ts`). All optional — defaults point at the public playground endpoints; override only for a self-hosted/alternate PromptQL deployment.
+
+| Variable                     | Default                                                                | Source File                              | Description                                          |
+| ----------------------------- | ----------------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------- |
+| `PROMPTQL_GRAPHQL_ENDPOINT`   | `https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql`      | `open-sse/executors/promptql.ts`          | GraphQL endpoint used for chat/session operations.     |
+| `PROMPTQL_CREDITS_ENDPOINT`   | `https://data.pro.ql.app/v1/graphql`                                     | `open-sse/executors/promptql.ts`, `open-sse/services/usage/promptql.ts` | GraphQL endpoint used to query credit balance/usage.   |
+| `PROMPTQL_TOKEN_REFRESH_URL`  | `https://auth.pro.ql.app/ddn/project/token`                              | `open-sse/executors/promptql.ts`          | Endpoint used for best-effort token refresh.           |
+| `PROMPTQL_POLL_TIMEOUT_MS`    | `180000`                                                                 | `open-sse/executors/promptql.ts`          | Max time (ms) to poll `thread_events` before timing out. |
+
+---
+
 ## 19. Model Sync (Dev)
 
 | Variable                            | Default       | Source File                        | Description                                                                                                                                                                                                                                                                                            |
