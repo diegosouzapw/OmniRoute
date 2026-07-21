@@ -132,12 +132,12 @@ export const clineProvider: RegistryEntry = {
       maxOutputTokens: 32768,
     },
     {
-      id: "nvidia/nemotron-3-ultra-550b-a55b",
+      id: "nvidia/nemotron-3-ultra-550b-a55b:free",
       name: "Nemotron 3 Ultra (Free)",
       toolCalling: true,
       supportsReasoning: true,
-      contextLength: 1048576,
-      maxInputTokens: 1048576,
+      contextLength: 1000000,
+      maxInputTokens: 1000000,
       maxOutputTokens: 65536,
     },
     {
