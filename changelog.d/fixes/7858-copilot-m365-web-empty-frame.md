@@ -1,0 +1,1 @@
+- fix(providers): copilot-m365-web now fails loudly on a fully-empty turn instead of a silent `stop`, and the enterprise tier threads its own `optionsSets`/`tone`/`allowedMessageTypes` into the chat invocation instead of only changing the WS URL (#7858, #7870)

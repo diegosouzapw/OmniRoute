@@ -108,6 +108,8 @@ export interface M365ConnectionParams {
   isEdu?: string;
   licenseType?: string;
   agent?: string;
+  /** Resolved tier name (#7870) — threads into the chat invocation payload, not just the URL. */
+  tier?: "edu" | "enterprise";
 }
 
 /** A new 32-hex chat session id (== XRoutingParameterSessionKey == clientrequestid). */
@@ -196,7 +198,7 @@ export function resolveConnectionParams(
  */
 function resolveTierOverrides(
   psd: JsonRecord
-): Pick<M365ConnectionParams, "scenario" | "isEdu" | "licenseType" | "agent"> {
+): Pick<M365ConnectionParams, "scenario" | "isEdu" | "licenseType" | "agent" | "tier"> {
   const tier = typeof psd.tier === "string" ? psd.tier.toLowerCase() : "";
   const isEduTier = tier === "edu" || tier === "included";
   const isEnterpriseTier = tier === "enterprise" || tier === "work";
@@ -217,6 +219,7 @@ function resolveTierOverrides(
     agent:
       (typeof psd.agent === "string" && psd.agent) ||
       (isEnterpriseTier ? M365_ENTERPRISE_OVERRIDES.agent : undefined),
+    tier: isEduTier ? "edu" : isEnterpriseTier ? "enterprise" : undefined,
   };
 }
 
