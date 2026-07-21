@@ -5,6 +5,7 @@
  * context-optimized, context-relay, and fusion strategies
  */
 
+import { randomUUID } from "node:crypto";
 import {
   checkFallbackError,
   classifyLockoutReason,
@@ -26,6 +27,7 @@ import {
 } from "../utils/error.ts";
 import type { ComboDiagnostics } from "../utils/error.ts";
 import { buildTargetTimeoutRunner } from "./combo/targetTimeoutRunner.ts";
+import { nextRoutingTransition, summarizeAccountRouting } from "./combo/routingInstrumentation.ts";
 import { recordComboRequest, recordComboShadowRequest, getComboMetrics } from "./comboMetrics.ts";
 import {
   resolveComboConfig,
@@ -1014,6 +1016,9 @@ export async function handleComboChat({
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
   const maxSetRetries = config.maxSetRetries ?? 0;
   const setRetryDelayMs = resolveDelayMs(config.setRetryDelayMs, 2000);
+  // Server-local correlation only; never trust a client request id for routing logs.
+  const routingCorrelationId = randomUUID();
+  const attemptedConnectionIds = new Set<string>();
 
   const isTargetSelectableForWeighted = async (target: ResolvedComboTarget): Promise<boolean> => {
     const rawModel = parseModel(target.modelStr).model || target.modelStr;
@@ -1390,6 +1395,8 @@ export async function handleComboChat({
         const modelStr = target.modelStr;
         const rawModel = parseModel(modelStr).model || modelStr;
         const provider = target.provider;
+        if (typeof target.connectionId === "string")
+          attemptedConnectionIds.add(target.connectionId);
 
         const cb = getCircuitBreaker(provider);
         if (cb.getStatus().state === "OPEN") {
@@ -2131,6 +2138,34 @@ export async function handleComboChat({
           // outage signalled via X-Omni-Fallback-Hint: connection_cooldown) apply connection
           // cooldown only — do NOT trip the whole-provider breaker.
           const nextTarget = orderedTargets[i + 1];
+          const candidateConnectionIds = orderedTargets
+            .filter((candidate) => {
+              const candidateRawModel = parseModel(candidate.modelStr).model || candidate.modelStr;
+              return candidate.provider === provider && candidateRawModel === rawModel;
+            })
+            .map((candidate) => candidate.connectionId)
+            .filter((connectionId): connectionId is string => typeof connectionId === "string");
+          const routingSummary = summarizeAccountRouting({
+            correlationId: routingCorrelationId,
+            provider,
+            model: rawModel,
+            candidateConnectionIds,
+            attemptedConnectionIds,
+          });
+          const routingTransition = nextRoutingTransition({
+            sameProvider: nextTarget?.provider === provider,
+            sameModel:
+              (parseModel(nextTarget?.modelStr || "").model || nextTarget?.modelStr) === rawModel,
+            retryableAccountFailure: fallbackResult.shouldFallback,
+            eligibleUnattemptedCount: routingSummary.eligibleUnattemptedCount,
+          });
+          log.info("ROUTING", JSON.stringify({ ...routingSummary, ...routingTransition }));
+          if (routingTransition.invariantViolation) {
+            log.warn(
+              "ROUTING",
+              JSON.stringify({ ...routingSummary, event: "invariant_violation" })
+            );
+          }
           const sameProviderNext =
             typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
           if (
