@@ -80,8 +80,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   // Qoder connections are PAT-based (authType "apikey"); the usage fetcher
   // exchanges the PAT for a job token and reads openapi.qoder.sh/user/status.
   "qoder",
-  // PromptQL playground JWT (authType apikey) → getCreditSummary USD credits
-  "promptql",
+  "promptql", // PromptQL playground JWT → getCreditSummary USD credits
   "pql",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;

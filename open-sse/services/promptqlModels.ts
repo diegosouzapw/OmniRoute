@@ -189,7 +189,7 @@ export async function discoverPromptQlModels(opts: {
   }
   const rows = json.data?.llm_config || [];
   return rows
-    .map((r) => {
+    .map((r): PromptQlModel | null => {
       const id = (r.model_reference || r.model_id || r.id || "").trim();
       if (!id) return null;
       return {
@@ -197,7 +197,7 @@ export async function discoverPromptQlModels(opts: {
         name: (r.display_label || id).trim(),
         configId: r.id,
         modelId: r.model_id,
-      } satisfies PromptQlModel;
+      };
     })
     .filter((x): x is PromptQlModel => Boolean(x));
 }

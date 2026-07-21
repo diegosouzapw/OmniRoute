@@ -18,53 +18,20 @@
  * when providerSpecificData.cookie is stored.
  */
 import { type UsageQuota } from "./quota.ts";
+import {
+  normalizePromptQlToken,
+  looksLikeUuid,
+  extractProjectIdFromToken,
+  decodeJwtPayload,
+} from "../promptql/jwt.ts";
+
+// Re-exported for backward compatibility — external/test consumers previously
+// imported extractProjectIdFromToken from this module (module split for
+// file-size cap + dedup with open-sse/executors/promptql.ts — see PR #7911 review).
+export { extractProjectIdFromToken };
 
 const CREDITS_GQL =
   process.env.PROMPTQL_CREDITS_ENDPOINT || "https://data.pro.ql.app/v1/graphql";
-
-function normalizePromptQlToken(raw: string): string {
-  return (raw || "").trim().replace(/^Bearer\s+/i, "").trim();
-}
-
-function looksLikeUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    (value || "").trim()
-  );
-}
-
-/**
- * Project id from playground enrich-token (x-hasura-project-id) OR DDN lux JWT (aud=UUID).
- * DDN tokens are sufficient for getCreditSummary on data.pro.ql.app.
- */
-export function extractProjectIdFromToken(token: string): string {
-  try {
-    const part = token.split(".")[1];
-    if (!part) return "";
-    const json = JSON.parse(
-      Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8")
-    ) as Record<string, unknown>;
-    const hasura = json["https://promptql.hasura.io"];
-    if (hasura && typeof hasura === "object" && !Array.isArray(hasura)) {
-      const id = (hasura as Record<string, unknown>)["x-hasura-project-id"];
-      if (typeof id === "string" && id.trim()) return id.trim();
-    }
-    const direct =
-      (typeof json.project_id === "string" && json.project_id.trim()) ||
-      (typeof json.projectId === "string" && json.projectId.trim()) ||
-      "";
-    if (direct) return direct;
-    const aud = json.aud;
-    if (typeof aud === "string" && looksLikeUuid(aud)) return aud.trim();
-    if (Array.isArray(aud)) {
-      for (const a of aud) {
-        if (typeof a === "string" && looksLikeUuid(a)) return a.trim();
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-  return "";
-}
 
 const GET_CREDIT_SUMMARY = `
 query getCreditSummary($project_id: uuid!) {
@@ -152,20 +119,13 @@ function collectCreditsTokens(
 }
 
 function isLikelyDdnToken(token: string): boolean {
-  try {
-    const part = token.split(".")[1];
-    if (!part) return false;
-    const json = JSON.parse(
-      Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8")
-    ) as Record<string, unknown>;
-    const iss = typeof json.iss === "string" ? json.iss.toLowerCase() : "";
-    if (iss.includes("auth.pro.hasura.io") || iss.includes("auth.pro.ql.app")) return true;
-    if (iss === "enrich-token" || iss.includes("enrich-token")) return false;
-    const aud = json.aud;
-    if (typeof aud === "string" && looksLikeUuid(aud)) return true;
-  } catch {
-    /* ignore */
-  }
+  const json = decodeJwtPayload(token);
+  if (!json) return false;
+  const iss = typeof json.iss === "string" ? json.iss.toLowerCase() : "";
+  if (iss.includes("auth.pro.hasura.io") || iss.includes("auth.pro.ql.app")) return true;
+  if (iss === "enrich-token" || iss.includes("enrich-token")) return false;
+  const aud = json.aud;
+  if (typeof aud === "string" && looksLikeUuid(aud)) return true;
   return false;
 }
 
