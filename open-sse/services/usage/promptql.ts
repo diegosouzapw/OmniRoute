@@ -26,7 +26,17 @@ function normalizePromptQlToken(raw: string): string {
   return (raw || "").trim().replace(/^Bearer\s+/i, "").trim();
 }
 
-function extractProjectIdFromToken(token: string): string {
+function looksLikeUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    (value || "").trim()
+  );
+}
+
+/**
+ * Project id from playground enrich-token (x-hasura-project-id) OR DDN lux JWT (aud=UUID).
+ * DDN tokens are sufficient for getCreditSummary on data.pro.ql.app.
+ */
+export function extractProjectIdFromToken(token: string): string {
   try {
     const part = token.split(".")[1];
     if (!part) return "";
@@ -37,6 +47,18 @@ function extractProjectIdFromToken(token: string): string {
     if (hasura && typeof hasura === "object" && !Array.isArray(hasura)) {
       const id = (hasura as Record<string, unknown>)["x-hasura-project-id"];
       if (typeof id === "string" && id.trim()) return id.trim();
+    }
+    const direct =
+      (typeof json.project_id === "string" && json.project_id.trim()) ||
+      (typeof json.projectId === "string" && json.projectId.trim()) ||
+      "";
+    if (direct) return direct;
+    const aud = json.aud;
+    if (typeof aud === "string" && looksLikeUuid(aud)) return aud.trim();
+    if (Array.isArray(aud)) {
+      for (const a of aud) {
+        if (typeof a === "string" && looksLikeUuid(a)) return a.trim();
+      }
     }
   } catch {
     /* ignore */
@@ -101,88 +123,156 @@ function readPs(data: unknown, keys: string[]): string {
   return "";
 }
 
-export async function getPromptQlUsage(
+/**
+ * data.pro.ql.app getCreditSummary accepts DDN/lux project JWTs (aud=project UUID).
+ * Playground enrich-tokens (iss=enrich-token) are rejected with access-denied.
+ * Prefer lux/ddn tokens for credits; fall back to apiKey when it is already DDN-shaped.
+ */
+function collectCreditsTokens(
   apiKey?: string,
   providerSpecificData?: Record<string, unknown> | null
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (raw: string) => {
+    const t = normalizePromptQlToken(raw);
+    if (!t || seen.has(t)) return;
+    seen.add(t);
+    out.push(t);
+  };
+  // Explicit credits tokens first
+  push(readPs(providerSpecificData, ["luxJwt", "ddnToken", "projectToken", "creditsToken", "luxToken"]));
+  push(apiKey || "");
+  // Also allow nested vibeProxy bag (forward-compat)
+  if (providerSpecificData && typeof providerSpecificData.vibeProxy === "object") {
+    push(readPs(providerSpecificData.vibeProxy as Record<string, unknown>, ["luxJwt", "ddnToken"]));
+  }
+  // Prefer DDN/lux tokens for data.pro.ql.app over enrich-tokens
+  return out.sort((a, b) => (isLikelyDdnToken(a) ? 0 : 1) - (isLikelyDdnToken(b) ? 0 : 1));
+}
+
+function isLikelyDdnToken(token: string): boolean {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return false;
+    const json = JSON.parse(
+      Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8")
+    ) as Record<string, unknown>;
+    const iss = typeof json.iss === "string" ? json.iss.toLowerCase() : "";
+    if (iss.includes("auth.pro.hasura.io") || iss.includes("auth.pro.ql.app")) return true;
+    if (iss === "enrich-token" || iss.includes("enrich-token")) return false;
+    const aud = json.aud;
+    if (typeof aud === "string" && looksLikeUuid(aud)) return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
+}
+
+export async function getPromptQlUsage(
+  apiKey?: string,
+  providerSpecificData?: Record<string, unknown> | null,
+  connectionProjectId?: string | null
 ) {
-  const token = normalizePromptQlToken(apiKey || "");
   const cookie = readPs(providerSpecificData, ["cookie", "sessionCookie", "authCookie"]);
-  if (!token && !cookie) {
+  const tokens = collectCreditsTokens(apiKey, providerSpecificData);
+  if (!tokens.length && !cookie) {
     return { message: "PromptQL JWT not available. Paste a Bearer token to view credits." };
   }
   const projectId =
     readPs(providerSpecificData, ["projectId", "project_id", "x-hasura-project-id"]) ||
-    (token ? extractProjectIdFromToken(token) : "");
+    (typeof connectionProjectId === "string" ? connectionProjectId.trim() : "") ||
+    (tokens.length ? extractProjectIdFromToken(tokens[0]!) : "");
   if (!projectId) {
     return {
       message:
-        "Missing projectId for PromptQL credits. Set providerSpecificData.projectId or use a JWT with x-hasura-project-id.",
+        "Missing projectId for PromptQL credits. Set providerSpecificData.projectId, or use a playground JWT (x-hasura-project-id) or a DDN JWT whose aud is the project UUID.",
     };
   }
 
   try {
-    const headers: Record<string, string> = {
+    const headersBase: Record<string, string> = {
       accept: "application/graphql-response+json, application/json",
       "content-type": "application/json",
       origin: "https://prompt.ql.app",
       referer: "https://prompt.ql.app/",
       "hasura-client-name": "hasura-console",
     };
-    // SPA uses cookies for data.pro.ql.app; headless uses playground JWT Bearer.
-    if (token) headers.authorization = `Bearer ${token}`;
-    if (cookie) headers.cookie = cookie;
+    if (cookie) headersBase.cookie = cookie;
 
-    const res = await fetch(CREDITS_GQL, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        query: GET_CREDIT_SUMMARY,
-        variables: { project_id: projectId },
-        operationName: "getCreditSummary",
-      }),
-    });
-    if (!res.ok) {
-      const bodyText = await res.text().catch(() => "");
+    // Try each token (DDN first). Enrich-only accounts get a clear dual-token message.
+    let lastError = "";
+    const tryTokens = tokens.length ? tokens : [""];
+    for (const token of tryTokens) {
+      const headers = { ...headersBase };
+      if (token) headers.authorization = `Bearer ${token}`;
+      else if (!cookie) continue;
+
+      const res = await fetch(CREDITS_GQL, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          query: GET_CREDIT_SUMMARY,
+          variables: { project_id: projectId },
+          operationName: "getCreditSummary",
+        }),
+      });
+      if (!res.ok) {
+        const bodyText = await res.text().catch(() => "");
+        lastError = `HTTP ${res.status}${bodyText ? `: ${bodyText.slice(0, 200)}` : ""}`;
+        continue;
+      }
+      const json = (await res.json()) as {
+        data?: {
+          promptql_project_credit_summary?: Array<{
+            available_credits_usd_micros?: number;
+            total_drawn_usd_micros?: number;
+            remaining_credits_usd_micros?: number;
+            total_olus_used?: number;
+            last_drawdown_at?: string | null;
+          }>;
+        };
+        errors?: Array<{ message?: string }>;
+      };
+      if (json.errors?.length) {
+        lastError = json.errors.map((e) => e.message).join("; ");
+        // access-denied on enrich-token → try next token
+        if (/unauthorized|access-denied|JWT/i.test(lastError)) continue;
+        return { message: lastError, plan: "PromptQL" };
+      }
+      const row = json.data?.promptql_project_credit_summary?.[0];
+      if (!row) {
+        lastError = "No credit summary for this project (empty promptql_project_credit_summary).";
+        continue;
+      }
+      const credits = buildPromptQlCreditsQuota(row);
       return {
-        message: `PromptQL credits HTTP ${res.status}${bodyText ? `: ${bodyText.slice(0, 200)}` : ""}`,
+        plan: "PromptQL",
+        quotas: {
+          credits,
+        },
+        olusUsed: row.total_olus_used,
+        remainingUsd: credits.remaining,
+        drawnUsd: credits.used,
+        availableUsd: credits.total,
+      };
+    }
+
+    // All tokens failed — if we only had enrich-token, explain dual-token requirement.
+    const onlyEnrich =
+      tokens.length > 0 && tokens.every((t) => !isLikelyDdnToken(t));
+    if (onlyEnrich) {
+      return {
+        message:
+          "PromptQL credits need a DDN/project JWT (iss=auth.pro.hasura.io, aud=project UUID) — the playground enrich-token works for chat only. Store the DDN token as providerSpecificData.luxJwt (or paste it once so the app saves it), then refresh Limits.",
         plan: "PromptQL",
       };
     }
-    const json = (await res.json()) as {
-      data?: {
-        promptql_project_credit_summary?: Array<{
-          available_credits_usd_micros?: number;
-          total_drawn_usd_micros?: number;
-          remaining_credits_usd_micros?: number;
-          total_olus_used?: number;
-          last_drawdown_at?: string | null;
-        }>;
-      };
-      errors?: Array<{ message?: string }>;
-    };
-    if (json.errors?.length) {
-      return {
-        message: json.errors.map((e) => e.message).join("; "),
-        plan: "PromptQL",
-      };
-    }
-    const row = json.data?.promptql_project_credit_summary?.[0];
-    if (!row) {
-      return {
-        message: "No credit summary for this project (empty promptql_project_credit_summary).",
-        plan: "PromptQL",
-      };
-    }
-    const credits = buildPromptQlCreditsQuota(row);
     return {
+      message: lastError
+        ? `PromptQL credits failed: ${lastError}`
+        : "PromptQL credits failed with no usable token.",
       plan: "PromptQL",
-      quotas: {
-        credits,
-      },
-      olusUsed: row.total_olus_used,
-      remainingUsd: credits.remaining,
-      drawnUsd: credits.used,
-      availableUsd: credits.total,
     };
   } catch (err) {
     return {

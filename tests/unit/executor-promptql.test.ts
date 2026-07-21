@@ -18,13 +18,30 @@ function makeFakeJwt(claims: Record<string, unknown>): string {
   return `${header}.${payload}.sig`;
 }
 
+const PROJECT_ID = "01a0fe61-baf4-4e31-9311-8cc0bb3eba91";
+
+/** Playground enrich-token shape (chat-capable). */
 const sampleJwt = makeFakeJwt({
   "https://promptql.hasura.io": {
-    "x-hasura-project-id": "01a0fe61-baf4-4e31-9311-8cc0bb3eba91",
+    "x-hasura-project-id": PROJECT_ID,
     "x-hasura-email": "test@example.com",
   },
+  aud: "promptql.hasura.io",
+  iss: "enrich-token",
   exp: Math.floor(Date.now() / 1000) + 3600,
   iat: Math.floor(Date.now() / 1000),
+});
+
+/**
+ * Live DDN / lux project JWT shape (verified 2026-07-21):
+ * aud = project UUID, NO hasura claims. Works for getCreditSummary, not playground chat.
+ */
+const ddnLuxJwt = makeFakeJwt({
+  aud: PROJECT_ID,
+  exp: Math.floor(Date.now() / 1000) + 3600,
+  iat: Math.floor(Date.now() / 1000),
+  iss: "https://auth.pro.hasura.io/ddn/token",
+  sub: "fad1258d-520b-455c-9cc0-596ca862104b",
 });
 
 describe("PromptQl — registry consistency", () => {
@@ -45,9 +62,110 @@ describe("PromptQl — registry consistency", () => {
 });
 
 describe("PromptQl — helpers", () => {
-  it("normalizes Bearer tokens and extracts projectId", () => {
+  it("normalizes Bearer tokens and extracts projectId from enrich-token JWT", () => {
     assert.equal(mod.normalizePromptQlToken("Bearer abc.def.ghi"), "abc.def.ghi");
-    assert.equal(mod.extractProjectIdFromToken(sampleJwt), "01a0fe61-baf4-4e31-9311-8cc0bb3eba91");
+    assert.equal(mod.extractProjectIdFromToken(sampleJwt), PROJECT_ID);
+    assert.equal(mod.isPlaygroundPromptQlToken(sampleJwt), true);
+    assert.equal(mod.isDdnProjectPromptQlToken(sampleJwt), false);
+  });
+
+  it("extracts projectId from DDN lux JWT aud (no hasura claims)", () => {
+    assert.equal(mod.extractProjectIdFromToken(ddnLuxJwt), PROJECT_ID);
+    assert.equal(mod.isPlaygroundPromptQlToken(ddnLuxJwt), false);
+    assert.equal(mod.isDdnProjectPromptQlToken(ddnLuxJwt), true);
+    // usage leaf must match (same claim logic)
+    assert.equal(usage.extractProjectIdFromToken(ddnLuxJwt), PROJECT_ID);
+    assert.equal(usage.extractProjectIdFromToken(sampleJwt), PROJECT_ID);
+  });
+
+  it("resolvePromptQlCredentials accepts PSD projectId and connection.projectId", () => {
+    const fromPsd = mod.resolvePromptQlCredentials({
+      apiKey: ddnLuxJwt,
+      providerSpecificData: { projectId: PROJECT_ID },
+    } as never);
+    assert.equal(fromPsd.projectId, PROJECT_ID);
+    assert.equal(fromPsd.token, ddnLuxJwt);
+
+    const fromConn = mod.resolvePromptQlCredentials({
+      apiKey: ddnLuxJwt,
+      projectId: PROJECT_ID,
+    } as never);
+    assert.equal(fromConn.projectId, PROJECT_ID);
+
+    const fromAudOnly = mod.resolvePromptQlCredentials({
+      apiKey: ddnLuxJwt,
+    } as never);
+    assert.equal(fromAudOnly.projectId, PROJECT_ID);
+  });
+
+  it("buildPromptQlCreditsQuota maps live ge_balance micros correctly", () => {
+    // Real capture: remaining 28484763, drawn 21515237, available 50000000 → $28.48 / $21.52 / $50
+    const q = usage.buildPromptQlCreditsQuota({
+      available_credits_usd_micros: 50_000_000,
+      total_drawn_usd_micros: 21_515_237,
+      remaining_credits_usd_micros: 28_484_763,
+    });
+    assert.equal(q.total, 50);
+    assert.equal(q.remaining, 28.48);
+    assert.equal(q.used, 21.52);
+    assert.ok((q.remainingPercentage ?? 0) > 50 && (q.remainingPercentage ?? 0) < 60);
+    // Must NOT be the fake 0 used / 100% remaining default
+    assert.notEqual(q.used, 0);
+    assert.notEqual(q.remainingPercentage, 100);
+  });
+
+  it("getPromptQlUsage prefers PSD.luxJwt (DDN) over enrich apiKey for credits", async () => {
+    const originalFetch = globalThis.fetch;
+    const calls: string[] = [];
+    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      const headers = init?.headers as Record<string, string> | undefined;
+      const auth = String(headers?.authorization || headers?.Authorization || "");
+      calls.push(auth);
+      // Reject ONLY the enrich-token JWT (full match), accept DDN luxJwt
+      if (auth.includes(sampleJwt)) {
+        return new Response(
+          JSON.stringify({
+            errors: [{ message: "Authentication hook unauthorized this request" }],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        );
+      }
+      if (!auth.includes(ddnLuxJwt)) {
+        return new Response(
+          JSON.stringify({ errors: [{ message: "unexpected token in test" }] }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          data: {
+            promptql_project_credit_summary: [
+              {
+                available_credits_usd_micros: 50_000_000,
+                total_drawn_usd_micros: 22_000_000,
+                remaining_credits_usd_micros: 28_000_000,
+              },
+            ],
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }) as typeof fetch;
+    try {
+      const result = (await usage.getPromptQlUsage(sampleJwt, {
+        projectId: PROJECT_ID,
+        luxJwt: ddnLuxJwt,
+      })) as { quotas?: { credits?: { used?: number; remaining?: number; total?: number } }; message?: string };
+      assert.ok(result.quotas?.credits, `expected credits quota from luxJwt, got ${JSON.stringify(result)}`);
+      assert.equal(result.quotas!.credits!.total, 50);
+      assert.equal(result.quotas!.credits!.used, 22);
+      assert.equal(result.quotas!.credits!.remaining, 28);
+      // First attempt should use luxJwt (DDN preferred over enrich apiKey)
+      assert.ok(calls.length >= 1);
+      assert.ok(calls[0]!.includes(ddnLuxJwt), `first call should use DDN luxJwt, got ${calls[0]?.slice(0, 80)}`);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it("extracts final_response.message from AgentMessage event_data", () => {
@@ -169,6 +287,26 @@ describe("PromptQlExecutor — auth / validation", () => {
     } as never);
     assert.equal(result.response.status, 400);
   });
+
+  it("rejects DDN lux JWT for chat with clear paste instructions (not Missing projectId)", async () => {
+    const executor = new mod.PromptQlExecutor();
+    const result = await executor.execute({
+      model: "vertex-claude-fable-5",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: ddnLuxJwt },
+      signal: null,
+    } as never);
+    assert.equal(result.response.status, 401);
+    const errBody = (await result.response.json()) as { error: { message: string } };
+    assert.match(errBody.error.message, /DDN|enrich-token|credits only/i);
+    assert.doesNotMatch(errBody.error.message, /Missing projectId/i);
+  });
+
+  it("does not claim Missing projectId when DDN JWT has aud project UUID", async () => {
+    // Pre-fix regression: extractProjectId ignored aud → 400 Missing projectId
+    assert.equal(mod.extractProjectIdFromToken(ddnLuxJwt), PROJECT_ID);
+  });
 });
 
 describe("PromptQl — thread continuity (no cross-chat sticky)", () => {
@@ -289,6 +427,76 @@ describe("PromptQl — thread continuity (no cross-chat sticky)", () => {
     ]);
     assert.equal(a2.threadId, "thA");
     assert.equal(b2.threadId, "thB");
+  });
+
+  it("tool-result follow-up sticks even when assistant is tool_calls-only (empty content)", () => {
+    mod.clearPromptQlThreadBindingsForTests();
+    const turn1 = [
+      {
+        role: "user",
+        content:
+          "I am testing an interoperability layer between PromptQL and my desktop application.\n\nCurrent request: find skills about security",
+      },
+    ];
+    const asst =
+      'Intent: Search online skills.\n```json\n{"tool":"find_skills_online","args":{"query":"prompt injection"}}\n```';
+    mod.storePromptQlThreadAfterTurn(projectId, turn1, asst, "thread-tools");
+
+    // Client re-sends assistant as OpenAI tool_calls with null content + tool result user
+    const turn2 = [
+      { role: "user", content: "find skills about security" },
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [
+          {
+            id: "call_1",
+            type: "function",
+            function: {
+              name: "find_skills_online",
+              arguments: '{"query":"prompt injection"}',
+            },
+          },
+        ],
+      },
+      {
+        role: "user",
+        content:
+          "@test Here is data returned by my desktop application after applying the previous recommendation " +
+          "(for your context only — you do not execute anything):\n\n[tool result for find_skills_online]\nHere are practical approaches...",
+      },
+    ];
+    const r = mod.resolvePromptQlThreadBinding(projectId, turn2 as never);
+    assert.equal(r.isFollowUp, true, "must stick — not start_thread");
+    assert.equal(r.threadId, "thread-tools");
+  });
+
+  it("tool-role result (not converted to user) still sticks via last assistant", () => {
+    mod.clearPromptQlThreadBindingsForTests();
+    const turn1 = [{ role: "user", content: "do thing" }];
+    const asst = 'Intent: X\n```json\n{"tool":"run_cmd","args":{"cmd":"ls"}}\n```';
+    mod.storePromptQlThreadAfterTurn(projectId, turn1, asst, "thread-tool-role");
+    const turn2 = [
+      { role: "user", content: "do thing" },
+      { role: "assistant", content: asst },
+      { role: "tool", content: "[tool result for run_cmd]\nok" },
+    ];
+    const r = mod.resolvePromptQlThreadBinding(projectId, turn2 as never);
+    assert.equal(r.isFollowUp, true);
+    assert.equal(r.threadId, "thread-tool-role");
+  });
+
+  it("extractMessageTextFromMessage reads tool_calls when content is null", () => {
+    const text = mod.extractMessageTextFromMessage({
+      role: "assistant",
+      content: null,
+      tool_calls: [
+        {
+          function: { name: "find_skills_online", arguments: '{"q":"x"}' },
+        },
+      ],
+    } as never);
+    assert.match(text, /find_skills_online/);
   });
 
   it("follows up when last user turn was rewritten (UREW) but assistant matches", () => {

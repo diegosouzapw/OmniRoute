@@ -139,6 +139,10 @@ query QueryThreadEvents($thread_id: uuid!, $after_event_id: bigint!) {
 interface ChatMessage {
   role: string;
   content: unknown;
+  /** OpenAI tool-call shape — content is often null when these are present. */
+  tool_calls?: unknown;
+  function_call?: unknown;
+  name?: string;
 }
 
 interface PromptQlRequestBody {
@@ -191,15 +195,79 @@ export function decodeJwtPayload(token: string): Record<string, unknown> | null 
   }
 }
 
+/** UUID v1–v5 (case-insensitive) — used by PromptQL project ids. */
+export function looksLikeUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    (value || "").trim()
+  );
+}
+
+/**
+ * Extract PromptQL project id from a JWT.
+ *
+ * Two live token shapes exist (verified 2026-07-21 against prompt.ql.app):
+ *  1. **Playground enrich-token** (`iss: enrich-token`, `aud: promptql.hasura.io`)
+ *     → project id in `https://promptql.hasura.io`.`x-hasura-project-id`
+ *     → required for start_thread / send_thread_message / thread_events
+ *  2. **DDN / lux project token** (`iss: https://auth.pro.hasura.io/ddn/token`)
+ *     → project id is the JWT **`aud`** (UUID); no hasura namespace claims
+ *     → works for data.pro.ql.app getCreditSummary (Limits), NOT for playground chat
+ */
 export function extractProjectIdFromToken(token: string): string {
   const payload = decodeJwtPayload(token);
   if (!payload) return "";
+
   const hasura = payload["https://promptql.hasura.io"];
   if (hasura && typeof hasura === "object" && !Array.isArray(hasura)) {
     const id = readStr((hasura as Record<string, unknown>)["x-hasura-project-id"]);
+    if (id && looksLikeUuid(id)) return id;
     if (id) return id;
   }
-  return readStr(payload.project_id) || readStr(payload.projectId);
+
+  const direct = readStr(payload.project_id) || readStr(payload.projectId);
+  if (direct) return direct;
+
+  // DDN lux JWT: aud is the project UUID (not "promptql.hasura.io")
+  const aud = payload.aud;
+  if (typeof aud === "string" && looksLikeUuid(aud)) return aud.trim();
+  if (Array.isArray(aud)) {
+    for (const a of aud) {
+      if (typeof a === "string" && looksLikeUuid(a)) return a.trim();
+    }
+  }
+  return "";
+}
+
+/**
+ * True when the JWT is a playground enrich-token (chat-capable).
+ * DDN lux tokens work for credits only and must NOT be used for playground GraphQL.
+ */
+export function isPlaygroundPromptQlToken(token: string): boolean {
+  const payload = decodeJwtPayload(token);
+  if (!payload) return false;
+  const hasura = payload["https://promptql.hasura.io"];
+  if (hasura && typeof hasura === "object" && !Array.isArray(hasura)) {
+    const id = (hasura as Record<string, unknown>)["x-hasura-project-id"];
+    if (typeof id === "string" && id.trim()) return true;
+  }
+  const iss = readStr(payload.iss).toLowerCase();
+  if (iss === "enrich-token" || iss.includes("enrich-token")) return true;
+  const aud = payload.aud;
+  if (typeof aud === "string" && aud.toLowerCase() === "promptql.hasura.io") return true;
+  return false;
+}
+
+/** DDN/lux project JWT (iss auth.pro.hasura.io) — credits yes, playground chat no. */
+export function isDdnProjectPromptQlToken(token: string): boolean {
+  if (!token || isPlaygroundPromptQlToken(token)) return false;
+  const payload = decodeJwtPayload(token);
+  if (!payload) return false;
+  const iss = readStr(payload.iss).toLowerCase();
+  if (iss.includes("auth.pro.hasura.io") || iss.includes("auth.pro.ql.app")) return true;
+  // aud is a project UUID and no hasura claims → treat as DDN
+  const aud = payload.aud;
+  if (typeof aud === "string" && looksLikeUuid(aud)) return true;
+  return false;
 }
 
 export function isJwtExpired(token: string, skewSec = 30): boolean {
@@ -215,16 +283,20 @@ export function resolvePromptQlCredentials(credentials: ExecuteInput["credential
   cookie: string;
   timezone: string;
 } {
+  const credRec = credentials as Record<string, unknown> | undefined;
   const direct =
     readStr(credentials?.apiKey) ||
-    readStr((credentials as Record<string, unknown> | undefined)?.accessToken) ||
-    readStr((credentials as Record<string, unknown> | undefined)?.token);
+    readStr(credRec?.accessToken) ||
+    readStr(credRec?.token);
   const ps = credentials?.providerSpecificData;
   const token = normalizePromptQlToken(
     direct || readPs(ps, ["token", "jwt", "accessToken", "bearer", "apiKey"])
   );
+  // Prefer explicit PSD / connection.projectId, then JWT claims (hasura or aud).
   const projectId =
     readPs(ps, ["projectId", "project_id", "x-hasura-project-id"]) ||
+    readStr(credRec?.projectId) ||
+    readStr(credRec?.project_id) ||
     extractProjectIdFromToken(token);
   const cookie = readPs(ps, ["cookie", "sessionCookie", "authCookie"]);
   const timezone = readPs(ps, ["timezone", "tz"]) || DEFAULT_TZ;
@@ -235,6 +307,7 @@ export function resolvePromptQlCredentials(credentials: ExecuteInput["credential
 
 export function extractMessageText(content: unknown): string {
   if (typeof content === "string") return content;
+  if (content == null) return "";
   if (Array.isArray(content)) {
     return content
       .map((part) => {
@@ -243,6 +316,11 @@ export function extractMessageText(content: unknown): string {
           const p = part as Record<string, unknown>;
           if (typeof p.text === "string") return p.text;
           if (typeof p.content === "string") return p.content;
+          // OpenAI content-part tool_use / function call shapes
+          if (typeof p.name === "string") {
+            const args = p.arguments ?? p.input ?? p.args;
+            return `${p.name}:${typeof args === "string" ? args : JSON.stringify(args ?? {})}`;
+          }
         }
         return "";
       })
@@ -255,10 +333,58 @@ export function extractMessageText(content: unknown): string {
   return "";
 }
 
+/**
+ * Full message text for fingerprints — includes tool_calls / function_call when
+ * content is null (OpenAI agent clients often re-send assistants that way).
+ */
+export function extractMessageTextFromMessage(message: ChatMessage | null | undefined): string {
+  if (!message) return "";
+  const fromContent = extractMessageText(message.content);
+  const fromTools = extractToolCallsText(message);
+  if (fromContent && fromTools) return `${fromContent}\n${fromTools}`;
+  return fromContent || fromTools;
+}
+
+/** Serialize OpenAI tool_calls / function_call into stable fingerprint text. */
+export function extractToolCallsText(message: ChatMessage | null | undefined): string {
+  if (!message) return "";
+  const parts: string[] = [];
+  const tcs = message.tool_calls;
+  if (Array.isArray(tcs)) {
+    for (const tc of tcs) {
+      if (!tc || typeof tc !== "object") continue;
+      const rec = tc as Record<string, unknown>;
+      const fn = rec.function;
+      if (fn && typeof fn === "object") {
+        const f = fn as Record<string, unknown>;
+        const name = typeof f.name === "string" ? f.name : "";
+        const args = typeof f.arguments === "string" ? f.arguments : JSON.stringify(f.arguments ?? {});
+        if (name) parts.push(`tool_call:${name}:${args}`);
+      } else if (typeof rec.name === "string") {
+        parts.push(`tool_call:${rec.name}:${JSON.stringify(rec.arguments ?? rec.input ?? {})}`);
+      }
+    }
+  }
+  const fc = message.function_call;
+  if (fc && typeof fc === "object") {
+    const f = fc as Record<string, unknown>;
+    const name = typeof f.name === "string" ? f.name : "";
+    const args = typeof f.arguments === "string" ? f.arguments : JSON.stringify(f.arguments ?? {});
+    if (name) parts.push(`function_call:${name}:${args}`);
+  }
+  return parts.join("\n");
+}
+
+/** User / human / tool / function — any role that ends an OpenAI "turn" for sticky. */
+export function isUserLikeRole(role: string): boolean {
+  const r = (role || "").toLowerCase();
+  return r === "user" || r === "human" || r === "tool" || r === "function";
+}
+
 function lastUserText(messages: ChatMessage[]): string {
   for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i]?.role === "user") {
-      return extractMessageText(messages[i]!.content).trim();
+    if (isUserLikeRole(messages[i]?.role || "")) {
+      return extractMessageTextFromMessage(messages[i]).trim();
     }
   }
   return "";
@@ -374,35 +500,84 @@ function saveThreadDisk(map: Record<string, ThreadBinding>) {
 function isFingerprintRole(role: string): boolean {
   const r = (role || "").toLowerCase();
   // system/developer often carry jailbreak/agentic pins that are shared across chats
-  if (!r || r === "system" || r === "developer" || r === "tool") return false;
+  if (!r || r === "system" || r === "developer") return false;
+  // tool/function ARE fingerprint roles when they carry prior-turn results, but we
+  // normalize them to "user" below so client tool-role vs user-role does not diverge.
   return true;
 }
 
 /**
  * Normalize user/assistant text for fingerprints so proxy rewrites (UREW pins,
- * agent_mention wrappers, whitespace) don't break multi-turn thread sticky.
- * Live SPA (send1/send2) always reuses threadId; OpenAI multi-turn must too.
+ * agent_mention wrappers, soft PromptQL preambles, tool-result wrappers) don't
+ * break multi-turn thread sticky. Live SPA always reuses threadId; OpenAI multi-turn must too.
  */
 export function normalizeForFingerprint(text: string): string {
   let t = (text || "").replace(/\r\n/g, "\n");
   t = t.replace(/<agent_mention\s*\/>/gi, "");
   t = t.replace(/<\/?agent_mention>/gi, "");
+  // Client @mentions prefix (e.g. "@test Here is data returned…")
+  t = t.replace(/^@\S+\s+/gm, "");
+  // Soft / hard user-pin wrappers — keep only the real task when present
   t = t.replace(/^[\s\S]*?\bUser request:\s*/i, "");
   t = t.replace(/^[\s\S]*?\bHere is my request:\s*/i, "");
-  t = t.replace(/\n{3,}/g, "\n\n");
+  t = t.replace(/^[\s\S]*?\bCurrent request:\s*/i, "");
+  t = t.replace(/^[\s\S]*?\bMy current task:\s*/i, "");
+  // Tool-result follow-up wrappers (WinUI soft PromptQL / generic agentic)
+  t = t.replace(
+    /^Here is data returned by my desktop application[\s\S]*?(?:\n\n|$)/i,
+    ""
+  );
+  t = t.replace(
+    /^Here is the output from my local tool[\s\S]*?(?:\n\n|$)/i,
+    ""
+  );
+  t = t.replace(
+    /\n\nBased on this result[\s\S]*$/i,
+    ""
+  );
+  t = t.replace(
+    /\n\n(?:Please |If a structured)[\s\S]*$/i,
+    ""
+  );
+  // Soft PromptQL first-turn preamble (strip when whole message is pin+request)
+  if (/interoperability layer between PromptQL/i.test(t)) {
+    const m = t.match(/\bCurrent request:\s*([\s\S]+)$/i);
+    if (m) t = m[1]!;
+  }
+  // Collapse whitespace for stable hashes across minor reformats
+  t = t.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n");
   return t.trim().slice(0, 2000);
 }
 
 /**
+ * Tool-name signature from assistant text / tool_calls — survives JSON reformatting
+ * of args while still distinguishing different tools.
+ */
+export function extractToolNameSignature(text: string): string {
+  if (!text) return "";
+  const names = new Set<string>();
+  for (const m of text.matchAll(/"tool"\s*:\s*"([^"]+)"/g)) names.add(m[1]!.toLowerCase());
+  for (const m of text.matchAll(/tool_call:([A-Za-z0-9_.-]+):/g)) names.add(m[1]!.toLowerCase());
+  for (const m of text.matchAll(/function_call:([A-Za-z0-9_.-]+):/g)) names.add(m[1]!.toLowerCase());
+  for (const m of text.matchAll(/\[tool result for\s+([^\]]+)\]/gi)) {
+    names.add(m[1]!.trim().toLowerCase());
+  }
+  return [...names].sort().join(",");
+}
+
+/**
  * Stable fingerprint of an ordered conversation slice.
- * Excludes system/developer/tool so shared injects cannot collapse distinct chats.
+ * Excludes system/developer. Tool roles are mapped to user for stability.
  */
 export function conversationFingerprint(projectId: string, messages: ChatMessage[]): string {
   const parts: string[] = [`project:${projectId}`];
   for (const m of messages) {
-    const role = (m?.role || "").toLowerCase();
-    if (!isFingerprintRole(role)) continue;
-    const text = normalizeForFingerprint(extractMessageText(m?.content));
+    const roleRaw = (m?.role || "").toLowerCase();
+    if (!isFingerprintRole(roleRaw)) continue;
+    const role =
+      roleRaw === "tool" || roleRaw === "function" || roleRaw === "human" ? "user" : roleRaw;
+    // Skip pure-user tool-result wrappers? No — include normalized body.
+    const text = normalizeForFingerprint(extractMessageTextFromMessage(m));
     if (!text) continue;
     parts.push(`${role}:${text}`);
   }
@@ -410,24 +585,44 @@ export function conversationFingerprint(projectId: string, messages: ChatMessage
   return `pql:${projectId}:${h}`;
 }
 
-/** Rolling sticky key: last assistant reply alone (survives last-user rewrites). */
-export function lastAssistantFingerprint(projectId: string, messages: ChatMessage[]): string | null {
+/** All sticky keys derived from the last assistant message (full text + tool names). */
+export function lastAssistantStickyKeys(projectId: string, messages: ChatMessage[]): string[] {
+  const keys: string[] = [];
+  const seen = new Set<string>();
+  const push = (k: string | null | undefined) => {
+    if (!k || seen.has(k)) return;
+    seen.add(k);
+    keys.push(k);
+  };
   for (let i = messages.length - 1; i >= 0; i--) {
     const role = (messages[i]?.role || "").toLowerCase();
     if (role !== "assistant" && role !== "ai" && role !== "model") continue;
-    const text = normalizeForFingerprint(extractMessageText(messages[i]?.content));
-    if (!text) continue;
-    const h = createHash("sha256").update(text).digest("hex").slice(0, 24);
-    return `pql:${projectId}:asst:${h}`;
+    const raw = extractMessageTextFromMessage(messages[i]);
+    const text = normalizeForFingerprint(raw);
+    if (text) {
+      const h = createHash("sha256").update(text).digest("hex").slice(0, 24);
+      push(`pql:${projectId}:asst:${h}`);
+    }
+    const tools = extractToolNameSignature(raw);
+    if (tools) {
+      const h = createHash("sha256").update(tools).digest("hex").slice(0, 16);
+      push(`pql:${projectId}:tools:${h}`);
+    }
+    break;
   }
-  return null;
+  return keys;
 }
 
-/** Messages before the last user turn (OpenAI multi-turn prefix). */
+/** Rolling sticky key: last assistant reply alone (survives last-user rewrites). */
+export function lastAssistantFingerprint(projectId: string, messages: ChatMessage[]): string | null {
+  return lastAssistantStickyKeys(projectId, messages)[0] ?? null;
+}
+
+/** Messages before the last user/tool turn (OpenAI multi-turn prefix). */
 export function historyPrefixBeforeLastUser(messages: ChatMessage[]): ChatMessage[] {
   let lastUser = -1;
   for (let i = messages.length - 1; i >= 0; i--) {
-    if ((messages[i]?.role || "").toLowerCase() === "user") {
+    if (isUserLikeRole(messages[i]?.role || "")) {
       lastUser = i;
       break;
     }
@@ -439,7 +634,8 @@ export function historyPrefixBeforeLastUser(messages: ChatMessage[]): ChatMessag
 export function hasAssistantMessage(messages: ChatMessage[]): boolean {
   return messages.some((m) => {
     const r = (m?.role || "").toLowerCase();
-    return r === "assistant" || r === "ai" || r === "model";
+    if (r === "assistant" || r === "ai" || r === "model") return true;
+    return false;
   });
 }
 
@@ -518,8 +714,9 @@ export type PromptQlThreadResolve = {
  *
  * Lookup order (mirrors live SPA send1=start_thread / send2=send_thread_message):
  *  1. Explicit client thread id
- *  2. Full history-prefix fingerprint (user+assistant before last user)
- *  3. Last-assistant rolling key (survives proxy last-user rewrites / UREW)
+ *  2. Full history-prefix fingerprint (user+assistant before last user/tool)
+ *  3. Last-assistant sticky keys (full text + tool-name signature)
+ *     — survives UREW/soft-pin rewrites AND OpenAI tool_calls-only assistant rows
  */
 export function resolvePromptQlThreadBinding(
   projectId: string,
@@ -544,13 +741,23 @@ export function resolvePromptQlThreadBinding(
     }
   }
 
-  // Fallback: last assistant content (OpenAI multi-turn with rewritten user history)
+  // Fallback: last assistant sticky keys (text + tool names). Prefer scanning the
+  // prefix; if empty (e.g. tool-only last turn), scan full history.
   if (hasAssistantMessage(messages)) {
-    const asstKey = lastAssistantFingerprint(projectId, prefix.length ? prefix : messages);
-    if (asstKey) {
+    const scope = prefix.length ? prefix : messages;
+    for (const asstKey of lastAssistantStickyKeys(projectId, scope)) {
       const cached = getThreadBinding(asstKey);
       if (cached?.threadId && cached.projectId === projectId) {
         return { threadId: cached.threadId, isFollowUp: true, prefixKey: asstKey };
+      }
+    }
+    // Also try full messages (assistant may only appear after a tool-only prefix miss)
+    if (scope !== messages) {
+      for (const asstKey of lastAssistantStickyKeys(projectId, messages)) {
+        const cached = getThreadBinding(asstKey);
+        if (cached?.threadId && cached.projectId === projectId) {
+          return { threadId: cached.threadId, isFollowUp: true, prefixKey: asstKey };
+        }
       }
     }
   }
@@ -562,7 +769,7 @@ export function resolvePromptQlThreadBinding(
 /**
  * Persist sticky keys so the NEXT request's history prefix resolves to this thread.
  * Stores under fingerprint(messages + assistant) which equals the next turn's prefix,
- * plus a last-assistant rolling key that survives last-user rewrites.
+ * plus last-assistant text/tool-name keys that survive last-user rewrites and tool_calls reshape.
  */
 export function storePromptQlThreadAfterTurn(
   projectId: string,
@@ -575,8 +782,11 @@ export function storePromptQlThreadAfterTurn(
     ...messages,
     { role: "assistant", content: assistantText || "" },
   ];
-  // Only store if there is at least one user + assistant pair.
-  if (!hasAssistantMessage(full) || !messages.some((m) => (m.role || "").toLowerCase() === "user")) {
+  // Only store if there is at least one user-like + assistant pair.
+  if (
+    !hasAssistantMessage(full) ||
+    !messages.some((m) => isUserLikeRole(m.role || ""))
+  ) {
     return null;
   }
   const key = conversationFingerprint(projectId, full);
@@ -587,9 +797,12 @@ export function storePromptQlThreadAfterTurn(
   if (prefix.length > 0 && hasAssistantMessage(prefix)) {
     setThreadBinding(conversationFingerprint(projectId, prefix), binding);
   }
-  // Rolling last-assistant key (full history including this reply)
-  const asstKey = lastAssistantFingerprint(projectId, full);
-  if (asstKey) setThreadBinding(asstKey, binding);
+  // Rolling last-assistant keys (full text + tool-name signature)
+  for (const asstKey of lastAssistantStickyKeys(projectId, full)) {
+    setThreadBinding(asstKey, binding);
+  }
+  // If the assistant reply embeds tool names, also bind tool-signature alone from raw text
+  // (lastAssistantStickyKeys already does this; kept for clarity).
   return key;
 }
 
@@ -834,7 +1047,7 @@ export class PromptQlExecutor extends BaseExecutor {
     if (!token) {
       return makeErrorResult(
         401,
-        "Missing PromptQL Bearer JWT — paste the Authorization token from prompt.ql.app DevTools (Network → graphql → Authorization: Bearer …)",
+        "Missing PromptQL Bearer JWT — paste the Authorization token from prompt.ql.app DevTools (Network → graphql on data.prompt.ql.app → Authorization: Bearer …). Use the enrich-token JWT (iss=enrich-token), not the DDN/project token.",
         body,
         PLAYGROUND_GQL
       );
@@ -852,7 +1065,18 @@ export class PromptQlExecutor extends BaseExecutor {
     if (!projectId) {
       return makeErrorResult(
         400,
-        "Missing projectId — set providerSpecificData.projectId or use a JWT that embeds x-hasura-project-id",
+        "Missing projectId — set providerSpecificData.projectId, or use a playground JWT with x-hasura-project-id, or a DDN JWT whose aud is the project UUID",
+        body,
+        PLAYGROUND_GQL
+      );
+    }
+
+    // DDN/lux tokens authenticate credits (data.pro.ql.app) but playground GraphQL
+    // rejects them ("Authentication hook unauthorized"). Fail early with a clear fix.
+    if (!isPlaygroundPromptQlToken(token) && isDdnProjectPromptQlToken(token)) {
+      return makeErrorResult(
+        401,
+        "This JWT is a DDN/project token (works for Limits/credits only). For chat, open prompt.ql.app → F12 → Network → filter graphql on data.prompt.ql.app → copy Authorization Bearer JWT (iss=enrich-token, claims under https://promptql.hasura.io). Paste that JWT (without the Bearer prefix).",
         body,
         PLAYGROUND_GQL
       );

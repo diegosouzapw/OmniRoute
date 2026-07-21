@@ -627,7 +627,12 @@ export async function getUsageForProvider(
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
     case "promptql":
     case "pql":
-      return await getPromptQlUsage(apiKey || accessToken, providerSpecificData);
+      // DDN lux JWTs carry projectId only in JWT aud; connection.projectId may be set by sync.
+      return await getPromptQlUsage(
+        apiKey || accessToken,
+        providerSpecificData,
+        projectId
+      );
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
