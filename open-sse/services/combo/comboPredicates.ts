@@ -145,6 +145,13 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
  *   apply connection cooldown ONLY — never trip the whole-provider breaker.
  *
+ * #7907/#7908: also skip the breaker trip when the failure is a local stream lifecycle
+ * event (client-side abort — `request_signal_aborted`, "Client disconnected: ...", or an
+ * AbortError with no upstream status, which defaults to 502). Otherwise a client abort mid
+ * combo-target-loop still trips the whole-provider breaker exactly like a genuine upstream
+ * failure would, undermining the same #4602 policy `shouldSkipConnDisable()` already applies
+ * to connection-level cooldown.
+ *
  * Pure predicate so the breaker decision is unit-testable without the full combo harness.
  */
 export function shouldRecordProviderBreakerFailure(args: {
@@ -153,13 +160,15 @@ export function shouldRecordProviderBreakerFailure(args: {
   sameProviderNext: boolean;
   skipProviderBreaker?: boolean;
   requestScopedFailure?: boolean;
+  error?: unknown;
 }): boolean {
   return (
     !args.isStreamReadinessFailure &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     !args.sameProviderNext &&
     !args.skipProviderBreaker &&
-    !args.requestScopedFailure
+    !args.requestScopedFailure &&
+    !isLocalStreamLifecycleError(args.error)
   );
 }
 

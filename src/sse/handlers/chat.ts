@@ -212,6 +212,24 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
 const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 
+// #7907/#7908: single-model breaker trip bypasses the `isFailure` option (only applies
+// inside `breaker.execute()`), so it needs its own `isLocalStreamLifecycleError` guard —
+// otherwise a client abort (502 default, error='request_signal_aborted') trips the
+// provider-wide breaker. Pure predicate, unit-testable without the full request path.
+export function shouldTripProviderBreakerForResult(
+  result: { status: number; errorCode?: string | null; errorType?: string | null; error?: unknown },
+  isCombo: boolean,
+  forceLiveComboTest: boolean
+): boolean {
+  return (
+    !forceLiveComboTest &&
+    !isCombo &&
+    !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
+    !isLocalStreamLifecycleError(result.error) &&
+    PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
+  );
+}
+
 /**
  * Handle chat completion request
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
@@ -1766,12 +1784,7 @@ async function handleSingleModelChat(
         continue;
       }
 
-      if (
-        !forceLiveComboTest &&
-        !isCombo &&
-        !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
-        PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
-      ) {
+      if (shouldTripProviderBreakerForResult(result, isCombo, forceLiveComboTest)) {
         breaker._onFailure();
       }
 

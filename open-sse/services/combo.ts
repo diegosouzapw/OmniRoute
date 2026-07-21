@@ -2265,6 +2265,7 @@ export async function handleComboChat({
               sameProviderNext,
               skipProviderBreaker: fallbackResult.skipProviderBreaker,
               requestScopedFailure,
+              error: errorText,
             })
           ) {
             recordProviderFailure(provider, log, targetWithConnection.connectionId, profile);
