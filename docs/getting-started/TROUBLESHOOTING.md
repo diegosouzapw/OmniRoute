@@ -61,6 +61,7 @@ The warnings come from stale peer-dependency ranges in third-party packages Omni
 | Login crash / blank page                            | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                         |
 | `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
 | Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | Your Docker port bind may be landing on IPv6. Use `-p 127.0.0.1:20128:20128` to force IPv4, or test with `curl -4`. See [Docker IPv6](#docker-ipv6) below |
 
 ---
 
@@ -507,6 +508,27 @@ Issues specific to the v3.8.0 release and their current workarounds. If a fix la
 
 - Adjust the client to call without `background`, or
 - Wait for a later release that ships full async background mode (track the changelog)
+
+---
+
+<a name="docker-ipv6"></a>
+
+### Docker IPv6 / Connection Reset
+
+**Symptoms:**
+
+-  returns 
+- Dashboard and unauthenticated endpoints work, but authenticated endpoints fail
+- The problem looks like an auth/API-key issue but isn't
+
+**Cause:**  publishes on both  (IPv4) and  (IPv6), but the process inside the container listens on IPv4 only. On hosts where  resolves to  first, the connection lands on the IPv6 published port with no listener behind it → connection reset.
+
+**Fix:**
+
+1. **Quick diagnostic:** Run . If it works with  but fails without, you have an IPv6 bind mismatch.
+2. **Permanent fix:** Bind to IPv4 explicitly by using  in your  command:
+   
+   This forces the IPv4 bind and also avoids exposing the proxy on all host interfaces.
 
 ---
 
