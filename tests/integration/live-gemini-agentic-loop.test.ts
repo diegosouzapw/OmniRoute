@@ -121,6 +121,7 @@ async function runStreamingAgentTurn(messages: AgentMessage[]): Promise<TurnResu
       stream: true,
       max_tokens: 4096,
       temperature: 0.2,
+      ...(process.env.FORCE_TOOL_CHOICE_REQUIRED === "1" ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(TURN_TIMEOUT_MS),
     dispatcher,

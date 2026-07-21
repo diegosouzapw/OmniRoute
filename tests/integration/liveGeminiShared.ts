@@ -772,6 +772,11 @@ export function validateToolCallArguments(toolCalls: ToolCall[] | ResponsesToolC
   }
 }
 
+// Ad-hoc experiment flag: force tool_choice: "required" across every live
+// Gemini tool-call helper below, without permanently changing default test
+// behavior. Set FORCE_TOOL_CHOICE_REQUIRED=1 to compare against baseline.
+const FORCE_TOOL_CHOICE_REQUIRED = process.env.FORCE_TOOL_CHOICE_REQUIRED === "1";
+
 export async function sendToolCallChatRequest(
   model: string,
   prompt: string
@@ -789,6 +794,7 @@ export async function sendToolCallChatRequest(
       temperature: 0.1,
       stream: false,
       max_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(90_000),
   });
@@ -816,6 +822,7 @@ export async function sendStreamingToolCallChatRequest(
       temperature: 0.1,
       stream: true,
       max_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(120_000),
   });
@@ -926,6 +933,7 @@ export async function sendToolCallResponsesRequest(
       temperature: 0.1,
       stream: false,
       max_output_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(90_000),
   });
@@ -960,6 +968,7 @@ export async function sendStreamingToolCallResponsesRequest(
       temperature: 0.1,
       stream: true,
       max_output_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(120_000),
   });
