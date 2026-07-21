@@ -93,9 +93,17 @@ const transformObfuscateWordsSchema = z.object({
 export const updateSettingsSchema = z.object({
   newPassword: z.string().min(1).max(200).optional(),
   currentPassword: z.string().max(200).optional(),
+  credentialRedactionEnabled: z.boolean().optional(),
   theme: z.string().max(50).optional(),
   language: z.string().max(10).optional(),
   requireLogin: z.boolean().optional(),
+  oidcEnabled: z.boolean().optional(),
+  oidcIssuer: z.string().max(500).optional(),
+  oidcClientId: z.string().max(200).optional(),
+  oidcClientSecret: z.string().max(500).optional(),
+  oidcScopes: z.array(z.string().max(100)).optional(),
+  oidcRedirectPath: z.string().max(500).optional(),
+  oidcAllowedSubjects: z.array(z.string().max(200)).optional(),
   enableSocks5Proxy: z.boolean().optional(),
   instanceName: z.string().max(100).optional(),
   customLogoUrl: z.string().max(2000).optional(),
@@ -210,6 +218,12 @@ export const updateSettingsSchema = z.object({
     .optional(),
   // #6168: global session-stickiness opt-out (per-combo config overrides this).
   disableSessionStickiness: z.boolean().optional(),
+  /**
+   * Per-operator quota row visibility on the usage dashboard, keyed by
+   * provider id. Independent of the model catalog's isHidden/isDeleted flags.
+   * Ported from upstream decolua/9router#2371.
+   */
+  quotaVisibility: z.record(z.string().trim().min(1), z.object({ hidden: z.array(z.string()).max(500).optional() })).optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),
   maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
   maxBodySizeMb: z

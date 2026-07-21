@@ -10,11 +10,18 @@ import {
   decryptConnectionFields,
   migrateLegacyEncryptedString,
 } from "./encryption";
-import { invalidateDbCache } from "./readCache";
+import { createLazyRowProxy } from "./providers/lazyConnectionView";
+import { invalidateDbCache, getCachedRawProviderConnections } from "./readCache";
+import {
+  removeConnectionHealth,
+  removeConnectionIndex,
+} from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
+import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
+import { reconcileCodexUsageHistory } from "./providers/usageIdentityReconciliation";
 import {
   withNullableMaxConcurrent,
   withNullableQuotaWindowThresholds,
@@ -30,6 +37,8 @@ import {
 
 type JsonRecord = Record<string, unknown>;
 
+const CONNECTION_CREDENTIAL_FIELDS = ["apiKey", "accessToken", "refreshToken", "idToken"] as const;
+
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
   get: (...params: unknown[]) => TRow | undefined;
@@ -38,6 +47,7 @@ interface StatementLike<TRow = unknown> {
 
 interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
+  transaction: <T>(fn: () => T) => () => T;
 }
 
 // Real column set for provider_connections (must match the CREATE TABLE in
@@ -94,7 +104,49 @@ const PROVIDER_CONNECTIONS_COLUMNS = new Set([
 
 // ──────────────── Provider Connections ────────────────
 
-export async function getProviderConnections(filter: JsonRecord = {}, columns?: string[]) {
+/**
+ * Returns provider connections as lazy-decrypting proxies: encrypted
+ * credential fields (apiKey, accessToken, refreshToken, idToken) are only
+ * decrypted on first property access, not eagerly for every row. Column-
+ * projected reads (`columns` passed) bypass the raw-row cache — the cache
+ * key doesn't account for projection, so a projected read could otherwise
+ * poison the cache for a subsequent full-row read of the same filter.
+ *
+ * When `limit`/`offset` are provided, the cache is also bypassed since
+ * the cache key doesn't account for pagination.
+ */
+export async function getProviderConnections(
+  filter: JsonRecord = {},
+  limit?: number,
+  offset?: number,
+  columns?: string[],
+) {
+  const useCache = !columns?.length && limit === undefined && offset === undefined;
+  const raw = useCache
+    ? await getCachedRawProviderConnections(filter)
+    : await getRawProviderConnections(filter, limit, offset, columns);
+  return raw.map(createLazyRowProxy);
+}
+
+/**
+ * Same as getProviderConnections but WITHOUT decryptConnectionFields.
+ * Returns raw rows with encrypted credential fields intact — callers
+ * that only need metadata (id, priority, backoffLevel, etc.) avoid
+ * the O(n) AES-GCM decrypt cost on every cache fill.
+ *
+ * Used by the lazy-decryption path in auth selection (auth.ts) where
+ * 10k+ connections are filtered in JS but only 1 needs its apiKey
+ * decrypted.
+ *
+ * @param limit — Optional SQL LIMIT clause to cap rows returned
+ * @param offset — Optional SQL OFFSET for pagination
+ */
+export async function getRawProviderConnections(
+  filter: JsonRecord = {},
+  limit?: number,
+  offset?: number,
+  columns?: string[],
+) {
   const db = getDbInstance() as unknown as DbLike;
   let selectCols = "*";
   if (columns?.length) {
@@ -125,24 +177,56 @@ export async function getProviderConnections(filter: JsonRecord = {}, columns?: 
     params.authType = filter.authType;
   }
 
+
+
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
   }
   sql += " ORDER BY priority ASC, updated_at DESC";
+  if (limit !== undefined) {
+    sql += " LIMIT @limit OFFSET @offset";
+    params.limit = limit;
+    params.offset = offset ?? 0;
+  }
 
   const rows = db.prepare(sql).all(params);
   return rows.map((r) => {
     const camelRow = rowToCamel(r);
-    return decryptConnectionFields(
-      withNullableRateLimitOverrides(
-        withNullableQuotaWindowThresholds(
-          withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
-          camelRow
-        ),
+    return withNullableRateLimitOverrides(
+      withNullableQuotaWindowThresholds(
+        withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
         camelRow
-      )
+      ),
+      camelRow
     );
   });
+}
+
+export function getProviderConnectionsCount(filter: JsonRecord = {}): number {
+  const db = getDbInstance() as unknown as DbLike;
+  let sql = "SELECT count(*) as cnt FROM provider_connections";
+  const conditions: string[] = [];
+  const params: Record<string, unknown> = {};
+
+  if (filter.provider) {
+    conditions.push("provider = @provider");
+    params.provider = filter.provider;
+  }
+  if (filter.isActive !== undefined) {
+    conditions.push("is_active = @isActive");
+    params.isActive = filter.isActive ? 1 : 0;
+  }
+  if (filter.authType) {
+    conditions.push("auth_type = @authType");
+    params.authType = filter.authType;
+  }
+
+  if (conditions.length > 0) {
+    sql += " WHERE " + conditions.join(" AND ");
+  }
+
+  const row = db.prepare(sql).get(params) as { cnt: number };
+  return row.cnt;
 }
 
 export async function getProviderConnectionById(id: string) {
@@ -206,57 +290,53 @@ export async function createProviderConnection(data: JsonRecord) {
     data.providerSpecificData
   );
 
-  // Upsert check
-  // For Codex/OpenAI, a single email can have multiple workspaces (Team + Personal)
-  // We need to check for workspace uniqueness, not just email
   let existing: JsonRecord | null = null;
+  let promotedCodexIdentity = false;
 
-  if (data.authType === "oauth" && data.email) {
-    // For Codex, check for existing connection with same workspace
-    const providerSpecificData = toRecord(data.providerSpecificData);
-    const workspaceId = toStringOrNull(providerSpecificData.workspaceId);
-    if (data.provider === "codex" && workspaceId) {
-      // For Codex, check for existing connection with same workspace AND email
-      // A single workspace can have multiple users (Team/Business plans)
-      // We need both workspace + email uniqueness to allow multiple accounts
-      existing =
-        (db
-          .prepare(
-            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND email = ?"
-          )
-          .get(data.provider, workspaceId, data.email) as JsonRecord | undefined) || null;
+  const providerSpecificData = toRecord(data.providerSpecificData);
+  const workspaceId = toStringOrNull(providerSpecificData.workspaceId);
+  const chatgptUserId = toStringOrNull(providerSpecificData.chatgptUserId);
 
-      // If no match with workspace+email, also check workspace-only for backward compat
-      // (old connections without email should still be updated, not duplicated)
-      if (!existing) {
+  if (data.authType === "oauth" && data.provider === "codex" && chatgptUserId) {
+    const strongSql = workspaceId
+      ? "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND json_extract(provider_specific_data, '$.chatgptUserId') = ?"
+      : "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND (json_extract(provider_specific_data, '$.workspaceId') IS NULL OR json_extract(provider_specific_data, '$.workspaceId') = '') AND json_extract(provider_specific_data, '$.chatgptUserId') = ?";
+    existing =
+      ((workspaceId
+        ? db.prepare(strongSql).get(data.provider, workspaceId, chatgptUserId)
+        : db.prepare(strongSql).get(data.provider, chatgptUserId)) as JsonRecord | undefined) ||
+      null;
+
+    if (!existing && workspaceId) {
+      const workspaceMatches = db
+        .prepare(
+          `SELECT * FROM provider_connections
+           WHERE provider = ? AND auth_type = 'oauth'
+             AND json_extract(provider_specific_data, '$.workspaceId') = ?
+           ORDER BY created_at`
+        )
+        .all(data.provider, workspaceId) as JsonRecord[];
+      existing = pickCodexConnectionForUser(
+        workspaceMatches,
+        chatgptUserId,
+        toStringOrNull(data.email)
+      );
+      promotedCodexIdentity = existing !== null;
+    }
+  } else if (data.authType === "oauth" && data.email) {
+    if (data.provider === "codex") {
+      if (workspaceId) {
         existing =
           (db
             .prepare(
-              "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND (email IS NULL OR email = '')"
+              `SELECT * FROM provider_connections
+               WHERE provider = ? AND auth_type = 'oauth'
+                 AND json_extract(provider_specific_data, '$.workspaceId') = ?
+                 AND email = ?
+               LIMIT 1`
             )
-            .get(data.provider, workspaceId) as JsonRecord | undefined) || null;
+            .get(data.provider, workspaceId, data.email) as JsonRecord | undefined) || null;
       }
-      // For Codex with workspaceId, don't fall back to email-only check
-      // This allows creating new connections for different workspaces
-    } else if (data.provider === "codex") {
-      // Codex without a workspaceId — do NOT fall through to the generic
-      // bare-email dedup below. Codex never sets providerSpecificData.username,
-      // so that path's disambiguation is a no-op and two distinct Codex logins
-      // sharing an email (but missing a verifiable workspace/account id) would
-      // silently collapse into one row, overwriting the first login's token
-      // pair. Require a matching chatgptUserId (a stable per-account id from
-      // the JWT) before merging; otherwise treat this as a new connection.
-      const chatgptUserId = toStringOrNull(providerSpecificData.chatgptUserId);
-      if (chatgptUserId) {
-        existing =
-          (db
-            .prepare(
-              "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.chatgptUserId') = ? AND email = ?"
-            )
-            .get(data.provider, chatgptUserId, data.email) as JsonRecord | undefined) || null;
-      }
-      // No chatgptUserId on the incoming row (or no existing match) — leave
-      // `existing` null so a new connection row is inserted.
     } else {
       // For other providers (or Codex without workspaceId), match on email —
       // disambiguated by providerSpecificData.username when present on both
@@ -332,12 +412,30 @@ export async function createProviderConnection(data: JsonRecord) {
   if (existing) {
     const existingId = toStringOrNull(existing.id);
     if (!existingId) return null;
-    const merged: JsonRecord = { ...toRecord(rowToCamel(existing)), ...data, updatedAt: now };
+    const rawExisting = toRecord(rowToCamel(existing));
+    const decryptedExisting = decryptConnectionFields({ ...rawExisting });
+    const merged: JsonRecord = { ...decryptedExisting, ...data, updatedAt: now };
     merged.providerSpecificData = normalizeProviderSpecificData(
       toStringOrNull(merged.provider),
       merged.providerSpecificData
     );
-    _updateConnectionRow(db, existingId, merged);
+    const persistence: JsonRecord = { ...merged };
+    for (const field of CONNECTION_CREDENTIAL_FIELDS) {
+      if (!Object.hasOwn(data, field)) {
+        persistence[field] = rawExisting[field];
+      }
+    }
+    db.transaction(() => {
+      if (promotedCodexIdentity) {
+        reconcileCodexUsageHistory(db, {
+          connectionId: existingId,
+          existing,
+          merged,
+          matchedExistingCodexByWorkspace: true,
+        });
+      }
+      _updateConnectionRow(db, existingId, encryptConnectionFields(persistence));
+    })();
     backupDbFile("pre-write");
     return withNullableRateLimitOverrides(
       withNullableQuotaWindowThresholds(
@@ -653,7 +751,16 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   if ("rateLimitOverrides" in merged) {
     merged.rateLimitOverrides = sanitizeRateLimitOverrides(merged.rateLimitOverrides);
   }
-  _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
+  const existingRecord = toRecord(existing);
+
+  db.transaction(() => {
+    reconcileCodexUsageHistory(db, {
+      connectionId: id,
+      existing: existingRecord,
+      merged,
+    });
+    _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
+  })();
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
   bumpProxyConfigGeneration();
@@ -733,6 +840,64 @@ export async function clearConnectionErrorIfUnchanged(
   return applied;
 }
 
+/**
+ * Lightweight stat bump — updates lastUsedAt and consecutiveUseCount without
+ * SELECT, re-encrypt, cache invalidation, or file backup.
+ * Safe for the hot getProviderCredentials path where only usage stats change.
+ * Fixes the cache-thrashing bug where every credential selection invalidated
+ * the 5s TTL cache and paid 3000-row decryption cost on the next request.
+ */
+export async function touchConnectionLastUsed(
+  id: string,
+  consecutiveUseCount: number
+): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      last_used_at = @lastUsedAt,
+      consecutive_use_count = @consecutiveUseCount,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    lastUsedAt: now,
+    consecutiveUseCount,
+    updatedAt: now,
+    id,
+  });
+}
+
+/**
+ * Lightweight backoff reset — runs a targeted UPDATE without SELECT or re-encrypt.
+ * Follows the `clearConnectionErrorIfUnchanged` pattern but without the CAS check,
+ * since the caller already verified the connection is eligible for reset.
+ * Resets all backoff/error columns so the connection re-enters the selection pool.
+ * Does invalidateDbCache + bumpProxyConfigGeneration since backoff affects priority.
+ */
+export async function resetConnectionBackoff(id: string): Promise<void> {
+  if (!id) return;
+  const db = getDbInstance() as unknown as DbLike;
+  const now = new Date().toISOString();
+  db.prepare(
+    `UPDATE provider_connections SET
+      backoff_level = 0,
+      test_status = 'active',
+      last_error = NULL,
+      last_error_at = NULL,
+      last_error_type = NULL,
+      last_error_source = NULL,
+      error_code = NULL,
+      updated_at = @updatedAt
+    WHERE id = @id`
+  ).run({
+    updatedAt: now,
+    id,
+  });
+  invalidateDbCache("connections");
+  bumpProxyConfigGeneration();
+}
+
 export async function deleteProviderConnection(id: string) {
   const db = getDbInstance() as unknown as DbLike;
   const existing = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
@@ -740,6 +905,8 @@ export async function deleteProviderConnection(id: string) {
 
   db.prepare("DELETE FROM quota_snapshots WHERE connection_id = ?").run(id);
   db.prepare("DELETE FROM provider_connections WHERE id = ?").run(id);
+  removeConnectionHealth(id);
+  removeConnectionIndex(id);
   bumpProxyConfigGeneration();
   const existingRecord = toRecord(existing);
   const providerId =
@@ -766,6 +933,10 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
     return result.changes ?? 0;
   })();
 
+  for (const id of ids) {
+    removeConnectionHealth(id);
+    removeConnectionIndex(id);
+  }
   backupDbFile("pre-write");
   invalidateDbCache("connections");
   invalidateReasoningRoutingRuleCache();
@@ -791,6 +962,10 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
   }
 
   const result = db.prepare("DELETE FROM provider_connections WHERE provider = ?").run(providerId);
+  for (const connectionId of connectionIds) {
+    removeConnectionHealth(connectionId);
+    removeConnectionIndex(connectionId);
+  }
   backupDbFile("pre-write");
   invalidateDbCache("connections");
   invalidateReasoningRoutingRuleCache();
@@ -830,71 +1005,16 @@ export async function getDistinctGroups(): Promise<string[]> {
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
 }
 
-// ──────────────── Auto Migration ────────────────
-
-/**
- * Scans all connections and re-encrypts any fields using the old dynamic salt
- * so they use the new canonical static salt.
- */
-export function autoMigrateLegacyEncryptedConnections(): number {
-  const db = getDbInstance() as unknown as DbLike;
-  const rows = db.prepare("SELECT * FROM provider_connections").all();
-  let migratedCount = 0;
-
-  for (const row of rows) {
-    const camelRow = rowToCamel(row);
-    if (!camelRow) continue;
-
-    let updatedRow = false;
-
-    const encryptedFields = ["apiKey", "idToken", "accessToken", "refreshToken"];
-    for (const field of encryptedFields) {
-      if (typeof camelRow[field] === "string") {
-        const { updated, value } = migrateLegacyEncryptedString(camelRow[field] as string);
-        if (updated) {
-          camelRow[field] = value;
-          updatedRow = true;
-        }
-      }
-    }
-
-    if (updatedRow) {
-      // camelRow[field] is already re-encrypted!
-      // But _updateConnectionRow does not re-encrypt automatically, so we pass it safely.
-      // Wait, _updateConnectionRow runs the full data through `encryptConnectionFields`,
-      // but `encryptConnectionFields` will re-encrypt plain text.
-      // BUT `migrateLegacyEncryptedString` returns ALREADY ENCRYPTED ciphertext!
-      // Wait... if we pass ALREADY ENCRYPTED text to `_updateConnectionRow`,
-      // `encryptConnectionFields` in `_updateConnectionRow` will encrypt it AGAIN!
-      // Let's modify the DB directly so we don't double encrypt.
-
-      db.prepare(
-        "UPDATE provider_connections SET api_key = @apiKey, id_token = @idToken, access_token = @accessToken, refresh_token = @refreshToken, updated_at = @updatedAt WHERE id = @id"
-      ).run({
-        id: camelRow.id,
-        apiKey: camelRow.apiKey ?? null,
-        idToken: camelRow.idToken ?? null,
-        accessToken: camelRow.accessToken ?? null,
-        refreshToken: camelRow.refreshToken ?? null,
-        updatedAt: new Date().toISOString(),
-      });
-      migratedCount++;
-    }
-  }
-
-  if (migratedCount > 0) {
-    backupDbFile("pre-write");
-    invalidateDbCache("connections");
-    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
-  }
-
-  return migratedCount;
-}
+export {
+  autoMigrateLegacyEncryptedConnections,
+  getGheCopilotHosts,
+} from "./providers/migrations";
 
 // ──────────────── Re-exports from leaf modules ────────────────
 
 export {
   getProviderNodes,
+  getProviderNodesCount,
   getProviderNodeById,
   resolveProviderNodeForConnection,
   createProviderNode,
@@ -905,9 +1025,9 @@ export {
   setConnectionRateLimitUntil,
   markConnectionRateLimitedUntil,
   clearConnectionRateLimit,
-  isConnectionRateLimited,
-  getRateLimitedConnections,
   getEffectiveQuotaUsage,
   clearStaleCrashCooldowns,
   formatResetCountdown,
+  isConnectionRateLimited,
+  getRateLimitedConnections,
 } from "./providers/rateLimit";

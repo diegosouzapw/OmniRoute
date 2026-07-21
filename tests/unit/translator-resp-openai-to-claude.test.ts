@@ -76,6 +76,41 @@ test("OpenAI stream: reasoning_content closes before text content starts", () =>
   assert.equal(result[5].delta.text, "Answer");
 });
 
+test("OpenAI stream: internal reasoning replay placeholder stays hidden from Claude thinking block", () => {
+  const state = createState();
+  const placeholder = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-2b",
+      model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning_content: "(prior reasoning summary unavailable)" },
+          finish_reason: null,
+        },
+      ],
+    },
+    state
+  );
+  const text = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-2b",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: { content: "Answer" }, finish_reason: null }],
+    },
+    state
+  );
+  const result = flatten([placeholder, text]);
+
+  assert.equal(
+    result.some((event) => event.type === "content_block_start" && event.content_block?.type === "thinking"),
+    false
+  );
+  assert.equal(result[0].type, "message_start");
+  assert.equal(result[1].content_block.type, "text");
+  assert.equal(result[2].delta.text, "Answer");
+});
+
 test("OpenAI stream: tool calls strip Claude OAuth prefix and keep cache usage", () => {
   const state = createState();
   const started = openaiToClaudeResponse(

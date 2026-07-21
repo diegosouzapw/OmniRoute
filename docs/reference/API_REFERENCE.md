@@ -77,6 +77,7 @@ Content-Type: application/json
 | `X-OmniRoute-Request-Id` | Response  | Request correlation id (when known)                                                                                          |
 | `X-OmniRoute-Version`    | Response  | OmniRoute build version (always present)                                                                                     |
 | `X-OmniRoute-Cost-Saved` | Response  | USD the cache avoided on a HIT (cache hits only)                                                                             |
+| `X-OmniRoute-Decision`   | Response  | Routing trace: `strategy=<name>; provider=<alias>; latency_ms=<n>` (`<name>` is the combo strategy, or `single` for a non-combo request) — always present on completion responses |
 
 > Nginx note: if you rely on underscore headers (for example `x_session_id`), enable `underscores_in_headers on;`.
 

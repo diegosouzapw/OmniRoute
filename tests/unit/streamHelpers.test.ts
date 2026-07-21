@@ -1,6 +1,11 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { hasValuableContent, unwrapGeminiChunk } from "../../open-sse/utils/streamHelpers.ts";
+import {
+  hasValuableContent,
+  unwrapGeminiChunk,
+  appendBoundedText,
+  hasActiveDeltaValue,
+} from "../../open-sse/utils/streamHelpers.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 
 describe("hasValuableContent", () => {
@@ -124,5 +129,99 @@ describe("unwrapGeminiChunk", () => {
     const result = unwrapGeminiChunk(chunk);
     assert.strictEqual(result, chunk);
     assert.equal(result.candidates[0].content.parts[0].text, "outer");
+  });
+});
+
+const STREAM_SUMMARY_TEXT_LIMIT = 64 * 1024;
+
+describe("appendBoundedText", () => {
+  it("returns current unchanged when next is empty", () => {
+    assert.strictEqual(appendBoundedText("abc", ""), "abc");
+  });
+
+  it("concatenates normally while under the limit", () => {
+    assert.strictEqual(appendBoundedText("abc", "def"), "abcdef");
+  });
+
+  it("keeps the tail once the combined length exceeds the limit", () => {
+    const current = "a".repeat(STREAM_SUMMARY_TEXT_LIMIT - 1);
+    const result = appendBoundedText(current, "bb");
+    assert.strictEqual(result.length, STREAM_SUMMARY_TEXT_LIMIT);
+    assert.ok(result.endsWith("bb"), "must retain the newest text");
+  });
+
+  it("slides the window when current is already at the limit", () => {
+    const current = "a".repeat(STREAM_SUMMARY_TEXT_LIMIT);
+    const result = appendBoundedText(current, "xyz");
+    assert.strictEqual(result.length, STREAM_SUMMARY_TEXT_LIMIT);
+    assert.ok(result.endsWith("xyz"), "must retain the newest text");
+  });
+
+  // Regression: `keep` is 0 when next.length === LIMIT. `current.slice(-0)` is
+  // `slice(0)` — the WHOLE string — so a naive impl returns current + next and
+  // blows past the bound. Must return only the tail of next.
+  it("stays bounded when next is exactly the limit (slice(-0) trap)", () => {
+    const current = "a".repeat(STREAM_SUMMARY_TEXT_LIMIT);
+    const next = "b".repeat(STREAM_SUMMARY_TEXT_LIMIT);
+    const result = appendBoundedText(current, next);
+    assert.strictEqual(result.length, STREAM_SUMMARY_TEXT_LIMIT);
+    assert.strictEqual(result, next, "must be next only — no 'a' may survive");
+    assert.ok(!result.includes("a"), "must not leak the old buffer");
+  });
+
+  it("stays bounded when next is larger than the limit", () => {
+    const current = "a".repeat(STREAM_SUMMARY_TEXT_LIMIT);
+    const next = "b".repeat(STREAM_SUMMARY_TEXT_LIMIT + 500);
+    const result = appendBoundedText(current, next);
+    assert.strictEqual(result.length, STREAM_SUMMARY_TEXT_LIMIT);
+    assert.ok(!result.includes("a"), "must not leak the old buffer");
+  });
+
+  it("never exceeds the limit across repeated appends", () => {
+    let acc = "";
+    for (let i = 0; i < 40; i++) {
+      acc = appendBoundedText(acc, "z".repeat(4096));
+      assert.ok(acc.length <= STREAM_SUMMARY_TEXT_LIMIT, `overflow at iteration ${i}`);
+    }
+    assert.strictEqual(acc.length, STREAM_SUMMARY_TEXT_LIMIT);
+  });
+});
+
+describe("hasActiveDeltaValue", () => {
+  it("returns true for a non-empty string", () => {
+    assert.strictEqual(hasActiveDeltaValue("hi"), true);
+  });
+
+  it("returns false for an empty string", () => {
+    assert.strictEqual(hasActiveDeltaValue(""), false);
+  });
+
+  it("returns false for null and undefined", () => {
+    assert.strictEqual(hasActiveDeltaValue(null), false);
+    assert.strictEqual(hasActiveDeltaValue(undefined), false);
+  });
+
+  it("returns false for an empty array and an array of empty strings", () => {
+    assert.strictEqual(hasActiveDeltaValue([]), false);
+    assert.strictEqual(hasActiveDeltaValue(["", ""]), false);
+  });
+
+  it("returns true when any array entry is meaningful", () => {
+    assert.strictEqual(hasActiveDeltaValue(["", "x"]), true);
+  });
+
+  it("returns false for an empty object and an object of empty values", () => {
+    assert.strictEqual(hasActiveDeltaValue({}), false);
+    assert.strictEqual(hasActiveDeltaValue({ a: "", b: null }), false);
+  });
+
+  it("recurses into nested structures", () => {
+    assert.strictEqual(hasActiveDeltaValue({ a: { b: [{ c: "" }] } }), false);
+    assert.strictEqual(hasActiveDeltaValue({ a: { b: [{ c: "found" }] } }), true);
+  });
+
+  it("treats numbers and booleans as meaningful", () => {
+    assert.strictEqual(hasActiveDeltaValue(0), true);
+    assert.strictEqual(hasActiveDeltaValue(false), true);
   });
 });

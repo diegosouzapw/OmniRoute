@@ -41,7 +41,6 @@
     "tests/unit/dashboard/batch/concept-cards.test.tsx",
     "tests/unit/dashboard/batch/list-regression.test.tsx",
     "tests/unit/dashboard/batch/sanitization.test.tsx",
-    "tests/unit/free-budget-card.test.tsx",
     "tests/unit/guardrails/visionBridgeRouter.test.tsx",
     "tests/unit/omni-skills-page.test.tsx",
     "tests/unit/shared-clipboard.test.tsx",

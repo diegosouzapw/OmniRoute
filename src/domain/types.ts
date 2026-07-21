@@ -8,7 +8,7 @@
  */
 
 /**
- * @typedef {'openai'|'claude'|'gemini'|'codex'|'qwen'|'deepseek'|'cohere'|'groq'|'blackbox'|'mistral'|'openrouter'} ProviderId
+ * @typedef {'openai'|'claude'|'gemini'|'codex'|'deepseek'|'cohere'|'groq'|'blackbox'|'mistral'|'openrouter'} ProviderId
  */
 
 /**

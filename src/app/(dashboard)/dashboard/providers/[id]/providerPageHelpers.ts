@@ -215,7 +215,6 @@ export function readBooleanToggle(value: unknown, fallback: boolean): boolean {
 export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "azure-openai",
   "azure-ai",
-  "bailian-coding-plan",
   "xiaomi-mimo",
   "siliconflow",
   "heroku",
@@ -340,7 +339,6 @@ export function isGlmProvider(providerId?: string | null) {
 // ---------------------------------------------------------------------------
 // Routing-tags / excluded-models parse + format
 // ---------------------------------------------------------------------------
-
 
 // parseRoutingTagsInput / parseExcludedModelsInput moved to the pure leaf
 // providerInputParsers.ts (kept re-exported here for existing UI importers).

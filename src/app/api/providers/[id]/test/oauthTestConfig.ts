@@ -1,5 +1,12 @@
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 
+const CLINE_OAUTH_TEST_CONFIG = {
+  // Cline does not expose a stable lightweight auth probe. Validate token
+  // presence/expiry here; real connectivity is exercised by chat requests.
+  checkExpiry: true,
+  refreshable: true,
+};
+
 // OAuth provider test endpoints. Extracted from route.ts (#7610) so adding a
 // provider entry doesn't grow the frozen route.ts file past its check-file-size
 // cap — this module carries no logic of its own beyond the GitLab URL builder.
@@ -75,12 +82,6 @@ export const OAUTH_TEST_CONFIG = {
     authPrefix: "Bearer ",
     refreshable: true,
   },
-  qwen: {
-    // DashScope (previously portal.qwen.ai) /v1/models might return 404 or auth issues.
-    // Use checkExpiry instead — actual connectivity is validated via real requests.
-    checkExpiry: true,
-    refreshable: true,
-  },
   cursor: {
     checkExpiry: true,
   },
@@ -93,13 +94,9 @@ export const OAUTH_TEST_CONFIG = {
     // Validate using token presence/expiry as a lightweight auth check.
     checkExpiry: true,
   },
-  cline: {
-    // Cline's /api/v1/models endpoint frequently returns stale auth errors even
-    // with fresh tokens. Use checkExpiry instead — actual connectivity is validated
-    // via real requests.
-    checkExpiry: true,
-    refreshable: true,
-  },
+  cline: CLINE_OAUTH_TEST_CONFIG,
+  // ClinePass reuses the same WorkOS OAuth flow and token lifecycle as Cline.
+  clinepass: CLINE_OAUTH_TEST_CONFIG,
   kiro: {
     checkExpiry: true,
     refreshable: true,
@@ -121,9 +118,23 @@ export const OAUTH_TEST_CONFIG = {
     // below. Grok Build's cli-chat-proxy endpoint doesn't expose a lightweight
     // userinfo probe, and it enforces cli-specific headers (see
     // GrokCliExecutor.buildHeaders) that this shared prober doesn't send — so
-    // mirror qwen/cline/kilocode's checkExpiry pattern instead of a live probe.
+    // mirror cline/kilocode's checkExpiry pattern instead of a live probe.
     // Real connectivity is still validated on every chat/completions request.
     checkExpiry: true,
+    refreshable: true,
+  },
+  "ghe-copilot": {
+    // GHE Copilot: probe the enterprise user-info endpoint derived from gheUrl
+    // (stored in providerSpecificData).
+    getUrl: (connection: any) => {
+      const gheUrl = connection?.providerSpecificData?.gheUrl || connection?.gheUrl || "";
+      const base = gheUrl.replace(/\/+$/, "");
+      return `${base}/api/v3/user`;
+    },
+    method: "GET",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    extraHeaders: { "User-Agent": "OmniRoute", Accept: "application/vnd.github+json" },
     refreshable: true,
   },
 };

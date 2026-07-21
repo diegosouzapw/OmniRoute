@@ -13,6 +13,11 @@
 
 import type { SqliteAdapter } from "./adapters/types";
 import { normalizeRoutingStrategy } from "@/shared/constants/routingStrategies";
+import {
+  resolveImportedUsageAccountIdentity,
+  resolveOrphanedUsageAccountIdentity,
+  resolveUsageAccountIdentity,
+} from "@/lib/usage/accountIdentity";
 
 type SqliteDatabase = SqliteAdapter;
 
@@ -223,23 +228,37 @@ export function runJsonMigration(
     }
     // 7. Usage History
     if (data.usageHistory && data.usageHistory.length > 0) {
+      const importedConnections = new Map(
+        (data.providerConnections ?? []).map((connection) => [connection.id, connection])
+      );
       const insertUsageHistory = db.prepare(`
         INSERT OR REPLACE INTO usage_history (
-          id, provider, model, connection_id, api_key_id, api_key_name,
-          tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation,
-          tokens_reasoning, status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp
+          id, provider, model, connection_id, account_key, account_label, account_label_priority,
+          api_key_id, api_key_name, tokens_input, tokens_output, tokens_cache_read,
+          tokens_cache_creation, tokens_reasoning, status, success, latency_ms, ttft_ms,
+          error_code, combo_strategy, timestamp
         ) VALUES (
-          @id, @provider, @model, @connection_id, @api_key_id, @api_key_name,
-          @tokens_input, @tokens_output, @tokens_cache_read, @tokens_cache_creation,
-          @tokens_reasoning, @status, @success, @latency_ms, @ttft_ms, @error_code, @combo_strategy, @timestamp
+          @id, @provider, @model, @connection_id, @account_key, @account_label,
+          @account_label_priority, @api_key_id, @api_key_name, @tokens_input, @tokens_output,
+          @tokens_cache_read, @tokens_cache_creation, @tokens_reasoning, @status, @success,
+          @latency_ms, @ttft_ms, @error_code, @combo_strategy, @timestamp
         )
       `);
       for (const row of data.usageHistory) {
+        const connectionId = row.connection_id ?? row.connectionId ?? null;
+        const connection = connectionId ? importedConnections.get(connectionId) : undefined;
+        const fallbackIdentity = connection
+          ? resolveUsageAccountIdentity(connection)
+          : resolveOrphanedUsageAccountIdentity(row.provider, connectionId);
+        const identity = resolveImportedUsageAccountIdentity(row, fallbackIdentity);
         insertUsageHistory.run({
           id: row.id,
           provider: row.provider ?? null,
           model: row.model ?? null,
-          connection_id: row.connection_id ?? null,
+          connection_id: connectionId,
+          account_key: identity.accountKey,
+          account_label: identity.accountLabel,
+          account_label_priority: identity.accountLabelPriority,
           api_key_id: row.api_key_id ?? null,
           api_key_name: row.api_key_name ?? null,
           tokens_input: row.tokens_input ?? 0,

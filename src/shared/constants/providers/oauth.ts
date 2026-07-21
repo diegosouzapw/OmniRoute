@@ -3,6 +3,17 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const OAUTH_PROVIDERS = {
+  "ghe-copilot": {
+    id: "ghe-copilot",
+    alias: "ghe-copilot",
+    name: "GitHub Enterprise Copilot",
+    icon: "code",
+    color: "#10B981",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "Enter your GHE instance URL (e.g., https://ghe.company.com) in provider settings, then authenticate via device flow.",
+  },
   "xai-oauth": {
     id: "xai-oauth",
     alias: "xao",
@@ -36,18 +47,6 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     hasFree: true,
-  },
-  qwen: {
-    id: "qwen",
-    alias: "qw",
-    name: "Qwen Code",
-    icon: "psychology",
-    color: "#10B981",
-    subscriptionRisk: true,
-    riskNoticeVariant: "deprecated",
-    deprecated: true,
-    deprecationReason:
-      "Qwen OAuth free tier was discontinued on 2026-04-15. Use 'bailian-coding-plan', 'alibaba', 'alibaba-cn', or 'openrouter' provider with API key instead.",
   },
   agy: {
     id: "agy",
@@ -213,7 +212,7 @@ export const OAUTH_PROVIDERS = {
     icon: "smart_toy",
     color: "#9D4EDD",
     textIcon: "CP",
-    website: "https://cline.bot/clinepass",
+    website: "https://cline.bot/cline-pass",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     authHint:

@@ -69,7 +69,7 @@ test("createProxyAndAssign rolls back the registry row when assignment fails", a
     /scopeId is required/i
   );
 
-  const proxies = await proxiesDb.listProxies({ includeSecrets: true });
+  const { items: proxies } = await proxiesDb.listProxies({ includeSecrets: true });
   assert.equal(
     proxies.some((proxy: any) => proxy.name === "Rollback Proxy"),
     false

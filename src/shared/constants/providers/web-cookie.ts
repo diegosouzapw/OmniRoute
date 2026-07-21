@@ -312,7 +312,7 @@ export const WEB_COOKIE_PROVIDERS = {
   },
   "qwen-web": {
     id: "qwen-web",
-    // Primary "qwen" provider keeps the short alias; web variant uses its own id.
+    // The web variant uses its own id; the retired `qw` alias is not reassigned.
     alias: "qwen-web",
     name: "Qwen Web (Free)",
     icon: "auto_awesome",

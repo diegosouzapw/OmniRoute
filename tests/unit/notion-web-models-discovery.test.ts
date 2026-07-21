@@ -58,8 +58,14 @@ test("parseNotionAvailableModels maps enabled models and skips disabled", () => 
   assert.ok(models.some((m) => m.id === "opus-4.8" && m.name === "Opus 4.8"));
   assert.ok(models.some((m) => m.id === "notion-ai"));
   // Food codenames must not be primary catalog ids.
-  assert.equal(models.some((m) => m.id === "orange-mousse"), false);
-  assert.equal(models.some((m) => m.id === "ambrosia-tart-high"), false);
+  assert.equal(
+    models.some((m) => m.id === "orange-mousse"),
+    false
+  );
+  assert.equal(
+    models.some((m) => m.id === "ambrosia-tart-high"),
+    false
+  );
   const sol = models.find((m) => m.id === "gpt-5.6-sol");
   assert.equal(sol?.notionCodename, "orange-mousse");
   assert.equal(sol?.supportsReasoning, true);
@@ -108,7 +114,10 @@ test("listNotionDisabledModels surfaces plan-locked Fable 5 without listing it a
   assert.equal(disabled[0].reason, "business_or_enterprise_plan_required");
 
   const enabled = notionModels.parseNotionAvailableModels(payload);
-  assert.equal(enabled.some((m) => m.id === "fable-5" || m.id === "acai-budino-high"), false);
+  assert.equal(
+    enabled.some((m) => m.id === "fable-5" || m.id === "acai-budino-high"),
+    false
+  );
   assert.ok(enabled.some((m) => m.id === "gpt-5.6-sol"));
 
   const warning = notionModels.formatNotionDisabledModelsWarning(disabled);
@@ -311,6 +320,11 @@ test("notion-web models route returns live getAvailableModels catalog", async ()
       assert.equal(body.spaceId, "space-live-1");
       const headers = init?.headers as Record<string, string>;
       assert.match(String(headers.cookie || headers.Cookie || ""), /token_v2=sess/);
+      // Browser fingerprint headers present on models-discovery requests.
+      assert.ok(headers["sec-ch-ua"], "sec-ch-ua should be present");
+      assert.ok(headers["sec-fetch-mode"], "sec-fetch-mode should be present");
+      assert.equal(headers["sec-fetch-mode"], "cors");
+      assert.equal(headers["cache-control"], "no-cache");
       return Response.json(SAMPLE_RESPONSE);
     }
     return new Response("unexpected", { status: 500 });

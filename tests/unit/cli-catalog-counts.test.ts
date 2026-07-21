@@ -66,7 +66,7 @@ test("All agent entries have baseUrlSupport 'full' or 'partial' (no agent is 'no
   }
 });
 
-test("The 21 visible code entries match D15 list exactly (+ crush + codewhale + grok-build)", () => {
+test("The 21 visible code entries include Qwen Code's rebuilt integration", () => {
   const d15List = new Set([
     "claude",
     "codex",
@@ -74,7 +74,6 @@ test("The 21 visible code entries match D15 list exactly (+ crush + codewhale + 
     "kilo",
     "roo",
     "continue",
-    "qwen",
     "aider",
     "forge",
     "jcode",
@@ -89,6 +88,7 @@ test("The 21 visible code entries match D15 list exactly (+ crush + codewhale + 
     "custom",
     "crush",
     "grok-build",
+    "qwen",
   ]);
   const visibleIds = new Set(codeVisible.map((t) => t.id));
   for (const id of d15List) {

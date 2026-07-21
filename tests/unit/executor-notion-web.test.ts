@@ -26,9 +26,14 @@ describe("NotionWebExecutor — registry consistency", () => {
     assert.ok(models.length >= 1);
     assert.ok(models.some((m) => m.id === "notion-ai"));
     // Seed catalog uses real web-picker labels (fable-5 / gpt-5.6-sol), not food codenames.
-    assert.ok(models.some((m) => m.id === "fable-5" || m.id === "gpt-5.6-sol" || m.id === "opus-4.8"));
+    assert.ok(
+      models.some((m) => m.id === "fable-5" || m.id === "gpt-5.6-sol" || m.id === "opus-4.8")
+    );
     assert.equal(
-      models.some((m) => m.id === "ambrosia-tart-high" || m.id === "orange-mousse" || m.id === "acai-budino-high"),
+      models.some(
+        (m) =>
+          m.id === "ambrosia-tart-high" || m.id === "orange-mousse" || m.id === "acai-budino-high"
+      ),
       false
     );
   });
@@ -124,6 +129,14 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       assert.equal(capturedHeaders.Cookie, COOKIE_WITH_SPACE);
       assert.equal(capturedHeaders["x-notion-space-id"], "space-1");
       assert.equal(capturedHeaders["x-notion-active-user-header"], "user-1");
+      // Browser fingerprint headers to reduce Cloudflare challenges.
+      assert.ok(capturedHeaders["sec-ch-ua"], "sec-ch-ua should be present");
+      assert.ok(capturedHeaders["sec-fetch-dest"], "sec-fetch-dest should be present");
+      assert.ok(capturedHeaders["sec-fetch-mode"], "sec-fetch-mode should be present");
+      assert.equal(capturedHeaders["sec-fetch-mode"], "cors");
+      assert.ok(capturedHeaders["sec-ch-ua-platform"], "sec-ch-ua-platform should be present");
+      assert.equal(capturedHeaders["cache-control"], "no-cache");
+      assert.equal(capturedHeaders["pragma"], "no-cache");
       assert.ok(capturedBody);
       assert.equal(capturedBody.createThread, true);
       assert.ok(typeof capturedBody.threadId === "string" && capturedBody.threadId.length > 0);
@@ -295,7 +308,8 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
     const executor = new mod.NotionWebExecutor();
     const originalFetch = globalThis.fetch;
     try {
-      globalThis.fetch = (async () => new Response("not-json\n{}", { status: 200 })) as typeof fetch;
+      globalThis.fetch = (async () =>
+        new Response("not-json\n{}", { status: 200 })) as typeof fetch;
 
       const result = await executor.execute({
         model: "notion-ai",
@@ -314,8 +328,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
     const executor = new mod.NotionWebExecutor();
     const originalFetch = globalThis.fetch;
     try {
-      globalThis.fetch = (async () =>
-        new Response("Forbidden", { status: 403 })) as typeof fetch;
+      globalThis.fetch = (async () => new Response("Forbidden", { status: 403 })) as typeof fetch;
 
       const result = await executor.execute({
         model: "notion-ai",
@@ -325,7 +338,9 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         signal: null,
       } as never);
       assert.equal(result.response.status, 403);
-      const errBody = (await result.response.json()) as { error: { message: string; code: string } };
+      const errBody = (await result.response.json()) as {
+        error: { message: string; code: string };
+      };
       assert.match(errBody.error.message, /session expired|invalid/i);
       assert.equal(errBody.error.code, "HTTP_403");
       // No stack trace / file path leakage (Hard Rule #12).
@@ -437,13 +452,56 @@ describe("buildNotionTranscript", () => {
     assert.ok(transcript.every((t) => typeof t.id === "string" && (t.id as string).length > 0));
   });
 
-  it("drops messages with empty/non-string content but keeps config+context", () => {
+  it("drops messages with empty content but keeps config+context", () => {
     const transcript = buildNotionTranscript([
       { role: "user", content: "" },
       { role: "user", content: "keep me" },
     ]);
     assert.equal(transcript.length, 3); // config + context + user
     assert.equal(transcript[2].type, "user");
+  });
+
+  it("accepts OpenAI content-parts arrays for system + user (agent clients)", () => {
+    // Regression: array-shaped content was previously dropped entirely, so
+    // system injects (jailbreak/agentic) and multimodal user turns never
+    // reached Notion's transcript.
+    const transcript = buildNotionTranscript(
+      [
+        {
+          role: "system",
+          content: [
+            { type: "text", text: "[VP-JB] follow tools" },
+            { type: "text", text: "second system part" },
+          ] as unknown as string,
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "find icon skill" },
+          ] as unknown as string,
+        },
+      ],
+      { spaceId: "s1" }
+    );
+    assert.deepEqual(
+      transcript.map((t) => t.type),
+      ["config", "context", "user"]
+    );
+    const ctx = transcript[1].value as { instructions?: string };
+    assert.match(String(ctx.instructions), /\[VP-JB\] follow tools/);
+    assert.match(String(ctx.instructions), /second system part/);
+    assert.deepEqual(transcript[2].value, [["find icon skill"]]);
+  });
+
+  it("accepts bare string parts inside content arrays", () => {
+    const transcript = buildNotionTranscript([
+      {
+        role: "user",
+        content: ["hello", "world"] as unknown as string,
+      },
+    ]);
+    assert.equal(transcript[2].type, "user");
+    assert.deepEqual(transcript[2].value, [["hello\nworld"]]);
   });
 
   it("puts model food-codename on config when provided", () => {
@@ -459,10 +517,7 @@ describe("estimateNotionUsage", () => {
 
   it("scales with prompt and completion length (not a constant 2000)", () => {
     const short = estimateNotionUsage([{ role: "user", content: "hi" }], "PONG");
-    const long = estimateNotionUsage(
-      [{ role: "user", content: "a".repeat(400) }],
-      "b".repeat(400)
-    );
+    const long = estimateNotionUsage([{ role: "user", content: "a".repeat(400) }], "b".repeat(400));
     assert.equal(short.estimated, true);
     assert.ok(short.prompt_tokens >= 1);
     assert.ok(short.completion_tokens >= 1);

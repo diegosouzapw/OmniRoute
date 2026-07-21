@@ -519,6 +519,27 @@ export function buildCcrReference(
 }
 
 /**
+ * #7746 guard: how many leading characters of the original block to keep in front
+ * of the marker. `maybeCcrReplace` treats an entire message/part as ONE candidate
+ * block (see module docstring), so a bare marker alone would silently discard the
+ * ENTIRE prompt for any caller that cannot resolve `omniroute_ccr_retrieve`
+ * (every plain OpenAI-compatible client — it is only ever exposed as an MCP tool).
+ * Keeping a short, human-readable preamble means the model still sees the start
+ * of the user's intent even when the marker itself is unreachable, while the full
+ * text remains verbatim-retrievable by hash for MCP-capable callers.
+ */
+const MARKER_PREAMBLE_CHARS = 200;
+
+/**
+ * Build the text that replaces a compressed block: a short preamble of the
+ * original content followed by the retrieve marker, never the marker alone.
+ */
+function buildCcrReplacementText(text: string, marker: string): string {
+  const preamble = text.slice(0, MARKER_PREAMBLE_CHARS).trimEnd();
+  return `${preamble}… ${marker}`;
+}
+
+/**
  * Replace a large text block with a CCR marker if it shrinks the content.
  * Returns the new text and a flag indicating whether replacement happened.
  */
@@ -543,15 +564,18 @@ function maybeCcrReplace(
   }
 
   const marker = buildCcrMarker(hash, text.length);
+  // #7746: never leave a caller with ONLY the bare marker — keep a short preamble
+  // so the original prompt is not silently, totally unreachable for non-MCP callers.
+  const replacement = buildCcrReplacementText(text, marker);
 
   // Only replace if it actually shrinks
-  if (marker.length >= text.length) {
+  if (replacement.length >= text.length) {
     return { text, replaced: false, hash: null };
   }
 
   const stored = tryStoreBlock(text, principalId, { source: "compression" });
   if (!stored.stored) return { text, replaced: false, hash: null };
-  return { text: marker, replaced: true, hash };
+  return { text: replacement, replaced: true, hash };
 }
 
 /**
@@ -568,6 +592,20 @@ function processMessages(
   const result = messages.map((msg) => {
     if (msg.role === "system") return { ...msg };
 
+    // H-fix1: skip tool outputs (OpenAI `role:"tool"` and Anthropic user
+    // messages whose content is exclusively `tool_result` parts). When
+    // OmniRoute is used as a chat-completion PROVIDER, the upstream LLM has no
+    // way to call `omniroute_ccr_retrieve` and expand markers — replacing tool
+    // outputs with `[CCR retrieve hash=…]` placeholders therefore breaks the agent
+    // loop. Preserve tool outputs verbatim so the LLM can keep reasoning.
+    if (msg.role === "tool") return { ...msg };
+    if (msg.role === "user" && Array.isArray(msg.content)) {
+      const parts = msg.content as Array<Record<string, unknown>>;
+      if (parts.length > 0 && parts.every((p) => p?.["type"] === "tool_result")) {
+        return { ...msg };
+      }
+    }
+
     if (typeof msg.content === "string") {
       const { text, replaced } = maybeCcrReplace(msg.content, minChars, principalId, rampFactor);
       if (replaced) {
@@ -580,7 +618,7 @@ function processMessages(
     if (Array.isArray(msg.content)) {
       let changed = false;
       const newContent = msg.content.map((part) => {
-        if (part["type"] !== "text" || typeof part["text"] !== "string") return part;
+        if (part?.["type"] !== "text" || typeof part?.["text"] !== "string") return part;
         const { text, replaced } = maybeCcrReplace(
           part["text"] as string,
           minChars,

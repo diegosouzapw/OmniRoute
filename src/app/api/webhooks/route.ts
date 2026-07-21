@@ -43,13 +43,16 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const webhooks = getWebhooks();
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.has("limit") ? Number(searchParams.get("limit")) : undefined;
+    const offset = searchParams.has("offset") ? Number(searchParams.get("offset")) : 0;
+    const result = getWebhooks(limit !== undefined ? { limit, offset } : undefined);
     // Mask secrets in listing
-    const masked = webhooks.map((w) => ({
+    const masked = result.webhooks.map((w) => ({
       ...w,
       secret: w.secret ? `${w.secret.slice(0, 10)}...` : null,
     }));
-    return NextResponse.json({ webhooks: masked });
+    return NextResponse.json({ webhooks: masked, total: result.total });
   } catch (error: any) {
     return NextResponse.json(
       { error: sanitizeErrorMessage(error) || "Failed to list webhooks" },

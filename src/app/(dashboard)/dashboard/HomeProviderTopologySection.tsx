@@ -13,6 +13,8 @@ type TopologyProvider = {
   id: string;
   provider: string;
   name?: string;
+  /** Connection-health base state, so the topology can colour a node at rest. */
+  status?: "active" | "error" | "idle";
 };
 
 export function HomeProviderTopologySection({

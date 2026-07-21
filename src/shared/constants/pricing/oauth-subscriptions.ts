@@ -180,46 +180,6 @@ export const DEFAULT_PRICING_OAUTH = {
       cache_creation: 1.0,
     },
   },
-  qw: {
-    "qwen3-coder-plus": {
-      input: 1.0,
-      output: 4.0,
-      cached: 0.5,
-      reasoning: 6.0,
-      cache_creation: 1.0,
-    },
-    // Next-generation Qwen Coder tier (added Mar 2026)
-    "qwen3-coder-next": {
-      input: 2.0,
-      output: 8.0,
-      cached: 1.0,
-      reasoning: 12.0,
-      cache_creation: 2.0,
-    },
-    "qwen3-coder-flash": {
-      input: 0.5,
-      output: 2.0,
-      cached: 0.25,
-      reasoning: 3.0,
-      cache_creation: 0.5,
-    },
-    "vision-model": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-    // Qwen3.5/3.6 Coder Model — ported from upstream 9router PR #156 (zx07).
-    // Priced identically to the vision tier per upstream defaults.
-    "coder-model": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-  },
   if: {
     "qwen3-coder-plus": {
       input: 1.0,

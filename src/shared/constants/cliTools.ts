@@ -404,8 +404,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     name: "Qwen Code",
     icon: "psychology",
     color: "#10B981",
-    description:
-      "Alibaba Qwen Code CLI — supports OpenAI, Anthropic & Gemini providers via OmniRoute",
+    description: "Qwen Code CLI — current V4 OpenAI-compatible model provider via OmniRoute",
     docsUrl: "https://qwenlm.github.io/qwen-code-docs/en/users/configuration/model-providers/",
     configType: "guide",
     category: "code",
@@ -413,91 +412,15 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     acpSpawnable: true,
     baseUrlSupport: "full",
     defaultCommand: "qwen",
+    previewConfigMode: "qwen",
     notes: [
       {
         type: "info",
-        text: "Qwen Code supports multiple provider types (openai, anthropic, gemini) via modelProviders in settings.json. OmniRoute works as an OpenAI-compatible endpoint.",
+        text: "OmniRoute is registered under modelProviders.openai using Qwen Code's current bare-array V4 format.",
       },
       {
         type: "info",
-        text: "Any model available in OmniRoute can be used — not just Qwen models. Select from Qwen, Claude, Gemini, GPT, and more.",
-      },
-      {
-        type: "warning",
-        text: "Config path: Linux/macOS ~/.qwen/settings.json • Windows %USERPROFILE%\\.qwen\\settings.json",
-      },
-      {
-        type: "error",
-        text: "Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with bailian-coding-plan/alibaba/alibaba-cn/openrouter/anthropic/gemini providers instead.",
-      },
-    ],
-    modelAliases: [
-      "coder-model",
-      "qwen3-coder-plus",
-      "qwen3-coder-flash",
-      "vision-model",
-      "claude-sonnet-4-6",
-      "claude-opus-4-6-thinking",
-      "gemini-3-flash",
-      "gemini-3.1-pro-high",
-    ],
-    defaultModels: [
-      {
-        id: "coder-model",
-        name: "Coder Model (Qwen 3.6 Plus)",
-        alias: "coder-model",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "coder-model",
-        isTopLevel: true,
-      },
-      {
-        id: "qwen3-coder-plus",
-        name: "Qwen 3 Coder Plus",
-        alias: "qwen3-coder-plus",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "qwen3-coder-plus",
-      },
-      {
-        id: "qwen3-coder-flash",
-        name: "Qwen 3 Coder Flash",
-        alias: "qwen3-coder-flash",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "qwen3-coder-flash",
-      },
-      {
-        id: "vision-model",
-        name: "Vision Model (Multimodal)",
-        alias: "vision-model",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "vision-model",
-      },
-      {
-        id: "claude-sonnet-4-6",
-        name: "Claude Sonnet 4.6",
-        alias: "claude-sonnet-4-6",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "claude-sonnet-4-6",
-      },
-      {
-        id: "claude-opus-4-6-thinking",
-        name: "Claude Opus 4.6 Thinking",
-        alias: "claude-opus-4-6-thinking",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "claude-opus-4-6-thinking",
-      },
-      {
-        id: "gemini-3.1-pro-high",
-        name: "Gemini 3.1 Pro High",
-        alias: "gemini-3.1-pro-high",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "gemini-3.1-pro-high",
-      },
-      {
-        id: "gemini-3-flash",
-        name: "Gemini 3 Flash",
-        alias: "gemini-3-flash",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "gemini-3-flash",
+        text: "The API key is stored only as OMNIROUTE_API_KEY in ~/.qwen/.env, leaving your existing provider credentials untouched.",
       },
     ],
     guideSteps: [
@@ -508,23 +431,24 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
       {
         step: 5,
         title: "Save Config",
-        desc: "Click Save Config below to write your settings.json automatically.",
+        desc: "Write the modelProviders entry and dedicated .env key without replacing other Qwen Code settings.",
       },
     ],
     codeBlock: {
       language: "json",
-      code: `# ~/.qwen/settings.json — OmniRoute via security.auth
-{
-  "security": {
-    "auth": {
-      "selectedType": "openai",
-      "apiKey": "{{apiKey}}",
-      "baseUrl": "{{baseUrl}}"
-    }
+      code: `{
+  "modelProviders": {
+    "openai": [
+      {
+        "id": "{{model}}",
+        "name": "{{model}} (OmniRoute)",
+        "envKey": "OMNIROUTE_API_KEY",
+        "baseUrl": "{{baseUrl}}"
+      }
+    ]
   },
-  "model": {
-    "name": "{{model}}"
-  }
+  "security": { "auth": { "selectedType": "openai" } },
+  "model": { "name": "{{model}}", "baseUrl": "{{baseUrl}}" }
 }`,
     },
   },

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-test("CLI_TOOLS registry contains all expected tools (plan 14 — 33 total + crush + codewhale + omp + letta + grok-build)", async () => {
+test("CLI_TOOLS registry contains all expected tools including rebuilt Qwen Code", async () => {
   const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
   // windsurf and amp removed per plan 14 D17 (MITM backlog plan 11)
   // New entries added: roo, jcode, deepseek-tui, smelt, pi, aider, forge,
@@ -26,7 +26,6 @@ test("CLI_TOOLS registry contains all expected tools (plan 14 — 33 total + cru
     "hermes",
     "hermes-agent",
     "kiro",
-    "qwen",
     "custom",
     "aider",
     "forge",
@@ -45,11 +44,13 @@ test("CLI_TOOLS registry contains all expected tools (plan 14 — 33 total + cru
     "agent-deck",
     "crush",
     "grok-build",
+    "qwen",
   ];
   for (const id of expected) {
     assert.ok(id in CLI_TOOLS, `Missing tool: ${id}`);
   }
   assert.equal(Object.keys(CLI_TOOLS).length, expected.length);
+  assert.equal(CLI_TOOLS.qwen.previewConfigMode, "qwen");
   // Confirm removed entries are gone
   assert.equal((CLI_TOOLS as Record<string, unknown>)["windsurf"], undefined);
   assert.equal((CLI_TOOLS as Record<string, unknown>)["amp"], undefined);

@@ -6,6 +6,7 @@ import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { invalidateDbCache } from "./readCache";
+import { encrypt, decrypt } from "./encryption";
 import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
@@ -118,10 +119,23 @@ export async function getSettings() {
     comboStrategy: "fallback",
     comboStickyRoundRobinLimit: null, // null = inherit stickyRoundRobinLimit (a literal default here shadows the documented batched-rotation default of 3 — #6678 regression caught by the v3.8.47 release CI)
     providerStrategies: {},
+    // Per-operator quota row visibility (dashboard usage tab). Keyed by
+    // provider id → { hidden: [<quota visibility key>] }. Independent of the
+    // model catalog's isHidden/isDeleted flags (collectHiddenQuotaModelIds in
+    // ProviderLimits/utils.tsx) — this is a personal view preference, not an
+    // admin model-catalog edit. Ported from upstream decolua/9router#2371.
+    quotaVisibility: {},
     requestRetry: 3,
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
+    oidcEnabled: false,
+    oidcIssuer: "",
+    oidcClientId: "",
+    oidcClientSecret: "",
+    oidcScopes: ["openid", "profile", "email"],
+    oidcRedirectPath: "/api/auth/oidc/callback",
+    oidcAllowedSubjects: [], // optional sub or email whitelist
     mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
@@ -141,6 +155,7 @@ export async function getSettings() {
     // open-sse/handlers/chatCore/claudeClassifierCompat.ts for the detector + builder.
     claudeClassifierCompat: "off",
     autoRefreshProviderQuota: false,
+    credentialRedactionEnabled: false,
     autoRefreshProviderQuotaInterval: 180,
     comboConfigMode: "guided",
     comboAutoPromoteEnabled: false,
@@ -201,6 +216,9 @@ export async function getSettings() {
     }
   }
 
+  if (typeof settings.oidcClientSecret === "string") {
+    settings.oidcClientSecret = decrypt(settings.oidcClientSecret) ?? "";
+  }
   applySessionAffinityLegacyFallback(settings);
 
   // Auto-complete onboarding for pre-configured deployments (Docker/VM)
@@ -237,7 +255,8 @@ export async function updateSettings(updates: Record<string, unknown>) {
   );
   const tx = db.transaction(() => {
     for (const [key, value] of Object.entries(updates)) {
-      insert.run(key, JSON.stringify(value));
+      const toStore = key === "oidcClientSecret" ? encrypt(value as string) : value;
+      insert.run(key, JSON.stringify(toStore));
     }
   });
   tx();
@@ -749,3 +768,4 @@ export {
   getCacheTrend,
   resetCacheMetrics,
 } from "./settings/cacheMetrics";
+export { getCachedSettings } from "./readCache";

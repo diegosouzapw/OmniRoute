@@ -17,6 +17,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 
 interface Props {
   quotas: any[];
+  providerId?: string;
   /** When > MAX_VISIBLE, render "+N more" hint. */
   maxVisible?: number;
   loading: boolean;
@@ -82,6 +83,7 @@ function QuotaRow({ q }: { q: any }) {
 
 export default function QuotaCardBody({
   quotas,
+  providerId,
   maxVisible = MAX_VISIBLE_DEFAULT,
   loading,
   error,
@@ -121,7 +123,7 @@ export default function QuotaCardBody({
     return <div className="px-3 py-3 text-[11px] text-text-muted italic">{t("noQuotaData")}</div>;
   }
 
-  const visible = topQuotas(quotas, maxVisible);
+  const visible = topQuotas(quotas, maxVisible, providerId);
   const hidden = Math.max(0, quotas.length - visible.length);
 
   return (

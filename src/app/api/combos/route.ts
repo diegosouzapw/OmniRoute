@@ -1,14 +1,21 @@
 import { NextResponse } from "next/server";
-import { getCombos, createCombo, getComboByName, isCloudEnabled } from "@/lib/localDb";
+import {
+  getCombos,
+  getCombosCount,
+  createCombo,
+  getComboByName,
+  isCloudEnabled,
+} from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG, clampComboDepth } from "@omniroute/open-sse/services/combo.ts";
-import { createComboSchema } from "@/shared/validation/schemas";
+import { createComboSchema, paginationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
+import { computeComboContextLength } from "@/lib/combos/comboContext";
 
 // GET /api/combos - Get all combos
 export async function GET(request: Request) {
@@ -16,8 +23,24 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const combos = await getCombos();
-    return NextResponse.json({ combos });
+    const { searchParams } = new URL(request.url);
+    const raw = {
+      offset: searchParams.get("offset") || undefined,
+      limit: searchParams.get("limit") || undefined,
+    };
+    const validation = validateBody(paginationSchema, raw);
+    if (isValidationFailure(validation)) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
+    const range = validation.data;
+    const total = getCombosCount();
+    const rawCombos = await getCombos(range.limit, range.offset);
+    const combos = rawCombos.map((combo) => ({
+      ...combo,
+      computed_context_length: computeComboContextLength(combo, rawCombos),
+    }));
+    return NextResponse.json({ combos, total });
   } catch (error) {
     console.log("Error fetching combos:", error);
     return NextResponse.json({ error: "Failed to fetch combos" }, { status: 500 });

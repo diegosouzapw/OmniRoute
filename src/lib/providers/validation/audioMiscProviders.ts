@@ -13,9 +13,17 @@ import {
 } from "./headers";
 import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
 import { validateDirectChatProvider } from "./directChatProbe";
-import { buildRunwayApiUrl, buildRunwayHeaders, normalizeRunwayBaseUrl } from "@omniroute/open-sse/config/runway.ts";
-import { buildMaritalkChatUrl, buildMaritalkModelsUrl } from "@omniroute/open-sse/config/maritalk.ts";
+import {
+  buildRunwayApiUrl,
+  buildRunwayHeaders,
+  normalizeRunwayBaseUrl,
+} from "@omniroute/open-sse/config/runway.ts";
+import {
+  buildMaritalkChatUrl,
+  buildMaritalkModelsUrl,
+} from "@omniroute/open-sse/config/maritalk.ts";
 import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
+import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
 
 export async function validateDeepgramProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
@@ -243,11 +251,14 @@ export async function validateAwsPollyProvider({ apiKey, providerSpecificData = 
   }
 }
 
-export async function validateBailianCodingPlanProvider({ apiKey, providerSpecificData = {} }: any) {
+export async function validateBailianCodingPlanProvider({
+  apiKey,
+  providerSpecificData = {},
+}: any) {
   try {
-    const rawBaseUrl =
-      normalizeBaseUrl(providerSpecificData.baseUrl) ||
-      "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
+    const rawBaseUrl = normalizeBaseUrl(
+      resolveAlibabaProviderBaseUrl("bailian-coding-plan", providerSpecificData)
+    );
     const baseUrl = rawBaseUrl.endsWith("/messages")
       ? rawBaseUrl.slice(0, -"/messages".length)
       : rawBaseUrl;
@@ -286,6 +297,43 @@ export async function validateBailianCodingPlanProvider({ apiKey, providerSpecif
       return { valid: true, error: null };
     }
 
+    return { valid: false, error: `Validation failed: ${response.status}` };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+export async function validateQwenCloudTokenPlanProvider({
+  apiKey,
+  providerSpecificData = {},
+}: any) {
+  try {
+    const baseUrl = normalizeBaseUrl(
+      resolveAlibabaProviderBaseUrl("qwen-cloud-token-plan", providerSpecificData)
+    ).replace(/\/chat\/completions$/i, "");
+    const response = await validationWrite(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: providerSpecificData.validationModelId || "qwen3.7-max",
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
+      }),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    if (response.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        warning: "Provider accepted the key but is rate limited (429)",
+      };
+    }
+    if (response.ok || response.status === 400 || response.status === 422) {
+      return { valid: true, error: null };
+    }
     return { valid: false, error: `Validation failed: ${response.status}` };
   } catch (error: any) {
     return toValidationErrorResult(error);
@@ -595,4 +643,3 @@ export async function validatePoeProvider({ apiKey, providerSpecificData = {} }:
 
   return { valid: false, error: "Connection failed while testing Poe" };
 }
-

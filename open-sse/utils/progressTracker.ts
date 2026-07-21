@@ -1,3 +1,5 @@
+const decoder = new TextDecoder();
+
 /**
  * Progress Tracker — Phase 9.3
  *
@@ -67,7 +69,7 @@ export function createProgressTransform({
 
       transform(chunk, controller) {
         // Count token events in the chunk
-        const text = typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk);
+        const text = typeof chunk === "string" ? chunk : decoder.decode(chunk);
         // Count data lines (each is roughly one token event)
         const dataLines = text.split("\n").filter((l) => l.startsWith("data: "));
         tokenCount += dataLines.length;

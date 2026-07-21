@@ -11,6 +11,7 @@ import { CLI_TOOLS } from "@/shared/constants/cliTools";
 import { getCliRuntimeStatus, getCliPrimaryConfigPath } from "@/shared/services/cliRuntime";
 import { getAllCliToolLastConfigured } from "@/lib/db/cliToolState";
 import { checkToolConfigStatus } from "@/lib/cliTools/checkToolConfigStatus";
+import { findOmniRouteQwenCodeModel } from "@/shared/services/qwenCodeConfig";
 import { getCached, setCached } from "@/lib/cliTools/batchStatusCache";
 import type { ToolBatchStatus, ToolBatchStatusMap } from "@/shared/types/cliBatchStatus";
 
@@ -43,13 +44,8 @@ async function extractEndpointFromConfig(
         return (env?.ANTHROPIC_BASE_URL as string | undefined) ?? null;
       }
       case "qwen": {
-        const mp = config.modelProviders as Record<string, unknown>[] | undefined;
-        if (!Array.isArray(mp)) return null;
-        for (const provider of mp) {
-          const baseUrl = (provider as Record<string, unknown>).apiBase as string | undefined;
-          if (baseUrl) return baseUrl;
-        }
-        return null;
+        const managed = findOmniRouteQwenCodeModel(config);
+        return typeof managed?.baseUrl === "string" ? managed.baseUrl : null;
       }
       case "cline":
         return (config.openAiBaseUrl as string | undefined) ?? null;

@@ -407,7 +407,7 @@ const COMBO_TEMPLATE_FALLBACK = {
   balancedDesc: "Least-used routing to spread demand over time.",
   freeStackTitle: "Free Stack ($0)",
   freeStackDesc:
-    "Round-robin across free providers: Kiro, Qoder, Qwen, Antigravity CLI. Zero cost, never stops.",
+    "Round-robin across free providers: Kiro, Qoder, Antigravity CLI. Zero cost, never stops.",
   paidPremiumTitle: "Paid Premium",
   paidPremiumDesc:
     "Round-robin across paid subscriptions: Cursor, Antigravity. Top-tier models, distributed load.",

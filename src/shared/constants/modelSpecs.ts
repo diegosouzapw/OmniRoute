@@ -400,6 +400,13 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
     aliases: ["qwen3.7-max", "qwen3-max-2026-01-23"],
   },
+  "qwen3.8-max-preview": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,

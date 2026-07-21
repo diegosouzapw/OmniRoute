@@ -457,6 +457,45 @@ export default function SecurityTab() {
         </div>
       </Card>
 
+      <Card>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+            <span className="material-symbols-outlined">shield</span>
+          </div>
+          <div>
+            <p className="font-medium">
+              {getSettingsLabel("credentialRedaction", "Credential Redaction")}
+            </p>
+            <p className="text-sm text-text-muted">
+              {getSettingsLabel(
+                "credentialRedactionDesc",
+                "Redact API keys, tokens, and secrets from context sent to providers and from responses."
+              )}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium">
+              {getSettingsLabel("enableCredentialRedaction", "Enable credential redaction")}
+            </p>
+            <p className="text-sm text-text-muted">
+              {getSettingsLabel(
+                "enableCredentialRedactionDesc",
+                "Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
+              )}
+            </p>
+          </div>
+          <Toggle
+            checked={settings.credentialRedactionEnabled === true}
+            onChange={() =>
+              updateSetting("credentialRedactionEnabled", !settings.credentialRedactionEnabled)
+            }
+            disabled={loading}
+          />
+        </div>
+      </Card>
+
       <AuthzSection />
       <SessionInfoCard />
     </div>

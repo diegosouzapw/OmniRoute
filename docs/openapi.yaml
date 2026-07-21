@@ -1126,6 +1126,13 @@ paths:
               schema:
                 type: string
               description: Number of fallback attempts (only present when > 0).
+            X-OmniRoute-Decision:
+              schema:
+                type: string
+              description: >-
+                Routing decision trace: `strategy=<name>; provider=<alias>; latency_ms=<n>`.
+                `<name>` is the combo strategy (e.g. `priority`, `weighted`, `fusion`) or
+                `single` for a non-combo request. Emitted on every completion response.
             X-OmniRoute-Request-Id:
               schema:
                 type: string

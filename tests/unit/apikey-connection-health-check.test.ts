@@ -172,7 +172,7 @@ test("connection with both apiKey and refreshToken: refresh path is tried", asyn
   );
 });
 
-test("sweep processes all connections with stagger + jitter delay", async () => {
+test("sweep processes all connections with inter-batch stagger + jitter delay", async () => {
   await resetStorage();
 
   // Create multiple connections; set isActive=false so checkConnection
@@ -201,6 +201,16 @@ test("sweep processes all connections with stagger + jitter delay", async () => 
     refreshToken: "test-rt",
     isActive: false,
   });
+  for (let i = 4; i <= 21; i++) {
+    await providersDb.createProviderConnection({
+      provider: "openai",
+      authType: "oauth",
+      name: `Stagger Test ${i}`,
+      email: `t${i}@example.com`,
+      refreshToken: "test-rt",
+      isActive: false,
+    });
+  }
 
   // Clear any health-check skip config
   const origSetting = process.env.HEALTHCHECK_SKIP_PROVIDERS;
@@ -219,13 +229,13 @@ test("sweep processes all connections with stagger + jitter delay", async () => 
     await sweep();
     const elapsed = Date.now() - start;
 
-    // 3 connections -> 2 gaps. Each gap waits
+    // 21 connections -> two batches (20 + 1) and one inter-batch gap. The gap waits
     // HEALTHCHECK_STAGGER_MS (1ms) + HEALTHCHECK_JITTER_MIN_MS (100ms) = 101ms.
-    // Without jitter: 2 * 1ms = ~2ms. With jitter: 2 * 101ms = ~202ms.
+    // Without jitter the only gap would be ~1ms.
     // The assert proves the jitter is actually applied.
     assert.ok(
-      elapsed >= 190,
-      `sweep took ${elapsed}ms — expected >= 190ms with jitter applied (jitter-free baseline would be ~2ms)`
+      elapsed >= 90,
+      `sweep took ${elapsed}ms — expected >= 90ms with jitter applied (jitter-free baseline would be ~1ms)`
     );
 
     // Verify all connections still exist (sweep didn't error out mid-loop)

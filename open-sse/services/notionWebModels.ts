@@ -7,6 +7,14 @@
  * build the cookie/headers/body the models-discovery route needs.
  */
 
+import {
+  NOTION_WEB_FALLBACK_MODELS,
+  type NotionDiscoveredModel,
+} from "./notionWebFallbackModels.ts";
+
+export { NOTION_WEB_FALLBACK_MODELS };
+export type { NotionDiscoveredModel };
+
 // Browser AI surface uses app.notion.com (live capture 2026-07-19). www.notion.so
 // still works for many paths but can return a different space default / cookie
 // domain behavior — prefer the same host the web picker uses.
@@ -15,72 +23,36 @@ const NOTION_LEGACY_ORIGIN = "https://www.notion.so";
 const NOTION_MODELS_URL = `${NOTION_APP_ORIGIN}/api/v3/getAvailableModels`;
 const NOTION_SPACES_URL = `${NOTION_APP_ORIGIN}/api/v3/getSpaces`;
 const NOTION_USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 /** Recent Notion web client version — accepted loosely but required by some paths. */
 const NOTION_CLIENT_VERSION = "23.13.20260719.1125";
 /** Cap how many workspaces we probe for AI models when space_id is omitted. */
 const NOTION_MAX_SPACE_PROBE = 8;
 /** Cache auto-selected workspace per token so chat/inference reuses discovery. */
-const NOTION_SPACE_CACHE = new Map<string, { spaceId: string; userId: string; expiresAt: number }>();
+const NOTION_SPACE_CACHE = new Map<
+  string,
+  { spaceId: string; userId: string; expiresAt: number }
+>();
 const NOTION_SPACE_CACHE_TTL_MS = 30 * 60 * 1000;
+
+// Browser fingerprint headers — make requests look like real Chromium
+// to reduce Cloudflare bot-detection challenges.
+export const BROWSER_HEADERS: Record<string, string> = {
+  "sec-ch-ua": '"Chromium";v="149", "Not)A;Brand";v="24"',
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": '"Windows"',
+  "sec-fetch-dest": "empty",
+  "sec-fetch-mode": "cors",
+  "sec-fetch-site": "same-origin",
+  priority: "u=1, i",
+  "cache-control": "no-cache",
+  pragma: "no-cache",
+};
 
 function notionTokenCacheKey(cookie: string): string {
   // Prefer the token_v2 value only — ignore optional space/user parts.
   return readCookieValue(cookie, "token_v2") || normalizeNotionWebCookie(cookie);
 }
-
-export type NotionDiscoveredModel = {
-  /**
-   * Catalog / OpenAI-compatible model id shown to clients.
-   * Prefer the web picker label slug (e.g. `fable-5`, `gpt-5.6-sol`) so users
-   * never have to choose Notion's internal food codenames.
-   */
-  id: string;
-  /** Human label from Notion's AI picker (`modelMessage`), e.g. "Fable 5". */
-  name: string;
-  owned_by: string;
-  supportsReasoning?: boolean;
-  disabled?: boolean;
-  /**
-   * Internal Notion `model` codename for `runInferenceTranscript`
-   * (e.g. `acai-budino-high`). When omitted, `id` is the codename itself
-   * (rare; only when no display label was available).
-   */
-  notionCodename?: string;
-};
-
-/**
- * Offline fallback when getAvailableModels is unreachable (seeded from live picker).
- * Catalog ids use real web-picker labels; `notionCodename` is what the API accepts.
- */
-export const NOTION_WEB_FALLBACK_MODELS: NotionDiscoveredModel[] = [
-  { id: "notion-ai", name: "Notion AI (default)", owned_by: "notion" },
-  { id: "gpt-5.6-sol", name: "GPT-5.6 Sol", owned_by: "openai", notionCodename: "orange-mousse" },
-  { id: "gpt-5.6-terra", name: "GPT-5.6 Terra", owned_by: "openai", notionCodename: "orchid-muffin" },
-  { id: "gpt-5.6-luna", name: "GPT-5.6 Luna", owned_by: "openai", notionCodename: "olive-jellyroll" },
-  { id: "gpt-5.2", name: "GPT-5.2", owned_by: "openai", notionCodename: "oatmeal-cookie" },
-  { id: "gpt-5.4", name: "GPT-5.4", owned_by: "openai", notionCodename: "oval-kumquat-medium" },
-  { id: "gpt-5.5", name: "GPT-5.5", owned_by: "openai", notionCodename: "opal-quince-medium" },
-  { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", owned_by: "openai", notionCodename: "oregon-grape-medium" },
-  { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", owned_by: "openai", notionCodename: "otaheite-apple-medium" },
-  { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash", owned_by: "gemini", notionCodename: "vertex-gemini-3.5-flash" },
-  { id: "gemini-3-flash", name: "Gemini 3 Flash", owned_by: "gemini", notionCodename: "gingerbread" },
-  { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro", owned_by: "gemini", notionCodename: "galette-medium-thinking" },
-  { id: "sonnet-4.6", name: "Sonnet 4.6", owned_by: "anthropic", notionCodename: "almond-croissant-low" },
-  { id: "sonnet-5", name: "Sonnet 5", owned_by: "anthropic", notionCodename: "angel-cake-high" },
-  { id: "opus-4.6", name: "Opus 4.6", owned_by: "anthropic", notionCodename: "avocado-froyo-medium" },
-  { id: "opus-4.7", name: "Opus 4.7", owned_by: "anthropic", notionCodename: "apricot-sorbet-high" },
-  { id: "opus-4.8", name: "Opus 4.8", owned_by: "anthropic", notionCodename: "ambrosia-tart-high" },
-  { id: "haiku-4.5", name: "Haiku 4.5", owned_by: "anthropic", notionCodename: "anthropic-haiku-4.5" },
-  { id: "fable-5", name: "Fable 5", owned_by: "anthropic", notionCodename: "acai-budino-high" },
-  { id: "kimi-k2.6", name: "Kimi K2.6", owned_by: "mystery", notionCodename: "fireworks-kimi-k2.6" },
-  { id: "kimi-k2.7-code", name: "Kimi K2.7 Code", owned_by: "mystery", notionCodename: "fireworks-kimi-k2.7" },
-  { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", owned_by: "mystery", notionCodename: "baseten-deepseek-v4-pro" },
-  { id: "glm-5.2", name: "GLM 5.2", owned_by: "mystery", notionCodename: "baseten-glm-5.2" },
-  { id: "grok-4.3", name: "Grok 4.3", owned_by: "xai", notionCodename: "xigua-mochi-medium" },
-  { id: "grok-4.5", name: "Grok 4.5", owned_by: "xai", notionCodename: "strawberry-whoopiepie" },
-  { id: "grok-build-0.1", name: "Grok Build 0.1", owned_by: "xai", notionCodename: "xinomavro-cake" },
-];
 
 /** Normalize a pasted credential to a Cookie header string. */
 export function normalizeNotionWebCookie(raw: string): string {
@@ -105,11 +77,7 @@ export function readCookieValue(cookie: string, name: string): string {
 }
 
 export function extractSpaceIdFromNotionCookie(cookie: string): string {
-  return (
-    readCookieValue(cookie, "space_id") ||
-    readCookieValue(cookie, "spaceId") ||
-    ""
-  );
+  return readCookieValue(cookie, "space_id") || readCookieValue(cookie, "spaceId") || "";
 }
 
 export function extractNotionUserIdFromCookie(cookie: string): string {
@@ -229,10 +197,7 @@ export function formatNotionDisabledModelsWarning(
  * Catalog `id` is the real picker label slug; `notionCodename` is what
  * runInferenceTranscript requires.
  */
-function parseNotionModelEntry(
-  entry: unknown,
-  seen: Set<string>
-): NotionDiscoveredModel | null {
+function parseNotionModelEntry(entry: unknown, seen: Set<string>): NotionDiscoveredModel | null {
   if (!entry || typeof entry !== "object" || Array.isArray(entry)) return null;
   const row = entry as Record<string, unknown>;
   // Notion still returns plan-locked models (Fable 5) with isDisabled=true.
@@ -314,6 +279,7 @@ export function buildNotionModelsDiscoveryHeaders(token: string): Record<string,
     "notion-client-version": NOTION_CLIENT_VERSION,
     "notion-audit-log-platform": "web",
     ...(cookie ? { cookie } : {}),
+    ...BROWSER_HEADERS,
   };
   if (spaceId) headers["x-notion-space-id"] = spaceId;
   if (userId) headers["x-notion-active-user-header"] = userId;
@@ -418,6 +384,7 @@ function buildNotionBrowserHeaders(cookie: string, userId?: string): Record<stri
     "notion-client-version": NOTION_CLIENT_VERSION,
     "notion-audit-log-platform": "web",
     cookie,
+    ...BROWSER_HEADERS,
   };
   if (userId) headers["x-notion-active-user-header"] = userId;
   return headers;
@@ -482,8 +449,12 @@ export async function selectBestNotionSpaceId(opts: {
   const cookie = normalizeNotionWebCookie(opts.cookie);
   if (!cookie || opts.spaceIds.length === 0) return null;
 
-  let best: { spaceId: string; models: NotionDiscoveredModel[]; raw: unknown; score: number } | null =
-    null;
+  let best: {
+    spaceId: string;
+    models: NotionDiscoveredModel[];
+    raw: unknown;
+    score: number;
+  } | null = null;
 
   for (const spaceId of opts.spaceIds.slice(0, NOTION_MAX_SPACE_PROBE)) {
     if (!spaceId) continue;
@@ -521,9 +492,7 @@ export async function selectBestNotionSpaceId(opts: {
     }
   }
 
-  return best
-    ? { spaceId: best.spaceId, models: best.models, raw: best.raw }
-    : null;
+  return best ? { spaceId: best.spaceId, models: best.models, raw: best.raw } : null;
 }
 
 /**
@@ -558,7 +527,11 @@ export async function resolveNotionRuntimeWorkspace(opts: {
     signal: opts.signal,
   });
   if (!best?.spaceId) {
-    return { spaceId: candidates.spaceIds[0] || "", userId: userId || candidates.userId, fromCache: false };
+    return {
+      spaceId: candidates.spaceIds[0] || "",
+      userId: userId || candidates.userId,
+      fromCache: false,
+    };
   }
 
   const resolvedUser = userId || candidates.userId;
@@ -766,10 +739,7 @@ export function resolveNotionCodename(
   else if (m.startsWith("nw/")) m = m.slice(3);
   if (!m || m === "notion-ai") return "";
 
-  const map = buildNotionFriendlyToCodenameMap([
-    ...NOTION_WEB_FALLBACK_MODELS,
-    ...extraModels,
-  ]);
+  const map = buildNotionFriendlyToCodenameMap([...NOTION_WEB_FALLBACK_MODELS, ...extraModels]);
   // Unknown ids pass through as-is so a freshly discovered codename still works
   // before the fallback table is updated.
   return map.get(m) || map.get(m.toLowerCase()) || map.get(slugifyNotionDisplayName(m)) || m;

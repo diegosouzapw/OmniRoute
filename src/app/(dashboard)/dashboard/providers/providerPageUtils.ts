@@ -89,6 +89,7 @@ type ProviderRecord<TProvider = Record<string, unknown>> = Record<string, TProvi
 const OAUTH_CARD_API_KEY_CONNECTION_PROVIDER_IDS = new Set(["kiro", "amazon-q", "kimi-coding"]);
 
 const PROVIDER_CONNECTION_ALIASES: Record<string, readonly string[]> = {
+  alibaba: ["alibaba-cn"],
   "kimi-coding": ["kimi-coding-apikey"],
 };
 

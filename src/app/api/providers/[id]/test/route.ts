@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   updateProviderConnection,
   isCloudEnabled,
   resolveProxyForConnection,
@@ -625,7 +625,7 @@ async function testApiKeyConnection(connection: any) {
  * @returns {Promise<object>} Test result (same shape as the JSON response)
  */
 export async function testSingleConnection(connectionId: string, validationModelId?: string) {
-  const connection = await getProviderConnectionById(connectionId);
+  const connection = await getCachedProviderConnectionById(connectionId);
 
   if (!connection) {
     return { valid: false, error: "Connection not found", diagnosis: null, latencyMs: 0 };

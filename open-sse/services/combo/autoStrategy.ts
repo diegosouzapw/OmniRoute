@@ -37,7 +37,7 @@ import {
   type ScoringWeights,
 } from "../autoCombo/scoring.ts";
 import type { RoutingHint } from "../manifestAdapter";
-import { getProviderConnections } from "../../../src/lib/db/providers";
+import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
 import { getProviderModels } from "../../config/providerModels.ts";
 import {
   getConnectionRoutingTags,
@@ -248,7 +248,7 @@ export async function applyRequestTagRouting(
   await Promise.all(
     providerIds.map(async (providerId) => {
       try {
-        const connections = await getProviderConnections({ provider: providerId, isActive: true });
+        const connections = await getCachedProviderConnections({ provider: providerId, isActive: true });
         providerConnections.set(
           providerId,
           Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
@@ -420,7 +420,7 @@ export async function expandAutoComboCandidatePool(
     return eligibleTargets;
 
   try {
-    const allConnections = await getProviderConnections({ isActive: true });
+    const allConnections = await getCachedProviderConnections({ isActive: true });
     const providerIds = [
       ...new Set(
         (allConnections as Array<{ provider?: unknown }>)

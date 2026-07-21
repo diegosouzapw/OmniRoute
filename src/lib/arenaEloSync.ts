@@ -150,8 +150,8 @@ const MODEL_ALIAS_MAP: Record<string, string[]> = {
   "gpt-5.5": ["openai/gpt-5.5", "gpt-5"],
   "gemini-3-flash": ["google/gemini-3-flash", "gemini-flash"],
   "deepseek-r1": ["deepseek/deepseek-r1", "if/deepseek-r1"],
-  "kimi-k2-thinking": ["moonshot/kimi-k2", "qw/kimi-k2"],
-  "qwen3-coder-plus": ["qw/qwen3-coder-plus", "alibaba/qwen3-coder"],
+  "kimi-k2-thinking": ["moonshot/kimi-k2"],
+  "qwen3-coder-plus": ["alibaba/qwen3-coder"],
   "llama-4": ["meta/llama-4", "llama4"],
 };
 

@@ -7,6 +7,7 @@ import {
   getProtocolColor,
 } from "@/shared/constants/colors";
 import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
+import { formatErrorForDisplay } from "@/shared/utils/formatting";
 
 // ─── Payload Code Block ─────────────────────────────────────────────────────
 
@@ -617,8 +618,8 @@ export default function RequestLoggerDetail({
               <div className="text-[10px] text-red-600 dark:text-red-400 uppercase tracking-wider mb-1 font-bold">
                 Error
               </div>
-              <div className="text-sm text-red-600 dark:text-red-300 font-mono">
-                {detail?.error || log.error}
+              <div className="text-sm text-red-600 dark:text-red-300 font-mono whitespace-pre-wrap break-words">
+                {formatErrorForDisplay(detail?.error || log.error)}
               </div>
             </div>
           )}

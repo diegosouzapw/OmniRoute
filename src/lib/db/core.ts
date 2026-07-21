@@ -41,6 +41,7 @@ import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
 import {
   ensureProviderConnectionsColumns,
+  ensureUsageHistoryAccountIndex,
   ensureUsageHistoryColumns,
   ensureCallLogsColumns,
   hasTable,
@@ -302,6 +303,9 @@ const SCHEMA_SQL = `
     provider TEXT,
     model TEXT,
     connection_id TEXT,
+    account_key TEXT,
+    account_label TEXT,
+    account_label_priority INTEGER DEFAULT 0,
     api_key_id TEXT,
     api_key_name TEXT,
     tokens_input INTEGER DEFAULT 0,
@@ -810,7 +814,6 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   }
 }
 
-
 function shouldRunStartupDbHealthCheck(): boolean {
   if (process.env.OMNIROUTE_FORCE_DB_HEALTHCHECK === "1") return true;
   return !isAutomatedTestProcess();
@@ -958,6 +961,7 @@ export function getDbInstance(): SqliteDatabase {
     memoryDb.pragma("journal_mode = WAL");
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
+    ensureUsageHistoryAccountIndex(memoryDb);
     ensureCallLogsColumns(memoryDb);
     ensureProviderConnectionsColumns(memoryDb);
     setDb(memoryDb);
@@ -1180,8 +1184,24 @@ export function getDbInstance(): SqliteDatabase {
   `);
 
   runMigrations(db, { isNewDb });
+  // Fresh installs need the same post-migration index guarantee as upgraded
+  // databases, including recovery from an interrupted migration 127 attempt.
+  ensureUsageHistoryAccountIndex(db);
 
   applyStoredDatabaseOptimizationSettings(db);
+
+  // Apply mmap_size from stored settings (migration 046), fallback to 256MiB
+  try {
+    const mmapRow = db
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get("databaseSettings", "mmapSize") as { value: string } | undefined;
+    const mmapSize = mmapRow ? Math.max(0, parseInt(mmapRow.value, 10) || 0) : 268435456;
+    if (mmapSize > 0) {
+      db.pragma(`mmap_size = ${mmapSize}`);
+    }
+  } catch {
+    // mmap_size is best-effort; not available in all runtimes (e.g. web)
+  }
 
   offloadLegacyCallLogDetails(db);
 
@@ -1308,6 +1328,10 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
  */
 export function resetDbInstance() {
   closeDbInstance();
+  // Read caches outlive the SQLite singleton. A reset swaps the backing
+  // database, so retaining cached rows can leak the previous database's
+  // connections/settings into the newly opened instance (tests and restore).
+  invalidateDbCache();
 }
 
 // ──────────────── Runtime Driver Info ────────────────

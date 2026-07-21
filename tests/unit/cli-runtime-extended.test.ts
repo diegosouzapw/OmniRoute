@@ -330,11 +330,21 @@ test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink esc
     fs.symlinkSync(outsideTarget, path.join(escapeBinDir, "qodercli"));
     process.env.npm_config_prefix = escapePrefix;
 
+    // #7753: every candidate checkKnownPath() ever receives is constructed by
+    // getKnownToolPaths() from a trusted root (here: npm_config_prefix/bin) — so a
+    // symlink placed exactly at that generated candidate path (the version-manager
+    // shim pattern used by nvm-windows/nvm/asdf/pyenv: trusted shim location,
+    // private per-version store target) is legitimate and must now be ACCEPTED even
+    // though its resolved target lives outside every EXPECTED_PARENT_PATHS entry.
+    // A genuinely unsafe symlink (one whose ORIGINAL location is also untrusted, not
+    // reachable through this known-path candidate generator) is covered separately
+    // by tests/unit/cliRuntime-symlink-escape-7753.test.ts via the exported
+    // checkKnownPath().
     const escapedRuntime = await importFresh("symlink-escape");
     const escapedStatus = await escapedRuntime.getCliRuntimeStatus("qoder");
 
-    assert.equal(escapedStatus.installed, false);
-    assert.equal(escapedStatus.reason, "symlink_escape");
+    assert.equal(escapedStatus.installed, true);
+    assert.equal(escapedStatus.reason, null);
   }
 });
 

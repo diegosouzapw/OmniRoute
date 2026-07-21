@@ -10,7 +10,7 @@ import {
 
 // Regression for upstream decolua/9router#2069: cache_control markers are stripped
 // when routing a Claude-format request to an OpenAI-compatible DashScope provider
-// (alibaba / alibaba-cn = upstream "alicode"/"alicode-intl"). DashScope's
+// (alibaba / alibaba-cn / qwen-cloud = upstream "alicode"/"alicode-intl"). DashScope's
 // OpenAI-compatible API natively honors `cache_control: {type:"ephemeral"}`, so the
 // markers must survive translation when preservation is requested for that provider.
 
@@ -43,6 +43,7 @@ describe("DashScope OpenAI-compat cache_control preservation (#2069)", () => {
   test("alibaba is recognized as a prompt-caching provider", () => {
     assert.equal(providerSupportsCaching("alibaba"), true);
     assert.equal(providerSupportsCaching("alibaba-cn"), true);
+    assert.equal(providerSupportsCaching("qwen-cloud"), true);
   });
 
   test("shouldPreserveCacheControl is true for Claude Code → alibaba single model", () => {
@@ -123,9 +124,10 @@ describe("DashScope OpenAI-compat cache_control preservation (#2069)", () => {
   });
 
   test("explicit-breakpoint predicate is narrow: DashScope/Xiaomi yes, implicit-cache OpenAI no", () => {
-    // alibaba / alibaba-cn / xiaomi-mimo accept explicit OpenAI-format markers.
+    // alibaba / alibaba-cn / qwen-cloud / xiaomi-mimo accept explicit OpenAI-format markers.
     assert.equal(providerHonorsOpenAIFormatCacheControl("alibaba"), true);
     assert.equal(providerHonorsOpenAIFormatCacheControl("alibaba-cn"), true);
+    assert.equal(providerHonorsOpenAIFormatCacheControl("qwen-cloud"), true);
     assert.equal(providerHonorsOpenAIFormatCacheControl("xiaomi-mimo"), true);
     // openai / codex / azure are caching providers via AUTOMATIC prefix caching
     // (#3955) — they do NOT take explicit cache_control in the request and must

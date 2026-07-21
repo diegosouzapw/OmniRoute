@@ -7,11 +7,12 @@ import {
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
+import { resolveAlibabaProviderModelsUrl } from "@/shared/constants/alibabaProviderRegions";
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   getSettings,
   getModelIsHidden,
   resolveProxyForProvider,
@@ -29,7 +30,10 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
-import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
+import {
+  fetchGitHubCopilotModels,
+  fetchGheCopilotModels,
+} from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
 import {
   buildGlmCodingHeaders,
@@ -215,7 +219,7 @@ export async function GET(
     const excludeCustom = searchParams.get("excludeCustom") === "true";
     const refresh = searchParams.get("refresh") === "true";
 
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
     const connectionProvider =
       typeof connection?.provider === "string" && connection.provider.trim().length > 0
         ? connection.provider
@@ -1562,6 +1566,51 @@ export async function GET(
       });
     }
 
+    if (provider === "ghe-copilot") {
+      // GHE Copilot exposes a per-enterprise chat model catalog at
+      // <copilotApiUrl>/models (endpoints.api from the token endpoint) — NOT the
+      // proxy host, which only serves NES/autocomplete models. The IDs are
+      // enterprise-specific (no static allowlist applies), so discover them live
+      // from copilotApiUrl with the Copilot bearer token.
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const psd = asRecord(connection.providerSpecificData);
+      const copilotToken =
+        toNonEmptyString(psd.copilotToken) || toNonEmptyString(accessToken) || null;
+      // endpoints.api serves the real chat model catalog; endpoints.proxy only
+      // has NES/autocomplete models. Prefer the api host, fall back to proxy for
+      // legacy connections that predate copilotApiUrl capture.
+      const copilotApiUrl =
+        toNonEmptyString(psd.copilotApiUrl) || toNonEmptyString(psd.copilotProxyUrl) || null;
+
+      const models = await fetchGheCopilotModels({
+        apiUrl: copilotApiUrl,
+        token: copilotToken,
+        fetchImpl: (url, init) => fetch(url as string, init as RequestInit),
+      });
+
+      if (models.length > 0) {
+        return buildApiDiscoveryResponse(models);
+      }
+
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "GHE Copilot models API unavailable — using cached catalog",
+        localWarning: "GHE Copilot models API unavailable — using local catalog",
+      });
+      if (fallback) return fallback;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: [],
+        source: "local_catalog",
+        warning: "GHE Copilot models API unavailable — using local catalog",
+      });
+    }
+
     if (provider === "kiro") {
       // Kiro's catalog is per-account / per-tier (free vs Pro vs Power) and, for
       // IAM Identity Center orgs, an admin-curated approved list. The static
@@ -1822,25 +1871,6 @@ export async function GET(
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
         : deriveConfigFromRegistryModelsUrl(provider);
-    // Static model providers (no remote /models API)
-    // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
-    if (provider === "qwen" && connection.authType === "oauth") {
-      const qwenModels = getModelsByProviderId("qwen");
-      return buildResponse({
-        provider,
-        connectionId,
-        models: qwenModels.map((m: any) => ({
-          id: m.id,
-          name: m.name || m.id,
-          owned_by: "qwen",
-        })),
-        source: "local_catalog",
-        // #5460/#5465 — Qwen OAuth has no OAuth-compatible remote /models list;
-        // the static catalog is intentional, so model-sync should import it.
-        intentional: true,
-      });
-    }
-
     if (provider === "codex") {
       // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
       // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.
@@ -1993,6 +2023,13 @@ export async function GET(
 
     // Build request URL
     let url = config.url;
+    if (provider === "alibaba" || provider === "alibaba-cn" || provider === "qwen-cloud") {
+      url = resolveAlibabaProviderModelsUrl(
+        provider,
+        connection.providerSpecificData,
+        config.url.replace(/\/models\/?$/, "")
+      );
+    }
     // VibeProxy: honor a user-configured custom base URL for the built-in
     // `openai` provider (e.g. an OpenAI-compatible gateway / proxy). Without
     // this, model discovery always hit the hardcoded api.openai.com and ignored
@@ -2030,6 +2067,7 @@ export async function GET(
       }
       url = url.replace("{accountId}", accountId);
     }
+    const paginationBaseUrl = url;
     if (config.authQuery) {
       url += `${url.includes("?") ? "&" : "?"}${config.authQuery}=${token}`;
     }
@@ -2098,7 +2136,7 @@ export async function GET(
         break;
       }
       seenTokens.add(nextPageToken);
-      pageUrl = `${config.url}${config.url.includes("?") ? "&" : "?"}pageToken=${encodeURIComponent(nextPageToken)}`;
+      pageUrl = `${paginationBaseUrl}${paginationBaseUrl.includes("?") ? "&" : "?"}pageToken=${encodeURIComponent(nextPageToken)}`;
       if (config.authQuery) {
         pageUrl += `&${config.authQuery}=${token}`;
       }

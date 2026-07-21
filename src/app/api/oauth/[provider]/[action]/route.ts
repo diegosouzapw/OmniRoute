@@ -12,6 +12,7 @@ import {
 import {
   persistOAuthConnection,
   buildOAuthConnectionCreatePayload,
+  findExistingOAuthConnectionMatch,
 } from "@/lib/oauth/connectionPersistence";
 import { createDeviceFlowTicket, getDeviceFlowTicketStatus } from "@/lib/oauth/deviceFlowTickets";
 import {
@@ -22,6 +23,7 @@ import {
   resolveProxyForProvider,
 } from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { isValidGheUrl } from "@/shared/validation/providerSpecificData";
 import { syncToCloud } from "@/lib/cloudSync";
 import { startLocalServer } from "@/lib/oauth/utils/server";
 import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
@@ -52,6 +54,16 @@ const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "xai-oauth"]);
  * the final tokens via the `device-complete` action. See src/lib/oauth/codexDeviceFlow.ts.
  */
 const BROWSER_DEVICE_FLOW_PROVIDERS = new Set(["codex"]);
+
+/** Device Code providers whose token grant does not use a PKCE verifier. */
+const NO_PKCE_DEVICE_CODE_PROVIDERS = new Set([
+  "github",
+  "kimi-coding",
+  "kilocode",
+  "codebuddy-cn",
+  "grok-cli",
+  "ghe-copilot",
+]);
 
 /**
  * Providers whose PKCE flow has been retired but whose import-token path is
@@ -190,6 +202,10 @@ export async function GET(
       const authData = generateAuthData(provider, null);
       const startUrl = searchParams.get("startUrl");
       const region = searchParams.get("region") || "us-east-1";
+      const gheUrl = searchParams.get("gheUrl");
+      if (gheUrl && !isValidGheUrl(gheUrl)) {
+        return NextResponse.json({ error: "gheUrl must be a valid HTTPS URL" }, { status: 400 });
+      }
 
       // Resolve proxy for this provider (provider-level → global → direct)
       const proxy = await resolveProxyForProvider(provider);
@@ -197,15 +213,21 @@ export async function GET(
       // Request device code (through proxy if configured)
       let deviceData;
       if (
-        provider === "github" ||
+        NO_PKCE_DEVICE_CODE_PROVIDERS.has(provider) ||
         provider === "kiro" ||
-        provider === "amazon-q" ||
-        provider === "kimi-coding" ||
-        provider === "kilocode" ||
-        provider === "codebuddy-cn"
+        provider === "amazon-q"
       ) {
-        // GitHub, Kiro/Amazon Q, Kimi Coding, and KiloCode don't use PKCE for device code
-        if ((provider === "kiro" || provider === "amazon-q") && startUrl) {
+        // These providers don't use PKCE for device code.
+        if (provider === "ghe-copilot" && gheUrl) {
+          // GHE Copilot targets the enterprise host configured via gheUrl
+          const providerOverrideConfig = {
+            ...providerData.config,
+            gheUrl,
+          };
+          deviceData = await runWithProxyContextOrDirect(proxy, () =>
+            (requestDeviceCode as any)(provider, null, providerOverrideConfig)
+          );
+        } else if ((provider === "kiro" || provider === "amazon-q") && startUrl) {
           const providerOverrideConfig = {
             ...providerData.config,
             startUrl,
@@ -505,17 +527,9 @@ export async function POST(
       let connection: any;
       if (tokenData.email) {
         const existing = await getProviderConnections({ provider });
-        const match = existing.find((c: any) => {
-          if (c.id && safeEqual(connectionId, c.id)) return true;
-          // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-6/7)
-          if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
-          // For Codex, also check workspaceId to avoid overwriting different workspace connections
-          if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
-            const existingWorkspace = c.providerSpecificData?.workspaceId;
-            return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
-          }
-          return true;
-        });
+        // Codex accounts sharing an email require workspaceId/chatgptUserId
+        // agreement to be treated as the same account (#7737).
+        const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
         const matchId = typeof match?.id === "string" ? match.id : null;
         if (matchId) {
           connection = await updateProviderConnection(matchId, {
@@ -554,15 +568,20 @@ export async function POST(
 
       // Poll for token (through proxy if configured)
       let result;
-      if (
-        provider === "github" ||
-        provider === "kimi-coding" ||
-        provider === "kilocode" ||
-        provider === "codebuddy-cn"
-      ) {
-        // For providers that don't use PKCE (GitHub, Kimi Coding, KiloCode), don't pass codeVerifier
+      if (NO_PKCE_DEVICE_CODE_PROVIDERS.has(provider)) {
+        // Non-PKCE device providers do not receive a code verifier.
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
+        );
+      } else if (provider === "ghe-copilot") {
+        // GHE Copilot needs gheUrl threaded through poll → postExchange
+        const gheUrl =
+          extraData && typeof extraData === "object" ? (extraData as any).gheUrl : undefined;
+        if (typeof gheUrl === "string" && gheUrl && !isValidGheUrl(gheUrl)) {
+          return NextResponse.json({ error: "gheUrl must be a valid HTTPS URL" }, { status: 400 });
+        }
+        result = await runWithProxyContextOrDirect(proxy, () =>
+          (pollForToken as any)(provider, deviceCode, null, gheUrl ? { gheUrl } : undefined)
         );
       } else if (provider === "kiro" || provider === "amazon-q") {
         // Kiro needs extraData (clientId, clientSecret) from device code response
@@ -593,17 +612,14 @@ export async function POST(
         let connection: any;
         if (result.tokens.email) {
           const existing = await getProviderConnections({ provider });
-          const match = existing.find((c: any) => {
-            if (c.id && safeEqual(connectionId, c.id)) return true;
-            // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-8/9)
-            if (!safeEqual(c.email, result.tokens.email) || c.authType !== "oauth") return false;
-            // For Codex, also check workspaceId to avoid overwriting different workspace connections
-            if (provider === "codex" && result.tokens.providerSpecificData?.workspaceId) {
-              const existingWorkspace = c.providerSpecificData?.workspaceId;
-              return safeEqual(existingWorkspace, result.tokens.providerSpecificData.workspaceId);
-            }
-            return true;
-          });
+          // Codex accounts sharing an email require workspaceId/chatgptUserId
+          // agreement to be treated as the same account (#7737).
+          const match = findExistingOAuthConnectionMatch(
+            existing,
+            provider,
+            result.tokens,
+            connectionId
+          );
           const matchId = typeof match?.id === "string" ? match.id : null;
           if (matchId) {
             connection = await updateProviderConnection(matchId, {
@@ -729,17 +745,9 @@ export async function POST(
         let connection: any;
         if (tokenData.email) {
           const existing = await getProviderConnections({ provider });
-          const match = existing.find((c: any) => {
-            if (c.id && safeEqual(connectionId, c.id)) return true;
-            // safeEqual: constant-time comparison to prevent timing attacks (CWE-208, finding #258-6/7)
-            if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
-            // For Codex, also check workspaceId to avoid overwriting different workspace connections
-            if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
-              const existingWorkspace = c.providerSpecificData?.workspaceId;
-              return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
-            }
-            return true;
-          });
+          // Codex accounts sharing an email require workspaceId/chatgptUserId
+          // agreement to be treated as the same account (#7737).
+          const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
           const matchId = typeof match?.id === "string" ? match.id : null;
           if (matchId) {
             connection = await updateProviderConnection(matchId, {

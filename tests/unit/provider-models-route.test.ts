@@ -1002,21 +1002,6 @@ test("provider models route falls back through all Antigravity discovery endpoin
   assert.ok(body.models.some((model) => model.id === "gemini-3-pro-preview"));
 });
 
-test("provider models route returns the local catalog for OAuth-backed Qwen connections", async () => {
-  const connection = await seedConnection("qwen", {
-    authType: "oauth",
-    accessToken: "qwen-access",
-    apiKey: null,
-  });
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 200);
-  assert.equal(body.source, "local_catalog");
-  assert.ok(Array.isArray(body.models));
-});
-
 test("provider models route filters hidden models from the static Claude catalog when requested", async () => {
   const connection = await seedConnection("claude", {
     authType: "oauth",

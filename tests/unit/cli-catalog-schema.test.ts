@@ -8,9 +8,8 @@ import assert from "node:assert/strict";
 import { z } from "zod";
 
 const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
-const { CliCatalogEntrySchema, CliCatalogSchema } = await import(
-  "../../src/shared/schemas/cliCatalog.ts"
-);
+const { CliCatalogEntrySchema, CliCatalogSchema } =
+  await import("../../src/shared/schemas/cliCatalog.ts");
 
 test("Every CLI_TOOLS entry passes CliCatalogEntrySchema.parse() without error", () => {
   for (const [key, tool] of Object.entries(CLI_TOOLS)) {
@@ -62,7 +61,7 @@ test("CliCatalogEntrySchema throws ZodError for invalid baseUrlSupport value", (
 });
 
 test("CliCatalogEntrySchema throws ZodError when required string fields are empty", () => {
-  const base = { ...CLI_TOOLS["qwen"] };
+  const base = { ...CLI_TOOLS["opencode"] };
   const invalid = { ...base, vendor: "" };
   assert.throws(
     () => CliCatalogEntrySchema.parse(invalid),

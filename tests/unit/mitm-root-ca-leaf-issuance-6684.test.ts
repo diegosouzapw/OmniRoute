@@ -33,9 +33,13 @@ test("issueLeafCert: issued leaf SAN matches the requested hostname", async () =
     const leaf = await issueLeafCert(host, ca);
     const leafPem = leaf.cert.split(/(?=-----BEGIN CERTIFICATE-----)/)[0];
     const cert = new X509Certificate(leafPem);
+    // Exact SAN-entry membership, not a host substring: `includes(host)` would also
+    // pass for a SAN of "notexample.com" when host is "example.com", and CodeQL flags
+    // it as js/incomplete-url-substring-sanitization (#746).
+    const sanEntries = (cert.subjectAltName ?? "").split(",").map((entry) => entry.trim());
     assert.ok(
-      cert.subjectAltName && cert.subjectAltName.includes(host),
-      `expected SAN to include ${host}, got ${cert.subjectAltName}`
+      sanEntries.includes(`DNS:${host}`),
+      `expected SAN to include DNS:${host}, got ${cert.subjectAltName}`
     );
   }
 });

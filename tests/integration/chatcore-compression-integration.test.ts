@@ -167,23 +167,25 @@ test("chatCore integration: disabled prompt compression leaves combo override re
     },
   });
 
+  // Body sits in (0.7*limit, limit): proves compression skip without the #7379 over-window reject.
   const body = {
     model: "combo/disabled-compression-combo",
     stream: false,
     messages: [
       { role: "system", content: "You are helpful." },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}First long turn.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(450)}First long turn.` },
       { role: "assistant", content: "Response 1" },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}Second long turn.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(450)}Second long turn.` },
       { role: "assistant", content: "Response 2" },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}Final question.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(450)}Final question.` },
     ],
   };
   const contextLimit = getTokenLimit(provider, model);
   const proactiveThreshold = Math.floor(contextLimit * 0.7);
+  const estimatedBodyTokens = estimateTokens(JSON.stringify(body.messages));
   assert.ok(
-    estimateTokens(JSON.stringify(body.messages)) > proactiveThreshold,
-    "Test body should exceed proactive compression threshold"
+    estimatedBodyTokens > proactiveThreshold && estimatedBodyTokens < contextLimit,
+    `Body tokens must sit in (${proactiveThreshold}, ${contextLimit}): ${estimatedBodyTokens}`
   );
 
   let capturedBody: { messages?: Array<{ role?: string; content?: string }> } | null = null;
@@ -570,8 +572,7 @@ test("chatCore integration: combo requests run proactive compression before Kiro
 
     // Ensure request was translated to Kiro shape (messages are not sent directly upstream).
     const conversationState = capturedTranslatedBody?.conversationState as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     assert.ok(conversationState, "Kiro translated request should include conversationState");
 
     const history = Array.isArray(conversationState?.history)
@@ -584,8 +585,7 @@ test("chatCore integration: combo requests run proactive compression before Kiro
 
     const currentMessage = conversationState?.currentMessage as Record<string, unknown> | undefined;
     const userInputMessage = currentMessage?.userInputMessage as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     const currentContent =
       typeof userInputMessage?.content === "string" ? userInputMessage.content : "";
     assert.match(currentContent, /Please summarize everything\./);

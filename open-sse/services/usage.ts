@@ -190,7 +190,7 @@ async function getCrofUsage(apiKey: string) {
 }
 
 /**
- * Bailian (Alibaba Coding Plan) Usage
+ * Bailian (Alibaba Token Plan) Usage
  * Fetches triple-window quota (5h, weekly, monthly) and returns worst-case.
  */
 async function getBailianCodingPlanUsage(
@@ -203,7 +203,7 @@ async function getBailianCodingPlanUsage(
     const quota = await fetchBailianQuota(connectionId, connection);
 
     if (!quota) {
-      return { message: "Bailian Coding Plan connected. Unable to fetch quota." };
+      return { message: "Alibaba Token Plan connected. Unable to fetch quota." };
     }
 
     const bailianQuota = quota as BailianTripleWindowQuota;
@@ -213,17 +213,17 @@ async function getBailianCodingPlanUsage(
     const remainingPercentage = Math.round(remaining);
 
     return {
-      plan: "Alibaba Coding Plan",
+      plan: "Alibaba Token Plan",
       used,
       total,
       remaining,
       remainingPercentage,
       resetAt: bailianQuota.resetAt,
       unlimited: false,
-      displayName: "Alibaba Coding Plan",
+      displayName: "Alibaba Token Plan",
     };
   } catch (error) {
-    return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
+    return { message: `Alibaba Token Plan error: ${(error as Error).message}` };
   }
 }
 
@@ -519,7 +519,6 @@ export const USAGE_FETCHER_PROVIDERS = [
   "amazon-q",
   "kimi-coding",
   "kimi-coding-apikey",
-  "qwen",
   "qoder",
   "glm",
   "glm-cn",
@@ -584,8 +583,6 @@ export async function getUsageForProvider(
     case "kimi-coding":
     case "kimi-coding-apikey":
       return await getKimiUsage(accessToken, apiKey, providerSpecificData);
-    case "qwen":
-      return await getQwenUsage(accessToken, providerSpecificData);
     case "qoder":
       // Qoder PATs live in `apiKey` (decrypted) or `providerSpecificData.qoderPat`,
       // never in `accessToken`.
@@ -882,24 +879,6 @@ async function getVertexUsage(connectionId: string, provider: string) {
     };
   } catch (error) {
     return { message: `Vertex usage tracking error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Qwen Usage
- */
-async function getQwenUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
-  void accessToken;
-  try {
-    const resourceUrl = providerSpecificData?.resourceUrl;
-    if (!resourceUrl) {
-      return { message: "Qwen connected. No resource URL available." };
-    }
-
-    // Qwen may have usage endpoint at resource URL
-    return { message: "Qwen connected. Usage tracked per request." };
-  } catch (error) {
-    return { message: "Unable to fetch Qwen usage." };
   }
 }
 
