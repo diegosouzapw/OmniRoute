@@ -893,7 +893,10 @@ export default function CostOverviewTab() {
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.5fr] gap-4">
               <WeeklyPatternCard
                 title={t("weeklyUsagePattern")}
-                rows={analytics?.weeklyPattern || []}
+                rows={(analytics?.weeklyPattern || []).map((row) => ({
+                  ...row,
+                  day: formatWeekdayLabel(row.day, locale),
+                }))}
                 locale={locale}
                 tokensLabel={t("tokens")}
               />

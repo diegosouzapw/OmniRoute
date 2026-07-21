@@ -2708,6 +2708,7 @@
       "openclaw": "Open Claw AI Assistant",
       "cline": "Cline AI Coding Assistant CLI",
       "kilo": "Kilo Code AI Assistant CLI",
+      "qwen": "Alibaba Qwen Code CLI",
       "cursor": "Cursor AI Code Editor",
       "continue": "Continue AI Assistant",
       "opencode": "OpenCode AI coding agent (Terminal)",
