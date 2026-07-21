@@ -15,6 +15,7 @@ import { MODELS_DEV_PROVIDER_MAP } from "@/lib/modelsDevSync/transform";
 import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
+import { getUnsupportedParams } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [
   // Specialty / non-chat surfaces must never inherit optimistic tool defaults (#8016)
@@ -466,10 +467,23 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     ) || "";
   const reasoningDenied = !heuristicReasoning(lookupKey);
 
+  // Provider-level fallback: a live-discovered model (passthroughModels
+  // providers like AI Horde) has no per-model registry entry, synced
+  // capability, or static spec — every source above resolves to null, so
+  // toolCalling would otherwise fall through to heuristicToolCalling's
+  // optimistic default (true). Reuse the same unsupportedParams signal the
+  // request-time strip already relies on: if the provider declares "tools"
+  // unsupported for every model it serves, that's authoritative here too.
+  const providerDeniesTools =
+    resolved.provider && resolved.model
+      ? getUnsupportedParams(resolved.provider, resolved.model).includes("tools")
+      : false;
+
   const supportsTools =
     synced?.tool_call ??
     (typeof registryModel?.toolCalling === "boolean" ? registryModel.toolCalling : null) ??
-    (typeof spec?.supportsTools === "boolean" ? spec.supportsTools : null);
+    (typeof spec?.supportsTools === "boolean" ? spec.supportsTools : null) ??
+    (providerDeniesTools ? false : null);
 
   const supportsThinking = reasoningDenied
     ? false

@@ -124,6 +124,7 @@ import {
 } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
 import { stripUnsupportedParams } from "./chatCore/unsupportedParamsStrip.ts";
+import { checkToolCallingRequiredButUnsupported } from "./chatCore/toolCallingRequiredCheck.ts";
 import { supportsMaxTokens, getResolvedModelCapabilities } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
@@ -2316,6 +2317,28 @@ export async function handleChatCore({
   // from a tool-capable model) — those message shapes break non-tool-calling
   // backends just as much as a live `tools` param does.
   const unsupported = getUnsupportedParams(provider, model);
+
+  // Direct/pinned requests (isCombo: false) have no other target to fail
+  // over to. Combo requests are already kept off a tool-incapable target by
+  // filterTargetsByRequestCompatibility before ever reaching this point, so
+  // this only fires for the case that filter can't protect: a client
+  // explicitly asking for this exact model. A clear error beats a 200 that
+  // silently can't do what was asked (the model narrates a fake tool call
+  // instead — live incident: AI Horde/Behemoth-X-123B).
+  const toolCallingCheck = checkToolCallingRequiredButUnsupported(
+    translatedBody,
+    unsupported,
+    isCombo,
+    model
+  );
+  if (toolCallingCheck.blocked) {
+    const { buildErrorBody } = await import("../utils/error.ts");
+    return new Response(JSON.stringify(buildErrorBody(400, toolCallingCheck.message!)), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   if (unsupported.length > 0) {
     const { strippedParams } = stripUnsupportedParams(translatedBody, unsupported);
     if (strippedParams.length > 0) {
