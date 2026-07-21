@@ -29,6 +29,7 @@ export function isCodexTokenizerContext(context?: TokenizerContext): boolean {
     provider === "codex" ||
     provider === "cx" ||
     model.startsWith("codex/") ||
+    model.startsWith("cx/") ||
     model.includes("codex")
   );
 }

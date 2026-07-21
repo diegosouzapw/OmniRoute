@@ -15,6 +15,7 @@ test("Codex context selects o200k_base without changing the default", () => {
   assert.equal(resolveTokenizerEncoding({ provider: "codex" }), "o200k_base");
   assert.equal(resolveTokenizerEncoding({ provider: "cx" }), "o200k_base");
   assert.equal(resolveTokenizerEncoding({ model: "codex/gpt-5.6-sol" }), "o200k_base");
+  assert.equal(resolveTokenizerEncoding({ model: "cx/gpt-5.6-sol" }), "o200k_base");
   assert.equal(resolveTokenizerEncoding({ provider: "openai", model: "gpt-5.6" }), "cl100k_base");
   assert.equal(isCodexTokenizerContext({ provider: "codex" }), true);
   assert.equal(isCodexTokenizerContext({ provider: "openai" }), false);
