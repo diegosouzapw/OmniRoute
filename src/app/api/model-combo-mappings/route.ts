@@ -26,7 +26,6 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-<<<<<<< Updated upstream
     const raw = {
       offset: searchParams.get("offset") || undefined,
       limit: searchParams.get("limit") || undefined,
@@ -37,13 +36,6 @@ export async function GET(request: Request) {
     }
     const { limit, offset } = validation.data;
     const result = await getModelComboMappings(limit !== undefined ? { limit, offset } : undefined);
-=======
-    const limit = searchParams.has("limit") ? Number(searchParams.get("limit")) : undefined;
-    const offset = searchParams.has("offset") ? Number(searchParams.get("offset")) : 0;
-    const result = await getModelComboMappings(
-      limit !== undefined || offset !== undefined ? { limit, offset } : undefined
-    );
->>>>>>> Stashed changes
     return NextResponse.json({ mappings: result.items, total: result.total });
   } catch (error) {
     console.error("Failed to list model-combo mappings:", error);
