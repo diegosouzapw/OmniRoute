@@ -2332,11 +2332,8 @@ export async function handleChatCore({
     model
   );
   if (toolCallingCheck.blocked) {
-    const { buildErrorBody } = await import("../utils/error.ts");
-    return new Response(JSON.stringify(buildErrorBody(400, toolCallingCheck.message!)), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    trackPendingRequest(model, provider, connectionId, false);
+    return createErrorResult(400, toolCallingCheck.message!, null, "tool_calling_not_supported");
   }
 
   if (unsupported.length > 0) {
