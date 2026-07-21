@@ -16,27 +16,12 @@ async function loadSqlite() {
 
 function openBunSqlite(Database, dbPath, options) {
   const raw = new Database(dbPath, options);
-  const normalizeParams = (params) => {
-    if (params.length !== 1 || params[0] === null || typeof params[0] !== "object" || Array.isArray(params[0])) {
-      return params;
-    }
-    const expanded = {};
-    for (const [key, value] of Object.entries(params[0])) {
-      if (/^[:@$]/.test(key)) expanded[key] = value;
-      else {
-        expanded[`@${key}`] = value;
-        expanded[`:${key}`] = value;
-        expanded[`$${key}`] = value;
-      }
-    }
-    return [expanded];
-  };
   const prepare = (sql) => {
     const statement = raw.query(sql);
     return {
-      run: (...params) => statement.run(...normalizeParams(params)),
-      get: (...params) => statement.get(...normalizeParams(params)),
-      all: (...params) => statement.all(...normalizeParams(params)),
+      run: (...params) => statement.run(...normalizeBunSqliteParams(params)),
+      get: (...params) => statement.get(...normalizeBunSqliteParams(params)),
+      all: (...params) => statement.all(...normalizeBunSqliteParams(params)),
     };
   };
   return {
@@ -50,11 +35,34 @@ function openBunSqlite(Database, dbPath, options) {
       const statement = raw.query(`PRAGMA ${pragmaStr}`);
       if (pragmaOptions?.simple) {
         const row = statement.get();
-        return row ? Object.values(row)[0] ?? null : null;
+        return row ? (Object.values(row)[0] ?? null) : null;
       }
       return statement.all();
     },
   };
+}
+
+export function normalizeBunSqliteParams(params) {
+  if (
+    params.length !== 1 ||
+    params[0] === null ||
+    typeof params[0] !== "object" ||
+    Array.isArray(params[0]) ||
+    params[0] instanceof Uint8Array ||
+    (typeof Buffer !== "undefined" && Buffer.isBuffer(params[0]))
+  ) {
+    return params;
+  }
+  const expanded = {};
+  for (const [key, value] of Object.entries(params[0])) {
+    if (/^[:@$]/.test(key)) expanded[key] = value;
+    else {
+      expanded[`@${key}`] = value;
+      expanded[`:${key}`] = value;
+      expanded[`$${key}`] = value;
+    }
+  }
+  return [expanded];
 }
 
 export function createSqliteNativeError(error) {
@@ -117,7 +125,7 @@ export async function backupSqliteFile(sourcePath, destPath) {
   try {
     if (typeof db.backup === "function") {
       await db.backup(destPath);
-    } else if (typeof db.serialize === "function") {
+    } else if (sourcePath === ":memory:" && typeof db.serialize === "function") {
       fs.writeFileSync(destPath, Buffer.from(db.serialize()));
     } else {
       try {

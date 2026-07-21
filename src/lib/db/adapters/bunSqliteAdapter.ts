@@ -38,7 +38,8 @@ function normalizeParams(params: unknown[]): unknown[] {
     first === null ||
     typeof first !== "object" ||
     Array.isArray(first) ||
-    first instanceof Uint8Array
+    first instanceof Uint8Array ||
+    (typeof Buffer !== "undefined" && Buffer.isBuffer(first))
   ) {
     return params;
   }
@@ -59,10 +60,7 @@ function normalizeParams(params: unknown[]): unknown[] {
   return [expanded];
 }
 
-export function createBunSqliteAdapter(
-  db: BunSqliteDatabaseLike,
-  filePath: string
-): SqliteAdapter {
+export function createBunSqliteAdapter(db: BunSqliteDatabaseLike, filePath: string): SqliteAdapter {
   let isOpen = true;
 
   return {
@@ -99,7 +97,7 @@ export function createBunSqliteAdapter(
       const statement = db.query(`PRAGMA ${pragmaStr}`);
       if (options?.simple) {
         const row = statement.get() as Record<string, unknown> | undefined;
-        return row ? Object.values(row)[0] ?? null : null;
+        return row ? (Object.values(row)[0] ?? null) : null;
       }
       return statement.all();
     },
@@ -128,10 +126,6 @@ export function createBunSqliteAdapter(
 
     async backup(destination: string): Promise<void> {
       if (filePath === ":memory:") return;
-      if (typeof db.serialize === "function") {
-        fs.writeFileSync(destination, Buffer.from(db.serialize()));
-        return;
-      }
       try {
         db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
       } catch {}
