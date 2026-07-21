@@ -777,8 +777,15 @@ export async function stopMitm(
   };
 
   // 1. Remove DNS entries FIRST — see function doc + module doc above for why
-  //    this must happen before the process kill (#1809, Gap 8).
-  await removeStopDnsEntries(deps, sudoPassword);
+  //    this must happen before the process kill (#1809, Gap 8). Skip when no
+  //    sudo password is available — never spawn sudo -S with an empty string
+  //    (#7938). Stale /etc/hosts entries may remain until stop with a password
+  //    or Repair; the server kill below still runs so the listener is torn down.
+  if (canRunPrivilegedMitmSteps(sudoPassword)) {
+    await removeStopDnsEntries(deps, sudoPassword);
+  } else {
+    log.info("Skipping DNS teardown — no sudo password available (#7938)");
+  }
 
   // 2. Kill server process (in-memory or from PID file)
   await killMitmServerProcessOnStop();
