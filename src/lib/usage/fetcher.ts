@@ -6,8 +6,11 @@ import {
   getGitHubCopilotInternalUserHeaders,
   getKiroServiceHeaders,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
-import { applyAntigravityClientProfileHeaders } from "@omniroute/open-sse/services/antigravityClientProfile.ts";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import {
+  applyAntigravityClientProfileHeaders,
+  getAntigravityClientProfile,
+} from "@omniroute/open-sse/services/antigravityClientProfile.ts";
+import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
   ANTIGRAVITY_BASE_URLS,
@@ -238,6 +241,7 @@ async function getAntigravityUsage(
   connectionId?: string | null
 ) {
   try {
+    const clientProfile = getAntigravityClientProfile({ providerSpecificData });
     // Use connectionId as the cache key — matches executor's credentials.connectionId
     const accountId: string = connectionId || "unknown";
 
@@ -263,7 +267,7 @@ async function getAntigravityUsage(
       try {
         res = await fetch(endpoint, {
           method: "POST",
-          headers: getAntigravityHeaders("fetchAvailableModels", accessToken),
+          headers: getAntigravityContentHeaders(clientProfile, accessToken),
           body: JSON.stringify({}),
           signal: AbortSignal.timeout(15_000),
         });

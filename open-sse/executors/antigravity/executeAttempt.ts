@@ -176,9 +176,7 @@ export function toSafeAntigravityLog(log: ExecutorLog | null | undefined): SafeA
 /** Flatten a 429/503 error JSON body (message + `error.details[].reason`) into one string. */
 export function buildAntigravity429ErrorMessage(errorJson: unknown): string {
   const obj = errorJson as
-    | { error?: { message?: unknown; details?: unknown }; message?: unknown }
-    | null
-    | undefined;
+    { error?: { message?: unknown; details?: unknown }; message?: unknown } | null | undefined;
   let errorMessage = String(obj?.error?.message || obj?.message || "");
   const details = obj?.error?.details;
   if (Array.isArray(details)) {
@@ -405,6 +403,7 @@ export async function tryCreditsRetry(
   const creditsBody = injectCreditsField(transformedBody);
   const serializedCreditsRequest = serializeAntigravityRequest(provider, headers, creditsBody);
   const finalCreditsHeaders = serializedCreditsRequest.headers;
+  applyAntigravityClientProfileHeaders(finalCreditsHeaders, credentials, creditsBody);
   try {
     await prl.captureCurrentProviderBody(
       url,
@@ -552,7 +551,13 @@ async function buildNonStreamingExecuteOnceResult(
   // #3229: surface a real upstream error instead of masking a 4xx/5xx as an
   // empty `chat.completion` envelope.
   if (!response.ok) {
-    return buildUpstreamErrorResult(response, url, finalHeaders, transformedBody, requestToolNameMap);
+    return buildUpstreamErrorResult(
+      response,
+      url,
+      finalHeaders,
+      transformedBody,
+      requestToolNameMap
+    );
   }
 
   if (response.body) {
@@ -604,7 +609,13 @@ async function buildStreamingExecuteOnceResult(
   onCreditsUpdate: OnAntigravityCreditsUpdate
 ): Promise<SsePassthroughResult> {
   if (!response.ok) {
-    return buildUpstreamErrorResult(response, url, finalHeaders, transformedBody, requestToolNameMap);
+    return buildUpstreamErrorResult(
+      response,
+      url,
+      finalHeaders,
+      transformedBody,
+      requestToolNameMap
+    );
   }
 
   if (response.body) {

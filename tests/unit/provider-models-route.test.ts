@@ -24,7 +24,7 @@ async function resetStorage() {
   } else {
     process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
   }
-  antigravityVersion.clearAntigravityVersionCache();
+  antigravityVersion.clearAntigravityVersionCaches();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -927,7 +927,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
     apiKey: null,
   });
   const seenUrls: string[] = [];
-  antigravityVersion.seedAntigravityVersionCache("1.22.2");
+  antigravityVersion.seedAntigravityIdeVersionCache("1.22.2");
 
   globalThis.fetch = async (url, init = {}) => {
     const urlString = String(url);
@@ -944,7 +944,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
     assert.equal(init.method, "POST");
     assert.equal(init.headers.Authorization, "Bearer ag-access");
-    assert.match(init.headers["User-Agent"], /^Antigravity\/1\.22\.2 /);
+    assert.match(init.headers["User-Agent"], /^antigravity\/ide\/1\.22\.2 /);
     assert.equal(init.headers["x-goog-api-client"], undefined);
     // Use a model id that is in the current user-callable Antigravity allowlist, otherwise
     // filterUserCallableAntigravityModels() drops it and discovery silently yields 0 models

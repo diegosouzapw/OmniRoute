@@ -126,7 +126,7 @@ describe("ensureAntigravityProjectAssigned", () => {
     assert.equal(capturedAuth, "Bearer my-secret-token", "Authorization header must be set");
   });
 
-  test("uses CLI/SDK harness headers when requested", async () => {
+  test("uses the official CLI content headers when requested", async () => {
     let capturedHeaders: Headers | null = null;
 
     const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
@@ -137,13 +137,27 @@ describe("ensureAntigravityProjectAssigned", () => {
       });
     };
 
-    await ensureAntigravityProjectAssigned("harness-token", mockFetch, "harness");
+    await ensureAntigravityProjectAssigned("cli-token", mockFetch, "cli");
 
     assert.match(
       capturedHeaders?.get("User-Agent") || "",
-      /^antigravity\/4\.2\.0 [^ ]+\/[^ ]+ google-api-nodejs-client\/10\.3\.0$/
+      /^antigravity\/cli\/1\.1\.5 \(aidev_client; os_type=.+; arch=.+; auth_method=consumer\)$/
     );
-    assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), "gl-node/22.21.1");
+    assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), null);
+    assert.equal(capturedHeaders?.get("Client-Metadata"), null);
+  });
+
+  test("uses the official IDE native content headers by default", async () => {
+    let capturedHeaders: Headers | null = null;
+    const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
+      capturedHeaders = new Headers(init?.headers);
+      return Response.json({ cloudaicompanionProject: "proj-ide" });
+    };
+
+    await ensureAntigravityProjectAssigned("ide-token", mockFetch);
+
+    assert.match(capturedHeaders?.get("User-Agent") || "", /^antigravity\/ide\/2\.1\.1 /);
+    assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), null);
     assert.equal(capturedHeaders?.get("Client-Metadata"), null);
   });
 

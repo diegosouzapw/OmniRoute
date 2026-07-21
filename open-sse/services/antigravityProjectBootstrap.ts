@@ -15,13 +15,10 @@
  */
 
 import {
-  getAntigravityHeaders,
+  getAntigravityContentHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
-import {
-  getAntigravityBootstrapHeaders,
-  type AntigravityClientProfile,
-} from "./antigravityClientProfile.ts";
+import type { AntigravityClientProfile } from "./antigravityClientProfile.ts";
 import { ANTIGRAVITY_BASE_URLS } from "../config/antigravityUpstream.ts";
 
 const LOAD_CODE_ASSIST_PATH = "/v1internal:loadCodeAssist";
@@ -51,10 +48,7 @@ async function tryLoadCodeAssist(
   clientProfile: AntigravityClientProfile
 ): Promise<string | null> {
   const urls = getAntigravityLoadCodeAssistUrls();
-  const headers =
-    clientProfile === "harness"
-      ? getAntigravityBootstrapHeaders(clientProfile, accessToken)
-      : getAntigravityHeaders("loadCodeAssist", accessToken);
+  const headers = getAntigravityContentHeaders(clientProfile, accessToken);
 
   for (const url of urls) {
     try {

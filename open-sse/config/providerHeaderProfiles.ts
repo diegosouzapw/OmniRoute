@@ -1,4 +1,5 @@
-import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
+import { getAntigravityContentHeaders } from "../services/antigravityHeaders.ts";
+import type { AntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 
 export const GITHUB_COPILOT_API_VERSION = "2026-06-01";
 export const GITHUB_COPILOT_EDITOR_VERSION = "vscode/1.126.0";
@@ -125,14 +126,14 @@ export function getQoderDashscopeCompatHeaders(): Record<string, string> {
   };
 }
 
-export function getAntigravityUserAgent(): string {
-  return antigravityUserAgent();
+export function getAntigravityUserAgent(profile: AntigravityClientProfile = "ide"): string {
+  return getAntigravityContentHeaders(profile)["User-Agent"];
 }
 
-export function getAntigravityProviderHeaders(): Record<string, string> {
-  return {
-    "User-Agent": getAntigravityUserAgent(),
-  };
+export function getAntigravityProviderHeaders(
+  profile: AntigravityClientProfile = "ide"
+): Record<string, string> {
+  return getAntigravityContentHeaders(profile);
 }
 
 export function getKiroServiceHeaders(

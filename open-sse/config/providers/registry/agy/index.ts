@@ -16,7 +16,7 @@ export const agyProvider: RegistryEntry = {
   urlBuilder: buildAntigravityUrl,
   authType: "oauth",
   authHeader: "bearer",
-  headers: getAntigravityProviderHeaders(),
+  headers: getAntigravityProviderHeaders("cli"),
   oauth: {
     clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
     clientIdDefault: resolvePublicCred("antigravity_id"),

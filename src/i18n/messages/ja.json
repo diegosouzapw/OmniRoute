@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "クライアントプロファイル",
     "antigravityClientProfileHint": "OmniRoute が API に提示する Antigravity クライアント識別情報を選択します。",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast ティアがアクティブです",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "Google Cloud プロジェクト ID",

@@ -118,18 +118,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "antigravity/cli/1.1.5 (aidev_client; os_type=<OS>; arch=<ARCH>; auth_method=consumer)"
       }
     },
     "url": {
@@ -334,18 +334,18 @@
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
       },
       "oauth": {
         "Accept": "text/event-stream",
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
-        "User-Agent": "Antigravity/4.2.0 (<PLATFORM>) Chrome/142.0.7444.175 Electron/39.2.3"
+        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
       }
     },
     "url": {

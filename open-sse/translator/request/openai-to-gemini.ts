@@ -83,7 +83,7 @@ type CloudCodeEnvelope = {
   project: string;
   model?: string;
   user_prompt_id?: string;
-  userAgent?: "antigravity" | "jetski" | string;
+  userAgent?: string;
   requestId?: string;
   requestType?: string;
   enabledCreditTypes?: string[];

@@ -24,7 +24,7 @@ import {
   getAntigravityModelFallbacks,
 } from "../../open-sse/config/antigravityModelAliases.ts";
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
-import { seedAntigravityVersionCache } from "../../open-sse/services/antigravityVersion.ts";
+import { seedAntigravityIdeVersionCache } from "../../open-sse/services/antigravityVersion.ts";
 
 type ChatCompletionPayload = {
   object?: string;
@@ -98,7 +98,7 @@ function envelopeModel(init: RequestInit | undefined): string {
 test("(#3786) execute retries pro-high with the next candidate when the first id 400s", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityVersionCache("2026.04.17-test");
+  seedAntigravityIdeVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -131,7 +131,7 @@ test("(#3786) execute retries pro-high with the next candidate when the first id
 test("(#3786) execute exhausts the chain on all-400 and surfaces a sanitized 400 (each candidate tried once)", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityVersionCache("2026.04.17-test");
+  seedAntigravityIdeVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -166,7 +166,7 @@ test("(#3786) execute exhausts the chain on all-400 and surfaces a sanitized 400
 test("(#3786) happy path: first id 200 makes exactly ONE upstream call (zero extra)", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityVersionCache("2026.04.17-test");
+  seedAntigravityIdeVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {
@@ -323,7 +323,7 @@ test("(#3786) mixed path: 400 on first, exception on second, 200 on third", asyn
 test("(#3786) a non-pro model that 400s does NOT trigger the fallback chain", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityVersionCache("2026.04.17-test");
+  seedAntigravityIdeVersionCache("2.1.1");
   const modelsTried: string[] = [];
 
   globalThis.fetch = (async (_url: string, init?: RequestInit) => {

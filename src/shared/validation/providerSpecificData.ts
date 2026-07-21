@@ -436,14 +436,10 @@ export function validateProviderSpecificData(
   const clientProfile = data.clientProfile;
   if (clientProfile !== undefined && clientProfile !== null) {
     const normalized = typeof clientProfile === "string" ? clientProfile.trim().toLowerCase() : "";
-    if (
-      typeof clientProfile !== "string" ||
-      !["ide", "harness", "cli", "sdk"].includes(normalized)
-    ) {
+    if (typeof clientProfile !== "string" || !["ide", "cli"].includes(normalized)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "providerSpecificData.clientProfile must be ide, harness, cli, or sdk (cli/sdk map to harness)",
+        message: "providerSpecificData.clientProfile must be ide or cli",
         path: ["clientProfile"],
       });
     }
