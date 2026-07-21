@@ -1,0 +1,1 @@
+- fix(api): add amazon-q to the static model catalog so "Available Models" no longer 400s (#7820)
