@@ -10,6 +10,7 @@ import {
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CONTEXT_EDITING_CONFIG,
+  DEFAULT_HEADROOM_CONFIG,
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
   DEFAULT_RTK_CONFIG,
   DEFAULT_ULTRA_CONFIG,
@@ -26,6 +27,7 @@ import {
   type CodexResponsesConfig,
   type ContextEditingConfig,
   type EngineToggle,
+  type HeadroomConfig,
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
@@ -426,6 +428,15 @@ function normalizeAggressiveConfig(value: unknown): AggressiveConfig {
   };
 }
 
+function normalizeHeadroomConfig(value: unknown): HeadroomConfig {
+  const record = toRecord(value);
+  return {
+    ...DEFAULT_HEADROOM_CONFIG,
+    // Align with engine schema (min 2) and smartcrusher DEFAULT_MIN_ROWS (8).
+    minRows: boundedInt(record.minRows, DEFAULT_HEADROOM_CONFIG.minRows, 2, 10000),
+  };
+}
+
 function normalizeUltraConfig(value: unknown): UltraConfig {
   const record = toRecord(value);
   const modelPath = typeof record.modelPath === "string" ? record.modelPath.trim() : "";
@@ -600,6 +611,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
+    headroom: normalizeHeadroomConfig(undefined),
     contextBudget: normalizeContextBudgetConfig(undefined),
     contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
     liveZone: { enabled: false },
@@ -707,6 +719,10 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultra":
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
+        break;
+      case "headroom":
+      case "headroomConfig":
+        config.headroom = normalizeHeadroomConfig(parsed);
         break;
       case "contextBudget":
         config.contextBudget = normalizeContextBudgetConfig(parsed);

@@ -218,6 +218,8 @@ export interface CompressionConfig {
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
+  /** Headroom SmartCrusher detail settings (minRows gate). */
+  headroom?: HeadroomConfig;
   /** Provider-delegated context editing (Claude/Anthropic only). */
   contextEditing?: ContextEditingConfig;
   /** Opt-in cache-aligned live-zone compression (default disabled). */
@@ -541,6 +543,24 @@ export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
   minScoreThreshold: 0.3,
   slmFallbackToAggressive: true,
   maxTokensPerMessage: 0,
+};
+
+// ─── Headroom SmartCrusher detail settings ───────────────────────────────────
+// Persisted under compression settings key `headroom`. Engine apply reads
+// minRows from stepConfig, which the stacked runner merges from this sub-object.
+
+/** Configuration for the Headroom SmartCrusher engine detail page. */
+export interface HeadroomConfig {
+  /**
+   * Minimum number of rows in a homogeneous JSON array to trigger tabular
+   * compaction. Default 8 (matches DEFAULT_MIN_ROWS in smartcrusher.ts).
+   * Operators may lower this (e.g. 5) for denser compaction on smaller arrays.
+   */
+  minRows: number;
+}
+
+export const DEFAULT_HEADROOM_CONFIG: HeadroomConfig = {
+  minRows: 8,
 };
 
 export type { McpAccessibilityConfig } from "./engines/mcpAccessibility/constants.ts";
