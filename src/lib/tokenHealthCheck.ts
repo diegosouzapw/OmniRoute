@@ -31,7 +31,7 @@ import { refreshGithubCopilotSubTokenIfNeeded } from "@/lib/tokenHealthCheckCopi
 const LOG_PREFIX = "[HealthCheck]";
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 const TICK_MS = 60 * 1000; // sweep interval: every 60 seconds (restored — #7719 dropped the const but kept two call sites)
-const BATCH_SIZE = 20;
+const DEFAULT_BATCH_SIZE = 20;
 const DEFAULT_HEALTH_CHECK_INTERVAL_MIN = 60; // default per-connection interval
 
 function isBuildProcess(): boolean {
@@ -159,6 +159,18 @@ export function clearRefreshCircuit(
   const next = { ...providerSpecificData };
   delete next.refreshCircuit;
   return next;
+}
+
+/**
+ * Concurrent-check batch size for the sweep, read per-call (not at module
+ * load) so tests — and operators — can override it via HEALTHCHECK_BATCH_SIZE
+ * without restarting the process. #7719 hardcoded this to a module-level
+ * `const BATCH_SIZE = 20`, silently dropping the configurability restored
+ * here (#7875). Falls back to DEFAULT_BATCH_SIZE on a missing/invalid value.
+ */
+function getConfiguredBatchSize(): number {
+  const configured = parseInt(process.env.HEALTHCHECK_BATCH_SIZE || "", 10);
+  return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_BATCH_SIZE;
 }
 
 function isEnvFlagEnabled(name: string): boolean {
@@ -330,7 +342,7 @@ export async function sweep() {
     // batches. The inter-batch stagger preserves the original burst-
     // prevention intent (Issue #1220) while reducing total sweep time from
     // O(total × staggerMs) to O(total ÷ batchSize × staggerMs).
-    const batchSize = Math.min(BATCH_SIZE, total);
+    const batchSize = Math.min(getConfiguredBatchSize(), total);
     for (let offset = 0; offset < total; offset += batchSize) {
       const batchEnd = Math.min(offset + batchSize, total);
       const batch: Array<Promise<void>> = [];

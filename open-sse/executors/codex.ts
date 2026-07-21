@@ -153,15 +153,28 @@ function isCodexResponsesLiteRequest(
   );
 }
 
+// GPT-5.6 ultra-tier (sol/terra at "ultra") and luna at "max" coordinate delegation to
+// sub-agents via parallel tool calls (see the effort-clamp comment near clampEffort()).
+// Responses Lite must not strip parallel_tool_calls for those model/effort combos, or
+// delegation silently breaks while the request still returns HTTP 200 (issue #7821).
+function isCodexDelegationDependentModel(model: unknown): boolean {
+  const { baseModel, effort } = splitCodexReasoningSuffix(model);
+  if (effort === "ultra" && GPT_5_6_ULTRA_ALIAS_MODELS.has(baseModel)) return true;
+  if (effort === "max" && baseModel === "gpt-5.6-luna") return true;
+  return false;
+}
+
 function enforceCodexResponsesLiteParallelToolCalls(
   bodyInput: unknown,
-  clientHeaders?: Record<string, string> | null
+  clientHeaders: Record<string, string> | null | undefined,
+  model: unknown
 ): unknown {
   if (
     !isCodexResponsesLiteRequest(bodyInput, clientHeaders) ||
     !bodyInput ||
     typeof bodyInput !== "object" ||
-    Array.isArray(bodyInput)
+    Array.isArray(bodyInput) ||
+    isCodexDelegationDependentModel(model)
   ) {
     return bodyInput;
   }
@@ -847,7 +860,11 @@ export class CodexExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const requestBody = enforceCodexResponsesLiteParallelToolCalls(input.body, input.clientHeaders);
+    const requestBody = enforceCodexResponsesLiteParallelToolCalls(
+      input.body,
+      input.clientHeaders,
+      input.model
+    );
     const requestInput = requestBody === input.body ? input : { ...input, body: requestBody };
     const sessionId = this.getPromptCacheSessionId(
       requestInput.credentials,

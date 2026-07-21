@@ -9,6 +9,7 @@ import { AgentBridgeMaintenanceCard } from "./components/AgentBridgeMaintenanceC
 import { AgentList } from "./components/AgentList";
 import { EmptyStateNoProviders } from "./components/EmptyStateNoProviders";
 import { useAgentBridgeState } from "./hooks/useAgentBridgeState";
+import { useMitmSudoPrompt, MitmSudoPasswordModal } from "./hooks/useMitmSudoPrompt";
 import type { MitmTargetView } from "@/mitm/types";
 import type { MappingRow } from "./components/ModelMappingTable";
 
@@ -78,38 +79,60 @@ export default function AgentBridgePageClient({
   const [actionError, setActionError] = useState<string | null>(null);
   const [certGuide, setCertGuide] = useState<CertManualGuide | null>(null);
 
+  const { runPrivileged, sudoModalProps } = useMitmSudoPrompt({
+    hasCachedPassword: data.serverState.hasCachedPassword === true,
+    needsSudoPassword: data.serverState.needsSudoPassword === true,
+    isWin: data.serverState.isWin === true,
+  });
+
+  const postServerAction = useCallback(
+    async (
+      action: "start" | "stop" | "restart" | "trust-cert" | "regenerate-cert",
+      sudoPassword?: string
+    ) => {
+      const res = await fetch("/api/tools/agent-bridge/server", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          sudoPassword ? { action, sudoPassword } : { action }
+        ),
+      });
+      const payload = (await res.json().catch(() => ({}))) as {
+        error?: { message?: string };
+        skippable?: boolean;
+        manualGuide?: CertManualGuide;
+      };
+      if (!res.ok) {
+        throw new Error(payload.error?.message ?? `HTTP ${res.status}`);
+      }
+      if (payload.skippable && payload.manualGuide) {
+        setCertGuide(payload.manualGuide);
+      } else if (action === "trust-cert") {
+        setCertGuide(null);
+      }
+      await refresh();
+    },
+    [refresh]
+  );
+
   // ── Server actions ────────────────────────────────────────────────────────
 
   const handleServerAction = useCallback(
     async (action: "start" | "stop" | "restart" | "trust-cert" | "regenerate-cert") => {
       setActionError(null);
-      try {
-        const res = await fetch("/api/tools/agent-bridge/server", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action }),
+      if (action === "trust-cert") {
+        await runPrivileged(async (password) => {
+          await postServerAction("trust-cert", password || undefined);
         });
-        const payload = (await res.json().catch(() => ({}))) as {
-          error?: { message?: string };
-          skippable?: boolean;
-          manualGuide?: CertManualGuide;
-        };
-        if (!res.ok) {
-          throw new Error(payload.error?.message ?? `HTTP ${res.status}`);
-        }
-        // Cert couldn't be auto-installed (container / headless): not an error —
-        // surface the manual-install guide instead of blocking. (#4546)
-        if (payload.skippable && payload.manualGuide) {
-          setCertGuide(payload.manualGuide);
-        } else if (action === "trust-cert") {
-          setCertGuide(null);
-        }
-        await refresh();
+        return;
+      }
+      try {
+        await postServerAction(action);
       } catch (err) {
         setActionError(err instanceof Error ? err.message : "Unknown error");
       }
     },
-    [refresh]
+    [postServerAction, runPrivileged]
   );
 
   // ── Upstream CA ───────────────────────────────────────────────────────────
@@ -152,18 +175,27 @@ export default function AgentBridgePageClient({
     async (agentId: string, enabled: boolean) => {
       setActionError(null);
       try {
-        const res = await fetch(`/api/tools/agent-bridge/agents/${agentId}/dns`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enabled }),
+        await runPrivileged(async (password) => {
+          const res = await fetch(`/api/tools/agent-bridge/agents/${agentId}/dns`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(
+              password ? { enabled, sudoPassword: password } : { enabled }
+            ),
+          });
+          if (!res.ok) {
+            const payload = (await res.json().catch(() => ({}))) as {
+              error?: { message?: string };
+            };
+            throw new Error(payload.error?.message ?? `HTTP ${res.status}`);
+          }
+          await refresh();
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        await refresh();
       } catch (err) {
         setActionError(err instanceof Error ? err.message : "Unknown error");
       }
     },
-    [refresh]
+    [refresh, runPrivileged]
   );
 
   // ── Mappings save ─────────────────────────────────────────────────────────
@@ -308,6 +340,8 @@ export default function AgentBridgePageClient({
           </div>
         </>
       )}
+
+      <MitmSudoPasswordModal {...sudoModalProps} />
     </div>
   );
 }

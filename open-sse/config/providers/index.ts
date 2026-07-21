@@ -127,6 +127,8 @@ import { deepinfraProvider } from "./registry/deepinfra/index.ts";
 import { agyProvider } from "./registry/agy/index.ts";
 import { agnesProvider } from "./registry/agnes/index.ts";
 import { aihordeProvider } from "./registry/aihorde/index.ts";
+import { ainativeProvider } from "./registry/ainative/index.ts";
+import { aionProvider } from "./registry/aion/index.ts";
 import { udioProvider } from "./registry/udio/index.ts";
 import { longcatProvider } from "./registry/longcat/index.ts";
 import { vertex_partnerProvider } from "./registry/vertex/partner/index.ts";
@@ -199,7 +201,10 @@ import { sumopodProvider } from "./registry/sumopod/index.ts";
 import { x5labProvider } from "./registry/x5lab/index.ts";
 import { kenariProvider } from "./registry/kenari/index.ts";
 import { navyProvider } from "./registry/navy/index.ts";
+import { naraProvider } from "./registry/nara/index.ts";
 import { requestyProvider } from "./registry/requesty/index.ts";
+import { sealionProvider } from "./registry/sealion/index.ts";
+import { routewayProvider } from "./registry/routeway/index.ts";
 import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 
@@ -329,6 +334,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   agy: agyProvider,
   agnes: agnesProvider,
   aihorde: aihordeProvider,
+  ainative: ainativeProvider,
+  aion: aionProvider,
   udio: udioProvider,
   longcat: longcatProvider,
   "vertex-partner": vertex_partnerProvider,
@@ -403,7 +410,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   x5lab: x5labProvider,
   kenari: kenariProvider,
   navy: navyProvider,
+  nara: naraProvider,
   requesty: requestyProvider,
+  sealion: sealionProvider,
+  routeway: routewayProvider,
   digitalocean: digitaloceanProvider,
   hcnsec: hcnsecProvider,
 };

@@ -6,6 +6,7 @@
 
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { getProviderConnectionsCount } from "./providers";
 import { type JsonRecord, asRecord, toNonEmptyString, getKeyValue } from "./models/shared";
 import {
   readCompatList,
@@ -238,6 +239,49 @@ export async function replaceCustomModels(
   return merged;
 }
 
+/**
+ * Remove provider-level models created by discovery/import while preserving
+ * models the user added manually. Returns the removed model IDs.
+ */
+export async function deleteImportedCustomModels(providerId: string): Promise<string[]> {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
+    .get(providerId);
+  const value = getKeyValue(row).value;
+  if (!value) return [];
+
+  const parsed = JSON.parse(value);
+  if (!Array.isArray(parsed)) return [];
+
+  const removed: JsonRecord[] = [];
+  const retained = parsed.filter((model: JsonRecord) => {
+    const source = typeof model?.source === "string" ? model.source.trim().toLowerCase() : "manual";
+    const imported = source === "imported" || source === "api-sync" || source === "auto-sync";
+    if (imported) removed.push(model);
+    return !imported;
+  });
+  if (removed.length === 0) return [];
+
+  if (retained.length === 0) {
+    db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(
+      providerId
+    );
+  } else {
+    db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
+      JSON.stringify(retained),
+      providerId
+    );
+  }
+
+  const removedIds = removed.flatMap((model) =>
+    typeof model.id === "string" && model.id ? [model.id] : []
+  );
+  for (const modelId of removedIds) removeModelCompatOverride(providerId, modelId);
+  backupDbFile("pre-write");
+  return removedIds;
+}
+
 export async function removeCustomModel(providerId: string, modelId: string) {
   const db = getDbInstance();
   const row = db
@@ -356,12 +400,8 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
       ? { supportsThinking: record.supportsThinking }
       : {}),
     ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
-    ...(typeof record.supportsTools === "boolean"
-      ? { supportsTools: record.supportsTools }
-      : {}),
-    ...(typeof record.supportsVideo === "boolean"
-      ? { supportsVideo: record.supportsVideo }
-      : {}),
+    ...(typeof record.supportsTools === "boolean" ? { supportsTools: record.supportsTools } : {}),
+    ...(typeof record.supportsVideo === "boolean" ? { supportsVideo: record.supportsVideo } : {}),
     ...(record.supportsVision === true ? { supportsVision: true } : {}),
   };
 }
@@ -615,6 +655,29 @@ export async function deleteSyncedAvailableModelsForConnection(
   );
   backupDbFile("pre-write");
   return getSyncedAvailableModels(providerId);
+}
+
+/**
+ * Clean model state after a provider connection has been deleted. Imported
+ * provider-level models are removed only when no sibling connection remains.
+ */
+export async function cleanupProviderModelsAfterConnectionDelete(
+  providerId: string,
+  connectionId: string
+): Promise<{
+  remainingConnections: number;
+  removedImportedModelIds: string[];
+  remainingSyncedModels: SyncedAvailableModel[];
+}> {
+  const remainingSyncedModels = await deleteSyncedAvailableModelsForConnection(
+    providerId,
+    connectionId
+  );
+  const remainingConnections = getProviderConnectionsCount({ provider: providerId });
+  const removedImportedModelIds =
+    remainingConnections === 0 ? await deleteImportedCustomModels(providerId) : [];
+
+  return { remainingConnections, removedImportedModelIds, remainingSyncedModels };
 }
 
 /**

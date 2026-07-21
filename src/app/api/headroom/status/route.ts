@@ -1,4 +1,4 @@
-import { getSettings } from "@/lib/db/settings";
+import { getCachedSettings } from "@/lib/db/settings";
 import { DEFAULT_HEADROOM_URL, getHeadroomStatus } from "@/lib/headroom/detect";
 import { getManagedPid } from "@/lib/headroom/process";
 import { createErrorResponse } from "@/lib/api/errorResponse";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<Response> {
   try {
-    const settings = await getSettings();
+    const settings = await getCachedSettings();
     const url =
       typeof settings.headroomUrl === "string" && settings.headroomUrl
         ? settings.headroomUrl

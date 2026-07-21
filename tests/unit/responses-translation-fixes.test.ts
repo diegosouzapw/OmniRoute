@@ -544,6 +544,50 @@ test("Responses→Chat streaming: reasoning delta emits reasoning_content in Cha
   assert.equal(result.choices[0].delta.reasoning_content, "thinking step...");
 });
 
+test("Responses→Chat streaming: internal reasoning replay placeholder stays hidden", () => {
+  const state = {
+    started: false,
+    chatId: null,
+    created: null,
+    toolCallIndex: 0,
+    finishReasonSent: false,
+  };
+
+  const result = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.reasoning_summary_text.delta",
+      delta: "(prior reasoning summary unavailable)",
+      item_id: "rs_1",
+      output_index: 0,
+      summary_index: 0,
+    },
+    state
+  );
+
+  assert.equal(result, null);
+});
+
+test("Chat→Responses streaming: internal reasoning replay placeholder stays hidden", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+  const events = openaiToOpenAIResponsesResponse(
+    {
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning_content: "(prior reasoning summary unavailable)" },
+          finish_reason: null,
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(
+    events.some((event) => event.event === "response.reasoning_summary_text.delta"),
+    false
+  );
+});
+
 test("Responses→Chat streaming: Copilot mode emits reasoning_text for summary deltas", () => {
   const state = {
     started: false,

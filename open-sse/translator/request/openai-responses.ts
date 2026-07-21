@@ -403,11 +403,20 @@ export function openaiResponsesToOpenAIRequest(
               function: {
                 name: toString(sub.name),
                 description: toString(sub.description),
-                parameters: sub.parameters ??
-                  sub.input_schema ?? {
-                    type: "object",
-                    properties: {},
-                  },
+                parameters:
+                  toString(sub.type) === "custom"
+                    ? {
+                        type: "object",
+                        properties: { input: { type: "string" } },
+                        required: ["input"],
+                        additionalProperties: false,
+                      }
+                    : (sub.parameters ??
+                      sub.input_schema ?? {
+                        type: "object",
+                        properties: {},
+                      }),
+                strict: sub.strict,
               },
             }));
         }

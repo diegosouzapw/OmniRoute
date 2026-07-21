@@ -133,6 +133,7 @@ type StreamOptions = {
    * `RESPONSES_PASSTHROUGH_DROP_COMMENTARY` feature flag (default on).
    */
   dropResponsesCommentary?: boolean;
+  customToolNames?: ReadonlySet<string>;
   provider?: string | null;
   reqLogger?: StreamLogger | null;
   toolNameMap?: unknown;
@@ -159,6 +160,7 @@ type TranslateState = ReturnType<typeof initState> & {
   accumulatedReasoning?: string;
   /** #6951 — per-tool JSON Schema (from request `tools[]`), keyed by tool name. */
   toolSchemas?: Map<string, Record<string, unknown>> | null;
+  customToolNames?: ReadonlySet<string>;
   upstreamError?: {
     status: number;
     type: string;
@@ -631,6 +633,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     onComplete = null,
     onFailure = null,
     dropResponsesCommentary,
+    customToolNames = new Set<string>(),
   } = options;
   const signatureNamespace = connectionId;
   // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
@@ -705,6 +708,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           accumulatedContent: "",
           accumulatedReasoning: "",
           toolSchemas: extractToolSchemaMap(body),
+          customToolNames,
         }
       : null;
 
@@ -1663,18 +1667,22 @@ export function createSSEStream(options: StreamOptions = {}) {
                   // clients (e.g. LobeChat) may skip content when reasoning_content
                   // is present, causing the first content token to be lost.
                   if (delta?.reasoning_content && delta?.content) {
-                    // Per-chunk clone on the streaming hot path: a JSON.parse(JSON.stringify())
-                    // round-trip re-serializes and re-parses the entire chunk just to drop two
-                    // fields. structuredClone is a native, much faster deep clone with identical
-                    // semantics for this JSON-derived object (falls back on older runtimes).
-                    const reasoningChunk =
-                      typeof structuredClone === "function"
-                        ? structuredClone(parsed)
-                        : structuredClone(parsed);
-                    const rDelta = reasoningChunk.choices[0].delta;
-                    delete rDelta.content;
-                    reasoningChunk.choices[0].finish_reason = null;
-                    delete reasoningChunk.usage;
+                    // Shallow-clone only the mutated fields instead of a full
+                    // structuredClone — the original `parsed` is a JSON-derived
+                    // object so spreading preserves every field while skipping
+                    // the deep-clone overhead (GC pressure, polyfill fallback).
+                    const reasoningChunk = {
+                      ...parsed,
+                      usage: undefined,
+                      choices: [
+                        {
+                          ...parsed.choices[0],
+                          delta: { ...parsed.choices[0].delta, content: undefined },
+                          finish_reason: null,
+                        },
+                        ...parsed.choices.slice(1),
+                      ],
+                    };
                     const rOutput = `data: ${JSON.stringify(reasoningChunk)}\n\n`;
                     passthroughAccumulatedReasoning = appendBoundedText(
                       passthroughAccumulatedReasoning,
@@ -2739,7 +2747,8 @@ export function createSSETransformStreamWithLogger(
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
   copilotCompatibleReasoning = false,
-  suppressThinkClose = false
+  suppressThinkClose = false,
+  customToolNames: ReadonlySet<string> = new Set()
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2756,6 +2765,7 @@ export function createSSETransformStreamWithLogger(
     onFailure,
     copilotCompatibleReasoning,
     suppressThinkClose,
+    customToolNames,
   });
 }
 
