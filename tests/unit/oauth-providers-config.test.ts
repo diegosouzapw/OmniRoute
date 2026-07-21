@@ -9,7 +9,6 @@ Object.assign(process.env, {
   CLAUDE_OAUTH_CLIENT_ID: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
   CODEX_OAUTH_CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
   GITLAB_DUO_OAUTH_CLIENT_ID: "gitlab-duo-client-id",
-  QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
   KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
   KIMI_CODING_DEVICE_ID: "test-kimi-device-id",
   GITHUB_OAUTH_CLIENT_ID: "Iv1.b507a08c87ecfe98",
@@ -41,7 +40,6 @@ const {
   OAUTH_TIMEOUT,
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
-  QWEN_CONFIG,
   TRAE_CONFIG,
   WINDSURF_CONFIG,
   XAI_OAUTH_CONFIG,
@@ -57,7 +55,6 @@ const EXPECTED_PROVIDER_KEYS = [
   "antigravity",
   "agy",
   "qoder",
-  "qwen",
   "kimi-coding",
   "github",
   "ghe-copilot",
@@ -91,7 +88,6 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   antigravity: ANTIGRAVITY_CONFIG,
   agy: AGY_CONFIG,
   qoder: QODER_CONFIG,
-  qwen: QWEN_CONFIG,
   "kimi-coding": KIMI_CODING_CONFIG,
   github: GITHUB_CONFIG,
   "ghe-copilot": GHE_COPILOT_CONFIG,
@@ -129,7 +125,6 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   antigravity: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   agy: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   qoder: ["extraParams"],
-  qwen: ["deviceCodeUrl", "tokenUrl", "scope", "clientId"],
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],
   github: ["deviceCodeUrl", "tokenUrl", "userInfoUrl", "copilotTokenUrl", "clientId"],
   // GHE Copilot derives its URLs at runtime from the per-connection gheUrl — only static fields.
@@ -315,20 +310,6 @@ test("all provider endpoint URLs use HTTPS when a URL is configured", () => {
   }
 });
 
-test("Qwen OAuth uses chat.qwen.ai (not bare qwen.ai) for device/token URLs — #7517 supersedes #683/#572", () => {
-  // Upstream PR #683 / decolua issue #572 originally pointed these at the bare `qwen.ai` host.
-  // #7517 (2026-07-18) live-verified that host 404s on both paths ("ошибка сервера OmniRoute" in
-  // the companion extension) and that the working qwen-code device flow lives at `chat.qwen.ai`
-  // (verified: 200 + a valid device_code/user_code). See tests/unit/oauth-device-code-endpoints.test.ts
-  // for the companion regression guard.
-  const deviceUrl = new URL(QWEN_CONFIG.deviceCodeUrl);
-  const tokenUrl = new URL(QWEN_CONFIG.tokenUrl);
-  assert.equal(deviceUrl.hostname, "chat.qwen.ai", "deviceCodeUrl must use chat.qwen.ai");
-  assert.equal(tokenUrl.hostname, "chat.qwen.ai", "tokenUrl must use chat.qwen.ai");
-  assert.equal(deviceUrl.pathname, "/api/v1/oauth2/device/code");
-  assert.equal(tokenUrl.pathname, "/api/v1/oauth2/token");
-});
-
 test("browser-based providers expose buildAuthUrl and return provider-specific auth URLs", () => {
   const redirectUri = "http://localhost:43121/callback";
   const state = "state-123";
@@ -460,7 +441,7 @@ test("Google OAuth callbacks stay on localhost when no custom credentials are co
 });
 
 test("device and import-token providers expose the flow-specific fields expected by their configs", () => {
-  const deviceProviders = ["qwen", "kimi-coding", "github", "kiro", "amazon-q", "kilocode"];
+  const deviceProviders = ["kimi-coding", "github", "kiro", "amazon-q", "kilocode"];
 
   for (const providerId of deviceProviders) {
     const provider = PROVIDERS[providerId];
@@ -672,27 +653,8 @@ test("Qoder enabled mode exchanges tokens and loads profile metadata through moc
   }
 });
 
-test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", async () => {
-  const qwenIdToken = createJwt({
-    email: "qwen@example.com",
-    name: "Qwen User",
-  });
-
+test("Kimi Coding executes mocked device-code flow and token mapping", async () => {
   useFetchSequence([
-    jsonResponse({
-      device_code: "qwen-device",
-      user_code: "QWEN123",
-      verification_uri: "https://chat.qwen.ai/activate",
-      expires_in: 300,
-      interval: 5,
-    }),
-    jsonResponse({
-      access_token: createJwt({ sub: "qwen-subject" }),
-      refresh_token: "qwen-refresh",
-      expires_in: 3600,
-      id_token: qwenIdToken,
-      resource_url: "https://chat.qwen.ai/resource",
-    }),
     (url, init) => {
       const params = init.body;
       assert.equal(String(url), KIMI_CODING_CONFIG.deviceCodeUrl);
@@ -701,10 +663,7 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
       assert.equal(init.headers["X-Msh-Os-Version"], os.release());
       if (os.type() === "Windows_NT") {
-        assert.equal(
-          init.headers["X-Msh-Device-Model"],
-          `Windows ${os.release()} ${os.arch()}`
-        );
+        assert.equal(init.headers["X-Msh-Device-Model"], `Windows ${os.release()} ${os.arch()}`);
       }
 
       return jsonResponse({
@@ -735,10 +694,6 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
     },
   ]);
 
-  const qwenDevice = await PROVIDERS.qwen.requestDeviceCode(QWEN_CONFIG, "challenge-123");
-  const qwenPoll = await PROVIDERS.qwen.pollToken(QWEN_CONFIG, qwenDevice.device_code, "verifier");
-  const qwenMapped = PROVIDERS.qwen.mapTokens(qwenPoll.data);
-
   const kimiDevice = await PROVIDERS["kimi-coding"].requestDeviceCode(KIMI_CODING_CONFIG);
   const kimiPoll = await PROVIDERS["kimi-coding"].pollToken(
     KIMI_CODING_CONFIG,
@@ -746,9 +701,6 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
   );
   const kimiMapped = PROVIDERS["kimi-coding"].mapTokens(kimiPoll.data);
 
-  assert.equal(qwenMapped.email, "qwen@example.com");
-  assert.equal(qwenMapped.displayName, "Qwen User");
-  assert.equal(qwenMapped.providerSpecificData.resourceUrl, "https://chat.qwen.ai/resource");
   assert.equal(kimiMapped.accessToken, "kimi-access");
   assert.equal(kimiMapped.tokenType, "Bearer");
   assert.equal(

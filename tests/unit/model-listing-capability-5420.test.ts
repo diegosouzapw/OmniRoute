@@ -32,6 +32,7 @@ describe("providerLacksModelListing (#5420)", () => {
   it("keeps Kimi Web visible while marking its model catalog as curated-only", () => {
     assert.equal(providerLacksModelListing("kimi-web", ["llm"]), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-web"), true);
+    assert.equal(providerUsesCuratedModelsOnly("qwen-cloud"), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-coding"), false);
   });
 });

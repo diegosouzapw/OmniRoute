@@ -3903,69 +3903,50 @@
       "stream": "https://api.qoder.com/v1/chat/completions"
     }
   },
-  "qwen": {
+  "qwen-cloud": {
     "format": "openai",
     "headers": {
       "apiKey": {
         "Accept": "text/event-stream",
-        "Accept-Language": "*",
         "Authorization": "Bearer <TOK>",
-        "Connection": "keep-alive",
-        "Content-Type": "application/json",
-        "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Dashscope-AuthType": "qwen-oauth",
-        "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Stainless-Arch": "<ARCH>",
-        "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "<OS>",
-        "X-Stainless-Package-Version": "5.11.0",
-        "X-Stainless-Retry-Count": "1",
-        "X-Stainless-Runtime": "node",
-        "X-Stainless-Runtime-Version": "<NODE>"
+        "Content-Type": "application/json"
       },
       "nonStream": {
-        "Accept-Language": "*",
         "Authorization": "Bearer <TOK>",
-        "Connection": "keep-alive",
-        "Content-Type": "application/json",
-        "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Dashscope-AuthType": "qwen-oauth",
-        "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Stainless-Arch": "<ARCH>",
-        "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "<OS>",
-        "X-Stainless-Package-Version": "5.11.0",
-        "X-Stainless-Retry-Count": "1",
-        "X-Stainless-Runtime": "node",
-        "X-Stainless-Runtime-Version": "<NODE>"
+        "Content-Type": "application/json"
       },
       "oauth": {
         "Accept": "text/event-stream",
-        "Accept-Language": "*",
         "Authorization": "Bearer <TOK>",
-        "Connection": "keep-alive",
-        "Content-Type": "application/json",
-        "Sec-Fetch-Mode": "cors",
-        "User-Agent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Dashscope-AuthType": "qwen-oauth",
-        "X-Dashscope-CacheControl": "enable",
-        "X-Dashscope-UserAgent": "QwenCode/0.19.3 (<OS>; <ARCH>)",
-        "X-Stainless-Arch": "<ARCH>",
-        "X-Stainless-Lang": "js",
-        "X-Stainless-Os": "<OS>",
-        "X-Stainless-Package-Version": "5.11.0",
-        "X-Stainless-Retry-Count": "1",
-        "X-Stainless-Runtime": "node",
-        "X-Stainless-Runtime-Version": "<NODE>"
+        "Content-Type": "application/json"
       }
     },
     "url": {
-      "nonStream": "https://chat.qwen.ai/api/v1/services/aigc/text-generation/generation",
-      "stream": "https://chat.qwen.ai/api/v1/services/aigc/text-generation/generation"
+      "nonStream": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "stream": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions"
+    }
+  },
+  "qwen-cloud-token-plan": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "stream": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions"
     }
   },
   "qwen-web": {

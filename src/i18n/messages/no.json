@@ -2138,7 +2138,6 @@
       "antigravity": "Brukes når Antigravity/Kiro-trafikk må avskjæres gjennom MITM og rutes til OmniRoute.",
       "copilot": "Bruk når du vil ha Copilot chat-stil UX mens du håndhever OmniRoute-nøkler og rutingsregler.",
       "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
-      "qwen": "Use when you want Qwen Code CLI with OmniRoute-managed provider settings and multi-provider model access.",
       "hermes": "Bruk når du trenger en lett terminal-native AI-assistent for raske oppgaver.",
       "hermes-agent": "__MISSING__:Use when you need Hermes Agent (by Nousresearch) with default, delegation, vision and auxiliary models routed through OmniRoute.",
       "custom": "Bruk for tilpassede verktøyimplementeringer eller generiske OpenAI-kompatible konfigurasjoner."
@@ -2157,7 +2156,6 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI",
       "amp": "Sourcegraph Amp coding assistant CLI",
       "hermes": "Hermes AI terminalassistent",
       "hermes-agent": "__MISSING__:Hermes Agent (by Nousresearch) - Advanced terminal AI with multi-model support (delegation, vision, compression, etc.)",

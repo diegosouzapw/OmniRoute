@@ -3,70 +3,113 @@ import assert from "node:assert/strict";
 
 const { GrokCliExecutor } = await import("@omniroute/open-sse/executors/grok-cli");
 
-// Regression for #6288: Grok Build (`grok-cli` executor) returns 400 on every
-// request from Claude Code because Claude Code forwards `reasoning_effort`
-// (and sometimes a nested `reasoning` object), which Grok Build's upstream
-// chat-proxy endpoint does not accept. transformRequest() must strip both
-// before forwarding, without breaking the existing #5273 stripping.
+// #6288 originally protected the legacy Chat Completions bridge from reasoning
+// fields. Both current models now use Responses; grok-4.5 accepts an effort,
+// while Composer does not.
 
-test("#6288 grok-cli transformRequest strips reasoning_effort", () => {
+test("grok-4.5 preserves Responses reasoning", () => {
   const executor = new GrokCliExecutor();
   const body = {
-    model: "grok-build",
-    messages: [{ role: "user", content: "hi" }],
-    reasoning_effort: "high",
+    model: "grok-4.5",
+    input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+    reasoning: { effort: "high", summary: "auto" },
   };
 
-  const out = executor.transformRequest("grok-build", body, false, {} as never) as Record<
+  const out = executor.transformRequest("grok-4.5", body, true, {} as never) as Record<
     string,
     unknown
   >;
 
-  assert.equal("reasoning_effort" in out, false, "reasoning_effort must be stripped");
-  assert.deepEqual(out.messages, [{ role: "user", content: "hi" }]);
-  assert.equal(out.model, "grok-build");
+  assert.deepEqual(out.reasoning, { effort: "high", summary: "auto" });
 });
 
-test("#6288 grok-cli transformRequest strips nested reasoning object", () => {
+test("grok composer strips unsupported Responses reasoning", () => {
   const executor = new GrokCliExecutor();
   const body = {
-    model: "grok-build",
-    messages: [{ role: "user", content: "hi" }],
+    model: "grok-composer-2.5-fast",
+    input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
     reasoning: { effort: "high" },
   };
 
-  const out = executor.transformRequest("grok-build", body, false, {} as never) as Record<
-    string,
-    unknown
-  >;
+  const out = executor.transformRequest(
+    "grok-composer-2.5-fast",
+    body,
+    false,
+    {} as never
+  ) as Record<string, unknown>;
 
-  assert.equal("reasoning" in out, false, "reasoning must be stripped");
+  assert.equal("reasoning" in out, false);
 });
 
-test("#6288 grok-cli transformRequest still strips #5273 unsupported sampling params", () => {
+test("grok-cli strips legacy top-level reasoning_effort after translation", () => {
   const executor = new GrokCliExecutor();
   const body = {
-    model: "grok-build",
-    messages: [{ role: "user", content: "hi" }],
-    presencePenalty: 0.5,
-    frequencyPenalty: 0.3,
-    logprobs: true,
-    topLogprobs: 5,
-    reasoning_effort: "medium",
+    model: "grok-4.5",
+    input: [],
+    reasoning_effort: "high",
   };
 
-  const out = executor.transformRequest("grok-build", body, false, {} as never) as Record<
+  const out = executor.transformRequest("grok-4.5", body, false, {} as never) as Record<
     string,
     unknown
   >;
 
-  for (const param of [
-    "presencePenalty",
-    "frequencyPenalty",
-    "logprobs",
-    "topLogprobs",
-    "reasoning_effort",
-  ]) {
-    assert.equal(param in out, false, `${param} must be stripped`);
-  }
+  assert.equal("reasoning_effort" in out, false);
+});
+
+test("grok-cli applies official Responses defaults without mutating client input", () => {
+  const executor = new GrokCliExecutor();
+  const body = {
+    model: "grok-4.5",
+    input: [],
+    include: ["file_search_call.results"],
+  };
+
+  const out = executor.transformRequest("grok-4.5", body, true, {} as never) as Record<
+    string,
+    unknown
+  >;
+
+  assert.equal(out.store, false);
+  assert.deepEqual(out.include, ["file_search_call.results", "reasoning.encrypted_content"]);
+  assert.deepEqual(out.reasoning, { effort: "high" });
+  assert.deepEqual(body, {
+    model: "grok-4.5",
+    input: [],
+    include: ["file_search_call.results"],
+  });
+});
+
+test("grok-cli preserves explicit store and de-duplicates encrypted reasoning include", () => {
+  const executor = new GrokCliExecutor();
+  const out = executor.transformRequest(
+    "grok-4.5",
+    {
+      input: [],
+      store: true,
+      include: ["reasoning.encrypted_content"],
+      reasoning: { effort: "xhigh" },
+    },
+    false,
+    {} as never
+  ) as Record<string, unknown>;
+
+  assert.equal(out.store, true);
+  assert.deepEqual(out.include, ["reasoning.encrypted_content"]);
+  assert.equal("reasoning" in out, false);
+});
+
+test("grok-cli preserves an explicit Responses reasoning summary", () => {
+  const executor = new GrokCliExecutor();
+  const out = executor.transformRequest(
+    "grok-4.5",
+    {
+      input: [],
+      reasoning: { summary: "concise" },
+    },
+    false,
+    {} as never
+  ) as Record<string, unknown>;
+
+  assert.deepEqual(out.reasoning, { summary: "concise", effort: "high" });
 });

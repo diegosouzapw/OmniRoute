@@ -2138,7 +2138,6 @@
       "antigravity": "Antigravity/Kiro トラフィックを MITM 経由でインターセプトし、OmniRoute にルーティングする必要がある場合に使用します。",
       "copilot": "OmniRoute キーとルーティング ルールを適用しながら、Copilot チャット スタイルの UX が必要な場合に使用します。",
       "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
-      "qwen": "Use when you want Qwen Code CLI with OmniRoute-managed provider settings and multi-provider model access.",
       "hermes": "素早いタスクのために軽量のターミナル ネイティブ AI アシスタントが必要な場合に使用します。",
       "hermes-agent": "__MISSING__:Use when you need Hermes Agent (by Nousresearch) with default, delegation, vision and auxiliary models routed through OmniRoute.",
       "custom": "カスタム ツールの実装または汎用の OpenAI 互換構成に使用します。"
@@ -2157,7 +2156,6 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI",
       "amp": "Sourcegraph Amp coding assistant CLI",
       "hermes": "エルメス AI ターミナルアシスタント",
       "hermes-agent": "__MISSING__:Hermes Agent (by Nousresearch) - Advanced terminal AI with multi-model support (delegation, vision, compression, etc.)",

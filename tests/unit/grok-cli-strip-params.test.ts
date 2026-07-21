@@ -6,22 +6,33 @@ const { GrokCliExecutor } = await import("@omniroute/open-sse/executors/grok-cli
 // Regression for #5273: Grok Build returns `400 'Model does not support parameter
 // presencePenalty'` when clients (MiMoCode, Cursor, …) send OpenAI-style sampling
 // params Grok Build cannot accept. transformRequest() must strip them before forwarding.
-const UNSUPPORTED = ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"];
+const UNSUPPORTED = [
+  "presencePenalty",
+  "frequencyPenalty",
+  "logprobs",
+  "topLogprobs",
+  "presence_penalty",
+  "frequency_penalty",
+  "top_logprobs",
+];
 
 test("#5273 grok-cli transformRequest strips unsupported sampling params", () => {
   const executor = new GrokCliExecutor();
   const body = {
-    model: "grok-build",
-    messages: [{ role: "user", content: "hi" }],
+    model: "grok-4.5",
+    input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
     temperature: 0.7,
     top_p: 0.9,
     presencePenalty: 0.5,
     frequencyPenalty: 0.3,
     logprobs: true,
     topLogprobs: 5,
+    presence_penalty: 0.4,
+    frequency_penalty: 0.2,
+    top_logprobs: 3,
   };
 
-  const out = executor.transformRequest("grok-build", body, false, {} as never) as Record<
+  const out = executor.transformRequest("grok-4.5", body, false, {} as never) as Record<
     string,
     unknown
   >;
@@ -33,8 +44,8 @@ test("#5273 grok-cli transformRequest strips unsupported sampling params", () =>
   // …while supported params + payload survive untouched.
   assert.equal(out.temperature, 0.7);
   assert.equal(out.top_p, 0.9);
-  assert.deepEqual(out.messages, [{ role: "user", content: "hi" }]);
-  assert.equal(out.model, "grok-build");
+  assert.deepEqual(out.input, [{ role: "user", content: [{ type: "input_text", text: "hi" }] }]);
+  assert.equal(out.model, "grok-4.5");
   assert.equal(out.stream, false);
 });
 

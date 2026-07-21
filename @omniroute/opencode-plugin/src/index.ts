@@ -91,6 +91,10 @@ import {
  *  - `baseURL`        Override base URL for this OmniRoute instance. When
  *                     absent, the loader falls back to a credential-attached
  *                     baseURL set by `/connect`.
+ *  - `managementReadToken` Optional read-only management-plane bearer token.
+ *                     Used only for catalog GETs under `/api/*`; `/v1/*`
+ *                     inference continues to use the connected `apiKey`.
+ *                     Falls back to `apiKey` when unset.
  */
 /**
  * Optional feature toggles. Every field is opt-in/out per call; defaults
@@ -122,8 +126,9 @@ import {
  *                           provider's API key (from auth.json) when unset.
  *                           Useful when a narrower-scoped MCP-only key is
  *                           preferred over the chat/inference key.
- *  - `fetchInterceptor`     Inject Authorization: Bearer + Content-Type on
- *                           every outbound request to baseURL. Default true.
+ *  - `fetchInterceptor`     Inject Authorization: Bearer + Content-Type only
+ *                           on same-origin `/v1/chat/completions` and
+ *                           `/v1/models` requests. Default true.
  *  - `debugLog`             Capture every outbound request + response to a
  *                           JSONL file at
  *                           `~/.local/share/opencode/plugins/omniroute-debug-{providerId}.jsonl`.
@@ -186,6 +191,7 @@ const optionsSchema = z
     displayName: z.string().min(1).optional(),
     modelCacheTtl: z.number().positive().optional(),
     baseURL: z.string().url().optional(),
+    managementReadToken: z.string().min(1).optional(),
     features: featuresSchema.optional(),
   })
   .strict();
@@ -253,7 +259,7 @@ export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Re
    * lookup fails with "No credentials for opencode-<x>".
    */
   omnirouteProviderId: string;
-} & Pick<OmniRoutePluginOptions, "baseURL" | "features"> {
+} & Pick<OmniRoutePluginOptions, "baseURL" | "managementReadToken" | "features"> {
   const rawProviderId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
   const omnirouteProviderId = trimLeadingOpencodePrefix(rawProviderId);
   // OC 1.17.8+ native-adapter gate rejects providerID not in
@@ -277,6 +283,7 @@ export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Re
     displayName,
     modelCacheTtl,
     baseURL: opts?.baseURL,
+    managementReadToken: opts?.managementReadToken,
     features: opts?.features,
   };
 }
@@ -2348,12 +2355,14 @@ export function buildComboKey(
 }
 
 /**
- * Internal cache key: `${baseURL}::sha256(apiKey)`. We hash the apiKey so
- * the key is safe to log / inspect via debugger without leaking the secret.
- * Different (baseURL, apiKey) tuples MUST keep independent cache entries:
- * a single OC user may register prod + preprod OmniRoute side-by-side with
- * distinct keys, and serving one's catalog from the other's cache would be
- * a correctness bug, not just a privacy one.
+ * Internal cache key: `${baseURL}::sha256(credentialId)`. The credential id
+ * combines the inference key and effective management-read token so catalog
+ * results fetched under different permissions never share an entry. We hash
+ * it so the cache key is safe to inspect without leaking either secret.
+ * Different credential tuples MUST keep independent cache entries: a single
+ * OC user may register prod + preprod OmniRoute side-by-side with distinct
+ * keys, and serving one's catalog from the other's cache would be a
+ * correctness bug, not just a privacy one.
  */
 // codeql[js/insufficient-password-hash]: the input here is an API-key
 // identifier we use solely to derive an in-memory cache lookup key — it is
@@ -2504,6 +2513,9 @@ export function createOmniRouteProviderHook(
         return {};
       }
       const apiKey = (auth as { key: string }).key;
+      // Management-plane catalog reads may use a narrower read-only token.
+      // Backward compatibility: when unset, retain the historical apiKey use.
+      const managementReadToken = resolved.managementReadToken ?? apiKey;
 
       // baseURL resolution: plugin opts first, then credential-attached
       // baseURL (auth backends sometimes stash it next to the key), then the
@@ -2533,7 +2545,7 @@ export function createOmniRouteProviderHook(
         return {};
       }
 
-      const cacheKey = modelsCacheKey(baseURL, apiKey);
+      const cacheKey = modelsCacheKey(baseURL, `${apiKey}\0${managementReadToken}`);
       const t = now();
       const cached = cache.get(cacheKey);
 
@@ -2565,7 +2577,7 @@ export function createOmniRouteProviderHook(
         rawCombos = [];
         if (wantCombos) {
           try {
-            rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+            rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
@@ -2580,7 +2592,7 @@ export function createOmniRouteProviderHook(
         rawAutoCombos = [];
         if (wantAutoCombos) {
           try {
-            rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 5_000);
+            rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
           } catch {
             // Already handled inside the default fetcher — this catch
             // is belt-and-suspenders for injected stubs.
@@ -2592,7 +2604,7 @@ export function createOmniRouteProviderHook(
         rawEnrichment = new Map();
         if (wantEnrichment) {
           try {
-            rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+            rawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] enrichment fetch failed, falling back to raw ids",
@@ -2606,7 +2618,11 @@ export function createOmniRouteProviderHook(
         rawCompressionCombos = [];
         if (wantCompressionMeta) {
           try {
-            rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+            rawCompressionCombos = await compressionMetaFetcher(
+              baseURL,
+              managementReadToken,
+              10_000
+            );
           } catch (err) {
             console.warn("[omniroute-plugin] compression-metadata fetch failed", err);
           }
@@ -2620,7 +2636,7 @@ export function createOmniRouteProviderHook(
         rawConnections = [];
         if (wantUsableOnly) {
           try {
-            rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+            rawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] /api/providers fetch failed; usableOnly filter disabled for this refresh",
@@ -3008,17 +3024,18 @@ export function createOmniRouteProviderHook(
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Fetch interceptor (T-04) — Bearer + Content-Type injection on outbound
-// provider requests targeting the configured OmniRoute baseURL
+// Fetch interceptor (T-04) — Bearer + Content-Type injection on intended
+// same-origin OmniRoute inference requests only
 // ────────────────────────────────────────────────────────────────────────────
 
 /**
  * Build a `fetch`-compatible interceptor that injects `Authorization: Bearer`
- * (and a default `Content-Type`) onto outbound requests targeting the given
- * `baseURL`. Requests to any other host pass through untouched — the apiKey
- * is treated as a secret bound to the configured OmniRoute instance and
- * MUST NOT leak to third-party endpoints (a vector AI-SDKs occasionally
- * exercise when a tool call rewrites the URL mid-flight).
+ * (and a default `Content-Type`) only onto same-origin requests targeting
+ * `<base>/chat/completions` or `<base>/models`, where `<base>` is the
+ * configured baseURL path normalized to end in `/v1`. Management, MCP, and
+ * unrelated inference paths pass through untouched. The apiKey is treated as
+ * a secret bound to both the configured OmniRoute origin and these intended
+ * inference endpoints, and MUST NOT leak elsewhere.
  *
  * Ported from Alph4d0g's `opencode-omniroute-auth@1.2.1` `createFetchInterceptor`
  * (their `dist/src/plugin.js:477-516`) with these intentional deviations:
@@ -3045,17 +3062,35 @@ export function createOmniRouteFetchInterceptor(config: {
   apiKey: string;
   baseURL: string;
 }): typeof fetch {
-  const trimmed = trimTrailingSlashes(config.baseURL);
-  // Use `<base>/` for prefix matching to prevent suffix-spoof attacks
-  // (e.g. baseURL `https://or.example.com/v1` should NOT match
-  // `https://or.example.com/v1-attacker.evil/...`).
-  const prefix = `${trimmed}/`;
+  let baseOrigin: string | undefined;
+  const inferencePaths = new Set<string>();
+  try {
+    const baseUrl = new URL(config.baseURL);
+    baseOrigin = baseUrl.origin;
+    const basePath = ensureV1Suffix(baseUrl.pathname);
+    inferencePaths.add(`${basePath}/chat/completions`);
+    inferencePaths.add(`${basePath}/models`);
+  } catch {
+    // Credential-attached base URLs are not schema-validated. A malformed
+    // value must disable injection rather than broaden the credential scope.
+  }
   return async (input, init = {}) => {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
-    const targetsOmniRoute = url === trimmed || url.startsWith(prefix);
-    if (!targetsOmniRoute) {
+    let requestUrl: URL | undefined;
+    try {
+      requestUrl = new URL(url);
+    } catch {
+      // Native fetch will report malformed/relative URLs as usual. We only
+      // decline to attach credentials before forwarding the original input.
+    }
+    const normalizedPath = requestUrl ? trimTrailingSlashes(requestUrl.pathname) || "/" : undefined;
+    const targetsInference =
+      requestUrl?.origin === baseOrigin &&
+      normalizedPath !== undefined &&
+      inferencePaths.has(normalizedPath);
+    if (!targetsInference) {
       return fetch(input, init);
     }
 
@@ -3997,7 +4032,9 @@ type AuthJsonShape = Record<string, AuthJsonApiEntry | { type?: string; [k: stri
 
 /** Disk snapshot envelope. Versioned for forward-compat. */
 interface OmniRouteDiskSnapshot {
-  v: 1;
+  v: 2;
+  /** Opaque identity for normalized baseURL + both effective credentials. */
+  identityFingerprint: string;
   rawModels: OmniRouteRawModelEntry[];
   rawCombos: OmniRouteRawCombo[];
   rawAutoCombos?: OmniRouteRawAutoCombo[];
@@ -4017,22 +4054,53 @@ export function diskSnapshotPath(providerId: string): string {
 
 export type OmniRouteDiskSnapshotWriter = (
   providerId: string,
-  entry: Omit<OmniRouteFetchCacheEntry, "expiresAt">
+  entry: Omit<OmniRouteFetchCacheEntry, "expiresAt">,
+  identityFingerprint: string
 ) => Promise<void>;
 
 export type OmniRouteDiskSnapshotReader = (
-  providerId: string
+  providerId: string,
+  identityFingerprint: string
 ) => Promise<Omit<OmniRouteFetchCacheEntry, "expiresAt"> | undefined>;
 
+/**
+ * Bind a snapshot to the endpoint and effective credential tuple without
+ * persisting any raw token. This opaque value is only stored and compared;
+ * it is never logged or included in generated provider configuration.
+ */
+function diskSnapshotIdentityFingerprint(
+  baseURL: string,
+  apiKey: string,
+  managementReadToken: string
+): string {
+  let normalizedBaseURL: string;
+  try {
+    const parsed = new URL(baseURL);
+    parsed.hash = "";
+    parsed.pathname = trimTrailingSlashes(parsed.pathname) || "/";
+    normalizedBaseURL = parsed.toString();
+  } catch {
+    normalizedBaseURL = trimTrailingSlashes(baseURL);
+  }
+  return createHash("sha256")
+    .update(JSON.stringify([normalizedBaseURL, apiKey, managementReadToken]))
+    .digest("hex");
+}
+
 /** Best-effort disk write. Soft-fails on any I/O error (no exception thrown). */
-export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (providerId, entry) => {
+export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (
+  providerId,
+  entry,
+  identityFingerprint
+) => {
   try {
     const file = diskSnapshotPath(providerId);
     // Restrict perms to the owner: the snapshot lives alongside auth.json
     // (0o600) and embeds provider topology + masked connection records.
     await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
     const snapshot: OmniRouteDiskSnapshot = {
-      v: 1,
+      v: 2,
+      identityFingerprint,
       rawModels: entry.rawModels,
       rawCombos: entry.rawCombos,
       rawAutoCombos: entry.rawAutoCombos,
@@ -4051,12 +4119,22 @@ export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (pro
 };
 
 /** Best-effort disk read. Returns `undefined` when missing/corrupt/unreadable. */
-export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (providerId) => {
+export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (
+  providerId,
+  identityFingerprint
+) => {
   try {
     const file = diskSnapshotPath(providerId);
     const body = await readFile(file, "utf8");
     const parsed = JSON.parse(body) as Partial<OmniRouteDiskSnapshot>;
-    if (!parsed || parsed.v !== 1) return undefined;
+    if (
+      !parsed ||
+      parsed.v !== 2 ||
+      typeof parsed.identityFingerprint !== "string" ||
+      parsed.identityFingerprint !== identityFingerprint
+    ) {
+      return undefined;
+    }
     return {
       rawModels: Array.isArray(parsed.rawModels) ? parsed.rawModels : [],
       rawCombos: Array.isArray(parsed.rawCombos) ? parsed.rawCombos : [],
@@ -4480,6 +4558,9 @@ export function createOmniRouteConfigHook(
       );
       return;
     }
+    // Management-plane catalog reads may use a narrower read-only token.
+    // Backward compatibility: when unset, retain the historical apiKey use.
+    const managementReadToken = resolved.managementReadToken ?? apiKey;
 
     // baseURL resolution: opts.baseURL wins, then auth.json's stored baseURL.
     // No silent localhost default — a misconfigured plugin should surface a
@@ -4496,7 +4577,12 @@ export function createOmniRouteConfigHook(
     // Try the shared cache first. On OC ≥1.14.49 the provider hook may have
     // populated it moments earlier; on OC ≤1.14.48 only this hook runs but
     // the cache still works (single producer + consumer through one Map).
-    const cacheKey = modelsCacheKey(baseURL, apiKey);
+    const cacheKey = modelsCacheKey(baseURL, `${apiKey}\0${managementReadToken}`);
+    const snapshotFingerprint = diskSnapshotIdentityFingerprint(
+      baseURL,
+      apiKey,
+      managementReadToken
+    );
     const t = now();
     const cached = cache.get(cacheKey);
 
@@ -4537,7 +4623,7 @@ export function createOmniRouteConfigHook(
 
       rawCombos = [];
       try {
-        rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+        rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
       } catch (err) {
         logger.warn(
           "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
@@ -4548,7 +4634,7 @@ export function createOmniRouteConfigHook(
       rawAutoCombos = [];
       if (wantAutoCombos) {
         try {
-          rawAutoCombos = await autoCombosFetcher(baseURL, apiKey, 5_000);
+          rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
         } catch {
           // Already handled inside the default fetcher
         }
@@ -4564,7 +4650,7 @@ export function createOmniRouteConfigHook(
       rawEnrichment = new Map();
       if (wantEnrichment) {
         try {
-          rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+          rawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
@@ -4579,7 +4665,7 @@ export function createOmniRouteConfigHook(
       rawCompressionCombos = [];
       if (wantCompressionMeta) {
         try {
-          rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+          rawCompressionCombos = await compressionMetaFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/context/combos fetch failed; publishing combos without compression suffix",
@@ -4595,7 +4681,7 @@ export function createOmniRouteConfigHook(
       rawConnections = [];
       if (wantUsableOnly) {
         try {
-          rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+          rawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh",
@@ -4611,7 +4697,7 @@ export function createOmniRouteConfigHook(
       // a healthy refresh; staleness is bounded only by how recently the
       // user was online.
       if (modelsFetchThrew && wantDiskCache) {
-        const snapshot = await diskSnapshotReader(resolved.providerId);
+        const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
         if (snapshot && snapshot.rawModels.length > 0) {
           logger.warn(
             `[omniroute-plugin] config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
@@ -4656,14 +4742,18 @@ export function createOmniRouteConfigHook(
       // Best-effort; soft-fail keeps us moving when the data dir isn't
       // writable (e.g. read-only container).
       if (modelsFetchOk && wantDiskCache) {
-        await diskSnapshotWriter(resolved.providerId, {
-          rawModels,
-          rawCombos,
-          rawAutoCombos,
-          rawEnrichment,
-          rawCompressionCombos,
-          rawConnections,
-        });
+        await diskSnapshotWriter(
+          resolved.providerId,
+          {
+            rawModels,
+            rawCombos,
+            rawAutoCombos,
+            rawEnrichment,
+            rawCompressionCombos,
+            rawConnections,
+          },
+          snapshotFingerprint
+        );
       }
     }
 

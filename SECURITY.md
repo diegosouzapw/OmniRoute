@@ -42,7 +42,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
 | **API Key Auth**      | HMAC-signed keys with CRC validation                                                                                                      |
-| **OAuth 2.0 + PKCE**  | 14 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Windsurf, GitLab Duo) |
+| **OAuth 2.0 + PKCE**  | 13 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Kiro, Qoder, Windsurf, GitLab Duo)       |
 | **Token Refresh**     | Automatic OAuth token refresh before expiry                                                                                               |
 | **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
 | **Authz Pipeline**    | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |

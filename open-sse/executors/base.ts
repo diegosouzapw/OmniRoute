@@ -142,6 +142,7 @@ export type ProviderCredentials = {
   accessToken?: string;
   refreshToken?: string;
   apiKey?: string;
+  email?: string | null;
   projectId?: string | null;
   expiresAt?: string;
   connectionId?: string; // T07: used for API key rotation index

@@ -202,11 +202,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 2
-    }
-  },
   "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -709,7 +704,7 @@
   },
   "tests/unit/chatcore-translation-paths.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 40
+      "count": 34
     }
   },
   "tests/unit/chatgpt-web-tools-5240.test.ts": {
@@ -1187,11 +1182,6 @@
       "count": 1
     }
   },
-  "tests/unit/db-migration-runner-account-identity.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "tests/unit/db-migration-runner.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 12
@@ -1354,7 +1344,7 @@
   },
   "tests/unit/executor-default-base.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 43
+      "count": 42
     }
   },
   "tests/unit/executor-github.test.ts": {
@@ -1455,11 +1445,6 @@
   "tests/unit/grok-web.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 25
-    }
-  },
-  "tests/unit/guide-settings-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
     }
   },
   "tests/unit/i18n-nest-dotted-keys.test.ts": {
@@ -1749,7 +1734,7 @@
   },
   "tests/unit/provider-models-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 55
+      "count": 54
     }
   },
   "tests/unit/provider-models-token-limits.test.ts": {
@@ -2234,7 +2219,7 @@
   },
   "tests/unit/usage-service-hardening.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 59
+      "count": 56
     }
   },
   "tests/unit/v1-ws-bridge.test.ts": {

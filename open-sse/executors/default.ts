@@ -28,7 +28,6 @@ import {
   getTargetFormat,
   isClaudeCodeCompatible,
 } from "../services/provider.ts";
-import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 import { getSapResourceGroup } from "../config/sap.ts";
 import {
   normalizeBailianMessagesUrl,
@@ -55,6 +54,7 @@ import {
 import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
+import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -159,8 +159,23 @@ export class DefaultExecutor extends BaseExecutor {
         return chatUrl;
       }
       case "bailian-coding-plan": {
-        const baseUrl = this.resolveBaseUrl(credentials);
+        const baseUrl = resolveAlibabaProviderBaseUrl(
+          this.provider,
+          credentials?.providerSpecificData,
+          this.config.baseUrl
+        );
         return normalizeBailianMessagesUrl(baseUrl);
+      }
+      case "alibaba":
+      case "alibaba-cn":
+      case "qwen-cloud":
+      case "qwen-cloud-token-plan": {
+        const baseUrl = resolveAlibabaProviderBaseUrl(
+          this.provider,
+          credentials?.providerSpecificData,
+          this.config.baseUrl
+        );
+        return normalizeOpenAIChatUrl(baseUrl);
       }
       case "heroku": {
         const baseUrl = this.resolveBaseUrl(credentials);
@@ -257,10 +272,6 @@ export class DefaultExecutor extends BaseExecutor {
         return `${this.config.baseUrl}?beta=true`;
       case "gemini":
         return `${this.config.baseUrl}/${model}:${stream ? "streamGenerateContent?alt=sse" : "generateContent"}`;
-      case "qwen": {
-        const resourceUrl = credentials?.providerSpecificData?.resourceUrl;
-        return `https://${resourceUrl || "portal.qwen.ai"}/v1/chat/completions`;
-      }
       default: {
         // Honor a user-supplied custom base URL (providerSpecificData.baseUrl) for
         // OpenAI-format providers (e.g. the built-in "openai" provider pointed at a
@@ -445,16 +456,6 @@ export class DefaultExecutor extends BaseExecutor {
 
     headers["Accept"] = stream ? "text/event-stream" : "application/json";
 
-    // Qwen header cleanup: Remove X-Dashscope-* headers if using an API key (DashScope compatible mode).
-    // If using OAuth (Qwen Code), we MUST keep them for portal.qwen.ai to accept the request.
-    if (this.provider === "qwen" && effectiveKey) {
-      for (const key of Object.keys(headers)) {
-        if (key.toLowerCase().startsWith("x-dashscope-")) {
-          delete headers[key];
-        }
-      }
-    }
-
     const isCompatibleProvider =
       this.provider?.startsWith?.("openai-compatible-") ||
       this.provider?.startsWith?.("anthropic-compatible-");
@@ -621,21 +622,11 @@ export class DefaultExecutor extends BaseExecutor {
           withDefaults = withoutStreamOptions;
         }
       } else if (stream && targetFormat === "openai" && requestFormat !== "openai-responses") {
-        // Port of decolua/9router#663 (closes upstream #557): Qwen rejects with
-        // 400 "'stream_options' only set this when you set stream: true" when the
-        // outgoing body carries `stream: false` (Claude Code / Claude-Code-
-        // compatible callers force the executor-level stream flag on via
-        // `upstreamStream = stream || isClaudeCodeCompatible`, but the body keeps
-        // the caller's original `stream: false`). Same upstream also rejects the
-        // injection when `thinking` / `enable_thinking` is set. Skip injection in
-        // those cases instead of unconditionally adding `stream_options`.
+        // Do not inject stream_options when the outgoing body explicitly disables streaming.
         const defaultsRecord = withDefaults as Record<string, unknown>;
         const bodyDisablesStreamOptions =
           defaultsRecord.stream !== undefined && defaultsRecord.stream !== true;
-        const qwenBlocksStreamOptions =
-          this.provider === "qwen" &&
-          (Boolean(defaultsRecord.thinking) || Boolean(defaultsRecord.enable_thinking));
-        if (bodyDisablesStreamOptions || qwenBlocksStreamOptions) {
+        if (bodyDisablesStreamOptions) {
           if (Object.prototype.hasOwnProperty.call(defaultsRecord, "stream_options")) {
             const withoutStreamOptions = { ...defaultsRecord };
             delete withoutStreamOptions.stream_options;
@@ -695,15 +686,10 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
-    if (this.provider === "qwen" && typeof withDefaults === "object" && withDefaults !== null) {
-      return sanitizeQwenThinkingToolChoice(
-        withDefaults as Record<string, unknown>,
-        "QwenExecutor"
-      );
-    }
-
-    // Strip params unsupported by the target provider/model before sending upstream.
-    // Rules live in ../translator/paramSupport.ts (9router#7ae9fff6; fixes #1748).
+    // Config-driven strip of params unsupported by the target provider/model
+    // (e.g. claude-opus-4 deprecated `temperature` → Anthropic 400). Port from
+    // 9router#7ae9fff6 (fixes upstream #1748). Rules live in
+    // ../translator/paramSupport.ts so adding one means editing one table.
     if (typeof withDefaults === "object" && withDefaults !== null) {
       const bodyRecord = withDefaults as Record<string, unknown>;
       const outboundModel = typeof bodyRecord.model === "string" ? bodyRecord.model : model;

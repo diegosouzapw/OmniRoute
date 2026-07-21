@@ -149,7 +149,7 @@ omniroute providers validate
 ```txt
 Base URL: http://localhost:20128/v1
 API Key:  [copy from Endpoint page]
-Model:    if/kimi-k2-thinking (or any provider/model prefix)
+Model:    if/qwen3.8-max-preview (or any provider/model prefix)
 ```
 
 If your editor cannot send `Authorization: Bearer ...`, use the tokenized compatibility base instead:
@@ -179,8 +179,8 @@ omniroute setup-cursor       # prints Cursor's in-app steps
 omniroute setup-roo          # Roo Code import + autoImport pointer
 omniroute setup-crush        # ~/.config/crush/crush.json
 omniroute setup-goose        # ~/.config/goose/config.yaml
-omniroute setup-qwen         # ~/.qwen/settings.json
 omniroute setup-aider        # ~/.aider.conf.yml
+omniroute setup-qwen         # ~/.qwen/settings.json + ~/.qwen/.env
 ```
 
 Each accepts `--remote <url> --api-key <key>` to configure a local tool against a

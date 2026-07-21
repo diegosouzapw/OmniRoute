@@ -2,8 +2,7 @@ import type { RegistryEntry } from "../../../shared.ts";
 
 export const qwen_webProvider: RegistryEntry = {
   id: "qwen-web",
-  // Distinct alias: the primary "qwen" provider keeps the short "qw" alias;
-  // this web/cookie variant is addressed by its own id.
+  // The web/cookie variant is addressed by its own id.
   alias: "qwen-web",
   format: "openai",
   executor: "qwen-web",
@@ -17,8 +16,41 @@ export const qwen_webProvider: RegistryEntry = {
   // ids (qwen-plus, qwen3-max, ...) still resolve via the executor's
   // MODEL_ALIASES map for backward compatibility.
   models: [
-    { id: "qwen3.7-max", name: "Qwen3.7 Max" },
-    { id: "qwen3.7-plus", name: "Qwen3.7 Plus" },
-    { id: "qwen3.6-plus", name: "Qwen3.6 Plus" },
+    {
+      id: "qwen3.8-max-preview",
+      name: "Qwen3.8 Max Preview",
+      toolCalling: true,
+      supportsReasoning: true,
+      supportsVision: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 65_536,
+    },
+    {
+      id: "qwen3.7-max",
+      name: "Qwen3.7 Max",
+      toolCalling: true,
+      supportsReasoning: true,
+      supportsVision: false,
+      contextLength: 1_000_000,
+      maxOutputTokens: 65_536,
+    },
+    {
+      id: "qwen3.7-plus",
+      name: "Qwen3.7 Plus",
+      toolCalling: true,
+      supportsReasoning: true,
+      supportsVision: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 65_536,
+    },
+    {
+      id: "qwen3.6-plus",
+      name: "Qwen3.6 Plus",
+      toolCalling: true,
+      supportsReasoning: true,
+      supportsVision: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 65_536,
+    },
   ],
 };
