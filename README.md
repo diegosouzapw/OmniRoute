@@ -657,6 +657,8 @@ npm install -g omniroute
 omniroute
 ```
 
+> 💡 See `npm warn ERESOLVE` or peer-dep warnings? [They're harmless](docs/getting-started/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+
 Dashboard at `http://localhost:20128` · API at `http://localhost:20128/v1`.
 
 **2) Connect a FREE provider (no signup)**
