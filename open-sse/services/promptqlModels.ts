@@ -188,16 +188,16 @@ export async function discoverPromptQlModels(opts: {
     throw new Error(json.errors.map((e) => e.message || "error").join("; "));
   }
   const rows = json.data?.llm_config || [];
-  return rows
-    .map((r) => {
-      const id = (r.model_reference || r.model_id || r.id || "").trim();
-      if (!id) return null;
-      return {
-        id,
-        name: (r.display_label || id).trim(),
-        configId: r.id,
-        modelId: r.model_id,
-      } satisfies PromptQlModel;
-    })
-    .filter((x): x is PromptQlModel => Boolean(x));
+  const models: PromptQlModel[] = [];
+  for (const r of rows) {
+    const id = (r.model_reference || r.model_id || r.id || "").trim();
+    if (!id) continue;
+    models.push({
+      id,
+      name: (r.display_label || id).trim(),
+      configId: r.id,
+      modelId: r.model_id,
+    });
+  }
+  return models;
 }
