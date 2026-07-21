@@ -15,6 +15,9 @@ const {
   resolveNestedComboModels,
   handleComboChat,
 } = await import("../../open-sse/services/combo.ts");
+const { resolveComboTargets } = await import("../../open-sse/services/combo/comboStructure.ts");
+const { applyPromptCacheAffinity } =
+  await import("../../open-sse/services/combo/promptCacheAffinity.ts");
 const { resolveReasoningBufferedMaxTokens } =
   await import("../../open-sse/services/reasoningTokenBuffer.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
@@ -529,6 +532,50 @@ test("handleComboChat weighted strategy selects by weight and falls back in desc
 
     assert.equal(result.ok, true);
     assert.deepEqual(calls, ["claude/sonnet", "openai/gpt-4o-mini"]);
+  } finally {
+    _setSecureRandomFloatSource(null);
+  }
+});
+
+test("handleComboChat preserves the weighted primary before prompt-cache affinity reordering", async () => {
+  const combo = {
+    name: "weighted-cache-affinity-protection",
+    strategy: "weighted",
+    models: [
+      { model: "openai/gpt-4o-mini", weight: 1 },
+      { model: "claude/sonnet", weight: 9 },
+    ],
+    config: { maxRetries: 0 },
+  };
+  const resolvedTargets = resolveComboTargets(combo, null);
+  assert.equal(resolvedTargets.length, 2);
+
+  const cacheKey = Array.from({ length: 100 }, (_, index) => `weighted-cache-${index}`).find(
+    (key) =>
+      applyPromptCacheAffinity(resolvedTargets, { prompt_cache_key: key }).targets[0] !==
+      resolvedTargets[0]
+  );
+  assert.ok(cacheKey, "test fixture must exercise a different affinity winner");
+
+  const calls: string[] = [];
+  _setSecureRandomFloatSource(() => 0);
+  try {
+    const result = await handleComboChat({
+      body: { prompt_cache_key: cacheKey },
+      combo,
+      handleSingleModel: async (_body: Record<string, unknown>, modelStr: string) => {
+        calls.push(modelStr);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      relayOptions: null,
+      allCombos: null,
+    });
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
   } finally {
     _setSecureRandomFloatSource(null);
   }
@@ -2583,7 +2630,7 @@ test("handleComboChat context cache protection pins the model and tags tool-call
     },
     isModelAvailable: async () => true,
     log: createLog(),
-    settings: null,
+    settings: { promptCacheAffinityEnabled: false },
     relayOptions: null as any,
     allCombos: null,
   });

@@ -1361,7 +1361,11 @@ export async function handleComboChat({
   );
   if (promptCacheAffinity.applied) {
     const protectedFirst =
-      (_sticky.stuck || autoUsedExplicitRouter || strategy === "quota-share") && orderedTargets[0];
+      (_sticky.stuck ||
+        autoUsedExplicitRouter ||
+        strategy === "quota-share" ||
+        strategy === "weighted") &&
+      orderedTargets[0];
     orderedTargets = protectedFirst
       ? [
           protectedFirst,
