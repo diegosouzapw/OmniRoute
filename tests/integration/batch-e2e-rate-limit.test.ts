@@ -229,13 +229,14 @@ async function waitForServer(baseUrl: string, proc: ReturnType<typeof createServ
       );
     }
     try {
-      const readinessPath = "/api/health/ping";
-      const resp = await fetch(`${baseUrl}${readinessPath}`, {
-        signal: AbortSignal.timeout(probeTimeoutMs),
-      });
-      if (resp.ok) return;
-      const body = await resp.text().catch(() => "");
-      lastReadiness = `${readinessPath} -> ${resp.status}: ${summarizeText(body, 200)}`;
+      for (const readinessPath of ["/api/health/ping", "/api/monitoring/health"]) {
+        const resp = await fetch(`${baseUrl}${readinessPath}`, {
+          signal: AbortSignal.timeout(probeTimeoutMs),
+        });
+        if (resp.ok) return;
+        const body = await resp.text().catch(() => "");
+        lastReadiness = `${readinessPath} -> ${resp.status}: ${summarizeText(body, 200)}`;
+      }
     } catch (error) {
       lastReadiness = error instanceof Error ? error.message : String(error);
       // not ready yet
