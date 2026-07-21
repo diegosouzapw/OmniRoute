@@ -3,54 +3,40 @@
 // spawning a `.cmd`/`.bat` shim with `shell:false` throws EINVAL — the same
 // class already fixed for codex (bin/cli/commands/launch-codex.mjs,
 // crediting #6263) and qodercli/Auggie (#6263/#6304). This callsite was
-// missed; `runOpenCodeAuth` must use `shell: isWin` mirroring `resolveCodexSpawn`.
+// missed; `resolveOpenCodeAuthSpawn` must use `shell: isWin`.
+//
+// Tested through the pure `resolveOpenCodeAuthSpawn(providerId, platform)`
+// resolver (no child_process mocking, no process.platform mutation — both of
+// which required an unavailable --experimental-test-module-mocks flag in CI).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-test("runOpenCodeAuth spawns opencode.cmd with shell:true on win32 (repro #7913)", async (t) => {
-  const originalPlatform = process.platform;
-  Object.defineProperty(process, "platform", { value: "win32" });
-  let captured = null;
-  t.mock.module("node:child_process", {
-    namedExports: {
-      spawnSync: (cmd, args, opts) => {
-        captured = { cmd, args, opts };
-        return { status: 0, error: null };
-      },
-    },
-  });
-  t.after(() => Object.defineProperty(process, "platform", { value: originalPlatform }));
+import { resolveOpenCodeAuthSpawn } from "../../bin/cli/commands/setup-open-code.mjs";
 
-  const { runOpenCodeAuth } = await import(
-    "../../bin/cli/commands/setup-open-code.mjs?win32-case"
+test("resolveOpenCodeAuthSpawn: win32 spawns opencode.cmd with shell:true (repro #7913)", () => {
+  const spawn = resolveOpenCodeAuthSpawn("omniroute", "win32");
+  assert.equal(spawn.command, "opencode.cmd");
+  assert.equal(
+    spawn.options.shell,
+    true,
+    `expected shell:true on win32 (the EINVAL fix), got shell:${spawn.options.shell}`
   );
-  runOpenCodeAuth("omniroute");
-
-  assert.ok(captured, "spawnSync should have been called");
-  assert.equal(captured.cmd, "opencode.cmd");
-  assert.equal(captured.opts.shell, true, `expected shell:true, got shell:${captured.opts.shell}`);
+  assert.deepEqual(spawn.args, ["auth", "login", "--provider", "omniroute"]);
 });
 
-test("runOpenCodeAuth spawns bare opencode with shell:undefined on linux/darwin (no regression)", async (t) => {
-  const originalPlatform = process.platform;
-  Object.defineProperty(process, "platform", { value: "linux" });
-  let captured = null;
-  t.mock.module("node:child_process", {
-    namedExports: {
-      spawnSync: (cmd, args, opts) => {
-        captured = { cmd, args, opts };
-        return { status: 0, error: null };
-      },
-    },
-  });
-  t.after(() => Object.defineProperty(process, "platform", { value: originalPlatform }));
+test("resolveOpenCodeAuthSpawn: linux/darwin spawn bare opencode with shell:false (no regression)", () => {
+  for (const platform of ["linux", "darwin"]) {
+    const spawn = resolveOpenCodeAuthSpawn("omniroute", platform);
+    assert.equal(spawn.command, "opencode", `command on ${platform}`);
+    assert.equal(
+      spawn.options.shell,
+      false,
+      `expected shell:false on ${platform}, got shell:${spawn.options.shell}`
+    );
+  }
+});
 
-  const { runOpenCodeAuth } = await import(
-    "../../bin/cli/commands/setup-open-code.mjs?linux-case"
-  );
-  runOpenCodeAuth("omniroute");
-
-  assert.ok(captured, "spawnSync should have been called");
-  assert.equal(captured.cmd, "opencode");
-  assert.notEqual(captured.opts.shell, true, `expected shell not true on non-win32, got shell:${captured.opts.shell}`);
+test("resolveOpenCodeAuthSpawn: forwards the provider id into the args", () => {
+  const spawn = resolveOpenCodeAuthSpawn("anthropic", "linux");
+  assert.deepEqual(spawn.args, ["auth", "login", "--provider", "anthropic"]);
 });
