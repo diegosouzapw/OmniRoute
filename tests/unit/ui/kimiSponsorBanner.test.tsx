@@ -2,7 +2,7 @@
 /**
  * KimiSponsorBanner (2026-07 partnership) — render gate (version window +
  * localStorage dismissal), CTA aff link, and discreet partner-link note.
- * See src/app/(dashboard)/dashboard/kimiSponsorBanner.ts for the version-gate
+ * See src/app/(dashboard)/dashboard/kimiSponsorBannerGate.ts for the version-gate
  * pure logic (covered separately by tests/unit/kimi-sponsor-banner-version-gate.test.ts).
  */
 import React from "react";
