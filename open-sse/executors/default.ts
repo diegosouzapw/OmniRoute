@@ -44,7 +44,11 @@ import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { buildClineHeaders, buildClinepassHeaders } from "@/shared/utils/clineAuth";
+import {
+  buildClineHeaders,
+  buildClinepassHeaders,
+  resolveClineTaskId,
+} from "@/shared/utils/clineAuth";
 import {
   normalizeHerokuChatUrl,
   normalizeDatabricksChatUrl,
@@ -383,13 +387,27 @@ export class DefaultExecutor extends BaseExecutor {
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
       case "clinepass": // dual-auth (OAuth or BYOK) — see buildClinepassHeaders()
-        Object.assign(headers, buildClinepassHeaders(credentials, effectiveKey));
+        Object.assign(
+          headers,
+          buildClinepassHeaders(credentials, effectiveKey, {
+            taskId: resolveClineTaskId(clientHeaders),
+          })
+        );
         break;
       case "cline":
         // Cline's API requires the bearer token prefixed with `workos:` plus a
         // set of Cline client-identification headers; plain `Bearer <token>`
         // is rejected upstream. buildClineHeaders() emits both.
-        Object.assign(headers, buildClineHeaders(effectiveKey || credentials.accessToken));
+        Object.assign(
+          headers,
+          buildClineHeaders(
+            effectiveKey || credentials.accessToken,
+            {},
+            {
+              taskId: resolveClineTaskId(clientHeaders),
+            }
+          )
+        );
         break;
       default:
         if (isClaudeCodeCompatible(this.provider)) {
