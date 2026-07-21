@@ -1,0 +1,1 @@
+- fix(providers): Copilot reasoning_text now surfaces in Claude-format non-stream responses, fixing spurious 502s (#7856)

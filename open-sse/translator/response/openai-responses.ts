@@ -16,6 +16,7 @@ import {
   getVisibleResponsesReasoningSummaryText,
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
+import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
 import {
   synthesizeCompletedToolCalls,
   computeFinishReason,
@@ -429,40 +430,38 @@ function emitToolCall(state, emit, tc) {
     delete state.funcNames[tcIdx];
     delete state.funcArgsBuf[tcIdx];
     delete state.funcArgsDone[tcIdx];
+    delete state.funcItemAdded[tcIdx];
     delete state.funcItemDone[tcIdx];
   }
 
   if (funcName) state.funcNames[tcIdx] = funcName;
 
-  // Codex custom tools (apply_patch) are surfaced to the client as custom_tool_call items
-  // and stream their raw patch via custom_tool_call_input.* events instead of the
+  // Custom tools are surfaced as custom_tool_call items and stream raw input instead of the
   // function_call_arguments.* events used for regular function tools. (#1007)
-  const isCustomTool = (state.funcNames[tcIdx] || funcName) === "apply_patch";
+  const toolName = state.funcNames[tcIdx] || funcName || "";
+  const isCustomTool =
+    toolName === "apply_patch" || state.customToolNames?.has?.(toolName) === true;
 
-  if (!state.funcCallIds[tcIdx] && newCallId) {
-    state.funcCallIds[tcIdx] = newCallId;
+  if (!state.funcCallIds[tcIdx] && newCallId) state.funcCallIds[tcIdx] = newCallId;
+  const callId = state.funcCallIds[tcIdx];
 
+  if (callId && toolName && !state.funcItemAdded[tcIdx]) {
     emit("response.output_item.added", {
       type: "response.output_item.added",
       output_index: outputIndex,
-      item: isCustomTool
-        ? {
-            id: `fc_${newCallId}`,
-            type: "custom_tool_call",
-            input: "",
-            call_id: newCallId,
-            name: state.funcNames[tcIdx] || "",
-            status: "in_progress",
-          }
-        : {
-            id: `fc_${newCallId}`,
-            type: "function_call",
-            arguments: "",
-            call_id: newCallId,
-            name: state.funcNames[tcIdx] || "",
-            status: "in_progress",
-          },
+      item: buildResponsesToolCallItem({ callId, toolName, custom: isCustomTool }),
     });
+    state.funcItemAdded[tcIdx] = true;
+
+    const bufferedArgs = state.funcArgsBuf[tcIdx] || "";
+    if (bufferedArgs && !isCustomTool) {
+      emit("response.function_call_arguments.delta", {
+        type: "response.function_call_arguments.delta",
+        item_id: `fc_${callId}`,
+        output_index: outputIndex,
+        delta: bufferedArgs,
+      });
+    }
   }
 
   if (!state.funcArgsBuf[tcIdx]) state.funcArgsBuf[tcIdx] = "";
@@ -475,12 +474,9 @@ function emitToolCall(state, emit, tc) {
     const emittedDelta = nextArgs.slice(existingArgs.length);
     state.funcArgsBuf[tcIdx] = nextArgs;
 
-    if (refCallId && emittedDelta) {
-      const deltaEvent = isCustomTool
-        ? "response.custom_tool_call_input.delta"
-        : "response.function_call_arguments.delta";
-      emit(deltaEvent, {
-        type: deltaEvent,
+    if (refCallId && emittedDelta && !isCustomTool && state.funcItemAdded[tcIdx]) {
+      emit("response.function_call_arguments.delta", {
+        type: "response.function_call_arguments.delta",
         item_id: `fc_${refCallId}`,
         output_index: outputIndex,
         delta: emittedDelta,
@@ -496,7 +492,9 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
       ? normalizeOutputIndex(state.reasoningIndex) + 1 + normalizeOutputIndex(idx)
       : normalizeOutputIndex(idx);
     const args = state.funcArgsBuf[idx] || "{}";
-    const isCustomTool = (state.funcNames[idx] || "") === "apply_patch";
+    const toolName = state.funcNames[idx] || "";
+    const isCustomTool =
+      toolName === "apply_patch" || state.customToolNames?.has?.(toolName) === true;
 
     let funcItem;
     if (isCustomTool) {
@@ -509,6 +507,13 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
       } catch {
         // Not JSON — fall back to the raw buffered arguments.
       }
+
+      emit("response.custom_tool_call_input.delta", {
+        type: "response.custom_tool_call_input.delta",
+        item_id: `fc_${callId}`,
+        output_index: normalizedIndex,
+        delta: rawInput,
+      });
 
       emit("response.custom_tool_call_input.done", {
         type: "response.custom_tool_call_input.done",

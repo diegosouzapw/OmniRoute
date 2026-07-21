@@ -10,8 +10,8 @@ const { createResponsesApiTransformStream, createResponsesLogger } =
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-async function runTransformStream(chunks, logger = null) {
-  const stream = createResponsesApiTransformStream(logger);
+async function runTransformStream(chunks, logger = null, options = {}) {
+  const stream = createResponsesApiTransformStream(logger, 3000, options);
   const writer = stream.writable.getWriter();
   const reader = stream.readable.getReader();
 
@@ -189,6 +189,107 @@ test("createResponsesApiTransformStream hides the internal reasoning replay plac
   );
   assert.equal(output.includes("prior reasoning summary unavailable"), false);
   assert.equal(output.includes("Visible answer"), true);
+test("createResponsesApiTransformStream restores declared custom tools without changing functions", async () => {
+  const output = await runTransformStream(
+    [
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_exec","function":{"name":"exec","arguments":"{\\"input\\":\\"text(\\\\\\"pong\\\\\\")\\"}"}}]}}]}\n\n',
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"id":"call_search","function":{"name":"search","arguments":"{\\"q\\":\\"pong\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+    ],
+    null,
+    { customToolNames: new Set(["exec"]) }
+  );
+
+  const events = parseSseOutput(output);
+  const added = events
+    .filter((event) => event.event === "response.output_item.added")
+    .map((event) => JSON.parse(event.data).item);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  assert.equal(added.find((item) => item.name === "exec").type, "custom_tool_call");
+  assert.equal(added.find((item) => item.name === "search").type, "function_call");
+  assert.ok(events.some((event) => event.event === "response.custom_tool_call_input.delta"));
+  assert.ok(events.some((event) => event.event === "response.custom_tool_call_input.done"));
+  assert.equal(completed.output.find((item) => item.name === "exec").input, 'text("pong")');
+  assert.equal(completed.output.find((item) => item.name === "search").arguments, '{"q":"pong"}');
+});
+
+test("createResponsesApiTransformStream preserves empty custom-tool input", async () => {
+  const output = await runTransformStream(
+    [
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_empty","function":{"name":"exec","arguments":"{\\"input\\":\\"\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+    ],
+    null,
+    { customToolNames: new Set(["exec"]) }
+  );
+  const events = parseSseOutput(output);
+  const done = events
+    .filter((event) => event.event === "response.output_item.done")
+    .map((event) => JSON.parse(event.data).item)
+    .find((item) => item.name === "exec");
+  assert.equal(done.type, "custom_tool_call");
+  assert.equal(done.input, "");
+});
+
+test("createResponsesApiTransformStream defers custom item creation until the tool name arrives", async () => {
+  const output = await runTransformStream(
+    [
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_exec"}]}}]}\n\n',
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"name":"exec","arguments":"{\\"input\\":\\"pong\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+    ],
+    null,
+    { customToolNames: new Set(["exec"]) }
+  );
+
+  const events = parseSseOutput(output);
+  const added = events
+    .filter((event) => event.event === "response.output_item.added")
+    .map((event) => JSON.parse(event.data).item)
+    .filter((item) => item.call_id === "call_exec");
+
+  assert.deepEqual(added, [
+    {
+      id: "fc_call_exec",
+      type: "custom_tool_call",
+      input: "",
+      call_id: "call_exec",
+      name: "exec",
+      status: "in_progress",
+    },
+  ]);
+  assert.equal(events.filter((event) => event.event === "response.output_item.done").length, 1);
+});
+
+test("createResponsesApiTransformStream replays buffered function arguments after the name arrives", async () => {
+  const output = await runTransformStream([
+    'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_search","function":{"arguments":"{\\"q\\":\\"pong\\"}"}}]}}]}\n\n',
+    'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"name":"search"}}]},"finish_reason":"tool_calls"}]}\n\n',
+  ]);
+
+  const events = parseSseOutput(output);
+  const argumentDeltas = events
+    .filter((event) => event.event === "response.function_call_arguments.delta")
+    .map((event) => JSON.parse(event.data).delta);
+
+  assert.deepEqual(argumentDeltas, ['{"q":"pong"}']);
+});
+
+test("createResponsesApiTransformStream preserves empty custom-tool input", async () => {
+  const output = await runTransformStream(
+    [
+      'data: {"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_exec","function":{"name":"exec","arguments":"{\\"input\\":\\"\\"}"}}]},"finish_reason":"tool_calls"}]}\n\n',
+    ],
+    null,
+    { customToolNames: new Set(["exec"]) }
+  );
+
+  const events = parseSseOutput(output);
+  const completed = JSON.parse(
+    events.find((event) => event.event === "response.completed").data
+  ).response;
+
+  assert.equal(completed.output.find((item) => item.name === "exec").input, "");
 });
 
 test("createResponsesLogger persists input and output event logs on flush", async () => {

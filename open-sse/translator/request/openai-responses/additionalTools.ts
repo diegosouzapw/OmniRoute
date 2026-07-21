@@ -56,7 +56,8 @@ function mergeNamespaceTools(first: unknown, second: unknown): unknown[] {
  * function names from reaching strict upstreams.
  */
 export function collectResponsesTools(rootTools: unknown, inputItems: unknown[]): unknown[] {
-  const sources: unknown[][] = [Array.isArray(rootTools) ? rootTools : []];
+  const rootToolList = Array.isArray(rootTools) ? rootTools : [];
+  const sources: unknown[][] = [rootToolList];
 
   for (const itemValue of inputItems) {
     const item = toRecord(itemValue);
@@ -64,6 +65,15 @@ export function collectResponsesTools(rootTools: unknown, inputItems: unknown[])
       sources.push(item.tools);
     }
   }
+  const explicitNames = new Set(
+    sources
+      .flat()
+      .map((tool) => {
+        const record = toRecord(tool);
+        return record.type === "namespace" ? "" : toolName(tool);
+      })
+      .filter(Boolean)
+  );
 
   const merged: unknown[] = [];
   const seen = new Set<string>();
@@ -74,16 +84,21 @@ export function collectResponsesTools(rootTools: unknown, inputItems: unknown[])
       if (toolRecord.type === "namespace") {
         const namespaceName = toolName(tool);
         const existingIndex = namespaceName ? namespaceIndexes.get(namespaceName) : undefined;
+        const namespaceTools = Array.isArray(toolRecord.tools)
+          ? toolRecord.tools.filter((member) => !explicitNames.has(toolName(member)))
+          : toolRecord.tools;
         if (existingIndex !== undefined) {
           const existing = toRecord(merged[existingIndex]);
           merged[existingIndex] = {
             ...toolRecord,
             ...existing,
-            tools: mergeNamespaceTools(existing.tools, toolRecord.tools),
+            tools: mergeNamespaceTools(existing.tools, namespaceTools),
           };
           continue;
         }
         if (namespaceName) namespaceIndexes.set(namespaceName, merged.length);
+        merged.push({ ...toolRecord, tools: namespaceTools });
+        continue;
       }
 
       const identity = toolIdentity(tool);
@@ -92,5 +107,35 @@ export function collectResponsesTools(rootTools: unknown, inputItems: unknown[])
       merged.push(tool);
     }
   }
+
   return merged;
+}
+
+/** Return the custom/freeform tool names after applying the same precedence rules as conversion. */
+export function collectResponsesCustomToolNames(
+  rootTools: unknown,
+  inputItems: unknown[]
+): Set<string> {
+  const names = new Set<string>();
+  const visit = (tools: unknown[]) => {
+    for (const toolValue of tools) {
+      const tool = toRecord(toolValue);
+      const name = toolName(toolValue);
+      if (tool.type === "custom" && name) names.add(name);
+      if (tool.type === "namespace" && Array.isArray(tool.tools)) visit(tool.tools);
+    }
+  };
+  visit(collectResponsesTools(rootTools, inputItems));
+  return names;
+}
+
+export function collectCustomToolNamesForSourceFormat(
+  sourceFormat: string,
+  responsesFormat: string,
+  rootTools: unknown,
+  inputItems: unknown[]
+): Set<string> {
+  return sourceFormat === responsesFormat
+    ? collectResponsesCustomToolNames(rootTools, inputItems)
+    : new Set<string>();
 }
