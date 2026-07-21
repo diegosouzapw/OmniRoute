@@ -110,6 +110,7 @@ import {
 } from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
+import { isOpencodeGoProvider, stripBooleanReasoning } from "../services/opencodeReasoningSanitizer.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
@@ -2220,6 +2221,16 @@ export async function handleChatCore({
   // `{type}` and drop `reasoning_effort`/`reasoning`. See services/mimoThinking.ts.
   if (provider === "xiaomi-mimo") {
     translatedBody = normalizeMimoThinking(translatedBody);
+  }
+
+  // opencode-go backed providers (ollama-cloud, opencode-go, opencode,
+  // opencode-zen) use a Go ChatCompletionRequest struct where `reasoning`
+  // is typed as openai.Reasoning (a structured type). A boolean
+  // `reasoning: true/false` — valid per the OpenAI API — causes a 400
+  // "json: cannot unmarshal bool into Go struct field" on the Go side.
+  // Strip the boolean before forwarding. See opencodeReasoningSanitizer.ts.
+  if (isOpencodeGoProvider(provider)) {
+    translatedBody = stripBooleanReasoning(translatedBody);
   }
 
   const previousResponseIdPolicy = applyResponsesPreviousResponseIdPolicy(translatedBody, {
