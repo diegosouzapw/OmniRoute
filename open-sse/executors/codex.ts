@@ -1513,10 +1513,6 @@ export class CodexExecutor extends BaseExecutor {
       "client_metadata",
       // GPT-5 output verbosity ({ verbosity } — normalized above by normalizeCodexVerbosity).
       "text",
-      // Preserve Responses Lite delegation state (#7821) on the Chat-Completions-translated
-      // (non-native) path so it isn't dropped a second time after enforceCodexResponsesLite...
-      // already decided whether to keep or strip it.
-      "parallel_tool_calls",
       // Internal markers used by OmniRoute pipeline
       "_omnirouteResponsesStore",
     ]);
