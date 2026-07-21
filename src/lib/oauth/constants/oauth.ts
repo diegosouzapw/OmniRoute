@@ -13,6 +13,12 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+import {
+  GROK_BUILD_DEVICE_CODE_URL,
+  GROK_BUILD_OAUTH_ISSUER,
+  GROK_BUILD_OAUTH_SCOPES,
+  GROK_BUILD_TOKEN_URL,
+} from "@omniroute/open-sse/config/grokBuild.ts";
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
@@ -71,17 +77,6 @@ export const CODEX_CONFIG = {
   },
 };
 
-// Qwen OAuth Configuration (Device Code Flow with PKCE)
-export const QWEN_CONFIG = {
-  clientId: resolvePublicCred("qwen_id", "QWEN_OAUTH_CLIENT_ID"),
-  // Host is chat.qwen.ai — the bare qwen.ai host 404s on these paths (verified: the qwen-code
-  // device flow lives at chat.qwen.ai, returning a valid device_code; qwen.ai returns Not Found).
-  deviceCodeUrl: "https://chat.qwen.ai/api/v1/oauth2/device/code",
-  tokenUrl: "https://chat.qwen.ai/api/v1/oauth2/token",
-  scope: "openid profile email model.completion",
-  codeChallengeMethod: "S256",
-};
-
 // Qoder OAuth Configuration (Authorization Code)
 const QODER_OAUTH_AUTHORIZE_URL = process.env.QODER_OAUTH_AUTHORIZE_URL || "";
 const QODER_OAUTH_TOKEN_URL = process.env.QODER_OAUTH_TOKEN_URL || "";
@@ -121,11 +116,14 @@ export const CODEBUDDY_CN_CONFIG = {
   pollInterval: 5000,
 };
 
-// Grok Build (xAI) OAuth Configuration (Import-Token Flow with refresh)
+// Grok Build (xAI) OAuth Configuration (Device Code + import-token fallback)
 // Public client_id resolved through resolvePublicCred so it is never a literal.
 export const GROK_CLI_CONFIG = {
   clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
-  tokenUrl: "https://auth.x.ai/oauth2/token",
+  issuer: GROK_BUILD_OAUTH_ISSUER,
+  deviceCodeUrl: GROK_BUILD_DEVICE_CODE_URL,
+  tokenUrl: GROK_BUILD_TOKEN_URL,
+  scope: GROK_BUILD_OAUTH_SCOPES.join(" "),
 };
 
 // xAI API OAuth Configuration (Authorization Code Flow with PKCE)
@@ -504,7 +502,6 @@ export const PROVIDERS = {
   CLAUDE: "claude",
   CODEX: "codex",
   GEMINI: "gemini",
-  QWEN: "qwen",
   QODER: "qoder",
   ANTIGRAVITY: "antigravity",
   AGY: "agy",

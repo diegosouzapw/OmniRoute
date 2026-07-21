@@ -674,10 +674,10 @@ test("handleAudioTranscription routes Gladia uploads and polls result_url until 
     if (stringUrl === "https://api.gladia.io/v2/upload") {
       assert.equal(options.headers["x-gladia-key"], "gladia-key");
       assert.match(options.headers["Content-Type"], /^multipart\/form-data; boundary=/);
-      return new Response(
-        JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {
@@ -739,10 +739,10 @@ test("handleAudioTranscription returns an error when Gladia reports a terminal f
     const stringUrl = String(url);
 
     if (stringUrl === "https://api.gladia.io/v2/upload") {
-      return new Response(
-        JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {
@@ -753,10 +753,10 @@ test("handleAudioTranscription returns an error when Gladia reports a terminal f
     }
 
     if (stringUrl === "https://api.gladia.io/v2/pre-recorded/job-2") {
-      return new Response(
-        JSON.stringify({ status: "error", error_code: "invalid_audio_format" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ status: "error", error_code: "invalid_audio_format" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     throw new Error(`Unexpected URL: ${stringUrl}`);
@@ -788,10 +788,10 @@ test("handleAudioTranscription rejects Gladia jobs missing a result_url", async 
     const stringUrl = String(url);
 
     if (stringUrl === "https://api.gladia.io/v2/upload") {
-      return new Response(
-        JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
     }
 
     if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {

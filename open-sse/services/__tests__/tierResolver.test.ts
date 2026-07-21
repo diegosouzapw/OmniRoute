@@ -49,12 +49,6 @@ describe("TierResolver", () => {
       assert.equal(result.hasFreeTier, true);
     });
 
-    it("classifies Qwen as free", () => {
-      const result = classifyTier("qwen", "qwen3-coder-plus");
-      assert.equal(result.tier, PROVIDER_TIER.FREE);
-      assert.equal(result.hasFreeTier, true);
-    });
-
     it("classifies Cloudflare AI as free", () => {
       const result = classifyTier("cloudflare-ai", "llama-3.3-70b");
       assert.equal(result.tier, PROVIDER_TIER.FREE);
@@ -188,15 +182,14 @@ describe("TierResolver", () => {
         { provider: "anthropic", model: "claude-opus-4-7" },
         { provider: "groq", model: "llama-3.3-70b" },
         { provider: "qoder", model: "kimi-k2-thinking" },
-        { provider: "qwen", model: "qwen3-coder-plus" },
         { provider: "unknown", model: "unknown-model" },
       ];
       const results = classifyTiers(targets);
-      assert.equal(results.length, 10);
+      assert.equal(results.length, 9);
       assert.equal(results[0].tier, PROVIDER_TIER.FREE); // kiro
       assert.equal(results[1].tier, PROVIDER_TIER.PREMIUM); // openai gpt-4o ($2.50/M)
       assert.equal(results[2].tier, PROVIDER_TIER.CHEAP); // deepseek
-      assert.equal(results[9].tier, PROVIDER_TIER.PREMIUM); // unknown
+      assert.equal(results[8].tier, PROVIDER_TIER.PREMIUM); // unknown
     });
 
     it("uses cache for repeated models", () => {
@@ -230,7 +223,6 @@ describe("TierResolver", () => {
         "pollinations",
         "longcat",
         "cloudflare-ai",
-        "qwen",
         "nvidia-nim",
         "cerebras",
         "groq",

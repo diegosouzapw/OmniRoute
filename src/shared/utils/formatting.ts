@@ -181,3 +181,20 @@ export function formatResetCountdown(resetAt: string | number | null | undefined
   if (minutes > 0) return `${minutes}m ${seconds}s`;
   return `${seconds}s`;
 }
+
+/**
+ * Coerces a persisted log `error` field into safe display text. It is
+ * legitimate for this field to be a structured object (e.g. `{ code,
+ * message }`) — only the RENDER needs to be a string, never the persisted
+ * artifact itself. Used by RequestLoggerDetail to avoid React error #31
+ * ("Objects are not valid as a React child") when rendering it. See #7845.
+ */
+export function formatErrorForDisplay(err: unknown): string | null {
+  if (err == null) return null;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err, null, 2);
+  } catch {
+    return String(err);
+  }
+}

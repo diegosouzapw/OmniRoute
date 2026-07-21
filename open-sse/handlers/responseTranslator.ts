@@ -5,6 +5,7 @@ import {
 } from "../services/geminiThoughtSignatureStore.ts";
 import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
+import { getAnyReasoningValue } from "../utils/reasoningFields.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -576,27 +577,15 @@ export function translateNonStreamingResponse(
 
 /**
  * Resolve reasoning/thinking text off a non-streaming OpenAI-format message object.
- * Checks DeepSeek-style `reasoning_content`, then the OpenRouter/StepFun aliases
- * `reasoning` and `reasoning_details[]` (array of { text | content }), mirroring the
- * streaming translator's fallback chain in open-sse/translator/response/openai-to-claude.ts.
+ * Delegates to the shared reasoning-field resolver (`open-sse/utils/reasoningFields.ts`)
+ * so every reasoning alias — DeepSeek-style `reasoning_content`, the OpenRouter/StepFun
+ * `reasoning` string, GitHub Copilot's `reasoning_text`, `thinking`/`thought`, and
+ * `reasoning_details[]` (array of { text | content }) — is read from one place instead
+ * of a divergent local copy. Mirrors the streaming translator's fallback chain in
+ * open-sse/translator/response/openai-to-claude.ts.
  */
 function resolveReasoningText(messageObj: JsonRecord): string {
-  if (messageObj.reasoning_content) {
-    return toString(messageObj.reasoning_content);
-  }
-  if (typeof messageObj.reasoning === "string" && messageObj.reasoning) {
-    return messageObj.reasoning;
-  }
-  if (Array.isArray(messageObj.reasoning_details)) {
-    const parts: string[] = [];
-    for (const detail of messageObj.reasoning_details) {
-      const detailObj = toRecord(detail);
-      const text = detailObj.text ?? detailObj.content;
-      if (typeof text === "string" && text) parts.push(text);
-    }
-    return parts.join("");
-  }
-  return "";
+  return getAnyReasoningValue(messageObj);
 }
 
 /**

@@ -7,6 +7,7 @@ import {
   formatQuotaLabel,
   getBarColor,
   getQuotaRemainingPercentage,
+  getQuotaVisibilityKey,
   shouldShowQuotaUsageCount,
 } from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
@@ -83,18 +84,25 @@ interface Props {
   canRedeemResetCredit?: boolean;
   redeemingResetCredit?: boolean;
   loadingResetCredits?: boolean;
+  /** Per-operator quota row visibility (upstream 9router#2371 port). */
+  hiddenQuotaRows?: any[];
+  onHideQuota?: (quota: any) => void;
+  onShowQuota?: (quota: any) => void;
 }
 
 function QuotaDetailRow({
   q,
+  onHideQuota,
   onOpenResetCredits,
   loadingResetCredits = false,
 }: {
   q: any;
+  onHideQuota?: (quota: any) => void;
   onOpenResetCredits?: () => void;
   loadingResetCredits?: boolean;
 }) {
   const t = useTranslations("usage");
+  const canHide = typeof onHideQuota === "function" && !q.isCredits && !q.isResetCredits;
   if (q.isResetCredits) {
     const count = Number(q.creditCount ?? q.remaining ?? 0);
     const colors = getBarColor(q.remainingPercentage ?? 100);
@@ -186,6 +194,22 @@ function QuotaDetailRow({
         >
           {q.unlimited ? "∞" : translateUsageOrFallback(t, "percentLeft", `${pct}% left`, { pct })}
         </span>
+        {canHide && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onHideQuota?.(q);
+            }}
+            className="inline-flex size-5 shrink-0 items-center justify-center rounded text-text-muted transition-colors hover:bg-black/5 hover:text-text-main dark:hover:bg-white/5"
+            title={translateUsageOrFallback(t, "hideQuotaRow", "Hide this quota row")}
+            aria-label={translateUsageOrFallback(t, "hideQuotaRow", "Hide this quota row")}
+          >
+            <span className="material-symbols-outlined text-[13px] leading-none">
+              visibility_off
+            </span>
+          </button>
+        )}
       </div>
       {!q.unlimited && <QuotaMiniBar percent={pct} size="sm" />}
       <div className="flex items-center justify-between gap-2 text-[10px] text-text-muted tabular-nums">
@@ -223,6 +247,9 @@ export default function QuotaCardExpanded({
   canRedeemResetCredit = false,
   redeemingResetCredit = false,
   loadingResetCredits = false,
+  hiddenQuotaRows = [],
+  onHideQuota,
+  onShowQuota,
 }: Props) {
   const t = useTranslations("usage");
   const tr = (key: string, fallback: string, values?: UsageTranslationValues) =>
@@ -274,9 +301,31 @@ export default function QuotaCardExpanded({
             <QuotaDetailRow
               key={`${q.name}-${q.modelKey ?? ""}-${i}`}
               q={q}
+              onHideQuota={onHideQuota}
               onOpenResetCredits={q.isResetCredits ? onOpenResetCredits : undefined}
               loadingResetCredits={loadingResetCredits}
             />
+          ))}
+        </div>
+      )}
+
+      {hiddenQuotaRows.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1 border-t border-border/40 pt-1.5 text-[10px] text-text-muted">
+          <span className="material-symbols-outlined text-[12px]">visibility_off</span>
+          <span>{tr("hiddenQuotaRowsLabel", "Hidden:")}</span>
+          {hiddenQuotaRows.map((q) => (
+            <button
+              key={getQuotaVisibilityKey(q)}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onShowQuota?.(q);
+              }}
+              className="rounded-md border border-border px-1.5 py-0.5 transition-colors hover:bg-black/5 hover:text-text-main dark:hover:bg-white/5"
+              title={translateUsageOrFallback(t, "showQuotaRow", "Show this quota row")}
+            >
+              {q.displayName || formatQuotaLabel(q.name)}
+            </button>
           ))}
         </div>
       )}

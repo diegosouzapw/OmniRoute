@@ -20,7 +20,8 @@ import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 import { bumpProxyConfigGeneration } from "./settings";
 import { webSessionCredentialKey, parseProviderSpecificData } from "./webSessionDedup";
-import { resolveUsageAccountIdentity } from "@/lib/usage/accountIdentity";
+import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
+import { reconcileCodexUsageHistory } from "./providers/usageIdentityReconciliation";
 import {
   withNullableMaxConcurrent,
   withNullableQuotaWindowThresholds,
@@ -35,6 +36,8 @@ import {
 } from "./providers/columns";
 
 type JsonRecord = Record<string, unknown>;
+
+const CONNECTION_CREDENTIAL_FIELDS = ["apiKey", "accessToken", "refreshToken", "idToken"] as const;
 
 interface StatementLike<TRow = unknown> {
   all: (...params: unknown[]) => TRow[];
@@ -197,7 +200,7 @@ export async function getRawProviderConnections(
       camelRow
     );
   });
- }
+}
 
 export function getProviderConnectionsCount(filter: JsonRecord = {}): number {
   const db = getDbInstance() as unknown as DbLike;
@@ -287,59 +290,53 @@ export async function createProviderConnection(data: JsonRecord) {
     data.providerSpecificData
   );
 
-  // Upsert check
-  // For Codex/OpenAI, a single email can have multiple workspaces (Team + Personal)
-  // We need to check for workspace uniqueness, not just email
   let existing: JsonRecord | null = null;
-  let legacyCodexWorkspaceMatch = false;
+  let promotedCodexIdentity = false;
 
-  if (data.authType === "oauth" && data.email) {
-    // For Codex, check for existing connection with same workspace
-    const providerSpecificData = toRecord(data.providerSpecificData);
-    const workspaceId = toStringOrNull(providerSpecificData.workspaceId);
-    if (data.provider === "codex" && workspaceId) {
-      // For Codex, check for existing connection with same workspace AND email
-      // A single workspace can have multiple users (Team/Business plans)
-      // We need both workspace + email uniqueness to allow multiple accounts
-      existing =
-        (db
-          .prepare(
-            "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND email = ?"
-          )
-          .get(data.provider, workspaceId, data.email) as JsonRecord | undefined) || null;
+  const providerSpecificData = toRecord(data.providerSpecificData);
+  const workspaceId = toStringOrNull(providerSpecificData.workspaceId);
+  const chatgptUserId = toStringOrNull(providerSpecificData.chatgptUserId);
 
-      // If no match with workspace+email, also check workspace-only for backward compat
-      // (old connections without email should still be updated, not duplicated)
-      if (!existing) {
+  if (data.authType === "oauth" && data.provider === "codex" && chatgptUserId) {
+    const strongSql = workspaceId
+      ? "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND json_extract(provider_specific_data, '$.chatgptUserId') = ?"
+      : "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND (json_extract(provider_specific_data, '$.workspaceId') IS NULL OR json_extract(provider_specific_data, '$.workspaceId') = '') AND json_extract(provider_specific_data, '$.chatgptUserId') = ?";
+    existing =
+      ((workspaceId
+        ? db.prepare(strongSql).get(data.provider, workspaceId, chatgptUserId)
+        : db.prepare(strongSql).get(data.provider, chatgptUserId)) as JsonRecord | undefined) ||
+      null;
+
+    if (!existing && workspaceId) {
+      const workspaceMatches = db
+        .prepare(
+          `SELECT * FROM provider_connections
+           WHERE provider = ? AND auth_type = 'oauth'
+             AND json_extract(provider_specific_data, '$.workspaceId') = ?
+           ORDER BY created_at`
+        )
+        .all(data.provider, workspaceId) as JsonRecord[];
+      existing = pickCodexConnectionForUser(
+        workspaceMatches,
+        chatgptUserId,
+        toStringOrNull(data.email)
+      );
+      promotedCodexIdentity = existing !== null;
+    }
+  } else if (data.authType === "oauth" && data.email) {
+    if (data.provider === "codex") {
+      if (workspaceId) {
         existing =
           (db
             .prepare(
-              "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.workspaceId') = ? AND (email IS NULL OR email = '')"
+              `SELECT * FROM provider_connections
+               WHERE provider = ? AND auth_type = 'oauth'
+                 AND json_extract(provider_specific_data, '$.workspaceId') = ?
+                 AND email = ?
+               LIMIT 1`
             )
-            .get(data.provider, workspaceId) as JsonRecord | undefined) || null;
-        legacyCodexWorkspaceMatch = existing !== null;
+            .get(data.provider, workspaceId, data.email) as JsonRecord | undefined) || null;
       }
-      // For Codex with workspaceId, don't fall back to email-only check
-      // This allows creating new connections for different workspaces
-    } else if (data.provider === "codex") {
-      // Codex without a workspaceId — do NOT fall through to the generic
-      // bare-email dedup below. Codex never sets providerSpecificData.username,
-      // so that path's disambiguation is a no-op and two distinct Codex logins
-      // sharing an email (but missing a verifiable workspace/account id) would
-      // silently collapse into one row, overwriting the first login's token
-      // pair. Require a matching chatgptUserId (a stable per-account id from
-      // the JWT) before merging; otherwise treat this as a new connection.
-      const chatgptUserId = toStringOrNull(providerSpecificData.chatgptUserId);
-      if (chatgptUserId) {
-        existing =
-          (db
-            .prepare(
-              "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND json_extract(provider_specific_data, '$.chatgptUserId') = ? AND email = ?"
-            )
-            .get(data.provider, chatgptUserId, data.email) as JsonRecord | undefined) || null;
-      }
-      // No chatgptUserId on the incoming row (or no existing match) — leave
-      // `existing` null so a new connection row is inserted.
     } else {
       // For other providers (or Codex without workspaceId), match on email —
       // disambiguated by providerSpecificData.username when present on both
@@ -415,38 +412,29 @@ export async function createProviderConnection(data: JsonRecord) {
   if (existing) {
     const existingId = toStringOrNull(existing.id);
     if (!existingId) return null;
-    const merged: JsonRecord = { ...toRecord(rowToCamel(existing)), ...data, updatedAt: now };
+    const rawExisting = toRecord(rowToCamel(existing));
+    const decryptedExisting = decryptConnectionFields({ ...rawExisting });
+    const merged: JsonRecord = { ...decryptedExisting, ...data, updatedAt: now };
     merged.providerSpecificData = normalizeProviderSpecificData(
       toStringOrNull(merged.provider),
       merged.providerSpecificData
     );
+    const persistence: JsonRecord = { ...merged };
+    for (const field of CONNECTION_CREDENTIAL_FIELDS) {
+      if (!Object.hasOwn(data, field)) {
+        persistence[field] = rawExisting[field];
+      }
+    }
     db.transaction(() => {
-      if (legacyCodexWorkspaceMatch) {
-        const oldIdentity = resolveUsageAccountIdentity(existing);
-        const newIdentity = resolveUsageAccountIdentity(merged);
-        db.prepare(
-          `UPDATE usage_history
-           SET account_key = @newAccountKey,
-               account_label = CASE
-                 WHEN @newLabelPriority > COALESCE(account_label_priority, 0)
-                 THEN @newLabel
-                 ELSE account_label
-               END,
-               account_label_priority = MAX(
-                 COALESCE(account_label_priority, 0),
-                 @newLabelPriority
-               )
-           WHERE connection_id = @connectionId
-             AND account_key = @oldAccountKey`
-        ).run({
+      if (promotedCodexIdentity) {
+        reconcileCodexUsageHistory(db, {
           connectionId: existingId,
-          oldAccountKey: oldIdentity.accountKey,
-          newAccountKey: newIdentity.accountKey,
-          newLabel: newIdentity.accountLabel,
-          newLabelPriority: newIdentity.accountLabelPriority,
+          existing,
+          merged,
+          matchedExistingCodexByWorkspace: true,
         });
       }
-      _updateConnectionRow(db, existingId, merged);
+      _updateConnectionRow(db, existingId, encryptConnectionFields(persistence));
     })();
     backupDbFile("pre-write");
     return withNullableRateLimitOverrides(
@@ -763,7 +751,16 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   if ("rateLimitOverrides" in merged) {
     merged.rateLimitOverrides = sanitizeRateLimitOverrides(merged.rateLimitOverrides);
   }
-  _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
+  const existingRecord = toRecord(existing);
+
+  db.transaction(() => {
+    reconcileCodexUsageHistory(db, {
+      connectionId: id,
+      existing: existingRecord,
+      merged,
+    });
+    _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
+  })();
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
   bumpProxyConfigGeneration();

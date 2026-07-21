@@ -2036,7 +2036,6 @@
       "antigravity": "يُستخدم عندما يجب اعتراض حركة مرور Antigravity/Kiro عبر MITM وتوجيهها إلى OmniRoute.",
       "copilot": "استخدمه عندما تريد UX بأسلوب دردشة Copilot أثناء فرض مفاتيح OmniRoute وقواعد التوجيه.",
       "amp": "استخدمه عندما تريد توجيه Amp CLI عبر OmniRoute بأسماء مستعارة مختصرة ثابتة وإعداد متوافق مع OpenAI.",
-      "qwen": "استخدمه عندما تريد Qwen Code CLI مع إعدادات مزوّد يديرها OmniRoute ووصول إلى نماذج متعددة المزوّدين.",
       "hermes": "استخدمه عندما تحتاج إلى مساعد AI خفيف الوزن ومعتمد على الأجهزة الطرفية للقيام بالمهام السريعة.",
       "hermes-agent": "استخدمه عندما تحتاج إلى Hermes Agent من Nousresearch مع توجيه نماذج الوضع الافتراضي والتفويض والرؤية والنماذج المساعدة عبر OmniRoute.",
       "custom": "يستخدم لتطبيقات الأدوات المخصصة أو التكوينات العامة المتوافقة مع OpenAI."
@@ -2055,7 +2054,6 @@
       "kiro": "Amazon Kiro — بيئة تطوير متكاملة مدعومة بالذكاء الاصطناعي",
       "windsurf": "محرر الشيفرة Windsurf المدعوم بالذكاء الاصطناعي",
       "copilot": "مساعد GitHub Copilot بالذكاء الاصطناعي",
-      "qwen": "واجهة Alibaba Qwen Code لسطر الأوامر",
       "amp": "مساعد Sourcegraph Amp للبرمجة عبر سطر الأوامر",
       "hermes": "Hermes AI مساعد المحطة",
       "hermes-agent": "Hermes Agent من Nousresearch — ذكاء اصطناعي متقدم للطرفية يدعم نماذج متعددة والتفويض والرؤية والضغط وغيرها",
@@ -6232,7 +6230,11 @@
     "updatedShort": "تم التحديث",
     "lastRefreshed": "آخر تحديث",
     "providerQuota": "حصة المزود",
-    "providerQuotaHomeHint": "الحالة المباشرة عبر الحسابات المتصلة"
+    "providerQuotaHomeHint": "الحالة المباشرة عبر الحسابات المتصلة",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "في انتظار التصريح",

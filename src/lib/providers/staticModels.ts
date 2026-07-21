@@ -9,6 +9,7 @@ import {
 import { ANTIGRAVITY_PUBLIC_MODELS } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getSearchProvider } from "@omniroute/open-sse/config/searchRegistry.ts";
+import { BAILIAN_CODING_PLAN_MODELS } from "@omniroute/open-sse/config/providers/registry/bailian-coding-plan/index.ts";
 
 import { getModelsByProviderId } from "@/shared/constants/models";
 
@@ -51,21 +52,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "sonar-reasoning-pro", name: "Sonar Reasoning Pro (Advanced CoT + Search)" },
     { id: "sonar-deep-research", name: "Sonar Deep Research (Expert Analysis)" },
   ],
-  "bailian-coding-plan": () => [
-    // Keep in lock-step with the registry entry
-    // (open-sse/config/providers/registry/bailian-coding-plan/index.ts);
-    // bailian-coding-plan-provider.test.ts asserts static↔registry parity.
-    { id: "qwen3.7-plus", name: "Qwen3.7 Plus(vision)" },
-    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-    { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
-    { id: "glm-4.7", name: "GLM 4.7" },
-    { id: "qwen3.6-plus", name: "Qwen3.6 Plus(vision)" },
-    { id: "qwen3.5-plus", name: "Qwen3.5 Plus(vision)" },
-    { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
-    { id: "kimi-k2.5", name: "Kimi K2.5(vision)" },
-    { id: "glm-5", name: "GLM 5" },
-    { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
-  ],
+  "bailian-coding-plan": () => BAILIAN_CODING_PLAN_MODELS.map(({ id, name }) => ({ id, name })),
   gitlab: () => [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
   nlpcloud: () =>
     getModelsByProviderId("nlpcloud").map((model) => ({

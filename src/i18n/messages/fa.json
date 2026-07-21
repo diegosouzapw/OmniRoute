@@ -2036,7 +2036,6 @@
       "antigravity": "Use when Antigravity/Kiro traffic must be intercepted through MITM and routed to OmniRoute.",
       "copilot": "Use when you want Copilot chat style UX while enforcing OmniRoute keys and routing rules.",
       "amp": "Use when you want Amp shorthand workflows but still need OmniRoute alias and routing rules enforcement.",
-      "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
       "hermes": "Use when you need a lightweight terminal-native AI assistant for quick tasks.",
       "hermes-agent": "__MISSING__:Use when you need Hermes Agent (by Nousresearch) with default, delegation, vision and auxiliary models routed through OmniRoute.",
       "custom": "Use for custom tool implementations or generic OpenAI-compatible configurations."
@@ -2055,7 +2054,6 @@
       "kiro": "Amazon Kiro — AI-powered IDE",
       "windsurf": "Windsurf AI Code Editor",
       "copilot": "GitHub Copilot AI Assistant",
-      "qwen": "Alibaba Qwen Code CLI",
       "amp": "Sourcegraph Amp coding assistant CLI",
       "hermes": "Hermes AI Terminal Assistant",
       "hermes-agent": "__MISSING__:Hermes Agent (by Nousresearch) - Advanced terminal AI with multi-model support (delegation, vision, compression, etc.)",
@@ -6232,7 +6230,11 @@
     "updatedShort": "__MISSING__:Updated",
     "lastRefreshed": "__MISSING__:Last refreshed",
     "providerQuota": "__MISSING__:Provider Quota",
-    "providerQuotaHomeHint": "__MISSING__:Live status across connected accounts"
+    "providerQuotaHomeHint": "__MISSING__:Live status across connected accounts",
+    "hideQuotaRow": "__MISSING__:Hide this quota row",
+    "showQuotaRow": "__MISSING__:Show this quota row",
+    "hiddenQuotaRowsLabel": "__MISSING__:Hidden:",
+    "quotaVisibilityUpdateFailed": "__MISSING__:Failed to update quota visibility"
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",

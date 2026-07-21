@@ -578,6 +578,7 @@ export const getKnownToolPaths = (toolId: string): string[] => {
       ["qodercli.cmd", "qodercli"],
       ["qodercli.exe", "qodercli"],
     ],
+    qwen: [["qwen.cmd", "qwen"]],
     devin: [
       ["devin.exe", "devin"],
       ["devin.cmd", "devin"],

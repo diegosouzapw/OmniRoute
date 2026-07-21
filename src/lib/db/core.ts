@@ -1187,6 +1187,9 @@ export function getDbInstance(): SqliteDatabase {
   `);
 
   runMigrations(db, { isNewDb });
+  // Fresh installs need the same post-migration index guarantee as upgraded
+  // databases, including recovery from an interrupted migration 127 attempt.
+  ensureUsageHistoryAccountIndex(db);
 
   applyStoredDatabaseOptimizationSettings(db);
 

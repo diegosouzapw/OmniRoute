@@ -41,6 +41,7 @@ import {
   redactPassthroughThinkingSignatures,
   isClaudeCodeSemanticPassthroughRequest,
 } from "./chatCore/passthroughHelpers.ts";
+import { recoverAnthropicThinkingSignature } from "./chatCore/thinkingSignatureRecovery.ts";
 import {
   buildStreamingResponseHeaders,
   materializeDeduplicatedExecutionResult,
@@ -74,6 +75,7 @@ import { defaultClaudeToolType } from "./chatCore/claudeToolDefaults.ts";
 import { injectSystemPrompt, injectCustomSystemPrompt } from "../services/systemPrompt.ts";
 import { translateRequest, needsTranslation } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
+import { collectCustomToolNamesForSourceFormat } from "../translator/request/openai-responses/additionalTools.ts";
 import { sanitizeKiroTools } from "../utils/kiroSanitizer.ts";
 import { splitMisplacedToolResults } from "../translator/helpers/claudeHelper.ts";
 import {
@@ -108,6 +110,7 @@ import {
 } from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
+import { isOpencodeGoProvider, stripBooleanReasoning } from "../services/opencodeReasoningSanitizer.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
@@ -256,12 +259,6 @@ import {
 } from "./chatCore/serviceTier.ts";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
-import {
-  setDetectedToolLimit,
-  parseToolLimitFromError,
-  shouldDetectLimit,
-} from "../services/toolLimitDetector.ts";
-
 import { isCompactResponsesEndpoint } from "../executors/codex.ts";
 import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
@@ -620,6 +617,13 @@ export async function handleChatCore({
     copilotCompatibleReasoning,
     clientResponseFormat,
   } = resolveChatCoreRequestFormat({ clientRawRequest, body, provider, userAgent });
+  const responsesInputItems = Array.isArray(body?.input) ? body.input : [];
+  const customToolNames = collectCustomToolNamesForSourceFormat(
+    sourceFormat,
+    FORMATS.OPENAI_RESPONSES,
+    body?.tools,
+    responsesInputItems
+  );
 
   // Check for bypass patterns (warmup, skip) - return fake response
   const bypassResponse = handleBypassRequest(body, model, userAgent);
@@ -1395,10 +1399,13 @@ export async function handleChatCore({
           // models, which is intentionally NOT `false` so the gate still preserves images.
           supportsVision: getResolvedModelCapabilities({ provider, model: effectiveModel })
             .supportsVision,
-          // Rota direta oficial ('anthropic') vs agregadores: o engine omniglyph
-          // exige 'direct' — agregadores redimensionam imagens (medido 2026-07-06).
+          // Rotas diretas oficiais ('anthropic' API key e 'claude' OAuth) vs agregadores:
+          // o engine omniglyph exige 'direct' — agregadores redimensionam imagens
+          // (medido 2026-07-06). OAuth 'claude' é rota direta oficial (#7863).
           providerTransport:
-            provider === "anthropic" ? ("direct" as const) : ("aggregator" as const),
+            provider === "anthropic" || provider === "claude"
+              ? ("direct" as const)
+              : ("aggregator" as const),
           config: compressionConfig,
           cachingContext: cacheCtx,
           principalId: compressionPrincipalId,
@@ -1741,9 +1748,7 @@ export async function handleChatCore({
     finalCompressionBody?.messages ||
     body?.contents ||
     body?.request?.contents ||
-    (body?.input && typeof body.input === "object" && !Array.isArray(body.input)
-      ? body.input
-      : []);
+    (body?.input && typeof body.input === "object" && !Array.isArray(body.input) ? body.input : []);
   const finalEstimatedInputTokens =
     estimateTokens(finalMessages) +
     (Array.isArray(body?.tools) ? estimateTokens(body.tools) : 0) +
@@ -2218,6 +2223,16 @@ export async function handleChatCore({
     translatedBody = normalizeMimoThinking(translatedBody);
   }
 
+  // opencode-go backed providers (ollama-cloud, opencode-go, opencode,
+  // opencode-zen) use a Go ChatCompletionRequest struct where `reasoning`
+  // is typed as openai.Reasoning (a structured type). A boolean
+  // `reasoning: true/false` — valid per the OpenAI API — causes a 400
+  // "json: cannot unmarshal bool into Go struct field" on the Go side.
+  // Strip the boolean before forwarding. See opencodeReasoningSanitizer.ts.
+  if (isOpencodeGoProvider(provider)) {
+    translatedBody = stripBooleanReasoning(translatedBody);
+  }
+
   const previousResponseIdPolicy = applyResponsesPreviousResponseIdPolicy(translatedBody, {
     mode: settings.responsesPreviousResponseIdMode,
     sourceFormat,
@@ -2476,7 +2491,7 @@ export async function handleChatCore({
     const execute = async () => {
       // Upstream body preparation extracted to chatCore/upstreamBody.ts (#3501 — first internal
       // sub-slice of executeProviderRequest); produces the body sent upstream (payload rules +
-      // tool-limit truncation + qwen oauth user backfill + prompt_cache_key injection).
+      // tool-limit truncation + prompt_cache_key injection).
       let bodyToSend = await prepareUpstreamBody({
         translatedBody,
         modelToCall,
@@ -2497,13 +2512,7 @@ export async function handleChatCore({
         const rawResult = await (async () => {
           let attempts = 0;
           const isModelScopeForRequest = isModelScope();
-          const maxAttempts = isModelScopeForRequest
-            ? 3
-            : provider === "qwen"
-              ? 3
-              : provider === "codex"
-                ? 3
-                : 1;
+          const maxAttempts = isModelScopeForRequest ? 3 : provider === "codex" ? 3 : 1;
 
           // ── Codex 429 account-rotation state ─────────────────────────────────
           // Track excluded connection IDs for codex failover across attempts.
@@ -2606,26 +2615,6 @@ export async function handleChatCore({
 
               if (res.response.status === 401 && execCreds?.connectionId) {
                 recordKeyHealthStatus(401, execCreds);
-              }
-
-              // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
-              if (
-                provider === "qwen" &&
-                res.response.status === 429 &&
-                attempts < maxAttempts - 1
-              ) {
-                const bodyPeek = await res.response
-                  .clone()
-                  .text()
-                  .catch(() => "");
-                if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
-                  const delay = 1500 * (attempts + 1);
-                  log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
-                  releaseAccountSemaphore();
-                  await new Promise((r) => setTimeout(r, delay));
-                  attempts++;
-                  continue;
-                }
               }
 
               if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
@@ -3193,38 +3182,11 @@ export async function handleChatCore({
       upstreamErrorType
     );
   }
-  // We need to peek at the error text if it's 400 for Qwen
   let upstreamErrorParsed = false;
   let parsedStatusCode = providerResponse.status;
   let parsedMessage = "";
   let parsedRetryAfterMs: number | null = null;
   let upstreamErrorBody: unknown = null;
-
-  if (provider === "qwen" && providerResponse.status === HTTP_STATUS.BAD_REQUEST) {
-    const errorDetails = await parseUpstreamError(providerResponse, provider);
-    parsedStatusCode = errorDetails.statusCode;
-    parsedMessage = errorDetails.message;
-    parsedRetryAfterMs = errorDetails.retryAfterMs;
-    upstreamErrorBody = errorDetails.responseBody;
-    upstreamErrorParsed = true;
-  }
-
-  const errorMessageForToolDetection =
-    typeof upstreamErrorBody === "string"
-      ? upstreamErrorBody
-      : JSON.stringify(upstreamErrorBody ?? {});
-  if (shouldDetectLimit(errorMessageForToolDetection, parsedStatusCode)) {
-    const detectedLimit = parseToolLimitFromError(errorMessageForToolDetection);
-    if (detectedLimit) {
-      setDetectedToolLimit(provider, detectedLimit);
-      log?.info?.("TOOL_LIMIT", `Detected tool limit ${detectedLimit} for ${provider}`);
-    }
-  }
-
-  const isQwenExpiredError =
-    provider === "qwen" &&
-    parsedStatusCode === HTTP_STATUS.BAD_REQUEST &&
-    parsedMessage?.toLowerCase().includes("session has expired");
 
   // Track whether stream_options was present and stripped — if so, 401/403 after
   // that may be from the modification rather than a genuine auth failure, so we
@@ -3235,11 +3197,10 @@ export async function handleChatCore({
     delete translatedBody.stream_options;
   }
 
-  // Handle 401/403 (and Qwen explicit expiration) - try token refresh using executor
+  // Handle 401/403 - try token refresh using executor
   if (
     (providerResponse.status === HTTP_STATUS.UNAUTHORIZED ||
-      providerResponse.status === HTTP_STATUS.FORBIDDEN ||
-      isQwenExpiredError) &&
+      providerResponse.status === HTTP_STATUS.FORBIDDEN) &&
     !hadStreamOptions // Skip refresh if failure may be from stream_options removal, not auth
   ) {
     // Fix A: wrap refreshCredentials in runWithOnPersist so the persist callback
@@ -3391,7 +3352,7 @@ export async function handleChatCore({
   await persistCodexQuotaState(normalizeHeaders(providerResponse.headers), providerResponse.status);
 
   // Check provider response - return error info for fallback handling
-  if (!providerResponse.ok) {
+  providerFailure: if (!providerResponse.ok) {
     trackPendingRequest(model, provider, connectionId, false);
 
     let statusCode = providerResponse.status;
@@ -3413,6 +3374,45 @@ export async function handleChatCore({
       upstreamErrorCode = details.errorCode as string | undefined;
       upstreamErrorType = details.errorType as string | undefined;
     }
+
+    const signatureRecovery = await recoverAnthropicThinkingSignature({
+      provider,
+      statusCode,
+      message,
+      body: translatedBody,
+      execute: async (recoveryBody) => {
+        translatedBody = recoveryBody as typeof translatedBody;
+        return executeProviderRequest(currentModel, false);
+      },
+      parseError: (response) => parseUpstreamError(response, provider),
+    });
+    if (signatureRecovery.attempted && signatureRecovery.execution) {
+      providerResponse = signatureRecovery.execution.response;
+      if (signatureRecovery.succeeded) {
+        providerUrl = signatureRecovery.execution.url;
+        providerHeaders = signatureRecovery.execution.headers;
+        finalBody = providerRequestCapture.body(signatureRecovery.execution.transformedBody);
+        reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+        updatePendingScope(pendingScope, {
+          providerRequest: finalBody,
+          providerUrl,
+          stage: "provider_response_started",
+        });
+        log?.info?.(
+          "THINKING_SIGNATURE",
+          `Recovered ${provider}/${currentModel} after one historical-thinking retry`
+        );
+      } else if (signatureRecovery.error) {
+        statusCode = signatureRecovery.error.statusCode;
+        message = signatureRecovery.error.message;
+        retryAfterMs = signatureRecovery.error.retryAfterMs;
+        upstreamErrorBody = signatureRecovery.error.responseBody;
+        upstreamErrorCode = signatureRecovery.error.errorCode as string | undefined;
+        upstreamErrorType = signatureRecovery.error.errorType as string | undefined;
+      }
+    }
+
+    if (signatureRecovery.succeeded) break providerFailure;
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
     let errorType = classifyProviderError(statusCode, message, provider);
@@ -4677,7 +4677,8 @@ export async function handleChatCore({
         userAgent: streamUserAgent,
         thinkingMarkerHeader,
         clientResponseFormat,
-      })
+      }),
+      customToolNames
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);
