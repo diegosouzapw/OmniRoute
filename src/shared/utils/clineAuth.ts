@@ -143,3 +143,26 @@ export function buildClinepassHeaders(
   if (byokKey) headers.Authorization = `Bearer ${byokKey}`;
   return headers;
 }
+
+/**
+ * Executor call-site helper: merge the Cline/ClinePass auth headers directly
+ * into an in-progress `headers` record, mutating it in place. Keeps the
+ * `case "cline"` / `case "clinepass"` branches in the executor down to a
+ * single call each — `isClinepass` selects `buildClinepassHeaders()`'s
+ * dual-auth (OAuth or BYOK) shape vs. `buildClineHeaders()`'s single-token
+ * `workos:`-prefixed shape.
+ */
+export function applyClineAuthHeaders(
+  headers: Record<string, string>,
+  credentials: { accessToken?: unknown; apiKey?: unknown } | null | undefined,
+  effectiveKey: string | undefined,
+  clientHeaders: Record<string, string> | null | undefined,
+  isClinepass: boolean
+): Record<string, string> {
+  const context: ClineHeaderContext = { taskId: resolveClineTaskId(clientHeaders) };
+  const built = isClinepass
+    ? buildClinepassHeaders(credentials, effectiveKey, context)
+    : buildClineHeaders(effectiveKey || credentials?.accessToken, {}, context);
+  Object.assign(headers, built);
+  return headers;
+}
