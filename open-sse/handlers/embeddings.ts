@@ -249,6 +249,7 @@ export async function handleEmbedding({
             const result = await fetchRemoteImage(url, {
               guard: "public-only",
               maxBytes: MAX_EMBEDDING_INLINE_ITEM_BYTES,
+              pinDns: true,
             });
             return { buffer: result.buffer, contentType: result.contentType || null };
           },

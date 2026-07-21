@@ -144,7 +144,10 @@ export async function fetchRemoteImage(
   options: RemoteImageFetchOptions = {}
 ): Promise<RemoteImageFetchResult> {
   const injectedFetch = options.fetchImpl;
-  const pinDns = options.pinDns ?? !injectedFetch;
+  // Default off: production callers that need connection pinning opt in. This keeps
+  // globalThis.fetch mockable for image-generation tests and preserves the previous
+  // DNS pre-check behavior for non-embedding callers.
+  const pinDns = options.pinDns === true;
   const guard = options.guard ?? getProviderOutboundGuard();
   const maxBytes = options.maxBytes ?? DEFAULT_MAX_REMOTE_IMAGE_BYTES;
   const maxRedirects = options.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
