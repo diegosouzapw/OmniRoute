@@ -59,6 +59,41 @@ test("flattens tool_calls/tool-result messages in history when tools was strippe
   assert.equal(messages[3].content, "what happened?");
 });
 
+// Live incident, round 2: the FIRST live reproduction happened to include a
+// live `tools` array alongside the stale history, which masked this gap. A
+// second live request had NO `tools` param at all — just the leftover
+// tool_calls/tool-result messages — and still 500'd, because the flattening
+// was gated on "tools" having actually been present-and-stripped THIS
+// request, not on whether the model supports tool calling at all. A model
+// that can't do tool calling can't do it regardless of whether this
+// particular request happens to carry a live `tools` array.
+test("flattens tool history even when the CURRENT request has no live tools param at all", () => {
+  const body: Record<string, unknown> = {
+    model: "aphrodite/TheDrummer/Behemoth-X-123B-v2.1",
+    // no `tools` key on this request — only stale history from before failover
+    messages: [
+      { role: "user", content: "run the script" },
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [
+          { id: "call_1", type: "function", function: { name: "exec", arguments: "{}" } },
+        ],
+      },
+      { role: "tool", tool_call_id: "call_1", content: "output here" },
+      { role: "user", content: "what happened?" },
+    ],
+  };
+
+  stripUnsupportedParams(body, ["tools", "tool_choice", "parallel_tool_calls"]);
+
+  const messages = body.messages as Array<Record<string, unknown>>;
+  for (const m of messages) {
+    assert.notEqual(m.role, "tool");
+    assert.equal(m.tool_calls, undefined);
+  }
+});
+
 test("does not touch messages when tools was NOT among the unsupported/stripped params", () => {
   const originalMessages = [
     { role: "user", content: "hi" },

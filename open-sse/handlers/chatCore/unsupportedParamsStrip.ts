@@ -20,9 +20,14 @@ export interface UnsupportedParamsStripResult {
 
 /**
  * Deletes each unsupported param present on `body` (mutates in place, matching
- * the original inline behavior). When "tools" was stripped, also flattens any
- * tool_calls/tool-result messages in `body.messages` into plain assistant
- * prose — leftover history from a target the combo failed over from.
+ * the original inline behavior). When "tools" is unsupported for this model —
+ * regardless of whether THIS particular request happens to carry a live
+ * `tools` array — also flattens any tool_calls/tool-result messages in
+ * `body.messages` into plain assistant prose. A model that can't do tool
+ * calling can't do it whether or not the current request includes `tools`;
+ * gating on "was tools actually present this time" missed the common case of
+ * stale tool-call history left over from before a combo failover, with no
+ * live `tools` param on the request that inherited it.
  */
 export function stripUnsupportedParams(
   body: Record<string, unknown>,
@@ -36,7 +41,7 @@ export function stripUnsupportedParams(
     }
   }
 
-  if (strippedParams.includes("tools") && Array.isArray(body.messages)) {
+  if (unsupported.includes("tools") && Array.isArray(body.messages)) {
     body.messages = flattenToolHistory(body.messages as Record<string, unknown>[]);
   }
 
