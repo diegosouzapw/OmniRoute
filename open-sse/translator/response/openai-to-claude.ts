@@ -27,7 +27,7 @@ interface XmlToolCall {
  */
 function extractXmlInvokeBlocks(
   text: string,
-  state: any
+  state
 ): { cleaned: string; toolCalls: XmlToolCall[] } {
   const toolCalls: XmlToolCall[] = [];
 
