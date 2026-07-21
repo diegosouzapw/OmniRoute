@@ -63,8 +63,14 @@ async function seedTwoGlmConnections() {
   return { first, second };
 }
 
-function connectionIds(combo: { models: Array<{ connectionId: string }> }) {
-  return combo.models.map((m) => m.connectionId).sort();
+function connectionIds(combo: {
+  models: Array<{ connectionId: string | null; allowedConnectionIds?: string[] }>;
+}) {
+  return combo.models
+    .flatMap((model) =>
+      model.connectionId ? [model.connectionId] : (model.allowedConnectionIds ?? [])
+    )
+    .sort();
 }
 
 test("#7819 regression: pool is IDENTICAL whether or not apiKeyId/autoChannel are passed, with no overrides configured", async () => {
@@ -131,12 +137,7 @@ test("#7819: fail-open — a DB lookup failure never breaks routing (pool falls 
   const db = core.getDbInstance();
   db.exec("DROP TABLE auto_candidate_overrides");
 
-  const combo = await virtualFactory.createVirtualAutoCombo(
-    undefined,
-    undefined,
-    "key-1",
-    "auto"
-  );
+  const combo = await virtualFactory.createVirtualAutoCombo(undefined, undefined, "key-1", "auto");
   const ids = connectionIds(combo);
   assert.ok(ids.includes(first.id));
   assert.ok(ids.includes(second.id));

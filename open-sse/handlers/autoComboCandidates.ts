@@ -101,14 +101,12 @@ export async function getAutoComboCandidates(
   // model string in src/sse/handlers/autoRouting.ts).
   let virtualCombo;
   if (channel === "auto") {
-    const { createVirtualAutoCombo } = await import(
-      "@omniroute/open-sse/services/autoCombo/virtualFactory.ts"
-    );
+    const { createVirtualAutoCombo } =
+      await import("@omniroute/open-sse/services/autoCombo/virtualFactory.ts");
     virtualCombo = await createVirtualAutoCombo(undefined);
   } else {
-    const { createBuiltinAutoCombo } = await import(
-      "@omniroute/open-sse/services/autoCombo/builtinCatalog.ts"
-    );
+    const { createBuiltinAutoCombo } =
+      await import("@omniroute/open-sse/services/autoCombo/builtinCatalog.ts");
     virtualCombo = await createBuiltinAutoCombo(modelStr, channel);
   }
 
@@ -116,11 +114,24 @@ export async function getAutoComboCandidates(
     ? await getExcludedConnectionIds(apiKeyId, modelStr).catch(() => new Set<string>())
     : new Set<string>();
 
-  const models: Array<{ providerId: string; connectionId: string; model: string }> =
-    Array.isArray(virtualCombo?.models) ? virtualCombo.models : [];
+  const models: Array<{
+    providerId: string;
+    connectionId: string | null;
+    allowedConnectionIds?: string[];
+    model: string;
+  }> = Array.isArray(virtualCombo?.models) ? virtualCombo.models : [];
+  // Routing keeps one logical provider/model candidate, but the management API
+  // remains account-oriented so operators can inspect and toggle each fallback.
+  const accountCandidates = models.flatMap((candidate) => {
+    if (candidate.connectionId) return [{ ...candidate, connectionId: candidate.connectionId }];
+    return (candidate.allowedConnectionIds ?? []).map((connectionId) => ({
+      ...candidate,
+      connectionId,
+    }));
+  });
 
   const candidates = await Promise.all(
-    models.map(async (candidate) => {
+    accountCandidates.map(async (candidate) => {
       const decorated = await decorateCandidate({
         provider: candidate.providerId,
         connectionId: candidate.connectionId,
