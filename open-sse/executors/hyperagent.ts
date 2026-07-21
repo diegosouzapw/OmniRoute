@@ -22,6 +22,8 @@ import {
   clientFacingHyperAgentModelId,
   resolveHyperAgentModel,
   wireHyperAgentModelId,
+  wireHyperAgentRuntimeId,
+  wireHyperAgentSubagentModelId,
 } from "../services/hyperagentModels.ts";
 
 const ORIGIN = "https://hyperagent.com";
@@ -412,13 +414,13 @@ function browserHeaders(cookie: string, extra?: Record<string, string>): Record<
 
 /**
  * Create a new HyperAgent thread id.
- * Primary: POST /api/threads (if present). Fallback: GET /threads/new and parse Location.
+ * Primary (live-validated): POST /api/threads → { id }.
+ * Fallback: GET /threads/new (Next RSC) and parse Location / body.
  */
 export async function createHyperAgentThread(
   cookie: string,
   signal?: AbortSignal | null
 ): Promise<string> {
-  // Attempt JSON create API
   try {
     const res = await fetch(`${ORIGIN}/api/threads`, {
       method: "POST",
@@ -454,7 +456,6 @@ export async function createHyperAgentThread(
     /* fall through */
   }
 
-  // Live SPA path: GET /threads/new → redirect to /thread/{id}
   const res2 = await fetch(`${ORIGIN}/threads/new`, {
     method: "GET",
     headers: browserHeaders(cookie, {
@@ -473,17 +474,63 @@ export async function createHyperAgentThread(
   const fromLoc2 = extractThreadIdFromUrl(loc2);
   if (fromLoc2) return fromLoc2;
 
-  // Some Next deployments return 200 with RSC payload containing the id
   if (res2.status >= 200 && res2.status < 400) {
     const text = await res2.text().catch(() => "");
     const m = text.match(/\/thread\/(cm[a-z0-9]{20,})/i) || text.match(/"(cm[a-z0-9]{20,})"/i);
     if (m) return m[1]!;
   }
 
-  // Absolute last resort: mint a client-side cuid-like id is NOT valid — fail clearly
   throw new Error(
     `Could not create HyperAgent thread (HTTP ${res2.status}). Ensure the session Cookie is valid and not expired.`
   );
+}
+
+/**
+ * Apply model + execution settings on a thread (live SPA does this before chat).
+ *
+ * - modelId: wire id (e.g. fable-latest — NOT bare "fable")
+ * - defaultSubagentModel: short family (fable|opus|sonnet|haiku) matching selected model
+ * - executionMode: "auto" (only non-null value accepted live)
+ * - runtimeId: claude-agents-sdk for Claude family
+ *
+ * Chat body must NOT carry modelId (API returns model_unknown for bare pricing keys).
+ */
+export async function configureHyperAgentThread(
+  cookie: string,
+  threadId: string,
+  opts: {
+    modelId: string;
+    subagentModelId: string;
+    runtimeId?: string;
+    executionMode?: "auto" | null;
+  },
+  signal?: AbortSignal | null
+): Promise<void> {
+  const body: Record<string, unknown> = {
+    modelId: opts.modelId,
+    defaultSubagentModel: opts.subagentModelId,
+    runtimeId: opts.runtimeId || "claude-agents-sdk",
+  };
+  // "auto" = execution-style agent loop (validated). null clears. Never "plan".
+  if (opts.executionMode === "auto") body.executionMode = "auto";
+  else if (opts.executionMode === null) body.executionMode = null;
+
+  const res = await fetch(`${ORIGIN}/api/threads/${encodeURIComponent(threadId)}`, {
+    method: "PATCH",
+    headers: browserHeaders(cookie, {
+      "content-type": "application/json",
+      "x-request-id": randomUUID(),
+      referer: `${ORIGIN}/thread/${threadId}`,
+    }),
+    body: JSON.stringify(body),
+    signal: signal ?? undefined,
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    throw new Error(
+      `HyperAgent configure thread HTTP ${res.status}: ${errText.slice(0, 300) || res.statusText}`
+    );
+  }
 }
 
 export function extractThreadIdFromUrl(url: string): string {
@@ -492,13 +539,21 @@ export function extractThreadIdFromUrl(url: string): string {
   return m ? m[1]! : "";
 }
 
-/** Default feature flags from live SPA chat body (chat flow.txt). */
+/**
+ * Default feature flags from live SPA **execution-mode** chat body.
+ *
+ * Important differences from older plan-mode captures:
+ * - Do NOT set injectPlanMode (plan mode). Execution omits the field entirely.
+ * - Do NOT put modelId/model here — model is PATCH'd onto the thread first.
+ * - enabledIntegrations: [] — no connectors; integrationMode stays "open" like SPA.
+ */
 export function buildHyperAgentChatBody(opts: {
   content: string;
   sessionId: string | null;
+  /** @deprecated Model is configured on the thread via PATCH — ignored. */
   modelId?: string;
 }): Record<string, unknown> {
-  const body: Record<string, unknown> = {
+  return {
     sessionId: opts.sessionId,
     unifiedStream: true,
     searchMode: "exa",
@@ -526,18 +581,13 @@ export function buildHyperAgentChatBody(opts: {
     solveCaptchasEnabled: true,
     content: opts.content,
     debug: false,
+    // No connectors — empty list (SPA execution capture).
     enabledIntegrations: [],
     integrationMode: "open",
     globalTablesEnabled: true,
-    injectPlanMode: true,
+    // NO injectPlanMode → execution mode (plan mode was injectPlanMode:true).
+    // NO modelId / model → set via configureHyperAgentThread PATCH.
   };
-  // Live capture did not include modelId on chat body; include when known so
-  // multi-model selection works if the SPA accepts it (ignored if not).
-  if (opts.modelId) {
-    body.modelId = opts.modelId;
-    body.model = opts.modelId;
-  }
-  return body;
 }
 
 /**
@@ -729,6 +779,8 @@ export class HyperAgentExecutor extends BaseExecutor {
 
     const clientFacing = clientFacingHyperAgentModelId(model || requestBody.model);
     const wireModel = wireHyperAgentModelId(model || requestBody.model);
+    const subagentModel = wireHyperAgentSubagentModelId(model || requestBody.model);
+    const runtimeId = wireHyperAgentRuntimeId(model || requestBody.model);
     const cookieKey = cookieFingerprint(cookie);
 
     const inboundHeaders =
@@ -752,11 +804,24 @@ export class HyperAgentExecutor extends BaseExecutor {
         sessionId = null;
       }
 
+      // Always apply model + execution settings on the thread (SPA does this
+      // before /chat). Chat body must not carry modelId.
+      await configureHyperAgentThread(
+        cookie,
+        threadId,
+        {
+          modelId: wireModel,
+          subagentModelId: subagentModel,
+          runtimeId,
+          executionMode: "auto",
+        },
+        signal
+      );
+
       const chatUrl = `${ORIGIN}/api/threads/${encodeURIComponent(threadId)}/chat`;
       const chatBody = buildHyperAgentChatBody({
         content: userText,
         sessionId,
-        modelId: wireModel,
       });
 
       const res = await fetch(chatUrl, {
@@ -772,15 +837,25 @@ export class HyperAgentExecutor extends BaseExecutor {
 
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
-        // Stale thread → create once and retry
+        // Stale thread → create once, reconfigure, retry
         if (res.status === 404 || /not found|unknown thread/i.test(errText)) {
           threadId = await createHyperAgentThread(cookie, signal);
           sessionId = null;
+          await configureHyperAgentThread(
+            cookie,
+            threadId,
+            {
+              modelId: wireModel,
+              subagentModelId: subagentModel,
+              runtimeId,
+              executionMode: "auto",
+            },
+            signal
+          );
           const retryUrl = `${ORIGIN}/api/threads/${encodeURIComponent(threadId)}/chat`;
           const retryBody = buildHyperAgentChatBody({
             content: userText,
             sessionId: null,
-            modelId: wireModel,
           });
           const res2 = await fetch(retryUrl, {
             method: "POST",

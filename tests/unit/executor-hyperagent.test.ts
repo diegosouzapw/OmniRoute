@@ -20,12 +20,13 @@ describe("HyperAgent — registry consistency", () => {
 
   it("registers a model catalog via getModelsByProviderId", () => {
     const catalog = getModelsByProviderId("hyperagent");
-    assert.ok(catalog.length >= 10, `expected many models, got ${catalog.length}`);
-    assert.ok(catalog.some((m) => m.id === "fable"));
+    assert.ok(catalog.length >= 4, `expected validated models, got ${catalog.length}`);
+    // Wire ids are live-validated (fable-latest, not bare "fable")
+    assert.ok(catalog.some((m) => m.id === "fable-latest"));
     assert.ok(catalog.some((m) => m.id === "opus-latest"));
-    assert.ok(catalog.some((m) => m.id === "gpt-5.6-sol"));
+    assert.ok(catalog.some((m) => m.id === "sonnet-latest"));
     // Pretty names in registry
-    const fable = catalog.find((m) => m.id === "fable");
+    const fable = catalog.find((m) => m.id === "fable-latest");
     assert.ok(fable?.name?.toLowerCase().includes("fable"));
     assert.notEqual(fable?.name?.toLowerCase(), "fable");
   });
@@ -46,23 +47,34 @@ describe("HyperAgent — registry consistency", () => {
 });
 
 describe("HyperAgent — models", () => {
-  it("maps pretty names to wire modelId for /chat", () => {
-    assert.equal(models.wireHyperAgentModelId("fable"), "fable");
-    assert.equal(models.wireHyperAgentModelId("Claude Fable 5"), "fable");
-    assert.equal(models.wireHyperAgentModelId("fable-5"), "fable");
-    assert.equal(models.wireHyperAgentModelId("hyperagent/gpt-5.6-sol"), "gpt-5.6-sol");
+  it("maps pretty names / legacy keys to live wire modelId (not bare fable)", () => {
+    // Bare "fable" is INVALID on the API — must become fable-latest
+    assert.equal(models.wireHyperAgentModelId("fable"), "fable-latest");
+    assert.equal(models.wireHyperAgentModelId("fable-5"), "fable-latest");
+    assert.equal(models.wireHyperAgentModelId("Fable 5"), "fable-latest");
+    assert.equal(models.wireHyperAgentModelId("hyperagent/fable"), "fable-latest");
     assert.equal(models.wireHyperAgentModelId("ha/opus-latest"), "opus-latest");
-    assert.equal(models.clientFacingHyperAgentModelId("Claude Fable 5"), "fable");
+    assert.equal(models.wireHyperAgentModelId("claude-opus-4-8"), "claude-opus-4-8");
+    assert.equal(models.clientFacingHyperAgentModelId("fable"), "fable-latest");
+  });
+
+  it("maps subagent to short family matching selected model", () => {
+    assert.equal(models.wireHyperAgentSubagentModelId("fable"), "fable");
+    assert.equal(models.wireHyperAgentSubagentModelId("fable-latest"), "fable");
+    assert.equal(models.wireHyperAgentSubagentModelId("opus-latest"), "opus");
+    assert.equal(models.wireHyperAgentSubagentModelId("sonnet-latest"), "sonnet");
+    // Subagent must NOT be *-latest (API rejects those)
+    assert.notEqual(models.wireHyperAgentSubagentModelId("fable-latest"), "fable-latest");
   });
 
   it("resolveHyperAgentModel finds by id and pretty name", () => {
     const a = models.resolveHyperAgentModel("fable");
     assert.ok(a);
-    assert.equal(a!.id, "fable");
+    assert.equal(a!.id, "fable-latest");
     assert.match(a!.name, /Fable/i);
-    const b = models.resolveHyperAgentModel("GPT-5.6 Sol");
+    const b = models.resolveHyperAgentModel("Fable 5");
     assert.ok(b);
-    assert.equal(b!.id, "gpt-5.6-sol");
+    assert.equal(b!.id, "fable-latest");
   });
 });
 
@@ -83,22 +95,28 @@ describe("HyperAgent — helpers", () => {
     );
   });
 
-  it("buildHyperAgentChatBody includes session + model + content", () => {
+  it("buildHyperAgentChatBody is execution-mode (no plan / no modelId)", () => {
     const b = mod.buildHyperAgentChatBody({
       content: "hello",
       sessionId: null,
-      modelId: "fable",
+      modelId: "fable-latest", // ignored — model is PATCH'd on thread
     });
     assert.equal(b.content, "hello");
     assert.equal(b.sessionId, null);
-    assert.equal(b.modelId, "fable");
     assert.equal(b.unifiedStream, true);
+    // Execution mode: never inject plan mode
+    assert.equal(b.injectPlanMode, undefined);
+    // Model is NOT in chat body (would 400 with bare pricing keys)
+    assert.equal(b.modelId, undefined);
+    assert.equal(b.model, undefined);
+    // No connectors
+    assert.deepEqual(b.enabledIntegrations, []);
     const b2 = mod.buildHyperAgentChatBody({
       content: "hello2",
       sessionId: "dd6d5eee-5c1c-449f-8dee-abb09eabd338",
-      modelId: "opus-latest",
     });
     assert.equal(b2.sessionId, "dd6d5eee-5c1c-449f-8dee-abb09eabd338");
+    assert.equal(b2.injectPlanMode, undefined);
   });
 
   it("buildHyperAgentCreditsQuota maps live creditBlocks", () => {
