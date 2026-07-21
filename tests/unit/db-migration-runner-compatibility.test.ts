@@ -91,8 +91,7 @@ test(
 
         const count = withMockedMigrationFs(
           {
-            [`${currentVersion}_${currentName}.sql`]:
-              `CREATE TABLE ${currentName} (id TEXT PRIMARY KEY);`,
+            [`${currentVersion}_${currentName}.sql`]: `CREATE TABLE ${currentName} (id TEXT PRIMARY KEY);`,
           },
           () => runner.runMigrations(db)
         );
