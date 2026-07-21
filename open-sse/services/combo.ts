@@ -1306,10 +1306,12 @@ export async function handleComboChat({
   // overrides the global `settings.disableSessionStickiness` fallback (default false,
   // preserving the #3825 prompt-cache/504 fix). When disabled, skip the reorder and
   // treat the result as a no-op so the recordStickyBinding write-back below is skipped.
-  const disableSessionStickiness = resolveDisableSessionStickiness(
-    config as Record<string, unknown> | null | undefined,
-    settings as Record<string, unknown> | null | undefined
-  );
+  const disableSessionStickiness =
+    strategy === "cache-optimized" ||
+    resolveDisableSessionStickiness(
+      config as Record<string, unknown> | null | undefined,
+      settings as Record<string, unknown> | null | undefined
+    );
   const _sticky = disableSessionStickiness
     ? ({ targets: orderedTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
@@ -1319,7 +1321,9 @@ export async function handleComboChat({
         normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
   orderedTargets = _sticky.targets;
-  orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
+  if (strategy !== "cache-optimized") {
+    orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
+  }
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
   orderedTargets = applyContextRequirements(orderedTargets, config.contextRequirements, log);
 
@@ -1354,10 +1358,24 @@ export async function handleComboChat({
   // Prompt-cache locality is applied after request eligibility and task routing.
   // Session stickiness and explicit auto-router pins remain stronger continuity
   // decisions; quota, health, and circuit-breaker gates still run per attempt.
+  const autoConfigForCacheWeight =
+    strategy === "auto"
+      ? ((combo.autoConfig ||
+          ((config as Record<string, unknown>).auto &&
+          typeof (config as Record<string, unknown>).auto === "object"
+            ? (config as Record<string, unknown>).auto
+            : null) ||
+          config) as Record<string, unknown>)
+      : null;
+  const autoWeightsForCache =
+    autoConfigForCacheWeight?.weights && typeof autoConfigForCacheWeight.weights === "object"
+      ? (autoConfigForCacheWeight.weights as Record<string, unknown>)
+      : null;
+  const autoUsesCacheScore = Number(autoWeightsForCache?.cacheAffinity) > 0;
   const promptCacheAffinity = applyPromptCacheAffinity(
     orderedTargets,
     body,
-    settings?.promptCacheAffinityEnabled !== false
+    settings?.promptCacheAffinityEnabled !== false && !autoUsesCacheScore
   );
   if (promptCacheAffinity.applied) {
     const protectedFirst =
@@ -2283,7 +2301,11 @@ export async function handleComboChat({
             });
             recordedAttempts++;
             lastError = errorText || String(result.status);
-            comboErrors.push({ model: modelStr, status: result.status, error: errorText || String(result.status) });
+            comboErrors.push({
+              model: modelStr,
+              status: result.status,
+              error: errorText || String(result.status),
+            });
             if (!lastStatus) lastStatus = result.status;
             if (i > 0) fallbackCount++;
             log.warn("COMBO", `Model ${modelStr} failed with body-specific error, stopping combo`);
@@ -2377,7 +2399,11 @@ export async function handleComboChat({
           });
           recordedAttempts++;
           lastError = errorText || String(result.status);
-          comboErrors.push({ model: modelStr, status: result.status, error: errorText || String(result.status) });
+          comboErrors.push({
+            model: modelStr,
+            status: result.status,
+            error: errorText || String(result.status),
+          });
           if (!lastStatus) lastStatus = result.status;
           if (i > 0) fallbackCount++;
           // Wire combo failures into the resilience dashboard (model-level lockout)
@@ -2542,12 +2568,10 @@ export async function handleComboChat({
           latencyMs,
           fallbackCount,
         });
-        return errorResponseWithComboDiagnostics(
-          504,
-          msg,
-          buildComboDiag("combo_timeout"),
-          { code: "COMBO_TIMEOUT", type: "server_error" }
-        );
+        return errorResponseWithComboDiagnostics(504, msg, buildComboDiag("combo_timeout"), {
+          code: "COMBO_TIMEOUT",
+          type: "server_error",
+        });
       }
 
       // All models failed in this set try

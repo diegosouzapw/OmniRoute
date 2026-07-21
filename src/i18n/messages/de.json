@@ -2294,6 +2294,7 @@
     "randomDesc": "Einheitliche Zufallsauswahl, dann Rückgriff auf verbleibende Modelle",
     "leastUsedDesc": "Wählt das Modell mit den wenigsten Anfragen aus und gleicht die Last über die Zeit aus",
     "costOptimizedDesc": "Leitet basierend auf dem Preis zuerst zum günstigsten Modell weiter",
+    "cacheOptimizedDesc": "Leitet jeden wiederverwendbaren Prompt-Präfix konsistent zum selben Provider-Konto",
     "resetAware": "Reset-Aware RR",
     "resetAwareDesc": "Gewichtet Restquote gegen 5h- und Wochen-Resets und rotiert ähnliche Scores per Round Robin",
     "strictRandom": "Strict Random",
@@ -2504,6 +2505,7 @@
     "weightTaskFit": "Task Fit",
     "weightStability": "Stability",
     "weightTierPriority": "Tier",
+    "weightCacheAffinity": "Cache-Treffer-Affinität",
     "reviewIntelligentTitle": "Intelligent Routing Config",
     "strategyRecommendations": {
       "priority": {
@@ -5112,6 +5114,8 @@
     "purgeLogsFailed": "Failed to purge logs",
     "contextOpt": "Context Optimized",
     "contextOptDesc": "Routes based on context window requirements and conversation length",
+    "cacheOpt": "Cache-optimiert",
+    "cacheOptDesc": "Hält denselben wiederverwendbaren Prompt-Präfix auf demselben Provider-Konto",
     "priorityDesc": "Sequential fallback - tries provider 1 first, then provider 2, and so on",
     "weightedDesc": "Distributes traffic by percentage weights across providers",
     "modelRoutingTitle": "Model Routing Rules",

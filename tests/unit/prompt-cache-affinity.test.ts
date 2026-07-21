@@ -2,9 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   applyPromptCacheAffinity,
+  calculatePromptCacheAffinityScores,
+  promptCacheTargetIdentity,
   resolvePromptCacheAffinityKey,
 } from "../../open-sse/services/combo/promptCacheAffinity.ts";
 import type { ResolvedComboTarget } from "../../open-sse/services/combo/types.ts";
+import { applyStrategyOrdering } from "../../open-sse/services/combo/applyStrategyOrdering.ts";
 
 function target(
   executionKey: string,
@@ -72,4 +75,30 @@ test("disabled affinity and missing keys preserve the eligible order", () => {
     applyPromptCacheAffinity([...targets], { prompt_cache_key: "stable" }, false).targets,
     targets
   );
+});
+
+test("auto scoring assigns the cache winner to exactly one account", () => {
+  const targets = [target("step-a", "account-a"), target("step-b", "account-b")];
+  const scores = calculatePromptCacheAffinityScores(targets, {
+    prompt_cache_key: "stable-auto-key",
+  });
+  assert.equal(scores.size, 2);
+  assert.equal(
+    targets.reduce((sum, item) => sum + (scores.get(promptCacheTargetIdentity(item)) ?? 0), 0),
+    1
+  );
+});
+
+test("cache-optimized strategy routes a stable prompt key to the same account", async () => {
+  const targets = [target("step-a", "account-a"), target("step-b", "account-b")];
+  const deps = {
+    combo: { id: "cache-combo", name: "cache-combo" },
+    config: {},
+    body: { prompt_cache_key: "stable-strategy-key" },
+    log: { info() {}, warn() {} },
+    apiKeyAllowedConnections: null,
+  };
+  const first = await applyStrategyOrdering("cache-optimized", targets, deps);
+  const second = await applyStrategyOrdering("cache-optimized", [...targets].reverse(), deps);
+  assert.equal(first[0].connectionId, second[0].connectionId);
 });

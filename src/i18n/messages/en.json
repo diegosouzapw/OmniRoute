@@ -2998,6 +2998,7 @@
     "randomDesc": "Uniform random selection, then fallback to remaining models",
     "leastUsedDesc": "Picks the model with fewest requests, balancing load over time",
     "costOptimizedDesc": "Routes to the cheapest model first based on pricing",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
     "resetAware": "Reset-Aware RR",
     "resetAwareDesc": "Balances remaining quota against 5h and weekly resets, then round-robins similar scores",
     "strictRandom": "Strict Random",
@@ -3261,6 +3262,7 @@
     "weightTaskFit": "Task Fit",
     "weightStability": "Stability",
     "weightTierPriority": "Tier",
+    "weightCacheAffinity": "Cache Hit Affinity",
     "reviewIntelligentTitle": "Intelligent Routing Config",
     "strategyRecommendations": {
       "priority": {
@@ -6763,6 +6765,8 @@
     "resetting": "Resetting...",
     "contextOpt": "Context Optimized",
     "contextOptDesc": "Routes based on context window requirements and conversation length",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "priorityDesc": "Sequential fallback - tries provider 1 first, then provider 2, and so on",
     "weightedDesc": "Distributes traffic by percentage weights across providers",
     "modelRoutingTitle": "Model Routing Rules",

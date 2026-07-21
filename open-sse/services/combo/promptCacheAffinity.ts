@@ -108,7 +108,7 @@ export function resolvePromptCacheAffinityKey(
   return { key, source, fingerprint };
 }
 
-function targetIdentity(target: ResolvedComboTarget): string {
+export function promptCacheTargetIdentity(target: ResolvedComboTarget): string {
   const connectionId = typeof target.connectionId === "string" ? target.connectionId.trim() : "";
   if (connectionId) return `connection:${connectionId}`;
   return `execution:${target.executionKey}`;
@@ -117,6 +117,35 @@ function targetIdentity(target: ResolvedComboTarget): string {
 function rendezvousScore(key: string, identity: string): bigint {
   const digest = createHash("sha256").update(key).update("\0").update(identity).digest("hex");
   return BigInt(`0x${digest.slice(0, 32)}`);
+}
+
+/**
+ * Return a normalized cache-locality score for auto-combo scoring. The target
+ * selected by rendezvous hashing receives 1; all other accounts receive 0.
+ * Reusing the same prompt key therefore keeps selecting the same account.
+ */
+export function calculatePromptCacheAffinityScores(
+  targets: ResolvedComboTarget[],
+  body: Record<string, unknown> | null | undefined
+): Map<string, number> {
+  const resolution = resolvePromptCacheAffinityKey(body);
+  if (!resolution || targets.length === 0) return new Map();
+  let winnerIdentity = "";
+  let winnerScore = -1n;
+  for (const target of targets) {
+    const identity = promptCacheTargetIdentity(target);
+    const score = rendezvousScore(resolution.key, identity);
+    if (score > winnerScore || (score === winnerScore && identity < winnerIdentity)) {
+      winnerIdentity = identity;
+      winnerScore = score;
+    }
+  }
+  return new Map(
+    targets.map((target) => {
+      const identity = promptCacheTargetIdentity(target);
+      return [identity, identity === winnerIdentity ? 1 : 0];
+    })
+  );
 }
 
 /**
@@ -142,8 +171,8 @@ export function applyPromptCacheAffinity(
   const ranked = targets.map((target, index) => ({
     target,
     index,
-    identity: targetIdentity(target),
-    score: rendezvousScore(resolution.key, targetIdentity(target)),
+    identity: promptCacheTargetIdentity(target),
+    score: rendezvousScore(resolution.key, promptCacheTargetIdentity(target)),
   }));
 
   ranked.sort((a, b) => {
