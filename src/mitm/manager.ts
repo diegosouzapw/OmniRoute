@@ -638,6 +638,8 @@ async function startMitmInternal(
   };
 }
 
+}
+
 /**
  * DNS teardown step of stopMitm() (#1809) — split out purely to keep
  * stopMitm()'s own cyclomatic complexity under the repo's ratchet; behavior
