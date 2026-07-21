@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const tokenRefresh = await import("../../open-sse/services/tokenRefresh.ts");
 const { PROVIDERS, OAUTH_ENDPOINTS } = await import("../../open-sse/config/constants.ts");
+const { KIMI_CODE_CLI_PLATFORM, getKimiCodeCliVersion } =
+  await import("../../open-sse/config/providers/registry/kimi/coding/runtime.ts");
 
 const {
   TOKEN_EXPIRY_BUFFER_MS,
@@ -11,7 +13,6 @@ const {
   refreshKimiCodingToken,
   refreshClaudeOAuthToken,
   refreshGoogleToken,
-  refreshQwenToken,
   refreshCodexToken,
   refreshKiroToken,
   refreshQoderToken,
@@ -294,10 +295,9 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
       });
     },
     async () => {
-      // Pass providerSpecificData with a stable deviceId (second positional arg after signature change)
       const result = await refreshKimiCodingToken(
         "kimi-refresh",
-        { deviceId: "test-stable-device" },
+        { deviceId: "test-stable-device", deviceModel: "test-device-model" },
         log
       );
       assert.deepEqual(result, {
@@ -311,18 +311,11 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
   );
 
   assert.equal(calls[0].url, PROVIDERS["kimi-coding"].refreshUrl);
-  // Platform is now "kimi_cli" (matching the real Kimi CLI fingerprint)
-  assert.equal(calls[0].options.headers["X-Msh-Platform"], "kimi_cli");
-  // Version comes from KIMI_CLI_VERSION env or default "1.36.0"
-  assert.ok(calls[0].options.headers["X-Msh-Version"], "X-Msh-Version must be set");
-  // Device-Id must NOT be an ephemeral "kimi-refresh-<timestamp>" value
-  assert.ok(
-    calls[0].options.headers["X-Msh-Device-Id"] &&
-      !calls[0].options.headers["X-Msh-Device-Id"].startsWith("kimi-refresh-"),
-    "X-Msh-Device-Id must be stable (not ephemeral kimi-refresh-<timestamp>)"
-  );
-  // When providerSpecificData.deviceId is provided, it should be used directly
+  assert.equal(calls[0].options.headers["X-Msh-Platform"], KIMI_CODE_CLI_PLATFORM);
+  assert.equal(calls[0].options.headers["X-Msh-Version"], getKimiCodeCliVersion());
+  assert.ok(!calls[0].options.headers["X-Msh-Device-Id"].startsWith("kimi-refresh-"));
   assert.equal(calls[0].options.headers["X-Msh-Device-Id"], "test-stable-device");
+  assert.equal(calls[0].options.headers["X-Msh-Device-Model"], "test-device-model");
   assert.match(bodyToString(calls[0].options.body), /grant_type=refresh_token/);
 });
 
@@ -382,44 +375,6 @@ test("refreshGoogleToken exchanges refresh tokens against the shared google endp
   assert.equal(
     bodyToString(calls[0].options.body),
     "grant_type=refresh_token&refresh_token=google-refresh&client_id=gid&client_secret=gsecret"
-  );
-});
-
-test("refreshQwenToken maps resource_url into providerSpecificData", async () => {
-  const log = createLog();
-
-  await withMockedFetch(
-    async () =>
-      jsonResponse({
-        access_token: "qwen-access",
-        refresh_token: "qwen-refresh-next",
-        expires_in: 1500,
-        resource_url: "https://chat.qwen.ai/workspace/resource",
-      }),
-    async () => {
-      const result = await refreshQwenToken("qwen-refresh", log);
-      assert.deepEqual(result, {
-        accessToken: "qwen-access",
-        refreshToken: "qwen-refresh-next",
-        expiresIn: 1500,
-        providerSpecificData: {
-          resourceUrl: "https://chat.qwen.ai/workspace/resource",
-        },
-      });
-    }
-  );
-});
-
-test("refreshQwenToken surfaces invalid_request as unrecoverable", async () => {
-  const log = createLog();
-
-  await withMockedFetch(
-    async () => textResponse(JSON.stringify({ error: "invalid_request" }), 400),
-    async () => {
-      const result = await refreshQwenToken("qwen-refresh", log);
-      // Normalized to unrecoverable_refresh_error sentinel (Fix 4)
-      assert.deepEqual(result, { error: "unrecoverable_refresh_error", code: "invalid_request" });
-    }
   );
 });
 
@@ -751,7 +706,10 @@ test("refreshGitHubToken sends the real public github client_id and no client_se
 
   const body = bodyToString(calls[0].options.body);
   assert.equal(calls[0].url, OAUTH_ENDPOINTS.github.token);
-  assert.ok(PROVIDERS.github.clientId, "PROVIDERS.github.clientId must be populated from the public cred");
+  assert.ok(
+    PROVIDERS.github.clientId,
+    "PROVIDERS.github.clientId must be populated from the public cred"
+  );
   assert.match(body, /client_id=Iv1\./, "the real public github client_id must be sent on refresh");
   assert.ok(!body.includes("client_secret="), "no client_secret for the public github client");
 });

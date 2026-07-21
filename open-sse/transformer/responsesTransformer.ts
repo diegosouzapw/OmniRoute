@@ -1,5 +1,6 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
+import { isInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -75,9 +76,16 @@ export function createResponsesLogger(model, logsDir = null) {
 /**
  * Create TransformStream that converts Chat Completions SSE to Responses API SSE
  * @param {Object} logger - Optional logger instance
+ * @param {number} keepaliveIntervalMs - Keepalive interval in milliseconds
+ * @param {{ customToolNames?: Iterable<string> }} options - Original Responses tool metadata
  * @returns {TransformStream}
  */
-export function createResponsesApiTransformStream(logger = null, keepaliveIntervalMs = 3000) {
+export function createResponsesApiTransformStream(
+  logger = null,
+  keepaliveIntervalMs = 3000,
+  options = {}
+) {
+  const customToolNames = new Set(options.customToolNames || []);
   const state = {
     seq: 0,
     responseId: `resp_${Date.now()}`,
@@ -97,6 +105,8 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     funcArgsBuf: {},
     funcNames: {},
     funcCallIds: {},
+    funcItemAdded: {},
+    funcItemTypes: {},
     funcArgsDone: {},
     funcItemDone: {},
     completedOutputItems: [] as Array<{
@@ -270,46 +280,106 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     }
   };
 
+  const emitToolCallAdded = (controller, idx) => {
+    if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return false;
+
+    const customTool = customToolNames.has(state.funcNames[idx] || "");
+    const itemType = customTool ? "custom_tool_call" : "function_call";
+    state.funcItemTypes[idx] = itemType;
+    state.funcItemAdded[idx] = true;
+
+    emit(controller, "response.output_item.added", {
+      type: "response.output_item.added",
+      output_index: idx,
+      item: {
+        id: `fc_${state.funcCallIds[idx]}`,
+        type: itemType,
+        ...(customTool ? { input: "" } : { arguments: "" }),
+        call_id: state.funcCallIds[idx],
+        name: state.funcNames[idx] || "",
+        ...(customTool ? { status: "in_progress" } : {}),
+      },
+    });
+    return true;
+  };
+
   const closeToolCall = (controller, idx, recordAsCompleted = true) => {
     const callId = state.funcCallIds[idx];
     if (callId && !state.funcItemDone[idx]) {
       const normalizedIndex = normalizeOutputIndex(idx);
       let args = state.funcArgsBuf[idx] || "{}";
+      const toolName = state.funcNames[idx] || "";
+      emitToolCallAdded(controller, idx);
+      const isCustomTool = state.funcItemTypes[idx] === "custom_tool_call";
 
-      // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders
-      try {
-        const parsed = JSON.parse(args);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          let modified = false;
-          for (const [k, v] of Object.entries(parsed)) {
-            if (v === "" || (Array.isArray(v) && v.length === 0)) {
-              delete parsed[k];
-              modified = true;
+      // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders.
+      // Custom-tool input is intentionally allowed to be an empty string.
+      if (!isCustomTool) {
+        try {
+          const parsed = JSON.parse(args);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            let modified = false;
+            for (const [k, v] of Object.entries(parsed)) {
+              if (v === "" || (Array.isArray(v) && v.length === 0)) {
+                delete parsed[k];
+                modified = true;
+              }
+            }
+            if (modified) {
+              args = JSON.stringify(parsed);
+              state.funcArgsBuf[idx] = args;
             }
           }
-          if (modified) {
-            args = JSON.stringify(parsed);
-            state.funcArgsBuf[idx] = args;
-          }
+        } catch (e) {
+          // Ignore malformed JSON
         }
-      } catch (e) {
-        // Ignore malformed JSON
       }
 
-      emit(controller, "response.function_call_arguments.done", {
-        type: "response.function_call_arguments.done",
-        item_id: `fc_${callId}`,
-        output_index: normalizedIndex,
-        arguments: args,
-      });
+      let funcItem;
+      if (isCustomTool) {
+        let rawInput = args;
+        try {
+          const parsed = JSON.parse(args);
+          if (parsed && typeof parsed.input === "string") rawInput = parsed.input;
+        } catch {
+          // A non-JSON argument is already the raw custom-tool input.
+        }
 
-      const funcItem = {
-        id: `fc_${callId}`,
-        type: "function_call",
-        arguments: args,
-        call_id: callId,
-        name: state.funcNames[idx] || "",
-      };
+        emit(controller, "response.custom_tool_call_input.delta", {
+          type: "response.custom_tool_call_input.delta",
+          item_id: `fc_${callId}`,
+          output_index: normalizedIndex,
+          delta: rawInput,
+        });
+        emit(controller, "response.custom_tool_call_input.done", {
+          type: "response.custom_tool_call_input.done",
+          item_id: `fc_${callId}`,
+          output_index: normalizedIndex,
+          input: rawInput,
+        });
+        funcItem = {
+          id: `fc_${callId}`,
+          type: "custom_tool_call",
+          input: rawInput,
+          call_id: callId,
+          name: toolName,
+          status: "completed",
+        };
+      } else {
+        emit(controller, "response.function_call_arguments.done", {
+          type: "response.function_call_arguments.done",
+          item_id: `fc_${callId}`,
+          output_index: normalizedIndex,
+          arguments: args,
+        });
+        funcItem = {
+          id: `fc_${callId}`,
+          type: "function_call",
+          arguments: args,
+          call_id: callId,
+          name: toolName,
+        };
+      }
 
       emit(controller, "response.output_item.done", {
         type: "response.output_item.done",
@@ -456,7 +526,7 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
           }
 
           // Handle reasoning_content (OpenAI native format)
-          if (delta.reasoning_content) {
+          if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
             startReasoning(controller, idx);
             emitReasoningDelta(controller, delta.reasoning_content);
           }
@@ -576,6 +646,8 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
                 delete state.funcCallIds[tcIdx];
                 delete state.funcNames[tcIdx];
                 delete state.funcArgsBuf[tcIdx];
+                delete state.funcItemAdded[tcIdx];
+                delete state.funcItemTypes[tcIdx];
                 delete state.funcArgsDone[tcIdx];
                 delete state.funcItemDone[tcIdx];
               }
@@ -584,18 +656,25 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
               if (!state.funcCallIds[tcIdx] && newCallId) {
                 state.funcCallIds[tcIdx] = newCallId;
+              }
 
-                emit(controller, "response.output_item.added", {
-                  type: "response.output_item.added",
-                  output_index: tcIdx,
-                  item: {
-                    id: `fc_${newCallId}`,
-                    type: "function_call",
-                    arguments: "",
-                    call_id: newCallId,
-                    name: state.funcNames[tcIdx] || "",
-                  },
-                });
+              // The provider may send the call id before the function name. Defer the
+              // lifecycle item until the name is available so custom calls are not first
+              // announced as function calls.
+              if (state.funcCallIds[tcIdx] && state.funcNames[tcIdx]) {
+                const itemAdded = emitToolCallAdded(controller, tcIdx);
+                if (
+                  itemAdded &&
+                  state.funcItemTypes[tcIdx] !== "custom_tool_call" &&
+                  state.funcArgsBuf[tcIdx]
+                ) {
+                  emit(controller, "response.function_call_arguments.delta", {
+                    type: "response.function_call_arguments.delta",
+                    item_id: `fc_${state.funcCallIds[tcIdx]}`,
+                    output_index: tcIdx,
+                    delta: state.funcArgsBuf[tcIdx],
+                  });
+                }
               }
 
               if (!state.funcArgsBuf[tcIdx]) state.funcArgsBuf[tcIdx] = "";
@@ -622,7 +701,12 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
                 const emittedDelta = nextArgs.slice(existingArgs.length);
                 state.funcArgsBuf[tcIdx] = nextArgs;
 
-                if (refCallId && emittedDelta) {
+                if (
+                  refCallId &&
+                  emittedDelta &&
+                  state.funcItemAdded[tcIdx] &&
+                  state.funcItemTypes[tcIdx] !== "custom_tool_call"
+                ) {
                   emit(controller, "response.function_call_arguments.delta", {
                     type: "response.function_call_arguments.delta",
                     item_id: `fc_${refCallId}`,

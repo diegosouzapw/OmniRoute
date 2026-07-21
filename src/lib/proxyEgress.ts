@@ -270,7 +270,8 @@ export async function validateProxyPool(deps?: {
     deps?.listProxies ??
     (async () => {
       const { listProxies: real } = await import("./db/proxies");
-      return (await real({ includeSecrets: true })) as Array<{
+      const result = await real({ includeSecrets: true });
+      return result.items as Array<{
         id: string;
         type: string;
         host: string;

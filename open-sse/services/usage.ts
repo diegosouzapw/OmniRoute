@@ -7,6 +7,7 @@ import { getDbInstance } from "@/lib/db/core";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
 import { fetchOpencodeQuota, type OpencodeTripleWindowQuota } from "./opencodeQuotaFetcher.ts";
+import { getOpenrouterUsage } from "./usage/openrouter.ts";
 import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import { getPromptQlUsage } from "./usage/promptql.ts";
@@ -190,7 +191,7 @@ async function getCrofUsage(apiKey: string) {
 }
 
 /**
- * Bailian (Alibaba Coding Plan) Usage
+ * Bailian (Alibaba Token Plan) Usage
  * Fetches triple-window quota (5h, weekly, monthly) and returns worst-case.
  */
 async function getBailianCodingPlanUsage(
@@ -203,7 +204,7 @@ async function getBailianCodingPlanUsage(
     const quota = await fetchBailianQuota(connectionId, connection);
 
     if (!quota) {
-      return { message: "Bailian Coding Plan connected. Unable to fetch quota." };
+      return { message: "Alibaba Token Plan connected. Unable to fetch quota." };
     }
 
     const bailianQuota = quota as BailianTripleWindowQuota;
@@ -213,17 +214,17 @@ async function getBailianCodingPlanUsage(
     const remainingPercentage = Math.round(remaining);
 
     return {
-      plan: "Alibaba Coding Plan",
+      plan: "Alibaba Token Plan",
       used,
       total,
       remaining,
       remainingPercentage,
       resetAt: bailianQuota.resetAt,
       unlimited: false,
-      displayName: "Alibaba Coding Plan",
+      displayName: "Alibaba Token Plan",
     };
   } catch (error) {
-    return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
+    return { message: `Alibaba Token Plan error: ${(error as Error).message}` };
   }
 }
 
@@ -519,7 +520,6 @@ export const USAGE_FETCHER_PROVIDERS = [
   "amazon-q",
   "kimi-coding",
   "kimi-coding-apikey",
-  "qwen",
   "qoder",
   "glm",
   "glm-cn",
@@ -540,6 +540,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
+  "openrouter",
   // PromptQL playground credits (data.pro.ql.app getCreditSummary)
   "promptql",
   "pql",
@@ -584,11 +585,8 @@ export async function getUsageForProvider(
     case "vertex-partner":
       return await getVertexUsage(id || "", provider);
     case "kimi-coding":
-      return await getKimiUsage(accessToken);
     case "kimi-coding-apikey":
-      return await getKimiUsage(undefined, apiKey);
-    case "qwen":
-      return await getQwenUsage(accessToken, providerSpecificData);
+      return await getKimiUsage(accessToken, apiKey, providerSpecificData);
     case "qoder":
       // Qoder PATs live in `apiKey` (decrypted) or `providerSpecificData.qoderPat`,
       // never in `accessToken`.
@@ -616,6 +614,8 @@ export async function getUsageForProvider(
       return await getNanoGptUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
+    case "openrouter":
+      return await getOpenrouterUsage(id || "", apiKey || "", providerSpecificData);
     case "opencode":
     case "opencode-zen":
       return await getOpencodeUsage(id || "", apiKey || "");
@@ -886,24 +886,6 @@ async function getVertexUsage(connectionId: string, provider: string) {
     };
   } catch (error) {
     return { message: `Vertex usage tracking error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Qwen Usage
- */
-async function getQwenUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
-  void accessToken;
-  try {
-    const resourceUrl = providerSpecificData?.resourceUrl;
-    if (!resourceUrl) {
-      return { message: "Qwen connected. No resource URL available." };
-    }
-
-    // Qwen may have usage endpoint at resource URL
-    return { message: "Qwen connected. Usage tracked per request." };
-  } catch (error) {
-    return { message: "Unable to fetch Qwen usage." };
   }
 }
 

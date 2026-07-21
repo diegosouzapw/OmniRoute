@@ -30,7 +30,7 @@ Common problems and solutions for OmniRoute.
 | "401 Unauthorized"      | Your credentials are wrong          | Check your API key or re-authenticate with OAuth                                                  |
 | "429 Too Many Requests" | Rate limited                        | Wait 1 minute, or connect more providers                                                          |
 
-**Still stuck?** See the [Quick Fixes](#quick-fixes) below, or ask on [Discord](https://discord.gg/EkzRkpzKYt).
+**Still stuck?** See the [Quick Fixes](#quick-fixes) below, or ask on [Discord](https://discord.gg/U47eFqAXCn).
 
 ---
 
@@ -146,7 +146,7 @@ omniroute
 
 **Fix:**
 
-- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
 - Use GLM/MiniMax as cheap backup
 
 ### OAuth Token Expired

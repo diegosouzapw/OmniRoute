@@ -20,6 +20,7 @@ export type WizardProviderDefinition = {
   noAuth?: boolean;
   deprecated?: boolean;
   deprecationReason?: string;
+  hiddenFromDashboard?: boolean;
 };
 
 export type WizardProviderOption = {
@@ -39,7 +40,6 @@ export const SUPPORTED_WIZARD_OAUTH_PROVIDER_IDS = new Set([
   "codex",
   "antigravity",
   "agy",
-  "qwen",
   "kimi-coding",
   "github",
   "gitlab-duo",
@@ -84,7 +84,9 @@ export function getWizardApiKeyProviderOptions(): WizardProviderOption[] {
   const freeApiKeyProviders = Object.values(FREE_PROVIDERS).filter(
     (provider) => provider.noAuth || supportsApiKeyOnFreeProvider(provider.id)
   );
-  const providers = [...Object.values(APIKEY_PROVIDERS), ...freeApiKeyProviders];
+  const providers = [...Object.values(APIKEY_PROVIDERS), ...freeApiKeyProviders].filter(
+    (provider) => !(provider as WizardProviderDefinition).hiddenFromDashboard
+  );
   return sortProviderOptions(providers.map((provider) => toProviderOption(provider, "apikey")));
 }
 

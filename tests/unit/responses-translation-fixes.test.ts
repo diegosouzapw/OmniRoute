@@ -544,6 +544,50 @@ test("Responses→Chat streaming: reasoning delta emits reasoning_content in Cha
   assert.equal(result.choices[0].delta.reasoning_content, "thinking step...");
 });
 
+test("Responses→Chat streaming: internal reasoning replay placeholder stays hidden", () => {
+  const state = {
+    started: false,
+    chatId: null,
+    created: null,
+    toolCallIndex: 0,
+    finishReasonSent: false,
+  };
+
+  const result = openaiResponsesToOpenAIResponse(
+    {
+      type: "response.reasoning_summary_text.delta",
+      delta: "(prior reasoning summary unavailable)",
+      item_id: "rs_1",
+      output_index: 0,
+      summary_index: 0,
+    },
+    state
+  );
+
+  assert.equal(result, null);
+});
+
+test("Chat→Responses streaming: internal reasoning replay placeholder stays hidden", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+  const events = openaiToOpenAIResponsesResponse(
+    {
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning_content: "(prior reasoning summary unavailable)" },
+          finish_reason: null,
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(
+    events.some((event) => event.event === "response.reasoning_summary_text.delta"),
+    false
+  );
+});
+
 test("Responses→Chat streaming: Copilot mode emits reasoning_text for summary deltas", () => {
   const state = {
     started: false,
@@ -672,4 +716,49 @@ test("Responses→Chat streaming: flush finalizes stop when no tool call was emi
   const result = openaiResponsesToOpenAIResponse(null, state);
   assert.ok(result, "flush should emit a final chunk");
   assert.equal(result.choices[0].finish_reason, "stop");
+});
+
+test("Chat→Responses streaming: reasoning and a following tool call use distinct output indexes", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+
+  const reasoningEvents = openaiToOpenAIResponsesResponse(
+    {
+      id: "chatcmpl-grok",
+      choices: [{ index: 0, delta: { reasoning_content: "I should call the tool." } }],
+    },
+    state
+  );
+  const toolEvents = openaiToOpenAIResponsesResponse(
+    {
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_grok",
+                type: "function",
+                function: { name: "lookup", arguments: '{"query":"status"}' },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    state
+  );
+
+  const reasoningItem = reasoningEvents.find(
+    (event) => event.event === "response.output_item.added" && event.data.item.type === "reasoning"
+  );
+  const toolItem = toolEvents.find(
+    (event) =>
+      event.event === "response.output_item.added" && event.data.item.type === "function_call"
+  );
+
+  assert.ok(reasoningItem, "should announce the reasoning item");
+  assert.ok(toolItem, "should announce the function call item");
+  assert.equal(reasoningItem.data.output_index, 0);
+  assert.equal(toolItem.data.output_index, 1);
 });

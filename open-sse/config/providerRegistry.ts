@@ -4,6 +4,10 @@
  */
 
 export * from "./providers/shared.ts";
+export {
+  ALIBABA_MODEL_STUDIO_MODELS,
+  ALIBABA_MODEL_STUDIO_MODELS as ALIBABA_DASHSCOPE_MODELS,
+} from "./providers/registry/alibaba/index.ts";
 export { REGISTRY } from "./providers/index.ts";
 import { REGISTRY } from "./providers/index.ts";
 import {
@@ -12,9 +16,7 @@ import {
   RegistryOAuth,
   RegistryEntry,
   LegacyProvider,
-  KIMI_CODING_SHARED,
   buildModels,
-  ALIBABA_DASHSCOPE_MODELS,
   GPT_5_5_CONTEXT_LENGTH,
   GPT_5_5_CODEX_CAPABILITIES,
   CHAT_OPENAI_COMPAT_MODELS,
@@ -38,6 +40,9 @@ export function generateLegacyProviders(): Record<string, LegacyProvider> {
     }
     if (entry.responsesBaseUrl) {
       p.responsesBaseUrl = entry.responsesBaseUrl;
+    }
+    if (entry.messagesUrl) {
+      p.messagesUrl = entry.messagesUrl;
     }
     if (entry.requestDefaults) {
       p.requestDefaults = entry.requestDefaults;

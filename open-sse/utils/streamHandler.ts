@@ -376,7 +376,7 @@ export function createStreamController({
   return controller;
 }
 
-function buildStreamErrorChunks(
+export function buildStreamErrorChunks(
   errorMsg: string,
   statusCode: number,
   clientResponseFormat?: string | null
@@ -409,7 +409,13 @@ function buildStreamErrorChunks(
       },
     };
 
-    return encodeSseEvent(errorEvent, { event: "error" });
+    // #7699 — emit message_stop after event:error so Anthropic SDK / Claude Code
+    // see a proper terminal frame instead of a silent mid-response close.
+    // Without message_stop, clients report "Connection closed mid-response."
+    return [
+      ...encodeSseEvent(errorEvent, { event: "error" }),
+      ...encodeSseEvent({ type: "message_stop" }, { event: "message_stop" }),
+    ];
   }
 
   const errorEvent = {
@@ -457,10 +463,12 @@ export function createDisconnectAwareStream(transformStream, streamController) {
   const terminalDecoder = new TextDecoder();
   let terminalTail = "";
   let clientTerminalSeen = false;
+  let bytesWereForwarded = false;
 
   const noteClientChunk = (chunk: unknown) => {
-    if (clientTerminalSeen) return;
     if (!(chunk instanceof Uint8Array)) return;
+    bytesWereForwarded = true;
+    if (clientTerminalSeen) return;
 
     terminalTail += terminalDecoder.decode(chunk, { stream: true });
     if (terminalTail.length > 4096) {
@@ -486,8 +494,43 @@ export function createDisconnectAwareStream(transformStream, streamController) {
         try {
           const { done, value } = await reader.read();
           if (done) {
-            streamController.handleComplete();
-            controller.close();
+            // #7699 — upstream ended without a client-visible terminal marker.
+            // Scoped to Claude (/v1/messages) specifically, which is the
+            // issue's real scope: Anthropic's SSE spec permits a mid-stream
+            // event: error and Claude clients (Claude Code, Anthropic SDK)
+            // treat a stream that ends without message_stop as an error. For
+            // every other format (plain OpenAI chat completions included —
+            // see #7699's "Suggested Fix") a done-without-recognized-marker
+            // close is NOT necessarily a silent drop (many providers/formats
+            // legitimately have no [DONE]/response.completed equivalent), so
+            // injecting a synthetic error there would be a false positive.
+            if (
+              bytesWereForwarded &&
+              !clientTerminalSeen &&
+              streamController.clientResponseFormat === FORMATS.CLAUDE
+            ) {
+              streamController.handleError(
+                Object.assign(new Error("Upstream stream ended without a terminal marker"), {
+                  statusCode: 502,
+                })
+              );
+              try {
+                for (const chunk of buildStreamErrorChunks(
+                  "Upstream stream ended without a terminal marker",
+                  502,
+                  streamController.clientResponseFormat
+                )) {
+                  controller.enqueue(chunk);
+                }
+              } catch {
+                // downstream may have closed; original error already recorded
+              }
+            } else {
+              streamController.handleComplete();
+            }
+            try {
+              controller.close();
+            } catch {}
             return;
           }
           controller.enqueue(value);

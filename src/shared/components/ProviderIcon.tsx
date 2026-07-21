@@ -187,6 +187,7 @@ const KNOWN_SVGS = new Set([
   "qianfan",
   "qiniu",
   "qwen",
+  "qwencloud",
   "recraft",
   "replicate",
   "requesty",
@@ -236,6 +237,11 @@ const KNOWN_SVGS = new Set([
   "zhipu",
 ]);
 
+const LOCAL_SVG_ALIASES: Record<string, string> = {
+  "qwen-cloud": "qwencloud",
+  "qwen-cloud-token-plan": "qwencloud",
+};
+
 const KNOWN_PNGS = new Set([
   "adapta-web",
   "agentrouter",
@@ -262,6 +268,7 @@ const KNOWN_PNGS = new Set([
   "piapi",
   "predibase",
   "reka",
+  "dahl",
   "zeroclaw",
 ]);
 
@@ -290,9 +297,10 @@ const ProviderIcon = memo(function ProviderIcon({
 }: ProviderIconProps) {
   const { isDark } = useTheme();
   const normalizedId = providerId.toLowerCase();
+  const localSvgId = LOCAL_SVG_ALIASES[normalizedId] || normalizedId;
   const lobeIcon = getLobeProviderIcon(normalizedId, type);
   const themedSvg = THEMED_SVGS[normalizedId];
-  const hasSvg = KNOWN_SVGS.has(normalizedId);
+  const hasSvg = KNOWN_SVGS.has(localSvgId);
   const hasPng = KNOWN_PNGS.has(normalizedId);
 
   const [failedAssets, setFailedAssets] = useState<Record<string, true>>({});
@@ -381,7 +389,7 @@ const ProviderIcon = memo(function ProviderIcon({
         style={{ display: "inline-flex", alignItems: "center", ...style }}
       >
         <Image
-          src={`/providers/${normalizedId}.svg`}
+          src={`/providers/${localSvgId}.svg`}
           alt={providerId}
           width={size}
           height={size}

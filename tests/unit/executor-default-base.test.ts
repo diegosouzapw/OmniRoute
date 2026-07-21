@@ -74,10 +74,9 @@ test("BaseExecutor: legacy openai-compatible providers honor providerSpecificDat
   assert.equal(url, "https://proxy.example/v1/responses");
 });
 
-test("DefaultExecutor.buildUrl handles Gemini, Claude and Qwen variants", () => {
+test("DefaultExecutor.buildUrl handles Gemini and Claude variants", () => {
   const gemini = new DefaultExecutor("gemini");
   const claude = new DefaultExecutor("claude");
-  const qwen = new DefaultExecutor("qwen");
 
   assert.equal(
     gemini.buildUrl("gemini-2.5-flash", false),
@@ -88,13 +87,6 @@ test("DefaultExecutor.buildUrl handles Gemini, Claude and Qwen variants", () => 
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse"
   );
   assert.equal(claude.buildUrl("claude-sonnet-4", true), `${PROVIDERS.claude.baseUrl}?beta=true`);
-  assert.equal(qwen.buildUrl("qwen3-coder", true), "https://portal.qwen.ai/v1/chat/completions");
-  assert.equal(
-    qwen.buildUrl("qwen3-coder", true, 0, {
-      providerSpecificData: { resourceUrl: "custom.qwen.ai" },
-    }),
-    "https://custom.qwen.ai/v1/chat/completions"
-  );
 });
 
 test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compatible providers", () => {
@@ -530,22 +522,6 @@ test("DefaultExecutor.buildHeaders handles Snowflake PATs and GigaChat access to
   assert.equal(gigachatHeaders.Authorization, "Bearer gigachat-token");
 });
 
-test("DefaultExecutor.buildHeaders strips DashScope headers for Qwen API keys and preserves them for OAuth", () => {
-  const executor = new DefaultExecutor("qwen");
-
-  const apiKeyHeaders = executor.buildHeaders({ apiKey: "dash-key" }, true);
-  const oauthHeaders = executor.buildHeaders({ accessToken: "oauth-token" }, true);
-
-  assert.equal(apiKeyHeaders.Authorization, "Bearer dash-key");
-  assert.equal(
-    Object.keys(apiKeyHeaders).some((key) => key.toLowerCase().startsWith("x-dashscope-")),
-    false
-  );
-  assert.equal(oauthHeaders.Authorization, "Bearer oauth-token");
-  assert.equal(oauthHeaders["X-Dashscope-AuthType"], "qwen-oauth");
-  assert.equal(oauthHeaders["X-Dashscope-CacheControl"], "enable");
-});
-
 test("DefaultExecutor.buildHeaders rotates extra API keys and builds Claude Code compatible headers", () => {
   const openai = new DefaultExecutor("openai");
   const cc = new DefaultExecutor("anthropic-compatible-cc-test");
@@ -683,7 +659,11 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
     calls[1].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
     true
   );
-  assert.equal(calls[2].headers["anthropic-beta"], undefined);
+  // claude-sonnet-4-6 GA'd 1M context (2026-02-17) and was added to CONTEXT_1M_SUPPORTED_MODELS
+  // by #7129; a non-CC anthropic-compatible target with extendedContext:true now legitimately
+  // gets the context-1m beta header (shouldForwardExtendedContext in base.ts), same as any other
+  // 1M-capable model.
+  assert.equal(calls[2].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
 });
 
 test("DefaultExecutor.execute reports the exact serialized provider request before fetch", async () => {
@@ -998,19 +978,6 @@ test("DefaultExecutor.transformRequest strips stream_options from Anthropic-comp
   assert.notEqual(anthropicResult, anthropicBody);
   assert.equal((anthropicResult as any).stream_options, undefined);
   assert.equal((ccResult as any).stream_options, undefined);
-});
-
-test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for Qwen thinking", () => {
-  const executor = new DefaultExecutor("qwen");
-  const body = {
-    messages: [{ role: "user", content: "hi" }],
-    thinking: { type: "enabled" },
-    tool_choice: { type: "function", function: { name: "pwd" } },
-  };
-  const result = executor.transformRequest("qwen3-coder-plus", body, true, {});
-
-  assert.notEqual(result, body);
-  assert.equal((result as any).tool_choice, "auto");
 });
 
 // Port of decolua/9router#1343: openai-compatible-* providers (DeepSeek / Ollama /

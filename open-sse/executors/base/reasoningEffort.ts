@@ -38,6 +38,105 @@ export const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
 // Order matters: the opt-in check must run BEFORE the broad Claude/haiku/oswe strip.
 export const GITHUB_REASONING_EFFORT_OPT_IN_PATTERN = /claude[-_.]?(?:opus|sonnet)[-_.]?4[-_.]6/i;
 export const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
+const NVIDIA_GLM_52_PATTERN = /z-ai\/glm-5\.2\b/i;
+
+type ReasoningSanitizeLog = {
+  info?: (tag: string, msg: string) => void;
+};
+
+function isNvidiaGlm52(provider: string, model: string | undefined): boolean {
+  return provider === "nvidia" && NVIDIA_GLM_52_PATTERN.test(model || "");
+}
+
+type NvidiaGlm52EffortInfo = {
+  reasoning: Record<string, unknown> | null;
+  effortStr: string;
+};
+
+/** Pulls a normalized (lowercased) effort string out of top-level or nested `reasoning.effort`. */
+function extractNvidiaGlm52Effort(b: Record<string, unknown>): NvidiaGlm52EffortInfo | null {
+  const reasoning =
+    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
+      ? (b.reasoning as Record<string, unknown>)
+      : null;
+  const effort = b.reasoning_effort ?? reasoning?.effort;
+  if (effort === undefined) return null;
+
+  const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
+  if (!effortStr) return null;
+
+  return { reasoning, effortStr };
+}
+
+/** Builds `chat_template_kwargs.enable_thinking`, or null when the existing kwargs shape is unusable. */
+function buildNvidiaGlm52TemplateKwargs(
+  rawTemplateKwargs: unknown,
+  effortStr: string
+): Record<string, unknown> | null {
+  if (
+    rawTemplateKwargs !== undefined &&
+    (!rawTemplateKwargs ||
+      typeof rawTemplateKwargs !== "object" ||
+      Array.isArray(rawTemplateKwargs))
+  ) {
+    return null;
+  }
+
+  const templateKwargs = {
+    ...((rawTemplateKwargs as Record<string, unknown> | undefined) ?? {}),
+  };
+  if (!Object.prototype.hasOwnProperty.call(templateKwargs, "enable_thinking")) {
+    templateKwargs.enable_thinking = effortStr !== "none";
+  }
+  return templateKwargs;
+}
+
+/** Returns a copy of `b` with `reasoning_effort`/`reasoning.effort` replaced by `templateKwargs`. */
+function withNvidiaGlm52TemplateKwargs(
+  b: Record<string, unknown>,
+  templateKwargs: Record<string, unknown>,
+  reasoning: Record<string, unknown> | null
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...b, chat_template_kwargs: templateKwargs };
+  delete next.reasoning_effort;
+  if (reasoning) {
+    const nextReasoning = { ...reasoning };
+    delete nextReasoning.effort;
+    if (Object.keys(nextReasoning).length === 0) delete next.reasoning;
+    else next.reasoning = nextReasoning;
+  }
+  return next;
+}
+
+/**
+ * Map OmniRoute's reasoning-effort inputs onto the binary thinking switch exposed by
+ * NVIDIA's hosted GLM-5.2 chat template. This runs before DefaultExecutor's unsupported
+ * parameter stripping so a nested `reasoning.effort` is not discarded first, and is also
+ * reused by the final provider sanitizer for non-default execution paths.
+ */
+export function mapNvidiaGlm52ReasoningParams(
+  body: unknown,
+  provider: string,
+  model: string | undefined,
+  log?: ReasoningSanitizeLog | null
+): unknown {
+  if (!isNvidiaGlm52(provider, model)) return body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+
+  const b = body as Record<string, unknown>;
+  const info = extractNvidiaGlm52Effort(b);
+  if (!info) return body;
+
+  const templateKwargs = buildNvidiaGlm52TemplateKwargs(b.chat_template_kwargs, info.effortStr);
+  if (!templateKwargs) return body;
+
+  const next = withNvidiaGlm52TemplateKwargs(b, templateKwargs, info.reasoning);
+  log?.info?.(
+    "REASONING_SANITIZE",
+    `nvidia/${model || ""}: mapped reasoning effort to enable_thinking`
+  );
+  return next;
+}
 
 export function supportsMaxEffortForProvider(provider: string, model: string): boolean {
   const isClaude =
@@ -53,25 +152,106 @@ export function supportsMaxEffortForProvider(provider: string, model: string): b
   const isOpencodeGoDeepSeek =
     provider === "opencode-go" && model.toLowerCase().includes("deepseek");
   const isOllamaCloud = provider === "ollama-cloud";
-  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud;
+  const isMoonshotK3 =
+    (provider === "moonshot" || provider === "kimi") && /^kimi-k3(?:$|-)/i.test(model);
+  return isClaude || isOpencodeGoDeepSeek || isOllamaCloud || isMoonshotK3;
+}
+
+// ── Effort carrier helpers (#7044) ──────────────────────────────────────────
+// OmniRoute carries the requested effort on up to three shapes:
+//   1. top-level `reasoning_effort`        — OpenAI / OmniRoute-internal
+//   2. `reasoning.effort`                  — OpenAI Responses shape
+//   3. `output_config.effort`              — Anthropic Messages native (Claude Code / Claude passthrough)
+// Carrier (3) was previously invisible to this sanitizer, so a native Claude request
+// carrying `output_config.effort: "xhigh"` reached providers that don't accept xhigh
+// (e.g. claude-sonnet-4-6, supportsXHighEffort=false) unchanged → HTTP 400 (#7044).
+interface EffortCarriers {
+  reasoning: Record<string, unknown> | null;
+  outputConfig: Record<string, unknown> | null;
+  hasTopLevelReasoningEffort: boolean;
+  hasReasoningEffort: boolean;
+  hasOutputConfigEffort: boolean;
+  effort: unknown;
+}
+
+function readEffortCarriers(b: Record<string, unknown>): EffortCarriers {
+  const reasoning =
+    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
+      ? (b.reasoning as Record<string, unknown>)
+      : null;
+  const outputConfig =
+    b.output_config && typeof b.output_config === "object" && !Array.isArray(b.output_config)
+      ? (b.output_config as Record<string, unknown>)
+      : null;
+  const hasTopLevelReasoningEffort = Object.prototype.hasOwnProperty.call(b, "reasoning_effort");
+  const hasReasoningEffort = !!(
+    reasoning && Object.prototype.hasOwnProperty.call(reasoning, "effort")
+  );
+  const hasOutputConfigEffort = !!(
+    outputConfig && Object.prototype.hasOwnProperty.call(outputConfig, "effort")
+  );
+  const effort = b.reasoning_effort ?? reasoning?.effort ?? outputConfig?.effort;
+  return {
+    reasoning,
+    outputConfig,
+    hasTopLevelReasoningEffort,
+    hasReasoningEffort,
+    hasOutputConfigEffort,
+    effort,
+  };
+}
+
+/** Write a normalized effort value back to every carrier that was present. */
+function writeEffortValue(
+  b: Record<string, unknown>,
+  value: string,
+  c: EffortCarriers
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...b };
+  if (c.hasTopLevelReasoningEffort) next.reasoning_effort = value;
+  if (c.hasReasoningEffort && c.reasoning) next.reasoning = { ...c.reasoning, effort: value };
+  if (c.hasOutputConfigEffort && c.outputConfig)
+    next.output_config = { ...c.outputConfig, effort: value };
+  return next;
+}
+
+/** Strip the effort field from every carrier that was present. */
+function stripEffortValue(
+  b: Record<string, unknown>,
+  c: EffortCarriers
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...b };
+  if (c.hasTopLevelReasoningEffort) delete next.reasoning_effort;
+  if (c.hasReasoningEffort && c.reasoning) {
+    const r: Record<string, unknown> = { ...c.reasoning };
+    delete r.effort;
+    if (Object.keys(r).length === 0) delete next.reasoning;
+    else next.reasoning = r;
+  }
+  if (c.hasOutputConfigEffort && c.outputConfig) {
+    const oc: Record<string, unknown> = { ...c.outputConfig };
+    delete oc.effort;
+    if (Object.keys(oc).length === 0) delete next.output_config;
+    else next.output_config = oc;
+  }
+  return next;
 }
 
 export function sanitizeReasoningEffortForProvider(
   body: unknown,
   provider: string,
   model: string | undefined,
-  log?: { info?: (tag: string, msg: string) => void } | null
+  log?: ReasoningSanitizeLog | null
 ): unknown {
+  if (isNvidiaGlm52(provider, model)) {
+    return mapNvidiaGlm52ReasoningParams(body, provider, model, log);
+  }
+
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
   const b = body as Record<string, unknown>;
-  const reasoning =
-    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
-      ? (b.reasoning as Record<string, unknown>)
-      : null;
-  const hasTopLevelReasoningEffort = Object.prototype.hasOwnProperty.call(b, "reasoning_effort");
-  const effort = b.reasoning_effort ?? reasoning?.effort;
-  if (effort === undefined) return body;
-  const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
+  const c = readEffortCarriers(b);
+  if (c.effort === undefined) return body;
+  const effortStr = typeof c.effort === "string" ? c.effort.toLowerCase() : "";
   const modelStr = model || "";
 
   const githubOptIn =
@@ -84,15 +264,7 @@ export function sanitizeReasoningEffortForProvider(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: removed unsupported reasoning_effort`
     );
-    const next: Record<string, unknown> = { ...b };
-    delete next.reasoning_effort;
-    if (reasoning) {
-      const r = { ...reasoning };
-      delete r.effort;
-      if (Object.keys(r).length === 0) delete next.reasoning;
-      else next.reasoning = r;
-    }
-    return next;
+    return stripEffortValue(b, c);
   }
 
   // Native DeepSeek (api.deepseek.com) — V4 thinking mode accepts reasoning_effort
@@ -111,10 +283,7 @@ export function sanitizeReasoningEffortForProvider(
         "REASONING_SANITIZE",
         `deepseek/${modelStr}: normalized reasoning_effort ${effortStr} → ${mapped}`
       );
-      const next: Record<string, unknown> = { ...b };
-      if (hasTopLevelReasoningEffort) next.reasoning_effort = mapped;
-      if (reasoning) next.reasoning = { ...reasoning, effort: mapped };
-      return next;
+      return writeEffortValue(b, mapped, c);
     }
     return body;
   }
@@ -131,14 +300,7 @@ export function sanitizeReasoningEffortForProvider(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: normalized reasoning_effort max → xhigh`
     );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "xhigh";
-    }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "xhigh" };
-    }
-    return next;
+    return writeEffortValue(b, "xhigh", c);
   }
 
   if (shouldDowngradeXHigh || shouldDowngradeMax) {
@@ -146,14 +308,7 @@ export function sanitizeReasoningEffortForProvider(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: downgraded reasoning_effort ${effortStr} → high`
     );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "high";
-    }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "high" };
-    }
-    return next;
+    return writeEffortValue(b, "high", c);
   }
 
   return body;

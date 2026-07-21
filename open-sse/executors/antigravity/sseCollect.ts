@@ -88,6 +88,28 @@ export function processAntigravitySSEPayload(
     const candidate = parsed?.response?.candidates?.[0];
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
+        // Native function calls: Gemini 3.x responds to functionDeclarations with a
+        // native functionCall part (usually carrying a thoughtSignature), NOT the
+        // legacy "[Tool call: ...]" textual format. Dropping these left the collected
+        // stream empty on every tools request → synthetic 502 "Provider returned
+        // empty content" (Chatwit Captain Copilot / reply suggestion outage).
+        if (part.functionCall && typeof part.functionCall.name === "string") {
+          const fc = part.functionCall;
+          collected.toolCalls.push({
+            id:
+              typeof fc.id === "string" && fc.id.length > 0
+                ? fc.id
+                : `${fc.name}-${Date.now()}-${collected.toolCalls.length}`,
+            index: collected.toolCalls.length,
+            type: "function",
+            function: {
+              name: fc.name,
+              arguments: JSON.stringify(stripZeroWidth(fc.args ?? {})),
+            },
+          });
+          collected.finishReason = "tool_calls";
+          continue;
+        }
         if (typeof part.text === "string" && !part.thought && !part.thoughtSignature) {
           const textualToolCall = parseAntigravityTextualToolCall(part.text);
           if (textualToolCall) {
@@ -96,9 +118,23 @@ export function processAntigravitySSEPayload(
             collected.textContent += part.text;
           }
         }
+        // Native Gemini function calls. Non-streaming responses (and some
+        // streaming ones) carry the tool call as `part.functionCall` rather than
+        // the textual `[Tool call: ...]` markdown. Without this, a tool-only
+        // response produced empty content and a 502 Provider error (#7037).
+        if (part.functionCall && typeof part.functionCall.name === "string") {
+          addAntigravityTextualToolCall(collected, {
+            name: part.functionCall.name,
+            args: part.functionCall.args ?? {},
+          });
+        }
       }
     }
-    if (candidate?.finishReason) {
+    // Preserve a tool-call finish reason: once a native `part.functionCall`
+    // (or textual tool call) has populated `toolCalls`, the candidate's own
+    // finish reason (often STOP) must not clobber it (#7037 — a tool-only
+    // response would otherwise report STOP and lose its tool-call signal).
+    if (candidate?.finishReason && collected.toolCalls.length === 0) {
       collected.finishReason = normalizeOpenAICompatibleFinishReasonString(
         String(candidate.finishReason).toLowerCase()
       );

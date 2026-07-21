@@ -57,7 +57,7 @@ async function createCombo(name: string, model: string) {
 // ── model-combo-mappings routes ──────────────────────────────────────────────
 
 test("GET /model-combo-mappings returns empty list on fresh DB", async () => {
-  const res = await mappingsRoute.GET();
+  const res = await mappingsRoute.GET(makeRequest("http://localhost/api/model-combo-mappings"));
   assert.equal(res.status, 200);
   const body = (await res.json()) as any;
   assert.ok(Array.isArray(body.mappings), "body.mappings must be an array");
@@ -66,7 +66,7 @@ test("GET /model-combo-mappings returns empty list on fresh DB", async () => {
 });
 
 test("GET /model-combo-mappings error response never leaks raw error.message", async () => {
-  const res = await mappingsRoute.GET();
+  const res = await mappingsRoute.GET(makeRequest("http://localhost/api/model-combo-mappings"));
   // In the success case, there is no error field at all
   const body = (await res.json()) as any;
   if (res.status >= 500) {

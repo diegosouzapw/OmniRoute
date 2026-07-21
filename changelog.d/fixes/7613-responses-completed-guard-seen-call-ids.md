@@ -1,0 +1,1 @@
+- **fix(translator):** guard against double-emission when `response.completed` echoes `function_call` items already streamed via incremental `output_item.added`/`done` events — skip synthesis for `call_id`s already tracked, preventing duplicate tool call chunks for incrementally-streaming providers

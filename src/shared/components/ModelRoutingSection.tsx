@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Card from "./Card";
+import { matchesOnlyPaidModels } from "@/shared/utils/freeModels";
 
 export interface ModelMapping {
   id: string;
@@ -26,6 +27,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [hidePaidModels, setHidePaidModels] = useState(false);
   const combos = externalCombos || internalCombos;
 
   // Form state
@@ -53,6 +55,21 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
         setLoading(false);
       }
     });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // #6540: read hidePaidModels once so the pattern field can warn (fail-open)
+  // when it resolves only to paid model families.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/settings")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setHidePaidModels(data.hidePaidModels === true);
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -141,6 +158,11 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
     } catch {}
   };
 
+  // #6540: fail-open heuristic — only warn/block when the pattern resolves
+  // to at least one model AND every match is paid. A pattern matching a
+  // mix of free and paid models (or nothing recognizable) is left alone.
+  const patternIsPaidOnly = hidePaidModels && matchesOnlyPaidModels(pattern);
+
   return (
     <Card>
       <div className="flex items-center justify-between gap-4">
@@ -183,6 +205,12 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
                            bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-primary"
               />
               <p className="text-[9px] text-text-muted mt-0.5">{t("patternHint")}</p>
+              {patternIsPaidOnly && (
+                <p className="text-[9px] text-amber-500 mt-0.5">
+                  {t("paidModelPatternWarning") ||
+                    "This pattern only matches paid models — enable paid models or adjust the pattern."}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
@@ -231,7 +259,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
           <div className="flex items-center gap-2 mt-2.5">
             <button
               onClick={handleSave}
-              disabled={!pattern.trim() || !comboId}
+              disabled={!pattern.trim() || !comboId || patternIsPaidOnly}
               className="px-3 py-1 text-xs font-medium rounded-lg bg-primary text-white
                          hover:bg-primary/90 disabled:opacity-40 transition-colors"
             >

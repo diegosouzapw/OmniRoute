@@ -11,7 +11,8 @@
  * Uses Promise.allSettled so one slow/down node doesn't block others.
  */
 
-import { getProviderNodes } from "@/lib/localDb";
+import { getCachedProviderNodes } from "@/lib/localDb";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -37,14 +38,6 @@ function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
 
-function isAutomatedTestProcess(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((arg) => arg.includes("test")))
-  );
-}
 
 // ── State (globalThis survives HMR re-evaluation) ───────────────────────
 
@@ -159,7 +152,7 @@ export async function sweep(): Promise<void> {
   try {
     let nodes: Array<{ id: string; prefix: string; baseUrl: string }>;
     try {
-      const raw = await getProviderNodes();
+      const raw = await getCachedProviderNodes();
       nodes = (Array.isArray(raw) ? raw : []).filter(
         (n: Record<string, unknown>) =>
           typeof n.baseUrl === "string" && isLocalhostUrl(n.baseUrl as string)

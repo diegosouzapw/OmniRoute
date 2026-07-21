@@ -1,0 +1,1 @@
+- fix(cli): resolve Windows CLI detection false negatives — nvm-windows symlinked binaries no longer rejected as symlink_escape, and a stray known-path artifact no longer hides a genuinely runnable Claude CLI on the PATH fallback (#7753, #7774)

@@ -1,0 +1,1 @@
+- fix(security): OIDC login gate now requires `email_verified` before honoring the email claim against the allowlist (an unverified IdP email matching an allowlisted address no longer bypasses the gate), and error redirects resolve against the parsed request URL instead of the raw Host header

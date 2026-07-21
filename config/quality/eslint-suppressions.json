@@ -169,11 +169,6 @@
       "count": 2
     }
   },
-  "open-sse/translator/helpers/claudeHelper.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "open-sse/utils/setupPolyfill.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
@@ -207,11 +202,6 @@
       "count": 1
     }
   },
-  "src/app/(dashboard)/dashboard/cli-code/components/DefaultToolCard.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 2
-    }
-  },
   "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -223,11 +213,6 @@
     }
   },
   "src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab.tsx": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/providers/[id]/ProviderDetailPageClient.tsx": {
     "react-hooks/exhaustive-deps": {
       "count": 1
     }
@@ -335,11 +320,6 @@
   "tests/e2e/system-failover.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    }
-  },
-  "tests/integration/_chatPipelineHarness.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
     }
   },
   "tests/integration/_comboRoutingHarness.ts": {
@@ -614,7 +594,7 @@
   },
   "tests/unit/base-executor-sanitize-effort.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 45
+      "count": 48
     }
   },
   "tests/unit/batch_api.test.ts": {
@@ -724,7 +704,7 @@
   },
   "tests/unit/chatcore-translation-paths.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 40
+      "count": 34
     }
   },
   "tests/unit/chatgpt-web-tools-5240.test.ts": {
@@ -1039,7 +1019,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 261
+      "count": 269
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
@@ -1364,7 +1344,7 @@
   },
   "tests/unit/executor-default-base.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 43
+      "count": 42
     }
   },
   "tests/unit/executor-github.test.ts": {
@@ -1375,11 +1355,6 @@
   "tests/unit/executor-gitlab.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4
-    }
-  },
-  "tests/unit/executor-kimi-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   },
   "tests/unit/executor-nlpcloud.test.ts": {
@@ -1470,11 +1445,6 @@
   "tests/unit/grok-web.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 25
-    }
-  },
-  "tests/unit/guide-settings-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
     }
   },
   "tests/unit/i18n-nest-dotted-keys.test.ts": {
@@ -1692,11 +1662,6 @@
       "count": 2
     }
   },
-  "tests/unit/perplexity-web.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    }
-  },
   "tests/unit/persist-429-cooldown-account-fallback.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
@@ -1769,7 +1734,7 @@
   },
   "tests/unit/provider-models-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 55
+      "count": 54
     }
   },
   "tests/unit/provider-models-token-limits.test.ts": {
@@ -2052,11 +2017,6 @@
       "count": 13
     }
   },
-  "tests/unit/sse-parser.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 15
-    }
-  },
   "tests/unit/startup-stale-cooldown-recovery.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -2259,7 +2219,7 @@
   },
   "tests/unit/usage-service-hardening.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 59
+      "count": 56
     }
   },
   "tests/unit/v1-ws-bridge.test.ts": {
