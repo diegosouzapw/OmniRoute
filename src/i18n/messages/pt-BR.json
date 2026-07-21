@@ -4167,6 +4167,7 @@
     "filterError": "Erro",
     "filterBanned": "Banido",
     "filterCreditsExhausted": "Créditos esgotados",
+    "accountSearchPlaceholder": "Buscar contas…",
     "noFilteredConnections": "__MISSING__:No connections match the current filter.",
     "failedSetAlias": "Falha ao definir alias",
     "setAliasSuccess": "__MISSING__:Alias {alias} set",
