@@ -1,4 +1,4 @@
--- 124_proxy_subscriptions_meta.sql
+-- 132_proxy_subscriptions_meta.sql
 -- Observability columns for proxy subscriptions. Track the last error time and
 -- a consecutive-failure counter so an operator can tell a transient blip
 -- (one failed scheduled refresh) apart from a persistently broken subscription

@@ -1,4 +1,4 @@
--- 123_proxy_subscriptions.sql
+-- 131_proxy_subscriptions.sql
 -- User-supplied proxy subscriptions (Karing-style): the operator pastes a
 -- subscription URL that resolves to a pool of proxy nodes. Nodes are synced
 -- into proxy_registry (source='subscription', subscription_id set) and bound
