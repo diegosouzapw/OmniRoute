@@ -147,6 +147,10 @@ const nextConfig = {
         path: "**/open-sse/services/compression/**",
         description: /Overly broad patterns can lead to build performance issues/,
       },
+      {
+        path: "**/src/lib/db/migrationRunner.ts",
+        description: /Overly broad patterns can lead to build performance issues/,
+      },
     ],
   },
   output: "standalone",
