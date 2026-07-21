@@ -736,14 +736,22 @@ function buildStepOptions(
   step: CompressionPipelineStep,
   options?: StackOptions
 ): CompressionEngineApplyOptions {
+  const stepConfig: Record<string, unknown> = {
+    ...(step.config ?? {}),
+    ...(step.intensity ? { intensity: step.intensity } : {}),
+  };
+  // Selecting an engine in an explicit stacked pipeline is itself the enablement
+  // signal. Preserve an explicit per-step opt-out, but do not let the standalone
+  // default (codexResponsesConfig.enabled=false) turn a selected stacked step into
+  // a no-op.
+  if (step.engine === "codex-responses" && stepConfig.enabled === undefined) {
+    stepConfig.enabled = true;
+  }
   return {
     ...options,
     compressionComboId: options?.compressionComboId ?? options?.config?.compressionComboId,
     principalId: options?.principalId,
-    stepConfig: {
-      ...(step.config ?? {}),
-      ...(step.intensity ? { intensity: step.intensity } : {}),
-    },
+    stepConfig,
   };
 }
 

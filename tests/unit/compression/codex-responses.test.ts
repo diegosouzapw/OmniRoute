@@ -146,7 +146,9 @@ describe("Responses tool-output compression", () => {
       { type: "function_call_output", call_id: "run-1", output },
     ];
     const config = {
-      codexResponsesConfig: { enabled: true },
+      // Selecting the engine in an explicit stacked pipeline enables it even
+      // when the standalone setting remains at its default disabled value.
+      codexResponsesConfig: { enabled: false },
       stackedPipeline: [{ engine: "codex-responses" as const }],
     };
     const standalone = applyCompression({ input }, "codex-responses", { config });
@@ -164,5 +166,13 @@ describe("Responses tool-output compression", () => {
     });
     assert.equal(stringPipeline.compressed, true);
     assert.deepEqual(stringPipeline.body, stacked.body);
+
+    const explicitlyDisabled = await applyCompressionAsync({ input }, "stacked", {
+      config: {
+        ...config,
+        stackedPipeline: [{ engine: "codex-responses", config: { enabled: false } }],
+      },
+    });
+    assert.equal(explicitlyDisabled.compressed, false);
   });
 });
