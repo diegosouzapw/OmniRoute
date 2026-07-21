@@ -4780,6 +4780,7 @@
     "filterError": "Lỗi",
     "filterBanned": "Bị cấm",
     "filterCreditsExhausted": "Hết tín dụng",
+    "accountSearchPlaceholder": "Tìm kiếm tài khoản…",
     "contextWindowOverrideLabel": "Ghi đè cửa sổ ngữ cảnh",
     "contextWindowOverridePlaceholder": "Ví dụ: 131072",
     "contextWindowOverrideHint": "Đặt thủ công cửa sổ ngữ cảnh thực tế của mô hình (token) khi nhà cung cấp báo sai. Giá trị này được ưu tiên hơn giá trị tự động phát hiện hoặc danh mục và ngăn định tuyến combo loại bỏ mô hình.",
