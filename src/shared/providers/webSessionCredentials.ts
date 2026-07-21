@@ -82,6 +82,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "sessionToken", "session-token", "__Secure-next-auth.session-token"],
   },
+  hyperagent: {
+    kind: "cookie",
+    credentialName: "Session Cookie",
+    placeholder: "Paste full Cookie header from hyperagent.com",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "sessionCookie", "authCookie"],
+  },
   "blackbox-web": {
     kind: "cookie",
     credentialName: "__Secure-authjs.session-token",

@@ -423,6 +423,19 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste only the token_v2 cookie VALUE from app.notion.com (DevTools → Application → Cookies → token_v2). " +
       "Do not paste token_v2= or the full Cookie header. Workspace is auto-detected; space_id / notion_user_id are optional.",
   },
+  hyperagent: {
+    id: "hyperagent",
+    alias: "ha",
+    name: "HyperAgent (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#6C5CE7",
+    textIcon: "HA",
+    website: "https://hyperagent.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste the full Cookie header from hyperagent.com (DevTools → Network → any request → Request Headers → Cookie). Session cookies power chat + billing usage.",
+  },
 };
 
 /** Resolved public site for a web-session provider (href + display host). */

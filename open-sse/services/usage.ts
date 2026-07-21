@@ -11,6 +11,7 @@ import { getOpenrouterUsage } from "./usage/openrouter.ts";
 import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import { getPromptQlUsage } from "./usage/promptql.ts";
+import { getHyperAgentUsage } from "./usage/hyperagent.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
@@ -544,6 +545,9 @@ export const USAGE_FETCHER_PROVIDERS = [
   // PromptQL playground credits (data.pro.ql.app getCreditSummary)
   "promptql",
   "pql",
+  // HyperAgent billing usage (creditBlocks USD)
+  "hyperagent",
+  "ha",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -633,6 +637,9 @@ export async function getUsageForProvider(
         providerSpecificData,
         projectId
       );
+    case "hyperagent":
+    case "ha":
+      return await getHyperAgentUsage(apiKey || accessToken, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

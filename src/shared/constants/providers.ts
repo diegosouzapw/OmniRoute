@@ -444,6 +444,8 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   // PromptQL playground credits (getCreditSummary → USD micros)
   "promptql",
   "pql",
+  "hyperagent",
+  "ha",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──
