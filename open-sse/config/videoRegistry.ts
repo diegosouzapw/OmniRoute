@@ -264,6 +264,25 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     format: "xai-video",
     models: [{ id: "grok-imagine-video", name: "Grok Imagine Video" }],
   },
+
+  // Adobe Firefly (unofficial) — same IMS/cookie credential as the image entry.
+  // Async 3P video generate + poll (Sora 2, Veo 3.1, Kling 3).
+  "adobe-firefly": {
+    id: "adobe-firefly",
+    alias: "firefly",
+    baseUrl: "https://firefly-3p.ff.adobe.io/v2/3p-videos/generate-async",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "adobe-firefly-video",
+    models: [
+      { id: "sora-2", name: "Firefly Sora 2" },
+      { id: "sora-2-pro", name: "Firefly Sora 2 Pro" },
+      { id: "veo-3.1", name: "Firefly Veo 3.1" },
+      { id: "veo-3.1-fast", name: "Firefly Veo 3.1 Fast" },
+      { id: "veo-3.1-ref", name: "Firefly Veo 3.1 Reference" },
+      { id: "kling-3", name: "Firefly Kling 3.0" },
+    ],
+  },
 };
 
 /**

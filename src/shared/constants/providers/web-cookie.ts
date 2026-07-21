@@ -423,6 +423,19 @@ export const WEB_COOKIE_PROVIDERS = {
       "Paste only the token_v2 cookie VALUE from app.notion.com (DevTools → Application → Cookies → token_v2). " +
       "Do not paste token_v2= or the full Cookie header. Workspace is auto-detected; space_id / notion_user_id are optional.",
   },
+  "adobe-firefly": {
+    id: "adobe-firefly",
+    alias: "firefly",
+    name: "Adobe Firefly (Image/Video)",
+    icon: "auto_awesome",
+    color: "#EB1000",
+    textIcon: "FF",
+    website: "https://firefly.adobe.com",
+    authHint:
+      "Sign in at firefly.adobe.com or new.express.adobe.com, then either (1) paste the full Cookie header from DevTools → Network, or (2) copy a short-lived IMS access_token from an Authorization: Bearer header. Cookie is preferred (auto-exchanged for an access token). Unofficial/experimental media provider — image + video only.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
 };
 
 /** Resolved public site for a web-session provider (href + display host). */

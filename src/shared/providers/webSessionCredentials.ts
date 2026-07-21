@@ -295,6 +295,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "jwt", "apiKey", "projectId", "project_id", "cookie"],
   },
+  "adobe-firefly": {
+    kind: "cookie",
+    credentialName: "Cookie header or IMS access_token",
+    placeholder: "full Cookie header from firefly.adobe.com, or access_token JWT",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "token", "access_token", "accessToken"],
+  },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 
 export function getWebSessionCredentialRequirement(

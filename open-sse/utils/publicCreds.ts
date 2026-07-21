@@ -196,6 +196,10 @@ const EMBEDDED_DEFAULTS = {
     89, 44, 91, 40, 51, 94, 49, 64, 32, 108, 54, 51, 86, 41, 80, 37, 111, 69, 6, 42, 95, 93, 45, 68,
     87, 65, 77, 84, 105, 70, 51, 86,
   ],
+  // Adobe Firefly / Adobe Express web — public x-api-key + IMS client_id
+  // (`projectx_webapp`) shipped in new.express.adobe.com / firefly.adobe.com
+  // frontends. Not a per-user secret; every browser session sends the same value.
+  adobe_firefly_api_key: [31, 31, 1, 3, 23, 12, 1, 12, 58, 90, 21, 23, 3, 28, 25],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;

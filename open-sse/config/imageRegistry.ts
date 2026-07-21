@@ -639,6 +639,24 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     models: LMARENA_DIRECT_IMAGE_MODELS,
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
+
+  // Adobe Firefly (unofficial) — IMS access_token or browser Cookie from
+  // firefly.adobe.com / new.express.adobe.com. Async 3P image generate + poll.
+  "adobe-firefly": {
+    id: "adobe-firefly",
+    alias: "firefly",
+    baseUrl: "https://firefly-3p.ff.adobe.io/v2/3p-images/generate-async",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "adobe-firefly-image",
+    models: [
+      { id: "nano-banana-pro", name: "Firefly Nano Banana Pro", inputModalities: ["text", "image"] },
+      { id: "nano-banana", name: "Firefly Nano Banana", inputModalities: ["text", "image"] },
+      { id: "nano-banana-2", name: "Firefly Nano Banana 2", inputModalities: ["text", "image"] },
+      { id: "gpt-image", name: "Firefly GPT Image", inputModalities: ["text", "image"] },
+    ],
+    supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4", "1024x1024", "1792x1024", "1024x1792"],
+  },
 };
 
 /**
