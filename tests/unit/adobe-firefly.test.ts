@@ -24,6 +24,10 @@ import {
   resolveAdobeVideoModel,
   adobeFireflyGenerateImage,
   adobeFireflyGenerateVideo,
+  exchangeAdobeCookieForAccessToken,
+  isAdobeGuestAccessToken,
+  isAdobeUserAccessToken,
+  resolveAdobeAccessToken,
 } from "../../open-sse/services/adobeFireflyClient.ts";
 import {
   ADOBE_FIREFLY_FALLBACK_MODELS,
@@ -90,15 +94,17 @@ test("adobe_firefly_api_key embedded default decodes to clio-playground-web", ()
 // --- Pure helpers ----------------------------------------------------------
 
 test("looksLikeAdobeJwt detects JWT shape and rejects cookie blobs", () => {
-  assert.equal(looksLikeAdobeJwt("aaa.bbb.ccc"), true);
-  assert.equal(looksLikeAdobeJwt("Bearer aaa.bbb.ccc"), false); // stripped elsewhere
+  const longJwt = `eyJhbGciOiJSUzI1NiJ9.${"a".repeat(40)}.${"b".repeat(40)}`;
+  assert.equal(looksLikeAdobeJwt(longJwt), true);
+  assert.equal(looksLikeAdobeJwt("aaa.bbb.ccc"), false); // too short
   assert.equal(looksLikeAdobeJwt("s_ecid=foo; session=bar"), false);
   assert.equal(looksLikeAdobeJwt("not-a-jwt"), false);
 });
 
 test("extractAdobeCredentialToken strips Bearer and access_token=", () => {
-  assert.equal(extractAdobeCredentialToken("Bearer abc.def.ghi"), "abc.def.ghi");
-  assert.equal(extractAdobeCredentialToken("access_token=tok123; other=1"), "tok123");
+  const longJwt = `eyJhbGciOiJSUzI1NiJ9.${"c".repeat(40)}.${"d".repeat(40)}`;
+  assert.equal(extractAdobeCredentialToken(`Bearer ${longJwt}`), longJwt);
+  assert.equal(extractAdobeCredentialToken(`access_token=${longJwt}; other=1`), longJwt);
   assert.equal(extractAdobeCredentialToken("  rawcookie  "), "rawcookie");
 });
 
@@ -330,6 +336,17 @@ test("handleAdobeFireflyImageGeneration returns 400 when prompt is missing", asy
   assert.equal(result.status, 400);
 });
 
+function userImsJwt(userId = "0EB@AdobeID"): string {
+  return (
+    `eyJhbGciOiJSUzI1NiJ9.` +
+    Buffer.from(
+      JSON.stringify({ user_id: userId, type: "access_token", client_id: "clio-playground-web" })
+    ).toString("base64url") +
+    `.` +
+    "sig".padEnd(40, "x")
+  );
+}
+
 test("handleAdobeFireflyImageGeneration submit+poll happy path (mocked)", async () => {
   let calls = 0;
   const fetchImpl = async (url: string, init?: RequestInit) => {
@@ -355,7 +372,7 @@ test("handleAdobeFireflyImageGeneration submit+poll happy path (mocked)", async 
     model: "nano-banana-pro",
     provider: "adobe-firefly",
     body: { prompt: "sunset mountains", size: "16:9", quality: "2k" },
-    credentials: { apiKey: "eyJhbGciOiJIUzI1NiJ9.e30.signature" },
+    credentials: { apiKey: userImsJwt() },
     fetchImpl: fetchImpl as typeof fetch,
   });
 
@@ -414,7 +431,7 @@ test("handleAdobeFireflyImageGeneration maps quota exhausted", async () => {
     model: "nano-banana-pro",
     provider: "adobe-firefly",
     body: { prompt: "test" },
-    credentials: { apiKey: "eyJhbGciOiJIUzI1NiJ9.e30.signature" },
+    credentials: { apiKey: userImsJwt() },
     fetchImpl: fetchImpl as typeof fetch,
   });
   assert.equal(result.success, false);
@@ -422,13 +439,77 @@ test("handleAdobeFireflyImageGeneration maps quota exhausted", async () => {
   assert.match(String(result.error), /quota/i);
 });
 
+test("guest JWT without AdobeID is detected", () => {
+  // Minimal JWT payload {} — no user_id → guest
+  const emptyPayload = Buffer.from("{}").toString("base64url");
+  const guestJwt = `eyJhbGciOiJub25lIn0.${emptyPayload}.sig`;
+  // Pad to lookLikeAdobeJwt length if needed
+  const longGuest = `eyJhbGciOiJSUzI1NiJ9.${Buffer.from(JSON.stringify({ client_id: "clio-playground-web" })).toString("base64url")}.` + "x".repeat(40);
+  assert.equal(isAdobeGuestAccessToken(longGuest), true);
+  const userJwt =
+    `eyJhbGciOiJSUzI1NiJ9.` +
+    Buffer.from(JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token", client_id: "clio-playground-web" })).toString(
+      "base64url"
+    ) +
+    `.` +
+    "y".repeat(40);
+  assert.equal(isAdobeGuestAccessToken(userJwt), false);
+  assert.equal(isAdobeUserAccessToken(userJwt), true);
+});
+
+test("cookie exchange rejects guest IMS tokens", async () => {
+  const fetchImpl = async (url: string, init?: RequestInit) => {
+    if (String(url).includes("ims/check")) {
+      const body = String(init?.body || "");
+      if (body.includes("guest_allowed=false")) {
+        return jsonResponse(400, {
+          error: "invalid_credentials",
+          error_description: "All session cookies are empty",
+        });
+      }
+      // guest_allowed=true → guest token (no user_id)
+      const guest =
+        `eyJhbGciOiJSUzI1NiJ9.` +
+        Buffer.from(JSON.stringify({ client_id: "clio-playground-web" })).toString("base64url") +
+        `.` +
+        "z".repeat(40);
+      return jsonResponse(200, {
+        access_token: guest,
+        account_type: "guest",
+        guestId: "1@GuestID",
+      });
+    }
+    throw new Error(`unexpected ${url}`);
+  };
+
+  await assert.rejects(
+    () =>
+      exchangeAdobeCookieForAccessToken(
+        "ff_session_guid=abc; aux_sid=xyz",
+        fetchImpl as typeof fetch
+      ),
+    (err: any) => {
+      assert.match(String(err?.message || err), /GUEST|guest|Bearer/i);
+      return true;
+    }
+  );
+});
+
 test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async () => {
+  const userTok =
+    `eyJhbGciOiJSUzI1NiJ9.` +
+    Buffer.from(
+      JSON.stringify({ user_id: "0EB@AdobeID", type: "access_token", client_id: "clio-playground-web" })
+    ).toString("base64url") +
+    `.` +
+    "s".repeat(40);
   const urls: string[] = [];
   const fetchImpl = async (url: string, init?: RequestInit) => {
     urls.push(String(url));
     if (String(url).includes("ims/check")) {
       assert.equal(init?.method, "POST");
-      return jsonResponse(200, { access_token: "exchanged-jwt.part.sig" });
+      // Authenticated exchange (guest_allowed=false)
+      return jsonResponse(200, { access_token: userTok, account_type: "type1" });
     }
     if (String(url).includes("generate-async")) {
       const auth = (init?.headers as any)?.Authorization || (init?.headers as Headers)?.get?.("Authorization");
@@ -437,7 +518,7 @@ test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async ()
         typeof init?.headers === "object" && init.headers && !("get" in (init.headers as object))
           ? (init.headers as Record<string, string>).Authorization
           : auth;
-      assert.equal(headerAuth, "Bearer exchanged-jwt.part.sig");
+      assert.equal(headerAuth, `Bearer ${userTok}`);
       return jsonResponse(
         200,
         {},

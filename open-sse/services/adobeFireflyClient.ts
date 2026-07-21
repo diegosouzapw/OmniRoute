@@ -336,7 +336,11 @@ export function adobeFireflyBalanceApiKey(): string {
 /** Decode IMS JWT payload (no signature verification — client-side claim read only). */
 export function decodeAdobeJwtPayload(token: string): Record<string, unknown> | null {
   try {
-    const raw = extractAdobeCredentialToken(token);
+    // Do not call extractAdobeCredentialToken here (would recurse via guest checks).
+    let raw = String(token || "").trim().replace(/^bearer\s+/i, "").trim();
+    // If a blob was passed, take the first JWT-shaped segment.
+    const m = raw.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
+    if (m) raw = m[0];
     const part = raw.split(".")[1];
     if (!part) return null;
     const json = Buffer.from(part.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
@@ -365,21 +369,87 @@ export function looksLikeAdobeJwt(value: string): boolean {
   const raw = value.trim();
   if (!raw) return false;
   // Avoid treating cookie blobs that happen to have two dots as JWT.
-  if (raw.includes(";") || raw.includes(" ") || raw.includes("=")) return false;
-  const parts = raw.split(".");
+  if (raw.includes(";") || (raw.includes("=") && !raw.startsWith("eyJ"))) return false;
+  // Allow a single space after optional Bearer prefix (stripped earlier).
+  if (/\s/.test(raw) && !/^bearer\s+/i.test(raw)) return false;
+  const token = raw.replace(/^bearer\s+/i, "").trim();
+  const parts = token.split(".");
   if (parts.length !== 3) return false;
-  return parts.every((p) => p.length > 0);
+  // Adobe IMS access tokens are sizable; reject tiny accidental 3-segment strings.
+  if (token.length < 80) return false;
+  return parts.every((p) => p.length > 0 && /^[A-Za-z0-9_-]+$/.test(p));
 }
 
+/**
+ * True when IMS issued a guest token (no signed-in AdobeID).
+ * Live repro: firefly.adobe.com page cookies alone → account_type=guest → generate 401 /
+ * balance 403 ErrMismatchOauthToken.
+ */
+export function isAdobeGuestAccessToken(token: string): boolean {
+  const payload = decodeAdobeJwtPayload(token);
+  if (!payload) return false;
+  const userId = typeof payload.user_id === "string" ? payload.user_id : "";
+  const aaId = typeof payload.aa_id === "string" ? payload.aa_id : "";
+  const type = typeof payload.type === "string" ? payload.type.toLowerCase() : "";
+  // Authenticated Firefly tokens always carry an @AdobeID (or similar) subject.
+  if (userId.includes("@AdobeID") || aaId.includes("@AdobeID")) return false;
+  if (userId.includes("@GuestID") || aaId.includes("@GuestID")) return true;
+  if (type === "guest" || type.includes("guest")) return true;
+  // Guest tokens from ims/check often omit type/user_id entirely.
+  if (!userId && !aaId) return true;
+  return false;
+}
+
+export function isAdobeUserAccessToken(token: string): boolean {
+  return looksLikeAdobeJwt(token) && !isAdobeGuestAccessToken(token);
+}
+
+/**
+ * Pull an IMS JWT out of free-form paste: raw JWT, Bearer …, access_token=…,
+ * multi-line Network/HAR dumps. Prefer the longest eyJ… JWT found.
+ */
 export function extractAdobeCredentialToken(raw: string): string {
   const value = String(raw || "").trim();
   if (!value) return "";
-  if (/^bearer\s+/i.test(value)) return value.replace(/^bearer\s+/i, "").trim();
-  // access_token=... (optionally among other key=value pairs)
-  const accessMatch = value.match(/(?:^|[;\s])access_token=([^;\s]+)/i);
-  if (accessMatch?.[1]) return accessMatch[1].trim();
+
+  if (/^bearer\s+/i.test(value)) {
+    const bare = value.replace(/^bearer\s+/i, "").trim().split(/\s+/)[0] || "";
+    if (looksLikeAdobeJwt(bare)) return bare;
+  }
+
+  // access_token=... in cookie-ish or form paste
+  const accessMatch = value.match(/(?:^|[;\s&])access_token=([^;\s&]+)/i);
+  if (accessMatch?.[1]) {
+    const t = decodeURIComponent(accessMatch[1].trim());
+    if (looksLikeAdobeJwt(t)) return t;
+  }
+
+  // Authorization: Bearer eyJ...
+  const authMatch = value.match(/Authorization\s*:\s*Bearer\s+([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
+  if (authMatch?.[1] && looksLikeAdobeJwt(authMatch[1])) return authMatch[1];
+
+  // Any eyJ… JWT in the blob (HAR / multi-line)
+  const jwtMatches = value.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g);
+  if (jwtMatches && jwtMatches.length > 0) {
+    const best = [...jwtMatches].sort((a, b) => b.length - a.length)[0];
+    if (looksLikeAdobeJwt(best) && isAdobeUserAccessToken(best)) return best;
+    if (looksLikeAdobeJwt(best)) return best;
+  }
+
+  // Pure JWT
+  if (looksLikeAdobeJwt(value)) return value.replace(/^bearer\s+/i, "").trim();
+
+  // Cookie / other blob unchanged for IMS exchange
   return value;
 }
+
+const GUEST_COOKIE_HELP =
+  "Firefly page cookies alone only mint a GUEST IMS token (no AdobeID) — generate returns 401 and Limits 403. " +
+  "Fix: open firefly.adobe.com signed-in → F12 → Network → click a request to firefly-3p.ff.adobe.io " +
+  "(generate-async or models/discovery) → Request Headers → Authorization → copy the token AFTER 'Bearer ' " +
+  "(starts with eyJ…). Paste that JWT as the credential. " +
+  "Cookie-only works only if you also export IMS session cookies from adobelogin.com / adobeid-na1 " +
+  "(Cookie-Editor → export all Adobe domains); firefly.adobe.com cookies by themselves are not enough.";
 
 export function normalizeAdobeAspectRatio(sizeOrRatio: unknown, fallback = "1:1"): string {
   if (typeof sizeOrRatio !== "string" || !sizeOrRatio.trim()) return fallback;
@@ -949,11 +1019,83 @@ export function isAdobeJobFailed(status: string): boolean {
   return s === "FAILED" || s === "CANCELLED" || s === "ERROR" || s === "CANCELED";
 }
 
+type ImsTokenResponse = {
+  access_token?: string;
+  account_type?: string;
+  guestId?: string;
+  token_type?: string;
+  error?: string;
+  error_description?: string;
+};
+
+async function imsCheckToken(opts: {
+  cookie: string;
+  clientId: string;
+  guestAllowed: boolean;
+  fetchImpl: typeof fetch;
+}): Promise<
+  | { ok: true; token: string; data: ImsTokenResponse }
+  | { ok: false; status: number; error: string }
+> {
+  const form = new URLSearchParams({
+    client_id: opts.clientId,
+    scope: ADOBE_FIREFLY_IMS_SCOPE,
+    guest_allowed: opts.guestAllowed ? "true" : "false",
+  });
+
+  const resp = await opts.fetchImpl(ADOBE_FIREFLY_IMS_REFRESH_URL, {
+    method: "POST",
+    headers: {
+      Accept: "*/*",
+      "Accept-Language": "en-US,en;q=0.9",
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      Cookie: opts.cookie,
+      Origin: FIREFLY_ORIGIN,
+      Referer: FIREFLY_REFERER,
+      "User-Agent": DEFAULT_USER_AGENT,
+    },
+    body: form.toString(),
+  });
+
+  const text = await resp.text().catch(() => "");
+  let data: ImsTokenResponse | null = null;
+  try {
+    data = JSON.parse(text) as ImsTokenResponse;
+  } catch {
+    data = null;
+  }
+
+  if (!resp.ok) {
+    return {
+      ok: false,
+      status: resp.status,
+      error: sanitizeErrorMessage(
+        data?.error_description || data?.error || text.slice(0, 200) || `HTTP ${resp.status}`
+      ),
+    };
+  }
+
+  const token = String(data?.access_token || "").trim();
+  if (!token) {
+    return {
+      ok: false,
+      status: 401,
+      error: sanitizeErrorMessage(
+        data?.error_description || data?.error || "IMS response missing access_token"
+      ),
+    };
+  }
+  return { ok: true, token, data: data || {} };
+}
+
 /**
- * Exchange a browser Cookie header for an Adobe IMS access_token.
- * Tries Firefly client_id (clio-playground-web) first — required so the token
- * is accepted with x-api-key: clio-playground-web on generate-async.
- * Falls back to Express projectx_webapp for cookies from new.express.adobe.com.
+ * Exchange a browser Cookie header for an Adobe IMS **user** access_token.
+ *
+ * Live repro (user firefly.adobe.com Cookie export):
+ * - guest_allowed=true → account_type=guest (no AdobeID) → generate 401 / balance 403
+ * - guest_allowed=false → "All session cookies are empty" (IMS cookies live on adobelogin.com)
+ *
+ * Reliable path: paste Authorization Bearer JWT from a live firefly-3p request.
  */
 export async function exchangeAdobeCookieForAccessToken(
   cookieHeader: string,
@@ -964,59 +1106,86 @@ export async function exchangeAdobeCookieForAccessToken(
     throw new AdobeFireflyError("Adobe Firefly cookie is empty", 401, "missing_cookie");
   }
 
+  // HAR / mixed paste that already contains a user JWT
+  const embedded = extractAdobeCredentialToken(cookie);
+  if (embedded !== cookie && looksLikeAdobeJwt(embedded)) {
+    if (isAdobeGuestAccessToken(embedded)) {
+      throw new AdobeFireflyError(GUEST_COOKIE_HELP, 401, "guest_token");
+    }
+    return embedded;
+  }
+
   const clientIds = [adobeFireflyApiKey(), adobeFireflyExpressClientId()].filter(
     (id, i, arr) => id && arr.indexOf(id) === i
   );
 
+  let sawEmptySession = false;
   let lastError = "";
   let lastStatus = 502;
+  let guestTokenSeen = false;
 
   for (const clientId of clientIds) {
-    const form = new URLSearchParams({
-      client_id: clientId,
-      guest_allowed: "true",
-      scope: ADOBE_FIREFLY_IMS_SCOPE,
+    // 1) Authenticated session only (needs IMS cookies from adobelogin.com)
+    const authed = await imsCheckToken({
+      cookie,
+      clientId,
+      guestAllowed: false,
+      fetchImpl,
     });
-
-    const resp = await fetchImpl(ADOBE_FIREFLY_IMS_REFRESH_URL, {
-      method: "POST",
-      headers: {
-        Accept: "*/*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        Cookie: cookie,
-        Origin: FIREFLY_ORIGIN,
-        Referer: FIREFLY_REFERER,
-        "User-Agent": DEFAULT_USER_AGENT,
-      },
-      body: form.toString(),
-    });
-
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => "");
-      lastStatus = resp.status;
-      lastError = sanitizeErrorMessage(text.slice(0, 200));
-      continue;
+    if (authed.ok) {
+      if (
+        isAdobeGuestAccessToken(authed.token) ||
+        authed.data.account_type === "guest" ||
+        authed.data.guestId
+      ) {
+        guestTokenSeen = true;
+      } else {
+        return authed.token;
+      }
+    } else {
+      lastStatus = authed.status;
+      lastError = authed.error;
+      if (/session cookies are empty/i.test(authed.error)) sawEmptySession = true;
     }
 
-    const data = (await resp.json().catch(() => null)) as { access_token?: string } | null;
-    const token = String(data?.access_token || "").trim();
-    if (token) return token;
-    lastError = "IMS response missing access_token";
-    lastStatus = 401;
+    // 2) Guest path — never accept guest tokens for Firefly media/limits
+    const guest = await imsCheckToken({
+      cookie,
+      clientId,
+      guestAllowed: true,
+      fetchImpl,
+    });
+    if (guest.ok) {
+      if (
+        guest.data.account_type === "guest" ||
+        guest.data.guestId ||
+        isAdobeGuestAccessToken(guest.token)
+      ) {
+        guestTokenSeen = true;
+        lastError = "IMS returned a guest token (no AdobeID session)";
+        lastStatus = 401;
+        continue;
+      }
+      return guest.token;
+    }
+    lastStatus = guest.status;
+    lastError = guest.error;
+    if (/session cookies are empty/i.test(guest.error)) sawEmptySession = true;
+  }
+
+  if (guestTokenSeen || sawEmptySession) {
+    throw new AdobeFireflyError(GUEST_COOKIE_HELP, 401, "guest_token");
   }
 
   throw new AdobeFireflyError(
-    `Adobe IMS token exchange failed (${lastStatus}): ${lastError || "no access_token"}. ` +
-      "Paste a fresh Cookie header from firefly.adobe.com (signed in), or paste the IMS access_token JWT from Authorization: Bearer on a generate/discovery request.",
+    `Adobe IMS token exchange failed (${lastStatus}): ${lastError || "no access_token"}. ${GUEST_COOKIE_HELP}`,
     lastStatus === 401 || lastStatus === 403 ? 401 : 502,
     "ims_refresh_failed"
   );
 }
 
 /**
- * Resolve credentials.apiKey / accessToken / providerSpecificData.cookie into
- * a usable IMS access token. Accepts JWT access tokens or browser Cookie headers.
+ * Resolve credentials into a usable **user** IMS access token (rejects guest tokens).
  */
 export async function resolveAdobeAccessToken(
   credentials:
@@ -1030,26 +1199,51 @@ export async function resolveAdobeAccessToken(
   fetchImpl: typeof fetch = fetch
 ): Promise<string> {
   const psd = credentials?.providerSpecificData;
-  const fromPsd =
-    (psd && typeof psd.cookie === "string" && psd.cookie.trim()) ||
-    (psd && typeof psd.access_token === "string" && psd.access_token.trim()) ||
-    (psd && typeof psd.accessToken === "string" && psd.accessToken.trim()) ||
-    "";
-  const raw = extractAdobeCredentialToken(
-    String(credentials?.apiKey || credentials?.accessToken || fromPsd || "").trim()
-  );
-  if (!raw) {
+  const candidates: string[] = [];
+  const push = (v: unknown) => {
+    if (typeof v === "string" && v.trim()) candidates.push(v.trim());
+  };
+  push(credentials?.apiKey);
+  push(credentials?.accessToken);
+  push(psd?.access_token);
+  push(psd?.accessToken);
+  push(psd?.cookie);
+
+  if (candidates.length === 0) {
     throw new AdobeFireflyError(
-      "Adobe Firefly credentials missing. Paste either (1) a full Cookie header from firefly.adobe.com while signed in, or (2) an IMS access_token JWT from Authorization: Bearer on Network → generate-async / models/discovery (not a random API key).",
+      "Adobe Firefly credentials missing. " + GUEST_COOKIE_HELP,
       401,
       "missing_credentials"
     );
   }
 
-  if (looksLikeAdobeJwt(raw)) return raw;
+  for (const c of candidates) {
+    const extracted = extractAdobeCredentialToken(c);
+    if (looksLikeAdobeJwt(extracted) && isAdobeUserAccessToken(extracted)) {
+      return extracted;
+    }
+  }
 
-  // Cookie header (or other non-JWT secret) → IMS exchange
-  return exchangeAdobeCookieForAccessToken(raw, fetchImpl);
+  for (const c of candidates) {
+    const extracted = extractAdobeCredentialToken(c);
+    if (looksLikeAdobeJwt(extracted) && isAdobeGuestAccessToken(extracted)) {
+      throw new AdobeFireflyError(GUEST_COOKIE_HELP, 401, "guest_token");
+    }
+  }
+
+  const cookieBlob =
+    candidates.find(
+      (c) =>
+        c.includes(";") ||
+        c.toLowerCase().includes("aux_sid") ||
+        c.toLowerCase().includes("ff_session")
+    ) || candidates[0];
+
+  const token = await exchangeAdobeCookieForAccessToken(cookieBlob, fetchImpl);
+  if (isAdobeGuestAccessToken(token)) {
+    throw new AdobeFireflyError(GUEST_COOKIE_HELP, 401, "guest_token");
+  }
+  return token;
 }
 
 // ── Credits balance (Limits) ────────────────────────────────────────────────
