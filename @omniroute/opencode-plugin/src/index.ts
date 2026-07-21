@@ -46,7 +46,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -54,6 +54,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { AuthHook, Config, Plugin, PluginOptions, ProviderHook } from "@opencode-ai/plugin";
+import { tool } from "@opencode-ai/plugin";
 import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
 import { z } from "zod";
 import { logger as _logger, setLogLevel, type LogLevel as _LogLevel } from "./logger.js";
@@ -88,6 +89,10 @@ import {
  *                     from providerId.
  *  - `modelCacheTtl`  `/v1/models` TTL cache duration in milliseconds.
  *                     Default: 300_000 (5 min).
+ *  - `autoSyncIntervalMs` Background catalog re-discovery while OpenCode is
+ *                     running. Default: 300_000 (5 min). Minimum: 60_000.
+ *                     Set `0` to disable background auto-sync (TTL on-demand
+ *                     discovery still applies via `modelCacheTtl`).
  *  - `baseURL`        Override base URL for this OmniRoute instance. When
  *                     absent, the loader falls back to a credential-attached
  *                     baseURL set by `/connect`.
@@ -190,6 +195,12 @@ const optionsSchema = z
       .optional(),
     displayName: z.string().min(1).optional(),
     modelCacheTtl: z.number().positive().optional(),
+    /**
+     * Background auto-discovery interval while the harness is running.
+     * `0` disables background polling. Values in (0, 60000) are clamped up
+     * to 60000. Default when unset: 300000.
+     */
+    autoSyncIntervalMs: z.number().int().nonnegative().optional(),
     baseURL: z.string().url().optional(),
     managementReadToken: z.string().min(1).optional(),
     features: featuresSchema.optional(),
@@ -217,6 +228,29 @@ export const PLUGIN_GIT_HASH: string =
 
 export const DEFAULT_MODEL_CACHE_TTL_MS = 300_000 as const;
 
+/** Default background auto-discovery interval (matches modelCacheTtl default). */
+export const DEFAULT_AUTO_SYNC_INTERVAL_MS = 300_000 as const;
+
+/** Minimum positive background auto-discovery interval. */
+export const MIN_AUTO_SYNC_INTERVAL_MS = 60_000 as const;
+
+/**
+ * Sanitize background auto-sync interval.
+ *  - unset/invalid → default 300_000
+ *  - explicit 0 → disabled
+ *  - (0, 60000) → clamped to 60000
+ *  - ≥ 60000 → kept as integer ms
+ */
+export function sanitizeAutoSyncIntervalMs(value: unknown): number {
+  if (value === undefined || value === null) return DEFAULT_AUTO_SYNC_INTERVAL_MS;
+  if (typeof value !== "number" || !Number.isFinite(value)) return DEFAULT_AUTO_SYNC_INTERVAL_MS;
+  const n = Math.trunc(value);
+  if (n === 0) return 0;
+  if (n < 0) return DEFAULT_AUTO_SYNC_INTERVAL_MS;
+  if (n < MIN_AUTO_SYNC_INTERVAL_MS) return MIN_AUTO_SYNC_INTERVAL_MS;
+  return n;
+}
+
 // Manual trim helpers avoid polynomial-regex CodeQL warnings on
 // user-supplied baseURL strings (string.replace(/\/+$/, "")). The same
 // behaviour, no backtracking.
@@ -243,7 +277,7 @@ function trimLeadingDashes(value: string): string {
  * sees a consistent identifier.
  */
 export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Required<
-  Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">
+  Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl" | "autoSyncIntervalMs">
 > & {
   /**
    * #6859: the UNPREFIXED provider id ("omniroute", "omniroute-preprod", …).
@@ -277,16 +311,21 @@ export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Re
     typeof opts?.modelCacheTtl === "number" && opts.modelCacheTtl > 0
       ? opts.modelCacheTtl
       : DEFAULT_MODEL_CACHE_TTL_MS;
+  const autoSyncIntervalMs = sanitizeAutoSyncIntervalMs(opts?.autoSyncIntervalMs);
   return {
     providerId,
     omnirouteProviderId,
     displayName,
     modelCacheTtl,
+    autoSyncIntervalMs,
     baseURL: opts?.baseURL,
     managementReadToken: opts?.managementReadToken,
     features: opts?.features,
   };
 }
+
+/** Fully resolved plugin options (defaults applied). */
+export type ResolvedOmniRoutePluginOptions = ReturnType<typeof resolveOmniRoutePluginOptions>;
 
 /**
  * Strip a leading "opencode-" prefix (added only for the OC native-adapter
@@ -523,8 +562,378 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
  * opencode.json), NOT as a closure binding. Multi-instance support follows
  * from each plugin tuple invoking the factory with its own opts.
  */
+/**
+ * Invalidate in-memory fetch cache entries for a baseURL (all credential keys).
+ * Returns number of entries removed.
+ */
+export function invalidateOmniRouteFetchCache(
+  cache: OmniRouteFetchCache,
+  baseURL?: string,
+): number {
+  if (!baseURL) {
+    const n = cache.size;
+    cache.clear();
+    return n;
+  }
+  const prefix = `${baseURL}::`;
+  let removed = 0;
+  for (const key of [...cache.keys()]) {
+    if (key.startsWith(prefix) || key === baseURL) {
+      cache.delete(key);
+      removed += 1;
+    }
+  }
+  return removed;
+}
+
+/**
+ * Resolve API credentials for force-sync / background refresh without
+ * depending on the provider.models auth context.
+ */
+export async function resolveOmniRouteRuntimeAuth(
+  resolved: ResolvedOmniRoutePluginOptions,
+  readAuthJson?: OmniRouteReadAuthJson,
+): Promise<{ apiKey: string; baseURL: string; managementReadToken: string } | null> {
+  const reader = readAuthJson ?? defaultReadAuthJson;
+  let authJson: AuthJsonShape | undefined | null;
+  try {
+    authJson = await reader();
+  } catch {
+    authJson = undefined;
+  }
+  if (authJson === null) authJson = undefined;
+
+  const bareKey = resolved.providerId.startsWith("opencode-")
+    ? resolved.providerId.slice("opencode-".length)
+    : resolved.providerId;
+  const lookupKeys = [resolved.providerId];
+  if (bareKey !== resolved.providerId) lookupKeys.push(bareKey);
+  if (resolved.omnirouteProviderId && !lookupKeys.includes(resolved.omnirouteProviderId)) {
+    lookupKeys.push(resolved.omnirouteProviderId);
+  }
+
+  let entry: AuthJsonApiEntry | undefined;
+  for (const k of lookupKeys) {
+    const e = authJson?.[k];
+    if (
+      e &&
+      (e as { type?: unknown }).type === "api" &&
+      typeof (e as { key?: unknown }).key === "string" &&
+      ((e as { key: string }).key).length > 0
+    ) {
+      entry = e as AuthJsonApiEntry;
+      break;
+    }
+  }
+  const apiKey = entry?.key ?? "";
+  if (!apiKey) return null;
+
+  const authBaseURL =
+    entry && typeof (entry as { baseURL?: unknown }).baseURL === "string"
+      ? (entry as { baseURL: string }).baseURL
+      : "";
+  const baseURL = resolved.baseURL ?? (authBaseURL || "");
+  if (!baseURL) return null;
+  const managementReadToken = resolved.managementReadToken ?? apiKey;
+  return { apiKey, baseURL, managementReadToken };
+}
+
+/**
+ * Force-refresh OmniRoute catalog: clear memory + disk cache, re-fetch /v1/models
+ * (and optional management endpoints), and repopulate the shared cache.
+ * OpenCode equivalent of Pi `/omni sync`.
+ */
+export async function forceSyncOmniRouteModels(args: {
+  resolved: ResolvedOmniRoutePluginOptions;
+  cache: OmniRouteFetchCache;
+  readAuthJson?: OmniRouteReadAuthJson;
+  fetcher?: OmniRouteModelsFetcher;
+  combosFetcher?: OmniRouteCombosFetcher;
+  autoCombosFetcher?: OmniRouteAutoCombosFetcher;
+  enrichmentFetcher?: OmniRouteEnrichmentFetcher;
+  compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
+  providersFetcher?: OmniRouteProvidersFetcher;
+  now?: () => number;
+}): Promise<{
+  ok: boolean;
+  count: number;
+  combos: number;
+  provider: string;
+  baseURL?: string;
+  clearedMemory: number;
+  clearedDisk: boolean;
+  error?: string;
+}> {
+  const resolved = args.resolved;
+  const cache = args.cache;
+  const now = args.now ?? Date.now;
+  const fetcher = args.fetcher ?? defaultOmniRouteModelsFetcher;
+  const combosFetcher = args.combosFetcher ?? defaultOmniRouteCombosFetcher;
+  const autoCombosFetcher = args.autoCombosFetcher ?? defaultOmniRouteAutoCombosFetcher;
+  const enrichmentFetcher = args.enrichmentFetcher ?? defaultOmniRouteEnrichmentFetcher;
+  const compressionMetaFetcher =
+    args.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
+  const providersFetcher = args.providersFetcher ?? defaultOmniRouteProvidersFetcher;
+  const features = resolved.features ?? {};
+  const wantCombos = features.combos !== false;
+  const wantAutoCombos = features.autoCombos !== false;
+  const wantEnrichment = features.enrichment !== false;
+  const wantCompressionMeta = features.compressionMetadata === true;
+  const wantUsableOnly = features.usableOnly === true;
+  const wantDiskCache = features.diskCache !== false;
+
+  const auth = await resolveOmniRouteRuntimeAuth(
+    resolved,
+    args.readAuthJson ?? defaultReadAuthJson,
+  );
+  if (!auth) {
+    return {
+      ok: false,
+      count: 0,
+      combos: 0,
+      provider: resolved.omnirouteProviderId,
+      clearedMemory: 0,
+      clearedDisk: false,
+      error:
+        "No OmniRoute credentials/baseURL available. Run `opencode connect omniroute` or set plugin baseURL.",
+    };
+  }
+
+  const clearedMemory = invalidateOmniRouteFetchCache(cache, auth.baseURL);
+  // Clear residual entries from prior baseURL history as well.
+  const clearedAll = invalidateOmniRouteFetchCache(cache);
+  let clearedDisk = false;
+  if (wantDiskCache) {
+    clearedDisk = await clearDiskSnapshot(resolved.providerId);
+    if (resolved.omnirouteProviderId !== resolved.providerId) {
+      clearedDisk = (await clearDiskSnapshot(resolved.omnirouteProviderId)) || clearedDisk;
+    }
+  }
+
+  try {
+    const rawModels = await fetcher(auth.baseURL, auth.apiKey, 10_000);
+    let rawCombos: OmniRouteRawCombo[] = [];
+    if (wantCombos) {
+      try {
+        rawCombos = await combosFetcher(auth.baseURL, auth.managementReadToken, 10_000);
+      } catch (err) {
+        console.warn("[omniroute-plugin] force sync: combos fetch failed", err);
+      }
+    }
+    let rawAutoCombos: OmniRouteRawAutoCombo[] = [];
+    if (wantAutoCombos) {
+      try {
+        rawAutoCombos = await autoCombosFetcher(auth.baseURL, auth.managementReadToken, 5_000);
+      } catch {
+        /* soft-fail */
+      }
+    }
+    let rawEnrichment: OmniRouteEnrichmentMap = new Map();
+    if (wantEnrichment) {
+      try {
+        rawEnrichment = await enrichmentFetcher(auth.baseURL, auth.managementReadToken, 10_000);
+      } catch {
+        rawEnrichment = new Map();
+      }
+    }
+    let rawCompressionCombos: OmniRouteCompressionCombo[] = [];
+    if (wantCompressionMeta) {
+      try {
+        rawCompressionCombos = await compressionMetaFetcher(
+          auth.baseURL,
+          auth.managementReadToken,
+          10_000,
+        );
+      } catch {
+        rawCompressionCombos = [];
+      }
+    }
+    let rawConnections: OmniRouteProviderConnection[] = [];
+    if (wantUsableOnly) {
+      try {
+        rawConnections = await providersFetcher(auth.baseURL, auth.managementReadToken, 10_000);
+      } catch {
+        rawConnections = [];
+      }
+    }
+
+    const t = now();
+    const entry = {
+      rawModels,
+      rawCombos,
+      rawAutoCombos,
+      rawEnrichment,
+      rawCompressionCombos,
+      rawConnections,
+      expiresAt: t + resolved.modelCacheTtl,
+    };
+    const cacheKey = modelsCacheKey(
+      auth.baseURL,
+      `${auth.apiKey}\0${auth.managementReadToken}`,
+    );
+    cache.set(cacheKey, entry);
+
+    if (wantDiskCache) {
+      try {
+        const fingerprint = diskSnapshotIdentityFingerprint(
+          auth.baseURL,
+          auth.apiKey,
+          auth.managementReadToken,
+        );
+        const { expiresAt: _expiresAt, ...diskEntry } = entry;
+        await defaultDiskSnapshotWriter(resolved.providerId, diskEntry, fingerprint);
+      } catch {
+        /* soft-fail disk write */
+      }
+    }
+
+    console.warn(
+      `[omniroute-plugin] force sync ok providerId=${resolved.providerId} ` +
+        `models=${rawModels.length} combos=${rawCombos.length} ` +
+        `clearedMemory=${clearedMemory + clearedAll} disk=${clearedDisk}`,
+    );
+
+    return {
+      ok: true,
+      count: rawModels.length,
+      combos: rawCombos.length,
+      provider: resolved.omnirouteProviderId,
+      baseURL: auth.baseURL,
+      clearedMemory: clearedMemory + clearedAll,
+      clearedDisk,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      ok: false,
+      count: 0,
+      combos: 0,
+      provider: resolved.omnirouteProviderId,
+      baseURL: auth.baseURL,
+      clearedMemory: clearedMemory + clearedAll,
+      clearedDisk,
+      error: message,
+    };
+  }
+}
+
+export function createOmniRouteSyncModelsTool(args: {
+  resolved: ResolvedOmniRoutePluginOptions;
+  cache: OmniRouteFetchCache;
+}): ReturnType<typeof tool> {
+  const { resolved, cache } = args;
+  return tool({
+    description:
+      "Force-refresh the OmniRoute model catalog (OpenCode equivalent of Pi `/omni sync`). " +
+      "Invalidates in-memory and disk caches, then re-fetches GET /v1/models (and combos when enabled).",
+    args: {
+      reason: tool.schema
+        .string()
+        .optional()
+        .describe("Optional reason for the sync (logging only)"),
+    },
+    async execute(toolArgs) {
+      const result = await forceSyncOmniRouteModels({ resolved, cache });
+      const reason = toolArgs.reason ? ` reason=${toolArgs.reason}` : "";
+      if (!result.ok) {
+        return {
+          title: "OmniRoute sync failed",
+          output:
+            `OmniRoute model sync failed for provider=${result.provider}.${reason}\n` +
+            `${result.error ?? "unknown error"}`,
+          metadata: result,
+        };
+      }
+      return {
+        title: `OmniRoute sync: ${result.count} models`,
+        output:
+          `OmniRoute models synced.` +
+          `\nprovider: ${result.provider}` +
+          `\nbaseURL: ${result.baseURL}` +
+          `\nmodels: ${result.count}` +
+          `\ncombos: ${result.combos}` +
+          `\nclearedMemoryEntries: ${result.clearedMemory}` +
+          `\nclearedDiskSnapshot: ${result.clearedDisk}` +
+          `\nTTL: ${resolved.modelCacheTtl}ms` +
+          `\nautoSyncIntervalMs: ${resolved.autoSyncIntervalMs}` +
+          reason,
+        metadata: result,
+      };
+    },
+  });
+}
+
+/**
+ * Start background auto-discovery while the harness is running.
+ * Quiet: only logs when the model count changes or on errors.
+ * Returns a stop function.
+ */
+export function startOmniRouteAutoSync(args: {
+  resolved: ResolvedOmniRoutePluginOptions;
+  cache: OmniRouteFetchCache;
+  intervalMs?: number;
+}): () => void {
+  const resolved = args.resolved;
+  const cache = args.cache;
+  const intervalMs = args.intervalMs ?? resolved.autoSyncIntervalMs;
+  if (!intervalMs || intervalMs <= 0) {
+    return () => {};
+  }
+
+  let stopped = false;
+  let inFlight: Promise<void> | null = null;
+  let lastCount: number | undefined;
+
+  const tick = () => {
+    if (stopped) return;
+    if (inFlight) return;
+    inFlight = (async () => {
+      const result = await forceSyncOmniRouteModels({ resolved, cache });
+      if (!result.ok) {
+        console.warn(
+          `[omniroute-plugin] auto-sync failed providerId=${resolved.providerId}: ${result.error}`,
+        );
+        return;
+      }
+      if (lastCount === undefined) {
+        lastCount = result.count;
+        return;
+      }
+      if (result.count !== lastCount) {
+        console.warn(
+          `[omniroute-plugin] auto-sync catalog size changed ${lastCount} → ${result.count} ` +
+            `(providerId=${resolved.providerId})`,
+        );
+        lastCount = result.count;
+      }
+    })()
+      .catch((err) => {
+        console.warn("[omniroute-plugin] auto-sync tick error", err);
+      })
+      .finally(() => {
+        inFlight = null;
+      });
+  };
+
+  // Delay first background tick by one interval so session start is not doubled
+  // with the normal provider.models cold fetch. Manual tool remains immediate.
+  const timer = setInterval(tick, intervalMs);
+  if (typeof timer === "object" && timer && "unref" in timer && typeof timer.unref === "function") {
+    timer.unref();
+  }
+
+  console.warn(
+    `[omniroute-plugin] auto-sync enabled intervalMs=${intervalMs} providerId=${resolved.providerId}`,
+  );
+
+  return () => {
+    stopped = true;
+    clearInterval(timer);
+  };
+}
+
 export const OmniRoutePlugin: Plugin = async (_input, options) => {
-  const resolved = coercePluginOptions(options);
+  const resolved = resolveOmniRoutePluginOptions(coercePluginOptions(options));
   // T-07: a single per-plugin-instance cache shared between the provider
   // hook (T-03/T-05) and the config-shim hook (T-07). On OC ≥1.14.49 both
   // hooks fire within the same Plugin invocation, so a shared cache keeps
@@ -553,10 +962,53 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
 
   // Wire log level: startupDebug:true → "debug", explicit logLevel wins.
   setLogLevel(resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn"));
+
+  // Background auto-discovery while the harness is running (Pi parity).
+  // Interval 0 disables. TTL on-demand discovery still works via modelCacheTtl.
+  startOmniRouteAutoSync({ resolved, cache: sharedCache });
+
+  const syncTool = createOmniRouteSyncModelsTool({ resolved, cache: sharedCache });
+  const bareProviderId = resolved.omnirouteProviderId;
+
+  // Config hook: keep existing catalog shim, and register slash command
+  // templates that ask the agent to call the force-sync tool (OpenCode has no
+  // Pi-style registerCommand API; tools + command templates are the native path).
+  const baseConfigHook = createOmniRouteConfigHook(resolved, { cache: sharedCache });
+  const configWithSyncCommand = async (input: Config) => {
+    await baseConfigHook(input);
+    const cfg = input as Config & {
+      command?: Record<
+        string,
+        { template: string; description?: string; agent?: string; model?: string; subtask?: boolean }
+      >;
+    };
+    if (!cfg.command) cfg.command = {};
+    if (!cfg.command["omni-sync"]) {
+      cfg.command["omni-sync"] = {
+        description: "Force-refresh OmniRoute model catalog (like Pi /omni sync)",
+        template:
+          `Force-refresh the OmniRoute model catalog now using the omniroute_sync_models tool ` +
+          `(provider ${bareProviderId}). After the tool returns, briefly report model count and whether the sync succeeded.`,
+      };
+    }
+    if (!cfg.command["omni-autosync"]) {
+      cfg.command["omni-autosync"] = {
+        description: "Show OmniRoute auto-sync / cache status",
+        template:
+          `Report OmniRoute discovery status for provider ${bareProviderId}: ` +
+          `autoSyncIntervalMs=${resolved.autoSyncIntervalMs}, modelCacheTtl=${resolved.modelCacheTtl}. ` +
+          `If the user asked to refresh now, call omniroute_sync_models.`,
+      };
+    }
+  };
+
   return {
     auth: createOmniRouteAuthHook(resolved),
     provider: createOmniRouteProviderHook(resolved, { cache: sharedCache }),
-    config: createOmniRouteConfigHook(resolved, { cache: sharedCache }),
+    config: configWithSyncCommand,
+    tool: {
+      omniroute_sync_models: syncTool,
+    },
   };
 };
 
@@ -4059,6 +4511,19 @@ interface OmniRouteDiskSnapshot {
 export function diskSnapshotPath(providerId: string): string {
   const dir = process.env.OPENCODE_DATA_DIR ?? path.join(os.homedir(), ".local/share/opencode");
   return path.join(dir, "plugins", `omniroute-${providerId}.json`);
+}
+
+/** Best-effort delete of the disk snapshot for a provider (force-sync). */
+export async function clearDiskSnapshot(providerId: string): Promise<boolean> {
+  const file = diskSnapshotPath(providerId);
+  try {
+    await unlink(file);
+    return true;
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException | undefined)?.code;
+    if (code === "ENOENT") return false;
+    return false;
+  }
 }
 
 export type OmniRouteDiskSnapshotWriter = (
