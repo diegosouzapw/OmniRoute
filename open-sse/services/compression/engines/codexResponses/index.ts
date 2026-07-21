@@ -1,4 +1,3 @@
-import { getEncoding, type Tiktoken } from "js-tiktoken";
 import { createCompressionStats } from "../../stats.ts";
 import {
   DEFAULT_CODEX_RESPONSES_CONFIG,
@@ -12,18 +11,13 @@ import type {
   EngineValidationResult,
 } from "../types.ts";
 import { CODEX_RESPONSE_ITEM_META } from "../../bodyAdapter.ts";
+import { countTextTokens } from "../../../../../src/shared/utils/tiktokenCounter.ts";
 
 const ENGINE_ID = "codex-responses";
-let codexEncoder: Tiktoken | null = null;
 
 function countCodexTokens(text: string): number {
   if (!text) return 0;
-  try {
-    codexEncoder ??= getEncoding("o200k_base");
-    return codexEncoder.encode(text).length;
-  } catch {
-    return Math.ceil(text.length / 4);
-  }
+  return countTextTokens(text, { provider: "codex" });
 }
 const SUPPORTED_TYPES = new Set([
   "function_call_output",
