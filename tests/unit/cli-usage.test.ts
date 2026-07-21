@@ -84,22 +84,24 @@ const MODEL_LATENCY_DATA = {
   ],
 };
 
+type CliCommand = {
+  optsWithGlobals: () => { output: "json" | "table"; quiet: boolean };
+};
+
+type MockFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
 function makeResp(data: unknown, status = 200) {
-  const obj = {
-    ok: status < 400,
+  const response = new Response(JSON.stringify(data), {
     status,
-    exitCode: status < 400 ? 0 : 1,
-    json: () => Promise.resolve(data),
-    text: () => Promise.resolve(JSON.stringify(data)),
-    headers: new Headers(),
-  };
-  obj.json = obj.json.bind(obj);
-  obj.text = obj.text.bind(obj);
-  return obj;
+    headers: { "content-type": "application/json" },
+  });
+  Object.defineProperty(response, "exitCode", { value: status < 400 ? 0 : 1 });
+  return response;
 }
 
-function mockFetch(overrides: Record<string, unknown> = {}) {
-  return (url: string) => {
+function mockFetch(overrides: Record<string, unknown> = {}): MockFetch {
+  return (input) => {
+    const url = String(input);
     if (url.includes("/api/usage/model-latency-stats"))
       return Promise.resolve(makeResp(overrides.modelLatency ?? MODEL_LATENCY_DATA));
     if (url.includes("/api/usage/analytics"))
@@ -137,11 +139,11 @@ async function captureStdout(fn: () => Promise<void>): Promise<string> {
 
 test("runUsageAnalytics exibe providers em json", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch();
 
   const { runUsageAnalytics } = await import("../../bin/cli/commands/usage.mjs");
   const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runUsageAnalytics({ period: "30d" }, cmd as any));
+  const out = await captureStdout(() => runUsageAnalytics({ period: "30d" }, cmd as CliCommand));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -152,11 +154,11 @@ test("runUsageAnalytics exibe providers em json", async () => {
 
 test("runBudgetList exibe budgets", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch();
 
   const { runBudgetList } = await import("../../bin/cli/commands/usage.mjs");
   const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runBudgetList({}, cmd as any));
+  const out = await captureStdout(() => runBudgetList({}, cmd as CliCommand));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -167,11 +169,11 @@ test("runBudgetList exibe budgets", async () => {
 
 test("runUsageQuota exibe providers de quota", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch();
 
   const { runUsageQuota } = await import("../../bin/cli/commands/usage.mjs");
   const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runUsageQuota({}, cmd as any));
+  const out = await captureStdout(() => runUsageQuota({}, cmd as CliCommand));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -181,11 +183,11 @@ test("runUsageQuota exibe providers de quota", async () => {
 
 test("runUsageLogs exibe logs com mascaramento de API key", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch();
 
   const { runUsageLogs } = await import("../../bin/cli/commands/usage.mjs");
   const cmd = { optsWithGlobals: () => ({ output: "table", quiet: false }) };
-  const out = await captureStdout(() => runUsageLogs({ limit: 10 }, cmd as any));
+  const out = await captureStdout(() => runUsageLogs({ limit: 10 }, cmd as CliCommand));
 
   globalThis.fetch = origFetch;
   assert.ok(!out.includes("sk-test-key") || out.includes("***"));
@@ -193,11 +195,11 @@ test("runUsageLogs exibe logs com mascaramento de API key", async () => {
 
 test("runUsageLogs --output json retorna rows com campos esperados", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch();
 
   const { runUsageLogs } = await import("../../bin/cli/commands/usage.mjs");
   const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runUsageLogs({ limit: 10 }, cmd as any));
+  const out = await captureStdout(() => runUsageLogs({ limit: 10 }, cmd as CliCommand));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -209,11 +211,11 @@ test("runUsageLogs --output json retorna rows com campos esperados", async () =>
 
 test("runUsageHistory exibe histórico", async () => {
   const origFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch() as any;
+  globalThis.fetch = mockFetch();
 
   const { runUsageHistory } = await import("../../bin/cli/commands/usage.mjs");
   const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
-  const out = await captureStdout(() => runUsageHistory({ limit: 50 }, cmd as any));
+  const out = await captureStdout(() => runUsageHistory({ limit: 50 }, cmd as CliCommand));
 
   globalThis.fetch = origFetch;
   const parsed = JSON.parse(out);
@@ -224,10 +226,10 @@ test("runUsageHistory exibe histórico", async () => {
 test("runUsageModelLatencyStats preserves connection and routing evidence fields", async () => {
   let capturedUrl = "";
   const origFetch = globalThis.fetch;
-  globalThis.fetch = ((url: string) => {
-    capturedUrl = url;
-    return mockFetch()(url);
-  }) as any;
+  globalThis.fetch = ((input: RequestInfo | URL) => {
+    capturedUrl = String(input);
+    return mockFetch()(input);
+  }) as MockFetch;
 
   const { runUsageModelLatencyStats } = await import("../../bin/cli/commands/usage.mjs");
   const cmd = { optsWithGlobals: () => ({ output: "json", quiet: true }) };
@@ -241,7 +243,7 @@ test("runUsageModelLatencyStats preserves connection and routing evidence fields
         model: "gpt-4o",
         connectionId: "openai-primary",
       },
-      cmd as any
+      cmd as CliCommand
     )
   );
 
@@ -263,19 +265,25 @@ test("runUsageModelLatencyStats preserves connection and routing evidence fields
 test("runBudgetSet envia POST com amount, scope e period", async () => {
   let capturedBody: unknown = null;
   const origFetch = globalThis.fetch;
-  globalThis.fetch = ((url: string, init: any) => {
-    if (url.includes("/api/usage/budget") && init?.method === "POST") {
-      capturedBody = JSON.parse(init.body);
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (
+      url.includes("/api/usage/budget") &&
+      init?.method === "POST" &&
+      typeof init.body === "string"
+    ) {
+      capturedBody = JSON.parse(init.body) as unknown;
     }
     return Promise.resolve(makeResp({ ok: true }));
-  }) as any;
+  }) as MockFetch;
 
   const { runBudgetSet } = await import("../../bin/cli/commands/usage.mjs");
   const cmd = { optsWithGlobals: () => ({ output: "table", quiet: false }) };
-  await captureStdout(() => runBudgetSet("50", { scope: "global", period: "monthly" }, cmd as any));
+  await captureStdout(() =>
+    runBudgetSet("50", { scope: "global", period: "monthly" }, cmd as CliCommand)
+  );
 
   globalThis.fetch = origFetch;
   assert.ok(capturedBody !== null);
-  assert.equal((capturedBody as any).amount, 50);
-  assert.equal((capturedBody as any).scope, "global");
+  assert.deepEqual(capturedBody, { amount: 50, scope: "global", period: "monthly" });
 });
