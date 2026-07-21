@@ -3,7 +3,7 @@
 // Pure logic split out of KimiSponsorBanner.tsx so the gate can be unit-tested
 // with node:test (no DOM/next-intl needed), mirroring homeAppearance.ts.
 
-import { isNewer, normalizeVersion } from "@/lib/system/versionCheck";
+import { isNewer, normalizeVersion } from "@/lib/system/versionCompare";
 
 /**
  * Last app version that still shows the Kimi sponsor banner (inclusive).
