@@ -638,7 +638,6 @@ async function startMitmInternal(
   };
 }
 
-}
 
 /**
  * DNS teardown step of stopMitm() (#1809) — split out purely to keep
