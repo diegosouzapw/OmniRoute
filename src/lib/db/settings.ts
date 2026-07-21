@@ -768,3 +768,4 @@ export {
   getCacheTrend,
   resetCacheMetrics,
 } from "./settings/cacheMetrics";
+export { getCachedSettings } from "./readCache";
