@@ -79,20 +79,21 @@ function resolveNodeExecutable(env = process.env) {
   // flash a shell window. Use the Helper binary instead — macOS treats
   // Helper processes as background tasks with no visible UI artifacts.
   if (process.platform === "darwin" && !isDev) {
-    const helperPath = path.join(path.dirname(process.execPath), `${app.getName()} Helper`);
+    const appName = path.basename(process.execPath);
+    const helperPath = path.join(path.dirname(process.execPath), `${appName} Helper`);
     if (fs.existsSync(helperPath)) {
       return helperPath;
     }
-    // Electron \u003e= 20 may use "(Renderer)" / "(GPU)" / "(Plugin)" suffixed helpers.
+    // Electron >= 20 may use "(Renderer)" / "(GPU)" / "(Plugin)" suffixed helpers.
     // The unsuffixed Helper is the one suitable for ELECTRON_RUN_AS_NODE.
     const frameworkHelper = path.join(
       path.dirname(process.execPath),
       "..",
       "Frameworks",
-      `${app.getName()} Helper.app`,
+      `${appName} Helper.app`,
       "Contents",
       "MacOS",
-      `${app.getName()} Helper`
+      `${appName} Helper`
     );
     if (fs.existsSync(frameworkHelper)) {
       return frameworkHelper;
