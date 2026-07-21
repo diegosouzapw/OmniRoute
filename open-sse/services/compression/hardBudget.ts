@@ -10,7 +10,11 @@
 
 import type { CompressionResult } from "./types.ts";
 import { scoreToken } from "./ultraHeuristic.ts";
-import { countTextTokens } from "../../../src/shared/utils/tiktokenCounter.ts";
+import {
+  countTextTokens,
+  tokenizerContextFromBody,
+  type TokenizerContext,
+} from "../../../src/shared/utils/tiktokenCounter.ts";
 import { createCompressionStats } from "./stats.ts";
 
 interface HardBudgetOptions {
@@ -69,11 +73,11 @@ interface TaggedUnit {
   preserve: boolean;
 }
 
-function tagUnits(units: string[]): TaggedUnit[] {
+function tagUnits(units: string[], tokenizerContext: TokenizerContext): TaggedUnit[] {
   return units.map((u, i) => ({
     i,
     u,
-    tokens: countTextTokens(u),
+    tokens: countTextTokens(u, tokenizerContext),
     score: scoreUnit(u),
     preserve: mustPreserve(u),
   }));
@@ -84,9 +88,7 @@ function dropToTarget(tagged: TaggedUnit[], targetTokens: number): Set<number> {
   let tokCount = tagged.reduce((s, x) => s + x.tokens, 0);
 
   // Sort droppable candidates by score ascending (lowest first = drop first)
-  const candidates = tagged
-    .filter((x) => !x.preserve)
-    .sort((a, b) => a.score - b.score);
+  const candidates = tagged.filter((x) => !x.preserve).sort((a, b) => a.score - b.score);
 
   for (const candidate of candidates) {
     if (tokCount <= targetTokens) break;
@@ -104,14 +106,18 @@ function rebuildText(tagged: TaggedUnit[], dropped: Set<number>): string {
     .join("\n");
 }
 
-function compressText(text: string, targetTokens: number): string {
-  const currentTokens = countTextTokens(text);
+function compressText(
+  text: string,
+  targetTokens: number,
+  tokenizerContext: TokenizerContext
+): string {
+  const currentTokens = countTextTokens(text, tokenizerContext);
   if (currentTokens <= targetTokens) return text;
 
   const units = splitUnits(text);
   if (units.length <= 1) return text;
 
-  const tagged = tagUnits(units);
+  const tagged = tagUnits(units, tokenizerContext);
   const dropped = dropToTarget(tagged, targetTokens);
   if (dropped.size === 0) return text;
 
@@ -137,17 +143,17 @@ export function applyHardBudget(
   const messages = extractMessages(body);
   if (messages.length === 0) return { body, compressed: false, stats: null };
 
+  const tokenizerContext = tokenizerContextFromBody(body);
+
   // Measure total tokens across all messages
   const totalText = messages
     .map((m) => (typeof m.content === "string" ? m.content : JSON.stringify(m.content)))
     .join(" ");
-  const totalTokens = countTextTokens(totalText);
+  const totalTokens = countTextTokens(totalText, tokenizerContext);
 
   // targetTokens wins when both are set
   const effectiveTarget =
-    targetTokens != null
-      ? targetTokens
-      : Math.floor(totalTokens * (targetRatio as number));
+    targetTokens != null ? targetTokens : Math.floor(totalTokens * (targetRatio as number));
 
   if (totalTokens <= effectiveTarget) {
     return { body, compressed: false, stats: null };
@@ -158,16 +164,14 @@ export function applyHardBudget(
   // come back N× over budget).
   const newMessages = messages.map((m) => {
     if (typeof m.content !== "string") return m;
-    const msgTokens = countTextTokens(m.content);
+    const msgTokens = countTextTokens(m.content, tokenizerContext);
     const perMsgTarget =
       totalTokens > 0 ? Math.floor(effectiveTarget * (msgTokens / totalTokens)) : effectiveTarget;
-    const out = compressText(m.content, perMsgTarget);
+    const out = compressText(m.content, perMsgTarget, tokenizerContext);
     return out === m.content ? m : { ...m, content: out };
   });
 
-  const changed = newMessages.some(
-    (m, i) => JSON.stringify(m) !== JSON.stringify(messages[i])
-  );
+  const changed = newMessages.some((m, i) => JSON.stringify(m) !== JSON.stringify(messages[i]));
 
   // Measure the result to detect when preserve-guarded content makes the target
   // unreachable, so callers are not silently left over budget.
@@ -175,7 +179,8 @@ export function applyHardBudget(
   const resultTokens = countTextTokens(
     usedMessages
       .map((m) => (typeof m.content === "string" ? m.content : JSON.stringify(m.content)))
-      .join(" ")
+      .join(" "),
+    tokenizerContext
   );
   const overBudget = resultTokens > effectiveTarget;
 
