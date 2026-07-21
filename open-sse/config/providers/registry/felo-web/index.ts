@@ -9,10 +9,10 @@ export const felo_webProvider: RegistryEntry = {
   authType: "none",
   authHeader: "none",
   models: [
-    { id: "felo-chat", name: "Felo Chat" },
-    { id: "felo-search", name: "Felo Search" },
-    { id: "felo-scholar", name: "Felo Scholar" },
-    { id: "felo-social", name: "Felo Social" },
-    { id: "felo-document", name: "Felo Document" },
+    { id: "felo-chat", name: "Felo Chat", toolCalling: false },
+    { id: "felo-search", name: "Felo Search", toolCalling: false },
+    { id: "felo-scholar", name: "Felo Scholar", toolCalling: false },
+    { id: "felo-social", name: "Felo Social", toolCalling: false },
+    { id: "felo-document", name: "Felo Document", toolCalling: false },
   ],
 };

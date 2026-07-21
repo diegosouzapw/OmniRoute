@@ -9,8 +9,8 @@ export const copilot_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   models: [
-    { id: "copilot-pro", name: "Copilot Pro (web)" },
-    { id: "gpt-4-turbo", name: "GPT-4 Turbo (via Copilot)" },
-    { id: "gpt-4", name: "GPT-4 (via Copilot)" },
+    { id: "copilot-pro", name: "Copilot Pro (web)", toolCalling: false },
+    { id: "gpt-4-turbo", name: "GPT-4 Turbo (via Copilot)", toolCalling: false },
+    { id: "gpt-4", name: "GPT-4 (via Copilot)", toolCalling: false },
   ],
 };

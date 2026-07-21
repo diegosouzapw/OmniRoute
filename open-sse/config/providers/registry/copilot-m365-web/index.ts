@@ -8,5 +8,5 @@ export const copilot_m365_webProvider: RegistryEntry = {
   baseUrl: "wss://substrate.office.com/m365Copilot/Chathub",
   authType: "apikey",
   authHeader: "cookie",
-  models: [{ id: "copilot-m365", name: "Microsoft 365 Copilot (BizChat)" }],
+  models: [{ id: "copilot-m365", name: "Microsoft 365 Copilot (BizChat)", toolCalling: false }],
 };

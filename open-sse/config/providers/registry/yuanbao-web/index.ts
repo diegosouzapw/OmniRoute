@@ -15,19 +15,19 @@ export const yuanbao_webProvider: RegistryEntry = {
       name: "DeepSeek R1 (via Yuanbao)",
       supportsReasoning: true,
     },
-    { id: "hunyuan", name: "Hunyuan (via Yuanbao)" },
+    { id: "hunyuan", name: "Hunyuan (via Yuanbao)", toolCalling: false },
     {
       id: "hunyuan-t1",
       name: "Hunyuan T1 (via Yuanbao)",
       supportsReasoning: true,
     },
-    { id: "deepseek-v3-search", name: "DeepSeek V3 + Web Search (via Yuanbao)" },
+    { id: "deepseek-v3-search", name: "DeepSeek V3 + Web Search (via Yuanbao)", toolCalling: false },
     {
       id: "deepseek-r1-search",
       name: "DeepSeek R1 + Web Search (via Yuanbao)",
       supportsReasoning: true,
     },
-    { id: "hunyuan-search", name: "Hunyuan + Web Search (via Yuanbao)" },
+    { id: "hunyuan-search", name: "Hunyuan + Web Search (via Yuanbao)", toolCalling: false },
     {
       id: "hunyuan-t1-search",
       name: "Hunyuan T1 + Web Search (via Yuanbao)",
