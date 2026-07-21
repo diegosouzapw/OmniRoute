@@ -1101,14 +1101,19 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 <table>
   <tr>
     <td align="center" width="150">
-      <a href="https://www.kimi.com/code?aff=omniroute"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/kimi-color.svg" width="64" alt="Kimi (Moonshot AI)"/></a>
+      <a href="https://www.kimi.com/code?aff=omniroute">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="public/providers/kimi-logomark-dark.svg">
+          <img src="public/providers/kimi-logomark-light.svg" width="64" alt="Kimi (Moonshot AI)"/>
+        </picture>
+      </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
       <img src="https://img.shields.io/badge/Official_Supporter-1783FF?style=flat-square" alt="Official Supporter"/>
     </td>
     <td>
       Thanks to <b>Kimi (Moonshot AI)</b> for sponsoring this project! Kimi is the AI lab behind the open-weight K2 and K3 model families — <b>Kimi K3</b> delivers a 1M-token context window, native vision and frontier-level coding at a fraction of closed-model prices, and works out of the box with Claude Code, Codex and every coding tool OmniRoute serves.
       <br/><br/>
-      <b>Where the sponsorship goes:</b> Kimi's API credits power OmniRoute's AI-validated release pipeline — the <i>merge validation powered by Kimi K3</i> stage that reviews every pull request before it ships — plus day-to-day feature development. First-class Kimi support ships on both rails: the direct <a href="https://platform.kimi.ai?aff=omniroute">Moonshot API</a> (<code>kimi-k3</code>) and the <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code coding plan</a> (OAuth and API key). OmniRoute is also the first Brazilian open-source project in Kimi's support program. <a href="https://platform.kimi.ai?aff=omniroute"><b>Get a Moonshot API key →</b></a>
+      <b>Where the sponsorship goes:</b> Kimi's API credits power OmniRoute's AI-validated release pipeline — the <i>merge validation powered by Kimi K3</i> stage that reviews every pull request before it ships — plus day-to-day feature development. First-class Kimi support ships on both rails: the direct <a href="https://platform.kimi.ai?aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) and the <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code coding plan</a> (OAuth and API key). OmniRoute is also the first Brazilian open-source project in Kimi's support program. <a href="https://platform.kimi.ai?aff=omniroute"><b>Get a Kimi API key →</b></a>
     </td>
   </tr>
 </table>

@@ -3481,7 +3481,10 @@
     "modePack": "Gói chế độ",
     "disableSessionStickiness": "Tắt tính năng liên kết phiên",
     "sessionStickinessEnabled": "Bật liên kết phiên",
-    "sessionStickinessDisabled": "Tắt liên kết phiên"
+    "sessionStickinessDisabled": "Tắt liên kết phiên",
+    "kimiPresetTitle": "Kimi Coding preset",
+    "kimiPresetDescription": "Kimi K3 as the primary model (Moonshot API), with automatic fallback to your Kimi Code connections (kimi-coding, kimi-web) when configured.",
+    "kimiPresetCta": "Add preset"
   },
   "costs": {
     "title": "Chi phí",
@@ -5802,7 +5805,7 @@
       "modal": "Modal thường phục vụ ứng dụng tương thích OpenAI do người dùng tự lưu trữ trên /v1. OmniRoute sẽ thăm dò /v1/models và định tuyến trò chuyện tới /v1/chat/completions.",
       "modelscope": "Gói miễn phí qua ModelScope API-Inference — yêu cầu tài khoản Alibaba.",
       "monsterapi": "Lấy khóa API tại monsterapi.ai",
-      "moonshot": "Kết nối Moonshot AI bằng khóa API.",
+      "moonshot": "Kết nối Kimi bằng khóa API.",
       "morph": "Gói miễn phí: 250 nghìn tín dụng/tháng, 0 USD",
       "nanogpt": "Kết nối NanoGPT bằng khóa API.",
       "nebius": "Khoảng 1 USD tín dụng dùng thử khi đăng ký để kiểm thử API",
@@ -5941,7 +5944,8 @@
     "bulkAddFormatHintCloudflare": "Mỗi dòng một khóa. Định dạng: name|accountId|apiKey (Cloudflare account ID + API token).",
     "lmarenaWebCookieHint": "Mở arena.ai, đăng nhập, sau đó sao chép toàn bộ header Cookie từ một yêu cầu mạng. Bao gồm arena-auth-prod-v1.0 và arena-auth-prod-v1.1 (và các phần tiếp theo nếu có), ưu tiên kèm theo cf_clearance. Không chỉ dán cookie arena-auth-prod-v1 trống. Tùy chọn: providerSpecificData.recaptchaV3Token nếu create-evaluation vẫn trả về 403.",
     "kimiOfficialSupporterBadge": "Nhà tài trợ chính thức",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) là đối tác ra mắt chính thức của OmniRoute"
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) là đối tác ra mắt chính thức của OmniRoute",
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
   },
   "settings": {
     "title": "Cài đặt",
@@ -12073,5 +12077,12 @@
     "off": "TẮT",
     "availableProviders": "Nhà cung cấp khả dụng ({count})",
     "noProviderOverrides": "Không có ghi đè — mọi nhà cung cấp đang hoạt động sẽ tham gia bằng mô hình mặc định"
+  },
+  "kimiSponsorBanner": {
+    "title": "Kimi (Moonshot AI) is now an official sponsor of OmniRoute",
+    "description": "Kimi K3 brings a 1M-token context window and frontier coding performance to OmniRoute at a fraction of the cost.",
+    "cta": "Get Kimi Code",
+    "partnerLinkNote": "Partner link",
+    "dismissAriaLabel": "Dismiss"
   }
 }

@@ -2709,7 +2709,10 @@
     "agentFeaturesContextLengthErrorInteger": "يجب أن يكون طول السياق عددًا صحيحًا صالحًا",
     "agentFeaturesContextLengthErrorRange": "يجب أن يتراوح طول السياق بين 1000 و2000000",
     "compressionOverride": "تخصيص الضغط",
-    "modePack": "حزمة الوضع"
+    "modePack": "حزمة الوضع",
+    "kimiPresetTitle": "Kimi Coding preset",
+    "kimiPresetDescription": "Kimi K3 as the primary model (Moonshot API), with automatic fallback to your Kimi Code connections (kimi-coding, kimi-web) when configured.",
+    "kimiPresetCta": "Add preset"
   },
   "costs": {
     "title": "التكاليف",
@@ -4448,7 +4451,8 @@
     "visionCapableLabel": "يدعم الرؤية",
     "visionCapableHint": "علّم هذا النموذج يدويًا بأنه يدعم الرؤية عندما لا تذكر بيانات اكتشاف المزوّد إدخال الصور (وهو شائع في الواجهات الخلفية المحلية أو المستضافة ذاتيًا).",
     "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner"
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
   },
   "settings": {
     "title": "الإعدادات",
@@ -7734,5 +7738,12 @@
     "sortTypeFirst": "الأسهل أولاً",
     "sortTypeFirstHelp": "التجميع حسب سهولة البدء (من دون تسجيل ← تسجيل دخول OAuth ← مفتاح API)، مع الحفاظ على ترتيب الجودة داخل كل مجموعة",
     "typeLegend": "من دون تسجيل = لا إعداد مطلوب · تسجيل دخول OAuth = سجّل الدخول بحسابك · مفتاح API = استخدم مفتاحك أو الخطة المجانية للمزود"
+  },
+  "kimiSponsorBanner": {
+    "title": "Kimi (Moonshot AI) is now an official sponsor of OmniRoute",
+    "description": "Kimi K3 brings a 1M-token context window and frontier coding performance to OmniRoute at a fraction of the cost.",
+    "cta": "Get Kimi Code",
+    "partnerLinkNote": "Partner link",
+    "dismissAriaLabel": "Dismiss"
   }
 }

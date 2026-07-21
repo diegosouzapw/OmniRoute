@@ -1143,7 +1143,7 @@ test("sortProviderEntriesFeaturedFirst pins Kimi providers first, alphabetical o
   // not merely that Kimi happens to sort first on its own.
   const entries = [
     entry("zulu-provider", "Zulu Provider"),
-    entry("moonshot", "Moonshot AI"),
+    entry("moonshot", "Kimi"),
     entry("acme", "Acme"),
     entry("kimi-web", "Kimi Web"),
     entry("anthropic-clone", "Anthropic Clone"),
@@ -1152,9 +1152,12 @@ test("sortProviderEntriesFeaturedFirst pins Kimi providers first, alphabetical o
 
   const sorted = providerPageUtils.sortProviderEntriesFeaturedFirst(entries);
 
+  // "Kimi" (moonshot's rebranded display name) alphabetically precedes "Kimi
+  // Code CLI" and "Kimi Web" — a shorter string that is a prefix of a longer
+  // one sorts first — so moonshot leads the featured group.
   assert.deepEqual(
     sorted.map((e) => e.providerId),
-    ["kimi-coding", "kimi-web", "moonshot", "acme", "anthropic-clone", "zulu-provider"],
+    ["moonshot", "kimi-coding", "kimi-web", "acme", "anthropic-clone", "zulu-provider"],
     "featured (Kimi) entries come first, each group alphabetical among itself"
   );
 });
@@ -1254,7 +1257,7 @@ test("real API Key -> LLM subsection pins moonshot first (page.tsx's llmProvider
   assert.equal(
     llmEntries[0].providerId,
     "moonshot",
-    "moonshot (Moonshot AI, where kimi-k3 lives) must be the first card in the real API Key -> LLM subsection"
+    "moonshot (displayed as 'Kimi', where kimi-k3 lives) must be the first card in the real API Key -> LLM subsection"
   );
 
   // kimi-coding-apikey and kimi (both hiddenFromDashboard) never surface as

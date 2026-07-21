@@ -2846,7 +2846,10 @@
     "modePack": "Pacote de modos",
     "disableSessionStickiness": "Desabilitar fixação de sessão",
     "sessionStickinessEnabled": "Fixação ativada",
-    "sessionStickinessDisabled": "Fixação desativada"
+    "sessionStickinessDisabled": "Fixação desativada",
+    "kimiPresetTitle": "Preset Kimi Coding",
+    "kimiPresetDescription": "Kimi K3 como modelo primário (Moonshot API), com fallback automático para suas conexões Kimi Code (kimi-coding, kimi-web) quando configuradas.",
+    "kimiPresetCta": "Adicionar preset"
   },
   "costs": {
     "title": "Custos",
@@ -4950,7 +4953,8 @@
     "visionCapableLabel": "__MISSING__:Vision capable",
     "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends).",
     "kimiOfficialSupporterBadge": "Apoiador Oficial",
-    "kimiOfficialSupporterTooltip": "A Kimi (Moonshot AI) é parceira oficial de lançamento do OmniRoute"
+    "kimiOfficialSupporterTooltip": "A Kimi (Moonshot AI) é parceira oficial de lançamento do OmniRoute",
+    "kimiPartnerLinkNote": "Link de parceria — apoia o OmniRoute sem custo extra para você"
   },
   "settings": {
     "title": "Configurações",
@@ -9425,5 +9429,12 @@
     "testTask": "Escreva um poema curto sobre inteligência artificial",
     "timeout": "Tempo Limite (ms)",
     "timeoutDesc": "Tempo máximo por chamada de modelo (5000-600000ms)"
+  },
+  "kimiSponsorBanner": {
+    "title": "A Kimi (Moonshot AI) agora é patrocinadora oficial do OmniRoute",
+    "description": "A Kimi K3 traz uma janela de contexto de 1M de tokens e desempenho de ponta em programação ao OmniRoute por uma fração do custo.",
+    "cta": "Obter Kimi Code",
+    "partnerLinkNote": "Link de parceria",
+    "dismissAriaLabel": "Dispensar"
   }
 }
