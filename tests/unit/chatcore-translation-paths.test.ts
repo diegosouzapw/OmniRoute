@@ -2367,6 +2367,28 @@ test("chatCore maps upstream aborts to request-aborted errors", async () => {
   assert.equal(result.error, "Request aborted");
 });
 
+test("chatCore maps raw string abort reasons to 499, not 502 (#7907)", async () => {
+  // abort(reason) rejects the upstream fetch with the raw reason — often a
+  // bare string with no `name`/`status`. It must map to 499 like a named
+  // AbortError, not fall through to the 502 provider-failure default.
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "abort me with a string reason" }],
+    },
+    responseFactory() {
+      throw "request_signal_aborted";
+    },
+  });
+
+  assert.equal(result.success, false);
+  assert.equal(result.status, 499);
+  assert.equal(result.error, "Request aborted");
+});
+
 test("chatCore returns streaming responses without waiting for upstream completion", async () => {
   const encoder = new TextEncoder();
   let closeUpstream: (() => void) | null = null;
