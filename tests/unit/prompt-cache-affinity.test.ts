@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   applyPromptCacheAffinity,
   calculatePromptCacheAffinityScores,
+  expandPromptCacheAffinityTargetsFromConnections,
   promptCacheTargetIdentity,
   resolvePromptCacheAffinityKey,
 } from "../../open-sse/services/combo/promptCacheAffinity.ts";
@@ -87,6 +88,35 @@ test("auto scoring assigns the cache winner to exactly one account", () => {
     targets.reduce((sum, item) => sum + (scores.get(promptCacheTargetIdentity(item)) ?? 0), 0),
     1
   );
+});
+
+test("expands unbound targets to active allowed accounts before cache routing", () => {
+  const unbound = { ...target("step-a", ""), connectionId: null };
+  const expanded = expandPromptCacheAffinityTargetsFromConnections(
+    [{ ...unbound, allowedConnectionIds: ["account-b"] }],
+    new Map([["codex", [{ id: "account-a" }, { id: "account-b" }, { id: "account-c" }]]])
+  );
+  assert.deepEqual(
+    expanded.map((item) => item.connectionId),
+    ["account-b"]
+  );
+  assert.equal(expanded[0].executionKey, "step-a@account-b");
+});
+
+test("expanded auto candidates receive exactly one concrete account cache score", () => {
+  const unbound = { ...target("step-a", ""), connectionId: null };
+  const expanded = expandPromptCacheAffinityTargetsFromConnections(
+    [unbound],
+    new Map([["codex", [{ id: "account-a" }, { id: "account-b" }]]])
+  );
+  const scores = calculatePromptCacheAffinityScores(expanded, {
+    prompt_cache_key: "expanded-auto-key",
+  });
+  assert.equal(
+    expanded.reduce((sum, item) => sum + (scores.get(promptCacheTargetIdentity(item)) ?? 0), 0),
+    1
+  );
+  assert.ok(expanded.every((item) => item.connectionId));
 });
 
 test("cache-optimized strategy routes a stable prompt key to the same account", async () => {

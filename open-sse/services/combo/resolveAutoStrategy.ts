@@ -232,15 +232,9 @@ export async function resolveAutoStrategyOrder(
     resetWindowConfig,
     autoCandidateResilienceSettings
   );
-  const cacheAffinityScores = calculatePromptCacheAffinityScores(eligibleTargets, body);
-  const cacheAffinityByExecutionKey = new Map(
-    eligibleTargets.map((target) => [
-      target.executionKey,
-      cacheAffinityScores.get(promptCacheTargetIdentity(target)) ?? 0,
-    ])
-  );
+  const cacheAffinityScores = calculatePromptCacheAffinityScores(candidates, body);
   for (const candidate of candidates) {
-    candidate.cacheAffinity = cacheAffinityByExecutionKey.get(candidate.executionKey) ?? 0;
+    candidate.cacheAffinity = cacheAffinityScores.get(promptCacheTargetIdentity(candidate)) ?? 0;
   }
   const routableCandidates = candidates.filter(
     (candidate) => candidate.quotaCutoffBlocked !== true

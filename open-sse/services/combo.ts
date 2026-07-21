@@ -83,7 +83,12 @@ import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
 import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/concurrencyCaps.ts";
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
-import { applyPromptCacheAffinity } from "./combo/promptCacheAffinity.ts";
+import {
+  applyPromptCacheAffinity,
+  expandPromptCacheAffinityTargets,
+  expandPromptCacheAffinityTargetsFromConnections,
+  resolvePromptCacheAffinityKey,
+} from "./combo/promptCacheAffinity.ts";
 import type { CompressionMode } from "./compression/types.ts";
 import { getCachedProviderConnections } from "../../src/lib/db/readCache";
 import {
@@ -407,40 +412,10 @@ export async function buildAutoCandidates(
     })
   );
 
-  const expandedTargets: ResolvedComboTarget[] = [];
-  for (const target of targets) {
-    const provider = target.provider || parseModel(target.modelStr).provider || "unknown";
-    const providerConnections = connectionsByProvider.get(provider) || [];
-    if (target.connectionId) {
-      expandedTargets.push(target);
-      continue;
-    }
-    const connectionIds = providerConnections
-      .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
-      .filter((id): id is string => id !== null);
-    const allowedConnectionIds = Array.isArray(target.allowedConnectionIds)
-      ? new Set(
-          target.allowedConnectionIds.filter(
-            (connectionId): connectionId is string =>
-              typeof connectionId === "string" && connectionId.trim().length > 0
-          )
-        )
-      : null;
-    const scopedConnectionIds = allowedConnectionIds
-      ? connectionIds.filter((connectionId) => allowedConnectionIds.has(connectionId))
-      : connectionIds;
-    if (scopedConnectionIds.length === 0) {
-      expandedTargets.push(target);
-      continue;
-    }
-    for (const connectionId of scopedConnectionIds) {
-      expandedTargets.push({
-        ...target,
-        connectionId,
-        executionKey: `${target.executionKey}@${connectionId}`,
-      });
-    }
-  }
+  const expandedTargets = expandPromptCacheAffinityTargetsFromConnections(
+    targets,
+    connectionsByProvider
+  );
 
   // #5521: Expand fingerprint-based providers (mimocode, mcode, opencode) so each
   // fingerprint gets its own combo slot instead of being bundled into one connection.
@@ -1377,18 +1352,32 @@ export async function handleComboChat({
       ? (autoConfigForCacheWeight.weights as Record<string, unknown>)
       : null;
   const autoUsesCacheScore = Number(autoWeightsForCache?.cacheAffinity) > 0;
+  const promptCacheAffinityEnabled =
+    settings?.promptCacheAffinityEnabled !== false && !autoUsesCacheScore;
+  const promptCacheAffinityTargets =
+    promptCacheAffinityEnabled && resolvePromptCacheAffinityKey(body)
+      ? await expandPromptCacheAffinityTargets(orderedTargets)
+      : orderedTargets;
   const promptCacheAffinity = applyPromptCacheAffinity(
-    orderedTargets,
+    promptCacheAffinityTargets,
     body,
-    settings?.promptCacheAffinityEnabled !== false && !autoUsesCacheScore
+    promptCacheAffinityEnabled
   );
   if (promptCacheAffinity.applied) {
-    const protectedFirst =
+    const protectedOriginal =
       (_sticky.stuck ||
         autoUsedExplicitRouter ||
         strategy === "quota-share" ||
         strategy === "weighted") &&
       orderedTargets[0];
+    const protectedFirst = protectedOriginal
+      ? (promptCacheAffinity.targets.find(
+          (target) =>
+            target === protectedOriginal ||
+            target.executionKey === protectedOriginal.executionKey ||
+            target.executionKey.startsWith(`${protectedOriginal.executionKey}@`)
+        ) ?? protectedOriginal)
+      : null;
     orderedTargets = protectedFirst
       ? [
           protectedFirst,
@@ -2844,7 +2833,7 @@ async function handleRoundRobinCombo({
   // permanently dropping a compat-rejected-but-healthy provider.
   const compatKeptSet = new Set(filteredTargets);
   const compatRejectedTargets = evalRankedTargets.filter((target) => !compatKeptSet.has(target));
-  const modelCount = filteredTargets.length;
+  let modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
   }
@@ -2950,6 +2939,11 @@ async function handleRoundRobinCombo({
     config as Record<string, unknown> | null | undefined,
     settings as Record<string, unknown> | null | undefined
   );
+  const rrAffinityEnabled = settings?.promptCacheAffinityEnabled !== false;
+  if (rrAffinityEnabled && resolvePromptCacheAffinityKey(body)) {
+    filteredTargets = await expandPromptCacheAffinityTargets(filteredTargets);
+    modelCount = filteredTargets.length;
+  }
   const _rrSessionSticky = disableSessionStickiness
     ? ({ targets: filteredTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
@@ -2958,11 +2952,7 @@ async function handleRoundRobinCombo({
         // stickiness engages on the /v1/responses surface, not just Chat Completions.
         normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
-  const rrAffinity = applyPromptCacheAffinity(
-    filteredTargets,
-    body,
-    settings?.promptCacheAffinityEnabled !== false
-  );
+  const rrAffinity = applyPromptCacheAffinity(filteredTargets, body, rrAffinityEnabled);
   if (rrAffinity.applied) {
     const stickyFirst = _rrSessionSticky.stuck ? _rrSessionSticky.targets[0] : null;
     filteredTargets = stickyFirst

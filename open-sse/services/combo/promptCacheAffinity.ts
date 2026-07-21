@@ -3,7 +3,14 @@ import {
   analyzePrefix,
   generatePromptCacheKey,
 } from "../../../src/lib/promptCache/prefixAnalyzer.ts";
+import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
+import { parseModel } from "../model.ts";
 import type { ResolvedComboTarget } from "./types.ts";
+
+interface PromptCacheAffinityTarget {
+  executionKey: string;
+  connectionId?: string | null;
+}
 
 export type PromptCacheAffinitySource = "explicit" | "prefix";
 
@@ -108,7 +115,7 @@ export function resolvePromptCacheAffinityKey(
   return { key, source, fingerprint };
 }
 
-export function promptCacheTargetIdentity(target: ResolvedComboTarget): string {
+export function promptCacheTargetIdentity(target: PromptCacheAffinityTarget): string {
   const connectionId = typeof target.connectionId === "string" ? target.connectionId.trim() : "";
   if (connectionId) return `connection:${connectionId}`;
   return `execution:${target.executionKey}`;
@@ -125,7 +132,7 @@ function rendezvousScore(key: string, identity: string): bigint {
  * Reusing the same prompt key therefore keeps selecting the same account.
  */
 export function calculatePromptCacheAffinityScores(
-  targets: ResolvedComboTarget[],
+  targets: PromptCacheAffinityTarget[],
   body: Record<string, unknown> | null | undefined
 ): Map<string, number> {
   const resolution = resolvePromptCacheAffinityKey(body);
@@ -146,6 +153,88 @@ export function calculatePromptCacheAffinityScores(
       return [identity, identity === winnerIdentity ? 1 : 0];
     })
   );
+}
+
+/**
+ * Bind unscoped combo targets to concrete active provider accounts before
+ * rendezvous hashing. This keeps the selected cache identity identical to the
+ * account that credential resolution will execute, while preserving the
+ * original target as a fail-open fallback when no eligible account is known.
+ */
+export async function expandPromptCacheAffinityTargets(
+  targets: ResolvedComboTarget[]
+): Promise<ResolvedComboTarget[]> {
+  const providers = Array.from(
+    new Set(
+      targets
+        .filter((target) => !target.connectionId)
+        .map(
+          (target) =>
+            target.provider ||
+            parseModel(target.modelStr).provider ||
+            parseModel(target.modelStr).providerAlias ||
+            "unknown"
+        )
+    )
+  );
+  const connectionsByProvider = new Map<string, Array<Record<string, unknown>>>();
+  await Promise.all(
+    providers.map(async (provider) => {
+      try {
+        const connections = (await getCachedProviderConnections({
+          provider,
+          isActive: true,
+        })) as Array<Record<string, unknown>>;
+        connectionsByProvider.set(provider, Array.isArray(connections) ? connections : []);
+      } catch {
+        connectionsByProvider.set(provider, []);
+      }
+    })
+  );
+  return expandPromptCacheAffinityTargetsFromConnections(targets, connectionsByProvider);
+}
+
+export function expandPromptCacheAffinityTargetsFromConnections(
+  targets: ResolvedComboTarget[],
+  connectionsByProvider: Map<string, Array<Record<string, unknown>>>
+): ResolvedComboTarget[] {
+  const expandedTargets: ResolvedComboTarget[] = [];
+  for (const target of targets) {
+    if (target.connectionId) {
+      expandedTargets.push(target);
+      continue;
+    }
+    const parsed = parseModel(target.modelStr);
+    const provider = target.provider || parsed.provider || parsed.providerAlias || "unknown";
+    const connectionIds = (connectionsByProvider.get(provider) || [])
+      .map((connection) =>
+        connection && typeof connection.id === "string" ? connection.id.trim() : ""
+      )
+      .filter((connectionId) => connectionId.length > 0);
+    const allowedConnectionIds = Array.isArray(target.allowedConnectionIds)
+      ? new Set(
+          target.allowedConnectionIds.filter(
+            (connectionId): connectionId is string =>
+              typeof connectionId === "string" && connectionId.trim().length > 0
+          )
+        )
+      : null;
+    const scopedConnectionIds = allowedConnectionIds
+      ? connectionIds.filter((connectionId) => allowedConnectionIds.has(connectionId))
+      : connectionIds;
+    if (scopedConnectionIds.length === 0) {
+      expandedTargets.push(target);
+      continue;
+    }
+    for (const connectionId of scopedConnectionIds) {
+      expandedTargets.push({
+        ...target,
+        connectionId,
+        executionKey: `${target.executionKey}@${connectionId}`,
+      });
+    }
+  }
+  return expandedTargets;
 }
 
 /**

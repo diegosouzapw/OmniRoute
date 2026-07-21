@@ -3,7 +3,11 @@ import { generateRoutingHints } from "../manifestAdapter";
 import { resolveMaxConcurrentByConnection } from "./concurrencyCaps.ts";
 import { sortTargetsByContextSize } from "./comboStructure.ts";
 import { selectQuotaShareTarget } from "./quotaShareStrategy.ts";
-import { applyPromptCacheAffinity } from "./promptCacheAffinity.ts";
+import {
+  applyPromptCacheAffinity,
+  expandPromptCacheAffinityTargets,
+  resolvePromptCacheAffinityKey,
+} from "./promptCacheAffinity.ts";
 import {
   orderTargetsByHeadroom,
   orderTargetsByResetAwareQuota,
@@ -198,6 +202,9 @@ export async function applyStrategyOrdering(
     orderedTargets = sortTargetsByContextSize(orderedTargets);
     log.info("COMBO", `Context-optimized ordering: largest first (${orderedTargets[0]?.modelStr})`);
   } else if (strategy === "cache-optimized") {
+    if (resolvePromptCacheAffinityKey(body)) {
+      orderedTargets = await expandPromptCacheAffinityTargets(orderedTargets);
+    }
     const affinity = applyPromptCacheAffinity(orderedTargets, body);
     orderedTargets = affinity.targets;
     log.info(
