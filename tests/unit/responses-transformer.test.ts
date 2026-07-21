@@ -189,6 +189,7 @@ test("createResponsesApiTransformStream hides the internal reasoning replay plac
   );
   assert.equal(output.includes("prior reasoning summary unavailable"), false);
   assert.equal(output.includes("Visible answer"), true);
+});
 test("createResponsesApiTransformStream restores declared custom tools without changing functions", async () => {
   const output = await runTransformStream(
     [
