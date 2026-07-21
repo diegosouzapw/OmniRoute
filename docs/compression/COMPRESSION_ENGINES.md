@@ -57,6 +57,20 @@ structural engines (used by stacked pipelines, the playground, and tests):
 | ionizer       | `ionizer`       | Head/middle/tail row sampling for very large homogeneous blocks, storing the elided middle as a CCR content-addressed reference.                                           |
 | session-dedup | `session-dedup` | Content-addressed cross-turn deduplication (TokenMizer-inspired): elides text already seen in earlier turns of the same session.                                           |
 
+**CCR retrieve-protocol instruction (#8033):** the first time CCR replaces ≥1 block in a
+request, the engine prepends a single, idempotent `system` message (leading with the
+`[CCR protocol]` sentinel) teaching the caller the marker → tool contract: what a
+`[CCR retrieve hash=<24hex> chars=N]` marker means, that the hash must be copied verbatim
+(all 24 hex characters — mis-copied hashes are the likely cause of "block not found"
+misses), and that a `[dedup:ref sha=...]` marker means "look back in history", not "call the
+tool". The note is injected **only when the caller's advertised `tools[]` proves it can
+actually reach `omniroute_ccr_retrieve`** (`callerSupportsCcrRetrieve()` in
+`open-sse/services/compression/engines/ccr/protocolInstruction.ts`) — a plain
+OpenAI-compatible caller without that tool never receives an instruction to call something
+it cannot reach. Idempotency is enforced by scanning the message history for the sentinel
+before injecting, so multi-turn requests (which replay prior messages) do not stack the
+note once per turn.
+
 ## Caveman
 
 Caveman mode focuses on semantic condensation of normal prose:
