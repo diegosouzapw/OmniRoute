@@ -7,6 +7,7 @@ import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
+import { hasMcpConnectOrManageScope, MCP_CONNECT_SCOPE } from "../../../shared/constants/managementScopes";
 import { evaluateAccessTokenAuth } from "../accessTokenAuth";
 import { CLI_TOKEN_HEADER, PEER_IP_HEADER, VIA_PROXY_HEADER } from "../headers";
 import { resolveStampedPeer, resolveStampedViaProxy } from "../peerStamp";
@@ -153,10 +154,26 @@ export const managementPolicy: RoutePolicy = {
           try {
             if (await isValidApiKey(apiKey)) {
               const meta = await getApiKeyMetadata(apiKey);
-              if (meta && hasManageScope(meta.scopes)) {
-                // Distinguish admin vs manage in the audit label so log review
-                // can tell which privilege actually granted the bypass.
-                const grantedBy = meta.scopes.includes("admin") ? "admin" : "manage";
+              // #7895: the `/api/mcp/` carve-out ALSO accepts the narrow
+              // `mcp:connect` scope, so remote MCP-only callers don't need
+              // broad `manage`/`admin` just to reach the transport routes.
+              // Scoped to `/api/mcp/` ONLY — every other LOCAL_ONLY bypass
+              // prefix still requires full `hasManageScope` (below).
+              const scopeGranted =
+                path.startsWith("/api/mcp/") && meta
+                  ? hasMcpConnectOrManageScope(meta.scopes)
+                  : Boolean(meta && hasManageScope(meta.scopes));
+              if (meta && scopeGranted) {
+                // Distinguish admin vs manage vs the narrow mcp:connect scope in
+                // the audit label so log review can tell which privilege
+                // actually granted the bypass.
+                const grantedBy = meta.scopes.includes("admin")
+                  ? "admin"
+                  : meta.scopes.includes("manage")
+                    ? "manage"
+                    : meta.scopes.includes(MCP_CONNECT_SCOPE)
+                      ? "mcp-connect"
+                      : "manage";
                 return allow({
                   kind: "management_key",
                   id: meta.id,
