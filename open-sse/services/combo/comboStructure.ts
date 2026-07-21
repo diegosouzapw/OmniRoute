@@ -12,6 +12,7 @@
  */
 
 import { getModelContextLimit } from "../../../src/lib/modelCapabilities";
+import { getModelContextOverride } from "../../../src/lib/db/modelContextOverrides";
 import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
 import { estimateTokens } from "../contextManager.ts";
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
@@ -504,8 +505,28 @@ function exceedsKnownOutputLimit(
  */
 function evaluateContextLimit(
   capabilities: { maxInputTokens?: number | null; contextWindow?: number | null },
-  requirements: { estimatedInputTokens: number; requiredContextTokens: number }
+  requirements: { estimatedInputTokens: number; requiredContextTokens: number },
+  modelStr?: string
 ): boolean | null {
+  // A persisted context override (Feature 5004 — operator-set or auto-discovered
+  // real usable window) wins for server-side routing. The catalog's
+  // `maxInputTokens` can be a deliberately smaller *client-facing* hint (e.g. set
+  // below the true window so coding agents auto-compact — #6191); using it to
+  // filter fallback targets wrongly drops otherwise-capable providers for large
+  // prompts, collapsing the pool to one provider and producing a hard 503 with no
+  // fallback once that provider's quota is exhausted. The override reflects the
+  // real capacity, so it supersedes both catalog limits here. Use the raw override
+  // (getModelContextOverride returns null when none is set) — NOT
+  // getModelContextLimitForModelString, which falls back to contextWindow and would
+  // therefore bypass the maxInputTokens cap for every model, not just overridden ones.
+  if (modelStr) {
+    const parsed = parseModel(modelStr);
+    const override = getModelContextOverride(parsed.provider, parsed.model);
+    if (override != null) {
+      return override >= requirements.requiredContextTokens;
+    }
+  }
+
   const hasMaxInput = capabilities.maxInputTokens != null;
   const hasContextWindow = capabilities.contextWindow != null;
 
@@ -537,7 +558,7 @@ function hasKnownCompatibleContextLimit(
 ): boolean {
   if (requirements.requiredContextTokens <= 0) return false;
   const capabilities = getResolvedModelCapabilities(target.modelStr);
-  return evaluateContextLimit(capabilities, requirements) === true;
+  return evaluateContextLimit(capabilities, requirements, target.modelStr) === true;
 }
 
 function hasOnlyContextWindowFailures(reasons: string[]): boolean {
@@ -576,7 +597,7 @@ function getTargetCompatibilityFailures(
     failures.push("output_tokens");
   }
 
-  const contextVerdict = evaluateContextLimit(capabilities, requirements);
+  const contextVerdict = evaluateContextLimit(capabilities, requirements, target.modelStr);
   if (requirements.requiredContextTokens > 0 && contextVerdict === false) {
     failures.push("context_window");
   }

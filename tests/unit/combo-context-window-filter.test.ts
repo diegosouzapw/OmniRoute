@@ -18,6 +18,8 @@ const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
 const { filterTargetsByRequestCompatibility, getKnownContextOverflow, handleComboChat } =
   await import("../../open-sse/services/combo.ts");
+const { setModelContextOverride, removeModelContextOverride } =
+  await import("../../src/lib/db/modelContextOverrides.ts");
 
 test.after(() => {
   core.resetDbInstance();
@@ -362,5 +364,55 @@ test("maxInputTokens defaulting to contextWindow still rejects when input + outp
   assert.deepEqual(
     out.map((entry) => entry.modelStr),
     ["unit-7039-window/huge"]
+  );
+});
+
+// A persisted model_context_override (Feature 5004 — operator-set or
+// auto-discovered) reflects a target's real usable window and must win over the
+// static catalog limit for server-side routing. Otherwise a provider whose
+// catalog `maxInputTokens` is a deliberately smaller client-facing hint (set
+// below the true window so coding agents auto-compact, #6191) gets wrongly
+// dropped for large-context requests, collapsing the fallback pool.
+test("model_context_override lets a small-catalog target survive a large-context request", () => {
+  saveModelsDevCapabilities({
+    "unit-override": {
+      big: capabilityEntry(1_000_000),
+      capped: capabilityEntry(8_000),
+    },
+  });
+  setModelContextOverride("unit-override", "capped", 1_000_000);
+  try {
+    const out = filterTargetsByRequestCompatibility(
+      [target("unit-override/capped"), target("unit-override/big")],
+      largeContextBody(),
+      noopLog
+    );
+    assert.deepEqual(
+      out.map((entry) => entry.modelStr).sort(),
+      ["unit-override/big", "unit-override/capped"]
+    );
+  } finally {
+    removeModelContextOverride("unit-override", "capped");
+  }
+});
+
+test("without an override the small-catalog target is still dropped for the large request", () => {
+  saveModelsDevCapabilities({
+    "unit-override": {
+      big: capabilityEntry(1_000_000),
+      capped: capabilityEntry(8_000),
+    },
+  });
+  // No override: capped (8K) is genuinely too small and must be filtered out,
+  // guarding the override read-path from masking a real too-small target.
+  const out = filterTargetsByRequestCompatibility(
+    [target("unit-override/capped"), target("unit-override/big")],
+    largeContextBody(),
+    noopLog
+  );
+
+  assert.deepEqual(
+    out.map((entry) => entry.modelStr),
+    ["unit-override/big"]
   );
 });
