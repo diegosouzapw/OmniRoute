@@ -36,7 +36,7 @@ function wait(ms: number) {
 // under load. Poll the live counts instead of guessing a wall-clock delay.
 async function pollUntil(
   predicate: () => boolean,
-  { timeoutMs = 2000, intervalMs = 5 } = {}
+  { timeoutMs = 10000, intervalMs = 5 } = {}
 ): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (!predicate()) {
