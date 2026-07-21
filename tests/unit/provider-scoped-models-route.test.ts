@@ -126,7 +126,9 @@ test("provider models route accepts provider alias in path", async () => {
 });
 
 test("provider models route supports service provider 9router", async () => {
-  serviceModelsDb.saveServiceModels("9router", [{ id: "gpt-4o-mini", name: "Local9R Test", available: true }]);
+  serviceModelsDb.saveServiceModels("9router", [
+    { id: "gpt-4o-mini", name: "Local9R Test", available: true },
+  ]);
 
   const response = await providerModelsRoute.GET(
     new Request("http://localhost/api/v1/providers/9router/models"),
@@ -140,11 +142,16 @@ test("provider models route supports service provider 9router", async () => {
 
   assert.equal(response.status, 200);
   assert.ok(ids.includes("gpt-4o-mini"));
-  assert.equal(ids.some((id: string) => id.includes("/")), false);
+  assert.equal(
+    ids.some((id: string) => id.includes("/")),
+    false
+  );
 });
 
 test("provider models route supports service provider cliproxyapi", async () => {
-  serviceModelsDb.saveServiceModels("cliproxyapi", [{ id: "llama-3", name: "Clip Test", available: true }]);
+  serviceModelsDb.saveServiceModels("cliproxyapi", [
+    { id: "llama-3", name: "Clip Test", available: true },
+  ]);
 
   const response = await providerModelsRoute.GET(
     new Request("http://localhost/api/v1/providers/cliproxyapi/models"),
@@ -158,7 +165,10 @@ test("provider models route supports service provider cliproxyapi", async () => 
 
   assert.equal(response.status, 200);
   assert.ok(ids.includes("llama-3"));
-  assert.equal(ids.some((id: string) => id.includes("/")), false);
+  assert.equal(
+    ids.some((id: string) => id.includes("/")),
+    false
+  );
 });
 
 test("provider models route returns 400 for unknown provider", async () => {
@@ -173,4 +183,56 @@ test("provider models route returns 400 for unknown provider", async () => {
 
   assert.equal(response.status, 400);
   assert.equal(body.error.code, "invalid_provider");
+});
+
+test("provider models route resolves local provider by canonical ID (ollama-local)", async () => {
+  const response = await providerModelsRoute.GET(
+    new Request("http://localhost/api/v1/providers/ollama-local/models"),
+    {
+      params: Promise.resolve({ provider: "ollama-local" }),
+    }
+  );
+
+  // Must NOT return 400 invalid_provider — should resolve via catalog fallback
+  assert.notEqual(response.status, 400, "ollama-local must not return 400");
+  const body = (await response.json()) as ProviderModelsResponse;
+  assert.notEqual(
+    body.error?.code,
+    "invalid_provider",
+    "ollama-local must not be rejected as unknown provider"
+  );
+});
+
+test("provider models route resolves local provider by alias (ollama)", async () => {
+  const response = await providerModelsRoute.GET(
+    new Request("http://localhost/api/v1/providers/ollama/models"),
+    {
+      params: Promise.resolve({ provider: "ollama" }),
+    }
+  );
+
+  assert.notEqual(response.status, 400, "ollama (alias) must not return 400");
+  const body = (await response.json()) as ProviderModelsResponse;
+  assert.notEqual(
+    body.error?.code,
+    "invalid_provider",
+    "ollama (alias) must not be rejected as unknown provider"
+  );
+});
+
+test("provider models route resolves another local provider by ID (lm-studio)", async () => {
+  const response = await providerModelsRoute.GET(
+    new Request("http://localhost/api/v1/providers/lm-studio/models"),
+    {
+      params: Promise.resolve({ provider: "lm-studio" }),
+    }
+  );
+
+  assert.notEqual(response.status, 400, "lm-studio must not return 400");
+  const body = (await response.json()) as ProviderModelsResponse;
+  assert.notEqual(
+    body.error?.code,
+    "invalid_provider",
+    "lm-studio must not be rejected as unknown provider"
+  );
 });
