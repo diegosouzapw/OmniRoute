@@ -36,6 +36,60 @@ test("collapses the reporter's two distinct duplicated ids to two unique entries
   );
 });
 
+test("merges complementary metadata when the same id is emitted as generic and typed listings", () => {
+  const out = dedupeExactCatalogIds([
+    {
+      id: "veo-free/veo",
+      owned_by: "veoaifree-web",
+      root: "veo",
+      context_length: 128000,
+      capabilities: { tool_calling: true },
+      permission: [],
+    },
+    {
+      id: "veo-free/veo",
+      owned_by: "veoaifree-web",
+      type: "video",
+      capabilities: { reasoning: true },
+    },
+  ]);
+
+  assert.equal(out.length, 1);
+  assert.deepEqual(out[0], {
+    id: "veo-free/veo",
+    owned_by: "veoaifree-web",
+    root: "veo",
+    type: "video",
+    context_length: 128000,
+    capabilities: { tool_calling: true, reasoning: true },
+    permission: [],
+  });
+});
+
+test("merges public metadata without copying account-specific routing fields", () => {
+  const out = dedupeExactCatalogIds([
+    {
+      id: "shared/model",
+      owned_by: "provider",
+      root: "model",
+      connection_id: "account-a",
+      context_length: 100000,
+    },
+    {
+      id: "shared/model",
+      owned_by: "provider",
+      root: "model",
+      connection_id: "account-b",
+      max_output_tokens: 16000,
+    },
+  ]);
+
+  assert.equal(out.length, 1);
+  assert.equal(out[0].connection_id, "account-a");
+  assert.equal(out[0].context_length, 100000);
+  assert.equal(out[0].max_output_tokens, 16000);
+});
+
 test("preserves intentional same-id audio variants (transcription vs speech)", () => {
   const input = [
     { id: "prov/whisper", owned_by: "prov", root: "whisper", type: "audio", subtype: "transcription" },
@@ -59,7 +113,7 @@ test("keeps distinct ids untouched", () => {
   assert.equal(out.length, 3);
 });
 
-test("keeps the FIRST occurrence's metadata, drops the later dupe", () => {
+test("keeps the FIRST occurrence's conflicting metadata while filling missing fields", () => {
   const input = [
     { id: "x/dup", name: "First", capabilities: { vision: true } },
     { id: "x/dup", name: "Second" },
@@ -70,10 +124,10 @@ test("keeps the FIRST occurrence's metadata, drops the later dupe", () => {
   assert.deepEqual(out[0].capabilities, { vision: true });
 });
 
-test("a dup that differs only by type is NOT collapsed (distinct listing identity)", () => {
+test("preserves genuinely distinct non-chat surfaces for the same id", () => {
   const input = [
-    { id: "p/m", type: "chat" },
     { id: "p/m", type: "embedding" },
+    { id: "p/m", type: "rerank" },
   ];
   const out = dedupeExactCatalogIds(input);
   assert.equal(out.length, 2);
