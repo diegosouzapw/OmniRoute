@@ -176,7 +176,7 @@ test("getUsageForProvider(antigravity) merges weekly quotas with the selected CL
         json: async () => ({
           buckets: [
             {
-              modelId: "gemini-3.5-flash-high",
+              modelId: "gemini-3-flash-agent",
               remainingFraction: 0.4,
               resetTime: RESET_IN_2_HOURS,
             },
@@ -190,7 +190,7 @@ test("getUsageForProvider(antigravity) merges weekly quotas with the selected CL
       ok: true,
       json: async () => ({
         models: {
-          "gemini-3.5-flash-high": {
+          "gemini-3-flash-agent": {
             quotaInfo: { remainingFraction: 1.0, resetTime: RESET_IN_2_HOURS },
           },
         },
@@ -211,8 +211,8 @@ test("getUsageForProvider(antigravity) merges weekly quotas with the selected CL
   const quotas = (result as UsageResult).quotas;
 
   // Existing per-model 5h quota is untouched.
-  assert.ok(quotas["gemini-3.5-flash-high"], "per-model 5h quota still present");
-  assert.equal(quotas["gemini-3.5-flash-high"].quotaSource, "retrieveUserQuota");
+  assert.ok(quotas["gemini-3-flash-agent"], "per-model 5h quota still present");
+  assert.equal(quotas["gemini-3-flash-agent"].quotaSource, "retrieveUserQuota");
 
   // New weekly group quota is merged in alongside it.
   assert.ok(quotas.gemini_weekly, "weekly group quota merged in");
@@ -235,7 +235,7 @@ test("getUsageForProvider(antigravity) is unaffected when retrieveUserQuotaSumma
       ok: true,
       json: async () => ({
         models: {
-          "gemini-3.5-flash-high": {
+          "gemini-3-flash-agent": {
             quotaInfo: { remainingFraction: 1.0, resetTime: RESET_IN_2_HOURS },
           },
         },
@@ -253,6 +253,6 @@ test("getUsageForProvider(antigravity) is unaffected when retrieveUserQuotaSumma
 
   const result = await getUsageForProvider(connection, { forceRefresh: true });
   const quotas = (result as UsageResult).quotas;
-  assert.ok(quotas["gemini-3.5-flash-high"], "per-model quota still present without weekly data");
+  assert.ok(quotas["gemini-3-flash-agent"], "per-model quota still present without weekly data");
   assert.equal(quotas.gemini_weekly, undefined, "no weekly key when the RPC is unavailable");
 });

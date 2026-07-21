@@ -75,11 +75,8 @@ const PROVIDER_MODEL_ALIASES: ProviderModelAliasMap = {
     "syn:small:text": "hf:zai-org/GLM-4.7-Flash",
     "syn:nemotron-3-super": "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
   },
-  // Antigravity model aliases must be applied by the Antigravity executor, not by
-  // the global model resolver. Applying them here rewrites the client-visible model
-  // before credential/account routing and before UI/logging, causing clean IDs like
-  // gemini-3.5-flash-high to be exposed and retried as upstream-only legacy ids such
-  // as gemini-3-flash-agent. The executor owns provider-wire normalization.
+  // Antigravity public model ids already match the upstream wire ids. Keep this map
+  // empty so the global resolver cannot rewrite them before routing or logging.
   antigravity: {},
   kiro: {
     "claude-opus-4-7": "claude-opus-4.7",

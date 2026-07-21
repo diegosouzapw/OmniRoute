@@ -183,7 +183,7 @@ test("AntigravityExecutor.transformRequest strips thinking config for Cloud Code
   assert.equal(generationConfig.thinkingConfig, undefined);
 });
 
-test("AntigravityExecutor.transformRequest preserves thinking config for supported Gemini models", async () => {
+test("AntigravityExecutor.transformRequest preserves thinking config for gemini-pro-agent", async () => {
   const executor = new AntigravityExecutor();
   const body = {
     request: {
@@ -197,7 +197,7 @@ test("AntigravityExecutor.transformRequest preserves thinking config for support
     },
   };
 
-  const result = await executor.transformRequest("antigravity/gemini-3.1-pro-high", body, true, {
+  const result = await executor.transformRequest("antigravity/gemini-pro-agent", body, true, {
     projectId: "project-1",
   });
 

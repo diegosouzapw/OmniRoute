@@ -2598,7 +2598,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   };
 
   const FREE_STACK_PRESET_MODELS = [
-    { model: "agy/gemini-3.5-flash-medium", weight: 0 },
+    { model: "agy/gemini-3.5-flash-low", weight: 0 },
     { model: "kr/claude-sonnet-4.5", weight: 0 },
     { model: "if/kimi-k2-thinking", weight: 0 },
     { model: "if/qwen3-coder-plus", weight: 0 },
@@ -2611,8 +2611,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     { model: "cu/claude-4.6-opus-high", weight: 0 },
     { model: "antigravity/claude-sonnet-4-6", weight: 0 },
     { model: "cu/claude-4.6-sonnet-high", weight: 0 },
-    { model: "antigravity/gemini-3.1-pro-high", weight: 0 },
-    { model: "antigravity/gemini-3-pro-high", weight: 0 },
+    { model: "antigravity/gemini-pro-agent", weight: 0 },
   ];
 
   const applyTemplate = (template) => {
