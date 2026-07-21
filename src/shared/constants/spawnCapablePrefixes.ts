@@ -34,4 +34,5 @@ export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
   "/api/skills/collect/", // Skill Collector CLI detection: GET .../detect spawns a child process per CLI_TOOL_IDS entry — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17, PR #6294 review)
   "/api/headroom/start", // spawns headroom-ai python CLI — must never be bypassable (Hard Rules #15 + #17)
   "/api/headroom/stop", // kills tracked PID — must never be bypassable (Hard Rules #15 + #17)
+  "/api/vnc-session", // #7892: spawns Docker containers via child_process.spawn (src/lib/vncSession/service.ts) — must never be whitelistable via manage-scope bypass (Hard Rules #15 + #17)
 ];
