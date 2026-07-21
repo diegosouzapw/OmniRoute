@@ -1,0 +1,1 @@
+- **fix(sse):** Bound forwarded upstream response headers so large provider metadata cannot turn successful streaming requests into reverse-proxy errors ([#8041](https://github.com/diegosouzapw/OmniRoute/pull/8041)) — thanks @insoln
