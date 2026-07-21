@@ -164,6 +164,10 @@ import { recordKeyHealthStatus as recordKeyHealthStatusFor } from "./chatCore/ke
 import { getSkillsModelIdForFormat } from "./chatCore/skillsFormat.ts";
 import { readNonStreamingResponseBody } from "./chatCore/nonStreamingResponseBody.ts";
 import {
+  isThinkingSignatureError,
+  stripHistoricalThinking,
+} from "./chatCore/thinkingSignatureRecovery.ts";
+import {
   isSemaphoreCapacityError,
   createStreamingErrorResult,
   getUpstreamErrorIdentifier,
@@ -1776,6 +1780,12 @@ export async function handleChatCore({
   body = outputBudget.body;
 
   let translatedBody = body;
+  // Issue #7899: request-scoped recovery for "Invalid signature in thinking block".
+  // When an Anthropic target rejects a historical thinking block's signature
+  // (after a routing/model/account change), retry once after stripping thinking
+  // from completed historical assistant turns. The flag prevents unbounded
+  // retries; the strip helper preserves active tool_use → tool_result cycles.
+  let thinkingSignatureRetryDone = false;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
   const isClaudeCodeSemanticPassthrough = isClaudeCodeSemanticPassthroughRequest({
@@ -3705,30 +3715,75 @@ export async function handleChatCore({
         );
       }
     } else {
-      persistAttemptLogs({
-        status: statusCode,
-        error: errMsg,
-        providerRequest: finalBody || translatedBody,
-        providerResponse: upstreamErrorBody,
-        clientResponse: buildErrorBody(statusCode, errMsg),
-        cacheSource: "upstream",
-      });
-      persistFailureUsage(statusCode, `upstream_${statusCode}`);
+      // Issue #7899: request-scoped recovery for "Invalid signature in thinking
+      // block". Before returning the error, check if this is an Anthropic 400
+      // validation error for a stale thinking signature. If so, retry once
+      // after stripping thinking blocks from completed historical assistant
+      // turns (preserving the active tool_use cycle and the latest assistant
+      // message). This must NOT trigger for generic 400s, 429s, or the
+      // separate "latest assistant message cannot be modified" error.
+      let thinkingSignatureRecovered = false;
+      if (
+        !thinkingSignatureRetryDone &&
+        isThinkingSignatureError(statusCode, message)
+      ) {
+        const stripped = stripHistoricalThinking(translatedBody?.messages);
+        if (stripped.removed > 0) {
+          thinkingSignatureRetryDone = true;
+          translatedBody = { ...translatedBody, messages: stripped.messages };
+          log?.warn?.(
+            "THINKING_SIGNATURE",
+            `Anthropic 400: Invalid signature in thinking block — retrying after stripping ${stripped.removed} historical thinking block(s) from completed assistant turns`
+          );
+          try {
+            const retryResult = await executeProviderRequest(effectiveModel, false);
+            providerResponse = retryResult.response;
+            providerUrl = retryResult.url;
+            providerHeaders = new Headers(retryResult.headers || {});
+            finalBody = providerRequestCapture.body(retryResult.transformedBody);
+            reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+            updatePendingScope(pendingScope, {
+              providerRequest: finalBody,
+              providerUrl,
+              stage: "provider_response_started",
+            });
+            if (providerResponse.ok) {
+              thinkingSignatureRecovered = true;
+              upstreamErrorParsed = false;
+            }
+          } catch {
+            // Retry threw — fall through to return the original error.
+          }
+        }
+      }
 
-      // Emergency budget fallback is orchestrated exclusively by the routing layer
-      // (src/sse/handlers/chat.ts), which resolves credentials FOR the emergency
-      // provider through account selection. The executor-level hop that used to
-      // live here re-sent the FAILING provider's credentials to the emergency
-      // provider's endpoint (e.g. the OpenAI API key to integrate.api.nvidia.com)
-      // — a cross-provider credential leak that also never succeeded upstream.
-      return createErrorResult(
-        statusCode,
-        errMsg,
-        retryAfterMs,
-        upstreamErrorCode,
-        upstreamErrorType,
-        upstreamErrorBody
-      );
+      if (!thinkingSignatureRecovered) {
+        persistAttemptLogs({
+          status: statusCode,
+          error: errMsg,
+          providerRequest: finalBody || translatedBody,
+          providerResponse: upstreamErrorBody,
+          clientResponse: buildErrorBody(statusCode, errMsg),
+          cacheSource: "upstream",
+        });
+        persistFailureUsage(statusCode, `upstream_${statusCode}`);
+
+        // Emergency budget fallback is orchestrated exclusively by the routing layer
+        // (src/sse/handlers/chat.ts), which resolves credentials FOR the emergency
+        // provider through account selection. The executor-level hop that used to
+        // live here re-sent the FAILING provider's credentials to the emergency
+        // provider's endpoint (e.g. the OpenAI API key to integrate.api.nvidia.com)
+        // — a cross-provider credential leak that also never succeeded upstream.
+        return createErrorResult(
+          statusCode,
+          errMsg,
+          retryAfterMs,
+          upstreamErrorCode,
+          upstreamErrorType,
+          upstreamErrorBody
+        );
+      }
+      // Retry succeeded — fall through to normal response processing below.
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
   }
