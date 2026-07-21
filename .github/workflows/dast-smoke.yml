@@ -27,6 +27,8 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build CLI bundle
+        env:
+          OMNIROUTE_BUILD_BACKEND_ONLY: "1"
         run: npm run build:cli
       - name: Start OmniRoute
         env:
