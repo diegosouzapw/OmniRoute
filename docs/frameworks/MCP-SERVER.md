@@ -308,6 +308,34 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 
 Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
 
+### `mcp:connect` — narrow route capability (#7895)
+
+Reaching the HTTP/SSE MCP transport (`/api/mcp/*`) from non-loopback requires the
+`/api/mcp/` LOCAL_ONLY carve-out (see `docs/security/ROUTE_GUARD_TIERS.md`). Historically
+that carve-out only accepted a full `manage`/`admin`-scope API key — too broad for a
+caller that only needs to talk MCP. `src/shared/constants/managementScopes.ts` now
+exports `MCP_CONNECT_SCOPE = "mcp:connect"`: an additive, narrow scope (same precedent as
+`SELF_USAGE_SCOPE`) that authorizes ONLY the `/api/mcp/` bypass in
+`src/server/authz/policies/management.ts` — it grants no other management-route access
+and is deliberately kept OUT of `MANAGEMENT_API_KEY_SCOPES`. A key holding `manage`/`admin`
+still passes the carve-out unchanged; `mcp:connect` is a lower-privilege alternative for
+remote MCP-only callers, checked via `hasMcpConnectOrManageScope()`.
+
+### Per-key HTTP scope binding (#7895)
+
+Over HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` now resolves the caller's real
+`api_keys.scopes` via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+and passes it to the MCP SDK's `transport.handleRequest(req, { authInfo })`, so
+`extra.authInfo.scopes` reaching each tool call reflects the Bearer key's own scopes.
+`scopeEnforcement.ts`'s `resolveCallerScopeContext()` already prioritized `authInfo` over
+the `_meta` and `OMNIROUTE_MCP_SCOPES` env fallback — this only populates that first,
+highest-priority source, which was previously unfed over HTTP. When no API key resolves
+(no header, invalid key), `authInfo` stays `undefined` and resolution falls through to the
+existing `meta`/env chain unchanged. This does NOT flip `OMNIROUTE_MCP_ENFORCE_SCOPES`'s
+default — enforcement still has to be explicitly enabled; this change only makes the
+per-key path take precedence once it is. stdio has no per-caller identity (see
+`mcpCallerIdentity.ts`) and is unaffected — it stays on the `_meta`/env fallback chain.
+
 ---
 
 ## Environment Variables
