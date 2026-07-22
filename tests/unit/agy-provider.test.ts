@@ -11,6 +11,7 @@ import {
 import { supportsTokenRefresh, REFRESH_LEAD_MS } from "../../open-sse/services/tokenRefresh.ts";
 import {
   AGY_PUBLIC_MODELS,
+  isDiscoverableAgyModelId,
   isUserCallableAgyModelId,
   getClientVisibleAgyModelName,
 } from "../../open-sse/config/agyModels.ts";
@@ -106,6 +107,13 @@ test("agy model helpers resolve catalog ids and display names", () => {
   assert.equal(getClientVisibleAgyModelName("gemini-3.5-flash-low"), "Gemini 3.5 Flash (Medium)");
   assert.equal(getClientVisibleAgyModelName("gemini-3-flash-agent"), "Gemini 3.5 Flash (High)");
   assert.equal(getClientVisibleAgyModelName("unknown-model", "Fallback"), "Fallback");
+});
+
+test("agy live discovery accepts new chat models while excluding tab-completion models", () => {
+  assert.equal(isDiscoverableAgyModelId("gemini-new-live-tier"), true);
+  assert.equal(isDiscoverableAgyModelId("tab_flash_lite_preview"), false);
+  assert.equal(isDiscoverableAgyModelId("tab_jump_flash_lite_preview"), false);
+  assert.equal(isDiscoverableAgyModelId(""), false);
 });
 
 test("agy token refresh is wired on the Google (non-rotating) refresh path", () => {

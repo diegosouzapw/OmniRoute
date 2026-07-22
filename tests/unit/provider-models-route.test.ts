@@ -994,6 +994,33 @@ test("provider models route retries Antigravity discovery endpoints before retur
   ]);
 });
 
+test("provider models route discovers newly announced agy models without exposing internal models", async () => {
+  const connection = await seedConnection("agy", { authType: "oauth", accessToken: "agy-access" });
+  antigravityVersion.seedAntigravityIdeVersionCache("1.22.2");
+  antigravityVersion.seedAntigravityCliVersionCache("1.22.2");
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/v1internal:loadCodeAssist")) {
+      return new Response("nope", { status: 503 });
+    }
+    return Response.json({
+      models: {
+        "gemini-new-live-tier": { displayName: "Gemini New Live Tier" },
+        tab_flash_lite_preview: { displayName: "Tab Flash Lite" },
+        "internal-eval-model": { displayName: "Internal Eval", isInternal: true },
+      },
+    });
+  };
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as {
+    source: string;
+    models: Array<{ id: string; name: string }>;
+  };
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(body.models, [{ id: "gemini-new-live-tier", name: "Gemini New Live Tier" }]);
+});
+
 test("provider models route falls back through all Antigravity discovery endpoints when needed", async () => {
   const connection = await seedConnection("antigravity", {
     authType: "oauth",
