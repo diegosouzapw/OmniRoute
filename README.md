@@ -286,7 +286,7 @@ All **18** strategies — mix & match per combo step:
 - **🤖 One-command CLI/agent setup** — `setup-*` configures 12+ coding tools; `omniroute launch` / `launch-codex` are zero-config. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
 - **🛰️ Remote mode** — drive a remote OmniRoute with scoped tokens (`connect` / `contexts` / `tokens`) + an `antigravity` OAuth helper for VPS installs. → [Remote Mode](docs/guides/REMOTE-MODE.md)
 - **🧭 Smarter auto-routing** — `auto/<category>:<tier>` combos, **Fusion** (model panel + judge), task-aware routing, per-request model / mode / USD-budget overrides. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Pluggable compression** — 11 composable engines + Compression Studios: LLMLingua-2, two-tier Ultra, omniglyph, per-step fidelity gate, GCF v3.2, drag-reorder editor. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **🗜️ Pluggable compression** — 12 composable engines + Compression Studios: LLMLingua-2, two-tier Ultra, omniglyph, per-step fidelity gate, GCF v3.2, drag-reorder editor. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
 - **🕵️ Transparent MITM decrypt (TPROXY)** — capture CLIs that ignore proxy env vars, with a per-SNI CA + trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
 - **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint, cache-HIT savings header, per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
 - **🧠 Memory you control** — off by default, opt-in int8 vector quantization + typed decay, per-request `x-omniroute-no-memory`. → [Memory](docs/frameworks/MEMORY.md)
@@ -509,24 +509,26 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 </div>
 
-> **Why use many tokens when few tokens do the trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It's now a **stack of 11 composable engines** that run in order and mix & match per routing combo — building on ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
+> **Why use many tokens when few tokens do the trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It's now a **stack of 12 composable engines** that run in order and mix & match per routing combo — building on ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
 
-### 🧱 The 11-engine stack
+### 🧱 The 12-engine stack
 
 Engines run in pipeline order; each is independently toggleable and configurable per combo:
 
-| #   | Engine            | What it does                                                                                                            |
-| --- | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Session-Dedup** | Drops content repeated across turns (content-addressed, cross-turn)                                                     |
-| 2   | **CCR**           | Archives large blocks behind retrieve markers, fetched on demand                                                        |
-| 3   | **RTK**           | Smart tool-result filtering, dedup & truncation (command-aware)                                                         |
-| 4   | **Headroom**      | Lossless tabular compaction of homogeneous JSON arrays, flat or nested (~30%), via a vendored **GCF** codec (spec v3.2) |
-| 5   | **Relevance**     | Extractive sentence scoring against the last user query                                                                 |
-| 6   | **Caveman**       | Rule-based prose compression (~65–75% on output)                                                                        |
-| 7   | **LLMLingua-2**   | ML semantic pruning via MobileBERT ONNX — code-safe, async                                                              |
-| 8   | **Lite**          | Whitespace + image-URL trimming (latency-light baseline)                                                                |
-| 9   | **Aggressive**    | Summarization + progressive aging of old turns                                                                          |
-| 10  | **Ultra**         | Heuristic token pruning with an optional small-model (SLM) tier                                                         |
+| #   | Engine                    | What it does                                                                                                            |
+| --- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Session-Dedup**         | Drops content repeated across turns (content-addressed, cross-turn)                                                     |
+| 2   | **CCR**                   | Archives large blocks behind retrieve markers, fetched on demand                                                        |
+| 3   | **Lite**                  | Whitespace + image-URL trimming (latency-light baseline)                                                                |
+| 4   | **RTK**                   | Smart tool-result filtering, dedup & truncation (command-aware)                                                         |
+| 5   | **Responses Tool Output** | Lossless-first JSON + bounded diagnostic compression for shell/patch/search/build outputs (Responses API)              |
+| 6   | **Headroom**              | Lossless tabular compaction of homogeneous JSON arrays, flat or nested (~30%), via a vendored **GCF** codec (spec v3.2) |
+| 7   | **Relevance**             | Extractive sentence scoring against the last user query                                                                 |
+| 8   | **Caveman**               | Rule-based prose compression (~65–75% on output)                                                                        |
+| 9   | **Aggressive**            | Summarization + progressive aging of old turns                                                                          |
+| 10  | **LLMLingua-2**           | ML semantic pruning via MobileBERT ONNX — code-safe, async                                                              |
+| 11  | **Ultra**                 | Heuristic token pruning with an optional small-model (SLM) tier                                                         |
+| 12  | **OmniGlyph**             | Experimental context-as-image encoding routed to Claude Fable 5 (most aggressive; opt-in)                              |
 
 Code blocks, URLs and structured data are **always preserved** byte-perfect. **One-click presets** combine the engines:
 
@@ -559,7 +561,7 @@ Code blocks, URLs and structured data are **always preserved** byte-perfect. **O
 
 ### 📖 How it works — pipeline, architecture & savings math
 
-<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute compression pipeline: a client request of 10,000 tokens passes through 11 stacked engines — Session-Dedup, CCR, RTK, Headroom, Relevance, Caveman, LLMLingua-2, Omniglyph, Lite, Aggressive, Ultra — and reaches the provider at about 1,080 tokens, up to 95% saved. Code, URLs and JSON are always preserved byte-perfect."/>
+<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute compression pipeline: a client request of 10,000 tokens passes through 12 stacked engines — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra, OmniGlyph — and reaches the provider at about 1,080 tokens, up to 95% saved. Code, URLs and JSON are always preserved byte-perfect."/>
 
 Default stacked combo runs `RTK → Caveman`. When both act on the same tool/context payload, savings compound:
 
