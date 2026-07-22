@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useTheme } from "@/shared/hooks/useTheme";
 import { cn } from "@/shared/utils/cn";
 
@@ -10,7 +11,9 @@ export default function ThemeToggle({
   className?: any;
   variant?: string;
 }) {
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
+  const t = useTranslations("header");
+  const toggleLabel = isDark ? t("switchToLightMode") : t("switchToDarkMode");
 
   const variants = {
     default: cn(
@@ -36,8 +39,8 @@ export default function ThemeToggle({
     <button
       onClick={toggleTheme}
       className={cn(variants[variant], className)}
-      aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
-      title={`Switch to ${isDark ? "light" : "dark"} mode`}
+      aria-label={toggleLabel}
+      title={toggleLabel}
     >
       <span
         className={cn(

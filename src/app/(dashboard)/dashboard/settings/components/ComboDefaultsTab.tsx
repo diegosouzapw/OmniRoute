@@ -104,6 +104,7 @@ export default function ComboDefaultsTab() {
     zeroLatencyOptimizationsEnabled: false,
   });
   const [sessionAffinityTtlMs, setSessionAffinityTtlMs] = useState(0);
+  const [promptCacheAffinityEnabled, setPromptCacheAffinityEnabled] = useState(true);
   const [providerOverrides, setProviderOverrides] = useState<any>({});
   const [availableProviders, setAvailableProviders] = useState<{ id: string; provider: string }[]>(
     []
@@ -183,6 +184,7 @@ export default function ComboDefaultsTab() {
             ? Number(settingsData.sessionAffinityTtlMs)
             : 0
         );
+        setPromptCacheAffinityEnabled(settingsData.promptCacheAffinityEnabled !== false);
       })
       .catch((err) => console.error("Failed to fetch combo defaults:", err));
   }, []);
@@ -228,6 +230,7 @@ export default function ComboDefaultsTab() {
         // #6168: global session-stickiness opt-out — persisted top-level on settings
         // (mirrors stickyRoundRobinLimit) so combo.ts resolution reads settings.disableSessionStickiness.
         disableSessionStickiness: disableSessionStickiness === true,
+        promptCacheAffinityEnabled,
       };
 
       const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
@@ -674,6 +677,24 @@ export default function ComboDefaultsTab() {
               }
             />
           </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">
+                {translateOrFallback(t, "promptCacheAffinity", "Prompt-cache locality routing")}
+              </p>
+              <p className="text-xs text-text-muted">
+                {translateOrFallback(
+                  t,
+                  "promptCacheAffinityDesc",
+                  "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={promptCacheAffinityEnabled}
+              onChange={() => setPromptCacheAffinityEnabled((enabled) => !enabled)}
+            />
+          </div>
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="font-medium text-sm">
@@ -762,7 +783,7 @@ export default function ComboDefaultsTab() {
                     onClick={() => moveProviderOverride(provider, -1)}
                     disabled={index === 0}
                     className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                    title="Move up"
+                    title={t("moveUp")}
                   >
                     <span className="material-symbols-outlined text-[12px]">arrow_upward</span>
                   </button>
@@ -770,7 +791,7 @@ export default function ComboDefaultsTab() {
                     onClick={() => moveProviderOverride(provider, 1)}
                     disabled={index === Object.keys(providerOverrides).length - 1}
                     className={`p-0.5 rounded ${index === Object.keys(providerOverrides).length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
-                    title="Move down"
+                    title={t("moveDown")}
                   >
                     <span className="material-symbols-outlined text-[12px]">arrow_downward</span>
                   </button>
@@ -842,8 +863,8 @@ export default function ComboDefaultsTab() {
                   {filteredProviders.length === 0 ? (
                     <li className="px-3 py-2 text-xs text-text-muted text-center">
                       {availableProviders.filter((p) => !providerOverrides[p.provider]).length === 0
-                        ? "All providers added"
-                        : "No providers found"}
+                        ? t("allProvidersAdded")
+                        : t("noProvidersFound")}
                     </li>
                   ) : (
                     filteredProviders.map((p, idx) => (

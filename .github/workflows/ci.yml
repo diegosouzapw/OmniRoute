@@ -741,6 +741,23 @@ jobs:
           path: coverage-shard/*.json
           if-no-files-found: error
 
+  test-bun-sqlite:
+    name: Bun SQLite Compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: changes
+    if: ${{ github.event_name != 'pull_request' || (needs.changes.outputs.code == 'true' && github.event.pull_request.draft == false) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - uses: ./.github/actions/npm-ci-retry
+      - run: npm run test:bun:db
+
   test-vitest:
     name: Vitest (MCP / autoCombo / UI components)
     # Same dynamic-runner rule as Build (own-origin only; fallback ubuntu-latest).

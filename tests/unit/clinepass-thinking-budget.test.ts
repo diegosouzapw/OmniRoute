@@ -53,7 +53,7 @@ test("no-op when reasoning is disabled", () => {
   assert.equal(body.max_tokens, 100);
 });
 
-test("no-op for a non-reasoning clinepass model", () => {
+test("applies the floor to GLM-5.2 now that the official catalog marks it reasoning-capable", () => {
   const executor = new DefaultExecutor("clinepass");
   const body = {
     model: "cline-pass/glm-5.2",
@@ -62,6 +62,18 @@ test("no-op for a non-reasoning clinepass model", () => {
   } as Record<string, unknown>;
 
   executor.ensureThinkingBudget(body, "cline-pass/glm-5.2");
+  assert.equal(body.max_tokens, 4096);
+});
+
+test("no-op for an unknown model without reasoning metadata", () => {
+  const executor = new DefaultExecutor("clinepass");
+  const body = {
+    model: "cline-pass/unknown-model",
+    reasoning_effort: "high",
+    max_tokens: 100,
+  } as Record<string, unknown>;
+
+  executor.ensureThinkingBudget(body, "cline-pass/unknown-model");
   assert.equal(body.max_tokens, 100);
 });
 

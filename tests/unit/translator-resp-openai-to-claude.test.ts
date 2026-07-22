@@ -10,6 +10,8 @@ const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 function createState() {
   return {
     toolCalls: new Map(),
+    _pendingXmlToolCalls: [],
+    _xmlInvokeBuffer: "",
   };
 }
 
@@ -280,6 +282,190 @@ test("OpenAI non-stream: chat completion becomes Claude message with thinking an
     input_tokens: 5,
     output_tokens: 3,
   });
+});
+
+test("OpenAI stream: XML <invoke> block in content becomes tool_use at finish", () => {
+  const state = createState();
+  const chunk1 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-xml1",
+      model: "dracarys",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            content:
+              '<invoke name="Bash"><parameter name="command" string="true">ls -la</parameter></invoke>',
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    state
+  );
+  const chunk2 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-xml1",
+      model: "dracarys",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 3, completion_tokens: 5, total_tokens: 8 },
+    },
+    state
+  );
+  const result = flatten([chunk1, chunk2]);
+
+  // message_start → (no text block since all content was XML)
+  assert.equal(result[0].type, "message_start");
+  // At finish: tool_use content_block_start
+  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  assert.ok(toolStart, "expected tool_use content_block_start");
+  assert.equal(toolStart.content_block.name, "bash"); // normalized via REVERSE_MAP
+  assert.deepEqual(toolStart.content_block.input, { command: "ls -la" });
+  // tool_use content_block_stop
+  const toolStop = result.find((e) => e.type === "content_block_stop");
+  assert.ok(toolStop, "expected content_block_stop after tool_use");
+  // message_delta with tool_use stop_reason
+  const delta = result.find((e) => e.type === "message_delta");
+  assert.ok(delta, "expected message_delta");
+  assert.equal(delta.delta.stop_reason, "tool_use");
+});
+
+test("OpenAI stream: XML invoke block across two streaming chunks", () => {
+  const state = createState();
+  // Chunk 1: partial XML
+  const chunk1 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-xml2",
+      model: "dracarys",
+      choices: [
+        {
+          index: 0,
+          delta: { content: '<invoke name="Read"><parameter name="file_path" string="true">/etc/' },
+          finish_reason: null,
+        },
+      ],
+    },
+    state
+  );
+  // Chunk 2: completes the XML
+  const chunk2 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-xml2",
+      model: "dracarys",
+      choices: [
+        {
+          index: 0,
+          delta: { content: 'hosts</parameter></invoke>' },
+          finish_reason: null,
+        },
+      ],
+    },
+    state
+  );
+  // Chunk 3: finish
+  const chunk3 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-xml2",
+      model: "dracarys",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 3, completion_tokens: 5, total_tokens: 8 },
+    },
+    state
+  );
+  const result = flatten([chunk1, chunk2, chunk3]);
+
+  // Buffer should be cleared after chunk2
+  assert.equal(state._xmlInvokeBuffer, "", "buffer cleared after complete block");
+
+  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  assert.ok(toolStart, "expected tool_use content_block_start");
+  assert.equal(toolStart.content_block.name, "read");
+  assert.deepEqual(toolStart.content_block.input, { file_path: "/etc/hosts" });
+});
+
+test("OpenAI stream: text before XML block is emitted as text content", () => {
+  const state = createState();
+  const chunk1 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-xml3",
+      model: "dracarys",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            content:
+              'Checking...<invoke name="Bash"><parameter name="command">date</parameter></invoke>',
+          },
+          finish_reason: null,
+        },
+      ],
+    },
+    state
+  );
+  const chunk2 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-xml3",
+      model: "dracarys",
+      choices: [
+        {
+          index: 0,
+          delta: { content: " Done." },
+          finish_reason: null,
+        },
+      ],
+    },
+    state
+  );
+  const chunk3 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-xml3",
+      model: "dracarys",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 3, completion_tokens: 8, total_tokens: 11 },
+    },
+    state
+  );
+  const result = flatten([chunk1, chunk2, chunk3]);
+
+  // "Checking..." should be emitted as text
+  const textDeltas = result.filter((e) => e.type === "content_block_delta" && e.delta?.type === "text_delta");
+  assert.ok(textDeltas.length > 0, "expected at least one text delta");
+  assert.ok(textDeltas.some((d) => d.delta.text.includes("Checking...")), "text before XML preserved");
+  assert.ok(textDeltas.some((d) => d.delta.text.includes("Done.")), "text after XML preserved");
+
+  // Tool call should still be emitted
+  const toolStart = result.find((e) => e.type === "content_block_start" && e.content_block?.type === "tool_use");
+  assert.ok(toolStart, "expected tool_use content_block_start");
+  assert.equal(toolStart.content_block.name, "bash");
+  assert.deepEqual(toolStart.content_block.input, { command: "date" });
+});
+
+test("OpenAI stream: no XML in content behaves normally", () => {
+  const state = createState();
+  const chunk1 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-normal",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: { content: "Hello world" }, finish_reason: null }],
+    },
+    state
+  );
+  const chunk2 = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-normal",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 3, completion_tokens: 2, total_tokens: 5 },
+    },
+    state
+  );
+  const result = flatten([chunk1, chunk2]);
+
+  assert.equal(result[1].type, "content_block_start");
+  assert.equal(result[2].delta.text, "Hello world");
+  assert.equal(result[3].type, "content_block_stop");
+  assert.equal(result[4].type, "message_delta");
+  assert.equal(result[4].delta.stop_reason, "end_turn");
 });
 
 test("OpenAI stream: null chunk is ignored", () => {
