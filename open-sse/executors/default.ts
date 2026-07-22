@@ -197,7 +197,12 @@ export class DefaultExecutor extends BaseExecutor {
             ? "responses"
             : "chat";
         const baseUrl = this.resolveBaseUrl(credentials);
-        return normalizeAzureAiChatUrl(baseUrl, apiType);
+        const apiVersion =
+          typeof credentials?.providerSpecificData?.apiVersion === "string" &&
+          credentials.providerSpecificData.apiVersion.trim()
+            ? credentials.providerSpecificData.apiVersion.trim()
+            : "2024-12-01-preview";
+        return normalizeAzureAiChatUrl(baseUrl, apiType, model, apiVersion);
       }
       case "watsonx": {
         const baseUrl = this.resolveBaseUrl(credentials);
