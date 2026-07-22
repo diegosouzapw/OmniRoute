@@ -1,13 +1,18 @@
 import {
+  handleCodexImageEdit,
   handleImageEdit,
   handleOpenAIImageEdit,
 } from "@omniroute/open-sse/handlers/imageGeneration.ts";
-import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
+import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
 } from "@/sse/services/auth";
-import { parseImageModel, getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
+import {
+  parseImageModel,
+  getImageProvider,
+  getImageModelEntry,
+} from "@omniroute/open-sse/config/imageRegistry.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
@@ -16,7 +21,11 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import {
   resolveImageRouteModel,
   extractImageEditInputFromJson,
+  validateCodexImageEditReference,
 } from "@/lib/images/imageRouteModel";
+import { resolveProxyForConnection } from "@/lib/localDb";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { isCodexFreePlan } from "@omniroute/open-sse/executors/codex/tools.ts";
 import { z } from "zod";
 
 // JSON edit body (Open WebUI / OpenAI-style). All fields optional — the prompt
@@ -81,7 +90,11 @@ interface EditInput {
   responseFormat: string | null;
   imageBytes: Buffer | null;
   imageMime: string | null;
+  images: Array<{ bytes: Buffer; mime: string }>;
+  imageInputCount: number;
 }
+
+const MAX_IMAGE_EDIT_REFERENCES = 1;
 
 async function readMultipartImage(formData: FormData): Promise<EditInput> {
   const promptRaw = formData.get("prompt");
@@ -93,17 +106,28 @@ async function readMultipartImage(formData: FormData): Promise<EditInput> {
   const respRaw = formData.get("response_format");
   const responseFormat = typeof respRaw === "string" ? respRaw.trim() : null;
 
-  // OpenAI's API and Open WebUI both accept either a single `image` field or
-  // an `image[]` array. We use the first image when multiple are sent — the
-  // chatgpt-web edit tool can only edit one image per conversation node.
-  const imageEntry = formData.get("image") ?? formData.get("image[]");
-  if (!imageEntry || typeof imageEntry === "string") {
-    return { prompt, model, size, responseFormat, imageBytes: null, imageMime: null };
+  // OpenAI-style clients may repeat either `image` or `image[]`. Count every file so this
+  // single-reference route can reject extras explicitly instead of silently dropping them.
+  const imageEntries = [...formData.getAll("image"), ...formData.getAll("image[]")];
+  const images: Array<{ bytes: Buffer; mime: string }> = [];
+  for (const imageEntry of imageEntries) {
+    if (typeof imageEntry === "string") continue;
+    const file = imageEntry as File;
+    const bytes = Buffer.from(await file.arrayBuffer());
+    if (bytes.length === 0) continue;
+    images.push({ bytes, mime: file.type || "image/png" });
   }
-  const file = imageEntry as File;
-  const imageBytes = Buffer.from(await file.arrayBuffer());
-  const imageMime = file.type || "image/png";
-  return { prompt, model, size, responseFormat, imageBytes, imageMime };
+  const firstImage = images[0] ?? null;
+  return {
+    prompt,
+    model,
+    size,
+    responseFormat,
+    imageBytes: firstImage?.bytes ?? null,
+    imageMime: firstImage?.mime ?? null,
+    images,
+    imageInputCount: imageEntries.length,
+  };
 }
 
 /** Read the edit input from either multipart/form-data or a JSON/data-URL body. */
@@ -140,7 +164,7 @@ function jsonResponse(data: unknown, status = 200): Response {
   });
 }
 
-async function postHandler(request: Request, context) {
+async function postHandler(request: Request, _context?: unknown) {
   const input = await readEditInput(request);
   if (!input) {
     return errorResponse(
@@ -149,9 +173,33 @@ async function postHandler(request: Request, context) {
     );
   }
 
-  const { prompt, model, size, responseFormat, imageBytes, imageMime } = input;
+  const { prompt, model, size, responseFormat, imageBytes, imageMime, images, imageInputCount } =
+    input;
   if (!prompt) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing required field: prompt");
+  }
+  const injectionDecision = createInjectionGuard()({ prompt });
+  if (injectionDecision.blocked) {
+    return jsonResponse(
+      {
+        error: {
+          message: "Request blocked: potential prompt injection detected",
+          type: "injection_detected",
+          code: "SECURITY_001",
+          detections: injectionDecision.result.detections.length,
+        },
+      },
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+  if (imageInputCount > MAX_IMAGE_EDIT_REFERENCES) {
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      "Image edit currently supports exactly one reference image"
+    );
+  }
+  if (imageInputCount !== images.length) {
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid reference image");
   }
   if (!imageBytes || imageBytes.length === 0) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing required field: image");
@@ -172,7 +220,6 @@ async function postHandler(request: Request, context) {
   const resolvedModel = await resolveImageRouteModel(fullModel);
   const parsed = parseImageModel(resolvedModel);
   const providerConfig = parsed.provider ? getImageProvider(parsed.provider) : null;
-
   // chatgpt-web keeps its conversation-continuation edit flow unchanged.
   if (providerConfig?.format === "chatgpt-web") {
     const credentials = await getProviderCredentialsWithQuotaPreflight(
@@ -223,7 +270,97 @@ async function postHandler(request: Request, context) {
     );
   }
 
-  // Built-in non-chatgpt-web providers do not expose an OpenAI-compatible edit endpoint.
+  // Built-in Codex uses its native Responses hosted tool for stateless reference-image edits.
+  if (providerConfig?.format === "codex-responses") {
+    const modelEntry = getImageModelEntry(resolvedModel);
+    if (!modelEntry || modelEntry.provider !== "codex" || modelEntry.model !== parsed.model) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        `Unsupported Codex image edit model: ${resolvedModel}`
+      );
+    }
+    const imageValidationError = validateCodexImageEditReference(images[0]);
+    if (imageValidationError) {
+      return errorResponse(HTTP_STATUS.BAD_REQUEST, imageValidationError);
+    }
+
+    const credentials = await getProviderCredentialsWithQuotaPreflight(
+      parsed.provider,
+      null,
+      allowedConnections,
+      resolvedModel
+    );
+    if (!credentials) {
+      return errorResponse(
+        HTTP_STATUS.UNAUTHORIZED,
+        `No credentials for provider: ${parsed.provider}`
+      );
+    }
+    if (credentials.allRateLimited) {
+      return unavailableResponse(
+        HTTP_STATUS.RATE_LIMITED,
+        `[${parsed.provider}] All accounts rate limited`,
+        credentials.retryAfter,
+        credentials.retryAfterHuman
+      );
+    }
+    const credentialDetails = credentials as {
+      connectionId?: unknown;
+      providerSpecificData?: unknown;
+    };
+    if (isCodexFreePlan(credentialDetails.providerSpecificData)) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        "Codex image editing requires a paid ChatGPT/Codex plan"
+      );
+    }
+
+    const connectionId =
+      typeof credentialDetails.connectionId === "string" ? credentialDetails.connectionId : null;
+    let proxyInfo = null;
+    if (connectionId) {
+      try {
+        proxyInfo = await resolveProxyForConnection(connectionId);
+      } catch {
+        log.debug("PROXY", `Failed to resolve proxy for image provider: ${parsed.provider}`);
+      }
+    }
+
+    const editImage = () =>
+      handleCodexImageEdit({
+        provider: parsed.provider,
+        model: parsed.model,
+        providerConfig,
+        body: {
+          prompt,
+          size: size ?? undefined,
+          response_format: responseFormat ?? undefined,
+        },
+        referenceImages: [images[0]],
+        credentials,
+        log,
+        signal: request.signal,
+      });
+
+    const result = await (connectionId
+      ? runWithProxyContext(proxyInfo?.proxy || null, editImage).catch(() => ({
+          success: false as const,
+          status: HTTP_STATUS.SERVICE_UNAVAILABLE,
+          error: "Image edit proxy error",
+        }))
+      : editImage());
+
+    if (result.success === true) {
+      await clearRecoveredProviderState(credentials);
+      return jsonResponse(result.data);
+    }
+    return jsonResponse(
+      toJsonErrorPayload(result.error, "Image edit provider error"),
+      result.status
+    );
+  }
+
+  // Other built-in non-chatgpt-web providers do not expose an OpenAI-compatible edit endpoint.
   if (providerConfig) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -288,4 +425,4 @@ async function postHandler(request: Request, context) {
   );
 }
 
-export const POST = withInjectionGuard(postHandler);
+export const POST = postHandler;

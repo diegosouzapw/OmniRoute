@@ -1620,11 +1620,6 @@
       "count": 4
     }
   },
-  "tests/unit/image-generation-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    }
-  },
   "tests/unit/inspector-agent-bridge-hook.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
