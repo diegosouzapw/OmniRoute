@@ -26,6 +26,12 @@ import {
 import { resolveProxyForConnection } from "@/lib/localDb";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { isCodexFreePlan } from "@omniroute/open-sse/executors/codex/tools.ts";
+import {
+  getBodySizeLimit,
+  readRequestBodyWithLimit,
+  RequestBodyTooLargeError,
+} from "@/shared/middleware/bodySizeGuard";
+import { getCachedSettings } from "@/lib/db/readCache";
 import { z } from "zod";
 
 // JSON edit body (Open WebUI / OpenAI-style). All fields optional — the prompt
@@ -133,9 +139,20 @@ async function readMultipartImage(formData: FormData): Promise<EditInput> {
 /** Read the edit input from either multipart/form-data or a JSON/data-URL body. */
 async function readEditInput(request: Request): Promise<EditInput | null> {
   const contentType = request.headers.get("content-type") || "";
+  let bodySizeSettings: Record<string, unknown> | undefined;
+  try {
+    bodySizeSettings = await getCachedSettings();
+  } catch {
+    bodySizeSettings = undefined;
+  }
+  const bodySizeLimit = getBodySizeLimit("/api/v1/images/edits", bodySizeSettings);
+  const rawBody = await readRequestBodyWithLimit(request, bodySizeLimit);
   if (contentType.includes("multipart/form-data")) {
     try {
-      return await readMultipartImage(await request.formData());
+      const formData = await new Response(rawBody, {
+        headers: { "content-type": contentType },
+      }).formData();
+      return await readMultipartImage(formData);
     } catch (err) {
       log.warn("IMAGE", `Invalid multipart body: ${err instanceof Error ? err.message : err}`);
       return null;
@@ -143,7 +160,9 @@ async function readEditInput(request: Request): Promise<EditInput | null> {
   }
   if (contentType.includes("application/json")) {
     try {
-      const parsed = ImageEditJsonSchema.safeParse(await request.json());
+      const parsed = ImageEditJsonSchema.safeParse(
+        JSON.parse(new TextDecoder().decode(rawBody)) as unknown
+      );
       if (!parsed.success) {
         log.warn("IMAGE", `Invalid JSON edit body shape: ${parsed.error.message}`);
         return null;
@@ -165,7 +184,18 @@ function jsonResponse(data: unknown, status = 200): Response {
 }
 
 async function postHandler(request: Request, _context?: unknown) {
-  const input = await readEditInput(request);
+  let input: EditInput | null;
+  try {
+    input = await readEditInput(request);
+  } catch (err) {
+    if (err instanceof RequestBodyTooLargeError) {
+      return errorResponse(
+        413,
+        `Image edit request body exceeds the ${Math.floor(err.limit / (1024 * 1024))} MiB limit`
+      );
+    }
+    throw err;
+  }
   if (!input) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,

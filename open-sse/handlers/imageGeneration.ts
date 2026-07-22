@@ -2433,8 +2433,10 @@ async function handleCodexImageGeneration({
 
     if (!response.ok) {
       const errorText = await response.text();
-      const safeError = sanitizeErrorMessage(errorText);
-      if (log) log.error("IMAGE", `${provider} error ${response.status}: ${safeError}`);
+      const safeError = sanitizeImageProviderError(errorText);
+      const safeErrorLog =
+        typeof safeError === "string" ? safeError : JSON.stringify(safeError ?? {});
+      if (log) log.error("IMAGE", `${provider} error ${response.status}: ${safeErrorLog}`);
       return {
         ok: false as const,
         error: {

@@ -1949,10 +1949,17 @@ test("handleImageGeneration (codex) surfaces an error when no image_generation_c
   }
 });
 
-test("handleImageGeneration (codex) propagates upstream HTTP errors", async () => {
+test("handleImageGeneration (codex) sanitizes upstream HTTP errors", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
-    new Response("upstream boom", { status: 403, headers: { "content-type": "text/plain" } });
+    new Response(
+      JSON.stringify({
+        error: "upstream boom",
+        authorization: "Bearer upstream-secret",
+        echoed: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAE=",
+      }),
+      { status: 403, headers: { "content-type": "application/json" } }
+    );
 
   try {
     const result = await handleImageGeneration({
@@ -1962,7 +1969,10 @@ test("handleImageGeneration (codex) propagates upstream HTTP errors", async () =
     });
     assert.equal(result.success, false);
     assert.equal(result.status, 403);
-    assert.match(result.error, /upstream boom/);
+    const safeError = JSON.stringify(result.error);
+    assert.match(safeError, /upstream boom/);
+    assert.doesNotMatch(safeError, /upstream-secret|iVBORw0KGgo/);
+    assert.match(safeError, /REDACTED_DATA_URL/);
   } finally {
     globalThis.fetch = originalFetch;
   }
