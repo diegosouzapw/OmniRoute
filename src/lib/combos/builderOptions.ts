@@ -404,6 +404,22 @@ function buildModelOptions(
       capabilities: { effort_tiers: m.supportedThinkingEfforts },
     }));
   if (catalogShaped.length > 0) {
+    // Track each tier variant's true base model id (the synced model's own raw,
+    // unsuffixed id) directly while iterating tiers here. We can't re-derive the
+    // base id from `variant.root` after calling appendSyncedEffortVariants: that
+    // utility sets a variant's `root` to `${baseRoot}-${tier}` (still tier-suffixed,
+    // see open-sse/utils/syncedEffortVariants.ts), not the base model id, so a
+    // lookup keyed on it never matches an entry in modelMap and variants silently
+    // fail to inherit contextLength/outputTokenLimit/supportedEndpoints/supportsThinking.
+    const baseRawIdByVariantId = new Map<string, string>();
+    for (const shaped of catalogShaped) {
+      for (const tier of shaped.capabilities.effort_tiers) {
+        if (typeof tier === "string" && tier.length > 0) {
+          baseRawIdByVariantId.set(`${shaped.id}-${tier}`, shaped.root);
+        }
+      }
+    }
+
     const withVariants = appendSyncedEffortVariants(catalogShaped);
     for (const variant of withVariants) {
       if (typeof variant.id !== "string") continue;
@@ -412,12 +428,7 @@ function buildModelOptions(
         ? variant.id.slice(providerId.length + 1)
         : variant.id;
       if (modelMap.has(rawId)) continue;
-      const baseId =
-        typeof variant.root === "string"
-          ? variant.root.startsWith(`${providerId}/`)
-            ? variant.root.slice(providerId.length + 1)
-            : variant.root
-          : rawId;
+      const baseId = baseRawIdByVariantId.get(variant.id) ?? rawId;
       const base = modelMap.get(baseId);
       addModelOption(modelMap, providerId, {
         id: rawId,
