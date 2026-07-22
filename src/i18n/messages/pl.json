@@ -2846,7 +2846,10 @@
     "modePack": "Mode Pack",
     "disableSessionStickiness": "Wyłącz session stickiness",
     "sessionStickinessEnabled": "Stickiness włączone",
-    "sessionStickinessDisabled": "Stickiness wyłączone"
+    "sessionStickinessDisabled": "Stickiness wyłączone",
+    "kimiPresetTitle": "Kimi Coding preset",
+    "kimiPresetDescription": "Kimi K3 as the primary model (Moonshot API), with automatic fallback to your Kimi Code connections (kimi-coding, kimi-web) when configured.",
+    "kimiPresetCta": "Add preset"
   },
   "costs": {
     "title": "Koszty",
@@ -4944,7 +4947,8 @@
     "bulkAddFormatHintCloudflare": "Jeden klucz na linię. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
     "lmarenaWebCookieHint": "Otwórz arena.ai, zaloguj się, a następnie skopiuj pełny nagłówek Cookie z żądania Network. Dołącz arena-auth-prod-v1.0 i arena-auth-prod-v1.1 (oraz kolejne fragmenty, jeśli występują), najlepiej z cf_clearance. Nie wklejaj samego pustego cookie arena-auth-prod-v1. Opcjonalnie: providerSpecificData.recaptchaV3Token, jeśli create-evaluation nadal zwraca 403.",
     "kimiOfficialSupporterBadge": "Oficjalny wspierający",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) jest oficjalnym partnerem premiery OmniRoute"
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) jest oficjalnym partnerem premiery OmniRoute",
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
   },
   "settings": {
     "title": "Ustawienia",
@@ -9410,5 +9414,12 @@
     "testButton": "Testuj Chaos Mode",
     "testTask": "Napisz krótki wiersz o sztucznej inteligencji",
     "loadingProviderModels": "Ładowanie providers..."
+  },
+  "kimiSponsorBanner": {
+    "title": "Kimi (Moonshot AI) is now an official sponsor of OmniRoute",
+    "description": "Kimi K3 brings a 1M-token context window and frontier coding performance to OmniRoute at a fraction of the cost.",
+    "cta": "Get Kimi Code",
+    "partnerLinkNote": "Partner link",
+    "dismissAriaLabel": "Dismiss"
   }
 }

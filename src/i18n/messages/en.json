@@ -2183,7 +2183,6 @@
     "expandClaudeCodeFamilies": "Expand Claude Code families",
     "removeClaudeCodeDefault": "Remove Claude Code default",
     "allowedCombos": "Allowed Combos",
-    "restrict": "Restrict",
     "allCombosAllowed": "This key can use any combo.",
     "restrictedComboCount": "Restricted to {count, plural, one {# combo} other {# combos}}.",
     "apiManagerCustomRateLimits": "Custom Rate Limits",
@@ -2471,7 +2470,6 @@
     "video": "Video",
     "videoSample": "A time-lapse of clouds over a mountain range",
     "webFetch": "Web Fetch",
-    "webSearch": "Web Search",
     "webSearchSample": "What is OmniRoute AI gateway?",
     "noActiveProviderDescription": "No active search provider. Configure one in Providers.",
     "configureProviders": "Configure providers",
@@ -2517,7 +2515,7 @@
     "configureEndpoint": "Configure Endpoint",
     "instructions": "Instructions",
     "modelMapping": "Model Mapping",
-    "reasoningEffort": "Reasoning effort",
+    "reasoningEffort": "Reasoning effort for {model}",
     "effortNone": "None",
     "effortLow": "Low",
     "effortMedium": "Medium",
@@ -2585,7 +2583,6 @@
     "saveMappings": "Save Mappings",
     "mappingsSaved": "Mappings saved!",
     "failedSaveMappings": "Failed to save mappings",
-    "reasoningEffort": "Reasoning effort for {model}",
     "reasoningEffortDefault": "Default",
     "reasoningEffortHint": "Default preserves the reasoning effort sent by the agent",
     "reasoningEffortTier": {
@@ -3484,7 +3481,10 @@
     "modePack": "Mode Pack",
     "disableSessionStickiness": "Disable session stickiness",
     "sessionStickinessEnabled": "Stickiness on",
-    "sessionStickinessDisabled": "Stickiness off"
+    "sessionStickinessDisabled": "Stickiness off",
+    "kimiPresetTitle": "Kimi Coding preset",
+    "kimiPresetDescription": "Kimi K3 as the primary model (Moonshot API), with automatic fallback to your Kimi Code connections (kimi-coding, kimi-web) when configured.",
+    "kimiPresetCta": "Add preset"
   },
   "costs": {
     "title": "Costs",
@@ -3682,7 +3682,7 @@
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "sectionTitle": "Integration Surface",
     "sectionDescription": "OpenAI-compatible APIs and operational protocol endpoints",
-    "tabApis": "OpenAI-compatible APIs",
+    "tabApis": "APIs",
     "tabProtocols": "Protocols",
     "tabsAria": "Endpoint sections",
     "protocolsTitle": "Protocols",
@@ -3773,7 +3773,6 @@
     "apiEndpointsRequiresAuth": "Requires auth",
     "apiEndpointsNoMatch": "No endpoints match your filter",
     "endpointSections": "Endpoint sections",
-    "tabApis": "APIs",
     "tabMcp": "MCP",
     "tabA2a": "A2A",
     "tabContextSources": "Context Sources",
@@ -5806,7 +5805,7 @@
       "modal": "Modal commonly serves user-hosted OpenAI-compatible apps on /v1. OmniRoute will probe /v1/models and route chat traffic to /v1/chat/completions.",
       "modelscope": "Free tier via ModelScope API-Inference — Alibaba account required.",
       "monsterapi": "Get API key at monsterapi.ai",
-      "moonshot": "Connect Moonshot AI with an API key.",
+      "moonshot": "Connect Kimi with an API key.",
       "morph": "Free tier: 250K credits/month, $0",
       "nanogpt": "Connect NanoGPT with an API key.",
       "nebius": "~$1 trial credits on signup for API testing",
@@ -5945,7 +5944,8 @@
     "bulkAddFormatHintCloudflare": "One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
     "lmarenaWebCookieHint": "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
     "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner"
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
   },
   "settings": {
     "title": "Settings",
@@ -6693,7 +6693,7 @@
     "howPricingWorks": "How Pricing Works",
     "cacheWrite": "Cache Write",
     "unsaved": "unsaved",
-    "resetDefaults": "Reset Defaults",
+    "resetDefaults": "Reset defaults",
     "saveProvider": "Save Provider",
     "model": "Model",
     "models": "models",
@@ -7487,7 +7487,6 @@
     "modelLockoutMaxRangeError": "Max Cooldown must be between 5,000ms and 3,600,000ms",
     "modelLockoutOrderError": "Max Cooldown must be greater than or equal to Base Cooldown",
     "modelLockoutStepsRangeError": "Max Backoff Steps must be between 0 and 20",
-    "resetDefaults": "Reset defaults",
     "removeErrorCode": "Remove {code}",
     "addErrorCode": "Add error code...",
     "suggestions": "Suggestions:",
@@ -7677,27 +7676,55 @@
         "label": "Retrieval ramp factor (H8)",
         "description": "Controls how strongly frequently retrieved blocks resist compression. Each prior retrieval raises the effective minimum block size linearly; 1 disables the ramp."
       },
-      "model": { "label": "Model" },
-      "minTokens": { "label": "Minimum tokens (floor)" },
-      "compressionRate": { "label": "Compression rate" },
-      "modelPath": { "label": "Model path" },
+      "model": {
+        "label": "Model"
+      },
+      "minTokens": {
+        "label": "Minimum tokens (floor)"
+      },
+      "compressionRate": {
+        "label": "Compression rate"
+      },
+      "modelPath": {
+        "label": "Model path"
+      },
       "minRows": {
         "label": "Minimum rows to compact",
         "description": "Minimum rows in a homogeneous JSON array required to trigger tabular compaction. Default: 8."
       },
-      "preserveSystemPrompt": { "label": "Preserve system prompt" },
-      "summarizerEnabled": { "label": "Enable summarizer" },
-      "maxTokensPerMessage": { "label": "Maximum tokens per message" },
-      "minSavingsThreshold": { "label": "Minimum savings threshold" },
-      "minScoreThreshold": { "label": "Minimum score threshold" },
-      "slmFallbackToAggressive": { "label": "Fall back to Aggressive" },
-      "intensity": { "label": "Intensity" },
-      "minMessageLength": { "label": "Minimum message length" }
+      "preserveSystemPrompt": {
+        "label": "Preserve system prompt"
+      },
+      "summarizerEnabled": {
+        "label": "Enable summarizer"
+      },
+      "maxTokensPerMessage": {
+        "label": "Maximum tokens per message"
+      },
+      "minSavingsThreshold": {
+        "label": "Minimum savings threshold"
+      },
+      "minScoreThreshold": {
+        "label": "Minimum score threshold"
+      },
+      "slmFallbackToAggressive": {
+        "label": "Fall back to Aggressive"
+      },
+      "intensity": {
+        "label": "Intensity"
+      },
+      "minMessageLength": {
+        "label": "Minimum message length"
+      }
     },
     "engineFields": {
       "llmlingua": {
-        "compressionRate": { "label": "Compression rate (keep ratio)" },
-        "modelPath": { "label": "Model path (offline override)" }
+        "compressionRate": {
+          "label": "Compression rate (keep ratio)"
+        },
+        "modelPath": {
+          "label": "Model path (offline override)"
+        }
       }
     },
     "options": {
@@ -7705,7 +7732,11 @@
         "tinybert": "TinyBERT (57 MB, fast — default)",
         "bert-base": "BERT-base (710 MB, higher accuracy)"
       },
-      "intensity": { "lite": "Lite", "full": "Full", "ultra": "Ultra" }
+      "intensity": {
+        "lite": "Lite",
+        "full": "Full",
+        "ultra": "Ultra"
+      }
     }
   },
   "contextCombos": {
@@ -11583,9 +11614,15 @@
       "canonical": "Canonical"
     },
     "definitions": {
-      "REQUIRE_API_KEY": { "description": "Require an API key for all incoming requests." },
-      "INPUT_SANITIZER_ENABLED": { "description": "Enable input sanitization for all requests." },
-      "INJECTION_GUARD_MODE": { "description": "Set the prompt-injection guard mode." },
+      "REQUIRE_API_KEY": {
+        "description": "Require an API key for all incoming requests."
+      },
+      "INPUT_SANITIZER_ENABLED": {
+        "description": "Enable input sanitization for all requests."
+      },
+      "INJECTION_GUARD_MODE": {
+        "description": "Set the prompt-injection guard mode."
+      },
       "PII_REDACTION_ENABLED": {
         "description": "Redact personally identifiable information from requests."
       },
@@ -11601,8 +11638,12 @@
       "ALLOW_API_KEY_REVEAL": {
         "description": "Allow authenticated dashboard users to reveal stored API keys instead of seeing masked values only."
       },
-      "ENABLE_TLS_FINGERPRINT": { "description": "Enable TLS fingerprint stealth mode." },
-      "ONEPROXY_ENABLED": { "description": "Enable request proxying through 1proxy." },
+      "ENABLE_TLS_FINGERPRINT": {
+        "description": "Enable TLS fingerprint stealth mode."
+      },
+      "ONEPROXY_ENABLED": {
+        "description": "Enable request proxying through 1proxy."
+      },
       "PROXY_AUTO_SELECT_ENABLED": {
         "description": "When no proxy is assigned to a connection, automatically select the first working registry proxy. Off by default because otherwise one registry proxy becomes a global fallback for all traffic (#3332)."
       },
@@ -11621,7 +11662,9 @@
       "ENABLE_CC_COMPATIBLE_PROVIDER": {
         "description": "Enable Claude Code-compatible provider mode."
       },
-      "TOOL_POLICY_MODE": { "description": "Set the tool-use policy enforcement mode." },
+      "TOOL_POLICY_MODE": {
+        "description": "Set the tool-use policy enforcement mode."
+      },
       "RATE_LIMIT_AUTO_ENABLE": {
         "description": "Automatically enable rate limiting based on usage patterns."
       },
@@ -11670,7 +11713,9 @@
       "ARENA_ELO_SYNC_ENABLED": {
         "description": "Periodically synchronize Arena AI leaderboard ELO data for model-intelligence rankings."
       },
-      "CLI_COMPAT_ALL": { "description": "Enable compatibility mode for all CLI clients." },
+      "CLI_COMPAT_ALL": {
+        "description": "Enable compatibility mode for all CLI clients."
+      },
       "MODEL_ALIAS_COMPAT_ENABLED": {
         "description": "Enable the model-alias compatibility layer."
       },
@@ -12032,5 +12077,12 @@
     "off": "OFF",
     "availableProviders": "Available providers ({count})",
     "noProviderOverrides": "No overrides — all active providers will participate with their default models"
+  },
+  "kimiSponsorBanner": {
+    "title": "Kimi (Moonshot AI) is now an official sponsor of OmniRoute",
+    "description": "Kimi K3 brings a 1M-token context window and frontier coding performance to OmniRoute at a fraction of the cost.",
+    "cta": "Get Kimi Code",
+    "partnerLinkNote": "Partner link",
+    "dismissAriaLabel": "Dismiss"
   }
 }

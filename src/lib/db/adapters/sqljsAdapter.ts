@@ -1,10 +1,12 @@
 // src/lib/db/adapters/sqljsAdapter.ts
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
 
 const SAVE_DEBOUNCE_MS = 100;
 const CHECKPOINT_INTERVAL_MS = 60_000;
+const _require = createRequire(import.meta.url);
 
 let _sqlJsLib: Awaited<ReturnType<(typeof import("sql.js"))["default"]>> | null = null;
 
@@ -22,13 +24,30 @@ function resolveSqlJsWasmPath(): string {
     ),
   ];
 
+  // Global Bun installs do not use the application's cwd as the package root.
+  // Resolve the actual JavaScript entrypoint so sql.js can find its sibling WASM
+  // asset when OmniRoute is launched from ~/.bun/install/global.
+  try {
+    const sqlJsEntry = _require.resolve("sql.js");
+    candidatePaths.push(path.join(path.dirname(sqlJsEntry), "sql-wasm.wasm"));
+  } catch {}
+  try {
+    const sqlJsPackage = _require.resolve("sql.js/package.json");
+    candidatePaths.push(
+      path.join(path.dirname(sqlJsPackage), "dist", "sql-wasm.wasm"),
+      path.join(path.dirname(sqlJsPackage), "sql-wasm.wasm")
+    );
+  } catch {}
+
   for (const candidatePath of candidatePaths) {
     if (fs.existsSync(candidatePath)) {
       return candidatePath;
     }
   }
 
-  return candidatePaths[0];
+  throw new Error(
+    `[sqljsAdapter] Could not locate sql-wasm.wasm. Checked:\n${candidatePaths.join("\n")}`
+  );
 }
 
 /**
