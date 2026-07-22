@@ -6929,6 +6929,8 @@
     "minutes": "minutos",
     "compressionModeRtk": "RTK",
     "compressionModeRtkDesc": "Command-aware tool output filtering",
+    "compressionModeCodexResponses": "Respuestas Codex",
+    "compressionModeCodexResponsesDesc": "Comprime transcripciones de salidas de herramientas según el formato de Respuestas Codex.",
     "compressionModeStacked": "Stacked",
     "compressionModeStackedDesc": "RTK tool-output filtering followed by Caveman message compression",
     "qdrantTitle": "Qdrant (Vector memory)",
@@ -7230,6 +7232,10 @@
       "rtk": {
         "label": "RTK",
         "description": "Command-output filtering."
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       },
       "headroom": {
         "label": "Headroom",

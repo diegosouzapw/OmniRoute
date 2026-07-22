@@ -111,6 +111,8 @@ function isToolOutputItem(value: unknown): boolean {
     item.role === "function" ||
     item.role === "tool_result" ||
     item.type === "function_call_output" ||
+    item.type === "local_shell_call_output" ||
+    item.type === "apply_patch_call_output" ||
     item.type === "computer_call_output" ||
     item.type === "tool_result"
   );
