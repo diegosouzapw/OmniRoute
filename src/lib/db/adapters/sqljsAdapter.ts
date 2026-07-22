@@ -103,8 +103,16 @@ function toBindValue(params: unknown[]): unknown[] | Record<string, unknown> | u
 
 async function loadSqlJs(): Promise<typeof _sqlJsLib> {
   if (_sqlJsLib) return _sqlJsLib;
-  const initSqlJs = ((await import("sql.js")) as { default: (typeof import("sql.js"))["default"] })
-    .default;
+  // Use a non-literal specifier so the bundler doesn't try to statically
+  // resolve sql.js (and its package.json) during the build phase.
+  // sql.js is an optional/fallback adapter — only needed at runtime when
+  // better-sqlite3 and node:sqlite are both unavailable.
+  const moduleName = "sql." + "js";
+  const mod = (await import(
+    /* webpackIgnore: true */
+    moduleName
+  )) as { default: (typeof import("sql.js"))["default"] };
+  const initSqlJs = mod.default;
   const wasmPath = resolveSqlJsWasmPath();
 
   _sqlJsLib = await initSqlJs({
