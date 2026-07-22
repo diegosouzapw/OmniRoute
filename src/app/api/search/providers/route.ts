@@ -14,7 +14,7 @@ import {
 import * as log from "@/sse/utils/logger";
 
 // ---------------------------------------------------------------------------
-// Fetch provider metadata (hardcoded — no registry for these 4)
+// Fetch provider metadata (hardcoded — no registry for these providers)
 // ---------------------------------------------------------------------------
 
 interface FetchProviderDef {
@@ -26,6 +26,13 @@ interface FetchProviderDef {
 }
 
 const FETCH_PROVIDERS: FetchProviderDef[] = [
+  {
+    id: "rs-trafilatura",
+    name: "Local Rust Web Fetch",
+    costPerQuery: 0,
+    freeMonthlyQuota: 0,
+    fetchFormats: ["markdown", "html", "links"],
+  },
   {
     id: "firecrawl",
     name: "Firecrawl",
@@ -74,6 +81,8 @@ async function resolveProviderStatus(
   providerId: string,
   useCredentialFallback = true
 ): Promise<ProviderStatus> {
+  if (providerId === "rs-trafilatura") return "configured";
+
   try {
     const credentials = await getProviderCredentials(providerId).catch(() => null);
 

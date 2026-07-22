@@ -2,12 +2,12 @@
  * Web Fetch Handler
  *
  * Handles POST /v1/web/fetch requests.
- * Dispatches to a web-fetch provider executor (Firecrawl, Jina Reader, Tavily, or TinyFish).
+ * Dispatches to a web-fetch provider executor (Local Rust Web Fetch, Firecrawl, Jina Reader, Tavily, or TinyFish).
  *
  * Request format:
  * {
  *   "url": "https://example.com",
- *   "provider": "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish",  // optional
+ *   "provider": "rs-trafilatura" | "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish",  // optional
  *   "format": "markdown" | "html" | "links" | "screenshot",
  *   "depth": 0 | 1 | 2,
  *   "wait_for_selector": "main",
@@ -18,6 +18,7 @@
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
 import { firecrawlFetch } from "../executors/firecrawl-fetch.ts";
 import { jinaReaderFetch } from "../executors/jina-reader-fetch.ts";
+import { rsTrafilaturaFetch } from "../executors/rs-trafilatura-fetch.ts";
 import { tavilyFetch } from "../executors/tavily-fetch.ts";
 import { tinyfishFetch } from "../executors/tinyfish-fetch.ts";
 
@@ -25,7 +26,7 @@ export type WebFetchFormat = "markdown" | "html" | "links" | "screenshot";
 
 export interface WebFetchRequest {
   url: string;
-  provider?: "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish";
+  provider?: "rs-trafilatura" | "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish";
   format?: WebFetchFormat;
   depth?: 0 | 1 | 2;
   wait_for_selector?: string;
@@ -52,7 +53,13 @@ export interface WebFetchCredentials {
   apiKey?: string;
 }
 
-const WEB_FETCH_PROVIDERS = ["firecrawl", "jina-reader", "tavily-search", "tinyfish"] as const;
+const WEB_FETCH_PROVIDERS = [
+  "rs-trafilatura",
+  "firecrawl",
+  "jina-reader",
+  "tavily-search",
+  "tinyfish",
+] as const;
 type WebFetchProviderId = (typeof WEB_FETCH_PROVIDERS)[number];
 
 /**
@@ -67,13 +74,20 @@ export async function handleWebFetch(
   credentials: WebFetchCredentials,
   resolvedProvider?: WebFetchProviderId
 ): Promise<WebFetchResult> {
-  const provider = resolvedProvider ?? req.provider ?? "firecrawl";
+  const provider = resolvedProvider ?? req.provider ?? "rs-trafilatura";
 
   const format: WebFetchFormat = req.format ?? "markdown";
   const includeMetadata = req.include_metadata ?? false;
 
   try {
     switch (provider) {
+      case "rs-trafilatura":
+        return await rsTrafilaturaFetch({
+          url: req.url,
+          format,
+          includeMetadata,
+        });
+
       case "firecrawl":
         return await firecrawlFetch({
           url: req.url,

@@ -120,4 +120,23 @@ export const NOAUTH_PROVIDERS = {
       text: "Augment (Auggie CLI) requires the `auggie` binary installed and authenticated locally (`auggie login`). OmniRoute spawns it as a subprocess and never sees or stores your Augment credentials.",
     },
   },
+  "rs-trafilatura": {
+    id: "rs-trafilatura",
+    alias: "rs-webfetch",
+    name: "Local Rust Web Fetch",
+    icon: "language",
+    color: "#64748B",
+    textIcon: "RS",
+    website: "https://github.com/SupperTomato/rs-trafilatura",
+    noAuth: true,
+    hasFree: true,
+    serviceKinds: ["webFetch"],
+    isLocalCli: true,
+    freeNote: "Local Rust-powered web extraction. No API key or external fetch provider required.",
+    authHint:
+      "No API key required. Install rs-webfetch on PATH or set OMNIROUTE_RS_WEBFETCH_BIN to the local binary path.",
+    notice: {
+      text: "Local Rust Web Fetch runs on this machine through rs-webfetch for markdown, HTML, and link extraction. It does not support screenshots, selectors, or crawl depth.",
+    },
+  },
 };

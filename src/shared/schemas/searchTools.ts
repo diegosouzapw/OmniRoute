@@ -5,7 +5,7 @@ import { z } from "zod";
 export const SearchProviderCatalogItemSchema = z.object({
   id: z.string(),
   name: z.string(),
-  /** "search" para os 12 search providers; "fetch" para firecrawl/jina/tavily-fetch. */
+  /** "search" for search providers; "fetch" for Local Rust Web Fetch/firecrawl/jina/tavily/tinyfish. */
   kind: z.enum(["search", "fetch"]),
   costPerQuery: z.number().nonnegative(),
   freeMonthlyQuota: z.number().int().nonnegative(),

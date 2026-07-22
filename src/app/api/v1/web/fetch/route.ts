@@ -1,8 +1,8 @@
 /**
  * POST /v1/web/fetch
  *
- * Extract content from a URL using a configured web-fetch provider.
- * Supports Firecrawl, Jina Reader, Tavily Extract, and TinyFish Fetch.
+ * Extract content from a URL using a local or configured web-fetch provider.
+ * Supports Local Rust Web Fetch, Firecrawl, Jina Reader, Tavily Extract, and TinyFish Fetch.
  *
  * Request: { url, provider?, format?, depth?, wait_for_selector?, include_metadata? }
  * Response: { provider, url, content, links, metadata, screenshot_url }
@@ -27,8 +27,24 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "*",
 };
 
-const WEB_FETCH_PROVIDERS = ["firecrawl", "jina-reader", "tavily-search", "tinyfish"] as const;
+const WEB_FETCH_PROVIDERS = [
+  "rs-trafilatura",
+  "firecrawl",
+  "jina-reader",
+  "tavily-search",
+  "tinyfish",
+] as const;
 type WebFetchProviderId = (typeof WEB_FETCH_PROVIDERS)[number];
+
+function canUseRsTrafilatura(body: {
+  format?: string;
+  depth?: number;
+  wait_for_selector?: string;
+}) {
+  if (body.wait_for_selector) return false;
+  if (body.depth !== undefined && body.depth > 0) return false;
+  return ["markdown", "html", "links"].includes(body.format ?? "markdown");
+}
 
 export async function OPTIONS() {
   return new Response(null, { headers: CORS_HEADERS });
@@ -41,6 +57,7 @@ export async function OPTIONS() {
 async function resolveCredentials(
   providerId: WebFetchProviderId
 ): Promise<{ apiKey?: string } | null> {
+  if (providerId === "rs-trafilatura") return {};
   try {
     const creds = await getProviderCredentialsWithQuotaPreflight(providerId);
     return creds ?? null;
@@ -83,6 +100,12 @@ export async function POST(request: Request) {
 
   if (body.provider) {
     resolvedProvider = body.provider as WebFetchProviderId;
+    if (resolvedProvider === "rs-trafilatura" && !canUseRsTrafilatura(body)) {
+      return errorResponse(
+        HTTP_STATUS.BAD_REQUEST,
+        "Local Rust Web Fetch supports markdown, html, and links without crawl depth or selectors"
+      );
+    }
     const creds = await resolveCredentials(resolvedProvider);
     if (!creds) {
       return errorResponse(
@@ -93,8 +116,11 @@ export async function POST(request: Request) {
     }
     credentials = creds;
   } else {
-    // Auto-select: try providers in priority order
-    for (const pid of WEB_FETCH_PROVIDERS) {
+    // Auto-select: use local extraction when possible, otherwise try configured providers.
+    const candidates = canUseRsTrafilatura(body)
+      ? WEB_FETCH_PROVIDERS
+      : WEB_FETCH_PROVIDERS.filter((pid) => pid !== "rs-trafilatura");
+    for (const pid of candidates) {
       const creds = await resolveCredentials(pid);
       if (creds) {
         resolvedProvider = pid;

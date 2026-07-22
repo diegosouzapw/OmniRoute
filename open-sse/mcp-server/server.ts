@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { execFile } from "node:child_process";
 import {
   getComboModelProvider,
   getComboModelString,
@@ -143,6 +144,15 @@ function readMcpAccessibilityConfig(): McpAccessibilityConfig {
 type TextToolResult = {
   content: Array<{ type: "text"; text: string }>;
   isError?: boolean;
+};
+
+type WebFetchArgs = {
+  url: string;
+  provider?: "rs-trafilatura" | "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish";
+  format?: "markdown" | "html" | "links" | "screenshot";
+  include_metadata?: boolean;
+  depth?: number;
+  wait_for_selector?: string;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -578,30 +588,118 @@ async function handleWebSearch(args: {
   }
 }
 
-async function handleWebFetch(args: {
-  url: string;
-  provider?: "firecrawl" | "jina-reader" | "tavily-search" | "tinyfish";
-  format?: "markdown" | "html" | "links" | "screenshot";
-  include_metadata?: boolean;
-  depth?: number;
-  wait_for_selector?: string;
-}) {
+function execFileText(
+  file: string,
+  args: string[],
+  options: { timeout: number; maxBuffer: number }
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    execFile(file, args, options, (error, stdout, stderr) => {
+      if (error) {
+        const message = stderr?.trim() || error.message;
+        reject(new Error(message));
+        return;
+      }
+      resolve({ stdout, stderr });
+    });
+  });
+}
+
+function extractMarkdownLinks(markdown: string): string[] {
+  const links = new Set<string>();
+  for (const match of markdown.matchAll(/\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/g)) {
+    links.add(match[1]);
+  }
+  return Array.from(links);
+}
+
+function shouldTryRsWebFetch(args: WebFetchArgs): boolean {
+  if (args.provider && args.provider !== "rs-trafilatura") return false;
+  if (args.wait_for_selector) return false;
+  if (args.depth !== undefined && args.depth > 0) return false;
+  return ["markdown", "html", "links"].includes(args.format ?? "markdown");
+}
+
+async function runRsWebFetch(args: WebFetchArgs): Promise<unknown> {
+  if (!shouldTryRsWebFetch(args)) {
+    throw new Error(
+      "Local Rust Web Fetch supports markdown, html, and links without crawl depth or selectors"
+    );
+  }
+
+  const format = args.format ?? "markdown";
+  const rsArgs = ["--format", format === "html" ? "html" : "json", "--timeout", "20"];
+  if (format === "links") rsArgs.push("--links");
+  rsArgs.push(args.url);
+
+  const bin = process.env.OMNIROUTE_RS_WEBFETCH_BIN || "rs-webfetch";
+  const { stdout } = await execFileText(bin, rsArgs, {
+    timeout: 65000,
+    maxBuffer: 16 * 1024 * 1024,
+  });
+
+  if (format === "html") {
+    return {
+      provider: "rs-trafilatura",
+      url: args.url,
+      content: stdout.trim(),
+      links: [],
+      metadata: null,
+      screenshot_url: null,
+    };
+  }
+
+  const parsed = JSON.parse(stdout) as JsonRecord;
+  const contentRecord = toRecord(parsed.content);
+  const metadataRecord = toRecord(parsed.metadata);
+  const content = toString(contentRecord.text);
+  const links = format === "links" ? extractMarkdownLinks(content) : [];
+
+  return {
+    provider: "rs-trafilatura",
+    url: toString(parsed.finalUrl, toString(parsed.url, args.url)),
+    content: format === "links" ? "" : content,
+    links,
+    metadata: args.include_metadata
+      ? {
+          title: typeof metadataRecord.title === "string" ? metadataRecord.title : null,
+          description:
+            typeof metadataRecord.description === "string" ? metadataRecord.description : null,
+        }
+      : null,
+    screenshot_url: null,
+  };
+}
+
+async function runGatewayWebFetch(args: WebFetchArgs): Promise<unknown> {
+  const body: Record<string, unknown> = {
+    url: args.url,
+    format: args.format ?? "markdown",
+    include_metadata: args.include_metadata ?? false,
+  };
+  if (args.provider && args.provider !== "rs-trafilatura") body.provider = args.provider;
+  if (args.depth !== undefined) body.depth = args.depth;
+  if (args.wait_for_selector) body.wait_for_selector = args.wait_for_selector;
+
+  return omniRouteFetch("/v1/web/fetch", {
+    method: "POST",
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(60000),
+  });
+}
+
+async function handleWebFetch(args: WebFetchArgs) {
   const start = Date.now();
   try {
-    const body: Record<string, unknown> = {
-      url: args.url,
-      format: args.format ?? "markdown",
-      include_metadata: args.include_metadata ?? false,
-    };
-    if (args.provider) body.provider = args.provider;
-    if (args.depth !== undefined) body.depth = args.depth;
-    if (args.wait_for_selector) body.wait_for_selector = args.wait_for_selector;
-
-    const result = await omniRouteFetch("/v1/web/fetch", {
-      method: "POST",
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(60000),
-    });
+    let result: unknown;
+    try {
+      result = shouldTryRsWebFetch(args)
+        ? await runRsWebFetch(args)
+        : await runGatewayWebFetch(args);
+    } catch (err) {
+      if (args.provider === "rs-trafilatura") throw err;
+      result = await runGatewayWebFetch(args);
+    }
     await logToolCall("omniroute_web_fetch", args, result, Date.now() - start, true);
     return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
   } catch (err) {

@@ -1,5 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { chmod, mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const { handleWebFetch } = await import("../../open-sse/handlers/webFetch.ts");
 
@@ -95,6 +98,60 @@ test("handleWebFetch routes to tinyfish when provider=tinyfish", async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("handleWebFetch routes to rs-trafilatura without apiKey", async () => {
+  const originalBin = process.env.OMNIROUTE_RS_WEBFETCH_BIN;
+  const dir = await mkdtemp(join(tmpdir(), "omniroute-rs-webfetch-"));
+  const bin = join(dir, "rs-webfetch-mock.mjs");
+  await writeFile(
+    bin,
+    `#!/usr/bin/env node
+console.log(JSON.stringify({
+  url: "https://example.com",
+  finalUrl: "https://example.com/final",
+  content: { text: "# Local content\\n[link](https://example.com/page)" },
+  metadata: { title: "Local title", description: "Local description" }
+}));
+`
+  );
+  await chmod(bin, 0o700);
+  process.env.OMNIROUTE_RS_WEBFETCH_BIN = bin;
+
+  try {
+    const result = await handleWebFetch(
+      { url: "https://example.com", format: "markdown", include_metadata: true },
+      {},
+      "rs-trafilatura"
+    );
+
+    assert.equal(result.success, true);
+    assert.equal(result.data?.provider, "rs-trafilatura");
+    assert.equal(result.data?.url, "https://example.com/final");
+    assert.equal(result.data?.content, "# Local content\n[link](https://example.com/page)");
+    assert.deepEqual(result.data?.metadata, {
+      title: "Local title",
+      description: "Local description",
+    });
+  } finally {
+    if (originalBin === undefined) {
+      delete process.env.OMNIROUTE_RS_WEBFETCH_BIN;
+    } else {
+      process.env.OMNIROUTE_RS_WEBFETCH_BIN = originalBin;
+    }
+  }
+});
+
+test("handleWebFetch rejects rs-trafilatura screenshots without apiKey", async () => {
+  const result = await handleWebFetch(
+    { url: "https://example.com", format: "screenshot" },
+    {},
+    "rs-trafilatura"
+  );
+
+  assert.equal(result.success, false);
+  assert.equal(result.status, 400);
+  assert.match(result.error ?? "", /does not support screenshots/);
 });
 
 test("handleWebFetch returns error 401 when no apiKey for firecrawl", async () => {
