@@ -152,8 +152,10 @@ function extractMessageContents(body) {
       for (const part of msg.content) {
         if (typeof part === "string") {
           contents.push(part);
-        } else if (part.text) {
+        } else if (part && typeof part.text === "string") {
           contents.push(part.text);
+        } else if (part && typeof part.input_text === "string") {
+          contents.push(part.input_text);
         }
       }
     }
@@ -165,7 +167,7 @@ function extractMessageContents(body) {
   } else if (Array.isArray(body.system)) {
     for (const s of body.system) {
       if (typeof s === "string") contents.push(s);
-      else if (s.text) contents.push(s.text);
+      else if (s && typeof s.text === "string") contents.push(s.text);
     }
   }
 
@@ -279,7 +281,7 @@ export function sanitizeRequest(body, logger = console) {
 
   // ── PII Detection / Redaction ──
   if (config.piiRedaction) {
-    const piiResult = processPII(fullText, config.mode === "redact");
+    const piiResult = processPII(fullText, true);
     result.piiDetections = piiResult.detections;
 
     if (piiResult.detections.length > 0) {
@@ -287,11 +289,10 @@ export function sanitizeRequest(body, logger = console) {
         `[SANITIZER] PII detected: ${piiResult.detections.map((d) => `${d.type}(${d.count})`).join(", ")}`
       );
 
-      if (config.mode === "redact") {
-        // Deep clone and replace message contents with redacted versions
-        result.sanitizedBody = redactBody(body);
-        result.modified = true;
-      }
+      // PII redaction is independent of INPUT_SANITIZER_MODE.
+      // If PII_REDACTION_ENABLED=true, always rewrite the body.
+      result.sanitizedBody = redactBody(body);
+      result.modified = true;
     }
   }
 
@@ -313,22 +314,42 @@ function redactBody(body) {
       : [];
 
   for (const msg of messages) {
+    // Responses API: plain string items in input[]
+    if (typeof msg === "string") {
+      // Cannot mutate string in-place; replace by index
+      const idx = messages.indexOf(msg);
+      if (idx !== -1) messages[idx] = processPII(msg, true).text;
+      continue;
+    }
+
     if (typeof msg.content === "string") {
       msg.content = processPII(msg.content, true).text;
     } else if (Array.isArray(msg.content)) {
-      for (const part of msg.content) {
+      for (let i = 0; i < msg.content.length; i++) {
+        const part = msg.content[i];
         if (typeof part === "string") {
-          const idx = msg.content.indexOf(part);
-          msg.content[idx] = processPII(part, true).text;
-        } else if (part.text) {
+          msg.content[i] = processPII(part, true).text;
+        } else if (part && typeof part.text === "string") {
           part.text = processPII(part.text, true).text;
+        } else if (part && typeof part.input_text === "string") {
+          part.input_text = processPII(part.input_text, true).text;
         }
       }
     }
   }
 
+  // system can be a string or an array of content blocks
   if (typeof clone.system === "string") {
     clone.system = processPII(clone.system, true).text;
+  } else if (Array.isArray(clone.system)) {
+    for (let i = 0; i < clone.system.length; i++) {
+      const part = clone.system[i];
+      if (typeof part === "string") {
+        clone.system[i] = processPII(part, true).text;
+      } else if (part && typeof part.text === "string") {
+        part.text = processPII(part.text, true).text;
+      }
+    }
   }
 
   return clone;
