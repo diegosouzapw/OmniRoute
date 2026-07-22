@@ -50,18 +50,20 @@ function NumberField({
       </span>
       <div className="flex items-center gap-2">
         <input
-          type="number"
+          type="text"
+          inputMode="numeric"
           min={min}
           max={max}
           value={value}
           onChange={(event) => {
-            if (event.target.value === "") return;
-            const nextValue = Number(event.target.value);
+            const raw = event.target.value.replace(/[^0-9]/g, "");
+            if (raw === "") return;
+            const nextValue = Number(raw);
             if (Number.isFinite(nextValue)) {
               onChange(nextValue);
             }
           }}
-          className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm font-mono"
         />
         {suffix ? <span className="text-xs text-text-muted">{suffix}</span> : null}
       </div>
