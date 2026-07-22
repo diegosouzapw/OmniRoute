@@ -15,10 +15,13 @@ test("sanitizeErrorMessage redacts bearer credentials and image data URLs", () =
 
 test("sanitizeErrorMessage redacts common JSON credential fields", () => {
   const safe = sanitizeErrorMessage(
-    '{"api_key":"sk-sensitive","access_token":"oauth-sensitive","cookie":"session=sensitive"}'
+    '{"api_key":"sk-sensitive","access_token":"oauth-sensitive","cookie":"session=sensitive; secondary=also-sensitive","authorization":"Basic dXNlcjpwYXNz"}'
   );
 
-  assert.doesNotMatch(safe, /sk-sensitive|oauth-sensitive|session=sensitive/);
+  assert.doesNotMatch(
+    safe,
+    /sk-sensitive|oauth-sensitive|session=sensitive|also-sensitive|dXNlcjpwYXNz/
+  );
   assert.match(safe, /\[REDACTED\]/);
 });
 
