@@ -8,15 +8,16 @@ import { dirname, join } from "node:path";
 // The modal must refuse bare JWT pastes and require full auth.json with refresh_token.
 
 const here = dirname(fileURLToPath(import.meta.url));
-const modalSource = readFileSync(
-  join(here, "../../src/shared/components/OAuthModal.tsx"),
+const modalSource = readFileSync(join(here, "../../src/shared/components/OAuthModal.tsx"), "utf8");
+const parserSource = readFileSync(
+  join(here, "../../src/lib/oauth/utils/grokCliAuthJson.ts"),
   "utf8"
 );
 
 test("#7610: OAuthModal rejects bare Grok JWT paste instructions", () => {
   assert.match(modalSource, /parseGrokCliPasteToken/);
-  assert.match(modalSource, /Do not paste only the JWT/);
-  assert.match(modalSource, /full ~\/\.grok\/auth\.json/);
+  assert.match(parserSource, /Do not paste only the JWT/);
+  assert.match(parserSource, /full ~\/\.grok\/auth\.json/);
   assert.doesNotMatch(
     modalSource,
     /Paste your Grok Build JWT token from ~\/\.grok\/auth\.json \(the "key" field value\)/
