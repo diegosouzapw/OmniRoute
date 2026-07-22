@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { dirname } from "node:path";
-import { writePidFile, cleanupPidFile, killAllSubprocesses } from "../utils/pid.mjs";
+import { writePidFile, cleanupPidFile, killAllSubprocesses, isPidRunning } from "../utils/pid.mjs";
 import {
   RESTART_RESET_MS,
   DEFAULT_MAX_RESTARTS,
@@ -9,6 +9,7 @@ import {
   waitUntilPortFree,
 } from "./supervisorPolicy.mjs";
 import { buildNodeHeapArgs } from "../../../scripts/build/runtime-env.mjs";
+import { stopProcessGracefully } from "../../../src/shared/platform/windowsProcess.ts";
 
 const CRASH_LOG_LINES = 50;
 
@@ -72,11 +73,31 @@ export class ServerSupervisor {
     return this.child;
   }
 
-  handleExit(code) {
+  handleExit(code, err) {
     // Node.js v24+ requires process.exit() to receive a number. Spawn-error events
     // deliver err.code (a string like 'ENOENT') via the 'error' listener; normalise here.
     const exitCode = typeof code === "number" ? code : null;
     cleanupPidFile("server");
+
+    // #8091: the child's spawn 'error' listener passes `err` through as a second
+    // argument, but it used to be silently dropped — the user only ever saw the
+    // hardcoded "code=-1" with a permanently empty crash log, with no way to
+    // diagnose why the child never started (ENOENT/EACCES/bad path/etc.). Surface
+    // the real reason immediately, both on the console and in the crash-log buffer
+    // so `dumpCrashLog()` shows it too.
+    if (err) {
+      const detail = [
+        err.code && `code=${err.code}`,
+        err.syscall && `syscall=${err.syscall}`,
+        err.path && `path=${err.path}`,
+        err.message,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const line = `⚠ Spawn error: ${detail || String(err)}`;
+      console.error(line);
+      this.crashLog.push(line);
+    }
 
     // #4425: only exit on an intentional shutdown. A spontaneous code-0 exit (e.g. a
     // systemd MemoryMax cgroup kill, which reports the process exited cleanly) is anomalous
@@ -135,14 +156,13 @@ export class ServerSupervisor {
   stop() {
     this.isShuttingDown = true;
     if (this.child?.pid) {
-      try {
-        process.kill(this.child.pid, "SIGTERM");
-      } catch {}
-      setTimeout(() => {
-        try {
-          process.kill(this.child.pid, "SIGKILL");
-        } catch {}
-      }, 5000);
+      // #8045: on win32, process.kill(pid, "SIGTERM") unconditionally force-terminates
+      // the target — it is never a real, interceptable signal there. The child already
+      // receives the real CTRL_C_EVENT/CTRL_CLOSE_EVENT independently (it shares the
+      // console) and runs its own async graceful shutdown (WAL checkpoint). Sending
+      // SIGTERM immediately on win32 races and beats that cleanup. Fire-and-forget:
+      // stop() itself stays sync so callers keep their existing control flow.
+      void stopProcessGracefully({ pid: this.child.pid, timeoutMs: 5000, isPidRunning });
     }
     killAllSubprocesses();
   }

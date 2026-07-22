@@ -158,6 +158,23 @@ function getErrorCode(error: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
+/**
+ * Closes a probe/throwaway connection obtained from `openSqliteDatabase()` —
+ * but ONLY when it is safe to do so. better-sqlite3/node:sqlite hand back an
+ * independent handle per open() call, so closing a probe never affects a
+ * later "real" connection to the same file. sql.js has no such notion: its
+ * fallback path (`getSqlJsAdapter()`) always returns the SAME module-global
+ * cached singleton for a given filePath, so closing "the probe" closes the
+ * ONLY connection that file will ever get until process restart — every
+ * subsequent query (including the "real" connection opened right after)
+ * throws sql.js's raw "Database closed" string (#7494). Skip the close for
+ * sql.js and let the same live adapter flow through untouched.
+ */
+export function closeProbeIfSafe(adapter: SqliteDatabase | null | undefined): void {
+  if (!adapter || adapter.driver === "sql.js") return;
+  if (adapter.open) adapter.close();
+}
+
 function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown>): SqliteDatabase {
   const adapter = tryOpenSync(sqliteFile, options);
   if (adapter) return adapter;
@@ -604,7 +621,7 @@ function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
     return snapshot;
   } finally {
     try {
-      probe?.close();
+      closeProbeIfSafe(probe);
     } catch {
       /* ignore */
     }
@@ -1047,7 +1064,7 @@ export function getDbInstance(): SqliteDatabase {
         } catch {
           // Table might not exist at all — truly incompatible
         }
-        probe.close();
+        closeProbeIfSafe(probe);
 
         if (hasData) {
           console.log(
@@ -1061,7 +1078,7 @@ export function getDbInstance(): SqliteDatabase {
             const message = e instanceof Error ? e.message : String(e);
             console.warn("[DB] Could not clean up old schema table:", message);
           } finally {
-            fixDb.close();
+            closeProbeIfSafe(fixDb);
           }
         } else {
           const oldPath = sqliteFile + ".old-schema";
@@ -1078,7 +1095,7 @@ export function getDbInstance(): SqliteDatabase {
           }
         }
       } else {
-        probe.close();
+        closeProbeIfSafe(probe);
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
@@ -1224,7 +1241,7 @@ export function getDbInstance(): SqliteDatabase {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       try {
-        if (db.open) db.close();
+        closeProbeIfSafe(db);
       } catch {
         /* ignore */
       }

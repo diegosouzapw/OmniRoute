@@ -23,6 +23,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "context-ultra",
   "context-omniglyph",
   "compression-studio",
+  "compression-exclusions",
   // OmniProxy > Tools
   "cli-code",
   "cli-agents",

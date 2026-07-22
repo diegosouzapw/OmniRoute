@@ -93,10 +93,17 @@ function messagesToText(messages: Array<{ role: string; content: unknown }>): st
     .join("\n");
 }
 
-function buildStep(engine: string, fuzzy?: { enabled: boolean }) {
-  return engine === "session-dedup" && fuzzy?.enabled
-    ? { engine, config: { fuzzy: { enabled: true } } }
-    : { engine };
+function buildStep(
+  engine: string,
+  fuzzy?: { enabled: boolean },
+  /** Optional detail bag (e.g. headroom.minRows from saved settings). */
+  detail?: Record<string, unknown>
+) {
+  const config: Record<string, unknown> = { ...(detail ?? {}) };
+  if (engine === "session-dedup" && fuzzy?.enabled) {
+    config.fuzzy = { enabled: true };
+  }
+  return Object.keys(config).length > 0 ? { engine, config } : { engine };
 }
 
 function headroomParticipates(
@@ -131,11 +138,29 @@ async function dispatchCompression(
   // (CompressionConfig.riskGate) — uniform across all three branches and type-safe.
   // QuantumLock uses the same pattern: when enabled the studio forces cachingContext so the dry-run
   // badge shows what WOULD be stabilized in production (real caching gains show in telemetry only).
+  // When the client/settings carry a headroom detail sub-object, thread it so
+  // buildStepOptions can merge minRows into the headroom engine stepConfig (#8056).
+  const headroomDetail =
+    opts.config && typeof opts.config === "object" && opts.config !== null
+      ? (opts.config as CompressionConfig).headroom
+      : undefined;
+  const headroomStepDetail =
+    headroomDetail && typeof headroomDetail.minRows === "number"
+      ? { minRows: headroomDetail.minRows }
+      : undefined;
+
   if (opts.engineId) {
     const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
-        stackedPipeline: [buildStep(opts.engineId, opts.fuzzyDedup)],
+        stackedPipeline: [
+          buildStep(
+            opts.engineId,
+            opts.fuzzyDedup,
+            opts.engineId === "headroom" ? headroomStepDetail : undefined
+          ),
+        ],
+        ...(headroomDetail ? { headroom: headroomDetail } : {}),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
         ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
         ...q.configPatch,
@@ -147,7 +172,10 @@ async function dispatchCompression(
     const q = quantumExtras(opts.quantumLock);
     return applyCompressionAsync(requestBody, "stacked", {
       config: {
-        stackedPipeline: opts.pipeline.map((engine) => buildStep(engine, opts.fuzzyDedup)),
+        stackedPipeline: opts.pipeline.map((engine) =>
+          buildStep(engine, opts.fuzzyDedup, engine === "headroom" ? headroomStepDetail : undefined)
+        ),
+        ...(headroomDetail ? { headroom: headroomDetail } : {}),
         ...(opts.fidelityGate ? { fidelityGate: opts.fidelityGate } : {}),
         ...(opts.riskGate ? { riskGate: opts.riskGate } : {}),
         ...q.configPatch,
@@ -236,8 +264,12 @@ export async function POST(req: Request) {
       heatmapMode as HeatmapMode | undefined
     );
 
+    const headroomMinRows =
+      typeof config?.headroom?.minRows === "number" && Number.isFinite(config.headroom.minRows)
+        ? config.headroom.minRows
+        : DEFAULT_MIN_ROWS;
     const encoderComparison = headroomParticipates(engineId, pipeline, effectiveMode)
-      ? summarizeEncoderCandidates(messages, DEFAULT_MIN_ROWS, countTextTokens)
+      ? summarizeEncoderCandidates(messages, headroomMinRows, countTextTokens)
       : null;
 
     // #6461: when fallbackApplied=true, synthesize a deduped reason list from data the

@@ -8,6 +8,7 @@ import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
 import { GROK_BUILD_RUNTIME_ENTRY, AMP_RUNTIME_ENTRY } from "./cliRuntimeGrokBuild";
 import { isLocationTrusted, findKnownPathMatch } from "./cliRuntimeKnownPath";
+import { buildHealthcheckPath } from "./cliRuntimeHealthcheckPath";
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
@@ -912,7 +913,9 @@ const checkRunnable = async (
 ) => {
   // Minimal environment to prevent credential leakage to potentially malicious binaries
   const minimalEnv: Record<string, string | undefined> = {
-    PATH: env.PATH || env.Path,
+    // #8036: merge in this Node's own bin dir so `#!/usr/bin/env node` npm CLIs
+    // (e.g. codex) can resolve their interpreter under a minimal launcher PATH.
+    PATH: buildHealthcheckPath(env.PATH || env.Path || "", path.dirname(process.execPath)),
     HOME: env.HOME || env.USERPROFILE,
     USERPROFILE: env.USERPROFILE, // Windows needs this for os.homedir()
     APPDATA: env.APPDATA, // Many npm CLI tools rely on APPDATA

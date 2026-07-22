@@ -67,7 +67,11 @@ function sanitizeContentPart(part: unknown, role: string): unknown {
 
   if (record.type === "image_url") {
     const url = imageUrlToText(record.image_url);
-    if (role === "user") {
+    // `output_text` is only a legal content-part type on assistant-role OUTPUT
+    // items. Every other role (user, system, developer, ...) is input-side and
+    // must use `input_image` -- otherwise the Codex/Responses backend rejects
+    // the replayed history with "Invalid value: 'output_text'" (#8089).
+    if (role !== "assistant") {
       const next: JsonRecord = { type: "input_image", image_url: url };
       const image = toRecord(record.image_url);
       if (image?.detail !== undefined) next.detail = image.detail;

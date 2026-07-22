@@ -103,13 +103,19 @@ Default URLs:
 ## Git Workflow
 
 > ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+>
+> **PR base:** target the active `release/vX.Y.Z` branch (not `main`). See
+> [`docs/ops/BRANCHING_MODEL.md`](docs/ops/BRANCHING_MODEL.md) for the
+> release-per-branch + tag-at-ship model.
 
 ```bash
-git checkout -b feat/your-feature-name
+# Branch from the active release tip (example: release/v3.8.49)
+git fetch origin
+git checkout -b feat/your-feature-name origin/release/v3.8.49
 # ... make changes ...
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature-name
-# Open a Pull Request on GitHub
+# Open a Pull Request with base = release/v3.8.49
 ```
 
 ### Branch Naming

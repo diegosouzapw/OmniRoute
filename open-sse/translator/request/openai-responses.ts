@@ -82,6 +82,13 @@ export function openaiResponsesToOpenAIRequest(
 
   const result: JsonRecord = { ...root };
 
+  // Request-scoped response-side identity for Responses namespace child tools.
+  // The Chat wire `tool.function.name` is the bare leaf (per #7905 #7936), and
+  // the original `{namespace, name}` pair is retained in this side-band map so
+  // the response translator can emit codex-compatible `namespace` + `name`
+  // fields without reparsing the wire name.
+  const namespaceToolIdentityMap = new Map<string, { namespace: string; name: string }>();
+
   // #7533: `verbosity` and `prompt_cache_key` are GPT-5/OpenAI-only Chat Completions
   // parameters. A strict-protocol non-OpenAI upstream (NVIDIA confirmed by the reporter;
   // likely also GLM/Kimi/Deepseek direct endpoints) 400s on unrecognized top-level
@@ -350,6 +357,17 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
+    // Skip tool_search_call items. These are Responses-API-only metadata items
+    // emitted by Codex's dynamic tool-search optimization: they record that the
+    // model queried a subset of available tools, but carry no content that Chat
+    // Completions can represent. Throwing here would break every multi-turn
+    // conversation where Codex previously used tool_search (the whole session
+    // would carry tool_search_call items forward in `input`). Skipping matches
+    // the reasoning-item policy: display-only metadata, no chat side-effect.
+    if (itemType === "tool_search_call" || itemType === "tool_search_result") {
+      continue;
+    }
+
     if (itemType === "additional_tools") {
       // Already consumed by collectResponsesTools() before message conversion.
       continue;
@@ -394,31 +412,53 @@ export function openaiResponsesToOpenAIRequest(
         // one empty-schema function named `mcp__<server>__` and every MCP call failed with
         // `unsupported call: mcp__<server>__`.
         if (toolType === "namespace") {
+          const nsName = toString(tool.name);
           const subTools = Array.isArray(tool.tools) ? tool.tools : [];
           return subTools
             .map((subValue) => toRecord(subValue))
             .filter((sub) => toString(sub.name))
-            .map((sub) => ({
-              type: "function",
-              function: {
-                name: toString(sub.name),
-                description: toString(sub.description),
-                parameters:
-                  toString(sub.type) === "custom"
-                    ? {
-                        type: "object",
-                        properties: { input: { type: "string" } },
-                        required: ["input"],
-                        additionalProperties: false,
-                      }
-                    : (sub.parameters ??
-                      sub.input_schema ?? {
-                        type: "object",
-                        properties: {},
-                      }),
-                strict: sub.strict,
-              },
-            }));
+            .map((sub) => {
+              const leaf = toString(sub.name);
+              // Stamp the identity for the response-side seam. The wire name
+              // remains the bare leaf (matching #7905), so `namespaceToolIdentityMap`
+              // keys on the leaf. A later child that shares the same leaf name
+              // with a different namespace is ambiguous: drop the conflicting
+              // entry rather than silently overwriting.
+              if (nsName && leaf) {
+                const identity = { namespace: nsName, name: leaf };
+                const existingIdentity = namespaceToolIdentityMap.get(leaf);
+                if (
+                  !existingIdentity ||
+                  (existingIdentity.namespace === identity.namespace &&
+                    existingIdentity.name === identity.name)
+                ) {
+                  namespaceToolIdentityMap.set(leaf, identity);
+                } else {
+                  namespaceToolIdentityMap.delete(leaf);
+                }
+              }
+              return {
+                type: "function",
+                function: {
+                  name: leaf,
+                  description: toString(sub.description),
+                  parameters:
+                    toString(sub.type) === "custom"
+                      ? {
+                          type: "object",
+                          properties: { input: { type: "string" } },
+                          required: ["input"],
+                          additionalProperties: false,
+                        }
+                      : (sub.parameters ??
+                        sub.input_schema ?? {
+                          type: "object",
+                          properties: {},
+                        }),
+                  strict: sub.strict,
+                },
+              };
+            });
         }
         // tool_search (#2766) is a Responses API built-in Codex sends with
         // `execution: "client"` — the CLIENT (Codex CLI) resolves the call locally,
@@ -664,6 +704,17 @@ export function openaiResponsesToOpenAIRequest(
   delete result.conversation;
   delete result.prompt_cache_options;
   delete result.prompt_cache_retention;
+
+  if (namespaceToolIdentityMap.size > 0) {
+    // chatCore extracts and deletes this transient side channel before dispatch.
+    // Non-enumerability keeps internal request metadata off the upstream wire.
+    Object.defineProperty(result, "_toolNameMap", {
+      value: namespaceToolIdentityMap,
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    });
+  }
 
   return result;
 }
