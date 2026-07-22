@@ -428,14 +428,18 @@ export function processFrame(
       const blob = opts.blobStore?.get(hex) ?? Buffer.alloc(0);
       try {
         opts.h2Req.write(encodeKvGetBlobResult(kvEvent.kvId, blob, kvEvent.requestMetadata));
-      } catch {}
+      } catch (e) {
+        console.debug(`[CURSOR] KV get_blob write failed:`, e);
+      }
     } else if (kvEvent.kind === "kv_set_blob") {
       if (opts.blobStore) {
         opts.blobStore.set(kvEvent.blobId.toString("hex"), kvEvent.blobData);
       }
       try {
         opts.h2Req.write(encodeKvSetBlobResult(kvEvent.kvId, kvEvent.requestMetadata));
-      } catch {}
+      } catch (e) {
+        console.debug(`[CURSOR] KV set_blob write failed:`, e);
+      }
     }
   }
 
@@ -454,7 +458,9 @@ export function processFrame(
           // — sending them again in the request_context ack causes the
           // server to stall silently. Empty ack only.
           opts.h2Req.write(encodeRequestContextResponse(event.execMsgId, event.execId));
-        } catch {}
+        } catch (e) {
+          console.debug(`[CURSOR] request_context ack write failed:`, e);
+        }
       }
     } else if (event.kind === "exec_mcp") {
       // Phase 5: surface the model-invoked MCP tool as an OpenAI tool_calls
@@ -508,7 +514,9 @@ export function processFrame(
       if (rejection && opts.h2Req) {
         try {
           opts.h2Req.write(rejection);
-        } catch {}
+        } catch (e) {
+          console.debug(`[CURSOR] exec rejection write failed:`, e);
+        }
       }
     }
   }
@@ -826,7 +834,9 @@ export class CursorExecutor extends BaseExecutor {
         try {
           req.close();
           client.close();
-        } catch {}
+        } catch {
+          // Expected: connection may already be closed
+        }
         if (!resolved) {
           resolved = true;
           reject(new Error("aborted"));
@@ -848,7 +858,9 @@ export class CursorExecutor extends BaseExecutor {
               try {
                 req.close();
                 client.close();
-              } catch {}
+              } catch {
+                // Expected: connection may already be closed
+              }
               if (signal) signal.removeEventListener("abort", onAbort);
               res(Buffer.concat(out));
             });
@@ -856,7 +868,9 @@ export class CursorExecutor extends BaseExecutor {
               try {
                 req.close();
                 client.close();
-              } catch {}
+              } catch {
+                // Expected: connection may already be closed
+              }
               if (signal) signal.removeEventListener("abort", onAbort);
               res(Buffer.concat(out));
             });
@@ -900,7 +914,9 @@ export class CursorExecutor extends BaseExecutor {
           try {
             req.close();
             client.close();
-          } catch {}
+          } catch {
+            // Expected: connection may already be closed
+          }
           reject(err instanceof Error ? err : new Error(String(err)));
         }
       }
@@ -988,7 +1004,9 @@ export class CursorExecutor extends BaseExecutor {
         try {
           h2.req.close();
           h2.client.close();
-        } catch {}
+        } catch {
+          // Expected: connection may already be closed during teardown
+        }
       };
 
       if (signal) signal.addEventListener("abort", onAbort);
