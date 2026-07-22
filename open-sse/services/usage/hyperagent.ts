@@ -14,6 +14,7 @@
  *   plan.name → "Pay As You Go" etc.
  */
 import { type UsageQuota } from "./quota.ts";
+import { toNumber } from "@/shared/utils/numeric";
 
 const USAGE_URL =
   process.env.HYPERAGENT_USAGE_URL || "https://hyperagent.com/api/settings/billing/usage";
@@ -32,15 +33,6 @@ function readPs(data: unknown, keys: string[]): string {
     if (v) return v;
   }
   return "";
-}
-
-function toNumber(v: unknown): number {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  if (typeof v === "string" && v.trim()) {
-    const n = Number(v);
-    if (Number.isFinite(n)) return n;
-  }
-  return 0;
 }
 
 /** Round money to 2 decimals for UI. */

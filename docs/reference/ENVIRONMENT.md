@@ -803,6 +803,16 @@ Reverse-engineered GraphQL session bridge for prompt.ql.app (`src/shared/constan
 
 ---
 
+## HyperAgent Web Provider (Unofficial/Experimental)
+
+Reverse-engineered session bridge for hyperagent.com (`src/shared/constants/providers/web-cookie.ts`). Optional — the default points at the public billing/usage endpoint; override only for a self-hosted/alternate HyperAgent deployment.
+
+| Variable                | Default                                                    | Source File                             | Description                                    |
+| ------------------------ | ------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------- |
+| `HYPERAGENT_USAGE_URL`  | `https://hyperagent.com/api/settings/billing/usage`         | `open-sse/services/usage/hyperagent.ts` | Endpoint used to fetch billing/usage credit blocks. |
+
+---
+
 ## 19. Model Sync (Dev)
 
 | Variable                            | Default       | Source File                        | Description                                                                                                                                                                                                                                                                                            |
