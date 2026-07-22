@@ -246,7 +246,9 @@ export function createStreamController({
     if (!model && !provider && !connectionId) return;
     try {
       trackPendingRequest(model || "", provider || "", connectionId ?? null, false);
-    } catch {}
+    } catch (e) {
+      console.error(`[${getTimeString()}] [streamHandler] trackPendingRequest decrement failed — counter may drift`, e);
+    }
   };
 
   const cleanupClientAbortListener = () => {
