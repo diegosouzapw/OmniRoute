@@ -122,6 +122,27 @@
 
 <div align="center">
 
+# 🆓 Works the second you install it — no keys, no config
+
+</div>
+
+> **Install → point your tool at the endpoint → it already answers.** OmniRoute ships with keyless free providers (OpenCode Free, Felo) already wired into the `auto` combo, so a **fresh install responds out of the box** — no API key, no signup, no configuration.
+
+```bash
+# Fresh install, zero credentials — `auto` already works:
+curl http://localhost:20128/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
+```
+
+- ✅ **`auto` responds immediately** — OmniRoute builds a virtual combo from the built-in keyless free providers and routes to a healthy one, with no setup.
+- ➕ **Add more providers anytime** — drop in a Claude / GPT / Gemini key (or any of the 278 providers) from the dashboard and they join the `auto` pool automatically.
+- 🎛️ **Build your own free combos** — chain your free tiers with any of the 18 routing strategies so you never run out of quota.
+
+<sub>Prefer a specific free backend? Call it directly, e.g. `oc/…` (OpenCode Free) or `felo/…` (Felo). Then graduate to `auto` and let OmniRoute pick.</sub>
+
+<div align="center">
+
 # 💥 The Promise
 
 </div>
