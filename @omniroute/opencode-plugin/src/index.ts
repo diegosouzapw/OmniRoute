@@ -3939,7 +3939,16 @@ export function buildStaticProviderEntry(
       // `combo/MASTER` as provider=`combo`. Slug collisions across
       // combos are disambiguated with a short UUID-prefix suffix; see
       // `buildComboKey` for the policy.
-      models[buildComboKey(combo, usedComboKeys, opts.providerId)] = entry;
+      // #6859: server-facing key — NOT the OC-gate-prefixed `opts.providerId`.
+      // OC dispatches the static-catalog `models` map key VERBATIM as the
+      // `model` field of the outbound `@ai-sdk/openai-compatible` request
+      // (only the top-level `provider["<id>"]` segment is stripped for
+      // routing) — so a bare-slug combo key prefixed with the OC-gated
+      // `opts.providerId` reaches OmniRoute's server doubled
+      // (`opencode-omniroute/opencode-omniroute/<slug>`), and `parseModel()`
+      // resolves credentials for the nonexistent provider `opencode-omniroute`
+      // instead of `omniroute`. See #7976.
+      models[buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId)] = entry;
 
       // Make this combo's resolved entry available to parent combos
       // that reference it via combo-ref. Use the friendly name since
