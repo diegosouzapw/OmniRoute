@@ -104,6 +104,7 @@ export default function ComboDefaultsTab() {
     zeroLatencyOptimizationsEnabled: false,
   });
   const [sessionAffinityTtlMs, setSessionAffinityTtlMs] = useState(0);
+  const [promptCacheAffinityEnabled, setPromptCacheAffinityEnabled] = useState(true);
   const [providerOverrides, setProviderOverrides] = useState<any>({});
   const [availableProviders, setAvailableProviders] = useState<{ id: string; provider: string }[]>(
     []
@@ -183,6 +184,7 @@ export default function ComboDefaultsTab() {
             ? Number(settingsData.sessionAffinityTtlMs)
             : 0
         );
+        setPromptCacheAffinityEnabled(settingsData.promptCacheAffinityEnabled !== false);
       })
       .catch((err) => console.error("Failed to fetch combo defaults:", err));
   }, []);
@@ -228,6 +230,7 @@ export default function ComboDefaultsTab() {
         // #6168: global session-stickiness opt-out — persisted top-level on settings
         // (mirrors stickyRoundRobinLimit) so combo.ts resolution reads settings.disableSessionStickiness.
         disableSessionStickiness: disableSessionStickiness === true,
+        promptCacheAffinityEnabled,
       };
 
       const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
@@ -672,6 +675,24 @@ export default function ComboDefaultsTab() {
               onChange={() =>
                 setComboDefaults((prev) => ({ ...prev, trackMetrics: !prev.trackMetrics }))
               }
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-sm">
+                {translateOrFallback(t, "promptCacheAffinity", "Prompt-cache locality routing")}
+              </p>
+              <p className="text-xs text-text-muted">
+                {translateOrFallback(
+                  t,
+                  "promptCacheAffinityDesc",
+                  "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={promptCacheAffinityEnabled}
+              onChange={() => setPromptCacheAffinityEnabled((enabled) => !enabled)}
             />
           </div>
           <div className="flex items-center justify-between gap-4">
