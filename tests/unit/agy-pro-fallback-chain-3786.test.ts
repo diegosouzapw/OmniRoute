@@ -30,10 +30,12 @@ test("rejected pro-high discovery id has no fallback chain", () => {
   assert.deepEqual(getAntigravityModelFallbacks("gemini-3.1-pro-high"), []);
 });
 
-test("(#3786) getAntigravityModelFallbacks returns the ordered pro-low chain", () => {
+test("(#3786/#8136) getAntigravityModelFallbacks returns the ordered pro-low chain", () => {
   assert.deepEqual(getAntigravityModelFallbacks("gemini-3.1-pro-low"), [
     "gemini-3.1-pro-low",
     "gemini-3-pro-low",
+    "gemini-pro-agent",
+    "gemini-3.1-pro-high",
   ]);
 });
 

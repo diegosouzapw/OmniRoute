@@ -163,7 +163,20 @@ type AntigravityModelAliasMap = Record<string, string>;
  */
 export const ANTIGRAVITY_PRO_FALLBACK_CHAINS: Readonly<Record<string, readonly string[]>> =
   Object.freeze({
-    "gemini-3.1-pro-low": Object.freeze(["gemini-3.1-pro-low", "gemini-3-pro-low"]),
+    "gemini-3.1-pro-high": Object.freeze([
+      "gemini-3.1-pro-high",
+      "gemini-pro-agent",
+      "gemini-3-pro-high",
+    ]),
+    // #8136: pro-low started returning 400 alongside pro-high. Add the CLIProxyAPI id
+    // (gemini-pro-agent) and the high tier as additional fallbacks so the chain has a
+    // chance of hitting a working upstream id before surfacing the error.
+    "gemini-3.1-pro-low": Object.freeze([
+      "gemini-3.1-pro-low",
+      "gemini-3-pro-low",
+      "gemini-pro-agent",
+      "gemini-3.1-pro-high",
+    ]),
   });
 
 /**
