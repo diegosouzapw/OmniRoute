@@ -69,6 +69,7 @@ import {
   isOpenAIResponsesStoreEnabled,
 } from "@/lib/providers/requestDefaults";
 import { guardrailRegistry, resolveDisabledGuardrails } from "@/lib/guardrails";
+import { pickNoAuthAccountProxy } from "@omniroute/open-sse/utils/noAuthProxyHelper.ts";
 import {
   resolveModelOrError,
   checkPipelineGates,
@@ -1371,7 +1372,28 @@ async function handleSingleModelChat(
           refreshedCredentials
         );
       }
-      const proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id);
+      let proxyInfo = await safeResolveProxy(credentials.connectionId, apiKeyInfo?.id);
+      // #7993: No-auth providers (duckduckgo-web, theoldllm, chipotle, veoaifree-web)
+      // do not implement syncAccountsFromCredentials, so proxies assigned via
+      // NoAuthAccountCard were silently ignored. Fall back to the hydrated
+      // accountProxies in providerSpecificData when no connection/provider-level
+      // proxy was resolved.
+      if (!(proxyInfo as { proxy?: unknown } | null)?.proxy) {
+        const accountProxy = pickNoAuthAccountProxy(
+          refreshedCredentials?.providerSpecificData
+            ? refreshedCredentials
+            : credentials,
+        );
+        if (accountProxy) {
+          proxyInfo = {
+            ...(proxyInfo as object | null),
+            proxy: accountProxy,
+            level: "account",
+            levelId: null,
+            source: "noauth-account",
+          };
+        }
+      }
       // #5217: sink for the proxy the executor pins internally (e.g. OpencodeExecutor
       // rotation) so the egress log below reflects the real egress, not "direct".
       const appliedProxySink: { proxy: unknown } = { proxy: null };
