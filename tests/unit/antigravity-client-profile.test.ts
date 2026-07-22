@@ -55,7 +55,7 @@ test("applyAntigravityClientProfileHeaders uses IDE fingerprint by default", () 
     { project: "project-1" }
   );
 
-  assert.match(headers["User-Agent"], /^Antigravity\/4\.2\.0 /);
+  assert.match(headers["User-Agent"], /^antigravity\/ide\/4\.2\.0 /);
   assert.equal(headers["x-client-name"], "antigravity");
   assert.equal(headers["x-client-version"], "4.2.0");
   assert.equal(typeof headers["x-machine-id"], "string");
@@ -64,19 +64,12 @@ test("applyAntigravityClientProfileHeaders uses IDE fingerprint by default", () 
   assert.equal(headers["X-Goog-Api-Client"], undefined);
 });
 
-test("antigravityUserAgent matches Antigravity Manager platform fingerprints", () => {
-  assert.equal(
-    antigravityUserAgent("4.2.0", "darwin"),
-    "Antigravity/4.2.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/142.0.7444.175 Electron/39.2.3"
-  );
-  assert.equal(
-    antigravityUserAgent("4.2.0", "win32"),
-    "Antigravity/4.2.0 (Windows NT 10.0; Win64; x64) Chrome/142.0.7444.175 Electron/39.2.3"
-  );
-  assert.equal(
-    antigravityUserAgent("4.2.0", "linux"),
-    "Antigravity/4.2.0 (X11; Linux x86_64) Chrome/142.0.7444.175 Electron/39.2.3"
-  );
+test("antigravityUserAgent matches the 9Router-style native IDE fingerprint", () => {
+  // Byte-shaped like the real native client: "antigravity/ide/VERSION <os>/<arch>".
+  // No synthetic Chrome/Electron suffix; version is the live-resolved release.
+  assert.equal(antigravityUserAgent("4.2.0", "darwin"), "antigravity/ide/4.2.0 darwin/arm64");
+  assert.equal(antigravityUserAgent("4.2.0", "win32"), "antigravity/ide/4.2.0 win32/x64");
+  assert.equal(antigravityUserAgent("4.2.0", "linux"), "antigravity/ide/4.2.0 linux/x64");
 });
 
 test("deriveAntigravityMachineId uses the raw system machine id like Antigravity Manager", () => {

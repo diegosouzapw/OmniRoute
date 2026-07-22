@@ -1,0 +1,3 @@
+- Preserve Antigravity request content and tool names without zero-width mutation, cloaking, or decoy declarations.
+- Make Antigravity safety and Google One AI credits explicit, with `off`, single `retry`, and credit-first `always` modes.
+- Separate live runtime endpoints from discovery and project bootstrap, exclude sandbox from runtime fallback, and make project bootstrap token-safe, coalesced, and abort-aware.

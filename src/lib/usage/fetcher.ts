@@ -10,7 +10,7 @@ import { applyAntigravityClientProfileHeaders } from "@omniroute/open-sse/servic
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
-  ANTIGRAVITY_BASE_URLS,
+  ANTIGRAVITY_RUNTIME_BASE_URLS,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
   getAntigravityRemainingCredits,
@@ -149,7 +149,7 @@ async function probeAntigravityCreditBalance(
   try {
     if (!projectId) return null; // Can't call streamGenerateContent without a projectId
 
-    const baseUrl = ANTIGRAVITY_BASE_URLS[0];
+    const baseUrl = ANTIGRAVITY_RUNTIME_BASE_URLS[0];
     const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
 
     const body = {
@@ -228,8 +228,8 @@ async function probeAntigravityCreditBalance(
  * Calls fetchAvailableModels to get per-model quota fractions.
  * Credit balance (GOOGLE_ONE_AI) is read from the executor's in-memory cache,
  * which is populated automatically after each successful credit-injected SSE call.
- * If the cache is empty and credits mode is enabled, fires a minimal probe request
- * to fetch the balance proactively.
+ * If the cache is empty and credits mode is `always`, fires a minimal probe request
+ * to fetch the balance proactively. `retry` mode never probes from the dashboard.
  */
 async function getAntigravityUsage(
   accessToken: string,
@@ -244,9 +244,10 @@ async function getAntigravityUsage(
     // Read cached credit balance from executor module (populated from SSE remainingCredits)
     let creditBalance = getAntigravityRemainingCredits(accountId);
 
-    // If no cached balance and credits mode is enabled, fire a minimal probe
+    // Only always mode may proactively spend credits to discover the balance.
+    // Retry mode must wait for an eligible user request quota failure.
     const creditsMode = getCreditsMode();
-    if (creditBalance === null && creditsMode !== "off") {
+    if (creditBalance === null && creditsMode === "always") {
       creditBalance = await probeAntigravityCreditBalance(
         accessToken,
         accountId,

@@ -22,8 +22,15 @@ import {
   ensureAntigravityProjectAssigned,
   clearAntigravityProjectCache,
   getAntigravityProjectFromCache,
+  getAntigravityProjectCacheKey,
   getAntigravityLoadCodeAssistUrls,
+  getAntigravityOnboardUserUrls,
 } from "../../open-sse/services/antigravityProjectBootstrap.ts";
+import {
+  ANTIGRAVITY_BOOTSTRAP_BASE_URLS,
+  ANTIGRAVITY_DISCOVERY_BASE_URLS,
+  ANTIGRAVITY_RUNTIME_BASE_URLS,
+} from "../../open-sse/config/antigravityUpstream.ts";
 
 // Reset the module-level memoization cache between tests.
 beforeEach(() => {
@@ -147,43 +154,358 @@ describe("ensureAntigravityProjectAssigned", () => {
     assert.equal(capturedHeaders?.get("Client-Metadata"), null);
   });
 
-  test("falls through to next URL when first loadCodeAssist returns 404", async () => {
-    const hitUrls: string[] = [];
+  test("uses the dedicated production bootstrap endpoint", () => {
+    assert.deepEqual(ANTIGRAVITY_BOOTSTRAP_BASE_URLS, ["https://cloudcode-pa.googleapis.com"]);
+    assert.deepEqual(getAntigravityLoadCodeAssistUrls(), [
+      "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
+    ]);
+  });
 
-    const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
-      hitUrls.push(url);
-      // Exact hostname match (not substring .includes) so the check can't be fooled by a
-      // look-alike host like daily-cloudcode-pa.googleapis.com.evil.com (CodeQL
-      // js/incomplete-url-substring-sanitization).
-      if (new URL(url).hostname === "daily-cloudcode-pa.googleapis.com") {
-        // First URL fails
-        return new Response("not found", { status: 404 });
-      }
-      // Second URL succeeds
-      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-fallback" }), {
+  test("keeps sandbox out of the runtime endpoint list", () => {
+    assert.deepEqual(ANTIGRAVITY_RUNTIME_BASE_URLS, [
+      "https://daily-cloudcode-pa.googleapis.com",
+      "https://cloudcode-pa.googleapis.com",
+    ]);
+    assert.equal(
+      ANTIGRAVITY_RUNTIME_BASE_URLS.some((url) => url.includes("sandbox")),
+      false
+    );
+    assert.deepEqual(ANTIGRAVITY_DISCOVERY_BASE_URLS, [
+      "https://daily-cloudcode-pa.googleapis.com",
+      "https://cloudcode-pa.googleapis.com",
+      "https://daily-cloudcode-pa.sandbox.googleapis.com",
+    ]);
+  });
+
+  test("hashes access tokens in project cache keys", () => {
+    const token = "raw-token-that-must-not-remain-in-the-cache-key";
+    const key = getAntigravityProjectCacheKey(token, "ide");
+
+    assert.match(key, /^ide:[a-f0-9]{64}$/);
+    assert.equal(key.includes(token), false);
+    assert.equal(key.includes(token.slice(0, 16)), false);
+    assert.notEqual(
+      key,
+      getAntigravityProjectCacheKey("raw-token-that-must-not-remain-in-the-cache-keZ", "ide")
+    );
+  });
+
+  test("coalesces concurrent bootstrap calls for the same token and profile", async () => {
+    let networkCalls = 0;
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const mockFetch = async (): Promise<Response> => {
+      networkCalls += 1;
+      await gate;
+      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-shared" }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
     };
 
-    const projectId = await ensureAntigravityProjectAssigned("fallback-token", mockFetch);
-
-    assert.ok(hitUrls.length >= 2, "should try at least two URLs on the first failure");
-    assert.equal(projectId, "proj-fallback", "should return the project from the successful URL");
-    assert.equal(
-      getAntigravityProjectFromCache("fallback-token"),
-      "proj-fallback",
-      "should cache the project from the successful URL"
-    );
+    const pending = [
+      ensureAntigravityProjectAssigned("shared-token", mockFetch),
+      ensureAntigravityProjectAssigned("shared-token", mockFetch),
+      ensureAntigravityProjectAssigned("shared-token", mockFetch),
+    ];
+    await Promise.resolve();
+    assert.equal(networkCalls, 1);
+    release?.();
+    assert.deepEqual(await Promise.all(pending), ["proj-shared", "proj-shared", "proj-shared"]);
   });
 
-  test("getAntigravityLoadCodeAssistUrls returns URLs matching ANTIGRAVITY_BASE_URLS", () => {
-    const urls = getAntigravityLoadCodeAssistUrls();
-    assert.ok(urls.length >= 1, "must return at least one URL");
-    for (const url of urls) {
-      assert.ok(url.endsWith(":loadCodeAssist"), `URL must end with :loadCodeAssist, got: ${url}`);
-      assert.ok(url.startsWith("https://"), `URL must be HTTPS, got: ${url}`);
-    }
+  test("propagates caller abort and does not attempt another bootstrap host", async () => {
+    const controller = new AbortController();
+    const hitUrls: string[] = [];
+    const mockFetch = async (url: string, init?: RequestInit): Promise<Response> => {
+      hitUrls.push(url);
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), { once: true });
+      });
+    };
+
+    const pending = ensureAntigravityProjectAssigned(
+      "abort-token",
+      mockFetch,
+      "ide",
+      controller.signal
+    );
+    controller.abort(new DOMException("caller disconnected", "AbortError"));
+
+    await assert.rejects(pending, { name: "AbortError" });
+    assert.equal(hitUrls.length, 1);
+  });
+
+  test("starts a fresh bootstrap when a new caller arrives after all prior waiters abort", async () => {
+    const firstController = new AbortController();
+    let networkCalls = 0;
+
+    const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
+      networkCalls += 1;
+      if (networkCalls === 1) {
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), {
+            once: true,
+          });
+        });
+      }
+
+      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-fresh" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const abandoned = ensureAntigravityProjectAssigned(
+      "replace-aborted-token",
+      mockFetch,
+      "ide",
+      firstController.signal
+    );
+    firstController.abort(new DOMException("first caller disconnected", "AbortError"));
+
+    const replacement = ensureAntigravityProjectAssigned("replace-aborted-token", mockFetch);
+
+    await assert.rejects(abandoned, { name: "AbortError" });
+    assert.equal(await replacement, "proj-fresh");
+    assert.equal(networkCalls, 2);
+  });
+
+  test("isolates aborts between callers sharing one in-flight bootstrap", async () => {
+    const firstController = new AbortController();
+    let networkCalls = 0;
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
+      networkCalls += 1;
+      await Promise.race([
+        gate,
+        new Promise<never>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), {
+            once: true,
+          });
+        }),
+      ]);
+      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-shared" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const first = ensureAntigravityProjectAssigned(
+      "shared-abort-token",
+      mockFetch,
+      "ide",
+      firstController.signal
+    );
+    const second = ensureAntigravityProjectAssigned("shared-abort-token", mockFetch);
+    firstController.abort(new DOMException("first caller disconnected", "AbortError"));
+
+    await assert.rejects(first, { name: "AbortError" });
+    assert.equal(networkCalls, 1);
+    release?.();
+    assert.equal(await second, "proj-shared");
+  });
+
+  test("does not cache ordinary bootstrap failures", async () => {
+    let calls = 0;
+    const mockFetch = async (): Promise<Response> => {
+      calls += 1;
+      if (calls === 1) return new Response("unavailable", { status: 503 });
+      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-recovered" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    assert.equal(await ensureAntigravityProjectAssigned("recover-token", mockFetch), undefined);
+    assert.equal(
+      await ensureAntigravityProjectAssigned("recover-token", mockFetch),
+      "proj-recovered"
+    );
+    assert.equal(calls, 2);
+  });
+});
+
+// ── onboardUser fallback: first-time account whose project is not yet provisioned ──
+//
+// When loadCodeAssist returns no project (a genuinely first-time account), the
+// runtime bootstrap runs onboardUser exactly once per logical request — bounded,
+// abort-aware, and fail-closed. It NEVER fabricates a project id: if provisioning
+// does not yield one, ensureAntigravityProjectAssigned resolves undefined and the
+// executor returns 422.
+
+describe("onboardUser fallback when loadCodeAssist has no project", () => {
+  test("derives the onboardUser url from the dedicated bootstrap endpoint", () => {
+    assert.deepEqual(getAntigravityOnboardUserUrls(), [
+      "https://cloudcode-pa.googleapis.com/v1internal:onboardUser",
+    ]);
+  });
+
+  test("onboards and caches the provisioned project (no 422, never fabricated)", async () => {
+    const calls: string[] = [];
+
+    const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
+      calls.push(url);
+      if (url.endsWith(":loadCodeAssist")) {
+        // First-time account: no project yet, but a default tier is offered.
+        return new Response(JSON.stringify({ allowedTiers: [{ id: "free-tier", isDefault: true }] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      if (url.endsWith(":onboardUser")) {
+        return new Response(
+          JSON.stringify({ done: true, response: { cloudaicompanionProject: "proj-onboarded" } }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      return new Response("not found", { status: 404 });
+    };
+
+    const projectId = await ensureAntigravityProjectAssigned("onboard-token", mockFetch);
+
+    assert.equal(projectId, "proj-onboarded");
+    assert.equal(getAntigravityProjectFromCache("onboard-token"), "proj-onboarded");
+    assert.equal(calls.filter((u) => u.endsWith(":loadCodeAssist")).length, 1);
+    assert.equal(calls.filter((u) => u.endsWith(":onboardUser")).length, 1);
+  });
+
+  test("extracts a nested project id object from the onboard response", async () => {
+    const mockFetch = async (url: string): Promise<Response> => {
+      if (url.endsWith(":loadCodeAssist")) {
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(
+        JSON.stringify({ done: true, response: { cloudaicompanionProject: { id: "proj-nested" } } }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    };
+
+    assert.equal(await ensureAntigravityProjectAssigned("nested-token", mockFetch), "proj-nested");
+  });
+
+  test("sends the resolved tier id and metadata in the onboard body", async () => {
+    let onboardBody: Record<string, unknown> | null = null;
+
+    const mockFetch = async (url: string, init?: RequestInit): Promise<Response> => {
+      if (url.endsWith(":loadCodeAssist")) {
+        return new Response(JSON.stringify({ allowedTiers: [{ id: "pro-tier", isDefault: true }] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      onboardBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return new Response(
+        JSON.stringify({ done: true, response: { cloudaicompanionProject: "p" } }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    };
+
+    await ensureAntigravityProjectAssigned("tier-token", mockFetch);
+
+    assert.equal(onboardBody?.tierId, "pro-tier");
+    assert.deepEqual(onboardBody?.metadata, { ideType: "ANTIGRAVITY" });
+  });
+
+  test("returns undefined (→ 422) when onboard finishes with no project — never fabricated", async () => {
+    const calls: string[] = [];
+
+    const mockFetch = async (url: string): Promise<Response> => {
+      calls.push(url);
+      if (url.endsWith(":loadCodeAssist")) {
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      // Long-running op reports done, but the account has no entitlement → no project.
+      return new Response(JSON.stringify({ done: true, response: {} }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const projectId = await ensureAntigravityProjectAssigned("no-entitlement-token", mockFetch);
+
+    assert.equal(projectId, undefined);
+    assert.equal(getAntigravityProjectFromCache("no-entitlement-token"), undefined);
+    // A terminal done:true is not retried — exactly one onboard attempt.
+    assert.equal(calls.filter((u) => u.endsWith(":onboardUser")).length, 1);
+  });
+
+  test("gives up (→ 422) when provisioning never completes within the budget", async () => {
+    let onboardCalls = 0;
+
+    const mockFetch = async (url: string): Promise<Response> => {
+      if (url.endsWith(":loadCodeAssist")) {
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      onboardCalls += 1;
+      // The op never reports done within our attempt budget.
+      return new Response(JSON.stringify({ done: false }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    const projectId = await ensureAntigravityProjectAssigned("slow-provision-token", mockFetch);
+
+    assert.equal(projectId, undefined);
+    // Bounded to ONBOARD_MAX_ATTEMPTS polls; no fabrication, no unbounded loop.
+    assert.equal(onboardCalls, 3);
+  });
+
+  test("aborts onboarding when the caller disconnects mid-provision", async () => {
+    const controller = new AbortController();
+
+    const mockFetch = async (url: string, init?: RequestInit): Promise<Response> => {
+      if (url.endsWith(":loadCodeAssist")) {
+        return new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      // onboard hangs until the caller aborts.
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), { once: true });
+      });
+    };
+
+    const pending = ensureAntigravityProjectAssigned(
+      "abort-onboard-token",
+      mockFetch,
+      "ide",
+      controller.signal
+    );
+    controller.abort(new DOMException("caller disconnected", "AbortError"));
+
+    await assert.rejects(pending, { name: "AbortError" });
+  });
+
+  test("does not call onboardUser when loadCodeAssist already returns a project", async () => {
+    const calls: string[] = [];
+
+    const mockFetch = async (url: string): Promise<Response> => {
+      calls.push(url);
+      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-direct" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    assert.equal(await ensureAntigravityProjectAssigned("direct-token", mockFetch), "proj-direct");
+    assert.equal(calls.filter((u) => u.endsWith(":onboardUser")).length, 0);
   });
 });
 

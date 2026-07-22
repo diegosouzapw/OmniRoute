@@ -358,6 +358,52 @@ test("getProviderCredentialsWithQuotaPreflight skips the upstream fetcher when n
   assert.equal(fetcherCalls, 0, "fetcher should not have been invoked");
 });
 
+test("Antigravity always mode bypasses request-path quota preflight", async () => {
+  const previousCreditsMode = process.env.ANTIGRAVITY_CREDITS;
+  process.env.ANTIGRAVITY_CREDITS = "always";
+
+  try {
+    const conn = await seedConnection("antigravity", {
+      name: "antigravity-credits-first",
+      authType: "oauth",
+      accessToken: "fake-antigravity-access",
+      refreshToken: "fake-antigravity-refresh",
+      providerSpecificData: {
+        quotaPreflightEnabled: true,
+        limitPolicy: {
+          enabled: true,
+          thresholdPercent: 75,
+          windows: ["daily"],
+        },
+      },
+    });
+    quotaCache.setQuotaCache(conn.id, "antigravity", {
+      daily: { remainingPercentage: 10, resetAt: futureIso() },
+    });
+
+    const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+    let fetcherCalls = 0;
+    quotaPreflight.registerQuotaFetcher("antigravity", async () => {
+      fetcherCalls++;
+      return { used: 0, total: 100, percentUsed: 0 };
+    });
+
+    const selected = await auth.getProviderCredentialsWithQuotaPreflight(
+      "antigravity",
+      null,
+      null,
+      "gemini-2.5-flash"
+    );
+
+    assert(selected && "connectionId" in selected);
+    assert.equal(selected.connectionId, conn.id);
+    assert.equal(fetcherCalls, 0, "credits-first routing must not issue a normal quota probe");
+  } finally {
+    if (previousCreditsMode === undefined) delete process.env.ANTIGRAVITY_CREDITS;
+    else process.env.ANTIGRAVITY_CREDITS = previousCreditsMode;
+  }
+});
+
 test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when the global default is restrictive", async () => {
   // No per-connection override and no provider-window defaults — but the
   // operator has raised the global default cutoff above the factory no-op

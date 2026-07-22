@@ -16,9 +16,6 @@ import {
 type AntigravityHeaderProfile = "loadCodeAssist" | "fetchAvailableModels" | "models";
 
 const ANTIGRAVITY_VERSION = ANTIGRAVITY_FALLBACK_VERSION;
-// IDE desktop fingerprint synced with Antigravity-Manager v4.2.0 constants.rs.
-export const ANTIGRAVITY_CHROME_VERSION = "142.0.7444.175";
-export const ANTIGRAVITY_ELECTRON_VERSION = "39.2.3";
 export const ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT = `vscode/1.X.X (Antigravity/${ANTIGRAVITY_FALLBACK_VERSION})`;
 export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT = "";
 export const ANTIGRAVITY_NODE_API_CLIENT = "google-api-nodejs-client/10.3.0";
@@ -36,31 +33,37 @@ function withOptionalBearerAuth(
   return headers;
 }
 
-function getAntigravityPlatformInfo(platform: NodeJS.Platform = process.platform): string {
+/**
+ * OS/arch token in the Antigravity IDE User-Agent. The real desktop client the
+ * upstream expects is the Mac build, so we default to `darwin/arm64` (matching the
+ * known-good native client) regardless of the host OmniRoute happens to run on.
+ */
+function getAntigravityPlatformInfo(platform: NodeJS.Platform = "darwin"): string {
   switch (platform) {
-    case "darwin":
-      return "Macintosh; Intel Mac OS X 10_15_7";
     case "win32":
-      return "Windows NT 10.0; Win64; x64";
+      return "win32/x64";
     case "linux":
+      return "linux/x64";
+    case "darwin":
     default:
-      return "X11; Linux x86_64";
+      return "darwin/arm64";
   }
 }
 
 /**
- * Antigravity desktop User-Agent:
- * "Antigravity/VERSION (PLATFORM) Chrome/142... Electron/39..."
+ * Antigravity IDE User-Agent, byte-shaped like the real native client:
+ * "antigravity/ide/VERSION darwin/arm64". VERSION is the live-resolved Antigravity
+ * release (falls back to the known-stable floor); no synthetic Chrome/Electron suffix.
  */
 export function antigravityUserAgent(
   version = getCachedAntigravityVersion(),
-  platform: NodeJS.Platform = process.platform
+  platform: NodeJS.Platform = "darwin"
 ): string {
-  return `Antigravity/${version} (${getAntigravityPlatformInfo(platform)}) Chrome/${ANTIGRAVITY_CHROME_VERSION} Electron/${ANTIGRAVITY_ELECTRON_VERSION}`;
+  return `antigravity/ide/${version} ${getAntigravityPlatformInfo(platform)}`;
 }
 
 export async function resolveAntigravityUserAgent(
-  platform: NodeJS.Platform = process.platform
+  platform: NodeJS.Platform = "darwin"
 ): Promise<string> {
   const version = await resolveAntigravityVersion();
   return antigravityUserAgent(version, platform);

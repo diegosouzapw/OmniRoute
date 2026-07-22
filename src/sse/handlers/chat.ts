@@ -230,6 +230,18 @@ export function shouldTripProviderBreakerForResult(
   );
 }
 
+function isAntigravityMissingProjectError(
+  provider: string,
+  result: { status?: number; errorCode?: string; errorType?: string }
+): boolean {
+  return (
+    provider === "antigravity" &&
+    result.status === 422 &&
+    result.errorCode === "missing_project_id" &&
+    result.errorType === "oauth_missing_project_id"
+  );
+}
+
 /**
  * Handle chat completion request
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
@@ -1452,6 +1464,14 @@ async function handleSingleModelChat(
         if (telemetry) telemetry.startPhase("finalize");
         if (telemetry) telemetry.endPhase();
         return result.response;
+      }
+
+      // Missing Cloud Code project assignment is an account configuration error, not a
+      // transient upstream/account failure. Preserve the executor's typed fail-closed 422;
+      // marking the connection unavailable here would trigger cooldown redispatch and repeat
+      // bootstrap within the same logical request.
+      if (isAntigravityMissingProjectError(provider, result)) {
+        return withSelectedConnectionHeader(result.response, credentials.connectionId);
       }
 
       const isAntigravityStreamReadinessFailure =

@@ -462,7 +462,7 @@ camadas globais de disjuntor / cooldown de conexão / bloqueio de modelo:
 - Motor Antigravity 429: `open-sse/services/antigravity429Engine.ts` (rotaciona
   identidade, limpa cabeçalhos de resposta, controla créditos/rastreamento de versão via
   `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`,
-  `antigravityIdentity.ts`, `antigravityObfuscation.ts`, `antigravityVersion.ts`)
+  `antigravityIdentity.ts`, `antigravityVersion.ts`)
 - Política de cota ModelScope: `open-sse/services/modelscopePolicy.ts`
 - Claude Code CCH (Handshake de Canal de Compatibilidade): `open-sse/services/claudeCodeCCH.ts`,
   além de `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
