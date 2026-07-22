@@ -243,7 +243,35 @@ export function extractNotionUpstreamError(raw: string): {
     if (o) candidates.push(o);
   }
 
-  for (const o of candidates) {
+  // Flatten nested error objects: live Notion streams often nest the error inside
+  // `patch-start.data.s[]` (HTTP 200 NDJSON) instead of a top-level `{type:"error"}`.
+  // Missing that shape used to surface as the misleading "No response from Notion AI".
+  const flat: Record<string, unknown>[] = [];
+  const pushNested = (o: Record<string, unknown>) => {
+    flat.push(o);
+    const data = o.data;
+    if (data && typeof data === "object" && !Array.isArray(data)) {
+      const s = (data as Record<string, unknown>).s;
+      if (Array.isArray(s)) {
+        for (const item of s) {
+          if (item && typeof item === "object" && !Array.isArray(item)) {
+            flat.push(item as Record<string, unknown>);
+          }
+        }
+      }
+    }
+    // Also walk a top-level `s` array if present on the record.
+    if (Array.isArray(o.s)) {
+      for (const item of o.s) {
+        if (item && typeof item === "object" && !Array.isArray(item)) {
+          flat.push(item as Record<string, unknown>);
+        }
+      }
+    }
+  };
+  for (const o of candidates) pushNested(o);
+
+  for (const o of flat) {
     const type = typeof o.type === "string" ? o.type.toLowerCase() : "";
     const subType = typeof o.subType === "string" ? o.subType : undefined;
     const message =
@@ -257,6 +285,8 @@ export function extractNotionUpstreamError(raw: string): {
     if (!isError && !subType) continue;
 
     const sub = (subType || "").toLowerCase();
+    // Notion often sets isRetryable:false on temporarily-unavailable even though
+    // a short wait + retry succeeds (TLS/edge flake). Treat those subtypes as retryable.
     const retryable =
       o.isRetryable === true ||
       sub.includes("temporarily") ||
