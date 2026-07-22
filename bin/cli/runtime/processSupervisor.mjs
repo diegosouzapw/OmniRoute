@@ -40,7 +40,10 @@ export class ServerSupervisor {
     // silently, so a boot that never becomes ready looked like a dead hang with zero
     // output even at APP_LOG_LEVEL=debug. Pipe stdout too and buffer it alongside
     // stderr so a readiness timeout can surface what the child actually printed.
-    this.child = spawn("node", [...heapArgs, this.serverPath], {
+    this.child = spawn(process.versions.bun ? process.execPath : "node", [
+      ...(process.versions.bun ? [] : heapArgs),
+      this.serverPath,
+    ], {
       cwd: dirname(this.serverPath),
       env: this.env,
       stdio: showLog ? "inherit" : ["ignore", "pipe", "pipe"],

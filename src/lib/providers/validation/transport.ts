@@ -107,6 +107,28 @@ export function isSecurityBlockError(error: unknown): boolean {
 // #7542 plan-file, "Risks").
 const WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE = new Set(["lmarena"]);
 
+// #7857 — web-cookie providers whose registry `baseUrl` is a conversation/completion
+// endpoint, not a real API root (e.g. huggingchat's baseUrl is
+// "https://huggingface.co/chat/conversation", not "https://huggingface.co"). Appending
+// `/models` to these produces a path the upstream never served, so its status
+// (200/404/405/429/redirect/login-HTML) carries no meaningful auth signal — it is NOT
+// distinguishable from a genuinely valid session. A 401/403 from the same probe IS still
+// treated as a real SESSION_EXPIRED signal (some of these hosts auth-gate every path,
+// including nonexistent ones), so providers here still get probed; only the non-401/403
+// branch is short-circuited to the honest "unsupported" result instead of `valid: true`.
+// lmarena is deliberately NOT in this set — it already degrades via the
+// WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE/REDIRECT_BLOCKED path above (#7542).
+export const WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API = new Set([
+  "huggingchat",
+  "chatgpt-web",
+  "grok-web",
+  "notion-web",
+  "t3-web",
+  "yuanbao-web",
+  "copilot-web",
+  "copilot-m365-web",
+]);
+
 export function toWebCookieValidationErrorResult(provider: string, error: unknown) {
   if (
     error instanceof SafeOutboundFetchError &&

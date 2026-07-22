@@ -9,7 +9,7 @@ export const doubao_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   models: [
-    { id: "dola-speed", name: "Dola Speed" },
-    { id: "dola-pro", name: "Dola Pro" },
+    { id: "dola-speed", name: "Dola Speed", toolCalling: false },
+    { id: "dola-pro", name: "Dola Pro", toolCalling: false },
   ],
 };

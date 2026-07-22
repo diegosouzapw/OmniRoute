@@ -40,6 +40,40 @@ export const ALLOWED_MESSAGE_TYPES = [
   "GenerateContentQuery",
 ] as const;
 
+/**
+ * Enterprise / "work" tier option sets (#7870), captured from @OfflinePing's HAR of the
+ * real Microsoft 365 Copilot for work web UI (Discussion #7850). Unlike
+ * {@link M365_DEFAULT_OPTION_SETS} (a consumer/MSA set), this omits `enable_msa_user` and
+ * the `cwc_*` consumer entries and declares the `enterprise_*`/`bizchat_*` work-surface
+ * flags the capture showed — the individual/consumer set never produces a turn on an AAD
+ * enterprise tenant because it advertises the wrong account surface.
+ */
+export const M365_ENTERPRISE_OPTION_SETS = [
+  "enterprise_flux_image",
+  "enterprise_flux_web",
+  "enterprise_flux_work",
+  "enterprise_toolbox_with_skdsstore",
+  "enterprise_pagination_support",
+  "enterprise_flux_work_code_interpreter",
+  "enterprise_code_interpreter_citation_fix",
+  "bizchat_enable_federated_connectors",
+  "at_mention_plugins_enable",
+] as const;
+
+/**
+ * Additional SignalR message types observed on the enterprise capture beyond
+ * {@link ALLOWED_MESSAGE_TYPES} (#7870) — the server actively emits `ReferencesListComplete`
+ * on that tenant, a type we did not previously declare as allowed.
+ */
+export const M365_ENTERPRISE_EXTRA_MESSAGE_TYPES = [
+  "ReferencesListComplete",
+  "EndOfRequest",
+  "MemoryUpdate",
+  "TriggerPlugin",
+  "AuthError",
+  "SwitchRespondingEndpoint",
+] as const;
+
 export const M365_DEFAULT_OPTION_SETS = [
   "search_result_progress_messages_with_search_queries",
   "update_textdoc_response_after_streaming",
@@ -130,6 +164,56 @@ export interface ChatInvocationOptions {
   /** Tier-specific option flags; left empty by default (tuned during live validation). */
   optionsSets?: string[];
   tone?: string;
+  /** Tier-specific allowed message types; defaults to {@link ALLOWED_MESSAGE_TYPES}. */
+  allowedMessageTypes?: readonly string[];
+}
+
+/**
+ * Resolve the tier-specific `optionsSets` / `tone` / `allowedMessageTypes` overrides for
+ * the `type:4` chat invocation (#7870). Mirrors how `resolveConnectionParams`/`buildWsUrl`
+ * already branch on tier for the WS URL — this is the request-payload counterpart so an
+ * enterprise tier actually changes what is sent, not just where it is sent.
+ */
+export function resolveChatInvocationOverrides(tier: string | undefined): {
+  optionsSets: string[];
+  tone: string;
+  allowedMessageTypes: readonly string[];
+} {
+  if (tier === "enterprise") {
+    return {
+      optionsSets: [...M365_ENTERPRISE_OPTION_SETS],
+      tone: "Magic",
+      allowedMessageTypes: [...ALLOWED_MESSAGE_TYPES, ...M365_ENTERPRISE_EXTRA_MESSAGE_TYPES],
+    };
+  }
+  return {
+    optionsSets: [...M365_DEFAULT_OPTION_SETS],
+    tone: "",
+    allowedMessageTypes: ALLOWED_MESSAGE_TYPES,
+  };
+}
+
+/**
+ * BizChat exposes several models selected by the `tone` field of the `type:4` chat
+ * invocation (#7872, values confirmed against a real enterprise tenant in #7850). Each
+ * tone-selected variant is registered as its own model id; the bare `copilot-m365` id is
+ * intentionally absent here so it keeps the tier default tone (`Magic` on enterprise, `""`
+ * otherwise) resolved by {@link resolveChatInvocationOverrides}.
+ */
+export const M365_MODEL_TONE_MAP: Readonly<Record<string, string>> = {
+  "copilot-m365-claude-opus": "Claude_Opus",
+  "copilot-m365-gpt-5-6-reasoning": "Gpt_5_6_Reasoning",
+  "copilot-m365-gpt-5-5-chat": "Gpt_5_5_Chat",
+};
+
+/**
+ * Resolve the `tone` for a requested model id, or `undefined` when the id is the bare
+ * `copilot-m365` / unknown — callers then fall back to the tier default tone. Model-driven
+ * tone takes precedence over the tier default (see the executor wiring).
+ */
+export function resolveToneForModel(model: string | undefined): string | undefined {
+  if (!model) return undefined;
+  return M365_MODEL_TONE_MAP[model];
 }
 
 /**
@@ -151,7 +235,9 @@ export function buildChatInvocation(opts: ChatInvocationOptions): Record<string,
         spokenTextMode: "None",
         options: {},
         extraExtensionParameters: {},
-        allowedMessageTypes: [...ALLOWED_MESSAGE_TYPES],
+        allowedMessageTypes: opts.allowedMessageTypes
+          ? [...opts.allowedMessageTypes]
+          : [...ALLOWED_MESSAGE_TYPES],
         sliceIds: [],
         threadLevelGptId: {},
         traceId: opts.traceId,

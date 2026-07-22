@@ -99,7 +99,20 @@ function explicitlyGuaranteedPackages(): Set<string> {
 test("sanity: MCP server bundle probe finds real external packages (parser didn't break)", () => {
   const pkgs = mcpBundleStaticExternalImports();
   assert.ok(pkgs.length > 5, `expected several external packages, got: ${pkgs.join(", ")}`);
-  assert.ok(pkgs.includes("better-sqlite3"), `missing better-sqlite3: ${pkgs.join(", ")}`);
+  // better-sqlite3 is intentionally NOT expected here (base-red audit, v3.8.49): since
+  // `feat(db): migrate core.ts to SqliteAdapter multi-driver factory` (71452e040, predates
+  // #7878's Bun-runtime driver) it is loaded lazily via `createRequire()(...)` in
+  // src/lib/db/adapters/driverFactory.ts (cascading better-sqlite3 -> node:sqlite ->
+  // sql.js, and now bun:sqlite first under Bun) instead of a static top-level `import`, so
+  // esbuild's `--packages=external` never emits a static `import "better-sqlite3"` line for
+  // it — this probe (which only parses static top-level imports) correctly stops seeing it.
+  // That's not a packaging regression: the native addon has its own, stronger copy
+  // guarantee in NATIVE_ASSET_ENTRIES (scripts/build/assembleStandalone.mjs — "better-sqlite3
+  // native binary", node_modules/better-sqlite3/build), independent of the
+  // EXTRA_MODULE_ENTRIES mechanism this file's #7701 regression guard protects for pure-JS
+  // static externals like `undici`. Assert on `zod` instead — a real, static, top-level
+  // external import of the MCP server's tool-schema layer that isn't going away.
+  assert.ok(pkgs.includes("zod"), `missing zod: ${pkgs.join(", ")}`);
 });
 
 test("undici (a static top-level external import of the real MCP server bundle) has an explicit dist/node_modules copy guarantee (#7701)", () => {

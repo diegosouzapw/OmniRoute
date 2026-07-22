@@ -6,7 +6,12 @@ import {
 } from "@omniroute/open-sse/config/grokBuild.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
-import { filterClinepassModels } from "@omniroute/open-sse/services/clinepassModels.ts";
+import {
+  CLINE_MODELS_ENDPOINT,
+  CLINEPASS_MODELS_ENDPOINT,
+  parseClineModels,
+  parseClinepassRecommendedModels,
+} from "@omniroute/open-sse/services/clinepassModels.ts";
 import { buildClaudeCodeCompatibleHeaders } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
 import {
   buildKimiCodeIdentityHeaders,
@@ -617,15 +622,21 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
     authPrefix: "Bearer ",
     parseResponse: (data) => data.data || data.models || [],
   },
-  // ClinePass (BYOK apikey gateway) — same host as OAuth `cline`, but only the
-  // `cline-pass/*` namespace is surfaced (filterClinepassModels).
-  clinepass: {
-    url: "https://api.cline.bot/api/v1/models",
+  // Import exposes Cline's full official catalog but never mixes the separate
+  // ClinePass subscription namespace into the Cline provider.
+  cline: {
+    url: CLINE_MODELS_ENDPOINT,
     method: "GET",
-    headers: { "Content-Type": "application/json" },
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    parseResponse: (data) => filterClinepassModels(Array.isArray(data) ? data : data?.data),
+    headers: { Accept: "application/json" },
+    parseResponse: parseClineModels,
+  },
+  // The full Cline catalog currently omits subscription entries. Keep ClinePass
+  // import on the authoritative clinePass bucket instead of returning an empty list.
+  clinepass: {
+    url: CLINEPASS_MODELS_ENDPOINT,
+    method: "GET",
+    headers: { Accept: "application/json" },
+    parseResponse: parseClinepassRecommendedModels,
   },
   cohere: {
     url: "https://api.cohere.com/v2/models",

@@ -169,10 +169,13 @@ function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown
   // barrier below) and failed — surface the real cause instead of the
   // generic/misleading "not pre-initialized yet" message (#7288).
   const preInitError = getSqlJsPreInitError(sqliteFile);
+  const syncDrivers = process.versions.bun
+    ? "bun:sqlite (failed)"
+    : "better-sqlite3 (failed), node:sqlite (unavailable)";
   if (preInitError) {
     throw new Error(
       `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
-        "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível), " +
+        `Drivers testados: ${syncDrivers}, ` +
         `sql.js (falhou: ${preInitError}).`
     );
   }
@@ -180,7 +183,7 @@ function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown
   throw new Error(
     `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
       "Chame ensureDbInitialized() no startup. " +
-      "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível). " +
+      `Drivers testados: ${syncDrivers}. ` +
       "sql.js WASM ainda não foi pré-inicializado."
   );
 }
@@ -1189,6 +1192,19 @@ export function getDbInstance(): SqliteDatabase {
   ensureUsageHistoryAccountIndex(db);
 
   applyStoredDatabaseOptimizationSettings(db);
+
+  // Apply mmap_size from stored settings (migration 046), fallback to 256MiB
+  try {
+    const mmapRow = db
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get("databaseSettings", "mmapSize") as { value: string } | undefined;
+    const mmapSize = mmapRow ? Math.max(0, parseInt(mmapRow.value, 10) || 0) : 268435456;
+    if (mmapSize > 0) {
+      db.pragma(`mmap_size = ${mmapSize}`);
+    }
+  } catch {
+    // mmap_size is best-effort; not available in all runtimes (e.g. web)
+  }
 
   offloadLegacyCallLogDetails(db);
 

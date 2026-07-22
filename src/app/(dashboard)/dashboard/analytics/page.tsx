@@ -13,12 +13,7 @@ import SearchAnalyticsTab from "./SearchAnalyticsTab";
 import DiversityScoreCard from "./components/DiversityScoreCard";
 
 type AnalyticsTab =
-  | "overview"
-  | "evals"
-  | "search"
-  | "utilization"
-  | "combo-health"
-  | "route-trace";
+  "overview" | "evals" | "search" | "utilization" | "combo-health" | "route-trace";
 
 const ANALYTICS_TABS: Array<{
   id: AnalyticsTab;
@@ -82,7 +77,7 @@ function AnalyticsPageContent() {
     <div className="flex flex-col gap-6">
       <div
         role="tablist"
-        aria-label="Analytics sections"
+        aria-label={t("sectionsAria")}
         className="flex flex-wrap items-center gap-1 rounded-lg border border-border bg-bg-subtle p-1"
       >
         {ANALYTICS_TABS.map((tab) => {

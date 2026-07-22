@@ -166,9 +166,6 @@
   "src/app/(dashboard)/dashboard/providers/providerPageUtils.ts": {
     "TS2345": 1
   },
-  "src/app/(dashboard)/dashboard/providers/services/components/CliproxyModelMappingEditor.tsx": {
-    "TS2339": 1
-  },
   "src/app/(dashboard)/dashboard/quota/page.tsx": {
     "TS2339": 4
   },
@@ -189,9 +186,6 @@
   },
   "src/app/(dashboard)/dashboard/translator/components/MonitorTab.tsx": {
     "TS2345": 1
-  },
-  "src/app/(dashboard)/dashboard/translator/components/advanced/CompressionPreviewAccordion.tsx": {
-    "TS4104": 1
   },
   "src/app/(dashboard)/dashboard/translator/components/advanced/StreamTransformerAccordion.tsx": {
     "TS2345": 1
@@ -218,12 +212,9 @@
   "src/shared/components/Header.tsx": {
     "TS2353": 1
   },
-  "src/shared/components/MonacoEditor.tsx": {
-    "TS2307": 1
-  },
   "src/shared/components/OAuthModal.tsx": {
-    "TS2769": 4,
-    "TS2345": 4
+    "TS2769": 3,
+    "TS2345": 3
   },
   "src/shared/components/SkillsConceptCard.tsx": {
     "TS2503": 1

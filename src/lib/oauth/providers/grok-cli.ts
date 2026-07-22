@@ -1,9 +1,24 @@
 /**
- * Grok Build OAuth Provider — Device Code Flow with Import Token Fallback
+ * Grok Build OAuth Provider — Device Code + Browser PKCE + Import Token Flows
  *
- * User pastes the entire auth.json from ~/.grok/auth.json
- * or just the JWT access token string.
- * Supports automatic token refresh using the refresh_token.
+ * Three ways to connect, merged under one provider entry (#7013 reworked to
+ * coexist with #7358 instead of replacing it):
+ *   - Device code (primary, flowType): the official Grok Build CLI flow —
+ *     requestDeviceCode()/pollToken() poll cli-chat-proxy's device-authorization
+ *     endpoint (GROK_CLI_CONFIG). This stays the DEFAULT in OAuthModal.tsx so
+ *     existing installs / docs referencing "grok login"-style device codes
+ *     keep working unchanged.
+ *   - Browser login (supportsBrowserPkce): PKCE authorization-code flow against
+ *     auth.x.ai, reusing the same public client id as the sibling xai-oauth
+ *     provider (see grok-cli-oauth.ts / GROK_BUILD_OAUTH_CONFIG). One click,
+ *     no polling — offered as an alternative via the OAuthModal chooser.
+ *   - Import token: user pastes the entire auth.json from ~/.grok/auth.json
+ *     or just the JWT access token string. Kept as a fallback for headless /
+ *     remote installs where neither a loopback callback nor device-code
+ *     verification page can be reached.
+ * All three paths converge on mapTokens() below and support automatic refresh
+ * using the refresh_token (open-sse token-refresh reads config.tokenUrl
+ * generically, independent of which flow acquired the tokens).
  */
 
 import {
@@ -11,7 +26,13 @@ import {
   GROK_BUILD_OAUTH_ISSUER,
   GROK_BUILD_OAUTH_REFERRER,
 } from "@omniroute/open-sse/config/grokBuild.ts";
-import { GROK_CLI_CONFIG } from "../constants/oauth";
+import { GROK_CLI_CONFIG, GROK_BUILD_OAUTH_CONFIG } from "../constants/oauth";
+import {
+  buildGrokBuildAuthUrl,
+  exchangeGrokBuildToken,
+  isGrokBuildBrowserTokens,
+  mapGrokBuildBrowserTokens,
+} from "./grok-cli-oauth";
 
 interface GrokCliAuthInfo {
   user_id: string;
@@ -66,7 +87,23 @@ function validateVerificationUri(value: string): void {
   }
 }
 
-async function requestDeviceCode(config: typeof GROK_CLI_CONFIG) {
+/**
+ * Device-code flow (#7358). Kept alongside the browser PKCE flow below (#7013
+ * rework) — see grokCli.flowType, which stays "device_code" so it remains the
+ * primary/default experience in OAuthModal.tsx and the route.ts device-code
+ * action family.
+ *
+ * `grokCli.config` below is GROK_BUILD_OAUTH_CONFIG (the browser-PKCE shape —
+ * required so it stays reference-equal for oauth-providers-config.test.ts and
+ * so buildAuthUrl/exchangeToken keep receiving the right config). The
+ * device-code endpoints and scope live on a DIFFERENT config (GROK_CLI_CONFIG:
+ * deviceCodeUrl + a wider legacy scope set) that has no `authorizeUrl`/
+ * `loopbackPort` shape, so requestDeviceCode/pollToken intentionally ignore
+ * whatever config providers.ts passes them and always read GROK_CLI_CONFIG
+ * directly.
+ */
+async function requestDeviceCode(_config?: unknown) {
+  const config = GROK_CLI_CONFIG;
   const response = await fetch(config.deviceCodeUrl, {
     method: "POST",
     headers: getGrokBuildOAuthHeaders("ui"),
@@ -113,7 +150,8 @@ async function requestDeviceCode(config: typeof GROK_CLI_CONFIG) {
   };
 }
 
-async function pollToken(config: typeof GROK_CLI_CONFIG, deviceCode: string) {
+async function pollToken(_config: unknown, deviceCode: string) {
+  const config = GROK_CLI_CONFIG;
   const response = await fetch(config.tokenUrl, {
     method: "POST",
     headers: getGrokBuildOAuthHeaders("ui"),
@@ -343,36 +381,81 @@ function resolveGrokExpiresIn(extracted: ExtractedGrokToken, accessClaims: Parse
   return Math.max(1, expiresIn);
 }
 
+/**
+ * The pre-existing paste-token mapping (auth.json / raw JWT import), generalized by
+ * #7358 to also resolve identity off an accompanying id_token when present (team/org
+ * principal handling via resolveGrokIdentity/resolveGrokExpiresIn) — #5775 clamp
+ * included. Used for the import-token fallback path; the browser PKCE exchange uses
+ * mapGrokBuildBrowserTokens (grok-cli-oauth.ts) instead, since auth.x.ai's OIDC
+ * id_token carries standard claims (name/email) rather than Grok Build's own
+ * principal_type/team_id/tier custom claims.
+ */
+function mapImportedToken(token: unknown) {
+  const extracted = extractTokenAndRefresh(token);
+  const accessClaims = parseJwtPayload(extracted.accessToken);
+  const idClaims = extracted.idToken ? parseJwtPayload(extracted.idToken) : emptyGrokJwt();
+  const identity = resolveGrokIdentity(accessClaims, idClaims);
+  const expiresIn = resolveGrokExpiresIn(extracted, accessClaims);
+
+  return {
+    accessToken: extracted.accessToken,
+    refreshToken: extracted.refreshToken,
+    idToken: extracted.idToken,
+    expiresIn,
+    tokenType: extracted.tokenType,
+    scope: extracted.scope,
+    email: identity.email,
+    providerSpecificData: {
+      userId: identity.userId,
+      email: identity.email,
+      teamId: identity.teamId,
+      tier: accessClaims.authInfo?.tier || idClaims.authInfo?.tier || 1,
+      principalType: identity.principalType,
+      principalId: identity.principalId,
+      organizationId: identity.organizationId,
+      rawAuthJson: extracted.rawAuthJson || undefined,
+    },
+  };
+}
+
 export const grokCli = {
-  config: GROK_CLI_CONFIG,
-  flowType: "device_code",
+  // NOTE: this is the BROWSER-PKCE config (authorizeUrl/loopbackPort/etc, same
+  // reference oauth-providers-config.test.ts pins), used by buildAuthUrl /
+  // exchangeToken below. The device-code endpoints (deviceCodeUrl + a wider
+  // legacy scope set) live on the separate GROK_CLI_CONFIG that
+  // requestDeviceCode/pollToken read directly — see the note above them.
+  config: GROK_BUILD_OAUTH_CONFIG,
+  // device_code stays PRIMARY (#7358) — OAuthModal.tsx defaults grok-cli into
+  // the device-code panel and route.ts's device-code/poll action family keys
+  // off this flowType. The browser PKCE login (#7013) is an ADDITIONAL,
+  // equally-first-class method advertised via supportsBrowserPkce below —
+  // callers that need capability detection (providers.ts::generateAuthData,
+  // route.ts's exchange codeVerifier guard) check supportsBrowserPkce instead
+  // of requiring flowType === "authorization_code_pkce".
+  flowType: "device_code" as const,
   requestDeviceCode,
   pollToken,
-  mapTokens: (token: unknown, _extra?: unknown) => {
-    const extracted = extractTokenAndRefresh(token);
-    const accessClaims = parseJwtPayload(extracted.accessToken);
-    const idClaims = extracted.idToken ? parseJwtPayload(extracted.idToken) : emptyGrokJwt();
-    const identity = resolveGrokIdentity(accessClaims, idClaims);
-    const expiresIn = resolveGrokExpiresIn(extracted, accessClaims);
-
-    return {
-      accessToken: extracted.accessToken,
-      refreshToken: extracted.refreshToken,
-      idToken: extracted.idToken,
-      expiresIn,
-      tokenType: extracted.tokenType,
-      scope: extracted.scope,
-      email: identity.email,
-      providerSpecificData: {
-        userId: identity.userId,
-        email: identity.email,
-        teamId: identity.teamId,
-        tier: accessClaims.authInfo?.tier || idClaims.authInfo?.tier || 1,
-        principalType: identity.principalType,
-        principalId: identity.principalId,
-        organizationId: identity.organizationId,
-        rawAuthJson: extracted.rawAuthJson || undefined,
-      },
-    };
-  },
+  // Browser PKCE capability marker + fields (#7013), kept alongside device_code.
+  supportsBrowserPkce: true as const,
+  fixedPort: GROK_BUILD_OAUTH_CONFIG.loopbackPort,
+  callbackPath: GROK_BUILD_OAUTH_CONFIG.callbackPath,
+  callbackHost: GROK_BUILD_OAUTH_CONFIG.callbackHost,
+  // The xAI flow uses a 96-byte random verifier (128 base64url chars), same as xai-oauth.
+  pkceVerifierBytes: 96,
+  buildAuthUrl: buildGrokBuildAuthUrl,
+  exchangeToken: exchangeGrokBuildToken,
+  /**
+   * Unified token mapper serving ALL THREE flows under this single provider
+   * entry: device-code polling (tokens shaped like the standard OAuth token
+   * response, dispatched here the same as a paste-token import unless they
+   * carry the browser-flow's id_token/OIDC shape), the browser PKCE exchange
+   * (tokens shaped like the OAuth token-endpoint response —
+   * `access_token`/`refresh_token`/`id_token`/`expires_in`, detected via
+   * isGrokBuildBrowserTokens), and the paste-token import (`{ accessToken:
+   * <JWT string or auth.json blob> }`, see extractTokenAndRefresh above).
+   * All converge on the same persisted connection shape, so refresh keeps
+   * working unmodified regardless of which flow acquired the tokens.
+   */
+  mapTokens: (token: unknown) =>
+    isGrokBuildBrowserTokens(token) ? mapGrokBuildBrowserTokens(token) : mapImportedToken(token),
 };

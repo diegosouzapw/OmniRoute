@@ -11,7 +11,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { resolvePrincipalFromHeaders } from "../../../open-sse/mcp-server/mcpCallerIdentity.ts";
+import {
+  resolvePrincipalFromHeaders,
+  resolveMcpCallerApiKeyId,
+} from "../../../open-sse/mcp-server/mcpCallerIdentity.ts";
 import {
   storeBlock,
   retrieveBlock,
@@ -28,7 +31,11 @@ test("#5649 resolves a Bearer API key to its principal id (not anonymous)", asyn
     { Authorization: "Bearer sk-tenant-A" },
     fakeLookup({ "sk-tenant-A": "42" })
   );
-  assert.equal(id, "42", "a valid Bearer key must resolve to its api-key id, not undefined/anonymous");
+  assert.equal(
+    id,
+    "42",
+    "a valid Bearer key must resolve to its api-key id, not undefined/anonymous"
+  );
 });
 
 test("#5649 resolves x-api-key (with anthropic-version gate) to its principal id", async () => {
@@ -84,7 +91,38 @@ test("#5649 end-to-end: a block stored under the api-key id is retrievable by th
   // A different tenant's key resolves to a different principal → blocked.
   const other = await resolvePrincipalFromHeaders({ Authorization: "Bearer sk-B" }, lookup);
   assert.equal(other, "77");
-  assert.equal(retrieveBlock(hash, other), null, "[HIGH IDOR] other tenant must not retrieve the block");
+  assert.equal(
+    retrieveBlock(hash, other),
+    null,
+    "[HIGH IDOR] other tenant must not retrieve the block"
+  );
   const otherResult = handleCcrRetrieve({ hash }, other);
   assert.ok("error" in otherResult, "[HIGH IDOR] cross-tenant retrieve returns error");
+});
+
+// ─── env-var fallback (stdio transport, #7883) ─────────────────────────
+
+test("#7883 resolveMcpCallerApiKeyId returns undefined when both headers and env var are absent", async () => {
+  const prev = process.env.OMNIROUTE_API_KEY;
+  delete process.env.OMNIROUTE_API_KEY;
+  try {
+    const result = await resolveMcpCallerApiKeyId();
+    assert.equal(result, undefined);
+  } finally {
+    if (prev) process.env.OMNIROUTE_API_KEY = prev;
+  }
+});
+
+test("#7883 resolveMcpCallerApiKeyId env-var fallback executes without throwing", async () => {
+  const prev = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = "sk-test-env-key";
+  try {
+    // Will return undefined because sk-test-env-key isn't a real DB key,
+    // but proves the env var codepath runs without error
+    const result = await resolveMcpCallerApiKeyId();
+    assert.ok(result === undefined || typeof result === "string");
+  } finally {
+    if (prev) process.env.OMNIROUTE_API_KEY = prev;
+    else delete process.env.OMNIROUTE_API_KEY;
+  }
 });

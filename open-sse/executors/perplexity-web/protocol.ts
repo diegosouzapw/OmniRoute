@@ -141,6 +141,14 @@ export interface PplxBlock {
   };
 }
 
+export interface PplxUpsellInformation {
+  name?: string;
+  upsell_type?: string;
+  title?: string;
+  description?: string;
+  cta?: string;
+}
+
 export interface PplxStreamEvent {
   status?: string;
   final?: boolean;
@@ -151,6 +159,7 @@ export interface PplxStreamEvent {
   error_code?: string;
   error_message?: string;
   display_model?: string;
+  upsell_information?: PplxUpsellInformation;
 }
 
 // ─── SSE parsing ────────────────────────────────────────────────────────────
@@ -350,8 +359,21 @@ export interface ContentChunk {
   backendUuid?: string;
   thinking?: string;
   error?: string;
+  /** Structured error code for quota / rate-limit surfaces (e.g. quota_exhausted). */
+  errorCode?: string;
+  /**
+   * Suggested client/account cooldown in seconds when the stream failed due to
+   * advanced-model weekly quota (or similar). Downstream marks the connection
+   * rate_limited_until and VibeProxy limit badges parse this + "reset after Xs".
+   */
+  resetSeconds?: number;
   done?: boolean;
 }
+
+/** Default cooldown when Perplexity reports advanced-model weekly quota exhaustion
+ * without an explicit reset clock (weekly window is account-side). Long enough that
+ * rotation skips the account instead of hammering it every few seconds. */
+export const PPLX_ADVANCED_QUOTA_DEFAULT_RESET_SECONDS = 6 * 60 * 60;
 
 // The schematized API delivers the answer text in blocks whose `intended_usage`
 // is either the aggregate `ask_text` or per-segment `ask_text_<n>_markdown`
@@ -483,6 +505,75 @@ export function longestMarkdownAnswer(
   return { usage: bestUsage, answer: bestAnswer };
 }
 
+/** Extract goal descriptions from a materialized or diff-patched plan block. */
+function extractPlanGoalDescriptions(block: PplxBlock): string[] {
+  const out: string[] = [];
+  if (block.plan_block?.goals) {
+    for (const goal of block.plan_block.goals) {
+      const desc = goal.description ?? "";
+      if (desc) out.push(desc);
+    }
+  }
+  // Live multi-step streams send plan as RFC-6902 diff patches, not plan_block.
+  const patches = block.diff_block?.patches;
+  if (Array.isArray(patches)) {
+    for (const patch of patches) {
+      const value = patch.value as { goals?: Array<{ description?: string }> } | undefined;
+      if (value && Array.isArray(value.goals)) {
+        for (const goal of value.goals) {
+          const desc = goal.description ?? "";
+          if (desc) out.push(desc);
+        }
+      }
+    }
+  }
+  return out;
+}
+
+export interface PplxQuotaError {
+  message: string;
+  errorCode: string;
+  resetSeconds: number;
+}
+
+function formatUpsellError(upsell: PplxUpsellInformation | undefined): PplxQuotaError | null {
+  if (!upsell) return null;
+  const name = String(upsell.name || "");
+  // advanced_models_quota_low = weekly advanced-model (Opus/Sonnet/GPT/…) budget
+  // exhausted. Browser still often downgrades to turbo; when no answer text is
+  // produced we must surface this instead of a silent "empty content" 502.
+  if (
+    name === "advanced_models_quota_low" ||
+    name.includes("quota") ||
+    String(upsell.upsell_type || "")
+      .toUpperCase()
+      .includes("UPGRADE")
+  ) {
+    const title = (upsell.title || "").trim();
+    const desc = (upsell.description || "").trim();
+    const detail = [title, desc].filter(Boolean).join(" — ");
+    const base = detail
+      ? `Perplexity advanced model quota exhausted: ${detail}`
+      : "Perplexity advanced model quota exhausted for this account this week. Use pplx-auto/pplx-sonar, wait for the weekly reset, or upgrade (Perplexity Max).";
+    const resetSeconds = PPLX_ADVANCED_QUOTA_DEFAULT_RESET_SECONDS;
+    // Append human "reset after …" so VibeProxy's existing message parsers
+    // (and accountFallback.formatRetryAfter consumers) pick up the cooldown.
+    const h = Math.floor(resetSeconds / 3600);
+    const m = Math.floor((resetSeconds % 3600) / 60);
+    const s = resetSeconds % 60;
+    const parts: string[] = [];
+    if (h > 0) parts.push(`${h}h`);
+    if (m > 0) parts.push(`${m}m`);
+    if (s > 0 || parts.length === 0) parts.push(`${s}s`);
+    return {
+      message: `${base} (reset after ${parts.join(" ")})`,
+      errorCode: "quota_exhausted",
+      resetSeconds,
+    };
+  }
+  return null;
+}
+
 export async function* extractContent(
   eventStream: ReadableStream<Uint8Array>,
   signal?: AbortSignal | null
@@ -495,6 +586,7 @@ export async function* extractContent(
   const mdState = new Map<string, MarkdownAccumulator>();
   let primaryUsage: string | null = null;
   let lastEventText: string | undefined;
+  let lastUpsell: PplxUpsellInformation | undefined;
 
   for await (const event of readPplxSseEvents(eventStream, signal)) {
     if (event.error_code || event.error_message) {
@@ -507,6 +599,7 @@ export async function* extractContent(
 
     if (event.backend_uuid) backendUuid = event.backend_uuid;
     if (event.text) lastEventText = event.text;
+    if (event.upsell_information) lastUpsell = event.upsell_information;
 
     const blocks = event.blocks ?? [];
     for (const block of blocks) {
@@ -534,10 +627,9 @@ export async function* extractContent(
         }
       }
 
-      // Thinking: plan goals
-      if (usage === "plan" && block.plan_block?.goals) {
-        for (const goal of block.plan_block.goals) {
-          const desc = goal.description ?? "";
+      // Thinking: plan goals (materialized plan_block OR live multi-step diff_block)
+      if (usage === "plan") {
+        for (const desc of extractPlanGoalDescriptions(block)) {
           if (desc && !seenThinking.has(desc)) {
             seenThinking.add(desc);
             yield { thinking: desc, backendUuid: backendUuid ?? undefined };
@@ -633,6 +725,23 @@ export async function* extractContent(
     const fromText = extractAnswerFromFinalText(lastEventText);
     if (fromText && fromText.trim()) {
       fullAnswer = fromText;
+    }
+  }
+
+  // No answer materialized through any recovery path — if the stream surfaced
+  // an advanced-model quota upsell, report it clearly instead of a silent
+  // empty-content response so callers can cooldown/rotate the account.
+  if (!fullAnswer.trim()) {
+    const upsellErr = formatUpsellError(lastUpsell);
+    if (upsellErr) {
+      yield {
+        error: upsellErr.message,
+        errorCode: upsellErr.errorCode,
+        resetSeconds: upsellErr.resetSeconds,
+        done: true,
+        backendUuid: backendUuid ?? undefined,
+      };
+      return;
     }
   }
 

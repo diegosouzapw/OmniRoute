@@ -1,0 +1,1 @@
+- chore(deps): bump fast-uri≥3.1.3, hono≥4.12.27, @hono/node-server≥2.0.5, body-parser≥2.3.0 to clear 7 Dependabot alerts

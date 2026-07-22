@@ -96,6 +96,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "abra_sess"],
   },
+  "hailuo-web": {
+    kind: "token",
+    credentialName: "_token",
+    placeholder: '_token=... (hailuo.ai → DevTools → Local Storage → "_token")',
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "_token"],
+  },
   "claude-web": {
     kind: "cookie",
     credentialName: "sessionKey",
@@ -280,6 +287,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     hintKey: "lmarenaWebCookieHint",
     hintFallback:
       "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
+  },
+  "promptql": {
+    kind: "token",
+    credentialName: "Bearer JWT (optional: projectId, session Cookie)",
+    placeholder: "eyJ...  (Authorization Bearer from prompt.ql.app)",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "jwt", "apiKey", "projectId", "project_id", "cookie"],
   },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 

@@ -1,6 +1,18 @@
 import nextVitals from "eslint-config-next/core-web-vitals";
 import tseslint from "typescript-eslint";
 
+// #7879: bar NEW local `toNumber` definitions outside the canonical helper.
+// Pre-existing definitions (~51 across the codebase) are frozen via
+// config/quality/eslint-suppressions.json and migrated tier-by-tier; only a
+// genuinely NEW `function toNumber`/`const toNumber = ...` should fail.
+const TO_NUMBER_RESTRICTION = {
+  selector: "FunctionDeclaration[id.name='toNumber'], VariableDeclarator[id.name='toNumber']",
+  message:
+    "New local `toNumber` definitions are barred — import `toNumber` from " +
+    "`@/shared/utils/numeric` instead (#7879). See that module's JSDoc for the " +
+    "canonical coercion shape and the `toNumberOrNull`/`toNumberArray` variants.",
+};
+
 /** @type {import("eslint").Linter.Config[]} */
 const eslintConfig = [
   ...nextVitals,
@@ -56,7 +68,26 @@ const eslintConfig = [
           message:
             "Türkçe-güvenli arama için matchesSearch() kullan (@/shared/utils/turkishText). Ham toLowerCase().includes() İ/ı karakterlerini bozar.",
         },
+        TO_NUMBER_RESTRICTION,
       ],
+    },
+  },
+  // #7879: same toNumber restriction for the rest of src/ and open-sse/ — kept
+  // as a separate block (via `ignores`) so it does not clobber the
+  // app/components-scoped rule array above (flat config replaces a rule's
+  // options entirely per matching file, it does not merge arrays).
+  {
+    files: ["src/**/*.ts", "open-sse/**/*.ts"],
+    ignores: ["src/app/**", "src/components/**"],
+    rules: {
+      "no-restricted-syntax": ["error", TO_NUMBER_RESTRICTION],
+    },
+  },
+  // Canonical helper module itself is exempt from its own restriction.
+  {
+    files: ["src/shared/utils/numeric.ts"],
+    rules: {
+      "no-restricted-syntax": "off",
     },
   },
   // Relaxed rules for open-sse and tests (incremental adoption)
