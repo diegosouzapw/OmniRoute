@@ -357,6 +357,17 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
+    // Skip tool_search_call items. These are Responses-API-only metadata items
+    // emitted by Codex's dynamic tool-search optimization: they record that the
+    // model queried a subset of available tools, but carry no content that Chat
+    // Completions can represent. Throwing here would break every multi-turn
+    // conversation where Codex previously used tool_search (the whole session
+    // would carry tool_search_call items forward in `input`). Skipping matches
+    // the reasoning-item policy: display-only metadata, no chat side-effect.
+    if (itemType === "tool_search_call" || itemType === "tool_search_result") {
+      continue;
+    }
+
     if (itemType === "additional_tools") {
       // Already consumed by collectResponsesTools() before message conversion.
       continue;
