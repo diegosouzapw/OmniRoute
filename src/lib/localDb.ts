@@ -805,3 +805,4 @@ export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/p
 export * from "./db/paramFilters";
 export * from "./db/interceptionRules"; // Per-model web-search/web-fetch interception rules (#3384)
 export * from "./db/relayProbeStats"; // Relay probe latency/health stats (#6909)
+export * from "./db/conductorBridge"; // OmniConductor hub mirror — SSE cursor (PRD Conductor RF1)
