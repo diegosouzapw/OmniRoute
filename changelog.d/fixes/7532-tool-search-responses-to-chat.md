@@ -1,0 +1,1 @@
+- fix(sse): map `tool_search` to a Chat function tool instead of dropping it during Responses->Chat translation (#7532)

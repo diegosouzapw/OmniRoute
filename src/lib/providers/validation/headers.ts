@@ -2,7 +2,7 @@
 // from validation.ts (god-file decomposition). Pure header construction except directHttpsRequest,
 // which delegates to safeOutboundFetch with bypassProxyPatch. Behavior is byte-identical.
 import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
-import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 
 // Standardized desktop Chrome UA for web-cookie/no-auth session probes (minimizes anti-bot detection).
 export const STANDARD_USER_AGENT =

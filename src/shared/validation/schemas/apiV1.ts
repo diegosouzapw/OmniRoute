@@ -194,7 +194,7 @@ export const v1SearchSchema = z
     // Locale
     country: z.string().max(2).toUpperCase().optional(),
     language: z.string().min(2).max(5).optional(),
-    time_range: z.enum(["any", "day", "week", "month", "year"]).optional(),
+    time_range: z.enum(["any", "hour", "day", "week", "month", "year"]).optional(),
 
     // Content control
     content: z

@@ -2,7 +2,7 @@
  * #5460 (Reka) + #5465 (t3.chat) — Distinguish a genuinely degraded
  * `local_catalog` models response (remote model discovery failed → the sync
  * route surfaces a 502) from a provider whose local catalog is its INTENDED and
- * only discovery source (reka, qwen-oauth, embedding/rerank providers like
+ * only discovery source (reka, embedding/rerank providers like
  * voyage-ai/jina-ai, web-cookie providers like t3-web).
  *
  * The models route tags the latter with `intentional: true`. Before this guard,

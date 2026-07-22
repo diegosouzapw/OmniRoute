@@ -1,1 +1,1 @@
-- fix(security): bump adm-zip to ^0.6.0 (dev transitive via promptfoo/onnxruntime-node) to clear the crafted-ZIP 4GB-allocation advisory, and tighten mitm DNS test host assertion to exact matching (CodeQL js/incomplete-url-substring-sanitization)
+- fix(security): bump adm-zip to ^0.6.0 (dev transitive via promptfoo/onnxruntime-node) to clear the crafted-ZIP 4GB-allocation advisory, and tighten mitm DNS test host assertions to exact/suffix matching (CodeQL js/incomplete-url-substring-sanitization)

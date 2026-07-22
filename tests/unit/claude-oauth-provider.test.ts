@@ -8,7 +8,6 @@ import assert from "node:assert/strict";
 Object.assign(process.env, {
   CLAUDE_OAUTH_CLIENT_ID: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
   CODEX_OAUTH_CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
-  QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
   KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
   GITHUB_OAUTH_CLIENT_ID: "Iv1.b507a08c87ecfe98",
 });

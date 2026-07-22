@@ -12,6 +12,8 @@
 
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { logAuditEvent } from "@/lib/compliance";
+import { emit } from "@/lib/events/eventBus";
+import type { RequestCompletedPayload, RequestFailedPayload } from "@/lib/events/types";
 import { saveCallLog } from "@/lib/usageDb";
 import { cloneBoundedChatLogPayload, truncateForLog } from "./logTruncation.ts";
 import { attachLogMeta } from "./cacheUsageMeta.ts";
@@ -30,6 +32,9 @@ export type PersistAttemptLogsArgs = {
 };
 
 export type PersistAttemptLogsContext = {
+  /** Per-attempt trace id — MUST match the id emitted in `request.started` so the live
+   * dashboard can pair the terminal event and clear the topology node's active pulse. */
+  traceId: string;
   provider: string | null | undefined;
   connectionId: string | null | undefined;
   model: string | null | undefined;
@@ -74,6 +79,61 @@ function buildAccountRotationMeta(
   };
 }
 
+/**
+ * Pure resolver for the terminal request-lifecycle dashboard event. Extracted so the
+ * "stuck green" latch fix (emitting request.completed/failed to clear the live topology
+ * node) is unit-testable without the DB write in persistAttemptLogs. A 2xx/3xx status
+ * with no error is a completion; everything else (including a missing/odd status) is a
+ * failure. `id` mirrors the `traceId` used by the paired `request.started`.
+ */
+export function resolveRequestLifecycleEvent(input: {
+  traceId: string;
+  status: number;
+  error?: string | null;
+  model?: string | null;
+  provider?: string | null;
+  comboName?: unknown;
+  tokens?: unknown;
+  latencyMs: number;
+}):
+  | { name: "request.completed"; payload: RequestCompletedPayload }
+  | { name: "request.failed"; payload: RequestFailedPayload } {
+  const { traceId, status, error, model, provider, comboName, tokens, latencyMs } = input;
+  const succeeded = typeof status === "number" && status >= 200 && status < 400 && !error;
+  const resolvedComboName = typeof comboName === "string" && comboName ? comboName : undefined;
+  if (succeeded) {
+    const tokenBag = (tokens && typeof tokens === "object" ? tokens : {}) as Record<
+      string,
+      unknown
+    >;
+    const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+    return {
+      name: "request.completed",
+      payload: {
+        id: traceId,
+        status: "success",
+        model: model || "unknown",
+        provider: provider || "unknown",
+        tokensInput: num(tokenBag.input ?? tokenBag.prompt_tokens ?? tokenBag.inputTokens),
+        tokensOutput: num(tokenBag.output ?? tokenBag.completion_tokens ?? tokenBag.outputTokens),
+        latencyMs,
+        comboName: resolvedComboName,
+      },
+    };
+  }
+  return {
+    name: "request.failed",
+    payload: {
+      id: traceId,
+      error: error || `HTTP ${status}`,
+      statusCode: typeof status === "number" ? status : undefined,
+      latencyMs,
+      model: model || undefined,
+      provider: provider || undefined,
+    },
+  };
+}
+
 export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAttemptLogsContext) {
   const {
     status,
@@ -88,6 +148,7 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     cacheSource,
   } = args;
   const {
+    traceId,
     provider,
     connectionId,
     model,
@@ -138,9 +199,12 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     });
   }
 
+  const capturedPipeline = reqLogger?.getPipelinePayloads?.() ?? null;
   const pipelinePayloads = detailedLoggingEnabled
-    ? (reqLogger?.getPipelinePayloads?.() ?? {})
-    : null;
+    ? (capturedPipeline ?? {})
+    : capturedPipeline?.routeDecision
+      ? { routeDecision: capturedPipeline.routeDecision }
+      : null;
 
   if (pipelinePayloads) {
     if (providerRequest !== undefined && !pipelinePayloads.providerRequest) {
@@ -207,4 +271,27 @@ export function persistAttemptLogs(args: PersistAttemptLogsArgs, ctx: PersistAtt
     correlationId,
     modelPinned: modelPinned || false,
   }).catch(() => {});
+
+  // Emit the terminal request-lifecycle event to the live dashboard bus. `request.started`
+  // is emitted in chatCore with this same `traceId`; without a matching completed/failed the
+  // client's active-request map never drains, so the topology node stays green forever (the
+  // "stuck green" latch — request.completed/failed were declared + consumed but never emitted).
+  // Deferred via setImmediate to keep it off the response hot path, mirroring request.started.
+  setImmediate(() => {
+    const lifecycle = resolveRequestLifecycleEvent({
+      traceId,
+      status,
+      error,
+      model,
+      provider,
+      comboName,
+      tokens,
+      latencyMs: Date.now() - startTime,
+    });
+    if (lifecycle.name === "request.completed") {
+      emit("request.completed", lifecycle.payload);
+    } else {
+      emit("request.failed", lifecycle.payload);
+    }
+  });
 }

@@ -110,7 +110,7 @@ export function getProvider(name) {
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
-  const pkce = generatePKCE();
+  const pkce = generatePKCE(provider.pkceVerifierBytes || 32);
   let codeVerifier = pkce.codeVerifier;
   const { codeChallenge, state } = pkce;
 
@@ -136,16 +136,22 @@ export function generateAuthData(providerName, redirectUri) {
       flowType: provider.flowType,
       fixedPort: provider.fixedPort,
       callbackPath: provider.callbackPath || "/callback",
+      callbackHost: provider.callbackHost || "localhost",
       supported: false,
       error,
     };
   }
 
   let authUrl;
-  if (provider.flowType === "device_code") {
-    authUrl = null;
-  } else if (provider.flowType === "authorization_code_pkce") {
+  // Capability check (not a bare flowType equality) so a provider can carry
+  // flowType "device_code" as its primary/default flow AND still expose a
+  // browser PKCE login as an additional method (#7013 grok-cli rework):
+  // grokCli keeps flowType "device_code" but sets supportsBrowserPkce so this
+  // branch still builds its PKCE authUrl for the "Browser Login" method.
+  if (provider.flowType === "authorization_code_pkce" || provider.supportsBrowserPkce) {
     authUrl = provider.buildAuthUrl(provider.config, redirectUri, state, codeChallenge);
+  } else if (provider.flowType === "device_code") {
+    authUrl = null;
   } else {
     const built = provider.buildAuthUrl(provider.config, redirectUri, state);
     // Some non-PKCE "authorization_code" providers (e.g. zed-hosted) need to
@@ -176,6 +182,7 @@ export function generateAuthData(providerName, redirectUri) {
     flowType: provider.flowType,
     fixedPort: provider.fixedPort,
     callbackPath: provider.callbackPath || "/callback",
+    callbackHost: provider.callbackHost || "localhost",
   };
 }
 
@@ -248,7 +255,7 @@ export async function pollForToken(providerName, deviceCode, codeVerifier, extra
     if (result.data.access_token) {
       let extra = null;
       if (provider.postExchange) {
-        extra = await provider.postExchange(result.data);
+        extra = await provider.postExchange(result.data, extraData || undefined);
       }
       return { success: true, tokens: provider.mapTokens(result.data, extra) };
     } else {

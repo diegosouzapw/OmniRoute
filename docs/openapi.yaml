@@ -1126,6 +1126,13 @@ paths:
               schema:
                 type: string
               description: Number of fallback attempts (only present when > 0).
+            X-OmniRoute-Decision:
+              schema:
+                type: string
+              description: >-
+                Routing decision trace: `strategy=<name>; provider=<alias>; latency_ms=<n>`.
+                `<name>` is the combo strategy (e.g. `priority`, `weighted`, `fusion`) or
+                `single` for a non-combo request. Emitted on every completion response.
             X-OmniRoute-Request-Id:
               schema:
                 type: string
@@ -2200,6 +2207,36 @@ paths:
       responses:
         "200":
           description: RTK filter catalog and diagnostics
+
+  /api/context/rtk/import:
+    post:
+      tags: [Compression]
+      summary: Validate or install an RTK TOML schema v1 filter file
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action, content]
+              additionalProperties: false
+              properties:
+                action:
+                  type: string
+                  enum: [validate, install]
+                content:
+                  type: string
+                  maxLength: 1048576
+                overwrite:
+                  type: boolean
+                  description: Replace an existing global file and create a backup
+      responses:
+        "200":
+          description: Filter metadata, inline-test outcomes, warnings, and installation status
+        "400":
+          description: Invalid TOML, schema, regular expression, inline test, or install request
 
   /api/context/rtk/test:
     post:

@@ -8,6 +8,7 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { register } from "../registry.ts";
 import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
+import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
 import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 import {
   JsonRecord,
@@ -17,7 +18,6 @@ import {
   TOOL_SEARCH_TOOL_TYPES,
   IMAGE_GENERATION_TOOL_TYPES,
   toRecord,
-  toArray,
   toString,
   normalizeVerbosity,
   normalizeResponsesReasoningEffort,
@@ -46,9 +46,12 @@ export function openaiResponsesToOpenAIRequest(
   if (root.input === undefined) return body;
   const credentialRecord = toRecord(credentials);
   const storeEnabled = isOpenAIResponsesStoreEnabled(credentialRecord.providerSpecificData);
+  const rawInputItems = normalizeResponsesInputForChat(root.input);
 
-  // Validate tool types — only function tools can be translated to Chat Completions
-  const tools = toArray(root.tools);
+  // Tools may be declared at the Responses top level or in one or more
+  // `additional_tools` input items. Normalize both forms before validation/conversion so
+  // every downgraded provider receives the same available tool set.
+  const tools = collectResponsesTools(root.tools, rawInputItems);
   if (tools.length > 0) {
     for (const toolValue of tools) {
       const tool = toRecord(toolValue);
@@ -79,11 +82,42 @@ export function openaiResponsesToOpenAIRequest(
 
   const result: JsonRecord = { ...root };
 
+  // #7533: `verbosity` and `prompt_cache_key` are GPT-5/OpenAI-only Chat Completions
+  // parameters. A strict-protocol non-OpenAI upstream (NVIDIA confirmed by the reporter;
+  // likely also GLM/Kimi/Deepseek direct endpoints) 400s on unrecognized top-level
+  // parameters, so they must only survive the downgrade when the destination really is
+  // an OpenAI-operated endpoint.
+  //
+  // Allowlist, NOT a denylist: over-stripping costs a cache hit, over-preserving costs a
+  // hard 400. `codex` is in the list because it IS an OpenAI upstream
+  // (chatgpt.com/backend-api/codex) and is precisely the destination #517 needed
+  // `prompt_cache_key` preserved for — /v1/responses runs every request through this
+  // downgrade (handleResponsesCore -> convertResponsesApiFormat) regardless of provider,
+  // so gating on "openai" alone silently re-broke Codex prompt caching. Other
+  // OpenAI-compatible passthroughs (e.g. Azure OpenAI) are deliberately NOT assumed in —
+  // add them only with evidence that the endpoint accepts these fields.
+  const OPENAI_PARAM_DESTINATIONS = new Set(["openai", "codex"]);
+  const isOpenAIDestination = OPENAI_PARAM_DESTINATIONS.has(toString(credentialRecord.provider));
+
   // GPT-5 verbosity: Responses `text.verbosity` → Chat Completions top-level `verbosity`.
   // Chat has no `text` wrapper, so carry the level across and drop the Responses-only
   // `text` object (a strict Chat endpoint 400s on unknown fields).
   const responsesVerbosity = normalizeVerbosity(toRecord(result.text).verbosity);
-  if (responsesVerbosity) result.verbosity = responsesVerbosity;
+  if (responsesVerbosity && isOpenAIDestination) result.verbosity = responsesVerbosity;
+  const responsesTextFormat = toRecord(toRecord(result.text).format);
+  if (responsesTextFormat.type === "json_schema" && responsesTextFormat.schema !== undefined) {
+    const jsonSchema: JsonRecord = {
+      name: toString(responsesTextFormat.name, "response"),
+      schema: responsesTextFormat.schema,
+    };
+    if (responsesTextFormat.description !== undefined) {
+      jsonSchema.description = responsesTextFormat.description;
+    }
+    if (responsesTextFormat.strict !== undefined) jsonSchema.strict = responsesTextFormat.strict;
+    result.response_format = { type: "json_schema", json_schema: jsonSchema };
+  } else if (responsesTextFormat.type === "json_object") {
+    result.response_format = { type: "json_object" };
+  }
   delete result.text;
 
   // background: true requests a deferred Responses API run (the upstream
@@ -121,7 +155,6 @@ export function openaiResponsesToOpenAIRequest(
   // Upstream providers reject messages:[] with "400: at least one message is required".
   // When the client sends input:[] (empty), inject a placeholder user message — mirrors
   // upstream 9router#419 (and the existing empty-string handling elsewhere in this file).
-  const rawInputItems = normalizeResponsesInputForChat(root.input);
   const inputItems: unknown[] =
     rawInputItems.length === 0
       ? [{ type: "message", role: "user", content: [{ type: "input_text", text: "..." }] }]
@@ -157,6 +190,9 @@ export function openaiResponsesToOpenAIRequest(
             }
             if (contentItem.type === "output_text") {
               return { type: "text", text: toString(contentItem.text) };
+            }
+            if (contentItem.type === "refusal") {
+              return { type: "text", text: toString(contentItem.refusal) };
             }
             if (contentItem.type === "input_image") {
               const imgResult: JsonRecord = {
@@ -313,6 +349,15 @@ export function openaiResponsesToOpenAIRequest(
       // Skip reasoning items - they are display-only metadata
       continue;
     }
+
+    if (itemType === "additional_tools") {
+      // Already consumed by collectResponsesTools() before message conversion.
+      continue;
+    }
+
+    throw unsupportedFeature(
+      `Unsupported Responses API feature: input item type '${itemType || "missing"}' cannot be represented in Chat Completions`
+    );
   }
 
   // Flush remainder
@@ -326,16 +371,17 @@ export function openaiResponsesToOpenAIRequest(
   }
 
   // Convert tools format
-  if (Array.isArray(root.tools)) {
-    result.tools = root.tools
+  if (tools.length > 0) {
+    result.tools = tools
       .filter((toolValue) => {
         const tool = toRecord(toolValue);
         const toolType = toString(tool.type);
-        // tool_search (#2766) and image_generation (#2950) are Responses API built-ins
-        // with no Chat Completions equivalent; drop them silently.
-        return (
-          !TOOL_SEARCH_TOOL_TYPES.test(toolType) && !IMAGE_GENERATION_TOOL_TYPES.test(toolType)
-        );
+        // image_generation (#2950) is a Responses API server-side hosted tool with no
+        // Chat Completions equivalent; drop it silently. tool_search (#2766) used to be
+        // dropped here too, but it is a CLIENT-executed tool (Codex sends it with
+        // `execution: "client"`) — see the flatMap branch below (#7532) for why it is
+        // now mapped onto a Chat function tool instead of discarded.
+        return !IMAGE_GENERATION_TOOL_TYPES.test(toolType);
       })
       .flatMap((toolValue) => {
         const tool = toRecord(toolValue);
@@ -357,13 +403,49 @@ export function openaiResponsesToOpenAIRequest(
               function: {
                 name: toString(sub.name),
                 description: toString(sub.description),
-                parameters: sub.parameters ??
-                  sub.input_schema ?? {
-                    type: "object",
-                    properties: {},
-                  },
+                parameters:
+                  toString(sub.type) === "custom"
+                    ? {
+                        type: "object",
+                        properties: { input: { type: "string" } },
+                        required: ["input"],
+                        additionalProperties: false,
+                      }
+                    : (sub.parameters ??
+                      sub.input_schema ?? {
+                        type: "object",
+                        properties: {},
+                      }),
+                strict: sub.strict,
               },
             }));
+        }
+        // tool_search (#2766) is a Responses API built-in Codex sends with
+        // `execution: "client"` — the CLIENT (Codex CLI) resolves the call locally,
+        // regardless of whether the wire format is Responses `{type:"tool_search"}` or
+        // Chat `{type:"function"}`. Dropping it silently (as before) hid the tool from
+        // the model entirely and broke Codex's lazy/deferred tool-loading protocol for
+        // any provider downgraded to Chat Completions (#7532). Map it onto a normal
+        // Chat function tool instead, mirroring the local_shell -> shell pattern below.
+        if (TOOL_SEARCH_TOOL_TYPES.test(toolType)) {
+          return {
+            type: "function",
+            function: {
+              name: toString(tool.name) || "tool_search",
+              description:
+                toString(tool.description) || "Search for additional deferred tools by query.",
+              parameters: tool.parameters ?? {
+                type: "object",
+                properties: {
+                  query: {
+                    type: "string",
+                    description: "Natural-language or keyword query over available tools.",
+                  },
+                },
+                required: ["query"],
+              },
+            },
+          };
         }
         // Pass web_search server tools through with their original type (versioned or plain).
         // These have no Chat Completions equivalent; preserve as-is so upstreams that understand
@@ -474,7 +556,55 @@ export function openaiResponsesToOpenAIRequest(
       result.tool_choice = { type: "function", function: { name: tc.name } };
     } else if (tcType === "local_shell") {
       result.tool_choice = { type: "function", function: { name: "shell" } };
-    } else if (tcType && tcType !== "function" && tcType !== "allowed_tools") {
+    } else if (tcType === "allowed_tools") {
+      const mode = toString(tc.mode);
+      if (mode !== "auto" && mode !== "required") {
+        throw unsupportedFeature(
+          `Unsupported Responses API feature: allowed_tools mode '${mode || "missing"}' is not supported by omniroute`
+        );
+      }
+      if (!Array.isArray(tc.tools) || tc.tools.length === 0) {
+        throw unsupportedFeature(
+          "Unsupported Responses API feature: allowed_tools requires at least one function tool"
+        );
+      }
+
+      const allowedNames = new Set<string>();
+      for (const allowedValue of tc.tools) {
+        const allowed = toRecord(allowedValue);
+        const allowedType = toString(allowed.type);
+        const allowedName = toString(allowed.name).trim();
+        if (allowedType !== "function" || !allowedName) {
+          throw unsupportedFeature(
+            `Unsupported Responses API feature: allowed_tools descriptor type '${allowedType || "missing"}' cannot be represented in Chat Completions`
+          );
+        }
+        allowedNames.add(allowedName);
+      }
+
+      const chatTools = Array.isArray(result.tools) ? result.tools : [];
+      const availableNames = new Set(
+        chatTools
+          .map((toolValue) => toString(toRecord(toRecord(toolValue).function).name))
+          .filter(Boolean)
+      );
+      const missingNames = [...allowedNames].filter((name) => !availableNames.has(name));
+      if (missingNames.length > 0) {
+        throw unsupportedFeature(
+          `Unsupported Responses API feature: allowed_tools references unavailable function tool(s): ${missingNames.join(", ")}`
+        );
+      }
+
+      result.tools = chatTools.filter((toolValue) =>
+        allowedNames.has(toString(toRecord(toRecord(toolValue).function).name))
+      );
+      if (result.tools.length === 0) {
+        throw unsupportedFeature(
+          "Unsupported Responses API feature: allowed_tools resolved to zero Chat Completions function tools"
+        );
+      }
+      result.tool_choice = mode;
+    } else if (tcType && tcType !== "function") {
       // Built-in tool types (web_search_preview, file_search, etc.) have no Chat equivalent
       throw unsupportedFeature(
         `Unsupported Responses API feature: tool_choice type '${tcType}' is not supported by omniroute`
@@ -483,8 +613,12 @@ export function openaiResponsesToOpenAIRequest(
   }
 
   // Cleanup Responses API specific fields
-  // Note: prompt_cache_key is intentionally preserved — it is used by Codex and other
-  // providers as a cache-affinity signal. Stripping it breaks prompt caching (#517).
+  // Note: prompt_cache_key is intentionally preserved for OpenAI destinations — it is
+  // used by Codex as a cache-affinity signal and stripping it unconditionally broke
+  // prompt caching (#517). But #517's fix never added a provider gate, so it leaked to
+  // every destination, OpenAI or not — a strict non-OpenAI upstream (NVIDIA) 400s on the
+  // unrecognized field (#7533). Strip it for any non-OpenAI destination.
+  if (!isOpenAIDestination) delete result.prompt_cache_key;
   delete result.input;
   delete result.instructions;
   delete result.include;
@@ -524,6 +658,12 @@ export function openaiResponsesToOpenAIRequest(
   // Completions equivalent. Strict non-OpenAI upstreams (e.g. NVIDIA NIM) reject
   // it with HTTP 400 "Unsupported parameter(s): truncation" (#2311).
   delete result.truncation;
+  // These fields configure Responses-owned state, caching, and tool execution limits.
+  // Chat Completions has no equivalent and strict compatible endpoints reject them.
+  delete result.max_tool_calls;
+  delete result.conversation;
+  delete result.prompt_cache_options;
+  delete result.prompt_cache_retention;
 
   return result;
 }

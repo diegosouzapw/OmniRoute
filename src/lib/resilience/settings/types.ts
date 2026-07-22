@@ -17,6 +17,13 @@ export interface RequestQueueSettings {
   minTimeBetweenRequestsMs: number;
   concurrentRequests: number;
   maxWaitMs: number;
+  /**
+   * Issue #6593: opt-in admission cap on the local rate-limit queue. When the
+   * queue already holds `maxQueueDepth` requests, a new request is
+   * fast-rejected (429 `queue_full`) instead of joining the queue. Default 0
+   * = disabled, preserving the unbounded-queue behavior. Bounded 0-100000.
+   */
+  maxQueueDepth: number;
 }
 
 export interface ConnectionCooldownProfileSettings {
@@ -136,6 +143,22 @@ export interface QuotaPreflightSettings {
   providerWindowDefaults: Record<string, Record<string, number>>;
 }
 
+/**
+ * #6846 Phase 1: per-provider operator overrides for the header-less "provider
+ * default" static budget (`open-sse/services/providerDefaultRateLimit.ts`) and its
+ * companion per-connection concurrency cap (`rateLimitSemaphore.ts`). Keyed by
+ * provider id (e.g. `"nvidia"`). A missing/0 field falls back to that provider's
+ * static default — this is a ceiling override, not a new rate-limit mechanism.
+ * Empty by default; only providers with a registered static default (currently
+ * only `nvidia`) read from this map.
+ */
+export interface ProviderQuotaOverrideSettings {
+  /** Overrides the static sliding-window requests-per-minute budget. */
+  rpm?: number;
+  /** Overrides the static per-connection concurrency cap. */
+  concurrency?: number;
+}
+
 export interface StreamRecoverySettings {
   /**
    * Opt-in transparent recovery of truncated upstream streams (free-claude-code port).
@@ -167,6 +190,7 @@ export interface ResilienceSettings {
   providerCooldown: ProviderCooldownSettings;
   quotaPreflight: QuotaPreflightSettings;
   streamRecovery: StreamRecoverySettings;
+  providerQuotaOverrides: Record<string, ProviderQuotaOverrideSettings>;
 }
 
 export interface ResilienceSettingsPatch {
@@ -179,4 +203,5 @@ export interface ResilienceSettingsPatch {
   providerCooldown?: Partial<ProviderCooldownSettings>;
   quotaPreflight?: Partial<QuotaPreflightSettings>;
   streamRecovery?: Partial<StreamRecoverySettings>;
+  providerQuotaOverrides?: Record<string, Partial<ProviderQuotaOverrideSettings>>;
 }

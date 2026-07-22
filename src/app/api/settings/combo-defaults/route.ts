@@ -3,6 +3,7 @@ import { getSettings, updateSettings } from "@/lib/localDb";
 import { updateComboDefaultsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isPaidModelTarget } from "@/shared/utils/freeModels";
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
   "timeoutMs",
@@ -95,6 +96,30 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const body = validation.data;
+
+    // #6540: reject a paid-only handoffModel target when hidePaidModels is on.
+    // Fails open on "unknown" (aliases/combo names) — mirrors the settings
+    // route's PAID_MODEL_TARGET_BLOCKED check.
+    if (
+      typeof body.comboDefaults?.handoffModel === "string" &&
+      body.comboDefaults.handoffModel.trim() !== ""
+    ) {
+      const currentSettings: any = await getSettings();
+      if (currentSettings?.hidePaidModels === true) {
+        if (isPaidModelTarget(body.comboDefaults.handoffModel) === "paid") {
+          return NextResponse.json(
+            {
+              error: {
+                code: "PAID_MODEL_TARGET_BLOCKED",
+                message:
+                  "This field cannot target a paid-only model while 'Hide paid models' is enabled.",
+              },
+            },
+            { status: 400 }
+          );
+        }
+      }
+    }
 
     const updates: Record<string, any> = {};
 

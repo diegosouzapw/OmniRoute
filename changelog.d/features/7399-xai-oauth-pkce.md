@@ -1,0 +1,1 @@
+- **feat(providers):** Add a first-class xAI OAuth PKCE provider for `api.x.ai` models, including Grok 4.5 and refresh-token rotation ([#7399](https://github.com/diegosouzapw/OmniRoute/pull/7399)) — thanks @fenix007

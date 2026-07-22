@@ -1,0 +1,1 @@
+- README: replaced the free-tier budget preview mockup with a single detailed animated SMIL card (`docs/diagrams/free-tier-budget.svg`) — ~1.6B/mo hero, honest-math panel (15 providers ToS-flagged), 21-pool budget bar, full per-model grid, ~616M signup-credit chips, un-countable providers + $10 OpenRouter top-up, live footer (#7665)

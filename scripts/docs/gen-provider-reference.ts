@@ -41,6 +41,12 @@ type ProviderRecord = {
   hasFree?: boolean;
   deprecated?: boolean;
   deprecationReason?: string;
+  /**
+   * #7286: native function calling / prompt-emulated via webTools.ts / silently dropped.
+   * Loosely typed `string` (not a literal union) — the source provider-catalog object
+   * literals infer widened `string` for this field and are passed in as-is.
+   */
+  toolCalling?: string;
   [k: string]: unknown;
 };
 
@@ -54,13 +60,19 @@ function escapeCell(value: string | undefined): string {
   return value.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
-function row(p: ProviderRecord, category: string): string {
+function row(p: ProviderRecord, category: string, includeToolCalling: boolean): string {
   const alias = p.alias ? `\`${p.alias}\`` : "—";
   const hint = p.deprecated
     ? `⚠️ **DEPRECATED.** ${escapeCell(p.deprecationReason)}`
     : escapeCell(p.authHint || p.freeNote);
   const link = p.website ? `[link](${p.website})` : "—";
-  return `| \`${p.id}\` | ${alias} | ${escapeCell(p.name)} | ${category} | ${link} | ${hint} |`;
+  const base = `| \`${p.id}\` | ${alias} | ${escapeCell(p.name)} | ${category} | ${link} | ${hint} |`;
+  return includeToolCalling ? `${base} ${escapeCell(p.toolCalling)} |` : base;
+}
+
+/** #7286: only render the "Tool calling" column when at least one record in the section sets it. */
+function hasToolCallingColumn(rows: ProviderRecord[]): boolean {
+  return rows.some((p) => typeof p.toolCalling === "string");
 }
 
 function categoryTags(id: string): string[] {
@@ -82,11 +94,20 @@ function buildSection(title: string, rows: ProviderRecord[], category: string): 
   if (rows.length === 0) return "";
   const lines: string[] = [];
   lines.push(`## ${title} (${rows.length})\n`);
-  lines.push("| ID | Alias | Name | Tags | Website | Notes |");
-  lines.push("|----|-------|------|------|---------|-------|");
+  const includeToolCalling = hasToolCallingColumn(rows);
+  lines.push(
+    includeToolCalling
+      ? "| ID | Alias | Name | Tags | Website | Notes | Tool calling |"
+      : "| ID | Alias | Name | Tags | Website | Notes |"
+  );
+  lines.push(
+    includeToolCalling
+      ? "|----|-------|------|------|---------|-------|--------------|"
+      : "|----|-------|------|------|---------|-------|"
+  );
   for (const p of sortById(rows)) {
     const tags = [category, ...categoryTags(p.id)].join(", ");
-    lines.push(row(p, tags));
+    lines.push(row(p, tags, includeToolCalling));
   }
   lines.push("");
   return lines.join("\n");
@@ -126,6 +147,10 @@ function buildHeader(total: number): string {
     "- **System** — OmniRoute-internal providers (loopback, etc.)",
     "",
     "Additional tags: `image`, `video`, `aggregator`, `enterprise`, `embed/rerank`, `self-hosted`.",
+    "",
+    "`Tool calling` (where shown): `native` — real function-calling API; `emulated` — the " +
+      "`tools` array is prompt-emulated via `webTools.ts` (regex-parsed `<tool>{...}</tool>` " +
+      "blocks); `none` — `tools` is currently silently dropped. See #7286.",
     "",
     "Use the dashboard at `/dashboard/providers` to enable, configure, and test each provider.",
     "",

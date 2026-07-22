@@ -353,11 +353,13 @@ test("v1SearchSchema validates correct input", async () => {
     provider: "serper-search",
     max_results: 10,
     search_type: "web",
+    time_range: "hour",
   });
   assert.ok(result.success);
   assert.equal(result.data.query, "test query");
   assert.equal(result.data.provider, "serper-search");
   assert.equal(result.data.max_results, 10);
+  assert.equal(result.data.time_range, "hour");
 });
 
 test("v1SearchSchema rejects empty query", async () => {

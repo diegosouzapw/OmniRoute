@@ -11,7 +11,7 @@ import { getProviderCategory, getRegistryEntry } from "../config/providerRegistr
 // NOT a silent "fake success" failure. Used to avoid rewriting a valid HTTP 200
 // (e.g. a Claude Code `max_tokens: 1` connectivity ping) into a synthetic 502.
 const LEGIT_EMPTY_CLAUDE_STOP = new Set(["max_tokens", "tool_use"]);
-const LEGIT_EMPTY_OPENAI_FINISH = new Set(["length", "tool_calls"]);
+const LEGIT_EMPTY_OPENAI_FINISH = new Set(["length", "tool_calls", "content_filter"]);
 
 export function isEmptyContentResponse(responseBody: unknown): boolean {
   if (!responseBody || typeof responseBody !== "object") return false;
@@ -99,6 +99,19 @@ export function isContextOverflow(errorText: string): boolean {
   return CONTEXT_OVERFLOW_REGEX.test(String(errorText || ""));
 }
 
+// Matches phrasing like `Model minimax-m3-free is not supported` or
+// `model "gpt-9" is not supported` — free-tier/aggregator providers name the
+// specific model in the sentence instead of using a fixed fragment like
+// "model not supported". Shared by modelFamilyFallback.ts's
+// isModelUnavailableError() (400/403/404) and this module's 401 branch below,
+// so the same phrasing locks the model out on either status. Bounded
+// quantifier ({0,80}) keeps it ReDoS-safe. (#7268)
+const MODEL_NAMED_UNSUPPORTED_REGEX = /\bmodel\b[^\n]{0,80}\bis not supported\b/i;
+
+export function containsModelUnavailableMessage(errorMessage: string): boolean {
+  return MODEL_NAMED_UNSUPPORTED_REGEX.test(String(errorMessage || "").toLowerCase());
+}
+
 function responseBodyToString(responseBody: unknown): string {
   if (typeof responseBody === "string") return responseBody;
   if (responseBody !== null && typeof responseBody === "object") {
@@ -157,6 +170,16 @@ export function classifyProviderError(
   if (statusCode === 401) {
     if (oauthInvalid) {
       return PROVIDER_ERROR_TYPES.OAUTH_INVALID_TOKEN;
+    }
+    // Some free-tier/aggregator providers return 401 (instead of 404) for a
+    // model the account isn't entitled to, with a body like "Model X is not
+    // supported". Without this check the error falls through to a generic
+    // UNAUTHORIZED classification, which never triggers lockModel() in
+    // chatCore.ts — auto-combo keeps re-selecting the same broken model on
+    // every request. Detect the phrasing here, same as the 404 branch above
+    // always does regardless of body content. (#7268)
+    if (containsModelUnavailableMessage(bodyStr)) {
+      return PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND;
     }
     return accountDeactivated
       ? PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED

@@ -41,6 +41,9 @@ export const AUTO_TEMPLATE_VARIANTS: Record<string, AutoVariant | undefined> = {
   "auto/claude-opus": "smart",
   "auto/claude-sonnet": "coding",
   "auto/best-free": "cheap",
+  // Chaos mode — parallel dispatch to top-N stable models
+  "auto/best-chaos": "chaos",
+  "auto/chaos": "chaos",
 };
 
 /**
@@ -62,8 +65,7 @@ export const AUTO_SUFFIX_VARIANTS: string[] = [
 ];
 
 type ResolvedAutoVariant =
-  | { recognized: true; variant: AutoVariant | undefined }
-  | { recognized: false };
+  { recognized: true; variant: AutoVariant | undefined } | { recognized: false };
 
 export function resolveAutoVariant(modelStr: string, suffix: string): ResolvedAutoVariant {
   if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, modelStr)) {

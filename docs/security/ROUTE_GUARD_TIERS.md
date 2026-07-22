@@ -73,13 +73,26 @@ Today the only bypassable prefix is `/api/mcp/`. `/api/cli-tools/runtime/` and
 subprocesses (`npm install`, `node`), which is the exact CVE class the
 LOCAL_ONLY tier exists to prevent.
 
-| Request                                     | Path                       | Result              |
-| ------------------------------------------- | -------------------------- | ------------------- |
-| Non-loopback, no Bearer                     | `/api/mcp/*`               | 403 LOCAL_ONLY      |
-| Non-loopback, Bearer with `manage` scope    | `/api/mcp/*`               | Allow               |
-| Non-loopback, Bearer without `manage` scope | `/api/mcp/*`               | 403 LOCAL_ONLY      |
-| Non-loopback, Bearer with `manage` scope    | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
-| Loopback, any/no Bearer                     | any LOCAL_ONLY             | Allow (gate passes) |
+**#7895 — `mcp:connect` narrow scope:** the `/api/mcp/` carve-out ALSO accepts
+a Bearer key holding the narrow `mcp:connect` scope
+(`src/shared/constants/managementScopes.ts::MCP_CONNECT_SCOPE`), checked via
+`hasMcpConnectOrManageScope()` in `src/server/authz/policies/management.ts`.
+This is scoped to `/api/mcp/` ONLY — `mcp:connect` grants nothing on any other
+management route (including every other LOCAL_ONLY bypass prefix, should one
+ever be added), and it is deliberately excluded from
+`MANAGEMENT_API_KEY_SCOPES`. A key holding `manage`/`admin` still passes the
+carve-out exactly as before; `mcp:connect` is a lower-privilege alternative
+for remote MCP-only callers who should not need broad management access.
+
+| Request                                          | Path                       | Result              |
+| ------------------------------------------------- | -------------------------- | ------------------- |
+| Non-loopback, no Bearer                           | `/api/mcp/*`               | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `manage` scope          | `/api/mcp/*`               | Allow               |
+| Non-loopback, Bearer with `mcp:connect` scope     | `/api/mcp/*`               | Allow               |
+| Non-loopback, Bearer without `manage`/`mcp:connect` | `/api/mcp/*`             | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `mcp:connect` scope     | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
+| Non-loopback, Bearer with `manage` scope          | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY      |
+| Loopback, any/no Bearer                           | any LOCAL_ONLY             | Allow (gate passes) |
 
 #### Operator guidance & auditing
 

@@ -201,6 +201,55 @@ function rowToPool(row: PoolRow, allocations: PoolAllocation[]): QuotaPool {
   };
 }
 
+function batchBuildPools(rows: PoolRow[]): QuotaPool[] {
+  if (rows.length === 0) return [];
+  const poolIds = rows.map((r) => r.id);
+  const ph = poolIds.map(() => "?").join(",");
+  const db = getDb();
+
+  // Batch allocations: 1 query for all pools
+  const allocRows = db
+    .prepare<AllocationRow>(
+      `SELECT pool_id, api_key_id, weight, cap_value, cap_unit, policy FROM quota_allocations WHERE pool_id IN (${ph})`
+    )
+    .all(...poolIds);
+  const allocsByPool = new Map<string, AllocationRow[]>();
+  for (const row of allocRows) {
+    const list = allocsByPool.get(row.pool_id);
+    if (list) {
+      list.push(row);
+    } else {
+      allocsByPool.set(row.pool_id, [row]);
+    }
+  }
+
+  // Batch connections: 1 query for all pools
+  const connRows = db
+    .prepare<{ pool_id: string; connection_id: string }>(
+      `SELECT pool_id, connection_id FROM quota_pool_connections WHERE pool_id IN (${ph}) ORDER BY created_at ASC`
+    )
+    .all(...poolIds);
+  const connsByPool = new Map<string, string[]>();
+  for (const row of connRows) {
+    const list = connsByPool.get(row.pool_id);
+    if (list) {
+      list.push(row.connection_id);
+    } else {
+      connsByPool.set(row.pool_id, [row.connection_id]);
+    }
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    connectionId: row.connection_id,
+    connectionIds: connsByPool.get(row.id) || [row.connection_id],
+    name: row.name,
+    groupId: row.group_id || "group-demo",
+    createdAt: row.created_at,
+    allocations: (allocsByPool.get(row.id) || []).map(rowToAllocation),
+  }));
+}
+
 function getAllocations(poolId: string): PoolAllocation[] {
   const rows = getDb()
     .prepare<AllocationRow>(
@@ -222,25 +271,51 @@ function makeId(): string {
  * List all quota pools that belong to a specific group.
  * Returns an empty array when no pools match the given groupId.
  */
-export function getPoolsByGroup(groupId: string): QuotaPool[] {
+export function getPoolsByGroup(groupId: string, limit?: number, offset?: number): QuotaPool[] {
+  let sql =
+    "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE group_id = ? ORDER BY created_at ASC";
+  const params: unknown[] = [groupId];
+  if (limit !== undefined && limit > 0) {
+    sql += " LIMIT ?";
+    params.push(limit);
+    if (offset !== undefined) {
+      sql += " OFFSET ?";
+      params.push(offset);
+    }
+  }
   const rows = getDb()
-    .prepare<PoolRow>(
-      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE group_id = ? ORDER BY created_at ASC"
-    )
-    .all(groupId);
-  return rows.map((row) => rowToPool(row, getAllocations(row.id)));
+    .prepare<PoolRow>(sql)
+    .all(...params);
+  return batchBuildPools(rows);
 }
 
 /**
  * List all quota pools with their allocations.
  */
-export function listPools(): QuotaPool[] {
+export function listPools(options?: { limit?: number; offset?: number }): {
+  items: QuotaPool[];
+  total: number;
+} {
+  const limit = options?.limit;
+  const offset = options?.offset;
+  let sql =
+    "SELECT id, connection_id, name, group_id, created_at FROM quota_pools ORDER BY created_at ASC";
+  const params: unknown[] = [];
+  if (limit !== undefined && limit > 0) {
+    sql += " LIMIT ?";
+    params.push(limit);
+    if (offset !== undefined) {
+      sql += " OFFSET ?";
+      params.push(offset);
+    }
+  }
   const rows = getDb()
-    .prepare<PoolRow>(
-      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools ORDER BY created_at ASC"
-    )
-    .all();
-  return rows.map((row) => rowToPool(row, getAllocations(row.id)));
+    .prepare<PoolRow>(sql)
+    .all(...params);
+  const totalRow = getDb().prepare("SELECT count(*) as cnt FROM quota_pools").get() as {
+    cnt: number;
+  };
+  return { items: batchBuildPools(rows), total: totalRow.cnt };
 }
 
 /**
@@ -253,7 +328,7 @@ export function getPool(id: string): QuotaPool | null {
     )
     .get(id);
   if (!row) return null;
-  return rowToPool(row, getAllocations(row.id));
+  return batchBuildPools([row])[0];
 }
 
 /**

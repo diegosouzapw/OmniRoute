@@ -10,9 +10,17 @@
  *
  * When such an id arrives on a request we strip the prefix back to the real
  * `<provider>/<model>` and suppress reasoning (`thinking:{type:"disabled"}` for the
- * Claude/Messages path; drop `reasoning`/`reasoning_effort` for the OpenAI path).
+ * Claude/Messages path; `reasoning_effort:"none"` for the OpenAI path — #6879: a
+ * thinks-by-default OpenAI-shape model left with no reasoning field at all keeps
+ * thinking with its provider default, so the alias must express "none" rather than
+ * merely deleting the field. The `reasoning` object is still dropped, since a
+ * Responses-shaped client's `reasoning:{...}` cannot itself express "none" and the
+ * translator promotes `reasoning_effort` into it downstream when absent).
  * The existing `normalizeThinkingForModel()` still runs downstream, so models that
- * reject `disabled` are handled exactly as before.
+ * reject `disabled` are handled exactly as before, and the per-lane
+ * unsupported-param strip (open-sse/translator/paramSupport.ts) still removes
+ * `reasoning_effort` for lanes known to reject it, falling back to today's
+ * delete-only behavior for those.
  *
  * Catalog visibility is gated (see `shouldExposeNoThinkingAlias`): we only advertise
  * the variant for Claude-family models that actually support thinking AND honor
@@ -61,8 +69,15 @@ export function applyNoThinkingAlias(
   body.model = realModel;
   if (opts.claudeFormat === true) {
     body.thinking = { type: "disabled" };
+    delete body.reasoning_effort;
+  } else {
+    // #6879: express "none" instead of deleting, so a thinks-by-default model
+    // actually stops thinking instead of falling back to its provider default.
+    // Lanes that reject reasoning_effort are still cleaned up downstream by the
+    // per-lane unsupported-param strip (paramSupport.ts), which removes it just
+    // like it would have been removed here — same end state, correct on more lanes.
+    body.reasoning_effort = "none";
   }
-  delete body.reasoning_effort;
   delete body.reasoning;
   return { applied: true, realModel };
 }

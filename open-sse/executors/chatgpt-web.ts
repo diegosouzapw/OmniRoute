@@ -2565,6 +2565,17 @@ async function waitForImageViaWebSocket(
           conversation_id: innerPayload?.conversation_id as string | undefined,
         });
       }
+      // #7357: some deployments deliver the completion via update_content.messages[]
+      // (plural array of { message: {...} } wrappers), not the singular field above.
+      for (const entry of Array.isArray(updateContent?.messages) ? updateContent.messages : []) {
+        const wrapped = (entry as { message?: unknown } | undefined)?.message;
+        if (wrapped) {
+          candidates.push({
+            message: wrapped as ChatGptStreamEvent["message"],
+            conversation_id: innerPayload?.conversation_id as string | undefined,
+          });
+        }
+      }
       if (innerPayload?.message) {
         candidates.push({
           message: innerPayload.message as ChatGptStreamEvent["message"],

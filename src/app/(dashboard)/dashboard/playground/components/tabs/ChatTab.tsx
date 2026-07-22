@@ -3,6 +3,7 @@
 // src/app/(dashboard)/dashboard/playground/components/tabs/ChatTab.tsx
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import MarkdownMessage from "../MarkdownMessage";
 import TokenCostCounter from "../TokenCostCounter";
 import { useStreamMetrics } from "../../hooks/useStreamMetrics";
@@ -30,6 +31,7 @@ interface ChatTabProps {
  * - Regenerate button
  */
 export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) {
+  const t = useTranslations("playground");
   const pricing = getModelPricing(configState.model);
   const streamMetrics = useStreamMetrics(pricing ?? undefined);
 
@@ -53,10 +55,14 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
     if (configState.systemPrompt.trim()) {
       out.push({ role: "system", content: configState.systemPrompt });
     }
-    out.push(...chatMessages.filter((m) => m.role !== "system").map((m) => ({
-      role: m.role,
-      content: m.content,
-    })));
+    out.push(
+      ...chatMessages
+        .filter((m) => m.role !== "system")
+        .map((m) => ({
+          role: m.role,
+          content: m.content,
+        }))
+    );
     return out;
   }
 
@@ -92,130 +98,132 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
   }
 
   const doSend = async (chatMessages: Message[], appendIndex?: number) => {
-      if (!configState.model) {
-        setError("Set a model in the config pane.");
+    if (!configState.model) {
+      setError(t("setModelInConfigFirst"));
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResponseStatus(null);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const startTime = Date.now();
+
+    streamMetrics.start();
+
+    // If regenerating, replace the last assistant message; otherwise append
+    const targetIndex = appendIndex ?? chatMessages.length;
+    setMessages((prev) => {
+      const next = [...prev];
+      if (appendIndex !== undefined && next[appendIndex]?.role === "assistant") {
+        next[appendIndex] = { role: "assistant", content: "" };
+      } else {
+        next.push({ role: "assistant", content: "" });
+      }
+      return next;
+    });
+
+    try {
+      const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
+
+      const res = await fetch("/api/v1/chat/completions", {
+        method: "POST",
+        headers: fetchHeaders,
+        body: JSON.stringify(buildRequestBody(chatMessages)),
+        signal: controller.signal,
+      });
+
+      setResponseStatus(res.status);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const errMsg: string =
+          (errData as { error?: { message?: string } }).error?.message ||
+          t("httpError", { status: res.status });
+        setError(errMsg);
+        setMessages((prev) => prev.slice(0, targetIndex));
+        setLoading(false);
+        setResponseDuration(Date.now() - startTime);
+        streamMetrics.reset();
         return;
       }
 
-      setLoading(true);
-      setError(null);
-      setResponseStatus(null);
+      let firstChunk = true;
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantResponse = "";
+      let usageData: { prompt_tokens?: number; completion_tokens?: number } | undefined;
 
-      const controller = new AbortController();
-      abortRef.current = controller;
-      const startTime = Date.now();
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-      streamMetrics.start();
+          if (firstChunk) {
+            streamMetrics.onFirstChunk();
+            firstChunk = false;
+          }
 
-      // If regenerating, replace the last assistant message; otherwise append
-      const targetIndex = appendIndex ?? chatMessages.length;
-      setMessages((prev) => {
-        const next = [...prev];
-        if (appendIndex !== undefined && next[appendIndex]?.role === "assistant") {
-          next[appendIndex] = { role: "assistant", content: "" };
-        } else {
-          next.push({ role: "assistant", content: "" });
-        }
-        return next;
-      });
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n");
 
-      try {
-        const fetchHeaders: Record<string, string> = { "Content-Type": "application/json" };
-
-        const res = await fetch("/api/v1/chat/completions", {
-          method: "POST",
-          headers: fetchHeaders,
-          body: JSON.stringify(buildRequestBody(chatMessages)),
-          signal: controller.signal,
-        });
-
-        setResponseStatus(res.status);
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          const errMsg: string = (errData as { error?: { message?: string } }).error?.message || `Error ${res.status}`;
-          setError(errMsg);
-          setMessages((prev) => prev.slice(0, targetIndex));
-          setLoading(false);
-          setResponseDuration(Date.now() - startTime);
-          streamMetrics.reset();
-          return;
-        }
-
-        let firstChunk = true;
-        const reader = res.body?.getReader();
-        const decoder = new TextDecoder();
-        let assistantResponse = "";
-        let usageData: { prompt_tokens?: number; completion_tokens?: number } | undefined;
-
-        if (reader) {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            if (firstChunk) {
-              streamMetrics.onFirstChunk();
-              firstChunk = false;
-            }
-
-            const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split("\n");
-
-            for (const line of lines) {
-              if (line === "data: [DONE]") continue;
-              if (line.startsWith("data: ")) {
-                try {
-                  const parsed = JSON.parse(line.slice(6)) as {
-                    choices?: Array<{ delta?: { content?: string } }>;
-                    usage?: { prompt_tokens?: number; completion_tokens?: number };
-                  };
-                  const delta = parsed.choices?.[0]?.delta?.content ?? "";
-                  if (delta) {
-                    assistantResponse += delta;
-                    streamMetrics.onChunk(1);
-                    setMessages((prev) => {
-                      const next = [...prev];
-                      const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
-                      next[idx] = { ...next[idx], content: assistantResponse };
-                      return next;
-                    });
-                  }
-                  if (parsed.usage) {
-                    usageData = parsed.usage;
-                  }
-                } catch {
-                  // ignore parse errors for partial chunks
+          for (const line of lines) {
+            if (line === "data: [DONE]") continue;
+            if (line.startsWith("data: ")) {
+              try {
+                const parsed = JSON.parse(line.slice(6)) as {
+                  choices?: Array<{ delta?: { content?: string } }>;
+                  usage?: { prompt_tokens?: number; completion_tokens?: number };
+                };
+                const delta = parsed.choices?.[0]?.delta?.content ?? "";
+                if (delta) {
+                  assistantResponse += delta;
+                  streamMetrics.onChunk(1);
+                  setMessages((prev) => {
+                    const next = [...prev];
+                    const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
+                    next[idx] = { ...next[idx], content: assistantResponse };
+                    return next;
+                  });
                 }
+                if (parsed.usage) {
+                  usageData = parsed.usage;
+                }
+              } catch {
+                // ignore parse errors for partial chunks
               }
             }
           }
         }
-
-        streamMetrics.finish(usageData);
-        // metrics state will update asynchronously; snapshot from refs via computeMetrics directly
-        const metricsSnapshot = streamMetrics.metrics;
-
-        // Attach metrics to the assistant message
-        setMessages((prev) => {
-          const next = [...prev];
-          const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
-          next[idx] = { ...next[idx], metrics: metricsSnapshot };
-          return next;
-        });
-
-        onMetricsUpdate?.(metricsSnapshot);
-      } catch (err: unknown) {
-        const e = err as { name?: string; message?: string };
-        if (e.name === "AbortError") {
-          setError("Request cancelled");
-        } else {
-          setError(e.message ?? "Network error");
-        }
-        streamMetrics.reset();
       }
 
-      setResponseDuration(Date.now() - startTime);
-      setLoading(false);
+      streamMetrics.finish(usageData);
+      // metrics state will update asynchronously; snapshot from refs via computeMetrics directly
+      const metricsSnapshot = streamMetrics.metrics;
+
+      // Attach metrics to the assistant message
+      setMessages((prev) => {
+        const next = [...prev];
+        const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
+        next[idx] = { ...next[idx], metrics: metricsSnapshot };
+        return next;
+      });
+
+      onMetricsUpdate?.(metricsSnapshot);
+    } catch (err: unknown) {
+      const e = err as { name?: string; message?: string };
+      if (e.name === "AbortError") {
+        setError(t("requestCancelled"));
+      } else {
+        setError(e.message ?? t("networkError"));
+      }
+      streamMetrics.reset();
+    }
+
+    setResponseDuration(Date.now() - startTime);
+    setLoading(false);
   };
 
   const handleSend = async () => {
@@ -271,11 +279,13 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
       <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-bg-alt text-xs text-text-muted">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px]">chat</span>
-          <span className="font-medium">Chat</span>
+          <span className="font-medium">{t("tabChat")}</span>
           {responseStatus !== null && (
             <span
               className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                responseStatus < 400 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                responseStatus < 400
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
               }`}
             >
               {responseStatus}
@@ -288,16 +298,16 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
             <button
               onClick={() => void handleRegenerate()}
               className="flex items-center gap-1 text-xs text-text-muted hover:text-text-main transition-colors"
-              title="Regenerate last response"
+              title={t("regenerateLastResponse")}
             >
               <span className="material-symbols-outlined text-[14px]">refresh</span>
-              Regenerate
+              {t("regenerate")}
             </button>
           )}
           <button
             onClick={handleClear}
             className="p-1 rounded hover:bg-red-500/10 text-text-muted hover:text-red-500 transition-colors"
-            title="Clear chat"
+            title={t("clearChat")}
           >
             <span className="material-symbols-outlined text-[16px]">delete</span>
           </button>
@@ -310,9 +320,9 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
           <div className="flex items-center justify-center h-full text-text-muted text-sm">
             <div className="text-center space-y-2">
               <span className="material-symbols-outlined text-[48px] text-text-muted/30">chat</span>
-              <p>Start a conversation — type a message below</p>
+              <p>{t("startConversation")}</p>
               {!configState.model && (
-                <p className="text-amber-500 text-xs">Set a model in the config pane first</p>
+                <p className="text-amber-500 text-xs">{t("setModelInConfigFirst")}</p>
               )}
             </div>
           </div>
@@ -328,7 +338,7 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
               }`}
             >
               <span className="text-[10px] text-text-muted uppercase mb-1 px-1">
-                {msg.role}
+                {t(`role.${msg.role}`)}
               </span>
               <div
                 className={`px-4 py-2.5 rounded-2xl text-sm ${
@@ -360,12 +370,14 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
         {/* Loading indicator */}
         {loading && messages[messages.length - 1]?.role === "user" && (
           <div className="flex flex-col max-w-[85%] mr-auto items-start">
-            <span className="text-[10px] text-text-muted uppercase mb-1 px-1">assistant</span>
+            <span className="text-[10px] text-text-muted uppercase mb-1 px-1">
+              {t("role.assistant")}
+            </span>
             <div className="px-4 py-2 rounded-2xl text-sm bg-bg-alt border border-border rounded-tl-sm text-text-muted flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px] animate-spin">
                 progress_activity
               </span>
-              Generating...
+              {t("generating")}
             </div>
           </div>
         )}
@@ -385,7 +397,7 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message... (Enter to send, Shift+Enter for newline)"
+          placeholder={t("typeMessageWithShortcut")}
           className="flex-1 min-h-[44px] max-h-[120px] bg-surface border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-y"
           rows={1}
           disabled={loading}
@@ -396,7 +408,7 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm text-text-muted hover:text-text-main hover:bg-black/5 transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[16px]">stop</span>
-            Stop
+            {t("stop")}
           </button>
         ) : (
           <button
@@ -405,7 +417,7 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[16px]">send</span>
-            Send
+            {t("send")}
           </button>
         )}
       </div>

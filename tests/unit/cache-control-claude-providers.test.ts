@@ -11,7 +11,6 @@ describe("Cache Control Policy - Claude Protocol Providers", () => {
     assert.equal(providerSupportsCaching("claude", "claude"), true);
     assert.equal(providerSupportsCaching("anthropic", "claude"), true);
     assert.equal(providerSupportsCaching("zai", "claude"), true);
-    assert.equal(providerSupportsCaching("qwen", "openai"), true);
     assert.equal(providerSupportsCaching("deepseek", "openai"), true);
 
     // Claude-protocol providers NOT in CACHING_PROVIDERS set

@@ -284,5 +284,27 @@ export function detectMalformedNonStream(resp: unknown): MalformedReason | null 
   return null;
 }
 
+export function describeMalformedNonStream(
+  resp: unknown,
+  reason: MalformedReason
+): { message: string; code: string; type: string } {
+  const body = resp && typeof resp === "object" ? (resp as Record<string, unknown>) : null;
+  if (body?.object === "response" && body.status === "failed") {
+    return {
+      message: "upstream reported a failed response without usable output",
+      code: "upstream_response_failed",
+      type: "upstream_response_error",
+    };
+  }
+  return {
+    message:
+      reason === "no_terminal"
+        ? "upstream response did not reach a terminal state"
+        : "upstream returned an empty response without usable output",
+    code: "upstream_empty_response",
+    type: "upstream_response_error",
+  };
+}
+
 // ── Test-only export ─────────────────────────────────────────────────────────
 export const __test = { describeReason };

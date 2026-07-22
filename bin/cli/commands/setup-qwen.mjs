@@ -1,156 +1,166 @@
-/**
- * omniroute setup-qwen — configure Qwen Code (QwenLM/qwen-code) for OmniRoute.
- *
- * Qwen Code is a terminal AI agent with a file-based config at
- * ~/.qwen/settings.json. For a custom OpenAI-compatible endpoint it uses a
- * `modelProviders` entry with authType "openai", baseUrl WITH /v1, and an
- * `envKey` naming the env var holding the key (secret stays in the env, never the
- * file). Remote-aware; headless test via `qwen -p "..."`.
- */
+/** Configure Qwen Code's OpenAI-compatible provider for OmniRoute. */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
-import { printHeading, printInfo, printSuccess, printError, createPrompt } from "../io.mjs";
+import path from "node:path";
+
+import {
+  mergeQwenCodeEnv,
+  mergeQwenCodeSettings,
+  normalizeQwenCodeBaseUrl,
+} from "../../../src/shared/services/qwenCodeConfig.ts";
 import { resolveActiveContext } from "../contexts.mjs";
+import { createPrompt, printError, printHeading, printInfo, printSuccess } from "../io.mjs";
 
-function ensureV1(url) {
-  const s = String(url || "").replace(/\/+$/, "");
-  return s.endsWith("/v1") ? s : `${s}/v1`;
-}
-
-/** Resolve baseUrl (WITH /v1) + apiKey from flags → active context → localhost. */
+/** Resolve base URL and key from flags, active context, then local defaults. */
 export function resolveQwenTarget(opts = {}) {
-  let root;
-  if (opts.remote) root = String(opts.remote).replace(/\/+$/, "");
-  else {
+  let root = opts.remote ? String(opts.remote) : "";
+  let context;
+
+  if (!root || !(opts.apiKey ?? opts["api-key"])) {
     try {
-      root = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT)?.baseUrl;
+      context = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
     } catch {
-      /* none */
-    }
-    if (!root) root = `http://localhost:${Number(opts.port ?? process.env.PORT ?? 20128) || 20128}`;
-  }
-  let apiKey = opts.apiKey ?? opts["api-key"];
-  if (!apiKey) {
-    try {
-      const c = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
-      apiKey = c?.accessToken || c?.apiKey;
-    } catch {
-      /* none */
+      // An active context is optional for local setup.
     }
   }
-  if (!apiKey) apiKey = process.env.OMNIROUTE_API_KEY || "";
-  return { baseUrl: ensureV1(root), apiKey };
-}
 
-/** Merge the OmniRoute modelProvider into Qwen's settings.json (preserve rest). */
-export function buildQwenSettings(existing, { baseUrl, model }) {
-  const s = existing && typeof existing === "object" ? { ...existing } : {};
-  const providers = Array.isArray(s.modelProviders)
-    ? s.modelProviders.filter((p) => p?.id !== "omniroute")
-    : [];
-  providers.push({
-    id: "omniroute",
-    name: "OmniRoute",
-    authType: "openai",
-    baseUrl,
-    envKey: "OMNIROUTE_API_KEY",
-  });
-  s.modelProviders = providers;
-  if (model) {
-    s.selectedProvider = "omniroute";
-    s.model = model;
+  if (!root) root = context?.baseUrl || "";
+  if (!root) {
+    const port = Number(opts.port ?? process.env.PORT ?? 20128) || 20128;
+    root = `http://localhost:${port}`;
   }
-  return s;
+
+  const apiKey =
+    opts.apiKey ??
+    opts["api-key"] ??
+    context?.accessToken ??
+    context?.apiKey ??
+    process.env.OMNIROUTE_API_KEY ??
+    "sk_omniroute";
+
+  return { baseUrl: normalizeQwenCodeBaseUrl(root), apiKey };
 }
 
-function readJson(path) {
-  try {
-    if (existsSync(path)) return JSON.parse(readFileSync(path, "utf8"));
-  } catch {
-    /* corrupt/missing */
+const readSettings = (filePath) => {
+  if (!existsSync(filePath)) return {};
+  const parsed = JSON.parse(readFileSync(filePath, "utf8"));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Qwen Code settings.json must contain a JSON object");
   }
-  return {};
-}
+  return parsed;
+};
 
-async function fetchModelIds(baseUrl, apiKey) {
+const readText = (filePath) => (existsSync(filePath) ? readFileSync(filePath, "utf8") : "");
+
+const writeAtomic = (filePath, content, mode) => {
+  const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   try {
-    const headers = { "Content-Type": "application/json" };
-    if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
-    const res = await fetch(`${baseUrl.replace(/\/v1$/, "")}/v1/models`, {
-      headers,
+    writeFileSync(tempPath, content, { encoding: "utf8", mode });
+    if (mode !== undefined) chmodSync(tempPath, mode);
+    renameSync(tempPath, filePath);
+  } catch (error) {
+    try {
+      unlinkSync(tempPath);
+    } catch {
+      // The temporary file may not have been created.
+    }
+    throw error;
+  }
+};
+
+const fetchModelIds = async (baseUrl, apiKey) => {
+  try {
+    const response = await fetch(`${baseUrl}/models`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
       signal: AbortSignal.timeout(8000),
     });
-    if (!res.ok) return [];
-    const body = await res.json();
-    const list = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
-    return list.map((m) => (typeof m === "string" ? m : m?.id)).filter(Boolean);
+    if (!response.ok) return [];
+    const body = await response.json();
+    const models = Array.isArray(body) ? body : (body.data ?? body.models ?? []);
+    return models.map((entry) => (typeof entry === "string" ? entry : entry?.id)).filter(Boolean);
   } catch {
     return [];
   }
-}
+};
 
 export async function runSetupQwenCommand(opts = {}) {
   const { baseUrl, apiKey } = resolveQwenTarget(opts);
   const dryRun = Boolean(opts.dryRun ?? opts["dry-run"]);
-  const configPath =
-    opts.configPath ?? opts["config-path"] ?? join(os.homedir(), ".qwen", "settings.json");
+  const settingsPath =
+    opts.configPath ?? opts["config-path"] ?? path.join(os.homedir(), ".qwen", "settings.json");
+  const envPath = opts.envPath ?? opts["env-path"] ?? path.join(path.dirname(settingsPath), ".env");
 
-  printHeading("OmniRoute → Qwen Code (openai-compatible)");
+  printHeading("OmniRoute → Qwen Code (OpenAI-compatible)");
   printInfo(`baseUrl: ${baseUrl}`);
 
-  let model = opts.model;
-  if (!model) {
-    const ids = await fetchModelIds(baseUrl, apiKey);
-    if (ids.length && !opts.yes) {
-      printInfo(`Examples: ${ids.slice(0, 20).join(", ")}${ids.length > 20 ? " …" : ""}`);
-      const prompt = createPrompt();
-      try {
-        model = await prompt.ask("Model id for Qwen");
-      } finally {
-        prompt.close();
-      }
+  let model = String(opts.model || "").trim();
+  if (!model && !opts.yes) {
+    const modelIds = await fetchModelIds(baseUrl, apiKey);
+    if (modelIds.length > 0) {
+      printInfo(`Examples: ${modelIds.slice(0, 20).join(", ")}${modelIds.length > 20 ? " …" : ""}`);
+    }
+    const prompt = createPrompt();
+    try {
+      model = String(await prompt.ask("Model id for Qwen Code")).trim();
+    } finally {
+      prompt.close();
     }
   }
+
   if (!model) {
     printError("A model is required. Pass --model <id>.");
     return 2;
   }
 
-  const merged = buildQwenSettings(readJson(configPath), { baseUrl, model });
-  const out = JSON.stringify(merged, null, 2) + "\n";
+  try {
+    const settings = mergeQwenCodeSettings(readSettings(settingsPath), { baseUrl, model });
+    const envText = mergeQwenCodeEnv(readText(envPath), apiKey);
+    const settingsText = `${JSON.stringify(settings, null, 2)}\n`;
 
-  if (dryRun) {
-    console.log("\n" + out);
-    printInfo(`[dry-run] → ${configPath}`);
-  } else {
-    mkdirSync(join(configPath, ".."), { recursive: true });
-    writeFileSync(configPath, out, "utf8");
-    printSuccess(`Wrote ${configPath}`);
+    if (dryRun) {
+      console.log(`\n${settingsText}`);
+      printInfo(`[dry-run] settings → ${settingsPath}`);
+      printInfo(`[dry-run] credential → ${envPath} (OMNIROUTE_API_KEY)`);
+      return 0;
+    }
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true, mode: 0o700 });
+    mkdirSync(path.dirname(envPath), { recursive: true, mode: 0o700 });
+    writeAtomic(settingsPath, settingsText);
+    writeAtomic(envPath, envText, 0o600);
+    printSuccess(`Wrote ${settingsPath}`);
+    printSuccess(`Updated ${envPath} (OMNIROUTE_API_KEY only)`);
+    printInfo('Run: qwen   (or headless: qwen -p "reply OK")');
+    return 0;
+  } catch (error) {
+    printError(`Failed to configure Qwen Code: ${error?.message || error}`);
+    return 1;
   }
-  printInfo(
-    "\nProvide the key (settings reference OMNIROUTE_API_KEY):  export OMNIROUTE_API_KEY=..."
-  );
-  printInfo('Then run:  qwen        (or headless: qwen -p "reply OK")');
-  return 0;
 }
 
 export function registerSetupQwen(program) {
   program
     .command("setup-qwen")
-    .description(
-      "Configure Qwen Code for OmniRoute: write ~/.qwen/settings.json (openai modelProvider)"
-    )
+    .description("Configure Qwen Code's upstream V4 modelProviders format for OmniRoute")
     .option("--port <port>", "Local OmniRoute port (ignored when --remote is set)", "20128")
-    .option("--remote <url>", "Remote OmniRoute URL, e.g. http://192.168.0.15:20128")
-    .option("--api-key <key>", "OmniRoute API key (defaults to OMNIROUTE_API_KEY env var)")
-    .option("--model <id>", "Model id for Qwen (required unless picked interactively)")
-    .option("--config-path <path>", "settings.json path (default: ~/.qwen/settings.json)")
-    .option("--yes", "Non-interactive: do not prompt (requires --model)")
-    .option("--dry-run", "Print what would be written without touching the filesystem")
+    .option("--remote <url>", "Remote OmniRoute URL")
+    .option("--api-key <key>", "OmniRoute API key")
+    .option("--model <id>", "Model id for Qwen Code")
+    .option("--config-path <path>", "Qwen Code settings.json path")
+    .option("--env-path <path>", "Qwen Code .env path")
+    .option("--yes", "Non-interactive; requires --model")
+    .option("--dry-run", "Print settings without writing files or secrets")
     .action(async (opts) => {
       const code = await runSetupQwenCommand(opts);
-      if (code !== 0) process.exit(code);
+      if (code !== 0) process.exitCode = code;
     });
 }

@@ -1,0 +1,1 @@
+- Realign the Antigravity non-streaming 429-retry test with the executor's actual contract: it returns the already-converted OpenAI `chat.completion` payload, so the test asserts that payload directly instead of re-parsing it as raw SSE (which returned `null` and failed the release-tip unit suite).

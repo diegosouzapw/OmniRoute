@@ -1,0 +1,1 @@
+- **fix(dashboard):** Public and managed tunnel endpoints now take precedence over loopback URLs in dashboard setup and copyable API configuration ([#7547](https://github.com/diegosouzapw/OmniRoute/pull/7547)) — thanks @nguyenha935

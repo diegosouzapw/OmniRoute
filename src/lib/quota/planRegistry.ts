@@ -87,6 +87,11 @@ const KNOWN_PLANS: Record<string, KnownPlanShape> = {
   // Grok Build (xAI) — rate limits from x-ratelimit-* headers:
   // Daily: 864 requests, 18M tokens (from API headers)
   // Weekly: derived from daily * 7
+  // #6844: this static estimate is now the fallback used only when the live
+  // grok-cli quota fetcher (open-sse/services/grokCliQuotaFetcher.ts) returns
+  // null (both credentials missing and upstream fetch/parse failures fail
+  // open to this static plan) — the shared weekly percent-based credit pool
+  // it estimates is not observable from local request/token counters alone.
   "grok-cli": {
     provider: "grok-cli",
     dimensions: [

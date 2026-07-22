@@ -8,7 +8,7 @@
  */
 
 import { getPool, getPoolsByGroup } from "@/lib/db/quotaPools";
-import { getProviderConnectionById } from "@/lib/db/providers";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { getApiKeyById, updateApiKeyPermissions } from "@/lib/db/apiKeys";
 import { quotaGroupSlug } from "./quotaModelNaming";
 import { getGroupName } from "@/lib/db/quotaGroups";
@@ -114,7 +114,7 @@ export async function resolveQuotaKeyScope(
           : [groupPool.connectionId];
 
       for (const connId of connIds) {
-        const connection = await getProviderConnectionById(connId);
+        const connection = await getCachedProviderConnectionById(connId);
         if (!connection) continue; // missing connection contributes nothing
 
         const provider = (connection as Record<string, unknown>).provider;

@@ -1,0 +1,1 @@
+- fix(providers): stop reporting Arena (lmarena) cookie validation as Invalid when the `/models` probe hits a 307 redirect — degrade to `unsupported` instead, and drop the stale "no registry entry" comment for lmarena (#7542)

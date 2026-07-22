@@ -1,0 +1,1 @@
+- **fix(dashboard):** include never-tested custom provider connections in the combo builder's active-provider list so their models load without requiring a manual connection test first. (thanks @fajarbossit)

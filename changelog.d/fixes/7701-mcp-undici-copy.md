@@ -1,0 +1,1 @@
+- fix(mcp): copy undici into dist/node_modules to prevent hollow-package shadowing crash (#7701)

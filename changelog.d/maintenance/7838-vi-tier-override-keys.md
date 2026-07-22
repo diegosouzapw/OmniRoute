@@ -1,0 +1,1 @@
+- **fix(i18n):** backfill the six `providers.tierOverride*` keys #7838 added to en.json into vi.json (translated with the locale's existing tier vocabulary) — their absence failed `i18n-vi-completeness` (key parity + both ICU checks) on the release tip for every fresh PR run.

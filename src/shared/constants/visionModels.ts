@@ -47,6 +47,7 @@ export const VISION_MODEL_ID_FRAGMENTS = [
   "gemini-3",
   "gemini-exp",
   "claude-3",
+  "claude-fable",
   "claude-opus-4",
   "claude-sonnet-4",
   "claude-haiku-4",

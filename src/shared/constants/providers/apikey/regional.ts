@@ -45,29 +45,58 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   "bailian-coding-plan": {
     id: "bailian-coding-plan",
     alias: "bcp",
-    name: "Alibaba Coding Plan",
+    name: "Alibaba Token Plan",
     icon: "code",
     color: "#FF6A00",
     textIcon: "BCP",
-    website: "https://www.alibabacloud.com/help/en/model-studio/coding-plan",
+    website: "https://www.alibabacloud.com/help/en/model-studio/token-plan-overview",
+    apiHint: "Use an Alibaba Token Plan key and select its Singapore or Beijing region.",
+  },
+  "qwen-cloud": {
+    id: "qwen-cloud",
+    alias: "qwc",
+    name: "Qwen Cloud",
+    icon: "cloud",
+    color: "#615CED",
+    textIcon: "QC",
+    website: "https://www.qwencloud.com/",
+    apiHint: "Use a Qwen Cloud API key and select its Global or Beijing region.",
+  },
+  "qwen-cloud-token-plan": {
+    id: "qwen-cloud-token-plan",
+    alias: "qct",
+    name: "Qwen Cloud Token Plan",
+    icon: "cloud",
+    color: "#615CED",
+    textIcon: "QCT",
+    website: "https://www.qwencloud.com/pricing/token-plan",
+    apiHint: "Use a Qwen Cloud Token Plan key and select its Singapore or Beijing region.",
   },
   kimi: {
     id: "kimi",
     alias: "kimi",
-    name: "Kimi",
+    name: "Kimi (Legacy Moonshot API)",
     icon: "psychology",
     color: "#1E3A8A",
     textIcon: "KM",
-    website: "https://platform.moonshot.ai",
+    // Kimi official-partnership aff link (2026-07) — see KIMI_PROVIDER_IDS in
+    // featuredProviders.ts. hiddenFromDashboard, so this rarely renders, but is
+    // kept in sync with moonshot's aff link for consistency.
+    website: "https://platform.kimi.ai?aff=omniroute",
+    hiddenFromDashboard: true,
   },
   "kimi-coding-apikey": {
     id: "kimi-coding-apikey",
     alias: "kmca",
-    name: "Kimi Coding (API Key)",
+    name: "Kimi Code API Key",
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
-    website: "https://www.kimi.com/code",
+    // Kimi official-partnership aff link (2026-07) — folds into the kimi-coding
+    // card (PROVIDER_CONNECTION_ALIASES in providerPageUtils.ts) so this rarely
+    // renders its own header, but stays in sync with kimi-coding's aff link.
+    website: "https://www.kimi.com/code?aff=omniroute",
+    hiddenFromDashboard: true,
   },
   minimax: {
     id: "minimax",
@@ -111,12 +140,13 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   alibaba: {
     id: "alibaba",
     alias: "ali",
-    name: "Alibaba",
+    name: "Alibaba Cloud Model Studio",
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
     website: "https://bailian.console.alibabacloud.com/",
     hasFree: false,
+    apiHint: "Use a Model Studio API key and select its Singapore or Beijing region.",
   },
   "alibaba-cn": {
     id: "alibaba-cn",
@@ -127,6 +157,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     textIcon: "AL",
     website: "https://dashscope.console.aliyun.com/",
     hasFree: false,
+    hiddenFromDashboard: true,
   },
   longcat: {
     id: "longcat",
@@ -143,11 +174,21 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   moonshot: {
     id: "moonshot",
     alias: "moonshot",
-    name: "Moonshot AI",
+    // Display name only — Kimi official-partnership rebrand (2026-07). The
+    // catalog id/alias/routing stay "moonshot" (DB connections, combos, and
+    // /dashboard/providers/moonshot all address it by id, never by name) — see
+    // KIMI_PROVIDER_IDS in featuredProviders.ts for the full id list this
+    // touches. "Kimi (Legacy Moonshot API)" (id "kimi") and "Moonshot AI" in
+    // company-name mentions (e.g. README, kimiOfficialSupporterTooltip) are
+    // intentionally left as-is.
+    name: "Kimi",
     icon: "rocket_launch",
     color: "#1E40AF",
     textIcon: "MS",
-    website: "https://platform.moonshot.ai",
+    // Kimi official-partnership aff link (2026-07): the "Kimi API Platform"
+    // tracking link — was the unattributed legacy platform.moonshot.ai domain
+    // (301s to platform.kimi.ai with no aff tag).
+    website: "https://platform.kimi.ai?aff=omniroute",
   },
   volcengine: {
     id: "volcengine",
@@ -350,5 +391,29 @@ export const APIKEY_PROVIDERS_REGIONAL = {
       "Xinjiang Huancheng Cybersecurity public LLM API platform: free credits with daily check-ins.",
     passthroughModels: true,
     authHint: "Get API key at api.hcnsec.cn",
+  },
+  agnes: {
+    id: "agnes",
+    alias: "agnes",
+    name: "Agnes AI",
+    icon: "auto_awesome",
+    color: "#10B981",
+    textIcon: "AG",
+    website: "https://agnes-ai.com",
+    hasFree: true,
+    freeNote: "Permanently free API - no credit card required.",
+    authHint: "Get API key at agnes-ai.com",
+  },
+  sealion: {
+    id: "sealion",
+    alias: "sealion",
+    name: "SEA-LION",
+    icon: "public",
+    color: "#0D9488",
+    textIcon: "SL",
+    website: "https://sea-lion.ai",
+    hasFree: true,
+    freeNote: "Permanently free at 10 RPM — AI Singapore's Southeast-Asian models (Llama/Qwen/Gemma SEA-LION).",
+    authHint: "Sign in at sea-lion.ai with Google (no card, no region wall), create an API key, then paste it here.",
   },
 };

@@ -114,6 +114,7 @@
     "safe-regex",
     "selfsigned",
     "size-limit",
+    "smol-toml",
     "socks",
     "sql.js",
     "sqlite-vec",

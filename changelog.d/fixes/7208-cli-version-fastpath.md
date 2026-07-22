@@ -1,0 +1,1 @@
+- **fix(cli):** `omniroute --version` now fast-paths before the tsx/esm + polyfill imports, env-file loading, and Commander's full command registration, cutting local runtime from ~1.5s to ~0.3s. (thanks @Jordannst)

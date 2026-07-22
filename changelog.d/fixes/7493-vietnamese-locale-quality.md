@@ -1,0 +1,1 @@
+- fix(i18n): replace machine-bulk-filled Vietnamese UI strings with human-quality translations — 5411 values improved, technical literals (RPC methods, endpoints) no longer over-translated (#7493)

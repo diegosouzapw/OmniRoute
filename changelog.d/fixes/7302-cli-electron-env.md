@@ -1,0 +1,1 @@
+- fix(cli): load DATA_DIR/server.env as a fallback for .env when migrating from Electron, so STORAGE_ENCRYPTION_KEY/JWT_SECRET/API_KEY_SECRET survive an Electron→CLI install migration (#7302)

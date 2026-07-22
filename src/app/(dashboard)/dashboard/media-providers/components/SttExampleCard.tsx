@@ -42,7 +42,13 @@ export function SttExampleCard({ providerId }: Props) {
   const { apiKey } = useApiKey();
   const { models } = useProviderModels(providerId);
 
-  const firstModel = models[0]?.id ?? "whisper-1";
+  // Show only speech-to-text models. Providers like OpenRouter expose a large
+  // chat catalog on the same connection, so narrow to transcription entries
+  // (type "audio" / subtype "transcription"). A no-op for audio-only STT
+  // providers, whose models are all transcription.
+  const sttModels = models.filter((m) => m.type === "audio" && m.subtype === "transcription");
+
+  const firstModel = sttModels[0]?.id ?? "whisper-1";
   const [model, setModel] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -53,6 +59,13 @@ export function SttExampleCard({ providerId }: Props) {
 
   const effectiveModel = model || firstModel;
 
+  // The transcription route resolves the provider from the leading segment of
+  // the submitted model id, so a bare id (e.g. "deepgram/nova-3" for the
+  // OpenRouter connection) would misroute. Qualify it with this connection's
+  // provider id at submit time. Single-token ids (e.g. "whisper-1") already
+  // lack a slash and pass through unchanged once prefixed.
+  const qualify = (id: string) => (id.startsWith(`${providerId}/`) ? id : `${providerId}/${id}`);
+
   // cURL is multipart — show a representative snippet
   const curlSnippet = buildCurl({
     endpoint:
@@ -62,7 +75,7 @@ export function SttExampleCard({ providerId }: Props) {
       Authorization: `Bearer ${apiKey || "<your-api-key>"}`,
     },
     body: {
-      model: effectiveModel,
+      model: qualify(effectiveModel),
       file: "<path/to/audio.mp3>",
     },
   });
@@ -71,7 +84,7 @@ export function SttExampleCard({ providerId }: Props) {
     const selected = e.target.files?.[0] ?? null;
     setFileError(null);
     if (selected && selected.size > MAX_FILE_SIZE_BYTES) {
-      setFileError("File too large — max 25 MB");
+      setFileError(t("fileTooLarge25Mb"));
       setFile(null);
       return;
     }
@@ -80,7 +93,7 @@ export function SttExampleCard({ providerId }: Props) {
 
   const handleRun = async () => {
     if (!file) {
-      setError("Please select an audio file first.");
+      setError(t("selectAudioFirst"));
       return;
     }
     setRunning(true);
@@ -89,7 +102,7 @@ export function SttExampleCard({ providerId }: Props) {
     const t0 = performance.now();
     try {
       const formData = new FormData();
-      formData.append("model", effectiveModel);
+      formData.append("model", qualify(effectiveModel));
       formData.append("file", file);
 
       const res = await fetch(ENDPOINT_PATH, {
@@ -109,17 +122,17 @@ export function SttExampleCard({ providerId }: Props) {
         setResult({ data, latencyMs });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : t("requestFailed"));
     } finally {
       setRunning(false);
     }
   };
 
-  const modelOptions = models.length > 0 ? models : [{ id: "whisper-1" }];
+  const modelOptions = sttModels.length > 0 ? sttModels : [{ id: "whisper-1" }];
 
   return (
     <PlaygroundCard
-      kindLabel="Speech to Text"
+      kindLabel={t("speechToText")}
       apiEndpoint={ENDPOINT_PATH}
       onRun={handleRun}
       curlSnippet={curlSnippet}
@@ -153,7 +166,7 @@ export function SttExampleCard({ providerId }: Props) {
             className="inline-flex items-center gap-1.5 text-xs rounded-md border border-border bg-bg-subtle px-3 py-1.5 text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <span className="material-symbols-outlined text-[14px]">upload_file</span>
-            {file ? file.name : "Choose file…"}
+            {file ? file.name : t("chooseFile")}
           </button>
           {file && (
             <span className="text-xs text-text-muted">{Math.round(file.size / 1024)}KB</span>
@@ -167,7 +180,7 @@ export function SttExampleCard({ providerId }: Props) {
           onChange={handleFileChange}
         />
         {fileError && <p className="text-xs text-red-400 mt-1">{fileError}</p>}
-        <p className="text-xs text-text-muted mt-1">mp3, wav, m4a, ogg, flac — max 25 MB</p>
+        <p className="text-xs text-text-muted mt-1">{t("audioFormats25Mb")}</p>
       </div>
     </PlaygroundCard>
   );

@@ -17,6 +17,9 @@ Think of a provider like a **phone carrier**. Just as you need a phone carrier t
 | **OAuth**      | Login with your account   | Claude Code, GitHub Copilot       | Subscription           |
 | **Web Cookie** | Uses your browser session | ChatGPT Web, Gemini Web           | $0 (uses your account) |
 
+### Web Cookie Providers
+
+See **[WEB-COOKIE-GUIDE.md](./WEB-COOKIE-GUIDE.md)** for general setup instructions, limitations, troubleshooting, and provider-specific authentication guidance.
 ---
 
 ## Quick Start: Connect Your First Provider

@@ -1,0 +1,1 @@
+- **Docs provider-count sync** (`README.md`, `AGENTS.md`, `CLAUDE.md`): provider-count mentions bumped 253 → 259 to match the auto-generated catalog, un-blocking the strict `check:docs-counts` gate that had started failing on every PR targeting the release branch (#7616).

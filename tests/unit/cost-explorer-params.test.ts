@@ -9,9 +9,14 @@ import {
 // ─── parseCostRange ────────────────────────────────────────────────────────
 
 test("parseCostRange accepts every valid range", () => {
-  for (const r of ["7d", "30d", "90d", "all"]) {
+  for (const r of ["7d", "30d", "90d", "180d", "365d", "all"]) {
     assert.equal(parseCostRange(r), r);
   }
+});
+
+test("parseCostRange accepts the extended 180d/365d periods (#7213)", () => {
+  assert.equal(parseCostRange("180d"), "180d");
+  assert.equal(parseCostRange("365d"), "365d");
 });
 
 test("parseCostRange falls back to 30d for null/invalid input", () => {

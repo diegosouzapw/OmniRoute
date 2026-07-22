@@ -144,6 +144,18 @@ export function buildJudgePrompt(answers: Array<{ text: string }>): string {
   ].join("\n");
 }
 
+/**
+ * A request is "tool-bearing" when the client supplied tools AND did not
+ * explicitly opt out of tool use this turn (tool_choice: "none" is a valid
+ * way to declare available tools while opting out — that must NOT trigger
+ * the bypass, see issue #6771).
+ */
+export function isToolBearingRequest(body: Body): boolean {
+  const hasTools = Array.isArray(body.tools) && body.tools.length > 0;
+  if (!hasTools) return false;
+  return body.tool_choice !== "none";
+}
+
 type Sentinel = { __timeout?: true; __error?: unknown };
 
 // Resolve a Response (or sentinel) within ms; the loser keeps running but is ignored.
@@ -230,6 +242,12 @@ export type HandleFusionChatOptions = {
  * complete prose to synthesize). The judge call keeps the client's original
  * stream flag + tools, so streaming and downstream tool use still work.
  *
+ * Tool-bearing requests (non-empty `tools` with `tool_choice` not "none")
+ * skip panel synthesis entirely and route straight to a single model (the
+ * configured judge, or panel[0]) with tools/tool_choice intact — panel
+ * members have no tool access and the judge's synthesis directive steers
+ * even a tools-capable judge away from emitting a tool call (#6771).
+ *
  * Speed: quorum-grace collection caps the straggler penalty. Quality: the judge
  * runs the consensus/contradiction/blind-spot analysis before writing.
  *
@@ -283,6 +301,20 @@ export async function handleFusionChat({
     "FUSION",
     `Combo "${comboName ?? ""}" | panel=${panel.length} [${panel.join(", ")}] | judge=${judge} | quorum=${minPanel}`
   );
+
+  // Tool-bearing requests get no value from panel synthesis — panel members
+  // would answer with no tool access (degraded prose), and the judge's
+  // synthesis directive steers it away from emitting a tool call even though
+  // it technically still receives `tools`. Skip straight to a single model
+  // with the full, unmodified body (tools/tool_choice intact) so agentic
+  // clients get a real tool-call decision (#6771).
+  if (isToolBearingRequest(body)) {
+    log.info(
+      "FUSION",
+      `Combo "${comboName ?? ""}" received a tool-bearing request — bypassing panel synthesis, routing directly to ${judge} with tools intact`
+    );
+    return handleSingleModel(body, judge);
+  }
 
   // 1. Fan out to the panel in parallel: non-streaming, tools stripped (we want prose).
   const { tools: _tools, tool_choice: _tc, ...rest } = body;

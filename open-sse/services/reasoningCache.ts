@@ -34,6 +34,10 @@ const REASONING_REPLAY_PROVIDERS = new Set([
   "sambanova",
   "fireworks",
   "together",
+  // Kimi Coding thinking-mode upstreams require reasoning_content replay under
+  // the same strict multi-turn contract as DeepSeek.
+  "kimi-coding",
+  "kimi-coding-apikey",
   // Xiaomi MiMo enforces the same "pass back reasoning_content on subsequent
   // turns" contract as DeepSeek/Kimi-thinking. Without replay the upstream
   // 400s with "Param Incorrect: The reasoning_content in the thinking mode
@@ -47,7 +51,9 @@ const REASONING_REPLAY_MODEL_PATTERNS = [
   /deepseek-chat/i,
   /deepseek[-/]v4[-.](flash|pro)(-free)?/i,
   /zen\/deepseek-v4/i,
-  /kimi-k2/i,
+  // Match native kimi-kN and namespaced kimi/kN families without treating
+  // generic aliases such as kimi-latest as strict thinking models.
+  /kimi[-/]k\d/i,
   /qwq/i,
   /qwen.*think/i,
   /glm.*think/i,

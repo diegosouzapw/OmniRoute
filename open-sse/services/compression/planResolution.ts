@@ -9,6 +9,13 @@ import {
 /** Named-combo map: combo id → its stacked pipeline (operator-defined profiles). */
 type NamedCombos = Record<string, CompressionPipelineStep[]>;
 
+const MAX_COMPRESSION_ANNOTATION_BYTES = 768;
+const NON_ASCII_HEADER_VALUE_CHARS = /[^\x20-\x7e]/g;
+
+function utf8ByteLength(value: string): number {
+  return new TextEncoder().encode(value).byteLength;
+}
+
 /** Tags a plan with the precedence layer that produced it (Phase 3 observability). */
 export function withSource(plan: DerivedPlan, source: CompressionSource): DerivedPlan {
   return { ...plan, source };
@@ -69,12 +76,28 @@ export function formatCompressionAnnotation(stats: CompressionStats): string {
 
   const counts = new Map<string, number>();
   for (const rule of rules) {
-    counts.set(rule, (counts.get(rule) ?? 0) + 1);
+    const safeRule = rule.replace(NON_ASCII_HEADER_VALUE_CHARS, "?");
+    counts.set(safeRule, (counts.get(safeRule) ?? 0) + 1);
   }
 
   const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  const agg = sorted.map(([name, n]) => `${name}x${n}`).join(", ");
-  return `tokens=${stats.originalTokens}->${stats.compressedTokens}; rules: ${agg}`;
+  const prefix = `tokens=${stats.originalTokens}->${stats.compressedTokens}; rules: `;
+  const suffix = ", ...";
+  const parts: string[] = [];
+  let bytes = utf8ByteLength(prefix);
+  for (const [name, n] of sorted) {
+    const part = `${name}x${n}`;
+    const separator = parts.length > 0 ? ", " : "";
+    const partBytes = utf8ByteLength(separator + part);
+    if (bytes + partBytes > MAX_COMPRESSION_ANNOTATION_BYTES - utf8ByteLength(suffix)) {
+      if (parts.length === 0) return "";
+      return `${prefix}${parts.join(", ")}${suffix}`;
+    }
+    parts.push(part);
+    bytes += partBytes;
+  }
+  const agg = parts.join(", ");
+  return `${prefix}${agg}`;
 }
 
 /**

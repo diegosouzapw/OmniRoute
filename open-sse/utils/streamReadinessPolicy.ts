@@ -1,3 +1,5 @@
+import { getRegistryEntry } from "../config/providerRegistry.ts";
+
 type StreamReadinessBody = Record<string, unknown> | null | undefined;
 
 export type StreamReadinessPolicyInput = {
@@ -33,6 +35,27 @@ function estimateBodyChars(body: StreamReadinessBody): number {
   } catch {
     return 0;
   }
+}
+// Official Anthropic endpoints — they have stable/quick cold starts, so no
+// extra readiness bump is needed.
+const OFFICIAL_CLAUDE_FORMAT_PROVIDERS = new Set(["claude", "anthropic"]);
+
+/**
+ * Third-party Claude-format providers (replicas like Minimax, ZAI,
+ * bailian-coding-plan, agentrouter, wafer) inherit Anthropic's stream shape
+ * but their reasoning warm-ups run significantly longer than first-party
+ * claude/anthropic — enough that a default 80s readiness window 504s before
+ * the upstream emits its first non-ping event. The `format: "claude"` entry
+ * in the registry is the single source of truth for "this provider routes
+ * through the Claude translator", so use it to bump the budget instead of
+ * hand-curating an allowlist that drifts every time a new replica registers.
+ */
+function isClaudeFormatReasoningProvider(provider?: string | null): boolean {
+  if (!provider) return false;
+  const normalized = provider.toLowerCase();
+  if (OFFICIAL_CLAUDE_FORMAT_PROVIDERS.has(normalized)) return false;
+  const entry = getRegistryEntry(normalized);
+  return entry?.format === "claude";
 }
 
 function isCodexGpt5x(provider?: string | null, model?: string | null): boolean {
@@ -123,6 +146,16 @@ export function resolveStreamReadinessTimeout(
   ) {
     timeoutMs += 30_000;
     reasons.push("codex_gpt_5_5_large_responses");
+  }
+
+  // Third-party Claude-format replicas (Minimax M2.7/M3, ZAI, bailian,
+  // agentrouter, wafer, …) run long reasoning warm-ups before emitting the
+  // first SSE event — enough that the default 80s readiness window 504s before
+  // the upstream speaks. Mirror the codex_gpt_5_5_high_reasoning bump so this
+  // class of provider cannot be misidentified as a stalled connection.
+  if (isClaudeFormatReasoningProvider(input.provider) && !codexHighReasoning) {
+    timeoutMs += 30_000;
+    reasons.push("claude_format_heavy_reasoning");
   }
 
   timeoutMs = Math.min(timeoutMs, maxTimeoutMs);

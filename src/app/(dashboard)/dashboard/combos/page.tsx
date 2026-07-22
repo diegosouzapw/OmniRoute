@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,6 +12,7 @@ import Input from "@/shared/components/Input";
 import Modal from "@/shared/components/Modal";
 import Toggle from "@/shared/components/Toggle";
 import Tooltip from "@/shared/components/Tooltip";
+import { ComboCompressionModeSelect } from "@/shared/components/compression/ComboCompressionModeSelect";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { FieldLabelWithHelp, WeightTotalBar } from "./parts";
 import { useComboProxyAssignments } from "./useComboProxyAssignments";
@@ -33,12 +34,15 @@ import {
   getNextComboBuilderStage,
   getPreviousComboBuilderStage,
   hasExactModelStepDuplicate,
+  isEligibleActiveConnection,
   isIntelligentBuilderStrategy,
   parseQualifiedModel,
   resolveComboBuilderProviderId,
 } from "@/lib/combos/builderDraft";
 import { normalizeComboConfigMode } from "@/shared/constants/comboConfigMode";
 import AutoComboCatalog from "./AutoComboCatalog";
+import KimiComboPresetCard from "./KimiComboPresetCard";
+import { KIMI_CODING_PRESET, hasKimiCodingPreset } from "./kimiComboPreset";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
 import IntelligentComboPanel from "./IntelligentComboPanel";
 import {
@@ -405,7 +409,7 @@ const COMBO_TEMPLATE_FALLBACK = {
   balancedDesc: "Least-used routing to spread demand over time.",
   freeStackTitle: "Free Stack ($0)",
   freeStackDesc:
-    "Round-robin across free providers: Kiro, Qoder, Qwen, Antigravity CLI. Zero cost, never stops.",
+    "Round-robin across free providers: Kiro, Qoder, Antigravity CLI. Zero cost, never stops.",
   paidPremiumTitle: "Paid Premium",
   paidPremiumDesc:
     "Round-robin across paid subscriptions: Cursor, Antigravity. Top-tier models, distributed load.",
@@ -686,6 +690,7 @@ export default function CombosPage() {
   const [providerNodes, setProviderNodes] = useState([]);
   const [showUsageGuide, setShowUsageGuide] = useState(true);
   const [recentlyCreatedCombo, setRecentlyCreatedCombo] = useState("");
+  const [creatingKimiPreset, setCreatingKimiPreset] = useState(false);
   const [comboDragIndex, setComboDragIndex] = useState(null);
   const [comboDragOverIndex, setComboDragOverIndex] = useState(null);
   const [savingComboOrder, setSavingComboOrder] = useState(false);
@@ -770,9 +775,7 @@ export default function CombosPage() {
 
       if (combosRes.ok) setCombos((combosData.combos || []).filter((c) => !c.isHidden));
       if (providersRes.ok) {
-        const active = (providersData.connections || []).filter(
-          (c) => c.testStatus === "active" || c.testStatus === "success"
-        );
+        const active = (providersData.connections || []).filter(isEligibleActiveConnection);
         setActiveProviders(active);
       }
       if (metricsRes.ok) setMetrics(metricsData.metrics || {});
@@ -856,6 +859,18 @@ export default function CombosPage() {
     };
 
     await handleCreate(data);
+  };
+
+  // Kimi Coding preset (2026-07 partnership) — one-click create, mirrors
+  // handleDuplicate's directness (no separate confirmation modal). See
+  // KimiComboPresetCard.tsx for why this bypasses the combo builder wizard.
+  const handleCreateKimiPreset = async () => {
+    setCreatingKimiPreset(true);
+    try {
+      await handleCreate(KIMI_CODING_PRESET);
+    } finally {
+      setCreatingKimiPreset(false);
+    }
   };
 
   const handleTestCombo = async (combo) => {
@@ -1039,6 +1054,12 @@ export default function CombosPage() {
       </div>
 
       <AutoComboCatalog />
+
+      <KimiComboPresetCard
+        alreadyCreated={hasKimiCodingPreset(combos)}
+        creating={creatingKimiPreset}
+        onCreate={handleCreateKimiPreset}
+      />
 
       {showUsageGuide && (
         <ComboUsageGuide
@@ -1549,7 +1570,7 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
   );
 }
 
-function ComboCard({
+function ComboCardInner({
   combo,
   metrics,
   compressionEnabled,
@@ -1578,46 +1599,6 @@ function ComboCard({
   const tc = useTranslations("common");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const strategyDescription = getStrategyDescription(t, strategy);
-  const hasRuntimeConfig = combo?.config && typeof combo.config === "object";
-  const initialCompressionMode =
-    typeof combo?.config?.compressionMode === "string"
-      ? combo.config.compressionMode
-      : hasRuntimeConfig
-        ? ""
-        : combo.compressionOverride || "";
-  const [compressionOverride, setCompressionOverride] = useState(initialCompressionMode);
-  const [isSavingCompression, setIsSavingCompression] = useState(false);
-
-  useEffect(() => {
-    setCompressionOverride(initialCompressionMode);
-  }, [initialCompressionMode]);
-
-  const handleCompressionOverrideChange = async (value) => {
-    setCompressionOverride(value);
-    setIsSavingCompression(true);
-    const nextConfig = { ...(combo.config || {}) };
-    if (value) {
-      nextConfig.compressionMode = value;
-    } else {
-      delete nextConfig.compressionMode;
-    }
-    try {
-      const response = await fetch(`/api/combos/${combo.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: nextConfig }),
-      });
-      if (!response.ok) {
-        console.error("Failed to update compression override");
-        setCompressionOverride(initialCompressionMode);
-      }
-    } catch (error) {
-      console.error("Error updating compression override:", error);
-      setCompressionOverride(initialCompressionMode);
-    } finally {
-      setIsSavingCompression(false);
-    }
-  };
 
   return (
     <Card
@@ -1747,32 +1728,11 @@ function ComboCard({
           </div>
           <div className="flex items-center gap-1.5 transition-opacity">
             {compressionEnabled && (
-              <select
-                value={compressionOverride}
-                onChange={(e) => handleCompressionOverrideChange(e.target.value)}
-                disabled={isSavingCompression}
-                className="text-xs py-1 px-2 rounded border border-black/10 dark:border-white/10 bg-surface text-text-main focus:border-primary focus:outline-none transition-colors disabled:opacity-50 max-w-[130px] md:max-w-none"
+              <ComboCompressionModeSelect
+                combo={combo}
                 title={t("compressionOverride")}
-              >
-                <option value="" className="bg-surface text-text-main">
-                  Default
-                </option>
-                <option value="off" className="bg-surface text-text-main">
-                  Off
-                </option>
-                <option value="lite" className="bg-surface text-text-main">
-                  Lite
-                </option>
-                <option value="standard" className="bg-surface text-text-main">
-                  Standard
-                </option>
-                <option value="aggressive" className="bg-surface text-text-main">
-                  Aggressive
-                </option>
-                <option value="ultra" className="bg-surface text-text-main">
-                  Ultra
-                </option>
-              </select>
+                className="text-xs py-1 px-2 rounded border border-black/10 dark:border-white/10 bg-surface text-text-main focus:border-primary focus:outline-none transition-colors disabled:opacity-50 max-w-[130px] md:max-w-none"
+              />
             )}
             <Link
               href={`/dashboard/combos/${combo.id}`}
@@ -1828,6 +1788,7 @@ function ComboCard({
     </Card>
   );
 }
+const ComboCard = memo(ComboCardInner);
 
 function TestResultsView({ results }) {
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
@@ -3963,8 +3924,16 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         }
                         className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-surface-1 focus:border-primary focus:outline-none"
                       >
-                        <option value="flatten">Flatten nested combos</option>
-                        <option value="execute">Execute nested combos as targets</option>
+                        <option value="flatten">
+                          {getI18nOrFallback(t, "nestedComboFlatten", "Flatten nested combos")}
+                        </option>
+                        <option value="execute">
+                          {getI18nOrFallback(
+                            t,
+                            "nestedComboExecute",
+                            "Execute nested combos as targets"
+                          )}
+                        </option>
                       </select>
                     </div>
                     {/* #6168: per-combo session-stickiness override (tri-state so it can

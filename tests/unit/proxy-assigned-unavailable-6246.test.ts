@@ -139,3 +139,21 @@ test("BLOCKS: a dead GLOBAL proxy assignment blocks any connection", async () =>
     "a dead global proxy assignment must block, not leak direct"
   );
 });
+
+test("BLOCKS: a dead no-auth provider proxy assignment", async () => {
+  await resetStorage();
+  const proxy = await proxiesDb.createProxy({
+    name: "Dead no-auth proxy",
+    type: "http",
+    host: "127.0.0.1",
+    port: 9005,
+  });
+  await proxiesDb.updateProxy(proxy!.id, { status: "inactive" });
+  await proxiesDb.assignProxyToScope("provider", "mimocode", proxy!.id);
+
+  assert.equal(
+    proxiesDb.hasBlockingProxyAssignment("noauth", "mimocode"),
+    true,
+    "a dead no-auth provider proxy must block instead of allowing direct egress"
+  );
+});

@@ -1,0 +1,204 @@
+<svg viewBox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute key pool 'team-codex': one Codex Pro account shared by 3 keys over a 5-hour window. alice weight 50, bob weight 30, ci-bot weight 20. In generous mode (under 50% pool used) idle shares are lent out; once the pool crosses 50% strict mode holds each key to its fair share.">
+  <defs>
+    <radialGradient id="bgGlowP" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.12"/>
+      <stop offset="60%" stop-color="#6366f1" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gradBrandP" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e54d5e"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <pattern id="gridPaperP" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <!-- request feed paths, one per lane -->
+    <path id="pReqA" d="M 236,192 L 352,192"/>
+    <path id="pReqB" d="M 236,324 L 352,324"/>
+    <path id="pReqC" d="M 236,456 L 352,456"/>
+    <!-- rejected request: travels to ci-bot's cap line and stops -->
+    <path id="pRejC" d="M 236,456 L 414,456"/>
+    <!-- idle share of bob lent down to ci-bot's borrowed segment -->
+    <path id="pLend" d="M 430,324 C 430,392 446,390 446,440"/>
+  </defs>
+
+  <rect width="1200" height="650" fill="#0b0e14"/>
+  <rect width="1200" height="650" fill="url(#gridPaperP)"/>
+  <rect width="1200" height="650" fill="url(#bgGlowP)"/>
+
+  <!-- ═══ Pool header card ═══ -->
+  <rect x="90" y="28" width="1020" height="84" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <text x="120" y="60" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="19" font-weight="800" fill="#F7F6FC">Pool <tspan font-family="Consolas, 'Courier New', monospace" fill="url(#gradBrandP)">"team-codex"</tspan></text>
+  <text x="120" y="84" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">1 Codex Pro account · <tspan fill="#8b5cf6">3 keys</tspan> · 5-hour window</text>
+
+  <!-- pool usage meter -->
+  <text x="520" y="50" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#71717a">POOL USED</text>
+  <rect x="520" y="58" width="280" height="14" rx="7" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <rect x="521" y="59" height="12" rx="6" width="0" fill="#22c55e">
+    <animate attributeName="width" values="0;92;129;176;190;190;0" keyTimes="0;0.25;0.50;0.59;0.80;0.965;1" dur="16s" repeatCount="indefinite"/>
+    <animate attributeName="fill" values="#22c55e;#22c55e;#f59e0b;#f59e0b" keyTimes="0;0.52;0.55;1" dur="16s" repeatCount="indefinite"/>
+  </rect>
+  <!-- 50% threshold mark -->
+  <line x1="660" y1="52" x2="660" y2="78" stroke="#a1a1aa" stroke-width="1.2" stroke-dasharray="2 2" stroke-opacity="0.6">
+    <animate attributeName="stroke" values="#a1a1aa;#a1a1aa;#f59e0b;#f59e0b;#a1a1aa;#a1a1aa" keyTimes="0;0.52;0.53;0.60;0.63;1" dur="16s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="0.6;0.6;1;1;0.6;0.6" keyTimes="0;0.52;0.53;0.60;0.63;1" dur="16s" repeatCount="indefinite"/>
+  </line>
+  <text x="660" y="90" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9" fill="#71717a">50%</text>
+  <text x="520" y="90" font-family="Consolas, 'Courier New', monospace" font-size="9" fill="#71717a">0</text>
+  <text x="800" y="90" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="9" fill="#71717a">100%</text>
+
+  <!-- mode pills (swap at the 50% crossing) -->
+  <g>
+    <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.52;0.545;1" dur="16s" repeatCount="indefinite"/>
+    <rect x="852" y="52" width="228" height="30" rx="15" fill="#161b22" stroke="#22c55e" stroke-width="1" stroke-opacity="0.6"/>
+    <circle cx="872" cy="67" r="3.5" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/>
+    </circle>
+    <text x="886" y="71" font-family="Consolas, 'Courier New', monospace" font-size="10" letter-spacing="1.5" font-weight="700" fill="#22c55e">GENEROUS · &lt;50% USED</text>
+  </g>
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1" keyTimes="0;0.53;0.555;1" dur="16s" repeatCount="indefinite"/>
+    <rect x="852" y="52" width="228" height="30" rx="15" fill="#161b22" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.7"/>
+    <circle cx="872" cy="67" r="3.5" fill="#f59e0b">
+      <animate attributeName="opacity" values="1;0.35;1" dur="1s" repeatCount="indefinite"/>
+    </circle>
+    <text x="886" y="71" font-family="Consolas, 'Courier New', monospace" font-size="10" letter-spacing="1.5" font-weight="700" fill="#f59e0b">STRICT · &#8805;50% USED</text>
+  </g>
+
+  <!-- ═══ Key lanes ═══ -->
+  <!-- lane cards -->
+  <rect x="90" y="140" width="1020" height="104" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <rect x="90" y="272" width="1020" height="104" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <rect x="90" y="404" width="1020" height="104" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+
+  <!-- key names + weights -->
+  <text x="124" y="188" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="700" fill="#F7F6FC">alice</text>
+  <text x="124" y="208" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#71717a">weight 50</text>
+  <text x="124" y="320" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="700" fill="#F7F6FC">bob</text>
+  <text x="124" y="340" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#71717a">weight 30</text>
+  <text x="124" y="452" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="700" fill="#F7F6FC">ci-bot</text>
+  <text x="124" y="472" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#71717a">weight 20</text>
+
+  <!-- usage tracks (full track = 100% of the shared quota) -->
+  <rect x="310" y="183" width="560" height="18" rx="9" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <rect x="310" y="315" width="560" height="18" rx="9" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <rect x="310" y="447" width="560" height="18" rx="9" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+
+  <!-- fair-share regions (tinted) -->
+  <rect x="310" y="183" width="280" height="18" rx="9" fill="#6366f1" opacity="0.10"/>
+  <rect x="310" y="315" width="168" height="18" rx="9" fill="#6366f1" opacity="0.10"/>
+  <rect x="310" y="447" width="112" height="18" rx="9" fill="#6366f1" opacity="0.10"/>
+
+  <!-- cap lines (turn amber when strict mode enforces) -->
+  <g stroke-width="1.6">
+    <line x1="590" y1="176" x2="590" y2="208" stroke="#6366f1" stroke-opacity="0.65">
+      <animate attributeName="stroke" values="#6366f1;#6366f1;#f59e0b;#f59e0b" keyTimes="0;0.53;0.56;1" dur="16s" repeatCount="indefinite"/>
+    </line>
+    <line x1="478" y1="308" x2="478" y2="340" stroke="#6366f1" stroke-opacity="0.65">
+      <animate attributeName="stroke" values="#6366f1;#6366f1;#f59e0b;#f59e0b" keyTimes="0;0.53;0.56;1" dur="16s" repeatCount="indefinite"/>
+    </line>
+    <line x1="422" y1="440" x2="422" y2="472" stroke="#6366f1" stroke-opacity="0.65">
+      <animate attributeName="stroke" values="#6366f1;#6366f1;#f59e0b;#f59e0b" keyTimes="0;0.53;0.56;1" dur="16s" repeatCount="indefinite"/>
+    </line>
+  </g>
+
+  <!-- right-hand share labels (verbatim from the README block) -->
+  <text x="890" y="196" font-family="Consolas, 'Courier New', monospace" font-size="11" fill="#a1a1aa">&#8804; 50% of the shared 5h quota</text>
+  <text x="890" y="328" font-family="Consolas, 'Courier New', monospace" font-size="11" fill="#a1a1aa">&#8804; 30%</text>
+  <text x="890" y="460" font-family="Consolas, 'Courier New', monospace" font-size="11" fill="#a1a1aa">&#8804; 20%</text>
+
+  <!-- ═══ Animated usage (seam-dip group) ═══ -->
+  <g>
+    <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.94;0.965;0.99;1" dur="16s" repeatCount="indefinite"/>
+
+    <!-- usage bars -->
+    <rect x="311" y="184" height="16" rx="8" width="0" fill="#8b5cf6">
+      <animate attributeName="width" values="0;38;67;67;140;168;168;0" keyTimes="0;0.12;0.25;0.50;0.59;0.80;0.965;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="311" y="316" height="16" rx="8" width="0" fill="#8b5cf6">
+      <animate attributeName="width" values="0;19;34;34;56;56;0" keyTimes="0;0.15;0.25;0.50;0.59;0.965;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="311" y="448" height="16" rx="8" width="0" fill="#8b5cf6">
+      <animate attributeName="width" values="0;56;84;112;112;112;0" keyTimes="0;0.12;0.25;0.36;0.50;0.965;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <!-- ci-bot borrowed segment: grows while generous, stays (already spent) but dims under strict -->
+    <rect x="420" y="448" height="16" rx="8" width="0" fill="#22c55e">
+      <animate attributeName="width" values="0;0;47;47;47;0" keyTimes="0;0.36;0.47;0.50;0.965;1" dur="16s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;1;0.45;0.45" keyTimes="0;0.53;0.56;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="444" y="440" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" fill="#22c55e" opacity="0">
+      <animate attributeName="opacity" values="0;0;1;1;0.35;0.35;0" keyTimes="0;0.37;0.42;0.52;0.56;0.94;1" dur="16s" repeatCount="indefinite"/>lent</text>
+
+    <!-- pool meter lives with the bars so the seam resets together -->
+
+    <!-- ── request dots · alice (steady all along) ── -->
+    <g fill="#a78bfa">
+      <circle r="3.2">
+        <animateMotion dur="1.5s" repeatCount="indefinite" begin="0s"><mpath href="#pReqA"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.5s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="3.2">
+        <animateMotion dur="1.5s" repeatCount="indefinite" begin="0.75s"><mpath href="#pReqA"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.5s" begin="0.75s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- ── request dots · bob (goes idle during the burst window) ── -->
+    <g fill="#a78bfa">
+      <animate attributeName="opacity" values="1;1;0;0;1;1" keyTimes="0;0.25;0.28;0.50;0.53;1" dur="16s" repeatCount="indefinite"/>
+      <circle r="3.2">
+        <animateMotion dur="2.6s" repeatCount="indefinite" begin="0.4s"><mpath href="#pReqB"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="2.6s" begin="0.4s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+    <text x="240" y="310" font-family="Consolas, 'Courier New', monospace" font-size="9.5" fill="#71717a" opacity="0">
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.28;0.32;0.48;0.52;1" dur="16s" repeatCount="indefinite"/>idle</text>
+
+    <!-- ── request dots · ci-bot: normal → burst (generous) ── -->
+    <g fill="#a78bfa">
+      <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.50;0.53;1" dur="16s" repeatCount="indefinite"/>
+      <circle r="3.2">
+        <animateMotion dur="0.8s" repeatCount="indefinite" begin="0s"><mpath href="#pReqC"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="0.8s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="3.2">
+        <animateMotion dur="0.8s" repeatCount="indefinite" begin="0.4s"><mpath href="#pReqC"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="0.8s" begin="0.4s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- ── idle share lent: green dot dropping from bob's spare share into ci-bot's borrowed segment ── -->
+    <g fill="#22c55e">
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.36;0.38;0.48;0.50;1" dur="16s" repeatCount="indefinite"/>
+      <circle r="3">
+        <animateMotion dur="1.3s" repeatCount="indefinite"><mpath href="#pLend"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.3s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- ── strict mode: ci-bot requests held at the cap line ── -->
+    <g>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.59;0.61;0.92;0.94;1" dur="16s" repeatCount="indefinite"/>
+      <circle r="3.2" fill="#a78bfa">
+        <animateMotion dur="2.4s" repeatCount="indefinite" keyPoints="0;0.9;1;1" keyTimes="0;0.55;0.7;1" calcMode="linear"><mpath href="#pRejC"/></animateMotion>
+        <animate attributeName="fill" values="#a78bfa;#a78bfa;#ef4444;#ef4444" keyTimes="0;0.6;0.7;1" dur="2.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.1;0.6;0.82;1" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
+      <text x="422" y="434" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="12" font-weight="700" fill="#ef4444" opacity="0">
+        <animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;0.68;0.78;0.95;1" dur="2.4s" repeatCount="indefinite"/>&#10005;</text>
+    </g>
+  </g>
+
+  <!-- ═══ Footer: the two modes, verbatim, active one highlighted ═══ -->
+  <circle cx="130" cy="556" r="3.5" fill="#22c55e">
+    <animate attributeName="opacity" values="1;1;0.25;0.25" keyTimes="0;0.52;0.56;1" dur="16s" repeatCount="indefinite"/>
+  </circle>
+  <text x="146" y="561" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#F7F6FC">
+    <animate attributeName="fill" values="#F7F6FC;#F7F6FC;#71717a;#71717a" keyTimes="0;0.52;0.56;1" dur="16s" repeatCount="indefinite"/>Generous mode (&lt;50% pool used) &#8594; idle shares are lent out</text>
+  <circle cx="130" cy="586" r="3.5" fill="#f59e0b" opacity="0.25">
+    <animate attributeName="opacity" values="0.25;0.25;1;1" keyTimes="0;0.52;0.56;1" dur="16s" repeatCount="indefinite"/>
+  </circle>
+  <text x="146" y="591" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#71717a">
+    <animate attributeName="fill" values="#71717a;#71717a;#F7F6FC;#F7F6FC" keyTimes="0;0.52;0.56;1" dur="16s" repeatCount="indefinite"/>Strict mode (&#8805;50% pool used) &#8594; each key held to its fair share</text>
+  <text x="600" y="622" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="11" fill="#71717a">Enforced in the hot path &#8212; before the request leaves OmniRoute · per-(key, model) caps · session stickiness</text>
+</svg>

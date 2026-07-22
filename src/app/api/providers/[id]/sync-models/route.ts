@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProviderConnectionById } from "@/models";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { getSyncedAvailableModelsForConnection } from "@/lib/db/models";
 import { selectModelsForImport } from "@/shared/utils/freeModels";
 import {
@@ -16,6 +16,7 @@ import {
 } from "@/shared/services/modelSyncScheduler";
 import { autoSyncCodexProfilesFromLiveCatalog } from "@/lib/cli-helper/codexProfileAutoSync";
 import { autoSyncClaudeProfilesFromLiveCatalog } from "@/lib/cli-helper/claudeProfileAutoSync";
+import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { GET as getProviderModels } from "../models/route";
 import { isDegradedLocalCatalog } from "./degradedLocalCatalog";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
@@ -385,13 +386,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
     logProvider = toNonEmptyString(connection.provider) || "unknown";
     channelLabel = getModelSyncChannelLabel(connection);
+    if (providerUsesCuratedModelsOnly(logProvider)) {
+      return NextResponse.json({
+        provider: logProvider,
+        connectionId: id,
+        source: "curated",
+        skipped: "curated-models-only",
+        syncedModels: 0,
+        availableModelsCount: 0,
+        models: [],
+      });
+    }
     const previousSyncedAvailableModelsForConnection = await getSyncedAvailableModelsForConnection(
       logProvider,
       id

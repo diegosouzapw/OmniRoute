@@ -5,12 +5,15 @@ import { resolveMitmDataDir } from "./dataDir.ts";
 import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { provisionDnsEntries } from "./dns/provision.ts";
 import { generateCert } from "./cert/generate.ts";
-import { installCertResult } from "./cert/install.ts";
+import { installCertResult, installCaCert } from "./cert/install.ts";
+import { loadOrCreateMitmCa, resolveMitmCertDir } from "./cert/rootCa.ts";
+import { decideCertMigration } from "./cert/migration.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { detectAgent } from "./detection/index.ts";
 import type { AgentId, DetectionResult, MitmTarget } from "./types.ts";
 import { getAllAgentBridgeStates } from "@/lib/db/agentBridgeState.ts";
 import { getUserBypassPatterns } from "@/lib/db/agentBridgeBypass.ts";
+import { getGheCopilotHosts } from "@/lib/db/providers.ts";
 import { configureUpstreamCa } from "./upstreamTrust.ts";
 import { createLogger } from "@/shared/utils/logger.ts";
 import {
@@ -19,6 +22,8 @@ import {
   performRepairSteps,
   type RepairPlan,
 } from "./repair.ts";
+import { runPrivilegedMitmStep } from "./privilegedMitmStep.ts";
+import { removeStopDnsEntries } from "./stopDnsTeardown.ts";
 
 export { buildRepairPlan, collectManagedHosts, type RepairPlan };
 
@@ -160,7 +165,7 @@ export function writeTargetsJson(targets: MitmTarget[] = ALL_TARGETS): void {
     targets: targets.map((t) => ({
       id: t.id,
       name: t.name,
-      hosts: t.hosts,
+      hosts: t.id === "ghe-copilot" ? [...new Set([...t.hosts, ...getGheCopilotHosts()])] : t.hosts,
       endpointPatterns: t.endpointPatterns,
       viability: t.viability ?? "supported",
     })),
@@ -478,14 +483,36 @@ async function startMitmInternal(
     );
   }
 
-  // 1. Generate SSL certificate if not exists
-  const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-  if (!fs.existsSync(certPath)) {
-    log.info("Generating SSL certificate...");
+  // 1. Generate (or load the persisted) certificate material. #6684: a
+  //    pre-existing trusted legacy leaf keeps this run on the legacy
+  //    self-signed path (no silent trust-model upgrade — a MITM root CA that
+  //    can sign a leaf for ANY host is materially more powerful than the old
+  //    fixed-SAN leaf); fresh installs, and installs with `MITM_ROOT_CA_ENABLED
+  //    =true`, get the persisted root-CA + per-host-leaf model instead
+  //    (`cert/rootCa.ts`, reusing the CA/leaf crypto proven for TPROXY in
+  //    `tproxy/dynamicCert.ts`).
+  const certDir = resolveMitmCertDir();
+  const rootCaEnabled = process.env.MITM_ROOT_CA_ENABLED === "true";
+  const migrationDecision = decideCertMigration(certDir, rootCaEnabled);
+  let certPath: string;
+  if (migrationDecision === "use-legacy-leaf") {
+    certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
+    if (!fs.existsSync(certPath)) {
+      log.info("Generating SSL certificate...");
+      try {
+        await generateCert();
+      } catch (err) {
+        log.error({ err }, "Failed to generate SSL certificate");
+        throw err;
+      }
+    }
+  } else {
+    log.info("Loading (or generating) persisted MITM root CA...");
     try {
-      await generateCert();
+      const ca = await loadOrCreateMitmCa(certDir);
+      certPath = ca.certPath;
     } catch (err) {
-      log.error({ err }, "Failed to generate SSL certificate");
+      log.error({ err }, "Failed to load/generate MITM root CA");
       throw err;
     }
   }
@@ -495,27 +522,42 @@ async function startMitmInternal(
   //    so we start in "untrusted" mode and let the operator trust the CA by hand
   //    (mirrors the best-effort "continuing" pattern used for DNS below). (#4546)
   let certTrusted = false;
-  try {
-    const certResult = await installCertResult(sudoPassword, certPath);
-    certTrusted = certResult.installed;
-    if (!certResult.installed) {
-      log.warn(
-        { reason: certResult.reason },
-        "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
-      );
+  await runPrivilegedMitmStep(
+    sudoPassword,
+    "Skipping MITM cert trust — no sudo password available (#7938)",
+    async () => {
+      try {
+        const certResult =
+          migrationDecision === "use-root-ca"
+            ? await installCaCert(sudoPassword, certPath)
+            : await installCertResult(sudoPassword, certPath);
+        certTrusted = certResult.installed;
+        if (!certResult.installed) {
+          log.warn(
+            { reason: certResult.reason },
+            "MITM cert not auto-trusted; bridge starting in skip mode (manual trust required)"
+          );
+        }
+      } catch (err) {
+        log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
+      }
     }
-  } catch (err) {
-    log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
-  }
+  );
 
   // 3. Add DNS entries: Antigravity defaults + all agents with dns_enabled=true +
   //    all custom hosts with enabled=true. Best-effort — see provisionDnsEntries.
-  log.info("Adding DNS entries...");
-  try {
-    await provisionDnsEntries(sudoPassword);
-  } catch (err) {
-    log.error({ err }, "DNS provisioning threw unexpectedly (continuing)");
-  }
+  await runPrivilegedMitmStep(
+    sudoPassword,
+    "Skipping DNS provisioning — no sudo password available (#7938)",
+    async () => {
+      log.info("Adding DNS entries...");
+      try {
+        await provisionDnsEntries(sudoPassword);
+      } catch (err) {
+        log.error({ err }, "DNS provisioning threw unexpectedly (continuing)");
+      }
+    }
+  );
 
   // 4. Start MITM server
   log.info("Starting MITM server...");
@@ -549,6 +591,10 @@ async function startMitmInternal(
       ROUTER_API_KEY: apiKey,
       MITM_LOCAL_PORT: String(port),
       INSPECTOR_INTERNAL_INGEST_TOKEN: ingestToken,
+      // #6684: tell the spawned server.cjs which cert model this run resolved
+      // to (Step 1 above) so its own gate can't drift from manager.ts's
+      // migration decision.
+      MITM_CERT_MODE: migrationDecision === "use-root-ca" ? "root-ca" : "legacy",
       NODE_ENV: "production",
     },
     detached: false,
@@ -639,31 +685,6 @@ async function startMitmInternal(
 }
 
 /**
- * DNS teardown step of stopMitm() (#1809) — split out purely to keep
- * stopMitm()'s own cyclomatic complexity under the repo's ratchet; behavior
- * is unchanged from the original inline implementation.
- */
-async function removeStopDnsEntries(
-  deps: {
-    removeDNSEntry: (sudoPassword: string) => Promise<void>;
-    removeDNSEntries: (hosts: string[], sudoPassword: string) => Promise<void>;
-    collectManagedHosts: () => string[];
-  },
-  sudoPassword: string
-): Promise<void> {
-  log.info("Removing DNS entries...");
-  await deps.removeDNSEntry(sudoPassword);
-  try {
-    const managed = deps.collectManagedHosts();
-    if (managed.length > 0) {
-      await deps.removeDNSEntries(managed, sudoPassword);
-    }
-  } catch (err) {
-    log.error({ err }, "Failed to remove managed DNS entries during stop (continuing)");
-  }
-}
-
-/**
  * Kill the MITM server process during stop — either the in-memory
  * `serverProcess` handle or, if that's gone, the PID recorded in `PID_FILE`.
  * Split out of stopMitm() purely to keep that function's complexity under
@@ -733,9 +754,12 @@ export async function stopMitm(
     collectManagedHosts: _depsOverride?.collectManagedHosts ?? collectManagedHosts,
   };
 
-  // 1. Remove DNS entries FIRST — see function doc + module doc above for why
-  //    this must happen before the process kill (#1809, Gap 8).
-  await removeStopDnsEntries(deps, sudoPassword);
+  // 1. Remove DNS entries FIRST — see function doc + module doc above (#1809).
+  await runPrivilegedMitmStep(
+    sudoPassword,
+    "Skipping DNS teardown — no sudo password available (#7938)",
+    () => removeStopDnsEntries(deps, sudoPassword)
+  );
 
   // 2. Kill server process (in-memory or from PID file)
   await killMitmServerProcessOnStop();

@@ -1,0 +1,1 @@
+- Fix `mitm-dnsConfig` unit tests failing when the suite runs as root (or with `OMNIROUTE_NO_SUDO` / no `sudo` installed): they hardcoded `sudo` as the spawned command, but `resolveSudoSpawn()` deliberately strips the `sudo -S` prefix in those environments (#6122). The tests now assert the effective invocation (`tee -a <hosts file>`, elevated or not).

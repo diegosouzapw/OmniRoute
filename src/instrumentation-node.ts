@@ -6,6 +6,8 @@
  * and emit spurious "not supported in Edge Runtime" warnings.
  */
 
+import { markServerReady, markServerStarting } from "@/lib/serverLifecycle";
+
 function getRandomBytes(byteLength: number): Uint8Array {
   const bytes = new Uint8Array(byteLength);
   globalThis.crypto.getRandomValues(bytes);
@@ -82,6 +84,17 @@ export async function ensureDbReadyForBoot(
   } catch (err: unknown) {
     const normalized = normalizeBootError(err);
     if (!TRANSIENT_DB_CLOSED_RE.test(normalized.message)) {
+      // Fatal, non-transient boot-time DB init failure (e.g. the entire
+      // better-sqlite3 -> node:sqlite -> sql.js driver cascade failed, as on
+      // Termux/Android when no SQLite driver is usable). This runs BEFORE
+      // initConsoleInterceptor() is wired up, so this is the only chance to
+      // get the real root cause into stdout/app.log — without it, the
+      // process keeps its HTTP listener up while every DB-touching route
+      // 500s forever with a permanently empty log (#7773).
+      console.error(
+        "[STARTUP] Fatal: Database driver initialization failed:",
+        normalized.message
+      );
       throw normalized;
     }
     console.warn(
@@ -91,7 +104,12 @@ export async function ensureDbReadyForBoot(
     try {
       await ensureDbInitialized();
     } catch (retryErr: unknown) {
-      throw normalizeBootError(retryErr);
+      const normalizedRetryErr = normalizeBootError(retryErr);
+      console.error(
+        "[STARTUP] Fatal: Database driver initialization failed after retry:",
+        normalizedRetryErr.message
+      );
+      throw normalizedRetryErr;
     }
   }
 }
@@ -144,7 +162,62 @@ async function ensureSecrets(): Promise<void> {
   }
 }
 
+/**
+ * Warm the model catalog's durable, apiKey-independent sub-caches at startup
+ * so real /v1/models traffic (any client, any API key) avoids paying their
+ * cold-build cost on first use. Fire-and-forget from the caller, non-fatal.
+ *
+ * getUnifiedModelsResponse()'s own top-level Response cache (`catalogCache`
+ * in catalog.ts) is keyed by prefix/isCodex/apiKey AND has only a 1.5s TTL
+ * (CATALOG_CACHE_TTL_MS — a burst-dedup window added for #6408 to coalesce
+ * concurrent SDK/dashboard requests, not a startup-warm cache). Warming that
+ * cache with an unauthenticated dummy request has essentially no lasting
+ * effect: real traffic almost never arrives within 1.5s of this warmup
+ * completing, regardless of whether its cache key happens to match a real
+ * client's apiKey. The one genuinely durable, apiKey-independent cost in the
+ * catalog build is getOpenRouterCatalog()'s 24h disk-cached network fetch
+ * (src/lib/catalog/openrouterCatalog.ts) — buildUnifiedModelsResponseCore()
+ * calls it unconditionally whenever an OpenRouter connection is configured,
+ * decoupled from the per-key Response cache entirely, so warming it directly
+ * here benefits every subsequent /v1/models request regardless of that
+ * request's own apiKey. Only fetched when an OpenRouter connection actually
+ * exists, so deployments that never use OpenRouter don't pay an unconditional
+ * third-party network call at every boot.
+ *
+ * Exported (rather than left inline in registerNodejs()) so it can be unit
+ * tested directly without exercising the rest of the startup sequence.
+ */
+export async function warmModelCatalogCache(): Promise<void> {
+  try {
+    const { getUnifiedModelsResponse } = await import("@/app/api/v1/models/catalog");
+    await getUnifiedModelsResponse(new Request("http://127.0.0.1/v1/models"));
+    console.log("[STARTUP] Model catalog cache warmed");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Model catalog warmup failed (non-fatal):", msg);
+  }
+  try {
+    const [{ getProviderConnections }, { getOpenRouterCatalog }] = await Promise.all([
+      import("@/lib/db/providers"),
+      import("@/lib/catalog/openrouterCatalog"),
+    ]);
+    const openrouterConnections = await getProviderConnections({
+      provider: "openrouter",
+      isActive: true,
+    });
+    if (openrouterConnections.length > 0) {
+      await getOpenRouterCatalog();
+      console.log("[STARTUP] OpenRouter model catalog cache warmed");
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] OpenRouter catalog warmup failed (non-fatal):", msg);
+  }
+}
+
 export async function registerNodejs(): Promise<void> {
+  markServerStarting();
+
   // Rename the process title so OmniRoute is identifiable in ps/htop instead
   // of the generic "next-server" standalone server name.
   process.title = renameProcessTitle(process.title);
@@ -153,15 +226,25 @@ export async function registerNodejs(): Promise<void> {
   await import("@omniroute/open-sse/index.ts");
   console.log("[STARTUP] Global fetch proxy patch initialized");
 
+  // Guarantee the SQLite singleton — including a sql.js WASM pre-init when
+  // both synchronous drivers (better-sqlite3, node:sqlite) are unavailable —
+  // is ready before ANY other startup step reaches getDbInstance(). This
+  // MUST run before ensureSecrets, clearStaleCrashCooldowns,
+  // getSettings, initAuditLog below: those all reach getDbInstance()
+  // transitively, and used to run ahead of this call (previously at the end
+  // of this function), throwing the misleading "sql.js WASM ainda não foi
+  // pré-inicializado" error for an existing DB file when both sync drivers
+  // failed (#7288 / #7494). ensureDbInitialized() itself is idempotent and
+  // caches the singleton, so every later getDbInstance() call below is a
+  // free no-op re-read of the same connection — no double-init cost.
+  await ensureDbReadyForBoot();
+
   await ensureSecrets();
-  const { enforceWebRuntimeEnv } = await import("@/lib/env/runtimeEnv");
-  enforceWebRuntimeEnv();
-
-  // Trigger request-log layout migration during startup, before any request hits usageDb.
-  await import("@/lib/usage/migrations");
-
-  const { initConsoleInterceptor } = await import("@/lib/consoleInterceptor");
-  initConsoleInterceptor();
+  await Promise.all([
+    import("@/lib/env/runtimeEnv").then(({ enforceWebRuntimeEnv }) => enforceWebRuntimeEnv()),
+    import("@/lib/usage/migrations"),
+    import("@/lib/consoleInterceptor").then(({ initConsoleInterceptor }) => initConsoleInterceptor()),
+  ]);
 
   // Clear stale transient connection cooldowns persisted from an unclean crash.
   // A crash mid-burst can leave far-future `rate_limited_until` values in the DB
@@ -215,6 +298,9 @@ export async function registerNodejs(): Promise<void> {
   // Proxy health scheduler (auto-removes dead proxies on interval)
   await import("@/lib/proxyHealth/scheduler");
 
+  // Free-proxy auto-sync scheduler (re-fetches free-proxy sources on interval, #7079)
+  await import("@/lib/freeProxyProviders/scheduler");
+
   initGracefulShutdown();
   initApiBridgeServer();
   startSpendBatchWriter();
@@ -228,6 +314,9 @@ export async function registerNodejs(): Promise<void> {
     console.log("[STARTUP] Quota cache background refresh started");
     startProviderLimitsSyncScheduler();
     console.log("[STARTUP] Provider limits sync scheduler started");
+    const { startQuotaAutoPing } = await import("@/lib/services/quotaAutoPing");
+    startQuotaAutoPing();
+    console.log("[STARTUP] Quota auto-ping scheduler started (opt-in, no-op until enabled)");
     const cloudSyncInitialized = await ensureCloudSyncInitialized();
     console.log(
       `[STARTUP] Cloud/model sync background bootstrap ${cloudSyncInitialized ? "initialized" : "skipped"}`
@@ -310,6 +399,22 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not restore runtime settings:", msg);
   }
 
+  // Proactively start the credential-health sweep at boot so stale web-session
+  // connections (cookies that expired overnight) get re-probed and recovered on
+  // startup — instead of staying red until the first real request lazily imports
+  // the on-demand credentialGate. Idempotent; self-disables via
+  // OMNIROUTE_DISABLE_CREDENTIAL_HEALTH_CHECK and its cadence is tunable via
+  // CREDENTIAL_HEALTH_CHECK_INTERVAL. NOTE: this MUST live here (the real Next.js
+  // instrumentation startup), NOT in the unused src/server-init.ts.
+  try {
+    const { initCredentialHealthCheck } = await import("@/lib/credentialHealth/scheduler");
+    initCredentialHealthCheck();
+    console.log("[STARTUP] Credential health scheduler started");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Could not start credential health scheduler:", msg);
+  }
+
   try {
     const { initAuditLog, cleanupExpiredLogs } = await import("@/lib/compliance/index");
     initAuditLog();
@@ -331,8 +436,6 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[COMPLIANCE] Could not initialize audit log:", msg);
   }
 
-  await ensureDbReadyForBoot();
-
   // Storage-configured scheduled VACUUM (#4437): registers the timer from
   // Settings > System & Storage and persists lastVacuumAt for the UI.
   try {
@@ -344,118 +447,97 @@ export async function registerNodejs(): Promise<void> {
     console.warn("[STARTUP] Could not initialize vacuum scheduler (non-fatal):", msg);
   }
 
+  // Warm the model catalog's durable, apiKey-independent sub-caches at
+  // startup — see warmModelCatalogCache() for why the top-level Response
+  // cache alone doesn't deliver this. Fire-and-forget, non-fatal.
+  void warmModelCatalogCache();
+
   if (!isBackgroundServicesDisabled()) {
-    try {
-      const { bootstrapEmbeddedServices } = await import("@/lib/services/bootstrap");
-      await bootstrapEmbeddedServices();
-      console.log("[STARTUP] Embedded services bootstrap complete");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Embedded services bootstrap failed (non-fatal):", msg);
-    }
+    // All services are independent — run in parallel for faster cold start.
+    await Promise.allSettled([
+      import("@/lib/services/bootstrap").then(async (m) => {
+        await m.bootstrapEmbeddedServices();
+        console.log("[STARTUP] Embedded services bootstrap complete");
+      }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("[STARTUP] Embedded services bootstrap failed (non-fatal):", msg);
+      }),
 
-    try {
-      const { initEmbedWsProxy } = await import("@/lib/services/embedWsProxy");
-      initEmbedWsProxy();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Embed WS proxy failed to start (non-fatal):", msg);
-    }
+      import("@/lib/services/embedWsProxy").then((m) => m.initEmbedWsProxy())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] Embed WS proxy failed to start (non-fatal):", msg);
+        }),
 
-    try {
-      const { autoRefreshDaemon } = await import("@omniroute/open-sse/services/autoRefreshDaemon");
-      autoRefreshDaemon.start();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
-    }
+      import("@omniroute/open-sse/services/autoRefreshDaemon").then((m) => m.autoRefreshDaemon.start())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
+        }),
 
-    // Proactive connection-cooldown recovery (#8): re-validate connections whose
-    // transient `rate_limited_until` window has elapsed OUTSIDE the request hot
-    // path, so the first request after a cooldown does not pay the probe latency.
-    // Lazy/self-recovery still happens in getProviderCredentials; this front-runs it.
-    try {
-      const { initConnectionRecoveryScheduler } = await import("@/lib/quota/connectionRecovery");
-      initConnectionRecoveryScheduler();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Connection recovery scheduler failed to start (non-fatal):", msg);
-    }
+      // Proactive connection-cooldown recovery (#8): re-validate connections whose
+      // transient `rate_limited_until` window has elapsed OUTSIDE the request hot path,
+      // so the first request after a cooldown does not pay the probe latency.
+      import("@/lib/quota/connectionRecovery").then((m) => m.initConnectionRecoveryScheduler())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] Connection recovery scheduler failed to start (non-fatal):", msg);
+        }),
 
-    try {
       // Arena ELO sync: model intelligence from the Arena AI leaderboard, powering the
-      // Free Provider Rankings page. On by default; configurable from Dashboard Feature Flags.
-      // Non-blocking — the initial sync is fire-and-forget and never fatal.
-      const { initArenaEloSync } = await import("@/lib/arenaEloSync");
-      const started = await initArenaEloSync();
-      if (started) {
-        console.log("[STARTUP] Arena ELO sync initialized");
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
-    }
+      // Free Provider Rankings page. On by default; non-blocking, never fatal.
+      import("@/lib/arenaEloSync").then(async (m) => {
+        const started = await m.initArenaEloSync();
+        if (started) console.log("[STARTUP] Arena ELO sync initialized");
+      }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("[STARTUP] Arena ELO sync failed to start (non-fatal):", msg);
+      }),
 
-    // Pricing sync: opt-in external pricing data (self-gated by PRICING_SYNC_ENABLED inside
-    // initPricingSync). Was only wired into the unused server-init.ts, so it never ran in the
-    // standalone runtime even when enabled. Non-blocking, never fatal.
-    try {
-      const { initPricingSync } = await import("@/lib/pricingSync");
-      await initPricingSync();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Pricing sync failed to start (non-fatal):", msg);
-    }
+      // Pricing sync: opt-in external pricing data (self-gated by PRICING_SYNC_ENABLED inside
+      // initPricingSync). Non-blocking, never fatal.
+      import("@/lib/pricingSync").then((m) => m.initPricingSync())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] Pricing sync failed to start (non-fatal):", msg);
+        }),
 
-    // models.dev capability sync: opt-in via Settings > AI (self-gated by
-    // settings.modelsDevSyncEnabled inside initModelsDevSync). Previously had no caller at all,
-    // so the toggle was inert. Non-blocking, never fatal.
-    try {
-      const { initModelsDevSync } = await import("@/lib/modelsDevSync");
-      await initModelsDevSync();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
-    }
+      // models.dev capability sync: opt-in via Settings > AI (self-gated by
+      // settings.modelsDevSyncEnabled inside initModelsDevSync). Non-blocking, never fatal.
+      import("@/lib/modelsDevSync").then((m) => m.initModelsDevSync())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] models.dev sync failed to start (non-fatal):", msg);
+        }),
 
-    // Context-window self-correction (5004): periodically reconcile provider-declared
-    // windows (from /models discovery) into auto:discovery overrides. Reuses already-synced
-    // data (no new fetch); disable via CONTEXT_WINDOW_RECONCILE_INTERVAL=0. Never fatal.
-    try {
-      const { startContextWindowReconcile } = await import("@/lib/contextWindowResolver");
-      startContextWindowReconcile();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
-    }
+      // Context-window self-correction (5004): periodically reconcile provider-declared
+      // windows (from /models discovery) into auto:discovery overrides. Never fatal.
+      import("@/lib/contextWindowResolver").then((m) => m.startContextWindowReconcile())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] context-window reconcile failed to start (non-fatal):", msg);
+        }),
 
-    // TV6 typed memory decay: optional periodic sweep of decayed episodic memories. Doubly
-    // opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
-    // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
-    try {
-      const { startMemoryDecaySweep } = await import("@/lib/memory/typedDecay");
-      startMemoryDecaySweep();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
-    }
+      // TV6 typed memory decay: optional periodic sweep of decayed episodic memories.
+      // Doubly opt-in (no-op unless MEMORY_TYPED_DECAY_ENABLED=true AND
+      // MEMORY_TYPED_DECAY_SWEEP_INTERVAL>0). Never deletes by default. Never fatal.
+      import("@/lib/memory/typedDecay").then((m) => m.startMemoryDecaySweep())
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn("[STARTUP] memory decay sweep failed to start (non-fatal):", msg);
+        }),
 
-    // Real-time dashboard WebSocket daemon (port 20132): powers Combo Studio Live,
-    // the Home live-pulse, and Live Compression. liveServer.ts auto-starts the
-    // daemon on import (gated by OMNIROUTE_ENABLE_LIVE_WS, default ON) — but NOTHING
-    // imported it in the packaged standalone/PM2 runtime. Only the unused
-    // `server-init.ts` and a dev-only helper script (`scripts/start-ws-server.mjs`)
-    // ever pulled it into a module graph, so in the published `omniroute` bin the
-    // daemon never bound its port and every live dashboard reported "Live disabled —
-    // WebSocket disconnected". Importing it here (the instrumentation hook that DOES
-    // run in standalone) fires that flag-gated auto-start. Side-effect import + the
-    // module's own `.catch` keep it non-fatal.
-    try {
-      await import("@/server/ws/liveServer");
-      console.log("[STARTUP] Live dashboard WebSocket daemon bootstrap invoked");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.warn("[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):", msg);
-    }
+      // Real-time dashboard WebSocket daemon (port 20132): powers Combo Studio Live,
+      // the Home live-pulse, and Live Compression. Side-effect import triggers the
+      // flag-gated auto-start (OMNIROUTE_ENABLE_LIVE_WS, default ON).
+      import("@/server/ws/liveServer").then(() => {
+        console.log("[STARTUP] Live dashboard WebSocket daemon bootstrap invoked");
+      }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("[STARTUP] Live dashboard WebSocket daemon failed to start (non-fatal):", msg);
+      }),
+    ]);
   }
+
+  markServerReady();
 }

@@ -35,22 +35,22 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 250 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 278 LLM providers, auto-fallback.
 
-| Layer         | Location                | Purpose                                                                                                                                                |
-| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                      |
-| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                             |
-| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                        |
-| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                               |
-| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                       |
-| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                               |
-| Database      | `src/lib/db/`           | SQLite domain modules (95 files, 110 migrations)                                                                                                       |
-| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                              |
-| MCP Server    | `open-sse/mcp-server/`  | 94 tools (34 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 30 scopes |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                            |
-| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                             |
-| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                       |
+| Layer         | Location                | Purpose                                                                                                                                                 |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                                                                                                       |
+| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                                                                                                              |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                                                                                                         |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                        |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                |
+| Database      | `src/lib/db/`           | SQLite domain modules (95 files, 110 migrations)                                                                                                        |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                               |
+| MCP Server    | `open-sse/mcp-server/`  | 104 tools (42 base + memory/skill/agentSkill/pool/notion/obsidian/gamification/plugin modules), 3 transports (stdio / SSE / Streamable HTTP), 31 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                             |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                                                                                                                              |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory                                                                                                                        |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
@@ -482,8 +482,8 @@ list` shows worktrees you didn't create, leave them alone. End every session wit
 
 ## Environment
 
-- **Runtime**: Node.js ≥22.0.0 <23 || ≥24.0.0 <27, ES Modules. This is the **only** runtime for the published `omniroute` CLI, the server, and the test suites (`node:test` + vitest) — `engines.node` is authoritative and end users never need Bun.
-- **Bun (build/dev script runner only)**: Bun `1.3.10` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression`. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the published runtime, or the test runners — those stay on Node. Any new Bun-invoking script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those 5 scripts with `bun: not found`).
+- **Runtime**: Node.js ≥22.0.0 <23 || ≥24.0.0 <27, ES Modules. This is the **only supported** runtime for the published `omniroute` CLI, the server, and the test suites (`node:test` + vitest) — `engines.node` is authoritative and end users never need Bun. A **best-effort `bun:sqlite` compatibility path** exists so a global Bun install (`bun install -g omniroute`) can start without `better-sqlite3` (driver adapter + Bun-aware process spawning); it is **not** a supported runtime — no support guarantees — and every Bun-specific runtime change MUST preserve the Node driver/fallback chain and ship a Bun test (`test:bun:db`) or an explicit reason why the path is Node-only.
+- **Bun (build/dev script runner + compatibility smoke only)**: Bun `1.3.14` is pinned as an **exact devDependency** (provisioned through the existing `npm ci` via the lockfile's `@oven/bun-*` platform binaries — no `setup-bun`/ad-hoc install). It is used **only** to execute a small, allow-listed set of TypeScript **gate/generator scripts** (replacing `node --import tsx` for startup speed): the CI checks `check:provider-consistency`, `check:compression-budget`, `check:known-symbols`, and the non-CI `gen:provider-reference`, `bench:compression` — plus the focused `test:bun:db` compatibility smoke suite for the best-effort `bun:sqlite` path. **Do NOT** widen Bun to `npm install`, the build (`build:cli*`), `check:pack-artifact`, the supported published runtime, or the main test runners — those stay on Node. Any new Bun-invoking gate/generator script must be validated byte-identical against its `node --import tsx` output first. After pulling the lockfile change, run `npm install` so `bun` resolves locally (a stale `node_modules` will fail those scripts with `bun: not found`).
 - **TypeScript**: 6.0+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard on same port)

@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import {
+  ANTIGRAVITY_MODEL_ALIASES,
+  ANTIGRAVITY_PUBLIC_MODELS,
+} from "../../open-sse/config/antigravityModelAliases.ts";
+import { AGY_PUBLIC_MODELS } from "../../open-sse/config/agyModels.ts";
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
 
 // Regression tests for #6402 — schema-invalid `messages` fields fell through
@@ -121,4 +126,59 @@ test("#6402: Responses-API input passes the guard (messages discriminator preser
       "Responses-API request must not be caught by the messages guard"
     );
   }
+});
+
+const ANTIGRAVITY_GEMINI_MODELS = Array.from(
+  new Set(
+    [
+      ...ANTIGRAVITY_PUBLIC_MODELS.map((model) => model.id),
+      ...AGY_PUBLIC_MODELS.map((model) => model.id),
+      ...Object.keys(ANTIGRAVITY_MODEL_ALIASES),
+      ...Object.values(ANTIGRAVITY_MODEL_ALIASES),
+    ].filter((model) => /^(gemini(?!-claude)|rev19)/.test(model))
+  )
+).sort();
+
+for (const model of ANTIGRAVITY_GEMINI_MODELS) {
+  test(`Antigravity cloudcode envelope routes without the missing-messages 400: ${model}`, async () => {
+    await seedConnection("antigravity", {
+      accessToken: "ag-access",
+      providerSpecificData: { projectId: "test-project" },
+    });
+
+    let upstreamCalled = false;
+    globalThis.fetch = async () => {
+      upstreamCalled = true;
+      return new Response(
+        'data: {"response":{"candidates":[{"content":{"parts":[{"text":"ok"}]},"finishReason":"STOP"}]}}\n\n',
+        { status: 200, headers: { "Content-Type": "text/event-stream" } }
+      );
+    };
+
+    const response = await handleChat(
+      buildRequest({
+        url: "http://localhost/v1/antigravity",
+        body: {
+          model: `antigravity/${model}`,
+          project: "projects/test",
+          request: {
+            contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+          },
+        },
+      })
+    );
+
+    assert.equal(upstreamCalled, true, "Antigravity request should reach the upstream executor");
+    assert.equal(response.status, 200, "Antigravity cloudcode envelopes must not return 400");
+
+    const body = await response.text();
+    assert.match(body, /ok/);
+  });
+}
+
+test("Antigravity Gemini-family regression coverage is not accidentally empty", () => {
+  assert.ok(
+    ANTIGRAVITY_GEMINI_MODELS.length >= 20,
+    `expected broad Gemini-family coverage, got ${ANTIGRAVITY_GEMINI_MODELS.length}`
+  );
 });

@@ -136,6 +136,153 @@ test("consumeCodexResetCredit accepts alreadyRedeemed as success", async () => {
   assert.equal(result.outcome, "alreadyRedeemed");
 });
 
+test("consumeCodexResetCredit automatically redeems the soonest-expiring available credit", async () => {
+  const connection = (await createCodexConnection()) as { id: string };
+  let consumedCreditId: string | null = null;
+
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).endsWith("/rate-limit-reset-credits")) {
+      return new Response(
+        JSON.stringify({
+          credits: [
+            {
+              id: "credit-later",
+              status: "available",
+              expires_at: "2099-08-20T10:00:00.000Z",
+            },
+            {
+              id: "credit-no-expiry",
+              status: "available",
+              expires_at: null,
+            },
+            {
+              id: "credit-first",
+              status: "available",
+              expires_at: "2099-07-20T10:00:00.000Z",
+            },
+          ],
+        }),
+        { status: 200 }
+      );
+    }
+    if (String(url).includes("/rate-limit-reset-credits/consume")) {
+      consumedCreditId = JSON.parse(String(init.body)).credit_id;
+      return new Response(JSON.stringify({ code: "reset" }), { status: 200 });
+    }
+    if (String(url).includes("/backend-api/wham/usage")) {
+      return new Response(JSON.stringify({ rate_limit: {} }), { status: 200 });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  await resetCredits.consumeCodexResetCredit(connection.id, "redeem-fefo");
+  assert.equal(consumedCreditId, "credit-first");
+});
+
+test("consumeCodexResetCredit redeems an explicitly selected available credit", async () => {
+  const connection = (await createCodexConnection()) as { id: string };
+  let consumedCreditId: string | null = null;
+
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).endsWith("/rate-limit-reset-credits")) {
+      return new Response(
+        JSON.stringify({
+          credits: [
+            { id: "credit-first", status: "available", expires_at: "2099-07-20T10:00:00Z" },
+            { id: "credit-chosen", status: "available", expires_at: "2099-08-20T10:00:00Z" },
+          ],
+        }),
+        { status: 200 }
+      );
+    }
+    if (String(url).includes("/rate-limit-reset-credits/consume")) {
+      consumedCreditId = JSON.parse(String(init.body)).credit_id;
+      return new Response(JSON.stringify({ code: "reset" }), { status: 200 });
+    }
+    if (String(url).includes("/backend-api/wham/usage")) {
+      return new Response(JSON.stringify({ rate_limit: {} }), { status: 200 });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  await resetCredits.consumeCodexResetCredit(connection.id, "redeem-selected", "credit-chosen");
+  assert.equal(consumedCreditId, "credit-chosen");
+});
+
+test("listCodexResetCredits returns available credits ordered by expiry", async () => {
+  const connection = (await createCodexConnection()) as { id: string };
+
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith("/rate-limit-reset-credits")) {
+      return new Response(
+        JSON.stringify({
+          available_count: 3,
+          credits: [
+            {
+              id: "credit-no-expiry",
+              status: "available",
+              expires_at: null,
+              title: "No expiry",
+            },
+            {
+              id: "credit-redeemed",
+              status: "redeemed",
+              expires_at: "2099-06-01T00:00:00Z",
+            },
+            {
+              id: "credit-later",
+              status: "available",
+              expires_at: "2099-08-01T00:00:00Z",
+              title: "Later",
+            },
+            {
+              id: "credit-first",
+              status: "available",
+              expires_at: "2099-07-01T00:00:00Z",
+              title: "First",
+              description: "Expires first",
+            },
+          ],
+        }),
+        { status: 200 }
+      );
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  const result = await resetCredits.listCodexResetCredits(connection.id);
+  assert.equal(result.availableCount, 3);
+  assert.deepEqual(
+    result.credits.map((credit) => credit.selectionToken),
+    ["credit-first", "credit-later", "credit-no-expiry"]
+  );
+  assert.equal(result.credits[0].title, "First");
+  assert.equal(result.credits[0].description, "Expires first");
+  assert.equal(result.credits[0].expiresAt, "2099-07-01T00:00:00Z");
+});
+
+test("consumeCodexResetCredit rejects an unavailable manual selection", async () => {
+  const connection = (await createCodexConnection()) as { id: string };
+
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith("/rate-limit-reset-credits")) {
+      return new Response(JSON.stringify({ credits: [{ id: "credit-other" }] }), {
+        status: 200,
+      });
+    }
+    return new Response("unexpected", { status: 500 });
+  };
+
+  await assert.rejects(
+    () =>
+      resetCredits.consumeCodexResetCredit(connection.id, "redeem-unavailable", "credit-missing"),
+    (error: unknown) =>
+      error instanceof resetCredits.CodexResetCreditError &&
+      error.status === 409 &&
+      error.code === "selected_credit_unavailable"
+  );
+});
+
 for (const code of ["noCredit", "nothingToReset"]) {
   test(`consumeCodexResetCredit maps ${code} to 409`, async () => {
     const connection = (await createCodexConnection()) as { id: string };

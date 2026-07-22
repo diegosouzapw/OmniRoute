@@ -98,7 +98,7 @@ function buildChildNestingContext(args: {
   };
 }
 
-async function executeComboRefUnit(args: {
+export async function executeComboRefUnit(args: {
   body: Record<string, unknown>;
   unit: ResolvedComboRefTarget;
   allCombos: ComboCollectionLike;

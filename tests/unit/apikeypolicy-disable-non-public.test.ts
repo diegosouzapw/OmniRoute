@@ -148,6 +148,26 @@ test("disableNonPublicModels=true + auto/<group> request → not rejected by pub
   }
 });
 
+test("reasoning routing preserves auto/* targets during API-key re-check", async () => {
+  const created = await apiKeysDb.createApiKey("Reasoning Auto Key", "machine-reasoning-auto");
+  await apiKeysDb.updateApiKeyPermissions(created.id, {
+    allowedModels: ["openai/gpt-4o-mini"],
+    disableNonPublicModels: true,
+  });
+  apiKeysDb.clearApiKeyCaches();
+
+  const policy = await loadPolicy("reasoning-auto-target");
+  const metadata = await apiKeysDb.getApiKeyMetadata(created.key);
+  const rejection = await policy.validateApiKeyRoutingTarget(
+    makeRequest(created.key),
+    created.key,
+    metadata,
+    "auto/coding"
+  );
+
+  assert.equal(rejection, null, "auto/* is a virtual combo target and must remain allowed");
+});
+
 test("disableNonPublicModels=true + qtSd/ virtual model → not rejected by published-model gate", async () => {
   const created = await apiKeysDb.createApiKey("DNP QtSd Key", "machine-dnp-qtsd");
   await apiKeysDb.updateApiKeyPermissions(created.id, { disableNonPublicModels: true });

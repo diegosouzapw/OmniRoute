@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const { parseSSEToOpenAIResponse, parseSSEToClaudeResponse, parseSSEToResponsesOutput } =
   await import("../../open-sse/handlers/sseParser.ts");
+const { parseSSEToGeminiResponse } =
+  await import("../../open-sse/handlers/sseParser/geminiResponse.ts");
 
 test("parseSSEToOpenAIResponse parses a single SSE event with a done marker", () => {
   const rawSSE = [
@@ -103,12 +105,12 @@ test("parseSSEToClaudeResponse parses text, thinking, tool_use, and usage events
 
   assert.equal(parsed.id, "msg_1");
   assert.equal(parsed.model, "claude-3-5-sonnet");
-  assert.equal((parsed.content[0] as any).type, "thinking");
-  assert.equal((parsed as any).content[0].thinking, "step 1");
-  assert.equal((parsed as any).content[0].signature, "sig-1");
-  (assert as any).equal((parsed.content[1] as any).text, "Hello");
-  assert.equal((parsed.content[2] as any).type, "tool_use");
-  (assert as any).deepEqual((parsed.content[2] as any).input, { q: "docs" });
+  assert.equal((parsed.content[0] as { type: string }).type, "thinking");
+  assert.equal((parsed.content[0] as { thinking: string }).thinking, "step 1");
+  assert.equal((parsed.content[0] as { signature: string }).signature, "sig-1");
+  assert.equal((parsed.content[1] as { text: string }).text, "Hello");
+  assert.equal((parsed.content[2] as { type: string }).type, "tool_use");
+  assert.deepEqual((parsed.content[2] as { input: unknown }).input, { q: "docs" });
   assert.equal(parsed.stop_reason, "tool_use");
   assert.equal(parsed.stop_sequence, "END");
   assert.deepEqual(parsed.usage, { input_tokens: 10, output_tokens: 4 });
@@ -130,7 +132,7 @@ test("parseSSEToClaudeResponse tolerates event-only types and missing blank sepa
 
   assert.equal(parsed.id, "msg_event_fallback");
   assert.equal(parsed.model, "claude-sonnet-4-6");
-  assert.equal((parsed.content[0] as any).text, "event fallback ok");
+  assert.equal((parsed.content[0] as { text: string }).text, "event fallback ok");
   assert.deepEqual(parsed.usage, { input_tokens: 3, output_tokens: 2 });
 });
 
@@ -152,9 +154,9 @@ test("parseSSEToClaudeResponse merges signature_delta into an existing thinking 
 
   const parsed = parseSSEToClaudeResponse(rawSSE, "fallback-model");
 
-  assert.equal((parsed.content[0] as any).type, "thinking");
-  assert.equal((parsed.content[0] as any).thinking, "first second");
-  assert.equal((parsed.content[0] as any).signature, "sig-1");
+  assert.equal((parsed.content[0] as { type: string }).type, "thinking");
+  assert.equal((parsed.content[0] as { thinking: string }).thinking, "first second");
+  assert.equal((parsed.content[0] as { signature: string }).signature, "sig-1");
 });
 
 test("parseSSEToClaudeResponse preserves signature_delta when it arrives before thinking_delta", () => {
@@ -172,9 +174,9 @@ test("parseSSEToClaudeResponse preserves signature_delta when it arrives before 
 
   const parsed = parseSSEToClaudeResponse(rawSSE, "fallback-model");
 
-  assert.equal((parsed.content[0] as any).type, "thinking");
-  assert.equal((parsed.content[0] as any).thinking, "later thinking");
-  assert.equal((parsed.content[0] as any).signature, "sig-before");
+  assert.equal((parsed.content[0] as { type: string }).type, "thinking");
+  assert.equal((parsed.content[0] as { thinking: string }).thinking, "later thinking");
+  assert.equal((parsed.content[0] as { signature: string }).signature, "sig-before");
 });
 
 test("parseSSEToClaudeResponse ignores malformed payloads and returns null when nothing valid remains", () => {
@@ -333,4 +335,99 @@ test("parseSSEToOpenAIResponse deduplicates repeated tool call snapshots", () =>
 
   assert.equal(toolCall.function.arguments, args);
   assert.equal(JSON.parse(toolCall.function.arguments).command, "find /tmp -name test.txt");
+});
+
+// ---------------------------------------------------------------------------
+// parseSSEToGeminiResponse
+// ---------------------------------------------------------------------------
+
+test("parseSSEToGeminiResponse extracts text content from candidate parts", () => {
+  const rawSSE = [
+    'data: {"response":{"candidates":[{"content":{"parts":[{"text":"Hello "}]}}]}}',
+    'data: {"response":{"candidates":[{"content":{"parts":[{"text":"world"}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":5,"candidatesTokenCount":3,"totalTokenCount":8}}}',
+  ].join("\n");
+
+  const parsed = parseSSEToGeminiResponse(rawSSE, "gemini-2.5-flash");
+
+  assert.ok(parsed);
+  assert.equal(parsed.object, "chat.completion");
+  assert.equal(parsed.choices[0].message.content, "Hello world");
+  assert.equal(parsed.choices[0].finish_reason, "stop");
+  assert.deepEqual(parsed.usage, {
+    prompt_tokens: 5,
+    completion_tokens: 3,
+    total_tokens: 8,
+  });
+});
+
+test("parseSSEToGeminiResponse handles markdown shortcut format", () => {
+  const rawSSE = [
+    'data: {"markdown":"Hello "}',
+    'data: {"markdown":"world"}',
+    'data: {"response":{"candidates":[{"finishReason":"STOP"}]}}',
+  ].join("\n");
+
+  const parsed = parseSSEToGeminiResponse(rawSSE, "gemini-2.5-flash");
+
+  assert.ok(parsed);
+  assert.equal(parsed.choices[0].message.content, "Hello world");
+  assert.equal(parsed.choices[0].finish_reason, "stop");
+});
+
+test("parseSSEToGeminiResponse extracts tool calls from textual format", () => {
+  const rawSSE = [
+    `data: ${JSON.stringify({
+      response: {
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: '[Tool call: search_files]\nArguments: {"path":"/tmp"}',
+                },
+              ],
+            },
+            finishReason: "STOP",
+          },
+        ],
+      },
+    })}`,
+  ].join("\n");
+
+  const parsed = parseSSEToGeminiResponse(rawSSE, "gemini-3.5-flash-low");
+
+  assert.ok(parsed);
+  assert.equal(parsed.choices[0].finish_reason, "tool_calls");
+  const toolCalls = parsed.choices[0].message.tool_calls;
+  assert.equal(toolCalls.length, 1);
+  assert.equal(toolCalls[0].function.name, "search_files");
+  assert.deepEqual(JSON.parse(toolCalls[0].function.arguments), { path: "/tmp" });
+});
+
+test("parseSSEToGeminiResponse returns null for empty or non-content SSE", () => {
+  assert.equal(parseSSEToGeminiResponse("", "model"), null);
+  assert.equal(parseSSEToGeminiResponse("data: [DONE]\n", "model"), null);
+  assert.equal(parseSSEToGeminiResponse("event: ping\n", "model"), null);
+});
+
+test("parseSSEToGeminiResponse ignores thought/thoughtSignature parts", () => {
+  const rawSSE = [
+    `data: ${JSON.stringify({
+      response: {
+        candidates: [
+          {
+            content: {
+              parts: [{ text: "internal reasoning", thought: true }, { text: "visible answer" }],
+            },
+            finishReason: "STOP",
+          },
+        ],
+      },
+    })}`,
+  ].join("\n");
+
+  const parsed = parseSSEToGeminiResponse(rawSSE, "model");
+
+  assert.ok(parsed);
+  assert.equal(parsed.choices[0].message.content, "visible answer");
 });

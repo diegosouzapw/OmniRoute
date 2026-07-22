@@ -4,31 +4,26 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { getLookupEnv } from "@/shared/services/cliRuntime";
+import { qoderProvider } from "../config/providers/registry/qoder/index.ts";
 import { buildQoderCliNotFoundHint, resolveQoderCliInvocation } from "./qoderCliResolve";
 export { getQoderCliCommand } from "./qoderCliResolve"; // #6263 public entry point
 
 const DEFAULT_TIMEOUT_MS = 45_000;
 const DEFAULT_MODELS_TIMEOUT_MS = 20_000;
-const QODER_DEFAULT_MODEL = "qoder-rome-30ba3b";
+const QODER_DEFAULT_MODEL = "qwen3.8-max-preview";
+const QODER_MODEL_LEVELS = {
+  "qwen3.8-max-preview": "qmodel_preview",
+  "qwen3.7-max": "qmodel_latest",
+  "qwen3.7-plus": "qmodel",
+  "kimi-k3": "kmodel_latest",
+  "kimi-k2.7-code": "kmodel",
+  "glm-5.2": "gm51model",
+  "deepseek-v4-pro": "dmodel",
+  "deepseek-v4-flash": "dfmodel",
+  "minimax-m3": "mmodel",
+} as const;
 
-export const QODER_STATIC_MODELS = [
-  { id: "qoder-rome-30ba3b", name: "Qoder ROME" },
-  { id: "glm-5.2", name: "GLM-5.2" },
-  { id: "minimax-m3", name: "MiniMax M3" },
-  { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-  { id: "qwen3-max", name: "Qwen3 Max" },
-  { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus" },
-  { id: "kimi-k2-0905", name: "Kimi K2 0905" },
-  { id: "qwen3-max-preview", name: "Qwen3 Max Preview" },
-  { id: "kimi-k2", name: "Kimi K2" },
-  { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
-  { id: "deepseek-r1", name: "DeepSeek R1" },
-  { id: "deepseek-v3", name: "DeepSeek V3" },
-  { id: "qwen3-32b", name: "Qwen3 32B" },
-  { id: "qwen3-235b-a22b-thinking-2507", name: "Qwen3 235B A22B Thinking 2507" },
-  { id: "qwen3-235b-a22b-instruct", name: "Qwen3 235B A22B Instruct" },
-  { id: "qwen3-235b", name: "Qwen3 235B" },
-];
+export const QODER_STATIC_MODELS = qoderProvider.models.map(({ id, name }) => ({ id, name }));
 
 type JsonRecord = Record<string, unknown>;
 
@@ -455,33 +450,30 @@ export function getStaticQoderModels() {
 }
 
 /** qodercli's `-m` accepts these level keys (see `qodercli --list-models`). */
-const QODER_LEVEL_KEYS = new Set([
-  "auto",
-  "ultimate",
-  "performance",
-  "efficient",
-  "lite",
-  "q35model_preview",
-  "qmodel_latest",
-  "qmodel",
-  "gm51model",
-  "kmodel",
-  "dmodel",
-  "dfmodel",
-  "mmodel",
-]);
+const QODER_LEVEL_KEYS = new Set(["auto", ...Object.values(QODER_MODEL_LEVELS)]);
+
+function resolveQoderModelLevel(value: string): string | null {
+  const modelId = value.includes("/") ? value.slice(value.lastIndexOf("/") + 1) : value;
+  return QODER_MODEL_LEVELS[modelId as keyof typeof QODER_MODEL_LEVELS] ?? null;
+}
 
 export function mapQoderModelToLevel(model: string | null | undefined): string | null {
   const normalized = String(model || "")
     .trim()
     .toLowerCase();
   if (!normalized) return null;
+  // Keep Qoder's retired pre-3.8 level as an alias for the current preview.
+  if (normalized === "q35model_preview") return "qmodel_preview";
   // A caller may pass a qodercli level key directly (e.g. "gm51model") — honor it.
   if (QODER_LEVEL_KEYS.has(normalized)) return normalized;
-  if (normalized.includes("deepseek-r1")) return "ultimate";
+  const currentLevel = resolveQoderModelLevel(normalized);
+  if (currentLevel) return currentLevel;
+  // Legacy public ids stay accepted without keeping the retired abstract tiers.
+  if (normalized.includes("deepseek-r1")) return "dmodel";
   if (normalized.includes("glm")) return "gm51model"; // GLM-5.2 (`qoder/glm-5.2`)
   if (normalized.includes("minimax")) return "mmodel";
-  if (normalized.includes("qwen3-max")) return "performance";
+  if (normalized.includes("qwen3-max-preview")) return "qmodel_preview";
+  if (normalized.includes("qwen3-max")) return "qmodel_latest";
   if (normalized.includes("kimi-k2")) return "kmodel";
   if (normalized.includes("qwen3-coder")) return "qmodel";
   if (normalized.includes("qoder-rome")) return "qmodel";

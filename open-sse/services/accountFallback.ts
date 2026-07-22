@@ -36,7 +36,11 @@ import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
 import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
-import { parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
+import {
+  parseRetryHintFromJsonBody,
+  parseDelayString,
+  MAX_SHORT_RETRY_HINT_MS,
+} from "./retryAfterJson.ts";
 import {
   isSubscriptionQuotaText,
   buildSubscriptionQuotaFallback,
@@ -44,6 +48,8 @@ import {
   buildSessionQuotaFallback,
 } from "./quotaTextCooldowns.ts";
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
+import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
+export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -69,7 +75,7 @@ export type ProviderProfile = {
 };
 type JsonRecord = Record<string, unknown>;
 type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
-type ModelLockoutEntry = {
+export type ModelLockoutEntry = {
   reason: string;
   until: number;
   lockedAt: number;
@@ -77,7 +83,7 @@ type ModelLockoutEntry = {
   lastFailureAt: number;
   resetAfterMs: number;
 };
-type ModelFailureState = {
+export type ModelFailureState = {
   failureCount: number;
   lastFailureAt: number;
   resetAfterMs: number;
@@ -467,6 +473,7 @@ function ensureCleanupTimer() {
       const now = Date.now();
       for (const key of modelLockouts.keys()) cleanupModelLockKey(key, now);
       for (const key of modelFailureState.keys()) cleanupModelLockKey(key, now);
+      evictModelLockoutOverflow();
     }, 15_000);
     if (typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
       (_cleanupTimer as { unref?: () => void }).unref?.(); // Don't prevent process exit (Node.js only)
@@ -474,6 +481,14 @@ function ensureCleanupTimer() {
   } catch {
     // Cloudflare Workers may not support setInterval outside handlers — skip cleanup timer
   }
+}
+
+/** @internal exported for testing only (both accessors below). */
+export function evictModelLockoutOverflow(): void {
+  evictLockoutOverflow(modelLockouts, modelFailureState);
+}
+export function getModelLockoutSize(): number {
+  return modelLockouts.size;
 }
 
 /**
@@ -1025,24 +1040,8 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
   return { retryAfterMs: null, reason };
 }
 
-/**
- * Parse delay strings like "33s", "2m", "1h", "1500ms"
- */
-function parseDelayString(value: unknown): number | null {
-  if (!value) return null;
-  const str = String(value).trim();
-  const msMatch = /^(\d+)\s*ms$/i.exec(str);
-  if (msMatch) return Number.parseInt(msMatch[1], 10);
-  const secMatch = /^(\d+)\s*s$/i.exec(str);
-  if (secMatch) return Number.parseInt(secMatch[1], 10) * 1000;
-  const minMatch = /^(\d+)\s*m$/i.exec(str);
-  if (minMatch) return Number.parseInt(minMatch[1], 10) * 60 * 1000;
-  const hrMatch = /^(\d+)\s*h$/i.exec(str);
-  if (hrMatch) return Number.parseInt(hrMatch[1], 10) * 3600 * 1000;
-  // Bare number → seconds
-  const num = Number.parseInt(str, 10);
-  return Number.isNaN(num) ? null : num * 1000;
-}
+// parseDelayString now lives in ./retryAfterJson.ts (shared with parseRetryHintFromJsonBody's
+// Gemini RetryInfo.retryDelay parsing, #7940) — see the import at the top of this file.
 
 // T07: parse retry time from error text body with combined "XhYmZs" format.
 export function parseRetryFromErrorText(errorText: unknown): number | null {
@@ -1051,6 +1050,14 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
 
   const bodyHintMs = parseRetryHintFromJsonBody(msg, MAX_PROVIDER_COOLDOWN_MS);
   if (bodyHintMs !== null) return bodyHintMs;
+
+  // Gemini free-tier text fallback (no parseable JSON details present):
+  // "Please retry in 26.660853464s." Short throttle hint — capped independently of
+  // MAX_PROVIDER_COOLDOWN_MS, mirroring the JSON RetryInfo.retryDelay cap (#7940).
+  const pleaseRetryMs = parseDelayString(/please retry in\s+([\d.]+\s*s)/i.exec(msg)?.[1]);
+  if (pleaseRetryMs !== null && pleaseRetryMs > 0) {
+    return Math.min(pleaseRetryMs, MAX_SHORT_RETRY_HINT_MS);
+  }
 
   // Issue #2321: parse embedded absolute ISO retry timestamps.
   const isoMatch =
@@ -1554,13 +1561,21 @@ export function checkFallbackError(
       }
       return fallback;
     }
-    const cooldownMs = configuredRule.cooldownMs ?? 0;
+    // #6842: non-backoff configured rules (e.g. status_402) previously never
+    // consulted providerRuleRegistry, so a provider-specific rule (like
+    // OpenRouter's credit-exhausted 402 lock) could never override the
+    // generic zero-cooldown default. Mirror the backoff branch above so
+    // provider rules win on cooldown/reason regardless of `backoff`.
+    const providerMatch = provider
+      ? getProviderErrorRuleMatch(provider, status, headers, structuredError ?? null)
+      : null;
+    const cooldownMs = providerMatch?.cooldownMs ?? configuredRule.cooldownMs ?? 0;
     return {
       shouldFallback: true,
       cooldownMs,
       baseCooldownMs: cooldownMs,
       configuredCooldownMs: cooldownMs,
-      reason: configuredRule.reason ?? RateLimitReason.UNKNOWN,
+      reason: providerMatch?.reason ?? configuredRule.reason ?? RateLimitReason.UNKNOWN,
     };
   }
 

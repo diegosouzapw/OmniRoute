@@ -21,7 +21,12 @@
  */
 
 import { isRecord } from "./comboData.ts";
-import type { AutoProviderCandidate, ComboLike, ResolvedComboTarget } from "./types.ts";
+import type {
+  AutoProviderCandidate,
+  ComboLike,
+  HistoricalLatencyStatsEntry,
+  ResolvedComboTarget,
+} from "./types.ts";
 import { extractSessionAffinityKey } from "@/sse/services/auth";
 import { DEFAULT_INTENT_CONFIG, type IntentClassifierConfig } from "../intentClassifier.ts";
 import { getTaskFitness } from "../autoCombo/taskFitness.ts";
@@ -32,7 +37,7 @@ import {
   type ScoringWeights,
 } from "../autoCombo/scoring.ts";
 import type { RoutingHint } from "../manifestAdapter";
-import { getProviderConnections } from "../../../src/lib/db/providers";
+import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
 import { getProviderModels } from "../../config/providerModels.ts";
 import {
   getConnectionRoutingTags,
@@ -243,7 +248,7 @@ export async function applyRequestTagRouting(
   await Promise.all(
     providerIds.map(async (providerId) => {
       try {
-        const connections = await getProviderConnections({ provider: providerId, isActive: true });
+        const connections = await getCachedProviderConnections({ provider: providerId, isActive: true });
         providerConnections.set(
           providerId,
           Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
@@ -414,8 +419,17 @@ export async function expandAutoComboCandidatePool(
   if (Array.isArray(localAutoConfig?.candidatePool) && localAutoConfig.candidatePool.length > 0)
     return eligibleTargets;
 
+  // #COMBO-REF: if the combo references other combos via kind:"combo-ref" entries,
+  // the resolved eligibleTargets already represent the operator's intended pool.
+  // Expanding to ALL providers would defeat the purpose of the combo-ref constraint
+  // (e.g. an "auto" combo delegating to a "priority" sub-combo should not pull in
+  // every model from every active provider).
+  const rawModels = (combo as Record<string, unknown> | null | undefined)?.models;
+  if (Array.isArray(rawModels) && rawModels.some((m) => isRecord(m) && m.kind === "combo-ref"))
+    return eligibleTargets;
+
   try {
-    const allConnections = await getProviderConnections({ isActive: true });
+    const allConnections = await getCachedProviderConnections({ isActive: true });
     const providerIds = [
       ...new Set(
         (allConnections as Array<{ provider?: unknown }>)
@@ -472,4 +486,24 @@ export function deriveComboSessionKey(body: Record<string, unknown>): string | n
   } catch {
     return null;
   }
+}
+
+/**
+ * Surface TTFT/E2E-latency/tokens-per-second from a historical latency-stats
+ * entry onto an AutoProviderCandidate's speed-telemetry fields (#6875). Pure
+ * projection — only positive, finite numbers pass through; anything else is
+ * omitted so the existing speed-ranking factor (speedRanking.ts, #6011) falls
+ * back to its own pool-median default instead of scoring on a bad 0/NaN.
+ */
+export function deriveSpeedTelemetry(
+  metric: HistoricalLatencyStatsEntry | null
+): Pick<AutoProviderCandidate, "avgTtftMs" | "avgE2ELatencyMs" | "avgTokensPerSecond"> {
+  const positive = (value: unknown): number | undefined =>
+    typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
+
+  return {
+    avgTtftMs: positive(metric?.avgTtftMs),
+    avgE2ELatencyMs: positive(metric?.avgE2ELatencyMs),
+    avgTokensPerSecond: positive(metric?.avgTokensPerSecond),
+  };
 }

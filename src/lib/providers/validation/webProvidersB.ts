@@ -3,7 +3,13 @@
 // decomposition) — top-level functions with no dispatcher-state captures; behavior is byte-identical
 // to the inline defs.
 import { applyCustomUserAgent } from "./headers";
-import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
+import {
+  isSecurityBlockError,
+  toValidationErrorResult,
+  validationRead,
+  validationWrite,
+} from "./transport";
+import { SafeOutboundFetchError } from "@/shared/network/safeOutboundFetch";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import {
@@ -234,6 +240,21 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
 
     return { valid: false, error: `Gemini validation failed (${response.status})` };
   } catch (error: any) {
+    // #7859: gemini.google.com/app answers EVERY session probe (valid or not) with a
+    // 302 redirect (typically onward to accounts.google.com). validationRead() uses the
+    // no-redirect preset, so safeOutboundFetch throws REDIRECT_BLOCKED before the
+    // "200/302 = valid" status check above ever runs. A redirect to a PUBLIC host means
+    // the redirect was never followed (no SSRF) and is exactly what a valid Gemini
+    // session looks like here, so treat it as success. A redirect to a private/internal
+    // host is a genuine SSRF signal and must stay invalid — isSecurityBlockError()
+    // already makes that distinction.
+    if (
+      error instanceof SafeOutboundFetchError &&
+      error.code === "REDIRECT_BLOCKED" &&
+      !isSecurityBlockError(error)
+    ) {
+      return { valid: true, error: null };
+    }
     return toValidationErrorResult(error);
   }
 }
@@ -292,7 +313,7 @@ export async function validateCopilotWebProvider({ apiKey, providerSpecificData 
   }
 }
 
-function extractM365CredentialParts(raw: string, providerSpecificData: Record<string, unknown>) {
+export function extractM365CredentialParts(raw: string, providerSpecificData: Record<string, unknown>) {
   const text = raw.trim();
   const parts: Record<string, string> = {};
 
@@ -304,13 +325,22 @@ function extractM365CredentialParts(raw: string, providerSpecificData: Record<st
     if (key && value) parts[key] = value;
   }
 
-  if (/^wss:\/\/substrate\.office\.com\/m365Copilot\/Chathub\//i.test(text)) {
+  // Accept the current M365 web endpoint (m365.cloud.microsoft, including
+  // regional subdomains) plus the two legacy hosts (substrate.office.com,
+  // copilot.microsoft.com). The path still carries /m365Copilot/Chathub/<tenant>,
+  // so extraction is unchanged. (OmniRoute issue #7078)
+  if (/^wss:\/\//i.test(text)) {
     try {
       const url = new URL(text);
-      parts.access_token ||= url.searchParams.get("access_token") || "";
-      parts.chathubPath ||= decodeURIComponent(
-        url.pathname.split("/m365Copilot/Chathub/")[1] || ""
+      const hostOk = /^(?:[\w-]+\.)*(?:m365\.cloud\.microsoft|copilot\.microsoft\.com|substrate\.office\.com)$/i.test(
+        url.hostname
       );
+      if (hostOk && url.pathname.startsWith("/m365Copilot/Chathub/")) {
+        parts.access_token ||= url.searchParams.get("access_token") || "";
+        parts.chathubPath ||= decodeURIComponent(
+          url.pathname.split("/m365Copilot/Chathub/")[1] || ""
+        );
+      }
     } catch {
       // Fall through to the structured key/value parser result.
     }
@@ -482,6 +512,57 @@ export async function validateDevinCloudAgentProvider({ apiKey }: { apiKey: stri
       error: errorText.trim() || `Devin API returned ${response.status}`,
     };
   } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
+// ── Notion AI Web (Unofficial/Experimental) cookie validator ──
+// #6758: no public Notion inference API exists; validate by probing a stable,
+// low-privilege authenticated Notion endpoint (getSpaces) with the session
+// cookie rather than the experimental runInferenceTranscript endpoint itself
+// (a live inference call is expensive and unnecessary just to confirm the
+// session is valid).
+export async function validateNotionWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const raw = String(apiKey || "").trim();
+    if (!raw) {
+      return { valid: false, error: "Paste your token_v2 cookie value from notion.so" };
+    }
+
+    const cookieHeader = raw.includes("=") ? raw : `token_v2=${raw}`;
+
+    const response = await validationWrite("https://www.notion.so/api/v3/getSpaces", {
+      method: "POST",
+      headers: applyCustomUserAgent(
+        {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Cookie: cookieHeader,
+          Origin: "https://www.notion.so",
+          Referer: "https://www.notion.so/",
+        },
+        providerSpecificData
+      ),
+      body: "{}",
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid or expired token_v2 cookie — re-paste from notion.so DevTools → Cookies",
+      };
+    }
+
+    if (response.status >= 500) {
+      return { valid: false, error: `Notion unavailable (${response.status})` };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Notion validation failed (${response.status})` };
+  } catch (error: any) {
     return toValidationErrorResult(error);
   }
 }

@@ -19,8 +19,11 @@ import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
+
+import { useQuotaVisibility } from "./useQuotaVisibility";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
+import CodexResetCreditsModal from "./CodexResetCreditsModal";
 import { useVisibleQuotaData } from "./useVisibleQuotaData";
 import { useCodexResetCreditRedemption } from "./useCodexResetCreditRedemption";
 import { PROVIDER_LABEL, PROVIDER_ORDER, TIER_FILTERS } from "./constants";
@@ -28,6 +31,7 @@ import { formatAutoRefreshCountdown } from "./formatters";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 import { compareTr } from "@/shared/utils/turkishText";
 import { fetchWithTimeout } from "@/shared/utils/fetchTimeout";
+import { isProviderQuotaVisible } from "@/shared/utils/providerQuotaVisibility";
 
 // Bound the two first-paint requests so a stalled connection cannot wedge
 // `initialLoading` on `true` and freeze the quota page on its skeleton forever
@@ -199,6 +203,7 @@ export default function ProviderLimits({
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
+  const { quotaVisibility, handleHideQuota, handleShowQuota } = useQuotaVisibility(tr, notify);
   const resetCreditRedemption = useCodexResetCreditRedemption(
     tr,
     setErrors,
@@ -516,6 +521,7 @@ export default function ProviderLimits({
     () =>
       connections.filter(
         (conn) =>
+          isProviderQuotaVisible(conn) &&
           USAGE_SUPPORTED_PROVIDERS.includes(conn.provider) &&
           (conn.authType === "oauth" || conn.authType === "apikey")
       ),
@@ -1034,12 +1040,27 @@ export default function ProviderLimits({
             setCutoffModalWindows(windows);
             setCutoffModalConn(conn);
           }}
-          onRedeemResetCredit={resetCreditRedemption.redeemCodexResetCredit}
+          onOpenResetCredits={resetCreditRedemption.openCodexResetCredits}
           onToggleActive={handleToggleActive}
           togglingActiveId={togglingActiveId}
+          quotaVisibility={quotaVisibility}
+          onHideQuota={handleHideQuota}
+          onShowQuota={handleShowQuota}
           redeemingResetCreditId={resetCreditRedemption.redeemingResetCreditId}
+          loadingResetCreditsId={resetCreditRedemption.loadingResetCreditsId}
         />
       </div>
+
+      {resetCreditRedemption.resetCreditPicker && (
+        <CodexResetCreditsModal
+          isOpen={true}
+          credits={resetCreditRedemption.resetCreditPicker.credits}
+          availableCount={resetCreditRedemption.resetCreditPicker.availableCount}
+          loading={resetCreditRedemption.redeemingResetCreditId !== null}
+          onClose={resetCreditRedemption.closeResetCreditPicker}
+          onRedeem={resetCreditRedemption.redeemCodexResetCredit}
+        />
+      )}
 
       {cutoffModalConn && (
         <QuotaCutoffModal
@@ -1048,6 +1069,7 @@ export default function ProviderLimits({
             setCutoffModalConn(null);
             setCutoffModalWindows([]);
           }}
+          connectionId={cutoffModalConn.id}
           connectionName={
             pickDisplayValue(
               [cutoffModalConn.name, cutoffModalConn.displayName, cutoffModalConn.email],

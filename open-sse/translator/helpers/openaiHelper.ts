@@ -37,6 +37,10 @@ export function filterToOpenAIFormat(body, opts = {}) {
   // requested upstream, keep the `cache_control` field on each content block
   // instead of destructuring it away. `signature` is always stripped.
   const preserveCacheControl = opts?.preserveCacheControl === true;
+  // Moonshot's native Chat API extends OpenAI content blocks with `video_url`.
+  // Keep that extension opt-in so generic OpenAI-compatible providers still
+  // receive only the standard allowlist below.
+  const preserveVideoUrl = opts?.preserveVideoUrl === true;
   // #4849 strips reasoning_content from tool-call assistant turns to stop O(n^2)
   // context growth — but reasoning-replay providers (DeepSeek V4, Kimi K2, etc.)
   // REQUIRE the client's reasoning_content to be passed back, so keep it for them
@@ -83,7 +87,10 @@ export function filterToOpenAIFormat(body, opts = {}) {
         if (block.type === "redacted_thinking") continue;
 
         // Only keep valid OpenAI content types
-        if (VALID_OPENAI_CONTENT_TYPES.includes(block.type)) {
+        if (
+          VALID_OPENAI_CONTENT_TYPES.includes(block.type) ||
+          (preserveVideoUrl && block.type === "video_url")
+        ) {
           // Strip `signature` always; strip `cache_control` unless the provider
           // honors OpenAI-format cache breakpoints and preservation was requested (#2069).
           const { signature, cache_control, ...rest } = block;
@@ -161,6 +168,9 @@ export function filterToOpenAIFormat(body, opts = {}) {
     if (msg.role === "tool") return true;
     // Always keep assistant messages with tool_calls
     if (msg.role === "assistant" && msg.tool_calls) return true;
+    // Moonshot partial assistant messages are output prefixes, and an empty
+    // prefix is valid when `name` supplies the constrained value.
+    if (msg.role === "assistant" && msg.partial === true) return true;
 
     if (typeof msg.content === "string") return msg.content.trim() !== "";
     if (Array.isArray(msg.content)) {

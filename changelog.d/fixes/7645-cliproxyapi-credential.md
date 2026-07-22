@@ -1,0 +1,1 @@
+- fix(sse): route CLIProxyAPI fallback/passthrough legs through a dedicated `cliproxyapi_api_key` credential instead of the failed native provider's own key (#7645)

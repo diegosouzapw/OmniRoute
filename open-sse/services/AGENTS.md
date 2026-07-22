@@ -31,6 +31,7 @@ Live count: `ls open-sse/services/*.ts | wc -l` (currently 134). More including 
 - **`wildcardRouter.ts`** — Wildcard route matching in combo configs.
 - **`intentClassifier.ts`** — Request intent classification for intelligent routing.
 - **`taskAwareRouter.ts`** — Task-type-based routing (reasoning → o1, code-gen → Cursor).
+- **`targetRequestSanitizer.ts`** — Final provider/model-aware parameter sanitation after routing resolution and before executor dispatch.
 - **`thinkingBudget.ts`** — Thinking token allocation for o1/o3 models.
 - **`contextManager.ts`** — Routing context injection (system prompts, memory).
 

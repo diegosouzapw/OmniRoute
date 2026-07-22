@@ -11,6 +11,14 @@
 
 type JsonRecord = Record<string, unknown>;
 
+const BOOLEAN_CAMEL_COLUMNS = new Set([
+  "isActive",
+  "rateLimitProtection",
+  "proxyEnabled",
+  "perKeyProxyEnabled",
+  "quotaVisible",
+]);
+
 export function toSnakeCase(str: string): string {
   return str.replace(/([A-Z])/g, "_$1").toLowerCase();
 }
@@ -33,12 +41,7 @@ export function rowToCamel(row: unknown): JsonRecord | null {
   const result: JsonRecord = {};
   for (const [k, v] of Object.entries(row as JsonRecord)) {
     const camelKey = toCamelCase(k);
-    if (
-      camelKey === "isActive" ||
-      camelKey === "rateLimitProtection" ||
-      camelKey === "proxyEnabled" ||
-      camelKey === "perKeyProxyEnabled"
-    ) {
+    if (BOOLEAN_CAMEL_COLUMNS.has(camelKey)) {
       result[camelKey] = v === 1 || v === true;
     } else if (camelKey === "providerSpecificData" && typeof v === "string") {
       try {

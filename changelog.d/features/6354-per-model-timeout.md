@@ -1,0 +1,1 @@
+- feat(sse): configurable per-model upstream header-response timeout override, precedence model > provider > global; applied to codex reasoning-heavy tiers (gpt-5.5-high/xhigh, gpt-5.6-\*-high/xhigh) (#6354)

@@ -150,8 +150,11 @@ export async function POST(request: Request) {
       // Validate and refresh token (through proxy if configured).
       // validateImportToken also calls registerClient() to obtain a per-connection OIDC
       // client pair so multiple Kiro accounts do not share a single backend session (#2328).
+      // When only `clientId` is known (no matching secret was found by auto-import),
+      // forward it as a hint so the AWS SSO cache lookup matches the token's own
+      // registration instead of guessing via region/latest-expiry (#1253).
       tokenData = await runWithProxyContext(proxy, () =>
-        kiroService.validateImportToken(refreshToken.trim(), region)
+        kiroService.validateImportToken(refreshToken.trim(), region, clientId)
       );
     }
 

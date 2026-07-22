@@ -127,16 +127,24 @@ function withNonTestEnvironment(fn) {
   const originalVitest = process.env.VITEST;
   const originalDisableAutoBackup = process.env.DISABLE_SQLITE_AUTO_BACKUP;
   const originalArgv = [...process.argv];
+  const originalExecArgv = [...process.execArgv];
 
   delete process.env.NODE_ENV;
   delete process.env.VITEST;
   delete process.env.DISABLE_SQLITE_AUTO_BACKUP;
   process.argv = process.argv.filter((arg) => !arg.includes("test"));
+  // #7359 made isAutomatedTestProcess() also scan process.execArgv (so `node --test`
+  // is caught even when NODE_ENV/VITEST/argv are clean). This harness runs under
+  // `node --test`, so execArgv always carries `--test` — strip it here too, or the
+  // "non-test" simulation is a no-op and the mass-migration safety checks under
+  // test never actually exercise their real-environment code path.
+  process.execArgv = process.execArgv.filter((arg) => !arg.includes("test"));
 
   try {
     return fn();
   } finally {
     process.argv = originalArgv;
+    process.execArgv = originalExecArgv;
 
     if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
     else process.env.NODE_ENV = originalNodeEnv;
