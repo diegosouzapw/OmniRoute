@@ -15,6 +15,7 @@
  */
 import { normalizeOpenAICompatibleFinishReasonString } from "./finishReason.ts";
 import { getUnsupportedReasoningValue } from "./reasoningFields.ts";
+import { stripPlaceholderFromContent } from "./reasoningPlaceholder.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -107,7 +108,7 @@ export function synthesizeOpenAiSseFromJson(jsonText: string): string {
       emitDelta(reasoningDelta);
     }
     if (typeof message.content === "string" && message.content.length > 0) {
-      emitDelta({ content: message.content });
+      emitDelta({ content: stripPlaceholderFromContent(message.content) });
     }
     if (Array.isArray(message.tool_calls) && message.tool_calls.length > 0) {
       emitDelta({ tool_calls: message.tool_calls });

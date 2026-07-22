@@ -5,6 +5,7 @@ import {
 } from "../services/geminiThoughtSignatureStore.ts";
 import { normalizeOpenAICompatibleFinishReasonString } from "../utils/finishReason.ts";
 import { containsTextualToolCallMarker } from "../utils/textualToolCall.ts";
+import { stripPlaceholderFromContent } from "../utils/reasoningPlaceholder.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -207,7 +208,7 @@ export function translateNonStreamingResponse(
 
     const message: JsonRecord = { role: "assistant" };
     if (textContent) {
-      message.content = textContent;
+      message.content = stripPlaceholderFromContent(textContent);
     }
     if (reasoningContent) {
       message.reasoning_content = reasoningContent;
@@ -506,7 +507,7 @@ export function translateNonStreamingResponse(
 
       const message: JsonRecord = { role: "assistant" };
       if (textContent) {
-        message.content = textContent;
+        message.content = stripPlaceholderFromContent(textContent);
       }
       if (thinkingContent) {
         message.reasoning_content = thinkingContent;

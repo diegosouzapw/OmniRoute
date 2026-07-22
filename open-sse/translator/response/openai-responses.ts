@@ -7,6 +7,7 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
+import { stripPlaceholderFromContent } from "../../utils/reasoningPlaceholder.ts";
 import {
   normalizeToolName,
   stripEmptyOptionalToolArgs,
@@ -196,7 +197,8 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
 
     if (content) {
       const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
-      emitTextContent(state, emit, msgIdx, content);
+      const sanitized = stripPlaceholderFromContent(content);
+      if (sanitized) emitTextContent(state, emit, msgIdx, sanitized);
     }
   }
 

@@ -4,6 +4,7 @@ import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
 import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
+import { stripPlaceholderFromContent } from "../../utils/reasoningPlaceholder.ts";
 
 // Helper: stop thinking block if started
 function stopThinkingBlock(state, results) {
@@ -146,7 +147,7 @@ export function openaiToClaudeResponse(chunk, state) {
     results.push({
       type: "content_block_delta",
       index: state.textBlockIndex,
-      delta: { type: "text_delta", text: delta.content },
+      delta: { type: "text_delta", text: stripPlaceholderFromContent(delta.content) },
     });
   }
 
