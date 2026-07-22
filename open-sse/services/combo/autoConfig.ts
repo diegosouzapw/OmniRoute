@@ -1,4 +1,8 @@
-import { DEFAULT_WEIGHTS, type ScoringWeights } from "../autoCombo/scoring.ts";
+import {
+  DEFAULT_WEIGHTS,
+  normalizeScoringWeights,
+  type ScoringWeights,
+} from "../autoCombo/scoring.ts";
 import { getModePack } from "../autoCombo/modePacks.ts";
 import { isRecord } from "./comboData.ts";
 import { resolveResetWindowConfig, resolveSlaRoutingPolicy } from "./quotaScoring.ts";
@@ -53,7 +57,9 @@ export function parseAutoConfig(combo: ComboLike, eligibleTargets: ResolvedCombo
       : undefined;
   const modePack =
     typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
-  const weights = modePack ? getModePack(modePack) || configuredWeights : configuredWeights;
+  const weights = normalizeScoringWeights(
+    modePack ? getModePack(modePack) || configuredWeights : configuredWeights
+  );
   const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
   const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
 

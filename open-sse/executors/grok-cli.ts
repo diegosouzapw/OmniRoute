@@ -33,6 +33,67 @@ const GROK_BUILD_UNSUPPORTED_PARAMS = [
   "reasoning_effort",
 ];
 
+
+/**
+ * Grok Build's cli-chat-proxy is stricter about Responses `function_call_output.output`
+ * than OpenAI's Responses API. Agent tool results can contain truncated / incomplete
+ * JSON strings or invalid `\uXXXX` escapes, which fail upstream with:
+ *   Failed to parse the request body as JSON: input[N].output: unexpected end of hex escape
+ *
+ * Normalize outputs to valid JSON text (or plain text) before dispatch (#7611).
+ */
+function sanitizeGrokBuildFunctionCallOutput(output: unknown): string {
+  if (output == null) return "";
+  if (typeof output === "string") {
+    const value = output;
+    try {
+      return JSON.stringify(JSON.parse(value));
+    } catch {
+      // fall through
+    }
+    // Drop incomplete \u escapes (0-3 hex digits) that break strict JSON parsers.
+    const repaired = value.replace(/\\u([0-9A-Fa-f]{0,3})(?![0-9A-Fa-f])/g, "");
+    try {
+      return JSON.stringify(JSON.parse(repaired));
+    } catch {
+      return repaired.replace(/[\uD800-\uDFFF]/g, "\uFFFD");
+    }
+  }
+  if (Array.isArray(output)) {
+    const textParts = output
+      .map((part) => {
+        if (part && typeof part === "object") {
+          const rec = part as Record<string, unknown>;
+          if (typeof rec.text === "string") return rec.text;
+        }
+        return typeof part === "string" ? part : JSON.stringify(part);
+      })
+      .join("\n");
+    return sanitizeGrokBuildFunctionCallOutput(textParts);
+  }
+  try {
+    return JSON.stringify(output);
+  } catch {
+    return String(output);
+  }
+}
+
+function sanitizeGrokBuildResponsesBody(body: Record<string, unknown>): Record<string, unknown> {
+  const input = body.input;
+  if (!Array.isArray(input)) return body;
+  let changed = false;
+  const nextInput = input.map((item) => {
+    if (!item || typeof item !== "object") return item;
+    const rec = item as Record<string, unknown>;
+    if (rec.type !== "function_call_output") return item;
+    const sanitized = sanitizeGrokBuildFunctionCallOutput(rec.output);
+    if (sanitized === rec.output) return item;
+    changed = true;
+    return { ...rec, output: sanitized };
+  });
+  return changed ? { ...body, input: nextInput } : body;
+}
+
 type GrokBuildRefreshResult = Partial<ProviderCredentials> | null | undefined;
 
 function nonEmptyString(value: unknown): string | null {
@@ -247,6 +308,7 @@ export class GrokCliExecutor extends BaseExecutor {
       transformed.tools = transformed.tools.slice(0, GROK_BUILD_MAX_TOOLS);
     }
 
-    return transformed;
+    // Repair tool-result payloads that would fail Grok's strict JSON body parser (#7611).
+    return sanitizeGrokBuildResponsesBody(transformed);
   }
 }

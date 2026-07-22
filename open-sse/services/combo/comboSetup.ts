@@ -37,6 +37,7 @@ export interface ComboSetup {
   clientRequestedStream: boolean;
   config: ReturnType<typeof resolveComboSetupConfig>;
   comboTargetTimeoutMs: number;
+  comboTimeoutMs: number;
   reasoningTokenBufferEnabled: boolean;
 }
 
@@ -116,6 +117,7 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
     FETCH_TIMEOUT_MS,
     DEFAULT_COMBO_TARGET_TIMEOUT_MS
   );
+  const comboTimeoutMs = config.comboTimeoutMs || 0;
   const reasoningTokenBufferEnabled = config.reasoningTokenBufferEnabled !== false;
 
   return {
@@ -128,6 +130,7 @@ export function phaseComboSetup(ctx: ComboContext): ComboSetup {
     clientRequestedStream,
     config,
     comboTargetTimeoutMs,
+    comboTimeoutMs,
     reasoningTokenBufferEnabled,
   };
 }

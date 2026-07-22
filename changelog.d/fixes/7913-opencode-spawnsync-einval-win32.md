@@ -1,0 +1,1 @@
+- fix(cli): spawn the win32 `opencode.cmd` shim with `shell:true` in `omniroute setup opencode --auth` to avoid the Node `spawnSync EINVAL` hardening error (#7913)

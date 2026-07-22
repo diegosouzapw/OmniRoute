@@ -9,7 +9,7 @@ export const muse_spark_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   models: [
-    { id: "muse-spark", name: "Muse Spark" },
+    { id: "muse-spark", name: "Muse Spark", toolCalling: false },
     {
       id: "muse-spark-thinking",
       name: "Muse Spark Thinking",

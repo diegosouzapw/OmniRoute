@@ -11,7 +11,7 @@ import { getProviderCategory, getRegistryEntry } from "../config/providerRegistr
 // NOT a silent "fake success" failure. Used to avoid rewriting a valid HTTP 200
 // (e.g. a Claude Code `max_tokens: 1` connectivity ping) into a synthetic 502.
 const LEGIT_EMPTY_CLAUDE_STOP = new Set(["max_tokens", "tool_use"]);
-const LEGIT_EMPTY_OPENAI_FINISH = new Set(["length", "tool_calls"]);
+const LEGIT_EMPTY_OPENAI_FINISH = new Set(["length", "tool_calls", "content_filter"]);
 
 export function isEmptyContentResponse(responseBody: unknown): boolean {
   if (!responseBody || typeof responseBody !== "object") return false;

@@ -1,0 +1,1 @@
+- **Chat Core**: client aborts that reject the upstream fetch with a raw string reason (e.g. `request_signal_aborted`, `Client disconnected`) are now reported as `499 Request aborted` in the response, request logs, and usage records instead of `FAILED 502 / Bad Gateway`. Follow-up to #7908 for #7907.

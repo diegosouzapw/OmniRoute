@@ -68,6 +68,7 @@ import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvid
 import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmind.ts";
 import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
+import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
 
 
 interface KieImageOptions {
@@ -489,6 +490,17 @@ export async function handleImageGeneration({
 
   if (providerConfig.format === "designer-web") {
     return handleDesignerWebImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "adobe-firefly-image") {
+    return handleAdobeFireflyImageGeneration({
       model,
       provider,
       providerConfig,

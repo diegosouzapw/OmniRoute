@@ -27,7 +27,7 @@ vi.mock("next-intl", () => ({ useTranslations: () => (k: string) => k }));
 vi.mock("@/shared/components/ProviderTestSlideOver", () => ({ default: () => null }));
 vi.mock("@/shared/components/ProviderIcon", () => ({ default: () => null }));
 
-describe("ProviderCard — Kimi (Moonshot AI) official-supporter accent", () => {
+describe("ProviderCard — Kimi (Moonshot AI) founding-friend accent", () => {
   let container: HTMLDivElement | null = null;
 
   afterEach(() => {
@@ -55,12 +55,12 @@ describe("ProviderCard — Kimi (Moonshot AI) official-supporter accent", () => 
     return container;
   }
 
-  it("renders the Official Supporter badge + Kimi-blue accent for kimi-coding", () => {
+  it("renders the Founding Friend badge + Kimi-blue accent for kimi-coding", () => {
     const el = renderCard("kimi-coding", "Kimi Code CLI");
     // The next-intl mock returns the key itself; the providerText() helper falls
     // back to the English default only when t.has is undefined (as it is here),
     // so the rendered text is the hardcoded English fallback.
-    expect(el.textContent).toContain("Official Supporter");
+    expect(el.textContent).toContain("Founding Friend");
 
     // The card's own accent border/glow (KIMI_BRAND_COLOR = #1783FF) must be
     // present on some element in the tree — both the outer Card border classes
@@ -69,17 +69,17 @@ describe("ProviderCard — Kimi (Moonshot AI) official-supporter accent", () => 
     expect(accented).not.toBeNull();
   });
 
-  it("renders the Official Supporter badge for kimi-web and moonshot too", () => {
+  it("renders the Founding Friend badge for kimi-web and moonshot too", () => {
     const kimiWebEl = renderCard("kimi-web", "Kimi Web");
-    expect(kimiWebEl.textContent).toContain("Official Supporter");
+    expect(kimiWebEl.textContent).toContain("Founding Friend");
 
-    const moonshotEl = renderCard("moonshot", "Moonshot AI");
-    expect(moonshotEl.textContent).toContain("Official Supporter");
+    const moonshotEl = renderCard("moonshot", "Kimi");
+    expect(moonshotEl.textContent).toContain("Founding Friend");
   });
 
   it("does NOT render the Kimi badge or accent for an unrelated provider", () => {
     const el = renderCard("openai", "OpenAI");
-    expect(el.textContent).not.toContain("Official Supporter");
+    expect(el.textContent).not.toContain("Founding Friend");
     expect(el.querySelector("[class*='1783FF']")).toBeNull();
   });
 
@@ -88,6 +88,6 @@ describe("ProviderCard — Kimi (Moonshot AI) official-supporter accent", () => 
     // but featuredProviders.ts still lists it — verifying the card component
     // itself would still flag it correctly if it were ever rendered directly.
     const el = renderCard("kimi-coding-apikey", "Kimi Code API Key");
-    expect(el.textContent).toContain("Official Supporter");
+    expect(el.textContent).toContain("Founding Friend");
   });
 });

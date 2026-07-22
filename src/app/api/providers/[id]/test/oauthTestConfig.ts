@@ -1,5 +1,12 @@
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 
+const CLINE_OAUTH_TEST_CONFIG = {
+  // Cline does not expose a stable lightweight auth probe. Validate token
+  // presence/expiry here; real connectivity is exercised by chat requests.
+  checkExpiry: true,
+  refreshable: true,
+};
+
 // OAuth provider test endpoints. Extracted from route.ts (#7610) so adding a
 // provider entry doesn't grow the frozen route.ts file past its check-file-size
 // cap — this module carries no logic of its own beyond the GitLab URL builder.
@@ -87,13 +94,9 @@ export const OAUTH_TEST_CONFIG = {
     // Validate using token presence/expiry as a lightweight auth check.
     checkExpiry: true,
   },
-  cline: {
-    // Cline's /api/v1/models endpoint frequently returns stale auth errors even
-    // with fresh tokens. Use checkExpiry instead — actual connectivity is validated
-    // via real requests.
-    checkExpiry: true,
-    refreshable: true,
-  },
+  cline: CLINE_OAUTH_TEST_CONFIG,
+  // ClinePass reuses the same WorkOS OAuth flow and token lifecycle as Cline.
+  clinepass: CLINE_OAUTH_TEST_CONFIG,
   kiro: {
     checkExpiry: true,
     refreshable: true,

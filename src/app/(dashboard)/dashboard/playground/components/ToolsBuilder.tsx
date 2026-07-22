@@ -3,6 +3,7 @@
 // src/app/(dashboard)/dashboard/playground/components/ToolsBuilder.tsx
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useToolsBuilder } from "../hooks/useToolsBuilder";
 import type { ToolDefinition } from "@/lib/playground/codeExport";
 
@@ -23,6 +24,7 @@ const EMPTY_TOOL: { name: string; description: string; parametersRaw: string } =
  * Validation uses Zod ToolDefinitionSchema (via useToolsBuilder).
  */
 export default function ToolsBuilder({ toolsBuilder }: ToolsBuilderProps) {
+  const t = useTranslations("playground");
   const { tools, errors, add, remove, update } = toolsBuilder;
 
   // Form state for the "Add tool" form
@@ -31,14 +33,18 @@ export default function ToolsBuilder({ toolsBuilder }: ToolsBuilderProps) {
 
   // Per-tool editing state: index → draft values
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editDraft, setEditDraft] = useState<{ name: string; description: string; parametersRaw: string } | null>(null);
+  const [editDraft, setEditDraft] = useState<{
+    name: string;
+    description: string;
+    parametersRaw: string;
+  } | null>(null);
 
   function handleAdd() {
     let parsed: unknown;
     try {
       parsed = JSON.parse(form.parametersRaw);
     } catch {
-      setFormError("Parameters must be valid JSON");
+      setFormError(t("toolParamsInvalid"));
       return;
     }
 
@@ -108,26 +114,21 @@ export default function ToolsBuilder({ toolsBuilder }: ToolsBuilderProps) {
       {tools.length > 0 && (
         <div className="flex flex-col gap-2">
           <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
-            Tools ({tools.length})
+            {t("toolsCount", { count: tools.length })}
           </span>
           {tools.map((tool, idx) => {
             const isEditing = editingIndex === idx;
             const toolError = errors.get(idx);
 
             return (
-              <div
-                key={idx}
-                className="border border-border rounded-lg overflow-hidden"
-              >
+              <div key={idx} className="border border-border rounded-lg overflow-hidden">
                 {/* Tool header */}
                 <div className="flex items-center justify-between px-3 py-2 bg-bg-alt">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[14px] text-text-muted">
                       function
                     </span>
-                    <code className="text-xs font-mono text-text-main">
-                      {tool.function.name}
-                    </code>
+                    <code className="text-xs font-mono text-text-main">{tool.function.name}</code>
                     {tool.function.description && (
                       <span className="text-[11px] text-text-muted truncate max-w-[200px]">
                         — {tool.function.description}
@@ -139,7 +140,7 @@ export default function ToolsBuilder({ toolsBuilder }: ToolsBuilderProps) {
                       <button
                         onClick={() => startEdit(idx)}
                         className="p-1 rounded text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                        aria-label={`Edit tool ${tool.function.name}`}
+                        aria-label={t("editTool", { name: tool.function.name })}
                       >
                         <span className="material-symbols-outlined text-[14px]">edit</span>
                       </button>
@@ -147,7 +148,7 @@ export default function ToolsBuilder({ toolsBuilder }: ToolsBuilderProps) {
                     <button
                       onClick={() => remove(idx)}
                       className="p-1 rounded text-text-muted hover:text-destructive transition-colors"
-                      aria-label={`Remove tool ${tool.function.name}`}
+                      aria-label={t("removeTool", { name: tool.function.name })}
                     >
                       <span className="material-symbols-outlined text-[14px]">delete</span>
                     </button>
@@ -161,38 +162,38 @@ export default function ToolsBuilder({ toolsBuilder }: ToolsBuilderProps) {
                       type="text"
                       value={editDraft.name}
                       onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })}
-                      placeholder="Function name"
+                      placeholder={t("toolNamePlaceholder")}
                       className="text-xs bg-bg-alt border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
                     />
                     <input
                       type="text"
                       value={editDraft.description}
                       onChange={(e) => setEditDraft({ ...editDraft, description: e.target.value })}
-                      placeholder="Description (optional)"
+                      placeholder={t("toolDescPlaceholder")}
                       className="text-xs bg-bg-alt border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
                     />
                     <textarea
                       value={editDraft.parametersRaw}
-                      onChange={(e) => setEditDraft({ ...editDraft, parametersRaw: e.target.value })}
+                      onChange={(e) =>
+                        setEditDraft({ ...editDraft, parametersRaw: e.target.value })
+                      }
                       rows={6}
                       className="text-xs font-mono bg-bg-alt border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main resize-y"
-                      aria-label="JSON schema for parameters"
+                      aria-label={t("toolParamsJsonSchema")}
                     />
-                    {toolError && (
-                      <p className="text-xs text-destructive">{toolError}</p>
-                    )}
+                    {toolError && <p className="text-xs text-destructive">{toolError}</p>}
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleUpdate(idx)}
                         className="text-xs px-2.5 py-1 rounded bg-primary text-white hover:bg-primary/90 transition-colors"
                       >
-                        Save
+                        {t("save")}
                       </button>
                       <button
                         onClick={cancelEdit}
                         className="text-xs px-2.5 py-1 rounded border border-border text-text-muted hover:text-text-main transition-colors"
                       >
-                        Cancel
+                        {t("cancel")}
                       </button>
                     </div>
                   </div>
@@ -206,14 +207,14 @@ export default function ToolsBuilder({ toolsBuilder }: ToolsBuilderProps) {
       {/* Add tool form */}
       <div className="border border-border rounded-lg p-3 flex flex-col gap-2 bg-surface">
         <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
-          Add tool
+          {t("addTool")}
         </span>
 
         <input
           type="text"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="Function name *"
+          placeholder={t("toolNameRequiredPlaceholder")}
           className="text-xs bg-bg-alt border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
         />
 
@@ -221,32 +222,30 @@ export default function ToolsBuilder({ toolsBuilder }: ToolsBuilderProps) {
           type="text"
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
-          placeholder="Description (optional)"
+          placeholder={t("toolDescPlaceholder")}
           className="text-xs bg-bg-alt border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
         />
 
         <div className="flex flex-col gap-1">
           <label className="text-[10px] text-text-muted uppercase tracking-wider">
-            Parameters (JSON schema)
+            {t("toolParamsLabel")}
           </label>
           <textarea
             value={form.parametersRaw}
             onChange={(e) => setForm({ ...form, parametersRaw: e.target.value })}
             rows={6}
             className="text-xs font-mono bg-bg-alt border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main resize-y"
-            aria-label="JSON schema for parameters"
+            aria-label={t("toolParamsJsonSchema")}
           />
         </div>
 
-        {formError && (
-          <p className="text-xs text-destructive">{formError}</p>
-        )}
+        {formError && <p className="text-xs text-destructive">{formError}</p>}
 
         <button
           onClick={handleAdd}
           className="text-xs px-3 py-1.5 rounded bg-primary text-white hover:bg-primary/90 transition-colors self-start"
         >
-          + Add tool
+          + {t("addTool")}
         </button>
       </div>
     </div>

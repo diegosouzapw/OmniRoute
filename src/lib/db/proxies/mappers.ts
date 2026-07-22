@@ -26,6 +26,7 @@ export function mapProxyRow(row: unknown): ProxyRegistryRecord {
     status: typeof r.status === "string" ? r.status : "active",
     source: typeof r.source === "string" ? r.source : "manual",
     family: typeof r.family === "string" ? r.family : "auto",
+    subscriptionId: typeof r.subscription_id === "string" ? r.subscription_id : null,
     createdAt: typeof r.created_at === "string" ? r.created_at : "",
     updatedAt: typeof r.updated_at === "string" ? r.updated_at : "",
   };

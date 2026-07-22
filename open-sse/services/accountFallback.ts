@@ -36,7 +36,11 @@ import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
 import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
 import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
-import { parseRetryHintFromJsonBody } from "./retryAfterJson.ts";
+import {
+  parseRetryHintFromJsonBody,
+  parseDelayString,
+  MAX_SHORT_RETRY_HINT_MS,
+} from "./retryAfterJson.ts";
 import {
   isSubscriptionQuotaText,
   buildSubscriptionQuotaFallback,
@@ -584,22 +588,24 @@ export function recordModelLockoutFailure(
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
 
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  // Cap exponential backoff so repeated failures cannot produce absurdly long
-  // lockouts; exact cooldowns (e.g. daily-quota until-midnight) are not capped.
+  // Cap both exponential backoff and exact cooldowns (e.g. daily-quota
+  // until-midnight) against maxCooldownMs so user-configured caps are honored.
   const maxCooldownMs =
     typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
       ? options.maxCooldownMs
-      : BACKOFF_CONFIG.max;
+      : null;
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? options.exactCooldownMs
+      ? maxCooldownMs !== null
+        ? Math.min(options.exactCooldownMs, maxCooldownMs)
+        : options.exactCooldownMs
       : Math.min(
           getScaledCooldown(
             baseCooldownMs,
             failureCount,
             profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
           ),
-          maxCooldownMs
+          maxCooldownMs ?? BACKOFF_CONFIG.max
         );
 
   modelFailureState.set(key, {
@@ -1036,24 +1042,8 @@ export function parseRetryAfterFromBody(responseBody: unknown): {
   return { retryAfterMs: null, reason };
 }
 
-/**
- * Parse delay strings like "33s", "2m", "1h", "1500ms"
- */
-function parseDelayString(value: unknown): number | null {
-  if (!value) return null;
-  const str = String(value).trim();
-  const msMatch = /^(\d+)\s*ms$/i.exec(str);
-  if (msMatch) return Number.parseInt(msMatch[1], 10);
-  const secMatch = /^(\d+)\s*s$/i.exec(str);
-  if (secMatch) return Number.parseInt(secMatch[1], 10) * 1000;
-  const minMatch = /^(\d+)\s*m$/i.exec(str);
-  if (minMatch) return Number.parseInt(minMatch[1], 10) * 60 * 1000;
-  const hrMatch = /^(\d+)\s*h$/i.exec(str);
-  if (hrMatch) return Number.parseInt(hrMatch[1], 10) * 3600 * 1000;
-  // Bare number → seconds
-  const num = Number.parseInt(str, 10);
-  return Number.isNaN(num) ? null : num * 1000;
-}
+// parseDelayString now lives in ./retryAfterJson.ts (shared with parseRetryHintFromJsonBody's
+// Gemini RetryInfo.retryDelay parsing, #7940) — see the import at the top of this file.
 
 // T07: parse retry time from error text body with combined "XhYmZs" format.
 export function parseRetryFromErrorText(errorText: unknown): number | null {
@@ -1062,6 +1052,14 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
 
   const bodyHintMs = parseRetryHintFromJsonBody(msg, MAX_PROVIDER_COOLDOWN_MS);
   if (bodyHintMs !== null) return bodyHintMs;
+
+  // Gemini free-tier text fallback (no parseable JSON details present):
+  // "Please retry in 26.660853464s." Short throttle hint — capped independently of
+  // MAX_PROVIDER_COOLDOWN_MS, mirroring the JSON RetryInfo.retryDelay cap (#7940).
+  const pleaseRetryMs = parseDelayString(/please retry in\s+([\d.]+\s*s)/i.exec(msg)?.[1]);
+  if (pleaseRetryMs !== null && pleaseRetryMs > 0) {
+    return Math.min(pleaseRetryMs, MAX_SHORT_RETRY_HINT_MS);
+  }
 
   // Issue #2321: parse embedded absolute ISO retry timestamps.
   const isoMatch =

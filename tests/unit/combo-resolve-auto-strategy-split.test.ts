@@ -87,6 +87,55 @@ test("all candidates quota-cutoff-blocked -> early 429 Response", async () => {
   }
 });
 
+test("cache affinity scores expanded auto account candidates directly", async () => {
+  const candidates = [
+    {
+      kind: "model",
+      stepId: "s1",
+      executionKey: "openai>gpt-4o@account-a",
+      modelStr: "gpt-4o",
+      provider: "openai",
+      model: "gpt-4o",
+      connectionId: "account-a",
+      quotaRemaining: 100,
+      quotaTotal: 100,
+      circuitBreakerState: "CLOSED",
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      latencyStdDev: 10,
+      errorRate: 0,
+    },
+    {
+      kind: "model",
+      stepId: "s1",
+      executionKey: "openai>gpt-4o@account-b",
+      modelStr: "gpt-4o",
+      provider: "openai",
+      model: "gpt-4o",
+      connectionId: "account-b",
+      quotaRemaining: 100,
+      quotaTotal: 100,
+      circuitBreakerState: "CLOSED",
+      costPer1MTokens: 1,
+      p95LatencyMs: 100,
+      latencyStdDev: 10,
+      errorRate: 0,
+    },
+  ];
+  const deps = baseDeps((async () => candidates) as never);
+  deps.orderedTargets = [target("openai", "gpt-4o")];
+  deps.body = { prompt_cache_key: "expanded-account-key", messages: [] };
+  deps.combo.autoConfig = {
+    candidatePool: ["openai"],
+    explorationRate: 0,
+    weights: { cacheAffinity: 1 },
+  };
+
+  await resolveAutoStrategyOrder(deps);
+
+  assert.deepEqual(candidates.map((candidate) => candidate.cacheAffinity).sort(), [0, 1]);
+});
+
 // #7008 follow-up: parseAutoConfig() (see combo-auto-config-split.test.ts) already
 // makes `weights` honor a combo's own STORED modePack. But resolveAutoStrategyOrder()
 // also supports a per-request `X-OmniRoute-Mode` override (relayOptions.mode) that can

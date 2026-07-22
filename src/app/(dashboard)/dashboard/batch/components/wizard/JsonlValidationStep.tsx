@@ -37,7 +37,7 @@ export default function JsonlValidationStep({
         sampledLines: 0,
         uniqueCustomIds: 0,
         duplicateCustomIds: [],
-        errors: [{ lineNumber: 0, reason: "Validation failed — could not parse content." }],
+        errors: [{ lineNumber: 0, reason: t("wizardValidationParseFailed") }],
         preview: [],
         byteSize: 0,
       };
@@ -46,7 +46,7 @@ export default function JsonlValidationStep({
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonl, endpoint]);
 
   if (loading) {
@@ -55,7 +55,7 @@ export default function JsonlValidationStep({
         <span className="material-symbols-outlined text-3xl text-[var(--color-accent)] animate-spin">
           progress_activity
         </span>
-        <span className="text-sm text-[var(--color-text-muted)]">Validating…</span>
+        <span className="text-sm text-[var(--color-text-muted)]">{t("wizardValidating")}</span>
       </div>
     );
   }
@@ -71,8 +71,11 @@ export default function JsonlValidationStep({
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium text-emerald-400">{t("wizardValidationOk")}</span>
             <span className="text-xs text-[var(--color-text-muted)]">
-              {result.totalLines} lines · {result.uniqueCustomIds} unique custom_ids ·{" "}
-              {t("wizardValidationFieldsOk")}
+              {t("wizardValidationSummary", {
+                lines: result.totalLines,
+                ids: result.uniqueCustomIds,
+              })}{" "}
+              · {t("wizardValidationFieldsOk")}
             </span>
           </div>
         </div>
@@ -82,7 +85,7 @@ export default function JsonlValidationStep({
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium text-red-400">{t("wizardValidationErrors")}</span>
             <span className="text-xs text-[var(--color-text-muted)]">
-              {result.errors.length} error{result.errors.length !== 1 ? "s" : ""} found
+              {t("wizardValidationErrorCount", { count: result.errors.length })}
             </span>
           </div>
         </div>
@@ -98,7 +101,9 @@ export default function JsonlValidationStep({
       {/* Duplicate IDs */}
       {result.duplicateCustomIds.length > 0 && (
         <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 flex flex-col gap-1">
-          <span className="text-xs font-medium text-red-400">Duplicate custom_ids detected:</span>
+          <span className="text-xs font-medium text-red-400">
+            {t("wizardValidationDuplicateIds")}
+          </span>
           {result.duplicateCustomIds.slice(0, 10).map((id) => (
             <span key={id} className="text-xs text-red-300 font-mono">
               {id}
@@ -111,13 +116,15 @@ export default function JsonlValidationStep({
       {result.errors.length > 0 && (
         <div className="flex flex-col gap-2">
           <span className="text-xs font-medium text-[var(--color-text-muted)]">
-            Errors (first {Math.min(result.errors.length, 50)}):
+            {t("wizardValidationFirstErrors", {
+              count: Math.min(result.errors.length, 50),
+            })}
           </span>
           <div className="max-h-60 overflow-auto rounded-lg border border-[var(--color-border)] divide-y divide-[var(--color-border)]">
             {result.errors.slice(0, 50).map((err) => (
               <div key={`${err.lineNumber}-${err.reason}`} className="px-3 py-2 flex gap-3 text-xs">
                 <span className="text-[var(--color-text-muted)] min-w-[60px]">
-                  Line {err.lineNumber}
+                  {t("wizardValidationLine", { line: err.lineNumber })}
                 </span>
                 <span className="text-red-400 flex-1">{err.reason}</span>
                 {err.field && (

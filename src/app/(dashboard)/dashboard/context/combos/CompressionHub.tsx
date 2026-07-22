@@ -2,22 +2,18 @@
 
 // Compression Hub — the single place to understand and control compression.
 //
-// IMPORTANT (hydration): this component deliberately does NOT use `useTranslations`.
-// The previous combos redesign failed to hydrate on the production build; the only
-// structural difference from the engine pages (which hydrate fine) was a page-level
-// `useTranslations("contextCombos")`. To stay on the proven-good path, strings here
-// remain literal English text, exactly like `EngineConfigPage`.
-//
 // Phase 2: this Hub is now a thin overview. The master toggle, mode selector, and the
 // reorderable per-layer pipeline live in the panel at /dashboard/context/settings and
 // in the named-combo editor. Here we expose a single active-profile selector
 // (Default-from-panel | a named combo) + a read-only preview.
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "stacked";
+type CompressionMode =
+  "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "codex-responses" | "stacked";
 
 interface CompressionSettings {
   enabled: boolean;
@@ -67,6 +63,7 @@ function Toggle({
 // ── Main component ──────────────────────────────────────────────────────────────
 
 export default function CompressionHub() {
+  const t = useTranslations("contextCombos");
   const [settings, setSettings] = useState<CompressionSettings | null>(null);
   const [combos, setCombos] = useState<NamedCombo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,21 +121,21 @@ export default function CompressionHub() {
         });
         if (!res.ok) {
           setSettings(settings); // revert
-          setError("Failed to save settings.");
+          setError(t("saveSettingsFailed"));
         }
       } catch {
         setSettings(settings);
-        setError("Failed to save settings.");
+        setError(t("saveSettingsFailed"));
       }
     },
-    [settings]
+    [settings, t]
   );
 
   // ── Derived state ─────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex items-center justify-center p-10 text-sm text-text-muted">
-        Loading...
+        {t("loading")}
       </div>
     );
   }
@@ -157,10 +154,8 @@ export default function CompressionHub() {
             hub
           </span>
           <div>
-            <h1 className="text-xl font-bold text-text-main">Compression Hub</h1>
-            <p className="text-sm text-text-muted">
-              Pick which compression profile runs globally.
-            </p>
+            <h1 className="text-xl font-bold text-text-main">{t("hubTitle")}</h1>
+            <p className="text-sm text-text-muted">{t("hubDescription")}</p>
           </div>
         </div>
         <button
@@ -168,7 +163,7 @@ export default function CompressionHub() {
           onClick={() => setExplainerOpen((v) => !v)}
           className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-text-main hover:bg-bg"
         >
-          {explainerOpen ? "Hide explanation" : "How it works"}
+          {explainerOpen ? t("hideExplanation") : t("howItWorks")}
         </button>
       </div>
 
@@ -180,25 +175,30 @@ export default function CompressionHub() {
       {explainerOpen && (
         <div className="rounded-lg border border-border bg-bg p-4 text-sm text-text-muted">
           <p className="mb-2">
-            Compression reduces <strong className="text-text-main">tokens and cost</strong> by
-            rewriting history before it is sent to the provider while preserving meaning.
+            {t.rich("explanationIntro", {
+              strong: (chunks) => <strong className="text-text-main">{chunks}</strong>,
+            })}
           </p>
           <ol className="ml-4 list-decimal space-y-1.5">
             <li>
-              <strong className="text-text-main">Active profile</strong>: chooses which compression
-              profile runs globally — the panel-derived Default or one of your saved named combos.
+              {t.rich("explanationActiveProfile", {
+                strong: (chunks) => <strong className="text-text-main">{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong className="text-text-main">Default (from panel)</strong>: derived from the
-              master switch and per-engine toggles you configure in Compression Settings.
+              {t.rich("explanationDefault", {
+                strong: (chunks) => <strong className="text-text-main">{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong className="text-text-main">Named combos</strong>: saved pipelines you build in
-              the named-combo editor. Selecting one makes it the active profile for every request.
+              {t.rich("explanationNamedCombos", {
+                strong: (chunks) => <strong className="text-text-main">{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong className="text-text-main">Preview</strong>: shows which engines the active
-              profile runs, in order.
+              {t.rich("explanationPreview", {
+                strong: (chunks) => <strong className="text-text-main">{chunks}</strong>,
+              })}
             </li>
           </ol>
         </div>
@@ -208,11 +208,9 @@ export default function CompressionHub() {
       <div className="flex flex-col gap-3 rounded-lg border border-border bg-bg p-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="active-profile" className="text-sm font-semibold text-text-main">
-            Active profile
+            {t("activeProfile")}
           </label>
-          <p className="text-xs text-text-muted">
-            Pick which compression profile runs globally — the panel-derived Default or a saved named combo.
-          </p>
+          <p className="text-xs text-text-muted">{t("activeProfileDescription")}</p>
         </div>
         <select
           id="active-profile"
@@ -221,7 +219,7 @@ export default function CompressionHub() {
           onChange={(e) => saveSettings({ activeComboId: e.target.value || null })}
           className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main"
         >
-          <option value="">Default (from panel)</option>
+          <option value="">{t("defaultFromPanel")}</option>
           {combos.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -234,13 +232,13 @@ export default function CompressionHub() {
         >
           {activeCombo ? (
             <span>
-              Runs: <span className="font-mono text-text-main">{activePipelineText}</span>
+              {t("runs")} <span className="font-mono text-text-main">{activePipelineText}</span>
             </span>
           ) : (
             <span>
-              Default — configured in{" "}
+              {t("defaultConfiguredPrefix")}{" "}
               <a href="/dashboard/context/settings" className="underline hover:text-text-main">
-                Compression Settings
+                {t("compressionSettings")}
               </a>
               .
             </span>
@@ -250,27 +248,23 @@ export default function CompressionHub() {
 
       {/* ── Provider-delegated compression ── */}
       <div className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold text-text-main">Provider-delegated compression</h2>
+        <h2 className="text-sm font-semibold text-text-main">{t("providerDelegated")}</h2>
         <div className="flex items-center gap-3 rounded-lg border border-border bg-bg p-4">
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-text-main">Context Editing (Claude)</p>
-            <p className="text-xs text-text-muted">
-              Lets the provider clear old tool-use blocks server-side, without rewriting the message.
-            </p>
+            <p className="text-sm font-semibold text-text-main">{t("contextEditingClaude")}</p>
+            <p className="text-xs text-text-muted">{t("contextEditingDescription")}</p>
           </div>
           <Toggle
             checked={!!settings?.contextEditing?.enabled}
             onChange={() =>
               saveSettings({ contextEditing: { enabled: !settings?.contextEditing?.enabled } })
             }
-            ariaLabel="Context Editing"
+            ariaLabel={t("contextEditingAria")}
           />
         </div>
         <div className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-amber-500">
           <span className="material-symbols-outlined text-[16px]">info</span>
-          <span>
-            Currently available for Claude (Anthropic) only. It is a delegated mode: the provider clears old tool-use blocks server-side — we do not rewrite the message. Does not affect other providers.
-          </span>
+          <span>{t("contextEditingNote")}</span>
         </div>
       </div>
     </section>

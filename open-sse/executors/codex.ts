@@ -17,7 +17,8 @@ import {
   CODEX_CHAT_DEFAULT_INSTRUCTIONS,
   CODEX_DEFAULT_INSTRUCTIONS,
 } from "../config/codexInstructions.ts";
-import { HTTP_STATUS, PROVIDERS } from "../config/constants.ts";
+import { FETCH_BODY_TIMEOUT_MS, HTTP_STATUS, PROVIDERS } from "../config/constants.ts";
+import { readCodexPeekChunk, buildCodexTimeoutSafePassthroughBody } from "./codex/bodyTimeout.ts";
 import {
   getCodexClientVersion,
   getCodexUserAgent,
@@ -153,15 +154,28 @@ function isCodexResponsesLiteRequest(
   );
 }
 
+// GPT-5.6 ultra-tier (sol/terra at "ultra") and luna at "max" coordinate delegation to
+// sub-agents via parallel tool calls (see the effort-clamp comment near clampEffort()).
+// Responses Lite must not strip parallel_tool_calls for those model/effort combos, or
+// delegation silently breaks while the request still returns HTTP 200 (issue #7821).
+function isCodexDelegationDependentModel(model: unknown): boolean {
+  const { baseModel, effort } = splitCodexReasoningSuffix(model);
+  if (effort === "ultra" && GPT_5_6_ULTRA_ALIAS_MODELS.has(baseModel)) return true;
+  if (effort === "max" && baseModel === "gpt-5.6-luna") return true;
+  return false;
+}
+
 function enforceCodexResponsesLiteParallelToolCalls(
   bodyInput: unknown,
-  clientHeaders?: Record<string, string> | null
+  clientHeaders: Record<string, string> | null | undefined,
+  model: unknown
 ): unknown {
   if (
     !isCodexResponsesLiteRequest(bodyInput, clientHeaders) ||
     !bodyInput ||
     typeof bodyInput !== "object" ||
-    Array.isArray(bodyInput)
+    Array.isArray(bodyInput) ||
+    isCodexDelegationDependentModel(model)
   ) {
     return bodyInput;
   }
@@ -662,15 +676,23 @@ function extractCodexSseErrorMessage(text: string, fallback: string): string {
 }
 
 type CodexSseTransientErrorPeek =
-  | { matched: string; message: string; replacementBody: null }
-  | { matched: null; message: null; replacementBody: ReadableStream<Uint8Array> | null };
+  | { matched: string; message: string; replacementBody: null; timedOut?: false }
+  | {
+      matched: null;
+      message: null;
+      replacementBody: ReadableStream<Uint8Array> | null;
+      timedOut?: boolean;
+    };
 
 /**
  * Peek the first bytes of a Codex SSE response body looking for a transient
  * error embedded in an otherwise 200-OK stream. Exported for unit testing.
+ * `timeoutMs` bounds EACH individual read (#8020) — defaults to
+ * FETCH_BODY_TIMEOUT_MS; overridable so tests can settle fast/deterministically.
  */
 export async function peekCodexSseTransientError(
-  response: Response
+  response: Response,
+  timeoutMs: number = FETCH_BODY_TIMEOUT_MS
 ): Promise<CodexSseTransientErrorPeek> {
   const contentType = response.headers.get("content-type") || "";
   // #7536: check content-type BEFORE touching `response.body`. On the wreq-js
@@ -693,8 +715,12 @@ export async function peekCodexSseTransientError(
 
   try {
     while (text.length < CODEX_SSE_PEEK_MAX_BYTES) {
-      const { done, value } = await reader.read();
+      const { done, value, timedOut } = await readCodexPeekChunk(reader, timeoutMs);
+      if (timedOut) {
+        return { matched: null, message: null, replacementBody: null, timedOut: true };
+      }
       if (done) break;
+      if (!value) continue;
       chunks.push(value);
       text += decoder.decode(value, { stream: true });
       const lower = text.toLowerCase();
@@ -736,26 +762,7 @@ export async function peekCodexSseTransientError(
   // undici (every non-stream Codex request 502'd, then got mis-classified as a
   // 60s rate limit). Keep the original reader; never touch response.body again.
   const upstreamReader = reader;
-  const replacementBody = new ReadableStream<Uint8Array>({
-    start(controller) {
-      for (const chunk of chunks) controller.enqueue(chunk);
-    },
-    async pull(controller) {
-      const { done, value } = await upstreamReader.read();
-      if (done) {
-        controller.close();
-        return;
-      }
-      controller.enqueue(value);
-    },
-    cancel(reason) {
-      try {
-        upstreamReader.cancel(reason).catch(() => {});
-      } catch {
-        // noop — upstream socket may already be closing.
-      }
-    },
-  });
+  const replacementBody = buildCodexTimeoutSafePassthroughBody(chunks, upstreamReader, timeoutMs);
 
   return { matched: null, message: null, replacementBody };
 }
@@ -847,7 +854,11 @@ export class CodexExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    const requestBody = enforceCodexResponsesLiteParallelToolCalls(input.body, input.clientHeaders);
+    const requestBody = enforceCodexResponsesLiteParallelToolCalls(
+      input.body,
+      input.clientHeaders,
+      input.model
+    );
     const requestInput = requestBody === input.body ? input : { ...input, body: requestBody };
     const sessionId = this.getPromptCacheSessionId(
       requestInput.credentials,
@@ -887,6 +898,17 @@ export class CodexExecutor extends BaseExecutor {
           (httpResult as { response: Response }).response = errorResponse(
             HTTP_STATUS.SERVICE_UNAVAILABLE,
             peek.message
+          );
+        } else if (peek.timedOut) {
+          // #8020: the peek's first-chunk read never returned (upstream body went
+          // silent). Convert to a bounded 504 instead of letting the caller hang.
+          input.log?.warn?.(
+            "TIMEOUT",
+            "CODEX | 200-OK SSE peek read timed out — upstream body stalled, returning 504"
+          );
+          (httpResult as { response: Response }).response = errorResponse(
+            HTTP_STATUS.GATEWAY_TIMEOUT,
+            "Upstream Codex SSE body read timed out"
           );
         } else if (peek.replacementBody) {
           (httpResult as { response: Response }).response = new Response(peek.replacementBody, {

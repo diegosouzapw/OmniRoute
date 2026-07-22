@@ -206,6 +206,52 @@
       "stream": "https://api.aimlapi.com/v1/chat/completions"
     }
   },
+  "ainative": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.ainative.studio/api/v1/chat/completions",
+      "stream": "https://api.ainative.studio/api/v1/chat/completions"
+    }
+  },
+  "aion": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.aionlabs.ai/v1/chat/completions",
+      "stream": "https://api.aionlabs.ai/v1/chat/completions"
+    }
+  },
   "alibaba": {
     "format": "openai",
     "headers": {
@@ -869,26 +915,28 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "OmniRoute/<APP>",
+        "User-Agent": "Cline/<APP>",
         "X-CLIENT-TYPE": "omniroute",
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
         "X-PLATFORM": "<PLATFORM>",
         "X-PLATFORM-VERSION": "<NODE>",
+        "X-Task-ID": "<UUID>",
         "X-Title": "Cline"
       },
       "nonStream": {
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "OmniRoute/<APP>",
+        "User-Agent": "Cline/<APP>",
         "X-CLIENT-TYPE": "omniroute",
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
         "X-PLATFORM": "<PLATFORM>",
         "X-PLATFORM-VERSION": "<NODE>",
+        "X-Task-ID": "<UUID>",
         "X-Title": "Cline"
       },
       "oauth": {
@@ -896,13 +944,14 @@
         "Authorization": "Bearer <TOK>",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://cline.bot",
-        "User-Agent": "OmniRoute/<APP>",
+        "User-Agent": "Cline/<APP>",
         "X-CLIENT-TYPE": "omniroute",
         "X-CLIENT-VERSION": "<APP>",
         "X-CORE-VERSION": "<APP>",
         "X-IS-MULTIROOT": "false",
         "X-PLATFORM": "<PLATFORM>",
         "X-PLATFORM-VERSION": "<NODE>",
+        "X-Task-ID": "<UUID>",
         "X-Title": "Cline"
       }
     },
@@ -2296,6 +2345,29 @@
       "stream": "https://ai.hackclub.com/proxy/v1/chat/completions"
     }
   },
+  "hailuo-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.hailuo.ai",
+      "stream": "https://www.hailuo.ai"
+    }
+  },
   "haiper": {
     "format": "openai",
     "headers": {
@@ -2411,6 +2483,29 @@
       "stream": "https://router.huggingface.co/v1/chat/completions"
     }
   },
+  "hyperagent": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://hyperagent.com/api/threads",
+      "stream": "https://hyperagent.com/api/threads"
+    }
+  },
   "hyperbolic": {
     "format": "openai",
     "headers": {
@@ -2476,8 +2571,8 @@
       }
     },
     "url": {
-      "nonStream": "https://spark-api.xf-yun.com/v1/chat/completions",
-      "stream": "https://spark-api.xf-yun.com/v1/chat/completions"
+      "nonStream": "https://spark-api-open.xf-yun.com/v1/chat/completions",
+      "stream": "https://spark-api-open.xf-yun.com/v1/chat/completions"
     }
   },
   "inference-net": {
@@ -3218,6 +3313,29 @@
       "stream": "https://nano-gpt.com/api/v1/chat/completions"
     }
   },
+  "nara": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://router.bynara.id/v1/chat/completions",
+      "stream": "https://router.bynara.id/v1/chat/completions"
+    }
+  },
   "navy": {
     "format": "openai",
     "headers": {
@@ -3785,6 +3903,29 @@
       "stream": "https://serving.app.predibase.com/v1/chat/completions"
     }
   },
+  "promptql": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql",
+      "stream": "https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql"
+    }
+  },
   "publicai": {
     "format": "openai",
     "headers": {
@@ -4018,6 +4159,32 @@
       "stream": "https://router.requesty.ai/v1/chat/completions"
     }
   },
+  "routeway": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 OmniRoute/1.0"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 OmniRoute/1.0"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 OmniRoute/1.0"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.routeway.ai/v1/chat/completions",
+      "stream": "https://api.routeway.ai/v1/chat/completions"
+    }
+  },
   "sambanova": {
     "format": "openai",
     "headers": {
@@ -4062,6 +4229,29 @@
     "url": {
       "nonStream": "https://api.scaleway.ai/v1/chat/completions",
       "stream": "https://api.scaleway.ai/v1/chat/completions"
+    }
+  },
+  "sealion": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.sea-lion.ai/v1/chat/completions",
+      "stream": "https://api.sea-lion.ai/v1/chat/completions"
     }
   },
   "sensenova": {
@@ -4152,8 +4342,8 @@
       }
     },
     "url": {
-      "nonStream": "https://spark-api.xf-yun.com/v3.1/chat/completions",
-      "stream": "https://spark-api.xf-yun.com/v3.1/chat/completions"
+      "nonStream": "https://spark-api-open.xf-yun.com/v1/chat/completions",
+      "stream": "https://spark-api-open.xf-yun.com/v1/chat/completions"
     }
   },
   "stepfun": {

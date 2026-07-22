@@ -1,0 +1,1 @@
+- fix(sse): parse Gemini 429 RetryInfo.retryDelay / "please retry in Ns" so model lockout honors the short upstream hint instead of falling back to a ~19h until-midnight cooldown (#7940)
