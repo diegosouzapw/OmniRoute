@@ -1,6 +1,9 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
-import { isInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -533,7 +536,11 @@ export function createResponsesApiTransformStream(
 
           // Handle text content. Generic prompt-format tags are visible text;
           // only tag-native models opt into textual reasoning extraction.
+          // Strip the internal reasoning placeholder if the model echoed it
+          // through ordinary content (#8081).
           if (delta.content) {
+            const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+            if (!strippedContent) return;
             // Close reasoning if it was opened via native reasoning_content
             // and is still open, before emitting message content. Without this
             // the reasoning item is never closed and the message reuses the
@@ -546,7 +553,7 @@ export function createResponsesApiTransformStream(
               closeReasoning(controller);
             }
 
-            let content = delta.content;
+            let content = strippedContent;
 
             if (parseTextualReasoningTags) {
               if (content.includes("<think>")) {

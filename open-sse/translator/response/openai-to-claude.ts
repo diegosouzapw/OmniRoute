@@ -4,7 +4,10 @@ import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
 import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
-import { isInternalReasoningPlaceholder } from "../../utils/reasoningPlaceholder.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../../utils/reasoningPlaceholder.ts";
 import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
 
 function normalizeToolName(name: string): string {
@@ -208,12 +211,15 @@ export function openaiToClaudeResponse(chunk, state) {
     });
   }
 
-  // Handle regular content
+  // Handle regular content — strip the internal reasoning placeholder if
+  // the model echoed it through ordinary content (#8081).
   if (delta?.content) {
+    const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+    if (!strippedContent) return;
     stopThinkingBlock(state, results);
 
     // Check for XML <invoke> blocks that some models emit instead of JSON tool_calls
-    const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(delta.content, state);
+    const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(strippedContent, state);
 
     // Accumulate extracted tool calls for emission at finish
     if (xmlToolCalls.length > 0) {
@@ -380,7 +386,12 @@ export function openaiToClaudeResponse(chunk, state) {
         results.push({
           type: "content_block_start",
           index: toolInfo.blockIndex,
-          content_block: { type: "tool_use", id: toolInfo.id, name: toolInfo.name || "", input: {} },
+          content_block: {
+            type: "tool_use",
+            id: toolInfo.id,
+            name: toolInfo.name || "",
+            input: {},
+          },
         });
       }
 

@@ -7,7 +7,10 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
-import { isInternalReasoningPlaceholder } from "../../utils/reasoningPlaceholder.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../../utils/reasoningPlaceholder.ts";
 import {
   normalizeToolName,
   stripEmptyOptionalToolArgs,
@@ -167,7 +170,11 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     startReasoning(state, emit, idx);
     emitReasoningDelta(state, emit, delta.reasoning_content);
   }
+  // Strip the internal reasoning placeholder if the model echoed it
+  // through ordinary content (#8081).
   if (delta.content) {
+    const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+    if (!strippedContent) return;
     if (
       state.reasoningId &&
       !state.reasoningDone &&
@@ -176,7 +183,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
       closeReasoning(state, emit);
     }
 
-    let content = delta.content;
+    let content = strippedContent;
 
     if (parseTextualReasoningTags) {
       if (content.includes("<think>")) {
