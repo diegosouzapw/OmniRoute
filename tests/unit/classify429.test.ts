@@ -44,6 +44,16 @@ test("classify429: Antigravity 'Individual quota reached' body returns 'quota_ex
   assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
 });
 
+test("classify429: Google RPC RESOURCE_EXHAUSTED body returns 'quota_exhausted' (#8060)", () => {
+  // Canonical Google quota error without the Antigravity-specific
+  // INSUFFICIENT_G1_CREDITS_BALANCE marker — previously fell through to
+  // rate_limit because no pattern matched "has been exhausted".
+  const body = "Resource has been exhausted (e.g. check quota). (reset after 24h)";
+  assert.equal(looksLikeQuotaExhausted(body), true);
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
+});
+
 test("classify429: Antigravity INSUFFICIENT_G1_CREDITS_BALANCE body returns 'quota_exhausted'", () => {
   const body = {
     error: {

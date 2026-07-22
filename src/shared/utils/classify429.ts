@@ -61,6 +61,13 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   // the 429 is misclassified as transient rate_limit and retried every
   // ~60s against a budget that only resets at UTC midnight.
   /daily free allocation/i,
+
+  // Google RPC RESOURCE_EXHAUSTED ("Resource has been exhausted (e.g. check
+  // quota). (reset after 24h)") — canonical Google quota error, emitted by
+  // Cloud Code / Antigravity and other Google APIs. Distinct from transient
+  // per-minute rate limits, which phrase it as "Rate limit exceeded ... retry
+  // in Xs", so anchoring on "has been exhausted" keeps it specific (#8060).
+  /resource has been exhausted/i,
 ];
 
 /**
