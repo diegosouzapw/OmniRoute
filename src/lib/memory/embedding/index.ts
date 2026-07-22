@@ -1,6 +1,7 @@
 import {
   EMBEDDING_PROVIDERS,
   buildDynamicEmbeddingProvider,
+  getEmbeddingDimension,
   type EmbeddingProviderNodeRow,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getProviderCredentials } from "@/sse/services/auth";
@@ -62,12 +63,15 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
     // We can't do async here, so we report it as potentially available
     // and the caller will attempt embed + get no_key error on failure.
     // For resolution purposes, mark as remote (will fail at embed time if no key).
+    const dims = getEmbeddingDimension(model) ?? null;
     return {
       source: "remote",
       model,
-      dimensions: null,
-      signature: makeSignature("remote", model, null),
-      reason: `remote provider configured: ${model}`,
+      dimensions: dims,
+      signature: makeSignature("remote", model, dims),
+      reason: dims !== null
+        ? `remote provider configured: ${model} (dim=${dims})`
+        : `remote provider configured: ${model}`,
     };
   }
 
@@ -123,11 +127,12 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
         // We defer the actual hasKey check to listEmbeddingProviders (async).
         // For resolveEmbeddingSource (sync), we report "possibly remote" when model is set.
         // If no key, embed will return EmbeddingError{reason:"no_key"}.
+        const autoDims = getEmbeddingDimension(providerModel) ?? null;
         return {
           source: "remote",
           model: providerModel,
-          dimensions: null,
-          signature: makeSignature("remote", providerModel, null),
+          dimensions: autoDims,
+          signature: makeSignature("remote", providerModel, autoDims),
           reason: `auto: provider ${providerId} configured`,
         };
       }
