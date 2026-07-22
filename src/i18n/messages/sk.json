@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Rozšírené: nasmerovať tohto vstavaného poskytovateľa na vlastný koncový bod. Ponechajte prázdne pre predvolený.",
     "bulkAddFormatHintCloudflare": "Jeden kľúč na riadok. Formát: name|accountId|apiKey (Cloudflare ID účtu + API token).",
     "lmarenaWebCookieHint": "Otvorte arena.ai, prihláste sa a potom skopírujte celú hlavičku Cookie zo sieťovej požiadavky (Network request). Zahrňte arena-auth-prod-v1.0 a arena-auth-prod-v1.1 (a ďalšie časti, ak sú prítomné), najlepšie s cf_clearance. Nevkladajte iba prázdny cookie arena-auth-prod-v1. Voliteľné: providerSpecificData.recaptchaV3Token, ak create-evaluation stále vracia 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Zakladajúci priateľ",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) je zakladajúci open source priateľ OmniRoute",
     "kimiPartnerLinkNote": "Partnerský odkaz — podporuje OmniRoute bez akýchkoľvek dodatočných nákladov pre vás",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Žiadne prepísania — všetci aktívni poskytovatelia sa zapoja so svojimi predvolenými modelmi"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) je teraz oficiálnym sponzorom OmniRoute",
+    "title": "Kimi (Moonshot AI) je zakladajúci open source priateľ OmniRoute",
     "description": "Kimi K3 prináša kontextové okno s veľkosťou 1M tokenov a špičkový výkon pri kódovaní do OmniRoute za zlomok ceny.",
     "cta": "Získať Kimi Code",
     "partnerLinkNote": "Partnerský odkaz",

@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "高级：将此内置提供商指向自定义端点。留空以使用默认值。",
     "bulkAddFormatHintCloudflare": "每行一个密钥。格式：name|accountId|apiKey（Cloudflare 账户 ID + API 令牌）。",
     "lmarenaWebCookieHint": "打开 arena.ai，登录，然后从网络请求中复制完整的 Cookie 请求头。包含 arena-auth-prod-v1.0 和 arena-auth-prod-v1.1（如果存在更多分块也一并包含），最好附带 cf_clearance。请勿仅粘贴空的 arena-auth-prod-v1 cookie。可选：如果 create-evaluation 仍返回 403，可提供 providerSpecificData.recaptchaV3Token。",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "创始好友",
+    "kimiOfficialSupporterTooltip": "Kimi（Moonshot AI）是 OmniRoute 的创始开源好友",
     "kimiPartnerLinkNote": "合作伙伴链接 — 支持 OmniRoute，您无需承担额外费用",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "无覆盖 — 所有活跃提供商都将使用其默认模型参与"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) 现已成为 OmniRoute 的官方赞助商",
+    "title": "Kimi（Moonshot AI）是 OmniRoute 的创始开源好友",
     "description": "Kimi K3 为 OmniRoute 带来了 1M token 的上下文窗口和前沿的编码性能，而成本仅为极小一部分。",
     "cta": "获取 Kimi Code",
     "partnerLinkNote": "合作伙伴链接",

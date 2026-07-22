@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Avansert: pek denne innebygde leverandøren til et egendefinert endepunkt. La stå tomt for å bruke standarden.",
     "bulkAddFormatHintCloudflare": "Én nøkkel per linje. Format: name|accountId|apiKey (Cloudflare-konto-ID + API-token).",
     "lmarenaWebCookieHint": "Åpne arena.ai, logg inn, og kopier deretter hele Cookie-headeren fra en nettverksforespørsel. Inkluder arena-auth-prod-v1.0 og arena-auth-prod-v1.1 (og ytterligere deler hvis tilgjengelig), helst med cf_clearance. Ikke lim inn bare den tomme arena-auth-prod-v1-cookien. Valgfritt: providerSpecificData.recaptchaV3Token hvis create-evaluation fortsatt returnerer 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Grunnleggende venn",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) er OmniRoutes grunnleggende åpen kildekode-venn",
     "kimiPartnerLinkNote": "Partnerlenke — støtter OmniRoute uten ekstra kostnad for deg",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Ingen overstyringer — alle aktive leverandører vil delta med sine standardmodeller"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) er nå en offisiell sponsor av OmniRoute",
+    "title": "Kimi (Moonshot AI) er OmniRoutes grunnleggende åpen kildekode-venn",
     "description": "Kimi K3 bringer et 1M-token kontekstvindu og banebrytende kodeytelse til OmniRoute til en brøkdel av kostnaden.",
     "cta": "Hent Kimi Code",
     "partnerLinkNote": "Partnerlenke",

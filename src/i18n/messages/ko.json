@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "고급: 이 기본 제공 공급자가 사용자 지정 엔드포인트를 가리키도록 설정합니다. 기본값을 사용하려면 비워 두세요.",
     "bulkAddFormatHintCloudflare": "한 줄에 하나의 키. 형식: name|accountId|apiKey (Cloudflare 계정 ID + API 토큰).",
     "lmarenaWebCookieHint": "arena.ai를 열고 로그인한 다음 Network 요청에서 전체 Cookie 헤더를 복사하세요. arena-auth-prod-v1.0 및 arena-auth-prod-v1.1(있는 경우 추가 청크 포함)을 포함해야 하며, 가급적 cf_clearance도 포함하는 것이 좋습니다. 비어 있는 arena-auth-prod-v1 쿠키만 붙여넣지 마세요. 선택 사항: create-evaluation에서 여전히 403을 반환하는 경우 providerSpecificData.recaptchaV3Token.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "창립 프렌드",
+    "kimiOfficialSupporterTooltip": "Kimi(Moonshot AI)는 OmniRoute의 창립 오픈소스 프렌드입니다",
     "kimiPartnerLinkNote": "파트너 링크 — 추가 비용 없이 OmniRoute를 지원합니다",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "재정의 없음 — 모든 활성 프로바이더가 기본 모델로 참여합니다"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi(Moonshot AI)가 이제 OmniRoute의 공식 스폰서입니다",
+    "title": "Kimi(Moonshot AI)는 OmniRoute의 창립 오픈소스 프렌드입니다",
     "description": "Kimi K3는 적은 비용으로 1M 토큰 컨텍스트 창과 최첨단 코딩 성능을 OmniRoute에 제공합니다.",
     "cta": "Kimi Code 가져오기",
     "partnerLinkNote": "파트너 링크",

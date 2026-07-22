@@ -5542,8 +5542,8 @@
     "bulkAddFormatHintCloudflare": "每行一個金鑰。格式：name|accountId|apiKey（Cloudflare 帳戶 ID + API 令牌）。",
     "visionCapableLabel": "支援視覺",
     "visionCapableHint": "當供應商的探索中繼資料未回報圖片輸入模式時（常見於自託管/本地後端），手動將此模型標記為具備視覺能力。",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "創始好友",
+    "kimiOfficialSupporterTooltip": "Kimi（Moonshot AI）是 OmniRoute 的創始開源好友",
     "addPat": "新增 PAT",
     "claudeImportEntryName": "項目 {number}",
     "claudeImportNoValidEntries": "無有效項目可匯入",
@@ -12097,7 +12097,7 @@
     "window": "區間"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi（Moonshot AI）現已成為 OmniRoute 官方贊助商",
+    "title": "Kimi（Moonshot AI）是 OmniRoute 的創始開源好友",
     "description": "Kimi K3 提供 100 萬 Token 的上下文視窗與頂尖程式碼效能，但只需同類產品的一小部分成本。",
     "cta": "取得 Kimi Code",
     "partnerLinkNote": "合作夥伴連結",

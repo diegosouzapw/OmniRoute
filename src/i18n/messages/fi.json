@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Lisäasetukset: ohjaa tämä sisäänrakennettu tarjoaja mukautettuun päätepisteeseen. Jätä tyhjäksi käyttääksesi oletusta.",
     "bulkAddFormatHintCloudflare": "Yksi avain riviä kohden. Muoto: nimi|accountId|apiKey (Cloudflare-tilin tunnus + API-tunniste).",
     "lmarenaWebCookieHint": "Avaa arena.ai, kirjaudu sisään ja kopioi sitten koko Cookie-otsake Network-pyynnöstä. Sisällytä arena-auth-prod-v1.0 ja arena-auth-prod-v1.1 (ja mahdolliset muut osat), mieluiten cf_clearance-arvon kanssa. Älä liitä pelkkää tyhjää arena-auth-prod-v1-evästettä. Valinnainen: providerSpecificData.recaptchaV3Token, jos create-evaluation palauttaa edelleen virheen 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Perustajaystävä",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) on OmniRouten perustajan avoimen lähdekoodin ystävä",
     "kimiPartnerLinkNote": "Kumppanilinkki — tukee OmniRoutea ilman lisäkustannuksia sinulle",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Ei ohituksia — kaikki aktiiviset tarjoajat osallistuvat oletusmalleillaan"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) on nyt OmniRouten virallinen sponsori",
+    "title": "Kimi (Moonshot AI) on OmniRouten perustajan avoimen lähdekoodin ystävä",
     "description": "Kimi K3 tuo 1M-tokenin konteksti-ikkunan ja huippuluokan koodaussuorituskyvyn OmniRouteen murto-osalla kustannuksista.",
     "cta": "Hanki Kimi Code",
     "partnerLinkNote": "Kumppanilinkki",

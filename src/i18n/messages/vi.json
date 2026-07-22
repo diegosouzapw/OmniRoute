@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Nâng cao: trỏ nhà cung cấp tích hợp này đến một endpoint tùy chỉnh. Để trống để sử dụng mặc định.",
     "bulkAddFormatHintCloudflare": "Mỗi dòng một khóa. Định dạng: name|accountId|apiKey (Cloudflare account ID + API token).",
     "lmarenaWebCookieHint": "Mở arena.ai, đăng nhập, sau đó sao chép toàn bộ header Cookie từ một yêu cầu mạng. Bao gồm arena-auth-prod-v1.0 và arena-auth-prod-v1.1 (và các phần tiếp theo nếu có), ưu tiên kèm theo cf_clearance. Không chỉ dán cookie arena-auth-prod-v1 trống. Tùy chọn: providerSpecificData.recaptchaV3Token nếu create-evaluation vẫn trả về 403.",
-    "kimiOfficialSupporterBadge": "Nhà tài trợ chính thức",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) là đối tác ra mắt chính thức của OmniRoute",
+    "kimiOfficialSupporterBadge": "Người Bạn Sáng Lập",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) là người bạn mã nguồn mở sáng lập của OmniRoute",
     "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Không có ghi đè — mọi nhà cung cấp đang hoạt động sẽ tham gia bằng mô hình mặc định"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) is now an official sponsor of OmniRoute",
+    "title": "Kimi (Moonshot AI) là người bạn mã nguồn mở sáng lập của OmniRoute",
     "description": "Kimi K3 brings a 1M-token context window and frontier coding performance to OmniRoute at a fraction of the cost.",
     "cta": "Get Kimi Code",
     "partnerLinkNote": "Partner link",

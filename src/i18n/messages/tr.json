@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Gelişmiş: bu yerleşik sağlayıcıyı özel bir uç noktaya yönlendirin. Varsayılanı kullanmak için boş bırakın.",
     "bulkAddFormatHintCloudflare": "Satır başına bir anahtar. Biçim: name|accountId|apiKey (Cloudflare hesap kimliği + API belirteci).",
     "lmarenaWebCookieHint": "arena.ai adresini açın, oturum açın ve ardından bir Ağ isteğinden tam Cookie başlığını kopyalayın. Tercihen cf_clearance ile birlikte arena-auth-prod-v1.0 ve arena-auth-prod-v1.1 (ve varsa diğer parçaları) ekleyin. Yalnızca boş arena-auth-prod-v1 çerezini yapıştırmayın. İsteğe bağlı: create-evaluation hala 403 döndürüyorsa providerSpecificData.recaptchaV3Token.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Kurucu Dost",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI), OmniRoute'un kurucu açık kaynak dostu",
     "kimiPartnerLinkNote": "Ortaklık bağlantısı — size hiçbir ek ücret ödetmeden OmniRoute'u destekler",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Geçersiz kılma yok — tüm etkin sağlayıcılar varsayılan modelleriyle katılacaktır"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) artık OmniRoute'un resmi sponsoru",
+    "title": "Kimi (Moonshot AI), OmniRoute'un kurucu açık kaynak dostu",
     "description": "Kimi K3, maliyetin çok küçük bir kısmıyla OmniRoute'a 1M tokenlik bir bağlam penceresi ve öncü kodlama performansı getiriyor.",
     "cta": "Kimi Code Edin",
     "partnerLinkNote": "Ortaklık bağlantısı",

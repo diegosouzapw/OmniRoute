@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Avanzate: indirizza questo provider integrato a un endpoint personalizzato. Lascia vuoto per utilizzare il valore predefinito.",
     "bulkAddFormatHintCloudflare": "Una chiave per riga. Formato: name|accountId|apiKey (ID account Cloudflare + token API).",
     "lmarenaWebCookieHint": "Apri arena.ai, accedi, quindi copia l'intestazione Cookie completa da una richiesta Network. Includi arena-auth-prod-v1.0 e arena-auth-prod-v1.1 (e ulteriori blocchi se presenti), preferibilmente con cf_clearance. Non incollare solo il cookie vuoto arena-auth-prod-v1. Facoltativo: providerSpecificData.recaptchaV3Token se create-evaluation restituisce ancora 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Amico Fondatore",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) è l'amico open source fondatore di OmniRoute",
     "kimiPartnerLinkNote": "Link partner — supporta OmniRoute senza costi aggiuntivi per te",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Nessun override — tutti i provider attivi parteciperanno con i loro modelli predefiniti"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) è ora uno sponsor ufficiale di OmniRoute",
+    "title": "Kimi (Moonshot AI) è l'amico open source fondatore di OmniRoute",
     "description": "Kimi K3 porta una finestra di contesto da 1M di token e prestazioni di codifica all'avanguardia su OmniRoute a una frazione del costo.",
     "cta": "Ottieni Kimi Code",
     "partnerLinkNote": "Link partner",

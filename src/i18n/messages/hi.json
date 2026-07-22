@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "उन्नत: इस इन-बिल्ट प्रदाता को एक कस्टम एंडपॉइंट पर इंगित करें। डिफ़ॉल्ट का उपयोग करने के लिए खाली छोड़ दें।",
     "bulkAddFormatHintCloudflare": "प्रति पंक्ति एक कुंजी। प्रारूप: name|accountId|apiKey (Cloudflare खाता ID + API टोकन)।",
     "lmarenaWebCookieHint": "arena.ai खोलें, साइन इन करें, फिर Network अनुरोध से पूरा Cookie हेडर कॉपी करें। arena-auth-prod-v1.0 और arena-auth-prod-v1.1 (और यदि मौजूद हों तो आगे के हिस्से) शामिल करें, अधिमानतः cf_clearance के साथ। केवल खाली arena-auth-prod-v1 कुकी पेस्ट न करें। वैकल्पिक: providerSpecificData.recaptchaV3Token यदि create-evaluation अभी भी 403 लौटाता है।",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "संस्थापक मित्र",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI), OmniRoute का संस्थापक ओपन सोर्स मित्र है",
     "kimiPartnerLinkNote": "पार्टनर लिंक — बिना किसी अतिरिक्त लागत के OmniRoute का समर्थन करता है",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "कोई ओवरराइड नहीं — सभी सक्रिय प्रदाता अपने डिफ़ॉल्ट मॉडल के साथ भाग लेंगे"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) अब OmniRoute का आधिकारिक प्रायोजक है",
+    "title": "Kimi (Moonshot AI), OmniRoute का संस्थापक ओपन सोर्स मित्र है",
     "description": "Kimi K3 लागत के एक अंश पर OmniRoute में 1M-टोकन संदर्भ विंडो और अत्याधुनिक कोडिंग प्रदर्शन लाता है।",
     "cta": "Kimi Code प्राप्त करें",
     "partnerLinkNote": "पार्टनर लिंक",
