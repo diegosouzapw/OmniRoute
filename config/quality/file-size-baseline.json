@@ -215,7 +215,7 @@
     "open-sse/translator/request/openai-to-gemini.ts": 906,
     "open-sse/translator/request/openai-to-kiro.ts": 912,
     "_rebaseline_2026_07_22_7936_namespace_roundtrip": "#7936 (@RCrushMe, Responses-Chat namespace round-trip identity seam) own growth: open-sse/translator/response/openai-responses.ts 1092->1125 (+33) and open-sse/utils/stream.ts 2814->2869 (+55) — threading the namespace-identity seam through the Responses↔Chat translation + stream paths so tool-call namespaces survive the round-trip. Cohesive translation/stream wiring at existing chokepoints, frozen at new size.",
-    "open-sse/translator/response/openai-responses.ts": 1125,
+    "open-sse/translator/response/openai-responses.ts": 1137,
     "open-sse/utils/cursorAgentProtobuf.ts": 1521,
     "open-sse/utils/stream.ts": 2869,
     "src/app/(dashboard)/dashboard/HomePageClient.tsx": 1385,
@@ -316,7 +316,8 @@
     "_rebaseline_2026_07_12_v3847_mergeprs_tail": "v3.8.47 /merge-prs tail (owner-approved): src/lib/localDb.ts NEW>800 (799->805, +6 re-exports countFreeProxies + recordFreeProxySyncErrors/clearFreeProxySyncErrors/getFreeProxySyncErrors + FreeProxySyncErrors type for #6909 free-pool relay-repair; re-export-only per Hard Rule #2, not extractable).",
     "_rebaseline_2026_07_21_8034_compression_exclusions_sidebar": "#8034 (compression exclusions dashboard tab) own growth: sections.ts 796->806 (+10, one new COMPRESSION_CONTEXT_GROUP sidebar item linking /dashboard/compression/exclusions). The file was already 796/800 before this PR (organic growth from prior sidebar entries), so a single new nav item pushed it 6 lines over cap. Freezing at 806 (cannot grow further); the sidebar item array is data, not extractable logic.",
     "src/shared/constants/sidebarVisibility/sections.ts": 806,
-    "_rebaseline_2026_07_22_8056_headroom_minrows": "#8056 (@RaviTharuma, persist Headroom minRows) own growth: src/lib/db/compression.ts 850->866 (+16 HeadroomConfig+DEFAULT_HEADROOM_CONFIG+normalize/store in get/updateCompressionSettings) and open-sse/services/compression/strategySelector.ts 1054->1060 (+6 merge settings.headroom into stacked stepConfig). Cohesive settings-persistence + stacked-merge wiring at existing chokepoints, frozen at new size."
+    "_rebaseline_2026_07_22_8056_headroom_minrows": "#8056 (@RaviTharuma, persist Headroom minRows) own growth: src/lib/db/compression.ts 850->866 (+16 HeadroomConfig+DEFAULT_HEADROOM_CONFIG+normalize/store in get/updateCompressionSettings) and open-sse/services/compression/strategySelector.ts 1054->1060 (+6 merge settings.headroom into stacked stepConfig). Cohesive settings-persistence + stacked-merge wiring at existing chokepoints, frozen at new size.",
+    "_rebaseline_2026_07_22_8081_reasoning_placeholder_guard": "#8081 (@Dingding-leo) own growth: openai-responses.ts 1125->1137 (+12) restructuring the reasoning-placeholder guard so it skips only the empty content block and still emits finish_reason/tool_calls in the same chunk. Cohesive translator wiring; frozen at new size."
   },
   "testCap": 800,
   "testFrozen": {
