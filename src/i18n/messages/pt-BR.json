@@ -1219,7 +1219,9 @@
     "alwaysVisible": "__MISSING__:Always visible",
     "groupSeparatorLabel": "__MISSING__:Separator",
     "discovery": "Descoberta",
-    "discoverySubtitle": "Buscar acesso gratuito em provedores"
+    "discoverySubtitle": "Buscar acesso gratuito em provedores",
+    "conductor": "Conductor",
+    "conductorSubtitle": "Frota de agentes CLI"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -12084,5 +12086,36 @@
     "cta": "Obter Kimi Code",
     "partnerLinkNote": "Link de parceria",
     "dismissAriaLabel": "Dispensar"
+  },
+  "conductor": {
+    "title": "Conductor — frota de agentes CLI",
+    "subtitle": "Hub OmniConductor: runners, fila de tasks e councils, ao vivo",
+    "runners": "Runners",
+    "tasks": "Tasks",
+    "colName": "Nome",
+    "colClis": "CLIs",
+    "colStatus": "Status",
+    "colTask": "Task",
+    "colMode": "Modo",
+    "colRunner": "Runner",
+    "colSummary": "Resumo",
+    "online": "online",
+    "offline": "offline",
+    "draining": "drenando",
+    "hubOffline": "Hub do Conductor fora do ar ou não configurado (CONDUCTOR_HUB_URL) — melhor nada do que dado velho.",
+    "noRunners": "Nenhum runner registrado",
+    "noTasks": "Nenhuma task ainda",
+    "detailTitle": "Detalhe da task",
+    "prompt": "Prompt",
+    "branch": "Branch",
+    "fetchHint": "Busque o resultado com: git fetch origin {branch}",
+    "council": "Council",
+    "candidates": "Candidatos",
+    "cancel": "Cancelar task",
+    "cancelConfirmTitle": "Cancelar esta task?",
+    "cancelConfirmMessage": "O hub aborta a execução no runner. Não dá para desfazer.",
+    "cancelFailed": "O hub recusou o cancelamento",
+    "close": "Fechar",
+    "error": "Erro"
   }
 }
