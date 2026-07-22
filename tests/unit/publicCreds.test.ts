@@ -51,6 +51,14 @@ test("resolvePublicCred('windsurf_fb') returns an AIza-style Google API key", ()
   assert.match(v, /^A[I]za[A-Za-z0-9_-]{20,}$/);
 });
 
+// Gap-fix (#7013): grok_id already backs GROK_CLI_CONFIG/GROK_BUILD_OAUTH_CONFIG/
+// XAI_OAUTH_CONFIG's clientId in production, but had no shape assertion here.
+test("resolvePublicCred('grok_id') returns a UUID-shaped xAI OAuth client id", () => {
+  const v = resolvePublicCred("grok_id");
+  assert.match(v, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  assert.equal(v.length, 36);
+});
+
 test("encode/decode roundtrip is stable across arbitrary plaintexts", () => {
   for (const sample of [
     "hello world",

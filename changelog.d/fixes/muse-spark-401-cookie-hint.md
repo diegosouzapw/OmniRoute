@@ -1,0 +1,1 @@
+- muse-spark-web: the WebSocket 401 auth-failure message now names the live `ecto_1_sess` cookie (the retired `abra_sess` name was dropped in the GraphQL→WS migration), so users know which cookie to re-paste.
