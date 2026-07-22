@@ -153,6 +153,14 @@ export const ultraConfigSchema = z
   })
   .strict();
 
+/** Headroom SmartCrusher detail settings (persisted under settings.headroom). */
+export const headroomConfigSchema = z
+  .object({
+    // Matches engine schema min 2 / max 10000 and DEFAULT_MIN_ROWS=8.
+    minRows: z.number().int().min(2).max(10000).optional(),
+  })
+  .strict();
+
 const noConfigSchema = z.object({}).strict();
 
 // Structural engines (session-dedup / ccr / headroom / relevance / llmlingua) do not
@@ -335,6 +343,7 @@ export const compressionSettingsUpdateSchema = z
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
+    headroom: headroomConfigSchema.optional(),
     contextBudget: contextBudgetConfigSchema.optional(),
     contextEditing: contextEditingConfigSchema.optional(),
     liveZone: z.object({ enabled: z.boolean() }).strict().optional(),
