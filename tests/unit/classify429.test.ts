@@ -75,6 +75,25 @@ test("classify429: Antigravity INSUFFICIENT_G1_CREDITS_BALANCE body returns 'quo
   assert.equal(classify429({ status: 429, body }), "quota_exhausted");
 });
 
+test("classify429: Google RESOURCE_EXHAUSTED with a billing-period reset is quota exhausted", () => {
+  const body = "Resource has been exhausted (e.g. check quota). (reset after 24h)";
+  assert.equal(looksLikeQuotaExhausted(body), true);
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
+});
+
+test("classify429: Google RESOURCE_EXHAUSTED without a reset remains a rate limit", () => {
+  const body = "Resource has been exhausted (e.g. check quota).";
+  assert.equal(looksLikeQuotaExhausted(body), false);
+  assert.equal(classify429({ status: 429, body }), "rate_limit");
+});
+
+test("classify429: Google RESOURCE_EXHAUSTED per-minute rate limit is NOT quota exhausted", () => {
+  const body = "Resource has been exhausted (e.g. queries per minute limit was reached).";
+  assert.equal(looksLikeQuotaExhausted(body), false);
+  assert.equal(classify429({ status: 429, body }), "rate_limit");
+});
+
 test("classify429: Antigravity quota patterns do not over-match plain rate limits", () => {
   // The new 'quota reached' / 'enable overages' patterns must stay specific —
   // a per-minute rate limit must still classify as a transient rate_limit.
