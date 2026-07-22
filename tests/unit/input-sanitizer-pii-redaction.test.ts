@@ -19,7 +19,16 @@ async function withEnv(overrides: Record<string, string | undefined>, fn: () => 
   }
 }
 
-const silentLogger = { info() {}, warn() {}, error() {} };
+const silentLogger = {
+  info() {},
+  warn() {},
+  error() {},
+} as Pick<Console, "info" | "warn" | "error">;
+
+type ChatBody = {
+  messages?: Array<{ role?: string; content?: unknown }>;
+  input?: unknown;
+};
 
 test("sanitizeRequest redacts PII when enabled even if injection mode is block", async () => {
   await withEnv(
@@ -31,14 +40,12 @@ test("sanitizeRequest redacts PII when enabled even if injection mode is block",
     () => {
       const result = sanitizeRequest(
         { messages: [{ role: "user", content: "Email dev@example.com" }] },
-        silentLogger as any
+        silentLogger
       );
       assert.equal(result.modified, true);
       assert.ok(result.sanitizedBody);
-      assert.match(
-        String((result.sanitizedBody as any).messages[0].content),
-        /\[EMAIL_REDACTED\]/
-      );
+      const body = result.sanitizedBody as ChatBody;
+      assert.match(String(body.messages?.[0]?.content), /\[EMAIL_REDACTED\]/);
     }
   );
 });
@@ -53,10 +60,11 @@ test("sanitizeRequest redacts Responses API string input items", async () => {
     () => {
       const result = sanitizeRequest(
         { input: ["Please write to support@example.com"] },
-        silentLogger as any
+        silentLogger
       );
       assert.equal(result.modified, true);
-      assert.match(String((result.sanitizedBody as any).input[0]), /\[EMAIL_REDACTED\]/);
+      const body = result.sanitizedBody as ChatBody;
+      assert.match(String(Array.isArray(body.input) ? body.input[0] : undefined), /\[EMAIL_REDACTED\]/);
     }
   );
 });
@@ -71,7 +79,7 @@ test("sanitizeRequest does not rewrite PII when PII_REDACTION_ENABLED is false",
     () => {
       const result = sanitizeRequest(
         { messages: [{ role: "user", content: "Email dev@example.com" }] },
-        silentLogger as any
+        silentLogger
       );
       assert.equal(result.modified, false);
       assert.equal(result.sanitizedBody, null);

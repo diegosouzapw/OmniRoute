@@ -119,6 +119,12 @@ test("prompt injection guardrail blocks suspicious content in block mode", async
   );
 });
 
+type ChatLikePayload = {
+  messages?: Array<{ role?: string; content?: unknown }>;
+  input?: unknown;
+  choices?: Array<{ message?: { role?: string; content?: unknown } }>;
+};
+
 test("pii masker guardrail redacts request and response payloads", async () => {
   // Request PII rewrite depends only on PII_REDACTION_ENABLED (not injection mode).
   await withEnv(
@@ -134,24 +140,27 @@ test("pii masker guardrail redacts request and response payloads", async () => {
         messages: [{ role: "user", content: "Email me at dev@example.com" }],
       });
       assert.ok(preCall?.modifiedPayload);
-      assert.match(
-        String((preCall?.modifiedPayload as any).messages?.[0]?.content),
-        /\[EMAIL_REDACTED\]/
-      );
+      const preBody = preCall?.modifiedPayload as ChatLikePayload;
+      assert.match(String(preBody.messages?.[0]?.content), /\[EMAIL_REDACTED\]/);
 
       // Responses API can send plain string items in input[]
       const stringInput = await guardrail.preCall({
         input: ["Contact us at support@example.com for help"],
       });
       assert.ok(stringInput?.modifiedPayload);
-      assert.match(String((stringInput?.modifiedPayload as any).input?.[0]), /\[EMAIL_REDACTED\]/);
+      const stringBody = stringInput?.modifiedPayload as ChatLikePayload;
+      assert.match(
+        String(Array.isArray(stringBody.input) ? stringBody.input[0] : undefined),
+        /\[EMAIL_REDACTED\]/
+      );
 
       // Top-level string input
       const topLevelInput = await guardrail.preCall({
         input: "Reach alice@example.com",
       });
       assert.ok(topLevelInput?.modifiedPayload);
-      assert.match(String((topLevelInput?.modifiedPayload as any).input), /\[EMAIL_REDACTED\]/);
+      const topBody = topLevelInput?.modifiedPayload as ChatLikePayload;
+      assert.match(String(topBody.input), /\[EMAIL_REDACTED\]/);
 
       const postCall = await guardrail.postCall({
         choices: [
@@ -164,9 +173,8 @@ test("pii masker guardrail redacts request and response payloads", async () => {
         ],
       });
       assert.ok(postCall?.modifiedResponse, "PII in response should trigger redaction");
-      const redactedContent = String(
-        (postCall?.modifiedResponse as any).choices?.[0]?.message?.content
-      );
+      const postBody = postCall?.modifiedResponse as ChatLikePayload;
+      const redactedContent = String(postBody.choices?.[0]?.message?.content);
       assert.ok(
         redactedContent.includes("[EMAIL_REDACTED]") || redactedContent.includes("[PHONE_REDACTED]"),
         "email or phone should be redacted in response"
