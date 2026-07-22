@@ -235,14 +235,19 @@ test("extractAdobeMediaUrl reads outputs[].image/video.presignedUrl", () => {
 });
 
 test("buildAdobeSubmitHeaders sets Bearer + clio-playground-web x-api-key", () => {
-  const headers = buildAdobeSubmitHeaders("tok-1");
+  const headers = buildAdobeSubmitHeaders("tok-1", { arpSessionId: "arp-1" });
   assert.equal(headers.Authorization, "Bearer tok-1");
   assert.equal(headers["x-api-key"], "clio-playground-web");
   assert.equal(headers.origin, "https://firefly.adobe.com");
   assert.equal(headers["content-type"], "application/json");
+  assert.equal(headers["x-arp-session-id"], "arp-1");
+  // Never attach firefly.adobe.com page Cookie to firefly-3p (soft 408 risk)
+  assert.equal(headers.cookie, undefined);
   const poll = buildAdobePollHeaders("tok-1");
   assert.equal(poll.Authorization, "Bearer tok-1");
-  assert.equal(poll.referer, "https://firefly.adobe.com/");
+  assert.equal(poll.accept, "*/*");
+  // status_check.txt: poll is Bearer-only (no x-api-key)
+  assert.equal(poll["x-api-key"], undefined);
 });
 
 test("normalizeAdobePollUrl rewrites firefly-epo jobs/result to BKS", () => {
@@ -535,21 +540,31 @@ test("isAdobeTransientSubmitError detects 408 system under load", () => {
 });
 
 test("extractAdobeCookieHeader strips JWT from mixed paste", async () => {
-  const { extractAdobeCookieHeader, buildAdobeSubmitHeaders } = await import(
-    "../../open-sse/services/adobeFireflyClient.ts"
-  );
+  const { extractAdobeCookieHeader, buildAdobeSubmitHeaders, extractAdobeArpSessionId } =
+    await import("../../open-sse/services/adobeFireflyClient.ts");
   const longJwt = `eyJhbGciOiJSUzI1NiJ9.${"e".repeat(40)}.${"f".repeat(40)}`;
   const cookie = "ff_session_guid=abc; sherlockToken=tok123; aux_sid=xyz";
   const mixed = `${longJwt}\n${cookie}`;
   assert.equal(extractAdobeCookieHeader(longJwt), "");
   assert.match(extractAdobeCookieHeader(mixed), /ff_session_guid=abc/);
   assert.doesNotMatch(extractAdobeCookieHeader(mixed), /eyJhbGci/);
-  // Must not put JWT into Cookie header (undici throws Headers.append)
-  const headers = buildAdobeSubmitHeaders("access-tok", { cookie: mixed });
-  assert.ok(headers.cookie);
-  assert.doesNotMatch(headers.cookie, /eyJhbGci/);
-  assert.match(headers.cookie, /sherlockToken=tok123/);
+  // Submit must not attach Cookie; arp id may still be lifted from the blob.
+  const arp = extractAdobeArpSessionId(mixed);
+  assert.equal(arp, "tok123");
+  const headers = buildAdobeSubmitHeaders("access-tok", {
+    cookie: mixed,
+    arpSessionId: arp,
+  });
+  assert.equal(headers.cookie, undefined);
+  assert.equal(headers["x-arp-session-id"], "tok123");
   assert.equal(headers.Authorization, "Bearer access-tok");
+});
+
+test("resolveAdobeImageModel maps gpt-image-2 alias", async () => {
+  const { resolveAdobeImageModel } = await import("../../open-sse/services/adobeFireflyClient.ts");
+  assert.equal(resolveAdobeImageModel("gpt-image-2").spec.upstreamModelVersion, "2");
+  assert.equal(resolveAdobeImageModel("adobe-firefly/gpt-image").spec.upstreamModelVersion, "2");
+  assert.equal(resolveAdobeImageModel("gpt-image-1.5").spec.upstreamModelVersion, "1.5");
 });
 
 test("image submit retries on 408 then succeeds", async () => {

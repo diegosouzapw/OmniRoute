@@ -55,6 +55,14 @@ export const ADOBE_FIREFLY_FALLBACK_MODELS: AdobeFireflyCatalogModel[] = [
     inputModalities: ["text", "image"],
   },
   {
+    id: "gpt-image-2",
+    name: "GPT Image 2",
+    modality: "image",
+    upstreamModelId: "gpt-image",
+    upstreamModelVersion: "2",
+    inputModalities: ["text", "image"],
+  },
+  {
     id: "gpt-image",
     name: "GPT Image 2",
     modality: "image",

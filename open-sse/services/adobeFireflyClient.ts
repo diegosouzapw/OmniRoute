@@ -58,6 +58,7 @@ export type AdobeFireflyImageModelId =
   | "nano-banana"
   | "nano-banana-2"
   | "gpt-image"
+  | "gpt-image-2"
   | "gpt-image-1.5"
   | "flux-2"
   | "flux-pro"
@@ -115,8 +116,14 @@ export const ADOBE_FIREFLY_IMAGE_MODELS: Record<AdobeFireflyImageModelId, AdobeF
       upstreamModelVersion: "nano-banana-3",
       family: "nano",
     },
-    // GPT Image 2 — discovery + live generate body: gpt-image / 2
+    // GPT Image 2 — discovery modelVersion "2" (get_models: modelDisplayName "GPT Image 2")
     "gpt-image": {
+      upstreamModelId: "gpt-image",
+      upstreamModelVersion: "2",
+      family: "gpt-image",
+    },
+    // Explicit catalog alias so pickers show "gpt-image-2" distinctly
+    "gpt-image-2": {
       upstreamModelId: "gpt-image",
       upstreamModelVersion: "2",
       family: "gpt-image",
@@ -580,8 +587,20 @@ export function resolveAdobeImageModel(model: string): {
   if (raw.includes("gpt-image-1.5") || raw.includes("gpt-image1.5")) {
     return { id: "gpt-image-1.5", spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image-1.5"] };
   }
-  if (raw.includes("gpt-image") || raw === "gpt-image") {
-    return { id: "gpt-image", spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"] };
+  // Prefer explicit "2" / "gpt-image-2" before generic gpt-image
+  if (
+    raw === "gpt-image-2" ||
+    raw.includes("gpt-image-2") ||
+    raw.includes("gptimage2") ||
+    raw === "gpt-image" ||
+    raw.includes("gpt-image")
+  ) {
+    // Bare gpt-image and gpt-image-2 both map to upstream version "2" (GPT Image 2).
+    if (raw.includes("1.5")) {
+      return { id: "gpt-image-1.5", spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image-1.5"] };
+    }
+    const id = raw.includes("gpt-image-2") || raw.includes("gptimage2") ? "gpt-image-2" : "gpt-image";
+    return { id: id as AdobeFireflyImageModelId, spec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"] };
   }
   if (raw.includes("flux-ultra") || raw.includes("fluxultra")) {
     return { id: "flux-ultra", spec: ADOBE_FIREFLY_IMAGE_MODELS["flux-ultra"] };
@@ -922,6 +941,12 @@ export function buildAdobeSubmitHeaders(
   accessToken: string,
   extras?: { arpSessionId?: string; nonce?: string; cookie?: string }
 ): Record<string, string> {
+  // Live capture (adobe/image_generate.txt): Authorization + x-api-key + x-nonce +
+  // optional x-arp-session-id. Browser uses credentials:include but does NOT list a
+  // Cookie header for firefly-3p — firefly.adobe.com page cookies are wrong-origin
+  // and can soft-fail generate as HTTP 408 "system under load".
+  // We only lift sherlockToken → x-arp-session-id from a pasted cookie blob.
+  void extras?.cookie;
   const headers: Record<string, string> = {
     ...browserHeaders(),
     Authorization: `Bearer ${accessToken}`,
@@ -931,18 +956,11 @@ export function buildAdobeSubmitHeaders(
     accept: "*/*",
     "cache-control": "no-cache",
     pragma: "no-cache",
-    // Match browser "Copy as fetch" (priority helps some edge caches).
     priority: "u=1, i",
     "x-nonce": extras?.nonce || generateAdobeNonce(),
   };
   if (extras?.arpSessionId) {
     headers["x-arp-session-id"] = extras.arpSessionId;
-  }
-  // Browser sends credentials:include — attach Cookie when the user pasted one
-  // (forter/arkose/sherlock session cookies live here). Never put the JWT here.
-  const cookie = extractAdobeCookieHeader(String(extras?.cookie || ""));
-  if (cookie) {
-    headers.cookie = cookie;
   }
   return headers;
 }
@@ -963,14 +981,14 @@ export function isAdobeTransientSubmitError(status: number, bodyText: string): b
 }
 
 export function buildAdobePollHeaders(accessToken: string): Record<string, string> {
-  // Live status_check uses Bearer only (no x-api-key). Keep key for EPO hosts that require it.
+  // Live adobe/status_check.txt: Bearer + accept only (no x-api-key, no Cookie).
   return {
     Authorization: `Bearer ${accessToken}`,
     accept: "*/*",
-    referer: FIREFLY_REFERER,
-    origin: FIREFLY_ORIGIN,
+    "cache-control": "no-cache",
+    pragma: "no-cache",
     "user-agent": DEFAULT_USER_AGENT,
-    "x-api-key": adobeFireflyApiKey(),
+    referer: FIREFLY_REFERER,
   };
 }
 
@@ -1629,10 +1647,11 @@ async function pollAdobeJob(opts: {
   throw new AdobeFireflyError(`Adobe Firefly ${opts.kind} generation timed out`, 504, "timeout");
 }
 
-// Colligo often returns instant 408 with x-colligo-timeout:0.0 under load —
-// longer exponential backoff + more attempts mirrors the SPA's retry behavior.
-const SUBMIT_MAX_ATTEMPTS = 8;
-const SUBMIT_BASE_DELAY_MS = 2000;
+// Colligo often returns instant 408 with x-colligo-timeout:0.0 under load.
+// Keep retries short: hammering Adobe with 8 long waits makes the Media page
+// look broken while balance still works. SPA succeeds on a healthy queue/token.
+const SUBMIT_MAX_ATTEMPTS = 4;
+const SUBMIT_BASE_DELAY_MS = 1200;
 
 export async function adobeFireflyGenerateImage(opts: {
   accessToken: string;

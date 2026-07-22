@@ -655,6 +655,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
       { id: "nano-banana-pro", name: "Firefly Gemini 3.0 (Nano Banana Pro)", inputModalities: ["text", "image"] },
       { id: "nano-banana", name: "Firefly Gemini 2.5 (Nano Banana)", inputModalities: ["text", "image"] },
       { id: "nano-banana-2", name: "Firefly Gemini 3.1 (Nano Banana 2)", inputModalities: ["text", "image"] },
+      { id: "gpt-image-2", name: "Firefly GPT Image 2", inputModalities: ["text", "image"] },
       { id: "gpt-image", name: "Firefly GPT Image 2", inputModalities: ["text", "image"] },
       { id: "gpt-image-1.5", name: "Firefly GPT Image 1.5", inputModalities: ["text", "image"] },
       { id: "flux-2", name: "Firefly Flux 2", inputModalities: ["text", "image"] },
