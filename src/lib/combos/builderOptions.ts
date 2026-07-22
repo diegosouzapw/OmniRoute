@@ -10,6 +10,7 @@ import {
 import { getAccountDisplayName, getProviderDisplayName } from "@/lib/display/names";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
 import { getSyncedCapabilities } from "@/lib/modelsDevSync";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import {
@@ -86,6 +87,7 @@ export interface ComboBuilderModelOption {
   contextLength?: number;
   outputTokenLimit?: number;
   supportsThinking?: boolean;
+  effortTiers?: string[];
 }
 
 export interface ComboBuilderConnectionOption {
@@ -295,6 +297,7 @@ function addModelOption(
     contextLength?: number | null;
     outputTokenLimit?: number | null;
     supportsThinking?: boolean;
+    effortTiers?: string[] | null;
   }
 ) {
   const modelId = toStringOrNull(input.id);
@@ -320,6 +323,9 @@ function addModelOption(
         : {}),
       ...(typeof input.supportsThinking === "boolean"
         ? { supportsThinking: input.supportsThinking }
+        : {}),
+      ...(Array.isArray(input.effortTiers) && input.effortTiers.length > 0
+        ? { effortTiers: input.effortTiers }
         : {}),
     });
     return;
@@ -348,6 +354,13 @@ function addModelOption(
   }
   if (existing.supportsThinking == null && typeof input.supportsThinking === "boolean") {
     existing.supportsThinking = input.supportsThinking;
+  }
+  if (
+    !Array.isArray(existing.effortTiers) &&
+    Array.isArray(input.effortTiers) &&
+    input.effortTiers.length > 0
+  ) {
+    existing.effortTiers = input.effortTiers;
   }
   existing.sources = Array.from(mergedSources).sort(
     (left, right) => getSourcePriority(left) - getSourcePriority(right)
@@ -379,6 +392,7 @@ function buildModelOptions(
         typeof model.supportsThinking === "boolean"
           ? model.supportsThinking
           : (resolved.supportsThinking ?? undefined),
+      effortTiers: resolved.supportsThinking ? [...CANONICAL_EFFORT_VALUES] : null,
     });
   }
 
@@ -394,6 +408,7 @@ function buildModelOptions(
       contextLength: toNumberOrNull(model.contextLength) ?? resolved.contextWindow,
       outputTokenLimit: resolved.maxOutputTokens,
       supportsThinking: resolved.supportsThinking ?? undefined,
+      effortTiers: resolved.supportsThinking ? [...CANONICAL_EFFORT_VALUES] : null,
     });
   }
 
@@ -420,6 +435,7 @@ function buildModelOptions(
         typeof model.supportsThinking === "boolean"
           ? model.supportsThinking
           : (resolved.supportsThinking ?? undefined),
+      effortTiers: resolved.supportsThinking ? [...CANONICAL_EFFORT_VALUES] : null,
     });
   }
 
@@ -439,6 +455,7 @@ function buildModelOptions(
             : resolved.contextWindow,
         outputTokenLimit: resolved.maxOutputTokens,
         supportsThinking: resolved.supportsThinking ?? undefined,
+        effortTiers: resolved.supportsThinking ? [...CANONICAL_EFFORT_VALUES] : null,
       });
     }
   }
