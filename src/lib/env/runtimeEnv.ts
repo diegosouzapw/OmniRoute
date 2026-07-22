@@ -69,6 +69,8 @@ export const webRuntimeEnvSchema = z.object({
   OMNIROUTE_BASE_URL: optionalHttpUrl,
   BASE_URL: optionalHttpUrl,
   NEXT_PUBLIC_BASE_URL: optionalHttpUrl,
+  CONDUCTOR_HUB_URL: optionalHttpUrl,
+  CONDUCTOR_HUB_TOKEN: optionalTrimmedString,
   OMNIROUTE_PORT: optionalPortEnv,
   API_PORT: optionalPortEnv,
   DASHBOARD_PORT: optionalPortEnv,

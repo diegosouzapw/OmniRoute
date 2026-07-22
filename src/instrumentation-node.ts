@@ -475,6 +475,15 @@ export async function registerNodejs(): Promise<void> {
           console.warn("[STARTUP] Auto-refresh daemon failed to start (non-fatal):", msg);
         }),
 
+      // Conductor bridge (PRD Conductor RF1): mirrors OmniConductor hub tasks into the
+      // A2A TaskManager via the hub SSE. Opt-in — self-gated on CONDUCTOR_HUB_URL.
+      import("@/lib/conductor/boot").then((m) => {
+        if (m.initConductorBridge()) console.log("[STARTUP] Conductor bridge started");
+      }).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("[STARTUP] Conductor bridge failed to start (non-fatal):", msg);
+      }),
+
       // Proactive connection-cooldown recovery (#8): re-validate connections whose
       // transient `rate_limited_until` window has elapsed OUTSIDE the request hot path,
       // so the first request after a cooldown does not pay the probe latency.
