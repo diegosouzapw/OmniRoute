@@ -4928,6 +4928,7 @@
     "filterError": "Error",
     "filterBanned": "Banned",
     "filterCreditsExhausted": "Credits Exhausted",
+    "accountSearchPlaceholder": "Search accounts…",
     "noFilteredConnections": "No connections match the current filter.",
     "failedSetAlias": "Failed to set alias",
     "setAliasSuccess": "Alias {alias} set",

@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "arena.ai খুলুন, সাইন ইন করুন, তারপর একটি Network রিকোয়েস্ট থেকে সম্পূর্ণ Cookie হেডার কপি করুন। arena-auth-prod-v1.0 এবং arena-auth-prod-v1.1 (এবং উপস্থিত থাকলে পরবর্তী অংশগুলি) অন্তর্ভুক্ত করুন, বিশেষ করে cf_clearance সহ। শুধুমাত্র খালি arena-auth-prod-v1 কুকি পেস্ট করবেন না। ঐচ্ছিক: create-evaluation এখনও 403 রিটার্ন করলে providerSpecificData.recaptchaV3Token।",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "পার্টনার লিঙ্ক — আপনার কোনো অতিরিক্ত খরচ ছাড়াই OmniRoute-কে সমর্থন করে"
+    "kimiPartnerLinkNote": "পার্টনার লিঙ্ক — আপনার কোনো অতিরিক্ত খরচ ছাড়াই OmniRoute-কে সমর্থন করে",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Settings",

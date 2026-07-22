@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "เปิด arena.ai เข้าสู่ระบบ แล้วคัดลอกส่วนหัว Cookie ทั้งหมดจากคำขอ Network รวม arena-auth-prod-v1.0 และ arena-auth-prod-v1.1 (และส่วนย่อยเพิ่มเติมหากมี) โดยควรมี cf_clearance ด้วย อย่าวางเฉพาะคุกกี้ arena-auth-prod-v1 ที่ว่างเปล่า ไม่บังคับ: providerSpecificData.recaptchaV3Token หาก create-evaluation ยังคงส่งคืน 403",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "ลิงก์พันธมิตร — สนับสนุน OmniRoute โดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ"
+    "kimiPartnerLinkNote": "ลิงก์พันธมิตร — สนับสนุน OmniRoute โดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "การตั้งค่า",

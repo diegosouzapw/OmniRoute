@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "Ouvrez arena.ai, connectez-vous, puis copiez l'en-tête Cookie complet depuis une requête Réseau. Incluez arena-auth-prod-v1.0 et arena-auth-prod-v1.1 (et les fragments suivants s'ils sont présents), de préférence avec cf_clearance. Ne collez pas uniquement le cookie arena-auth-prod-v1 vide. Facultatif : providerSpecificData.recaptchaV3Token si create-evaluation renvoie toujours 403.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "Lien partenaire — soutient OmniRoute sans frais supplémentaires pour vous"
+    "kimiPartnerLinkNote": "Lien partenaire — soutient OmniRoute sans frais supplémentaires pour vous",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Paramètres",

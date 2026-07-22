@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "Buka arena.ai, log masuk, kemudian salin pengepala Cookie penuh daripada permintaan Rangkaian. Sertakan arena-auth-prod-v1.0 dan arena-auth-prod-v1.1 (dan bahagian selanjutnya jika ada), sebaik-baiknya dengan cf_clearance. Jangan tampal kuki arena-auth-prod-v1 yang kosong sahaja. Pilihan: providerSpecificData.recaptchaV3Token jika create-evaluation masih mengembalikan 403.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "Pautan rakan kongsi — menyokong OmniRoute tanpa kos tambahan kepada anda"
+    "kimiPartnerLinkNote": "Pautan rakan kongsi — menyokong OmniRoute tanpa kos tambahan kepada anda",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "tetapan",
