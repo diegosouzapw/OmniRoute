@@ -81,10 +81,23 @@ export async function persistOAuthConnection(
     : null;
 
   let connection: any;
-  if (tokenData.email) {
-    const existing = await getProviderConnections({ provider });
+  const existing = await getProviderConnections({ provider });
+  // #8059: Match by connectionId FIRST, regardless of email — Copilot device-code
+  // flow stores identity under providerSpecificData.githubEmail with no top-level email,
+  // so the email gate below would skip dedup and create a duplicate on every refresh.
+  if (connectionId) {
+    const idMatch = existing.find((c: any) => c.id && safeEqual(connectionId, c.id));
+    if (idMatch) {
+      connection = await updateProviderConnection(idMatch.id, {
+        ...tokenData,
+        expiresAt,
+        testStatus: "active",
+        isActive: true,
+      });
+    }
+  }
+  if (!connection && tokenData.email) {
     const match = existing.find((c: any) => {
-      if (c.id && safeEqual(connectionId, c.id)) return true;
       if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
       // For Codex, also check workspaceId to avoid overwriting a different workspace.
       if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
