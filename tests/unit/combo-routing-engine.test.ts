@@ -2094,14 +2094,14 @@ test("cache-optimized preserves eval routing when no reusable cache key exists",
         },
       },
     },
-    handleSingleModel: async (_body: any, modelStr: string) => {
+    handleSingleModel: async (_body: Record<string, unknown>, modelStr: string) => {
       calls.push(modelStr);
       return okResponse();
     },
     isModelAvailable: async () => true,
     log: createLog(),
     settings: { promptCacheAffinityEnabled: false },
-    relayOptions: null as any,
+    relayOptions: null,
     allCombos: null,
   });
 

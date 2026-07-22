@@ -18,24 +18,29 @@ const modulePath = path.join(process.cwd(), "src/shared/utils/machineId.ts");
 /**
  * Force Strategies 1-3 to fail so the fallback chain reaches os.hostname().
  * - Strategy 1 (REG.exe): override SystemRoot so the exe path doesn't exist.
- * - Strategy 2 (ioreg): only runs on darwin — skipped on Linux/Windows.
+ * - Strategy 2 (ioreg): return no platform UUID on macOS.
  * - Strategy 3 (Linux files): stub readFileSync to throw for machine-id paths.
  *
  * Returns a restore function.
  * NOTE: call syncBuiltinESMExports() AFTER this so ESM imports see the updates.
  */
-function disableWindowsRegistryStrategy(): () => void {
+function disableNativeIdStrategies(): () => void {
   const origSysRoot = process.env.SystemRoot;
   const origWindir = process.env.windir;
   process.env.SystemRoot = "Z:\\NonExistent";
   process.env.windir = "Z:\\NonExistent";
 
   const origReadFileSync = fs.readFileSync;
+  const origExecSync = childProcess.execSync;
   fs.readFileSync = (filePath: string, encoding: string) => {
     if (filePath === "/etc/machine-id" || filePath === "/var/lib/dbus/machine-id") {
       throw new Error("ENOENT: mocked machine-id file not found");
     }
     return origReadFileSync(filePath, encoding);
+  };
+  childProcess.execSync = (command, options) => {
+    if (String(command).startsWith("ioreg ")) return "";
+    return origExecSync(command, options);
   };
 
   return () => {
@@ -50,6 +55,7 @@ function disableWindowsRegistryStrategy(): () => void {
       delete process.env.windir;
     }
     fs.readFileSync = origReadFileSync;
+    childProcess.execSync = origExecSync;
   };
 }
 
@@ -82,7 +88,7 @@ test("getRawMachineId caches result after first call", async () => {
 });
 
 test("getRawMachineId with mocked os.hostname(): caches, does not re-call", async () => {
-  const restoreEnv = disableWindowsRegistryStrategy();
+  const restoreEnv = disableNativeIdStrategies();
   syncBuiltinESMExports();
   const mockHostname = mock.method(os, "hostname", () => "sisyphus-test-pc");
 
@@ -106,7 +112,7 @@ test("getRawMachineId with mocked os.hostname(): caches, does not re-call", asyn
 });
 
 test("resetMachineIdCache clears cached value", async () => {
-  const restoreEnv = disableWindowsRegistryStrategy();
+  const restoreEnv = disableNativeIdStrategies();
   syncBuiltinESMExports();
   const mockHostname = mock.method(os, "hostname", () => "first-pc");
 
@@ -136,7 +142,7 @@ test("resetMachineIdCache clears cached value", async () => {
 // ===========================================================================
 
 test("os.hostname() (Strategy 4) is tried before execSync hostname (Strategy 5)", async () => {
-  const restoreEnv = disableWindowsRegistryStrategy();
+  const restoreEnv = disableNativeIdStrategies();
   syncBuiltinESMExports();
   const mockHostname = mock.method(os, "hostname", () => "preferred-hostname");
 
@@ -157,7 +163,7 @@ test("os.hostname() (Strategy 4) is tried before execSync hostname (Strategy 5)"
 });
 
 test("Strategy 5 (execSync hostname) is used when os.hostname() fails", async () => {
-  const restoreEnv = disableWindowsRegistryStrategy();
+  const restoreEnv = disableNativeIdStrategies();
   syncBuiltinESMExports();
   const mockHostname = mock.method(os, "hostname", () => {
     throw new Error("E_UNAVAIL");

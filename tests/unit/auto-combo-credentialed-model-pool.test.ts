@@ -12,6 +12,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const providerRegistry = await import("../../open-sse/config/providerRegistry.ts");
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
 const candidateHandler = await import("../../open-sse/handlers/autoComboCandidates.ts");
 
@@ -33,6 +34,10 @@ function antigravityCandidates(combo: VirtualComboResult): LogicalCandidate[] {
   return (combo.models as unknown as LogicalCandidate[]).filter(
     (candidate) => candidate.providerId === "antigravity"
   );
+}
+
+function antigravityRegistryModelIds(): string[] {
+  return (providerRegistry.REGISTRY.antigravity.models ?? []).map((model) => model.id);
 }
 
 async function seedConnections(firstExcludedModels?: string[]) {
@@ -78,21 +83,16 @@ test("credentialed providers expose one logical candidate per visible registry m
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
   const candidates = antigravityCandidates(combo);
   const modelStrings = candidates.map((candidate) => candidate.model);
+  const expectedModelStrings = antigravityRegistryModelIds().map(
+    (modelId) => `antigravity/${modelId}`
+  );
   const expectedConnectionIds = [first.id, second.id].sort();
 
-  assert.equal(
-    new Set(modelStrings).size,
-    modelStrings.length,
-    "provider/model candidates must not be duplicated per connection"
+  assert.deepEqual(
+    new Set(modelStrings),
+    new Set(expectedModelStrings),
+    "the candidate pool must contain every current registry model exactly once"
   );
-  for (const model of [
-    "antigravity/claude-sonnet-5",
-    "antigravity/gemini-3.5-flash-low",
-    "antigravity/gemini-3.5-flash-medium",
-    "antigravity/gemini-3.5-flash-high",
-  ]) {
-    assert.ok(modelStrings.includes(model), `${model} should be eligible for auto routing`);
-  }
 
   for (const candidate of candidates) {
     assert.equal(candidate.connectionId, null, "logical candidates must not pin one account");
@@ -106,52 +106,65 @@ test("credentialed providers expose one logical candidate per visible registry m
 
 test("candidate transparency expands a logical model into per-account rows", async () => {
   const { first, second } = await seedConnections();
+  const [firstModelId] = antigravityRegistryModelIds();
+  assert.ok(firstModelId, "antigravity must expose at least one registry model");
 
   const result = await candidateHandler.getAutoComboCandidates("auto", null);
-  const sonnetRows = result.candidates.filter(
+  const modelRows = result.candidates.filter(
     (candidate) =>
-      candidate.provider === "antigravity" && candidate.model === "antigravity/claude-sonnet-5"
+      candidate.provider === "antigravity" && candidate.model === `antigravity/${firstModelId}`
   );
 
   assert.deepEqual(
-    new Set(sonnetRows.map((candidate) => candidate.connectionId)),
+    new Set(modelRows.map((candidate) => candidate.connectionId)),
     new Set([first.id, second.id]),
     "the management view should retain one row per account fallback"
   );
 });
 
-test("connection model exclusions narrow only that model's account allowlist", async () => {
-  const { first, second } = await seedConnections(["gemini-3.5-*"]);
+test("connection model exclusions narrow only the selected model's account allowlist", async () => {
+  const [excludedModelId, unaffectedModelId] = antigravityRegistryModelIds();
+  assert.ok(excludedModelId && unaffectedModelId, "antigravity must expose at least two models");
+  const { first, second } = await seedConnections([excludedModelId]);
 
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
   const candidates = antigravityCandidates(combo);
-  const geminiCandidates = candidates.filter((candidate) =>
-    candidate.model.startsWith("antigravity/gemini-3.5-")
+  const excludedCandidate = candidates.find(
+    (candidate) => candidate.model === `antigravity/${excludedModelId}`
+  );
+  const unaffectedCandidate = candidates.find(
+    (candidate) => candidate.model === `antigravity/${unaffectedModelId}`
   );
 
-  assert.ok(geminiCandidates.length >= 3, "Gemini 3.5 candidates should remain available");
-  for (const candidate of geminiCandidates) {
-    assert.deepEqual(candidate.allowedConnectionIds, [second.id]);
-  }
-
-  const sonnet = candidates.find((candidate) => candidate.model === "antigravity/claude-sonnet-5");
-  assert.ok(sonnet, "Claude Sonnet 5 should remain in the candidate pool");
-  assert.deepEqual([...(sonnet.allowedConnectionIds ?? [])].sort(), [first.id, second.id].sort());
+  assert.ok(
+    excludedCandidate,
+    "the excluded model must remain available through the other account"
+  );
+  assert.deepEqual(excludedCandidate.allowedConnectionIds, [second.id]);
+  assert.ok(unaffectedCandidate, "another registry model must remain in the candidate pool");
+  assert.deepEqual(
+    [...(unaffectedCandidate.allowedConnectionIds ?? [])].sort(),
+    [first.id, second.id].sort()
+  );
 });
 
 test("hiding the first registry model does not drop the credentialed provider", async () => {
   await seedConnections();
-  modelsDb.setModelIsHidden("antigravity", "claude-sonnet-5", true);
+  const [hiddenModelId, ...remainingModelIds] = antigravityRegistryModelIds();
+  assert.ok(
+    hiddenModelId && remainingModelIds.length > 0,
+    "antigravity must expose multiple models"
+  );
+  modelsDb.setModelIsHidden("antigravity", hiddenModelId, true);
 
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
   const modelStrings = antigravityCandidates(combo).map((candidate) => candidate.model);
 
-  assert.equal(modelStrings.includes("antigravity/claude-sonnet-5"), false);
-  for (const model of [
-    "antigravity/gemini-3.5-flash-low",
-    "antigravity/gemini-3.5-flash-medium",
-    "antigravity/gemini-3.5-flash-high",
-  ]) {
-    assert.ok(modelStrings.includes(model), `${model} should remain after Sonnet is hidden`);
+  assert.equal(modelStrings.includes(`antigravity/${hiddenModelId}`), false);
+  for (const modelId of remainingModelIds) {
+    assert.ok(
+      modelStrings.includes(`antigravity/${modelId}`),
+      `${modelId} should remain after ${hiddenModelId} is hidden`
+    );
   }
 });

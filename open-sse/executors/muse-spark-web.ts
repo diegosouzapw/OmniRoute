@@ -942,7 +942,9 @@ async function graphqlPost(
   } catch (err) {
     return {
       ok: false,
-      error: `${label} fetch failed: ${err instanceof Error ? err.message : String(err)}`,
+      error: `${label} fetch failed: ${sanitizeErrorMessage(
+        err instanceof Error ? err.message : String(err)
+      )}`,
     };
   }
 }
@@ -1333,7 +1335,6 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       return errorResult(502, modeResult.error, "meta_ai_mode_switch_failed", {}, body);
     }
 
-    // Step 3: Send message via WebSocket
     const wsResult = await wsChat(
       prompt,
       conversationContext.conversationId,

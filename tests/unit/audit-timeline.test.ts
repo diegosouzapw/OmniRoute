@@ -24,15 +24,14 @@ function makeEntry(id: number, timestampIso: string, action = "provider.added"):
   };
 }
 
-// Reference: 2026-05-27T15:00:00.000Z (UTC)
-const REF = new Date("2026-05-27T15:00:00.000Z").getTime();
-// Today: 2026-05-27
-const TODAY_ISO = "2026-05-27T10:00:00.000Z";
-const TODAY_ISO_2 = "2026-05-27T08:00:00.000Z";
-// Yesterday: 2026-05-26
-const YESTERDAY_ISO = "2026-05-26T12:00:00.000Z";
-// 3 days ago: 2026-05-24
-const WEEK_AGO_ISO = "2026-05-24T09:00:00.000Z";
+// Build fixtures in local time because groupByDay intentionally uses the local
+// calendar day. Hard-coded UTC timestamps cross midnight in positive offsets.
+const localIso = (day: number, hour: number) => new Date(2026, 4, day, hour).toISOString();
+const REF = new Date(2026, 4, 27, 15).getTime();
+const TODAY_ISO = localIso(27, 10);
+const TODAY_ISO_2 = localIso(27, 8);
+const YESTERDAY_ISO = localIso(26, 12);
+const WEEK_AGO_ISO = localIso(24, 9);
 
 // ── groupByDay ─────────────────────────────────────────────────────────────
 

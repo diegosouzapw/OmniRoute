@@ -189,7 +189,11 @@ test("getProviderConcurrencyCap resolves override -> static default -> fallback"
   );
   setProviderQuotaOverrides({ nvidia: { concurrency: 3 } });
   try {
-    assert.equal(getProviderConcurrencyCap("nvidia", 99), 3, "override wins over the static default");
+    assert.equal(
+      getProviderConcurrencyCap("nvidia", 99),
+      3,
+      "override wins over the static default"
+    );
   } finally {
     setProviderQuotaOverrides(null);
   }
@@ -214,17 +218,10 @@ test("semaphore.getStats reflects nvidia's per-connection gate key", async () =>
 // ── Failure-mode separation regression guard ────────────────────────────────
 
 test("nvidia 429 does not trip the provider circuit breaker (unchanged 408/500/502/503/504-only classification)", () => {
-  // This PR does not touch src/sse/handlers/chat.ts or the circuit breaker — this
-  // is a documentation-alignment guard proving Phase 1 didn't accidentally widen
+  // This is a documentation-alignment guard proving Phase 1 didn't accidentally widen
   // PROVIDER_BREAKER_FAILURE_STATUSES to include 429 (which would collapse the
   // per-model lockout this PR adds into a whole-connection/provider outage).
-  const chatHandlerPath = path.join(
-    process.cwd(),
-    "src",
-    "sse",
-    "handlers",
-    "chat.ts"
-  );
+  const chatHandlerPath = path.join(process.cwd(), "src", "sse", "handlers", "chatPredicates.ts");
   const source = fs.readFileSync(chatHandlerPath, "utf8");
   const match = source.match(/PROVIDER_BREAKER_FAILURE_STATUSES\s*=\s*new Set\(\[([^\]]+)\]\)/);
   assert.ok(match, "PROVIDER_BREAKER_FAILURE_STATUSES declaration found");

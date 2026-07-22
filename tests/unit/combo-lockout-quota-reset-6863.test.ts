@@ -35,7 +35,7 @@ test.after(() => {
   } catch {}
 });
 
-test("combo 429 lockout honors parsed upstream quota reset over base cooldown (#6863)", async () => {
+test("combo 429 lockout honors a parsed upstream quota reset up to the operator cap (#6863)", async () => {
   const provider = "antigravity"; // OAuth category → quota signals preserved on 429
   const model = "claude-sonnet-4.6";
 
@@ -44,7 +44,9 @@ test("combo 429 lockout honors parsed upstream quota reset over base cooldown (#
       enabled: true,
       errorCodes: [429],
       baseCooldownMs: 3000,
-      maxCooldownMs: 1_800_000,
+      // Production settings cap this value at one hour. A 92h upstream reset
+      // must still flow through the combo path, then be bounded by that cap.
+      maxCooldownMs: 60 * 60 * 1000,
       maxBackoffSteps: 10,
       useExponentialBackoff: true,
     },
@@ -77,12 +79,13 @@ test("combo 429 lockout honors parsed upstream quota reset over base cooldown (#
 
   const info = getModelLockoutInfo(provider, "", model);
   assert.ok(info, "combo 429 must record a model lockout");
-  // Bug #6863: lockout was baseCooldownMs (~seconds) while upstream said 92.5h.
-  // The lockout must equal the parsed reset minus elapsed test runtime (bounded slack),
-  // so a hardcoded long cooldown (e.g. a fixed 1h) cannot pass.
+  const expectedCooldownMs = settings.modelLockout.maxCooldownMs;
+  // Bug #6863: the combo path ignored the parsed reset and used the base cooldown
+  // (~seconds). The parsed reset now reaches the lockout path and is capped by the
+  // operator-configured maximum introduced by #7940.
   assert.ok(
-    info!.remainingMs > parsedResetMs! - 5_000 && info!.remainingMs <= parsedResetMs!,
-    `lockout must equal the parsed upstream reset (~${parsedResetMs}ms); got ${info!.remainingMs}ms (~${Math.round(info!.remainingMs / 1000)}s)`
+    info!.remainingMs > expectedCooldownMs - 5_000 && info!.remainingMs <= expectedCooldownMs,
+    `lockout must equal the operator-capped reset (~${expectedCooldownMs}ms); got ${info!.remainingMs}ms (~${Math.round(info!.remainingMs / 1000)}s)`
   );
 });
 

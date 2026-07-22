@@ -78,11 +78,12 @@ describe("COMPRESSION_CONTEXT_GROUP contains all 4 engine items", () => {
     }
   });
 
-  it("group order is Settings → Combos → engines → Studio", () => {
+  it("group order is Settings → Combos → engines → Studio → Exclusions", () => {
     const ids = itemIds as string[];
     assert.equal(ids[0], "context-settings", "Settings must be first");
     assert.equal(ids[1], "context-combos", "Combos must be second");
-    assert.equal(ids[ids.length - 1], "compression-studio", "Studio must be last");
+    assert.equal(ids[ids.length - 2], "compression-studio", "Studio must precede Exclusions");
+    assert.equal(ids[ids.length - 1], "compression-exclusions", "Exclusions must be last");
     // Combos precedes every per-engine page.
     const combosIdx = ids.indexOf("context-combos");
     for (const id of ["context-caveman", "context-rtk", ...ENGINE_IDS]) {

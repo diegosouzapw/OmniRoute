@@ -7,7 +7,7 @@ import test from "node:test";
  * Documented policy (docs/architecture/RESILIENCE_GUIDE.md + CLAUDE.md): only
  * 408/500/502/503/504 trip the whole-provider breaker. A plain 429 is connection-cooldown
  * / model-lockout scope, never a whole-provider outage. The single-model path already
- * excludes 429 via `PROVIDER_BREAKER_FAILURE_STATUSES` (src/sse/handlers/chat.ts:206). This
+ * excludes 429 via `PROVIDER_BREAKER_FAILURE_STATUSES` (src/sse/handlers/chatPredicates.ts).
  * asserts the combo predicate `shouldRecordProviderBreakerFailure` is aligned — it must NOT
  * gate on `isProviderFailureCode` (accountFallback.ts), which INCLUDES 429 for the separate
  * connection-cooldown scope.

@@ -311,7 +311,7 @@ test("getCliRuntimeStatus ignores suspicious known-path binaries and symlink esc
   process.env.PATH = process.platform === "win32" ? process.env.PATH || "" : "/bin:/usr/bin";
 
   const cliRuntime = await importFresh("suspicious-size");
-  const suspiciousStatus = await cliRuntime.getCliRuntimeStatus("qoder");
+  const suspiciousStatus = await cliRuntime.checkKnownPath(path.join(binDir, scriptName));
 
   assert.equal(suspiciousStatus.installed, false);
   assert.equal(suspiciousStatus.reason, "suspicious_size");
