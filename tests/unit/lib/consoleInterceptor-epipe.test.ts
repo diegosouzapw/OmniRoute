@@ -25,6 +25,13 @@ import { join } from "node:path";
 // and every assertion here vacuous. Static imports hoist, so this must be a dynamic import.
 const dir = mkdtempSync(join(tmpdir(), "omniroute-interceptor-8181-"));
 const logFile = join(dir, "logs", "application", "app.log");
+
+// Capture the prior values so test.after() can put them back. test:unit:fast runs with
+// --test-isolation=none, so these top-level mutations would otherwise leak into every later
+// test file in the process, leaving file logging enabled against a path this file deletes.
+const prevLogToFile = process.env.APP_LOG_TO_FILE;
+const prevLogFilePath = process.env.APP_LOG_FILE_PATH;
+
 process.env.APP_LOG_TO_FILE = "true";
 process.env.APP_LOG_FILE_PATH = logFile;
 
@@ -164,6 +171,43 @@ test("a non-EPIPE stream error is still fatal: it must be re-raised (#8181)", as
   );
 });
 
+// The stdio guard must not depend on file logging. initConsoleInterceptor() returns early when
+// APP_LOG_TO_FILE=false (and when the log directory cannot be created), but structuredLogger's
+// raw stderr writes still happen in those configurations, so the loop would remain reachable
+// if the listeners were only installed on the interception path.
+test("the stdio guard is installed even when file logging is disabled (#8181)", () => {
+  const probe = fileURLToPath(new URL("../../../src/lib/consoleInterceptor.ts", import.meta.url));
+  const childDir = mkdtempSync(join(tmpdir(), "omniroute-interceptor-8181-nofile-"));
+  const childFile = join(childDir, "nofile-probe.mts");
+
+  writeFileSync(
+    childFile,
+    [
+      `process.env.APP_LOG_TO_FILE = "false";`, // interception off
+      `const m = await import(${JSON.stringify(probe)});`,
+      `m.initConsoleInterceptor();`,
+      `const ok = process.stderr.listenerCount("error") > 0 && process.stdout.listenerCount("error") > 0;`,
+      `process.exit(ok ? 0 : 7);`,
+    ].join("\n")
+  );
+
+  const result = spawnSync(process.execPath, ["--import", "tsx/esm", childFile], {
+    encoding: "utf8",
+    timeout: 30_000,
+    env: { ...process.env, DISABLE_SQLITE_AUTO_BACKUP: "true", APP_LOG_TO_FILE: "false" },
+  });
+
+  rmSync(childDir, { recursive: true, force: true });
+
+  assert.equal(
+    result.status,
+    0,
+    "with APP_LOG_TO_FILE=false the interceptor does not patch console, but the stdio error " +
+      "guard must still be installed: structuredLogger writes to stderr directly in that " +
+      "configuration, so an async EPIPE would otherwise still become an uncaughtException"
+  );
+});
+
 test("reset() removes the stream listeners and restores the original console methods", () => {
   __consoleInterceptorInternals.reset();
   const baselineErrListeners = process.stderr.listenerCount("error");
@@ -208,5 +252,12 @@ test("re-init after reset() does not double-register stream listeners", () => {
 
 test.after(() => {
   __consoleInterceptorInternals.reset();
+
+  if (prevLogToFile === undefined) delete process.env.APP_LOG_TO_FILE;
+  else process.env.APP_LOG_TO_FILE = prevLogToFile;
+
+  if (prevLogFilePath === undefined) delete process.env.APP_LOG_FILE_PATH;
+  else process.env.APP_LOG_FILE_PATH = prevLogFilePath;
+
   if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
 });

@@ -55,6 +55,22 @@ function handleStreamError(error: unknown): void {
 }
 
 /**
+ * Install the stdio error guard. Idempotent.
+ *
+ * Deliberately independent of console interception. `structuredLogger.error()`/`.fatal()`
+ * write to stderr directly, and those writes happen whether or not file logging is enabled,
+ * so a broken pipe can raise an async EPIPE in configurations where interception is off
+ * (`APP_LOG_TO_FILE=false`, or a log directory that cannot be created). The guard has to be
+ * in place for those too, otherwise the very loop this exists to prevent is still reachable.
+ */
+function installStdioErrorGuard(): void {
+  if (streamErrorHandler) return;
+  streamErrorHandler = handleStreamError;
+  process.stdout.on("error", streamErrorHandler);
+  process.stderr.on("error", streamErrorHandler);
+}
+
+/**
  * Map console method names to log levels.
  */
 const LEVEL_MAP: Record<string, string> = {
@@ -210,6 +226,10 @@ function shouldIgnoreConsoleWriteError(error: unknown): boolean {
  * Safe to call multiple times — only initializes once.
  */
 export function initConsoleInterceptor(): void {
+  // Install the stdio guard first, before any early return. It protects the raw stderr writes
+  // in structuredLogger, which happen regardless of whether console interception is enabled.
+  installStdioErrorGuard();
+
   if (!logToFile || globalThis.__omnirouteConsoleInterceptorInit) return;
 
   try {
@@ -220,13 +240,6 @@ export function initConsoleInterceptor(): void {
   }
 
   globalThis.__omnirouteConsoleInterceptorInit = true;
-
-  // Break the #8181 loop at its closure point: with a listener attached, an async EPIPE on
-  // these streams no longer re-throws as an uncaughtException, so the
-  // uncaughtException -> console.error -> write-to-dead-stream cycle never starts.
-  streamErrorHandler = handleStreamError;
-  process.stdout.on("error", streamErrorHandler);
-  process.stderr.on("error", streamErrorHandler);
 
   // Capture the raw method references first, so reset() can restore the exact functions that
   // were installed before patching. The bound copies below are for calling, not restoring —
