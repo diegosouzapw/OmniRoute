@@ -1187,7 +1187,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 269
+      "count": 271
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
