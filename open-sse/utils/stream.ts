@@ -2513,7 +2513,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     includeEvents: false,
                   }),
                 });
-              } catch {}
+} catch (streamCbErr) {
+                console.debug(`[stream] onComplete callback threw`, streamCbErr);
+              }
             } else {
               clearPendingRequestFromStream();
             }
@@ -2598,7 +2600,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     code: err.code,
                     type: err.type,
                   }) === true;
-              } catch {}
+} catch (streamCbErr) {
+                console.debug(`[stream] onFailure callback threw`, streamCbErr);
+              }
             }
 
             const errorBody = buildErrorBody(err.status, err.message);
@@ -2623,7 +2627,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }),
                 });
                 failureHandled = true;
-              } catch {}
+} catch (streamCbErr) {
+                console.debug(`[stream] onFailure callback threw`, streamCbErr);
+              }
             }
 
             clearIdleTimer();
@@ -2779,7 +2785,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                   includeEvents: false,
                 }),
               });
-            } catch {}
+} catch (streamCbErr) {
+              console.debug(`[stream] onComplete callback threw`, streamCbErr);
+            }
           } else {
             clearPendingRequestFromStream();
           }
