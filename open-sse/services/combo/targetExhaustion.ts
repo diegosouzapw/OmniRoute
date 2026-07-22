@@ -28,6 +28,12 @@ import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 // unreachable, proxy/gateway error), so remaining same-connection targets are skipped.
 const CONNECTION_LEVEL_ERROR_STATUSES = [408, 500, 502, 503, 504, 524];
 
+// Auth-level failure statuses: the provider's credentials are invalid/expired (401) or
+// forbidden (403). Every model behind the same provider will fail identically, so mark the
+// whole provider exhausted — not just the connection — to skip remaining same-provider
+// targets immediately (#8133: combo engine wastes attempts on dead connections).
+const AUTH_LEVEL_ERROR_STATUSES = [401, 403];
+
 // #5085: an "empty content" 502 is the synthetic status chatCore assigns to a provider that
 // answered HTTP 200 with no usable completion (isEmptyContentResponse). The connection is
 // HEALTHY — it just returned an empty body — so this must NOT be classified as a connection
@@ -83,6 +89,23 @@ export function applyComboTargetExhaustion(
   } = opts;
   const { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders } = sets;
   const provider = target.provider;
+
+  // #8133: auth-level failures (401/403) mean the provider's credentials are bad.
+  // Every remaining model behind this provider will fail identically — mark the whole
+  // provider exhausted so the combo loop skips remaining same-provider targets instead
+  // of burning 5-8 seconds on guaranteed-to-fail attempts.
+  if (
+    AUTH_LEVEL_ERROR_STATUSES.includes(result.status) &&
+    provider &&
+    provider !== "unknown"
+  ) {
+    exhaustedProviders.add(provider);
+    log.info(
+      tag,
+      `Provider ${provider} auth failure (${result.status}) — marking for skip on remaining targets (#8133)`
+    );
+    return true;
+  }
 
   // #1731: full provider quota exhausted → skip remaining same-provider targets this request.
   // Passthrough/per-model-quota providers multiplex models behind one connection, so a quota

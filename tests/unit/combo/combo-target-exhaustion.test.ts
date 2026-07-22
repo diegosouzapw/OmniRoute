@@ -382,3 +382,65 @@ test("gemini 524 DOES exhaust connection (cloudflare timeout)", () => {
   });
   assert.equal(s.exhaustedConnections.has("gemini:gemini-key-abc"), true);
 });
+
+// #8133: auth-level failures (401/403) must mark the whole provider exhausted so the combo
+// engine skips remaining same-provider targets instead of burning attempts on a dead connection.
+test("401 auth failure marks provider exhausted (#8133)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 401 },
+    fallbackResult: {},
+    errorText: "Missing API key.",
+    sets: s,
+  });
+  assert.equal(exhausted, true);
+  assert.ok(s.exhaustedProviders.has("test-dedup-provider"), "provider must be exhausted");
+  assert.equal(s.exhaustedConnections.size, 0, "should NOT exhaust individual connections");
+  assert.equal(s.transientRateLimitedProviders.size, 0);
+});
+
+test("403 forbidden marks provider exhausted (#8133)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 403 },
+    fallbackResult: {},
+    errorText: "Forbidden.",
+    sets: s,
+  });
+  assert.equal(exhausted, true);
+  assert.ok(s.exhaustedProviders.has("test-dedup-provider"));
+  assert.equal(s.exhaustedConnections.size, 0);
+});
+
+test("401 on unknown provider does NOT mark anything (guard)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target({ provider: "unknown" }), {
+    ...baseOpts,
+    result: { status: 401 },
+    fallbackResult: {},
+    errorText: "Missing API key.",
+    sets: s,
+  });
+  assert.equal(exhausted, false, "unknown provider must not be marked exhausted");
+  assert.equal(s.exhaustedProviders.size, 0);
+});
+
+test("401 on per-model-quota provider still marks exhausted (auth is provider-wide, not model-specific)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "gemini", connectionId: "gemini-conn-1" }),
+    {
+      ...baseOpts,
+      result: { status: 401 },
+      fallbackResult: {},
+      errorText: "Missing API key.",
+      rawModel: "gemini-2.0-flash",
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, true);
+  assert.ok(s.exhaustedProviders.has("gemini"), "auth failure is provider-wide");
+  assert.equal(s.exhaustedConnections.size, 0);
+});
