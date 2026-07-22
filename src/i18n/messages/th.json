@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "เปิด arena.ai เข้าสู่ระบบ แล้วคัดลอกส่วนหัว Cookie ทั้งหมดจากคำขอ Network รวม arena-auth-prod-v1.0 และ arena-auth-prod-v1.1 (และส่วนย่อยเพิ่มเติมหากมี) โดยควรมี cf_clearance ด้วย อย่าวางเฉพาะคุกกี้ arena-auth-prod-v1 ที่ว่างเปล่า ไม่บังคับ: providerSpecificData.recaptchaV3Token หาก create-evaluation ยังคงส่งคืน 403",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "ลิงก์พันธมิตร — สนับสนุน OmniRoute โดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ"
+    "kimiPartnerLinkNote": "ลิงก์พันธมิตร — สนับสนุน OmniRoute โดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "การตั้งค่า",
@@ -7219,6 +7220,10 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "บริบทในรูปแบบรูปภาพ (Claude Fable 5, เส้นทางตรง)"
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7516,7 +7521,9 @@
     "cacheOpt": "Cache Optimized",
     "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
+    "compressionModeCodexResponses": "Responses tool output",
+    "compressionModeCodexResponsesDesc": "Conservative compression for eligible shell, patch, search, build, and JSON outputs"
   },
   "contextRtk": {
     "title": "RTK Engine",

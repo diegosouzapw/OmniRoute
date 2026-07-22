@@ -6,7 +6,7 @@
  * Phase 2: 'standard' mode (caveman engine).
  * Phase 3: 'aggressive' mode (summarization + tool compression + aging).
  * Phase 4: 'ultra' mode (heuristic token pruning + optional SLM tier).
- * Phase 5: 'rtk' and 'stacked' modes (tool-output filters + multi-engine pipeline).
+ * Phase 5: 'rtk', 'codex-responses', and 'stacked' modes (tool-output filters + multi-engine pipeline).
  */
 
 import { ENGINE_IDS } from "./engineCatalog.ts";
@@ -25,7 +25,15 @@ import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumP
 export { ENGINE_IDS };
 
 export type CompressionMode =
-  "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "omniglyph" | "stacked";
+  | "off"
+  | "lite"
+  | "standard"
+  | "aggressive"
+  | "ultra"
+  | "rtk"
+  | "codex-responses"
+  | "omniglyph"
+  | "stacked";
 export type CavemanIntensity = "lite" | "full" | "ultra";
 export type RtkIntensity = "minimal" | "standard" | "aggressive";
 export type RtkRawOutputRetention = "never" | "failures" | "always";
@@ -40,7 +48,8 @@ export type CompressionEngineId =
   | "ccr"
   | "llmlingua"
   | "relevance"
-  | "omniglyph";
+  | "omniglyph"
+  | "codex-responses";
 
 export interface CavemanRule {
   name: string;
@@ -105,6 +114,18 @@ export interface RtkConfig {
   enableRenderers?: boolean;
   /** #10: whitelist por command-type; vazio/undefined = todos */
   renderers?: string[];
+}
+
+/** Conservative, lossless-first Responses tool-output compression controls. */
+export interface CodexResponsesConfig {
+  enabled: boolean;
+  minBytes: number;
+  maxOutputBytes: number;
+  maxCandidateBytes: number;
+  maxLines: number;
+  minSearchMatches: number;
+  minLogLines: number;
+  preserveToolNames: string[];
 }
 
 export interface RelevanceConfig {
@@ -192,6 +213,7 @@ export interface CompressionConfig {
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
   outputStyles?: OutputStyleSelectionEntry[];
   rtkConfig?: RtkConfig;
+  codexResponsesConfig?: CodexResponsesConfig;
   relevanceConfig?: RelevanceConfig;
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
@@ -314,6 +336,32 @@ export interface CompressionResult {
   stats: CompressionStats | null;
 }
 
+export const DEFAULT_CODEX_RESPONSES_CONFIG: CodexResponsesConfig = {
+  enabled: false,
+  minBytes: 512,
+  maxOutputBytes: 2 * 1024 * 1024,
+  maxCandidateBytes: 512 * 1024,
+  maxLines: 160,
+  minSearchMatches: 8,
+  minLogLines: 24,
+  preserveToolNames: [
+    "Read",
+    "Glob",
+    "Grep",
+    "Write",
+    "Edit",
+    "WebSearch",
+    "WebFetch",
+    "read",
+    "glob",
+    "grep",
+    "write",
+    "edit",
+    "web_search",
+    "web_fetch",
+  ],
+};
+
 export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   enabled: false,
   defaultMode: "off",
@@ -334,6 +382,7 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   ultraEngine: "heuristic",
   ultraSlmPrewarm: false,
   liveZone: { enabled: false },
+  codexResponsesConfig: { ...DEFAULT_CODEX_RESPONSES_CONFIG },
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {

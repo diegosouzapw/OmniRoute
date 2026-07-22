@@ -11,6 +11,7 @@ import {
   type ModelSpec,
 } from "@/shared/constants/modelSpecs";
 import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { MODELS_DEV_PROVIDER_MAP } from "@/lib/modelsDevSync/transform";
 import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
@@ -227,6 +228,20 @@ function stripLatestAlias(modelId: string | null): string | null {
   return stripped && stripped !== modelId ? stripped : null;
 }
 
+function reverseModelsDevProviders(provider: string): string[] {
+  // models.dev may store capabilities under a different OmniRoute provider id
+  // that also maps from the same upstream models.dev provider. Build reverse
+  // candidates from MODELS_DEV_PROVIDER_MAP (e.g. openai ↔ cx).
+  const out = new Set<string>();
+  for (const [modelsDevId, omniIds] of Object.entries(MODELS_DEV_PROVIDER_MAP)) {
+    if (omniIds.includes(provider) || modelsDevId === provider) {
+      out.add(modelsDevId);
+      for (const id of omniIds) out.add(id);
+    }
+  }
+  return [...out];
+}
+
 function getSyncedCapabilityForResolved(
   provider: string | null,
   model: string | null,
@@ -234,35 +249,36 @@ function getSyncedCapabilityForResolved(
 ): SyncedCapabilities {
   if (!provider || !model) return null;
 
-  const direct = getSyncedCapability(provider, model);
-  if (direct) return direct;
+  const modelCandidates = Array.from(
+    new Set(
+      [model, rawModel, getStaticSpecCanonicalModelId(model, rawModel)]
+        .filter((value): value is string => typeof value === "string" && value.length > 0)
+        .flatMap((candidate) => {
+          const values = [candidate];
+          const stripped = stripLatestAlias(candidate);
+          if (stripped) values.push(stripped);
+          // models.dev often stores OpenAI-family specialty models as qualified
+          // ids under another mapped provider, e.g. vercel + "openai/whisper-1".
+          if (!candidate.includes("/")) {
+            values.push(`${provider}/${candidate}`);
+          }
+          return values;
+        })
+    )
+  );
 
-  if (rawModel && rawModel !== model) {
-    const raw = getSyncedCapability(provider, rawModel);
-    if (raw) return raw;
-  }
+  // Include common host providers that re-publish OpenAI specialty models under
+  // qualified ids (observed: vercel/openai/whisper-1, vercel/openai/tts-1).
+  const providerCandidates = Array.from(
+    new Set([provider, ...reverseModelsDevProviders(provider), "vercel"])
+  );
 
-  const canonical = getStaticSpecCanonicalModelId(model, rawModel);
-  if (canonical && canonical !== model) {
-    const byCanonical = getSyncedCapability(provider, canonical);
-    if (byCanonical) return byCanonical;
-  }
-
-  // #4073: models.dev catalogs some `-latest` aliases under their short id
-  // (e.g. Mistral `pixtral-12b-latest` is stored as `pixtral-12b`). When every
-  // exact lookup above misses, retry once with a trailing `-latest` stripped so
-  // the synced metadata (`attachment` / image modalities) still wins over the
-  // last-resort #4071 model-id heuristic. Only fires as a fallback, so models
-  // whose `-latest` id IS stored verbatim (e.g. `pixtral-large-latest`) keep
-  // resolving directly above.
-  for (const candidate of [model, rawModel]) {
-    const base = stripLatestAlias(candidate);
-    if (base && base !== model && base !== rawModel) {
-      const byAlias = getSyncedCapability(provider, base);
-      if (byAlias) return byAlias;
+  for (const prov of providerCandidates) {
+    for (const mid of modelCandidates) {
+      const found = getSyncedCapability(prov, mid);
+      if (found) return found;
     }
   }
-
   return null;
 }
 

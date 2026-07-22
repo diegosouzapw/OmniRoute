@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "افتح arena.ai، وسجل الدخول، ثم انسخ ترويسة Cookie الكاملة من طلب الشبكة. قم بتضمين arena-auth-prod-v1.0 و arena-auth-prod-v1.1 (وأي أجزاء أخرى إن وجدت)، ويفضل مع cf_clearance. لا تقم بلصق ملف تعريف الارتباط الفارغ arena-auth-prod-v1 فقط. اختياري: providerSpecificData.recaptchaV3Token إذا كان create-evaluation لا يزال يرجع 403.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "رابط شريك — يدعم OmniRoute دون أي تكلفة إضافية عليك"
+    "kimiPartnerLinkNote": "رابط شريك — يدعم OmniRoute دون أي تكلفة إضافية عليك",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "الإعدادات",
@@ -7219,6 +7220,10 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "السياق كصورة (Claude Fable 5، مسار مباشر)."
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7516,7 +7521,9 @@
     "cacheOpt": "Cache Optimized",
     "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
+    "compressionModeCodexResponses": "Responses tool output",
+    "compressionModeCodexResponsesDesc": "Conservative compression for eligible shell, patch, search, build, and JSON outputs"
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",
