@@ -104,6 +104,12 @@ function sanitizeOutputContent(record: JsonRecord): JsonRecord {
   return { ...record, output };
 }
 
+function ensureMessageStatus(record: JsonRecord): JsonRecord {
+  if (!isResponsesMessageItem(record)) return record;
+  if (typeof record.status === "string" && record.status.trim()) return record;
+  return { ...record, status: "completed" };
+}
+
 function sanitizeInputItem(item: unknown): unknown {
   const record = toRecord(item);
   if (!record) return item;
@@ -112,6 +118,13 @@ function sanitizeInputItem(item: unknown): unknown {
   if (isResponsesMessageItem(next)) {
     next = sanitizeMessageContent(next);
   }
+  // #8083: The OpenAI Responses API requires every `message` item in the `input`
+  // array to carry a `status` field. When OmniRoute strips `previous_response_id`
+  // (stateless mode), the upstream must reconstruct the conversation from the
+  // full `input` array — and items without `status` trigger HTTP 400
+  // "missing input.status parameter". Inject `status: "completed"` on any
+  // message item that lacks it.
+  next = ensureMessageStatus(next);
   next = sanitizeOutputContent(next);
   if (
     (next.type === "function_call" || next.type === "function_call_output") &&
