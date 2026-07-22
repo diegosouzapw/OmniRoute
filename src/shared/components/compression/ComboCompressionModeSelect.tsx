@@ -23,6 +23,7 @@ const OPTIONS: Array<{ value: string; label: string }> = [
   { value: "standard", label: "Standard" },
   { value: "aggressive", label: "Aggressive" },
   { value: "ultra", label: "Ultra" },
+  { value: "codex-responses", label: "Responses tool output" },
 ];
 
 function getInitialCompressionMode(combo: ComboCompressionModeSelectCombo): string {

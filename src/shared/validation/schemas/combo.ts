@@ -115,6 +115,7 @@ export const compressionModeSchema = z.enum([
   "ultra",
   "rtk",
   "stacked",
+  "codex-responses",
   "omniglyph",
 ]);
 
