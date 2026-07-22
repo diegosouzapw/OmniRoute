@@ -72,11 +72,31 @@ export class ServerSupervisor {
     return this.child;
   }
 
-  handleExit(code) {
+  handleExit(code, err) {
     // Node.js v24+ requires process.exit() to receive a number. Spawn-error events
     // deliver err.code (a string like 'ENOENT') via the 'error' listener; normalise here.
     const exitCode = typeof code === "number" ? code : null;
     cleanupPidFile("server");
+
+    // #8091: the child's spawn 'error' listener passes `err` through as a second
+    // argument, but it used to be silently dropped — the user only ever saw the
+    // hardcoded "code=-1" with a permanently empty crash log, with no way to
+    // diagnose why the child never started (ENOENT/EACCES/bad path/etc.). Surface
+    // the real reason immediately, both on the console and in the crash-log buffer
+    // so `dumpCrashLog()` shows it too.
+    if (err) {
+      const detail = [
+        err.code && `code=${err.code}`,
+        err.syscall && `syscall=${err.syscall}`,
+        err.path && `path=${err.path}`,
+        err.message,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const line = `⚠ Spawn error: ${detail || String(err)}`;
+      console.error(line);
+      this.crashLog.push(line);
+    }
 
     // #4425: only exit on an intentional shutdown. A spontaneous code-0 exit (e.g. a
     // systemd MemoryMax cgroup kill, which reports the process exited cleanly) is anomalous

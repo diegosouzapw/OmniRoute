@@ -1,0 +1,1 @@
+- fix(cli): surface the real spawn error (err.code/path/syscall/message) in the process supervisor instead of silently swallowing it on a child spawn failure (#8091)
