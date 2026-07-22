@@ -27,6 +27,9 @@ import {
   exchangeAdobeCookieForAccessToken,
   isAdobeGuestAccessToken,
   isAdobeUserAccessToken,
+  isAdobeTransientSubmitError,
+  generateAdobeNonce,
+  extractAdobeArpSessionId,
   resolveAdobeAccessToken,
 } from "../../open-sse/services/adobeFireflyClient.ts";
 import {
@@ -34,7 +37,11 @@ import {
   getAdobeFireflyFallbackCatalog,
   mapDiscoveredToCatalog,
 } from "../../open-sse/services/adobeFireflyModels.ts";
-import { buildAdobeFireflyCreditsQuota } from "../../open-sse/services/usage/adobeFirefly.ts";
+import {
+  buildAdobeFireflyCreditsQuota,
+  buildAdobeFireflyQuotasRecord,
+} from "../../open-sse/services/usage/adobeFirefly.ts";
+import { USAGE_SUPPORTED_PROVIDERS } from "../../src/shared/constants/providers.ts";
 import { handleAdobeFireflyImageGeneration } from "../../open-sse/handlers/imageGeneration/providers/adobeFirefly.ts";
 import { handleAdobeFireflyVideoGeneration } from "../../open-sse/handlers/videoGeneration/adobeFireflyHandler.ts";
 import { WEB_COOKIE_PROVIDERS } from "../../src/shared/constants/providers/web-cookie.ts";
@@ -106,6 +113,13 @@ test("extractAdobeCredentialToken strips Bearer and access_token=", () => {
   assert.equal(extractAdobeCredentialToken(`Bearer ${longJwt}`), longJwt);
   assert.equal(extractAdobeCredentialToken(`access_token=${longJwt}; other=1`), longJwt);
   assert.equal(extractAdobeCredentialToken("  rawcookie  "), "rawcookie");
+  // IMS sessionStorage shape (firefly.adobe.com)
+  const sessionJson = JSON.stringify({
+    valid: true,
+    client_id: "clio-playground-web",
+    tokenValue: longJwt,
+  });
+  assert.equal(extractAdobeCredentialToken(sessionJson), longJwt);
 });
 
 test("normalizeAdobeAspectRatio maps sizes and ratios", () => {
@@ -164,7 +178,10 @@ test("buildAdobeImagePayload produces nano and gpt-image shapes", () => {
   });
   assert.equal(gpt.modelId, "gpt-image");
   assert.equal((gpt.generationSettings as any).detailLevel, 5);
-  assert.equal((gpt.modelSpecificPayload as any).size, "1024x1024");
+  // Live browser body uses size:"auto" and no top-level size/outputResolution
+  assert.equal((gpt.modelSpecificPayload as any).size, "auto");
+  assert.equal(gpt.size, undefined);
+  assert.equal(gpt.outputResolution, undefined);
 });
 
 test("buildAdobeVideoPayload produces sora and veo shapes", () => {
@@ -256,7 +273,18 @@ test("parseAdobeCreditsBalance maps total + free/plan buckets", () => {
   assert.equal(quota.total, 10010);
   assert.equal(quota.remaining, 10000);
   assert.equal(quota.displayName, "Firefly credits");
-  assert.ok((quota.details?.length || 0) >= 2);
+  // providerLimits requires quotas as a Record, not an array
+  const rec = buildAdobeFireflyQuotasRecord(bal);
+  assert.ok(rec.firefly_total);
+  assert.equal(rec.firefly_total.total, 10010);
+  assert.equal(rec.firefly_total.remaining, 10000);
+  assert.ok(rec.firefly_free);
+  assert.ok(rec.firefly_plan);
+});
+
+test("adobe-firefly is in USAGE_SUPPORTED_PROVIDERS for Limits", () => {
+  assert.ok(USAGE_SUPPORTED_PROVIDERS.includes("adobe-firefly"));
+  assert.ok(USAGE_SUPPORTED_PROVIDERS.includes("firefly"));
 });
 
 test("parseAdobeModelsDiscovery extracts image/video versions", () => {
@@ -493,6 +521,70 @@ test("cookie exchange rejects guest IMS tokens", async () => {
       return true;
     }
   );
+});
+
+test("isAdobeTransientSubmitError detects 408 system under load", () => {
+  assert.equal(isAdobeTransientSubmitError(408, '{"error_code":"timeout_error","message":"system under load"}'), true);
+  assert.equal(isAdobeTransientSubmitError(429, "rate"), true);
+  assert.equal(isAdobeTransientSubmitError(400, "bad request"), false);
+  assert.ok(generateAdobeNonce().length === 64);
+  assert.equal(
+    extractAdobeArpSessionId("a=1; sherlockToken=eyJzaWQiOiJ4In0=; b=2"),
+    "eyJzaWQiOiJ4In0="
+  );
+});
+
+test("extractAdobeCookieHeader strips JWT from mixed paste", async () => {
+  const { extractAdobeCookieHeader, buildAdobeSubmitHeaders } = await import(
+    "../../open-sse/services/adobeFireflyClient.ts"
+  );
+  const longJwt = `eyJhbGciOiJSUzI1NiJ9.${"e".repeat(40)}.${"f".repeat(40)}`;
+  const cookie = "ff_session_guid=abc; sherlockToken=tok123; aux_sid=xyz";
+  const mixed = `${longJwt}\n${cookie}`;
+  assert.equal(extractAdobeCookieHeader(longJwt), "");
+  assert.match(extractAdobeCookieHeader(mixed), /ff_session_guid=abc/);
+  assert.doesNotMatch(extractAdobeCookieHeader(mixed), /eyJhbGci/);
+  // Must not put JWT into Cookie header (undici throws Headers.append)
+  const headers = buildAdobeSubmitHeaders("access-tok", { cookie: mixed });
+  assert.ok(headers.cookie);
+  assert.doesNotMatch(headers.cookie, /eyJhbGci/);
+  assert.match(headers.cookie, /sherlockToken=tok123/);
+  assert.equal(headers.Authorization, "Bearer access-tok");
+});
+
+test("image submit retries on 408 then succeeds", async () => {
+  let submits = 0;
+  const userTok = userImsJwt();
+  const fetchImpl = async (url: string) => {
+    const u = String(url);
+    if (u.includes("generate-async")) {
+      submits += 1;
+      if (submits < 3) {
+        return jsonResponse(408, { error_code: "timeout_error", message: "system under load" });
+      }
+      return jsonResponse(
+        200,
+        { links: { result: { href: "https://poll.example/job/r1" } } },
+        {}
+      );
+    }
+    if (u.includes("poll.example")) {
+      return jsonResponse(200, {
+        status: "COMPLETED",
+        outputs: [{ image: { presignedUrl: "https://cdn.example/retry.png" } }],
+      });
+    }
+    throw new Error(`unexpected ${u}`);
+  };
+
+  const result = await adobeFireflyGenerateImage({
+    accessToken: userTok,
+    prompt: "retry me",
+    model: "gpt-image",
+    fetchImpl: fetchImpl as typeof fetch,
+  });
+  assert.equal(submits, 3);
+  assert.match(result.url, /retry\.png/);
 });
 
 test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async () => {

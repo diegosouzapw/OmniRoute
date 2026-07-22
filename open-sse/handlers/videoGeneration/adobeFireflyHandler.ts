@@ -52,6 +52,14 @@ export async function handleAdobeFireflyVideoGeneration({
         : typeof body.seed === "string" && String(body.seed).trim()
           ? Number(body.seed)
           : undefined;
+    // Keep raw paste for Cookie + sherlockToken (x-arp-session-id).
+    const psd = (credentials as { providerSpecificData?: { cookie?: string } })?.providerSpecificData;
+    const sessionCookie =
+      (typeof psd?.cookie === "string" && psd.cookie.trim()) ||
+      (typeof credentials?.apiKey === "string" && credentials.apiKey.trim()) ||
+      (typeof credentials?.accessToken === "string" && credentials.accessToken.includes(";")
+        ? credentials.accessToken
+        : undefined);
 
     log?.info?.(
       "VIDEO",
@@ -75,6 +83,7 @@ export async function handleAdobeFireflyVideoGeneration({
             ? body.negativePrompt
             : undefined,
       generateAudio: body.generate_audio !== false && body.generateAudio !== false,
+      sessionCookie,
       timeoutMs,
       fetchImpl,
       log,

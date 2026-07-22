@@ -406,7 +406,8 @@ export function isAdobeUserAccessToken(token: string): boolean {
 
 /**
  * Pull an IMS JWT out of free-form paste: raw JWT, Bearer …, access_token=…,
- * multi-line Network/HAR dumps. Prefer the longest eyJ… JWT found.
+ * IMS sessionStorage JSON (`tokenValue`), multi-line Network/HAR dumps.
+ * Prefer the longest user (non-guest) eyJ… JWT found.
  */
 export function extractAdobeCredentialToken(raw: string): string {
   const value = String(raw || "").trim();
@@ -424,15 +425,23 @@ export function extractAdobeCredentialToken(raw: string): string {
     if (looksLikeAdobeJwt(t)) return t;
   }
 
+  // IMS sessionStorage / localStorage JSON: "tokenValue":"eyJ..."
+  const tokenValueMatch = value.match(/"tokenValue"\s*:\s*"(eyJ[^"]+)"/i);
+  if (tokenValueMatch?.[1] && looksLikeAdobeJwt(tokenValueMatch[1])) {
+    return tokenValueMatch[1];
+  }
+
   // Authorization: Bearer eyJ...
   const authMatch = value.match(/Authorization\s*:\s*Bearer\s+([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
   if (authMatch?.[1] && looksLikeAdobeJwt(authMatch[1])) return authMatch[1];
 
-  // Any eyJ… JWT in the blob (HAR / multi-line)
+  // Any eyJ… JWT in the blob (HAR / multi-line). Prefer user AdobeID tokens.
   const jwtMatches = value.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g);
   if (jwtMatches && jwtMatches.length > 0) {
-    const best = [...jwtMatches].sort((a, b) => b.length - a.length)[0];
-    if (looksLikeAdobeJwt(best) && isAdobeUserAccessToken(best)) return best;
+    const sorted = [...jwtMatches].sort((a, b) => b.length - a.length);
+    const user = sorted.find((t) => looksLikeAdobeJwt(t) && isAdobeUserAccessToken(t));
+    if (user) return user;
+    const best = sorted[0];
     if (looksLikeAdobeJwt(best)) return best;
   }
 
@@ -441,6 +450,56 @@ export function extractAdobeCredentialToken(raw: string): string {
 
   // Cookie / other blob unchanged for IMS exchange
   return value;
+}
+
+/**
+ * True when the paste still looks like a Cookie header (not a bare JWT).
+ * Used to attach Cookie + sherlockToken → x-arp-session-id on generate.
+ */
+export function looksLikeAdobeCookieBlob(value: string): boolean {
+  const raw = String(value || "").trim();
+  if (!raw || looksLikeAdobeJwt(raw)) return false;
+  if (raw.includes(";") && raw.includes("=")) return true;
+  if (/(?:^|[;\s])(?:aux_sid|ff_session|sherlockToken|forterToken|arkose)=/i.test(raw)) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Strip JWTs / Authorization lines from a mixed paste so only Cookie pairs remain.
+ * Undici Headers.append rejects multi-line Cookie values (throws Headers.append: "eyJ…").
+ */
+export function extractAdobeCookieHeader(raw: string): string {
+  const value = String(raw || "").trim();
+  if (!value) return "";
+  if (looksLikeAdobeJwt(value)) return "";
+
+  // Drop pure JWT lines and Authorization: Bearer lines
+  const cleaned = value
+    .split(/[\r\n]+/)
+    .map((line) => line.trim())
+    .filter((line) => {
+      if (!line) return false;
+      if (/^authorization\s*:/i.test(line)) return false;
+      if (/^bearer\s+/i.test(line)) return false;
+      if (looksLikeAdobeJwt(line)) return false;
+      // Drop standalone eyJ… segments
+      if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(line)) return false;
+      return true;
+    })
+    .join("; ");
+
+  // Also strip inline eyJ JWT tokens that may sit inside a cookie string
+  const noJwt = cleaned
+    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "")
+    .replace(/;\s*;/g, ";")
+    .replace(/^;\s*|\s*;$/g, "")
+    .trim();
+
+  if (!noJwt || !looksLikeAdobeCookieBlob(noJwt)) return "";
+  // Final safety: Cookie header must be single-line
+  return noJwt.replace(/[\r\n]+/g, "; ").trim();
 }
 
 const GUEST_COOKIE_HELP =
@@ -621,25 +680,22 @@ export function buildAdobeImagePayload(opts: {
   }
 
   if (opts.modelSpec.family === "gpt-image") {
-    const sizeMap = GPT_SIZE_MAP[opts.outputResolution] || GPT_SIZE_MAP["2K"];
-    const pixel = sizeMap[ratio] || sizeMap["1:1"];
+    // Live firefly.adobe.com body (adobe/image_generate.txt) — no top-level size /
+    // outputResolution; modelSpecificPayload.size is "auto".
     const payload: Record<string, unknown> = {
-      modelId: opts.modelSpec.upstreamModelId,
-      modelVersion: opts.modelSpec.upstreamModelVersion,
       n: 1,
-      prompt: opts.prompt,
       seeds,
       output: { storeInputs: true },
+      prompt: opts.prompt,
       referenceBlobs: [],
+      modelSpecificPayload: { size: "auto" },
+      modelId: opts.modelSpec.upstreamModelId,
+      modelVersion: opts.modelSpec.upstreamModelVersion,
       generationMetadata: { module: "text2image", submodule: "ff-image-generate" },
-      // Live browser often sends size:"auto"; explicit WxH also accepted.
-      modelSpecificPayload: { size: `${pixel.width}x${pixel.height}` },
-      outputResolution: opts.outputResolution,
       generationSettings: {
         detailLevel: gptDetailLevel(opts.quality),
         ...genSettings,
       },
-      size: pixel,
     };
     if (opts.sourceImageIds?.length) {
       payload.generationMetadata = { module: "image2image", submodule: "ff-image-generate" };
@@ -838,15 +894,72 @@ function browserHeaders(): Record<string, string> {
   };
 }
 
-export function buildAdobeSubmitHeaders(accessToken: string): Record<string, string> {
-  return {
+/** Random 64-char hex — browser always sends x-nonce on generate-async. */
+export function generateAdobeNonce(): string {
+  const bytes = new Uint8Array(32);
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Pull sherlockToken / x-arp-session-id from a Cookie header if present.
+ * Browser generate sends Cookie.sherlockToken as x-arp-session-id.
+ */
+export function extractAdobeArpSessionId(cookieOrBlob: string): string {
+  const raw = String(cookieOrBlob || "");
+  const m = raw.match(/(?:^|[;\s])sherlockToken=([^;]+)/i);
+  if (m?.[1]) return decodeURIComponent(m[1].trim());
+  const m2 = raw.match(/(?:^|[;\s])x-arp-session-id=([^;]+)/i);
+  if (m2?.[1]) return decodeURIComponent(m2[1].trim());
+  return "";
+}
+
+export function buildAdobeSubmitHeaders(
+  accessToken: string,
+  extras?: { arpSessionId?: string; nonce?: string; cookie?: string }
+): Record<string, string> {
+  const headers: Record<string, string> = {
     ...browserHeaders(),
     Authorization: `Bearer ${accessToken}`,
     // Must be clio-playground-web — same client_id that minted the IMS token.
     "x-api-key": adobeFireflyApiKey(),
     "content-type": "application/json",
     accept: "*/*",
+    "cache-control": "no-cache",
+    pragma: "no-cache",
+    // Match browser "Copy as fetch" (priority helps some edge caches).
+    priority: "u=1, i",
+    "x-nonce": extras?.nonce || generateAdobeNonce(),
   };
+  if (extras?.arpSessionId) {
+    headers["x-arp-session-id"] = extras.arpSessionId;
+  }
+  // Browser sends credentials:include — attach Cookie when the user pasted one
+  // (forter/arkose/sherlock session cookies live here). Never put the JWT here.
+  const cookie = extractAdobeCookieHeader(String(extras?.cookie || ""));
+  if (cookie) {
+    headers.cookie = cookie;
+  }
+  return headers;
+}
+
+/** Transient Adobe 3P overload / rate / edge errors worth retrying. */
+export function isAdobeTransientSubmitError(status: number, bodyText: string): boolean {
+  if (status === 408 || status === 429 || status === 502 || status === 503 || status === 504) {
+    return true;
+  }
+  const t = (bodyText || "").toLowerCase();
+  return (
+    t.includes("timeout_error") ||
+    t.includes("system under load") ||
+    t.includes("try again") ||
+    t.includes("temporarily") ||
+    t.includes("overloaded")
+  );
 }
 
 export function buildAdobePollHeaders(accessToken: string): Record<string, string> {
@@ -880,8 +993,20 @@ export function buildAdobeDiscoveryHeaders(accessToken: string): Record<string, 
     Authorization: `Bearer ${accessToken}`,
     "x-api-key": adobeFireflyApiKey(),
     "content-type": "application/json",
+    // Missing Accept → HTTP 406 "Unsupported Accept Type or not allowed".
     accept: "*/*",
   };
+}
+
+/** User-facing message when Adobe colligo returns 408 "system under load". */
+export function formatAdobeSystemUnderLoadError(kind: "image" | "video", attempts: number): string {
+  return (
+    `Adobe Firefly ${kind} generation is currently unavailable (HTTP 408 "system under load", ` +
+    `${attempts} attempt${attempts === 1 ? "" : "s"}). This is Adobe-side capacity/rate limiting ` +
+    `— not an invalid token (credits/models may still work). Wait 1–2 minutes and retry, or paste a ` +
+    `fresh IMS JWT from a browser request that just succeeded: firefly.adobe.com → F12 → Network → ` +
+    `firefly-3p generate-async → Authorization → copy token after "Bearer ".`
+  );
 }
 
 export function extractAdobeResultLink(
@@ -1459,7 +1584,13 @@ async function pollAdobeJob(opts: {
 
     if (!pollResp.ok) {
       const text = await pollResp.text().catch(() => "");
-      if (pollResp.status === 429 || pollResp.status === 451 || pollResp.status >= 500) {
+      if (
+        pollResp.status === 408 ||
+        pollResp.status === 429 ||
+        pollResp.status === 451 ||
+        pollResp.status >= 500 ||
+        isAdobeTransientSubmitError(pollResp.status, text)
+      ) {
         opts.log?.info?.("ADOBE-FIREFLY", `poll temporary ${pollResp.status}, attempt #${attempt}`);
         await sleep(interval);
         continue;
@@ -1498,6 +1629,11 @@ async function pollAdobeJob(opts: {
   throw new AdobeFireflyError(`Adobe Firefly ${opts.kind} generation timed out`, 504, "timeout");
 }
 
+// Colligo often returns instant 408 with x-colligo-timeout:0.0 under load —
+// longer exponential backoff + more attempts mirrors the SPA's retry behavior.
+const SUBMIT_MAX_ATTEMPTS = 8;
+const SUBMIT_BASE_DELAY_MS = 2000;
+
 export async function adobeFireflyGenerateImage(opts: {
   accessToken: string;
   prompt: string;
@@ -1508,6 +1644,8 @@ export async function adobeFireflyGenerateImage(opts: {
   seed?: number;
   sourceImageIds?: string[];
   negativePrompt?: string;
+  /** Optional Cookie blob — used only to lift sherlockToken → x-arp-session-id */
+  sessionCookie?: string;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
@@ -1527,32 +1665,87 @@ export async function adobeFireflyGenerateImage(opts: {
     negativePrompt: opts.negativePrompt,
   });
 
-  const submitResp = await fetchImpl(ADOBE_FIREFLY_IMAGE_SUBMIT_URL, {
-    method: "POST",
-    headers: buildAdobeSubmitHeaders(opts.accessToken),
-    body: JSON.stringify(payload),
-  });
+  const sessionCookie = String(opts.sessionCookie || "").trim();
+  const cookieHeader = extractAdobeCookieHeader(sessionCookie);
+  const arpSessionId =
+    extractAdobeArpSessionId(cookieHeader) || extractAdobeArpSessionId(sessionCookie);
+  let submitData: unknown = {};
+  let submitHeaders: Headers | Record<string, string | null | undefined> = new Headers();
+  let lastSubmitError = "";
+  let sawSystemUnderLoad = false;
 
-  if (submitResp.status === 401 || submitResp.status === 403) {
-    const accessError = submitResp.headers.get("x-access-error") || "";
-    if (accessError === "taste_exhausted") {
-      throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
+  for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
+    const submitResp = await fetchImpl(ADOBE_FIREFLY_IMAGE_SUBMIT_URL, {
+      method: "POST",
+      headers: buildAdobeSubmitHeaders(opts.accessToken, {
+        arpSessionId: arpSessionId || undefined,
+        nonce: generateAdobeNonce(),
+        cookie: cookieHeader || undefined,
+      }),
+      body: JSON.stringify(payload),
+    });
+
+    if (submitResp.status === 401 || submitResp.status === 403) {
+      const accessError = submitResp.headers.get("x-access-error") || "";
+      if (accessError === "taste_exhausted") {
+        throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
+      }
+      throw new AdobeFireflyError(
+        "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p), not page cookies alone.",
+        401,
+        "auth"
+      );
     }
-    throw new AdobeFireflyError("Adobe Firefly token invalid or expired", 401, "auth");
+
+    if (!submitResp.ok) {
+      const text = await submitResp.text().catch(() => "");
+      if (isAdobeTransientSubmitError(submitResp.status, text)) {
+        sawSystemUnderLoad = true;
+      }
+      lastSubmitError = `Adobe Firefly image submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`;
+      if (isAdobeTransientSubmitError(submitResp.status, text) && attempt < SUBMIT_MAX_ATTEMPTS) {
+        // Exponential backoff: 2s, 4s, 8s, 16s… capped at 45s (+ jitter)
+        const delay =
+          Math.min(45_000, SUBMIT_BASE_DELAY_MS * Math.pow(2, attempt - 1)) +
+          Math.floor(Math.random() * 750);
+        opts.log?.info?.(
+          "ADOBE-FIREFLY",
+          `image submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms`
+        );
+        await sleep(delay);
+        continue;
+      }
+      if (sawSystemUnderLoad && isAdobeTransientSubmitError(submitResp.status, text)) {
+        throw new AdobeFireflyError(
+          formatAdobeSystemUnderLoadError("image", attempt),
+          408,
+          "system_under_load"
+        );
+      }
+      throw new AdobeFireflyError(
+        lastSubmitError,
+        submitResp.status >= 400 && submitResp.status < 500 ? submitResp.status : 502
+      );
+    }
+
+    submitData = await submitResp.json().catch(() => ({}));
+    submitHeaders = submitResp.headers;
+    break;
   }
 
-  if (!submitResp.ok) {
-    const text = await submitResp.text().catch(() => "");
-    throw new AdobeFireflyError(
-      `Adobe Firefly image submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`,
-      submitResp.status >= 400 && submitResp.status < 500 ? submitResp.status : 502
-    );
-  }
-
-  const submitData = await submitResp.json().catch(() => ({}));
-  let pollUrl = extractAdobeResultLink(submitResp.headers, submitData);
+  let pollUrl = extractAdobeResultLink(submitHeaders, submitData);
   if (!pollUrl) {
-    throw new AdobeFireflyError("Adobe Firefly image submit succeeded but no poll URL was returned", 502);
+    if (sawSystemUnderLoad) {
+      throw new AdobeFireflyError(
+        formatAdobeSystemUnderLoadError("image", SUBMIT_MAX_ATTEMPTS),
+        408,
+        "system_under_load"
+      );
+    }
+    throw new AdobeFireflyError(
+      lastSubmitError || "Adobe Firefly image submit succeeded but no poll URL was returned",
+      502
+    );
   }
   pollUrl = normalizeAdobePollUrl(pollUrl);
 
@@ -1581,6 +1774,7 @@ export async function adobeFireflyGenerateVideo(opts: {
   sourceImageIds?: string[];
   negativePrompt?: string;
   generateAudio?: boolean;
+  sessionCookie?: string;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
@@ -1613,32 +1807,86 @@ export async function adobeFireflyGenerateVideo(opts: {
     generateAudio: opts.generateAudio,
   });
 
-  const submitResp = await fetchImpl(ADOBE_FIREFLY_VIDEO_SUBMIT_URL, {
-    method: "POST",
-    headers: buildAdobeSubmitHeaders(opts.accessToken),
-    body: JSON.stringify(payload),
-  });
+  const sessionCookie = String(opts.sessionCookie || "").trim();
+  const cookieHeader = extractAdobeCookieHeader(sessionCookie);
+  const arpSessionId =
+    extractAdobeArpSessionId(cookieHeader) || extractAdobeArpSessionId(sessionCookie);
+  let submitData: unknown = {};
+  let submitHeaders: Headers | Record<string, string | null | undefined> = new Headers();
+  let lastSubmitError = "";
+  let sawSystemUnderLoad = false;
 
-  if (submitResp.status === 401 || submitResp.status === 403) {
-    const accessError = submitResp.headers.get("x-access-error") || "";
-    if (accessError === "taste_exhausted") {
-      throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
+  for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
+    const submitResp = await fetchImpl(ADOBE_FIREFLY_VIDEO_SUBMIT_URL, {
+      method: "POST",
+      headers: buildAdobeSubmitHeaders(opts.accessToken, {
+        arpSessionId: arpSessionId || undefined,
+        nonce: generateAdobeNonce(),
+        cookie: cookieHeader || undefined,
+      }),
+      body: JSON.stringify(payload),
+    });
+
+    if (submitResp.status === 401 || submitResp.status === 403) {
+      const accessError = submitResp.headers.get("x-access-error") || "";
+      if (accessError === "taste_exhausted") {
+        throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
+      }
+      throw new AdobeFireflyError(
+        "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p), not page cookies alone.",
+        401,
+        "auth"
+      );
     }
-    throw new AdobeFireflyError("Adobe Firefly token invalid or expired", 401, "auth");
+
+    if (!submitResp.ok) {
+      const text = await submitResp.text().catch(() => "");
+      if (isAdobeTransientSubmitError(submitResp.status, text)) {
+        sawSystemUnderLoad = true;
+      }
+      lastSubmitError = `Adobe Firefly video submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`;
+      if (isAdobeTransientSubmitError(submitResp.status, text) && attempt < SUBMIT_MAX_ATTEMPTS) {
+        const delay =
+          Math.min(45_000, SUBMIT_BASE_DELAY_MS * Math.pow(2, attempt - 1)) +
+          Math.floor(Math.random() * 750);
+        opts.log?.info?.(
+          "ADOBE-FIREFLY",
+          `video submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms`
+        );
+        await sleep(delay);
+        continue;
+      }
+      if (sawSystemUnderLoad && isAdobeTransientSubmitError(submitResp.status, text)) {
+        throw new AdobeFireflyError(
+          formatAdobeSystemUnderLoadError("video", attempt),
+          408,
+          "system_under_load"
+        );
+      }
+      throw new AdobeFireflyError(
+        lastSubmitError,
+        submitResp.status >= 400 && submitResp.status < 500 ? submitResp.status : 502
+      );
+    }
+
+    submitData = await submitResp.json().catch(() => ({}));
+    submitHeaders = submitResp.headers;
+    break;
   }
 
-  if (!submitResp.ok) {
-    const text = await submitResp.text().catch(() => "");
-    throw new AdobeFireflyError(
-      `Adobe Firefly video submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`,
-      submitResp.status >= 400 && submitResp.status < 500 ? submitResp.status : 502
-    );
-  }
-
-  const submitData = await submitResp.json().catch(() => ({}));
-  let pollUrl = extractAdobeResultLink(submitResp.headers, submitData);
+  let pollUrl = extractAdobeResultLink(submitHeaders, submitData);
   if (!pollUrl) {
-    throw new AdobeFireflyError("Adobe Firefly video submit succeeded but no poll URL was returned", 502);
+    if (sawSystemUnderLoad) {
+      throw new AdobeFireflyError(
+        formatAdobeSystemUnderLoadError("video", SUBMIT_MAX_ATTEMPTS),
+        408,
+        "system_under_load"
+      );
+    }
+    throw new AdobeFireflyError(
+      lastSubmitError || "Adobe Firefly video submit succeeded but no poll URL was returned",
+      502
+    );
   }
   pollUrl = normalizeAdobePollUrl(pollUrl);
 

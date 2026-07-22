@@ -67,6 +67,16 @@ export async function handleAdobeFireflyImageGeneration({
           ? Number(body.seed)
           : undefined;
 
+    // Keep the raw credential blob for Cookie + sherlockToken (x-arp-session-id).
+    // JWT may be embedded in the same paste as cookies (HAR / multi-line).
+    const psd = (credentials as { providerSpecificData?: { cookie?: string } })?.providerSpecificData;
+    const sessionCookie =
+      (typeof psd?.cookie === "string" && psd.cookie.trim()) ||
+      (typeof credentials?.apiKey === "string" && credentials.apiKey.trim()) ||
+      (typeof credentials?.accessToken === "string" && credentials.accessToken.includes(";")
+        ? credentials.accessToken
+        : undefined);
+
     log?.info?.(
       "IMAGE",
       `${provider}/${model} (adobe-firefly) | prompt: "${prompt.slice(0, 60)}${prompt.length > 60 ? "..." : ""}"`
@@ -82,6 +92,7 @@ export async function handleAdobeFireflyImageGeneration({
       seed: Number.isFinite(seed as number) ? (seed as number) : undefined,
       negativePrompt:
         typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
+      sessionCookie,
       timeoutMs,
       fetchImpl,
       log,
