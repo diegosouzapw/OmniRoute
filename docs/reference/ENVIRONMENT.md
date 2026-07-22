@@ -1232,3 +1232,14 @@ Not required for normal operation — developer tooling only.
 | Variable                     | Default      | Source File                         | Description                                                                                                                                              |
 | ---------------------------- | ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OMNIROUTE_EVAL_CREDENTIALS` | `{}` (empty) | `scripts/compression-eval/index.ts` | Operator-supplied JSON credentials for the provider exercised by the offline compression-eval CLI (parsed with `JSON.parse`). Leave unset for a dry run. |
+
+---
+
+## OmniConductor Bridge
+
+Long-lived SSE consumer that mirrors OmniConductor hub tasks into the local A2A TaskManager (`src/lib/conductor/`). Opt-in — the bridge only starts when `CONDUCTOR_HUB_URL` is set. Server-side only: the hub token must never reach the browser.
+
+| Variable              | Default    | Source File                  | Description                                                                                             |
+| --------------------- | ---------- | ---------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `CONDUCTOR_HUB_URL`   | _(empty)_  | `src/lib/conductor/boot.ts`  | Base URL of the OmniConductor hub (e.g. `http://127.0.0.1:7910`). Unset = bridge disabled.               |
+| `CONDUCTOR_HUB_TOKEN` | _(empty)_  | `src/lib/conductor/boot.ts`  | Hub credential for the SSE feed — emit a `spokesperson`-kind peer on the hub (`POST /v1/peers`, admin).  |
