@@ -145,10 +145,9 @@ export class SseParser {
 
 // ============ Connection loop ============
 
-/** Wire shape of one hub event (the SSE `data:` payload) — untrusted input, Zod-validated. */
-const hubEventSchema = z.object({
-  id: z.string(),
-  type: z.string(),
+/** Wire shape of the hub's SSE `data:` field — {ts, payload}; id/type live in the
+ *  SSE frame fields (verified against the live hub, 2026-07-22). Untrusted input → Zod. */
+const hubDataSchema = z.object({
   payload: z.record(z.string(), z.unknown()),
 });
 
@@ -194,15 +193,16 @@ export function createConductorBridge(opts: ConductorBridgeOptions): ConductorBr
       const { value, done } = await reader.read();
       if (done) return;
       for (const frame of parser.push(decoder.decode(value, { stream: true }))) {
-        let parsed: z.infer<typeof hubEventSchema>;
+        if (!frame.id || !frame.event) continue; // keepalive/partial frame — nada a espelhar
+        let payload: Record<string, unknown>;
         try {
-          parsed = hubEventSchema.parse(JSON.parse(frame.data));
+          payload = hubDataSchema.parse(JSON.parse(frame.data)).payload;
         } catch {
-          log(`evento SSE malformado ignorado (id=${frame.id ?? "?"})`);
+          log(`evento SSE malformado ignorado (id=${frame.id})`);
           continue;
         }
-        applyConductorEvent(opts.tm, index, parsed);
-        opts.cursor.set(parsed.id); // persisted per event — replay covers any gap on reconnect
+        applyConductorEvent(opts.tm, index, { id: frame.id, type: frame.event, payload });
+        opts.cursor.set(frame.id); // persisted per event — replay covers any gap on reconnect
       }
     }
   }

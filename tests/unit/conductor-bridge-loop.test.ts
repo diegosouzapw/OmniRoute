@@ -24,8 +24,10 @@ test.afterEach(async () => {
   }
 });
 
+// Formato REAL do SSE do hub (verificado ao vivo 2026-07-22): id/type nos campos do
+// frame; o `data:` carrega só {ts, payload}.
 const sse = (id: number, type: string, payload: Record<string, unknown>) =>
-  `id: ${id}\nevent: ${type}\ndata: ${JSON.stringify({ id: String(id), type, ts: "2026-07-22T00:00:00Z", payload })}\n\n`;
+  `id: ${id}\nevent: ${type}\ndata: ${JSON.stringify({ ts: "2026-07-22T00:00:00Z", payload })}\n\n`;
 
 interface FakeHub {
   url: string;
