@@ -1152,6 +1152,26 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `OMNIROUTE_ROTATE_400_THRESHOLD`            | `1`                                                                         | `open-sse/services/rotationConfig.ts`                                     | Number of `400` errors within `OMNIROUTE_ROTATE_400_WINDOW_SECONDS` required before the account is rotated (only consulted when `OMNIROUTE_ROTATE_ON_400=true`).                                                                                                                                                                                                     |
 | `OMNIROUTE_ROTATE_400_WINDOW_SECONDS`       | `120`                                                                       | `open-sse/services/rotationConfig.ts`                                     | Sliding window (seconds) over which `400` errors are counted toward `OMNIROUTE_ROTATE_400_THRESHOLD`.                                                                                                                                                                                                                                                                 |
 
+### Browser-Login VNC Sessions & Data-Dir Alias
+
+Containerized Chromium+VNC used for interactive browser-login credential capture (`/api/vnc-session`), plus a legacy `DATA_DIR` alias. All optional — the VNC defaults target the bundled `omniroute-vnc-chromium:local` image and are only overridden for a custom container image, ports, or lifecycle tuning.
+
+| Variable | Default | Source File | Description |
+| --- | --- | --- | --- |
+| `OMNIROUTE_VNC_IMAGE` | `omniroute-vnc-chromium:local` | `src/lib/vncSession/manifest.ts` | Docker image tag for the Chromium+VNC login container. Build `docker/vnc-browser/chromium` or point this at a custom image. |
+| `OMNIROUTE_DOCKER_BIN` | `docker` | `src/lib/vncSession/manifest.ts` | Container runtime binary used to launch the VNC container (e.g. set to `podman`). |
+| `OMNIROUTE_VNC_CONTAINER_VNC_PORT` | `3000` | `src/lib/vncSession/manifest.ts` | VNC/noVNC port exposed inside the container. |
+| `OMNIROUTE_VNC_CONTAINER_CDP_PORT` | `9223` | `src/lib/vncSession/manifest.ts` | Chrome DevTools Protocol port inside the container. |
+| `OMNIROUTE_VNC_CONTAINER_PROFILE_DIR` | `/config` | `src/lib/vncSession/manifest.ts` | Chromium profile directory path inside the container. |
+| `OMNIROUTE_VNC_PROFILE_DIR` | `$HOME/.omniroute/browser-login-profiles` | `src/lib/vncSession/manifest.ts` | Host directory holding persisted browser-login profiles. |
+| `OMNIROUTE_VNC_IDLE_MS` | `600000` (10 min) | `src/lib/vncSession/manifest.ts` | Idle timeout (ms) before an inactive VNC session is reaped. |
+| `OMNIROUTE_VNC_MAX_MS` | `1800000` (30 min) | `src/lib/vncSession/manifest.ts` | Hard cap (ms) on a single VNC session's lifetime. |
+| `OMNIROUTE_VNC_MAX_SESSIONS` | `4` | `src/lib/vncSession/manifest.ts` | Maximum number of concurrent VNC sessions. |
+| `OMNIROUTE_VNC_READY_MS` | `45000` | `src/lib/vncSession/manifest.ts` | Timeout (ms) waiting for the containerized browser to become CDP-ready. |
+| `OMNIROUTE_VNC_HARVEST_MS` | `20000` | `src/lib/vncSession/manifest.ts` | Timeout (ms) for harvesting the captured session/cookies after login completes. |
+| `OMNIROUTE_VNC_CHROMIUM_ARGS` | `--remote-debugging-port=9222 --no-first-run --no-default-browser-check` | `src/lib/vncSession/manifest.ts` | Extra command-line flags passed to the containerized Chromium. |
+| `VIBEPROXY_DATA_DIR` | _(unset)_ | `open-sse/services/notionThreadSessions.ts` | **Legacy alias** for `DATA_DIR`, checked only after both `DATA_DIR` and `OMNIROUTE_DATA_DIR` are unset. Locates the Notion web-thread session cache (`<dir>/notion-web-thread-sessions.json`). |
+
 ---
 
 ## 26. Test & E2E Harness
