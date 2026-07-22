@@ -3000,6 +3000,7 @@
     "randomDesc": "Uniform random selection, then fallback to remaining models",
     "leastUsedDesc": "Picks the model with fewest requests, balancing load over time",
     "costOptimizedDesc": "Routes to the cheapest model first based on pricing",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
     "resetAware": "Reset-Aware RR",
     "resetAwareDesc": "Balances remaining quota against 5h and weekly resets, then round-robins similar scores",
     "strictRandom": "Strict Random",
@@ -3263,6 +3264,7 @@
     "weightTaskFit": "Task Fit",
     "weightStability": "Stability",
     "weightTierPriority": "Tier",
+    "weightCacheAffinity": "Cache Hit Affinity",
     "reviewIntelligentTitle": "Intelligent Routing Config",
     "strategyRecommendations": {
       "priority": {
@@ -4928,6 +4930,7 @@
     "filterError": "Error",
     "filterBanned": "Banned",
     "filterCreditsExhausted": "Credits Exhausted",
+    "accountSearchPlaceholder": "Search accounts…",
     "noFilteredConnections": "No connections match the current filter.",
     "failedSetAlias": "Failed to set alias",
     "setAliasSuccess": "Alias {alias} set",
@@ -5945,8 +5948,8 @@
     "overrideBaseUrlHint": "Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default.",
     "bulkAddFormatHintCloudflare": "One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
     "lmarenaWebCookieHint": "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Founding Friend",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is OmniRoute's founding Open Source Friend",
     "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
   },
   "settings": {
@@ -6765,6 +6768,8 @@
     "resetting": "Resetting...",
     "contextOpt": "Context Optimized",
     "contextOptDesc": "Routes based on context window requirements and conversation length",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "priorityDesc": "Sequential fallback - tries provider 1 first, then provider 2, and so on",
     "weightedDesc": "Distributes traffic by percentage weights across providers",
     "modelRoutingTitle": "Model Routing Rules",
@@ -6897,6 +6902,8 @@
     "minutes": "minutes",
     "compressionModeRtk": "RTK",
     "compressionModeRtkDesc": "Command-aware tool output filtering",
+    "compressionModeCodexResponses": "Responses tool output",
+    "compressionModeCodexResponsesDesc": "Conservative compression for eligible shell, patch, search, build, and JSON outputs",
     "compressionModeStacked": "Stacked",
     "compressionModeStackedDesc": "RTK tool-output filtering followed by Caveman message compression",
     "qdrantTitle": "Qdrant (Vector memory)",
@@ -7198,6 +7205,10 @@
       "rtk": {
         "label": "RTK",
         "description": "Command-output filtering."
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       },
       "headroom": {
         "label": "Headroom",
@@ -7514,10 +7525,14 @@
     "modelLockoutMaxBackoffStepsDescription": "Maximum number of backoff steps before the cooldown stops growing. The Max Cooldown cap is reached first in most configurations, making this a safety ceiling for when Max Cooldown is raised.",
     "disableSessionStickiness": "Disable session stickiness",
     "disableSessionStickinessDesc": "Round-robin and random combos rotate to a different connection on every request instead of pinning a whole conversation to one connection by the first-message hash. Leave off to preserve prompt-cache hits for multi-turn chats. Per-combo overrides take precedence.",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
     "credentialRedaction": "Credential Redaction",
     "credentialRedactionDesc": "Redact API keys, tokens, and secrets from context sent to providers and from responses.",
     "enableCredentialRedaction": "Enable credential redaction",
-    "enableCredentialRedactionDesc": "Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses."
+    "enableCredentialRedactionDesc": "Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled"
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -12088,7 +12103,7 @@
     "noProviderOverrides": "No overrides — all active providers will participate with their default models"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) is now an official sponsor of OmniRoute",
+    "title": "Kimi (Moonshot AI) is OmniRoute's founding Open Source Friend",
     "description": "Kimi K3 brings a 1M-token context window and frontier coding performance to OmniRoute at a fraction of the cost.",
     "cta": "Get Kimi Code",
     "partnerLinkNote": "Partner link",

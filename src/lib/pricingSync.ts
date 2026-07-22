@@ -487,9 +487,10 @@ export function getSyncStatus(): SyncStatus {
     enabled,
     lastSync: effectiveLastSync,
     lastSyncModelCount: effectiveModelCount,
-    nextSync: effectiveLastSync
-      ? new Date(new Date(effectiveLastSync).getTime() + activeSyncIntervalMs).toISOString()
-      : null,
+    nextSync:
+      enabled && effectiveLastSync
+        ? new Date(new Date(effectiveLastSync).getTime() + activeSyncIntervalMs).toISOString()
+        : null,
     intervalMs: activeSyncIntervalMs,
     sources: SYNC_SOURCES,
   };

@@ -3,6 +3,7 @@
 // poe. Extracted from validation.ts (god-file decomposition) — top-level functions with no
 // dispatcher-state captures; behavior is byte-identical to the original inline defs.
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { POE_DEFAULT_BASE_URL } from "@omniroute/open-sse/config/providers/registry/poe/index.ts";
 import { normalizeBaseUrl } from "./urlHelpers";
 import {
   applyCustomUserAgent,
@@ -608,7 +609,7 @@ export async function validateNousResearchProvider({ apiKey, providerSpecificDat
 }
 
 export async function validatePoeProvider({ apiKey, providerSpecificData = {} }: any) {
-  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || "https://api.poe.com/v1";
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || POE_DEFAULT_BASE_URL;
   const balanceUrl = new URL("/usage/current_balance", baseUrl).toString();
 
   try {

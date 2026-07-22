@@ -1,0 +1,1 @@
+- fix(cli): merge Node's own bin dir into the CLI healthcheck spawn PATH so npm-shebang tools like codex resolve under a minimal launcher PATH (#8036)

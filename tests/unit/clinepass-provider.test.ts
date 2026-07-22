@@ -92,6 +92,7 @@ test("Cline fallback owns recommended/free models and excludes the ClinePass nam
     "poolside/laguna-m.1:free",
     "google/gemma-4-31b-it:free",
     "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "minimax/minimax-m3",
   ]);
   assert.ok(ids.every((id: string) => !id.startsWith("cline-pass/")));
 });

@@ -102,13 +102,31 @@ export function isPlaygroundPromptQlToken(token: string): boolean {
   return false;
 }
 
+/**
+ * Hosts trusted as PromptQL DDN/lux token issuers. A bare `String.includes()` against
+ * `iss` is spoofable (`https://auth.pro.hasura.io.evil.com/...` also "contains" the
+ * trusted substring) — CodeQL js/incomplete-url-substring-sanitization, issue #8029.
+ * Always parse `iss` as a URL and compare the hostname instead.
+ */
+const TRUSTED_DDN_ISSUER_HOSTS = ["auth.pro.hasura.io", "auth.pro.ql.app"];
+
+/** True when `iss` parses as a URL whose hostname is (or is a subdomain of) a trusted host. */
+export function issuerHostIsTrusted(iss: string): boolean {
+  try {
+    const host = new URL(iss).hostname.toLowerCase();
+    return TRUSTED_DDN_ISSUER_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 /** DDN/lux project JWT (iss auth.pro.hasura.io) — credits yes, playground chat no. */
 export function isDdnProjectPromptQlToken(token: string): boolean {
   if (!token || isPlaygroundPromptQlToken(token)) return false;
   const payload = decodeJwtPayload(token);
   if (!payload) return false;
-  const iss = readStr(payload.iss).toLowerCase();
-  if (iss.includes("auth.pro.hasura.io") || iss.includes("auth.pro.ql.app")) return true;
+  const iss = readStr(payload.iss);
+  if (issuerHostIsTrusted(iss)) return true;
   // aud is a project UUID and no hasura claims → treat as DDN
   const aud = payload.aud;
   if (typeof aud === "string" && looksLikeUuid(aud)) return true;

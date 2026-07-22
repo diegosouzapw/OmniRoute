@@ -22,6 +22,8 @@ import {
   type CompressionPipelineStep,
   type CompressionConfig,
   type CompressionMode,
+  DEFAULT_CODEX_RESPONSES_CONFIG,
+  type CodexResponsesConfig,
   type ContextEditingConfig,
   type EngineToggle,
   type McpAccessibilityConfig,
@@ -45,6 +47,7 @@ const COMPRESSION_MODES = new Set<CompressionMode>([
   "aggressive",
   "ultra",
   "rtk",
+  "codex-responses",
   "stacked",
   "omniglyph",
 ]);
@@ -227,6 +230,47 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
   };
 }
 
+function normalizeCodexResponsesConfig(value: unknown): CodexResponsesConfig {
+  const record = toRecord(value);
+  const preserveToolNames = Array.isArray(record.preserveToolNames)
+    ? record.preserveToolNames.filter(
+        (name): name is string => typeof name === "string" && name.trim().length > 0
+      )
+    : DEFAULT_CODEX_RESPONSES_CONFIG.preserveToolNames;
+  return {
+    ...DEFAULT_CODEX_RESPONSES_CONFIG,
+    enabled:
+      typeof record.enabled === "boolean" ? record.enabled : DEFAULT_CODEX_RESPONSES_CONFIG.enabled,
+    minBytes: boundedInt(record.minBytes, DEFAULT_CODEX_RESPONSES_CONFIG.minBytes, 0, 2_000_000),
+    maxOutputBytes: boundedInt(
+      record.maxOutputBytes,
+      DEFAULT_CODEX_RESPONSES_CONFIG.maxOutputBytes,
+      1,
+      10_000_000
+    ),
+    maxCandidateBytes: boundedInt(
+      record.maxCandidateBytes,
+      DEFAULT_CODEX_RESPONSES_CONFIG.maxCandidateBytes,
+      1,
+      2_000_000
+    ),
+    maxLines: boundedInt(record.maxLines, DEFAULT_CODEX_RESPONSES_CONFIG.maxLines, 1, 10_000),
+    minSearchMatches: boundedInt(
+      record.minSearchMatches,
+      DEFAULT_CODEX_RESPONSES_CONFIG.minSearchMatches,
+      2,
+      10_000
+    ),
+    minLogLines: boundedInt(
+      record.minLogLines,
+      DEFAULT_CODEX_RESPONSES_CONFIG.minLogLines,
+      2,
+      10_000
+    ),
+    preserveToolNames: [...new Set(preserveToolNames.map((name) => name.trim()))],
+  };
+}
+
 function normalizeLanguageConfig(value: unknown): CompressionLanguageConfig {
   const record = toRecord(value);
   const defaultLanguage =
@@ -272,6 +316,7 @@ const STACKED_PIPELINE_ENGINE_IDS = new Set([
   "aggressive",
   "ultra",
   "rtk",
+  "codex-responses",
   "headroom",
   "session-dedup",
   "ccr",
@@ -425,6 +470,7 @@ const SINGLE_MODE_ENGINE: Partial<Record<CompressionMode, string>> = {
   ultra: "ultra",
   rtk: "rtk",
   omniglyph: "omniglyph",
+  "codex-responses": "codex-responses",
 };
 
 function normalizeEngineToggle(value: unknown): EngineToggle | null {
@@ -549,6 +595,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     cavemanOutputMode: { ...DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG },
     outputStyles: [],
     rtkConfig: { ...DEFAULT_RTK_CONFIG },
+    codexResponsesConfig: { ...DEFAULT_CODEX_RESPONSES_CONFIG },
     languageConfig: { ...DEFAULT_COMPRESSION_LANGUAGE_CONFIG },
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
@@ -646,6 +693,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "rtkConfig":
         config.rtkConfig = normalizeRtkConfig(parsed);
+        break;
+      case "codexResponsesConfig":
+        config.codexResponsesConfig = normalizeCodexResponsesConfig(parsed);
         break;
       case "languageConfig":
         config.languageConfig = normalizeLanguageConfig(parsed);

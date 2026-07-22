@@ -11,6 +11,7 @@ import { getOpenrouterUsage } from "./usage/openrouter.ts";
 import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
 import { getPromptQlUsage } from "./usage/promptql.ts";
+import { getHyperAgentUsage } from "./usage/hyperagent.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
@@ -60,6 +61,7 @@ import { getClaudeUsage, getClaudePlanLabel } from "./usage/claude.ts";
 import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 // Re-exported para os testes kiro-* (importam de services/usage).
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
+import { getAdobeFireflyUsage } from "./usage/adobeFirefly.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
@@ -544,6 +546,9 @@ export const USAGE_FETCHER_PROVIDERS = [
   // PromptQL playground credits (data.pro.ql.app getCreditSummary)
   "promptql",
   "pql",
+  // HyperAgent billing usage (creditBlocks USD)
+  "hyperagent",
+  "ha",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -633,6 +638,13 @@ export async function getUsageForProvider(
         providerSpecificData,
         projectId
       );
+    case "adobe-firefly":
+    case "firefly":
+      // Cookie or IMS JWT in apiKey/accessToken → GET firefly.adobe.io/v1/credits/balance
+      return await getAdobeFireflyUsage(apiKey, accessToken, providerSpecificData);
+    case "hyperagent":
+    case "ha":
+      return await getHyperAgentUsage(apiKey || accessToken, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
