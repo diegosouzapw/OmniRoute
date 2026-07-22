@@ -209,21 +209,23 @@ MAX_BODY_SIZE_BYTES=5242880    # 5 MB limit
 
 OmniRoute provides a two-layer defense: request-side injection scanning and response-side PII stripping.
 
+> **⚠️ Limitations:** These guardrails are *best-effort heuristic* detections, not a complete prompt-injection firewall or PII DLP system. They can produce false positives (benign persona/RPG prompts flagged) and false negatives (leetspeak, spacing, non-English patterns). They are not sufficient alone for compliance. Tune modes and test against your traffic before relying on them.
+
 ### Request-Side: Prompt Injection Guard
 
 | Variable                  | Default   | Source File                              | Description                                                                                 |
 | ------------------------- | --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `INPUT_SANITIZER_ENABLED` | `true`    | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
-| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = log only, `block` = reject request with 400, `redact` = strip suspicious patterns. |
-| `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
-| `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
+| `INPUT_SANITIZER_ENABLED` | `false`   | `src/shared/utils/inputSanitizer.ts`     | Opt-in scanning of incoming messages for prompt injection patterns. Set to `true` to enable. |
+| `INPUT_SANITIZER_MODE`    | `warn`    | `src/shared/utils/inputSanitizer.ts`     | `warn` = log only, `block` = reject request with 400, `redact` = log + tag (does **not** strip injection text from the request). |
+| `INJECTION_GUARD_MODE`    | _(unset)_ | `src/lib/guardrails/promptInjection.ts`  | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
+| `PII_REDACTION_ENABLED`   | `false`   | `src/shared/utils/inputSanitizer.ts`     | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
 
 ### Response-Side: PII Sanitizer
 
 | Variable                         | Default  | Source File               | Description                                                             |
 | -------------------------------- | -------- | ------------------------- | ----------------------------------------------------------------------- |
-| `PII_RESPONSE_SANITIZATION`      | `false`  | `src/lib/piiSanitizer.ts` | Scan LLM responses for leaked PII before returning to client.           |
-| `PII_RESPONSE_SANITIZATION_MODE` | `redact` | `src/lib/piiSanitizer.ts` | `redact` = mask PII, `warn` = log only, `block` = drop entire response. |
+| `PII_RESPONSE_SANITIZATION`      | `false`  | `src/lib/piiSanitizer.ts` | Scan LLM responses for PII patterns. Currently used primarily for **log scrubbing**, not response-body rewriting. |
+| `PII_RESPONSE_SANITIZATION_MODE` | `redact` | `src/lib/piiSanitizer.ts` | `redact` = mask PII in logs, `warn` = log only, `block` = drop entire response. |
 
 ### VS Code Tokenized-Route Context Sanitizer
 
