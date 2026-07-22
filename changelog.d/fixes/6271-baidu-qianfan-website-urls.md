@@ -1,0 +1,1 @@
+- **fix(providers):** refresh Baidu ERNIE + Qianfan provider website URLs to current developer landing pages ([#6271](https://github.com/diegosouzapw/OmniRoute/issues/6271)) — thanks @TrackCrewGalore
