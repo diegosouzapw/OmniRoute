@@ -40,7 +40,7 @@ function looksLikeAbsolutePath(tok: string): boolean {
 
 function redactSensitiveErrorText(value: string): string {
   return value
-    .replace(/data:[^;,\s]+;base64,[A-Za-z0-9+/=_-]+/gi, "[REDACTED_DATA_URL]")
+    .replace(/data:[^,\s]+;base64,[A-Za-z0-9+/=_-]+/gi, "[REDACTED_DATA_URL]")
     .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/gi, "$1 [REDACTED]")
     .replace(
       /(["']?(?:api[_-]?key|access[_-]?token|authorization|cookie|secret)["']?\s*[:=]\s*["'])[^"']*(["'])/gi,
@@ -72,7 +72,8 @@ export function sanitizeErrorMessage(message: unknown): string {
   return redactSensitiveErrorText(parts.join(""));
 }
 
-const BLOCKED_KEYS = /stack|trace|path|file|cwd|dir|password|secret|token|key/i;
+const BLOCKED_KEYS =
+  /stack|trace|path|file|cwd|dir|password|secret|token|key|authorization|cookie/i;
 const MAX_DEPTH = 4;
 
 /**

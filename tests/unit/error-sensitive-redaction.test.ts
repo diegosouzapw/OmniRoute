@@ -4,7 +4,7 @@ import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../../open-sse/ut
 
 test("sanitizeErrorMessage redacts bearer credentials and image data URLs", () => {
   const raw =
-    "upstream echoed Authorization: Bearer eyJ.secret.token and data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAE=";
+    "upstream echoed Authorization: Bearer eyJ.secret.token and data:image/png;charset=utf-8;base64,iVBORw0KGgoAAAANSUhEUgAAAAE=";
   const safe = sanitizeErrorMessage(raw);
 
   assert.doesNotMatch(safe, /eyJ\.secret\.token/);
@@ -25,12 +25,16 @@ test("sanitizeErrorMessage redacts common JSON credential fields", () => {
   assert.match(safe, /\[REDACTED\]/);
 });
 
-test("sanitizeUpstreamDetails redacts credentials and data URLs in allowed fields", () => {
+test("sanitizeUpstreamDetails drops credential headers and redacts data URLs", () => {
   const safe = sanitizeUpstreamDetails({
     authorization: "Bearer sensitive",
+    cookie: "session=sensitive; refresh=also-sensitive",
+    "set-cookie": "session=sensitive",
     error: "failed for data:image/webp;base64,UklGRgAAAAA=",
   }) as Record<string, unknown>;
 
-  assert.doesNotMatch(String(safe.authorization), /sensitive/);
+  assert.equal("authorization" in safe, false);
+  assert.equal("cookie" in safe, false);
+  assert.equal("set-cookie" in safe, false);
   assert.equal(safe.error, "failed for [REDACTED_DATA_URL]");
 });
