@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "arena.ai-ஐத் திறந்து, உள்நுழைந்து, பின்னர் Network கோரிக்கையிலிருந்து முழு Cookie தலைப்பை நகலெடுக்கவும். arena-auth-prod-v1.0 மற்றும் arena-auth-prod-v1.1 (மற்றும் கூடுதல் பகுதிகள் இருந்தால்) ஆகியவற்றைச் சேர்க்கவும், முன்னுரிமையாக cf_clearance உடன். வெற்று arena-auth-prod-v1 குக்கியை மட்டும் ஒட்ட வேண்டாம். விருப்பத்தேர்வு: create-evaluation இன்னும் 403-ஐ வழங்கினால் providerSpecificData.recaptchaV3Token.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "பங்குதாரர் இணைப்பு — உங்களுக்கு எந்த கூடுதல் கட்டணமும் இன்றி OmniRoute-ஐ ஆதரிக்கிறது"
+    "kimiPartnerLinkNote": "பங்குதாரர் இணைப்பு — உங்களுக்கு எந்த கூடுதல் கட்டணமும் இன்றி OmniRoute-ஐ ஆதரிக்கிறது",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Settings",
@@ -7219,6 +7220,10 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "ஒரு படமாக சூழல் (Claude Fable 5, நேரடி வழி)."
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7516,7 +7521,9 @@
     "cacheOpt": "Cache Optimized",
     "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
+    "compressionModeCodexResponses": "Responses tool output",
+    "compressionModeCodexResponsesDesc": "Conservative compression for eligible shell, patch, search, build, and JSON outputs"
   },
   "contextRtk": {
     "title": "RTK Engine",

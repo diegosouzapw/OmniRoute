@@ -5845,7 +5845,8 @@
     "zedPasteApiKey": "貼上 API 金鑰…",
     "zedSaving": "正在儲存…",
     "zedUnsupportedCredentials": "找到 {count} 個鑰匙圈憑證，但均未匹配支援的提供者",
-    "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費"
+    "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "設定",
@@ -7227,6 +7228,10 @@
       "ultra": {
         "description": "啟發式 Token 修剪，可選用 SLM。",
         "label": "極致"
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionGuidanceCacheImpact": "快取影響",
@@ -7417,7 +7422,9 @@
     "cacheOpt": "Cache Optimized",
     "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
+    "compressionModeCodexResponses": "Responses tool output",
+    "compressionModeCodexResponsesDesc": "Conservative compression for eligible shell, patch, search, build, and JSON outputs"
   },
   "contextRtk": {
     "title": "RTK 引擎",

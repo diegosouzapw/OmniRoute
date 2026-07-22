@@ -64,6 +64,10 @@ describe("deriveDefaultPlan: single omniglyph engine toggle", () => {
 });
 
 describe("combo schema: compressionModeSchema", () => {
+  it("accepts codex-responses routing overrides", () => {
+    assert.equal(compressionModeSchema.parse("codex-responses"), "codex-responses");
+  });
+
   it("accepts omniglyph", () => {
     assert.equal(compressionModeSchema.parse("omniglyph"), "omniglyph");
   });

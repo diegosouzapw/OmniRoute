@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "Mở arena.ai, đăng nhập, sau đó sao chép toàn bộ header Cookie từ một yêu cầu mạng. Bao gồm arena-auth-prod-v1.0 và arena-auth-prod-v1.1 (và các phần tiếp theo nếu có), ưu tiên kèm theo cf_clearance. Không chỉ dán cookie arena-auth-prod-v1 trống. Tùy chọn: providerSpecificData.recaptchaV3Token nếu create-evaluation vẫn trả về 403.",
     "kimiOfficialSupporterBadge": "Nhà tài trợ chính thức",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) là đối tác ra mắt chính thức của OmniRoute",
-    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Cài đặt",
@@ -7211,6 +7212,10 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "Chuyển ngữ cảnh thành hình ảnh (Claude Fable 5, định tuyến trực tiếp)."
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7516,7 +7521,9 @@
     "cacheOpt": "Cache Optimized",
     "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
+    "compressionModeCodexResponses": "Đầu ra công cụ của Responses",
+    "compressionModeCodexResponsesDesc": "Nén thận trọng cho các đầu ra shell, patch, tìm kiếm, build và JSON đủ điều kiện"
   },
   "contextRtk": {
     "title": "RTK Engine",
