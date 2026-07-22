@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { GrokCliExecutor } from "../../open-sse/executors/grok-cli.ts";
+import type { ProviderCredentials } from "../../open-sse/executors/base.ts";
+
+const testCredentials: ProviderCredentials = { accessToken: "tok" };
 
 test("#7611: GrokCliExecutor sanitizes incomplete hex escapes in function_call_output", () => {
   const executor = new GrokCliExecutor();
@@ -22,9 +25,10 @@ test("#7611: GrokCliExecutor sanitizes incomplete hex escapes in function_call_o
     ],
   };
 
-  const transformed = executor.transformRequest("grok-4.5", body, true, {
-    accessToken: "tok",
-  } as any) as Record<string, unknown>;
+  const transformed = executor.transformRequest("grok-4.5", body, true, testCredentials) as Record<
+    string,
+    unknown
+  >;
 
   const input = transformed.input as Array<Record<string, unknown>>;
   const outputItem = input.find((item) => item.type === "function_call_output");
@@ -48,9 +52,10 @@ test("#7611: valid JSON tool outputs are re-serialized cleanly", () => {
       },
     ],
   };
-  const transformed = executor.transformRequest("grok-4.5", body, false, {
-    accessToken: "tok",
-  } as any) as Record<string, unknown>;
+  const transformed = executor.transformRequest("grok-4.5", body, false, testCredentials) as Record<
+    string,
+    unknown
+  >;
   const input = transformed.input as Array<Record<string, unknown>>;
   const outputItem = input.find((item) => item.type === "function_call_output");
   assert.deepEqual(JSON.parse(String(outputItem?.output)), payload);
@@ -71,9 +76,10 @@ test("#7611: array content parts are flattened to text", () => {
       },
     ],
   };
-  const transformed = executor.transformRequest("grok-4.5", body, false, {
-    accessToken: "tok",
-  } as any) as Record<string, unknown>;
+  const transformed = executor.transformRequest("grok-4.5", body, false, testCredentials) as Record<
+    string,
+    unknown
+  >;
   const input = transformed.input as Array<Record<string, unknown>>;
   const outputItem = input.find((item) => item.type === "function_call_output");
   assert.equal(typeof outputItem?.output, "string");
