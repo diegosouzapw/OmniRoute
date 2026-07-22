@@ -35,6 +35,8 @@ export interface DatabaseSettings {
     promptCacheEnabled: boolean;
     promptCacheStrategy: "auto" | "system-only" | "manual";
     alwaysPreserveClientCache: "auto" | "always" | "never";
+    /** Model catalog /v1/models response cache TTL in milliseconds. */
+    modelCatalogCacheTtlMs: number;
   };
 
   /** 5. Retention (per-table cleanup policies) */
@@ -101,6 +103,7 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     promptCacheEnabled: true,
     promptCacheStrategy: "auto",
     alwaysPreserveClientCache: "auto",
+    modelCatalogCacheTtlMs: 1500,
   },
   retention: {
     quotaSnapshots: 7,

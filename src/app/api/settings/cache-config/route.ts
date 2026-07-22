@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSettings, updateSettings } from "@/lib/localDb";
+import { getDatabaseSettings, updateDatabaseSettings } from "@/lib/localDb/databaseSettings";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { z } from "zod";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -12,6 +12,7 @@ const cacheConfigUpdateSchema = z.object({
   promptCacheStrategy: z.enum(["auto", "system-only", "manual"]).optional(),
   alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
   idempotencyWindowMs: z.number().positive().optional(),
+  modelCatalogCacheTtlMs: z.number().positive().optional(),
 });
 
 const CACHE_CONFIG_KEYS = [
@@ -22,6 +23,7 @@ const CACHE_CONFIG_KEYS = [
   "promptCacheStrategy",
   "alwaysPreserveClientCache",
   "idempotencyWindowMs",
+  "modelCatalogCacheTtlMs",
 ] as const;
 
 const DEFAULTS = {
@@ -32,6 +34,7 @@ const DEFAULTS = {
   promptCacheStrategy: "auto",
   alwaysPreserveClientCache: "auto",
   idempotencyWindowMs: 5000,
+  modelCatalogCacheTtlMs: 1500,
 };
 
 export async function GET(request: NextRequest) {
@@ -40,10 +43,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const settings = await getSettings();
+    const dbSettings = getDatabaseSettings();
+    const cache = dbSettings.cache ?? {};
     const config: Record<string, unknown> = {};
     for (const key of CACHE_CONFIG_KEYS) {
-      config[key] = settings[key] ?? DEFAULTS[key];
+      config[key] = (cache as Record<string, unknown>)[key] ?? DEFAULTS[key];
     }
     return NextResponse.json(config);
   } catch (error) {
@@ -92,6 +96,11 @@ export async function PUT(request: NextRequest) {
     }
     if (body.idempotencyWindowMs !== undefined) {
       updates.idempotencyWindowMs = body.idempotencyWindowMs;
+    }
+    if (body.modelCatalogCacheTtlMs !== undefined) {
+      updates.modelCatalogCacheTtlMs = body.modelCatalogCacheTtlMs;
+      // Bump the catalog cache version so in-flight responses pick fresh TTL
+      updates.modelCatalogCacheVersion = 1;
     }
 
     await updateSettings(updates);
