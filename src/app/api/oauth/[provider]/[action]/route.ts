@@ -488,7 +488,15 @@ export async function POST(
       const normalizedState = typeof state === "string" && state.length > 0 ? state : undefined;
       const providerData = getProvider(provider);
 
-      if (providerData.flowType === "authorization_code_pkce" && !codeVerifier) {
+      // Capability check, not a bare flowType equality: grok-cli keeps flowType
+      // "device_code" as its primary flow (#7358) while ALSO exposing a browser
+      // PKCE login via supportsBrowserPkce (#7013 rework) — its exchange still
+      // needs a codeVerifier when the browser method was used. Other providers
+      // are untouched since only grok-cli sets supportsBrowserPkce.
+      if (
+        (providerData.flowType === "authorization_code_pkce" || providerData.supportsBrowserPkce) &&
+        !codeVerifier
+      ) {
         return NextResponse.json(
           {
             error: {
@@ -747,7 +755,12 @@ export async function POST(
           const existing = await getProviderConnections({ provider });
           // Codex accounts sharing an email require workspaceId/chatgptUserId
           // agreement to be treated as the same account (#7737).
-          const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
+          const match = findExistingOAuthConnectionMatch(
+            existing,
+            provider,
+            tokenData,
+            connectionId
+          );
           const matchId = typeof match?.id === "string" ? match.id : null;
           if (matchId) {
             connection = await updateProviderConnection(matchId, {

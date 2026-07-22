@@ -24,20 +24,36 @@ test("publicCreds: grok_id embedded default is present and decodes", () => {
   assert.ok(decoded.length > 0, "grok_id must decode to a non-empty client id");
 });
 
-// #7013: grok-cli now ships a browser PKCE flow alongside the pre-existing
-// paste-token import — the registry flowType flips to PKCE so GET
-// authorize/exchange/poll-callback dispatch correctly; mapTokens still
-// auto-detects and handles pasted-token input (see tests below). This
-// supersedes #7358's device_code flowType for grok-cli: requestDeviceCode/
-// pollToken were removed (dead once flowType left "device_code" — the device
-// panel in OAuthModal.tsx no longer routes grok-cli through them either).
-// The former "maps a standard OAuth token response"/"organization principals"
-// device-code-shaped (`access_token`+`id_token`) coverage now lives in
-// tests/unit/oauth-grok-cli-browser.test.ts, which asserts that exact shape
-// dispatches through mapGrokBuildBrowserTokens (grok-cli-oauth.ts) instead.
-test("Grok Build OAuth Provider - flowType is authorization_code_pkce (browser login, #7013)", () => {
-  assert.equal(grokCli.flowType, "authorization_code_pkce");
+// #7013 (reworked): grok-cli now ships a browser PKCE flow ALONGSIDE the
+// pre-existing device_code flow (#7358) and paste-token import — all three
+// coexist under one registry entry instead of the browser flow replacing
+// device_code. flowType stays "device_code" so it remains the DEFAULT/primary
+// method in OAuthModal.tsx and route.ts's device-code/poll action family;
+// supportsBrowserPkce is the capability marker providers.ts::generateAuthData
+// and route.ts's exchange codeVerifier guard check to also build/require PKCE
+// for the browser method. requestDeviceCode/pollToken are restored (see
+// coexistence assertions below); mapTokens still auto-detects and handles
+// pasted-token input (see tests below) and the browser-flow OAuth-token shape
+// (`access_token`+`id_token`) is covered in tests/unit/oauth-grok-cli-browser.test.ts,
+// which asserts that exact shape dispatches through mapGrokBuildBrowserTokens
+// (grok-cli-oauth.ts).
+test("Grok Build OAuth Provider - flowType stays device_code (primary, #7358) with browser PKCE alongside (#7013)", () => {
+  assert.equal(grokCli.flowType, "device_code");
+  assert.equal(grokCli.supportsBrowserPkce, true);
   assert.equal(grokCli.config.scope, "openid profile email offline_access grok-cli:access");
+});
+
+// #7013 rework coexistence guard: BOTH flows' handlers must be present on the
+// single grok-cli registry entry — losing either one silently breaks either
+// the device-code panel (OAuthModal.tsx DEVICE_CODE_PROVIDERS) or the browser
+// PKCE login (PKCE_CALLBACK_SERVER_PROVIDERS / providers.ts::generateAuthData).
+test("Grok Build OAuth Provider - device_code AND browser PKCE handlers coexist (#7013)", () => {
+  assert.equal(typeof grokCli.requestDeviceCode, "function", "requestDeviceCode must be present");
+  assert.equal(typeof grokCli.pollToken, "function", "pollToken must be present");
+  assert.equal(typeof grokCli.buildAuthUrl, "function", "buildAuthUrl must be present");
+  assert.equal(typeof grokCli.exchangeToken, "function", "exchangeToken must be present");
+  assert.equal(typeof grokCli.mapTokens, "function", "mapTokens must be present");
+  assert.equal(grokCli.pkceVerifierBytes, 96);
 });
 
 test("Grok Build OAuth Provider - mapTokens from raw JWT", () => {

@@ -169,7 +169,10 @@ test("GET /api/oauth/grok-cli/authorize dispatches through the PKCE path (not th
   const res = await getRoute("grok-cli", "authorize");
   assert.equal(res.status, 200);
   const body = await res.json();
-  assert.equal(body.flowType, "authorization_code_pkce");
+  // #7013 rework: flowType stays "device_code" (the primary/default method,
+  // #7358) — the PKCE authUrl is built off the supportsBrowserPkce capability
+  // marker (providers.ts::generateAuthData), not off flowType equality.
+  assert.equal(body.flowType, "device_code");
   assert.ok(body.authUrl, "authUrl must be present — PKCE is enabled, not disabled");
   assert.ok(!("supported" in body) || body.supported !== false);
 });
