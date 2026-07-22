@@ -178,11 +178,32 @@ function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSp
   if (modelId) {
     const byCanonical = getModelSpec(modelId);
     if (byCanonical) return byCanonical;
+    // #8032: path-shaped model IDs (e.g. "cline-pass/kimi-k3") may not match
+    // static specs keyed by leaf model ID. Try the leaf segment after the last "/".
+    const leafId = extractLeafModelId(modelId);
+    if (leafId && leafId !== modelId) {
+      const byLeaf = getModelSpec(leafId);
+      if (byLeaf) return byLeaf;
+    }
   }
   if (rawModel && rawModel !== modelId) {
-    return getModelSpec(rawModel);
+    const byRaw = getModelSpec(rawModel);
+    if (byRaw) return byRaw;
+    const leafId = extractLeafModelId(rawModel);
+    if (leafId && leafId !== rawModel) {
+      return getModelSpec(leafId);
+    }
   }
   return undefined;
+}
+
+/**
+ * #8032: Extract the leaf segment from a path-shaped model ID.
+ * "cline-pass/kimi-k3" → "kimi-k3"; "kimi-k3" → "kimi-k3".
+ */
+function extractLeafModelId(modelId: string): string {
+  const lastSlash = modelId.lastIndexOf("/");
+  return lastSlash >= 0 ? modelId.slice(lastSlash + 1) : modelId;
 }
 
 function getAuthoritativeStaticContextWindow(
@@ -190,13 +211,28 @@ function getAuthoritativeStaticContextWindow(
   modelId: string | null,
   rawModel: string | null
 ): number | null {
-  for (const candidate of [modelId, rawModel]) {
+  const candidates = [modelId, rawModel];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
     const providerContextWindow = getAuthoritativeProviderContextWindow(provider, candidate);
     if (typeof providerContextWindow === "number") return providerContextWindow;
+    // #8032: try leaf segment for path-shaped IDs
+    const leafId = extractLeafModelId(candidate);
+    if (leafId !== candidate) {
+      const leafWindow = getAuthoritativeProviderContextWindow(provider, leafId);
+      if (typeof leafWindow === "number") return leafWindow;
+    }
   }
-  for (const candidate of [modelId, rawModel]) {
+  for (const candidate of candidates) {
+    if (!candidate) continue;
     const contextWindow = getAuthoritativeContextWindow(candidate);
     if (typeof contextWindow === "number") return contextWindow;
+    // #8032: try leaf segment for path-shaped IDs
+    const leafId = extractLeafModelId(candidate);
+    if (leafId !== candidate) {
+      const leafWindow = getAuthoritativeContextWindow(leafId);
+      if (typeof leafWindow === "number") return leafWindow;
+    }
   }
   return null;
 }
@@ -207,10 +243,16 @@ function getStaticSpecCanonicalModelId(modelId: string | null, rawModel: string 
   );
   for (const candidate of candidates) {
     const lower = candidate.toLowerCase();
+    const leafLower = extractLeafModelId(candidate).toLowerCase();
     for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
       if (canonical === "__default__") continue;
-      if (canonical.toLowerCase() === lower) return canonical;
-      if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return canonical;
+      const canonicalLower = canonical.toLowerCase();
+      if (canonicalLower === lower || canonicalLower === leafLower) return canonical;
+      const aliases = spec.aliases;
+      if (aliases?.some((alias) => {
+        const aliasLower = alias.toLowerCase();
+        return aliasLower === lower || aliasLower === leafLower;
+      })) return canonical;
     }
   }
   return null;

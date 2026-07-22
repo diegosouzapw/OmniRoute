@@ -121,7 +121,15 @@ function getRegistryModel(providerOrAlias: string | null, modelId: string | null
   if (!providerOrAlias || !modelId) return null;
   const alias = PROVIDER_ID_TO_ALIAS[providerOrAlias] || providerOrAlias;
   const models = PROVIDER_MODELS[alias] || PROVIDER_MODELS[providerOrAlias] || [];
-  return models.find((entry) => entry?.id === modelId) || null;
+  const exact = models.find((entry) => entry?.id === modelId);
+  if (exact) return exact;
+  // #8032: path-shaped model IDs (e.g. "cline-pass/gpt-4o") — try leaf segment
+  const lastSlash = modelId.lastIndexOf("/");
+  if (lastSlash >= 0) {
+    const leafId = modelId.slice(lastSlash + 1);
+    return models.find((entry) => entry?.id === leafId) || null;
+  }
+  return null;
 }
 
 function buildModalities(
