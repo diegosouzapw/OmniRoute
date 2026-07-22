@@ -129,7 +129,11 @@ export default async function RootLayout({ children }) {
                 } else {
                   document.documentElement.classList.remove('dark');
                 }
-              } catch (e) {}
+              } catch (e) {
+                // #8142: JSON.parse can throw on malformed localStorage entries
+                // (e.g. truncated or corrupted zustand state). Fall through to
+                // the default theme — safe to ignore.
+              }
             `,
           }}
         />
