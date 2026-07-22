@@ -10,6 +10,7 @@ import {
   normalizeSessionCookieHeaders,
 } from "@/lib/providers/webCookieAuth";
 import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
 // Meta rebranded the chat product from "Abra" to "Ecto"; the session cookie
@@ -942,7 +943,7 @@ async function graphqlPost(
   } catch (err) {
     return {
       ok: false,
-      error: `${label} fetch failed: ${err instanceof Error ? err.message : String(err)}`,
+      error: `${label} fetch failed: ${sanitizeErrorMessage(err)}`,
     };
   }
 }
