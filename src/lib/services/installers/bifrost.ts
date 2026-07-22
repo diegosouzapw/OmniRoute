@@ -118,10 +118,28 @@ export async function update(): Promise<InstallResult> {
   return install("latest");
 }
 
+/**
+ * Bifrost's own bin.js validates BIFROST_TRANSPORT_VERSION against
+ * /^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/ or the literal "latest" - it does
+ * NOT accept a bare semver string like "1.6.3". getInstalledVersionSync()
+ * reads the raw "version" field straight out of package.json, which is
+ * always bare semver (npm/package.json convention never includes the "v"
+ * prefix), so passing it through unmodified made every embedded Bifrost
+ * instance fail on startup with "Invalid transport version format".
+ *
+ * Normalize here, at the call site that owns the env var, so both
+ * bifrost.ts and the upstream @maximhq/bifrost package can stay exactly as
+ * they are otherwise designed to be used.
+ */
+export function formatTransportVersion(version: string | null): string {
+  if (!version || version === "latest") return version ?? "latest";
+  return version.startsWith("v") ? version : `v${version}`;
+}
+
 export function resolveSpawnArgs(port: number): SpawnArgs {
   const binPath = getBinPath();
   // Pin transport version to the installed npm version for reproducibility (spec §2b)
-  const transportVersion = getInstalledVersionSync() ?? "latest";
+  const transportVersion = formatTransportVersion(getInstalledVersionSync());
 
   return {
     command: process.execPath,
