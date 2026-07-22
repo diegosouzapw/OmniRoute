@@ -212,12 +212,17 @@ export function extractImageEditInputFromJson(body: unknown): ParsedImageEditInp
   const images = obj.images;
   if (Array.isArray(images)) {
     for (const entry of images) {
-      if (typeof entry === "string") candidates.push(entry);
-      else if (entry && typeof entry === "object") {
+      if (entry && typeof entry === "object") {
         const e = entry as Record<string, unknown>;
         candidates.push(e.image_url ?? e.url ?? e.b64_json);
+      } else {
+        // Preserve every scalar/null array slot as a submitted candidate. Parsing will
+        // reject unsupported values, and the route can detect partial image sets.
+        candidates.push(entry);
       }
     }
+  } else if (images !== undefined) {
+    candidates.push(images);
   }
 
   const parsedImages: Array<{ bytes: Buffer; mime: string }> = [];

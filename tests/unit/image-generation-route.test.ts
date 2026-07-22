@@ -306,8 +306,10 @@ test("v1 image edit POST routes built-in Codex references through native Respons
   formData.set("prompt", "change the purple cup to blue");
   formData.set("model", "codex/gpt-5.6-sol");
   formData.set("response_format", "b64_json");
-  formData.set("image", new File([sourceBytes], "cup.png", { type: "image/png" }));
+  // Deliberately interleave the two accepted field names; the outbound order must
+  // remain the multipart submission order rather than being grouped by field name.
   formData.append("image[]", new File([secondSourceBytes], "style.jpg", { type: "image/jpeg" }));
+  formData.append("image", new File([sourceBytes], "cup.png", { type: "image/png" }));
 
   const response = await imageEditRoute.POST(
     new Request("http://localhost/api/v1/images/edits", {
@@ -336,12 +338,12 @@ test("v1 image edit POST routes built-in Codex references through native Respons
   assert.equal(captured.body.input[0].content[1].type, "input_image");
   assert.equal(
     captured.body.input[0].content[1].image_url,
-    `data:image/png;base64,${Buffer.from(sourceBytes).toString("base64")}`
+    `data:image/jpeg;base64,${Buffer.from(secondSourceBytes).toString("base64")}`
   );
   assert.equal(captured.body.input[0].content[2].type, "input_image");
   assert.equal(
     captured.body.input[0].content[2].image_url,
-    `data:image/jpeg;base64,${Buffer.from(secondSourceBytes).toString("base64")}`
+    `data:image/png;base64,${Buffer.from(sourceBytes).toString("base64")}`
   );
   assert.equal(captured.body.input[0].content.length, 3);
 });
@@ -388,6 +390,26 @@ test("v1 image edit POST rejects excessive or malformed Codex reference sets", a
   const jsonBody = (await jsonResponse.json()) as ErrorResponseBody;
   assert.equal(jsonResponse.status, 400);
   assert.match(jsonBody.error.message, /Invalid reference image/i);
+
+  const malformedTypesResponse = await imageEditRoute.POST(
+    new Request("http://localhost/api/v1/images/edits", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        model: "codex/gpt-5.6-sol",
+        prompt: "combine these references",
+        images: [
+          `data:image/png;base64,${Buffer.from(VALID_PNG_BYTES).toString("base64")}`,
+          null,
+          7,
+          false,
+        ],
+      }),
+    })
+  );
+  const malformedTypesBody = (await malformedTypesResponse.json()) as ErrorResponseBody;
+  assert.equal(malformedTypesResponse.status, 400);
+  assert.match(malformedTypesBody.error.message, /Invalid reference image/i);
 });
 
 test("v1 image edit POST keeps non-Codex providers single-reference", async () => {

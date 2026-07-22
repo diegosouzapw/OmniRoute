@@ -114,7 +114,9 @@ async function readMultipartImage(formData: FormData): Promise<EditInput> {
 
   // OpenAI-style clients may repeat either `image` or `image[]`. Count every submitted
   // candidate so provider-specific cardinality checks cannot silently drop extras.
-  const imageEntries = [...formData.getAll("image"), ...formData.getAll("image[]")];
+  const imageEntries = Array.from(formData.entries())
+    .filter(([key]) => key === "image" || key === "image[]")
+    .map(([, value]) => value);
   const images: Array<{ bytes: Buffer; mime: string }> = [];
   for (const imageEntry of imageEntries) {
     if (typeof imageEntry === "string") continue;

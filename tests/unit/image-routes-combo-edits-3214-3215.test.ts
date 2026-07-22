@@ -148,6 +148,12 @@ test("extractImageEditInputFromJson preserves all valid data-URL images and firs
   const malformed = extractImageEditInputFromJson({ images: ["not-a-data-url"] });
   assert.equal(malformed.images.length, 0);
   assert.equal(malformed.imageInputCount, 1);
+
+  const malformedTypes = extractImageEditInputFromJson({
+    images: [`data:image/png;base64,${png.toString("base64")}`, null, 7, false],
+  });
+  assert.equal(malformedTypes.images.length, 1);
+  assert.equal(malformedTypes.imageInputCount, 4);
 });
 
 test("resolveImageRouteModel resolves a bare combo/alias to its single image target", async () => {
