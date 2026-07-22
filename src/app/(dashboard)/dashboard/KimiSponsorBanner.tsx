@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { APP_CONFIG } from "@/shared/constants/appConfig";
-import { shouldShowKimiSponsorBanner } from "./kimiSponsorBanner";
+import { shouldShowKimiSponsorBanner } from "./kimiSponsorBannerGate";
 
 // Official Kimi partnership tracking link — keep in sync with README.md's
 // Sponsors section and the aff links wired in the providers onboarding UI
@@ -28,7 +28,7 @@ function isNotDismissed(): boolean {
  * Dismissable banner announcing the Kimi (Moonshot AI) official OmniRoute
  * partnership on the dashboard home page. Self-contained: reads the app's own
  * version (APP_CONFIG.version) to decide whether it is still inside the
- * agreed display window (see kimiSponsorBanner.ts) and persists dismissal via
+ * agreed display window (see kimiSponsorBannerGate.ts) and persists dismissal via
  * localStorage, mirroring RiskNoticeBanner's lazy-useState pattern. The
  * logomark reuses <ProviderIcon providerId="moonshot" .../> so it stays
  * theme-aware for free via the THEMED_SVGS wiring in ProviderIcon.tsx.

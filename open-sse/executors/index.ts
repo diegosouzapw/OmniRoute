@@ -64,6 +64,7 @@ import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 import { XaiExecutor } from "./xai.ts";
+import { PromptQlExecutor } from "./promptql.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -151,6 +152,8 @@ const executors = {
   ven: new VeniceWebExecutor(), // Alias
   "notion-web": new NotionWebExecutor(),
   nw: new NotionWebExecutor(), // Alias
+  promptql: new PromptQlExecutor(),
+  pql: new PromptQlExecutor(), // Alias
   "v0-vercel-web": new V0VercelWebExecutor(),
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
@@ -269,3 +272,4 @@ export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 export { XaiExecutor } from "./xai.ts";
 export { MoonshotExecutor } from "./moonshot.ts";
+export { PromptQlExecutor } from "./promptql.ts";
