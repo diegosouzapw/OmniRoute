@@ -67,7 +67,7 @@ function defaultExec(
   options: ExecFileOptions = {}
 ): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    execFile(file, args, options, (err, stdout, stderr) => {
+    execFile(file, args, { windowsHide: true, ...options }, (err, stdout, stderr) => {
       if (err) {
         reject(err);
         return;

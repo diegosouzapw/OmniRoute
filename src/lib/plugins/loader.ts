@@ -135,6 +135,7 @@ export async function loadPlugin(
   const child = spawn(process.execPath, ["--no-warnings", hostScriptPath, entryPoint], {
     env,
     stdio: ["ignore", "ignore", "ignore", "ipc"],
+    windowsHide: true,
   });
 
   // Track pending calls with timeout support

@@ -95,6 +95,7 @@ export class ServiceSupervisor extends EventEmitter {
         cwd,
         detached: false,
         stdio: ["ignore", "pipe", "pipe"],
+        windowsHide: true,
       });
 
       this.childProcess = child;

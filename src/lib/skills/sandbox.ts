@@ -80,6 +80,7 @@ class SandboxRunner {
       const proc = childProcess.spawn(resolved.command, resolved.args, {
         env: { ...process.env, ...env },
         stdio: ["ignore", "pipe", "pipe"],
+        windowsHide: true,
       });
 
       this.runningContainers.set(sandboxId, proc);
@@ -139,10 +140,11 @@ class SandboxRunner {
       const provider = this.cachedProvider;
       if (provider) {
         const kill = buildKillCommand(provider, sandboxId);
-        childProcess.spawn(kill.command, kill.args, { stdio: "ignore" });
+        childProcess.spawn(kill.command, kill.args, { stdio: "ignore", windowsHide: true });
       } else {
         childProcess.spawn("docker", ["kill", `omniroute-${sandboxId}`], {
           stdio: "ignore",
+          windowsHide: true,
         });
       }
       return true;
@@ -156,10 +158,11 @@ class SandboxRunner {
       proc.kill("SIGTERM");
       if (provider) {
         const kill = buildKillCommand(provider, id);
-        childProcess.spawn(kill.command, kill.args, { stdio: "ignore" });
+        childProcess.spawn(kill.command, kill.args, { stdio: "ignore", windowsHide: true });
       } else {
         childProcess.spawn("docker", ["kill", `omniroute-${id}`], {
           stdio: "ignore",
+          windowsHide: true,
         });
       }
     }

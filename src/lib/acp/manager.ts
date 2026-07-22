@@ -58,6 +58,7 @@ export class AcpManager extends EventEmitter {
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, ...env },
       shell: false,
+      windowsHide: true,
     });
 
     const session: AcpSession = {

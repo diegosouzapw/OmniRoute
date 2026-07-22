@@ -46,6 +46,7 @@ export async function startProcess(
     detached: false,
     stdio: ["ignore", "pipe", "pipe"],
     env: { ...process.env },
+    windowsHide: true,
   });
 
   child.stdout?.on("data", () => {});

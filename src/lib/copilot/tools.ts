@@ -67,6 +67,7 @@ function getOmniRouteCliPath(): string | null {
     const result = execSync("which omniroute 2>/dev/null || command -v omniroute 2>/dev/null", {
       encoding: "utf-8",
       timeout: 3000,
+      windowsHide: true,
     }).trim();
     return result || null;
   } catch {

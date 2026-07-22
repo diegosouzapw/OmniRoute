@@ -817,6 +817,7 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
     const child = spawn(binary.binaryPath as string, getCloudflaredStartArgs(targetUrl), {
       stdio: ["ignore", "pipe", "pipe"],
       env: buildCloudflaredChildEnv(),
+      windowsHide: true,
     });
 
     tunnelProcess = child;

@@ -90,6 +90,7 @@ async function updateNssDatabases(
       script,
       {
         shell: "/bin/bash",
+        windowsHide: true,
         env: {
           ...process.env,
           CERT_NAME: "OmniRoute MITM Root CA",

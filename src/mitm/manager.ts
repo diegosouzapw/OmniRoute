@@ -553,6 +553,7 @@ async function startMitmInternal(
     },
     detached: false,
     stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
   });
 
   const proc = serverProcess;

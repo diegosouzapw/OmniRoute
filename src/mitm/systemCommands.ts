@@ -44,7 +44,7 @@ export function isSudoAvailable(): boolean {
 
 export function execFileText(command: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
-    execFile(command, args, { encoding: "utf8" }, (error, stdout, stderr) => {
+    execFile(command, args, { encoding: "utf8", windowsHide: true }, (error, stdout, stderr) => {
       if (error) {
         // Node's execFile already sets error.message to "Command failed: <cmd>"
         // (for non-zero exit) or "spawn <cmd> ENOENT" (for missing binary).
@@ -142,6 +142,7 @@ export function execFileWithPassword(
     // nosemgrep
     const child = spawn(finalCommand, finalArgs, { // nosemgrep
       stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     });
     let stdout = "";
     let stderr = "";

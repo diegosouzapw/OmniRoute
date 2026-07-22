@@ -336,6 +336,7 @@ const runProcess = (
     const child = spawn(command, args, {
       env,
       stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
       // On Windows, npm installs CLI wrappers as .cmd/.bat scripts. Those still
       // need cmd.exe, but direct .exe paths must avoid the shell so paths with
       // spaces are not split before execution.
