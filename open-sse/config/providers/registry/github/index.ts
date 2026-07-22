@@ -12,6 +12,12 @@ export const githubProvider: RegistryEntry = {
   executor: "github",
   baseUrl: "https://api.githubcopilot.com/chat/completions",
   responsesBaseUrl: "https://api.githubcopilot.com/responses",
+  // Anthropic-native shim: the only Copilot endpoint that surfaces prompt-cache
+  // token counts (cached_tokens) for Claude models, and avoids round-tripping
+  // tool_use/tool_result/thinking content blocks through the OpenAI shape.
+  // Routed via each claude-* model's targetFormat: "claude" below (see
+  // executors/github.ts buildUrl/buildHeaders). Port of decolua/9router#2608.
+  messagesUrl: "https://api.githubcopilot.com/v1/messages",
   authType: "oauth",
   authHeader: "bearer",
   // GitHub Copilot is a public device-flow OAuth client: it has a public client_id but
@@ -24,16 +30,23 @@ export const githubProvider: RegistryEntry = {
   },
   defaultContextLength: 128000,
   headers: getGitHubCopilotChatHeaders(),
+  // All claude-* entries below carry targetFormat: "claude" so chatCore.ts
+  // translates the request to Anthropic-native shape before the executor ever
+  // sees it, and the github executor's buildUrl()/buildHeaders() route them at
+  // messagesUrl (/v1/messages) instead of /chat/completions. Port of
+  // decolua/9router#2608 (author: yidecode) — see executors/github.ts.
   models: [
     {
       id: "claude-fable-5",
       name: "Claude Fable 5",
+      targetFormat: "claude",
       contextLength: 1000000,
       maxOutputTokens: 64000,
     },
     {
       id: "claude-opus-4.8-fast",
       name: "Claude Opus 4.8 (fast mode)",
+      targetFormat: "claude",
       contextLength: 1000000,
       maxOutputTokens: 64000,
       unsupportedParams: ["temperature", "top_p", "top_k"],
@@ -41,6 +54,7 @@ export const githubProvider: RegistryEntry = {
     {
       id: "claude-opus-4.8",
       name: "Claude Opus 4.8",
+      targetFormat: "claude",
       contextLength: 1000000,
       maxOutputTokens: 64000,
       unsupportedParams: ["temperature", "top_p", "top_k"],
@@ -48,36 +62,42 @@ export const githubProvider: RegistryEntry = {
     {
       id: "claude-opus-4.7",
       name: "Claude Opus 4.7",
+      targetFormat: "claude",
       contextLength: 1000000,
       maxOutputTokens: 64000,
     },
     {
       id: "claude-sonnet-4.6",
       name: "Claude Sonnet 4.6",
+      targetFormat: "claude",
       contextLength: 1000000,
       maxOutputTokens: 64000,
     },
     {
       id: "claude-opus-4.5",
       name: "Claude Opus 4.5",
+      targetFormat: "claude",
       contextLength: 200000,
       maxOutputTokens: 32000,
     },
     {
       id: "claude-sonnet-5",
       name: "Claude Sonnet 5",
+      targetFormat: "claude",
       contextLength: 1000000,
       maxOutputTokens: 64000,
     },
     {
       id: "claude-sonnet-4.5",
       name: "Claude Sonnet 4.5",
+      targetFormat: "claude",
       contextLength: 200000,
       maxOutputTokens: 32000,
     },
     {
       id: "claude-haiku-4.5",
       name: "Claude Haiku 4.5",
+      targetFormat: "claude",
       contextLength: 200000,
       maxOutputTokens: 32000,
     },

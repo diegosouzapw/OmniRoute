@@ -104,41 +104,23 @@ export async function sortTargetsByCost(targets: ResolvedComboTarget[]) {
     .filter((target): target is ResolvedComboTarget => target !== null);
 }
 
-/**
- * Sort models by usage count (least-used first) for least-used strategy
- * @param {Array<string>} models - Model strings
- * @param {string} comboName - Combo name for metrics lookup
- * @returns {Array<string>} Sorted model strings
- */
-export function sortModelsByUsage(models: string[], comboName: string): string[] {
-  const metrics = getComboMetrics(comboName);
-  if (!metrics?.byModel) return models;
-
-  const withUsage = models.map((modelStr) => ({
-    modelStr,
-    requests: metrics.byModel[modelStr]?.requests ?? 0,
-  }));
-  withUsage.sort((a, b) => a.requests - b.requests);
-  return withUsage.map((e) => e.modelStr);
-}
-
 export function sortTargetsByUsage(targets: ResolvedComboTarget[], comboName: string) {
-  const orderedModels = sortModelsByUsage(
-    targets.map((target) => target.modelStr),
-    comboName
-  );
-  const byModel = new Map<string, ResolvedComboTarget[]>();
-  for (const target of targets) {
-    const queue = byModel.get(target.modelStr) || [];
-    queue.push(target);
-    byModel.set(target.modelStr, queue);
-  }
-  return orderedModels
-    .map((modelStr) => {
-      const queue = byModel.get(modelStr);
-      return queue?.shift() || null;
-    })
-    .filter((target): target is ResolvedComboTarget => target !== null);
+  const metrics = getComboMetrics(comboName);
+  if (!metrics) return targets;
+
+  // Key on executionKey (unique per model + account) so a combo that repeats the
+  // same modelStr across DISTINCT accounts distributes by per-account usage
+  // instead of by the shared modelStr. The old code grouped targets under
+  // modelStr and read byModel[modelStr] (which aggregates every account of that
+  // model), so all accounts collapsed into one bucket and the first account
+  // always won — exhausting it while the others stayed idle (#7015). Per-target
+  // usage lives in byTarget[executionKey]; unknown targets rank as 0.
+  const withUsage = targets.map((target) => {
+    const requests = metrics.byTarget?.[target.executionKey]?.requests ?? 0;
+    return { target, requests };
+  });
+  withUsage.sort((a, b) => a.requests - b.requests);
+  return withUsage.map((e) => e.target);
 }
 
 function getP2CTargetScore(

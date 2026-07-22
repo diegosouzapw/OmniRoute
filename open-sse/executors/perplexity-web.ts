@@ -19,6 +19,7 @@ import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
   PPLX_SSE_ENDPOINT,
   PPLX_USER_AGENT,
+  PPLX_STREAM_EOF_SYMBOL,
   MODEL_MAP,
   THINKING_MAP,
   cleanResponse,
@@ -267,12 +268,28 @@ async function buildNonStreamingResponse(
   for await (const chunk of extractContent(eventStream, signal)) {
     if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
     if (chunk.error) {
-      return new Response(
-        JSON.stringify({
-          error: { message: chunk.error, type: "upstream_error", code: "PPLX_ERROR" },
-        }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
-      );
+      // Quota exhaustion → 429 + reset_seconds so OmniRoute marks rate_limited_until
+      // and VibeProxy limit badges / rotation skip parse the same shape as model_cooldown.
+      const isQuota =
+        chunk.errorCode === "quota_exhausted" ||
+        /quota exhausted/i.test(chunk.error) ||
+        (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0);
+      const status = isQuota ? 429 : 502;
+      const code = chunk.errorCode || (isQuota ? "quota_exhausted" : "PPLX_ERROR");
+      const type = isQuota ? "quota_exhausted" : "upstream_error";
+      const errBody: Record<string, unknown> = {
+        message: chunk.error,
+        type,
+        code,
+      };
+      if (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0) {
+        errBody.reset_seconds = chunk.resetSeconds;
+      }
+      const respHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0) {
+        respHeaders["Retry-After"] = String(chunk.resetSeconds);
+      }
+      return new Response(JSON.stringify({ error: errBody }), { status, headers: respHeaders });
     }
     if (chunk.thinking) {
       thinkingParts.push(chunk.thinking);
@@ -423,7 +440,8 @@ export class PerplexityWebExecutor extends BaseExecutor {
         body: JSON.stringify(pplxBody),
         signal: signal ?? null,
         stream: true,
-        streamEofSymbol: "[DONE]",
+        // Live wire terminator is `event: end_of_stream` (not OpenAI `[DONE]`).
+        streamEofSymbol: PPLX_STREAM_EOF_SYMBOL,
       });
     } catch (err) {
       const isTlsUnavail = err instanceof TlsClientUnavailableError;
@@ -467,6 +485,37 @@ export class PerplexityWebExecutor extends BaseExecutor {
         { status, headers: { "Content-Type": "application/json" } }
       );
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
+    }
+
+    // If the TLS client buffered the body (looksLikeSse false-negative, or a
+    // non-streaming error page), promote a text body that still looks like SSE
+    // into a ReadableStream so extractContent can recover the answer.
+    if (!response.body && response.text) {
+      const buffered = response.text;
+      if (/^(?:\s*)(?:data|event|id|retry):/im.test(buffered) || buffered.includes("\ndata:")) {
+        const encoder = new TextEncoder();
+        response = {
+          ...response,
+          body: new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(encoder.encode(buffered));
+              controller.close();
+            },
+          }),
+          text: null,
+        };
+      } else {
+        const errResp = new Response(
+          JSON.stringify({
+            error: {
+              message: `Perplexity returned non-SSE body: ${sanitizeErrorMessage(buffered.slice(0, 240))}`,
+              type: "upstream_error",
+            },
+          }),
+          { status: 502, headers: { "Content-Type": "application/json" } }
+        );
+        return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
+      }
     }
 
     if (!response.body) {

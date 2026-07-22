@@ -8,6 +8,8 @@ import {
 } from "@omniroute/open-sse/config/audioRegistry.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { getSearchProvider } from "@omniroute/open-sse/config/searchRegistry.ts";
+import { BAILIAN_CODING_PLAN_MODELS } from "@omniroute/open-sse/config/providers/registry/bailian-coding-plan/index.ts";
 
 import { getModelsByProviderId } from "@/shared/constants/models";
 
@@ -50,21 +52,7 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "sonar-reasoning-pro", name: "Sonar Reasoning Pro (Advanced CoT + Search)" },
     { id: "sonar-deep-research", name: "Sonar Deep Research (Expert Analysis)" },
   ],
-  "bailian-coding-plan": () => [
-    // Keep in lock-step with the registry entry
-    // (open-sse/config/providers/registry/bailian-coding-plan/index.ts);
-    // bailian-coding-plan-provider.test.ts asserts static↔registry parity.
-    { id: "qwen3.7-plus", name: "Qwen3.7 Plus(vision)" },
-    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-    { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
-    { id: "glm-4.7", name: "GLM 4.7" },
-    { id: "qwen3.6-plus", name: "Qwen3.6 Plus(vision)" },
-    { id: "qwen3.5-plus", name: "Qwen3.5 Plus(vision)" },
-    { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
-    { id: "kimi-k2.5", name: "Kimi K2.5(vision)" },
-    { id: "glm-5", name: "GLM 5" },
-    { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
-  ],
+  "bailian-coding-plan": () => BAILIAN_CODING_PLAN_MODELS.map(({ id, name }) => ({ id, name })),
   gitlab: () => [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
   nlpcloud: () =>
     getModelsByProviderId("nlpcloud").map((model) => ({
@@ -84,6 +72,13 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     // selection like devin-cli's ACP models do — single non-selectable placeholder
     // so the "Available Models" UI shows something instead of a hard failure (#6142).
     { id: "devin", name: "Devin (Cognition cloud agent)" },
+  ],
+  "amazon-q": () => [
+    // Amazon Q Developer shares KiroExecutor + OAuth wiring with kiro but has no
+    // discovery config or registry catalog of its own — single non-selectable
+    // placeholder so the "Available Models" UI shows something instead of the
+    // hard "does not support models listing" failure (#7820).
+    { id: "amazon-q", name: "Amazon Q Developer" },
   ],
   "linkup-search": () => [
     // Linkup web search — the "model" is the search depth (docs.linkup.so #5571).
@@ -115,10 +110,46 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
   ],
 };
 
+const SEARCH_TYPE_LABELS: Record<string, string> = {
+  web: "Web Search",
+  news: "News Search",
+};
+
+function formatSearchTypeLabel(searchType: string): string {
+  return (
+    SEARCH_TYPE_LABELS[searchType] ??
+    `${searchType.charAt(0).toUpperCase()}${searchType.slice(1)} Search`
+  );
+}
+
+/**
+ * Search providers don't have "models" — a provider IS the model (see
+ * open-sse/config/searchRegistry.ts header doc). Any search provider without a
+ * dedicated literal entry above (custom depth/engine catalog, e.g.
+ * "linkup-search") still needs a non-empty static catalog so the "Available
+ * Models" / model-import UI shows a usable list instead of a 400 "does not
+ * support models listing" (#7529). Derive it generically from the registry's
+ * own `searchTypes` so any *future* search provider is covered automatically.
+ */
+function getSearchProviderFallbackCatalog(provider: string): LocalCatalogModel[] | undefined {
+  const searchProvider = getSearchProvider(provider);
+  if (!searchProvider || searchProvider.searchTypes.length === 0) return undefined;
+
+  return searchProvider.searchTypes.map((searchType) => ({
+    id: searchType,
+    name: formatSearchTypeLabel(searchType),
+  }));
+}
+
 export function getStaticModelsForProvider(provider: string): LocalCatalogModel[] | undefined {
   const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
   if (staticModelsFn) {
     return staticModelsFn();
+  }
+
+  const searchFallback = getSearchProviderFallbackCatalog(provider);
+  if (searchFallback) {
+    return searchFallback;
   }
 
   const specialtyModels: LocalCatalogModel[] = [];

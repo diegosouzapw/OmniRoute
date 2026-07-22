@@ -1079,7 +1079,6 @@ test("connectionMatchesProviderCard counts a dual-auth provider's PAT (apikey) c
     connectionMatchesProviderCard({ provider: "qoder", authType: "oauth" }, "qoder", "oauth"),
     true
   );
-
   // A normal OAuth-only provider must NOT count an apikey connection on its OAuth card.
   assert.equal(
     connectionMatchesProviderCard({ provider: "claude", authType: "apikey" }, "claude", "oauth"),

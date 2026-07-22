@@ -1,5 +1,5 @@
 import type { RegistryEntry } from "../../../shared.ts";
-import { ALIBABA_DASHSCOPE_MODELS } from "../../../shared.ts";
+import { ALIBABA_MODEL_STUDIO_MODELS } from "../index.ts";
 
 export const alibaba_cnProvider: RegistryEntry = {
   id: "alibaba-cn",
@@ -10,6 +10,6 @@ export const alibaba_cnProvider: RegistryEntry = {
   modelsUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/models",
   authType: "apikey",
   authHeader: "bearer",
-  models: ALIBABA_DASHSCOPE_MODELS,
+  models: ALIBABA_MODEL_STUDIO_MODELS,
   passthroughModels: true,
 };

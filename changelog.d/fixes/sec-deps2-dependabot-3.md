@@ -1,0 +1,1 @@
+- chore(deps): bump dompurify≥3.4.12, fast-xml-parser≥5.10.1, sharp≥0.35.0 to clear 3 Dependabot alerts

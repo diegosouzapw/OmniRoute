@@ -343,7 +343,7 @@ body.electron-macos {
 }
 
 /* Material Symbols */
-.material-symbols-outlined {
+:where(.material-symbols-outlined) {
   font-family: "Material Symbols Outlined", sans-serif !important;
   font-weight: normal;
   font-style: normal;
@@ -482,19 +482,15 @@ select option {
   color: var(--color-text-main);
 }
 
-/* ReactFlow Controls (zoom +/- buttons) dark mode theming */
-.react-flow__controls-button {
-  background-color: var(--color-surface);
-  border-bottom-color: var(--color-border);
-  fill: var(--color-text-main);
-}
-
-.react-flow__controls-button:hover {
-  background-color: var(--color-bg-subtle);
-}
-
-.react-flow__controls-button svg {
-  fill: var(--color-text-main);
+/* React Flow loads its component stylesheet after this global file in some
+   bundles, so direct background/fill declarations can lose to its shorthand
+   rules. Override the supported theme variables on our canvas instead. */
+.react-flow.omniroute-flow {
+  --xy-controls-button-background-color: var(--color-surface);
+  --xy-controls-button-background-color-hover: var(--color-bg-subtle);
+  --xy-controls-button-color: var(--color-text-main);
+  --xy-controls-button-color-hover: var(--color-text-main);
+  --xy-controls-button-border-color: var(--color-border);
 }
 
 /* Desktop sidebar visibility must not depend on Tailwind's hidden/lg:flex cascade

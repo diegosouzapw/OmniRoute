@@ -1,6 +1,11 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
+import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
+
+function normalizeToolName(name: string): string {
+  return REVERSE_MAP[name] ?? name;
+}
 
 /**
  * Direct Gemini → Claude response translator.
@@ -82,7 +87,7 @@ export function geminiToClaudeResponse(chunk, state) {
         }
         const fc = part.functionCall;
         const rawToolName = fc.name;
-        const restoredToolName = state.toolNameMap?.get(rawToolName) || rawToolName;
+        const restoredToolName = normalizeToolName(state.toolNameMap?.get(rawToolName) || rawToolName);
         const idx = state.contentBlockIndex++;
         const toolId = fc.id || `toolu_${Date.now()}_${idx}`;
 

@@ -1,0 +1,1 @@
+- **fix(sse):** preserve `input_image` parts in array-valued Codex `custom_tool_call_output` payloads instead of rewriting them to invalid `output_text` parts ([#7540](https://github.com/diegosouzapw/OmniRoute/pull/7540)) - thanks @loulanyue

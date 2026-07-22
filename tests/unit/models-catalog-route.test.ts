@@ -1419,7 +1419,7 @@ test("v1 models catalog auto-calculates combo context_length from targets when n
   });
 
   // Create a combo with targets having different context limits.
-  // openai/gpt-4o context = 128000, claude/claude-sonnet-4-6 = 200000.
+  // openai/gpt-4o context = 128000, claude/claude-sonnet-4-6 = 1000000 (#7129: 1M GA).
   // The combo should expose context_length = min = 128000.
   const combo = await combosDb.createCombo({
     name: "auto-context-combo",

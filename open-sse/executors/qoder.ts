@@ -208,7 +208,7 @@ export class QoderExecutor extends BaseExecutor {
       };
     }
 
-    const resolvedModel = model || "qwen3-coder-plus";
+    const resolvedModel = model || "qwen3.8-max-preview";
 
     // Detect token type: PAT (Personal Access Token) starts with "pt-".
     // PATs are driven through the local qodercli binary (see executeViaQoderCli);

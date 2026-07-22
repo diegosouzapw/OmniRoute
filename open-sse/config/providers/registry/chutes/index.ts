@@ -5,7 +5,7 @@ export const chutesProvider: RegistryEntry = {
   alias: "chutes",
   format: "openai",
   executor: "default",
-  baseUrl: "https://api.chutesai.com/v1/chat/completions",
+  baseUrl: "https://llm.chutes.ai/v1/chat/completions",
   authType: "apikey",
   authHeader: "bearer",
   models: [{ id: "Qwen2.5-72B-Instruct", name: "Qwen2.5 72B" }],

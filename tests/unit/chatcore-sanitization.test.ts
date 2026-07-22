@@ -178,7 +178,7 @@ test("chatCore sanitization normalizes max_output_tokens into max_tokens", async
     },
   });
 
-  assert.equal(copied.call.body.max_tokens, 0);
+  assert.equal(copied.call.body.max_tokens, undefined);
   assert.equal("max_output_tokens" in copied.call.body, false);
   assert.equal(preserved.call.body.max_tokens, 7);
   assert.equal("max_output_tokens" in preserved.call.body, false);

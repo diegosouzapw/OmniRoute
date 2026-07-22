@@ -29,6 +29,11 @@ const REAL_KIRO_IDS = [
   "minimax-m2.5", // proven 200
   "minimax-m2.1", // proven 200
   "qwen3-coder-next", // proven 200
+  // Kiro's first OpenAI-family models, per kiro.dev/changelog/models
+  // (2026-07-14) — not yet independently live-VPS-verified like the ids above.
+  "gpt-5.6-sol",
+  "gpt-5.6-terra",
+  "gpt-5.6-luna",
 ];
 
 test("kiro registry exposes no fabricated model ids", () => {

@@ -1,0 +1,65 @@
+import type { RegistryEntry } from "../../shared.ts";
+
+export const qwen_cloud_token_planProvider: RegistryEntry = {
+  id: "qwen-cloud-token-plan",
+  alias: "qct",
+  format: "openai",
+  executor: "default",
+  baseUrl:
+    "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
+  authType: "apikey",
+  authHeader: "bearer",
+  models: [
+    {
+      id: "qwen3.8-max-preview",
+      name: "Qwen3.8 Max Preview",
+      supportsReasoning: true,
+      supportsVision: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 65_536,
+    },
+    {
+      id: "qwen3.7-max",
+      name: "Qwen3.7 Max",
+      supportsReasoning: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 65_536,
+    },
+    {
+      id: "qwen3.7-plus",
+      name: "Qwen3.7 Plus",
+      supportsReasoning: true,
+      supportsVision: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 65_536,
+    },
+    {
+      id: "qwen3.6-flash",
+      name: "Qwen3.6 Flash",
+      supportsReasoning: true,
+      supportsVision: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 32_768,
+    },
+    {
+      id: "glm-5.2",
+      name: "GLM 5.2",
+      supportsReasoning: true,
+      toolCalling: true,
+      contextLength: 1_000_000,
+      maxOutputTokens: 16_384,
+    },
+    {
+      id: "deepseek-v4-pro",
+      name: "DeepSeek V4 Pro",
+      supportsReasoning: true,
+      toolCalling: true,
+      contextLength: 163_840,
+      maxOutputTokens: 32_768,
+    },
+  ],
+};

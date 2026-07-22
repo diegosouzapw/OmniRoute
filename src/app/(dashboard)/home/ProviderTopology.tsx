@@ -7,7 +7,7 @@ import { AI_PROVIDERS } from "@/shared/constants/providers";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import { StatusDot } from "@/shared/components/flow/StatusDot";
-import { edgeStyle } from "@/shared/components/flow/edgeStyles";
+import { edgeStyle, FLOW_EDGE_COLORS } from "@/shared/components/flow/edgeStyles";
 import { resolveTopologyNodeLabel } from "./topologyLabel";
 
 // Rings: [capacity, rx, ry]. Each successive ring fits ~6 more nodes.
@@ -37,17 +37,27 @@ type ProviderNodeData = {
   providerId: string;
   active: boolean;
   error: boolean;
+  /** Connection-health base state: a healthy connection with no in-flight traffic. */
+  healthy: boolean;
 };
 
 function ProviderNode({ data }: { data: ProviderNodeData }) {
-  const { label, color, providerId, active, error } = data;
+  const { label, color, providerId, active, error, healthy } = data;
+  const GREEN = FLOW_EDGE_COLORS.active;
+  const RED = FLOW_EDGE_COLORS.error;
 
   return (
     <div
       className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border-2 transition-all duration-300 bg-bg"
       style={{
-        borderColor: error ? "#ef4444" : active ? color : "var(--color-border)",
-        boxShadow: error ? `0 0 12px #ef444430` : active ? `0 0 12px ${color}30` : "none",
+        borderColor: error ? RED : active ? color : healthy ? GREEN : "var(--color-border)",
+        boxShadow: error
+          ? `0 0 12px ${RED}30`
+          : active
+            ? `0 0 12px ${color}30`
+            : healthy
+              ? `0 0 10px ${GREEN}20`
+              : "none",
         minWidth: "136px",
       }}
     >
@@ -85,12 +95,16 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
 
       <span
         className="text-xs font-medium truncate flex-1"
-        style={{ color: active ? color : error ? "#ef4444" : "var(--color-text-main)" }}
+        style={{
+          color: active ? color : error ? RED : healthy ? GREEN : "var(--color-text-main)",
+        }}
       >
         {label}
       </span>
 
-      {(active || error) && <StatusDot color={color} error={error} />}
+      {(active || error || healthy) && (
+        <StatusDot color={active ? color : GREEN} error={error} pulse={active || error} />
+      )}
     </div>
   );
 }
@@ -143,7 +157,8 @@ const nodeTypes: NodeTypes = {
   router: RouterNode as any,
 };
 
-type ProviderEntry = { id?: string; provider: string; name?: string };
+type ProviderHealth = "active" | "error" | "idle";
+type ProviderEntry = { id?: string; provider: string; name?: string; status?: ProviderHealth };
 
 function getHandles(angle: number, cx: number): { sourceHandle: string; targetHandle: string } {
   const rel = (((angle + Math.PI / 2) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
@@ -180,18 +195,20 @@ function buildLayout(
 
   if (providers.length === 0) return { nodes, edges };
 
-  // Sort: active → error → last-used → rest (alpha within groups)
+  // Sort: active → error → last-used → healthy(connected) → rest (alpha within groups)
   const sorted = [...providers].sort((a, b) => {
-    const aId = a.provider.toLowerCase();
-    const bId = b.provider.toLowerCase();
-    const rank = (id: string) => {
+    const rank = (p: ProviderEntry) => {
+      const id = p.provider.toLowerCase();
       if (activeSet.has(id)) return 0;
-      if (errorSet.has(id)) return 1;
+      if (errorSet.has(id) || p.status === "error") return 1;
       if (lastSet.has(id)) return 2;
-      return 3;
+      if (p.status === "active") return 3;
+      return 4;
     };
-    const d = rank(aId) - rank(bId);
-    return d !== 0 ? d : aId.localeCompare(bId); // teknik sıralama: ASCII kasıtlı
+    const d = rank(a) - rank(b);
+    return d !== 0
+      ? d
+      : a.provider.toLowerCase().localeCompare(b.provider.toLowerCase()); // ASCII kasıtlı
   });
 
   let provIdx = 0;
@@ -203,8 +220,14 @@ function buildLayout(
       const p = sorted[provIdx++];
       const pid = p.provider.toLowerCase();
       const active = activeSet.has(pid);
-      const error = !active && errorSet.has(pid);
-      const last = !active && !error && lastSet.has(pid);
+      // Traffic signals (live/recent request) take precedence; connection health is the
+      // base state shown when a provider has no in-flight or recent traffic, so the map
+      // still reflects "what is connected" at rest instead of going blank after a restart.
+      const trafficError = !active && errorSet.has(pid);
+      const last = !active && !trafficError && lastSet.has(pid);
+      const healthError = !active && !trafficError && !last && p.status === "error";
+      const healthy = !active && !trafficError && !last && !healthError && p.status === "active";
+      const error = trafficError || healthError;
       const config = getProviderConfig(p.provider);
       const nodeId = `provider-${p.provider}`;
 
@@ -223,6 +246,7 @@ function buildLayout(
           providerId: p.provider,
           active,
           error,
+          healthy,
         } satisfies ProviderNodeData,
         draggable: false,
       });
@@ -234,7 +258,7 @@ function buildLayout(
         target: nodeId,
         targetHandle,
         animated: active,
-        style: edgeStyle(active, last, error),
+        style: edgeStyle(active, last, error, healthy),
       });
     }
   }

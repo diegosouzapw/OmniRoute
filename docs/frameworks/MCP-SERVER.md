@@ -6,13 +6,9 @@ lastUpdated: 2026-06-28
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 94 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
+> Model Context Protocol server with 104 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
 >
-> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (34 base) + `memoryTools.ts` (3) + `skillTools.ts` (4) + `agentSkillTools.ts` (3) + `poolTools.ts` (6) + `gamificationTools.ts` (8) + `pluginTools.ts` (8) + `notionTools.ts` (6) + `obsidianTools.ts` (22) = **94** (`TOTAL_MCP_TOOL_COUNT`). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
-
-![MCP tool inventory (94 tools by category)](../diagrams/exported/mcp-tools-94.svg)
-
-> Source: [diagrams/mcp-tools-94.mmd](../diagrams/mcp-tools-94.mmd) (regenerate via `npm run docs:render-diagrams`).
+> Source of truth: `open-sse/mcp-server/server.ts` computes **104 unique tools** with `countUniqueMcpTools()`: 42 canonical definitions (including the six CCR lifecycle tools and the agent-skills trio), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), and two RTK-only compression tools.
 
 ## Installation
 
@@ -110,7 +106,7 @@ Cursor, Cline, and compatible MCP client setup.
 | `omniroute_cache_stats` | `read:cache`  | Semantic cache, prompt-cache, and idempotency stats |
 | `omniroute_cache_flush` | `write:cache` | Flush cache globally or by signature/model          |
 
-## Compression Tools (5)
+## Compression Tools (13)
 
 | Tool                                | Scopes              | Description                                                                                                              |
 | :---------------------------------- | :------------------ | :----------------------------------------------------------------------------------------------------------------------- |
@@ -119,6 +115,20 @@ Cursor, Cline, and compatible MCP client setup.
 | `omniroute_set_compression_engine`  | `write:compression` | Pick the active engine (off/caveman/rtk/stacked) and Caveman/RTK intensity                                               |
 | `omniroute_list_compression_combos` | `read:compression`  | List named compression combos and their engine pipelines                                                                 |
 | `omniroute_compression_combo_stats` | `read:compression`  | Analytics grouped by compression combo and engine                                                                        |
+| `omniroute_ccr_store`               | `write:compression` | Store caller-isolated content in the bounded in-memory CCR store and return a marker plus `ccr://` reference             |
+| `omniroute_ccr_retrieve`            | `read:compression`  | Retrieve CCR content in full or with head, tail, lines, grep, and stats modes                                            |
+| `omniroute_ccr_inspect`             | `read:compression`  | Inspect caller-owned CCR metadata without returning content                                                              |
+| `omniroute_ccr_list`                | `read:compression`  | List paginated metadata for caller-owned CCR blocks                                                                      |
+| `omniroute_ccr_delete`              | `write:compression` | Delete a caller-owned CCR block                                                                                          |
+| `omniroute_ccr_stats`               | `read:compression`  | Report caller-scoped memory usage, lifecycle counters, and store limits                                                  |
+| `omniroute_rtk_discover`            | `read:compression`  | Discover recurring noise in opt-in RTK output samples                                                                    |
+| `omniroute_rtk_learn`               | `read:compression`  | Generate a reviewable RTK filter draft from opt-in samples                                                               |
+
+CCR entries are in-memory only and disappear on restart. Each block is limited to 2 MiB, each
+principal to 16 MiB, and the global store to 64 MiB. Entries default to a 24-hour TTL (maximum
+seven days). Full MCP retrieval is limited to 256 KiB; larger blocks remain available through the
+ranged and grep modes. Storage, retrieval, listing, inspection, deletion, and stats are isolated by
+the authenticated API-key principal. Audit records contain hashes and size metadata, never content.
 
 `omniroute_compression_status` reports MCP description compression separately under
 `analytics.mcpDescriptionCompression`. Those values are metadata-size estimates for MCP listable
@@ -127,7 +137,7 @@ receipts and are marked with `source: "mcp_metadata_estimate"`.
 
 ### MCP Accessibility Tree Filter (v3.8.0)
 
-Separate from the 5 compression tools above, OmniRoute includes a post-execution filter that
+Separate from the compression tools above, OmniRoute includes a post-execution filter that
 compresses the **tool results** of MCP browser/accessibility tools before they are returned to the
 agent. This filter is not itself a tool — it runs transparently on any tool result that contains
 verbose accessibility-tree or browser-snapshot text (≥2000 chars).
@@ -217,7 +227,7 @@ See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external a
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (94 tools = 34 core + 3 memory + 4 skills + 3 agent-skills + 6 pool + 8 gamification + 8 plugins + 6 notion + 22 obsidian) is intentionally
+The MCP tool inventory above (104 unique tools, computed by `countUniqueMcpTools()`) is intentionally
 scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 
@@ -298,6 +308,34 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 
 Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
 
+### `mcp:connect` — narrow route capability (#7895)
+
+Reaching the HTTP/SSE MCP transport (`/api/mcp/*`) from non-loopback requires the
+`/api/mcp/` LOCAL_ONLY carve-out (see `docs/security/ROUTE_GUARD_TIERS.md`). Historically
+that carve-out only accepted a full `manage`/`admin`-scope API key — too broad for a
+caller that only needs to talk MCP. `src/shared/constants/managementScopes.ts` now
+exports `MCP_CONNECT_SCOPE = "mcp:connect"`: an additive, narrow scope (same precedent as
+`SELF_USAGE_SCOPE`) that authorizes ONLY the `/api/mcp/` bypass in
+`src/server/authz/policies/management.ts` — it grants no other management-route access
+and is deliberately kept OUT of `MANAGEMENT_API_KEY_SCOPES`. A key holding `manage`/`admin`
+still passes the carve-out unchanged; `mcp:connect` is a lower-privilege alternative for
+remote MCP-only callers, checked via `hasMcpConnectOrManageScope()`.
+
+### Per-key HTTP scope binding (#7895)
+
+Over HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` now resolves the caller's real
+`api_keys.scopes` via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+and passes it to the MCP SDK's `transport.handleRequest(req, { authInfo })`, so
+`extra.authInfo.scopes` reaching each tool call reflects the Bearer key's own scopes.
+`scopeEnforcement.ts`'s `resolveCallerScopeContext()` already prioritized `authInfo` over
+the `_meta` and `OMNIROUTE_MCP_SCOPES` env fallback — this only populates that first,
+highest-priority source, which was previously unfed over HTTP. When no API key resolves
+(no header, invalid key), `authInfo` stays `undefined` and resolution falls through to the
+existing `meta`/env chain unchanged. This does NOT flip `OMNIROUTE_MCP_ENFORCE_SCOPES`'s
+default — enforcement still has to be explicitly enabled; this change only makes the
+per-key path take precedence once it is. stdio has no per-caller identity (see
+`mcpCallerIdentity.ts`) and is unaffected — it stays on the `_meta`/env fallback chain.
+
 ---
 
 ## Environment Variables
@@ -331,7 +369,7 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 
 Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
 
-**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 94 tools are announced unchanged.
+**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 104 tools are announced unchanged.
 
 | Variable         | Mode                                                                                    |
 | :--------------- | :-------------------------------------------------------------------------------------- |

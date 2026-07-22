@@ -1,0 +1,1 @@
+- fix(dashboard): providers model-name filter now matches an aggregator's live/synced catalog, not just the static curated registry (#7250)

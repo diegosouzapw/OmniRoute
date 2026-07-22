@@ -1,0 +1,1 @@
+- fix(providers): search providers now expose a static model catalog derived from `searchTypes`, fixing "does not support models listing" 400 for serper-search, brave-search, perplexity-search, exa-search, tavily-search, google-pse-search, youcom-search, searxng-search, zai-search (#7529)

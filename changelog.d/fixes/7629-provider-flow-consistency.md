@@ -1,0 +1,1 @@
+- fix(providers): unify connection status across dashboard surfaces, deduplicate provider cards, preserve no-auth model discovery for metadata-only rows, and route playground models through the provider alias (#7629)

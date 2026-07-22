@@ -3,6 +3,7 @@ import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
 import { detectProvider } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
+import { OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webFetchInterception.ts";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("SKILLS_INTERCEPTION");
@@ -19,10 +20,16 @@ interface ExecutionContext {
   requestId: string;
   builtinToolNames?: string[];
   customSkillExecutionEnabled?: boolean;
+  // #7339: threaded through to the web_fetch builtin so it can resolve a per-model
+  // pinned fetch backend (interceptionRules.fetchBackend). Optional — every other
+  // builtin/skill ignores these.
+  provider?: string;
+  model?: string;
 }
 
 const BUILTIN_TOOL_ALIASES: Record<string, string> = {
   [OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME]: "web_search",
+  [OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME]: "web_fetch",
 };
 
 function resolveBuiltinHandlerName(
@@ -91,6 +98,8 @@ export async function interceptToolCalls(
           const result = await builtinSkills[builtinHandlerName](call.arguments, {
             apiKeyId: context.apiKeyId,
             sessionId: context.sessionId,
+            provider: context.provider,
+            model: context.model,
           });
 
           log.info("skills.interception.execution_complete", {

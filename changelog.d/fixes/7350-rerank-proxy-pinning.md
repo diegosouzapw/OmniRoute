@@ -1,0 +1,1 @@
+- **fix(rerank):** Honor the connection's pinned proxy on rerank calls, so a provider that geo-blocks the host IP (Voyage AI) works on the same connection where chat and embeddings already did ([#7350](https://github.com/diegosouzapw/OmniRoute/issues/7350)) — thanks @kamenkadmitry

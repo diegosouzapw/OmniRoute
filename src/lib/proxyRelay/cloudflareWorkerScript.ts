@@ -13,12 +13,7 @@
  *  - Strips Host + relay control headers before forwarding upstream.
  *
  * The string template is fed to Cloudflare's PUT /accounts/{id}/workers/scripts/{name}
- * API as a Service Worker (no ES module export). Cloudflare's multipart upload
- * API rejects `application/javascript+module` (#5128C) and treats a plain
- * `application/javascript` script part as a Service Worker regardless of any
- * `main_module` metadata — `main_module` requires the script to be an actual
- * ES module (top-level `export`), which Service Worker syntax is not. The
- * `body_part` metadata field is the correct way to point at a non-ESM script.
+ * API with main_module=index.js (ESM Workers Modules format).
  *
  * The OmniRoute variant intentionally diverges from the upstream PR:
  *  - The upstream worker had NO auth check, leaving the deployed workers.dev URL
@@ -85,9 +80,7 @@ function isPrivateHostname(h) {
   const host = h.trim().toLowerCase().replace(/^\\[|\\]$/g, "");
   if (
     host === "localhost" ||
-    host === "0.0.0.0" ||
-    host === "127.0.0.1" ||
-    host === "::1" ||
+    host === "0.0.0.0" || host === "127.0.0.1" || host === "::1" ||
     host.endsWith(".localhost") ||
     host.endsWith(".local") ||
     host.endsWith(".internal") ||
@@ -142,7 +135,8 @@ async function handleRelay(request) {
     init.duplex = "half";
   }
   try {
-    const upstream = await fetch(target.replace(/\\\\/$/, "") + relayPath, init);
+    const targetBase = target.endsWith("/") ? target.slice(0, -1) : target;
+    const upstream = await fetch(targetBase + relayPath, init);
     return new Response(upstream.body, {
       status: upstream.status,
       headers: upstream.headers,

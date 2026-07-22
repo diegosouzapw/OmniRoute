@@ -110,12 +110,17 @@ function getVisionCapableModels(): VisionModelCandidate[] {
       const caps = getResolvedModelCapabilities(fullModelId);
 
       if (caps.supportsVision === true) {
-        // Determine priority based on provider type
+        // Determine priority based on provider type (lower = better).
+        // Do NOT prefer opencode-* first: those catalog entries often resolve to a
+        // noauth connection and 401 "Missing API key", hijacking working providers
+        // (e.g. zai/glm-5.2 combo targets) when Vision Bridge auto-reroutes.
         let priority = 100;
-        if (providerAlias.startsWith("opencode-")) {
-          priority = 0; // Local/free models first
-        } else if (providerAlias === "openai" || providerAlias === "anthropic") {
-          priority = 50; // Major providers
+        if (providerAlias === "openai" || providerAlias === "anthropic") {
+          priority = 50; // Major providers with real API keys
+        } else if (providerAlias === "vertex" || providerAlias === "gemini") {
+          priority = 55;
+        } else if (providerAlias.startsWith("opencode-")) {
+          priority = 95; // Free/catalog — only if nothing credentialed is available
         } else {
           priority = 75; // Other providers
         }

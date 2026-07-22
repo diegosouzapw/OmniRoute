@@ -108,6 +108,23 @@ export function mapModel(model: string): string {
 const TOKEN_SEED = "oldllm-client-2026";
 const UA_PREFIX = CHROME_UA.slice(0, 20); // "Mozilla/5.0 (Windows"
 
+type TheOldLlmProxy = {
+  type?: string;
+  host: string;
+  port: number;
+  username?: string | null;
+  password?: string | null;
+} | null;
+
+interface TheOldLlmFetchDependencies {
+  resolveProxy: () => Promise<TheOldLlmProxy>;
+  runWithProxy: <T>(proxy: TheOldLlmProxy, request: () => Promise<T>) => Promise<T>;
+  fetch: typeof fetch;
+  hasBlockingProxyAssignment?: () => boolean;
+}
+
+class TheOldLlmProxyUnavailableError extends Error {}
+
 export function generateRequestToken(): string {
   const n = Date.now();
   const e = `${n}-${TOKEN_SEED}-${UA_PREFIX}`;
@@ -127,6 +144,44 @@ export const tokenCache: { value: string; expiresAt: number } = { value: "", exp
 
 // ── Direct Node.js fetch ──────────────────────────────────────────────────
 
+export async function fetchTheOldLlmWithProviderProxy(
+  reqBody: Record<string, unknown>,
+  signal: AbortSignal,
+  dependencies?: TheOldLlmFetchDependencies
+): Promise<Response> {
+  let deps = dependencies;
+  if (!deps) {
+    const [
+      { resolveProxyForProvider, hasBlockingProxyAssignmentForProvider },
+      { runWithProxyContext },
+    ] = await Promise.all([import("../../src/lib/db/proxies"), import("../utils/proxyFetch.ts")]);
+    deps = {
+      resolveProxy: () => resolveProxyForProvider("theoldllm"),
+      runWithProxy: runWithProxyContext,
+      fetch: globalThis.fetch,
+      hasBlockingProxyAssignment: () => hasBlockingProxyAssignmentForProvider("theoldllm"),
+    };
+  }
+
+  const proxy = await deps.resolveProxy();
+  if (!proxy && deps.hasBlockingProxyAssignment?.()) {
+    throw new TheOldLlmProxyUnavailableError("No active proxy is available for The Old LLM");
+  }
+  return deps.runWithProxy(proxy, () =>
+    deps.fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Client-Version": "3.8.4",
+        "X-Request-Token": generateRequestToken(),
+        "User-Agent": CHROME_UA,
+      },
+      body: JSON.stringify(reqBody),
+      signal,
+    })
+  );
+}
+
 async function directFetch(
   reqBody: Record<string, unknown>,
   signal?: AbortSignal | null
@@ -137,21 +192,24 @@ async function directFetch(
   signal?.addEventListener("abort", onSignal!, { once: true });
 
   try {
-    return await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Client-Version": "3.8.4",
-        "X-Request-Token": generateRequestToken(),
-        "User-Agent": CHROME_UA,
-      },
-      body: JSON.stringify(reqBody),
-      signal: controller.signal,
-    });
+    // No-auth providers do not have a connection row, so chatCore cannot apply
+    // a connection-scoped proxy context for them. Resolve the provider/global
+    // assignment explicitly; otherwise The Old LLM always leaks out through the
+    // VPS address and Vercel's bot protection denies every model.
+    return await fetchTheOldLlmWithProviderProxy(reqBody, controller.signal);
   } finally {
     clearTimeout(timer);
     if (onSignal) signal?.removeEventListener("abort", onSignal);
   }
+}
+
+export function isVercelMitigationResponse(response: Response, body: string): boolean {
+  const mitigation = response.headers.get("x-vercel-mitigated")?.toLowerCase();
+  if (mitigation === "deny" || mitigation === "challenge") return true;
+  return (
+    (response.status === 403 || response.status === 429) &&
+    /vercel security checkpoint|"message"\s*:\s*"forbidden"/i.test(body)
+  );
 }
 
 function isTokenRejected(status: number, body: string): boolean {
@@ -211,6 +269,45 @@ function buildErrorResponse(status: number, body: string): string {
   });
 }
 
+function buildVercelMitigationError(): string {
+  return JSON.stringify({
+    error: {
+      message:
+        "The Old LLM is blocked by Vercel for this server egress IP. Configure a residential provider or global proxy for 'theoldllm' and retry.",
+      type: "upstream_access_denied",
+      code: "THEOLDLLM_VERCEL_MITIGATED",
+    },
+  });
+}
+
+function buildProxyUnavailableError(): string {
+  return JSON.stringify({
+    error: {
+      message:
+        "The Old LLM proxy assignment has no active proxies. Configure or enable a proxy and retry.",
+      type: "proxy_unavailable",
+      code: "THEOLDLLM_PROXY_UNAVAILABLE",
+    },
+  });
+}
+
+async function fetchUpstreamWithRetry(
+  reqBody: Record<string, unknown>,
+  signal: AbortSignal | null | undefined,
+  log: ExecuteInput["log"]
+): Promise<{ response: Response; body: string; vercelMitigated: boolean }> {
+  let response = await directFetch(reqBody, signal);
+  let body = await response.text();
+  let vercelMitigated = isVercelMitigationResponse(response, body);
+  if (!vercelMitigated && isTokenRejected(response.status, body)) {
+    log?.warn?.("THEOLDLLM", `Token rejected (${response.status}), retrying with fresh token…`);
+    response = await directFetch(reqBody, signal);
+    body = await response.text();
+    vercelMitigated = isVercelMitigationResponse(response, body);
+  }
+  return { response, body, vercelMitigated };
+}
+
 // ── Executor ──────────────────────────────────────────────────────────────
 
 export class TheOldLlmExecutor extends BaseExecutor {
@@ -237,27 +334,37 @@ export class TheOldLlmExecutor extends BaseExecutor {
     return body;
   }
 
+  private executionResult(input: ExecuteInput, response: Response, body: unknown) {
+    return {
+      response,
+      url: API_URL,
+      headers: this.buildHeaders(input.credentials),
+      transformedBody: body,
+    };
+  }
+
   async testConnection(
     _credentials: ProviderCredentials,
     _signal?: AbortSignal | null,
     log?: ExecuteInput["log"]
   ): Promise<boolean> {
     try {
-      const resp = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Client-Version": "3.8.4",
-          "X-Request-Token": generateRequestToken(),
-          "User-Agent": CHROME_UA,
-        },
-        body: JSON.stringify({
+      const resp = await directFetch(
+        {
           model: "GPT_5_4",
           messages: [{ role: "user", content: "ping" }],
           stream: false,
-        }),
-        signal: _signal ?? undefined,
-      });
+        },
+        _signal
+      );
+      const body = await resp.text();
+      if (!resp.ok && isVercelMitigationResponse(resp, body)) {
+        log?.warn?.(
+          "THEOLDLLM",
+          "Vercel blocked this egress IP; configure a residential provider proxy"
+        );
+        return false;
+      }
       return resp.status === 200;
     } catch {
       log?.warn?.("THEOLDLLM", "testConnection network error");
@@ -297,56 +404,55 @@ export class TheOldLlmExecutor extends BaseExecutor {
         stream: true,
       };
 
-      let upstream = await directFetch(reqBody, signal);
-      let finalBody = await upstream.text();
-
-      if (isTokenRejected(upstream.status, finalBody)) {
-        log?.warn?.("THEOLDLLM", `Token rejected (${upstream.status}), retrying with fresh token…`);
-        upstream = await directFetch(reqBody, signal);
-        finalBody = await upstream.text();
-      }
+      const {
+        response: upstream,
+        body: finalBody,
+        vercelMitigated,
+      } = await fetchUpstreamWithRetry(reqBody, signal, log);
 
       if (upstream.status === 200 && finalBody) {
         const payload = stream ? finalBody : buildChatCompletion(parseSseContent(finalBody), model);
-        return {
-          response: new Response(encoder.encode(payload), {
+        return this.executionResult(
+          input,
+          new Response(encoder.encode(payload), {
             status: 200,
             headers: {
               "Content-Type": stream ? "text/event-stream" : "application/json",
               "Cache-Control": "no-cache",
             },
           }),
-          url: API_URL,
-          headers: this.buildHeaders(input.credentials),
-          transformedBody: body,
-        };
+          body
+        );
       }
 
-      return {
-        response: new Response(encoder.encode(buildErrorResponse(upstream.status, finalBody)), {
+      const errorPayload = vercelMitigated
+        ? buildVercelMitigationError()
+        : buildErrorResponse(upstream.status, finalBody);
+      return this.executionResult(
+        input,
+        new Response(encoder.encode(errorPayload), {
           status: upstream.status,
           headers: { "Content-Type": "application/json" },
         }),
-        url: API_URL,
-        headers: this.buildHeaders(input.credentials),
-        transformedBody: body,
-      };
+        body
+      );
     } catch (err) {
+      const proxyUnavailable = err instanceof TheOldLlmProxyUnavailableError;
       const msg = err instanceof Error ? err.message : String(err);
       log?.error?.("THEOLDLLM", `Executor error: ${msg}`);
-      return {
-        response: new Response(
-          encoder.encode(
-            JSON.stringify({
-              error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
-            })
-          ),
-          { status: 502, headers: { "Content-Type": "application/json" } }
-        ),
-        url: API_URL,
-        headers: this.buildHeaders(input.credentials),
-        transformedBody: body,
-      };
+      const errorPayload = proxyUnavailable
+        ? buildProxyUnavailableError()
+        : JSON.stringify({
+            error: { message: msg, type: "upstream_error", code: "EXECUTOR_ERROR" },
+          });
+      return this.executionResult(
+        input,
+        new Response(encoder.encode(errorPayload), {
+          status: proxyUnavailable ? 503 : 502,
+          headers: { "Content-Type": "application/json" },
+        }),
+        body
+      );
     }
   }
 }

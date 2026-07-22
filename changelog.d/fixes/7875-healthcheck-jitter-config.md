@@ -1,0 +1,1 @@
+- fix(auth): restore `HEALTHCHECK_BATCH_SIZE` env-var configurability of the OAuth token-health-check sweep batch size, dropped as a hardcoded constant by #7719 (#7875)

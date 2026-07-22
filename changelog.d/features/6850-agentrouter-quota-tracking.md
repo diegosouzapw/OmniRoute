@@ -1,0 +1,1 @@
+- feat(sse): add quota tracking for the `agentrouter` provider — polls the New-API `/api/user/self` balance endpoint with a separate System Access Token + `New-Api-User` id (configured via `providerSpecificData.consoleApiKey` / `newApiUserId`), converting raw quota units into a dollar balance and feeding preflight + the dashboard's Provider Quota card (#6850).

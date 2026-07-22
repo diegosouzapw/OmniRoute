@@ -1,0 +1,1 @@
+- feat(sse): honor a no-auth provider connection's **Excluded Models** field (`providerSpecificData.excludedModels`) in the auto-combo/fusion candidate pool builder, so an excluded no-auth model (e.g. `minimax-m3-free`) is filtered out upfront instead of only failing over after being picked (#7622).

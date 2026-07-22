@@ -62,6 +62,24 @@ test("#3572 OpenAI: empty content + finish_reason=stop stays flagged (fake-succe
   );
 });
 
+test("#3572 OpenAI: empty content + finish_reason=content_filter is NOT empty-failure (safety-filtered response)", () => {
+  assert.equal(
+    isEmptyContentResponse({
+      choices: [{ index: 0, message: { content: "" }, finish_reason: "content_filter" }],
+    }),
+    false
+  );
+});
+
+test("#3572 OpenAI: empty content + finish_reason=content_filter (stream chunk) is NOT empty-failure", () => {
+  assert.equal(
+    isEmptyContentResponse({
+      choices: [{ index: 0, delta: { content: "" }, finish_reason: "content_filter" }],
+    }),
+    false
+  );
+});
+
 test("#3572 regression: non-empty content is never flagged", () => {
   assert.equal(isEmptyContentResponse({ content: [{ type: "text", text: "hi" }] }), false);
   assert.equal(

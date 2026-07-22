@@ -22,6 +22,7 @@
  */
 
 import { cooldownUntilMs } from "@omniroute/open-sse/services/accountFallback.ts";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 /**
  * The transient-cooldown status written by `markAccountUnavailable()` for a
@@ -223,14 +224,6 @@ function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
 
-function isAutomatedTestProcess(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((arg) => arg.includes("test")))
-  );
-}
 
 function isRecoverySchedulerDisabled(): boolean {
   return (

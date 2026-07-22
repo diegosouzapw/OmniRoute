@@ -798,7 +798,7 @@ test("usage service covers Codex, Kiro and Kimi usage parsing and error branches
   assert.match(kimiInvalidJson.message, /Invalid JSON response/i);
 });
 
-test("usage service covers Codex auth failures, Kiro hard failures, Kimi no-quota fallbacks and Qwen catch branch", async () => {
+test("usage service covers Codex auth failures, Kiro hard failures and Kimi no-quota fallbacks", async () => {
   globalThis.fetch = async (url) => {
     if (String(url).includes("/backend-api/wham/usage")) {
       return new Response("nope", { status: 401 });
@@ -865,34 +865,9 @@ test("usage service covers Codex auth failures, Kiro hard failures, Kimi no-quot
     accessToken: "kimi-offline",
   });
   assert.match(kimiOffline.message, /Unable to fetch usage: kimi offline/i);
-
-  const qwenCatch: any = await usageService.getUsageForProvider({
-    provider: "qwen",
-    accessToken: "qwen-catch",
-    providerSpecificData: {
-      get resourceUrl() {
-        throw new Error("resource lookup failed");
-      },
-    },
-  });
-  assert.equal(qwenCatch.message, "Unable to fetch Qwen usage.");
 });
 
-test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () => {
-  const qwenMissingUrl: any = await usageService.getUsageForProvider({
-    provider: "qwen",
-    accessToken: "qwen-token",
-    providerSpecificData: {},
-  });
-  assert.match(qwenMissingUrl.message, /No resource URL/i);
-
-  const qwen: any = await usageService.getUsageForProvider({
-    provider: "qwen",
-    accessToken: "qwen-token",
-    providerSpecificData: { resourceUrl: "https://example.com/resource" },
-  });
-  assert.match(qwen.message, /Usage tracked per request/i);
-
+test("usage service covers Qoder, GLM, Z.AI and GLMT branches", async () => {
   // Qoder now reads its PAT from `apiKey` (not `accessToken`); with no PAT the
   // usage fetcher returns a friendly prompt instead of hitting the network.
   const qoder: any = await usageService.getUsageForProvider({

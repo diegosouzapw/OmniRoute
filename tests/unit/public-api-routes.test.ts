@@ -46,3 +46,12 @@ test("isPublicApiRoute allows /api/usage/om-usage (handler enforces its own API 
   assert.equal(isPublicApiRoute("/api/usage/om-usage", "GET"), true);
   assert.equal(isPublicApiRoute("/api/usage/om-usage", "OPTIONS"), true);
 });
+test("isPublicApiRoute allows OIDC dashboard login routes (auth gate replacement)", () => {
+  assert.equal(isPublicApiRoute("/api/auth/oidc/login"), true);
+  assert.equal(isPublicApiRoute("/api/auth/oidc/callback"), true);
+  assert.equal(isPublicApiRoute("/api/auth/oidc/login", "GET"), true);
+  assert.equal(isPublicApiRoute("/api/auth/oidc/callback", "GET"), true);
+  // The prefix is in PUBLIC_API_ROUTE_PREFIXES, so all methods on the subtree are public (the handlers decide what they accept).
+  // This mirrors how /api/auth/login works.
+  assert.equal(isPublicApiRoute("/api/auth/oidc/callback", "POST"), true);
+});

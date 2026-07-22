@@ -10,9 +10,9 @@
  * `gpt-5.5`. Result: a codex-only user (no OpenAI connection) had `gpt-5.5`
  * routed to `openai`, and Codex-only hosted image generation failed.
  *
- * Fix: move the codex-preference block ahead of the OpenAI short-circuit. It is
- * guarded by `!activeProviders.has("openai")`, so users WITH an active OpenAI
- * connection keep OpenAI as the default (behavior preserved).
+ * Catalog-driven inference generalizes the original GPT-5.5-specific fix while
+ * preserving its compatibility boundary: Codex-only users route through Codex,
+ * but OpenAI remains the historical default when both providers are active.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -50,8 +50,8 @@ test("#5887(a) codex-only setup infers codex for unprefixed gpt-5.5", async () =
   assert.equal(info.model, "gpt-5.5", "codex inference keeps the bare gpt-5.5 id");
 });
 
-// (b) OpenAI active → OpenAI stays the default for gpt-5.5 (behavior preserved).
-test("#5887(b) active OpenAI connection keeps gpt-5.5 on openai", async () => {
+// (b) Codex + OpenAI active → preserve the historical OpenAI default.
+test("#5887(b) active Codex and OpenAI connections keep gpt-5.5 on OpenAI", async () => {
   const conn = await providersDb.createProviderConnection({
     provider: "openai",
     authType: "apikey",
@@ -60,7 +60,7 @@ test("#5887(b) active OpenAI connection keeps gpt-5.5 on openai", async () => {
   openaiConnectionId = (conn as { id?: number | string })?.id;
 
   const info = await getModelInfoCore("gpt-5.5", null);
-  assert.equal(info.provider, "openai", "OpenAI stays default when openai is active");
+  assert.equal(info.provider, "openai", "OpenAI remains default when both providers are active");
   assert.equal(info.model, "gpt-5.5");
 });
 

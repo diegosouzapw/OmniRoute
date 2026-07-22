@@ -42,6 +42,7 @@ interface ProviderSummaryCardProps {
   onCategoryChange(category: string | null, freeOnly: boolean): void;
   onDisplayModeChange(mode: ProviderDisplayMode): void;
   onNewProvider(): void;
+  onImportFromFile(): void;
   searchQuery: string;
   setModelSearchQuery(value: string): void;
   setSearchQuery(value: string): void;
@@ -96,6 +97,7 @@ export default function ProviderSummaryCard({
   onCategoryChange,
   onDisplayModeChange,
   onNewProvider,
+  onImportFromFile,
   searchQuery,
   setModelSearchQuery,
   setSearchQuery,
@@ -199,6 +201,9 @@ export default function ProviderSummaryCard({
           />
           <Button size="sm" icon="add" onClick={onNewProvider}>
             {providerText(t, "onboardingWizardShort", "Onboarding Wizard")}
+          </Button>
+          <Button size="sm" variant="secondary" icon="upload_file" onClick={onImportFromFile}>
+            {providerText(t, "importFromFile", "Import from file")}
           </Button>
           <button
             onClick={() => onBatchTest("all")}

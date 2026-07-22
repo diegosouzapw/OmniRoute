@@ -9,6 +9,10 @@ import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
+import {
+  isProviderConnectionConnected,
+  isProviderConnectionErrored,
+} from "@/shared/utils/providerConnectionStatus";
 import { useNotificationStore } from "@/store/notificationStore";
 import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { copyToClipboard } from "@/shared/utils/clipboard";
@@ -423,19 +427,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const providerStats = useMemo(() => {
     return Object.entries(AI_PROVIDERS).map(([providerId, providerInfo]) => {
       const connections = providerConnections.filter((conn) => conn.provider === providerId);
-      const connected = connections.filter(
-        (conn) =>
-          conn.isActive !== false &&
-          (conn.testStatus === "active" ||
-            conn.testStatus === "success" ||
-            conn.testStatus === "unknown")
+      const connected = connections.filter((connection) =>
+        isProviderConnectionConnected(connection)
       ).length;
-      const errors = connections.filter(
-        (conn) =>
-          conn.isActive !== false &&
-          (conn.testStatus === "error" ||
-            conn.testStatus === "expired" ||
-            conn.testStatus === "unavailable")
+      const errors = connections.filter((connection) =>
+        isProviderConnectionErrored(connection)
       ).length;
 
       const providerKeys = new Set([providerId, providerInfo.alias].filter(Boolean));
@@ -468,8 +464,26 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }, [selectedProvider, models]);
 
   const topologyProviders = useMemo(() => {
-    const byProvider = new Map<string, { id: string; provider: string; name?: string }>();
+    type ProviderHealth = "active" | "error" | "idle";
+    const byProvider = new Map<
+      string,
+      { id: string; provider: string; name?: string; status: ProviderHealth }
+    >();
     const providerConfig = AI_PROVIDERS as Record<string, { name?: string }>;
+
+    // Connection-health per provider, so the topology node reflects "what is connected"
+    // at rest (green healthy / red error) instead of going blank between requests. A
+    // provider with ≥1 healthy connection is "active"; if none are healthy but some are
+    // errored it is "error"; otherwise "idle". Live/recent traffic still overrides this.
+    const healthByProvider = new Map<string, ProviderHealth>();
+    for (const stat of providerStats) {
+      const canonical = normalizeProviderId(stat.id);
+      if (!canonical) continue;
+      healthByProvider.set(
+        canonical,
+        stat.connected > 0 ? "active" : stat.errors > 0 ? "error" : "idle"
+      );
+    }
 
     const addProvider = (providerId?: string | null, name?: string) => {
       const rawProviderId = typeof providerId === "string" ? providerId.trim() : "";
@@ -488,6 +502,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         id: canonicalProviderId,
         provider: canonicalProviderId,
         name: resolvedName,
+        status: healthByProvider.get(canonicalProviderId) ?? "idle",
       });
     };
 

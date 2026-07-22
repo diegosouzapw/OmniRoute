@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import type { InterceptedRequest } from "@/mitm/inspector/types";
 import { cn } from "@/shared/utils/cn";
 import { HeadersTab } from "./tabs/HeadersTab";
@@ -16,19 +17,19 @@ type TabId = "conversation" | "headers" | "request" | "response" | "timing" | "l
 
 interface Tab {
   id: TabId;
-  label: string;
+  labelKey: string;
   icon: string;
   llmOnly?: boolean;
 }
 
 const TABS: Tab[] = [
-  { id: "conversation", label: "Conversation", icon: "chat_bubble" },
-  { id: "headers", label: "Headers", icon: "list" },
-  { id: "request", label: "Request", icon: "upload" },
-  { id: "response", label: "Response", icon: "download" },
-  { id: "timing", label: "Timing", icon: "timer" },
-  { id: "llm", label: "LLM", icon: "psychology", llmOnly: true },
-  { id: "stats", label: "Stats", icon: "bar_chart" },
+  { id: "conversation", labelKey: "tabConversation", icon: "chat_bubble" },
+  { id: "headers", labelKey: "tabHeaders", icon: "list" },
+  { id: "request", labelKey: "tabRequest", icon: "upload" },
+  { id: "response", labelKey: "tabResponse", icon: "download" },
+  { id: "timing", labelKey: "tabTiming", icon: "timer" },
+  { id: "llm", labelKey: "tabLlm", icon: "psychology", llmOnly: true },
+  { id: "stats", labelKey: "tabStats", icon: "bar_chart" },
 ];
 
 interface DetailsPanelProps {
@@ -37,19 +38,17 @@ interface DetailsPanelProps {
 }
 
 export function DetailsPanel({ request, allRequests }: DetailsPanelProps) {
+  const t = useTranslations("trafficInspector");
   const [activeTab, setActiveTab] = useState<TabId>("conversation");
 
   if (!request) {
     return (
       <div className="h-full flex items-center justify-center text-text-muted">
         <div className="text-center space-y-2">
-          <span
-            className="material-symbols-outlined text-[36px] block"
-            aria-hidden="true"
-          >
+          <span className="material-symbols-outlined text-[36px] block" aria-hidden="true">
             info
           </span>
-          <p className="text-sm">Select a request to inspect it.</p>
+          <p className="text-sm">{t("selectRequest")}</p>
         </div>
       </div>
     );
@@ -66,7 +65,7 @@ export function DetailsPanel({ request, allRequests }: DetailsPanelProps) {
       {/* Tab bar */}
       <div
         role="tablist"
-        aria-label="Request details"
+        aria-label={t("requestDetails")}
         className="flex flex-wrap items-center gap-0.5 border-b border-border px-2 pt-1 bg-bg-subtle shrink-0"
       >
         {visibleTabs.map((tab) => {
@@ -88,7 +87,7 @@ export function DetailsPanel({ request, allRequests }: DetailsPanelProps) {
               <span className="material-symbols-outlined text-[13px]" aria-hidden="true">
                 {tab.icon}
               </span>
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           );
         })}

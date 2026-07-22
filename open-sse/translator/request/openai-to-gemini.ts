@@ -10,6 +10,7 @@ import {
   getAntigravityEnvelopeUserAgent,
   getAntigravitySessionId,
 } from "../../services/antigravityIdentity.ts";
+import { fixToolPairs } from "../../services/contextManager.ts";
 import {
   capMaxOutputTokens,
   capThinkingBudget,
@@ -258,7 +259,17 @@ function openaiToGeminiBase(
 
   // Build tool_call_id -> name map
   const tcID2Name: Record<string, string> = {};
-  const messages = body.messages as Array<Record<string, unknown>> | undefined;
+  // #7752: strip any non-trailing tool_call whose id has no matching tool_result
+  // anywhere in history — same guard `BaseExecutor.execute()` applies for the mainline
+  // Claude path (#2382/#4714) and `antigravityToOpenAIRequest` applies for the mirror
+  // incoming direction (#6026). Without this, an orphaned tool_call (e.g. left behind by
+  // OpenCode's known abort/cancel bug) reaches Google's Cloud Code envelope as an unpaired
+  // functionCall, which Vertex's Claude backend rejects with HTTP 400.
+  const rawMessages = body.messages as Array<Record<string, unknown>> | undefined;
+  const messages =
+    rawMessages && Array.isArray(rawMessages)
+      ? (fixToolPairs(rawMessages) as Array<Record<string, unknown>>)
+      : rawMessages;
   if (messages && Array.isArray(messages)) {
     for (const msg of messages) {
       const toolCalls = msg.tool_calls as Array<Record<string, unknown>> | undefined;

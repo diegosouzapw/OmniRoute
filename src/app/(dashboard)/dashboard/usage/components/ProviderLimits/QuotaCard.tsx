@@ -3,7 +3,17 @@
 import { useMemo, useState } from "react";
 import Card from "@/shared/components/Card";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
-import { normalizePlanTier, resolvePlanValue, worstStatus, type CardStatus } from "./utils";
+import {
+  normalizePlanTier,
+  resolvePlanValue,
+  worstStatus,
+  filterQuotasByVisibility,
+  getHiddenQuotaRows,
+  computeCanEditCutoff,
+  computeCanRedeemResetCredit,
+  hasQuotaCutoffOverrides,
+  type CardStatus,
+} from "./utils";
 import QuotaCardHeader from "./parts/QuotaCardHeader";
 import QuotaCardExpanded from "./parts/QuotaCardExpanded";
 import ProviderUsdCostModal from "./ProviderUsdCostModal";
@@ -34,10 +44,15 @@ interface QuotaCardProps {
   providerLabel: string;
   onRefresh: () => void;
   onOpenCutoff: () => void;
-  onRedeemResetCredit?: () => void;
+  onOpenResetCredits?: () => void;
   onToggleActive: (nextActive: boolean) => void;
   togglingActive: boolean;
   redeemingResetCredit?: boolean;
+  loadingResetCredits?: boolean;
+  /** Per-operator quota row visibility (upstream 9router#2371 port). */
+  quotaVisibility?: Record<string, { hidden?: string[] }>;
+  onHideQuota?: (quota: any) => void;
+  onShowQuota?: (quota: any) => void;
 }
 
 export default function QuotaCard({
@@ -50,14 +65,26 @@ export default function QuotaCard({
   providerLabel,
   onRefresh,
   onOpenCutoff,
-  onRedeemResetCredit,
+  onOpenResetCredits,
   onToggleActive,
   togglingActive,
   redeemingResetCredit = false,
+  loadingResetCredits = false,
+  quotaVisibility,
+  onHideQuota,
+  onShowQuota,
 }: QuotaCardProps) {
   const isActive = connection.isActive ?? true;
   const [costModalOpen, setCostModalOpen] = useState(false);
-  const quotas = quota?.quotas ?? EMPTY_QUOTAS;
+  const rawQuotas = quota?.quotas ?? EMPTY_QUOTAS;
+  const quotas = useMemo(
+    () => filterQuotasByVisibility(connection.provider, rawQuotas, quotaVisibility),
+    [connection.provider, rawQuotas, quotaVisibility]
+  );
+  const hiddenQuotaRows = useMemo(
+    () => getHiddenQuotaRows(connection.provider, rawQuotas, quotaVisibility),
+    [connection.provider, rawQuotas, quotaVisibility]
+  );
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
   const tierMeta = useMemo(
     () =>
@@ -82,14 +109,11 @@ export default function QuotaCard({
     [connection, emailsVisible]
   );
 
-  const overrides = (connection.quotaWindowThresholds as Record<string, number> | null) || null;
-  const hasOverrides = !!overrides && Object.keys(overrides).length > 0;
+  const hasOverrides = hasQuotaCutoffOverrides(connection);
   const hasStaleData = !!quota?.stale;
   const displayRefreshedAt = quota?.stale?.since || refreshedAt;
-  const canEditCutoff = quotas.some((q: any) => q && typeof q.name === "string" && !q.isCredits);
-  const canRedeemResetCredit =
-    connection.provider === "codex" &&
-    quotas.some((q: any) => q?.isResetCredits && Number(q.creditCount ?? q.remaining ?? 0) > 0);
+  const canEditCutoff = computeCanEditCutoff(quotas);
+  const canRedeemResetCredit = computeCanRedeemResetCredit(connection.provider, quotas);
 
   return (
     <Card
@@ -119,11 +143,15 @@ export default function QuotaCard({
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
         onOpenCost={() => setCostModalOpen(true)}
-        onRedeemResetCredit={onRedeemResetCredit}
+        onOpenResetCredits={onOpenResetCredits}
+        hiddenQuotaRows={hiddenQuotaRows}
+        onHideQuota={onHideQuota}
+        onShowQuota={onShowQuota}
         canEditCutoff={canEditCutoff}
         hasCutoffOverrides={hasOverrides}
         canRedeemResetCredit={canRedeemResetCredit}
         redeemingResetCredit={redeemingResetCredit}
+        loadingResetCredits={loadingResetCredits}
       />
       <ProviderUsdCostModal
         isOpen={costModalOpen}

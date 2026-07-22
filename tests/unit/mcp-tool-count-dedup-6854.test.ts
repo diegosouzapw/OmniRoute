@@ -7,8 +7,8 @@ import assert from "node:assert/strict";
 // MCP_TOOLS (open-sse/mcp-server/schemas/tools.ts) and agentSkillTools
 // (open-sse/mcp-server/tools/agentSkillTools.ts), so the additive sum reported 99
 // while only 96 distinct tool names actually exist. countUniqueMcpTools
-// (open-sse/mcp-server/toolCount.ts) fixes this by unioning tool names into a Set
-// before counting, so a tool present in multiple collections is only counted once.
+// (open-sse/mcp-server/toolCount.ts) fixes this by unioning tool names from every
+// registered collection into a Set, so each user-visible tool is counted once.
 
 const { countUniqueMcpTools } = await import("../../open-sse/mcp-server/toolCount.ts");
 const { MCP_TOOLS } = await import("../../open-sse/mcp-server/schemas/tools.ts");
@@ -21,6 +21,7 @@ const { gamificationTools } = await import("../../open-sse/mcp-server/tools/gami
 const { pluginTools } = await import("../../open-sse/mcp-server/tools/pluginTools.ts");
 const { notionTools } = await import("../../open-sse/mcp-server/tools/notionTools.ts");
 const { obsidianTools } = await import("../../open-sse/mcp-server/tools/obsidianTools.ts");
+const { compressionTools } = await import("../../open-sse/mcp-server/tools/compressionTools.ts");
 
 type NamedTool = { name: string };
 
@@ -53,6 +54,7 @@ test("#6854: countUniqueMcpTools de-duplicates tools registered in multiple coll
     pluginTools: pluginTools as unknown as NamedTool[],
     notionTools: notionTools as unknown as NamedTool[],
     obsidianTools: obsidianTools as unknown as NamedTool[],
+    compressionTools: compressionTools as unknown as Record<string, NamedTool>,
   };
 
   const total = countUniqueMcpTools(collections);
@@ -71,11 +73,6 @@ test("#6854: countUniqueMcpTools de-duplicates tools registered in multiple coll
   );
 
   assert.equal(total, uniqueNames.size, "countUniqueMcpTools must equal the unique-name count");
-  assert.equal(
-    total,
-    naiveAdditiveSum - overlap.length,
-    "unique count must be exactly the additive sum minus the double-counted overlap"
-  );
   assert.ok(
     total < naiveAdditiveSum,
     "unique count must be strictly less than the naive additive sum given a known overlap"

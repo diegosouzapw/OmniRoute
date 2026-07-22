@@ -321,15 +321,24 @@ export class KiroService {
    * If that fails or no cached credentials exist, registers a dedicated OIDC client.
    * If registerClient() also fails, the import falls back to the shared social-auth refresh path.
    */
-  async validateImportToken(refreshToken: string, region: string = "us-east-1") {
+  async validateImportToken(
+    refreshToken: string,
+    region: string = "us-east-1",
+    clientIdHint?: string
+  ) {
     assertValidAwsRegion(region);
     // Validate token format
     if (!refreshToken.startsWith("aorAAAAAG")) {
       throw new Error("Invalid token format. Token should start with aorAAAAAG...");
     }
 
-    // Try to read cached clientId/clientSecret from AWS SSO cache (Builder ID tokens)
-    const cachedClient = await this.readCachedClientCredentials(region);
+    // Try to read cached clientId/clientSecret from AWS SSO cache (Builder ID tokens).
+    // When the caller knows the token's own clientId (#1253 — e.g. surfaced by
+    // auto-import from a direct `clientId` field on the token file), pass it
+    // through so the cache lookup can match it exactly instead of guessing via
+    // region + latest-expiry, which can silently adopt an unrelated stale
+    // client registration on hosts with multiple cached SSO sessions.
+    const cachedClient = await this.readCachedClientCredentials(region, clientIdHint);
 
     // Attempt 1: Try Builder ID refresh using cached credentials
     if (cachedClient) {
@@ -397,7 +406,8 @@ export class KiroService {
    * the OIDC client registration step of the device code flow.
    */
   private async readCachedClientCredentials(
-    region?: string
+    region?: string,
+    clientIdHint?: string
   ): Promise<{ clientId: string; clientSecret: string } | null> {
     try {
       const { readdir, readFile } = await import("fs/promises");
@@ -430,6 +440,18 @@ export class KiroService {
         }
       }
       if (candidates.length === 0) return null;
+
+      // When the caller knows the token's own clientId (#1253), an exact match
+      // is authoritative — it identifies the one registration that can actually
+      // refresh this token, regardless of region or expiry. Falling through to
+      // the region/latest-expiry heuristic below for an unmatched hint would
+      // silently adopt an unrelated (and non-working) client pair.
+      if (clientIdHint) {
+        const exactMatch = candidates.find((c) => c.clientId === clientIdHint);
+        if (exactMatch) {
+          return { clientId: exactMatch.clientId, clientSecret: exactMatch.clientSecret };
+        }
+      }
 
       // A host can cache OIDC client registrations for several SSO sessions;
       // adopting the wrong pair makes the Builder ID refresh fail. Prefer a

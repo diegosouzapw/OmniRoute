@@ -160,3 +160,95 @@ export async function fetchGitHubCopilotModels(
     return toFallbackResult(fallbackModels);
   }
 }
+
+/**
+ * GHE Copilot live model discovery.
+ *
+ * The GHE token endpoint returns TWO hosts in `endpoints`:
+ *   - `endpoints.api`   (copilotApiUrl)   → chat/completions + the real chat
+ *      model catalog. Response shape is `{ data: [{ id, name, ... }] }` (same
+ *      shape as github.com's api.githubcopilot.com/models).
+ *   - `endpoints.proxy` (copilotProxyUrl) → NES / autocomplete / instant-apply
+ *      models only. Response shape is `{ models: [{ name, ... }] }`.
+ *
+ * We discover from the `api` host so the imported catalog is the real chat
+ * models (claude-*, gpt-*, gemini-*), not the completion-only proxy set. Unlike
+ * github.com, the IDs are enterprise-specific, so NO static allowlist applies —
+ * every id in the live response is kept. Both response shapes are parsed so a
+ * legacy connection that still points at the proxy host keeps working.
+ */
+function asGheRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+export function parseGheCopilotModels(data: unknown): GitHubCopilotModel[] {
+  const payload = asGheRecord(data);
+  // api host → { data: [{ id }] }; proxy host → { models: [{ name }] }.
+  const items = Array.isArray(payload.data)
+    ? (payload.data as unknown[])
+    : Array.isArray(payload.models)
+      ? (payload.models as unknown[])
+      : [];
+
+  const seen = new Set<string>();
+  const models: GitHubCopilotModel[] = [];
+
+  for (const value of items) {
+    const item = asGheRecord(value);
+    // api host uses `id`; proxy host uses `name` as the model id.
+    const id = toNonEmptyString(item.id) || toNonEmptyString(item.name);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    const name =
+      toNonEmptyString(item.name) ||
+      toNonEmptyString(item.display_name) ||
+      toNonEmptyString(item.label) ||
+      id;
+    models.push({ id, name, owned_by: toNonEmptyString(item.vendor || item.provider) || "ghe-copilot" });
+  }
+
+  return models;
+}
+
+export type FetchGheCopilotModelsOptions = {
+  /**
+   * Copilot API base URL (providerSpecificData.copilotApiUrl, from
+   * endpoints.api). This is the host that serves the real chat model catalog.
+   */
+  apiUrl: string | null | undefined;
+  /** Copilot bearer token. */
+  token: string | null | undefined;
+  /** Injectable fetch (defaults to global fetch). */
+  fetchImpl?: typeof fetch;
+};
+
+/**
+ * Discover the GHE Copilot model catalog live from `<apiUrl>/models`.
+ * Returns an empty list (no fallback catalog) when discovery is unavailable —
+ * GHE model IDs are enterprise-specific, so a static fallback would be wrong.
+ */
+export async function fetchGheCopilotModels(
+  options: FetchGheCopilotModelsOptions
+): Promise<GitHubCopilotModel[]> {
+  const { apiUrl, token, fetchImpl = fetch } = options;
+  const base = toNonEmptyString(apiUrl);
+  if (!base || !toNonEmptyString(token)) return [];
+
+  try {
+    const response = await fetchImpl(`${base.replace(/\/+$/, "")}/models`, {
+      method: "GET",
+      headers: {
+        ...getGitHubCopilotChatHeaders("application/json"),
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) return [];
+    const data = await response.json();
+    return parseGheCopilotModels(data);
+  } catch {
+    return [];
+  }
+}

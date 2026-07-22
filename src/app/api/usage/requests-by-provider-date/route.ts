@@ -33,6 +33,12 @@ function getRangeStartIso(range: string): string | null {
     case "90d":
       start.setDate(start.getDate() - 90);
       break;
+    case "180d":
+      start.setDate(start.getDate() - 180);
+      break;
+    case "365d":
+      start.setDate(start.getDate() - 365);
+      break;
     case "ytd":
       start.setMonth(0, 1);
       start.setHours(0, 0, 0, 0);

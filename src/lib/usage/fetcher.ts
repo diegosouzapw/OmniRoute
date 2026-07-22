@@ -45,8 +45,6 @@ export async function getUsageForProvider(connection) {
       return await getClaudeUsage(accessToken);
     case "codex":
       return await getCodexUsage(accessToken, providerSpecificData);
-    case "qwen":
-      return await getQwenUsage(accessToken, providerSpecificData);
     case "qoder":
       return await getQoderUsage(accessToken);
     case "kiro":
@@ -399,23 +397,6 @@ async function getCodexUsage(accessToken, providerSpecificData: Record<string, a
     return { message: "Codex connected. Check OpenAI dashboard for usage." };
   } catch (error) {
     return { message: "Unable to fetch Codex usage." };
-  }
-}
-
-/**
- * Qwen Usage
- */
-async function getQwenUsage(accessToken, providerSpecificData) {
-  try {
-    const resourceUrl = providerSpecificData?.resourceUrl;
-    if (!resourceUrl) {
-      return { message: "Qwen connected. No resource URL available." };
-    }
-
-    // Qwen may have usage endpoint at resource URL
-    return { message: "Qwen connected. Usage tracked per request." };
-  } catch (error) {
-    return { message: "Unable to fetch Qwen usage." };
   }
 }
 

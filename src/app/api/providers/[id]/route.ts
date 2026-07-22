@@ -5,11 +5,11 @@ import {
   summarizeProviderConnectionForAudit,
 } from "@/lib/compliance/providerAudit";
 import {
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   updateProviderConnection,
   deleteProviderConnection,
   isCloudEnabled,
-} from "@/models";
+} from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { updateProviderConnectionSchema } from "@/shared/validation/schemas";
@@ -24,7 +24,11 @@ import {
 } from "@/lib/providers/claudeExtraUsage";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
-import { refreshConnectionRateLimits, enableRateLimitProtection } from "@/../open-sse/services/rateLimitManager";
+import { cleanupProviderModelsAfterConnectionDelete } from "@/lib/db/models";
+import {
+  refreshConnectionRateLimits,
+  enableRateLimitProtection,
+} from "@/../open-sse/services/rateLimitManager";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -57,7 +61,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     const { id } = await params;
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
 
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
@@ -135,12 +139,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       quotaWindowThresholds: incomingWindowThresholds,
       proxyEnabled,
       perKeyProxyEnabled,
+      quotaVisible,
       projectId,
       providerSpecificData: incomingPsd,
       rateLimitOverrides,
     } = body;
 
-    const existing = (await getProviderConnectionById(id)) as Record<string, any> | null;
+    const existing = (await getCachedProviderConnectionById(id)) as Record<string, any> | null;
     if (!existing) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
@@ -191,6 +196,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (rateLimitOverrides !== undefined) updateData.rateLimitOverrides = rateLimitOverrides;
     if (proxyEnabled !== undefined) updateData.proxyEnabled = proxyEnabled;
     if (perKeyProxyEnabled !== undefined) updateData.perKeyProxyEnabled = perKeyProxyEnabled;
+    if (quotaVisible !== undefined) updateData.quotaVisible = quotaVisible;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {
@@ -342,7 +348,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
 
     // Fetch connection before deleting to check provider type
-    const connection = (await getProviderConnectionById(id)) as Record<string, any> | null;
+    const connection = (await getCachedProviderConnectionById(id)) as Record<string, any> | null;
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
@@ -352,15 +358,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    // Clean up synced available models for this connection
+    // Remove this connection's synced models. Provider-level imported models
+    // are removed only when this was the provider's final connection.
     try {
-      const { deleteSyncedAvailableModelsForConnection } = await import("@/lib/db/models");
-      await deleteSyncedAvailableModelsForConnection(connection.provider, id);
+      await cleanupProviderModelsAfterConnectionDelete(connection.provider, id);
     } catch (e) {
-      console.error(
-        `Failed to clean up synced models for deleted ${connection.provider} connection:`,
-        e
-      );
+      console.error(`Failed to clean up models for deleted ${connection.provider} connection:`, e);
     }
 
     // Auto sync to Cloud if enabled

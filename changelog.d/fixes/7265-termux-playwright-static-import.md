@@ -1,0 +1,1 @@
+- fix(sse): lazy-load playwright in claudeTurnstileSolver so unsupported platforms (e.g. Termux/Android) don't crash on boot (#7265)

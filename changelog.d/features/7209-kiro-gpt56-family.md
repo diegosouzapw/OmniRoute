@@ -1,0 +1,1 @@
+- **feat(kiro):** register the GPT-5.6 Sol/Terra/Luna model family (272k context window). (thanks @SemonCat)

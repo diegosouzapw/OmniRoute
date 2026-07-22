@@ -118,9 +118,26 @@ The loader probes, in priority order:
 
 ## §4 The per-SNI dynamic CA and trust-store installer
 
-The static AgentBridge MITM cert works only because AgentBridge DNS-spoofs a
-**fixed** host set. TPROXY intercepts **arbitrary** hosts, so the listener must
-present a valid leaf for whatever SNI the client requests.
+> **#6684 update:** the AgentBridge static server (`src/mitm/server.cjs`) now
+> shares this same CA/leaf architecture pattern instead of a single static
+> self-signed leaf. It uses a **distinct** CA instance
+> (`src/mitm/cert/rootCa.ts`, persisted at `<DATA_DIR>/mitm/ca.key`/`ca.crt`)
+> and installs under the pre-existing `omniroute-mitm.crt` trust-store slot
+> (superseding the old single leaf there — no dual-trust cleanup needed),
+> kept fully separate from TPROXY's own `omniroute-tproxy-ca.crt` slot below.
+> Fresh AgentBridge installs get the CA model automatically; an install that
+> already trusted the old static leaf keeps using it until the operator opts
+> in via `MITM_ROOT_CA_ENABLED=true` (see `src/mitm/cert/migration.ts`) — a
+> trusted MITM CA that can sign a leaf for **any** host is materially more
+> powerful than the old fixed-SAN leaf, so the switch is never silent for an
+> already-trusted install.
+
+Historically, the static AgentBridge MITM cert worked only because AgentBridge
+DNS-spoofs a **fixed** host set (now unified with the model below). TPROXY
+intercepts **arbitrary** hosts, so its listener must present a valid leaf for
+whatever SNI the client requests — the same requirement AgentBridge now has
+for the full `MITM_TOOL_HOSTS` set (9 tool entries) instead of just the 4
+antigravity hosts.
 
 ### Dynamic CA (`src/mitm/tproxy/dynamicCert.ts`)
 

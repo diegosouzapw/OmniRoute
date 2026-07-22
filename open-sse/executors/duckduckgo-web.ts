@@ -8,6 +8,60 @@ import type { Session } from "../services/sessionPool/session.ts";
 import { tryBackedChat } from "../services/browserBackedChat.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
+// Issue #6999: Lightweight circuit breaker for the DuckDuckGo executor.
+// After CB_THRESHOLD consecutive failures (429, 5xx, or network errors),
+// the breaker "opens" for CB_COOLDOWN_MS — during that window every request
+// fast-fails with 503 instead of hammering the upstream. A single success
+// resets the failure counter. Half-open probing happens naturally: once the
+// cooldown expires the breaker closes and the next request is a real probe.
+export const CB_THRESHOLD = 5;
+export const CB_COOLDOWN_MS = 30_000;
+
+interface CircuitBreakerState {
+  failures: number;
+  openedAt: number;
+}
+
+const circuitBreaker: CircuitBreakerState = { failures: 0, openedAt: 0 };
+
+export function cbIsOpen(): boolean {
+  if (circuitBreaker.openedAt === 0) return false;
+  if (Date.now() - circuitBreaker.openedAt >= CB_COOLDOWN_MS) {
+    // Cooldown elapsed — half-open: allow the next request through.
+    circuitBreaker.openedAt = 0;
+    return false;
+  }
+  return true;
+}
+
+export function cbRecordFailure(): void {
+  circuitBreaker.failures++;
+  if (circuitBreaker.failures >= CB_THRESHOLD && circuitBreaker.openedAt === 0) {
+    circuitBreaker.openedAt = Date.now();
+    console.warn(
+      `[DDG-CB] Circuit breaker opened after ${circuitBreaker.failures} consecutive failures — fast-failing for ${CB_COOLDOWN_MS}ms`
+    );
+  }
+}
+
+export function cbRecordSuccess(): void {
+  if (circuitBreaker.failures > 0) {
+    circuitBreaker.failures = 0;
+  }
+}
+
+// Test-only: direct read/write access to the module-level breaker singleton
+// so tests can exercise open/half-open/closed transitions without waiting
+// CB_COOLDOWN_MS in real time. Not used by production code.
+export function __setDdgCircuitBreakerStateForTests(failures: number, openedAt: number): void {
+  circuitBreaker.failures = failures;
+  circuitBreaker.openedAt = openedAt;
+}
+
+export function __getDdgCircuitBreakerStateForTests(): CircuitBreakerState {
+  return { ...circuitBreaker };
+}
+
 export const DUCKDUCKGO_BASE = "https://duckduckgo.com";
 // #4037: the live DuckDuckGo AI Chat backend is served from duckduckgo.com. The
 // status/chat fetches, Origin, and Referer must all use this host so the request's
@@ -172,18 +226,37 @@ function mergeHeadersCaseInsensitive(
   return merged;
 }
 
-function normalizeDuckDuckGoModel(model: string | undefined): string {
-  if (!model) return "gpt-4o-mini";
+/**
+ * #8000: DuckDuckGo's free Duck.ai lineup churns and the catalog fell behind. Map every
+ * retired id OmniRoute historically advertised to the current wire id served by
+ * `duckchat/v1/models` (captured 2026-07-22) — a retired/unknown `model` yields a 400
+ * `ERR_BAD_REQUEST` from `duckchat/v1/chat`. Current free wire ids: gpt-5.4-mini,
+ * gpt-5.4-nano, claude-haiku-4-5, mistral-small-2603, tinfoil/gpt-oss-120b, tinfoil/gemma4-31b.
+ */
+export const DUCKDUCKGO_DEFAULT_MODEL = "gpt-5.4-mini";
+export const DUCKDUCKGO_MODEL_ALIASES: Readonly<Record<string, string>> = {
+  // retired OpenAI ids → current GPT-5.4 free tier
+  "gpt-4o-mini": "gpt-5.4-mini",
+  "gpt-5-mini": "gpt-5.4-mini",
+  "o3-mini": "gpt-5.4-nano",
+  // retired Llama (dropped from Duck.ai free) → nearest general free model
+  "llama-4-scout": "gpt-5.4-mini",
+  // renamed/versioned ids
+  "claude-3-5-haiku-20241022": "claude-haiku-4-5",
+  "mistral-small-2501": "mistral-small-2603",
+  "gpt-oss-120b": "tinfoil/gpt-oss-120b",
+  "gemma4-31b": "tinfoil/gemma4-31b",
+};
+
+export function normalizeDuckDuckGoModel(model: string | undefined): string {
+  if (!model) return DUCKDUCKGO_DEFAULT_MODEL;
   const clean = model.startsWith("duckduckgo-web/") ? model.slice("duckduckgo-web/".length) : model;
-  if (clean === "claude-3-5-haiku-20241022") return "claude-haiku-4-5";
-  if (clean === "llama-4-scout") return "meta-llama/Llama-4-Scout-17B-16E-Instruct";
-  if (clean === "mistral-small-2501") return "mistral-small-2603";
-  if (clean === "gpt-oss-120b") return "tinfoil/gpt-oss-120b";
-  return clean;
+  return DUCKDUCKGO_MODEL_ALIASES[clean] ?? clean;
 }
 
 function getDuckDuckGoModelCapabilities(model: string): DuckDuckGoModelCapabilities {
-  if (model === "gpt-5-mini") return { reasoningEffort: "minimal" };
+  // Per duckchat/v1/models (2026-07-22): claude-haiku-4-5 and gpt-oss-120b take a "low"
+  // reasoningEffort on the free tier; the others omit it (duck.ai applies its own default).
   if (model === "claude-haiku-4-5") return { reasoningEffort: "low" };
   if (model === "tinfoil/gpt-oss-120b") return { reasoningEffort: "low" };
   return { reasoningEffort: null };
@@ -389,6 +462,13 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
       return errorResponse(400, "No messages provided");
     }
 
+    // Issue #6999: Circuit breaker fast-fail. If DDG has been consistently
+    // failing, short-circuit with 503 so the combo engine can immediately
+    // fail over to the next provider instead of waiting for timeouts.
+    if (cbIsOpen()) {
+      return errorResponse(503, "DuckDuckGo circuit breaker open — upstream unavailable");
+    }
+
     // Browser-backed path: opt-in via OMNIROUTE_BROWSER_POOL=on or
     // WEB_COOKIE_USE_BROWSER=1. Routes the chat through a shared
     // Playwright/Cloakbrowser page so DDG's VQD challenge is solved by
@@ -508,6 +588,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
 
       if (chatResponse.status === 429) {
         if (pool && session) pool.reportCooldown(session);
+        cbRecordFailure();
         return await this.processResponse(chatResponse, isStreaming, hasTools, requestedTools);
       }
 
@@ -523,6 +604,7 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
 
       if (chatResponse.status >= 500) {
         if (pool && session) pool.reportDead(session);
+        cbRecordFailure();
         return errorResponse(502, "Upstream error");
       }
 
@@ -544,11 +626,13 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
         }
       }
 
+      cbRecordSuccess();
       return result;
     } catch (error) {
       if (pool && session) {
         pool.reportCooldown(session);
       }
+      cbRecordFailure();
 
       if (error instanceof DOMException && error.name === "AbortError") {
         return errorResponse(499, "Request cancelled");

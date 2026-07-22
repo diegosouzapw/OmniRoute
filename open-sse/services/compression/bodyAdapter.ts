@@ -14,7 +14,11 @@ type ResponsesItem = {
   [key: string]: unknown;
 };
 
-const RESPONSES_MESSAGE_TYPES = new Set(["message", "function_call_output"]);
+const RESPONSES_MESSAGE_TYPES = new Set([
+  "message",
+  "function_call_output",
+  "custom_tool_call_output",
+]);
 const COMPRESSION_INPUT_INDEX = Symbol("compressionInputIndex");
 
 // Kiro envelope path back to the original tool-result text inside
@@ -60,11 +64,47 @@ function fromChatContent(nextContent: unknown, originalContent: unknown): unknow
   return nextContent;
 }
 
+function customToolOutputToChatContent(rawOutput: unknown): unknown {
+  if (typeof rawOutput !== "string") {
+    if (isRecord(rawOutput) && typeof rawOutput.output === "string") return rawOutput.output;
+    return rawOutput;
+  }
+
+  try {
+    const parsed = JSON.parse(rawOutput) as unknown;
+    if (isRecord(parsed) && typeof parsed.output === "string") return parsed.output;
+  } catch {
+    // Plain-text custom tool output is already in the form compression engines expect.
+  }
+  return rawOutput;
+}
+
+function restoreCustomToolOutput(nextContent: unknown, originalOutput: unknown): unknown {
+  if (typeof originalOutput === "string") {
+    try {
+      const parsed = JSON.parse(originalOutput) as unknown;
+      if (isRecord(parsed) && typeof parsed.output === "string") {
+        return JSON.stringify({ ...parsed, output: nextContent });
+      }
+    } catch {
+      // Preserve the original plain-text representation below.
+    }
+  }
+  if (isRecord(originalOutput) && typeof originalOutput.output === "string") {
+    return { ...originalOutput, output: nextContent };
+  }
+  return fromChatContent(nextContent, originalOutput);
+}
+
+function responsesToolOutputField(item: ResponsesItem): "output" | "content" {
+  return item.output !== null && item.output !== undefined ? "output" : "content";
+}
+
 function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
   const type = typeof item.type === "string" ? item.type : "message";
   if (!RESPONSES_MESSAGE_TYPES.has(type)) return null;
 
-  if (type === "function_call_output") {
+  if (type === "function_call_output" || type === "custom_tool_call_output") {
     const rawOutput = item.output ?? item.content;
     // OpenAI Responses shape (Codex): body.input holds Responses items. When
     // output is a JSON object (not a string or content array), serialise it so
@@ -77,7 +117,12 @@ function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
       !Array.isArray(rawOutput);
     return {
       role: "tool",
-      content: isObjectOutput ? JSON.stringify(rawOutput) : toChatContent(rawOutput),
+      content:
+        type === "custom_tool_call_output"
+          ? customToolOutputToChatContent(rawOutput)
+          : isObjectOutput
+            ? JSON.stringify(rawOutput)
+            : toChatContent(rawOutput),
     };
   }
 
@@ -89,10 +134,15 @@ function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
 
 function messageToResponsesItem(message: MessageLike, originalItem: ResponsesItem): ResponsesItem {
   const type = typeof originalItem.type === "string" ? originalItem.type : "message";
-  if (type === "function_call_output") {
+  if (type === "function_call_output" || type === "custom_tool_call_output") {
+    const outputField = responsesToolOutputField(originalItem);
+    const originalOutput = originalItem[outputField];
     return {
       ...originalItem,
-      output: fromChatContent(message.content, originalItem.output),
+      [outputField]:
+        type === "custom_tool_call_output"
+          ? restoreCustomToolOutput(message.content, originalOutput)
+          : fromChatContent(message.content, originalOutput),
     };
   }
 
@@ -332,7 +382,12 @@ function rewriteKiroEntry(
     let trChanged = false;
     const nextContent = content.map((part, partIdx) => {
       if (!isRecord(part) || typeof part.text !== "string") return part;
-      const key = kiroPathKey({ scope, historyIndex, toolResultIndex: trIdx, contentIndex: partIdx });
+      const key = kiroPathKey({
+        scope,
+        historyIndex,
+        toolResultIndex: trIdx,
+        contentIndex: partIdx,
+      });
       const rewritten = rewrites.get(key);
       if (rewritten === undefined || rewritten === part.text) return part;
       trChanged = true;

@@ -52,6 +52,7 @@ describe("getCompressionSettings", () => {
     assert.equal(settings.cacheMinutes, 5);
     assert.equal(settings.preserveSystemPrompt, true);
     assert.equal(settings.preserveSystemPromptMode, "always");
+    assert.deepEqual(settings.liveZone, { enabled: false });
     assert.deepEqual(settings.comboOverrides, {});
     assert.equal(settings.ultra?.enabled, false);
     assert.equal(settings.ultra?.compressionRate, 0.5);
@@ -103,6 +104,16 @@ describe("updateCompressionSettings", () => {
     assert.equal(settings.autoTriggerTokens, 5000);
     // Reset
     await updateCompressionSettings({ autoTriggerTokens: 0 } as any);
+  });
+
+  it("round-trips cache-aligned live-zone compression", async () => {
+    await updateCompressionSettings({ liveZone: { enabled: true } });
+    let settings = await getCompressionSettings();
+    assert.deepEqual(settings.liveZone, { enabled: true });
+
+    await updateCompressionSettings({ liveZone: { enabled: false } });
+    settings = await getCompressionSettings();
+    assert.deepEqual(settings.liveZone, { enabled: false });
   });
 
   it("updates multiple settings at once", async () => {

@@ -5,9 +5,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ── Import component (no module-level mocks needed) ──────────────────────────
 
-const { default: NoAuthAccountCard } = await import(
-  "../../../src/shared/components/NoAuthAccountCard"
-);
+const { default: NoAuthAccountCard } =
+  await import("../../../src/shared/components/NoAuthAccountCard");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

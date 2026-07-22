@@ -27,12 +27,11 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const { clearCache, setCached } = await import("../../src/lib/cliTools/batchStatusCache.ts");
 
 // Import the route under test
-const allStatusesRoute = await import(
-  "../../src/app/api/cli-tools/all-statuses/route.ts"
-);
+const allStatusesRoute = await import("../../src/app/api/cli-tools/all-statuses/route.ts");
 
 // Import CLI_TOOLS to know how many tools exist
 const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
+const { getCliPrimaryConfigPath } = await import("../../src/shared/services/cliRuntime.ts");
 
 const TOOL_COUNT = Object.keys(CLI_TOOLS).length;
 
@@ -105,14 +104,8 @@ test("happy path: returns status map covering all tools in CLI_TOOLS", async () 
     // Each returned entry should have detection and config fields
     for (const [toolId, entry] of Object.entries(body)) {
       const e = entry as Record<string, unknown>;
-      assert.ok(
-        "detection" in e,
-        `tool ${toolId} missing detection field`
-      );
-      assert.ok(
-        "config" in e,
-        `tool ${toolId} missing config field`
-      );
+      assert.ok("detection" in e, `tool ${toolId} missing detection field`);
+      assert.ok("config" in e, `tool ${toolId} missing config field`);
     }
   } else {
     // If 500 (e.g., runtime detection fails in CI), error body must be sanitized
@@ -190,14 +183,8 @@ test("timeout in 1 tool: others succeed + slot has error field (no full request 
           typeof entry.error === "string",
           `tool ${toolId} error should be a string, got ${typeof entry.error}`
         );
-        assert.ok(
-          "detection" in entry,
-          `tool ${toolId} with error should still have detection`
-        );
-        assert.ok(
-          "config" in entry,
-          `tool ${toolId} with error should still have config`
-        );
+        assert.ok("detection" in entry, `tool ${toolId} with error should still have detection`);
+        assert.ok("config" in entry, `tool ${toolId} with error should still have config`);
       }
     }
   }
@@ -247,4 +234,23 @@ test("cache miss: different mtime forces re-execution (cache not used)", async (
   const body = (await response.json()) as Record<string, Record<string, unknown>>;
   // The entry should exist — fresh execution was performed (no crash)
   assert.ok(toolId in body, `expected ${toolId} after cache miss re-execution`);
+});
+
+test("refresh=true bypasses a matching cached CLI result", async () => {
+  const toolId = "codex";
+  const cachedVersion = "stale-codex-version-from-cache";
+  const configPath = getCliPrimaryConfigPath(toolId);
+  const mtimeMs = configPath && fs.existsSync(configPath) ? fs.statSync(configPath).mtimeMs : 0;
+  setCached(toolId, mtimeMs, {
+    detection: { installed: true, runnable: true, version: cachedVersion },
+    config: { status: "configured" },
+  });
+
+  const response = await allStatusesRoute.GET(
+    new Request("http://localhost/api/cli-tools/all-statuses?refresh=true")
+  );
+
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as Record<string, { detection?: { version?: string } }>;
+  assert.notEqual(body[toolId]?.detection?.version, cachedVersion);
 });

@@ -16,6 +16,7 @@ import {
   synthOpenAIErrorChunk,
   synthResponsesFailure,
   detectMalformedNonStream,
+  describeMalformedNonStream,
 } from "../../open-sse/utils/diagnostics.ts";
 
 // ── (a) synthOpenAIErrorChunk shape ──────────────────────────────────────────
@@ -88,6 +89,21 @@ test("detectMalformedNonStream returns 'empty_choices' for choices:[]", () => {
   assert.equal(detectMalformedNonStream({ choices: [] }), "empty_choices");
 });
 
+test("failed Responses API body gets a request-scoped machine-readable classification", () => {
+  const failed = {
+    object: "response",
+    status: "failed",
+    output: [],
+  };
+  const reason = detectMalformedNonStream(failed);
+  assert.equal(reason, "empty_choices");
+  assert.deepEqual(describeMalformedNonStream(failed, reason), {
+    message: "upstream reported a failed response without usable output",
+    code: "upstream_response_failed",
+    type: "upstream_response_error",
+  });
+});
+
 test("detectMalformedNonStream returns 'empty_choices' when choice message has no content", () => {
   const body = {
     choices: [{ message: { content: "", tool_calls: null }, finish_reason: "stop" }],
@@ -122,7 +138,12 @@ test("detectMalformedNonStream returns null for OpenAI choices whose content is 
 
 test("detectMalformedNonStream returns 'empty_choices' for an OpenAI choice with an empty text-block array (#5559 guard)", () => {
   const body = {
-    choices: [{ message: { role: "assistant", content: [{ type: "text", text: "" }] }, finish_reason: "stop" }],
+    choices: [
+      {
+        message: { role: "assistant", content: [{ type: "text", text: "" }] },
+        finish_reason: "stop",
+      },
+    ],
   };
   assert.equal(detectMalformedNonStream(body), "empty_choices");
 });

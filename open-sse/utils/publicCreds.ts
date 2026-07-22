@@ -165,11 +165,6 @@ const EMBEDDED_DEFAULTS = {
     14, 29, 30, 54, 55, 34, 26, 21, 8, 104, 53, 47, 85, 95, 15, 83, 110, 29, 105, 14, 53, 30, 94,
     26, 29, 20, 26, 11,
   ],
-  // Qwen Code CLI — qwen oauth client (public, device flow)
-  qwen_id: [
-    9, 93, 93, 89, 70, 92, 66, 71, 7, 26, 68, 20, 86, 88, 13, 81, 79, 67, 9, 91, 12, 93, 15, 16, 88,
-    69, 23, 4, 20, 21, 64, 84,
-  ],
   // Kimi coding CLI — moonshot oauth client (public)
   kimi_id: [
     94, 90, 11, 92, 20, 89, 66, 69, 72, 73, 65, 76, 86, 65, 93, 7, 75, 20, 28, 86, 90, 94, 95, 95,
@@ -184,6 +179,23 @@ const EMBEDDED_DEFAULTS = {
   ],
   // Trae Cloud IDE — public oauth client id
   trae_id: [10, 3, 95, 6, 10, 22, 66, 3, 11, 90, 72, 31, 91, 2],
+  // Microsoft Designer web app — public ClientId header sent by the
+  // designer.microsoft.com frontend to designerapp.officeapps.live.com
+  // (not a secret — every browser session sends the same fixed value;
+  // reverse-engineered from the g4f MicrosoftDesigner provider reference).
+  microsoft_designer_client_id: [
+    13, 88, 13, 91, 68, 89, 65, 21, 72, 26, 21, 76, 0, 65, 93, 2, 26, 23, 28, 87, 14, 87, 8, 95, 12,
+    17, 70, 6, 24, 66, 17, 1, 10, 95, 81, 28,
+  ],
+  // Microsoft Edge Read Aloud (EdgeTTS) — public "trusted client token" used to
+  // derive the Sec-MS-GEC anti-abuse header. Hardcoded in every known Edge
+  // browser build and every open-source edge-tts reimplementation (e.g.
+  // rany2/edge-tts constants.py) — not a per-user secret, just an
+  // abuse-mitigation constant Microsoft ships in public client binaries.
+  edgetts_token: [
+    89, 44, 91, 40, 51, 94, 49, 64, 32, 108, 54, 51, 86, 41, 80, 37, 111, 69, 6, 42, 95, 93, 45, 68,
+    87, 65, 77, 84, 105, 70, 51, 86,
+  ],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;

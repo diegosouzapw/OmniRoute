@@ -99,21 +99,27 @@ test("isUserCallableAntigravityModelId only allows public chat-capable model IDs
 
 test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and capabilities", () => {
   // #3184: Claude is exposed in the antigravity catalog (same backend as `agy`, verified).
+  // #7129: Opus 4.6, Sonnet 4.6, and Sonnet 5 graduated to a 1M-token context window at GA
+  // (Anthropic docs, platform.claude.com/docs/en/build-with-claude/context-windows: "Claude
+  // Opus 4.8, Claude Opus 4.7, Claude Opus 4.6, Claude Sonnet 5, and Claude Sonnet 4.6 have a
+  // 1M-token context window ... on the Claude API, Amazon Bedrock, Google Cloud, and Microsoft
+  // Foundry" — Google Cloud coverage extends to the Antigravity-hosted ids exercised here).
   assert.deepEqual(getPublicModel("claude-opus-4-6-thinking"), {
     id: "claude-opus-4-6-thinking",
     name: "Claude Opus 4.6 (Thinking)",
-    contextLength: 200000,
+    contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
     supportsVision: true,
     toolCalling: true,
   });
   assert.equal(getPublicModel("claude-sonnet-4-6").name, "Claude Sonnet 4.6 (Thinking)");
+  assert.equal(getPublicModel("claude-sonnet-4-6").contextLength, 1048576);
   // claude-sonnet-5 was added to the Antigravity catalog alongside the existing Claude entries.
   assert.deepEqual(getPublicModel("claude-sonnet-5"), {
     id: "claude-sonnet-5",
     name: "Claude Sonnet 5 (Thinking)",
-    contextLength: 200000,
+    contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
     supportsVision: true,

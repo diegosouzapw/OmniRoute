@@ -41,6 +41,7 @@ export const FREE_TIER_BUDGETS: Record<string, number> = {
 export const FREE_TIER_TOS: Record<string, TosVerdict> = {
   opencode: "avoid",
   "duckduckgo-web": "avoid",
+  "felo-web": "avoid",
   agy: "avoid",
   kiro: "avoid",
   "amazon-q": "avoid",

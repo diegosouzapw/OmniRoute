@@ -1,6 +1,6 @@
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry";
 
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
   SafeOutboundFetchError,

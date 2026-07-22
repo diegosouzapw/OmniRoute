@@ -13,6 +13,7 @@ import type { MitmTarget } from "../types";
 import { ANTIGRAVITY_TARGET } from "./antigravity";
 import { KIRO_TARGET } from "./kiro";
 import { COPILOT_TARGET } from "./copilot";
+import { GHE_COPILOT_TARGET } from "./ghe-copilot";
 import { CODEX_TARGET } from "./codex";
 import { CURSOR_TARGET } from "./cursor";
 import { ZED_TARGET } from "./zed";
@@ -20,10 +21,13 @@ import { CLAUDE_CODE_TARGET } from "./claudeCode";
 import { OPEN_CODE_TARGET } from "./openCode";
 import { TRAE_TARGET } from "./trae";
 
+export { GHE_COPILOT_TARGET } from "./ghe-copilot";
+
 export const ALL_TARGETS: MitmTarget[] = [
   ANTIGRAVITY_TARGET,
   KIRO_TARGET,
   COPILOT_TARGET,
+  GHE_COPILOT_TARGET,
   CODEX_TARGET,
   CURSOR_TARGET,
   ZED_TARGET,

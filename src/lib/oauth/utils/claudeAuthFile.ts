@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { getProviderConnectionById } from "@/lib/localDb";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { createBackup } from "@/shared/services/backupService";
 import { getCliConfigPaths } from "@/shared/services/cliRuntime";
 import {
@@ -172,7 +172,7 @@ export function buildClaudeAuthPayload(connection: ClaudeConnectionLike): Claude
 }
 
 async function resolveFreshClaudeConnection(connectionId: string): Promise<ClaudeConnectionLike> {
-  const connection = (await getProviderConnectionById(connectionId)) as ClaudeConnectionLike | null;
+  const connection = (await getCachedProviderConnectionById(connectionId)) as ClaudeConnectionLike | null;
   if (!connection) {
     throw new ClaudeAuthFileError("Connection not found", 404, "not_found");
   }

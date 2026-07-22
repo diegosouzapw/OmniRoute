@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   assembleStandalone,
+  patchTurbopackChunks,
   syncStandaloneNativeAssets,
   syncStandaloneExtraModules,
 } from "../../../scripts/build/assembleStandalone.mjs";
@@ -91,6 +92,26 @@ test("assembleStandalone copies standalone + static + public + sidecars into out
     "static is NOT placed under a literal .next (would 404 against distDir server)"
   );
   assert.ok(fs.existsSync(path.join(outDir, "public/logo.svg")), "public copied");
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+test("patchTurbopackChunks restores canonical external package names in a custom distDir", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "assemble-hash-strip-"));
+  const chunkDir = path.join(tmp, ".build", "next", "server", "chunks");
+  const chunkPath = path.join(chunkDir, "instrumentation.js");
+  fs.mkdirSync(chunkDir, { recursive: true });
+  fs.writeFileSync(
+    chunkPath,
+    'require("ws-a972e7ffa40ff725"); require("@ngrok/ngrok-0f98e1294a0b09d5");'
+  );
+
+  const result = patchTurbopackChunks(tmp, ".build/next");
+  const patched = fs.readFileSync(chunkPath, "utf8");
+
+  assert.deepEqual(result, { patchedFiles: 1, patchedMatches: 2 });
+  assert.match(patched, /require\("ws"\)/);
+  assert.match(patched, /require\("@ngrok\/ngrok"\)/);
+  assert.doesNotMatch(patched, /-[0-9a-f]{16}/);
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

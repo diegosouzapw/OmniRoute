@@ -21,6 +21,8 @@ export async function createChatPipelineHarness(prefix) {
   const combosDb = await import("../../src/lib/db/combos.ts");
   const settingsDb = await import("../../src/lib/db/settings.ts");
   const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+  const reasoningRulesDb = await import("../../src/lib/db/reasoningRoutingRules.ts");
+  const callLogsDb = await import("../../src/lib/usage/callLogs.ts");
   const modelComboMappingsDb = await import("../../src/lib/db/modelComboMappings.ts");
   const readCacheDb = await import("../../src/lib/db/readCache.ts");
   const memoryStore = await import("../../src/lib/memory/store.ts");
@@ -43,10 +45,46 @@ export async function createChatPipelineHarness(prefix) {
   const originalFetch = globalThis.fetch;
   const originalRetryDelayMs = BaseExecutor.RETRY_CONFIG.delayMs;
 
+  type SkillRegistryState = {
+    registeredSkills?: Map<unknown, unknown>;
+    versionCache?: Map<unknown, unknown>;
+  };
+
+  type SkillExecutorState = {
+    handlers?: Map<unknown, unknown>;
+  };
+
+  type SeedConnectionOverrides = {
+    name?: string;
+    apiKey?: string;
+    isActive?: boolean;
+    testStatus?: string;
+    priority?: number;
+    rateLimitedUntil?: string | number | null;
+    providerSpecificData?: Record<string, unknown>;
+  };
+
+  type SeedApiKeyOptions = {
+    name?: string;
+    noLog?: boolean;
+    allowedConnections?: string[];
+    allowedCombos?: string[];
+    allowedModels?: string[];
+  };
+
+  type ApiKeyPermissionUpdates = {
+    noLog?: boolean;
+    allowedConnections?: string[];
+    allowedCombos?: string[];
+    allowedModels?: string[];
+  };
+
   function clearSkillState() {
-    (skillRegistry as any).registeredSkills?.clear?.();
-    (skillRegistry as any).versionCache?.clear?.();
-    (skillExecutor as any).handlers?.clear?.();
+    const registryState = skillRegistry as unknown as SkillRegistryState;
+    const executorState = skillExecutor as unknown as SkillExecutorState;
+    registryState.registeredSkills?.clear();
+    registryState.versionCache?.clear();
+    executorState.handlers?.clear();
   }
 
   function toPlainHeaders(headers) {
@@ -87,7 +125,7 @@ export async function createChatPipelineHarness(prefix) {
     headers = {},
   }: {
     url?: string;
-    body?: any;
+    body?: unknown;
     authKey?: string | null;
     headers?: Record<string, string>;
   } = {}) {
@@ -243,6 +281,7 @@ export async function createChatPipelineHarness(prefix) {
     resetAllCircuitBreakers();
     apiKeysDb.resetApiKeyState();
     readCacheDb.invalidateDbCache();
+    reasoningRulesDb.invalidateReasoningRoutingRuleCache();
     invalidateMemorySettingsCache();
     clearSkillState();
     await new Promise((resolve) => setTimeout(resolve, 20));
@@ -264,7 +303,7 @@ export async function createChatPipelineHarness(prefix) {
     fs.rmSync(testDataDir, { recursive: true, force: true });
   }
 
-  async function seedConnection(provider: string, overrides: any = {}) {
+  async function seedConnection(provider: string, overrides: SeedConnectionOverrides = {}) {
     return providersDb.createProviderConnection({
       provider,
       authType: "apikey",
@@ -282,22 +321,30 @@ export async function createChatPipelineHarness(prefix) {
     name = `${prefix}-key`,
     noLog = false,
     allowedConnections,
+    allowedCombos,
     allowedModels,
-  }: {
-    name?: string;
-    noLog?: boolean;
-    allowedConnections?: any;
-    allowedModels?: any;
-  } = {}) {
+  }: SeedApiKeyOptions = {}) {
     const key = await apiKeysDb.createApiKey(name, "machine-test");
-    const updates: any = {};
+    const updates: ApiKeyPermissionUpdates = {};
     if (noLog) updates.noLog = true;
     if (allowedConnections) updates.allowedConnections = allowedConnections;
+    if (allowedCombos) updates.allowedCombos = allowedCombos;
     if (allowedModels) updates.allowedModels = allowedModels;
     if (Object.keys(updates).length > 0) {
       await apiKeysDb.updateApiKeyPermissions(key.id, updates);
     }
     return key;
+  }
+
+  async function getLatestCallLog() {
+    const rows = await callLogsDb.getCallLogs({ limit: 5 });
+    if (!Array.isArray(rows) || rows.length === 0) return null;
+    return callLogsDb.getCallLogById(rows[0].id);
+  }
+
+  async function getResponsesCallLogs() {
+    const rows = await callLogsDb.getCallLogs({ limit: 200 });
+    return Array.isArray(rows) ? rows.filter((row) => row.path === "/v1/responses") : [];
   }
 
   initTranslators();
@@ -306,6 +353,7 @@ export async function createChatPipelineHarness(prefix) {
     TEST_DATA_DIR: testDataDir,
     BaseExecutor,
     apiKeysDb,
+    callLogsDb,
     buildClaudeResponse,
     buildGeminiResponse,
     buildOpenAIResponse,
@@ -320,6 +368,8 @@ export async function createChatPipelineHarness(prefix) {
     memoryTools: memoryToolsModule.memoryTools,
     modelComboMappingsDb,
     originalRetryDelayMs,
+    getLatestCallLog,
+    getResponsesCallLogs,
     resetStorage,
     sandboxModule,
     idempotencyLayerModule,
@@ -327,6 +377,7 @@ export async function createChatPipelineHarness(prefix) {
     seedApiKey,
     seedConnection,
     settingsDb,
+    reasoningRulesDb,
     skillByIdRouteModule,
     skillExecutor,
     skillRegistry,

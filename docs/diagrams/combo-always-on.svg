@@ -1,0 +1,230 @@
+<svg viewBox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute combo 'always-on' with priority strategy: requests go to 1. cc/claude-opus-4-7 (subscription, use it fully); on failure fall through to 2. cx/gpt-5.5 (second subscription), then 3. glm/glm-5.1 (cheap backup at $0.5/1M), then 4. kr/claude-sonnet-4.5 (free, unlimited, never fails). Result: 4 layers of fallback, zero downtime.">
+  <defs>
+    <radialGradient id="hubGlowC" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#e54d5e" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGlowC" cx="42%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.12"/>
+      <stop offset="60%" stop-color="#6366f1" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gradBrandC" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e54d5e"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <pattern id="gridPaperC" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <!-- request feed into the combo -->
+    <path id="pInC" d="M 26,295 L 86,295"/>
+    <!-- combo → each priority card -->
+    <path id="pF1" d="M 420,270 C 472,270 468,128 520,128"/>
+    <path id="pF2" d="M 420,290 C 472,290 468,246 520,246"/>
+    <path id="pF3" d="M 420,310 C 472,310 468,364 520,364"/>
+    <path id="pF4" d="M 420,330 C 472,330 468,482 520,482"/>
+    <!-- fall-through drops between cards -->
+    <path id="pD1" d="M 534,150 L 534,246"/>
+    <path id="pD2" d="M 534,268 L 534,364"/>
+    <path id="pD3" d="M 534,386 L 534,482"/>
+  </defs>
+
+  <rect width="1200" height="650" fill="#0b0e14"/>
+  <rect width="1200" height="650" fill="url(#gridPaperC)"/>
+  <rect width="1200" height="650" fill="url(#bgGlowC)"/>
+
+  <!-- ═══ Combo card ═══ -->
+  <rect x="90" y="210" width="330" height="170" rx="14" fill="#161b22" stroke="#8b5cf6" stroke-width="1.2" stroke-opacity="0.45"/>
+  <g transform="translate(112, 254)">
+    <circle cx="42" cy="42" r="34" fill="none" stroke="#e54d5e" stroke-width="1" opacity="0.35" stroke-dasharray="3 7">
+      <animateTransform attributeName="transform" type="rotate" from="0 42 42" to="360 42 42" dur="30s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="42" cy="42" r="24" fill="url(#hubGlowC)">
+      <animate attributeName="r" values="22;30;22" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+    <g stroke="#e54d5e" stroke-width="5" stroke-linecap="round" fill="none">
+      <line x1="22" y1="42" x2="38" y2="42"/>
+      <path d="M 39 42 C 52 42, 54 26, 66 24"/>
+      <path d="M 39 42 C 54 42, 56 42, 68 42"/>
+      <path d="M 39 42 C 52 42, 54 58, 66 60"/>
+    </g>
+    <circle cx="39" cy="42" r="5" fill="#f7f6fc">
+      <animate attributeName="opacity" values="1;0.7;1" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <text x="212" y="252" font-family="Consolas, 'Courier New', monospace" font-size="10" letter-spacing="2.5" font-weight="700" fill="#a78bfa">COMBO</text>
+  <text x="212" y="278" font-family="Consolas, 'Courier New', monospace" font-size="17" font-weight="700" fill="url(#gradBrandC)">"always-on"</text>
+  <text x="212" y="304" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">Strategy: <tspan fill="#8b5cf6" font-weight="700">priority</tspan></text>
+  <text x="212" y="326" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#71717a">try 1 first &#183; fall through</text>
+  <text x="212" y="344" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#71717a">on failure</text>
+
+  <!-- incoming requests -->
+  <text x="26" y="280" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="1.5" fill="#71717a">REQUESTS</text>
+  <use href="#pInC" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="3 5" opacity="0.4"/>
+
+  <!-- fan-out topology (always faintly visible) -->
+  <g stroke="#6366f1" stroke-width="1.2" fill="none" stroke-dasharray="3 5" opacity="0.35">
+    <use href="#pF1"/><use href="#pF2"/><use href="#pF3"/><use href="#pF4"/>
+  </g>
+  <!-- fall-through rails -->
+  <g stroke="#6366f1" stroke-width="1" fill="none" stroke-dasharray="2 4" opacity="0.25">
+    <use href="#pD1"/><use href="#pD2"/><use href="#pD3"/>
+  </g>
+
+  <!-- ═══ Priority cards ═══ -->
+  <!-- 1 · cc/claude-opus-4-7 -->
+  <g transform="translate(520, 80)">
+    <rect width="560" height="96" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <rect width="560" height="96" rx="14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0.9">
+      <animate attributeName="stroke-opacity" values="0.9;0.9;0;0;0.9" keyTimes="0;0.24;0.27;0.985;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="30" y="56" font-family="Consolas, 'Courier New', monospace" font-size="20" font-weight="800" fill="#71717a">1</text>
+    <text x="70" y="44" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="700" fill="#F7F6FC"><tspan fill="#8b5cf6">cc/</tspan>claude-opus-4-7</text>
+    <text x="70" y="68" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#a1a1aa">subscription &#183; use it fully</text>
+    <circle cx="524" cy="48" r="4.5" fill="#22c55e">
+      <animate attributeName="fill" values="#22c55e;#22c55e;#ef4444;#ef4444;#22c55e" keyTimes="0;0.24;0.28;0.985;1" dur="16s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.45;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- 2 · cx/gpt-5.5 -->
+  <g transform="translate(520, 198)">
+    <rect width="560" height="96" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <rect width="560" height="96" rx="14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0">
+      <animate attributeName="stroke-opacity" values="0;0;0.9;0.9;0;0" keyTimes="0;0.28;0.31;0.48;0.51;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="30" y="56" font-family="Consolas, 'Courier New', monospace" font-size="20" font-weight="800" fill="#71717a">2</text>
+    <text x="70" y="44" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="700" fill="#F7F6FC"><tspan fill="#8b5cf6">cx/</tspan>gpt-5.5</text>
+    <text x="70" y="68" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#a1a1aa">second subscription</text>
+    <circle cx="524" cy="48" r="4.5" fill="#71717a">
+      <animate attributeName="fill" values="#71717a;#71717a;#22c55e;#22c55e;#ef4444;#ef4444;#71717a" keyTimes="0;0.28;0.31;0.48;0.52;0.985;1" dur="16s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.45;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- 3 · glm/glm-5.1 -->
+  <g transform="translate(520, 316)">
+    <rect width="560" height="96" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <rect width="560" height="96" rx="14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0">
+      <animate attributeName="stroke-opacity" values="0;0;0.9;0.9;0;0" keyTimes="0;0.53;0.56;0.73;0.76;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="30" y="56" font-family="Consolas, 'Courier New', monospace" font-size="20" font-weight="800" fill="#71717a">3</text>
+    <text x="70" y="44" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="700" fill="#F7F6FC"><tspan fill="#8b5cf6">glm/</tspan>glm-5.1</text>
+    <text x="70" y="68" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#a1a1aa">cheap backup &#183; <tspan fill="#f59e0b">$0.5/1M</tspan></text>
+    <circle cx="524" cy="48" r="4.5" fill="#71717a">
+      <animate attributeName="fill" values="#71717a;#71717a;#22c55e;#22c55e;#ef4444;#ef4444;#71717a" keyTimes="0;0.53;0.56;0.73;0.77;0.985;1" dur="16s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.45;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- 4 · kr/claude-sonnet-4.5 -->
+  <g transform="translate(520, 434)">
+    <rect width="560" height="96" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <rect width="560" height="96" rx="14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0">
+      <animate attributeName="stroke-opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.78;0.81;0.985;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="30" y="56" font-family="Consolas, 'Courier New', monospace" font-size="20" font-weight="800" fill="#71717a">4</text>
+    <text x="70" y="44" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="700" fill="#F7F6FC"><tspan fill="#8b5cf6">kr/</tspan>claude-sonnet-4.5</text>
+    <text x="70" y="68" font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#a1a1aa"><tspan fill="#22c55e" font-weight="700">FREE</tspan> &#183; unlimited &#183; never fails</text>
+    <circle cx="524" cy="48" r="4.5" fill="#71717a">
+      <animate attributeName="fill" values="#71717a;#71717a;#22c55e;#22c55e;#71717a" keyTimes="0;0.78;0.81;0.985;1" dur="16s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.45;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- ═══ Traffic dots (act-windowed) ═══ -->
+  <!-- incoming feed, steady except at the loop seam -->
+  <g fill="#a78bfa">
+    <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.945;0.965;0.99;1" dur="16s" repeatCount="indefinite"/>
+    <circle r="3.2">
+      <animateMotion dur="1.2s" repeatCount="indefinite" begin="0s"><mpath href="#pInC"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.2s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.2">
+      <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.6s"><mpath href="#pInC"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.2s" begin="0.6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- act 1: combo → priority 1 -->
+  <g fill="#8b5cf6">
+    <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.235;0.245;1" dur="16s" repeatCount="indefinite"/>
+    <circle r="3.4">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#pF1"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.4">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.7s"><mpath href="#pF1"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.7s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- act 2: combo → priority 2 -->
+  <g fill="#8b5cf6">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.28;0.30;0.475;0.485;1" dur="16s" repeatCount="indefinite"/>
+    <circle r="3.4">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#pF2"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.4">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.7s"><mpath href="#pF2"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.7s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- act 3: combo → priority 3 -->
+  <g fill="#8b5cf6">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.53;0.55;0.725;0.735;1" dur="16s" repeatCount="indefinite"/>
+    <circle r="3.4">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#pF3"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.4">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.7s"><mpath href="#pF3"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.7s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- act 4: combo → priority 4 -->
+  <g fill="#8b5cf6">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.78;0.80;0.945;0.955;1" dur="16s" repeatCount="indefinite"/>
+    <circle r="3.4">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#pF4"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.4">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.7s"><mpath href="#pF4"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.7s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- ═══ Fall-through hand-offs (brand coral) ═══ -->
+  <g fill="#e54d5e">
+    <circle r="4">
+      <animateMotion dur="16s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.24;0.275;1" calcMode="linear"><mpath href="#pD1"/></animateMotion>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.24;0.245;0.27;0.28;1" dur="16s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="4">
+      <animateMotion dur="16s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.485;0.52;1" calcMode="linear"><mpath href="#pD2"/></animateMotion>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.485;0.49;0.515;0.525;1" dur="16s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="4">
+      <animateMotion dur="16s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.735;0.77;1" calcMode="linear"><mpath href="#pD3"/></animateMotion>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.735;0.74;0.765;0.775;1" dur="16s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- transition labels -->
+  <text x="552" y="196" font-family="Consolas, 'Courier New', monospace" font-size="9.5" fill="#ef4444" opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.235;0.25;0.30;0.32;1" dur="16s" repeatCount="indefinite"/>fails &#8594; next</text>
+  <text x="552" y="314" font-family="Consolas, 'Courier New', monospace" font-size="9.5" fill="#ef4444" opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.48;0.495;0.545;0.565;1" dur="16s" repeatCount="indefinite"/>fails &#8594; next</text>
+  <text x="552" y="432" font-family="Consolas, 'Courier New', monospace" font-size="9.5" fill="#ef4444" opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.73;0.745;0.795;0.815;1" dur="16s" repeatCount="indefinite"/>fails &#8594; next</text>
+
+  <!-- ═══ Footer: the uptime bar that never drops ═══ -->
+  <text x="90" y="588" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#71717a">UPTIME</text>
+  <rect x="90" y="596" width="1020" height="6" rx="3" fill="#22c55e" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <g transform="translate(986, 566)">
+    <rect width="124" height="24" rx="12" fill="#161b22" stroke="#22c55e" stroke-width="1" stroke-opacity="0.6"/>
+    <circle cx="16" cy="12" r="3" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/>
+    </circle>
+    <text x="70" y="16" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#22c55e">ALWAYS ON</text>
+  </g>
+  <text x="600" y="634" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="12.5" fill="#a1a1aa">Result: 4 layers of fallback = <tspan fill="#22c55e" font-weight="700">zero downtime</tspan></text>
+</svg>

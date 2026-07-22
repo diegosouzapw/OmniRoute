@@ -177,8 +177,28 @@ export function getReasoningVariantBaseModelId(modelId: string) {
   return matchReasoningEffortSuffix(modelId)?.baseModelId || modelId;
 }
 
+function getCodexGpt56DefaultReasoningEffort(model: VscodeCatalogModel) {
+  const modelId = getCatalogModelName(model);
+  const parsed = parseModel(modelId, "");
+  const providerId = (parsed.provider || model.owned_by || "").trim().toLowerCase();
+  if (providerId !== "codex" && providerId !== "cx") return undefined;
+
+  const providerModelId = (parsed.model || model.root || modelId.split("/").pop() || modelId)
+    .trim()
+    .toLowerCase();
+  const match = providerModelId.match(
+    /^gpt-5\.6-(sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
+  );
+  if (!match) return undefined;
+  return match[1] === "sol" ? "low" : "medium";
+}
+
 export function getDefaultReasoningEffort(model: VscodeCatalogModel, supportedValues?: string[]) {
-  return inferSelectedReasoningEffort(model, supportedValues) || DEFAULT_REASONING_EFFORT;
+  return (
+    inferSelectedReasoningEffort(model, supportedValues) ||
+    getCodexGpt56DefaultReasoningEffort(model) ||
+    DEFAULT_REASONING_EFFORT
+  );
 }
 
 export function buildReasoningConfigSchema(

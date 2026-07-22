@@ -1,5 +1,21 @@
 import { execFileSync, execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
+import os from "os";
+
+/**
+ * Module-level cache: on Windows, execSync("hostname") spawns
+ * cmd.exe which is expensive.  Cache the result after first call
+ * since the machine ID never changes at runtime.
+ */
+let cachedRawId: string | null = null;
+
+/**
+ * Resets the cached machine ID.  Used primarily for testing so each
+ * test case starts with a clean cache.
+ */
+export function resetMachineIdCache(): void {
+  cachedRawId = null;
+}
 
 /**
  * Get raw machine ID using OS-specific methods.
@@ -11,6 +27,9 @@ import { existsSync, readFileSync } from "fs";
  * On Linux: skips Windows (REG.exe) and macOS (ioreg) strategies entirely.
  */
 function getMachineIdRaw(): string {
+  // Return cached result immediately (machine identity is stable at runtime)
+  if (cachedRawId !== null) return cachedRawId;
+
   // Strategy 1: Windows — REG.exe query for MachineGuid
   try {
     if (process.platform !== "win32") {
@@ -28,7 +47,10 @@ function getMachineIdRaw(): string {
         .split("REG_SZ")[1]
         ?.replace(/\r+|\n+|\s+/gi, "")
         ?.toLowerCase();
-      if (id && id.length > 8) return id;
+      if (id && id.length > 8) {
+        cachedRawId = id;
+        return id;
+      }
     }
   } catch {
     // Not Windows or REG.exe failed — continue
@@ -49,7 +71,10 @@ function getMachineIdRaw(): string {
         ?.split("\n")[0]
         ?.replace(/=|\s+|"/gi, "")
         ?.toLowerCase();
-      if (id && id.length > 8) return id;
+      if (id && id.length > 8) {
+        cachedRawId = id;
+        return id;
+      }
     }
   } catch {
     // Not macOS or ioreg not available — continue
@@ -62,7 +87,10 @@ function getMachineIdRaw(): string {
         const content = readFileSync(/* turbopackIgnore: true */ filePath, "utf8")
           .trim()
           .toLowerCase();
-        if (content.length > 8) return content;
+        if (content.length > 8) {
+          cachedRawId = content;
+          return content;
+        }
       } catch {
         // Try the next candidate file
       }
@@ -71,23 +99,30 @@ function getMachineIdRaw(): string {
     // Files not readable — continue
   }
 
-  // Strategy 4: Hostname fallback (works on all platforms)
+  // Strategy 4: Node.js os.hostname() — no child process, works everywhere
+  try {
+    const hostname = os.hostname().toLowerCase();
+    if (hostname) {
+      cachedRawId = hostname;
+      return hostname;
+    }
+  } catch {
+    // os.hostname() not available — continue
+  }
+
+  // Strategy 5: execSync("hostname") shell fallback (for constrained environments)
   try {
     const hostname = execSync("hostname", { encoding: "utf8", timeout: 5000 });
     const id = hostname.trim().toLowerCase();
-    if (id) return id;
+    if (id) {
+      cachedRawId = id;
+      return id;
+    }
   } catch {
     // hostname failed — continue
   }
 
-  // Strategy 5: Node.js os.hostname() (no exec needed)
-  try {
-    const os = require("os");
-    return os.hostname().toLowerCase();
-  } catch {
-    // Final fallback
-  }
-
+  cachedRawId = "unknown-machine";
   return "unknown-machine";
 }
 

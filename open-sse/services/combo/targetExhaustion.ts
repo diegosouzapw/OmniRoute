@@ -21,7 +21,7 @@ import {
   isProviderExhaustedReason,
 } from "../accountFallback.ts";
 import { RateLimitReason } from "../../config/constants.ts";
-import { isProviderCircuitOpenResult } from "./comboPredicates.ts";
+import { isProviderCircuitOpenResult, isRequestScopedUpstreamFailure } from "./comboPredicates.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 
 // Connection-level failure statuses: the provider connection itself is likely bad (upstream
@@ -104,7 +104,15 @@ export function applyComboTargetExhaustion(
     if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
       transientRateLimitedProviders.add(provider);
     }
-    markConnectionLevelExhaustion(target, { result, errorText, sets, log, tag, rawModel });
+    markConnectionLevelExhaustion(target, {
+      result,
+      errorText,
+      sets,
+      log,
+      tag,
+      rawModel,
+      structuredError,
+    });
   }
 
   return providerExhausted;
@@ -120,16 +128,17 @@ function markConnectionLevelExhaustion(
   target: ResolvedComboTarget,
   opts: Pick<
     ApplyComboTargetExhaustionOptions,
-    "result" | "errorText" | "sets" | "log" | "tag" | "rawModel"
+    "result" | "errorText" | "sets" | "log" | "tag" | "rawModel" | "structuredError"
   >
 ): void {
-  const { result, errorText, sets, log, tag, rawModel } = opts;
+  const { result, errorText, sets, log, tag, rawModel, structuredError } = opts;
   const provider = target.provider;
   if (
     !provider ||
     provider === "unknown" ||
     !CONNECTION_LEVEL_ERROR_STATUSES.includes(result.status) ||
     isProviderCircuitOpenResult(result, errorText) ||
+    isRequestScopedUpstreamFailure(structuredError) ||
     // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
     // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)
     // be tried in-request.

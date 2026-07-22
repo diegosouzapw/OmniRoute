@@ -1,22 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { matchesSearch } from "@/shared/utils/turkishText";
 import FileDetailModal from "./FileDetailModal";
 import ExpirationBadge from "./components/ExpirationBadge";
 
-function relativeTime(ts: number): string {
+function relativeTime(ts: number, locale: string): string {
   // ts is in seconds (Unix timestamp)
   const diffMs = Date.now() - ts * 1000;
   const diffSec = Math.round(diffMs / 1000);
-  if (diffSec < 60) return `${diffSec}s ago`;
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  if (diffSec < 60) return formatter.format(-diffSec, "second");
   const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 60) return formatter.format(-diffMin, "minute");
   const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffHr < 24) return formatter.format(-diffHr, "hour");
   const diffDays = Math.round(diffHr / 24);
-  return `${diffDays}d ago`;
+  return formatter.format(-diffDays, "day");
 }
 
 interface FileRecord {
@@ -77,6 +78,7 @@ export default function FilesListTab({
   onRefresh,
   batches,
 }: Readonly<FilesListTabProps>) {
+  const locale = useLocale();
   const t = useTranslations("common");
   const [searchQuery, setSearchQuery] = useState("");
   const [purposeFilter, setPurposeFilter] = useState("all");
@@ -107,11 +109,11 @@ export default function FilesListTab({
         const text = await response.text();
         setFileContents(text);
       } else {
-        setFileContents("Failed to load file contents");
+        setFileContents(t("batchFileDetailFailedToLoad"));
       }
     } catch (error) {
       console.error("Failed to fetch file contents:", error);
-      setFileContents("Error loading file contents");
+      setFileContents(t("batchFileDetailLoadError"));
     } finally {
       setContentsLoading(false);
     }
@@ -138,7 +140,9 @@ export default function FilesListTab({
       {/* Filters */}
       <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
         <span className="text-sm text-[var(--color-text-muted)] self-center">
-          {filesTotal ? `${filesTotal} files` : "Files"}
+          {typeof filesTotal === "number"
+            ? t("batchFilesCount", { count: filesTotal })
+            : t("batchFilesListFilesTable")}
         </span>
         <input
           type="text"
@@ -154,7 +158,7 @@ export default function FilesListTab({
         >
           {purposes.map((p) => (
             <option key={p} value={p}>
-              {p === "all" ? "All purposes" : p}
+              {p === "all" ? t("batchFilesAllPurposes") : t(`batchFilePurpose.${p}`)}
             </option>
           ))}
         </select>
@@ -169,10 +173,10 @@ export default function FilesListTab({
                 ID
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Filename
+                {t("batchFilesFilename")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Purpose
+                {t("batchFilesPurpose")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 {t("filesListSizeColumn")}
@@ -181,10 +185,10 @@ export default function FilesListTab({
                 {t("filesListUsedByColumn")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Created
+                {t("created")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
-                Expires
+                {t("batchFilesExpires")}
               </th>
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 {/* Actions */}
@@ -197,14 +201,14 @@ export default function FilesListTab({
                 <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-accent)]" />
-                    Loading…
+                    {t("loading")}
                   </div>
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
-                  No files found
+                  {t("batchFilesNoneFound")}
                 </td>
               </tr>
             ) : (
@@ -289,13 +293,15 @@ export default function FilesListTab({
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
-                      {fileCreatedAt ? relativeTime(fileCreatedAt) : "—"}
+                      {fileCreatedAt ? relativeTime(fileCreatedAt, locale) : "—"}
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
                       {fileExpiresAt ? (
                         <ExpirationBadge expiresAt={fileExpiresAt} variant="compact" />
                       ) : (
-                        <span className="text-xs text-[var(--color-text-muted)]">Never</span>
+                        <span className="text-xs text-[var(--color-text-muted)]">
+                          {t("batchFilesNeverExpires")}
+                        </span>
                       )}
                     </td>
                     {/* Actions column */}
@@ -321,7 +327,9 @@ export default function FilesListTab({
                             void handleDeleteFile(file);
                           }}
                           disabled={!canDelete || deletingId === file.id}
-                          title={canDelete ? t("filesListDelete") : "File in use by active batch"}
+                          title={
+                            canDelete ? t("filesListDelete") : t("batchFileInUseByActiveBatch")
+                          }
                           className="p-1.5 rounded text-[var(--color-text-muted)] hover:text-red-400 hover:bg-[var(--color-bg-alt)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <span className="material-symbols-outlined text-[16px]">

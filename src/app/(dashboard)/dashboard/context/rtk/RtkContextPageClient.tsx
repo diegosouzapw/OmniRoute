@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { SegmentedControl, Collapsible } from "@/shared/components";
 import RtkLearnDiscoverCard from "./RtkLearnDiscoverCard";
+import RtkTomlImportCard from "./RtkTomlImportCard";
 
 type RtkFilter = {
   id: string;
@@ -78,11 +79,14 @@ export default function RtkContextPageClient() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
+  const loadFilters = () =>
     fetch("/api/context/rtk/filters")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setFilters(Array.isArray(data?.filters) ? data.filters : []))
       .catch(() => {});
+
+  useEffect(() => {
+    void loadFilters();
     fetch("/api/context/rtk/config")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setConfig(data))
@@ -362,6 +366,8 @@ export default function RtkContextPageClient() {
           ))}
         </div>
       </Collapsible>
+
+      {viewMode === "advanced" && <RtkTomlImportCard onInstalled={loadFilters} />}
 
       <RtkLearnDiscoverCard />
     </div>

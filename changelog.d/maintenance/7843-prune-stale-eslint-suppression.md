@@ -1,0 +1,1 @@
+- **chore(quality):** prune a stale ESLint suppression for `tests/unit/db-migration-runner-account-identity.test.ts` (2 `no-explicit-any` entries that no longer occur after #7843 reorganized that test) — the leftover suppression failed `lint:json --max-warnings 0` (exit 2, "suppressions left that do not occur anymore") on the release tip for every fresh PR run.
