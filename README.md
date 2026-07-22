@@ -1139,7 +1139,7 @@ A heartfelt thank-you to the people who fund OmniRoute out of their own pocket. 
 </p>
 
 <p align="center">
-  <sub><b><a href="https://github.com/igormorais123">Professor Igor Morais Vasconcelos</a></b> &nbsp;·&nbsp; <b><a href="https://github.com/longtao77">longtao</a></b> &nbsp;·&nbsp; and one sponsor who prefers to stay private 💛</sub>
+  <sub><b><a href="https://github.com/igormorais123">Professor Igor Morais Vasconcelos</a></b> &nbsp;·&nbsp; <b><a href="https://github.com/longtao77">longtao</a></b> &nbsp;·&nbsp; and others who prefer to stay private 💛</sub>
 </p>
 
 > **Want to support OmniRoute?** <a href="https://github.com/sponsors/diegosouzapw"><b>Become a sponsor →</b></a> Every dollar goes straight into keeping the project free and independent.
