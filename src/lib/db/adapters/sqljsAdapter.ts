@@ -31,8 +31,13 @@ function resolveSqlJsWasmPath(): string {
     const sqlJsEntry = _require.resolve("sql.js");
     candidatePaths.push(path.join(path.dirname(sqlJsEntry), "sql-wasm.wasm"));
   } catch {}
+  // #8135: Use a dynamic expression to avoid Next.js bundler's static analysis
+  // producing a "Can't resolve 'sql.js/package.json'" build warning. The package.json
+  // resolution is only needed for the WASM path, and the try/catch is still required
+  // at runtime since sql.js is an optional dependency.
   try {
-    const sqlJsPackage = _require.resolve("sql.js/package.json");
+    const pkgName = "sql.js" + "/package.json";
+    const sqlJsPackage = _require.resolve(pkgName);
     candidatePaths.push(
       path.join(path.dirname(sqlJsPackage), "dist", "sql-wasm.wasm"),
       path.join(path.dirname(sqlJsPackage), "sql-wasm.wasm")

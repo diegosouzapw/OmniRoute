@@ -93,12 +93,23 @@ export function applyComboTargetExhaustion(
     (isProviderExhaustedReason(fallbackResult) ||
       classifyErrorText(structuredError?.code || errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
       allAccountsRateLimited);
-  if (providerExhausted) {
+
+  // #8133: 401 auth failures where all accounts are unavailable should also exhaust the provider
+  // for this request, avoiding the costly cascade through remaining same-provider models.
+  const authExhausted =
+    !providerExhausted &&
+    result.status === 401 &&
+    Boolean(provider && provider !== "unknown") &&
+    !hasPerModelQuota(provider, rawModel);
+
+  if (providerExhausted || authExhausted) {
     exhaustedProviders.add(provider);
     const emit = exhaustedLogLevel === "debug" ? log.debug : log.info;
     emit?.(
       tag,
-      `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
+      authExhausted
+        ? `Provider ${provider} auth exhausted (401) — marking for skip on remaining targets (#8133)`
+        : `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
     );
   } else {
     if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
