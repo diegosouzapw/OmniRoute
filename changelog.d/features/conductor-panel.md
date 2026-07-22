@@ -1,0 +1,1 @@
+- feat(dashboard): "Conductor" panel — OmniConductor fleet (runners + task queue) live via server-side proxy routes (`/api/conductor/*`, management auth, hub token never reaches the browser), task detail with manifest/council and cancel-with-confirmation; sidebar entry under Tools

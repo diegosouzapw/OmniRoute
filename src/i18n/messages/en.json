@@ -1219,7 +1219,9 @@
     "alwaysVisible": "Always visible",
     "groupSeparatorLabel": "Separator",
     "discovery": "Discovery",
-    "discoverySubtitle": "Scan providers for free access"
+    "discoverySubtitle": "Scan providers for free access",
+    "conductor": "Conductor",
+    "conductorSubtitle": "CLI-agent fleet"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -12084,5 +12086,36 @@
     "cta": "Get Kimi Code",
     "partnerLinkNote": "Partner link",
     "dismissAriaLabel": "Dismiss"
+  },
+  "conductor": {
+    "title": "Conductor — CLI-agent fleet",
+    "subtitle": "OmniConductor hub: runners, task queue and councils, live",
+    "runners": "Runners",
+    "tasks": "Tasks",
+    "colName": "Name",
+    "colClis": "CLIs",
+    "colStatus": "Status",
+    "colTask": "Task",
+    "colMode": "Mode",
+    "colRunner": "Runner",
+    "colSummary": "Summary",
+    "online": "online",
+    "offline": "offline",
+    "draining": "draining",
+    "hubOffline": "Conductor hub offline or not configured (CONDUCTOR_HUB_URL) — showing nothing rather than stale data.",
+    "noRunners": "No runners registered",
+    "noTasks": "No tasks yet",
+    "detailTitle": "Task detail",
+    "prompt": "Prompt",
+    "branch": "Branch",
+    "fetchHint": "Fetch the result with: git fetch origin {branch}",
+    "council": "Council",
+    "candidates": "Candidates",
+    "cancel": "Cancel task",
+    "cancelConfirmTitle": "Cancel this task?",
+    "cancelConfirmMessage": "The hub will abort the execution on the runner. This cannot be undone.",
+    "cancelFailed": "The hub refused the cancellation",
+    "close": "Close",
+    "error": "Error"
   }
 }
