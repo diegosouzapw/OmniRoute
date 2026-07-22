@@ -72,6 +72,55 @@ function stripZeroWidthText(value: string): string {
   return value.replace(/[\u200B-\u200D\uFEFF]/g, "");
 }
 
+/**
+ * Detect whether a string contains the internal reasoning placeholder that
+ * should only appear inside reasoning fields, not as visible content.
+ *
+ * The placeholder is "(prior reasoning summary unavailable)" but upstream
+ * providers sometimes emit it with wrappers/prefixes such as:
+ *   - "Thinking: (prior reasoning summary unavailable)"
+ *   - "<think>(prior reasoning summary unavailable)</think>"
+ *   - "(Prior reasoning summary unavailable.)"
+ *
+ * Match case-insensitively on the core phrase.
+ */
+const REASONING_PLACEHOLDER_CORE = "prior reasoning summary unavailable";
+const REASONING_PLACEHOLDER_RE = new RegExp(REASONING_PLACEHOLDER_CORE.replace(/ /g, "\\s+"), "i");
+
+function isReasoningPlaceholder(value: unknown): boolean {
+  return typeof value === "string" && REASONING_PLACEHOLDER_RE.test(value);
+}
+
+/**
+ * Strip the internal reasoning placeholder from visible content.
+ *
+ * Returns the cleaned string. If the content is ONLY the placeholder (optionally
+ * wrapped in thinking tags / prefix), returns an empty string so the caller
+ * can drop it entirely. If the placeholder appears alongside real content,
+ * only the placeholder fragment is removed.
+ *
+ * Non-streaming path: applied in sanitizeMessageContent.
+ * Streaming path: applied in sanitizeStreamingChunk.
+ */
+function stripReasoningPlaceholderFromContent(content: string): string {
+  if (!REASONING_PLACEHOLDER_RE.test(content)) return content;
+
+  // Try to remove <think>…placeholder…</think> wrapper first.
+  const thinkTagRe =
+    /<think>\s*\(?\s*prior\s+reasoning\s+summary\s+unavailable\.?\s*\)?\s*<\/think>\s*/gi;
+  let cleaned = content.replace(thinkTagRe, "");
+
+  // Remove "Thinking: (prior reasoning summary unavailable)" prefix.
+  const prefixRe = /thinking\s*:\s*\(?\s*prior\s+reasoning\s+summary\s+unavailable\.?\s*\)?\s*/gi;
+  cleaned = cleaned.replace(prefixRe, "");
+
+  // Remove bare placeholder occurrences.
+  const bareRe = /\(?\s*prior\s+reasoning\s+summary\s+unavailable\.?\s*\)?\s*/gi;
+  cleaned = cleaned.replace(bareRe, "");
+
+  return cleaned.trim();
+}
+
 function stripZeroWidthToolArgumentJson(value: unknown): string {
   return stripZeroWidthText(typeof value === "string" ? value : JSON.stringify(value || {}));
 }
@@ -395,7 +444,9 @@ function sanitizeChoice(
 
 function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
   if (typeof msgRecord.content === "string") {
-    const strippedContent = stripInternalToolEnvelopeText(msgRecord.content);
+    const strippedContent = stripReasoningPlaceholderFromContent(
+      stripInternalToolEnvelopeText(msgRecord.content)
+    );
     const nativeReasoning = getReadableReasoningValue(msgRecord);
     const { content, thinking } =
       options.parseTextualReasoningTags === true && !nativeReasoning
@@ -1035,7 +1086,9 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
           if (deltaRecord.content !== undefined) {
             delta.content =
               typeof deltaRecord.content === "string"
-                ? collapseExcessiveNewlines(stripZeroWidthText(deltaRecord.content))
+                ? collapseExcessiveNewlines(
+                    stripReasoningPlaceholderFromContent(stripZeroWidthText(deltaRecord.content))
+                  )
                 : deltaRecord.content;
           }
           copyOpenAICompatibleReasoningFields(deltaRecord, delta);
