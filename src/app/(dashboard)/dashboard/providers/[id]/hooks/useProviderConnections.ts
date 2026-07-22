@@ -62,6 +62,7 @@ export interface UseProviderConnectionsReturn {
   batchDeleteConfirmOpen: boolean;
   healthFilter: string;
   page: number;
+  accountSearch: string;
   distributingProxies: boolean;
   proxyConfig: any;
   connProxyMap: Record<string, { proxy: any; level: string } | null>;
@@ -71,6 +72,7 @@ export interface UseProviderConnectionsReturn {
   // Setters (minimal surface for UI)
   setPage: (p: number) => void;
   setHealthFilter: (f: string) => void;
+  setAccountSearch: (q: string) => void;
   setSelectedIds: (updater: Set<string> | ((prev: Set<string>) => Set<string>)) => void;
   setBatchDeleteConfirmOpen: (open: boolean) => void;
   setBatchTestResults: (r: BatchTestResults) => void;
@@ -156,6 +158,14 @@ export function useProviderConnections(
   // ── filter / pagination state ───────────────────────────────────────────
   const [healthFilter, setHealthFilter] = useState<string>("all");
   const [page, setPage] = useState(0);
+  // #7937 — account search across the full in-memory connection list. Resets
+  // pagination to page 0 whenever the query text changes (mirrors the
+  // existing setPage(0) on health-filter pill click).
+  const [accountSearch, setAccountSearchRaw] = useState<string>("");
+  const setAccountSearch = useCallback((query: string) => {
+    setAccountSearchRaw(query);
+    setPage(0);
+  }, []);
 
   // ── proxy state ─────────────────────────────────────────────────────────
   const [distributingProxies, setDistributingProxies] = useState(false);
@@ -873,6 +883,7 @@ export function useProviderConnections(
     batchDeleteConfirmOpen,
     healthFilter,
     page,
+    accountSearch,
     distributingProxies,
     proxyConfig,
     connProxyMap,
@@ -883,6 +894,7 @@ export function useProviderConnections(
     // Setters
     setPage,
     setHealthFilter,
+    setAccountSearch,
     setSelectedIds,
     setBatchDeleteConfirmOpen,
     setBatchTestResults,

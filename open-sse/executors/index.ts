@@ -53,6 +53,7 @@ import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
+import { HailuoWebExecutor } from "./hailuo-web.ts";
 import { ZaiWebExecutor } from "./zai-web.ts";
 import { KimiExecutor } from "./kimi.ts";
 import { MoonshotExecutor } from "./moonshot.ts";
@@ -64,6 +65,7 @@ import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 import { XaiExecutor } from "./xai.ts";
+import { PromptQlExecutor } from "./promptql.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -151,6 +153,8 @@ const executors = {
   ven: new VeniceWebExecutor(), // Alias
   "notion-web": new NotionWebExecutor(),
   nw: new NotionWebExecutor(), // Alias
+  promptql: new PromptQlExecutor(),
+  pql: new PromptQlExecutor(), // Alias
   "v0-vercel-web": new V0VercelWebExecutor(),
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
@@ -161,6 +165,7 @@ const executors = {
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
+  "hailuo-web": new HailuoWebExecutor(),
   "zai-web": new ZaiWebExecutor(),
   zw: new ZaiWebExecutor(), // Alias
   theoldllm: new TheOldLlmExecutor(),
@@ -260,6 +265,7 @@ export { YuanbaoWebExecutor } from "./yuanbao-web.ts";
 export { T3ChatWebExecutor } from "./t3-chat-web.ts";
 export { InnerAiExecutor } from "./inner-ai.ts";
 export { QwenWebExecutor } from "./qwen-web.ts";
+export { HailuoWebExecutor } from "./hailuo-web.ts";
 export { TheOldLlmExecutor } from "./theoldllm.ts";
 export { ChipotleExecutor } from "./chipotle.ts";
 export { LMArenaExecutor } from "./lmarena.ts";
@@ -269,3 +275,4 @@ export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
 export { XaiExecutor } from "./xai.ts";
 export { MoonshotExecutor } from "./moonshot.ts";
+export { PromptQlExecutor } from "./promptql.ts";

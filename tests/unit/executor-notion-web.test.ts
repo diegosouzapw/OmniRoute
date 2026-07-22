@@ -510,6 +510,29 @@ describe("buildNotionTranscript", () => {
     });
     assert.equal((transcript[0].value as { model?: string }).model, "acai-budino-high");
   });
+
+  it("accepts OpenAI content-parts arrays for system + user", () => {
+    const transcript = buildNotionTranscript(
+      [
+        {
+          role: "system",
+          content: [{ type: "text", text: "be helpful" }] as unknown as string,
+        },
+        {
+          role: "user",
+          content: [{ type: "text", text: "hi parts" }] as unknown as string,
+        },
+      ],
+      { spaceId: "s1" }
+    );
+    assert.deepEqual(
+      transcript.map((t) => t.type),
+      ["config", "context", "user"]
+    );
+    const ctx = transcript[1].value as { instructions?: string };
+    assert.match(String(ctx.instructions), /be helpful/);
+    assert.deepEqual(transcript[2].value, [["hi parts"]]);
+  });
 });
 
 describe("estimateNotionUsage", () => {
@@ -526,6 +549,97 @@ describe("estimateNotionUsage", () => {
     assert.ok(long.completion_tokens > short.completion_tokens);
     // Never hardcode the USAGE_TOKEN_BUFFER default.
     assert.notEqual(short.total_tokens, 2000);
+  });
+});
+
+describe("Notion upstream error extraction", () => {
+  const { extractNotionUpstreamError } = mod as typeof mod & {
+    extractNotionUpstreamError: (raw: string) => {
+      message: string;
+      subType?: string;
+      isRetryable: boolean;
+    } | null;
+  };
+
+  it("parses temporarily-unavailable NDJSON/JSON errors", () => {
+    const err = extractNotionUpstreamError(
+      JSON.stringify({
+        id: "e141a6fd-79fa-4bec-9a19-ac41e9728ee6",
+        type: "error",
+        message: "Something went wrong. Please try again later.",
+        subType: "temporarily-unavailable",
+        isRetryable: false,
+      })
+    );
+    assert.ok(err);
+    assert.match(err!.message, /went wrong/i);
+    assert.equal(err!.subType, "temporarily-unavailable");
+    assert.equal(err!.isRetryable, true); // subtype forces retryable
+  });
+});
+
+describe("Notion custom agent + workflow id", () => {
+  const {
+    normalizeNotionWorkflowId,
+    resolveNotionAgentOptions,
+    buildNotionTranscript,
+    __resetNotionThreadSessionsForTests,
+  } = mod;
+
+  it("normalizes agent URL and dashless hex to UUID", () => {
+    assert.equal(
+      normalizeNotionWorkflowId(
+        "https://app.notion.com/agent/3a3fa5616e71804098510092923e14f9?wfv=chat"
+      ),
+      "3a3fa561-6e71-8040-9851-0092923e14f9"
+    );
+    assert.equal(
+      normalizeNotionWorkflowId("3a3fa561-6e71-8040-9851-0092923e14f9"),
+      "3a3fa561-6e71-8040-9851-0092923e14f9"
+    );
+  });
+
+  it("reads workflow_id from cookie string", () => {
+    const cookie =
+      "token_v2=abc; space_id=space-1; workflow_id=3a3fa561-6e71-8040-9851-0092923e14f9";
+    const agent = resolveNotionAgentOptions({ apiKey: cookie }, cookie);
+    assert.equal(agent.workflowId, "3a3fa561-6e71-8040-9851-0092923e14f9");
+  });
+
+  it("buildNotionTranscript sets custom agent flags when workflowId present", () => {
+    const transcript = buildNotionTranscript([{ role: "user", content: "hi" }], {
+      spaceId: "space-1",
+      userId: "user-1",
+      agent: { workflowId: "3a3fa561-6e71-8040-9851-0092923e14f9" },
+    });
+    const config = transcript.find((t) => t.type === "config") as {
+      value: Record<string, unknown>;
+    };
+    const context = transcript.find((t) => t.type === "context") as {
+      value: Record<string, unknown>;
+    };
+    assert.equal(config.value.isCustomAgent, true);
+    assert.equal(config.value.useCustomAgentDraft, true);
+    assert.equal(config.value.workflowId, "3a3fa561-6e71-8040-9851-0092923e14f9");
+    assert.equal(context.value.surface, "custom_agent");
+    assert.equal(context.value.workflowId, "3a3fa561-6e71-8040-9851-0092923e14f9");
+  });
+
+  it("default AI transcript is not a custom agent", () => {
+    __resetNotionThreadSessionsForTests();
+    const transcript = buildNotionTranscript([{ role: "user", content: "hi" }], {
+      spaceId: "space-1",
+      notionModel: "acai-budino-high",
+    });
+    const config = transcript.find((t) => t.type === "config") as {
+      value: Record<string, unknown>;
+    };
+    const context = transcript.find((t) => t.type === "context") as {
+      value: Record<string, unknown>;
+    };
+    assert.equal(config.value.isCustomAgent, false);
+    assert.equal(context.value.surface, "ai_module");
+    assert.equal(config.value.model, "acai-budino-high");
   });
 });
 

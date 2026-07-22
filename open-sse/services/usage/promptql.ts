@@ -23,6 +23,7 @@ import {
   looksLikeUuid,
   extractProjectIdFromToken,
   decodeJwtPayload,
+  issuerHostIsTrusted,
 } from "../promptql/jwt.ts";
 
 // Re-exported for backward compatibility — external/test consumers previously
@@ -121,9 +122,9 @@ function collectCreditsTokens(
 function isLikelyDdnToken(token: string): boolean {
   const json = decodeJwtPayload(token);
   if (!json) return false;
-  const iss = typeof json.iss === "string" ? json.iss.toLowerCase() : "";
-  if (iss.includes("auth.pro.hasura.io") || iss.includes("auth.pro.ql.app")) return true;
-  if (iss === "enrich-token" || iss.includes("enrich-token")) return false;
+  const iss = typeof json.iss === "string" ? json.iss : "";
+  if (issuerHostIsTrusted(iss)) return true;
+  if (iss.toLowerCase().includes("enrich-token")) return false;
   const aud = json.aud;
   if (typeof aud === "string" && looksLikeUuid(aud)) return true;
   return false;

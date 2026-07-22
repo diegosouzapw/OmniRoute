@@ -194,6 +194,29 @@ export function resolveChatInvocationOverrides(tier: string | undefined): {
 }
 
 /**
+ * BizChat exposes several models selected by the `tone` field of the `type:4` chat
+ * invocation (#7872, values confirmed against a real enterprise tenant in #7850). Each
+ * tone-selected variant is registered as its own model id; the bare `copilot-m365` id is
+ * intentionally absent here so it keeps the tier default tone (`Magic` on enterprise, `""`
+ * otherwise) resolved by {@link resolveChatInvocationOverrides}.
+ */
+export const M365_MODEL_TONE_MAP: Readonly<Record<string, string>> = {
+  "copilot-m365-claude-opus": "Claude_Opus",
+  "copilot-m365-gpt-5-6-reasoning": "Gpt_5_6_Reasoning",
+  "copilot-m365-gpt-5-5-chat": "Gpt_5_5_Chat",
+};
+
+/**
+ * Resolve the `tone` for a requested model id, or `undefined` when the id is the bare
+ * `copilot-m365` / unknown — callers then fall back to the tier default tone. Model-driven
+ * tone takes precedence over the tier default (see the executor wiring).
+ */
+export function resolveToneForModel(model: string | undefined): string | undefined {
+  if (!model) return undefined;
+  return M365_MODEL_TONE_MAP[model];
+}
+
+/**
  * Build the `type:4` chat invocation frame body (not yet `\x1e`-terminated).
  * Mirrors the argument shape captured on the individual M365 path in #4042.
  */

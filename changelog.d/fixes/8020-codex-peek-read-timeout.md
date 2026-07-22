@@ -1,0 +1,1 @@
+- fix(sse): bound the Codex SSE peek/passthrough body reads with a per-read timeout so a silently stalled upstream body settles in FETCH_BODY_TIMEOUT_MS instead of hanging ~15min and returning a generic 502 (#8020)
