@@ -9,9 +9,13 @@ export const copilot_m365_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   models: [
-    { id: "copilot-m365", name: "Microsoft 365 Copilot (BizChat)" },
-    { id: "copilot-m365-claude-opus", name: "Microsoft 365 Copilot — Claude Opus" },
-    { id: "copilot-m365-gpt-5-6-reasoning", name: "Microsoft 365 Copilot — GPT 5.6 Reasoning" },
-    { id: "copilot-m365-gpt-5-5-chat", name: "Microsoft 365 Copilot — GPT 5.5 Chat" },
+    { id: "copilot-m365", name: "Microsoft 365 Copilot (BizChat)", toolCalling: false },
+    { id: "copilot-m365-claude-opus", name: "Microsoft 365 Copilot — Claude Opus", toolCalling: false },
+    {
+      id: "copilot-m365-gpt-5-6-reasoning",
+      name: "Microsoft 365 Copilot — GPT 5.6 Reasoning",
+      toolCalling: false,
+    },
+    { id: "copilot-m365-gpt-5-5-chat", name: "Microsoft 365 Copilot — GPT 5.5 Chat", toolCalling: false },
   ],
 };

@@ -24,6 +24,7 @@ import {
 } from "@/lib/providers/claudeExtraUsage";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
+import { cleanupProviderModelsAfterConnectionDelete } from "@/lib/db/models";
 import {
   refreshConnectionRateLimits,
   enableRateLimitProtection,
@@ -357,15 +358,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    // Clean up synced available models for this connection
+    // Remove this connection's synced models. Provider-level imported models
+    // are removed only when this was the provider's final connection.
     try {
-      const { deleteSyncedAvailableModelsForConnection } = await import("@/lib/db/models");
-      await deleteSyncedAvailableModelsForConnection(connection.provider, id);
+      await cleanupProviderModelsAfterConnectionDelete(connection.provider, id);
     } catch (e) {
-      console.error(
-        `Failed to clean up synced models for deleted ${connection.provider} connection:`,
-        e
-      );
+      console.error(`Failed to clean up models for deleted ${connection.provider} connection:`, e);
     }
 
     // Auto sync to Cloud if enabled

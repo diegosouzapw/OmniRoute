@@ -69,10 +69,13 @@ export async function GET(request: Request): Promise<Response> {
     const raw = {
       offset: searchParams.get("offset") || undefined,
       limit: searchParams.get("limit") || undefined,
-    };
+    } satisfies { offset?: string; limit?: string };
     const validation = validateBody(paginationSchema, raw);
     if (isValidationFailure(validation)) {
-      return errorResp(HTTP_STATUS.BAD_REQUEST, validation.error);
+      return new Response(JSON.stringify(validation.error), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+      });
     }
     const { limit, offset } = validation.data;
     const result = listPlaygroundPresets(limit !== undefined ? { limit, offset } : undefined);

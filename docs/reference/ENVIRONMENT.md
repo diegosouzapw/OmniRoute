@@ -82,6 +82,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | Variable                               | Default              | Source File                                           | Description                                                                                                                                                                                                                                     |
 | -------------------------------------- | -------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DATA_DIR`                             | `~/.omniroute/`      | `src/lib/db/core.ts`                                  | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                                                                                                                                             |
+| `OMNIROUTE_DATA_DIR`                   | _(unset)_            | `open-sse/executors/promptql/threadSticky.ts`         | **Fallback alias** for `DATA_DIR`, checked only when `DATA_DIR` is unset. Used to locate the PromptQL executor's on-disk thread-sticky session cache (`<dir>/promptql-thread-sessions.json`); if neither var is set, the cache stays in-memory only (not persisted across restarts).                                                                                                                                             |
 | `STORAGE_ENCRYPTION_KEY`               | _(empty = disabled)_ | `src/lib/db/encryption.ts`                            | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                                                                                                                                                      |
 | `STORAGE_ENCRYPTION_KEY_VERSION`       | `v1`                 | `scripts/build/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups.                                                                                                                              |
 | `DISABLE_SQLITE_AUTO_BACKUP`           | `false`              | `src/lib/db/backup.ts`                                | When `true`, skips the automatic database backup that runs before migrations on every startup.                                                                                                                                                  |
@@ -786,6 +787,19 @@ Automatic model pricing data synchronization from external sources.
 | ------------------------- | ------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `ARENA_ELO_SYNC_ENABLED`  | `true`        | `src/shared/constants/featureFlagDefinitions.ts` | Periodic Arena AI leaderboard ELO sync, configurable from Dashboard Feature Flags or with `false` to opt out. |
 | `ARENA_ELO_SYNC_INTERVAL` | `86400` (24h) | `src/lib/arenaEloSync.ts`                        | Sync interval in seconds.                                                                                     |
+
+---
+
+## PromptQL Playground Provider (Unofficial/Experimental)
+
+Reverse-engineered GraphQL session bridge for prompt.ql.app (`src/shared/constants/providers/web-cookie.ts`). All optional — defaults point at the public playground endpoints; override only for a self-hosted/alternate PromptQL deployment.
+
+| Variable                     | Default                                                                | Source File                              | Description                                          |
+| ----------------------------- | ----------------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------- |
+| `PROMPTQL_GRAPHQL_ENDPOINT`   | `https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql`      | `open-sse/executors/promptql.ts`          | GraphQL endpoint used for chat/session operations.     |
+| `PROMPTQL_CREDITS_ENDPOINT`   | `https://data.pro.ql.app/v1/graphql`                                     | `open-sse/executors/promptql.ts`, `open-sse/services/usage/promptql.ts` | GraphQL endpoint used to query credit balance/usage.   |
+| `PROMPTQL_TOKEN_REFRESH_URL`  | `https://auth.pro.ql.app/ddn/project/token`                              | `open-sse/executors/promptql.ts`          | Endpoint used for best-effort token refresh.           |
+| `PROMPTQL_POLL_TIMEOUT_MS`    | `180000`                                                                 | `open-sse/executors/promptql.ts`          | Max time (ms) to poll `thread_events` before timing out. |
 
 ---
 

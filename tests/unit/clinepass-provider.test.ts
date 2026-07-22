@@ -7,8 +7,19 @@ const { isManagedProviderConnectionId } = await import("../../src/lib/providers/
 const { PROVIDERS: oauthFlows } = await import("../../src/lib/oauth/providers/index.ts");
 const { REGISTRY: providerRegistry } = await import("../../open-sse/config/providerRegistry.ts");
 const { unwrapClinepassEnvelope } = await import("../../open-sse/utils/clinepassEnvelope.ts");
-const { filterClinepassModels } = await import("../../open-sse/services/clinepassModels.ts");
+const {
+  CLINE_MODELS_ENDPOINT,
+  CLINEPASS_MODELS_ENDPOINT,
+  filterClinepassModels,
+  parseClineModels,
+  parseClineRecommendedModels,
+  parseClinepassRecommendedModels,
+  resolveClinepassModels,
+} = await import("../../open-sse/services/clinepassModels.ts");
 const { parseUpstreamError, buildErrorBody } = await import("../../open-sse/utils/error.ts");
+const { PROVIDER_MODELS_CONFIG } =
+  await import("../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts");
+const { testOAuthConnection } = await import("../../src/app/api/providers/[id]/test/route.ts");
 
 // ── Provider metadata (oauth-primary catalog; single provider) ──────────────
 test("ClinePass is registered as an OAuth-primary provider with the canonical identity", () => {
@@ -39,19 +50,51 @@ test("ClinePass registry entry is oauth-primary (dual-auth) with Cline headers",
   assert.equal(entry.extraHeaders?.["X-Title"], "Cline");
 });
 
-test("ClinePass models are cline-pass/* and deepseek entries flag reasoning", () => {
+test("ClinePass fallback is the official subscription-only catalog", () => {
   const models = providerRegistry.clinepass.models;
   const ids = models.map((m: { id: string }) => m.id);
-  assert.ok(ids.length >= 8, "expect a non-trivial seed list");
+  assert.deepEqual(ids, [
+    "cline-pass/glm-5.2",
+    "cline-pass/minimax-m3",
+    "cline-pass/deepseek-v4-pro",
+    "cline-pass/deepseek-v4-flash",
+    "cline-pass/kimi-k3",
+    "cline-pass/kimi-k2.7-code",
+    "cline-pass/mimo-v2.5-pro",
+    "cline-pass/mimo-v2.5",
+    "cline-pass/qwen3.7-max",
+    "cline-pass/qwen3.7-plus",
+  ]);
   assert.equal(new Set(ids).size, ids.length, "model ids must be unique");
   for (const id of ids) {
     assert.ok(id.startsWith("cline-pass/"), `${id} must be in the cline-pass/ namespace`);
   }
-  const deepseek = models.filter((m: { id: string }) => m.id.includes("deepseek"));
-  assert.ok(deepseek.length >= 2, "expect the two DeepSeek V4 entries");
-  for (const m of deepseek) {
-    assert.equal((m as { supportsReasoning?: boolean }).supportsReasoning, true);
+  for (const model of models) {
+    assert.equal(model.toolCalling, true, `${model.id} must support tools`);
+    assert.equal(model.supportsReasoning, true, `${model.id} must support reasoning`);
+    assert.ok((model.contextLength ?? 0) > 0, `${model.id} must have a context window`);
+    assert.ok((model.maxOutputTokens ?? 0) > 0, `${model.id} must have an output limit`);
   }
+});
+
+test("Cline fallback owns recommended/free models and excludes the ClinePass namespace", () => {
+  const ids = providerRegistry.cline.models.map((model: { id: string }) => model.id);
+  assert.deepEqual(ids, [
+    "zai/glm-5.2",
+    "x-ai/grok-4.5",
+    "openai/gpt-5.6-sol",
+    "moonshotai/kimi-k3",
+    "anthropic/claude-opus-4.8",
+    "openrouter/free",
+    "deepseek/deepseek-v4-flash",
+    "tencent/hy3:free",
+    "stepfun/step-3.7-flash",
+    "poolside/laguna-m.1:free",
+    "google/gemma-4-31b-it:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "minimax/minimax-m3",
+  ]);
+  assert.ok(ids.every((id: string) => !id.startsWith("cline-pass/")));
 });
 
 // ── Envelope unwrap ──────────────────────────────────────────────────────────
@@ -110,6 +153,100 @@ test("filterClinepassModels keeps only cline-pass/* ids", () => {
   assert.deepEqual(filterClinepassModels("not-array"), []);
 });
 
+test("recommended-model parsers keep ClinePass separate from Cline recommended/free", () => {
+  const payload = {
+    clinePass: [
+      { id: "cline-pass/glm-5.2", name: "GLM-5.2" },
+      { id: "not-a-pass/model", name: "Wrong bucket entry" },
+    ],
+    recommended: [{ id: "zai/glm-5.2", name: "GLM 5.2" }],
+    free: [
+      { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash" },
+      { id: "zai/glm-5.2", name: "duplicate" },
+    ],
+  };
+
+  assert.deepEqual(parseClinepassRecommendedModels(payload), [
+    { id: "cline-pass/glm-5.2", name: "GLM-5.2" },
+  ]);
+  assert.deepEqual(parseClineRecommendedModels(payload), [
+    { id: "zai/glm-5.2", name: "GLM 5.2" },
+    { id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash" },
+  ]);
+});
+
+test("full Cline model parser keeps text-output models outside the ClinePass namespace", () => {
+  const payload = {
+    data: [
+      {
+        id: "anthropic/claude-sonnet-4.6",
+        name: "Claude Sonnet 4.6",
+        architecture: { modality: "text+image->text" },
+      },
+      {
+        id: "cline-pass/glm-5.2",
+        name: "GLM-5.2",
+        architecture: { modality: "text->text" },
+      },
+      {
+        id: "openai/gpt-5.6",
+        description: "OpenAI model",
+        architecture: { modality: "text->text" },
+      },
+      {
+        id: "google/gemini-image",
+        architecture: { modality: "text+image->text+image" },
+      },
+      { id: "google/lyria", architecture: { modality: "text->text+audio" } },
+      { id: "video/generator", architecture: { modality: "text->video" } },
+      { id: "missing/modality" },
+      { name: "missing id" },
+    ],
+  };
+
+  assert.deepEqual(parseClineModels(payload), [
+    { id: "anthropic/claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
+    { id: "openai/gpt-5.6", name: "openai/gpt-5.6", description: "OpenAI model" },
+  ]);
+});
+
+test("Cline import uses the full public catalog while ClinePass keeps its own bucket", () => {
+  const clineConfig = PROVIDER_MODELS_CONFIG.cline;
+  assert.equal(clineConfig.url, CLINE_MODELS_ENDPOINT);
+  assert.equal(clineConfig.method, "GET");
+  assert.equal(clineConfig.parseResponse, parseClineModels);
+  assert.equal(clineConfig.authHeader, undefined);
+  assert.equal(clineConfig.authQuery, undefined);
+
+  const clinepassConfig = PROVIDER_MODELS_CONFIG.clinepass;
+  assert.equal(clinepassConfig.url, CLINEPASS_MODELS_ENDPOINT);
+  assert.equal(clinepassConfig.method, "GET");
+  assert.equal(clinepassConfig.parseResponse, parseClinepassRecommendedModels);
+  assert.equal(clinepassConfig.authHeader, undefined);
+  assert.equal(clinepassConfig.authQuery, undefined);
+});
+
+test("resolveClinepassModels uses the public official recommendation endpoint without auth", async () => {
+  let request: { input: string; init?: RequestInit } | null = null;
+  const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+    request = { input: String(input), init };
+    return new Response(
+      JSON.stringify({
+        clinePass: [{ id: "cline-pass/kimi-k3", name: "Kimi K3" }],
+        free: [{ id: "deepseek/deepseek-v4-flash", name: "DeepSeek V4 Flash" }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  const result = await resolveClinepassModels({ apiKey: "must-not-be-sent" }, fetchImpl);
+  assert.equal(request?.input, CLINEPASS_MODELS_ENDPOINT);
+  assert.equal(request?.init?.headers && "Authorization" in request.init.headers, false);
+  assert.deepEqual(result, {
+    models: [{ id: "cline-pass/kimi-k3", name: "Kimi K3" }],
+  });
+});
+
 // ── Error sanitization (Rule #12 — no stack leak) ────────────────────────────
 test("parseUpstreamError unwraps clinepass envelope error without leaking a stack", async () => {
   const upstream = new Response(
@@ -136,6 +273,19 @@ test("ClinePass reuses the Cline WorkOS OAuth flow (clinepass -> cline)", () => 
     oauthFlows.cline,
     "clinepass must reuse the cline OAuth flow 1:1 (same api.cline.bot host/token)"
   );
+});
+
+test("ClinePass OAuth connection test reuses Cline token-expiry validation", async () => {
+  const result = await testOAuthConnection({
+    provider: "clinepass",
+    accessToken: "healthy-access-token",
+    refreshToken: "healthy-refresh-token",
+    tokenExpiresAt: new Date(Date.now() + 3600_000).toISOString(),
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.error, null);
+  assert.notEqual(result.diagnosis?.type, "unsupported");
 });
 
 test("ClinePass is a single OAuth-primary provider (no duplicate catalog entry)", () => {

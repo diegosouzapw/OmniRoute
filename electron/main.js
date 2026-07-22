@@ -36,6 +36,7 @@ const { hasEncryptedCredentials } = require("./sqlite-inspection");
 const { loginManager } = require("./loginManager");
 const { killProcessTree } = require("./processTree");
 const { resolveServerEntry } = require("./lib/resolveServerEntry");
+const { resolveDarwinHelperExecutable } = require("./lib/resolveNodeHelper");
 
 // ── Single Instance Lock ───────────────────────────────────
 const gotTheLock = app.requestSingleInstanceLock();
@@ -79,23 +80,16 @@ function resolveNodeExecutable(env = process.env) {
   // flash a shell window. Use the Helper binary instead — macOS treats
   // Helper processes as background tasks with no visible UI artifacts.
   if (process.platform === "darwin" && !isDev) {
-    const helperPath = path.join(path.dirname(process.execPath), `${app.getName()} Helper`);
-    if (fs.existsSync(helperPath)) {
-      return helperPath;
-    }
-    // Electron \u003e= 20 may use "(Renderer)" / "(GPU)" / "(Plugin)" suffixed helpers.
-    // The unsuffixed Helper is the one suitable for ELECTRON_RUN_AS_NODE.
-    const frameworkHelper = path.join(
-      path.dirname(process.execPath),
-      "..",
-      "Frameworks",
-      `${app.getName()} Helper.app`,
-      "Contents",
-      "MacOS",
-      `${app.getName()} Helper`
-    );
-    if (fs.existsSync(frameworkHelper)) {
-      return frameworkHelper;
+    // #7941: derive the Helper name from the packaged binary name
+    // (path.basename(process.execPath)) rather than app.getName(). electron-builder
+    // generates BOTH the main binary and the Helper.app bundles from build.productName
+    // ("OmniRoute"), whereas app.getName() reads package.json `name` ("omniroute-desktop")
+    // — the two diverged, so app.getName() never matched a real Helper path and this fell
+    // through to process.execPath, spawning the main Electron binary and producing a
+    // second, inert macOS Dock icon.
+    const helper = resolveDarwinHelperExecutable({ execPath: process.execPath });
+    if (helper) {
+      return helper;
     }
   }
   return process.execPath;

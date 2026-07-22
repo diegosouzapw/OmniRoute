@@ -64,6 +64,16 @@ test("src/shared providers map resolves the same aliases unambiguously", () => {
   assert.equal(getProviderAlias("hackclub"), "hc");
 });
 
+// #6673: hailuo-web must not collide with the paid API-key minimax/minimax-cn
+// providers — it uses its own id as alias, per the secondary-variant convention.
+test("hailuo-web resolves to its own id/alias and does not collide with minimax", () => {
+  assert.equal(PROVIDER_ID_TO_ALIAS["hailuo-web"], "hailuo-web");
+  assert.equal(resolveProviderId("hailuo-web"), "hailuo-web");
+  assert.equal(getProviderAlias("hailuo-web"), "hailuo-web");
+  assert.equal(resolveProviderId("minimax"), "minimax");
+  assert.equal(resolveProviderId("minimax-cn"), "minimax-cn");
+});
+
 test("no provider id is registered in both the API-key and web-cookie catalogs", () => {
   // A provider belongs to exactly one auth category; the same id in both catalogs
   // renders the provider twice in the dashboard (once per section). huggingchat

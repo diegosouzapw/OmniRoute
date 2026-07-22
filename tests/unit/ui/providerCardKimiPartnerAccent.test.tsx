@@ -73,7 +73,7 @@ describe("ProviderCard — Kimi (Moonshot AI) official-supporter accent", () => 
     const kimiWebEl = renderCard("kimi-web", "Kimi Web");
     expect(kimiWebEl.textContent).toContain("Official Supporter");
 
-    const moonshotEl = renderCard("moonshot", "Moonshot AI");
+    const moonshotEl = renderCard("moonshot", "Kimi");
     expect(moonshotEl.textContent).toContain("Official Supporter");
   });
 
