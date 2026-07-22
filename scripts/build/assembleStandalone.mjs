@@ -270,6 +270,8 @@ async function syncNativeAssetsToDir(projectRoot, outDir, fsImpl, log) {
     if (!(await exists(sourcePath))) continue;
 
     const destinationPath = path.join(outDir, ...entry.dest);
+    if (path.resolve(sourcePath) === path.resolve(destinationPath)) continue;
+
     const mkdir =
       typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
     await mkdir(path.dirname(destinationPath), { recursive: true });
@@ -306,6 +308,8 @@ async function syncExtraModulesToDir(projectRoot, outDir, fsImpl, log) {
     if (!(await exists(sourcePath))) continue;
 
     const destPath = path.join(outDir, ...entry.dest);
+    if (path.resolve(sourcePath) === path.resolve(destPath)) continue;
+
     const mkdir =
       typeof fsImpl.mkdir === "function" ? fsImpl.mkdir.bind(fsImpl) : fs.mkdir.bind(fs);
     await mkdir(path.dirname(destPath), { recursive: true });
@@ -466,6 +470,7 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
     const src = path.join(projectRoot, ...asset.src);
     if (!fsSync.existsSync(src)) continue;
     const dest = path.join(resolvedOutDir, ...asset.dest);
+    if (path.resolve(src) === path.resolve(dest)) continue;
     fsSync.mkdirSync(path.dirname(dest), { recursive: true });
     fsSync.cpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Copied native asset: ${asset.label}`);
@@ -475,6 +480,7 @@ function copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir) {
     const src = path.join(projectRoot, ...mod.src);
     if (!fsSync.existsSync(src)) continue;
     const dest = path.join(resolvedOutDir, ...mod.dest);
+    if (path.resolve(src) === path.resolve(dest)) continue;
     fsSync.mkdirSync(path.dirname(dest), { recursive: true });
     fsSync.cpSync(src, dest, { recursive: true, force: true });
     console.log(`[assembleStandalone] Synced module: ${mod.label}`);
