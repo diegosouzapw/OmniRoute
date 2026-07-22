@@ -218,9 +218,9 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 | Variable                  | Default   | Source File                              | Description                                                                                 |
 | ------------------------- | --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `INPUT_SANITIZER_ENABLED` | `true`    | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
-| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = log only, `block` = reject request with 400, `redact` = strip suspicious patterns. |
+| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | Injection policy: `warn` = log only, `block` = reject request with 400. Legacy `redact` does **not** strip injection text; use `PII_REDACTION_ENABLED` for request PII rewrite. |
 | `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
-| `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
+| `PII_REDACTION_ENABLED`   | `false`   | `src/lib/guardrails/piiMasker.ts`        | When `true`, redact PII in incoming requests (independent of injection mode).               |
 | `CREDENTIAL_REDACTION_ENABLED` | `false` | `src/lib/guardrails/credentialMasker.ts` | Redact well-known API-key / secret-token patterns from request/response payloads. Opt-in; mirrors `PII_REDACTION_ENABLED`. |
 
 ### Response-Side: PII Sanitizer
@@ -240,7 +240,7 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 
 | Scenario                  | Configuration                                                                                                                |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Enterprise compliance** | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=block`, `PII_REDACTION_ENABLED=true`, `PII_RESPONSE_SANITIZATION=true` |
+| **Enterprise compliance** | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=block`, `PII_REDACTION_ENABLED=true`, `PII_RESPONSE_SANITIZATION=true` (injection blocks + request/response PII redaction; modes are independent) |
 | **Monitoring only**       | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=warn` — logs but never blocks                                          |
 | **Personal use**          | Leave all disabled — zero overhead                                                                                           |
 

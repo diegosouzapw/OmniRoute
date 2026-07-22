@@ -120,24 +120,38 @@ test("prompt injection guardrail blocks suspicious content in block mode", async
 });
 
 test("pii masker guardrail redacts request and response payloads", async () => {
+  // Request PII rewrite depends only on PII_REDACTION_ENABLED (not injection mode).
   await withEnv(
     {
-      INPUT_SANITIZER_MODE: "redact",
+      INPUT_SANITIZER_MODE: "block",
       PII_REDACTION_ENABLED: "true",
       PII_RESPONSE_SANITIZATION: "true",
       PII_RESPONSE_SANITIZATION_MODE: "redact",
     },
     async () => {
       const guardrail = new PIIMaskerGuardrail();
-
       const preCall = await guardrail.preCall({
         messages: [{ role: "user", content: "Email me at dev@example.com" }],
       });
       assert.ok(preCall?.modifiedPayload);
       assert.match(
-        String((preCall?.modifiedPayload as Record<string, unknown>).messages?.[0]?.content),
+        String((preCall?.modifiedPayload as any).messages?.[0]?.content),
         /\[EMAIL_REDACTED\]/
       );
+
+      // Responses API can send plain string items in input[]
+      const stringInput = await guardrail.preCall({
+        input: ["Contact us at support@example.com for help"],
+      });
+      assert.ok(stringInput?.modifiedPayload);
+      assert.match(String((stringInput?.modifiedPayload as any).input?.[0]), /\[EMAIL_REDACTED\]/);
+
+      // Top-level string input
+      const topLevelInput = await guardrail.preCall({
+        input: "Reach alice@example.com",
+      });
+      assert.ok(topLevelInput?.modifiedPayload);
+      assert.match(String((topLevelInput?.modifiedPayload as any).input), /\[EMAIL_REDACTED\]/);
 
       const postCall = await guardrail.postCall({
         choices: [
@@ -151,7 +165,7 @@ test("pii masker guardrail redacts request and response payloads", async () => {
       });
       assert.ok(postCall?.modifiedResponse, "PII in response should trigger redaction");
       const redactedContent = String(
-        (postCall?.modifiedResponse as Record<string, unknown>).choices?.[0]?.message?.content
+        (postCall?.modifiedResponse as any).choices?.[0]?.message?.content
       );
       assert.ok(
         redactedContent.includes("[EMAIL_REDACTED]") || redactedContent.includes("[PHONE_REDACTED]"),
@@ -160,6 +174,24 @@ test("pii masker guardrail redacts request and response payloads", async () => {
     }
   );
 });
+
+test("pii masker does not rewrite request PII when redaction flag is off", async () => {
+  await withEnv(
+    {
+      INPUT_SANITIZER_MODE: "redact",
+      PII_REDACTION_ENABLED: "false",
+      PII_RESPONSE_SANITIZATION: "false",
+    },
+    async () => {
+      const guardrail = new PIIMaskerGuardrail();
+      const preCall = await guardrail.preCall({
+        messages: [{ role: "user", content: "Email me at dev@example.com" }],
+      });
+      assert.equal(preCall?.modifiedPayload, undefined);
+    }
+  );
+});
+
 
 test("guardrail registry fails open when a guardrail throws", async () => {
   class ExplodingGuardrail extends BaseGuardrail {
