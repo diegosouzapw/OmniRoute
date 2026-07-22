@@ -277,6 +277,17 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   const metadata = getCanonicalModelMetadata({ provider, model });
   if (!metadata) return entry;
 
+  // #8016: Specialty surfaces (audio, video, moderation, music, image, rerank,
+  // embedding) are not chat models. Their enrichment must not inherit synthetic
+  // chat defaults (tool_calling, reasoning, thinking) from heuristics that
+  // optimistically return true for unknown models. Only write these booleans
+  // when an authoritative source (synced, registry, spec) explicitly set them.
+  const entryType = typeof entry.type === "string" ? entry.type : null;
+  const isNonChatSpecialty =
+    entryType !== null &&
+    entryType !== "chat" &&
+    !entryType.startsWith("chat");
+
   const nextEntry: JsonRecord = { ...entry };
   const existingName = asNonEmptyString(entry.name);
   const authoritativeContextWindow =
@@ -284,12 +295,23 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     getAuthoritativeProviderContextWindow(provider, model) ??
     getAuthoritativeContextWindow(metadata.model) ??
     getAuthoritativeContextWindow(model);
+
+  // For non-chat specialty surfaces, only emit tool_calling/reasoning when the
+  // resolved capabilities came from an authoritative source (supportsTools /
+  // supportsThinking !== null). For chat surfaces, keep the original behavior.
+  const emitToolCalling = isNonChatSpecialty
+    ? metadata.capabilities.supportsTools === true
+    : true;
+  const emitReasoning = isNonChatSpecialty
+    ? metadata.capabilities.supportsThinking === true
+    : true;
+
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
       : {}),
-    tool_calling: metadata.capabilities.toolCalling,
-    reasoning: metadata.capabilities.reasoning,
+    ...(emitToolCalling ? { tool_calling: metadata.capabilities.toolCalling } : {}),
+    ...(emitReasoning ? { reasoning: metadata.capabilities.reasoning } : {}),
     // #6241: surface thinking support + the canonical effort tiers so the frontend can
     // render the effort/thinking toggles. `thinking` is kept for back-compat; `supportsThinking`
     // is the explicit flag and `effort_tiers` lists the selectable reasoning levels
