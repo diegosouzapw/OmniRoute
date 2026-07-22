@@ -151,4 +151,99 @@ describe("OAuthModal Grok Device Code", () => {
     expect(pollCalls).toHaveLength(0);
     expect(element.textContent).toBe("");
   });
+
+  // #7013 rework coexistence guard: device_code (#7358) and the browser PKCE
+  // login (#7013) must BOTH be reachable from the same modal instance via the
+  // "Device Code" / "Browser Login" tabs, instead of one flow replacing the
+  // other.
+  it("lets the user switch to Browser Login, then back to Device Code", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/device-code")) {
+        return new Response(
+          JSON.stringify({
+            device_code: "opaque-device-code",
+            user_code: "ABCD-EFGH",
+            verification_uri: "https://accounts.x.ai/oauth2/device",
+            verification_uri_complete: "https://accounts.x.ai/oauth2/device?user_code=ABCD-EFGH",
+            expires_in: 1800,
+            interval: 5,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      if (url.includes("/start-callback-server")) {
+        return new Response(
+          JSON.stringify({
+            authUrl: "https://auth.x.ai/oauth2/authorize?client_id=test&code_challenge=abc",
+            codeVerifier: "verifier-123",
+            redirectUri: "http://127.0.0.1:56122/callback",
+            serverPort: 56122,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      if (url.includes("/poll-callback")) {
+        return new Response(JSON.stringify({ success: false, pending: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ success: false, pending: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const openMock = vi.spyOn(window, "open").mockImplementation(() => null);
+
+    const { element } = renderModal(true);
+    await flushEffects();
+
+    // Default: device_code flow started first (matches the #7358 test above).
+    expect(fetchMock.mock.calls[0]?.[0].toString()).toContain("/api/oauth/grok-cli/device-code");
+    expect(element.textContent).toContain("Device Code");
+    expect(element.textContent).toContain("Browser Login");
+    expect(element.textContent).toContain("JWT Token");
+
+    const findButton = (label: string) =>
+      Array.from(element.querySelectorAll("button")).find((b) => b.textContent === label);
+
+    const browserLoginButton = findButton("Browser Login");
+    expect(browserLoginButton).toBeTruthy();
+
+    await act(async () => {
+      browserLoginButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushEffects();
+
+    // Clicking "Browser Login" must dispatch the PKCE callback-server path,
+    // not another device-code request.
+    const callbackServerCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/start-callback-server")
+    );
+    expect(callbackServerCall).toBeTruthy();
+    expect(openMock).toHaveBeenCalledWith(
+      expect.stringContaining("https://auth.x.ai/oauth2/authorize"),
+      "oauth_auth"
+    );
+
+    // Switching back to "Device Code" must re-issue a device-code request.
+    const deviceCodeCallsBefore = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes("/device-code")
+    ).length;
+
+    const deviceCodeButton = findButton("Device Code");
+    expect(deviceCodeButton).toBeTruthy();
+
+    await act(async () => {
+      deviceCodeButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushEffects();
+
+    const deviceCodeCallsAfter = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes("/device-code")
+    ).length;
+    expect(deviceCodeCallsAfter).toBeGreaterThan(deviceCodeCallsBefore);
+  });
 });

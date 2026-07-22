@@ -202,6 +202,7 @@
       "tests/unit/management-auth-hardening.test.ts",
       "tests/unit/mark-account-unavailable-numeric-epoch-guard.test.ts",
       "tests/unit/masked-200-exhaustion-fallback-6427.test.ts",
+      "tests/unit/mcp-connect-scope.test.ts",
       "tests/unit/memory-embedding-remote.test.ts",
       "tests/unit/memory-embedding-transformers.test.ts",
       "tests/unit/microsoft-designer-web-6672.test.ts",

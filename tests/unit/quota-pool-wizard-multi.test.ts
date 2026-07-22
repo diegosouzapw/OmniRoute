@@ -141,8 +141,13 @@ test("PoolWizard.tsx: step-3 preview maps over connectionIds (previewByProvider)
     wizardSrc.includes("previewByProvider"),
     "Expected previewByProvider useMemo in PoolWizard"
   );
-  assert.ok(
-    wizardSrc.includes("connectionIds.map((cid)"),
+  // Prettier (100-char width, project config) breaks a `connectionIds.map(...).filter(...)`
+  // chain with a multi-line callback onto separate lines — `connectionIds` and `.map((cid)`
+  // land on different lines. Match across that line break instead of a rigid single-line
+  // substring so this assertion tracks the chain regardless of how Prettier wraps it.
+  assert.match(
+    wizardSrc,
+    /connectionIds\s*\.map\(\(cid\)/,
     "Expected connectionIds.map to build per-provider preview"
   );
 });

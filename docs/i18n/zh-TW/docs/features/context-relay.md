@@ -1,65 +1,57 @@
-# Context Relay (中文（簡體）)
+# Context Relay（繁體中文）
 
-🌐 **Languages:** 🇺🇸 [English](../../../../../docs/features/context-relay.md) · 🇪🇸 [es](../../../es/docs/features/context-relay.md) · 🇫🇷 [fr](../../../fr/docs/features/context-relay.md) · 🇩🇪 [de](../../../de/docs/features/context-relay.md) · 🇮🇹 [it](../../../it/docs/features/context-relay.md) · 🇷🇺 [ru](../../../ru/docs/features/context-relay.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/features/context-relay.md) · 🇯🇵 [ja](../../../ja/docs/features/context-relay.md) · 🇰🇷 [ko](../../../ko/docs/features/context-relay.md) · 🇸🇦 [ar](../../../ar/docs/features/context-relay.md) · 🇮🇳 [hi](../../../hi/docs/features/context-relay.md) · 🇮🇳 [in](../../../in/docs/features/context-relay.md) · 🇹🇭 [th](../../../th/docs/features/context-relay.md) · 🇻🇳 [vi](../../../vi/docs/features/context-relay.md) · 🇮🇩 [id](../../../id/docs/features/context-relay.md) · 🇲🇾 [ms](../../../ms/docs/features/context-relay.md) · 🇳🇱 [nl](../../../nl/docs/features/context-relay.md) · 🇵🇱 [pl](../../../pl/docs/features/context-relay.md) · 🇸🇪 [sv](../../../sv/docs/features/context-relay.md) · 🇳🇴 [no](../../../no/docs/features/context-relay.md) · 🇩🇰 [da](../../../da/docs/features/context-relay.md) · 🇫🇮 [fi](../../../fi/docs/features/context-relay.md) · 🇵🇹 [pt](../../../pt/docs/features/context-relay.md) · 🇷🇴 [ro](../../../ro/docs/features/context-relay.md) · 🇭🇺 [hu](../../../hu/docs/features/context-relay.md) · 🇧🇬 [bg](../../../bg/docs/features/context-relay.md) · 🇸🇰 [sk](../../../sk/docs/features/context-relay.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/features/context-relay.md) · 🇮🇱 [he](../../../he/docs/features/context-relay.md) · 🇵🇭 [phi](../../../phi/docs/features/context-relay.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/features/context-relay.md) · 🇨🇿 [cs](../../../cs/docs/features/context-relay.md) · 🇹🇷 [tr](../../../tr/docs/features/context-relay.md)
+🌐 **語言:** 🇺🇸 [English](../../../../../docs/features/context-relay.md) · 🇪🇸 [es](../../../es/docs/features/context-relay.md) · 🇫🇷 [fr](../../../fr/docs/features/context-relay.md) · 🇩🇪 [de](../../../de/docs/features/context-relay.md) · 🇮🇹 [it](../../../it/docs/features/context-relay.md) · 🇷🇺 [ru](../../../ru/docs/features/context-relay.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/features/context-relay.md) · 🇯🇵 [ja](../../../ja/docs/features/context-relay.md) · 🇰🇷 [ko](../../../ko/docs/features/context-relay.md) · 🇸🇦 [ar](../../../ar/docs/features/context-relay.md) · 🇮🇳 [hi](../../../hi/docs/features/context-relay.md) · 🇮🇳 [in](../../../in/docs/features/context-relay.md) · 🇹🇭 [th](../../../th/docs/features/context-relay.md) · 🇻🇳 [vi](../../../vi/docs/features/context-relay.md) · 🇮🇩 [id](../../../id/docs/features/context-relay.md) · 🇲🇾 [ms](../../../ms/docs/features/context-relay.md) · 🇳🇱 [nl](../../../nl/docs/features/context-relay.md) · 🇵🇱 [pl](../../../pl/docs/features/context-relay.md) · 🇸🇪 [sv](../../../sv/docs/features/context-relay.md) · 🇳🇴 [no](../../../no/docs/features/context-relay.md) · 🇩🇰 [da](../../../da/docs/features/context-relay.md) · 🇫🇮 [fi](../../../fi/docs/features/context-relay.md) · 🇵🇹 [pt](../../../pt/docs/features/context-relay.md) · 🇷🇴 [ro](../../../ro/docs/features/context-relay.md) · 🇭🇺 [hu](../../../hu/docs/features/context-relay.md) · 🇧🇬 [bg](../../../bg/docs/features/context-relay.md) · 🇸🇰 [sk](../../../sk/docs/features/context-relay.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/features/context-relay.md) · 🇮🇱 [he](../../../he/docs/features/context-relay.md) · 🇵🇭 [phi](../../../phi/docs/features/context-relay.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/features/context-relay.md) · 🇨🇿 [cs](../../../cs/docs/features/context-relay.md) · 🇹🇷 [tr](../../../tr/docs/features/context-relay.md)
 
 ---
 
-`context-relay` is a combo strategy that keeps session continuity when the active account
-rotates before the conversation is finished.
+`context-relay` 是一種 combo 策略，可在活躍帳戶於對話完成前輪換時，保持工作階段的連續性。
 
-The current runtime behaves like priority routing for model selection, then adds a
-handoff layer on top:
+目前的執行時期行為類似於模型選擇的優先路由，然後在上方加入一層交接層：
 
-- before the active account is exhausted, OmniRoute generates a compact structured summary
-- after authentication selects a different account for the same session, OmniRoute injects
-  that summary as a system message into the next request
-- once the handoff is consumed successfully, it is removed from storage
+- 在活躍帳戶耗盡之前，OmniRoute 會產生一個精簡的結構化摘要
+- 在認證為同一個工作階段選取不同帳戶後，OmniRoute 會將該摘要作為系統訊息注入到下一個請求中
+- 交接成功消耗後，會從儲存中移除
 
-## When To Use It
+## 何時使用
 
-Use `context-relay` when all of the following are true:
+當以下所有條件成立時，請使用 `context-relay`：
 
-- the combo is expected to rotate between multiple accounts of the same provider
-- losing short-term conversational continuity would hurt task quality
-- the provider exposes enough quota information to predict an approaching account limit
+- combo 預計會在同一個提供商的多個帳戶之間輪換
+- 失去短期對話連續性會影響任務品質
+- 提供商暴露了足夠的配額資訊，可以預測即將到來的帳戶限制
 
-This is most useful for long-running coding or research sessions that may outlive a single
-account window.
+這對於可能超過單一帳戶視窗的長時間編碼或研究會話最為有用。
 
-## Runtime Flow
+## 執行時期流程
 
-The current behavior is intentionally split across two runtime layers.
+目前的行為有意分散在兩個執行時期層中。
 
-### 0% to 84% quota used
+### 已使用 0% 至 84% 的配額
 
-No handoff is generated. Requests behave like normal priority routing.
+不會產生交接。請求的行為就像一般的優先路由。
 
-### 85% to 94% quota used
+### 已使用 85% 至 94% 的配額
 
-If the active provider is enabled in `handoffProviders`, OmniRoute generates a structured
-handoff summary in the background before the account is fully exhausted.
+如果活躍提供商在 `handoffProviders` 中啟用，OmniRoute 會在帳戶完全耗盡之前在背景產生結構化的交接摘要。
 
-Important details:
+重要細節：
 
-- the default warning threshold is `0.85`
-- the hard stop for generation is `0.95`
-- only one in-flight handoff generation is allowed per `sessionId + comboName`
-- if an active handoff already exists for that session/combo, no duplicate summary is generated
+- 預設警告閾值為 `0.85`
+- 產生作業的硬性停止點為 `0.95`
+- 每個 `sessionId + comboName` 只允許一個進行中的交接產生作業
+- 如果該工作階段/combo 已有活躍的交接，則不會產生重複的摘要
 
-### 95% or more quota used
+### 已使用 95% 或更多的配額
 
-No new handoff is generated. At this point the system is already in or near exhaustion and
-the runtime avoids scheduling another summary request.
+不會產生新的交接。此時系統已處於或接近耗盡狀態，執行時期會避免排程另一個摘要請求。
 
-### After account rotation
+### 帳戶輪換後
 
-When the next request for the same session resolves to a different authenticated account,
-OmniRoute prepends the stored handoff as a system message. Injection happens only after the
-real account switch is known.
+當同一個工作階段的下一個請求解析到不同的已認證帳戶時，OmniRoute 會將儲存的交接作為系統訊息預先加入。只有在實際帳戶切換已知後才會進行注入。
 
-## Handoff Payload
+## 交接酬載
 
-The persisted handoff payload is stored in `context_handoffs` and includes:
+持久化的交接酬載儲存在 `context_handoffs` 中，包括：
 
 - `sessionId`
 - `comboName`
@@ -74,57 +66,51 @@ The persisted handoff payload is stored in `context_handoffs` and includes:
 - `generatedAt`
 - `expiresAt`
 
-The summary model is instructed to return a JSON object with this structure:
+摘要模型被指示回傳具有此結構的 JSON 物件：
 
 ```json
 {
-  "summary": "Dense summary of what matters for continuity",
-  "keyDecisions": ["Decision 1", "Decision 2"],
-  "taskProgress": "What is done, what is pending, and the next step",
-  "activeEntities": ["fileA.ts", "feature X", "provider Y"]
+  "summary": "關於哪些內容對連續性重要的精簡摘要",
+  "keyDecisions": ["決策 1", "決策 2"],
+  "taskProgress": "已完成的事項、待辦事項以及下一步",
+  "activeEntities": ["fileA.ts", "功能 X", "提供商 Y"]
 }
 ```
 
-At injection time, OmniRoute converts that payload into a `<context_handoff>` system
-message so the next account can continue with the correct local context.
+在注入時，OmniRoute 會將該酬載轉換為 `<context_handoff>` 系統訊息，以便下一個帳戶能以正確的本地上下文繼續。
 
 ## 設定
 
-`context-relay` supports these config fields:
+`context-relay` 支援以下配置欄位：
 
-- `handoffThreshold`: warning threshold for summary generation, default `0.85`
-- `handoffModel`: optional model override used only for summary generation
-- `handoffProviders`: allowlist of providers allowed to trigger handoff generation
+- `handoffThreshold`：摘要產生的警告閾值，預設 `0.85`
+- `handoffModel`：可選的模型覆寫，僅用於摘要產生
+- `handoffProviders`：允許觸發交接產生的提供商允許清單
 
-Global defaults can be configured in Settings, and combo-specific values can override them
-in the Combos page.
+全域預設值可在設定中配置，combo 專用值可在 Combos 頁面中覆寫。
 
-## Architectural Note
+## 架構說明
 
-The current implementation does not use a standalone `handleContextRelayCombo` handler.
+目前的實作未使用獨立的 `handleContextRelayCombo` 處理器。
 
-Instead:
+而是：
 
-- `open-sse/services/combo.ts` decides whether a successful turn should generate a handoff
-- `src/sse/handlers/chat.ts` injects the handoff only after authentication resolves the
-  actual account used for the request
+- `open-sse/services/combo.ts` 決定成功的回合是否應產生交接
+- `src/sse/handlers/chat.ts` 僅在認證解析出請求使用的實際帳戶後才注入交接
 
-This split is intentional in the current codebase because the combo loop alone does not know
-whether the request stayed on the same account or actually switched accounts.
+這種分離在目前的程式碼庫中是有意的，因為 combo 迴圈本身無法知道請求是停留在同一個帳戶還是實際切換了帳戶。
 
-## Limitations
+## 限制
 
-- Effective runtime support is currently centered on `codex` quota rotation.
-- `handoffProviders` is already modeled as a config surface, but real handoff generation
-  still depends on provider-specific quota plumbing.
-- The summary is intentionally compact and recent-history based; it is not a full transcript
-  replay mechanism.
-- Handoffs are scoped by `sessionId + comboName` and expire automatically.
-- If the session does not switch accounts, the stored handoff is not injected.
+- 目前的執行時期支援主要集中在 `codex` 配額輪換上
+- `handoffProviders` 已建模為配置表面，但實際的交接產生仍依賴於提供商特定的配額管線
+- 摘要刻意保持精簡並基於近期歷史；它不是完整的對話記錄重播機制
+- 交接以 `sessionId + comboName` 為範圍，並會自動過期
+- 如果工作階段未切換帳戶，則不會注入儲存的交接
 
-## Recommended Usage Pattern
+## 建議使用模式
 
-- use multiple accounts from the same provider
-- keep stable `sessionId` values across the session
-- set `handoffThreshold` early enough to leave room for the background summary request
-- treat the feature as continuity assistance, not as a replacement for persistent memory
+- 使用同一個提供商的多個帳戶
+- 在整個工作階段中保持穩定的 `sessionId` 值
+- 儘早設定 `handoffThreshold`，為背景摘要請求預留空間
+- 將此功能視為連續性輔助，而非持久化記憶體的替代方案

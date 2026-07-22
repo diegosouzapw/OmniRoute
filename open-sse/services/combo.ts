@@ -83,6 +83,12 @@ import { selectQuotaShareTarget } from "./combo/quotaShareStrategy.ts";
 import { makeConnectionConcurrencyResolver, lookupPositiveCap } from "./combo/concurrencyCaps.ts";
 import { acquireQuotaShareConcurrencySlot } from "./combo/quotaShareConcurrency.ts";
 import { orderTargetsByEvalScores } from "./evalRouting.ts";
+import {
+  applyPromptCacheAffinity,
+  expandPromptCacheAffinityTargets,
+  expandPromptCacheAffinityTargetsFromConnections,
+  resolvePromptCacheAffinityKey,
+} from "./combo/promptCacheAffinity.ts";
 import type { CompressionMode } from "./compression/types.ts";
 import { getCachedProviderConnections } from "../../src/lib/db/readCache";
 import {
@@ -387,7 +393,10 @@ export async function buildAutoCandidates(
   await Promise.all(
     uniqueProviders.map(async (provider) => {
       try {
-        const connections = (await getCachedProviderConnections({ provider, isActive: true })) as Array<Record<string, unknown>>;
+        const connections = (await getCachedProviderConnections({
+          provider,
+          isActive: true,
+        })) as Array<Record<string, unknown>>;
         const active = Array.isArray(connections) ? connections : [];
         connectionPoolCounts.set(provider, active.length);
         connectionsByProvider.set(provider, active);
@@ -403,40 +412,10 @@ export async function buildAutoCandidates(
     })
   );
 
-  const expandedTargets: ResolvedComboTarget[] = [];
-  for (const target of targets) {
-    const provider = target.provider || parseModel(target.modelStr).provider || "unknown";
-    const providerConnections = connectionsByProvider.get(provider) || [];
-    if (target.connectionId) {
-      expandedTargets.push(target);
-      continue;
-    }
-    const connectionIds = providerConnections
-      .map((c) => (c && typeof c === "object" && typeof c.id === "string" ? c.id : null))
-      .filter((id): id is string => id !== null);
-    const allowedConnectionIds = Array.isArray(target.allowedConnectionIds)
-      ? new Set(
-          target.allowedConnectionIds.filter(
-            (connectionId): connectionId is string =>
-              typeof connectionId === "string" && connectionId.trim().length > 0
-          )
-        )
-      : null;
-    const scopedConnectionIds = allowedConnectionIds
-      ? connectionIds.filter((connectionId) => allowedConnectionIds.has(connectionId))
-      : connectionIds;
-    if (scopedConnectionIds.length === 0) {
-      expandedTargets.push(target);
-      continue;
-    }
-    for (const connectionId of scopedConnectionIds) {
-      expandedTargets.push({
-        ...target,
-        connectionId,
-        executionKey: `${target.executionKey}@${connectionId}`,
-      });
-    }
-  }
+  const expandedTargets = expandPromptCacheAffinityTargetsFromConnections(
+    targets,
+    connectionsByProvider
+  );
 
   // #5521: Expand fingerprint-based providers (mimocode, mcode, opencode) so each
   // fingerprint gets its own combo slot instead of being bundled into one connection.
@@ -1298,14 +1277,21 @@ export async function handleComboChat({
       apiKeyAllowedConnections,
     });
   }
+  // An explicit cache-optimized combo outranks the global cache-affinity default,
+  // but only protects its ordering when this request actually produced a reusable
+  // cache key. Cache misses retain the normal session/eval routing behavior.
+  const cacheStrategyAffinityApplied =
+    strategy === "cache-optimized" && applyPromptCacheAffinity(orderedTargets, body).applied;
   // #6168: session stickiness opt-out. Per-combo `config.disableSessionStickiness`
   // overrides the global `settings.disableSessionStickiness` fallback (default false,
   // preserving the #3825 prompt-cache/504 fix). When disabled, skip the reorder and
   // treat the result as a no-op so the recordStickyBinding write-back below is skipped.
-  const disableSessionStickiness = resolveDisableSessionStickiness(
-    config as Record<string, unknown> | null | undefined,
-    settings as Record<string, unknown> | null | undefined
-  );
+  const disableSessionStickiness =
+    cacheStrategyAffinityApplied ||
+    resolveDisableSessionStickiness(
+      config as Record<string, unknown> | null | undefined,
+      settings as Record<string, unknown> | null | undefined
+    );
   const _sticky = disableSessionStickiness
     ? ({ targets: orderedTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
@@ -1315,7 +1301,9 @@ export async function handleComboChat({
         normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
   orderedTargets = _sticky.targets;
-  orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
+  if (!cacheStrategyAffinityApplied) {
+    orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
+  }
   orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
   orderedTargets = applyContextRequirements(orderedTargets, config.contextRequirements, log);
 
@@ -1345,6 +1333,62 @@ export async function handleComboChat({
       );
     }
     orderedTargets = nextOrder;
+  }
+
+  // Prompt-cache locality is applied after request eligibility and task routing.
+  // Session stickiness and explicit auto-router pins remain stronger continuity
+  // decisions; quota, health, and circuit-breaker gates still run per attempt.
+  const autoConfigForCacheWeight =
+    strategy === "auto"
+      ? ((combo.autoConfig ||
+          ((config as Record<string, unknown>).auto &&
+          typeof (config as Record<string, unknown>).auto === "object"
+            ? (config as Record<string, unknown>).auto
+            : null) ||
+          config) as Record<string, unknown>)
+      : null;
+  const autoWeightsForCache =
+    autoConfigForCacheWeight?.weights && typeof autoConfigForCacheWeight.weights === "object"
+      ? (autoConfigForCacheWeight.weights as Record<string, unknown>)
+      : null;
+  const autoUsesCacheScore = Number(autoWeightsForCache?.cacheAffinity) > 0;
+  const promptCacheAffinityEnabled =
+    settings?.promptCacheAffinityEnabled !== false && !autoUsesCacheScore;
+  const promptCacheAffinityTargets =
+    promptCacheAffinityEnabled && resolvePromptCacheAffinityKey(body)
+      ? await expandPromptCacheAffinityTargets(orderedTargets)
+      : orderedTargets;
+  const promptCacheAffinity = applyPromptCacheAffinity(
+    promptCacheAffinityTargets,
+    body,
+    promptCacheAffinityEnabled
+  );
+  if (promptCacheAffinity.applied) {
+    const protectedOriginal =
+      (_sticky.stuck ||
+        autoUsedExplicitRouter ||
+        strategy === "quota-share" ||
+        strategy === "weighted") &&
+      orderedTargets[0];
+    const protectedFirst = protectedOriginal
+      ? (promptCacheAffinity.targets.find(
+          (target) =>
+            target === protectedOriginal ||
+            target.executionKey === protectedOriginal.executionKey ||
+            target.executionKey.startsWith(`${protectedOriginal.executionKey}@`)
+        ) ?? protectedOriginal)
+      : null;
+    orderedTargets = protectedFirst
+      ? [
+          protectedFirst,
+          ...promptCacheAffinity.targets.filter((target) => target !== protectedFirst),
+        ]
+      : promptCacheAffinity.targets;
+    log.debug?.("COMBO", "Prompt-cache affinity applied", {
+      source: promptCacheAffinity.source,
+      fingerprint: promptCacheAffinity.fingerprint,
+      targetCount: orderedTargets.length,
+    });
   }
 
   // Parallel pre-screen: check provider profiles and model availability for all targets
@@ -2251,7 +2295,11 @@ export async function handleComboChat({
             });
             recordedAttempts++;
             lastError = errorText || String(result.status);
-            comboErrors.push({ model: modelStr, status: result.status, error: errorText || String(result.status) });
+            comboErrors.push({
+              model: modelStr,
+              status: result.status,
+              error: errorText || String(result.status),
+            });
             if (!lastStatus) lastStatus = result.status;
             if (i > 0) fallbackCount++;
             log.warn("COMBO", `Model ${modelStr} failed with body-specific error, stopping combo`);
@@ -2345,7 +2393,11 @@ export async function handleComboChat({
           });
           recordedAttempts++;
           lastError = errorText || String(result.status);
-          comboErrors.push({ model: modelStr, status: result.status, error: errorText || String(result.status) });
+          comboErrors.push({
+            model: modelStr,
+            status: result.status,
+            error: errorText || String(result.status),
+          });
           if (!lastStatus) lastStatus = result.status;
           if (i > 0) fallbackCount++;
           // Wire combo failures into the resilience dashboard (model-level lockout)
@@ -2510,12 +2562,10 @@ export async function handleComboChat({
           latencyMs,
           fallbackCount,
         });
-        return errorResponseWithComboDiagnostics(
-          504,
-          msg,
-          buildComboDiag("combo_timeout"),
-          { code: "COMBO_TIMEOUT", type: "server_error" }
-        );
+        return errorResponseWithComboDiagnostics(504, msg, buildComboDiag("combo_timeout"), {
+          code: "COMBO_TIMEOUT",
+          type: "server_error",
+        });
       }
 
       // All models failed in this set try
@@ -2770,7 +2820,7 @@ async function handleRoundRobinCombo({
       { code: "context_length_exceeded", type: "invalid_request_error" }
     );
   }
-  const filteredTargets = filterTargetsByRequestCompatibility(
+  let filteredTargets = filterTargetsByRequestCompatibility(
     evalRankedTargets,
     body,
     log,
@@ -2783,7 +2833,7 @@ async function handleRoundRobinCombo({
   // permanently dropping a compat-rejected-but-healthy provider.
   const compatKeptSet = new Set(filteredTargets);
   const compatRejectedTargets = evalRankedTargets.filter((target) => !compatKeptSet.has(target));
-  const modelCount = filteredTargets.length;
+  let modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
   }
@@ -2889,6 +2939,11 @@ async function handleRoundRobinCombo({
     config as Record<string, unknown> | null | undefined,
     settings as Record<string, unknown> | null | undefined
   );
+  const rrAffinityEnabled = settings?.promptCacheAffinityEnabled !== false;
+  if (rrAffinityEnabled && resolvePromptCacheAffinityKey(body)) {
+    filteredTargets = await expandPromptCacheAffinityTargets(filteredTargets);
+    modelCount = filteredTargets.length;
+  }
   const _rrSessionSticky = disableSessionStickiness
     ? ({ targets: filteredTargets, messageHash: null, stuck: false } as const)
     : await applySessionStickiness(
@@ -2897,7 +2952,22 @@ async function handleRoundRobinCombo({
         // stickiness engages on the /v1/responses surface, not just Chat Completions.
         normalizeStickinessMessages(body as { messages?: unknown; input?: unknown })
       );
+  const rrAffinity = applyPromptCacheAffinity(filteredTargets, body, rrAffinityEnabled);
+  if (rrAffinity.applied) {
+    const stickyFirst = _rrSessionSticky.stuck ? _rrSessionSticky.targets[0] : null;
+    filteredTargets = stickyFirst
+      ? [stickyFirst, ...rrAffinity.targets.filter((target) => target !== stickyFirst)]
+      : rrAffinity.targets;
+    log.debug?.("COMBO-RR", "Prompt-cache affinity applied", {
+      source: rrAffinity.source,
+      fingerprint: rrAffinity.fingerprint,
+      targetCount: filteredTargets.length,
+    });
+  }
   let rrStartIndex = startIndex;
+  if (rrAffinity.applied) {
+    rrStartIndex = 0;
+  }
   if (_rrSessionSticky.stuck) {
     const stickyIdx = filteredTargets.findIndex(
       (t) => t.connectionId === _rrSessionSticky.targets[0]?.connectionId
