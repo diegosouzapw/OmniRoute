@@ -171,6 +171,9 @@ import { chenzkProvider } from "./registry/chenzk/index.ts";
 import { factoryProvider } from "./registry/factory/index.ts";
 import { databricksProvider } from "./registry/databricks/index.ts";
 import { rekaProvider } from "./registry/reka/index.ts";
+import { clova_studioProvider } from "./registry/clova-studio/index.ts";
+import { internlmProvider } from "./registry/internlm/index.ts";
+import { ant_lingProvider } from "./registry/ant-ling/index.ts";
 import { vercel_ai_gatewayProvider } from "./registry/vercel-ai-gateway/index.ts";
 import { v0_vercelProvider } from "./registry/v0-vercel/index.ts";
 import { opencode_zenProvider } from "./registry/opencode/zen/index.ts";
@@ -380,6 +383,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   factory: factoryProvider,
   databricks: databricksProvider,
   reka: rekaProvider,
+  "clova-studio": clova_studioProvider,
+  internlm: internlmProvider,
+  "ant-ling": ant_lingProvider,
   "vercel-ai-gateway": vercel_ai_gatewayProvider,
   "v0-vercel": v0_vercelProvider,
   "opencode-zen": opencode_zenProvider,

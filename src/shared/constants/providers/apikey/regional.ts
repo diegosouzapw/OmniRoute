@@ -413,7 +413,42 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     textIcon: "SL",
     website: "https://sea-lion.ai",
     hasFree: true,
-    freeNote: "Permanently free at 10 RPM — AI Singapore's Southeast-Asian models (Llama/Qwen/Gemma SEA-LION).",
-    authHint: "Sign in at sea-lion.ai with Google (no card, no region wall), create an API key, then paste it here.",
+    freeNote:
+      "Permanently free at 10 RPM — AI Singapore's Southeast-Asian models (Llama/Qwen/Gemma SEA-LION).",
+    authHint:
+      "Sign in at sea-lion.ai with Google (no card, no region wall), create an API key, then paste it here.",
+  },
+  "clova-studio": {
+    id: "clova-studio",
+    alias: "clova",
+    name: "Naver CLOVA Studio",
+    icon: "auto_awesome",
+    color: "#03C75A",
+    textIcon: "CS",
+    website: "https://api.ncloud-docs.com/docs/en/ai-naver-clovastudio-summary",
+    apiHint:
+      "CLOVA Studio (HyperCLOVA X) is OpenAI-compatible on /v1/openai. OmniRoute probes /v1/openai/models and routes chat traffic to /v1/openai/chat/completions. Uses the current clovastudio.stream.ntruss.com host — the legacy clovastudio.apigw.ntruss.com endpoint is being deprecated.",
+  },
+  internlm: {
+    id: "internlm",
+    alias: "internlm",
+    name: "InternLM (Intern-S1)",
+    icon: "auto_awesome",
+    color: "#4F46E5",
+    textIcon: "IL",
+    website: "https://internlm.intern-ai.org.cn/",
+    hasFree: true,
+    freeNote: "Free monthly quota ~1M input / 3M output tokens (~10 RPM)",
+  },
+  "ant-ling": {
+    id: "ant-ling",
+    alias: "ling",
+    name: "Ant Ling / Ring (inclusionAI)",
+    icon: "auto_awesome",
+    color: "#1677FF",
+    textIcon: "AL",
+    website: "https://developer.ant-ling.com/en/docs/",
+    authHint:
+      "Model ids (Ling-2.6-1T, Ring-2.6-1T) are best-effort from inclusionAI/Ant Group's public docs and NOT verified against a live /v1/models response — developer.ant-ling.com is the only documented onboarding portal. Get an API key there, then paste it here; the catalog is corrected via live model discovery once a real key is available.",
   },
 };

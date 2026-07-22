@@ -70,6 +70,13 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // discovered live from https://api.openvecta.com/v1/models; the registry seed
   // (registry/openvecta) covers the most-used LLMs as the offline fallback.
   "openvecta",
+  // frontier-providers-tier1 sweep: clova-studio, internlm, ant-ling each carry a
+  // live `<baseUrl>/models` endpoint confirmed 401 (exists + keyed) by curl smoke
+  // test. Live fetch keeps their catalogs fresh; the registry seed remains the
+  // offline fallback.
+  "clova-studio",
+  "internlm",
+  "ant-ling",
 ]);
 
 export function isNamedOpenAIStyleProvider(provider: string): boolean {

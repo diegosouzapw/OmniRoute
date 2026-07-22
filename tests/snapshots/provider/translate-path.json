@@ -298,6 +298,29 @@
       "stream": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
     }
   },
+  "ant-ling": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.ant-ling.com/v1/chat/completions",
+      "stream": "https://api.ant-ling.com/v1/chat/completions"
+    }
+  },
   "anthropic": {
     "format": "claude",
     "headers": {
@@ -1010,6 +1033,29 @@
     "url": {
       "nonStream": "https://api.cloudflare.com/client/v4/accounts",
       "stream": "https://api.cloudflare.com/client/v4/accounts"
+    }
+  },
+  "clova-studio": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://clovastudio.stream.ntruss.com/v1/openai/chat/completions",
+      "stream": "https://clovastudio.stream.ntruss.com/v1/openai/chat/completions"
     }
   },
   "codebuddy-cn": {
@@ -2619,6 +2665,29 @@
     "url": {
       "nonStream": "https://chatapi.innerai.com/chat",
       "stream": "https://chatapi.innerai.com/chat"
+    }
+  },
+  "internlm": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://chat.intern-ai.org.cn/api/v1/chat/completions",
+      "stream": "https://chat.intern-ai.org.cn/api/v1/chat/completions"
     }
   },
   "kenari": {
