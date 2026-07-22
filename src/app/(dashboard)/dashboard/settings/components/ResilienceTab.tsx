@@ -116,12 +116,14 @@ function NumberField({
   value,
   suffix,
   min = 0,
+  max,
   onChange,
 }: {
   label: string;
   value: number;
   suffix?: string;
   min?: number;
+  max?: number;
   onChange: (value: number) => void;
 }) {
   return (
@@ -131,6 +133,8 @@ function NumberField({
         <input
           type="number"
           min={min}
+          max={max}
+          step={1}
           value={value}
           onChange={(event) => {
             if (event.target.value === "") return;
@@ -999,6 +1003,7 @@ function ProviderCooldownCard({
               label={t("resilienceProviderCooldownMin")}
               value={editing.minRetryCooldownMs}
               min={0}
+              max={300000}
               suffix="ms"
               onChange={(minRetryCooldownMs) =>
                 setEditing((prev) => ({ ...prev, minRetryCooldownMs }))
@@ -1008,6 +1013,7 @@ function ProviderCooldownCard({
               label={t("resilienceProviderCooldownMax")}
               value={editing.maxRetryCooldownMs}
               min={0}
+              max={3600000}
               suffix="ms"
               onChange={(maxRetryCooldownMs) =>
                 setEditing((prev) => ({ ...prev, maxRetryCooldownMs }))
