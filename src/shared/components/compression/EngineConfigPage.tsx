@@ -20,12 +20,11 @@ interface EngineEntry {
 // Engines whose detailed config has a dedicated sub-object in the compression
 // settings store. The on/off + level for ALL engines now live in the panel
 // (/dashboard/context/settings, the `engines` map); only these have a place to
-// persist the extra per-engine fields edited on this page. Structural engines
-// (lite, headroom, session-dedup, ccr, llmlingua) have no sub-object yet — their
-// page keeps the detail form + preview but has nothing extra to persist this phase.
+// persist the extra per-engine fields edited on this page.
 const SETTINGS_SUBOBJECT: Record<string, string> = {
   aggressive: "aggressive",
   ultra: "ultra",
+  headroom: "headroom",
 };
 
 interface CompressionSettings {

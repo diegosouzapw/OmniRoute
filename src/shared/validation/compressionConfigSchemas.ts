@@ -139,6 +139,11 @@ export const ultraConfigSchema = z
   })
   .strict();
 
+export const headroomConfigSchema = z.object({
+  minRows: z.number().int().min(2).max(10000).optional(),
+  enabled: z.boolean().optional(),
+}).strict();
+
 const noConfigSchema = z.object({}).strict();
 
 // Structural engines (session-dedup / ccr / headroom / relevance / llmlingua) do not
@@ -312,6 +317,7 @@ export const compressionSettingsUpdateSchema = z
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
+    headroom: headroomConfigSchema.optional(),
     contextBudget: contextBudgetConfigSchema.optional(),
     contextEditing: contextEditingConfigSchema.optional(),
     engines: z.record(z.string(), engineToggleSchema).optional(),

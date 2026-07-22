@@ -714,11 +714,16 @@ function buildStepOptions(
   step: CompressionPipelineStep,
   options?: StackOptions
 ): CompressionEngineApplyOptions {
+  const headroomConfig =
+    step.engine === "headroom" && options?.config?.headroom
+      ? options.config.headroom as Record<string, unknown>
+      : {};
   return {
     ...options,
     compressionComboId: options?.compressionComboId ?? options?.config?.compressionComboId,
     principalId: options?.principalId,
     stepConfig: {
+      ...headroomConfig,
       ...(step.config ?? {}),
       ...(step.intensity ? { intensity: step.intensity } : {}),
     },
