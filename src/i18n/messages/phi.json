@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "Buksan ang arena.ai, mag-sign in, pagkatapos ay kopyahin ang buong Cookie header mula sa isang Network request. Isama ang arena-auth-prod-v1.0 at arena-auth-prod-v1.1 (at iba pang mga chunk kung mayroon), mas mainam kung may cf_clearance. Huwag i-paste ang walang lamang arena-auth-prod-v1 cookie lamang. Opsyonal: providerSpecificData.recaptchaV3Token kung nagbabalik pa rin ng 403 ang create-evaluation.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "Link ng kasosyo — sumusuporta sa OmniRoute nang walang karagdagang gastos sa iyo"
+    "kimiPartnerLinkNote": "Link ng kasosyo — sumusuporta sa OmniRoute nang walang karagdagang gastos sa iyo",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Mga setting",
@@ -7219,6 +7220,10 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "Konteksto bilang isang imahe (Claude Fable 5, direktang ruta)."
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7516,7 +7521,9 @@
     "cacheOpt": "Cache Optimized",
     "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
+    "compressionModeCodexResponses": "Responses tool output",
+    "compressionModeCodexResponsesDesc": "Conservative compression for eligible shell, patch, search, build, and JSON outputs"
   },
   "contextRtk": {
     "title": "RTK Engine",

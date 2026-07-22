@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "arena.ai를 열고 로그인한 다음 Network 요청에서 전체 Cookie 헤더를 복사하세요. arena-auth-prod-v1.0 및 arena-auth-prod-v1.1(있는 경우 추가 청크 포함)을 포함해야 하며, 가급적 cf_clearance도 포함하는 것이 좋습니다. 비어 있는 arena-auth-prod-v1 쿠키만 붙여넣지 마세요. 선택 사항: create-evaluation에서 여전히 403을 반환하는 경우 providerSpecificData.recaptchaV3Token.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "파트너 링크 — 추가 비용 없이 OmniRoute를 지원합니다"
+    "kimiPartnerLinkNote": "파트너 링크 — 추가 비용 없이 OmniRoute를 지원합니다",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "설정",
@@ -7219,6 +7220,10 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "이미지 형태의 컨텍스트 (Claude Fable 5, 직접 경로)."
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7516,7 +7521,9 @@
     "cacheOpt": "Cache Optimized",
     "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
+    "compressionModeCodexResponses": "Responses tool output",
+    "compressionModeCodexResponsesDesc": "Conservative compression for eligible shell, patch, search, build, and JSON outputs"
   },
   "contextRtk": {
     "title": "RTK Engine",
