@@ -149,6 +149,11 @@ export function initGracefulShutdown(): void {
 
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
+  // #8045: on Windows, closing the console window delivers CTRL_CLOSE_EVENT, which
+  // Node/libuv maps to a JS-visible "SIGHUP" event — without this listener, closing
+  // the window never runs cleanup() (WAL checkpoint + closeDbInstance()), leaving
+  // storage.sqlite's WAL un-checkpointed for the next launch.
+  process.on("SIGHUP", () => shutdown("SIGHUP"));
 
   console.log("[Shutdown] Graceful shutdown handlers registered.");
 }
