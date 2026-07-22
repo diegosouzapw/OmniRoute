@@ -282,6 +282,29 @@ const THEMED_SVGS: Record<string, { light: string; dark: string }> = {
     light: "/providers/arena-light.svg",
     dark: "/providers/arena-dark.svg",
   },
+  // Kimi (Moonshot AI) official-partnership logomarks (2026-07): the official
+  // rounded-square badge in Kimi's brand blue (#1783FF — see KIMI_BRAND_COLOR in
+  // featuredProviders.ts) for the 3 visible Kimi-family cards. This replaces two
+  // weaker fallbacks: kimi-coding/kimi-web previously fell through to the
+  // third-party LobeHub "Kimi" icon (Tier 3, KNOWN_SVGS has no "kimi-coding"/
+  // "kimi-web" entry), and moonshot's `/providers/moonshot.svg` uses
+  // `fill="currentColor"`, which never resolves against the page theme because
+  // Tier 2 renders it inside a plain `<img>` (no CSS-inheritance path for an
+  // externally-referenced SVG document) — it stayed black in dark mode. Asset
+  // filenames name the BACKGROUND each mark is designed for (Kimi's own naming),
+  // matching the light/dark pairing used elsewhere in this map.
+  "kimi-coding": {
+    light: "/providers/kimi-logomark-light.svg",
+    dark: "/providers/kimi-logomark-dark.svg",
+  },
+  "kimi-web": {
+    light: "/providers/kimi-logomark-light.svg",
+    dark: "/providers/kimi-logomark-dark.svg",
+  },
+  moonshot: {
+    light: "/providers/kimi-logomark-light.svg",
+    dark: "/providers/kimi-logomark-dark.svg",
+  },
 };
 
 const PROVIDER_ICON_ALIASES: Record<string, string> = {

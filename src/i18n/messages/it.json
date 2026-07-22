@@ -2838,7 +2838,10 @@
     "responseValidationJsonPaths": "Controlli JSON-path",
     "responseValidationMinLength": "Lunghezza minima contenuto (caratteri)",
     "responseValidationRequired": "Sottostringhe richieste (una per riga)",
-    "responseValidationTitle": "Validazione risposta"
+    "responseValidationTitle": "Validazione risposta",
+    "kimiPresetTitle": "Kimi Coding preset",
+    "kimiPresetDescription": "Kimi K3 as the primary model (Moonshot API), with automatic fallback to your Kimi Code connections (kimi-coding, kimi-web) when configured.",
+    "kimiPresetCta": "Add preset"
   },
   "costs": {
     "title": "Costi",
@@ -4875,7 +4878,8 @@
     "visionCapableLabel": "__MISSING__:Vision capable",
     "visionCapableHint": "__MISSING__:Manually flag this model as vision-capable when the provider's discovery metadata doesn't report an image input modality (common for self-hosted/local backends).",
     "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner"
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
   },
   "settings": {
     "title": "Impostazioni",
@@ -9181,5 +9185,12 @@
       "remove": "Remove",
       "set": "Set fixed value"
     }
+  },
+  "kimiSponsorBanner": {
+    "title": "Kimi (Moonshot AI) is now an official sponsor of OmniRoute",
+    "description": "Kimi K3 brings a 1M-token context window and frontier coding performance to OmniRoute at a fraction of the cost.",
+    "cta": "Get Kimi Code",
+    "partnerLinkNote": "Partner link",
+    "dismissAriaLabel": "Dismiss"
   }
 }

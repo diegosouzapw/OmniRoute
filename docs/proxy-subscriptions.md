@@ -133,7 +133,7 @@ Added one column:
 
 Existing rows on upgrade: `subscription_id = NULL`, behavior unchanged.
 Migration: `ALTER TABLE proxy_registry ADD COLUMN subscription_id TEXT;`
-(applied as `123_proxy_subscriptions.sql`, idempotent via the migration
+(applied as `131_proxy_subscriptions.sql`, idempotent via the migration
 runner's `ALTER` semantics).
 
 ### 5.3 Extended `proxy_subscriptions` test isolation
@@ -264,7 +264,7 @@ warning banner shows which protocols were skipped.
 
 ## 11. Migration & rollout
 
-1. New migration `123_proxy_subscriptions.sql` runs on first DB open after
+1. New migration `131_proxy_subscriptions.sql` runs on first DB open after
    upgrade (auto-discovered by the existing migration runner).
 2. The migration is **idempotent**: `ALTER TABLE … ADD COLUMN …` against an
    already-migrated DB is a no-op in SQLite when wrapped in the runner's
@@ -349,7 +349,7 @@ node --import tsx/esm \
 - `src/lib/proxySubscription/parse.ts`
 - `src/lib/proxySubscription/subscriptionService.ts`
 - `src/lib/proxySubscription/index.ts`
-- `src/lib/db/migrations/123_proxy_subscriptions.sql`
+- `src/lib/db/migrations/131_proxy_subscriptions.sql`
 - `src/app/api/v1/management/proxy-subscriptions/route.ts`
 - `src/app/api/v1/management/proxy-subscriptions/[id]/route.ts`
 - `src/app/api/v1/management/proxy-subscriptions/[id]/refresh/route.ts`

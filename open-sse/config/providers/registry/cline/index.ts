@@ -140,6 +140,16 @@ export const clineProvider: RegistryEntry = {
       maxInputTokens: 1000000,
       maxOutputTokens: 65536,
     },
+    {
+      id: "minimax/minimax-m3",
+      name: "MiniMax M3 (Free)",
+      toolCalling: true,
+      supportsReasoning: true,
+      supportsVision: true,
+      contextLength: 1048576,
+      maxInputTokens: 1048576,
+      maxOutputTokens: 65536,
+    },
   ],
   passthroughModels: true,
 };

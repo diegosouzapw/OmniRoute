@@ -21,7 +21,14 @@ test("memory: tabs ordered memories -> engine -> playground", () => {
 test("shared Select: renders children and guards placeholder/options when children present", () => {
   const src = read("src/shared/components/Select.tsx");
   assert.ok(src.includes("{children}"), "renders children passed by callers");
-  assert.ok(src.includes("!children && placeholder"), "placeholder guarded by !children");
+  // The i18n fallback (`placeholder ?? t("selectOption")`, added so an unset placeholder still
+  // shows a translated default) needs parens around the `??` expression for operator precedence,
+  // so the guard is now `!children && (placeholder ?? ...)` rather than the older bare
+  // `!children && placeholder`. The guard itself is unchanged — still gated on `!children`.
+  assert.ok(
+    src.includes("!children && (placeholder"),
+    "placeholder guarded by !children"
+  );
   assert.ok(src.includes("!children &&\n            options.map") || src.includes("!children &&"), "options guarded by !children");
 });
 

@@ -291,7 +291,12 @@ export const WEB_COOKIE_PROVIDERS = {
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "KW",
-    website: "https://www.kimi.com",
+    // Kimi official-partnership aff link (2026-07) — the "Kimi Coding Plan"
+    // tracking link (same origin as the plain www.kimi.com login flow below,
+    // so the "Open {host}" credential guide in WebSessionCredentialGuide.tsx /
+    // AddApiKeyModal.tsx is unaffected: origin, not path, decides localStorage
+    // access). Was `https://www.kimi.com` (no aff attribution).
+    website: "https://www.kimi.com/code?aff=omniroute",
     authHint:
       "Paste access_token from www.kimi.com DevTools → Application → Local Storage. A legacy kimi-auth cookie is also accepted.",
     subscriptionRisk: true,

@@ -169,10 +169,13 @@ function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown
   // barrier below) and failed — surface the real cause instead of the
   // generic/misleading "not pre-initialized yet" message (#7288).
   const preInitError = getSqlJsPreInitError(sqliteFile);
+  const syncDrivers = process.versions.bun
+    ? "bun:sqlite (failed)"
+    : "better-sqlite3 (failed), node:sqlite (unavailable)";
   if (preInitError) {
     throw new Error(
       `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
-        "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível), " +
+        `Drivers testados: ${syncDrivers}, ` +
         `sql.js (falhou: ${preInitError}).`
     );
   }
@@ -180,7 +183,7 @@ function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown
   throw new Error(
     `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
       "Chame ensureDbInitialized() no startup. " +
-      "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível). " +
+      `Drivers testados: ${syncDrivers}. ` +
       "sql.js WASM ainda não foi pré-inicializado."
   );
 }
