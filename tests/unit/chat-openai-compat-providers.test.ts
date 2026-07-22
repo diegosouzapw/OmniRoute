@@ -42,6 +42,8 @@ const CHAT_OPENAI_COMPAT_PROVIDER_IDS = [
   "reka",
   "byteplus",
   "orcarouter",
+  "typhoon",
+  "inception",
 ];
 
 test("chat-openai-compat providers are registered across provider metadata, registry and local catalog", () => {

@@ -10,7 +10,7 @@ lastUpdated: 2026-07-22
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-07-22
 
-Total providers: **278**. See category breakdown below.
+Total providers: **282**. See category breakdown below.
 
 ## Categories
 
@@ -50,7 +50,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `ghe-copilot` | `ghe-copilot` | GitHub Enterprise Copilot | OAuth | — | Enter your GHE instance URL (e.g., https://ghe.company.com) in provider settings, then authenticate via device flow. |
 | `github` | `gh` | GitHub Copilot | OAuth | — | — |
 | `gitlab-duo` | `gitlab-duo` | GitLab Duo | OAuth | [link](https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/) | OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance. |
-| `grok-cli` | `gc` | Grok Build | OAuth | — | Paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically. |
+| `grok-cli` | `gc` | Grok Build | OAuth | — | Sign in with your browser, or paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically either way. |
 | `kilocode` | `kc` | Kilo Code | OAuth | — | — |
 | `kimi-coding` | `kmc` | Kimi Code CLI | OAuth | [link](https://www.kimi.com/code?aff=omniroute) | Sign in with the same Kimi account used by Kimi Code CLI. OmniRoute uses the CLI OAuth flow and Kimi Coding Plan endpoints. |
 | `kiro` | `kr` | Kiro AI | OAuth | — | Free tier: 50 credits/month (~25K–100K tokens). ⚠️ Kiro ToS prohibits third-party proxy/harness use. |
@@ -61,11 +61,12 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zed` | `zd` | Zed IDE | OAuth | [link](https://zed.dev) | Zed stores LLM provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) in the OS keychain. Use the Import button below to discover and import them automatically. |
 | `zed-hosted` | — | Zed Hosted Models | OAuth | [link](https://zed.dev) | Sign in with your Zed account (native-app sign-in). OmniRoute generates a one-time RSA keypair and opens zed.dev to authorize it — on a remote/headless install, copy the resulting 127.0.0.1 callback URL from your browser's address bar and paste it back here. Distinct from the 'Zed IDE' credential-import entry above: this proxies chat completions through Zed's own hosted model aggregator (cloud.zed.dev), fronting Anthropic/OpenAI/Google/xAI models under your Zed plan. |
 
-## Web Cookie Providers (29)
+## Web Cookie Providers (31)
 
 | ID | Alias | Name | Tags | Website | Notes | Tool calling |
 |----|-------|------|------|---------|-------|--------------|
 | `adapta-web` | `adp-web` | Adapta.org (Adapta One Web) | Web cookie | [link](https://agent.adapta.one) | Paste your __client cookie value from .clerk.agent.adapta.one (DevTools → Application → Cookies) | emulated |
+| `adobe-firefly` | `firefly` | Adobe Firefly (Image/Video) | Web cookie | [link](https://firefly.adobe.com) | RECOMMENDED: firefly.adobe.com signed-in → F12 → Network → click firefly-3p.ff.adobe.io (generate-async or models/discovery) → Request Headers → Authorization → copy the token AFTER 'Bearer ' (starts with eyJ…). Cookie-only from firefly.adobe.com mints a GUEST token → 401/403; only multi-domain IMS cookies (adobelogin.com) or that Bearer JWT work. Unofficial/experimental media + Limits. | — |
 | `blackbox-web` | `bb-web` | Blackbox Web (Subscription) | Web cookie | [link](https://app.blackbox.ai) | Paste your __Secure-authjs.session-token value or full cookie header from app.blackbox.ai | emulated |
 | `chatgpt-web` | `cgpt-web` | ChatGPT Web (Plus/Pro) | Web cookie | [link](https://chatgpt.com) | Paste your __Secure-next-auth.session-token cookie value from chatgpt.com | emulated |
 | `claude-web` | `cw` | Claude Web | Web cookie | [link](https://claude.ai) | Paste your session cookie from claude.ai | none |
@@ -78,6 +79,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `grok-web` | `gw` | Grok Web (Subscription) | Web cookie | [link](https://grok.com) | Paste the full grok.com cookie line from DevTools → Application → Cookies. Include both `sso` and `sso-rw` (e.g. `sso=...; sso-rw=...`) — Grok's anti-bot rejects `sso` on its own. | — |
 | `hailuo-web` | `hailuo-web` | Hailuo Web (MiniMax) | Web cookie | [link](https://hailuo.ai) | Open hailuo.ai, log in, then open DevTools → Application → Local Storage → copy the "_token" value. device_id/uuid fingerprint fields are derived automatically; if requests fail, re-capture _token (sessions can expire). | — |
 | `huggingchat` | `huggingchat` | HuggingChat (Free) | Web cookie | [link](https://huggingface.co/chat) | Paste the full Cookie header from huggingface.co/chat (DevTools → Network → /chat/conversation → Request Headers → Cookie). It should include hf-chat and may also include token / aws-waf-token. | — |
+| `hyperagent` | `ha` | HyperAgent (Unofficial/Experimental) | Web cookie | [link](https://hyperagent.com) | Paste the full Cookie header from hyperagent.com (DevTools → Network → any request → Request Headers → Cookie). Session cookies power chat + billing usage. | — |
 | `inner-ai` | `in-ai` | Inner.ai (Subscription) | Web cookie | [link](https://app.innerai.com) | Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com | emulated |
 | `kimi-web` | `kimi-web` | Kimi Web | Web cookie | [link](https://www.kimi.com/code?aff=omniroute) | Paste access_token from www.kimi.com DevTools → Application → Local Storage. A legacy kimi-auth cookie is also accepted. | — |
 | `lmarena` | `lma` | Arena (Free) | Web cookie | [link](https://arena.ai) | Paste the full Cookie header from arena.ai (DevTools → Network → request → Cookie). Include arena-auth-prod-v1.0/.1… and cf_clearance/__cf_bm when present. OmniRoute uses Chrome TLS impersonation; if Arena still 403s, set providerSpecificData.recaptchaV3Token from a live browser session. | — |
@@ -95,7 +97,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web (Free) | Web cookie | [link](https://chat.z.ai) | Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie) | — |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
-## API Key Providers (paid / paid-with-free-credits) (187)
+## API Key Providers (paid / paid-with-free-credits) (189)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -183,6 +185,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `hyperbolic` | `hyp` | Hyperbolic | API key | [link](https://hyperbolic.xyz) | $1-5 trial credits on signup for serverless inference |
 | `ideogram` | `ideo` | Ideogram | API key | [link](https://ideogram.ai) | Get API key at ideogram.ai/docs/api |
 | `iflytek` | `iflytek` | iFlytek Spark | API key | [link](https://xinghuo.xfyun.cn) | Get API key at console.xfyun.cn |
+| `inception` | `inception` | Inception | API key | [link](https://docs.inceptionlabs.ai) | 10M free tokens on signup, no credit card required. |
 | `inference-net` | `inet` | Inference.net | API key | [link](https://inference.net) | $25 free credits on signup plus research grants available |
 | `jina-ai` | `jina` | Jina AI | API key, embed/rerank | [link](https://jina.ai) | Bearer API key for the Jina AI rerank API. |
 | `jina-reader` | `jr` | Jina Reader | API key | [link](https://jina.ai/reader) | — |
@@ -267,6 +270,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `together` | `together` | Together AI | API key, video | [link](https://www.together.ai) | — |
 | `tokenrouter` | `trk` | TokenRouter | API key | [link](https://tokenrouter.com) | Use your TokenRouter API key in Authorization: Bearer <key>. Fully OpenAI-compatible. API base URL: https://api.tokenrouter.com/v1. |
 | `topaz` | `topaz` | Topaz | API key, image | [link](https://topazlabs.com) | — |
+| `typhoon` | `typhoon` | Typhoon | API key | [link](https://docs.opentyphoon.ai) | Free API key with a 5 req/s and 200 req/m rate limit. |
 | `udio` | `udio` | Udio | API key | [link](https://udio.com) | Paste session cookie from udio.com (Supabase auth) |
 | `uncloseai` | `unc` | UncloseAI | API key | [link](https://uncloseai.com) | No auth required. API accepts any non-empty string as key for identification. |
 | `upstage` | `upstage` | Upstage | API key | [link](https://www.upstage.ai) | — |

@@ -2575,6 +2575,29 @@
       "stream": "https://spark-api-open.xf-yun.com/v1/chat/completions"
     }
   },
+  "inception": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.inceptionlabs.ai/v1/chat/completions",
+      "stream": "https://api.inceptionlabs.ai/v1/chat/completions"
+    }
+  },
   "inference-net": {
     "format": "openai",
     "headers": {
@@ -4574,6 +4597,29 @@
     "url": {
       "nonStream": "https://core-normal.trae.ai/api/remote/v1",
       "stream": "https://core-normal.trae.ai/api/remote/v1"
+    }
+  },
+  "typhoon": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.opentyphoon.ai/v1/chat/completions",
+      "stream": "https://api.opentyphoon.ai/v1/chat/completions"
     }
   },
   "udio": {
