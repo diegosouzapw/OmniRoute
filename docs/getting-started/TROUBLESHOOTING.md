@@ -34,6 +34,19 @@ Common problems and solutions for OmniRoute.
 
 ---
 
+## npm install Warnings (ERESOLVE / peer / deprecated)
+
+When you run `npm install -g omniroute`, you may see a wall of warnings like `npm warn ERESOLVE`, peer-dependency notices, and `deprecated` messages. **These are expected and harmless.** Your install succeeded if you see `added <N> packages` in the output.
+
+The warnings come from stale peer-dependency ranges in third-party packages OmniRoute doesn't control:
+
+1. **`marked-terminal` wants `marked >=1 <16`, found `marked@18`** — works fine in practice; the upstream peer range is just stale.
+2. **`deprecated prebuild-install@7.1.3`** — the native-binary fetch helper. Only relevant later if a web-cookie provider reports a missing `tls-client-node` native binary (a separate issue, not caused by this warning).
+
+**No action needed** — the warnings cannot be fully silenced without forking upstream packages.
+
+---
+
 ## Quick Fixes
 
 | Problem                                             | Solution                                                                                                                                                 |

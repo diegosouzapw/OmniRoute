@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Tắt liên kết phiên",
     "kimiPresetTitle": "Kimi Coding preset",
     "kimiPresetDescription": "Kimi K3 as the primary model (Moonshot API), with automatic fallback to your Kimi Code connections (kimi-coding, kimi-web) when configured.",
-    "kimiPresetCta": "Add preset"
+    "kimiPresetCta": "Add preset",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Chi phí",
@@ -6784,7 +6786,6 @@
     "pricingSyncStatus": "Trạng thái đồng bộ hóa",
     "whitelist": "Danh sách trắng",
     "syncDisabled": "Đã tắt đồng bộ hóa",
-    "pricingAutoSyncDisabled": "Đã tắt đồng bộ hóa tự động",
     "pricingLoadFailed": "Không thể tải dữ liệu giá",
     "pricingSyncDescription": "Tự động đồng bộ hóa giá mô hình từ các nguồn bên ngoài để giữ cho việc tính toán chi phí luôn chính xác",
     "clearSyncedPricingSuccess": "Đã xóa dữ liệu giá đã đồng bộ hóa",
@@ -6793,7 +6794,6 @@
     "pricingSyncSuccess": "Đồng bộ hóa giá thành công",
     "enableSyncError": "Không thể thay đổi trạng thái đồng bộ hóa giá",
     "syncEnabled": "Đã bật đồng bộ hóa",
-    "pricingAutoSyncEnabled": "Đã bật đồng bộ hóa tự động",
     "blacklist": "Danh sách đen",
     "pricingSourceModelsDev": "Models.dev",
     "syncedModels": "Mô hình đã đồng bộ hóa",
@@ -7510,7 +7510,13 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Gói đăng ký này có các nút cần một proxy core cục bộ (SS/VMess/Trojan/VLESS); chúng sẽ không được định tuyến cho đến khi bạn cấu hình điểm cuối SOCKS5 của core cục bộ.",
         "NO_USABLE_NODES": "Gói đăng ký không tạo ra nút nào có thể sử dụng (http/https/socks5 hoặc các nút có điểm cuối core cục bộ)."
       }
-    }
+    },
+    "pricingAutoSyncDisabled": "Đã tắt đồng bộ hóa tự động",
+    "pricingAutoSyncEnabled": "Đã bật đồng bộ hóa tự động",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",
