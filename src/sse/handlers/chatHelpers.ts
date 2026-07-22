@@ -20,6 +20,7 @@ import {
   unavailableResponse,
 } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { WEB_COOKIE_PROVIDERS } from "@/shared/constants/providers";
 import {
   runWithProxyContext,
   runWithAppliedProxyCapture,
@@ -569,7 +570,8 @@ export function handleNoCredentials(
   lastStatus: number | null
 ) {
   if (credentials?.allRateLimited) {
-    const errorMsg = lastError || credentials.lastError || "Unavailable";
+    const errorMsg =
+      lastError || credentials.lastError || credentials.lastErrorType || "Unavailable";
     const status =
       lastStatus || Number(credentials.lastErrorCode) || HTTP_STATUS.SERVICE_UNAVAILABLE;
     const cooldownModel =
@@ -594,6 +596,30 @@ export function handleNoCredentials(
             ? credentials.connectionsCount
             : null,
       });
+    }
+
+    // Web-cookie providers (perplexity-web, chatgpt-web, …): a 401/403 cooldown means
+    // the session cookie is dead or cooling after auth failure. Do not collapse this
+    // into a generic "no credentials"/"Unavailable" signal — operators need a re-paste
+    // hint, and combo routing should see an auth error rather than model_not_found.
+    const isWebCookieProvider = Object.prototype.hasOwnProperty.call(
+      WEB_COOKIE_PROVIDERS,
+      provider
+    );
+    const authCooldown =
+      isWebCookieProvider &&
+      (Number(status) === HTTP_STATUS.UNAUTHORIZED ||
+        Number(status) === HTTP_STATUS.FORBIDDEN ||
+        /session|cookie|re-paste|auth failed|unauthorized/i.test(String(errorMsg)));
+    if (authCooldown) {
+      const message = /session|cookie|re-paste|auth failed/i.test(String(errorMsg))
+        ? `[${provider}] ${errorMsg}`
+        : `[${provider}] Session expired or cooling down after auth failure — re-paste the browser session cookie in the dashboard`;
+      log.warn(
+        "CHAT",
+        `${message}${credentials.retryAfterHuman ? ` (${credentials.retryAfterHuman})` : ""}`
+      );
+      return errorResponse(HTTP_STATUS.UNAUTHORIZED, message);
     }
 
     log.warn("CHAT", `[${provider}/${model}] ${errorMsg} (${credentials.retryAfterHuman})`);

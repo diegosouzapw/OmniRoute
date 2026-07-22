@@ -1145,10 +1145,25 @@ export async function getProviderCredentials(
             "AUTH",
             `${provider} | all ${allConnections.length} accounts rate limited (${formatRetryAfter(earliest)})`
           );
+          // Prefer the most recent connection error so cookie/session 401s
+          // surface as re-auth guidance instead of a bare "Unavailable"/404.
+          const withErrors = allConnections
+            .filter((c) => typeof c.lastError === "string" && c.lastError.trim().length > 0)
+            .slice()
+            .sort((a, b) => {
+              const at = a.lastErrorAt ? Date.parse(a.lastErrorAt) : 0;
+              const bt = b.lastErrorAt ? Date.parse(b.lastErrorAt) : 0;
+              return (Number.isFinite(bt) ? bt : 0) - (Number.isFinite(at) ? at : 0);
+            });
+          const latestErr = withErrors[0];
           return {
             allRateLimited: true,
             retryAfter: earliest,
             retryAfterHuman: formatRetryAfter(earliest),
+            lastError: latestErr?.lastError || null,
+            lastErrorCode: latestErr?.errorCode ?? null,
+            lastErrorType: latestErr?.lastErrorType || null,
+            connectionsCount: allConnections.length,
           };
         }
         log.warn("AUTH", `${provider} | ${allConnections.length} accounts found but none active`);

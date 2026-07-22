@@ -996,3 +996,99 @@ test("Error: TlsClientUnavailableError returns 502 with install hint", async () 
     restore();
   }
 });
+
+
+
+// ─── Session cookie rotation + auth error taxonomy ──────────────────────────
+test("perplexity-web persists rotated NextAuth cookie via onCredentialsRefreshed", async () => {
+  const executor = new PerplexityWebExecutor();
+  let persisted = null;
+  const original = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(
+      mockPplxStream([
+        {
+          status: "pending",
+          backend_uuid: "buuid-rotate",
+          text: "hello from pplx",
+          final: true,
+        },
+      ]),
+      {
+        status: 200,
+        headers: {
+          "content-type": "text/event-stream",
+          "set-cookie":
+            "__Secure-next-auth.session-token=rotated-token; Path=/; Secure; HttpOnly",
+        },
+      }
+    );
+  try {
+    const result = await executor.execute({
+      model: "pplx-auto",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "old-token" },
+      log: { info() {}, warn() {}, error() {} },
+      onCredentialsRefreshed: async (patch) => {
+        persisted = patch;
+      },
+    });
+    assert.equal(result.response.status, 200);
+    assert.ok(persisted, "expected onCredentialsRefreshed to be called");
+    assert.equal(persisted.apiKey, "__Secure-next-auth.session-token=rotated-token");
+    assert.equal(persisted.testStatus, "active");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("perplexity-web 401 returns session_expired not generic upstream code", async () => {
+  const restore = mockFetch(401, [], "Unauthorized");
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-auto",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "dead-token" },
+      log: { info() {}, warn() {}, error() {} },
+    });
+    assert.equal(result.response.status, 401);
+    const body = await result.response.json();
+    assert.equal(body.error.code, "session_expired");
+    assert.equal(body.error.type, "authentication_error");
+    assert.match(body.error.message, /session cookie|re-paste|auth failed/i);
+  } finally {
+    restore();
+  }
+});
+
+test("Auth: named session cookie apiKey is not double-prefixed", async () => {
+  let capturedCookie = null;
+  const original = globalThis.fetch;
+  globalThis.fetch = async (_url, init) => {
+    capturedCookie = init?.headers?.Cookie || init?.headers?.cookie || null;
+    return new Response(
+      mockPplxStream([
+        { status: "pending", backend_uuid: "b", text: "ok", final: true },
+      ]),
+      { status: 200, headers: { "content-type": "text/event-stream" } }
+    );
+  };
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-auto",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "__Secure-next-auth.session-token=rotated-token" },
+      log: { info() {}, warn() {}, error() {} },
+    });
+    assert.equal(result.response.status, 200);
+    assert.equal(capturedCookie, "__Secure-next-auth.session-token=rotated-token");
+    assert.equal(capturedCookie.includes("session-token=__Secure"), false);
+  } finally {
+    globalThis.fetch = original;
+  }
+});

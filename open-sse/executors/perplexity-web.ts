@@ -16,6 +16,7 @@ import {
 import { prepareToolMessages } from "../translator/webTools.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import { mergeRefreshedCookie, collectSetCookieHeader } from "../utils/nextAuthCookie.ts";
 import {
   PPLX_SSE_ENDPOINT,
   PPLX_USER_AGENT,
@@ -320,7 +321,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
     super("perplexity-web", { id: "perplexity-web", baseUrl: PPLX_SSE_ENDPOINT });
   }
 
-  async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
+  async execute({ model, body, stream, credentials, signal, log, onCredentialsRefreshed }: ExecuteInput) {
     const bodyObj = (body || {}) as Record<string, unknown>;
     const rawMessages = bodyObj.messages as Array<Record<string, unknown>> | undefined;
     if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
@@ -403,7 +404,15 @@ export class PerplexityWebExecutor extends BaseExecutor {
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     } else if (credentials.apiKey) {
-      headers["Cookie"] = `__Secure-next-auth.session-token=${credentials.apiKey}`;
+      // apiKey may be a bare token, a single named cookie, or a full jar after rotation.
+      let cookieBlob = String(credentials.apiKey).trim();
+      if (/^cookie\s*:\s*/i.test(cookieBlob)) {
+        cookieBlob = cookieBlob.replace(/^cookie\s*:\s*/i, "");
+      }
+      if (!/=/.test(cookieBlob)) {
+        cookieBlob = `__Secure-next-auth.session-token=${cookieBlob}`;
+      }
+      headers["Cookie"] = cookieBlob;
     }
 
     log?.info?.(
@@ -442,8 +451,37 @@ export class PerplexityWebExecutor extends BaseExecutor {
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
     }
 
+
+    // Persist rotated NextAuth session cookies (parity with chatgpt-web).
+    // Perplexity may refresh `__Secure-next-auth.session-token` via Set-Cookie;
+    // without write-back the stored apiKey goes stale and every later request 401s.
+    try {
+      const originalCookie =
+        typeof credentials.apiKey === "string"
+          ? credentials.apiKey
+          : typeof (credentials as { cookie?: string }).cookie === "string"
+            ? (credentials as { cookie?: string }).cookie!
+            : "";
+      if (originalCookie && response.headers) {
+        const setCookie = collectSetCookieHeader(response.headers);
+        const rotated = mergeRefreshedCookie(originalCookie, setCookie);
+        if (rotated && rotated !== originalCookie) {
+          log?.info?.("PPLX-WEB", "Persisting rotated NextAuth session cookie from Set-Cookie");
+          await onCredentialsRefreshed?.({ apiKey: rotated, testStatus: "active" });
+        }
+      }
+    } catch (rotateErr) {
+      log?.warn?.(
+        "PPLX-WEB",
+        `Cookie rotation persist failed (non-fatal): ${
+          rotateErr instanceof Error ? rotateErr.message : String(rotateErr)
+        }`
+      );
+    }
+
     if (response.status !== 200 || (!response.body && !response.text)) {
       const status = response.status;
+
       let errMsg = `Perplexity returned HTTP ${status}`;
       if (status === 401 || status === 403) {
         if (isCloudflareChallenge(response.text)) {
@@ -460,9 +498,15 @@ export class PerplexityWebExecutor extends BaseExecutor {
         errMsg = "Perplexity rate limited. Wait a moment and retry.";
       }
       log?.warn?.("PPLX-WEB", errMsg);
+      const isAuthFailure = status === 401 || status === 403;
       const errResp = new Response(
         JSON.stringify({
-          error: { message: errMsg, type: "upstream_error", code: `HTTP_${status}` },
+          error: {
+            message: errMsg,
+            type: isAuthFailure ? "authentication_error" : "upstream_error",
+            // Cookie-session providers must not look like a missing API key.
+            code: isAuthFailure ? "session_expired" : `HTTP_${status}`,
+          },
         }),
         { status, headers: { "Content-Type": "application/json" } }
       );

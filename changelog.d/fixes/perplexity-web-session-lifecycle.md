@@ -1,0 +1,1 @@
+- **fix(perplexity-web):** rotate/persist `__Secure-next-auth.session-token` from `Set-Cookie` (chatgpt-web parity), return `session_expired` on cookie auth failure instead of a generic upstream code, and surface web-cookie cooldown as a 401 re-auth hint instead of `404 No active credentials`
