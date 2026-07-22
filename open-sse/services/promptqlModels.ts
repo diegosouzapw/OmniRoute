@@ -14,6 +14,8 @@ export interface PromptQlModel {
   configId?: string;
   /** Upstream model id string from PromptQL. */
   modelId?: string;
+  /** Whether the underlying model accepts image inputs (matches upstream capability). */
+  supportsVision?: boolean;
 }
 
 /** Offline seed when discovery fails (from live FetchLlmConfigs capture). */
@@ -107,6 +109,7 @@ export const PROMPTQL_FALLBACK_MODELS: PromptQlModel[] = [
     name: "Minimax M3",
     configId: "placeholder-minimax-m3",
     modelId: "accounts/fireworks/models/minimax-m3",
+    supportsVision: true,
   },
 ];
 

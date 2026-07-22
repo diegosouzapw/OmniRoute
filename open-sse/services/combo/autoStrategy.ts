@@ -419,6 +419,15 @@ export async function expandAutoComboCandidatePool(
   if (Array.isArray(localAutoConfig?.candidatePool) && localAutoConfig.candidatePool.length > 0)
     return eligibleTargets;
 
+  // #COMBO-REF: if the combo references other combos via kind:"combo-ref" entries,
+  // the resolved eligibleTargets already represent the operator's intended pool.
+  // Expanding to ALL providers would defeat the purpose of the combo-ref constraint
+  // (e.g. an "auto" combo delegating to a "priority" sub-combo should not pull in
+  // every model from every active provider).
+  const rawModels = (combo as Record<string, unknown> | null | undefined)?.models;
+  if (Array.isArray(rawModels) && rawModels.some((m) => isRecord(m) && m.kind === "combo-ref"))
+    return eligibleTargets;
+
   try {
     const allConnections = await getCachedProviderConnections({ isActive: true });
     const providerIds = [

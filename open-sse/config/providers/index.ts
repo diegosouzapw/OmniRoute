@@ -106,6 +106,7 @@ import { perplexityProvider } from "./registry/perplexity/index.ts";
 import { perplexity_webProvider } from "./registry/perplexity/web/index.ts";
 import { minimaxProvider } from "./registry/minimax/index.ts";
 import { minimax_cnProvider } from "./registry/minimax/cn/index.ts";
+import { hailuo_webProvider } from "./registry/minimax/web/index.ts";
 import { haiperProvider } from "./registry/haiper/index.ts";
 import { bytezProvider } from "./registry/bytez/index.ts";
 import { blackboxProvider } from "./registry/blackbox/index.ts";
@@ -314,6 +315,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   "perplexity-web": perplexity_webProvider,
   minimax: minimaxProvider,
   "minimax-cn": minimax_cnProvider,
+  "hailuo-web": hailuo_webProvider,
   haiper: haiperProvider,
   bytez: bytezProvider,
   blackbox: blackboxProvider,

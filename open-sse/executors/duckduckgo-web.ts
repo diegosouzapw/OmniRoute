@@ -226,18 +226,37 @@ function mergeHeadersCaseInsensitive(
   return merged;
 }
 
-function normalizeDuckDuckGoModel(model: string | undefined): string {
-  if (!model) return "gpt-4o-mini";
+/**
+ * #8000: DuckDuckGo's free Duck.ai lineup churns and the catalog fell behind. Map every
+ * retired id OmniRoute historically advertised to the current wire id served by
+ * `duckchat/v1/models` (captured 2026-07-22) — a retired/unknown `model` yields a 400
+ * `ERR_BAD_REQUEST` from `duckchat/v1/chat`. Current free wire ids: gpt-5.4-mini,
+ * gpt-5.4-nano, claude-haiku-4-5, mistral-small-2603, tinfoil/gpt-oss-120b, tinfoil/gemma4-31b.
+ */
+export const DUCKDUCKGO_DEFAULT_MODEL = "gpt-5.4-mini";
+export const DUCKDUCKGO_MODEL_ALIASES: Readonly<Record<string, string>> = {
+  // retired OpenAI ids → current GPT-5.4 free tier
+  "gpt-4o-mini": "gpt-5.4-mini",
+  "gpt-5-mini": "gpt-5.4-mini",
+  "o3-mini": "gpt-5.4-nano",
+  // retired Llama (dropped from Duck.ai free) → nearest general free model
+  "llama-4-scout": "gpt-5.4-mini",
+  // renamed/versioned ids
+  "claude-3-5-haiku-20241022": "claude-haiku-4-5",
+  "mistral-small-2501": "mistral-small-2603",
+  "gpt-oss-120b": "tinfoil/gpt-oss-120b",
+  "gemma4-31b": "tinfoil/gemma4-31b",
+};
+
+export function normalizeDuckDuckGoModel(model: string | undefined): string {
+  if (!model) return DUCKDUCKGO_DEFAULT_MODEL;
   const clean = model.startsWith("duckduckgo-web/") ? model.slice("duckduckgo-web/".length) : model;
-  if (clean === "claude-3-5-haiku-20241022") return "claude-haiku-4-5";
-  if (clean === "llama-4-scout") return "meta-llama/Llama-4-Scout-17B-16E-Instruct";
-  if (clean === "mistral-small-2501") return "mistral-small-2603";
-  if (clean === "gpt-oss-120b") return "tinfoil/gpt-oss-120b";
-  return clean;
+  return DUCKDUCKGO_MODEL_ALIASES[clean] ?? clean;
 }
 
 function getDuckDuckGoModelCapabilities(model: string): DuckDuckGoModelCapabilities {
-  if (model === "gpt-5-mini") return { reasoningEffort: "minimal" };
+  // Per duckchat/v1/models (2026-07-22): claude-haiku-4-5 and gpt-oss-120b take a "low"
+  // reasoningEffort on the free tier; the others omit it (duck.ai applies its own default).
   if (model === "claude-haiku-4-5") return { reasoningEffort: "low" };
   if (model === "tinfoil/gpt-oss-120b") return { reasoningEffort: "low" };
   return { reasoningEffort: null };

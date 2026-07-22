@@ -143,10 +143,15 @@ export function generateAuthData(providerName, redirectUri) {
   }
 
   let authUrl;
-  if (provider.flowType === "device_code") {
-    authUrl = null;
-  } else if (provider.flowType === "authorization_code_pkce") {
+  // Capability check (not a bare flowType equality) so a provider can carry
+  // flowType "device_code" as its primary/default flow AND still expose a
+  // browser PKCE login as an additional method (#7013 grok-cli rework):
+  // grokCli keeps flowType "device_code" but sets supportsBrowserPkce so this
+  // branch still builds its PKCE authUrl for the "Browser Login" method.
+  if (provider.flowType === "authorization_code_pkce" || provider.supportsBrowserPkce) {
     authUrl = provider.buildAuthUrl(provider.config, redirectUri, state, codeChallenge);
+  } else if (provider.flowType === "device_code") {
+    authUrl = null;
   } else {
     const built = provider.buildAuthUrl(provider.config, redirectUri, state);
     // Some non-PKCE "authorization_code" providers (e.g. zed-hosted) need to

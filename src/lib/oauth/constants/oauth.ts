@@ -126,6 +126,21 @@ export const GROK_CLI_CONFIG = {
   scope: GROK_BUILD_OAUTH_SCOPES.join(" "),
 };
 
+// Grok Build (xAI) OAuth Configuration (Browser PKCE Flow — added #7013)
+// Same auth.x.ai authorize/token endpoints and public client_id as XAI_OAUTH_CONFIG,
+// but scoped to the Grok Build (cli-chat-proxy.grok.com) entitlement and kept as a
+// separate config so grok-cli's own baseUrl/model registry stay untouched.
+export const GROK_BUILD_OAUTH_CONFIG = {
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  authorizeUrl: "https://auth.x.ai/oauth2/authorize",
+  tokenUrl: "https://auth.x.ai/oauth2/token",
+  scope: "openid profile email offline_access grok-cli:access",
+  codeChallengeMethod: "S256",
+  loopbackPort: 56122, // distinct from xai-oauth's 56121 — both can run concurrently
+  callbackPath: "/callback",
+  callbackHost: "127.0.0.1",
+};
+
 // xAI API OAuth Configuration (Authorization Code Flow with PKCE)
 // This intentionally uses a separate provider from Grok Build: both use the
 // public Grok CLI OAuth client, but their inference endpoints and model
