@@ -580,6 +580,8 @@ npm install -g omniroute
 omniroute
 ```
 
+> 💡 See `npm warn ERESOLVE` or peer-dep warnings? [They're harmless](docs/getting-started/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+
 Dashboard at `http://localhost:20128` · API at `http://localhost:20128/v1`.
 
 **2) Connect a FREE provider (no signup)**
@@ -623,7 +625,7 @@ Use these only for clients that cannot attach `Authorization: Bearer ...`. Heade
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
-  -p 20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
+  -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
 ```
 
 **🛠️ From source**
