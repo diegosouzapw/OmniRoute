@@ -21,12 +21,14 @@ interface EngineEntry {
 // Engines whose detailed config has a dedicated sub-object in the compression
 // settings store. The on/off + level for ALL engines now live in the panel
 // (/dashboard/context/settings, the `engines` map); only these have a place to
-// persist the extra per-engine fields edited on this page. Structural engines
-// (lite, headroom, session-dedup, ccr, llmlingua) have no sub-object yet — their
-// page keeps the detail form + preview but has nothing extra to persist this phase.
+// persist the extra per-engine fields edited on this page. Other structural
+// engines (lite, session-dedup, ccr, llmlingua, relevance) still have no
+// dedicated sub-object — their page keeps the detail form + preview but has
+// nothing extra to persist yet.
 const SETTINGS_SUBOBJECT: Record<string, string> = {
   aggressive: "aggressive",
   ultra: "ultra",
+  headroom: "headroom",
 };
 
 interface CompressionSettings {
@@ -220,12 +222,29 @@ export function EngineConfigPage({ engineId }: { engineId: string }) {
     setPreviewError(null);
     setPreview(null);
     try {
+      // Pass the form's current detail (e.g. headroom.minRows) so preview honors
+      // unsaved edits and the persisted sub-object after save (#8056).
+      const detailConfig =
+        engineId === "headroom"
+          ? {
+              headroom: {
+                ...(typeof configState.minRows === "number"
+                  ? { minRows: configState.minRows }
+                  : {}),
+              },
+            }
+          : engineId === "aggressive"
+            ? { aggressive: { ...configState } }
+            : engineId === "ultra"
+              ? { ultra: { ...configState } }
+              : undefined;
       const res = await fetch("/api/compression/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           engineId,
           messages: [{ role: "user", content: previewText }],
+          ...(detailConfig ? { config: detailConfig } : {}),
         }),
       });
       if (res.ok) {

@@ -1,0 +1,1 @@
+- **fix(providers):** add the missing `poe` REGISTRY entry so built-in Poe model discovery resolves a base URL instead of failing with "No base URL configured for provider" ([#8082](https://github.com/diegosouzapw/OmniRoute/issues/8082))

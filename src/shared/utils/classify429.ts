@@ -54,6 +54,11 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /enable overages/i,
   /INSUFFICIENT_G1_CREDITS_BALANCE/i,
 
+  // Google APIs return this generic RESOURCE_EXHAUSTED message when a
+  // billing-period quota has been consumed. Keep the reset-window qualifier
+  // so transient Google rate limits are not treated as long-term exhaustion.
+  /resource has been exhausted.*reset after/i,
+
   // Cloudflare Workers AI daily neuron exhaustion (Issue #6980).
   // Body: "you have used up your daily free allocation of 10,000 neurons,
   //        please upgrade to Cloudflare's Workers Paid plan..."
