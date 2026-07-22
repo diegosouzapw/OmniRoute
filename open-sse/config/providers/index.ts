@@ -101,6 +101,7 @@ import { t3_webProvider } from "./registry/t3-web/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
 import { crofProvider } from "./registry/crof/index.ts";
 import { moonshotProvider } from "./registry/moonshot/index.ts";
+import { poeProvider } from "./registry/poe/index.ts";
 import { bazaarlinkProvider } from "./registry/bazaarlink/index.ts";
 import { perplexityProvider } from "./registry/perplexity/index.ts";
 import { perplexity_webProvider } from "./registry/perplexity/web/index.ts";
@@ -209,6 +210,7 @@ import { routewayProvider } from "./registry/routeway/index.ts";
 import { digitaloceanProvider } from "./registry/digitalocean/index.ts";
 import { hcnsecProvider } from "./registry/hcnsec/index.ts";
 import { promptqlProvider } from "./registry/promptql/index.ts";
+import { hyperagentProvider } from "./registry/hyperagent/index.ts";
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   aimlapi: aimlapiProvider,
@@ -310,6 +312,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   iflytek: iflytekProvider,
   crof: crofProvider,
   moonshot: moonshotProvider,
+  poe: poeProvider,
   bazaarlink: bazaarlinkProvider,
   perplexity: perplexityProvider,
   "perplexity-web": perplexity_webProvider,
@@ -420,4 +423,5 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   digitalocean: digitaloceanProvider,
   hcnsec: hcnsecProvider,
   promptql: promptqlProvider,
+  hyperagent: hyperagentProvider,
 };

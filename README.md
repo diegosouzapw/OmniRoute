@@ -580,6 +580,8 @@ npm install -g omniroute
 omniroute
 ```
 
+> 💡 See `npm warn ERESOLVE` or peer-dep warnings? [They're harmless](docs/getting-started/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+
 Dashboard at `http://localhost:20128` · API at `http://localhost:20128/v1`.
 
 **2) Connect a FREE provider (no signup)**
@@ -623,7 +625,7 @@ Use these only for clients that cannot attach `Authorization: Bearer ...`. Heade
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
-  -p 20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
+  -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
 ```
 
 **🛠️ From source**
@@ -1094,9 +1096,15 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[CodeWebChat](https://github.com/robertpiosik/CodeWebChat)** · robertpiosik | Editor-side companion — VS Code + browser extension that autofills 15+ chatbot web UIs with editor context. Owns the free-web-UI rail alongside OmniRoute's API rail; can point its API mode at OmniRoute. |
 
-## 💖 Sponsors
+## 🤝 Supported by our Open Source Friends
 
-> **Want to appear here?** OmniRoute puts sponsors in front of one of GitHub's fastest-growing AI-gateway communities — and we say publicly where every sponsored token goes. Reach out: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+<p align="center">
+  <a href="https://www.kimi.com/code?aff=omniroute">
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
+  </a>
+</p>
+
+> **Want to join as an Open Source Friend?** These are the companies that back open source and help keep OmniRoute moving — and we say publicly where every token they give us goes. Reach out: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
 
 <table>
   <tr>
@@ -1108,17 +1116,33 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
         </picture>
       </a>
       <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Official_Supporter-1783FF?style=flat-square" alt="Official Supporter"/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
     </td>
     <td>
-      Thanks to <b>Kimi (Moonshot AI)</b> for sponsoring this project! Kimi is the AI lab behind the open-weight K2 and K3 model families — <b>Kimi K3</b> delivers a 1M-token context window, native vision and frontier-level coding at a fraction of closed-model prices, and works out of the box with Claude Code, Codex and every coding tool OmniRoute serves.
+      Thanks to <b>Kimi (Moonshot AI)</b>, our founding Open Source Friend, for backing this project! Kimi is the AI lab behind the open-weight K2 and K3 model families — <b>Kimi K3</b> delivers a 1M-token context window, native vision and frontier-level coding at a fraction of closed-model prices, and works out of the box with Claude Code, Codex and every coding tool OmniRoute serves.
       <br/><br/>
-      <b>Where the sponsorship goes:</b> Kimi's API credits power OmniRoute's AI-validated release pipeline — the <i>merge validation powered by Kimi K3</i> stage that reviews every pull request before it ships — plus day-to-day feature development. First-class Kimi support ships on both rails: the direct <a href="https://platform.kimi.ai?aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) and the <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code coding plan</a> (OAuth and API key). OmniRoute is also the first Brazilian open-source project in Kimi's support program. <a href="https://platform.kimi.ai?aff=omniroute"><b>Get a Kimi API key →</b></a>
+      <b>What Kimi's support powers:</b> Kimi's API credits power OmniRoute's AI-validated release pipeline — the <i>merge validation powered by Kimi K3</i> stage that reviews every pull request before it ships — plus day-to-day feature development. First-class Kimi support ships on both rails: the direct <a href="https://platform.kimi.ai?aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) and the <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code coding plan</a> (OAuth and API key). OmniRoute is also the first Brazilian open-source project in Kimi's support program. <a href="https://platform.kimi.ai?aff=omniroute"><b>Get a Kimi API key →</b></a>
     </td>
   </tr>
 </table>
 
 <sub>Links tagged <code>aff=omniroute</code> are partner links. They fund the project at no extra cost to you.</sub>
+
+## 💖 Sponsors
+
+A heartfelt thank-you to the people who fund OmniRoute out of their own pocket. Every contribution keeps the project free, independent and moving.
+
+<p align="center">
+  <a href="https://github.com/igormorais123"><img src="https://github.com/igormorais123.png?size=140" width="80" alt="Professor Igor Morais Vasconcelos (@igormorais123)"/></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/longtao77"><img src="https://github.com/longtao77.png?size=140" width="80" alt="longtao (@longtao77)"/></a>
+</p>
+
+<p align="center">
+  <sub><b><a href="https://github.com/igormorais123">Professor Igor Morais Vasconcelos</a></b> &nbsp;·&nbsp; <b><a href="https://github.com/longtao77">longtao</a></b> &nbsp;·&nbsp; and others who prefer to stay private 💛</sub>
+</p>
+
+> **Want to support OmniRoute?** <a href="https://github.com/sponsors/diegosouzapw"><b>Become a sponsor →</b></a> Every dollar goes straight into keeping the project free and independent.
 
 ## ❤️ Support
 

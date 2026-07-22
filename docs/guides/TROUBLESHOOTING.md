@@ -50,6 +50,7 @@ Common problems and solutions for OmniRoute.
 | Login crash / blank page                            | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                         |
 | `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
 | Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | Your Docker port bind may be landing on IPv6. Use `-p 127.0.0.1:20128:20128` to force IPv4, or test with `curl -4`. See [Docker IPv6](#docker-ipv6) below |
 | Antivirus quarantines `README.md`                   | False positive — see [Antivirus false positives](#antivirus-false-positives) below                                                                       |
 | Kaspersky flags the Desktop app as a Trojan         | Behavioral false positive on the unsigned installer — see [Antivirus false positives](#antivirus-false-positives) below                                  |
 
@@ -295,6 +296,25 @@ see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 ---
 
 ## Docker Issues
+
+### Docker IPv6 / Connection Reset
+
+<a name="docker-ipv6"></a>
+
+**Symptoms:** `curl http://localhost:20128/v1/models` returns `curl: (56) Recv failure: Connection reset by peer`. Dashboard and unauthenticated endpoints work, but authenticated endpoints fail — it looks like an auth problem but isn't.
+
+**Cause:** `docker run -p 20128:20128` publishes on both `0.0.0.0` (IPv4) and `::` (IPv6), but the process inside the container listens on IPv4 only. On hosts where `localhost` resolves to `::1` first, the connection lands on the IPv6 published port with no listener behind it → connection reset.
+
+**Fix:**
+1. **Quick diagnostic:** Run `curl -4 http://localhost:20128/v1/models`. If it works with `-4` but fails without, you have an IPv6 bind mismatch.
+2. **Permanent fix:** Bind to IPv4 explicitly by using `-p 127.0.0.1:20128:20128` in your `docker run` command:
+   ```bash
+   docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
+     -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
+   ```
+   This forces the IPv4 bind and also avoids exposing the proxy on all host interfaces.
+
+---
 
 ### CLI Tool Shows Not Installed
 

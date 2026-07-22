@@ -14,6 +14,8 @@ import {
   parseCodexSessionJson,
 } from "@/lib/oauth/utils/codexSessionImport";
 import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
+import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
+import { buildPkceLoopbackMismatchWarning } from "@/lib/oauth/utils/pkceLoopbackWarning";
 
 export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
 
@@ -261,15 +263,24 @@ export default function OAuthModal({
     [authData, provider, onSuccess, reauthConnection]
   );
 
-  // Save a raw API token directly (windsurf / devin-cli import-token path)
+  // Save a raw API token directly (windsurf / devin-cli import-token path).
+  // For grok-cli, require the full auth.json object so refresh_token is persisted (#7610).
   const handleSaveToken = useCallback(async () => {
-    const token = pasteToken.trim();
-    if (!token || !provider) return;
+    const raw = pasteToken.trim();
+    if (!raw || !provider) return;
     setSavingToken(true);
     setError(null);
     try {
-      // POST to /exchange with a synthetic "import_token" payload.
-      // The windsurf provider's mapTokens() handles a bare accessToken/apiKey field.
+      let token: string | Record<string, unknown> = raw;
+      if (provider === "grok-cli") {
+        const parsed = parseGrokCliPasteToken(raw);
+        if (!parsed.ok) {
+          setError(parsed.error);
+          return;
+        }
+        token = parsed.token;
+      }
+      // POST to /import-token. Grok accepts full auth.json; windsurf/devin accept bare keys.
       const res = await fetch(`/api/oauth/${provider}/import-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -441,10 +452,8 @@ export default function OAuthModal({
           forceManual = true;
         }
 
-        // PKCE callback server providers (Codex, Windsurf, Devin CLI):
-        // On localhost, spin up a local callback server and poll for the result.
-        // Codex uses a fixed port 1455; Windsurf/Devin CLI use a random OS-assigned port.
-        // On remote the server is unreachable — fall through to standard manual flow.
+        // PKCE callback server providers (Codex, Windsurf, Devin CLI): true localhost spins
+        // up a callback server + polls; a LAN IP warns (#8046); remote falls through below.
         if (PKCE_CALLBACK_SERVER_PROVIDERS.has(provider)) {
           if (isTrueLocalhost) {
             try {
@@ -498,21 +507,22 @@ export default function OAuthModal({
               setPolling(false);
               forceManual = true;
             }
+          } else if (isLocalhost) {
+            setError(buildPkceLoopbackMismatchWarning(provider));
+            setStep("error");
+            return;
           }
-          // Remote: fall through to standard auth code flow below
+          // Remote (non-LAN): fall through to standard auth code flow below
         }
 
         // Authorization code flow
         // Redirect URI strategy:
         // - Codex/OpenAI: always port 1455 (registered in OAuth app)
-        // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
-        //   (on true localhost the callback server handles it; this is only reached on remote)
-        // - Google OAuth providers (antigravity/agy): default to loopback so the
-        //   bundled native/desktop credentials keep working. Prefer 127.0.0.1 over
-        //   localhost for the Google native-app handoff; Google documents that localhost
-        //   can run into local firewall/name-resolution edge cases. The authorize route
-        //   upgrades this to the public callback when custom Google web credentials plus
-        //   NEXT_PUBLIC_BASE_URL or OMNIROUTE_PUBLIC_BASE_URL are configured.
+        // - Windsurf/Devin CLI (remote fallback; true localhost handled above): localhost:port
+        // - Google OAuth providers (antigravity/agy): default to loopback (127.0.0.1 preferred —
+        //   Google docs flag localhost firewall/name-resolution edge cases) so bundled
+        //   native/desktop credentials keep working; the authorize route upgrades this to the
+        //   public callback when custom Google web credentials + a public base URL are configured.
         // - Other providers on remote: use actual origin (supports PUBLIC_URL env var)
         // - Localhost: use localhost:port
         let redirectUri: string;
@@ -938,7 +948,7 @@ export default function OAuthModal({
               className={`text-sm px-3 py-1 rounded-t ${showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
               onClick={handlePasteMode}
             >
-              {provider === "grok-cli" ? "JWT Token" : "Paste API Key"}
+              {provider === "grok-cli" ? "Import auth.json" : "Paste API Key"}
             </button>
           </div>
         )}
@@ -950,16 +960,26 @@ export default function OAuthModal({
               {provider === "windsurf"
                 ? 'In the Windsurf / VS Code IDE, run the "Windsurf: Provide Auth Token" command from the command palette (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it below. Opening windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the flow.'
                 : provider === "grok-cli"
-                  ? 'Paste your Grok Build JWT token from ~/.grok/auth.json (the "key" field value). You can get it by running `grok login` in your terminal.'
+                  ? 'Paste the FULL contents of ~/.grok/auth.json (not just the JWT "key" field). A bare JWT has no refresh_token, so the connection dies after expiry (#7610). Prefer the dedicated Import auth.json modal when available.'
                   : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
             </p>
-            <Input
-              value={pasteToken}
-              onChange={(e) => setPasteToken(e.target.value)}
-              placeholder={provider === "grok-cli" ? "eyJ..." : "ws-..."}
-              type="password"
-              label={provider === "grok-cli" ? "JWT Token" : "API Key / Token"}
-            />
+            {provider === "grok-cli" ? (
+              <textarea
+                className="w-full h-32 p-3 text-sm font-mono bg-input border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                value={pasteToken}
+                onChange={(e) => setPasteToken(e.target.value)}
+                placeholder='{"https://auth.x.ai::clientId": {"key": "eyJ...", "refresh_token": "..."}}'
+                aria-label="Grok Build auth.json"
+              />
+            ) : (
+              <Input
+                value={pasteToken}
+                onChange={(e) => setPasteToken(e.target.value)}
+                placeholder="ws-..."
+                type="password"
+                label="API Key / Token"
+              />
+            )}
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div className="flex gap-2">
               <Button

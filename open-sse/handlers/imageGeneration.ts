@@ -72,6 +72,11 @@ import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvid
 import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmind.ts";
 import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
+import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import {
+  applyPollinationsAnonymousFallback,
+  reportPollinationsAnonOutcome,
+} from "./imageGeneration/pollinationsAnonAuth.ts";
 
 interface KieImageOptions {
   model: string;
@@ -490,6 +495,17 @@ export async function handleImageGeneration({
 
   if (providerConfig.format === "designer-web") {
     return handleDesignerWebImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "adobe-firefly-image") {
+    return handleAdobeFireflyImageGeneration({
       model,
       provider,
       providerConfig,
@@ -1020,15 +1036,28 @@ async function handleOpenAIImageGeneration({
   }
 
   // Build headers
-  const headers = {
+  let headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
   const token = credentials.apiKey || credentials.accessToken;
-  if (providerConfig.authHeader === "bearer") {
+  if (token && providerConfig.authHeader === "bearer") {
     headers["Authorization"] = `Bearer ${token}`;
-  } else if (providerConfig.authHeader === "x-api-key") {
+  } else if (token && providerConfig.authHeader === "x-api-key") {
     headers["x-api-key"] = token;
+  }
+
+  // #8085 — keyless Pollinations image requests (the common free case) get
+  // no Authorization header above. Mirror the chat executor's anonymous
+  // fingerprint-pool fallback (open-sse/executors/pollinations.ts) so the
+  // outbound request isn't sent bare and rejected by Pollinations' own 401.
+  let pollinationsAnonSession: Awaited<
+    ReturnType<typeof applyPollinationsAnonymousFallback>
+  >["session"] = null;
+  if (providerConfig.id === "pollinations") {
+    const anon = await applyPollinationsAnonymousFallback(providerConfig.id, token, headers);
+    headers = anon.headers;
+    pollinationsAnonSession = anon.session;
   }
 
   if (log) {
@@ -1069,6 +1098,10 @@ async function handleOpenAIImageGeneration({
       provider,
       log
     );
+  }
+
+  if (pollinationsAnonSession) {
+    reportPollinationsAnonOutcome(pollinationsAnonSession, result.status);
   }
 
   // Save call log after result is determined
