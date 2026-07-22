@@ -237,6 +237,12 @@ export interface CompressionConfig {
   ultraSlmPrewarm?: boolean;
   /** Opt-in result memoization for deterministic engines only (default off). */
   memoizeCompressionResults?: boolean;
+
+  /**
+   * Headroom engine detail config (persisted sub-object, #8056).
+   * On/off + level live in the `engines` map; this stores `minRows`.
+   */
+  headroom?: HeadroomConfig;
 }
 
 export interface CompressionStats {
@@ -406,6 +412,15 @@ export interface AggressiveConfig {
   minSavingsThreshold: number;
   preserveSystemPrompt?: boolean;
 }
+
+/** Headroom engine detail config (#8056) */
+export interface HeadroomConfig {
+  minRows?: number;
+  enabled?: boolean;
+}
+
+/** Default headroom configuration (#8056) */
+export const DEFAULT_HEADROOM_CONFIG: HeadroomConfig = {};
 
 /** Options for the Summarizer interface (Phase 3) */
 export interface SummarizerOpts {

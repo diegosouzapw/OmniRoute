@@ -24,6 +24,7 @@ import {
   type CompressionMode,
   type ContextEditingConfig,
   type EngineToggle,
+  type HeadroomConfig,
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
@@ -435,6 +436,17 @@ function normalizeEngineToggle(value: unknown): EngineToggle | null {
   };
 }
 
+/** Normalize headroom detail config from DB JSON (#8056). */
+function normalizeHeadroomConfig(value: unknown): HeadroomConfig {
+  const record = toRecord(value);
+  const out: HeadroomConfig = {};
+  if (typeof record.minRows === "number" && Number.isFinite(record.minRows)) {
+    out.minRows = Math.max(2, Math.floor(record.minRows));
+  }
+  if (typeof record.enabled === "boolean") out.enabled = record.enabled;
+  return out;
+}
+
 // Sanitize an engines map for persistence: keep only known engine ids with a well-formed
 // `{enabled, level?}` toggle. Mirrors the read-path validation so a malformed write can't poison
 // the stored row.
@@ -654,6 +666,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultra":
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
+        break;
+      case "headroom":
+        config.headroom = normalizeHeadroomConfig(parsed);
         break;
       case "contextBudget":
         config.contextBudget = normalizeContextBudgetConfig(parsed);
