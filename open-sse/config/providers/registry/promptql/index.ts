@@ -15,5 +15,6 @@ export const promptqlProvider: RegistryEntry = {
   models: PROMPTQL_FALLBACK_MODELS.map((m) => ({
     id: m.id,
     name: m.name,
+    ...(m.supportsVision ? { supportsVision: true } : {}),
   })),
 };

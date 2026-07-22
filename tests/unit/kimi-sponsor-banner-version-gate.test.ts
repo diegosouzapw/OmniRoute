@@ -1,10 +1,10 @@
 // Kimi (Moonshot AI) sponsor banner — version-gate pure logic.
-// See src/app/(dashboard)/dashboard/kimiSponsorBanner.ts.
+// See src/app/(dashboard)/dashboard/kimiSponsorBannerGate.ts.
 import test from "node:test";
 import assert from "node:assert/strict";
 
 const kimiSponsorBanner = await import(
-  "../../src/app/(dashboard)/dashboard/kimiSponsorBanner.ts"
+  "../../src/app/(dashboard)/dashboard/kimiSponsorBannerGate.ts"
 );
 
 test("KIMI_SPONSOR_BANNER_THROUGH_VERSION is the agreed sunset version", () => {
