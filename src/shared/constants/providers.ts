@@ -447,6 +447,8 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   // Adobe Firefly web (cookie/JWT as apikey) — GET firefly.adobe.io/v1/credits/balance
   "adobe-firefly",
   "firefly",
+  "hyperagent",
+  "ha",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

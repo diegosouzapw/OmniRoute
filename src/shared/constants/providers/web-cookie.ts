@@ -436,6 +436,19 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
+  hyperagent: {
+    id: "hyperagent",
+    alias: "ha",
+    name: "HyperAgent (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#6C5CE7",
+    textIcon: "HA",
+    website: "https://hyperagent.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste the full Cookie header from hyperagent.com (DevTools → Network → any request → Request Headers → Cookie). Session cookies power chat + billing usage.",
+  },
 };
 
 /** Resolved public site for a web-session provider (href + display host). */

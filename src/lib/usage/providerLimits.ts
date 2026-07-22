@@ -85,6 +85,9 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   // Adobe Firefly: web-cookie / JWT stored as apikey → credits/balance
   "adobe-firefly",
   "firefly",
+  // HyperAgent session cookie → billing/usage creditBlocks
+  "hyperagent",
+  "ha",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
