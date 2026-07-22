@@ -21,6 +21,7 @@
  * Unofficial — tokens/cookies are short-lived; Adobe may change the wire contract.
  */
 
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
@@ -913,7 +914,7 @@ function browserHeaders(): Record<string, string> {
   };
 }
 
-/** Random 64-char hex — browser always sends x-nonce on generate-async. */
+/** Random 64-char hex fallback when token/prompt are missing for deterministic nonce. */
 export function generateAdobeNonce(): string {
   const bytes = new Uint8Array(32);
   if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
@@ -922,6 +923,37 @@ export function generateAdobeNonce(): string {
     for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
   }
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Deterministic x-nonce used by working open-source Firefly clients
+ * (adobe2api / GPT2Image-Pro / image2api):
+ *   sha256(`${user_id}-${prompt.slice(0, 256)}`)
+ *
+ * Random nonces (browser-looking) still get colligo 408 on many accounts when
+ * the request is not from the SPA. Deterministic nonce is what unblocks generate.
+ */
+export function buildAdobeSubmitNonce(accessToken: string, prompt: string): string {
+  const userId = extractAdobeAccountIdFromToken(accessToken);
+  const promptPrefix = String(prompt || "").slice(0, 256);
+  if (!userId || !promptPrefix) return "";
+  return createHash("sha256").update(`${userId}-${promptPrefix}`, "utf8").digest("hex");
+}
+
+/**
+ * Synthesize x-arp-session-id when no sherlockToken cookie is available.
+ * Shape matches adobe2api / GPT2Image-Pro: base64(JSON({sid, ftr})).
+ * Working clients ALWAYS send this header on generate-async.
+ */
+export function buildAdobeArpSessionId(): string {
+  const nowMs = Date.now();
+  const rand = randomBytes(16).toString("hex");
+  const sid = randomUUID();
+  const pid = typeof process !== "undefined" && process.pid ? process.pid : 0;
+  // Magic suffix is part of the wire contract reverse-engineered by adobe2api.
+  const ftr = `${rand}_${nowMs}_${pid}_dUAL43-mnts-ants-d4_31ck__tt`;
+  const raw = JSON.stringify({ sid, ftr });
+  return Buffer.from(raw, "utf-8").toString("base64");
 }
 
 /**
@@ -939,14 +971,25 @@ export function extractAdobeArpSessionId(cookieOrBlob: string): string {
 
 export function buildAdobeSubmitHeaders(
   accessToken: string,
-  extras?: { arpSessionId?: string; nonce?: string; cookie?: string }
+  extras?: {
+    arpSessionId?: string;
+    nonce?: string;
+    cookie?: string;
+    /** Required for deterministic x-nonce (sha256 user_id+prompt). */
+    prompt?: string;
+  }
 ): Record<string, string> {
-  // Live capture (adobe/image_generate.txt): Authorization + x-api-key + x-nonce +
-  // optional x-arp-session-id. Browser uses credentials:include but does NOT list a
-  // Cookie header for firefly-3p — firefly.adobe.com page cookies are wrong-origin
-  // and can soft-fail generate as HTTP 408 "system under load".
-  // We only lift sherlockToken → x-arp-session-id from a pasted cookie blob.
+  // Live capture + working open-source clients (GPT2Image-Pro / adobe2api):
+  // Authorization + x-api-key + deterministic x-nonce + ALWAYS x-arp-session-id.
+  // Do NOT attach firefly.adobe.com page Cookie to firefly-3p (wrong origin / soft 408).
   void extras?.cookie;
+  const deterministic =
+    extras?.nonce ||
+    (extras?.prompt ? buildAdobeSubmitNonce(accessToken, extras.prompt) : "") ||
+    generateAdobeNonce();
+  // Prefer pasted sherlockToken; otherwise mint a synthetic ARP session (required).
+  const arp =
+    (extras?.arpSessionId && String(extras.arpSessionId).trim()) || buildAdobeArpSessionId();
   const headers: Record<string, string> = {
     ...browserHeaders(),
     Authorization: `Bearer ${accessToken}`,
@@ -957,11 +1000,9 @@ export function buildAdobeSubmitHeaders(
     "cache-control": "no-cache",
     pragma: "no-cache",
     priority: "u=1, i",
-    "x-nonce": extras?.nonce || generateAdobeNonce(),
+    "x-nonce": deterministic,
+    "x-arp-session-id": arp,
   };
-  if (extras?.arpSessionId) {
-    headers["x-arp-session-id"] = extras.arpSessionId;
-  }
   return headers;
 }
 
@@ -1686,6 +1727,7 @@ export async function adobeFireflyGenerateImage(opts: {
 
   const sessionCookie = String(opts.sessionCookie || "").trim();
   const cookieHeader = extractAdobeCookieHeader(sessionCookie);
+  // Prefer real browser sherlockToken; buildAdobeSubmitHeaders mints synthetic ARP if empty.
   const arpSessionId =
     extractAdobeArpSessionId(cookieHeader) || extractAdobeArpSessionId(sessionCookie);
   let submitData: unknown = {};
@@ -1694,11 +1736,12 @@ export async function adobeFireflyGenerateImage(opts: {
   let sawSystemUnderLoad = false;
 
   for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
+    // Deterministic x-nonce from user_id+prompt (adobe2api/GPT2Image-Pro). Fresh ARP each attempt.
     const submitResp = await fetchImpl(ADOBE_FIREFLY_IMAGE_SUBMIT_URL, {
       method: "POST",
       headers: buildAdobeSubmitHeaders(opts.accessToken, {
         arpSessionId: arpSessionId || undefined,
-        nonce: generateAdobeNonce(),
+        prompt: opts.prompt,
         cookie: cookieHeader || undefined,
       }),
       body: JSON.stringify(payload),
@@ -1840,7 +1883,7 @@ export async function adobeFireflyGenerateVideo(opts: {
       method: "POST",
       headers: buildAdobeSubmitHeaders(opts.accessToken, {
         arpSessionId: arpSessionId || undefined,
-        nonce: generateAdobeNonce(),
+        prompt: opts.prompt,
         cookie: cookieHeader || undefined,
       }),
       body: JSON.stringify(payload),

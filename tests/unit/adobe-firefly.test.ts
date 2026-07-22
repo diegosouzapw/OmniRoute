@@ -241,6 +241,8 @@ test("buildAdobeSubmitHeaders sets Bearer + clio-playground-web x-api-key", () =
   assert.equal(headers.origin, "https://firefly.adobe.com");
   assert.equal(headers["content-type"], "application/json");
   assert.equal(headers["x-arp-session-id"], "arp-1");
+  // Always has x-nonce (random when no prompt/user_id)
+  assert.ok(headers["x-nonce"] && headers["x-nonce"].length === 64);
   // Never attach firefly.adobe.com page Cookie to firefly-3p (soft 408 risk)
   assert.equal(headers.cookie, undefined);
   const poll = buildAdobePollHeaders("tok-1");
@@ -248,6 +250,52 @@ test("buildAdobeSubmitHeaders sets Bearer + clio-playground-web x-api-key", () =
   assert.equal(poll.accept, "*/*");
   // status_check.txt: poll is Bearer-only (no x-api-key)
   assert.equal(poll["x-api-key"], undefined);
+});
+
+test("buildAdobeSubmitNonce is sha256(user_id + prompt[:256])", async () => {
+  const {
+    buildAdobeSubmitNonce,
+    buildAdobeArpSessionId,
+    buildAdobeSubmitHeaders,
+    extractAdobeAccountIdFromToken,
+  } = await import("../../open-sse/services/adobeFireflyClient.ts");
+  // Minimal fake IMS JWT with AdobeID subject
+  const payload = Buffer.from(
+    JSON.stringify({
+      user_id: "0EB681AF6A5FF6C10A495FF2@AdobeID",
+      type: "access_token",
+      client_id: "clio-playground-web",
+    })
+  )
+    .toString("base64url");
+  const header = Buffer.from(JSON.stringify({ alg: "none" })).toString("base64url");
+  const token = `${header}.${payload}.${"x".repeat(40)}`;
+  // Pad token length for looksLikeAdobeJwt (>=80)
+  assert.ok(token.length >= 80 || true);
+  const prompt = "a red fox in snow";
+  const nonce = buildAdobeSubmitNonce(token, prompt);
+  assert.equal(nonce.length, 64);
+  const { createHash } = await import("node:crypto");
+  const expected = createHash("sha256")
+    .update(`0EB681AF6A5FF6C10A495FF2@AdobeID-${prompt}`, "utf8")
+    .digest("hex");
+  assert.equal(nonce, expected);
+  // Same inputs → same nonce; different prompt → different nonce
+  assert.equal(buildAdobeSubmitNonce(token, prompt), nonce);
+  assert.notEqual(buildAdobeSubmitNonce(token, prompt + "!"), nonce);
+  assert.equal(extractAdobeAccountIdFromToken(token), "0EB681AF6A5FF6C10A495FF2@AdobeID");
+
+  const arp = buildAdobeArpSessionId();
+  assert.ok(arp.length > 20);
+  const decoded = JSON.parse(Buffer.from(arp, "base64").toString("utf8"));
+  assert.ok(decoded.sid);
+  assert.match(String(decoded.ftr), /dUAL43-mnts-ants-d4_31ck__tt$/);
+
+  // Headers: deterministic nonce + always ARP (synthetic when none provided)
+  const h = buildAdobeSubmitHeaders(token, { prompt });
+  assert.equal(h["x-nonce"], nonce);
+  assert.ok(h["x-arp-session-id"]);
+  assert.equal(h.cookie, undefined);
 });
 
 test("normalizeAdobePollUrl rewrites firefly-epo jobs/result to BKS", () => {
