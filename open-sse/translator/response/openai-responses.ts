@@ -172,46 +172,51 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     emitReasoningDelta(state, emit, delta.reasoning_content);
   }
   // Strip the internal reasoning placeholder if the model echoed it
-  // through ordinary content (#8081).
+  // through ordinary content (#8081). Only the text-content emission is
+  // skipped when nothing meaningful remains; tool_calls / finish_reason
+  // handling below must still run for this same chunk.
   if (delta.content) {
     const strippedContent = stripInternalReasoningPlaceholder(delta.content);
-    if (!strippedContent) return;
-    if (
-      state.reasoningId &&
-      !state.reasoningDone &&
-      (!parseTextualReasoningTags || !state.inThinking)
-    ) {
-      closeReasoning(state, emit);
-    }
-
-    let content = strippedContent;
-
-    if (parseTextualReasoningTags) {
-      if (content.includes("<think>")) {
-        state.inThinking = true;
-        content = content.replaceAll("<think>", "");
-        startReasoning(state, emit, idx);
-      }
-
-      if (content.includes("</think>")) {
-        const parts = content.split("</think>");
-        const thinkPart = parts[0];
-        const textPart = parts.slice(1).join("</think>");
-        if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
+    if (strippedContent) {
+      if (
+        state.reasoningId &&
+        !state.reasoningDone &&
+        (!parseTextualReasoningTags || !state.inThinking)
+      ) {
         closeReasoning(state, emit);
-        state.inThinking = false;
-        content = textPart;
       }
 
-      if (state.inThinking && content) {
-        emitReasoningDelta(state, emit, content);
-        return events;
-      }
-    }
+      let content = strippedContent;
 
-    if (content) {
-      const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
-      emitTextContent(state, emit, msgIdx, content);
+      if (parseTextualReasoningTags) {
+        if (content.includes("<think>")) {
+          state.inThinking = true;
+          content = content.replaceAll("<think>", "");
+          startReasoning(state, emit, idx);
+        }
+
+        if (content.includes("</think>")) {
+          const parts = content.split("</think>");
+          const thinkPart = parts[0];
+          const textPart = parts.slice(1).join("</think>");
+          if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
+          closeReasoning(state, emit);
+          state.inThinking = false;
+          content = textPart;
+        }
+
+        if (state.inThinking && content) {
+          emitReasoningDelta(state, emit, content);
+          // Pre-existing behaviour (unrelated to #8081): a still-open
+          // textual <think> block ends this chunk's handling early.
+          return events;
+        }
+      }
+
+      if (content) {
+        const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+        emitTextContent(state, emit, msgIdx, content);
+      }
     }
   }
 
