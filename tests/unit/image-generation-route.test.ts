@@ -301,11 +301,13 @@ test("v1 image edit POST routes built-in Codex references through native Respons
   };
 
   const sourceBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+  const secondSourceBytes = new Uint8Array([0xff, 0xd8, 0xff, 0xdb, 1, 2, 3]);
   const formData = new FormData();
   formData.set("prompt", "change the purple cup to blue");
   formData.set("model", "codex/gpt-5.6-sol");
   formData.set("response_format", "b64_json");
   formData.set("image", new File([sourceBytes], "cup.png", { type: "image/png" }));
+  formData.append("image[]", new File([secondSourceBytes], "style.jpg", { type: "image/jpeg" }));
 
   const response = await imageEditRoute.POST(
     new Request("http://localhost/api/v1/images/edits", {
@@ -336,17 +338,27 @@ test("v1 image edit POST routes built-in Codex references through native Respons
     captured.body.input[0].content[1].image_url,
     `data:image/png;base64,${Buffer.from(sourceBytes).toString("base64")}`
   );
-  assert.equal(captured.body.input[0].content.length, 2);
+  assert.equal(captured.body.input[0].content[2].type, "input_image");
+  assert.equal(
+    captured.body.input[0].content[2].image_url,
+    `data:image/jpeg;base64,${Buffer.from(secondSourceBytes).toString("base64")}`
+  );
+  assert.equal(captured.body.input[0].content.length, 3);
 });
 
-test("v1 image edit POST rejects multiple Codex reference images", async () => {
+test("v1 image edit POST rejects excessive or malformed Codex reference sets", async () => {
   await seedConnection("codex", { apiKey: "codex-oauth-token" });
   globalThis.fetch = async () => {
-    throw new Error("Codex upstream must not be called for an oversized reference set");
+    throw new Error("Invalid Codex reference sets must not reach upstream");
   };
 
   const formData = createCodexEditForm("combine these references");
-  formData.append("image", new File([VALID_PNG_BYTES], "reference-2.png", { type: "image/png" }));
+  for (let index = 2; index <= 9; index += 1) {
+    formData.append(
+      "image[]",
+      new File([VALID_PNG_BYTES], `reference-${index}.png`, { type: "image/png" })
+    );
+  }
 
   const response = await imageEditRoute.POST(
     new Request("http://localhost/api/v1/images/edits", {
@@ -357,7 +369,7 @@ test("v1 image edit POST rejects multiple Codex reference images", async () => {
   const body = (await response.json()) as ErrorResponseBody;
 
   assert.equal(response.status, 400);
-  assert.match(body.error.message, /exactly one reference image/i);
+  assert.match(body.error.message, /at most 8 reference images/i);
 
   const jsonResponse = await imageEditRoute.POST(
     new Request("http://localhost/api/v1/images/edits", {
@@ -375,7 +387,22 @@ test("v1 image edit POST rejects multiple Codex reference images", async () => {
   );
   const jsonBody = (await jsonResponse.json()) as ErrorResponseBody;
   assert.equal(jsonResponse.status, 400);
-  assert.match(jsonBody.error.message, /exactly one reference image/i);
+  assert.match(jsonBody.error.message, /Invalid reference image/i);
+});
+
+test("v1 image edit POST keeps non-Codex providers single-reference", async () => {
+  const formData = new FormData();
+  formData.set("model", "cgpt-web/gpt-5.5");
+  formData.set("prompt", "combine these references");
+  formData.set("image", new File([VALID_PNG_BYTES], "reference-1.png", { type: "image/png" }));
+  formData.append("image[]", new File([VALID_PNG_BYTES], "reference-2.png", { type: "image/png" }));
+
+  const response = await imageEditRoute.POST(
+    new Request("http://localhost/api/v1/images/edits", { method: "POST", body: formData })
+  );
+  const body = (await response.json()) as ErrorResponseBody;
+  assert.equal(response.status, 400);
+  assert.match(body.error.message, /only one reference image/i);
 });
 
 test("v1 image edit POST rejects unsupported Codex models and MIME mismatches", async () => {

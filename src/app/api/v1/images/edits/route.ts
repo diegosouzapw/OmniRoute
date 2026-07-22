@@ -21,7 +21,7 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import {
   resolveImageRouteModel,
   extractImageEditInputFromJson,
-  validateCodexImageEditReference,
+  validateCodexImageEditReferences,
 } from "@/lib/images/imageRouteModel";
 import { resolveProxyForConnection } from "@/lib/localDb";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
@@ -100,7 +100,7 @@ interface EditInput {
   imageInputCount: number;
 }
 
-const MAX_IMAGE_EDIT_REFERENCES = 1;
+const MAX_NON_CODEX_IMAGE_EDIT_REFERENCES = 1;
 
 async function readMultipartImage(formData: FormData): Promise<EditInput> {
   const promptRaw = formData.get("prompt");
@@ -112,8 +112,8 @@ async function readMultipartImage(formData: FormData): Promise<EditInput> {
   const respRaw = formData.get("response_format");
   const responseFormat = typeof respRaw === "string" ? respRaw.trim() : null;
 
-  // OpenAI-style clients may repeat either `image` or `image[]`. Count every file so this
-  // single-reference route can reject extras explicitly instead of silently dropping them.
+  // OpenAI-style clients may repeat either `image` or `image[]`. Count every submitted
+  // candidate so provider-specific cardinality checks cannot silently drop extras.
   const imageEntries = [...formData.getAll("image"), ...formData.getAll("image[]")];
   const images: Array<{ bytes: Buffer; mime: string }> = [];
   for (const imageEntry of imageEntries) {
@@ -222,12 +222,6 @@ async function postHandler(request: Request, _context?: unknown) {
       HTTP_STATUS.BAD_REQUEST
     );
   }
-  if (imageInputCount > MAX_IMAGE_EDIT_REFERENCES) {
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      "Image edit currently supports exactly one reference image"
-    );
-  }
   if (imageInputCount !== images.length) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid reference image");
   }
@@ -250,6 +244,15 @@ async function postHandler(request: Request, _context?: unknown) {
   const resolvedModel = await resolveImageRouteModel(fullModel);
   const parsed = parseImageModel(resolvedModel);
   const providerConfig = parsed.provider ? getImageProvider(parsed.provider) : null;
+  if (
+    providerConfig?.format !== "codex-responses" &&
+    imageInputCount > MAX_NON_CODEX_IMAGE_EDIT_REFERENCES
+  ) {
+    return errorResponse(
+      HTTP_STATUS.BAD_REQUEST,
+      "This image edit provider currently supports only one reference image"
+    );
+  }
   // chatgpt-web keeps its conversation-continuation edit flow unchanged.
   if (providerConfig?.format === "chatgpt-web") {
     const credentials = await getProviderCredentialsWithQuotaPreflight(
@@ -309,7 +312,7 @@ async function postHandler(request: Request, _context?: unknown) {
         `Unsupported Codex image edit model: ${resolvedModel}`
       );
     }
-    const imageValidationError = validateCodexImageEditReference(images[0]);
+    const imageValidationError = validateCodexImageEditReferences(images);
     if (imageValidationError) {
       return errorResponse(HTTP_STATUS.BAD_REQUEST, imageValidationError);
     }
@@ -366,7 +369,7 @@ async function postHandler(request: Request, _context?: unknown) {
           size: size ?? undefined,
           response_format: responseFormat ?? undefined,
         },
-        referenceImages: [images[0]],
+        referenceImages: images,
         credentials,
         log,
         signal: request.signal,

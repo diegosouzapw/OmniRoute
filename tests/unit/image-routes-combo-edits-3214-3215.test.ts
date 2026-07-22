@@ -25,6 +25,7 @@ const { resolveImageBaseUrl } = await import("../../open-sse/handlers/imageGener
 const {
   parseDataUrl,
   validateCodexImageEditReference,
+  validateCodexImageEditReferences,
   extractImageEditInputFromJson,
   resolveSingleImageComboTarget,
   resolveImageRouteModel,
@@ -96,6 +97,16 @@ test("validateCodexImageEditReference enforces MIME, magic bytes, and decoded si
     validateCodexImageEditReference({ bytes: png, mime: "image/png" }, 8) || "",
     /exceeds/i
   );
+});
+
+test("validateCodexImageEditReferences bounds count and aggregate decoded bytes", () => {
+  const png = {
+    bytes: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1]),
+    mime: "image/png",
+  };
+  assert.equal(validateCodexImageEditReferences([png, png], 8, 32), null);
+  assert.match(validateCodexImageEditReferences(Array(9).fill(png), 8, 1024) ?? "", /at most 8/i);
+  assert.match(validateCodexImageEditReferences([png, png], 8, 16) ?? "", /total.*limit/i);
 });
 
 test("extractImageEditInputFromJson preserves all valid data-URL images and first-image compatibility", () => {

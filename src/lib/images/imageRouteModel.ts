@@ -109,6 +109,8 @@ interface ParsedImageEditInput {
 }
 
 export const MAX_CODEX_IMAGE_EDIT_BYTES = 20 * 1024 * 1024;
+export const MAX_CODEX_IMAGE_EDIT_REFERENCES = 8;
+export const MAX_CODEX_IMAGE_EDIT_TOTAL_BYTES = 20 * 1024 * 1024;
 
 const CODEX_IMAGE_MIME_MAGIC: Readonly<Record<string, (bytes: Buffer) => boolean>> = {
   "image/png": (bytes) =>
@@ -134,6 +136,28 @@ export function validateCodexImageEditReference(
     return `Codex image edit reference exceeds the ${Math.floor(maxBytes / (1024 * 1024))} MiB limit`;
   }
   if (!matchesMagic(image.bytes)) return `Image content does not match declared MIME type: ${mime}`;
+  return null;
+}
+
+/** Validate a bounded Codex reference set before encoding it into a Responses request. */
+export function validateCodexImageEditReferences(
+  images: Array<{ bytes: Buffer; mime: string }>,
+  maxReferences = MAX_CODEX_IMAGE_EDIT_REFERENCES,
+  maxTotalBytes = MAX_CODEX_IMAGE_EDIT_TOTAL_BYTES
+): string | null {
+  if (images.length > maxReferences) {
+    return `Codex image edit accepts at most ${maxReferences} reference images`;
+  }
+
+  let totalBytes = 0;
+  for (let index = 0; index < images.length; index += 1) {
+    const validationError = validateCodexImageEditReference(images[index]);
+    if (validationError) return `Reference image ${index + 1}: ${validationError}`;
+    totalBytes += images[index].bytes.length;
+  }
+  if (totalBytes > maxTotalBytes) {
+    return `Codex image edit references exceed the ${Math.floor(maxTotalBytes / (1024 * 1024))} MiB total decoded limit`;
+  }
   return null;
 }
 

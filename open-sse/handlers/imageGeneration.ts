@@ -2392,7 +2392,7 @@ async function handleCodexImageGeneration({
     model,
     instructions:
       referenceImages.length > 0
-        ? "You must call the image_generation tool exactly once to edit the supplied reference image. Do not add narration."
+        ? `You must call the image_generation tool exactly once to edit the supplied ${referenceImages.length === 1 ? "reference image" : "reference images"}. Treat all supplied images as references for the user's requested composition or style. Do not add narration.`
         : "You must call the image_generation tool exactly once to fulfill the user's request. Do not add narration.",
     input: [
       {
