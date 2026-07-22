@@ -355,7 +355,7 @@
     "tests/unit/models-catalog-route.test.ts": 1608,
     "tests/unit/oauth-providers-config.test.ts": 845,
     "tests/unit/perplexity-web.test.ts": 1355,
-    "tests/unit/provider-models-route.test.ts": 1757,
+    "tests/unit/provider-models-route.test.ts": 1784,
     "tests/unit/provider-validation-specialty.test.ts": 2980,
     "tests/unit/providers-page-utils.test.ts": 1294,
     "tests/unit/reasoning-cache.test.ts": 980,
@@ -376,7 +376,8 @@
     "tests/unit/web-cookie-providers-new.test.ts": 890,
     "_rebaseline_2026_07_12_v3847_mergeprs_tail": "v3.8.47 /merge-prs tail: translator-openai-responses-req.test.ts 1172->1195 (+23 = #6807 reasoning-summary-for-effort-only regression tests). Frozen only shrinks.",
     "tests/unit/audio-transcription-handler.test.ts": 824,
-    "_rebaseline_2026_07_22_8056_headroom_minrows": "#8056 (@RaviTharuma, persist Headroom minRows) own growth: src/lib/db/compression.ts 850->866 (+16 HeadroomConfig+DEFAULT_HEADROOM_CONFIG+normalize/store in get/updateCompressionSettings) and open-sse/services/compression/strategySelector.ts 1054->1060 (+6 merge settings.headroom into stacked stepConfig). Cohesive settings-persistence + stacked-merge wiring at existing chokepoints, frozen at new size."
+    "_rebaseline_2026_07_22_8056_headroom_minrows": "#8056 (@RaviTharuma, persist Headroom minRows) own growth: src/lib/db/compression.ts 850->866 (+16 HeadroomConfig+DEFAULT_HEADROOM_CONFIG+normalize/store in get/updateCompressionSettings) and open-sse/services/compression/strategySelector.ts 1054->1060 (+6 merge settings.headroom into stacked stepConfig). Cohesive settings-persistence + stacked-merge wiring at existing chokepoints, frozen at new size.",
+    "_rebaseline_2026_07_22_8123_agy_live_model_sync": "#8123 (safeer/@adevwithpurpose) own test growth: provider-models-route.test.ts 1757->1783 (+26) — live AGY model discovery assertions (isDiscoverableAgyModelId + filterUserCallableAntigravityModels), composing with the #8013 fusion's antigravity discovery rewrite."
   },
   "_rebaseline_2026_06_09": "Re-baseline consciente pre-release v3.8.19: 9 arquivos cresceram durante o ciclo (features mergeadas: RequestLoggerV2 +281 request-logger rework, stream +101, combo +73, chatCore +45, catalog +32 fable-5/catalog-flag, callLogs +4, accountFallback +2, usageHistory novo 840) + core.ts +7 (fix resetAllDbModuleState, PR 3536). A catraca segue valendo destes valores — proximo crescimento falha. Decisao: encolher (esp. RequestLoggerV2/chatCore) e a issue #3501 ficam para o ciclo seguinte.",
   "_rebaseline_2026_06_11_phase1f": "Phase 1f (#3501): ProviderDetailPageClient.tsx 4948→4062 (-886 LOC); 3 novos hooks extraídos. useProviderConnections.ts=954 acima do cap=800 — justificado: extração direta do god-component (zero lógica nova), própria redução do cliente supera o custo. useProviderSettings.ts=263 e useProviderModels.ts=154 já abaixo do cap.",

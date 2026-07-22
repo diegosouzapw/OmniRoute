@@ -148,6 +148,7 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
 ]);
 
 const AGY_PUBLIC_MODEL_IDS = new Set(AGY_PUBLIC_MODELS.map((model) => model.id));
+const AGY_NON_CHAT_MODEL_IDS = new Set(["tab_flash_lite_preview", "tab_jump_flash_lite_preview"]);
 
 const AGY_CLIENT_VISIBLE_MODEL_NAMES = Object.freeze(
   AGY_PUBLIC_MODELS.reduce<Record<string, string>>((acc, model) => {
@@ -162,4 +163,8 @@ export function getClientVisibleAgyModelName(modelId: string, fallbackName?: str
 
 export function isUserCallableAgyModelId(modelId: string): boolean {
   return !!modelId && AGY_PUBLIC_MODEL_IDS.has(modelId);
+}
+
+export function isDiscoverableAgyModelId(modelId: string): boolean {
+  return !!modelId && !AGY_NON_CHAT_MODEL_IDS.has(modelId);
 }
