@@ -6,9 +6,6 @@ const { GrokCliExecutor } = await import("@omniroute/open-sse/executors/grok-cli
 const { getGrokBuildClientVersion } = await import("@omniroute/open-sse/config/grokBuild.ts");
 const { resolvePublicCred } = await import("@omniroute/open-sse/utils/publicCreds");
 
-const GROK_CLI_SCOPE =
-  "openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write";
-
 test("Grok Build OAuth Provider - config", () => {
   assert.ok(grokCli.config.clientId, "clientId should be defined");
   // The public client_id must come from the embedded default (Hard Rule #11),
@@ -27,181 +24,36 @@ test("publicCreds: grok_id embedded default is present and decodes", () => {
   assert.ok(decoded.length > 0, "grok_id must decode to a non-empty client id");
 });
 
-test("Grok Build OAuth Provider - flowType is device_code", () => {
+// #7013 (reworked): grok-cli now ships a browser PKCE flow ALONGSIDE the
+// pre-existing device_code flow (#7358) and paste-token import — all three
+// coexist under one registry entry instead of the browser flow replacing
+// device_code. flowType stays "device_code" so it remains the DEFAULT/primary
+// method in OAuthModal.tsx and route.ts's device-code/poll action family;
+// supportsBrowserPkce is the capability marker providers.ts::generateAuthData
+// and route.ts's exchange codeVerifier guard check to also build/require PKCE
+// for the browser method. requestDeviceCode/pollToken are restored (see
+// coexistence assertions below); mapTokens still auto-detects and handles
+// pasted-token input (see tests below) and the browser-flow OAuth-token shape
+// (`access_token`+`id_token`) is covered in tests/unit/oauth-grok-cli-browser.test.ts,
+// which asserts that exact shape dispatches through mapGrokBuildBrowserTokens
+// (grok-cli-oauth.ts).
+test("Grok Build OAuth Provider - flowType stays device_code (primary, #7358) with browser PKCE alongside (#7013)", () => {
   assert.equal(grokCli.flowType, "device_code");
-  assert.equal(grokCli.config.deviceCodeUrl, "https://auth.x.ai/oauth2/device/code");
-  assert.equal(grokCli.config.scope, GROK_CLI_SCOPE);
+  assert.equal(grokCli.supportsBrowserPkce, true);
+  assert.equal(grokCli.config.scope, "openid profile email offline_access grok-cli:access");
 });
 
-test("Grok Build OAuth Provider - requests and normalizes a device code", async (t) => {
-  const originalFetch = globalThis.fetch;
-  t.after(() => {
-    globalThis.fetch = originalFetch;
-  });
-
-  let requestUrl = "";
-  let requestInit: RequestInit | undefined;
-  globalThis.fetch = (async (input, init) => {
-    requestUrl = String(input);
-    requestInit = init;
-    return new Response(
-      JSON.stringify({
-        device_code: "opaque-device-code",
-        user_code: "ABCD-EFGH",
-        verification_uri: "https://accounts.x.ai/oauth2/device",
-        verification_uri_complete: "https://accounts.x.ai/oauth2/device?user_code=ABCD-EFGH",
-        expires_in: 1800,
-        interval: 5,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
-  }) as typeof fetch;
-
-  const result = await grokCli.requestDeviceCode(grokCli.config);
-  const body = new URLSearchParams(String(requestInit?.body));
-
-  assert.equal(requestUrl, grokCli.config.deviceCodeUrl);
-  assert.equal(requestInit?.method, "POST");
-  assert.equal(body.get("client_id"), grokCli.config.clientId);
-  assert.equal(body.get("scope"), GROK_CLI_SCOPE);
-  assert.equal(body.get("referrer"), "grok-build");
-  const headers = new Headers(requestInit?.headers);
-  assert.equal(headers.get("x-grok-client-version"), getGrokBuildClientVersion());
-  assert.equal(headers.get("x-grok-client-surface"), "ui");
-  assert.equal(result.device_code, "opaque-device-code");
-  assert.equal(result.user_code, "ABCD-EFGH");
-  assert.equal(result.expires_in, 1800);
-  assert.equal(result.interval, 5);
-});
-
-test("Grok Build OAuth Provider - rejects unsafe device authorization responses", async (t) => {
-  const originalFetch = globalThis.fetch;
-  t.after(() => {
-    globalThis.fetch = originalFetch;
-  });
-
-  globalThis.fetch = (async () =>
-    new Response(
-      JSON.stringify({
-        device_code: "opaque-device-code",
-        user_code: "ABCD\nEFGH",
-        verification_uri: "javascript:alert(1)",
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    )) as typeof fetch;
-
-  await assert.rejects(() => grokCli.requestDeviceCode(grokCli.config), /invalid device code/);
-});
-
-test("Grok Build OAuth Provider - rejects unsupported verification URL schemes", async (t) => {
-  const originalFetch = globalThis.fetch;
-  t.after(() => {
-    globalThis.fetch = originalFetch;
-  });
-
-  globalThis.fetch = (async () =>
-    new Response(
-      JSON.stringify({
-        device_code: "opaque-device-code",
-        user_code: "ABCD-EFGH",
-        verification_uri: "javascript:alert(1)",
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    )) as typeof fetch;
-
-  await assert.rejects(
-    () => grokCli.requestDeviceCode(grokCli.config),
-    /unsupported verification URL/
-  );
-});
-
-test("Grok Build OAuth Provider - polls with the standard device grant", async (t) => {
-  const originalFetch = globalThis.fetch;
-  t.after(() => {
-    globalThis.fetch = originalFetch;
-  });
-
-  let requestInit: RequestInit | undefined;
-  globalThis.fetch = (async (_input, init) => {
-    requestInit = init;
-    return new Response(
-      JSON.stringify({
-        error: "authorization_pending",
-        error_description: "User has not yet authorized",
-      }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
-  }) as typeof fetch;
-
-  const result = await grokCli.pollToken(grokCli.config, "opaque-device-code");
-  const body = new URLSearchParams(String(requestInit?.body));
-
-  assert.equal(body.get("client_id"), grokCli.config.clientId);
-  assert.equal(body.get("device_code"), "opaque-device-code");
-  assert.equal(body.get("grant_type"), "urn:ietf:params:oauth:grant-type:device_code");
-  const headers = new Headers(requestInit?.headers);
-  assert.equal(headers.get("x-grok-client-version"), getGrokBuildClientVersion());
-  assert.equal(headers.get("x-grok-client-surface"), "ui");
-  assert.equal(result.ok, false);
-  assert.equal(result.data.error, "authorization_pending");
-});
-
-test("Grok Build OAuth Provider - maps a standard OAuth token response", () => {
-  const accessPayload = {
-    sub: "user-123",
-    email: "device@example.com",
-    team_id: "team-456",
-    tier: 2,
-    principal_type: "Team",
-    principal_id: "team-456",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-  };
-  const accessToken = `eyJhbGciOiJFUzI1NiJ9.${Buffer.from(JSON.stringify(accessPayload)).toString("base64url")}.signature`;
-  const idToken = `eyJhbGciOiJFUzI1NiJ9.${Buffer.from(
-    JSON.stringify({ email: "device@example.com" })
-  ).toString("base64url")}.signature`;
-
-  const result = grokCli.mapTokens({
-    access_token: accessToken,
-    refresh_token: "refresh-device-token",
-    id_token: idToken,
-    expires_in: 3600,
-    token_type: "Bearer",
-    scope: GROK_CLI_SCOPE,
-  });
-
-  assert.equal(result.accessToken, accessToken);
-  assert.equal(result.refreshToken, "refresh-device-token");
-  assert.equal(result.idToken, idToken);
-  assert.equal(result.expiresIn, 3600);
-  assert.equal(result.tokenType, "Bearer");
-  assert.equal(result.scope, GROK_CLI_SCOPE);
-  assert.equal(result.email, "device@example.com");
-  assert.equal(result.providerSpecificData?.teamId, "team-456");
-  assert.equal(result.providerSpecificData?.userId, "team-456");
-  assert.equal(result.providerSpecificData?.email, "device@example.com");
-  assert.equal(result.providerSpecificData?.principalType, "Team");
-  assert.equal(result.providerSpecificData?.principalId, "team-456");
-});
-
-test("Grok Build OAuth Provider - maps organization principals to their principal id", () => {
-  const accessPayload = {
-    sub: "user-123",
-    principal_type: "Organization",
-    principal_id: "org-456",
-    exp: Math.floor(Date.now() / 1000) + 3600,
-  };
-  const idPayload = { sub: "user-123", email: "org-user@example.com" };
-  const accessToken = `eyJhbGciOiJFUzI1NiJ9.${Buffer.from(JSON.stringify(accessPayload)).toString("base64url")}.signature`;
-  const idToken = `eyJhbGciOiJFUzI1NiJ9.${Buffer.from(JSON.stringify(idPayload)).toString("base64url")}.signature`;
-
-  const result = grokCli.mapTokens({ access_token: accessToken, id_token: idToken });
-
-  assert.equal(result.email, "org-user@example.com");
-  assert.equal(result.providerSpecificData?.userId, "org-456");
-  assert.equal(result.providerSpecificData?.organizationId, "org-456");
-  assert.equal(result.providerSpecificData?.principalType, "Organization");
-  assert.equal(result.providerSpecificData?.principalId, "org-456");
+// #7013 rework coexistence guard: BOTH flows' handlers must be present on the
+// single grok-cli registry entry — losing either one silently breaks either
+// the device-code panel (OAuthModal.tsx DEVICE_CODE_PROVIDERS) or the browser
+// PKCE login (PKCE_CALLBACK_SERVER_PROVIDERS / providers.ts::generateAuthData).
+test("Grok Build OAuth Provider - device_code AND browser PKCE handlers coexist (#7013)", () => {
+  assert.equal(typeof grokCli.requestDeviceCode, "function", "requestDeviceCode must be present");
+  assert.equal(typeof grokCli.pollToken, "function", "pollToken must be present");
+  assert.equal(typeof grokCli.buildAuthUrl, "function", "buildAuthUrl must be present");
+  assert.equal(typeof grokCli.exchangeToken, "function", "exchangeToken must be present");
+  assert.equal(typeof grokCli.mapTokens, "function", "mapTokens must be present");
+  assert.equal(grokCli.pkceVerifierBytes, 96);
 });
 
 test("Grok Build OAuth Provider - mapTokens from raw JWT", () => {

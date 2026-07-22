@@ -24,7 +24,13 @@ import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import { getKnownPlan } from "@/lib/quota/planRegistry";
 import { quotaModelName } from "@/lib/quota/quotaModelNaming";
-import type { Policy, PoolAllocation, QuotaDimension, QuotaUnit, QuotaWindow } from "@/lib/quota/dimensions";
+import type {
+  Policy,
+  PoolAllocation,
+  QuotaDimension,
+  QuotaUnit,
+  QuotaWindow,
+} from "@/lib/quota/dimensions";
 import type { QuotaPool } from "@/lib/db/quotaPools";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -346,8 +352,7 @@ export default function PoolWizard({
 
   const availableKeys = apiKeys.filter((k) => !allocations.some((a) => a.apiKeyId === k.id));
 
-  const keyLabel = (id: string) =>
-    apiKeys.find((k) => k.id === id)?.name || id.slice(0, 12) + "…";
+  const keyLabel = (id: string) => apiKeys.find((k) => k.id === id)?.name || id.slice(0, 12) + "…";
 
   const addKey = (id: string) => {
     setAllocations((prev) => {
@@ -362,9 +367,7 @@ export default function PoolWizard({
 
   const updateWeight = (id: string, value: number) => {
     setAllocations((prev) =>
-      prev.map((a) =>
-        a.apiKeyId === id ? { ...a, weight: Math.max(0, Math.min(100, value)) } : a
-      )
+      prev.map((a) => (a.apiKeyId === id ? { ...a, weight: Math.max(0, Math.min(100, value)) } : a))
     );
   };
 
@@ -397,15 +400,17 @@ export default function PoolWizard({
     if (connectionIds.length === 0 || !name) return [];
 
     const MAX_PER_PROVIDER = 3;
-    return connectionIds.map((cid) => {
-      const conn = connections.find((c) => c.id === cid);
-      if (!conn) return null;
-      const allModels = getPreviewModels(conn.provider);
-      const names = allModels.slice(0, MAX_PER_PROVIDER).map((m) =>
-        quotaModelName(name, conn.provider, m)
-      );
-      return { provider: conn.provider, names, totalModels: allModels.length };
-    }).filter(Boolean) as Array<{ provider: string; names: string[]; totalModels: number }>;
+    return connectionIds
+      .map((cid) => {
+        const conn = connections.find((c) => c.id === cid);
+        if (!conn) return null;
+        const allModels = getPreviewModels(conn.provider);
+        const names = allModels
+          .slice(0, MAX_PER_PROVIDER)
+          .map((m) => quotaModelName(name, conn.provider, m));
+        return { provider: conn.provider, names, totalModels: allModels.length };
+      })
+      .filter(Boolean) as Array<{ provider: string; names: string[]; totalModels: number }>;
   }, [connectionIds, connections, poolName]);
 
   // Flat list (for legacy single-provider path, kept for step-3 rendering simplicity)
@@ -502,8 +507,7 @@ export default function PoolWizard({
         if (!editPatchRes.ok) {
           const errBody = await editPatchRes.json().catch(() => null);
           throw new Error(
-            errBody?.error?.message ||
-              `PATCH /api/quota/pools failed: HTTP ${editPatchRes.status}`
+            errBody?.error?.message || `PATCH /api/quota/pools failed: HTTP ${editPatchRes.status}`
           );
         }
 
@@ -537,7 +541,12 @@ export default function PoolWizard({
   if (!open) return null;
 
   return (
-    <Modal isOpen onClose={onClose} title={editPool ? t("editPoolTitle") : t("wizardTitle")} size="lg">
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={editPool ? t("editPoolTitle") : t("wizardTitle")}
+      size="lg"
+    >
       <div className="flex flex-col" style={{ minHeight: 420 }}>
         <Stepper currentStep={step} />
 
@@ -631,7 +640,9 @@ export default function PoolWizard({
                   type="text"
                   value={poolName}
                   onChange={(e) => setPoolName(e.target.value)}
-                  placeholder={selectedConn ? selectedConn.provider : t("wizardPoolNamePlaceholder")}
+                  placeholder={
+                    selectedConn ? selectedConn.provider : t("wizardPoolNamePlaceholder")
+                  }
                   className="w-full px-3 py-2 rounded border border-border bg-bg-base text-sm"
                 />
               </div>
@@ -675,7 +686,11 @@ export default function PoolWizard({
                           : "border-border text-text-muted hover:text-text-main"
                       }`}
                     >
-                      {p === "hard" ? t("policyHard") : p === "soft" ? t("policySoft") : t("policyBurst")}
+                      {p === "hard"
+                        ? t("policyHard")
+                        : p === "soft"
+                          ? t("policySoft")
+                          : t("policyBurst")}
                     </button>
                   ))}
                 </div>
@@ -845,7 +860,7 @@ export default function PoolWizard({
                         value={a.weight}
                         onChange={(e) => updateWeight(a.apiKeyId, Number(e.target.value))}
                         className="px-2 py-1 rounded border border-border bg-bg-base text-sm text-right tabular-nums"
-                        title="Weight %"
+                        title={t("weightPercent")}
                       />
                       <input
                         type="number"

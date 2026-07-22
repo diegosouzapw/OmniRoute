@@ -105,11 +105,13 @@ export function resolveSpawnArgs(port: number): SpawnArgs {
 
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
   const configPath = path.join(CONFIG_DIR, "config.yaml");
-  fs.writeFileSync(configPath, `port: ${port}\nhost: 127.0.0.1\nlog_level: warn\n`, "utf8");
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(configPath, `port: ${port}\nhost: 127.0.0.1\nlog_level: warn\n`, "utf8");
+  }
 
   return {
     command: symlinkPath,
-    args: ["-c", configPath],
+    args: ["--config", configPath],
     env: { ...process.env },
     cwd: CONFIG_DIR,
   };
