@@ -1,0 +1,1 @@
+- **feat(codex):** add single-reference PNG/JPEG/WebP image editing through the OpenAI-compatible `/v1/images/edits` route by reusing Codex Responses hosted-image tooling, OAuth, proxies, sanitized logs/errors, and OpenAI Images response formatting ([#8122](https://github.com/diegosouzapw/OmniRoute/pull/8122)) — thanks @xiaoyaner0201
