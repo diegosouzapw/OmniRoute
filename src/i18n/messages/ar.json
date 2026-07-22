@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "تم إيقاف الثبات",
     "kimiPresetTitle": "إعداد Kimi Coding المسبق",
     "kimiPresetDescription": "نموذج Kimi K3 كنموذج أساسي (Moonshot API)، مع تراجع تلقائي إلى اتصالات Kimi Code الخاصة بك (kimi-coding، kimi-web) عند تكوينها.",
-    "kimiPresetCta": "إضافة الإعداد المسبق"
+    "kimiPresetCta": "إضافة الإعداد المسبق",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "التكاليف",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "تنقيح بيانات الاعتماد",
     "credentialRedactionDesc": "تنقيح مفاتيح API والرموز المميزة والأسرار من السياق المرسل إلى الموفرين ومن الاستجابات.",
     "enableCredentialRedaction": "تمكين تنقيح بيانات الاعتماد",
-    "enableCredentialRedactionDesc": "يزيل مفاتيح API والرموز المميزة والمفاتيح الخاصة وJWTs من الرسائل واستدعاءات الأدوات والاستجابات."
+    "enableCredentialRedactionDesc": "يزيل مفاتيح API والرموز المميزة والمفاتيح الخاصة وJWTs من الرسائل واستدعاءات الأدوات والاستجابات.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "محرك آر تي كيه",

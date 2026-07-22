@@ -7512,7 +7512,11 @@
     "credentialRedaction": "Schwärzung von Anmeldedaten",
     "credentialRedactionDesc": "API-Schlüssel, Token und Geheimnisse aus dem an Anbieter gesendeten Kontext und aus Antworten schwärzen.",
     "enableCredentialRedaction": "Schwärzung von Anmeldedaten aktivieren",
-    "enableCredentialRedactionDesc": "Bereinigt API-Schlüssel, Token, private Schlüssel und JWTs aus Nachrichten, Tool-Aufrufen und Antworten."
+    "enableCredentialRedactionDesc": "Bereinigt API-Schlüssel, Token, private Schlüssel und JWTs aus Nachrichten, Tool-Aufrufen und Antworten.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

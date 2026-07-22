@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Stálost relace vypnuta",
     "kimiPresetTitle": "Předvolba Kimi Coding",
     "kimiPresetDescription": "Kimi K3 jako primární model (Moonshot API) s automatickým záložním řešením na vaše připojení Kimi Code (kimi-coding, kimi-web), pokud jsou nakonfigurována.",
-    "kimiPresetCta": "Přidat předvolbu"
+    "kimiPresetCta": "Přidat předvolbu",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Náklady",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Redigování přihlašovacích údajů",
     "credentialRedactionDesc": "Redigovat klíče API, tokeny a tajné klíče z kontextu odesílaného poskytovatelům a z odpovědí.",
     "enableCredentialRedaction": "Povolit redigování přihlašovacích údajů",
-    "enableCredentialRedactionDesc": "Odstraní klíče API, tokeny, soukromé klíče a JWT ze zpráv, volání nástrojů a odpovědí."
+    "enableCredentialRedactionDesc": "Odstraní klíče API, tokeny, soukromé klíče a JWT ze zpráv, volání nástrojů a odpovědí.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

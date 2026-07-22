@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Stickiness nonaktif",
     "kimiPresetTitle": "Preset Kimi Coding",
     "kimiPresetDescription": "Kimi K3 sebagai model utama (Moonshot API), dengan pengalihan otomatis (fallback) ke koneksi Kimi Code Anda (kimi-coding, kimi-web) saat dikonfigurasi.",
-    "kimiPresetCta": "Tambah preset"
+    "kimiPresetCta": "Tambah preset",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Biaya",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Redaksi Kredensial",
     "credentialRedactionDesc": "Redaksi kunci API, token, dan rahasia dari konteks yang dikirim ke penyedia dan dari respons.",
     "enableCredentialRedaction": "Aktifkan redaksi kredensial",
-    "enableCredentialRedactionDesc": "Membersihkan kunci API, token, private key, dan JWT dari pesan, panggilan alat, dan respons."
+    "enableCredentialRedactionDesc": "Membersihkan kunci API, token, private key, dan JWT dari pesan, panggilan alat, dan respons.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

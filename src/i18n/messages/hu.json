@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Rögzítés kikapcsolva",
     "kimiPresetTitle": "Kimi Coding előbeállítás",
     "kimiPresetDescription": "Kimi K3 mint elsődleges modell (Moonshot API), automatikus tartalék útvonallal a Kimi Code kapcsolatokhoz (kimi-coding, kimi-web), ha be van állítva.",
-    "kimiPresetCta": "Előbeállítás hozzáadása"
+    "kimiPresetCta": "Előbeállítás hozzáadása",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Költségek",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Hitelesítési adatok kitakarása",
     "credentialRedactionDesc": "API-kulcsok, tokenek és titkok kitakarása a szolgáltatóknak küldött kontextusból és a válaszokból.",
     "enableCredentialRedaction": "Hitelesítési adatok kitakarásának engedélyezése",
-    "enableCredentialRedactionDesc": "Eltávolítja az API-kulcsokat, tokeneket, privát kulcsokat és JWT-ket az üzenetekből, eszközhívásokból és válaszokból."
+    "enableCredentialRedactionDesc": "Eltávolítja az API-kulcsokat, tokeneket, privát kulcsokat és JWT-ket az üzenetekből, eszközhívásokból és válaszokból.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

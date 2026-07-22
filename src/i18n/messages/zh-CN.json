@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "会话粘性关闭",
     "kimiPresetTitle": "Kimi Coding 预设",
     "kimiPresetDescription": "以 Kimi K3 作为主模型（Moonshot API），并在配置后自动回退到您的 Kimi Code 连接（kimi-coding、kimi-web）。",
-    "kimiPresetCta": "添加预设"
+    "kimiPresetCta": "添加预设",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "成本",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "凭据脱敏",
     "credentialRedactionDesc": "对发送给提供商的上下文以及响应中的 API 密钥、令牌和机密信息进行脱敏。",
     "enableCredentialRedaction": "启用凭据脱敏",
-    "enableCredentialRedactionDesc": "清除消息、工具调用和响应中的 API 密钥、令牌、私钥和 JWT。"
+    "enableCredentialRedactionDesc": "清除消息、工具调用和响应中的 API 密钥、令牌、私钥和 JWT。",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK 引擎",

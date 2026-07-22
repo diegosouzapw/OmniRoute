@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "స్టిక్కీనెస్ ఆఫ్",
     "kimiPresetTitle": "Kimi Coding ప్రీసెట్",
     "kimiPresetDescription": "ప్రాథమిక మోడల్‌గా Kimi K3 (Moonshot API), కాన్ఫిగర్ చేసినప్పుడు మీ Kimi Code కనెక్షన్‌లకు (kimi-coding, kimi-web) ఆటోమేటిక్ ఫాల్‌బ్యాక్‌తో.",
-    "kimiPresetCta": "ప్రీసెట్‌ను జోడించు"
+    "kimiPresetCta": "ప్రీసెట్‌ను జోడించు",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Costs",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "క్రెడెన్షియల్ రెడాక్షన్",
     "credentialRedactionDesc": "ప్రొవైడర్‌లకు పంపిన సందర్భం నుండి మరియు ప్రతిస్పందనల నుండి API కీలు, టోకెన్‌లు మరియు రహస్యాలను తొలగించండి.",
     "enableCredentialRedaction": "క్రెడెన్షియల్ రెడాక్షన్‌ను ప్రారంభించండి",
-    "enableCredentialRedactionDesc": "సందేశాలు, టూల్ కాల్‌లు మరియు ప్రతిస్పందనల నుండి API కీలు, టోకెన్‌లు, ప్రైవేట్ కీలు మరియు JWTలను తొలగిస్తుంది."
+    "enableCredentialRedactionDesc": "సందేశాలు, టూల్ కాల్‌లు మరియు ప్రతిస్పందనల నుండి API కీలు, టోకెన్‌లు, ప్రైవేట్ కీలు మరియు JWTలను తొలగిస్తుంది.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

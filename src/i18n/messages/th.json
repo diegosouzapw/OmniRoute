@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "ปิดการยึดติดเซสชัน",
     "kimiPresetTitle": "ค่าที่ตั้งไว้ล่วงหน้า Kimi Coding",
     "kimiPresetDescription": "Kimi K3 เป็นโมเดลหลัก (Moonshot API) พร้อมการสลับสายอัตโนมัติไปยังการเชื่อมต่อ Kimi Code ของคุณ (kimi-coding, kimi-web) เมื่อกำหนดค่าไว้",
-    "kimiPresetCta": "เพิ่มค่าที่ตั้งไว้ล่วงหน้า"
+    "kimiPresetCta": "เพิ่มค่าที่ตั้งไว้ล่วงหน้า",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "ค่าใช้จ่าย",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "การปกปิดข้อมูลรับรอง",
     "credentialRedactionDesc": "ปกปิดคีย์ API, โทเค็น และข้อมูลลับจากบริบทที่ส่งไปยังผู้ให้บริการและจากการตอบกลับ",
     "enableCredentialRedaction": "เปิดใช้งานการปกปิดข้อมูลรับรอง",
-    "enableCredentialRedactionDesc": "ล้างคีย์ API, โทเค็น, ไพรเวตคีย์ และ JWT ออกจากข้อความ, การเรียกใช้เครื่องมือ และการตอบกลับ"
+    "enableCredentialRedactionDesc": "ล้างคีย์ API, โทเค็น, ไพรเวตคีย์ และ JWT ออกจากข้อความ, การเรียกใช้เครื่องมือ และการตอบกลับ",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

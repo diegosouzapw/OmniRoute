@@ -3382,7 +3382,9 @@
     "playgroundWeight": "權重 {value}",
     "kimiPresetTitle": "Kimi Coding 預設組合",
     "kimiPresetDescription": "以 Kimi K3 作為主要模型（Moonshot API），設定完成後會自動備援至您的 Kimi Code 連線（kimi-coding、kimi-web）。",
-    "kimiPresetCta": "新增預設組合"
+    "kimiPresetCta": "新增預設組合",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "成本",
@@ -7409,7 +7411,13 @@
     "storageWeekly": "每週",
     "suggestions": "建議：",
     "vacuumCompleted": "VACUUM 已完成",
-    "vacuumFailed": "VACUUM 失敗"
+    "vacuumFailed": "VACUUM 失敗",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK 引擎",

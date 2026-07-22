@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Persistance désactivée",
     "kimiPresetTitle": "Préréglage Kimi Coding",
     "kimiPresetDescription": "Kimi K3 comme modèle principal (Moonshot API), avec repli automatique vers vos connexions Kimi Code (kimi-coding, kimi-web) lorsqu'elles sont configurées.",
-    "kimiPresetCta": "Ajouter le préréglage"
+    "kimiPresetCta": "Ajouter le préréglage",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Coûts",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Masquage des identifiants",
     "credentialRedactionDesc": "Masquer les clés d'API, les jetons et les secrets du contexte envoyé aux fournisseurs et des réponses.",
     "enableCredentialRedaction": "Activer le masquage des identifiants",
-    "enableCredentialRedactionDesc": "Masque les clés d'API, les jetons, les clés privées et les JWT des messages, des appels d'outils et des réponses."
+    "enableCredentialRedactionDesc": "Masque les clés d'API, les jetons, les clés privées et les JWT des messages, des appels d'outils et des réponses.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

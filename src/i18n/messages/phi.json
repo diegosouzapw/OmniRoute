@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Naka-off ang stickiness",
     "kimiPresetTitle": "Preset ng Kimi Coding",
     "kimiPresetDescription": "Kimi K3 bilang pangunahing modelo (Moonshot API), na may awtomatikong fallback sa iyong mga koneksyon sa Kimi Code (kimi-coding, kimi-web) kapag naka-configure.",
-    "kimiPresetCta": "Magdagdag ng preset"
+    "kimiPresetCta": "Magdagdag ng preset",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Mga gastos",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Pag-redact ng Kredensyal",
     "credentialRedactionDesc": "I-redact ang mga API key, token, at secret mula sa kontekstong ipinadala sa mga provider at mula sa mga tugon.",
     "enableCredentialRedaction": "I-enable ang credential redaction",
-    "enableCredentialRedactionDesc": "Nililinis ang mga API key, token, private key, at JWT mula sa mga mensahe, tool call, at tugon."
+    "enableCredentialRedactionDesc": "Nililinis ang mga API key, token, private key, at JWT mula sa mga mensahe, tool call, at tugon.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

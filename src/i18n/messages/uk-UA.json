@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Закріплення вимкнено",
     "kimiPresetTitle": "Пресет Kimi Coding",
     "kimiPresetDescription": "Kimi K3 як основна модель (Moonshot API) з автоматичним переходом на ваші підключення Kimi Code (kimi-coding, kimi-web) після налаштування.",
-    "kimiPresetCta": "Додати пресет"
+    "kimiPresetCta": "Додати пресет",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Витрати",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Вилучення облікових даних",
     "credentialRedactionDesc": "Вилучати API-ключі, токени та секрети з контексту, що надсилається провайдерам, та з відповідей.",
     "enableCredentialRedaction": "Увімкнути вилучення облікових даних",
-    "enableCredentialRedactionDesc": "Очищає API-ключі, токени, приватні ключі та JWT з повідомлень, викликів інструментів та відповідей."
+    "enableCredentialRedactionDesc": "Очищає API-ключі, токени, приватні ключі та JWT з повідомлень, викликів інструментів та відповідей.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "Двигун RTK",

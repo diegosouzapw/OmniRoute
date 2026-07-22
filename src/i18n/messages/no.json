@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Øktlåsing av",
     "kimiPresetTitle": "Kimi Coding-forhåndsinnstilling",
     "kimiPresetDescription": "Kimi K3 som primærmodell (Moonshot API), med automatisk tilbakefall til dine Kimi Code-tilkoblinger (kimi-coding, kimi-web) når konfigurert.",
-    "kimiPresetCta": "Legg til forhåndsinnstilling"
+    "kimiPresetCta": "Legg til forhåndsinnstilling",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Kostnader",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Sladding av legitimasjon",
     "credentialRedactionDesc": "Sladd API-nøkler, tokener og hemmeligheter fra kontekst som sendes til leverandører, og fra svar.",
     "enableCredentialRedaction": "Aktiver sladding av legitimasjon",
-    "enableCredentialRedactionDesc": "Renser API-nøkler, tokener, private nøkler og JWT-er fra meldinger, verktøykall og svar."
+    "enableCredentialRedactionDesc": "Renser API-nøkler, tokener, private nøkler og JWT-er fra meldinger, verktøykall og svar.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

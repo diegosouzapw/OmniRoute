@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "세션 고정 끔",
     "kimiPresetTitle": "Kimi Coding 프리셋",
     "kimiPresetDescription": "Kimi K3를 기본 모델(Moonshot API)로 사용하며, 설정 시 Kimi Code 연결(kimi-coding, kimi-web)로 자동 폴백됩니다.",
-    "kimiPresetCta": "프리셋 추가"
+    "kimiPresetCta": "프리셋 추가",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "비용",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "자격 증명 마스킹",
     "credentialRedactionDesc": "공급자에게 전송되는 컨텍스트 및 응답에서 API 키, 토큰, 비밀 정보를 마스킹합니다.",
     "enableCredentialRedaction": "자격 증명 마스킹 활성화",
-    "enableCredentialRedactionDesc": "메시지, 도구 호출 및 응답에서 API 키, 토큰, 개인 키, JWT를 제거합니다."
+    "enableCredentialRedactionDesc": "메시지, 도구 호출 및 응답에서 API 키, 토큰, 개인 키, JWT를 제거합니다.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

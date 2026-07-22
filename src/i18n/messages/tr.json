@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Yapışkanlık kapalı",
     "kimiPresetTitle": "Kimi Coding hazır ayarı",
     "kimiPresetDescription": "Yapılandırıldığında Kimi Code bağlantılarınıza (kimi-coding, kimi-web) otomatik geri dönüş ile birincil model olarak Kimi K3 (Moonshot API).",
-    "kimiPresetCta": "Hazır ayar ekle"
+    "kimiPresetCta": "Hazır ayar ekle",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Maliyetler",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Kimlik Bilgisi Karartma",
     "credentialRedactionDesc": "Sağlayıcılara gönderilen bağlamdan ve yanıtlardan API anahtarlarını, belirteçleri ve sırları karartın.",
     "enableCredentialRedaction": "Kimlik bilgisi karartmayı etkinleştir",
-    "enableCredentialRedactionDesc": "Mesajlardan, araç çağrılarından ve yanıtlardan API anahtarlarını, belirteçleri, özel anahtarları ve JWT'leri temizler."
+    "enableCredentialRedactionDesc": "Mesajlardan, araç çağrılarından ve yanıtlardan API anahtarlarını, belirteçleri, özel anahtarları ve JWT'leri temizler.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

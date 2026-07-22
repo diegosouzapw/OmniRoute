@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "چسبندگی خاموش",
     "kimiPresetTitle": "پیش‌تنظیم Kimi Coding",
     "kimiPresetDescription": "مدل Kimi K3 به عنوان مدل اصلی (Moonshot API)، با انتقال خودکار به اتصالات Kimi Code شما (kimi-coding، kimi-web) در صورت پیکربندی.",
-    "kimiPresetCta": "افزودن پیش‌تنظیم"
+    "kimiPresetCta": "افزودن پیش‌تنظیم",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Costs",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "سانسور اطلاعات اعتبارنامه‌ای",
     "credentialRedactionDesc": "سانسور کردن کلیدهای API، توکن‌ها و اسرار از بافت ارسال شده به ارائه‌دهندگان و از پاسخ‌ها.",
     "enableCredentialRedaction": "فعال‌سازی سانسور اطلاعات اعتبارنامه‌ای",
-    "enableCredentialRedactionDesc": "کلیدهای API، توکن‌ها، کلیدهای خصوصی و JWTها را از پیام‌ها، فراخوانی‌های ابزار و پاسخ‌ها پاک می‌کند."
+    "enableCredentialRedactionDesc": "کلیدهای API، توکن‌ها، کلیدهای خصوصی و JWTها را از پیام‌ها، فراخوانی‌های ابزار و پاسخ‌ها پاک می‌کند.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

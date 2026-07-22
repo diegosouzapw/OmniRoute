@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Ushikamano umezimwa",
     "kimiPresetTitle": "Seti ya awali ya Kimi Coding",
     "kimiPresetDescription": "Kimi K3 kama modeli kuu (Moonshot API), yenye urejesho wa kiotomatiki kwenye miunganisho yako ya Kimi Code (kimi-coding, kimi-web) inaposanidiwa.",
-    "kimiPresetCta": "Ongeza seti ya awali"
+    "kimiPresetCta": "Ongeza seti ya awali",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Costs",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Ufichaji wa Vitambulisho",
     "credentialRedactionDesc": "Ficha funguo za API, tokeni, na siri kutoka kwa muktadha uliotumwa kwa watoa huduma na kutoka kwa majibu.",
     "enableCredentialRedaction": "Washa ufichaji wa vitambulisho",
-    "enableCredentialRedactionDesc": "Husafisha funguo za API, tokeni, funguo za faragha, na JWT kutoka kwa ujumbe, miito ya zana, na majibu."
+    "enableCredentialRedactionDesc": "Husafisha funguo za API, tokeni, funguo za faragha, na JWT kutoka kwa ujumbe, miito ya zana, na majibu.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",

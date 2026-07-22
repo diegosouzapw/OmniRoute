@@ -3484,7 +3484,9 @@
     "sessionStickinessDisabled": "Устойчивостта е изключена",
     "kimiPresetTitle": "Предварителна настройка за Kimi Coding",
     "kimiPresetDescription": "Kimi K3 като основен модел (Moonshot API), с автоматично превключване към вашите Kimi Code връзки (kimi-coding, kimi-web), когато са конфигурирани.",
-    "kimiPresetCta": "Добавяне на предварителна настройка"
+    "kimiPresetCta": "Добавяне на предварителна настройка",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
+    "weightCacheAffinity": "Cache Hit Affinity"
   },
   "costs": {
     "title": "Разходи",
@@ -7508,7 +7510,13 @@
     "credentialRedaction": "Скриване на идентификационни данни",
     "credentialRedactionDesc": "Скриване на API ключове, токени и тайни от контекста, изпратен към доставчиците, и от отговорите.",
     "enableCredentialRedaction": "Активиране на скриването на идентификационни данни",
-    "enableCredentialRedactionDesc": "Изчиства API ключове, токени, частни ключове и JWT от съобщения, повиквания на инструменти и отговори."
+    "enableCredentialRedactionDesc": "Изчиства API ключове, токени, частни ключове и JWT от съобщения, повиквания на инструменти и отговори.",
+    "pricingAutoSyncDisabled": "Automatic Sync Disabled",
+    "pricingAutoSyncEnabled": "Automatic Sync Enabled",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
   },
   "contextRtk": {
     "title": "RTK Engine",
