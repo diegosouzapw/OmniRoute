@@ -7212,6 +7212,10 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "Chuyển ngữ cảnh thành hình ảnh (Claude Fable 5, định tuyến trực tiếp)."
+      },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7517,7 +7521,9 @@
     "cacheOpt": "Cache Optimized",
     "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover."
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
+    "compressionModeCodexResponses": "Đầu ra công cụ của Responses",
+    "compressionModeCodexResponsesDesc": "Nén thận trọng cho các đầu ra shell, patch, tìm kiếm, build và JSON đủ điều kiện"
   },
   "contextRtk": {
     "title": "RTK Engine",

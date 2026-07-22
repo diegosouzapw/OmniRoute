@@ -400,6 +400,16 @@ export function notionThreadSessionStore(
 
 /** Client-supplied thread continuity pin: body (`notion_thread_id`/`thread_id`) or
  * the `X-Notion-Thread-Id` header (case-insensitive). */
+/**
+ * A Notion page/thread id is a UUID (32 hex chars, dashed or undashed). Reject
+ * anything else so a client cannot pin/poison the session cache with an arbitrary
+ * string (defense against cross-tenant thread-id injection — see #7900 review).
+ */
+export function isValidNotionThreadId(id: string): boolean {
+  const t = id.trim().replace(/-/g, "");
+  return /^[0-9a-f]{32}$/i.test(t);
+}
+
 export function readClientThreadId(
   body: NotionThreadRequestBody,
   headers?: Record<string, string>
@@ -408,12 +418,31 @@ export function readClientThreadId(
     (typeof body.notion_thread_id === "string" && body.notion_thread_id.trim()) ||
     (typeof body.thread_id === "string" && body.thread_id.trim()) ||
     "";
-  if (fromBody) return fromBody;
+  if (fromBody) return isValidNotionThreadId(fromBody) ? fromBody : "";
   if (!headers) return "";
   for (const [k, v] of Object.entries(headers)) {
     if (k.toLowerCase() === "x-notion-thread-id" && typeof v === "string" && v.trim()) {
-      return v.trim();
+      const h = v.trim();
+      return isValidNotionThreadId(h) ? h : "";
     }
   }
   return "";
+}
+
+/**
+ * Short FNV-1a hash of a caller's Notion cookie, used to namespace the thread-session
+ * cache PER CALLER. Without this, two users of the SAME Notion space share one cache
+ * key (spaceId is space-, not user-scoped), so one user's thread could be served to
+ * another (cross-tenant IDOR, #7900 review). The raw cookie is never stored — only this
+ * non-reversible digest.
+ */
+export function hashNotionCallerCookie(cookie: string): string {
+  const raw = (cookie || "").trim();
+  if (!raw) return "anon";
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < raw.length; i++) {
+    hash ^= raw.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
 }

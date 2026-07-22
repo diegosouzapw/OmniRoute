@@ -40,7 +40,11 @@ export {
   transformModelsDevToPricing,
   transformModelsDevToCapabilities,
 } from "./modelsDevSync/transform";
-export type { ModelCapabilityEntry, CapabilitiesByProvider } from "./modelsDevSync/transform";
+export type {
+  ModelCapabilityEntry,
+  CapabilitiesByProvider,
+  PricingByProvider,
+} from "./modelsDevSync/transform";
 
 // ─── Types ───────────────────────────────────────────────
 

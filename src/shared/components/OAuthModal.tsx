@@ -14,6 +14,7 @@ import {
   parseCodexSessionJson,
 } from "@/lib/oauth/utils/codexSessionImport";
 import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
+import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
 
 export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
 
@@ -261,15 +262,24 @@ export default function OAuthModal({
     [authData, provider, onSuccess, reauthConnection]
   );
 
-  // Save a raw API token directly (windsurf / devin-cli import-token path)
+  // Save a raw API token directly (windsurf / devin-cli import-token path).
+  // For grok-cli, require the full auth.json object so refresh_token is persisted (#7610).
   const handleSaveToken = useCallback(async () => {
-    const token = pasteToken.trim();
-    if (!token || !provider) return;
+    const raw = pasteToken.trim();
+    if (!raw || !provider) return;
     setSavingToken(true);
     setError(null);
     try {
-      // POST to /exchange with a synthetic "import_token" payload.
-      // The windsurf provider's mapTokens() handles a bare accessToken/apiKey field.
+      let token: string | Record<string, unknown> = raw;
+      if (provider === "grok-cli") {
+        const parsed = parseGrokCliPasteToken(raw);
+        if (!parsed.ok) {
+          setError(parsed.error);
+          return;
+        }
+        token = parsed.token;
+      }
+      // POST to /import-token. Grok accepts full auth.json; windsurf/devin accept bare keys.
       const res = await fetch(`/api/oauth/${provider}/import-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -938,7 +948,7 @@ export default function OAuthModal({
               className={`text-sm px-3 py-1 rounded-t ${showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
               onClick={handlePasteMode}
             >
-              {provider === "grok-cli" ? "JWT Token" : "Paste API Key"}
+              {provider === "grok-cli" ? "Import auth.json" : "Paste API Key"}
             </button>
           </div>
         )}
@@ -950,16 +960,26 @@ export default function OAuthModal({
               {provider === "windsurf"
                 ? 'In the Windsurf / VS Code IDE, run the "Windsurf: Provide Auth Token" command from the command palette (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it below. Opening windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the flow.'
                 : provider === "grok-cli"
-                  ? 'Paste your Grok Build JWT token from ~/.grok/auth.json (the "key" field value). You can get it by running `grok login` in your terminal.'
+                  ? 'Paste the FULL contents of ~/.grok/auth.json (not just the JWT "key" field). A bare JWT has no refresh_token, so the connection dies after expiry (#7610). Prefer the dedicated Import auth.json modal when available.'
                   : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
             </p>
-            <Input
-              value={pasteToken}
-              onChange={(e) => setPasteToken(e.target.value)}
-              placeholder={provider === "grok-cli" ? "eyJ..." : "ws-..."}
-              type="password"
-              label={provider === "grok-cli" ? "JWT Token" : "API Key / Token"}
-            />
+            {provider === "grok-cli" ? (
+              <textarea
+                className="w-full h-32 p-3 text-sm font-mono bg-input border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                value={pasteToken}
+                onChange={(e) => setPasteToken(e.target.value)}
+                placeholder='{"https://auth.x.ai::clientId": {"key": "eyJ...", "refresh_token": "..."}}'
+                aria-label="Grok Build auth.json"
+              />
+            ) : (
+              <Input
+                value={pasteToken}
+                onChange={(e) => setPasteToken(e.target.value)}
+                placeholder="ws-..."
+                type="password"
+                label="API Key / Token"
+              />
+            )}
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div className="flex gap-2">
               <Button
