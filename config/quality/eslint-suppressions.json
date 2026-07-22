@@ -74,9 +74,24 @@
       "count": 1
     }
   },
+  "open-sse/handlers/responseSanitizer.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/handlers/responseTranslator.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "open-sse/handlers/search.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 34
+    }
+  },
+  "open-sse/handlers/sseParser.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "open-sse/handlers/videoGeneration.ts": {
@@ -104,9 +119,22 @@
       "count": 2
     }
   },
+  "open-sse/mcp-server/audit.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "open-sse/mcp-server/server.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
+    },
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/mcp-server/tools/advancedTools.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "open-sse/mcp-server/tools/gamificationTools.ts": {
@@ -114,19 +142,47 @@
       "count": 2
     }
   },
+  "open-sse/mcp-server/tools/pickFastestModel.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "open-sse/mcp-server/tools/pluginTools.ts": {
     "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "open-sse/services/agentrouterQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/bailianQuotaFetcher.ts": {
+    "no-restricted-syntax": {
       "count": 1
     }
   },
   "open-sse/services/batchProcessor.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 17
+    },
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "open-sse/services/claudeWebAutoRefresh.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
+    }
+  },
+  "open-sse/services/codexQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/codexUsageQuotas.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "open-sse/services/compression/engines/headroom/gcf/decode_generic.ts": {
@@ -149,9 +205,39 @@
       "count": 1
     }
   },
+  "open-sse/services/crofUsageFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/deepseekQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/genericQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "open-sse/services/inAppLoginService.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
+    }
+  },
+  "open-sse/services/opencodeOllamaUsage.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/opencodeQuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/rateLimitManager.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "open-sse/services/taskAwareRouter.ts": {
@@ -169,9 +255,24 @@
       "count": 2
     }
   },
+  "open-sse/services/usage/scalars.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "open-sse/services/v0QuotaFetcher.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "open-sse/utils/setupPolyfill.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
+    }
+  },
+  "open-sse/utils/streamPayloadCollector.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "src/app/(dashboard)/dashboard/HomePageClient.tsx": {
@@ -234,9 +335,94 @@
       "count": 1
     }
   },
+  "src/domain/costRules.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
   "src/hooks/useLiveDashboard.ts": {
     "react-hooks/exhaustive-deps": {
       "count": 2
+    }
+  },
+  "src/lib/a2a/skills/healthReport.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/combos/controlCenter.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/db/comboForecast.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/db/domainState.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/db/prompts.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/db/providers/lazyConnectionView.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/db/tokenLimits.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/monitoring/providerHealthAutopilot.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/monitoring/providerHealthMatrix.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/semanticCache.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/apiKeySelfService.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/apiKeyUsageLimits.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/costCalculator.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/internalUsageCommand.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/providerWindowCosts.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/usage/routeExplain.ts": {
+    "no-restricted-syntax": {
+      "count": 1
     }
   },
   "src/shared/components/CursorAuthModal.tsx": {
@@ -266,6 +452,16 @@
   },
   "src/shared/components/Sidebar.tsx": {
     "@next/next/no-img-element": {
+      "count": 1
+    }
+  },
+  "src/shared/contracts/quota.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/sse/services/auth.ts": {
+    "no-restricted-syntax": {
       "count": 1
     }
   },
