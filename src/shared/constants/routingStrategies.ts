@@ -17,6 +17,7 @@ export const ROUTING_STRATEGY_VALUES = [
   "context-optimized",
   "fusion",
   "pipeline",
+  "debate",
 ] as const;
 
 export type RoutingStrategyValue = (typeof ROUTING_STRATEGY_VALUES)[number];
@@ -210,6 +211,13 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     combosDescKey: "pipelineDesc",
     settingsDescKey: "pipelineDesc",
     icon: "linear_scale",
+  },
+  {
+    value: "debate",
+    labelKey: "debate",
+    combosDescKey: "debateDesc",
+    settingsDescKey: "debateDesc",
+    icon: "forum",
   },
 ];
 

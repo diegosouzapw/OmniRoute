@@ -27,6 +27,7 @@ import {
   bestComboForTaskInput,
   explainRouteInput,
   pickFastestModelInput,
+  councilInput,
   getSessionSnapshotInput,
   dbHealthCheckInput,
   syncPricingInput,
@@ -65,6 +66,7 @@ import {
   handleOneproxyStats,
 } from "./tools/advancedTools.ts";
 import { handlePickFastestModel } from "./tools/pickFastestModel.ts";
+import { handleCouncil } from "./tools/councilTool.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
 import { agentSkillTools } from "./tools/agentSkillTools.ts";
@@ -876,6 +878,18 @@ export function createMcpServer(): McpServer {
     },
     withScopeEnforcement("omniroute_pick_fastest_model", (args) =>
       handlePickFastestModel(pickFastestModelInput.parse(args))
+    )
+  );
+
+  server.registerTool(
+    "omniroute_council",
+    {
+      description:
+        "Convenes a multi-model AI council: every connected model (or an explicit panel) debates and rebuts, then a judge synthesizes one authoritative answer.",
+      inputSchema: councilInput,
+    },
+    withScopeEnforcement("omniroute_council", (args) =>
+      handleCouncil(councilInput.parse(args))
     )
   );
 

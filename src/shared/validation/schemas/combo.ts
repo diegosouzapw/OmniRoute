@@ -235,6 +235,23 @@ export const comboRuntimeConfigSchema = z
       })
       .strict()
       .optional(),
+    // Debate strategy (open-sse/services/debate.ts): extends fusion with N rounds
+    // of adversarial refinement before judge synthesis. `judgeModel` (above) applies
+    // to both fusion and debate. `debateTuning.debateRounds` controls the total
+    // number of rounds (including the initial fan-out, min 1, default 2).
+    debateTuning: z
+      .object({
+        debateRounds: z.coerce.number().int().min(1).max(10).optional(),
+        minPanel: z.coerce.number().int().min(1).max(50).optional(),
+        stragglerGraceMs: z.coerce.number().int().min(0).max(120_000).optional(),
+        panelHardTimeoutMs: z.coerce.number().int().min(1000).max(600_000).optional(),
+        maxPanel: z.coerce.number().int().min(1).max(200).optional(),
+        // Mean-pairwise-Jaccard threshold (0..1) at which the debate stops early
+        // because the panel converged. Values > 1 disable early stop. Default 0.85.
+        consensusThreshold: z.coerce.number().min(0).max(2).optional(),
+      })
+      .strict()
+      .optional(),
     // Context window requirements for combo target filtering and sorting.
     // minContextWindow: filters out models with context windows below this threshold.
     // preferLargeContext: sorts remaining targets by context size (descending).

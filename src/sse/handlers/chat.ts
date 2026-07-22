@@ -973,7 +973,7 @@ export function buildClientRawRequest(request: Request, body: unknown) {
  * extracted to focused helpers. This function orchestrates the credential
  * retry loop.
  */
-async function handleSingleModelChat(
+export async function handleSingleModelChat(
   body: any,
   modelStr: string,
   clientRawRequest: any = null,

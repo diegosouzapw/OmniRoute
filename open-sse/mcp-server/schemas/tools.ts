@@ -12,6 +12,7 @@
 import { z } from "zod";
 import { toolSearchTool } from "./toolSearch.ts";
 import { pickFastestModelTool } from "./pickFastestModel.ts";
+import { councilTool } from "./council.ts";
 import {
   AUTO_ROUTING_STRATEGY_VALUES,
   ROUTING_STRATEGY_VALUES,
@@ -24,6 +25,7 @@ import {
 export type { AuditLevel, McpToolDefinition } from "./toolDefinition.ts";
 import type { McpToolDefinition } from "./toolDefinition.ts";
 export { pickFastestModelInput, pickFastestModelOutput } from "./pickFastestModel.ts";
+export { councilInput, councilOutput } from "./council.ts";
 
 // ============ Phase 1: Essential Tools (8) ============
 
@@ -1469,6 +1471,7 @@ export const MCP_TOOLS = [
   agentSkillsGetTool,
   agentSkillsCoverageTool,
   pickFastestModelTool,
+  councilTool,
 ] as const;
 
 export const MCP_ESSENTIAL_TOOLS = MCP_TOOLS.filter((t) => t.phase === 1);

@@ -516,6 +516,14 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
     icon: "share",
   },
   {
+    id: "council",
+    href: "/dashboard/council",
+    i18nKey: "council",
+    labelFallback: "AI Council",
+    subtitleFallback: "Multi-model adversarial debate",
+    icon: "groups",
+  },
+  {
     id: "chaos-config",
     href: "/dashboard/chaos",
     i18nKey: "chaosConfig",

@@ -128,6 +128,7 @@ import {
   waitForCooldownAwareRetry,
 } from "../../src/sse/services/cooldownAwareRetry.ts";
 import { handleFusionChat, type FusionTuning } from "./fusion.ts";
+import { handleDebateChat, type DebateTuning } from "./debate.ts";
 import { handlePipelineChat, type PipelineStep } from "./pipeline.ts";
 import {
   TRANSIENT_FOR_SEMAPHORE,
@@ -811,10 +812,14 @@ export async function handleComboChat({
     cfg.fusionTuning && typeof cfg.fusionTuning === "object"
       ? (cfg.fusionTuning as FusionTuning)
       : undefined;
-  if (strategy !== "fusion" && (judgeModel || fusionTuning)) {
+  const debateTuning =
+    cfg.debateTuning && typeof cfg.debateTuning === "object"
+      ? (cfg.debateTuning as DebateTuning)
+      : undefined;
+  if (strategy !== "fusion" && strategy !== "debate" && (judgeModel || fusionTuning)) {
     log.warn(
       "COMBO",
-      `Combo "${combo.name}" sets config.judgeModel/fusionTuning but strategy is "${strategy}" — these fields are only consumed by the fusion strategy and will be ignored (#6455)`
+      `Combo "${combo.name}" sets config.judgeModel/fusionTuning but strategy is "${strategy}" — these fields are only consumed by the fusion/debate strategies and will be ignored (#6455)`
     );
   }
   if (strategy === "fusion") {
@@ -836,6 +841,31 @@ export async function handleComboChat({
       comboName: combo.name,
       judgeModel,
       tuning: fusionTuning,
+    });
+  }
+
+  // Debate strategy: multi-round adversarial panel + judge synthesis. Each panel model
+  // independently answers (round 0), then sees all peers and rebuts/refines (rounds 1..N),
+  // then a judge synthesizes the full debate into one authoritative answer.
+  if (strategy === "debate") {
+    const debateModels = (combo.models || [])
+      .map((m) => {
+        if (typeof m === "string") return m;
+        if (m && typeof m === "object") {
+          const obj = m as Record<string, unknown>;
+          if (typeof obj.model === "string") return obj.model;
+        }
+        return null;
+      })
+      .filter((m): m is string => Boolean(m));
+    return handleDebateChat({
+      body,
+      models: debateModels,
+      handleSingleModel: handleSingleModelWithTimeout,
+      log,
+      comboName: combo.name,
+      judgeModel,
+      tuning: debateTuning,
     });
   }
 
