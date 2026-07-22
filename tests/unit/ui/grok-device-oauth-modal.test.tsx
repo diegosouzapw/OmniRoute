@@ -92,7 +92,7 @@ describe("OAuthModal Grok Device Code", () => {
     expect(element.textContent).toContain("ABCD-EFGH");
     expect(element.textContent).toContain("30:00");
     expect(element.textContent).toContain("Browser Login");
-    expect(element.textContent).toContain("JWT Token");
+    expect(element.textContent).toContain("Import auth.json");
     expect(
       element.querySelector('a[href="https://accounts.x.ai/oauth2/device?user_code=ABCD-EFGH"]')
     ).toBeTruthy();
@@ -204,7 +204,7 @@ describe("OAuthModal Grok Device Code", () => {
     expect(fetchMock.mock.calls[0]?.[0].toString()).toContain("/api/oauth/grok-cli/device-code");
     expect(element.textContent).toContain("Device Code");
     expect(element.textContent).toContain("Browser Login");
-    expect(element.textContent).toContain("JWT Token");
+    expect(element.textContent).toContain("Import auth.json");
 
     const findButton = (label: string) =>
       Array.from(element.querySelectorAll("button")).find((b) => b.textContent === label);
@@ -245,5 +245,181 @@ describe("OAuthModal Grok Device Code", () => {
       String(url).includes("/device-code")
     ).length;
     expect(deviceCodeCallsAfter).toBeGreaterThan(deviceCodeCallsBefore);
+  });
+});
+
+// #7610: the "Import auth.json" paste path must require the FULL ~/.grok/auth.json
+// object (including refresh_token), not just the bare JWT "key" — otherwise the
+// created connection can never auto-refresh and dies at expiry. These tests drive
+// parseGrokCliPasteToken() behaviorally through the rendered component instead of
+// regex-matching the component source, so they actually catch regressions in the
+// branching logic (bare JWT, auth.json missing refresh_token, multiple auth.json
+// entries, valid full auth.json).
+describe("OAuthModal Grok Build paste-import auth.json (#7610)", () => {
+  beforeEach(() => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-13T00:00:00Z"));
+  });
+
+  afterEach(() => {
+    for (const { root, element } of roots.splice(0)) {
+      act(() => root.unmount());
+      element.remove();
+    }
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  function enterPasteMode(fetchMock: ReturnType<typeof vi.fn>) {
+    vi.stubGlobal("fetch", fetchMock);
+    vi.spyOn(window, "open").mockImplementation(() => null);
+    const { element } = renderModal(true);
+    const importButton = Array.from(element.querySelectorAll("button")).find(
+      (b) => b.textContent === "Import auth.json"
+    );
+    expect(importButton).toBeTruthy();
+    act(() => {
+      importButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    const textarea = element.querySelector('textarea[aria-label="Grok Build auth.json"]');
+    expect(textarea).toBeTruthy();
+    const saveButton = Array.from(element.querySelectorAll("button")).find(
+      (b) => b.textContent === "Save Connection" || b.textContent === "Saving…"
+    );
+    expect(saveButton).toBeTruthy();
+    return { element, textarea: textarea as HTMLTextAreaElement, saveButton: saveButton! };
+  }
+
+  function setPasteValue(textarea: HTMLTextAreaElement, value: string) {
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLTextAreaElement.prototype,
+      "value"
+    )!.set!;
+    setter.call(textarea, value);
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  it("rejects a bare Grok JWT paste with the #7610 guidance message", async () => {
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    const { element, textarea, saveButton } = enterPasteMode(fetchMock);
+
+    act(() => {
+      setPasteValue(textarea, "eyJhbGciOiJIUzI1NiJ9.bare.jwt");
+    });
+    await flushEffects();
+
+    act(() => {
+      saveButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushEffects();
+
+    expect(element.textContent).toContain(
+      'Do not paste only the JWT "key" field'
+    );
+    // No import-token request should have been fired — validation must short-circuit.
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/import-token"))
+    ).toBe(false);
+  });
+
+  it("rejects a full auth.json missing refresh_token", async () => {
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    const { element, textarea, saveButton } = enterPasteMode(fetchMock);
+
+    const authJsonNoRefresh = JSON.stringify({
+      "https://auth.x.ai::clientId": { key: "eyJhbGciOiJIUzI1NiJ9.no.refresh" },
+    });
+    act(() => {
+      setPasteValue(textarea, authJsonNoRefresh);
+    });
+    await flushEffects();
+
+    act(() => {
+      saveButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushEffects();
+
+    expect(element.textContent).toContain("auth.json is missing refresh_token");
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/import-token"))
+    ).toBe(false);
+  });
+
+  it("accepts a valid full auth.json and POSTs the parsed object to import-token", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/import-token")) {
+        expect(init?.method).toBe("POST");
+        const body = JSON.parse(String(init?.body));
+        expect(body.token).toEqual(validAuthJson);
+        return new Response(JSON.stringify({ success: true }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ success: false, pending: true }), { status: 200 });
+    });
+    const validAuthJson = {
+      "https://auth.x.ai::clientId": {
+        key: "eyJhbGciOiJIUzI1NiJ9.valid.jwt",
+        refresh_token: "refresh-abc-123",
+      },
+    };
+    const { element, textarea, saveButton } = enterPasteMode(fetchMock);
+
+    act(() => {
+      setPasteValue(textarea, JSON.stringify(validAuthJson));
+    });
+    await flushEffects();
+
+    act(() => {
+      saveButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushEffects();
+
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/import-token"))
+    ).toBe(true);
+    expect(element.textContent).not.toContain("auth.json is missing refresh_token");
+    expect(element.textContent).not.toContain('Do not paste only the JWT "key"');
+  });
+
+  it("accepts a multi-entry auth.json where refresh_token lives on a different entry than the first JWT key", async () => {
+    // Real ~/.grok/auth.json nests credentials per-endpoint; parseGrokCliPasteToken()
+    // scans ALL entries and only requires that SOME entry carrying a JWT also carry
+    // a refresh_token — it must not reject just because the first entry lacks one.
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/import-token")) {
+        const body = JSON.parse(String(init?.body));
+        expect(body.token).toEqual(multiEntry);
+        return new Response(JSON.stringify({ success: true }), { status: 200 });
+      }
+      return new Response(JSON.stringify({ success: false, pending: true }), { status: 200 });
+    });
+    const multiEntry = {
+      "https://auth.x.ai::clientId": {
+        key: "eyJhbGciOiJIUzI1NiJ9.no.refresh.here",
+      },
+      "https://auth.x.ai::otherClientId": {
+        key: "eyJhbGciOiJIUzI1NiJ9.has.refresh",
+        refresh_token: "refresh-xyz-789",
+      },
+    };
+    const { element, textarea, saveButton } = enterPasteMode(fetchMock);
+
+    act(() => {
+      setPasteValue(textarea, JSON.stringify(multiEntry));
+    });
+    await flushEffects();
+
+    act(() => {
+      saveButton.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushEffects();
+
+    expect(element.textContent).not.toContain("auth.json is missing refresh_token");
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/import-token"))
+    ).toBe(true);
   });
 });
