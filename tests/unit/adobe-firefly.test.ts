@@ -52,7 +52,7 @@ import { getExecutor } from "../../open-sse/executors/index.ts";
 // --- Registry --------------------------------------------------------------
 
 test("adobe-firefly is registered in WEB_COOKIE_PROVIDERS with a webCookie risk notice", () => {
-  const entry = (WEB_COOKIE_PROVIDERS as Record<string, any>)["adobe-firefly"];
+  const entry = (WEB_COOKIE_PROVIDERS as Record<string, unknown>)["adobe-firefly"];
   assert.ok(entry, "adobe-firefly must exist in WEB_COOKIE_PROVIDERS");
   assert.equal(entry.id, "adobe-firefly");
   assert.equal(entry.alias, "firefly");
@@ -62,7 +62,7 @@ test("adobe-firefly is registered in WEB_COOKIE_PROVIDERS with a webCookie risk 
 });
 
 test("adobe-firefly is registered in IMAGE_PROVIDERS with adobe-firefly-image format", () => {
-  const entry = (IMAGE_PROVIDERS as Record<string, any>)["adobe-firefly"];
+  const entry = (IMAGE_PROVIDERS as Record<string, unknown>)["adobe-firefly"];
   assert.ok(entry);
   assert.equal(entry.format, "adobe-firefly-image");
   assert.match(entry.baseUrl, /firefly-3p\.ff\.adobe\.io/);
@@ -70,7 +70,7 @@ test("adobe-firefly is registered in IMAGE_PROVIDERS with adobe-firefly-image fo
 });
 
 test("adobe-firefly is registered in VIDEO_PROVIDERS with adobe-firefly-video format", () => {
-  const entry = (VIDEO_PROVIDERS as Record<string, any>)["adobe-firefly"];
+  const entry = (VIDEO_PROVIDERS as Record<string, unknown>)["adobe-firefly"];
   assert.ok(entry);
   assert.equal(entry.format, "adobe-firefly-video");
   assert.match(entry.baseUrl, /3p-videos/);
@@ -81,9 +81,11 @@ test("getExecutor(adobe-firefly) rejects chat completions", async () => {
   const executor = getExecutor("adobe-firefly");
   assert.ok(executor);
   const result = await executor.execute({
+    model: "adobe-firefly/nano-banana-pro",
     body: { model: "adobe-firefly/nano-banana-pro", messages: [{ role: "user", content: "hi" }] },
+    stream: false,
     credentials: { apiKey: "tok" },
-  } as any);
+  });
   assert.ok(result.response, "executor must return a Response wrapper");
   assert.equal(result.response.status, 400);
   const bodyText = await result.response.text();
@@ -166,8 +168,8 @@ test("buildAdobeImagePayload produces nano and gpt-image shapes", () => {
   });
   assert.equal(nano.modelId, "gemini-flash");
   assert.equal(nano.modelVersion, "nano-banana-2");
-  assert.deepEqual((nano.size as any), { width: 2752, height: 1536 });
-  assert.equal((nano.modelSpecificPayload as any).aspectRatio, "16:9");
+  assert.deepEqual(nano.size, { width: 2752, height: 1536 });
+  assert.equal((nano.modelSpecificPayload as Record<string, unknown>).aspectRatio, "16:9");
 
   const gpt = buildAdobeImagePayload({
     prompt: "a dog",
@@ -177,9 +179,9 @@ test("buildAdobeImagePayload produces nano and gpt-image shapes", () => {
     quality: "high",
   });
   assert.equal(gpt.modelId, "gpt-image");
-  assert.equal((gpt.generationSettings as any).detailLevel, 5);
+  assert.equal((gpt.generationSettings as Record<string, unknown>).detailLevel, 5);
   // Live browser body uses size:"auto" and no top-level size/outputResolution
-  assert.equal((gpt.modelSpecificPayload as any).size, "auto");
+  assert.equal((gpt.modelSpecificPayload as Record<string, unknown>).size, "auto");
   assert.equal(gpt.size, undefined);
   assert.equal(gpt.outputResolution, undefined);
 });
@@ -202,7 +204,11 @@ test("buildAdobeVideoPayload produces sora and veo shapes", () => {
   });
   assert.equal(veo.modelId, "veo");
   assert.equal(veo.modelVersion, "3.1-generate");
-  assert.equal((veo.modelSpecificPayload as any).parameters.durationSeconds, 6);
+  assert.equal(
+    (veo.modelSpecificPayload as Record<string, Record<string, unknown>>).parameters
+      .durationSeconds,
+    6
+  );
   assert.equal(veo.generateAudio, true);
 });
 
@@ -569,8 +575,9 @@ test("cookie exchange rejects guest IMS tokens", async () => {
         "ff_session_guid=abc; aux_sid=xyz",
         fetchImpl as typeof fetch
       ),
-    (err: any) => {
-      assert.match(String(err?.message || err), /GUEST|guest|Bearer/i);
+    (err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      assert.match(message, /GUEST|guest|Bearer/i);
       return true;
     }
   );
@@ -667,7 +674,9 @@ test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async ()
       return jsonResponse(200, { access_token: userTok, account_type: "type1" });
     }
     if (String(url).includes("generate-async")) {
-      const auth = (init?.headers as any)?.Authorization || (init?.headers as Headers)?.get?.("Authorization");
+      const auth =
+        (init?.headers as Record<string, string> | undefined)?.Authorization ||
+        (init?.headers as Headers)?.get?.("Authorization");
       // headers object from buildAdobeSubmitHeaders
       const headerAuth =
         typeof init?.headers === "object" && init.headers && !("get" in (init.headers as object))

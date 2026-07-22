@@ -320,25 +320,17 @@ export class AdobeFireflyError extends Error {
 
 /** Public x-api-key + primary IMS client_id for firefly.adobe.com (`clio-playground-web`). */
 export function adobeFireflyApiKey(): string {
-  return (
-    resolvePublicCred("adobe_firefly_api_key", "ADOBE_FIREFLY_API_KEY") || "clio-playground-web"
-  );
+  return resolvePublicCred("adobe_firefly_api_key", "ADOBE_FIREFLY_API_KEY");
 }
 
 /** Express IMS client_id fallback for cookie exchange (`projectx_webapp`). */
 export function adobeFireflyExpressClientId(): string {
-  return (
-    resolvePublicCred("adobe_firefly_express_client_id", "ADOBE_FIREFLY_EXPRESS_CLIENT_ID") ||
-    "projectx_webapp"
-  );
+  return resolvePublicCred("adobe_firefly_express_client_id", "ADOBE_FIREFLY_EXPRESS_CLIENT_ID");
 }
 
 /** Public x-api-key for GET firefly.adobe.io/v1/credits/balance (`SunbreakWebUI1`). */
 export function adobeFireflyBalanceApiKey(): string {
-  return (
-    resolvePublicCred("adobe_firefly_balance_api_key", "ADOBE_FIREFLY_BALANCE_API_KEY") ||
-    "SunbreakWebUI1"
-  );
+  return resolvePublicCred("adobe_firefly_balance_api_key", "ADOBE_FIREFLY_BALANCE_API_KEY");
 }
 
 /** Decode IMS JWT payload (no signature verification — client-side claim read only). */
