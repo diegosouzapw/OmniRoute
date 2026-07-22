@@ -752,7 +752,7 @@ same process on one port, so there is no separate CLI-only package today.
 - 🌍 **Website**: [omniroute.online](https://omniroute.online)
 - 🐙 **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 - 🐛 **Issues**: [report a bug](https://github.com/diegosouzapw/OmniRoute/issues) (attach `npm run system-info` output)
-- 🤝 **Contributing**: see [CONTRIBUTING.md](CONTRIBUTING.md) or pick a `good first issue`
+- 🤝 **Contributing**: see [CONTRIBUTING.md](CONTRIBUTING.md), [Branching & Release Model](docs/ops/BRANCHING_MODEL.md), or pick a `good first issue`
 
 </div>
 
@@ -846,6 +846,7 @@ same process on one port, so there is no separate CLI-only package today.
 | Document                                           | Description                                                                                                                                                                              |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [Contributing](CONTRIBUTING.md)                    | Development setup and guidelines                                                                                                                                                         |
+| [Branching & Release Model](docs/ops/BRANCHING_MODEL.md) | Where PRs target (`release/*`), what `main` and tags mean                                                                                                                              |
 | [Changelog](CHANGELOG.md)                          | Full per-version release history                                                                                                                                                         |
 | [Security Policy](SECURITY.md)                     | Vulnerability reporting and security practices                                                                                                                                           |
 | [i18n Guide](docs/guides/I18N.md)                  | 40+ language support, translation workflow, RTL                                                                                                                                          |
@@ -966,10 +967,11 @@ same process on one port, so there is no separate CLI-only package today.
 ### How to Contribute
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Branch from the **active** `release/vX.Y.Z` tip (not `main`) — see [Branching & Release Model](docs/ops/BRANCHING_MODEL.md)
+3. Create your feature branch (`git checkout -b feat/amazing-feature`)
+4. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+5. Push to the branch (`git push origin feat/amazing-feature`)
+6. Open a Pull Request with **base = that `release/vX.Y.Z` branch**
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
