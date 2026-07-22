@@ -448,7 +448,9 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     color: "#1677FF",
     textIcon: "AL",
     website: "https://developer.ant-ling.com/en/docs/",
+    hasFree: true,
+    freeNote: "500,000 free tokens per day per account (resets 02:00 UTC+8, no rollover)",
     authHint:
-      "Model ids (Ling-2.6-1T, Ring-2.6-1T) are best-effort from inclusionAI/Ant Group's public docs and NOT verified against a live /v1/models response — developer.ant-ling.com is the only documented onboarding portal. Get an API key there, then paste it here; the catalog is corrected via live model discovery once a real key is available.",
+      "Register and create an API key at the Ant Ling API console (https://chat.ant-ling.com/open), then paste it here. OmniRoute routes chat traffic to https://api.ant-ling.com/v1/chat/completions; the provider is OpenAI-compatible and also exposes an Anthropic-compatible surface.",
   },
 };

@@ -9,14 +9,16 @@ export const ant_lingProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "bearer",
   models: [
-    // Ling-2.6-1T (non-reasoning, 262K ctx) stays first as the provider default;
-    // Ring-2.6-1T is the reasoning variant. Both ids are BEST-EFFORT per
-    // inclusionAI/Ant Group's public docs — developer.ant-ling.com is the only
-    // documented onboarding portal, and this baseUrl was found via smoke test
-    // (not published in the public docs). NOT verified against a live
-    // /v1/models response (requires an API key we don't have). Correct these
-    // ids via live model discovery once a real key is available.
+    // Ids and casing come from Ant Ling's own docs: the quickstart sample uses
+    // base_url "https://api.ant-ling.com/v1" with model "Ling-2.6-1T", and the
+    // pricing page bills exactly these three. Ling-2.6-1T stays first so it
+    // remains the provider default (flagship).
+    //
+    // The Ming family (Ming-Flash-Omni, Ming-Light) is deliberately NOT listed:
+    // it is documented as open-source/Ling Studio only and does not appear on
+    // the pricing page, i.e. it is not served over this chat-completions API.
     { id: "Ling-2.6-1T", name: "Ling 2.6 1T" },
     { id: "Ring-2.6-1T", name: "Ring 2.6 1T" },
+    { id: "Ling-2.6-flash", name: "Ling 2.6 Flash" },
   ],
 };

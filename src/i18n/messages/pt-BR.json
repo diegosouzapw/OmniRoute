@@ -5720,7 +5720,7 @@
       "bailian-coding-plan": "Conecte o Alibaba Coding Plan com uma chave de API.",
       "bedrock": "Integração nativa do Bedrock: a descoberta de modelos usa os modelos de fundação e perfis de inferência do Bedrock, enquanto o chat usa as APIs regionais Bedrock Runtime Converse/ConverseStream.",
       "anthropic": "Conecte a Anthropic com uma chave de API.",
-      "ant-ling": "Os IDs de modelo (Ling-2.6-1T, Ring-2.6-1T) são um melhor esforço com base na documentação pública da inclusionAI/Ant Group e NÃO foram verificados contra uma resposta real de /v1/models — developer.ant-ling.com é o único portal de cadastro documentado. Obtenha uma chave de API lá e cole aqui; o catálogo é corrigido via descoberta de modelos ao vivo assim que uma chave real estiver disponível.",
+      "ant-ling": "Registre-se e crie uma chave de API no console da Ant Ling (https://chat.ant-ling.com/open) e cole-a aqui. O OmniRoute envia o tráfego de chat para https://api.ant-ling.com/v1/chat/completions; o provedor é compatível com OpenAI e também expõe uma superfície compatível com Anthropic.",
       "api-airforce": "Obtenha sua chave de API em https://panel.api.airforce — endpoint compatível com OpenAI em https://api.airforce/v1",
       "arcee-ai": "Obtenha a chave de API em arcee.ai",
       "azure-ai": "O Foundry usa a interface v1 da OpenAI com nomes de implantação como modelos. O OmniRoute normaliza as URLs de recursos raiz para os endpoints v1 chat e /models.",

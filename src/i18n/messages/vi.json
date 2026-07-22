@@ -5720,7 +5720,7 @@
       "bailian-coding-plan": "Kết nối Alibaba Coding Plan bằng khóa API.",
       "bedrock": "Tích hợp Bedrock gốc: khám phá mô hình dùng các mô hình nền tảng và hồ sơ suy luận Bedrock, còn trò chuyện dùng API Bedrock Runtime Converse/ConverseStream theo khu vực.",
       "anthropic": "Kết nối Anthropic bằng khóa API.",
-      "ant-ling": "Các model id (Ling-2.6-1T, Ring-2.6-1T) chỉ là thông tin tốt nhất có thể lấy từ tài liệu công khai của inclusionAI/Ant Group và CHƯA được xác minh qua phản hồi /v1/models trực tiếp — developer.ant-ling.com là cổng đăng ký duy nhất được ghi nhận. Lấy khóa API tại đó rồi dán vào đây; danh mục sẽ được sửa qua live model discovery khi có khóa thật.",
+      "ant-ling": "Đăng ký và tạo API key tại API console của Ant Ling (https://chat.ant-ling.com/open), rồi dán vào đây. OmniRoute định tuyến lưu lượng chat tới https://api.ant-ling.com/v1/chat/completions; nhà cung cấp tương thích OpenAI và cũng cung cấp giao diện tương thích Anthropic.",
       "api-airforce": "Lấy khóa API của bạn từ https://panel.api.airforce — OpenAI-compatible endpoint at https://api.airforce/v1",
       "arcee-ai": "Lấy khóa API tại arcee.ai",
       "azure-ai": "Foundry dùng giao diện OpenAI v1 với tên deployment làm mô hình. OmniRoute chuẩn hóa URL tài nguyên gốc thành các endpoint trò chuyện v1 và /models.",
