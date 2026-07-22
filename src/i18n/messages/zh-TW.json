@@ -5845,7 +5845,8 @@
     "zedPasteApiKey": "貼上 API 金鑰…",
     "zedSaving": "正在儲存…",
     "zedUnsupportedCredentials": "找到 {count} 個鑰匙圈憑證，但均未匹配支援的提供者",
-    "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費"
+    "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "設定",

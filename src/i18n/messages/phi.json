@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "Buksan ang arena.ai, mag-sign in, pagkatapos ay kopyahin ang buong Cookie header mula sa isang Network request. Isama ang arena-auth-prod-v1.0 at arena-auth-prod-v1.1 (at iba pang mga chunk kung mayroon), mas mainam kung may cf_clearance. Huwag i-paste ang walang lamang arena-auth-prod-v1 cookie lamang. Opsyonal: providerSpecificData.recaptchaV3Token kung nagbabalik pa rin ng 403 ang create-evaluation.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "Link ng kasosyo — sumusuporta sa OmniRoute nang walang karagdagang gastos sa iyo"
+    "kimiPartnerLinkNote": "Link ng kasosyo — sumusuporta sa OmniRoute nang walang karagdagang gastos sa iyo",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Mga setting",

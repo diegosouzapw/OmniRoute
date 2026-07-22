@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "سایت arena.ai را باز کنید، وارد شوید، سپس هدر کامل Cookie را از یک درخواست Network کپی کنید. شامل arena-auth-prod-v1.0 و arena-auth-prod-v1.1 (و بخش‌های بعدی در صورت وجود)، ترجیحاً همراه با cf_clearance. فقط کوکی خالی arena-auth-prod-v1 را جای‌گذاری نکنید. اختیاری: providerSpecificData.recaptchaV3Token اگر create-evaluation همچنان خطای 403 برمی‌گرداند.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "لینک همکاری — پشتیبانی از OmniRoute بدون هزینه اضافی برای شما"
+    "kimiPartnerLinkNote": "لینک همکاری — پشتیبانی از OmniRoute بدون هزینه اضافی برای شما",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Settings",

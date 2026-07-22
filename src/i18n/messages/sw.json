@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "Fungua arena.ai, ingia, kisha nakili kichwa kizima cha Cookie kutoka kwa ombi la Network. Jumuisha arena-auth-prod-v1.0 na arena-auth-prod-v1.1 (na vipande zaidi vikiwepo), ikiwezekana pamoja na cf_clearance. Usibandike tu kuki tupu ya arena-auth-prod-v1. Ya hiari: providerSpecificData.recaptchaV3Token ikiwa create-evaluation bado inarudisha 403.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "Kiungo cha mshirika — kinaunga mkono OmniRoute bila gharama ya ziada kwako"
+    "kimiPartnerLinkNote": "Kiungo cha mshirika — kinaunga mkono OmniRoute bila gharama ya ziada kwako",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Settings",

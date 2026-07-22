@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "打开 arena.ai，登录，然后从网络请求中复制完整的 Cookie 请求头。包含 arena-auth-prod-v1.0 和 arena-auth-prod-v1.1（如果存在更多分块也一并包含），最好附带 cf_clearance。请勿仅粘贴空的 arena-auth-prod-v1 cookie。可选：如果 create-evaluation 仍返回 403，可提供 providerSpecificData.recaptchaV3Token。",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "合作伙伴链接 — 支持 OmniRoute，您无需承担额外费用"
+    "kimiPartnerLinkNote": "合作伙伴链接 — 支持 OmniRoute，您无需承担额外费用",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "设置",

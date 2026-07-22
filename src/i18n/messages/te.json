@@ -5947,7 +5947,8 @@
     "lmarenaWebCookieHint": "arena.aiని తెరవండి, సైన్ ఇన్ చేయండి, ఆపై నెట్‌వర్క్ అభ్యర్థన నుండి పూర్తి Cookie హెడర్‌ను కాపీ చేయండి. arena-auth-prod-v1.0 మరియు arena-auth-prod-v1.1 (మరియు మరిన్ని భాగాలు ఉంటే వాటిని) చేర్చండి, ప్రాధాన్యంగా cf_clearanceతో. కేవలం ఖాళీ arena-auth-prod-v1 కుకీని మాత్రమే పేస్ట్ చేయవద్దు. ఐచ్ఛికం: create-evaluation ఇప్పటికీ 403ని అందిస్తే providerSpecificData.recaptchaV3Token.",
     "kimiOfficialSupporterBadge": "Official Supporter",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
-    "kimiPartnerLinkNote": "భాగస్వామి లింక్ — మీకు ఎటువంటి అదనపు ఖర్చు లేకుండా OmniRouteకు మద్దతు ఇస్తుంది"
+    "kimiPartnerLinkNote": "భాగస్వామి లింక్ — మీకు ఎటువంటి అదనపు ఖర్చు లేకుండా OmniRouteకు మద్దతు ఇస్తుంది",
+    "accountSearchPlaceholder": "Search accounts…"
   },
   "settings": {
     "title": "Settings",
