@@ -3857,6 +3857,29 @@
       "stream": "https://api.pioneer.ai/v1/chat/completions"
     }
   },
+  "plamo": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.platform.preferredai.jp/v1/chat/completions",
+      "stream": "https://api.platform.preferredai.jp/v1/chat/completions"
+    }
+  },
   "poe": {
     "format": "openai",
     "headers": {
@@ -4229,6 +4252,29 @@
     "url": {
       "nonStream": "https://api.sambanova.ai/v1/chat/completions",
       "stream": "https://api.sambanova.ai/v1/chat/completions"
+    }
+  },
+  "sarvam": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.sarvam.ai/v1/chat/completions",
+      "stream": "https://api.sarvam.ai/v1/chat/completions"
     }
   },
   "scaleway": {
@@ -4899,6 +4945,29 @@
     "url": {
       "nonStream": "https://server.self-serve.windsurf.com",
       "stream": "https://server.self-serve.windsurf.com"
+    }
+  },
+  "writer": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.writer.com/v1/chat/completions",
+      "stream": "https://api.writer.com/v1/chat/completions"
     }
   },
   "x5lab": {

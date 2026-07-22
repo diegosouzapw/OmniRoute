@@ -250,4 +250,16 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     passthroughModels: true,
     authHint: "Get API key at liquid.ai",
   },
+  writer: {
+    id: "writer",
+    alias: "writer",
+    name: "Writer",
+    icon: "auto_awesome",
+    color: "#111827",
+    textIcon: "WR",
+    website: "https://dev.writer.com",
+    apiHint:
+      "Writer Palmyra is OpenAI-compatible at https://api.writer.com/v1. palmyra-x5 offers a 1M-token context window.",
+    hasFree: false,
+  },
 };
