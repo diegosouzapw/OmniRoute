@@ -7,6 +7,8 @@
  * TaskManager uses `cancelled` (2 L) — the mapping here is explicit and tested.
  */
 
+import { z } from "zod";
+
 import type { A2ATaskManager, TaskState } from "@/lib/a2a/taskManager";
 
 export interface ConductorEvent {
@@ -104,4 +106,145 @@ export function applyConductorEvent(tm: A2ATaskManager, index: Map<string, strin
     }
   }
   if (target !== "submitted") climb(tm, a2aId, target);
+}
+
+// ============ Incremental SSE parser ============
+
+export interface SseFrame {
+  id?: string;
+  event?: string;
+  data: string;
+}
+
+/** Incremental `text/event-stream` parser: feed chunks, get complete frames. Comments (`: ping`) are dropped. */
+export class SseParser {
+  private buffer = "";
+
+  push(chunk: string): SseFrame[] {
+    this.buffer += chunk;
+    const frames: SseFrame[] = [];
+    let cut: number;
+    while ((cut = this.buffer.indexOf("\n\n")) !== -1) {
+      const block = this.buffer.slice(0, cut);
+      this.buffer = this.buffer.slice(cut + 2);
+      const frame: SseFrame = { data: "" };
+      const dataLines: string[] = [];
+      for (const line of block.split("\n")) {
+        if (line.startsWith(":")) continue; // comment/keepalive
+        if (line.startsWith("id:")) frame.id = line.slice(3).trim();
+        else if (line.startsWith("event:")) frame.event = line.slice(6).trim();
+        else if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+      }
+      if (frame.id === undefined && frame.event === undefined && dataLines.length === 0) continue; // pure comment block
+      frame.data = dataLines.join("\n");
+      frames.push(frame);
+    }
+    return frames;
+  }
+}
+
+// ============ Connection loop ============
+
+/** Wire shape of one hub event (the SSE `data:` payload) — untrusted input, Zod-validated. */
+const hubEventSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  payload: z.record(z.string(), z.unknown()),
+});
+
+export interface ConductorBridgeOptions {
+  hubUrl: string;
+  token: string;
+  tm: A2ATaskManager;
+  cursor: { get(): string | null; set(v: string): void };
+  fetchImpl?: typeof fetch;
+  log?: (msg: string) => void;
+  backoffBaseMs?: number;
+}
+
+export interface ConductorBridge {
+  start(): void;
+  stop(): void;
+  state(): "connected" | "reconnecting" | "stopped";
+}
+
+const BACKOFF_CAP_MS = 30_000;
+
+/**
+ * Long-lived consumer: connects to the hub SSE with the persisted cursor, mirrors
+ * events, reconnects with exponential backoff. A hub outage never propagates —
+ * errors are logged and retried; `stop()` aborts for good.
+ */
+export function createConductorBridge(opts: ConductorBridgeOptions): ConductorBridge {
+  const log = opts.log ?? ((msg: string) => console.log(`[conductor-bridge] ${msg}`));
+  const doFetch = opts.fetchImpl ?? fetch;
+  const backoffBase = opts.backoffBaseMs ?? 1_000;
+  const index = new Map<string, string>();
+  let state: "connected" | "reconnecting" | "stopped" = "stopped";
+  let abort: AbortController | null = null;
+  let attempt = 0;
+  let running = false;
+
+  async function readStream(res: Response): Promise<void> {
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error("SSE response without body");
+    const parser = new SseParser();
+    const decoder = new TextDecoder();
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) return;
+      for (const frame of parser.push(decoder.decode(value, { stream: true }))) {
+        let parsed: z.infer<typeof hubEventSchema>;
+        try {
+          parsed = hubEventSchema.parse(JSON.parse(frame.data));
+        } catch {
+          log(`evento SSE malformado ignorado (id=${frame.id ?? "?"})`);
+          continue;
+        }
+        applyConductorEvent(opts.tm, index, parsed);
+        opts.cursor.set(parsed.id); // persisted per event — replay covers any gap on reconnect
+      }
+    }
+  }
+
+  async function loop(): Promise<void> {
+    while (running) {
+      abort = new AbortController();
+      try {
+        const since = opts.cursor.get() ?? "0";
+        const res = await doFetch(`${opts.hubUrl}/v1/events?last_event_id=${encodeURIComponent(since)}`, {
+          headers: { authorization: `Bearer ${opts.token}`, accept: "text/event-stream" },
+          signal: abort.signal,
+        });
+        if (!res.ok) throw new Error(`hub respondeu HTTP ${res.status}`);
+        state = "connected";
+        attempt = 0;
+        log(`conectado ao hub (last_event_id=${since})`);
+        await readStream(res); // resolves when the hub closes the stream
+        throw new Error("stream encerrado pelo hub");
+      } catch (err) {
+        if (!running) break;
+        state = "reconnecting";
+        const wait = Math.min(backoffBase * 2 ** attempt, BACKOFF_CAP_MS);
+        attempt++;
+        log(`conexão caiu (${err instanceof Error ? err.message : String(err)}) — reconectando em ${wait}ms`);
+        await new Promise((resolve) => setTimeout(resolve, wait));
+      }
+    }
+    state = "stopped";
+  }
+
+  return {
+    start() {
+      if (running) return;
+      running = true;
+      void loop();
+    },
+    stop() {
+      running = false;
+      state = "stopped";
+      abort?.abort();
+    },
+    state: () => state,
+  };
 }
