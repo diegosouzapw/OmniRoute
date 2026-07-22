@@ -98,7 +98,123 @@ export const FREE_MODELS: FreeModelSpec[] = [
     model: "duckduckgo-web/gpt-4o-mini",
     displayName: "GPT-4o Mini (DuckDuckGo, known-broken)",
   },
+  {
+    provider: "mistral",
+    model: "mistral/labs-leanstral-1-5-1",
+    displayName: "Leanstral 1.5.1 (Mistral)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/poolside/laguna-s-2.1:free",
+    displayName: "Laguna S 2.1 (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+    displayName: "Nemotron 3 Super 120B (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+    displayName: "Nemotron 3 Ultra 550B (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    displayName: "Nemotron 3 Nano Omni 30B Reasoning (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/google/gemma-4-26b-a4b-it:free",
+    displayName: "Gemma 4 26B (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/google/gemma-4-31b-it:free",
+    displayName: "Gemma 4 31B (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/nvidia/nemotron-3-nano-30b-a3b:free",
+    displayName: "Nemotron 3 Nano 30B (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/openai/gpt-oss-20b:free",
+    displayName: "GPT OSS 20B (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/poolside/laguna-xs-2.1:free",
+    displayName: "Laguna XS 2.1 (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/poolside/laguna-m.1:free",
+    displayName: "Laguna M.1 (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/cohere/north-mini-code:free",
+    displayName: "North Mini Code (OpenRouter)",
+  },
+  {
+    provider: "openrouter",
+    model: "openrouter/nvidia/nemotron-nano-9b-v2:free",
+    displayName: "Nemotron Nano 9B v2 (OpenRouter)",
+  },
+  {
+    provider: "opencode",
+    model: "opencode/nemotron-3-ultra-free",
+    displayName: "Nemotron 3 Ultra Free (OpenCode)",
+  },
+  {
+    provider: "opencode",
+    model: "opencode/north-mini-code-free",
+    displayName: "North Mini Code Free (OpenCode)",
+  },
+  {
+    provider: "opencode",
+    model: "opencode/laguna-s-2.1-free",
+    displayName: "Laguna S 2.1 Free (OpenCode)",
+  },
+  { provider: "opencode", model: "opencode/big-pickle", displayName: "Big Pickle (OpenCode)" },
+  {
+    provider: "opencode",
+    model: "opencode/mimo-v2.5-free",
+    displayName: "MiMo V2.5 Free (OpenCode)",
+  },
 ];
+
+// The batch the operator just enabled/added (2026-07-22): a Cerebras key,
+// "free"-tagged OpenRouter models, and OpenCode's currently-live free roster
+// (its old catalog entries had drifted — refetched from
+// https://opencode.ai/zen/v1/models and cross-checked live before adding).
+// Cerebras itself couldn't be smoke-tested here: the new key hit a live 402
+// Payment Required (testStatus: credits_exhausted) — an account/billing
+// issue on Cerebras' side, not addressable from this deployment.
+export const NEWLY_ENABLED_MODELS: FreeModelSpec[] = FREE_MODELS.filter((m) =>
+  [
+    "mistral/labs-leanstral-1-5-1",
+    "openrouter/poolside/laguna-s-2.1:free",
+    "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+    "openrouter/nvidia/nemotron-3-ultra-550b-a55b:free",
+    "openrouter/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "openrouter/google/gemma-4-26b-a4b-it:free",
+    "openrouter/google/gemma-4-31b-it:free",
+    "openrouter/nvidia/nemotron-3-nano-30b-a3b:free",
+    "openrouter/openai/gpt-oss-20b:free",
+    "openrouter/poolside/laguna-xs-2.1:free",
+    "openrouter/poolside/laguna-m.1:free",
+    "openrouter/cohere/north-mini-code:free",
+    "openrouter/nvidia/nemotron-nano-9b-v2:free",
+    "opencode/nemotron-3-ultra-free",
+    "opencode/north-mini-code-free",
+    "opencode/laguna-s-2.1-free",
+    "opencode/big-pickle",
+    "opencode/mimo-v2.5-free",
+  ].includes(m.model)
+);
 
 // The gemma-4-31b family across its 3 free hosts on this deployment — the
 // specific model documented (docs/architecture/RESILIENCE_GUIDE.md context,
