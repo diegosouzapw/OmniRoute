@@ -110,7 +110,10 @@ import {
 } from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
-import { isOpencodeGoProvider, stripBooleanReasoning } from "../services/opencodeReasoningSanitizer.ts";
+import {
+  isOpencodeGoProvider,
+  stripBooleanReasoning,
+} from "../services/opencodeReasoningSanitizer.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
@@ -2118,6 +2121,14 @@ export async function handleChatCore({
 
   trace("post_translation");
 
+  // Keep the request translator's namespace identities separate from toolNameMap:
+  // the latter is a Kiro/Claude passthrough alias channel with string values,
+  // while namespace identities carry `{namespace, name}` for the #7936 response
+  // seam. Extract first because Kiro merge may reuse `_toolNameMap` below.
+  const requestToolIdentityMap =
+    translatedBody._toolNameMap instanceof Map ? translatedBody._toolNameMap : null;
+  delete translatedBody._toolNameMap;
+
   // Kiro: sanitize tool schemas before dispatch. Kiro returns 400 "Improperly
   // formed request" for unsupported JSON-Schema keywords (anyOf/$ref/if-then,
   // etc.) and tool names >64 chars. Strip those keys and hash-truncate long
@@ -4101,6 +4112,20 @@ export async function handleChatCore({
     // Source format determines output shape. If we are outputting OpenAI shape or pseudo-OpenAI shape, sanitize.
     if (clientResponseFormat === FORMATS.OPENAI_RESPONSES) {
       translatedResponse = sanitizeResponsesApiResponse(translatedResponse);
+      // Responses-API non-stream path: restore `{namespace, name}` on every
+      // `function_call` item that was flattened from a namespace sub-tool on
+      // the request side (#7936 round-trip closure).
+      const responseOutput = translatedResponse?.output;
+      if (requestToolIdentityMap && Array.isArray(responseOutput)) {
+        for (const item of responseOutput) {
+          if (item?.type !== "function_call") continue;
+          const identity = requestToolIdentityMap.get(item.name);
+          if (identity) {
+            item.namespace = identity.namespace;
+            item.name = identity.name;
+          }
+        }
+      }
     } else if (clientResponseFormat === FORMATS.OPENAI) {
       // Port of decolua/9router#517: opt-in `x-omniroute-strip-reasoning` header
       // unconditionally drops `reasoning_content` from the final non-streaming
@@ -4653,7 +4678,11 @@ export async function handleChatCore({
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure,
-      copilotCompatibleReasoning
+      copilotCompatibleReasoning,
+      // openai-responses → openai translation still wants the namespace identity
+      // map for #7936-style round-trip closure when the client also speaks
+      // Responses (Codex CLI).
+      requestToolIdentityMap
     );
   } else if (needsTranslation(targetFormat, clientResponseFormat)) {
     // Standard translation for other providers
@@ -4682,7 +4711,8 @@ export async function handleChatCore({
         thinkingMarkerHeader,
         clientResponseFormat,
       }),
-      customToolNames
+      customToolNames,
+      requestToolIdentityMap
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);
@@ -4696,7 +4726,8 @@ export async function handleChatCore({
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure,
-      clientResponseFormat
+      clientResponseFormat,
+      requestToolIdentityMap
     );
   }
 
