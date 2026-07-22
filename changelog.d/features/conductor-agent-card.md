@@ -1,0 +1,1 @@
+- feat(a2a): the Agent Card (`/.well-known/agent.json`) now announces skills derived from the OmniConductor fleet (`GET /v1/runners` OASF capabilities — one skill per online CLI profile + declared fleet skills), cached ~60s and fail-open when the hub is unset/offline
