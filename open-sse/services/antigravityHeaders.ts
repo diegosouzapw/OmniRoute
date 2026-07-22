@@ -1,5 +1,4 @@
 import type { AntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
-import { getRuntimeArch, getRuntimePlatform } from "./cloudCodeHeaders.ts";
 import {
   getCachedAntigravityCliVersion,
   getCachedAntigravityIdeVersion,
@@ -8,30 +7,12 @@ import {
 export const ANTIGRAVITY_IDE_NODE_API_CLIENT = "google-api-nodejs-client/10.3.0";
 export const ANTIGRAVITY_IDE_NODE_X_GOOG_API_CLIENT = "gl-node/22.21.1";
 
-function normalizePlatform(platform: NodeJS.Platform | string): string {
-  return platform === "win32" ? "windows" : platform || "unknown";
-}
-
-function normalizeArch(arch: NodeJS.Architecture | string): string {
-  switch (arch) {
-    case "x64":
-      return "amd64";
-    case "ia32":
-      return "386";
-    default:
-      return arch || "unknown";
-  }
-}
-
-function getPlatformArch(
-  platform: NodeJS.Platform | string = getRuntimePlatform(),
-  arch: NodeJS.Architecture | string = getRuntimeArch()
-): { arch: string; platform: string } {
-  return {
-    arch: normalizeArch(arch),
-    platform: normalizePlatform(platform),
-  };
-}
+// Antigravity presents the native macOS desktop client fingerprint: the upstream
+// backend expects the Mac build, so the OS/arch token is pinned to darwin/arm64
+// regardless of the host OmniRoute happens to run on (#8098). The IDE / CLI /
+// IDE-Node User-Agent split (#8013) is preserved — only the platform token is fixed.
+const ANTIGRAVITY_OS_TYPE = "darwin";
+const ANTIGRAVITY_ARCH = "arm64";
 
 function withOptionalBearerAuth(
   headers: Record<string, string>,
@@ -43,32 +24,19 @@ function withOptionalBearerAuth(
   return headers;
 }
 
-export function antigravityIdeUserAgent(
-  version = getCachedAntigravityIdeVersion(),
-  platform: NodeJS.Platform | string = getRuntimePlatform(),
-  arch: NodeJS.Architecture | string = getRuntimeArch()
-): string {
-  const runtime = getPlatformArch(platform, arch);
-  return `antigravity/ide/${version} ${runtime.platform}/${runtime.arch}`;
+export function antigravityIdeUserAgent(version = getCachedAntigravityIdeVersion()): string {
+  return `antigravity/ide/${version} ${ANTIGRAVITY_OS_TYPE}/${ANTIGRAVITY_ARCH}`;
 }
 
 export function antigravityCliUserAgent(
   version = getCachedAntigravityCliVersion(),
-  platform: NodeJS.Platform | string = getRuntimePlatform(),
-  arch: NodeJS.Architecture | string = getRuntimeArch(),
   authMethod = "consumer"
 ): string {
-  const runtime = getPlatformArch(platform, arch);
-  return `antigravity/cli/${version} (aidev_client; os_type=${runtime.platform}; arch=${runtime.arch}; auth_method=${authMethod})`;
+  return `antigravity/cli/${version} (aidev_client; os_type=${ANTIGRAVITY_OS_TYPE}; arch=${ANTIGRAVITY_ARCH}; auth_method=${authMethod})`;
 }
 
-export function antigravityIdeNodeUserAgent(
-  version = getCachedAntigravityIdeVersion(),
-  platform: NodeJS.Platform | string = getRuntimePlatform(),
-  arch: NodeJS.Architecture | string = getRuntimeArch()
-): string {
-  const runtime = getPlatformArch(platform, arch);
-  return `antigravity/${version} ${runtime.platform}/${runtime.arch} ${ANTIGRAVITY_IDE_NODE_API_CLIENT}`;
+export function antigravityIdeNodeUserAgent(version = getCachedAntigravityIdeVersion()): string {
+  return `antigravity/${version} ${ANTIGRAVITY_OS_TYPE}/${ANTIGRAVITY_ARCH} ${ANTIGRAVITY_IDE_NODE_API_CLIENT}`;
 }
 
 export function getAntigravityOAuthUserAgent(profile: AntigravityClientProfile): string {

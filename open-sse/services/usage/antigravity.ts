@@ -12,8 +12,9 @@
 
 import { PROVIDERS } from "../../config/constants.ts";
 import {
+  ANTIGRAVITY_BOOTSTRAP_BASE_URLS,
+  ANTIGRAVITY_RUNTIME_BASE_URLS,
   getAntigravityFetchAvailableModelsUrls,
-  ANTIGRAVITY_BASE_URLS,
 } from "../../config/antigravityUpstream.ts";
 import {
   isUserCallableAntigravityModelId,
@@ -52,7 +53,7 @@ type SubscriptionCacheEntry = {
 
 const ANTIGRAVITY_CONFIG = {
   quotaApiUrls: getAntigravityFetchAvailableModelsUrls(),
-  loadProjectApiUrl: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
+  loadProjectApiUrl: `${ANTIGRAVITY_BOOTSTRAP_BASE_URLS[0]}/v1internal:loadCodeAssist`,
   tokenUrl: "https://oauth2.googleapis.com/token",
   get clientId() {
     return PROVIDERS.antigravity.clientId;
@@ -470,7 +471,7 @@ async function probeAntigravityCreditBalanceUncached(
     if (!projectId) return null;
 
     // Try all base URLs (some accounts only work with specific endpoints)
-    for (const baseUrl of ANTIGRAVITY_BASE_URLS) {
+    for (const baseUrl of ANTIGRAVITY_RUNTIME_BASE_URLS) {
       const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
 
       const sessionId = getAntigravitySessionId({ connectionId: accountId, projectId });
@@ -597,9 +598,11 @@ export async function getAntigravityUsage(
     // Read cached credit balance (hydrated from DB on first access)
     let creditBalance = getAntigravityRemainingCredits(accountId);
 
-    // If no cached balance and credits mode is enabled, fire a minimal probe
+    // Only an explicit refresh in always mode may proactively spend credits to discover
+    // the balance. Automatic/scheduled refreshes must use the cached balance (if any)
+    // rather than adding credit-bearing inference calls after normal user requests.
     const creditsMode = getCreditsMode();
-    if ((options.forceRefresh || creditBalance === null) && creditsMode !== "off") {
+    if (options.forceRefresh === true && creditsMode === "always") {
       creditBalance = await probeAntigravityCreditBalance(
         accessToken,
         accountId,

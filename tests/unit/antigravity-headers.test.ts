@@ -20,29 +20,28 @@ test.afterEach(() => {
   clearAntigravityVersionCaches();
 });
 
-test("official IDE, IDE Node, and CLI User-Agent grammars match sanitized captures", () => {
+test("official IDE, IDE Node, and CLI User-Agent grammars match the native darwin/arm64 client", () => {
+  assert.equal(antigravityIdeUserAgent("2.1.1"), "antigravity/ide/2.1.1 darwin/arm64");
   assert.equal(
-    antigravityIdeUserAgent("2.1.1", "darwin", "arm64"),
-    "antigravity/ide/2.1.1 darwin/arm64"
-  );
-  assert.equal(
-    antigravityIdeNodeUserAgent("2.1.1", "darwin", "arm64"),
+    antigravityIdeNodeUserAgent("2.1.1"),
     "antigravity/2.1.1 darwin/arm64 google-api-nodejs-client/10.3.0"
   );
   assert.equal(
-    antigravityCliUserAgent("1.1.1", "darwin", "arm64"),
+    antigravityCliUserAgent("1.1.1"),
     "antigravity/cli/1.1.1 (aidev_client; os_type=darwin; arch=arm64; auth_method=consumer)"
   );
 });
 
-test("User-Agent builders normalize Windows and x64 like official client metadata", () => {
+test("User-Agent OS/arch token stays pinned to darwin/arm64 regardless of host (fingerprint fidelity)", () => {
+  // The upstream Antigravity backend expects the native macOS build, so OmniRoute presents
+  // that fingerprint no matter which platform it actually runs on (#8098 protocol fidelity).
+  // The CLI builder's second argument is authMethod, not platform — the OS/arch token is
+  // never host-derived, preserving the IDE/CLI User-Agent split (#8013).
+  assert.match(antigravityIdeUserAgent("2.1.1"), / darwin\/arm64$/);
+  assert.match(antigravityIdeNodeUserAgent("2.1.1"), / darwin\/arm64 /);
   assert.equal(
-    antigravityIdeUserAgent("2.1.1", "win32", "x64"),
-    "antigravity/ide/2.1.1 windows/amd64"
-  );
-  assert.equal(
-    antigravityCliUserAgent("1.1.1", "win32", "x64"),
-    "antigravity/cli/1.1.1 (aidev_client; os_type=windows; arch=amd64; auth_method=consumer)"
+    antigravityCliUserAgent("1.1.1", "oauth"),
+    "antigravity/cli/1.1.1 (aidev_client; os_type=darwin; arch=arm64; auth_method=oauth)"
   );
 });
 

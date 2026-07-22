@@ -22,7 +22,6 @@ import {
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import { getMitmAlias } from "@/lib/db/models";
-import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import { ensureAntigravityProjectAssigned } from "../services/antigravityProjectBootstrap.ts";
 import {
   resolveAntigravityModelId,
@@ -33,7 +32,6 @@ import {
   stripCloudCodeThinkingConfig,
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
-import { DEFAULT_SAFETY_SETTINGS } from "../translator/helpers/geminiHelper.ts";
 import {
   type AntigravityCollectedStream,
   processAntigravitySSEText,
@@ -54,6 +52,7 @@ import {
   buildFinalAntigravityResult,
   buildAntigravity429ErrorMessage,
   markCreditsExhausted,
+  isAbortError,
   type SafeAntigravityLog,
 } from "./antigravity/executeAttempt.ts";
 import {
@@ -339,9 +338,10 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function getAntigravitySafetySettings(safetySettings: unknown): unknown[] {
-  const source = Array.isArray(safetySettings) ? safetySettings : DEFAULT_SAFETY_SETTINGS;
-  return source.filter((setting) => {
+function getAntigravitySafetySettings(safetySettings: unknown): unknown[] | undefined {
+  if (!Array.isArray(safetySettings)) return undefined;
+
+  return safetySettings.filter((setting) => {
     const category = asRecord(setting)?.category;
     return typeof category !== "string" || !ANTIGRAVITY_UNSUPPORTED_SAFETY_CATEGORIES.has(category);
   });
@@ -367,18 +367,7 @@ function sanitizeAntigravityGeminiRequest(
   const geminiTools = buildGeminiTools(request.tools);
   if (geminiTools) {
     clean.tools = geminiTools;
-    // #6914: Preserve includeServerSideToolInvocations from the raw request's
-    // toolConfig when present (set by transformRequest when tools exist). The
-    // sanitize whitelist would otherwise rebuild toolConfig without it.
-    const rawToolConfig = asRecord(request.toolConfig);
-    const rawFnConfig = asRecord(rawToolConfig?.functionCallingConfig);
-    const includeServerSide = rawFnConfig?.includeServerSideToolInvocations === true;
-    clean.toolConfig = {
-      functionCallingConfig: {
-        mode: "VALIDATED",
-        ...(includeServerSide ? { includeServerSideToolInvocations: true } : {}),
-      },
-    };
+    clean.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
   } else if (asRecord(request.toolConfig)) {
     clean.toolConfig = request.toolConfig;
   }
@@ -387,10 +376,8 @@ function sanitizeAntigravityGeminiRequest(
     clean.sessionId = request.sessionId;
   }
 
-  // #5003: preserve safetySettings through the Claude-path whitelist so the all-OFF
-  // default (or a caller-supplied value) actually reaches Google Cloud Code. Without
-  // this the field is dropped and Google applies its own safety defaults that
-  // false-flag benign technical prompts as `prohibited_content`.
+  // Preserve only caller-supplied safetySettings through the Claude-path whitelist.
+  // Missing settings stay absent so OmniRoute does not silently weaken upstream safety.
   if (Array.isArray(request.safetySettings)) {
     clean.safetySettings = request.safetySettings;
   }
@@ -438,6 +425,8 @@ function stripTrailingAntigravityAssistantTurn(
 // Test-only export so the unit suite can exercise the strip logic directly.
 export const __test_stripTrailingAntigravityAssistantTurn = stripTrailingAntigravityAssistantTurn;
 
+type AntigravityCreditsRetryState = { attempted: boolean };
+
 /** Base per-url-index attempt context, before the request has been sent. */
 type AntigravityAttemptContext = {
   url: string;
@@ -446,13 +435,13 @@ type AntigravityAttemptContext = {
    * credits-retry re-serializes from these, NOT from `finalHeaders` (already fingerprinted). */
   headers: Record<string, string>;
   transformedBody: Record<string, unknown>;
-  requestToolNameMap: Map<string, string> | null;
   credentials: AntigravityCredentials;
   stream: boolean;
   signal: AbortSignal | null | undefined;
   log: SafeAntigravityLog;
   accountId: string;
   creditsMode: ReturnType<typeof getCreditsMode>;
+  creditsRetryState: AntigravityCreditsRetryState;
   urlIndex: number;
   retryAttemptsByUrl: Record<number, number>;
   fallbackCount: number;
@@ -503,7 +492,6 @@ export class AntigravityExecutor extends BaseExecutor {
     const raw = {
       ...getAntigravityContentHeaders(clientProfile, credentials.accessToken),
       Accept: "text/event-stream",
-      "X-OmniRoute-Source": "omniroute",
     };
     // Scrub proxy/fingerprint headers that reveal non-native traffic
     return scrubProxyAndFingerprintHeaders(raw);
@@ -514,7 +502,8 @@ export class AntigravityExecutor extends BaseExecutor {
     body: unknown,
     _stream: boolean,
     credentials: AntigravityCredentials,
-    modelIdOverride?: string
+    modelIdOverride?: string,
+    signal?: AbortSignal
   ): Promise<AntigravityRequestEnvelope | Response> {
     // Project ID resolution: prefer OAuth-stored projectId over incoming body.project
     // to avoid stale/wrong client-side values causing 404/403 from Cloud Code endpoints.
@@ -549,7 +538,8 @@ export class AntigravityExecutor extends BaseExecutor {
       const discovered = await ensureAntigravityProjectAssigned(
         credentials.accessToken,
         fetch,
-        getAntigravityClientProfile(credentials)
+        getAntigravityClientProfile(credentials),
+        signal
       );
       if (discovered) projectId = discovered;
     }
@@ -644,6 +634,7 @@ export class AntigravityExecutor extends BaseExecutor {
       }
     }
 
+    const safetySettings = getAntigravitySafetySettings(normalizedRequest?.safetySettings);
     const rawTransformedRequest = {
       ...normalizedRequest,
       ...(contents.length > 0 && { contents }),
@@ -651,13 +642,10 @@ export class AntigravityExecutor extends BaseExecutor {
         credentials,
         typeof normalizedRequest?.sessionId === "string" ? normalizedRequest.sessionId : undefined
       ),
-      // #5003: send explicit all-OFF safety entries that Cloud Code accepts. Omitting the
-      // field lets Cloud Code apply server-side defaults that false-flag benign technical
-      // prompts as `prohibited_content`.
-      safetySettings: getAntigravitySafetySettings(normalizedRequest?.safetySettings),
+      ...(safetySettings !== undefined && { safetySettings }),
       toolConfig:
         Array.isArray(normalizedRequest?.tools) && normalizedRequest.tools.length > 0
-          ? { functionCallingConfig: { mode: "VALIDATED", includeServerSideToolInvocations: true } }
+          ? { functionCallingConfig: { mode: "VALIDATED" } }
           : normalizedRequest?.toolConfig,
     };
 
@@ -666,20 +654,6 @@ export class AntigravityExecutor extends BaseExecutor {
           sanitizeAntigravityGeminiRequest(rawTransformedRequest)
         )
       : rawTransformedRequest;
-
-    // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")
-    const requestContents = transformedRequest.contents;
-    if (Array.isArray(requestContents)) {
-      for (const msg of requestContents) {
-        if (Array.isArray(msg.parts)) {
-          for (const part of msg.parts) {
-            if (typeof part.text === "string") {
-              part.text = obfuscateSensitiveWords(part.text);
-            }
-          }
-        }
-      }
-    }
 
     applyAntigravityGenerationDefaults(transformedRequest);
 
@@ -705,6 +679,7 @@ export class AntigravityExecutor extends BaseExecutor {
       reasoning: _reasoning,
       enable_thinking: _enableThinking,
       thinking_budget: _thinkingBudget,
+      enabledCreditTypes: _enabledCreditTypes,
       ...passthroughFields
     } = normalizedBody;
 
@@ -718,10 +693,6 @@ export class AntigravityExecutor extends BaseExecutor {
       requestType,
       ...passthroughFields,
     };
-
-    if (requestType === "agent" && envelope.enabledCreditTypes === undefined) {
-      envelope.enabledCreditTypes = ["GOOGLE_ONE_AI"];
-    }
 
     return envelope;
   }
@@ -1112,6 +1083,7 @@ export class AntigravityExecutor extends BaseExecutor {
     // preflight normal call is skipped entirely.
     const creditsMode = getCreditsMode();
     const useCreditsFirst = shouldUseCreditsFirst(credentials?.accessToken || "", creditsMode);
+    const creditsRetryState: AntigravityCreditsRetryState = { attempted: false };
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
@@ -1122,18 +1094,15 @@ export class AntigravityExecutor extends BaseExecutor {
         body,
         upstreamStream,
         credentials,
-        modelIdOverride
+        modelIdOverride,
+        signal ?? undefined
       );
 
       if (transformed instanceof Response) {
         return { response: transformed, url, headers, transformedBody: body };
       }
 
-      const { transformedBody, requestToolNameMap } = finalizeAntigravityRequestBody(
-        transformed,
-        useCreditsFirst,
-        l
-      );
+      const transformedBody = finalizeAntigravityRequestBody(transformed, useCreditsFirst, l);
 
       // Initialize retry counter for this URL
       if (!retryAttemptsByUrl[urlIndex]) {
@@ -1146,13 +1115,13 @@ export class AntigravityExecutor extends BaseExecutor {
           model,
           headers,
           transformedBody,
-          requestToolNameMap,
           credentials,
           stream,
           signal,
           log: l,
           accountId,
           creditsMode,
+          creditsRetryState,
           urlIndex,
           retryAttemptsByUrl,
           fallbackCount,
@@ -1163,6 +1132,9 @@ export class AntigravityExecutor extends BaseExecutor {
         if (outcome.sameUrl) urlIndex--;
         continue;
       } catch (error) {
+        if (signal?.aborted || isAbortError(error)) {
+          throw signal?.reason ?? error;
+        }
         lastError = error;
         l.error(
           "TELEMETRY",
@@ -1194,7 +1166,6 @@ export class AntigravityExecutor extends BaseExecutor {
       model,
       headers,
       transformedBody,
-      requestToolNameMap,
       credentials,
       stream,
       signal,
@@ -1254,7 +1225,6 @@ export class AntigravityExecutor extends BaseExecutor {
       url,
       finalHeaders,
       transformedBody,
-      requestToolNameMap,
       log
     );
     if (embedded) return { action: "return", result: embedded };
@@ -1266,7 +1236,6 @@ export class AntigravityExecutor extends BaseExecutor {
       url,
       finalHeaders,
       transformedBody,
-      requestToolNameMap,
       accountId,
       signal,
       log
@@ -1292,7 +1261,6 @@ export class AntigravityExecutor extends BaseExecutor {
     url: string,
     finalHeaders: Record<string, string>,
     transformedBody: Record<string, unknown>,
-    requestToolNameMap: Map<string, string> | null,
     accountId: string,
     signal: AbortSignal | null | undefined,
     log: SafeAntigravityLog
@@ -1315,7 +1283,6 @@ export class AntigravityExecutor extends BaseExecutor {
       url,
       finalHeaders,
       transformedBody,
-      requestToolNameMap,
       accountId,
       signal,
       updateAntigravityRemainingCredits
@@ -1414,13 +1381,13 @@ export class AntigravityExecutor extends BaseExecutor {
       url,
       headers,
       transformedBody,
-      requestToolNameMap,
       credentials,
       stream,
       signal,
       log,
       accountId,
       creditsMode,
+      creditsRetryState,
     } = ctx;
 
     try {
@@ -1440,12 +1407,19 @@ export class AntigravityExecutor extends BaseExecutor {
       const retryMs = decision.retryAfterMs;
       log.debug("AG_429", `Category: ${category}, Decision: ${decision.kind} — ${decision.reason}`);
 
-      if (decision.kind === "full_quota_exhausted" && retryMs) {
-        markConnectionQuotaExhausted(accountId, retryMs);
-      }
-
       const creditsAlreadyInjected =
         (transformedBody as { enabledCreditTypes?: unknown }).enabledCreditTypes != null;
+      const creditsRetryEligible =
+        category === "quota_exhausted" &&
+        !creditsAlreadyInjected &&
+        !creditsRetryState.attempted &&
+        shouldRetryWithCredits(credentials?.accessToken || "", creditsMode);
+
+      // Retry mode gets one credits attempt before the account cooldown is persisted.
+      // All other full-quota paths fail closed immediately.
+      if (decision.kind === "full_quota_exhausted" && retryMs && !creditsRetryEligible) {
+        markConnectionQuotaExhausted(accountId, retryMs);
+      }
 
       if (category === "quota_exhausted" && creditsAlreadyInjected) {
         handleCreditsFailure(credentials?.accessToken || "");
@@ -1453,18 +1427,13 @@ export class AntigravityExecutor extends BaseExecutor {
         markCreditsExhausted(accountId);
       }
 
-      if (
-        category === "quota_exhausted" &&
-        decision.kind !== "full_quota_exhausted" &&
-        !creditsAlreadyInjected &&
-        shouldRetryWithCredits(credentials?.accessToken || "", creditsMode !== "off")
-      ) {
+      if (creditsRetryEligible) {
+        creditsRetryState.attempted = true;
         const creditsResult = await tryCreditsRetry(
           this.provider,
           url,
           headers,
           transformedBody,
-          requestToolNameMap,
           credentials,
           stream,
           signal,
@@ -1473,10 +1442,14 @@ export class AntigravityExecutor extends BaseExecutor {
           updateAntigravityRemainingCredits
         );
         if (creditsResult) return { kind: "return", result: creditsResult };
+        if (retryMs) markConnectionQuotaExhausted(accountId, retryMs);
       }
 
       return { kind: "resolved", retryMs };
-    } catch {
+    } catch (error) {
+      if (signal?.aborted || isAbortError(error)) {
+        throw signal?.reason ?? error;
+      }
       // Ignore parse errors, will fall back to exponential backoff
       return { kind: "resolved", retryMs: null };
     }

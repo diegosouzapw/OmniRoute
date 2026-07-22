@@ -14,7 +14,7 @@ import {
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
 } from "../../config/constants.ts";
 import { injectCreditsField, handleCreditsFailure } from "../../services/antigravityCredits.ts";
-import { cloakAntigravityToolPayload } from "../../config/toolCloaking.ts";
+import { sanitizeAntigravityToolPayload } from "../../config/toolCloaking.ts";
 import {
   applyAntigravityClientProfileHeaders,
   removeHeaderCaseInsensitive,
@@ -103,6 +103,13 @@ function getAbortErrorCode(error: unknown): string | null {
 
 function isAntigravityPreResponseTimeout(error: unknown): boolean {
   return getAbortErrorCode(error) === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE;
+}
+
+export function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof DOMException && error.name === "AbortError") ||
+    (error instanceof Error && error.name === "AbortError")
+  );
 }
 
 /**
@@ -208,11 +215,36 @@ function cloneAntigravityRequestBody(body: unknown): unknown {
     return body;
   }
 
+  let clone: unknown;
   try {
-    return structuredClone(body);
+    clone = structuredClone(body);
   } catch {
-    return JSON.parse(JSON.stringify(body));
+    clone = JSON.parse(JSON.stringify(body));
   }
+
+  if (clone && typeof clone === "object") {
+    delete (clone as Record<string, unknown>)._toolNameMap;
+  }
+  return clone;
+}
+
+function getToolNameMap(body: Record<string, unknown>): Map<string, string> | null {
+  return body._toolNameMap instanceof Map ? body._toolNameMap : null;
+}
+
+function attachToolNameMap(
+  body: Record<string, unknown>,
+  toolNameMap: Map<string, string> | null
+): Record<string, unknown> {
+  if (toolNameMap) {
+    Object.defineProperty(body, "_toolNameMap", {
+      value: toolNameMap,
+      configurable: true,
+      enumerable: false,
+      writable: true,
+    });
+  }
+  return body;
 }
 
 function serializeAntigravityRequest(
@@ -233,48 +265,24 @@ function getRequestTargetModel(body: Record<string, unknown>): string {
   return typeof target === "string" && target.length > 0 ? target : "unknown";
 }
 
-function attachToolNameMap<T>(payload: T, toolNameMap: Map<string, string> | null): T {
-  if (!toolNameMap?.size || !payload || typeof payload !== "object") {
-    return payload;
-  }
-
-  const copy = Array.isArray(payload) ? ([...payload] as T) : ({ ...(payload as object) } as T);
-  Object.defineProperty(copy, "_toolNameMap", {
-    value: toolNameMap,
-    enumerable: false,
-    configurable: true,
-    writable: true,
-  });
-  return copy;
-}
-
-/** Cloak the tool-name payload, then apply credits-first injection, for one attempt. */
+/** Sanitize unsupported schema metadata, then apply credits-first injection for one attempt. */
 export function finalizeAntigravityRequestBody(
   transformed: Record<string, unknown>,
   useCreditsFirst: boolean,
   log: SafeAntigravityLog
-): {
-  transformedBody: Record<string, unknown>;
-  requestToolNameMap: Map<string, string> | null;
-} {
-  let transformedBody: Record<string, unknown> = transformed;
-  let requestToolNameMap: Map<string, string> | null = null;
-
-  if (transformedBody && typeof transformedBody === "object") {
-    const cloaked = cloakAntigravityToolPayload(transformedBody);
-    transformedBody = cloaked.body;
-    requestToolNameMap = cloaked.toolNameMap;
-  }
+): Record<string, unknown> {
+  const toolNameMap = getToolNameMap(transformed);
+  let transformedBody = attachToolNameMap(sanitizeAntigravityToolPayload(transformed), toolNameMap);
 
   // Credits-first: inject GOOGLE_ONE_AI upfront so we never try the normal
   // quota path. If credits are exhausted / disabled shouldUseCreditsFirst()
   // returns false and we fall back to the legacy retry-on-429 flow.
   if (useCreditsFirst) {
-    transformedBody = injectCreditsField(transformedBody);
+    transformedBody = attachToolNameMap(injectCreditsField(transformedBody), toolNameMap);
     log.debug("AG_CREDITS", "Credits-first enabled (ANTIGRAVITY_CREDITS=always)");
   }
 
-  return { transformedBody, requestToolNameMap };
+  return transformedBody;
 }
 
 /** Debug-only dump of outgoing headers (mask Authorization) and envelope shape. */
@@ -391,7 +399,6 @@ export async function tryCreditsRetry(
   url: string,
   headers: Record<string, string>,
   transformedBody: Record<string, unknown>,
-  requestToolNameMap: Map<string, string> | null,
   credentials: AntigravityCredentials,
   stream: boolean,
   signal: AbortSignal | null | undefined,
@@ -400,7 +407,10 @@ export async function tryCreditsRetry(
   onCreditsUpdate: OnAntigravityCreditsUpdate
 ): Promise<SsePassthroughResult | null> {
   log.info("AG_CREDITS", "Retrying with Google One AI credits");
-  const creditsBody = injectCreditsField(transformedBody);
+  const creditsBody = attachToolNameMap(
+    injectCreditsField(transformedBody),
+    getToolNameMap(transformedBody)
+  );
   const serializedCreditsRequest = serializeAntigravityRequest(provider, headers, creditsBody);
   const finalCreditsHeaders = serializedCreditsRequest.headers;
   applyAntigravityClientProfileHeaders(finalCreditsHeaders, credentials, creditsBody);
@@ -431,7 +441,7 @@ export async function tryCreditsRetry(
           onCreditsUpdate,
           url,
           finalCreditsHeaders,
-          attachToolNameMap(creditsBody, requestToolNameMap),
+          creditsBody,
           signal
         );
       }
@@ -439,7 +449,7 @@ export async function tryCreditsRetry(
         response: creditsResp,
         url,
         headers: finalCreditsHeaders,
-        transformedBody: attachToolNameMap(creditsBody, requestToolNameMap),
+        transformedBody: creditsBody,
       };
     }
 
@@ -451,6 +461,9 @@ export async function tryCreditsRetry(
     markCreditsExhausted(accountId);
     return null;
   } catch (creditsErr) {
+    if (signal?.aborted || isAbortError(creditsErr)) {
+      throw signal?.reason ?? creditsErr;
+    }
     handleCreditsFailure(credentials?.accessToken || "");
     log.warn("AG_CREDITS", `Credits retry failed: ${creditsErr}`);
     return null;
@@ -469,7 +482,6 @@ export async function tryEmbedLongRetryAfter(
   url: string,
   finalHeaders: Record<string, string>,
   transformedBody: Record<string, unknown>,
-  requestToolNameMap: Map<string, string> | null,
   log: ExecutorLog | null | undefined
 ): Promise<SsePassthroughResult | null> {
   if (
@@ -497,7 +509,7 @@ export async function tryEmbedLongRetryAfter(
       response: modifiedResponse,
       url,
       headers: finalHeaders,
-      transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+      transformedBody,
     };
   } catch (err) {
     log?.warn?.("RETRY", `Failed to embed retryAfterMs: ${err}`);
@@ -510,8 +522,7 @@ async function buildUpstreamErrorResult(
   response: Response,
   url: string,
   finalHeaders: Record<string, string>,
-  transformedBody: Record<string, unknown>,
-  requestToolNameMap: Map<string, string> | null
+  transformedBody: Record<string, unknown>
 ): Promise<SsePassthroughResult> {
   const rawBody = await response
     .clone()
@@ -525,7 +536,7 @@ async function buildUpstreamErrorResult(
     }),
     url,
     headers: finalHeaders,
-    transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+    transformedBody,
   };
 }
 
@@ -543,7 +554,6 @@ async function buildNonStreamingExecuteOnceResult(
   url: string,
   finalHeaders: Record<string, string>,
   transformedBody: Record<string, unknown>,
-  requestToolNameMap: Map<string, string> | null,
   accountId: string,
   signal: AbortSignal | null | undefined,
   onCreditsUpdate: OnAntigravityCreditsUpdate
@@ -551,13 +561,7 @@ async function buildNonStreamingExecuteOnceResult(
   // #3229: surface a real upstream error instead of masking a 4xx/5xx as an
   // empty `chat.completion` envelope.
   if (!response.ok) {
-    return buildUpstreamErrorResult(
-      response,
-      url,
-      finalHeaders,
-      transformedBody,
-      requestToolNameMap
-    );
+    return buildUpstreamErrorResult(response, url, finalHeaders, transformedBody);
   }
 
   if (response.body) {
@@ -571,7 +575,7 @@ async function buildNonStreamingExecuteOnceResult(
       onCreditsUpdate,
       url,
       finalHeaders,
-      attachToolNameMap(transformedBody, requestToolNameMap),
+      transformedBody,
       signal
     );
   }
@@ -581,7 +585,7 @@ async function buildNonStreamingExecuteOnceResult(
     response,
     url,
     headers: finalHeaders,
-    transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+    transformedBody,
   };
 }
 
@@ -603,19 +607,12 @@ async function buildStreamingExecuteOnceResult(
   url: string,
   finalHeaders: Record<string, string>,
   transformedBody: Record<string, unknown>,
-  requestToolNameMap: Map<string, string> | null,
   accountId: string,
   signal: AbortSignal | null | undefined,
   onCreditsUpdate: OnAntigravityCreditsUpdate
 ): Promise<SsePassthroughResult> {
   if (!response.ok) {
-    return buildUpstreamErrorResult(
-      response,
-      url,
-      finalHeaders,
-      transformedBody,
-      requestToolNameMap
-    );
+    return buildUpstreamErrorResult(response, url, finalHeaders, transformedBody);
   }
 
   if (response.body) {
@@ -649,7 +646,7 @@ async function buildStreamingExecuteOnceResult(
       response: tappedResponse,
       url,
       headers: finalHeaders,
-      transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+      transformedBody,
     };
   }
 
@@ -657,7 +654,7 @@ async function buildStreamingExecuteOnceResult(
     response,
     url,
     headers: finalHeaders,
-    transformedBody: attachToolNameMap(transformedBody, requestToolNameMap),
+    transformedBody,
   };
 }
 
@@ -668,7 +665,6 @@ export async function buildFinalAntigravityResult(
   url: string,
   finalHeaders: Record<string, string>,
   transformedBody: Record<string, unknown>,
-  requestToolNameMap: Map<string, string> | null,
   accountId: string,
   signal: AbortSignal | null | undefined,
   onCreditsUpdate: OnAntigravityCreditsUpdate
@@ -679,7 +675,6 @@ export async function buildFinalAntigravityResult(
       url,
       finalHeaders,
       transformedBody,
-      requestToolNameMap,
       accountId,
       signal,
       onCreditsUpdate
@@ -690,7 +685,6 @@ export async function buildFinalAntigravityResult(
     url,
     finalHeaders,
     transformedBody,
-    requestToolNameMap,
     accountId,
     signal,
     onCreditsUpdate

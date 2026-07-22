@@ -8,6 +8,7 @@ import { antigravityIdeUserAgent } from "../../open-sse/services/antigravityHead
 import {
   clearAntigravityVersionCaches,
   seedAntigravityIdeVersionCache,
+  seedAntigravityCliVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 import { clearAntigravityProjectCache } from "../../open-sse/services/antigravityProjectBootstrap.ts";
 import { runWithCapture } from "../../open-sse/utils/providerRequestLogging.ts";
@@ -139,18 +140,17 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
     "model",
     "userAgent",
     "requestType",
-    "enabledCreditTypes",
   ]);
   assert.equal(result.userAgent, "antigravity");
   assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
-  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
+  assert.equal(result.enabledCreditTypes, undefined);
   assert.ok(result.request.sessionId);
   const request = result.request as { generationConfig?: { topK?: number; topP?: number } };
   const generationConfig = request.generationConfig || {};
   assert.equal(generationConfig.topK, 40);
   assert.equal(generationConfig.topP, 1.0);
   assert.deepEqual(result.request.toolConfig, {
-    functionCallingConfig: { mode: "VALIDATED", includeServerSideToolInvocations: true },
+    functionCallingConfig: { mode: "VALIDATED" },
   });
   assert.deepEqual(result.request.contents[0].parts, [{ text: "keep me" }]);
   assert.equal(result.request.contents[1].role, "user");
@@ -704,15 +704,58 @@ test("AntigravityExecutor.execute bounds a persistent short-retry 429 instead of
     // Returns the 429 rather than hanging.
     assert.equal(result.response.status, 429);
 
-    // Bounded: 3 endpoints × (1 initial + MAX_AUTO_RETRIES=3) = 12 attempts total.
-    assert.equal(calls.length, 12);
+    // Bounded: 2 live runtime endpoints × (1 initial + MAX_AUTO_RETRIES=3) = 8 attempts total.
+    assert.equal(calls.length, 8);
 
-    // Tried every distinct base URL before giving up.
+    // Tried every distinct live runtime base URL before giving up.
     const distinctHosts = new Set(calls.map((u) => new URL(u).host));
-    assert.equal(distinctHosts.size, 3);
+    assert.equal(distinctHosts.size, 2);
   } finally {
     globalThis.fetch = originalFetch;
     globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("AntigravityExecutor.execute aborts during project bootstrap without starting runtime fetch", async () => {
+  clearAntigravityProjectCache();
+  seedAntigravityIdeVersionCache("2026.04.17-test");
+  seedAntigravityCliVersionCache("2026.04.17-test");
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  const controller = new AbortController();
+  const calls: string[] = [];
+
+  globalThis.fetch = async (url, init) => {
+    calls.push(String(url));
+    assert.match(String(url), /:loadCodeAssist$/);
+    return new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), { once: true });
+    });
+  };
+
+  try {
+    const pending = executor.execute({
+      model: "antigravity/gemini-2.5-flash",
+      body: { request: { contents: [] } },
+      stream: true,
+      credentials: { accessToken: "bootstrap-abort-token" },
+      signal: controller.signal,
+      log: { debug() {}, warn() {} },
+    });
+    while (calls.length === 0) {
+      await new Promise<void>((resolve) => setImmediate(resolve));
+    }
+    controller.abort(new DOMException("caller disconnected", "AbortError"));
+
+    await assert.rejects(pending, { name: "AbortError" });
+    assert.equal(calls.length, 1);
+    assert.equal(
+      calls.some((url) => url.includes("streamGenerateContent")),
+      false
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
   }
 });
 
@@ -790,6 +833,7 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
       "requestType",
       "enabledCreditTypes",
     ]);
+    assert.deepEqual(parsedBody.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
 
     return new Response(
       'data: {"response":{"candidates":[{"content":{"parts":[{"text":"OK"}]},"finishReason":"STOP"}]}}\n\n',
@@ -865,7 +909,7 @@ test("AntigravityExecutor.transformRequest maps Claude models through Gemini con
   assert.equal(result.model, "claude-sonnet-4-6");
   assert.equal(result.requestType, "agent");
   assert.ok(result.request.sessionId);
-  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
+  assert.equal(result.enabledCreditTypes, undefined);
   assert.deepEqual(result.request.contents, [{ role: "user", parts: [{ text: "Hello" }] }]);
   assert.deepEqual(result.request.systemInstruction, {
     role: "system",

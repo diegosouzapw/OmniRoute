@@ -5,7 +5,7 @@ const usageService = await import("../../open-sse/services/usage.ts");
 const { __testing } = usageService;
 const { getAntigravityLoadCodeAssistMetadata } =
   await import("../../open-sse/services/antigravityHeaders.ts");
-const { getAntigravityFetchAvailableModelsUrls } =
+const { ANTIGRAVITY_BOOTSTRAP_BASE_URLS, getAntigravityFetchAvailableModelsUrls } =
   await import("../../open-sse/config/antigravityUpstream.ts");
 
 const originalFetch = globalThis.fetch;
@@ -215,7 +215,10 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   assert.equal(usage.quotas["gemini-pro-agent"].remainingPercentage, 100);
   assert.equal(usage.quotas["claude-sonnet-4-6"].remainingPercentage, 40);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
-  assert.match(loadCodeAssistCall?.url, /daily-cloudcode-pa\.sandbox\.googleapis\.com/);
+  assert.equal(
+    loadCodeAssistCall?.url,
+    `${ANTIGRAVITY_BOOTSTRAP_BASE_URLS[0]}/v1internal:loadCodeAssist`
+  );
   assert.match(loadCodeAssistCall?.init.headers["User-Agent"], /^antigravity\/ide\/2\.1\.1 /);
   assert.equal(loadCodeAssistCall?.init.headers["X-Goog-Api-Client"], undefined);
   assert.equal(loadCodeAssistCall?.init.headers["Client-Metadata"], undefined);
@@ -395,18 +398,18 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   });
 
   const quotaCalls = calls.filter((call) => call.url.includes("fetchAvailableModels"));
-  // ANTIGRAVITY_BASE_URLS order changed: daily first, then cloudcode-pa, then sandbox last
+  // Discovery fallback order is daily production, production Cloud Code, then sandbox.
   assert.deepEqual(
     quotaCalls.map((call) => call.url),
     expectedQuotaUrls
   );
-  assert.match(quotaCalls[2].init.headers["User-Agent"], /^antigravity\/ide\/2\.1\.1 /);
+  assert.match(quotaCalls.at(-1)?.init.headers["User-Agent"], /^antigravity\/ide\//);
   assert.equal(usage.plan, "Business");
   assert.ok(usage.quotas["gemini-pro-agent"] !== undefined);
 });
 
 test("usage service manual Antigravity refresh bypasses usage TTL caches", async () => {
-  process.env.ANTIGRAVITY_CREDITS = "retry";
+  process.env.ANTIGRAVITY_CREDITS = "always";
   let probeCalls = 0;
   let modelCalls = 0;
   let loadCodeAssistCalls = 0;

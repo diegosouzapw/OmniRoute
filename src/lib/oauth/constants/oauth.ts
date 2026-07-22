@@ -1,5 +1,6 @@
 import {
-  ANTIGRAVITY_BASE_URLS,
+  ANTIGRAVITY_BOOTSTRAP_BASE_URLS,
+  ANTIGRAVITY_RUNTIME_BASE_URLS,
   getAntigravityFetchAvailableModelsUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
@@ -194,15 +195,17 @@ export const ANTIGRAVITY_CONFIG = {
     "https://www.googleapis.com/auth/experimentsandconfigs",
   ],
   // Antigravity specific
-  apiEndpoint: ANTIGRAVITY_BASE_URLS[0],
+  apiEndpoint: ANTIGRAVITY_RUNTIME_BASE_URLS[0],
   apiVersion: "v1internal",
-  loadCodeAssistEndpoints: ANTIGRAVITY_BASE_URLS.map(
+  loadCodeAssistEndpoints: ANTIGRAVITY_BOOTSTRAP_BASE_URLS.map(
     (baseUrl) => `${baseUrl}/v1internal:loadCodeAssist`
   ),
-  onboardUserEndpoints: ANTIGRAVITY_BASE_URLS.map((baseUrl) => `${baseUrl}/v1internal:onboardUser`),
+  onboardUserEndpoints: ANTIGRAVITY_BOOTSTRAP_BASE_URLS.map(
+    (baseUrl) => `${baseUrl}/v1internal:onboardUser`
+  ),
   fetchAvailableModelsEndpoints: getAntigravityFetchAvailableModelsUrls(),
-  loadCodeAssistEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:loadCodeAssist`,
-  onboardUserEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:onboardUser`,
+  loadCodeAssistEndpoint: `${ANTIGRAVITY_BOOTSTRAP_BASE_URLS[0]}/v1internal:loadCodeAssist`,
+  onboardUserEndpoint: `${ANTIGRAVITY_BOOTSTRAP_BASE_URLS[0]}/v1internal:onboardUser`,
   fetchAvailableModelsEndpoint: getAntigravityFetchAvailableModelsUrls()[0],
 };
 

@@ -317,7 +317,9 @@
     "_rebaseline_2026_07_21_8034_compression_exclusions_sidebar": "#8034 (compression exclusions dashboard tab) own growth: sections.ts 796->806 (+10, one new COMPRESSION_CONTEXT_GROUP sidebar item linking /dashboard/compression/exclusions). The file was already 796/800 before this PR (organic growth from prior sidebar entries), so a single new nav item pushed it 6 lines over cap. Freezing at 806 (cannot grow further); the sidebar item array is data, not extractable logic.",
     "src/shared/constants/sidebarVisibility/sections.ts": 806,
     "_rebaseline_2026_07_22_8056_headroom_minrows": "#8056 (@RaviTharuma, persist Headroom minRows) own growth: src/lib/db/compression.ts 850->866 (+16 HeadroomConfig+DEFAULT_HEADROOM_CONFIG+normalize/store in get/updateCompressionSettings) and open-sse/services/compression/strategySelector.ts 1054->1060 (+6 merge settings.headroom into stacked stepConfig). Cohesive settings-persistence + stacked-merge wiring at existing chokepoints, frozen at new size.",
-    "_rebaseline_2026_07_22_8081_reasoning_placeholder_guard": "#8081 (@Dingding-leo) own growth: openai-responses.ts 1125->1137 (+12) restructuring the reasoning-placeholder guard so it skips only the empty content block and still emits finish_reason/tool_calls in the same chunk. Cohesive translator wiring; frozen at new size."
+    "_rebaseline_2026_07_22_8081_reasoning_placeholder_guard": "#8081 (@Dingding-leo) own growth: openai-responses.ts 1125->1137 (+12) restructuring the reasoning-placeholder guard so it skips only the empty content block and still emits finish_reason/tool_calls in the same chunk. Cohesive translator wiring; frozen at new size.",
+    "open-sse/services/usage/antigravity.ts": 802,
+    "_rebaseline_2026_07_22_fusion_8013_8098_antigravity": "Fusion of #8013 (backryun, catalog/IDE-CLI-split rewrite) + #8098 (nguyenha935, protocol-fidelity/fail-closed/credits/tool-cloaking): open-sse/services/usage/antigravity.ts NEW 802 (>cap 800, +2 — #8098 credits/tier usage service on #8013's profile-aware headers). Test growth (models-catalog-route 1605->1608, provider-models-route 1752->1757 from #8013 Gemini 3.6 catalog) tracked in testFrozen."
   },
   "testCap": 800,
   "testFrozen": {
@@ -349,10 +351,10 @@
     "tests/unit/grok-web.test.ts": 2437,
     "tests/unit/image-generation-handler.test.ts": 2019,
     "tests/unit/model-sync-route.test.ts": 1016,
-    "tests/unit/models-catalog-route.test.ts": 1605,
+    "tests/unit/models-catalog-route.test.ts": 1608,
     "tests/unit/oauth-providers-config.test.ts": 845,
     "tests/unit/perplexity-web.test.ts": 1355,
-    "tests/unit/provider-models-route.test.ts": 1752,
+    "tests/unit/provider-models-route.test.ts": 1757,
     "tests/unit/provider-validation-specialty.test.ts": 2980,
     "tests/unit/providers-page-utils.test.ts": 1294,
     "tests/unit/reasoning-cache.test.ts": 980,

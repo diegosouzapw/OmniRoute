@@ -161,34 +161,24 @@ describe("ensureAntigravityProjectAssigned", () => {
     assert.equal(capturedHeaders?.get("Client-Metadata"), null);
   });
 
-  test("falls through to next URL when first loadCodeAssist returns 404", async () => {
+  test("bootstrap uses the single stable production loadCodeAssist endpoint and stays non-fatal on 404", async () => {
     const hitUrls: string[] = [];
 
     const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
       hitUrls.push(url);
-      // Exact hostname match (not substring .includes) so the check can't be fooled by a
-      // look-alike host like daily-cloudcode-pa.googleapis.com.evil.com (CodeQL
-      // js/incomplete-url-substring-sanitization).
-      if (new URL(url).hostname === "daily-cloudcode-pa.googleapis.com") {
-        // First URL fails
-        return new Response("not found", { status: 404 });
-      }
-      // Second URL succeeds
-      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-fallback" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response("not found", { status: 404 });
     };
 
-    const projectId = await ensureAntigravityProjectAssigned("fallback-token", mockFetch);
+    const projectId = await ensureAntigravityProjectAssigned("bootstrap-404-token", mockFetch);
 
-    assert.ok(hitUrls.length >= 2, "should try at least two URLs on the first failure");
-    assert.equal(projectId, "proj-fallback", "should return the project from the successful URL");
-    assert.equal(
-      getAntigravityProjectFromCache("fallback-token"),
-      "proj-fallback",
-      "should cache the project from the successful URL"
-    );
+    // #8098 narrowed the bootstrap to the single stable production endpoint (no
+    // daily/sandbox fallback), so a 404 has no next URL to try — the call fails closed
+    // (undefined) and the caller proceeds with any DB-stored project id.
+    assert.equal(hitUrls.length, 1, "bootstrap tries exactly the one dedicated production URL");
+    // Exact hostname match (not substring .includes) so the check can't be fooled by a
+    // look-alike host (CodeQL js/incomplete-url-substring-sanitization).
+    assert.equal(new URL(hitUrls[0]).hostname, "cloudcode-pa.googleapis.com");
+    assert.equal(projectId, undefined, "a 404 bootstrap is non-fatal and returns undefined");
   });
 
   test("getAntigravityLoadCodeAssistUrls returns URLs matching ANTIGRAVITY_BASE_URLS", () => {
