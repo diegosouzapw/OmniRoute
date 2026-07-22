@@ -1,0 +1,1 @@
+- **fix(autostart):** Windows auto-start no longer flashes a console window — writes a `.vbs` launcher to the Startup folder instead of the `HKCU\Run` registry key, adopting the same approach as 9Router ([#7925](https://github.com/diegosouzapw/OmniRoute/pull/7925))

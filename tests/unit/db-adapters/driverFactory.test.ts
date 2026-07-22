@@ -8,7 +8,7 @@ describe("driverFactory", () => {
   test("tryOpenSync retorna adapter síncrono ou null", () => {
     const adapter = tryOpenSync(":memory:");
     if (adapter) {
-      assert.ok(["better-sqlite3", "node:sqlite"].includes(adapter.driver));
+      assert.ok(["better-sqlite3", "node:sqlite", "bun:sqlite"].includes(adapter.driver));
       adapter.exec("CREATE TABLE t (v TEXT)");
       adapter.prepare("INSERT INTO t VALUES (?)").run("ok");
       const row = adapter.prepare("SELECT v FROM t").get() as { v: string };
@@ -21,7 +21,7 @@ describe("driverFactory", () => {
 
   test("openDatabaseAsync sempre retorna um adapter válido", async () => {
     const adapter = await openDatabaseAsync(":memory:");
-    assert.ok(["better-sqlite3", "node:sqlite", "sql.js"].includes(adapter.driver));
+    assert.ok(["better-sqlite3", "node:sqlite", "bun:sqlite", "sql.js"].includes(adapter.driver));
 
     adapter.exec("CREATE TABLE t (v TEXT)");
     adapter.prepare("INSERT INTO t VALUES (?)").run("ok");

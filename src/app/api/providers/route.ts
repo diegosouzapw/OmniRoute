@@ -33,6 +33,7 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isManagedProviderConnectionId } from "@/lib/providers/catalog";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
+import { cleanupProviderModelsAfterConnectionDelete } from "@/lib/db/models";
 import {
   buildModelSyncInternalHeaders,
   fetchModelSyncInternal,
@@ -350,7 +351,22 @@ export async function DELETE(request: Request) {
   }
 
   try {
+    const requestedIds = new Set(body.ids);
+    const deletedConnections = (
+      await getProviderConnections({}, undefined, undefined, ["id", "provider"])
+    ).filter((connection) => requestedIds.has(connection.id));
     const deleted = await deleteProviderConnections(body.ids);
+
+    for (const connection of deletedConnections) {
+      try {
+        await cleanupProviderModelsAfterConnectionDelete(connection.provider, connection.id);
+      } catch (error) {
+        console.error(
+          `Failed to clean up models for deleted ${connection.provider} connection:`,
+          error
+        );
+      }
+    }
 
     await syncToCloudIfEnabled();
 

@@ -12,6 +12,7 @@ process.env.INITIAL_PASSWORD = "admin-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersRoute = await import("../../src/app/api/providers/route.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 
 function resetDb() {
   core.resetDbInstance();
@@ -455,6 +456,8 @@ test("DELETE /api/providers batch deletes connections", async () => {
   const id1 = (await r1.json()).connection.id;
   const id2 = (await r2.json()).connection.id;
   const id3 = (await r3.json()).connection.id;
+  await modelsDb.addCustomModel("synthetic", "manual-model", "Manual", "manual");
+  await modelsDb.addCustomModel("synthetic", "imported-model", "Imported", "imported");
 
   const deleteRes = await providersRoute.DELETE(
     await makeManagementSessionRequest("http://localhost/api/providers", {
@@ -475,6 +478,22 @@ test("DELETE /api/providers batch deletes connections", async () => {
   assert.equal(remainingIds.includes(id1), false);
   assert.equal(remainingIds.includes(id3), false);
   assert.equal(remainingIds.includes(id2), true);
+  assert.deepEqual(
+    (await modelsDb.getCustomModels("synthetic")).map((model: { id: string }) => model.id),
+    ["manual-model", "imported-model"]
+  );
+
+  const deleteLastRes = await providersRoute.DELETE(
+    await makeManagementSessionRequest("http://localhost/api/providers", {
+      method: "DELETE",
+      body: { ids: [id2] },
+    })
+  );
+  assert.equal(deleteLastRes.status, 200);
+  assert.deepEqual(
+    (await modelsDb.getCustomModels("synthetic")).map((model: { id: string }) => model.id),
+    ["manual-model"]
+  );
 });
 
 test("DELETE /api/providers rejects empty ids array", async () => {

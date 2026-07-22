@@ -88,6 +88,7 @@ import {
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
 import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
+import { applyClineProtocolHeaders } from "@/shared/utils/clineAuth";
 // Header helpers extracted to a pure leaf; re-exported for external importers
 // (executors + tests) that import them from "./base.ts".
 export {
@@ -1191,6 +1192,11 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
+        if (this.provider === "cline" || this.provider === "clinepass") {
+          applyClineProtocolHeaders(finalHeaders, {
+            taskId: headers["X-Task-ID"],
+          });
+        }
         // Enforce peer tracing after all configurable headers have been merged so
         // operator/provider metadata cannot accidentally erase the loop guard.
         applyPeerTraceHeader(finalHeaders, clientHeaders, url);
@@ -1237,7 +1243,9 @@ export class BaseExecutor {
         // to `:free` models only — no-op (and no extra work) for every other
         // OpenRouter request or provider.
         const openrouterFreeWindowAccountKey =
-          this.provider === "openrouter" && isFreeVariantModel(model) && activeCredentials.connectionId
+          this.provider === "openrouter" &&
+          isFreeVariantModel(model) &&
+          activeCredentials.connectionId
             ? resolveAccountKey(activeCredentials.connectionId, activeCredentials)
             : null;
         if (openrouterFreeWindowAccountKey) {

@@ -2846,7 +2846,10 @@
     "modePack": "Mode Pack",
     "disableSessionStickiness": "Wyłącz session stickiness",
     "sessionStickinessEnabled": "Stickiness włączone",
-    "sessionStickinessDisabled": "Stickiness wyłączone"
+    "sessionStickinessDisabled": "Stickiness wyłączone",
+    "kimiPresetTitle": "Kimi Coding preset",
+    "kimiPresetDescription": "Kimi K3 as the primary model (Moonshot API), with automatic fallback to your Kimi Code connections (kimi-coding, kimi-web) when configured.",
+    "kimiPresetCta": "Add preset"
   },
   "costs": {
     "title": "Koszty",
@@ -4627,8 +4630,8 @@
     "t3ChatWebCookieHint": "Otwórz t3.chat → DevTools → Application → Local Storage → https://t3.chat, skopiuj „convex-session-id”. Następnie otwórz DevTools → Network, skopiuj pełny nagłówek Cookie z dowolnego żądania czatu. Wklej obie wartości w poniższe pola.",
     "t3ChatWebCookiePlaceholder": "convex-session-id=abc123...",
     "grokWebCookieHint": "Wskazówka dotycząca ciasteczka sieciowego Grok",
-    "blockClaudeExtraUsageDescription": "Ukryj dodatkowe wiersze użycia Claude zgłaszane przez niektórych providers, gdy duplikują one podstawowe rozliczanie token.",
-    "blockClaudeExtraUsageLabel": "Blokuj zduplikowane wiersze użycia Claude",
+    "blockClaudeExtraUsageDescription": "Gdy włączone, OmniRoute oznacza to połączenie Claude jako niedostępne, gdy tylko API użycia zgłosi kolejkowane dodatkowe użycie, aby failover przełączył się na inne połączenie zamiast kontynuować rozliczanie dodatkowego użycia w modelu pay-as-you-go.",
+    "blockClaudeExtraUsageLabel": "Blokuj dodatkowe użycie Claude",
     "disableCoolingDescription": "Pomiń tymczasowy cooldown, aby to połączenie pozostało kwalifikowalne nawet po błędach podlegających naprawie (stany terminalne, takie jak banned/expired, nadal obowiązują).",
     "disableCoolingLabel": "Wyłącz cooldown dla tego połączenia",
     "bulkPasteAdded": "{count, plural, one {Dodano 1 klucz} other {Dodano # kluczy}}",
@@ -4944,7 +4947,8 @@
     "bulkAddFormatHintCloudflare": "Jeden klucz na linię. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
     "lmarenaWebCookieHint": "Otwórz arena.ai, zaloguj się, a następnie skopiuj pełny nagłówek Cookie z żądania Network. Dołącz arena-auth-prod-v1.0 i arena-auth-prod-v1.1 (oraz kolejne fragmenty, jeśli występują), najlepiej z cf_clearance. Nie wklejaj samego pustego cookie arena-auth-prod-v1. Opcjonalnie: providerSpecificData.recaptchaV3Token, jeśli create-evaluation nadal zwraca 403.",
     "kimiOfficialSupporterBadge": "Oficjalny wspierający",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) jest oficjalnym partnerem premiery OmniRoute"
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) jest oficjalnym partnerem premiery OmniRoute",
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
   },
   "settings": {
     "title": "Ustawienia",
@@ -9410,5 +9414,12 @@
     "testButton": "Testuj Chaos Mode",
     "testTask": "Napisz krótki wiersz o sztucznej inteligencji",
     "loadingProviderModels": "Ładowanie providers..."
+  },
+  "kimiSponsorBanner": {
+    "title": "Kimi (Moonshot AI) is now an official sponsor of OmniRoute",
+    "description": "Kimi K3 brings a 1M-token context window and frontier coding performance to OmniRoute at a fraction of the cost.",
+    "cta": "Get Kimi Code",
+    "partnerLinkNote": "Partner link",
+    "dismissAriaLabel": "Dismiss"
   }
 }

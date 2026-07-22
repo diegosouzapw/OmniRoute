@@ -41,6 +41,8 @@ import {
 } from "@/lib/combos/builderDraft";
 import { normalizeComboConfigMode } from "@/shared/constants/comboConfigMode";
 import AutoComboCatalog from "./AutoComboCatalog";
+import KimiComboPresetCard from "./KimiComboPresetCard";
+import { KIMI_CODING_PRESET, hasKimiCodingPreset } from "./kimiComboPreset";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
 import IntelligentComboPanel from "./IntelligentComboPanel";
 import {
@@ -688,6 +690,7 @@ export default function CombosPage() {
   const [providerNodes, setProviderNodes] = useState([]);
   const [showUsageGuide, setShowUsageGuide] = useState(true);
   const [recentlyCreatedCombo, setRecentlyCreatedCombo] = useState("");
+  const [creatingKimiPreset, setCreatingKimiPreset] = useState(false);
   const [comboDragIndex, setComboDragIndex] = useState(null);
   const [comboDragOverIndex, setComboDragOverIndex] = useState(null);
   const [savingComboOrder, setSavingComboOrder] = useState(false);
@@ -856,6 +859,18 @@ export default function CombosPage() {
     };
 
     await handleCreate(data);
+  };
+
+  // Kimi Coding preset (2026-07 partnership) — one-click create, mirrors
+  // handleDuplicate's directness (no separate confirmation modal). See
+  // KimiComboPresetCard.tsx for why this bypasses the combo builder wizard.
+  const handleCreateKimiPreset = async () => {
+    setCreatingKimiPreset(true);
+    try {
+      await handleCreate(KIMI_CODING_PRESET);
+    } finally {
+      setCreatingKimiPreset(false);
+    }
   };
 
   const handleTestCombo = async (combo) => {
@@ -1039,6 +1054,12 @@ export default function CombosPage() {
       </div>
 
       <AutoComboCatalog />
+
+      <KimiComboPresetCard
+        alreadyCreated={hasKimiCodingPreset(combos)}
+        creating={creatingKimiPreset}
+        onCreate={handleCreateKimiPreset}
+      />
 
       {showUsageGuide && (
         <ComboUsageGuide
@@ -3903,8 +3924,16 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         }
                         className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-surface-1 focus:border-primary focus:outline-none"
                       >
-                        <option value="flatten">Flatten nested combos</option>
-                        <option value="execute">Execute nested combos as targets</option>
+                        <option value="flatten">
+                          {getI18nOrFallback(t, "nestedComboFlatten", "Flatten nested combos")}
+                        </option>
+                        <option value="execute">
+                          {getI18nOrFallback(
+                            t,
+                            "nestedComboExecute",
+                            "Execute nested combos as targets"
+                          )}
+                        </option>
                       </select>
                     </div>
                     {/* #6168: per-combo session-stickiness override (tri-state so it can
