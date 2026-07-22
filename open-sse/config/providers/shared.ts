@@ -168,6 +168,14 @@ export interface RegistryEntry {
    * the per-model lookup misses.
    */
   unsupportedParams?: readonly string[];
+  /**
+   * True for strict/naive OpenAI-compatible backends that reject a single-text-part
+   * content array (`[{ type: "text", text }]`) and only accept the equivalent plain
+   * string. Used by the Responses→Chat translator to collapse single-part text
+   * content down to a string for this provider only, leaving every other provider's
+   * standard OpenAI array-shaped content untouched (see openai-responses.ts).
+   */
+  requiresPlainStringContent?: boolean;
 }
 
 /**

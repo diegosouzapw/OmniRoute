@@ -236,6 +236,16 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
 }
 
 /**
+ * True for providers whose OpenAI-compatible facade rejects a single-text-part
+ * content array and only accepts the equivalent plain string (RegistryEntry.
+ * requiresPlainStringContent). Used by the Responses→Chat translator to scope
+ * its content-collapse workaround to just these providers.
+ */
+export function requiresPlainStringContent(provider: string): boolean {
+  return getRegistryEntry(provider)?.requiresPlainStringContent === true;
+}
+
+/**
  * Get provider category: "oauth" or "apikey"
  * Used by the resilience layer to apply different cooldown/backoff profiles.
  * @param {string} provider - Provider ID or alias
