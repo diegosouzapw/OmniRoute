@@ -1128,6 +1128,22 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 <sub>Links tagged <code>aff=omniroute</code> are partner links. They fund the project at no extra cost to you.</sub>
 
+## 💖 Sponsors
+
+A heartfelt thank-you to the people who fund OmniRoute out of their own pocket. Every contribution keeps the project free, independent and moving.
+
+<p align="center">
+  <a href="https://github.com/igormorais123"><img src="https://github.com/igormorais123.png?size=140" width="80" alt="Professor Igor Morais Vasconcelos (@igormorais123)"/></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/longtao77"><img src="https://github.com/longtao77.png?size=140" width="80" alt="longtao (@longtao77)"/></a>
+</p>
+
+<p align="center">
+  <sub><b><a href="https://github.com/igormorais123">Professor Igor Morais Vasconcelos</a></b> &nbsp;·&nbsp; <b><a href="https://github.com/longtao77">longtao</a></b> &nbsp;·&nbsp; and one sponsor who prefers to stay private 💛</sub>
+</p>
+
+> **Want to support OmniRoute?** <a href="https://github.com/sponsors/diegosouzapw"><b>Become a sponsor →</b></a> Every dollar goes straight into keeping the project free and independent.
+
 ## ❤️ Support
 
 OmniRoute is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:
