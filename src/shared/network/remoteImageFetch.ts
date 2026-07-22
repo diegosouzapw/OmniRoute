@@ -79,9 +79,36 @@ async function assertHostnameResolvesPublic(
   }
   return resolved;
 }
-function createPinnedFetch(address: string, family: number): typeof fetch {
+/**
+ * Build a `fetch` bound to a single already-DNS-validated address, ignoring
+ * whatever the hostname resolves to at connect time. Exported for direct
+ * testing: this is the mechanism that closes the DNS-rebinding TOCTOU gap
+ * (GHSA-cmhj-wh2f-9cgx) — a second, real DNS lookup at connect time could
+ * otherwise return a different (possibly private) address than the one
+ * `assertHostnameResolvesPublic` validated.
+ */
+export function createPinnedFetch(address: string, family: number): typeof fetch {
   const dispatcher = new Agent({
-    connect: { lookup: (_hostname, _options, callback) => callback(null, address, family) },
+    connect: {
+      // Node's `net.connect`/`tls.connect` invoke a custom `lookup` in one of
+      // two incompatible shapes depending on `options.all`: modern Node
+      // (autoSelectFamily / Happy Eyeballs, on by default since Node 18)
+      // calls `lookup(hostname, { all: true, ... }, callback)` and requires
+      // `callback(err, addresses[])` — an array of `{ address, family }`.
+      // Only when `all` is falsy does it accept the single-address form
+      // `callback(err, address, family)`. Handling only the single-address
+      // form here (as an earlier draft did) throws `ERR_INVALID_IP_ADDRESS`
+      // for every real request once autoSelectFamily kicks in, silently
+      // breaking every pinned fetch — verified by
+      // `tests/unit/remote-image-fetch-pin-dns-connection.test.ts`.
+      lookup: (_hostname, options, callback) => {
+        if (options && typeof options === "object" && "all" in options && options.all) {
+          callback(null, [{ address, family }]);
+          return;
+        }
+        callback(null, address, family);
+      },
+    },
   });
   return (async (input, init) => {
     try {

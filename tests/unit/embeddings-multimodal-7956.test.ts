@@ -209,6 +209,69 @@ test("translates one canonical array to Gemini native embedContent parts", async
   });
 });
 
+test("prepareStructuredEmbeddingRequest bounds aggregate fetched bytes across URL-sourced items and fetches them sequentially", async () => {
+  // #7978 fix-in-place item 2: the documented "16 MiB decoded per request"
+  // cap is enforced by the Zod schema only for base64-sourced items (see the
+  // "bounds item count and decoded inline payload sizes" test above) — URL
+  // items are excluded there. Each URL item is individually capped at 8 MiB
+  // via fetchRemoteImage's maxBytes, but nothing previously stopped up to 32
+  // of them from being fetched concurrently, pulling up to ~256 MiB into
+  // memory at once. This proves the handler-level aggregate cap: URL items
+  // are fetched one at a time, and no further fetch is started once the
+  // running total already exhausts the 16 MiB budget.
+  const { prepareStructuredEmbeddingRequest } =
+    await import("../../open-sse/handlers/embeddingStructuredInput.ts");
+  const provider = {
+    id: "jina-ai",
+    baseUrl: "https://api.jina.ai/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    structuredInputProtocol: "jina-v1" as const,
+    models: [],
+  };
+
+  const EIGHT_MIB = 8 * 1024 * 1024; // exactly the per-item cap
+  const items = Array.from({ length: 5 }, (_, index) => ({
+    type: "image" as const,
+    source: { type: "url" as const, url: `https://example.com/${index}.png` },
+  }));
+
+  let concurrentFetches = 0;
+  let maxConcurrentFetches = 0;
+  let fetchCount = 0;
+  const fetchMedia = async () => {
+    fetchCount += 1;
+    concurrentFetches += 1;
+    maxConcurrentFetches = Math.max(maxConcurrentFetches, concurrentFetches);
+    // Yield so a broken (Promise.all-style concurrent) implementation would
+    // visibly overlap fetches instead of running them one at a time.
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    concurrentFetches -= 1;
+    return { buffer: Buffer.alloc(EIGHT_MIB, 1), contentType: "image/png" };
+  };
+
+  await assert.rejects(
+    () =>
+      prepareStructuredEmbeddingRequest(
+        provider,
+        "jina-embeddings-v5-omni-small",
+        { input: items },
+        "token",
+        { fetchMedia }
+      ),
+    /16 MiB per request/
+  );
+
+  assert.equal(maxConcurrentFetches, 1, "URL media fetches must be sequential, not concurrent");
+  // Two 8 MiB items exactly exhaust the 16 MiB budget; a third must never be
+  // fetched at all (fails fast on the running total, not after over-fetching).
+  assert.equal(
+    fetchCount,
+    2,
+    "no further URL fetch should start once the aggregate 16 MiB budget is already exhausted"
+  );
+});
+
 test("handleEmbedding clearly rejects modalities not advertised by the resolved model", async () => {
   const originalFetch = globalThis.fetch;
   let fetched = false;
