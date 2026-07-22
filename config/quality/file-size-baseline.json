@@ -190,7 +190,7 @@
     "open-sse/mcp-server/server.ts": 1555,
     "open-sse/mcp-server/tools/advancedTools.ts": 1120,
     "_rebaseline_2026_06_27_5193_antigravity_basered": "Base-red (pre-existing release drift, fast-gate PR->release skips check:file-size): accountFallback.ts 1773->1777 and src/app/api/providers/[id]/test/route.ts 924->940 were already over their frozen caps on release/v3.8.39 independent of any antigravity change. Owner chose to rebaseline (keep the documented issue-reference comments #1846/#1449/#347 etc.) rather than accept the contributor comment-stripping in #5200/#5198. Reverted #5200 to restore the comments; bumped these two frozen caps to the actual base sizes. No logic change.",
-    "open-sse/services/accountFallback.ts": 1864,
+    "open-sse/services/accountFallback.ts": 1892,
     "open-sse/services/adobeFireflyClient.ts": 1958,
     "open-sse/services/batchProcessor.ts": 915,
     "open-sse/services/browserBackedChat.ts": 850,
@@ -319,7 +319,8 @@
     "_rebaseline_2026_07_22_8056_headroom_minrows": "#8056 (@RaviTharuma, persist Headroom minRows) own growth: src/lib/db/compression.ts 850->866 (+16 HeadroomConfig+DEFAULT_HEADROOM_CONFIG+normalize/store in get/updateCompressionSettings) and open-sse/services/compression/strategySelector.ts 1054->1060 (+6 merge settings.headroom into stacked stepConfig). Cohesive settings-persistence + stacked-merge wiring at existing chokepoints, frozen at new size.",
     "_rebaseline_2026_07_22_8081_reasoning_placeholder_guard": "#8081 (@Dingding-leo) own growth: openai-responses.ts 1125->1137 (+12) restructuring the reasoning-placeholder guard so it skips only the empty content block and still emits finish_reason/tool_calls in the same chunk. Cohesive translator wiring; frozen at new size.",
     "open-sse/services/usage/antigravity.ts": 802,
-    "_rebaseline_2026_07_22_fusion_8013_8098_antigravity": "Fusion of #8013 (backryun, catalog/IDE-CLI-split rewrite) + #8098 (nguyenha935, protocol-fidelity/fail-closed/credits/tool-cloaking): open-sse/services/usage/antigravity.ts NEW 802 (>cap 800, +2 — #8098 credits/tier usage service on #8013's profile-aware headers). Test growth (models-catalog-route 1605->1608, provider-models-route 1752->1757 from #8013 Gemini 3.6 catalog) tracked in testFrozen."
+    "_rebaseline_2026_07_22_fusion_8013_8098_antigravity": "Fusion of #8013 (backryun, catalog/IDE-CLI-split rewrite) + #8098 (nguyenha935, protocol-fidelity/fail-closed/credits/tool-cloaking): open-sse/services/usage/antigravity.ts NEW 802 (>cap 800, +2 — #8098 credits/tier usage service on #8013's profile-aware headers). Test growth (models-catalog-route 1605->1608, provider-models-route 1752->1757 from #8013 Gemini 3.6 catalog) tracked in testFrozen.",
+    "_rebaseline_2026_07_22_8050_model_lockout_exact_family": "#8050 (@AndrianBalanescu) own growth: accountFallback.ts 1864->1892 (+28) — exact-vs-family model-lockout scoping (getModelLockKey/isModelLocked/clearModelLock/getModelLockoutInfo) so an Antigravity 404 for one bare model no longer hijacks the whole family cooldown. Cohesive lockout logic; frozen at new size."
   },
   "testCap": 800,
   "testFrozen": {
