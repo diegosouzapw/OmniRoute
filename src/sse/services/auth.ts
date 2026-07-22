@@ -12,9 +12,11 @@ import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
   getQuotaWindowStatus,
-  isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
-import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import {
+  getAntigravityQuotaFamily,
+  getQuotaScopeLabelForProvider,
+} from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -124,6 +126,7 @@ interface CooldownInspectionState {
   connection: ProviderConnectionView;
   connectionCooldownMs: number | null;
   codexScopeCooldownMs: number | null;
+  antigravityScopeCooldownMs: number | null;
   retryableModelCooldownMs: number | null;
 }
 
@@ -402,6 +405,123 @@ function isCodexScopeUnavailable(
   return new Date(until).getTime() > Date.now();
 }
 
+function getAntigravityScopeRateLimitedUntil(
+  providerSpecificData: JsonRecord,
+  model: string | null
+): string | number | null {
+  if (!model) return null;
+  const family = getAntigravityQuotaFamily(model);
+  if (family === "other") return null;
+  const scopeMap = asRecord(providerSpecificData.antigravityScopeRateLimitedUntil);
+  const value = scopeMap[family];
+  return typeof value === "string" || typeof value === "number" ? value : null;
+}
+
+function isAntigravityScopeUnavailable(
+  connection: ProviderConnectionView,
+  model: string | null
+): boolean {
+  const until = getAntigravityScopeRateLimitedUntil(connection.providerSpecificData, model);
+  if (!until) return false;
+  const ms = cooldownUntilMs(until);
+  return Number.isFinite(ms) && ms > Date.now();
+}
+
+const ANTIGRAVITY_QUOTA_EXHAUSTED_ERROR = "Antigravity quota exhausted until cached quota reset";
+
+function isAntigravityQuotaKeyForModel(quotaKey: string, model: string | null): boolean {
+  if (!model) return true;
+
+  const modelFamily = getAntigravityQuotaFamily(model);
+  const quotaFamily = getAntigravityQuotaFamily(quotaKey);
+  const normalizedModel = String(model).toLowerCase().replace(/^antigravity\//, "");
+  const normalizedQuotaKey = quotaKey.toLowerCase().replace(/^antigravity\//, "");
+
+  return (
+    (modelFamily !== "other" && quotaFamily === modelFamily) ||
+    normalizedQuotaKey === normalizedModel ||
+    normalizedQuotaKey.includes(normalizedModel) ||
+    normalizedModel.includes(normalizedQuotaKey)
+  );
+}
+
+function getAntigravityQuotaExhaustion(
+  connectionId: string,
+  model: string | null
+): { exhausted: boolean; resetAt: string | null } {
+  const entry = getQuotaCache(connectionId);
+  if (!entry || entry.provider !== "antigravity") return { exhausted: false, resetAt: null };
+
+  const now = Date.now();
+  let sawMatchingQuota = false;
+  let exhaustedMatchingQuota = false;
+  let earliestFutureResetMs = Infinity;
+
+  for (const [quotaKey, quota] of Object.entries(entry.quotas || {})) {
+    if (!quota || !isAntigravityQuotaKeyForModel(quotaKey, model)) continue;
+    sawMatchingQuota = true;
+    if (quota.remainingPercentage > 0) continue;
+
+    exhaustedMatchingQuota = true;
+    const resetMs = quota.resetAt ? new Date(quota.resetAt).getTime() : NaN;
+    if (Number.isFinite(resetMs) && resetMs > now) {
+      earliestFutureResetMs = Math.min(earliestFutureResetMs, resetMs);
+    }
+  }
+
+  if (sawMatchingQuota) {
+    return {
+      exhausted: exhaustedMatchingQuota,
+      resetAt: Number.isFinite(earliestFutureResetMs)
+        ? new Date(earliestFutureResetMs).toISOString()
+        : null,
+    };
+  }
+
+  if (entry.exhausted) {
+    const resetMs = entry.nextResetAt ? new Date(entry.nextResetAt).getTime() : NaN;
+    if (Number.isFinite(resetMs) && resetMs <= now) return { exhausted: false, resetAt: null };
+    return {
+      exhausted: true,
+      resetAt: Number.isFinite(resetMs) && resetMs > now ? new Date(resetMs).toISOString() : null,
+    };
+  }
+
+  return { exhausted: false, resetAt: null };
+}
+
+function isConnectionQuotaExhaustedForModel(
+  provider: string,
+  connectionId: string,
+  model: string | null
+): boolean {
+  if (provider === "antigravity") {
+    return getAntigravityQuotaExhaustion(connectionId, model).exhausted;
+  }
+
+  const entry = getQuotaCache(connectionId);
+  if (!entry || !entry.exhausted) return false;
+
+  const now = Date.now();
+  const resetMs = entry.nextResetAt ? new Date(entry.nextResetAt).getTime() : NaN;
+  if (Number.isFinite(resetMs) && resetMs <= now) return false;
+
+  const age = now - entry.fetchedAt;
+  if (!entry.nextResetAt && age > 5 * 60 * 1000) return false;
+
+  return true;
+}
+
+function antigravityQuotaResetCooldownMs(
+  connectionId: string,
+  model: string | null
+): number | null {
+  const exhaustion = getAntigravityQuotaExhaustion(connectionId, model);
+  if (!exhaustion.exhausted || !exhaustion.resetAt) return null;
+  const resetMs = new Date(exhaustion.resetAt).getTime();
+  return Number.isFinite(resetMs) && resetMs > Date.now() ? Math.max(resetMs - Date.now(), 1) : null;
+}
+
 function getEarliestCodexScopeRateLimitedUntil(
   connections: ProviderConnectionView[],
   model: string | null
@@ -658,7 +778,7 @@ function getP2CConnectionScore(
   requestedModel: string | null = null
 ): { score: number; quotaHeadroomPercent: number | null } {
   const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-  const quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
+  const quotaExhausted = isConnectionQuotaExhaustedForModel(provider, connection.id, requestedModel);
   const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
     provider,
     connection,
@@ -1230,7 +1350,14 @@ export async function getProviderCredentials(
       if (!allowSuppressedConnections) {
         if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
-        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) {
+          modelLockedCount += 1;
+          return false;
+        }
+        if (provider === "antigravity" && isAntigravityScopeUnavailable(c, requestedModel)) {
+          familyLockedCount += 1;
+          return false;
+        }
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
         if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
           if (
@@ -1262,6 +1389,8 @@ export async function getProviderCredentials(
       const rateLimited = isAccountUnavailable(c.rateLimitedUntil);
       const terminalStatus = isTerminalConnectionStatus(c);
       const codexScopeLimited = provider === "codex" && isCodexScopeUnavailable(c, requestedModel);
+      const antigravityScopeLimited =
+        provider === "antigravity" && isAntigravityScopeUnavailable(c, requestedModel);
       const modelLocked =
         Boolean(requestedModel) && isModelLocked(provider, c.id, requestedModel as string);
       const modelExcluded =
@@ -1292,6 +1421,17 @@ export async function getProviderCredentials(
             ? `  → ${c.id?.slice(0, 8)} | retained codex scope-limited account until ${scopeUntil} for combo live test`
             : `  → ${c.id?.slice(0, 8)} | codex scope-limited until ${scopeUntil}`
         );
+      } else if (antigravityScopeLimited) {
+        const scopeUntil = getAntigravityScopeRateLimitedUntil(
+          c.providerSpecificData,
+          requestedModel
+        );
+        log.debug(
+          "AUTH",
+          allowSuppressedConnections
+            ? `  → ${c.id?.slice(0, 8)} | retained antigravity scope-limited account until ${scopeUntil} for combo live test`
+            : `  → ${c.id?.slice(0, 8)} | antigravity scope-limited until ${scopeUntil}`
+        );
       } else if (modelLocked) {
         const lockout = getModelLockoutInfo(provider, c.id, requestedModel);
         log.debug(
@@ -1304,12 +1444,26 @@ export async function getProviderCredentials(
     });
 
     if (availableConnections.length === 0) {
-      const cooldownStates: CooldownInspectionState[] = connections.map((connection) => {
+      // Request-level exclusions are retry bookkeeping, not provider cooldowns.
+      // Do not let a just-failed/excluded account determine the provider-level
+      // all-rate-limited retry-after; only inspect accounts that remain relevant
+      // for this selection attempt.
+      const cooldownInspectionConnections = connections.filter(
+        (connection) => !excludedConnectionIds.has(connection.id)
+      );
+
+      const cooldownStates: CooldownInspectionState[] = cooldownInspectionConnections.map((connection) => {
         const connectionCooldownMs = parseFutureDateMs(connection.rateLimitedUntil);
         const codexScopeCooldownMs =
           provider === "codex"
             ? parseFutureDateMs(
                 getCodexScopeRateLimitedUntil(connection.providerSpecificData, requestedModel)
+              )
+            : null;
+        const antigravityScopeCooldownMs =
+          provider === "antigravity"
+            ? parseFutureDateMs(
+                getAntigravityScopeRateLimitedUntil(connection.providerSpecificData, requestedModel)
               )
             : null;
         const modelLockout = requestedModel
@@ -1326,6 +1480,7 @@ export async function getProviderCredentials(
           connection,
           connectionCooldownMs,
           codexScopeCooldownMs,
+          antigravityScopeCooldownMs,
           retryableModelCooldownMs,
         };
       });
@@ -1339,6 +1494,9 @@ export async function getProviderCredentials(
           if (state.codexScopeCooldownMs !== null) {
             candidates.push({ ms: state.codexScopeCooldownMs, connection: state.connection });
           }
+          if (state.antigravityScopeCooldownMs !== null) {
+            candidates.push({ ms: state.antigravityScopeCooldownMs, connection: state.connection });
+          }
           if (state.retryableModelCooldownMs !== null) {
             candidates.push({ ms: state.retryableModelCooldownMs, connection: state.connection });
           }
@@ -1351,7 +1509,9 @@ export async function getProviderCredentials(
         cooldownStates.length > 0 &&
         cooldownStates.every((state) => {
           const hasModelSpecificCooldown =
-            state.codexScopeCooldownMs !== null || state.retryableModelCooldownMs !== null;
+            state.codexScopeCooldownMs !== null ||
+            state.antigravityScopeCooldownMs !== null ||
+            state.retryableModelCooldownMs !== null;
           return hasModelSpecificCooldown && state.connectionCooldownMs === null;
         });
 
@@ -1366,8 +1526,8 @@ export async function getProviderCredentials(
         log.warn(
           "AUTH",
           allBlockedByModelCooldown
-            ? `${provider} | all ${connections.length} active accounts cooling down for model ${requestedModel} (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
-            : `${provider} | all ${connections.length} active accounts rate limited (${formatRetryAfter(earliest)}) | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
+            ? `${provider} | all ${cooldownInspectionConnections.length}/${connections.length} non-excluded active accounts cooling down for model ${requestedModel} (${formatRetryAfter(earliest)}) | excluded=${excludedConnectionIds.size} | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
+            : `${provider} | all ${cooldownInspectionConnections.length}/${connections.length} non-excluded active accounts rate limited (${formatRetryAfter(earliest)}) | excluded=${excludedConnectionIds.size} | lastErrorCode=${earliestConn?.errorCode}, lastError=${earliestConn?.lastError?.slice(0, 50)}`
         );
         return {
           allRateLimited: true,
@@ -1440,10 +1600,10 @@ export async function getProviderCredentials(
 
     // Quota-aware: filter out accounts with exhausted quota for the requested scope.
     const withQuota = policyEligibleConnections.filter(
-      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+      (c) => !isConnectionQuotaExhaustedForModel(provider, c.id, requestedModel)
     );
     const exhaustedQuota = policyEligibleConnections.filter((c) =>
-      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
+      isConnectionQuotaExhaustedForModel(provider, c.id, requestedModel)
     );
 
     if (exhaustedQuota.length > 0) {
@@ -1457,6 +1617,9 @@ export async function getProviderCredentials(
       // All remaining eligible accounts are exhausted
       const earliestResetAt = getEarliestFutureDate(
         exhaustedQuota.map((c) => {
+          if (provider === "antigravity") {
+            return getAntigravityQuotaExhaustion(c.id, requestedModel).resetAt;
+          }
           const entry = getQuotaCache(c.id);
           return entry?.nextResetAt || null;
         })
@@ -1928,7 +2091,17 @@ export async function markAccountUnavailable(
     const existingCooldownMs = conn?.rateLimitedUntil
       ? cooldownUntilMs(conn.rateLimitedUntil)
       : NaN;
-    if (Number.isFinite(existingCooldownMs) && existingCooldownMs > Date.now()) {
+    const shouldBypassGlobalDuplicateGuardForAntigravityFamily429 =
+      provider === "antigravity" &&
+      status === 429 &&
+      Boolean(model) &&
+      getAntigravityQuotaFamily(model) !== "other" &&
+      Boolean(conn);
+    if (
+      Number.isFinite(existingCooldownMs) &&
+      existingCooldownMs > Date.now() &&
+      !shouldBypassGlobalDuplicateGuardForAntigravityFamily429
+    ) {
       log.info(
         "AUTH",
         `${connectionId.slice(0, 8)} already marked unavailable (until ${conn?.rateLimitedUntil}), skipping duplicate mark`
@@ -1953,6 +2126,24 @@ export async function markAccountUnavailable(
         return {
           shouldFallback: true,
           cooldownMs: new Date(scopeRateLimitedUntil).getTime() - Date.now(),
+        };
+      }
+    }
+
+    // T09: Antigravity scope-aware lockout guard.
+    if (provider === "antigravity" && model) {
+      const scopeRateLimitedUntil = getAntigravityScopeRateLimitedUntil(
+        conn?.providerSpecificData || {},
+        model
+      );
+      if (scopeRateLimitedUntil && cooldownUntilMs(scopeRateLimitedUntil) > Date.now()) {
+        log.info(
+          "AUTH",
+          `${connectionId.slice(0, 8)} already scope-limited for family of ${model} (until ${scopeRateLimitedUntil}), skipping duplicate mark`
+        );
+        return {
+          shouldFallback: true,
+          cooldownMs: cooldownUntilMs(scopeRateLimitedUntil) - Date.now(),
         };
       }
     }
@@ -1994,6 +2185,7 @@ export async function markAccountUnavailable(
       isPerModelQuotaProvider &&
       provider &&
       provider !== "codex" &&
+      !(provider === "antigravity" && status === 429) &&
       model &&
       (status === 404 || status === 429 || status >= 500)
     ) {
@@ -2173,7 +2365,15 @@ export async function markAccountUnavailable(
       const scope = getCodexModelScope(model);
       const existingScopeMap = asRecord(conn.providerSpecificData.codexScopeRateLimitedUntil);
       const persistedScopeUntil = getCodexScopeRateLimitedUntil(conn.providerSpecificData, model);
-      const scopeRateLimitedUntil = persistedScopeUntil || getUnavailableUntil(cooldownMs);
+      const newScopeUntil = getUnavailableUntil(cooldownMs);
+
+      const scopeRateLimitedUntil =
+        persistedScopeUntil &&
+        new Date(persistedScopeUntil).getTime() > Date.now() &&
+        new Date(persistedScopeUntil).getTime() > new Date(newScopeUntil).getTime()
+          ? persistedScopeUntil
+          : newScopeUntil;
+
       const scopeCooldownMs = Math.max(new Date(scopeRateLimitedUntil).getTime() - Date.now(), 0);
 
       await updateProviderConnection(connectionId, {
@@ -2200,6 +2400,65 @@ export async function markAccountUnavailable(
       }
 
       return { shouldFallback: true, cooldownMs: scopeCooldownMs };
+    }
+
+    // T09: Antigravity per-family lockout (do not block the whole account globally).
+    if (provider === "antigravity" && status === 429 && model && conn) {
+      const family = getAntigravityQuotaFamily(model);
+      if (family !== "other") {
+        const existingScopeMap = asRecord(
+          conn.providerSpecificData.antigravityScopeRateLimitedUntil
+        );
+        const persistedScopeUntil = getAntigravityScopeRateLimitedUntil(
+          conn.providerSpecificData,
+          model
+        );
+
+        // Use the exact reset time from our quota cache if cache cooldown is available
+        const cacheCooldownMs = antigravityQuotaResetCooldownMs(connectionId, model);
+        const effectiveCooldownMs =
+          cacheCooldownMs && cacheCooldownMs > 0
+            ? cacheCooldownMs
+            : fallbackResult.quotaResetHintMs && fallbackResult.quotaResetHintMs > 0
+              ? fallbackResult.quotaResetHintMs
+              : fallbackResult.usedUpstreamRetryHint === true
+                ? cooldownMs
+                : ANTIGRAVITY_FAMILY_INFERRED_BASE_COOLDOWN_MS;
+
+        const newScopeUntil = getUnavailableUntil(effectiveCooldownMs);
+        const scopeRateLimitedUntil =
+          persistedScopeUntil &&
+          cooldownUntilMs(persistedScopeUntil) > Date.now() &&
+          cooldownUntilMs(persistedScopeUntil) > cooldownUntilMs(newScopeUntil)
+            ? persistedScopeUntil
+            : newScopeUntil;
+
+        const scopeCooldownMs = Math.max(cooldownUntilMs(scopeRateLimitedUntil) - Date.now(), 0);
+
+        await updateProviderConnection(connectionId, {
+          lastError: errorMsg,
+          errorCode: status,
+          lastErrorAt: new Date().toISOString(),
+          backoffLevel: newBackoffLevel ?? backoffLevel,
+          providerSpecificData: {
+            ...conn.providerSpecificData,
+            antigravityScopeRateLimitedUntil: {
+              ...existingScopeMap,
+              [family]: scopeRateLimitedUntil,
+            },
+          },
+        });
+
+        if (scopeCooldownMs > 0) {
+          lockModel(provider, connectionId, model, reason || "unknown", scopeCooldownMs);
+        }
+
+        if (status && errorMsg) {
+          console.error(`❌ ${provider} [${status}] (${family}): ${errorMsg}`);
+        }
+
+        return { shouldFallback: true, cooldownMs: scopeCooldownMs };
+      }
     }
 
     const baseUpdate = {
