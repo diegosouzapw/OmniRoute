@@ -156,7 +156,7 @@ function getThreshold(options: PromptInjectionGuardrailOptions) {
 }
 
 function isEnabled(options: PromptInjectionGuardrailOptions) {
-  return options.enabled ?? process.env.INPUT_SANITIZER_ENABLED !== "false";
+  return options.enabled ?? process.env.INPUT_SANITIZER_ENABLED === "true";
 }
 
 export function evaluatePromptInjection(

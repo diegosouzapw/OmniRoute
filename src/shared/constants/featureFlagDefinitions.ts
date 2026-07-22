@@ -30,7 +30,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Enable input sanitization for all requests",
     descriptionI18nKey: "featureFlagInputSanitizerEnabledDescription",
     category: "security",
-    defaultValue: "true",
+    defaultValue: "false",
     type: "boolean",
     requiresRestart: false,
     warningLevel: "info",

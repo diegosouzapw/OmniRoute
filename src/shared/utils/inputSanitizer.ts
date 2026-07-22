@@ -111,7 +111,7 @@ const PII_PATTERNS = [
  */
 function getConfig() {
   return {
-    enabled: process.env.INPUT_SANITIZER_ENABLED !== "false",
+    enabled: process.env.INPUT_SANITIZER_ENABLED === "true",
     mode: process.env.INPUT_SANITIZER_MODE || "warn", // "warn" | "block" | "redact"
     piiRedaction: process.env.PII_REDACTION_ENABLED === "true",
   };
