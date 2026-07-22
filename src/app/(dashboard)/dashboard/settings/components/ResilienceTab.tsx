@@ -124,6 +124,16 @@ function NumberField({
   min?: number;
   onChange: (value: number) => void;
 }) {
+  // Track the raw text so the user can clear the field and retype freely.
+  // Without this, a controlled numeric input snaps back to the previous value
+  // the moment the field is emptied, making it impossible to type a new number.
+  const [text, setText] = useState(String(value));
+
+  // Sync from parent when value changes externally (e.g. cancel/edit reset).
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
+
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs text-text-muted">{label}</span>
@@ -132,14 +142,19 @@ function NumberField({
           type="text"
           inputMode="numeric"
           min={min}
-          value={value}
+          value={text}
           onChange={(event) => {
             const raw = event.target.value.replace(/[^0-9]/g, "");
+            setText(raw);
             if (raw === "") return;
             const nextValue = Number(raw);
             if (Number.isFinite(nextValue)) {
               onChange(nextValue);
             }
+          }}
+          onBlur={() => {
+            // Restore last valid number on blur if field is empty or invalid.
+            setText(String(value));
           }}
           className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm font-mono"
         />
