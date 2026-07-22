@@ -1,0 +1,1 @@
+- Teach the model the CCR retrieve protocol (marker → `omniroute_ccr_retrieve`, verbatim 24-char hash, `dedup:ref` look-back) on the first marker, gated on MCP-tool capability (#8033)

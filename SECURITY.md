@@ -91,7 +91,7 @@ Configure via dashboard (Settings → Security) or `.env`:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
+INPUT_SANITIZER_MODE=block    # warn | block (injection policy; legacy "redact" does not strip injection text)
 ```
 
 ### 🔒 PII Redaction
@@ -108,7 +108,8 @@ Automatic detection and optional redaction of personally identifiable informatio
 | SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true
+PII_REDACTION_ENABLED=true   # request PII rewrite; independent of INPUT_SANITIZER_MODE
+PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses returned to clients
 ```
 
 ### 🌐 Network Security

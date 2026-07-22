@@ -20,6 +20,7 @@ import {
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
+import { resolveRequestToolIdentity } from "./openai-responses/requestToolIdentity.ts";
 import {
   synthesizeCompletedToolCalls,
   computeFinishReason,
@@ -453,10 +454,19 @@ function emitToolCall(state, emit, tc) {
   const callId = state.funcCallIds[tcIdx];
 
   if (callId && toolName && !state.funcItemAdded[tcIdx]) {
+    // #7936 — restore the codex-side `{namespace, name}` pair when the bare
+    // leaf on the Chat wire was flattened from a Responses namespace sub-tool.
+    // Codex dispatches from `namespace` independently of `name` (no `__` split).
+    const identity = resolveRequestToolIdentity(state.requestToolIdentityMap, toolName);
     emit("response.output_item.added", {
       type: "response.output_item.added",
       output_index: outputIndex,
-      item: buildResponsesToolCallItem({ callId, toolName, custom: isCustomTool }),
+      item: buildResponsesToolCallItem({
+        callId,
+        toolName: identity ? identity.name : toolName,
+        custom: isCustomTool,
+        namespace: identity ? identity.namespace : null,
+      }),
     });
     state.funcItemAdded[tcIdx] = true;
 
@@ -538,6 +548,17 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         status: "completed",
       };
 
+      // #7936 identity closure for custom_tool_call items (apply_patch stays
+      // bare; namespace sub-tools get back their `namespace` + `name`).
+      const customIdentity = resolveRequestToolIdentity(
+        state.requestToolIdentityMap,
+        state.funcNames[idx] || ""
+      );
+      if (customIdentity) {
+        funcItem.namespace = customIdentity.namespace;
+        funcItem.name = customIdentity.name;
+      }
+
       emit("response.output_item.done", {
         type: "response.output_item.done",
         output_index: normalizedIndex,
@@ -559,6 +580,19 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         name: state.funcNames[idx] || "",
         status: "completed",
       };
+
+      // #7936 identity closure: rewrite the function_call item's `name` back to
+      // its bare leaf and stamp the original `namespace` alongside it, matching
+      // the codex ResponseItem::FunctionCall schema (independent `namespace`
+      // field, NOT a `__` split on `name`).
+      const fnIdentity = resolveRequestToolIdentity(
+        state.requestToolIdentityMap,
+        state.funcNames[idx] || ""
+      );
+      if (fnIdentity) {
+        funcItem.namespace = fnIdentity.namespace;
+        funcItem.name = fnIdentity.name;
+      }
 
       emit("response.output_item.done", {
         type: "response.output_item.done",
