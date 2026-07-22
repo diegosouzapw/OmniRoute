@@ -12,6 +12,26 @@ import type { ServiceConfig, ServiceState, ServiceStatus, LogLine, HealthState }
 
 const CRASH_FAST_THRESHOLD_MS = 5_000;
 
+/**
+ * Builds the `spawn()` options for a supervised service child process.
+ * `windowsHide: true` suppresses the transient conhost.exe/cmd console
+ * window Windows briefly flashes open for spawned child processes (#8131).
+ * Exported (rather than inlined) so a unit test can assert on it directly
+ * instead of mocking `node:child_process`.
+ */
+export function buildServiceSpawnOptions(
+  env: NodeJS.ProcessEnv | undefined,
+  cwd: string | undefined
+): { env: NodeJS.ProcessEnv | undefined; cwd: string | undefined; detached: boolean; stdio: ["ignore", "pipe", "pipe"]; windowsHide: boolean } {
+  return {
+    env,
+    cwd,
+    detached: false,
+    stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
+  };
+}
+
 export class ServiceSupervisor extends EventEmitter {
   private state: ServiceState = "stopped";
   private health: HealthState = "unknown";
@@ -90,12 +110,7 @@ export class ServiceSupervisor extends EventEmitter {
 
       const { command, args, env, cwd } = this.config.spawnArgs();
 
-      const child = spawn(command, args, {
-        env,
-        cwd,
-        detached: false,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
+      const child = spawn(command, args, buildServiceSpawnOptions(env, cwd));
 
       this.childProcess = child;
       this.pid = child.pid ?? null;
