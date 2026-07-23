@@ -400,25 +400,6 @@ You can ignore this section if you do not run RAG or agent pipelines behind Omni
 
 Issues specific to the v3.8.0 release and their current workarounds. If a fix lands in a later patch, the entry will be updated or removed.
 
-### Windsurf OAuth flow fails with 401
-
-**Symptoms:**
-
-- "401 unauthorized" while completing the Windsurf OAuth flow from the dashboard
-- Windsurf provider card stays in "needs reconnection" state after the callback
-
-**Causes:**
-
-- `WINDSURF_FIREBASE_API_KEY` env var missing or empty
-- `WINDSURF_API_KEY` misconfigured or pointing at a stale token
-- Local firewall/proxy blocking the OAuth callback
-
-**Fix:**
-
-1. Verify both `WINDSURF_FIREBASE_API_KEY` and `WINDSURF_API_KEY` are set in `.env`
-2. Restart OmniRoute so the new env values are picked up
-3. Re-run the OAuth flow from **Dashboard → Providers → Windsurf → Reconnect**
-
 ### Devin CLI auth failures
 
 **Symptoms:**

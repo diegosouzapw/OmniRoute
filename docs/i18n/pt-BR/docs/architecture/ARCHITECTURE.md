@@ -74,7 +74,7 @@ Capacidades principais:
 - Middleware de proteção contra injeção de prompt
 - Pipeline de compressão de prompt com Caveman, RTK, pipelines empilhados, combos de compressão, pacotes de idioma e análises
 - Registro de ACP (Agent Communication Protocol)
-- Provedores OAuth modulares (14 módulos individuais sob `src/lib/oauth/providers/`)
+- Provedores OAuth modulares (22 módulos individuais sob `src/lib/oauth/providers/`)
 - Scripts de desinstalação/desinstalação completa
 - Ação de reparo de ambiente OAuth
 - Ponte WebSocket para clientes WS compatíveis com OpenAI (`/v1/ws`)
@@ -329,10 +329,10 @@ Módulos da camada de domínio:
 - Executor de avaliação: `src/lib/domain/evalRunner.ts`
 - Persistência do estado do domínio: `src/lib/db/domainState.ts` — CRUD SQLite para cadeias de fallback, orçamentos, histórico de custos, estado de bloqueio, disjuntores
 
-Módulos do provedor OAuth (14 arquivos individuais em `src/lib/oauth/providers/`):
+Módulos do provedor OAuth (22 arquivos individuais em `src/lib/oauth/providers/`):
 
 - Índice do registro: `src/lib/oauth/providers/index.ts`
-- Provedores individuais: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`, `windsurf.ts`, `gitlab-duo.ts`
+- Provedores individuais: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `qoder.ts`, `raycast.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
 - Wrapper fino: `src/lib/oauth/providers.ts` — re-exportações de módulos individuais
 
 ## Subsistemas Principais (v3.8.0)
@@ -908,7 +908,7 @@ Cada provedor tem um executor especializado que estende `BaseExecutor` (em `open
 | `PuterExecutor`          | Puter                                                                                                                                                       | Integração de provedor baseada em navegador                                          |
 | `QoderExecutor`          | Qoder AI                                                                                                                                                    | Suporte a PAT e OAuth, nível gratuito multi-modelo                                   |
 | `VertexExecutor`         | Google Vertex AI                                                                                                                                            | Autenticação de conta de serviço, endpoints baseados em região                       |
-| `WindsurfExecutor`       | Windsurf (Codeium)                                                                                                                                          | Atualização de token de sessão + OAuth do Codeium                                    |
+| `DevinDesktopExecutor` | Devin Desktop | Chave de API importada + streaming de chat Connect-protobuf |
 
 Todos os outros provedores (incluindo nós compatíveis personalizados) usam o `DefaultExecutor`.
 
@@ -962,9 +962,9 @@ Todos os outros provedores (incluindo nós compatíveis personalizados) usam o `
 | GLMT (preset)     | claude           | Chave de API               | ✅               | ✅         | ❌                   | ⚠️ Por solicitação   |
 | Kimi Coding       | openai           | OAuth / Chave de API       | ✅               | ✅         | ✅                   | ❌                   |
 | KIE               | openai           | Chave de API               | ✅               | ✅         | ❌                   | ❌                   |
-| Windsurf          | openai           | OAuth (Codeium)            | ✅               | ✅         | ✅                   | ⚠️ Por solicitação   |
+| Devin Desktop | openai | Chave de API importada | ✅ (Connect→SSE) | ✅ | ❌ | ⚠️ Por solicitação |
 | GitLab Duo        | openai           | OAuth (GitLab)             | ✅               | ✅         | ✅                   | ❌                   |
-| Devin CLI         | openai           | OAuth                      | ✅               | ✅         | ✅                   | ✅ API de Tarefas    |
+| Devin CLI | openai | Login local da CLI | ✅ | ✅ | ❌ | ✅ API de Tarefas |
 | Codex Cloud       | openai-responses | OAuth                      | ✅               | ❌         | ✅                   | ✅ Limites de taxa   |
 | Jules             | openai           | OAuth                      | ✅               | ✅         | ✅                   | ✅ API de Tarefas    |
 | AgentRouter       | openai           | Chave de API               | ✅               | ✅         | ❌                   | ❌                   |

@@ -123,7 +123,7 @@ test("P1: tokenHealthCheck checks copilotTokenExpiresAt before refreshing", asyn
   assert.match(
     src,
     /toLowerCase\(\)\s*===\s*["']github["']|_PROVIDERS\.has\(\s*String\([^)]*\)\s*\.toLowerCase\(\)\s*\)/,
-    "must be gated on a lowercase-normalized provider check (=== \"github\" literal " +
+    'must be gated on a lowercase-normalized provider check (=== "github" literal ' +
       "or a *_PROVIDERS Set membership test covering github/ghe-copilot)"
   );
 });
@@ -231,22 +231,6 @@ test("P3: refreshClaudeOAuthToken normalizes invalid_grant to unrecoverable_refr
     /code:\s*`http_\$\{response\.status\}`/,
     "must NOT return http_NNN code format for invalid_grant"
   );
-});
-
-// ─── P3: Windsurf Firebase errors ────────────────────────────────────────────
-
-test("P3: refreshWindsurfToken parses Firebase USER_DISABLED/TOKEN_EXPIRED errors", async () => {
-  // refreshWindsurfToken lives in its own co-located provider module since the
-  // tokenRefresh.ts provider-extraction (#7338, redone on tip).
-  const src = await read("open-sse/services/tokenRefresh/providers/windsurf.ts");
-  const fnMatch = src.match(/export\s+async\s+function\s+refreshWindsurfToken\([\s\S]+?\n\}/);
-  assert.ok(fnMatch, "refreshWindsurfToken function body not found");
-  assert.match(
-    fnMatch[0],
-    /USER_DISABLED|TOKEN_EXPIRED|INVALID_REFRESH_TOKEN/,
-    "must detect Firebase error codes"
-  );
-  assert.match(fnMatch[0], /unrecoverable_refresh_error/, "must return unrecoverable sentinel");
 });
 
 // ─── isUnrecoverableRefreshError consistency ──────────────────────────────────

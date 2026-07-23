@@ -1,16 +1,12 @@
 /**
  * Public credentials decoder.
  *
- * Some upstream providers (Gemini, Antigravity, Windsurf/Devin CLI) ship
- * OAuth client_id / client_secret / Firebase Web API key values inside their
- * public binaries or web apps. These are credentials by name only — Google
- * explicitly documents that:
- *
- *   - OAuth client_id/secret for native/installed apps using PKCE are
- *     publicly distributed and must not be treated as secrets.
- *     https://developers.google.com/identity/protocols/oauth2/native-app
- *   - Firebase Web API keys are public client identifiers.
- *     https://firebase.google.com/docs/projects/api-keys
+ * Some upstream providers (including Gemini and Antigravity) ship OAuth
+ * client_id / client_secret values inside their public binaries or web apps.
+ * These are credentials by name only: OAuth client credentials for
+ * native/installed apps using PKCE are publicly distributed and must not be
+ * treated as secrets.
+ * https://developers.google.com/identity/protocols/oauth2/native-app
  *
  * OmniRoute embeds them so users who do not configure `.env` still get a
  * working OAuth flow out of the box. The literals, however, trip pattern
@@ -23,10 +19,9 @@
  * which is fine because the value is public by design. The only goal is to
  * avoid known scanner regexes in the source text.
  *
- * Backward compatibility: existing users have raw values in their `.env`
- * (e.g. `WINDSURF_FIREBASE_API_KEY=AIzaSy...`). `decodePublicCred()` detects
- * raw values by their well-known prefixes and passes them through unchanged,
- * so no migration is required for current installations.
+ * Backward compatibility: `decodePublicCred()` detects raw values by their
+ * well-known prefixes and passes them through unchanged, so existing env
+ * overrides do not require migration.
  */
 
 const MASK = "omniroute-public-v1";
@@ -149,11 +144,6 @@ const EMBEDDED_DEFAULTS = {
   antigravity_alt: [
     40, 34, 45, 58, 34, 55, 88, 63, 80, 21, 54, 34, 48, 88, 81, 85, 97, 18, 125, 37, 92, 3, 37, 48,
     87, 6, 44, 38, 25, 10, 67, 19, 40, 40, 5,
-  ],
-  // Windsurf / Devin CLI — firebase web client identifier (public)
-  windsurf_fb: [
-    46, 36, 20, 8, 33, 22, 55, 4, 41, 121, 53, 50, 49, 24, 92, 90, 108, 35, 97, 36, 21, 44, 11, 69,
-    3, 60, 35, 15, 126, 53, 71, 56, 52, 56, 43, 26, 27, 86, 58,
   ],
   // Claude Code CLI — anthropic oauth client (public, PKCE)
   claude_id: [

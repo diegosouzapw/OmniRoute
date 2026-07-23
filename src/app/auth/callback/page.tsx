@@ -1,6 +1,6 @@
 /**
  * /auth/callback — OAuth callback endpoint for providers that use the
- * `/auth/callback` path (Windsurf, Devin CLI PKCE flow).
+ * `/auth/callback` path (including the Devin PKCE compatibility flow).
  *
  * Reuses the same logic as /callback:
  *  - postMessage to opener (popup mode)

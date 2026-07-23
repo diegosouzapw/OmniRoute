@@ -21,7 +21,7 @@ wygaśnie.
 | OpenAI Codex (ChatGPT subscription) | Plus/Team obejmuje quotę Codex                            |
 | GitHub Copilot                      | Per-seat — quota resetuje się co miesiąc                  |
 | Cursor IDE                          | Quota planu Pro                                           |
-| Antigravity / Windsurf              | Wbudowane quoty                                           |
+| Antigravity / Devin Desktop              | Wbudowane quoty                                           |
 
 **Strategia**: kieruj tutaj najpierw każde żądanie pasujące do mocnych stron
 modelu. Tracker quoty monitoruje zbliżający się reset; strategie combo

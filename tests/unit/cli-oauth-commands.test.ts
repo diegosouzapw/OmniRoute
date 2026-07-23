@@ -179,6 +179,32 @@ test("runOAuthStart flow=import com --import-from-system usa auto-import", async
   assert.ok(out.includes("1"));
 });
 
+test("runOAuthStart rejects retired Windsurf instead of starting a public OAuth flow", async () => {
+  const origFetch = globalThis.fetch;
+  const origExit = process.exit;
+  let fetchCalled = false;
+  let exitCode: number | undefined;
+  globalThis.fetch = (() => {
+    fetchCalled = true;
+    return Promise.reject(new Error("Windsurf must not start a public OAuth request"));
+  }) as typeof fetch;
+  process.exit = ((code?: number | string | null): never => {
+    exitCode = typeof code === "number" ? code : undefined;
+    throw new Error(`exit ${code}`);
+  }) as typeof process.exit;
+
+  try {
+    const { runOAuthStart } = await import("../../bin/cli/commands/oauth.mjs");
+    await assert.rejects(runOAuthStart({ provider: "windsurf" }, makeCmd()), /exit 2/);
+  } finally {
+    globalThis.fetch = origFetch;
+    process.exit = origExit;
+  }
+
+  assert.equal(exitCode, 2);
+  assert.equal(fetchCalled, false);
+});
+
 test("providers lista provedores OAuth conhecidos", async () => {
   const { PROVIDERS_WITH_OAUTH_TEST } = await import("../../bin/cli/commands/oauth.mjs").catch(
     () => ({ PROVIDERS_WITH_OAUTH_TEST: null })

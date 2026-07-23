@@ -42,7 +42,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Uwierzytelnianie hasłem z tokenami JWT (ciasteczka HttpOnly)                                                                                        |
 | **API Key Auth**      | Klucze podpisane HMAC z walidacją CRC                                                                                                               |
-| **OAuth 2.0 + PKCE**  | 13 dostawców (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Kiro, Qoder, Windsurf, GitLab Duo)                 |
+| **OAuth 2.0 + PKCE** | Przepływy OAuth w przeglądarce/na urządzeniu używają PKCE, gdy dostawca je obsługuje; importowane poświadczenia Devin są obsługiwane osobno. |
 | **Token Refresh**     | Automatyczne odświeżanie tokenów OAuth przed wygaśnięciem                                                                                           |
 | **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` dla środowisk HTTPS                                                                                                       |
 | **Authz Pipeline**    | Klasyfikacja tras (PUBLIC / CLIENT_API / MANAGEMENT) — zob. `docs/architecture/AUTHZ_GUIDE.md`                                                      |

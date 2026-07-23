@@ -22,7 +22,7 @@ v3.7.x → v3.8.0 版本周期引入了零配置自动路由、新的服务商�
 - 🆕 **Command Code 服务商** (#2199) — 一线注册，含模型目录和配额追踪
 - 🆕 **Z.AI 服务商** — 新增免费层服务商，带配额标签
 - 🎬 **KIE 媒体扩展** — 扩展目录，包含视频生成模型
-- 🔐 **Windsurf + Devin CLI OAuth 流程** (#2168) — 端到端浏览器登录
+- 🔐 **Devin 认证** — Desktop 导入现有的 Devin API 密钥；CLI 使用本地 `devin auth login` 凭据
 - 🆓 **9 个新的免费服务商** — LLM7、Lepton、Kluster、UncloseAI、BazaarLink、Completions、Enally、FreeTheAi、Command Code
 - 🎯 **Manifest 感知层级路由 W1–W4** — 服务商 Manifest 驱动加权层级选择
 - 🎨 **Cursor 完全兼容 OpenAI 格式** — 工具调用、流式传输、会话管理端到端打通
@@ -142,7 +142,7 @@ CLI 智能体发现与管理控制台。以网格形式展示 17 个内置智能
 - **协议 Badge** — stdio、HTTP 等
 - **自定义智能体** — 通过表单注册任意 CLI 工具（名称、二进制文件、版本命令、启动参数）
 - **CLI 指纹匹配** — 按服务商切换，匹配原生 CLI 请求签名，降低封禁风险同时保留代理 IP
-- **OAuth 支持的智能体** — Windsurf 与 Devin CLI 现使用浏览器 OAuth 流程进行认证（v3.8.0+）
+- **本地 Devin 认证** — Devin CLI 使用 `devin auth login`；无需浏览器 OAuth 流程
 
 ---
 

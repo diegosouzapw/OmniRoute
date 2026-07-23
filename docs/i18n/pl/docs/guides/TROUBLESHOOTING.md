@@ -500,25 +500,6 @@ Możesz pominąć tę sekcję, jeśli nie uruchamiasz pipeline’ów RAG ani age
 
 Problemy specyficzne dla wydania v3.8.0 i aktualne obejścia. Gdy poprawka wyląduje w późniejszym patchu, wpis zostanie zaktualizowany lub usunięty.
 
-### Flow OAuth Windsurf pada z 401
-
-**Objawy:**
-
-- "401 unauthorized" podczas kończenia flow OAuth Windsurf z dashboardu
-- Karta providera Windsurf zostaje w stanie "needs reconnection" po callbacku
-
-**Przyczyny:**
-
-- Brakująca lub pusta zmienna env `WINDSURF_FIREBASE_API_KEY`
-- `WINDSURF_API_KEY` źle skonfigurowany albo wskazuje na stary token
-- Lokalny firewall/proxy blokuje callback OAuth
-
-**Naprawa:**
-
-1. Sprawdź, czy `WINDSURF_FIREBASE_API_KEY` i `WINDSURF_API_KEY` są ustawione w `.env`
-2. Zrestartuj OmniRoute, by nowe wartości env weszły w życie
-3. Ponów flow OAuth z **Dashboard → Providers → Windsurf → Reconnect**
-
 ### Awaria auth Devin CLI
 
 **Objawy:**

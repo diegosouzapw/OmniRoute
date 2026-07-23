@@ -1,5 +1,6 @@
-// #8407: devin-cli must not be treated as refresh-capable, so the health sweep
-// never force-expires local CLI connections that legitimately have no refresh token.
+// Devin CLI and Devin Desktop use CLI-owned/import-only credentials. Neither provider
+// should be treated as refresh-capable, so the health sweep must not force-expire
+// connections that legitimately have no refresh token.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -34,16 +35,17 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("supportsTokenRefresh excludes devin-cli (#8407)", () => {
-  // Root fix: drop "devin-cli" from the explicit set so the health sweep's
-  // supportsTokenRefresh=false guard applies (same idea as not listing a
-  // non-refresh local-CLI provider). windsurf stays refresh-capable.
+test("supportsTokenRefresh excludes import-only Devin providers", () => {
   assert.equal(
     supportsTokenRefresh("devin-cli"),
     false,
     "devin-cli is local import-token / CLI-owned — not refresh-capable"
   );
-  assert.equal(supportsTokenRefresh("windsurf"), true);
+  assert.equal(
+    supportsTokenRefresh("devin-desktop"),
+    false,
+    "devin-desktop accepts an imported API key — not a refreshable OAuth token"
+  );
 });
 
 test("checkConnection leaves a devin-cli connection with no refresh token untouched (#8407)", async () => {
@@ -63,5 +65,35 @@ test("checkConnection leaves a devin-cli connection with no refresh token untouc
 
   const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
   assert.equal(updated?.testStatus, "active", "devin-cli testStatus must remain active");
-  assert.notEqual(updated?.errorCode, "no_refresh_token", "devin-cli must not be marked no_refresh_token");
+  assert.notEqual(
+    updated?.errorCode,
+    "no_refresh_token",
+    "devin-cli must not be marked no_refresh_token"
+  );
+});
+
+test("checkConnection leaves an import-only devin-desktop connection active (#8228)", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "devin-desktop",
+    authType: "oauth",
+    name: "Devin Desktop Imported Account",
+    accessToken: "imported-desktop-access-token",
+    refreshToken: null,
+    tokenExpiresAt: null,
+    apiKey: null,
+    testStatus: "active",
+    isActive: true,
+  });
+
+  await tokenHealthCheck.checkConnection(connection);
+
+  const updated = await providersDb.getProviderConnectionById(getCreatedConnectionId(connection));
+  assert.equal(updated?.testStatus, "active", "devin-desktop testStatus must remain active");
+  assert.notEqual(
+    updated?.errorCode,
+    "no_refresh_token",
+    "import-only devin-desktop must not be marked no_refresh_token"
+  );
 });

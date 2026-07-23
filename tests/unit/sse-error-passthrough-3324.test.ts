@@ -130,35 +130,30 @@ test("parseSSEToOpenAIResponse still returns null for an error-only SSE (boundar
   assert.equal(parseSSEToOpenAIResponse(rawSSE, "fallback-model"), null);
 });
 
-// ─── PART 1: windsurf instruction text references the IDE command-palette flow ─
+// ─── PART 1: Devin Desktop instruction text is version-honest ─────────────────
 
-test("PART 1: windsurf authHint references the `Windsurf: Provide Auth Token` command", () => {
+test("PART 1: Devin Desktop authHint describes importing an existing key", () => {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  // After the providers.ts oauth-constants split, the windsurf authHint moved to
+  // After the providers.ts oauth-constants split, the Devin Desktop authHint moved to
   // src/shared/constants/providers/oauth.ts.
   const providers = readFileSync(
     path.join(here, "../../src/shared/constants/providers/oauth.ts"),
     "utf8"
   );
 
-  // The windsurf authHint must lead with the IDE command-palette flow.
-  assert.match(
-    providers,
-    /Windsurf: Provide Auth Token/,
-    "providers.ts windsurf authHint should reference the `Windsurf: Provide Auth Token` command"
-  );
+  assert.match(providers, /Paste an existing Devin API key/);
+  assert.match(providers, /vary by Devin version and account/);
+  assert.doesNotMatch(providers, /Devin: Copy API Key to Clipboard/);
 });
 
-test("PART 1: oauth route 410 errors reference the IDE command-palette flow", () => {
+test("PART 1: oauth route 410 errors avoid promising a universal copy command", () => {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const route = readFileSync(
     path.join(here, "../../src/app/api/oauth/[provider]/[action]/route.ts"),
     "utf8"
   );
 
-  assert.match(
-    route,
-    /Windsurf: Provide Auth Token/,
-    "oauth route should direct users to the `Windsurf: Provide Auth Token` command"
-  );
+  assert.match(route, /Paste an existing Devin API key/);
+  assert.match(route, /vary by Devin version and account/);
+  assert.doesNotMatch(route, /Devin: Copy API Key to Clipboard/);
 });
