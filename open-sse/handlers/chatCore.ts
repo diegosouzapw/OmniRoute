@@ -123,6 +123,8 @@ import {
   stripGpt5ReasoningWhenTools,
 } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
+import { stripUnsupportedParams } from "./chatCore/unsupportedParamsStrip.ts";
+import { checkToolCallingRequiredButUnsupported } from "./chatCore/toolCallingRequiredCheck.ts";
 import { supportsMaxTokens, getResolvedModelCapabilities } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
@@ -341,7 +343,12 @@ import {
   getModelScopeRetryDelayMs,
   isModelScopeProvider,
 } from "../services/modelscopePolicy.ts";
-import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
+import {
+  incrementRequestCount,
+  incrementTokenUsage,
+  isTpmExhausted,
+  isRpmExhausted,
+} from "../services/geminiRateLimitTracker.ts";
 
 // ── Global memory pressure guard ────────────────────────────────────────
 // Prevents OOM by rejecting new requests when V8 heap exceeds threshold.
@@ -2308,18 +2315,39 @@ export async function handleChatCore({
     }
   }
 
-  // Strip unsupported parameters for reasoning models (o1, o3, etc.)
+  // Strip unsupported parameters for reasoning models (o1, o3, etc.) and any
+  // provider that can't accept them at all (e.g. AI Horde's raw completion
+  // backends). When "tools" is among them, also flattens leftover
+  // tool_calls/tool-result messages in history (from a combo failover away
+  // from a tool-capable model) — those message shapes break non-tool-calling
+  // backends just as much as a live `tools` param does.
   const unsupported = getUnsupportedParams(provider, model);
+
+  // Direct/pinned requests (isCombo: false) have no other target to fail
+  // over to. Combo requests are already kept off a tool-incapable target by
+  // filterTargetsByRequestCompatibility before ever reaching this point, so
+  // this only fires for the case that filter can't protect: a client
+  // explicitly asking for this exact model. A clear error beats a 200 that
+  // silently can't do what was asked (the model narrates a fake tool call
+  // instead — live incident: AI Horde/Behemoth-X-123B).
+  const toolCallingCheck = checkToolCallingRequiredButUnsupported(
+    translatedBody,
+    unsupported,
+    isCombo,
+    model
+  );
+  if (toolCallingCheck.blocked) {
+    trackPendingRequest(model, provider, connectionId, false);
+    return createErrorResult(400, toolCallingCheck.message!, null, "tool_calling_not_supported");
+  }
+
   if (unsupported.length > 0) {
-    const stripped: string[] = [];
-    for (const param of unsupported) {
-      if (Object.hasOwn(translatedBody, param)) {
-        stripped.push(param);
-        delete translatedBody[param];
-      }
-    }
-    if (stripped.length > 0) {
-      log?.warn?.("PARAMS", `Stripped unsupported params for ${model}: ${stripped.join(", ")}`);
+    const { strippedParams } = stripUnsupportedParams(translatedBody, unsupported);
+    if (strippedParams.length > 0) {
+      log?.warn?.(
+        "PARAMS",
+        `Stripped unsupported params for ${model}: ${strippedParams.join(", ")}`
+      );
     }
   }
 
@@ -3079,6 +3107,25 @@ export async function handleChatCore({
     }
   }
 
+  // ── Gemini pre-dispatch TPM / RPM guard ──────────────────────────────────
+  // Avoids guaranteed upstream 429 by checking local sliding-window counters
+  // before dispatch. Fail-open: counter errors → allow through.
+  if (provider === "gemini") {
+    try {
+      if (isTpmExhausted(effectiveModel)) {
+        trackPendingRequest(model, provider, connectionId, false);
+        return createErrorResult(
+          HTTP_STATUS.RATE_LIMITED,
+          `Gemini TPM rate limit reached for ${effectiveModel}. Please try again later.`,
+          null,
+          "GEMINI_TPM_EXHAUSTED"
+        );
+      }
+    } catch (err) {
+      log?.warn?.("GEMINI_RATE_LIMIT", "Pre-dispatch TPM check failed; allowing request", { err });
+    }
+  }
+
   // Execute request using executor (handles URL building, headers, fallback, transform)
   let providerResponse;
   let providerUrl;
@@ -3196,7 +3243,13 @@ export async function handleChatCore({
       status: failureStatus,
       error: failureMessage,
       providerRequest: finalBody || translatedBody,
-      clientResponse: buildErrorBody(failureStatus, failureMessage),
+      // On a client-abort (AbortError), the client already disconnected before
+      // we ever got here — this body is what we WOULD have sent, not what was
+      // actually delivered. Logging it as `clientResponse` is misleading (the
+      // dashboard reads that field as "what the client received"), so omit it
+      // for this case; `error` above already records the failure reason.
+      clientResponse:
+        error.name === "AbortError" ? undefined : buildErrorBody(failureStatus, failureMessage),
       claudeCacheMeta: claudePromptCacheLogMeta,
       cacheSource: "upstream",
     });
@@ -4058,6 +4111,14 @@ export async function handleChatCore({
     const usage = extractUsageFromResponse(responseBody, provider);
     if (usage && typeof usage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(usage as Record<string, unknown>, "provider");
+      // Track Gemini token consumption for TPM rate-limit pre-check
+      if (provider === "gemini") {
+        const promptTokens =
+          typeof (usage as Record<string, unknown>).prompt_tokens === "number"
+            ? ((usage as Record<string, unknown>).prompt_tokens as number)
+            : 0;
+        if (promptTokens > 0) incrementTokenUsage(model, promptTokens);
+      }
     }
 
     // Context Editing telemetry: when the delegated server-side clear actually ran,
@@ -4581,6 +4642,14 @@ export async function handleChatCore({
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(streamUsage as Record<string, unknown>, "stream");
+      // Track Gemini token consumption for TPM rate-limit pre-check
+      if (provider === "gemini") {
+        const promptTokens =
+          typeof (streamUsage as Record<string, unknown>).prompt_tokens === "number"
+            ? ((streamUsage as Record<string, unknown>).prompt_tokens as number)
+            : 0;
+        if (promptTokens > 0) incrementTokenUsage(model, promptTokens);
+      }
     }
     recordStreamingUsageStats(streamUsage, {
       provider,

@@ -54,6 +54,14 @@ export interface WaitForCooldownSettings {
   maxRetries: number;
   maxRetryWaitSec: number;
   maxRetryWaitMs: number;
+  /**
+   * Cumulative cap (ms) across all retry waits for one request — mirrors
+   * ComboCooldownWaitSettings.budgetMs (#7360 follow-up). Without this a
+   * request could re-wait maxRetries times at up to maxRetryWaitMs each,
+   * with no overall ceiling; budgetMs bounds the total regardless of how
+   * many individual waits fire.
+   */
+  budgetMs: number;
 }
 
 /**
