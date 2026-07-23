@@ -104,6 +104,15 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
   },
+  "gemini-cli": {
+    id: "gemini-cli",
+    alias: undefined,
+    name: "Gemini CLI",
+    icon: "rocket_launch",
+    color: "#F59E0B",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
   codex: {
     id: "codex",
     alias: "cx",

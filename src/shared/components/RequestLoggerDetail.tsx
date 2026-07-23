@@ -66,6 +66,7 @@ function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen =
 
 function StreamSection({ title, json, onCopy }) {
   const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(true);
   const [autoscroll, setAutoscroll] = useState(() => {
     try {
       const v = localStorage.getItem("pref:stream:autoscroll");
@@ -85,7 +86,7 @@ function StreamSection({ title, json, onCopy }) {
   };
 
   useEffect(() => {
-    if (!autoscroll) return;
+    if (!autoscroll || !open) return;
     const el = ref.current;
     if (!el) return;
     // scroll on next animation frame to avoid layout thrash
@@ -94,7 +95,7 @@ function StreamSection({ title, json, onCopy }) {
         el.scrollTop = el.scrollHeight;
       } catch {}
     });
-  }, [json, autoscroll]);
+  }, [json, autoscroll, open]);
 
   const toggleAutoscroll = () => {
     const next = !autoscroll;
@@ -107,7 +108,20 @@ function StreamSection({ title, json, onCopy }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">{title}</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">
+            {title}
+          </h3>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+            aria-label={open ? `Collapse ${title}` : `Expand ${title}`}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {open ? "expand_less" : "expand_more"}
+            </span>
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <button
             onClick={toggleAutoscroll}
@@ -129,12 +143,14 @@ function StreamSection({ title, json, onCopy }) {
           </button>
         </div>
       </div>
-      <div
-        ref={ref}
-        className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words"
-      >
-        {json}
-      </div>
+      {open && (
+        <div
+          ref={ref}
+          className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words"
+        >
+          {json}
+        </div>
+      )}
     </div>
   );
 }
@@ -198,6 +214,49 @@ export default function RequestLoggerDetail({
     label: (log.provider || "-").toUpperCase(),
   };
   const providerLabel = log.providerDisplay || providerColor.label;
+
+  const [unblocking, setUnblocking] = useState(false);
+  const [cleared, setCleared] = useState(false);
+
+  const errorText = (detail?.error || log.error) ?? "";
+  const isCombo503 =
+    log.status === 503 && errorText.toLowerCase().includes("all targets exhausted");
+  const isModelCooldown = !isCombo503 && errorText.toLowerCase().includes("cooling down");
+
+  const [unblockAllBusy, setUnblockAllBusy] = useState(false);
+
+  const handleUnblockModel = async () => {
+    if (!log.provider || !log.model) return;
+    setUnblocking(true);
+    try {
+      const res = await fetch("/api/resilience/model-cooldowns", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: log.provider, model: log.model }),
+      });
+      if (res.ok) setCleared(true);
+    } catch {
+      /* ignore */
+    } finally {
+      setUnblocking(false);
+    }
+  };
+
+  const handleUnblockAll = async () => {
+    setUnblockAllBusy(true);
+    try {
+      const res = await fetch("/api/resilience/model-cooldowns", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ all: true }),
+      });
+      if (res.ok) setCleared(true);
+    } catch {
+      /* ignore */
+    } finally {
+      setUnblockAllBusy(false);
+    }
+  };
 
   const providerStatus = detail?.pipelinePayloads?.providerResponse?.status;
   const hasStatusDiscrepancy = providerStatus && providerStatus !== log.status;
@@ -615,8 +674,90 @@ export default function RequestLoggerDetail({
           {/* Error Message */}
           {(detail?.error || log.error) && (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-              <div className="text-[10px] text-red-600 dark:text-red-400 uppercase tracking-wider mb-1 font-bold">
-                Error
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-[10px] text-red-600 dark:text-red-400 uppercase tracking-wider font-bold">
+                  Error
+                </div>
+                {isCombo503 && !cleared && (
+                  <button
+                    onClick={handleUnblockAll}
+                    disabled={unblockAllBusy}
+                    className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium rounded-lg
+                      bg-amber-500/10 border border-amber-500/30 text-amber-600
+                      hover:bg-amber-500/15 hover:border-amber-500/50
+                      dark:text-amber-400 transition-all duration-200
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <rect x="3" y="6" width="10" height="8" rx="1" />
+                      <path d="M5 6V4a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v1" />
+                      <circle cx="8" cy="10" r="1" fill="currentColor" stroke="none" />
+                    </svg>
+                    {unblockAllBusy ? "..." : "Unblock all"}
+                  </button>
+                )}
+                {isCombo503 && cleared && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium rounded-lg bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <polyline points="4 8 7 11 12 4" />
+                    </svg>
+                    Cleared
+                  </span>
+                )}
+                {isModelCooldown && !cleared && (
+                  <button
+                    onClick={handleUnblockModel}
+                    disabled={unblocking}
+                    className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium rounded-lg
+                      bg-amber-500/10 border border-amber-500/30 text-amber-600
+                      hover:bg-amber-500/15 hover:border-amber-500/50
+                      dark:text-amber-400 transition-all duration-200
+                      disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <rect x="3" y="6" width="10" height="8" rx="1" />
+                      <path d="M5 6V4a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v1" />
+                      <circle cx="8" cy="10" r="1" fill="currentColor" stroke="none" />
+                    </svg>
+                    {unblocking ? "..." : "Unblock"}
+                  </button>
+                )}
+                {isModelCooldown && cleared && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium rounded-lg bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400">
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <polyline points="4 8 7 11 12 4" />
+                    </svg>
+                    Cleared
+                  </span>
+                )}
               </div>
               <div className="text-sm text-red-600 dark:text-red-300 font-mono whitespace-pre-wrap break-words">
                 {formatErrorForDisplay(detail?.error || log.error)}

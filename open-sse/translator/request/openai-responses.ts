@@ -8,6 +8,10 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { register } from "../registry.ts";
 import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
+import {
+  getRegisteredProviders,
+  requiresPlainStringContent,
+} from "../../config/providerRegistry.ts";
 import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
 import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 import {
@@ -38,9 +42,9 @@ export function openaiResponsesToOpenAIRequest(
   stream: unknown,
   credentials: unknown
 ): unknown {
-  void model;
   void stream;
   void credentials;
+  const collapseToPlainString = requiresPlainStringContent(extractProviderHint(model));
 
   const root = toRecord(body);
   if (root.input === undefined) return body;
@@ -716,7 +720,52 @@ export function openaiResponsesToOpenAIRequest(
     });
   }
 
+  // Every Responses-API input — even a plain string — gets wrapped upstream as a
+  // single-element content array (`[{ type: "input_text", text }]` via
+  // normalizeResponsesInputForChat), which this function maps straight through to
+  // `content: [{ type: "text", text }]`. That's spec-valid (OpenAI's own API
+  // accepts both shapes) but several strict/naive OpenAI-compatible backends only
+  // implement the plain-string form and reject the array form with a 500 — hit
+  // live via AI Horde's Aphrodite facade rejecting every /v1/responses request,
+  // including the simplest single-string input. A single-text-part array and a
+  // plain string are semantically identical, so collapsing is safe there; real
+  // multi-part messages (text+image, text+file) are left untouched. Scoped to
+  // providers that declare `requiresPlainStringContent` — most OpenAI-compatible
+  // backends (and several existing tests) expect the standard array shape to
+  // survive translation unchanged.
+  if (collapseToPlainString) {
+    for (const message of messages) {
+      const content = (message as JsonRecord).content;
+      if (Array.isArray(content) && content.length === 1) {
+        const part = content[0];
+        if (
+          part &&
+          typeof part === "object" &&
+          !Array.isArray(part) &&
+          (part as JsonRecord).type === "text" &&
+          typeof (part as JsonRecord).text === "string"
+        ) {
+          (message as JsonRecord).content = (part as JsonRecord).text;
+        }
+      }
+    }
+  }
+
   return result;
+}
+
+/**
+ * `model` is sometimes a bare provider id (e.g. "aihorde"), sometimes a
+ * provider-prefixed model string (e.g. "aihorde/aphrodite/..."), and often
+ * null/a bare model id with no provider info at all (the generic translator
+ * dispatcher passes model id alone; provider is tracked separately there).
+ * Only the first two carry a usable provider hint.
+ */
+function extractProviderHint(model: unknown): string {
+  if (typeof model !== "string" || model.length === 0) return "";
+  if (getRegisteredProviders().includes(model)) return model;
+  const prefix = model.split("/")[0];
+  return getRegisteredProviders().includes(prefix) ? prefix : "";
 }
 
 // Register both directions
