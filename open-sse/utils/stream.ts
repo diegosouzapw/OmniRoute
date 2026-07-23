@@ -143,6 +143,15 @@ type StreamOptions = {
   body?: unknown;
   onComplete?: ((payload: StreamCompletePayload) => void) | null;
   onFailure?: ((payload: StreamFailurePayload) => boolean | void | Promise<void>) | null;
+  /**
+   * Request-scoped `{namespace, name}` ledger for Responses namespace child
+   * tools that were flattened to a bare leaf on the Chat wire (#7936
+   * round-trip closure). The Responses response translator keys on the leaf
+   * name emitted in `response.function_call_arguments.*` /
+   * `response.output_item.added` / `response.output_item.done` and emits
+   * codex-compatible `namespace` + `name` fields.
+   */
+  requestToolIdentityMap?: Map<string, { namespace: string; name: string }> | null;
 };
 
 type TranslateState = ReturnType<typeof initState> & {
@@ -161,6 +170,7 @@ type TranslateState = ReturnType<typeof initState> & {
   /** #6951 — per-tool JSON Schema (from request `tools[]`), keyed by tool name. */
   toolSchemas?: Map<string, Record<string, unknown>> | null;
   customToolNames?: ReadonlySet<string>;
+  requestToolIdentityMap?: Map<string, { namespace: string; name: string }> | null;
   upstreamError?: {
     status: number;
     type: string;
@@ -180,6 +190,47 @@ type UsageTokenRecord = Record<string, number>;
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+// #7936 — restore `{namespace, name}` on Responses passthrough `function_call`
+// items when the request-side Responses→Chat flatten stamped the bare leaf on the
+// Chat wire. Codex's ResponseItem::FunctionCall schema declares an independent
+// `namespace: Option<String>` field (see codex-rs/protocol/src/models.rs and the
+// `function_call_deserializes_optional_namespace` round-trip test); emit it back.
+function restoreResponsesPassthroughFunctionCallIdentity(
+  parsed: JsonRecord,
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null | undefined
+): boolean {
+  if (!(requestToolIdentityMap instanceof Map)) return false;
+
+  const restoreItem = (item: unknown): boolean => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+    const functionCall = item as JsonRecord;
+    if (functionCall.type !== "function_call" || typeof functionCall.name !== "string")
+      return false;
+
+    const identity = requestToolIdentityMap.get(functionCall.name);
+    if (!identity) return false;
+
+    const changed =
+      functionCall.namespace !== identity.namespace || functionCall.name !== identity.name;
+    functionCall.namespace = identity.namespace;
+    functionCall.name = identity.name;
+    return changed;
+  };
+
+  if (parsed.type === "response.output_item.added" || parsed.type === "response.output_item.done") {
+    return restoreItem(parsed.item);
+  }
+
+  if (parsed.type === "response.completed" && Array.isArray(parsed.response?.output)) {
+    return (parsed.response as JsonRecord).output.reduce(
+      (changed: boolean, item: unknown) => restoreItem(item) || changed,
+      false
+    );
+  }
+
+  return false;
 }
 
 function parseTextualToolCallFromContent(text: unknown): { name: string; args: unknown } | null {
@@ -634,6 +685,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     onFailure = null,
     dropResponsesCommentary,
     customToolNames = new Set<string>(),
+    requestToolIdentityMap = null,
   } = options;
   const signatureNamespace = connectionId;
   // Request-body-size metric (for monitoring payload size distribution & correlation with TTFT).
@@ -709,6 +761,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           accumulatedReasoning: "",
           toolSchemas: extractToolSchemaMap(body),
           customToolNames,
+          requestToolIdentityMap,
         }
       : null;
 
@@ -1483,6 +1536,18 @@ export function createSSEStream(options: StreamOptions = {}) {
                     pushUniqueResponsesOutputItems(
                       passthroughResponsesOutputItems,
                       parsed.response.output
+                    );
+                  }
+                  // #7936 — restore `namespace` + `name` fields on passthrough
+                  // Responses function_call items for downstream Codex clients.
+                  if (
+                    parsed.type === "response.output_item.added" ||
+                    parsed.type === "response.output_item.done" ||
+                    parsed.type === "response.completed"
+                  ) {
+                    restoreResponsesPassthroughFunctionCallIdentity(
+                      parsed as JsonRecord,
+                      requestToolIdentityMap
                     );
                   }
                   if (
@@ -2766,7 +2831,8 @@ export function createSSETransformStreamWithLogger(
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
   copilotCompatibleReasoning = false,
   suppressThinkClose = false,
-  customToolNames: ReadonlySet<string> = new Set()
+  customToolNames: ReadonlySet<string> = new Set(),
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
 ) {
   return createSSEStream({
     mode: STREAM_MODE.TRANSLATE,
@@ -2784,6 +2850,7 @@ export function createSSETransformStreamWithLogger(
     copilotCompatibleReasoning,
     suppressThinkClose,
     customToolNames,
+    requestToolIdentityMap,
   });
 }
 
@@ -2797,7 +2864,8 @@ export function createPassthroughStreamWithLogger(
   onComplete: ((payload: StreamCompletePayload) => void) | null = null,
   apiKeyInfo: unknown = null,
   onFailure: ((payload: StreamFailurePayload) => void | Promise<void>) | null = null,
-  clientResponseFormat: string | null = null
+  clientResponseFormat: string | null = null,
+  requestToolIdentityMap: Map<string, { namespace: string; name: string }> | null = null
 ) {
   return createSSEStream({
     mode: STREAM_MODE.PASSTHROUGH,
@@ -2811,6 +2879,7 @@ export function createPassthroughStreamWithLogger(
     onComplete,
     onFailure,
     clientResponseFormat,
+    requestToolIdentityMap,
   });
 }
 

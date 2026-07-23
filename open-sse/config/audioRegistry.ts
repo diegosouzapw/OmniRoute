@@ -397,6 +397,22 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     ],
   },
 
+  fishaudio: {
+    id: "fishaudio",
+    // POST https://api.fish.audio/v1/tts
+    // Auth: Authorization: Bearer <api-key>, model as an HTTP header
+    // Response: binary audio bytes
+    baseUrl: "https://api.fish.audio/v1/tts",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "fishaudio",
+    models: [
+      { id: "s1", name: "Fish Speech S1" },
+      { id: "speech-1.6", name: "Fish Speech 1.6" },
+      { id: "speech-1.5", name: "Fish Speech 1.5" },
+    ],
+  },
+
   playht: {
     id: "playht",
     // POST https://api.play.ht/api/v2/tts/stream

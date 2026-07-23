@@ -539,7 +539,10 @@ async function startMitmInternal(
           );
         }
       } catch (err) {
-        log.error({ err }, "installCertResult threw unexpectedly (continuing without trusted cert)");
+        log.error(
+          { err },
+          "installCertResult threw unexpectedly (continuing without trusted cert)"
+        );
       }
     }
   );
@@ -586,6 +589,7 @@ async function startMitmInternal(
   }
 
   serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
+    windowsHide: true,
     env: {
       ...process.env,
       ROUTER_API_KEY: apiKey,

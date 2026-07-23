@@ -1,0 +1,1 @@
+- fix(routing): anchor quota routing cache on globalThis so cross-chunk reads/writes stay consistent (#8065)

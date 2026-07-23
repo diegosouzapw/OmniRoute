@@ -1,0 +1,1 @@
+- **docs(ops):** publish public branching/release model (`release/*` = active cycle, `main` = published line, tag = ship marker) ([#7627](https://github.com/diegosouzapw/OmniRoute/issues/7627)) — thanks @c4usal

@@ -72,6 +72,10 @@ import {
   withSelectedConnectionHeader,
   withCorrelationId,
 } from "./chatHelpers";
+import {
+  isAntigravityMissingProjectError,
+  shouldTripProviderBreakerForResult,
+} from "./chatPredicates";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   extractReasoningIntent,
@@ -84,7 +88,7 @@ import {
   filterReasoningCombo,
 } from "./reasoningRouting";
 import { createVirtualAutoCombo, resolveAutoRoutingState } from "./autoRouting";
-import { getComboFailureLogError, isRequestScopedUpstreamFailure } from "./comboFailureLogging";
+import { getComboFailureLogError } from "./comboFailureLogging";
 
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
@@ -209,26 +213,9 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
   return first || second || null;
 }
 
-const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 const comboPromoteDeps = { updateCombo, info: log.info, warn: log.warn };
 
-// #7907/#7908: single-model breaker trip bypasses the `isFailure` option (only applies
-// inside `breaker.execute()`), so it needs its own `isLocalStreamLifecycleError` guard —
-// otherwise a client abort (502 default, error='request_signal_aborted') trips the
-// provider-wide breaker. Pure predicate, unit-testable without the full request path.
-export function shouldTripProviderBreakerForResult(
-  result: { status: number; errorCode?: string | null; errorType?: string | null; error?: unknown },
-  isCombo: boolean,
-  forceLiveComboTest: boolean
-): boolean {
-  return (
-    !forceLiveComboTest &&
-    !isCombo &&
-    !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
-    !isLocalStreamLifecycleError(result.error) &&
-    PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
-  );
-}
+export { shouldTripProviderBreakerForResult } from "./chatPredicates";
 
 /**
  * Handle chat completion request
@@ -1452,6 +1439,14 @@ async function handleSingleModelChat(
         if (telemetry) telemetry.startPhase("finalize");
         if (telemetry) telemetry.endPhase();
         return result.response;
+      }
+
+      // Missing Cloud Code project assignment is an account configuration error, not a
+      // transient upstream/account failure. Preserve the executor's typed fail-closed 422;
+      // marking the connection unavailable here would trigger cooldown redispatch and repeat
+      // bootstrap within the same logical request.
+      if (isAntigravityMissingProjectError(provider, result)) {
+        return withSelectedConnectionHeader(result.response, credentials.connectionId);
       }
 
       const isAntigravityStreamReadinessFailure =

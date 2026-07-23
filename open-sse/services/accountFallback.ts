@@ -410,12 +410,20 @@ function getCanonicalLockProvider(provider: string): string {
   return canonical;
 }
 
-function getModelLockKey(provider: string, connectionId: string, model: string) {
+function getModelLockKey(
+  provider: string,
+  connectionId: string,
+  model: string,
+  reason?: string | null,
+  status?: number | null
+) {
   const canonicalProvider = getCanonicalLockProvider(provider);
   const lockModel =
-    canonicalProvider === "codex"
-      ? getCodexModelScope(model)
-      : getQuotaScopedModelForProvider(canonicalProvider, model) || model;
+    reason === "not_found" || status === 404
+      ? model
+      : canonicalProvider === "codex"
+        ? getCodexModelScope(model)
+        : getQuotaScopedModelForProvider(canonicalProvider, model) || model;
   return `${canonicalProvider}:${connectionId}:${lockModel}`;
 }
 
@@ -509,7 +517,7 @@ export function lockModel(
 ): void {
   if (!model) return; // No model → skip model-level locking
   ensureCleanupTimer();
-  const key = getModelLockKey(provider, connectionId, model);
+  const key = getModelLockKey(provider, connectionId, model, reason);
   cleanupModelLockKey(key);
   const newUntil = Date.now() + cooldownMs;
   // Preserve the longer cooldown if an existing lock has more time remaining.
@@ -568,7 +576,7 @@ export function recordModelLockoutFailure(
   options: { exactCooldownMs?: number | null; maxCooldownMs?: number } = {}
 ) {
   ensureCleanupTimer();
-  const key = getModelLockKey(provider, connectionId, model);
+  const key = getModelLockKey(provider, connectionId, model, reason, status);
   const now = Date.now();
   cleanupModelLockKey(key, now);
 
@@ -588,22 +596,24 @@ export function recordModelLockoutFailure(
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
 
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  // Cap exponential backoff so repeated failures cannot produce absurdly long
-  // lockouts; exact cooldowns (e.g. daily-quota until-midnight) are not capped.
+  // Cap both exponential backoff and exact cooldowns (e.g. daily-quota
+  // until-midnight) against maxCooldownMs so user-configured caps are honored.
   const maxCooldownMs =
     typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
       ? options.maxCooldownMs
-      : BACKOFF_CONFIG.max;
+      : null;
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? options.exactCooldownMs
+      ? maxCooldownMs !== null
+        ? Math.min(options.exactCooldownMs, maxCooldownMs)
+        : options.exactCooldownMs
       : Math.min(
           getScaledCooldown(
             baseCooldownMs,
             failureCount,
             profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel
           ),
-          maxCooldownMs
+          maxCooldownMs ?? BACKOFF_CONFIG.max
         );
 
   modelFailureState.set(key, {
@@ -632,10 +642,16 @@ export function clearModelLock(
   model: string | null | undefined
 ): boolean {
   if (!model) return false;
-  const key = getModelLockKey(provider, connectionId, model);
-  const hadLock = modelLockouts.delete(key);
-  const hadFailureState = modelFailureState.delete(key);
-  return hadLock || hadFailureState;
+  const familyKey = getModelLockKey(provider, connectionId, model);
+  const exactKey = `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
+
+  const hadLock1 = modelLockouts.delete(familyKey);
+  const hadFailure1 = modelFailureState.delete(familyKey);
+
+  const hadLock2 = modelLockouts.delete(exactKey);
+  const hadFailure2 = modelFailureState.delete(exactKey);
+
+  return hadLock1 || hadFailure1 || hadLock2 || hadFailure2;
 }
 
 /**
@@ -751,10 +767,14 @@ export function isModelLocked(
   model: string | null | undefined
 ): boolean {
   if (!model) return false;
-  const key = getModelLockKey(provider, connectionId, model);
-  cleanupModelLockKey(key);
-  const entry = modelLockouts.get(key);
-  return Boolean(entry);
+
+  const exactKey = `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
+  cleanupModelLockKey(exactKey);
+  if (modelLockouts.has(exactKey)) return true;
+
+  const familyKey = getModelLockKey(provider, connectionId, model);
+  cleanupModelLockKey(familyKey);
+  return modelLockouts.has(familyKey);
 }
 
 /**
@@ -766,16 +786,32 @@ export function getModelLockoutInfo(
   model: string | null | undefined
 ) {
   if (!model) return null;
-  const key = getModelLockKey(provider, connectionId, model);
-  cleanupModelLockKey(key);
-  const entry = modelLockouts.get(key);
-  if (!entry) return null;
-  return {
-    reason: entry.reason,
-    remainingMs: entry.until - Date.now(),
-    lockedAt: new Date(entry.lockedAt).toISOString(),
-    failureCount: entry.failureCount,
-  };
+
+  const exactKey = `${getCanonicalLockProvider(provider)}:${connectionId}:${model}`;
+  cleanupModelLockKey(exactKey);
+  const exactEntry = modelLockouts.get(exactKey);
+  if (exactEntry) {
+    return {
+      reason: exactEntry.reason,
+      remainingMs: exactEntry.until - Date.now(),
+      lockedAt: new Date(exactEntry.lockedAt).toISOString(),
+      failureCount: exactEntry.failureCount,
+    };
+  }
+
+  const familyKey = getModelLockKey(provider, connectionId, model);
+  cleanupModelLockKey(familyKey);
+  const familyEntry = modelLockouts.get(familyKey);
+  if (familyEntry) {
+    return {
+      reason: familyEntry.reason,
+      remainingMs: familyEntry.until - Date.now(),
+      lockedAt: new Date(familyEntry.lockedAt).toISOString(),
+      failureCount: familyEntry.failureCount,
+    };
+  }
+
+  return null;
 }
 
 export type ModelLockoutInfo = {

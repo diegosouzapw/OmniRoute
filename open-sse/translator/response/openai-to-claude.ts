@@ -4,7 +4,10 @@ import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
 import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
-import { isInternalReasoningPlaceholder } from "../../utils/reasoningPlaceholder.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../../utils/reasoningPlaceholder.ts";
 import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
 
 function normalizeToolName(name: string): string {
@@ -208,58 +211,64 @@ export function openaiToClaudeResponse(chunk, state) {
     });
   }
 
-  // Handle regular content
+  // Handle regular content — strip the internal reasoning placeholder if
+  // the model echoed it through ordinary content (#8081). Only the content
+  // block emission is skipped when nothing meaningful remains; the chunk
+  // may still carry tool_calls / finish_reason below, which must still run.
   if (delta?.content) {
-    stopThinkingBlock(state, results);
+    const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+    if (strippedContent) {
+      stopThinkingBlock(state, results);
 
-    // Check for XML <invoke> blocks that some models emit instead of JSON tool_calls
-    const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(delta.content, state);
+      // Check for XML <invoke> blocks that some models emit instead of JSON tool_calls
+      const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(strippedContent, state);
 
-    // Accumulate extracted tool calls for emission at finish
-    if (xmlToolCalls.length > 0) {
-      // Close any ongoing text block before tool calls
-      stopTextBlock(state, results);
-      state._pendingXmlToolCalls.push(...xmlToolCalls);
-    }
+      // Accumulate extracted tool calls for emission at finish
+      if (xmlToolCalls.length > 0) {
+        // Close any ongoing text block before tool calls
+        stopTextBlock(state, results);
+        state._pendingXmlToolCalls.push(...xmlToolCalls);
+      }
 
-    // Emit remaining non-XML text content
-    if (!cleaned) {
-      // All content was XML invoke blocks — skip text block entirely
-      // (tool calls will be emitted at finish)
-    } else if (xmlToolCalls.length > 0) {
-      // Text before/between/after XML blocks — (re)start a text block
-      if (!state.textBlockStarted) {
-        state.textBlockIndex = state.nextBlockIndex++;
-        state.textBlockStarted = true;
-        state.textBlockClosed = false;
+      // Emit remaining non-XML text content
+      if (!cleaned) {
+        // All content was XML invoke blocks — skip text block entirely
+        // (tool calls will be emitted at finish)
+      } else if (xmlToolCalls.length > 0) {
+        // Text before/between/after XML blocks — (re)start a text block
+        if (!state.textBlockStarted) {
+          state.textBlockIndex = state.nextBlockIndex++;
+          state.textBlockStarted = true;
+          state.textBlockClosed = false;
+          results.push({
+            type: "content_block_start",
+            index: state.textBlockIndex,
+            content_block: { type: "text", text: "" },
+          });
+        }
         results.push({
-          type: "content_block_start",
+          type: "content_block_delta",
           index: state.textBlockIndex,
-          content_block: { type: "text", text: "" },
+          delta: { type: "text_delta", text: cleaned },
+        });
+      } else {
+        // No XML — emit as regular text (original behaviour)
+        if (!state.textBlockStarted) {
+          state.textBlockIndex = state.nextBlockIndex++;
+          state.textBlockStarted = true;
+          state.textBlockClosed = false;
+          results.push({
+            type: "content_block_start",
+            index: state.textBlockIndex,
+            content_block: { type: "text", text: "" },
+          });
+        }
+        results.push({
+          type: "content_block_delta",
+          index: state.textBlockIndex,
+          delta: { type: "text_delta", text: cleaned },
         });
       }
-      results.push({
-        type: "content_block_delta",
-        index: state.textBlockIndex,
-        delta: { type: "text_delta", text: cleaned },
-      });
-    } else {
-      // No XML — emit as regular text (original behaviour)
-      if (!state.textBlockStarted) {
-        state.textBlockIndex = state.nextBlockIndex++;
-        state.textBlockStarted = true;
-        state.textBlockClosed = false;
-        results.push({
-          type: "content_block_start",
-          index: state.textBlockIndex,
-          content_block: { type: "text", text: "" },
-        });
-      }
-      results.push({
-        type: "content_block_delta",
-        index: state.textBlockIndex,
-        delta: { type: "text_delta", text: cleaned },
-      });
     }
   }
 
@@ -380,7 +389,12 @@ export function openaiToClaudeResponse(chunk, state) {
         results.push({
           type: "content_block_start",
           index: toolInfo.blockIndex,
-          content_block: { type: "tool_use", id: toolInfo.id, name: toolInfo.name || "", input: {} },
+          content_block: {
+            type: "tool_use",
+            id: toolInfo.id,
+            name: toolInfo.name || "",
+            input: {},
+          },
         });
       }
 

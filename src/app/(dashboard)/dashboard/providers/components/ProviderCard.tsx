@@ -224,11 +224,11 @@ export default function ProviderCard({
       title={providerText(
         t,
         "kimiOfficialSupporterTooltip",
-        "Kimi (Moonshot AI) is an official OmniRoute launch partner"
+        "Kimi (Moonshot AI) is OmniRoute's founding Open Source Friend"
       )}
     >
       <span className="material-symbols-outlined text-[10px] leading-none">verified</span>
-      {providerText(t, "kimiOfficialSupporterBadge", "Official Supporter")}
+      {providerText(t, "kimiOfficialSupporterBadge", "Founding Friend")}
     </span>
   ) : null;
 

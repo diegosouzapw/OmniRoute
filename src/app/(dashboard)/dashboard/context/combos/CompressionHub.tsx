@@ -12,7 +12,8 @@ import { useTranslations } from "next-intl";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "stacked";
+type CompressionMode =
+  "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "codex-responses" | "stacked";
 
 interface CompressionSettings {
   enabled: boolean;

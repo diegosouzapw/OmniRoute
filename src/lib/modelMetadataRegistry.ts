@@ -2,7 +2,10 @@ import { randomUUID } from "node:crypto";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
-import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import {
+  getResolvedModelCapabilities,
+  isNonChatCatalogSurface,
+} from "@/lib/modelCapabilities";
 import {
   getAuthoritativeContextWindow,
   getAuthoritativeProviderContextWindow,
@@ -11,7 +14,8 @@ import {
 } from "@/shared/constants/modelSpecs";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
-import { getSyncStatus, getSyncedCapability } from "@/lib/modelsDevSync";
+import { getSyncStatus, getSyncedCapability, getModelsDevPricing } from "@/lib/modelsDevSync";
+import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
 import {
   CANONICAL_EFFORT_VALUES,
   extendCodexGpt56EffortValues,
@@ -257,6 +261,72 @@ export function getCanonicalModelMetadata(input: {
   };
 }
 
+function resolveCatalogPricing(
+  provider: string | null,
+  model: string | null
+): Record<string, number> | null {
+  if (!provider || !model) return null;
+
+  const findInsensitive = <T>(
+    obj: Record<string, T> | null | undefined,
+    key: string
+  ): T | undefined => {
+    if (!obj || !key) return undefined;
+    if (key in obj) return obj[key];
+    const lower = key.toLowerCase();
+    for (const [k, v] of Object.entries(obj)) {
+      if (k.toLowerCase() === lower) return v;
+    }
+    return undefined;
+  };
+
+  // Prefer models.dev synced pricing when present; fall back to hardcoded defaults.
+  try {
+    const modelsDev = getModelsDevPricing() as Record<
+      string,
+      Record<string, Record<string, number>>
+    >;
+    const providerPricing =
+      findInsensitive(modelsDev, provider) ||
+      findInsensitive(modelsDev, provider.replace(/-cn$/, ""));
+    if (providerPricing) {
+      const modelPricing =
+        findInsensitive(providerPricing, model) ||
+        findInsensitive(providerPricing, model.replace(/\./g, "-")) ||
+        findInsensitive(
+          providerPricing,
+          model.includes("/") ? model.split("/").pop() || model : model
+        );
+      if (modelPricing && typeof modelPricing === "object") {
+        const input = modelPricing.input;
+        const output = modelPricing.output;
+        if (typeof input === "number" || typeof output === "number") {
+          const pricing: Record<string, number> = {};
+          if (typeof input === "number") pricing.input = input;
+          if (typeof output === "number") pricing.output = output;
+          if (typeof modelPricing.cached === "number") pricing.cached = modelPricing.cached;
+          if (typeof modelPricing.cache_creation === "number") {
+            pricing.cache_creation = modelPricing.cache_creation;
+          }
+          return pricing;
+        }
+      }
+    }
+  } catch {
+    // pricing lookup must never break catalog assembly
+  }
+
+  try {
+    const defaults = getDefaultPricingForModel(provider, model) as Record<string, number> | null;
+    if (defaults && (typeof defaults.input === "number" || typeof defaults.output === "number")) {
+      return defaults;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export function enrichCatalogModelEntry<T extends JsonRecord>(
   entry: T,
   input?: { provider?: string | null; model?: string | null }
@@ -284,12 +354,24 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     getAuthoritativeProviderContextWindow(provider, model) ??
     getAuthoritativeContextWindow(metadata.model) ??
     getAuthoritativeContextWindow(model);
+  const specialtySurface = isNonChatCatalogSurface(entry.type);
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
       : {}),
-    tool_calling: metadata.capabilities.toolCalling,
-    reasoning: metadata.capabilities.reasoning,
+    // #8016: never invent chat tool/reasoning defaults onto specialty surfaces.
+    // Only copy boolean true when authoritative metadata says so; specialty rows
+    // default to false instead of optimistic chat heuristics.
+    tool_calling: specialtySurface
+      ? metadata.capabilities.supportsTools === true || metadata.capabilities.toolCalling === true
+        ? true
+        : false
+      : metadata.capabilities.toolCalling,
+    reasoning: specialtySurface
+      ? metadata.capabilities.supportsThinking === true || metadata.capabilities.reasoning === true
+        ? true
+        : false
+      : metadata.capabilities.reasoning,
     // #6241: surface thinking support + the canonical effort tiers so the frontend can
     // render the effort/thinking toggles. `thinking` is kept for back-compat; `supportsThinking`
     // is the explicit flag and `effort_tiers` lists the selectable reasoning levels
@@ -336,10 +418,22 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   }
 
   if (
+    !specialtySurface &&
     (typeof nextEntry.context_length !== "number" || authoritativeContextWindow !== null) &&
     typeof metadata.limits.contextWindow === "number"
   ) {
     nextEntry.context_length = metadata.limits.contextWindow;
+  } else if (
+    specialtySurface &&
+    authoritativeContextWindow !== null &&
+    typeof authoritativeContextWindow === "number"
+  ) {
+    // Only authoritative static windows may decorate specialty rows.
+    nextEntry.context_length = authoritativeContextWindow;
+  } else if (specialtySurface && typeof nextEntry.context_length === "number") {
+    // Keep an explicit source-provided context if the emitter already set one.
+  } else if (specialtySurface) {
+    delete nextEntry.context_length;
   }
 
   if (typeof metadata.limits.maxOutputTokens === "number" && metadata.limits.maxOutputTokens > 0) {
@@ -364,6 +458,11 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   }
   if (!existingName && metadata.displayName) {
     nextEntry.name = metadata.displayName;
+  }
+
+  if (nextEntry.pricing == null) {
+    const pricing = resolveCatalogPricing(provider, model);
+    if (pricing) nextEntry.pricing = pricing;
   }
 
   return nextEntry as T;

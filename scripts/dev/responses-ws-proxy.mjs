@@ -579,6 +579,52 @@ class ResponsesWsSession {
     await this.forwardClientMessage(message);
   }
 
+  // #8052: shared by ensureUpstream() (first turn — also owns socket creation) and
+  // forwardClientMessage() (subsequent turns on a reused connection). Calls the internal
+  // "prepare" action — auth/policy/memory/reasoning-routing/compression — and refreshes
+  // preparedContext, but never touches this.upstream/this.upstreamReady; the caller decides
+  // whether a new upstream socket is needed.
+  async runPrepare(message, responseBody) {
+    const prepared = await callInternal(this.fetchImpl, this.baseUrl, this.bridgeSecret, "prepare", {
+      requestUrl: this.requestUrl,
+      headers: getAuthHeaders(this.requestUrl, this.requestHeaders),
+      message,
+      response: responseBody,
+    });
+
+    if (!prepared.ok) {
+      const message2 =
+        prepared.json?.error?.message ||
+        prepared.json?.message ||
+        prepared.text ||
+        "Codex WS prepare failed";
+      const code = prepared.json?.error?.code || "codex_ws_prepare_failed";
+      const error = new Error(message2);
+      error.code = code;
+      error.status = prepared.status;
+      throw error;
+    }
+
+    this.preparedContext = {
+      upstreamUrl: toStringOrNull(prepared.json?.upstreamUrl),
+      connectionId: toStringOrNull(prepared.json?.connectionId),
+      account: toStringOrNull(prepared.json?.account),
+      provider: toStringOrNull(prepared.json?.provider) || "codex",
+      model: toStringOrNull(prepared.json?.model) || toStringOrNull(responseBody.model),
+      requestedModel: toStringOrNull(responseBody.model),
+      reasoningRouting:
+        prepared.json?.reasoningRouting &&
+        typeof prepared.json.reasoningRouting === "object" &&
+        !Array.isArray(prepared.json.reasoningRouting)
+          ? prepared.json.reasoningRouting
+          : null,
+      serviceTier:
+        toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
+    };
+
+    return prepared;
+  }
+
   async ensureUpstream(firstMessage) {
     if (this.upstreamReady) return this.upstreamReady;
 
@@ -590,48 +636,7 @@ class ResponsesWsSession {
       this.firstResponseBody ||= responseBody;
       this.currentRequestBody = responseBody;
 
-      const prepared = await callInternal(
-        this.fetchImpl,
-        this.baseUrl,
-        this.bridgeSecret,
-        "prepare",
-        {
-          requestUrl: this.requestUrl,
-          headers: getAuthHeaders(this.requestUrl, this.requestHeaders),
-          message: firstMessage,
-          response: responseBody,
-        }
-      );
-
-      if (!prepared.ok) {
-        const message =
-          prepared.json?.error?.message ||
-          prepared.json?.message ||
-          prepared.text ||
-          "Codex WS prepare failed";
-        const code = prepared.json?.error?.code || "codex_ws_prepare_failed";
-        const error = new Error(message);
-        error.code = code;
-        error.status = prepared.status;
-        throw error;
-      }
-
-      this.preparedContext = {
-        upstreamUrl: toStringOrNull(prepared.json?.upstreamUrl),
-        connectionId: toStringOrNull(prepared.json?.connectionId),
-        account: toStringOrNull(prepared.json?.account),
-        provider: toStringOrNull(prepared.json?.provider) || "codex",
-        model: toStringOrNull(prepared.json?.model) || toStringOrNull(responseBody.model),
-        requestedModel: toStringOrNull(responseBody.model),
-        reasoningRouting:
-          prepared.json?.reasoningRouting &&
-          typeof prepared.json.reasoningRouting === "object" &&
-          !Array.isArray(prepared.json.reasoningRouting)
-            ? prepared.json.reasoningRouting
-            : null,
-        serviceTier:
-          toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
-      };
+      const prepared = await this.runPrepare(firstMessage, responseBody);
 
       const wsOptions = {
         // #5591: chrome_149 is not a wreq-js 2.3.1 profile (max chrome_147); the
@@ -704,7 +709,16 @@ class ResponsesWsSession {
       // turn's own request body so persistHistory() attaches the right
       // clientRequest instead of always the first turn's.
       const nextTurnBody = getResponseCreatePayload(message);
-      if (nextTurnBody !== null) this.currentRequestBody = nextTurnBody;
+      if (nextTurnBody !== null) {
+        this.currentRequestBody = nextTurnBody;
+        // #8052: a reused connection must re-run "prepare" (auth/policy/memory/
+        // reasoning-routing/compression) for every logical turn, not just the first —
+        // otherwise every turn after the first bypasses the whole pipeline. This reuses
+        // the already-established upstream transport; it must NOT recreate the socket.
+        const prepared = await this.runPrepare(message, nextTurnBody);
+        this.upstream.send(jsonStringifySafe(withPreparedResponseCreate(message, prepared.json.response)));
+        return;
+      }
       this.upstream.send(jsonStringifySafe(message));
     } catch (error) {
       const code = error?.code || "upstream_websocket_connect_failed";

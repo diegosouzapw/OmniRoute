@@ -224,6 +224,16 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
   }, CHECKPOINT_INTERVAL_MS);
   (checkpointTimer as unknown as NodeJS.Timeout).unref?.();
 
+  const flush = (): void => {
+    if (dirty)
+      try {
+        persist();
+      } catch {}
+  };
+  process.on("beforeExit", flush);
+  process.on("SIGINT", flush);
+  process.on("SIGTERM", flush);
+
   function gracefulClose(): void {
     clearInterval(checkpointTimer as unknown as NodeJS.Timeout);
     if (saveTimer) clearTimeout(saveTimer);
@@ -235,17 +245,13 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       db.close();
     } catch {}
     _isOpen = false;
+    // Without this, a closed adapter's whole closure (raw sql.js Database +
+    // buffers) stays pinned in memory forever by these 3 process-level
+    // listeners, compounding the OOM every failed boot leaves behind (#7494).
+    process.removeListener("beforeExit", flush);
+    process.removeListener("SIGINT", flush);
+    process.removeListener("SIGTERM", flush);
   }
-
-  const flush = (): void => {
-    if (dirty)
-      try {
-        persist();
-      } catch {}
-  };
-  process.on("beforeExit", flush);
-  process.on("SIGINT", flush);
-  process.on("SIGTERM", flush);
 
   return {
     driver: "sql.js",

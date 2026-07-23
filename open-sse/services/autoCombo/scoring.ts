@@ -19,6 +19,7 @@ export interface ScoringFactors {
   tierAffinity: number;
   specificityMatch: number;
   contextAffinity: number;
+  cacheAffinity?: number;
   resetWindowAffinity: number;
   connectionDensity: number;
 }
@@ -34,6 +35,7 @@ export interface ScoringWeights {
   tierAffinity: number;
   specificityMatch: number;
   contextAffinity: number;
+  cacheAffinity?: number;
   resetWindowAffinity: number;
   connectionDensity: number;
 }
@@ -49,9 +51,29 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
   tierAffinity: 0.05,
   specificityMatch: 0.05,
   contextAffinity: 0.05,
+  cacheAffinity: 0,
   resetWindowAffinity: 0,
   connectionDensity: 0.05,
 };
+
+/** Normalize independently configured UI weights into a scoring distribution. */
+export function normalizeScoringWeights(
+  weights: Partial<ScoringWeights> | null | undefined
+): ScoringWeights {
+  if (!weights) return { ...DEFAULT_WEIGHTS };
+  const entries = Object.keys(DEFAULT_WEIGHTS) as Array<keyof ScoringWeights>;
+  const sanitized = Object.fromEntries(
+    entries.map((key) => {
+      const value = Number(weights?.[key]);
+      return [key, Number.isFinite(value) && value >= 0 ? value : 0];
+    })
+  ) as unknown as ScoringWeights;
+  const total = entries.reduce((sum, key) => sum + Number(sanitized[key] ?? 0), 0);
+  if (total <= 0) return { ...DEFAULT_WEIGHTS };
+  return Object.fromEntries(
+    entries.map((key) => [key, Number(sanitized[key] ?? 0) / total])
+  ) as unknown as ScoringWeights;
+}
 
 export interface ProviderCandidate {
   provider: string;
@@ -77,6 +99,8 @@ export interface ProviderCandidate {
   quotaResetIntervalSecs?: number;
   /** Score [0..1] for staying on the current session's provider/account/model path. */
   contextAffinity?: number;
+  /** Score [0..1] for the account selected by the stable prompt-cache key. */
+  cacheAffinity?: number;
   /** Score [0..1] for quota reset-window preference; sooner selected reset windows score higher. */
   resetWindowAffinity?: number;
   connectionPoolSize?: number;
@@ -110,6 +134,7 @@ export function calculateScore(factors: ScoringFactors, weights: ScoringWeights)
       (weights.tierAffinity ?? 0) * factors.tierAffinity +
       (weights.specificityMatch ?? 0) * factors.specificityMatch +
       (weights.contextAffinity ?? 0) * factors.contextAffinity +
+      (weights.cacheAffinity ?? 0) * (factors.cacheAffinity ?? 0) +
       (weights.resetWindowAffinity ?? 0) * factors.resetWindowAffinity +
       (weights.connectionDensity ?? 0) * factors.connectionDensity
   );
@@ -207,6 +232,7 @@ export function calculateFactors(
     tierAffinity: calculateTierAffinity(candidate, manifestHint),
     specificityMatch: calculateSpecificityMatch(candidate, manifestHint),
     contextAffinity: clamp01(candidate.contextAffinity ?? 0.5),
+    cacheAffinity: clamp01(candidate.cacheAffinity ?? 0),
     resetWindowAffinity: clamp01(candidate.resetWindowAffinity ?? 0.5),
     connectionDensity: clamp01(((candidate.connectionPoolSize ?? 1) - 1) / 10),
   };

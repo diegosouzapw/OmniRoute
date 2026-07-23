@@ -24,6 +24,7 @@ import {
   isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -1365,7 +1366,7 @@ export async function getProviderCredentials(
         return false;
       });
     } else if (availableConnections.length > 0) {
-      log.debug("AUTH", `${provider} | bypassing quota policy for combo live test`);
+      log.debug("AUTH", `${provider} | bypassing cached quota policy for this request`);
     }
 
     if (blockedByPolicy.length > 0) {
@@ -1678,13 +1679,22 @@ export async function getProviderCredentialsWithQuotaPreflight(
   requestedModel: string | null = null,
   options: CredentialSelectionOptions = {}
 ) {
-  if (options.bypassQuotaPolicy === true) {
+  // Credits-first requests intentionally skip both cached quota cutoffs and live
+  // usage preflight. The user inference itself is the one credit-bearing request;
+  // probing normal quota first would spend up to two extra credit calls.
+  const bypassQuotaPolicy =
+    options.bypassQuotaPolicy === true ||
+    (provider === "antigravity" && getCreditsMode() === "always");
+  if (bypassQuotaPolicy) {
     return getProviderCredentials(
       provider,
       excludeConnectionId,
       allowedConnections,
       requestedModel,
-      options
+      {
+        ...options,
+        bypassQuotaPolicy: true,
+      }
     );
   }
 

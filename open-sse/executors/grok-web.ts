@@ -17,6 +17,7 @@ import {
   mergeUpstreamExtraHeaders,
   mergeAbortSignals,
   type ExecuteInput,
+  type ExecutorLog,
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { buildGrokCookieHeader } from "@/lib/providers/webCookieAuth";
@@ -27,6 +28,10 @@ import {
   type TlsFetchResult,
 } from "../services/grokTlsClient.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  shouldUseGrokBrowserBacked,
+  acquireFreshGrokClearance,
+} from "../services/grokClearance.ts";
 import type { GrokStreamEvent } from "./grok-web/types.ts";
 import {
   type OpenAIToolCall,
@@ -649,6 +654,160 @@ async function buildNonStreamingResponse(
   );
 }
 
+// ─── Cloudflare anti-bot classification + browser-backed recovery (#8019) ──
+//
+// Grok's own TLS-impersonating client (grokTlsClient.ts) still gets a
+// Cloudflare Enterprise anti-bot rejection from datacenter/sandbox egresses
+// even with a valid sso+sso-rw cookie. Before this, a Cloudflare block and a
+// genuinely expired SSO cookie both surfaced as the SAME generic auth error
+// (#8019). classifyGrokNullBodyError() distinguishes them so the caller gets
+// an actionable message, and (opt-in only) resolveGrokNullBodyTlsResult()
+// tries one browser-backed cf_clearance refresh + retry before giving up.
+
+export interface GrokNullBodyError {
+  type: "cloudflare_challenge" | "authentication_error" | "rate_limit_error" | "upstream_error";
+  code: string;
+  message: string;
+}
+
+/**
+ * Classify a `tlsResult.body === null` response (no streamable body — either
+ * a non-2xx status or a Cloudflare interstitial peeked at 200). Exported so
+ * both the executor and its unit tests share one decision.
+ */
+export function classifyGrokNullBodyError(
+  status: number,
+  text: string | null | undefined
+): GrokNullBodyError {
+  if (isCloudflareChallenge(text)) {
+    return {
+      type: "cloudflare_challenge",
+      code: "cf_mitigated_challenge",
+      message:
+        "Grok returned a Cloudflare bot-management challenge instead of a real response. " +
+        "cf_clearance is pinned to the IP+TLS+UA that earned it and can't be replayed from " +
+        "a datacenter/sandbox egress. Probe from a residential IP, or use the official xAI API " +
+        "(provider: 'grok') instead.",
+    };
+  }
+  if (status === 401 || status === 403) {
+    return {
+      type: "authentication_error",
+      code: `HTTP_${status}`,
+      message:
+        "Grok auth failed — SSO cookie may be expired. Re-paste your sso cookie value from grok.com.",
+    };
+  }
+  if (status === 429) {
+    return {
+      type: "rate_limit_error",
+      code: "HTTP_429",
+      message: "Grok rate limited. Wait a moment and retry, or rotate cookies.",
+    };
+  }
+  return {
+    type: "upstream_error",
+    code: `HTTP_${status}`,
+    message: `Grok returned HTTP ${status}`,
+  };
+}
+
+function buildGrokNullBodyErrorResponse(
+  status: number,
+  classification: GrokNullBodyError
+): Response {
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: classification.message,
+        type: classification.type,
+        code: classification.code,
+      },
+    }),
+    { status, headers: { "Content-Type": "application/json" } }
+  );
+}
+
+function appendCfClearanceCookie(cookieHeader: string | undefined, cfClearance: string): string {
+  const cfCookie = `cf_clearance=${cfClearance}`;
+  if (!cookieHeader) return cfCookie;
+  if (/(?:^|;\s*)cf_clearance=/.test(cookieHeader)) {
+    return cookieHeader.replace(/cf_clearance=[^;]*/, cfCookie);
+  }
+  return `${cookieHeader}; ${cfCookie}`;
+}
+
+/**
+ * Attempt ONE browser-backed cf_clearance refresh + retry of tlsFetchGrok.
+ * Returns the retried TlsFetchResult on success, or null on any failure
+ * (acquisition failure, retry still challenged, retry threw) so the caller
+ * falls through to the original Cloudflare-challenge error — never throws.
+ */
+async function retryGrokWithFreshClearance(params: {
+  headers: Record<string, string>;
+  grokPayload: Record<string, unknown>;
+  signal?: AbortSignal;
+}): Promise<TlsFetchResult | null> {
+  let cfClearance: string | null;
+  try {
+    cfClearance = await acquireFreshGrokClearance(params.signal);
+  } catch {
+    cfClearance = null;
+  }
+  if (!cfClearance) return null;
+
+  const retryHeaders = {
+    ...params.headers,
+    Cookie: appendCfClearanceCookie(params.headers.Cookie, cfClearance),
+  };
+  try {
+    const retried = await tlsFetchGrok(GROK_CHAT_API, {
+      method: "POST",
+      headers: retryHeaders,
+      body: JSON.stringify(params.grokPayload),
+      timeoutMs: FETCH_TIMEOUT_MS,
+      signal: params.signal,
+      stream: true,
+      streamEofSymbol: "[DONE]",
+    });
+    return retried.body ? retried : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolves a `tlsResult.body === null` response: if it classifies as a
+ * Cloudflare challenge AND the browser-backed opt-in gate is on, tries one
+ * recovery retry; otherwise returns the original result unchanged. Callers
+ * re-classify the (possibly retried) result themselves.
+ */
+export async function resolveGrokNullBodyTlsResult(params: {
+  tlsResult: TlsFetchResult;
+  headers: Record<string, string>;
+  grokPayload: Record<string, unknown>;
+  signal?: AbortSignal;
+  log?: ExecutorLog | null;
+}): Promise<TlsFetchResult> {
+  const { tlsResult, headers, grokPayload, signal, log } = params;
+  if (tlsResult.body) return tlsResult;
+
+  const classification = classifyGrokNullBodyError(tlsResult.status, tlsResult.text);
+  if (classification.type !== "cloudflare_challenge" || !shouldUseGrokBrowserBacked()) {
+    return tlsResult;
+  }
+
+  log?.info?.(
+    "GROK-WEB",
+    "Cloudflare challenge detected on grok.com; attempting browser-backed cf_clearance refresh"
+  );
+  const retried = await retryGrokWithFreshClearance({ headers, grokPayload, signal });
+  if (retried) {
+    log?.info?.("GROK-WEB", "Browser-backed cf_clearance refresh succeeded; retry passed through");
+  }
+  return retried ?? tlsResult;
+}
+
 // ─── Executor ───────────────────────────────────────────────────────────────
 
 export class GrokWebExecutor extends BaseExecutor {
@@ -824,22 +983,23 @@ export class GrokWebExecutor extends BaseExecutor {
     }
 
     if (!tlsResult.body) {
-      // Non-streaming fallback (shouldn't happen for chat, but handle gracefully)
+      // Non-streaming fallback (shouldn't happen for chat, but handle gracefully).
+      // Distinguish a Cloudflare anti-bot block from a genuine auth/rate-limit
+      // failure (#8019); optionally recover via one browser-backed retry.
+      tlsResult = await resolveGrokNullBodyTlsResult({
+        tlsResult,
+        headers,
+        grokPayload,
+        signal: combinedSignal,
+        log,
+      });
+    }
+
+    if (!tlsResult.body) {
       const status = tlsResult.status;
-      let errMsg = `Grok returned HTTP ${status}`;
-      if (status === 401 || status === 403) {
-        errMsg =
-          "Grok auth failed — SSO cookie may be expired. Re-paste your sso cookie value from grok.com.";
-      } else if (status === 429) {
-        errMsg = "Grok rate limited. Wait a moment and retry, or rotate cookies.";
-      }
-      log?.warn?.("GROK-WEB", errMsg);
-      const errResp = new Response(
-        JSON.stringify({
-          error: { message: errMsg, type: "upstream_error", code: `HTTP_${status}` },
-        }),
-        { status, headers: { "Content-Type": "application/json" } }
-      );
+      const classification = classifyGrokNullBodyError(status, tlsResult.text);
+      log?.warn?.("GROK-WEB", classification.message);
+      const errResp = buildGrokNullBodyErrorResponse(status, classification);
       return { response: errResp, url: GROK_CHAT_API, headers, transformedBody: grokPayload };
     }
 
