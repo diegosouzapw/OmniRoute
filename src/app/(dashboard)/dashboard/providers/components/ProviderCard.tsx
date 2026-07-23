@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -163,6 +163,27 @@ export default function ProviderCard({
   const tc = useTranslations("common");
   const tp = useTranslations("miniPlayground");
   const [testExpanded, setTestExpanded] = useState<boolean>(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash !== `#provider-${providerId}`) return;
+    const el = wrapperRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: "auto", block: "center" });
+    const surface = el.firstElementChild?.firstElementChild as HTMLElement | undefined;
+    if (surface) {
+      surface.animate(
+        [
+          { backgroundColor: "rgba(59,130,246,0.22)" },
+          { backgroundColor: "rgba(59,130,246,0.08)" },
+          { backgroundColor: "rgba(59,130,246,0.22)" },
+          { backgroundColor: "transparent" },
+        ],
+        { duration: 3000, easing: "ease-in-out" }
+      );
+    }
+  }, [providerId]);
 
   // Show the Test button for LLM providers (when serviceKinds includes "llm"
   // OR when the provider has no explicit serviceKinds but is a regular LLM provider
@@ -265,7 +286,7 @@ export default function ProviderCard({
   }, [providerId]);
 
   return (
-    <div id={`provider-${providerId}`} className="flex flex-col h-full">
+    <div ref={wrapperRef} id={`provider-${providerId}`} className="flex flex-col h-full">
       <Link
         href={`/dashboard/providers/${providerId}`}
         className="group flex-1 flex flex-col"

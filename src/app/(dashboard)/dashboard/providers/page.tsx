@@ -262,17 +262,6 @@ export default function ProvidersPage() {
   }, []);
 
   useEffect(() => {
-    if (loading) return;
-    const hash = window.location.hash;
-    if (!hash || !hash.startsWith("#provider-")) return;
-    const id = hash.slice(1);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [loading]);
-
-  useEffect(() => {
     if (!shouldSyncProviderDisplayMode(displayModePreferenceReady, loading)) return;
 
     const storedDisplayMode =
