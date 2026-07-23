@@ -25,12 +25,21 @@ export interface SpawnArgs {
 let latestVersionCache: { value: string; expiresAt: number } | null = null;
 const VERSION_CACHE_TTL_MS = 3_600_000;
 
+// Resolve the install dir lazily from the *current* DATA_DIR so a runtime
+// DATA_DIR override (operator env change, or a test's tmp-dir isolation) is
+// honored — the module-level BIFROST_INSTALL_DIR const is frozen at import.
+function getBifrostInstallDir(): string {
+  return process.env.DATA_DIR
+    ? path.join(process.env.DATA_DIR, "services", "bifrost")
+    : BIFROST_INSTALL_DIR;
+}
+
 function getInstalledPkgPath(): string {
-  return path.join(BIFROST_INSTALL_DIR, "node_modules", "@maximhq", "bifrost", "package.json");
+  return path.join(getBifrostInstallDir(), "node_modules", "@maximhq", "bifrost", "package.json");
 }
 
 function getBinPath(): string {
-  return path.join(BIFROST_INSTALL_DIR, "node_modules", "@maximhq", "bifrost", "bin.js");
+  return path.join(getBifrostInstallDir(), "node_modules", "@maximhq", "bifrost", "bin.js");
 }
 
 function getInstalledVersionSync(): string | null {
