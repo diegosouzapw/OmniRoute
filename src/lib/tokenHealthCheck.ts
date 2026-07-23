@@ -400,13 +400,19 @@ export async function checkConnection(conn) {
   if (intervalMin <= 0) return;
   if (!conn.isActive) return;
 
-  // #8182: skip terminal connections (credits_exhausted / banned / expired).
-  // These can never self-heal via a token refresh — probing them wastes
-  // CPU and network on every sweep cycle. Mirrors isTerminalConnectionStatus
-  // in src/sse/services/auth.ts and TERMINAL_CONNECTION_STATUSES in
-  // src/lib/quota/connectionRecovery.ts.
+  // #8182: terminal connections do not self-heal. The exception is a stale
+  // no_refresh_token state on a usable GitHub access-token-only connection.
   const terminalStatuses = new Set(["credits_exhausted", "banned", "expired"]);
-  if (typeof conn.testStatus === "string" && terminalStatuses.has(conn.testStatus.toLowerCase())) {
+  const recoverableGitHubNoRefreshTokenState =
+    isGitHubAccessTokenOnlyConnection(conn) &&
+    !conn.refreshToken &&
+    conn.testStatus === "expired" &&
+    conn.errorCode === "no_refresh_token";
+  if (
+    typeof conn.testStatus === "string" &&
+    terminalStatuses.has(conn.testStatus.toLowerCase()) &&
+    !recoverableGitHubNoRefreshTokenState
+  ) {
     return;
   }
 

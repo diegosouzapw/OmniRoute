@@ -197,8 +197,6 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       subtitleFallback: "Per-model/endpoint bypass",
       icon: "block",
     },
-    // Compression Studio stays the final showcase item of the compression group
-    // (sidebar-engine-items "Studio must be last" invariant); new pages go above it.
     {
       id: "compression-studio",
       href: "/dashboard/compression/studio",
