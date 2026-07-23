@@ -519,6 +519,18 @@ export function createErrorResult(
     success: false;
     status: number;
     error: string;
+    /**
+     * #7360: the FULL, un-sanitized upstream message — `error` above is
+     * truncated to its first line by sanitizeErrorMessage() (correctly, for
+     * the client-facing response body). Server-side classification
+     * (checkFallbackError / Gemini TPM-vs-RPD metric detection) needs the
+     * complete multi-line text — e.g. Google's metric name and retry hint
+     * live on lines 2-3, after the generic "quota exceeded" preamble on
+     * line 1. This field NEVER reaches the HTTP response body (`response`
+     * below is already built from the sanitized `body`); it exists purely
+     * for internal callers that inspect the returned object.
+     */
+    rawMessage: string;
     errorType?: string;
     errorCode?: string;
     response: Response;
@@ -527,6 +539,7 @@ export function createErrorResult(
     success: false,
     status: statusCode,
     error: body.error.message,
+    rawMessage: message,
     errorType,
     errorCode,
     response: new Response(JSON.stringify(body), {

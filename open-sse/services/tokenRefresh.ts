@@ -81,6 +81,7 @@ export const REFRESH_LEAD_MS: Record<string, number> = {
   // is safe and reduces unnecessary upstream chatter.
   antigravity: 15 * 60 * 1000,
   agy: 15 * 60 * 1000, // same Google backend as antigravity (non-rotating refresh tokens)
+  "gemini-cli": 15 * 60 * 1000, // same Google backend family (non-rotating refresh tokens)
 };
 
 /**
@@ -372,6 +373,7 @@ export async function refreshAccessToken(
 async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: unknown = null) {
   switch (provider) {
     case "gemini":
+    case "gemini-cli":
     case "antigravity":
     case "agy":
       return await refreshGoogleToken(
@@ -447,6 +449,7 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
 export function supportsTokenRefresh(provider) {
   const explicitlySupported = new Set([
     "gemini",
+    "gemini-cli",
     "antigravity",
     "agy",
     "claude",

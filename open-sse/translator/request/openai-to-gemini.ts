@@ -64,6 +64,11 @@ type GeminiFunctionDeclaration = {
   parameters: unknown;
 };
 
+type GeminiFunctionCallingConfig = {
+  mode: string;
+  allowedFunctionNames?: string[];
+};
+
 type GeminiRequest = {
   model: string;
   contents?: GeminiContent[];
@@ -75,9 +80,42 @@ type GeminiRequest = {
     functionDeclarations?: GeminiFunctionDeclaration[];
     googleSearch?: Record<string, unknown>;
   }>;
+  toolConfig?: { functionCallingConfig: GeminiFunctionCallingConfig };
   cachedContent?: string;
   _toolNameMap?: Map<string, string>;
 };
+
+// Convert OpenAI tool_choice into Gemini's functionCallingConfig mode. Mirrors
+// convertOpenAIToolChoice in openai-to-claude.ts (same enum shapes from the client).
+// Gemini's modes: AUTO (model decides), ANY (must call a function — OpenAI's
+// "required"), NONE (never call), VALIDATED (may call a function OR respond with
+// plain text, but any call it makes is schema-validated — this was the unconditional
+// hardcoded default before tool_choice was wired up at all, so it stays the fallback
+// for "auto"/unset to avoid changing existing behavior for the common case).
+//
+// Live investigation: gemini-3.1-flash-lite frequently narrates an intended tool call
+// in plain text ("I'm running python3 now...") instead of actually emitting one
+// (dashboard log id 1784591483850-49c408) — VALIDATED mode never forces a call, so
+// the model is always free to just talk instead of act. tool_choice: "required" (->
+// ANY) is the lever a caller has to prevent that, but it was silently ignored until
+// this fix — body.tool_choice was never read anywhere in this file.
+function convertOpenAIToolChoiceToGemini(choice: unknown): GeminiFunctionCallingConfig {
+  if (!choice) return { mode: "VALIDATED" };
+  if (typeof choice === "string") {
+    if (choice === "none") return { mode: "NONE" };
+    if (choice === "required" || choice === "any") return { mode: "ANY" };
+    return { mode: "VALIDATED" }; // "auto" or unrecognized string
+  }
+  if (typeof choice === "object") {
+    const c = choice as { type?: string; function?: { name?: string } };
+    if (c.type === "function" && c.function?.name) {
+      return { mode: "ANY", allowedFunctionNames: [c.function.name] };
+    }
+    if (c.type === "none") return { mode: "NONE" };
+    if (c.type === "required" || c.type === "any") return { mode: "ANY" };
+  }
+  return { mode: "VALIDATED" };
+}
 
 type CloudCodeEnvelope = {
   project: string;
@@ -539,7 +577,9 @@ function openaiToGeminiBase(
     if (hasGoogleSearch) {
       result.tools.push({ googleSearch: {} });
     }
-    result.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
+    result.toolConfig = {
+      functionCallingConfig: convertOpenAIToolChoiceToGemini(body.tool_choice),
+    };
   } else if (hasGoogleSearch) {
     result.tools = [{ googleSearch: {} }];
   }
@@ -700,7 +740,10 @@ function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
     (tool) => (tool.functionDeclarations?.length ?? 0) > 0
   );
   if (hasCustomTools) {
-    envelope.request.toolConfig = {
+    // Reuse the toolConfig openaiToGeminiBase already computed from the caller's
+    // tool_choice (cloudCodeRequest is that function's return value) instead of
+    // re-deriving a hardcoded default here — see convertOpenAIToolChoiceToGemini.
+    envelope.request.toolConfig = cloudCodeRequest.toolConfig ?? {
       functionCallingConfig: { mode: "VALIDATED" },
     };
   }
