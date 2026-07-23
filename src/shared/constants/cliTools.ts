@@ -23,11 +23,12 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     envVars: {
       baseUrl: "ANTHROPIC_BASE_URL",
       model: "ANTHROPIC_MODEL",
+      fableModel: "ANTHROPIC_DEFAULT_FABLE_MODEL",
       opusModel: "ANTHROPIC_DEFAULT_OPUS_MODEL",
       sonnetModel: "ANTHROPIC_DEFAULT_SONNET_MODEL",
       haikuModel: "ANTHROPIC_DEFAULT_HAIKU_MODEL",
     },
-    modelAliases: ["default", "sonnet", "opus", "haiku", "opusplan"],
+    modelAliases: ["default", "fable", "sonnet", "opus", "haiku", "opusplan"],
     settingsFile: "~/.claude/settings.json",
     defaultCommand: "claude",
     defaultModels: [
@@ -40,11 +41,11 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
         isTopLevel: true,
       },
       {
-        id: "smallFast",
-        name: "Small Fast Model",
-        alias: "smallFast",
-        envKey: "ANTHROPIC_SMALL_FAST_MODEL",
-        defaultValue: _cc.haiku ? `cc/${_cc.haiku}` : "cc/claude-haiku-4-5-20251001",
+        id: "fable",
+        name: "Claude Fable",
+        alias: "fable",
+        envKey: "ANTHROPIC_DEFAULT_FABLE_MODEL",
+        defaultValue: _cc.fable ? `cc/${_cc.fable}` : "cc/claude-fable-5",
         isTopLevel: true,
       },
       {
