@@ -81,7 +81,7 @@ const markdownComponents: Components = {
 };
 
 export default function ChangelogViewer() {
-  const t = useTranslations("common");
+  const t = useTranslations("changelogPage");
   const [markdown, setMarkdown] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -111,7 +111,7 @@ export default function ChangelogViewer() {
         <span className="material-symbols-outlined animate-spin text-[32px] text-text-muted/50">
           sync
         </span>
-        <p className="text-sm text-text-muted">{t("changelogViewerLoading")}</p>
+        <p className="text-sm text-text-muted">{t("loading")}</p>
       </div>
     );
   }
@@ -122,9 +122,9 @@ export default function ChangelogViewer() {
         <span className="material-symbols-outlined mb-4 text-[48px] text-red-500/50">
           error_outline
         </span>
-        <p>Could not load the changelog. Please try again later.</p>
+        <p>{t("changelogLoadFailed")}</p>
         <Button variant="secondary" className="mt-4" onClick={() => globalThis.location.reload()}>
-          Retry
+          {t("retry")}
         </Button>
       </div>
     );
@@ -139,7 +139,7 @@ export default function ChangelogViewer() {
         <a href={CHANGELOG_GITHUB_URL} target="_blank" rel="noopener noreferrer">
           <Button variant="secondary" className="gap-2 text-xs">
             <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-            View Full History on GitHub
+            {t("viewFullHistory")}
           </Button>
         </a>
       </div>

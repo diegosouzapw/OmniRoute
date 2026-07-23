@@ -137,6 +137,7 @@ export async function loadPlugin(
   };
 
   const child = spawn(process.execPath, ["--no-warnings", hostScriptPath, entryPoint], {
+    windowsHide: true,
     env,
     stdio: ["ignore", "ignore", "ignore", "ipc"],
   });

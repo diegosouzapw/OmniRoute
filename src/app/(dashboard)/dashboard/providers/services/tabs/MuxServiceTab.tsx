@@ -12,7 +12,7 @@ export function MuxServiceTab() {
     <div className="space-y-4">
       <ServiceStatusCard name={NAME} />
       <ServiceLifecycleButtons name={NAME} />
-      <AutoStartToggle name={NAME} description="Launch Mux automatically when OmniRoute starts" />
+      <AutoStartToggle name={NAME} />
       <ServiceLogsPanel name={NAME} />
     </div>
   );

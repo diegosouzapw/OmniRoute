@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { PROVIDERS } from "../../open-sse/config/constants.ts";
+import { APP_CONFIG } from "../../src/shared/constants/appConfig.ts";
 import {
   buildProviderHeaders,
   buildProviderUrl,
@@ -33,13 +34,19 @@ const OAUTH_CRED = { accessToken: "tok-test-ACCESS", providerSpecificData: {} };
 // (process.versions.node) forms are collapsed to <NODE>.
 const NODE_VERSION = typeof process !== "undefined" ? process.version : "";
 const NODE_VERSION_BARE = typeof process !== "undefined" ? (process.versions?.node ?? "") : "";
-// The OmniRoute app version also leaks into headers (cline X-CLIENT-VERSION /
-// X-CORE-VERSION = clineAuth APP_VERSION = process.env.npm_package_version ||
-// "0.0.0"). It is "0.0.0" under a direct `node` run (Unit Tests shard) but the real
-// package version under `npx`/`npm run` (Coverage shard), so it must be normalized
-// too — mirror clineAuth's resolution and collapse it to <APP>.
+// The OmniRoute app version leaks into headers (cline User-Agent `Cline/<ver>`,
+// X-CLIENT-VERSION, X-CORE-VERSION — all clineAuth's APP_VERSION). clineAuth resolves
+// it from APP_CONFIG.version (the package.json version, stable in every shard), NOT from
+// process.env.npm_package_version (which is unset under a direct `node` run — Unit Tests
+// shard — but the real version under `npx`/`npm run` — Coverage shard). Resolving it the
+// SAME way clineAuth does keeps the golden runner-independent; the npm_package_version
+// fallback below stays as a defensive second collapse. Both are normalized to <APP>.
 const APP_VERSION =
-  (typeof process !== "undefined" ? process.env.npm_package_version : "") || "0.0.0";
+  APP_CONFIG.version ||
+  (typeof process !== "undefined" ? process.env.npm_package_version : "") ||
+  "0.0.0";
+const APP_VERSION_ENV =
+  (typeof process !== "undefined" ? process.env.npm_package_version : "") || "";
 
 function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -71,11 +78,18 @@ function sanitize(headers: Record<string, unknown>): Record<string, unknown> {
         /Macintosh; Intel Mac OS X 10_15_7|Windows NT 10\.0; Win64; x64|X11; Linux x86_64/g,
         "<PLATFORM>"
       )
+      .replace(/(antigravity\/ide\/\d+\.\d+\.\d+) [^/\s]+\/[^\s)]+/g, "$1 <OS>/<ARCH>")
+      .replace(
+        /(antigravity\/cli\/\d+\.\d+\.\d+ \(aidev_client; os_type=)[^;]+(; arch=)[^;]+(; auth_method=[^)]+\))/g,
+        "$1<OS>$2<ARCH>$3"
+      )
       .replace(/kimi-\d{10,}/g, "kimi-<TS>")
       .replace(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "<UUID>");
     if (NODE_VERSION) s = s.split(NODE_VERSION).join("<NODE>");
     if (NODE_VERSION_BARE) s = s.split(NODE_VERSION_BARE).join("<NODE>");
     if (APP_VERSION) s = s.split(APP_VERSION).join("<APP>");
+    if (APP_VERSION_ENV && APP_VERSION_ENV !== APP_VERSION)
+      s = s.split(APP_VERSION_ENV).join("<APP>");
     out[k] = s;
   }
   return out;

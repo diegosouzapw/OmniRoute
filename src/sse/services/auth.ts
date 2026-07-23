@@ -6,10 +6,11 @@ import {
   getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
-  touchConnectionLastUsed,
-  clearConnectionErrorIfUnchanged,
+  resetConnectionBackoff,
   getSettings,
   getCachedSettings,
+  touchConnectionLastUsed,
+  clearConnectionErrorIfUnchanged,
 } from "@/lib/localDb";
 import {
   createLazyConnectionView,
@@ -23,6 +24,7 @@ import {
   isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -594,15 +596,22 @@ function getConnectionRecencyPenalty(connection: ProviderConnectionView): number
 function getP2CConnectionScore(
   provider: string,
   connection: ProviderConnectionView,
-  requestedModel: string | null = null
+  requestedModel: string | null = null,
+  quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>
 ): { score: number; quotaHeadroomPercent: number | null } {
-  const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-  const quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
-  const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
-    provider,
-    connection,
-    requestedModel
-  );
+  let quotaBlocked: boolean;
+  let quotaExhausted: boolean;
+
+  if (connection.id && quotaResults?.has(connection.id)) {
+    const cached = quotaResults.get(connection.id)!;
+    quotaBlocked = cached.blocked;
+    quotaExhausted = cached.exhausted;
+  } else {
+    quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
+    quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
+  }
+
+  const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(provider, connection, requestedModel);
 
   let quotaPenalty = 0;
   if (quotaHeadroomPercent !== null) {
@@ -630,10 +639,11 @@ function compareP2CConnections(
   provider: string,
   a: ProviderConnectionView,
   b: ProviderConnectionView,
-  requestedModel: string | null = null
+  requestedModel: string | null = null,
+  quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>
 ): number {
-  const aScore = getP2CConnectionScore(provider, a, requestedModel);
-  const bScore = getP2CConnectionScore(provider, b, requestedModel);
+  const aScore = getP2CConnectionScore(provider, a, requestedModel, quotaResults);
+  const bScore = getP2CConnectionScore(provider, b, requestedModel, quotaResults);
   if (aScore.score !== bScore.score) {
     return aScore.score - bScore.score;
   }
@@ -1146,32 +1156,39 @@ export async function getProviderCredentials(
         !isAccountUnavailable(c.rateLimitedUntil)
       ) {
         c.backoffLevel = 0;
-        updateProviderConnection(c.id, {
-          backoffLevel: 0,
-          testStatus: "active",
-          lastError: null,
-          lastErrorAt: null,
-          lastErrorType: null,
-          lastErrorSource: null,
-          errorCode: null,
-        }).catch(() => {});
+        resetConnectionBackoff(c.id).catch(() => {});
       }
     }
 
     let modelLockedCount = 0;
     let familyLockedCount = 0;
+    const connectionFilterStatus = new Map<string, string>();
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
-      if (excludedConnectionIds.has(c.id)) return false;
+      if (excludedConnectionIds.has(c.id)) {
+        connectionFilterStatus.set(c.id, "excluded");
+        return false;
+      }
       if (requestedModel && isModelExcludedByConnection(requestedModel, c.providerSpecificData)) {
+        connectionFilterStatus.set(c.id, "modelExcluded");
         return false;
       }
       if (!allowSuppressedConnections) {
-        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
-        if (isTerminalConnectionStatus(c)) return false;
-        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) {
+          connectionFilterStatus.set(c.id, "rateLimited");
+          return false;
+        }
+        if (isTerminalConnectionStatus(c)) {
+          connectionFilterStatus.set(c.id, "terminalStatus");
+          return false;
+        }
+        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) {
+          connectionFilterStatus.set(c.id, "codexScopeLimited");
+          return false;
+        }
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
         if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
+          connectionFilterStatus.set(c.id, "modelLocked");
           if (
             provider === "antigravity" &&
             getQuotaScopeLabelForProvider(provider, requestedModel) === "family"
@@ -1183,6 +1200,7 @@ export async function getProviderCredentials(
           return false;
         }
       }
+      connectionFilterStatus.set(c.id, "available");
       return true;
     });
 
@@ -1197,15 +1215,13 @@ export async function getProviderCredentials(
       );
     }
     connections.forEach((c) => {
-      const excluded = excludedConnectionIds.has(c.id);
-      const rateLimited = isAccountUnavailable(c.rateLimitedUntil);
-      const terminalStatus = isTerminalConnectionStatus(c);
-      const codexScopeLimited = provider === "codex" && isCodexScopeUnavailable(c, requestedModel);
-      const modelLocked =
-        Boolean(requestedModel) && isModelLocked(provider, c.id, requestedModel as string);
-      const modelExcluded =
-        Boolean(requestedModel) &&
-        isModelExcludedByConnection(requestedModel as string, c.providerSpecificData);
+      const status = connectionFilterStatus.get(c.id);
+      const excluded = status === "excluded";
+      const rateLimited = status === "rateLimited";
+      const terminalStatus = status === "terminalStatus";
+      const codexScopeLimited = status === "codexScopeLimited";
+      const modelLocked = status === "modelLocked";
+      const modelExcluded = status === "modelExcluded";
       if (excluded || rateLimited) {
         log.debug(
           "AUTH",
@@ -1334,10 +1350,12 @@ export async function getProviderCredentials(
       reasons: string[];
       resetAt: string | null;
     }> = [];
+    const quotaResults = new Map<string, { blocked: boolean; exhausted: boolean }>();
 
     if (!bypassQuotaPolicy) {
       policyEligibleConnections = availableConnections.filter((connection) => {
         const evaluation = evaluateQuotaLimitPolicy(provider, connection, requestedModel);
+        quotaResults.set(connection.id, { blocked: evaluation.blocked, exhausted: false });
         if (!evaluation.blocked) return true;
 
         blockedByPolicy.push({
@@ -1348,7 +1366,7 @@ export async function getProviderCredentials(
         return false;
       });
     } else if (availableConnections.length > 0) {
-      log.debug("AUTH", `${provider} | bypassing quota policy for combo live test`);
+      log.debug("AUTH", `${provider} | bypassing cached quota policy for this request`);
     }
 
     if (blockedByPolicy.length > 0) {
@@ -1377,13 +1395,19 @@ export async function getProviderCredentials(
       };
     }
 
-    // Quota-aware: filter out accounts with exhausted quota for the requested scope.
-    const withQuota = policyEligibleConnections.filter(
-      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
-    );
-    const exhaustedQuota = policyEligibleConnections.filter((c) =>
-      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
-    );
+    // Quota-aware: partition accounts with and without quota for the requested scope.
+    const withQuota: typeof policyEligibleConnections = [];
+    const exhaustedQuota: typeof policyEligibleConnections = [];
+    for (const c of policyEligibleConnections) {
+      const exhausted = isQuotaExhaustedForRequest(c.id, provider, requestedModel);
+      const existing = quotaResults.get(c.id);
+      if (existing) existing.exhausted = exhausted;
+      if (!exhausted) {
+        withQuota.push(c);
+      } else {
+        exhaustedQuota.push(c);
+      }
+    }
 
     if (exhaustedQuota.length > 0) {
       log.info(
@@ -1551,7 +1575,7 @@ export async function getProviderCredentials(
       // health instead of defaulting to random-first selection.
       if (candidatePool.length <= 2) {
         connection = [...candidatePool].sort((a, b) =>
-          compareP2CConnections(provider, a, b, requestedModel)
+          compareP2CConnections(provider, a, b, requestedModel, quotaResults)
         )[0];
       } else {
         const i =
@@ -1561,7 +1585,7 @@ export async function getProviderCredentials(
         if (j >= i) j++;
         const a = candidatePool[i];
         const b = candidatePool[j];
-        connection = compareP2CConnections(provider, a, b, requestedModel) <= 0 ? a : b;
+        connection = compareP2CConnections(provider, a, b, requestedModel, quotaResults) <= 0 ? a : b;
       }
     } else if (strategy === "random") {
       // Random: Fisher-Yates-inspired random pick
@@ -1655,13 +1679,22 @@ export async function getProviderCredentialsWithQuotaPreflight(
   requestedModel: string | null = null,
   options: CredentialSelectionOptions = {}
 ) {
-  if (options.bypassQuotaPolicy === true) {
+  // Credits-first requests intentionally skip both cached quota cutoffs and live
+  // usage preflight. The user inference itself is the one credit-bearing request;
+  // probing normal quota first would spend up to two extra credit calls.
+  const bypassQuotaPolicy =
+    options.bypassQuotaPolicy === true ||
+    (provider === "antigravity" && getCreditsMode() === "always");
+  if (bypassQuotaPolicy) {
     return getProviderCredentials(
       provider,
       excludeConnectionId,
       allowedConnections,
       requestedModel,
-      options
+      {
+        ...options,
+        bypassQuotaPolicy: true,
+      }
     );
   }
 

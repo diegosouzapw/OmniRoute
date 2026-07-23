@@ -36,7 +36,7 @@ export const OAUTH_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     authHint:
-      "Paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically.",
+      "Sign in with your browser, or paste your ~/.grok/auth.json (or the JWT access token) from the Grok Build CLI; refresh_token is rotated automatically either way.",
   },
   qoder: {
     id: "qoder",
@@ -99,6 +99,15 @@ export const OAUTH_PROVIDERS = {
     id: "antigravity",
     alias: undefined,
     name: "Antigravity",
+    icon: "rocket_launch",
+    color: "#F59E0B",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+  },
+  "gemini-cli": {
+    id: "gemini-cli",
+    alias: undefined,
+    name: "Gemini CLI",
     icon: "rocket_launch",
     color: "#F59E0B",
     subscriptionRisk: true,
@@ -176,6 +185,9 @@ export const OAUTH_PROVIDERS = {
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
+    // Kimi official-partnership aff link (2026-07) — the "Kimi Coding Plan"
+    // tracking link. Was previously unset (no header link rendered at all).
+    website: "https://www.kimi.com/code?aff=omniroute",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     authHint:
@@ -212,7 +224,7 @@ export const OAUTH_PROVIDERS = {
     icon: "smart_toy",
     color: "#9D4EDD",
     textIcon: "CP",
-    website: "https://cline.bot/clinepass",
+    website: "https://cline.bot/cline-pass",
     subscriptionRisk: true,
     riskNoticeVariant: "oauth",
     authHint:

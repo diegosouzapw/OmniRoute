@@ -1,0 +1,1 @@
+- **fix(providers):** iFlytek Spark (`iflytek`, `sparkdesk`) now target the OpenAI-compatible host `spark-api-open.xf-yun.com/v1`; the previous `spark-api.xf-yun.com` is the WebSocket host and rejects bearer auth ([#7942](https://github.com/diegosouzapw/OmniRoute/pull/7942)) — thanks @FenjuFu

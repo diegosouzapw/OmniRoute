@@ -4,17 +4,9 @@ import pino from "pino";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 
 import { getProviderMetrics } from "@/lib/db/callLogStats";
+import { toNumber } from "@/shared/utils/numeric";
 
 const logger = pino({ name: "provider-metrics-api" });
-
-function toNumber(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
 
 /**
  * GET /api/provider-metrics — Aggregate per-provider stats from call_logs

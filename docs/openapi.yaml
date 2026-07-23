@@ -1315,13 +1315,49 @@ paths:
               required: [input, model]
               properties:
                 input:
+                  description: >-
+                    Text, token IDs, or up to 32 canonical multimodal items. Structured media
+                    input is accepted only when the resolved registry model advertises the
+                    requested modalities. URL sources must be public HTTPS and are fetched
+                    server-side into bounded inline media (redirect revalidation, timeout,
+                    size limits, public DNS checks, and connection pinning) before provider
+                    submission. Inline media is limited to 8 MiB decoded per item and 16 MiB
+                    decoded per request. Canonical items are translated to provider-native
+                    request shapes (Jina modality-keyed objects / Gemini embedContent parts)
+                    rather than forwarded unchanged.
                   oneOf:
                     - type: string
                     - type: array
+                      minItems: 1
                       items:
                         type: string
+                    - type: array
+                      minItems: 1
+                      items:
+                        type: integer
+                        minimum: 0
+                    - type: array
+                      minItems: 1
+                      items:
+                        type: array
+                        minItems: 1
+                        items:
+                          type: integer
+                          minimum: 0
+                    - type: array
+                      minItems: 1
+                      maxItems: 32
+                      items:
+                        $ref: "#/components/schemas/EmbeddingMultimodalItem"
                 model:
                   type: string
+                dimensions:
+                  type: integer
+                  minimum: 1
+                encoding_format:
+                  type: string
+                  enum: [float, base64]
+              additionalProperties: true
       responses:
         "200":
           description: >-
@@ -5874,6 +5910,48 @@ components:
             requestId: 0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
 
   schemas:
+    EmbeddingMultimodalItem:
+      oneOf:
+        - type: object
+          required: [type, text]
+          properties:
+            type:
+              type: string
+              const: text
+            text:
+              type: string
+              minLength: 1
+        - type: object
+          required: [type, source]
+          properties:
+            type:
+              type: string
+              enum: [image, audio, video, document]
+            source:
+              oneOf:
+                - type: object
+                  required: [type, url]
+                  properties:
+                    type:
+                      type: string
+                      const: url
+                    url:
+                      type: string
+                      format: uri
+                      description: Public HTTPS URL.
+                - type: object
+                  required: [type, data, media_type]
+                  properties:
+                    type:
+                      type: string
+                      const: base64
+                    data:
+                      type: string
+                      format: byte
+                    media_type:
+                      type: string
+      description: Provider-neutral structured embedding input item.
+
     PlaygroundPreset:
       type: object
       required:

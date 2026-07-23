@@ -64,40 +64,16 @@ function getAutopilotVariant(state: ComboAutopilotCombo["state"]) {
   return "success" as const;
 }
 
-function getAutopilotLabel(state: ComboAutopilotCombo["state"]) {
-  if (state === "down") return "Down";
-  if (state === "degraded") return "Needs attention";
-  return "Healthy";
-}
-
 function getIssueVariant(severity: ComboAutopilotIssue["severity"]) {
   if (severity === "critical") return "error" as const;
   if (severity === "warning") return "warning" as const;
   return "info" as const;
 }
 
-function getFactorLabel(key: string) {
-  const labels: Record<string, string> = {
-    quota: "Quota",
-    health: "Health",
-    costInv: "Cost",
-    latencyInv: "Latency",
-    taskFit: "Task fit",
-    stability: "Stability",
-    tierPriority: "Tier",
-    tierAffinity: "Tier fit",
-    specificityMatch: "Specificity",
-    contextAffinity: "Context",
-    resetWindowAffinity: "Reset window",
-  };
-  return labels[key] ?? key;
-}
-
 function getTrendMeta(trend: ComboHealthMetrics["quotaHealth"]["providers"][number]["trend"]) {
   if (trend === "improving") {
     return {
       icon: "trending_up",
-      label: "Improving",
       variant: "success" as const,
     };
   }
@@ -105,14 +81,12 @@ function getTrendMeta(trend: ComboHealthMetrics["quotaHealth"]["providers"][numb
   if (trend === "declining") {
     return {
       icon: "trending_down",
-      label: "Declining",
       variant: "warning" as const,
     };
   }
 
   return {
     icon: "trending_flat",
-    label: "Stable",
     variant: "default" as const,
   };
 }
@@ -157,6 +131,7 @@ function DistributionBar({ label, value, meta }: { label: string; value: number;
 }
 
 function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
+  const t = useTranslations("analytics");
   const nodeMap = useProviderNodeMap();
   const topTargets = useMemo(
     () =>
@@ -170,17 +145,19 @@ function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
     <div className="border-t border-black/5 px-6 py-5 dark:border-white/5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="text-sm font-semibold text-text-main">Cost & quota forecast</div>
-          <div className="mt-1 text-xs text-text-muted">
-            Linear projection from historical combo traffic and quota snapshots.
+          <div className="text-sm font-semibold text-text-main">
+            {t("comboHealthForecastTitle")}
           </div>
+          <div className="mt-1 text-xs text-text-muted">{t("comboHealthForecastDescription")}</div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={getRiskVariant(forecast.quotaRisk.level)} size="sm">
-            {forecast.quotaRisk.level} quota risk
+            {t("comboHealthQuotaRisk", { level: forecast.quotaRisk.level })}
           </Badge>
           <Badge variant={forecast.confidence === "no_data" ? "default" : "info"} size="sm">
-            {forecast.confidence.replace("_", " ")} confidence
+            {t("comboHealthConfidence", {
+              level: forecast.confidence.replace("_", " "),
+            })}
           </Badge>
         </div>
       </div>
@@ -188,21 +165,24 @@ function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         <MetricBlock
           icon="payments"
-          label="Projected cost"
+          label={t("comboHealthProjectedCost")}
           value={formatUsd(forecast.forecast.projectedCostUsd)}
-          subValue={`history ${formatUsd(forecast.history.costUsd)} · ${formatUsd(
-            forecast.history.avgDailyCostUsd
-          )}/day`}
+          subValue={t("comboHealthCostHistory", {
+            total: formatUsd(forecast.history.costUsd),
+            daily: formatUsd(forecast.history.avgDailyCostUsd),
+          })}
         />
         <MetricBlock
           icon="query_stats"
-          label="Projected requests"
+          label={t("comboHealthProjectedRequests")}
           value={formatCompactNumber(forecast.forecast.projectedRequests)}
-          subValue={`${formatCompactNumber(forecast.history.requests)} in selected range`}
+          subValue={t("comboHealthRequestsInRange", {
+            count: formatCompactNumber(forecast.history.requests),
+          })}
         />
         <MetricBlock
           icon="battery_alert"
-          label="Worst projected quota"
+          label={t("comboHealthWorstProjectedQuota")}
           value={
             forecast.quotaRisk.projectedWorstRemainingPct === null
               ? "n/a"
@@ -210,8 +190,10 @@ function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
           }
           subValue={
             forecast.quotaRisk.timeToExhaustDays === null
-              ? "No depletion estimate"
-              : `${forecast.quotaRisk.timeToExhaustDays.toFixed(1)}d to exhaust`
+              ? t("comboHealthNoDepletionEstimate")
+              : t("comboHealthDaysToExhaust", {
+                  days: forecast.quotaRisk.timeToExhaustDays.toFixed(1),
+                })
           }
         />
       </div>
@@ -229,7 +211,7 @@ function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
                     {target.label || target.model}
                   </div>
                   <div className="mt-1 text-xs text-text-muted">
-                    {resolveProviderName(target.provider, nodeMap)} · traffic{" "}
+                    {resolveProviderName(target.provider, nodeMap)} · {t("comboHealthTraffic")}{" "}
                     {formatShare(target.trafficShare)}
                   </div>
                 </div>
@@ -239,13 +221,13 @@ function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
               </div>
               <div className="mt-3 grid gap-2 text-xs text-text-muted">
                 <div className="flex justify-between gap-3">
-                  <span>Projected cost</span>
+                  <span>{t("comboHealthProjectedCost")}</span>
                   <span className="font-medium text-text-main">
                     {formatUsd(target.forecast.projectedCostUsd)}
                   </span>
                 </div>
                 <div className="flex justify-between gap-3">
-                  <span>Projected quota</span>
+                  <span>{t("comboHealthProjectedQuota")}</span>
                   <span className="font-medium text-text-main">
                     {target.quota.projectedRemainingPct === null
                       ? "n/a"
@@ -253,7 +235,7 @@ function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
                   </span>
                 </div>
                 <div className="flex justify-between gap-3">
-                  <span>Pricing coverage</span>
+                  <span>{t("comboHealthPricingCoverage")}</span>
                   <span className="font-medium text-text-main">
                     {formatPercent(forecast.dataQuality.pricingCoveragePct, 0)}
                   </span>
@@ -274,6 +256,7 @@ function ComboForecastPanel({ forecast }: { forecast: ComboForecastMetrics }) {
 }
 
 function ComboAutopilotPanel({ report }: { report: ComboAutopilotReport }) {
+  const t = useTranslations("analytics");
   const topIssues = useMemo(
     () =>
       report.combos.flatMap((combo) => combo.issues.map((issue) => ({ combo, issue }))).slice(0, 5),
@@ -285,7 +268,9 @@ function ComboAutopilotPanel({ report }: { report: ComboAutopilotReport }) {
       <div className="flex flex-col gap-4 border-b border-black/5 px-6 py-5 dark:border-white/5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold text-text-main">Combo Health Autopilot</h3>
+            <h3 className="text-base font-semibold text-text-main">
+              {t("comboHealthAutopilotTitle")}
+            </h3>
             <Badge
               variant={
                 report.status === "critical"
@@ -299,30 +284,28 @@ function ComboAutopilotPanel({ report }: { report: ComboAutopilotReport }) {
               {report.status}
             </Badge>
           </div>
-          <p className="mt-1 text-sm text-text-muted">
-            Prioritized recommendations from combo health, forecasts, quotas, and provider health.
-          </p>
+          <p className="mt-1 text-sm text-text-muted">{t("comboHealthAutopilotDescription")}</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-90">
           <MetricBlock
             icon="monitor_heart"
-            label="Issues"
+            label={t("comboHealthIssues")}
             value={report.summary.issueCount.toLocaleString()}
-            subValue={`${report.summary.actionableCount} actionable`}
+            subValue={t("comboHealthActionable", { count: report.summary.actionableCount })}
           />
           <MetricBlock
             icon="error"
-            label="Down"
+            label={t("comboHealthDown")}
             value={report.summary.downCount.toLocaleString()}
           />
           <MetricBlock
             icon="warning"
-            label="Degraded"
+            label={t("comboHealthDegraded")}
             value={report.summary.degradedCount.toLocaleString()}
           />
           <MetricBlock
             icon="task_alt"
-            label="Healthy"
+            label={t("comboHealthHealthy")}
             value={report.summary.healthyCount.toLocaleString()}
           />
         </div>
@@ -373,7 +356,7 @@ function ComboAutopilotPanel({ report }: { report: ComboAutopilotReport }) {
           </div>
         ) : (
           <div className="rounded-lg border border-green-500/20 bg-green-500/5 p-4 text-sm text-green-700 dark:text-green-300">
-            No active combo health issues detected for the selected range.
+            {t("comboHealthNoActiveIssues")}
           </div>
         )}
       </div>
@@ -382,6 +365,7 @@ function ComboAutopilotPanel({ report }: { report: ComboAutopilotReport }) {
 }
 
 function ComboScoringInspectorPanel({ inspector }: { inspector: ComboScoringInspectorCombo }) {
+  const t = useTranslations("analytics");
   const nodeMap = useProviderNodeMap();
   const topTargets = inspector.targets.slice(0, 3);
 
@@ -391,24 +375,21 @@ function ComboScoringInspectorPanel({ inspector }: { inspector: ComboScoringInsp
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="text-sm font-semibold text-text-main">
-              Intelligent scoring inspector
+              {t("comboHealthScoringInspector")}
             </div>
             <Badge variant="info" size="sm">
-              Read-only recompute
+              {t("comboHealthReadOnlyRecompute")}
             </Badge>
           </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Factor-level explanation for target ranking using current health, forecast, and routing
-            heuristics.
-          </div>
+          <div className="mt-1 text-xs text-text-muted">{t("comboHealthScoringDescription")}</div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="primary" size="sm">
-            Task: {inspector.taskType}
+            {t("comboHealthTask", { task: inspector.taskType })}
           </Badge>
           {inspector.selectedExecutionKey ? (
             <Badge variant="success" size="sm">
-              Selected rank #1
+              {t("comboHealthSelectedRank")}
             </Badge>
           ) : null}
         </div>
@@ -448,7 +429,7 @@ function ComboScoringInspectorPanel({ inspector }: { inspector: ComboScoringInsp
                   {topFactors.map((factor) => (
                     <div key={factor.key} className="text-xs">
                       <div className="flex items-center justify-between gap-3 text-text-muted">
-                        <span>{getFactorLabel(factor.key)}</span>
+                        <span>{t(`comboHealthFactor.${factor.key}`)}</span>
                         <span className="font-medium text-text-main">
                           +{factor.contribution.toFixed(3)}
                         </span>
@@ -464,9 +445,21 @@ function ComboScoringInspectorPanel({ inspector }: { inspector: ComboScoringInsp
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-text-muted">
-                  <span>Quota {formatPercentOrDash(target.signals.quotaRemainingPct)}</span>
-                  <span>Latency {target.signals.avgLatencyMs ?? "n/a"}ms</span>
-                  <span>Issues {target.signals.autopilotIssueCount}</span>
+                  <span>
+                    {t("comboHealthQuotaValue", {
+                      value: formatPercentOrDash(target.signals.quotaRemainingPct),
+                    })}
+                  </span>
+                  <span>
+                    {t("comboHealthLatencyValue", {
+                      value: target.signals.avgLatencyMs ?? "n/a",
+                    })}
+                  </span>
+                  <span>
+                    {t("comboHealthIssueCount", {
+                      count: target.signals.autopilotIssueCount,
+                    })}
+                  </span>
                 </div>
               </div>
             );
@@ -474,7 +467,7 @@ function ComboScoringInspectorPanel({ inspector }: { inspector: ComboScoringInsp
         </div>
       ) : (
         <div className="mt-4 rounded-lg border border-black/5 bg-black/2 p-4 text-sm text-text-muted dark:border-white/5 dark:bg-white/2">
-          No inspectable targets for this combo.
+          {t("comboHealthNoInspectableTargets")}
         </div>
       )}
     </div>
@@ -516,12 +509,15 @@ function ComboHealthCard({
               </Badge>
               {autopilot ? (
                 <Badge variant={getAutopilotVariant(autopilot.state)} size="sm">
-                  {getAutopilotLabel(autopilot.state)} · {autopilot.score}
+                  {t(`comboHealthAutopilotState.${autopilot.state}`)} · {autopilot.score}
                 </Badge>
               ) : null}
             </div>
             <p className="mt-2 text-sm text-text-muted">
-              {combo.models.length} models across {combo.quotaHealth.providers.length} providers
+              {t("comboHealthModelProviderCount", {
+                models: combo.models.length,
+                providers: combo.quotaHealth.providers.length,
+              })}
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:min-w-105">
@@ -534,13 +530,15 @@ function ComboHealthCard({
               icon="balance"
               label={t("comboHealthUsageSkew")}
               value={combo.usageSkew.giniCoefficient.toFixed(2)}
-              subValue="Gini coefficient"
+              subValue={t("comboHealthGiniCoefficient")}
             />
             <MetricBlock
               icon="bolt"
               label={t("comboHealthSuccessRate")}
               value={formatPercent(combo.performance.successRate * 100, 1)}
-              subValue={`${combo.performance.totalRequests.toLocaleString()} requests`}
+              subValue={t("comboHealthRequestCount", {
+                count: combo.performance.totalRequests.toLocaleString(),
+              })}
             />
           </div>
         </div>
@@ -553,7 +551,7 @@ function ComboHealthCard({
               {t("comboHealthQuotaHealth")}
             </div>
             <div className="mt-1 text-xs text-text-muted">
-              Lowest remaining quota across providers with short trend signals.
+              {t("comboHealthQuotaHealthDescription")}
             </div>
           </div>
 
@@ -573,16 +571,18 @@ function ComboHealthCard({
                         {resolveProviderName(provider.provider, nodeMap)}
                       </div>
                       <div className="mt-1 text-xs text-text-muted">
-                        Remaining quota {formatPercent(provider.remainingPct, 1)}
+                        {t("comboHealthRemainingQuota", {
+                          value: formatPercent(provider.remainingPct, 1),
+                        })}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={trendMeta.variant} size="sm" icon={trendMeta.icon}>
-                        {trendMeta.label}
+                        {t(`comboHealthTrend.${provider.trend}`)}
                       </Badge>
                       {provider.isExhausted ? (
                         <Badge variant="error" size="sm">
-                          Exhausted
+                          {t("statusExhausted")}
                         </Badge>
                       ) : null}
                     </div>
@@ -603,7 +603,7 @@ function ComboHealthCard({
           <div>
             <div className="text-sm font-semibold text-text-main">{t("comboHealthUsageSkew")}</div>
             <div className="mt-1 text-xs text-text-muted">
-              Model request share and token share within this combo.
+              {t("comboHealthUsageSkewDescription")}
             </div>
           </div>
 
@@ -617,8 +617,10 @@ function ComboHealthCard({
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium text-text-main">{entry.model}</div>
                     <div className="mt-1 text-xs text-text-muted">
-                      Request share {formatShare(entry.requestShare)} · Token share{" "}
-                      {formatShare(entry.tokenShare)}
+                      {t("comboHealthShareSummary", {
+                        requests: formatShare(entry.requestShare),
+                        tokens: formatShare(entry.tokenShare),
+                      })}
                     </div>
                   </div>
                   <Badge size="sm">{formatShare(entry.requestShare)}</Badge>
@@ -643,9 +645,11 @@ function ComboHealthCard({
 
         <section className="flex flex-col gap-4">
           <div>
-            <div className="text-sm font-semibold text-text-main">Performance</div>
+            <div className="text-sm font-semibold text-text-main">
+              {t("comboHealthPerformance")}
+            </div>
             <div className="mt-1 text-xs text-text-muted">
-              Reliability and throughput for routed combo traffic.
+              {t("comboHealthPerformanceDescription")}
             </div>
           </div>
 
@@ -676,7 +680,7 @@ function ComboHealthCard({
               {t("comboHealthExecutionTargets")}
             </div>
             <div className="mt-1 text-xs text-text-muted">
-              Step-level runtime metrics and quota visibility for structured combo targets.
+              {t("comboHealthExecutionTargetsDescription")}
             </div>
           </div>
 
@@ -704,7 +708,7 @@ function ComboHealthCard({
                       </Badge>
                     ) : null}
                     <Badge size="sm" variant="default">
-                      {target.requests} req
+                      {t("comboHealthRequestShort", { count: target.requests })}
                     </Badge>
                   </div>
                 </div>
@@ -728,9 +732,11 @@ function ComboHealthCard({
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
-                  <span>Quota scope: {target.quotaScope}</span>
-                  {target.quotaTrend ? <span>Trend: {target.quotaTrend}</span> : null}
-                  {target.quotaIsExhausted ? <span>Exhausted</span> : null}
+                  <span>{t("comboHealthQuotaScope", { scope: target.quotaScope })}</span>
+                  {target.quotaTrend ? (
+                    <span>{t("comboHealthTrendValue", { trend: target.quotaTrend })}</span>
+                  ) : null}
+                  {target.quotaIsExhausted ? <span>{t("statusExhausted")}</span> : null}
                 </div>
               </div>
             ))}
@@ -814,7 +820,7 @@ export default function ComboHealthTab() {
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch combo health data");
+          throw new Error(t("comboHealthFetchFailed"));
         }
 
         const result = (await response.json()) as ComboHealthDashboardResponse;
@@ -830,7 +836,7 @@ export default function ComboHealthTab() {
         if ((fetchError as Error).name === "AbortError") {
           return;
         }
-        setError(fetchError instanceof Error ? fetchError.message : "Unknown error");
+        setError(fetchError instanceof Error ? fetchError.message : t("unknownError"));
         if (!isRetry) setData(null);
       } finally {
         if (!controller.signal.aborted) {
@@ -839,7 +845,7 @@ export default function ComboHealthTab() {
         }
       }
     },
-    [range, horizon]
+    [range, horizon, t]
   );
 
   useEffect(() => {
@@ -872,9 +878,7 @@ export default function ComboHealthTab() {
       <div className="flex flex-col gap-4 rounded-xl border border-black/5 bg-surface p-5 shadow-sm dark:border-white/5 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-text-main">{t("comboHealthTitle")}</h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Monitor quota pressure, skewed model usage, and delivery performance by combo.
-          </p>
+          <p className="mt-1 text-sm text-text-muted">{t("comboHealthIntro")}</p>
         </div>
         <div className="flex flex-col gap-3 sm:items-end">
           <TimeRangeSelector value={range} onChange={setRange} />
@@ -891,7 +895,7 @@ export default function ComboHealthTab() {
                     : "text-text-muted hover:bg-black/5 hover:text-text-main dark:hover:bg-white/5"
                 )}
               >
-                {value} forecast
+                {t("comboHealthForecastHorizon", { value })}
               </button>
             ))}
           </div>
@@ -946,12 +950,12 @@ export default function ComboHealthTab() {
                   <span className="material-symbols-outlined animate-spin text-[18px]">
                     progress_activity
                   </span>
-                  Retrying…
+                  {t("retrying")}
                 </>
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[18px]">refresh</span>
-                  Retry
+                  {t("retry")}
                 </>
               )}
             </button>
@@ -965,12 +969,9 @@ export default function ComboHealthTab() {
             <span className="material-symbols-outlined text-[40px] text-text-muted/70">
               monitor_heart
             </span>
-            <div className="text-base font-medium text-text-main">
-              No combo health data available
-            </div>
+            <div className="text-base font-medium text-text-main">{t("comboHealthNoData")}</div>
             <div className="max-w-md text-sm text-text-muted">
-              Combo quota snapshots and routed requests will appear here after traffic starts
-              flowing.
+              {t("comboHealthNoDataDescription")}
             </div>
             <div className="rounded-lg border border-black/5 bg-black/[0.02] p-4 dark:border-white/5 dark:bg-white/[0.02]">
               <p className="text-xs font-medium text-text-main">{t("comboHealthGettingStarted")}</p>
@@ -980,20 +981,22 @@ export default function ComboHealthTab() {
                     check_circle
                   </span>
                   <span>
-                    Create combos in <strong>Combos</strong> with multiple providers
+                    {t.rich("comboHealthStepCreate", {
+                      strong: (chunks) => <strong>{chunks}</strong>,
+                    })}
                   </span>
                 </li>
                 <li className="mt-1 flex items-start gap-2">
                   <span className="material-symbols-outlined text-[14px] text-primary">
                     check_circle
                   </span>
-                  <span>Send requests to combo endpoints to generate traffic data</span>
+                  <span>{t("comboHealthStepSend")}</span>
                 </li>
                 <li className="mt-1 flex items-start gap-2">
                   <span className="material-symbols-outlined text-[14px] text-primary">
                     check_circle
                   </span>
-                  <span>Health metrics will appear automatically as requests are routed</span>
+                  <span>{t("comboHealthStepAutomatic")}</span>
                 </li>
               </ul>
             </div>
@@ -1009,7 +1012,7 @@ export default function ComboHealthTab() {
               size="sm"
               className={cn("text-primary", "[&_.material-symbols-outlined]:text-[16px]")}
             />
-            Tracking {combos.length} combos for {range}
+            {t("comboHealthTracking", { count: combos.length, range })}
           </div>
           {combos.map((combo) => (
             <ComboHealthCard

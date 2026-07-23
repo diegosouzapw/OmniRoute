@@ -44,7 +44,7 @@ import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 import { LOCAL_PROVIDERS } from "@/shared/constants/providers";
 import { isForbiddenCustomHeaderName } from "@/shared/constants/upstreamHeaders";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { buildClineHeaders, buildClinepassHeaders } from "@/shared/utils/clineAuth";
+import { applyClineAuthHeaders } from "@/shared/utils/clineAuth";
 import {
   normalizeHerokuChatUrl,
   normalizeDatabricksChatUrl,
@@ -197,7 +197,12 @@ export class DefaultExecutor extends BaseExecutor {
             ? "responses"
             : "chat";
         const baseUrl = this.resolveBaseUrl(credentials);
-        return normalizeAzureAiChatUrl(baseUrl, apiType);
+        const apiVersion =
+          typeof credentials?.providerSpecificData?.apiVersion === "string" &&
+          credentials.providerSpecificData.apiVersion.trim()
+            ? credentials.providerSpecificData.apiVersion.trim()
+            : "2024-12-01-preview";
+        return normalizeAzureAiChatUrl(baseUrl, apiType, model, apiVersion);
       }
       case "watsonx": {
         const baseUrl = this.resolveBaseUrl(credentials);
@@ -382,14 +387,14 @@ export class DefaultExecutor extends BaseExecutor {
       case "glm-coding-apikey":
         headers["x-api-key"] = effectiveKey || credentials.accessToken;
         break;
-      case "clinepass": // dual-auth (OAuth or BYOK) — see buildClinepassHeaders()
-        Object.assign(headers, buildClinepassHeaders(credentials, effectiveKey));
+      case "clinepass": // dual-auth (OAuth or BYOK) — see applyClineAuthHeaders()
+        applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, true);
         break;
       case "cline":
         // Cline's API requires the bearer token prefixed with `workos:` plus a
         // set of Cline client-identification headers; plain `Bearer <token>`
-        // is rejected upstream. buildClineHeaders() emits both.
-        Object.assign(headers, buildClineHeaders(effectiveKey || credentials.accessToken));
+        // is rejected upstream. applyClineAuthHeaders() emits both.
+        applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, false);
         break;
       default:
         if (isClaudeCodeCompatible(this.provider)) {
@@ -665,7 +670,7 @@ export class DefaultExecutor extends BaseExecutor {
 
       // #1961: Map max_tokens -> max_completion_tokens for recent OpenAI models
       if (targetFormat === "openai") {
-        const isRecentOpenAI = /^(o1|o3|o4|gpt-5)/i.test(model);
+        const isRecentOpenAI = /^(?:openai\/)?(?:o1|o3|o4|gpt-5)/i.test(model);
         if (isRecentOpenAI && withDefaults && typeof withDefaults === "object") {
           const defaultsRecord = withDefaults as Record<string, unknown>;
           if ("max_tokens" in defaultsRecord) {

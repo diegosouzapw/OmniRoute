@@ -13,6 +13,7 @@ export {
   getProviderConnectionById,
   createProviderConnection,
   updateProviderConnection,
+  resetConnectionBackoff,
   clearConnectionErrorIfUnchanged,
   touchConnectionLastUsed,
   deleteProviderConnection,
@@ -32,7 +33,6 @@ export {
   isConnectionRateLimited,
   getRateLimitedConnections,
   clearStaleCrashCooldowns,
-
   // T13: Stale quota display fix (zero out usage after window resets)
   getEffectiveQuotaUsage,
   formatResetCountdown,

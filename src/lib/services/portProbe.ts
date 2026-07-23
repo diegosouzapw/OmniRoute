@@ -14,6 +14,7 @@
  */
 
 import { createConnection } from "node:net";
+import { spawn } from "node:child_process";
 
 /** Result of probing the service before spawning. */
 export interface PreSpawnProbe {
@@ -25,12 +26,11 @@ export interface PreSpawnProbe {
 
 /** Outcome of the pre-spawn decision. */
 export type PreSpawnDecision =
-  | { action: "spawn" }
-  | { action: "adopt" }
-  | { action: "error"; message: string };
+  { action: "spawn" } | { action: "adopt" } | { action: "error"; message: string };
 
 const HEALTH_PROBE_TIMEOUT_MS = 3_000;
 const PORT_PROBE_TIMEOUT_MS = 1_000;
+const PID_RESOLVE_TIMEOUT_MS = 2_000;
 
 /**
  * Decide what to do before spawning, given a probe of the port + health.
@@ -101,4 +101,47 @@ export async function probeBeforeSpawn(healthUrl: string, port: number): Promise
     isPortInUse(port, PORT_PROBE_TIMEOUT_MS),
   ]);
   return { healthy, portInUse };
+}
+
+/**
+ * Resolve the pid of whatever process is listening on `port`, if any.
+ *
+ * Used when adopting an already-healthy instance (see `decidePreSpawn`'s
+ * "adopt" outcome): the supervisor didn't spawn that process itself, so it
+ * has no pid from a `ChildProcess` handle, but tracking a real pid is still
+ * needed for downstream liveness checks to trust an adopted service the same
+ * way they trust a freshly-spawned one. Returns null if nothing is found or
+ * the lookup fails/times out (best-effort; never blocks adoption on this).
+ */
+export async function resolvePortPid(port: number): Promise<number | null> {
+  return new Promise((resolve) => {
+    const proc = spawn("lsof", ["-ti", `:${port}`]);
+    let output = "";
+    let settled = false;
+
+    const finish = (value: number | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(value);
+    };
+
+    const timeout = setTimeout(() => {
+      proc.kill();
+      finish(null);
+    }, PID_RESOLVE_TIMEOUT_MS);
+
+    proc.stdout?.on("data", (chunk: Buffer) => {
+      output += chunk.toString("utf8");
+    });
+    proc.on("error", () => finish(null));
+    proc.on("close", () => {
+      const firstLine = output
+        .split("\n")
+        .map((line) => line.trim())
+        .find((line) => line.length > 0);
+      const parsed = firstLine ? Number.parseInt(firstLine, 10) : Number.NaN;
+      finish(Number.isFinite(parsed) ? parsed : null);
+    });
+  });
 }

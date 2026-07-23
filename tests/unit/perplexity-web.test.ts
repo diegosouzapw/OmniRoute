@@ -912,6 +912,168 @@ test("Model mapping: thinking mode uses thinking variant", async () => {
   }
 });
 
+// ─── Test: Live multi-step stream (no COMPLETED; text_completed + diffs) ────
+
+test("Live multi-step: reconstructs answer without status COMPLETED", async () => {
+  // Mirrors Chrome 150 / copilot multi-step capture: PENDING frames with
+  // ask_text + ask_text_0_markdown diff_block chunks, text_completed:true,
+  // never status COMPLETED. Parser must still return the answer, and plan
+  // goals delivered as RFC-6902 diff patches (not a materialized plan_block)
+  // must still surface as reasoning_content.
+  const pplxEvents = [
+    {
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "plan",
+          diff_block: {
+            field: "plan_block",
+            patches: [
+              {
+                op: "replace",
+                path: "",
+                value: {
+                  progress: "IN_PROGRESS",
+                  goals: [{ id: "0", description: "Greeting the user", final: false }],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: {
+            field: "markdown_block",
+            patches: [
+              { op: "replace", path: "", value: { progress: "IN_PROGRESS", chunks: ["Hello "] } },
+            ],
+          },
+        },
+        {
+          intended_usage: "ask_text",
+          diff_block: {
+            field: "markdown_block",
+            patches: [
+              { op: "replace", path: "", value: { progress: "IN_PROGRESS", chunks: ["Hello "] } },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      text_completed: true,
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/1", value: "there." }],
+          },
+        },
+        {
+          intended_usage: "ask_text",
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/1", value: "there." }],
+          },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      final: true,
+      text: '[{"step_type":"INITIAL_QUERY","content":{"query":"hello"}}]',
+    },
+  ];
+
+  const restore = mockFetch(200, pplxEvents);
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-opus",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 200);
+    const json = JSON.parse(await result.response.text());
+    assert.equal(json.choices[0].message.content, "Hello there.");
+    // Plan goals via diff_block should surface as reasoning_content
+    assert.ok(
+      String(json.choices[0].message.reasoning_content || "").includes("Greeting the user")
+    );
+  } finally {
+    restore();
+  }
+});
+
+test("Advanced-model quota upsell with empty answer surfaces clear error", async () => {
+  const pplxEvents = [
+    {
+      status: "PENDING",
+      upsell_information: {
+        name: "advanced_models_quota_low",
+        upsell_type: "UPGRADE_TO_PRO",
+        title: "No advanced model uses left this week",
+        description: "Upgrade to Perplexity Max",
+      },
+      blocks: [
+        {
+          intended_usage: "plan",
+          diff_block: {
+            field: "plan_block",
+            patches: [
+              {
+                op: "replace",
+                path: "",
+                value: { goals: [{ description: "Hello, how can I assist you?" }] },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    { status: "PENDING", final: true, text_completed: true },
+  ];
+
+  const restore = mockFetch(200, pplxEvents);
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-opus",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 429);
+    const json = JSON.parse(await result.response.text());
+    assert.match(String(json.error?.message || ""), /quota exhausted/i);
+    assert.match(String(json.error?.message || ""), /No advanced model uses left/i);
+    assert.match(String(json.error?.message || ""), /reset after/i);
+    assert.equal(json.error?.code, "quota_exhausted");
+    assert.equal(json.error?.type, "quota_exhausted");
+    assert.ok(
+      typeof json.error?.reset_seconds === "number" && json.error.reset_seconds >= 3600,
+      "reset_seconds should be a multi-hour weekly-quota cooldown"
+    );
+    assert.equal(result.response.headers.get("Retry-After"), String(json.error.reset_seconds));
+  } finally {
+    restore();
+  }
+});
+
 // ─── Test: Fallback text field ──────────────────────────────────────────────
 
 test("Non-streaming: falls back to text field when no blocks", async () => {

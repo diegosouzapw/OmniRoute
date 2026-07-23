@@ -176,9 +176,22 @@ for (const model of ANTIGRAVITY_GEMINI_MODELS) {
   });
 }
 
-test("Antigravity Gemini-family regression coverage is not accidentally empty", () => {
-  assert.ok(
-    ANTIGRAVITY_GEMINI_MODELS.length >= 20,
-    `expected broad Gemini-family coverage, got ${ANTIGRAVITY_GEMINI_MODELS.length}`
-  );
+test("Antigravity Gemini-family regression covers every current callable tier", () => {
+  const coveredModels = new Set(ANTIGRAVITY_GEMINI_MODELS);
+  for (const model of [
+    "gemini-pro-agent",
+    "gemini-3.1-pro-low",
+    "gemini-3.6-flash-high",
+    "gemini-3.6-flash-medium",
+    "gemini-3.6-flash-low",
+    "gemini-3-flash-agent",
+    "gemini-3.5-flash-low",
+    "gemini-3.5-flash-extra-low",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-thinking",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+  ]) {
+    assert.ok(coveredModels.has(model), `expected regression coverage for ${model}`);
+  }
 });

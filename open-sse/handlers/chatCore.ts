@@ -110,7 +110,10 @@ import {
 } from "../services/modelStrip.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
-import { isOpencodeGoProvider, stripBooleanReasoning } from "../services/opencodeReasoningSanitizer.ts";
+import {
+  isOpencodeGoProvider,
+  stripBooleanReasoning,
+} from "../services/opencodeReasoningSanitizer.ts";
 import { normalizeClaudeAdaptiveThinking } from "../services/claudeAdaptiveThinking.ts";
 import { normalizeClaudeHaikuConstraints } from "../services/claudeHaikuConstraints.ts";
 import { applyDefaultReasoningEffort } from "../services/defaultReasoningEffort.ts";
@@ -120,6 +123,8 @@ import {
   stripGpt5ReasoningWhenTools,
 } from "../services/gpt5SamplingGuard.ts";
 import { getUnsupportedParams, REGISTRY } from "../config/providerRegistry.ts";
+import { stripUnsupportedParams } from "./chatCore/unsupportedParamsStrip.ts";
+import { checkToolCallingRequiredButUnsupported } from "./chatCore/toolCallingRequiredCheck.ts";
 import { supportsMaxTokens, getResolvedModelCapabilities } from "@/lib/modelCapabilities.ts";
 import { normalizeThinkingForModel } from "@/shared/constants/modelSpecs.ts";
 import {
@@ -206,6 +211,7 @@ import {
   mergeResponseToolNameMap,
 } from "./chatCore/passthroughToolNames.ts";
 import { resolveCompressionSettings } from "./chatCore/compressionSettings.ts";
+import { isCompressionExcluded } from "../services/compression/exclusions.ts";
 import {
   isBuiltinStackedPipeline,
   isStackedCompressionCombo,
@@ -319,6 +325,7 @@ import {
   stripMarkdownCodeFence,
 } from "../utils/aiSdkCompat.ts";
 import { generateRequestId } from "@/shared/utils/requestId";
+import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
 import { extractFacts } from "@/lib/memory/extraction";
 import { handleToolCallExecution } from "@/lib/skills/interception";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
@@ -336,7 +343,12 @@ import {
   getModelScopeRetryDelayMs,
   isModelScopeProvider,
 } from "../services/modelscopePolicy.ts";
-import { incrementRequestCount } from "../services/geminiRateLimitTracker.ts";
+import {
+  incrementRequestCount,
+  incrementTokenUsage,
+  isTpmExhausted,
+  isRpmExhausted,
+} from "../services/geminiRateLimitTracker.ts";
 
 // ── Global memory pressure guard ────────────────────────────────────────
 // Prevents OOM by rejecting new requests when V8 heap exceeds threshold.
@@ -1068,8 +1080,39 @@ export async function handleChatCore({
     let estimatedTokens = estimateTokens(allMessages);
     const compressionSettingsResult = await resolveCompressionSettings(log);
     const compressionSettings: CompressionConfig | null = compressionSettingsResult.settings;
-    const promptCompressionEnabled = compressionSettingsResult.enabled;
+    // #8034 — operator-named model/endpoint exclusions bypass the whole pipeline, exactly
+    // like compression being globally disabled, so the body is provably byte-identical.
+    const compressionExcluded = isCompressionExcluded(
+      { provider, model: effectiveModel },
+      compressionSettings?.exclusions
+    );
+    let promptCompressionEnabled = compressionSettingsResult.enabled && !compressionExcluded;
     contextEditingEnabled = compressionSettingsResult.contextEditingEnabled;
+    if (compressionExcluded) {
+      void writeCompressionSkip(
+        {
+          stats: {
+            originalTokens: estimatedTokens,
+            compressedTokens: estimatedTokens,
+            savingsPercent: 0,
+            techniquesUsed: [],
+            mode: "off",
+            timestamp: Date.now(),
+          },
+          provider,
+          effectiveModel,
+          effectiveServiceTier,
+          comboName,
+          mode: "off",
+          compressionComboId: null,
+          skillRequestId,
+          cavemanOutputModeApplied: false,
+          cavemanOutputModeIntensity: null,
+          log,
+        },
+        "excluded"
+      );
+    }
 
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
@@ -1094,6 +1137,7 @@ export async function handleChatCore({
         preserveSystemPrompt: true,
         comboOverrides: {},
       };
+      if (compressionExcluded) config = { ...config, enabled: false };
       if (!promptCompressionEnabled || !compressionSettings) {
         log?.debug?.("COMPRESSION", "Prompt compression disabled or unavailable");
       }
@@ -2117,6 +2161,14 @@ export async function handleChatCore({
 
   trace("post_translation");
 
+  // Keep the request translator's namespace identities separate from toolNameMap:
+  // the latter is a Kiro/Claude passthrough alias channel with string values,
+  // while namespace identities carry `{namespace, name}` for the #7936 response
+  // seam. Extract first because Kiro merge may reuse `_toolNameMap` below.
+  const requestToolIdentityMap =
+    translatedBody._toolNameMap instanceof Map ? translatedBody._toolNameMap : null;
+  delete translatedBody._toolNameMap;
+
   // Kiro: sanitize tool schemas before dispatch. Kiro returns 400 "Improperly
   // formed request" for unsupported JSON-Schema keywords (anyOf/$ref/if-then,
   // etc.) and tool names >64 chars. Strip those keys and hash-truncate long
@@ -2263,18 +2315,39 @@ export async function handleChatCore({
     }
   }
 
-  // Strip unsupported parameters for reasoning models (o1, o3, etc.)
+  // Strip unsupported parameters for reasoning models (o1, o3, etc.) and any
+  // provider that can't accept them at all (e.g. AI Horde's raw completion
+  // backends). When "tools" is among them, also flattens leftover
+  // tool_calls/tool-result messages in history (from a combo failover away
+  // from a tool-capable model) — those message shapes break non-tool-calling
+  // backends just as much as a live `tools` param does.
   const unsupported = getUnsupportedParams(provider, model);
+
+  // Direct/pinned requests (isCombo: false) have no other target to fail
+  // over to. Combo requests are already kept off a tool-incapable target by
+  // filterTargetsByRequestCompatibility before ever reaching this point, so
+  // this only fires for the case that filter can't protect: a client
+  // explicitly asking for this exact model. A clear error beats a 200 that
+  // silently can't do what was asked (the model narrates a fake tool call
+  // instead — live incident: AI Horde/Behemoth-X-123B).
+  const toolCallingCheck = checkToolCallingRequiredButUnsupported(
+    translatedBody,
+    unsupported,
+    isCombo,
+    model
+  );
+  if (toolCallingCheck.blocked) {
+    trackPendingRequest(model, provider, connectionId, false);
+    return createErrorResult(400, toolCallingCheck.message!, null, "tool_calling_not_supported");
+  }
+
   if (unsupported.length > 0) {
-    const stripped: string[] = [];
-    for (const param of unsupported) {
-      if (Object.hasOwn(translatedBody, param)) {
-        stripped.push(param);
-        delete translatedBody[param];
-      }
-    }
-    if (stripped.length > 0) {
-      log?.warn?.("PARAMS", `Stripped unsupported params for ${model}: ${stripped.join(", ")}`);
+    const { strippedParams } = stripUnsupportedParams(translatedBody, unsupported);
+    if (strippedParams.length > 0) {
+      log?.warn?.(
+        "PARAMS",
+        `Stripped unsupported params for ${model}: ${strippedParams.join(", ")}`
+      );
     }
   }
 
@@ -3034,6 +3107,25 @@ export async function handleChatCore({
     }
   }
 
+  // ── Gemini pre-dispatch TPM / RPM guard ──────────────────────────────────
+  // Avoids guaranteed upstream 429 by checking local sliding-window counters
+  // before dispatch. Fail-open: counter errors → allow through.
+  if (provider === "gemini") {
+    try {
+      if (isTpmExhausted(effectiveModel)) {
+        trackPendingRequest(model, provider, connectionId, false);
+        return createErrorResult(
+          HTTP_STATUS.RATE_LIMITED,
+          `Gemini TPM rate limit reached for ${effectiveModel}. Please try again later.`,
+          null,
+          "GEMINI_TPM_EXHAUSTED"
+        );
+      }
+    } catch (err) {
+      log?.warn?.("GEMINI_RATE_LIMIT", "Pre-dispatch TPM check failed; allowing request", { err });
+    }
+  }
+
   // Execute request using executor (handles URL building, headers, fallback, transform)
   let providerResponse;
   let providerUrl;
@@ -3112,18 +3204,21 @@ export async function handleChatCore({
         errorCode: error.code,
       };
     }
-    const failureStatus =
-      error.name === "AbortError"
-        ? 499
-        : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
-          ? HTTP_STATUS.GATEWAY_TIMEOUT
-          : error.status && typeof error.status === "number"
-            ? error.status
-            : HTTP_STATUS.BAD_GATEWAY;
-    const failureMessage =
-      error.name === "AbortError"
-        ? "Request aborted"
-        : formatProviderError(error, provider, model, failureStatus);
+    // abort(reason) can reject the upstream fetch with a raw string reason
+    // (e.g. "request_signal_aborted") that has no `name`/`status`; classify
+    // via isLocalStreamLifecycleError so those map to 499 instead of falling
+    // through to the 502 provider-failure default.
+    const isRequestAborted = isLocalStreamLifecycleError(error);
+    const failureStatus = isRequestAborted
+      ? 499
+      : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
+        ? HTTP_STATUS.GATEWAY_TIMEOUT
+        : error.status && typeof error.status === "number"
+          ? error.status
+          : HTTP_STATUS.BAD_GATEWAY;
+    const failureMessage = isRequestAborted
+      ? "Request aborted"
+      : formatProviderError(error, provider, model, failureStatus);
     const upstreamErrorCode = getUpstreamErrorIdentifier(error);
     // Tag our own deadline timeouts (fetch-start TimeoutError / body BodyTimeoutError,
     // both surfaced as a 504) as "upstream_timeout" so the cooldown layer can tell a
@@ -3148,11 +3243,17 @@ export async function handleChatCore({
       status: failureStatus,
       error: failureMessage,
       providerRequest: finalBody || translatedBody,
-      clientResponse: buildErrorBody(failureStatus, failureMessage),
+      // On a client-abort (AbortError), the client already disconnected before
+      // we ever got here — this body is what we WOULD have sent, not what was
+      // actually delivered. Logging it as `clientResponse` is misleading (the
+      // dashboard reads that field as "what the client received"), so omit it
+      // for this case; `error` above already records the failure reason.
+      clientResponse:
+        error.name === "AbortError" ? undefined : buildErrorBody(failureStatus, failureMessage),
       claudeCacheMeta: claudePromptCacheLogMeta,
       cacheSource: "upstream",
     });
-    if (error.name === "AbortError") {
+    if (isRequestAborted) {
       streamController.handleError(error);
       return createErrorResult(499, "Request aborted");
     }
@@ -4010,6 +4111,14 @@ export async function handleChatCore({
     const usage = extractUsageFromResponse(responseBody, provider);
     if (usage && typeof usage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(usage as Record<string, unknown>, "provider");
+      // Track Gemini token consumption for TPM rate-limit pre-check
+      if (provider === "gemini") {
+        const promptTokens =
+          typeof (usage as Record<string, unknown>).prompt_tokens === "number"
+            ? ((usage as Record<string, unknown>).prompt_tokens as number)
+            : 0;
+        if (promptTokens > 0) incrementTokenUsage(model, promptTokens);
+      }
     }
 
     // Context Editing telemetry: when the delegated server-side clear actually ran,
@@ -4097,6 +4206,20 @@ export async function handleChatCore({
     // Source format determines output shape. If we are outputting OpenAI shape or pseudo-OpenAI shape, sanitize.
     if (clientResponseFormat === FORMATS.OPENAI_RESPONSES) {
       translatedResponse = sanitizeResponsesApiResponse(translatedResponse);
+      // Responses-API non-stream path: restore `{namespace, name}` on every
+      // `function_call` item that was flattened from a namespace sub-tool on
+      // the request side (#7936 round-trip closure).
+      const responseOutput = translatedResponse?.output;
+      if (requestToolIdentityMap && Array.isArray(responseOutput)) {
+        for (const item of responseOutput) {
+          if (item?.type !== "function_call") continue;
+          const identity = requestToolIdentityMap.get(item.name);
+          if (identity) {
+            item.namespace = identity.namespace;
+            item.name = identity.name;
+          }
+        }
+      }
     } else if (clientResponseFormat === FORMATS.OPENAI) {
       // Port of decolua/9router#517: opt-in `x-omniroute-strip-reasoning` header
       // unconditionally drops `reasoning_content` from the final non-streaming
@@ -4519,6 +4642,14 @@ export async function handleChatCore({
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
       attachCompressionUsageReceiptAfterAnalytics(streamUsage as Record<string, unknown>, "stream");
+      // Track Gemini token consumption for TPM rate-limit pre-check
+      if (provider === "gemini") {
+        const promptTokens =
+          typeof (streamUsage as Record<string, unknown>).prompt_tokens === "number"
+            ? ((streamUsage as Record<string, unknown>).prompt_tokens as number)
+            : 0;
+        if (promptTokens > 0) incrementTokenUsage(model, promptTokens);
+      }
     }
     recordStreamingUsageStats(streamUsage, {
       provider,
@@ -4649,7 +4780,11 @@ export async function handleChatCore({
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure,
-      copilotCompatibleReasoning
+      copilotCompatibleReasoning,
+      // openai-responses → openai translation still wants the namespace identity
+      // map for #7936-style round-trip closure when the client also speaks
+      // Responses (Codex CLI).
+      requestToolIdentityMap
     );
   } else if (needsTranslation(targetFormat, clientResponseFormat)) {
     // Standard translation for other providers
@@ -4678,7 +4813,8 @@ export async function handleChatCore({
         thinkingMarkerHeader,
         clientResponseFormat,
       }),
-      customToolNames
+      customToolNames,
+      requestToolIdentityMap
     );
   } else {
     log?.debug?.("STREAM", `Standard passthrough mode`);
@@ -4692,7 +4828,8 @@ export async function handleChatCore({
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure,
-      clientResponseFormat
+      clientResponseFormat,
+      requestToolIdentityMap
     );
   }
 

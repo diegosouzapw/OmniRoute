@@ -34,10 +34,10 @@ import { AuggieExecutor } from "./auggie.ts";
 import { DeepSeekWebExecutor } from "./deepseek-web.ts";
 import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
 import { AdaptaWebExecutor } from "./adapta-web.ts";
-import { ClaudeWebWithAutoRefresh } from "./claude-web-with-auto-refresh.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
 import { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
 import { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
+import { AdobeFireflyExecutor } from "./adobe-firefly.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 import { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 import { FeloWebExecutor } from "./felo-web.ts";
@@ -53,6 +53,7 @@ import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
+import { HailuoWebExecutor } from "./hailuo-web.ts";
 import { ZaiWebExecutor } from "./zai-web.ts";
 import { KimiExecutor } from "./kimi.ts";
 import { MoonshotExecutor } from "./moonshot.ts";
@@ -63,7 +64,9 @@ import { MimocodeExecutor } from "./mimocode.ts";
 import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
+import { HyperAgentExecutor } from "./hyperagent.ts";
 import { XaiExecutor } from "./xai.ts";
+import { PromptQlExecutor } from "./promptql.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -105,8 +108,8 @@ const executors = {
   "perplexity-web": new PerplexityWebExecutor(),
   "pplx-web": new PerplexityWebExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
-  "claude-web": new ClaudeWebWithAutoRefresh(),
-  "cw-web": new ClaudeWebWithAutoRefresh(), // Alias
+  "claude-web": new ClaudeWebExecutor(),
+  "cw-web": new ClaudeWebExecutor(), // Alias
   "gemini-web": new GeminiWebExecutor(),
   gweb: new GeminiWebExecutor(), // Alias
   "gemini-business": new GeminiBusinessExecutor(),
@@ -131,6 +134,8 @@ const executors = {
   copilot: new CopilotWebExecutor(), // Alias
   "microsoft-designer-web": new MicrosoftDesignerWebExecutor(),
   msdesigner: new MicrosoftDesignerWebExecutor(), // Alias
+  "adobe-firefly": new AdobeFireflyExecutor(),
+  firefly: new AdobeFireflyExecutor(), // Alias
   "veoaifree-web": new VeoAIFreeWebExecutor(),
   "veo-free": new VeoAIFreeWebExecutor(), // Alias
   "duckduckgo-web": new DuckDuckGoWebExecutor(),
@@ -151,6 +156,8 @@ const executors = {
   ven: new VeniceWebExecutor(), // Alias
   "notion-web": new NotionWebExecutor(),
   nw: new NotionWebExecutor(), // Alias
+  promptql: new PromptQlExecutor(),
+  pql: new PromptQlExecutor(), // Alias
   "v0-vercel-web": new V0VercelWebExecutor(),
   v0: new V0VercelWebExecutor(), // Alias
   "kimi-web": new KimiWebExecutor(),
@@ -161,6 +168,7 @@ const executors = {
   "doubao-web": new DoubaoWebExecutor(),
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
+  "hailuo-web": new HailuoWebExecutor(),
   "zai-web": new ZaiWebExecutor(),
   zw: new ZaiWebExecutor(), // Alias
   theoldllm: new TheOldLlmExecutor(),
@@ -176,6 +184,8 @@ const executors = {
   "codebuddy-cn": new CodeBuddyCnExecutor(),
   cbcn: new CodeBuddyCnExecutor(), // Alias for codebuddy-cn
   "zenmux-free": new ZenmuxFreeExecutor(),
+  hyperagent: new HyperAgentExecutor(),
+  ha: new HyperAgentExecutor(), // Alias
   zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
   auggie: new AuggieExecutor(),
   xai: new XaiExecutor(),
@@ -249,6 +259,7 @@ export { AuggieExecutor } from "./auggie.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";
 export { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
 export { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
+export { AdobeFireflyExecutor } from "./adobe-firefly.ts";
 export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 export { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 export { FeloWebExecutor } from "./felo-web.ts";
@@ -260,6 +271,7 @@ export { YuanbaoWebExecutor } from "./yuanbao-web.ts";
 export { T3ChatWebExecutor } from "./t3-chat-web.ts";
 export { InnerAiExecutor } from "./inner-ai.ts";
 export { QwenWebExecutor } from "./qwen-web.ts";
+export { HailuoWebExecutor } from "./hailuo-web.ts";
 export { TheOldLlmExecutor } from "./theoldllm.ts";
 export { ChipotleExecutor } from "./chipotle.ts";
 export { LMArenaExecutor } from "./lmarena.ts";
@@ -267,5 +279,7 @@ export { MimocodeExecutor } from "./mimocode.ts";
 export { GrokCliExecutor } from "./grok-cli.ts";
 export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
+export { HyperAgentExecutor } from "./hyperagent.ts";
 export { XaiExecutor } from "./xai.ts";
 export { MoonshotExecutor } from "./moonshot.ts";
+export { PromptQlExecutor } from "./promptql.ts";
