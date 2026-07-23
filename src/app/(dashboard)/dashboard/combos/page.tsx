@@ -2039,10 +2039,75 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
 
   const [dragIndex, setDragIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [builderSelectionMode, setBuilderSelectionMode] = useState<"step" | "global">("step");
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+
   const builderProviders = useMemo(
     () => builderOptions.providers || [],
     [builderOptions.providers]
   );
+
+  const allGlobalModels = useMemo(() => {
+    const list: Array<{
+      providerId: string;
+      providerName: string;
+      modelId: string;
+      modelName: string;
+      connectionCount: number;
+      connections: any[];
+      step: any;
+    }> = [];
+
+    (builderProviders || []).forEach((provider: any) => {
+      (provider.models || []).forEach((model: any) => {
+        const step = buildPrecisionComboModelStep({
+          providerId: provider.providerId,
+          modelId: model.id,
+          connectionId: null,
+          connectionLabel: null,
+          allowedConnectionIds: [],
+        });
+        list.push({
+          providerId: provider.providerId,
+          providerName: provider.displayName || provider.providerId,
+          modelId: model.id,
+          modelName: model.name || model.id,
+          connectionCount: provider.connectionCount || 0,
+          connections: provider.connections || [],
+          step,
+        });
+      });
+    });
+
+    return list;
+  }, [builderProviders]);
+
+  const filteredGlobalModels = useMemo(() => {
+    const query = globalSearchQuery.trim().toLowerCase();
+    if (!query) return allGlobalModels;
+    return allGlobalModels.filter((item) => {
+      const text = `${item.providerName} ${item.providerId} ${item.modelName} ${item.modelId}`.toLowerCase();
+      return text.includes(query);
+    });
+  }, [allGlobalModels, globalSearchQuery]);
+
+  const handleAddGlobalModelStep = (step: any) => {
+    if (hasExactModelStepDuplicate(models, step)) return;
+    setModels((prev) => [...prev, step]);
+  };
+
+  const handleAddAllGlobalSearchMatches = () => {
+    const newSteps: any[] = [];
+    filteredGlobalModels.forEach((item) => {
+      if (!hasExactModelStepDuplicate([...models, ...newSteps], item.step)) {
+        newSteps.push(item.step);
+      }
+    });
+    if (newSteps.length > 0) {
+      setModels((prev) => [...prev, ...newSteps]);
+    }
+  };
+
   const builderComboRefs = (builderOptions.comboRefs || []).filter(
     (comboRef) => comboRef.name !== combo?.name && comboRef.name !== name.trim()
   );
@@ -3096,52 +3161,133 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                   )}
                 </div>
 
-                {isExpertMode && (
-                  <div className="mt-3 rounded-md border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] px-2.5 py-2">
-                    <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
-                      {getI18nOrFallback(t, "manualModel", "Manual model")}
-                    </label>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        value={manualModelInput}
-                        onChange={(e) => {
-                          setManualModelInput(e.target.value);
-                          setManualModelError("");
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddManualModel();
-                          }
-                        }}
-                        placeholder="provider/model"
-                        data-testid="combo-manual-model-input"
-                        className="flex-1 text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 text-text-main focus:border-primary focus:outline-none font-mono"
-                      />
-                      <Button
-                        onClick={handleAddManualModel}
-                        size="sm"
-                        disabled={!manualModelInput.trim() || !!manualModelHasDuplicate}
-                        data-testid="combo-manual-model-add"
-                      >
-                        {getI18nOrFallback(t, "addModel", "Add model")}
-                      </Button>
-                    </div>
-                    {(manualModelError || manualModelHasDuplicate) && (
-                      <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300">
-                        {manualModelError ||
-                          getI18nOrFallback(
-                            t,
-                            "builderDuplicateExact",
-                            "This exact provider/model/account step is already in the combo."
-                          )}
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className="flex items-center gap-1.5 mt-2.5 mb-2 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setBuilderSelectionMode("step")}
+                    className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-all text-center flex items-center justify-center gap-1 ${
+                      builderSelectionMode === "step"
+                        ? "bg-white dark:bg-white/10 shadow-sm text-primary font-semibold"
+                        : "text-text-muted hover:text-text-main"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">schema</span>
+                    {getI18nOrFallback(t, "builderModeStep", "Passo a Passo (Provedor → Modelo)")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBuilderSelectionMode("global")}
+                    className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-all text-center flex items-center justify-center gap-1 ${
+                      builderSelectionMode === "global"
+                        ? "bg-white dark:bg-white/10 shadow-sm text-primary font-semibold"
+                        : "text-text-muted hover:text-text-main"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">search</span>
+                    {getI18nOrFallback(t, "builderModeGlobal", "Busca Global de Modelos (Combo Personalizado)")}
+                  </button>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+                {builderSelectionMode === "global" ? (
+                  <div className="mt-3 space-y-2.5 rounded-md border border-black/8 dark:border-white/8 bg-white/70 dark:bg-white/[0.03] p-3">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={globalSearchQuery}
+                          onChange={(e) => setGlobalSearchQuery(e.target.value)}
+                          placeholder="Buscar modelo em todos os provedores (ex: opus, sonnet, deepseek, kimi, qwen)..."
+                          className="w-full text-xs py-2 pl-3 pr-7 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 text-text-main focus:border-primary focus:outline-none"
+                        />
+                        {globalSearchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setGlobalSearchQuery("")}
+                            className="absolute right-2.5 top-2 text-text-muted hover:text-text-main text-xs"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">close</span>
+                          </button>
+                        )}
+                      </div>
+                      {filteredGlobalModels.length > 0 && (
+                        <Button
+                          type="button"
+                          onClick={handleAddAllGlobalSearchMatches}
+                          variant="secondary"
+                          size="sm"
+                          className="shrink-0 text-xs"
+                        >
+                          <span className="material-symbols-outlined text-[14px] mr-1">playlist_add</span>
+                          Adicionar Todos ({filteredGlobalModels.length})
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Quick Presets */}
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="text-[10px] text-text-muted uppercase font-semibold mr-1">Atalhos:</span>
+                      {["Opus", "Sonnet", "DeepSeek", "Kimi", "Qwen", "Gemini Pro", "Flash"].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setGlobalSearchQuery(preset.toLowerCase())}
+                          className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                            globalSearchQuery.toLowerCase() === preset.toLowerCase()
+                              ? "border-primary bg-primary/10 text-primary font-bold"
+                              : "border-black/10 dark:border-white/10 text-text-muted hover:border-primary/40 hover:text-text-main"
+                          }`}
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Results List */}
+                    <div className="max-h-[220px] overflow-y-auto rounded border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 divide-y divide-black/5 dark:divide-white/5">
+                      {filteredGlobalModels.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-text-muted">
+                          Nenhum modelo encontrado para &quot;{globalSearchQuery}&quot;.
+                        </div>
+                      ) : (
+                        filteredGlobalModels.map((item) => {
+                          const isAdded = hasExactModelStepDuplicate(models, item.step);
+                          return (
+                            <div
+                              key={`${item.providerId}-${item.modelId}`}
+                              className="flex items-center justify-between px-3 py-2 text-xs hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
+                            >
+                              <div className="flex flex-col min-w-0 pr-2">
+                                <span className="font-semibold text-text-main truncate">
+                                  {item.modelName}
+                                </span>
+                                <span className="text-[10px] text-text-muted truncate">
+                                  Provedor: <strong className="text-text-main">{item.providerName}</strong> ({item.connectionCount} conta{item.connectionCount === 1 ? "" : "s"})
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleAddGlobalModelStep(item.step)}
+                                disabled={isAdded}
+                                className={`text-[11px] px-2.5 py-1 rounded transition-all shrink-0 flex items-center gap-1 ${
+                                  isAdded
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 opacity-70 cursor-default"
+                                    : "bg-primary/10 text-primary hover:bg-primary/20 font-medium"
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-[13px]">
+                                  {isAdded ? "check" : "add"}
+                                </span>
+                                {isAdded ? "Adicionado" : "Adicionar"}
+                              </button>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
                   <div>
                     <label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
                       1. {getI18nOrFallback(t, "builderProvider", "Provider")}
@@ -3349,6 +3495,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                     </Button>
                   </div>
                 </div>
+              </>
+            )}
 
                 {builderError && (
                   <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-700 dark:text-amber-300">
