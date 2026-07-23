@@ -1,0 +1,1 @@
+- **fix(providers):** the Providers page Learn more button now opens the maintained GitHub documentation instead of the retired `docs.omniroute.io` page ([#8284](https://github.com/diegosouzapw/OmniRoute/pull/8284)) - thanks @KaynXu

@@ -6,12 +6,15 @@ import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
 import {
+  OPENAI_CHAT_ERROR_FRAME,
   OPENAI_KEEPALIVE_FRAME,
+  OPENAI_STARTUP_THINKING_FRAME,
   withEarlyStreamKeepalive,
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
 import {
   admitChatRequest,
+  admitChatStructure,
   releaseChatAdmissionAfterHandler,
   releaseChatAdmissionWhenDone,
 } from "@/shared/middleware/chatBodyAdmission";
@@ -71,8 +74,9 @@ export async function POST(request) {
   // Reserve heavyweight capacity atomically and ingest the body with a hard byte bound
   // BEFORE JSON parsing. Missing or dishonest Content-Length values cannot bypass
   // the actual-byte limit. Capacity exhaustion is retryable rather than process-fatal.
-  const admission = await admitChatRequest(request);
-  if (!admission.admit) return admission.response;
+  const admissionResult = await admitChatRequest(request);
+  if (admissionResult.admit === false) return admissionResult.response;
+  const admission = admissionResult;
   request = admission.request;
   const finishAdmission = (response: Response) =>
     releaseChatAdmissionWhenDone(response, admission.lease);
@@ -99,6 +103,13 @@ export async function POST(request) {
     try {
       parsedBody = await request.json().catch(() => null);
       if (parsedBody) {
+        const structuralAdmission = admitChatStructure(parsedBody, admission.lease);
+        if (structuralAdmission.admit === false) {
+          admission.lease?.release();
+          return structuralAdmission.response;
+        }
+        admission.lease = structuralAdmission.lease;
+
         const { blocked, result } = injectionGuard(parsedBody);
         if (blocked) {
           return finishAdmission(
@@ -149,6 +160,8 @@ export async function POST(request) {
         signal: request.signal,
         thresholdMs: resolveKeepaliveThreshold(parsedBody?.model),
         keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
+        startupFrame: OPENAI_STARTUP_THINKING_FRAME,
+        errorFrame: OPENAI_CHAT_ERROR_FRAME,
         extraHeaders: { "X-Correlation-Id": reqId },
       });
       return withCompressionHeaderEcho(streamedResponse, compressionRequestHeader);

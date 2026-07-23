@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSettings, updateSettings } from "@/lib/localDb";
+import {
+  getDatabaseSettings,
+  updateDatabaseSettings,
+  type UserDatabaseSettings,
+} from "@/lib/db/databaseSettings";
+import { getSettings, updateSettings } from "@/lib/db/settings";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { z } from "zod";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -12,6 +17,7 @@ const cacheConfigUpdateSchema = z.object({
   promptCacheStrategy: z.enum(["auto", "system-only", "manual"]).optional(),
   alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
   idempotencyWindowMs: z.number().positive().optional(),
+  modelCatalogCacheTtlMs: z.number().positive().optional(),
 });
 
 const CACHE_CONFIG_KEYS = [
@@ -22,6 +28,7 @@ const CACHE_CONFIG_KEYS = [
   "promptCacheStrategy",
   "alwaysPreserveClientCache",
   "idempotencyWindowMs",
+  "modelCatalogCacheTtlMs",
 ] as const;
 
 const DEFAULTS = {
@@ -32,6 +39,7 @@ const DEFAULTS = {
   promptCacheStrategy: "auto",
   alwaysPreserveClientCache: "auto",
   idempotencyWindowMs: 5000,
+  modelCatalogCacheTtlMs: 1500,
 };
 
 export async function GET(request: NextRequest) {
@@ -40,10 +48,19 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const settings = await getSettings();
+    const dbSettings = getDatabaseSettings();
+    const cache = dbSettings.cache ?? {};
+    // idempotencyWindowMs is not part of the databaseSettings "cache" section —
+    // it lives in the flat general settings (src/lib/db/settings.ts), which is
+    // where src/lib/idempotencyLayer.ts actually reads it from.
+    const flatSettings = await getSettings();
     const config: Record<string, unknown> = {};
     for (const key of CACHE_CONFIG_KEYS) {
-      config[key] = settings[key] ?? DEFAULTS[key];
+      if (key === "idempotencyWindowMs") {
+        config[key] = flatSettings.idempotencyWindowMs ?? DEFAULTS[key];
+      } else {
+        config[key] = (cache as Record<string, unknown>)[key] ?? DEFAULTS[key];
+      }
     }
     return NextResponse.json(config);
   } catch (error) {
@@ -69,7 +86,7 @@ export async function PUT(request: NextRequest) {
       return validation.response;
     }
 
-    const updates: Record<string, unknown> = {};
+    const updates: Partial<UserDatabaseSettings["cache"]> = {};
     const body = validation.data;
 
     if (body.semanticCacheEnabled !== undefined) {
@@ -90,11 +107,21 @@ export async function PUT(request: NextRequest) {
     if (body.alwaysPreserveClientCache !== undefined) {
       updates.alwaysPreserveClientCache = body.alwaysPreserveClientCache;
     }
-    if (body.idempotencyWindowMs !== undefined) {
-      updates.idempotencyWindowMs = body.idempotencyWindowMs;
+    if (body.modelCatalogCacheTtlMs !== undefined) {
+      updates.modelCatalogCacheTtlMs = body.modelCatalogCacheTtlMs;
     }
 
-    await updateSettings(updates);
+    // updateDatabaseSettings() calls invalidateDbCache("settings") internally,
+    // which bumps the model-catalog cache version so in-flight responses pick
+    // up the fresh TTL — no separate version bump needed here.
+    updateDatabaseSettings({ cache: updates });
+
+    // idempotencyWindowMs is not part of the databaseSettings "cache" section —
+    // persist it through the flat general settings module instead (see GET).
+    if (body.idempotencyWindowMs !== undefined) {
+      await updateSettings({ idempotencyWindowMs: body.idempotencyWindowMs });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });

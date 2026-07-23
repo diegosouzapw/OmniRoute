@@ -10,6 +10,7 @@ import {
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CONTEXT_EDITING_CONFIG,
+  DEFAULT_HEADROOM_CONFIG,
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
   DEFAULT_RTK_CONFIG,
   DEFAULT_ULTRA_CONFIG,
@@ -26,10 +27,12 @@ import {
   type CodexResponsesConfig,
   type ContextEditingConfig,
   type EngineToggle,
+  type HeadroomConfig,
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import { normalizeCompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
 import { DEFAULT_CONTEXT_BUDGET } from "@omniroute/open-sse/services/compression/adaptiveCompression/types.ts";
 import { normalizeContextBudgetConfig } from "./compressionContextBudget";
 import {
@@ -425,6 +428,15 @@ function normalizeAggressiveConfig(value: unknown): AggressiveConfig {
   };
 }
 
+function normalizeHeadroomConfig(value: unknown): HeadroomConfig {
+  const record = toRecord(value);
+  return {
+    ...DEFAULT_HEADROOM_CONFIG,
+    // Align with engine schema (min 2) and smartcrusher DEFAULT_MIN_ROWS (8).
+    minRows: boundedInt(record.minRows, DEFAULT_HEADROOM_CONFIG.minRows, 2, 10000),
+  };
+}
+
 function normalizeUltraConfig(value: unknown): UltraConfig {
   const record = toRecord(value);
   const modelPath = typeof record.modelPath === "string" ? record.modelPath.trim() : "";
@@ -599,11 +611,13 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
+    headroom: normalizeHeadroomConfig(undefined),
     contextBudget: normalizeContextBudgetConfig(undefined),
     contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
     liveZone: { enabled: false },
     engines: {},
     activeComboId: null,
+    exclusions: [],
   };
 
   // Tracks whether a usable stored `engines` row was found. When absent (pre-migration-102 install)
@@ -706,6 +720,10 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
         break;
+      case "headroom":
+      case "headroomConfig":
+        config.headroom = normalizeHeadroomConfig(parsed);
+        break;
       case "contextBudget":
         config.contextBudget = normalizeContextBudgetConfig(parsed);
         break;
@@ -728,6 +746,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "ultraSlmPrewarm":
         config.ultraSlmPrewarm = parsed === true;
+        break;
+      case "exclusions":
+        config.exclusions = normalizeCompressionExclusions(parsed);
         break;
     }
   }

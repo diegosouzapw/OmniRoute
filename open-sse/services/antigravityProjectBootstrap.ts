@@ -15,21 +15,18 @@
  */
 
 import {
-  getAntigravityHeaders,
+  getAntigravityContentHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
-import {
-  getAntigravityBootstrapHeaders,
-  type AntigravityClientProfile,
-} from "./antigravityClientProfile.ts";
-import { ANTIGRAVITY_BASE_URLS } from "../config/antigravityUpstream.ts";
+import type { AntigravityClientProfile } from "./antigravityClientProfile.ts";
+import { ANTIGRAVITY_BOOTSTRAP_BASE_URLS } from "../config/antigravityUpstream.ts";
 
 const LOAD_CODE_ASSIST_PATH = "/v1internal:loadCodeAssist";
 const BOOTSTRAP_TIMEOUT_MS = 8_000;
 
 /** Ordered list of loadCodeAssist endpoint URLs (mirrors the models discovery order). */
 export function getAntigravityLoadCodeAssistUrls(): string[] {
-  return ANTIGRAVITY_BASE_URLS.map((base) => `${base}${LOAD_CODE_ASSIST_PATH}`);
+  return ANTIGRAVITY_BOOTSTRAP_BASE_URLS.map((base) => `${base}${LOAD_CODE_ASSIST_PATH}`);
 }
 
 /** Per-token memoization cache (lives for the process lifetime). */
@@ -48,21 +45,23 @@ function getProjectCacheKey(accessToken: string, clientProfile: AntigravityClien
 async function tryLoadCodeAssist(
   accessToken: string,
   fetchImpl: FetchLike,
-  clientProfile: AntigravityClientProfile
+  clientProfile: AntigravityClientProfile,
+  signal?: AbortSignal
 ): Promise<string | null> {
   const urls = getAntigravityLoadCodeAssistUrls();
-  const headers =
-    clientProfile === "harness"
-      ? getAntigravityBootstrapHeaders(clientProfile, accessToken)
-      : getAntigravityHeaders("loadCodeAssist", accessToken);
+  const headers = getAntigravityContentHeaders(clientProfile, accessToken);
 
   for (const url of urls) {
+    if (signal?.aborted) throw signal.reason;
     try {
+      // Combine the caller's cancellation signal (#8098) with the per-attempt
+      // bootstrap timeout so an aborted request tears down immediately.
+      const timeoutSignal = AbortSignal.timeout(BOOTSTRAP_TIMEOUT_MS);
       const response = await fetchImpl(url, {
         method: "POST",
         headers,
         body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
-        signal: AbortSignal.timeout(BOOTSTRAP_TIMEOUT_MS),
+        signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
       });
 
       if (!response.ok) {
@@ -93,6 +92,11 @@ async function tryLoadCodeAssist(
         `[models] antigravity loadCodeAssist at ${url} returned no project id — trying next`
       );
     } catch (error) {
+      // A caller-initiated abort (#8098) must propagate, not be swallowed as a
+      // "try next URL" transient — otherwise a cancelled request silently proceeds.
+      if (signal?.aborted || (error instanceof Error && error.name === "AbortError")) {
+        throw signal?.reason ?? error;
+      }
       const msg = error instanceof Error ? error.message : String(error);
       console.warn(`[models] antigravity loadCodeAssist threw for ${url}: ${msg} — trying next`);
     }
@@ -114,14 +118,15 @@ async function tryLoadCodeAssist(
 export async function ensureAntigravityProjectAssigned(
   accessToken: string,
   fetchImpl: FetchLike = fetch,
-  clientProfile: AntigravityClientProfile = "ide"
+  clientProfile: AntigravityClientProfile = "ide",
+  signal?: AbortSignal
 ): Promise<string | undefined> {
   const cacheKey = getProjectCacheKey(accessToken, clientProfile);
   if (projectCache.has(cacheKey)) {
     return projectCache.get(cacheKey); // already bootstrapped for this token
   }
 
-  const projectId = await tryLoadCodeAssist(accessToken, fetchImpl, clientProfile);
+  const projectId = await tryLoadCodeAssist(accessToken, fetchImpl, clientProfile, signal);
 
   if (projectId) {
     projectCache.set(cacheKey, projectId);

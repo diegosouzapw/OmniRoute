@@ -8,6 +8,7 @@ import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
 import { GROK_BUILD_RUNTIME_ENTRY, AMP_RUNTIME_ENTRY } from "./cliRuntimeGrokBuild";
 import { isLocationTrusted, findKnownPathMatch } from "./cliRuntimeKnownPath";
+import { buildHealthcheckPath } from "./cliRuntimeHealthcheckPath";
 const VALID_RUNTIME_MODES = new Set(["auto", "host", "container"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "off"]);
 
@@ -331,6 +332,7 @@ const runProcess = (
     // `command` as a raw argv[0] and the OS loader handles spaces. When useShell
     // is true (.cmd/.bat on Windows), Node quotes the command for cmd.exe itself.
     const child = spawn(command, args, {
+      windowsHide: true,
       env,
       stdio: ["ignore", "pipe", "pipe"],
       // On Windows, npm installs CLI wrappers as .cmd/.bat scripts. Those still
@@ -465,6 +467,7 @@ const getNpmGlobalPrefix = (): string => {
 
   try {
     const result = execFileSync("npm", ["config", "get", "prefix"], {
+      windowsHide: true,
       timeout: 5000,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
@@ -873,7 +876,10 @@ const locateCommandCandidate = async (
   // This avoids searching PATH and reduces attack surface
   let bestKnownPathFailure: KnownPathResult | null = null;
   if (toolId) {
-    const { match, bestFailure } = await findKnownPathMatch(getKnownToolPaths(toolId), checkKnownPath);
+    const { match, bestFailure } = await findKnownPathMatch(
+      getKnownToolPaths(toolId),
+      checkKnownPath
+    );
     if (match) {
       return {
         command: commands[0],
@@ -907,7 +913,9 @@ const checkRunnable = async (
 ) => {
   // Minimal environment to prevent credential leakage to potentially malicious binaries
   const minimalEnv: Record<string, string | undefined> = {
-    PATH: env.PATH || env.Path,
+    // #8036: merge in this Node's own bin dir so `#!/usr/bin/env node` npm CLIs
+    // (e.g. codex) can resolve their interpreter under a minimal launcher PATH.
+    PATH: buildHealthcheckPath(env.PATH || env.Path || "", path.dirname(process.execPath)),
     HOME: env.HOME || env.USERPROFILE,
     USERPROFILE: env.USERPROFILE, // Windows needs this for os.homedir()
     APPDATA: env.APPDATA, // Many npm CLI tools rely on APPDATA

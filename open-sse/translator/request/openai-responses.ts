@@ -8,6 +8,10 @@ import { isOpenAIResponsesStoreEnabled } from "@/lib/providers/requestDefaults";
 import { FORMATS } from "../formats.ts";
 import { register } from "../registry.ts";
 import { normalizeResponsesInputForChat } from "../../utils/responsesInputNormalization.ts";
+import {
+  getRegisteredProviders,
+  requiresPlainStringContent,
+} from "../../config/providerRegistry.ts";
 import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
 import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 import {
@@ -38,9 +42,9 @@ export function openaiResponsesToOpenAIRequest(
   stream: unknown,
   credentials: unknown
 ): unknown {
-  void model;
   void stream;
   void credentials;
+  const collapseToPlainString = requiresPlainStringContent(extractProviderHint(model));
 
   const root = toRecord(body);
   if (root.input === undefined) return body;
@@ -81,6 +85,13 @@ export function openaiResponsesToOpenAIRequest(
   }
 
   const result: JsonRecord = { ...root };
+
+  // Request-scoped response-side identity for Responses namespace child tools.
+  // The Chat wire `tool.function.name` is the bare leaf (per #7905 #7936), and
+  // the original `{namespace, name}` pair is retained in this side-band map so
+  // the response translator can emit codex-compatible `namespace` + `name`
+  // fields without reparsing the wire name.
+  const namespaceToolIdentityMap = new Map<string, { namespace: string; name: string }>();
 
   // #7533: `verbosity` and `prompt_cache_key` are GPT-5/OpenAI-only Chat Completions
   // parameters. A strict-protocol non-OpenAI upstream (NVIDIA confirmed by the reporter;
@@ -350,6 +361,17 @@ export function openaiResponsesToOpenAIRequest(
       continue;
     }
 
+    // Skip tool_search_call items. These are Responses-API-only metadata items
+    // emitted by Codex's dynamic tool-search optimization: they record that the
+    // model queried a subset of available tools, but carry no content that Chat
+    // Completions can represent. Throwing here would break every multi-turn
+    // conversation where Codex previously used tool_search (the whole session
+    // would carry tool_search_call items forward in `input`). Skipping matches
+    // the reasoning-item policy: display-only metadata, no chat side-effect.
+    if (itemType === "tool_search_call" || itemType === "tool_search_result") {
+      continue;
+    }
+
     if (itemType === "additional_tools") {
       // Already consumed by collectResponsesTools() before message conversion.
       continue;
@@ -394,31 +416,53 @@ export function openaiResponsesToOpenAIRequest(
         // one empty-schema function named `mcp__<server>__` and every MCP call failed with
         // `unsupported call: mcp__<server>__`.
         if (toolType === "namespace") {
+          const nsName = toString(tool.name);
           const subTools = Array.isArray(tool.tools) ? tool.tools : [];
           return subTools
             .map((subValue) => toRecord(subValue))
             .filter((sub) => toString(sub.name))
-            .map((sub) => ({
-              type: "function",
-              function: {
-                name: toString(sub.name),
-                description: toString(sub.description),
-                parameters:
-                  toString(sub.type) === "custom"
-                    ? {
-                        type: "object",
-                        properties: { input: { type: "string" } },
-                        required: ["input"],
-                        additionalProperties: false,
-                      }
-                    : (sub.parameters ??
-                      sub.input_schema ?? {
-                        type: "object",
-                        properties: {},
-                      }),
-                strict: sub.strict,
-              },
-            }));
+            .map((sub) => {
+              const leaf = toString(sub.name);
+              // Stamp the identity for the response-side seam. The wire name
+              // remains the bare leaf (matching #7905), so `namespaceToolIdentityMap`
+              // keys on the leaf. A later child that shares the same leaf name
+              // with a different namespace is ambiguous: drop the conflicting
+              // entry rather than silently overwriting.
+              if (nsName && leaf) {
+                const identity = { namespace: nsName, name: leaf };
+                const existingIdentity = namespaceToolIdentityMap.get(leaf);
+                if (
+                  !existingIdentity ||
+                  (existingIdentity.namespace === identity.namespace &&
+                    existingIdentity.name === identity.name)
+                ) {
+                  namespaceToolIdentityMap.set(leaf, identity);
+                } else {
+                  namespaceToolIdentityMap.delete(leaf);
+                }
+              }
+              return {
+                type: "function",
+                function: {
+                  name: leaf,
+                  description: toString(sub.description),
+                  parameters:
+                    toString(sub.type) === "custom"
+                      ? {
+                          type: "object",
+                          properties: { input: { type: "string" } },
+                          required: ["input"],
+                          additionalProperties: false,
+                        }
+                      : (sub.parameters ??
+                        sub.input_schema ?? {
+                          type: "object",
+                          properties: {},
+                        }),
+                  strict: sub.strict,
+                },
+              };
+            });
         }
         // tool_search (#2766) is a Responses API built-in Codex sends with
         // `execution: "client"` — the CLIENT (Codex CLI) resolves the call locally,
@@ -665,7 +709,63 @@ export function openaiResponsesToOpenAIRequest(
   delete result.prompt_cache_options;
   delete result.prompt_cache_retention;
 
+  if (namespaceToolIdentityMap.size > 0) {
+    // chatCore extracts and deletes this transient side channel before dispatch.
+    // Non-enumerability keeps internal request metadata off the upstream wire.
+    Object.defineProperty(result, "_toolNameMap", {
+      value: namespaceToolIdentityMap,
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    });
+  }
+
+  // Every Responses-API input — even a plain string — gets wrapped upstream as a
+  // single-element content array (`[{ type: "input_text", text }]` via
+  // normalizeResponsesInputForChat), which this function maps straight through to
+  // `content: [{ type: "text", text }]`. That's spec-valid (OpenAI's own API
+  // accepts both shapes) but several strict/naive OpenAI-compatible backends only
+  // implement the plain-string form and reject the array form with a 500 — hit
+  // live via AI Horde's Aphrodite facade rejecting every /v1/responses request,
+  // including the simplest single-string input. A single-text-part array and a
+  // plain string are semantically identical, so collapsing is safe there; real
+  // multi-part messages (text+image, text+file) are left untouched. Scoped to
+  // providers that declare `requiresPlainStringContent` — most OpenAI-compatible
+  // backends (and several existing tests) expect the standard array shape to
+  // survive translation unchanged.
+  if (collapseToPlainString) {
+    for (const message of messages) {
+      const content = (message as JsonRecord).content;
+      if (Array.isArray(content) && content.length === 1) {
+        const part = content[0];
+        if (
+          part &&
+          typeof part === "object" &&
+          !Array.isArray(part) &&
+          (part as JsonRecord).type === "text" &&
+          typeof (part as JsonRecord).text === "string"
+        ) {
+          (message as JsonRecord).content = (part as JsonRecord).text;
+        }
+      }
+    }
+  }
+
   return result;
+}
+
+/**
+ * `model` is sometimes a bare provider id (e.g. "aihorde"), sometimes a
+ * provider-prefixed model string (e.g. "aihorde/aphrodite/..."), and often
+ * null/a bare model id with no provider info at all (the generic translator
+ * dispatcher passes model id alone; provider is tracked separately there).
+ * Only the first two carry a usable provider hint.
+ */
+function extractProviderHint(model: unknown): string {
+  if (typeof model !== "string" || model.length === 0) return "";
+  if (getRegisteredProviders().includes(model)) return model;
+  const prefix = model.split("/")[0];
+  return getRegisteredProviders().includes(prefix) ? prefix : "";
 }
 
 // Register both directions

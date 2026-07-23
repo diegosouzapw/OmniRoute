@@ -197,6 +197,15 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       subtitleFallback: "Live engine cascade",
       icon: "monitoring",
     },
+    {
+      id: "compression-exclusions",
+      href: "/dashboard/compression/exclusions",
+      i18nKey: "compressionExclusions",
+      labelFallback: "Exclusions",
+      subtitleKey: "compressionExclusionsSubtitle",
+      subtitleFallback: "Per-model/endpoint bypass",
+      icon: "block",
+    },
   ],
 };
 
@@ -686,6 +695,13 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "settingsFeatureFlags",
     subtitleKey: "settingsFeatureFlagsSubtitle",
     icon: "flag",
+  },
+  {
+    id: "settings-cache",
+    href: "/dashboard/settings/cache",
+    i18nKey: "settingsCache",
+    subtitleKey: "settingsCacheSubtitle",
+    icon: "memory",
   },
   {
     id: "settings-sidebar",

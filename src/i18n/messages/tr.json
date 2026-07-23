@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "İstemci profili",
     "antigravityClientProfileHint": "OmniRoute'un API'ye hangi Antigravity istemci kimliğini sunacağını seçin.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast katmanı etkin",
     "tierFast": "Hızlı",
     "antigravityProjectIdLabel": "Google Cloud Proje Kimliği",

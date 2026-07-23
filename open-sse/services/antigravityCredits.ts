@@ -27,8 +27,8 @@ export function injectCreditsField(body: Record<string, unknown>): Record<string
  * Returns false if credits are disabled (too many failures) or if the
  * config flag is off.
  */
-export function shouldRetryWithCredits(authKey: string, creditsEnabled: boolean): boolean {
-  if (!creditsEnabled) return false;
+export function shouldRetryWithCredits(authKey: string, creditsMode: CreditsMode): boolean {
+  if (creditsMode !== "retry") return false;
   if (isCreditsDisabled(authKey)) return false;
   return true;
 }

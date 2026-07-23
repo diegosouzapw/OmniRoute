@@ -71,9 +71,36 @@ creating another provider card or changing saved provider IDs.
    provider page.
 6. Keep custom endpoint overrides available for advanced and workspace-specific deployments.
 
-Token Plan image-generation models are intentionally outside this first chat-provider slice. The
-official quick start states that they use dedicated endpoints, so they require the image provider
-pipeline instead of being advertised as chat models.
+Token Plan media models remain outside the chat catalog because they use dedicated endpoints.
+`wan2.7-image` and `wan2.7-image-pro` are registered in `open-sse/config/imageRegistry.ts`;
+`happyhorse-1.1-i2v`, `happyhorse-1.1-t2v`, and `happyhorse-1.1-r2v` are registered in
+`open-sse/config/videoRegistry.ts`. Both registries reuse the `qwen-cloud-token-plan` connection
+identity and its region-specific credentials.
+
+Regular Qwen Cloud has separate pay-as-you-go image and video catalogs under the `qwen-cloud`
+identity. Its image models are `wan2.7-image-pro`, `wan2.7-image`, `qwen-image-3.0-pro`,
+`qwen-image-2.0-pro-2026-06-22`, `qwen-image-2.0-2026-03-03`, and `z-image-turbo`. Its video
+models are `happyhorse-1.1-i2v`, `happyhorse-1.1-t2v`, `happyhorse-1.1-r2v`,
+`happyhorse-1.0-video-edit`, `wan2.7-t2v`, `wan2.7-i2v`, `wan2.7-r2v-2026-06-12`, and
+`wan2.7-videoedit`. These models reuse only the regular `qwen-cloud` connection and regional
+DashScope media endpoint. The Token Plan and pay-as-you-go registries do not inherit or merge
+each other's model lists.
+
+The `bailian-coding-plan` identity also has its own media allowlists:
+`wan2.7-image`, `wan2.7-image-pro`, `qwen-image-2.0`, and `qwen-image-2.0-pro` for image
+generation, plus
+`happyhorse-1.1-i2v`, `happyhorse-1.1-t2v`, and `happyhorse-1.1-r2v` for video
+generation. It uses only the Bailian Coding Plan connection and regional Coding Plan endpoint.
+Its image and video registries do not inherit from or merge with either Qwen Cloud provider.
+
+The regular `alibaba` identity has separate image and video allowlists. Its image models are
+`qwen-image-3.0-pro`, `qwen-image-2.0-pro-2026-06-22`, `qwen-image-2.0`,
+`z-image-turbo`, and `wan2.6-t2i`. Its added video models are `happyhorse-1.1-i2v`,
+`happyhorse-1.1-t2v`, `happyhorse-1.1-r2v`, `happyhorse-1.0-video-edit`,
+`wan2.7-i2v-2026-04-25`, `wan2.6-i2v-flash`, `wan2.7-t2v-2026-06-12`,
+`wan2.7-r2v-2026-06-12`, and `wan2.7-videoedit`. These models use only the Alibaba Model Studio
+connection and its selected regional media endpoint; they are not added to any Coding Plan or Qwen
+Cloud registry.
 
 The Qwen Cloud Token Plan chat catalog follows the Individual plan's exact-string text allowlist:
 `qwen3.8-max-preview`, `qwen3.7-max`, `qwen3.7-plus`, `qwen3.6-flash`, `glm-5.2`, and

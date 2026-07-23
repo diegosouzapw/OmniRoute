@@ -113,6 +113,59 @@ test("OpenAI stream: internal reasoning replay placeholder stays hidden from Cla
   assert.equal(result[2].delta.text, "Answer");
 });
 
+test("OpenAI stream: placeholder-only content bundled with finish_reason still emits the stop event (#8081 regression)", () => {
+  const state = createState();
+  // Start a real message with some text first.
+  const first = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-2c",
+      model: "gpt-4.1",
+      choices: [{ index: 0, delta: { content: "Answer" }, finish_reason: null }],
+    },
+    state
+  );
+  // Final chunk carries the internal reasoning placeholder as ordinary content
+  // AND the finish_reason in the SAME chunk. The placeholder content must be
+  // suppressed, but the stop event must still fire (the pre-fix bare `return`
+  // dropped the finish entirely — this is the regression guard).
+  const final = openaiToClaudeResponse(
+    {
+      id: "chatcmpl-2c",
+      model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: { content: "(prior reasoning summary unavailable)" },
+          finish_reason: "stop",
+        },
+      ],
+      usage: { prompt_tokens: 4, completion_tokens: 1, total_tokens: 5 },
+    },
+    state
+  );
+  const result = flatten([first, final]);
+
+  // The placeholder text is never emitted as a visible text delta.
+  assert.equal(
+    result.some(
+      (event) =>
+        event.type === "content_block_delta" &&
+        event.delta?.type === "text_delta" &&
+        typeof event.delta.text === "string" &&
+        event.delta.text.includes("prior reasoning summary unavailable")
+    ),
+    false
+  );
+  // The stop event still fires despite the placeholder-only final content.
+  const stop = result.find((event) => event.type === "message_delta");
+  assert.ok(stop, "expected a message_delta stop event even with placeholder-only final content");
+  assert.equal(stop.delta.stop_reason, "end_turn");
+  assert.ok(
+    result.some((event) => event.type === "message_stop"),
+    "expected a message_stop event"
+  );
+});
+
 test("OpenAI stream: tool calls strip Claude OAuth prefix and keep cache usage", () => {
   const state = createState();
   const started = openaiToClaudeResponse(
