@@ -14,6 +14,6 @@ ALTER TABLE combos ADD COLUMN tool_filter_regex TEXT DEFAULT NULL;
 
 -- Context caching protection: when 1, the proxy tags assistant responses with
 -- <omniModel>provider/model</omniModel> and pins the model for the session.
-ALTER TABLE combos ADD COLUMN context_cache_protection INTEGER DEFAULT 1;
+ALTER TABLE combos ADD COLUMN context_cache_protection INTEGER DEFAULT 0;
 
 CREATE INDEX IF NOT EXISTS idx_combos_cache_protection ON combos(context_cache_protection);
