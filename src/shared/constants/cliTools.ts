@@ -4,6 +4,8 @@ import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
 import { GROK_BUILD_CLI_TOOL } from "@/shared/constants/cliToolsGrokBuild";
 
 const _cc = getClaudeCodeDefaultModels();
+type CliModel = NonNullable<CliCatalogEntry["defaultModels"]>[number];
+const createCliModel = (id: string, name: string): CliModel => ({ id, name, alias: id });
 
 export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   claude: {
@@ -217,28 +219,30 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     acpSpawnable: false,
     baseUrlSupport: "none",
     modelAliases: [
+      "gemini-3.6-flash-high",
+      "gemini-3.6-flash-medium",
+      "gemini-3.6-flash-low",
       "claude-opus-4-6-thinking",
       "claude-sonnet-4-6",
-      "gemini-3-flash",
-      "gpt-oss-120b-medium",
-      "gemini-3.1-pro-high",
+      "gemini-pro-agent",
       "gemini-3.1-pro-low",
+      "gemini-3-flash-agent",
+      "gemini-3.5-flash-low",
+      "gemini-3.5-flash-extra-low",
+      "gpt-oss-120b-medium",
     ],
     defaultModels: [
-      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High", alias: "gemini-3.1-pro-high" },
-      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low", alias: "gemini-3.1-pro-low" },
-      { id: "gemini-3-flash", name: "Gemini 3 Flash", alias: "gemini-3-flash" },
-      {
-        id: "claude-sonnet-4-6",
-        name: "Claude Sonnet 4.6",
-        alias: "claude-sonnet-4-6",
-      },
-      {
-        id: "claude-opus-4-6-thinking",
-        name: "Claude Opus 4.6 Thinking",
-        alias: "claude-opus-4-6-thinking",
-      },
-      { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium", alias: "gpt-oss-120b-medium" },
+      createCliModel("gemini-3.6-flash-high", "Gemini 3.6 Flash High"),
+      createCliModel("gemini-3.6-flash-medium", "Gemini 3.6 Flash Medium"),
+      createCliModel("gemini-3.6-flash-low", "Gemini 3.6 Flash Low"),
+      createCliModel("gemini-pro-agent", "Gemini 3.1 Pro High"),
+      createCliModel("gemini-3.1-pro-low", "Gemini 3.1 Pro Low"),
+      createCliModel("gemini-3-flash-agent", "Gemini 3.5 Flash High"),
+      createCliModel("gemini-3.5-flash-low", "Gemini 3.5 Flash Medium"),
+      createCliModel("gemini-3.5-flash-extra-low", "Gemini 3.5 Flash Low"),
+      createCliModel("claude-sonnet-4-6", "Claude Sonnet 4.6"),
+      createCliModel("claude-opus-4-6-thinking", "Claude Opus 4.6 Thinking"),
+      createCliModel("gpt-oss-120b-medium", "GPT OSS 120B Medium"),
     ],
   },
   copilot: {

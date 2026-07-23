@@ -1,0 +1,1 @@
+- fix(api): narrow claudeClassifierCompat auto trigger so stop_sequences alone no longer short-circuits (#8189)

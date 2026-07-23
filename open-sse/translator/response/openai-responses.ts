@@ -7,7 +7,10 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
-import { isInternalReasoningPlaceholder } from "../../utils/reasoningPlaceholder.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../../utils/reasoningPlaceholder.ts";
 import {
   normalizeToolName,
   stripEmptyOptionalToolArgs,
@@ -17,6 +20,7 @@ import {
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
+import { resolveRequestToolIdentity } from "./openai-responses/requestToolIdentity.ts";
 import {
   synthesizeCompletedToolCalls,
   computeFinishReason,
@@ -101,6 +105,32 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
   }
 
   if (!chunk.choices?.length) {
+    // Mid-stream aggregator error: OpenRouter (and similar OpenAI-compatible
+    // aggregators) can send an HTTP 200 SSE stream whose body carries a chunk with
+    // empty `choices` and a top-level `error` object instead of any delta — e.g. the
+    // underlying provider hitting its own capacity limit mid-request. Without this
+    // branch the chunk has no choices, so it falls into the awaitingTrailingUsage/
+    // no-op path below and the stream silently ends with a false "completed, empty
+    // output" response, masking the failure and skipping combo fallback. Surface it
+    // as state.upstreamError so stream.ts errors the stream out (mirrors the
+    // Gemini-to-OpenAI translator's #4177 fix).
+    if (chunk.error && typeof chunk.error === "object") {
+      const rawCode = chunk.error.code;
+      const status =
+        typeof rawCode === "number" && rawCode >= 400 && rawCode <= 599 ? rawCode : 502;
+      state.upstreamError = {
+        status,
+        type: status === 429 ? "rate_limit_error" : "server_error",
+        code:
+          typeof chunk.error.metadata?.error_type === "string"
+            ? chunk.error.metadata.error_type
+            : status === 429
+              ? "rate_limit_exceeded"
+              : "bad_gateway",
+        message: typeof chunk.error.message === "string" ? chunk.error.message : "Upstream failure",
+      };
+      return [];
+    }
     // #6906: a deferred finish_reason (awaitingTrailingUsage, see below) completes here —
     // the trailing usage-only chunk (choices: [], usage: {...}) is what real
     // stream_options.include_usage=true upstreams send after finish_reason (see the
@@ -167,43 +197,52 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     startReasoning(state, emit, idx);
     emitReasoningDelta(state, emit, delta.reasoning_content);
   }
+  // Strip the internal reasoning placeholder if the model echoed it
+  // through ordinary content (#8081). Only the text-content emission is
+  // skipped when nothing meaningful remains; tool_calls / finish_reason
+  // handling below must still run for this same chunk.
   if (delta.content) {
-    if (
-      state.reasoningId &&
-      !state.reasoningDone &&
-      (!parseTextualReasoningTags || !state.inThinking)
-    ) {
-      closeReasoning(state, emit);
-    }
-
-    let content = delta.content;
-
-    if (parseTextualReasoningTags) {
-      if (content.includes("<think>")) {
-        state.inThinking = true;
-        content = content.replaceAll("<think>", "");
-        startReasoning(state, emit, idx);
-      }
-
-      if (content.includes("</think>")) {
-        const parts = content.split("</think>");
-        const thinkPart = parts[0];
-        const textPart = parts.slice(1).join("</think>");
-        if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
+    const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+    if (strippedContent) {
+      if (
+        state.reasoningId &&
+        !state.reasoningDone &&
+        (!parseTextualReasoningTags || !state.inThinking)
+      ) {
         closeReasoning(state, emit);
-        state.inThinking = false;
-        content = textPart;
       }
 
-      if (state.inThinking && content) {
-        emitReasoningDelta(state, emit, content);
-        return events;
-      }
-    }
+      let content = strippedContent;
 
-    if (content) {
-      const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
-      emitTextContent(state, emit, msgIdx, content);
+      if (parseTextualReasoningTags) {
+        if (content.includes("<think>")) {
+          state.inThinking = true;
+          content = content.replaceAll("<think>", "");
+          startReasoning(state, emit, idx);
+        }
+
+        if (content.includes("</think>")) {
+          const parts = content.split("</think>");
+          const thinkPart = parts[0];
+          const textPart = parts.slice(1).join("</think>");
+          if (thinkPart) emitReasoningDelta(state, emit, thinkPart);
+          closeReasoning(state, emit);
+          state.inThinking = false;
+          content = textPart;
+        }
+
+        if (state.inThinking && content) {
+          emitReasoningDelta(state, emit, content);
+          // Pre-existing behaviour (unrelated to #8081): a still-open
+          // textual <think> block ends this chunk's handling early.
+          return events;
+        }
+      }
+
+      if (content) {
+        const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+        emitTextContent(state, emit, msgIdx, content);
+      }
     }
   }
 
@@ -446,10 +485,19 @@ function emitToolCall(state, emit, tc) {
   const callId = state.funcCallIds[tcIdx];
 
   if (callId && toolName && !state.funcItemAdded[tcIdx]) {
+    // #7936 — restore the codex-side `{namespace, name}` pair when the bare
+    // leaf on the Chat wire was flattened from a Responses namespace sub-tool.
+    // Codex dispatches from `namespace` independently of `name` (no `__` split).
+    const identity = resolveRequestToolIdentity(state.requestToolIdentityMap, toolName);
     emit("response.output_item.added", {
       type: "response.output_item.added",
       output_index: outputIndex,
-      item: buildResponsesToolCallItem({ callId, toolName, custom: isCustomTool }),
+      item: buildResponsesToolCallItem({
+        callId,
+        toolName: identity ? identity.name : toolName,
+        custom: isCustomTool,
+        namespace: identity ? identity.namespace : null,
+      }),
     });
     state.funcItemAdded[tcIdx] = true;
 
@@ -531,6 +579,17 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         status: "completed",
       };
 
+      // #7936 identity closure for custom_tool_call items (apply_patch stays
+      // bare; namespace sub-tools get back their `namespace` + `name`).
+      const customIdentity = resolveRequestToolIdentity(
+        state.requestToolIdentityMap,
+        state.funcNames[idx] || ""
+      );
+      if (customIdentity) {
+        funcItem.namespace = customIdentity.namespace;
+        funcItem.name = customIdentity.name;
+      }
+
       emit("response.output_item.done", {
         type: "response.output_item.done",
         output_index: normalizedIndex,
@@ -552,6 +611,19 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         name: state.funcNames[idx] || "",
         status: "completed",
       };
+
+      // #7936 identity closure: rewrite the function_call item's `name` back to
+      // its bare leaf and stamp the original `namespace` alongside it, matching
+      // the codex ResponseItem::FunctionCall schema (independent `namespace`
+      // field, NOT a `__` split on `name`).
+      const fnIdentity = resolveRequestToolIdentity(
+        state.requestToolIdentityMap,
+        state.funcNames[idx] || ""
+      );
+      if (fnIdentity) {
+        funcItem.namespace = fnIdentity.namespace;
+        funcItem.name = fnIdentity.name;
+      }
 
       emit("response.output_item.done", {
         type: "response.output_item.done",

@@ -134,8 +134,19 @@ function hasUsableConnectionCredential(conn: VirtualFactoryConn): boolean {
 
 const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
+// Allowlist of no-auth (keyless) providers permitted to enter the `auto`/`auto-*`
+// candidate pool. Narrowed to the backends verified to answer without any
+// configuration on our reference egress (VPS .15): `opencode` and `felo-web`
+// both return 200 there, while duckduckgo-web (429/VQD rate limit), theoldllm
+// (403 Vercel egress block), chipotle (502), aihorde (401, anon key rejected)
+// and the others are unreliable. The excluded providers stay fully usable via
+// direct `<alias>/<model>` calls — they are just kept OUT of auto-routing until
+// re-verified. Re-add an id here to bring it back into every auto/* pool.
+const AUTO_COMBO_NOAUTH_ALLOWLIST = new Set<string>(["opencode", "felo-web"]);
+
 function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): boolean {
   if (providerDef.noAuth !== true) return false;
+  if (!AUTO_COMBO_NOAUTH_ALLOWLIST.has(providerDef.id)) return false;
   if (!Array.isArray(providerDef.serviceKinds) || providerDef.serviceKinds.length === 0)
     return true;
   return providerDef.serviceKinds.includes("llm");

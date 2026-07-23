@@ -2,6 +2,7 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
+import { stripInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
 import {
   collapseExcessiveNewlines,
@@ -395,7 +396,9 @@ function sanitizeChoice(
 
 function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
   if (typeof msgRecord.content === "string") {
-    const strippedContent = stripInternalToolEnvelopeText(msgRecord.content);
+    const strippedContent = stripInternalReasoningPlaceholder(
+      stripInternalToolEnvelopeText(msgRecord.content)
+    );
     const nativeReasoning = getReadableReasoningValue(msgRecord);
     const { content, thinking } =
       options.parseTextualReasoningTags === true && !nativeReasoning
@@ -519,10 +522,7 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
 
   const inputDetails = toRecord(normalized.input_tokens_details) || {};
   const cachedTokens = normalized.cached_tokens ?? normalized.cache_read_input_tokens;
-  if (
-    cachedTokens !== undefined &&
-    inputDetails.cached_tokens === undefined
-  ) {
+  if (cachedTokens !== undefined && inputDetails.cached_tokens === undefined) {
     inputDetails.cached_tokens = cachedTokens;
   }
   if (
@@ -845,7 +845,9 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
     return [
       {
         type: "output_text",
-        text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(content)),
+        text: collapseExcessiveNewlines(
+          stripInternalReasoningPlaceholder(stripInternalToolEnvelopeText(content))
+        ),
         annotations: [],
       },
     ];
@@ -860,7 +862,9 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
         if (typeof part === "string") {
           return {
             type: "output_text",
-            text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(part)),
+            text: collapseExcessiveNewlines(
+              stripInternalReasoningPlaceholder(stripInternalToolEnvelopeText(part))
+            ),
             annotations: [],
           };
         }
@@ -877,7 +881,9 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
           ...partRecord,
           type: "output_text",
           text: collapseExcessiveNewlines(
-            stripInternalToolEnvelopeText(toString(partRecord.text) || "")
+            stripInternalReasoningPlaceholder(
+              stripInternalToolEnvelopeText(toString(partRecord.text) || "")
+            )
           ),
           annotations: Array.isArray(partRecord.annotations) ? partRecord.annotations : [],
         };

@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "கிளையன்ட் சுயவிவரம்",
     "antigravityClientProfileHint": "API-க்கு OmniRoute எந்த Antigravity கிளையன்ட் அடையாளத்தை வழங்குகிறது என்பதைத் தேர்வுசெய்யவும்.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast அடுக்கு செயலில் உள்ளது",
     "tierFast": "வேகமான",
     "antigravityProjectIdLabel": "Google Cloud Project ஐடி",
