@@ -213,6 +213,8 @@ MAX_BODY_SIZE_BYTES=5242880    # 5 MB limit
 
 OmniRoute provides a two-layer defense: request-side injection scanning and response-side PII stripping.
 
+> **⚠️ Limitations:** These guardrails are *best-effort heuristic* detections, not a complete prompt-injection firewall or PII DLP system. They can produce false positives (benign persona/RPG prompts flagged) and false negatives (leetspeak, spacing, non-English patterns). They are not sufficient alone for compliance. Tune modes and test against your traffic before relying on them.
+
 ### Request-Side: Prompt Injection Guard
 
 | Variable                  | Default   | Source File                              | Description                                                                                 |
