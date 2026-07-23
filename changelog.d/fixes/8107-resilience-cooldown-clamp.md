@@ -1,0 +1,1 @@
+- fix(dashboard): clamp provider-cooldown min/max ms to their field bounds before Save so an out-of-range typed value can never reach the resilience settings API (#8107)
