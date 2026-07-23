@@ -1011,6 +1011,23 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
     return sanitizeResponsesStreamingEvent(parsedRecord);
   }
 
+  // #8271: Anthropic-native streaming events (content_block_delta with
+  // text_delta / thinking_delta) bypass the OpenAI choices[].delta.content
+  // path below. Strip zero-width characters from their text payloads so
+  // U+200D and friends don't leak to the client on the Messages API.
+  if (eventType === "content_block_delta") {
+    const deltaRecord = toRecord(parsedRecord.delta);
+    if (deltaRecord) {
+      if (typeof deltaRecord.text === "string") {
+        deltaRecord.text = stripZeroWidthText(deltaRecord.text);
+      }
+      if (typeof deltaRecord.thinking === "string") {
+        deltaRecord.thinking = stripZeroWidthText(deltaRecord.thinking);
+      }
+    }
+    return parsedRecord;
+  }
+
   // Build sanitized chunk
   const sanitized: JsonRecord = {};
 
