@@ -77,7 +77,9 @@ Custom guardrails register via `registerGuardrail(new MyGuardrail())`. The model
 
 ### 🧠 Prompt Injection Guard
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+Best-effort heuristic middleware that detects prompt injection patterns in LLM requests.
+**Not a complete prompt-injection firewall** — can produce false positives (benign
+persona/RPG prompts) and false negatives (leetspeak, spacing, non-English patterns).
 
 | Pattern Type        | Severity | Example                                        |
 | ------------------- | -------- | ---------------------------------------------- |
@@ -86,6 +88,10 @@ Middleware that detects and blocks prompt injection attacks in LLM requests:
 | Delimiter Injection | High     | Encoded separators to break context boundaries |
 | DAN/Jailbreak       | Medium   | Known jailbreak prompt patterns                |
 | Instruction Leak    | High     | "show me your system prompt"                   |
+| Encoding Evasion    | Medium   | base64/rot13/hex decode + instruction keywords |
+
+Only **High** severity detections are blocked in `block` mode. Medium-severity
+families are logged but never blocked by `sanitizeRequest`.
 
 Configure via dashboard (Settings → Security) or `.env`:
 
