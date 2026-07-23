@@ -16,7 +16,24 @@ import { getModelContextOverride } from "@/lib/db/modelContextOverrides";
 import { getModelCapabilityOverride } from "@/lib/db/modelCapabilityOverrides";
 import { isVisionModelId } from "@/shared/constants/visionModels";
 
-const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [];
+const TOOL_CALLING_UNSUPPORTED_PATTERNS: string[] = [
+  // Specialty / non-chat surfaces must never inherit optimistic tool defaults (#8016)
+  "whisper",
+  "tts-1",
+  "gpt-4o-mini-tts",
+  "omni-moderation",
+  "moderation",
+  "eleven_multilingual",
+  "eleven_turbo",
+  "seedance",
+  "/veo",
+  "veo-",
+  "rerank",
+  "embedding",
+  "dall-e",
+  "flux-",
+  "stable-diffusion",
+];
 const REASONING_UNSUPPORTED_PATTERNS = [
   "antigravity/claude-sonnet-4-6",
   "antigravity/claude-sonnet-4-5",
@@ -26,7 +43,38 @@ const REASONING_UNSUPPORTED_PATTERNS = [
   "antigravity/gpt-oss-",
   "antigravity/gemini-3",
   "antigravity/tab_",
+  // Specialty / non-chat surfaces (#8016)
+  "whisper",
+  "tts-1",
+  "gpt-4o-mini-tts",
+  "omni-moderation",
+  "moderation",
+  "eleven_multilingual",
+  "eleven_turbo",
+  "seedance",
+  "/veo",
+  "veo-",
+  "rerank",
+  "embedding",
+  "dall-e",
+  "flux-",
+  "stable-diffusion",
 ];
+
+/** Catalog/API surface types that are not chat completions. */
+const NON_CHAT_SURFACE_TYPES = new Set([
+  "audio",
+  "video",
+  "image",
+  "moderation",
+  "rerank",
+  "embedding",
+  "music",
+]);
+
+export function isNonChatCatalogSurface(type: unknown): boolean {
+  return typeof type === "string" && NON_CHAT_SURFACE_TYPES.has(type);
+}
 
 const MAX_TOKENS_UNSUPPORTED_PATTERNS = [
   "o1-preview",

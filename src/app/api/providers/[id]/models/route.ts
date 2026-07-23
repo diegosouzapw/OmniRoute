@@ -1535,14 +1535,14 @@ export async function GET(
       return buildApiDiscoveryResponse(models);
     }
 
-    if (provider === "antigravity") {
+    if (provider === "antigravity" || provider === "agy") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      const staticModels = getStaticModelsForProvider("antigravity") || [];
+      const staticModels = getStaticModelsForProvider(provider) || [];
 
       if (!accessToken) {
         const fallback = buildDiscoveryFallbackResponse({
@@ -1563,7 +1563,8 @@ export async function GET(
         accessToken,
         connectionId,
         proxy,
-        connection.providerSpecificData
+        connection.providerSpecificData,
+        provider
       );
       if (remoteModels.length > 0) {
         return buildApiDiscoveryResponse(remoteModels);

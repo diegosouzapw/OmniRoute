@@ -218,9 +218,9 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 | Variable                  | Default   | Source File                              | Description                                                                                 |
 | ------------------------- | --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `INPUT_SANITIZER_ENABLED` | `true`    | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
-| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = log only, `block` = reject request with 400, `redact` = strip suspicious patterns. |
+| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | Injection policy: `warn` = log only, `block` = reject request with 400. Legacy `redact` does **not** strip injection text; use `PII_REDACTION_ENABLED` for request PII rewrite. |
 | `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
-| `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
+| `PII_REDACTION_ENABLED`   | `false`   | `src/lib/guardrails/piiMasker.ts`        | When `true`, redact PII in incoming requests (independent of injection mode).               |
 | `CREDENTIAL_REDACTION_ENABLED` | `false` | `src/lib/guardrails/credentialMasker.ts` | Redact well-known API-key / secret-token patterns from request/response payloads. Opt-in; mirrors `PII_REDACTION_ENABLED`. |
 
 ### Response-Side: PII Sanitizer
@@ -240,7 +240,7 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 
 | Scenario                  | Configuration                                                                                                                |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Enterprise compliance** | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=block`, `PII_REDACTION_ENABLED=true`, `PII_RESPONSE_SANITIZATION=true` |
+| **Enterprise compliance** | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=block`, `PII_REDACTION_ENABLED=true`, `PII_RESPONSE_SANITIZATION=true` (injection blocks + request/response PII redaction; modes are independent) |
 | **Monitoring only**       | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=warn` — logs but never blocks                                          |
 | **Personal use**          | Leave all disabled — zero overhead                                                                                           |
 
@@ -445,7 +445,7 @@ detection above).
 | `COMPRESSION_PREFIX_FREEZE_THRESHOLD`           | `3`                                                 | `open-sse/services/compression/prefixFreeze.ts`             | Observations of a system prompt before it is treated as a frozen stable prefix.                                                                                         |
 | `OMNIROUTE_BOOTSTRAPPED`                        | `false`                                             | `src/app/(dashboard)/dashboard/page.tsx`                    | Set `true` by bootstrap script after initial setup. Controls setup wizard visibility.                                                                                   |
 | `OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE`         | `0`                                                 | `open-sse/executors/antigravity.ts`                         | Escape hatch: allow request body to override the Antigravity project field.                                                                                             |
-| `ANTIGRAVITY_CREDITS`                           | _(unset)_                                           | `open-sse/services/antigravityCredits.ts`                   | Override Antigravity's advertised remaining credits (testing / forced values).                                                                                          |
+| `ANTIGRAVITY_CREDITS`                           | `off`                                               | `open-sse/services/antigravityCredits.ts`                   | Google One AI credits policy: `off` never injects credits, `retry` injects once after an eligible quota 429, and `always` injects on the first request.                    |
 | `AGY_TOKEN_FILE`                                | `~/.gemini/antigravity-cli/antigravity-oauth-token` | `src/app/api/providers/agy-auth/apply-local/route.ts`       | Override the Antigravity CLI (agy) token-file path for the auto-detect local login import.                                                                              |
 
 ### OAuth CLI Bridge (Internal)
@@ -800,6 +800,16 @@ Reverse-engineered GraphQL session bridge for prompt.ql.app (`src/shared/constan
 | `PROMPTQL_CREDITS_ENDPOINT`   | `https://data.pro.ql.app/v1/graphql`                                     | `open-sse/executors/promptql.ts`, `open-sse/services/usage/promptql.ts` | GraphQL endpoint used to query credit balance/usage.   |
 | `PROMPTQL_TOKEN_REFRESH_URL`  | `https://auth.pro.ql.app/ddn/project/token`                              | `open-sse/executors/promptql.ts`          | Endpoint used for best-effort token refresh.           |
 | `PROMPTQL_POLL_TIMEOUT_MS`    | `180000`                                                                 | `open-sse/executors/promptql.ts`          | Max time (ms) to poll `thread_events` before timing out. |
+
+---
+
+## HyperAgent Web Provider (Unofficial/Experimental)
+
+Reverse-engineered session bridge for hyperagent.com (`src/shared/constants/providers/web-cookie.ts`). Optional — the default points at the public billing/usage endpoint; override only for a self-hosted/alternate HyperAgent deployment.
+
+| Variable                | Default                                                    | Source File                             | Description                                    |
+| ------------------------ | ------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------- |
+| `HYPERAGENT_USAGE_URL`  | `https://hyperagent.com/api/settings/billing/usage`         | `open-sse/services/usage/hyperagent.ts` | Endpoint used to fetch billing/usage credit blocks. |
 
 ---
 

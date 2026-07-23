@@ -4,14 +4,18 @@ import {
   getAntigravityModelsDiscoveryUrls,
   getAntigravityFetchAvailableModelsUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { resolveAntigravityClientVersion } from "@omniroute/open-sse/services/antigravityClientProfile.ts";
 import {
   getClientVisibleAntigravityModelName,
   isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+import {
+  getClientVisibleAgyModelName,
+  isDiscoverableAgyModelId,
+} from "@omniroute/open-sse/config/agyModels.ts";
 import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
-import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { asRecord, toNonEmptyString } from "./helpers";
 
@@ -20,9 +24,13 @@ const antigravityDiscoveryInflight = new Map<
   Promise<Array<{ id: string; name: string }>>
 >();
 
-export function normalizeAntigravityModelsResponse(
-  data: unknown
-): Array<{ id: string; name: string }> {
+type AntigravityDiscoveryModel = {
+  id: string;
+  name: string;
+  isInternal?: boolean;
+};
+
+export function normalizeAntigravityModelsResponse(data: unknown): AntigravityDiscoveryModel[] {
   const payload = asRecord(data).models;
 
   if (Array.isArray(payload)) {
@@ -43,9 +51,9 @@ export function normalizeAntigravityModelsResponse(
             : typeof item.name === "string"
               ? item.name
               : id;
-        return id ? { id, name } : null;
+        return id ? { id, name, ...(item.isInternal === true ? { isInternal: true } : {}) } : null;
       })
-      .filter((value): value is { id: string; name: string } => Boolean(value));
+      .filter((value): value is AntigravityDiscoveryModel => Boolean(value));
   }
 
   const modelsById = asRecord(payload);
@@ -58,23 +66,38 @@ export function normalizeAntigravityModelsResponse(
           : typeof item.name === "string"
             ? item.name
             : id;
-      return id ? { id, name } : null;
+      return id ? { id, name, ...(item.isInternal === true ? { isInternal: true } : {}) } : null;
     })
-    .filter((value): value is { id: string; name: string } => Boolean(value));
+    .filter((value): value is AntigravityDiscoveryModel => Boolean(value));
 }
 
-export function filterUserCallableAntigravityModels(models: Array<{ id: string; name: string }>) {
-  return models.filter((model) => isUserCallableAntigravityModelId(model.id));
+export function filterUserCallableAntigravityModels(
+  models: AntigravityDiscoveryModel[],
+  provider: "antigravity" | "agy" = "antigravity"
+) {
+  return models.filter(
+    (model) =>
+      model.isInternal !== true &&
+      (provider === "agy"
+        ? isDiscoverableAgyModelId(model.id)
+        : isUserCallableAntigravityModelId(model.id))
+  );
 }
 
-export function mapAntigravityModelForClient(model: { id: string; name: string }): {
+export function mapAntigravityModelForClient(
+  model: { id: string; name: string },
+  provider: "antigravity" | "agy" = "antigravity"
+): {
   id: string;
   name: string;
 } {
   const clientId = toClientAntigravityModelId(model.id);
   return {
     id: clientId,
-    name: getClientVisibleAntigravityModelName(clientId, model.name),
+    name:
+      provider === "agy"
+        ? getClientVisibleAgyModelName(clientId, model.name)
+        : getClientVisibleAntigravityModelName(clientId, model.name),
   };
 }
 
@@ -82,20 +105,17 @@ export async function fetchAntigravityDiscoveryModelsCached(
   accessToken: string,
   connectionId: string,
   proxy: unknown,
-  providerSpecificData?: unknown
+  providerSpecificData?: unknown,
+  provider: "antigravity" | "agy" = "antigravity"
 ): Promise<Array<{ id: string; name: string }>> {
   const profile = normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile);
-  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
+  const cacheKey = `${provider}:${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
   const inflight = antigravityDiscoveryInflight.get(cacheKey);
   if (inflight) return inflight;
 
   const promise = (async () => {
-    await resolveAntigravityVersion();
-    await ensureAntigravityProjectAssigned(
-      accessToken,
-      fetch,
-      normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile)
-    );
+    await resolveAntigravityClientVersion(profile);
+    await ensureAntigravityProjectAssigned(accessToken, fetch, profile);
 
     for (const discoveryUrl of [
       ...getAntigravityFetchAvailableModelsUrls(),
@@ -107,27 +127,28 @@ export async function fetchAntigravityDiscoveryModelsCached(
           guard: getProviderOutboundGuard(),
           proxyConfig: proxy,
           method: "POST",
-          headers: getAntigravityHeaders("models", accessToken),
+          headers: getAntigravityContentHeaders(profile, accessToken),
           body: JSON.stringify({}),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
           console.warn(
-            `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
+            `[models] ${provider} discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
           );
           continue;
         }
 
         const models = filterUserCallableAntigravityModels(
-          normalizeAntigravityModelsResponse(await response.json())
-        ).map(mapAntigravityModelForClient);
+          normalizeAntigravityModelsResponse(await response.json()),
+          provider
+        ).map((model) => mapAntigravityModelForClient(model, provider));
         if (models.length > 0) {
           return models;
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
+        console.warn(`[models] ${provider} discovery threw for ${discoveryUrl}: ${message}`);
       }
     }
 

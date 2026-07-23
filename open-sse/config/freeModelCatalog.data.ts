@@ -16,7 +16,7 @@ import type { FreeModelBudget } from "./freeModelCatalog.ts";
  * rewrites file timestamps on every deploy, which would report a months-old
  * catalog as "updated today". Bump this whenever the entries below change.
  */
-export const FREE_CATALOG_CURATED_AT = "2026-07-20";
+export const FREE_CATALOG_CURATED_AT = "2026-07-22";
 
 export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "agentrouter", modelId: "claude-opus-4-6", displayName: "Claude 4.6 Opus", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
@@ -25,16 +25,15 @@ export const FREE_MODEL_BUDGETS: FreeModelBudget[] = [
   { provider: "agentrouter", modelId: "deepseek-v3.2", displayName: "DeepSeek V3.2", monthlyTokens: 0, creditTokens: 200000000, freeType: "one-time-initial", poolKey: "agentrouter", tos: "caution" },
   { provider: "agy", modelId: "claude-opus-4-6-thinking", displayName: "Claude Opus 4.6 (Thinking)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
   { provider: "agy", modelId: "claude-sonnet-4-6", displayName: "Claude Sonnet 4.6 (Thinking)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
-  { provider: "agy", modelId: "gemini-3.1-pro-high", displayName: "Gemini 3.1 Pro (High)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
   { provider: "agy", modelId: "gemini-3.1-pro-low", displayName: "Gemini 3.1 Pro (Low)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
-  { provider: "agy", modelId: "gemini-pro-agent", displayName: "Gemini 3.1 Pro (Agent)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
-  { provider: "agy", modelId: "gemini-3-flash-agent", displayName: "Gemini 3.5 Flash (Agent)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
-  { provider: "agy", modelId: "gemini-3-flash", displayName: "Gemini 3 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
-  { provider: "agy", modelId: "gemini-3.5-flash-low", displayName: "Gemini 3.5 Flash (Low)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
-  { provider: "agy", modelId: "gemini-3.5-flash-extra-low", displayName: "Gemini 3.5 Flash (Extra Low)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
+  { provider: "agy", modelId: "gemini-pro-agent", displayName: "Gemini 3.1 Pro (High)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
+  { provider: "agy", modelId: "gemini-3.6-flash-high", displayName: "Gemini 3.6 Flash (High)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
+  { provider: "agy", modelId: "gemini-3.6-flash-medium", displayName: "Gemini 3.6 Flash (Medium)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
+  { provider: "agy", modelId: "gemini-3.6-flash-low", displayName: "Gemini 3.6 Flash (Low)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
+  { provider: "agy", modelId: "gemini-3-flash-agent", displayName: "Gemini 3.5 Flash (High)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
+  { provider: "agy", modelId: "gemini-3.5-flash-low", displayName: "Gemini 3.5 Flash (Medium)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
+  { provider: "agy", modelId: "gemini-3.5-flash-extra-low", displayName: "Gemini 3.5 Flash (Low)", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
   { provider: "agy", modelId: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash Lite", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
-  { provider: "agy", modelId: "gemini-3.1-flash-image", displayName: "Gemini 3.1 Flash Image", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
-  { provider: "agy", modelId: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
   { provider: "agy", modelId: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
   { provider: "agy", modelId: "gemini-2.5-flash-thinking", displayName: "Gemini 2.5 Flash Thinking", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },
   { provider: "agy", modelId: "gemini-2.5-flash-lite", displayName: "Gemini 2.5 Flash Lite", monthlyTokens: 0, creditTokens: 0, freeType: "keyless", poolKey: "agy", tos: "avoid" },

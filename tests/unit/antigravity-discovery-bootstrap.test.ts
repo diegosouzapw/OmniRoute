@@ -126,7 +126,7 @@ describe("ensureAntigravityProjectAssigned", () => {
     assert.equal(capturedAuth, "Bearer my-secret-token", "Authorization header must be set");
   });
 
-  test("uses CLI/SDK harness headers when requested", async () => {
+  test("uses the official CLI content headers when requested", async () => {
     let capturedHeaders: Headers | null = null;
 
     const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
@@ -137,44 +137,48 @@ describe("ensureAntigravityProjectAssigned", () => {
       });
     };
 
-    await ensureAntigravityProjectAssigned("harness-token", mockFetch, "harness");
+    await ensureAntigravityProjectAssigned("cli-token", mockFetch, "cli");
 
     assert.match(
       capturedHeaders?.get("User-Agent") || "",
-      /^antigravity\/4\.2\.0 [^ ]+\/[^ ]+ google-api-nodejs-client\/10\.3\.0$/
+      /^antigravity\/cli\/1\.1\.5 \(aidev_client; os_type=.+; arch=.+; auth_method=consumer\)$/
     );
-    assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), "gl-node/22.21.1");
+    assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), null);
     assert.equal(capturedHeaders?.get("Client-Metadata"), null);
   });
 
-  test("falls through to next URL when first loadCodeAssist returns 404", async () => {
+  test("uses the official IDE native content headers by default", async () => {
+    let capturedHeaders: Headers | null = null;
+    const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
+      capturedHeaders = new Headers(init?.headers);
+      return Response.json({ cloudaicompanionProject: "proj-ide" });
+    };
+
+    await ensureAntigravityProjectAssigned("ide-token", mockFetch);
+
+    assert.match(capturedHeaders?.get("User-Agent") || "", /^antigravity\/ide\/2\.1\.1 /);
+    assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), null);
+    assert.equal(capturedHeaders?.get("Client-Metadata"), null);
+  });
+
+  test("bootstrap uses the single stable production loadCodeAssist endpoint and stays non-fatal on 404", async () => {
     const hitUrls: string[] = [];
 
     const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
       hitUrls.push(url);
-      // Exact hostname match (not substring .includes) so the check can't be fooled by a
-      // look-alike host like daily-cloudcode-pa.googleapis.com.evil.com (CodeQL
-      // js/incomplete-url-substring-sanitization).
-      if (new URL(url).hostname === "daily-cloudcode-pa.googleapis.com") {
-        // First URL fails
-        return new Response("not found", { status: 404 });
-      }
-      // Second URL succeeds
-      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-fallback" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response("not found", { status: 404 });
     };
 
-    const projectId = await ensureAntigravityProjectAssigned("fallback-token", mockFetch);
+    const projectId = await ensureAntigravityProjectAssigned("bootstrap-404-token", mockFetch);
 
-    assert.ok(hitUrls.length >= 2, "should try at least two URLs on the first failure");
-    assert.equal(projectId, "proj-fallback", "should return the project from the successful URL");
-    assert.equal(
-      getAntigravityProjectFromCache("fallback-token"),
-      "proj-fallback",
-      "should cache the project from the successful URL"
-    );
+    // #8098 narrowed the bootstrap to the single stable production endpoint (no
+    // daily/sandbox fallback), so a 404 has no next URL to try — the call fails closed
+    // (undefined) and the caller proceeds with any DB-stored project id.
+    assert.equal(hitUrls.length, 1, "bootstrap tries exactly the one dedicated production URL");
+    // Exact hostname match (not substring .includes) so the check can't be fooled by a
+    // look-alike host (CodeQL js/incomplete-url-substring-sanitization).
+    assert.equal(new URL(hitUrls[0]).hostname, "cloudcode-pa.googleapis.com");
+    assert.equal(projectId, undefined, "a 404 bootstrap is non-fatal and returns undefined");
   });
 
   test("getAntigravityLoadCodeAssistUrls returns URLs matching ANTIGRAVITY_BASE_URLS", () => {

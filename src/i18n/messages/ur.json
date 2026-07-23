@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "کلائنٹ پروفائل",
     "antigravityClientProfileHint": "منتخب کریں کہ OmniRoute، API کو کون سی Antigravity کلائنٹ شناخت پیش کرے۔",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast ٹیئر فعال ہے",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "گوگل کلاؤڈ پروجیکٹ ID",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "ایڈوانسڈ: اس بلٹ ان پرووائیڈر کو کسٹم اینڈ پوائنٹ پر بھیجیں۔ ڈیفالٹ استعمال کرنے کے لیے خالی چھوڑ دیں۔",
     "bulkAddFormatHintCloudflare": "فی لائن ایک کلید۔ فارمیٹ: name|accountId|apiKey (Cloudflare اکاؤنٹ ID + API ٹوکن)۔",
     "lmarenaWebCookieHint": "arena.ai کھولیں، سائن ان کریں، پھر نیٹ ورک کی درخواست سے مکمل Cookie ہیڈر کاپی کریں۔ arena-auth-prod-v1.0 اور arena-auth-prod-v1.1 (اور اگر مزید چنکس موجود ہوں تو انہیں بھی) شامل کریں، ترجیحاً cf_clearance کے ساتھ۔ صرف خالی arena-auth-prod-v1 کوکی پیسٹ نہ کریں۔ اختیاری: providerSpecificData.recaptchaV3Token اگر create-evaluation اب بھی 403 واپس کرتا ہے۔",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "بانی دوست",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) OmniRoute کا بانی اوپن سورس دوست ہے",
     "kimiPartnerLinkNote": "پارٹنر لنک — آپ کے لیے بغیر کسی اضافی قیمت کے OmniRoute کو سپورٹ کرتا ہے",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "کوئی اوور رائیڈز نہیں — تمام فعال فراہم کنندگان اپنے ڈیفالٹ ماڈلز کے ساتھ حصہ لیں گے"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) اب OmniRoute کا آفیشل سپانسر ہے",
+    "title": "Kimi (Moonshot AI) OmniRoute کا بانی اوپن سورس دوست ہے",
     "description": "Kimi K3 لاگت کے ایک معمولی حصے میں OmniRoute کے لیے 1M-ٹوکن سیاق و سباق کی ونڈو اور جدید ترین کوڈنگ کارکردگی لاتا ہے۔",
     "cta": "Kimi Code حاصل کریں",
     "partnerLinkNote": "پارٹنر لنک",

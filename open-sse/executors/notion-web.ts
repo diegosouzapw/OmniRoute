@@ -43,6 +43,7 @@ import {
   notionThreadSessionLookup,
   notionThreadSessionStore,
   readClientThreadId,
+  hashNotionCallerCookie,
   resolveNotionThreadBinding,
   type NotionMessage,
 } from "../services/notionThreadSessions.ts";
@@ -553,8 +554,13 @@ export class NotionWebExecutor extends BaseExecutor {
         | Record<string, string>
         | undefined);
     const clientThreadId = readClientThreadId(requestBody, inboundHeaders ?? undefined);
-    // Namespace thread cache by custom agent so default AI and agents never share threads.
-    const threadSpaceKey = agent.workflowId ? `${spaceId}|wf:${agent.workflowId}` : spaceId;
+    // Namespace the thread cache PER CALLER (hash of the caller's cookie) AND by custom
+    // agent, so (a) two users of the same Notion space never share a cached thread
+    // (cross-tenant IDOR, #7900 review) and (b) default AI and agents never share threads.
+    const callerScope = hashNotionCallerCookie(cookie);
+    const threadSpaceKey = agent.workflowId
+      ? `caller:${callerScope}|${spaceId}|wf:${agent.workflowId}`
+      : `caller:${callerScope}|${spaceId}`;
     const binding = resolveNotionThreadBinding(threadSpaceKey, messages, clientThreadId);
     let { threadId, createThread, rootKey } = binding;
 

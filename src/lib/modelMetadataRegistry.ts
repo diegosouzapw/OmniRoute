@@ -2,7 +2,10 @@ import { randomUUID } from "node:crypto";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
-import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import {
+  getResolvedModelCapabilities,
+  isNonChatCatalogSurface,
+} from "@/lib/modelCapabilities";
 import {
   getAuthoritativeContextWindow,
   getAuthoritativeProviderContextWindow,
@@ -351,12 +354,24 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
     getAuthoritativeProviderContextWindow(provider, model) ??
     getAuthoritativeContextWindow(metadata.model) ??
     getAuthoritativeContextWindow(model);
+  const specialtySurface = isNonChatCatalogSurface(entry.type);
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
       : {}),
-    tool_calling: metadata.capabilities.toolCalling,
-    reasoning: metadata.capabilities.reasoning,
+    // #8016: never invent chat tool/reasoning defaults onto specialty surfaces.
+    // Only copy boolean true when authoritative metadata says so; specialty rows
+    // default to false instead of optimistic chat heuristics.
+    tool_calling: specialtySurface
+      ? metadata.capabilities.supportsTools === true || metadata.capabilities.toolCalling === true
+        ? true
+        : false
+      : metadata.capabilities.toolCalling,
+    reasoning: specialtySurface
+      ? metadata.capabilities.supportsThinking === true || metadata.capabilities.reasoning === true
+        ? true
+        : false
+      : metadata.capabilities.reasoning,
     // #6241: surface thinking support + the canonical effort tiers so the frontend can
     // render the effort/thinking toggles. `thinking` is kept for back-compat; `supportsThinking`
     // is the explicit flag and `effort_tiers` lists the selectable reasoning levels
@@ -403,10 +418,22 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   }
 
   if (
+    !specialtySurface &&
     (typeof nextEntry.context_length !== "number" || authoritativeContextWindow !== null) &&
     typeof metadata.limits.contextWindow === "number"
   ) {
     nextEntry.context_length = metadata.limits.contextWindow;
+  } else if (
+    specialtySurface &&
+    authoritativeContextWindow !== null &&
+    typeof authoritativeContextWindow === "number"
+  ) {
+    // Only authoritative static windows may decorate specialty rows.
+    nextEntry.context_length = authoritativeContextWindow;
+  } else if (specialtySurface && typeof nextEntry.context_length === "number") {
+    // Keep an explicit source-provided context if the emitter already set one.
+  } else if (specialtySurface) {
+    delete nextEntry.context_length;
   }
 
   if (typeof metadata.limits.maxOutputTokens === "number" && metadata.limits.maxOutputTokens > 0) {

@@ -38,6 +38,7 @@ import { ClaudeWebWithAutoRefresh } from "./claude-web-with-auto-refresh.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
 import { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
 import { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
+import { AdobeFireflyExecutor } from "./adobe-firefly.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 import { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 import { FeloWebExecutor } from "./felo-web.ts";
@@ -64,6 +65,7 @@ import { MimocodeExecutor } from "./mimocode.ts";
 import { GrokCliExecutor } from "./grok-cli.ts";
 import { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 import { ZenmuxFreeExecutor } from "./zenmux-free.ts";
+import { HyperAgentExecutor } from "./hyperagent.ts";
 import { XaiExecutor } from "./xai.ts";
 import { PromptQlExecutor } from "./promptql.ts";
 
@@ -133,6 +135,8 @@ const executors = {
   copilot: new CopilotWebExecutor(), // Alias
   "microsoft-designer-web": new MicrosoftDesignerWebExecutor(),
   msdesigner: new MicrosoftDesignerWebExecutor(), // Alias
+  "adobe-firefly": new AdobeFireflyExecutor(),
+  firefly: new AdobeFireflyExecutor(), // Alias
   "veoaifree-web": new VeoAIFreeWebExecutor(),
   "veo-free": new VeoAIFreeWebExecutor(), // Alias
   "duckduckgo-web": new DuckDuckGoWebExecutor(),
@@ -181,6 +185,8 @@ const executors = {
   "codebuddy-cn": new CodeBuddyCnExecutor(),
   cbcn: new CodeBuddyCnExecutor(), // Alias for codebuddy-cn
   "zenmux-free": new ZenmuxFreeExecutor(),
+  hyperagent: new HyperAgentExecutor(),
+  ha: new HyperAgentExecutor(), // Alias
   zmf: new ZenmuxFreeExecutor(), // Alias for zenmux-free
   auggie: new AuggieExecutor(),
   xai: new XaiExecutor(),
@@ -254,6 +260,7 @@ export { AuggieExecutor } from "./auggie.ts";
 export { CopilotWebExecutor } from "./copilot-web.ts";
 export { CopilotM365WebExecutor } from "./copilot-m365-web.ts";
 export { MicrosoftDesignerWebExecutor } from "./microsoft-designer-web.ts";
+export { AdobeFireflyExecutor } from "./adobe-firefly.ts";
 export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 export { DuckDuckGoWebExecutor } from "./duckduckgo-web.ts";
 export { FeloWebExecutor } from "./felo-web.ts";
@@ -273,6 +280,7 @@ export { MimocodeExecutor } from "./mimocode.ts";
 export { GrokCliExecutor } from "./grok-cli.ts";
 export { CodeBuddyCnExecutor } from "./codebuddy-cn.ts";
 export { ZenmuxFreeExecutor } from "./zenmux-free.ts";
+export { HyperAgentExecutor } from "./hyperagent.ts";
 export { XaiExecutor } from "./xai.ts";
 export { MoonshotExecutor } from "./moonshot.ts";
 export { PromptQlExecutor } from "./promptql.ts";

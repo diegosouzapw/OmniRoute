@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Clientprofiel",
     "antigravityClientProfileHint": "Kies welke Antigravity-clientidentiteit OmniRoute aan de API presenteert.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast-tier is actief",
     "tierFast": "Snel",
     "antigravityProjectIdLabel": "Google Cloud-project-ID",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Geavanceerd: verwijs deze ingebouwde provider naar een aangepast eindpunt. Laat leeg om de standaardwaarde te gebruiken.",
     "bulkAddFormatHintCloudflare": "Eén sleutel per regel. Indeling: name|accountId|apiKey (Cloudflare-account-ID + API-token).",
     "lmarenaWebCookieHint": "Open arena.ai, meld u aan en kopieer vervolgens de volledige Cookie-header van een netwerkverzoek. Voeg arena-auth-prod-v1.0 en arena-auth-prod-v1.1 toe (en verdere chunks indien aanwezig), bij voorkeur met cf_clearance. Plak niet alleen de lege arena-auth-prod-v1-cookie. Optioneel: providerSpecificData.recaptchaV3Token als create-evaluation nog steeds 403 retourneert.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Oprichtende Vriend",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is OmniRoute's oprichtende open source-vriend",
     "kimiPartnerLinkNote": "Partnerlink — ondersteunt OmniRoute zonder extra kosten voor u",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Geen overschrijvingen — alle actieve providers nemen deel met hun standaardmodellen"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) is nu een officiële sponsor van OmniRoute",
+    "title": "Kimi (Moonshot AI) is OmniRoute's oprichtende open source-vriend",
     "description": "Kimi K3 brengt een contextvenster van 1M tokens en toonaangevende codeerprestaties naar OmniRoute tegen een fractie van de kosten.",
     "cta": "Kimi Code ophalen",
     "partnerLinkNote": "Partnerlink",

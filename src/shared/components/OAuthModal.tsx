@@ -15,6 +15,7 @@ import {
 } from "@/lib/oauth/utils/codexSessionImport";
 import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
 import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
+import { buildPkceLoopbackMismatchWarning } from "@/lib/oauth/utils/pkceLoopbackWarning";
 
 export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
 
@@ -451,10 +452,8 @@ export default function OAuthModal({
           forceManual = true;
         }
 
-        // PKCE callback server providers (Codex, Windsurf, Devin CLI):
-        // On localhost, spin up a local callback server and poll for the result.
-        // Codex uses a fixed port 1455; Windsurf/Devin CLI use a random OS-assigned port.
-        // On remote the server is unreachable — fall through to standard manual flow.
+        // PKCE callback server providers (Codex, Windsurf, Devin CLI): true localhost spins
+        // up a callback server + polls; a LAN IP warns (#8046); remote falls through below.
         if (PKCE_CALLBACK_SERVER_PROVIDERS.has(provider)) {
           if (isTrueLocalhost) {
             try {
@@ -508,21 +507,22 @@ export default function OAuthModal({
               setPolling(false);
               forceManual = true;
             }
+          } else if (isLocalhost) {
+            setError(buildPkceLoopbackMismatchWarning(provider));
+            setStep("error");
+            return;
           }
-          // Remote: fall through to standard auth code flow below
+          // Remote (non-LAN): fall through to standard auth code flow below
         }
 
         // Authorization code flow
         // Redirect URI strategy:
         // - Codex/OpenAI: always port 1455 (registered in OAuth app)
-        // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
-        //   (on true localhost the callback server handles it; this is only reached on remote)
-        // - Google OAuth providers (antigravity/agy): default to loopback so the
-        //   bundled native/desktop credentials keep working. Prefer 127.0.0.1 over
-        //   localhost for the Google native-app handoff; Google documents that localhost
-        //   can run into local firewall/name-resolution edge cases. The authorize route
-        //   upgrades this to the public callback when custom Google web credentials plus
-        //   NEXT_PUBLIC_BASE_URL or OMNIROUTE_PUBLIC_BASE_URL are configured.
+        // - Windsurf/Devin CLI (remote fallback; true localhost handled above): localhost:port
+        // - Google OAuth providers (antigravity/agy): default to loopback (127.0.0.1 preferred —
+        //   Google docs flag localhost firewall/name-resolution edge cases) so bundled
+        //   native/desktop credentials keep working; the authorize route upgrades this to the
+        //   public callback when custom Google web credentials + a public base URL are configured.
         // - Other providers on remote: use actual origin (supports PUBLIC_URL env var)
         // - Localhost: use localhost:port
         let redirectUri: string;

@@ -1,0 +1,1 @@
+- **fix(antigravity):** preserve request/tool fidelity, make credits modes explicit, and separate runtime endpoints from discovery/bootstrap ([#8098](https://github.com/diegosouzapw/OmniRoute/pull/8098)) — thanks @nguyenha935

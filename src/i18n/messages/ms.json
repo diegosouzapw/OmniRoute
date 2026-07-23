@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Profil klien",
     "antigravityClientProfileHint": "Pilih identiti klien Antigravity yang dibentangkan oleh OmniRoute kepada API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Tier Fast Codex aktif",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "ID Projek Awan Google",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Lanjutan: halakan penyedia terbina dalam ini ke titik akhir tersuai. Biarkan kosong untuk menggunakan lalai.",
     "bulkAddFormatHintCloudflare": "Satu kunci setiap baris. Format: name|accountId|apiKey (ID akaun Cloudflare + token API).",
     "lmarenaWebCookieHint": "Buka arena.ai, log masuk, kemudian salin pengepala Cookie penuh daripada permintaan Rangkaian. Sertakan arena-auth-prod-v1.0 dan arena-auth-prod-v1.1 (dan bahagian selanjutnya jika ada), sebaik-baiknya dengan cf_clearance. Jangan tampal kuki arena-auth-prod-v1 yang kosong sahaja. Pilihan: providerSpecificData.recaptchaV3Token jika create-evaluation masih mengembalikan 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Rakan Pengasas",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) ialah rakan sumber terbuka pengasas OmniRoute",
     "kimiPartnerLinkNote": "Pautan rakan kongsi — menyokong OmniRoute tanpa kos tambahan kepada anda",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Tiada penggantian — semua penyedia aktif akan mengambil bahagian dengan model lalai mereka"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) kini merupakan penaja rasmi OmniRoute",
+    "title": "Kimi (Moonshot AI) ialah rakan sumber terbuka pengasas OmniRoute",
     "description": "Kimi K3 membawakan tetingkap konteks 1M-token dan prestasi pengekodan termaju ke OmniRoute pada sebahagian kecil daripada kos.",
     "cta": "Dapatkan Kimi Code",
     "partnerLinkNote": "Pautan rakan kongsi",

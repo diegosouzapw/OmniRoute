@@ -92,6 +92,7 @@ export interface NpmExecOptions {
   env: NodeJS.ProcessEnv;
   maxBuffer: number;
   shell?: boolean;
+  windowsHide: boolean;
 }
 
 /**
@@ -123,6 +124,9 @@ export function buildNpmExecOptions(
     timeout: options.timeoutMs,
     env,
     maxBuffer: 10 * 1024 * 1024, // 10 MB for npm output
+    // Suppress the transient conhost.exe/cmd console window Windows briefly
+    // flashes open for spawned child processes (see #8131).
+    windowsHide: true,
   };
   if (platform === "win32") {
     execOptions.shell = true;

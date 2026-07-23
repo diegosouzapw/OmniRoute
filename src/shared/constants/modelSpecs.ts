@@ -83,6 +83,14 @@ const GPT_5_6_MODEL_SPEC = {
   supportsVision: true,
 } satisfies ModelSpec;
 
+const GEMINI_35_FLASH_MODEL_SPEC = {
+  maxOutputTokens: 65536,
+  contextWindow: 1048576,
+  supportsThinking: false,
+  supportsTools: true,
+  supportsVision: true,
+} satisfies ModelSpec;
+
 export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,
@@ -147,13 +155,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  "gemini-3.5-flash-low": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    supportsThinking: false,
-    supportsTools: true,
-    supportsVision: true,
-  },
+  "gemini-3.5-flash-extra-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.5-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3-flash-agent": { ...GEMINI_35_FLASH_MODEL_SPEC },
+
+  // ── Gemini 3.6 Flash (Antigravity live tiers) ───────────────────
+  // The model id itself selects the upstream 10k/4k/1k reasoning tier. Antigravity
+  // still rejects client-supplied thinking parameters, so keep the explicit-parameter
+  // capability aligned with the existing Gemini 3.5 tier ids.
+  "gemini-3.6-flash-high": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-medium": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
 
   // ── Gemini 3 Flash series ───────────────────────────────────────
   "gemini-3-flash": {
@@ -178,6 +190,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: [
+      "gemini-pro-agent",
       "gemini-3.1-pro-high",
       "gemini-3-pro-high",
       "gemini-3-pro-preview",
@@ -200,11 +213,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
 
   // ── Gemini 3.5 Flash ─────────────────────────────────────────────
   "gemini-3.5-flash": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    supportsThinking: false,
-    supportsTools: true,
-    supportsVision: true,
+    ...GEMINI_35_FLASH_MODEL_SPEC,
     aliases: ["gemini-3.5-flash-high"],
   },
 

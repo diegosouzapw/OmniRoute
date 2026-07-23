@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Kliensprofil",
     "antigravityClientProfileHint": "Válassza ki, melyik Antigravity kliensidentitást mutassa az OmniRoute az API felé.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "A Codex Fast szint aktív",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "Google Cloud Project ID",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Advanced: point this built-in provider at a custom endpoint. Leave blank to use the default.",
     "bulkAddFormatHintCloudflare": "One key per line. Format: name|accountId|apiKey (Cloudflare account ID + API token).",
     "lmarenaWebCookieHint": "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Alapító barát",
+    "kimiOfficialSupporterTooltip": "A Kimi (Moonshot AI) az OmniRoute alapító nyílt forráskódú barátja",
     "kimiPartnerLinkNote": "Partnerhivatkozás — az Ön számára további költség nélkül támogatja az OmniRoute-ot",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Nincsenek felülbírálások — minden aktív szolgáltató az alapértelmezett modelljével vesz részt"
   },
   "kimiSponsorBanner": {
-    "title": "A Kimi (Moonshot AI) mostantól az OmniRoute hivatalos támogatója",
+    "title": "A Kimi (Moonshot AI) az OmniRoute alapító nyílt forráskódú barátja",
     "description": "A Kimi K3 1M-tokenes kontextusablakot és élvonalbeli kódolási teljesítményt hoz az OmniRoute-ba, a költségek töredékéért.",
     "cta": "Kimi Code beszerzése",
     "partnerLinkNote": "Partnerhivatkozás",

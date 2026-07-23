@@ -68,6 +68,10 @@ export function findExistingOAuthConnectionMatch(
 ): Record<string, any> | undefined {
   return existing.find((c) => {
     if (c.id && safeEqual(connectionId, c.id)) return true;
+    // Email dedup only when the payload actually carries an email. Without this
+    // guard `safeEqual(undefined, undefined)` is true, so an email-less payload
+    // would false-match the first email-less connection of the provider.
+    if (!tokenData.email) return false;
     if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
     if (provider === "codex") {
       return isSameCodexAccount(c.providerSpecificData, tokenData.providerSpecificData);
@@ -130,7 +134,12 @@ export async function persistOAuthConnection(
     : null;
 
   let connection: any;
-  if (tokenData.email) {
+  // A connectionId is an explicit "update THIS connection" signal (token refresh
+  // / re-auth of a known connection); honor it even when the payload has no
+  // top-level email. Some providers (e.g. GitHub Copilot) keep identity under
+  // providerSpecificData, so gating dedup on tokenData.email alone created a
+  // duplicate connection on every refresh (#8059).
+  if (connectionId || tokenData.email) {
     const existing = await getProviderConnections({ provider });
     const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
     const matchId = typeof match?.id === "string" ? match.id : null;

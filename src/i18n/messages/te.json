@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "క్లయింట్ ప్రొఫైల్",
     "antigravityClientProfileHint": "APIకి OmniRoute ఏ Antigravity క్లయింట్ గుర్తింపును ప్రదర్శించాలో ఎంచుకోండి.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast శ్రేణి సక్రియంగా ఉంది",
     "tierFast": "ఫాస్ట్",
     "antigravityProjectIdLabel": "Google క్లౌడ్ ప్రాజెక్ట్ ID",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "అధునాతన: ఈ అంతర్నిర్మిత ప్రొవైడర్‌ను అనుకూల ఎండ్‌పాయింట్‌కు సూచించండి. డిఫాల్ట్‌ను ఉపయోగించడానికి ఖాళీగా వదిలేయండి.",
     "bulkAddFormatHintCloudflare": "లైన్‌కు ఒక కీ. ఫార్మాట్: name|accountId|apiKey (Cloudflare ఖాతా ID + API టోకెన్).",
     "lmarenaWebCookieHint": "arena.aiని తెరవండి, సైన్ ఇన్ చేయండి, ఆపై నెట్‌వర్క్ అభ్యర్థన నుండి పూర్తి Cookie హెడర్‌ను కాపీ చేయండి. arena-auth-prod-v1.0 మరియు arena-auth-prod-v1.1 (మరియు మరిన్ని భాగాలు ఉంటే వాటిని) చేర్చండి, ప్రాధాన్యంగా cf_clearanceతో. కేవలం ఖాళీ arena-auth-prod-v1 కుకీని మాత్రమే పేస్ట్ చేయవద్దు. ఐచ్ఛికం: create-evaluation ఇప్పటికీ 403ని అందిస్తే providerSpecificData.recaptchaV3Token.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "వ్యవస్థాపక మిత్రుడు",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) అనేది OmniRoute యొక్క వ్యవస్థాపక ఓపెన్ సోర్స్ మిత్రుడు",
     "kimiPartnerLinkNote": "భాగస్వామి లింక్ — మీకు ఎటువంటి అదనపు ఖర్చు లేకుండా OmniRouteకు మద్దతు ఇస్తుంది",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "ఓవర్‌రైడ్‌లు లేవు — యాక్టివ్‌గా ఉన్న అన్ని ప్రొవైడర్‌లు వాటి డిఫాల్ట్ మోడల్‌లతో పాల్గొంటాయి"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) ఇప్పుడు OmniRoute యొక్క అధికారిక స్పాన్సర్",
+    "title": "Kimi (Moonshot AI) అనేది OmniRoute యొక్క వ్యవస్థాపక ఓపెన్ సోర్స్ మిత్రుడు",
     "description": "Kimi K3 చాలా తక్కువ ఖర్చుతో OmniRouteకు 1M-టోకెన్ కాంటెక్స్ట్ విండోను మరియు అత్యుత్తమ కోడింగ్ పనితీరును అందిస్తుంది.",
     "cta": "Kimi Code పొందండి",
     "partnerLinkNote": "భాగస్వామి లింక్",

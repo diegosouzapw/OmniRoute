@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Klientprofil",
     "antigravityClientProfileHint": "Välj vilken Antigravity-klientidentitet OmniRoute presenterar för API:et.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast-nivån är aktiv",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "Google Cloud Project ID",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Avancerat: peka denna inbyggda leverantör mot en anpassad slutpunkt. Lämna tomt för att använda standardvärdet.",
     "bulkAddFormatHintCloudflare": "En nyckel per rad. Format: namn|accountId|apiKey (Cloudflare-konto-ID + API-token).",
     "lmarenaWebCookieHint": "Öppna arena.ai, logga in och kopiera sedan hela Cookie-headern från en nätverksbegäran. Inkludera arena-auth-prod-v1.0 och arena-auth-prod-v1.1 (och ytterligare delar om de finns), helst med cf_clearance. Klistra inte in bara den tomma arena-auth-prod-v1-cookien. Valfritt: providerSpecificData.recaptchaV3Token om create-evaluation fortfarande returnerar 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Grundande vän",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) är OmniRoutes grundande öppen källkod-vän",
     "kimiPartnerLinkNote": "Partnerlänk — stöder OmniRoute utan extra kostnad för dig",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Inga åsidosättningar — alla aktiva leverantörer kommer att delta med sina standardmodeller"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) är nu en officiell sponsor av OmniRoute",
+    "title": "Kimi (Moonshot AI) är OmniRoutes grundande öppen källkod-vän",
     "description": "Kimi K3 ger ett kontextfönster på 1M token och ledande kodningsprestanda till OmniRoute till en bråkdel av kostnaden.",
     "cta": "Hämta Kimi Code",
     "partnerLinkNote": "Partnerlänk",

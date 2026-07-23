@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Профиль клиента",
     "antigravityClientProfileHint": "Выберите, какую идентичность клиента Antigravity OmniRoute представляет API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "CLI",
     "codexFastTierActiveChip": "Активен уровень Codex Fast",
     "tierFast": "Быстро",
     "antigravityProjectIdLabel": "Идентификатор проекта Google Cloud",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Дополнительно: укажите для этого встроенного провайдера пользовательскую конечную точку. Оставьте пустым, чтобы использовать значение по умолчанию.",
     "bulkAddFormatHintCloudflare": "Один ключ на строку. Формат: name|accountId|apiKey (Cloudflare account ID + API-токен).",
     "lmarenaWebCookieHint": "Откройте arena.ai, войдите в систему, затем скопируйте весь заголовок Cookie из сетевого запроса (Network). Включите arena-auth-prod-v1.0 и arena-auth-prod-v1.1 (и последующие части, если они есть), желательно с cf_clearance. Не вставляйте только пустой cookie arena-auth-prod-v1. Необязательно: providerSpecificData.recaptchaV3Token, если create-evaluation по-прежнему возвращает 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Друг-основатель",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) — друг-основатель открытого кода OmniRoute",
     "kimiPartnerLinkNote": "Партнерская ссылка — поддерживает OmniRoute без дополнительных затрат с вашей стороны",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Без переопределений — все активные провайдеры будут участвовать со своими моделями по умолчанию"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) теперь является официальным спонсором OmniRoute",
+    "title": "Kimi (Moonshot AI) — друг-основатель открытого кода OmniRoute",
     "description": "Kimi K3 предлагает контекстное окно в 1M токенов и передовую производительность кодирования в OmniRoute за долю стоимости.",
     "cta": "Получить Kimi Code",
     "partnerLinkNote": "Партнерская ссылка",

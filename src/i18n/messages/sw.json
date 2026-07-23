@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Wasifu wa mteja",
     "antigravityClientProfileHint": "Chagua utambulisho gani wa mteja wa Antigravity ambao OmniRoute inawasilisha kwa API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Kiwango cha Codex Fast kiko hai",
     "tierFast": "Haraka",
     "antigravityProjectIdLabel": "Kitambulisho cha Mradi wa Wingu la Google",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Ya hali ya juu: elekeza mtoa huduma huyu aliyejengewa ndani kwenye endpoint maalum. Acha wazi ili kutumia chaguomsingi.",
     "bulkAddFormatHintCloudflare": "Ufunguo mmoja kwa kila mstari. Umbizo: name|accountId|apiKey (Kitambulisho cha akaunti ya Cloudflare + tokeni ya API).",
     "lmarenaWebCookieHint": "Fungua arena.ai, ingia, kisha nakili kichwa kizima cha Cookie kutoka kwa ombi la Network. Jumuisha arena-auth-prod-v1.0 na arena-auth-prod-v1.1 (na vipande zaidi vikiwepo), ikiwezekana pamoja na cf_clearance. Usibandike tu kuki tupu ya arena-auth-prod-v1. Ya hiari: providerSpecificData.recaptchaV3Token ikiwa create-evaluation bado inarudisha 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Rafiki Mwanzilishi",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) ni rafiki mwanzilishi wa chanzo huria wa OmniRoute",
     "kimiPartnerLinkNote": "Kiungo cha mshirika — kinaunga mkono OmniRoute bila gharama ya ziada kwako",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Hakuna ubatilishaji — watoa huduma wote wanaotumika watashiriki na miundo yao chaguomsingi"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) sasa ni mdhamini rasmi wa OmniRoute",
+    "title": "Kimi (Moonshot AI) ni rafiki mwanzilishi wa chanzo huria wa OmniRoute",
     "description": "Kimi K3 inaleta dirisha la muktadha la tokeni 1M na utendaji wa kiwango cha juu wa uandishi wa nambari kwenye OmniRoute kwa gharama nafuu sana.",
     "cta": "Pata Kimi Code",
     "partnerLinkNote": "Kiungo cha mshirika",

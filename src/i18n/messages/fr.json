@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Profil client",
     "antigravityClientProfileHint": "Choisissez l'identité de client Antigravity qu'OmniRoute présente à l'API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Le niveau Codex Fast est actif",
     "tierFast": "Rapide",
     "antigravityProjectIdLabel": "ID du projet Google Cloud",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Avancé : pointer ce fournisseur intégré vers un endpoint personnalisé. Laisser vide pour utiliser la valeur par défaut.",
     "bulkAddFormatHintCloudflare": "Une clé par ligne. Format : name|accountId|apiKey (ID de compte Cloudflare + jeton d'API).",
     "lmarenaWebCookieHint": "Ouvrez arena.ai, connectez-vous, puis copiez l'en-tête Cookie complet depuis une requête Réseau. Incluez arena-auth-prod-v1.0 et arena-auth-prod-v1.1 (et les fragments suivants s'ils sont présents), de préférence avec cf_clearance. Ne collez pas uniquement le cookie arena-auth-prod-v1 vide. Facultatif : providerSpecificData.recaptchaV3Token si create-evaluation renvoie toujours 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Ami fondateur",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) est l'ami open source fondateur d'OmniRoute",
     "kimiPartnerLinkNote": "Lien partenaire — soutient OmniRoute sans frais supplémentaires pour vous",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Aucune surcharge — tous les fournisseurs actifs participeront avec leurs modèles par défaut"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) est désormais un sponsor officiel d'OmniRoute",
+    "title": "Kimi (Moonshot AI) est l'ami open source fondateur d'OmniRoute",
     "description": "Kimi K3 apporte une fenêtre de contexte de 1M de tokens et des performances de codage de pointe à OmniRoute pour une fraction du coût.",
     "cta": "Obtenir Kimi Code",
     "partnerLinkNote": "Lien partenaire",

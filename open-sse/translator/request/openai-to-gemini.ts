@@ -69,7 +69,7 @@ type GeminiRequest = {
   contents?: GeminiContent[];
   [key: string]: unknown;
   generationConfig: GeminiGenerationConfig;
-  safetySettings: unknown;
+  safetySettings?: unknown;
   systemInstruction?: GeminiContent;
   tools?: Array<{
     functionDeclarations?: GeminiFunctionDeclaration[];
@@ -83,7 +83,7 @@ type CloudCodeEnvelope = {
   project: string;
   model?: string;
   user_prompt_id?: string;
-  userAgent?: "antigravity" | "jetski" | string;
+  userAgent?: string;
   requestId?: string;
   requestType?: string;
   enabledCreditTypes?: string[];
@@ -611,12 +611,20 @@ export function openaiToCloudCodeGeminiRequest(
     signaturelessToolCallMode?: "native" | "text" | "context";
   } = {}
 ) {
-  return openaiToGeminiBase(model, body, stream, {
+  const request = openaiToGeminiBase(model, body, stream, {
     stripNamespace: true,
     signatureNamespace: options.signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
     supportsSignatureBypass: true,
   });
+
+  // Standard Gemini requests retain the historical all-OFF defaults, but Cloud Code
+  // must receive safety policy only when the caller explicitly supplied it.
+  if (!Object.prototype.hasOwnProperty.call(body, "safetySettings")) {
+    delete request.safetySettings;
+  }
+
+  return request;
 }
 
 function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
@@ -654,7 +662,6 @@ function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
     model: cleanModel,
     userAgent: getAntigravityEnvelopeUserAgent(credentials),
     requestType: "agent",
-    enabledCreditTypes: ["GOOGLE_ONE_AI"],
   };
   if (cloudCodeRequest._toolNameMap instanceof Map && cloudCodeRequest._toolNameMap.size > 0) {
     envelope._toolNameMap = cloudCodeRequest._toolNameMap;

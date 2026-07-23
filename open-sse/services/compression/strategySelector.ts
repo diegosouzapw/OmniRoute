@@ -736,7 +736,13 @@ function buildStepOptions(
   step: CompressionPipelineStep,
   options?: StackOptions
 ): CompressionEngineApplyOptions {
+  // Headroom detail (minRows) lives on settings.headroom, not only on step.config.
+  // Merge it so the stacked runner honors the dashboard value (#8056). Explicit
+  // step.config still wins so combo pipelines can override per step.
+  const headroomDetail =
+    step.engine === "headroom" ? (options?.config?.headroom ?? {}) : {};
   const stepConfig: Record<string, unknown> = {
+    ...headroomDetail,
     ...(step.config ?? {}),
     ...(step.intensity ? { intensity: step.intensity } : {}),
   };

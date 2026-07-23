@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Profil klien",
     "antigravityClientProfileHint": "Pilih identitas klien Antigravity mana yang disajikan OmniRoute ke API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Tingkat Codex Fast aktif",
     "tierFast": "Cepat",
     "antigravityProjectIdLabel": "ID Proyek Google Cloud",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "Lanjutan: arahkan penyedia bawaan ini ke endpoint kustom. Biarkan kosong untuk menggunakan default.",
     "bulkAddFormatHintCloudflare": "Satu kunci per baris. Format: name|accountId|apiKey (ID akun Cloudflare + token API).",
     "lmarenaWebCookieHint": "Buka arena.ai, masuk, lalu salin header Cookie lengkap dari permintaan Network. Sertakan arena-auth-prod-v1.0 dan arena-auth-prod-v1.1 (dan chunk selanjutnya jika ada), sebaiknya dengan cf_clearance. Jangan hanya menempelkan cookie arena-auth-prod-v1 yang kosong. Opsional: providerSpecificData.recaptchaV3Token jika create-evaluation masih mengembalikan 403.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "Sahabat Pendiri",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) adalah sahabat open source pendiri OmniRoute",
     "kimiPartnerLinkNote": "Tautan mitra — mendukung OmniRoute tanpa biaya tambahan bagi Anda",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "Tidak ada override — semua penyedia aktif akan berpartisipasi dengan model default mereka"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) kini menjadi sponsor resmi OmniRoute",
+    "title": "Kimi (Moonshot AI) adalah sahabat open source pendiri OmniRoute",
     "description": "Kimi K3 menghadirkan konteks window 1M-token dan performa coding mutakhir ke OmniRoute dengan biaya yang jauh lebih murah.",
     "cta": "Dapatkan Kimi Code",
     "partnerLinkNote": "Tautan mitra",

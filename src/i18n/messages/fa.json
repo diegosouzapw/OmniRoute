@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "پروفایل کلاینت",
     "antigravityClientProfileHint": "انتخاب کنید که OmniRoute کدام هویت کلاینت Antigravity را به API ارائه دهد.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "سطح Codex Fast فعال است",
     "tierFast": "سریع",
     "antigravityProjectIdLabel": "شناسه پروژه Google Cloud",
@@ -5945,8 +5945,8 @@
     "overrideBaseUrlHint": "پیشرفته: هدایت این ارائه‌دهنده داخلی به یک نقطه پایانی سفارشی. برای استفاده از پیش‌فرض خالی بگذارید.",
     "bulkAddFormatHintCloudflare": "یک کلید در هر خط. فرمت: name|accountId|apiKey (شناسه حساب Cloudflare + توکن API).",
     "lmarenaWebCookieHint": "سایت arena.ai را باز کنید، وارد شوید، سپس هدر کامل Cookie را از یک درخواست Network کپی کنید. شامل arena-auth-prod-v1.0 و arena-auth-prod-v1.1 (و بخش‌های بعدی در صورت وجود)، ترجیحاً همراه با cf_clearance. فقط کوکی خالی arena-auth-prod-v1 را جای‌گذاری نکنید. اختیاری: providerSpecificData.recaptchaV3Token اگر create-evaluation همچنان خطای 403 برمی‌گرداند.",
-    "kimiOfficialSupporterBadge": "Official Supporter",
-    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is an official OmniRoute launch partner",
+    "kimiOfficialSupporterBadge": "دوست بنیان‌گذار",
+    "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) دوست بنیان‌گذار متن‌باز OmniRoute است",
     "kimiPartnerLinkNote": "لینک همکاری — پشتیبانی از OmniRoute بدون هزینه اضافی برای شما",
     "accountSearchPlaceholder": "Search accounts…"
   },
@@ -12094,7 +12094,7 @@
     "noProviderOverrides": "بدون جایگزینی — همه ارائه‌دهندگان فعال با مدل‌های پیش‌فرض خود مشارکت خواهند کرد"
   },
   "kimiSponsorBanner": {
-    "title": "Kimi (Moonshot AI) اکنون حامی رسمی OmniRoute است",
+    "title": "Kimi (Moonshot AI) دوست بنیان‌گذار متن‌باز OmniRoute است",
     "description": "مدل Kimi K3 پنجره زمینه 1M-token و عملکرد برنامه‌نویسی پیشرو را با کسری از هزینه به OmniRoute می‌آورد.",
     "cta": "دریافت Kimi Code",
     "partnerLinkNote": "لینک همکاری",
