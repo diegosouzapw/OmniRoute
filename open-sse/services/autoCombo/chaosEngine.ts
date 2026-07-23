@@ -148,7 +148,7 @@ function dispatchOnePanelModel(opts: {
   body: Body;
   model: string;
   index: number;
-  handleSingleModel: (body: Body, model: string, target?: ChaosTarget) => Promise<Response>;
+  handleSingleModel: HandleSingleModel;
   ctrl: AbortController;
   hardTimeout: number;
   log?: { info?: (...a: unknown[]) => void; warn?: (...a: unknown[]) => void };
