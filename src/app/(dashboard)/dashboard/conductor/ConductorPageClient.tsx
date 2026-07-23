@@ -11,6 +11,8 @@ import { useTranslations } from "next-intl";
 
 import { Badge, Card, ConfirmModal, DataTable, EmptyState, Modal } from "@/shared/components";
 
+import FaroChat from "./FaroChat";
+
 interface FleetRunner {
   id: string;
   name: string;
@@ -173,6 +175,8 @@ export default function ConductorPageClient() {
           </Card>
         </>
       )}
+
+      <FaroChat />
 
       <Modal isOpen={detail !== null} onClose={() => setDetail(null)} title={t("detailTitle")} size="lg">
         {detail && (
