@@ -573,7 +573,11 @@ export function recordModelLockoutFailure(
   status: number,
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null,
-  options: { exactCooldownMs?: number | null; maxCooldownMs?: number } = {}
+  options: {
+    exactCooldownMs?: number | null;
+    maxCooldownMs?: number;
+    exactCooldownIsUpstreamReset?: boolean;
+  } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model, reason, status);
@@ -596,15 +600,18 @@ export function recordModelLockoutFailure(
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
 
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  // Cap both exponential backoff and exact cooldowns (e.g. daily-quota
-  // until-midnight) against maxCooldownMs so user-configured caps are honored.
+  // Cap both exponential backoff and computed exact cooldowns (e.g. daily-quota
+  // until-midnight, #7940/#7980) against maxCooldownMs so user-configured caps are
+  // honored — EXCEPT an authoritative parsed upstream reset (#6863, e.g. Antigravity
+  // "Resets in 92h27m28s"), which the upstream told us to wait and must be honored
+  // exactly, never clamped down to maxCooldownMs.
   const maxCooldownMs =
     typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
       ? options.maxCooldownMs
       : null;
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? maxCooldownMs !== null
+      ? maxCooldownMs !== null && !options.exactCooldownIsUpstreamReset
         ? Math.min(options.exactCooldownMs, maxCooldownMs)
         : options.exactCooldownMs
       : Math.min(
