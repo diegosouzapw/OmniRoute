@@ -333,7 +333,9 @@ export function createStreamController({
               statusCode: getErrorStatusCode(error),
               duration: Date.now() - startTime,
             }) === true;
-        } catch {}
+        } catch (e) {
+          console.debug(`[STREAM-HANDLER] onError callback error:`, e);
+        }
       }
 
       if (!handled) {
@@ -532,7 +534,9 @@ export function createDisconnectAwareStream(transformStream, streamController) {
             }
             try {
               controller.close();
-            } catch {}
+            } catch {
+              // Expected: downstream may have already closed
+            }
             return;
           }
           controller.enqueue(value);
@@ -541,7 +545,9 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           if (!streamController.isConnected()) {
             try {
               controller.close();
-            } catch {}
+            } catch {
+              // Expected: downstream may have already closed
+            }
             return;
           }
 
@@ -549,7 +555,9 @@ export function createDisconnectAwareStream(transformStream, streamController) {
             streamController.handleComplete();
             try {
               controller.close();
-            } catch {}
+            } catch {
+              // Expected: downstream may have already closed
+            }
             return;
           }
 
@@ -656,17 +664,23 @@ export function pipeWithDisconnect(
       // Notify the controller (onError callback + pending-request cleanup).
       try {
         streamController.handleError?.(stallError);
-      } catch {}
+      } catch (e) {
+        console.debug(`[STREAM-HANDLER] stall watchdog handleError failed:`, e);
+      }
       // Error the pipeline so the downstream reader unblocks. createDisconnect-
       // AwareStream's catch block translates this into buildStreamErrorChunks
       // (sanitized SSE error event with finish_reason:"error", per the format).
       try {
         upstreamTapController?.error(stallError);
-      } catch {}
+      } catch (e) {
+        console.debug(`[STREAM-HANDLER] stall watchdog upstream tap error failed:`, e);
+      }
       // Abort the underlying fetch so upstream releases the connection.
       try {
         streamController.abort?.();
-      } catch {}
+      } catch (e) {
+        console.debug(`[STREAM-HANDLER] stall watchdog abort failed:`, e);
+      }
     }, stallTimeoutMs);
   };
 

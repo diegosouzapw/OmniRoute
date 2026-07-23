@@ -1041,7 +1041,9 @@ async function buildUnifiedModelsResponseCore(
     // Add embedding models (filtered by active providers)
     for (const embModel of getAllEmbeddingModels()) {
       if (!isProviderActive(embModel.provider)) continue;
-      const rawModelId = embModel.id.split("/").pop() || embModel.id;
+      const rawModelId = embModel.id.startsWith(`${embModel.provider}/`)
+        ? embModel.id.slice(embModel.provider.length + 1)
+        : embModel.id;
       if (!providerSupportsModel(embModel.provider, rawModelId)) continue;
       if (getModelIsHidden(embModel.provider, rawModelId)) continue;
       if (hasEquivalentSpecialtyModel(embModel.provider, rawModelId, "embedding", embModel.id)) {
