@@ -16,6 +16,7 @@ import {
   capThinkingBudget,
   getDefaultThinkingBudget,
 } from "../../../src/lib/modelCapabilities.ts";
+import { getModelSpec } from "../../../src/shared/constants/modelSpecs.ts";
 
 import {
   DEFAULT_SAFETY_SETTINGS,
@@ -245,19 +246,25 @@ function openaiToGeminiBase(
       const highBudget = capThinkingBudget(model, 32768);
       const budgetMap: Record<string, number> = {
         none: 0,
-        low: 1024,
-        medium: getDefaultThinkingBudget(model) || 8192,
+        low: capThinkingBudget(model, 1024),
+        medium: capThinkingBudget(model, getDefaultThinkingBudget(model) || 8192),
         high: highBudget,
         auto: highBudget,
         max: highBudget,
         xhigh: highBudget,
       };
       const budget =
-        budgetMap[body.reasoning_effort as string] ?? getDefaultThinkingBudget(model) ?? 8192;
-      result.generationConfig.thinkingConfig = {
-        thinkingBudget: budget,
-        includeThoughts: budget !== 0,
-      };
+        budgetMap[body.reasoning_effort as string] ??
+        capThinkingBudget(model, getDefaultThinkingBudget(model) ?? 8192);
+      // Only send thinkingConfig if the model supports thinking via budget.
+      // Models with thinkingBudgetCap:0 (e.g. gemini-3-flash) reject
+      // thinkingConfig even for effort-based paths.
+      if (getModelSpec(model)?.thinkingBudgetCap !== 0) {
+        result.generationConfig.thinkingConfig = {
+          thinkingBudget: budget,
+          includeThoughts: budget !== 0,
+        };
+      }
     }
     // 2. Claude format: thinking (type: enabled, budget_tokens)
     // Use an explicit numeric check (not truthy) so an explicit `budget_tokens: 0` — the
@@ -266,10 +273,22 @@ function openaiToGeminiBase(
     // yields no thoughts, so includeThoughts is only set for a non-zero budget.
     const thinking = body.thinking as { type?: string; budget_tokens?: number } | undefined;
     if (thinking?.type === "enabled" && typeof thinking.budget_tokens === "number") {
-      result.generationConfig.thinkingConfig = {
-        thinkingBudget: thinking.budget_tokens,
-        includeThoughts: thinking.budget_tokens !== 0,
-      };
+      // typeof check ensures only numeric budget_tokens triggers thinking path;
+      // non-numeric values (e.g. string "auto") fall through to the effort-based path.
+      const cappedBudget = capThinkingBudget(model, thinking.budget_tokens);
+      // Only send thinkingConfig if the model supports thinking via budget.
+      // Models with thinkingBudgetCap:0 (e.g. gemini-3-flash) reject
+      // thinkingConfig even when capped to 0. The supportsThinking flag
+      // tracks thinkingLevel support, not thinkingBudget; use thinkingBudgetCap
+      // as the reliable indicator (gemini-2.5-flash has supportsThinking:false
+      // but thinkingBudgetCap:24576, meaning it supports thinking via budget).
+      // Models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.
+      if (cappedBudget > 0 || getModelSpec(model)?.thinkingBudgetCap !== 0) {
+        result.generationConfig.thinkingConfig = {
+          thinkingBudget: cappedBudget,
+          includeThoughts: cappedBudget !== 0,
+        };
+      }
     }
   }
 
@@ -286,7 +305,14 @@ function openaiToGeminiBase(
     if (
       modelLower.includes("gemini") &&
       !modelLower.includes("gemini-1") &&
-      (!modelLower.includes("gemini-2.0") || modelLower.includes("thinking"))
+      (!modelLower.includes("gemini-2.0") || modelLower.includes("thinking")) &&
+      // Skip thinkingConfig for models that don't support thinking via budget.
+      // Models with thinkingBudgetCap:0 (e.g. gemini-3-flash) reject
+      // thinkingConfig. Use thinkingBudgetCap (not supportsThinking) as the
+      // reliable indicator; gemini-2.5-flash has supportsThinking:false but
+      // thinkingBudgetCap:24576, meaning it supports thinking via budget.
+      // Models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.
+      getModelSpec(model)?.thinkingBudgetCap !== 0
     ) {
       result.generationConfig.thinkingConfig = {
         thinkingBudget: getDefaultThinkingBudget(model) || capThinkingBudget(model, 24576),

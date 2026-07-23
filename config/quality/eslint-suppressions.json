@@ -2277,7 +2277,7 @@
   },
   "tests/unit/translator-claude-to-gemini.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 14
+      "count": 17
     }
   },
   "tests/unit/translator-claude-to-openai.test.ts": {
@@ -2297,7 +2297,7 @@
   },
   "tests/unit/translator-openai-to-gemini.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 68
+      "count": 74
     }
   },
   "tests/unit/translator-openai-to-kiro.test.ts": {
