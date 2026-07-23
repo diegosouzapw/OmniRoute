@@ -197,6 +197,15 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       subtitleFallback: "Live engine cascade",
       icon: "monitoring",
     },
+    {
+      id: "compression-exclusions",
+      href: "/dashboard/compression/exclusions",
+      i18nKey: "compressionExclusions",
+      labelFallback: "Exclusions",
+      subtitleKey: "compressionExclusionsSubtitle",
+      subtitleFallback: "Per-model/endpoint bypass",
+      icon: "block",
+    },
   ],
 };
 

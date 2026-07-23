@@ -168,6 +168,9 @@ const ESM_WRITE_SHELL_STDIN_ARGS = 23;
 const ARG_PATH = 1; // ReadArgs.path / WriteArgs.path / DeleteArgs.path / LsArgs.path
 const ARG_SHELL_COMMAND = 1; // ShellArgs.command
 const ARG_SHELL_WORKING_DIR = 2; // ShellArgs.working_directory
+const ARG_SHELL_TIMEOUT = 3; // ShellArgs.timeout
+const ARG_SHELL_IS_BACKGROUND = 11; // ShellArgs.is_background
+const ARG_SHELL_HARD_TIMEOUT = 14; // ShellArgs.hard_timeout
 const ARG_FETCH_URL = 1; // FetchArgs.url
 
 // KvServerMessage / KvClientMessage
@@ -764,6 +767,9 @@ export type ExecServerEvent =
       execId: string;
       command: string;
       workingDir: string;
+      timeout: number;
+      isBackground: boolean;
+      hardTimeout: number;
     }
   | {
       kind: "exec_shell_stream";
@@ -771,6 +777,9 @@ export type ExecServerEvent =
       execId: string;
       command: string;
       workingDir: string;
+      timeout: number;
+      isBackground: boolean;
+      hardTimeout: number;
     }
   | {
       kind: "exec_bg_shell";
@@ -778,6 +787,9 @@ export type ExecServerEvent =
       execId: string;
       command: string;
       workingDir: string;
+      timeout: number;
+      isBackground: boolean;
+      hardTimeout: number;
     }
   | { kind: "exec_fetch"; execMsgId: number; execId: string; url: string }
   | { kind: "exec_write_shell_stdin"; execMsgId: number; execId: string }
@@ -790,6 +802,34 @@ export type ExecServerEvent =
       // args populated by Phase 5 (decodeMcpArgs); empty {} until then.
       args: Record<string, unknown>;
     };
+
+type DecodedShellArgs = {
+  command: string;
+  workingDir: string;
+  timeout: number;
+  isBackground: boolean;
+  hardTimeout: number;
+};
+
+function decodeShellArgs(payload: Buffer): DecodedShellArgs {
+  const decoded: DecodedShellArgs = {
+    command: decodeStringField(payload, ARG_SHELL_COMMAND),
+    workingDir: decodeStringField(payload, ARG_SHELL_WORKING_DIR),
+    timeout: 0,
+    isBackground: false,
+    hardTimeout: 0,
+  };
+  for (const field of decodeFields(payload)) {
+    if (field.wireType !== 0) continue;
+    if (field.fieldNumber === ARG_SHELL_TIMEOUT) decoded.timeout = Number(field.varint);
+    else if (field.fieldNumber === ARG_SHELL_IS_BACKGROUND) {
+      decoded.isBackground = field.varint !== 0n;
+    } else if (field.fieldNumber === ARG_SHELL_HARD_TIMEOUT) {
+      decoded.hardTimeout = Number(field.varint);
+    }
+  }
+  return decoded;
+}
 
 export function decodeExecServerEvent(payload: Buffer): ExecServerEvent | null {
   for (const top of decodeFields(payload)) {
@@ -852,30 +892,33 @@ export function decodeExecServerEvent(payload: Buffer): ExecServerEvent | null {
         return { kind: "exec_grep", execMsgId, execId };
       case ESM_DIAGNOSTICS_ARGS:
         return { kind: "exec_diagnostics", execMsgId, execId };
-      case ESM_SHELL_ARGS:
+      case ESM_SHELL_ARGS: {
+        const shell = decodeShellArgs(variantBytes);
         return {
           kind: "exec_shell",
           execMsgId,
           execId,
-          command: decodeStringField(variantBytes, ARG_SHELL_COMMAND),
-          workingDir: decodeStringField(variantBytes, ARG_SHELL_WORKING_DIR),
+          ...shell,
         };
-      case ESM_SHELL_STREAM_ARGS:
+      }
+      case ESM_SHELL_STREAM_ARGS: {
+        const shell = decodeShellArgs(variantBytes);
         return {
           kind: "exec_shell_stream",
           execMsgId,
           execId,
-          command: decodeStringField(variantBytes, ARG_SHELL_COMMAND),
-          workingDir: decodeStringField(variantBytes, ARG_SHELL_WORKING_DIR),
+          ...shell,
         };
-      case ESM_BACKGROUND_SHELL_SPAWN:
+      }
+      case ESM_BACKGROUND_SHELL_SPAWN: {
+        const shell = decodeShellArgs(variantBytes);
         return {
           kind: "exec_bg_shell",
           execMsgId,
           execId,
-          command: decodeStringField(variantBytes, ARG_SHELL_COMMAND),
-          workingDir: decodeStringField(variantBytes, ARG_SHELL_WORKING_DIR),
+          ...shell,
         };
+      }
       case ESM_FETCH_ARGS:
         return {
           kind: "exec_fetch",

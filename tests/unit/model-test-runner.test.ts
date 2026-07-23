@@ -225,3 +225,22 @@ test("runSingleModelTest preserves slow timeout after chatCore converts AbortErr
     globalThis.fetch = originalFetch;
   }
 });
+
+test("resolveModelTestTimeoutMs defaults ordinary model checks to 30 seconds", () => {
+  assert.equal(resolveModelTestTimeoutMs("github-models", "openai/gpt-4.1"), 30_000);
+});
+
+test("resolveModelTestTimeoutMs gives GitHub Phi-4 Reasoning up to 60 seconds", () => {
+  assert.equal(
+    resolveModelTestTimeoutMs("github-models", "microsoft/phi-4-reasoning", 30_000),
+    60_000
+  );
+  assert.equal(
+    resolveModelTestTimeoutMs("github-models", "github-models/microsoft/phi-4-reasoning", 30_000),
+    60_000
+  );
+  assert.equal(
+    resolveModelTestTimeoutMs("github-models", "microsoft/phi-4-reasoning", 90_000),
+    90_000
+  );
+});

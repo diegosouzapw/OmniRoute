@@ -1,0 +1,1 @@
+- feat(providers): native Fish Audio TTS provider on /v1/audio/speech (#8099)

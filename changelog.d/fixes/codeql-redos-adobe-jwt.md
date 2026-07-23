@@ -1,0 +1,1 @@
+- fix(security): bound JWT-extraction regexes in adobeFireflyClient to prevent polynomial ReDoS (CodeQL #754/#755/#756)

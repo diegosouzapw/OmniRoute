@@ -250,6 +250,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
     passthroughModels: true,
     authHint: "Get API key at liquid.ai",
   },
+<<<<<<< HEAD
   inception: {
     id: "inception",
     alias: "inception",
@@ -262,5 +263,18 @@ export const APIKEY_PROVIDERS_FRONTIER = {
       "Inception Labs is OpenAI-compatible at https://api.inceptionlabs.ai/v1. mercury-2 is the first diffusion LLM (dLLM) in the catalog — 5-10x faster generation than comparable autoregressive models, with tool calling, json_mode, and structured outputs.",
     hasFree: true,
     freeNote: "10M free tokens on signup, no credit card required.",
+=======
+  writer: {
+    id: "writer",
+    alias: "writer",
+    name: "Writer",
+    icon: "auto_awesome",
+    color: "#111827",
+    textIcon: "WR",
+    website: "https://dev.writer.com",
+    apiHint:
+      "Writer Palmyra is OpenAI-compatible at https://api.writer.com/v1. palmyra-x5 offers a 1M-token context window.",
+    hasFree: false,
+>>>>>>> origin/release/v3.8.49
   },
 };
