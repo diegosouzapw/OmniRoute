@@ -979,7 +979,9 @@ export function createSSEStream(options: StreamOptions = {}) {
     if (onFailure) {
       try {
         failureHandled = onFailure({ status: 502, message: msg, code: "empty_response" }) === true;
-      } catch {}
+      } catch (e) {
+        console.debug(`[STREAM] onFailure callback error (empty_response):`, e);
+      }
     }
     if (decrementPendingRequest && !failureHandled) {
       clearPendingRequestFromStream();
@@ -1162,7 +1164,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                       code: "stream_idle_timeout",
                       type: "timeout_error",
                     }) === true;
-                } catch {}
+                } catch (e) {
+                  console.debug(`[STREAM] onFailure callback error (idle_timeout):`, e);
+                }
               }
               if (!failureHandled) {
                 clearPendingRequestFromStream();
@@ -2513,7 +2517,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     includeEvents: false,
                   }),
                 });
-              } catch {}
+              } catch (e) {
+                console.debug(`[STREAM] onComplete callback error (${model || "unknown"}):`, e);
+              }
             } else {
               clearPendingRequestFromStream();
             }
@@ -2598,7 +2604,9 @@ export function createSSEStream(options: StreamOptions = {}) {
                     code: err.code,
                     type: err.type,
                   }) === true;
-              } catch {}
+              } catch (e) {
+                console.debug(`[STREAM] onFailure callback error (${model || "unknown"}):`, e);
+              }
             }
 
             const errorBody = buildErrorBody(err.status, err.message);
@@ -2623,7 +2631,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                   }),
                 });
                 failureHandled = true;
-              } catch {}
+              } catch (e) {
+                console.debug(
+                  `[STREAM] onComplete callback error in error path (${model || "unknown"}):`,
+                  e
+                );
+              }
             }
 
             clearIdleTimer();
@@ -2779,7 +2792,12 @@ export function createSSEStream(options: StreamOptions = {}) {
                   includeEvents: false,
                 }),
               });
-            } catch {}
+            } catch (e) {
+              console.debug(
+                `[STREAM] onComplete callback error in flush (${model || "unknown"}):`,
+                e
+              );
+            }
           } else {
             clearPendingRequestFromStream();
           }

@@ -16,6 +16,11 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   // leaving it in function_declarations triggers a hard upstream 400
   // ("Unknown name \"multipleOf\""). `minimum`/`maximum` ARE accepted and kept.
   "multipleOf",
+  // OpenAI "strict" tool-calling mode embeds `strict: true/false` directly inside
+  // a function's `parameters` schema (RubyLLM and other OpenAI-convention clients
+  // do this by default). Gemini's function_declarations schema doesn't recognize
+  // it and 400s the same way ("Unknown name \"strict\" ... Cannot find field").
+  "strict",
   // NOTE: `pattern` is intentionally NOT in this set. Antigravity (Gemini-derived
   // surface) accepts `pattern` on string constraints, and glob/grep/file-search
   // tools depend on it to express their argument regex. Removing it produced

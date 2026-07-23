@@ -80,20 +80,29 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
       resetTimeoutMs: PROVIDER_PROFILES.apikey.circuitBreakerReset,
     },
   },
+  // Wait at most 90s for a single connection cooldown (covers Gemini-class
+  // TPM/RPM windows, which report ~60s retry-after live), at most 5 retry
+  // cycles, never more than 300s (5 min) total (#7360 follow-up — raised now
+  // that withEarlyStreamKeepalive gives streaming clients an immediate
+  // synthetic keep-alive, eliminating the client-side first-byte-timeout risk
+  // a long wait used to carry). Applies to direct (non-combo) model requests.
   waitForCooldown: {
     enabled: true,
-    maxRetries: 3,
-    maxRetryWaitSec: 30,
-    maxRetryWaitMs: 30000,
+    maxRetries: 5,
+    maxRetryWaitSec: 90,
+    maxRetryWaitMs: 90000,
+    budgetMs: 300000,
   },
-  // Conservative defaults: wait at most 5s for a single short transient
-  // cooldown, at most 2 redispatch cycles, never more than 8s total. Active only
-  // for quota-share combos and only for transient (non quota_exhausted) reasons.
+  // Wait at most 90s for a single short transient cooldown (covers Gemini-class
+  // TPM/RPM windows, which report ~60s retry-after live — #7360), at most 5
+  // redispatch cycles, never more than 300s (5 min) total. Active for
+  // quota-share and auto combos, and only for transient (non quota_exhausted)
+  // reasons.
   comboCooldownWait: {
     enabled: true,
-    maxWaitMs: 5000,
-    maxAttempts: 2,
-    budgetMs: 8000,
+    maxWaitMs: 90000,
+    maxAttempts: 5,
+    budgetMs: 300000,
   },
   // FASE 2.1: serialize concurrent quota-share requests per connection when the
   // connection sets a max_concurrent cap, so a subscription account is not
@@ -233,6 +242,10 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
       maxRetries: waitMaxRetries,
       maxRetryWaitSec: waitMaxRetrySec,
       maxRetryWaitMs: waitMaxRetrySec * 1000,
+      budgetMs: Math.max(
+        waitMaxRetrySec * 1000,
+        DEFAULT_RESILIENCE_SETTINGS.waitForCooldown.budgetMs
+      ),
     },
     comboCooldownWait: DEFAULT_RESILIENCE_SETTINGS.comboCooldownWait,
     quotaShareConcurrencyLimit: DEFAULT_RESILIENCE_SETTINGS.quotaShareConcurrencyLimit,

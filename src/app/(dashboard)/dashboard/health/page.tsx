@@ -72,6 +72,8 @@ export default function HealthPage() {
   const [degradation, setDegradation] = useState(null);
   const [resetting, setResetting] = useState(false);
   const [repairingDb, setRepairingDb] = useState(false);
+  const [unblocking, setUnblocking] = useState(false);
+  const [unblockingKey, setUnblockingKey] = useState<string | null>(null);
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -142,6 +144,41 @@ export default function HealthPage() {
       console.error("Failed to reset health:", err);
     } finally {
       setResetting(false);
+    }
+  };
+
+  const handleUnblockAll = async () => {
+    setUnblocking(true);
+    try {
+      const res = await fetch("/api/resilience/model-cooldowns", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ all: true }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await fetchHealth();
+    } catch (err) {
+      console.error("Failed to unblock all models:", err);
+    } finally {
+      setUnblocking(false);
+    }
+  };
+
+  const handleUnblockOne = async (provider: string, model: string) => {
+    const key = `${provider}::${model}`;
+    setUnblockingKey(key);
+    try {
+      const res = await fetch("/api/resilience/model-cooldowns", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, model }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await fetchHealth();
+    } catch (err) {
+      console.error(`Failed to unblock ${provider}/${model}:`, err);
+    } finally {
+      setUnblockingKey(null);
     }
   };
 
@@ -1063,29 +1100,62 @@ export default function HealthPage() {
       {/* Active Lockouts */}
       {lockoutEntries.length > 0 && (
         <Card className="p-5">
-          <h2 className="text-lg font-semibold text-text-main mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[20px] text-red-500">lock</span>
-            {t("activeLockouts")}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-red-500">lock</span>
+              {t("activeLockouts")}
+            </h2>
+            <button
+              onClick={handleUnblockAll}
+              disabled={unblocking}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg
+                bg-amber-500/10 border border-amber-500/30 text-amber-600
+                hover:bg-amber-500/15 hover:border-amber-500/50
+                dark:text-amber-400 transition-all duration-200
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-[16px]">lock_open</span>
+              {unblocking ? "Unblocking..." : "Unblock all"}
+            </button>
+          </div>
           <div className="space-y-2">
-            {lockoutEntries.map(([key, lockout]: [string, any]) => (
-              <div
-                key={key}
-                className="rounded-lg p-3 bg-red-500/5 border border-red-500/10 flex items-center justify-between"
-              >
-                <div>
-                  <span className="text-sm font-medium text-text-main">{key}</span>
-                  {lockout.reason && (
-                    <span className="text-xs text-text-muted ml-2">({lockout.reason})</span>
-                  )}
+            {lockoutEntries.map(([key, lockout]: [string, any]) => {
+              const lockProvider = lockout.provider as string;
+              const lockModel = lockout.model as string;
+              const lockKey = `${lockProvider}::${lockModel}`;
+              return (
+                <div
+                  key={key}
+                  className="rounded-lg p-3 bg-red-500/5 border border-red-500/10 flex items-center justify-between"
+                >
+                  <div className="min-w-0">
+                    <span className="text-sm font-medium text-text-main">
+                      {lockProvider}/{lockModel}
+                    </span>
+                    {lockout.reason && (
+                      <span className="text-xs text-text-muted ml-2">({lockout.reason})</span>
+                    )}
+                    {lockout.until && (
+                      <span className="text-xs text-red-400 ml-2">
+                        until {new Date(lockout.until).toLocaleTimeString()}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleUnblockOne(lockProvider, lockModel)}
+                    disabled={unblockingKey === lockKey}
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg
+                      bg-amber-500/10 border border-amber-500/20 text-amber-600
+                      hover:bg-amber-500/15 hover:border-amber-500/40
+                      dark:text-amber-400 transition-all duration-200
+                      disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">lock_open</span>
+                    {unblockingKey === lockKey ? "..." : "Unblock"}
+                  </button>
                 </div>
-                {lockout.until && (
-                  <span className="text-xs text-red-400">
-                    {t("until", { time: new Date(lockout.until).toLocaleTimeString() })}
-                  </span>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       )}

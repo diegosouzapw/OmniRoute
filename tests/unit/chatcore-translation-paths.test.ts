@@ -2389,6 +2389,47 @@ test("chatCore maps raw string abort reasons to 499, not 502 (#7907)", async () 
   assert.equal(result.error, "Request aborted");
 });
 
+// Live incident territory (dashboard log id 1784504040241-6f8b9a): the client had
+// ALREADY disconnected before this synthetic error body was ever computed — nothing
+// was actually delivered to it. Persisting that body as `clientResponse` (the
+// dashboard's "what the client received" field) is misleading, since it implies a
+// response was sent when the client never got one. `error` above already records
+// the failure reason; `clientResponse`/`responseBody` should stay empty for an abort.
+test("chatCore does not log a synthetic clientResponse body for a client abort", async () => {
+  // clientResponse only ever lands in the persisted pipeline payloads when detailed
+  // call-log capture is on (attemptLogging.ts's detailedLoggingEnabled gate) — this is
+  // exactly the setting a real "detailed logging" connection/request has enabled, which
+  // is why the live incident's artifact JSON had a full pipeline (including the
+  // misleading clientResponse) to begin with.
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: true });
+
+  await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "abort me, no fake clientResponse" }],
+    },
+    responseFactory() {
+      const error = new Error("request aborted by client");
+      error.name = "AbortError";
+      throw error;
+    },
+  });
+
+  const detail = await waitFor(() => getLatestCallLog());
+  assert.ok(detail);
+  assert.equal(detail.status, 499);
+  assert.match(String(detail.error ?? ""), /Request aborted/);
+  assert.ok(detail.pipelinePayloads, "expected pipeline payloads when capture is enabled");
+  assert.equal(
+    (detail.pipelinePayloads as Record<string, unknown>).clientResponse,
+    undefined,
+    "an aborted request never delivered anything to the client — clientResponse must stay unset"
+  );
+});
+
 test("chatCore returns streaming responses without waiting for upstream completion", async () => {
   const encoder = new TextEncoder();
   let closeUpstream: (() => void) | null = null;
