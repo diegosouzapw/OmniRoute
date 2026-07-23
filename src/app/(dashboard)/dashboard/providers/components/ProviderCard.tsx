@@ -171,6 +171,11 @@ export default function ProviderCard({
     const el = wrapperRef.current;
     if (!el) return;
     el.scrollIntoView({ behavior: "auto", block: "center" });
+    const returning = history.state?.providerReturn === true;
+    if (returning) {
+      const link = el.querySelector("a");
+      if (link) (link as HTMLElement).focus({ preventScroll: true });
+    }
     const surface = el.firstElementChild?.firstElementChild as HTMLElement | undefined;
     if (surface) {
       surface.animate(
@@ -282,14 +287,14 @@ export default function ProviderCard({
   };
 
   const handleCardClick = useCallback(() => {
-    window.history.replaceState(null, "", `#provider-${providerId}`);
+    window.history.replaceState({ providerReturn: true }, "", `#provider-${providerId}`);
   }, [providerId]);
 
   return (
     <div ref={wrapperRef} id={`provider-${providerId}`} className="flex flex-col h-full">
       <Link
         href={`/dashboard/providers/${providerId}`}
-        className="group flex-1 flex flex-col"
+        className="group flex-1 flex flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/60"
         onClick={handleCardClick}
       >
         <Card
