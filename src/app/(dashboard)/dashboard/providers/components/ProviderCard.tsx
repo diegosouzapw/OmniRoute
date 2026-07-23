@@ -166,13 +166,11 @@ export default function ProviderCard({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash !== `#provider-${providerId}`) return;
+    if (history.state?.providerId !== providerId) return;
     const el = wrapperRef.current;
     if (!el) return;
     el.scrollIntoView({ behavior: "auto", block: "center" });
-    const returning = history.state?.providerReturn === true;
-    if (returning) {
+    if (history.state?.focusOnElement) {
       const link = el.querySelector("a");
       if (link) (link as HTMLElement).focus({ preventScroll: true });
     }
@@ -287,7 +285,7 @@ export default function ProviderCard({
   };
 
   const handleCardClick = useCallback(() => {
-    window.history.replaceState({ providerReturn: true }, "", `#provider-${providerId}`);
+    window.history.replaceState({ providerId, focusOnElement: true }, "");
   }, [providerId]);
 
   return (
