@@ -21,9 +21,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "oauth-refresh-dedup-
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
-const { persistOAuthConnection, findExistingOAuthConnectionMatch } = await import(
-  "../../src/lib/oauth/connectionPersistence.ts"
-);
+const { persistOAuthConnection, findExistingOAuthConnectionMatch } =
+  await import("../../src/lib/oauth/connectionPersistence.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -37,9 +36,11 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+type ProviderConnection = Awaited<ReturnType<typeof providersDb.getProviderConnections>>[number];
+
 async function oauthConns(provider: string) {
   const all = await providersDb.getProviderConnections({});
-  return all.filter((c: any) => c.provider === provider && c.authType === "oauth");
+  return all.filter((c: ProviderConnection) => c.provider === provider && c.authType === "oauth");
 }
 
 // GitHub Copilot: no top-level email, identity under providerSpecificData.

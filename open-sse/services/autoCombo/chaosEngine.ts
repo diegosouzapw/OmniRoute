@@ -41,6 +41,9 @@ export type ChaosTuning = {
 
 type Body = Record<string, unknown>;
 
+/** Minimal shape of the downstream single-model dispatch target (carries an abort signal). */
+type ChaosTarget = { modelAbortSignal?: AbortSignal };
+
 export type ChaosPart = {
   model: string;
   index: number;
@@ -54,6 +57,10 @@ export type ChaosPart = {
  * We emit a custom event name `omni-chaos-part` so a protocol-aware IDE can
  * split it out; non-aware clients reading OpenAI-style SSE will simply ignore
  * the unknown event and use the final `data:` chunk below.
+ *
+ * The part's text is NOT included in the metadata event — it arrives in the
+ * final `data:` chunk for the primary model. This keeps each broadcast event
+ * small (metadata-only) so SSE buffering stays predictable.
  */
 export function serializeChaosPart(part: ChaosPart, isFinal: boolean): string {
   const meta = {
@@ -62,9 +69,8 @@ export function serializeChaosPart(part: ChaosPart, isFinal: boolean): string {
     index: part.index,
     ok: part.ok,
     final: isFinal,
-    error: part.error,
+    ...(part.error ? { error: part.error } : {}),
   };
-  // Comment line (ignored by standard SSE parsers) + explicit event envelope.
   return (
     `: chaos ${part.index} ${part.ok ? "ok" : "fail"} ${part.model}\n` +
     `event: omni-chaos-part\n` +
@@ -83,25 +89,47 @@ function withTimeout<T>(
   fallback: T,
   onTimeout?: () => void
 ): Promise<T> {
-  return new Promise((resolve) => {
-    const t = setTimeout(() => {
-      try {
-        onTimeout?.();
-      } catch {
-        /* ignore abort errors */
-      }
+  if (!Number.isFinite(ms) || ms <= 0) return p;
+  return new Promise<T>((resolve) => {
+    const timer = setTimeout(() => {
+      onTimeout?.();
       resolve(fallback);
     }, ms);
-    Promise.resolve(p)
-      .then((v) => {
-        clearTimeout(t);
+    p.then(
+      (v) => {
+        clearTimeout(timer);
         resolve(v);
-      })
-      .catch(() => {
-        clearTimeout(t);
+      },
+      () => {
+        clearTimeout(timer);
         resolve(fallback);
-      });
+      }
+    );
   });
+}
+
+/** Encoded SSE string builder — avoids re-encoding the same separator. */
+const SSE_SEP = "\n\n";
+const SSE_DONE = "data: [DONE]\n\n";
+
+/**
+ * Build a standard OpenAI-style chat.completion.chunk SSE data line.
+ */
+function chatChunk(id: string, model: string, content: string, finishReason = "stop"): string {
+  return (
+    `data: ${JSON.stringify({
+      id,
+      object: "chat.completion.chunk",
+      model,
+      choices: [
+        {
+          index: 0,
+          delta: { role: "assistant", content },
+          finish_reason: finishReason,
+        },
+      ],
+    })}` + SSE_SEP
+  );
 }
 
 /**
@@ -112,6 +140,50 @@ function withTimeout<T>(
  * Each panel call gets its own AbortController; `withTimeout` aborts it on
  * timeout so the underlying request is cancelled, not merely superseded.
  */
+/**
+ * Shared per-model dispatch: wraps a single chaos panel call with timeout + abort.
+ * Used by both runChaosPanel and handleChaosChat to avoid code duplication.
+ */
+function dispatchOnePanelModel(opts: {
+  body: Body;
+  model: string;
+  index: number;
+  handleSingleModel: HandleSingleModel;
+  ctrl: AbortController;
+  hardTimeout: number;
+  log?: { info?: (...a: unknown[]) => void; warn?: (...a: unknown[]) => void };
+  /** Optional callback invoked per-result so callers (handleChaosChat) can
+   *  enqueue progressive SSE events without duplicating dispatch logic. */
+  onResult?: (part: ChaosPart) => Promise<void>;
+}): Promise<ChaosPart> {
+  const { body, model, index, handleSingleModel, ctrl, hardTimeout, log, onResult } = opts;
+  return withTimeout(
+    (async (): Promise<ChaosPart> => {
+      try {
+        const res = await handleSingleModel(body, model, {
+          modelAbortSignal: ctrl.signal,
+        });
+        const text = await extractText(res);
+        log?.info?.(
+          `CHAOS panel ${index} (${model}) ok=${res.ok} status=${res.status} textLen=${text.length}`
+        );
+        const part: ChaosPart = { model, index, ok: true, text };
+        await onResult?.(part);
+        return part;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        log?.warn?.(`CHAOS panel ${index} (${model}) failed:`, msg);
+        const part: ChaosPart = { model, index, ok: false, text: "", error: msg };
+        await onResult?.(part);
+        return part;
+      }
+    })(),
+    hardTimeout,
+    { model, index, ok: false, text: "", error: "chaos-panel-timeout" } as ChaosPart,
+    () => ctrl.abort()
+  );
+}
+
 export async function runChaosPanel(opts: {
   body: Body;
   models: string[];
@@ -127,40 +199,25 @@ export async function runChaosPanel(opts: {
     return { parts: [], primary: null };
   }
 
-  const calls = panel.map((model, index) => {
-    const ctrl = new AbortController();
-    return withTimeout(
-      (async (): Promise<ChaosPart> => {
-        try {
-          const res = await handleSingleModel(body, model, {
-            modelAbortSignal: ctrl.signal,
-          });
-          const text = await extractText(res);
-          log?.info?.(
-            `CHAOS panel ${index} (${model}) ok=${res.ok} status=${res.status} textLen=${text.length}`
-          );
-          return { model, index, ok: true, text };
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          log?.warn?.(`CHAOS panel ${index} (${model}) failed:`, msg);
-          return { model, index, ok: false, text: "", error: msg };
-        }
-      })(),
+  const controllers = panel.map(() => new AbortController());
+  const calls = panel.map((model, index) =>
+    dispatchOnePanelModel({
+      body,
+      model,
+      index,
+      handleSingleModel,
+      ctrl: controllers[index],
       hardTimeout,
-      // Timed-out model → treated as a failed part, not a hang.
-      {
-        model,
-        index,
-        ok: false,
-        text: "",
-        error: "chaos-panel-timeout",
-      } as ChaosPart,
-      // Abort the underlying fetch so the connection is released on timeout.
-      () => ctrl.abort()
-    );
-  });
+      log,
+    })
+  );
 
   const parts = await Promise.all(calls);
+  // Release all abort controllers (those not already aborted by timeout).
+  for (const ac of controllers) {
+    if (!ac.signal.aborted) ac.abort();
+  }
+
   const successes = parts.filter((p) => p.ok);
   const primary = successes.length > 0 ? successes[successes.length - 1] : null;
 
@@ -175,20 +232,27 @@ export async function runChaosPanel(opts: {
  * not reliable here because OmniRoute may force a streaming envelope internally.
  */
 async function extractText(res: Response): Promise<string> {
+  // Include error status info when non-200, so the dispatch caller can log it.
+  if (!res.ok) {
+    try {
+      const errBody = await res.clone().text();
+      return errBody.trim() || `(HTTP ${res.status})`;
+    } catch {
+      return `(HTTP ${res.status})`;
+    }
+  }
   let raw: string;
   try {
     raw = await res.clone().text();
   } catch {
     return "";
   }
-  // Try JSON first (non-streaming completion).
   const trimmed = raw.trim();
   if (trimmed.startsWith("{")) {
     try {
       const parsed = JSON.parse(trimmed);
       const fromJson = firstTextFromOpenAI(parsed);
       if (fromJson) return fromJson;
-      // Anthropic non-streaming also arrives as `{...}` with top-level `content`.
       if (typeof (parsed as Record<string, unknown>)?.content === "string") {
         return (parsed as Record<string, unknown>).content as string;
       }
@@ -196,10 +260,8 @@ async function extractText(res: Response): Promise<string> {
       /* fall through to SSE / raw */
     }
   }
-  // SSE or wrapped stream → concat data: content deltas (OpenAI + Anthropic).
   const sse = concatSseText(raw);
   if (sse) return sse;
-  // Last resort: maybe the body itself is plain prose.
   return trimmed.length > 0 && !trimmed.startsWith("data:") ? trimmed : "";
 }
 
@@ -250,13 +312,10 @@ function concatSseText(sse: string): string {
       // Anthropic Messages streaming delta shapes.
       const delta = json?.delta as Record<string, unknown> | undefined;
       if (delta && typeof delta.text === "string") {
-        // content_block_delta: { delta: { type: "text_delta", text: "..." } }
         out.push(String(delta.text));
       } else if (delta && typeof delta.content === "string") {
-        // proxy shape: { delta: { content: "..." } }
         out.push(String(delta.content));
       } else if (typeof json?.content === "string") {
-        // top-level content token (rare, non-standard)
         out.push(String(json.content));
       }
     } catch {
@@ -294,6 +353,7 @@ export async function handleChaosChat(opts: {
   const { body, models, handleSingleModel, log, comboName, primaryModel, tuning } = opts;
   const panel = Array.isArray(models) ? models.filter(Boolean) : [];
   const hardTimeout = tuning?.panelHardTimeoutMs ?? CHAOS_DEFAULTS.panelHardTimeoutMs;
+  const minPanel = tuning?.minPanel ?? CHAOS_DEFAULTS.minPanel;
   if (panel.length === 0) {
     return errorResponse(400, "Chaos combo has no models");
   }
@@ -303,12 +363,12 @@ export async function handleChaosChat(opts: {
     return handleSingleModel(body, panel[0]);
   }
 
+  const chunkId = `chaos-${comboName ?? "panel"}`;
+
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const enc = new TextEncoder();
       let closed = false;
-      // Serialize enqueues: ReadableStream controllers must not be enqueued
-      // concurrently. A committed promise chain gives us ordered, race-free writes.
       let enqueueChain: Promise<void> = Promise.resolve();
       const safeEnqueue = (s: string): Promise<void> => {
         enqueueChain = enqueueChain.then(() => {
@@ -322,83 +382,56 @@ export async function handleChaosChat(opts: {
         return enqueueChain;
       };
 
+      const abortControllers: AbortController[] = [];
+
       const modelPromises = panel.map((model, index) => {
         const ctrl = new AbortController();
-        return withTimeout(
-          (async (): Promise<ChaosPart> => {
-            try {
-              const res = await handleSingleModel(body, model, {
-                modelAbortSignal: ctrl.signal,
-              });
-              const text = await extractText(res);
-              const part: ChaosPart = { model, index, ok: true, text };
-              // Progressive: emit this part the instant its model lands.
-              await safeEnqueue(serializeChaosPart(part, false));
-              return part;
-            } catch (err) {
-              const msg = err instanceof Error ? err.message : String(err);
-              const part: ChaosPart = { model, index, ok: false, text: "", error: msg };
-              await safeEnqueue(serializeChaosPart(part, false));
-              return part;
-            }
-          })(),
+        abortControllers.push(ctrl);
+        return dispatchOnePanelModel({
+          body,
+          model,
+          index,
+          handleSingleModel,
+          ctrl,
           hardTimeout,
-          { model, index, ok: false, text: "", error: "chaos-panel-timeout" } as ChaosPart,
-          () => ctrl.abort()
-        );
+          log,
+          onResult: async (part) => {
+            await safeEnqueue(serializeChaosPart(part, false));
+          },
+        });
       });
 
       const allParts = await Promise.all(modelPromises);
       const successes = allParts.filter((p) => p.ok);
 
+      // Clean up all abort controllers to release references.
+      for (const ac of abortControllers) {
+        if (!ac.signal.aborted) ac.abort();
+      }
+
       if (successes.length === 0) {
-        // No panel model answered — terminate with an error final chunk.
         const errText = "All chaos panel models failed";
-        await safeEnqueue(
-          `data: ${JSON.stringify({
-            id: `chaos-${comboName ?? "panel"}`,
-            object: "chat.completion.chunk",
-            model: panel[0],
-            choices: [
-              {
-                index: 0,
-                delta: { role: "assistant", content: errText },
-                finish_reason: "stop",
-              },
-            ],
-          })}\n\n`
-        );
-        await safeEnqueue("data: [DONE]\n\n");
+        await safeEnqueue(chatChunk(chunkId, panel[0], errText));
+        await safeEnqueue(SSE_DONE);
         await enqueueChain;
         closed = true;
         controller.close();
         return;
       }
 
-      // Choose the primary: explicit primaryModel if it succeeded, else the last
-      // successful part (by construction that's the top-scored stable model).
+      // If fewer than minPanel succeeded, still return the best we have.
+      // The primary is the explicit primaryModel if it succeeded, else the
+      // last successful part (by construction that's the top-scored stable model).
       const primaryPart =
         (primaryModel && allParts.find((p) => p.model === primaryModel && p.ok)) ||
         allParts.filter((p) => p.ok).slice(-1)[0] ||
         successes[0];
 
       // Final canonical answer (non-aware clients consume this).
-      const finalText = primaryPart?.text ?? "";
       await safeEnqueue(
-        `data: ${JSON.stringify({
-          id: `chaos-${comboName ?? "panel"}`,
-          object: "chat.completion.chunk",
-          model: primaryPart?.model ?? panel[0],
-          choices: [
-            {
-              index: 0,
-              delta: { role: "assistant", content: finalText },
-              finish_reason: "stop",
-            },
-          ],
-        })}\n\n`
+        chatChunk(chunkId, primaryPart?.model ?? panel[0], primaryPart?.text ?? "")
       );
-      await safeEnqueue("data: [DONE]\n\n");
+      await safeEnqueue(SSE_DONE);
       await enqueueChain;
       closed = true;
       controller.close();
@@ -413,7 +446,7 @@ export async function handleChaosChat(opts: {
       Connection: "keep-alive",
       "X-OmniRoute-Chaos": "true",
       "X-OmniRoute-Chaos-Panel": String(panel.length),
-      "X-OmniRoute-Chaos-Primary": "",
+      "X-OmniRoute-Chaos-Primary": primaryModel ?? "",
     },
   });
 }
@@ -444,7 +477,7 @@ export function dispatchChaosFromCombo(args: {
   ) {
     return null;
   }
-  const chaosCfg = cfg.chaos as { panelSize?: number; judgeModel?: string };
+  const chaosCfg = cfg.chaos as { panelSize?: number; judgeModel?: string; tuning?: ChaosTuning };
   const chaosModels = (comboModels || [])
     .map((m) => {
       if (typeof m === "string") return m;
@@ -455,13 +488,17 @@ export function dispatchChaosFromCombo(args: {
       return null;
     })
     .filter((m): m is string => Boolean(m));
-  log.info("CHAOS", `dispatching parallel panel of ${chaosModels.length} stable models`);
+  // Enforce minPanel: if configured and pool < minPanel, degrades to single model.
+  const minPanel = chaosCfg.tuning?.minPanel ?? 1;
+  const effectiveModels = chaosModels.length >= minPanel ? chaosModels : chaosModels.slice(0, 1);
+  log.info("CHAOS", `dispatching parallel panel of ${effectiveModels.length} stable models`);
   return handleChaosChat({
     body,
-    models: chaosModels,
+    models: effectiveModels,
     handleSingleModel,
     log,
     comboName,
     primaryModel: chaosCfg.judgeModel,
+    tuning: chaosCfg.tuning,
   });
 }

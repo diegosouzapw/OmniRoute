@@ -83,10 +83,19 @@ export function withInjectionGuard(handler: any, options: any = {}) {
           );
         }
 
-        // Attach sanitization result as header for downstream handlers
+        // Attach sanitization result as header for downstream handlers.
+        // Web Request headers may be immutable — never let this throw into the
+        // outer security-check path (issue #8095).
         if (result.flagged) {
-          request.headers.set("X-Injection-Flagged", "true");
-          request.headers.set("X-Injection-Detections", String(result.detections.length));
+          try {
+            request.headers.set("X-Injection-Flagged", "true");
+            request.headers.set(
+              "X-Injection-Detections",
+              String(result.detections.length)
+            );
+          } catch {
+            // immutable headers: detection still applied; metadata is best-effort
+          }
         }
       }
     } catch (error) {

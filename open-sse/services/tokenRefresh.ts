@@ -81,6 +81,7 @@ export const REFRESH_LEAD_MS: Record<string, number> = {
   // is safe and reduces unnecessary upstream chatter.
   antigravity: 15 * 60 * 1000,
   agy: 15 * 60 * 1000, // same Google backend as antigravity (non-rotating refresh tokens)
+  "gemini-cli": 15 * 60 * 1000, // legacy stored connections; provider is no longer public
 };
 
 /**
@@ -371,6 +372,18 @@ export async function refreshAccessToken(
  */
 async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: unknown = null) {
   switch (provider) {
+    case "gemini-cli":
+      // Legacy DB rows can retain this discontinued provider id. Refresh them
+      // with the same public OAuth client used by Gemini CLI without restoring
+      // gemini-cli to the routable provider or OAuth UI registries.
+      return await refreshGoogleToken(
+        credentials.refreshToken,
+        PROVIDERS.gemini.clientId,
+        PROVIDERS.gemini.clientSecret,
+        log,
+        proxyConfig
+      );
+
     case "gemini":
     case "antigravity":
     case "agy":
@@ -447,6 +460,7 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
 export function supportsTokenRefresh(provider) {
   const explicitlySupported = new Set([
     "gemini",
+    "gemini-cli", // legacy refresh compatibility only; not a routable provider
     "antigravity",
     "agy",
     "claude",

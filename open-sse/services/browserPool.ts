@@ -29,6 +29,7 @@ export interface BrowserPoolContextOptions {
   locale?: string;
   timezone?: string;
   preferCloakbrowser?: boolean;
+  proxyProviderKey?: string;
 }
 
 export interface PooledContext {
@@ -54,7 +55,6 @@ export interface BrowserPoolMetrics {
 // ---------------------------------------------------------------------------
 // Proxy resolver types — local to resolvePlaywrightProxy
 // ---------------------------------------------------------------------------
-
 interface ProxyRecord {
   type?: string;
   host: string;
@@ -149,7 +149,6 @@ export async function resolvePlaywrightProxy(
 // ---------------------------------------------------------------------------
 // getBrowserPoolStatus — INLINE (returns disabled status)
 // ---------------------------------------------------------------------------
-
 /**
  * Return the current status of the browser pool. In the core stub, the pool
  * is always reported as disabled — the real pool lives inside the optional

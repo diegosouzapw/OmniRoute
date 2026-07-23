@@ -6,7 +6,7 @@
 
 # 🚀 OmniRoute — The Free AI Gateway
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Never stop coding. Every AI tool → 278 providers — 90+ free — through one endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini with auto-fallback. RTK + Caveman stacked compression saves 15–95% tokens (~89% avg) — never hit limits. 278 AI providers · 90+ free tiers · ~1.53B free tokens/mo · 19 routing strategies · $0 to start."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Never stop coding. Every AI tool → 290 providers — 90+ free — through one endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini with auto-fallback. RTK + Caveman stacked compression saves 15–95% tokens (~89% avg) — never hit limits. 290 AI providers · 90+ free tiers · ~1.53B free tokens/mo · 19 routing strategies · $0 to start."/>
 
 </div>
 
@@ -59,63 +59,63 @@
 ![Docker Pulls](https://img.shields.io/docker/pulls/diegosouzapw/omniroute?label=docker%20pulls&logo=docker&color=2496ED)
 ![Electron Downloads](https://img.shields.io/github/downloads/diegosouzapw/omniroute/total?style=flat&label=electron%20downloads&logo=electron&color=47848F)
 
-[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-278-ai-providers--90-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
+[**🚀 Quick Start**](#-quick-start) • [**🎯 Combos**](#-combos--the-flagship) • [**🌐 Providers**](#-290-ai-providers--90-free) • [**🔌 CLI & MCP**](#-full-cli--a2a--mcp) • [**🗜️ Compression**](#%EF%B8%8F-save-1595-tokens--automatically) • [**🌍 Website**](https://omniroute.online)
 
 [💥 The Promise](#-the-promise) • [🤔 Why](#-why-omniroute) • [🏆 What Sets Apart](#-what-sets-omniroute-apart) • [🤖 Compatible CLIs](#-compatible-clis--coding-agents) • [🖥️ Where It Runs](#%EF%B8%8F-where-omniroute-runs--anywhere) • [🔒 Private](#-private--local-first) • [🎬 In Action](#-omniroute-in-action) • [📸 Screenshots](#-dashboard-screenshots) • [📧 Support](#-support--community)
 
 </div>
 
 <div align="center">
- <b>🌐 In 43 languages</b>
- <table>
+  <b>🌐 In 43 languages</b>
+  <table>
   <tr>
-    <td align="center"><a href="README.md">🇺🇸</a></td>
-    <td align="center"><a href="docs/i18n/pt-BR/README.md">🇧🇷</a></td>
-    <td align="center"><a href="docs/i18n/pt/README.md">🇵🇹</a></td>
-    <td align="center"><a href="docs/i18n/es/README.md">🇪🇸</a></td>
-    <td align="center"><a href="docs/i18n/fr/README.md">🇫🇷</a></td>
-    <td align="center"><a href="docs/i18n/it/README.md">🇮🇹</a></td>
-    <td align="center"><a href="docs/i18n/de/README.md">🇩🇪</a></td>
-    <td align="center"><a href="docs/i18n/nl/README.md">🇳🇱</a></td>
-    <td align="center"><a href="docs/i18n/ru/README.md">🇷🇺</a></td>
-    <td align="center"><a href="docs/i18n/uk-UA/README.md">🇺🇦</a></td>
-    <td align="center"><a href="docs/i18n/pl/README.md">🇵🇱</a></td>
-    <td align="center"><a href="docs/i18n/cs/README.md">🇨🇿</a></td>
-    <td align="center"><a href="docs/i18n/sk/README.md">🇸🇰</a></td>
-    <td align="center"><a href="docs/i18n/ro/README.md">🇷🇴</a></td>
-    <td align="center"><a href="docs/i18n/hu/README.md">🇭🇺</a></td>
+    <td align="center"><a href="README.md"><img src="docs/assets/flags/us.svg" width="26" alt="English (en)"></a></td>
+    <td align="center"><a href="docs/i18n/pt-BR/README.md"><img src="docs/assets/flags/br.svg" width="26" alt="Português — Brasil (pt-BR)"></a></td>
+    <td align="center"><a href="docs/i18n/pt/README.md"><img src="docs/assets/flags/pt.svg" width="26" alt="Português (pt)"></a></td>
+    <td align="center"><a href="docs/i18n/es/README.md"><img src="docs/assets/flags/es.svg" width="26" alt="Español (es)"></a></td>
+    <td align="center"><a href="docs/i18n/fr/README.md"><img src="docs/assets/flags/fr.svg" width="26" alt="Français (fr)"></a></td>
+    <td align="center"><a href="docs/i18n/it/README.md"><img src="docs/assets/flags/it.svg" width="26" alt="Italiano (it)"></a></td>
+    <td align="center"><a href="docs/i18n/de/README.md"><img src="docs/assets/flags/de.svg" width="26" alt="Deutsch (de)"></a></td>
+    <td align="center"><a href="docs/i18n/nl/README.md"><img src="docs/assets/flags/nl.svg" width="26" alt="Nederlands (nl)"></a></td>
+    <td align="center"><a href="docs/i18n/ru/README.md"><img src="docs/assets/flags/ru.svg" width="26" alt="Русский (ru)"></a></td>
+    <td align="center"><a href="docs/i18n/uk-UA/README.md"><img src="docs/assets/flags/ua.svg" width="26" alt="Українська (uk-UA)"></a></td>
+    <td align="center"><a href="docs/i18n/pl/README.md"><img src="docs/assets/flags/pl.svg" width="26" alt="Polski (pl)"></a></td>
+    <td align="center"><a href="docs/i18n/cs/README.md"><img src="docs/assets/flags/cz.svg" width="26" alt="Čeština (cs)"></a></td>
+    <td align="center"><a href="docs/i18n/sk/README.md"><img src="docs/assets/flags/sk.svg" width="26" alt="Slovenčina (sk)"></a></td>
+    <td align="center"><a href="docs/i18n/ro/README.md"><img src="docs/assets/flags/ro.svg" width="26" alt="Română (ro)"></a></td>
+    <td align="center"><a href="docs/i18n/hu/README.md"><img src="docs/assets/flags/hu.svg" width="26" alt="Magyar (hu)"></a></td>
   </tr>
   <tr>
-    <td align="center"><a href="docs/i18n/bg/README.md">🇧🇬</a></td>
-    <td align="center"><a href="docs/i18n/da/README.md">🇩🇰</a></td>
-    <td align="center"><a href="docs/i18n/fi/README.md">🇫🇮</a></td>
-    <td align="center"><a href="docs/i18n/no/README.md">🇳🇴</a></td>
-    <td align="center"><a href="docs/i18n/sv/README.md">🇸🇪</a></td>
-    <td align="center"><a href="docs/i18n/zh-CN/README.md">🇨🇳</a></td>
-    <td align="center"><a href="docs/i18n/zh-TW/README.md">🇹🇼</a></td>
-    <td align="center"><a href="docs/i18n/ja/README.md">🇯🇵</a></td>
-    <td align="center"><a href="docs/i18n/ko/README.md">🇰🇷</a></td>
-    <td align="center"><a href="docs/i18n/th/README.md">🇹🇭</a></td>
-    <td align="center"><a href="docs/i18n/vi/README.md">🇻🇳</a></td>
-    <td align="center"><a href="docs/i18n/id/README.md">🇮🇩</a></td>
-    <td align="center"><a href="docs/i18n/ms/README.md">🇲🇾</a></td>
-    <td align="center"><a href="docs/i18n/phi/README.md">🇵🇭</a></td>
+    <td align="center"><a href="docs/i18n/bg/README.md"><img src="docs/assets/flags/bg.svg" width="26" alt="Български (bg)"></a></td>
+    <td align="center"><a href="docs/i18n/da/README.md"><img src="docs/assets/flags/dk.svg" width="26" alt="Dansk (da)"></a></td>
+    <td align="center"><a href="docs/i18n/fi/README.md"><img src="docs/assets/flags/fi.svg" width="26" alt="Suomi (fi)"></a></td>
+    <td align="center"><a href="docs/i18n/no/README.md"><img src="docs/assets/flags/no.svg" width="26" alt="Norsk (no)"></a></td>
+    <td align="center"><a href="docs/i18n/sv/README.md"><img src="docs/assets/flags/se.svg" width="26" alt="Svenska (sv)"></a></td>
+    <td align="center"><a href="docs/i18n/zh-CN/README.md"><img src="docs/assets/flags/cn.svg" width="26" alt="中文 — 简体 (zh-CN)"></a></td>
+    <td align="center"><a href="docs/i18n/zh-TW/README.md"><img src="docs/assets/flags/tw.svg" width="26" alt="中文 — 繁體 (zh-TW)"></a></td>
+    <td align="center"><a href="docs/i18n/ja/README.md"><img src="docs/assets/flags/jp.svg" width="26" alt="日本語 (ja)"></a></td>
+    <td align="center"><a href="docs/i18n/ko/README.md"><img src="docs/assets/flags/kr.svg" width="26" alt="한국어 (ko)"></a></td>
+    <td align="center"><a href="docs/i18n/th/README.md"><img src="docs/assets/flags/th.svg" width="26" alt="ไทย (th)"></a></td>
+    <td align="center"><a href="docs/i18n/vi/README.md"><img src="docs/assets/flags/vn.svg" width="26" alt="Tiếng Việt (vi)"></a></td>
+    <td align="center"><a href="docs/i18n/id/README.md"><img src="docs/assets/flags/id.svg" width="26" alt="Bahasa Indonesia (id)"></a></td>
+    <td align="center"><a href="docs/i18n/ms/README.md"><img src="docs/assets/flags/my.svg" width="26" alt="Bahasa Melayu (ms)"></a></td>
+    <td align="center"><a href="docs/i18n/phi/README.md"><img src="docs/assets/flags/ph.svg" width="26" alt="Filipino (phi)"></a></td>
   </tr>
   <tr>
-    <td align="center"><a href="docs/i18n/in/README.md">🇮🇳</a></td>
-    <td align="center"><a href="docs/i18n/hi/README.md">🇮🇳</a></td>
-    <td align="center"><a href="docs/i18n/gu/README.md">🇮🇳</a></td>
-    <td align="center"><a href="docs/i18n/mr/README.md">🇮🇳</a></td>
-    <td align="center"><a href="docs/i18n/ta/README.md">🇮🇳</a></td>
-    <td align="center"><a href="docs/i18n/te/README.md">🇮🇳</a></td>
-    <td align="center"><a href="docs/i18n/bn/README.md">🇧🇩</a></td>
-    <td align="center"><a href="docs/i18n/ur/README.md">🇵🇰</a></td>
-    <td align="center"><a href="docs/i18n/fa/README.md">🇮🇷</a></td>
-    <td align="center"><a href="docs/i18n/ar/README.md">🇸🇦</a></td>
-    <td align="center"><a href="docs/i18n/he/README.md">🇮🇱</a></td>
-    <td align="center"><a href="docs/i18n/tr/README.md">🇹🇷</a></td>
-    <td align="center"><a href="docs/i18n/az/README.md">🇦🇿</a></td>
-    <td align="center"><a href="docs/i18n/sw/README.md">🇹🇿</a></td>
+    <td align="center"><a href="docs/i18n/in/README.md"><img src="docs/assets/flags/in.svg" width="26" alt="हिन्दी (in)"></a></td>
+    <td align="center"><a href="docs/i18n/hi/README.md"><img src="docs/assets/flags/in.svg" width="26" alt="हिन्दी (hi)"></a></td>
+    <td align="center"><a href="docs/i18n/gu/README.md"><img src="docs/assets/flags/in.svg" width="26" alt="ગુજરાતી (gu)"></a></td>
+    <td align="center"><a href="docs/i18n/mr/README.md"><img src="docs/assets/flags/in.svg" width="26" alt="मराठी (mr)"></a></td>
+    <td align="center"><a href="docs/i18n/ta/README.md"><img src="docs/assets/flags/in.svg" width="26" alt="தமிழ் (ta)"></a></td>
+    <td align="center"><a href="docs/i18n/te/README.md"><img src="docs/assets/flags/in.svg" width="26" alt="తెలుగు (te)"></a></td>
+    <td align="center"><a href="docs/i18n/bn/README.md"><img src="docs/assets/flags/bd.svg" width="26" alt="বাংলা (bn)"></a></td>
+    <td align="center"><a href="docs/i18n/ur/README.md"><img src="docs/assets/flags/pk.svg" width="26" alt="اردو (ur)"></a></td>
+    <td align="center"><a href="docs/i18n/fa/README.md"><img src="docs/assets/flags/ir.svg" width="26" alt="فارسی (fa)"></a></td>
+    <td align="center"><a href="docs/i18n/ar/README.md"><img src="docs/assets/flags/sa.svg" width="26" alt="العربية (ar)"></a></td>
+    <td align="center"><a href="docs/i18n/he/README.md"><img src="docs/assets/flags/il.svg" width="26" alt="עברית (he)"></a></td>
+    <td align="center"><a href="docs/i18n/tr/README.md"><img src="docs/assets/flags/tr.svg" width="26" alt="Türkçe (tr)"></a></td>
+    <td align="center"><a href="docs/i18n/az/README.md"><img src="docs/assets/flags/az.svg" width="26" alt="Azərbaycan (az)"></a></td>
+    <td align="center"><a href="docs/i18n/sw/README.md"><img src="docs/assets/flags/tz.svg" width="26" alt="Kiswahili (sw)"></a></td>
   </tr>
 </table>
 </div>
@@ -136,7 +136,7 @@ curl http://localhost:20128/v1/chat/completions \
 ```
 
 - ✅ **`auto` responds immediately** — OmniRoute builds a virtual combo from the built-in keyless free providers and routes to a healthy one, with no setup.
-- ➕ **Add more providers anytime** — drop in a Claude / GPT / Gemini key (or any of the 278 providers) from the dashboard and they join the `auto` pool automatically.
+- ➕ **Add more providers anytime** — drop in a Claude / GPT / Gemini key (or any of the 290 providers) from the dashboard and they join the `auto` pool automatically.
 - 🎛️ **Build your own free combos** — chain your free tiers with any of the 19 routing strategies so you never run out of quota.
 
 <sub>Prefer a specific free backend? Call it directly, e.g. `oc/…` (OpenCode Free) or `felo/…` (Felo). Then graduate to `auto` and let OmniRoute pick.</sub>
@@ -147,7 +147,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="The Promise — One endpoint. 278 providers. Never stop building — OmniRoute picks the cheapest one that works. Six pillars: Never hit limits (auto-fallback across 278 providers in milliseconds, zero downtime) · Save up to 95% tokens (RTK + Caveman stacked compression cuts 15–95%, ~89% avg on tool-heavy sessions) · $0 to start (90+ free tiers, 40+ free forever — no card needed) · Every tool works (33 coding agents through one config) · One endpoint (OpenAI ↔ Claude ↔ Gemini ↔ Responses API at /v1) · Production-grade (circuit breakers, TLS stealth, MCP 104 tools, A2A, memory, guardrails, evals — 25,000+ tests)."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="The Promise — One endpoint. 290 providers. Never stop building — OmniRoute picks the cheapest one that works. Six pillars: Never hit limits (auto-fallback across 290 providers in milliseconds, zero downtime) · Save up to 95% tokens (RTK + Caveman stacked compression cuts 15–95%, ~89% avg on tool-heavy sessions) · $0 to start (90+ free tiers, 40+ free forever — no card needed) · Every tool works (33 coding agents through one config) · One endpoint (OpenAI ↔ Claude ↔ Gemini ↔ Responses API at /v1) · Production-grade (circuit breakers, TLS stealth, MCP 104 tools, A2A, memory, guardrails, evals — 25,000+ tests)."/>
 
 <br/>
 <br/>
@@ -165,6 +165,40 @@ curl http://localhost:20128/v1/chat/completions \
 <img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute request flow: your IDE or CLI (Claude Code, Cursor, Cline…) calls one local endpoint (http://localhost:20128/v1); the OmniRoute Smart Router (RTK + Caveman compression, 19 routing strategies, circuit breakers, TLS stealth, MCP, A2A, guardrails) auto-falls back across 4 provider tiers — Tier 1 Subscription (Claude Code, Codex, Copilot), quota out? Tier 2 API Key (DeepSeek, Groq, xAI), budget hit? Tier 3 Cheap (GLM $0.5, MiniMax $0.2), budget hit? Tier 4 Free (Kiro, Qoder, Pollinations) — always on."/>
 
 </div>
+
+<br/>
+
+## 🤝 Supported by our Open Source Friends
+
+<p align="center">
+  <a href="https://www.kimi.com/code?aff=omniroute">
+    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
+  </a>
+</p>
+
+> **Want to join as an Open Source Friend?** These are the companies that back open source and help keep OmniRoute moving — and we say publicly where every token they give us goes. Reach out: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
+
+<table>
+  <tr>
+    <td align="center" width="150">
+      <a href="https://www.kimi.com/code?aff=omniroute">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="public/providers/kimi-logomark-dark.svg">
+          <img src="public/providers/kimi-logomark-light.svg" width="64" alt="Kimi (Moonshot AI)"/>
+        </picture>
+      </a>
+      <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
+      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
+    </td>
+    <td>
+      Thanks to <b>Kimi (Moonshot AI)</b>, our founding Open Source Friend, for backing this project! Kimi is the AI lab behind the open-weight K2 and K3 model families — <b>Kimi K3</b> delivers a 1M-token context window, native vision and frontier-level coding at a fraction of closed-model prices, and works out of the box with Claude Code, Codex and every coding tool OmniRoute serves.
+      <br/><br/>
+      <b>What Kimi's support powers:</b> Kimi's API credits power OmniRoute's AI-validated release pipeline — the <i>merge validation powered by Kimi K3</i> stage that reviews every pull request before it ships — plus day-to-day feature development. First-class Kimi support ships on both rails: the direct <a href="https://platform.kimi.ai?aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) and the <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code coding plan</a> (OAuth and API key). OmniRoute is also the first Brazilian open-source project in Kimi's support program. <a href="https://platform.kimi.ai?aff=omniroute"><b>Get a Kimi API key →</b></a>
+    </td>
+  </tr>
+</table>
+
+<sub>Links tagged <code>aff=omniroute</code> are partner links. They fund the project at no extra cost to you.</sub>
 
 <br/>
 
@@ -256,7 +290,7 @@ All **19** strategies — mix & match per combo step:
 
 | Feature                                | OmniRoute                              | Other routers |
 | -------------------------------------- | -------------------------------------- | ------------- |
-| 🌐 Providers                           | **278**                                | 20–100        |
+| 🌐 Providers                           | **290**                                | 20–100        |
 | 🆓 Free providers                      | **90+ (40+ free forever)**             | 1–5           |
 | 🔀 Routing strategies                  | **19** strategies                      | 1–3           |
 | 🗜️ Token compression                   | **RTK + Caveman stacked (15–95%)**     | None / 20–40% |
@@ -270,6 +304,16 @@ All **19** strategies — mix & match per combo step:
 | 🌍 i18n                                | **43 locales**                         | 0–4           |
 
 <sub>📊 Detailed comparison vs LiteLLM, OpenRouter & Portkey → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+
+<br/>
+
+## ❤️ Support
+
+OmniRoute is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:
+
+- ⭐ **Star the repo** — it genuinely helps visibility
+- 💖 **[GitHub Sponsors](https://github.com/sponsors/diegosouzapw)** — fund ongoing maintenance and new providers
+- 🐛 **Report bugs and share feedback** in [Discussions](https://github.com/diegosouzapw/OmniRoute/discussions)
 
 <br/>
 
@@ -352,11 +396,11 @@ All **19** strategies — mix & match per combo step:
 
 <div align="center">
 
-# 🌐 278 AI Providers — 90+ Free
+# 🌐 290 AI Providers — 90+ Free
 
 </div>
 
-> The most complete catalog of any open-source router: **278 providers**, **90+ with a free tier**, **40+ free forever**.
+> The most complete catalog of any open-source router: **290 providers**, **90+ with a free tier**, **40+ free forever**.
 
 <div align="center">
 
@@ -829,67 +873,57 @@ same process on one port, so there is no separate CLI-only package today.
 
 ### 📘 Getting Started
 
-| Document                                                       | Description                                                                                                                                                                          |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [User Guide](docs/guides/USER_GUIDE.md)                        | Providers, combos, CLI integration, deployment                                                                                                                                       |
-| [Setup Guide](docs/guides/SETUP_GUIDE.md)                      | Full install methods, CLI tool configs, protocol setup, timeout tuning                                                                                                               |
-| [CLI Tools Guide](docs/reference/CLI-TOOLS.md)                 | Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot                                                                                                        |
-| [Remote Mode](docs/guides/REMOTE-MODE.md)                      | Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens                                                                                                         |
-| [Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md) | Point Claude Code at OmniRoute (local/remote) with `launch` + per-model profiles                                                                                                     |
-| [Quick Start](README.md#-quick-start)                          | 3-step install → connect → configure                                                                                                                                                 |
+- **[User Guide](docs/guides/USER_GUIDE.md)** — Providers, combos, CLI integration, deployment
+- **[Setup Guide](docs/guides/SETUP_GUIDE.md)** — Full install methods, CLI tool configs, protocol setup, timeout tuning
+- **[CLI Tools Guide](docs/reference/CLI-TOOLS.md)** — Per-tool setup for Claude Code, Codex, Cursor, Cline, OpenClaw, Kilo, Copilot
+- **[Remote Mode](docs/guides/REMOTE-MODE.md)** — Drive a remote OmniRoute (VPS) from your laptop CLI via scoped access tokens
+- **[Claude Code Config](docs/guides/CLAUDE-CODE-CONFIGURATION.md)** — Point Claude Code at OmniRoute (local/remote) with `launch` + per-model profiles
+- **[Quick Start](README.md#-quick-start)** — 3-step install → connect → configure
 
 ### 🔧 Operations & Deployment
 
-| Document                                                 | Description                                                                                                                                                                         |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Docker Guide](docs/guides/DOCKER_GUIDE.md)              | Docker run, Compose profiles, Caddy HTTPS, tunnels, image tags                                                                                                                      |
-| [Podman Guide](contrib/podman/README.md)                 | Quadlet systemd integration, podman-compose, SELinux                                                                                                                                |
-| [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)         | Complete guide: VM + nginx + Cloudflare setup                                                                                                                                       |
-| [Fly.io Deployment](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) | Deploy to Fly.io with persistent storage                                                                                                                                            |
-| [Termux Guide](docs/guides/TERMUX_GUIDE.md)              | Run OmniRoute on Android via Termux                                                                                                                                                 |
-| [PWA Guide](docs/guides/PWA_GUIDE.md)                    | Progressive Web App install, caching, architecture                                                                                                                                  |
-| [Uninstall Guide](docs/guides/UNINSTALL.md)              | Clean removal for all install methods                                                                                                                                               |
-| [Environment Config](docs/reference/ENVIRONMENT.md)      | Complete `.env` variables and references                                                                                                                                            |
+- **[Docker Guide](docs/guides/DOCKER_GUIDE.md)** — Docker run, Compose profiles, Caddy HTTPS, tunnels, image tags
+- **[Podman Guide](contrib/podman/README.md)** — Quadlet systemd integration, podman-compose, SELinux
+- **[VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)** — Complete guide: VM + nginx + Cloudflare setup
+- **[Fly.io Deployment](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md)** — Deploy to Fly.io with persistent storage
+- **[Termux Guide](docs/guides/TERMUX_GUIDE.md)** — Run OmniRoute on Android via Termux
+- **[PWA Guide](docs/guides/PWA_GUIDE.md)** — Progressive Web App install, caching, architecture
+- **[Uninstall Guide](docs/guides/UNINSTALL.md)** — Clean removal for all install methods
+- **[Environment Config](docs/reference/ENVIRONMENT.md)** — Complete `.env` variables and references
 
 ### 🧠 Features & Architecture
 
-| Document                                                                     | Description                                                                                                                                                        |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Architecture](docs/architecture/ARCHITECTURE.md)                            | System architecture, data flow, and internals                                                                                                                      |
-| [Compression Guide](docs/compression/COMPRESSION_GUIDE.md)                   | 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked                                                                                      |
-| [RTK Compression](docs/compression/RTK_COMPRESSION.md)                       | Command-output compression, filters, trust, verify, raw-output recovery                                                                                            |
-| [Compression Engines](docs/compression/COMPRESSION_ENGINES.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                                                                                                        |
-| [Compression Rules Format](docs/compression/COMPRESSION_RULES_FORMAT.md)     | JSON rule-pack schemas for Caveman and RTK filters                                                                                                                 |
-| [Compression Language Packs](docs/compression/COMPRESSION_LANGUAGE_PACKS.md) | Language detection and Caveman rule-pack authoring                                                                                                                 |
-| [Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)                    | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing                                                                                             |
-| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                              | 12-factor scoring, mode packs, self-healing                                                                                                                        |
-| [Proxy Guide](docs/ops/PROXY_GUIDE.md)                                       | 3-level proxy system, 1proxy marketplace, registry CRUD                                                                                                            |
-| [Free Tiers](docs/reference/FREE_TIERS.md)                                   | 25+ free API providers consolidated directory                                                                                                                      |
-| [Features Gallery](docs/guides/FEATURES.md)                                  | Visual dashboard tour with screenshots                                                                                                                             |
-| [Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md)        | Beginner-friendly codebase walkthrough                                                                                                                             |
+- **[Architecture](docs/architecture/ARCHITECTURE.md)** — System architecture, data flow, and internals
+- **[Compression Guide](docs/compression/COMPRESSION_GUIDE.md)** — 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked
+- **[RTK Compression](docs/compression/RTK_COMPRESSION.md)** — Command-output compression, filters, trust, verify, raw-output recovery
+- **[Compression Engines](docs/compression/COMPRESSION_ENGINES.md)** — Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces
+- **[Compression Rules Format](docs/compression/COMPRESSION_RULES_FORMAT.md)** — JSON rule-pack schemas for Caveman and RTK filters
+- **[Compression Language Packs](docs/compression/COMPRESSION_LANGUAGE_PACKS.md)** — Language detection and Caveman rule-pack authoring
+- **[Resilience Guide](docs/architecture/RESILIENCE_GUIDE.md)** — Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing
+- **[Auto-Combo Engine](docs/routing/AUTO-COMBO.md)** — 12-factor scoring, mode packs, self-healing
+- **[Proxy Guide](docs/ops/PROXY_GUIDE.md)** — 3-level proxy system, 1proxy marketplace, registry CRUD
+- **[Free Tiers](docs/reference/FREE_TIERS.md)** — 25+ free API providers consolidated directory
+- **[Features Gallery](docs/guides/FEATURES.md)** — Visual dashboard tour with screenshots
+- **[Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md)** — Beginner-friendly codebase walkthrough
 
 ### 🤖 Protocols & APIs
 
-| Document                                          | Description                                                                                                                                                                             |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [API Reference](docs/reference/API_REFERENCE.md)  | All endpoints with examples                                                                                                                                                             |
-| [OpenAPI Spec](docs/openapi.yaml)                 | OpenAPI 3.0 specification                                                                                                                                                               |
-| [MCP Server](open-sse/mcp-server/README.md)       | 104 MCP tools, IDE configs, Python/TS/Go clients                                                                                                                                        |
-| [MCP Server Guide](docs/frameworks/MCP-SERVER.md) | MCP installation, transports, and tool reference                                                                                                                                        |
-| [A2A Server](src/lib/a2a/README.md)               | JSON-RPC 2.0 protocol, skills, streaming, task mgmt                                                                                                                                     |
-| [A2A Server Guide](docs/frameworks/A2A-SERVER.md) | A2A agent card, tasks, skills, and streaming                                                                                                                                            |
+- **[API Reference](docs/reference/API_REFERENCE.md)** — All endpoints with examples
+- **[OpenAPI Spec](docs/openapi.yaml)** — OpenAPI 3.0 specification
+- **[MCP Server](open-sse/mcp-server/README.md)** — 104 MCP tools, IDE configs, Python/TS/Go clients
+- **[MCP Server Guide](docs/frameworks/MCP-SERVER.md)** — MCP installation, transports, and tool reference
+- **[A2A Server](src/lib/a2a/README.md)** — JSON-RPC 2.0 protocol, skills, streaming, task mgmt
+- **[A2A Server Guide](docs/frameworks/A2A-SERVER.md)** — A2A agent card, tasks, skills, and streaming
 
 ### 📋 Project & Quality
 
-| Document                                                 | Description                                                                                                                                                                              |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Contributing](CONTRIBUTING.md)                          | Development setup and guidelines                                                                                                                                                         |
-| [Branching & Release Model](docs/ops/BRANCHING_MODEL.md) | Where PRs target (`release/*`), what `main` and tags mean                                                                                                                                |
-| [Changelog](CHANGELOG.md)                                | Full per-version release history                                                                                                                                                         |
-| [Security Policy](SECURITY.md)                           | Vulnerability reporting and security practices                                                                                                                                           |
-| [i18n Guide](docs/guides/I18N.md)                        | 40+ language support, translation workflow, RTL                                                                                                                                          |
-| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md)       | Pre-release validation steps                                                                                                                                                             |
-| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)               | Test coverage strategy and 25,000+ test suite                                                                                                                                            |
+- **[Contributing](CONTRIBUTING.md)** — Development setup and guidelines
+- **[Branching & Release Model](docs/ops/BRANCHING_MODEL.md)** — Where PRs target (`release/*`), what `main` and tags mean
+- **[Changelog](CHANGELOG.md)** — Full per-version release history
+- **[Security Policy](SECURITY.md)** — Vulnerability reporting and security practices
+- **[i18n Guide](docs/guides/I18N.md)** — 40+ language support, translation workflow, RTL
+- **[Release Checklist](docs/ops/RELEASE_CHECKLIST.md)** — Pre-release validation steps
+- **[Coverage Plan](docs/ops/COVERAGE_PLAN.md)** — Test coverage strategy and 25,000+ test suite
 
 <br/>
 
@@ -991,6 +1025,24 @@ same process on one port, so there is no separate CLI-only package today.
 </div>
 
 ---
+
+<br/>
+
+## 💖 Sponsors
+
+A heartfelt thank-you to the people who fund OmniRoute out of their own pocket. Every contribution keeps the project free, independent and moving.
+
+<p align="center">
+  <a href="https://github.com/igormorais123"><img src="https://github.com/igormorais123.png?size=140" width="80" alt="Professor Igor Morais Vasconcelos (@igormorais123)"/></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/longtao77"><img src="https://github.com/longtao77.png?size=140" width="80" alt="longtao (@longtao77)"/></a>
+</p>
+
+<p align="center">
+  <sub><b><a href="https://github.com/igormorais123">Professor Igor Morais Vasconcelos</a></b> &nbsp;·&nbsp; <b><a href="https://github.com/longtao77">longtao</a></b> &nbsp;·&nbsp; and others who prefer to stay private 💛</sub>
+</p>
+
+> **Want to support OmniRoute?** <a href="https://github.com/sponsors/diegosouzapw"><b>Become a sponsor →</b></a> Every dollar goes straight into keeping the project free and independent.
 
 <br/>
 
@@ -1135,62 +1187,6 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 | Project                                                                       | How it composes with OmniRoute                                                                                                                                                                             |
 | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[CodeWebChat](https://github.com/robertpiosik/CodeWebChat)** · robertpiosik | Editor-side companion — VS Code + browser extension that autofills 15+ chatbot web UIs with editor context. Owns the free-web-UI rail alongside OmniRoute's API rail; can point its API mode at OmniRoute. |
-
-## 🤝 Supported by our Open Source Friends
-
-<p align="center">
-  <a href="https://www.kimi.com/code?aff=omniroute">
-    <img src="public/sponsors/kimi-k3-banner.png" width="100%" alt="Kimi K3 — Open Frontier Intelligence · 2.8T parameters · 1M-token context"/>
-  </a>
-</p>
-
-> **Want to join as an Open Source Friend?** These are the companies that back open source and help keep OmniRoute moving — and we say publicly where every token they give us goes. Reach out: [diegosouza.pw@outlook.com](mailto:diegosouza.pw@outlook.com)
-
-<table>
-  <tr>
-    <td align="center" width="150">
-      <a href="https://www.kimi.com/code?aff=omniroute">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="public/providers/kimi-logomark-dark.svg">
-          <img src="public/providers/kimi-logomark-light.svg" width="64" alt="Kimi (Moonshot AI)"/>
-        </picture>
-      </a>
-      <br/><b>Kimi</b><br/><sub>Moonshot AI</sub><br/><br/>
-      <img src="https://img.shields.io/badge/Founding_Friend-1783FF?style=flat-square" alt="Founding Open Source Friend"/>
-    </td>
-    <td>
-      Thanks to <b>Kimi (Moonshot AI)</b>, our founding Open Source Friend, for backing this project! Kimi is the AI lab behind the open-weight K2 and K3 model families — <b>Kimi K3</b> delivers a 1M-token context window, native vision and frontier-level coding at a fraction of closed-model prices, and works out of the box with Claude Code, Codex and every coding tool OmniRoute serves.
-      <br/><br/>
-      <b>What Kimi's support powers:</b> Kimi's API credits power OmniRoute's AI-validated release pipeline — the <i>merge validation powered by Kimi K3</i> stage that reviews every pull request before it ships — plus day-to-day feature development. First-class Kimi support ships on both rails: the direct <a href="https://platform.kimi.ai?aff=omniroute">Kimi API</a> (<code>kimi-k3</code>) and the <a href="https://www.kimi.com/code?aff=omniroute">Kimi Code coding plan</a> (OAuth and API key). OmniRoute is also the first Brazilian open-source project in Kimi's support program. <a href="https://platform.kimi.ai?aff=omniroute"><b>Get a Kimi API key →</b></a>
-    </td>
-  </tr>
-</table>
-
-<sub>Links tagged <code>aff=omniroute</code> are partner links. They fund the project at no extra cost to you.</sub>
-
-## 💖 Sponsors
-
-A heartfelt thank-you to the people who fund OmniRoute out of their own pocket. Every contribution keeps the project free, independent and moving.
-
-<p align="center">
-  <a href="https://github.com/igormorais123"><img src="https://github.com/igormorais123.png?size=140" width="80" alt="Professor Igor Morais Vasconcelos (@igormorais123)"/></a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://github.com/longtao77"><img src="https://github.com/longtao77.png?size=140" width="80" alt="longtao (@longtao77)"/></a>
-</p>
-
-<p align="center">
-  <sub><b><a href="https://github.com/igormorais123">Professor Igor Morais Vasconcelos</a></b> &nbsp;·&nbsp; <b><a href="https://github.com/longtao77">longtao</a></b> &nbsp;·&nbsp; and others who prefer to stay private 💛</sub>
-</p>
-
-> **Want to support OmniRoute?** <a href="https://github.com/sponsors/diegosouzapw"><b>Become a sponsor →</b></a> Every dollar goes straight into keeping the project free and independent.
-
-## ❤️ Support
-
-OmniRoute is free and open source, built and maintained in the open. If it saves you time or money, consider supporting development:
-
-- ⭐ **Star the repo** — it genuinely helps visibility
-- 💖 **[GitHub Sponsors](https://github.com/sponsors/diegosouzapw)** — fund ongoing maintenance and new providers
-- 🐛 **Report bugs and share feedback** in [Discussions](https://github.com/diegosouzapw/OmniRoute/discussions)
 
 ## 📄 License
 

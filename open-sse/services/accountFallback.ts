@@ -34,7 +34,12 @@ import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
 import { getQuotaScopedModelForProvider } from "./antigravityQuotaFamily.ts";
-import { isRpdExhausted, isRpmExhausted } from "./geminiRateLimitTracker.ts";
+import {
+  classifyGeminiQuotaMetricFromText,
+  isRpdExhausted,
+  isRpmExhausted,
+  isTpmExhausted,
+} from "./geminiRateLimitTracker.ts";
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import {
   parseRetryHintFromJsonBody,
@@ -236,10 +241,18 @@ const MODEL_ACCESS_AMBIGUOUS_TYPES = new Set([
 
 // Model access patterns — the account does not have access to the requested model
 // but a different account (e.g. PRO vs free tier) may support it.
-const MODEL_ACCESS_DENIED_PATTERNS = [
+// Exported so combo.ts #2101 can exempt model-scoped 400s from the body-specific
+// stop guard (#5249): "model not supported" must advance to the next combo target
+// even when the message also contains wrapper words like "invalid" / "bad request".
+export const MODEL_ACCESS_DENIED_PATTERNS = [
   /\binvalid model\b/i,
   /\bmodel.*not.*(?:available|found|supported|accessible)\b/i,
   /\bmodel.*(?:does not exist|doesn't exist)\b/i,
+  // "does not support" / "unsupported model" — GitHub Copilot / OpenAI-compatible
+  // often phrase model rejection this way without the "is not supported" word order.
+  /\bmodel\b[\s\S]{0,80}?\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b/i,
+  /\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b[\s\S]{0,80}?\bmodel\b/i,
+  /\bunsupported\s+model\b/i,
   /\baccess.*denied.*model\b/i,
   /\bmodel.*access.*denied\b/i,
   /\bplease select a different model\b/i,
@@ -1121,6 +1134,15 @@ export function parseRetryFromErrorText(errorText: unknown): number | null {
     return computeDurationMs(resetsInMatch);
   }
 
+  // Gemini phrasing: "Please retry in 54.472178091s" (fractional seconds).
+  const retryInSecMatch = /please retry in (\d+(?:\.\d+)?)\s*s/i.exec(msg);
+  if (retryInSecMatch?.[1]) {
+    const sec = Number.parseFloat(retryInSecMatch[1]);
+    if (Number.isFinite(sec) && sec > 0) {
+      return Math.min(Math.round(sec * 1000), MAX_PROVIDER_COOLDOWN_MS);
+    }
+  }
+
   return parseDayGranularityResetMs(msg, MAX_PROVIDER_COOLDOWN_MS);
 }
 
@@ -1458,6 +1480,45 @@ export function checkFallbackError(
       };
     }
 
+    // Gemini-specific check — MUST run before isCreditsExhausted/
+    // isDailyQuotaExhausted/the generic text classifier below: Gemini's free-
+    // tier 429 boilerplate literally says "You exceeded your current quota,
+    // please check your plan and billing details" for EVERY limit type
+    // (RPM/TPM/RPD alike), which collides with CREDITS_EXHAUSTED_SIGNALS'
+    // `"exceeded your current quota"` entry (added for OpenAI-style terminal
+    // billing errors) — that generic check would otherwise short-circuit
+    // straight to QUOTA_EXHAUSTED before this Gemini-specific block ever runs
+    // (#7360). Gated on provider === "gemini" so it cannot affect any other
+    // provider's genuine credits-exhausted classification.
+    //
+    // Preference order:
+    //  1. The upstream error text's own metric name (authoritative — it is
+    //     Google's own signal, e.g. "...free_tier_input_token_count..." = TPM).
+    //     Required because the local per-model counters below only increment
+    //     on a SUCCESSFUL response; a request that gets rejected — especially
+    //     the first of several concurrent requests racing to trip the same
+    //     per-minute limit — never contributes to the counter, so it can read
+    //     0 at the exact moment it needs to report exhaustion.
+    //  2. Local per-model counters, when the text names no metric.
+    if (provider === "gemini" && status === HTTP_STATUS.RATE_LIMITED && _model) {
+      const metricClass = classifyGeminiQuotaMetricFromText(errorStr);
+      if (metricClass === "rpd") {
+        return buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
+      }
+      if (metricClass === "rpm" || metricClass === "tpm") {
+        return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
+      }
+      if (isRpdExhausted(_model)) {
+        return buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
+      }
+      if (isRpmExhausted(_model)) {
+        return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
+      }
+      if (isTpmExhausted(_model)) {
+        return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
+      }
+    }
+
     // T10 (sub2api #1169): Credits/quota exhausted — long cooldown, distinct from rate limit
     if (shouldUseQuotaSignal && isCreditsExhausted(errorStr)) {
       return {
@@ -1539,19 +1600,6 @@ export function checkFallbackError(
       !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
       return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
-    }
-  }
-
-  // Gemini-specific: use known published RPM/RPD limits to distinguish 429 types.
-  // Gemini returns the same error body for both, so we use per-model request
-  // counters to decide: if daily count >= RPD → quota_exhausted (midnight lockout);
-  // if minute count >= RPM → rate_limit_exceeded (exponential backoff).
-  if (provider === "gemini" && status === HTTP_STATUS.RATE_LIMITED && _model) {
-    if (isRpdExhausted(_model)) {
-      return buildRetryableFallback(RateLimitReason.QUOTA_EXHAUSTED);
-    }
-    if (isRpmExhausted(_model)) {
-      return buildRetryableFallback(RateLimitReason.RATE_LIMIT_EXCEEDED);
     }
   }
 

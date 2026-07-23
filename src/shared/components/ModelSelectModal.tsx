@@ -18,6 +18,7 @@ import {
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
+import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 
 // Provider order: OAuth first, then no-auth, then API Key (matches dashboard/providers)
 const PROVIDER_ORDER = [
@@ -39,7 +40,15 @@ type ModelSelectModalProps = {
   onDeselect?: (model: unknown) => void;
   selectedModel?: string;
   selectedModels?: string[];
-  activeProviders?: Array<{ provider: string; id?: string | number }>;
+  activeProviders?: Array<{
+    provider: string;
+    id?: string | number;
+    // Present on real connection objects (see fetchConnections() callers);
+    // consumed by hasEligibleConnectionForModel() for the "configured only"
+    // filter toggle below (#8219 dashboard-typecheck fix — the prop type was
+    // too narrow for the field the new filter actually reads).
+    providerSpecificData?: unknown;
+  }>;
   title?: string;
   modelAliases?: Record<string, string>;
   addedModelValues?: string[];
@@ -84,6 +93,14 @@ export default function ModelSelectModal({
   // keyed by provider id. Merged into the alias/custom/fallback list below and
   // tagged with the `auto` source badge. Ported from upstream PR
   // decolua/9router#2018 (Hamsa_M).
+  const [showConfiguredOnly, setShowConfiguredOnly] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("modelSelectShowConfiguredOnly") === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("modelSelectShowConfiguredOnly", String(showConfiguredOnly));
+  }, [showConfiguredOnly]);
   const [fetchedModels, setFetchedModels] = useState<Record<string, any[]>>({});
 
   const fetchCombos = async () => {
@@ -165,8 +182,7 @@ export default function ModelSelectModal({
     const loadCustomProviderModels = async () => {
       const customProviderIds = activeProviders
         .filter(
-          (p) =>
-            isOpenAICompatibleProvider(p.provider) || isAnthropicCompatibleProvider(p.provider)
+          (p) => isOpenAICompatibleProvider(p.provider) || isAnthropicCompatibleProvider(p.provider)
         )
         .map((p) => p.provider);
 
@@ -236,9 +252,7 @@ export default function ModelSelectModal({
       // any explicitly hidden by the operator (#7156 — the legacy picker
       // must respect the same isHidden flag the Precision Builder and
       // /v1/models catalog already honor).
-      const providerCustomModels = (customModels[providerId] || []).filter(
-        (cm) => !cm.isHidden
-      );
+      const providerCustomModels = (customModels[providerId] || []).filter((cm) => !cm.isHidden);
 
       if (providerInfo.passthroughModels) {
         // Passthrough aliases are stored prefixed by the canonical providerId
@@ -427,6 +441,25 @@ export default function ModelSelectModal({
     return filtered;
   }, [groupedModels, searchQuery]);
 
+  // Filter models by connection eligibility when toggle is on
+  const connectionFilteredGroups = useMemo(() => {
+    if (!showConfiguredOnly) return filteredGroups;
+
+    const result: Record<string, any> = {};
+    Object.entries(filteredGroups).forEach(([providerId, group]: [string, any]) => {
+      const providerConnections = activeProviders.filter((p: any) => p.provider === providerId);
+      if (providerConnections.length === 0) return;
+
+      const eligibleModels = group.models.filter((model: any) =>
+        hasEligibleConnectionForModel(providerConnections, model.id)
+      );
+      if (eligibleModels.length > 0) {
+        result[providerId] = { ...group, models: eligibleModels };
+      }
+    });
+    return result;
+  }, [filteredGroups, showConfiguredOnly, activeProviders]);
+
   const resolvedSelectedModels = multiSelect
     ? selectedModels
     : selectedModel
@@ -508,6 +541,16 @@ export default function ModelSelectModal({
         </div>
       </div>
 
+      <label className="flex items-center gap-1.5 mt-1.5 text-xs text-text-muted cursor-pointer">
+        <input
+          type="checkbox"
+          checked={showConfiguredOnly}
+          onChange={(e) => setShowConfiguredOnly(e.target.checked)}
+          className="rounded border-border"
+        />
+        {t("showConfiguredOnly")}
+      </label>
+
       {/* Models grouped by provider - compact */}
       <div className="max-h-[300px] overflow-y-auto space-y-3">
         {/* Combos section - always first */}
@@ -545,7 +588,7 @@ export default function ModelSelectModal({
         )}
 
         {/* Provider models */}
-        {Object.entries(filteredGroups).map(([providerId, group]: [string, any]) => (
+        {Object.entries(connectionFilteredGroups).map(([providerId, group]: [string, any]) => (
           <div key={providerId}>
             {/* Provider header */}
             <div className="flex items-center gap-1.5 mb-1.5 sticky top-0 bg-surface py-0.5">
@@ -587,7 +630,7 @@ export default function ModelSelectModal({
           </div>
         ))}
 
-        {Object.keys(filteredGroups).length === 0 && filteredCombos.length === 0 && (
+        {Object.keys(connectionFilteredGroups).length === 0 && filteredCombos.length === 0 && (
           <div className="text-center py-4 text-text-muted">
             <span className="material-symbols-outlined text-2xl mb-1 block">search_off</span>
             <p className="text-xs">{t("noModelsFound")}</p>

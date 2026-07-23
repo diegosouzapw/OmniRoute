@@ -22,7 +22,10 @@
  * chunk — safer than assuming unverified incremental-delta semantics.
  *
  * Auth: Cookie-based (token_v2 [+ optional space_id, notion_browser_id, user_id])
- * Method: Direct fetch — no browser automation required.
+ * Method: Browser-TLS impersonation via tls-client-node (Chrome JA3). Plain
+ * Node/undici fetch is rejected by Notion's edge with in-band
+ * `temporarily-unavailable` (HTTP 200, empty assistant text) — curl/Schannel
+ * and Chrome work with the same cookie + body. See services/notionTlsClient.ts.
  */
 import { randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
@@ -57,6 +60,10 @@ import {
   messagesForNotionTranscript,
   type NotionAgentOptions,
 } from "../services/notionTranscriptBuilder.ts";
+import {
+  tlsFetchNotion,
+  TlsClientUnavailableError,
+} from "../services/notionTlsClient.ts";
 
 // Re-exported for unit tests that destructure `mod.<name>` on this module.
 export {
@@ -79,8 +86,9 @@ export {
 const BASE_URL = "https://app.notion.com";
 const NOTION_URL = `${BASE_URL}/api/v3/runInferenceTranscript`;
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
-const NOTION_CLIENT_VERSION = "23.13.20260719.1125";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+// Match a recent live browser capture (web_providers/notion.txt, 2026-07-20).
+const NOTION_CLIENT_VERSION = "23.13.20260720.1949";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -451,29 +459,62 @@ async function sendNotionInferenceRequest(opts: {
   signal: ExecuteInput["signal"];
 }): Promise<{ rawText?: string; errorResult?: ReturnType<typeof makeErrorResult> }> {
   const { reqBody, reqHeaders, signal } = opts;
-  let upstream: Response;
+  // Notion's edge rejects Node/undici TLS fingerprints with in-band
+  // temporarily-unavailable (HTTP 200, no assistant text). Always use the
+  // Chrome-JA3 tls-client path for runInferenceTranscript.
+  let status = 0;
+  let rawText = "";
   try {
-    upstream = await fetch(NOTION_URL, {
+    const tlsRes = await tlsFetchNotion(NOTION_URL, {
       method: "POST",
       headers: reqHeaders,
       body: JSON.stringify(reqBody),
       signal: signal ?? undefined,
+      // Inference can take a while (tool-autoload + LLM first token).
+      timeoutMs:
+        Number.parseInt(process.env.OMNIROUTE_NOTION_TLS_TIMEOUT_MS || "", 10) || 180_000,
     });
+    status = tlsRes.status;
+    rawText = tlsRes.text ?? "";
   } catch (err) {
-    return {
-      errorResult: makeErrorResult(
-        502,
-        `Notion fetch failed: ${err instanceof Error ? err.message : "unknown error"}`,
-        reqBody,
-        NOTION_URL
-      ),
-    };
+    if (err instanceof TlsClientUnavailableError) {
+      // Fall back to plain fetch only when the native TLS sidecar is missing —
+      // better a degraded path than a hard crash on platforms without the binary.
+      try {
+        const upstream = await fetch(NOTION_URL, {
+          method: "POST",
+          headers: reqHeaders,
+          body: JSON.stringify(reqBody),
+          signal: signal ?? undefined,
+        });
+        status = upstream.status;
+        rawText = await upstream.text().catch(() => "");
+      } catch (fallbackErr) {
+        return {
+          errorResult: makeErrorResult(
+            502,
+            `Notion fetch failed: ${fallbackErr instanceof Error ? fallbackErr.message : "unknown error"}`,
+            reqBody,
+            NOTION_URL
+          ),
+        };
+      }
+    } else {
+      return {
+        errorResult: makeErrorResult(
+          502,
+          `Notion fetch failed: ${err instanceof Error ? err.message : "unknown error"}`,
+          reqBody,
+          NOTION_URL
+        ),
+      };
+    }
   }
 
-  if (upstream.status === 401 || upstream.status === 403) {
+  if (status === 401 || status === 403) {
     return {
       errorResult: makeErrorResult(
-        upstream.status,
+        status,
         "Notion session expired or invalid — re-paste token_v2 from notion.so",
         reqBody,
         NOTION_URL
@@ -481,19 +522,18 @@ async function sendNotionInferenceRequest(opts: {
     };
   }
 
-  if (!upstream.ok) {
-    const errText = await upstream.text().catch(() => "");
+  if (status < 200 || status >= 300) {
     return {
       errorResult: makeErrorResult(
-        upstream.status,
-        `Notion error: ${errText}`,
+        status || 502,
+        `Notion error: ${rawText.slice(0, 500)}`,
         reqBody,
         NOTION_URL
       ),
     };
   }
 
-  return { rawText: await upstream.text() };
+  return { rawText };
 }
 
 // ─── Executor ───────────────────────────────────────────────────────────────

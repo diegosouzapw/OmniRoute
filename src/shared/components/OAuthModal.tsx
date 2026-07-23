@@ -274,7 +274,7 @@ export default function OAuthModal({
       let token: string | Record<string, unknown> = raw;
       if (provider === "grok-cli") {
         const parsed = parseGrokCliPasteToken(raw);
-        if (!parsed.ok) {
+        if (parsed.ok === false) {
           setError(parsed.error);
           return;
         }
@@ -1084,7 +1084,7 @@ export default function OAuthModal({
               <LinkifiedText text={error} />
             </p>
             <div className="flex gap-2">
-              <Button onClick={startOAuthFlow} variant="secondary" fullWidth>
+              <Button onClick={() => startOAuthFlow()} variant="secondary" fullWidth>
                 {t("tryAgain")}
               </Button>
               <Button onClick={handleClose} variant="ghost" fullWidth>

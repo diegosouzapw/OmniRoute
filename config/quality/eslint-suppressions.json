@@ -4,16 +4,6 @@
       "count": 1
     }
   },
-  "open-sse/executors/claude-web-with-auto-refresh.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "open-sse/executors/claude-web.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
   "open-sse/executors/claudeIdentity.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
@@ -60,11 +50,6 @@
     }
   },
   "open-sse/executors/vertex.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
-  "open-sse/handlers/imageGeneration.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
     }
@@ -1182,7 +1167,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 269
+      "count": 271
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
@@ -1615,11 +1600,6 @@
       "count": 4
     }
   },
-  "tests/unit/image-generation-route.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    }
-  },
   "tests/unit/inspector-agent-bridge-hook.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
@@ -1858,11 +1838,6 @@
   "tests/unit/prompt-injection-guard.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    }
-  },
-  "tests/unit/prompt-required-routes.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
     }
   },
   "tests/unit/provider-connection-apikey-dedup.test.ts": {
