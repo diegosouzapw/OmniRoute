@@ -12,7 +12,10 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const { getCallLogs } = await import("../../src/lib/usage/callLogs.ts");
 const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
+const providerImageRoute =
+  await import("../../src/app/api/v1/providers/[provider]/images/generations/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
 const { MAX_BODY_BYTES_IMAGE_EDIT } = await import("../../src/shared/middleware/bodySizeGuard.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
@@ -99,6 +102,22 @@ async function seedConnection(
   });
 }
 
+async function waitForCallLog(apiKeyId: string, timeoutMs = 2000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const logs = await getCallLogs({ apiKey: apiKeyId, limit: 5 });
+    const match = logs.find((log: { apiKeyId?: string | null }) => log.apiKeyId === apiKeyId);
+    if (match) return match;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  return null;
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  const body = (await response.json()) as { error?: { message?: unknown } };
+  return typeof body.error?.message === "string" ? body.error.message : "";
+}
+
 test.beforeEach(async () => {
   await resetStorage();
 });
@@ -108,6 +127,20 @@ test.after(() => {
   apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("image routes expose CORS preflight handlers", async () => {
+  const responses = await Promise.all([
+    imageRoute.OPTIONS(),
+    providerImageRoute.OPTIONS(),
+    imageEditRoute.OPTIONS(),
+  ]);
+
+  for (const response of responses) {
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get("Access-Control-Allow-Methods") ?? "", /POST/);
+    assert.equal(response.headers.get("Access-Control-Allow-Headers"), "*");
+  }
 });
 
 test("v1 image models GET exposes image-only modalities for credential-backed image-only models", async () => {
@@ -215,6 +248,170 @@ test("v1 image edit POST rejects a declared body above the image-edit admission 
 
   assert.equal(response.status, 413);
   assert.match(body.error.message, /30 MiB limit/i);
+});
+
+test("v1 image generation POST requires an API key when REQUIRE_API_KEY is enabled", async () => {
+  const originalRequireApiKey = process.env.REQUIRE_API_KEY;
+  process.env.REQUIRE_API_KEY = "true";
+
+  try {
+    const response = await imageRoute.POST(
+      new Request("http://localhost/api/v1/images/generations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "openai/gpt-image-2",
+          prompt: "authentication test",
+        }),
+      })
+    );
+
+    assert.equal(response.status, 401);
+    assert.match(await readErrorMessage(response), /Authentication required/);
+  } finally {
+    if (originalRequireApiKey === undefined) {
+      delete process.env.REQUIRE_API_KEY;
+    } else {
+      process.env.REQUIRE_API_KEY = originalRequireApiKey;
+    }
+  }
+});
+
+test("v1 image generation POST rejects an invalid presented API key", async () => {
+  const originalOmniRouteApiKey = process.env.OMNIROUTE_API_KEY;
+  process.env.OMNIROUTE_API_KEY = "valid-image-route-key";
+
+  try {
+    const response = await imageRoute.POST(
+      new Request("http://localhost/api/v1/images/generations", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer invalid-image-route-key",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-image-2",
+          prompt: "invalid authentication test",
+        }),
+      })
+    );
+
+    assert.equal(response.status, 401);
+    assert.match(await readErrorMessage(response), /Invalid API key/);
+  } finally {
+    if (originalOmniRouteApiKey === undefined) {
+      delete process.env.OMNIROUTE_API_KEY;
+    } else {
+      process.env.OMNIROUTE_API_KEY = originalOmniRouteApiKey;
+    }
+  }
+});
+
+test("v1 image generation POST attributes its call log to the validated API key", async () => {
+  const createdKey = await apiKeysDb.createApiKey(
+    "Image generation caller",
+    "machine-image-generation"
+  );
+  await seedConnection("openai", { apiKey: "image-provider-key" });
+
+  globalThis.fetch = async (url) => {
+    assert.equal(String(url), "https://api.openai.com/v1/images/generations");
+    return new Response(
+      JSON.stringify({
+        created: 123,
+        data: [{ url: "https://cdn.example.com/attributed-image.png" }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${createdKey.key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-image-2",
+        prompt: "call log attribution test",
+      }),
+    })
+  );
+
+  assert.equal(response.status, 200);
+  const logged = await waitForCallLog(createdKey.id);
+  assert.ok(logged, "expected an attributed image-generation call log");
+  assert.equal(logged.apiKeyId, createdKey.id);
+  assert.equal(logged.apiKeyName, "Image generation caller");
+});
+
+test("provider-scoped image generation requires an API key when configured", async () => {
+  const originalRequireApiKey = process.env.REQUIRE_API_KEY;
+  process.env.REQUIRE_API_KEY = "true";
+
+  try {
+    const response = await providerImageRoute.POST(
+      new Request("http://localhost/api/v1/providers/openai/images/generations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "gpt-image-2",
+          prompt: "provider-scoped authentication test",
+        }),
+      }),
+      { params: Promise.resolve({ provider: "openai" }) }
+    );
+
+    assert.equal(response.status, 401);
+    assert.match(await readErrorMessage(response), /Authentication required/);
+  } finally {
+    if (originalRequireApiKey === undefined) {
+      delete process.env.REQUIRE_API_KEY;
+    } else {
+      process.env.REQUIRE_API_KEY = originalRequireApiKey;
+    }
+  }
+});
+
+test("provider-scoped image generation attributes its call log to the validated API key", async () => {
+  const createdKey = await apiKeysDb.createApiKey(
+    "Provider-scoped image caller",
+    "machine-provider-image"
+  );
+  await seedConnection("openai", { apiKey: "provider-scoped-upstream-key" });
+
+  globalThis.fetch = async (url) => {
+    assert.equal(String(url), "https://api.openai.com/v1/images/generations");
+    return new Response(
+      JSON.stringify({
+        created: 456,
+        data: [{ url: "https://cdn.example.com/provider-scoped-image.png" }],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  const response = await providerImageRoute.POST(
+    new Request("http://localhost/api/v1/providers/openai/images/generations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${createdKey.key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-image-2",
+        prompt: "provider-scoped attribution test",
+      }),
+    }),
+    { params: Promise.resolve({ provider: "openai" }) }
+  );
+
+  assert.equal(response.status, 200);
+  const logged = await waitForCallLog(createdKey.id);
+  assert.ok(logged, "expected an attributed provider-scoped image-generation call log");
+  assert.equal(logged.apiKeyId, createdKey.id);
+  assert.equal(logged.apiKeyName, "Provider-scoped image caller");
 });
 
 test("v1 image edit POST enforces disabled API key policy", async () => {
