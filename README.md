@@ -265,7 +265,7 @@ All **18** strategies — mix & match per combo step:
 - **🤖 One-command CLI/agent setup** — `setup-*` configures 12+ coding tools; `omniroute launch` / `launch-codex` are zero-config. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
 - **🛰️ Remote mode** — drive a remote OmniRoute with scoped tokens (`connect` / `contexts` / `tokens`) + an `antigravity` OAuth helper for VPS installs. → [Remote Mode](docs/guides/REMOTE-MODE.md)
 - **🧭 Smarter auto-routing** — `auto/<category>:<tier>` combos, **Fusion** (model panel + judge), task-aware routing, per-request model / mode / USD-budget overrides. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ Pluggable compression** — 11 composable engines + Compression Studios: LLMLingua-2, two-tier Ultra, omniglyph, per-step fidelity gate, GCF v3.2, drag-reorder editor. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
+- **🗜️ Pluggable compression** — 12 composable engines + Compression Studios: LLMLingua-2, two-tier Ultra, omniglyph, per-step fidelity gate, GCF v3.2, drag-reorder editor. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
 - **🕵️ Transparent MITM decrypt (TPROXY)** — capture CLIs that ignore proxy env vars, with a per-SNI CA + trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
 - **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint, cache-HIT savings header, per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
 - **🧠 Memory you control** — off by default, opt-in int8 vector quantization + typed decay, per-request `x-omniroute-no-memory`. → [Memory](docs/frameworks/MEMORY.md)
@@ -488,9 +488,9 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 </div>
 
-> **Why use many tokens when few tokens do the trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It's now a **stack of 11 composable engines** that run in order and mix & match per routing combo — building on ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
+> **Why use many tokens when few tokens do the trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It's now a **stack of 12 composable engines** that run in order and mix & match per routing combo — building on ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
 
-### 🧱 The 11-engine stack
+### 🧱 The 12-engine stack
 
 Engines run in pipeline order; each is independently toggleable and configurable per combo:
 
@@ -538,7 +538,7 @@ Code blocks, URLs and structured data are **always preserved** byte-perfect. **O
 
 ### 📖 How it works — pipeline, architecture & savings math
 
-<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute compression pipeline: a client request of 10,000 tokens passes through 11 stacked engines — Session-Dedup, CCR, RTK, Headroom, Relevance, Caveman, LLMLingua-2, Omniglyph, Lite, Aggressive, Ultra — and reaches the provider at about 1,080 tokens, up to 95% saved. Code, URLs and JSON are always preserved byte-perfect."/>
+<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute compression pipeline: a client request of 10,000 tokens passes through 12 stacked engines — Session-Dedup, CCR, RTK, Headroom, Relevance, Caveman, LLMLingua-2, Omniglyph, Lite, Aggressive, Ultra — and reaches the provider at about 1,080 tokens, up to 95% saved. Code, URLs and JSON are always preserved byte-perfect."/>
 
 Default stacked combo runs `RTK → Caveman`. When both act on the same tool/context payload, savings compound:
 
@@ -843,15 +843,15 @@ same process on one port, so there is no separate CLI-only package today.
 
 ### 📋 Project & Quality
 
-| Document                                           | Description                                                                                                                                                                              |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Contributing](CONTRIBUTING.md)                    | Development setup and guidelines                                                                                                                                                         |
-| [Branching & Release Model](docs/ops/BRANCHING_MODEL.md) | Where PRs target (`release/*`), what `main` and tags mean                                                                                                                              |
-| [Changelog](CHANGELOG.md)                          | Full per-version release history                                                                                                                                                         |
-| [Security Policy](SECURITY.md)                     | Vulnerability reporting and security practices                                                                                                                                           |
-| [i18n Guide](docs/guides/I18N.md)                  | 40+ language support, translation workflow, RTL                                                                                                                                          |
-| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md) | Pre-release validation steps                                                                                                                                                             |
-| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)         | Test coverage strategy and 25,000+ test suite                                                                                                                                            |
+| Document                                                 | Description                                                                                                                                                                              |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Contributing](CONTRIBUTING.md)                          | Development setup and guidelines                                                                                                                                                         |
+| [Branching & Release Model](docs/ops/BRANCHING_MODEL.md) | Where PRs target (`release/*`), what `main` and tags mean                                                                                                                                |
+| [Changelog](CHANGELOG.md)                                | Full per-version release history                                                                                                                                                         |
+| [Security Policy](SECURITY.md)                           | Vulnerability reporting and security practices                                                                                                                                           |
+| [i18n Guide](docs/guides/I18N.md)                        | 40+ language support, translation workflow, RTL                                                                                                                                          |
+| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md)       | Pre-release validation steps                                                                                                                                                             |
+| [Coverage Plan](docs/ops/COVERAGE_PLAN.md)               | Test coverage strategy and 25,000+ test suite                                                                                                                                            |
 
 <br/>
 
