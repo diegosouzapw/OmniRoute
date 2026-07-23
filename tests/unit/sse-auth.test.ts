@@ -1014,6 +1014,36 @@ test("getProviderCredentials reports allRateLimited when every account is model-
   assert.match(String(blocked.retryAfterHuman), /reset after/i);
 });
 
+test("Codex parent authentication failures block both virtual children without child rows", async () => {
+  const connection = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-parent-auth-failure",
+    email: "codex-parent-auth-failure@example.com",
+    apiKey: null,
+    accessToken: "codex-parent-auth-access",
+    refreshToken: "codex-parent-auth-refresh",
+  });
+
+  const unavailable = await auth.markAccountUnavailable(
+    connection.id,
+    401,
+    "invalid authentication token",
+    "codex",
+    "gpt-5.3-codex-spark"
+  );
+  const spark = await auth.getProviderCredentials("codex", null, null, "gpt-5.3-codex-spark");
+  const normal = await auth.getProviderCredentials("codex", null, null, "gpt-5.5");
+  const inventory = await providersDb.getProviderConnections({ provider: "codex" });
+
+  assert.equal(unavailable.shouldFallback, true);
+  assert.equal(spark, null);
+  assert.equal(normal, null);
+  assert.deepEqual(
+    inventory.map((item) => item.id),
+    [connection.id]
+  );
+});
+
 test("getProviderCredentials auto-decays stale backoff metadata for recovered accounts", async () => {
   const connection = await seedConnection("openai", {
     name: "stale-backoff",
