@@ -105,6 +105,47 @@ export function dedupSystemPrompt(
   return { body: { ...body, messages }, applied };
 }
 
+// Adjust a hard cut index to the nearest whitespace within a small lookback/lookahead
+// window, so a truncated tool result never garbles the word it lands in the middle of
+// (#8169). Prefers backing off to the end of the previous word (keeps the result at or
+// under the limit); if no whitespace precedes the cut within the window (e.g. the tail
+// end of a very long unbroken run), looks forward to complete the current word instead.
+// Falls back to the original hard cut index when neither direction finds a boundary.
+const TOOL_TRUNCATION_LOOKBACK = 80;
+
+function isWordChar(char: string | undefined): boolean {
+  return char !== undefined && /\S/.test(char);
+}
+
+function findWhitespaceBackward(content: string, cutIndex: number): number {
+  const windowStart = Math.max(0, cutIndex - TOOL_TRUNCATION_LOOKBACK);
+  for (let i = cutIndex; i > windowStart; i--) {
+    if (!isWordChar(content[i - 1])) return i - 1;
+  }
+  return -1;
+}
+
+function findWhitespaceForward(content: string, cutIndex: number): number {
+  const windowEnd = Math.min(content.length, cutIndex + TOOL_TRUNCATION_LOOKBACK);
+  for (let i = cutIndex; i < windowEnd; i++) {
+    if (!isWordChar(content[i])) return i;
+  }
+  return -1;
+}
+
+function backOffToWordBoundary(content: string, cutIndex: number): number {
+  const onWordBoundary = !isWordChar(content[cutIndex - 1]) || !isWordChar(content[cutIndex]);
+  if (onWordBoundary) return cutIndex;
+
+  const backward = findWhitespaceBackward(content, cutIndex);
+  if (backward !== -1) return backward;
+
+  const forward = findWhitespaceForward(content, cutIndex);
+  if (forward !== -1) return forward;
+
+  return cutIndex;
+}
+
 export function compressToolResults(body: ChatBody): {
   body: ChatBody;
   applied: boolean;
@@ -116,9 +157,10 @@ export function compressToolResults(body: ChatBody): {
     if (msg.role !== "tool" || typeof msg.content !== "string") return msg;
     if (msg.content.length <= MAX_TOOL_LENGTH) return msg;
     applied = true;
+    const cutIndex = backOffToWordBoundary(msg.content, MAX_TOOL_LENGTH);
     return {
       ...msg,
-      content: msg.content.slice(0, MAX_TOOL_LENGTH) + "\n...[truncated]",
+      content: msg.content.slice(0, cutIndex) + "\n...[truncated]",
     };
   });
   return { body: { ...body, messages }, applied };

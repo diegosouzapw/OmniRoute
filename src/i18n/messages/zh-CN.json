@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "客户端配置",
     "antigravityClientProfileHint": "选择 OmniRoute 向 API 呈现的 Antigravity 客户端身份。",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "CLI",
     "codexFastTierActiveChip": "Codex Fast 层级已启用",
     "tierFast": "快速",
     "antigravityProjectIdLabel": "谷歌云项目 ID",

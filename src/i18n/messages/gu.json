@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "ક્લાયન્ટ પ્રોફાઇલ",
     "antigravityClientProfileHint": "OmniRoute API સમક્ષ કઈ Antigravity ક્લાયન્ટ ઓળખ રજૂ કરે છે તે પસંદ કરો.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast ટાયર સક્રિય છે",
     "tierFast": "ઝડપી",
     "antigravityProjectIdLabel": "Google ક્લાઉડ પ્રોજેક્ટ ID",

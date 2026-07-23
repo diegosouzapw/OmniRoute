@@ -33,10 +33,6 @@
     {
       "category": "HARM_CATEGORY_HARASSMENT",
       "threshold": "OFF"
-    },
-    {
-      "category": "HARM_CATEGORY_CIVIC_INTEGRITY",
-      "threshold": "OFF"
     }
   ]
 }

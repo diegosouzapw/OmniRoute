@@ -4,7 +4,7 @@ import {
   getGrokBuildModelsHeaders,
   GROK_BUILD_MODELS_URL,
 } from "@omniroute/open-sse/config/grokBuild.ts";
-import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getAntigravityContentHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { parseGeminiModelsList } from "@/lib/providerModels/geminiModelsParser";
 import {
   CLINE_MODELS_ENDPOINT,
@@ -410,7 +410,7 @@ export const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> =
   antigravity: {
     url: getAntigravityModelsDiscoveryUrls()[0],
     method: "POST",
-    headers: getAntigravityHeaders("models"),
+    headers: getAntigravityContentHeaders("ide"),
     authHeader: "Authorization",
     authPrefix: "Bearer ",
     body: {},

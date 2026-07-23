@@ -332,6 +332,7 @@ const runProcess = (
     // `command` as a raw argv[0] and the OS loader handles spaces. When useShell
     // is true (.cmd/.bat on Windows), Node quotes the command for cmd.exe itself.
     const child = spawn(command, args, {
+      windowsHide: true,
       env,
       stdio: ["ignore", "pipe", "pipe"],
       // On Windows, npm installs CLI wrappers as .cmd/.bat scripts. Those still
@@ -466,6 +467,7 @@ const getNpmGlobalPrefix = (): string => {
 
   try {
     const result = execFileSync("npm", ["config", "get", "prefix"], {
+      windowsHide: true,
       timeout: 5000,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
@@ -874,7 +876,10 @@ const locateCommandCandidate = async (
   // This avoids searching PATH and reduces attack surface
   let bestKnownPathFailure: KnownPathResult | null = null;
   if (toolId) {
-    const { match, bestFailure } = await findKnownPathMatch(getKnownToolPaths(toolId), checkKnownPath);
+    const { match, bestFailure } = await findKnownPathMatch(
+      getKnownToolPaths(toolId),
+      checkKnownPath
+    );
     if (match) {
       return {
         command: commands[0],

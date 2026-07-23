@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "פרופיל לקוח",
     "antigravityClientProfileHint": "בחר איזו זהות לקוח של Antigravity תציג OmniRoute ל-API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "דרגת Codex Fast פעילה",
     "tierFast": "מהיר",
     "antigravityProjectIdLabel": "מזהה פרויקט של Google Cloud",

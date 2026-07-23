@@ -5462,7 +5462,7 @@
     "antigravityClientProfileLabel": "Hồ sơ ứng dụng khách",
     "antigravityClientProfileHint": "Chọn danh tính ứng dụng khách Antigravity mà OmniRoute sẽ sử dụng khi kết nối với API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "CLI",
     "codexFastTierActiveChip": "Gói Codex Fast đang hoạt động",
     "tierFast": "Nhanh",
     "antigravityProjectIdLabel": "Google Cloud Project ID",

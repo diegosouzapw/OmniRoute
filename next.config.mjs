@@ -238,6 +238,10 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
+    // sql.js WASM is resolved at runtime via createRequire(); Next's static
+    // analysis can't follow _require.resolve("sql.js/package.json") and spams
+    // build warnings.  Externalizing silences them without changing behaviour.
+    "sql.js",
     // sqlite-vec ships a native vec0.so loaded at runtime via createRequire().
     // Turbopack otherwise tries to bundle the .so and fails with "Unknown module
     // type"; externalizing it keeps the require at runtime (like better-sqlite3).

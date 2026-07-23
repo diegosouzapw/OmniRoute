@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Profilo client",
     "antigravityClientProfileHint": "Scegli quale identità client Antigravity viene presentata da OmniRoute all'API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Il livello Codex Fast è attivo",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "ID del progetto Google Cloud",

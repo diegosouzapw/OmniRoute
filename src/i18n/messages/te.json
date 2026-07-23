@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "క్లయింట్ ప్రొఫైల్",
     "antigravityClientProfileHint": "APIకి OmniRoute ఏ Antigravity క్లయింట్ గుర్తింపును ప్రదర్శించాలో ఎంచుకోండి.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast శ్రేణి సక్రియంగా ఉంది",
     "tierFast": "ఫాస్ట్",
     "antigravityProjectIdLabel": "Google క్లౌడ్ ప్రాజెక్ట్ ID",

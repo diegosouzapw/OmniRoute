@@ -5302,7 +5302,7 @@
     "antigravityClientProfileLabel": "客戶端配置",
     "antigravityClientProfileHint": "選擇 OmniRoute 向 API 呈現的 Antigravity 客戶端身份。",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "CLI",
     "codexFastTierActiveChip": "Codex Fast 層級已啟用",
     "tierFast": "快速",
     "antigravityProjectIdLabel": "谷歌雲專案 ID",
