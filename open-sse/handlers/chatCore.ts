@@ -2988,7 +2988,11 @@ export async function handleChatCore({
           rawResult._executionCredentials?.connectionId &&
           rawResult._executionCredentials?.apiKey
         ) {
-          recordKeyHealthStatus(status, rawResult._executionCredentials);
+          recordKeyHealthStatus(
+            status,
+            rawResult._executionCredentials,
+            rawResult.transport
+          );
         }
         releaseRawResultAccountSemaphore =
           typeof rawResult._accountSemaphoreRelease === "function"
