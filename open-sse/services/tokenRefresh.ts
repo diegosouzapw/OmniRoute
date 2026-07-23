@@ -23,7 +23,6 @@ import { refreshKimiCodingToken } from "./tokenRefresh/providers/kimiCoding.ts";
 import { refreshGitLabDuoToken } from "./tokenRefresh/providers/gitlabDuo.ts";
 import { refreshClaudeOAuthToken } from "./tokenRefresh/providers/claudeOAuth.ts";
 import { refreshGoogleToken } from "./tokenRefresh/providers/google.ts";
-import { refreshQwenToken } from "./tokenRefresh/providers/qwen.ts";
 import { refreshCodexToken } from "./tokenRefresh/providers/codex.ts";
 import { refreshKiroToken } from "./tokenRefresh/providers/kiro.ts";
 import { refreshQoderToken } from "./tokenRefresh/providers/qoder.ts";
@@ -38,7 +37,6 @@ export {
   refreshGitLabDuoToken,
   refreshClaudeOAuthToken,
   refreshGoogleToken,
-  refreshQwenToken,
   refreshCodexToken,
   refreshKiroToken,
   refreshQoderToken,
@@ -77,13 +75,13 @@ export const REFRESH_LEAD_MS: Record<string, number> = {
   "gitlab-duo": 5 * 60 * 1000, // GitLab token family revocation on misuse
   kiro: 5 * 60 * 1000, // AWS SSO OIDC issues one-time-use refresh tokens
   "kimi-coding": 5 * 60 * 1000, // Moonshot rotates per-refresh
-  qwen: 5 * 60 * 1000, // Alibaba device-code path also rotates
   // Non-rotating providers — longer lead is safe.
   iflow: 24 * 60 * 60 * 1000, // 24 hours
   // Google OAuth refresh_tokens are permanent (non-rotating) — longer lead
   // is safe and reduces unnecessary upstream chatter.
   antigravity: 15 * 60 * 1000,
   agy: 15 * 60 * 1000, // same Google backend as antigravity (non-rotating refresh tokens)
+  "gemini-cli": 15 * 60 * 1000, // legacy stored connections; provider is no longer public
 };
 
 /**
@@ -374,6 +372,18 @@ export async function refreshAccessToken(
  */
 async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: unknown = null) {
   switch (provider) {
+    case "gemini-cli":
+      // Legacy DB rows can retain this discontinued provider id. Refresh them
+      // with the same public OAuth client used by Gemini CLI without restoring
+      // gemini-cli to the routable provider or OAuth UI registries.
+      return await refreshGoogleToken(
+        credentials.refreshToken,
+        PROVIDERS.gemini.clientId,
+        PROVIDERS.gemini.clientSecret,
+        log,
+        proxyConfig
+      );
+
     case "gemini":
     case "antigravity":
     case "agy":
@@ -390,9 +400,6 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
 
     case "codex":
       return await refreshCodexToken(credentials.refreshToken, log, proxyConfig);
-
-    case "qwen":
-      return await refreshQwenToken(credentials.refreshToken, log, proxyConfig);
 
     case "qoder":
       return await refreshQoderToken(credentials.refreshToken, log, proxyConfig);
@@ -453,11 +460,11 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
 export function supportsTokenRefresh(provider) {
   const explicitlySupported = new Set([
     "gemini",
+    "gemini-cli", // legacy refresh compatibility only; not a routable provider
     "antigravity",
     "agy",
     "claude",
     "codex",
-    "qwen",
     "qoder",
     "github",
     "kiro",
@@ -767,7 +774,6 @@ export function formatProviderCredentials(provider, credentials, log) {
       };
 
     case "codex":
-    case "qwen":
     case "qoder":
     case "openai":
     case "openrouter":

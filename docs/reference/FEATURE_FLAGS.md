@@ -56,7 +56,9 @@ used when neither a DB override nor an environment variable is present.
 | `REQUIRE_API_KEY`                | boolean | `false`  | Require an API key for all incoming requests.                                 |
 | `INPUT_SANITIZER_ENABLED`        | boolean | `true`   | Enable input sanitization for all requests.                                   |
 | `INJECTION_GUARD_MODE`           | enum    | `off`    | Prompt injection guard mode. Values: `off`, `warn`, `block`, `redact`.        |
-| `PII_REDACTION_ENABLED`          | boolean | `false`  | Redact personally identifiable information from requests.                     |
+| `INPUT_SANITIZER_BLOCK_THRESHOLD` | enum    | `high`   | Minimum severity blocked when mode is `block` (`high`/`medium`/`low`). Medium families are observe-only at default. |
+| `INJECTION_GUARD_BLOCK_THRESHOLD` | enum    | _(unset)_ | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD`. |
+| `PII_REDACTION_ENABLED`          | boolean | `false`  | Redact PII from requests (independent of `INPUT_SANITIZER_MODE`).              |
 | `PII_RESPONSE_SANITIZATION`      | boolean | `false`  | Sanitize PII from provider responses.                                         |
 | `PII_RESPONSE_SANITIZATION_MODE` | enum    | `redact` | Mode for PII response sanitization. Values: `redact`, `warn`, `block`, `off`. |
 | `OUTBOUND_SSRF_GUARD_ENABLED`    | boolean | `true`   | Block outbound requests to private/internal IP ranges.                        |

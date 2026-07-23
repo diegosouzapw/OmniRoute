@@ -342,7 +342,7 @@ export function getAccountCostRows(whereClause: string, params: AnalyticsParams)
         SELECT
           COALESCE(
             NULLIF(usage_history.account_key, ''),
-            'connection:' || COALESCE(LOWER(usage_history.provider), 'unknown') || ':' || COALESCE(usage_history.connection_id, 'unknown')
+            'connection:' || COALESCE(LOWER(usage_history.provider), 'unknown') || ':' || COALESCE(NULLIF(TRIM(usage_history.connection_id), ''), 'unknown')
           ) as resolved_account_key,
           usage_history.provider,
           usage_history.model,
@@ -403,7 +403,7 @@ export function getAccountUsageRows(
       WITH account_events AS (
         SELECT
           usage_history.*,
-          COALESCE(NULLIF(usage_history.account_key, ''), 'connection:' || COALESCE(LOWER(usage_history.provider), 'unknown') || ':' || COALESCE(usage_history.connection_id, 'unknown')) as resolved_account_key
+          COALESCE(NULLIF(usage_history.account_key, ''), 'connection:' || COALESCE(LOWER(usage_history.provider), 'unknown') || ':' || COALESCE(NULLIF(TRIM(usage_history.connection_id), ''), 'unknown')) as resolved_account_key
         FROM usage_history
         ${whereClause}
       ),
@@ -416,10 +416,10 @@ export function getAccountUsageRows(
         SELECT
           stable_account_keys.account_key,
           (
-            SELECT usage_history.account_label
+            SELECT TRIM(usage_history.account_label)
             FROM usage_history
             WHERE usage_history.account_key = stable_account_keys.account_key
-              AND NULLIF(usage_history.account_label, '') IS NOT NULL
+              AND NULLIF(TRIM(usage_history.account_label), '') IS NOT NULL
             ORDER BY COALESCE(usage_history.account_label_priority, 0) DESC,
                      usage_history.timestamp DESC,
                      usage_history.id DESC
@@ -432,7 +432,7 @@ export function getAccountUsageRows(
         FROM (
           SELECT
             account_events.resolved_account_key as account_key,
-            account_events.account_label,
+            TRIM(account_events.account_label) as account_label,
             ROW_NUMBER() OVER (
               PARTITION BY account_events.resolved_account_key
               ORDER BY COALESCE(account_events.account_label_priority, 0) DESC,
@@ -441,7 +441,7 @@ export function getAccountUsageRows(
             ) as label_rank
           FROM account_events
           WHERE (account_events.account_key IS NULL OR account_events.account_key = '')
-            AND NULLIF(account_events.account_label, '') IS NOT NULL
+            AND NULLIF(TRIM(account_events.account_label), '') IS NOT NULL
         )
         WHERE label_rank = 1
       ),
@@ -452,7 +452,7 @@ export function getAccountUsageRows(
       )
       SELECT
         account_events.resolved_account_key as accountKey,
-        COALESCE(selected_labels.account_label, account_events.connection_id, 'unknown') as account,
+        COALESCE(NULLIF(TRIM(selected_labels.account_label), ''), NULLIF(TRIM(account_events.connection_id), ''), 'unknown') as account,
         COUNT(account_events.id) as requests,
         COALESCE(SUM(account_events.tokens_input), 0) as promptTokens,
         COALESCE(SUM(account_events.tokens_output), 0) as completionTokens,

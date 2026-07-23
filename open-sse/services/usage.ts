@@ -10,6 +10,8 @@ import { fetchOpencodeQuota, type OpencodeTripleWindowQuota } from "./opencodeQu
 import { getOpenrouterUsage } from "./usage/openrouter.ts";
 import { getOllamaCloudUsage, getOpenCodeGoUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
+import { getPromptQlUsage } from "./usage/promptql.ts";
+import { getHyperAgentUsage } from "./usage/hyperagent.ts";
 import {
   extractCodeAssistOnboardTierId,
   extractCodeAssistSubscriptionTier,
@@ -59,6 +61,7 @@ import { getClaudeUsage, getClaudePlanLabel } from "./usage/claude.ts";
 import { getKiroUsage, buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
 // Re-exported para os testes kiro-* (importam de services/usage).
 export { buildKiroUsageResult, discoverKiroProfileArn } from "./usage/kiro.ts";
+import { getAdobeFireflyUsage } from "./usage/adobeFirefly.ts";
 
 // Quota / usage upstream URLs (overridable for testing or relays).
 const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
@@ -190,7 +193,7 @@ async function getCrofUsage(apiKey: string) {
 }
 
 /**
- * Bailian (Alibaba Coding Plan) Usage
+ * Bailian (Alibaba Token Plan) Usage
  * Fetches triple-window quota (5h, weekly, monthly) and returns worst-case.
  */
 async function getBailianCodingPlanUsage(
@@ -203,7 +206,7 @@ async function getBailianCodingPlanUsage(
     const quota = await fetchBailianQuota(connectionId, connection);
 
     if (!quota) {
-      return { message: "Bailian Coding Plan connected. Unable to fetch quota." };
+      return { message: "Alibaba Token Plan connected. Unable to fetch quota." };
     }
 
     const bailianQuota = quota as BailianTripleWindowQuota;
@@ -213,17 +216,17 @@ async function getBailianCodingPlanUsage(
     const remainingPercentage = Math.round(remaining);
 
     return {
-      plan: "Alibaba Coding Plan",
+      plan: "Alibaba Token Plan",
       used,
       total,
       remaining,
       remainingPercentage,
       resetAt: bailianQuota.resetAt,
       unlimited: false,
-      displayName: "Alibaba Coding Plan",
+      displayName: "Alibaba Token Plan",
     };
   } catch (error) {
-    return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
+    return { message: `Alibaba Token Plan error: ${(error as Error).message}` };
   }
 }
 
@@ -519,7 +522,6 @@ export const USAGE_FETCHER_PROVIDERS = [
   "amazon-q",
   "kimi-coding",
   "kimi-coding-apikey",
-  "qwen",
   "qoder",
   "glm",
   "glm-cn",
@@ -541,6 +543,12 @@ export const USAGE_FETCHER_PROVIDERS = [
   "vertex-partner",
   "codebuddy-cn",
   "openrouter",
+  // PromptQL playground credits (data.pro.ql.app getCreditSummary)
+  "promptql",
+  "pql",
+  // HyperAgent billing usage (creditBlocks USD)
+  "hyperagent",
+  "ha",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
@@ -584,8 +592,6 @@ export async function getUsageForProvider(
     case "kimi-coding":
     case "kimi-coding-apikey":
       return await getKimiUsage(accessToken, apiKey, providerSpecificData);
-    case "qwen":
-      return await getQwenUsage(accessToken, providerSpecificData);
     case "qoder":
       // Qoder PATs live in `apiKey` (decrypted) or `providerSpecificData.qoderPat`,
       // never in `accessToken`.
@@ -624,6 +630,21 @@ export async function getUsageForProvider(
       return await getXaiUsage(id || "");
     case "codebuddy-cn":
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
+    case "promptql":
+    case "pql":
+      // DDN lux JWTs carry projectId only in JWT aud; connection.projectId may be set by sync.
+      return await getPromptQlUsage(
+        apiKey || accessToken,
+        providerSpecificData,
+        projectId
+      );
+    case "adobe-firefly":
+    case "firefly":
+      // Cookie or IMS JWT in apiKey/accessToken → GET firefly.adobe.io/v1/credits/balance
+      return await getAdobeFireflyUsage(apiKey, accessToken, providerSpecificData);
+    case "hyperagent":
+    case "ha":
+      return await getHyperAgentUsage(apiKey || accessToken, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -882,24 +903,6 @@ async function getVertexUsage(connectionId: string, provider: string) {
     };
   } catch (error) {
     return { message: `Vertex usage tracking error: ${(error as Error).message}` };
-  }
-}
-
-/**
- * Qwen Usage
- */
-async function getQwenUsage(accessToken?: string, providerSpecificData?: JsonRecord) {
-  void accessToken;
-  try {
-    const resourceUrl = providerSpecificData?.resourceUrl;
-    if (!resourceUrl) {
-      return { message: "Qwen connected. No resource URL available." };
-    }
-
-    // Qwen may have usage endpoint at resource URL
-    return { message: "Qwen connected. Usage tracked per request." };
-  } catch (error) {
-    return { message: "Unable to fetch Qwen usage." };
   }
 }
 

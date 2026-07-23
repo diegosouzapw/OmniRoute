@@ -9,7 +9,7 @@ export const veoaifree_webProvider: RegistryEntry = {
   authType: "none",
   authHeader: "none",
   models: [
-    { id: "veo", name: "VEO 3.1" },
-    { id: "seedance", name: "Seedance" },
+    { id: "veo", name: "VEO 3.1", toolCalling: false },
+    { id: "seedance", name: "Seedance", toolCalling: false },
   ],
 };

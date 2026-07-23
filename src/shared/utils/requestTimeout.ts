@@ -50,7 +50,6 @@ export const PROVIDER_TIMEOUTS: Record<string, number> = {
   claude: 90000, // Claude can be slower for long outputs
   gemini: 60000,
   codex: 120000, // Coding tasks often take longer
-  qwen: 45000,
   deepseek: 60000,
   cohere: 45000,
   groq: 30000, // Groq is fast

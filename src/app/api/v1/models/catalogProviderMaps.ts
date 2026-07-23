@@ -15,7 +15,6 @@ export const FALLBACK_ALIAS_TO_PROVIDER = {
   kc: "kilocode",
   kmc: "kimi-coding",
   kr: "kiro",
-  qw: "qwen",
 };
 
 export function buildAliasMaps() {

@@ -22,8 +22,8 @@ export interface EngineMeta {
   id: string;
   label: string;
   stackPriority: number;
-  levels?: string[];        // intensity options; undefined = no level selector
-  isSingleMode: boolean;    // can be the effective mode when it is the only engine on
+  levels?: string[]; // intensity options; undefined = no level selector
+  isSingleMode: boolean; // can be the effective mode when it is the only engine on
   description: string;
   guidance: EngineGuidance;
 }
@@ -80,6 +80,19 @@ export const ENGINE_CATALOG: Record<string, EngineMeta> = {
         "Strips ANSI noise, progress bars, and repeated lines from command/tool output while preserving failures, warnings, and summaries (60-90% upstream savings). The 'aggressive' level trims more tail context than 'minimal'/'standard'.",
       lossy: true,
       cacheImpact: "moderate",
+    },
+  },
+  "codex-responses": {
+    id: "codex-responses",
+    label: "Responses Tool Output",
+    stackPriority: 12,
+    isSingleMode: true,
+    description: "Conservative compression for supported Responses tool outputs.",
+    guidance: {
+      tradeoffs:
+        "Lossless-first JSON and bounded diagnostic compression for shell, patch, search, and build outputs. Protected tools and uncertain shapes pass through unchanged.",
+      lossy: true,
+      cacheImpact: "low",
     },
   },
   headroom: {

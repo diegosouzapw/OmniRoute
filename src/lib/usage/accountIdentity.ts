@@ -67,10 +67,12 @@ export function resolveUsageAccountIdentity(
   const username = identityString(providerSpecificData.username);
 
   let identityParts: string[];
-  if (authType === "oauth" && provider === "codex" && workspaceId && email) {
+  if (authType === "oauth" && provider === "codex" && workspaceId && chatgptUserId) {
+    identityParts = ["oauth", provider, "workspace", workspaceId, "user", chatgptUserId];
+  } else if (authType === "oauth" && provider === "codex" && chatgptUserId) {
+    identityParts = ["oauth", provider, "user", chatgptUserId];
+  } else if (authType === "oauth" && provider === "codex" && workspaceId && email) {
     identityParts = ["oauth", provider, "workspace", workspaceId, "email", email];
-  } else if (authType === "oauth" && provider === "codex" && chatgptUserId && email) {
-    identityParts = ["oauth", provider, "user", chatgptUserId, "email", email];
   } else if (authType === "oauth" && provider !== "codex" && email) {
     identityParts = username
       ? ["oauth", provider, "email", email, "username", username]

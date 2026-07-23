@@ -261,9 +261,41 @@ export interface Plugin {
 }
 
 /**
+ * Reload plugins left active in the DB, once per process.
+ *
+ * The `hooks` map above is module state and does not survive a restart, while the DB
+ * keeps status='active' — so without this every active plugin silently stops applying
+ * after a reboot while the UI still reports it as active. Hooks are fail-open, so a
+ * plugin that exists to *block* traffic fails open.
+ *
+ * This lives on the request path on purpose. Booting it from instrumentation-node.ts
+ * does not work: Next.js gives instrumentation its own module graph, so its `hooks` map
+ * is a different instance from the one route handlers read. Verified — plugins loaded
+ * there register into a copy nothing consults, and leak an unused child process.
+ *
+ * The import is dynamic because manager.ts imports this module.
+ */
+let pluginBoot: Promise<void> | null = null;
+
+function ensurePluginsLoaded(): Promise<void> {
+  if (!pluginBoot) {
+    pluginBoot = (async () => {
+      const { pluginManager } = await import("./manager");
+      await pluginManager.loadAll();
+    })().catch((err: unknown) => {
+      // Retry on the next request rather than wedging every later call.
+      pluginBoot = null;
+      log.error("hooks.boot_failed", { error: err instanceof Error ? err.message : String(err) });
+    });
+  }
+  return pluginBoot;
+}
+
+/**
  * Run onRequest hooks — blocking. Plugins can modify body/metadata or block with 403.
  */
 export async function runOnRequest(ctx: PluginContext): Promise<PluginResult> {
+  await ensurePluginsLoaded();
   return emitHookBlocking("onRequest", ctx);
 }
 

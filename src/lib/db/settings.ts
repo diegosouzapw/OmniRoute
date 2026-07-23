@@ -103,7 +103,9 @@ function withFamilyDefault(value: ProxyValue): ProxyValue {
 function applySessionAffinityLegacyFallback(settings: Record<string, unknown>): void {
   if (settings.sessionAffinityTtlMs === undefined) {
     settings.sessionAffinityTtlMs =
-      typeof settings.codexSessionAffinityTtlMs === "number" ? settings.codexSessionAffinityTtlMs : 0;
+      typeof settings.codexSessionAffinityTtlMs === "number"
+        ? settings.codexSessionAffinityTtlMs
+        : 0;
   }
 }
 
@@ -116,9 +118,16 @@ export async function getSettings() {
     tailscaleUrl: "",
     stickyRoundRobinLimit: 3,
     disableSessionStickiness: false,
+    promptCacheAffinityEnabled: true,
     comboStrategy: "fallback",
     comboStickyRoundRobinLimit: null, // null = inherit stickyRoundRobinLimit (a literal default here shadows the documented batched-rotation default of 3 — #6678 regression caught by the v3.8.47 release CI)
     providerStrategies: {},
+    // Per-operator quota row visibility (dashboard usage tab). Keyed by
+    // provider id → { hidden: [<quota visibility key>] }. Independent of the
+    // model catalog's isHidden/isDeleted flags (collectHiddenQuotaModelIds in
+    // ProviderLimits/utils.tsx) — this is a personal view preference, not an
+    // admin model-catalog edit. Ported from upstream decolua/9router#2371.
+    quotaVisibility: {},
     requestRetry: 3,
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",
@@ -762,3 +771,4 @@ export {
   getCacheTrend,
   resetCacheMetrics,
 } from "./settings/cacheMetrics";
+export { getCachedSettings } from "./readCache";

@@ -183,8 +183,8 @@ Combo: "free-forever"
   Compression Combo: "coding-agent-stack"
   Pipeline: RTK -> Caveman
   Targets:
-    1. if/kimi-k2-thinking
-    2. qw/qwen3-coder-plus
+    1. if/kimi-k2.7-code
+    2. if/qwen3.8-max-preview
 ```
 
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid
@@ -283,12 +283,12 @@ Every compressed request includes stats in the server logs:
 
 ## Phase Roadmap
 
-| Phase   | Modes                                                                | Status     |
-| ------- | -------------------------------------------------------------------- | ---------- |
-| Phase 1 | Off, Lite                                                            | ✅ Shipped |
-| Phase 2 | Standard, Aggressive, Ultra                                          | ✅ Shipped |
-| Phase 3 | RTK, Stacked, Compression Combos                                     | ✅ Shipped |
-| Phase 4 | Output Styles, SLM-tier Ultra, eval harness | ✅ Shipped |
+| Phase    | Modes                                                                                                        | Status                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Phase 1  | Off, Lite                                                                                                    | ✅ Shipped                                                             |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                  | ✅ Shipped                                                             |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                             | ✅ Shipped                                                             |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | ✅ Shipped                                                             |
 | Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) | ✅ Shipped (API-configurable; dashboard controls not yet built, #7005) |
 
 ---

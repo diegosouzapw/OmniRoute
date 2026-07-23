@@ -8,8 +8,9 @@ const { openaiToOpenAIResponsesResponse } =
 const { initState } = await import("../../open-sse/translator/index.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
-function collectEvents(chunks) {
+function collectEvents(chunks, customToolNames = new Set()) {
   const state = initState(FORMATS.OPENAI_RESPONSES);
+  state.customToolNames = customToolNames;
   const events = [];
   for (const chunk of chunks) {
     const result = openaiToOpenAIResponsesResponse(chunk, state);
@@ -163,4 +164,83 @@ test("OpenAI -> Responses: apply_patch streams as custom_tool_call with raw inpu
   const customItem = completed.data.response.output.find((o) => o.type === "custom_tool_call");
   assert.ok(customItem, "final snapshot should carry the custom_tool_call item");
   assert.equal(customItem.input, "PATCH_BODY");
+});
+
+test("OpenAI -> Responses: declared custom tools round-trip through the active translator", () => {
+  const events = collectEvents(
+    [
+      {
+        id: "chatcmpl-exec",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              tool_calls: [
+                {
+                  index: 0,
+                  id: "call_exec",
+                  function: { name: "exec", arguments: '{"input":"text(\\"pong\\")"}' },
+                },
+              ],
+            },
+            finish_reason: "tool_calls",
+          },
+        ],
+      },
+      null,
+    ],
+    new Set(["exec"])
+  );
+
+  const added = events.find((event) => event.event === "response.output_item.added");
+  const done = events.find(
+    (event) => event.event === "response.output_item.done" && event.data.item.name === "exec"
+  );
+  assert.equal(added.data.item.type, "custom_tool_call");
+  assert.equal(done.data.item.type, "custom_tool_call");
+  assert.equal(done.data.item.input, 'text("pong")');
+  assert.ok(events.some((event) => event.event === "response.custom_tool_call_input.delta"));
+  assert.ok(!events.some((event) => event.event === "response.function_call_arguments.delta"));
+});
+
+test("OpenAI -> Responses: active translator defers custom item until its name arrives", () => {
+  const events = collectEvents(
+    [
+      {
+        id: "chatcmpl-late-name",
+        choices: [
+          {
+            index: 0,
+            delta: {
+              tool_calls: [
+                { index: 0, id: "call_exec", function: { arguments: '{"input":"pong"}' } },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        id: "chatcmpl-late-name",
+        choices: [
+          {
+            index: 0,
+            delta: { tool_calls: [{ index: 0, function: { name: "exec" } }] },
+            finish_reason: "tool_calls",
+          },
+        ],
+      },
+      null,
+    ],
+    new Set(["exec"])
+  );
+
+  const added = events.filter((event) => event.event === "response.output_item.added");
+  assert.equal(added.length, 1);
+  assert.equal(added[0].data.item.type, "custom_tool_call");
+  assert.equal(added[0].data.item.name, "exec");
+  assert.ok(!events.some((event) => event.data?.item?.type === "function_call"));
+  const done = events.find(
+    (event) => event.event === "response.output_item.done" && event.data.item.name === "exec"
+  );
+  assert.equal(done.data.item.input, "pong");
 });

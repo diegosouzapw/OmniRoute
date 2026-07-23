@@ -44,10 +44,14 @@ export interface LoadedPlugin {
 
 const PLUGIN_HOST_SCRIPT = `
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 const require = createRequire(import.meta.url);
 
+// pathToFileURL: on Windows a bare absolute path ("C:\\\\...") makes import()
+// throw ERR_UNSUPPORTED_ESM_URL_SCHEME ("C:" is parsed as a URL scheme), so no
+// plugin could ever load. file:// URLs work on every platform.
 const pluginPath = process.argv[2];
-const plugin = await import(pluginPath);
+const plugin = await import(pathToFileURL(pluginPath).href);
 const exports = plugin.default || plugin;
 
 // Send ready signal
@@ -133,6 +137,7 @@ export async function loadPlugin(
   };
 
   const child = spawn(process.execPath, ["--no-warnings", hostScriptPath, entryPoint], {
+    windowsHide: true,
     env,
     stdio: ["ignore", "ignore", "ignore", "ipc"],
   });
@@ -313,7 +318,13 @@ export async function loadPlugin(
  * Uses allowlist approach — only pass explicitly safe vars.
  */
 function getFilteredEnv(permissions: Permission[]): Record<string, string> {
-  const safeKeys = ["PATH", "HOME", "USER", "LANG", "LC_ALL", "NODE_ENV"];
+  // SystemRoot/windir are not optional on Windows: node aborts during
+  // InitializeOncePerProcessInternal ("Assertion failed: ncrypto::CSPRNG") before
+  // running any script, because its CSPRNG lives under %SystemRoot%. Without these
+  // the child dies instantly, every hook times out, and — hooks being fail-open —
+  // plugins silently stop applying. They carry no secrets.
+  const platformKeys = process.platform === "win32" ? ["SystemRoot", "windir"] : [];
+  const safeKeys = ["PATH", "HOME", "USER", "LANG", "LC_ALL", "NODE_ENV", ...platformKeys];
   const extendedSafeKeys = [...safeKeys, "PORT", "HOSTNAME", "TZ", "TMPDIR"];
   const allowedKeys = permissions.includes("env") ? extendedSafeKeys : safeKeys;
   const env: Record<string, string> = {};

@@ -7,6 +7,7 @@ import {
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
+import { resolveAlibabaProviderModelsUrl } from "@/shared/constants/alibabaProviderRegions";
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
 import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
@@ -44,6 +45,10 @@ import {
   discoverBedrockNativeModels,
   isBedrockNativeApiError,
 } from "@omniroute/open-sse/services/bedrock.ts";
+import {
+  discoverPromptQlModels,
+  PROMPTQL_FALLBACK_MODELS,
+} from "@omniroute/open-sse/services/promptqlModels.ts";
 import {
   discoverNotionWebModels,
   NOTION_WEB_FALLBACK_MODELS,
@@ -102,6 +107,7 @@ import {
   normalizeDataRobotCatalogResponse,
   normalizeOpenAiLikeModelsResponse,
   normalizeSapModelsResponse,
+  normalizeAzureModelsResponse,
 } from "./discovery/normalizers";
 import { isNamedOpenAIStyleProvider } from "./discovery/providerSets";
 import { buildStaleEncryptionKeyResponse } from "./staleEncryptionGuard";
@@ -534,6 +540,67 @@ export async function GET(
       if (localCatalog) return localCatalog;
     }
 
+    // PromptQL playground: live catalog via GraphQL FetchLlmConfigs (Bearer JWT).
+    if (provider === "promptql" || provider === "pql") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = (apiKey || accessToken || "").replace(/^Bearer\s+/i, "").trim();
+      const seedModels = PROMPTQL_FALLBACK_MODELS.map((m) => ({
+        id: m.id,
+        name: m.name,
+      }));
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No JWT configured — using cached catalog",
+          localWarning: "No JWT configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: seedModels,
+          source: "local_catalog",
+          intentional: true,
+          warning: "No PromptQL Bearer JWT — using seed model list",
+        });
+      }
+
+      try {
+        const graphqlEndpoint =
+          (typeof connection.providerSpecificData?.graphqlEndpoint === "string" &&
+            connection.providerSpecificData.graphqlEndpoint) ||
+          process.env.PROMPTQL_GRAPHQL_ENDPOINT ||
+          "https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql";
+        const discovered = await discoverPromptQlModels({
+          token,
+          graphqlEndpoint,
+        });
+        const models = discovered.map((m) => ({ id: m.id, name: m.name }));
+        return buildApiDiscoveryResponse(models);
+      } catch (error) {
+        console.log("Error fetching models from promptql", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "PromptQL FetchLlmConfigs failed — using cached catalog",
+          localWarning: "PromptQL FetchLlmConfigs failed — using seed catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: seedModels,
+          source: "local_catalog",
+          intentional: true,
+          warning: "API unavailable — using seed PromptQL model list",
+        });
+      }
+    }
+
     // #7600 follow-up: notion-web live catalog via cookie-auth getAvailableModels.
     // Needs spaceId (from cookie or getSpaces); falls back to seeded local catalog.
     if (provider === "notion-web") {
@@ -930,58 +997,63 @@ export async function GET(
         );
       }
 
-      const baseUrl =
+      const rawBaseUrl =
         getProviderBaseUrl(connection.providerSpecificData) || AZURE_AI_DEFAULT_BASE_URL;
-      const modelsUrl = buildAzureAiModelsUrl(baseUrl);
+      const baseUrl = normalizeAzureOpenAIBaseUrl(rawBaseUrl);
+      const apiVersion = encodeURIComponent(
+        getAzureOpenAIApiVersion(connection.providerSpecificData) || "2024-12-01-preview"
+      );
 
-      let response: Response;
-      try {
-        response = await safeOutboundFetch(modelsUrl, {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "api-key": token,
-          },
-        });
-      } catch (error) {
-        const fallback = buildDiscoveryErrorFallbackResponse(error, {
-          cacheWarning: "Azure AI models API unavailable — using cached catalog",
-          localWarning: "Azure AI models API unavailable — using local catalog",
-        });
-        if (fallback) return fallback;
-        throw error;
+      const discoveryUrls = [
+        buildAzureAiModelsUrl(rawBaseUrl),
+        `${baseUrl}/deployments`,
+        `${baseUrl}/openai/deployments?api-version=${apiVersion}`,
+        `${baseUrl}/openai/models?api-version=${apiVersion}`,
+      ];
+
+      let lastStatus = 0;
+      for (const modelsUrl of discoveryUrls) {
+        let response: Response;
+        try {
+          response = await safeOutboundFetch(modelsUrl, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "api-key": token,
+            },
+          });
+        } catch (error) {
+          const fallback = buildDiscoveryErrorFallbackResponse(error, {
+            cacheWarning: "Azure AI models API unavailable — using cached catalog",
+            localWarning: "Azure AI models API unavailable — using local catalog",
+          });
+          if (fallback) return fallback;
+          throw error;
+        }
+
+        if (response.ok) {
+          const normalized = normalizeAzureModelsResponse(await response.json(), "azure-ai");
+          if (normalized.length > 0) {
+            return buildApiDiscoveryResponse(normalized);
+          }
+        }
+
+        lastStatus = response.status;
+        if (response.status === 401 || response.status === 403) break;
       }
 
-      if (!response.ok) {
-        const fallback = buildDiscoveryFallbackResponse({
-          cacheWarning: `Models probe failed (${response.status}) — using cached catalog`,
-          localWarning: `Models probe failed (${response.status}) — using local catalog`,
-        });
-        if (fallback) return fallback;
-        return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
-        );
-      }
-
-      const data = await response.json();
-      const models = (data.data || data.models || []).map((model: Record<string, unknown>) => ({
-        id:
-          (typeof model.id === "string" && model.id) ||
-          (typeof model.name === "string" && model.name) ||
-          "",
-        name:
-          (typeof model.display_name === "string" && model.display_name) ||
-          (typeof model.name === "string" && model.name) ||
-          (typeof model.id === "string" && model.id) ||
-          "",
-        owned_by: "azure-ai",
-      }));
-
-      return buildApiDiscoveryResponse(models.filter((model) => model.id));
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: `Azure AI models probe failed (${lastStatus || "empty"}) — using cached catalog`,
+        localWarning: `Azure AI models probe failed (${lastStatus || "empty"}) — using local catalog`,
+      });
+      if (fallback) return fallback;
+      return NextResponse.json(
+        { error: `Failed to fetch models: ${lastStatus || "unknown"}` },
+        { status: lastStatus || 502 }
+      );
     }
 
     if (provider === "azure-openai") {
@@ -1469,14 +1541,14 @@ export async function GET(
       return buildApiDiscoveryResponse(models);
     }
 
-    if (provider === "antigravity") {
+    if (provider === "antigravity" || provider === "agy") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      const staticModels = getStaticModelsForProvider("antigravity") || [];
+      const staticModels = getStaticModelsForProvider(provider) || [];
 
       if (!accessToken) {
         const fallback = buildDiscoveryFallbackResponse({
@@ -1497,7 +1569,8 @@ export async function GET(
         accessToken,
         connectionId,
         proxy,
-        connection.providerSpecificData
+        connection.providerSpecificData,
+        provider
       );
       if (remoteModels.length > 0) {
         return buildApiDiscoveryResponse(remoteModels);
@@ -1870,25 +1943,6 @@ export async function GET(
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
         : deriveConfigFromRegistryModelsUrl(provider);
-    // Static model providers (no remote /models API)
-    // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
-    if (provider === "qwen" && connection.authType === "oauth") {
-      const qwenModels = getModelsByProviderId("qwen");
-      return buildResponse({
-        provider,
-        connectionId,
-        models: qwenModels.map((m: any) => ({
-          id: m.id,
-          name: m.name || m.id,
-          owned_by: "qwen",
-        })),
-        source: "local_catalog",
-        // #5460/#5465 — Qwen OAuth has no OAuth-compatible remote /models list;
-        // the static catalog is intentional, so model-sync should import it.
-        intentional: true,
-      });
-    }
-
     if (provider === "codex") {
       // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
       // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.
@@ -2041,6 +2095,13 @@ export async function GET(
 
     // Build request URL
     let url = config.url;
+    if (provider === "alibaba" || provider === "alibaba-cn" || provider === "qwen-cloud") {
+      url = resolveAlibabaProviderModelsUrl(
+        provider,
+        connection.providerSpecificData,
+        config.url.replace(/\/models\/?$/, "")
+      );
+    }
     // VibeProxy: honor a user-configured custom base URL for the built-in
     // `openai` provider (e.g. an OpenAI-compatible gateway / proxy). Without
     // this, model discovery always hit the hardcoded api.openai.com and ignored
@@ -2078,6 +2139,7 @@ export async function GET(
       }
       url = url.replace("{accountId}", accountId);
     }
+    const paginationBaseUrl = url;
     if (config.authQuery) {
       url += `${url.includes("?") ? "&" : "?"}${config.authQuery}=${token}`;
     }
@@ -2146,7 +2208,7 @@ export async function GET(
         break;
       }
       seenTokens.add(nextPageToken);
-      pageUrl = `${config.url}${config.url.includes("?") ? "&" : "?"}pageToken=${encodeURIComponent(nextPageToken)}`;
+      pageUrl = `${paginationBaseUrl}${paginationBaseUrl.includes("?") ? "&" : "?"}pageToken=${encodeURIComponent(nextPageToken)}`;
       if (config.authQuery) {
         pageUrl += `&${config.authQuery}=${token}`;
       }

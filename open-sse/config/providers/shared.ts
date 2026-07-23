@@ -6,7 +6,7 @@
  * is auto-generated from this registry.
  */
 
-import { ANTIGRAVITY_BASE_URLS } from "../antigravityUpstream.ts";
+import { ANTIGRAVITY_RUNTIME_BASE_URLS } from "../antigravityUpstream.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "../antigravityModelAliases.ts";
 import { AGY_PUBLIC_MODELS } from "../agyModels.ts";
 import {
@@ -33,7 +33,6 @@ import {
   getGitHubCopilotChatHeaders,
   getKiroServiceHeaders,
   getQoderDefaultHeaders,
-  getQwenOauthHeaders,
   getRuntimePlatform,
   getRuntimeArch,
 } from "../providerHeaderProfiles.ts";
@@ -158,6 +157,25 @@ export interface RegistryEntry {
    * so the authenticated path is never affected.
    */
   anonymousApiKey?: string;
+  /**
+   * Provider-wide fallback for `RegistryModel.unsupportedParams`, applied when a
+   * model has no per-model override AND (for `passthroughModels: true`
+   * providers) isn't one of the few models statically listed here at all —
+   * e.g. AI Horde's live-discovered models change as workers come and go, and
+   * every one of them shares the same hard limitation ("the workers run raw
+   * text-completion backends" — no tool calling on any model, not just the
+   * 3 statically catalogued ones). Checked by `getUnsupportedParams()` after
+   * the per-model lookup misses.
+   */
+  unsupportedParams?: readonly string[];
+  /**
+   * True for strict/naive OpenAI-compatible backends that reject a single-text-part
+   * content array (`[{ type: "text", text }]`) and only accept the equivalent plain
+   * string. Used by the Responses→Chat translator to collapse single-part text
+   * content down to a string for this provider only, leaving every other provider's
+   * standard OpenAI array-shaped content untouched (see openai-responses.ts).
+   */
+  requiresPlainStringContent?: boolean;
 }
 
 /**
@@ -198,21 +216,6 @@ export interface LegacyProvider {
 
 export const buildModels = (ids: readonly string[]): RegistryModel[] =>
   ids.map((id) => ({ id, name: id }));
-
-export const ALIBABA_DASHSCOPE_MODELS: RegistryModel[] = [
-  { id: "qwen-max", name: "Qwen Max" },
-  { id: "qwen-max-2025-01-25", name: "Qwen Max (2025-01-25)" },
-  { id: "qwen-plus", name: "Qwen Plus" },
-  { id: "qwen-plus-2025-07-14", name: "Qwen Plus (2025-07-14)" },
-  { id: "qwen-turbo", name: "Qwen Turbo" },
-  { id: "qwen-turbo-2025-11-01", name: "Qwen Turbo (2025-11-01)" },
-  { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-  { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
-  { id: "qwq-plus", name: "QwQ Plus (Reasoning)" },
-  { id: "qwq-32b", name: "QwQ 32B" },
-  { id: "qwen3-32b", name: "Qwen3 32B" },
-  { id: "qwen3-235b-a22b", name: "Qwen3 235B A22B" },
-];
 
 export const GPT_5_5_CONTEXT_LENGTH = 1050000;
 export const GPT_5_5_CODEX_CAPABILITIES = {
@@ -669,7 +672,7 @@ export function mapStainlessArch() {
 // ── Registry ──────────────────────────────────────────────────────────────
 
 export {
-  ANTIGRAVITY_BASE_URLS,
+  ANTIGRAVITY_RUNTIME_BASE_URLS,
   ANTIGRAVITY_PUBLIC_MODELS,
   AGY_PUBLIC_MODELS,
   ANTHROPIC_BETA_API_KEY,
@@ -691,7 +694,6 @@ export {
   getGitHubCopilotChatHeaders,
   getKiroServiceHeaders,
   getQoderDefaultHeaders,
-  getQwenOauthHeaders,
   getRuntimePlatform,
   getRuntimeArch,
   resolvePublicCred,

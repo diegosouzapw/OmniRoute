@@ -120,6 +120,7 @@ async function postHandler(request, context) {
       top_n: body.top_n,
       return_documents: body.return_documents,
       credentials,
+      connectionId: (credentials as { connectionId?: string } | null)?.connectionId || null,
     });
     if (response?.ok) {
       await clearRecoveredProviderState(credentials);

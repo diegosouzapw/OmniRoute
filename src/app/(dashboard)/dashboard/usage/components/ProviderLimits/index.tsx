@@ -19,6 +19,8 @@ import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
+
+import { useQuotaVisibility } from "./useQuotaVisibility";
 import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
 import CodexResetCreditsModal from "./CodexResetCreditsModal";
@@ -201,6 +203,7 @@ export default function ProviderLimits({
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
+  const { quotaVisibility, handleHideQuota, handleShowQuota } = useQuotaVisibility(tr, notify);
   const resetCreditRedemption = useCodexResetCreditRedemption(
     tr,
     setErrors,
@@ -1040,6 +1043,9 @@ export default function ProviderLimits({
           onOpenResetCredits={resetCreditRedemption.openCodexResetCredits}
           onToggleActive={handleToggleActive}
           togglingActiveId={togglingActiveId}
+          quotaVisibility={quotaVisibility}
+          onHideQuota={handleHideQuota}
+          onShowQuota={handleShowQuota}
           redeemingResetCreditId={resetCreditRedemption.redeemingResetCreditId}
           loadingResetCreditsId={resetCreditRedemption.loadingResetCreditsId}
         />
@@ -1063,6 +1069,7 @@ export default function ProviderLimits({
             setCutoffModalConn(null);
             setCutoffModalWindows([]);
           }}
+          connectionId={cutoffModalConn.id}
           connectionName={
             pickDisplayValue(
               [cutoffModalConn.name, cutoffModalConn.displayName, cutoffModalConn.email],

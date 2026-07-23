@@ -41,6 +41,26 @@ export function isAbortFinishReason(value: unknown): boolean {
   return ABORT_FINISH_REASONS.has(value.toLowerCase());
 }
 
+// Subset of ABORT_FINISH_REASONS that specifically means "the model attempted a
+// tool call and Gemini's parser rejected it" (as opposed to language/no_image/
+// other, which aren't about tool calls at all). Live incident (dashboard log id
+// 1784489701456-d8c0e9): passing "malformed_function_call" through raw as
+// finish_reason left a real OpenAI-format client (OpenClaw) with a value it has
+// no handling for at all — no tool_calls array, no recognized terminal state — so
+// it silently never noticed the turn failed. gemini-to-openai.ts uses this to
+// synthesize a tool_calls entry and finish_reason: "tool_calls" instead, routing
+// the failure into the ordinary "tool call arguments didn't parse" path every
+// OpenAI-compatible agent loop already has to handle.
+const MALFORMED_TOOL_CALL_FINISH_REASONS = new Set([
+  "malformed_function_call",
+  "unexpected_tool_call",
+]);
+
+export function isMalformedToolCallFinishReason(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  return MALFORMED_TOOL_CALL_FINISH_REASONS.has(value.toLowerCase());
+}
+
 export function normalizeOpenAICompatibleFinishReason(value: unknown): unknown {
   if (typeof value !== "string") return value;
 

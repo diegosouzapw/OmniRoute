@@ -7,6 +7,7 @@ export const compressionModeSchema = z.enum([
   "aggressive",
   "ultra",
   "rtk",
+  "codex-responses",
   "omniglyph",
   "stacked",
 ]);
@@ -14,6 +15,19 @@ export const compressionModeSchema = z.enum([
 export const cavemanIntensitySchema = z.enum(["lite", "full", "ultra"]);
 export const rtkIntensitySchema = z.enum(["minimal", "standard", "aggressive"]);
 export const rtkRawOutputRetentionSchema = z.enum(["never", "failures", "always"]);
+
+export const codexResponsesConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    minBytes: z.number().int().min(0).max(2_000_000).optional(),
+    maxOutputBytes: z.number().int().min(1).max(10_000_000).optional(),
+    maxCandidateBytes: z.number().int().min(1).max(2_000_000).optional(),
+    maxLines: z.number().int().min(1).max(10_000).optional(),
+    minSearchMatches: z.number().int().min(2).max(10_000).optional(),
+    minLogLines: z.number().int().min(2).max(10_000).optional(),
+    preserveToolNames: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
+  })
+  .strict();
 
 export const cavemanConfigSchema = z
   .object({
@@ -139,6 +153,14 @@ export const ultraConfigSchema = z
   })
   .strict();
 
+/** Headroom SmartCrusher detail settings (persisted under settings.headroom). */
+export const headroomConfigSchema = z
+  .object({
+    // Matches engine schema min 2 / max 10000 and DEFAULT_MIN_ROWS=8.
+    minRows: z.number().int().min(2).max(10000).optional(),
+  })
+  .strict();
+
 const noConfigSchema = z.object({}).strict();
 
 // Structural engines (session-dedup / ccr / headroom / relevance / llmlingua) do not
@@ -189,6 +211,13 @@ export const stackedPipelineStepSchema = z.discriminatedUnion("engine", [
       engine: z.literal("rtk"),
       intensity: rtkIntensitySchema.optional(),
       config: rtkConfigSchema.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      engine: z.literal("codex-responses"),
+      intensity: z.string().optional(),
+      config: codexResponsesConfigSchema.optional(),
     })
     .strict(),
   z
@@ -252,6 +281,7 @@ export const STACKED_PIPELINE_ENGINE_INTENSITIES: Record<string, readonly string
   ccr: [],
   lite: ["lite"],
   rtk: ["minimal", "standard", "aggressive"],
+  "codex-responses": [],
   headroom: [],
   relevance: [],
   caveman: ["lite", "full", "ultra"],
@@ -309,9 +339,11 @@ export const compressionSettingsUpdateSchema = z
     cavemanOutputMode: cavemanOutputModeSchema.optional(),
     outputStyles: z.array(outputStyleSelectionSchema).optional(),
     rtkConfig: rtkConfigSchema.optional(),
+    codexResponsesConfig: codexResponsesConfigSchema.optional(),
     languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
+    headroom: headroomConfigSchema.optional(),
     contextBudget: contextBudgetConfigSchema.optional(),
     contextEditing: contextEditingConfigSchema.optional(),
     liveZone: z.object({ enabled: z.boolean() }).strict().optional(),
@@ -320,6 +352,10 @@ export const compressionSettingsUpdateSchema = z
     activeComboId: z.string().nullable().optional(),
     ultraEngine: z.enum(["heuristic", "slm"]).optional(),
     ultraSlmPrewarm: z.boolean().optional(),
+    // #8034 — per-model/endpoint compression exclusion patterns. Bounded length/size so a
+    // pathological PUT body can't blow up the per-request matcher; normalizeCompressionExclusions
+    // (open-sse/services/compression/exclusions.ts) is the authoritative post-read normalizer.
+    exclusions: z.array(z.string().max(200)).max(200).optional(),
   })
   .strict();
 

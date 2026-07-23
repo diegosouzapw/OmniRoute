@@ -3,7 +3,13 @@
 // decomposition) — top-level functions with no dispatcher-state captures; behavior is byte-identical
 // to the inline defs.
 import { applyCustomUserAgent } from "./headers";
-import { toValidationErrorResult, validationRead, validationWrite } from "./transport";
+import {
+  isSecurityBlockError,
+  toValidationErrorResult,
+  validationRead,
+  validationWrite,
+} from "./transport";
+import { SafeOutboundFetchError } from "@/shared/network/safeOutboundFetch";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import {
@@ -234,6 +240,21 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
 
     return { valid: false, error: `Gemini validation failed (${response.status})` };
   } catch (error: any) {
+    // #7859: gemini.google.com/app answers EVERY session probe (valid or not) with a
+    // 302 redirect (typically onward to accounts.google.com). validationRead() uses the
+    // no-redirect preset, so safeOutboundFetch throws REDIRECT_BLOCKED before the
+    // "200/302 = valid" status check above ever runs. A redirect to a PUBLIC host means
+    // the redirect was never followed (no SSRF) and is exactly what a valid Gemini
+    // session looks like here, so treat it as success. A redirect to a private/internal
+    // host is a genuine SSRF signal and must stay invalid — isSecurityBlockError()
+    // already makes that distinction.
+    if (
+      error instanceof SafeOutboundFetchError &&
+      error.code === "REDIRECT_BLOCKED" &&
+      !isSecurityBlockError(error)
+    ) {
+      return { valid: true, error: null };
+    }
     return toValidationErrorResult(error);
   }
 }

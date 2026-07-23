@@ -50,7 +50,9 @@ Common problems and solutions for OmniRoute.
 | Login crash / blank page                            | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                         |
 | `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
 | Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
+| Docker `curl: (56) Recv failure: Connection reset by peer` | Your Docker port bind may be landing on IPv6. Use `-p 127.0.0.1:20128:20128` to force IPv4, or test with `curl -4`. See [Docker IPv6](#docker-ipv6) below |
 | Antivirus quarantines `README.md`                   | False positive — see [Antivirus false positives](#antivirus-false-positives) below                                                                       |
+| Kaspersky flags the Desktop app as a Trojan         | Behavioral false positive on the unsigned installer — see [Antivirus false positives](#antivirus-false-positives) below                                  |
 
 ---
 
@@ -88,6 +90,49 @@ from quarantine.
 **Why we do not "fix" this on our side:** the examples are all `http://localhost`, and
 localhost cannot be `https` without self-signed-certificate friction. Mangling the docs to
 dodge one vendor's heuristic would hurt every reader to satisfy a scanner bug.
+
+### Kaspersky flags the Desktop app as `PDM:Trojan.Win32.Generic`
+
+**This is a false positive from a behavioral heuristic. Nothing is infected.** Kaspersky's
+`PDM:` prefix means the verdict comes from its Proactive Defense Module (System Watcher),
+which judges what the installer *does* rather than matching it against known malware. When
+it fires, Kaspersky "rolls back" the whole installation — deleting files it had already
+written — so the app ends up broken or missing.
+
+The files it flags are stock parts of declared, open-source dependencies bundled with the
+desktop app, for example:
+
+- `resources/app/.build/next/node_modules/playwright-<hash>/lib/…/agentParser.js` and
+  `workerProcessEntry.js` — [Playwright](https://playwright.dev), the browser-automation
+  library used for in-app provider login and browser-backed chat.
+- `resources/app/.build/next/node_modules/tls-client-node-<hash>/bin/tls-client-windows-64-<ver>.dll`
+  — the native binary from `tls-client-node`, used for Cloudflare-tolerant HTTP on some web
+  providers.
+
+**Why it fires:** the Windows installer is **not yet code-signed**, so an unsigned NSIS
+installer has zero reputation and behavioral heuristics run at maximum aggression. Combined
+with a bundled native DLL and hundreds of `.js` files written under
+`%LOCALAPPDATA%\Programs\OmniRoute` (including hash-suffixed package directories from the
+Next.js standalone build), that is enough to trip the heuristic. Code signing is planned;
+until it lands, new releases can repeat this.
+
+**What to do:**
+
+1. **Verify your download first** (rules out a tampered file). Every release publishes
+   `latest.yml`, whose `sha512` field (base64) covers the `OmniRoute.Setup.<version>.exe`
+   installer. In PowerShell, from the folder containing the installer:
+   ```powershell
+   $b = [System.Security.Cryptography.SHA512]::Create().ComputeHash(
+     [System.IO.File]::ReadAllBytes("$PWD\OmniRoute.Setup.<version>.exe"))
+   [Convert]::ToBase64String($b)
+   ```
+   The output must match `latest.yml` → `sha512`. If it does not, delete the file and
+   re-download only from the [GitHub releases page](https://github.com/diegosouzapw/OmniRoute/releases).
+2. **Restore + exclude** — restore the rolled-back items from quarantine and add an exclusion
+   for `%LOCALAPPDATA%\Programs\OmniRoute` (Kaspersky → Settings → Threats and Exclusions),
+   then reinstall.
+3. **Report the false positive** — <https://opentip.kaspersky.com/>. User-submitted FP
+   reports genuinely speed up allowlisting.
 
 ---
 
@@ -194,7 +239,7 @@ omniroute
 
 **Fix:**
 
-- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/kimi-k2-thinking`
+- Add fallback: `cc/claude-opus-4-6 → glm/glm-4.7 → if/qwen3.8-max-preview`
 - Use GLM/MiniMax as cheap backup
 
 ### OAuth Token Expired
@@ -251,6 +296,25 @@ see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 ---
 
 ## Docker Issues
+
+### Docker IPv6 / Connection Reset
+
+<a name="docker-ipv6"></a>
+
+**Symptoms:** `curl http://localhost:20128/v1/models` returns `curl: (56) Recv failure: Connection reset by peer`. Dashboard and unauthenticated endpoints work, but authenticated endpoints fail — it looks like an auth problem but isn't.
+
+**Cause:** `docker run -p 20128:20128` publishes on both `0.0.0.0` (IPv4) and `::` (IPv6), but the process inside the container listens on IPv4 only. On hosts where `localhost` resolves to `::1` first, the connection lands on the IPv6 published port with no listener behind it → connection reset.
+
+**Fix:**
+1. **Quick diagnostic:** Run `curl -4 http://localhost:20128/v1/models`. If it works with `-4` but fails without, you have an IPv6 bind mismatch.
+2. **Permanent fix:** Bind to IPv4 explicitly by using `-p 127.0.0.1:20128:20128` in your `docker run` command:
+   ```bash
+   docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
+     -p 127.0.0.1:20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
+   ```
+   This forces the IPv4 bind and also avoids exposing the proxy on all host interfaces.
+
+---
 
 ### CLI Tool Shows Not Installed
 

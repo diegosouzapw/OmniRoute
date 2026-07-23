@@ -4,6 +4,87 @@ import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
 import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { isAbortFinishReason } from "../../utils/finishReason.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../../utils/reasoningPlaceholder.ts";
+import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
+
+function normalizeToolName(name: string): string {
+  return REVERSE_MAP[name] ?? name;
+}
+
+interface XmlToolCall {
+  id: string;
+  name: string;
+  args: Record<string, string>;
+}
+
+/**
+ * Extract complete XML <invoke> blocks from text content.
+ * Some models (e.g. nvidia/abacusai/dracarys) emit tool calls as
+ * XML blocks instead of JSON tool_calls. This function detects
+ * <invoke name="ToolName"><parameter name="arg">value</parameter></invoke>
+ * blocks, converts them to tool calls, and returns the cleaned text.
+ * Incomplete XML is buffered in state for the next chunk.
+ */
+function extractXmlInvokeBlocks(
+  text: string,
+  state
+): { cleaned: string; toolCalls: XmlToolCall[] } {
+  const toolCalls: XmlToolCall[] = [];
+
+  // Prepend any incomplete content from previous chunk
+  const combined = (state._xmlInvokeBuffer || "") + text;
+  state._xmlInvokeBuffer = "";
+
+  let remaining = combined;
+  let cleaned = "";
+
+  while (true) {
+    const startMatch = remaining.match(/<invoke\s+name="([^"]*)"\s*>/);
+    if (!startMatch) {
+      cleaned += remaining;
+      break;
+    }
+
+    // Text before the <invoke> block
+    cleaned += remaining.slice(0, startMatch.index);
+
+    const blockStart = startMatch.index;
+    const restAfterStart = remaining.slice(blockStart);
+    const endMatch = restAfterStart.match(/<\/invoke>/);
+
+    if (!endMatch) {
+      // Incomplete block — buffer for next chunk
+      state._xmlInvokeBuffer = restAfterStart;
+      break;
+    }
+
+    // Complete block found
+    const innerXml = restAfterStart.slice(startMatch[0].length, endMatch.index);
+    const fullBlock = restAfterStart.slice(0, endMatch.index + endMatch[0].length);
+
+    // Parse <parameter name="..." ...>value</parameter>
+    const args: Record<string, string> = {};
+    const paramRegex = /<parameter\s+name="([^"]*)"[^>]*>([\s\S]*?)<\/parameter>/g;
+    let pm;
+    while ((pm = paramRegex.exec(innerXml)) !== null) {
+      args[pm[1]] = pm[2].trim();
+    }
+
+    toolCalls.push({
+      id: `toolu_xml_${Date.now()}_${toolCalls.length}`,
+      name: startMatch[1],
+      args,
+    });
+
+    // Continue scanning after the block
+    remaining = remaining.slice(blockStart + fullBlock.length);
+  }
+
+  return { cleaned, toolCalls };
+}
 
 // Helper: stop thinking block if started
 function stopThinkingBlock(state, results) {
@@ -80,6 +161,8 @@ export function openaiToClaudeResponse(chunk, state) {
     }
     state.model = chunk.model || "unknown";
     state.nextBlockIndex = 0;
+    state._pendingXmlToolCalls = [];
+    state._xmlInvokeBuffer = "";
     results.push({
       type: "message_start",
       message: {
@@ -108,7 +191,7 @@ export function openaiToClaudeResponse(chunk, state) {
     }
     if (parts.length > 0) reasoningContent = parts.join("");
   }
-  if (reasoningContent) {
+  if (reasoningContent && !isInternalReasoningPlaceholder(reasoningContent)) {
     stopTextBlock(state, results);
 
     if (!state.thinkingBlockStarted) {
@@ -128,26 +211,65 @@ export function openaiToClaudeResponse(chunk, state) {
     });
   }
 
-  // Handle regular content
+  // Handle regular content — strip the internal reasoning placeholder if
+  // the model echoed it through ordinary content (#8081). Only the content
+  // block emission is skipped when nothing meaningful remains; the chunk
+  // may still carry tool_calls / finish_reason below, which must still run.
   if (delta?.content) {
-    stopThinkingBlock(state, results);
+    const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+    if (strippedContent) {
+      stopThinkingBlock(state, results);
 
-    if (!state.textBlockStarted) {
-      state.textBlockIndex = state.nextBlockIndex++;
-      state.textBlockStarted = true;
-      state.textBlockClosed = false;
-      results.push({
-        type: "content_block_start",
-        index: state.textBlockIndex,
-        content_block: { type: "text", text: "" },
-      });
+      // Check for XML <invoke> blocks that some models emit instead of JSON tool_calls
+      const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(strippedContent, state);
+
+      // Accumulate extracted tool calls for emission at finish
+      if (xmlToolCalls.length > 0) {
+        // Close any ongoing text block before tool calls
+        stopTextBlock(state, results);
+        state._pendingXmlToolCalls.push(...xmlToolCalls);
+      }
+
+      // Emit remaining non-XML text content
+      if (!cleaned) {
+        // All content was XML invoke blocks — skip text block entirely
+        // (tool calls will be emitted at finish)
+      } else if (xmlToolCalls.length > 0) {
+        // Text before/between/after XML blocks — (re)start a text block
+        if (!state.textBlockStarted) {
+          state.textBlockIndex = state.nextBlockIndex++;
+          state.textBlockStarted = true;
+          state.textBlockClosed = false;
+          results.push({
+            type: "content_block_start",
+            index: state.textBlockIndex,
+            content_block: { type: "text", text: "" },
+          });
+        }
+        results.push({
+          type: "content_block_delta",
+          index: state.textBlockIndex,
+          delta: { type: "text_delta", text: cleaned },
+        });
+      } else {
+        // No XML — emit as regular text (original behaviour)
+        if (!state.textBlockStarted) {
+          state.textBlockIndex = state.nextBlockIndex++;
+          state.textBlockStarted = true;
+          state.textBlockClosed = false;
+          results.push({
+            type: "content_block_start",
+            index: state.textBlockIndex,
+            content_block: { type: "text", text: "" },
+          });
+        }
+        results.push({
+          type: "content_block_delta",
+          index: state.textBlockIndex,
+          delta: { type: "text_delta", text: cleaned },
+        });
+      }
     }
-
-    results.push({
-      type: "content_block_delta",
-      index: state.textBlockIndex,
-      delta: { type: "text_delta", text: delta.content },
-    });
   }
 
   // Tool calls
@@ -267,7 +389,12 @@ export function openaiToClaudeResponse(chunk, state) {
         results.push({
           type: "content_block_start",
           index: toolInfo.blockIndex,
-          content_block: { type: "tool_use", id: toolInfo.id, name: toolInfo.name || "", input: {} },
+          content_block: {
+            type: "tool_use",
+            id: toolInfo.id,
+            name: toolInfo.name || "",
+            input: {},
+          },
         });
       }
 
@@ -288,14 +415,38 @@ export function openaiToClaudeResponse(chunk, state) {
       });
     }
 
+    // Emit any XML-extracted tool calls (from models like Dracarys that
+    // emit <invoke> blocks in content instead of JSON tool_calls in delta)
+    const xmlToolCalls = state._pendingXmlToolCalls || [];
+    for (const tc of xmlToolCalls) {
+      const blockIndex = state.nextBlockIndex++;
+      results.push({
+        type: "content_block_start",
+        index: blockIndex,
+        content_block: {
+          type: "tool_use",
+          id: tc.id,
+          name: normalizeToolName(tc.name),
+          input: tc.args,
+        },
+      });
+      results.push({
+        type: "content_block_stop",
+        index: blockIndex,
+      });
+    }
+
+    // Override finish_reason to tool_use if XML tool calls were found
+    const overrideFinishReason = xmlToolCalls.length > 0 ? "tool_calls" : choice.finish_reason;
+
     // Mark finish for later usage injection in stream.js
-    state.finishReason = choice.finish_reason;
+    state.finishReason = overrideFinishReason;
 
     // Use tracked usage (will be estimated in stream.js if not valid)
     const finalUsage = state.usage || { input_tokens: 0, output_tokens: 0 };
     results.push({
       type: "message_delta",
-      delta: { stop_reason: convertFinishReason(choice.finish_reason) },
+      delta: { stop_reason: convertFinishReason(overrideFinishReason) },
       usage: finalUsage,
     });
     results.push({ type: "message_stop" });

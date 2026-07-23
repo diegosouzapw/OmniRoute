@@ -9,8 +9,9 @@ import {
   createCreditsExtractionTransform,
 } from "../../open-sse/executors/antigravity.ts";
 import {
-  clearAntigravityVersionCache,
-  seedAntigravityVersionCache,
+  clearAntigravityVersionCaches,
+  seedAntigravityIdeVersionCache,
+  seedAntigravityCliVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 
 type ChatCompletionPayload = {
@@ -27,7 +28,7 @@ type ChatCompletionPayload = {
 };
 
 test.afterEach(() => {
-  clearAntigravityVersionCache();
+  clearAntigravityVersionCaches();
 });
 
 test("AntigravityExecutor.execute auto-retries short 429 responses and collects SSE for non-stream clients", async () => {
@@ -35,7 +36,8 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
   const calls = [];
-  seedAntigravityVersionCache("2026.04.17-test");
+  seedAntigravityIdeVersionCache("2026.04.17-test");
+  seedAntigravityCliVersionCache("2026.04.17-test");
 
   globalThis.fetch = async (url) => {
     calls.push(String(url));

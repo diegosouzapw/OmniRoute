@@ -10,6 +10,7 @@ import {
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CONTEXT_EDITING_CONFIG,
+  DEFAULT_HEADROOM_CONFIG,
   DEFAULT_MCP_ACCESSIBILITY_CONFIG,
   DEFAULT_RTK_CONFIG,
   DEFAULT_ULTRA_CONFIG,
@@ -22,12 +23,16 @@ import {
   type CompressionPipelineStep,
   type CompressionConfig,
   type CompressionMode,
+  DEFAULT_CODEX_RESPONSES_CONFIG,
+  type CodexResponsesConfig,
   type ContextEditingConfig,
   type EngineToggle,
+  type HeadroomConfig,
   type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
+import { normalizeCompressionExclusions } from "@omniroute/open-sse/services/compression/exclusions.ts";
 import { DEFAULT_CONTEXT_BUDGET } from "@omniroute/open-sse/services/compression/adaptiveCompression/types.ts";
 import { normalizeContextBudgetConfig } from "./compressionContextBudget";
 import {
@@ -44,6 +49,7 @@ const COMPRESSION_MODES = new Set<CompressionMode>([
   "aggressive",
   "ultra",
   "rtk",
+  "codex-responses",
   "stacked",
   "omniglyph",
 ]);
@@ -226,6 +232,47 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
   };
 }
 
+function normalizeCodexResponsesConfig(value: unknown): CodexResponsesConfig {
+  const record = toRecord(value);
+  const preserveToolNames = Array.isArray(record.preserveToolNames)
+    ? record.preserveToolNames.filter(
+        (name): name is string => typeof name === "string" && name.trim().length > 0
+      )
+    : DEFAULT_CODEX_RESPONSES_CONFIG.preserveToolNames;
+  return {
+    ...DEFAULT_CODEX_RESPONSES_CONFIG,
+    enabled:
+      typeof record.enabled === "boolean" ? record.enabled : DEFAULT_CODEX_RESPONSES_CONFIG.enabled,
+    minBytes: boundedInt(record.minBytes, DEFAULT_CODEX_RESPONSES_CONFIG.minBytes, 0, 2_000_000),
+    maxOutputBytes: boundedInt(
+      record.maxOutputBytes,
+      DEFAULT_CODEX_RESPONSES_CONFIG.maxOutputBytes,
+      1,
+      10_000_000
+    ),
+    maxCandidateBytes: boundedInt(
+      record.maxCandidateBytes,
+      DEFAULT_CODEX_RESPONSES_CONFIG.maxCandidateBytes,
+      1,
+      2_000_000
+    ),
+    maxLines: boundedInt(record.maxLines, DEFAULT_CODEX_RESPONSES_CONFIG.maxLines, 1, 10_000),
+    minSearchMatches: boundedInt(
+      record.minSearchMatches,
+      DEFAULT_CODEX_RESPONSES_CONFIG.minSearchMatches,
+      2,
+      10_000
+    ),
+    minLogLines: boundedInt(
+      record.minLogLines,
+      DEFAULT_CODEX_RESPONSES_CONFIG.minLogLines,
+      2,
+      10_000
+    ),
+    preserveToolNames: [...new Set(preserveToolNames.map((name) => name.trim()))],
+  };
+}
+
 function normalizeLanguageConfig(value: unknown): CompressionLanguageConfig {
   const record = toRecord(value);
   const defaultLanguage =
@@ -271,6 +318,7 @@ const STACKED_PIPELINE_ENGINE_IDS = new Set([
   "aggressive",
   "ultra",
   "rtk",
+  "codex-responses",
   "headroom",
   "session-dedup",
   "ccr",
@@ -380,6 +428,15 @@ function normalizeAggressiveConfig(value: unknown): AggressiveConfig {
   };
 }
 
+function normalizeHeadroomConfig(value: unknown): HeadroomConfig {
+  const record = toRecord(value);
+  return {
+    ...DEFAULT_HEADROOM_CONFIG,
+    // Align with engine schema (min 2) and smartcrusher DEFAULT_MIN_ROWS (8).
+    minRows: boundedInt(record.minRows, DEFAULT_HEADROOM_CONFIG.minRows, 2, 10000),
+  };
+}
+
 function normalizeUltraConfig(value: unknown): UltraConfig {
   const record = toRecord(value);
   const modelPath = typeof record.modelPath === "string" ? record.modelPath.trim() : "";
@@ -424,6 +481,7 @@ const SINGLE_MODE_ENGINE: Partial<Record<CompressionMode, string>> = {
   ultra: "ultra",
   rtk: "rtk",
   omniglyph: "omniglyph",
+  "codex-responses": "codex-responses",
 };
 
 function normalizeEngineToggle(value: unknown): EngineToggle | null {
@@ -548,15 +606,18 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     cavemanOutputMode: { ...DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG },
     outputStyles: [],
     rtkConfig: { ...DEFAULT_RTK_CONFIG },
+    codexResponsesConfig: { ...DEFAULT_CODEX_RESPONSES_CONFIG },
     languageConfig: { ...DEFAULT_COMPRESSION_LANGUAGE_CONFIG },
     stackedPipeline: normalizeStackedPipeline(undefined),
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
+    headroom: normalizeHeadroomConfig(undefined),
     contextBudget: normalizeContextBudgetConfig(undefined),
     contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
     liveZone: { enabled: false },
     engines: {},
     activeComboId: null,
+    exclusions: [],
   };
 
   // Tracks whether a usable stored `engines` row was found. When absent (pre-migration-102 install)
@@ -645,6 +706,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "rtkConfig":
         config.rtkConfig = normalizeRtkConfig(parsed);
         break;
+      case "codexResponsesConfig":
+        config.codexResponsesConfig = normalizeCodexResponsesConfig(parsed);
+        break;
       case "languageConfig":
         config.languageConfig = normalizeLanguageConfig(parsed);
         break;
@@ -655,6 +719,10 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "ultra":
       case "ultraConfig":
         config.ultra = normalizeUltraConfig(parsed);
+        break;
+      case "headroom":
+      case "headroomConfig":
+        config.headroom = normalizeHeadroomConfig(parsed);
         break;
       case "contextBudget":
         config.contextBudget = normalizeContextBudgetConfig(parsed);
@@ -678,6 +746,9 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
         break;
       case "ultraSlmPrewarm":
         config.ultraSlmPrewarm = parsed === true;
+        break;
+      case "exclusions":
+        config.exclusions = normalizeCompressionExclusions(parsed);
         break;
     }
   }

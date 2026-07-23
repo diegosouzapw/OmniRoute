@@ -19,9 +19,10 @@ import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 import { KiroService } from "@/lib/oauth/services/kiro";
 import { usesCcWireImage } from "@omniroute/open-sse/services/ccWireImageBuiltins.ts";
 import {
-  buildProviderHeaders,
-  buildProviderUrl,
-} from "@omniroute/open-sse/services/provider.ts";
+  isAlibabaRegionalProvider,
+  resolveAlibabaProviderBaseUrl,
+} from "@/shared/constants/alibabaProviderRegions";
+import { buildProviderHeaders, buildProviderUrl } from "@omniroute/open-sse/services/provider.ts";
 
 import {
   OPENAI_LIKE_FORMATS,
@@ -36,6 +37,7 @@ import {
   validationWrite,
   toValidationErrorResult,
   toWebCookieValidationErrorResult,
+  WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API,
 } from "./validation/transport";
 import {
   validateDeepSeekWebProvider,
@@ -80,6 +82,7 @@ import {
   validateKieProvider,
   validateAwsPollyProvider,
   validateBailianCodingPlanProvider,
+  validateQwenCloudTokenPlanProvider,
   validateRekaProvider,
   validateMaritalkProvider,
   validateNlpCloudProvider,
@@ -160,6 +163,21 @@ export async function validateWebCookieProvider({
     // Attempt a minimal request to check if the session is valid
     // Use /models endpoint or a minimal completion request depending on the provider
     const baseUrl = normalizeBaseUrl(entry.baseUrl || "");
+
+    // Defense-in-depth: only an http(s) baseUrl without a query string is safe to
+    // probe by blindly appending `/models`. A ws(s):// baseUrl (e.g. copilot-web) is
+    // already rejected by the outbound URL guard downstream, but reject it explicitly
+    // here for the honest "unsupported" result instead of a confusing security-block
+    // message — this also covers a future http(s) baseUrl carrying a query string,
+    // which the guard does not currently block (#7857 acceptance criteria).
+    if (!/^https?:\/\//i.test(baseUrl) || baseUrl.includes("?")) {
+      return {
+        valid: false,
+        error: "Provider validation not supported",
+        unsupported: true,
+      };
+    }
+
     const testUrl = `${baseUrl}/models`;
 
     const res = await validationRead(
@@ -180,6 +198,20 @@ export async function validateWebCookieProvider({
         error: "SESSION_EXPIRED",
         errorCode: "AUTH_007",
         unsupported: false,
+      };
+    }
+
+    // #7857: for providers whose baseUrl is a conversation/completion endpoint rather
+    // than a real API root, the /models path never existed upstream — a redirect,
+    // login-HTML 200, 404, 405, or 429 from it is not a meaningful auth signal and is
+    // indistinguishable from a genuinely valid session. Report the same honest
+    // "unsupported" result the !entry branch above already gives its no-registry
+    // siblings, instead of a false `valid: true`.
+    if (WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API.has(provider)) {
+      return {
+        valid: false,
+        error: "Provider validation not supported",
+        unsupported: true,
       };
     }
 
@@ -501,6 +533,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
+    "qwen-cloud-token-plan": validateQwenCloudTokenPlanProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
     datarobot: validateDataRobotProvider,
@@ -823,7 +856,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   const validationEntry = entry.testKeyBaseUrl
     ? { ...entry, baseUrl: entry.testKeyBaseUrl }
     : entry;
-  const baseUrl = resolveBaseUrl(validationEntry, providerSpecificData);
+  const usesAlibabaRegionalEndpoint = isAlibabaRegionalProvider(provider);
+  const baseUrl = usesAlibabaRegionalEndpoint
+    ? resolveAlibabaProviderBaseUrl(provider, providerSpecificData, validationEntry.baseUrl)
+    : resolveBaseUrl(validationEntry, providerSpecificData);
 
   try {
     if (OPENAI_LIKE_FORMATS.has(entry.format)) {
@@ -833,7 +869,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         headers: entry.headers || {},
         providerSpecificData,
         modelId,
-        modelsUrl: entry.testKeyModelsUrl || entry.modelsUrl,
+        modelsUrl: usesAlibabaRegionalEndpoint ? "" : entry.testKeyModelsUrl || entry.modelsUrl,
         isLocal,
       });
     }

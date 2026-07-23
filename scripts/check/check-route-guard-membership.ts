@@ -52,6 +52,7 @@ export const SPAWN_CAPABLE_ROUTE_ROOTS: ReadonlyArray<string> = [
   "src/app/api/skills/collect", // Skill Collector CLI detection: GET .../detect spawns a child process per CLI_TOOL_IDS entry via getCliRuntimeStatus() (Hard Rules #15 + #17, PR #6294 review)
   "src/app/api/cli-tools/forge-settings", // GET calls getCliRuntimeStatus() to detect the `forge` CLI install (Hard Rules #15 + #17, #7263)
   "src/app/api/cli-tools/jcode-settings", // GET calls getCliRuntimeStatus() to detect the `jcode` CLI install (Hard Rules #15 + #17, #7263)
+  "src/app/api/cli-tools/qwen-settings", // GET calls getCliRuntimeStatus("qwen") and writes local ~/.qwen config files (Hard Rules #15 + #17)
 ];
 
 // Frozen pre-existing exceptions: spawn-capable routes NOT yet classified

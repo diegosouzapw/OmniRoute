@@ -1,50 +1,47 @@
 import type { RegistryEntry } from "../../shared.ts";
 import { resolvePublicCred } from "../../shared.ts";
+import {
+  getGrokBuildClientVersion,
+  GROK_BUILD_MODELS_URL,
+  GROK_BUILD_TOKEN_URL,
+} from "../../../grokBuild.ts";
 
 export const grok_cliProvider: RegistryEntry = {
   id: "grok-cli",
   alias: "gc",
   format: "openai",
   executor: "grok-cli",
+  // Keep the generic translate-path contract stable. GrokCliExecutor owns the
+  // official Grok Build upstream URL and always dispatches to /v1/responses.
   baseUrl: "https://cli-chat-proxy.grok.com/v1/chat/completions",
+  modelsUrl: GROK_BUILD_MODELS_URL,
+  clientVersion: getGrokBuildClientVersion(),
   authType: "oauth",
   authHeader: "bearer",
   passthroughModels: true,
   models: [
     {
-      id: "grok-build",
-      name: "Grok Build",
-      contextLength: 256000,
-      // cli-chat-proxy rejects reasoning_effort/reasoning outright (see grok-cli.ts
-      // executor's transformRequest, which strips them unconditionally for this model).
-      supportsReasoning: false,
-      unsupportedParams: [
-        "presencePenalty",
-        "frequencyPenalty",
-        "logprobs",
-        "topLogprobs",
-        "reasoningEffort",
-      ],
+      id: "grok-4.5",
+      name: "Grok 4.5",
+      contextLength: 500000,
+      supportsReasoning: true,
+      toolCalling: true,
+      targetFormat: "openai-responses",
+      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
     },
     {
       id: "grok-composer-2.5-fast",
-      name: "Grok Composer 2.5 Fast",
+      name: "Composer 2.5",
       contextLength: 200000,
-      // cli-chat-proxy rejects reasoning_effort/reasoning outright (see grok-cli.ts
-      // executor's transformRequest, which strips them unconditionally for this model).
       supportsReasoning: false,
-      unsupportedParams: [
-        "presencePenalty",
-        "frequencyPenalty",
-        "logprobs",
-        "topLogprobs",
-        "reasoningEffort",
-      ],
+      toolCalling: true,
+      targetFormat: "openai-responses",
+      unsupportedParams: ["presencePenalty", "frequencyPenalty", "logprobs", "topLogprobs"],
     },
   ],
   oauth: {
     clientIdEnv: "GROK_OAUTH_CLIENT_ID",
     clientIdDefault: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
-    tokenUrl: "https://auth.x.ai/oauth2/token",
+    tokenUrl: GROK_BUILD_TOKEN_URL,
   },
 };

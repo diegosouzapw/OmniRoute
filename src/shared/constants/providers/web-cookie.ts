@@ -291,7 +291,12 @@ export const WEB_COOKIE_PROVIDERS = {
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "KW",
-    website: "https://www.kimi.com",
+    // Kimi official-partnership aff link (2026-07) — the "Kimi Coding Plan"
+    // tracking link (same origin as the plain www.kimi.com login flow below,
+    // so the "Open {host}" credential guide in WebSessionCredentialGuide.tsx /
+    // AddApiKeyModal.tsx is unaffected: origin, not path, decides localStorage
+    // access). Was `https://www.kimi.com` (no aff attribution).
+    website: "https://www.kimi.com/code?aff=omniroute",
     authHint:
       "Paste access_token from www.kimi.com DevTools → Application → Local Storage. A legacy kimi-auth cookie is also accepted.",
     subscriptionRisk: true,
@@ -310,9 +315,26 @@ export const WEB_COOKIE_PROVIDERS = {
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
   },
+  "hailuo-web": {
+    id: "hailuo-web",
+    // Distinct alias: avoid colliding with the existing API-key "minimax"/
+    // "minimax-cn" providers (src/shared/constants/providers/apikey/regional.ts).
+    alias: "hailuo-web",
+    name: "Hailuo Web (MiniMax)",
+    icon: "auto_awesome",
+    color: "#5B21B6",
+    textIcon: "HL",
+    website: "https://hailuo.ai",
+    authHint:
+      "Open hailuo.ai, log in, then open DevTools → Application → Local Storage → copy the " +
+      '"_token" value. device_id/uuid fingerprint fields are derived automatically; if ' +
+      "requests fail, re-capture _token (sessions can expire).",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
   "qwen-web": {
     id: "qwen-web",
-    // Primary "qwen" provider keeps the short alias; web variant uses its own id.
+    // The web variant uses its own id; the retired `qw` alias is not reassigned.
     alias: "qwen-web",
     name: "Qwen Web (Free)",
     icon: "auto_awesome",
@@ -369,6 +391,19 @@ export const WEB_COOKIE_PROVIDERS = {
     riskNoticeVariant: "webCookie",
     authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
   },
+  "promptql": {
+    id: "promptql",
+    alias: "pql",
+    name: "PromptQL (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#5B21B6",
+    textIcon: "PQL",
+    website: "https://prompt.ql.app",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste the Bearer JWT from prompt.ql.app DevTools → Network → graphql → Authorization (token only). Optional projectId + session Cookie for refresh.",
+  },
   "notion-web": {
     id: "notion-web",
     alias: "nw",
@@ -387,6 +422,32 @@ export const WEB_COOKIE_PROVIDERS = {
     authHint:
       "Paste only the token_v2 cookie VALUE from app.notion.com (DevTools → Application → Cookies → token_v2). " +
       "Do not paste token_v2= or the full Cookie header. Workspace is auto-detected; space_id / notion_user_id are optional.",
+  },
+  "adobe-firefly": {
+    id: "adobe-firefly",
+    alias: "firefly",
+    name: "Adobe Firefly (Image/Video)",
+    icon: "auto_awesome",
+    color: "#EB1000",
+    textIcon: "FF",
+    website: "https://firefly.adobe.com",
+    authHint:
+      "RECOMMENDED: firefly.adobe.com signed-in → F12 → Network → click firefly-3p.ff.adobe.io (generate-async or models/discovery) → Request Headers → Authorization → copy the token AFTER 'Bearer ' (starts with eyJ…). Cookie-only from firefly.adobe.com mints a GUEST token → 401/403; only multi-domain IMS cookies (adobelogin.com) or that Bearer JWT work. Unofficial/experimental media + Limits.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+  },
+  hyperagent: {
+    id: "hyperagent",
+    alias: "ha",
+    name: "HyperAgent (Unofficial/Experimental)",
+    icon: "auto_awesome",
+    color: "#6C5CE7",
+    textIcon: "HA",
+    website: "https://hyperagent.com",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    authHint:
+      "Paste the full Cookie header from hyperagent.com (DevTools → Network → any request → Request Headers → Cookie). Session cookies power chat + billing usage.",
   },
 };
 

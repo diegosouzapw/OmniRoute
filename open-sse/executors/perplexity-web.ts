@@ -268,12 +268,28 @@ async function buildNonStreamingResponse(
   for await (const chunk of extractContent(eventStream, signal)) {
     if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
     if (chunk.error) {
-      return new Response(
-        JSON.stringify({
-          error: { message: chunk.error, type: "upstream_error", code: "PPLX_ERROR" },
-        }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
-      );
+      // Quota exhaustion → 429 + reset_seconds so OmniRoute marks rate_limited_until
+      // and VibeProxy limit badges / rotation skip parse the same shape as model_cooldown.
+      const isQuota =
+        chunk.errorCode === "quota_exhausted" ||
+        /quota exhausted/i.test(chunk.error) ||
+        (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0);
+      const status = isQuota ? 429 : 502;
+      const code = chunk.errorCode || (isQuota ? "quota_exhausted" : "PPLX_ERROR");
+      const type = isQuota ? "quota_exhausted" : "upstream_error";
+      const errBody: Record<string, unknown> = {
+        message: chunk.error,
+        type,
+        code,
+      };
+      if (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0) {
+        errBody.reset_seconds = chunk.resetSeconds;
+      }
+      const respHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0) {
+        respHeaders["Retry-After"] = String(chunk.resetSeconds);
+      }
+      return new Response(JSON.stringify({ error: errBody }), { status, headers: respHeaders });
     }
     if (chunk.thinking) {
       thinkingParts.push(chunk.thinking);

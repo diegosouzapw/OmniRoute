@@ -6,6 +6,7 @@
  */
 
 import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts";
+import type { ComboCooldownWaitSettings } from "../../src/lib/resilience/settings.ts";
 import type { ResponseValidationConfig } from "./combo/responseValidation.ts";
 
 /**
@@ -25,6 +26,56 @@ export const PRE_SCREEN_CONCURRENCY = 5;
  * a longer value for slow non-streaming reasoning combos.
  */
 export const DEFAULT_COMBO_TARGET_TIMEOUT_MS = 120_000;
+
+/**
+ * Small buffer added on top of the combo-cooldown-wait budget (see below) when deriving
+ * the per-target timeout floor for wait-eligible combos. The wait itself is bounded by
+ * `resilienceSettings.comboCooldownWait.budgetMs`; this buffer only needs to cover the
+ * dispatch overhead between the wait resolving and the upstream response headers
+ * arriving (streaming responses aren't cut short past that point — see
+ * DEFAULT_COMBO_TARGET_TIMEOUT_MS above), not a full generation.
+ */
+export const COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS = 10_000;
+
+/**
+ * Whether a combo's cooldown-aware wait+retry (#7360) engages for this request: only
+ * "quota-share" and "auto" strategies wait out a short transient cooldown instead of
+ * crystallizing a 429 into a combo-level failure, and only when the operator has the
+ * feature enabled. Shared by combo.ts (to decide whether to wait) and comboSetup.ts (to
+ * size the per-target timeout floor so it doesn't cut the wait off early — see
+ * resolveComboTargetTimeoutMsForCombo below).
+ */
+export function isComboCooldownWaitEligible(
+  strategy: string,
+  comboCooldownWait: Pick<ComboCooldownWaitSettings, "enabled">
+): boolean {
+  return (strategy === "quota-share" || strategy === "auto") && comboCooldownWait.enabled;
+}
+
+/**
+ * Per-target timeout floor to use for a combo, accounting for the cooldown-wait budget.
+ * When the combo is wait-eligible (see isComboCooldownWaitEligible), a single target's
+ * dispatch can legitimately wait out cooldowns for up to `comboCooldownWait.budgetMs`
+ * before it resolves — so the per-target timeout must never be shorter than that budget,
+ * or the wait gets cut off mid-retry and the target times out with a synthetic 524
+ * (open-sse/services/combo/targetTimeoutRunner.ts) instead of completing the wait. This
+ * only raises the *default* floor; an operator's explicit `targetTimeoutMs` on the combo
+ * still wins (see resolveComboTargetTimeoutMs).
+ */
+export function resolveComboTargetTimeoutMsForCombo(
+  config: Record<string, unknown> | null | undefined,
+  upstreamTimeoutMs: number,
+  strategy: string,
+  comboCooldownWait: Pick<ComboCooldownWaitSettings, "enabled" | "budgetMs">
+): number {
+  const defaultTimeoutMs = isComboCooldownWaitEligible(strategy, comboCooldownWait)
+    ? Math.max(
+        DEFAULT_COMBO_TARGET_TIMEOUT_MS,
+        comboCooldownWait.budgetMs + COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS
+      )
+    : DEFAULT_COMBO_TARGET_TIMEOUT_MS;
+  return resolveComboTargetTimeoutMs(config, upstreamTimeoutMs, defaultTimeoutMs);
+}
 
 /**
  * Default pre-cascade semaphore queue depth for round-robin combos (#3872). When a
@@ -88,6 +139,12 @@ const DEFAULT_COMBO_CONFIG = {
   pipeline_fallback: "single-provider",
   resetAwareQuotaCacheTtlMs: 0,
   resetAwareQuotaCacheMaxStaleMs: 0,
+  // Global combo timeout (0 = disabled). When set, limits the total wall-clock time
+  // the combo spends iterating through targets. After each target completes, if the
+  // elapsed time exceeds comboTimeoutMs, remaining targets are skipped and a 504 with
+  // aggregated error diagnostics is returned. Backward-compatible: 0 preserves the
+  // legacy unlimited-iteration behavior.
+  comboTimeoutMs: 0,
   shadowRouting: {
     enabled: false,
     targets: [],

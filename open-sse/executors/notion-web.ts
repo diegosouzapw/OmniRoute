@@ -7,9 +7,12 @@
  * (notion2api / Notion2API-go, cited in issue #6758): a `token_v2` session
  * cookie posted to `POST /api/v3/runInferenceTranscript`.
  *
- * Live capture (2026-07-19) against a Business workspace confirmed the
- * contract that actually works:
- *   - createThread: true + a fresh threadId (createThread:false → ValidationError 400)
+ * Live capture (2026-07-19 / 2026-07-20) against a Business workspace confirmed:
+ *   - First turn: createThread: true + a fresh threadId
+ *     (createThread:false without a known threadId → ValidationError 400)
+ *   - Follow-ups: createThread: false + the SAME threadId + full transcript
+ *     (OpenAI multi-turn messages[] maps to one Notion AI chat; a new UUID
+ *     every request forces a new chat and breaks agent/tool continuity)
  *   - transcript starts with config + context, then user/assistant steps
  *   - x-notion-space-id + x-notion-active-user-header required
  *   - response is NDJSON patch-start / patch / record-map (not legacy rich-text
@@ -25,10 +28,50 @@ import { randomUUID } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
 import {
+  BROWSER_HEADERS,
   extractNotionUserIdFromCookie,
   resolveNotionCodename,
   resolveNotionRuntimeWorkspace,
 } from "../services/notionWebModels.ts";
+import {
+  __resetNotionThreadSessionsForTests,
+  conversationPrefixBeforeLastUser,
+  extractNotionMessageText,
+  hashNotionConversation,
+  notionThreadMarkConfirmed,
+  notionThreadMarkCreateAttempted,
+  notionThreadSessionLookup,
+  notionThreadSessionStore,
+  readClientThreadId,
+  hashNotionCallerCookie,
+  resolveNotionThreadBinding,
+  type NotionMessage,
+} from "../services/notionThreadSessions.ts";
+import {
+  extractNotionUpstreamError,
+  parseNotionInferenceStream,
+  sanitizeNotionAssistantText,
+} from "../services/notionStreamParser.ts";
+import {
+  buildNotionTranscript,
+  messagesForNotionTranscript,
+  type NotionAgentOptions,
+} from "../services/notionTranscriptBuilder.ts";
+
+// Re-exported for unit tests that destructure `mod.<name>` on this module.
+export {
+  __resetNotionThreadSessionsForTests,
+  buildNotionTranscript,
+  conversationPrefixBeforeLastUser,
+  extractNotionUpstreamError,
+  hashNotionConversation,
+  notionThreadSessionLookup,
+  notionThreadSessionStore,
+  parseNotionInferenceStream,
+  resolveNotionThreadBinding,
+  notionThreadMarkCreateAttempted,
+  sanitizeNotionAssistantText,
+};
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -36,19 +79,17 @@ import {
 const BASE_URL = "https://app.notion.com";
 const NOTION_URL = `${BASE_URL}/api/v3/runInferenceTranscript`;
 const USER_AGENT =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 const NOTION_CLIENT_VERSION = "23.13.20260719.1125";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-interface NotionMessage {
-  role: string;
-  content: string;
-}
-
 interface NotionRequestBody {
   messages?: NotionMessage[];
   model?: string;
+  /** Optional client-supplied Notion thread continuity (also via X-Notion-Thread-Id). */
+  notion_thread_id?: string;
+  thread_id?: string;
 }
 
 // ─── Helpers — credential resolution ───────────────────────────────────────
@@ -137,326 +178,6 @@ function extractUserIdFromCookie(cookie: string): string {
   return extractNotionUserIdFromCookie(cookie);
 }
 
-function isoNow(): string {
-  // Millisecond precision matches the browser client.
-  return new Date().toISOString().replace(/\.\d{3}Z$/, (m) => m); // keep ms + Z
-}
-
-// ─── Helpers — request/response translation ────────────────────────────────
-
-/**
- * Build a Notion `runInferenceTranscript` transcript array from OpenAI-style
- * chat messages.
- *
- * Live contract (verified 2026-07-19):
- * - Leading `config` (workflow + optional model food-codename)
- * - Leading `context` (spaceId / userId / surface / timezone)
- * - User turns as `type: "user"` (legacy `human` also works with createThread,
- *   but `user` matches the current web client)
- * - Assistant turns as `agent-inference` text parts
- */
-function buildNotionConfigStep(model: string): Record<string, unknown> {
-  const configValue: Record<string, unknown> = {
-    type: "workflow",
-    useWebSearch: false,
-    searchScopes: [{ type: "everything" }],
-    modelFromUser: Boolean(model),
-    enableAgentAutomations: false,
-    enableAgentIntegrations: false,
-    enableCustomAgents: false,
-    enableDatabaseAgents: false,
-    enableUserSessionContext: false,
-    isCustomAgent: false,
-  };
-  if (model) configValue.model = model;
-  return { id: randomUUID(), type: "config", value: configValue };
-}
-
-function buildNotionContextValue(opts: {
-  spaceId?: string;
-  userId?: string;
-  now: string;
-}): Record<string, unknown> {
-  const contextValue: Record<string, unknown> = {
-    timezone: "UTC",
-    surface: "ai_module",
-    currentDatetime: opts.now,
-  };
-  if (opts.spaceId) contextValue.spaceId = opts.spaceId;
-  if (opts.userId) contextValue.userId = opts.userId;
-  return contextValue;
-}
-
-/** Converts one OpenAI-style message into a transcript step, or `null` when it
- * was folded into the context (system prompts). */
-function buildNotionMessageStep(
-  m: NotionMessage,
-  contextValue: Record<string, unknown>,
-  opts: { userId?: string; now: string }
-): Record<string, unknown> | null {
-  if (typeof m?.content !== "string" || m.content.length === 0) return null;
-  const role = (m.role || "").toLowerCase();
-
-  if (role === "system") {
-    // Fold system prompts into context instructions rather than a separate step.
-    const existing = typeof contextValue.instructions === "string" ? contextValue.instructions : "";
-    contextValue.instructions = existing ? `${existing}\n${m.content}` : m.content;
-    return null;
-  }
-
-  if (role === "assistant") {
-    return {
-      id: randomUUID(),
-      type: "agent-inference",
-      value: [{ type: "text", content: m.content }],
-    };
-  }
-
-  // user (and anything else treated as user)
-  const userStep: Record<string, unknown> = {
-    id: randomUUID(),
-    type: "user",
-    value: [[m.content]],
-    createdAt: opts.now,
-  };
-  if (opts.userId) userStep.userId = opts.userId;
-  return userStep;
-}
-
-export function buildNotionTranscript(
-  messages: NotionMessage[],
-  opts: {
-    notionModel?: string;
-    spaceId?: string;
-    userId?: string;
-  } = {}
-): Array<Record<string, unknown>> {
-  const trimmedModel = typeof opts.notionModel === "string" ? opts.notionModel.trim() : "";
-  const model = trimmedModel && trimmedModel !== "notion-ai" ? trimmedModel : "";
-  const now = isoNow();
-
-  const contextValue = buildNotionContextValue({ spaceId: opts.spaceId, userId: opts.userId, now });
-  const entries: Array<Record<string, unknown>> = [
-    buildNotionConfigStep(model),
-    { id: randomUUID(), type: "context", value: contextValue },
-  ];
-
-  for (const m of messages) {
-    const step = buildNotionMessageStep(m, contextValue, { userId: opts.userId, now });
-    if (step) entries.push(step);
-  }
-  return entries;
-}
-
-/** Strip Notion's `<lang primary="…"/>` prefix and similar noise from answers. */
-export function sanitizeNotionAssistantText(text: string): string {
-  if (!text) return "";
-  let clean = text.replace(/^\uFEFF/, "").trim();
-  // Self-closing or paired lang tags at the start (and anywhere).
-  clean = clean.replace(/<\/?lang\b[^>]*\/?>/gi, "");
-  clean = clean.replace(/<\/lang>/gi, "");
-  // Incomplete leading <lang… without close
-  if (/^<lang\b/i.test(clean) && !clean.includes(">")) return "";
-  return clean.trim();
-}
-
-/** Extract plain text from Notion's rich-text tuple value: `[[text, marks?]]`. */
-function extractRichText(value: unknown): string {
-  if (!Array.isArray(value)) return "";
-  return value
-    .map((segment) => (Array.isArray(segment) && typeof segment[0] === "string" ? segment[0] : ""))
-    .join("");
-}
-
-function extractAgentInferenceText(value: unknown): string {
-  if (!Array.isArray(value)) return "";
-  const parts: string[] = [];
-  for (const item of value) {
-    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
-    const part = item as Record<string, unknown>;
-    const t = typeof part.type === "string" ? part.type.toLowerCase() : "";
-    if (t === "text" && typeof part.content === "string" && part.content) {
-      parts.push(part.content);
-    }
-  }
-  return parts.join("");
-}
-
-/** Unwraps `thread_message[key].value.value.step` from a Notion record-map entry. */
-function extractThreadMessageStep(msg: unknown): Record<string, unknown> | null {
-  if (!msg || typeof msg !== "object") return null;
-  const valueWrapper = (msg as Record<string, unknown>).value;
-  if (!valueWrapper || typeof valueWrapper !== "object") return null;
-  const inner = (valueWrapper as Record<string, unknown>).value;
-  if (!inner || typeof inner !== "object") return null;
-  const step = (inner as Record<string, unknown>).step;
-  if (!step || typeof step !== "object") return null;
-  return step as Record<string, unknown>;
-}
-
-/** Extracts the text carried by a single thread-message step, or "" if none. */
-function extractStepText(stepObj: Record<string, unknown>): string {
-  const stepType = typeof stepObj.type === "string" ? stepObj.type : "";
-  if (stepType === "agent-inference") {
-    return extractAgentInferenceText(stepObj.value);
-  }
-  if (stepType === "markdown-chat" && typeof stepObj.value === "string") {
-    return stepObj.value;
-  }
-  return "";
-}
-
-function extractFromRecordMap(recordMap: unknown): string {
-  if (!recordMap || typeof recordMap !== "object" || Array.isArray(recordMap)) return "";
-  const tm = (recordMap as Record<string, unknown>).thread_message;
-  if (!tm || typeof tm !== "object" || Array.isArray(tm)) return "";
-  let best = "";
-  for (const msg of Object.values(tm as Record<string, unknown>)) {
-    const stepObj = extractThreadMessageStep(msg);
-    if (!stepObj) continue;
-    const text = extractStepText(stepObj);
-    if (text && text.length >= best.length) best = text;
-  }
-  return best;
-}
-
-/**
- * Parse Notion's NDJSON `runInferenceTranscript` response body.
- * Supports:
- * 1. Legacy rich-text tuples on `value` (cumulative snapshots)
- * 2. Modern patch-start / patch streams (text / markdown-chat ops)
- * 3. Terminal record-map with agent-inference steps (authoritative final)
- */
-/** Accumulator threaded through {@link parseNotionInferenceStream}'s line parsing. */
-type NotionStreamState = {
-  lastLegacy: string;
-  lastPatchFinal: string;
-  lastIncremental: string;
-  lastRecordMap: string;
-};
-
-/** Applies one `patch` op (full text-part append / step append / incremental string) to state. */
-/** Full agent-inference text-part append: `o:"a", p:".../value/-"`. */
-function applyNotionValuePartAppend(v: unknown, state: NotionStreamState): void {
-  if (!v || typeof v !== "object" || Array.isArray(v)) return;
-  const part = v as Record<string, unknown>;
-  if (part.type === "text" && typeof part.content === "string" && part.content) {
-    state.lastPatchFinal = part.content;
-  }
-  if (part.type === "markdown-chat" && typeof part.value === "string" && part.value) {
-    state.lastPatchFinal = part.value;
-  }
-}
-
-/** Step append with markdown-chat / agent-inference: `o:"a", p:".../s/-"`. */
-function applyNotionStepAppend(v: unknown, state: NotionStreamState): void {
-  if (!v || typeof v !== "object" || Array.isArray(v)) return;
-  const step = v as Record<string, unknown>;
-  if (step.type === "markdown-chat" && typeof step.value === "string" && step.value) {
-    state.lastPatchFinal = step.value;
-  }
-  if (step.type === "agent-inference") {
-    const text = extractAgentInferenceText(step.value);
-    if (text) state.lastPatchFinal = text;
-  }
-}
-
-function applyNotionPatchOp(rawOp: unknown, state: NotionStreamState): void {
-  if (!rawOp || typeof rawOp !== "object") return;
-  const op = rawOp as Record<string, unknown>;
-  const o = typeof op.o === "string" ? op.o : "";
-  const p = typeof op.p === "string" ? op.p : "";
-  const v = op.v;
-
-  if (o === "a" && p.endsWith("/value/-")) {
-    applyNotionValuePartAppend(v, state);
-  } else if (o === "a" && p.endsWith("/s/-")) {
-    applyNotionStepAppend(v, state);
-  } else if ((o === "x" || o === "p") && p.includes("/value") && typeof v === "string" && v) {
-    // Incremental string patches
-    state.lastIncremental += v;
-  }
-}
-
-/** Applies one parsed NDJSON record (markdown-chat / agent-inference / patch / record-map / legacy). */
-function applyNotionStreamRecord(rec: Record<string, unknown>, state: NotionStreamState): void {
-  const type = typeof rec.type === "string" ? rec.type : "";
-
-  // 1) Direct markdown-chat event
-  if (type === "markdown-chat" && typeof rec.value === "string" && rec.value) {
-    state.lastPatchFinal = rec.value;
-    return;
-  }
-
-  // 2) Direct agent-inference event
-  if (type === "agent-inference") {
-    const text = extractAgentInferenceText(rec.value);
-    if (text) state.lastPatchFinal = text;
-    return;
-  }
-
-  // 3) Patch stream
-  if (type === "patch" && Array.isArray(rec.v)) {
-    for (const rawOp of rec.v) applyNotionPatchOp(rawOp, state);
-    return;
-  }
-
-  // 4) record-map terminal
-  if (type === "record-map" || rec.recordMap) {
-    const text = extractFromRecordMap(rec.recordMap || rec);
-    if (text) state.lastRecordMap = text;
-    return;
-  }
-
-  // 5) Legacy rich-text value (cumulative)
-  const rich = extractRichText(rec.value);
-  if (rich) state.lastLegacy = rich;
-}
-
-/** Parses one raw NDJSON line (trims / strips SSE `data:` prefix / JSON-parses) into state. */
-function applyNotionStreamLine(rawLine: string, state: NotionStreamState): void {
-  const line = rawLine.trim();
-  if (!line || line === "[DONE]") return;
-  // Strip optional SSE "data:" prefix if a proxy rewrote it.
-  const payloadLine = line.startsWith("data:") ? line.slice(5).trim() : line;
-  if (!payloadLine) return;
-
-  let record: unknown;
-  try {
-    record = JSON.parse(payloadLine);
-  } catch {
-    return;
-  }
-  if (!record || typeof record !== "object" || Array.isArray(record)) return;
-  applyNotionStreamRecord(record as Record<string, unknown>, state);
-}
-
-/**
- * Parse Notion's NDJSON `runInferenceTranscript` response body.
- * Supports:
- * 1. Legacy rich-text tuples on `value` (cumulative snapshots)
- * 2. Modern patch-start / patch streams (text / markdown-chat ops)
- * 3. Terminal record-map with agent-inference steps (authoritative final)
- */
-export function parseNotionInferenceStream(raw: string): string {
-  if (!raw) return "";
-  const state: NotionStreamState = {
-    lastLegacy: "",
-    lastPatchFinal: "",
-    lastIncremental: "",
-    lastRecordMap: "",
-  };
-
-  for (const rawLine of raw.split("\n")) {
-    applyNotionStreamLine(rawLine, state);
-  }
-
-  const candidates = [state.lastRecordMap, state.lastPatchFinal, state.lastIncremental, state.lastLegacy]
-    .map(sanitizeNotionAssistantText)
-    .filter(Boolean);
-  // Prefer the longest non-empty candidate; record-map usually wins.
-  return candidates.sort((a, b) => b.length - a.length)[0] || "";
-}
 
 /**
  * Notion's undocumented inference API does not return token usage.
@@ -469,15 +190,11 @@ export function estimateNotionUsage(
   content: string
 ): { prompt_tokens: number; completion_tokens: number; total_tokens: number; estimated: true } {
   const promptText = (messages || [])
-    .map((m) => (typeof m?.content === "string" ? m.content : ""))
+    .map((m) => extractNotionMessageText(m?.content))
     .join("\n");
   // ~4 chars/token (English-ish); at least 1 when there is any text.
-  const prompt_tokens = promptText
-    ? Math.max(1, Math.ceil(promptText.length / 4))
-    : 0;
-  const completion_tokens = content
-    ? Math.max(1, Math.ceil(content.length / 4))
-    : 0;
+  const prompt_tokens = promptText ? Math.max(1, Math.ceil(promptText.length / 4)) : 0;
+  const completion_tokens = content ? Math.max(1, Math.ceil(content.length / 4)) : 0;
   return {
     prompt_tokens,
     completion_tokens,
@@ -489,27 +206,36 @@ export function estimateNotionUsage(
 function chatCompletionResponse(
   content: string,
   model: string,
-  messages?: NotionMessage[]
+  messages?: NotionMessage[],
+  threadId?: string
 ) {
+  const id = threadId ? `chatcmpl-notion-${threadId}` : `chatcmpl-notion-${Date.now()}`;
   return new Response(
     JSON.stringify({
-      id: `chatcmpl-notion-${Date.now()}`,
+      id,
       object: "chat.completion",
       created: Math.floor(Date.now() / 1000),
       model,
-      choices: [
-        { index: 0, message: { role: "assistant", content }, finish_reason: "stop" },
-      ],
+      choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }],
       usage: estimateNotionUsage(messages, content),
+      // Non-standard but useful for clients that want to pin continuity explicitly
+      notion_thread_id: threadId || undefined,
     }),
-    { status: 200, headers: { "Content-Type": "application/json" } }
+    {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        ...(threadId ? { "X-Notion-Thread-Id": threadId } : {}),
+      },
+    }
   );
 }
 
-function pseudoStreamResponse(content: string, model: string) {
+function pseudoStreamResponse(content: string, model: string, threadId?: string) {
   const encoder = new TextEncoder();
+  const id = threadId ? `chatcmpl-notion-${threadId}` : `chatcmpl-notion-${Date.now()}`;
   const chunk = (delta: string, finishReason: string | null) => ({
-    id: `chatcmpl-notion-${Date.now()}`,
+    id,
     object: "chat.completion.chunk",
     created: Math.floor(Date.now() / 1000),
     model,
@@ -529,6 +255,7 @@ function pseudoStreamResponse(content: string, model: string) {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
+      ...(threadId ? { "X-Notion-Thread-Id": threadId } : {}),
     },
   });
 }
@@ -560,32 +287,47 @@ async function resolveExecuteWorkspace(
   return { spaceId, userId };
 }
 
-/** Live-verified working shape (createThread:false without threadId → 400 ValidationError). */
-function buildNotionCreateThreadRequestBody(opts: {
+/**
+ * Live-verified shape:
+ * - First turn: createThread true + new threadId
+ * - Follow-up: createThread false + same threadId (false without threadId → 400)
+ */
+function buildNotionInferenceRequestBody(opts: {
   spaceId: string;
   userId: string;
   threadId: string;
   transcript: unknown;
+  createThread: boolean;
+  agent?: NotionAgentOptions;
 }): Record<string, unknown> {
-  const { spaceId, threadId, transcript } = opts;
+  const { spaceId, threadId, transcript, createThread, agent } = opts;
+  const isCustom = Boolean(agent?.workflowId);
+  const workflowId = agent?.workflowId || "";
+  // Follow-ups: isPartialTranscript true matches open-source Notion bridges and
+  // avoids re-validating the entire prior transcript (a source of transient errors).
+  const isFollowUp = !createThread;
   return {
     traceId: randomUUID(),
     spaceId,
     threadId,
-    createThread: true,
-    generateTitle: true,
+    createThread,
+    // Only generate a title when starting a new Notion AI chat
+    generateTitle: createThread,
     asPatchResponse: true,
-    isPartialTranscript: false,
+    patchResponseVersion: 2,
+    isPartialTranscript: isFollowUp,
     saveAllThreadOperations: true,
-    setUnreadState: true,
-    createdSource: "ai_module",
+    setUnreadState: createThread,
+    createdSource: isCustom ? "custom_agent" : "ai_module",
     threadType: "workflow",
+    supportsCustomAgentNudgeTranscriptStep: true,
+    isUserInAnySalesAssistedSpace: false,
+    isSpaceSalesAssisted: false,
     transcript,
-    threadParentPointer: {
-      table: "space",
-      id: spaceId,
-      spaceId,
-    },
+    // Default AI is parented by the workspace; custom agents by the workflow id.
+    threadParentPointer: isCustom
+      ? { table: "workflow", id: workflowId, spaceId }
+      : { table: "space", id: spaceId, spaceId },
     debugOverrides: {
       annotationInferences: {},
       cachedInferences: {},
@@ -599,21 +341,104 @@ function buildNotionExecuteHeaders(opts: {
   cookie: string;
   spaceId: string;
   userId: string;
+  agent?: NotionAgentOptions;
 }): Record<string, string> {
+  const isCustom = Boolean(opts.agent?.workflowId);
+  // Browser uses /agent/<workflowId without dashes>?wfv=chat for custom agents.
+  const agentPathId = (opts.agent?.workflowId || "").replace(/-/g, "");
+  const referer = isCustom && agentPathId
+    ? `${BASE_URL}/agent/${agentPathId}?wfv=chat`
+    : `${BASE_URL}/ai`;
   const reqHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     "User-Agent": USER_AGENT,
     Accept: "application/x-ndjson",
     Cookie: opts.cookie,
     Origin: BASE_URL,
-    Referer: `${BASE_URL}/ai`,
+    Referer: referer,
     "notion-client-version": NOTION_CLIENT_VERSION,
     "notion-audit-log-platform": "web",
     "x-notion-space-id": opts.spaceId,
     "Accept-Language": "en-US,en;q=0.9",
+    ...BROWSER_HEADERS,
   };
   if (opts.userId) reqHeaders["x-notion-active-user-header"] = opts.userId;
   return reqHeaders;
+}
+
+/** Normalize a pasted workflow/agent id (with or without dashes). */
+export function normalizeNotionWorkflowId(raw: string | undefined | null): string {
+  const s = String(raw || "").trim();
+  if (!s) return "";
+  // URL path segment …/agent/<id>?… or bare hex
+  const fromUrl = s.match(/\/agent\/([a-f0-9-]{20,})/i);
+  let id = fromUrl ? fromUrl[1]! : s;
+  id = id.replace(/[^a-f0-9-]/gi, "");
+  // Insert dashes if 32 hex chars (no dashes)
+  const hex = id.replace(/-/g, "");
+  if (/^[a-f0-9]{32}$/i.test(hex)) {
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`.toLowerCase();
+  }
+  // Already UUID-like
+  if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)) {
+    return id.toLowerCase();
+  }
+  return id;
+}
+
+/**
+ * Read custom-agent workflow id + optional context page from credentials.
+ * Sources (priority): providerSpecificData → cookie pairs on apiKey
+ * (`workflow_id=…`, `notion_workflow_id=…`, `context_page_id=…`).
+ */
+export function resolveNotionAgentOptions(
+  credentials: ExecuteInput["credentials"],
+  cookie: string
+): NotionAgentOptions {
+  const ps = credentials?.providerSpecificData;
+  const workflowFromPs =
+    readProviderSpecificString(ps, [
+      "workflowId",
+      "workflow_id",
+      "notionWorkflowId",
+      "notion_workflow_id",
+      "agentId",
+      "agent_id",
+    ]) || "";
+  const pageFromPs =
+    readProviderSpecificString(ps, [
+      "contextPageId",
+      "context_page_id",
+      "notionContextPageId",
+    ]) || "";
+
+  const readCookie = (name: string): string => {
+    const m = cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`, "i"));
+    if (!m) return "";
+    const raw = m[1]!.trim();
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  };
+
+  const workflowId = normalizeNotionWorkflowId(
+    workflowFromPs ||
+      readCookie("workflow_id") ||
+      readCookie("notion_workflow_id") ||
+      readCookie("agent_id")
+  );
+  const contextPageId =
+    pageFromPs ||
+    readCookie("context_page_id") ||
+    readCookie("notion_context_page_id") ||
+    "";
+
+  return {
+    workflowId: workflowId || undefined,
+    contextPageId: contextPageId ? contextPageId.trim() : undefined,
+  };
 }
 
 /**
@@ -659,7 +484,12 @@ async function sendNotionInferenceRequest(opts: {
   if (!upstream.ok) {
     const errText = await upstream.text().catch(() => "");
     return {
-      errorResult: makeErrorResult(upstream.status, `Notion error: ${errText}`, reqBody, NOTION_URL),
+      errorResult: makeErrorResult(
+        upstream.status,
+        `Notion error: ${errText}`,
+        reqBody,
+        NOTION_URL
+      ),
     };
   }
 
@@ -687,6 +517,9 @@ export class NotionWebExecutor extends BaseExecutor {
       );
     }
 
+    // Optional custom agent (workflowId). Empty → default Notion AI (not agentic-specific).
+    const agent = resolveNotionAgentOptions(credentials, cookie);
+
     const messages = requestBody.messages || [];
     if (!messages.some((m) => m.role === "user")) {
       return makeErrorResult(400, "No user message found", body, NOTION_URL);
@@ -710,28 +543,127 @@ export class NotionWebExecutor extends BaseExecutor {
     const clientFacing = clientFacingModelId(model);
     const modelId = clientFacing || notionCodename || "notion-ai";
 
-    const threadId = randomUUID();
-    const transcript = buildNotionTranscript(messages, {
-      notionModel: notionCodename || undefined,
-      spaceId,
-      userId: userId || undefined,
-    });
+    // Thread continuity (sticky):
+    // - Prefer X-Notion-Thread-Id / body pin from the client
+    // - Else sticky root key from first user message (UREW-normalized, durable on disk)
+    // - Bind threadId *before* the upstream call so error retries never mint a new chat
+    // - createThread:true only for brand-new roots; never again for that root
+    const inboundHeaders =
+      (input.clientHeaders as Record<string, string> | null | undefined) ??
+      ((input as { headers?: Record<string, string> }).headers as
+        | Record<string, string>
+        | undefined);
+    const clientThreadId = readClientThreadId(requestBody, inboundHeaders ?? undefined);
+    // Namespace the thread cache PER CALLER (hash of the caller's cookie) AND by custom
+    // agent, so (a) two users of the same Notion space never share a cached thread
+    // (cross-tenant IDOR, #7900 review) and (b) default AI and agents never share threads.
+    const callerScope = hashNotionCallerCookie(cookie);
+    const threadSpaceKey = agent.workflowId
+      ? `caller:${callerScope}|${spaceId}|wf:${agent.workflowId}`
+      : `caller:${callerScope}|${spaceId}`;
+    const binding = resolveNotionThreadBinding(threadSpaceKey, messages, clientThreadId);
+    let { threadId, createThread, rootKey } = binding;
 
-    const reqBody = buildNotionCreateThreadRequestBody({ spaceId, userId, threadId, transcript });
-    const reqHeaders = buildNotionExecuteHeaders({ cookie, spaceId, userId });
+    const reqHeaders = buildNotionExecuteHeaders({ cookie, spaceId, userId, agent });
 
-    const { rawText, errorResult } = await sendNotionInferenceRequest({ reqBody, reqHeaders, signal });
-    if (errorResult) return errorResult;
+    const runOnce = async (opts: {
+      createThread: boolean;
+      threadId: string;
+    }): Promise<
+      | { ok: true; finalText: string; reqBody: Record<string, unknown> }
+      | { ok: false; errorResult: ReturnType<typeof makeErrorResult>; retryable: boolean; reqBody: Record<string, unknown> }
+    > => {
+      const transcript = buildNotionTranscript(messages, {
+        notionModel: notionCodename || undefined,
+        spaceId,
+        userId: userId || undefined,
+        agent,
+        isFollowUp: !opts.createThread,
+      });
+      const reqBody = buildNotionInferenceRequestBody({
+        spaceId,
+        userId,
+        threadId: opts.threadId,
+        transcript,
+        createThread: opts.createThread,
+        agent,
+      });
 
-    const finalText = parseNotionInferenceStream(rawText || "");
-    if (!finalText) {
-      return makeErrorResult(502, "No response from Notion AI", reqBody, NOTION_URL);
+      if (opts.createThread) {
+        notionThreadMarkCreateAttempted(rootKey, opts.threadId);
+      }
+
+      const { rawText, errorResult } = await sendNotionInferenceRequest({
+        reqBody,
+        reqHeaders,
+        signal,
+      });
+
+      if (errorResult) {
+        // HTTP-level failure — keep sticky binding so the next turn reuses threadId
+        const status = errorResult.response?.status ?? 502;
+        const retryable = status === 429 || status === 503 || status >= 500;
+        return { ok: false, errorResult, retryable, reqBody };
+      }
+
+      const raw = rawText || "";
+      const upstreamErr = extractNotionUpstreamError(raw);
+      if (upstreamErr) {
+        // In-band Notion error (often HTTP 200 NDJSON). Sticky thread stays bound.
+        const status = upstreamErr.isRetryable ? 503 : 502;
+        return {
+          ok: false,
+          retryable: upstreamErr.isRetryable,
+          reqBody,
+          errorResult: makeErrorResult(
+            status,
+            `Notion ${upstreamErr.subType || "error"}: ${upstreamErr.message}`,
+            reqBody,
+            NOTION_URL
+          ),
+        };
+      }
+
+      const finalText = parseNotionInferenceStream(raw);
+      if (!finalText) {
+        return {
+          ok: false,
+          retryable: true,
+          reqBody,
+          errorResult: makeErrorResult(502, "No response from Notion AI", reqBody, NOTION_URL),
+        };
+      }
+
+      return { ok: true, finalText, reqBody };
+    };
+
+    // First attempt
+    let attempt = await runOnce({ createThread, threadId });
+
+    // One automatic retry for transient Notion faults — same threadId, never create again
+    if (!attempt.ok && attempt.retryable) {
+      const delayMs = process.env.NODE_ENV === "test" || process.env.VITEST ? 20 : 700 + Math.floor(Math.random() * 400);
+      await new Promise((r) => setTimeout(r, delayMs));
+      attempt = await runOnce({ createThread: false, threadId });
     }
 
-    const response = wantStream
-      ? pseudoStreamResponse(finalText, modelId)
-      : chatCompletionResponse(finalText, modelId, messages);
+    if (!attempt.ok) {
+      return attempt.errorResult;
+    }
 
-    return { response, url: NOTION_URL, headers: reqHeaders, transformedBody: reqBody };
+    // Confirm sticky binding + prefix keys for multi-turn continuity
+    notionThreadMarkConfirmed(rootKey, threadId);
+    notionThreadSessionStore(threadSpaceKey, messages, attempt.finalText, threadId);
+
+    const response = wantStream
+      ? pseudoStreamResponse(attempt.finalText, modelId, threadId)
+      : chatCompletionResponse(attempt.finalText, modelId, messages, threadId);
+
+    return {
+      response,
+      url: NOTION_URL,
+      headers: reqHeaders,
+      transformedBody: attempt.reqBody,
+    };
   }
 }

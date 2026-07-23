@@ -82,6 +82,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | Variable                               | Default              | Source File                                           | Description                                                                                                                                                                                                                                     |
 | -------------------------------------- | -------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DATA_DIR`                             | `~/.omniroute/`      | `src/lib/db/core.ts`                                  | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                                                                                                                                             |
+| `OMNIROUTE_DATA_DIR`                   | _(unset)_            | `open-sse/executors/promptql/threadSticky.ts`         | **Fallback alias** for `DATA_DIR`, checked only when `DATA_DIR` is unset. Used to locate the PromptQL executor's on-disk thread-sticky session cache (`<dir>/promptql-thread-sessions.json`); if neither var is set, the cache stays in-memory only (not persisted across restarts).                                                                                                                                             |
 | `STORAGE_ENCRYPTION_KEY`               | _(empty = disabled)_ | `src/lib/db/encryption.ts`                            | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                                                                                                                                                      |
 | `STORAGE_ENCRYPTION_KEY_VERSION`       | `v1`                 | `scripts/build/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups.                                                                                                                              |
 | `DISABLE_SQLITE_AUTO_BACKUP`           | `false`              | `src/lib/db/backup.ts`                                | When `true`, skips the automatic database backup that runs before migrations on every startup.                                                                                                                                                  |
@@ -184,9 +185,9 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `NO_LOG_API_KEY_IDS`                    | _(empty)_               | `src/lib/compliance/index.ts`                    | Comma-separated API key IDs that bypass request logging (GDPR compliance).                                                                                                                                                                                                                                                                                         |
 | `DEFAULT_RATE_LIMIT_PER_DAY`            | `1000`                  | `src/shared/utils/apiKeyPolicy.ts`               | Fallback per-day request budget applied to API keys whose `rate_limits` column is null. Default (unset/empty/malformed) keeps the legacy 1000/day, 5000/week, 20000/month windows. Set explicitly to `0` to opt out (unlimited). Any positive integer N enables N/day, 5N/week, 20N/month. Zod-validated; invalid values log a warning and use the legacy default. |
 | `MAX_BODY_SIZE_BYTES`                   | `10485760` (10 MB)      | `src/shared/middleware/bodySizeGuard.ts`         | Maximum allowed request body size. Rejects payloads exceeding this limit.                                                                                                                                                                                                                                                                                          |
-| `OMNIROUTE_CHAT_LARGE_BODY_BYTES`       | `262144` (256 KB)       | `src/shared/middleware/chatBodyAdmission.ts`     | Heap-pressure admission threshold for `POST /v1/chat/completions` (#5152). Bodies below this are always admitted and never sample the heap; at or above it the heap-pressure check applies.                                                                                                                                                                          |
-| `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`    | `52428800` (50 MB)      | `src/shared/middleware/chatBodyAdmission.ts`     | Chat-route hard cap. Bodies larger than this are rejected with `413` before being cloned/parsed, regardless of heap state.                                                                                                                                                                                                                                          |
-| `OMNIROUTE_CHAT_HEAP_SHED_RATIO`        | `0.75`                  | `src/shared/middleware/chatBodyAdmission.ts`     | Shed a large chat body with `503` + `Retry-After` once `heapUsed / heap_size_limit` reaches this ratio (`0 < r < 1`). Turns a process-wide V8 OOM under concurrent large compacts into a single graceful client retry; a healthy heap admits every body untouched.                                                                                                  |
+| `OMNIROUTE_CHAT_LARGE_BODY_BYTES`       | `262144` (256 KB)       | `src/shared/middleware/chatBodyAdmission.ts`     | Actual request bodies at or above this threshold require an atomic process-local heavyweight admission lease before JSON parsing.                                                                                                                                                                                                                                  |
+| `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`    | `52428800` (50 MB)      | `src/shared/middleware/chatBodyAdmission.ts`     | Chat-route hard cap enforced against bytes read during bounded ingestion, including requests with missing, invalid, or dishonest `Content-Length`; excess receives `413`.                                                                                                                                                                                          |
+| `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`    | `1`                     | `src/shared/middleware/chatBodyAdmission.ts`     | Maximum heavyweight chat requests admitted concurrently in one process. When capacity is unavailable, OmniRoute returns retryable `503` with `Retry-After`.                                                                                                                                                                                                        |
 | `OMNIROUTE_MAX_NONSTREAMING_RESPONSE_BYTES` | `67108864` (64 MB)  | `open-sse/handlers/chatCore/nonStreamingResponseBody.ts` | Hard cap for a non-streaming upstream response buffered fully into memory. Past this the upstream reader is cancelled and the request fails fast instead of growing an unbounded string until the heap is exhausted.                                                                                                                                                 |
 | `CORS_ORIGIN`                           | _(unset)_               | `src/server/cors/origins.ts`                    | Legacy single-origin CORS allowlist. Prefer `CORS_ALLOWED_ORIGINS` for new deployments. CORS is only for cross-origin browser API clients; authenticated dashboard writes use same-origin requests plus session-bound CSRF protection instead.                                                                                                                     |
 | `CORS_ALLOWED_ORIGINS`                  | _(unset)_               | `src/server/cors/origins.ts`                    | Comma-separated CORS allowlist. No wildcard is sent unless `CORS_ALLOW_ALL=true` is explicitly configured.                                                                                                                                                                                                                                                         |
@@ -212,14 +213,18 @@ MAX_BODY_SIZE_BYTES=5242880    # 5 MB limit
 
 OmniRoute provides a two-layer defense: request-side injection scanning and response-side PII stripping.
 
+> **⚠️ Limitations:** These guardrails are *best-effort heuristic* detections, not a complete prompt-injection firewall or PII DLP system. They can produce false positives (benign persona/RPG prompts flagged) and false negatives (leetspeak, spacing, non-English patterns). They are not sufficient alone for compliance. Tune modes and test against your traffic before relying on them.
+
 ### Request-Side: Prompt Injection Guard
 
 | Variable                  | Default   | Source File                              | Description                                                                                 |
 | ------------------------- | --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `INPUT_SANITIZER_ENABLED` | `true`    | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
-| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = log only, `block` = reject request with 400, `redact` = strip suspicious patterns. |
+| `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | Injection policy: `warn` = log only, `block` = reject request with 400. Legacy `redact` does **not** strip injection text; use `PII_REDACTION_ENABLED` for request PII rewrite. |
 | `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
-| `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
+| `INPUT_SANITIZER_BLOCK_THRESHOLD` | `high` | `src/shared/utils/injectionSeverity.ts` | Minimum severity that `MODE=block` rejects: `high` (default), `medium`, or `low`. Medium patterns are observe-only unless lowered. |
+| `INJECTION_GUARD_BLOCK_THRESHOLD` | _(unset)_ | `src/shared/utils/injectionSeverity.ts` | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD` — same behavior. |
+| `PII_REDACTION_ENABLED`   | `false`   | `src/lib/guardrails/piiMasker.ts`        | When `true`, redact PII in incoming requests (independent of injection mode).               |
 | `CREDENTIAL_REDACTION_ENABLED` | `false` | `src/lib/guardrails/credentialMasker.ts` | Redact well-known API-key / secret-token patterns from request/response payloads. Opt-in; mirrors `PII_REDACTION_ENABLED`. |
 
 ### Response-Side: PII Sanitizer
@@ -239,7 +244,7 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 
 | Scenario                  | Configuration                                                                                                                |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Enterprise compliance** | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=block`, `PII_REDACTION_ENABLED=true`, `PII_RESPONSE_SANITIZATION=true` |
+| **Enterprise compliance** | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=block`, `PII_REDACTION_ENABLED=true`, `PII_RESPONSE_SANITIZATION=true` (injection blocks + request/response PII redaction; modes are independent) |
 | **Monitoring only**       | `INPUT_SANITIZER_ENABLED=true`, `INPUT_SANITIZER_MODE=warn` — logs but never blocks                                          |
 | **Personal use**          | Leave all disabled — zero overhead                                                                                           |
 
@@ -444,7 +449,7 @@ detection above).
 | `COMPRESSION_PREFIX_FREEZE_THRESHOLD`           | `3`                                                 | `open-sse/services/compression/prefixFreeze.ts`             | Observations of a system prompt before it is treated as a frozen stable prefix.                                                                                         |
 | `OMNIROUTE_BOOTSTRAPPED`                        | `false`                                             | `src/app/(dashboard)/dashboard/page.tsx`                    | Set `true` by bootstrap script after initial setup. Controls setup wizard visibility.                                                                                   |
 | `OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE`         | `0`                                                 | `open-sse/executors/antigravity.ts`                         | Escape hatch: allow request body to override the Antigravity project field.                                                                                             |
-| `ANTIGRAVITY_CREDITS`                           | _(unset)_                                           | `open-sse/services/antigravityCredits.ts`                   | Override Antigravity's advertised remaining credits (testing / forced values).                                                                                          |
+| `ANTIGRAVITY_CREDITS`                           | `off`                                               | `open-sse/services/antigravityCredits.ts`                   | Google One AI credits policy: `off` never injects credits, `retry` injects once after an eligible quota 429, and `always` injects on the first request.                    |
 | `AGY_TOKEN_FILE`                                | `~/.gemini/antigravity-cli/antigravity-oauth-token` | `src/app/api/providers/agy-auth/apply-local/route.ts`       | Override the Antigravity CLI (agy) token-file path for the auto-detect local login import.                                                                              |
 
 ### OAuth CLI Bridge (Internal)
@@ -471,7 +476,6 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Public client.                                                                                                                                                                                                                                  |
 | `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Requires matching `_SECRET`.                                                                                                                                                                                                                    |
 | `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                                                                                                                                                                               |
-| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Public client.                                                                                                                                                                                                                                  |
 | `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Public client.                                                                                                                                                                                                                                  |
 | `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                                                                                                                                                                                    |
 | `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                                                                                                                                                                               |
@@ -530,7 +534,6 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 | `KIRO_OAUTH_CLIENT_ID`           | `kiro-cli`                                    | Override the Kiro social device-code `clientId` (public id)                                      |
 | `KIRO_VERIFY_FULL_CRC`           | `false`                                       | Opt-in: full per-frame message CRC validation on the Kiro event stream (debug corrupted streams) |
 | `QODER_USER_AGENT`               | `Qoder-Cli`                                   | When Qoder CLI updates                                                                           |
-| `QWEN_USER_AGENT`                | `QwenCode/0.19.3 (linux; x64)`                | When Qwen Code updates                                                                           |
 | `CURSOR_USER_AGENT`              | `Cursor/3.3`                                  | When Cursor updates                                                                              |
 
 > [!TIP]
@@ -556,7 +559,6 @@ When enabled, OmniRoute reorders HTTP headers and JSON body fields to match the 
 | `CLI_COMPAT_KIMI_CODING` | `=1`       | Mimics Kimi Coding request signature    |
 | `CLI_COMPAT_KILOCODE`    | `=1`       | Mimics Kilo Code request signature      |
 | `CLI_COMPAT_CLINE`       | `=1`       | Mimics Cline request signature          |
-| `CLI_COMPAT_QWEN`        | `=1`       | Mimics Qwen Code request signature      |
 
 ### Global
 
@@ -792,6 +794,29 @@ Automatic model pricing data synchronization from external sources.
 
 ---
 
+## PromptQL Playground Provider (Unofficial/Experimental)
+
+Reverse-engineered GraphQL session bridge for prompt.ql.app (`src/shared/constants/providers/web-cookie.ts`). All optional — defaults point at the public playground endpoints; override only for a self-hosted/alternate PromptQL deployment.
+
+| Variable                     | Default                                                                | Source File                              | Description                                          |
+| ----------------------------- | ----------------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------- |
+| `PROMPTQL_GRAPHQL_ENDPOINT`   | `https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql`      | `open-sse/executors/promptql.ts`          | GraphQL endpoint used for chat/session operations.     |
+| `PROMPTQL_CREDITS_ENDPOINT`   | `https://data.pro.ql.app/v1/graphql`                                     | `open-sse/executors/promptql.ts`, `open-sse/services/usage/promptql.ts` | GraphQL endpoint used to query credit balance/usage.   |
+| `PROMPTQL_TOKEN_REFRESH_URL`  | `https://auth.pro.ql.app/ddn/project/token`                              | `open-sse/executors/promptql.ts`          | Endpoint used for best-effort token refresh.           |
+| `PROMPTQL_POLL_TIMEOUT_MS`    | `180000`                                                                 | `open-sse/executors/promptql.ts`          | Max time (ms) to poll `thread_events` before timing out. |
+
+---
+
+## HyperAgent Web Provider (Unofficial/Experimental)
+
+Reverse-engineered session bridge for hyperagent.com (`src/shared/constants/providers/web-cookie.ts`). Optional — the default points at the public billing/usage endpoint; override only for a self-hosted/alternate HyperAgent deployment.
+
+| Variable                | Default                                                    | Source File                             | Description                                    |
+| ------------------------ | ------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------- |
+| `HYPERAGENT_USAGE_URL`  | `https://hyperagent.com/api/settings/billing/usage`         | `open-sse/services/usage/hyperagent.ts` | Endpoint used to fetch billing/usage credit blocks. |
+
+---
+
 ## 19. Model Sync (Dev)
 
 | Variable                            | Default       | Source File                        | Description                                                                                                                                                                                                                                                                                            |
@@ -867,6 +892,7 @@ Anthropic-compatible provider instead.
 | `HEALTHCHECK_STAGGER_MS`                        | `3000`                  | `src/lib/tokenHealthCheck.ts`                                                           | Stagger interval (ms) between provider token healthchecks at startup.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `HEALTHCHECK_JITTER_MIN_MS`                     | `500`                   | `src/lib/tokenHealthCheck.ts`                                                           | Minimum randomized jitter (ms) added on top of `HEALTHCHECK_STAGGER_MS` between provider token healthchecks, to prevent bursting (Issue #1220).                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `HEALTHCHECK_JITTER_MAX_MS`                     | `5000`                  | `src/lib/tokenHealthCheck.ts`                                                           | Maximum randomized jitter (ms) added on top of `HEALTHCHECK_STAGGER_MS` between provider token healthchecks, to prevent bursting (Issue #1220).                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `HEALTHCHECK_BATCH_SIZE`                        | `20`                    | `src/lib/tokenHealthCheck.ts`                                                           | Concurrent-check batch size for the startup token-healthcheck sweep; larger values check more connections in parallel, smaller values reduce burst load (Issue #7875, regression of #7719).                                                                                                                                                                                                                                                                                                                                                                              |
 | `REQUEST_RETRY`                                 | `2`                     | `src/sse/services/cooldownAwareRetry.ts`                                                | Number of automatic retries on model-scoped cooldown responses before returning error to client.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `MAX_RETRY_INTERVAL_SEC`                        | `30`                    | `src/sse/services/cooldownAwareRetry.ts`                                                | Max backoff interval (seconds) between cooldown retries. Capped by this value regardless of upstream `Retry-After`.                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `HEADROOM_URL`                                  | `http://localhost:8787` | `src/lib/headroom/detect.ts`                                                            | Headroom token-saver proxy URL. The dashboard lifecycle (`api/headroom/*`) spawns a local `headroom-ai` CLI on loopback by default; override only to point at an external Docker sidecar proxy.                                                                                                                                                                                                                                                                                                                                                                           |
@@ -1130,6 +1156,26 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `OMNIROUTE_ROTATE_400_THRESHOLD`            | `1`                                                                         | `open-sse/services/rotationConfig.ts`                                     | Number of `400` errors within `OMNIROUTE_ROTATE_400_WINDOW_SECONDS` required before the account is rotated (only consulted when `OMNIROUTE_ROTATE_ON_400=true`).                                                                                                                                                                                                     |
 | `OMNIROUTE_ROTATE_400_WINDOW_SECONDS`       | `120`                                                                       | `open-sse/services/rotationConfig.ts`                                     | Sliding window (seconds) over which `400` errors are counted toward `OMNIROUTE_ROTATE_400_THRESHOLD`.                                                                                                                                                                                                                                                                 |
 
+### Browser-Login VNC Sessions & Data-Dir Alias
+
+Containerized Chromium+VNC used for interactive browser-login credential capture (`/api/vnc-session`), plus a legacy `DATA_DIR` alias. All optional — the VNC defaults target the bundled `omniroute-vnc-chromium:local` image and are only overridden for a custom container image, ports, or lifecycle tuning.
+
+| Variable | Default | Source File | Description |
+| --- | --- | --- | --- |
+| `OMNIROUTE_VNC_IMAGE` | `omniroute-vnc-chromium:local` | `src/lib/vncSession/manifest.ts` | Docker image tag for the Chromium+VNC login container. Build `docker/vnc-browser/chromium` or point this at a custom image. |
+| `OMNIROUTE_DOCKER_BIN` | `docker` | `src/lib/vncSession/manifest.ts` | Container runtime binary used to launch the VNC container (e.g. set to `podman`). |
+| `OMNIROUTE_VNC_CONTAINER_VNC_PORT` | `3000` | `src/lib/vncSession/manifest.ts` | VNC/noVNC port exposed inside the container. |
+| `OMNIROUTE_VNC_CONTAINER_CDP_PORT` | `9223` | `src/lib/vncSession/manifest.ts` | Chrome DevTools Protocol port inside the container. |
+| `OMNIROUTE_VNC_CONTAINER_PROFILE_DIR` | `/config` | `src/lib/vncSession/manifest.ts` | Chromium profile directory path inside the container. |
+| `OMNIROUTE_VNC_PROFILE_DIR` | `$HOME/.omniroute/browser-login-profiles` | `src/lib/vncSession/manifest.ts` | Host directory holding persisted browser-login profiles. |
+| `OMNIROUTE_VNC_IDLE_MS` | `600000` (10 min) | `src/lib/vncSession/manifest.ts` | Idle timeout (ms) before an inactive VNC session is reaped. |
+| `OMNIROUTE_VNC_MAX_MS` | `1800000` (30 min) | `src/lib/vncSession/manifest.ts` | Hard cap (ms) on a single VNC session's lifetime. |
+| `OMNIROUTE_VNC_MAX_SESSIONS` | `4` | `src/lib/vncSession/manifest.ts` | Maximum number of concurrent VNC sessions. |
+| `OMNIROUTE_VNC_READY_MS` | `45000` | `src/lib/vncSession/manifest.ts` | Timeout (ms) waiting for the containerized browser to become CDP-ready. |
+| `OMNIROUTE_VNC_HARVEST_MS` | `20000` | `src/lib/vncSession/manifest.ts` | Timeout (ms) for harvesting the captured session/cookies after login completes. |
+| `OMNIROUTE_VNC_CHROMIUM_ARGS` | `--remote-debugging-port=9222 --no-first-run --no-default-browser-check` | `src/lib/vncSession/manifest.ts` | Extra command-line flags passed to the containerized Chromium. |
+| `VIBEPROXY_DATA_DIR` | _(unset)_ | `open-sse/services/notionThreadSessions.ts` | **Legacy alias** for `DATA_DIR`, checked only after both `DATA_DIR` and `OMNIROUTE_DATA_DIR` are unset. Locates the Notion web-thread session cache (`<dir>/notion-web-thread-sessions.json`). |
+
 ---
 
 ## 26. Test & E2E Harness
@@ -1220,3 +1266,23 @@ Not required for normal operation — developer tooling only.
 | Variable                     | Default      | Source File                         | Description                                                                                                                                              |
 | ---------------------------- | ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `OMNIROUTE_EVAL_CREDENTIALS` | `{}` (empty) | `scripts/compression-eval/index.ts` | Operator-supplied JSON credentials for the provider exercised by the offline compression-eval CLI (parsed with `JSON.parse`). Leave unset for a dry run. |
+
+### VNC Browser Sessions
+
+Used by `src/lib/vncSession/manifest.ts` to configure Docker-based headless Chromium sessions for browser-automation providers. All optional — defaults shown below.
+
+| Variable                              | Default                       | Source File                       | Description                                                                    |
+| ------------------------------------- | ----------------------------- | --------------------------------- | ------------------------------------------------------------------------------ |
+| `OMNIROUTE_DOCKER_BIN`                | `docker`                      | `src/lib/vncSession/manifest.ts`  | Path to the Docker binary used to spawn VNC containers.                        |
+| `OMNIROUTE_VNC_IMAGE`                 | `omniroute-vnc-chromium:local`| `src/lib/vncSession/manifest.ts`  | Docker image for the VNC Chromium container.                                   |
+| `OMNIROUTE_VNC_CHROMIUM_ARGS`         | _(built-in flags)_            | `src/lib/vncSession/manifest.ts`  | Extra Chromium CLI args passed to the browser inside the container.            |
+| `OMNIROUTE_VNC_CONTAINER_VNC_PORT`    | `3000`                        | `src/lib/vncSession/manifest.ts`  | VNC port inside the container.                                                 |
+| `OMNIROUTE_VNC_CONTAINER_CDP_PORT`    | `9223`                        | `src/lib/vncSession/manifest.ts`  | Chrome DevTools Protocol port inside the container.                            |
+| `OMNIROUTE_VNC_CONTAINER_PROFILE_DIR` | `/config`                     | `src/lib/vncSession/manifest.ts`  | Profile directory inside the container.                                        |
+| `OMNIROUTE_VNC_PROFILE_DIR`           | _(unset)_                     | `src/lib/vncSession/manifest.ts`  | Host-side directory for persistent browser profiles.                           |
+| `OMNIROUTE_VNC_IDLE_MS`               | `600000`                      | `src/lib/vncSession/manifest.ts`  | Idle timeout (ms) before a VNC session is harvested.                           |
+| `OMNIROUTE_VNC_MAX_MS`                | `1800000`                     | `src/lib/vncSession/manifest.ts`  | Maximum session duration (ms).                                                 |
+| `OMNIROUTE_VNC_MAX_SESSIONS`          | `4`                           | `src/lib/vncSession/manifest.ts`  | Maximum concurrent VNC sessions.                                               |
+| `OMNIROUTE_VNC_READY_MS`              | `45000`                       | `src/lib/vncSession/manifest.ts`  | Browser readiness timeout (ms).                                                |
+| `OMNIROUTE_VNC_HARVEST_MS`            | `20000`                       | `src/lib/vncSession/manifest.ts`  | Harvest/cleanup timeout (ms).                                                  |
+| `VIBEPROXY_DATA_DIR`                  | _(unset)_                     | `open-sse/services/notionThreadSessions.ts` | Directory for Notion thread session persistence.                               |

@@ -13,7 +13,17 @@ export const RESET_WINDOW_NAMES = ["weekly", "session", "monthly"] as const;
 export type ComboRetryAfter = string | number | Date;
 
 export type ComboErrorBody = {
-  error?: { code?: string | null; message?: string | null } | string;
+  error?:
+    | {
+        code?: string | null;
+        message?: string | null;
+        // buildModelCooldownBody (open-sse/utils/error.ts) nests its retry hint
+        // here instead of at the top level — see the retryAfter fallback in
+        // combo.ts's dispatchWithCooldownRetry error extraction.
+        retry_after?: string | null;
+        reset_seconds?: number | null;
+      }
+    | string;
   message?: string | null;
   retryAfter?: ComboRetryAfter | null;
 } | null;

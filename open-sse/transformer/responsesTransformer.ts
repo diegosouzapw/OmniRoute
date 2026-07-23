@@ -1,5 +1,9 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -75,9 +79,16 @@ export function createResponsesLogger(model, logsDir = null) {
 /**
  * Create TransformStream that converts Chat Completions SSE to Responses API SSE
  * @param {Object} logger - Optional logger instance
+ * @param {number} keepaliveIntervalMs - Keepalive interval in milliseconds
+ * @param {{ customToolNames?: Iterable<string> }} options - Original Responses tool metadata
  * @returns {TransformStream}
  */
-export function createResponsesApiTransformStream(logger = null, keepaliveIntervalMs = 3000) {
+export function createResponsesApiTransformStream(
+  logger = null,
+  keepaliveIntervalMs = 3000,
+  options = {}
+) {
+  const customToolNames = new Set(options.customToolNames || []);
   const state = {
     seq: 0,
     responseId: `resp_${Date.now()}`,
@@ -97,6 +108,8 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     funcArgsBuf: {},
     funcNames: {},
     funcCallIds: {},
+    funcItemAdded: {},
+    funcItemTypes: {},
     funcArgsDone: {},
     funcItemDone: {},
     completedOutputItems: [] as Array<{
@@ -270,46 +283,106 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
     }
   };
 
+  const emitToolCallAdded = (controller, idx) => {
+    if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return false;
+
+    const customTool = customToolNames.has(state.funcNames[idx] || "");
+    const itemType = customTool ? "custom_tool_call" : "function_call";
+    state.funcItemTypes[idx] = itemType;
+    state.funcItemAdded[idx] = true;
+
+    emit(controller, "response.output_item.added", {
+      type: "response.output_item.added",
+      output_index: idx,
+      item: {
+        id: `fc_${state.funcCallIds[idx]}`,
+        type: itemType,
+        ...(customTool ? { input: "" } : { arguments: "" }),
+        call_id: state.funcCallIds[idx],
+        name: state.funcNames[idx] || "",
+        ...(customTool ? { status: "in_progress" } : {}),
+      },
+    });
+    return true;
+  };
+
   const closeToolCall = (controller, idx, recordAsCompleted = true) => {
     const callId = state.funcCallIds[idx];
     if (callId && !state.funcItemDone[idx]) {
       const normalizedIndex = normalizeOutputIndex(idx);
       let args = state.funcArgsBuf[idx] || "{}";
+      const toolName = state.funcNames[idx] || "";
+      emitToolCallAdded(controller, idx);
+      const isCustomTool = state.funcItemTypes[idx] === "custom_tool_call";
 
-      // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders
-      try {
-        const parsed = JSON.parse(args);
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          let modified = false;
-          for (const [k, v] of Object.entries(parsed)) {
-            if (v === "" || (Array.isArray(v) && v.length === 0)) {
-              delete parsed[k];
-              modified = true;
+      // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders.
+      // Custom-tool input is intentionally allowed to be an empty string.
+      if (!isCustomTool) {
+        try {
+          const parsed = JSON.parse(args);
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            let modified = false;
+            for (const [k, v] of Object.entries(parsed)) {
+              if (v === "" || (Array.isArray(v) && v.length === 0)) {
+                delete parsed[k];
+                modified = true;
+              }
+            }
+            if (modified) {
+              args = JSON.stringify(parsed);
+              state.funcArgsBuf[idx] = args;
             }
           }
-          if (modified) {
-            args = JSON.stringify(parsed);
-            state.funcArgsBuf[idx] = args;
-          }
+        } catch (e) {
+          // Ignore malformed JSON
         }
-      } catch (e) {
-        // Ignore malformed JSON
       }
 
-      emit(controller, "response.function_call_arguments.done", {
-        type: "response.function_call_arguments.done",
-        item_id: `fc_${callId}`,
-        output_index: normalizedIndex,
-        arguments: args,
-      });
+      let funcItem;
+      if (isCustomTool) {
+        let rawInput = args;
+        try {
+          const parsed = JSON.parse(args);
+          if (parsed && typeof parsed.input === "string") rawInput = parsed.input;
+        } catch {
+          // A non-JSON argument is already the raw custom-tool input.
+        }
 
-      const funcItem = {
-        id: `fc_${callId}`,
-        type: "function_call",
-        arguments: args,
-        call_id: callId,
-        name: state.funcNames[idx] || "",
-      };
+        emit(controller, "response.custom_tool_call_input.delta", {
+          type: "response.custom_tool_call_input.delta",
+          item_id: `fc_${callId}`,
+          output_index: normalizedIndex,
+          delta: rawInput,
+        });
+        emit(controller, "response.custom_tool_call_input.done", {
+          type: "response.custom_tool_call_input.done",
+          item_id: `fc_${callId}`,
+          output_index: normalizedIndex,
+          input: rawInput,
+        });
+        funcItem = {
+          id: `fc_${callId}`,
+          type: "custom_tool_call",
+          input: rawInput,
+          call_id: callId,
+          name: toolName,
+          status: "completed",
+        };
+      } else {
+        emit(controller, "response.function_call_arguments.done", {
+          type: "response.function_call_arguments.done",
+          item_id: `fc_${callId}`,
+          output_index: normalizedIndex,
+          arguments: args,
+        });
+        funcItem = {
+          id: `fc_${callId}`,
+          type: "function_call",
+          arguments: args,
+          call_id: callId,
+          name: toolName,
+        };
+      }
 
       emit(controller, "response.output_item.done", {
         type: "response.output_item.done",
@@ -456,100 +529,111 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
           }
 
           // Handle reasoning_content (OpenAI native format)
-          if (delta.reasoning_content) {
+          if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
             startReasoning(controller, idx);
             emitReasoningDelta(controller, delta.reasoning_content);
           }
 
           // Handle text content. Generic prompt-format tags are visible text;
           // only tag-native models opt into textual reasoning extraction.
+          // Strip the internal reasoning placeholder if the model echoed it
+          // through ordinary content (#8081). Only the text-content emission
+          // is skipped when nothing meaningful remains — this must NOT skip
+          // this message's tool_calls / finish_reason handling below, so we
+          // gate the whole block on strippedContent instead of returning /
+          // continuing out of the msg loop early.
           if (delta.content) {
-            // Close reasoning if it was opened via native reasoning_content
-            // and is still open, before emitting message content. Without this
-            // the reasoning item is never closed and the message reuses the
-            // reasoning output_index, producing a protocol-invalid stream.
-            if (
-              state.reasoningId &&
-              !state.reasoningDone &&
-              (!parseTextualReasoningTags || !state.inThinking)
-            ) {
-              closeReasoning(controller);
-            }
-
-            let content = delta.content;
-
-            if (parseTextualReasoningTags) {
-              if (content.includes("<think>")) {
-                state.inThinking = true;
-                content = content.replaceAll("<think>", "");
-                startReasoning(controller, idx);
-              }
-
-              if (content.includes("</think>")) {
-                const parts = content.split("</think>");
-                const thinkPart = parts[0];
-                const textPart = parts.slice(1).join("</think>");
-
-                if (thinkPart) emitReasoningDelta(controller, thinkPart);
+            const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+            if (strippedContent) {
+              // Close reasoning if it was opened via native reasoning_content
+              // and is still open, before emitting message content. Without this
+              // the reasoning item is never closed and the message reuses the
+              // reasoning output_index, producing a protocol-invalid stream.
+              if (
+                state.reasoningId &&
+                !state.reasoningDone &&
+                (!parseTextualReasoningTags || !state.inThinking)
+              ) {
                 closeReasoning(controller);
-                state.inThinking = false;
-                content = textPart;
               }
 
-              if (state.inThinking && content) {
-                emitReasoningDelta(controller, content);
-                continue;
-              }
-            }
+              let content = strippedContent;
 
-            // Regular text content
-            if (content) {
-              // Use a distinct output_index for the message when reasoning was
-              // emitted, so the message item does not collide with the
-              // reasoning item's output_index.
-              const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+              if (parseTextualReasoningTags) {
+                if (content.includes("<think>")) {
+                  state.inThinking = true;
+                  content = content.replaceAll("<think>", "");
+                  startReasoning(controller, idx);
+                }
 
-              // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
-              if (!state.msgTextBuf[msgIdx]) {
-                content = content.trimStart();
-              }
+                if (content.includes("</think>")) {
+                  const parts = content.split("</think>");
+                  const thinkPart = parts[0];
+                  const textPart = parts.slice(1).join("</think>");
 
-              if (!content) continue;
+                  if (thinkPart) emitReasoningDelta(controller, thinkPart);
+                  closeReasoning(controller);
+                  state.inThinking = false;
+                  content = textPart;
+                }
 
-              if (!state.msgItemAdded[msgIdx]) {
-                state.msgItemAdded[msgIdx] = true;
-                const msgId = `msg_${state.responseId}_${msgIdx}`;
-
-                emit(controller, "response.output_item.added", {
-                  type: "response.output_item.added",
-                  output_index: msgIdx,
-                  item: { id: msgId, type: "message", content: [], role: "assistant" },
-                });
+                if (state.inThinking && content) {
+                  emitReasoningDelta(controller, content);
+                  // Pre-existing behaviour (unrelated to #8081): a still-open
+                  // textual <think> block ends this message's handling early.
+                  continue;
+                }
               }
 
-              if (!state.msgContentAdded[msgIdx]) {
-                state.msgContentAdded[msgIdx] = true;
+              // Regular text content
+              if (content) {
+                // Use a distinct output_index for the message when reasoning was
+                // emitted, so the message item does not collide with the
+                // reasoning item's output_index.
+                const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
 
-                emit(controller, "response.content_part.added", {
-                  type: "response.content_part.added",
+                // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
+                if (!state.msgTextBuf[msgIdx]) {
+                  content = content.trimStart();
+                }
+
+                if (!content) continue;
+
+                if (!state.msgItemAdded[msgIdx]) {
+                  state.msgItemAdded[msgIdx] = true;
+                  const msgId = `msg_${state.responseId}_${msgIdx}`;
+
+                  emit(controller, "response.output_item.added", {
+                    type: "response.output_item.added",
+                    output_index: msgIdx,
+                    item: { id: msgId, type: "message", content: [], role: "assistant" },
+                  });
+                }
+
+                if (!state.msgContentAdded[msgIdx]) {
+                  state.msgContentAdded[msgIdx] = true;
+
+                  emit(controller, "response.content_part.added", {
+                    type: "response.content_part.added",
+                    item_id: `msg_${state.responseId}_${msgIdx}`,
+                    output_index: msgIdx,
+                    content_index: 0,
+                    part: { type: "output_text", annotations: [], logprobs: [], text: "" },
+                  });
+                }
+
+                emit(controller, "response.output_text.delta", {
+                  type: "response.output_text.delta",
                   item_id: `msg_${state.responseId}_${msgIdx}`,
                   output_index: msgIdx,
                   content_index: 0,
-                  part: { type: "output_text", annotations: [], logprobs: [], text: "" },
+                  delta: content,
+                  logprobs: [],
                 });
+
+                if (!state.msgTextBuf[msgIdx]) state.msgTextBuf[msgIdx] = "";
+                state.msgTextBuf[msgIdx] += content;
               }
-
-              emit(controller, "response.output_text.delta", {
-                type: "response.output_text.delta",
-                item_id: `msg_${state.responseId}_${msgIdx}`,
-                output_index: msgIdx,
-                content_index: 0,
-                delta: content,
-                logprobs: [],
-              });
-
-              if (!state.msgTextBuf[msgIdx]) state.msgTextBuf[msgIdx] = "";
-              state.msgTextBuf[msgIdx] += content;
             }
           }
 
@@ -576,6 +660,8 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
                 delete state.funcCallIds[tcIdx];
                 delete state.funcNames[tcIdx];
                 delete state.funcArgsBuf[tcIdx];
+                delete state.funcItemAdded[tcIdx];
+                delete state.funcItemTypes[tcIdx];
                 delete state.funcArgsDone[tcIdx];
                 delete state.funcItemDone[tcIdx];
               }
@@ -584,18 +670,25 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
 
               if (!state.funcCallIds[tcIdx] && newCallId) {
                 state.funcCallIds[tcIdx] = newCallId;
+              }
 
-                emit(controller, "response.output_item.added", {
-                  type: "response.output_item.added",
-                  output_index: tcIdx,
-                  item: {
-                    id: `fc_${newCallId}`,
-                    type: "function_call",
-                    arguments: "",
-                    call_id: newCallId,
-                    name: state.funcNames[tcIdx] || "",
-                  },
-                });
+              // The provider may send the call id before the function name. Defer the
+              // lifecycle item until the name is available so custom calls are not first
+              // announced as function calls.
+              if (state.funcCallIds[tcIdx] && state.funcNames[tcIdx]) {
+                const itemAdded = emitToolCallAdded(controller, tcIdx);
+                if (
+                  itemAdded &&
+                  state.funcItemTypes[tcIdx] !== "custom_tool_call" &&
+                  state.funcArgsBuf[tcIdx]
+                ) {
+                  emit(controller, "response.function_call_arguments.delta", {
+                    type: "response.function_call_arguments.delta",
+                    item_id: `fc_${state.funcCallIds[tcIdx]}`,
+                    output_index: tcIdx,
+                    delta: state.funcArgsBuf[tcIdx],
+                  });
+                }
               }
 
               if (!state.funcArgsBuf[tcIdx]) state.funcArgsBuf[tcIdx] = "";
@@ -622,7 +715,12 @@ export function createResponsesApiTransformStream(logger = null, keepaliveInterv
                 const emittedDelta = nextArgs.slice(existingArgs.length);
                 state.funcArgsBuf[tcIdx] = nextArgs;
 
-                if (refCallId && emittedDelta) {
+                if (
+                  refCallId &&
+                  emittedDelta &&
+                  state.funcItemAdded[tcIdx] &&
+                  state.funcItemTypes[tcIdx] !== "custom_tool_call"
+                ) {
                   emit(controller, "response.function_call_arguments.delta", {
                     type: "response.function_call_arguments.delta",
                     item_id: `fc_${refCallId}`,

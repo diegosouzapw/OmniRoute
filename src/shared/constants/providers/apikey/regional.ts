@@ -10,7 +10,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "cloud",
     color: "#2468F2",
     textIcon: "BD",
-    website: "https://cloud.baidu.com/product/wenxinworkshop",
+    website: "https://cloud.baidu.com/product-s/qianfan_home",
     apiHint:
       "Use a Qianfan API key from Baidu AI Cloud. The default endpoint is OpenAI-compatible v2.",
   },
@@ -45,11 +45,32 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   "bailian-coding-plan": {
     id: "bailian-coding-plan",
     alias: "bcp",
-    name: "Alibaba Coding Plan",
+    name: "Alibaba Token Plan",
     icon: "code",
     color: "#FF6A00",
     textIcon: "BCP",
-    website: "https://www.alibabacloud.com/help/en/model-studio/coding-plan",
+    website: "https://www.alibabacloud.com/help/en/model-studio/token-plan-overview",
+    apiHint: "Use an Alibaba Token Plan key and select its Singapore or Beijing region.",
+  },
+  "qwen-cloud": {
+    id: "qwen-cloud",
+    alias: "qwc",
+    name: "Qwen Cloud",
+    icon: "cloud",
+    color: "#615CED",
+    textIcon: "QC",
+    website: "https://www.qwencloud.com/",
+    apiHint: "Use a Qwen Cloud API key and select its Global or Beijing region.",
+  },
+  "qwen-cloud-token-plan": {
+    id: "qwen-cloud-token-plan",
+    alias: "qct",
+    name: "Qwen Cloud Token Plan",
+    icon: "cloud",
+    color: "#615CED",
+    textIcon: "QCT",
+    website: "https://www.qwencloud.com/pricing/token-plan",
+    apiHint: "Use a Qwen Cloud Token Plan key and select its Singapore or Beijing region.",
   },
   kimi: {
     id: "kimi",
@@ -58,7 +79,10 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "psychology",
     color: "#1E3A8A",
     textIcon: "KM",
-    website: "https://platform.moonshot.ai",
+    // Kimi official-partnership aff link (2026-07) — see KIMI_PROVIDER_IDS in
+    // featuredProviders.ts. hiddenFromDashboard, so this rarely renders, but is
+    // kept in sync with moonshot's aff link for consistency.
+    website: "https://platform.kimi.ai?aff=omniroute",
     hiddenFromDashboard: true,
   },
   "kimi-coding-apikey": {
@@ -68,7 +92,10 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
-    website: "https://www.kimi.com/code",
+    // Kimi official-partnership aff link (2026-07) — folds into the kimi-coding
+    // card (PROVIDER_CONNECTION_ALIASES in providerPageUtils.ts) so this rarely
+    // renders its own header, but stays in sync with kimi-coding's aff link.
+    website: "https://www.kimi.com/code?aff=omniroute",
     hiddenFromDashboard: true,
   },
   minimax: {
@@ -113,12 +140,13 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   alibaba: {
     id: "alibaba",
     alias: "ali",
-    name: "Alibaba",
+    name: "Alibaba Cloud Model Studio",
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
     website: "https://bailian.console.alibabacloud.com/",
     hasFree: false,
+    apiHint: "Use a Model Studio API key and select its Singapore or Beijing region.",
   },
   "alibaba-cn": {
     id: "alibaba-cn",
@@ -129,6 +157,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     textIcon: "AL",
     website: "https://dashscope.console.aliyun.com/",
     hasFree: false,
+    hiddenFromDashboard: true,
   },
   longcat: {
     id: "longcat",
@@ -145,11 +174,21 @@ export const APIKEY_PROVIDERS_REGIONAL = {
   moonshot: {
     id: "moonshot",
     alias: "moonshot",
-    name: "Moonshot AI",
+    // Display name only — Kimi official-partnership rebrand (2026-07). The
+    // catalog id/alias/routing stay "moonshot" (DB connections, combos, and
+    // /dashboard/providers/moonshot all address it by id, never by name) — see
+    // KIMI_PROVIDER_IDS in featuredProviders.ts for the full id list this
+    // touches. "Kimi (Legacy Moonshot API)" (id "kimi") and "Moonshot AI" in
+    // company-name mentions (e.g. README, kimiOfficialSupporterTooltip) are
+    // intentionally left as-is.
+    name: "Kimi",
     icon: "rocket_launch",
     color: "#1E40AF",
     textIcon: "MS",
-    website: "https://platform.moonshot.ai",
+    // Kimi official-partnership aff link (2026-07): the "Kimi API Platform"
+    // tracking link — was the unattributed legacy platform.moonshot.ai domain
+    // (301s to platform.kimi.ai with no aff tag).
+    website: "https://platform.kimi.ai?aff=omniroute",
   },
   volcengine: {
     id: "volcengine",
@@ -185,7 +224,7 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     icon: "auto_awesome",
     color: "#2932E1",
     textIcon: "BD",
-    website: "https://yiyan.baidu.com",
+    website: "https://ernie.baidu.com/",
     hasFree: true,
     freeNote: "Free ERNIE Speed/Lite models. China's #2 LLM.",
     passthroughModels: true,
@@ -364,5 +403,92 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     hasFree: true,
     freeNote: "Permanently free API - no credit card required.",
     authHint: "Get API key at agnes-ai.com",
+  },
+  sealion: {
+    id: "sealion",
+    alias: "sealion",
+    name: "SEA-LION",
+    icon: "public",
+    color: "#0D9488",
+    textIcon: "SL",
+    website: "https://sea-lion.ai",
+    hasFree: true,
+    freeNote:
+      "Permanently free at 10 RPM — AI Singapore's Southeast-Asian models (Llama/Qwen/Gemma SEA-LION).",
+    authHint:
+      "Sign in at sea-lion.ai with Google (no card, no region wall), create an API key, then paste it here.",
+  },
+  "clova-studio": {
+    id: "clova-studio",
+    alias: "clova",
+    name: "Naver CLOVA Studio",
+    icon: "auto_awesome",
+    color: "#03C75A",
+    textIcon: "CS",
+    website: "https://api.ncloud-docs.com/docs/en/ai-naver-clovastudio-summary",
+    apiHint:
+      "CLOVA Studio (HyperCLOVA X) is OpenAI-compatible on /v1/openai. OmniRoute probes /v1/openai/models and routes chat traffic to /v1/openai/chat/completions. Uses the current clovastudio.stream.ntruss.com host — the legacy clovastudio.apigw.ntruss.com endpoint is being deprecated.",
+  },
+  internlm: {
+    id: "internlm",
+    alias: "internlm",
+    name: "InternLM (Intern-S1)",
+    icon: "auto_awesome",
+    color: "#4F46E5",
+    textIcon: "IL",
+    website: "https://internlm.intern-ai.org.cn/",
+    hasFree: true,
+    freeNote: "Free monthly quota ~1M input / 3M output tokens (~10 RPM)",
+  },
+  "ant-ling": {
+    id: "ant-ling",
+    alias: "ling",
+    name: "Ant Ling / Ring (inclusionAI)",
+    icon: "auto_awesome",
+    color: "#1677FF",
+    textIcon: "AL",
+    website: "https://developer.ant-ling.com/en/docs/",
+    hasFree: true,
+    freeNote: "500,000 free tokens per day per account (resets 02:00 UTC+8, no rollover)",
+    authHint:
+      "Register and create an API key at the Ant Ling API console (https://chat.ant-ling.com/open), then paste it here. OmniRoute routes chat traffic to https://api.ant-ling.com/v1/chat/completions; the provider is OpenAI-compatible and also exposes an Anthropic-compatible surface.",
+  },
+  sarvam: {
+    id: "sarvam",
+    alias: "sarvam",
+    name: "Sarvam AI",
+    icon: "public",
+    color: "#0EA5E9",
+    textIcon: "SV",
+    website: "https://docs.sarvam.ai",
+    apiHint:
+      "Sarvam AI is OpenAI-compatible on /v1. OmniRoute probes /v1/models and routes chat traffic to /v1/chat/completions. Models are tuned for Indic languages.",
+    hasFree: true,
+    freeNote: "₹1,000 in free signup credits — never expire",
+  },
+  plamo: {
+    id: "plamo",
+    alias: "plamo",
+    name: "PLaMo",
+    icon: "public",
+    color: "#DC2626",
+    textIcon: "PL",
+    website: "https://plamo.preferredai.jp/api",
+    apiHint:
+      "PLaMo is OpenAI-compatible at https://api.platform.preferredai.jp/v1. Built by Preferred Networks and optimized for Japanese. Docs are primarily in Japanese.",
+    hasFree: false,
+  },
+  typhoon: {
+    id: "typhoon",
+    alias: "typhoon",
+    name: "Typhoon",
+    icon: "public",
+    color: "#7C3AED",
+    textIcon: "TY",
+    website: "https://docs.opentyphoon.ai",
+    apiHint:
+      "Typhoon is OpenAI-compatible on /v1. Built by SCB 10X (Thailand); typhoon-v2.5-30b-a3b-instruct is a thai-first, multilingual model.",
+    hasFree: true,
+    freeNote: "Free API key with a 5 req/s and 200 req/m rate limit.",
   },
 };

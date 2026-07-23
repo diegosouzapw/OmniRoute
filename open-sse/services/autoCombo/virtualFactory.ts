@@ -20,6 +20,8 @@ import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
+import { filterExcludedCandidates } from "./candidateOverrides";
+import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -49,7 +51,10 @@ type NoAuthProviderDefinition = {
 
 export interface VirtualAutoComboCandidate {
   provider: string;
-  connectionId: string;
+  /** A concrete connection for synthetic/no-auth candidates; null for a logical provider/model candidate. */
+  connectionId: string | null;
+  /** Credentialed accounts that are eligible to serve this provider/model pair. */
+  allowedConnectionIds?: string[];
   model: string;
   modelStr: string; // e.g., 'openai/gpt-4o'
   costPer1MTokens: number; // from providerRegistry
@@ -62,7 +67,8 @@ type VirtualAutoCombo = AutoComboConfig & {
     kind: "model";
     model: string;
     providerId: string;
-    connectionId: string;
+    connectionId: string | null;
+    allowedConnectionIds?: string[];
     weight: number;
     label: string;
   }>;
@@ -128,8 +134,19 @@ function hasUsableConnectionCredential(conn: VirtualFactoryConn): boolean {
 
 const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 
+// Allowlist of no-auth (keyless) providers permitted to enter the `auto`/`auto-*`
+// candidate pool. Narrowed to the backends verified to answer without any
+// configuration on our reference egress (VPS .15): `opencode` and `felo-web`
+// both return 200 there, while duckduckgo-web (429/VQD rate limit), theoldllm
+// (403 Vercel egress block), chipotle (502), aihorde (401, anon key rejected)
+// and the others are unreliable. The excluded providers stay fully usable via
+// direct `<alias>/<model>` calls — they are just kept OUT of auto-routing until
+// re-verified. Re-add an id here to bring it back into every auto/* pool.
+const AUTO_COMBO_NOAUTH_ALLOWLIST = new Set<string>(["opencode", "felo-web"]);
+
 function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): boolean {
   if (providerDef.noAuth !== true) return false;
+  if (!AUTO_COMBO_NOAUTH_ALLOWLIST.has(providerDef.id)) return false;
   if (!Array.isArray(providerDef.serviceKinds) || providerDef.serviceKinds.length === 0)
     return true;
   return providerDef.serviceKinds.includes("llm");
@@ -277,7 +294,9 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
 
 export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined,
-  spec?: AutoComboSpec
+  spec?: AutoComboSpec,
+  apiKeyId?: string,
+  autoChannel?: string
 ): Promise<VirtualAutoCombo> {
   const [connections, disabledNoAuthConnections, settings] = await Promise.all([
     getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
@@ -311,31 +330,53 @@ export async function createVirtualAutoCombo(
   const validConnections = connections.filter(hasUsableConnectionCredential);
 
   const candidatePool: VirtualAutoComboCandidate[] = [];
+  const registry = getProviderRegistry();
+  const connectionsByProvider = new Map<string, VirtualFactoryConn[]>();
   for (const conn of validConnections) {
-    // #5873: custom OpenAI-/Anthropic-compatible providers have dynamic connection
-    // IDs (`*-compatible-*`) that are never keys of the static registry. Do NOT drop
-    // them from `auto/` routing — only fall back to the registry's first model when
-    // the connection has no explicit defaultModel.
-    const providerInfo = getProviderRegistry()[conn.provider];
+    const providerConnections = connectionsByProvider.get(conn.provider) ?? [];
+    providerConnections.push(conn);
+    connectionsByProvider.set(conn.provider, providerConnections);
+  }
 
-    let modelId: string | undefined = conn.defaultModel;
-    if (!modelId && providerInfo) {
-      const firstModel = providerInfo.models[0];
-      modelId = firstModel?.id;
+  // Build one logical candidate per provider/model and keep account fallback as an
+  // allowlist on that candidate. This avoids both the old "first registry model per
+  // connection" blind spot and a connections × models Cartesian candidate pool.
+  for (const [providerId, providerConnections] of connectionsByProvider) {
+    const providerInfo = registry[providerId];
+    const registryModelIds = Array.isArray(providerInfo?.models)
+      ? providerInfo.models
+          .map((model) => (typeof model?.id === "string" ? model.id.trim() : ""))
+          .filter(Boolean)
+      : [];
+    const registryModelIdSet = new Set(registryModelIds);
+    const defaultModelIds = providerConnections
+      .map((conn) => (typeof conn.defaultModel === "string" ? conn.defaultModel.trim() : ""))
+      .filter(Boolean);
+    const modelIds = Array.from(new Set([...registryModelIds, ...defaultModelIds]));
+    const hiddenModels = hiddenModelsMap.get(providerId);
+
+    for (const modelId of modelIds) {
+      if (hiddenModels?.has(modelId)) continue;
+
+      const allowedConnectionIds = providerConnections
+        .filter((conn) => {
+          if (isModelExcludedByConnection(modelId, conn.providerSpecificData)) return false;
+          // Registry models are provider-wide. A non-registry default (for a custom
+          // or passthrough model) is scoped only to connections that selected it.
+          return registryModelIdSet.has(modelId) || conn.defaultModel?.trim() === modelId;
+        })
+        .map((conn) => conn.id);
+      if (allowedConnectionIds.length === 0) continue;
+
+      candidatePool.push({
+        provider: providerId,
+        connectionId: null,
+        allowedConnectionIds,
+        model: modelId,
+        modelStr: `${providerId}/${modelId}`,
+        costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
+      });
     }
-    if (!modelId) continue; // Skip providers without a resolvable model
-
-    // Skip models that the user has hidden in the dashboard
-    const hiddenModels = hiddenModelsMap.get(conn.provider);
-    if (hiddenModels?.has(modelId)) continue;
-
-    candidatePool.push({
-      provider: conn.provider,
-      connectionId: conn.id,
-      model: modelId,
-      modelStr: `${conn.provider}/${modelId}`,
-      costPer1MTokens: 0, // Not used in virtual auto-combo (LKGP uses session stickiness)
-    });
   }
 
   candidatePool.push(
@@ -360,6 +401,24 @@ export async function createVirtualAutoCombo(
   if (paidFilteredPool !== candidatePool) {
     candidatePool.length = 0;
     candidatePool.push(...paidFilteredPool);
+  }
+
+  // #7819 (Level 2): per-API-key candidate exclusions. Fail-open — an absent
+  // apiKeyId/autoChannel (every caller before #7819) or a DB lookup failure
+  // both leave the pool untouched, so default (unconfigured) routing stays
+  // byte-identical to pre-#7819 behavior.
+  let excludedConnectionIds: Set<string> = new Set();
+  if (apiKeyId && autoChannel) {
+    try {
+      excludedConnectionIds = await getExcludedConnectionIds(apiKeyId, autoChannel);
+    } catch (err) {
+      log.warn("AUTO", "Failed to load auto-candidate overrides; routing unfiltered", { err });
+    }
+  }
+  const overrideFilteredPool = filterExcludedCandidates(candidatePool, excludedConnectionIds);
+  if (overrideFilteredPool !== candidatePool) {
+    candidatePool.length = 0;
+    candidatePool.push(...overrideFilteredPool);
   }
 
   if (candidatePool.length === 0) {
@@ -498,6 +557,9 @@ export async function createVirtualAutoCombo(
     model: candidate.modelStr,
     providerId: candidate.provider,
     connectionId: candidate.connectionId,
+    ...(candidate.allowedConnectionIds
+      ? { allowedConnectionIds: candidate.allowedConnectionIds }
+      : {}),
     weight: 1,
     label: candidate.provider,
   }));

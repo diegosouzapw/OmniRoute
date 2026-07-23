@@ -15,17 +15,19 @@ lastUpdated: 2026-06-28
 
 | Metric                                      | Tokens / month    | Meaning                                                                                                                                                                                                                                                |
 | ------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Documented recurring grant (steady)**     | **~1.37B**        | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.**                                                            |
-| **+ first month with signup credits**       | **~2.00B**        | Steady + one-time signup credits (Together $25, Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur.                                                                                                                 |
+| **Documented recurring grant (steady)**     | **~1.53B**        | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.**                                                            |
+| **+ first month with signup credits**       | **~2.15B**        | Steady + one-time signup credits (Together $25, Z.AI 20M, DeepSeek 5M, …), deduped per account. **First month only** — does not recur.                                                                                                                 |
 | **+ permanently free, no published cap**    | _un-quantifiable_ | `siliconflow`, `glm-cn` (GLM-4-Flash), `tencent`, `baidu`, `kilo-gateway`, `opencode-zen` — real recurring access, rate/concurrency-limited, **no token cap to count**. Listed, never summed (counting them at `RPM×24/7` is the inflation we reject). |
 | **+ deposit-unlock boost**                  | **+~24M**         | A one-time **$10** OpenRouter top-up raises its free pool from 50 → 1000 req/day. Reported separately so it never inflates the steady number.                                                                                                          |
 | Theoretical ceiling (all rate limits, 24/7) | ~10B              | Sum of every provider rate limit extrapolated to non-stop use. **Not a guarantee** — do not headline this.                                                                                                                                             |
 
-**Honest headline:** _OmniRoute aggregates **~1.37B documented free tokens per month** (up to ~2.0B in your first month with signup credits) across 39 free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
+**Honest headline:** _OmniRoute aggregates **~1.53B documented free tokens per month** (up to ~2.15B in your first month with signup credits) across 43 free-tier pools — plus a long tail of permanently-free, no-cap providers — and RTK + Caveman compression (15–95% token savings) stretches that further._
 
 > **Why this dropped from the previous ~1.94B.** The 2026-06-17 refresh is an honesty correction, not a loss: `gemini` is now pool-deduped (was inflated by counting each Flash variant separately, 462M → 60M), `cloudflare-ai` corrected to its real 10k-Neurons/day (122M → 30M), `doubao` reclassified as a one-time signup credit (not recurring), and shut-down tiers removed (`github-models` closed to new signups, `chutes`/`phind`/`kluster` discontinued). Partly offset by `llm7` (correct 5M/day → 150M) and new free providers (Kilo, OpenCode Zen, Z.AI GLM-Flash).
 >
 > **Further corrected to ~1.37B in v3.8.42:** `longcat` was reclassified from a 150M/mo recurring grant to a one-time 10M signup credit after its free preview ended. Same honesty rule — no provider was dropped by mistake.
+>
+> **Updated to ~1.53B in v3.8.49:** the pool count grew from 39 to 43 after mapping free tiers that were documented upstream but missing from the catalog (`requesty`, `ovhcloud`, `agnes`, `glm`) plus new providers `navy` and `aihorde` (#7840). This is the live, CI-gated number (`check:docs-counts` fails the build if this drifts from `computeFreeModelTotals()`).
 
 Biggest **documented** contributors: `mistral` 1.00B, `llm7` 150M, `groq` 117M, `gemini` 60M, `cerebras` 30M, `cloudflare-ai` 30M, `sambanova` 30M. (`longcat` is excluded — its 10M LongCat-2.0 grant is a one-time, KYC-gated signup credit, not a recurring monthly budget.)
 
@@ -83,7 +85,7 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 | `muse-spark-web` | Meta ToS explicitly prohibits automated access without prior permission, reverse engineering without written permission, and circumventing technologi… |
 | `nlpcloud`       | ToS explicitly prohibits "setting up a proxy or other device that allows others to access the Service through it" and grants only a non-transferable,… |
 | `opencode`       | ToS (Anomaly Innovations, Inc.) explicitly restricts use to "your own internal use, and not on behalf of or for the benefit of any third party" — ope… |
-| `qwen-web`       | The free OAuth tier is discontinued; no ToS permits a self-hosted proxy using session tokens against chat.qwen.ai. Even before shutdown, automated/pr… |
+| `qwen-web`       | No ToS permits a self-hosted proxy using session tokens against chat.qwen.ai; automated/programmatic access remains high-risk.                         |
 | `t3-web`         | ToS explicitly restricts accounts to personal use only, prohibits credential sharing with third parties, and bans automated/bot/scraping access — a s… |
 
 ### ✅ Generally permissive — caution / ambiguous / ok (the rest)
@@ -308,7 +310,7 @@ A 50-agent web-research pass (official docs + last-7-days news, adversarially ve
 - **`publicai`** — The shipped freeNote ("Free community inference tier") is broadly accurate but understates the specificity: the 20 RPM rate limit is now documented. No major tightening found; the service remains fre…
 - **`puter`** — Partially matches: the "500+ models" count is still accurate. However "users pay via Puter account" understates the reality — free accounts receive an undocumented starting credit that can be exhaust…
 - **`qoder`** — Our catalog ships freeNote "(none)", but Qoder does have a free tier: a Community Edition with unlimited basic-model completions (daily-capped, unspecified limit) plus a one-time 14-day/300-credit Pr…
-- **`qwen-web`** — The shipped freeNote ("Free — Qwen models via chat.qwen.ai with login token") is now stale. The login-token/OAuth free API path was terminated on 2026-04-15. The qwen-web executor will receive 401 er…
+- **`qwen-web`** — Session-token access against chat.qwen.ai is not a dependable free-provider path and may be rejected upstream.
 - **`sambanova`** — Our shipped note only described the one-time $5 credit (30-day validity). The current reality includes a permanent recurring free tier with documented rate limits (20 RPM, 20 RPD, 200k TPD) that pers…
 - **`sensenova`** — Our shipped freeNote says "Free SenseTime models" which is vague but directionally correct — free access does exist. However, reality is more nuanced: free access is a time-limited public beta (Token…
 - **`serper-search`** — The shipped freeNote says "(none)" which is partially accurate — there is no recurring free plan — but Serper does offer 2,500 one-time trial credits on signup. The catalog note could be more precise…

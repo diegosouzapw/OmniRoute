@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { resolvePublicCred } from "../../open-sse/utils/publicCreds.ts";
 
-// #3493 — five public OAuth client_ids were migrated from string literals to
+// #3493 — public OAuth client_ids were migrated from string literals to
 // resolvePublicCred() (Hard Rule #11). These assertions guard that the embedded
 // masked-byte defaults still decode to the exact public client_ids, so the OAuth
 // flows are byte-for-byte unchanged, and that env overrides still win.
@@ -11,7 +11,6 @@ import { resolvePublicCred } from "../../open-sse/utils/publicCreds.ts";
 const EXPECTED_CLIENT_IDS: Record<string, string> = {
   claude_id: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
   codex_id: "app_EMoamEEZ73f0CkXaXp7hrann",
-  qwen_id: "f0304373b74a44d2b584a3fb70ca9e56",
   kimi_id: "17e5f671-d194-4dfb-9706-5516cb48c098",
   github_copilot_id: "Iv1.b507a08c87ecfe98",
 };
@@ -41,9 +40,7 @@ test("#3493 env override takes priority over the embedded default", () => {
 });
 
 test("#3493 the migrated OAuth/registry configs resolve to the expected client_ids", async () => {
-  const { CLAUDE_CONFIG, CODEX_CONFIG, QWEN_CONFIG } = await import(
-    "../../src/lib/oauth/constants/oauth.ts"
-  );
+  const { CLAUDE_CONFIG, CODEX_CONFIG } = await import("../../src/lib/oauth/constants/oauth.ts");
   // Only assert when env doesn't override (CI/dev may set these); skip the assert
   // for any that are env-overridden so the test stays deterministic.
   if (!process.env.CLAUDE_OAUTH_CLIENT_ID) {
@@ -51,8 +48,5 @@ test("#3493 the migrated OAuth/registry configs resolve to the expected client_i
   }
   if (!process.env.CODEX_OAUTH_CLIENT_ID) {
     assert.equal(CODEX_CONFIG.clientId, EXPECTED_CLIENT_IDS.codex_id);
-  }
-  if (!process.env.QWEN_OAUTH_CLIENT_ID) {
-    assert.equal(QWEN_CONFIG.clientId, EXPECTED_CLIENT_IDS.qwen_id);
   }
 });

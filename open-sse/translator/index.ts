@@ -684,6 +684,7 @@ export function initState(sourceFormat) {
       funcNames: {},
       funcCallIds: {},
       funcArgsDone: {},
+      funcItemAdded: {},
       funcItemDone: {},
       completedOutputItems: [],
       completedSent: false,

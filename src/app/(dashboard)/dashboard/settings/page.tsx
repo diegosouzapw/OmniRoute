@@ -6,6 +6,7 @@ const LEGACY_TAB_ROUTES: Record<string, string> = {
   appearance: "/dashboard/settings/appearance",
   featureFlags: "/dashboard/settings/feature-flags",
   "feature-flags": "/dashboard/settings/feature-flags",
+  cache: "/dashboard/settings/cache",
   general: "/dashboard/settings/general",
   resilience: "/dashboard/settings/resilience",
   routing: "/dashboard/settings/routing",

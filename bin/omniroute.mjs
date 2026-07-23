@@ -49,6 +49,15 @@ if (isVersionFastPath(process.argv)) {
 await import("tsx/esm");
 await import("../open-sse/utils/setupPolyfill.ts");
 
+// #7791: tsx's tsconfig-path resolution does not apply when OmniRoute is
+// installed globally (files live under node_modules/omniroute/), so bare
+// `@/...` specifiers (declared in tsconfig.json paths as `@/* → ./src/*`)
+// fail with ERR_MODULE_NOT_FOUND. Register an ESM resolve hook that maps
+// `@/...` to absolute file URLs under <ROOT>/src/. Safe no-op in dev checkout
+// (paths already resolve via tsconfig) and when ROOT has no `src/` dir.
+const { registerAliasResolver } = await import("./aliasResolver.mjs");
+await registerAliasResolver(ROOT);
+
 // MCP stdio transport uses stdout exclusively for JSON-RPC messages.
 // Redirect console.log/warn to stderr early (before loadEnvFile and DB init)
 // so no startup output corrupts the protocol.

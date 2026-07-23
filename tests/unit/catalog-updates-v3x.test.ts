@@ -59,7 +59,11 @@ test("Fable 5 catalog exposes claude-fable-5 in cc — but NOT via Kiro (fabrica
   assert.ok(ccPricing["claude-fable-5"], "cc pricing must include claude-fable-5");
 
   const kiroIds = new Set(getModelsByProviderId("kiro").map((m) => m.id));
-  assert.equal(kiroIds.has("claude-fable-5"), false, "kiro must NOT expose claude-fable-5 (fabricated)");
+  assert.equal(
+    kiroIds.has("claude-fable-5"),
+    false,
+    "kiro must NOT expose claude-fable-5 (fabricated)"
+  );
 });
 
 test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox with Sonnet-tier pricing", () => {
@@ -91,9 +95,21 @@ test("Kiro catalog does NOT expose Claude Opus (fabricated — Kiro upstream has
   // 400 "Invalid model. Please select a different model". #6170 removed them.
   const ids = new Set(getModelsByProviderId("kiro").map((model) => model.id));
 
-  assert.equal(ids.has("claude-opus-4.8"), false, "kiro must NOT expose claude-opus-4.8 (fabricated)");
-  assert.equal(ids.has("claude-opus-4.7"), false, "kiro must NOT expose claude-opus-4.7 (fabricated)");
-  assert.equal(ids.has("claude-opus-4.6"), false, "kiro must NOT expose claude-opus-4.6 (fabricated)");
+  assert.equal(
+    ids.has("claude-opus-4.8"),
+    false,
+    "kiro must NOT expose claude-opus-4.8 (fabricated)"
+  );
+  assert.equal(
+    ids.has("claude-opus-4.7"),
+    false,
+    "kiro must NOT expose claude-opus-4.7 (fabricated)"
+  );
+  assert.equal(
+    ids.has("claude-opus-4.6"),
+    false,
+    "kiro must NOT expose claude-opus-4.6 (fabricated)"
+  );
 });
 
 test("Every Kiro registry model resolves a non-zero pricing row (no $0.00 usage)", async () => {
@@ -163,34 +179,4 @@ test("Every Codex registry model resolves a non-zero pricing row (alias: cx)", a
       `cx pricing for "${model.id}" must have numeric input/output`
     );
   }
-});
-
-test("Every Qwen registry model resolves a non-zero pricing row (alias: qw)", async () => {
-  const { getPricingForModel } = await import("../../src/shared/constants/pricing.ts");
-  const models = getModelsByProviderId("qwen");
-  assert.ok(models.length > 0, "qwen must expose models");
-
-  for (const model of models) {
-    // Qwen pricing lives under the "qw" alias (its DEFAULT_PRICING key).
-    const pricing = getPricingForModel("qw", model.id) as {
-      input?: number;
-      output?: number;
-    } | null;
-    assert.ok(pricing, `qw pricing must include qwen model "${model.id}"`);
-    assert.equal(
-      typeof pricing?.input === "number" && typeof pricing?.output === "number",
-      true,
-      `qw pricing for "${model.id}" must have numeric input/output`
-    );
-  }
-
-  // Regression guard: the "coder-model" id (Qwen3.5/3.6 Coder Model, ported from
-  // upstream 9router PR #156) must be priced like the other Qwen coder tier.
-  const coderModel = getPricingForModel("qw", "coder-model") as {
-    input: number;
-    output: number;
-  } | null;
-  assert.ok(coderModel, "qw pricing must include coder-model");
-  assert.equal(typeof coderModel?.input, "number");
-  assert.equal(typeof coderModel?.output, "number");
 });

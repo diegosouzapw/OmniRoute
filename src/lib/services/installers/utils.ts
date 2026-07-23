@@ -28,7 +28,15 @@ export class InstallError extends Error {
 
 /** Classify raw npm/OS errors into user-friendly messages. */
 function classifyError(
-  err: NodeJS.ErrnoException & { stdout?: string; stderr?: string }
+  // execFile's callback error is an ExecFileException — it carries `signal`/`killed`
+  // (a timed-out/terminated child) on top of ErrnoException, which @types/node's
+  // ErrnoException itself does not declare. Widen the param so both are typed.
+  err: NodeJS.ErrnoException & {
+    stdout?: string;
+    stderr?: string;
+    signal?: NodeJS.Signals | null;
+    killed?: boolean;
+  }
 ): InstallError {
   const raw = sanitizeErrorMessage(err.message);
   const stderr = err.stderr ?? "";
@@ -50,11 +58,7 @@ function classifyError(
   if (err.code === "ENOSPC" || stderr.includes("ENOSPC")) {
     return new InstallError(raw, "Espaço em disco insuficiente.", 507);
   }
-  if (
-    err.signal === "SIGTERM" ||
-    err.code === "ETIMEDOUT" ||
-    (err as Error & { killed?: boolean }).killed
-  ) {
+  if (err.signal === "SIGTERM" || err.code === "ETIMEDOUT" || err.killed) {
     return new InstallError(raw, "Instalação demorou demais. Tente novamente.", 504);
   }
   if (
@@ -88,6 +92,7 @@ export interface NpmExecOptions {
   env: NodeJS.ProcessEnv;
   maxBuffer: number;
   shell?: boolean;
+  windowsHide: boolean;
 }
 
 /**
@@ -119,6 +124,9 @@ export function buildNpmExecOptions(
     timeout: options.timeoutMs,
     env,
     maxBuffer: 10 * 1024 * 1024, // 10 MB for npm output
+    // Suppress the transient conhost.exe/cmd console window Windows briefly
+    // flashes open for spawned child processes (see #8131).
+    windowsHide: true,
   };
   if (platform === "win32") {
     execOptions.shell = true;

@@ -1788,110 +1788,6 @@ test("chatCore redirects background utility tasks to a cheaper mapped model", as
   assert.equal(call.body.model, "gpt-5-mini");
 });
 
-test("chatCore retries Qwen quota 429 responses before succeeding", async () => {
-  const originalSetTimeout = globalThis.setTimeout;
-  try {
-    (globalThis as any).setTimeout = (callback: any, ms: any, ...args: any[]) => {
-      // Only make Qwen retry delays (≤5s) synchronous; let longer timeouts (e.g. body read) use real setTimeout
-      if (typeof ms === "number" && ms > 5000) {
-        return originalSetTimeout(callback, ms, ...args);
-      }
-      callback(...args);
-      return 0 as any;
-    };
-
-    const { calls, result } = await invokeChatCore({
-      provider: "qwen",
-      model: "qwen3-coder",
-      body: {
-        model: "qwen3-coder",
-        stream: false,
-        messages: [{ role: "user", content: "retry the quota hit" }],
-      },
-      responseFactory(_captured, seenCalls) {
-        if (seenCalls.length === 1) {
-          return new Response(
-            JSON.stringify({ error: { message: "You exceeded your current quota for Qwen." } }),
-            {
-              status: 429,
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-        }
-        return buildOpenAIResponse(false, "qwen recovered");
-      },
-    });
-
-    const payload = (await result.response.json()) as any;
-    assert.equal(result.success, true);
-    assert.equal(calls.length, 2);
-    assert.equal(payload.choices[0].message.content, "qwen recovered");
-  } finally {
-    globalThis.setTimeout = originalSetTimeout;
-  }
-});
-
-test("chatCore injects fallback user for Qwen OAuth requests without user", async () => {
-  const { call, result } = await invokeChatCore({
-    provider: "qwen",
-    model: "qwen3-coder",
-    credentials: {
-      accessToken: "qwen-oauth-token",
-      providerSpecificData: { resourceUrl: "portal.qwen.ai" },
-    },
-    body: {
-      model: "qwen3-coder",
-      stream: false,
-      messages: [{ role: "user", content: "check qwen user fallback" }],
-    },
-    responseFormat: "openai",
-  });
-
-  assert.equal(result.success, true);
-  assert.equal(call.body.user, "omniroute-qwen-oauth");
-});
-
-test("chatCore keeps explicit user for Qwen OAuth requests", async () => {
-  const { call, result } = await invokeChatCore({
-    provider: "qwen",
-    model: "qwen3-coder",
-    credentials: {
-      accessToken: "qwen-oauth-token",
-      providerSpecificData: { resourceUrl: "portal.qwen.ai" },
-    },
-    body: {
-      model: "qwen3-coder",
-      stream: false,
-      user: "explicit-user",
-      messages: [{ role: "user", content: "keep my user" }],
-    },
-    responseFormat: "openai",
-  });
-
-  assert.equal(result.success, true);
-  assert.equal(call.body.user, "explicit-user");
-});
-
-test("chatCore does not inject fallback user for Qwen API key requests", async () => {
-  const { call, result } = await invokeChatCore({
-    provider: "qwen",
-    model: "qwen3-coder",
-    credentials: {
-      apiKey: "qwen-api-key",
-      providerSpecificData: { resourceUrl: "dashscope.aliyuncs.com/compatible-mode/v1" },
-    },
-    body: {
-      model: "qwen3-coder",
-      stream: false,
-      messages: [{ role: "user", content: "api key mode should stay untouched" }],
-    },
-    responseFormat: "openai",
-  });
-
-  assert.equal(result.success, true);
-  assert.equal("user" in call.body, false);
-});
-
 test("chatCore preserves Codex dual-window scope cooldowns on 429 responses", async () => {
   const connection = await providersDb.createProviderConnection({
     provider: "codex",
@@ -2469,6 +2365,69 @@ test("chatCore maps upstream aborts to request-aborted errors", async () => {
   assert.equal(result.success, false);
   assert.equal(result.status, 499);
   assert.equal(result.error, "Request aborted");
+});
+
+test("chatCore maps raw string abort reasons to 499, not 502 (#7907)", async () => {
+  // abort(reason) rejects the upstream fetch with the raw reason — often a
+  // bare string with no `name`/`status`. It must map to 499 like a named
+  // AbortError, not fall through to the 502 provider-failure default.
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "abort me with a string reason" }],
+    },
+    responseFactory() {
+      throw "request_signal_aborted";
+    },
+  });
+
+  assert.equal(result.success, false);
+  assert.equal(result.status, 499);
+  assert.equal(result.error, "Request aborted");
+});
+
+// Live incident territory (dashboard log id 1784504040241-6f8b9a): the client had
+// ALREADY disconnected before this synthetic error body was ever computed — nothing
+// was actually delivered to it. Persisting that body as `clientResponse` (the
+// dashboard's "what the client received" field) is misleading, since it implies a
+// response was sent when the client never got one. `error` above already records
+// the failure reason; `clientResponse`/`responseBody` should stay empty for an abort.
+test("chatCore does not log a synthetic clientResponse body for a client abort", async () => {
+  // clientResponse only ever lands in the persisted pipeline payloads when detailed
+  // call-log capture is on (attemptLogging.ts's detailedLoggingEnabled gate) — this is
+  // exactly the setting a real "detailed logging" connection/request has enabled, which
+  // is why the live incident's artifact JSON had a full pipeline (including the
+  // misleading clientResponse) to begin with.
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: true });
+
+  await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "abort me, no fake clientResponse" }],
+    },
+    responseFactory() {
+      const error = new Error("request aborted by client");
+      error.name = "AbortError";
+      throw error;
+    },
+  });
+
+  const detail = await waitFor(() => getLatestCallLog());
+  assert.ok(detail);
+  assert.equal(detail.status, 499);
+  assert.match(String(detail.error ?? ""), /Request aborted/);
+  assert.ok(detail.pipelinePayloads, "expected pipeline payloads when capture is enabled");
+  assert.equal(
+    (detail.pipelinePayloads as Record<string, unknown>).clientResponse,
+    undefined,
+    "an aborted request never delivered anything to the client — clientResponse must stay unset"
+  );
 });
 
 test("chatCore returns streaming responses without waiting for upstream completion", async () => {

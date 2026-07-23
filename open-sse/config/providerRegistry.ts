@@ -4,6 +4,10 @@
  */
 
 export * from "./providers/shared.ts";
+export {
+  ALIBABA_MODEL_STUDIO_MODELS,
+  ALIBABA_MODEL_STUDIO_MODELS as ALIBABA_DASHSCOPE_MODELS,
+} from "./providers/registry/alibaba/index.ts";
 export { REGISTRY } from "./providers/index.ts";
 import { REGISTRY } from "./providers/index.ts";
 import {
@@ -13,7 +17,6 @@ import {
   RegistryEntry,
   LegacyProvider,
   buildModels,
-  ALIBABA_DASHSCOPE_MODELS,
   GPT_5_5_CONTEXT_LENGTH,
   GPT_5_5_CODEX_CAPABILITIES,
   CHAT_OPENAI_COMPAT_MODELS,
@@ -223,7 +226,23 @@ export function getUnsupportedParams(provider: string, modelId: string): readonl
     if (bare) return bare;
   }
 
+  // 4. Provider-wide fallback for providers whose limitation applies to every
+  // model they serve, not just the ones statically catalogued (e.g. AI Horde's
+  // `passthroughModels: true` roster changes as workers come and go, but no
+  // model it hosts supports tool calling — see RegistryEntry.unsupportedParams).
+  if (entry?.unsupportedParams) return entry.unsupportedParams;
+
   return [];
+}
+
+/**
+ * True for providers whose OpenAI-compatible facade rejects a single-text-part
+ * content array and only accepts the equivalent plain string (RegistryEntry.
+ * requiresPlainStringContent). Used by the Responses→Chat translator to scope
+ * its content-collapse workaround to just these providers.
+ */
+export function requiresPlainStringContent(provider: string): boolean {
+  return getRegistryEntry(provider)?.requiresPlainStringContent === true;
 }
 
 /**

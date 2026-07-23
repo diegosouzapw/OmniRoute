@@ -46,7 +46,7 @@ if (!globalThis.__pkceCallbackStates) {
 }
 
 /** Providers that use the PKCE browser callback flow (like Codex). */
-const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "xai-oauth"]);
+const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "xai-oauth", "grok-cli"]);
 
 /**
  * Providers whose device flow runs in the user's browser (auth.openai.com blocks
@@ -54,6 +54,16 @@ const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "xai-oauth"]);
  * the final tokens via the `device-complete` action. See src/lib/oauth/codexDeviceFlow.ts.
  */
 const BROWSER_DEVICE_FLOW_PROVIDERS = new Set(["codex"]);
+
+/** Device Code providers whose token grant does not use a PKCE verifier. */
+const NO_PKCE_DEVICE_CODE_PROVIDERS = new Set([
+  "github",
+  "kimi-coding",
+  "kilocode",
+  "codebuddy-cn",
+  "grok-cli",
+  "ghe-copilot",
+]);
 
 /**
  * Providers whose PKCE flow has been retired but whose import-token path is
@@ -203,15 +213,11 @@ export async function GET(
       // Request device code (through proxy if configured)
       let deviceData;
       if (
-        provider === "github" ||
+        NO_PKCE_DEVICE_CODE_PROVIDERS.has(provider) ||
         provider === "kiro" ||
-        provider === "amazon-q" ||
-        provider === "kimi-coding" ||
-        provider === "kilocode" ||
-        provider === "codebuddy-cn" ||
-        provider === "ghe-copilot"
+        provider === "amazon-q"
       ) {
-        // GitHub, Kiro/Amazon Q, Kimi Coding, KiloCode, and GHE Copilot don't use PKCE for device code
+        // These providers don't use PKCE for device code.
         if (provider === "ghe-copilot" && gheUrl) {
           // GHE Copilot targets the enterprise host configured via gheUrl
           const providerOverrideConfig = {
@@ -482,7 +488,15 @@ export async function POST(
       const normalizedState = typeof state === "string" && state.length > 0 ? state : undefined;
       const providerData = getProvider(provider);
 
-      if (providerData.flowType === "authorization_code_pkce" && !codeVerifier) {
+      // Capability check, not a bare flowType equality: grok-cli keeps flowType
+      // "device_code" as its primary flow (#7358) while ALSO exposing a browser
+      // PKCE login via supportsBrowserPkce (#7013 rework) — its exchange still
+      // needs a codeVerifier when the browser method was used. Other providers
+      // are untouched since only grok-cli sets supportsBrowserPkce.
+      if (
+        (providerData.flowType === "authorization_code_pkce" || providerData.supportsBrowserPkce) &&
+        !codeVerifier
+      ) {
         return NextResponse.json(
           {
             error: {
@@ -562,13 +576,8 @@ export async function POST(
 
       // Poll for token (through proxy if configured)
       let result;
-      if (
-        provider === "github" ||
-        provider === "kimi-coding" ||
-        provider === "kilocode" ||
-        provider === "codebuddy-cn"
-      ) {
-        // For providers that don't use PKCE (GitHub, Kimi Coding, KiloCode), don't pass codeVerifier
+      if (NO_PKCE_DEVICE_CODE_PROVIDERS.has(provider)) {
+        // Non-PKCE device providers do not receive a code verifier.
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
         );
@@ -746,7 +755,12 @@ export async function POST(
           const existing = await getProviderConnections({ provider });
           // Codex accounts sharing an email require workspaceId/chatgptUserId
           // agreement to be treated as the same account (#7737).
-          const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
+          const match = findExistingOAuthConnectionMatch(
+            existing,
+            provider,
+            tokenData,
+            connectionId
+          );
           const matchId = typeof match?.id === "string" ? match.id : null;
           if (matchId) {
             connection = await updateProviderConnection(matchId, {

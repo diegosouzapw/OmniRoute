@@ -1,0 +1,1 @@
+- fix(dashboard): correct "Block extra Claude usage" toggle copy to describe the connection-quarantine/fallback behavior it actually performs, instead of the non-existent display-dedup behavior it previously described (en/az/zh-CN/zh-TW/vi/pl) (#7918)

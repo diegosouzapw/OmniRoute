@@ -1,28 +1,20 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { Buffer } from "node:buffer";
+import WebSocket from "ws";
 
-import {
-  BaseExecutor,
-  mergeAbortSignals,
-  mergeUpstreamExtraHeaders,
-  type ExecuteInput,
-} from "./base.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
   normalizeSessionCookieHeader,
   normalizeSessionCookieHeaders,
 } from "@/lib/providers/webCookieAuth";
-import {
-  type ParsedMetaAiResponse,
-  isRecord,
-  parseMetaAiResponseText,
-} from "./muse-spark-web/response-parser.ts";
+import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
-// Meta rebranded the chat product from "Abra" to "Ecto"; the session cookie
-// `abra_sess` was replaced by `ecto_1_sess`. `normalizeSessionCookieHeader`
-// only uses this constant when the user pastes a bare cookie value with no
+// Meta rebranded "Abra" to "Ecto"; `abra_sess` became `ecto_1_sess`.
+// `normalizeSessionCookieHeader` only uses this constant for bare values with no
 // `name=` prefix; full cookie lines (with any cookie names) pass through
 // untouched, so users who paste their entire DevTools cookie line still work.
 const META_AI_DEFAULT_COOKIE = "ecto_1_sess";
@@ -32,12 +24,18 @@ const META_AI_DEFAULT_COOKIE = "ecto_1_sess";
 // fails server-side validation with `Unknown type "RewriteOptionsInput"`.
 // The new operation is a Subscription rather than a Mutation, but Meta's
 // GraphQL endpoint still accepts it over POST and streams the response.
-const META_AI_SEND_MESSAGE_DOC_ID = "29ae946c82d1f301196c6ca2226400b5";
+const META_AI_WARMUP_DOC_ID = "e7f802582dbfed8e181b012e010993eb";
+const META_AI_MODE_SWITCH_DOC_ID = "c32bbe999c48e64e855dc63177d5153f";
+const META_WS_APP_ID = "1522763855472543";
+const META_WS_APP_VERSION = "1.0.0";
+const META_WS_AUTHTYPE = "15:0";
+const META_WS_DGW_VERSION = "5";
+const META_WS_DGW_UUID = "0";
+const META_WS_TIER = "prod";
+const META_WS_INTRO_FRAME_TYPE = 0x0f;
+const META_WS_PROMPT_FRAME_TYPE = 0x0d;
+const META_WS_PROMPT_FRAME_FLAG = 0x80;
 const META_AI_ROOT_BRANCH_PATH = "0";
-const META_AI_ENTRY_POINT = "KADABRA__CHAT__UNIFIED_INPUT_BAR";
-const META_AI_FRIENDLY_NAME = "useEctoSendMessageSubscription";
-const META_AI_REQUEST_ANALYTICS_TAGS = "graphservice";
-const META_AI_ASBD_ID = "129477";
 const META_AI_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 const BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -48,8 +46,8 @@ type MuseSparkModelInfo = {
 };
 
 const MODEL_MAP: Record<string, MuseSparkModelInfo> = {
-  "muse-spark": { mode: "mode_fast", isThinking: false },
-  "muse-spark-thinking": { mode: "mode_thinking", isThinking: true },
+  "muse-spark": { mode: "think_fast", isThinking: false },
+  "muse-spark-thinking": { mode: "think_hard", isThinking: true },
   "muse-spark-contemplating": { mode: "think_hard", isThinking: true },
 };
 
@@ -333,7 +331,7 @@ function buildMetaAiRequestBody(prompt: string, model: string, conversation: Con
   const userUniqueMessageId = generateNumericMessageId();
 
   return {
-    doc_id: META_AI_SEND_MESSAGE_DOC_ID,
+    doc_id: META_AI_WARMUP_DOC_ID,
     variables: {
       assistantMessageId: crypto.randomUUID(),
       // `attachments` was removed from Meta's GraphQL schema (the
@@ -352,7 +350,7 @@ function buildMetaAiRequestBody(prompt: string, model: string, conversation: Con
       currentBranchPath: conversation.branchPath,
       developerOverridesForMessage: null,
       devicePixelRatio: 1,
-      entryPoint: META_AI_ENTRY_POINT,
+      entryPoint: "KADABRA__CHAT__UNIFIED_INPUT_BAR",
       imagineOperationRequest: null,
       isNewConversation: conversation.isNewConversation,
       mentions: null,
@@ -524,39 +522,13 @@ function buildErrorResponse(status: number, message: string, code?: string | nul
   return new Response(
     JSON.stringify({
       error: {
-        message,
+        message: sanitizeErrorMessage(message),
         type: "upstream_error",
         ...(code ? { code } : {}),
       },
     }),
     { status, headers: { "Content-Type": "application/json" } }
   );
-}
-
-async function readTextResponse(
-  body: ReadableStream<Uint8Array>,
-  signal?: AbortSignal | null
-): Promise<string> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let text = "";
-
-  try {
-    while (true) {
-      if (signal?.aborted) {
-        throw signal.reason ?? new DOMException("Aborted", "AbortError");
-      }
-
-      const { value, done } = await reader.read();
-      if (done) break;
-      text += decoder.decode(value, { stream: true });
-    }
-
-    text += decoder.decode();
-    return text;
-  } finally {
-    reader.releaseLock();
-  }
 }
 
 export function normalizeMetaAiCookieHeader(apiKey: string): string {
@@ -598,9 +570,9 @@ function buildMetaAiHeaders(cookieHeader: string): Record<string, string> {
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "same-origin",
     "User-Agent": META_AI_USER_AGENT,
-    "X-ASBD-ID": META_AI_ASBD_ID,
-    "X-FB-Friendly-Name": META_AI_FRIENDLY_NAME,
-    "X-FB-Request-Analytics-Tags": META_AI_REQUEST_ANALYTICS_TAGS,
+    "X-ASBD-ID": "129477",
+    "X-FB-Friendly-Name": "useEctoSendMessageSubscription",
+    "X-FB-Request-Analytics-Tags": "graphservice",
   };
 }
 
@@ -638,6 +610,508 @@ function getOpenAiMessages(body: unknown): Array<Record<string, unknown>> | null
   const messages = (body as Record<string, unknown>).messages;
   if (!messages || !Array.isArray(messages) || messages.length === 0) return null;
   return messages as Array<Record<string, unknown>>;
+}
+
+// ─── Protobuf WS templates ──────────────────────────────────────────────────────
+// Base64-encoded protobuf templates captured from Meta AI web client.
+// These are mutated at specific field paths to inject conversation-id,
+// prompt text, timestamps, and message IDs per conversation.
+//
+// VERIFIED against live meta.ai WS captures from TWO independent accounts
+// (2026-07-19). The following fields are confirmed STATIC (app-level
+// constants sent by Meta's own client, not per-user secrets):
+//   - 64-hex session token (e2b88f98...)
+//   - Actor numeric ID (867051314767696)
+//   - Locale (en-US)
+//   - App ID (1522763855472543)
+// The only user-variable field is the timezone (system TZ), which is
+// low-signal for anti-fraud. No fingerprint randomization is warranted.
+
+const META_WS_HOME_TEMPLATE_B64 =
+  "CrYGCsQDCiBLQURBQlJBX19IT01FX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokOGYxMjliMjUtYzNlMC00NzNiLWFlNzktNWViM2YyNGU1NjRjMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliCRoDCOgHIgIIAWoITWFjIE9TIFhyCnVzZXJfaW5wdXR6dU1vemlsbGEvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE1XzcpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xNDYuMC4wLjAgU2FmYXJpLzUzNy4zNoIBC2Rlc2t0b3Bfd2VimgFHCkBlMmI4OGY5ODQ2Mzc5Y2JjMjY5NjBmYTNhZTFkMjIyMDFkZmIxOWRmNzg5MGFlNmEzYWM4YTI4ODcwYmFjNjgyFQAAAEASFAi4w6XTk4/yARC4w6XTk4/yARgCGgIgASIAKg4Ix6D+ldkzGJ6g/pXZMzIkZWU3YTM1ZWItZGY4Yy00NzkzLWExYzAtMTBhZTQxNGY1ZTZlOgBKBxIFZW4tVVNScgokNTYwN2Y0YzAtYjljZi00ZjZlLWJlYTYtZTc2N2E1OGJhMjhlGiRlMDliN2FhMC1jYzYwLTQyYTktYjk2OS00YzY1YjViZGZlNGIiJDhmMTI5YjI1LWMzZTAtNDczYi1hZTc5LTVlYjNmMjRlNTY0Y3oRIg9BbWVyaWNhL0NoaWNhZ2+CAQOwAQGSAQwKBnN0b2NrcxICCAGSAQ0KB3dlYXRoZXISAggBkgEkCh5tZXRhX2tub3dsZWRnZV9zZWFyY2hfY2Fyb3VzZWwSAggBkgEiChxtZXRhX2NhdGFsb2dfc2VhcmNoX2Nhcm91c2VsEgIIAZIBEwoNbWVkaWFfZ2FsbGVyeRICCAGiAQEDEpIBCmEKJGFiOWRkNzg5LWRlOGQtNDc5MS05ODE1LWI5YjBmMTU1MDdiNBI3CiQ4ZjEyOWIyNS1jM2UwLTQ3M2ItYWU3OS01ZWIzZjI0ZTU2NGMQyKD+ldkzGKbcxozB/KuyZygBEihIZWxsbyB0aGlzIGlzIGFub3RoZXIgdGVzdCBvZiB5b3VyIHBvd2VyIgMKATA=";
+const META_WS_CHAT_TEMPLATE_B64 =
+  "CrIGCsADCiBLQURBQlJBX19DSEFUX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokYjA4Mzg1YTYtNWE1My00ZjE0LTk2NmUtMzQ3ZjI4MDg4NDU0MAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliBRoDCOgHaghNYWMgT1MgWHIKdXNlcl9pbnB1dHp1TW96aWxsYS81LjAgKE1hY2ludG9zaDsgSW50ZWwgTWFjIE9TIFggMTBfMTVfNykgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE0Ni4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQGUyYjg4Zjk4NDYzNzljYmMyNjk2MGZhM2FlMWQyMjIwMWRmYjE5ZGY3ODkwYWU2YTNhYzhhMjg4NzBiYWM2ODIVAAAAQBIUCLjDpdOTj/IBELjDpdOTj/IBGAIaAiABIgAqDgikgvuW2TMYoYL7ltkzMiRjNmI1ZDI2MS02NjI0LTQ5YWYtOTBjNy0wOWI0NWMwYTZiZWY6AEoHEgVlbi1VU1JyCiQxZDNjZGQzYy1jYTFhLTRlMDItODk1My1kZTBiYTM0NzI5ODkaJDcxODNhMzM0LTFiNWEtNGQyNi1iMjcxLWJjY2Y1NDY2NmJiZiIkYjA4Mzg1YTYtNWE1My00ZjE0LTk2NmUtMzQ3ZjI4MDg4NDU0ehEiD0FtZXJpY2EvQ2hpY2Fnb4IBA7ABAZIBDAoGc3RvY2tzEgIIAZIBDQoHd2VhdGhlchICCAGSASQKHm1ldGFfa25vd2xlZGdlX3NlYXJjaF9jYXJvdXNlbBICCAGSASIKHG1ldGFfY2F0YWxvZ19zZWFyY2hfY2Fyb3VzZWwSAggBkgETCg1tZWRpYV9nYWxsZXJ5EgIIAaIBAQMSlgEKfAokMTc4MDVmYjEtOTY3Zi00YmYyLTlmMjctOWRhYmRhMzYyMTJkEjcKJGIwODM4NWE2LTVhNTMtNGYxNC05NjZlLTM0N2YyODA4ODQ1NBCkgvuW2TMYxN23xoT2rbJnIhtlLjAwcHlKMUtxa3BHTmg5Sk9oWElNdnJRWlYSEWZvbGxvdyB1cCBwcm9iZSAyIgMKATI=";
+
+// ─── Proto helpers ─────────────────────────────────────────────────────────────
+
+type ProtoField = {
+  number: number;
+  wireType: number;
+  value: Uint8Array | number | bigint;
+};
+
+function encodeVarint(value: number): Uint8Array {
+  // Use BigInt arithmetic to avoid 32-bit truncation from bitwise operators.
+  let v = BigInt(value);
+  const out: number[] = [];
+  while (v >= 0x80n) {
+    out.push(Number((v & 0x7fn) | 0x80n));
+    v >>= 7n;
+  }
+  out.push(Number(v & 0x7fn));
+  return new Uint8Array(out);
+}
+
+function decodeVarint(data: Uint8Array, offset: number): [number, number] {
+  let shift = 0;
+  let value = 0;
+  let off = offset;
+  while (true) {
+    const byte = data[off++];
+    value |= (byte & 0x7f) << shift;
+    if (!(byte & 0x80)) return [value >>> 0, off];
+    shift += 7;
+    if (shift > 63) throw new Error("Varint too long");
+  }
+}
+
+function parseProtoFields(data: Uint8Array): ProtoField[] {
+  const fields: ProtoField[] = [];
+  let offset = 0;
+  while (offset < data.length) {
+    const [tag, next] = decodeVarint(data, offset);
+    offset = next;
+    const number = tag >> 3;
+    const wireType = tag & 0x07;
+    if (wireType === 0) {
+      const [value, n] = decodeVarint(data, offset);
+      offset = n;
+      fields.push({ number, wireType, value });
+    } else if (wireType === 1) {
+      const view = new DataView(data.buffer, data.byteOffset + offset, 8);
+      fields.push({ number, wireType, value: view.getBigUint64(0, true) });
+      offset += 8;
+    } else if (wireType === 2) {
+      const [len, n] = decodeVarint(data, offset);
+      offset = n;
+      fields.push({ number, wireType, value: data.slice(offset, offset + len) });
+      offset += len;
+    } else if (wireType === 5) {
+      const view = new DataView(data.buffer, data.byteOffset + offset, 4);
+      fields.push({ number, wireType, value: view.getUint32(0, true) });
+      offset += 4;
+    } else {
+      throw new Error(`Unsupported wire type: ${wireType}`);
+    }
+  }
+  return fields;
+}
+
+function serializeProtoFields(fields: ProtoField[]): Uint8Array {
+  const parts: Uint8Array[] = [];
+  for (const f of fields) {
+    const tag = (f.number << 3) | f.wireType;
+    parts.push(encodeVarint(tag));
+    if (f.wireType === 0) {
+      parts.push(encodeVarint(Number(f.value)));
+    } else if (f.wireType === 1) {
+      const buf = new Uint8Array(8);
+      if (f.value instanceof Uint8Array) {
+        throw new Error(
+          `serializeProtoFields: wire type 1 field ${f.number} has non-numeric value`
+        );
+      }
+      new DataView(buf.buffer).setBigUint64(0, BigInt(f.value), true);
+      parts.push(buf);
+    } else if (f.wireType === 2) {
+      const raw =
+        f.value instanceof Uint8Array ? f.value : new TextEncoder().encode(String(f.value));
+      parts.push(encodeVarint(raw.length));
+      parts.push(raw);
+    } else if (f.wireType === 5) {
+      const buf = new Uint8Array(4);
+      new DataView(buf.buffer).setUint32(0, Number(f.value), true);
+      parts.push(buf);
+    }
+  }
+  const total = parts.reduce((s, p) => s + p.length, 0);
+  const result = new Uint8Array(total);
+  let offset = 0;
+  for (const p of parts) {
+    result.set(p, offset);
+    offset += p.length;
+  }
+  return result;
+}
+
+function findProtoField(fields: ProtoField[], number: number): ProtoField | undefined {
+  return fields.find((f) => f.number === number);
+}
+
+function traverseAndMutate(
+  fields: ProtoField[],
+  path: number[],
+  mutator: (field: ProtoField) => void
+): boolean {
+  if (path.length === 0) return false;
+  const field = findProtoField(fields, path[0]);
+  if (!field || !(field.value instanceof Uint8Array)) return false;
+  if (path.length === 1) {
+    mutator(field);
+    return true;
+  }
+  const nested = parseProtoFields(field.value);
+  if (traverseAndMutate(nested, path.slice(1), mutator)) {
+    field.value = serializeProtoFields(nested);
+    return true;
+  }
+  return false;
+}
+
+// ─── WS frame builders ─────────────────────────────────────────────────────────
+
+function writeU24Le(value: number, arr: Uint8Array, offset: number): void {
+  arr[offset] = value & 0xff;
+  arr[offset + 1] = (value >> 8) & 0xff;
+  arr[offset + 2] = (value >> 16) & 0xff;
+}
+
+function buildWsIntroFrame(conversationId: string): Uint8Array {
+  const payload = new TextEncoder().encode(
+    JSON.stringify({
+      "x-dgw-app-x-ecto-conversation-id": conversationId,
+      "x-dgw-app-client-payload-type": "PROTO_INSIDE_JSON",
+    })
+  );
+  const header = new Uint8Array(6);
+  header[0] = META_WS_INTRO_FRAME_TYPE;
+  header[1] = 0;
+  header[2] = 0;
+  writeU24Le(payload.length, header, 3);
+  const result = new Uint8Array(header.length + payload.length);
+  result.set(header);
+  result.set(payload, header.length);
+  return result;
+}
+
+function buildWsPromptFrame(
+  prompt: string,
+  conversationId: string,
+  opts: {
+    templateB64: string;
+    requestId?: string;
+    userMessageId?: string;
+    submittedMs?: number;
+    uniqueMessageId?: number;
+    subSessionIdx?: number;
+    messageSeq?: number;
+  }
+): Uint8Array {
+  const requestId = opts.requestId || crypto.randomUUID();
+  const userMessageId = opts.userMessageId || crypto.randomUUID();
+  const submittedMs = opts.submittedMs ?? Date.now();
+  const uniqueMessageId =
+    opts.uniqueMessageId ??
+    Number(`${submittedMs}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`);
+
+  const raw = Buffer.from(opts.templateB64, "base64");
+  const protoFields = parseProtoFields(raw);
+
+  // Patch conversationId at [1,1,5]
+  traverseAndMutate(protoFields, [1, 1], (f) => {
+    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
+    const field5 = findProtoField(nested, 5);
+    if (field5) field5.value = new TextEncoder().encode(conversationId);
+    f.value = serializeProtoFields(nested);
+  });
+  // Patch userMessageId at [2,1,1]
+  traverseAndMutate(protoFields, [2, 1], (f) => {
+    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
+    const field1 = findProtoField(nested, 1);
+    if (field1) field1.value = new TextEncoder().encode(userMessageId);
+    f.value = serializeProtoFields(nested);
+  });
+  // Patch convId + timestamps at [2,1,2]
+  traverseAndMutate(protoFields, [2, 1, 2], (f) => {
+    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
+    const f1 = findProtoField(nested, 1);
+    const f2 = findProtoField(nested, 2);
+    const f3 = findProtoField(nested, 3);
+    if (f1) f1.value = new TextEncoder().encode(conversationId);
+    if (f2) f2.value = submittedMs;
+    if (f3) f3.value = uniqueMessageId;
+    f.value = serializeProtoFields(nested);
+  });
+  // Patch prompt text at [2,2]
+  traverseAndMutate(protoFields, [2], (f) => {
+    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
+    const field2 = findProtoField(nested, 2);
+    if (field2) field2.value = new TextEncoder().encode(prompt);
+    f.value = serializeProtoFields(nested);
+  });
+  // Patch timestamps at [1,5]
+  traverseAndMutate(protoFields, [1, 5], (f) => {
+    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
+    const f1 = findProtoField(nested, 1);
+    const f3 = findProtoField(nested, 3);
+    if (f1) f1.value = submittedMs + 1;
+    if (f3) f3.value = submittedMs;
+    f.value = serializeProtoFields(nested);
+  });
+  // Patch requestId at [1,6]
+  traverseAndMutate(protoFields, [1], (f) => {
+    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
+    const field6 = findProtoField(nested, 6);
+    if (field6) field6.value = new TextEncoder().encode(requestId);
+    f.value = serializeProtoFields(nested);
+  });
+  // Patch conversationId at [1,10,4]
+  traverseAndMutate(protoFields, [1, 10], (f) => {
+    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
+    const field4 = findProtoField(nested, 4);
+    if (field4) field4.value = new TextEncoder().encode(conversationId);
+    f.value = serializeProtoFields(nested);
+  });
+
+  const updatedB64 = Buffer.from(serializeProtoFields(protoFields)).toString("base64");
+  const outer = JSON.stringify({ "req-id": requestId, payload: updatedB64 });
+  const inner = new TextEncoder().encode(outer);
+  const subSessionIdx = opts.subSessionIdx || 0;
+  const messageSeq = opts.messageSeq || 0;
+
+  const msgBody = new Uint8Array(2 + inner.length);
+  msgBody[0] = messageSeq;
+  msgBody[1] = META_WS_PROMPT_FRAME_FLAG;
+  msgBody.set(inner, 2);
+
+  const header = new Uint8Array(6);
+  header[0] = META_WS_PROMPT_FRAME_TYPE;
+  header[1] = subSessionIdx & 0xff;
+  header[2] = (subSessionIdx >> 8) & 0xff;
+  writeU24Le(msgBody.length, header, 3);
+
+  const frame = new Uint8Array(header.length + msgBody.length);
+  frame.set(header);
+  frame.set(msgBody, header.length);
+  return frame;
+}
+
+// ─── WS URL builder + GraphQL helper + b64 helpers ─────────────────────────────
+
+function buildWsUrl(authorization: string, requestId: string): string {
+  const params = new URLSearchParams({
+    "x-dgw-appid": META_WS_APP_ID,
+    "x-dgw-appversion": META_WS_APP_VERSION,
+    "x-dgw-authtype": META_WS_AUTHTYPE,
+    "x-dgw-version": META_WS_DGW_VERSION,
+    "x-dgw-uuid": META_WS_DGW_UUID,
+    "x-dgw-tier": META_WS_TIER,
+    Authorization: authorization,
+    "x-dgw-app-origin": "meta.ai",
+    "x-dgw-app-clippy-request-id": requestId,
+    "x-dgw-app-clippy-async": "true",
+  });
+  return `wss://gateway.meta.ai/ws/clippy?${params.toString()}`;
+}
+
+type GraphqlResult = { ok: true } | { ok: false; error: string };
+
+async function graphqlPost(
+  docId: string,
+  variables: Record<string, unknown>,
+  cookieHeader: string,
+  label: string,
+  signal?: AbortSignal | null
+): Promise<GraphqlResult> {
+  try {
+    const response = await fetch(META_AI_GRAPHQL_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "multipart/mixed, application/json",
+        Cookie: cookieHeader,
+        "User-Agent": META_AI_USER_AGENT,
+        Origin: "https://meta.ai",
+      },
+      body: JSON.stringify({ doc_id: docId, variables }),
+      signal: signal ?? undefined,
+    });
+    if (!response.ok) return { ok: false, error: `${label} failed: HTTP ${response.status}` };
+    // GraphQL often returns errors in the body with HTTP 200 — parse them.
+    const text = await response.text();
+    try {
+      const json = JSON.parse(text);
+      if (json && Array.isArray(json.errors) && json.errors.length > 0) {
+        const msg = json.errors[0]?.message || "Unknown GraphQL error";
+        return { ok: false, error: `${label} failed: ${msg}` };
+      }
+    } catch {
+      // Response wasn't JSON or had no errors — treat as success.
+    }
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: `${label} fetch failed: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+}
+
+// ─── WS response parser ────────────────────────────────────────────────────────
+
+type WsResponseEvent = {
+  type: "full" | "patch";
+  response?: { sections?: Array<{ view_model?: { primitive?: { text?: string } } }> };
+  operations?: Array<{ op?: string; path?: string; value?: string }>;
+};
+
+function parseWsResponseEvents(payload: string): WsResponseEvent[] {
+  const events: WsResponseEvent[] = [];
+  let start: number | null = null;
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < payload.length; i++) {
+    const ch = payload[i];
+    if (start === null) {
+      if (ch === "{") {
+        start = i;
+        depth = 1;
+        inString = false;
+        escape = false;
+      }
+      continue;
+    }
+    if (inString) {
+      if (escape) {
+        escape = false;
+      } else if (ch === "\\") {
+        escape = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === "{") {
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && start !== null) {
+        try {
+          events.push(JSON.parse(payload.slice(start, i + 1)));
+        } catch {
+          /* skip */
+        }
+        start = null;
+      }
+    }
+  }
+  return events;
+}
+
+type WsChatResult = {
+  content: string;
+  deltas: string[];
+  error?: string;
+};
+
+// ─── WebSocket chat function + test hook ────────────────────────────────────────
+
+let WebSocketCtor: typeof WebSocket = WebSocket;
+
+export function __setMuseSparkWebSocketForTesting(ctor: typeof WebSocket): () => void {
+  const previous = WebSocketCtor;
+  WebSocketCtor = ctor;
+  return () => {
+    WebSocketCtor = previous;
+  };
+}
+
+async function wsChat(
+  prompt: string,
+  conversationId: string,
+  authorization: string,
+  cookieHeader: string,
+  templateB64: string,
+  signal?: AbortSignal | null
+): Promise<WsChatResult> {
+  const requestId = crypto.randomUUID();
+  const wsUrl = buildWsUrl(authorization, requestId);
+
+  return new Promise((resolve) => {
+    const ws = new WebSocketCtor(wsUrl, {
+      headers: {
+        Cookie: cookieHeader,
+        "User-Agent": META_AI_USER_AGENT,
+        Origin: "https://meta.ai",
+      },
+    });
+    let settled = false;
+    let accumulatedText = "";
+    const contentDeltas: string[] = [];
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    let abortHandler: (() => void) | null = null;
+
+    const finish = (result: WsChatResult) => {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
+      if (signal && abortHandler) signal.removeEventListener("abort", abortHandler);
+      try {
+        ws.close();
+      } catch {
+        /* ignore */
+      }
+      resolve(result);
+    };
+
+    const fail = (error: string) => finish({ content: "", deltas: [], error });
+
+    timeout = setTimeout(() => fail("Meta AI WebSocket timed out"), 30000);
+    abortHandler = () => fail("Request aborted");
+    signal?.addEventListener("abort", abortHandler, { once: true });
+
+    ws.onopen = () => {
+      ws.send(buildWsIntroFrame(conversationId));
+      ws.send(buildWsPromptFrame(prompt, conversationId, { templateB64, requestId }));
+    };
+
+    ws.onmessage = (event) => {
+      let raw = "";
+      if (typeof event.data === "string") {
+        raw = event.data;
+      } else if (Buffer.isBuffer(event.data)) {
+        raw = event.data.toString("utf-8");
+      } else if (event.data instanceof ArrayBuffer || event.data instanceof Uint8Array) {
+        raw = new TextDecoder().decode(event.data);
+      }
+      if (!raw) return;
+      const events = parseWsResponseEvents(raw);
+      for (const evt of events) {
+        if (evt.type === "full") {
+          const sections = evt.response?.sections || [];
+          for (const section of sections) {
+            const text = section?.view_model?.primitive?.text || "";
+            if (text && text !== accumulatedText) {
+              const delta = accumulatedText ? text.slice(accumulatedText.length) || text : text;
+              if (delta) contentDeltas.push(delta);
+              accumulatedText = text;
+            }
+          }
+        } else if (evt.type === "patch") {
+          const operations = evt.operations || [];
+          for (const op of operations) {
+            if (
+              op.op === "delta" &&
+              op.path === "/sections/0/view_model/primitive/text" &&
+              typeof op.value === "string"
+            ) {
+              contentDeltas.push(op.value);
+              accumulatedText += op.value;
+            }
+          }
+        }
+      }
+    };
+
+    ws.onerror = () => fail("Meta AI WebSocket connection error");
+    ws.onclose = () => {
+      if (settled) return;
+      finish({ content: accumulatedText, deltas: contentDeltas });
+    };
+  });
 }
 
 function getContinuationCacheKey(
@@ -683,78 +1157,6 @@ function evictContinuationIfNeeded(
   if (cached && cacheKey) {
     conversationCache.delete(cacheKey);
   }
-}
-
-async function postMetaAiRequest(
-  headers: Record<string, string>,
-  transformedBody: unknown,
-  signal: AbortSignal,
-  log: ExecuteInput["log"]
-): Promise<{ ok: true; response: Response } | { ok: false; result: MuseSparkExecuteResult }> {
-  try {
-    const response = await fetch(META_AI_GRAPHQL_API, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(transformedBody),
-      signal,
-    });
-    return { ok: true, response };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    log?.error?.("MUSE-SPARK-WEB", `Fetch failed: ${message}`);
-    return {
-      ok: false,
-      result: errorResult(
-        502,
-        `Meta AI connection failed: ${message}`,
-        "meta_ai_fetch_failed",
-        headers,
-        transformedBody
-      ),
-    };
-  }
-}
-
-function buildHttpErrorResult(
-  upstreamResponse: Response,
-  headers: Record<string, string>,
-  transformedBody: unknown,
-  cached: CachedConversation | null,
-  cacheKey: string | null
-): MuseSparkExecuteResult {
-  evictContinuationIfNeeded(cached, cacheKey);
-
-  let message = `Meta AI returned HTTP ${upstreamResponse.status}`;
-  if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
-    message = "Meta AI auth failed — your meta.ai ecto_1_sess cookie may be missing or expired.";
-  } else if (upstreamResponse.status === 429) {
-    message = "Meta AI rate limited the session. Wait a moment and retry.";
-  }
-
-  return errorResult(
-    upstreamResponse.status,
-    message,
-    `HTTP_${upstreamResponse.status}`,
-    headers,
-    transformedBody
-  );
-}
-
-function buildParsedErrorResult(
-  parsed: ParsedMetaAiResponse,
-  headers: Record<string, string>,
-  transformedBody: unknown,
-  cached: CachedConversation | null,
-  cacheKey: string | null
-): MuseSparkExecuteResult {
-  evictContinuationIfNeeded(cached, cacheKey);
-  return errorResult(
-    parsed.status,
-    parsed.errorMessage || "Meta AI returned an unknown error",
-    parsed.errorCode || "meta_ai_unknown_error",
-    headers,
-    transformedBody
-  );
 }
 
 function rememberAssistantTurn(
@@ -857,6 +1259,30 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       return errorResult(400, "Empty query after processing messages", "invalid_request", {}, body);
     }
 
+    // Extract the WebSocket auth token (ecto1:...) from provider-specific data
+    // or from the apiKey field itself (user can paste both in the cookie field).
+    let authorization: string;
+    if (
+      typeof credentials.providerSpecificData?.authorization === "string" &&
+      credentials.providerSpecificData.authorization
+    ) {
+      authorization = credentials.providerSpecificData.authorization.trim();
+    } else if (typeof credentials.apiKey === "string") {
+      const match = credentials.apiKey.match(/ecto1:[^\s;]+/i);
+      authorization = match ? match[0].trim() : "";
+    } else {
+      authorization = "";
+    }
+    if (!authorization) {
+      return errorResult(
+        400,
+        "Missing Authorization for Meta AI WebSocket — your cookie must include an ecto1:... auth token.",
+        "missing_authorization",
+        {},
+        body
+      );
+    }
+
     // Look up a prior meta.ai conversation we created for this caller +
     // model + chat thread. The lookup key is the connection + model + the
     // SHA-256 of the normalized history prefix ending at the last assistant
@@ -875,58 +1301,93 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const conversationContext = getConversationContext(cached);
 
     const prompt = cached ? parsedHistory.latestUserContent : parsedHistory.foldedPrompt;
-
-    const modelInfo = getMuseSparkModelInfo(model);
-    const transformedBody = buildMetaAiRequestBody(prompt, model, conversationContext);
     const cookieHeader = selectMetaAiCookieHeader(credentials);
+    const modelInfo = getMuseSparkModelInfo(model);
+    const templateB64 = cached ? META_WS_CHAT_TEMPLATE_B64 : META_WS_HOME_TEMPLATE_B64;
+
+    // Step 1: GraphQL warmup initialises the conversation on Meta's side
+    const warmupResult = await graphqlPost(
+      META_AI_WARMUP_DOC_ID,
+      { conversationId: conversationContext.conversationId },
+      cookieHeader,
+      "Warmup",
+      signal
+    );
+    if (!warmupResult.ok) {
+      evictContinuationIfNeeded(cached, continuationCacheKey);
+      log?.error?.("MUSE-SPARK-WEB", `Warmup failed: ${warmupResult.error}`);
+      return errorResult(502, warmupResult.error, "meta_ai_warmup_failed", {}, body);
+    }
+
+    // Step 2: GraphQL mode switch sets the conversation's reasoning level
+    const modeResult = await graphqlPost(
+      META_AI_MODE_SWITCH_DOC_ID,
+      { input: { conversationId: conversationContext.conversationId, mode: modelInfo.mode } },
+      cookieHeader,
+      "Mode switch",
+      signal
+    );
+    if (!modeResult.ok) {
+      evictContinuationIfNeeded(cached, continuationCacheKey);
+      log?.error?.("MUSE-SPARK-WEB", `Mode switch failed: ${modeResult.error}`);
+      return errorResult(502, modeResult.error, "meta_ai_mode_switch_failed", {}, body);
+    }
+
+    // Step 3: Send message via WebSocket
+    const wsResult = await wsChat(
+      prompt,
+      conversationContext.conversationId,
+      authorization,
+      cookieHeader,
+      templateB64,
+      signal
+    );
+
     const headers = buildMetaAiHeaders(cookieHeader);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
-    const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
-    const combinedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
-
-    const fetchResult = await postMetaAiRequest(headers, transformedBody, combinedSignal, log);
-    if (!fetchResult.ok) {
-      const err = fetchResult as { ok: false; result: MuseSparkExecuteResult };
-      return err.result;
+    if (wsResult.error) {
+      evictContinuationIfNeeded(cached, continuationCacheKey);
+      log?.error?.("MUSE-SPARK-WEB", `WS error: ${wsResult.error}`);
+      const lower = wsResult.error.toLowerCase();
+      const status = /auth|authorization|401/.test(lower) ? 401 : 502;
+      // On a 401, name the live cookie so users know what to re-paste. Meta
+      // rebranded Abra→Ecto: the retired `abra_sess` cookie is now `ecto_1_sess`.
+      const message =
+        status === 401
+          ? `${wsResult.error} — your meta.ai ecto_1_sess cookie may be missing or expired; re-paste the ecto_1_sess value from DevTools.`
+          : wsResult.error;
+      return errorResult(status, message, "meta_ai_ws_error", headers, body);
     }
 
-    const upstreamResponse = fetchResult.response;
-    if (!upstreamResponse.ok) {
-      return buildHttpErrorResult(
-        upstreamResponse,
-        headers,
-        transformedBody,
-        cached,
-        continuationCacheKey
-      );
-    }
+    const content = wsResult.content || "";
 
-    if (!upstreamResponse.body) {
+    // Empty WS response is an upstream failure, not a successful empty completion.
+    if (!content && !wsResult.deltas.length) {
+      evictContinuationIfNeeded(cached, continuationCacheKey);
+      log?.error?.("MUSE-SPARK-WEB", "WS returned empty response");
       return errorResult(
         502,
-        "Meta AI returned an empty response body",
-        "meta_ai_empty_body",
+        "Meta AI returned no assistant content",
+        "meta_ai_empty_response",
         headers,
-        transformedBody
+        body
       );
     }
 
-    const responseText = await readTextResponse(upstreamResponse.body, signal);
-    const parsed = parseMetaAiResponseText(responseText, modelInfo.isThinking);
-    if (parsed.status !== 200 || parsed.errorMessage) {
-      return buildParsedErrorResult(parsed, headers, transformedBody, cached, continuationCacheKey);
+    const deltas = wsResult.deltas.length > 0 ? wsResult.deltas : [content];
+    const parsed = {
+      content,
+      deltas,
+      reasoningContent: "",
+      reasoningDeltas: [] as string[],
+      errorCode: null as string | null,
+      errorMessage: null as string | null,
+      status: 200,
+    };
+    if (content) {
+      rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
     }
-
-    rememberAssistantTurn(parsed, credentials, model, parsedHistory, conversationContext);
-    return buildSuccessResult(
-      parsed,
-      stream,
-      model,
-      headers,
-      transformedBody,
-      hasTools,
-      requestedTools
-    );
+    return buildSuccessResult(parsed, stream, model, headers, body, hasTools, requestedTools);
   }
 }

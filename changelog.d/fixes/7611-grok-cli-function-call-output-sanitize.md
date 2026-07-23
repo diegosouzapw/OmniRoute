@@ -1,0 +1,1 @@
+- **grok-cli:** sanitize Responses `function_call_output.output` values before dispatch so incomplete `\u` escapes / malformed tool results no longer cause intermittent 400 body-parse failures on cli-chat-proxy (#7611).

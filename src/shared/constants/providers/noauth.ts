@@ -139,6 +139,26 @@ export const NOAUTH_PROVIDERS = {
       text: "Augment (Auggie CLI) requires the `auggie` binary installed and authenticated locally (`auggie login`). OmniRoute spawns it as a subprocess and never sees or stores your Augment credentials.",
     },
   },
+  aihorde: {
+    id: "aihorde",
+    alias: "horde",
+    name: "AI Horde",
+    icon: "diversity_3",
+    color: "#8B5CF6",
+    textIcon: "AH",
+    website: "https://aihorde.net",
+    noAuth: true,
+    hasFree: true,
+    passthroughModels: true,
+    serviceKinds: ["llm"],
+    authHint:
+      "No API key required — uses AI Horde's documented anonymous key. Adding a free aihorde.net key is optional and only buys higher queue priority (kudos).",
+    freeNote:
+      "Crowdsourced inference from volunteer GPUs. Throughput is a shared queue, not a quota: there is no RPM/RPD cap, but waits grow when the network is busy.",
+    notice: {
+      text: "AI Horde routes to volunteer-run workers, so responses can take minutes and tool calling is unavailable. Model availability changes as workers come and go.",
+    },
+  },
 };
 
 // Provider-level proxy controls are exposed only for transports whose complete

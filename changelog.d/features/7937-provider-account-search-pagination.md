@@ -1,0 +1,1 @@
+- feat(dashboard): provider tab account search (id/tag/name/email substring, cross-page) + mirrored top pagination bar + pagination for the tagged/grouped connections view (#7937)

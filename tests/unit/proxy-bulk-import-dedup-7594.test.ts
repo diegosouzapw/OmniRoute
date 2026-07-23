@@ -60,7 +60,7 @@ test("upsertProxy creates distinct entries for same host:port with different cre
   assert.notEqual(first.proxy?.id, second.proxy?.id);
   assert.notEqual(second.proxy?.id, third.proxy?.id);
 
-  const listed = await proxiesDb.listProxies({ includeSecrets: true });
+  const { items: listed } = await proxiesDb.listProxies({ includeSecrets: true });
   assert.equal(listed.length, 3);
   assert.deepEqual(listed.map((p) => p.username).sort(), ["user-1", "user-2", "user-3"]);
 });
@@ -82,7 +82,7 @@ test("upsertProxy still updates when the full credential tuple matches (#7594)",
   assert.equal(again.action, "updated");
   assert.equal(again.proxy?.id, created.proxy?.id);
 
-  const listed = await proxiesDb.listProxies({ includeSecrets: true });
+  const { items: listed } = await proxiesDb.listProxies({ includeSecrets: true });
   assert.equal(listed.length, 1);
   assert.equal(listed[0].name, "Gateway Renamed");
 });
@@ -104,7 +104,7 @@ test("upsertProxy updates an existing proxy when only its password changes (#770
   assert.equal(rotated.action, "updated");
   assert.equal(rotated.proxy?.id, created.proxy?.id);
 
-  const listed = await proxiesDb.listProxies({ includeSecrets: true });
+  const { items: listed } = await proxiesDb.listProxies({ includeSecrets: true });
   assert.equal(listed.length, 1);
   assert.equal(listed[0].password, "pass-b");
 });
@@ -124,6 +124,6 @@ test("upsertProxy treats auth-less proxies on same host:port as the same entry (
   assert.equal(second.action, "updated");
   assert.equal(first.proxy?.id, second.proxy?.id);
 
-  const listed = await proxiesDb.listProxies({ includeSecrets: true });
+  const { items: listed } = await proxiesDb.listProxies({ includeSecrets: true });
   assert.equal(listed.length, 1);
 });

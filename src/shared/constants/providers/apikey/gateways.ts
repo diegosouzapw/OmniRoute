@@ -713,4 +713,83 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Kenari exposes an OpenAI-compatible chat completions endpoint at https://kenari.id/v1/chat/completions, plus a live /v1/models catalog covering Claude, GPT, DeepSeek, GLM, Kimi and more. OmniRoute uses the OpenAI protocol and lists models via passthrough.",
   },
+  navy: {
+    id: "navy",
+    alias: "navy",
+    name: "NavyAI",
+    icon: "hub",
+    color: "#1E3A8A",
+    textIcon: "NV",
+    passthroughModels: true,
+    website: "https://api.navy",
+    hasFree: true,
+    freeNote:
+      "Free plan is one shared 150K tokens/day pool at 20 RPM. Each model carries a " +
+      "token multiplier, so heavier models drain the pool faster (grok-4 at 10x is ~15K real tokens/day).",
+    authHint:
+      "Create a free API key from the NavyAI dashboard, then paste it here as a Bearer token.",
+    apiHint:
+      "OpenAI-compatible endpoint at https://api.navy/v1 with a live /v1/models catalog that exposes " +
+      "per-model token_multiplier and premium flags. Upstream requires an explicit User-Agent header.",
+  },
+  ainative: {
+    id: "ainative",
+    alias: "ainative",
+    name: "AINative Studio",
+    icon: "hub",
+    color: "#7C3AED",
+    textIcon: "AN",
+    passthroughModels: true,
+    website: "https://ainative.studio",
+    hasFree: true,
+    freeNote: "Free tier ~10M tokens/month (claimed) across Qwen3, Llama 4, DeepSeek R1 and more.",
+    authHint: "Create a free API key at ainative.studio (no card), then paste it here as a Bearer token.",
+    apiHint:
+      "OpenAI-compatible endpoint at https://api.ainative.studio/api/v1 with a public /models catalog (84 models). OmniRoute lists models via passthrough.",
+  },
+  aion: {
+    id: "aion",
+    alias: "aion",
+    name: "Aion Labs",
+    icon: "hub",
+    color: "#0EA5E9",
+    textIcon: "AI",
+    passthroughModels: true,
+    website: "https://www.aionlabs.ai",
+    hasFree: true,
+    freeNote: "Free tier ~20k tokens/day across the Aion reasoning models.",
+    authHint: "Create a free API key at aionlabs.ai (no card), then paste it here as a Bearer token.",
+    apiHint:
+      "OpenAI-compatible endpoint at https://api.aionlabs.ai/v1 with a public /models catalog carrying context and pricing.",
+  },
+  routeway: {
+    id: "routeway",
+    alias: "routeway",
+    name: "Routeway",
+    icon: "hub",
+    color: "#F59E0B",
+    textIcon: "RW",
+    passthroughModels: true,
+    website: "https://routeway.ai",
+    hasFree: true,
+    freeNote: "Free models (:free suffix) at ~5 RPM / 200 RPD across Llama, Nemotron, Step and Laguna.",
+    authHint: "Create a free API key at routeway.ai, then paste it here as a Bearer token.",
+    apiHint:
+      "OpenAI-compatible endpoint at https://api.routeway.ai/v1 with a public /models catalog (236 models). Cloudflare fronts the API and requires a browser-style User-Agent.",
+  },
+  nara: {
+    id: "nara",
+    alias: "nara",
+    name: "NaraRouter",
+    icon: "hub",
+    color: "#EC4899",
+    textIcon: "NA",
+    passthroughModels: true,
+    website: "https://bynara.id",
+    hasFree: true,
+    freeNote: "Free tier is a shared 5M tokens/day pool; some models are gated behind credit/plan.",
+    authHint: "Get a free API key via NaraRouter's Telegram channel, then paste it here as a Bearer token.",
+    apiHint:
+      "OpenAI-compatible endpoint at https://router.bynara.id/v1. Free-tier models are pinned; others need credit.",
+  },
 };

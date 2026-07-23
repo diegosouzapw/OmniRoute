@@ -92,13 +92,18 @@ function getNextSortOrder() {
   return (sortOrder ?? 0) + 1;
 }
 
-export async function getCombos() {
+export async function getCombos(limit?: number, offset?: number) {
   const db = getDbInstance();
+  let sql =
+    "SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC";
+  const params: unknown[] = [];
+  if (limit !== undefined) {
+    sql += " LIMIT ? OFFSET ?";
+    params.push(limit, offset ?? 0);
+  }
   const rawCombos = db
-    .prepare(
-      "SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC"
-    )
-    .all()
+    .prepare(sql)
+    .all(...params)
     .map((row) => parseComboRow(row))
     .filter((row): row is JsonRecord => row !== null);
 
@@ -111,6 +116,12 @@ export async function getCombos() {
       allCombos: comboNames,
     })
   );
+}
+
+export function getCombosCount(): number {
+  const db = getDbInstance();
+  const row = db.prepare("SELECT count(*) as cnt FROM combos").get() as { cnt: number };
+  return row.cnt;
 }
 
 export async function getComboById(id: string) {

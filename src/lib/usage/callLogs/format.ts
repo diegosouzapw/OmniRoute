@@ -2,20 +2,14 @@ import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestL
 import { sanitizePII } from "../../piiSanitizer";
 import { protectPayloadForLog } from "../../logPayloads";
 import type { CallLogDetailState } from "../callLogArtifacts";
+// #7879: re-export the canonical helper so existing consumers of this module
+// keep importing `toNumber` from here unchanged.
+export { toNumber } from "@/shared/utils/numeric";
 
 type JsonRecord = Record<string, unknown>;
 
 export function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-export function toNumber(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
 }
 
 export function toStringOrNull(value: unknown): string | null {

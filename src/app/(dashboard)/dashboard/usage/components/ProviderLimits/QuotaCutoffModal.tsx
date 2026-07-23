@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
@@ -16,6 +16,8 @@ export interface QuotaCutoffModalWindow {
 interface QuotaCutoffModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Stable identity used to distinguish refreshes from connection changes. */
+  connectionId: string;
   /** Label shown in the modal title. */
   connectionName: string;
   /** Used in the modal title for context (e.g. "(codex)"). */
@@ -44,6 +46,7 @@ interface QuotaCutoffModalProps {
 export default function QuotaCutoffModal({
   isOpen,
   onClose,
+  connectionId,
   connectionName,
   provider,
   windows,
@@ -59,10 +62,17 @@ export default function QuotaCutoffModal({
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const wasOpenRef = useRef(false);
+  const seededConnectionIdRef = useRef<string | null>(null);
 
   // Reset drafts whenever the modal opens against a new connection.
   useEffect(() => {
-    if (!isOpen) return;
+    const shouldSeed =
+      isOpen && (!wasOpenRef.current || seededConnectionIdRef.current !== connectionId);
+    wasOpenRef.current = isOpen;
+    if (!shouldSeed) return;
+
+    seededConnectionIdRef.current = connectionId;
     const initial: Record<string, string> = {};
     for (const w of windows) {
       const persisted = current?.[w.key];
@@ -70,7 +80,7 @@ export default function QuotaCutoffModal({
     }
     setDrafts(initial);
     setError(null);
-  }, [isOpen, windows, current]);
+  }, [isOpen, connectionId, windows, current]);
 
   const resolveDefaultFor = (windowKey: string): number =>
     typeof providerDefaults[windowKey] === "number"

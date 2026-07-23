@@ -26,7 +26,6 @@ export type WizardProviderDefinition = {
 export type WizardProviderOption = {
   id: string;
   name: string;
-  icon: string;
   color?: string;
   alias?: string;
   description: string;
@@ -40,7 +39,6 @@ export const SUPPORTED_WIZARD_OAUTH_PROVIDER_IDS = new Set([
   "codex",
   "antigravity",
   "agy",
-  "qwen",
   "kimi-coding",
   "github",
   "gitlab-duo",
@@ -64,7 +62,6 @@ function toProviderOption(
   return {
     id: provider.id,
     name,
-    icon: provider.icon || (authKind === "oauth" ? "account_circle" : "key"),
     color: provider.color,
     alias: provider.alias,
     description: provider.apiHint || provider.authHint || provider.freeNote || fallbackDescription,

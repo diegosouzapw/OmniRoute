@@ -40,6 +40,7 @@ const LEGACY_FLAT_KEYS: {
     promptCacheEnabled: ["promptCacheEnabled"],
     promptCacheStrategy: ["promptCacheStrategy"],
     alwaysPreserveClientCache: ["alwaysPreserveClientCache"],
+    modelCatalogCacheTtlMs: ["modelCatalogCacheTtlMs"],
   },
   retention: {
     quotaSnapshots: ["quotaSnapshots"],

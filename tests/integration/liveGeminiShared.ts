@@ -384,6 +384,33 @@ export function genAgenticTaskMessage(): Message {
   return { role: "user", content: pick(AGENTIC_TASKS) };
 }
 
+// #7360 follow-up: the standard CASE_BUILDERS prompts are a few hundred to a
+// couple thousand tokens — nowhere near Gemini's free-tier TPM ceiling (16000
+// tokens/min for gemma-4, per the live error text: "Quota exceeded for
+// metric: generate_content_free_tier_input_token_count, limit: 16000"). That
+// meant none of the existing workload tests ever exercised a REAL TPM 429 —
+// only RPM-style rate limiting. genHugeContextMessage builds a single message
+// large enough (~4 chars/token estimate) to approach or exceed that ceiling by
+// itself, so a couple of these back-to-back genuinely trips Gemini's TPM
+// limit and exercises the real classification (RATE_LIMIT_EXCEEDED, not
+// QUOTA_EXHAUSTED) + comboCooldownWait retry path end-to-end, not just a
+// synthetic/mocked 429.
+export function genHugeContextMessage(approxTokens = 12000): Message {
+  const CHARS_PER_TOKEN = 4;
+  const targetChars = approxTokens * CHARS_PER_TOKEN;
+  const chunks = [...LONG_DOCUMENTS, ...CODE_BLOCKS];
+  let content = "";
+  let i = 0;
+  while (content.length < targetChars) {
+    content += `\n\n--- Section ${i + 1} ---\n\n${chunks[i % chunks.length]}`;
+    i++;
+  }
+  return {
+    role: "user",
+    content: `I'm pasting a large batch of internal documentation and code samples below. Read through all of it, then give me a single consolidated summary (max 200 words) covering the recurring themes.\n${content}`,
+  };
+}
+
 export function genMultiTurnConversation(turns: number): Message[] {
   const messages: Message[] = [];
 
@@ -476,6 +503,72 @@ interface StreamResult {
   fullContent: string;
   finishReason: string;
   totalTokens: number;
+}
+
+// #7360 follow-up: extend the workload test to the Responses API too (not
+// just Chat Completions). Parses OmniRoute's own event shapes from
+// open-sse/translator/response/openai-responses.ts: response.output_text.delta
+// / response.reasoning_summary_text.delta for content, response.completed for
+// the terminal status + usage.
+export async function readResponsesSSEStream(response: Response): Promise<StreamResult> {
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullContent = "";
+  let finishReason = "unknown";
+  let totalTokens = 0;
+  let rawChunkCount = 0;
+  const debugLines: string[] = [];
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    rawChunkCount++;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const data = line.slice(6).trim();
+      if (data === "[DONE]") continue;
+
+      if (debugLines.length < 3) {
+        debugLines.push(data.slice(0, 200));
+      }
+
+      try {
+        const parsed = JSON.parse(data) as Record<string, unknown>;
+        const type = parsed.type as string | undefined;
+
+        if (
+          type === "response.output_text.delta" ||
+          type === "response.reasoning_summary_text.delta"
+        ) {
+          const delta = parsed.delta as string | undefined;
+          if (delta) fullContent += delta;
+        } else if (type === "response.completed") {
+          const resp = parsed.response as Record<string, unknown> | undefined;
+          finishReason = (resp?.status as string) || "unknown";
+          const usage = resp?.usage as Record<string, number> | undefined;
+          if (usage) {
+            totalTokens =
+              usage.total_tokens ?? (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0);
+          }
+        }
+      } catch {
+        // skip malformed chunks
+      }
+    }
+  }
+
+  if (fullContent.length === 0 && rawChunkCount > 0) {
+    console.log(`    [DEBUG] responses: empty content: ${rawChunkCount} raw chunks`);
+    for (const d of debugLines) console.log(`    [DEBUG] data: ${d}`);
+  }
+
+  return { fullContent, finishReason, totalTokens };
 }
 
 export async function readSSEStream(response: Response): Promise<StreamResult> {
@@ -679,6 +772,11 @@ export function validateToolCallArguments(toolCalls: ToolCall[] | ResponsesToolC
   }
 }
 
+// Ad-hoc experiment flag: force tool_choice: "required" across every live
+// Gemini tool-call helper below, without permanently changing default test
+// behavior. Set FORCE_TOOL_CHOICE_REQUIRED=1 to compare against baseline.
+const FORCE_TOOL_CHOICE_REQUIRED = process.env.FORCE_TOOL_CHOICE_REQUIRED === "1";
+
 export async function sendToolCallChatRequest(
   model: string,
   prompt: string
@@ -696,6 +794,7 @@ export async function sendToolCallChatRequest(
       temperature: 0.1,
       stream: false,
       max_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(90_000),
   });
@@ -723,6 +822,7 @@ export async function sendStreamingToolCallChatRequest(
       temperature: 0.1,
       stream: true,
       max_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(120_000),
   });
@@ -833,6 +933,7 @@ export async function sendToolCallResponsesRequest(
       temperature: 0.1,
       stream: false,
       max_output_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(90_000),
   });
@@ -867,6 +968,7 @@ export async function sendStreamingToolCallResponsesRequest(
       temperature: 0.1,
       stream: true,
       max_output_tokens: 4096,
+      ...(FORCE_TOOL_CHOICE_REQUIRED ? { tool_choice: "required" } : {}),
     }),
     signal: AbortSignal.timeout(120_000),
   });
@@ -952,7 +1054,8 @@ function ts(): string {
 export async function sendAndValidate(
   tcName: string,
   buildMessages: () => Message[],
-  stream = true
+  stream = true,
+  apiFormat: "chat" | "responses" = "chat"
 ): Promise<{
   status: number;
   duration: number;
@@ -962,6 +1065,7 @@ export async function sendAndValidate(
 }> {
   const MAX_RETRIES = 3;
   const RETRY_DELAY_MS = 10_000;
+  const endpoint = apiFormat === "responses" ? "/v1/responses" : "/v1/chat/completions";
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const messages = buildMessages();
@@ -972,19 +1076,30 @@ export async function sendAndValidate(
     const start = performance.now();
 
     try {
-      const response = await fetch(`${BASE_URL}/v1/chat/completions`, {
+      const body =
+        apiFormat === "responses"
+          ? {
+              model: MODEL,
+              input: messages,
+              stream,
+              max_output_tokens: 4096,
+              temperature: 0.3,
+            }
+          : {
+              model: MODEL,
+              messages,
+              stream,
+              max_tokens: 4096,
+              temperature: 0.3,
+            };
+
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${API_KEY}`,
         },
-        body: JSON.stringify({
-          model: MODEL,
-          messages,
-          stream,
-          max_tokens: 4096,
-          temperature: 0.3,
-        }),
+        body: JSON.stringify(body),
         signal: controller.signal,
       });
 
@@ -997,10 +1112,19 @@ export async function sendAndValidate(
       let totalTokens = 0;
 
       if (stream) {
-        const streamResult = await readSSEStream(response);
+        const streamResult =
+          apiFormat === "responses"
+            ? await readResponsesSSEStream(response)
+            : await readSSEStream(response);
         content = streamResult.fullContent;
         finishReason = streamResult.finishReason;
         totalTokens = streamResult.totalTokens;
+      } else if (apiFormat === "responses") {
+        const json = await response.json().catch(() => ({}));
+        const textItem = json?.output?.find((o: Record<string, unknown>) => o.type === "message");
+        content = textItem?.content?.[0]?.text || "";
+        finishReason = json?.status || "unknown";
+        totalTokens = json?.usage?.total_tokens || 0;
       } else {
         const json = await response.json().catch(() => ({}));
         const choice = json?.choices?.[0];
@@ -1024,7 +1148,8 @@ export async function sendAndValidate(
       );
 
       if (response.status === 200) {
-        const isGoodFinish = finishReason === "stop" || finishReason === "length";
+        const isGoodFinish =
+          finishReason === "stop" || finishReason === "length" || finishReason === "completed";
         const isRetryable =
           content.length === 0 ||
           finishReason === "malformed_response" ||
@@ -1048,7 +1173,17 @@ export async function sendAndValidate(
         } else {
           assert.fail(`expected stop/length finish, got ${finishReason} | cid: ${correlationId}`);
         }
-      } else if ((response.status === 503 || response.status === 429) && attempt < MAX_RETRIES) {
+      } else if (response.status === 503) {
+        // #7360: a 503 from a combo means "all targets exhausted" — exactly
+        // the failure mode the cooldown-aware wait/retry is supposed to
+        // prevent. Silently retrying past it here would mask a regression
+        // instead of catching it, so this is a hard, immediate failure —
+        // never retried.
+        const errorBody = await response.text().catch(() => "unknown");
+        assert.fail(
+          `${ts()} ${tcName.padEnd(45)} HTTP 503 (combo exhausted, not retried): ${errorBody} | cid: ${correlationId}`
+        );
+      } else if (response.status === 429 && attempt < MAX_RETRIES) {
         console.log(
           `${ts()} ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after ${response.status} (waiting ${RETRY_DELAY_MS / 1000}s)`
         );
@@ -1069,7 +1204,12 @@ export async function sendAndValidate(
     } catch (err) {
       clearTimeout(timeout);
       const errorMessage = err instanceof Error ? err.message : String(err);
-      if ((errorMessage.includes("503") || errorMessage.includes("429")) && attempt < MAX_RETRIES) {
+      if (errorMessage.includes("503")) {
+        // #7360: never retry past a 503 (combo exhausted) — see the non-throw
+        // branch above for why.
+        throw err;
+      }
+      if (errorMessage.includes("429") && attempt < MAX_RETRIES) {
         console.log(
           `${ts()} ${tcName.padEnd(45)} RETRY ${attempt}/${MAX_RETRIES} after error (waiting ${RETRY_DELAY_MS / 1000}s)`
         );

@@ -33,10 +33,12 @@ import { useOpenRouterPresetControl } from "../OpenRouterPresetInput";
 import WebSessionCredentialGuide from "../WebSessionCredentialGuide";
 import CcCompatibleRequestDefaultsFields from "./CcCompatibleRequestDefaultsFields";
 import { buildAddProviderSpecificData } from "./connectionProviderSpecificData";
+import { getCommandCodeAuthPhaseLabel } from "./commandCodeAuthPhase";
 import { computeConnectionDefaultName } from "./computeConnectionDefaultName";
 import AgentrouterConsoleFields from "./AgentrouterConsoleFields";
 import QuotaScrapingFields, { EMPTY_QUOTA_SCRAPING_FIELDS } from "./QuotaScrapingFields";
 import GlmTeamQuotaFields, { EMPTY_GLM_TEAM_QUOTA_FIELDS } from "./GlmTeamQuotaFields";
+import * as ProviderRegion from "./AlibabaProviderRegionField";
 export interface AddApiKeyModalProps {
   isOpen: boolean;
   provider?: string;
@@ -82,9 +84,7 @@ export default function AddApiKeyModal({
   const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
-  const isBedrock = provider === "bedrock";
-  const showsRegion = isVertex || isBedrock;
-  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
+  const { defaultRegion, showsRegion } = ProviderRegion.getProviderRegionConfig(provider);
   const isModal = provider === "modal";
   const isGlm = isGlmProvider(provider);
   const isQoder = provider === "qoder";
@@ -105,18 +105,7 @@ export default function AddApiKeyModal({
   const providerDisplayName = providerName || provider || "";
   const apiKeyOptional =
     providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
-  const commandCodeAuthPhaseLabel = commandCodeAuthState
-    ? {
-        idle: "Ready",
-        starting: "Starting…",
-        polling: "Waiting for browser…",
-        received: "Browser approved",
-        applying: "Applying key…",
-        applied: "Connected",
-        expired: "Link expired",
-        error: "Connection failed",
-      }[commandCodeAuthState.phase]
-    : null;
+  const commandCodeAuthPhaseLabel = getCommandCodeAuthPhaseLabel(commandCodeAuthState);
   const [formData, setFormData] = useState({
     name: computeConnectionDefaultName(existingConnectionCount),
     apiKey: "",
@@ -161,6 +150,8 @@ export default function AddApiKeyModal({
       name: computeConnectionDefaultName(existingConnectionCount),
       baseUrl: initialBaseUrl || defaultBaseUrl,
     }));
+    setValidationResult(null);
+    setSaveError(null);
   }, [defaultBaseUrl, initialBaseUrl, isOpen, existingConnectionCount]);
   const bulkSupported = supportsBulkApiKey(provider);
   const [mode, setMode] = useState<"single" | "bulk">("single");
@@ -387,6 +378,9 @@ export default function AddApiKeyModal({
         }
         bulkProviderSpecificData.baseUrl = checked.value;
       }
+      if (showsRegion) {
+        bulkProviderSpecificData.region = formData.region.trim() || defaultRegion;
+      }
       openRouterPreset.applyTo(bulkProviderSpecificData);
       if (showFreeModelsToggle && formData.importFreeModelsOnly) {
         bulkProviderSpecificData.importFreeModelsOnly = true;
@@ -427,7 +421,16 @@ export default function AddApiKeyModal({
     }
   };
 
+  const regionStep = ProviderRegion.useAlibabaProviderRegionStep({
+    isOpen,
+    provider,
+    title: `${t("addConnection")} · ${providerDisplayName}`,
+    onClose,
+    setFormData,
+  });
+
   if (!provider) return null;
+  if (regionStep) return regionStep;
 
   const freeModelsToggle = showFreeModelsToggle ? (
     <Toggle
@@ -898,15 +901,12 @@ export default function AddApiKeyModal({
                 hint={getProviderBaseUrlHint(provider, t)}
               />
             )}
-            {showsRegion && (
-              <Input
-                label={t("regionLabel")}
-                value={formData.region}
-                onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                placeholder={defaultRegion}
-                hint={t("regionHint")}
-              />
-            )}
+            <ProviderRegion.ProviderRegionField
+              hideAlibaba
+              provider={provider}
+              value={formData.region}
+              onChange={(region) => setFormData({ ...formData, region })}
+            />
             {isCloudflare && (
               <Input
                 label={t("accountIdLabel")}
