@@ -206,7 +206,7 @@ resolved values feed the engine's existing `config.modePack` / `config.budgetCap
 
 ## All Routing Strategies
 
-OmniRoute's combo engine supports **18 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
+OmniRoute's combo engine supports **19 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
 
 | Strategy            | Description                                                                                                                  |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
@@ -228,8 +228,9 @@ OmniRoute's combo engine supports **18 routing strategies** (declared in `src/sh
 | `context-optimized` | Pick target with best fit for current context size                                                                           |
 | `fusion` 🧬         | Fan out to a panel of models in parallel, then synthesize one answer via a judge (see below)                                 |
 | `pipeline`          | Run targets sequentially, threading each step's output into the next step's input; only the final answer is returned (#6396) |
+| `debate` 🏛️         | Multi-round adversarial panel — models answer, critique each other anonymously across rounds, stop early on consensus, then a judge synthesizes the final answer (see below)                                 |
 
-⭐ = New in v3.8.0 · 🧬 = New in v3.8.36
+⭐ = New in v3.8.0 · 🧬 = New in v3.8.36 · 🏛️ = New in v3.8.49
 
 ## Fusion Strategy
 
@@ -646,11 +647,11 @@ See `docs/marketing/TIERS.md` for tier definitions and provider classification.
 
 ### Deterministic routing-decision matrix (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` proves the routing **decision** of all 18
+`tests/integration/combo-matrix/*.test.ts` proves the routing **decision** of all 19
 public strategies end-to-end through the real combo pipeline with a mocked upstream.
 Coverage includes:
 
-- All 18 `ROUTING_STRATEGY_VALUES` strategies (ordered, weighted, cost, context, fusion, …).
+- All 19 `ROUTING_STRATEGY_VALUES` strategies (ordered, weighted, cost, context, fusion, debate, …).
 - `quota-share` (internal) end-to-end: DRR fairness + saturation deprioritization via the
   real `selectQuotaShareTarget` seam (`registerQuotaFetcher` / `setLKGP` /
   `__setHeadroomSaturationFetcherForTests`).
@@ -684,5 +685,5 @@ intentionally excluded from CI because they require live credentials and VPS acc
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 variants                                         |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Builds in-memory `AutoComboConfig` from live connections                   |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook for mocking provider registry                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (18 strategies)                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (19 strategies)                                  |
 | `src/sse/handlers/chat.ts`                                | Integration: auto-prefix short-circuit                                     |
