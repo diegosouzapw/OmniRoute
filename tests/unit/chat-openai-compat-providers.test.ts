@@ -42,6 +42,8 @@ const CHAT_OPENAI_COMPAT_PROVIDER_IDS = [
   "reka",
   "byteplus",
   "orcarouter",
+  "typhoon",
+  "inception",
   "sarvam",
   "writer",
   "plamo",

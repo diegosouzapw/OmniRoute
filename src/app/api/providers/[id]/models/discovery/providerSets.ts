@@ -70,6 +70,11 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // discovered live from https://api.openvecta.com/v1/models; the registry seed
   // (registry/openvecta) covers the most-used LLMs as the offline fallback.
   "openvecta",
+  // Typhoon (SCB 10X, Thailand) and Inception Labs (Mercury diffusion models) are
+  // OpenAI-compatible providers whose /v1/models endpoint exists and is used for
+  // catalog discovery/key validation (verified 2026-07-22).
+  "typhoon",
+  "inception",
   // Sarvam AI (India), Writer Palmyra, and PLaMo (Preferred Networks, Japan) are
   // OpenAI-compatible providers whose /v1/models endpoint exists and is used for
   // catalog discovery/key validation (verified 2026-07-22).

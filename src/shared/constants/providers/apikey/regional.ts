@@ -478,4 +478,17 @@ export const APIKEY_PROVIDERS_REGIONAL = {
       "PLaMo is OpenAI-compatible at https://api.platform.preferredai.jp/v1. Built by Preferred Networks and optimized for Japanese. Docs are primarily in Japanese.",
     hasFree: false,
   },
+  typhoon: {
+    id: "typhoon",
+    alias: "typhoon",
+    name: "Typhoon",
+    icon: "public",
+    color: "#7C3AED",
+    textIcon: "TY",
+    website: "https://docs.opentyphoon.ai",
+    apiHint:
+      "Typhoon is OpenAI-compatible on /v1. Built by SCB 10X (Thailand); typhoon-v2.5-30b-a3b-instruct is a thai-first, multilingual model.",
+    hasFree: true,
+    freeNote: "Free API key with a 5 req/s and 200 req/m rate limit.",
+  },
 };

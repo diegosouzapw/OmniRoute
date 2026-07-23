@@ -172,6 +172,8 @@ import { chenzkProvider } from "./registry/chenzk/index.ts";
 import { factoryProvider } from "./registry/factory/index.ts";
 import { databricksProvider } from "./registry/databricks/index.ts";
 import { rekaProvider } from "./registry/reka/index.ts";
+import { typhoonProvider } from "./registry/typhoon/index.ts";
+import { inceptionProvider } from "./registry/inception/index.ts";
 import { sarvamProvider } from "./registry/sarvam/index.ts";
 import { writerProvider } from "./registry/writer/index.ts";
 import { plamoProvider } from "./registry/plamo/index.ts";
@@ -389,6 +391,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   factory: factoryProvider,
   databricks: databricksProvider,
   reka: rekaProvider,
+  typhoon: typhoonProvider,
+  inception: inceptionProvider,
   sarvam: sarvamProvider,
   writer: writerProvider,
   plamo: plamoProvider,
