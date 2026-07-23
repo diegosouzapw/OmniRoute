@@ -210,7 +210,7 @@ export default function ProvidersPage() {
   });
 
   const handleProviderNavigate = useCallback((id: string) => {
-    window.history.replaceState({ providerId: id, focusOnElement: true }, "");
+    window.history.replaceState({ providerId: id }, "");
   }, []);
   const notify = useNotificationStore();
   const sectionCategoryAliases: Record<string, string> = {
