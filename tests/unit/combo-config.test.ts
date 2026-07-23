@@ -325,12 +325,12 @@ test("resolveComboTargetTimeoutMs falls back to the saner combo default when uns
 // targets waits out cooldowns for up to comboCooldownWait.budgetMs (default 130s), but
 // DEFAULT_COMBO_TARGET_TIMEOUT_MS (120s) is shorter — the per-target timeout was cutting
 // the wait off early and returning a synthetic 524 instead of letting the wait finish.
-test("isComboCooldownWaitEligible only engages for quota-share/auto with the feature enabled", () => {
+test("isComboCooldownWaitEligible engages for every combo strategy with the feature enabled", () => {
   assert.equal(isComboCooldownWaitEligible("auto", { enabled: true }), true);
   assert.equal(isComboCooldownWaitEligible("quota-share", { enabled: true }), true);
+  assert.equal(isComboCooldownWaitEligible("fill-first", { enabled: true }), true);
+  assert.equal(isComboCooldownWaitEligible("priority", { enabled: true }), true);
   assert.equal(isComboCooldownWaitEligible("auto", { enabled: false }), false);
-  assert.equal(isComboCooldownWaitEligible("fill-first", { enabled: true }), false);
-  assert.equal(isComboCooldownWaitEligible("priority", { enabled: true }), false);
 });
 
 test("resolveComboTargetTimeoutMsForCombo raises the floor to cover the cooldown-wait budget for eligible strategies", () => {
@@ -346,10 +346,10 @@ test("resolveComboTargetTimeoutMsForCombo raises the floor to cover the cooldown
     130000 + COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS
   );
 
-  // Not wait-eligible (wrong strategy, or feature disabled): unchanged 120s default.
+  // Every named strategy is wait-eligible.
   assert.equal(
     resolveComboTargetTimeoutMsForCombo({}, 600000, "fill-first", comboCooldownWait),
-    DEFAULT_COMBO_TARGET_TIMEOUT_MS
+    130000 + COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS
   );
   assert.equal(
     resolveComboTargetTimeoutMsForCombo({}, 600000, "auto", { enabled: false, budgetMs: 130000 }),
