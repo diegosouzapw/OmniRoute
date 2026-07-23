@@ -141,6 +141,38 @@ export function isContextOverflowError(status: number, errorMessage: string): bo
 // ── Fallback Resolution ──────────────────────────────────────────────────────
 
 /**
+ * All notation forms a family-fallback candidate might be registered under
+ * in a provider's catalog: the literal hyphen form, dot-notation variants
+ * (`claude-opus-4-8` -> `claude-opus-4.8`), and — for dated snapshot ids
+ * like `claude-opus-4-5-20251101` — the same variants with the trailing
+ * `-YYYYMMDD` snapshot suffix stripped, so a dated candidate can still
+ * resolve to a provider's undated catalog entry (`claude-opus-4.5`).
+ */
+function candidateNotationVariants(candidate: string): string[] {
+  const variants = [
+    candidate,
+    candidate.replace(/-(\d+)-(\d+)$/, "-$1.$2"),
+    candidate.replace(/-(\d+)-(\d+)-/, "-$1.$2-"),
+  ];
+
+  const dateStripped = candidate.replace(/-\d{8}$/, "");
+  if (dateStripped !== candidate) {
+    variants.push(dateStripped, dateStripped.replace(/-(\d+)-(\d+)$/, "-$1.$2"));
+  }
+
+  return variants;
+}
+
+/**
+ * Resolve a family candidate against the provider's supported model ids.
+ * Returns the matching notation (preferring the first variant found) or
+ * `null` if the candidate is absent from the catalog under every notation.
+ */
+function resolveCandidateNotation(candidate: string, supportedIds: Set<string>): string | null {
+  return candidateNotationVariants(candidate).find((variant) => supportedIds.has(variant)) ?? null;
+}
+
+/**
  * Get the next fallback model from the same family.
  *
  * @param currentModel  The model that just failed
@@ -170,11 +202,12 @@ export function getNextFamilyFallback(
   for (const candidate of family) {
     let resolvedCandidate = candidate;
     if (supportedIds && !supportedIds.has(candidate)) {
-      // Try dot-notation variants: claude-opus-4-8 → claude-opus-4.8
-      const dotVariant = candidate.replace(/-(\d+)-(\d+)$/, "-$1.$2");
-      const dotVariant2 = candidate.replace(/-(\d+)-(\d+)-/, "-$1.$2-");
-      if (supportedIds.has(dotVariant)) resolvedCandidate = dotVariant;
-      else if (supportedIds.has(dotVariant2)) resolvedCandidate = dotVariant2;
+      const match = resolveCandidateNotation(candidate, supportedIds);
+      // Provider catalog is known but this candidate has no match under any
+      // notation — it is provably unsupported, so skip it instead of
+      // returning an id the provider will just 400 on again.
+      if (!match) continue;
+      resolvedCandidate = match;
     }
     const fullCandidate = `${prefix}${resolvedCandidate}`;
     if (!triedModels.has(fullCandidate)) {
