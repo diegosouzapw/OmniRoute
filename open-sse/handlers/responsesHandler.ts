@@ -40,7 +40,7 @@ export async function handleResponsesCore({
   const customToolNames = collectResponsesCustomToolNames(body?.tools, inputItems);
 
   // Convert Responses API format to Chat Completions format
-  const convertedBody = convertResponsesApiFormat(body, credentials);
+  const convertedBody = convertResponsesApiFormat(body, credentials, modelInfo?.provider);
 
   // Ensure stream is enabled
   convertedBody.stream = true;

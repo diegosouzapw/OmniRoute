@@ -4,7 +4,10 @@ import * as bodySizeGuard from "../../src/shared/middleware/bodySizeGuard.ts";
 import {
   MAX_BODY_BYTES_AUDIO,
   MAX_BODY_BYTES_FILE,
+  MAX_BODY_BYTES_IMAGE_EDIT,
   MAX_BODY_BYTES_LLM_API,
+  RequestBodyTooLargeError,
+  readRequestBodyWithLimit,
   getBodySizeLimit,
   checkBodySize,
 } from "../../src/shared/middleware/bodySizeGuard.ts";
@@ -40,6 +43,52 @@ test("body size guard keeps dedicated upload limits as lower bounds", () => {
     getBodySizeLimit("/api/v1/audio/transcriptions", { maxBodySizeMb: 200 }),
     requestBodyLimitMbToBytes(200)
   );
+  assert.equal(
+    getBodySizeLimit("/api/v1/images/edits", { maxBodySizeMb: 10 }),
+    MAX_BODY_BYTES_IMAGE_EDIT
+  );
+});
+
+test("/api/v1/images/edits admits a 20 MiB image in multipart or base64 JSON envelopes", () => {
+  const multipartBytes = 20 * 1024 * 1024 + 1024 * 1024;
+  const base64JsonBytes = Math.ceil((20 * 1024 * 1024 * 4) / 3) + 1024;
+  for (const bytes of [multipartBytes, base64JsonBytes]) {
+    const request = new Request("http://localhost/api/v1/images/edits", {
+      method: "POST",
+      headers: { "content-length": String(bytes) },
+    });
+    assert.equal(checkBodySize(request, getBodySizeLimit("/api/v1/images/edits")), null);
+  }
+});
+
+test("bounded body reader enforces actual bytes when Content-Length is absent", async () => {
+  const request = new Request("http://localhost/api/v1/images/edits", {
+    method: "POST",
+    body: new ReadableStream({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1, 2, 3]));
+        controller.enqueue(new Uint8Array([4, 5, 6]));
+        controller.close();
+      },
+    }),
+    // Node requires this for a streamed request body; no Content-Length is supplied.
+    duplex: "half",
+  } as RequestInit & { duplex: "half" });
+
+  await assert.rejects(
+    () => readRequestBodyWithLimit(request, 5),
+    (err: unknown) => err instanceof RequestBodyTooLargeError && err.limit === 5
+  );
+});
+
+test("bounded body reader rejects a dishonest small Content-Length by actual byte count", async () => {
+  const request = new Request("http://localhost/api/v1/images/edits", {
+    method: "POST",
+    headers: { "content-length": "1" },
+    body: new Uint8Array([1, 2, 3, 4]),
+  });
+
+  await assert.rejects(() => readRequestBodyWithLimit(request, 3), RequestBodyTooLargeError);
 });
 
 test("checkBodySize reports the configured request limit in 413 responses", async () => {

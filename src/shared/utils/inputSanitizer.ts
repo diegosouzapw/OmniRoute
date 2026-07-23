@@ -7,6 +7,9 @@
  * @module inputSanitizer
  */
 
+import { parseEnvBoolean } from "@/shared/utils/envBoolean";
+import { resolveBlockThreshold, shouldBlockDetections } from "@/shared/utils/injectionSeverity";
+
 // ─── Prompt Injection Patterns ───────────────────────────────────────
 
 /** @type {Array<{name: string, pattern: RegExp, severity: string}>} */
@@ -111,9 +114,11 @@ const PII_PATTERNS = [
  */
 function getConfig() {
   return {
-    enabled: process.env.INPUT_SANITIZER_ENABLED !== "false",
+    // Default ON (opt-out). Truthy/falsy parsing accepts true/1/yes/on and false/0/no/off.
+    enabled: parseEnvBoolean(process.env.INPUT_SANITIZER_ENABLED, true),
     mode: process.env.INPUT_SANITIZER_MODE || "warn", // "warn" | "block" | "redact"
-    piiRedaction: process.env.PII_REDACTION_ENABLED === "true",
+    piiRedaction: parseEnvBoolean(process.env.PII_REDACTION_ENABLED, false),
+    blockThreshold: resolveBlockThreshold(),
   };
 }
 
@@ -271,7 +276,9 @@ export function sanitizeRequest(body, logger = console) {
       );
     }
 
-    if (config.mode === "block" && highSeverity.length > 0) {
+    // Shared threshold policy with evaluatePromptInjection / createInjectionGuard.
+    // Default threshold is "high" (medium is observe-only unless lowered via env).
+    if (config.mode === "block" && shouldBlockDetections(injections, config.blockThreshold)) {
       result.blocked = true;
       return result;
     }

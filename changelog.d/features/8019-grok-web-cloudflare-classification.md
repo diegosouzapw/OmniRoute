@@ -1,0 +1,1 @@
+- feat(sse): classify grok-web Cloudflare anti-bot blocks + gated browser-backed cf_clearance path (#8019)

@@ -697,6 +697,13 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "flag",
   },
   {
+    id: "settings-cache",
+    href: "/dashboard/settings/cache",
+    i18nKey: "settingsCache",
+    subtitleKey: "settingsCacheSubtitle",
+    icon: "memory",
+  },
+  {
     id: "settings-sidebar",
     href: "/dashboard/settings/sidebar",
     i18nKey: "settingsSidebar",

@@ -21,9 +21,9 @@
  *   4. ~/.local/share/devin/bin/devin          (Linux installer)
  *
  * Model selection:
- *   Passed directly to ACP session/new as `model` param (e.g. "swe-1.6-fast",
- *   "claude-sonnet-4.6", "gpt-5.5-high"). Devin CLI resolves them against its
- *   model_configs_v2.bin catalog on startup.
+ *   Passed directly to ACP session/new as `model` param (e.g. "swe-1-6-fast",
+ *   "claude-sonnet-4-6", "gpt-5-5-high"). Devin CLI resolves them against its
+ *   model_configs_v4.bin catalog on startup.
  */
 
 import { spawn } from "node:child_process";
