@@ -289,7 +289,7 @@ export const createComboSchema = z.object({
   allowedProviders: z.array(z.string().max(200)).optional(),
   system_message: z.string().max(50000).optional(),
   tool_filter_regex: z.string().max(1000).optional(),
-  context_cache_protection: z.boolean().optional(),
+  context_cache_protection: z.boolean().optional().default(true),
   context_length: z.number().int().min(1000).max(2000000).optional(),
   // Optional embedding dimensions override for embedding combos.
   // When set, the value is injected into every upstream embedding request as
@@ -347,7 +347,7 @@ export const updateComboSchema = z
     allowedProviders: z.array(z.string().max(200)).optional(),
     system_message: z.string().max(50000).optional(),
     tool_filter_regex: z.string().max(1000).optional(),
-    context_cache_protection: z.boolean().optional(),
+  context_cache_protection: z.boolean().optional().default(true),
     context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
     compressionOverride: comboCompressionOverrideSchema.optional(),
     dimensions: z
