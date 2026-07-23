@@ -262,6 +262,7 @@ export const APIKEY_PROVIDERS_FRONTIER = {
       "Inception Labs is OpenAI-compatible at https://api.inceptionlabs.ai/v1. mercury-2 is the first diffusion LLM (dLLM) in the catalog — 5-10x faster generation than comparable autoregressive models, with tool calling, json_mode, and structured outputs.",
     hasFree: true,
     freeNote: "10M free tokens on signup, no credit card required.",
+  },
   writer: {
     id: "writer",
     alias: "writer",

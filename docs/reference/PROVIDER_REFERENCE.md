@@ -10,8 +10,7 @@ lastUpdated: 2026-07-23
 > Regenerate with: `npm run gen:provider-reference`
 > **Last generated:** 2026-07-23
 
-Total providers: **282**. See category breakdown below.
-Total providers: **288**. See category breakdown below.
+Total providers: **290**. See category breakdown below.
 
 ## Categories
 
@@ -99,8 +98,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web (Free) | Web cookie | [link](https://chat.z.ai) | Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie) | — |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
-## API Key Providers (paid / paid-with-free-credits) (189)
-## API Key Providers (paid / paid-with-free-credits) (193)
+## API Key Providers (paid / paid-with-free-credits) (195)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
