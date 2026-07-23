@@ -13,6 +13,8 @@
 
 import type { SqliteAdapter } from "./adapters/types";
 import { normalizeRoutingStrategy } from "@/shared/constants/routingStrategies";
+import { normalizeComboRecord } from "@/lib/combos/steps";
+import { validateComboInvariant } from "@/lib/combos/invariants";
 import {
   resolveImportedUsageAccountIdentity,
   resolveOrphanedUsageAccountIdentity,
@@ -198,12 +200,13 @@ export function runJsonMigration(
           (config as Record<string, unknown>).strategy
         );
       }
-      const normalizedCombo: Record<string, unknown> = {
+      const normalizedCombo: Record<string, unknown> = normalizeComboRecord({
         ...combo,
         strategy: normalizeRoutingStrategy(combo.strategy),
         config,
         sortOrder: typeof combo.sortOrder === "number" ? combo.sortOrder : index + 1,
-      };
+      });
+      validateComboInvariant(normalizedCombo);
       insertCombo.run({
         id: normalizedCombo.id,
         name: normalizedCombo.name,

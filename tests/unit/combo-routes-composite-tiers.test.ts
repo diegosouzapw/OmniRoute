@@ -270,3 +270,49 @@ test("PUT /api/combos preserves legacy string combo refs during normalization", 
   assert.equal(stored.models[0].kind, "combo-ref");
   assert.equal(stored.models[0].comboName, "child-ref");
 });
+
+
+test("POST /api/combos returns a structured 400 for invariant violations", async () => {
+  const response = await createRoute.POST(
+    makeCreateRequest({
+      name: "invalid-create-invariant",
+      allowedProviders: ["github"],
+      allowedModelFamilies: ["gpt"],
+      models: [{ provider: "zai", model: "glm-5" }],
+    })
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error.code, "COMBO_008");
+  assert.equal(body.error.message, "Combo target violates its provider or model family invariant");
+  assert.equal(
+    body.error.details.reason,
+    'Combo "invalid-create-invariant" target 1 (zai/glm-5) violates its invariant'
+  );
+  assert.equal(await combosDb.getComboByName("invalid-create-invariant"), null);
+});
+
+test("PUT /api/combos returns a structured 400 for invariant violations", async () => {
+  const combo = await combosDb.createCombo({
+    name: "valid-update-invariant",
+    allowedProviders: ["github"],
+    allowedModelFamilies: ["gpt"],
+    models: [{ provider: "github", model: "gpt-5.4" }],
+  });
+
+  const response = await comboRoute.PUT(
+    makeUpdateRequest({ models: [{ provider: "moonshot", model: "kimi-k2" }] }),
+    { params: Promise.resolve({ id: combo.id }) }
+  );
+  const body = await response.json();
+  const stored = await combosDb.getComboById(String(combo.id));
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error.code, "COMBO_008");
+  assert.equal(
+    body.error.details.reason,
+    'Combo "valid-update-invariant" target 1 (moonshot/kimi-k2) violates its invariant'
+  );
+  assert.equal(stored?.models[0]?.model, "github/gpt-5.4");
+});

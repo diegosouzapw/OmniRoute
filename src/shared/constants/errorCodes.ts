@@ -187,6 +187,12 @@ export const ERROR_CODES: Record<string, ErrorCodeDef> = {
     httpStatus: 404,
     category: "COMBO",
   },
+  COMBO_008: {
+    code: "COMBO_008",
+    message: "Combo target violates its provider or model family invariant",
+    httpStatus: 400,
+    category: "COMBO",
+  },
 
   // ── Internal ──
   INTERNAL_001: {

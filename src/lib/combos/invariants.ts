@@ -52,9 +52,13 @@ export function validateComboInvariant(combo: JsonRecord): void {
             ? model.slice(0, model.indexOf("/"))
             : "";
     const family = modelFamily(model);
-    if ((providers.size > 0 && !providers.has(provider)) || (families.size > 0 && (!family || !families.has(family)))) {
+    if (
+      (providers.size > 0 && !providers.has(provider)) ||
+      (families.size > 0 && (!family || !families.has(family)))
+    ) {
+      const targetName = model.includes("/") ? model : `${provider}/${model}`;
       throw new ComboInvariantError(
-        `Combo "${String(combo.name ?? "unnamed")}" target ${index + 1} (${provider}/${model}) violates its invariant`
+        `Combo "${String(combo.name ?? "unnamed")}" target ${index + 1} (${targetName}) violates its invariant`
       );
     }
   });

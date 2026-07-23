@@ -70,7 +70,7 @@ test("combo invariants reject invalid creates and updates atomically", async () 
       allowedModelFamilies: ["gpt"],
       models: [{ provider: "zai", model: "glm-5" }],
     }),
-    /target 1.*zai.*glm-5.*violates/i
+    /target 1 \(zai\/glm-5\) violates its invariant/i
   );
   assert.equal(await combosDb.getComboByName("invalid-gpt-family"), null);
 
@@ -85,7 +85,7 @@ test("combo invariants reject invalid creates and updates atomically", async () 
     combosDb.updateCombo(String(combo.id), {
       models: [{ provider: "moonshot", model: "kimi-k2" }],
     }),
-    /target 1.*moonshot.*kimi-k2.*violates/i
+    /target 1 \(moonshot\/kimi-k2\) violates its invariant/i
   );
   const persisted = await combosDb.getComboById(String(combo.id));
   assert.equal((persisted?.models as Array<{ model: string }>)[0]?.model, "github/gpt-5.4");
