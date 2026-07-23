@@ -120,6 +120,25 @@ function headroomParticipates(
   return mode === "stacked";
 }
 
+/**
+ * Resolve the optional headroom detail (minRows) from a synthesized compression config.
+ * Extracted from dispatchCompression to keep that dispatcher under the complexity gate (#8056/#8058).
+ */
+function resolveHeadroomDetail(config: unknown): {
+  headroomDetail: CompressionConfig["headroom"] | undefined;
+  headroomStepDetail: { minRows: number } | undefined;
+} {
+  const headroomDetail =
+    config && typeof config === "object" && config !== null
+      ? (config as CompressionConfig).headroom
+      : undefined;
+  const headroomStepDetail =
+    headroomDetail && typeof headroomDetail.minRows === "number"
+      ? { minRows: headroomDetail.minRows }
+      : undefined;
+  return { headroomDetail, headroomStepDetail };
+}
+
 async function dispatchCompression(
   requestBody: Record<string, unknown>,
   opts: {
@@ -140,14 +159,7 @@ async function dispatchCompression(
   // badge shows what WOULD be stabilized in production (real caching gains show in telemetry only).
   // When the client/settings carry a headroom detail sub-object, thread it so
   // buildStepOptions can merge minRows into the headroom engine stepConfig (#8056).
-  const headroomDetail =
-    opts.config && typeof opts.config === "object" && opts.config !== null
-      ? (opts.config as CompressionConfig).headroom
-      : undefined;
-  const headroomStepDetail =
-    headroomDetail && typeof headroomDetail.minRows === "number"
-      ? { minRows: headroomDetail.minRows }
-      : undefined;
+  const { headroomDetail, headroomStepDetail } = resolveHeadroomDetail(opts.config);
 
   if (opts.engineId) {
     const q = quantumExtras(opts.quantumLock);

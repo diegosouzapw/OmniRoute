@@ -166,7 +166,40 @@ export const __structuredLoggerInternals = {
   recentErrors: _recentErrors,
   pruneRecentErrors,
   MAX_TRACKED_ERRORS,
+  isStreamWritable,
 };
+
+/**
+ * True when a stream can still accept a write.
+ *
+ * Exported via __structuredLoggerInternals for tests: the real process.stderr cannot be
+ * destroyed in-process to exercise this, because the test runner writes its own output there.
+ */
+function isStreamWritable(stream: { destroyed?: boolean; writableEnded?: boolean }): boolean {
+  return stream.destroyed !== true && stream.writableEnded !== true;
+}
+
+/**
+ * Write a line to stderr, skipping the write entirely when the stream is already known-bad.
+ *
+ * The `try {} catch {}` this replaces could only ever catch a *synchronous* failure. On a
+ * broken pipe the write fails asynchronously and surfaces as an 'error' event on the stream,
+ * which — with no listener attached — Node re-throws as an uncaughtException. That is the
+ * ignition point of the #8181 log-flood loop, and it fires from the very line whose comment
+ * says raw stderr writes are used to *avoid* EPIPE loops.
+ *
+ * consoleInterceptor now attaches the listener that stops the loop; this guard is defence in
+ * depth, so a dead stream is not written to in the first place. The catch is retained for the
+ * synchronous cases it always covered.
+ */
+function safeStderrWrite(text: string): void {
+  if (!isStreamWritable(process.stderr)) return;
+  try {
+    process.stderr.write(text);
+  } catch {
+    /* synchronous write failures remain non-fatal, as before */
+  }
+}
 
 export function createLogger(component: string) {
   return {
@@ -195,19 +228,16 @@ export function createLogger(component: string) {
       if (currentLevel <= LOG_LEVELS.error) {
         if (shouldSuppressError(message)) return;
         const entry = buildEntry("error", component, message, meta);
-        // Use stderr.write to avoid Next.js console patching that triggers EPIPE loops
-        try {
-          process.stderr.write(formatEntry("error", component, message, meta) + "\n");
-        } catch {}
+        // Use stderr.write to avoid Next.js console patching that triggers EPIPE loops.
+        // Guarded: an unguarded write here is the ignition point of #8181.
+        safeStderrWrite(formatEntry("error", component, message, meta) + "\n");
         writeToFile(entry);
       }
     },
     fatal(message: string, meta?: Record<string, unknown>) {
       if (shouldSuppressError(message)) return;
       const entry = buildEntry("fatal", component, message, meta);
-      try {
-        process.stderr.write(formatEntry("fatal", component, message, meta) + "\n");
-      } catch {}
+      safeStderrWrite(formatEntry("fatal", component, message, meta) + "\n");
       writeToFile(entry);
     },
     child(defaultMeta: Record<string, unknown>) {

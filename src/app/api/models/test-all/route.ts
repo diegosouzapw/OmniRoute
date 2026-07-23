@@ -13,14 +13,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { runSingleModelTest } from "@/lib/api/modelTestRunner";
+import { DEFAULT_MODEL_TEST_TIMEOUT_MS, runSingleModelTest } from "@/lib/api/modelTestRunner";
 import { setModelIsHidden } from "@/lib/localDb";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getSettings } from "@/lib/db/settings";
 import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 import * as log from "@/sse/utils/logger";
 
-const PER_MODEL_TIMEOUT_MS = 20_000;
 const CONSECUTIVE_RATE_LIMIT_STOP_THRESHOLD = 3;
 /** Web-session providers (esp. Arena/CF) ban burst probes — pause between models. */
 const SLOW_PROBE_PROVIDERS = new Set(["lmarena", "lma"]);
@@ -153,7 +152,7 @@ export async function POST(request: Request) {
         providerId,
         modelId,
         ...(effectiveConnectionId ? { connectionId: effectiveConnectionId } : {}),
-        timeoutMs: PER_MODEL_TIMEOUT_MS,
+        timeoutMs: DEFAULT_MODEL_TEST_TIMEOUT_MS,
         streamChat: true,
       });
       entry = toBatchEntry(result);

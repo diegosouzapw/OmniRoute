@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Asiakasprofiili",
     "antigravityClientProfileHint": "Valitse, minkä Antigravity-asiakasidentiteetin OmniRoute esittää API:lle.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast -taso on aktiivinen",
     "tierFast": "Nopea",
     "antigravityProjectIdLabel": "Google Cloud Project ID",

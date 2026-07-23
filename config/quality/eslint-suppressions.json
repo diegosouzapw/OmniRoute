@@ -690,11 +690,6 @@
       "count": 3
     }
   },
-  "tests/unit/antigravity-tool-cloaking.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
-    }
-  },
   "tests/unit/api-key-reveal-route.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 8
@@ -1187,7 +1182,7 @@
   },
   "tests/unit/combo-routing-engine.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 269
+      "count": 271
     }
   },
   "tests/unit/combo-same-provider-cascade.test.ts": {
@@ -2317,7 +2312,7 @@
   },
   "tests/unit/translator-openai-to-gemini.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 70
+      "count": 68
     }
   },
   "tests/unit/translator-openai-to-kiro.test.ts": {
