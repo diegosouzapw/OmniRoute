@@ -519,10 +519,7 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
 
   const inputDetails = toRecord(normalized.input_tokens_details) || {};
   const cachedTokens = normalized.cached_tokens ?? normalized.cache_read_input_tokens;
-  if (
-    cachedTokens !== undefined &&
-    inputDetails.cached_tokens === undefined
-  ) {
+  if (cachedTokens !== undefined && inputDetails.cached_tokens === undefined) {
     inputDetails.cached_tokens = cachedTokens;
   }
   if (
@@ -1003,6 +1000,23 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
   const eventType = toString(parsedRecord.type) || "";
   if (eventType.startsWith("response.") || parsedRecord.object === "response") {
     return sanitizeResponsesStreamingEvent(parsedRecord);
+  }
+
+  // #8271: Anthropic-native streaming events (content_block_delta with
+  // text_delta / thinking_delta) bypass the OpenAI choices[].delta.content
+  // path below. Strip zero-width characters from their text payloads so
+  // U+200D and friends don't leak to the client on the Messages API.
+  if (eventType === "content_block_delta") {
+    const deltaRecord = toRecord(parsedRecord.delta);
+    if (deltaRecord) {
+      if (typeof deltaRecord.text === "string") {
+        deltaRecord.text = stripZeroWidthText(deltaRecord.text);
+      }
+      if (typeof deltaRecord.thinking === "string") {
+        deltaRecord.thinking = stripZeroWidthText(deltaRecord.thinking);
+      }
+    }
+    return parsedRecord;
   }
 
   // Build sanitized chunk
