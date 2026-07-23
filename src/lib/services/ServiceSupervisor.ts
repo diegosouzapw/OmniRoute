@@ -7,7 +7,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getServiceRow, updateServiceField, setToolStatus } from "@/lib/db/versionManager";
 import { RingBuffer } from "./ringBuffer";
 import { HealthChecker } from "./healthCheck";
-import { decidePreSpawn, probeBeforeSpawn } from "./portProbe";
+import { decidePreSpawn, probeBeforeSpawn, resolvePortPid } from "./portProbe";
 import type { ServiceConfig, ServiceState, ServiceStatus, LogLine, HealthState } from "./types";
 
 const CRASH_FAST_THRESHOLD_MS = 5_000;
@@ -93,10 +93,17 @@ export class ServiceSupervisor extends EventEmitter {
         if (decision.action === "adopt") {
           // Something healthy already serves this port — treat it as running
           // rather than spawning a duplicate that would die with EADDRINUSE.
+          // We didn't spawn it, so there's no ChildProcess handle to read a
+          // pid from — resolve one from the OS instead. Best-effort: if
+          // resolution fails, pid stays null rather than blocking adoption,
+          // but downstream liveness checks that key off pid will only trust
+          // this instance once a real pid is on record.
+          const adoptedPid = await resolvePortPid(this.config.port);
           this.checker.start();
           this.startedAt = new Date().toISOString();
+          this.pid = adoptedPid;
           this.setState("running");
-          await setToolStatus(this.config.tool, "running");
+          await setToolStatus(this.config.tool, "running", adoptedPid ?? undefined);
           return this.getStatus();
         }
 
