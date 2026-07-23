@@ -299,6 +299,22 @@ test("Claude -> Gemini prefers thinking.budget_tokens over output_config.effort"
   });
 });
 
+test("Claude -> Gemini thinking.budget_tokens capped for flash-tier models", () => {
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      thinking: { type: "enabled", budget_tokens: 50000 },
+    },
+    false
+  );
+
+  assert.deepEqual(result.generationConfig.thinkingConfig, {
+    thinkingBudget: 24576,
+    includeThoughts: true,
+  });
+});
+
 test("Claude -> Gemini skips thinkingConfig for output_config.effort=none", () => {
   const result = claudeToGeminiRequest(
     "gemini-2.5-pro",

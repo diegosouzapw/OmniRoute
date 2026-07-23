@@ -228,7 +228,7 @@ function openaiToGeminiBase(
     const thinking = body.thinking as { type?: string; budget_tokens?: number } | undefined;
     if (thinking?.type === "enabled" && typeof thinking.budget_tokens === "number") {
       result.generationConfig.thinkingConfig = {
-        thinkingBudget: thinking.budget_tokens,
+        thinkingBudget: capThinkingBudget(model, thinking.budget_tokens),
         includeThoughts: thinking.budget_tokens !== 0,
       };
     }

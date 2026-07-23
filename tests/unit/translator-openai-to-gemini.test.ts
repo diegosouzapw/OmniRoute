@@ -538,7 +538,9 @@ test("OpenAI -> Cloud Code Gemini applies native request defaults", () => {
     "gemini-3-flash-preview",
     { messages: [{ role: "user", content: "Hello" }], reasoning_effort: "high" },
     true
-  ) as { generationConfig: { thinkingConfig: { thinkingBudget: number; includeThoughts: boolean } } };
+  ) as {
+    generationConfig: { thinkingConfig: { thinkingBudget: number; includeThoughts: boolean } };
+  };
   assert.equal(flash.generationConfig.thinkingConfig.thinkingBudget, 0);
   assert.equal(flash.generationConfig.thinkingConfig.includeThoughts, false);
   assert.equal(request.generationConfig.topK, undefined);
@@ -1204,6 +1206,55 @@ test("OpenAI -> Gemini reasoning_effort=high stays within gemini-2.5-flash cap (
   const budget = result.generationConfig.thinkingConfig.thinkingBudget;
   assert.ok(budget <= 24576, `expected <= 24576 (real cap), got ${budget}`);
   assert.equal(budget, 24576);
+});
+
+// budget_tokens path must also be capped, not just reasoning_effort.
+test("OpenAI -> Gemini thinking.budget_tokens capped for gemini-2.5-flash", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      thinking: { type: "enabled", budget_tokens: 50000 },
+    },
+    false
+  ) as any;
+  assert.ok(result.generationConfig.thinkingConfig, "expected thinkingConfig");
+  assert.equal(
+    result.generationConfig.thinkingConfig.thinkingBudget,
+    24576,
+    "budget_tokens=50000 must be clamped to gemini-2.5-flash cap 24576"
+  );
+});
+
+test("OpenAI -> Gemini thinking.budget_tokens capped for gemini-3.6-flash", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-3.6-flash",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      thinking: { type: "enabled", budget_tokens: 50000 },
+    },
+    false
+  ) as any;
+  assert.ok(result.generationConfig.thinkingConfig, "expected thinkingConfig");
+  assert.equal(
+    result.generationConfig.thinkingConfig.thinkingBudget,
+    24576,
+    "budget_tokens=50000 must be clamped to gemini-3.6-flash cap 24576"
+  );
+});
+
+test("OpenAI -> Gemini thinking.budget_tokens=0 disables thinking", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      thinking: { type: "enabled", budget_tokens: 0 },
+    },
+    false
+  ) as any;
+  assert.ok(result.generationConfig.thinkingConfig, "expected thinkingConfig");
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 0);
+  assert.equal(result.generationConfig.thinkingConfig.includeThoughts, false);
 });
 
 test("OpenAI -> Gemini request maps google_search tool", () => {

@@ -199,9 +199,12 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // -- Gemini 3.6 Flash -------------------------------------------------
+  // thinkingBudget accepted for backward compat; thinkingLevel preferred.
+  // Cap matches 2.5-flash proven max (24576) per ai.google.dev docs.
   "gemini-3.6-flash": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
+    thinkingBudgetCap: 24576,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -209,6 +212,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gemini-3.6-flash-low": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
+    thinkingBudgetCap: 24576,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -216,6 +220,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gemini-3.6-flash-medium": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
+    thinkingBudgetCap: 24576,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -223,6 +228,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "gemini-3.6-flash-high": {
     maxOutputTokens: 65536,
     contextWindow: 1048576,
+    thinkingBudgetCap: 24576,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -240,9 +246,12 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Claude Sonnet 4.5 ───────────────────────────────────────────
+  // budget_tokens must be < max_tokens (platform.claude.com); cap leaves
+  // headroom for the visible response.
   "claude-sonnet-4-5": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -261,9 +270,11 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Claude Sonnet 4.6 ───────────────────────────────────────────
+  // budget_tokens deprecated but still accepted (platform.claude.com).
   "claude-sonnet-4-6": {
     maxOutputTokens: 64000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -350,10 +361,11 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-4-8", "claude-opus-4.8", "claude-opus-4.8-fast"),
   },
 
-  // ── Claude Sonnet 4.5 ───────────────────────────────────────────
+  // ── Claude Sonnet 4.5 (dated) ────────────────────────────────────
   "claude-sonnet-4-5-20250929": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -364,6 +376,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-haiku-4-5-20251001": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -371,9 +384,13 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Kimi K2.6 (Moonshot Kimi Code OAuth — 262K native) ──────────
+  // Upstream uses thinking.type (enabled/disabled), not thinking_budget.
+  // Cap acts as safety net when clients send budget_tokens through the
+  // translator (e.g. Claude-format thinking passthrough).
   "kimi-k2.6": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -386,6 +403,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "kimi-k2.7-code": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -396,6 +414,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "kimi-k2.5": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -403,9 +422,12 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Qwen3.x Plus / Max (Bailian — multimodal text/image/video, 1M context) ─
+  // thinking_budget supported (docs.qwencloud.com); max assistant message in
+  // thinking mode is 38912 tokens (qwen.readthedocs.io Qwen3 concepts).
   "qwen3-max": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -414,6 +436,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3.6-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -421,6 +444,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3.5-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -462,21 +486,26 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Z.AI GLM-5.2 (1M context, 128K max output, effort tiers) ────
+  // reasoning_effort is the native control (docs.z.ai); thinking_budget
+  // range 1-38912 for GLM-5.1 (empiriolabs.ai). Use same cap for 5.2 family.
   "glm-5.2": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5.2-high": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5.2-max": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -485,22 +514,25 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "glm-5.1": {
     maxOutputTokens: 128000,
     contextWindow: 200000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5": {
     maxOutputTokens: 128000,
     contextWindow: 200000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
 
   // ── MiniMax M3 (1M context, 512K max output) ─────────────────────
-  // max output verified against MiniMax docs / OpenRouter / Artificial
-  // Analysis (Nov 2025 launch): 1,048,576-token context, up to 512K output.
+  // Upstream uses thinking adaptive/disabled, not budget_tokens.
+  // Cap acts as safety net for budget_tokens passthrough from clients.
   "minimax-m3": {
     maxOutputTokens: 512000,
     contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M3", "MiniMaxAI/MiniMax-M3"],
@@ -510,6 +542,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m2.7": {
     maxOutputTokens: 131072,
     contextWindow: 204800,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M2.7", "MiniMaxAI/MiniMax-M2.7"],
@@ -517,29 +550,36 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m2.5": {
     maxOutputTokens: 131072,
     contextWindow: 200000,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M2.5"],
   },
 
   // ── DeepSeek V4 (1M context, 384K max output) ────────────────────
+  // budget_tokens accepted (api-docs.deepseek.com); cap at max output.
   "deepseek-v4-pro": {
     maxOutputTokens: 384000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 384000,
     supportsThinking: true,
     supportsTools: true,
   },
   "deepseek-v4-flash": {
     maxOutputTokens: 384000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 384000,
     supportsThinking: true,
     supportsTools: true,
   },
 
   // ── Tencent Hunyuan 3 Preview ────────────────────────────────────
+  // CONSERVATIVE_DEFAULT: no official thinking budget docs found.
+  // Cap prevents runaway budget_tokens from upstream clients.
   "hy3-preview": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
   },

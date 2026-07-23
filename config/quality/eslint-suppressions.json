@@ -2189,7 +2189,7 @@
   },
   "tests/unit/translator-openai-to-gemini.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 70
+      "count": 73
     }
   },
   "tests/unit/translator-openai-to-kiro.test.ts": {

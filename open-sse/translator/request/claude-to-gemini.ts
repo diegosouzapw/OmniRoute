@@ -190,7 +190,7 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     // gemma-4 models returns - 400: Thinking budget is not supported for this model
   } else if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
     result.generationConfig.thinkingConfig = {
-      thinkingBudget: body.thinking.budget_tokens,
+      thinkingBudget: capThinkingBudget(model, body.thinking.budget_tokens),
       includeThoughts: true,
     };
   } else if (typeof body.output_config?.effort === "string") {
