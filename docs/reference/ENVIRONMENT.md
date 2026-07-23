@@ -1244,3 +1244,4 @@ Long-lived SSE consumer that mirrors OmniConductor hub tasks into the local A2A 
 | `CONDUCTOR_HUB_URL`   | _(empty)_  | `src/lib/conductor/boot.ts`  | Base URL of the OmniConductor hub (e.g. `http://127.0.0.1:7910`). Unset = bridge disabled.               |
 | `CONDUCTOR_HUB_TOKEN` | _(empty)_  | `src/lib/conductor/boot.ts`  | Hub credential for the SSE feed — emit a `spokesperson`-kind peer on the hub (`POST /v1/peers`, admin).  |
 | `CONDUCTOR_SPOKESPERSON_URL` | `http://127.0.0.1:7920` | `src/lib/conductor/faroProxy.ts` | Base URL of Faro (the Conductor spokesperson) for the dashboard chat/voice proxy. |
+| `CONDUCTOR_ORCHESTRATOR_TOKEN` | _(empty)_ | `src/lib/conductor/hubProxy.ts` | Hub credential used for INBOUND A2A delegation (`POST /api/a2a/tasks` → hub `POST /v1/tasks`). Emit an `orchestrator`-kind peer; falls back to `CONDUCTOR_HUB_TOKEN`. |
