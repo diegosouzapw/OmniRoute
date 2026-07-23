@@ -20,7 +20,8 @@ import { randomUUID } from "node:crypto";
 let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
 
-const CLAUDE_PROFILE = "chrome_146"; // closest supported wreq-js profile (chrome_149 absent in 2.3.1, #5591)
+export const CLAUDE_TLS_BROWSER_MAJOR_VERSION = "146";
+const CLAUDE_PROFILE = `chrome_${CLAUDE_TLS_BROWSER_MAJOR_VERSION}`;
 const DEFAULT_TIMEOUT_MS =
   Number.parseInt(process.env.OMNIROUTE_CLAUDE_TLS_TIMEOUT_MS || "", 10) || 60_000;
 // Grace period added to the binding's wire-level timeout before our JS-level
@@ -246,7 +247,7 @@ export function __setTlsFetchOverrideForTesting(fn: typeof testOverride): void {
 }
 
 /**
- * Make a single HTTP request to claude.ai with a Firefox-like TLS fingerprint.
+ * Make a single HTTP request to claude.ai with the configured Chrome TLS profile.
  *
  * Throws TlsClientUnavailableError if the native binary failed to load.
  */

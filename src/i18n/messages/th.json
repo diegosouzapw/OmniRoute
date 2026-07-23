@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "โปรไฟล์ไคลเอนต์",
     "antigravityClientProfileHint": "เลือกตัวตนไคลเอนต์ Antigravity ที่ OmniRoute จะแสดงต่อ API",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "ระดับ Codex Fast เปิดใช้งานอยู่",
     "tierFast": "เร็ว",
     "antigravityProjectIdLabel": "รหัสโครงการ Google Cloud",

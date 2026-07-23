@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "کلائنٹ پروفائل",
     "antigravityClientProfileHint": "منتخب کریں کہ OmniRoute، API کو کون سی Antigravity کلائنٹ شناخت پیش کرے۔",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Codex Fast ٹیئر فعال ہے",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "گوگل کلاؤڈ پروجیکٹ ID",

@@ -262,14 +262,32 @@ function watchdogTick() {
     limiters.delete(key);
     lastDispatchAt.delete(key);
     limiterLastUsed.delete(key);
-    // Do NOT call limiter.stop() — it permanently rejects future .schedule() calls with
-    // "This limiter has been stopped". In-flight requests still holding a reference to
-    // the old instance cannot be redirected to a new one, causing spurious 502 bursts.
-    // Call disconnect() (not stop()) to release Bottleneck's internal heartbeat timer
-    // without poisoning the queue for any remaining in-flight jobs. This prevents the
-    // heartbeat-timer memory leak observed when many limiters are evicted at runtime.
-    // getLimiter() lazily allocates a fresh Bottleneck on the next call.
-    trackAsyncOperation(limiter.disconnect());
+    // Live incident (log id 1784465227489-a2cbc0): disconnect() releases the
+    // heartbeat timer but does NOT reject the QUEUED jobs already sitting on
+    // this instance — withRateLimit's `limiter.schedule()` for those callers
+    // then just hangs forever (nothing will ever dequeue them; getLimiter()
+    // only hands out a FRESH instance to future callers), leaving the
+    // dispatch orphaned until the outer ~300s per-target timeout eventually
+    // aborts it. Real clients routinely give up (and retry) well before that
+    // — this specific incident's client aborted at ~60s having never reached
+    // the provider at all (queued=2 running=0 executing=0 the entire time).
+    //
+    // stop({ dropWaitingJobs: true }) rejects exactly the RECEIVED/QUEUED/
+    // RUNNING jobs on THIS instance immediately (Bottleneck's own contract —
+    // see node_modules/bottleneck/bottleneck.d.ts StopOptions) so those
+    // withRateLimit() callers reject right away instead of hanging, letting
+    // combo's fallback/cooldown-wait engage within seconds instead of minutes.
+    // This is safe against the previously-documented "spurious 502 bursts"
+    // concern: the wedge condition checked above already requires
+    // RUNNING === 0 && EXECUTING === 0, so no job that's actually progressing
+    // can be caught by this — only ones already confirmed stuck. The instance
+    // is deleted from `limiters` synchronously (above) before this call, so
+    // no future getLimiter() call can ever hand out this now-stopped instance
+    // — the "permanently rejects future .schedule()" behavior stop() has is
+    // therefore moot; nothing will call .schedule() on it again.
+    trackAsyncOperation(
+      limiter.stop({ dropWaitingJobs: true, dropErrorMessage: "rate-limit-watchdog-wedge-reset" })
+    );
   }
 }
 
@@ -582,21 +600,13 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
       const abortPromise = new Promise<never>((_, reject) => {
         const onAbort = () => {
           const reason = signal.reason;
-          // Build a fresh Error rather than mutating `reason` in place: the
-          // default abort reason (when `controller.abort()` is called with no
-          // argument, e.g. modelTestRunner's timeout path) is a native
-          // DOMException, whose `name` is a read-only getter — assigning
-          // `err.name = "AbortError"` on it throws `TypeError: Cannot set
-          // property name of [object DOMException] which has only a getter`,
-          // which then surfaces as an unhandled rejection instead of the
-          // intended "slow"/timeout result.
-          const message =
-            reason instanceof Error
-              ? reason.message
-              : typeof reason === "string"
-                ? reason
-                : "The operation was aborted";
-          const err = new Error(message);
+          // Preserve native Error reasons (including AbortController's
+          // read-only DOMException) instead of mutating or wrapping them.
+          if (reason instanceof Error) {
+            reject(reason);
+            return;
+          }
+          const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
           err.name = "AbortError";
           if (reason !== undefined) {
             (err as Error & { cause?: unknown }).cause = reason;
@@ -642,6 +652,21 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
       ) as Error & { code?: string };
       queueErr.code = "RATE_LIMIT_QUEUE_TIMEOUT";
       throw queueErr;
+    }
+    // The watchdog's stop({ dropWaitingJobs: true }) wedge-recovery (above) rejects
+    // queued jobs with this exact message. Rewrite it the same way as the timeout
+    // case — a clear, OmniRoute-owned, classifiable error — so combo's transient-error
+    // handling (which already treats a 502 as retryable) falls back to the next target
+    // immediately instead of surfacing Bottleneck's internal wording.
+    if (err?.message === "rate-limit-watchdog-wedge-reset") {
+      const wedgeErr = new Error(
+        `Request dropped: the local rate-limit queue for ${model ? `${provider}/${model}` : provider} ` +
+          `was detected as wedged (stalled with nothing executing) and force-reset. This is OmniRoute's ` +
+          `own queue recovering, not an upstream error.`,
+        { cause: err }
+      ) as Error & { code?: string };
+      wedgeErr.code = "RATE_LIMIT_QUEUE_WEDGED";
+      throw wedgeErr;
     }
     throw err;
   }

@@ -69,7 +69,12 @@ const budget = [
   { file: "open-sse/utils/tlsClient.ts", maxAny: 0 },
   { file: "open-sse/utils/proxyFetch.ts", maxAny: 0 },
   { file: "open-sse/utils/error.ts", maxAny: 0 },
-  { file: "open-sse/translator/request/openai-to-gemini.ts", maxAny: 0 },
+  // 2 FALSE POSITIVES: convertOpenAIToolChoiceToGemini() compares the OpenAI
+  // `tool_choice` value against the STRING literal "any" (`choice === "any"` and
+  // `c.type === "any"`) — same tool_choice-detection pattern as the executors/base.ts
+  // entry above. The checker strips comments but not strings, and there are zero
+  // actual TypeScript `any` types in this file. Budget set to the matched count.
+  { file: "open-sse/translator/request/openai-to-gemini.ts", maxAny: 2 },
   { file: "open-sse/translator/request/antigravity-to-openai.ts", maxAny: 0 },
   { file: "open-sse/translator/request/claude-to-openai.ts", maxAny: 0 },
   { file: "open-sse/handlers/audioTranscription.ts", maxAny: 0 },

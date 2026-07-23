@@ -329,7 +329,7 @@ describe("resultMemo — core review hardening", () => {
     assert.equal((got!.body.messages as Array<{ content: string }>)[0].content, "original");
   });
 
-  it("key folds in model + supportsVision (lite image-strip depends on vision capability)", () => {
+  it("key folds in model + supportsVision for lite mode (vision-dependent engine)", () => {
     // Regression: lite strips data:image URLs only when vision is unsupported, so the same
     // (body, config, principal) yields a DIFFERENT result per target. The key MUST include
     // model + supportsVision, else a non-vision target's image-stripped body is served to a
@@ -339,5 +339,47 @@ describe("resultMemo — core review hardening", () => {
     assert.notEqual(k("gpt-4", false), k("gpt-4", true), "supportsVision must change the key");
     assert.notEqual(k("gpt-4", true), k("gemini-2", true), "model must change the key");
     assert.equal(k("gpt-4", true), k("gpt-4", true), "same inputs => same key (deterministic)");
+  });
+
+  // #8137: model-independent memo keys for non-vision-dependent deterministic engines.
+  // The combo retry loop re-runs compression for every target even though the body and
+  // config are identical — only the model changes. For engines that don't depend on vision
+  // (caveman, rtk, stacked without lite), the compression result is identical regardless of
+  // model, so including model in the key defeats memoization and wastes CPU on re-compression.
+  it("#8137: rtk mode produces SAME key across different models (model-independent)", () => {
+    const k = (model?: string) => makeMemoKey(baseBody, "rtk", memoConfig, "p1", model);
+    assert.equal(k("gpt-4"), k("claude-3"), "rtk key must be model-independent");
+    assert.equal(k("gpt-4"), k("gemini-pro"), "rtk key must be model-independent");
+    assert.equal(k(), k("any-model"), "rtk key must be model-independent even vs undefined");
+  });
+
+  it("#8137: caveman mode produces SAME key across different models", () => {
+    // caveman is deterministic and model-independent (no image/vision logic)
+    const k = (model?: string) => makeMemoKey(baseBody, "caveman" as never, memoConfig, "p1", model);
+    assert.equal(k("gpt-4"), k("claude-3"), "caveman key must be model-independent");
+  });
+
+  it("#8137: stacked pipeline WITHOUT lite produces SAME key across different models", () => {
+    const cfg = {
+      ...memoConfig,
+      stackedPipeline: [
+        { engine: "rtk" as const, intensity: "standard" as const },
+        { engine: "caveman" as const, intensity: "full" as const },
+      ],
+    };
+    const k = (model?: string) => makeMemoKey(baseBody, "stacked", cfg, "p1", model);
+    assert.equal(k("gpt-4"), k("claude-3"), "stacked-without-lite key must be model-independent");
+  });
+
+  it("#8137: stacked pipeline WITH lite produces DIFFERENT keys across different models", () => {
+    const cfg = {
+      ...memoConfig,
+      stackedPipeline: [
+        { engine: "lite" as const, intensity: "standard" as const },
+        { engine: "caveman" as const, intensity: "full" as const },
+      ],
+    };
+    const k = (model?: string) => makeMemoKey(baseBody, "stacked", cfg, "p1", model, false);
+    assert.notEqual(k("gpt-4"), k("claude-3"), "stacked-with-lite key must be model-dependent");
   });
 });
