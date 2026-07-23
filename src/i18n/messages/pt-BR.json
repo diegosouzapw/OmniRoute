@@ -12116,6 +12116,25 @@
     "cancelConfirmMessage": "O hub aborta a execução no runner. Não dá para desfazer.",
     "cancelFailed": "O hub recusou o cancelamento",
     "close": "Fechar",
-    "error": "Erro"
+    "error": "Erro",
+    "faroTitle": "Faro — porta-voz da frota",
+    "faroSubtitle": "Chat e voz, ancorados nos eventos reais da frota. Comandos destrutivos sempre pedem confirmação.",
+    "faroEmpty": "Pergunte sobre a frota — ex.: \"como está a frota?\"",
+    "faroPending": "O Faro está pedindo confirmação",
+    "faroPlaceholder": "fale com o Faro…",
+    "faroSend": "enviar",
+    "faroOffline": "Faro (porta-voz) fora do ar",
+    "yes": "Sim",
+    "no": "Não",
+    "pushToTalk": "Segure para falar",
+    "speakAnswers": "falar as respostas",
+    "voiceModels": "Modelos de voz (provider/model deste OmniRoute)",
+    "voiceIdle": "falar",
+    "voiceListening": "ouvindo…",
+    "voiceThinking": "pensando…",
+    "voiceSpeaking": "falando…",
+    "sttFailed": "Transcrição falhou (confira modelo/provider de STT)",
+    "ttsFailed": "Síntese de voz falhou (confira modelo/provider de TTS)",
+    "micDenied": "Microfone indisponível ou permissão negada"
   }
 }

@@ -12116,6 +12116,25 @@
     "cancelConfirmMessage": "The hub will abort the execution on the runner. This cannot be undone.",
     "cancelFailed": "The hub refused the cancellation",
     "close": "Close",
-    "error": "Error"
+    "error": "Error",
+    "faroTitle": "Faro — fleet spokesperson",
+    "faroSubtitle": "Chat and voice, anchored in real fleet events. Destructive commands always ask for confirmation.",
+    "faroEmpty": "Ask about the fleet — e.g. \"how is the fleet?\"",
+    "faroPending": "Faro is asking for confirmation",
+    "faroPlaceholder": "talk to Faro…",
+    "faroSend": "send",
+    "faroOffline": "Faro (spokesperson) is offline",
+    "yes": "Yes",
+    "no": "No",
+    "pushToTalk": "Hold to talk",
+    "speakAnswers": "speak answers",
+    "voiceModels": "Voice models (provider/model of this OmniRoute)",
+    "voiceIdle": "talk",
+    "voiceListening": "listening…",
+    "voiceThinking": "thinking…",
+    "voiceSpeaking": "speaking…",
+    "sttFailed": "Transcription failed (check the STT model/provider)",
+    "ttsFailed": "Speech synthesis failed (check the TTS model/provider)",
+    "micDenied": "Microphone unavailable or permission denied"
   }
 }
