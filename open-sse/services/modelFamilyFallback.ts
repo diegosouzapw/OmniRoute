@@ -175,9 +175,6 @@ export function getNextFamilyFallback(
       const dotVariant2 = candidate.replace(/-(\d+)-(\d+)-/, "-$1.$2-");
       if (supportedIds.has(dotVariant)) resolvedCandidate = dotVariant;
       else if (supportedIds.has(dotVariant2)) resolvedCandidate = dotVariant2;
-      // #8134: Skip candidates the provider doesn't support at all — avoids
-      // wasted round-trips on providers with a limited model catalog (e.g. GitHub).
-      else continue;
     }
     const fullCandidate = `${prefix}${resolvedCandidate}`;
     if (!triedModels.has(fullCandidate)) {
