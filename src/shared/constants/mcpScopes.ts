@@ -41,6 +41,7 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_check_quota: ["read:quota"],
   omniroute_route_request: ["execute:completions"],
   omniroute_web_search: ["execute:search"],
+  omniroute_web_fetch: ["execute:search"],
   omniroute_cost_report: ["read:usage"],
   omniroute_list_models_catalog: ["read:models"],
 
@@ -62,70 +63,22 @@ export const MCP_TOOL_SCOPES: Record<string, readonly McpScope[]> = {
   omniroute_set_compression_engine: ["write:compression"],
   omniroute_list_compression_combos: ["read:compression"],
   omniroute_compression_combo_stats: ["read:compression"],
+  omniroute_ccr_store: ["write:compression"],
+  omniroute_ccr_retrieve: ["read:compression"],
+  omniroute_ccr_inspect: ["read:compression"],
+  omniroute_ccr_list: ["read:compression"],
+  omniroute_ccr_delete: ["write:compression"],
+  omniroute_ccr_stats: ["read:compression"],
   omniroute_oneproxy_fetch: ["read:proxies"],
   omniroute_oneproxy_rotate: ["read:proxies"],
   omniroute_oneproxy_stats: ["read:proxies"],
+
+  // Web-session pool observability (read) + lifecycle (write)
+  omniroute_pool_status: ["read:health"],
+  omniroute_pool_sessions: ["read:health"],
+  omniroute_pool_health: ["read:health"],
+  omniroute_pool_reset: ["write:resilience"],
+  omniroute_pool_warm: ["write:resilience"],
+  // Stealth browser pool observability (#3368 PR7)
+  omniroute_browser_pool_status: ["read:health"],
 } as const;
-
-// ============ Scope Groups ============
-
-/** Preset scope bundles for common use cases */
-export const MCP_SCOPE_PRESETS = {
-  /** Read-only access to all health, combo, quota, and usage data */
-  readonly: [
-    "read:health",
-    "read:combos",
-    "read:quota",
-    "read:usage",
-    "read:models",
-    "read:cache",
-    "read:compression",
-  ] as const satisfies readonly McpScope[],
-
-  /** Full access including writes and execution */
-  full: [...MCP_SCOPE_LIST] as McpScope[],
-
-  /** Monitoring only — health and metrics */
-  monitor: [
-    "read:health",
-    "read:quota",
-    "read:usage",
-    "read:cache",
-    "read:compression",
-  ] as const satisfies readonly McpScope[],
-
-  /** Agent — can execute completions and read state */
-  agent: [
-    "read:health",
-    "read:combos",
-    "read:quota",
-    "read:usage",
-    "read:models",
-    "read:cache",
-    "read:compression",
-    "execute:completions",
-    "execute:search",
-  ] as const satisfies readonly McpScope[],
-} as const;
-
-// ============ Helpers ============
-
-/**
- * Check if a set of granted scopes satisfies the required scopes for a tool.
- */
-export function hasRequiredScopes(grantedScopes: readonly string[], toolName: string): boolean {
-  const required = MCP_TOOL_SCOPES[toolName];
-  if (!required) return false;
-  const granted = new Set(grantedScopes);
-  return required.every((scope) => granted.has(scope));
-}
-
-/**
- * Get the list of missing scopes for a tool given granted scopes.
- */
-export function getMissingScopes(grantedScopes: readonly string[], toolName: string): string[] {
-  const required = MCP_TOOL_SCOPES[toolName];
-  if (!required) return [];
-  const granted = new Set(grantedScopes);
-  return required.filter((scope) => !granted.has(scope));
-}

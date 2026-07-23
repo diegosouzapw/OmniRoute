@@ -1,0 +1,20 @@
+%% MCP Server tool inventory by category
+%% Reflects: open-sse/mcp-server/ — TOTAL_MCP_TOOL_COUNT in server.ts (countUniqueMcpTools)
+%% Unique contributions: MCP_TOOLS 42 + memory 3 + skill 4 + githubSkill 3 + pool 6
+%%   + gamification 8 + plugin 8 + notion 6 + obsidian 22 + compression 2 = 104
+%%   (agentSkillTools fully overlaps the skill registry; 11 of the 13 compression
+%%    tools live in the base registry — duplicates counted once)
+%% Regenerate the SVG with: npm run docs:render-diagrams
+%% v3.8.49
+flowchart LR
+  MCP["MCP Server<br/>104 tools total"]
+  MCP --> Core["Core (42)<br/>routing, cache, compression,<br/>quota, proxy, tunnels, search, web_fetch"]
+  MCP --> Mem["Memory (3)<br/>memory_search, memory_save,<br/>memory_delete"]
+  MCP --> Skl["Skills (4)<br/>skill_invoke, skill_list,<br/>skill_diagnose, skill_uninstall<br/>+ agent-skill cli-registry discovery"]
+  MCP --> GSkl["GitHub-Skills (3)<br/>marketplace search,<br/>install, update"]
+  MCP --> Pool["Pool (6)<br/>pool_status, pool_sessions, pool_reset,<br/>pool_warm, pool_health, browser_pool_status"]
+  MCP --> Gam["Gamification (8)"]
+  MCP --> Plg["Plugins (8)"]
+  MCP --> Notion["Notion (6)<br/>search, get_page, query_database,<br/>get_database, list_block_children,<br/>append_blocks"]
+  MCP --> Obs["Obsidian (22)<br/>vault read/write, search,<br/>frontmatter, daily notes, …"]
+  MCP --> Cmp["Compression Studios (+2)<br/>beyond the 11 in Core"]

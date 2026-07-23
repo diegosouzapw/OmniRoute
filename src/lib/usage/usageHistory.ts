@@ -9,7 +9,30 @@
 
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
+import {
+  resolveOrphanedUsageAccountIdentity,
+  resolveUsageAccountIdentity,
+} from "./accountIdentity";
+import {
+  accumulateLatencySample,
+  asRecord,
+  buildLatencyStatsEntry,
+  createLatencyBucket,
+  normalizeServiceTier,
+  resolvePositiveOption,
+  toNumber,
+  toStringOrNull,
+  truncatePendingPreview,
+} from "./usageHistory/helpers";
+import type { ModelLatencyStatsEntry } from "./usageHistory/helpers";
+import {
+  clearCompletedDetails,
+  maybeEnrichCompletedDetail,
+  scheduleCompletedDetailCleanup,
+  storeCompletedDetail,
+} from "./completedRequestDetails";
 import { shouldPersistToDisk } from "./migrations";
+import { emitUsageRecorded } from "./usageEvents";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -18,16 +41,22 @@ import {
   getReasoningTokens,
 } from "./tokenAccounting";
 
-type JsonRecord = Record<string, unknown>;
-type PendingRequestMetadata = {
+export type PendingRequestMetadata = {
   clientEndpoint?: string | null;
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  providerResponse?: unknown;
+  clientResponse?: unknown;
+  status?: number | null;
+  error?: string | null;
+  errorCode?: string | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
+  correlationId?: string | null;
 };
-type PendingRequestDetail = {
+export type PendingRequestDetail = {
+  id: string;
   model: string;
   provider: string;
   connectionId: string | null;
@@ -36,88 +65,22 @@ type PendingRequestDetail = {
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  providerResponse?: unknown;
+  clientResponse?: unknown;
+  status?: number | null;
+  error?: string | null;
+  errorCode?: string | null;
+  completedAt?: number | null;
+  durationMs?: number | null;
   stage?: string | null;
   stageUpdatedAt?: number | null;
+  correlationId?: string | null;
+  streamChunks?: {
+    provider?: string[];
+    openai?: string[];
+    client?: string[];
+  } | null;
 };
-
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toStringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-function normalizeServiceTier(value: unknown): string {
-  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
-  if (tier === "priority" || tier === "fast") return "priority";
-  if (tier === "flex") return "flex";
-  return "standard";
-}
-
-function toNumber(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function percentile(sortedValues: number[], p: number): number {
-  if (sortedValues.length === 0) return 0;
-  if (sortedValues.length === 1) return sortedValues[0];
-  const bounded = Math.max(0, Math.min(1, p));
-  const idx = Math.round((sortedValues.length - 1) * bounded);
-  return sortedValues[idx] ?? sortedValues[sortedValues.length - 1];
-}
-
-function stdDev(values: number[], avg: number): number {
-  if (values.length <= 1) return 0;
-  const variance = values.reduce((acc, v) => acc + (v - avg) ** 2, 0) / values.length;
-  return Math.sqrt(Math.max(0, variance));
-}
-
-const MAX_PREVIEW_DEPTH = 6;
-const MAX_PREVIEW_STRING = 1200;
-const MAX_PREVIEW_ARRAY_ITEMS = 12;
-const MAX_PREVIEW_OBJECT_KEYS = 24;
-
-function truncatePendingPreview(value: unknown, depth = 0): unknown {
-  if (depth >= MAX_PREVIEW_DEPTH) {
-    return "[TRUNCATED_DEPTH]";
-  }
-
-  if (typeof value === "string") {
-    return value.length > MAX_PREVIEW_STRING ? `${value.slice(0, MAX_PREVIEW_STRING)}...` : value;
-  }
-
-  if (Array.isArray(value)) {
-    const preview = value
-      .slice(0, MAX_PREVIEW_ARRAY_ITEMS)
-      .map((item) => truncatePendingPreview(item, depth + 1));
-    if (value.length > MAX_PREVIEW_ARRAY_ITEMS) {
-      preview.push({ _truncatedItems: value.length - MAX_PREVIEW_ARRAY_ITEMS });
-    }
-    return preview;
-  }
-
-  if (!value || typeof value !== "object") {
-    return value;
-  }
-
-  const entries = Object.entries(value as JsonRecord);
-  const truncatedEntries = entries
-    .slice(0, MAX_PREVIEW_OBJECT_KEYS)
-    .map(([key, entryValue]) => [key, truncatePendingPreview(entryValue, depth + 1)]);
-  const preview = Object.fromEntries(truncatedEntries);
-
-  if (entries.length > MAX_PREVIEW_OBJECT_KEYS) {
-    preview._truncatedKeys = entries.length - MAX_PREVIEW_OBJECT_KEYS;
-  }
-
-  return preview;
-}
 
 function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingRequestMetadata {
   if (!metadata) return {};
@@ -148,6 +111,29 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
       protectPayloadForLog(metadata.providerRequest)
     );
   }
+  if (metadata.providerResponse !== undefined) {
+    normalized.providerResponse = truncatePendingPreview(
+      protectPayloadForLog(metadata.providerResponse)
+    );
+  }
+  if (metadata.clientResponse !== undefined) {
+    normalized.clientResponse = truncatePendingPreview(
+      protectPayloadForLog(metadata.clientResponse)
+    );
+  }
+  if (metadata.status !== undefined) {
+    const status = Number(metadata.status);
+    normalized.status = Number.isFinite(status) ? status : null;
+  }
+  if (metadata.error !== undefined) {
+    normalized.error = toStringOrNull(metadata.error) || null;
+  }
+  if (metadata.errorCode !== undefined) {
+    normalized.errorCode = toStringOrNull(metadata.errorCode) || null;
+  }
+  if (metadata.correlationId !== undefined) {
+    normalized.correlationId = toStringOrNull(metadata.correlationId) || null;
+  }
 
   return normalized;
 }
@@ -157,12 +143,87 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
 const pendingRequests: {
   byModel: Record<string, number>;
   byAccount: Record<string, Record<string, number>>;
-  details: Record<string, Record<string, PendingRequestDetail>>;
+  details: Record<string, Record<string, PendingRequestDetail[]>>;
 } = {
   byModel: Object.create(null) as Record<string, number>,
   byAccount: Object.create(null) as Record<string, Record<string, number>>,
-  details: Object.create(null) as Record<string, Record<string, PendingRequestDetail>>,
+  details: Object.create(null) as Record<string, Record<string, PendingRequestDetail[]>>,
 };
+
+/**
+ * O(1) ID → PendingRequestDetail lookup map.
+ * Populated when a detail is created and cleaned up when it is removed/finalized.
+ */
+const pendingById = new Map<string, PendingRequestDetail>();
+
+const DEFAULT_MAX_PENDING_REQUEST_AGE_MS = 60 * 60 * 1000;
+const MAX_PENDING_DETAILS = 5000;
+const PENDING_SWEEP_INTERVAL_MS = 5 * 60 * 1000;
+let _pendingSweepTimer: ReturnType<typeof setInterval> | null = null;
+
+export function getMaxPendingRequestAgeMs(
+  rawValue: string | undefined = process.env.MAX_PENDING_REQUEST_AGE_MS
+): number {
+  const parsed = Number.parseInt(rawValue ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_PENDING_REQUEST_AGE_MS;
+}
+
+function ensurePendingSweepTimer(): void {
+  if (_pendingSweepTimer || typeof setInterval !== "function") return;
+  _pendingSweepTimer = setInterval(() => {
+    try {
+      sweepStalePendingRequests();
+    } catch {
+      /* never let the reaper throw on the timer thread */
+    }
+  }, PENDING_SWEEP_INTERVAL_MS);
+  // Don't keep the process alive just for the reaper.
+  (_pendingSweepTimer as { unref?: () => void })?.unref?.();
+}
+
+/**
+ * Evicts orphaned pending-request details older than `maxAgeMs` and enforces a hard size
+ * cap. Mirrors the normal removal path (decrement counters + cleanup detail buckets) so the
+ * dashboard's pending counts self-heal. Exported for deterministic testing.
+ * @returns number of entries removed.
+ */
+export function sweepStalePendingRequests(
+  now: number = Date.now(),
+  maxAgeMs: number = getMaxPendingRequestAgeMs()
+): number {
+  let removed = 0;
+
+  const remove = (detail: PendingRequestDetail): void => {
+    const modelKey = detail.provider ? `${detail.model} (${detail.provider})` : detail.model;
+    pendingById.delete(detail.id);
+    if (detail.connectionId && isSafeKey(modelKey)) {
+      const bucket = pendingRequests.details[detail.connectionId]?.[modelKey];
+      if (bucket) {
+        const index = bucket.findIndex((entry) => entry.id === detail.id);
+        if (index >= 0) bucket.splice(index, 1);
+      }
+      cleanupPendingDetails(detail.connectionId, modelKey);
+      decrementPendingCounters(modelKey, detail.connectionId);
+    }
+    removed++;
+  };
+
+  for (const detail of pendingById.values()) {
+    if (now - detail.startedAt > maxAgeMs) remove(detail);
+  }
+
+  // Hard backstop: if entries are still piling up faster than they age out, drop the oldest
+  // beyond the cap.
+  if (pendingById.size > MAX_PENDING_DETAILS) {
+    const overflow = pendingById.size - MAX_PENDING_DETAILS;
+    const oldest = [...pendingById.values()]
+      .sort((a, b) => a.startedAt - b.startedAt)
+      .slice(0, overflow);
+    for (const detail of oldest) remove(detail);
+  }
+
+  return removed;
+}
 
 /** Prototype-pollution denylist — prevents crafted model/provider names from mutating Object.prototype. */
 const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
@@ -184,8 +245,11 @@ export function trackPendingRequest(
   if (!isSafeKey(modelKey)) return;
   const normalizedMetadata = normalizePendingMetadata(metadata);
 
+  // Ensure the orphaned-pending reaper is running once pending tracking is in use.
+  if (started) ensurePendingSweepTimer();
+
   // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
-  if (!Object.prototype.hasOwnProperty.call(pendingRequests.byModel, modelKey)) {
+  if (!Object.hasOwn(pendingRequests.byModel, modelKey)) {
     pendingRequests.byModel[modelKey] = 0;
   }
   pendingRequests.byModel[modelKey] = Math.max(
@@ -194,16 +258,16 @@ export function trackPendingRequest(
   );
 
   if (connectionId) {
-    if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount, connectionId)) {
+    if (!Object.hasOwn(pendingRequests.byAccount, connectionId)) {
       pendingRequests.byAccount[connectionId] = Object.create(null) as Record<string, number>;
     }
-    if (!Object.prototype.hasOwnProperty.call(pendingRequests.details, connectionId)) {
+    if (!Object.hasOwn(pendingRequests.details, connectionId)) {
       pendingRequests.details[connectionId] = Object.create(null) as Record<
         string,
-        PendingRequestDetail
+        PendingRequestDetail[]
       >;
     }
-    if (!Object.prototype.hasOwnProperty.call(pendingRequests.byAccount[connectionId], modelKey)) {
+    if (!Object.hasOwn(pendingRequests.byAccount[connectionId], modelKey)) {
       pendingRequests.byAccount[connectionId][modelKey] = 0;
     }
     pendingRequests.byAccount[connectionId][modelKey] = Math.max(
@@ -214,24 +278,33 @@ export function trackPendingRequest(
     const nextCount = pendingRequests.byAccount[connectionId][modelKey];
     if (started && nextCount > 0) {
       if (!pendingRequests.details[connectionId][modelKey]) {
-        pendingRequests.details[connectionId][modelKey] = {
-          model,
-          provider,
-          connectionId,
-          startedAt: Date.now(),
-          ...normalizedMetadata,
-        };
-      } else {
-        const merged = {
-          ...pendingRequests.details[connectionId][modelKey],
-          ...normalizedMetadata,
-        };
-        pendingRequests.details[connectionId][modelKey] = merged;
+        pendingRequests.details[connectionId][modelKey] = [];
       }
-    } else if (!started && nextCount === 0) {
-      delete pendingRequests.details[connectionId][modelKey];
-      if (Object.keys(pendingRequests.details[connectionId]).length === 0) {
-        delete pendingRequests.details[connectionId];
+      const now = Date.now();
+      const newDetail = {
+        // crypto RNG (not Math.random) to satisfy CodeQL js/insecure-randomness —
+        // this pending-request id flows into attempt logging; it's a correlation
+        // id, not a security secret.
+        id: `${now}-${globalThis.crypto.randomUUID().slice(0, 6)}`,
+        model,
+        provider,
+        connectionId,
+        startedAt: now,
+        ...normalizedMetadata,
+      };
+      pendingRequests.details[connectionId][modelKey].push(newDetail);
+      pendingById.set(newDetail.id, newDetail);
+      return newDetail.id;
+    } else if (!started && nextCount >= 0) {
+      if (pendingRequests.details[connectionId]?.[modelKey]?.length) {
+        const removed = pendingRequests.details[connectionId][modelKey].shift();
+        if (removed) pendingById.delete(removed.id);
+      }
+      if (!pendingRequests.details[connectionId]?.[modelKey]?.length) {
+        delete pendingRequests.details[connectionId]?.[modelKey];
+        if (Object.keys(pendingRequests.details[connectionId] || {}).length === 0) {
+          delete pendingRequests.details[connectionId];
+        }
       }
     }
   }
@@ -246,18 +319,165 @@ export function updatePendingRequest(
   if (!connectionId) return;
   const modelKey = provider ? `${model} (${provider})` : model;
   if (!isSafeKey(modelKey)) return;
-  const existing = pendingRequests.details[connectionId]?.[modelKey];
-  if (!existing) return;
-  const merged = { ...existing, ...normalizePendingMetadata(metadata) };
-  pendingRequests.details[connectionId][modelKey] = merged;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length) return;
+  const lastIdx = details.length - 1;
+  Object.assign(details[lastIdx], normalizePendingMetadata(metadata));
+}
+
+export function updatePendingRequestById(id: string | null, metadata: PendingRequestMetadata) {
+  const detail = id ? pendingById.get(id) : null;
+  if (!detail) return false;
+  Object.assign(detail, normalizePendingMetadata(metadata));
+  return true;
+}
+
+/**
+ * Update the first (oldest) pending request detail and then remove it.
+ * Unlike updatePendingRequest which targets the last entry, this is designed
+ * for the non-streaming completion path where the oldest entry must be finalized
+ * before trackPendingRequest(false) removes it from the FIFO queue.
+ */
+function decrementPendingCounters(modelKey: string, connectionId: string) {
+  if (Object.hasOwn(pendingRequests.byModel, modelKey)) {
+    pendingRequests.byModel[modelKey] = Math.max(0, pendingRequests.byModel[modelKey] - 1);
+    if (pendingRequests.byModel[modelKey] === 0) delete pendingRequests.byModel[modelKey];
+  }
+  if (Object.hasOwn(pendingRequests.byAccount, connectionId)) {
+    if (Object.hasOwn(pendingRequests.byAccount[connectionId], modelKey)) {
+      pendingRequests.byAccount[connectionId][modelKey] = Math.max(
+        0,
+        pendingRequests.byAccount[connectionId][modelKey] - 1
+      );
+      if (pendingRequests.byAccount[connectionId][modelKey] === 0) {
+        delete pendingRequests.byAccount[connectionId][modelKey];
+      }
+    }
+    if (
+      !pendingRequests.byAccount[connectionId] ||
+      Object.keys(pendingRequests.byAccount[connectionId]).length === 0
+    ) {
+      delete pendingRequests.byAccount[connectionId];
+    }
+  }
+}
+
+function cleanupPendingDetails(connectionId: string, modelKey: string) {
+  if (!pendingRequests.details[connectionId]?.[modelKey]?.length) {
+    delete pendingRequests.details[connectionId]?.[modelKey];
+  }
+  if (
+    !pendingRequests.details[connectionId] ||
+    Object.keys(pendingRequests.details[connectionId]).length === 0
+  ) {
+    delete pendingRequests.details[connectionId];
+  }
+}
+
+function finalizePendingDetailAt(
+  connectionId: string,
+  modelKey: string,
+  index: number,
+  metadata: PendingRequestMetadata
+): string | null {
+  if (!isSafeKey(modelKey)) return null;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length || index < 0 || index >= details.length) return null;
+
+  const completedAt = Date.now();
+  const updated = {
+    ...details[index],
+    ...normalizePendingMetadata(metadata),
+    completedAt,
+    durationMs: Math.max(0, completedAt - details[index].startedAt),
+  };
+  storeCompletedDetail(updated);
+  maybeEnrichCompletedDetail(updated, connectionId);
+  scheduleCompletedDetailCleanup(updated.id);
+
+  details.splice(index, 1);
+  pendingById.delete(updated.id);
+  cleanupPendingDetails(connectionId, modelKey);
+  decrementPendingCounters(modelKey, connectionId);
+  return updated.id;
+}
+
+export function finalizePendingRequest(
+  model: string,
+  provider: string,
+  connectionId: string | null,
+  metadata: PendingRequestMetadata
+) {
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  finalizePendingDetailAt(connectionId, modelKey, 0, metadata);
+}
+
+export function finalizePendingRequestById(
+  id: string | null | undefined,
+  metadata: PendingRequestMetadata
+): boolean {
+  if (!id) return false;
+  const detail = pendingById.get(id);
+  if (!detail?.connectionId) return false;
+  const modelKey = detail.provider ? `${detail.model} (${detail.provider})` : detail.model;
+  if (!isSafeKey(modelKey)) return false;
+  const details = pendingRequests.details[detail.connectionId]?.[modelKey];
+  const index = details?.findIndex((entry) => entry.id === id) ?? -1;
+  return finalizePendingDetailAt(detail.connectionId, modelKey, index, metadata) !== null;
+}
+
+/**
+ * Finalize the most recent (last) pending request for the given model/provider/connection.
+ * This remains as a compatibility fallback for callers that do not have a request id.
+ */
+export function finalizeMostRecentPendingRequest(
+  model: string,
+  provider: string,
+  connectionId: string | null,
+  metadata: PendingRequestMetadata
+) {
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length) return;
+  finalizePendingDetailAt(connectionId, modelKey, details.length - 1, metadata);
+}
+
+export { getCompletedDetails } from "./completedRequestDetails";
+
+export function updatePendingRequestStreamChunks(
+  model: string,
+  provider: string,
+  connectionId: string | null,
+  streamChunks: {
+    provider?: string[];
+    openai?: string[];
+    client?: string[];
+  } | null
+) {
+  if (!connectionId) return;
+  const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
+  const details = pendingRequests.details[connectionId]?.[modelKey];
+  if (!details?.length) return;
+  details[0].streamChunks = streamChunks;
 }
 
 /**
  * Get the pending requests state (for usageStats).
- * @returns {{ byModel: Object, byAccount: Object }}
+ * @returns {{ byModel: Record<string, number>, byAccount: Record<string, Record<string, number>> }}
  */
-export function getPendingRequests() {
+export function getPendingRequests(): {
+  byModel: Record<string, number>;
+  byAccount: Record<string, Record<string, number>>;
+} {
   return pendingRequests;
+}
+
+export function getPendingById(): Map<string, PendingRequestDetail> {
+  return pendingById;
 }
 
 /**
@@ -269,8 +489,10 @@ export function clearPendingRequests() {
   pendingRequests.byAccount = Object.create(null) as Record<string, Record<string, number>>;
   pendingRequests.details = Object.create(null) as Record<
     string,
-    Record<string, PendingRequestDetail>
+    Record<string, PendingRequestDetail[]>
   >;
+  pendingById.clear();
+  clearCompletedDetails();
 }
 
 // ──────────────── getUsageDb Shim (backward compat) ────────────────
@@ -338,7 +560,8 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
   });
 
   // Provide next cursor if we hit the limit (more rows exist)
-  const nextCursor = rows.length === maxRows ? (rows[rows.length - 1] as any)?.timestamp : null;
+  const nextCursor =
+    rows.length === maxRows ? toStringOrNull(asRecord(rows[rows.length - 1]).timestamp) : null;
 
   return { data: { history, nextCursor } };
 }
@@ -346,9 +569,49 @@ export async function getUsageDb(sinceIso?: string | null, limit?: number, curso
 // ──────────────── Save Request Usage ────────────────
 
 /**
+ * DB-entity-mapped shape accepted by {@link saveRequestUsage}, mirroring the
+ * `usage_history` table columns 1:1 (see `src/lib/db/migrations/`). Convention
+ * (#3512): every `usage_history` writer should type its entry against this
+ * interface instead of an inline anonymous object or `any` — call sites are
+ * intentionally permissive (fields optional/nullable) because rows are built
+ * incrementally across several extraction points (chatCore success/failure
+ * paths, rejected-request accounting, the Codex Responses WS bridge).
+ *
+ * `tokens` stays `unknown` on purpose: callers pass either the raw
+ * provider-shaped usage object (OpenAI `prompt_tokens`/`completion_tokens`,
+ * Anthropic `input_tokens`/`cache_read_input_tokens`, …) or the already
+ * normalized `{ input, output, cacheRead, cacheCreation, reasoning }` shape —
+ * `getLoggedInputTokens`/`getLoggedOutputTokens`/`getPromptCache*Tokens` in
+ * `./tokenAccounting` accept both and extract the right fields.
+ */
+export interface UsageEntry {
+  provider?: string | null;
+  model?: string | null;
+  /** Raw or normalized token usage — see the interface doc above. */
+  tokens?: unknown;
+  status?: string | null;
+  success?: boolean;
+  latencyMs?: number;
+  timeToFirstTokenMs?: number;
+  errorCode?: string | null;
+  /** ISO timestamp; defaults to `new Date().toISOString()` when omitted. */
+  timestamp?: string;
+  connectionId?: string | null;
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+  serviceTier?: string | null;
+  /** @deprecated legacy snake_case fallback, read only if `serviceTier` is unset. */
+  service_tier?: string | null;
+  comboStrategy?: string | null;
+  /** @deprecated legacy snake_case fallback, read only if `comboStrategy` is unset. */
+  combo_strategy?: string | null;
+  endpoint?: string | null;
+}
+
+/**
  * Save request usage entry to SQLite.
  */
-export async function saveRequestUsage(entry: any) {
+export async function saveRequestUsage(entry: UsageEntry) {
   if (!shouldPersistToDisk) return;
 
   try {
@@ -356,37 +619,105 @@ export async function saveRequestUsage(entry: any) {
     const timestamp = entry.timestamp || new Date().toISOString();
     const serviceTier = normalizeServiceTier(entry.serviceTier ?? entry.service_tier);
 
-    db.prepare(
+    const tokensInput = getLoggedInputTokens(entry.tokens);
+    const tokensOutput = getLoggedOutputTokens(entry.tokens);
+    const connection = entry.connectionId
+      ? (db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(entry.connectionId) as
+          Record<string, unknown> | undefined)
+      : undefined;
+    const accountIdentity = connection
+      ? resolveUsageAccountIdentity(connection)
+      : resolveOrphanedUsageAccountIdentity(entry.provider, entry.connectionId);
+
+    // Dedup guard: skip INSERT when an identical row already exists in the same
+    // second. This prevents double-counting when onRequestSuccess fires more
+    // than once (e.g. combo routing calling the callback from both the
+    // streaming and non-streaming paths for the same underlying request).
+    // Keyed on the natural identity of a request: timestamp + provider + model
+    // + connectionId + apiKeyId + token counts. If only the endpoint is missing
+    // on the existing row, fill it in rather than inserting a duplicate.
+    let inserted = false;
+
+    db.transaction(() => {
+      const existing = db
+        .prepare(
+          `SELECT id, endpoint FROM usage_history
+           WHERE timestamp = ?
+             AND COALESCE(provider, '')     = COALESCE(?, '')
+             AND COALESCE(model, '')        = COALESCE(?, '')
+             AND COALESCE(connection_id, '') = COALESCE(?, '')
+             AND COALESCE(api_key_id, '')   = COALESCE(?, '')
+             AND tokens_input  = ?
+             AND tokens_output = ?
+           ORDER BY id DESC LIMIT 1`
+        )
+        .get(
+          timestamp,
+          entry.provider || null,
+          entry.model || null,
+          entry.connectionId || null,
+          entry.apiKeyId || null,
+          tokensInput,
+          tokensOutput
+        ) as { id: number; endpoint: string | null } | undefined;
+
+      if (existing) {
+        // Back-fill endpoint if the original row missed it.
+        if (!existing.endpoint && entry.endpoint) {
+          db.prepare(`UPDATE usage_history SET endpoint = ? WHERE id = ?`).run(
+            entry.endpoint,
+            existing.id
+          );
+        }
+        return; // duplicate — do not insert
+      }
+
+      db.prepare(
+        `
+        INSERT INTO usage_history (provider, model, connection_id, account_key, account_label,
+          account_label_priority, api_key_id, api_key_name, tokens_input, tokens_output,
+          tokens_cache_read, tokens_cache_creation, tokens_reasoning, service_tier, status, success,
+          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
-      INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
-        tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-        service_tier, status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `
-    ).run(
-      entry.provider || null,
-      entry.model || null,
-      entry.connectionId || null,
-      entry.apiKeyId || null,
-      entry.apiKeyName || null,
-      getLoggedInputTokens(entry.tokens),
-      getLoggedOutputTokens(entry.tokens),
-      getPromptCacheReadTokens(entry.tokens),
-      getPromptCacheCreationTokens(entry.tokens),
-      getReasoningTokens(entry.tokens),
-      serviceTier,
-      entry.status || null,
-      entry.success === false ? 0 : 1,
-      Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
-      Number.isFinite(Number(entry.timeToFirstTokenMs))
-        ? Number(entry.timeToFirstTokenMs)
-        : Number.isFinite(Number(entry.latencyMs))
-          ? Number(entry.latencyMs)
-          : 0,
-      entry.errorCode || null,
-      entry.comboStrategy || entry.combo_strategy || null,
-      timestamp
-    );
+      ).run(
+        entry.provider || null,
+        entry.model || null,
+        entry.connectionId || null,
+        accountIdentity.accountKey,
+        accountIdentity.accountLabel,
+        accountIdentity.accountLabelPriority,
+        entry.apiKeyId || null,
+        entry.apiKeyName || null,
+        tokensInput,
+        tokensOutput,
+        getPromptCacheReadTokens(entry.tokens),
+        getPromptCacheCreationTokens(entry.tokens),
+        getReasoningTokens(entry.tokens),
+        serviceTier,
+        entry.status || null,
+        entry.success === false ? 0 : 1,
+        Number.isFinite(Number(entry.latencyMs)) ? Number(entry.latencyMs) : 0,
+        Number.isFinite(Number(entry.timeToFirstTokenMs))
+          ? Number(entry.timeToFirstTokenMs)
+          : Number.isFinite(Number(entry.latencyMs))
+            ? Number(entry.latencyMs)
+            : 0,
+        entry.errorCode || null,
+        entry.comboStrategy || entry.combo_strategy || null,
+        entry.endpoint || null,
+        timestamp
+      );
+
+      inserted = true;
+    })();
+
+    // Decoupled via the event bus so usageHistory never imports providerLimits
+    // (which would pull the executors/translator graph into the type-check surface).
+    // Only emit when a row was actually inserted — not on dedup no-ops.
+    if (inserted) {
+      emitUsageRecorded(entry.provider, entry.connectionId);
+    }
   } catch (error) {
     console.error("Failed to save usage stats:", error);
   }
@@ -394,10 +725,17 @@ export async function saveRequestUsage(entry: any) {
 
 // ──────────────── Get Usage History ────────────────
 
+export interface UsageHistoryFilter {
+  provider?: string;
+  model?: string;
+  startDate?: string | number | Date;
+  endDate?: string | number | Date;
+}
+
 /**
  * Get usage history with optional filters.
  */
-export async function getUsageHistory(filter: any = {}) {
+export async function getUsageHistory(filter: UsageHistoryFilter = {}) {
   const db = getDbInstance();
   let sql = "SELECT * FROM usage_history";
   const conditions: string[] = [];
@@ -452,40 +790,26 @@ export async function getUsageHistory(filter: any = {}) {
   });
 }
 
-export interface ModelLatencyStatsEntry {
-  provider: string;
-  model: string;
-  key: string;
-  totalRequests: number;
-  successfulRequests: number;
-  successRate: number; // 0..1
-  avgLatencyMs: number;
-  p50LatencyMs: number;
-  p95LatencyMs: number;
-  p99LatencyMs: number;
-  latencyStdDev: number;
-  windowHours: number;
-}
+export type { ModelLatencyStatsEntry } from "./usageHistory/helpers";
 
 /**
  * Aggregate rolling latency stats per provider/model from usage_history.
  * Used by auto-combo routing to incorporate real-world latency and reliability.
+ * Also computes avgTtftMs/avgE2ELatencyMs/avgTokensPerSecond (#6875) via the
+ * accumulateLatencySample/buildLatencyStatsEntry helpers.
  */
 export async function getModelLatencyStats(
-  options: { windowHours?: number; minSamples?: number; maxRows?: number } = {}
+  options: {
+    windowHours?: number;
+    minSamples?: number;
+    maxRows?: number;
+    provider?: string;
+    model?: string;
+  } = {}
 ): Promise<Record<string, ModelLatencyStatsEntry>> {
-  const windowHours =
-    Number.isFinite(Number(options.windowHours)) && Number(options.windowHours) > 0
-      ? Number(options.windowHours)
-      : 24;
-  const minSamples =
-    Number.isFinite(Number(options.minSamples)) && Number(options.minSamples) > 0
-      ? Number(options.minSamples)
-      : 1;
-  const maxRows =
-    Number.isFinite(Number(options.maxRows)) && Number(options.maxRows) > 0
-      ? Number(options.maxRows)
-      : 10000;
+  const windowHours = resolvePositiveOption(options.windowHours, 24);
+  const minSamples = resolvePositiveOption(options.minSamples, 1);
+  const maxRows = resolvePositiveOption(options.maxRows, 10000);
 
   const db = getDbInstance();
   const sinceIso = new Date(Date.now() - windowHours * 60 * 60 * 1000).toISOString();
@@ -495,33 +819,34 @@ export async function getModelLatencyStats(
     model: string | null;
     success: number | null;
     latency_ms: number | null;
+    ttft_ms: number | null;
+    tokens_output: number | null;
   };
+
+  const conditions = ["timestamp >= @sinceIso", "provider IS NOT NULL", "model IS NOT NULL"];
+  const queryParams: Record<string, unknown> = { sinceIso, maxRows };
+  if (options.provider) {
+    conditions.push("provider = @provider");
+    queryParams.provider = options.provider;
+  }
+  if (options.model) {
+    conditions.push("model = @model");
+    queryParams.model = options.model;
+  }
 
   const rows = db
     .prepare(
       `
-      SELECT provider, model, success, latency_ms
+      SELECT provider, model, success, latency_ms, ttft_ms, tokens_output
       FROM usage_history
-      WHERE timestamp >= @sinceIso
-        AND provider IS NOT NULL
-        AND model IS NOT NULL
+      WHERE ${conditions.join(" AND ")}
       ORDER BY timestamp DESC
       LIMIT @maxRows
     `
     )
-    .all({ sinceIso, maxRows }) as LatencyRow[];
+    .all(queryParams) as LatencyRow[];
 
-  const grouped = new Map<
-    string,
-    {
-      provider: string;
-      model: string;
-      totalRequests: number;
-      successfulRequests: number;
-      successfulLatencies: number[];
-      allLatencies: number[];
-    }
-  >();
+  const grouped = new Map<string, ReturnType<typeof createLatencyBucket>>();
 
   for (const row of rows) {
     const provider = toStringOrNull(row.provider);
@@ -529,17 +854,7 @@ export async function getModelLatencyStats(
     if (!provider || !model) continue;
 
     const key = `${provider}/${model}`;
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        provider,
-        model,
-        totalRequests: 0,
-        successfulRequests: 0,
-        successfulLatencies: [],
-        allLatencies: [],
-      });
-    }
-
+    if (!grouped.has(key)) grouped.set(key, createLatencyBucket(provider, model));
     const bucket = grouped.get(key);
     if (!bucket) continue;
 
@@ -547,41 +862,19 @@ export async function getModelLatencyStats(
     const isSuccess = toNumber(row.success) !== 0;
     if (isSuccess) bucket.successfulRequests += 1;
 
-    const latency = toNumber(row.latency_ms);
-    if (latency > 0) {
-      bucket.allLatencies.push(latency);
-      if (isSuccess) bucket.successfulLatencies.push(latency);
-    }
+    accumulateLatencySample(
+      bucket,
+      toNumber(row.latency_ms),
+      toNumber(row.ttft_ms),
+      toNumber(row.tokens_output),
+      isSuccess
+    );
   }
 
   const stats: Record<string, ModelLatencyStatsEntry> = {};
   for (const [key, bucket] of grouped.entries()) {
-    const baseLatencies =
-      bucket.successfulLatencies.length >= minSamples
-        ? bucket.successfulLatencies
-        : bucket.allLatencies;
-
-    if (baseLatencies.length < minSamples) continue;
-
-    const sorted = [...baseLatencies].sort((a, b) => a - b);
-    const avg = sorted.reduce((acc, n) => acc + n, 0) / sorted.length;
-    const successRate =
-      bucket.totalRequests > 0 ? bucket.successfulRequests / bucket.totalRequests : 0;
-
-    stats[key] = {
-      provider: bucket.provider,
-      model: bucket.model,
-      key,
-      totalRequests: bucket.totalRequests,
-      successfulRequests: bucket.successfulRequests,
-      successRate,
-      avgLatencyMs: Math.round(avg),
-      p50LatencyMs: Math.round(percentile(sorted, 0.5)),
-      p95LatencyMs: Math.round(percentile(sorted, 0.95)),
-      p99LatencyMs: Math.round(percentile(sorted, 0.99)),
-      latencyStdDev: Math.round(stdDev(sorted, avg)),
-      windowHours,
-    };
+    const entry = buildLatencyStatsEntry(key, bucket, minSamples, windowHours);
+    if (entry) stats[key] = entry;
   }
 
   return stats;
@@ -603,7 +896,7 @@ export async function appendRequestLog({
   model?: string;
   provider?: string;
   connectionId?: string;
-  tokens?: any;
+  tokens?: unknown;
   status?: string | number;
 }) {
   // Deprecated: request summaries now come from SQLite call_logs.
@@ -637,8 +930,11 @@ export async function getRecentLogs(limit = 200) {
       const status = typeof row.status === "number" ? row.status : String(row.status || "-");
       return `${timestamp} | ${model} | ${provider} | ${account} | ${tokensIn} | ${tokensOut} | ${status}`;
     });
-  } catch (error: any) {
-    console.error("[usageDb] Failed to read recent call logs:", error.message);
+  } catch (error) {
+    console.error(
+      "[usageDb] Failed to read recent call logs:",
+      error instanceof Error ? error.message : String(error)
+    );
     return [];
   }
 }

@@ -24,6 +24,7 @@
 
 import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
+import { throttleQuotaFetch } from "./quotaFetchThrottle.ts";
 
 // DeepSeek API config
 const DEEPSEEK_CONFIG = {
@@ -188,6 +189,11 @@ export async function fetchDeepseekQuota(
   const url = `${DEEPSEEK_CONFIG.baseUrl}${DEEPSEEK_CONFIG.balancePath}`;
 
   try {
+    // #6911: space concurrent upstream quota fetches so N accounts on one IP do
+    // not all hit the provider in the same second (mirrors codexQuotaFetcher.ts).
+    // Cache hits above never reach here; this only paces genuine network calls.
+    await throttleQuotaFetch();
+
     const response = await fetch(url, {
       method: "GET",
       headers: {

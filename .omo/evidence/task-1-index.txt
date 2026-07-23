@@ -1,2 +1,0 @@
-idx_migrations_version                  
-sqlite_autoindex__omniroute_migrations_1

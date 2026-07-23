@@ -1,0 +1,1 @@
+- fix(sse): Qwen Web executor no longer sends `[object Object]` when a message uses structured (array) content — the text parts are now flattened (#6927)

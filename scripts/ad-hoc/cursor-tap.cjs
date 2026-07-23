@@ -130,7 +130,7 @@ const req = client.request({
   traceparent: traceParent,
   "user-agent": "connect-es/1.6.1",
   "x-cursor-client-type": "cli",
-  "x-cursor-client-version": "cli-2025.10.21-b2dfaef",
+  "x-cursor-client-version": "cli-2026.07.08-0c04a8a",
   "x-ghost-mode": "true",
   "x-original-request-id": requestId,
   "x-request-id": requestId,

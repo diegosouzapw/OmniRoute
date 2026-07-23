@@ -5,14 +5,18 @@ import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
 import { prepareClaudeRequest } from "../translator/helpers/claudeHelper.ts";
 import { signRequestBody } from "./claudeCodeCCH.ts";
+import { resolveClaudeCodeCompatibleAnthropicBeta } from "./claudeCodeCompatibleBeta.ts";
 import { remapToolNamesInRequest } from "./claudeCodeToolRemapper.ts";
 import {
   enforceThinkingTemperature,
   disableThinkingIfToolChoiceForced,
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
+import { applyClaudeCodeCompatibleThinkingDisplay } from "./claudeCodeCompatibleThinkingDisplay.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 import { applySystemTransformPipeline, PROVIDER_CC_BRIDGE } from "./systemTransforms.ts";
+import { usesCcWireImage } from "./ccWireImageBuiltins.ts";
+import { collectClaudeMediaBlocks, convertOpenAiMediaBlock } from "./ccOpenAiMediaBlocks.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
@@ -34,24 +38,30 @@ export const CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH = "/v1/messages?beta=true"
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MODELS_PATH = "/models";
 export const CLAUDE_CODE_COMPATIBLE_DEFAULT_MAX_TOKENS = 64000;
 export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION = ANTHROPIC_VERSION_HEADER;
-export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = [
-  "claude-code-20250219",
-  "interleaved-thinking-2025-05-14",
-  "effort-2025-11-24",
-].join(",");
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.146";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.146 (external, sdk-cli)";
+export {
+  CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA,
+  CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
+  resolveClaudeCodeCompatibleAnthropicBeta,
+} from "./claudeCodeCompatibleBeta.ts";
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.207";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.207 (external, sdk-cli)";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
-const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
 const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
   {
     type: "text",
     text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
   },
 ];
-const CONTEXT_1M_SUPPORTED_MODELS = ["claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"];
+const CONTEXT_1M_SUPPORTED_MODELS = [
+  "claude-fable-5",
+  "claude-sonnet-5",
+  "claude-sonnet-4-6",
+  "claude-opus-4-8",
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+];
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
   process.env
 );
@@ -79,6 +89,8 @@ type BuildRequestOptions = {
   sessionId?: string | null;
   preserveCacheControl?: boolean;
   preserveClaudeMessages?: boolean;
+  redactThinking?: boolean;
+  summarizeThinking?: boolean;
 };
 
 function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
@@ -86,7 +98,12 @@ function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
 }
 
 export function isClaudeCodeCompatibleProvider(provider: string | null | undefined): boolean {
-  return typeof provider === "string" && provider.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
+  return (
+    (typeof provider === "string" && provider.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX)) ||
+    // Built-in providers (e.g. agentrouter) that adopt the dynamic CC wire image
+    // while keeping their own registry baseUrl + auth (#6056).
+    usesCcWireImage(provider)
+  );
 }
 
 export function stripAnthropicMessagesSuffix(baseUrl: string | null | undefined): string {
@@ -164,18 +181,20 @@ export function modelSupportsContext1mBeta(model: string | null | undefined): bo
 export function buildClaudeCodeCompatibleHeaders(
   apiKey: string,
   stream = false,
-  sessionId?: string | null
+  sessionId?: string | null,
+  options: { redactThinking?: boolean } = {}
 ): Record<string, string> {
-  void stream;
   // These headers intentionally mirror Claude Code's wire image closely.
   // For CC-compatible relays, passing the upstream's client-gating checks is
   // more important than forwarding arbitrary caller-specific header shapes.
   return {
     "Content-Type": "application/json",
-    Accept: "application/json",
+    Accept: stream ? "text/event-stream" : "application/json",
     Authorization: `Bearer ${apiKey}`,
     "anthropic-version": CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
-    "anthropic-beta": CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA,
+    "anthropic-beta": resolveClaudeCodeCompatibleAnthropicBeta({
+      redactThinking: options.redactThinking === true,
+    }),
     "anthropic-dangerous-direct-browser-access": "true",
     "x-app": "cli",
     "User-Agent": CLAUDE_CODE_COMPATIBLE_USER_AGENT,
@@ -229,6 +248,7 @@ export function buildClaudeCodeCompatibleRequest({
   sessionId,
   preserveCacheControl = false,
   preserveClaudeMessages = false,
+  summarizeThinking = false,
 }: BuildRequestOptions) {
   const normalized = normalizedBody || {};
   const preparedClaudeBody = claudeBody
@@ -286,6 +306,7 @@ export function buildClaudeCodeCompatibleRequest({
     claudeBody: preparedClaudeBody ?? claudeBody,
     sourceBody,
     normalizedBody,
+    summarizeThinking,
   });
   const outputConfig = resolveClaudeCodeCompatibleOutputConfig({
     claudeBody,
@@ -309,21 +330,6 @@ export function buildClaudeCodeCompatibleRequest({
   };
 }
 
-/**
- * Full Claude Code request processing pipeline.
- *
- * Applies all mechanisms that real Claude Code uses:
- * 1. Build base request (system prompt, billing header, messages, tools)
- * 2. Remap tool names to TitleCase
- * 3. Enforce thinking temperature constraint (temp=1)
- * 4. Disable thinking when tool_choice forces a specific tool
- * 5. Enforce 4-block cache_control limit when markers are already present
- * 6. Obfuscate sensitive words in user messages
- * 7. Serialize with CCH placeholder
- * 8. Sign body with xxHash64 CCH attestation
- *
- * Returns { bodyString, headers } ready to send upstream.
- */
 export async function buildAndSignClaudeCodeRequest(
   options: BuildRequestOptions & { apiKey: string; enableObfuscation?: boolean }
 ): Promise<{ bodyString: string; headers: Record<string, string> }> {
@@ -395,7 +401,9 @@ export async function buildAndSignClaudeCodeRequest(
 
   // Build headers
   const sessionId = options.sessionId || resolveClaudeCodeCompatibleSessionId();
-  const headers = buildClaudeCodeCompatibleHeaders(apiKey, options.stream ?? false, sessionId);
+  const headers = buildClaudeCodeCompatibleHeaders(apiKey, options.stream ?? false, sessionId, {
+    redactThinking: buildOptions.redactThinking === true,
+  });
 
   return { bodyString, headers };
 }
@@ -510,13 +518,13 @@ function buildClaudeCodeCompatibleMessages(messages: MessageLike[]) {
         message
       ): message is {
         role: "user" | "assistant";
-        content: Array<{ type: string; text: string }>;
+        content: Array<Record<string, unknown>>;
       } => !!message && message.content.length > 0
     );
 
   const merged: Array<{
     role: "user" | "assistant";
-    content: Array<{ type: string; text: string }>;
+    content: Array<Record<string, unknown>>;
   }> = [];
 
   for (const message of converted) {
@@ -712,12 +720,12 @@ function convertClaudeCodeCompatibleMessage(message: MessageLike | null | undefi
   if (!role) return null;
 
   const text = contentToText(message?.content);
-  if (!text) return null;
+  // #7777: keep the user-turn media parts that contentToText() above drops.
+  const media = role === "user" ? collectClaudeMediaBlocks(message?.content) : [];
+  const content = [...(text ? [{ type: "text", text }] : []), ...media];
+  if (content.length === 0) return null;
 
-  return {
-    role,
-    content: [{ type: "text", text }],
-  };
+  return { role, content };
 }
 
 function buildClaudeCodeCompatibleTools(
@@ -970,7 +978,7 @@ function normalizeClaudeContentBlock(block: unknown) {
     };
   }
 
-  return record;
+  return convertOpenAiMediaBlock(record) ?? record;
 }
 
 function convertClaudeCodeCompatibleClaudeMessage(
@@ -1053,10 +1061,12 @@ function resolveClaudeCodeCompatibleThinking({
   claudeBody,
   sourceBody,
   normalizedBody,
+  summarizeThinking = false,
 }: {
   claudeBody?: Record<string, unknown> | null;
   sourceBody?: Record<string, unknown> | null;
   normalizedBody?: Record<string, unknown> | null;
+  summarizeThinking?: boolean;
 }) {
   const thinking =
     readRecord(cloneValue(claudeBody?.thinking)) ||
@@ -1064,31 +1074,21 @@ function resolveClaudeCodeCompatibleThinking({
     readRecord(cloneValue(normalizedBody?.thinking));
 
   if (thinking) {
-    return applyClaudeCodeCompatibleThinkingDisplay(thinking, normalizedBody);
+    return applyClaudeCodeCompatibleThinkingDisplay(thinking, {
+      normalizedBody,
+      summarizeThinking,
+    });
   }
 
   return applyClaudeCodeCompatibleThinkingDisplay(
     {
       type: "adaptive",
     },
-    normalizedBody
+    {
+      normalizedBody,
+      summarizeThinking,
+    }
   );
-}
-
-function applyClaudeCodeCompatibleThinkingDisplay(
-  thinking: Record<string, unknown>,
-  normalizedBody?: Record<string, unknown> | null
-) {
-  if (
-    normalizedBody?.[COPILOT_REASONING_SUMMARY_MARKER] !== "summarized" ||
-    thinking.type === "disabled"
-  ) {
-    return thinking;
-  }
-  return {
-    ...thinking,
-    display: "summarized",
-  };
 }
 
 function resolveClaudeCodeCompatibleOutputConfig({

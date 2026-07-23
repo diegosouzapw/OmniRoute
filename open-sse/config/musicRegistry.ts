@@ -24,6 +24,15 @@ interface MusicProvider {
 }
 
 export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
+  vertex: {
+    id: "vertex",
+    baseUrl: "https://us-central1-aiplatform.googleapis.com/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "vertex-lyria",
+    models: [{ id: "lyria-002", name: "Lyria 2 (Vertex)" }],
+  },
+
   kie: {
     id: "kie",
     baseUrl: "https://api.kie.ai",

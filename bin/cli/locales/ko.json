@@ -25,5 +25,8 @@
     "base_url": "OmniRoute 서버 기본 URL",
     "context": "이 명령에 사용할 서버 컨텍스트/프로필",
     "lang": "CLI 표시 언어 설정 (OMNIROUTE_LANG 재정의)"
+  },
+  "redis": {
+    "description": "OmniRoute 캐싱 및 할당량 추적을 위한 로컬 Redis 컨테이너(Podman 또는 Docker)를 원클릭으로 실행"
   }
 }

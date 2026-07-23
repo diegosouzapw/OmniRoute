@@ -4,10 +4,31 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import dns from "node:dns";
 import { callVisionModel, type VisionModelConfig } from "@/lib/guardrails/visionBridgeHelpers";
 
 // Store original fetch
 const originalFetch = globalThis.fetch;
+
+// Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx DNS-rebinding guard
+// (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts).
+// These tests mock globalThis.fetch with example.com hosts that don't actually
+// resolve in CI; the call path (callVisionModel -> fetchRemoteImageAsDataUri)
+// does not expose a way to inject a `lookup` stub through to fetchRemoteImage,
+// so we monkey-patch dns.promises.lookup with a pass-through public-IP
+// resolver. Node --test runs each test file in its own process, so this
+// rebinding does not leak across files.
+const originalDnsLookup = dns.promises.lookup;
+(dns.promises as { lookup: unknown }).lookup = (async (
+  _hostname: string,
+  options?: { all?: boolean }
+) => {
+  const record = { address: "203.0.113.1", family: 4 };
+  return options && options.all ? [record] : record;
+}) as typeof dns.promises.lookup;
+process.on("exit", () => {
+  (dns.promises as { lookup: unknown }).lookup = originalDnsLookup;
+});
 
 test("callVisionModel returns description on success", async () => {
   // Mock global fetch

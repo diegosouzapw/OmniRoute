@@ -128,6 +128,39 @@ export function deleteSessionAccountAffinity(sessionKey: string, provider: strin
   deleteAffinityKey(affinityKey(sessionKey, provider));
 }
 
+/**
+ * #6219 — Evict a session's pin ONLY when it currently points at `connectionId`.
+ *
+ * Used by the account-failover paths in chat.ts: when the pinned connection is
+ * marked unavailable/exhausted, the sticky pin must be dropped so the next
+ * request fails over to another account instead of re-pinning the dead one
+ * (previously the session stayed pinned until process restart).
+ *
+ * Unlike `getSessionAccountAffinity`, this reads the stored record INDEPENDENT
+ * of the TTL gate — a 2-arg `getSessionAccountAffinity(key, provider)` read
+ * (ttl defaulting to 0) always returns null, which silently defeated the
+ * connection-match guard on the earlier failover branches. The connection-match
+ * guard is preserved here so a pin pointing at a different (still-healthy)
+ * connection is never nuked. Returns true when a pin was evicted.
+ */
+export function evictSessionAccountAffinityForConnection(
+  sessionKey: string,
+  provider: string,
+  connectionId: string
+): boolean {
+  if (!sessionKey || !provider || !connectionId) return false;
+
+  const key = affinityKey(sessionKey, provider);
+  const row = getDbInstance()
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(NAMESPACE, key) as { value?: unknown } | undefined;
+  const record = parseRecord(row?.value);
+  if (!record || record.connectionId !== connectionId) return false;
+
+  deleteAffinityKey(key);
+  return true;
+}
+
 export function cleanupStaleSessionAccountAffinities(
   _ttlMs: number = 30 * 60 * 1000,
   now: number = Date.now()

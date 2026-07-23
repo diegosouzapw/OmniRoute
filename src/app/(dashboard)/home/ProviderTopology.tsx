@@ -1,22 +1,14 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import {
-  ReactFlow,
-  Handle,
-  Position,
-  Controls,
-  type Node,
-  type Edge,
-  type NodeTypes,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import { Handle, Position, type Node, type Edge, type NodeTypes } from "@xyflow/react";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-
-const FE_ACTIVE_TIMEOUT_MS = 60_000;
-const FE_ACTIVE_TICK_MS = 1_000;
+import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
+import { StatusDot } from "@/shared/components/flow/StatusDot";
+import { edgeStyle, FLOW_EDGE_COLORS } from "@/shared/components/flow/edgeStyles";
+import { resolveTopologyNodeLabel } from "./topologyLabel";
 
 // Rings: [capacity, rx, ry]. Each successive ring fits ~6 more nodes.
 const RINGS: [number, number, number][] = [
@@ -45,17 +37,27 @@ type ProviderNodeData = {
   providerId: string;
   active: boolean;
   error: boolean;
+  /** Connection-health base state: a healthy connection with no in-flight traffic. */
+  healthy: boolean;
 };
 
 function ProviderNode({ data }: { data: ProviderNodeData }) {
-  const { label, color, providerId, active, error } = data;
+  const { label, color, providerId, active, error, healthy } = data;
+  const GREEN = FLOW_EDGE_COLORS.active;
+  const RED = FLOW_EDGE_COLORS.error;
 
   return (
     <div
       className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border-2 transition-all duration-300 bg-bg"
       style={{
-        borderColor: error ? "#ef4444" : active ? color : "var(--color-border)",
-        boxShadow: error ? `0 0 12px #ef444430` : active ? `0 0 12px ${color}30` : "none",
+        borderColor: error ? RED : active ? color : healthy ? GREEN : "var(--color-border)",
+        boxShadow: error
+          ? `0 0 12px ${RED}30`
+          : active
+            ? `0 0 12px ${color}30`
+            : healthy
+              ? `0 0 10px ${GREEN}20`
+              : "none",
         minWidth: "136px",
       }}
     >
@@ -93,22 +95,15 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
 
       <span
         className="text-xs font-medium truncate flex-1"
-        style={{ color: active ? color : error ? "#ef4444" : "var(--color-text-main)" }}
+        style={{
+          color: active ? color : error ? RED : healthy ? GREEN : "var(--color-text-main)",
+        }}
       >
         {label}
       </span>
 
-      {(active || error) && (
-        <span className="relative flex size-1.5 shrink-0">
-          <span
-            className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-70"
-            style={{ backgroundColor: error ? "#ef4444" : color }}
-          />
-          <span
-            className="relative inline-flex rounded-full size-1.5"
-            style={{ backgroundColor: error ? "#ef4444" : color }}
-          />
-        </span>
+      {(active || error || healthy) && (
+        <StatusDot color={active ? color : GREEN} error={error} pulse={active || error} />
       )}
     </div>
   );
@@ -162,14 +157,8 @@ const nodeTypes: NodeTypes = {
   router: RouterNode as any,
 };
 
-type ProviderEntry = { id?: string; provider: string; name?: string };
-
-function edgeStyle(active: boolean, last: boolean, error: boolean) {
-  if (error) return { stroke: "#ef4444", strokeWidth: 2, opacity: 0.85 };
-  if (active) return { stroke: "#22c55e", strokeWidth: 2.5, opacity: 1 };
-  if (last) return { stroke: "#f59e0b", strokeWidth: 1.5, opacity: 0.6 };
-  return { stroke: "var(--color-border)", strokeWidth: 1, opacity: 0.2 };
-}
+type ProviderHealth = "active" | "error" | "idle";
+type ProviderEntry = { id?: string; provider: string; name?: string; status?: ProviderHealth };
 
 function getHandles(angle: number, cx: number): { sourceHandle: string; targetHandle: string } {
   const rel = (((angle + Math.PI / 2) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
@@ -206,18 +195,20 @@ function buildLayout(
 
   if (providers.length === 0) return { nodes, edges };
 
-  // Sort: active → error → last-used → rest (alpha within groups)
+  // Sort: active → error → last-used → healthy(connected) → rest (alpha within groups)
   const sorted = [...providers].sort((a, b) => {
-    const aId = a.provider.toLowerCase();
-    const bId = b.provider.toLowerCase();
-    const rank = (id: string) => {
+    const rank = (p: ProviderEntry) => {
+      const id = p.provider.toLowerCase();
       if (activeSet.has(id)) return 0;
-      if (errorSet.has(id)) return 1;
+      if (errorSet.has(id) || p.status === "error") return 1;
       if (lastSet.has(id)) return 2;
-      return 3;
+      if (p.status === "active") return 3;
+      return 4;
     };
-    const d = rank(aId) - rank(bId);
-    return d !== 0 ? d : aId.localeCompare(bId);
+    const d = rank(a) - rank(b);
+    return d !== 0
+      ? d
+      : a.provider.toLowerCase().localeCompare(b.provider.toLowerCase()); // ASCII kasıtlı
   });
 
   let provIdx = 0;
@@ -229,8 +220,14 @@ function buildLayout(
       const p = sorted[provIdx++];
       const pid = p.provider.toLowerCase();
       const active = activeSet.has(pid);
-      const error = !active && errorSet.has(pid);
-      const last = !active && !error && lastSet.has(pid);
+      // Traffic signals (live/recent request) take precedence; connection health is the
+      // base state shown when a provider has no in-flight or recent traffic, so the map
+      // still reflects "what is connected" at rest instead of going blank after a restart.
+      const trafficError = !active && errorSet.has(pid);
+      const last = !active && !trafficError && lastSet.has(pid);
+      const healthError = !active && !trafficError && !last && p.status === "error";
+      const healthy = !active && !trafficError && !last && !healthError && p.status === "active";
+      const error = trafficError || healthError;
       const config = getProviderConfig(p.provider);
       const nodeId = `provider-${p.provider}`;
 
@@ -244,11 +241,12 @@ function buildLayout(
         type: "provider",
         position: { x: cx - nodeW / 2, y: cy - nodeH / 2 },
         data: {
-          label: config.name || p.name || p.provider,
+          label: resolveTopologyNodeLabel(p.name, config.name, p.provider),
           color: config.color || "#6b7280",
           providerId: p.provider,
           active,
           error,
+          healthy,
         } satisfies ProviderNodeData,
         draggable: false,
       });
@@ -260,7 +258,7 @@ function buildLayout(
         target: nodeId,
         targetHandle,
         animated: active,
-        style: edgeStyle(active, last, error),
+        style: edgeStyle(active, last, error, healthy),
       });
     }
   }
@@ -294,43 +292,12 @@ export default function ProviderTopology({
   const lastKey = lastProvider.toLowerCase();
   const errorKey = errorProvider.toLowerCase();
 
-  const rawActiveSet = useMemo(
+  const activeSet = useMemo(
     () => new Set<string>(activeKey ? activeKey.split(",") : []),
     [activeKey]
   );
   const lastSet = useMemo(() => new Set<string>(lastKey ? [lastKey] : []), [lastKey]);
   const errorSet = useMemo(() => new Set<string>(errorKey ? [errorKey] : []), [errorKey]);
-
-  const firstSeenRef = useRef<Record<string, number>>({});
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const seen = firstSeenRef.current;
-    const now = Date.now();
-    for (const p of rawActiveSet) {
-      if (!seen[p]) seen[p] = now;
-    }
-    for (const p of Object.keys(seen)) {
-      if (!rawActiveSet.has(p)) delete seen[p];
-    }
-  }, [rawActiveSet]);
-
-  useEffect(() => {
-    if (rawActiveSet.size === 0) return;
-    const id = setInterval(() => setTick((t) => t + 1), FE_ACTIVE_TICK_MS);
-    return () => clearInterval(id);
-  }, [rawActiveSet]);
-
-  const activeSet = useMemo(() => {
-    const now = Date.now();
-    const filtered = new Set<string>();
-    for (const p of rawActiveSet) {
-      const ts = firstSeenRef.current[p];
-      if (!ts || now - ts < FE_ACTIVE_TIMEOUT_MS) filtered.add(p);
-    }
-    return filtered;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rawActiveSet, tick]);
 
   const { nodes, edges } = useMemo(
     () => buildLayout(providers, activeSet, lastSet, errorSet),
@@ -347,64 +314,27 @@ export default function ProviderTopology({
     [providers]
   );
 
-  const rfInstance = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const fitOpts = { padding: 0.22, duration: 250 };
+  const containerClass =
+    "h-[300px] w-full min-w-0 rounded-xl border border-border bg-bg-subtle/20 overflow-hidden sm:h-[420px]";
 
-  const onInit = useCallback((instance: any) => {
-    rfInstance.current = instance;
-    setTimeout(() => instance.fitView(fitOpts), 60);
-  }, []);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      rfInstance.current?.fitView(fitOpts);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const id = setTimeout(() => rfInstance.current?.fitView(fitOpts), 60);
-    return () => clearTimeout(id);
-  }, [nodes.length]);
+  if (providers.length === 0) {
+    return (
+      <div
+        className={`${containerClass} flex flex-col items-center justify-center gap-2 text-text-muted`}
+      >
+        <span className="material-symbols-outlined text-[32px]">device_hub</span>
+        <p className="text-sm">{t("providerTopologyEmpty")}</p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className="h-[300px] w-full min-w-0 rounded-xl border border-border bg-bg-subtle/20 overflow-hidden sm:h-[420px]"
-    >
-      {providers.length === 0 ? (
-        <div className="h-full flex flex-col items-center justify-center gap-2 text-text-muted">
-          <span className="material-symbols-outlined text-[32px]">device_hub</span>
-          <p className="text-sm">{t("providerTopologyEmpty")}</p>
-        </div>
-      ) : (
-        <ReactFlow
-          key={providersKey}
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={fitOpts}
-          minZoom={0.08}
-          maxZoom={2}
-          onInit={onInit}
-          proOptions={{ hideAttribution: true }}
-          panOnDrag
-          zoomOnScroll
-          zoomOnPinch
-          zoomOnDoubleClick
-          preventScrolling={false}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-        >
-          <Controls showInteractive={false} />
-        </ReactFlow>
-      )}
-    </div>
+    <FlowCanvas
+      nodes={nodes}
+      edges={edges}
+      nodeTypes={nodeTypes}
+      fitKey={providersKey}
+      className={containerClass}
+    />
   );
 }

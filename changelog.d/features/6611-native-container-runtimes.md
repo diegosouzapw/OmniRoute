@@ -1,0 +1,1 @@
+- **feat(sandbox):** the skill sandbox gained a container-provider abstraction that auto-detects and uses the best native runtime per host — Apple Container (macOS 26+), WSL container (`wslc.exe`), OrbStack, Podman — instead of hardcoding `docker run`, removing the Docker Desktop requirement on macOS/Windows (#6611 — thanks @KooshaPari).

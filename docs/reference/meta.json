@@ -1,4 +1,12 @@
 {
   "title": "Reference",
-  "pages": ["API_REFERENCE", "CLI-TOOLS", "ENVIRONMENT", "FREE_TIERS", "PROVIDER_REFERENCE"]
+  "pages": [
+    "API_REFERENCE",
+    "CLI-TOOLS",
+    "ENVIRONMENT",
+    "FEATURE_FLAGS",
+    "FREE_TIERS",
+    "FREE_PROXIES_API",
+    "PROVIDER_REFERENCE"
+  ]
 }

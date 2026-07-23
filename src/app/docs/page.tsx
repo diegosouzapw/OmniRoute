@@ -22,34 +22,40 @@ export const metadata: Metadata = {
 
 const featuredLinks = [
   {
-    href: "/docs/guides/setup-guide",
-    title: "Setup Guide",
+    href: "/docs/getting-started/quick-start",
+    title: "Quick Start",
     icon: "rocket_launch",
     desc: "Get OmniRoute running in 3 minutes",
   },
   {
-    href: "/docs/reference/api-reference",
-    title: "API Reference",
-    icon: "code",
-    desc: "All endpoints with examples",
+    href: "/docs/getting-started/auto-combo-guide",
+    title: "Auto-Combo Guide",
+    icon: "auto_awesome",
+    desc: "Let OmniRoute pick the best AI for you",
   },
   {
-    href: "/docs/compression/compression-guide",
-    title: "Compression Guide",
-    icon: "compress",
-    desc: "Save 15-95% eligible tokens automatically",
+    href: "/docs/getting-started/providers-guide",
+    title: "Providers Guide",
+    icon: "link",
+    desc: "Connect AI providers in minutes",
   },
 ];
 
 const sections = [
-  { title: "Architecture", folder: "architecture" },
-  { title: "Guides", folder: "guides" },
-  { title: "Reference", folder: "reference" },
-  { title: "Frameworks", folder: "frameworks" },
-  { title: "Routing", folder: "routing" },
-  { title: "Security", folder: "security" },
-  { title: "Compression", folder: "compression" },
-  { title: "Operations", folder: "ops" },
+  {
+    title: "For Non-Tech Users",
+    subtitle: "Get started quickly — no technical background needed",
+    icon: "rocket_launch",
+    color: "green",
+    folders: ["getting-started", "guides"],
+  },
+  {
+    title: "For Tech Users",
+    subtitle: "Deep dive into architecture, APIs, and internals",
+    icon: "code",
+    color: "blue",
+    folders: ["architecture", "reference", "frameworks", "routing", "security", "compression", "ops"],
+  },
 ];
 
 export default function DocsHomePage() {
@@ -92,13 +98,23 @@ export default function DocsHomePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pb-12">
         {sections.map((section) => {
-          const sectionPages = pages.filter((p) => p.url.startsWith(`/docs/${section.folder}/`));
+          const sectionPages = pages.filter((p) =>
+            section.folders.some((folder) => p.url.startsWith(`/docs/${folder}/`))
+          );
           return (
             <div
-              key={section.folder}
+              key={section.title}
               className="border border-fd-border rounded-xl p-6 hover:border-fd-primary/30 transition-colors bg-fd-card/50"
             >
-              <h2 className="text-base font-semibold text-fd-foreground mb-4">{section.title}</h2>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="material-symbols-outlined text-2xl text-fd-primary">
+                  {section.icon}
+                </span>
+                <div>
+                  <h2 className="text-base font-semibold text-fd-foreground">{section.title}</h2>
+                  <p className="text-sm text-fd-muted-foreground">{section.subtitle}</p>
+                </div>
+              </div>
               <ul className="space-y-2.5">
                 {sectionPages.map((page) => (
                   <li key={page.url}>

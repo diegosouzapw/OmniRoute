@@ -1,0 +1,1 @@
+- **feat(providers):** add a `vibeproxy-openai` provider-node preset to `POST /api/provider-nodes` — defaults name/prefix/apiType for VibeProxy's local OpenAI-compatible gateway and normalizes the caller-supplied base URL to its `/v1` root; `baseUrl` remains mandatory. (#6874, idea from #6137 by @KooshaPari)

@@ -1,0 +1,1 @@
+- **fix(executors):** forward agent-supplied `X-Session-ID`/`X-Title` metadata headers to upstream providers — previously dropped for every client outside the `x-opencode-*` allowlist. (thanks @chitholian) (#7104)

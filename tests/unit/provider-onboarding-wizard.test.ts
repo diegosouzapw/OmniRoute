@@ -12,8 +12,11 @@ test("provider onboarding catalog exposes API-key and OAuth providers for the wi
 
   assert.ok(apiKeyOptions.some((option) => option.id === "openai"));
   assert.ok(apiKeyOptions.some((option) => option.id === "openrouter"));
+  assert.ok(!apiKeyOptions.some((option) => option.id === "kiro"));
+  assert.ok(!apiKeyOptions.some((option) => option.id === "amazon-q"));
   assert.ok(oauthOptions.some((option) => option.id === "claude"));
   assert.ok(oauthOptions.some((option) => option.id === "kiro"));
+  assert.ok(oauthOptions.some((option) => option.id === "amazon-q"));
   assert.ok(oauthOptions.some((option) => option.id === "cursor"));
   assert.ok(!oauthOptions.some((option) => option.id === "zed"));
   assert.ok(!oauthOptions.some((option) => option.id === "windsurf"));
@@ -154,6 +157,29 @@ test("provider onboarding validation rejects HTTP 200 responses with valid false
       /Invalid API key/
     );
     assert.equal(createCalled, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("#5692 onboarding validation treats unsupported providers as non-blocking (save proceeds)", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url) === "/api/providers/validate") {
+      // #5565/#5567: providers with no live validator (lmarena, piapi, …) return
+      // HTTP 400 + { unsupported: true }. The wizard must NOT treat this as a hard
+      // failure — otherwise the connection is never created (#5692).
+      return Response.json(
+        { error: "Provider validation not supported", unsupported: true },
+        { status: 400 }
+      );
+    }
+    return Response.json({ error: "unexpected" }, { status: 500 });
+  };
+
+  try {
+    const data = await api.validateOnboardingApiKey({ provider: "lmarena", apiKey: "test-key" });
+    assert.equal(data.unsupported, true);
   } finally {
     globalThis.fetch = originalFetch;
   }

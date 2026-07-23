@@ -1,1 +1,5 @@
-{}
+{
+  "redis": {
+    "description": "OmniRoute کیشنگ اور کوٹہ ٹریکنگ کے لیے ایک کلک میں مقامی Redis کنٹینر (Podman یا Docker) لانچ کریں"
+  }
+}

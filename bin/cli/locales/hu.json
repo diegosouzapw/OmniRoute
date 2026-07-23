@@ -25,5 +25,8 @@
     "base_url": "Az OmniRoute szerver alap URL-je",
     "context": "Szerverkontextus/profil ehhez a parancshoz",
     "lang": "CLI megjelenítési nyelv beállítása (felülírja az OMNIROUTE_LANG-ot)"
+  },
+  "redis": {
+    "description": "Helyi Redis-tároló indítása egyetlen kattintással (Podman vagy Docker) az OmniRoute gyorsítótárazáshoz és kvótafigyeléshez"
   }
 }

@@ -1,10 +1,33 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import dns from "node:dns";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-images-"));
+
+// Stub DNS for fetchRemoteImage's GHSA-cmhj-wh2f-9cgx DNS-rebinding guard
+// (assertHostnameResolvesPublic in src/shared/network/remoteImageFetch.ts).
+// Several image-handler tests (Fal AI URL->b64 normalization, BFL polling
+// with base64 input images, NanoBanana polling with URL->b64 conversion)
+// mock globalThis.fetch with example.com URLs that don't resolve in CI; the
+// handler invokes fetchRemoteImage without exposing a `lookup` injection
+// point, so we monkey-patch dns.promises.lookup to always return a public IP
+// so the rebinding guard passes and the test exercises the mocked fetch
+// behaviour as intended. Node --test runs each file in its own process, so
+// this rebinding does not leak across files.
+const originalDnsLookup = dns.promises.lookup;
+(dns.promises as { lookup: unknown }).lookup = (async (
+  _hostname: string,
+  options?: { all?: boolean }
+) => {
+  const record = { address: "203.0.113.1", family: 4 };
+  return options && options.all ? [record] : record;
+}) as typeof dns.promises.lookup;
+process.on("exit", () => {
+  (dns.promises as { lookup: unknown }).lookup = originalDnsLookup;
+});
 
 const { IMAGE_PROVIDERS, parseImageModel, getAllImageModels } =
   await import("../../open-sse/config/imageRegistry.ts");
@@ -741,9 +764,9 @@ test("handleImageGeneration sends Antigravity image requests with native image_g
       "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent"
     );
     assert.equal(captured.headers.Authorization, "Bearer ag-token");
-    assert.equal(captured.headers["x-client-name"], "antigravity");
+    assert.equal(captured.headers["x-client-name"], undefined);
     assert.equal(captured.headers["x-goog-user-project"], undefined);
-    assert.match(captured.headers["User-Agent"], /^Antigravity\//);
+    assert.match(captured.headers["User-Agent"], /^antigravity\/ide\/2\.1\.1 /);
     assert.equal(captured.headers["x-goog-api-client"], undefined);
     assert.equal(captured.body.project, "project-123");
     assert.match(captured.body.requestId, /^image_gen\//);
@@ -1791,7 +1814,7 @@ test("handleImageGeneration routes codex image requests through /responses with 
   try {
     const result = await handleImageGeneration({
       body: {
-        model: "codex/gpt-5.4",
+        model: "codex/gpt-5.6-sol",
         prompt: "Draw a happy red kitten",
         response_format: "b64_json",
       },
@@ -1806,7 +1829,7 @@ test("handleImageGeneration routes codex image requests through /responses with 
     assert.equal(captured.url, "https://chatgpt.com/backend-api/codex/responses");
     assert.equal(captured.headers.Authorization, "Bearer codex-token");
     assert.equal(captured.headers["chatgpt-account-id"], "acct-123");
-    assert.equal(captured.body.model, "gpt-5.4");
+    assert.equal(captured.body.model, "gpt-5.6-sol");
     assert.equal(captured.body.stream, true);
     assert.equal(captured.body.store, false);
     assert.deepEqual(captured.body.tools, [{ type: "image_generation", output_format: "png" }]);
@@ -1830,7 +1853,7 @@ test("handleImageGeneration (codex) returns a data URL when response_format is n
 
   try {
     const result = await handleImageGeneration({
-      body: { model: "cx/gpt-5.4", prompt: "kitten" },
+      body: { model: "cx/gpt-5.6-sol", prompt: "kitten" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
@@ -1872,7 +1895,7 @@ test("handleImageGeneration (codex) fans out n>1 requests in parallel", async ()
   try {
     pending = handleImageGeneration({
       body: {
-        model: "codex/gpt-5.4",
+        model: "codex/gpt-5.6-sol",
         prompt: "kitten",
         n: 2,
         response_format: "b64_json",
@@ -1914,7 +1937,7 @@ test("handleImageGeneration (codex) surfaces an error when no image_generation_c
 
   try {
     const result = await handleImageGeneration({
-      body: { model: "codex/gpt-5.4", prompt: "kitten" },
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
@@ -1926,20 +1949,30 @@ test("handleImageGeneration (codex) surfaces an error when no image_generation_c
   }
 });
 
-test("handleImageGeneration (codex) propagates upstream HTTP errors", async () => {
+test("handleImageGeneration (codex) sanitizes upstream HTTP errors", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
-    new Response("upstream boom", { status: 403, headers: { "content-type": "text/plain" } });
+    new Response(
+      JSON.stringify({
+        error: "upstream boom",
+        authorization: "Bearer upstream-secret",
+        echoed: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAE=",
+      }),
+      { status: 403, headers: { "content-type": "application/json" } }
+    );
 
   try {
     const result = await handleImageGeneration({
-      body: { model: "codex/gpt-5.4", prompt: "kitten" },
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
     assert.equal(result.success, false);
     assert.equal(result.status, 403);
-    assert.match(result.error, /upstream boom/);
+    const safeError = JSON.stringify(result.error);
+    assert.match(safeError, /upstream boom/);
+    assert.doesNotMatch(safeError, /upstream-secret|iVBORw0KGgo/);
+    assert.match(safeError, /REDACTED_DATA_URL/);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -1959,7 +1992,7 @@ test("handleImageGeneration (codex) forwards size and maps GPT-Image quality to 
   try {
     await handleImageGeneration({
       body: {
-        model: "codex/gpt-5.4",
+        model: "codex/gpt-5.6-sol",
         prompt: "kitten",
         size: "1024x1792",
         quality: "hd",
@@ -1977,14 +2010,14 @@ test("handleImageGeneration (codex) forwards size and maps GPT-Image quality to 
     ]);
 
     await handleImageGeneration({
-      body: { model: "codex/gpt-5.4", prompt: "kitten", quality: "standard" },
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten", quality: "standard" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });
     assert.equal(captured.tools[0].quality, "medium");
 
     await handleImageGeneration({
-      body: { model: "codex/gpt-5.4", prompt: "kitten" },
+      body: { model: "codex/gpt-5.6-sol", prompt: "kitten" },
       credentials: { accessToken: "codex-token" },
       log: null,
     });

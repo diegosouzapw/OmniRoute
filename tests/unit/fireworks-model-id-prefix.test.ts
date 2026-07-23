@@ -27,6 +27,26 @@ test("DefaultExecutor.transformRequest does not double-prepend modelIdPrefix", (
   assert.equal((result as Record<string, unknown>).model, "accounts/fireworks/models/kimi-k2p6");
 });
 
+test("DefaultExecutor.transformRequest preserves fully-qualified fireworks router IDs (#3133)", () => {
+  const executor = new DefaultExecutor("fireworks");
+  const body = {
+    model: "accounts/fireworks/routers/kimi-k2p6-turbo",
+    messages: [{ role: "user", content: "hi" }],
+  };
+
+  const result = executor.transformRequest(
+    "accounts/fireworks/routers/kimi-k2p6-turbo",
+    body,
+    false,
+    {}
+  );
+
+  assert.equal(
+    (result as Record<string, unknown>).model,
+    "accounts/fireworks/routers/kimi-k2p6-turbo"
+  );
+});
+
 test("DefaultExecutor.transformRequest does not modify model for providers without modelIdPrefix", () => {
   const executor = new DefaultExecutor("openai");
   const body = { model: "gpt-4.1", messages: [{ role: "user", content: "hi" }] };

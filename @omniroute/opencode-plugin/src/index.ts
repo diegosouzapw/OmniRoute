@@ -49,9 +49,26 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import type { AuthHook, Config, Plugin, PluginOptions, ProviderHook } from "@opencode-ai/plugin";
 import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
 import { z } from "zod";
+import { logger as _logger, setLogLevel, type LogLevel as _LogLevel } from "./logger.js";
+import {
+  PROVIDER_TAG_SEPARATOR as _PROVIDER_TAG_SEPARATOR,
+  shortProviderLabel as _shortProviderLabel,
+  normaliseFreeLabel as _normaliseFreeLabel,
+  formatAutoComboName,
+  autoComboModelId,
+  formatFreeBudget,
+  type AutoVariant,
+  AUTO_VARIANTS,
+  AUTO_VARIANT_DESCRIPTIONS,
+  type FreeModelFreeType,
+} from "./naming.js";
 
 /**
  * Zod schema for plugin options accepted as the second element of the
@@ -74,6 +91,10 @@ import { z } from "zod";
  *  - `baseURL`        Override base URL for this OmniRoute instance. When
  *                     absent, the loader falls back to a credential-attached
  *                     baseURL set by `/connect`.
+ *  - `managementReadToken` Optional read-only management-plane bearer token.
+ *                     Used only for catalog GETs under `/api/*`; `/v1/*`
+ *                     inference continues to use the connected `apiKey`.
+ *                     Falls back to `apiKey` when unset.
  */
 /**
  * Optional feature toggles. Every field is opt-in/out per call; defaults
@@ -105,12 +126,45 @@ import { z } from "zod";
  *                           provider's API key (from auth.json) when unset.
  *                           Useful when a narrower-scoped MCP-only key is
  *                           preferred over the chat/inference key.
- *  - `fetchInterceptor`     Inject Authorization: Bearer + Content-Type on
- *                           every outbound request to baseURL. Default true.
+ *  - `fetchInterceptor`     Inject Authorization: Bearer + Content-Type only
+ *                           on same-origin `/v1/chat/completions` and
+ *                           `/v1/models` requests. Default true.
+ *  - `debugLog`             Capture every outbound request + response to a
+ *                           JSONL file at
+ *                           `~/.local/share/opencode/plugins/omniroute-debug-{providerId}.jsonl`.
+ *                           Each line: `{ reqId, ts, url, method, reqBody,
+ *                           resStatus, resBody, durationMs }`.
+ *                           Default false. Opt-in.
+ *  - `apiFormat`            Per-provider-prefix API format routing. Model IDs
+ *                           whose prefix (the part before `/`) matches an entry
+ *                           in `anthropicPrefixes` are served via the Anthropic
+ *                           SDK (`@ai-sdk/anthropic`, sends to `/v1/messages`
+ *                           with native cache_control, tool_choice, etc.).
+ *                           All other models fall back to `openai-compatible`.
+ *
+ *                           Default `anthropicPrefixes`:
+ *                             ["cc", "claude", "anthropic", "kiro", "kr"]
+ *                           (covers OmniRoute's canonical Anthropic aliases).
+ *
+ *                           Set `anthropicPrefixes: []` to disable and force
+ *                           everything through OpenAI-compat.
+ *
+ *                           Example:
+ *                           ```json
+ *                           "apiFormat": { "anthropicPrefixes": ["cc","claude","anthropic","kiro"] }
+ *                           ```
  */
+const apiFormatSchema = z
+  .object({
+    anthropicPrefixes: z.array(z.string()).optional(),
+  })
+  .strict()
+  .optional();
+
 const featuresSchema = z
   .object({
     combos: z.boolean().optional(),
+    autoCombos: z.boolean().optional(),
     enrichment: z.boolean().optional(),
     compressionMetadata: z.boolean().optional(),
     geminiSanitization: z.boolean().optional(),
@@ -120,6 +174,10 @@ const featuresSchema = z
     usableOnly: z.boolean().optional(),
     diskCache: z.boolean().optional(),
     providerTag: z.boolean().optional(),
+    debugLog: z.boolean().optional(),
+    startupDebug: z.boolean().optional(),
+    logLevel: z.enum(["error", "warn", "info", "debug"]).optional(),
+    apiFormat: apiFormatSchema,
   })
   .strict();
 
@@ -133,6 +191,7 @@ const optionsSchema = z
     displayName: z.string().min(1).optional(),
     modelCacheTtl: z.number().positive().optional(),
     baseURL: z.string().url().optional(),
+    managementReadToken: z.string().min(1).optional(),
     features: featuresSchema.optional(),
   })
   .strict();
@@ -148,6 +207,14 @@ export type OmniRoutePluginOptions = z.infer<typeof optionsSchema>;
 
 export const OMNIROUTE_PROVIDER_KEY = "omniroute" as const;
 
+/** Deployed plugin version (injected at build time by tsup define). */
+export const PLUGIN_VERSION: string =
+  ((globalThis as Record<string, unknown>).__PLUGIN_VERSION__ as string) ?? "dev";
+
+/** Deployed plugin git commit hash (injected at build time by tsup define). */
+export const PLUGIN_GIT_HASH: string =
+  ((globalThis as Record<string, unknown>).__PLUGIN_GIT_HASH__ as string) ?? "unknown";
+
 export const DEFAULT_MODEL_CACHE_TTL_MS = 300_000 as const;
 
 // Manual trim helpers avoid polynomial-regex CodeQL warnings on
@@ -158,6 +225,7 @@ function trimTrailingSlashes(value: string): string {
   while (i > 0 && value.charCodeAt(i - 1) === 0x2f /* "/" */) i--;
   return i === value.length ? value : value.slice(0, i);
 }
+
 function trimTrailingDashes(value: string): string {
   let i = value.length;
   while (i > 0 && value.charCodeAt(i - 1) === 0x2d /* "-" */) i--;
@@ -174,25 +242,64 @@ function trimLeadingDashes(value: string): string {
  * applying defaults. Centralises the providerId fallback so every hook
  * sees a consistent identifier.
  */
-export function resolveOmniRoutePluginOptions(
-  opts?: OmniRoutePluginOptions
-): Required<Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">> &
-  Pick<OmniRoutePluginOptions, "baseURL" | "features"> {
-  const providerId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
+export function resolveOmniRoutePluginOptions(opts?: OmniRoutePluginOptions): Required<
+  Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">
+> & {
+  /**
+   * #6859: the UNPREFIXED provider id ("omniroute", "omniroute-preprod", …).
+   * `providerId` above is auto-prefixed with "opencode-" ONLY to satisfy OC
+   * 1.17.8+'s native-adapter gate ({openai, anthropic, opencode*}) — that
+   * prefixed value is OC-internal and must be used ONLY for AuthHook.provider
+   * and provider-registration keys (the OC config-hook top-level
+   * `provider.<id>` block). `omnirouteProviderId` MUST be used everywhere an
+   * identifier reaches or represents something OmniRoute's own server parses
+   * (model `id` prefix, `ModelV2.providerID`, combo catalog keys in the
+   * dynamic provider hook) — OmniRoute's `parseModel()` has no alias for
+   * "opencode-<x>", so a prefixed id there is unrecoverable and credential
+   * lookup fails with "No credentials for opencode-<x>".
+   */
+  omnirouteProviderId: string;
+} & Pick<OmniRoutePluginOptions, "baseURL" | "managementReadToken" | "features"> {
+  const rawProviderId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
+  const omnirouteProviderId = trimLeadingOpencodePrefix(rawProviderId);
+  // OC 1.17.8+ native-adapter gate rejects providerID not in
+  // {openai, anthropic, opencode*}. Silently prefix so existing
+  // configs (providerId: "omniroute") keep working.
+  const providerId = rawProviderId.startsWith("opencode-")
+    ? rawProviderId
+    : `opencode-${rawProviderId}`;
   const displayName =
     opts?.displayName ??
-    (providerId === OMNIROUTE_PROVIDER_KEY ? "OmniRoute" : `OmniRoute (${providerId})`);
+    (providerId === `opencode-${OMNIROUTE_PROVIDER_KEY}`
+      ? "OmniRoute"
+      : `OmniRoute (${providerId})`);
   const modelCacheTtl =
     typeof opts?.modelCacheTtl === "number" && opts.modelCacheTtl > 0
       ? opts.modelCacheTtl
       : DEFAULT_MODEL_CACHE_TTL_MS;
   return {
     providerId,
+    omnirouteProviderId,
     displayName,
     modelCacheTtl,
     baseURL: opts?.baseURL,
+    managementReadToken: opts?.managementReadToken,
     features: opts?.features,
   };
+}
+
+/**
+ * Strip a leading "opencode-" prefix (added only for the OC native-adapter
+ * gate — see `resolveOmniRoutePluginOptions`) so the returned id is safe to
+ * embed in anything OmniRoute's own server parses. A user-supplied
+ * `providerId: "opencode-omniroute"` (already prefixed) resolves to the same
+ * unprefixed "omniroute" as the default, matching `providerId`'s own
+ * idempotent-prefix handling above.
+ */
+function trimLeadingOpencodePrefix(rawProviderId: string): string {
+  return rawProviderId.startsWith("opencode-")
+    ? rawProviderId.slice("opencode-".length)
+    : rawProviderId;
 }
 
 /**
@@ -238,6 +345,66 @@ function coercePluginOptions(opts?: PluginOptions): OmniRoutePluginOptions {
   return parseOmniRoutePluginOptions(opts);
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// Per-prefix API format routing (apiFormat feature)
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Default provider-prefix list that triggers the Anthropic SDK format.
+ * Covers OmniRoute's canonical Anthropic aliases: `cc/`, `claude/`,
+ * `anthropic/`, plus the user-configured `kiro/` and `kr/` upstream
+ * connections that proxy Anthropic models.
+ */
+export const DEFAULT_ANTHROPIC_PREFIXES = ["cc", "claude", "anthropic", "kiro", "kr"];
+
+/**
+ * Ensure a baseURL ends with `/v1` so the OpenAI-compat SDK constructs
+ * `/v1/chat/completions` correctly. The Anthropic SDK does NOT want `/v1`
+ * (it appends `/v1/messages` automatically), so callers should branch on
+ * format first.
+ */
+export function ensureV1Suffix(url: string): string {
+  const trimmed = trimTrailingSlashes(url);
+  return trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
+}
+
+/**
+ * Resolve the API block (id + url + npm package) for a given model id.
+ *
+ * Decision matrix:
+ * - If the model id's prefix (the substring before the first `/`) is in
+ *   `apiFormat.anthropicPrefixes` (or the default list), return the
+ *   Anthropic SDK block: `id: "anthropic"`, `url: baseURL` (no `/v1`),
+ *   `npm: "@ai-sdk/anthropic"`.
+ * - Otherwise return the OpenAI-compat block: `id: "openai-compatible"`,
+ *   `url: baseURL + "/v1"`, `npm: "@ai-sdk/openai-compatible"`.
+ *
+ * Combos span multiple providers. Callers should pass each combo member's
+ * id through this function and pick the LCD format (lowest common
+ * denominator that every upstream actually understands).
+ */
+export function resolveApiBlock(
+  modelId: string,
+  baseURL: string,
+  apiFormat?: { anthropicPrefixes?: string[] }
+): { id: string; url: string; npm: string } {
+  const prefixes = apiFormat?.anthropicPrefixes ?? DEFAULT_ANTHROPIC_PREFIXES;
+  const slash = modelId.indexOf("/");
+  const prefix = slash === -1 ? modelId : modelId.slice(0, slash);
+  const isAnthropic = prefixes.includes(prefix);
+  return isAnthropic
+    ? {
+        id: "anthropic",
+        url: trimTrailingSlashes(baseURL),
+        npm: "@ai-sdk/anthropic",
+      }
+    : {
+        id: "openai-compatible",
+        url: ensureV1Suffix(baseURL),
+        npm: "@ai-sdk/openai-compatible",
+      };
+}
+
 /**
  * Build the AuthHook portion of the plugin for a given options bag. Exported
  * standalone so the auth contract can be unit-tested without faking the full
@@ -270,6 +437,7 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
   // documented and schema-validated but silently ignored.
   const wantFetchInterceptor = (features ?? {}).fetchInterceptor !== false;
   const wantGeminiSanitization = (features ?? {}).geminiSanitization !== false;
+  const wantDebugLog = (features ?? {}).debugLog === true;
 
   const hook: AuthHook = {
     provider: providerId,
@@ -330,6 +498,9 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
         if (wantGeminiSanitization) {
           composedFetch = createGeminiSanitizingFetch(composedFetch ?? fetch);
         }
+        if (wantDebugLog || debugLogEnabled(providerId)) {
+          composedFetch = createDebugLoggingFetch(composedFetch ?? fetch, providerId, wantDebugLog);
+        }
         return composedFetch
           ? { apiKey, baseURL: resolvedBaseURL, fetch: composedFetch }
           : { apiKey, baseURL: resolvedBaseURL };
@@ -365,9 +536,23 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
   const sharedCache: OmniRouteFetchCache = new Map();
   // Debug breadcrumb: confirm server() invocation + resolved options.
   // Useful when diagnosing "is the plugin even running" from OC logs.
-  console.warn(
-    `[omniroute-plugin] initialized providerId=${resolved.providerId} displayName="${resolved.displayName}" baseURL=${resolved.baseURL ?? "(from auth.json)"} modelCacheTtl=${resolved.modelCacheTtl}ms`
+  const _ver: string =
+    ((globalThis as Record<string, unknown>).__PLUGIN_VERSION__ as string) ?? "dev";
+  const _hash: string =
+    ((globalThis as Record<string, unknown>).__PLUGIN_GIT_HASH__ as string) ?? "unknown";
+  const _prefixes = resolved.features?.apiFormat?.anthropicPrefixes ?? DEFAULT_ANTHROPIC_PREFIXES;
+  _logger.always(
+    `v${_ver} (${_hash}) initialized` +
+      ` providerId=${resolved.providerId}` +
+      ` baseURL=${resolved.baseURL ?? "(from auth.json)"}` +
+      ` modelCacheTtl=${resolved.modelCacheTtl}ms` +
+      ` apiFormat=anthropic:[${_prefixes.join(",")}]` +
+      ` debugLog=${resolved.features?.debugLog ?? false}` +
+      ` logLevel=${resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn")}`
   );
+
+  // Wire log level: startupDebug:true → "debug", explicit logLevel wins.
+  setLogLevel(resolved.features?.startupDebug ? "debug" : (resolved.features?.logLevel ?? "warn"));
   return {
     auth: createOmniRouteAuthHook(resolved),
     provider: createOmniRouteProviderHook(resolved, { cache: sharedCache }),
@@ -561,21 +746,28 @@ export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
 
 export function mapRawModelToModelV2(
   raw: OmniRouteRawModelEntry,
-  ctx: { providerId: string; baseURL: string }
+  ctx: { providerId: string; baseURL: string; apiFormat?: { anthropicPrefixes?: string[] } }
 ): ModelV2 {
   const caps = raw.capabilities ?? {};
   const inMods = new Set(raw.input_modalities ?? ["text"]);
   const outMods = new Set(raw.output_modalities ?? ["text"]);
 
   return {
-    id: raw.id,
+    // OC's static-catalog reader parses the key on `/` to recover
+    // `(providerID, modelID)`. If the raw id is already provider-prefixed
+    // (e.g. `cc/claude-opus-4-7` from the `cc` Claude Code alias, or
+    // `nvidia/llama-3-70b` from a provider that ships prefixed ids), leave
+    // it as-is — double-prefixing breaks OC's lookup. Otherwise prefix with
+    // the resolved `providerId` so a bare key like `claude-opus-4` parses as
+    // `(omniroute, claude-opus-4)` and the credentials resolve correctly.
+    id: raw.id.includes("/") ? raw.id : `${ctx.providerId}/${raw.id}`,
     /**
      * Display name. Falls back to raw.id when no enrichment is available;
      * the caller (`createOmniRouteProviderHook`) overlays
      * `/api/pricing/models` data via `applyEnrichment` when
      * `features.enrichment` is true.
      */
-    name: raw.id,
+    name: _normaliseFreeLabel(raw.id),
     capabilities: {
       temperature: caps.temperature ?? true,
       reasoning: Boolean(caps.reasoning || caps.thinking),
@@ -595,7 +787,7 @@ export function mapRawModelToModelV2(
         video: outMods.has("video"),
         pdf: outMods.has("pdf"),
       },
-      interleaved: false,
+      interleaved: Boolean(caps.thinking),
     },
     cost: {
       input: 0,
@@ -612,11 +804,7 @@ export function mapRawModelToModelV2(
     headers: {},
     release_date: raw.release_date ?? "",
     providerID: ctx.providerId,
-    api: {
-      id: "openai-compatible",
-      url: ctx.baseURL,
-      npm: "@ai-sdk/openai-compatible",
-    },
+    api: resolveApiBlock(raw.id, ctx.baseURL, ctx.apiFormat),
   };
 }
 
@@ -674,6 +862,14 @@ export interface OmniRouteRawCombo {
   isHidden?: boolean;
   /** When OmniRoute attaches a lifecycle hint we forward it; today it doesn't. */
   release_date?: string;
+  /**
+   * Server-computed context window for this combo (aggregated from member
+   * models using the same logic as /v1/models). When present, the client
+   * uses this value directly instead of re-aggregating from member models.
+   *
+   * Added in 3.9.x — old servers do not send it.
+   */
+  computed_context_length?: number;
 }
 
 /**
@@ -797,7 +993,8 @@ export function mapComboToModelV2(
   combo: OmniRouteRawCombo,
   members: OmniRouteRawModelEntry[],
   providerId: string,
-  baseURL: string
+  baseURL: string,
+  apiFormat?: { anthropicPrefixes?: string[] }
 ): ModelV2 {
   // `every` over an empty array returns true (would lie about an empty
   // combo's capabilities) — short-circuit to all-false when no members.
@@ -845,17 +1042,30 @@ export function mapComboToModelV2(
       video: modalityAllHave(memberOutMods, "video"),
       pdf: modalityAllHave(memberOutMods, "pdf"),
     },
-    interleaved: false,
+    interleaved: hasMembers && members.every((m) => Boolean(m.capabilities?.thinking)),
   };
+
+  // Combos span multiple providers. Use Anthropic format only when ALL
+  // members resolve to Anthropic — otherwise fall back to OpenAI-compat
+  // (lowest common denominator that every upstream understands).
+  const comboApiBlock = (() => {
+    if (!hasMembers) return resolveApiBlock("", baseURL, apiFormat);
+    const allAnthropic = members.every(
+      (m) => resolveApiBlock(m.id, baseURL, apiFormat).id === "anthropic"
+    );
+    return allAnthropic
+      ? resolveApiBlock(members[0].id, baseURL, apiFormat)
+      : {
+          id: "openai-compatible",
+          url: ensureV1Suffix(baseURL),
+          npm: "@ai-sdk/openai-compatible",
+        };
+  })();
 
   return {
     id: combo.id,
     providerID: providerId,
-    api: {
-      id: "openai-compatible",
-      url: baseURL,
-      npm: "@ai-sdk/openai-compatible",
-    },
+    api: comboApiBlock,
     name: combo.name && combo.name.trim().length > 0 ? combo.name : combo.id,
     capabilities,
     cost: {
@@ -864,7 +1074,12 @@ export function mapComboToModelV2(
       cache: { read: 0, write: 0 },
     },
     limit: {
-      context: contextValues.length > 0 ? Math.min(...contextValues) : 0,
+      context:
+        typeof combo.computed_context_length === "number" && combo.computed_context_length > 0
+          ? combo.computed_context_length
+          : contextValues.length > 0
+            ? Math.min(...contextValues)
+            : 0,
       ...(everyDeclaresInput ? { input: Math.min(...inputValues) } : {}),
       output: outputValues.length > 0 ? Math.min(...outputValues) : 0,
     },
@@ -872,6 +1087,166 @@ export function mapComboToModelV2(
     options: {},
     headers: {},
     release_date: combo.release_date ?? "",
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// AUTO COMBOS — virtual server-side combos exposed via /api/combos/auto
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Raw shape of an auto combo entry as returned by OmniRoute's
+ * `/api/combos/auto` endpoint. Auto combos are virtual — they self-manage
+ * provider selection via scoring/bandit exploration at runtime.
+ */
+export interface OmniRouteRawAutoCombo {
+  /** Stable id (e.g. "auto", "auto/coding"). */
+  id: string;
+  /** Human-readable name (e.g. "Auto", "Auto Coding"). */
+  name: string;
+  /** Variant key or undefined for the default auto. */
+  variant?: AutoVariant;
+  /** Provider names eligible for this auto combo. */
+  candidatePool?: string[];
+  /** Number of candidates resolved at fetch time. */
+  candidateCount?: number;
+  /** MAX of candidates' context windows, served by newer OmniRoute builds.
+   * Absent on older servers — mapper falls back to a safe positive default. */
+  context_length?: number;
+  /** MAX of candidates' max output tokens (same provenance as context_length). */
+  max_output_tokens?: number;
+  /** Whether this auto combo should be hidden from the picker. */
+  isHidden?: boolean;
+  /** Auto-combo configuration. */
+  config?: {
+    auto?: {
+      candidatePool?: string[];
+      explorationRate?: number;
+      routerStrategy?: string;
+    };
+  };
+}
+
+/**
+ * Fetcher contract for `/api/combos/auto`. Returns the list of virtual
+ * auto combos the server can create. Same DI pattern as other fetchers.
+ */
+export type OmniRouteAutoCombosFetcher = (
+  baseURL: string,
+  apiKey: string,
+  timeoutMs?: number
+) => Promise<OmniRouteRawAutoCombo[]>;
+
+/**
+ * Default auto combos fetcher: `GET <baseURL>/api/combos/auto`.
+ *
+ * Fault-tolerant: returns empty array on 404 (endpoint doesn't exist yet)
+ * or any non-2xx / network error. Logs a warning in those cases.
+ */
+export const defaultOmniRouteAutoCombosFetcher: OmniRouteAutoCombosFetcher = async (
+  baseURL,
+  apiKey,
+  timeoutMs = 5_000
+) => {
+  if (!apiKey || !baseURL) return [];
+
+  const trimmed = trimTrailingSlashes(baseURL);
+  const root = trimmed.replace(/\/v\d+$/, "");
+  const url = `${root}/api/combos/auto`;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+    // 404 = endpoint not deployed yet — expected during rollout
+    if (res.status === 404) {
+      console.warn(
+        `[omniroute-plugin] /api/combos/auto not available (404) — auto combos disabled`
+      );
+      return [];
+    }
+    if (!res.ok) {
+      console.warn(
+        `[omniroute-plugin] /api/combos/auto failed: ${res.status} ${res.statusText} — auto combos disabled`
+      );
+      return [];
+    }
+    const body = (await res.json()) as unknown;
+    const rawList: unknown[] = Array.isArray(body)
+      ? body
+      : body && typeof body === "object" && Array.isArray((body as { combos?: unknown }).combos)
+        ? ((body as { combos: unknown[] }).combos as unknown[])
+        : [];
+    const out: OmniRouteRawAutoCombo[] = [];
+    for (const r of rawList) {
+      if (r && typeof r === "object" && typeof (r as { id?: unknown }).id === "string") {
+        out.push(r as OmniRouteRawAutoCombo);
+      }
+    }
+    return out;
+  } catch (err) {
+    // Network error, timeout, abort — all non-fatal
+    console.warn(
+      `[omniroute-plugin] /api/combos/auto fetch failed: ${err instanceof Error ? err.message : String(err)} — auto combos disabled`
+    );
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+/** Fallbacks when the server does not advertise auto-combo limits (older
+ * OmniRoute builds). MUST be positive: OpenCode's overflow guard treats
+ * `limit.context === 0` as "never overflow" and silently DISABLES smart
+ * auto-compaction, letting the session grow until the gateway's destructive
+ * history purge kicks in (the "agent keeps forgetting things" bug). */
+const AUTO_COMBO_FALLBACK_CONTEXT = 128_000;
+const AUTO_COMBO_FALLBACK_OUTPUT = 8_192;
+
+/**
+ * Convert a raw auto combo into a static model entry for the OpenCode picker.
+ * Auto combos have tool_call=true, reasoning=true by default (they route
+ * to capable models). Context/output limits come from the server (MAX of
+ * the candidate pool's windows — the gateway's context pre-filter routes
+ * oversized requests to large-window candidates); a safe positive fallback
+ * applies when the server omits them. Never 0.
+ */
+export function mapAutoComboToStaticEntry(
+  autoCombo: OmniRouteRawAutoCombo
+): OmniRouteStaticModelEntry {
+  const variant = autoCombo.variant;
+  const name = formatAutoComboName(variant, autoCombo.candidateCount);
+  const context =
+    typeof autoCombo.context_length === "number" && autoCombo.context_length > 0
+      ? autoCombo.context_length
+      : AUTO_COMBO_FALLBACK_CONTEXT;
+  const output =
+    typeof autoCombo.max_output_tokens === "number" && autoCombo.max_output_tokens > 0
+      ? autoCombo.max_output_tokens
+      : AUTO_COMBO_FALLBACK_OUTPUT;
+  // No `providerID` field on static-catalog entries — OC ignores it on the static
+  // path, and stamping it on auto-combos but not on raw/combo entries was an
+  // internal inconsistency. The dynamic-hook path builds its ModelV2 from the
+  // individual fields below and never read this field either.
+  return {
+    name,
+    attachment: false,
+    reasoning: true,
+    temperature: true,
+    tool_call: true,
+    limit: { context, output },
+    modalities: {
+      input: ["text"],
+      output: ["text"],
+    },
+    cost: { input: 0, output: 0, cache_read: 0, cache_write: 0 },
   };
 }
 
@@ -900,7 +1275,7 @@ export interface OmniRouteEnrichmentEntry {
     cacheWrite?: number;
   };
   /**
-   * Provider alias prefix seen in `/v1/models` ids (e.g. `cc`, `gemini-cli`).
+   * Provider alias prefix seen in `/v1/models` ids (e.g. `cc`, `gemini`).
    * Populated by `defaultOmniRouteEnrichmentFetcher` from
    * `/api/pricing/models` keys. Drives the `usableOnly` alias↔canonical
    * resolution.
@@ -908,7 +1283,7 @@ export interface OmniRouteEnrichmentEntry {
   providerAlias?: string;
   /**
    * Canonical provider id used by `/api/providers` connections (e.g.
-   * `claude`, `gemini-cli`, `kiro`). Populated from the per-provider
+   * `claude`, `gemini`, `kiro`). Populated from the per-provider
    * `entry.id` field inside `/api/pricing/models`.
    */
   providerCanonical?: string;
@@ -921,6 +1296,12 @@ export interface OmniRouteEnrichmentEntry {
    * model id sold through different upstream connections.
    */
   providerDisplayName?: string;
+  /** Free-model budget type (from freeModelCatalog). */
+  freeType?: FreeModelFreeType;
+  /** Monthly token budget for recurring free models. */
+  monthlyTokens?: number;
+  /** Credit token budget for credit-based free models. */
+  creditTokens?: number;
 }
 
 /** Map keyed by full model id (possibly namespaced, e.g. `cc/claude-sonnet-4-6`). */
@@ -1068,10 +1449,18 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
             if (Object.keys(parsed).length === 0) continue;
             const namespaced = `${providerAlias}/${modelId}`;
             const existingNs = out.get(namespaced);
-            if (existingNs) existingNs.pricing = { ...(existingNs.pricing ?? {}), ...parsed };
+            if (existingNs)
+              existingNs.pricing = {
+                ...(existingNs.pricing ?? {}),
+                ...parsed,
+              };
             else out.set(namespaced, { pricing: parsed });
             const existingBare = out.get(modelId);
-            if (existingBare) existingBare.pricing = { ...(existingBare.pricing ?? {}), ...parsed };
+            if (existingBare)
+              existingBare.pricing = {
+                ...(existingBare.pricing ?? {}),
+                ...parsed,
+              };
             else out.set(modelId, { pricing: parsed });
           }
         }
@@ -1083,8 +1472,158 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
     clearTimeout(priceTimer);
   }
 
+  // ── 3. Free model budgets from /api/free-tier/summary ──────────────────
+  // Best-effort fetch: populates freeType/monthlyTokens/creditTokens on
+  // enrichment entries that match. 404 = endpoint doesn't exist — skip.
+  // Uses the EXISTING /api/free-tier/summary endpoint (no new server code).
+  const freeAc = new AbortController();
+  const freeTimer = setTimeout(() => freeAc.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${root}/api/free-tier/summary`, {
+      method: "GET",
+      headers,
+      signal: freeAc.signal,
+    });
+    if (res.ok) {
+      const body = (await res.json()) as unknown;
+      // Response shape: { perModel: FreeModelBudget[], ... }
+      const perModel: unknown[] =
+        body && typeof body === "object" && Array.isArray((body as { perModel?: unknown }).perModel)
+          ? ((body as { perModel: unknown[] }).perModel as unknown[])
+          : Array.isArray(body)
+            ? (body as unknown[])
+            : [];
+      let matched = 0;
+      for (const fm of perModel) {
+        if (!fm || typeof fm !== "object") continue;
+        const fmObj = fm as Record<string, unknown>;
+        const provider = typeof fmObj.provider === "string" ? fmObj.provider : "";
+        const modelId = typeof fmObj.modelId === "string" ? fmObj.modelId : "";
+        const freeType = typeof fmObj.freeType === "string" ? fmObj.freeType : "";
+        if (!modelId || !freeType) continue;
+        const monthlyTokens =
+          typeof fmObj.monthlyTokens === "number" ? fmObj.monthlyTokens : undefined;
+        const creditTokens =
+          typeof fmObj.creditTokens === "number" ? fmObj.creditTokens : undefined;
+        // Match against enrichment entries: namespaced, bare, and displayName
+        const displayName = typeof fmObj.displayName === "string" ? fmObj.displayName : "";
+        const candidates = [
+          `${provider}/${modelId}`,
+          modelId,
+          ...(displayName ? [displayName] : []),
+        ];
+        for (const key of candidates) {
+          const entry = out.get(key);
+          if (entry) {
+            entry.freeType = freeType as FreeModelFreeType;
+            if (monthlyTokens !== undefined) entry.monthlyTokens = monthlyTokens;
+            if (creditTokens !== undefined) entry.creditTokens = creditTokens;
+            matched++;
+            break;
+          }
+        }
+      }
+      _logger.debug(
+        `free-tier/summary: ${perModel.length} models returned, ${matched} matched enrichment entries`
+      );
+    }
+  } catch {
+    // Soft-fail; free metadata is optional.
+  } finally {
+    clearTimeout(freeTimer);
+  }
+
   return out;
 };
+
+// ── Startup diagnostics writer (file-based) ──────────────────────────────
+// OC doesn't capture plugin console.warn in its log file. Write diagnostics
+// to a file so they're readable after session starts. Capped at 64KB.
+async function writeStartupDiagnostics(params: {
+  providerId: string;
+  baseURL: string;
+  modelCount: number;
+  comboCount: number;
+  enrichmentSize: number;
+  autoComboCount: number;
+  enrichment: OmniRouteEnrichmentMap;
+  autoCombos: OmniRouteRawAutoCombo[];
+}): Promise<void> {
+  const {
+    providerId,
+    baseURL,
+    modelCount,
+    comboCount,
+    enrichmentSize,
+    autoComboCount,
+    enrichment,
+    autoCombos,
+  } = params;
+  const enriched = [...enrichment.entries()];
+  const withName = enriched.filter(([, e]) => e.name);
+  const withPricing = enriched.filter(([, e]) => e.pricing);
+  const withFree = enriched.filter(([, e]) => e.freeType);
+
+  const lines: string[] = [];
+  lines.push(`=== startupDebug ${new Date().toISOString()} ===`);
+  lines.push(`providerId=${providerId} baseURL=${baseURL}`);
+  lines.push(
+    `models=${modelCount} combos=${comboCount} enrichment=${enrichmentSize} autoCombos=${autoComboCount}`
+  );
+  lines.push(
+    `enrichment: ${withName.length} with name, ${withPricing.length} with pricing, ${withFree.length} free`
+  );
+  if (withFree.length > 0) {
+    lines.push(`free models (${withFree.length}):`);
+    for (const [k, e] of withFree.slice(0, 10)) {
+      lines.push(
+        `  ${k} → name=${e.name ?? "(none)"}, freeType=${e.freeType}, monthly=${e.monthlyTokens ?? 0}, credits=${e.creditTokens ?? 0}`
+      );
+    }
+  } else {
+    lines.push(
+      `NO free models detected. ` +
+        (enrichmentSize === 0
+          ? "Enrichment map is EMPTY."
+          : `Enrichment has ${enrichmentSize} entries but none have freeType.`)
+    );
+  }
+  const sampleNames = enriched
+    .filter(([, e]) => e.name)
+    .slice(0, 5)
+    .map(([k, e]) => `  ${k} → "${e.name}"`);
+  if (sampleNames.length > 0) {
+    lines.push(`sample enriched names:`);
+    lines.push(sampleNames.join("\n"));
+  }
+  if (autoCombos.length > 0) {
+    lines.push(
+      `auto combos: ${autoCombos.length} — ${autoCombos.map((ac) => `${ac.id}(${ac.candidateCount ?? "?"}p)`).join(", ")}`
+    );
+  }
+  lines.push(`=== end startupDebug ===\n`);
+
+  const diagnostics = lines.join("\n");
+  _logger.debug(diagnostics);
+
+  try {
+    const diagDir =
+      process.env.OPENCODE_DATA_DIR ?? path.join(os.homedir(), ".local/share/opencode");
+    const diagPath = path.join(diagDir, "plugins", "omniroute-startup-diagnostics.log");
+    let existing = "";
+    try {
+      existing = await readFile(diagPath, "utf8");
+    } catch {
+      /* first write */
+    }
+    const KEEP = 65_536;
+    const combined = existing + diagnostics;
+    const trimmed = combined.length > KEEP ? combined.slice(combined.length - KEEP) : combined;
+    await writeFile(diagPath, trimmed, "utf8");
+  } catch {
+    /* best effort */
+  }
+}
 
 /**
  * Separator used by `applyProviderTag` between the upstream provider
@@ -1096,64 +1635,13 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
  * group by provider — e.g. `Claude - Claude Opus 4.7`,
  * `Kiro - Claude Opus 4.7`).
  */
-export const PROVIDER_TAG_SEPARATOR = " - ";
+export const PROVIDER_TAG_SEPARATOR = _PROVIDER_TAG_SEPARATOR;
 
-/**
- * Threshold beyond which `providerDisplayName` is abbreviated. Raised
- * from 8 → 12 so curated brand casing (`AssemblyAI`, `Antigravity`,
- * `Pollinations`, `GEMINI-CLI` curated form) wins over a shouty
- * UPPER(alias) fallback for the common case.
- */
-const PROVIDER_LABEL_MAX_CHARS = 12;
-
-/**
- * Aliases longer than this get title-case fallback instead of UPPER —
- * keeps short-token UPPER (`cc`→`CC`, `ghm`→`GHM`) but tames long
- * lowercase aliases (`antigravity`→`Antigravity`).
- */
-const ALIAS_UPPER_MAX_CHARS = 5;
-
-/**
- * Title-case a long, lowercase-looking alias (e.g. `antigravity` →
- * `Antigravity`) so the prefix doesn't shout when neither
- * `providerDisplayName` nor a short alias is available.
- */
-function titleCaseAlias(alias: string): string {
-  if (alias.length === 0) return alias;
-  return alias.charAt(0).toUpperCase() + alias.slice(1).toLowerCase();
-}
-
-/**
- * Pick the short label for an upstream provider that goes into the
- * `<label> - <model>` prefix.
- *
- * Rule (matches user spec — no hardcoded registry, fully data-driven):
- *
- *   1. Trim `enrichment.providerDisplayName` (= `/api/pricing/models[<alias>].name`).
- *   2. If the trimmed label is non-empty AND ≤ {@link PROVIDER_LABEL_MAX_CHARS} (12),
- *      use it verbatim (e.g. `Claude`, `Kiro`, `AssemblyAI`, `Antigravity`).
- *   3. Otherwise look at the alias:
- *      - if the alias is short (≤ {@link ALIAS_UPPER_MAX_CHARS}) →
- *        `UPPER(alias)` (e.g. `cc` → `CC`, `ghm` → `GHM`).
- *      - if the alias is longer → title-case it (`antigravity` →
- *        `Antigravity`) so the prefix is readable, not shouty.
- *   4. If neither field is usable, return `undefined` (caller should
- *      skip the prefix decoration).
- */
+// Re-export from naming.ts — thin wrapper preserving OmniRouteEnrichmentEntry signature
 export function shortProviderLabel(
   enrichment: OmniRouteEnrichmentEntry | undefined
 ): string | undefined {
-  if (!enrichment) return undefined;
-  const raw =
-    typeof enrichment.providerDisplayName === "string" ? enrichment.providerDisplayName.trim() : "";
-  if (raw.length > 0 && raw.length <= PROVIDER_LABEL_MAX_CHARS) return raw;
-  const alias = typeof enrichment.providerAlias === "string" ? enrichment.providerAlias.trim() : "";
-  if (alias.length > 0) {
-    return alias.length <= ALIAS_UPPER_MAX_CHARS ? alias.toUpperCase() : titleCaseAlias(alias);
-  }
-  // Tolerate "label too long + no alias" by falling back to the long
-  // label itself — better than dropping the prefix entirely. Rare case.
-  return raw.length > 0 ? raw : undefined;
+  return _shortProviderLabel(enrichment);
 }
 
 /**
@@ -1189,7 +1677,13 @@ export function applyProviderTag(
   if (!label) return model;
   const prefix = `${label}${PROVIDER_TAG_SEPARATOR}`;
   if (model.name.startsWith(prefix)) return model;
-  model.name = `${prefix}${model.name}`;
+  // When enrichment already prepended [Free], move it before the provider
+  // tag: "[Free] GPT-4.1" → "[Free] GHM - GPT-4.1" not "GHM - [Free] GPT-4.1"
+  if (model.name.startsWith("[Free] ")) {
+    model.name = `[Free] ${prefix}${model.name.slice(7)}`;
+  } else {
+    model.name = `${prefix}${model.name}`;
+  }
   return model;
 }
 
@@ -1404,13 +1898,25 @@ export function resolveProviderTagEntry(
  * Apply enrichment overlay onto a ModelV2 entry. Mutates and returns the
  * passed entry for convenience.
  */
+/**
+ * Normalise a model display name so free-tier models always carry a
+ * consistent `[Free] ` prefix instead of a trailing `(Free)` suffix or an
+ * ad-hoc `free` word anywhere in the name.
+ *
+ * Examples:
+ *   "GPT-4.1 (Free)"          → "[Free] GPT-4.1"
+ *   "DeepSeek V4 Flash Free"  → "[Free] DeepSeek V4 Flash"
+ *   "Claude Opus 4.7"         → "Claude Opus 4.7"   (unchanged)
+ */
+export { _normaliseFreeLabel as normaliseFreeLabel };
+
 export function applyEnrichment(
   model: ModelV2,
   enrichment: OmniRouteEnrichmentEntry | undefined
 ): ModelV2 {
   if (!enrichment) return model;
   if (enrichment.name && enrichment.name.trim().length > 0) {
-    model.name = enrichment.name;
+    model.name = _normaliseFreeLabel(enrichment.name);
   }
   if (enrichment.pricing) {
     if (typeof enrichment.pricing.input === "number") {
@@ -1590,7 +2096,7 @@ export function formatCompressionPipeline(pipeline: OmniRouteCompressionStep[]):
 export interface OmniRouteProviderConnection {
   /** Connection UUID. */
   id: string;
-  /** Canonical provider id, e.g. `claude`, `gemini-cli`, `kiro`. Matches `entry.id` in `/api/pricing/models`. */
+  /** Canonical provider id, e.g. `claude`, `gemini`, `kiro`. Matches `entry.id` in `/api/pricing/models`. */
   provider: string;
   /** Connection auth flavor, e.g. `apikey`, `oauth`, `cookie`. */
   authType?: string;
@@ -1669,7 +2175,7 @@ export const defaultOmniRouteProvidersFetcher: OmniRouteProvidersFetcher = async
  * walk only the namespaced keys to derive the alias↔canonical mapping).
  *
  * Returns:
- *   - `aliases`: set of alias prefixes safe to keep (e.g. `cc`, `gemini-cli`).
+ *   - `aliases`: set of alias prefixes safe to keep (e.g. `cc`, `gemini`).
  *   - `canonicals`: set of canonical provider ids (e.g. `claude`, `kiro`).
  *
  * Callers should treat membership in EITHER set as "usable" — raw model
@@ -1685,7 +2191,11 @@ export const defaultOmniRouteProvidersFetcher: OmniRouteProvidersFetcher = async
 export function usableProviderAliasSet(
   connections: OmniRouteProviderConnection[],
   enrichment: OmniRouteEnrichmentMap | undefined
-): { aliases: Set<string>; canonicals: Set<string>; knownAliases: Set<string> } {
+): {
+  aliases: Set<string>;
+  canonicals: Set<string>;
+  knownAliases: Set<string>;
+} {
   const usableCanonicals = new Set<string>();
   for (const c of connections) {
     if (!c || c.isActive !== true) continue;
@@ -1714,7 +2224,7 @@ export function usableProviderAliasSet(
   }
   // Always include every usable canonical as an alias too — handles the
   // common case where `/v1/models` ids use the canonical id directly
-  // (e.g. `gemini-cli/gemini-1.5-pro`).
+  // (e.g. `gemini/gemini-1.5-pro`).
   for (const canonical of usableCanonicals) aliases.add(canonical);
   return { aliases, canonicals: usableCanonicals, knownAliases };
 }
@@ -1734,7 +2244,11 @@ export function usableProviderAliasSet(
  */
 export function isUsableRawModelId(
   id: string,
-  usable: { aliases: Set<string>; canonicals: Set<string>; knownAliases: Set<string> },
+  usable: {
+    aliases: Set<string>;
+    canonicals: Set<string>;
+    knownAliases: Set<string>;
+  },
   enrichment: OmniRouteEnrichmentMap | undefined
 ): boolean {
   const slash = id.indexOf("/");
@@ -1757,7 +2271,11 @@ export function isUsableRawModelId(
  */
 export function isUsableCombo(
   combo: OmniRouteRawCombo,
-  usable: { aliases: Set<string>; canonicals: Set<string>; knownAliases: Set<string> }
+  usable: {
+    aliases: Set<string>;
+    canonicals: Set<string>;
+    knownAliases: Set<string>;
+  }
 ): boolean {
   const steps = Array.isArray(combo.models) ? combo.models : [];
   if (steps.length === 0) return true;
@@ -1799,38 +2317,52 @@ export function slugifyComboName(name: string): string {
 }
 
 /**
- * Build a combo's static-block key (`combo/<slug>`), guaranteeing uniqueness
- * across an entire static catalog. If `<slug>` is already present in `used`,
- * suffixes a short UUID-prefix disambiguator from `combo.id` so the second
- * combo doesn't silently overwrite the first. Mutates `used` in place by
- * recording the chosen key. Returns the final `combo/<...>` key.
+ * Build a combo's static-block key, provider-prefixed as `<providerId>/<slug>`
+ * (e.g. `omniroute/MASTER`, `omniroute/MASTER-LIGHT`), guaranteeing uniqueness
+ * across an entire static catalog. If `<providerId>/<slug>` is already present in
+ * `used`, suffixes a short UUID-prefix disambiguator from `combo.id` so the second
+ * combo doesn't silently overwrite the first. Mutates `used` in place by recording
+ * the chosen key. Returns the final `<providerId>/<slug>` key.
  *
- * Falls back to `combo/<id>` when the friendly name slugifies to the empty
+ * NOTE: the key MUST carry the OWNING provider prefix (`omniroute/…`), never a
+ * `combo/` namespace — OpenCode parses model IDs on `/` to extract the provider,
+ * so `combo/MASTER` would resolve provider=`combo` (no credentials) and fail with
+ * "Unable to determine provider", whereas `omniroute/MASTER` resolves provider=
+ * `omniroute` and the openai-compatible adapter strips the prefix and sends the
+ * bare slug upstream, which the server resolves via getComboByName. See PR #4184.
+ *
+ * Falls back to `<providerId>/<id>` when the friendly name slugifies to the empty
  * string (e.g. a combo named just punctuation).
  */
-export function buildComboKey(combo: OmniRouteRawCombo, used: Set<string>): string {
+export function buildComboKey(
+  combo: OmniRouteRawCombo,
+  used: Set<string>,
+  providerId: string
+): string {
   const friendlyName = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
   let slug = slugifyComboName(friendlyName);
   if (slug.length === 0) slug = combo.id;
-  let key = `combo/${slug}`;
+  let key = `${providerId}/${slug}`;
   if (used.has(key)) {
     const tail = combo.id.split("-")[0] ?? combo.id;
-    key = `combo/${slug}-${tail}`;
+    key = `${providerId}/${slug}-${tail}`;
     // Defensive: in the (impossible) event the disambiguated key also
     // collides, append the full id.
-    if (used.has(key)) key = `combo/${slug}-${combo.id}`;
+    if (used.has(key)) key = `${providerId}/${slug}-${combo.id}`;
   }
   used.add(key);
   return key;
 }
 
 /**
- * Internal cache key: `${baseURL}::sha256(apiKey)`. We hash the apiKey so
- * the key is safe to log / inspect via debugger without leaking the secret.
- * Different (baseURL, apiKey) tuples MUST keep independent cache entries:
- * a single OC user may register prod + preprod OmniRoute side-by-side with
- * distinct keys, and serving one's catalog from the other's cache would be
- * a correctness bug, not just a privacy one.
+ * Internal cache key: `${baseURL}::sha256(credentialId)`. The credential id
+ * combines the inference key and effective management-read token so catalog
+ * results fetched under different permissions never share an entry. We hash
+ * it so the cache key is safe to inspect without leaking either secret.
+ * Different credential tuples MUST keep independent cache entries: a single
+ * OC user may register prod + preprod OmniRoute side-by-side with distinct
+ * keys, and serving one's catalog from the other's cache would be a
+ * correctness bug, not just a privacy one.
  */
 // codeql[js/insufficient-password-hash]: the input here is an API-key
 // identifier we use solely to derive an in-memory cache lookup key — it is
@@ -1865,6 +2397,7 @@ function modelsCacheKey(baseURL: string, credentialId: string): string {
 export interface OmniRouteFetchCacheEntry {
   rawModels: OmniRouteRawModelEntry[];
   rawCombos: OmniRouteRawCombo[];
+  rawAutoCombos: OmniRouteRawAutoCombo[];
   /** Display-name + pricing overlay from /api/pricing/models. Empty Map when feature is disabled or fetch failed. */
   rawEnrichment: OmniRouteEnrichmentMap;
   /** Compression combos from /api/context/combos. Empty array when feature is disabled or fetch failed. */
@@ -1925,6 +2458,7 @@ export function createOmniRouteProviderHook(
   deps: {
     fetcher?: OmniRouteModelsFetcher;
     combosFetcher?: OmniRouteCombosFetcher;
+    autoCombosFetcher?: OmniRouteAutoCombosFetcher;
     enrichmentFetcher?: OmniRouteEnrichmentFetcher;
     compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
     providersFetcher?: OmniRouteProvidersFetcher;
@@ -1939,6 +2473,7 @@ export function createOmniRouteProviderHook(
   // reference resolves at hook-invocation time, not at hook-construction
   // time, so source-order beyond hoisting rules has no semantic effect.
   const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
+  const autoCombosFetcher = deps.autoCombosFetcher ?? defaultOmniRouteAutoCombosFetcher;
   const enrichmentFetcher = deps.enrichmentFetcher ?? defaultOmniRouteEnrichmentFetcher;
   const compressionMetaFetcher =
     deps.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
@@ -1946,6 +2481,7 @@ export function createOmniRouteProviderHook(
   // Features defaults (mirror v0.1.0 behavior when unset).
   const features = resolved.features ?? {};
   const wantCombos = features.combos !== false;
+  const wantAutoCombos = features.autoCombos !== false;
   const wantEnrichment = features.enrichment !== false;
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
@@ -1977,32 +2513,52 @@ export function createOmniRouteProviderHook(
         return {};
       }
       const apiKey = (auth as { key: string }).key;
+      // Management-plane catalog reads may use a narrower read-only token.
+      // Backward compatibility: when unset, retain the historical apiKey use.
+      const managementReadToken = resolved.managementReadToken ?? apiKey;
 
       // baseURL resolution: plugin opts first, then credential-attached
-      // baseURL (auth backends sometimes stash it next to the key). No
-      // silent default to localhost: a misconfigured plugin should surface
-      // a clear error, not phantom /v1/models calls. Cast through unknown
-      // because the Auth union (OAuth | ApiAuth | WellKnownAuth) doesn't
-      // declare baseURL on any branch — we duck-type it as a defensive
-      // extension point.
+      // baseURL (auth backends sometimes stash it next to the key), then the
+      // provider config itself — a baseURL set via opencode.json provider
+      // options (or a config hook) lands on `provider.options` and is not
+      // visible through either of the first two links. No silent default to
+      // localhost: a misconfigured plugin should surface a clear warning,
+      // not phantom /v1/models calls. Cast through unknown because the Auth
+      // union (OAuth | ApiAuth | WellKnownAuth) doesn't declare baseURL on
+      // any branch — we duck-type it as a defensive extension point.
       const authBaseURL = (auth as unknown as { baseURL?: unknown }).baseURL;
-      const baseURL = resolved.baseURL ?? (typeof authBaseURL === "string" ? authBaseURL : "");
+      const providerBaseURL = (_provider as { options?: { baseURL?: unknown } } | undefined)
+        ?.options?.baseURL;
+      const baseURL =
+        resolved.baseURL ??
+        (typeof authBaseURL === "string" && authBaseURL.length > 0 ? authBaseURL : undefined) ??
+        (typeof providerBaseURL === "string" && providerBaseURL.length > 0
+          ? providerBaseURL
+          : undefined) ??
+        "";
       if (!baseURL) {
+        console.warn(
+          `[omniroute-plugin] provider.models(${resolved.providerId}): ` +
+            `no baseURL resolvable — checked plugin opts, auth.json, and provider config. ` +
+            `Set baseURL in opencode.json plugin options or run \`opencode connect ${resolved.providerId}\` with a baseURL.`
+        );
         return {};
       }
 
-      const cacheKey = modelsCacheKey(baseURL, apiKey);
+      const cacheKey = modelsCacheKey(baseURL, `${apiKey}\0${managementReadToken}`);
       const t = now();
       const cached = cache.get(cacheKey);
 
       let rawModels: OmniRouteRawModelEntry[];
       let rawCombos: OmniRouteRawCombo[];
+      let rawAutoCombos: OmniRouteRawAutoCombo[];
       let rawEnrichment: OmniRouteEnrichmentMap;
       let rawCompressionCombos: OmniRouteCompressionCombo[];
       let rawConnections: OmniRouteProviderConnection[];
       if (cached && cached.expiresAt > t) {
         rawModels = cached.rawModels;
         rawCombos = cached.rawCombos;
+        rawAutoCombos = cached.rawAutoCombos;
         rawEnrichment = cached.rawEnrichment;
         rawCompressionCombos = cached.rawCompressionCombos;
         rawConnections = cached.rawConnections;
@@ -2021,7 +2577,7 @@ export function createOmniRouteProviderHook(
         rawCombos = [];
         if (wantCombos) {
           try {
-            rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+            rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
@@ -2030,12 +2586,25 @@ export function createOmniRouteProviderHook(
           }
         }
 
+        // Auto combos fetch — virtual server-side combos. Best-effort,
+        // gated by features.autoCombos. Soft-fails silently (the endpoint
+        // may not exist yet on older OmniRoute versions).
+        rawAutoCombos = [];
+        if (wantAutoCombos) {
+          try {
+            rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
+          } catch {
+            // Already handled inside the default fetcher — this catch
+            // is belt-and-suspenders for injected stubs.
+          }
+        }
+
         // Enrichment fetch (nice names + pricing). Best-effort, gated by
         // features.enrichment. Soft-fails to empty map.
         rawEnrichment = new Map();
         if (wantEnrichment) {
           try {
-            rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+            rawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] enrichment fetch failed, falling back to raw ids",
@@ -2049,7 +2618,11 @@ export function createOmniRouteProviderHook(
         rawCompressionCombos = [];
         if (wantCompressionMeta) {
           try {
-            rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+            rawCompressionCombos = await compressionMetaFetcher(
+              baseURL,
+              managementReadToken,
+              10_000
+            );
           } catch (err) {
             console.warn("[omniroute-plugin] compression-metadata fetch failed", err);
           }
@@ -2063,7 +2636,7 @@ export function createOmniRouteProviderHook(
         rawConnections = [];
         if (wantUsableOnly) {
           try {
-            rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+            rawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             console.warn(
               "[omniroute-plugin] /api/providers fetch failed; usableOnly filter disabled for this refresh",
@@ -2075,6 +2648,7 @@ export function createOmniRouteProviderHook(
         cache.set(cacheKey, {
           rawModels,
           rawCombos,
+          rawAutoCombos,
           rawEnrichment,
           rawCompressionCombos,
           rawConnections,
@@ -2092,6 +2666,20 @@ export function createOmniRouteProviderHook(
             `${rawConnections.length} connections ` +
             `(TTL=${resolved.modelCacheTtl}ms)`
         );
+
+        // ── Startup debug: deep-dive into enrichment + auto combos ──────
+        if (resolved.features?.startupDebug === true) {
+          await writeStartupDiagnostics({
+            providerId: resolved.providerId,
+            baseURL,
+            modelCount: rawModels.length,
+            comboCount: rawCombos.length,
+            enrichmentSize: rawEnrichment.size,
+            autoComboCount: rawAutoCombos.length,
+            enrichment: rawEnrichment,
+            autoCombos: rawAutoCombos,
+          });
+        }
       }
 
       // Lookup index for LCD member resolution: O(1) per member lookup.
@@ -2132,8 +2720,10 @@ export function createOmniRouteProviderHook(
         if (canonicalDedup.has(entry.id)) continue;
         if (usable && !isUsableRawModelId(entry.id, usable, rawEnrichment)) continue;
         const model = mapRawModelToModelV2(entry, {
-          providerId: resolved.providerId,
+          // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
+          providerId: resolved.omnirouteProviderId,
           baseURL,
+          apiFormat: resolved.features?.apiFormat,
         });
         const enrichEntry = lookupEnrichment(entry.id, rawEnrichment, canonicalToAlias);
         applyEnrichment(model, enrichEntry);
@@ -2152,7 +2742,12 @@ export function createOmniRouteProviderHook(
           );
           applyProviderTag(model, tagEntry);
         }
-        models[entry.id] = model;
+        // OC's static-catalog reader parses the key on `/` to recover
+        // (providerID, modelID). `mapRawModelToModelV2` already stamps the
+        // prefixed id on `model.id` (e.g. `omniroute/claude-primary`), so we
+        // must key by `model.id` — not by the raw `entry.id` which would be
+        // a bare slug and parse as `providerID=slug, modelID=""`.
+        models[model.id] = model;
       }
 
       // Default compression combo (used to decorate ALL combo names when
@@ -2183,69 +2778,244 @@ export function createOmniRouteProviderHook(
         if (comboNames.has(key)) delete models[key];
       }
 
+      // ── Combo LCD across nested combo-refs (T-NN) ───────────────────────
+      // Combos can nest other combos via `kind: "combo-ref"` members
+      // (e.g. MASTER-LIGHT contains OldLLM, KIRO, Opecode Zen FREE). The
+      // nested combo's own `limit.context` is computed below in this same
+      // loop, so we need a fixpoint iteration: if a combo-ref points at a
+      // combo not yet processed, defer this combo and try again after the
+      // sibling combos catch up. We bound the retries so a circular combo
+      // graph can't deadlock the picker.
+      const MAX_COMBO_PASSES = 8;
       const usedComboKeys = new Set<string>();
-      for (const combo of rawCombos) {
-        if (!combo.id) continue;
-        if (combo.isHidden === true) continue;
-        // usableOnly filter — drop combos whose members all map to
-        // non-usable providers.
-        if (usable && !isUsableCombo(combo, usable)) continue;
+      // Combos in `rawCombos` that still need (re)processing this round.
+      // Shrinks as combos resolve.
+      let pending = rawCombos.filter((combo) => {
+        if (!combo.id) return false;
+        if (combo.isHidden === true) return false;
+        if (usable && !isUsableCombo(combo, usable)) return false;
+        return true;
+      });
+      // Resolved nested combos keyed by their friendly name, so parent
+      // combos that reference them via combo-ref can lift the full
+      // capability vector (not just the context window) into their own
+      // LCD pass.
+      const resolvedComboModelsByName = new Map<string, ModelV2>();
 
-        const memberSteps = Array.isArray(combo.models) ? combo.models : [];
-        const memberEntries: OmniRouteRawModelEntry[] = [];
-        for (const step of memberSteps) {
-          // Use the unknown-bridge pattern from commit 91b137e6 so the
-          // DTS pass stays clean: ComboMemberRef declares `model?: string`
-          // but we still verify the runtime shape before consuming it.
-          const modelId = (step as unknown as { model?: unknown }).model;
-          if (typeof modelId !== "string" || modelId.length === 0) continue;
-          const member = rawModelById.get(modelId);
-          if (member) memberEntries.push(member);
-        }
+      for (let pass = 0; pass < MAX_COMBO_PASSES && pending.length > 0; pass++) {
+        const stillPending: typeof pending = [];
+        for (const combo of pending) {
+          const memberSteps = Array.isArray(combo.models) ? combo.models : [];
+          const memberEntries: OmniRouteRawModelEntry[] = [];
+          let deferredThisPass = false;
 
-        const mapped = mapComboToModelV2(combo, memberEntries, resolved.providerId, baseURL);
-        const hasMembers = memberEntries.length > 0;
+          for (const step of memberSteps) {
+            // Unknown-bridge: ComboMemberRef's DTS type only declares
+            // `model?: string`, so verify the runtime shape before reading
+            // either `model` (raw member) or `comboName` (nested combo).
+            const stepKind = (step as unknown as { kind?: unknown }).kind;
 
-        // Apply enrichment overlay to combos too (OmniRoute's
-        // /api/pricing/models surfaces combos alongside provider-scoped
-        // models with curated names).
-        applyEnrichment(mapped, rawEnrichment.get(combo.id));
+            if (stepKind === "combo-ref") {
+              const comboName = (step as unknown as { comboName?: unknown }).comboName;
+              if (typeof comboName !== "string" || comboName.length === 0) {
+                continue;
+              }
+              const nestedModel = resolvedComboModelsByName.get(comboName);
+              if (!nestedModel) {
+                // Nested combo hasn't been processed yet. Defer this
+                // combo to the next pass.
+                deferredThisPass = true;
+                break;
+              }
+              // Synthesize a member entry that contributes only the
+              // nested combo's pre-computed context_length + max_output.
+              // Other capability axes default conservatively (no tool
+              // calls, no vision) — a nested combo's modalities are an
+              // OR, but if we let raw-model defaults leak in we'd
+              // over-claim. The combo's own LCD (computed by
+              // mapComboToModelV2 from the synthesized entries) will only
+              // further restrict capabilities, so this is safe.
+              // Synthesize a member entry carrying the nested combo's
+              // pre-computed context + capabilities + modalities so the
+              // parent combo's LCD is accurate across the whole graph
+              // (not just its direct raw-model members).
+              const inputModalities: string[] = [];
+              if (nestedModel.capabilities.input.text) inputModalities.push("text");
+              if (nestedModel.capabilities.input.audio) inputModalities.push("audio");
+              if (nestedModel.capabilities.input.image) inputModalities.push("image");
+              if (nestedModel.capabilities.input.video) inputModalities.push("video");
+              if (nestedModel.capabilities.input.pdf) inputModalities.push("pdf");
 
-        // `Combo: ` prefix surfaces the combo nature in OC's model picker.
-        // Idempotent guard covers the case where enrichment overwrote
-        // mapped.name with an already-prefixed string. Mirrors the
-        // static-hook Combo:-prefix decoration.
-        if (!mapped.name.startsWith("Combo: ")) {
-          mapped.name = `Combo: ${mapped.name}`;
-        }
+              const outputModalities: string[] = [];
+              if (nestedModel.capabilities.output.text) outputModalities.push("text");
+              if (nestedModel.capabilities.output.audio) outputModalities.push("audio");
+              if (nestedModel.capabilities.output.image) outputModalities.push("image");
+              if (nestedModel.capabilities.output.video) outputModalities.push("video");
+              if (nestedModel.capabilities.output.pdf) outputModalities.push("pdf");
 
-        // Optionally decorate combo name with its compression pipeline.
-        // Only fires when features.compressionMetadata: true, OmniRoute
-        // returned at least one default compression combo, AND the
-        // combo has resolvable members — claiming compression on an
-        // unroutable combo would mislead the picker.
-        if (hasMembers && defaultCompression && defaultCompression.pipeline.length > 0) {
-          const tag = formatCompressionPipeline(defaultCompression.pipeline);
-          if (tag.length > 0 && !mapped.name.includes(tag)) {
-            mapped.name = `${mapped.name} ${tag}`;
+              memberEntries.push({
+                id: `combo-ref:${comboName}`,
+                context_length: nestedModel.limit.context,
+                max_output_tokens: nestedModel.limit.output,
+                max_input_tokens: nestedModel.limit.input ?? 0,
+                owned_by: "combo",
+                input_modalities: inputModalities,
+                output_modalities: outputModalities,
+                capabilities: {
+                  temperature: nestedModel.capabilities.temperature,
+                  reasoning: nestedModel.capabilities.reasoning,
+                  thinking: nestedModel.capabilities.interleaved,
+                  attachment: nestedModel.capabilities.attachment,
+                  tool_calling: nestedModel.capabilities.toolcall,
+                },
+              } as unknown as OmniRouteRawModelEntry);
+              continue;
+            }
+
+            const modelId = (step as unknown as { model?: unknown }).model;
+            if (typeof modelId !== "string" || modelId.length === 0) continue;
+            const member = rawModelById.get(modelId);
+            if (member) memberEntries.push(member);
           }
-        }
 
-        const comboKey = buildComboKey(combo, usedComboKeys);
-
-        // Collision policy: combos win. Warn ONCE per (cacheKey, comboKey)
-        // when overwriting a same-key raw model so the operator can spot
-        // the unusual naming choice without log spam.
-        if (Object.prototype.hasOwnProperty.call(models, comboKey)) {
-          const dedupeKey = `${cacheKey}::${comboKey}`;
-          if (!collisionWarned.has(dedupeKey)) {
-            collisionWarned.add(dedupeKey);
-            console.warn(
-              `[omniroute-plugin] combo key "${comboKey}" collides with a model id; combo wins.`
-            );
+          if (deferredThisPass) {
+            stillPending.push(combo);
+            continue;
           }
+
+          const mapped = mapComboToModelV2(
+            combo,
+            memberEntries,
+            // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
+            resolved.omnirouteProviderId,
+            baseURL,
+            features.apiFormat
+          );
+          const hasMembers = memberEntries.length > 0;
+
+          // Apply enrichment overlay to combos too (OmniRoute's
+          // /api/pricing/models surfaces combos alongside provider-scoped
+          // models with curated names).
+          applyEnrichment(mapped, rawEnrichment.get(combo.id));
+
+          // unroutable combo would mislead the picker.
+          if (hasMembers && defaultCompression && defaultCompression.pipeline.length > 0) {
+            const tag = formatCompressionPipeline(defaultCompression.pipeline);
+            if (tag.length > 0 && !mapped.name.includes(tag)) {
+              mapped.name = `${mapped.name} ${tag}`;
+            }
+          }
+
+          // #6859: server-facing key — NOT the OC-gate-prefixed `resolved.providerId`.
+          const comboKey = buildComboKey(combo, usedComboKeys, resolved.omnirouteProviderId);
+
+          // Collision policy: combos win. Warn ONCE per (cacheKey, comboKey)
+          // when overwriting a same-key raw model so the operator can spot
+          // the unusual naming choice without log spam. Suppress the warning
+          // when the collision is the intentional dedup pattern (combo.name
+          // exactly matches an existing raw model's id) — /v1/models
+          // pre-mirrors combos as raw entries and the operator's intent is
+          // always "combo wins" in that case.
+          if (Object.prototype.hasOwnProperty.call(models, comboKey)) {
+            const existing = models[comboKey];
+            // Intentional dedup: `/v1/models` pre-mirrors combos as raw
+            // entries, so the bare combo name appears as the model id in
+            // `rawModels`. After our prefixing the existing entry's id is
+            // `${providerId}/${raw.id}` — the combo name is a substring of
+            // that prefixed id (or, for already-prefixed raw models, the
+            // exact id). Use `endsWith` to avoid matching substrings of
+            // unrelated prefixed ids.
+            const isIntentionalDedup =
+              existing &&
+              combo.name &&
+              combo.name.trim().length > 0 &&
+              (existing.id === combo.name.trim() || existing.id.endsWith(`/${combo.name.trim()}`));
+            if (!isIntentionalDedup) {
+              const dedupeKey = `${cacheKey}::${comboKey}`;
+              if (!collisionWarned.has(dedupeKey)) {
+                collisionWarned.add(dedupeKey);
+                console.warn(
+                  `[omniroute-plugin] combo key "${comboKey}" collides with a model id; combo wins.`
+                );
+              }
+            }
+          }
+          models[comboKey] = mapped;
+
+          // Make this combo's resolved model available to parent combos
+          // that reference it via combo-ref. Use the friendly name
+          // (combo.name) since that's the lookup key on the parent side.
+          const lookupName =
+            combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+          resolvedComboModelsByName.set(lookupName, mapped);
         }
-        models[comboKey] = mapped;
+        if (stillPending.length === pending.length) break;
+        pending = stillPending;
+      }
+
+      if (pending.length > 0) {
+        console.warn(
+          `[omniroute-plugin] ${pending.length} combo(s) could not resolve all nested combo-refs after ${MAX_COMBO_PASSES} passes; they will advertise context=0 to avoid over-claiming.`
+        );
+      }
+
+      // ── Auto combos in dynamic catalog ────────────────────────────────
+      // Convert virtual auto combos from /api/combos/auto into ModelV2
+      // entries so they appear in the dynamic provider.models() path
+      // (used by OpenCode ≥1.14.49).
+      if (rawAutoCombos.length > 0) {
+        for (const autoCombo of rawAutoCombos) {
+          if (!autoCombo || !autoCombo.id) continue;
+          if (autoCombo.isHidden === true) continue;
+          const entry = mapAutoComboToStaticEntry(autoCombo);
+          const key = autoComboModelId(autoCombo.variant);
+          const mapped: ModelV2 = {
+            id: key,
+            name: entry.name,
+            capabilities: {
+              temperature: entry.temperature ?? true,
+              reasoning: entry.reasoning ?? false,
+              attachment: entry.attachment ?? false,
+              toolcall: entry.tool_call ?? false,
+              input: {
+                text: true,
+                audio: false,
+                image: false,
+                video: false,
+                pdf: false,
+              },
+              output: {
+                text: true,
+                audio: false,
+                image: false,
+                video: false,
+                pdf: false,
+              },
+              interleaved: false,
+            },
+            cost: {
+              input: 0,
+              output: 0,
+              cache: { read: 0, write: 0 },
+            },
+            limit: {
+              context: entry.limit?.context ?? 0,
+              output: entry.limit?.output ?? 0,
+            },
+            api: {
+              id: "openai-compatible",
+              url: ensureV1Suffix(baseURL),
+              npm: "@ai-sdk/openai-compatible",
+            },
+            status: "active",
+            release_date: "",
+            // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
+            providerID: resolved.omnirouteProviderId,
+            options: {},
+            headers: {},
+          };
+          models[key] = mapped;
+        }
       }
 
       return models;
@@ -2254,17 +3024,18 @@ export function createOmniRouteProviderHook(
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Fetch interceptor (T-04) — Bearer + Content-Type injection on outbound
-// provider requests targeting the configured OmniRoute baseURL
+// Fetch interceptor (T-04) — Bearer + Content-Type injection on intended
+// same-origin OmniRoute inference requests only
 // ────────────────────────────────────────────────────────────────────────────
 
 /**
  * Build a `fetch`-compatible interceptor that injects `Authorization: Bearer`
- * (and a default `Content-Type`) onto outbound requests targeting the given
- * `baseURL`. Requests to any other host pass through untouched — the apiKey
- * is treated as a secret bound to the configured OmniRoute instance and
- * MUST NOT leak to third-party endpoints (a vector AI-SDKs occasionally
- * exercise when a tool call rewrites the URL mid-flight).
+ * (and a default `Content-Type`) only onto same-origin requests targeting
+ * `<base>/chat/completions` or `<base>/models`, where `<base>` is the
+ * configured baseURL path normalized to end in `/v1`. Management, MCP, and
+ * unrelated inference paths pass through untouched. The apiKey is treated as
+ * a secret bound to both the configured OmniRoute origin and these intended
+ * inference endpoints, and MUST NOT leak elsewhere.
  *
  * Ported from Alph4d0g's `opencode-omniroute-auth@1.2.1` `createFetchInterceptor`
  * (their `dist/src/plugin.js:477-516`) with these intentional deviations:
@@ -2291,17 +3062,35 @@ export function createOmniRouteFetchInterceptor(config: {
   apiKey: string;
   baseURL: string;
 }): typeof fetch {
-  const trimmed = trimTrailingSlashes(config.baseURL);
-  // Use `<base>/` for prefix matching to prevent suffix-spoof attacks
-  // (e.g. baseURL `https://or.example.com/v1` should NOT match
-  // `https://or.example.com/v1-attacker.evil/...`).
-  const prefix = `${trimmed}/`;
+  let baseOrigin: string | undefined;
+  const inferencePaths = new Set<string>();
+  try {
+    const baseUrl = new URL(config.baseURL);
+    baseOrigin = baseUrl.origin;
+    const basePath = ensureV1Suffix(baseUrl.pathname);
+    inferencePaths.add(`${basePath}/chat/completions`);
+    inferencePaths.add(`${basePath}/models`);
+  } catch {
+    // Credential-attached base URLs are not schema-validated. A malformed
+    // value must disable injection rather than broaden the credential scope.
+  }
   return async (input, init = {}) => {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
-    const targetsOmniRoute = url === trimmed || url.startsWith(prefix);
-    if (!targetsOmniRoute) {
+    let requestUrl: URL | undefined;
+    try {
+      requestUrl = new URL(url);
+    } catch {
+      // Native fetch will report malformed/relative URLs as usual. We only
+      // decline to attach credentials before forwarding the original input.
+    }
+    const normalizedPath = requestUrl ? trimTrailingSlashes(requestUrl.pathname) || "/" : undefined;
+    const targetsInference =
+      requestUrl?.origin === baseOrigin &&
+      normalizedPath !== undefined &&
+      inferencePaths.has(normalizedPath);
+    if (!targetsInference) {
       return fetch(input, init);
     }
 
@@ -2467,7 +3256,6 @@ export function sanitizeGeminiToolSchemas(payload: unknown): unknown {
  *     `gemini-2.5-flash`, etc.)
  *   - `models/gemini-…` (Google Generative AI canonical id form)
  *   - `google-vertex/gemini-…` (OpenCode + AI-SDK Vertex routing prefix)
- *   - `gemini-cli/…` (real OmniRoute alias surfaced on b35 prod `/v1/models`)
  *
  * Liberal by design: a false positive (cleaning a payload that didn't
  * need cleaning) costs only a structuredClone + one walk; a false negative
@@ -2682,8 +3470,18 @@ function normaliseModalities(raw: unknown): OmniRouteModalityKind[] {
 }
 
 export interface OmniRouteStaticModelEntry {
+  /** Owning provider id. SHOULD match the parent `provider.<id>` key so OC's
+   * static-catalog reader resolves credentials via `providerID` instead of
+   * parsing the model key on `/`. Optional: OC's schema validator may
+   * reject the entire provider block when this field is present but the
+   * model KEY already carries the provider prefix (e.g. `omniroute/MASTER`),
+   * since the prefix makes the field redundant and the field is not part of
+   * OC's expected schema. We omit it from entries and rely on the prefix
+   * on the KEY alone. See PR #4184. */
+  providerID?: string;
   /** Display label rendered in OC's model picker. Defaults to the model id. */
   name: string;
+
   /** ISO date the model was released. Surfaces in OC's model card when present. */
   release_date?: string;
   /** Model accepts image / file attachments. */
@@ -2800,7 +3598,8 @@ export function buildStaticProviderEntry(
   apiKey: string,
   enrichment?: OmniRouteEnrichmentMap,
   compressionCombos?: OmniRouteCompressionCombo[],
-  connections?: OmniRouteProviderConnection[]
+  connections?: OmniRouteProviderConnection[],
+  rawAutoCombos?: OmniRouteRawAutoCombo[]
 ): OmniRouteStaticProviderEntry {
   const models: Record<string, OmniRouteStaticModelEntry> = {};
 
@@ -2880,6 +3679,12 @@ export function buildStaticProviderEntry(
         if (!displayName.startsWith(prefix)) displayName = `${prefix}${displayName}`;
       }
     }
+    // OC's static-catalog schema doesn't expect a `providerID` field on
+    // individual entries — the parent block ID is the provider. Adding
+    // unknown fields here can cause OC's schema validator to reject the
+    // entire provider block, hiding ALL models. The provider prefix on the
+    // model KEY (e.g. `omniroute/claude-opus-4`) is what OC uses to recover
+    // (providerID, modelID) when the user selects a model.
     const entry: OmniRouteStaticModelEntry = { name: displayName };
 
     const attachment = caps.attachment ?? caps.vision;
@@ -2943,7 +3748,12 @@ export function buildStaticProviderEntry(
       entry.release_date = raw.release_date;
     }
 
-    models[raw.id] = entry;
+    // OC's static-catalog reader parses each key on `/` and rejects the
+    // entire provider block if ANY key resolves to a parsed providerID that
+    // has no corresponding provider block. So bare keys (no `/`) MUST be
+    // prefixed with the resolved providerId. Already-prefixed keys
+    // (e.g. `cc/claude-opus-4-7`) are left as-is to avoid double-prefixing.
+    models[raw.id.includes("/") ? raw.id : `${opts.providerId}/${raw.id}`] = entry;
   }
 
   // Combo entries → stripped LCD shape. Each combo is keyed as
@@ -2973,100 +3783,216 @@ export function buildStaticProviderEntry(
 
   // Track combo keys to detect slug collisions across the catalog.
   const usedComboKeys = new Set<string>();
+  const reportedCollisions = new Set<string>();
 
-  for (const combo of rawCombos) {
-    if (!combo.id) continue;
-    if (combo.isHidden === true) continue;
-    if (usable && !isUsableCombo(combo, usable)) continue;
+  // ── Combo LCD across nested combo-refs (T-NN mirror) ─────────────────
+  // Mirror of the dynamic-catalog fixpoint iteration: combos can nest
+  // other combos via `kind: "combo-ref"` members (e.g. MASTER-LIGHT
+  // contains OldLLM, KIRO, Opecode Zen FREE). The nested combo's own
+  // capabilities and limits are computed in this same loop, so we need
+  // a fixpoint pass: if a combo-ref points at a combo not yet processed,
+  // defer this combo and try again after the sibling combos catch up.
+  // We bound the retries so a circular combo graph can't deadlock the
+  // picker, and we break early when a pass makes no progress.
+  const MAX_STATIC_COMBO_PASSES = 8;
+  const resolvedStaticCombosByName = new Map<string, OmniRouteStaticModelEntry>();
+  let pendingStatic = rawCombos.filter((combo) => {
+    if (!combo.id) return false;
+    if (combo.isHidden === true) return false;
+    if (usable && !isUsableCombo(combo, usable)) return false;
+    return true;
+  });
 
-    const memberSteps = Array.isArray(combo.models) ? combo.models : [];
-    const memberEntries: OmniRouteRawModelEntry[] = [];
-    for (const step of memberSteps) {
-      const modelId = (step as unknown as { model?: unknown }).model;
-      if (typeof modelId !== "string" || modelId.length === 0) continue;
-      const member = rawModelById.get(modelId);
-      if (member) memberEntries.push(member);
-    }
+  for (let pass = 0; pass < MAX_STATIC_COMBO_PASSES && pendingStatic.length > 0; pass++) {
+    const stillPendingStatic: typeof pendingStatic = [];
+    for (const combo of pendingStatic) {
+      const memberSteps = Array.isArray(combo.models) ? combo.models : [];
+      const memberEntries: OmniRouteRawModelEntry[] = [];
+      let deferredThisPass = false;
 
-    const hasMembers = memberEntries.length > 0;
-    const friendlyName = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
-    // `Combo: ` prefix surfaces the combo nature in OC's model picker — the
-    // catalog key (`combo/<slug>`) is already namespaced, but the picker
-    // shows `name`, so prefix the display string too.
-    const prefixedName = `Combo: ${friendlyName}`;
-    const displayName =
-      hasMembers && compressionSuffix ? `${prefixedName}${compressionSuffix}` : prefixedName;
-    const entry: OmniRouteStaticModelEntry = { name: displayName };
+      for (const step of memberSteps) {
+        const stepKind = (step as unknown as { kind?: unknown }).kind;
 
-    if (hasMembers) {
-      // LCD across capabilities — every member must support for the combo
-      // to support. Mirrors mapComboToModelV2.
-      entry.attachment = memberEntries.every((m) =>
-        Boolean(m.capabilities?.attachment ?? m.capabilities?.vision ?? false)
-      );
-      entry.reasoning = memberEntries.every((m) =>
-        Boolean(m.capabilities?.reasoning || m.capabilities?.thinking)
-      );
-      entry.temperature = memberEntries.every(
-        (m) => (m.capabilities?.temperature ?? true) !== false
-      );
-      entry.tool_call = memberEntries.every((m) => Boolean(m.capabilities?.tool_calling ?? false));
-
-      // LCD across limits — min over declared values. OC's SDK static schema
-      // accepts only `context` + `output` on `limit`, so we drop the legacy
-      // `input` emission. Emit only when BOTH context AND output are known
-      // across at least one member (mirrors the required-field constraint).
-      const contextValues = memberEntries
-        .map((m) => m.context_length)
-        .filter((v): v is number => typeof v === "number" && v > 0);
-      const outputValues = memberEntries
-        .map((m) => m.max_output_tokens)
-        .filter((v): v is number => typeof v === "number" && v > 0);
-
-      if (contextValues.length > 0 && outputValues.length > 0) {
-        entry.limit = {
-          context: Math.min(...contextValues),
-          output: Math.min(...outputValues),
-        };
-      }
-
-      // LCD across modalities — combo accepts modality M iff every member
-      // accepts M. Same intersection rule as runtime capabilities.
-      const inSets = memberEntries.map((m) => new Set(normaliseModalities(m.input_modalities)));
-      const outSets = memberEntries.map((m) => new Set(normaliseModalities(m.output_modalities)));
-      const intersect = (sets: Set<OmniRouteModalityKind>[]): OmniRouteModalityKind[] => {
-        if (sets.length === 0) return [];
-        const [first, ...rest] = sets;
-        const out: OmniRouteModalityKind[] = [];
-        for (const v of first) {
-          if (rest.every((s) => s.has(v))) out.push(v);
+        if (stepKind === "combo-ref") {
+          const comboName = (step as unknown as { comboName?: unknown }).comboName;
+          if (typeof comboName !== "string" || comboName.length === 0) {
+            continue;
+          }
+          const nestedEntry = resolvedStaticCombosByName.get(comboName);
+          if (!nestedEntry) {
+            deferredThisPass = true;
+            break;
+          }
+          // Synthesize a raw-model-shaped member entry carrying the
+          // nested combo's pre-computed context + capabilities +
+          // modalities. Mirrors the dynamic path so the static catalog
+          // stays in lockstep with the dynamic one.
+          const inputModalities = (nestedEntry.modalities?.input ?? ["text"]) as string[];
+          const outputModalities = (nestedEntry.modalities?.output ?? ["text"]) as string[];
+          memberEntries.push({
+            id: `combo-ref:${comboName}`,
+            context_length: nestedEntry.limit?.context ?? 0,
+            max_output_tokens: nestedEntry.limit?.output ?? 0,
+            max_input_tokens: 0,
+            owned_by: "combo",
+            input_modalities: inputModalities,
+            output_modalities: outputModalities,
+            capabilities: {
+              temperature: nestedEntry.temperature,
+              reasoning: nestedEntry.reasoning,
+              thinking: nestedEntry.reasoning,
+              attachment: nestedEntry.attachment,
+              tool_calling: nestedEntry.tool_call,
+            },
+          } as unknown as OmniRouteRawModelEntry);
+          continue;
         }
-        return out;
-      };
-      const inModalities = intersect(inSets);
-      const outModalities = intersect(outSets);
-      if (inModalities.length > 0 || outModalities.length > 0) {
-        entry.modalities = {
-          input: inModalities.length > 0 ? inModalities : ["text"],
-          output: outModalities.length > 0 ? outModalities : ["text"],
-        };
+
+        const modelId = (step as unknown as { model?: unknown }).model;
+        if (typeof modelId !== "string" || modelId.length === 0) continue;
+        const member = rawModelById.get(modelId);
+        if (member) memberEntries.push(member);
       }
-    } else {
-      // Empty members → safety posture: all caps false. Caller's OC picker
-      // will grey out an unroutable combo rather than promise capabilities
-      // we can't honour.
-      entry.attachment = false;
-      entry.reasoning = false;
-      entry.temperature = false;
-      entry.tool_call = false;
+
+      if (deferredThisPass) {
+        stillPendingStatic.push(combo);
+        continue;
+      }
+
+      const hasMembers = memberEntries.length > 0;
+      const friendlyName =
+        combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+      const displayName =
+        hasMembers && compressionSuffix ? `${friendlyName} ${compressionSuffix}` : friendlyName;
+      // See the raw-model entry comment above — `providerID` on entries is
+      // not part of OC's static-catalog schema; the parent block ID is the
+      // provider and the KEY prefix (`omniroute/<slug>`) is what OC parses.
+      const entry: OmniRouteStaticModelEntry = { name: displayName };
+
+      if (hasMembers) {
+        // LCD across capabilities — every member must support for the combo
+        // to support. Mirrors mapComboToModelV2.
+        entry.attachment = memberEntries.every((m) =>
+          Boolean(m.capabilities?.attachment ?? m.capabilities?.vision ?? false)
+        );
+        entry.reasoning = memberEntries.every((m) =>
+          Boolean(m.capabilities?.reasoning || m.capabilities?.thinking)
+        );
+        entry.temperature = memberEntries.every(
+          (m) => (m.capabilities?.temperature ?? true) !== false
+        );
+        entry.tool_call = memberEntries.every((m) =>
+          Boolean(m.capabilities?.tool_calling ?? false)
+        );
+
+        // LCD across limits — min over declared values. OC's SDK static schema
+        // accepts only `context` + `output` on `limit`, so we drop the legacy
+        // `input` emission. Emit only when BOTH context AND output are known
+        // across at least one member (mirrors the required-field constraint).
+        const contextValues = memberEntries
+          .map((m) => m.context_length)
+          .filter((v): v is number => typeof v === "number" && v > 0);
+        const outputValues = memberEntries
+          .map((m) => m.max_output_tokens)
+          .filter((v): v is number => typeof v === "number" && v > 0);
+
+        if (contextValues.length > 0 && outputValues.length > 0) {
+          entry.limit = {
+            context: Math.min(...contextValues),
+            output: Math.min(...outputValues),
+          };
+        }
+
+        // LCD across modalities — combo accepts modality M iff every member
+        // accepts M. Same intersection rule as runtime capabilities.
+        const inSets = memberEntries.map((m) => new Set(normaliseModalities(m.input_modalities)));
+        const outSets = memberEntries.map((m) => new Set(normaliseModalities(m.output_modalities)));
+        const intersect = (sets: Set<OmniRouteModalityKind>[]): OmniRouteModalityKind[] => {
+          if (sets.length === 0) return [];
+          const [first, ...rest] = sets;
+          const out: OmniRouteModalityKind[] = [];
+          for (const v of first) {
+            if (rest.every((s) => s.has(v))) out.push(v);
+          }
+          return out;
+        };
+        const inModalities = intersect(inSets);
+        const outModalities = intersect(outSets);
+        if (inModalities.length > 0 || outModalities.length > 0) {
+          entry.modalities = {
+            input: inModalities.length > 0 ? inModalities : ["text"],
+            output: outModalities.length > 0 ? outModalities : ["text"],
+          };
+        }
+      } else {
+        // Empty members → safety posture: all caps false. Caller's OC picker
+        // will grey out an unroutable combo rather than promise capabilities
+        // we can't honour.
+        entry.attachment = false;
+        entry.reasoning = false;
+        entry.temperature = false;
+        entry.tool_call = false;
+      }
+
+      // Key under bare slug (e.g. `claude-primary`) — no `combo/` prefix
+      // because OpenCode parses model IDs on `/` and would treat
+      // `combo/MASTER` as provider=`combo`. Slug collisions across
+      // combos are disambiguated with a short UUID-prefix suffix; see
+      // `buildComboKey` for the policy.
+      // #6859: server-facing key — NOT the OC-gate-prefixed `opts.providerId`.
+      // OC dispatches the static-catalog `models` map key VERBATIM as the
+      // `model` field of the outbound `@ai-sdk/openai-compatible` request
+      // (only the top-level `provider["<id>"]` segment is stripped for
+      // routing) — so a bare-slug combo key prefixed with the OC-gated
+      // `opts.providerId` reaches OmniRoute's server doubled
+      // (`opencode-omniroute/opencode-omniroute/<slug>`), and `parseModel()`
+      // resolves credentials for the nonexistent provider `opencode-omniroute`
+      // instead of `omniroute`. See #7976.
+      models[buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId)] = entry;
+
+      // Make this combo's resolved entry available to parent combos
+      // that reference it via combo-ref. Use the friendly name since
+      // that's the lookup key on the parent side.
+      resolvedStaticCombosByName.set(friendlyName, entry);
     }
 
-    // Key under `combo/<slug>` (e.g. `combo/claude-primary`) so the
-    // namespace cleanly separates combos from raw provider/model pairs
-    // and so the key is copy/paste-friendly. Slug collisions across
-    // combos are disambiguated with a short UUID-prefix suffix; see
-    // `buildComboKey` for the policy.
-    models[buildComboKey(combo, usedComboKeys)] = entry;
+    if (stillPendingStatic.length === pendingStatic.length) {
+      // No progress in this pass — remaining combos have unresolvable
+      // refs (missing nested combo, circular graph, or nested combo
+      // with no members). Break early to avoid wasting the pass budget.
+      break;
+    }
+    pendingStatic = stillPendingStatic;
+  }
+
+  if (pendingStatic.length > 0) {
+    console.warn(
+      `[omniroute-plugin] ${pendingStatic.length} combo(s) in the static catalog could not resolve all nested combo-refs after ${MAX_STATIC_COMBO_PASSES} passes; they will be omitted.`
+    );
+  }
+
+  // ── Auto combos ────────────────────────────────────────────────────────
+  // Virtual server-side combos (auto/coding, auto/fast, etc.) are fetched
+  // from /api/combos/auto and added as model entries. They self-manage
+  // provider selection at runtime via scoring/bandit exploration.
+  if (rawAutoCombos && rawAutoCombos.length > 0) {
+    for (const autoCombo of rawAutoCombos) {
+      if (!autoCombo || !autoCombo.id) continue;
+      if (autoCombo.isHidden === true) continue;
+      const entry = mapAutoComboToStaticEntry(autoCombo);
+      // Use the variant as the key: "auto", "auto/coding", etc.
+      const key = autoComboModelId(autoCombo.variant);
+      if (models[key]) {
+        // Collision with a raw model or DB combo — auto combo wins (log once)
+        if (!reportedCollisions.has(key)) {
+          reportedCollisions.add(key);
+          console.warn(
+            `[omniroute-plugin] auto combo key "${key}" collides with an existing model; auto combo wins.`
+          );
+        }
+      }
+      models[key] = entry;
+    }
   }
 
   return {
@@ -3115,9 +4041,12 @@ type AuthJsonShape = Record<string, AuthJsonApiEntry | { type?: string; [k: stri
 
 /** Disk snapshot envelope. Versioned for forward-compat. */
 interface OmniRouteDiskSnapshot {
-  v: 1;
+  v: 2;
+  /** Opaque identity for normalized baseURL + both effective credentials. */
+  identityFingerprint: string;
   rawModels: OmniRouteRawModelEntry[];
   rawCombos: OmniRouteRawCombo[];
+  rawAutoCombos?: OmniRouteRawAutoCombo[];
   /** Serialised as array-of-pairs (Map is not JSON-friendly). */
   rawEnrichment: Array<[string, OmniRouteEnrichmentEntry]>;
   rawCompressionCombos: OmniRouteCompressionCombo[];
@@ -3134,45 +4063,91 @@ export function diskSnapshotPath(providerId: string): string {
 
 export type OmniRouteDiskSnapshotWriter = (
   providerId: string,
-  entry: Omit<OmniRouteFetchCacheEntry, "expiresAt">
+  entry: Omit<OmniRouteFetchCacheEntry, "expiresAt">,
+  identityFingerprint: string
 ) => Promise<void>;
 
 export type OmniRouteDiskSnapshotReader = (
-  providerId: string
+  providerId: string,
+  identityFingerprint: string
 ) => Promise<Omit<OmniRouteFetchCacheEntry, "expiresAt"> | undefined>;
 
+/**
+ * Bind a snapshot to the endpoint and effective credential tuple without
+ * persisting any raw token. This opaque value is only stored and compared;
+ * it is never logged or included in generated provider configuration.
+ */
+function diskSnapshotIdentityFingerprint(
+  baseURL: string,
+  apiKey: string,
+  managementReadToken: string
+): string {
+  let normalizedBaseURL: string;
+  try {
+    const parsed = new URL(baseURL);
+    parsed.hash = "";
+    parsed.pathname = trimTrailingSlashes(parsed.pathname) || "/";
+    normalizedBaseURL = parsed.toString();
+  } catch {
+    normalizedBaseURL = trimTrailingSlashes(baseURL);
+  }
+  return createHash("sha256")
+    .update(JSON.stringify([normalizedBaseURL, apiKey, managementReadToken]))
+    .digest("hex");
+}
+
 /** Best-effort disk write. Soft-fails on any I/O error (no exception thrown). */
-export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (providerId, entry) => {
+export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (
+  providerId,
+  entry,
+  identityFingerprint
+) => {
   try {
     const file = diskSnapshotPath(providerId);
     // Restrict perms to the owner: the snapshot lives alongside auth.json
     // (0o600) and embeds provider topology + masked connection records.
     await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
     const snapshot: OmniRouteDiskSnapshot = {
-      v: 1,
+      v: 2,
+      identityFingerprint,
       rawModels: entry.rawModels,
       rawCombos: entry.rawCombos,
+      rawAutoCombos: entry.rawAutoCombos,
       rawEnrichment: Array.from(entry.rawEnrichment.entries()),
       rawCompressionCombos: entry.rawCompressionCombos,
       rawConnections: entry.rawConnections,
       writtenAt: Date.now(),
     };
-    await writeFile(file, JSON.stringify(snapshot), { encoding: "utf8", mode: 0o600 });
+    await writeFile(file, JSON.stringify(snapshot), {
+      encoding: "utf8",
+      mode: 0o600,
+    });
   } catch {
     // Soft-fail; caller already has the in-memory cache.
   }
 };
 
 /** Best-effort disk read. Returns `undefined` when missing/corrupt/unreadable. */
-export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (providerId) => {
+export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (
+  providerId,
+  identityFingerprint
+) => {
   try {
     const file = diskSnapshotPath(providerId);
     const body = await readFile(file, "utf8");
     const parsed = JSON.parse(body) as Partial<OmniRouteDiskSnapshot>;
-    if (!parsed || parsed.v !== 1) return undefined;
+    if (
+      !parsed ||
+      parsed.v !== 2 ||
+      typeof parsed.identityFingerprint !== "string" ||
+      parsed.identityFingerprint !== identityFingerprint
+    ) {
+      return undefined;
+    }
     return {
       rawModels: Array.isArray(parsed.rawModels) ? parsed.rawModels : [],
       rawCombos: Array.isArray(parsed.rawCombos) ? parsed.rawCombos : [],
+      rawAutoCombos: Array.isArray(parsed.rawAutoCombos) ? parsed.rawAutoCombos : [],
       rawEnrichment: new Map(Array.isArray(parsed.rawEnrichment) ? parsed.rawEnrichment : []),
       rawCompressionCombos: Array.isArray(parsed.rawCompressionCombos)
         ? parsed.rawCompressionCombos
@@ -3186,6 +4161,241 @@ export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (pro
 
 /** No-op disk-cache pair — used by tests to avoid filesystem side effects. */
 export const noopDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async () => {};
+
+// ────────────────────────────────────────────────────────────────────────────
+// Debug logging (features.debugLog)
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * One captured request/response pair written to the debug JSONL log.
+ * Schema documented in the schema-aware `DebugLogEntry` interface below.
+ */
+export interface DebugLogEntry {
+  reqId: string;
+  providerId: string;
+  ts: number;
+  url: string;
+  method: string;
+  reqHeaders: Record<string, string>;
+  reqBody: unknown;
+  resStatus: number | null;
+  resHeaders: Record<string, string>;
+  resBody: unknown;
+  durationMs: number | null;
+  error?: string;
+}
+
+function debugLogDir(): string {
+  return join(
+    process.env.OPENCODE_DATA_DIR ?? join(homedir(), ".local", "share", "opencode"),
+    "plugins"
+  );
+}
+
+function debugLogPath(providerId: string): string {
+  return join(debugLogDir(), `omniroute-debug-${providerId}.jsonl`);
+}
+
+function debugStatePath(providerId: string): string {
+  return join(debugLogDir(), `omniroute-debug-${providerId}.state.json`);
+}
+
+export function debugLogEnabled(providerId: string): boolean {
+  try {
+    const p = debugStatePath(providerId);
+    if (!existsSync(p)) return false;
+    const s = JSON.parse(readFileSync(p, "utf8")) as { enabled?: boolean };
+    return s.enabled === true;
+  } catch {
+    return false;
+  }
+}
+
+export function debugLogSetEnabled(providerId: string, enabled: boolean): void {
+  try {
+    const dir = debugLogDir();
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    writeFileSync(debugStatePath(providerId), JSON.stringify({ enabled, ts: Date.now() }, null, 2));
+  } catch (err) {
+    // best-effort; never break the auth flow
+    console.warn(`[omniroute-plugin] debugLogSetEnabled failed: ${(err as Error).message}`);
+  }
+}
+
+export function debugLogAppend(entry: DebugLogEntry): void {
+  try {
+    const dir = debugLogDir();
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    appendFileSync(debugLogPath(entry.providerId), JSON.stringify(entry) + "\n", "utf8");
+  } catch (err) {
+    console.warn(`[omniroute-plugin] debugLogAppend failed: ${(err as Error).message}`);
+  }
+}
+
+export function debugLogRead(providerId: string, limit = 20): DebugLogEntry[] {
+  try {
+    const p = debugLogPath(providerId);
+    if (!existsSync(p)) return [];
+    const lines = readFileSync(p, "utf8").trim().split("\n").filter(Boolean);
+    return lines
+      .slice(-limit)
+      .map((line) => {
+        try {
+          return JSON.parse(line) as DebugLogEntry;
+        } catch {
+          return null;
+        }
+      })
+      .filter((e): e is DebugLogEntry => e !== null);
+  } catch {
+    return [];
+  }
+}
+
+export function debugLogGetById(providerId: string, reqId: string): DebugLogEntry | null {
+  try {
+    const p = debugLogPath(providerId);
+    if (!existsSync(p)) return null;
+    const lines = readFileSync(p, "utf8").trim().split("\n").filter(Boolean);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      try {
+        const e = JSON.parse(lines[i]) as DebugLogEntry;
+        if (e.reqId === reqId) return e;
+      } catch {
+        // skip malformed
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function debugLogClear(providerId: string): void {
+  try {
+    const p = debugLogPath(providerId);
+    if (existsSync(p)) writeFileSync(p, "", "utf8");
+  } catch (err) {
+    console.warn(`[omniroute-plugin] debugLogClear failed: ${(err as Error).message}`);
+  }
+}
+
+/**
+ * Wrap a fetch function to capture request/response pairs into the debug
+ * JSONL log. Honours the `featureDefault` opt-in flag and the on-disk
+ * runtime toggle (`debugLogEnabled`).
+ */
+export function createDebugLoggingFetch(
+  inner: typeof fetch,
+  providerId: string,
+  featureDefault: boolean
+): typeof fetch {
+  return async (input, init) => {
+    const active = featureDefault || debugLogEnabled(providerId);
+    if (!active) return inner(input, init);
+    const reqId = randomUUID();
+    const url =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input instanceof Request
+            ? input.url
+            : String(input);
+    const method = (
+      init?.method ?? (typeof input === "string" ? "GET" : ((input as Request).method ?? "GET"))
+    ).toUpperCase();
+    const reqHeaders: Record<string, string> = {};
+    if (input instanceof Request) {
+      input.headers.forEach((v, k) => (reqHeaders[k] = v));
+    }
+    if (init?.headers) {
+      const h = init.headers;
+      if (h instanceof Headers) h.forEach((v, k) => (reqHeaders[k] = v));
+      else if (Array.isArray(h)) for (const [k, v] of h) reqHeaders[k] = v;
+      else Object.assign(reqHeaders, h);
+    }
+    let reqBody: unknown = undefined;
+    if (init?.body) {
+      if (typeof init.body === "string") {
+        try {
+          reqBody = JSON.parse(init.body);
+        } catch {
+          reqBody = init.body.slice(0, 4096);
+        }
+      } else {
+        reqBody = "[non-string body]";
+      }
+    } else if (input instanceof Request) {
+      try {
+        const clonedReq = input.clone();
+        const text = await clonedReq.text();
+        try {
+          reqBody = JSON.parse(text);
+        } catch {
+          reqBody = text.slice(0, 4096);
+        }
+      } catch {
+        reqBody = "[body unreadable]";
+      }
+    }
+    const t0 = Date.now();
+    try {
+      const res = await inner(input, init);
+      const durationMs = Date.now() - t0;
+      const resHeaders: Record<string, string> = {};
+      res.headers.forEach((v, k) => (resHeaders[k] = v));
+      let resBody: unknown = undefined;
+      try {
+        const clone = res.clone();
+        const ct = clone.headers.get("content-type") ?? "";
+        if (ct.includes("application/json")) {
+          resBody = await clone.json();
+        } else if (ct.includes("text/event-stream")) {
+          resBody = "[stream]";
+        } else if (ct.includes("text/")) {
+          const txt = await clone.text();
+          resBody = txt.length > 4096 ? txt.slice(0, 4096) + "...[truncated]" : txt;
+        } else {
+          resBody = `[${ct || "unknown"} body, status ${res.status}]`;
+        }
+      } catch {
+        resBody = "[body unparseable]";
+      }
+      debugLogAppend({
+        reqId,
+        providerId,
+        ts: t0,
+        url,
+        method,
+        reqHeaders,
+        reqBody,
+        resStatus: res.status,
+        resHeaders,
+        resBody,
+        durationMs,
+      });
+      return res;
+    } catch (err) {
+      const durationMs = Date.now() - t0;
+      debugLogAppend({
+        reqId,
+        providerId,
+        ts: t0,
+        url,
+        method,
+        reqHeaders,
+        reqBody,
+        resStatus: null,
+        resHeaders: {},
+        resBody: undefined,
+        durationMs,
+        error: (err as Error).message,
+      });
+      throw err;
+    }
+  };
+}
 export const noopDiskSnapshotReader: OmniRouteDiskSnapshotReader = async () => undefined;
 
 export type OmniRouteReadAuthJson = () => Promise<AuthJsonShape | undefined | null>;
@@ -3269,6 +4479,7 @@ export function createOmniRouteConfigHook(
     readAuthJson?: OmniRouteReadAuthJson;
     fetcher?: OmniRouteModelsFetcher;
     combosFetcher?: OmniRouteCombosFetcher;
+    autoCombosFetcher?: OmniRouteAutoCombosFetcher;
     enrichmentFetcher?: OmniRouteEnrichmentFetcher;
     compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
     providersFetcher?: OmniRouteProvidersFetcher;
@@ -3283,6 +4494,7 @@ export function createOmniRouteConfigHook(
   const readAuthJson = deps.readAuthJson ?? defaultReadAuthJson;
   const fetcher = deps.fetcher ?? defaultOmniRouteModelsFetcher;
   const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
+  const autoCombosFetcher = deps.autoCombosFetcher ?? defaultOmniRouteAutoCombosFetcher;
   const enrichmentFetcher = deps.enrichmentFetcher ?? defaultOmniRouteEnrichmentFetcher;
   const compressionMetaFetcher =
     deps.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
@@ -3293,6 +4505,7 @@ export function createOmniRouteConfigHook(
   const cache: OmniRouteFetchCache = deps.cache ?? new Map();
   const logger = deps.logger ?? console;
   const features = resolved.features ?? {};
+  const wantAutoCombos = features.autoCombos !== false;
   const wantEnrichment = features.enrichment !== false;
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
@@ -3326,8 +4539,24 @@ export function createOmniRouteConfigHook(
       authJson = undefined;
     }
 
-    const entry = authJson?.[resolved.providerId] as AuthJsonApiEntry | undefined;
-    const apiKey = entry && entry.type === "api" && typeof entry.key === "string" ? entry.key : "";
+    // Try both prefixed (e.g. opencode-omniroute) and unprefixed (e.g. omniroute)
+    // keys so a user who ran `/connect omniroute` before the auto-prefix fix
+    // does not need to re-auth. Also handles dual-key for auth.json entries
+    // written by a newer OC dispatcher with the prefixed key.
+    const bareKey = resolved.providerId.startsWith("opencode-")
+      ? resolved.providerId.slice("opencode-".length)
+      : resolved.providerId;
+    const lookupKeys = [resolved.providerId];
+    if (bareKey !== resolved.providerId) lookupKeys.push(bareKey);
+    let entry;
+    for (const k of lookupKeys) {
+      const e = authJson?.[k];
+      if (e?.type === "api" && typeof e.key === "string" && e.key.length > 0) {
+        entry = e;
+        break;
+      }
+    }
+    const apiKey = entry?.type === "api" && typeof entry.key === "string" ? entry.key : "";
 
     if (!apiKey) {
       // (c) no apiKey — silent no-op (with debug breadcrumb). The operator
@@ -3338,6 +4567,9 @@ export function createOmniRouteConfigHook(
       );
       return;
     }
+    // Management-plane catalog reads may use a narrower read-only token.
+    // Backward compatibility: when unset, retain the historical apiKey use.
+    const managementReadToken = resolved.managementReadToken ?? apiKey;
 
     // baseURL resolution: opts.baseURL wins, then auth.json's stored baseURL.
     // No silent localhost default — a misconfigured plugin should surface a
@@ -3354,12 +4586,18 @@ export function createOmniRouteConfigHook(
     // Try the shared cache first. On OC ≥1.14.49 the provider hook may have
     // populated it moments earlier; on OC ≤1.14.48 only this hook runs but
     // the cache still works (single producer + consumer through one Map).
-    const cacheKey = modelsCacheKey(baseURL, apiKey);
+    const cacheKey = modelsCacheKey(baseURL, `${apiKey}\0${managementReadToken}`);
+    const snapshotFingerprint = diskSnapshotIdentityFingerprint(
+      baseURL,
+      apiKey,
+      managementReadToken
+    );
     const t = now();
     const cached = cache.get(cacheKey);
 
     let rawModels: OmniRouteRawModelEntry[];
     let rawCombos: OmniRouteRawCombo[];
+    let rawAutoCombos: OmniRouteRawAutoCombo[];
     let rawEnrichment: OmniRouteEnrichmentMap;
     let rawCompressionCombos: OmniRouteCompressionCombo[];
     let rawConnections: OmniRouteProviderConnection[];
@@ -3367,6 +4605,7 @@ export function createOmniRouteConfigHook(
     if (cached && cached.expiresAt > t) {
       rawModels = cached.rawModels;
       rawCombos = cached.rawCombos;
+      rawAutoCombos = cached.rawAutoCombos;
       rawEnrichment = cached.rawEnrichment;
       rawCompressionCombos = cached.rawCompressionCombos;
       rawConnections = cached.rawConnections;
@@ -3393,12 +4632,21 @@ export function createOmniRouteConfigHook(
 
       rawCombos = [];
       try {
-        rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+        rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
       } catch (err) {
         logger.warn(
           "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
           err
         );
+      }
+
+      rawAutoCombos = [];
+      if (wantAutoCombos) {
+        try {
+          rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000);
+        } catch {
+          // Already handled inside the default fetcher
+        }
       }
 
       // Eagerly fetch enrichment so the static block can overlay human
@@ -3411,7 +4659,7 @@ export function createOmniRouteConfigHook(
       rawEnrichment = new Map();
       if (wantEnrichment) {
         try {
-          rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+          rawEnrichment = await enrichmentFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
@@ -3426,7 +4674,7 @@ export function createOmniRouteConfigHook(
       rawCompressionCombos = [];
       if (wantCompressionMeta) {
         try {
-          rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+          rawCompressionCombos = await compressionMetaFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/context/combos fetch failed; publishing combos without compression suffix",
@@ -3442,7 +4690,7 @@ export function createOmniRouteConfigHook(
       rawConnections = [];
       if (wantUsableOnly) {
         try {
-          rawConnections = await providersFetcher(baseURL, apiKey, 10_000);
+          rawConnections = await providersFetcher(baseURL, managementReadToken, 10_000);
         } catch (err) {
           logger.warn(
             "[omniroute-plugin] config shim: /api/providers fetch failed; usableOnly filter disabled for this refresh",
@@ -3458,13 +4706,14 @@ export function createOmniRouteConfigHook(
       // a healthy refresh; staleness is bounded only by how recently the
       // user was online.
       if (modelsFetchThrew && wantDiskCache) {
-        const snapshot = await diskSnapshotReader(resolved.providerId);
+        const snapshot = await diskSnapshotReader(resolved.providerId, snapshotFingerprint);
         if (snapshot && snapshot.rawModels.length > 0) {
           logger.warn(
             `[omniroute-plugin] config shim: /v1/models unreachable; using stale disk cache (${snapshot.rawModels.length} models)`
           );
           rawModels = snapshot.rawModels;
           rawCombos = snapshot.rawCombos;
+          rawAutoCombos = snapshot.rawAutoCombos ?? [];
           rawEnrichment = snapshot.rawEnrichment;
           rawCompressionCombos = snapshot.rawCompressionCombos;
           rawConnections = snapshot.rawConnections;
@@ -3476,24 +4725,44 @@ export function createOmniRouteConfigHook(
       cache.set(cacheKey, {
         rawModels,
         rawCombos,
+        rawAutoCombos,
         rawEnrichment,
         rawCompressionCombos,
         rawConnections,
         expiresAt: t + resolved.modelCacheTtl,
       });
 
+      // Startup diagnostics (file-based) — fires at startup via config hook
+      if (resolved.features?.startupDebug === true) {
+        await writeStartupDiagnostics({
+          providerId: resolved.providerId,
+          baseURL,
+          modelCount: rawModels.length,
+          comboCount: rawCombos.length,
+          enrichmentSize: rawEnrichment.size,
+          autoComboCount: rawAutoCombos.length,
+          enrichment: rawEnrichment,
+          autoCombos: rawAutoCombos,
+        });
+      }
+
       // Disk-cache write: persist the last successful (or any non-empty)
       // catalog so a subsequent cold start with a failed fetch can recover.
       // Best-effort; soft-fail keeps us moving when the data dir isn't
       // writable (e.g. read-only container).
       if (modelsFetchOk && wantDiskCache) {
-        await diskSnapshotWriter(resolved.providerId, {
-          rawModels,
-          rawCombos,
-          rawEnrichment,
-          rawCompressionCombos,
-          rawConnections,
-        });
+        await diskSnapshotWriter(
+          resolved.providerId,
+          {
+            rawModels,
+            rawCombos,
+            rawAutoCombos,
+            rawEnrichment,
+            rawCompressionCombos,
+            rawConnections,
+          },
+          snapshotFingerprint
+        );
       }
     }
 
@@ -3505,7 +4774,8 @@ export function createOmniRouteConfigHook(
       apiKey,
       rawEnrichment,
       rawCompressionCombos,
-      rawConnections
+      rawConnections,
+      rawAutoCombos
     );
 
     // Mutate the input.provider map. The Config type declares

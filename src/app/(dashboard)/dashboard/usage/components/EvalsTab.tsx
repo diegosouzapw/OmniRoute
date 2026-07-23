@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Card,
@@ -13,6 +13,7 @@ import {
   Select,
 } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 type EvalTargetType = "suite-default" | "model" | "combo";
 
@@ -505,11 +506,10 @@ export default function EvalsTab() {
   const filteredSuites = !search.trim()
     ? suites
     : suites.filter((suite) => {
-        const term = search.toLowerCase();
         return (
-          suite.name?.toLowerCase().includes(term) ||
-          suite.id?.toLowerCase().includes(term) ||
-          suite.description?.toLowerCase().includes(term)
+          matchesSearch(suite.name ?? "", search) ||
+          matchesSearch(suite.id ?? "", search) ||
+          matchesSearch(suite.description ?? "", search)
         );
       });
 
@@ -1846,7 +1846,7 @@ export default function EvalsTab() {
   );
 }
 
-function HeroSection({ t }: { t: (key: string, values?: Record<string, unknown>) => string }) {
+const HeroSection = memo(function HeroSection({ t }: { t: (key: string, values?: Record<string, unknown>) => string }) {
   return (
     <Card className="p-0 overflow-hidden">
       <div
@@ -1892,7 +1892,7 @@ function HeroSection({ t }: { t: (key: string, values?: Record<string, unknown>)
       </div>
     </Card>
   );
-}
+});
 
 function SuiteBuilderModal({
   draft,

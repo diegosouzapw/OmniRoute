@@ -1,5 +1,23 @@
 # @omniroute/opencode-provider
 
+> ## ⚠️ Deprecated — use [`@omniroute/opencode-plugin`](https://www.npmjs.com/package/@omniroute/opencode-plugin) instead
+>
+> This package writes a **static** `provider.omniroute` block to `opencode.json` from a hardcoded default model list, so it **drifts behind your live OmniRoute catalog** — adding a model in OmniRoute won't show up in OpenCode until you re-run the generator, and OpenCode Desktop/Web only surfaces a subset of the static models.
+>
+> **`@omniroute/opencode-plugin`** solves this by fetching `GET /v1/models` from your OmniRoute instance at OpenCode startup, so the model list is always live (see [#3419](https://github.com/diegosouzapw/OmniRoute/issues/3419)). It is now the recommended path.
+>
+> **One-line migration** — replace the static `provider.omniroute` block in `opencode.json` with a single plugin entry:
+>
+> ```jsonc
+> // opencode.json
+> {
+>   "$schema": "https://opencode.ai/config.json",
+>   "plugin": ["@omniroute/opencode-plugin"]
+> }
+> ```
+>
+> This package is **not removed** and still works for static/offline config generation, but it is no longer actively recommended and won't track new models automatically.
+
 Helper for connecting [OpenCode](https://opencode.ai) to a running [OmniRoute](https://github.com/diegosouzapw/OmniRoute) AI gateway.
 
 The package emits a **schema-valid entry** for `opencode.json` (`https://opencode.ai/config.json`) that delegates the actual runtime to [`@ai-sdk/openai-compatible`](https://www.npmjs.com/package/@ai-sdk/openai-compatible). It does not ship any new HTTP client — OmniRoute already exposes an OpenAI-compatible surface, and OpenCode already speaks it through the AI SDK.

@@ -1,0 +1,1 @@
+- fix(sse): sanitize non-Latin1 characters before embedding combo diagnostics in HTTP headers, preventing a ByteString crash on quality-check failure (#6612)

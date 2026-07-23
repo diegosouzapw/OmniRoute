@@ -137,7 +137,7 @@ export default function ProviderComparison({
                 ))}
               </tr>
               <tr className="border-b border-border/50">
-                <td className="p-2 text-text-muted">Size</td>
+                <td className="p-2 text-text-muted">{t("size")}</td>
                 {allResults.map((r) => (
                   <td
                     key={r.provider}

@@ -9,18 +9,31 @@
  */
 
 import { extractApiKey } from "@/sse/services/auth";
-import { getApiKeyMetadata, getComboByName, isModelAllowedForKey } from "@/lib/localDb";
+import {
+  getApiKeyMetadata,
+  getComboByName,
+  isModelAllowedForKey,
+  getApiKeyById,
+} from "@/lib/localDb";
+import { isDashboardSessionAuthenticated } from "./apiAuth";
 import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
 import { checkTokenLimits } from "@omniroute/open-sse/services/tokenLimitCounter.ts";
-import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
+import {
+  errorResponse,
+  buildErrorBody,
+  sanitizeErrorMessage,
+} from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 import { resolveEndpointCategory } from "@/shared/constants/endpointCategories";
+import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
+import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
+import { buildApiKeyUsageLimitPolicyRejection } from "@/lib/usage/apiKeyUsageLimits";
 
 // Default to no per-key request cap. API keys can still opt into explicit
-// limits via Settings/API Manager, while provider/account quota controls remain
+// limits via Settings/API Keys, while provider/account quota controls remain
 // responsible for upstream 429 handling and fallback.
 // Exported so tests can lock in the "no implicit caps" contract from #2289.
 export const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];
@@ -63,6 +76,7 @@ export interface ApiKeyMetadata {
   allowedModels?: string[];
   allowedCombos?: string[];
   allowedConnections?: string[];
+  allowedQuotas?: string[];
   noLog?: boolean;
   autoResolve?: boolean;
   budget?: number;
@@ -76,7 +90,13 @@ export interface ApiKeyMetadata {
   throttleDelayMs?: number | null;
   maxSessions?: number | null;
   rateLimits?: RateLimitRule[] | null;
+  scopes?: string[];
   allowedEndpoints?: string[];
+  disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
 }
 
 /**
@@ -168,6 +188,45 @@ function matchesComboAccessRule(comboName: string, requestedModel: string, rule:
   );
 }
 
+function isAnthropicMessagesRequest(request: Request): boolean {
+  if (request.headers.has("anthropic-version")) return true;
+
+  try {
+    const url = new URL(request.url);
+    return url.pathname.endsWith("/v1/messages");
+  } catch {
+    return false;
+  }
+}
+
+function policyErrorResponse(
+  request: Request,
+  statusCode: number,
+  message: string,
+  anthropicMessage = message,
+  anthropicErrorType = "permission_error",
+  anthropicStatusCode = statusCode
+): Response {
+  if (!isAnthropicMessagesRequest(request)) {
+    return errorResponse(statusCode, message);
+  }
+
+  const safeMessage = sanitizeErrorMessage(anthropicMessage);
+  return new Response(
+    JSON.stringify({
+      type: "error",
+      error: {
+        type: anthropicErrorType,
+        message: safeMessage,
+      },
+    }),
+    {
+      status: anthropicStatusCode,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+}
+
 async function resolveRequestedComboName(modelStr: string): Promise<string | null> {
   const exact = await getComboByName(modelStr);
   if (exact && typeof exact.name === "string") return exact.name;
@@ -192,6 +251,122 @@ async function isComboAllowedForKey(
 
   const allowed = allowedCombos.some((rule) => matchesComboAccessRule(comboName, modelStr, rule));
   return { allowed, comboName };
+}
+
+function quotaPolicyResponse(message: string, code: string): Response {
+  const body = buildErrorBody(HTTP_STATUS.FORBIDDEN, message);
+  body.error.code = code;
+  return new Response(JSON.stringify(body), {
+    status: HTTP_STATUS.FORBIDDEN,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+async function validateQuotaRoutingTarget(
+  modelStr: string,
+  allowedQuotas: string[]
+): Promise<Response | null> {
+  if (isQuotaModelName(modelStr) && allowedQuotas.length === 0) {
+    return quotaPolicyResponse(
+      `Model "${modelStr}" requires a quota-pool allocation; this API key is not allocated to any quota pool`,
+      "QUOTA_NOT_ALLOCATED"
+    );
+  }
+  if (allowedQuotas.length === 0) return null;
+
+  try {
+    const scope = await resolveQuotaKeyScope(allowedQuotas);
+    const parsed = isQuotaModelName(modelStr) ? parseQuotaModelName(modelStr) : null;
+    const allowed =
+      parsed !== null &&
+      scope.poolSlugs.includes(parsed.groupSlug) &&
+      scope.providers.includes(parsed.provider);
+    if (allowed) return null;
+    return quotaPolicyResponse(
+      isQuotaModelName(modelStr)
+        ? `Model "${modelStr}" is not in this key's quota pools`
+        : "This quota-exclusive API key may only use quotaShared-* models",
+      "QUOTA_ONLY"
+    );
+  } catch (error) {
+    log.error("API_POLICY", "Routing target quota check failed. Request blocked.", { error });
+    return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key quota policy unavailable");
+  }
+}
+
+async function validateStandardRoutingTarget(
+  request: Request,
+  apiKey: string,
+  apiKeyInfo: ApiKeyMetadata,
+  modelStr: string
+): Promise<Response | null> {
+  let requestedComboName: string | null = null;
+  if (apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
+    try {
+      const comboAccess = await isComboAllowedForKey(apiKeyInfo.allowedCombos, modelStr);
+      requestedComboName = comboAccess.comboName;
+      if (!comboAccess.allowed) {
+        return errorResponse(
+          HTTP_STATUS.FORBIDDEN,
+          `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
+        );
+      }
+    } catch (error) {
+      log.error("API_POLICY", "Routing target combo check failed. Request blocked.", { error });
+      return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key combo policy unavailable");
+    }
+  }
+
+  const hasModelRestrictions =
+    (apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) ||
+    apiKeyInfo.disableNonPublicModels === true;
+  if (!requestedComboName && hasModelRestrictions && modelStr.startsWith("auto/")) {
+    requestedComboName = modelStr;
+  }
+  if (!requestedComboName && hasModelRestrictions) {
+    try {
+      requestedComboName = await resolveRequestedComboName(modelStr);
+    } catch {
+      requestedComboName = null;
+    }
+  }
+  if (
+    !requestedComboName &&
+    hasModelRestrictions &&
+    !(await isModelAllowedForKey(apiKey, modelStr))
+  ) {
+    return policyErrorResponse(
+      request,
+      HTTP_STATUS.FORBIDDEN,
+      `Model "${modelStr}" is not allowed for this API key`,
+      `Model "${modelStr}" is not enabled or quota is insufficient. Choose another allowed model.`,
+      "invalid_request_error",
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+  return null;
+}
+
+/**
+ * Validate only the model/combo authorization of a routing target.
+ *
+ * The full request policy has already run before routing. Calling it again for a
+ * policy-generated target would charge request limits twice and apply throttling
+ * twice. This narrower check proves that routing did not widen the key's access
+ * without consuming any budget, token-limit, or rate-limit state.
+ */
+export async function validateApiKeyRoutingTarget(
+  request: Request,
+  apiKey: string | null,
+  apiKeyInfo: ApiKeyMetadata | null,
+  modelStr: string | null
+): Promise<Response | null> {
+  if (!apiKey || !apiKeyInfo || !modelStr) return null;
+
+  const allowedQuotas = Array.isArray(apiKeyInfo.allowedQuotas) ? apiKeyInfo.allowedQuotas : [];
+  const quotaRejection = await validateQuotaRoutingTarget(modelStr, allowedQuotas);
+  if (quotaRejection || allowedQuotas.length > 0) return quotaRejection;
+  return validateStandardRoutingTarget(request, apiKey, apiKeyInfo, modelStr);
 }
 
 export interface ApiKeyPolicyResult {
@@ -221,13 +396,257 @@ export interface ApiKeyPolicyResult {
  * // proceed with request, optionally use policy.apiKeyInfo
  * ```
  */
+/** Header carrying the id of the API key a dashboard playground request wants to
+ *  test the policy for (never the key secret). */
+const PLAYGROUND_KEY_ID_HEADER = "x-omniroute-playground-key-id";
+
+/**
+ * Dashboard playground support. An authenticated admin session may test a
+ * specific API key's policy (allowed_models, budget, …) WITHOUT putting the key
+ * secret on the wire: the browser sends only the key id via
+ * `x-omniroute-playground-key-id` and we resolve the secret server-side.
+ *
+ * Security: honored ONLY for authenticated dashboard sessions, and only as a
+ * fallback when no bearer key was presented — so it can never bypass auth or
+ * escalate privileges, it only applies (narrows to) the selected key's policy.
+ */
+export async function resolvePlaygroundTestKey(request: Request): Promise<string | null> {
+  const keyId = request.headers.get(PLAYGROUND_KEY_ID_HEADER);
+  if (!keyId) return null;
+  if (!(await isDashboardSessionAuthenticated(request))) return null;
+  try {
+    const row = await getApiKeyById(keyId);
+    return typeof row?.key === "string" ? row.key : null;
+  } catch {
+    return null;
+  }
+}
+
+type PolicyContext = {
+  request: Request;
+  apiKey: string;
+  apiKeyInfo: ApiKeyMetadata;
+  modelStr: string | null;
+};
+
+function validateKeyStatus(context: PolicyContext): Response | null {
+  const { apiKeyInfo } = context;
+  if (apiKeyInfo.isActive === false) {
+    return errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is disabled");
+  }
+  if (apiKeyInfo.isBanned === true) {
+    return errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is banned due to policy violations");
+  }
+  if (apiKeyInfo.expiresAt && Date.now() > new Date(apiKeyInfo.expiresAt).getTime()) {
+    return errorResponse(HTTP_STATUS.FORBIDDEN, "This API key has expired");
+  }
+  return null;
+}
+
+async function validateKeyScheduleAndUsage(context: PolicyContext): Promise<Response | null> {
+  const { request, apiKey, apiKeyInfo } = context;
+  if (apiKeyInfo.accessSchedule?.enabled && !isWithinSchedule(apiKeyInfo.accessSchedule)) {
+    const { from, until, tz } = apiKeyInfo.accessSchedule;
+    return errorResponse(
+      HTTP_STATUS.FORBIDDEN,
+      `Access denied outside allowed hours (${from}–${until} ${tz})`
+    );
+  }
+  if (apiKeyInfo.usageLimitEnabled !== true) return null;
+
+  try {
+    const rejection = await buildApiKeyUsageLimitPolicyRejection(request, {
+      id: apiKeyInfo.id,
+      usageLimitEnabled: apiKeyInfo.usageLimitEnabled,
+      dailyUsageLimitUsd: apiKeyInfo.dailyUsageLimitUsd,
+      weeklyUsageLimitUsd: apiKeyInfo.weeklyUsageLimitUsd,
+    });
+    return rejection;
+  } catch (error) {
+    log.error("API_POLICY", "API key USD usage limit check failed. Request blocked.", { error });
+    return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key usage limit unavailable");
+  }
+}
+
+function validateEndpointAccess(context: PolicyContext): Response | null {
+  const { request, apiKeyInfo } = context;
+  if (!apiKeyInfo.allowedEndpoints?.length) return null;
+  try {
+    const category = resolveEndpointCategory(new URL(request.url).pathname);
+    if (category && !apiKeyInfo.allowedEndpoints.includes(category)) {
+      return errorResponse(
+        HTTP_STATUS.FORBIDDEN,
+        `Endpoint category "${category}" is not allowed for this API key`
+      );
+    }
+  } catch {
+    // URL parse failure — fail open, let other checks decide.
+  }
+  return null;
+}
+
+async function validateQuotaAccess(context: PolicyContext): Promise<Response | null> {
+  const { apiKey, apiKeyInfo, modelStr } = context;
+  if (!modelStr) return null;
+  const allowedQuotas = Array.isArray(apiKeyInfo.allowedQuotas) ? apiKeyInfo.allowedQuotas : [];
+  if (isQuotaModelName(modelStr) && allowedQuotas.length === 0) {
+    return quotaPolicyResponse(
+      `Model "${modelStr}" requires a quota-pool allocation; this API key is not allocated to any quota pool`,
+      "QUOTA_NOT_ALLOCATED"
+    );
+  }
+  if (!allowedQuotas.length) return null;
+
+  try {
+    const scope = await resolveQuotaKeyScope(allowedQuotas);
+    const parsed = isQuotaModelName(modelStr) ? parseQuotaModelName(modelStr) : null;
+    const allowed =
+      parsed !== null &&
+      scope.poolSlugs.length > 0 &&
+      scope.poolSlugs.includes(parsed.groupSlug) &&
+      scope.providers.includes(parsed.provider);
+    if (allowed) return null;
+    const message = isQuotaModelName(modelStr)
+      ? `Model "${modelStr}" is not in this key's quota pools`
+      : "This quota-exclusive API key may only use quotaShared-* models";
+    return quotaPolicyResponse(message, "QUOTA_ONLY");
+  } catch (error) {
+    log.error("API_POLICY", "Quota scope check failed. Request blocked.", { error });
+    return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key quota policy unavailable");
+  }
+}
+
+async function validateModelAccess(context: PolicyContext): Promise<Response | null> {
+  const { request, apiKey, apiKeyInfo, modelStr } = context;
+  if (!modelStr || apiKeyInfo.allowedQuotas?.length) return null;
+  const comboAccess = await validateComboAccess(apiKeyInfo.allowedCombos, modelStr);
+  if (comboAccess.rejection) return comboAccess.rejection;
+  let requestedComboName = comboAccess.comboName;
+
+  const hasModelRestrictions =
+    Boolean(apiKeyInfo.allowedModels?.length) || apiKeyInfo.disableNonPublicModels === true;
+  if (!requestedComboName && hasModelRestrictions) {
+    if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
+      requestedComboName = modelStr;
+    } else {
+      try {
+        requestedComboName = await resolveRequestedComboName(modelStr);
+      } catch {
+        requestedComboName = null;
+      }
+    }
+  }
+  if (requestedComboName || !hasModelRestrictions) return null;
+  if (await isModelAllowedForKey(apiKey, modelStr)) return null;
+  return policyErrorResponse(
+    request,
+    HTTP_STATUS.FORBIDDEN,
+    `Model "${modelStr}" is not allowed for this API key`,
+    `Model "${modelStr}" is not enabled or quota is insufficient. Choose another allowed model.`,
+    "invalid_request_error",
+    HTTP_STATUS.BAD_REQUEST
+  );
+}
+
+async function validateComboAccess(
+  allowedCombos: string[] | undefined,
+  modelStr: string
+): Promise<{ comboName: string | null; rejection: Response | null }> {
+  if (!allowedCombos?.length) return { comboName: null, rejection: null };
+  try {
+    const comboAccess = await isComboAllowedForKey(allowedCombos, modelStr);
+    if (comboAccess.allowed) return { comboName: comboAccess.comboName, rejection: null };
+    return {
+      comboName: comboAccess.comboName,
+      rejection: errorResponse(
+        HTTP_STATUS.FORBIDDEN,
+        `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
+      ),
+    };
+  } catch (error) {
+    log.error("API_POLICY", "Combo access check failed. Request blocked.", { error });
+    return {
+      comboName: null,
+      rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key combo policy unavailable"),
+    };
+  }
+}
+
+function validateBudget(context: PolicyContext): Response | null {
+  const { apiKeyInfo } = context;
+  if (!apiKeyInfo.id) return null;
+  try {
+    const budgetOk = checkBudget(apiKeyInfo.id);
+    return budgetOk.allowed
+      ? null
+      : errorResponse(HTTP_STATUS.RATE_LIMITED, budgetOk.reason || "Budget limit exceeded");
+  } catch (error) {
+    log.error("API_POLICY", "Budget check failed. Request blocked.", { error });
+    return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable");
+  }
+}
+
+function validateTokenLimit(context: PolicyContext): Response | null {
+  const { apiKeyInfo, modelStr } = context;
+  if (!apiKeyInfo.id) return null;
+  try {
+    const breach = checkTokenLimits(apiKeyInfo.id, undefined, modelStr ?? undefined);
+    if (!breach) return null;
+    const scopeLabel =
+      breach.scopeType === "global" ? "account" : `${breach.scopeType} "${breach.scopeValue}"`;
+    return errorResponse(
+      HTTP_STATUS.RATE_LIMITED,
+      `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. Please try again later.`
+    );
+  } catch (error) {
+    log.error("API_POLICY", "Token limit check failed. Request blocked.", { error });
+    return errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Token limit policy unavailable");
+  }
+}
+
+function buildRateLimitRules(apiKeyInfo: ApiKeyMetadata): RateLimitRule[] {
+  const custom = apiKeyInfo.rateLimits?.length;
+  const rules = custom
+    ? [...(apiKeyInfo.rateLimits as RateLimitRule[])]
+    : [...DEFAULT_RATE_LIMITS, ...ENV_DEFAULT_RATE_LIMITS];
+  if (!custom) {
+    if (apiKeyInfo.maxRequestsPerDay)
+      rules.push({ limit: apiKeyInfo.maxRequestsPerDay, window: 86400 });
+    if (apiKeyInfo.maxRequestsPerMinute)
+      rules.push({ limit: apiKeyInfo.maxRequestsPerMinute, window: 60 });
+  }
+  return rules;
+}
+
+async function validateRateLimitAndThrottle(context: PolicyContext): Promise<Response | null> {
+  const { apiKeyInfo } = context;
+  if (!apiKeyInfo.id) return null;
+  const rules = buildRateLimitRules(apiKeyInfo);
+  if (rules.length) {
+    const result = await checkRateLimit(apiKeyInfo.id, rules);
+    if (!result.allowed) {
+      const window = result.failedWindow ? ` (${result.failedWindow}s window)` : "";
+      return errorResponse(
+        HTTP_STATUS.RATE_LIMITED,
+        `Request limit exceeded${window}. Please try again later.`
+      );
+    }
+  }
+  if (apiKeyInfo.throttleDelayMs && apiKeyInfo.throttleDelayMs > 0) {
+    await delay(Math.min(apiKeyInfo.throttleDelayMs, 300_000));
+  }
+  return null;
+}
+
 export async function enforceApiKeyPolicy(
   request: Request,
   modelStr: string | null
 ): Promise<ApiKeyPolicyResult> {
-  const apiKey = extractApiKey(request);
+  // A real bearer key wins; otherwise an authenticated dashboard playground may
+  // test a specific key's policy by id (resolved server-side, secret never sent).
+  const apiKey = extractApiKey(request) || (await resolvePlaygroundTestKey(request));
 
-  // No API key = local mode, skip policy checks
+  // No API key = local/session mode, skip policy checks
   if (!apiKey) {
     return { apiKey: null, apiKeyInfo: null, rejection: null };
   }
@@ -251,222 +670,25 @@ export async function enforceApiKeyPolicy(
     return { apiKey, apiKeyInfo: null, rejection: null };
   }
 
-  // ── Check 1: is_active / is_banned ──
-  if (apiKeyInfo.isActive === false) {
-    return {
-      apiKey,
-      apiKeyInfo,
-      rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is disabled"),
-    };
-  }
-  if (apiKeyInfo.isBanned === true) {
-    return {
-      apiKey,
-      apiKeyInfo,
-      rejection: errorResponse(
-        HTTP_STATUS.FORBIDDEN,
-        "This API key is banned due to policy violations"
-      ),
-    };
-  }
+  const context = { request, apiKey, apiKeyInfo, modelStr };
+  const statusRejection = validateKeyStatus(context);
+  if (statusRejection) return { apiKey, apiKeyInfo, rejection: statusRejection };
+  const scheduleRejection = await validateKeyScheduleAndUsage(context);
+  if (scheduleRejection) return { apiKey, apiKeyInfo, rejection: scheduleRejection };
+  const endpointRejection = validateEndpointAccess(context);
+  if (endpointRejection) return { apiKey, apiKeyInfo, rejection: endpointRejection };
 
-  // ── Check 1.5: expires_at ──
-  if (apiKeyInfo.expiresAt) {
-    const expiry = new Date(apiKeyInfo.expiresAt).getTime();
-    if (Date.now() > expiry) {
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key has expired"),
-      };
-    }
-  }
+  const quotaRejection = await validateQuotaAccess(context);
+  if (quotaRejection) return { apiKey, apiKeyInfo, rejection: quotaRejection };
+  const modelRejection = await validateModelAccess(context);
+  if (modelRejection) return { apiKey, apiKeyInfo, rejection: modelRejection };
 
-  // ── Check 2: access_schedule — time-based access window ──
-  if (apiKeyInfo.accessSchedule && apiKeyInfo.accessSchedule.enabled) {
-    if (!isWithinSchedule(apiKeyInfo.accessSchedule)) {
-      const { from, until, tz } = apiKeyInfo.accessSchedule;
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(
-          HTTP_STATUS.FORBIDDEN,
-          `Access denied outside allowed hours (${from}–${until} ${tz})`
-        ),
-      };
-    }
-  }
-
-  // ── Check 2.5: Endpoint restriction ──
-  if (apiKeyInfo.allowedEndpoints && apiKeyInfo.allowedEndpoints.length > 0) {
-    try {
-      const url = new URL(request.url);
-      const category = resolveEndpointCategory(url.pathname);
-      if (category && !apiKeyInfo.allowedEndpoints.includes(category)) {
-        return {
-          apiKey,
-          apiKeyInfo,
-          rejection: errorResponse(
-            HTTP_STATUS.FORBIDDEN,
-            `Endpoint category "${category}" is not allowed for this API key`
-          ),
-        };
-      }
-    } catch {
-      // URL parse failure — fail open, let other checks decide
-    }
-  }
-
-  // ── Check 3: Model restriction ──
-  let requestedComboName: string | null = null;
-  if (modelStr && apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
-    try {
-      const comboAccess = await isComboAllowedForKey(apiKeyInfo.allowedCombos, modelStr);
-      requestedComboName = comboAccess.comboName;
-      if (!comboAccess.allowed) {
-        return {
-          apiKey,
-          apiKeyInfo,
-          rejection: errorResponse(
-            HTTP_STATUS.FORBIDDEN,
-            `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
-          ),
-        };
-      }
-    } catch (error) {
-      log.error("API_POLICY", "Combo access check failed. Request blocked.", { error });
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(
-          HTTP_STATUS.SERVICE_UNAVAILABLE,
-          "API key combo policy unavailable"
-        ),
-      };
-    }
-  }
-
-  const hasModelRestrictions = apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0;
-
-  if (!requestedComboName && modelStr && hasModelRestrictions) {
-    try {
-      requestedComboName = await resolveRequestedComboName(modelStr);
-    } catch {
-      requestedComboName = null;
-    }
-  }
-
-  if (modelStr && !requestedComboName && hasModelRestrictions) {
-    const allowed = await isModelAllowedForKey(apiKey, modelStr);
-    if (!allowed) {
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(
-          HTTP_STATUS.FORBIDDEN,
-          `Model "${modelStr}" is not allowed for this API key`
-        ),
-      };
-    }
-  }
-
-  // ── Check 4: Budget limit ──
-  if (apiKeyInfo.id) {
-    try {
-      const budgetOk = checkBudget(apiKeyInfo.id);
-      if (!budgetOk.allowed) {
-        return {
-          apiKey,
-          apiKeyInfo,
-          rejection: errorResponse(
-            HTTP_STATUS.RATE_LIMITED,
-            budgetOk.reason || "Budget limit exceeded"
-          ),
-        };
-      }
-    } catch (error) {
-      // Fail-closed: budget backend error should block request
-      log.error("API_POLICY", "Budget check failed. Request blocked.", { error });
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable"),
-      };
-    }
-  }
-
-  // ── Check 4.5: Per-model / per-provider token limits (Tier 1) ──
-  if (apiKeyInfo.id) {
-    try {
-      const breach = checkTokenLimits(apiKeyInfo.id, undefined, modelStr ?? undefined);
-      if (breach) {
-        const scopeLabel =
-          breach.scopeType === "global"
-            ? "account"
-            : `${breach.scopeType} "${breach.scopeValue}"`;
-        return {
-          apiKey,
-          apiKeyInfo,
-          rejection: errorResponse(
-            HTTP_STATUS.RATE_LIMITED,
-            `Token limit exceeded for ${scopeLabel}: ${breach.tokensUsed}/${breach.limitValue} tokens used in the current window. Please try again later.`
-          ),
-        };
-      }
-    } catch (error) {
-      // Fail-closed: token-limit backend error should block the request,
-      // consistent with the budget check above.
-      log.error("API_POLICY", "Token limit check failed. Request blocked.", { error });
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(
-          HTTP_STATUS.SERVICE_UNAVAILABLE,
-          "Token limit policy unavailable"
-        ),
-      };
-    }
-  }
-
-  // ── Check 5: Generic Multi-Window Rate Limits ──
-  if (apiKeyInfo.id) {
-    const hasCustomRateLimits = Boolean(apiKeyInfo.rateLimits && apiKeyInfo.rateLimits.length > 0);
-    const rulesToApply = hasCustomRateLimits
-      ? [...(apiKeyInfo.rateLimits as RateLimitRule[])]
-      : [...DEFAULT_RATE_LIMITS, ...ENV_DEFAULT_RATE_LIMITS];
-
-    // Combine with legacy limits if they exist and custom rate limits aren't set
-    if (!hasCustomRateLimits) {
-      if (apiKeyInfo.maxRequestsPerDay) {
-        rulesToApply.push({ limit: apiKeyInfo.maxRequestsPerDay, window: 86400 });
-      }
-      if (apiKeyInfo.maxRequestsPerMinute) {
-        rulesToApply.push({ limit: apiKeyInfo.maxRequestsPerMinute, window: 60 });
-      }
-    }
-
-    if (rulesToApply.length > 0) {
-      const rateLimitResult = await checkRateLimit(apiKeyInfo.id, rulesToApply);
-      if (!rateLimitResult.allowed) {
-        const failedWindowStr = rateLimitResult.failedWindow
-          ? ` (${rateLimitResult.failedWindow}s window)`
-          : "";
-        return {
-          apiKey,
-          apiKeyInfo,
-          rejection: errorResponse(
-            HTTP_STATUS.RATE_LIMITED,
-            `Request limit exceeded${failedWindowStr}. Please try again later.`
-          ),
-        };
-      }
-    }
-  }
-
-  // ── Check 6: Soft throttle / slowdown ──
-  if (apiKeyInfo.throttleDelayMs && apiKeyInfo.throttleDelayMs > 0) {
-    await delay(Math.min(apiKeyInfo.throttleDelayMs, 300_000));
-  }
+  const budgetRejection = validateBudget(context);
+  if (budgetRejection) return { apiKey, apiKeyInfo, rejection: budgetRejection };
+  const tokenRejection = validateTokenLimit(context);
+  if (tokenRejection) return { apiKey, apiKeyInfo, rejection: tokenRejection };
+  const rateRejection = await validateRateLimitAndThrottle(context);
+  if (rateRejection) return { apiKey, apiKeyInfo, rejection: rateRejection };
 
   return { apiKey, apiKeyInfo, rejection: null };
 }

@@ -76,30 +76,6 @@ async function main() {
     runCmd("git add open-sse/executors/index.ts");
   }
 
-  // 5. Resolve tests/unit/t20-t22-provider-headers.test.ts (combine imports)
-  const testFile1 = path.join(projectRoot, "tests/unit/t20-t22-provider-headers.test.ts");
-  if (fs.existsSync(testFile1)) {
-    let content = fs.readFileSync(testFile1, "utf-8");
-    content = content.replace(
-      /<<<<<<< HEAD\r?\nconst \{ getCodexClientVersion \} = await import\("\.\.\/\.\.\/open-sse\/config\/codexClient\.ts"\);\r?\nconst \{ geminiCliUserAgent, GEMINI_CLI_VERSION \} =\r?\n=======\r?\nconst \{ geminiCliUserAgent, GEMINI_CLI_VERSION, GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION \} =\r?\n>>>>>>> release\/v3\.8\.4/g,
-      'const { getCodexClientVersion } = await import("../../open-sse/config/codexClient.ts");\nconst { geminiCliUserAgent, GEMINI_CLI_VERSION, GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION } ='
-    );
-    fs.writeFileSync(testFile1, content);
-    runCmd("git add tests/unit/t20-t22-provider-headers.test.ts");
-  }
-
-  // 6. Resolve tests/integration/chat-pipeline.test.ts (combine imports)
-  const testFile2 = path.join(projectRoot, "tests/integration/chat-pipeline.test.ts");
-  if (fs.existsSync(testFile2)) {
-    let content = fs.readFileSync(testFile2, "utf-8");
-    content = content.replace(
-      /<<<<<<< HEAD\r?\nconst \{ getCodexClientVersion \} = await import\("\.\.\/\.\.\/open-sse\/config\/codexClient\.ts"\);\r?\nconst \{ GEMINI_CLI_VERSION \} = await import\("\.\.\/\.\.\/open-sse\/services\/geminiCliHeaders\.ts"\);\r?\n=======\r?\nconst \{ GEMINI_CLI_VERSION, GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION \} =\r?\n\s+await import\("\.\.\/\.\.\/open-sse\/services\/geminiCliHeaders\.ts"\);\r?\n>>>>>>> release\/v3\.8\.4/g,
-      'const { getCodexClientVersion } = await import("../../open-sse/config/codexClient.ts");\nconst { GEMINI_CLI_VERSION, GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION } =\n  await import("../../open-sse/services/geminiCliHeaders.ts");'
-    );
-    fs.writeFileSync(testFile2, content);
-    runCmd("git add tests/integration/chat-pipeline.test.ts");
-  }
-
   // 7. Resolve src/app/api/providers/[id]/models/route.ts (combine imports)
   const modelsRoute = path.join(projectRoot, "src/app/api/providers/[id]/models/route.ts");
   if (fs.existsSync(modelsRoute)) {

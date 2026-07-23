@@ -1,0 +1,1 @@
+- **feat(proxy):** add a latency-optimized proxy rotation strategy that ranks pool entries by measured round-trip latency, extending the existing round-robin/random/sticky proxy-pool selection (#6798 — thanks @iamraydoan).

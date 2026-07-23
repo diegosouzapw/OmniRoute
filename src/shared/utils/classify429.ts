@@ -43,8 +43,29 @@ const QUOTA_PATTERNS: ReadonlyArray<RegExp> = [
   /out of credits/i,
   /hard.?limit/i,
   /plan.*limit/i,
-  /resource.*exhaust/i,
-  /check.*quota/i,
+
+  // Antigravity / Cloud Code quota exhaustion ("Individual quota reached.
+  // Contact your administrator to enable overages. Resets in 164h27m24s.").
+  // None of the patterns above match it, so the 429 was misclassified as a
+  // transient rate-limit and locked for only ~5s instead of the real window.
+  // Keep these specific: a bare /quota reached/ would also flag transient
+  // per-minute limits like "request quota reached, retry in 60s".
+  /individual quota reached/i,
+  /enable overages/i,
+  /INSUFFICIENT_G1_CREDITS_BALANCE/i,
+
+  // Google APIs return this generic RESOURCE_EXHAUSTED message when a
+  // billing-period quota has been consumed. Keep the reset-window qualifier
+  // so transient Google rate limits are not treated as long-term exhaustion.
+  /resource has been exhausted.*reset after/i,
+
+  // Cloudflare Workers AI daily neuron exhaustion (Issue #6980).
+  // Body: "you have used up your daily free allocation of 10,000 neurons,
+  //        please upgrade to Cloudflare's Workers Paid plan..."
+  // No existing pattern matches "daily free allocation" — without this,
+  // the 429 is misclassified as transient rate_limit and retried every
+  // ~60s against a budget that only resets at UTC midnight.
+  /daily free allocation/i,
 ];
 
 /**

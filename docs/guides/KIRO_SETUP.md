@@ -29,7 +29,8 @@ Kiro connection import. This gives each OmniRoute connection its own dedicated O
 client registration. Because each client registration is independent, refreshing or
 re-authenticating one account does not affect any other account's refresh token.
 
-The isolation applies to all three import methods:
+The isolation applies to the refresh-token import methods, and API-key auth avoids
+OIDC refresh sessions entirely:
 
 | Import method                                 | Isolation status                                                                                 |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -37,6 +38,7 @@ The isolation applies to all three import methods:
 | **Import Token** (manual refresh token paste) | Isolated from v3.8.0                                                                             |
 | **Google / GitHub social login**              | Isolated from v3.8.0                                                                             |
 | **Auto-Import** (kiro-cli SQLite)             | Isolated from v3.8.0 (SQLite path was already isolated; SSO-cache fallback is now also isolated) |
+| **API Key** (long-lived CodeWhisperer key)    | No refresh session; the key is validated and stored as a bearer credential                       |
 
 ---
 
@@ -66,10 +68,12 @@ receive their own client registration automatically.
 1. Open **Dashboard → Providers → Add Provider → Kiro**.
 2. Choose one of:
    - **Import Token** — paste a refresh token starting with `aorAAAAAG`.
+   - **API Key** — paste a long-lived Kiro / CodeWhisperer API key.
    - **Google / GitHub login** — complete the OAuth flow in the browser.
    - **Auto-Import** — click the button; OmniRoute reads credentials from the
      local kiro-cli database or `~/.aws/sso/cache`.
-3. The connection is saved. OmniRoute automatically registers a dedicated OIDC client for it.
+3. The connection is saved. Refresh-token flows automatically register a dedicated
+   OIDC client. API-key flows validate the key with AWS and do not store a refresh token.
 
 ### Step 2: Import the second account
 
@@ -112,6 +116,52 @@ The `region` field defaults to `us-east-1` when omitted.
 
 ---
 
+## API-Key Import Flow
+
+API-key auth is for long-lived Kiro / AWS CodeWhisperer bearer credentials. It does
+not use OAuth refresh, so it avoids shared OIDC session invalidation.
+
+### Dashboard
+
+1. Open **Dashboard -> Providers -> Kiro**.
+2. Choose **API Key**.
+3. Paste the API key and optional AWS region (`us-east-1` by default).
+4. OmniRoute validates the key and saves the connection.
+
+### API
+
+```bash
+curl -X POST http://localhost:20128/api/oauth/kiro/api-key \
+  -H "Content-Type: application/json" \
+  -d '{"apiKey": "kiro_or_codewhisperer_key", "region": "us-east-1"}'
+```
+
+### Internal Contract
+
+The API route validates the key by calling `KiroService.validateApiKey()`, which
+uses `ListAvailableProfiles` against the region-matched CodeWhisperer/Amazon Q
+endpoint and resolves a `profileArn`.
+
+The saved connection uses:
+
+```json
+{
+  "authType": "apikey",
+  "providerSpecificData": {
+    "authMethod": "api_key",
+    "region": "us-east-1",
+    "profileArn": "arn:aws:codewhisperer:..."
+  }
+}
+```
+
+At runtime, `KiroExecutor.buildHeaders()` sends the key as
+`Authorization: Bearer <key>` and adds `tokentype: API_KEY`. Quota/profile calls
+use the same marker so AWS treats the bearer as a long-lived API key rather than
+an OIDC or social access token.
+
+---
+
 ## OIDC Client Expiry
 
 AWS SSO OIDC public clients typically expire after 90 days
@@ -119,6 +169,9 @@ AWS SSO OIDC public clients typically expire after 90 days
 for observability. If a connection stops refreshing after ~90 days, re-import the
 connection to obtain a fresh OIDC client registration. Automatic re-registration on
 expiry is tracked as a future improvement.
+
+API-key connections do not have OIDC client expiry because they do not refresh
+through AWS SSO OIDC.
 
 ---
 
@@ -136,5 +189,12 @@ expiry is tracked as a future improvement.
 - Ensure OmniRoute can reach `https://oidc.us-east-1.amazonaws.com` (or the configured
   region). If you are behind a corporate proxy, set a provider-level proxy in
   **Dashboard → Settings → Proxies**.
+
+### API-key import fails
+
+- Confirm the key is a Kiro / CodeWhisperer API key, not a refresh token.
+- Confirm the AWS region matches the key/account. `us-east-1` is the default.
+- The key must be able to call `ListAvailableProfiles`; otherwise OmniRoute cannot
+  resolve the required `profileArn`.
 
 For other issues, see the main [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).

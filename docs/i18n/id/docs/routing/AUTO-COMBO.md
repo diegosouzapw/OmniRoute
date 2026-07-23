@@ -4,40 +4,40 @@
 
 ---
 
-> Self-managing model chains with adaptive scoring
+> Rantai model yang mengelola diri sendiri dengan penilaian adaptif
 
-## How It Works
+## Cara Kerjanya
 
-The Auto-Combo Engine dynamically selects the best provider/model for each request using a **6-factor scoring function**:
+Auto-Combo Engine secara dinamis memilih penyedia/model terbaik untuk setiap permintaan menggunakan **fungsi penilaian 6 faktor**:
 
-| Factor     | Weight | Description                                     |
-| :--------- | :----- | :---------------------------------------------- |
-| Quota      | 0.20   | Remaining capacity [0..1]                       |
-| Health     | 0.25   | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0 |
-| CostInv    | 0.20   | Inverse cost (cheaper = higher score)           |
-| LatencyInv | 0.15   | Inverse p95 latency (faster = higher)           |
-| TaskFit    | 0.10   | Model × task type fitness score                 |
-| Stability  | 0.10   | Low variance in latency/errors                  |
+| Faktor     | Bobot | Deskripsi                                              |
+| :--------- | :---- | :----------------------------------------------------- |
+| Quota      | 0.20  | Kapasitas tersisa [0..1]                               |
+| Health     | 0.25  | Circuit breaker: CLOSED=1.0, HALF=0.5, OPEN=0.0        |
+| CostInv    | 0.20  | Biaya invers (lebih murah = skor lebih tinggi)         |
+| LatencyInv | 0.15  | Latensi p95 invers (lebih cepat = lebih tinggi)        |
+| TaskFit    | 0.10  | Skor kesesuaian model × tipe tugas                     |
+| Stability  | 0.10  | Variansi rendah dalam latensi/kesalahan                |
 
-## Mode Packs
+## Paket Mode
 
-| Pack                    | Focus        | Key Weight       |
+| Paket                   | Fokus        | Bobot Utama      |
 | :---------------------- | :----------- | :--------------- |
-| 🚀 **Ship Fast**        | Speed        | latencyInv: 0.35 |
-| 💰 **Cost Saver**       | Economy      | costInv: 0.40    |
-| 🎯 **Quality First**    | Best model   | taskFit: 0.40    |
-| 📡 **Offline Friendly** | Availability | quota: 0.40      |
+| 🚀 **Ship Fast**        | Kecepatan    | latencyInv: 0.35 |
+| 💰 **Cost Saver**       | Ekonomi      | costInv: 0.40    |
+| 🎯 **Quality First**    | Model terbaik | taskFit: 0.40   |
+| 📡 **Offline Friendly** | Ketersediaan | quota: 0.40      |
 
-## Self-Healing
+## Pemulihan Mandiri
 
-- **Temporary exclusion**: Score < 0.2 → excluded for 5 min (progressive backoff, max 30 min)
-- **Circuit breaker awareness**: OPEN → auto-excluded; HALF_OPEN → probe requests
-- **Incident mode**: >50% OPEN → disable exploration, maximize stability
-- **Cooldown recovery**: After exclusion, first request is a "probe" with reduced timeout
+- **Pengecualian sementara**: Skor < 0.2 → dikecualikan selama 5 menit (backoff progresif, maks 30 menit)
+- **Kesadaran circuit breaker**: OPEN → dikecualikan otomatis; HALF_OPEN → permintaan probe
+- **Mode insiden**: >50% OPEN → nonaktifkan eksplorasi, maksimalkan stabilitas
+- **Pemulihan cooldown**: Setelah pengecualian, permintaan pertama adalah "probe" dengan timeout yang dikurangi
 
-## Bandit Exploration
+## Eksplorasi Bandit
 
-5% of requests (configurable) are routed to random providers for exploration. Disabled in incident mode.
+5% permintaan (dapat dikonfigurasi) diarahkan ke penyedia acak untuk eksplorasi. Dinonaktifkan dalam mode insiden.
 
 ## API
 
@@ -51,17 +51,17 @@ curl -X POST http://localhost:20128/api/combos/auto \
 curl http://localhost:20128/api/combos/auto
 ```
 
-## Task Fitness
+## Kesesuaian Tugas
 
-30+ models scored across 6 task types (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Supports wildcard patterns (e.g., `*-coder` → high coding score).
+30+ model dinilai di 6 tipe tugas (`coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`). Mendukung pola wildcard (mis., `*-coder` → skor coding tinggi).
 
-## Files
+## Berkas
 
-| File                                         | Purpose                               |
-| :------------------------------------------- | :------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`     | Scoring function & pool normalization |
-| `open-sse/services/autoCombo/taskFitness.ts` | Model × task fitness lookup           |
-| `open-sse/services/autoCombo/engine.ts`      | Selection logic, bandit, budget cap   |
-| `open-sse/services/autoCombo/selfHealing.ts` | Exclusion, probes, incident mode      |
-| `open-sse/services/autoCombo/modePacks.ts`   | 4 weight profiles                     |
-| `src/app/api/combos/auto/route.ts`           | REST API                              |
+| Berkas                                       | Tujuan                                        |
+| :------------------------------------------- | :-------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`     | Fungsi penilaian & normalisasi pool           |
+| `open-sse/services/autoCombo/taskFitness.ts` | Pencarian kesesuaian model × tugas            |
+| `open-sse/services/autoCombo/engine.ts`      | Logika pemilihan, bandit, batas anggaran      |
+| `open-sse/services/autoCombo/selfHealing.ts` | Pengecualian, probe, mode insiden             |
+| `open-sse/services/autoCombo/modePacks.ts`   | 4 profil bobot                                |
+| `src/app/api/combos/auto/route.ts`           | REST API                                      |

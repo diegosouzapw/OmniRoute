@@ -1,0 +1,1 @@
+- **fix(codex):** bump the default Codex CLI client identity from `0.142.0` to `0.144.0` for compatibility with newer Codex-backed models ([#6780](https://github.com/diegosouzapw/OmniRoute/pull/6780)) — thanks @quanturbo

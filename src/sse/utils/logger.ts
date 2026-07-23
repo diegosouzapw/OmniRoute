@@ -4,7 +4,7 @@
  *
  * Migrated from direct console logging to structured Pino logging.
  */
-import { createLogger, logger as rootLogger } from "@/shared/utils/logger";
+import { createLogger } from "@/shared/utils/logger";
 
 const log = createLogger("sse");
 
@@ -27,21 +27,6 @@ export function error(tag: string, message: string, data?: unknown) {
 export function request(method: string, path: string, extra?: unknown) {
   log.info({ tag: "HTTP", method, path, ...spreadData(extra) }, `📥 ${method} ${path}`);
 }
-
-export function response(status: number, duration: number, extra?: unknown) {
-  const level = status < 400 ? "info" : "error";
-  log[level](
-    { tag: "HTTP", status, duration, ...spreadData(extra) },
-    `📤 ${status} (${duration}ms)`
-  );
-}
-
-export function stream(event: string, data?: unknown) {
-  log.debug({ tag: "STREAM", event, ...spreadData(data) }, `🌊 ${event}`);
-}
-
-// Mask sensitive data (kept for backward compat; prefer shared maskKey)
-export { maskKey } from "@/shared/utils/formatting";
 
 // Helper to spread data into structured fields
 function spreadData(data: unknown): Record<string, unknown> {

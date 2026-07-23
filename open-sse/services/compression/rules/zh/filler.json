@@ -1,0 +1,54 @@
+{
+  "language": "zh",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "zh_filler_please",
+      "pattern": "请(?:你|您)?(?:帮我|帮忙)?",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "zh_filler_thanks",
+      "pattern": "(?:谢谢|多谢|感谢)(?:你|您|大家)?[。，！]?",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "zh_filler_trouble",
+      "pattern": "(?:麻烦你|麻烦您|劳驾)[，]?",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "zh_filler_greeting",
+      "pattern": "(?:你好|您好|大家好)[，,]?",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "zh_filler_hedge_think",
+      "pattern": "(?:我觉得|我认为|我想说)",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "full"
+    },
+    {
+      "name": "zh_filler_hedge_actually",
+      "pattern": "(?:其实|说实话|基本上)[，,]?",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "full"
+    }
+  ]
+}

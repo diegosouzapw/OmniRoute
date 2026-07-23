@@ -1,0 +1,1 @@
+- **docs:** refresh `llm.txt` to the current project state (248 providers, 94 MCP tools / 30 scopes, 18 routing strategies, 12-factor Auto-Combo scoring, v3.8.47) and sync its 42 i18n mirrors; move the implemented design-system plan from the repo root to `docs/architecture/DESIGN_SYSTEM.md` rewritten as a reference doc.

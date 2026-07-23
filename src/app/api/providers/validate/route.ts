@@ -11,7 +11,7 @@ import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getProxyForLevel, resolveProxyForProvider } from "@/lib/localDb";
 import { validateProviderApiKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContextOrDirect } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 function sanitizeAuditUrl(url: string | null | undefined) {
   if (!url) return null;
@@ -104,7 +104,7 @@ export async function POST(request) {
       proxyToUse = providerProxy || globalProxy || null;
     }
 
-    const result = await runWithProxyContext(proxyToUse || null, () =>
+    const result = await runWithProxyContextOrDirect(proxyToUse || null, () =>
       validateProviderApiKey({
         provider,
         apiKey,
@@ -113,7 +113,13 @@ export async function POST(request) {
     );
 
     if (result.unsupported) {
-      return NextResponse.json({ error: "Provider validation not supported" }, { status: 400 });
+      // #5565/#5567: surface `unsupported` so the dashboard can treat "validation
+      // not supported" as a non-blocking warning (allow Save) instead of a hard
+      // "Invalid" block — providers like lmarena / piapi have no live validator.
+      return NextResponse.json(
+        { error: "Provider validation not supported", unsupported: true },
+        { status: 400 }
+      );
     }
 
     if (!result.valid && typeof result.statusCode === "number") {

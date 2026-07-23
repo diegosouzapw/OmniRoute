@@ -1,0 +1,1 @@
+- **CI**: the new Electron Windows prepare-bundle leg (WS1.5) is advisory while it matures — its first real run failed with the error swallowed by pwsh; the step now runs under bash (stderr captured) with `continue-on-error`, tracked for promotion once green

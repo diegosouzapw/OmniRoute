@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   updateProviderConnection,
   isCloudEnabled,
   resolveProxyForConnection,
@@ -13,95 +13,19 @@ import { validateProviderApiKey } from "@/lib/providers/validation";
 import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 // Use the shared open-sse token refresh with built-in dedup/race-condition cache
 import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
+import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { logProxyEvent } from "@/lib/proxyLogger";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
-import {
-  buildGitLabOAuthEndpoints,
-  isGitLabDirectAccessDisabled,
-  resolveGitLabOAuthBaseUrl,
-} from "@/lib/oauth/gitlab";
+import { isGitLabDirectAccessDisabled } from "@/lib/oauth/gitlab";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { removeConnectionHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
+import { classifyAmbiguousOrAuthError, type ClassifyFailureArgs } from "./mistralAmbiguousAuth";
+import { OAUTH_TEST_CONFIG } from "./oauthTestConfig";
 
-// OAuth provider test endpoints
-const OAUTH_TEST_CONFIG = {
-  claude: {
-    // Claude doesn't have userinfo, we verify token exists and not expired
-    checkExpiry: true,
-    refreshable: true,
-  },
-  codex: {
-    // Codex OAuth tokens are ChatGPT session tokens, NOT standard OpenAI API keys.
-    // They don't work with api.openai.com/v1/models (returns 403 "Access denied").
-    // Use checkExpiry mode instead — actual connectivity is validated via Usage/Limits.
-    checkExpiry: true,
-    refreshable: true,
-  },
-  "gemini-cli": {
-    url: "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
-    method: "GET",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    refreshable: true,
-  },
-  antigravity: {
-    url: "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
-    method: "GET",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    refreshable: true,
-  },
-  github: {
-    url: "https://api.github.com/user",
-    method: "GET",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    extraHeaders: { "User-Agent": "OmniRoute", Accept: "application/vnd.github+json" },
-  },
-  "gitlab-duo": {
-    getUrl: (connection: any) =>
-      buildGitLabOAuthEndpoints(resolveGitLabOAuthBaseUrl(connection?.providerSpecificData))
-        .directAccessUrl,
-    method: "POST",
-    authHeader: "Authorization",
-    authPrefix: "Bearer ",
-    refreshable: true,
-  },
-  qwen: {
-    // DashScope (previously portal.qwen.ai) /v1/models might return 404 or auth issues.
-    // Use checkExpiry instead — actual connectivity is validated via real requests.
-    checkExpiry: true,
-    refreshable: true,
-  },
-  cursor: {
-    checkExpiry: true,
-  },
-  "kimi-coding": {
-    checkExpiry: true,
-    refreshable: true,
-  },
-  kilocode: {
-    // Kilo OAuth does not expose a stable user-info endpoint in all environments.
-    // Validate using token presence/expiry as a lightweight auth check.
-    checkExpiry: true,
-  },
-  cline: {
-    // Cline's /api/v1/models endpoint frequently returns stale auth errors even
-    // with fresh tokens. Use checkExpiry instead — actual connectivity is validated
-    // via real requests.
-    checkExpiry: true,
-    refreshable: true,
-  },
-  kiro: {
-    checkExpiry: true,
-    refreshable: true,
-  },
-  "amazon-q": {
-    checkExpiry: true,
-    refreshable: true,
-  },
-};
+// Bound the OAuth probe so a hung upstream can't block the connection-test queue
+// forever (#1449). Mirrors the 30s timeout the API-key path uses via validateProviderApiKey.
+const OAUTH_TEST_TIMEOUT_MS = 30_000;
 
 import { CLI_RUNTIME_PROVIDER_MAP } from "./cliRuntimeProviderMap";
 
@@ -130,17 +54,25 @@ function makeDiagnosis(
   };
 }
 
-function classifyFailure({
+/**
+ * A provider/account that the upstream has deactivated (vs. a revoked/expired token).
+ * #1444: a Codex account can have a perfectly healthy OAuth refresh while its ChatGPT
+ * account is deactivated, in which case the API returns 401 — mislabeling that as
+ * "Token invalid or revoked" hides the real cause. Mirrors the deactivation phrases the
+ * account-fallback classifier already trusts.
+ */
+function isAccountDeactivatedMessage(text: string): boolean {
+  const n = (text || "").toLowerCase();
+  return n.includes("account_deactivated") || (n.includes("deactivat") && n.includes("account"));
+}
+
+export function classifyFailure({
   error,
   statusCode = null,
   refreshFailed = false,
   unsupported = false,
-}: {
-  error: string;
-  statusCode?: number | null;
-  refreshFailed?: boolean;
-  unsupported?: boolean;
-}) {
+  provider,
+}: ClassifyFailureArgs) {
   const message = toSafeMessage(error, "Connection test failed");
   const normalized = message.toLowerCase();
   const numericStatus = Number.isFinite(statusCode) ? Number(statusCode) : null;
@@ -153,8 +85,15 @@ function classifyFailure({
     return makeDiagnosis("token_refresh_failed", "oauth", message, "refresh_failed");
   }
 
+  // #1444: a deactivated account is distinct from a revoked/expired token — surface it
+  // as account_deactivated (which the dashboard renders as "Account Deactivated") before
+  // the generic 401/403 branch below would mark it "upstream_auth_error".
+  if (isAccountDeactivatedMessage(normalized)) {
+    return makeDiagnosis("account_deactivated", "account", message, "account_deactivated");
+  }
+
   if (numericStatus === 401 || numericStatus === 403) {
-    return makeDiagnosis("upstream_auth_error", "upstream", message, String(numericStatus));
+    return classifyAmbiguousOrAuthError(provider, normalized, message, numericStatus);
   }
 
   if (numericStatus === 429) {
@@ -381,7 +320,10 @@ async function syncToCloudIfEnabled() {
  * Auto-refreshes token if expired
  * @returns {{ valid: boolean, error: string|null, refreshed: boolean, newTokens: object|null }}
  */
-async function testOAuthConnection(connection: any) {
+export async function testOAuthConnection(
+  connection: any,
+  timeoutMs: number = OAUTH_TEST_TIMEOUT_MS
+) {
   const config = OAUTH_TEST_CONFIG[connection.provider];
 
   if (!config) {
@@ -420,9 +362,14 @@ async function testOAuthConnection(connection: any) {
   let refreshed = false;
   let newTokens = null;
 
-  // Auto-refresh if token is expired and provider supports refresh
+  // Auto-refresh if token is expired and provider supports refresh.
+  // Front 2: NEVER burn a rotating provider's single-use refresh_token from a
+  // connection test. Under a shared Auth0 client (Codex/OpenAI) a test-time
+  // refresh can cascade-invalidate sibling accounts' refresh_token families
+  // (openai/codex#9648). Leave rotation to the reactive, mutex-guarded 401 path.
   const tokenExpired = isTokenExpired(connection);
-  if (config.refreshable && tokenExpired && connection.refreshToken) {
+  const isRotatingProvider = rotationGroupFor(connection.provider) !== null;
+  if (config.refreshable && tokenExpired && connection.refreshToken && !isRotatingProvider) {
     const tokens = await refreshOAuthToken(connection);
     if (tokens) {
       accessToken = tokens.accessToken;
@@ -454,6 +401,19 @@ async function testOAuthConnection(connection: any) {
     }
     // Check if token is expired (no refresh available)
     if (tokenExpired) {
+      // Front 2: for rotating providers we intentionally did NOT refresh above.
+      // An expired access_token here is recoverable on next real use via the
+      // reactive 401 path, so don't report the account as broken (which would
+      // tempt the operator to re-test and never resolve). Keep it active.
+      if (isRotatingProvider && connection.refreshToken) {
+        return {
+          valid: true,
+          error: null,
+          refreshed: false,
+          newTokens: null,
+          diagnosis: makeDiagnosis("ok", "oauth", null, null),
+        };
+      }
       const error = "Token expired";
       return {
         valid: false,
@@ -479,12 +439,23 @@ async function testOAuthConnection(connection: any) {
     };
 
     const url = typeof config.getUrl === "function" ? config.getUrl(connection) : config.url;
-    const res = await fetch(url, {
+    const fetchInit: RequestInit = {
       method: config.method,
       headers,
-    });
+      signal: AbortSignal.timeout(timeoutMs),
+    };
+    // Port of decolua/9router#347: providers like Codex must send a body so the
+    // upstream returns 400 (auth ok) instead of 405/415.
+    if (config.body) fetchInit.body = config.body;
+    const res = await fetch(url, fetchInit);
 
-    if (res.ok) {
+    // Port of decolua/9router#347: some providers (Codex) intentionally trigger a
+    // 400 because the probe body is invalid. A 400 from such a provider means auth
+    // succeeded; only 401/403 means the token is bad.
+    const accepted =
+      res.ok ||
+      (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(res.status));
+    if (accepted) {
       return {
         valid: true,
         error: null,
@@ -520,15 +491,21 @@ async function testOAuthConnection(connection: any) {
       const tokens = await refreshOAuthToken(connection);
       if (tokens) {
         // Retry with new token
-        const retryRes = await fetch(url, {
+        const retryInit: RequestInit = {
           method: config.method,
           headers: {
             [config.authHeader]: `${config.authPrefix}${tokens.accessToken}`,
             ...config.extraHeaders,
           },
-        });
+          signal: AbortSignal.timeout(timeoutMs),
+        };
+        if (config.body) retryInit.body = config.body;
+        const retryRes = await fetch(url, retryInit);
 
-        if (retryRes.ok) {
+        const retryAccepted =
+          retryRes.ok ||
+          (Array.isArray(config.acceptStatuses) && config.acceptStatuses.includes(retryRes.status));
+        if (retryAccepted) {
           return {
             valid: true,
             error: null,
@@ -538,7 +515,12 @@ async function testOAuthConnection(connection: any) {
           };
         }
 
-        const error = `API returned ${retryRes.status} after token refresh`;
+        // #1444: a fresh token that still gets a 401 because the account itself was
+        // deactivated must be labeled account_deactivated, not a generic auth error.
+        const retryBody = await retryRes.text().catch(() => "");
+        const error = isAccountDeactivatedMessage(retryBody)
+          ? "Account deactivated by the provider"
+          : `API returned ${retryRes.status} after token refresh`;
         return {
           valid: false,
           error,
@@ -557,8 +539,14 @@ async function testOAuthConnection(connection: any) {
       };
     }
 
-    const error =
-      res.status === 401
+    // #1444: read a 401/403 body so a deactivated account is labeled distinctly from a
+    // revoked token. (The body is unread here for non-gitlab providers; the guard keeps
+    // it safe if it was already consumed.)
+    const bodyText =
+      res.status === 401 || res.status === 403 ? await res.text().catch(() => "") : "";
+    const error = isAccountDeactivatedMessage(bodyText)
+      ? "Account deactivated by the provider"
+      : res.status === 401
         ? "Token invalid or revoked"
         : res.status === 403
           ? "Access denied"
@@ -572,7 +560,13 @@ async function testOAuthConnection(connection: any) {
       diagnosis: classifyFailure({ error, statusCode: res.status }),
     };
   } catch (err) {
-    const error = toSafeMessage(err?.message, "Connection test failed");
+    // AbortSignal.timeout(...) surfaces as an AbortError/TimeoutError once the probe
+    // exceeds its deadline (#1449). Report it with a clear, actionable message instead
+    // of leaking the raw "The operation was aborted" text.
+    const isTimeout = err?.name === "TimeoutError" || err?.name === "AbortError";
+    const error = isTimeout
+      ? `Test timed out after ${Math.round(timeoutMs / 1000)}s`
+      : toSafeMessage(err?.message, "Connection test failed");
     return {
       valid: false,
       error,
@@ -607,20 +601,23 @@ async function testApiKeyConnection(connection: any) {
     return {
       valid: false,
       error,
-      diagnosis: classifyFailure({ error, unsupported: true }),
+      diagnosis: classifyFailure({ error, unsupported: true, provider: connection.provider }),
     };
   }
 
   const error = result.valid ? null : result.error || "Invalid API key";
   const diagnosis = result.valid
     ? makeDiagnosis("ok", "upstream", null, null)
-    : classifyFailure({ error });
+    : classifyFailure({ error, statusCode: result.statusCode, provider: connection.provider });
 
   return {
     valid: !!result.valid,
     error,
     warning: result.warning || null,
     diagnosis,
+    ...(Array.isArray((result as any).deployments)
+      ? { deployments: (result as any).deployments }
+      : {}),
   };
 }
 
@@ -631,7 +628,7 @@ async function testApiKeyConnection(connection: any) {
  * @returns {Promise<object>} Test result (same shape as the JSON response)
  */
 export async function testSingleConnection(connectionId: string, validationModelId?: string) {
-  const connection = await getProviderConnectionById(connectionId);
+  const connection = await getCachedProviderConnectionById(connectionId);
 
   if (!connection) {
     return { valid: false, error: "Connection not found", diagnosis: null, latencyMs: 0 };
@@ -698,7 +695,7 @@ export async function testSingleConnection(connectionId: string, validationModel
     result.diagnosis ||
     (result.valid
       ? makeDiagnosis("ok", "local", null, null)
-      : classifyFailure({ error: result.error, statusCode: result.statusCode }));
+      : classifyFailure({ error: result.error, statusCode: result.statusCode, provider }));
 
   const updateData: Record<string, any> = {
     testStatus: result.valid ? "active" : "error",

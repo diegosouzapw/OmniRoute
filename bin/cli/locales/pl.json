@@ -25,5 +25,8 @@
     "base_url": "Bazowy URL serwera OmniRoute",
     "context": "Kontekst/profil serwera dla tego polecenia",
     "lang": "Ustaw język wyświetlania CLI (nadpisuje OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Uruchom lokalny kontener Redis jednym kliknięciem (Podman lub Docker) do buforowania i śledzenia limitów OmniRoute"
   }
 }

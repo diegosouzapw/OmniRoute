@@ -1,0 +1,1 @@
+- fix(sse): omit removed `attachments` field from Muse Spark Web (Meta AI) persisted GraphQL query to fix `Unknown type "AttachmentInput"` 502s (#6935)

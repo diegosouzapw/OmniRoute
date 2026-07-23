@@ -1,0 +1,198 @@
+<svg viewBox="0 0 1200 842" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute free-tier budget: about 1.53 billion free tokens per month steady, up to about 2.15 billion in your first month with signup credits, aggregated from the documented free tiers of 43 provider pools and 460+ models behind one endpoint, live on /dashboard/free-tiers. Honest pool-deduped math: each shared free pool is counted once — counting every rate limit 24/7 would read about 10B, which we don't publish; 15 providers carry a ToS flag so you decide. Budget bar of the 19 countable free pools with per-model breakdown: Mistral Large 3 1B, GPT-4o mini 150M, Gemini 2.5 Flash 60M, GLM 4.7 30M, Llama 3.3 70B 30M, Grok-3 24M, DeepSeek V4 Pro 20M, GPT-4.1 18M, Llama 4 Scout 15M, GPT-4o 7M, MiniMax-M2.7 6M, Arcee Trinity 5M, and more. First month adds one-time signup credits of about 626M (vertex 300M, agentrouter 200M, predibase 25M, together 25M, glm-cn 20M, doubao 15M, ai21 10M, longcat 10M, deepseek 5M, hyperbolic 5M, nscale 5M). Plus the un-countable: permanently-free no-token-cap providers (SiliconFlow, Z.AI GLM-Flash, Kilo, OpenCode Zen, baidu and more) and a $10 OpenRouter top-up unlocking +24M per month, surfaced separately so they never inflate the headline. Live used/remaining and per-model breakdown on the dashboard.">
+  <defs>
+    <pattern id="gridPaperF" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bgGlowF" cx="26%" cy="24%" r="52%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.14"/>
+      <stop offset="55%" stop-color="#8b5cf6" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gradBrandF" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e54d5e"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <radialGradient id="heroGlowF" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#e54d5e" stop-opacity="0"/>
+    </radialGradient>
+    <path id="pTk1F" d="M 44,84 C 150,112 190,146 302,168"/>
+    <path id="pTk2F" d="M 30,310 C 136,290 176,240 296,206"/>
+    <path id="pTk3F" d="M 96,436 C 186,392 208,308 314,230"/>
+    <clipPath id="barShapeF"><rect x="60" y="372" width="1080" height="18" rx="9"/></clipPath>
+    <clipPath id="barRevF">
+      <rect x="60" y="372" width="0" height="18">
+        <animate attributeName="width" values="1080;0;1080;1080" keyTimes="0;0.02;0.24;1" dur="10s" repeatCount="indefinite"/>
+      </rect>
+    </clipPath>
+  </defs>
+
+  <rect width="1200" height="842" fill="#0b0e14"/>
+  <rect width="1200" height="842" fill="url(#gridPaperF)"/>
+  <rect width="1200" height="842" fill="url(#bgGlowF)"/>
+
+  <!-- ═══ Header ═══ -->
+  <text x="60" y="52" font-family="Consolas, 'Courier New', monospace" font-size="11" letter-spacing="2.5" font-weight="700" fill="#71717a">FREE-TIER BUDGET &#183; LIVE ON <tspan fill="#8b5cf6">/dashboard/free-tiers</tspan></text>
+  <g transform="translate(918, 32)">
+    <rect width="222" height="28" rx="14" fill="#161b22" stroke="#22c55e" stroke-width="1" stroke-opacity="0.6"/>
+    <circle cx="18" cy="14" r="3.5" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/>
+    </circle>
+    <text x="32" y="18" font-family="Consolas, 'Courier New', monospace" font-size="10" letter-spacing="1.5" font-weight="700" fill="#22c55e">HONEST &#183; POOL-DEDUPED</text>
+  </g>
+
+  <!-- ═══ Hero (left) ═══ -->
+  <ellipse cx="280" cy="180" rx="270" ry="130" fill="url(#heroGlowF)">
+    <animate attributeName="rx" values="250;290;250" dur="4s" repeatCount="indefinite"/>
+  </ellipse>
+  <!-- token dots feeding the number -->
+  <g fill="#a78bfa">
+    <circle r="3.4">
+      <animateMotion dur="2.4s" repeatCount="indefinite" begin="0s"><mpath href="#pTk1F"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="2.4s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.4">
+      <animateMotion dur="2.4s" repeatCount="indefinite" begin="0.8s"><mpath href="#pTk2F"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="2.4s" begin="0.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.4">
+      <animateMotion dur="2.4s" repeatCount="indefinite" begin="1.6s"><mpath href="#pTk3F"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="2.4s" begin="1.6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <text x="60" y="228" font-family="Consolas, 'Courier New', monospace" font-size="104" font-weight="800" fill="url(#gradBrandF)">~1.53B</text>
+  <text x="62" y="266" font-family="Consolas, 'Courier New', monospace" font-size="15" letter-spacing="3" font-weight="700" fill="#a1a1aa">FREE TOKENS / MONTH &#183; <tspan fill="#22c55e">STEADY</tspan></text>
+  <text x="62" y="298" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" fill="#F7F6FC">up to <tspan font-weight="800" fill="#22c55e">~2.15B</tspan> in your first month &#8212; signup credits</text>
+  <text x="62" y="326" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">documented free tiers &#183; <tspan fill="#8b5cf6">43 provider pools</tspan> &#183; <tspan fill="#8b5cf6">460+ models</tspan> &#183; one endpoint</text>
+
+  <!-- ═══ Panel · The honest math ═══ -->
+  <rect x="680" y="84" width="460" height="216" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <text x="704" y="116" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">THE HONEST MATH</text>
+  <text x="704" y="172" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="800" fill="#71717a">~10B</text>
+  <line x1="698" y1="161" x2="810" y2="161" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-dasharray="112" stroke-dashoffset="112">
+    <animate attributeName="stroke-dashoffset" values="0;112;0;0" keyTimes="0;0.10;0.18;1" dur="10s" repeatCount="indefinite"/>
+  </line>
+  <text x="836" y="156" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">every rate limit &#183; 24/7</text>
+  <text x="836" y="176" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#ef4444" opacity="0.85">we don't publish that</text>
+  <text x="704" y="240" font-family="Consolas, 'Courier New', monospace" font-size="34" font-weight="800" fill="#22c55e">~1.53B</text>
+  <text x="836" y="224" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">each shared free pool</text>
+  <text x="836" y="244" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#22c55e">counted once &#10003;</text>
+  <text x="704" y="280" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#f59e0b"><tspan font-weight="800">15 providers</tspan> ToS-flagged <tspan fill="#71717a">&#8212; we flag it &#183; you decide</tspan></text>
+
+  <!-- ═══ Budget bar · 19 countable pools ═══ -->
+  <text x="60" y="356" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">WHERE IT COMES FROM &#183; <tspan fill="#F7F6FC">19 COUNTABLE FREE POOLS</tspan></text>
+  <g clip-path="url(#barShapeF)">
+    <rect x="60" y="372" width="1080" height="18" fill="#1c2230"/>
+    <g clip-path="url(#barRevF)">
+      <rect x="60.0" y="372" width="662.3" height="18" fill="#6c5ce7"/>
+      <rect x="723.3" y="372" width="106.7" height="18" fill="#00b894"/>
+      <rect x="831.0" y="372" width="47.9" height="18" fill="#0984e3"/>
+      <rect x="879.9" y="372" width="28.3" height="18" fill="#e17055"/>
+      <rect x="909.2" y="372" width="28.3" height="18" fill="#fdcb6e"/>
+      <rect x="938.5" y="372" width="24.4" height="18" fill="#e84393"/>
+      <rect x="963.9" y="372" width="21.8" height="18" fill="#00cec9"/>
+      <rect x="986.7" y="372" width="20.5" height="18" fill="#d63031"/>
+      <rect x="1008.2" y="372" width="18.5" height="18" fill="#a29bfe"/>
+      <rect x="1027.7" y="372" width="13.3" height="18" fill="#55efc4"/>
+      <rect x="1042.0" y="372" width="12.6" height="18" fill="#74b9ff"/>
+      <rect x="1055.6" y="372" width="12.0" height="18" fill="#ffeaa7"/>
+      <rect x="1068.6" y="372" width="11.3" height="18" fill="#fab1a0"/>
+      <rect x="1080.9" y="372" width="9.4" height="18" fill="#81ecec"/>
+      <rect x="1091.3" y="372" width="9.2" height="18" fill="#6c5ce7"/>
+      <rect x="1101.5" y="372" width="9.0" height="18" fill="#00b894"/>
+      <rect x="1111.5" y="372" width="9.0" height="18" fill="#0984e3"/>
+      <rect x="1121.5" y="372" width="8.8" height="18" fill="#e17055"/>
+      <rect x="1131.3" y="372" width="8.7" height="18" fill="#fdcb6e"/>
+    </g>
+  </g>
+  <circle r="3.2" fill="#F7F6FC">
+    <animateMotion path="M 60,381 L 1140,381" keyPoints="0;0;1;1" keyTimes="0;0.02;0.24;1" calcMode="linear" dur="10s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.02;0.23;0.26;1" dur="10s" repeatCount="indefinite"/>
+  </circle>
+  <text x="60" y="416" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#71717a">each segment = one free pool &#183; widths floored so every provider shows &#183; honest numbers below</text>
+
+  <!-- ═══ Per-model grid (19 pools) ═══ -->
+  <g font-family="Consolas, 'Courier New', monospace" font-size="12.5">
+    <circle cx="66" cy="452" r="5" fill="#6c5ce7"/><text x="78" y="456" fill="#c9d1d9">Mistral Large 3 <tspan fill="#71717a">1.00B</tspan></text>
+    <circle cx="346" cy="452" r="5" fill="#00b894"/><text x="358" y="456" fill="#c9d1d9">GPT-4o mini <tspan fill="#71717a">150M</tspan></text>
+    <circle cx="626" cy="452" r="5" fill="#0984e3"/><text x="638" y="456" fill="#c9d1d9">Gemini 2.5 Flash <tspan fill="#71717a">60M</tspan></text>
+    <circle cx="906" cy="452" r="5" fill="#e17055"/><text x="918" y="456" fill="#c9d1d9">GLM 4.7 <tspan fill="#71717a">30M</tspan></text>
+    <circle cx="66" cy="482" r="5" fill="#fdcb6e"/><text x="78" y="486" fill="#c9d1d9">Llama 3.3 70B <tspan fill="#71717a">30M</tspan></text>
+    <circle cx="346" cy="482" r="5" fill="#e84393"/><text x="358" y="486" fill="#c9d1d9">Grok-3 <tspan fill="#71717a">24M</tspan></text>
+    <circle cx="626" cy="482" r="5" fill="#00cec9"/><text x="638" y="486" fill="#c9d1d9">DeepSeek V4 Pro <tspan fill="#71717a">20M</tspan></text>
+    <circle cx="906" cy="482" r="5" fill="#d63031"/><text x="918" y="486" fill="#c9d1d9">GPT-4.1 <tspan fill="#71717a">18M</tspan></text>
+    <circle cx="66" cy="512" r="5" fill="#a29bfe"/><text x="78" y="516" fill="#c9d1d9">Llama 4 Scout <tspan fill="#71717a">15M</tspan></text>
+    <circle cx="346" cy="512" r="5" fill="#55efc4"/><text x="358" y="516" fill="#c9d1d9">GPT-4o <tspan fill="#71717a">7M</tspan></text>
+    <circle cx="626" cy="512" r="5" fill="#74b9ff"/><text x="638" y="516" fill="#c9d1d9">MiniMax-M2.7 <tspan fill="#71717a">6M</tspan></text>
+    <circle cx="906" cy="512" r="5" fill="#ffeaa7"/><text x="918" y="516" fill="#c9d1d9">Arcee Trinity Large Prev <tspan fill="#71717a">5M</tspan></text>
+    <circle cx="66" cy="542" r="5" fill="#fab1a0"/><text x="78" y="546" fill="#c9d1d9">Auto Free <tspan fill="#71717a">4M</tspan></text>
+    <circle cx="346" cy="542" r="5" fill="#81ecec"/><text x="358" y="546" fill="#c9d1d9">Auto <tspan fill="#71717a">1M</tspan></text>
+    <circle cx="626" cy="542" r="5" fill="#6c5ce7"/><text x="638" y="546" fill="#c9d1d9">Command A Reasoning <tspan fill="#71717a">800K</tspan></text>
+    <circle cx="906" cy="542" r="5" fill="#00b894"/><text x="918" y="546" fill="#c9d1d9">ERNIE 4.5 VL 424B <tspan fill="#71717a">500K</tspan></text>
+    <circle cx="66" cy="572" r="5" fill="#0984e3"/><text x="78" y="576" fill="#c9d1d9">morph-v3-large <tspan fill="#71717a">400K</tspan></text>
+    <circle cx="346" cy="572" r="5" fill="#e17055"/><text x="358" y="576" fill="#c9d1d9">Llama 3.1 8B <tspan fill="#71717a">200K</tspan></text>
+    <circle cx="626" cy="572" r="5" fill="#fdcb6e"/><text x="638" y="576" fill="#c9d1d9">Claude Sonnet 4.5 <tspan fill="#71717a">25K</tspan></text>
+  </g>
+
+  <!-- ═══ First-month signup credits ═══ -->
+  <text x="60" y="622" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#22c55e">+ FIRST MONTH &#183; ONE-TIME SIGNUP CREDITS <tspan fill="#7ee787">~626M</tspan></text>
+  <g font-family="Consolas, 'Courier New', monospace">
+    <rect x="60" y="632" width="90" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="105" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">vertex 300M</text>
+    <rect x="160" y="632" width="123" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="222" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">agentrouter 200M</text>
+    <rect x="293" y="632" width="103" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="344" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">predibase 25M</text>
+    <rect x="406" y="632" width="96" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="454" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">together 25M</text>
+    <rect x="512" y="632" width="83" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="554" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">glm-cn 20M</text>
+    <rect x="605" y="632" width="83" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="646" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">doubao 15M</text>
+    <rect x="698" y="632" width="70" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="733" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">ai21 10M</text>
+    <rect x="778" y="632" width="90" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="823" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">deepseek 5M</text>
+    <rect x="878" y="632" width="103" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="930" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">hyperbolic 5M</text>
+    <rect x="991" y="632" width="90" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="1036" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">longcat 10M</text>
+    <rect x="1091" y="632" width="34" height="22" rx="11" fill="#13311f" stroke="#238636" stroke-opacity="0.8"/>
+    <text x="1108" y="647" font-size="11.5" fill="#7ee787" text-anchor="middle">&#8230;</text>
+  </g>
+
+  <!-- ═══ Plus the un-countable ═══ -->
+  <text x="60" y="690" font-family="Consolas, 'Courier New', monospace" font-size="19" font-weight="800" fill="#8b5cf6">&#8734;<animate attributeName="opacity" values="1;0.55;1" dur="4s" repeatCount="indefinite"/></text>
+  <text x="86" y="688" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">PLUS THE UN-COUNTABLE <tspan fill="#71717a">&#8212; PERMANENTLY FREE &#183; NO TOKEN CAP</tspan></text>
+  <g font-family="Consolas, 'Courier New', monospace" font-size="10.5" fill="#a1a1aa">
+    <rect x="60" y="702" width="94" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="107" y="717" text-anchor="middle">SiliconFlow</text>
+    <rect x="162" y="702" width="118" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="221" y="717" text-anchor="middle">Z.AI GLM-Flash</text>
+    <rect x="288" y="702" width="48" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="312" y="717" text-anchor="middle">Kilo</text>
+    <rect x="344" y="702" width="106" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="397" y="717" text-anchor="middle">OpenCode Zen</text>
+    <rect x="458" y="702" width="56" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="486" y="717" text-anchor="middle">baidu</text>
+    <rect x="522" y="702" width="30" height="22" rx="11" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text x="537" y="717" text-anchor="middle">&#8230;</text>
+  </g>
+  <text x="608" y="718" font-family="Consolas, 'Courier New', monospace" font-size="13.5" fill="#F7F6FC"><tspan fill="#f59e0b" font-weight="700">$10</tspan> OpenRouter top-up &#8594; <tspan fill="#22c55e" font-weight="700">+24M/mo</tspan></text>
+  <text x="60" y="746" font-family="Consolas, 'Courier New', monospace" font-size="11" fill="#71717a">surfaced separately &#8212; never inflates the headline</text>
+
+  <!-- ═══ Footer strip ═══ -->
+  <rect x="60" y="770" width="1080" height="56" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <text x="84" y="792" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#71717a">CURRENT MONTH</text>
+  <rect x="84" y="800" width="240" height="8" rx="4" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <rect x="85" y="801" width="132" height="6" rx="3" fill="#8b5cf6"/>
+  <circle r="2.6" fill="#F7F6FC">
+    <animateMotion path="M 85,804 L 217,804" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="344" cy="804" r="3.5" fill="#22c55e">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="356" y="808" font-family="Consolas, 'Courier New', monospace" font-size="10" letter-spacing="1.5" font-weight="700" fill="#22c55e">LIVE</text>
+  <text x="424" y="808" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">used / remaining &#183; per-model breakdown &#183; transparent <tspan fill="#f59e0b">terms flag</tspan> per provider</text>
+</svg>

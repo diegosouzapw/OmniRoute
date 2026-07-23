@@ -11,6 +11,7 @@ export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 600_000;
 export const MAX_TIMER_TIMEOUT_MS = 2_147_483_647;
 export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 export const DEFAULT_STREAM_READINESS_TIMEOUT_MS = 80_000;
+export const DEFAULT_STREAM_READINESS_MAX_TIMEOUT_MS = 180_000;
 export const DEFAULT_FETCH_CONNECT_TIMEOUT_MS = 30_000;
 export const DEFAULT_FETCH_KEEPALIVE_TIMEOUT_MS = 4_000;
 export const DEFAULT_API_BRIDGE_PROXY_TIMEOUT_MS = 600_000;
@@ -18,6 +19,14 @@ export const DEFAULT_API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS = 300_000;
 export const DEFAULT_API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS = 60_000;
 export const DEFAULT_API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS = 5_000;
 export const DEFAULT_API_BRIDGE_SERVER_SOCKET_TIMEOUT_MS = 0;
+// Node's http.Server default keepAliveTimeout is 5_000ms with no Keep-Alive
+// response header hint. Pooled keep-alive clients that don't race that exact
+// window (e.g. the JVM java.net.http.HttpClient used by JetBrains AI
+// Assistant) can reuse a socket the server has already torn down, getting 0
+// response bytes back (#7003). Raise both well above any realistic client
+// idle-pool window, mirroring the API bridge server's pattern.
+export const DEFAULT_MAIN_SERVER_KEEPALIVE_TIMEOUT_MS = 65_000;
+export const DEFAULT_MAIN_SERVER_HEADERS_TIMEOUT_MS = 66_000;
 
 function hasEnvValue(env: EnvSource, name: string): boolean {
   const raw = env[name];
@@ -29,6 +38,7 @@ export type UpstreamTimeoutConfig = {
   streamIdleTimeoutMs: number;
   sseHeartbeatIntervalMs: number;
   streamReadinessTimeoutMs: number;
+  streamReadinessMaxTimeoutMs: number;
   fetchHeadersTimeoutMs: number;
   fetchBodyTimeoutMs: number;
   fetchConnectTimeoutMs: number;
@@ -45,6 +55,11 @@ export type ApiBridgeTimeoutConfig = {
   serverHeadersTimeoutMs: number;
   serverKeepAliveTimeoutMs: number;
   serverSocketTimeoutMs: number;
+};
+
+export type MainServerTimeoutConfig = {
+  keepAliveTimeoutMs: number;
+  headersTimeoutMs: number;
 };
 
 function readTimeoutMs(
@@ -97,7 +112,16 @@ export function getUpstreamTimeoutConfig(
   const streamReadinessTimeoutMs = readTimeoutMs(
     env,
     "STREAM_READINESS_TIMEOUT_MS",
-    DEFAULT_STREAM_READINESS_TIMEOUT_MS,
+    sharedRequestTimeoutMs ?? DEFAULT_STREAM_READINESS_TIMEOUT_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
+  const streamReadinessMaxTimeoutMs = readTimeoutMs(
+    env,
+    "STREAM_READINESS_MAX_TIMEOUT_MS",
+    DEFAULT_STREAM_READINESS_MAX_TIMEOUT_MS,
     {
       allowZero: true,
       logger,
@@ -117,6 +141,7 @@ export function getUpstreamTimeoutConfig(
     fetchTimeoutMs,
     streamIdleTimeoutMs,
     streamReadinessTimeoutMs,
+    streamReadinessMaxTimeoutMs,
     sseHeartbeatIntervalMs,
     fetchHeadersTimeoutMs: readTimeoutMs(env, "FETCH_HEADERS_TIMEOUT_MS", fetchTimeoutMs, {
       allowZero: true,
@@ -241,5 +266,39 @@ export function getApiBridgeTimeoutConfig(
         logger,
       }
     ),
+  };
+}
+
+export function getMainServerTimeoutConfig(
+  env: EnvSource = process.env,
+  logger?: TimeoutLogger
+): MainServerTimeoutConfig {
+  const keepAliveTimeoutMs = readTimeoutMs(
+    env,
+    "MAIN_SERVER_KEEPALIVE_TIMEOUT_MS",
+    DEFAULT_MAIN_SERVER_KEEPALIVE_TIMEOUT_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
+  const headersTimeoutMs = readTimeoutMs(
+    env,
+    "MAIN_SERVER_HEADERS_TIMEOUT_MS",
+    DEFAULT_MAIN_SERVER_HEADERS_TIMEOUT_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
+
+  return {
+    keepAliveTimeoutMs,
+    // Node requires headersTimeout > keepAliveTimeout to avoid its internal
+    // race-condition warning; keep both configurable but always coherent.
+    headersTimeoutMs:
+      headersTimeoutMs > 0 && keepAliveTimeoutMs > 0
+        ? Math.max(headersTimeoutMs, keepAliveTimeoutMs + 1_000)
+        : headersTimeoutMs,
   };
 }

@@ -180,6 +180,12 @@ test("buildAuthHeaders: returns x-api-key header", () => {
   assert.deepEqual(headers, { "x-api-key": "custom-key" });
 });
 
+test("buildAuthHeaders: returns x-gladia-key header for Gladia", () => {
+  const provider = { ...MOCK_REGISTRY.nvidia, authHeader: "x-gladia-key", authType: "apikey" };
+  const headers = buildAuthHeaders(provider, "gladia-key-123");
+  assert.deepEqual(headers, { "x-gladia-key": "gladia-key-123" });
+});
+
 test("buildAuthHeaders: returns empty object for authHeader none", () => {
   const provider = { ...MOCK_REGISTRY.nvidia, authHeader: "none", authType: "apikey" };
   const headers = buildAuthHeaders(provider, "some-token");
@@ -194,6 +200,7 @@ test("parseVideoModel: works via video registry", async () => {
   const { parseVideoModel } = await import("../../open-sse/config/videoRegistry.ts");
   const result = parseVideoModel("comfyui/animatediff");
   assert.deepEqual(result, { provider: "comfyui", model: "animatediff" });
+  assert.deepEqual(parseVideoModel("veo-free/veo"), { provider: "veoaifree-web", model: "veo" });
 });
 
 test("parseMusicModel: works via music registry", async () => {
@@ -210,6 +217,8 @@ test("getAllVideoModels: returns video models with provider prefix", async () =>
   assert.ok(models.some((m) => m.id === "kie/sora-2-pro-image-to-video"));
   assert.ok(models.some((m) => m.id === "comfyui/animatediff"));
   assert.ok(models.some((m) => m.id === "runwayml/gen4.5"));
+  assert.ok(models.some((m) => m.id === "veoaifree-web/veo"));
+  assert.ok(models.some((m) => m.id === "veo-free/veo"));
 });
 
 test("getAllMusicModels: returns music models with provider prefix", async () => {

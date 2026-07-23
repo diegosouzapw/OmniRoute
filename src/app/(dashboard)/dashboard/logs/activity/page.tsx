@@ -1,7 +1,5 @@
-"use client";
+import { permanentRedirect } from "next/navigation";
 
-import AuditLogTab from "../AuditLogTab";
-
-export default function LogsActivityPage() {
-  return <AuditLogTab />;
+export default function LogsActivityRedirect() {
+  permanentRedirect("/dashboard/activity");
 }

@@ -274,8 +274,7 @@ test("modelsDev capabilities helpers create the table, persist rows, filter by p
   assert.equal(allCaps.anthropic["claude-sonnet-4-20250514"].attachment, true);
   assert.deepEqual(Object.keys(openaiOnly), ["openai"]);
   assert.equal(openaiOnly.openai["gpt-4o"].limit_context, 128000);
-  assert.equal(modelsDev.getModelContextLimit("openai", "gpt-4o"), 128000);
-  assert.equal(modelsDev.getModelContextLimit("openai", "missing"), null);
+  assert.equal("getModelContextLimit" in modelsDev, false);
 
   modelsDev.clearModelsDevCapabilities();
   assert.deepEqual(modelsDev.getSyncedCapabilities(), {});

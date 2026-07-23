@@ -1,0 +1,1 @@
+- **fix(cursor):** send the Agent CLI build id as `x-cursor-client-version` so Cursor upstream accepts requests from the current CLI build instead of a stale hardcoded version (#6795 — thanks @andrewmunsell).

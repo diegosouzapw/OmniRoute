@@ -9,16 +9,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
 
-function resolveMcpEntry(rootDir = ROOT) {
+/**
+ * @param {string} [rootDir] - project root directory (defaults to package root)
+ * @param {(path: string) => boolean} [existsSyncFn] - injectable fs.existsSync
+ *   for testing; defaults to the real existsSync
+ * @returns {string|null} resolved absolute path to the MCP server entry, or null
+ */
+export function resolveMcpEntry(rootDir = ROOT, existsSyncFn = existsSync) {
   const candidates = [
-    // Preferred distributable JS entry (npm publish artifact)
-    join(rootDir, "app", "open-sse", "mcp-server", "server.js"),
+    // Preferred distributable JS entry (npm publish artifact, built by prepublish.ts)
+    join(rootDir, "dist", "open-sse", "mcp-server", "server.js"),
     // Local workspace TypeScript source fallback
     join(rootDir, "open-sse", "mcp-server", "server.ts"),
   ];
 
   for (const entry of candidates) {
-    if (existsSync(entry)) return entry;
+    if (existsSyncFn(entry)) return entry;
   }
   return null;
 }
@@ -32,7 +38,7 @@ export async function startMcpCli(rootDir = ROOT) {
   const mcpEntry = resolveMcpEntry(rootDir);
   if (!mcpEntry) {
     throw new Error(
-      "MCP server entrypoint not found. Expected app/open-sse/mcp-server/server.js or open-sse/mcp-server/server.ts."
+      "MCP server entrypoint not found. Expected dist/open-sse/mcp-server/server.js or open-sse/mcp-server/server.ts."
     );
   }
 

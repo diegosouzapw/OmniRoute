@@ -10,6 +10,8 @@
 
 import { createHash } from "node:crypto";
 
+const MAX_INFLIGHT = 1000;
+
 export interface DedupConfig {
   enabled: boolean;
   maxTemperatureForDedup: number;
@@ -82,6 +84,11 @@ export async function deduplicate<T>(
   if (existing) {
     const result = (await existing) as T;
     return { result, wasDeduplicated: true, hash };
+  }
+
+  if (inflight.size >= MAX_INFLIGHT) {
+    const oldestKey = inflight.keys().next().value;
+    if (oldestKey !== undefined) inflight.delete(oldestKey);
   }
 
   let resolve!: (value: T) => void;

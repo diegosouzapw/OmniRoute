@@ -161,13 +161,21 @@ describe("toolSchemaSanitizer", () => {
         function: { name: "x", parameters: null },
       };
       const out = sanitizeOpenAITool(tool);
-      assert.deepEqual(out.function.parameters, { type: "object", properties: {} });
+      assert.deepEqual(out.function.parameters, {
+        type: "object",
+        properties: {},
+        additionalProperties: true,
+      });
     });
 
     it("creates empty object schema when parameters is missing", () => {
       const tool = { type: "function", function: { name: "x" } };
       const out = sanitizeOpenAITool(tool);
-      assert.deepEqual(out.function.parameters, { type: "object", properties: {} });
+      assert.deepEqual(out.function.parameters, {
+        type: "object",
+        properties: {},
+        additionalProperties: true,
+      });
     });
 
     it("replaces non-object/non-boolean property values with empty schema", () => {
@@ -395,7 +403,11 @@ describe("toolSchemaSanitizer", () => {
     it("normalizes missing parameters in Responses-format tool", () => {
       const tool = { type: "function", name: "x" };
       const out = sanitizeOpenAITool(tool);
-      assert.deepEqual(out.parameters, { type: "object", properties: {} });
+      assert.deepEqual(out.parameters, {
+        type: "object",
+        properties: {},
+        additionalProperties: true,
+      });
     });
 
     it("does not touch Responses-format tool without type=function", () => {
@@ -442,5 +454,64 @@ describe("toolSchemaSanitizer", () => {
       assert.deepEqual(out[0].function.parameters.properties.m.enum, ["x"]);
       assert.deepEqual(out[1].function.parameters.properties.n, { type: "string" });
     });
+  });
+});
+
+describe("root type coercion (#6359)", () => {
+  it("coerces root `type: null` to \"object\" (Codex codex_app__automation_update reproduction)", () => {
+    const tool = {
+      type: "function",
+      function: {
+        name: "codex_app__automation_update",
+        parameters: {
+          type: null,
+          properties: { schedule: { type: "string" } },
+          required: ["schedule"],
+        },
+      },
+    };
+    const out = sanitizeOpenAITool(tool);
+    assert.equal(out.function.parameters.type, "object");
+    assert.deepEqual(out.function.parameters.properties.schedule, { type: "string" });
+  });
+
+  it("adds `type: \"object\"` when the root schema has properties but no type", () => {
+    const tool = {
+      type: "function",
+      function: { name: "x", parameters: { properties: { a: { type: "number" } } } },
+    };
+    const out = sanitizeOpenAITool(tool);
+    assert.equal(out.function.parameters.type, "object");
+  });
+
+  it("coerces root type on Responses-shape tools too", () => {
+    const tool = {
+      type: "function",
+      name: "y",
+      parameters: { type: null, properties: {} },
+    };
+    const out = sanitizeOpenAITool(tool);
+    assert.equal(out.parameters.type, "object");
+  });
+
+  it("does not inject a root type when the root is a combinator (anyOf)", () => {
+    const tool = {
+      type: "function",
+      function: {
+        name: "z",
+        parameters: { anyOf: [{ type: "object", properties: {} }] },
+      },
+    };
+    const out = sanitizeOpenAITool(tool);
+    assert.equal(out.function.parameters.type, undefined);
+  });
+
+  it("leaves an explicit root `type: \"object\"` untouched", () => {
+    const tool = {
+      type: "function",
+      function: { name: "w", parameters: { type: "object", properties: { b: { type: "boolean" } } } },
+    };
+    const out = sanitizeOpenAITool(tool);
+    assert.equal(out.function.parameters.type, "object");
   });
 });

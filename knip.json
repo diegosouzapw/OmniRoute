@@ -1,0 +1,74 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/app/**/{layout,page,route,template}.{ts,tsx}",
+        "src/app/**/{error,loading,not-found,default,global-error}.{ts,tsx}",
+        "src/app/**/manifest.ts",
+        "src/middleware.ts",
+        "src/instrumentation.ts",
+        "bin/**/*.{mjs,ts}",
+        "scripts/**/*.{mjs,ts}",
+        "electron/main.js",
+        "electron/preload.js",
+        "electron/loginManager.js"
+      ],
+      "project": ["src/**/*.{ts,tsx}", "!src/**/*.test.{ts,tsx}"],
+      "ignore": [
+        "src/**/*.test.{ts,tsx}",
+        "tests/**",
+        "node_modules/**",
+        ".build/**",
+        "dist/**",
+        "coverage/**",
+        "**/.next/**"
+      ],
+      "ignoreDependencies": [
+        "typescript",
+        "tsx",
+        "@types/*",
+        "eslint*",
+        "prettier",
+        "husky",
+        "lint-staged",
+        "cross-env",
+        "concurrently",
+        "wait-on",
+        "c8",
+        "source-map-support"
+      ],
+      "includeEntryExports": false
+    },
+    "open-sse": {
+      "entry": [
+        "index.ts",
+        "handlers/**/*.ts",
+        "executors/**/*.ts",
+        "translator/**/*.ts",
+        "transformer/**/*.ts",
+        "services/**/*.ts",
+        "utils/**/*.ts",
+        "config/**/*.ts",
+        "mcp-server/**/*.ts"
+      ],
+      "project": ["**/*.ts", "!**/*.test.ts"],
+      "ignore": ["**/*.test.ts", "node_modules/**", "dist/**"]
+    }
+  },
+  "include": ["exports", "nsExports", "types", "nsTypes", "files"],
+  "exclude": ["dependencies", "devDependencies", "unlisted", "unresolved", "binaries"],
+  "ignoreExportsUsedInFile": true,
+  "ignore": [
+    "tests/**",
+    "**/*.test.{ts,tsx}",
+    "**/*.spec.{ts,tsx}",
+    "node_modules/**",
+    ".build/**",
+    "dist/**",
+    "coverage/**",
+    "**/.next/**",
+    "electron/dist-electron/**",
+    "scripts/**"
+  ]
+}

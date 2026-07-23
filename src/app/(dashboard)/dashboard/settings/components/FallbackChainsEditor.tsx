@@ -114,7 +114,7 @@ export default function FallbackChainsEditor() {
 
   if (loading) {
     return (
-      <Card className="p-6 mt-6">
+      <Card>
         <div className="flex items-center gap-2 text-text-muted animate-pulse">
           <span className="material-symbols-outlined text-[20px]">timeline</span>
           {t("loadingFallbackChains")}
@@ -126,8 +126,8 @@ export default function FallbackChainsEditor() {
   const chainEntries = Object.entries(chains);
 
   return (
-    <Card className="mt-6">
-      <div className="flex items-center gap-3 mb-4 p-6 pb-0">
+    <Card>
+      <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-500">
           <span className="material-symbols-outlined text-[20px]">timeline</span>
         </div>
@@ -142,7 +142,7 @@ export default function FallbackChainsEditor() {
 
       {/* Create Form */}
       {showCreate && (
-        <div className="mx-6 p-4 rounded-lg border border-border/30 bg-surface/20 mb-4">
+        <div className="p-4 rounded-lg border border-border/30 bg-surface/20 mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
             <Input
               label={t("modelName")}
@@ -164,7 +164,7 @@ export default function FallbackChainsEditor() {
       )}
 
       {/* Chains List */}
-      <div className="px-6 pb-6">
+      <div>
         {chainEntries.length === 0 ? (
           <EmptyState
             icon="timeline"

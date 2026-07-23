@@ -22,5 +22,15 @@ describe("Streak Tracker", () => {
       const second = await updateStreak("test-user-2");
       assert.equal(first, second);
     });
+
+    it("stores date metadata when starting a streak", async () => {
+      await updateStreak("test-user-3");
+
+      const streak = await getStreak("test-user-3");
+      assert.equal(streak.currentStreak, 1);
+      assert.equal(streak.longestStreak, 1);
+      assert.match(streak.lastActiveDate, /^\d{4}-\d{2}-\d{2}$/);
+      assert.equal(streak.streakStartDate, streak.lastActiveDate);
+    });
   });
 });

@@ -1,0 +1,1 @@
+- **fix(providers):** classify upstream `404` responses as `MODEL_NOT_FOUND` (model lockout) instead of a retryable provider error, stopping the retry storm when a single model is missing (#6829 — thanks @AndrianBalanescu).

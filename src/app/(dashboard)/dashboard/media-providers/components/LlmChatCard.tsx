@@ -12,8 +12,48 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { useApiKey } from "../../providers/hooks/useApiKey";
 import { useProviderModels } from "../../providers/hooks/useProviderModels";
+import { getProviderAlias } from "@/shared/constants/providers";
 
 const ENDPOINT = "/api/v1/chat/completions";
+
+/** Header used to test a specific API key's policy from the dashboard playground
+ *  without exposing the key secret to the browser — the gateway resolves the key
+ *  by id server-side (see enforceApiKeyPolicy). */
+const PLAYGROUND_KEY_ID_HEADER = "x-omniroute-playground-key-id";
+
+/**
+ * Map the playground's masked key selection (sk-xxxx****yyyy, as returned by
+ * `/api/keys`) back to its key id. The id — never the secret — is sent to the
+ * gateway so it can apply that key's policy (allowed_models, etc.) server-side.
+ * Returns null for "(default)", which falls through to the dashboard session.
+ */
+function resolvePlaygroundKeyId(
+  selectedMaskedKey: string,
+  keys: { id: string; key: string }[]
+): string | null {
+  if (!selectedMaskedKey) return null;
+  return keys.find((k) => k.key === selectedMaskedKey)?.id ?? null;
+}
+
+/**
+ * Qualify a provider-scoped playground model with its routing prefix so
+ * OmniRoute can resolve it unambiguously. The previous heuristic only prefixed
+ * models without a `/`, which skipped vendor-namespaced ids like
+ * `moonshotai/kimi-k2.6` or `nvidia/zyphra/zamba2-7b-instruct` — those already
+ * contain a slash, so they were sent bare and rejected with
+ * "Ambiguous model ... Use provider/model prefix" when the same id exists under
+ * several providers (#3050). The routing prefix is normally the provider alias,
+ * which can intentionally differ from the provider id (for example `oc` routes
+ * OpenCode Free while `opencode` is reserved by the Zen executor).
+ */
+export function qualifyPlaygroundModel(
+  model: string | null | undefined,
+  routingPrefix: string | null | undefined
+): string {
+  const m = (model ?? "").trim();
+  if (!m || !routingPrefix) return m;
+  return m === routingPrefix || m.startsWith(`${routingPrefix}/`) ? m : `${routingPrefix}/${m}`;
+}
 
 interface Message {
   role: "user" | "assistant";
@@ -93,7 +133,7 @@ export function LlmChatCard({
   onControlsChange,
 }: Props) {
   const t = useTranslations("miniPlayground");
-  const { apiKey, keys } = useApiKey();
+  const { keys } = useApiKey();
   const { models } = useProviderModels(providerId);
 
   const [internalSelectedKey, setInternalSelectedKey] = useState<string>("");
@@ -125,13 +165,12 @@ export function LlmChatCard({
 
   const firstModel = models[0]?.id ?? "";
   const effectiveModel = model || firstModel || initialModel || "";
-  // Auto-prefix model with providerId when no provider/model prefix present, to avoid
-  // OmniRoute "Ambiguous model" rejection when same alias is registered under multiple providers.
-  const qualifiedModel = effectiveModel.includes("/")
-    ? effectiveModel
-    : providerId
-      ? `${providerId}/${effectiveModel}`
-      : effectiveModel;
+  const routingPrefix = getProviderAlias(providerId);
+  // Auto-prefix model with the provider's routing alias to avoid OmniRoute "Ambiguous model"
+  // rejection when the same id is registered under multiple providers. This
+  // also covers vendor-namespaced ids (e.g. `moonshotai/kimi-k2.6`) that already
+  // contain a slash but still need the provider prefix (#3050).
+  const qualifiedModel = qualifyPlaygroundModel(effectiveModel, routingPrefix);
 
   // Autofocus textarea in embedded mode
   useEffect(() => {
@@ -168,15 +207,23 @@ export function LlmChatCard({
     const t0 = performance.now();
 
     try {
-      const authKey = selectedKey || apiKey;
+      // The playground authenticates via the dashboard session cookie — we never
+      // put an API key secret on the wire. `/api/keys` only exposes MASKED values
+      // (sk-xxxx****yyyy), which are invalid as bearer tokens and would 401 under
+      // REQUIRE_API_KEY. When a specific key is selected we send only its id so the
+      // gateway can apply that key's policy (allowed_models, etc.) server-side.
+      // "(default)" sends no key id → full session access (any model).
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "x-connection-id": providerId,
+      };
+      const playgroundKeyId = resolvePlaygroundKeyId(selectedKey, keys);
+      if (playgroundKeyId) headers[PLAYGROUND_KEY_ID_HEADER] = playgroundKeyId;
       const res = await fetch(ENDPOINT, {
         method: "POST",
         signal: controller.signal,
-        headers: {
-          Authorization: `Bearer ${authKey}`,
-          "Content-Type": "application/json",
-          "x-connection-id": providerId,
-        },
+        credentials: "same-origin",
+        headers,
         body: JSON.stringify({
           model: qualifiedModel,
           messages: [
@@ -201,7 +248,11 @@ export function LlmChatCard({
         setMessages((prev) => {
           const next = [...prev];
           const last = next[next.length - 1];
-          next[next.length - 1] = { ...last, role: "assistant", content: `[Error: ${errMsg}]` };
+          next[next.length - 1] = {
+            ...last,
+            role: "assistant",
+            content: `[${t("errorLabel")}: ${errMsg}]`,
+          };
           return next;
         });
         return;
@@ -268,11 +319,15 @@ export function LlmChatCard({
         // Cancelled by user — leave partial message
         return;
       }
-      const msg = err instanceof Error ? err.message : "Request failed";
+      const msg = err instanceof Error ? err.message : t("requestFailed");
       setMessages((prev) => {
         const next = [...prev];
         const last = next[next.length - 1];
-        next[next.length - 1] = { ...last, role: "assistant", content: `[Error: ${msg}]` };
+        next[next.length - 1] = {
+          ...last,
+          role: "assistant",
+          content: `[${t("errorLabel")}: ${msg}]`,
+        };
         return next;
       });
     } finally {
@@ -281,7 +336,7 @@ export function LlmChatCard({
       // Refocus textarea so user can keep typing
       requestAnimationFrame(() => textareaRef.current?.focus());
     }
-  }, [input, streaming, selectedKey, apiKey, providerId, qualifiedModel, messages]);
+  }, [input, streaming, selectedKey, keys, providerId, qualifiedModel, messages, t]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -356,7 +411,7 @@ export function LlmChatCard({
                 onChange={(e) => setSelectedKey(e.target.value)}
                 className="rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                <option value="">(default)</option>
+                <option value="">{t("defaultKey")}</option>
                 {keys.map((k) => (
                   <option key={k.id} value={k.key}>
                     {k.name ?? k.id}
@@ -372,7 +427,7 @@ export function LlmChatCard({
               onClick={handleClear}
               className="text-xs text-text-muted hover:text-text-primary transition-colors"
             >
-              Clear
+              {t("clear")}
             </button>
           )}
         </div>
@@ -395,17 +450,17 @@ export function LlmChatCard({
             <div className="size-10 rounded-full bg-accent/10 flex items-center justify-center">
               <span className="material-symbols-outlined text-accent text-[22px]">forum</span>
             </div>
-            <p className="text-sm text-text-muted">Send a message to start the conversation</p>
-            <p className="text-[11px] text-text-muted/70">
-              Shift+Enter for newline · Enter to send
-            </p>
+            <p className="text-sm text-text-muted">{t("emptyConversation")}</p>
+            <p className="text-[11px] text-text-muted/70">{t("sendHint")}</p>
           </div>
         ) : (
           <div className="mx-auto flex max-w-3xl flex-col divide-y divide-border/60">
             {messages.map((msg, i) => {
               const isUser = msg.role === "user";
               const isError =
-                !isUser && typeof msg.content === "string" && msg.content.startsWith("[Error");
+                !isUser &&
+                typeof msg.content === "string" &&
+                msg.content.startsWith(`[${t("errorLabel")}`);
               return (
                 <div
                   key={i}
@@ -436,7 +491,7 @@ export function LlmChatCard({
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <div className="flex items-baseline gap-2 min-w-0">
                       <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium shrink-0">
-                        {isUser ? "You" : isError ? "Error" : "Assistant"}
+                        {isUser ? t("you") : isError ? t("errorLabel") : t("assistant")}
                       </span>
                       {!isUser && !isError && msg.model && (
                         <span
@@ -481,7 +536,7 @@ export function LlmChatCard({
           <button
             type="button"
             onClick={handleStop}
-            title="Stop"
+            title={t("stop")}
             className="size-8 flex items-center justify-center rounded-md border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shrink-0"
           >
             <span className="material-symbols-outlined text-[18px]">stop</span>

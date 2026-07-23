@@ -1,0 +1,1 @@
+- **fix(routing):** fusion combos no longer silently drop `combo-ref` panel members — a referenced combo is now dispatched as one black-box panel voice instead of being dropped (#6764)

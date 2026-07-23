@@ -42,6 +42,7 @@ test("insertDelivery stores a row and getDeliveries returns it", () => {
   assert.equal(rows[0].http_status, 200);
   assert.equal(rows[0].latency_ms, 142);
   assert.equal(rows[0].status, "delivered");
+  assert.equal("payload_snapshot" in rows[0], false);
 });
 
 test("rotation keeps only last 100 deliveries per webhook", () => {

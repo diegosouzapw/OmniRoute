@@ -4,6 +4,7 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
+import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
 import {
   validateProxyUrl,
   upsertUpstreamProxyConfig,
@@ -19,11 +20,25 @@ import {
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isPaidModelTarget } from "@/shared/utils/freeModels";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance";
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 import { isCliTokenAuthValid } from "@/lib/middleware/cliTokenAuth";
 import { extractApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
+
+/**
+ * Force this route to run dynamically per-request and never be cached/prerendered.
+ * Combined with the `Cache-Control: no-store` response header below, this keeps
+ * persisted settings (e.g. dashboard preferences, debugMode, hidden sidebar
+ * items) visible immediately after refresh or restart instead of falling back
+ * to stale Next.js fetch cache. Ported from upstream decolua/9router#951.
+ */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+/** Response headers applied to every successful GET/PATCH on /api/settings. */
+const SETTINGS_RESPONSE_HEADERS = { "Cache-Control": "no-store" } as const;
 
 /**
  * Settings keys whose change broadens attack surface. Spec §Security:
@@ -46,6 +61,8 @@ const SECURITY_IMPACTING_KEYS = [
   "localOnlyManageScopeBypassPrefixes",
   "requireLogin",
   "newPassword",
+  "oidcEnabled",
+  "oidcClientSecret",
 ] as const;
 
 /**
@@ -161,19 +178,22 @@ export async function GET(request: Request) {
       // best effort — don't fail GET /api/settings if this lookup fails
     }
 
-    return NextResponse.json({
-      ...safeSettings,
-      hasPassword: hasManagementPasswordConfigured(settings),
-      runtimePorts,
-      apiPort: runtimePorts.apiPort,
-      dashboardPort: runtimePorts.dashboardPort,
-      cloudConfigured: Boolean(cloudUrl),
-      cloudUrl,
-      machineId,
-      ...(cliproxyapiModelMapping !== null
-        ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
-        : {}),
-    });
+    return NextResponse.json(
+      {
+        ...safeSettings,
+        hasPassword: hasManagementPasswordConfigured(settings),
+        runtimePorts,
+        apiPort: runtimePorts.apiPort,
+        dashboardPort: runtimePorts.dashboardPort,
+        cloudConfigured: Boolean(cloudUrl),
+        cloudUrl,
+        machineId,
+        ...(cliproxyapiModelMapping !== null
+          ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
+          : {}),
+      },
+      { headers: SETTINGS_RESPONSE_HEADERS }
+    );
   } catch (error) {
     console.log("Error getting settings:", error);
     return NextResponse.json({ error: "Failed to load settings" }, { status: 500 });
@@ -220,13 +240,39 @@ export async function PATCH(request: Request) {
     }
     const body: typeof validation.data & { password?: string } = { ...validation.data };
 
-    // Security-impacting gate (T-011, spec AC-4 / AC-5). Computed from the
+    // Sanitize model lockout settings: clamp values to valid bounds.
+    if (body.modelLockout) {
+      body.modelLockout = resolveModelLockoutSettings({
+        modelLockout: body.modelLockout as Record<string, unknown>,
+      }) as typeof body.modelLockout;
+    }
+
+    if (body.oidcEnabled === true) {
+      const current = await getSettings();
+      const subjects = Array.isArray(body.oidcAllowedSubjects)
+        ? (body.oidcAllowedSubjects as unknown[])
+        : ((current.oidcAllowedSubjects as unknown[] | undefined) ?? []);
+      const hasAtLeastOne = subjects.some((s) => typeof s === "string" && s.trim().length > 0);
+      if (!hasAtLeastOne) {
+        emitSettingsFailureAudit(request, actor, "OIDC_ALLOWED_SUBJECTS_REQUIRED", attemptedKeys);
+        return NextResponse.json(
+          {
+            error: {
+              code: "OIDC_ALLOWED_SUBJECTS_REQUIRED",
+              message:
+                "oidcAllowedSubjects must contain at least one subject or email when oidcEnabled is true",
+            },
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // VALIDATED body so we never trip on stray unknown keys. If any security
     // key is present, require currentPassword + verify against the stored
     // bcrypt hash. Dedupes with the previous inline newPassword reauth — the
     // password is verified at most once per PATCH.
     const touchedSecurityKeys = SECURITY_IMPACTING_KEYS.filter((k) => k in validation.data);
-    let storedPasswordHash = "";
     if (touchedSecurityKeys.length > 0) {
       const settings = await getSettings();
       // Lazy-hash any plaintext INITIAL_PASSWORD migration BEFORE we read the
@@ -235,7 +281,7 @@ export async function PATCH(request: Request) {
         settings,
         source: "settings.security_impacting_update",
       });
-      storedPasswordHash = getStoredManagementPassword(passwordState.settings);
+      const storedPasswordHash = getStoredManagementPassword(passwordState.settings);
       // Cold-boot exception: same condition the existing newPassword path
       // honoured before T-011 — when no password is configured yet AND login
       // is currently disabled, allow the first write to set policy (incl.
@@ -266,6 +312,30 @@ export async function PATCH(request: Request) {
               },
             },
             { status: 401 }
+          );
+        }
+      }
+    }
+
+    // #6540: reject a paid-only webSearchRouteModel target when hidePaidModels
+    // is on. Business-rule check (needs an async DB read), so it runs after
+    // Zod shape validation rather than as a Zod .refine(). Fails open on
+    // "unknown" (aliases/combo names) — only a positively-identified paid
+    // catalog entry is blocked.
+    if (typeof body.webSearchRouteModel === "string" && body.webSearchRouteModel.trim() !== "") {
+      const currentSettings = await getSettings();
+      if ((currentSettings as Record<string, unknown>)?.hidePaidModels === true) {
+        if (isPaidModelTarget(body.webSearchRouteModel) === "paid") {
+          emitSettingsFailureAudit(request, actor, "PAID_MODEL_TARGET_BLOCKED", attemptedKeys);
+          return NextResponse.json(
+            {
+              error: {
+                code: "PAID_MODEL_TARGET_BLOCKED",
+                message:
+                  "This field cannot target a paid-only model while 'Hide paid models' is enabled.",
+              },
+            },
+            { status: 400 }
           );
         }
       }
@@ -367,7 +437,7 @@ export async function PATCH(request: Request) {
     }
 
     const { password, ...safeSettings } = settings;
-    return NextResponse.json(safeSettings);
+    return NextResponse.json(safeSettings, { headers: SETTINGS_RESPONSE_HEADERS });
   } catch (error) {
     console.log("Error updating settings:", error);
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 });

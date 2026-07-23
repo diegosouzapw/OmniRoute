@@ -24,9 +24,29 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
       )
+      .then(() => caches.open(CACHE_NAME))
+      .then((cache) =>
+        cache.keys().then((entries) => {
+          const currentBuildId = extractBuildId(self.location.href);
+          const deletions = entries
+            .map((req) => {
+              const entryBuildId = extractBuildId(req.url);
+              return entryBuildId && currentBuildId && entryBuildId !== currentBuildId
+                ? cache.delete(req)
+                : null;
+            })
+            .filter(Boolean);
+          return Promise.all(deletions);
+        })
+      )
       .then(() => self.clients.claim())
   );
 });
+
+function extractBuildId(url) {
+  const match = String(url).match(/\/_next\/static\/([^/]+)\//);
+  return match ? match[1] : null;
+}
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") {
@@ -52,9 +72,14 @@ self.addEventListener("fetch", (event) => {
     (async () => {
       if (isNavigateRequest) {
         try {
-          return await fetch(event.request);
+          const networkResponse = await fetch(event.request);
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
         } catch {
-          return (await caches.match("/offline")) || Response.error();
+          return (await navigationFallback(event.request)) || Response.error();
         }
       }
 
@@ -89,6 +114,10 @@ self.addEventListener("fetch", (event) => {
     })()
   );
 });
+
+async function navigationFallback(request) {
+  return (await caches.match(request)) || (await caches.match("/")) || (await caches.match("/offline"));
+}
 
 // ── Push Notifications ───────────────────────────────────────────────────────
 

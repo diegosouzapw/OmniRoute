@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Card, Button, EmptyState } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 import CacheEntriesTab from "./components/CacheEntriesTab";
 import ReasoningCacheTab from "./components/ReasoningCacheTab";
 
@@ -293,7 +294,7 @@ function PromptTrendPanel({
         />
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-2xl border border-border/25 bg-surface/35">
+      <div className="mt-5 overflow-hidden rounded-2xl border border-border/25 bg-surface">
         <div className="grid grid-cols-[84px_minmax(0,1fr)_92px_120px] gap-3 border-b border-border/20 px-4 py-3 text-[11px] font-medium uppercase tracking-[0.12em] text-text-muted">
           <span>{hourLabel}</span>
           <span>{activityLabel}</span>
@@ -351,6 +352,7 @@ export default function CachePage() {
   const tSettings = useTranslations("settings");
   const tRoot = useTranslations();
   const notify = useNotificationStore();
+  const nodeMap = useProviderNodeMap();
 
   const [stats, setStats] = useState<CacheStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -570,7 +572,7 @@ export default function CachePage() {
                   </div>
 
                   {providerEntries.length > 0 ? (
-                    <div className="mt-3 overflow-x-auto rounded-2xl border border-border/20 bg-surface/35">
+                    <div className="mt-3 overflow-x-auto rounded-2xl border border-border/20 bg-surface">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-border/20 text-left text-[11px] uppercase tracking-[0.12em] text-text-muted">
@@ -600,7 +602,9 @@ export default function CachePage() {
                                 className="border-b border-border/15 last:border-b-0"
                               >
                                 <td className="px-4 py-3">
-                                  <div className="font-medium text-text-main">{provider}</div>
+                                  <div className="font-medium text-text-main">
+                                    {resolveProviderName(provider, nodeMap)}
+                                  </div>
                                   <div className="mt-1 text-xs text-text-muted">
                                     {totalRequests.toLocaleString()} {t("requests").toLowerCase()}
                                   </div>

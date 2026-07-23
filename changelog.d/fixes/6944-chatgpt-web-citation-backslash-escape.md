@@ -1,0 +1,1 @@
+- **fix(sse):** escape backslash before brackets in ChatGPT-web citation link text, preventing a citation label containing `\` from corrupting the generated Markdown link ([#6944](https://github.com/diegosouzapw/OmniRoute/pull/6944)) — thanks @brick30llc-ctrl

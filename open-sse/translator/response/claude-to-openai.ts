@@ -76,6 +76,18 @@ export function claudeToOpenAIResponse(chunk, state) {
     case "content_block_delta": {
       const delta = chunk.delta;
       if (delta?.type === "text_delta" && delta.text) {
+        // Flush the deferred </think> close marker before the first text delta so
+        // clients like Claude Code / Cursor (that scan content for </think>) see it
+        // immediately before the assistant reply begins — but NOT in tool-use streams
+        // where no text_delta ever arrives (#5123).
+        if (state.pendingThinkClose) {
+          // Suppressed for clients that render the marker verbatim (#5245);
+          // still clear the flag so it never re-fires later in the stream.
+          if (!state.suppressThinkClose) {
+            results.push(createChunk(state, { content: "</think>" }));
+          }
+          state.pendingThinkClose = false;
+        }
         results.push(createChunk(state, { content: delta.text }));
       } else if (delta?.type === "thinking_delta" && delta.thinking) {
         // Map Claude thinking_delta → OpenAI reasoning_content
@@ -102,8 +114,15 @@ export function claudeToOpenAIResponse(chunk, state) {
 
     case "content_block_stop": {
       if (state.inThinkingBlock && chunk.index === state.currentBlockIndex) {
-        // Thinking block closed — no additional content needed;
-        // reasoning_content chunks have already been streamed
+        // Defer the </think> close marker instead of emitting immediately.
+        // If the next block is tool_use there will be no text_delta, so the
+        // marker would appear as a spurious assistant text chunk before
+        // tool_calls, corrupting OpenAI-compatible clients (#5123).
+        // The marker is flushed in the text_delta branch (for pure-text
+        // thinking responses — preserving the #4633 / decolua/9router#454
+        // behavior) or in the message_delta finish path when no tool_calls
+        // were collected.
+        state.pendingThinkClose = true;
         state.inThinkingBlock = false;
       }
       state.textBlockStarted = false;
@@ -115,6 +134,21 @@ export function claudeToOpenAIResponse(chunk, state) {
       // Extract usage from message_delta event (Claude native format)
       // Normalize to OpenAI format (prompt_tokens/completion_tokens) for consistent logging
       if (chunk.usage && typeof chunk.usage === "object") {
+        const previousUsage = state.usage && typeof state.usage === "object" ? state.usage : {};
+        const previousInputTokens =
+          typeof previousUsage.input_tokens === "number"
+            ? previousUsage.input_tokens
+            : typeof previousUsage.prompt_tokens === "number"
+              ? previousUsage.prompt_tokens
+              : 0;
+        const previousCacheReadTokens =
+          typeof previousUsage.cache_read_input_tokens === "number"
+            ? previousUsage.cache_read_input_tokens
+            : 0;
+        const previousCacheCreationTokens =
+          typeof previousUsage.cache_creation_input_tokens === "number"
+            ? previousUsage.cache_creation_input_tokens
+            : 0;
         const inputTokens =
           typeof chunk.usage.input_tokens === "number" ? chunk.usage.input_tokens : 0;
         const outputTokens =
@@ -136,7 +170,10 @@ export function claudeToOpenAIResponse(chunk, state) {
         // minimum, so a 2-token "hi" can be reported as ~2008 prompt_tokens and
         // inflate downstream billing ~250x. cache_creation is still exposed
         // separately via prompt_tokens_details.cache_creation_tokens below.
-        const billableInputTokens = inputTokens + cacheReadTokens;
+        const billableInputTokens =
+          inputTokens > 0 || cacheReadTokens > 0 || cacheCreationTokens > 0
+            ? inputTokens + cacheReadTokens
+            : previousInputTokens;
         state.usage = {
           prompt_tokens: billableInputTokens,
           completion_tokens: outputTokens,
@@ -145,15 +182,29 @@ export function claudeToOpenAIResponse(chunk, state) {
         };
 
         // Store cache tokens if present (needed for prompt_tokens_details in final chunk)
-        if (cacheReadTokens > 0) {
-          state.usage.cache_read_input_tokens = cacheReadTokens;
+        const effectiveCacheReadTokens = cacheReadTokens || previousCacheReadTokens;
+        const effectiveCacheCreationTokens = cacheCreationTokens || previousCacheCreationTokens;
+        if (effectiveCacheReadTokens > 0) {
+          state.usage.cache_read_input_tokens = effectiveCacheReadTokens;
         }
-        if (cacheCreationTokens > 0) {
-          state.usage.cache_creation_input_tokens = cacheCreationTokens;
+        if (effectiveCacheCreationTokens > 0) {
+          state.usage.cache_creation_input_tokens = effectiveCacheCreationTokens;
         }
       }
 
       if (chunk.delta?.stop_reason) {
+        // Flush any deferred </think> close marker now that we know the stream
+        // is finishing. Only emit when there are no tool_calls — if tool_calls
+        // were collected the marker must stay suppressed (#5123). Text-based
+        // responses that had no text_delta (edge case: thinking-only with
+        // immediate stop) still receive the marker here.
+        if (state.pendingThinkClose && state.toolCalls.size === 0) {
+          // Suppressed for clients that render the marker verbatim (#5245).
+          if (!state.suppressThinkClose) {
+            results.push(createChunk(state, { content: "</think>" }));
+          }
+          state.pendingThinkClose = false;
+        }
         state.finishReason = convertStopReason(chunk.delta.stop_reason);
         const finalChunk: {
           id: string;

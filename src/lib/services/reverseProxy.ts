@@ -21,6 +21,7 @@
 import { getSupervisor } from "@/lib/services/registry";
 import { getOrCreateApiKey } from "@/lib/services/apiKey";
 import { rewriteHtml } from "@/lib/services/htmlRewriter";
+import { toUpstreamPath } from "@/lib/services/embedPath";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
@@ -90,7 +91,7 @@ export interface ReverseProxyConfig {
  * security-conflicting headers stripped.
  *
  * @param request      The incoming Next.js route Request.
- * @param pathSegments The `[...path]` catch-all segments, e.g. `["ui", "index.html"]`.
+ * @param pathSegments The `[[...path]]` catch-all segments, e.g. `["ui", "index.html"]` or `[]`.
  * @param config       Proxy configuration (service name + public prefix).
  */
 export async function proxyRequest(
@@ -114,7 +115,7 @@ export async function proxyRequest(
   }
 
   const incomingUrl = new URL(request.url);
-  const upstreamPath = pathSegments.length > 0 ? "/" + pathSegments.join("/") : "/";
+  const upstreamPath = toUpstreamPath(pathSegments);
   const upstreamUrl = `http://127.0.0.1:${port}${upstreamPath}${incomingUrl.search}`;
 
   // Build forwarded headers: strip hop-by-hop AND sensitive client headers.

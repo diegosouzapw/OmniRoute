@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { SETTINGS_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 import { updateSettingsSchema as settingsRouteSchema } from "@/shared/validation/settingsSchemas";
+import * as sharedSchemaModule from "@/shared/validation/schemas";
 import { updateSettingsSchema as sharedSettingsSchema } from "@/shared/validation/schemas";
 
 for (const strategy of SETTINGS_FALLBACK_STRATEGY_VALUES) {
@@ -21,6 +22,10 @@ test("settings schemas reject combo-only strategies as account fallback strategi
     assert.equal(settingsRouteSchema.safeParse({ fallbackStrategy: strategy }).success, false);
     assert.equal(sharedSettingsSchema.safeParse({ fallbackStrategy: strategy }).success, false);
   }
+});
+
+test("shared settings schema module omits the unused fallback strategy sub-schema export", () => {
+  assert.equal("settingsFallbackStrategySchema" in sharedSchemaModule, false);
 });
 
 test("settings schemas accept cooldown-aware retry knobs", () => {
@@ -58,6 +63,18 @@ test("settings schemas accept wsAuth toggle", () => {
   assert.equal(sharedParsed.wsAuth, false);
 });
 
+test("settings schemas accept Claude Code unprefixed model routing toggle", () => {
+  const routeParsed = settingsRouteSchema.parse({
+    preferClaudeCodeForUnprefixedClaudeModels: true,
+  });
+  const sharedParsed = sharedSettingsSchema.parse({
+    preferClaudeCodeForUnprefixedClaudeModels: false,
+  });
+
+  assert.equal(routeParsed.preferClaudeCodeForUnprefixedClaudeModels, true);
+  assert.equal(sharedParsed.preferClaudeCodeForUnprefixedClaudeModels, false);
+});
+
 test("settings schemas accept combo configuration modes", () => {
   const routeParsed = settingsRouteSchema.parse({ comboConfigMode: "expert" });
   const sharedParsed = sharedSettingsSchema.parse({ comboConfigMode: "guided" });
@@ -74,7 +91,7 @@ test("settings schemas accept global Codex fast tier setting", () => {
     codexServiceTier: {
       enabled: true,
       tier: "flex",
-      supportedModels: ["gpt-5.5", "gpt-5.4"],
+      supportedModels: ["gpt-5.6-sol", "gpt-5.6-terra"],
     },
   };
   const routeParsed = settingsRouteSchema.parse(payload);

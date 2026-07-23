@@ -34,7 +34,9 @@ const standalonePublicDir = join(cwd, testDistDir(), "standalone", "public");
 let appDirMoved = false;
 
 function testDistDir() {
-  return process.env.NEXT_DIST_DIR || ".next";
+  // Layer 1 moved the Next distDir default to .build/next; the Playwright
+  // `start` runner must resolve the standalone server under the same dir.
+  return process.env.NEXT_DIST_DIR || ".build/next";
 }
 
 function resolvePlaywrightDataDir({ cwd, env, pid = process.pid }) {
@@ -185,7 +187,8 @@ const testServerEnv = {
 };
 
 export function shouldUseWebpackForPlaywrightDev({ mode, env }) {
-  return mode === "dev" && env.OMNIROUTE_USE_TURBOPACK !== "1";
+  // Webpack only on the explicit escape hatch (=0) — turbopack is the default.
+  return mode === "dev" && env.OMNIROUTE_USE_TURBOPACK === "0";
 }
 
 function runChild(command, args, env) {

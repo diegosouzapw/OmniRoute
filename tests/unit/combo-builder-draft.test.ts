@@ -3,6 +3,12 @@ import assert from "node:assert/strict";
 
 const builderDraft = await import("../../src/lib/combos/builderDraft.ts");
 
+test("combo builder draft public surface excludes removed target accessor", () => {
+  assert.equal(Object.hasOwn(builderDraft, "getComboDraftTarget"), false);
+  assert.equal(typeof builderDraft.buildPrecisionComboModelStep, "function");
+  assert.equal(typeof builderDraft.buildManualComboModelStep, "function");
+});
+
 test("parseQualifiedModel keeps provider prefix and the full tail model id", () => {
   assert.deepEqual(builderDraft.parseQualifiedModel("openrouter/openai/gpt-5.4"), {
     providerId: "openrouter",

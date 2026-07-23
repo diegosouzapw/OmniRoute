@@ -9,17 +9,14 @@
 
 import { generatePKCE, generateState } from "./utils/pkce";
 import { PROVIDERS } from "./providers/index";
+import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 
-const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
+const GOOGLE_BROWSER_PROVIDERS = new Set(["antigravity", "agy"]);
 
 type OAuthRedirectEnv = Record<string, string | undefined>;
 
 function hasValue(value: string | undefined): boolean {
   return typeof value === "string" && value.trim().length > 0;
-}
-
-function firstValue(...values: Array<string | undefined>): string | undefined {
-  return values.find(hasValue);
 }
 
 function normalizeBaseUrl(value: unknown): string {
@@ -34,19 +31,13 @@ function hasCustomGoogleOAuthCredentials(
 ): boolean {
   if (providerName === "antigravity" || providerName === "agy") {
     // `agy` reuses the antigravity OAuth client + env overrides.
+    const clientId = env?.ANTIGRAVITY_OAUTH_CLIENT_ID;
+    const clientSecret = env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET;
     return (
-      hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_ID) &&
-      hasValue(env?.ANTIGRAVITY_OAUTH_CLIENT_SECRET)
+      hasValue(clientId) &&
+      hasValue(clientSecret) &&
+      clientId !== resolvePublicCred("antigravity_id")
     );
-  }
-
-  if (providerName === "gemini-cli") {
-    const clientId = firstValue(env?.GEMINI_CLI_OAUTH_CLIENT_ID, env?.GEMINI_OAUTH_CLIENT_ID);
-    const clientSecret = firstValue(
-      env?.GEMINI_CLI_OAUTH_CLIENT_SECRET,
-      env?.GEMINI_OAUTH_CLIENT_SECRET
-    );
-    return hasValue(clientId) && hasValue(clientSecret);
   }
 
   return false;
@@ -109,13 +100,6 @@ export function getProvider(name) {
 }
 
 /**
- * Get all provider names
- */
-export function getProviderNames() {
-  return Object.keys(PROVIDERS);
-}
-
-/**
  * Generate auth data for a provider.
  *
  * Returns `{ supported: false, error }` (no `authUrl`) for providers whose
@@ -126,13 +110,23 @@ export function getProviderNames() {
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
-  const { codeVerifier, codeChallenge, state } = generatePKCE();
+  const pkce = generatePKCE(provider.pkceVerifierBytes || 32);
+  let codeVerifier = pkce.codeVerifier;
+  const { codeChallenge, state } = pkce;
 
   if (provider.flowType === "import_token") {
-    const error =
-      providerName === "windsurf" || providerName === "devin-cli"
-        ? "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor."
-        : `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    let error: string;
+    if (providerName === "windsurf" || providerName === "devin-cli") {
+      error =
+        "Browser login disabled — paste token from https://windsurf.com/show-auth-token instead. Phase 2 will restore Firebase OAuth via app.devin.ai successor.";
+    } else if (providerName === "zed") {
+      error =
+        "Zed does not use a browser OAuth flow. Use the Zed provider page to import credentials " +
+        "directly from the OS keychain (POST /api/providers/zed/import), or paste a token manually " +
+        "via POST /api/providers/zed/manual-import for Docker environments.";
+    } else {
+      error = `Browser login is disabled for ${providerName}. Use the import-token flow instead.`;
+    }
     return {
       authUrl: undefined,
       state: undefined,
@@ -142,18 +136,41 @@ export function generateAuthData(providerName, redirectUri) {
       flowType: provider.flowType,
       fixedPort: provider.fixedPort,
       callbackPath: provider.callbackPath || "/callback",
+      callbackHost: provider.callbackHost || "localhost",
       supported: false,
       error,
     };
   }
 
   let authUrl;
-  if (provider.flowType === "device_code") {
-    authUrl = null;
-  } else if (provider.flowType === "authorization_code_pkce") {
+  // Capability check (not a bare flowType equality) so a provider can carry
+  // flowType "device_code" as its primary/default flow AND still expose a
+  // browser PKCE login as an additional method (#7013 grok-cli rework):
+  // grokCli keeps flowType "device_code" but sets supportsBrowserPkce so this
+  // branch still builds its PKCE authUrl for the "Browser Login" method.
+  if (provider.flowType === "authorization_code_pkce" || provider.supportsBrowserPkce) {
     authUrl = provider.buildAuthUrl(provider.config, redirectUri, state, codeChallenge);
+  } else if (provider.flowType === "device_code") {
+    authUrl = null;
   } else {
-    authUrl = provider.buildAuthUrl(provider.config, redirectUri, state);
+    const built = provider.buildAuthUrl(provider.config, redirectUri, state);
+    // Some non-PKCE "authorization_code" providers (e.g. zed-hosted) need to
+    // override the auto-generated PKCE codeVerifier/redirectUri with their own
+    // provider-specific verifier (e.g. an RSA private-key verifier) instead of
+    // an unused PKCE code_verifier — they return an object instead of a bare
+    // authUrl string. Existing providers all return a plain string, so this is
+    // backward compatible.
+    if (built && typeof built === "object" && typeof built.authUrl === "string") {
+      authUrl = built.authUrl;
+      if (typeof built.codeVerifier === "string" && built.codeVerifier) {
+        codeVerifier = built.codeVerifier;
+      }
+      if (typeof built.redirectUri === "string" && built.redirectUri) {
+        redirectUri = built.redirectUri;
+      }
+    } else {
+      authUrl = built;
+    }
   }
 
   return {
@@ -165,6 +182,7 @@ export function generateAuthData(providerName, redirectUri) {
     flowType: provider.flowType,
     fixedPort: provider.fixedPort,
     callbackPath: provider.callbackPath || "/callback",
+    callbackHost: provider.callbackHost || "localhost",
   };
 }
 
@@ -181,6 +199,23 @@ export async function exchangeTokens(providerName, code, redirectUri, codeVerifi
     codeVerifier,
     state
   );
+
+  let extra = null;
+  if (provider.postExchange) {
+    extra = await provider.postExchange(tokens);
+  }
+
+  return provider.mapTokens(tokens, extra);
+}
+
+/**
+ * Finalize tokens obtained out-of-band (e.g. the browser-driven Codex device
+ * flow, where the browser performs the auth.openai.com exchange because the
+ * server's datacenter IP is blocked). Runs the provider's postExchange +
+ * mapTokens — the same tail as exchangeTokens — without an HTTP token exchange.
+ */
+export async function finalizeTokens(providerName, tokens) {
+  const provider = getProvider(providerName);
 
   let extra = null;
   if (provider.postExchange) {
@@ -220,7 +255,7 @@ export async function pollForToken(providerName, deviceCode, codeVerifier, extra
     if (result.data.access_token) {
       let extra = null;
       if (provider.postExchange) {
-        extra = await provider.postExchange(result.data);
+        extra = await provider.postExchange(result.data, extraData || undefined);
       }
       return { success: true, tokens: provider.mapTokens(result.data, extra) };
     } else {

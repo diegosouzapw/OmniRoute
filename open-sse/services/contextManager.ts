@@ -2,7 +2,7 @@
  * Context Manager — Phase 4
  *
  * Pre-flight context compression to prevent "prompt too long" errors.
- * 3 layers: trim tool messages, compress thinking, aggressive purification.
+ * 3 layers: trim tool messages, compress structured thinking, aggressive purification.
  */
 
 import { REGISTRY } from "../config/providerRegistry.ts";
@@ -61,27 +61,40 @@ export function estimateTokens(text: string | object | null | undefined): number
  * Priority: Env override > models.dev DB > Registry defaultContextLength > DEFAULT_LIMITS
  */
 export function getTokenLimit(provider: string, model: string | null = null): number {
+  return resolveTokenLimit(provider, model).limit;
+}
+
+/**
+ * Same chain as getTokenLimit, but also reports whether the limit came from
+ * a provider/model-specific source (env override, synced DB, registry,
+ * name heuristic, curated per-provider default) or only from the generic
+ * catch-all default.
+ */
+function resolveTokenLimit(
+  provider: string,
+  model: string | null = null
+): { limit: number; specific: boolean } {
   // 1. Check environment variable override first
   const envOverride = getEnvOverride(provider);
-  if (envOverride) return envOverride;
+  if (envOverride) return { limit: envOverride, specific: true };
 
   // 2. Check models.dev synced DB for per-model context limit
   if (model) {
     const dbLimit = getModelContextLimit(provider, model);
-    if (dbLimit && dbLimit > 0) return dbLimit;
+    if (dbLimit && dbLimit > 0) return { limit: dbLimit, specific: true };
   }
 
   // 3. Check registry for provider default
   const registryEntry = REGISTRY[provider];
   if (registryEntry?.defaultContextLength) {
-    return registryEntry.defaultContextLength;
+    return { limit: registryEntry.defaultContextLength, specific: true };
   }
 
   // 4. Check if model name hints at a known limit
   if (model) {
     const lower = model.toLowerCase();
-    if (lower.includes("claude")) return DEFAULT_LIMITS.claude;
-    if (lower.includes("gemini")) return DEFAULT_LIMITS.gemini;
+    if (lower.includes("claude")) return { limit: DEFAULT_LIMITS.claude, specific: true };
+    if (lower.includes("gemini")) return { limit: DEFAULT_LIMITS.gemini, specific: true };
     if (
       lower.includes("gpt") ||
       lower.includes("o1") ||
@@ -89,11 +102,44 @@ export function getTokenLimit(provider: string, model: string | null = null): nu
       lower.includes("o4") ||
       lower.includes("codex")
     )
-      return DEFAULT_LIMITS.codex;
+      return { limit: DEFAULT_LIMITS.codex, specific: true };
   }
 
   // 5. Fallback to DEFAULT_LIMITS or default
-  return DEFAULT_LIMITS[provider] || DEFAULT_LIMITS.default;
+  if (DEFAULT_LIMITS[provider]) return { limit: DEFAULT_LIMITS[provider], specific: true };
+  return { limit: DEFAULT_LIMITS.default, specific: false };
+}
+
+/**
+ * Resolve the context limit to use for proactive compression of a COMBO
+ * request.
+ *
+ * chatCore always executes with the CONCRETE target's provider/model
+ * (handleSingleModel resolves the target before delegating), so the
+ * executing target's own limit is authoritative. Using min(...allTargets)
+ * here — the previous behavior — compressed at the smallest sibling's
+ * window even when running on the largest target, destructively purging
+ * history long before the real window filled ("agent keeps forgetting").
+ *
+ * min(...comboTargetLimits) is kept only as a defensive fallback for the
+ * case where the current provider/model resolves no specific limit at all.
+ */
+export function resolveComboContextLimit(options: {
+  provider: string;
+  model: string | null;
+  comboTargetLimits: number[];
+}): { limit: number; source: "target" | "combo-min" | "fallback" } {
+  const own = resolveTokenLimit(options.provider, options.model ?? null);
+  if (own.specific) {
+    return { limit: own.limit, source: "target" };
+  }
+  const knownTargets = (options.comboTargetLimits || []).filter(
+    (value) => Number.isFinite(value) && value > 0
+  );
+  if (knownTargets.length > 0) {
+    return { limit: Math.min(...knownTargets), source: "combo-min" };
+  }
+  return { limit: own.limit, source: "fallback" };
 }
 
 /**
@@ -101,7 +147,7 @@ export function getTokenLimit(provider: string, model: string | null = null): nu
  * Operates in 3 layers of increasing aggressiveness:
  *
  * Layer 1: Trim tool_result messages (truncate long outputs)
- * Layer 2: Compress thinking blocks (remove from history, keep last)
+ * Layer 2: Compress structured thinking blocks (remove from history, keep last)
  * Layer 3: Aggressive purification (drop old messages until fitting)
  *
  * @param {object} body - Request body with messages[]
@@ -148,7 +194,7 @@ export function compressContext(
     };
   }
 
-  // Layer 2: Compress thinking blocks (remove from non-last assistant messages)
+  // Layer 2: Compress structured thinking blocks (remove from non-last assistant messages)
   messages = compressThinking(messages);
   currentTokens = estimateTokens(JSON.stringify(messages));
   stats.layers.push({ name: "compress_thinking", tokens: currentTokens });
@@ -203,7 +249,7 @@ function trimToolMessages(messages: Record<string, unknown>[], maxChars: number)
   });
 }
 
-// ─── Layer 2: Compress Thinking Blocks ──────────────────────────────────────
+// ─── Layer 2: Compress Structured Thinking Blocks ───────────────────────────
 
 function compressThinking(messages: Record<string, unknown>[]) {
   // Find last assistant message index
@@ -226,28 +272,6 @@ function compressThinking(messages: Record<string, unknown>[]) {
         return { ...msg, content: "[thinking compressed]" };
       }
       return { ...msg, content: filtered };
-    }
-
-    // Remove thinking XML tags from string content
-    if (typeof msg.content === "string") {
-      let cleaned = msg.content;
-      for (const [start, end] of [
-        ["<thinking>", "</thinking>"],
-        ["<antThinking>", "</antThinking>"],
-      ]) {
-        while (true) {
-          const s = cleaned.indexOf(start);
-          if (s === -1) break;
-          const e = cleaned.indexOf(end, s + start.length);
-          if (e === -1) {
-            cleaned = cleaned.slice(0, s);
-            break;
-          }
-          cleaned = cleaned.slice(0, s) + cleaned.slice(e + end.length);
-        }
-      }
-      cleaned = cleaned.trim();
-      return { ...msg, content: cleaned || "[thinking compressed]" };
     }
 
     return msg;
@@ -554,4 +578,40 @@ export function stripTrailingAssistantOrphanToolUse(
   const result = messages.slice(0, lastIdx);
   if (hasContent || hasToolCalls) result.push(newLast);
   return result;
+}
+
+/**
+ * Providers that strictly require the last message to be `user` or `tool`.
+ * A trailing `assistant` message with plain text content (no tool_use) is
+ * valid for Anthropic/OpenAI (signals "continue from here") but rejected by
+ * Mistral with: "Expected last role User or Tool … but got assistant" (#3396).
+ */
+const PROVIDERS_REQUIRING_USER_LAST_MESSAGE = new Set(["mistral"]);
+
+/**
+ * Strip a trailing `assistant` message that contains ONLY plain text (no
+ * `tool_use` / `tool_calls`) for providers that mandate user-last format.
+ *
+ * Call this AFTER `stripTrailingAssistantOrphanToolUse` on the upstream-send
+ * path so `tool_use` orphans are already removed before this check runs.
+ */
+export function stripTrailingAssistantForProvider(
+  messages: Record<string, unknown>[],
+  provider: string
+): Record<string, unknown>[] {
+  if (!PROVIDERS_REQUIRING_USER_LAST_MESSAGE.has(provider)) return messages;
+  if (!Array.isArray(messages) || messages.length === 0) return messages;
+
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== "assistant") return messages;
+
+  // Only strip when the message has NO tool_use / tool_calls (those are
+  // handled by stripTrailingAssistantOrphanToolUse upstream of this call).
+  const hasToolUse =
+    Array.isArray(last.content) &&
+    (last.content as Record<string, unknown>[]).some((b) => b.type === "tool_use");
+  const hasToolCalls = Array.isArray(last.tool_calls) && (last.tool_calls as unknown[]).length > 0;
+  if (hasToolUse || hasToolCalls) return messages;
+
+  return messages.slice(0, messages.length - 1);
 }

@@ -1,0 +1,7 @@
+-- 118_provider_param_filters.sql
+-- Documents the provider_param_filters namespace in the key_value table.
+-- No schema change — the key_value table already exists.
+-- Key = provider ID, value = JSON with shape:
+--   { block: string[], allow: string[], models?: { [modelId]: { block?: string[], allow?: string[] } }, autoLearn?: boolean }
+--
+-- See: src/lib/db/paramFilters.ts

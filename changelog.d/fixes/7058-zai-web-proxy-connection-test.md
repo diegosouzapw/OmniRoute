@@ -1,0 +1,1 @@
+- fix(providers): web-cookie connection-test/cookie-validation probe (zai-web and every other registry-entry web-cookie provider) now honors the configured HTTP/SOCKS proxy — the `/models` probe routed through `directHttpsRequest`'s hardcoded native-fetch bypass, silently skipping proxy resolution even though the executor's actual chat traffic already respected it (#7058)

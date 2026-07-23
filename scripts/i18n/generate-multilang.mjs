@@ -98,6 +98,15 @@ const LOCALE_SPECS = [
     docsName: "中文 (简体)",
   },
   {
+    code: "zh-TW",
+    googleTl: "zh-TW",
+    label: "ZH-TW",
+    flag: "🇹🇼",
+    languageName: "中文 (繁體)",
+    readmeName: "中文 (繁體)",
+    docsName: "中文 (繁體)",
+  },
+  {
     code: "de",
     googleTl: "de",
     label: "DE",
@@ -414,7 +423,7 @@ const LOCALE_SPECS = [
   },
 ];
 
-const EXISTING_README_CODES = new Set(["pt-BR", "es", "fr", "it", "ru", "zh-CN", "de"]);
+const EXISTING_README_CODES = new Set(["pt-BR", "es", "fr", "it", "ru", "zh-CN", "zh-TW", "de"]);
 const RTL_LOCALES = new Set(["ar", "fa", "he", "ur"]);
 
 const URL_MAX_TEXT_LENGTH = 1800;

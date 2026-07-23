@@ -1,0 +1,2 @@
+- fix(db): share one in-flight sql.js load across concurrent `preInitSqlJs()` callers to stop the boot-time thundering-herd re-decode of the whole database file (#6628)
+- fix(db): unwrap lone named-parameter objects before `sql.js` `stmt.bind()` so `@`/`:`/`$`-style named placeholders bind correctly instead of throwing "Wrong API use" (#6802)

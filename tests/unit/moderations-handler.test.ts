@@ -2,11 +2,50 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { handleModeration } = await import("../../open-sse/handlers/moderations.ts");
+const { MODERATION_PROVIDERS, getModerationProvider, parseModerationModel } = await import(
+  "../../open-sse/config/moderationRegistry.ts"
+);
 
 const originalFetch = globalThis.fetch;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+});
+
+test("MODERATION_PROVIDERS registers mistral with the Mistral moderations base URL", () => {
+  const provider = getModerationProvider("mistral");
+  assert.ok(provider);
+  assert.equal(provider.baseUrl, "https://api.mistral.ai/v1/moderations");
+  assert.ok(provider.models.some((m: { id: string }) => m.id === "mistral-moderation-latest"));
+  assert.ok(MODERATION_PROVIDERS.mistral);
+});
+
+test("parseModerationModel routes mistral moderation models to the mistral provider", () => {
+  assert.deepEqual(parseModerationModel("mistral/mistral-moderation-latest"), {
+    provider: "mistral",
+    model: "mistral-moderation-latest",
+  });
+  assert.deepEqual(parseModerationModel("mistral-moderation-latest"), {
+    provider: "mistral",
+    model: "mistral-moderation-latest",
+  });
+});
+
+test("handleModeration proxies mistral moderation requests to the mistral endpoint", async () => {
+  let captured: any;
+  globalThis.fetch = async (url: any, options: any = {}) => {
+    captured = { url: String(url), headers: options.headers };
+    return Response.json({ id: "modr-mistral", results: [{ flagged: false }] });
+  };
+
+  const response = await handleModeration({
+    body: { model: "mistral/mistral-moderation-latest", input: "check this" },
+    credentials: { apiKey: "sk-mistral" },
+  });
+
+  assert.equal(captured.url, "https://api.mistral.ai/v1/moderations");
+  assert.equal(captured.headers.Authorization, "Bearer sk-mistral");
+  assert.equal(response.status, 200);
 });
 
 test("handleModeration requires input", async () => {

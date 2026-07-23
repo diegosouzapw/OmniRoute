@@ -6,7 +6,16 @@ import {
   isCacheableForWrite,
 } from "../../src/lib/semanticCache.ts";
 
+const semanticCachePublicApi = await import("../../src/lib/semanticCache.ts");
+
 describe("Semantic Cache", () => {
+  it("public surface excludes unused maintenance timer helpers", () => {
+    assert.equal("startAutoCleanup" in semanticCachePublicApi, false);
+    assert.equal("stopAutoCleanup" in semanticCachePublicApi, false);
+    assert.equal("cleanExpiredEntries" in semanticCachePublicApi, false);
+    assert.equal("cleanOldMetrics" in semanticCachePublicApi, false);
+  });
+
   describe("generateSignature", () => {
     it("generates consistent signatures for same inputs", () => {
       const messages = [{ role: "user", content: "hello" }];
@@ -70,6 +79,33 @@ describe("Semantic Cache", () => {
       const sig1 = generateSignature("gpt-5", input1, 0, 1);
       const sig2 = generateSignature("gpt-5", input2, 0, 1);
       assert.equal(sig1, sig2);
+    });
+
+    // #3740: cross-user cache isolation — different API keys must not share cached responses
+    it("generates different signatures for different API key IDs (#3740)", () => {
+      const messages = [{ role: "user", content: "what is 2+2?" }];
+      const sigKeyA = generateSignature("gpt-4o", messages, 0, 1, "key-id-alice");
+      const sigKeyB = generateSignature("gpt-4o", messages, 0, 1, "key-id-bob");
+      assert.notEqual(
+        sigKeyA,
+        sigKeyB,
+        "different API keys must produce different cache signatures"
+      );
+    });
+
+    it("generates consistent signatures for same API key ID (#3740)", () => {
+      const messages = [{ role: "user", content: "what is 2+2?" }];
+      const sig1 = generateSignature("gpt-4o", messages, 0, 1, "key-id-alice");
+      const sig2 = generateSignature("gpt-4o", messages, 0, 1, "key-id-alice");
+      assert.equal(sig1, sig2);
+    });
+
+    it("matches keyless signature when apiKeyId is undefined (#3740)", () => {
+      const messages = [{ role: "user", content: "hello" }];
+      // Unauthenticated requests (apiKeyId=undefined) must not collide with keyed requests
+      const sigKeyed = generateSignature("gpt-4o", messages, 0, 1, "some-key-id");
+      const sigKeyless = generateSignature("gpt-4o", messages, 0, 1, undefined);
+      assert.notEqual(sigKeyed, sigKeyless);
     });
   });
 

@@ -1,16 +1,34 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { platform } from "node:os";
+import { platform, totalmem, hostname as osHostname } from "node:os";
 import { t } from "../i18n.mjs";
 import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
 import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
 import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
+import {
+  resolveMaxOldSpaceMb,
+  calibrateHeapFallbackMb,
+  buildServerNodeOptions,
+  buildNodeHeapArgs,
+} from "../../../scripts/build/runtime-env.mjs";
+import { resolveTlsOptions } from "../../../scripts/dev/tls-options.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const _pkg = JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "package.json"), "utf8"));
+
+// URL scheme for the "OmniRoute is running" banner — flipped to https when
+// opt-in TLS (#5242) is active. Process-scoped: one `serve` run = one scheme.
+let urlScheme = "http";
 const ROOT = join(__dirname, "..", "..", "..");
-const APP_DIR = join(ROOT, "app");
+// The standalone bundle ships in `dist/` (since the build-output-isolation
+// refactor). Fall back to the legacy `app/` location so an upgrade over a
+// partially-replaced install — or a package built before the rename — still
+// boots. Backward-compatible by design: every deployed runtime keeps its path.
+const APP_DIR = existsSync(join(ROOT, "dist", "server.js"))
+  ? join(ROOT, "dist")
+  : join(ROOT, "app");
 
 function parsePort(value, fallback) {
   const parsed = parseInt(String(value), 10);
@@ -29,12 +47,24 @@ export function registerServe(program) {
     .option("--max-restarts <n>", t("serve.max_restarts"), parseInt, 2)
     .option("--tray", t("serve.tray") || "Show system tray icon (desktop only)")
     .option("--no-tray", t("serve.no_tray") || "Disable system tray icon")
+    .option(
+      "--tls-cert <path>",
+      t("serve.tls_cert") ||
+        "Path to a TLS certificate (PEM) to serve HTTPS (also OMNIROUTE_TLS_CERT)"
+    )
+    .option(
+      "--tls-key <path>",
+      t("serve.tls_key") ||
+        "Path to the TLS private key (PEM) to serve HTTPS (also OMNIROUTE_TLS_KEY)"
+    )
     .action(async (opts) => {
       await runServe(opts);
     });
 }
 
 export async function runServe(opts = {}) {
+  const startedAt = performance.now();
+
   const { isNativeBinaryCompatible } =
     await import("../../../scripts/build/native-binary-compat.mjs");
   const { getNodeRuntimeSupport, getNodeRuntimeWarning } =
@@ -53,6 +83,7 @@ export async function runServe(opts = {}) {
   | |__| | | | | | | | | | | | \\ \\ (_) | |_| | ||  __/
    \\____/|_| |_| |_|_| |_|_|_|  \\_\\___/ \\__,_|\\__\\___|
 \x1b[0m`);
+  console.log(`\x1b[2m  v${_pkg.version}\x1b[0m\n`);
 
   const nodeSupport = getNodeRuntimeSupport();
   if (!nodeSupport.nodeCompatible) {
@@ -62,7 +93,8 @@ export async function runServe(opts = {}) {
 
      Supported secure runtimes: ${nodeSupport.supportedDisplay}
      Recommended: use Node.js ${nodeSupport.recommendedVersion} or newer on the 22.x LTS line.
-     Workaround:  npm rebuild better-sqlite3\x1b[0m
+     Workaround:  npm rebuild better-sqlite3
+     Or run:      omniroute runtime repair  (rebuilds into a user-writable runtime; works without a C++ toolchain)\x1b[0m
 `);
   }
 
@@ -102,11 +134,15 @@ export async function runServe(opts = {}) {
     "Release",
     "better_sqlite3.node"
   );
-  if (existsSync(sqliteBinary) && !isNativeBinaryCompatible(sqliteBinary)) {
+  if (!process.versions.bun && existsSync(sqliteBinary) && !isNativeBinaryCompatible(sqliteBinary)) {
     console.error(
       "\x1b[31m✖ better-sqlite3 native module is incompatible with this platform.\x1b[0m"
     );
     console.error(`  Run: cd ${APP_DIR} && npm rebuild better-sqlite3`);
+    console.error(
+      "  Or run: \x1b[36momniroute runtime repair\x1b[0m" +
+        "  (rebuilds into a user-writable runtime; works without a C++ toolchain)"
+    );
     if (platform() === "darwin") {
       console.error("  If build tools are missing: xcode-select --install");
     }
@@ -115,9 +151,18 @@ export async function runServe(opts = {}) {
 
   console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
 
-  const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
-  const memoryLimit =
-    Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 512;
+  // #5172/#5160/#5152: default the V8 heap to ~35% of physical RAM (clamped
+  // [512, 4096]) instead of a fixed 512MB, which OOM-crashed boxes with plenty
+  // of RAM under load. An explicit OMNIROUTE_MEMORY_MB still wins.
+  const memoryLimit = resolveMaxOldSpaceMb(
+    process.env.OMNIROUTE_MEMORY_MB,
+    calibrateHeapFallbackMb(totalmem())
+  );
+
+  // #5242: opt-in native HTTPS. CLI flags take precedence over env; the child
+  // server (server-ws.mjs) reads these and terminates TLS on the same listener.
+  const tlsCert = opts.tlsCert ?? process.env.OMNIROUTE_TLS_CERT;
+  const tlsKey = opts.tlsKey ?? process.env.OMNIROUTE_TLS_KEY;
 
   const env = {
     ...process.env,
@@ -125,10 +170,29 @@ export async function runServe(opts = {}) {
     PORT: String(dashboardPort),
     DASHBOARD_PORT: String(dashboardPort),
     API_PORT: String(apiPort),
-    HOSTNAME: "0.0.0.0",
+    // #6194: POSIX shells (bash/zsh) auto-set HOSTNAME to the machine name — the
+    // .env loader (first-wins) can never override it. Ignore HOSTNAME when it
+    // matches the OS-reported hostname (the auto-set signature). OMNIROUTE_SERVER_HOST
+    // takes precedence; legacy HOSTNAME values that don't match os.hostname() are
+    // still honoured for backward compatibility (e.g. Windows CMD/PowerShell users
+    // who set HOSTNAME in .env where it is NOT auto-set).
+    HOSTNAME:
+      process.env.OMNIROUTE_SERVER_HOST ||
+      (process.env.HOSTNAME !== osHostname() ? process.env.HOSTNAME : undefined) ||
+      "0.0.0.0",
     NODE_ENV: "production",
-    NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
+    // #5238: preserve a user-set NODE_OPTIONS (incl. their own
+    // `--max-old-space-size=…`) instead of clobbering it with the calibrated
+    // default — mirror the Electron/standalone launchers.
+    NODE_OPTIONS: buildServerNodeOptions(process.env, memoryLimit),
+    ...(tlsCert ? { OMNIROUTE_TLS_CERT: tlsCert } : {}),
+    ...(tlsKey ? { OMNIROUTE_TLS_KEY: tlsKey } : {}),
   };
+
+  // Validate the TLS pair up front so the operator sees a clear warning in the
+  // CLI (the child re-validates authoritatively). Drives the banner scheme;
+  // when null we fall through to identical plain-HTTP behavior as before.
+  urlScheme = resolveTlsOptions(env) ? "https" : "http";
 
   const isDaemon = opts.daemon === true;
   const useTray = opts.tray === true;
@@ -138,7 +202,15 @@ export async function runServe(opts = {}) {
   }
 
   if (opts.noRecovery) {
-    return runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen);
+    return runWithoutRecovery(
+      serverJs,
+      env,
+      memoryLimit,
+      dashboardPort,
+      apiPort,
+      noOpen,
+      startedAt
+    );
   }
 
   return runWithSupervisor(
@@ -150,12 +222,18 @@ export async function runServe(opts = {}) {
     noOpen,
     opts.log === true,
     opts.maxRestarts ?? 2,
+    startedAt,
     useTray
   );
 }
 
 function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
-  const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
+  // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
+  // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
+  const server = spawn(process.versions.bun ? process.execPath : "node", [
+    ...(process.versions.bun ? [] : buildNodeHeapArgs(process.env, memoryLimit)),
+    serverJs,
+  ], {
     cwd: APP_DIR,
     env,
     stdio: "ignore",
@@ -164,12 +242,17 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   writePidFile("server", server.pid);
   server.unref();
   console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
-  console.log(`  \x1b[1mDashboard:\x1b[0m  http://localhost:${dashboardPort}`);
-  console.log(`  \x1b[1mAPI Base:\x1b[0m   http://localhost:${apiPort}/v1`);
+  console.log(`  \x1b[1mDashboard:\x1b[0m  ${urlScheme}://localhost:${dashboardPort}`);
+  console.log(`  \x1b[1mAPI Base:\x1b[0m   ${urlScheme}://localhost:${apiPort}/v1`);
 }
 
-function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen) {
-  const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
+function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, noOpen, startedAt) {
+  // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
+  // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
+  const server = spawn(process.versions.bun ? process.execPath : "node", [
+    ...(process.versions.bun ? [] : buildNodeHeapArgs(process.env, memoryLimit)),
+    serverJs,
+  ], {
     cwd: APP_DIR,
     env,
     stdio: "pipe",
@@ -187,7 +270,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
       (text.includes("Ready") || text.includes("started") || text.includes("listening"))
     ) {
       started = true;
-      onReady(dashboardPort, apiPort, noOpen);
+      onReady(dashboardPort, apiPort, noOpen, startedAt);
     }
   });
 
@@ -221,7 +304,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   setTimeout(() => {
     if (!started) {
       started = true;
-      onReady(dashboardPort, apiPort, noOpen);
+      onReady(dashboardPort, apiPort, noOpen, startedAt);
     }
   }, 15000);
 }
@@ -235,6 +318,7 @@ async function runWithSupervisor(
   noOpen,
   showLog,
   maxRestarts,
+  startedAt,
   useTray = false
 ) {
   if (showLog) process.env.OMNIROUTE_SHOW_LOG = "1";
@@ -272,9 +356,33 @@ async function runWithSupervisor(
     waitForServer(dashboardPort, 60000).then(async (up) => {
       if (up) {
         if (useTray) await maybeStartTray(dashboardPort, apiPort, supervisor);
-        onReady(dashboardPort, apiPort, noOpen);
+        onReady(dashboardPort, apiPort, noOpen, startedAt);
+      } else {
+        reportReadinessTimeout(dashboardPort, supervisor);
       }
     });
+  }
+}
+
+// #6321: waitForServer resolving `false` used to fall through silently — the CLI
+// printed the banner + "⏳ Starting server..." and then produced ZERO further
+// output forever, even though the child process may well have crashed or be
+// stuck (issue reports show the server sometimes actually comes up later, or is
+// reachable directly while the CLI still looks hung). Surface a clear diagnostic
+// plus whatever stdout/stderr the child buffered instead of going silent.
+export function reportReadinessTimeout(dashboardPort, supervisor) {
+  console.error(
+    `\n\x1b[33m⚠ Server did not respond within 60s.\x1b[0m It may still be starting, or may` +
+      ` have failed silently.`
+  );
+  console.error(`  Try:  curl -I http://localhost:${dashboardPort}/api/monitoring/health`);
+  console.error(`  Or:   rerun with \x1b[36m--log\x1b[0m to see live server output.\n`);
+
+  const recentLog = supervisor?.getRecentLog?.() ?? [];
+  if (recentLog.length) {
+    console.error("--- Recent server output ---");
+    recentLog.forEach((l) => console.error(l));
+    console.error("--- End recent output ---\n");
   }
 }
 
@@ -293,8 +401,8 @@ async function maybeStartTray(port, apiPort, supervisor) {
     const { initTray, isTraySupported } = await import("../tray/index.mjs");
     if (!isTraySupported()) return;
     const { default: open } = await import("open").catch(() => ({ default: null }));
-    const dashboardUrl = `http://localhost:${port}`;
-    const tray = initTray({
+    const dashboardUrl = `${urlScheme}://localhost:${port}`;
+    const tray = await initTray({
       port,
       onQuit: () => {
         killTrayIfActive();
@@ -310,17 +418,23 @@ async function maybeStartTray(port, apiPort, supervisor) {
       const { killTray } = await import("../tray/index.mjs");
       _killTray = killTray;
     }
-  } catch {
-    // tray is optional — do not fail the server
+  } catch (err) {
+    // tray is optional — do not fail the server, but surface why it failed so
+    // "--tray shows nothing" is diagnosable instead of silent (#4605).
+    process.stderr.write(`[omniroute][tray] failed to start: ${err?.message ?? String(err)}\n`);
   }
 }
 
-async function onReady(dashboardPort, apiPort, noOpen) {
-  const dashboardUrl = `http://localhost:${dashboardPort}`;
-  const apiUrl = `http://localhost:${apiPort}`;
+async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
+  const dashboardUrl = `${urlScheme}://localhost:${dashboardPort}`;
+  const apiUrl = `${urlScheme}://localhost:${apiPort}`;
+  const elapsed =
+    typeof startedAt === "number" && Number.isFinite(startedAt)
+      ? ((performance.now() - startedAt) / 1000).toFixed(1)
+      : "0.0";
 
   console.log(`
-  \x1b[32m✔ OmniRoute is running!\x1b[0m
+  \x1b[32m✔ OmniRoute is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
 
   \x1b[1m  Dashboard:\x1b[0m  ${dashboardUrl}
   \x1b[1m  API Base:\x1b[0m   ${apiUrl}/v1

@@ -3,7 +3,11 @@
  */
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 import { getRuntimePorts } from "@/lib/runtime/ports";
-
+import {
+  getBestVisionModel,
+  getFallbackModels,
+  recordLatency,
+} from "./visionBridgeRouter";
 /**
  * Provider to environment variable mapping for API key resolution.
  */
@@ -204,8 +208,51 @@ export interface VisionModelConfig {
 /**
  * Call the vision model to get an image description.
  * Supports both OpenAI-compatible and Anthropic API formats.
+ * Uses auto-routing to select the fastest available model.
  */
 export async function callVisionModel(
+  imageDataUri: string,
+  config: VisionModelConfig,
+  apiKey?: string,
+  routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>
+): Promise<string> {
+  // Auto-select the best vision model if not explicitly configured
+  const modelToUse = getBestVisionModel({
+    fixedModel: config.model,
+    ...routerConfig,
+  });
+  let lastError: Error | null = null;
+
+  // Try primary model + fallbacks
+  const modelsToTry = [modelToUse, ...getFallbackModels(modelToUse, routerConfig)];
+  const maxAttempts = Math.min(modelsToTry.length, routerConfig?.maxFallbackAttempts ?? 3);
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const currentModel = modelsToTry[attempt];
+    const attemptStart = Date.now();
+    try {
+      const result = await callVisionModelSingle(
+        imageDataUri,
+        { ...config, model: currentModel },
+        apiKey
+      );
+      recordLatency(currentModel, Date.now() - attemptStart, true);
+      return result;
+    } catch (error) {
+      recordLatency(currentModel, Date.now() - attemptStart, false);
+      lastError = error instanceof Error ? error : new Error(String(error));
+      // Continue to next model on failure
+    }
+  }
+
+  // All models failed
+  throw lastError || new Error("All vision models failed");
+}
+
+/**
+ * Internal function to call a single vision model.
+ */
+async function callVisionModelSingle(
   imageDataUri: string,
   config: VisionModelConfig,
   apiKey?: string
@@ -401,7 +448,12 @@ export interface RequestBody {
  * Replace image content parts with text descriptions.
  * Concatenates descriptions with labels: "[Image 1]: ..."
  */
-export function replaceImageParts(body: RequestBody, descriptions: string[]): RequestBody {
+export function replaceImageParts(
+  body: RequestBody,
+  // #4012: a `null` entry means the describe call failed for that image — keep
+  // the original image part instead of dropping it / stubbing "(unavailable)".
+  descriptions: (string | null)[]
+): RequestBody {
   if (!descriptions || descriptions.length === 0) {
     return body;
   }
@@ -425,11 +477,15 @@ export function replaceImageParts(body: RequestBody, descriptions: string[]): Re
     for (const part of message.content) {
       if (part?.type === "image_url" || part?.type === "image") {
         if (descriptionIndex < descriptions.length) {
-          newContent.push({
-            type: "text",
-            text: descriptions[descriptionIndex],
-          });
+          const description = descriptions[descriptionIndex];
           descriptionIndex++;
+          if (description == null) {
+            // #4012: describe failed for this image — preserve the original
+            // image so a vision-capable upstream can still process it.
+            newContent.push(part as RequestContentPart);
+          } else {
+            newContent.push({ type: "text", text: description });
+          }
         }
       } else {
         newContent.push(part as RequestContentPart);

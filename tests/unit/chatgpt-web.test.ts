@@ -1,18 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { writeFile } from "node:fs/promises";
+import type { TlsFetchOptions } from "../../open-sse/services/chatgptTlsClient.ts";
 
 const { ChatGptWebExecutor, __derivePublicBaseUrlForTesting, __resetChatGptWebCachesForTesting } =
   await import("../../open-sse/executors/chatgpt-web.ts");
+const { describeChatGptWebHttpError } =
+  await import("../../open-sse/executors/chatgptWebErrors.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
-const { __setTlsFetchOverrideForTesting, looksLikeSse, TlsClientUnavailableError } =
-  await import("../../open-sse/services/chatgptTlsClient.ts");
+const {
+  __setTlsFetchOverrideForTesting,
+  __tlsFetchStreamingForTesting,
+  looksLikeSse,
+  TlsClientUnavailableError,
+} = await import("../../open-sse/services/chatgptTlsClient.ts");
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function mockChatGptStreamText(events) {
   const chunks = [];
   for (const evt of events) {
-    chunks.push(`data: ${JSON.stringify(evt)}\r\n\r\n`);
+    const { __event, ...payload } = evt;
+    if (__event) chunks.push(`event: ${__event}\r\n`);
+    chunks.push(`data: ${JSON.stringify(payload)}\r\n\r\n`);
   }
   chunks.push("data: [DONE]\r\n\r\n");
   return chunks.join("");
@@ -54,6 +64,49 @@ async function withEnv(overrides, fn) {
   }
 }
 
+type MockTlsConfig = {
+  status: number;
+  body?: unknown;
+  setCookie?: string;
+  error?: unknown;
+  events?: unknown[];
+};
+
+type MockFetchOptions = {
+  session?: MockTlsConfig;
+  sentinel?: MockTlsConfig;
+  conv?: MockTlsConfig;
+  dpl?: MockTlsConfig;
+  fileDownload?: MockTlsConfig;
+  attachmentDownload?: MockTlsConfig;
+  conversationDetail?: MockTlsConfig | MockTlsConfig[];
+  signedDownload?: MockTlsConfig;
+  userConfig?: MockTlsConfig;
+  onSession?: (opts: TlsFetchOptions) => void;
+  onSentinel?: (opts: TlsFetchOptions) => void;
+  onConv?: (opts: TlsFetchOptions) => void;
+  onFileDownload?: (opts: TlsFetchOptions, fileId: string) => void;
+  onAttachmentDownload?: (opts: TlsFetchOptions, fileId: string) => void;
+  onUserConfig?: (opts: TlsFetchOptions, url: string) => void;
+};
+
+type MockFetchCalls = {
+  session: number;
+  dpl: number;
+  sentinel: number;
+  conv: number;
+  fileDownload: number;
+  attachmentDownload: number;
+  conversationDetail: number;
+  signedDownload: number;
+  userConfig: number;
+  userConfigUrls: string[];
+  userConfigMethods: string[];
+  urls: string[];
+  headers: Array<Record<string, string> | undefined>;
+  bodies: Array<string | undefined>;
+};
+
 /** Dispatch the TLS-impersonating fetch by URL pathname.
  *  Default: session 200 with accessToken, sentinel 200 no PoW, conv 200 empty stream. */
 function installMockFetch({
@@ -63,6 +116,7 @@ function installMockFetch({
   dpl,
   fileDownload,
   attachmentDownload,
+  conversationDetail,
   signedDownload,
   userConfig,
   onSession,
@@ -71,14 +125,15 @@ function installMockFetch({
   onFileDownload,
   onAttachmentDownload,
   onUserConfig,
-}: any = {}) {
-  const calls = {
+}: MockFetchOptions = {}) {
+  const calls: MockFetchCalls = {
     session: 0,
     dpl: 0,
     sentinel: 0,
     conv: 0,
     fileDownload: 0,
     attachmentDownload: 0,
+    conversationDetail: 0,
     signedDownload: 0,
     userConfig: 0,
     userConfigUrls: [],
@@ -231,6 +286,45 @@ function installMockFetch({
         text: `data:image/png;base64,${tinyPng.toString("base64")}`,
         body: null,
       };
+    }
+
+    // /backend-api/conversation/<id> — detail poll used by GPT-5.5 Pro handoff.
+    {
+      const m1 = u.match(/\/backend-api\/conversation\/([^/?#]+)$/);
+      if (m1) {
+        calls.conversationDetail++;
+        const cfg = Array.isArray(conversationDetail)
+          ? (conversationDetail[
+              Math.min(calls.conversationDetail - 1, conversationDetail.length - 1)
+            ] ?? conversationDetail[conversationDetail.length - 1])
+          : (conversationDetail ?? {
+              status: 200,
+              body: {
+                mapping: {
+                  "msg-final": {
+                    message: {
+                      id: "msg-final",
+                      author: { role: "assistant" },
+                      content: { content_type: "text", parts: ["Final answer from poll."] },
+                      status: "finished_successfully",
+                      end_turn: true,
+                      create_time: 1,
+                      update_time: 1,
+                    },
+                  },
+                },
+              },
+            });
+        const text = typeof cfg.body === "string" ? cfg.body : JSON.stringify(cfg.body || {});
+        return {
+          status: cfg.status,
+          headers: makeHeaders({ "Content-Type": "application/json" }),
+          text: opts.byteResponse
+            ? `data:application/json;base64,${Buffer.from(text, "utf8").toString("base64")}`
+            : text,
+          body: null,
+        };
+      }
     }
 
     // Match only the exact conversation endpoint, not /conversations (plural — warmup).
@@ -741,6 +835,70 @@ test("Streaming: cumulative parts are diffed into non-overlapping deltas", async
   }
 });
 
+test("GPT-5.5 Pro streaming: preserves interim reasoning and appends final polled answer", async () => {
+  reset();
+  const m = installMockFetch({
+    conv: {
+      status: 200,
+      events: [
+        {
+          conversation_id: "conv-pro-stream",
+          message: {
+            id: "progress-1",
+            author: { role: "assistant" },
+            content: {
+              content_type: "text",
+              parts: ["<thinking>Interim reasoning text</thinking>"],
+            },
+            status: "in_progress",
+          },
+        },
+        { __event: "stream_handoff", conversation_id: "conv-pro-stream" },
+      ],
+    },
+    conversationDetail: {
+      status: 200,
+      body: {
+        mapping: {
+          final: {
+            message: {
+              id: "final-stream",
+              author: { role: "assistant" },
+              content: { content_type: "text", parts: ["👉 Final streamed Pro answer."] },
+              status: "finished_successfully",
+              end_turn: true,
+              create_time: 1,
+              update_time: 1,
+            },
+          },
+        },
+      },
+    },
+  });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.5-pro-extended",
+      body: { messages: [{ role: "user", content: "hard problem" }], stream: true },
+      stream: true,
+      credentials: { apiKey: "cookie-pro-stream" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+
+    const text = await result.response.text();
+    assert.match(text, /<thinking>Interim reasoning text<\/thinking>/);
+    assert.match(text, /👉 Final streamed Pro answer\./);
+    assert.ok(
+      text.indexOf("👉 Final streamed Pro answer.") > text.indexOf("Interim reasoning text"),
+      "final polled answer should be appended after interim reasoning"
+    );
+    assert.equal(m.calls.conversationDetail, 1);
+  } finally {
+    m.restore();
+  }
+});
+
 // ─── Errors ─────────────────────────────────────────────────────────────────
 
 test("Error: 401 on /api/auth/session returns 401 with re-paste hint", async () => {
@@ -1087,35 +1245,47 @@ test("Provider registry: chatgpt-web exposes the current ChatGPT Web model catal
   assert.equal(entry.authHeader, "cookie");
 
   const ids = (entry.models || []).map((m) => m.id);
-  // Mirrors /backend-api/models for ChatGPT Web. Retired GPT-5/GPT-5.1
-  // entries should stay out of this list.
+  // Retired GPT-5.4 and older entries stay out of the advertised catalog.
   assert.deepEqual(ids, [
+    "gpt-5.6-pro",
+    "gpt-5.6-thinking",
+    "gpt-5.5-pro-extended",
     "gpt-5.5-pro",
     "gpt-5.5-thinking",
     "gpt-5.5",
-    "gpt-5.4-pro",
-    "gpt-5.4-thinking",
-    "gpt-5.4-thinking-mini",
-    "gpt-5.3",
-    "gpt-5.3-mini",
-    "gpt-5.2-pro",
-    "gpt-5.2-thinking",
-    "gpt-5.2-instant",
     "o3",
-    "gpt-4-5",
   ]);
+  assert.equal(
+    ids.some((id) => id.startsWith("gpt-5.4")),
+    false
+  );
+
+  const { MODEL_MAP } = await import("../../open-sse/executors/chatgpt-web/models.ts");
+  assert.equal(
+    Object.keys(MODEL_MAP).some((id) => id.startsWith("gpt-5.4") || id.startsWith("gpt-5-4")),
+    false
+  );
 });
 
-test("Executor MODEL_MAP: dot-form OmniRoute IDs translate to dash-form ChatGPT slugs", async () => {
+test("Executor MODEL_MAP: OmniRoute IDs translate to ChatGPT backend slugs", async () => {
   reset();
   const m = installMockFetch();
   try {
     const cases: Array<[string, string]> = [
-      ["gpt-5.3", "gpt-5-3"],
+      // Public catalog ids.
+      ["gpt-5.6-pro", "gpt-5-6-pro"],
+      ["gpt-5.6-thinking", "gpt-5-6-thinking"],
       ["gpt-5.5-thinking", "gpt-5-5-thinking"],
-      ["gpt-5.4-thinking-mini", "gpt-5-4-t-mini"],
-      ["gpt-5.2-thinking", "gpt-5-2-thinking"],
+      ["gpt-5.5", "gpt-5-5"],
+      ["gpt-5.5-pro", "gpt-5-5-pro"],
+      ["gpt-5.5-pro-extended", "gpt-5-5-pro"],
       ["o3", "o3"],
+      // Backend dash-form slugs are still accepted for direct provider/model callers.
+      ["gpt-5-3", "gpt-5-3"],
+      ["gpt-5-5-thinking", "gpt-5-5-thinking"],
+      ["gpt-5-6-pro", "gpt-5-6-pro"],
+      ["gpt-5-5-pro", "gpt-5-5-pro"],
+      ["gpt-5-5-pro-extended", "gpt-5-5-pro"],
     ];
     for (const [omniId, expectedSlug] of cases) {
       m.calls.urls.length = 0;
@@ -1138,7 +1308,134 @@ test("Executor MODEL_MAP: dot-form OmniRoute IDs translate to dash-form ChatGPT 
   }
 });
 
+test("MODEL_MAP drift guard: every advertised catalog id reaches ChatGPT as a backend slug", async () => {
+  reset();
+  const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
+  const ids = (getRegistryEntry("chatgpt-web")?.models || []).map((m) => m.id);
+  const expectedSlugById: Record<string, string> = {
+    "gpt-5.6-pro": "gpt-5-6-pro",
+    "gpt-5.6-thinking": "gpt-5-6-thinking",
+    "gpt-5.5-pro-extended": "gpt-5-5-pro",
+    "gpt-5.5-pro": "gpt-5-5-pro",
+    "gpt-5.5-thinking": "gpt-5-5-thinking",
+    "gpt-5.5": "gpt-5-5",
+    o3: "o3",
+  };
+  const m = installMockFetch();
+  try {
+    for (const omniId of ids) {
+      m.calls.urls.length = 0;
+      m.calls.bodies.length = 0;
+      const executor = new ChatGptWebExecutor();
+      await executor.execute({
+        model: omniId,
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: "test" },
+        signal: AbortSignal.timeout(10_000),
+        log: null,
+      });
+      const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+      const body = JSON.parse(m.calls.bodies[convIdx]);
+      assert.ok(
+        !body.model.includes("."),
+        `${omniId} reached the backend as "${body.model}" (still dot-form)`
+      );
+      assert.equal(body.model, expectedSlugById[omniId], `${omniId} should map to backend slug`);
+    }
+  } finally {
+    m.restore();
+  }
+});
+
 // ─── thinking_effort PATCH user_last_used_model_config ─────────────────────
+
+test("GPT-5.5 Pro Extended sends base slug with extended effort and Temporary Chat", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.5-pro-extended",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "cookie-pro-extended" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(result.response.status, 200);
+    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+    const body = JSON.parse(m.calls.bodies[convIdx]);
+    assert.equal(body.model, "gpt-5-5-pro");
+    assert.equal(body.thinking_effort, "extended");
+    assert.equal(body.history_and_training_disabled, true);
+    assert.equal(
+      m.calls.userConfig,
+      0,
+      "Pro effort is sent with the turn, not PATCHed as a thinking-model preference"
+    );
+  } finally {
+    m.restore();
+  }
+});
+
+test("GPT-5.5 Pro standard sends standard effort", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.5-pro",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "cookie-pro-standard" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+    const body = JSON.parse(m.calls.bodies[convIdx]);
+    assert.equal(body.model, "gpt-5-5-pro");
+    assert.equal(body.thinking_effort, "standard");
+    assert.equal(body.history_and_training_disabled, true);
+  } finally {
+    m.restore();
+  }
+});
+
+test("GPT-5.5 Pro store:false keeps Temporary Chat enabled for background utility calls", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.5-pro-extended",
+      body: {
+        store: false,
+        messages: [
+          { role: "system", content: "You are a session namer." },
+          { role: "user", content: "Generate a short session name." },
+        ],
+      },
+      stream: false,
+      credentials: { apiKey: "cookie-pro-store-false" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(result.response.status, 200);
+    const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
+    const body = JSON.parse(m.calls.bodies[convIdx]);
+    assert.equal(body.model, "gpt-5-5-pro");
+    assert.equal(body.thinking_effort, "extended");
+    assert.equal(body.history_and_training_disabled, true);
+    assert.equal(
+      m.calls.conversationDetail,
+      0,
+      "no final-answer poll is needed when the stream did not hand off"
+    );
+  } finally {
+    m.restore();
+  }
+});
 
 test("thinking_effort: high → PATCH user_last_used_model_config with extended", async () => {
   reset();
@@ -1170,7 +1467,7 @@ test("thinking_effort: low/medium → PATCH with standard", async () => {
     try {
       const executor = new ChatGptWebExecutor();
       await executor.execute({
-        model: "gpt-5.4-thinking",
+        model: "gpt-5.6-thinking",
         body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: effort },
         stream: false,
         credentials: { apiKey: `cookie-${effort}` },
@@ -1179,7 +1476,7 @@ test("thinking_effort: low/medium → PATCH with standard", async () => {
       });
       assert.equal(m.calls.userConfig, 1, `effort=${effort} should issue exactly one PATCH`);
       assert.match(m.calls.userConfigUrls[0], /thinking_effort=standard/, `${effort} → standard`);
-      assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-4-thinking/);
+      assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-6-thinking/);
     } finally {
       m.restore();
     }
@@ -1205,12 +1502,8 @@ test("thinking_effort: instant model never triggers PATCH even with reasoning_ef
   }
 });
 
-test("thinking_effort: bare chatgpt.com slug (e.g. gpt-5-4-t-mini) passed as model still PATCHes", async () => {
-  // Regression: the abbreviated dash-form slug "gpt-5-4-t-mini" doesn't
-  // carry the literal "thinking" substring, and isn't a key in MODEL_MAP
-  // (only its dot-form alias is), so a substring-only check would silently
-  // skip the PATCH for callers that send the chatgpt.com slug directly.
-  for (const bareSlug of ["gpt-5-4-t-mini", "gpt-5-5-thinking", "o3"]) {
+test("thinking_effort: bare chatgpt.com thinking slugs still PATCH", async () => {
+  for (const bareSlug of ["gpt-5-6-thinking", "gpt-5-5-thinking", "o3"]) {
     reset();
     const m = installMockFetch();
     try {
@@ -1263,7 +1556,7 @@ test("thinking_effort: providerSpecificData.thinkingEffort=extended overrides bo
   try {
     const executor = new ChatGptWebExecutor();
     await executor.execute({
-      model: "gpt-5.4-thinking-mini",
+      model: "gpt-5.6-thinking",
       body: {
         messages: [{ role: "user", content: "hi" }],
         reasoning_effort: "low", // would normally map to standard
@@ -1277,7 +1570,7 @@ test("thinking_effort: providerSpecificData.thinkingEffort=extended overrides bo
       log: null,
     });
     assert.equal(m.calls.userConfig, 1);
-    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-4-t-mini/);
+    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-6-thinking/);
     assert.match(m.calls.userConfigUrls[0], /thinking_effort=extended/);
   } finally {
     m.restore();
@@ -1290,7 +1583,7 @@ test("thinking_effort: nested body.reasoning.effort=high → extended", async ()
   try {
     const executor = new ChatGptWebExecutor();
     await executor.execute({
-      model: "gpt-5.2-thinking",
+      model: "gpt-5.5-thinking",
       body: {
         messages: [{ role: "user", content: "hi" }],
         reasoning: { effort: "high" },
@@ -1301,7 +1594,7 @@ test("thinking_effort: nested body.reasoning.effort=high → extended", async ()
       log: null,
     });
     assert.equal(m.calls.userConfig, 1);
-    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-2-thinking/);
+    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-5-thinking/);
     assert.match(m.calls.userConfigUrls[0], /thinking_effort=extended/);
   } finally {
     m.restore();
@@ -1380,12 +1673,12 @@ test("thinking_effort: PATCH failure is non-fatal — conversation request still
   }
 });
 
-test("Image registry: cgpt-web/gpt-5.3-instant routes to ChatGPT Web image handler", async () => {
+test("Image registry: cgpt-web/gpt-5.5 routes to ChatGPT Web image handler", async () => {
   const { parseImageModel, getImageProvider } =
     await import("../../open-sse/config/imageRegistry.ts");
-  const parsed = parseImageModel("cgpt-web/gpt-5.3-instant");
+  const parsed = parseImageModel("cgpt-web/gpt-5.5");
   assert.equal(parsed.provider, "chatgpt-web");
-  assert.equal(parsed.model, "gpt-5.3-instant");
+  assert.equal(parsed.model, "gpt-5.5");
   const provider = getImageProvider(parsed.provider);
   assert.equal(provider.format, "chatgpt-web");
   assert.equal(provider.authHeader, "cookie");
@@ -1829,6 +2122,48 @@ test("looksLikeSse: rejects non-SSE bodies that previously passed as 200", () =>
   assert.equal(looksLikeSse(""), false, "empty body");
   assert.equal(looksLikeSse("   \n\n"), false, "whitespace only");
   assert.equal(looksLikeSse("error: rate limit"), false, "non-SSE field name");
+});
+
+test("tls streaming: late first byte is read from streamOutputPath instead of empty body", async () => {
+  const fakeClient = {
+    async request(_url, opts) {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      await writeFile(
+        String(opts.streamOutputPath),
+        mockChatGptStreamText([
+          {
+            conversation_id: "conv-late",
+            message: {
+              id: "msg-late",
+              author: { role: "assistant" },
+              content: { content_type: "text", parts: ["Late title answer"] },
+              status: "finished_successfully",
+            },
+          },
+        ]),
+        "utf8"
+      );
+      return {
+        status: 200,
+        headers: { "content-type": ["text/event-stream"] },
+        body: "",
+      };
+    },
+  };
+
+  const result = await __tlsFetchStreamingForTesting(
+    fakeClient,
+    "https://chatgpt.com/backend-api/f/conversation",
+    { method: "POST" },
+    "[DONE]",
+    null,
+    1_000,
+    5
+  );
+
+  assert.equal(result.status, 200);
+  assert.equal(result.body, null);
+  assert.match(result.text ?? "", /Late title answer/);
 });
 
 // ─── Image generation ──────────────────────────────────────────────────────
@@ -2686,7 +3021,11 @@ test("Image edit handler: bytes-hash match drives executor with cached conversat
       credentials: { apiKey: "test" },
       log: null,
     });
-    assert.equal(result.success, true, `expected success, got error: ${(result as any).error}`);
+    assert.equal(
+      result.success,
+      true,
+      `expected success, got error: ${(result as { error?: unknown }).error}`
+    );
     const convIdx = m.calls.urls.findIndex((u) => u.endsWith("/backend-api/f/conversation"));
     assert.ok(convIdx >= 0, "conversation request was sent");
     const sentBody = JSON.parse(m.calls.bodies[convIdx]);
@@ -2721,8 +3060,11 @@ test("Image edit handler: no cached match returns 400 (does not silently generat
       log: null,
     });
     assert.equal(result.success, false);
-    assert.equal((result as any).status, 400);
-    assert.match(String((result as any).error), /generated through this OmniRoute instance/);
+    assert.equal((result as { status?: unknown }).status, 400);
+    assert.match(
+      String((result as { error?: unknown }).error),
+      /generated through this OmniRoute instance/
+    );
     assert.equal(m.calls.session, 0, "no upstream calls were attempted");
     assert.equal(m.calls.conv, 0, "no chat-completion was attempted");
   } finally {
@@ -2745,8 +3087,8 @@ test("Image gen handler: n>4 is rejected before any upstream call", async () => 
       log: null,
     });
     assert.equal(result.success, false);
-    assert.equal((result as any).status, 400);
-    assert.match(String((result as any).error), /n=1\.\.4/);
+    assert.equal((result as { status?: unknown }).status, 400);
+    assert.match(String((result as { error?: unknown }).error), /n=1\.\.4/);
     assert.equal(m.calls.session, 0, "no session exchange was attempted");
     assert.equal(m.calls.conv, 0, "no conversation request was attempted");
   } finally {
@@ -2771,4 +3113,35 @@ test("Image cache: deleting an entry decrements the byte counter", async () => {
     0,
     "bytes credited back on TTL evict"
   );
+});
+
+// ─── describeChatGptWebHttpError ─────────────────────────────────────────────
+
+test("describeChatGptWebHttpError maps 413 to a payload-too-large message with guidance", () => {
+  const msg = describeChatGptWebHttpError(413);
+  // Must NOT be the cryptic generic — should explain it's a size limit and how to recover.
+  assert.notEqual(
+    msg,
+    "ChatGPT returned HTTP 413",
+    "413 should get a tailored message, not the generic fallback"
+  );
+  assert.match(msg, /413/, "message keeps the status code");
+  assert.match(msg, /too large|payload|size limit/i, "message explains it's a size/payload limit");
+  assert.match(
+    msg,
+    /context|compress/i,
+    "message points the user at reducing context / compression"
+  );
+});
+
+test("describeChatGptWebHttpError preserves the existing 401/403/404/429 mappings", () => {
+  assert.match(describeChatGptWebHttpError(401), /session may have expired/i);
+  assert.match(describeChatGptWebHttpError(403), /session may have expired/i);
+  assert.match(describeChatGptWebHttpError(404), /no longer available|fresh conversation/i);
+  assert.match(describeChatGptWebHttpError(429), /rate limited/i);
+});
+
+test("describeChatGptWebHttpError falls back to the generic message for unmapped statuses", () => {
+  assert.equal(describeChatGptWebHttpError(500), "ChatGPT returned HTTP 500");
+  assert.equal(describeChatGptWebHttpError(502), "ChatGPT returned HTTP 502");
 });

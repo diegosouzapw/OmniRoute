@@ -14,6 +14,7 @@ import {
   KiroOAuthWrapper,
   OAuthModal,
 } from "@/shared/components";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 
 import {
   buildProviderSpecificData,
@@ -22,6 +23,7 @@ import {
   getWizardOAuthProviderOptions,
   type WizardProviderOption,
 } from "./providerOnboardingCatalog";
+import { buildProviderDetailsHref } from "./providerOnboardingHref";
 import {
   createCompatibleProviderNode,
   createOnboardingConnection,
@@ -97,6 +99,21 @@ function providerText(
   return fallback;
 }
 
+function localizeProviderOptions(
+  options: WizardProviderOption[],
+  t: ProviderMessageTranslator
+): WizardProviderOption[] {
+  return options.map((option) => ({
+    ...option,
+    description: providerText(
+      t,
+      `onboardingProviderDescriptions.${option.id}`,
+      option.description,
+      { provider: option.name }
+    ),
+  }));
+}
+
 function StepPill({ active, done, label }: { active: boolean; done: boolean; label: string }) {
   return (
     <div
@@ -160,7 +177,13 @@ function ProviderOptionCard({
               option.id
             )}`}
           >
-            <span className="material-symbols-outlined text-[22px]">{option.icon}</span>
+            <ProviderIcon
+              providerId={option.id}
+              size={24}
+              type="color"
+              fallbackText={option.name.slice(0, 2).toUpperCase()}
+              fallbackColor="currentColor"
+            />
           </div>
           <div>
             <div className="font-semibold text-text-main">{option.name}</div>
@@ -260,14 +283,19 @@ function ResultSummary({
         )}
 
         <div className="flex flex-wrap gap-2">
-          {connection?.provider && (
-            <Link
-              href={`/dashboard/providers/${connection.provider}`}
-              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-            >
-              {providerText(t, "onboardingOpenProviderDetails", "Open provider details")}
-            </Link>
-          )}
+          {(() => {
+            const detailsHref = buildProviderDetailsHref(connection);
+            return (
+              detailsHref && (
+                <Link
+                  href={detailsHref}
+                  className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+                >
+                  {providerText(t, "onboardingOpenProviderDetails", "Open provider details")}
+                </Link>
+              )
+            );
+          })()}
           <Link
             href="/dashboard/providers"
             className="inline-flex items-center justify-center rounded-lg border border-border bg-bg-subtle px-4 py-2 text-sm font-medium text-text-main transition-colors hover:bg-bg-card"
@@ -293,8 +321,14 @@ export default function ProviderOnboardingWizard() {
     providerText(t, key, fallback, values);
   const defaultConnectionName = (provider: string) =>
     text("onboardingDefaultConnectionName", "{provider} Primary", { provider });
-  const apiKeyOptions = useMemo(() => getWizardApiKeyProviderOptions(), []);
-  const oauthOptions = useMemo(() => getWizardOAuthProviderOptions(), []);
+  const apiKeyOptions = useMemo(
+    () => localizeProviderOptions(getWizardApiKeyProviderOptions(), t),
+    [t]
+  );
+  const oauthOptions = useMemo(
+    () => localizeProviderOptions(getWizardOAuthProviderOptions(), t),
+    [t]
+  );
   const [kind, setKind] = useState<WizardKind>("apikey");
   const [step, setStep] = useState<WizardStep>("type");
   const [query, setQuery] = useState("");
@@ -320,21 +354,29 @@ export default function ProviderOnboardingWizard() {
       .then((data) => {
         if (!cancelled) {
           setCcCompatibleProviderEnabled(data.ccCompatibleProviderEnabled);
+          if (!data.ccCompatibleProviderEnabled) {
+            setCustomForm((current) =>
+              current.mode === "cc"
+                ? { ...current, mode: "openai", baseUrl: "https://api.openai.com/v1" }
+                : current
+            );
+          }
         }
       })
       .catch(() => {
-        if (!cancelled) setCcCompatibleProviderEnabled(false);
+        if (!cancelled) {
+          setCcCompatibleProviderEnabled(false);
+          setCustomForm((current) =>
+            current.mode === "cc"
+              ? { ...current, mode: "openai", baseUrl: "https://api.openai.com/v1" }
+              : current
+          );
+        }
       });
     return () => {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (!ccCompatibleProviderEnabled && customForm.mode === "cc") {
-      setCustomForm((prev) => ({ ...prev, mode: "openai", baseUrl: "https://api.openai.com/v1" }));
-    }
-  }, [ccCompatibleProviderEnabled, customForm.mode]);
 
   const resetProviderSelection = (nextKind: WizardKind) => {
     setKind(nextKind);
@@ -781,7 +823,7 @@ export default function ProviderOnboardingWizard() {
                 label={text("displayName", "Display name")}
                 value={customForm.name}
                 onChange={(event) => setCustomForm({ ...customForm, name: event.target.value })}
-                placeholder="My Gateway"
+                placeholder={text("customGatewayNamePlaceholder", "My Gateway")}
               />
               <Input
                 label={text("onboardingProviderPrefix", "Provider prefix")}

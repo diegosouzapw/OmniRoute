@@ -30,6 +30,8 @@ import BedrockMonoIcon from "@lobehub/icons/es/Bedrock/components/Mono";
 import BflMonoIcon from "@lobehub/icons/es/Bfl/components/Mono";
 import CerebrasColorIcon from "@lobehub/icons/es/Cerebras/components/Color";
 import CerebrasMonoIcon from "@lobehub/icons/es/Cerebras/components/Mono";
+import ClaudeColorIcon from "@lobehub/icons/es/Claude/components/Color";
+import ClaudeMonoIcon from "@lobehub/icons/es/Claude/components/Mono";
 import ClaudeCodeColorIcon from "@lobehub/icons/es/ClaudeCode/components/Color";
 import ClaudeCodeMonoIcon from "@lobehub/icons/es/ClaudeCode/components/Mono";
 import ClineMonoIcon from "@lobehub/icons/es/Cline/components/Mono";
@@ -41,6 +43,8 @@ import CohereColorIcon from "@lobehub/icons/es/Cohere/components/Color";
 import CohereMonoIcon from "@lobehub/icons/es/Cohere/components/Mono";
 import ComfyUIColorIcon from "@lobehub/icons/es/ComfyUI/components/Color";
 import ComfyUIMonoIcon from "@lobehub/icons/es/ComfyUI/components/Mono";
+import CopilotColorIcon from "@lobehub/icons/es/Copilot/components/Color";
+import CopilotMonoIcon from "@lobehub/icons/es/Copilot/components/Mono";
 import CursorMonoIcon from "@lobehub/icons/es/Cursor/components/Mono";
 import DbrxColorIcon from "@lobehub/icons/es/Dbrx/components/Color";
 import CozeMonoIcon from "@lobehub/icons/es/Coze/components/Mono";
@@ -49,6 +53,7 @@ import DeepInfraColorIcon from "@lobehub/icons/es/DeepInfra/components/Color";
 import DeepInfraMonoIcon from "@lobehub/icons/es/DeepInfra/components/Mono";
 import DeepSeekColorIcon from "@lobehub/icons/es/DeepSeek/components/Color";
 import DeepSeekMonoIcon from "@lobehub/icons/es/DeepSeek/components/Mono";
+import DevinColorIcon from "@lobehub/icons/es/Devin/components/Color";
 import DifyColorIcon from "@lobehub/icons/es/Dify/components/Color";
 import DifyMonoIcon from "@lobehub/icons/es/Dify/components/Mono";
 import DoubaoColorIcon from "@lobehub/icons/es/Doubao/components/Color";
@@ -65,8 +70,7 @@ import FireworksMonoIcon from "@lobehub/icons/es/Fireworks/components/Mono";
 import FriendliMonoIcon from "@lobehub/icons/es/Friendli/components/Mono";
 import GeminiColorIcon from "@lobehub/icons/es/Gemini/components/Color";
 import GeminiMonoIcon from "@lobehub/icons/es/Gemini/components/Mono";
-import GeminiCLIColorIcon from "@lobehub/icons/es/GeminiCLI/components/Color";
-import GeminiCLIMonoIcon from "@lobehub/icons/es/GeminiCLI/components/Mono";
+import GithubMonoIcon from "@lobehub/icons/es/Github/components/Mono";
 import GithubCopilotMonoIcon from "@lobehub/icons/es/GithubCopilot/components/Mono";
 import GoogleColorIcon from "@lobehub/icons/es/Google/components/Color";
 import GoogleMonoIcon from "@lobehub/icons/es/Google/components/Mono";
@@ -114,7 +118,6 @@ import OpenCodeMonoIcon from "@lobehub/icons/es/OpenCode/components/Mono";
 import OpenRouterMonoIcon from "@lobehub/icons/es/OpenRouter/components/Mono";
 import PerplexityColorIcon from "@lobehub/icons/es/Perplexity/components/Color";
 import PerplexityMonoIcon from "@lobehub/icons/es/Perplexity/components/Mono";
-import PhindMonoIcon from "@lobehub/icons/es/Phind/components/Mono";
 import PoeColorIcon from "@lobehub/icons/es/Poe/components/Color";
 import PoeMonoIcon from "@lobehub/icons/es/Poe/components/Mono";
 import PollinationsMonoIcon from "@lobehub/icons/es/Pollinations/components/Mono";
@@ -137,8 +140,9 @@ import SenseNovaColorIcon from "@lobehub/icons/es/SenseNova/components/Color";
 import SenseNovaMonoIcon from "@lobehub/icons/es/SenseNova/components/Mono";
 import StabilityColorIcon from "@lobehub/icons/es/Stability/components/Color";
 import StabilityMonoIcon from "@lobehub/icons/es/Stability/components/Mono";
-import StepfunColorIcon from "@lobehub/icons/es/Stepfun/components/Color";
+// Stepfun has no Color component in the installed @lobehub/icons version; use Mono as fallback
 import StepfunMonoIcon from "@lobehub/icons/es/Stepfun/components/Mono";
+import SunoMonoIcon from "@lobehub/icons/es/Suno/components/Mono";
 import TavilyColorIcon from "@lobehub/icons/es/Tavily/components/Color";
 import TavilyMonoIcon from "@lobehub/icons/es/Tavily/components/Mono";
 import TogetherColorIcon from "@lobehub/icons/es/Together/components/Color";
@@ -146,6 +150,10 @@ import TencentColorIcon from "@lobehub/icons/es/Tencent/components/Color";
 import TencentMonoIcon from "@lobehub/icons/es/Tencent/components/Mono";
 import TogetherMonoIcon from "@lobehub/icons/es/Together/components/Mono";
 import TopazLabsMonoIcon from "@lobehub/icons/es/TopazLabs/components/Mono";
+import TraeColorIcon from "@lobehub/icons/es/Trae/components/Color";
+import TraeMonoIcon from "@lobehub/icons/es/Trae/components/Mono";
+import UdioColorIcon from "@lobehub/icons/es/Udio/components/Color";
+import UdioMonoIcon from "@lobehub/icons/es/Udio/components/Mono";
 import UpstageColorIcon from "@lobehub/icons/es/Upstage/components/Color";
 import UpstageMonoIcon from "@lobehub/icons/es/Upstage/components/Mono";
 import YiColorIcon from "@lobehub/icons/es/Yi/components/Color";
@@ -203,17 +211,20 @@ const LOBE_ICON_COMPONENTS = {
   Bedrock: { mono: BedrockMonoIcon, color: BedrockColorIcon },
   Bfl: { mono: BflMonoIcon },
   Cerebras: { mono: CerebrasMonoIcon, color: CerebrasColorIcon },
+  Claude: { mono: ClaudeMonoIcon, color: ClaudeColorIcon },
   ClaudeCode: { mono: ClaudeCodeMonoIcon, color: ClaudeCodeColorIcon },
   Cline: { mono: ClineMonoIcon },
   Cloudflare: { mono: CloudflareMonoIcon, color: CloudflareColorIcon },
   Codex: { mono: CodexMonoIcon, color: CodexColorIcon },
   Cohere: { mono: CohereMonoIcon, color: CohereColorIcon },
   ComfyUI: { mono: ComfyUIMonoIcon, color: ComfyUIColorIcon },
+  Copilot: { mono: CopilotMonoIcon, color: CopilotColorIcon },
   Coze: { mono: CozeMonoIcon },
   Cursor: { mono: CursorMonoIcon },
   Dbrx: { mono: DbrxMonoIcon, color: DbrxColorIcon },
   DeepInfra: { mono: DeepInfraMonoIcon, color: DeepInfraColorIcon },
   DeepSeek: { mono: DeepSeekMonoIcon, color: DeepSeekColorIcon },
+  Devin: { mono: DevinColorIcon, color: DevinColorIcon },
   Dify: { mono: DifyMonoIcon, color: DifyColorIcon },
   Doubao: { mono: DoubaoMonoIcon, color: DoubaoColorIcon },
   ElevenLabs: { mono: ElevenLabsMonoIcon },
@@ -223,7 +234,7 @@ const LOBE_ICON_COMPONENTS = {
   Fireworks: { mono: FireworksMonoIcon, color: FireworksColorIcon },
   Friendli: { mono: FriendliMonoIcon },
   Gemini: { mono: GeminiMonoIcon, color: GeminiColorIcon },
-  GeminiCLI: { mono: GeminiCLIMonoIcon, color: GeminiCLIColorIcon },
+  Github: { mono: GithubMonoIcon },
   GithubCopilot: { mono: GithubCopilotMonoIcon },
   Google: { mono: GoogleMonoIcon, color: GoogleColorIcon },
   Grok: { mono: GrokMonoIcon },
@@ -256,7 +267,6 @@ const LOBE_ICON_COMPONENTS = {
   OpenCode: { mono: OpenCodeMonoIcon },
   OpenRouter: { mono: OpenRouterMonoIcon },
   Perplexity: { mono: PerplexityMonoIcon, color: PerplexityColorIcon },
-  Phind: { mono: PhindMonoIcon },
   Poe: { mono: PoeMonoIcon, color: PoeColorIcon },
   Pollinations: { mono: PollinationsMonoIcon },
   Qoder: { mono: QoderMonoIcon, color: QoderColorIcon },
@@ -271,11 +281,14 @@ const LOBE_ICON_COMPONENTS = {
   SenseNova: { mono: SenseNovaMonoIcon, color: SenseNovaColorIcon },
   Snowflake: { mono: SnowflakeMonoIcon, color: SnowflakeColorIcon },
   Stability: { mono: StabilityMonoIcon, color: StabilityColorIcon },
-  Stepfun: { mono: StepfunMonoIcon, color: StepfunColorIcon },
+  Stepfun: { mono: StepfunMonoIcon, color: StepfunMonoIcon },
+  Suno: { mono: SunoMonoIcon },
   Tavily: { mono: TavilyMonoIcon, color: TavilyColorIcon },
   Tencent: { mono: TencentMonoIcon, color: TencentColorIcon },
   Together: { mono: TogetherMonoIcon, color: TogetherColorIcon },
   TopazLabs: { mono: TopazLabsMonoIcon },
+  Trae: { mono: TraeMonoIcon, color: TraeColorIcon },
+  Udio: { mono: UdioMonoIcon, color: UdioColorIcon },
   Upstage: { mono: UpstageMonoIcon, color: UpstageColorIcon },
   V0: { mono: V0MonoIcon },
   Venice: { mono: VeniceMonoIcon, color: VeniceColorIcon },
@@ -307,6 +320,7 @@ const LOBE_PROVIDER_ALIASES = {
   azure: "Azure",
   "azure-ai": "AzureAI",
   "azure-openai": "AzureAI",
+  bai: "Baichuan",
   baidu: "Baidu",
   "bailian-coding-plan": "Bailian",
   baseten: "Baseten",
@@ -316,8 +330,9 @@ const LOBE_PROVIDER_ALIASES = {
   cerebras: "Cerebras",
   "chatgpt-web": "OpenAI",
   claude: "ClaudeCode",
-  "claude-web": "HuggingFace",
+  "claude-web": "Claude",
   cline: "Cline",
+  clinepass: "Cline",
   cloudflare: "Cloudflare",
   "cloudflare-ai": "WorkersAI",
   codestral: "Mistral",
@@ -326,12 +341,19 @@ const LOBE_PROVIDER_ALIASES = {
   cohere: "Cohere",
   comfyui: "ComfyUI",
   copilot: "GithubCopilot",
+  "copilot-m365-web": "Copilot",
+  "copilot-web": "Copilot",
   coze: "Coze",
   cursor: "Cursor",
+  "cursor-cloud": "Cursor",
   databricks: "Dbrx",
   deepinfra: "DeepInfra",
   deepseek: "DeepSeek",
   "deepseek-web": "DeepSeek",
+  devin: "Devin",
+  "devin-cli": "Devin",
+  doubao: "Doubao",
+  "doubao-web": "Doubao",
   elevenlabs: "ElevenLabs",
   exa: "Exa",
   "exa-search": "Exa",
@@ -344,16 +366,21 @@ const LOBE_PROVIDER_ALIASES = {
   friendli: "Friendli",
   friendliai: "Friendli",
   gemini: "Gemini",
-  "gemini-cli": "GeminiCLI",
+  "gemini-web": "Gemini",
+  "gemini-business": "Gemini",
   github: "GithubCopilot",
+  "github-models": "Github",
   "github-copilot": "GithubCopilot",
+  "ghe-copilot": "GithubCopilot",
   glm: "Zhipu",
   "glm-cn": "Zhipu",
   glmt: "Zhipu",
   "google-pse-search": "Google",
   grok: "Grok",
   "grok-web": "Grok",
+  "grok-cli": "Grok",
   groq: "Groq",
+  huggingchat: "HuggingFace",
   "hugging-face": "HuggingFace",
   huggingface: "HuggingFace",
   hyperbolic: "Hyperbolic",
@@ -363,6 +390,7 @@ const LOBE_PROVIDER_ALIASES = {
   "jina-ai": "Jina",
   kilocode: "KiloCode",
   kimi: "Kimi",
+  "kimi-web": "Kimi",
   "kimi-coding": "Kimi",
   "kimi-coding-apikey": "Kimi",
   lambda: "Lambda",
@@ -374,6 +402,7 @@ const LOBE_PROVIDER_ALIASES = {
   "meta-llama": "Meta",
   minimax: "Minimax",
   "minimax-cn": "Minimax",
+  mimocode: "XiaomiMiMo",
   mistral: "Mistral",
   mistralai: "Mistral",
   moonshot: "Moonshot",
@@ -399,10 +428,10 @@ const LOBE_PROVIDER_ALIASES = {
   "perplexity-search": "Perplexity",
   "perplexity-web": "Perplexity",
   poe: "Poe",
-  phind: "Phind",
   pollinations: "Pollinations",
   qoder: "Qoder",
   qwen: "Qwen",
+  "qwen-web": "Qwen",
   recraft: "Recraft",
   replicate: "Replicate",
   roo: "RooCode",
@@ -416,12 +445,16 @@ const LOBE_PROVIDER_ALIASES = {
   stepfun: "Stepfun",
   stability: "Stability",
   "stability-ai": "Stability",
+  suno: "Suno",
   tavily: "Tavily",
   "tavily-search": "Tavily",
   tencent: "Tencent",
+  "codebuddy-cn": "Tencent",
   together: "Together",
   topaz: "TopazLabs",
+  trae: "Trae",
   triton: "Nvidia",
+  udio: "Udio",
   upstage: "Upstage",
   v0: "V0",
   "v0-vercel": "V0",

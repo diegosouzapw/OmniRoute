@@ -50,13 +50,16 @@ test("execute returns 400 with empty credentials", async () => {
   assert.ok(body.error?.message, "Should have error message");
 });
 
-test("execute returns 400 with cookies present but convexSessionId missing", async () => {
+// #3007: credentials arrive as the single pasted string under `apiKey`
+// (fallback `accessToken`) — the old `cookies`/`convexSessionId` object shape
+// was never produced by the credential pipeline, so it must be rejected.
+test("execute returns 400 with legacy cookies/convexSessionId object shape (no apiKey)", async () => {
   const executor = new T3ChatWebExecutor();
   const result = await executor.execute({
     model: "gpt-4o",
     body: { messages: [{ role: "user", content: "hi" }] },
     stream: true,
-    credentials: { cookies: "some-cookie=value" },
+    credentials: { cookies: "some-cookie=value", convexSessionId: "abc" },
     signal: AbortSignal.timeout(5000),
   });
   assert.equal(result.response.status, 400);
@@ -64,13 +67,13 @@ test("execute returns 400 with cookies present but convexSessionId missing", asy
   assert.ok(body.error?.message?.length > 0, "Should have error message");
 });
 
-test("execute returns 400 with convexSessionId present but cookies missing", async () => {
+test("execute returns 400 with apiKey that has no convex-session-id", async () => {
   const executor = new T3ChatWebExecutor();
   const result = await executor.execute({
     model: "gpt-4o",
     body: { messages: [{ role: "user", content: "hi" }] },
     stream: true,
-    credentials: { convexSessionId: "session-abc-123" },
+    credentials: { apiKey: "sessionToken=value; theme=dark" },
     signal: AbortSignal.timeout(5000),
   });
   assert.equal(result.response.status, 400);
@@ -78,13 +81,13 @@ test("execute returns 400 with convexSessionId present but cookies missing", asy
   assert.ok(body.error?.message?.length > 0, "Should have error message");
 });
 
-test("execute returns 400 with both fields as empty strings", async () => {
+test("execute returns 400 with empty apiKey string", async () => {
   const executor = new T3ChatWebExecutor();
   const result = await executor.execute({
     model: "gpt-4o",
     body: { messages: [{ role: "user", content: "hi" }] },
     stream: true,
-    credentials: { cookies: "", convexSessionId: "" },
+    credentials: { apiKey: "" },
     signal: AbortSignal.timeout(5000),
   });
   assert.equal(result.response.status, 400);
@@ -98,18 +101,18 @@ test("testConnection returns false with empty credentials", async () => {
   assert.equal(result, false);
 });
 
-test("testConnection returns false when convexSessionId is missing", async () => {
+test("testConnection returns false when convex-session-id is missing from apiKey", async () => {
   const executor = new T3ChatWebExecutor();
-  const result = await executor.testConnection({ cookies: "some-cookie=value" });
+  const result = await executor.testConnection({ apiKey: "some-cookie=value" });
   assert.equal(result, false);
 });
 
 // ─── API flow helpers ─────────────────────────────────────────────────────
 
 function makeValidCreds() {
+  // The credential pipeline stores the single pasted string under `apiKey`.
   return {
-    cookies: "t3-auth=session-token-xyz; other=value",
-    convexSessionId: "convex-session-id-abc123",
+    apiKey: "t3-auth=session-token-xyz; other=value; convex-session-id=convex-abc123",
   };
 }
 

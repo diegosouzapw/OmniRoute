@@ -1,8 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useId } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
-import Button from "./Button";
+import Button, { type ButtonVariant } from "./Button";
+
+// #6265 — preset for content-heavy modals: caps height on the OUTERMOST dialog
+// wrapper only (single scroll owner) and keeps the inner body plain (no
+// independent max-h/overflow), avoiding a double height cap that clips content.
+export const TALL_MODAL_PROPS = {
+  className: "max-h-[90vh] overflow-y-auto",
+  bodyClassName: "p-6",
+};
 
 interface ModalProps {
   isOpen: boolean;
@@ -19,6 +28,18 @@ interface ModalProps {
   maxWidth?: string;
 }
 
+interface ConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void | Promise<void>;
+  title?: React.ReactNode;
+  message: React.ReactNode;
+  confirmText?: React.ReactNode;
+  cancelText?: React.ReactNode;
+  variant?: ButtonVariant;
+  loading?: boolean;
+}
+
 export default function Modal({
   isOpen,
   onClose,
@@ -32,6 +53,7 @@ export default function Modal({
   bodyClassName,
   compactHeader = false,
 }: ModalProps) {
+  const t = useTranslations("common");
   const titleId = useId();
   const dialogRef = useRef(null);
 
@@ -122,7 +144,7 @@ export default function Modal({
         className={cn(
           "relative w-full bg-surface",
           "border border-black/10 dark:border-white/10",
-          "rounded-xl shadow-2xl",
+          "rounded-card shadow-2xl",
           "animate-in fade-in zoom-in-95 duration-200",
           sizes[size],
           className
@@ -178,7 +200,7 @@ export default function Modal({
             {showCloseButton && (
               <button
                 onClick={onClose}
-                aria-label="Close"
+                aria-label={t("close")}
                 className="p-1.5 rounded-lg text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0"
               >
                 <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
@@ -210,26 +232,31 @@ export function ConfirmModal({
   isOpen,
   onClose,
   onConfirm,
-  title = "Confirm",
+  title,
   message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
   variant = "danger",
   loading = false,
-}) {
+}: ConfirmModalProps) {
+  const t = useTranslations("common");
+  const resolvedTitle = title ?? t("confirmTitle");
+  const resolvedConfirmText = confirmText ?? t("confirmAction");
+  const resolvedCancelText = cancelText ?? t("cancel");
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
+      title={resolvedTitle}
       size="sm"
       footer={
         <>
           <Button variant="ghost" onClick={onClose} disabled={loading}>
-            {cancelText}
+            {resolvedCancelText}
           </Button>
-          <Button variant={variant as any} onClick={onConfirm} loading={loading}>
-            {confirmText}
+          <Button variant={variant} onClick={onConfirm} loading={loading}>
+            {resolvedConfirmText}
           </Button>
         </>
       }

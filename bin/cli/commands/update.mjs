@@ -1,25 +1,37 @@
 import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
 import { homedir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { t } from "../i18n.mjs";
 
 const execFileAsync = promisify(execFile);
 
-async function getCurrentVersion() {
+// This file lives at <pkgRoot>/bin/cli/commands/update.mjs — resolve package
+// paths relative to the script, NOT process.cwd(). On a global npm/brew install
+// the user's cwd is not the package root, so cwd-relative lookups break (#3295).
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const PKG_ROOT = path.resolve(SCRIPT_DIR, "..", "..", "..");
+const BIN_DIR = path.join(PKG_ROOT, "bin");
+
+export async function getCurrentVersion() {
   try {
     const { readFileSync } = await import("node:fs");
-    const pkg = JSON.parse(readFileSync(path.join(process.cwd(), "package.json"), "utf-8"));
+    const pkg = JSON.parse(readFileSync(path.join(PKG_ROOT, "package.json"), "utf-8"));
     return pkg.version;
   } catch {
     return null;
   }
 }
 
-async function getLatestVersion() {
+// `--prefer-online` forces npm to revalidate its HTTP cache against the registry.
+// Without it `npm view` can return a stale cached version (e.g. report 3.8.30 as
+// "latest" after 3.8.31 was published), so the updater told users on an old build
+// they were already on the latest version (#4376). `execFn` is injectable for tests.
+export async function getLatestVersion(execFn = execFileAsync) {
   try {
-    const { stdout } = await execFileAsync("npm", ["view", "omniroute", "version"], {
+    const { stdout } = await execFn("npm", ["view", "omniroute", "version", "--prefer-online"], {
       timeout: 15000,
     });
     return stdout.trim();
@@ -38,12 +50,12 @@ function compareVersions(a, b) {
   return 0;
 }
 
-async function createBackup() {
-  const binPath = path.join(process.cwd(), "bin");
+export async function createBackup() {
+  const binPath = BIN_DIR;
   const backupDir = path.join(homedir(), ".omniroute", "backups", `omniroute-${Date.now()}`);
 
   try {
-    const { mkdirSync, copyFileSync, existsSync } = await import("node:fs");
+    const { mkdirSync, cpSync, existsSync } = await import("node:fs");
     if (!existsSync(binPath)) return null;
 
     mkdirSync(backupDir, { recursive: true });
@@ -51,7 +63,9 @@ async function createBackup() {
     for (const f of files) {
       const src = path.join(binPath, f);
       if (existsSync(src)) {
-        copyFileSync(src, path.join(backupDir, f));
+        // cpSync handles both files and directories; the old copyFileSync threw
+        // EISDIR on the "cli" directory, which was swallowed by the catch (#3295).
+        cpSync(src, path.join(backupDir, f), { recursive: true });
       }
     }
     return backupDir;
@@ -132,7 +146,7 @@ export async function runUpdateCommand(opts = {}) {
   }
 
   if (dryRun) {
-    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest");
+    console.log("\n  [DRY RUN] Would run: npm install -g omniroute@latest --include=optional");
     if (!skipBackup) console.log("  [DRY RUN] Would create backup in ~/.omniroute/backups/");
     return 0;
   }
@@ -164,7 +178,9 @@ export async function runUpdateCommand(opts = {}) {
   printInfo("Updating OmniRoute...");
   try {
     const { execSync } = await import("child_process");
-    execSync("npm install -g omniroute@latest", { stdio: "inherit" });
+    // --include=optional keeps the optionalDependencies (better-sqlite3, keytar,
+    // tls-client, llmlingua SLM stack) on update so an omit=optional config can't drop them.
+    execSync("npm install -g omniroute@latest --include=optional", { stdio: "inherit" });
     printSuccess(`Updated to version ${latest}`);
     printInfo("Run `omniroute --version` to verify.");
     return 0;

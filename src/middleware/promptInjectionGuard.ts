@@ -11,6 +11,7 @@ import {
   type PromptInjectionGuardrailOptions,
 } from "@/lib/guardrails/promptInjection";
 import { resolveDisabledGuardrails } from "@/lib/guardrails/registry";
+import { CORS_HEADERS } from "@/shared/utils/cors";
 
 /**
  * Create a prompt injection guard middleware.
@@ -57,13 +58,16 @@ export function withInjectionGuard(handler: any, options: any = {}) {
       return handler(request, context);
     }
 
+    // Hoist parsed body so it can be threaded to the downstream handler (#4041).
+    let parsedBody: any = null;
+
     try {
       // Clone request so body can still be read by handler
       const cloned = request.clone();
-      const body = await cloned.json().catch(() => null);
+      parsedBody = await cloned.json().catch(() => null);
 
-      if (body) {
-        const { blocked, result }: any = guard(body);
+      if (parsedBody) {
+        const { blocked, result }: any = guard(parsedBody);
 
         if (blocked) {
           return new Response(
@@ -71,17 +75,27 @@ export function withInjectionGuard(handler: any, options: any = {}) {
               error: {
                 message: "Request blocked: potential prompt injection detected",
                 type: "injection_detected",
+                code: "SECURITY_001",
                 detections: result.detections.length,
               },
             }),
-            { status: 400, headers: { "Content-Type": "application/json" } }
+            { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
           );
         }
 
-        // Attach sanitization result as header for downstream handlers
+        // Attach sanitization result as header for downstream handlers.
+        // Web Request headers may be immutable — never let this throw into the
+        // outer security-check path (issue #8095).
         if (result.flagged) {
-          request.headers.set("X-Injection-Flagged", "true");
-          request.headers.set("X-Injection-Detections", String(result.detections.length));
+          try {
+            request.headers.set("X-Injection-Flagged", "true");
+            request.headers.set(
+              "X-Injection-Detections",
+              String(result.detections.length)
+            );
+          } catch {
+            // immutable headers: detection still applied; metadata is best-effort
+          }
         }
       }
     } catch (error) {
@@ -92,6 +106,10 @@ export function withInjectionGuard(handler: any, options: any = {}) {
       });
     }
 
-    return handler(request, context);
+    // Thread the already-parsed body to the handler as a third argument so downstream
+    // handlers (e.g. /v1/responses) can reuse it without re-cloning+re-parsing the
+    // request on the hot path (#4041). Handlers that don't accept a preParsedBody
+    // simply ignore the extra argument — no signature change required for other routes.
+    return handler(request, context, parsedBody);
   };
 }

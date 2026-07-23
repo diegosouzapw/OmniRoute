@@ -33,23 +33,51 @@ import {
   flattenMessages,
   openAIToolsToMcpDefs,
   type ChatMessage,
+  type EncodedImage,
   type ExecServerEvent,
   type McpToolDefinition,
   type OpenAITool,
 } from "../utils/cursorAgentProtobuf.ts";
+import { resolveCursorImages, extractImageUrls, CursorImageError } from "../utils/cursorImages.ts";
 import {
   estimateInputTokens,
   estimateOutputTokens,
   addBufferToUsage,
 } from "../utils/usageTracking.ts";
-import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
+import {
+  formatCursorAgentClientVersion,
+  getCursorAgentCliVersion,
+} from "../utils/cursorAgentCliVersion.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { generateToolCallId } from "../translator/helpers/toolCallHelper.ts";
+import {
+  parseComposerToolCalls,
+  createStreamingState,
+  feedStreamingChunk,
+  type StreamingState as ComposerStreamingState,
+} from "../utils/composerToolCalls.ts";
 import { cursorSessionManager, type CursorSession } from "../services/cursorSessionManager.ts";
 import crypto from "crypto";
 import * as fs from "node:fs";
 import * as zlib from "node:zlib";
 import { promisify } from "node:util";
+import { toolChoiceDirectiveLine, buildCursorOutputConstraints } from "./cursor/prompt.ts";
+import {
+  bridgeCursorBuiltinTool,
+  selectCursorBridgeTools,
+  type CursorClientPlatform,
+} from "./cursor/builtinToolBridge.ts";
+import {
+  isComposerModel,
+  visibleComposerContentFromThinking,
+  composerReasoningRemainder,
+} from "./cursor/composer.ts";
+// Composer helpers re-exported for external importers (tests).
+export {
+  isComposerModel,
+  visibleComposerContentFromThinking,
+  composerReasoningRemainder,
+} from "./cursor/composer.ts";
 
 // Reject reason text aligned with kaitranntt/CLIProxyAPIPlus — proven to
 // keep cursor's model from retrying the same built-in tool indefinitely.
@@ -57,6 +85,25 @@ import { promisify } from "node:util";
 const BUILTIN_TOOL_REJECT_REASON =
   "Tool not available in this environment. Use the MCP tools provided instead.";
 const gunzipAsync = promisify(zlib.gunzip);
+
+// Tool-commit directive — adapted from composer-api's TOOL_SYSTEM_DIRECTIVE.
+// composer-2.5 otherwise narrates intent ("Checking the weather...") and ends
+// the turn ~20% of the time instead of actually invoking a declared tool. This
+// directive, prepended to the user text only when the request declares tools,
+// tells the model to commit to the tool call rather than describe it as prose.
+const TOOL_COMMIT_DIRECTIVE = [
+  "You are serving an OpenAI-compatible API request and the client has provided executable tools.",
+  "When a tool is needed to answer (real-time data, web/search lookups, file or project operations), you MUST issue the actual tool call. Do NOT describe what you are about to do as prose and then stop — call the tool.",
+  "Answer directly only when no tool is needed.",
+  "Do not emit duplicate tool calls: call each operation once, then continue after the tool result is returned.",
+  "Never claim that tools are unavailable.",
+].join("\n");
+
+// NOTE: composer-api primes the model into "agent mode" with a fabricated
+// prior switch_mode exchange (AGENT_MODE_PRIMER). On OmniRoute's native-tool
+// agent endpoint that primer is counterproductive — it references a
+// non-existent switch_mode tool and measurably LOWERED the tool-call rate in
+// live A/B (56% vs 69%), so it is intentionally not ported.
 
 /**
  * Build the ExecClientMessage frame that responds to a built-in tool request.
@@ -166,8 +213,21 @@ const debugLog = (...args: unknown[]) => {
 
 // Phase 8: max wall-clock time before we give up on the upstream and abort
 // the stream. Cursor's longest-observed plain chat takes ~90s; tool-using
-// turns can be longer. Five minutes is generous but bounded.
-const CURSOR_STREAM_TIMEOUT_MS = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
+// turns can be longer. Five minutes is generous but bounded. A malformed env
+// value (NaN / non-positive) falls back to the default rather than breaking
+// setTimeout.
+const CURSOR_STREAM_TIMEOUT_MS = (() => {
+  const parsed = parseInt(process.env.CURSOR_STREAM_TIMEOUT_MS || "300000", 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 300000;
+})();
+
+// Upper bound on a single Connect-RPC frame. The 4-byte length prefix can
+// declare up to 4 GiB; a corrupt or hostile upstream could send a huge length
+// that forces driveH2's rolling buffer to grow unbounded (OOM) while it waits
+// for bytes that never arrive. Real cursor frames are well under 1 MiB
+// (largest observed: a ~13 KB KV blob), so 16 MiB is a generous ceiling that
+// turns the failure into a clean stream error instead of memory exhaustion.
+const CURSOR_MAX_FRAME_BYTES = 16 * 1024 * 1024;
 
 type CursorHttpResponse = {
   status: number;
@@ -234,6 +294,22 @@ export type StreamCtx = {
   // role:"tool" message can be answered on the open h2 stream via
   // encodeExecMcpResult.
   pendingToolCalls: Map<string, { execMsgId: number; execId: string; toolName: string }>;
+  // Built-in Cursor tools are bridged to external OpenAI tool calls by first
+  // rejecting the native request. Their result therefore cannot resume on the
+  // same h2 stream and must use the existing full-history cold-resume path.
+  requiresColdResume: boolean;
+  // Composer thinking-as-content (decolua/9router#1310): tracks how much of
+  // the visible suffix (after the last `</think>`) has already been streamed
+  // out as `content` deltas, so we only emit the incremental tail per frame.
+  composerVisibleEmittedLength: number;
+  // Composer DeepSeek-format inline tool-call parser state (decolua/9router#1335).
+  // Null for non-Composer models (no overhead). When set, the streaming parser
+  // holds back text inside `<｜tool▁calls▁begin｜>...<｜tool▁calls▁end｜>` markers
+  // and emits structured tool_calls SSE chunks once the block closes.
+  composerToolParserState: ComposerStreamingState | null;
+  // True once we've emitted structured tool_calls from the inline Composer parser
+  // (to avoid double-emitting if the block appears in multiple accumulated frames).
+  composerInlineToolCallsEmitted: boolean;
 };
 
 export function newStreamCtx(model: string, emit: (chunk: string) => void): StreamCtx {
@@ -253,6 +329,10 @@ export function newStreamCtx(model: string, emit: (chunk: string) => void): Stre
     emittedToolCallIndex: 0,
     toolCalls: [],
     pendingToolCalls: new Map(),
+    requiresColdResume: false,
+    composerVisibleEmittedLength: 0,
+    composerToolParserState: isComposerModel(model) ? createStreamingState() : null,
+    composerInlineToolCallsEmitted: false,
   };
 }
 
@@ -288,7 +368,12 @@ export function buildCursorUsage(ctx: StreamCtx, body: { messages?: ChatMessage[
 }
 
 function emitUsage(ctx: StreamCtx, body: { messages?: ChatMessage[] }) {
-  if (ctx.tokenDelta <= 0 && ctx.totalText.length === 0 && ctx.thinkingText.length === 0) return;
+  // Always emit a usage chunk on the success path — the OpenAI streaming
+  // contract is that every completed response carries usage. buildCursorUsage
+  // already degrades cleanly to prompt-only counts when the model produced no
+  // text/thinking (e.g. an empty turn), so there's no need to skip it. The
+  // mid-stream-error path in finalizeSseStream returns before calling this, so
+  // errored responses still don't get a spurious usage chunk.
   const usage = buildCursorUsage(ctx, body);
   const payload = {
     id: ctx.responseId,
@@ -303,6 +388,56 @@ function emitUsage(ctx: StreamCtx, body: { messages?: ChatMessage[] }) {
 
 function emitDone(ctx: StreamCtx) {
   ctx.emit("data: [DONE]\n\n");
+}
+
+export function inferCursorClientPlatform(
+  messages: ChatMessage[]
+): CursorClientPlatform | undefined {
+  const systemMessages = messages.filter((message) => message.role === "system");
+  if (systemMessages.length === 0) return undefined;
+  const text = flattenMessages(systemMessages);
+  const platforms = new Set<CursorClientPlatform>();
+  const metadataPattern =
+    /\b(?:client\s+)?(?:platform|os|operating\s+system)\s*[:=]\s*["']?(win32|windows|linux|darwin|macos|posix)\b/gi;
+  for (const match of text.matchAll(metadataPattern)) {
+    platforms.add(/^(?:win32|windows)$/i.test(match[1]) ? "windows" : "posix");
+  }
+  return platforms.size === 1 ? [...platforms][0] : undefined;
+}
+
+/** Emit one complete OpenAI-compatible structured tool call. */
+function emitStructuredToolCall(
+  ctx: StreamCtx,
+  toolName: string,
+  args: Record<string, unknown>
+): string {
+  if (!ctx.emittedRoleChunk) {
+    emitChunk(ctx, { role: "assistant", content: "" });
+    ctx.emittedRoleChunk = true;
+  }
+  const idx = ctx.emittedToolCallIndex++;
+  const openAIToolCallId = generateToolCallId();
+  const argumentsJson = JSON.stringify(args);
+  emitChunk(ctx, {
+    tool_calls: [
+      {
+        index: idx,
+        id: openAIToolCallId,
+        type: "function",
+        function: { name: toolName, arguments: "" },
+      },
+    ],
+  });
+  emitChunk(ctx, {
+    tool_calls: [
+      {
+        index: idx,
+        function: { arguments: argumentsJson },
+      },
+    ],
+  });
+  ctx.toolCalls.push({ id: openAIToolCallId, name: toolName, argumentsJson });
+  return openAIToolCallId;
 }
 
 /**
@@ -327,6 +462,7 @@ export function processFrame(
     h2Req?: import("http2").ClientHttp2Stream;
     mcpTools?: McpToolDefinition[];
     blobStore?: Map<string, Buffer>;
+    clientPlatform?: CursorClientPlatform;
   } = {}
 ): void {
   // 1. JSON error envelope (Connect-RPC style — usually status > 200).
@@ -353,14 +489,18 @@ export function processFrame(
       const blob = opts.blobStore?.get(hex) ?? Buffer.alloc(0);
       try {
         opts.h2Req.write(encodeKvGetBlobResult(kvEvent.kvId, blob, kvEvent.requestMetadata));
-      } catch {}
+      } catch (e) {
+        console.debug(`[CURSOR] KV get_blob write failed:`, e);
+      }
     } else if (kvEvent.kind === "kv_set_blob") {
       if (opts.blobStore) {
         opts.blobStore.set(kvEvent.blobId.toString("hex"), kvEvent.blobData);
       }
       try {
         opts.h2Req.write(encodeKvSetBlobResult(kvEvent.kvId, kvEvent.requestMetadata));
-      } catch {}
+      } catch (e) {
+        console.debug(`[CURSOR] KV set_blob write failed:`, e);
+      }
     }
   }
 
@@ -379,43 +519,16 @@ export function processFrame(
           // — sending them again in the request_context ack causes the
           // server to stall silently. Empty ack only.
           opts.h2Req.write(encodeRequestContextResponse(event.execMsgId, event.execId));
-        } catch {}
+        } catch (e) {
+          console.debug(`[CURSOR] request_context ack write failed:`, e);
+        }
       }
     } else if (event.kind === "exec_mcp") {
       // Phase 5: surface the model-invoked MCP tool as an OpenAI tool_calls
       // SSE delta. Two chunks are emitted per call: an init chunk with the
       // tool's id+name+empty args, then a chunk with the JSON-stringified
       // args. Parallel tool calls share one finish chunk (Phase 8 closes).
-      if (!ctx.emittedRoleChunk) {
-        emitChunk(ctx, { role: "assistant", content: "" });
-        ctx.emittedRoleChunk = true;
-      }
-      const idx = ctx.emittedToolCallIndex++;
-      const openAIToolCallId = generateToolCallId();
-      const argumentsJson = JSON.stringify(event.args ?? {});
-      emitChunk(ctx, {
-        tool_calls: [
-          {
-            index: idx,
-            id: openAIToolCallId,
-            type: "function",
-            function: { name: event.toolName, arguments: "" },
-          },
-        ],
-      });
-      emitChunk(ctx, {
-        tool_calls: [
-          {
-            index: idx,
-            function: { arguments: argumentsJson },
-          },
-        ],
-      });
-      ctx.toolCalls.push({
-        id: openAIToolCallId,
-        name: event.toolName,
-        argumentsJson,
-      });
+      const openAIToolCallId = emitStructuredToolCall(ctx, event.toolName, event.args ?? {});
       // Phase 6: remember the cursor exec ids so a follow-up role:"tool"
       // message can be replied with encodeExecMcpResult on the open h2 stream.
       ctx.pendingToolCalls.set(openAIToolCallId, {
@@ -429,11 +542,24 @@ export function processFrame(
       // alive for the next OpenAI call (which arrives with role:"tool").
       ctx.endReason = "tool_calls";
     } else {
+      // Cursor/Fable frequently chooses its native Shell tool even when the
+      // OpenAI client declared external tools. If a schema-compatible shell
+      // tool exists, surface the native request as a structured OpenAI call.
+      // We still send the typed rejection upstream, then close this h2 stream;
+      // the role:"tool" follow-up is resumed cold from the full history.
+      const bridge = bridgeCursorBuiltinTool(event, opts.mcpTools ?? [], opts.clientPlatform);
       const rejection = buildExecRejection(event);
       if (rejection && opts.h2Req) {
         try {
           opts.h2Req.write(rejection);
-        } catch {}
+        } catch (e) {
+          console.debug(`[CURSOR] exec rejection write failed:`, e);
+        }
+      }
+      if (bridge) {
+        emitStructuredToolCall(ctx, bridge.toolName, bridge.arguments);
+        ctx.requiresColdResume = true;
+        ctx.endReason = "tool_calls";
       }
     }
   }
@@ -462,20 +588,88 @@ export function processFrame(
       }
       ctx.thinkingText += d.text;
       ctx.receivedText = true;
-      emitChunk(ctx, { reasoning_content: d.text });
+      // Composer (decolua/9router#1310) encodes the visible reply inside the
+      // thinking field, after a final `</think>` marker. Emit the post-marker
+      // suffix as plain `content` (so OpenAI-compatible clients see the reply)
+      // and keep the pre-marker chain-of-thought out of `reasoning_content` —
+      // it was never intended for the user.
+      if (isComposerModel(ctx.model)) {
+        const visible = visibleComposerContentFromThinking(ctx.thinkingText);
+        if (visible.length > ctx.composerVisibleEmittedLength) {
+          // Feed the full accumulated visible text into the DeepSeek inline
+          // tool-call streaming parser (decolua/9router#1335). It tracks how
+          // much has already been safely emitted and returns only the new
+          // safe delta — i.e. text that precedes any `<｜tool▁calls▁begin｜>`
+          // marker (or a partial prefix of one). When the closing marker
+          // arrives, it sets ready=true and provides the parsed tool_calls.
+          if (ctx.composerToolParserState) {
+            const parseOut = feedStreamingChunk(ctx.composerToolParserState, visible);
+            // composerVisibleEmittedLength tracks what the parser has "emitted"
+            // — stays in sync via state.emitted.
+            ctx.composerVisibleEmittedLength = ctx.composerToolParserState.emitted;
+            if (parseOut.safeDelta) {
+              ctx.totalText += parseOut.safeDelta;
+              emitChunk(ctx, { content: parseOut.safeDelta });
+            }
+            if (
+              parseOut.ready &&
+              parseOut.toolCalls.length > 0 &&
+              !ctx.composerInlineToolCallsEmitted
+            ) {
+              ctx.composerInlineToolCallsEmitted = true;
+              for (const tc of parseOut.toolCalls) {
+                const toolCallIndex = ctx.emittedToolCallIndex++;
+                ctx.toolCalls.push({
+                  id: tc.id,
+                  name: tc.function.name,
+                  argumentsJson: tc.function.arguments,
+                });
+                emitChunk(ctx, {
+                  tool_calls: [
+                    {
+                      index: toolCallIndex,
+                      id: tc.id,
+                      type: "function",
+                      function: { name: tc.function.name, arguments: tc.function.arguments },
+                    },
+                  ],
+                });
+              }
+            }
+          } else {
+            // Non-composer or state not initialised — fall back to direct emit.
+            const deltaContent = visible.slice(ctx.composerVisibleEmittedLength);
+            ctx.composerVisibleEmittedLength = visible.length;
+            ctx.totalText += deltaContent;
+            emitChunk(ctx, { content: deltaContent });
+          }
+        }
+      } else {
+        emitChunk(ctx, { reasoning_content: d.text });
+      }
     } else if (d.kind === "token_delta") {
       ctx.tokenDelta += d.tokens;
     } else if (d.kind === "turn_ended") {
-      ctx.endReason = "turn_ended";
+      if (ctx.endReason !== "tool_calls") ctx.endReason = "turn_ended";
     } else if (d.kind === "tool_call_completed" && ctx.toolCalls.length > 0) {
       // Phase 6: model paused awaiting tool result. driveH2 returns but the
       // h2 stream stays open — the session manager keeps it alive for the
       // next OpenAI call (which will arrive with role:"tool" results).
       ctx.endReason = "tool_calls";
-    } else if (d.kind === "kv_server_message" && ctx.receivedText) {
+    } else if (
+      d.kind === "kv_server_message" &&
+      ctx.receivedText &&
+      ctx.endReason !== "tool_calls"
+    ) {
       // Cursor short-circuits turn_ended for plain chats — kv_server_message
       // after text means the model finished and the server is saving the
       // turn. Phase 8 keeps both signals as defense-in-depth.
+      //
+      // Safe vs tool calls: when the model invokes a tool, the exec_mcp event
+      // always arrives at or before this kv checkpoint (verified across many
+      // live composer-2.5 trials — a tool call never follows kv_after_text), so
+      // endReason is already "tool_calls" by the time we get here. Ending on
+      // kv_after_text therefore never truncates a pending tool call.
       ctx.kvAfterTextSeen = true;
       ctx.endReason = "kv_after_text";
     }
@@ -511,7 +705,7 @@ export class CursorExecutor extends BaseExecutor {
       traceparent: traceParent,
       "user-agent": "connect-es/1.6.1",
       "x-cursor-client-type": "cli",
-      "x-cursor-client-version": `cli-${getCursorVersion()}`,
+      "x-cursor-client-version": formatCursorAgentClientVersion(getCursorAgentCliVersion()),
       "x-ghost-mode": ghostMode ? "true" : "false",
       "x-original-request-id": requestId,
       "x-request-id": requestId,
@@ -531,18 +725,86 @@ export class CursorExecutor extends BaseExecutor {
    * root_prompt_messages_json semantically — verified end-to-end with
    * wire-tap captures.
    */
-  private buildRequest(
-    model: string,
-    body: { messages?: ChatMessage[]; tools?: unknown; conversation_id?: string }
-  ): { body: Uint8Array; blobStore: Map<string, Buffer> } {
+  /**
+   * Assemble the user text + resolved tools shared by the sync (transformRequest)
+   * and async (buildRequest) request builders. Image resolution is intentionally
+   * NOT done here — it's async and only the cold-path buildRequest needs it.
+   */
+  private assembleTextAndTools(body: {
+    messages?: ChatMessage[];
+    tools?: unknown;
+    tool_choice?: unknown;
+    max_tokens?: unknown;
+    max_completion_tokens?: unknown;
+    stop?: unknown;
+    response_format?: unknown;
+  }): { userText: string; tools: OpenAITool[] | undefined } {
     const messages: ChatMessage[] = body.messages || [];
-    const tools: OpenAITool[] | undefined = Array.isArray(body.tools)
+    const declaredTools: OpenAITool[] | undefined = Array.isArray(body.tools)
       ? (body.tools as OpenAITool[])
       : undefined;
+    // tool_choice:"none" means "do not call any tool" — honor it by advertising
+    // no tools at all (matches OpenAI semantics; composer-api does the same).
+    const tools = body.tool_choice === "none" ? undefined : declaredTools;
 
     // flattenMessages prepends any role:"system" messages into the user
-    // text (proven path that cursor's models honor).
-    const userText = flattenMessages(messages);
+    // text (proven path that cursor's models honor). Image parts in the content
+    // are ignored here (they carry no text) and resolved separately.
+    let userText = flattenMessages(messages);
+
+    // When the request declares tools, prepend the tool-commit directive so
+    // composer-2.5 reliably invokes them instead of narrating intent and
+    // stopping. Measured live: tool-call rate ~53% → ~88% with the directive.
+    // tool_choice "required"/specific-function add a forcing line on top.
+    // Default-on; set CURSOR_TOOL_DIRECTIVE=0 to opt out. See TOOL_COMMIT_DIRECTIVE.
+    if (tools && tools.length > 0 && process.env.CURSOR_TOOL_DIRECTIVE !== "0") {
+      userText = `${TOOL_COMMIT_DIRECTIVE}${toolChoiceDirectiveLine(body.tool_choice)}\n\n${userText}`;
+    }
+
+    // Surface OpenAI output params cursor ignores natively (response_format /
+    // max_tokens / stop) as trailing prompt constraints.
+    userText += buildCursorOutputConstraints(body);
+
+    return { userText, tools };
+  }
+
+  /**
+   * Resolve any OpenAI image_url parts in the request's user messages into
+   * inlined cursor images. Returns undefined when the request carries no
+   * images (keeps the request byte-identical to the text-only path). Throws
+   * CursorImageError on invalid / oversized / SSRF-blocked input.
+   */
+  private async resolveRequestImages(body: {
+    messages?: ChatMessage[];
+  }): Promise<EncodedImage[] | undefined> {
+    const messages: ChatMessage[] = body.messages || [];
+    const imageUrls: string[] = [];
+    for (const m of messages) {
+      // Images only ride on user turns (the openai-to-cursor translator keeps
+      // them only there). System/assistant/tool turns carry no vision input.
+      if (m.role === "user") {
+        for (const u of extractImageUrls(m.content)) imageUrls.push(u);
+      }
+    }
+    if (imageUrls.length === 0) return undefined;
+    return resolveCursorImages(imageUrls);
+  }
+
+  private async buildRequest(
+    model: string,
+    body: {
+      messages?: ChatMessage[];
+      tools?: unknown;
+      tool_choice?: unknown;
+      conversation_id?: string;
+      max_tokens?: unknown;
+      max_completion_tokens?: unknown;
+      stop?: unknown;
+      response_format?: unknown;
+    }
+  ): Promise<{ body: Uint8Array; blobStore: Map<string, Buffer> }> {
+    const { userText, tools } = this.assembleTextAndTools(body);
+    const images = await this.resolveRequestImages(body);
 
     const blobStore = new Map<string, Buffer>();
     const requestBody = buildAgentRequestBody({
@@ -551,12 +813,23 @@ export class CursorExecutor extends BaseExecutor {
       conversationId: body.conversation_id,
       tools,
       blobStore,
+      images,
     });
     return { body: requestBody, blobStore };
   }
 
   transformRequest(model, body, _stream, _credentials) {
-    return this.buildRequest(model, body).body;
+    // Sync interface method (not used by cursor's own execute() path, which
+    // uses the async buildRequest). Text-only — image resolution is async.
+    const { userText, tools } = this.assembleTextAndTools(body);
+    const blobStore = new Map<string, Buffer>();
+    return buildAgentRequestBody({
+      modelId: model,
+      userText,
+      conversationId: body.conversation_id,
+      tools,
+      blobStore,
+    });
   }
 
   // ─── h2 lifecycle: open + drive (Phase 4 streaming refactor) ─────────────
@@ -608,7 +881,9 @@ export class CursorExecutor extends BaseExecutor {
         try {
           req.close();
           client.close();
-        } catch {}
+        } catch {
+          // Expected: connection may already be closed
+        }
         if (!resolved) {
           resolved = true;
           reject(new Error("aborted"));
@@ -630,7 +905,9 @@ export class CursorExecutor extends BaseExecutor {
               try {
                 req.close();
                 client.close();
-              } catch {}
+              } catch {
+                // Expected: connection may already be closed
+              }
               if (signal) signal.removeEventListener("abort", onAbort);
               res(Buffer.concat(out));
             });
@@ -638,7 +915,9 @@ export class CursorExecutor extends BaseExecutor {
               try {
                 req.close();
                 client.close();
-              } catch {}
+              } catch {
+                // Expected: connection may already be closed
+              }
               if (signal) signal.removeEventListener("abort", onAbort);
               res(Buffer.concat(out));
             });
@@ -670,7 +949,24 @@ export class CursorExecutor extends BaseExecutor {
 
       // Bidirectional streaming: write the init message but DO NOT send
       // END_STREAM — cursor's server stops responding once we close our side.
-      req.write(body);
+      // Guard the write like every h2Req.write in processFrame: a synchronous
+      // failure here (e.g. stream already torn down) would otherwise leave the
+      // request hung until the safety timeout instead of failing fast.
+      try {
+        req.write(body);
+      } catch (err) {
+        if (!resolved) {
+          resolved = true;
+          if (signal) signal.removeEventListener("abort", onAbort);
+          try {
+            req.close();
+            client.close();
+          } catch {
+            // Expected: connection may already be closed
+          }
+          reject(err instanceof Error ? err : new Error(String(err)));
+        }
+      }
     });
   }
 
@@ -690,6 +986,7 @@ export class CursorExecutor extends BaseExecutor {
     ctx: StreamCtx,
     mcpTools: McpToolDefinition[] | undefined,
     blobStore: Map<string, Buffer> | undefined,
+    clientPlatform: CursorClientPlatform | undefined,
     signal?: AbortSignal
   ): Promise<void> {
     const ackedExecIds = new Set<string>();
@@ -755,7 +1052,9 @@ export class CursorExecutor extends BaseExecutor {
         try {
           h2.req.close();
           h2.client.close();
-        } catch {}
+        } catch {
+          // Expected: connection may already be closed during teardown
+        }
       };
 
       if (signal) signal.addEventListener("abort", onAbort);
@@ -769,6 +1068,14 @@ export class CursorExecutor extends BaseExecutor {
           let pos = 0;
           while (!settled && pos + 5 <= buf.length) {
             const length = buf.readUInt32BE(pos + 1);
+            if (length > CURSOR_MAX_FRAME_BYTES) {
+              // Refuse to buffer an implausibly large frame — fail fast instead
+              // of letting the rolling buffer grow toward OOM.
+              settled = true;
+              teardown();
+              reject(new Error(`cursor-agent frame too large (${length} bytes)`));
+              return;
+            }
             if (pos + 5 + length > buf.length) break; // partial frame; wait
             const flag = buf[pos];
             const raw = buf.subarray(pos + 5, pos + 5 + length);
@@ -778,7 +1085,12 @@ export class CursorExecutor extends BaseExecutor {
             try {
               const payload = flag & 0x1 ? await gunzipAsync(raw) : raw;
               if (settled) return;
-              processFrame(payload, ctx, ackedExecIds, { h2Req: h2.req, mcpTools, blobStore });
+              processFrame(payload, ctx, ackedExecIds, {
+                h2Req: h2.req,
+                mcpTools,
+                blobStore,
+                clientPlatform,
+              });
             } catch (err) {
               debugLog(
                 "[cursor-agent] frame decode failed at pos",
@@ -831,9 +1143,11 @@ export class CursorExecutor extends BaseExecutor {
 
     // Tools embedded in the RequestContext ack throughout the turn —
     // synced with mcp_tools in the encoded request body.
-    const mcpTools: McpToolDefinition[] | undefined = Array.isArray(body.tools)
+    const declaredMcpTools: McpToolDefinition[] | undefined = Array.isArray(body.tools)
       ? openAIToolsToMcpDefs(body.tools as OpenAITool[])
       : undefined;
+    const mcpTools = selectCursorBridgeTools(declaredMcpTools, body.tool_choice);
+    const clientPlatform = inferCursorClientPlatform(messages);
 
     // Sanitize error messages: strip stack traces and absolute paths to
     // prevent information exposure. Shared helper in utils/error.ts.
@@ -927,8 +1241,30 @@ export class CursorExecutor extends BaseExecutor {
     if (!session) {
       // Cold path: open fresh h2 stream with the full message history
       // flattened into UserText (Phase 6 flattenMessages handles role:"tool"
-      // and assistant.tool_calls).
-      const built = this.buildRequest(model, body);
+      // and assistant.tool_calls). buildRequest also resolves any image_url
+      // parts (base64 / remote) into inlined cursor images.
+      let built;
+      try {
+        built = await this.buildRequest(model, body);
+      } catch (err) {
+        // Image resolution failures (invalid / oversized / SSRF-blocked) are
+        // client errors — return a sanitized 400 rather than a 500.
+        if (err instanceof CursorImageError) {
+          return {
+            response: buildErrorResponse(err.status, err.message, "invalid_request_error"),
+            url,
+            headers,
+            transformedBody: body,
+          };
+        }
+        const message = err instanceof Error ? err.message : String(err);
+        return {
+          response: buildErrorResponse(HTTP_STATUS.SERVER_ERROR, message, "connection_error"),
+          url,
+          headers,
+          transformedBody: body,
+        };
+      }
       blobStore = built.blobStore;
       let opened;
       try {
@@ -963,7 +1299,7 @@ export class CursorExecutor extends BaseExecutor {
       for (const [id, info] of ctx.pendingToolCalls) {
         sessionToUse.pendingToolCalls.set(id, info);
       }
-      if (errored || ctx.endReason !== "tool_calls") {
+      if (errored || ctx.endReason !== "tool_calls" || ctx.requiresColdResume) {
         cursorSessionManager.close(sessionToUse);
       } else {
         cursorSessionManager.release(sessionToUse, "awaiting_tool_result");
@@ -973,20 +1309,23 @@ export class CursorExecutor extends BaseExecutor {
     // Stream mode: ReadableStream that emits SSE chunks as they're decoded.
     if (stream !== false) {
       const enc = new TextEncoder();
-      const sseStream = new ReadableStream({
-        start: async (controller) => {
-          const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
-          try {
-            await this.driveH2(h2, ctx, mcpTools, blobStore, signal);
-            this.finalizeSseStream(ctx, body);
-            finishLifecycle(ctx, false);
-            controller.close();
-          } catch (err) {
-            finishLifecycle(ctx, true);
-            controller.error(err);
-          }
+      const sseStream = new ReadableStream(
+        {
+          start: async (controller) => {
+            const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
+            try {
+              await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, signal);
+              this.finalizeSseStream(ctx, body);
+              finishLifecycle(ctx, false);
+              controller.close();
+            } catch (err) {
+              finishLifecycle(ctx, true);
+              controller.error(err);
+            }
+          },
         },
-      });
+        { highWaterMark: 16384 }
+      );
       return {
         response: new Response(sseStream, {
           status: 200,
@@ -1005,7 +1344,7 @@ export class CursorExecutor extends BaseExecutor {
     // Non-streaming: drive to completion, return chat.completion JSON.
     const ctx = newStreamCtx(model, () => {});
     try {
-      await this.driveH2(h2, ctx, mcpTools, blobStore, signal);
+      await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, signal);
     } catch (err) {
       finishLifecycle(ctx, true);
       const message = err instanceof Error ? err.message : String(err);
@@ -1055,6 +1394,39 @@ export class CursorExecutor extends BaseExecutor {
       // one delta before finish.
       emitChunk(ctx, { role: "assistant", content: "" });
     }
+
+    // End-of-stream Composer inline tool-call fallback (decolua/9router#1335):
+    // if the entire response arrived as a single big chunk (or the streaming
+    // parser state never reached "ready"), try a full non-streaming parse on
+    // the accumulated visible content so we still emit structured tool_calls
+    // and don't leak the markers as plain text.
+    if (isComposerModel(ctx.model) && !ctx.composerInlineToolCallsEmitted && ctx.totalText) {
+      const parsed = parseComposerToolCalls(ctx.totalText);
+      if (parsed.toolCalls.length > 0) {
+        ctx.composerInlineToolCallsEmitted = true;
+        // Replace totalText with the residual (markers stripped).
+        ctx.totalText = parsed.content;
+        for (const tc of parsed.toolCalls) {
+          const toolCallIndex = ctx.emittedToolCallIndex++;
+          ctx.toolCalls.push({
+            id: tc.id,
+            name: tc.function.name,
+            argumentsJson: tc.function.arguments,
+          });
+          emitChunk(ctx, {
+            tool_calls: [
+              {
+                index: toolCallIndex,
+                id: tc.id,
+                type: "function",
+                function: { name: tc.function.name, arguments: tc.function.arguments },
+              },
+            ],
+          });
+        }
+      }
+    }
+
     // OpenAI finish_reason: "tool_calls" if the model invoked any declared
     // tool, else "stop". A turn with mixed text + tool_calls finishes with
     // "tool_calls" (the tool calls are the actionable signal for the client).
@@ -1090,6 +1462,25 @@ export class CursorExecutor extends BaseExecutor {
 
     // Non-streaming: chat.completion shape. Include tool_calls in the
     // assistant message when the model invoked any (Phase 5).
+
+    // Composer DeepSeek inline tool-call fallback (decolua/9router#1335): for
+    // non-streaming requests, the streaming parser never runs — parse the
+    // accumulated visible content once here instead.
+    if (isComposerModel(ctx.model) && !ctx.composerInlineToolCallsEmitted && ctx.totalText) {
+      const parsed = parseComposerToolCalls(ctx.totalText);
+      if (parsed.toolCalls.length > 0) {
+        ctx.composerInlineToolCallsEmitted = true;
+        ctx.totalText = parsed.content;
+        for (const tc of parsed.toolCalls) {
+          ctx.toolCalls.push({
+            id: tc.id,
+            name: tc.function.name,
+            argumentsJson: tc.function.arguments,
+          });
+        }
+      }
+    }
+
     const usage = buildCursorUsage(ctx, body);
     const finishReason = ctx.toolCalls.length > 0 ? "tool_calls" : "stop";
     const message: {
@@ -1106,7 +1497,15 @@ export class CursorExecutor extends BaseExecutor {
       content: ctx.totalText.length > 0 ? ctx.totalText : null,
     };
     if (ctx.thinkingText.length > 0) {
-      message.reasoning_content = ctx.thinkingText;
+      // Composer: strip the visible reply (after `</think>`) from the reasoning
+      // payload so it is not duplicated — it already lives in message.content
+      // via the processFrame thinking handler.
+      const reasoningPayload = isComposerModel(ctx.model)
+        ? composerReasoningRemainder(ctx.thinkingText)
+        : ctx.thinkingText;
+      if (reasoningPayload.length > 0) {
+        message.reasoning_content = reasoningPayload;
+      }
     }
     if (ctx.toolCalls.length > 0) {
       message.tool_calls = ctx.toolCalls.map((tc) => ({

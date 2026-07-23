@@ -24,28 +24,15 @@ const actionSchema = z.object({
   confirm: z.boolean().optional(),
 });
 
-function hasSafeMutationOrigin(request: Request): boolean {
-  const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
-  if (fetchSite && !["same-origin", "same-site", "none"].includes(fetchSite)) return false;
-
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
-
-  try {
-    return new URL(origin).origin === new URL(request.url).origin;
-  } catch {
-    return false;
-  }
-}
-
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  if (!hasSafeMutationOrigin(request)) {
-    return NextResponse.json({ error: { message: "Invalid request origin" } }, { status: 403 });
-  }
-
+  // Origin validation for browser mutations is centralized in the authz pipeline
+  // (src/server/authz/pipeline.ts) for MANAGEMENT routes — see PR #5278. Do NOT
+  // re-check origin here: the pipeline strips PEER_IP_HEADER before forwarding,
+  // so a duplicate per-route check cannot resolve the LAN "direct-local-host"
+  // candidate and spuriously rejects same-origin LAN/Docker requests (#6277).
   try {
     let rawBody: unknown;
     try {

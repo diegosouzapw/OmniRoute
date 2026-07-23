@@ -25,6 +25,8 @@ export class HealthChecker {
     this.consecutiveFailures = 0;
     this.currentHealth = "unknown";
     this.timer = setInterval(() => void this.poll(), this.intervalMs);
+    // Don't keep the process alive solely for the health poller.
+    (this.timer as { unref?: () => void })?.unref?.();
   }
 
   stop(): void {

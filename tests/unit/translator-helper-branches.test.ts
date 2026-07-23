@@ -599,6 +599,26 @@ test("fixMissingToolResponses keeps OpenAI role:tool when assistant uses OpenAI 
   assert.equal(fixed.messages[2].tool_call_id, "call_b");
 });
 
+test("fallbackToolCallId returns the right id shape with and without an index", () => {
+  const noIndex = toolCallHelper.fallbackToolCallId();
+  assert.match(
+    noIndex,
+    /^call_\d+$/,
+    "no-index form must be `call_<ts>` (matches kiro/openai-responses fallback shape)"
+  );
+
+  const withIndex = toolCallHelper.fallbackToolCallId(2);
+  assert.match(
+    withIndex,
+    /^call_2_\d+$/,
+    "index form must be `call_<i>_<ts>` (matches indexed fallback shape)"
+  );
+
+  // index 0 is falsy but defined — must still produce the indexed form, not the no-index form.
+  const zeroIndex = toolCallHelper.fallbackToolCallId(0);
+  assert.match(zeroIndex, /^call_0_\d+$/, "index 0 must use the indexed form, not the bare form");
+});
+
 test("translateRequest replays cached reasoning-only messages when interleaved field is reasoning_content", () => {
   clearReasoningCacheAll();
   clearModelsDevCapabilities();
@@ -645,14 +665,14 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
   cacheReasoningByKey(
     "request:req_kimi_reasoning_only:message:0",
     "kimi",
-    "kimi-k2.5",
+    "kimi-k2.6",
     "cached kimi reasoning"
   );
 
   const result = translateRequest(
     FORMATS.OPENAI,
     FORMATS.OPENAI,
-    "kimi-k2.5",
+    "kimi-k2.6",
     {
       _reasoningCacheRequestId: "req_kimi_reasoning_only",
       messages: [
@@ -670,22 +690,12 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
   clearReasoningCacheAll();
 });
 
-  test("translateRequest injects thinking block into Claude-format messages for Kimi K2 reasoning models", () => {
+  test("translateRequest uses Kimi Coding's empty thinking marker instead of cached replay", () => {
     clearReasoningCacheAll();
-    clearModelsDevCapabilities();
-    saveModelsDevCapabilities({
-      "kimi-coding": {
-        "kimi-k2.5": buildCapability({
-          interleaved_field: "reasoning_content",
-          reasoning: true,
-          tool_call: true,
-        }),
-      },
-    });
     cacheReasoningByKey(
       "toolu_kimi_claude",
       "kimi-coding",
-      "kimi-k2.5",
+      "kimi-for-coding",
       "cached thinking for Kimi tool call"
     );
 
@@ -694,9 +704,9 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
     const result = translateRequest(
       FORMATS.OPENAI,
       FORMATS.CLAUDE,
-      "kimi-k2.5",
+      "kimi-for-coding",
       {
-        thinking: { type: "enabled", budget_tokens: 2000 },
+        reasoning_effort: "high",
         messages: [
           { role: "user", content: "read the file" },
           {
@@ -722,45 +732,29 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
     assert.ok(assistantMsg, "assistant message should exist");
     assert.ok(Array.isArray(assistantMsg.content), "content should be array");
 
-    // Should have a thinking block injected before tool_use
+    // Kimi Code CLI 0.26 sends an explicit empty thinking marker before tool_use.
     const thinkingBlock = assistantMsg.content.find((b) => b?.type === "thinking");
     assert.ok(thinkingBlock, "thinking block should be injected");
-    assert.equal(
-      thinkingBlock.thinking,
-      "cached thinking for Kimi tool call",
-      "should use cached reasoning"
-    );
+    assert.equal(thinkingBlock.thinking, "");
 
     // Thinking block should appear before tool_use
     const thinkingIdx = assistantMsg.content.indexOf(thinkingBlock);
     const toolUseIdx = assistantMsg.content.findIndex((b) => b?.type === "tool_use");
     assert.ok(thinkingIdx < toolUseIdx, "thinking block should be before tool_use");
 
-    assert.equal(getReasoningCacheServiceStats().replays, 1);
-    clearModelsDevCapabilities();
+    assert.equal(getReasoningCacheServiceStats().replays, 0);
     clearReasoningCacheAll();
   });
 
-  test("translateRequest injects placeholder thinking block for Claude-format Kimi K2 on cache miss", () => {
+  test("translateRequest uses an empty Kimi Coding thinking marker on cache miss", () => {
     clearReasoningCacheAll();
-    clearModelsDevCapabilities();
-    saveModelsDevCapabilities({
-      "kimi-coding": {
-        "kimi-k2.6": buildCapability({
-          interleaved_field: "reasoning_content",
-          reasoning: true,
-          tool_call: true,
-        }),
-      },
-    });
 
-    // No cache seeded - should fall back to placeholder
     const result = translateRequest(
       FORMATS.OPENAI,
       FORMATS.CLAUDE,
-      "kimi-k2.6",
+      "kimi-for-coding",
       {
-        thinking: { type: "enabled", budget_tokens: 2000 },
+        reasoning_effort: "high",
         messages: [
           { role: "user", content: "do it" },
           {
@@ -784,33 +778,18 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
       Array.isArray(assistantMsg.content) &&
       assistantMsg.content.find((b) => b?.type === "thinking");
     assert.ok(thinkingBlock, "thinking block should be injected on cache miss");
-    // Must be non-empty for kimi-coding
-    assert.ok(
-      thinkingBlock.thinking && thinkingBlock.thinking.length > 0,
-      "placeholder must be non-empty"
-    );
+    assert.equal(thinkingBlock.thinking, "");
 
-    clearModelsDevCapabilities();
     clearReasoningCacheAll();
   });
 
   test("translateRequest does NOT inject duplicate thinking for Claude-format messages with existing thinking block", () => {
     clearReasoningCacheAll();
-    clearModelsDevCapabilities();
-    saveModelsDevCapabilities({
-      "kimi-coding": {
-        "kimi-k2.5": buildCapability({
-          interleaved_field: "reasoning_content",
-          reasoning: true,
-          tool_call: true,
-        }),
-      },
-    });
 
     const result = translateRequest(
       FORMATS.OPENAI,
       FORMATS.CLAUDE,
-      "kimi-k2.5",
+      "kimi-for-coding",
       {
         messages: [
           { role: "user", content: "hi" },
@@ -844,6 +823,5 @@ test("translateRequest does not replay reasoning-only messages for non-DeepSeek 
       "original thinking should be preserved"
     );
 
-    clearModelsDevCapabilities();
     clearReasoningCacheAll();
   });

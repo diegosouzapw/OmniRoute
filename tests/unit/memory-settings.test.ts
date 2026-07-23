@@ -23,6 +23,14 @@ describe("memory settings helpers", () => {
       retentionDays: 1,
       strategy: DEFAULT_MEMORY_SETTINGS.strategy,
       skillsEnabled: true,
+      // Plan 21 — Memory Engine Redesign extended fields (default values)
+      embeddingSource: DEFAULT_MEMORY_SETTINGS.embeddingSource,
+      embeddingProviderModel: DEFAULT_MEMORY_SETTINGS.embeddingProviderModel,
+      transformersEnabled: DEFAULT_MEMORY_SETTINGS.transformersEnabled,
+      staticEnabled: DEFAULT_MEMORY_SETTINGS.staticEnabled,
+      rerankEnabled: DEFAULT_MEMORY_SETTINGS.rerankEnabled,
+      rerankProviderModel: DEFAULT_MEMORY_SETTINGS.rerankProviderModel,
+      vectorStore: DEFAULT_MEMORY_SETTINGS.vectorStore,
     });
   });
 

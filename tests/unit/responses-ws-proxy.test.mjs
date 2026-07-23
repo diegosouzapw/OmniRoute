@@ -75,6 +75,12 @@ test("responses ws proxy prepares and forwards OpenAI Responses websocket events
             ok: true,
             upstreamUrl: "wss://chatgpt.com/backend-api/codex/responses",
             headers: { Authorization: "Bearer upstream-token" },
+            connectionId: "conn_1",
+            provider: "codex",
+            account: "codex@example.com",
+            // #5611: prepare resolves the configured proxy and threads it through.
+            proxy: "http://test-proxy:8888",
+            model: "gpt-5.5",
             response: {
               ...body.response,
               model: "gpt-5.5",
@@ -82,6 +88,12 @@ test("responses ws proxy prepares and forwards OpenAI Responses websocket events
             },
           })
         );
+        return;
+      }
+
+      if (body.action === "log") {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ ok: true, logged: true }));
         return;
       }
     }
@@ -97,7 +109,12 @@ test("responses ws proxy prepares and forwards OpenAI Responses websocket events
         fakeUpstream.onmessage?.({
           data: JSON.stringify({
             type: "response.completed",
-            response: { id: "resp_1", status: "completed" },
+            response: {
+              id: "resp_1",
+              model: "gpt-5.5",
+              status: "completed",
+              usage: { input_tokens: 29, output_tokens: 42, total_tokens: 71 },
+            },
           }),
         });
       }, 10);
@@ -118,6 +135,11 @@ test("responses ws proxy prepares and forwards OpenAI Responses websocket events
     wsFactory: async (url, options) => {
       assert.equal(url, "wss://chatgpt.com/backend-api/codex/responses");
       assert.equal(options.headers.Authorization, "Bearer upstream-token");
+      // #5591: prepare omits `browser`, so the fallback must be the supported
+      // chrome_142 (not the non-existent chrome_149).
+      assert.equal(options.browser, "chrome_142");
+      // #5611: the configured proxy from prepare must reach the upstream connect.
+      assert.equal(options.proxy, "http://test-proxy:8888");
       return fakeUpstream;
     },
   });
@@ -145,6 +167,7 @@ test("responses ws proxy prepares and forwards OpenAI Responses websocket events
   );
 
   await waitFor(() => downstreamMessages.find((entry) => entry.type === "response.completed"));
+  const logRequest = await waitFor(() => internalRequests.find((entry) => entry.action === "log"));
 
   assert.equal(internalRequests[0].action, "authenticate");
   assert.equal(internalRequests[1].action, "prepare");
@@ -153,6 +176,104 @@ test("responses ws proxy prepares and forwards OpenAI Responses websocket events
   assert.equal(upstreamSends[0].model, "gpt-5.5");
   assert.equal(upstreamSends[0].reasoning.effort, "xhigh");
   assert.equal("stream" in upstreamSends[0], false);
+  assert.equal(logRequest.transport, "responses_websocket");
+  assert.equal(logRequest.status, 200);
+  assert.equal(logRequest.success, true);
+  assert.equal(logRequest.connectionId, "conn_1");
+  assert.equal(logRequest.provider, "codex");
+  assert.equal(logRequest.model, "gpt-5.5");
+  assert.equal(logRequest.requestedModel, "gpt-5.5");
+  assert.equal(logRequest.clientRequest.model, "gpt-5.5");
+  assert.equal(logRequest.responseBody.usage.input_tokens, 29);
+  assert.equal(logRequest.responseBody.usage.output_tokens, 42);
+  assert.equal(logRequest.terminalMessage.type, "response.completed");
+
+  ws.close();
+  await close(server);
+});
+
+test("responses ws proxy logs prepare failures to request history", async () => {
+  const internalRequests = [];
+  const downstreamMessages = [];
+
+  const server = http.createServer(async (req, res) => {
+    const url = new URL(req.url || "/", `http://${req.headers.host}`);
+    if (url.pathname === "/api/internal/codex-responses-ws") {
+      const body = JSON.parse((await readRequestBody(req)) || "{}");
+      internalRequests.push(body);
+
+      if (body.action === "authenticate") {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ ok: true, authenticated: true, authType: "api_key" }));
+        return;
+      }
+
+      if (body.action === "prepare") {
+        res.writeHead(503, { "content-type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error: {
+              code: "codex_credentials_unavailable",
+              message: "No available Codex OAuth connection for Responses WebSocket",
+            },
+          })
+        );
+        return;
+      }
+
+      if (body.action === "log") {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ ok: true, logged: true }));
+        return;
+      }
+    }
+
+    res.writeHead(404, { "content-type": "application/json" });
+    res.end(JSON.stringify({ error: "not_found" }));
+  });
+
+  const port = await listen(server);
+  const proxy = createResponsesWsProxy({
+    baseUrl: `http://127.0.0.1:${port}`,
+    bridgeSecret: "bridge-secret",
+    pingIntervalMs: 1000,
+    idleTimeoutMs: 10000,
+    wsFactory: async () => {
+      throw new Error("prepare failure should not connect upstream");
+    },
+  });
+
+  server.on("upgrade", async (req, socket, head) => {
+    const handled = await proxy.handleUpgrade(req, socket, head);
+    if (!handled && !socket.destroyed) {
+      socket.destroy();
+    }
+  });
+
+  const ws = new WebSocket(`ws://127.0.0.1:${port}/api/v1/responses?api_key=local-token`);
+  ws.addEventListener("message", (event) => {
+    downstreamMessages.push(JSON.parse(String(event.data)));
+  });
+
+  await new Promise((resolve) => ws.addEventListener("open", resolve, { once: true }));
+  ws.send(
+    JSON.stringify({
+      type: "response.create",
+      model: "gpt-5.5",
+      input: [{ role: "user", content: "hello" }],
+    })
+  );
+
+  await waitFor(() => downstreamMessages.find((entry) => entry.type === "response.failed"));
+  const logRequest = await waitFor(() => internalRequests.find((entry) => entry.action === "log"));
+
+  assert.equal(logRequest.transport, "responses_websocket");
+  assert.equal(logRequest.status, 503);
+  assert.equal(logRequest.success, false);
+  assert.equal(logRequest.errorCode, "codex_credentials_unavailable");
+  assert.match(logRequest.errorMessage, /No available Codex OAuth connection/);
+  assert.equal(logRequest.clientRequest.model, "gpt-5.5");
+  assert.equal(logRequest.terminalMessage.type, "response.failed");
 
   ws.close();
   await close(server);

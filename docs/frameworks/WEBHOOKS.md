@@ -1,13 +1,13 @@
 ---
 title: "Webhooks"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Webhooks
 
 > **Source of truth:** `src/lib/webhookDispatcher.ts`, `src/lib/db/webhooks.ts`, `src/app/api/webhooks/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute can fire HTTP webhooks on platform events. Use them to integrate with
 Slack, PagerDuty, Datadog, internal alerting services, or any HTTP receiver.

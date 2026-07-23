@@ -42,6 +42,9 @@ type ExplainLog = {
   error?: unknown;
   hasPipelineDetails?: boolean;
   detailState?: string | null;
+  pipelinePayloads?: {
+    routeDecision?: JsonRecord;
+  } | null;
 };
 
 type ExplanationFactor = {
@@ -186,6 +189,7 @@ export type RouteExplainabilityResponse = {
   limitations: string[];
   decisionReplay: DecisionReplay;
   resilience: ResilienceExplanation | null;
+  reasoningRouting: JsonRecord | null;
 };
 
 function asExplainLog(value: unknown): ExplainLog | null {
@@ -743,5 +747,9 @@ export async function explainRouteByRequestId(
     limitations: buildLimitations(log, relatedTargets),
     decisionReplay,
     resilience,
+    reasoningRouting:
+      log.pipelinePayloads?.routeDecision && typeof log.pipelinePayloads.routeDecision === "object"
+        ? log.pipelinePayloads.routeDecision
+        : null,
   };
 }

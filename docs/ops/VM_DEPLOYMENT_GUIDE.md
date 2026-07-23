@@ -1,7 +1,7 @@
 ---
 title: "OmniRoute — Deployment Guide on VM with Cloudflare"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute — Deployment Guide on VM with Cloudflare
@@ -113,12 +113,16 @@ NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URLs (change to your domain) ===
+# Internal server-to-server base URL for scheduled jobs / self-fetches.
+BASE_URL=http://127.0.0.1:20128
+# Browser-facing URL used for OAuth callbacks, dashboard links, and generated public URLs.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# Optional explicit public origin override for generated public asset URLs.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
 # === Cloud Sync (optional) ===
 # CLOUD_URL=https://cloud.omniroute.online
@@ -207,6 +211,7 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -237,6 +242,14 @@ NGINX
 Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
 `FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
 above the same threshold.
+
+OmniRoute uses `NEXT_PUBLIC_BASE_URL` as the canonical browser-facing origin for OAuth
+callbacks and generated public links. Authenticated dashboard writes use same-origin requests
+plus session-bound CSRF protection, so they do not require a static public base URL. The
+`X-Forwarded-*` headers above are still useful routing metadata, but they are not a replacement
+for setting the explicit public URL when OAuth or generated browser links need one. Only enable
+`OMNIROUTE_TRUST_PROXY` if OmniRoute is not directly reachable by clients and your proxy
+strips/rebuilds incoming forwarded headers.
 
 ### 3.3 Enable and Test
 

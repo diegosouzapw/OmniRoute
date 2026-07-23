@@ -22,12 +22,7 @@ export const ENDPOINT_CATEGORIES: readonly EndpointCategory[] = [
     id: "chat",
     label: "Chat / Messages",
     description: "Chat completions, text completions, messages, and responses",
-    prefixes: [
-      "/v1/chat/completions",
-      "/v1/completions",
-      "/v1/messages",
-      "/v1/responses",
-    ],
+    prefixes: ["/v1/chat/completions", "/v1/completions", "/v1/messages", "/v1/responses"],
   },
   {
     id: "search",
@@ -82,6 +77,12 @@ export const ENDPOINT_CATEGORIES: readonly EndpointCategory[] = [
     label: "Moderations",
     description: "Content moderation",
     prefixes: ["/v1/moderations"],
+  },
+  {
+    id: "ocr",
+    label: "OCR",
+    description: "Optical character recognition",
+    prefixes: ["/v1/ocr"],
   },
   {
     id: "batches",

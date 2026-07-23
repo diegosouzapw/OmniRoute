@@ -1,16 +1,45 @@
 import { NextResponse } from "next/server";
-import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import os from "os";
 import { getDbInstance, resetDbInstance, SQLITE_FILE } from "@/lib/db/core";
-import { backupDbFile } from "@/lib/db/backup";
+import { openDatabaseAsync } from "@/lib/db/adapters/driverFactory";
+import type { SqliteAdapter } from "@/lib/db/adapters/types";
+import {
+  backupDbFile,
+  getTableNamesFromAdapter,
+  countImportedRows,
+  unlinkFileWithRetry,
+} from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { getSettings } from "@/lib/db/settings";
 import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
-const MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
+const DEFAULT_MAX_UPLOAD_MB = 100;
+// Hard ceiling so a misconfigured/hostile value can't ask the route to buffer an
+// unbounded file into memory.
+const MAX_UPLOAD_MB_CEILING = 4096;
+
+/**
+ * Resolve the maximum accepted backup size (bytes) from the environment.
+ *
+ * Real databases bloat well past the historical 100 MB cap (#4719 — a 156 MB file that
+ * VACUUMs down to 5 MB still can't be re-imported), so the limit is now operator-tunable
+ * via `OMNIROUTE_DB_IMPORT_MAX_MB`. Invalid / out-of-range values fall back to the 100 MB
+ * default and are clamped to a 4 GB ceiling.
+ */
+export function resolveMaxUploadSizeBytes(
+  env: NodeJS.ProcessEnv = process.env
+): number {
+  const raw = env.OMNIROUTE_DB_IMPORT_MAX_MB;
+  const parsed = raw === undefined ? NaN : Number(raw);
+  const mb =
+    Number.isFinite(parsed) && parsed >= 1
+      ? Math.min(Math.floor(parsed), MAX_UPLOAD_MB_CEILING)
+      : DEFAULT_MAX_UPLOAD_MB;
+  return mb * 1024 * 1024;
+}
 
 // Required tables that must exist in a valid OmniRoute database
 const REQUIRED_TABLES = ["provider_connections", "provider_nodes", "combos", "api_keys"];
@@ -67,10 +96,15 @@ export async function POST(request: Request) {
     }
 
     // Validate file size
+    const maxUploadSize = resolveMaxUploadSizeBytes();
     const fileSize = fileBuffer.length;
-    if (fileSize > MAX_UPLOAD_SIZE) {
+    if (fileSize > maxUploadSize) {
       return NextResponse.json(
-        { error: `File too large. Maximum allowed size is ${MAX_UPLOAD_SIZE / (1024 * 1024)} MB.` },
+        {
+          error:
+            `File too large. Maximum allowed size is ${maxUploadSize / (1024 * 1024)} MB. ` +
+            `Set OMNIROUTE_DB_IMPORT_MAX_MB to raise it, or VACUUM the database before exporting.`,
+        },
         { status: 400 }
       );
     }
@@ -86,10 +120,14 @@ export async function POST(request: Request) {
     tmpPath = path.join(os.tmpdir(), `omniroute-import-${Date.now()}.sqlite`);
     fs.writeFileSync(tmpPath, fileBuffer!);
 
-    // Validate SQLite integrity
-    let testDb: InstanceType<typeof Database> | null = null;
+    // Validate SQLite integrity.
+    // Use the resilient driver factory (better-sqlite3 → node:sqlite → sql.js) rather than
+    // a direct `better-sqlite3` import: in the packaged Electron app that native module is
+    // absent from the standalone server's node_modules, so a hard import crashes the route
+    // with "Cannot find module 'better-sqlite3'" even though node:sqlite is available (#3025).
+    let testDb: SqliteAdapter | null = null;
     try {
-      testDb = new Database(tmpPath, { readonly: true });
+      testDb = await openDatabaseAsync(tmpPath, { readonly: true });
       const result = testDb.pragma("integrity_check") as any[];
       if (result[0]?.integrity_check !== "ok") {
         return NextResponse.json(
@@ -99,10 +137,7 @@ export async function POST(request: Request) {
       }
 
       // Validate required tables exist
-      const tables = testDb
-        .prepare("SELECT name FROM sqlite_master WHERE type='table'")
-        .all()
-        .map((row: any) => row.name);
+      const tables = getTableNamesFromAdapter(testDb);
 
       const missingTables = REQUIRED_TABLES.filter((t) => !tables.includes(t));
       if (missingTables.length > 0) {
@@ -137,24 +172,20 @@ export async function POST(request: Request) {
       `${SQLITE_FILE}-shm`,
       `${SQLITE_FILE}-journal`,
     ];
+    // Delete with EBUSY/EPERM retry: after resetDbInstance() the OS may still
+    // hold the SQLite file handle for a moment (Windows mmap / antivirus), so a
+    // plain unlink races to EBUSY (#5406). Mirror the restore path's helper.
     for (const filePath of sqliteFilesToReplace) {
       if (!filePath) continue;
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+      await unlinkFileWithRetry(filePath);
     }
 
     // Copy imported file over current DB
     fs.copyFileSync(tmpPath, SQLITE_FILE!);
 
     // Reopen and verify
-    const db = getDbInstance();
-    const connCount =
-      (db.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get() as any)?.cnt || 0;
-    const nodeCount =
-      (db.prepare("SELECT COUNT(*) as cnt FROM provider_nodes").get() as any)?.cnt || 0;
-    const comboCount = (db.prepare("SELECT COUNT(*) as cnt FROM combos").get() as any)?.cnt || 0;
-    const keyCount = (db.prepare("SELECT COUNT(*) as cnt FROM api_keys").get() as any)?.cnt || 0;
+    getDbInstance();
+    const { connCount, nodeCount, comboCount, keyCount } = countImportedRows();
 
     console.log(
       `[DB] Imported database from upload: ${connCount} connections, ${nodeCount} nodes, ${comboCount} combos, ${keyCount} API keys`

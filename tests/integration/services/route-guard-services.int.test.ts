@@ -52,6 +52,18 @@ describe("isLocalOnlyPath — /api/services/* and /dashboard/providers/services/
     assert.equal(isLocalOnlyPath("/api/services/cliproxy/status"), true);
   });
 
+  it("returns true for /api/services/bifrost/start", () => {
+    assert.equal(isLocalOnlyPath("/api/services/bifrost/start"), true);
+  });
+
+  it("returns true for /api/services/bifrost/install", () => {
+    assert.equal(isLocalOnlyPath("/api/services/bifrost/install"), true);
+  });
+
+  it("returns true for /api/services/bifrost/status", () => {
+    assert.equal(isLocalOnlyPath("/api/services/bifrost/status"), true);
+  });
+
   it("returns true for /api/services/ (root prefix)", () => {
     assert.equal(isLocalOnlyPath("/api/services/"), true);
   });
@@ -109,6 +121,10 @@ describe("isLocalOnlyBypassableByManageScope — /api/services/* is NOT bypassab
 
   it("returns false for /api/services/cliproxy/install", () => {
     assert.equal(isLocalOnlyBypassableByManageScope("/api/services/cliproxy/install"), false);
+  });
+
+  it("returns false for /api/services/bifrost/install (spawn-capable)", () => {
+    assert.equal(isLocalOnlyBypassableByManageScope("/api/services/bifrost/install"), false);
   });
 });
 

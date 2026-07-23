@@ -20,6 +20,33 @@ export function isIntelligentBuilderStrategy(strategy: unknown): boolean {
   return strategy === "auto" || strategy === "lkgp";
 }
 
+export type ComboEligibleConnectionLike = {
+  isActive?: boolean | null;
+  testStatus?: string | null;
+};
+
+/**
+ * Whether a provider connection should be treated as eligible for the combo
+ * builder's "active providers" list (used to decide which providers get their
+ * models fetched/shown when creating or editing a combo).
+ *
+ * Newly-created connections default `testStatus` to `null` until someone
+ * explicitly runs a connection test (`src/lib/db/providers.ts`). Excluding
+ * those from the combo builder meant a freshly-added custom provider's models
+ * never populated the combo model picker until an operator manually tested
+ * the connection — matching the reported symptom (#2057). "Never tested" is
+ * therefore treated the same as "known good", consistent with
+ * `deriveConnectionStatus` in `src/lib/combos/builderOptions.ts`, which only
+ * flags a connection as an error when `testStatus` explicitly matches
+ * `/error|fail/i`.
+ */
+export function isEligibleActiveConnection(connection: ComboEligibleConnectionLike): boolean {
+  if (connection.isActive === false) return false;
+  const testStatus = connection.testStatus;
+  if (!testStatus) return true;
+  return testStatus === "active" || testStatus === "success" || testStatus === "unknown";
+}
+
 export function getComboBuilderStages(options: ComboBuilderStageOptions = {}): ComboBuilderStage[] {
   if (isIntelligentBuilderStrategy(options.strategy)) {
     return [...COMBO_BUILDER_STAGES];
@@ -49,30 +76,36 @@ export function parseQualifiedModel(
   };
 }
 
-export function getComboDraftTarget(entry: unknown): string | null {
-  if (typeof entry === "string") return toTrimmedString(entry);
-  if (!isRecord(entry)) return null;
-  if (entry.kind === "combo-ref") return toTrimmedString(entry.comboName);
-  return toTrimmedString(entry.model);
-}
-
 export function buildPrecisionComboModelStep({
   providerId,
   modelId,
   connectionId = null,
   connectionLabel,
+  allowedConnectionIds = null,
   weight = 0,
 }: {
   providerId: string;
   modelId: string;
   connectionId?: string | null;
   connectionLabel?: string | null;
+  /** #3266: account allowlist scoping round-robin to a subset of connections. */
+  allowedConnectionIds?: string[] | null;
   weight?: number;
 }): ComboModelStep {
   const normalizedProviderId = toTrimmedString(providerId) || "provider";
   const normalizedModelId = toTrimmedString(modelId) || "model";
   const normalizedConnectionId = toTrimmedString(connectionId);
   const normalizedConnectionLabel = toTrimmedString(connectionLabel);
+  // A pinned single connection wins over an allowlist, so only carry the allowlist
+  // when the step is auto-selecting (no forced connectionId).
+  const normalizedAllowed =
+    !normalizedConnectionId && Array.isArray(allowedConnectionIds)
+      ? Array.from(
+          new Set(
+            allowedConnectionIds.map((id) => toTrimmedString(id)).filter((id): id is string => !!id)
+          )
+        )
+      : [];
 
   return {
     kind: "model",
@@ -80,6 +113,7 @@ export function buildPrecisionComboModelStep({
     model: `${normalizedProviderId}/${normalizedModelId}`,
     ...(normalizedConnectionId ? { connectionId: normalizedConnectionId } : {}),
     ...(normalizedConnectionLabel ? { label: normalizedConnectionLabel } : {}),
+    ...(normalizedAllowed.length > 0 ? { allowedConnectionIds: normalizedAllowed } : {}),
     weight: Number.isFinite(weight) ? Math.max(0, Math.min(100, Number(weight))) : 0,
   };
 }

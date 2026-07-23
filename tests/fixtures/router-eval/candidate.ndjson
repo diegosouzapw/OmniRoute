@@ -1,0 +1,2 @@
+{"sampleId":"candidate-1","configId":"priority","selectedModel":"gpt-4.1","expectedModel":"gpt-4.1","latencyMs":110,"costUsd":0.004,"success":true,"timestamp":"2026-01-01T00:00:00.000Z"}
+{"sampleId":"candidate-2","configId":"priority","selectedModel":"gpt-4.1","expectedModel":"gpt-4.1","latencyMs":125,"costUsd":0.004,"success":true,"timestamp":"2026-01-01T00:01:00.000Z"}

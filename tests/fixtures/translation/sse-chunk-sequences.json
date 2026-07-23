@@ -1,0 +1,26 @@
+[
+  {
+    "name": "openai-stream/two-deltas-then-done",
+    "chunks": [
+      "data: {\"choices\":[{\"delta\":{\"content\":\"He\"}}]}\n\n",
+      "data: {\"choices\":[{\"delta\":{\"content\":\"llo\"}}]}\n\n",
+      "data: [DONE]\n\n"
+    ],
+    "expectedText": "Hello"
+  },
+  {
+    "name": "openai-stream/single-delta-then-done",
+    "chunks": ["data: {\"choices\":[{\"delta\":{\"content\":\"World\"}}]}\n\n", "data: [DONE]\n\n"],
+    "expectedText": "World"
+  },
+  {
+    "name": "openai-stream/multiple-deltas",
+    "chunks": [
+      "data: {\"choices\":[{\"delta\":{\"content\":\"foo\"}}]}\n\n",
+      "data: {\"choices\":[{\"delta\":{\"content\":\" \"}}]}\n\n",
+      "data: {\"choices\":[{\"delta\":{\"content\":\"bar\"}}]}\n\n",
+      "data: [DONE]\n\n"
+    ],
+    "expectedText": "foo bar"
+  }
+]

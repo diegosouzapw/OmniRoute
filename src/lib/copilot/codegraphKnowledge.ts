@@ -31,34 +31,22 @@ export interface CodeGraphNode {
   visibility?: string;
 }
 
-export interface CodeGraphEdge {
-  id: number;
-  source: string;
-  target: string;
-  kind: string;
-  line?: number;
-  metadata?: Record<string, unknown>;
-}
-
-export interface CodeGraphFile {
-  path: string;
-  language: string;
-  nodeCount: number;
-  modifiedAt: number;
-}
-
-export interface CodeGraphSearchResult {
-  nodes: CodeGraphNode[];
-  total: number;
-}
-
 // ---------------------------------------------------------------------------
 // Database access (lazy loaded)
 // ---------------------------------------------------------------------------
 
 let _db: unknown = null;
+let dbPathOverride: string | null | undefined;
+
+/** Override the index path for deterministic tests and embedded callers. */
+export function setCodeGraphPathForTest(path: string | null | undefined): void {
+  dbPathOverride = path;
+  _db = null;
+}
 
 function getDbPath(): string | null {
+  if (dbPathOverride !== undefined) return dbPathOverride;
+
   // Try project root first (dev), then cwd, then DATA_DIR
   const candidates = [
     join(process.cwd(), ".codegraph", "codegraph.db"),
@@ -229,30 +217,6 @@ export function listFiles(language?: string, limit = 50): CodeGraphQueryResult {
     ]);
   }
   return queryDb(`SELECT * FROM files ORDER BY path LIMIT ?`, [limit]);
-}
-
-/**
- * Get impact analysis: find symbols that depend on a given symbol (transitively).
- */
-export function getImpactAnalysis(symbolName: string, depth = 1): CodeGraphQueryResult {
-  if (depth <= 0)
-    return { success: false, data: null, error: "Depth must be >= 1", engine: "none" };
-
-  // Direct callers (depth 1)
-  const directCallers = findCallers(symbolName);
-  if (depth === 1) return directCallers;
-
-  // For depth > 1, we'd need recursive CTE or multiple queries.
-  // For now, just return direct callers with a note.
-  const result = directCallers;
-  return {
-    ...result,
-    data: (result.data as Record<string, unknown>[])?.map((r) => ({
-      ...r,
-      _depth: 1,
-      _note: `Depth > 1 requires multiple queries. Use searchSymbols() + findCallers() iteratively for deeper analysis.`,
-    })),
-  };
 }
 
 /**

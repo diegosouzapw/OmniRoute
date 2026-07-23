@@ -4,11 +4,20 @@ import assert from "node:assert/strict";
 import { getDefaultPricing } from "../../src/shared/constants/pricing.ts";
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
 
-test("T12: pricing table includes MiniMax, GLM, Kimi and gpt-5.4 mini entries", () => {
+test("T12: pricing table includes current Codex, MiniMax, GLM and Kimi entries", () => {
   const pricing = getDefaultPricing();
 
-  assert.ok(pricing.cx["gpt-5.4"], "missing cx/gpt-5.4");
-  assert.ok(pricing.cx["gpt-5.4-mini"], "missing cx/gpt-5.4-mini");
+  assert.ok(pricing.cx["gpt-5.6-sol-ultra"], "missing cx/gpt-5.6-sol-ultra");
+  assert.ok(pricing.cx["gpt-5.6-terra-max"], "missing cx/gpt-5.6-terra-max");
+  assert.ok(pricing.cx["gpt-5.6-luna-max"], "missing cx/gpt-5.6-luna-max");
+  assert.equal(pricing.cx["gpt-5.6-sol"].input, 5);
+  assert.equal(pricing.cx["gpt-5.6-sol"].output, 30);
+  assert.equal(pricing.cx["gpt-5.6-terra"].input, 2.5);
+  assert.equal(pricing.cx["gpt-5.6-terra"].output, 15);
+  assert.equal(pricing.cx["gpt-5.6-luna"].input, 1);
+  assert.equal(pricing.cx["gpt-5.6-luna"].output, 6);
+  assert.equal(pricing.cx["gpt-5.4"], undefined);
+  assert.equal(pricing.cx["gpt-5.4-mini"], undefined);
 
   assert.ok(pricing.minimax["minimax-m2.5"], "missing minimax/minimax-m2.5");
   assert.ok(pricing.minimax["minimax-m2.7"], "missing minimax/minimax-m2.7");
@@ -42,10 +51,25 @@ test("T12: codex catalog includes GPT 5.5 variations", () => {
   assert.equal(codexModels.get("gpt-5.5-xhigh")?.targetFormat, "openai-responses");
 });
 
-test("T12: minimax default model list starts with M2.7", () => {
+test("T12: pricing table includes MiniMax-M3 (canonical + lowercase alias)", () => {
+  const pricing = getDefaultPricing();
+
+  assert.ok(pricing.minimax["MiniMax-M3"], "missing minimax/MiniMax-M3");
+  assert.ok(pricing.minimax["minimax-m3"], "missing minimax/minimax-m3 alias");
+
+  for (const key of ["MiniMax-M3", "minimax-m3"]) {
+    assert.equal(pricing.minimax[key].input, 0.5, `${key} input`);
+    assert.equal(pricing.minimax[key].output, 2.0, `${key} output`);
+    assert.equal(pricing.minimax[key].cached, 0.25, `${key} cached`);
+    assert.equal(pricing.minimax[key].reasoning, 3.0, `${key} reasoning`);
+    assert.equal(pricing.minimax[key].cache_creation, 0.5, `${key} cache_creation`);
+  }
+});
+
+test("T12: minimax default model list starts with M3", () => {
   const minimaxModels = REGISTRY.minimax.models.map((m) => m.id);
   const minimaxCnModels = REGISTRY["minimax-cn"].models.map((m) => m.id);
 
-  assert.equal(minimaxModels[0], "MiniMax-M2.7");
-  assert.equal(minimaxCnModels[0], "MiniMax-M2.7");
+  assert.equal(minimaxModels[0], "MiniMax-M3");
+  assert.equal(minimaxCnModels[0], "MiniMax-M3");
 });

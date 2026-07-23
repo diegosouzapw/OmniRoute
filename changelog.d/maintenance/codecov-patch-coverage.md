@@ -1,0 +1,1 @@
+- **CI**: Codecov patch-coverage on every PR diff (informational during calibration — `codecov.yml` sets nothing blocking; strict-patch/lenient-project philosophy on top of the existing 60% c8 floor + ratchet); the CI coverage job now actually emits `coverage/lcov.info` (the `lcov` reporter was missing, so the artifact silently skipped it — the same file Sonar consumes)

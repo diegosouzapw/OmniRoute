@@ -4,6 +4,8 @@ import { AI_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { updateModelAliasSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
+import { getSettings } from "@/lib/db/settings";
+import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
 
 // GET /api/models - Get models with aliases (only from active providers by default)
 export async function GET(request: Request) {
@@ -85,7 +87,22 @@ export async function GET(request: Request) {
       };
     }).filter((m: any) => showAll || m.available);
 
-    return NextResponse.json({ models });
+    // #6328 (follow-up to #6495): REMOVE — not just hide — paid models from the
+    // dashboard model picker when the operator opts into hidePaidModels. Mirrors
+    // the `shouldHidePaid` guard in `src/app/api/v1/models/catalog.ts` (public
+    // catalog). Settings read fails open: on error we preserve pre-patch behavior.
+    let hidePaid = false;
+    try {
+      const settings = await getSettings();
+      hidePaid = settings?.hidePaidModels === true;
+    } catch {}
+    const filtered = hidePaid
+      ? models.filter(
+          (m: { provider: string; model: string }) => providerHasFreeModels(m.provider) && isFreeModel(m.provider, { id: m.model })
+        )
+      : models;
+
+    return NextResponse.json({ models: filtered });
   } catch (error) {
     console.log("Error fetching models:", error);
     return NextResponse.json({ error: "Failed to fetch models" }, { status: 500 });

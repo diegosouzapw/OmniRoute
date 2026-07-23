@@ -1,14 +1,14 @@
 ---
 title: "OmniRoute Architecture"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute Architecture
 
 🌐 **Languages:** 🇺🇸 [English](./ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/architecture/ARCHITECTURE.md) | 🇪🇸 [Español](../i18n/es/docs/architecture/ARCHITECTURE.md) | 🇫🇷 [Français](../i18n/fr/docs/architecture/ARCHITECTURE.md) | 🇮🇹 [Italiano](../i18n/it/docs/architecture/ARCHITECTURE.md) | 🇷🇺 [Русский](../i18n/ru/docs/architecture/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/architecture/ARCHITECTURE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/architecture/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/architecture/ARCHITECTURE.md) | 🇹🇭 [ไทย](../i18n/th/docs/architecture/ARCHITECTURE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/architecture/ARCHITECTURE.md) | 🇸🇦 [العربية](../i18n/ar/docs/architecture/ARCHITECTURE.md) | 🇯🇵 [日本語](../i18n/ja/docs/architecture/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/architecture/ARCHITECTURE.md) | 🇧🇬 [Български](../i18n/bg/docs/architecture/ARCHITECTURE.md) | 🇩🇰 [Dansk](../i18n/da/docs/architecture/ARCHITECTURE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/architecture/ARCHITECTURE.md) | 🇮🇱 [עברית](../i18n/he/docs/architecture/ARCHITECTURE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/architecture/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/architecture/ARCHITECTURE.md) | 🇰🇷 [한국어](../i18n/ko/docs/architecture/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/architecture/ARCHITECTURE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/architecture/ARCHITECTURE.md) | 🇳🇴 [Norsk](../i18n/no/docs/architecture/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/architecture/ARCHITECTURE.md) | 🇷🇴 [Română](../i18n/ro/docs/architecture/ARCHITECTURE.md) | 🇵🇱 [Polski](../i18n/pl/docs/architecture/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/architecture/ARCHITECTURE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/architecture/ARCHITECTURE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/architecture/ARCHITECTURE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/architecture/ARCHITECTURE.md)
 
-_Last updated: 2026-05-13_
+_Last updated: 2026-06-28_
 
 ## Executive Summary
 
@@ -17,13 +17,13 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (177 providers, 45 executors)
+- OpenAI-compatible API surface for CLI/tools (271 providers, 86 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
 - Account-level fallback (multi-account per provider)
 - Quota preflight and quota-aware P2C account selection in the main chat path
-- OAuth + API-key provider connection management (15 OAuth modules)
+- OAuth + API-key provider connection management (19 OAuth provider modules)
 - Embedding generation via `/v1/embeddings` (6 providers, 9 models)
 - Image generation via `/v1/images/generations` (10+ providers, 20+ models)
 - Audio transcription via `/v1/audio/transcriptions` (7 providers)
@@ -58,7 +58,7 @@ Core capabilities:
 - Compliance audit logging with opt-out per API key
 - Eval framework for LLM quality assurance
 - Health dashboard with real-time provider circuit breaker status
-- MCP Server (37 tools) with 3 transports (stdio/SSE/Streamable HTTP)
+- MCP Server (87 tools) with 3 transports (stdio/SSE/Streamable HTTP)
 - A2A Server (JSON-RPC 2.0 + SSE) with skills and task lifecycle
 - Memory system (extraction, injection, retrieval, summarization)
 - Skills system (registry, executor, sandbox, built-in skills)
@@ -66,7 +66,7 @@ Core capabilities:
 - Prompt injection guard middleware
 - Prompt compression pipeline with Caveman, RTK, stacked pipelines, compression combos, language packs, and analytics
 - ACP (Agent Communication Protocol) registry
-- Modular OAuth providers (15 individual modules under `src/lib/oauth/providers/`)
+- Modular OAuth providers (19 individual modules under `src/lib/oauth/providers/`)
 - Uninstall/full-uninstall scripts
 - OAuth environment repair action
 - WebSocket bridge for OpenAI-compatible WS clients (`/v1/ws`)
@@ -175,7 +175,7 @@ flowchart LR
     end
 
     subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qwen/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P1[OAuth Providers\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
         P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
         P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
     end
@@ -292,7 +292,7 @@ Services (business logic):
 - Thinking budget management: `open-sse/services/thinkingBudget.ts`
 - Wildcard model routing: `open-sse/services/wildcardRouter.ts`
 - Rate limit management: `open-sse/services/rateLimitManager.ts`
-- Circuit breaker: `open-sse/services/circuitBreaker.ts`
+- Circuit breaker: `src/shared/utils/circuitBreaker.ts`
 - Context handoff: `open-sse/services/contextHandoff.ts` — handoff summary generation and injection for context-relay strategy
 - Compression: `open-sse/services/compression/*` — proactive compression before provider translation;
   includes Caveman rules, RTK filters, stacked pipelines, compression combos, stats, and validation
@@ -308,23 +308,23 @@ Services (business logic):
 
 Domain layer modules:
 
-- Cost rules/budgets: `src/lib/domain/costRules.ts`
-- Fallback policy: `src/lib/domain/fallbackPolicy.ts`
-- Combo resolver: `src/lib/domain/comboResolver.ts`
-- Lockout policy: `src/lib/domain/lockoutPolicy.ts`
+- Cost rules/budgets: `src/domain/costRules.ts`
+- Fallback policy: `src/domain/fallbackPolicy.ts`
+- Combo resolver: `src/domain/comboResolver.ts`
+- Lockout policy: `src/domain/lockoutPolicy.ts`
 - Policy engine: `src/domain/policyEngine.ts` — centralized lockout → budget → fallback evaluation
-- Error codes catalog: `src/lib/domain/errorCodes.ts`
-- Request ID: `src/lib/domain/requestId.ts`
-- Fetch timeout: `src/lib/domain/fetchTimeout.ts`
-- Request telemetry: `src/lib/domain/requestTelemetry.ts`
-- Compliance/audit: `src/lib/domain/compliance/index.ts`
-- Eval runner: `src/lib/domain/evalRunner.ts`
+- Error codes catalog: `src/shared/constants/errorCodes.ts`
+- Request ID: `src/shared/utils/requestId.ts`
+- Fetch timeout: `src/shared/utils/fetchTimeout.ts`
+- Request telemetry: `src/shared/utils/requestTelemetry.ts`
+- Compliance/audit: `src/lib/compliance/index.ts`
+- Eval runner: `src/lib/evals/evalRunner.ts`
 - Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
-OAuth provider modules (15 individual files under `src/lib/oauth/providers/`):
+OAuth provider modules (16 individual files under `src/lib/oauth/providers/`):
 
 - Registry index: `src/lib/oauth/providers/index.ts`
-- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`, `windsurf.ts`, `gitlab-duo.ts`, `trae.ts`
+- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `agy.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`, `windsurf.ts`, `gitlab-duo.ts`, `trae.ts`
 - Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
 
 ## 5) Embedded Services (v3.8.4)
@@ -365,9 +365,11 @@ relying on a static combo definition. It powers the `auto/*` model prefix family
 
 Key capabilities:
 
-- **14 routing strategies** (priority, weighted, fill-first, round-robin, P2C, random,
-  least-used, cost-optimized, strict-random, **auto**, lkgp, context-optimized,
-  context-relay, plus a fallback path) — auto is the headline addition in v3.8.0.
+- **17 routing strategies** (priority, weighted, fill-first, round-robin, P2C, random,
+  least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random,
+  **auto**, lkgp, context-optimized, context-relay, **fusion**, plus a fallback path) —
+  auto is the headline addition in v3.8.0; `fusion` (panel fan-out + judge synthesis,
+  `open-sse/services/fusion.ts`) is new in v3.8.36.
 - **9-factor scoring**: cost, latency p95, success rate, quota headroom, lockout
   proximity, breaker state, recent failures, model availability, and tag affinity.
 - **Virtual factory** materializes ephemeral combos when no matching named combo
@@ -479,7 +481,7 @@ the global circuit breaker / connection cooldown / model lockout layers:
 - Antigravity 429 engine: `open-sse/services/antigravity429Engine.ts` (rotates
   identity, scrubs response headers, drives credits/version tracking via
   `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`,
-  `antigravityIdentity.ts`, `antigravityObfuscation.ts`, `antigravityVersion.ts`)
+  `antigravityIdentity.ts`, `antigravityVersion.ts`)
 - ModelScope quota policy: `open-sse/services/modelscopePolicy.ts`
 - Claude Code CCH (Compatibility Channel Handshake): `open-sse/services/claudeCodeCCH.ts`,
   plus `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
@@ -910,7 +912,6 @@ Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/
 | `CommandCodeExecutor`    | Command Code                                                                                                                                                | OAuth + per-session header rotation                                  |
 | `CursorExecutor`         | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
 | `DevinCliExecutor`       | Devin CLI                                                                                                                                                   | Devin task lifecycle bridging via cloud agent module                 |
-| `GeminiCLIExecutor`      | Gemini CLI                                                                                                                                                  | Google OAuth token refresh cycle                                     |
 | `GithubExecutor`         | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
 | `GitlabExecutor`         | GitLab Duo                                                                                                                                                  | GitLab OAuth + project-scoped routing                                |
 | `GlmExecutor`            | Z.AI GLM (incl. `glmt` preset)                                                                                                                              | Thinking-budget aware, GLMT preset constants                         |
@@ -932,7 +933,7 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 
 ## Provider Compatibility Matrix
 
-> **Note:** The matrix below is a representative sample of the 177 registered providers in
+> **Note:** The matrix below is a representative sample of the 237 registered providers in
 > OmniRoute v3.8.0. For the canonical and continuously-updated list, refer to
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md) (auto-generated) or the source of
 > truth at `src/shared/constants/providers.ts` (Zod-validated at load).
@@ -941,14 +942,12 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 | ----------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
 | Claude            | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
 | Gemini            | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Gemini CLI        | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
 | Antigravity       | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
 | OpenAI            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
 | Codex             | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
 | GitHub Copilot    | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
 | Cursor            | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
 | Kiro              | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
-| Qwen              | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
 | Qoder             | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
 | Kilo Code         | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
 | Cline             | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
@@ -1012,7 +1011,7 @@ Target formats include:
 
 - OpenAI chat/Responses
 - Claude
-- Gemini/Gemini-CLI/Antigravity envelope
+- Gemini/Antigravity envelope
 - Kiro
 - Cursor
 

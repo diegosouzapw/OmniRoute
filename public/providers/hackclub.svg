@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>Hack Club</title>
+  <rect x="2" y="2" width="20" height="20" rx="4" fill="#ec3750"/>
+  <path d="M7 5v14h2V5H7zm3 3l6 4-6 4V8z" fill="#fff"/>
+</svg>

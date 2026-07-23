@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useState, useEffect, useMemo, useCallback, memo, useRef, useId } from "react";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { getProviderDisplayName } from "@/lib/display/names";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 import { ENDPOINT_CATEGORIES } from "@/shared/constants/endpointCategories";
 import ApiKeyFilterBar from "./components/ApiKeyFilterBar";
 import {
@@ -13,13 +14,44 @@ import {
   isRestricted as isKeyRestricted,
   classifyKeyStatus,
   computeApiKeyCounts,
+  formatUsdCost,
+  toLocalDateTimeInputValue,
+  toggleKeyVisibility,
 } from "./apiManagerPageUtils";
 import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
 import { readActiveOnlyPreference, writeActiveOnlyPreference } from "./apiManagerPageStorage";
+import { buildApiKeyCreateScopes, mergeApiKeyPermissionScopes } from "./apiManagerScopes";
+import { SELF_ACCOUNT_QUOTA_SCOPE, SELF_USAGE_SCOPE } from "@/shared/constants/selfServiceScopes";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
+import { hasProviderQuotaBypassScope } from "@/shared/constants/apiKeyPolicyScopes";
+import { UsageLimitSettings } from "./components/UsageLimitSettings";
+import { ChaosModeAccessToggle } from "./components/ChaosModeAccessToggle";
+import { BypassProviderQuotaToggle } from "./components/BypassProviderQuotaToggle";
+import ReasoningRoutingRules from "@/shared/components/ReasoningRoutingRules";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
 const MAX_SELECTED_MODELS = 500;
+const CLAUDE_CODE_DEFAULT_MODEL_ID = "cc/*";
+const CLAUDE_CODE_DEFAULT_MODEL_NAME = "Claude Code default";
+const CLAUDE_CODE_DEFAULT_FAMILIES = [
+  { id: "other", label: "other" },
+  { id: "fable", label: "fable" },
+  { id: "opus", label: "opus" },
+  { id: "sonnet", label: "sonnet" },
+  { id: "haiku", label: "haiku" },
+] as const;
+type ClaudeCodeFamilyId = (typeof CLAUDE_CODE_DEFAULT_FAMILIES)[number]["id"];
+type ClaudeCodeBlockableFamilyId = Exclude<ClaudeCodeFamilyId, "other">;
+const CLAUDE_CODE_FAMILY_BLOCK_PATTERNS: Record<ClaudeCodeBlockableFamilyId, string[]> = {
+  fable: ["claude-fable*", "fable"],
+  opus: ["claude-opus*", "opus"],
+  sonnet: ["claude-sonnet*", "sonnet"],
+  haiku: ["claude-haiku*", "haiku"],
+};
+const CLAUDE_CODE_BLOCK_PATTERN_SET = new Set(
+  Object.values(CLAUDE_CODE_FAMILY_BLOCK_PATTERNS).flat()
+);
 
 // Debounce hook for search optimization
 function useDebouncedValue<T>(value: T, delay: number): T {
@@ -72,11 +104,14 @@ interface AccessSchedule {
   tz: string;
 }
 
+type StreamDefaultMode = "legacy" | "json";
+
 interface ApiKey {
   id: string;
   name: string;
   key: string;
   allowedModels: string[] | null;
+  blockedModels?: string[] | null;
   allowedCombos: string[] | null;
   allowedConnections: string[] | null;
   noLog?: boolean;
@@ -90,6 +125,14 @@ interface ApiKey {
   rateLimits?: Array<{ limit: number; window: number }> | null;
   scopes?: string[];
   allowedEndpoints?: string[];
+  streamDefaultMode?: StreamDefaultMode;
+  disableNonPublicModels?: boolean;
+  allowUsageCommand?: boolean;
+  chaosModeEnabled?: boolean;
+  usageLimitEnabled?: boolean;
+  dailyUsageLimitUsd?: number | null;
+  weeklyUsageLimitUsd?: number | null;
+  allowedQuotas?: string[] | null;
   createdAt: string;
 }
 
@@ -102,12 +145,14 @@ interface ProviderConnection {
 
 interface KeyUsageStats {
   totalRequests: number;
+  totalCost: number;
   lastUsed: string | null;
 }
 
 interface Model {
   id: string;
   owned_by: string;
+  name?: string;
 }
 
 interface ComboOption {
@@ -119,17 +164,59 @@ interface ComboOption {
 /** Tuple type for models grouped by provider: [providerName, models[]] */
 type ProviderGroup = [provider: string, models: Model[]];
 
+function isClaudeCodeModel(model: Model): boolean {
+  return (
+    model.owned_by === "claude" || model.id.startsWith("cc/") || model.id.startsWith("claude/")
+  );
+}
+
+function withClaudeCodeDefaultModel(models: Model[]): Model[] {
+  if (!models.some(isClaudeCodeModel)) return models;
+  if (models.some((model) => model.id === CLAUDE_CODE_DEFAULT_MODEL_ID)) return models;
+  return [
+    {
+      id: CLAUDE_CODE_DEFAULT_MODEL_ID,
+      name: CLAUDE_CODE_DEFAULT_MODEL_NAME,
+      owned_by: "claude",
+    },
+    ...models,
+  ];
+}
+
+function getBlockedClaudeCodeFamilies(blockedModels: string[]): ClaudeCodeBlockableFamilyId[] {
+  return (Object.keys(CLAUDE_CODE_FAMILY_BLOCK_PATTERNS) as ClaudeCodeBlockableFamilyId[]).filter(
+    (familyId) =>
+      CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId].some((pattern) => blockedModels.includes(pattern))
+  );
+}
+
+function isClaudeCodeFamilyModel(modelId: string, familyId: ClaudeCodeBlockableFamilyId): boolean {
+  const normalized = modelId.toLowerCase();
+  return (
+    normalized === familyId ||
+    normalized.includes(`/${familyId}`) ||
+    normalized.includes(`-${familyId}`)
+  );
+}
+
 export default function ApiManagerPageClient() {
   const t = useTranslations("apiManager");
   const tc = useTranslations("common");
+  const locale = useLocale();
+  const newKeyNameInputId = useId();
+  const createKeyFormRef = useRef<HTMLDivElement | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [allModels, setAllModels] = useState<Model[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const [allCombos, setAllCombos] = useState<ComboOption[]>([]);
   const [allConnections, setAllConnections] = useState<ProviderConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [newKeyManageEnabled, setNewKeyManageEnabled] = useState(false);
+  const [newKeySelfUsageEnabled, setNewKeySelfUsageEnabled] = useState(true);
+  const [newKeyAccountQuotaEnabled, setNewKeyAccountQuotaEnabled] = useState(false);
+  const [newKeyAllowUsageCommand, setNewKeyAllowUsageCommand] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
@@ -140,21 +227,46 @@ export default function ApiManagerPageClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
+  const [deviceCounts, setDeviceCounts] = useState<Record<string, number>>({});
   const [allowKeyReveal, setAllowKeyReveal] = useState(false);
+  // Per-row API key visibility toggle (eye / eye-off). Keys default to masked.
+  // Map id -> fully revealed key string fetched on demand from /api/keys/{id}/reveal.
+  const [revealedKeys, setRevealedKeys] = useState<Map<string, string>>(new Map());
+  const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  const createKeyNameFieldRef = useRef<HTMLDivElement | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeOnly, setActiveOnly] = useState(false);
   const [statusFilter, setStatusFilter] = useState<KeyStatus | null>(null);
   const [typeFilter, setTypeFilter] = useState<KeyType | null>(null);
+  const [quotaPoolGroup, setQuotaPoolGroup] = useState<Record<string, string>>({});
 
   const { copied, copy } = useCopyToClipboard();
+
+  const scrollCreateKeyFormToTop = useCallback(() => {
+    const scrollContainer = createKeyFormRef.current?.parentElement;
+    if (scrollContainer instanceof HTMLElement) {
+      scrollContainer.scrollTop = 0;
+    }
+
+    const input = document.getElementById(newKeyNameInputId);
+    input?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    input?.focus({ preventScroll: true });
+  }, [newKeyNameInputId]);
 
   useEffect(() => {
     fetchData();
     fetchModels();
     fetchCombos();
     fetchConnections();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- initial dashboard load only
+
+  useEffect(() => {
+    if (!showAddModal || !nameError) return;
+    requestAnimationFrame(() => {
+      createKeyNameFieldRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+  }, [nameError, showAddModal]);
 
   useEffect(() => {
     setActiveOnly(readActiveOnlyPreference());
@@ -164,15 +276,115 @@ export default function ApiManagerPageClient() {
     writeActiveOnlyPreference(activeOnly);
   }, [activeOnly]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadQuotaGroups = async () => {
+      try {
+        const [poolsRes, groupsRes] = await Promise.all([
+          fetch("/api/quota/pools"),
+          fetch("/api/quota/groups"),
+        ]);
+        if (!poolsRes.ok || !groupsRes.ok) return;
+        const poolsData = await poolsRes.json();
+        const groupsData = await groupsRes.json();
+        const pools: Array<{ id: string; groupId: string }> = Array.isArray(poolsData.pools)
+          ? poolsData.pools
+          : [];
+        const groups: Array<{ id: string; name: string }> = Array.isArray(groupsData.groups)
+          ? groupsData.groups
+          : [];
+        const groupNameById: Record<string, string> = {};
+        for (const g of groups) {
+          groupNameById[g.id] = g.name;
+        }
+        const map: Record<string, string> = {};
+        for (const p of pools) {
+          if (groupNameById[p.groupId]) {
+            map[p.id] = groupNameById[p.groupId];
+          }
+        }
+        if (!cancelled) setQuotaPoolGroup(map);
+      } catch {
+        // fail open — quota group chips simply won't render
+      }
+    };
+    loadQuotaGroups();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showAddModal || !nameError) return;
+
+    const timeout = window.setTimeout(() => {
+      scrollCreateKeyFormToTop();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, [showAddModal, nameError, scrollCreateKeyFormToTop]);
+
   const fetchModels = async () => {
+    setModelsLoaded(false);
     try {
       const res = await fetch("/v1/models");
       if (res.ok) {
         const data = await res.json();
-        setAllModels(data.data || []);
+        setAllModels(Array.isArray(data.data) ? data.data : []);
+        return;
+      }
+
+      // Fallback for dashboard API-key editing: /v1/models can be protected by
+      // API-key catalog auth, but the dashboard still needs a stable catalog so
+      // users can edit allowedModels. Preserve combo pseudo-models too: /v1/models
+      // lists active combos as owned_by="combo", while /api/models?all=true only
+      // returns the static provider model inventory.
+      const [fallbackRes, combosRes] = await Promise.all([
+        fetch("/api/models?all=true"),
+        fetch("/api/combos"),
+      ]);
+      if (fallbackRes.ok) {
+        const [fallbackData, combosData] = await Promise.all([
+          fallbackRes.json(),
+          combosRes.ok ? combosRes.json() : Promise.resolve({ combos: [] }),
+        ]);
+        const fallbackModels = Array.isArray(fallbackData.models) ? fallbackData.models : [];
+        const comboModels = (Array.isArray(combosData.combos) ? combosData.combos : [])
+          .filter(
+            (combo: any) =>
+              combo?.isActive !== false &&
+              combo?.isHidden !== true &&
+              typeof combo?.name === "string" &&
+              combo.name.trim().length > 0
+          )
+          .map((combo: any) => ({
+            id: combo.name,
+            owned_by: "combo",
+            name: combo.name,
+          }));
+        const modelEntries = fallbackModels
+          .map((m: any) => ({
+            id: typeof m.fullModel === "string" ? m.fullModel : `${m.provider}/${m.model}`,
+            owned_by: typeof m.provider === "string" ? m.provider : "unknown",
+            name: typeof m.alias === "string" ? m.alias : m.model || m.fullModel,
+          }))
+          .filter((m: Model) => typeof m.id === "string" && m.id.length > 0);
+        const seen = new Set<string>();
+        setAllModels(
+          [...comboModels, ...modelEntries].filter((m: Model) => {
+            if (seen.has(m.id)) return false;
+            seen.add(m.id);
+            return true;
+          })
+        );
+      } else {
+        setAllModels([]);
       }
     } catch (error) {
       console.log("Error fetching models:", error);
+      setAllModels([]);
+    } finally {
+      setModelsLoaded(true);
     }
   };
 
@@ -213,6 +425,7 @@ export default function ApiManagerPageClient() {
         // Fetch usage stats after keys are loaded
         fetchUsageStats(data.keys || []);
         fetchSessionCounts(data.keys || []);
+        fetchDeviceCounts(data.keys || []);
       }
     } catch (error) {
       console.log("Error fetching keys:", error);
@@ -243,16 +456,22 @@ export default function ApiManagerPageClient() {
           (sum: number, entry: any) => sum + (Number(entry.requests) || 0),
           0
         );
+        const totalCost = matches.reduce((sum: number, entry: any) => {
+          const cost = Number(entry.cost);
+          return sum + (Number.isFinite(cost) ? cost : 0);
+        }, 0);
 
         // Match call logs by unique ID as well for the lastUsed timestamp
+        // Prefer an exact apiKeyId match; fall back to name match for legacy
+        // logs that predate per-key IDs (apiKeyId absent).
         const lastUsed =
-          (logs || []).find((log: any) => log.apiKeyId === key.id)?.timestamp || null;
-        (logs || []).find(
-          (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
-        )?.timestamp || null;
+          (logs || []).find(
+            (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
+          )?.timestamp || null;
 
         stats[key.id] = {
           totalRequests,
+          totalCost,
           lastUsed,
         };
       }
@@ -287,6 +506,36 @@ export default function ApiManagerPageClient() {
     }
   };
 
+  // Per-key device/connection counts (port of upstream 9router#931, thanks
+  // @mugnimaestra). One lightweight GET per key against
+  // /api/keys/[id]/devices — device counts are in-memory + TTL-evicted, so
+  // this is a much smaller payload than session data.
+  const fetchDeviceCounts = async (apiKeys: ApiKey[]) => {
+    if (apiKeys.length === 0) {
+      setDeviceCounts({});
+      return;
+    }
+    try {
+      const results = await Promise.all(
+        apiKeys.map(async (key) => {
+          try {
+            const res = await fetch(`/api/keys/${encodeURIComponent(key.id)}/devices`);
+            if (!res.ok) return [key.id, 0] as const;
+            const data = await res.json();
+            const count =
+              typeof data?.count === "number" && Number.isFinite(data.count) ? data.count : 0;
+            return [key.id, count] as const;
+          } catch {
+            return [key.id, 0] as const;
+          }
+        })
+      );
+      setDeviceCounts(Object.fromEntries(results));
+    } catch (error) {
+      console.log("Error fetching device counts:", error);
+    }
+  };
+
   const clearPageError = useCallback(() => setPageError(null), []);
 
   const keyCounts = useMemo(() => computeApiKeyCounts(keys), [keys]);
@@ -313,9 +562,8 @@ export default function ApiManagerPageClient() {
 
     // 4. search query (case-insensitive substring on name and key)
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
       list = list.filter(
-        (k) => k.name.toLowerCase().includes(q) || k.key.toLowerCase().includes(q)
+        (k) => matchesSearch(k.name, searchQuery) || matchesSearch(k.key, searchQuery)
       );
     }
 
@@ -324,6 +572,26 @@ export default function ApiManagerPageClient() {
 
   const isFiltered =
     activeOnly || statusFilter !== null || typeFilter !== null || searchQuery.trim() !== "";
+
+  const isQuotaKey = (k: ApiKey) => Array.isArray(k.allowedQuotas) && k.allowedQuotas.length > 0;
+
+  const quotaKeys = filteredKeys.filter(isQuotaKey);
+  const normalKeys = filteredKeys.filter((k) => !isQuotaKey(k));
+  const permissionModels = useMemo(() => withClaudeCodeDefaultModel(allModels), [allModels]);
+
+  const quotaGroupsForKey = (k: ApiKey): string[] => {
+    if (!Array.isArray(k.allowedQuotas)) return [];
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const poolId of k.allowedQuotas) {
+      const groupName = quotaPoolGroup[poolId];
+      if (groupName && !seen.has(groupName)) {
+        seen.add(groupName);
+        result.push(groupName);
+      }
+    }
+    return result;
+  };
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -336,6 +604,7 @@ export default function ApiManagerPageClient() {
     // Validate raw input first, then sanitize
     const validation = validateKeyName(newKeyName, t);
     if (!validation.valid) {
+      scrollCreateKeyFormToTop();
       setNameError(validation.error || t("invalidKeyName"));
       return;
     }
@@ -351,7 +620,12 @@ export default function ApiManagerPageClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: sanitizedName,
-          scopes: newKeyManageEnabled ? ["manage"] : [],
+          scopes: buildApiKeyCreateScopes({
+            manageEnabled: newKeyManageEnabled,
+            selfUsageEnabled: newKeySelfUsageEnabled,
+            selfAccountQuotaEnabled: newKeyAccountQuotaEnabled,
+          }),
+          allowUsageCommand: newKeyAllowUsageCommand,
         }),
       });
       const data = await res.json();
@@ -361,9 +635,12 @@ export default function ApiManagerPageClient() {
         await fetchData();
         setNewKeyName("");
         setNewKeyManageEnabled(false);
+        setNewKeySelfUsageEnabled(true);
+        setNewKeyAccountQuotaEnabled(false);
+        setNewKeyAllowUsageCommand(false);
         setShowAddModal(false);
       } else {
-        setCreateError(data.error || t("failedCreateKey"));
+        setCreateError(extractApiErrorMessage(data, t("failedCreateKey")));
       }
     } catch (error) {
       console.error("Error creating key:", error);
@@ -388,9 +665,17 @@ export default function ApiManagerPageClient() {
       const res = await fetch(`/api/keys/${encodeURIComponent(id)}`, { method: "DELETE" });
       if (res.ok) {
         setKeys((prev) => prev.filter((k) => k.id !== id));
+        // Clean up any cached reveal/visibility state for this key.
+        setRevealedKeys((prev) => {
+          if (!prev.has(id)) return prev;
+          const next = new Map(prev);
+          next.delete(id);
+          return next;
+        });
+        setVisibleKeys((prev) => (prev.has(id) ? toggleKeyVisibility(prev, id) : prev));
       } else {
         const data = await res.json();
-        setPageError(data.error || t("failedDeleteKey"));
+        setPageError(extractApiErrorMessage(data, t("failedDeleteKey")));
       }
     } catch (error) {
       console.error("Error deleting key:", error);
@@ -414,7 +699,7 @@ export default function ApiManagerPageClient() {
         setCreatedKey(data.key);
         await fetchData();
       } else {
-        setPageError(data.error || t("failedRegenerateKey"));
+        setPageError(extractApiErrorMessage(data, t("failedRegenerateKey")));
       }
     } catch (error) {
       console.error("Error regenerating key:", error);
@@ -442,11 +727,50 @@ export default function ApiManagerPageClient() {
 
       const data = await res.json();
       if (typeof data?.key === "string") {
+        // Cache the revealed value so a subsequent show-toggle does not refetch.
+        setRevealedKeys((prev) => {
+          const next = new Map(prev);
+          next.set(keyId, data.key);
+          return next;
+        });
         await copy(data.key, `existing_key_${keyId}`);
       }
     } catch (error) {
       console.log("Error copying existing key:", error);
     }
+  };
+
+  /**
+   * Toggle the visibility of one key inline (eye / eye-off button).
+   * Lazy-fetches the full key from /api/keys/{id}/reveal on the FIRST show,
+   * then caches it in `revealedKeys` so re-toggling is instant. Hiding only
+   * flips the visibility set — the cached reveal stays so a re-show is free.
+   */
+  const handleToggleKeyVisibility = async (keyId: string) => {
+    if (!keyId) return;
+    const isCurrentlyVisible = visibleKeys.has(keyId);
+
+    if (!isCurrentlyVisible && !revealedKeys.has(keyId)) {
+      try {
+        const res = await fetch(`/api/keys/${encodeURIComponent(keyId)}/reveal`);
+        if (!res.ok) {
+          console.log("Error revealing key:", await res.text());
+          return;
+        }
+        const data = await res.json();
+        if (typeof data?.key !== "string") return;
+        setRevealedKeys((prev) => {
+          const next = new Map(prev);
+          next.set(keyId, data.key);
+          return next;
+        });
+      } catch (error) {
+        console.log("Error revealing key:", error);
+        return;
+      }
+    }
+
+    setVisibleKeys((prev) => toggleKeyVisibility(prev, keyId));
   };
 
   const handleUpdatePermissions = async (
@@ -464,7 +788,15 @@ export default function ApiManagerPageClient() {
     accessSchedule: AccessSchedule | null,
     rateLimits: Array<{ limit: number; window: number }> | null,
     scopes: string[],
-    allowedEndpoints: string[]
+    allowedEndpoints: string[],
+    streamDefaultMode: StreamDefaultMode,
+    disableNonPublicModels: boolean,
+    allowUsageCommand: boolean,
+    usageLimitEnabled: boolean,
+    dailyUsageLimitUsd: number | null,
+    weeklyUsageLimitUsd: number | null,
+    blockedModels: string[],
+    chaosModeEnabled: boolean
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -482,6 +814,9 @@ export default function ApiManagerPageClient() {
 
     // Validate each model ID
     const validModels = allowedModels.filter(
+      (id) => typeof id === "string" && id.length > 0 && id.length < 200
+    );
+    const validBlockedModels = blockedModels.filter(
       (id) => typeof id === "string" && id.length > 0 && id.length < 200
     );
 
@@ -512,6 +847,7 @@ export default function ApiManagerPageClient() {
         body: JSON.stringify({
           name: sanitizedName,
           allowedModels: validModels,
+          blockedModels: validBlockedModels,
           allowedCombos: validCombos,
           allowedConnections: validConnections,
           noLog,
@@ -525,6 +861,13 @@ export default function ApiManagerPageClient() {
           rateLimits,
           scopes,
           allowedEndpoints,
+          streamDefaultMode,
+          disableNonPublicModels,
+          allowUsageCommand,
+          usageLimitEnabled,
+          dailyUsageLimitUsd,
+          weeklyUsageLimitUsd,
+          chaosModeEnabled,
         }),
       });
 
@@ -534,7 +877,7 @@ export default function ApiManagerPageClient() {
         setEditingKey(null);
       } else {
         const data = await res.json();
-        setPageError(data.error || t("failedUpdatePermissions"));
+        setPageError(extractApiErrorMessage(data, t("failedUpdatePermissions")));
       }
     } catch (error) {
       console.error("Error updating permissions:", error);
@@ -552,29 +895,29 @@ export default function ApiManagerPageClient() {
   // ids like "openai-compatible-chat-<uuid>" into the grouping label)
   const modelsByProvider = useMemo((): ProviderGroup[] => {
     const grouped: Record<string, Model[]> = {};
-    for (const model of allModels) {
+    for (const model of permissionModels) {
       const provider =
         getProviderDisplayName(model.owned_by) || model.owned_by || t("unknownProvider");
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
-    return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [allModels, t]);
+    return Object.entries(grouped).sort((a, b) => compareTr(a[0], b[0]));
+  }, [permissionModels, t]);
 
   // Filter models based on debounced search
   const filteredModelsByProvider = useMemo((): ProviderGroup[] => {
     if (!debouncedSearchModel.trim()) return modelsByProvider;
 
-    const search = debouncedSearchModel.toLowerCase();
     return modelsByProvider
-      .map(
-        ([provider, models]): ProviderGroup => [
-          provider,
-          models.filter(
-            (m) => m.id.toLowerCase().includes(search) || provider.toLowerCase().includes(search)
-          ),
-        ]
-      )
+      .map(([provider, models]): ProviderGroup => [
+        provider,
+        models.filter(
+          (m) =>
+            matchesSearch(m.id, debouncedSearchModel) ||
+            matchesSearch(m.name || "", debouncedSearchModel) ||
+            matchesSearch(provider, debouncedSearchModel)
+        ),
+      ])
       .filter(([, models]) => models.length > 0);
   }, [modelsByProvider, debouncedSearchModel]);
 
@@ -600,65 +943,6 @@ export default function ApiManagerPageClient() {
           >
             <span className="material-symbols-outlined">close</span>
           </button>
-        </div>
-      )}
-
-      {/* Stats Summary Cards */}
-      {keys.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
-                <span className="material-symbols-outlined text-primary text-lg">vpn_key</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{keys.length}</p>
-                <p className="text-xs text-text-muted">{t("totalKeys")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-amber-500/10">
-                <span className="material-symbols-outlined text-amber-500 text-lg">lock</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {
-                    keys.filter((k) => Array.isArray(k.allowedModels) && k.allowedModels.length > 0)
-                      .length
-                  }
-                </p>
-                <p className="text-xs text-text-muted">{t("restricted")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-blue-500/10">
-                <span className="material-symbols-outlined text-blue-500 text-lg">bar_chart</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {Object.values(usageStats).reduce((sum, s) => sum + s.totalRequests, 0)}
-                </p>
-                <p className="text-xs text-text-muted">{t("totalRequests")}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center size-9 rounded-lg bg-emerald-500/10">
-                <span className="material-symbols-outlined text-emerald-500 text-lg">
-                  model_training
-                </span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{allModels.length}</p>
-                <p className="text-xs text-text-muted">{t("modelsAvailable")}</p>
-              </div>
-            </div>
-          </Card>
         </div>
       )}
 
@@ -699,7 +983,6 @@ export default function ApiManagerPageClient() {
                 )}
               </h3>
               <p className="text-xs text-text-muted">
-                {keys.length}{" "}
                 {keys.length === 1
                   ? t("keyRegistered", { count: keys.length })
                   : t("keysRegistered", { count: keys.length })}
@@ -748,19 +1031,8 @@ export default function ApiManagerPageClient() {
             <Button onClick={handleClearFilters}>{t("emptyFilterClear")}</Button>
           </div>
         ) : (
-          <div className="flex flex-col border border-border rounded-lg overflow-hidden">
-            {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-surface/50 border-b border-border text-xs font-semibold text-text-muted uppercase tracking-wider">
-              <div className="col-span-2">{t("name")}</div>
-              <div className="col-span-3">{t("key")}</div>
-              <div className="col-span-2">{t("permissions")}</div>
-              <div className="col-span-2">{t("usage")}</div>
-              <div className="col-span-1">{t("created")}</div>
-              <div className="col-span-2 text-right">{t("actions")}</div>
-            </div>
-
-            {/* Table Rows */}
-            {filteredKeys.map((key) => {
+          (() => {
+            const renderKeyRow = (key: ApiKey) => {
               const stats = usageStats[key.id];
               const isRestricted = Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
               const hasComboRestrictions =
@@ -775,14 +1047,22 @@ export default function ApiManagerPageClient() {
                   : 0;
               const hasThrottle = throttleDelayMs > 0;
               const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
+              const hasProviderQuotaBypass = hasProviderQuotaBypassScope(key.scopes);
+              const hasJsonStreamDefault = key.streamDefaultMode === "json";
+              const hasLocalUsageCommand = key.allowUsageCommand === true;
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
+              const deviceCount = deviceCounts[key.id] || 0;
               const hasSchedule = key.accessSchedule?.enabled === true;
+              const keyIsQuota = isQuotaKey(key);
+              const groups = quotaGroupsForKey(key);
+              const visibleGroups = groups.slice(0, 3);
+              const extraGroupCount = groups.length - visibleGroups.length;
               return (
                 <div
                   key={key.id}
-                  className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0 hover:bg-surface/30 transition-colors group"
+                  className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0 hover:bg-surface/30 transition-colors group min-w-[760px]"
                 >
                   <div className="col-span-2 flex items-center gap-2">
                     <span
@@ -795,21 +1075,36 @@ export default function ApiManagerPageClient() {
                     </span>
                   </div>
                   <div className="col-span-3 flex items-center gap-1.5">
-                    <code className="text-sm text-text-muted font-mono truncate">{key.key}</code>
+                    <code className="text-sm text-text-muted font-mono truncate">
+                      {visibleKeys.has(key.id) ? (revealedKeys.get(key.id) ?? key.key) : key.key}
+                    </code>
                     {allowKeyReveal ? (
-                      <button
-                        onClick={() => handleCopyExistingKey(key.id)}
-                        className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
-                        title={tc("copy")}
-                        aria-label={tc("copy")}
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {copied === `existing_key_${key.id}` ? "check" : "content_copy"}
-                        </span>
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleToggleKeyVisibility(key.id)}
+                          className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
+                          title={visibleKeys.has(key.id) ? t("hideKey") : t("showKey")}
+                          aria-label={visibleKeys.has(key.id) ? t("hideKey") : t("showKey")}
+                          aria-pressed={visibleKeys.has(key.id)}
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            {visibleKeys.has(key.id) ? "visibility_off" : "visibility"}
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => handleCopyExistingKey(key.id)}
+                          className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
+                          title={tc("copy")}
+                          aria-label={tc("copy")}
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            {copied === `existing_key_${key.id}` ? "check" : "content_copy"}
+                          </span>
+                        </button>
+                      </>
                     ) : (
                       <span
-                        className="p-1 text-text-muted/40 opacity-0 group-hover:opacity-100 transition-all shrink-0 cursor-help"
+                        className="p-1 text-text-muted/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0 cursor-help"
                         title={t("keyOnlyAvailableAtCreation")}
                       >
                         <span className="material-symbols-outlined text-[14px]">lock</span>
@@ -818,13 +1113,34 @@ export default function ApiManagerPageClient() {
                   </div>
                   <div className="col-span-2 flex items-center">
                     <div className="flex flex-col items-start gap-1">
+                      {/* QUOTA differentiation chips — prepended before existing badges */}
+                      {keyIsQuota && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-400 text-[11px] font-medium">
+                          {t("quotaModeOnly")}
+                        </span>
+                      )}
+                      {keyIsQuota &&
+                        visibleGroups.map((groupName) => (
+                          <span
+                            key={groupName}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-[11px] font-medium truncate max-w-full"
+                          >
+                            {groupName}
+                          </span>
+                        ))}
+                      {keyIsQuota && extraGroupCount > 0 && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-[11px] font-medium">
+                          +{extraGroupCount}
+                        </span>
+                      )}
+                      {/* Existing badges */}
                       {isRestricted ? (
                         <button
                           onClick={() => handleOpenPermissions(key)}
                           className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
                         >
                           <span className="material-symbols-outlined text-[14px]">lock</span>
-                          {t("modelsCount", { count: key.allowedModels.length })}
+                          {t("modelsCount", { count: key.allowedModels!.length })}
                         </button>
                       ) : (
                         <button
@@ -841,7 +1157,7 @@ export default function ApiManagerPageClient() {
                           className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-colors"
                         >
                           <span className="material-symbols-outlined text-[14px]">cable</span>
-                          {key.allowedConnections.length} conn
+                          {key.allowedConnections!.length} conn
                         </button>
                       )}
                       {hasComboRestrictions && (
@@ -850,7 +1166,7 @@ export default function ApiManagerPageClient() {
                           className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-medium hover:bg-teal-500/20 transition-colors"
                         >
                           <span className="material-symbols-outlined text-[14px]">hub</span>
-                          {key.allowedCombos.length} combos
+                          {key.allowedCombos!.length} combos
                         </button>
                       )}
                       {noLogEnabled && (
@@ -869,10 +1185,43 @@ export default function ApiManagerPageClient() {
                           Auto-Resolve
                         </span>
                       )}
+                      {hasJsonStreamDefault && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">data_object</span>
+                          {t("streamDefaultBadge")}
+                        </span>
+                      )}
+                      {hasLocalUsageCommand && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-600 dark:text-slate-300 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">terminal</span>
+                          {t("localUsageCommandBadge")}
+                        </span>
+                      )}
+                      {key.usageLimitEnabled === true && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">paid</span>
+                          USD quota
+                        </span>
+                      )}
+                      {hasProviderQuotaBypass && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">alt_route</span>
+                          Bypass quota policy
+                        </span>
+                      )}
                       {hasSessionLimit && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">group</span>
                           Sessions: {activeSessions}/{maxSessions}
+                        </span>
+                      )}
+                      {deviceCount > 0 && (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 text-[11px] font-medium"
+                          title={t("devicesTooltip", { count: deviceCount })}
+                        >
+                          <span className="material-symbols-outlined text-[12px]">devices</span>
+                          {t("devicesCount", { count: deviceCount })}
                         </span>
                       )}
                       {hasThrottle && (
@@ -920,6 +1269,11 @@ export default function ApiManagerPageClient() {
                       {stats?.totalRequests ?? 0}{" "}
                       <span className="text-text-muted font-normal text-xs">{t("reqs")}</span>
                     </span>
+                    {(stats?.totalRequests ?? 0) > 0 && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        {formatUsdCost(stats?.totalCost ?? 0, locale)}
+                      </span>
+                    )}
                     {stats?.lastUsed ? (
                       <span className="text-[10px] text-text-muted">
                         {t("lastUsedOn", { date: new Date(stats.lastUsed).toLocaleDateString() })}
@@ -932,23 +1286,31 @@ export default function ApiManagerPageClient() {
                     {new Date(key.createdAt).toLocaleDateString()}
                   </div>
                   <div className="col-span-2 flex items-center justify-end gap-1">
+                    <a
+                      href={`/dashboard/costs?range=all&apiKeyIds=${encodeURIComponent(key.id)}&groupBy=model`}
+                      className="p-2 hover:bg-emerald-500/10 rounded text-text-muted hover:text-emerald-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                      title={`View costs for ${key.name}`}
+                      aria-label={`View costs for ${key.name}`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">payments</span>
+                    </a>
                     <button
                       onClick={() => handleRegenerateKey(key.id)}
-                      className="p-2 hover:bg-amber-500/10 rounded text-text-muted hover:text-amber-500 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 hover:bg-amber-500/10 rounded text-text-muted hover:text-amber-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                       title={t("regenerateKey")}
                     >
                       <span className="material-symbols-outlined text-[18px]">refresh</span>
                     </button>
                     <button
                       onClick={() => handleOpenPermissions(key)}
-                      className="p-2 hover:bg-primary/10 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 hover:bg-primary/10 rounded text-text-muted hover:text-primary opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                       title={t("editPermissions")}
                     >
                       <span className="material-symbols-outlined text-[18px]">tune</span>
                     </button>
                     <button
                       onClick={() => handleDeleteKey(key.id)}
-                      className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                       title={t("deleteKey")}
                     >
                       <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -956,59 +1318,97 @@ export default function ApiManagerPageClient() {
                   </div>
                 </div>
               );
-            })}
-          </div>
-        )}
-      </Card>
+            };
 
-      {/* Usage Tips Card */}
-      <Card>
-        <div className="flex items-start gap-3">
-          <div className="flex items-center justify-center size-10 rounded-lg bg-blue-500/10 shrink-0">
-            <span className="material-symbols-outlined text-xl text-blue-500">lightbulb</span>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">{t("usageTips")}</h3>
-            <ul className="text-sm text-text-muted space-y-1.5">
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipAuth")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipSecure")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipSeparate")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-xs text-primary mt-1">check</span>
-                <span>{t("tipRestrict")}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
+            const tableHeader = (
+              <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-surface/50 border-b border-border text-xs font-semibold text-text-muted uppercase tracking-wider min-w-[760px]">
+                <div className="col-span-2">{t("name")}</div>
+                <div className="col-span-3">{t("key")}</div>
+                <div className="col-span-2">{t("permissions")}</div>
+                <div className="col-span-2">{t("usage")}</div>
+                <div className="col-span-1">{t("created")}</div>
+                <div className="col-span-2 text-right">{t("actions")}</div>
+              </div>
+            );
+
+            return (
+              <div className="flex flex-col gap-4">
+                {normalKeys.length > 0 && (
+                  <div>
+                    {/* Normal keys section heading */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-base text-text-muted">
+                        vpn_key
+                      </span>
+                      <span className="text-sm font-medium text-text-main">
+                        {t("normalKeysSection")}
+                      </span>
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-surface/80 border border-border text-[11px] font-semibold text-text-muted">
+                        {normalKeys.length}
+                      </span>
+                    </div>
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        {tableHeader}
+                        {normalKeys.map(renderKeyRow)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {quotaKeys.length > 0 && (
+                  <div>
+                    {/* Quota keys section heading */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-base text-violet-500">
+                        toll
+                      </span>
+                      <span className="text-sm font-medium text-text-main">
+                        {t("quotaKeysSection")}
+                      </span>
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-surface/80 border border-border text-[11px] font-semibold text-text-muted">
+                        {quotaKeys.length}
+                      </span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-400 text-[11px] font-semibold">
+                        {t("quotaPill")}
+                      </span>
+                    </div>
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <div className="overflow-x-auto">
+                        {tableHeader}
+                        {quotaKeys.map(renderKeyRow)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()
+        )}
       </Card>
 
       {/* Add Key Modal */}
       <Modal
         isOpen={showAddModal}
         title={t("createKey")}
+        bodyClassName="p-6 max-h-[calc(100vh-150px)] overflow-y-auto"
         onClose={() => {
           setShowAddModal(false);
           setNewKeyName("");
           setNewKeyManageEnabled(false);
+          setNewKeySelfUsageEnabled(true);
+          setNewKeyAccountQuotaEnabled(false);
+          setNewKeyAllowUsageCommand(false);
           setNameError(null);
           setCreateError(null);
         }}
       >
-        <div className="flex flex-col gap-4">
-          <div>
+        <div ref={createKeyFormRef} className="flex flex-col gap-4">
+          <div ref={createKeyNameFieldRef}>
             <label className="text-sm font-medium text-text-main mb-1.5 block">
               {t("keyName")}
             </label>
             <Input
+              id={newKeyNameInputId}
               value={newKeyName}
               onChange={(e) => {
                 setNewKeyName(e.target.value);
@@ -1041,6 +1441,78 @@ export default function ApiManagerPageClient() {
               {newKeyManageEnabled ? tc("enabled") : tc("disabled")}
             </button>
           </div>
+          <div className="flex flex-col gap-3 p-3 rounded-lg border border-border bg-surface/40">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-text-main">{t("selfServiceVisibility")}</p>
+              <p className="text-xs text-text-muted">{t("selfServiceVisibilityDesc")}</p>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-text-main">{t("ownUsageVisibility")}</p>
+                <p className="text-xs text-text-muted">{t("ownUsageVisibilityDesc")}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newKeySelfUsageEnabled}
+                onClick={() =>
+                  setNewKeySelfUsageEnabled((prev) => {
+                    if (prev) setNewKeyAccountQuotaEnabled(false);
+                    return !prev;
+                  })
+                }
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                  newKeySelfUsageEnabled
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                    : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">query_stats</span>
+                {newKeySelfUsageEnabled ? tc("enabled") : tc("disabled")}
+              </button>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-text-main">{t("sharedAccountQuotaVisibility")}</p>
+                <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newKeyAccountQuotaEnabled}
+                disabled={!newKeySelfUsageEnabled}
+                onClick={() => setNewKeyAccountQuotaEnabled((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                  newKeyAccountQuotaEnabled
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                    : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+                } ${!newKeySelfUsageEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <span className="material-symbols-outlined text-[14px]">account_balance</span>
+                {newKeyAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
+              </button>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-text-main">{t("localUsageCommand")}</p>
+                <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={newKeyAllowUsageCommand}
+                onClick={() => setNewKeyAllowUsageCommand((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                  newKeyAllowUsageCommand
+                    ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30"
+                    : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">terminal</span>
+                {newKeyAllowUsageCommand ? tc("enabled") : tc("disabled")}
+              </button>
+            </div>
+          </div>
           {createError && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
               <span className="material-symbols-outlined text-red-500 text-sm">error</span>
@@ -1053,6 +1525,9 @@ export default function ApiManagerPageClient() {
                 setShowAddModal(false);
                 setNewKeyName("");
                 setNewKeyManageEnabled(false);
+                setNewKeySelfUsageEnabled(true);
+                setNewKeyAccountQuotaEnabled(false);
+                setNewKeyAllowUsageCommand(false);
                 setNameError(null);
                 setCreateError(null);
               }}
@@ -1116,7 +1591,8 @@ export default function ApiManagerPageClient() {
           }}
           apiKey={editingKey}
           modelsByProvider={filteredModelsByProvider}
-          allModels={allModels}
+          allModels={permissionModels}
+          modelsLoaded={modelsLoaded}
           allCombos={allCombos}
           allConnections={allConnections}
           searchModel={searchModel}
@@ -1136,6 +1612,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey,
   modelsByProvider,
   allModels,
+  modelsLoaded,
   allCombos,
   allConnections,
   searchModel,
@@ -1147,6 +1624,7 @@ const PermissionsModal = memo(function PermissionsModal({
   apiKey: ApiKey;
   modelsByProvider: ProviderGroup[];
   allModels: Model[];
+  modelsLoaded: boolean;
   allCombos: ComboOption[];
   allConnections: ProviderConnection[];
   searchModel: string;
@@ -1166,7 +1644,15 @@ const PermissionsModal = memo(function PermissionsModal({
     accessSchedule: AccessSchedule | null,
     rateLimits: Array<{ limit: number; window: number }> | null,
     scopes: string[],
-    allowedEndpoints: string[]
+    allowedEndpoints: string[],
+    streamDefaultMode: StreamDefaultMode,
+    disableNonPublicModels: boolean,
+    allowUsageCommand: boolean,
+    usageLimitEnabled: boolean,
+    dailyUsageLimitUsd: number | null,
+    weeklyUsageLimitUsd: number | null,
+    blockedModels: string[],
+    chaosModeEnabled: boolean
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1174,12 +1660,20 @@ const PermissionsModal = memo(function PermissionsModal({
 
   // Initialize state from props - component remounts when key prop changes
   const initialModels = Array.isArray(apiKey?.allowedModels) ? apiKey.allowedModels : [];
+  const initialBlockedModels = useMemo(
+    () => (Array.isArray(apiKey?.blockedModels) ? apiKey.blockedModels : []),
+    [apiKey?.blockedModels]
+  );
   const initialCombos = Array.isArray(apiKey?.allowedCombos) ? apiKey.allowedCombos : [];
   const initialConnections = Array.isArray(apiKey?.allowedConnections)
     ? apiKey.allowedConnections
     : [];
   const [keyName, setKeyName] = useState(apiKey?.name ?? "");
   const [selectedModels, setSelectedModels] = useState<string[]>(initialModels);
+  const [blockedClaudeCodeFamilies, setBlockedClaudeCodeFamilies] = useState<
+    ClaudeCodeBlockableFamilyId[]
+  >(() => getBlockedClaudeCodeFamilies(initialBlockedModels));
+  const [claudeCodeFamiliesExpanded, setClaudeCodeFamiliesExpanded] = useState(false);
   const [selectedCombos, setSelectedCombos] = useState<string[]>(initialCombos);
   const [allowAll, setAllowAll] = useState(initialModels.length === 0);
   const [allowAllCombos, setAllowAllCombos] = useState(initialCombos.length === 0);
@@ -1196,6 +1690,15 @@ const PermissionsModal = memo(function PermissionsModal({
   const [manageEnabled, setManageEnabled] = useState(
     Array.isArray(apiKey?.scopes) && apiKey.scopes.includes("manage")
   );
+  const [selfUsageEnabled, setSelfUsageEnabled] = useState(
+    Array.isArray(apiKey?.scopes) && apiKey.scopes.includes(SELF_USAGE_SCOPE)
+  );
+  const [selfAccountQuotaEnabled, setSelfAccountQuotaEnabled] = useState(
+    Array.isArray(apiKey?.scopes) && apiKey.scopes.includes(SELF_ACCOUNT_QUOTA_SCOPE)
+  );
+  const [bypassProviderQuotaPolicyEnabled, setBypassProviderQuotaPolicyEnabled] = useState(
+    hasProviderQuotaBypassScope(apiKey?.scopes)
+  );
   const [maxSessions, setMaxSessions] = useState(
     typeof apiKey?.maxSessions === "number" && apiKey.maxSessions > 0 ? apiKey.maxSessions : 0
   );
@@ -1210,6 +1713,9 @@ const PermissionsModal = memo(function PermissionsModal({
   );
   const [rateLimits, setRateLimits] = useState<Array<{ limit: number; window: number }>>(
     Array.isArray(apiKey?.rateLimits) ? apiKey.rateLimits : []
+  );
+  const [streamDefaultMode, setStreamDefaultMode] = useState<StreamDefaultMode>(
+    apiKey?.streamDefaultMode === "json" ? "json" : "legacy"
   );
   const [nameError, setNameError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -1226,6 +1732,29 @@ const PermissionsModal = memo(function PermissionsModal({
   const initialEndpoints = Array.isArray(apiKey?.allowedEndpoints) ? apiKey.allowedEndpoints : [];
   const [selectedEndpoints, setSelectedEndpoints] = useState<string[]>(initialEndpoints);
   const [allowAllEndpoints, setAllowAllEndpoints] = useState(initialEndpoints.length === 0);
+  const [disableNonPublicModels, setDisableNonPublicModels] = useState(
+    apiKey?.disableNonPublicModels === true
+  );
+  const [usageCommandEnabled, setUsageCommandEnabled] = useState(
+    apiKey?.allowUsageCommand === true
+  );
+  const [chaosModeEnabled, setChaosModeEnabled] = useState(apiKey?.chaosModeEnabled === true);
+  const [usageLimitEnabled, setUsageLimitEnabled] = useState(apiKey?.usageLimitEnabled === true);
+  const [dailyUsageLimitUsd, setDailyUsageLimitUsd] = useState(
+    typeof apiKey?.dailyUsageLimitUsd === "number" && apiKey.dailyUsageLimitUsd > 0
+      ? String(apiKey.dailyUsageLimitUsd)
+      : ""
+  );
+  const [weeklyUsageLimitUsd, setWeeklyUsageLimitUsd] = useState(
+    typeof apiKey?.weeklyUsageLimitUsd === "number" && apiKey.weeklyUsageLimitUsd > 0
+      ? String(apiKey.weeklyUsageLimitUsd)
+      : ""
+  );
+  const getModelDisplayName = useCallback(
+    (modelId: string) =>
+      modelId === CLAUDE_CODE_DEFAULT_MODEL_ID ? CLAUDE_CODE_DEFAULT_MODEL_NAME : modelId,
+    []
+  );
 
   // Memoize callbacks to prevent child re-renders
   const handleToggleModel = useCallback(
@@ -1234,6 +1763,9 @@ const PermissionsModal = memo(function PermissionsModal({
 
       setSelectedModels((prev) => {
         if (prev.includes(modelId)) {
+          if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) {
+            setClaudeCodeFamiliesExpanded(false);
+          }
           return prev.filter((m) => m !== modelId);
         }
         return [...prev, modelId];
@@ -1261,6 +1793,8 @@ const PermissionsModal = memo(function PermissionsModal({
   const handleSelectAll = useCallback(() => {
     setAllowAll(true);
     setSelectedModels([]);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
   }, []);
 
   const handleRestrictMode = useCallback(() => {
@@ -1285,10 +1819,21 @@ const PermissionsModal = memo(function PermissionsModal({
   const handleSelectAllModels = useCallback(() => {
     const allModelIds = allModels.map((m) => m.id);
     setSelectedModels(allModelIds);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
   }, [allModels]);
 
   const handleDeselectAllModels = useCallback(() => {
     setSelectedModels([]);
+    setBlockedClaudeCodeFamilies([]);
+    setClaudeCodeFamiliesExpanded(false);
+  }, []);
+
+  const handleBlockClaudeCodeFamily = useCallback((familyId: ClaudeCodeBlockableFamilyId) => {
+    setBlockedClaudeCodeFamilies((prev) => (prev.includes(familyId) ? prev : [...prev, familyId]));
+    setSelectedModels((prev) =>
+      prev.filter((modelId) => !isClaudeCodeFamilyModel(modelId, familyId))
+    );
   }, []);
 
   const handleToggleCombo = useCallback(
@@ -1323,6 +1868,11 @@ const PermissionsModal = memo(function PermissionsModal({
     [allowAllEndpoints]
   );
 
+  const parseUsdLimitInput = useCallback((value: string): number | null => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, []);
+
   const handleSave = useCallback(() => {
     // Clear previous inline errors
     setNameError(null);
@@ -1356,6 +1906,16 @@ const PermissionsModal = memo(function PermissionsModal({
           tz: scheduleTz,
         }
       : null;
+    const hasClaudeCodeDefaultSelected =
+      !allowAll && selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
+    const blockedModels = initialBlockedModels.filter(
+      (pattern) => !CLAUDE_CODE_BLOCK_PATTERN_SET.has(pattern)
+    );
+    if (hasClaudeCodeDefaultSelected) {
+      for (const familyId of blockedClaudeCodeFamilies) {
+        blockedModels.push(...CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId]);
+      }
+    }
     onSave(
       keyName,
       allowAll ? [] : selectedModels,
@@ -1370,8 +1930,21 @@ const PermissionsModal = memo(function PermissionsModal({
       maxSessions,
       schedule,
       rateLimits.length > 0 ? rateLimits : null,
-      manageEnabled ? ["manage"] : [],
-      allowAllEndpoints ? [] : selectedEndpoints
+      mergeApiKeyPermissionScopes(apiKey?.scopes, {
+        manageEnabled,
+        selfUsageEnabled,
+        selfAccountQuotaEnabled,
+        bypassProviderQuotaPolicyEnabled,
+      }),
+      allowAllEndpoints ? [] : selectedEndpoints,
+      streamDefaultMode,
+      disableNonPublicModels,
+      usageCommandEnabled,
+      usageLimitEnabled,
+      parseUsdLimitInput(dailyUsageLimitUsd),
+      parseUsdLimitInput(weeklyUsageLimitUsd),
+      blockedModels,
+      chaosModeEnabled
     );
   }, [
     onSave,
@@ -1390,6 +1963,9 @@ const PermissionsModal = memo(function PermissionsModal({
     expiresAt,
     maxSessions,
     manageEnabled,
+    selfUsageEnabled,
+    selfAccountQuotaEnabled,
+    bypassProviderQuotaPolicyEnabled,
     scheduleEnabled,
     scheduleFrom,
     scheduleUntil,
@@ -1398,11 +1974,40 @@ const PermissionsModal = memo(function PermissionsModal({
     rateLimits,
     allowAllEndpoints,
     selectedEndpoints,
+    streamDefaultMode,
+    disableNonPublicModels,
+    usageCommandEnabled,
+    usageLimitEnabled,
+    dailyUsageLimitUsd,
+    weeklyUsageLimitUsd,
+    parseUsdLimitInput,
+    blockedClaudeCodeFamilies,
+    initialBlockedModels,
+    chaosModeEnabled,
+    apiKey?.scopes,
     t,
   ]);
 
   const selectedCount = selectedModels.length;
   const totalModels = allModels.length;
+  const hasClaudeCodeDefaultSelected =
+    !allowAll && selectedModels.includes(CLAUDE_CODE_DEFAULT_MODEL_ID);
+  const orderedSelectedModels = useMemo(() => {
+    if (!hasClaudeCodeDefaultSelected) return selectedModels;
+    return [
+      CLAUDE_CODE_DEFAULT_MODEL_ID,
+      ...selectedModels.filter((modelId) => modelId !== CLAUDE_CODE_DEFAULT_MODEL_ID),
+    ];
+  }, [hasClaudeCodeDefaultSelected, selectedModels]);
+  const visibleClaudeCodeFamilies = useMemo(
+    () =>
+      CLAUDE_CODE_DEFAULT_FAMILIES.filter(
+        (family) =>
+          family.id === "other" ||
+          !blockedClaudeCodeFamilies.includes(family.id as ClaudeCodeBlockableFamilyId)
+      ),
+    [blockedClaudeCodeFamilies]
+  );
 
   return (
     <Modal
@@ -1438,6 +2043,8 @@ const PermissionsModal = memo(function PermissionsModal({
             <p className="text-sm text-red-700 dark:text-red-300 flex-1">{saveError}</p>
           </div>
         )}
+
+        {apiKey?.id && <ReasoningRoutingRules apiKeyId={apiKey.id} />}
 
         {/* Access Mode Toggle */}
         <div className="flex gap-2 p-1 bg-surface rounded-lg">
@@ -1485,7 +2092,13 @@ const PermissionsModal = memo(function PermissionsModal({
               allowAll ? "text-green-700 dark:text-green-300" : "text-amber-700 dark:text-amber-300"
             }`}
           >
-            {allowAll ? t("allowAllDesc") : t("restrictDesc", { selectedCount, totalModels })}
+            {allowAll
+              ? t("allowAllDesc")
+              : !modelsLoaded
+                ? t("restrictLoading")
+                : totalModels === 0
+                  ? t("restrictCatalogUnavailable", { selectedCount })
+                  : t("restrictDesc", { selectedCount, totalModels })}
           </p>
         </div>
 
@@ -1517,9 +2130,7 @@ const PermissionsModal = memo(function PermissionsModal({
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-text-main">{t("maxActiveSessions")}</p>
-            <p className="text-xs text-text-muted">
-              0 = unlimited. Return 429 when this key exceeds concurrent sticky sessions.
-            </p>
+            <p className="text-xs text-text-muted">{t("maxActiveSessionsDescription")}</p>
           </div>
           <div className="w-32">
             <Input
@@ -1538,10 +2149,8 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Soft Throttle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Throttle Delay</p>
-            <p className="text-xs text-text-muted">
-              Add a fixed delay before requests for this key are routed. 0 = no slowdown.
-            </p>
+            <p className="text-sm font-medium text-text-main">{t("throttleDelay")}</p>
+            <p className="text-xs text-text-muted">{t("throttleDelayDescription")}</p>
           </div>
           <div className="w-36">
             <Input
@@ -1778,6 +2387,40 @@ const PermissionsModal = memo(function PermissionsModal({
           </button>
         </div>
 
+        {/* Stream Default Compatibility */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1 min-w-0">
+            <p className="text-sm font-medium text-text-main">{t("streamDefaultMode")}</p>
+            <p className="text-xs text-text-muted">{t("streamDefaultModeDesc")}</p>
+          </div>
+          <div className="flex gap-1 p-0.5 bg-surface rounded-md shrink-0 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setStreamDefaultMode("legacy")}
+              className={`inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold transition-all ${
+                streamDefaultMode === "legacy"
+                  ? "bg-primary text-white"
+                  : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">settings_backup_restore</span>
+              {t("streamDefaultLegacy")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setStreamDefaultMode("json")}
+              className={`inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-semibold transition-all ${
+                streamDefaultMode === "json"
+                  ? "bg-primary text-white"
+                  : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">data_object</span>
+              {t("streamDefaultJson")}
+            </button>
+          </div>
+        </div>
+
         {/* Ban Toggle (SECURITY) */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-red-500/20 bg-red-500/5">
           <div className="flex flex-col gap-1">
@@ -1810,25 +2453,41 @@ const PermissionsModal = memo(function PermissionsModal({
               Key will automatically stop working after this date.
             </p>
           </div>
-          <input
-            type="datetime-local"
-            value={expiresAt ? expiresAt.slice(0, 16) : ""}
-            onChange={(e) => {
-              const val = e.target.value;
-              setExpiresAt(val ? new Date(val).toISOString() : "");
-            }}
-            className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
-          />
+          <div className="flex gap-2">
+            <input
+              type="datetime-local"
+              value={toLocalDateTimeInputValue(expiresAt)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (!val) {
+                  setExpiresAt("");
+                  return;
+                }
+                const date = new Date(val);
+                if (!Number.isNaN(date.getTime())) {
+                  setExpiresAt(date.toISOString());
+                }
+              }}
+              className="min-w-0 flex-1 px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
+            />
+            <button
+              type="button"
+              onClick={() => setExpiresAt("")}
+              disabled={!expiresAt}
+              className="shrink-0 px-3 py-1.5 text-sm font-medium border border-border rounded-md text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
+              {tc("clear")}
+            </button>
+          </div>
         </div>
         {/* Management Access */}
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-text-main">{t("managementAccess")}</p>
-            <p className="text-xs text-text-muted">
-              Allow this API key to manage OmniRoute configuration.
-            </p>
+            <p className="text-xs text-text-muted">{t("managementAccessDesc")}</p>
           </div>
           <button
+            type="button"
             role="switch"
             aria-checked={manageEnabled}
             onClick={() => setManageEnabled((prev) => !prev)}
@@ -1840,6 +2499,111 @@ const PermissionsModal = memo(function PermissionsModal({
           >
             <span className="material-symbols-outlined text-[14px]">admin_panel_settings</span>
             {manageEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+        </div>
+        {/* Self-service Visibility */}
+        <div className="flex flex-col gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("selfServiceVisibility")}</p>
+            <p className="text-xs text-text-muted">{t("selfServiceVisibilityDesc")}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={selfUsageEnabled}
+            onClick={() =>
+              setSelfUsageEnabled((prev) => {
+                if (prev) setSelfAccountQuotaEnabled(false);
+                return !prev;
+              })
+            }
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              selfUsageEnabled
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">query_stats</span>
+            {t("ownUsageVisibility")} - {selfUsageEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+          <p className="text-xs text-text-muted">{t("ownUsageVisibilityDesc")}</p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={selfAccountQuotaEnabled}
+            disabled={!selfUsageEnabled}
+            onClick={() => setSelfAccountQuotaEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              selfAccountQuotaEnabled
+                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            } ${!selfUsageEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            <span className="material-symbols-outlined text-[14px]">account_balance</span>
+            {t("sharedAccountQuotaVisibility")} -{" "}
+            {selfAccountQuotaEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+          <p className="text-xs text-text-muted">{t("sharedAccountQuotaVisibilityDesc")}</p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={usageCommandEnabled}
+            onClick={() => setUsageCommandEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              usageCommandEnabled
+                ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">terminal</span>
+            {t("localUsageCommand")} - {usageCommandEnabled ? tc("enabled") : tc("disabled")}
+          </button>
+          <p className="text-xs text-text-muted">{t("localUsageCommandDesc")}</p>
+          <UsageLimitSettings
+            enabled={usageLimitEnabled}
+            dailyLimitUsd={dailyUsageLimitUsd}
+            weeklyLimitUsd={weeklyUsageLimitUsd}
+            enabledLabel={tc("enabled")}
+            disabledLabel={tc("disabled")}
+            onEnabledChange={setUsageLimitEnabled}
+            onDailyLimitUsdChange={setDailyUsageLimitUsd}
+            onWeeklyLimitUsdChange={setWeeklyUsageLimitUsd}
+          />
+        </div>
+
+        {/* Chaos Mode Access Toggle */}
+        <ChaosModeAccessToggle
+          enabled={chaosModeEnabled}
+          onToggle={() => setChaosModeEnabled((prev) => !prev)}
+        />
+
+        {/* Advanced Provider Quota Policy Override */}
+        <BypassProviderQuotaToggle
+          enabled={bypassProviderQuotaPolicyEnabled}
+          onToggle={() => setBypassProviderQuotaPolicyEnabled((prev) => !prev)}
+        />
+
+        {/* Disable Non-Public Models Toggle */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("disableNonPublicModels")}</p>
+            <p className="text-xs text-text-muted">{t("disableNonPublicModelsDesc")}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={disableNonPublicModels}
+            onClick={() => setDisableNonPublicModels((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              disableNonPublicModels
+                ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {disableNonPublicModels ? "shield_lock" : "shield"}
+            </span>
+            {disableNonPublicModels ? tc("yes") : tc("no")}
           </button>
         </div>
 
@@ -1865,23 +2629,106 @@ const PermissionsModal = memo(function PermissionsModal({
                 </button>
               </div>
             </div>
-            <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto content-start">
-              {selectedModels.map((modelId) => (
-                <span
-                  key={modelId}
-                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-surface text-text-main text-[10px] rounded border border-border"
-                >
-                  <span className="font-mono truncate max-w-[120px]" title={modelId}>
-                    {modelId}
-                  </span>
-                  <button
-                    onClick={() => handleToggleModel(modelId)}
-                    className="text-text-muted hover:text-red-500 transition-colors"
+            <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto content-start">
+              {orderedSelectedModels.map((modelId) => {
+                if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) {
+                  return (
+                    <div key={modelId} className="flex flex-col gap-1 basis-full">
+                      <span className="inline-flex w-fit items-center gap-0.5 px-1.5 py-0.5 bg-primary/10 text-text-main text-[10px] rounded border border-primary/35">
+                        <button
+                          type="button"
+                          onClick={() => setClaudeCodeFamiliesExpanded((prev) => !prev)}
+                          className="inline-flex items-center gap-1 font-mono text-text-main"
+                          title={t("expandClaudeCodeFamilies")}
+                          aria-expanded={claudeCodeFamiliesExpanded}
+                        >
+                          <span className="truncate max-w-[140px]" title={modelId}>
+                            {getModelDisplayName(modelId)}
+                          </span>
+                          <span className="material-symbols-outlined text-[12px] text-primary">
+                            {claudeCodeFamiliesExpanded ? "expand_less" : "expand_more"}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleModel(modelId)}
+                          className="text-text-muted hover:text-red-500 transition-colors"
+                          title={t("removeClaudeCodeDefault")}
+                        >
+                          <span className="material-symbols-outlined text-[12px]">close</span>
+                        </button>
+                      </span>
+
+                      {claudeCodeFamiliesExpanded && (
+                        <div className="relative ml-2 flex flex-wrap gap-1 pl-5 animate-in fade-in slide-in-from-top-1 duration-150">
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute left-1.5 top-0 bottom-1 w-px bg-primary/25"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute left-1.5 top-3 h-px w-3 bg-primary/25"
+                          />
+                          {visibleClaudeCodeFamilies.map((family) => {
+                            const canBlock = family.id !== "other";
+                            return (
+                              <span
+                                key={family.id}
+                                className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded border ${
+                                  canBlock
+                                    ? "bg-white dark:bg-surface text-text-main border-border"
+                                    : "bg-black/5 dark:bg-white/5 text-text-muted border-border"
+                                }`}
+                                title={
+                                  canBlock
+                                    ? `Allow ${family.label} family through Claude Code default`
+                                    : "Catch-all for other Claude Code models"
+                                }
+                              >
+                                <span className="font-mono">{family.label}</span>
+                                {canBlock && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleBlockClaudeCodeFamily(
+                                        family.id as ClaudeCodeBlockableFamilyId
+                                      )
+                                    }
+                                    className="text-text-muted hover:text-red-500 transition-colors"
+                                    title={`Block ${family.label} family`}
+                                  >
+                                    <span className="material-symbols-outlined text-[12px]">
+                                      close
+                                    </span>
+                                  </button>
+                                )}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <span
+                    key={modelId}
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white dark:bg-surface text-text-main text-[10px] rounded border border-border"
                   >
-                    <span className="material-symbols-outlined text-[12px]">close</span>
-                  </button>
-                </span>
-              ))}
+                    <span className="font-mono truncate max-w-[120px]" title={modelId}>
+                      {getModelDisplayName(modelId)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleModel(modelId)}
+                      className="text-text-muted hover:text-red-500 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[12px]">close</span>
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -1993,7 +2840,7 @@ const PermissionsModal = memo(function PermissionsModal({
                                   }`}
                                   title={model.id}
                                 >
-                                  {model.id}
+                                  {getModelDisplayName(model.id)}
                                 </button>
                               );
                             })}
@@ -2054,7 +2901,7 @@ const PermissionsModal = memo(function PermissionsModal({
                     return acc;
                   }, {})
                 )
-                  .sort(([a], [b]) => a.localeCompare(b))
+                  .sort(([a], [b]) => compareTr(a, b))
                   .map(([provider, conns]) => (
                     <div key={provider}>
                       <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-1 py-0.5">
@@ -2087,7 +2934,9 @@ const PermissionsModal = memo(function PermissionsModal({
                               {conn.name || conn.id.slice(0, 8)}
                             </span>
                             {!conn.isActive && (
-                              <span className="text-[9px] text-red-400 shrink-0">inactive</span>
+                              <span className="text-[9px] text-red-400 shrink-0">
+                                {tc("inactive")}
+                              </span>
                             )}
                           </button>
                         );
@@ -2103,7 +2952,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {allCombos.length > 0 && (
           <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-text-main">Allowed Combos</p>
+              <p className="text-sm font-medium text-text-main">{t("allowedCombos")}</p>
               <div className="flex gap-1 p-0.5 bg-surface rounded-md">
                 <button
                   onClick={() => {
@@ -2116,7 +2965,7 @@ const PermissionsModal = memo(function PermissionsModal({
                       : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
                   }`}
                 >
-                  All
+                  {tc("all")}
                 </button>
                 <button
                   onClick={() => setAllowAllCombos(false)}
@@ -2126,14 +2975,14 @@ const PermissionsModal = memo(function PermissionsModal({
                       : "text-text-muted hover:bg-black/5 dark:hover:bg-white/5"
                   }`}
                 >
-                  Restrict
+                  {t("restrict")}
                 </button>
               </div>
             </div>
             <p className="text-xs text-text-muted">
               {allowAllCombos
-                ? "This key can use any combo."
-                : `Restricted to ${selectedCombos.length} combo${selectedCombos.length !== 1 ? "s" : ""}.`}
+                ? t("allCombosAllowed")
+                : t("restrictedComboCount", { count: selectedCombos.length })}
             </p>
             {!allowAllCombos && (
               <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">

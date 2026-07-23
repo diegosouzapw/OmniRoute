@@ -1,0 +1,46 @@
+{
+  "name": "theme-manager",
+  "version": "1.0.0",
+  "description": "Dynamic UI theme management via CSS variable injection",
+  "author": "OmniRoute",
+  "license": "MIT",
+  "main": "index.mjs",
+  "source": "local",
+  "tags": ["theme", "ui", "css", "customization"],
+  "hooks": {
+    "onRequest": true,
+    "onResponse": true,
+    "onError": false,
+    "onInstall": true,
+    "onActivate": true,
+    "onDeactivate": true,
+    "onUninstall": false
+  },
+  "requires": {
+    "permissions": []
+  },
+  "enabledByDefault": true,
+  "configSchema": {
+    "primaryColor": {
+      "type": "string",
+      "default": "#6C5CE7",
+      "description": "Primary accent color (CSS hex value)"
+    },
+    "darkMode": {
+      "type": "select",
+      "default": "auto",
+      "enum": ["light", "dark", "auto"],
+      "description": "Theme mode preference"
+    },
+    "borderRadius": {
+      "type": "string",
+      "default": "8px",
+      "description": "Default border radius for UI elements"
+    },
+    "fontFamily": {
+      "type": "string",
+      "default": "Inter, system-ui, sans-serif",
+      "description": "Default font family"
+    }
+  }
+}

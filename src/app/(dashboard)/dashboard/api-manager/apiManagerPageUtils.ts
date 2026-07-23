@@ -83,3 +83,45 @@ export function computeApiKeyCounts(keys: ApiKeyShape[]): ApiKeyCounts {
 
   return counts;
 }
+
+export function toLocalDateTimeInputValue(value: string | null | undefined): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
+}
+
+export function formatUsdCost(value: number, locale: string): string {
+  const amount = Number.isFinite(value) ? value : 0;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
+    maximumFractionDigits: amount > 0 && amount < 1 ? 4 : 2,
+  }).format(amount);
+}
+
+/**
+ * Mask a fully revealed API key for the at-rest display: keep the first 8 chars
+ * (provider prefix + a few entropy bits, e.g. `sk-or-12...`), append an ellipsis.
+ * Returns "" for empty/missing input so the UI can render an empty `<code>` cleanly.
+ */
+export function maskKey(fullKey: string | null | undefined): string {
+  if (!fullKey) return "";
+  if (fullKey.includes("****")) return fullKey;
+  return fullKey.length > 8 ? `${fullKey.slice(0, 8)}...` : fullKey;
+}
+
+/**
+ * Immutable Set toggle helper for the "which keys are currently revealed" state.
+ * Returns a NEW Set so React state setters always see a fresh reference.
+ */
+export function toggleKeyVisibility(prev: Set<string>, keyId: string): Set<string> {
+  const next = new Set(prev);
+  if (next.has(keyId)) next.delete(keyId);
+  else next.add(keyId);
+  return next;
+}

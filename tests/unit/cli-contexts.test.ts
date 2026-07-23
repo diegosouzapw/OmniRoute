@@ -74,3 +74,58 @@ test("contexts.mjs (commands) pode ser importado sem erro", async () => {
   const mod = await import("../../bin/cli/commands/contexts.mjs");
   assert.equal(typeof mod.registerContexts, "function");
 });
+
+test("confirm() declines cleanly on non-interactive stdin (no hung await)", async () => {
+  // Regression: `contexts remove` without --yes used to prompt even when stdin
+  // could not answer (pipe/CI/EOF), leaving the readline question pending and
+  // triggering Node's "unsettled top-level await" warning. With a non-TTY stdin
+  // confirm() must resolve to false immediately (decline) without touching
+  // readline — `--yes` remains the way to proceed non-interactively.
+  const { confirm } = await import("../../bin/cli/commands/contexts.mjs");
+  const desc = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+  Object.defineProperty(process.stdin, "isTTY", { value: false, configurable: true });
+  try {
+    const result = await confirm("Remove context 'x'?");
+    assert.equal(result, false);
+  } finally {
+    if (desc) Object.defineProperty(process.stdin, "isTTY", desc);
+    else delete (process.stdin as { isTTY?: boolean }).isTTY;
+  }
+});
+
+test("registerContexts registers the singular `context` alias", async () => {
+  // The connect output and older docs say `omniroute context current` (singular);
+  // the command is `contexts`. An alias keeps the singular muscle-memory working.
+  const { registerContexts } = await import("../../bin/cli/commands/contexts.mjs");
+  let aliasName: string | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fakeCtx: any = {
+    command() {
+      return this;
+    },
+    alias(a: string) {
+      aliasName = a;
+      return this;
+    },
+    description() {
+      return this;
+    },
+    requiredOption() {
+      return this;
+    },
+    option() {
+      return this;
+    },
+    action() {
+      return this;
+    },
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fakeProgram: any = {
+    command() {
+      return fakeCtx;
+    },
+  };
+  registerContexts(fakeProgram);
+  assert.equal(aliasName, "context");
+});

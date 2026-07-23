@@ -8,6 +8,7 @@ import {
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
+import { compareTr } from "@/shared/utils/turkishText";
 
 /**
  * Hook to fetch and manage provider options for the Translator tools.
@@ -46,9 +47,14 @@ export function useProviderOptions(initialProvider = "openai") {
               label = node?.name || t("openaiCompatibleLabel");
             if (!info && (pid as string).startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
               label = node?.name || t("anthropicCompatibleLabel");
-            return { value: pid, label };
+            // #3505: compatible providers emit catalog models under the node's custom prefix
+            // (e.g. "myprefix/gpt-4o"), not under the connection id (`value`). Expose the prefix
+            // so model-filter consumers (playground) can match; `value` stays the id for
+            // connection lookups (translator send/translate, ApiTab).
+            const modelPrefix = !info && node?.prefix ? String(node.prefix) : undefined;
+            return { value: pid, label, modelPrefix };
           })
-          .sort((a, b) => a.label.localeCompare(b.label));
+          .sort((a, b) => compareTr(a.label, b.label));
 
         const nextOptions =
           options.length > 0

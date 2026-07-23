@@ -160,7 +160,7 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 
 | Variable                  | Default   | Source File                              | Description                                                                                 |
 | ------------------------- | --------- | ---------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `INPUT_SANITIZER_ENABLED` | `false`   | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
+| `INPUT_SANITIZER_ENABLED` | `true`    | `src/middleware/promptInjectionGuard.ts` | Enable scanning of incoming messages for prompt injection patterns.                         |
 | `INPUT_SANITIZER_MODE`    | `warn`    | `src/middleware/promptInjectionGuard.ts` | `warn` = log only, `block` = reject request with 400, `redact` = strip suspicious patterns. |
 | `INJECTION_GUARD_MODE`    | _(unset)_ | `src/middleware/promptInjectionGuard.ts` | Legacy alias for `INPUT_SANITIZER_MODE` — same behavior.                                    |
 | `PII_REDACTION_ENABLED`   | `false`   | `src/middleware/promptInjectionGuard.ts` | Detect PII (emails, phones, SSNs) in incoming requests.                                     |
@@ -301,8 +301,6 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Public client.                                                                    |
 | `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Requires matching `_SECRET`.                                                      |
 | `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                 |
-| `GEMINI_CLI_OAUTH_CLIENT_ID`      | Gemini CLI              | Usually same as Gemini.                                                           |
-| `GEMINI_CLI_OAUTH_CLIENT_SECRET`  | Gemini CLI              | —                                                                                 |
 | `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Public client.                                                                    |
 | `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Public client.                                                                    |
 | `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                      |
@@ -318,7 +316,6 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                  |
 
 > [!WARNING]
-> **Google OAuth** (Antigravity, Gemini CLI) credentials **only work on localhost**. For remote servers:
 >
 > 1. Go to [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
 > 2. Create an OAuth 2.0 Client ID (type: "Web application")
@@ -348,7 +345,6 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
 | `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | When Qwen Code updates                                        |
 | `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | When Cursor updates                                           |
-| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             | When Google API client updates                                |
 
 > [!TIP]
 > You can add User-Agent overrides for **any** provider using the pattern `{PROVIDER_ID}_USER_AGENT`. The executor dynamically constructs the env var name.
@@ -485,18 +481,18 @@ The logging system writes to both stdout and rotated log files. All configuratio
 
 ## 17. Memory Optimization
 
-| Variable                   | Default                         | Description                                                            |
-| -------------------------- | ------------------------------- | ---------------------------------------------------------------------- |
-| `OMNIROUTE_MEMORY_MB`      | `256` (Docker) / system default | V8 heap limit. Sets `--max-old-space-size`.                            |
-| `PROMPT_CACHE_MAX_SIZE`    | `50`                            | Max cached system prompt entries.                                      |
-| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)                | Max total prompt cache size.                                           |
-| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)                | Prompt cache entry TTL.                                                |
-| `SEMANTIC_CACHE_MAX_SIZE`  | `100`                           | Max cached temperature=0 responses.                                    |
-| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)                | Max total semantic cache size.                                         |
-| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min)              | Semantic cache entry TTL.                                              |
-| `STREAM_HISTORY_MAX`       | `50`                            | Max recent stream events in the Dashboard live view buffer.            |
-| `CONTEXT_LENGTH_DEFAULT`   | `128000`                        | Global fallback max context length for models without explicit config. |
-| `USAGE_TOKEN_BUFFER`       | `100`                           | Extra token headroom reserved when tracking usage quotas.              |
+| Variable                   | Default            | Description                                                                                          |
+| -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_MEMORY_MB`      | `512`              | Runtime V8 heap limit. Docker standalone and `omniroute serve` use it to set `--max-old-space-size`. |
+| `PROMPT_CACHE_MAX_SIZE`    | `50`               | Max cached system prompt entries.                                                                    |
+| `PROMPT_CACHE_MAX_BYTES`   | `2097152` (2 MB)   | Max total prompt cache size.                                                                         |
+| `PROMPT_CACHE_TTL_MS`      | `300000` (5 min)   | Prompt cache entry TTL.                                                                              |
+| `SEMANTIC_CACHE_MAX_SIZE`  | `100`              | Max cached temperature=0 responses.                                                                  |
+| `SEMANTIC_CACHE_MAX_BYTES` | `4194304` (4 MB)   | Max total semantic cache size.                                                                       |
+| `SEMANTIC_CACHE_TTL_MS`    | `1800000` (30 min) | Semantic cache entry TTL.                                                                            |
+| `STREAM_HISTORY_MAX`       | `50`               | Max recent stream events in the Dashboard live view buffer.                                          |
+| `CONTEXT_LENGTH_DEFAULT`   | `128000`           | Global fallback max context length for models without explicit config.                               |
+| `USAGE_TOKEN_BUFFER`       | `100`              | Extra token headroom reserved when tracking usage quotas.                                            |
 
 ### Low-RAM Docker Example
 

@@ -1,6 +1,18 @@
 // Claude helper functions for translator
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts";
+import { getModelTargetFormat } from "../../config/providerModels.ts";
+import { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../utils/reasoningPlaceholder.ts";
+
+export { NON_ANTHROPIC_THINKING_PLACEHOLDER } from "../../utils/reasoningPlaceholder.ts";
+
+// MiniMax exposes a Claude-compatible endpoint but rejects Anthropic's extended
+// `output_config` parameter (used to steer reasoning effort and structured output)
+// with a generic 400 "invalid params" response. Strip the entire field before
+// dispatching Claude-shape requests to these providers. Anthropic Claude and
+// other Claude-compatible upstreams that do accept it are unaffected.
+// Ported from upstream decolua/9router#820 by @hiepau1231.
+const CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG = new Set<string>(["minimax", "minimax-cn"]);
 
 // Placeholder thinking text used as last-resort fallback when:
 //   - Target upstream is a non-Anthropic Claude-shape provider
@@ -9,8 +21,6 @@ import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts"
 //   - reasoningCache has no entry for the corresponding tool_use.id
 // Must be non-empty: kimi-coding treats empty `thinking.thinking` as
 // `reasoning_content missing` and 400s.
-export const NON_ANTHROPIC_THINKING_PLACEHOLDER = "(prior reasoning summary unavailable)";
-
 type ClaudeContentBlock = {
   type?: string;
   text?: string;
@@ -43,6 +53,30 @@ type ClaudeRequestBody = {
   [key: string]: unknown;
 };
 
+type KimiThinkingInput = {
+  reasoning_effort?: unknown;
+  thinking?: { effort?: unknown; type?: unknown } | null;
+};
+
+export function applyKimiCodingThinking(
+  result: Record<string, unknown>,
+  body: KimiThinkingInput
+): void {
+  if (!body.thinking && !body.reasoning_effort) return;
+  const requestedEffort = String(
+    body.reasoning_effort ?? body.thinking?.effort ?? "on"
+  ).toLowerCase();
+  const disabled = body.thinking?.type === "disabled" || ["off", "none"].includes(requestedEffort);
+  result.thinking = { type: disabled ? "disabled" : "enabled" };
+  if (!disabled && !["on", "auto"].includes(requestedEffort)) {
+    const outputConfig =
+      result.output_config && typeof result.output_config === "object"
+        ? (result.output_config as Record<string, unknown>)
+        : {};
+    result.output_config = { ...outputConfig, effort: requestedEffort };
+  }
+}
+
 // Check if message has valid non-empty content
 export function hasValidContent(msg: ClaudeMessage): boolean {
   if (typeof msg.content === "string" && msg.content.trim()) return true;
@@ -51,7 +85,11 @@ export function hasValidContent(msg: ClaudeMessage): boolean {
       (block) =>
         (block.type === "text" && block.text?.trim()) ||
         block.type === "tool_use" ||
-        block.type === "tool_result"
+        block.type === "tool_result" ||
+        // #7777: media-only user turns are real content — dropping them
+        // silently deletes vision input on the CC bridge / Claude paths.
+        block.type === "image" ||
+        block.type === "document"
     );
   }
   return false;
@@ -209,12 +247,21 @@ function markMessageCacheControl(msg: ClaudeMessage, ttl?: string): boolean {
 export function prepareClaudeRequest(
   body: ClaudeRequestBody,
   provider: string | null = null,
-  preserveCacheControl = false
+  preserveCacheControl = false,
+  model: string | null = null
 ): ClaudeRequestBody {
+  // 0. Strip Anthropic `output_config` for providers that reject it on their
+  // Claude-compatible endpoints (MiniMax). Must run before any downstream
+  // processing so the field never reaches translateRequest/the executor.
+  if (provider && CLAUDE_FORMAT_PROVIDERS_WITHOUT_OUTPUT_CONFIG.has(provider)) {
+    delete body.output_config;
+  }
+
   // 1. System: remove all cache_control, add only to last block with ttl 1h
   // In passthrough mode, preserve existing cache_control markers
   const supportsPromptCaching =
     provider === "claude" || provider?.startsWith?.("anthropic-compatible-");
+  const isKimiCoding = provider === "kimi-coding" || provider === "kimi-coding-apikey";
 
   // Non-Anthropic Claude-shape providers (kimi-coding, glmt, zai, …) cannot
   // validate the synthetic redacted_thinking.data blob — they're not Anthropic
@@ -225,7 +272,13 @@ export function prepareClaudeRequest(
   // We use the same allowlist as prompt-caching: only Anthropic-native
   // upstreams get redacted_thinking. Everything else gets plain thinking blocks
   // backed by reasoningCache (real text) or a placeholder (cache miss).
-  const supportsRedactedThinking = supportsPromptCaching;
+  // Mixed-format providers (e.g. opencode-go) may have some models targeting
+  // Anthropic's Messages API (targetFormat=claude) and others targeting OpenAI.
+  // When the specific model targets Claude format, it's hitting a real Anthropic
+  // endpoint that validates signatures — so it needs redacted_thinking too.
+  const modelTargetsClaude =
+    !!provider && !!model && getModelTargetFormat(provider, model) === "claude";
+  const supportsRedactedThinking = !isKimiCoding && (supportsPromptCaching || modelTargetsClaude);
 
   const systemBlocks = body.system;
   if (systemBlocks && Array.isArray(systemBlocks) && !preserveCacheControl) {
@@ -274,6 +327,33 @@ export function prepareClaudeRequest(
           (block) => block.type !== "tool_result" || block.tool_use_id
         );
       }
+    }
+
+    // Tools: for non-Anthropic providers (MiniMax and other Anthropic-compatible
+    // Claude-shape endpoints) strip Anthropic-only built-in tools (e.g.
+    // web_search_20250305) and normalize OpenAI-wire-shape tools to the
+    // Anthropic-native shape — fold `function.{name,description,parameters}`
+    // into top-level `{name, description, input_schema}` and drop the stray
+    // `type` field. Without this MiniMax rejects with code 2013 ("invalid
+    // tool type"). Port of upstream decolua/9router@45240c19.
+    if (body.tools && Array.isArray(body.tools) && provider !== "claude") {
+      body.tools = body.tools
+        .filter((tool) => !tool.type || tool.type === "function")
+        .map((tool) => {
+          const t = tool as ClaudeTool & {
+            function?: { name?: string; description?: string; parameters?: unknown };
+            type?: string;
+          };
+          if (t.function) {
+            return {
+              name: t.function.name,
+              description: t.function.description,
+              input_schema: t.function.parameters,
+            } as ClaudeTool;
+          }
+          const { type: _type, ...rest } = t;
+          return rest as ClaudeTool;
+        });
     }
 
     // Also filter top-level tool declarations with empty names
@@ -366,10 +446,31 @@ export function prepareClaudeRequest(
         // for the latest assistant (if it already has non-empty thinking text);
         // field cleanup (signature strip, type normalization) still runs.
         const isLatestAssistant = i === latestAssistantIndex;
-        const latestHasExistingThinking =
-          isLatestAssistant &&
-          content.some((b: any) => b.type === "thinking" || b.type === "redacted_thinking");
-        if (latestHasExistingThinking && supportsRedactedThinking) {
+        const latestThinkingBlocks: ClaudeContentBlock[] = isLatestAssistant
+          ? content.filter(
+              (b: ClaudeContentBlock) => b.type === "thinking" || b.type === "redacted_thinking"
+            )
+          : [];
+        const latestHasExistingThinking = latestThinkingBlocks.length > 0;
+        // #6953: a synthetic thinking block with an EMPTY signature/data (fabricated by a
+        // non-Anthropic provider leg, e.g. codex reasoning_content) is NOT a genuine Claude
+        // replay signature. Forwarding it verbatim to a real Anthropic-native upstream always
+        // 400s ("Invalid signature in thinking block"), permanently poisoning the combo onto
+        // the non-Anthropic leg. Only skip the verbatim-preserve path when every thinking-ish
+        // block on the latest assistant message carries a non-empty signature/data — older
+        // turns are already sanitized below (redacted_thinking + DEFAULT_THINKING_CLAUDE_SIGNATURE);
+        // the latest turn must go through the same sanitization when its signature is empty.
+        const latestHasGenuineThinkingSignature = latestThinkingBlocks.every(
+          (b: ClaudeContentBlock) =>
+            b.type === "redacted_thinking"
+              ? typeof b.data === "string" && (b.data as string).length > 0
+              : typeof b.signature === "string" && b.signature.length > 0
+        );
+        if (
+          latestHasExistingThinking &&
+          supportsRedactedThinking &&
+          latestHasGenuineThinkingSignature
+        ) {
           // Anthropic: skip all thinking-block rewrites entirely — the
           // blocks must remain verbatim (type, thinking, signature, data).
           continue;
@@ -416,7 +517,14 @@ export function prepareClaudeRequest(
         let thinkingBlockIdx = 0;
         for (const block of content) {
           if (block.type === "thinking" || block.type === "redacted_thinking") {
-            if (supportsRedactedThinking) {
+            if (isKimiCoding) {
+              if (block.type === "redacted_thinking") {
+                block.type = "thinking";
+                block.thinking = typeof block.thinking === "string" ? block.thinking : "";
+              }
+              delete block.data;
+              delete block.signature;
+            } else if (supportsRedactedThinking) {
               block.type = "redacted_thinking";
               block.data = DEFAULT_THINKING_CLAUDE_SIGNATURE;
               delete block.thinking;
@@ -467,6 +575,11 @@ export function prepareClaudeRequest(
             content.unshift({
               type: "redacted_thinking",
               data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
+            });
+          } else if (isKimiCoding) {
+            content.unshift({
+              type: "thinking",
+              thinking: "",
             });
           } else {
             let text = "";

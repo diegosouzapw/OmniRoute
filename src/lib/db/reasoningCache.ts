@@ -66,6 +66,8 @@ function epochSecondsToIso(value: number | string): string {
   return String(value);
 }
 
+const MAX_ENTRY_BYTES = 10000;
+
 // ──────────────── CRUD ────────────────
 
 /**
@@ -79,6 +81,9 @@ export function setReasoningCache(
   reasoning: string,
   ttlMs: number = DEFAULT_TTL_MS
 ): void {
+  if (reasoning.length > MAX_ENTRY_BYTES) {
+    reasoning = reasoning.slice(0, MAX_ENTRY_BYTES);
+  }
   const db = getDbInstance();
   const expiresAt = toUnixEpochSeconds(Date.now() + ttlMs);
   const charCount = reasoning.length;

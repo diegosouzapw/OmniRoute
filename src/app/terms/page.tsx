@@ -15,7 +15,7 @@ export default function TermsPage() {
   const t = useTranslations("legal");
 
   return (
-    <main className="min-h-screen bg-bg text-text-main">
+    <main className="min-h-screen text-text-main">
       <div className="max-w-3xl mx-auto px-6 py-16">
         <Link
           href="/"

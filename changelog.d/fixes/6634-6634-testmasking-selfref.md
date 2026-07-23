@@ -1,0 +1,1 @@
+- fix(ci): exclude check-test-masking.test.ts's own tautology fixtures from the diff-based test-masking gate and recognize `✗` in validate-release-green's failure-line detector (#6634)

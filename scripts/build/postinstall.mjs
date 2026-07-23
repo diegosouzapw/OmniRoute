@@ -5,21 +5,23 @@
  *
  * The npm package ships with a Next.js standalone build that includes
  * native modules compiled for the build platform (Linux x64) inside
- * app/node_modules/. However, npm also installs these as top-level
+ * dist/node_modules/. However, npm also installs these as top-level
  * dependencies (in the root node_modules/), correctly compiled for
  * the user's platform.
  *
  * This script copies the correctly-built native binaries from the root
- * into the standalone app directory — no rebuild or build tools needed.
+ * into the standalone dist directory — no rebuild or build tools needed.
  *
  * Modules repaired:
  *   - better-sqlite3 (SQLite bindings)
  *   - wreq-js (TLS client for OAuth providers)
+ *   - tls-client-node (TLS client for chatgpt-web/claude-web/grok-web/lmarena/perplexity-web)
  *
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/129
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/321
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/426
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
+ * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/7802
  */
 
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync } from "node:fs";
@@ -28,6 +30,8 @@ import { fileURLToPath } from "node:url";
 
 import { PUBLISHED_BUILD_ARCH, PUBLISHED_BUILD_PLATFORM } from "./native-binary-compat.mjs";
 import { hasStandaloneAppBundle, isTermux } from "./postinstallSupport.mjs";
+import { colocateLlmlinguaOptionals } from "./colocateOptionals.mjs";
+import { fixTlsClientNodeBinary } from "./fixTlsClientNodeBinary.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -35,7 +39,7 @@ const ROOT = join(__dirname, "..", "..");
 
 const appBinary = join(
   ROOT,
-  "app",
+  "dist",
   "node_modules",
   "better-sqlite3",
   "build",
@@ -52,7 +56,7 @@ const rootBinary = join(
 );
 
 async function fixBetterSqliteBinary() {
-  if (!existsSync(join(ROOT, "app", "node_modules", "better-sqlite3"))) {
+  if (!existsSync(join(ROOT, "dist", "node_modules", "better-sqlite3"))) {
     return;
   }
 
@@ -92,14 +96,14 @@ async function fixBetterSqliteBinary() {
     const { execSync } = await import("node:child_process");
     const preGypBin = join(
       ROOT,
-      "app",
+      "dist",
       "node_modules",
       ".bin",
       process.platform === "win32" ? "node-pre-gyp.cmd" : "node-pre-gyp"
     );
     const preGypFallback = join(
       ROOT,
-      "app",
+      "dist",
       "node_modules",
       "@mapbox",
       "node-pre-gyp",
@@ -110,7 +114,7 @@ async function fixBetterSqliteBinary() {
 
     if (existsSync(preGypCmd)) {
       execSync(`"${process.execPath}" "${preGypCmd}" install --fallback-to-build=false`, {
-        cwd: join(ROOT, "app", "node_modules", "better-sqlite3"),
+        cwd: join(ROOT, "dist", "node_modules", "better-sqlite3"),
         stdio: "inherit",
         timeout: 60_000,
       });
@@ -147,7 +151,7 @@ async function fixBetterSqliteBinary() {
     }
 
     execSync(rebuildCmd, {
-      cwd: join(ROOT, "app"),
+      cwd: join(ROOT, "dist"),
       stdio: "inherit",
       timeout: isAndroid ? 600_000 : 300_000, // ARM compilation is slower
       env,
@@ -171,23 +175,23 @@ async function fixBetterSqliteBinary() {
   console.warn("     Manual fix options:");
   if (process.platform === "win32") {
     console.warn("     Option A (easiest — no build tools needed):");
-    console.warn(`       cd "${join(ROOT, "app", "node_modules", "better-sqlite3")}"`);
+    console.warn(`       cd "${join(ROOT, "dist", "node_modules", "better-sqlite3")}"`);
     console.warn("       npx @mapbox/node-pre-gyp install --fallback-to-build=false");
     console.warn("     Option B (requires Build Tools for Visual Studio):");
-    console.warn(`       cd "${join(ROOT, "app")}" && npm rebuild better-sqlite3`);
+    console.warn(`       cd "${join(ROOT, "dist")}" && npm rebuild better-sqlite3`);
     console.warn("       Install from: https://visualstudio.microsoft.com/visual-cpp-build-tools/");
     console.warn("       Also ensure Python is installed: https://python.org");
   } else if (process.platform === "darwin") {
-    console.warn(`     cd ${join(ROOT, "app")} && npm rebuild better-sqlite3`);
+    console.warn(`     cd ${join(ROOT, "dist")} && npm rebuild better-sqlite3`);
     console.warn("     If build tools are missing: xcode-select --install");
   } else {
-    console.warn(`     cd ${join(ROOT, "app")} && npm rebuild better-sqlite3`);
+    console.warn(`     cd ${join(ROOT, "dist")} && npm rebuild better-sqlite3`);
   }
   console.warn("");
 }
 
 /**
- * Fix wreq-js native binary for the standalone app directory.
+ * Fix wreq-js native binary for the standalone dist directory.
  *
  * wreq-js ships platform-specific .node binaries under rust/.
  * The standalone build may only contain Linux binaries from the CI.
@@ -206,10 +210,10 @@ async function fixWreqJsBinary() {
     return;
   }
 
-  const appWreqDir = join(ROOT, "app", "node_modules", "wreq-js", "rust");
+  const appWreqDir = join(ROOT, "dist", "node_modules", "wreq-js", "rust");
   const rootWreqDir = join(ROOT, "node_modules", "wreq-js", "rust");
 
-  if (!existsSync(join(ROOT, "app", "node_modules", "wreq-js"))) {
+  if (!existsSync(join(ROOT, "dist", "node_modules", "wreq-js"))) {
     return;
   }
 
@@ -262,12 +266,12 @@ async function fixWreqJsBinary() {
     }
   }
 
-  // Strategy 3: Rebuild wreq-js inside app/
+  // Strategy 3: Rebuild wreq-js inside dist/
   console.log("  📥 Attempting npm rebuild wreq-js...");
   try {
     const { execSync } = await import("node:child_process");
     execSync("npm rebuild wreq-js", {
-      cwd: join(ROOT, "app"),
+      cwd: join(ROOT, "dist"),
       stdio: "inherit",
       timeout: 120_000,
     });
@@ -284,7 +288,7 @@ async function fixWreqJsBinary() {
     `\n  ⚠️  Could not fix wreq-js native module for ${process.platform}-${process.arch}.`
   );
   console.warn("     OAuth-based providers (Codex, Cursor, etc.) may not work.");
-  console.warn(`     Manual fix: cd ${join(ROOT, "app")} && npm install wreq-js --no-save\n`);
+  console.warn(`     Manual fix: cd ${join(ROOT, "dist")} && npm install wreq-js --no-save\n`);
 }
 
 async function ensureSwcHelpers() {
@@ -292,7 +296,7 @@ async function ensureSwcHelpers() {
     return;
   }
 
-  const swcHelpersApp = join(ROOT, "app", "node_modules", "@swc", "helpers");
+  const swcHelpersApp = join(ROOT, "dist", "node_modules", "@swc", "helpers");
   const swcHelpersRoot = join(ROOT, "node_modules", "@swc", "helpers");
 
   if (existsSync(swcHelpersApp)) {
@@ -302,13 +306,13 @@ async function ensureSwcHelpers() {
   if (existsSync(swcHelpersRoot)) {
     try {
       const { cpSync } = await import("node:fs");
-      mkdirSync(join(ROOT, "app", "node_modules", "@swc"), { recursive: true });
+      mkdirSync(join(ROOT, "dist", "node_modules", "@swc"), { recursive: true });
       cpSync(swcHelpersRoot, swcHelpersApp, { recursive: true });
-      console.log("  ✅ @swc/helpers copied to standalone app/node_modules.\n");
+      console.log("  ✅ @swc/helpers copied to standalone dist/node_modules.\n");
     } catch (err) {
       console.warn(`  ⚠️  Could not copy @swc/helpers: ${err.message}`);
       console.warn(
-        "     Try manually: cp -r node_modules/@swc/helpers app/node_modules/@swc/helpers\n"
+        "     Try manually: cp -r node_modules/@swc/helpers dist/node_modules/@swc/helpers\n"
       );
     }
     return;
@@ -327,9 +331,25 @@ async function syncProjectEnv() {
   }
 }
 
+/**
+ * Co-locate the LLMLingua-2 SLM optional dependency closure into dist/node_modules so the
+ * compression "ultra" SLM tier (PR #4257) resolves a single @huggingface/transformers instance at
+ * runtime. No-op unless the optionals were installed (`--include=optional`). See colocateOptionals.mjs.
+ */
+async function ensureLlmlinguaOptionals() {
+  try {
+    colocateLlmlinguaOptionals({ rootDir: ROOT, log: (m) => console.log(m) });
+  } catch (err) {
+    // Best-effort: the SLM tier is itself fail-open, so a co-location hiccup never fails the install.
+    console.warn(`  ⚠️  LLMLingua optional co-location skipped: ${err.message}`);
+  }
+}
+
 await fixBetterSqliteBinary();
 await fixWreqJsBinary();
+await fixTlsClientNodeBinary({ rootDir: ROOT });
 await ensureSwcHelpers();
+await ensureLlmlinguaOptionals();
 await syncProjectEnv();
 
 // Warm up native runtimes (better-sqlite3 in ~/.omniroute/runtime/).

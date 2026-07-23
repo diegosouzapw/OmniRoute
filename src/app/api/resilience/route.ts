@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSettings, updateSettings } from "@/lib/localDb";
+import { getCachedSettings, getSettings, updateSettings } from "@/lib/localDb";
 import {
   buildLegacyResilienceCompat,
   mergeResilienceSettings,
@@ -121,7 +121,7 @@ async function syncRuntimeSettings(resilienceSettings: ResilienceSettings) {
  */
 export async function GET() {
   try {
-    const settings = await getSettings();
+    const settings = await getCachedSettings();
     const resilience = resolveResilienceSettings(settings);
 
     return NextResponse.json({
@@ -133,6 +133,9 @@ export async function GET() {
         maxRetries: resilience.waitForCooldown.maxRetries,
         maxRetryWaitSec: resilience.waitForCooldown.maxRetryWaitSec,
       },
+      comboCooldownWait: resilience.comboCooldownWait,
+      quotaShareConcurrencyLimit: resilience.quotaShareConcurrencyLimit,
+      providerCooldown: resilience.providerCooldown,
       legacy: buildLegacyResilienceCompat(resilience),
     });
   } catch (err: unknown) {
@@ -188,6 +191,23 @@ export async function PATCH(request) {
       ...(body.waitForCooldown
         ? { waitForCooldown: body.waitForCooldown as ResilienceSettingsPatch["waitForCooldown"] }
         : {}),
+      ...(body.comboCooldownWait
+        ? {
+            comboCooldownWait:
+              body.comboCooldownWait as ResilienceSettingsPatch["comboCooldownWait"],
+          }
+        : {}),
+      ...(body.quotaShareConcurrencyLimit
+        ? {
+            quotaShareConcurrencyLimit:
+              body.quotaShareConcurrencyLimit as ResilienceSettingsPatch["quotaShareConcurrencyLimit"],
+          }
+        : {}),
+      ...(body.providerCooldown
+        ? {
+            providerCooldown: body.providerCooldown as ResilienceSettingsPatch["providerCooldown"],
+          }
+        : {}),
       ...normalizeLegacyPatch(body),
     });
 
@@ -222,6 +242,9 @@ export async function PATCH(request) {
         maxRetries: nextResilience.waitForCooldown.maxRetries,
         maxRetryWaitSec: nextResilience.waitForCooldown.maxRetryWaitSec,
       },
+      comboCooldownWait: nextResilience.comboCooldownWait,
+      quotaShareConcurrencyLimit: nextResilience.quotaShareConcurrencyLimit,
+      providerCooldown: nextResilience.providerCooldown,
       legacy: buildLegacyResilienceCompat(nextResilience),
     });
   } catch (err: unknown) {

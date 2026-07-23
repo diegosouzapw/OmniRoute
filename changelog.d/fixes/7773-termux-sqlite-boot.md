@@ -1,0 +1,1 @@
+- fix(db): log the fatal boot-time SQLite driver-cascade failure before it propagates instead of swallowing it silently, so `app.log` captures the real cause on Termux/Android (#7773)

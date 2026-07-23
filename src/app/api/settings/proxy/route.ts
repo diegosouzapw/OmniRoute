@@ -23,9 +23,17 @@ type UpdateProxyConfigInput = z.infer<typeof updateProxyConfigSchema>;
 type ProxyConfigInput = NonNullable<UpdateProxyConfigInput["proxy"]>;
 type ProxyMapInput = Record<string, ProxyConfigInput | null>;
 type ApiRouteError = Error & { status?: number; type?: string };
+const PROXY_LEVEL_TO_REGISTRY_SCOPE = {
+  global: "global",
+  provider: "provider",
+  combo: "combo",
+  key: "account",
+} as const;
 
 function isSocks5Enabled() {
-  return process.env.ENABLE_SOCKS5_PROXY === "true";
+  // Default ON (opt-out): only an explicit falsey value disables SOCKS5.
+  const raw = (process.env.ENABLE_SOCKS5_PROXY ?? "").trim().toLowerCase();
+  return !["false", "0", "no", "off"].includes(raw);
 }
 
 function getSupportedProxyTypes() {
@@ -53,6 +61,42 @@ function toApiRouteError(error: unknown): ApiRouteError {
   return new Error("Unexpected error") as ApiRouteError;
 }
 
+function getRegistryScopeForLevel(
+  level: string
+): "global" | "provider" | "combo" | "account" | undefined {
+  if (!Object.prototype.hasOwnProperty.call(PROXY_LEVEL_TO_REGISTRY_SCOPE, level)) {
+    return undefined;
+  }
+
+  return PROXY_LEVEL_TO_REGISTRY_SCOPE[
+    level as keyof typeof PROXY_LEVEL_TO_REGISTRY_SCOPE
+  ];
+}
+
+async function getRegistryProxyForLevel(level: string, id: string | null) {
+  const scope = getRegistryScopeForLevel(level);
+  if (!scope) return null;
+  if (scope !== "global" && !id) return null;
+
+  const assignments = await getProxyAssignments({ scope });
+  const assignment =
+    scope === "global" ? assignments[0] : assignments.find((entry) => entry.scopeId === id);
+  if (!assignment?.proxyId) return null;
+
+  return getProxyById(assignment.proxyId, { includeSecrets: true });
+}
+
+function toProxyConfig(proxyData: NonNullable<Awaited<ReturnType<typeof getProxyById>>>) {
+  return {
+    type: proxyData.type,
+    host: proxyData.host,
+    port: proxyData.port,
+    username: proxyData.username,
+    password: proxyData.password,
+    name: proxyData.name,
+  };
+}
+
 function normalizeAndValidateProxy(
   proxy: ProxyConfigInput | null | undefined,
   pathLabel: string
@@ -65,7 +109,7 @@ function normalizeAndValidateProxy(
   const type = String(proxy.type || "http").toLowerCase() as NonNullable<ProxyConfigInput["type"]>;
   if (type === "socks5" && !isSocks5Enabled()) {
     throw createInvalidProxyError(
-      "SOCKS5 proxy is disabled (set ENABLE_SOCKS5_PROXY=true to enable)"
+      "SOCKS5 proxy is disabled (remove ENABLE_SOCKS5_PROXY=false to enable — it is ON by default)"
     );
   }
   if (type.startsWith("socks") && type !== "socks5") {
@@ -136,37 +180,41 @@ export async function GET(request: Request) {
       return Response.json(result);
     }
 
-    // Get proxy for a specific level - check Proxy Registry first
-    if (level === "global") {
-      const assignments = await getProxyAssignments({ scope: "global" });
-      if (assignments.length > 0 && assignments[0].proxyId) {
-        const proxyData = await getProxyById(assignments[0].proxyId, { includeSecrets: true });
-        if (proxyData) {
-          return Response.json({
-            level: "global",
-            id: null,
-            proxy: {
-              type: proxyData.type,
-              host: proxyData.host,
-              port: proxyData.port,
-              username: proxyData.username,
-              password: proxyData.password,
-            },
-          });
-        }
-      }
-      // Fallback to old system
-      const proxy = await getProxyForLevel(level, id);
-      return Response.json({ level, id, proxy });
-    }
-
     if (level) {
+      const proxyData = await getRegistryProxyForLevel(level, id);
+      if (proxyData) {
+        return Response.json({
+          level,
+          id: level === "global" ? null : id,
+          proxy: toProxyConfig(proxyData),
+        });
+      }
+
       const proxy = await getProxyForLevel(level, id);
       return Response.json({ level, id, proxy });
     }
 
     // Get full config
     const config = await getProxyConfig();
+    const providerAssignments = await getProxyAssignments({ scope: "provider" });
+    if (providerAssignments.length > 0) {
+      config.providers = { ...(config.providers || {}) };
+      const providerProxyResults = await Promise.all(
+        providerAssignments.map(async (assignment) => {
+          if (!assignment.scopeId || !assignment.proxyId) {
+            return null;
+          }
+          const proxyData = await getProxyById(assignment.proxyId, { includeSecrets: true });
+          if (!proxyData) return null;
+          return { scopeId: assignment.scopeId, proxyData };
+        })
+      );
+
+      for (const result of providerProxyResults) {
+        if (!result) continue;
+        config.providers[result.scopeId] = toProxyConfig(result.proxyData);
+      }
+    }
     return Response.json(config);
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to load proxy config");

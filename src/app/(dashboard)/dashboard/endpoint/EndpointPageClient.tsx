@@ -3,26 +3,24 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/shared/components";
+import Toggle from "@/shared/components/Toggle";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
-import { useDisplayBaseUrl } from "@/shared/hooks";
+import { isPublicDisplayBaseUrl, useDisplayBaseUrl } from "@/shared/hooks";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
 import A2ADashboardPage from "./components/A2ADashboard";
 import McpDashboardPage from "./components/MCPDashboard";
-import TokenSaverCard from "./components/TokenSaverCard";
+import NotionSourceCard from "./components/NotionSourceCard";
+import ObsidianSourceCard from "./components/ObsidianSourceCard";
+import VscodeTokenAliasCard from "./VscodeTokenAliasCard";
 
 const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
 
 type TranslationValues = Record<string, string | number | boolean | Date>;
 type CloudflaredTunnelPhase =
-  | "unsupported"
-  | "not_installed"
-  | "stopped"
-  | "starting"
-  | "running"
-  | "error";
+  "unsupported" | "not_installed" | "stopped" | "starting" | "running" | "error";
 
 type CloudflaredTunnelStatus = {
   supported: boolean;
@@ -41,12 +39,7 @@ type CloudflaredTunnelStatus = {
 };
 
 type TailscaleTunnelPhase =
-  | "unsupported"
-  | "not_installed"
-  | "needs_login"
-  | "stopped"
-  | "running"
-  | "error";
+  "unsupported" | "not_installed" | "needs_login" | "stopped" | "running" | "error";
 
 type TailscaleTunnelStatus = {
   supported: boolean;
@@ -68,13 +61,7 @@ type TailscaleTunnelStatus = {
 };
 
 type NgrokTunnelPhase =
-  | "unsupported"
-  | "not_installed"
-  | "stopped"
-  | "needs_auth"
-  | "starting"
-  | "running"
-  | "error";
+  "unsupported" | "not_installed" | "stopped" | "needs_auth" | "starting" | "running" | "error";
 
 type NgrokTunnelStatus = {
   supported: boolean;
@@ -121,12 +108,13 @@ type EndpointTunnelVisibility = {
   showNgrokTunnel: boolean;
 };
 
-type EndpointTab = "apis" | "mcp" | "a2a";
+type EndpointTab = "apis" | "mcp" | "a2a" | "context-sources";
 
-const ENDPOINT_TABS: Array<{ value: EndpointTab; label: string; icon: string }> = [
-  { value: "apis", label: "APIs", icon: "api" },
-  { value: "mcp", label: "MCP", icon: "extension" },
-  { value: "a2a", label: "A2A", icon: "hub" },
+const ENDPOINT_TABS: Array<{ value: EndpointTab; labelKey: string; icon: string }> = [
+  { value: "apis", labelKey: "tabApis", icon: "api" },
+  { value: "mcp", labelKey: "tabMcp", icon: "extension" },
+  { value: "a2a", labelKey: "tabA2a", icon: "hub" },
+  { value: "context-sources", labelKey: "tabContextSources", icon: "database" },
 ];
 
 const DEFAULT_TUNNEL_VISIBILITY: EndpointTunnelVisibility = {
@@ -184,9 +172,12 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   const [ngrokToken, setNgrokToken] = useState("");
   const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
   const [expandedTunnel, setExpandedTunnel] = useState<string | null>(null);
+  const [localApiUrl, setLocalApiUrl] = useState("http://localhost:20128/v1");
   const [lanUrls, setLanUrls] = useState<string[]>([]);
   const [tailscaleIpUrl, setTailscaleIpUrl] = useState<string | null>(null);
   const [activeEndpointTab, setActiveEndpointTab] = useState<EndpointTab>("apis");
+  const [customSystemPromptEnabled, setCustomSystemPromptEnabled] = useState(false);
+  const [customSystemPrompt, setCustomSystemPrompt] = useState("");
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -330,6 +321,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           if (res.ok) {
             const data = await res.json();
             if (mounted) {
+              if (data.localUrl) setLocalApiUrl(data.localUrl);
               setLanUrls(data.lanUrls ?? []);
               if (data.tailscaleIpUrl) setTailscaleIpUrl(data.tailscaleIpUrl);
             }
@@ -494,6 +486,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
         setShowTailscaleFunnel(tunnelVisibility.showTailscaleFunnel);
         setShowNgrokTunnel(tunnelVisibility.showNgrokTunnel);
         if (data.ngrokAuthToken) setNgrokToken(data.ngrokAuthToken);
+        setCustomSystemPromptEnabled(!!data.customSystemPromptEnabled);
+        setCustomSystemPrompt(data.customSystemPrompt || "");
 
         if (!tunnelVisibility.showCloudflaredTunnel) {
           setCloudflaredStatus(null);
@@ -515,6 +509,24 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     }
 
     return DEFAULT_TUNNEL_VISIBILITY;
+  };
+
+  const handleCustomSystemPromptEnabledChange = (value: boolean) => {
+    setCustomSystemPromptEnabled(value);
+    void fetch("/api/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customSystemPromptEnabled: value }),
+    });
+  };
+
+  const handleCustomSystemPromptChange = (value: string) => {
+    setCustomSystemPrompt(value);
+    void fetch("/api/settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ customSystemPrompt: value }),
+    });
   };
 
   const handleCloudToggle = (checked) => {
@@ -1055,7 +1067,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   }, [fetchTailscaleStatus, handleTailscaleEnable, tailscalePassword, translateOrFallback]);
 
   const displayBaseUrl = useDisplayBaseUrl();
-  const baseUrl = `${displayBaseUrl}/v1`;
+  const displayApiUrl = `${displayBaseUrl}/v1`;
+  const publicDisplayApiUrl = isPublicDisplayBaseUrl(displayBaseUrl) ? displayApiUrl : null;
   const normalizedCloudBaseUrl = cloudBaseUrl
     ? resolvedMachineId && !cloudBaseUrl.endsWith(`/${resolvedMachineId}`)
       ? `${cloudBaseUrl}/${resolvedMachineId}`
@@ -1072,13 +1085,9 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
     );
   }
 
-  // Use new format endpoint (machineId embedded in key)
-  const currentEndpoint = cloudEnabled && cloudEndpointNew ? cloudEndpointNew : baseUrl;
-
-  const activeUrls = [
-    { label: "Local", url: baseUrl, key: "active_local" },
-    ...(cloudEnabled && cloudEndpointNew
-      ? [{ label: "Cloud", url: cloudEndpointNew, key: "active_cloud" }]
+  const activeTunnelUrls = [
+    ...(publicDisplayApiUrl
+      ? [{ label: t("tierPublic"), url: publicDisplayApiUrl, key: "active_public" }]
       : []),
     ...(cloudflaredStatus?.running && cloudflaredStatus.apiUrl
       ? [{ label: "Cloudflare", url: cloudflaredStatus.apiUrl, key: "active_cf" }]
@@ -1096,6 +1105,21 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
       ? [{ label: "ngrok", url: ngrokStatus.apiUrl, key: "active_ngrok" }]
       : []),
   ];
+  const preferredTunnelUrl = activeTunnelUrls[0]?.url ?? null;
+  const currentEndpoint =
+    preferredTunnelUrl ??
+    (cloudEnabled && cloudEndpointNew ? cloudEndpointNew : null) ??
+    displayApiUrl;
+  const activeUrls = [
+    ...activeTunnelUrls,
+    ...(cloudEnabled && cloudEndpointNew
+      ? [{ label: t("activeCloud"), url: cloudEndpointNew, key: "active_cloud" }]
+      : []),
+    { label: t("activeLocal"), url: localApiUrl, key: "active_local" },
+  ].filter(
+    (candidate, index, candidates) =>
+      candidates.findIndex((other) => other.url === candidate.url) === index
+  );
   const visibleTunnelCount = [showCloudflaredTunnel, showTailscaleFunnel, showNgrokTunnel].filter(
     Boolean
   ).length;
@@ -1224,15 +1248,21 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
   return (
     <div className="flex flex-col gap-8">
       <SegmentedControl
-        options={ENDPOINT_TABS}
+        options={ENDPOINT_TABS.map((tab) => ({ ...tab, label: t(tab.labelKey) }))}
         value={activeEndpointTab}
         onChange={(value) => setActiveEndpointTab(value as EndpointTab)}
-        aria-label="Endpoint sections"
+        aria-label={t("endpointSections")}
         className="w-fit"
       />
 
       {activeEndpointTab === "mcp" ? <McpDashboardPage /> : null}
       {activeEndpointTab === "a2a" ? <A2ADashboardPage /> : null}
+      {activeEndpointTab === "context-sources" ? (
+        <div className="flex flex-col gap-4">
+          <NotionSourceCard />
+          <ObsidianSourceCard />
+        </div>
+      ) : null}
 
       {/* Endpoint Card */}
       <Card>
@@ -1270,7 +1300,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
         {activeUrls.length > 0 && (
           <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
             <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">
-              Active Endpoints
+              {t("activeEndpoints")}
             </p>
             <div className="flex flex-col gap-1.5">
               {activeUrls.map(({ label, url, key }) => (
@@ -1311,7 +1341,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
                   <button
                     key={url}
                     onClick={() => void copy(url, `lan_${url}`)}
-                    title={`Copy ${url}`}
+                    title={t("copyUrlTitle", { url })}
                     className="inline-flex items-center gap-0.5 text-[10px] text-text-muted hover:text-text transition-colors"
                   >
                     <code className="font-mono">{url.replace(/^https?:\/\//, "")}</code>
@@ -1324,10 +1354,10 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </div>
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 border border-green-500/30 text-green-400 shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              Running
+              {t("statusRunning")}
             </span>
             <button
-              onClick={() => void copy(baseUrl, "endpoint_url")}
+              onClick={() => void copy(localApiUrl, "endpoint_url")}
               className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-border/70 text-text-muted hover:text-text hover:border-border transition-colors"
             >
               <span className="material-symbols-outlined text-[14px]">
@@ -1343,11 +1373,14 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               network_node
             </span>
             <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-              Tunnels
+              {t("tunnels")}
             </span>
             <div className="flex-1 h-px bg-border/50" />
             <span className="text-[10px] text-text-muted">
-              {activeTunnelCount} / {visibleTunnelCount} active
+              {t("activeTunnelCount", {
+                active: activeTunnelCount,
+                total: visibleTunnelCount,
+              })}
             </span>
           </div>
 
@@ -1369,7 +1402,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 ${cloudEnabled ? "bg-green-400 animate-pulse" : "bg-text-muted"}`}
               />
-              {cloudEnabled ? "Active" : "Disabled"}
+              {cloudEnabled ? tc("active") : tc("disabled")}
             </span>
             {cloudEnabled ? (
               <Button
@@ -1395,7 +1428,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               </Button>
             ) : (
               <span className="text-xs text-text-muted shrink-0 px-2 py-1 rounded border border-border/70 bg-surface">
-                Not configured
+                {tc("notConfigured")}
               </span>
             )}
           </div>
@@ -1742,9 +1775,32 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </div>
           )}
         </div>
-      </Card>
 
-      <TokenSaverCard />
+        {/* Custom System Prompt */}
+        <div className="flex items-center justify-between pt-4 mt-4 border-t border-border gap-4 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-sm">{t("customSystemPromptTitle")}</p>
+            <p className="text-sm text-text-muted">{t("customSystemPromptDescription")}</p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            {customSystemPromptEnabled && (
+              <Input
+                type="text"
+                value={customSystemPrompt}
+                onChange={(e) => handleCustomSystemPromptChange(e.target.value)}
+                placeholder={t("customSystemPromptPlaceholder")}
+                className="w-64 text-xs"
+              />
+            )}
+            <Toggle
+              checked={customSystemPromptEnabled}
+              onChange={handleCustomSystemPromptEnabledChange}
+              ariaLabel={t("customSystemPromptTitle")}
+              size="sm"
+            />
+          </div>
+        </div>
+      </Card>
 
       <Card>
         <div className="flex items-center justify-between mb-5">
@@ -2016,6 +2072,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               baseUrl={currentEndpoint}
             />
           </div>
+
+          <VscodeTokenAliasCard className="mt-4" />
         </div>
       </Card>
 

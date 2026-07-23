@@ -1,0 +1,48 @@
+export const PROVIDER_LABEL: Record<string, string> = {
+  antigravity: "Antigravity",
+  github: "GitHub Copilot",
+  kiro: "Kiro AI",
+  "amazon-q": "Amazon Q",
+  codex: "OpenAI Codex",
+  claude: "Claude Code",
+  glm: "GLM (Z.AI)",
+  zai: "Z.AI",
+  glmt: "GLM Thinking",
+  "opencode-go": "OpenCode Go",
+  "ollama-cloud": "Ollama Cloud",
+  "kimi-coding": "Kimi Coding",
+  minimax: "MiniMax",
+  "minimax-cn": "MiniMax CN",
+  nanogpt: "NanoGPT",
+  deepseek: "DeepSeek",
+};
+
+export const PROVIDER_ORDER: Record<string, number> = {
+  antigravity: 1,
+  github: 3,
+  codex: 4,
+  claude: 5,
+  kiro: 6,
+  glm: 7,
+  zai: 8,
+  glmt: 9,
+  "opencode-go": 10,
+  "ollama-cloud": 11,
+  "kimi-coding": 12,
+  minimax: 13,
+  "minimax-cn": 14,
+  nanogpt: 15,
+};
+
+export const TIER_FILTERS = [
+  { key: "all", labelKey: "tierAll" },
+  { key: "enterprise", labelKey: "tierEnterprise" },
+  { key: "team", labelKey: "tierTeam" },
+  { key: "business", labelKey: "tierBusiness" },
+  { key: "ultra", labelKey: "tierUltra" },
+  { key: "pro", labelKey: "tierPro" },
+  { key: "plus", labelKey: "tierPlus" },
+  { key: "lite", labelKey: "tierLite" },
+  { key: "free", labelKey: "tierFree" },
+  { key: "unknown", labelKey: "tierUnknown" },
+];

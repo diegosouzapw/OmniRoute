@@ -25,5 +25,8 @@
     "base_url": "OmniRoute server baza URL-i",
     "context": "Bu əmr üçün server konteksti/profili",
     "lang": "CLI ekran dilini təyin edin (OMNIROUTE_LANG-ı keçir)"
+  },
+  "redis": {
+    "description": "OmniRoute keşfi və kvota izləmə üçün 1 kliklə yerli Redis konteynerini (Podman və ya Docker) işə salın"
   }
 }

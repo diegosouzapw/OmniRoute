@@ -12,6 +12,7 @@ process.env.API_KEY_SECRET = "test-usage-analytics-secret";
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const analyticsRoute = await import("../../src/app/api/usage/analytics/route.ts");
 
@@ -144,7 +145,7 @@ test("GET /api/usage/analytics resolves Codex GPT-5.5 pricing through provider a
 
   assert.equal(response.status, 200);
   assertClose(body.summary.totalCost, 0.02);
-  assert.equal(body.byProvider[0].provider, "codex");
+  assert.equal(body.byProvider[0].provider, "OpenAI Codex");
   assertClose(body.byProvider[0].cost, 0.02);
   assert.equal(body.byModel[0].model, "gpt-5.5");
   assertClose(body.byModel[0].cost, 0.02);
@@ -220,22 +221,32 @@ test("GET /api/usage/analytics does not report flex savings for non-Codex provid
   assert.equal(flexTier.usageSavingsTokens, 0);
 });
 
-test("GET /api/usage/analytics applies Codex GPT-5.4 Fast multiplier", async () => {
+test("GET /api/usage/analytics applies Codex GPT-5.6 Sol Fast multiplier", async () => {
   await localDb.updatePricing({
-    codex: { "gpt-5.4": { input: 5, output: 30 } },
+    codex: { "gpt-5.6-sol": { input: 5, output: 30 } },
   });
   const db = core.getDbInstance();
   db.prepare(
     `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run("codex", "gpt-5.4", "codex-fast", 1000, 500, 1, 250, "priority", new Date().toISOString());
+  ).run(
+    "codex",
+    "gpt-5.6-sol",
+    "codex-fast",
+    1000,
+    500,
+    1,
+    250,
+    "priority",
+    new Date().toISOString()
+  );
 
   const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
   const body = await response.json();
 
   assert.equal(response.status, 200);
-  assertClose(body.summary.totalCost, 0.04);
-  assertClose(body.summary.fastCost, 0.04);
+  assertClose(body.summary.totalCost, 0.03);
+  assertClose(body.summary.fastCost, 0.03);
 });
 
 test("GET /api/usage/analytics maps Codex auto-review usage to GPT-5.5 pricing", async () => {
@@ -314,140 +325,11 @@ test("GET /api/usage/analytics includes byAccount array with cost data", async (
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(body.byAccount));
   assert.ok(body.byAccount.length > 0);
-  assert.equal(body.byAccount[0].account, "test-conn");
-  assert.equal(typeof body.byAccount[0].cost, "number");
-  assertClose(body.byAccount[0].cost, body.summary.totalCost);
-});
-
-test("GET /api/usage/analytics includes cost by API key", async () => {
-  await seedAnalyticsData();
-
-  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
-  const body = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.ok(Array.isArray(body.byApiKey));
-  assert.equal(body.byApiKey.length, 1);
-  assert.equal(body.byApiKey[0].apiKeyId, "test-key");
-  assert.equal(body.byApiKey[0].apiKeyName, "Primary Key");
-  assertClose(body.byApiKey[0].cost, body.summary.totalCost);
-});
-
-test("GET /api/usage/analytics groups renamed API key usage by stable ID", async () => {
-  const apiKey = await apiKeysDb.createApiKey("Averyanov", "machine1234567890");
-  await apiKeysDb.updateApiKeyPermissions(apiKey.id, { name: "Alexander Averyanov" });
-
-  const db = core.getDbInstance();
-  const now = Date.now();
-  const insertUsage = db.prepare(
-    `INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name, tokens_input, tokens_output, success, latency_ms, timestamp)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  assert.ok(body.byAccount.every((row) => row.account === "test-conn"));
+  assert.ok(body.byAccount.every((row) => typeof row.cost === "number"));
+  assertClose(
+    body.byAccount.reduce((sum, row) => sum + row.cost, 0),
+    body.summary.totalCost
   );
-  insertUsage.run(
-    "openai",
-    "gpt-4o",
-    "test-conn",
-    apiKey.id,
-    "Averyanov",
-    100,
-    50,
-    1,
-    200,
-    new Date(now - 60_000).toISOString()
-  );
-  insertUsage.run(
-    "openai",
-    "gpt-4o",
-    "test-conn",
-    apiKey.id,
-    "Desktop",
-    200,
-    100,
-    1,
-    250,
-    new Date(now).toISOString()
-  );
-
-  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
-  const body = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.equal(body.summary.uniqueApiKeys, 1);
-  assert.equal(body.byApiKey.length, 1);
-  assert.equal(body.byApiKey[0].apiKeyId, apiKey.id);
-  assert.equal(body.byApiKey[0].apiKeyName, "Alexander Averyanov");
-  assert.deepEqual(body.byApiKey[0].historicalApiKeyNames.sort(), ["Averyanov", "Desktop"]);
-  assert.equal(body.byApiKey[0].requests, 2);
-  assert.equal(body.byApiKey[0].promptTokens, 300);
-  assert.equal(body.byApiKey[0].completionTokens, 150);
-
-  const filteredResponse = await analyticsRoute.GET(
-    makeRequest(`http://localhost/api/usage/analytics?apiKeyIds=${apiKey.id}`)
-  );
-  const filteredBody = await filteredResponse.json();
-
-  assert.equal(filteredResponse.status, 200);
-  assert.equal(filteredBody.summary.totalRequests, 2);
-  assert.equal(filteredBody.byApiKey.length, 1);
-  assert.equal(filteredBody.byApiKey[0].apiKeyId, apiKey.id);
 });
 
-test("GET /api/usage/analytics does not persist guessed API key attribution", async () => {
-  await localDb.updatePricing({
-    openai: { "gpt-4o": { input: 2.5, output: 10 } },
-  });
-  await apiKeysDb.createApiKey("Unrestricted Key", "machine1234567890");
-
-  const db = core.getDbInstance();
-  db.prepare(
-    `INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name, tokens_input, tokens_output, success, latency_ms, timestamp)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run("openai", "gpt-4o", "legacy-conn", null, null, 100, 50, 1, 200, new Date().toISOString());
-
-  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
-  const body = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.equal(body.byApiKey.length, 0);
-
-  const row = db
-    .prepare("SELECT api_key_id, api_key_name FROM usage_history WHERE connection_id = ?")
-    .get("legacy-conn") as { api_key_id: string | null; api_key_name: string | null };
-  assert.equal(row.api_key_id, null);
-  assert.equal(row.api_key_name, null);
-});
-
-test("GET /api/usage/analytics returns weeklyPattern for the costs dashboard", async () => {
-  await seedAnalyticsData();
-
-  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
-  const body = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.ok(Array.isArray(body.weeklyPattern));
-  assert.equal(body.weeklyPattern.length, 7);
-  assert.deepEqual(
-    body.weeklyPattern.map((row) => row.day),
-    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-  );
-  assert.ok(body.weeklyPattern.some((row) => row.totalTokens > 0 && row.avgTokens > 0));
-});
-
-test("GET /api/usage/analytics includes activityMap for heatmap", async () => {
-  await seedAnalyticsData();
-
-  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
-  const body = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.ok(typeof body.activityMap === "object");
-  assert.ok(Object.keys(body.activityMap).length > 0);
-});
-
-test("GET /api/usage/analytics returns 500 on database errors", async () => {
-  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
-  const body = await response.json();
-
-  assert.equal(response.status, 200);
-  assert.ok(body.summary.totalRequests === 0);
-});

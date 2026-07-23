@@ -1,0 +1,1 @@
+- **CI**: Playwright E2E and both vitest suites now emit JUnit and upload to Trunk Flaky Tests (org `omniroute`) — advisory step, own-origin only, uploader action SHA-pinned (WS5.2/5.3 of the quality plan; node:test stays out of the first wave)

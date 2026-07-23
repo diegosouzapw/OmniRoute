@@ -39,9 +39,44 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import {
+  FetchTimeoutError,
+  fetchWithTimeout,
+  getConfiguredTimeout,
+} from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
+
+// --- Per-provider handlers (extracted to co-located files in PR-#4582-batch) ---
+// Imported locally so internal callers (handleImageGeneration / handleImageEdit)
+// resolve to a real binding. extractMarkdownImageUrls + CHATGPT_WEB_IMAGE_ID_RE
+// are still used by handleImageEdit below, so they are imported (not re-defined).
+import { handleSDWebUIImageGeneration } from "./imageGeneration/providers/sdWebUI.ts";
+import { handleHyperbolicImageGeneration } from "./imageGeneration/providers/hyperbolic.ts";
+import { handleHuggingFaceImageGeneration } from "./imageGeneration/providers/huggingface.ts";
+import { handleComfyUIImageGeneration } from "./imageGeneration/providers/comfyUI.ts";
+import { handleImagen3ImageGeneration } from "./imageGeneration/providers/imagen3.ts";
+import { handleGoogleImagenGeneration } from "./imageGeneration/providers/googleImagen.ts";
+import { handleIdeogramImageGeneration } from "./imageGeneration/providers/ideogram.ts";
+import { handleHaiperImageGeneration } from "./imageGeneration/providers/haiper.ts";
+import { handleLeonardoImageGeneration } from "./imageGeneration/providers/leonardo.ts";
+import { handleFreepikImageGeneration } from "./imageGeneration/providers/freepik.ts";
+import {
+  handleChatGptWebImageGeneration,
+  extractMarkdownImageUrls,
+  CHATGPT_WEB_IMAGE_ID_RE,
+} from "./imageGeneration/providers/chatgptWeb.ts";
+import { handleNvidiaNimImageGeneration } from "./imageGeneration/providers/nvidiaNim.ts";
+import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmind.ts";
+import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
+import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
+import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import {
+  applyPollinationsAnonymousFallback,
+  reportPollinationsAnonOutcome,
+} from "./imageGeneration/pollinationsAnonAuth.ts";
 
 interface KieImageOptions {
   model: string;
@@ -85,6 +120,57 @@ const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
 ]);
 
 const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
+
+/**
+ * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
+ * provider node (#3205).
+ *
+ * Custom provider nodes store their base URL the same way the chat path does:
+ * in `credentials.providerSpecificData.baseUrl` (e.g. `https://example.com/v1`),
+ * NOT as a top-level `credentials.baseUrl`. Older callers may still pass a
+ * top-level `baseUrl`, so we honor that as a secondary source. When neither is
+ * present we fall back to `fallback` (the built-in Gemini OpenAI endpoint).
+ *
+ * Resolution order: providerSpecificData.baseUrl → credentials.baseUrl → fallback.
+ *
+ * A node base URL like `https://example.com/v1` is normalized and the
+ * OpenAI-compatible `/images/generations` path appended (mirroring
+ * `buildOpenAICompatibleUrl` in services/provider.ts). A node URL that already
+ * ends in `/images/generations` is returned as-is (no double-append). The
+ * `fallback` value is assumed to already be a complete URL and is returned
+ * verbatim.
+ */
+export function resolveImageBaseUrl(
+  credentials:
+    { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
+  fallback: string,
+  endpoint: "generations" | "edits" = "generations"
+): string {
+  const psd = credentials?.providerSpecificData;
+  const psdBaseUrl =
+    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
+      ? psd.baseUrl.trim()
+      : null;
+  const topLevelBaseUrl =
+    typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
+      ? credentials.baseUrl.trim()
+      : null;
+  const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
+
+  if (!nodeBaseUrl) return fallback;
+
+  // A single configured node serves both image routes: honor a base URL that already
+  // points at the requested OpenAI image path, and rewrite one that points at the other
+  // image endpoint (e.g. `.../images/generations` requested for edits) (#3214/#3215).
+  const suffix = `/images/${endpoint}`;
+  // Trim trailing slashes without a backtracking-prone regex (`/\/+$/` is a
+  // polynomial-ReDoS pattern on long runs of "/" — CodeQL js/polynomial-redos).
+  let normalized = nodeBaseUrl;
+  while (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
+  if (normalized.endsWith(suffix)) return normalized;
+  const stripped = normalized.replace(/\/images\/(?:generations|edits)$/, "");
+  return `${stripped}${suffix}`;
+}
 
 function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): string {
   if (typeof value === "string") {
@@ -256,9 +342,16 @@ export async function handleImageGeneration({
 
     const syntheticConfig = {
       id: provider,
-      baseUrl:
-        credentials?.baseUrl ||
-        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`,
+      // #3205: custom OpenAI-compatible nodes store their base URL in
+      // credentials.providerSpecificData.baseUrl (same as the chat path —
+      // see executors/default.ts:buildUrl / services/provider.ts:buildProviderUrl).
+      // Previously only the (always-absent) top-level credentials.baseUrl was
+      // read, so every custom image node fell back to the Gemini endpoint and
+      // returned "Please pass a valid API key".
+      baseUrl: resolveImageBaseUrl(
+        credentials,
+        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`
+      ),
       authType: "apikey",
       authHeader: "bearer",
       format: "openai",
@@ -289,8 +382,30 @@ export async function handleImageGeneration({
     });
   }
 
+  if (providerConfig.format === "google-imagen") {
+    return handleGoogleImagenGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   if (providerConfig.format === "hyperbolic") {
     return handleHyperbolicImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "huggingface-image") {
+    return handleHuggingFaceImageGeneration({
       model,
       provider,
       providerConfig,
@@ -355,6 +470,17 @@ export async function handleImageGeneration({
     });
   }
 
+  if (providerConfig.format === "segmind") {
+    return handleSegmindImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   if (providerConfig.format === "chatgpt-web") {
     return handleChatGptWebImageGeneration({
       model,
@@ -364,6 +490,28 @@ export async function handleImageGeneration({
       log,
       signal,
       clientHeaders,
+    });
+  }
+
+  if (providerConfig.format === "designer-web") {
+    return handleDesignerWebImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "adobe-firefly-image") {
+    return handleAdobeFireflyImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
     });
   }
 
@@ -394,7 +542,16 @@ export async function handleImageGeneration({
   }
 
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIImageGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIImageGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "codex-responses") {
@@ -423,6 +580,38 @@ export async function handleImageGeneration({
   }
   if (providerConfig.format === "ideogram-image") {
     return handleIdeogramImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+  if (providerConfig.format === "freepik-image") {
+    return handleFreepikImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "nvidia-nim") {
+    return handleNvidiaNimImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "minimax-image") {
+    return handleMinimaxImageGeneration({
       model,
       provider,
       providerConfig,
@@ -847,15 +1036,28 @@ async function handleOpenAIImageGeneration({
   }
 
   // Build headers
-  const headers = {
+  let headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
   const token = credentials.apiKey || credentials.accessToken;
-  if (providerConfig.authHeader === "bearer") {
+  if (token && providerConfig.authHeader === "bearer") {
     headers["Authorization"] = `Bearer ${token}`;
-  } else if (providerConfig.authHeader === "x-api-key") {
+  } else if (token && providerConfig.authHeader === "x-api-key") {
     headers["x-api-key"] = token;
+  }
+
+  // #8085 — keyless Pollinations image requests (the common free case) get
+  // no Authorization header above. Mirror the chat executor's anonymous
+  // fingerprint-pool fallback (open-sse/executors/pollinations.ts) so the
+  // outbound request isn't sent bare and rejected by Pollinations' own 401.
+  let pollinationsAnonSession: Awaited<
+    ReturnType<typeof applyPollinationsAnonymousFallback>
+  >["session"] = null;
+  if (providerConfig.id === "pollinations") {
+    const anon = await applyPollinationsAnonymousFallback(providerConfig.id, token, headers);
+    headers = anon.headers;
+    pollinationsAnonSession = anon.session;
   }
 
   if (log) {
@@ -898,6 +1100,10 @@ async function handleOpenAIImageGeneration({
     );
   }
 
+  if (pollinationsAnonSession) {
+    reportPollinationsAnonOutcome(pollinationsAnonSession, result.status);
+  }
+
   // Save call log after result is determined
   saveCallLog({
     method: "POST",
@@ -919,190 +1125,125 @@ async function handleOpenAIImageGeneration({
   return result;
 }
 
-const CHATGPT_WEB_IMAGE_MARKDOWN_RE = /!\[[^\]]*\]\(([^)\s]+)\)/g;
-const CHATGPT_WEB_IMAGE_ID_RE = /\/v1\/chatgpt-web\/image\/([a-f0-9]{16,64})(?=[?\s"'<>)]|$)/i;
-
-function extractMarkdownImageUrls(text: string): string[] {
-  const urls: string[] = [];
-  // String.prototype.matchAll consumes a fresh iterator and ignores the
-  // regex's lastIndex, so no manual reset is required.
-  for (const match of text.matchAll(CHATGPT_WEB_IMAGE_MARKDOWN_RE)) {
-    if (match[1]) urls.push(match[1]);
-  }
-  return urls;
-}
-
-function buildChatGptWebImagePrompt(body): string {
-  const prompt = String(body.prompt || "").trim();
-  const details: string[] = [`Create an image for this prompt: ${prompt}`];
-  if (typeof body.size === "string" && body.size.trim()) {
-    details.push(`Requested size: ${body.size.trim()}.`);
-  }
-  if (typeof body.quality === "string" && body.quality.trim()) {
-    details.push(`Requested quality: ${body.quality.trim()}.`);
-  }
-  if (typeof body.style === "string" && body.style.trim()) {
-    details.push(`Requested style: ${body.style.trim()}.`);
-  }
-  return details.join("\n");
-}
-
-async function handleChatGptWebImageGeneration({
+/**
+ * OpenAI-compatible image *edit* forwarder for custom providers (#3214 / #3215).
+ *
+ * Mirrors `handleOpenAIImageGeneration` but posts multipart/form-data to the node's
+ * `/images/edits` endpoint and returns the upstream OpenAI-compatible response. Kept
+ * separate from the chatgpt-web edit flow, which continues a saved conversation node
+ * rather than forwarding a stateless edit. The fetch helper leaves Content-Type unset so
+ * `fetch` derives the multipart boundary from the FormData body.
+ */
+export async function handleOpenAIImageEdit({
   model,
   provider,
-  body,
   credentials,
+  prompt,
+  imageBytes,
+  imageMime,
+  size,
+  responseFormat,
+  n = 1,
   log,
-  signal,
-  clientHeaders,
+}: {
+  model: string;
+  provider: string;
+  credentials:
+    | {
+        apiKey?: string;
+        accessToken?: string;
+        baseUrl?: unknown;
+        providerSpecificData?: { baseUrl?: unknown } | null;
+      }
+    | null
+    | undefined;
+  prompt: string;
+  imageBytes: Buffer;
+  imageMime?: string | null;
+  size?: string | null;
+  responseFormat?: string | null;
+  n?: number;
+  log?: { info: (tag: string, message: string) => void } | null;
 }) {
   const startTime = Date.now();
-  const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-  if (!prompt) {
-    return saveImageErrorResult({
-      provider,
-      model,
-      status: 400,
-      startTime,
-      error: "Prompt is required for ChatGPT Web image generation",
-    });
-  }
+  const url = resolveImageBaseUrl(
+    credentials,
+    `https://generativelanguage.googleapis.com/v1beta/openai/images/edits`,
+    "edits"
+  );
 
-  if (!credentials?.apiKey) {
-    return saveImageErrorResult({
-      provider,
-      model,
-      status: 401,
-      startTime,
-      error: "ChatGPT Web credentials missing session cookie",
-    });
-  }
+  // Build the multipart body as a Buffer with an explicit boundary instead of a global
+  // `FormData`. In production `globalThis.fetch` is patched with node_modules/undici's fetch,
+  // whose `FormData` class differs from `globalThis.FormData` — passing a native FormData
+  // makes undici serialize it as the string "[object FormData]" (text/plain), dropping every
+  // field (including `model`, which reaches the upstream empty). A Buffer body is accepted
+  // verbatim by any fetch implementation. (#3273)
+  const boundary = `----OmniRouteImageEdit${randomUUID().replace(/-/g, "")}`;
+  const CRLF = "\r\n";
+  const partBuffers: Buffer[] = [];
+  const appendField = (name: string, value: string) => {
+    partBuffers.push(
+      Buffer.from(
+        `--${boundary}${CRLF}Content-Disposition: form-data; name="${name}"${CRLF}${CRLF}${value}${CRLF}`
+      )
+    );
+  };
+  appendField("model", model);
+  appendField("prompt", prompt);
+  if (size) appendField("size", size);
+  if (responseFormat) appendField("response_format", responseFormat);
+  appendField("n", String(n || 1));
+  partBuffers.push(
+    Buffer.from(
+      `--${boundary}${CRLF}Content-Disposition: form-data; name="image"; filename="image.png"${CRLF}` +
+        `Content-Type: ${imageMime || "image/png"}${CRLF}${CRLF}`
+    )
+  );
+  partBuffers.push(imageBytes);
+  partBuffers.push(Buffer.from(`${CRLF}--${boundary}--${CRLF}`));
+  const multipartBody = Buffer.concat(partBuffers);
 
-  // Each image is one chatgpt.com chat turn (~30s). Cap at 4 (matches OpenAI's
-  // own limit for GPT Image models) so a stray n=1000 doesn't pin the
-  // executor for hours before the upstream HTTP timeout fires.
-  const CHATGPT_WEB_IMAGE_N_MAX = 4;
-  const rawCount = Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
-  if (rawCount > CHATGPT_WEB_IMAGE_N_MAX) {
-    return saveImageErrorResult({
-      provider,
-      model,
-      status: 400,
-      startTime,
-      error: `ChatGPT Web image generation supports n=1..${CHATGPT_WEB_IMAGE_N_MAX} (got ${rawCount}); each n is a separate ~30s chat turn.`,
-    });
-  }
-  const requestedCount = rawCount;
-  if (log && requestedCount > 1) {
-    log.warn(
+  const headers: Record<string, string> = {
+    "Content-Type": `multipart/form-data; boundary=${boundary}`,
+  };
+  const token = credentials?.apiKey || credentials?.accessToken;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  if (log) {
+    log.info(
       "IMAGE",
-      `ChatGPT Web returns one image per chat turn; requested n=${requestedCount} will run sequentially`
+      `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`
     );
   }
 
-  const wantsBase64 = body.response_format === "b64_json";
-  const images: Array<{ url?: string; b64_json?: string }> = [];
-  const requestBody = {
-    model,
-    prompt: prompt.slice(0, 500),
-    size: body.size || undefined,
-    quality: body.quality || undefined,
-  };
-
-  for (let i = 0; i < requestedCount; i++) {
-    const executor = new ChatGptWebExecutor();
-    const result = await executor.execute({
-      model,
-      body: {
-        messages: [{ role: "user", content: buildChatGptWebImagePrompt(body) }],
-      },
-      stream: false,
-      credentials,
-      signal,
-      log,
-      clientHeaders,
-    });
-
-    const responseText = await result.response.text();
-    if (result.response.status >= 400) {
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: result.response.status,
-        startTime,
-        error: responseText,
-        requestBody,
-      });
-    }
-
-    let content = "";
-    try {
-      const json = JSON.parse(responseText);
-      content = String(json?.choices?.[0]?.message?.content || "");
-    } catch {
-      content = responseText;
-    }
-
-    const urls = extractMarkdownImageUrls(content);
-    if (urls.length === 0) {
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: 502,
-        startTime,
-        error: `ChatGPT Web completed without returning image markdown: ${content.slice(0, 300)}`,
-        requestBody,
-      });
-    }
-
-    for (const url of urls) {
-      if (!wantsBase64) {
-        images.push({ url });
-        continue;
-      }
-      const id = url.match(CHATGPT_WEB_IMAGE_ID_RE)?.[1];
-      const cached = id ? getChatGptImage(id) : null;
-      if (!cached) {
-        return saveImageErrorResult({
-          provider,
-          model,
-          status: 502,
-          startTime,
-          error: "ChatGPT Web image bytes expired before b64_json conversion",
-          requestBody,
-        });
-      }
-      images.push({ b64_json: cached.bytes.toString("base64") });
-    }
-  }
-
-  return saveImageSuccessResult({
+  const result = await fetchImageEndpoint(
+    url,
+    headers,
+    multipartBody as unknown as BodyInit,
     provider,
-    model,
-    startTime,
-    requestBody,
-    responseBody: { images_count: images.length },
-    images,
-  });
+    log
+  );
+
+  saveCallLog({
+    method: "POST",
+    path: "/v1/images/edits",
+    status: result.status || (result.success ? 200 : 502),
+    model: `${provider}/${model}`,
+    provider,
+    duration: Date.now() - startTime,
+    tokens: { prompt_tokens: 0, completion_tokens: 0 },
+    error: result.success
+      ? null
+      : typeof result.error === "string"
+        ? result.error.slice(0, 500)
+        : null,
+    requestBody: { model, prompt: prompt.slice(0, 200), size: size || "default", n: n || 1 },
+    responseBody: result.success ? { images_count: result.data?.data?.length || 0 } : null,
+  }).catch(() => {});
+
+  return result;
 }
 
-/**
- * Handle a multipart /v1/images/edits request for chatgpt-web. Open WebUI
- * uploads the prior image's bytes; we hash them and look up our cache.
- *
- * The hash match is reliable because Open WebUI's image-gen pipeline
- * downloads our /v1/chatgpt-web/image/<id> URL byte-for-byte and re-serves
- * those exact bytes through its own file store. When the user asks to edit
- * the image, OWUI uploads the same bytes back to us via multipart — same
- * hash, we find the conversation context, and drive the executor with a
- * synthetic chat thread that triggers continuation mode.
- *
- * No-match cases (cache evicted by TTL, or the user uploaded a foreign
- * image) get a clear 400. We can't actually edit an image we don't have a
- * conversation context for — chatgpt.com's image_gen tool needs the
- * original conversation node, and we don't have a path to upload bytes
- * directly.
- */
 export async function handleImageEdit({
   provider,
   model,
@@ -2181,6 +2322,9 @@ async function handleCodexImageGeneration({
   body,
   credentials,
   log,
+  referenceImages = [],
+  signal = null,
+  logPath = "/v1/images/generations",
 }) {
   const startTime = Date.now();
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
@@ -2191,6 +2335,7 @@ async function handleCodexImageGeneration({
       status: 400,
       startTime,
       error: "Prompt is required for Codex image generation",
+      path: logPath,
     });
   }
 
@@ -2211,6 +2356,7 @@ async function handleCodexImageGeneration({
       status: 401,
       startTime,
       error: "Codex credentials missing accessToken — reconnect the Codex provider",
+      path: logPath,
     });
   }
 
@@ -2226,6 +2372,7 @@ async function handleCodexImageGeneration({
   // (model, n, background, moderation, output_compression) is left to the
   // Codex backend's defaults — today that's `gpt-image-2`.
   const toolConfig: Record<string, unknown> = { type: "image_generation", output_format: "png" };
+  if (referenceImages.length > 0) toolConfig.action = "edit";
   if (typeof body.size === "string" && body.size.trim()) {
     toolConfig.size = body.size.trim();
   }
@@ -2233,20 +2380,44 @@ async function handleCodexImageGeneration({
     toolConfig.quality = mapLegacyImageQualityToImageTool(body.quality.trim());
   }
 
+  const inputContent: Array<Record<string, unknown>> = [{ type: "input_text", text: prompt }];
+  for (const image of referenceImages) {
+    inputContent.push({
+      type: "input_image",
+      image_url: `data:${image.mime || "image/png"};base64,${image.bytes.toString("base64")}`,
+    });
+  }
+
   const upstreamBody: Record<string, unknown> = {
     model,
     instructions:
-      "You must call the image_generation tool exactly once to fulfill the user's request. Do not add narration.",
+      referenceImages.length > 0
+        ? `You must call the image_generation tool exactly once to edit the supplied ${referenceImages.length === 1 ? "reference image" : "reference images"}. Treat all supplied images as references for the user's requested composition or style. Do not add narration.`
+        : "You must call the image_generation tool exactly once to fulfill the user's request. Do not add narration.",
     input: [
       {
         role: "user",
-        content: [{ type: "input_text", text: prompt }],
+        content: inputContent,
       },
     ],
     tools: [toolConfig],
     stream: true,
     store: false,
   };
+  const requestBodyForLog =
+    referenceImages.length > 0
+      ? {
+          model,
+          prompt_chars: prompt.length,
+          reference_images: referenceImages.map((image) => ({
+            mime: image.mime || "image/png",
+            bytes: image.bytes.length,
+          })),
+          tools: [toolConfig],
+          stream: true,
+          store: false,
+        }
+      : upstreamBody;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -2262,10 +2433,9 @@ async function handleCodexImageGeneration({
   }
 
   if (log) {
-    log.info(
-      "IMAGE",
-      `${provider}/${model} (codex-responses) | prompt: "${prompt.slice(0, 60)}..."`
-    );
+    const promptSummary =
+      referenceImages.length > 0 ? `${prompt.length} chars` : `"${prompt.slice(0, 60)}..."`;
+    log.info("IMAGE", `${provider}/${model} (codex-responses) | prompt: ${promptSummary}`);
   }
 
   const fetchOneImage = async () => {
@@ -2275,9 +2445,11 @@ async function handleCodexImageGeneration({
         method: "POST",
         headers,
         body: JSON.stringify(upstreamBody),
+        signal,
       });
     } catch (err) {
-      if (log) log.error("IMAGE", `${provider} fetch error: ${(err as Error).message}`);
+      const message = sanitizeErrorMessage(err);
+      if (log) log.error("IMAGE", `${provider} fetch error: ${message}`);
       return {
         ok: false as const,
         error: {
@@ -2285,16 +2457,19 @@ async function handleCodexImageGeneration({
           model,
           status: 502,
           startTime,
-          error: `Image provider error: ${(err as Error).message}`,
-          requestBody: upstreamBody,
+          error: `Image provider error: ${message}`,
+          requestBody: requestBodyForLog,
+          path: logPath,
         },
       };
     }
 
     if (!response.ok) {
       const errorText = await response.text();
-      if (log)
-        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
+      const safeError = sanitizeImageProviderError(errorText);
+      const safeErrorLog =
+        typeof safeError === "string" ? safeError : JSON.stringify(safeError ?? {});
+      if (log) log.error("IMAGE", `${provider} error ${response.status}: ${safeErrorLog}`);
       return {
         ok: false as const,
         error: {
@@ -2302,8 +2477,9 @@ async function handleCodexImageGeneration({
           model,
           status: response.status,
           startTime,
-          error: errorText,
-          requestBody: upstreamBody,
+          error: safeError,
+          requestBody: requestBodyForLog,
+          path: logPath,
         },
       };
     }
@@ -2320,7 +2496,8 @@ async function handleCodexImageGeneration({
           startTime,
           error:
             "Codex completed without producing an image_generation_call — the model may have declined the tool",
-          requestBody: upstreamBody,
+          requestBody: requestBodyForLog,
+          path: logPath,
         },
       };
     }
@@ -2355,13 +2532,60 @@ async function handleCodexImageGeneration({
     provider,
     model,
     startTime,
-    requestBody: upstreamBody,
+    requestBody: requestBodyForLog,
     responseBody: { images_count: data.length },
     images: data,
+    path: logPath,
   });
 }
 
-function saveImageSuccessResult({
+type CodexImageEditResult =
+  | { success: true; data: { created: number; data: Array<Record<string, unknown>> } }
+  | { success: false; status: number; error: unknown };
+
+/**
+ * Run a stateless Codex reference-image edit through the native Responses hosted tool.
+ * This deliberately reuses the text-to-image implementation so OAuth headers, SSE parsing,
+ * response formatting, and error handling cannot drift between generations and edits.
+ */
+export async function handleCodexImageEdit({
+  model,
+  provider,
+  providerConfig,
+  body,
+  referenceImages,
+  credentials,
+  log,
+  signal = null,
+}: {
+  model: string;
+  provider: string;
+  providerConfig: unknown;
+  body: Record<string, unknown>;
+  referenceImages: Array<{ bytes: Buffer; mime: string }>;
+  credentials: unknown;
+  log: {
+    info: (tag: string, message: string) => void;
+    warn: (tag: string, message: string) => void;
+    error: (tag: string, message: string) => void;
+  } | null;
+  signal?: AbortSignal | null;
+}): Promise<CodexImageEditResult> {
+  const result = await handleCodexImageGeneration({
+    model,
+    provider,
+    providerConfig,
+    body: { ...body, n: 1 },
+    credentials,
+    log,
+    referenceImages,
+    signal,
+    logPath: "/v1/images/edits",
+  });
+  return result as CodexImageEditResult;
+}
+
+export function saveImageSuccessResult({
   provider,
   model,
   startTime,
@@ -2369,10 +2593,11 @@ function saveImageSuccessResult({
   responseBody = null,
   created = null,
   images,
+  path = "/v1/images/generations",
 }) {
   saveCallLog({
     method: "POST",
-    path: "/v1/images/generations",
+    path,
     status: 200,
     model: `${provider}/${model}`,
     provider,
@@ -2390,10 +2615,18 @@ function saveImageSuccessResult({
   };
 }
 
-function saveImageErrorResult({ provider, model, status, startTime, error, requestBody = null }) {
+export function saveImageErrorResult({
+  provider,
+  model,
+  status,
+  startTime,
+  error,
+  requestBody = null,
+  path = "/v1/images/generations",
+}) {
   saveCallLog({
     method: "POST",
-    path: "/v1/images/generations",
+    path,
     status,
     model: `${provider}/${model}`,
     provider,
@@ -2414,11 +2647,33 @@ function saveImageErrorResult({ provider, model, status, startTime, error, reque
  */
 async function fetchImageEndpoint(url, headers, body, provider, log) {
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body,
-    });
+    let response;
+    try {
+      response = await fetchWithTimeout(url, {
+        method: "POST",
+        headers,
+        body,
+        timeoutMs: getConfiguredTimeout(),
+      });
+    } catch (err: unknown) {
+      const isAbortError =
+        typeof err === "object" &&
+        err !== null &&
+        "name" in err &&
+        (err as { name?: unknown }).name === "AbortError";
+      if (err instanceof FetchTimeoutError || isAbortError) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (log) {
+          log.error("IMAGE", `${provider} fetch error: ${message}`);
+        }
+        return {
+          success: false,
+          status: 504,
+          error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
+        };
+      }
+      throw err;
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -2442,14 +2697,15 @@ async function fetchImageEndpoint(url, headers, body, provider, log) {
         data: data.data || [],
       },
     };
-  } catch (err) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     if (log) {
-      log.error("IMAGE", `${provider} fetch error: ${err.message}`);
+      log.error("IMAGE", `${provider} fetch error: ${message}`);
     }
     return {
       success: false,
       status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+      error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
     };
   }
 }
@@ -2457,104 +2713,6 @@ async function fetchImageEndpoint(url, headers, body, provider, log) {
 /**
  * Handle Hyperbolic image generation
  * Uses { model_name, prompt, height, width } and returns { images: [{ image: base64 }] }
- */
-async function handleHyperbolicImageGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}) {
-  const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
-
-  const [width, height] = (body.size || "1024x1024").split("x").map(Number);
-
-  const upstreamBody = {
-    model_name: model,
-    prompt: body.prompt,
-    height: height || 1024,
-    width: width || 1024,
-    backend: "auto",
-  };
-
-  if (log) {
-    const promptPreview = String(body.prompt ?? "").slice(0, 60);
-    log.info("IMAGE", `${provider}/${model} (hyperbolic) | prompt: "${promptPreview}..."`);
-  }
-
-  try {
-    const response = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(upstreamBody),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (log)
-        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
-
-      saveCallLog({
-        method: "POST",
-        path: "/v1/images/generations",
-        status: response.status,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
-      }).catch(() => {});
-
-      return { success: false, status: response.status, error: errorText };
-    }
-
-    const data = await response.json();
-    // Transform { images: [{ image: base64 }] } → OpenAI format
-    const images = (data.images || []).map((img) => ({
-      b64_json: img.image,
-      revised_prompt: body.prompt,
-    }));
-
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 200,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      responseBody: { images_count: images.length },
-    }).catch(() => {});
-
-    return {
-      success: true,
-      data: { created: Math.floor(Date.now() / 1000), data: images },
-    };
-  } catch (err) {
-    if (log) log.error("IMAGE", `${provider} fetch error: ${err.message}`);
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: err.message,
-    }).catch(() => {});
-    return {
-      success: false,
-      status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
-    };
-  }
-}
-
-/**
- * Handle NanoBanana image generation
- * NanoBanana is async (submit task -> poll status -> return final image URL/base64)
  */
 async function handleNanoBananaImageGeneration({
   model,
@@ -2918,659 +3076,3 @@ function normalizePositiveNumber(value, fallback) {
  * POST {baseUrl} with { prompt, negative_prompt, width, height, steps }
  * Response: { images: ["base64..."] }
  */
-async function handleSDWebUIImageGeneration({ model, provider, providerConfig, body, log }) {
-  const startTime = Date.now();
-  const [width, height] = (body.size || "512x512").split("x").map(Number);
-
-  const upstreamBody = {
-    prompt: body.prompt,
-    negative_prompt: body.negative_prompt || "",
-    width: width || 512,
-    height: height || 512,
-    steps: body.steps || 20,
-    cfg_scale: body.cfg_scale || 7,
-    sampler_name: body.sampler || "Euler a",
-    batch_size: body.n || 1,
-    override_settings: {
-      sd_model_checkpoint: model,
-    },
-  };
-
-  if (log) {
-    const promptPreview = String(body.prompt ?? "").slice(0, 60);
-    log.info("IMAGE", `${provider}/${model} (sdwebui) | prompt: "${promptPreview}..."`);
-  }
-
-  try {
-    const response = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(upstreamBody),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (log)
-        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
-
-      saveCallLog({
-        method: "POST",
-        path: "/v1/images/generations",
-        status: response.status,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
-      }).catch(() => {});
-
-      return { success: false, status: response.status, error: errorText };
-    }
-
-    const data = await response.json();
-    // SD WebUI returns { images: ["base64...", ...] }
-    const images = (data.images || []).map((b64) => ({
-      b64_json: b64,
-      revised_prompt: body.prompt,
-    }));
-
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 200,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      responseBody: { images_count: images.length },
-    }).catch(() => {});
-
-    return {
-      success: true,
-      data: { created: Math.floor(Date.now() / 1000), data: images },
-    };
-  } catch (err) {
-    if (log) log.error("IMAGE", `${provider} sdwebui error: ${err.message}`);
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: err.message,
-    }).catch(() => {});
-    return {
-      success: false,
-      status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
-    };
-  }
-}
-
-/**
- * Handle ComfyUI image generation (local, no auth)
- * Submits a txt2img workflow, polls for completion, fetches output
- */
-async function handleComfyUIImageGeneration({ model, provider, providerConfig, body, log }) {
-  const startTime = Date.now();
-  const [width, height] = (body.size || "1024x1024").split("x").map(Number);
-
-  // Default txt2img workflow template for ComfyUI
-  const workflow = {
-    "3": {
-      class_type: "KSampler",
-      inputs: {
-        seed: parseInt(randomUUID().replace(/-/g, "").substring(0, 8), 16) % 2 ** 32,
-        steps: body.steps || 20,
-        cfg: body.cfg_scale || 7,
-        sampler_name: "euler",
-        scheduler: "normal",
-        denoise: 1,
-        model: ["4", 0],
-        positive: ["6", 0],
-        negative: ["7", 0],
-        latent_image: ["5", 0],
-      },
-    },
-    "4": {
-      class_type: "CheckpointLoaderSimple",
-      inputs: { ckpt_name: model },
-    },
-    "5": {
-      class_type: "EmptyLatentImage",
-      inputs: { width: width || 1024, height: height || 1024, batch_size: body.n || 1 },
-    },
-    "6": {
-      class_type: "CLIPTextEncode",
-      inputs: { text: body.prompt, clip: ["4", 1] },
-    },
-    "7": {
-      class_type: "CLIPTextEncode",
-      inputs: { text: body.negative_prompt || "", clip: ["4", 1] },
-    },
-    "8": {
-      class_type: "VAEDecode",
-      inputs: { samples: ["3", 0], vae: ["4", 2] },
-    },
-    "9": {
-      class_type: "SaveImage",
-      inputs: { filename_prefix: "omniroute", images: ["8", 0] },
-    },
-  };
-
-  if (log) {
-    const promptPreview = String(body.prompt ?? "").slice(0, 60);
-    log.info("IMAGE", `${provider}/${model} (comfyui) | prompt: "${promptPreview}..."`);
-  }
-
-  try {
-    const promptId = await submitComfyWorkflow(providerConfig.baseUrl, workflow);
-    const historyEntry = await pollComfyResult(providerConfig.baseUrl, promptId);
-    const outputFiles = extractComfyOutputFiles(historyEntry);
-
-    const images = [];
-    for (const file of outputFiles) {
-      const buffer = await fetchComfyOutput(
-        providerConfig.baseUrl,
-        file.filename,
-        file.subfolder,
-        file.type
-      );
-      const base64 = Buffer.from(buffer).toString("base64");
-      images.push({ b64_json: base64, revised_prompt: body.prompt });
-    }
-
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 200,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      responseBody: { images_count: images.length },
-    }).catch(() => {});
-
-    return {
-      success: true,
-      data: { created: Math.floor(Date.now() / 1000), data: images },
-    };
-  } catch (err) {
-    if (log) log.error("IMAGE", `${provider} comfyui error: ${err.message}`);
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: err.message,
-    }).catch(() => {});
-    return {
-      success: false,
-      status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
-    };
-  }
-}
-
-async function handleHaiperImageGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}) {
-  const startTime = Date.now();
-  const token = credentials?.apiKey || "";
-  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
-  if (log) {
-    log.info("IMAGE", `${provider}/${model} (haiper) | prompt: "${prompt.slice(0, 60)}..."`);
-  }
-  try {
-    const res = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", HAIPER_KEY: token },
-      body: JSON.stringify({ prompt, aspect_ratio: body.aspect_ratio || "16:9" }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      saveCallLog({
-        method: "POST",
-        path: "/v1/images/generations",
-        status: res.status,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
-      }).catch(() => {});
-      return { success: false, status: res.status, error: errorText };
-    }
-    const { job_id } = await res.json();
-    const deadline = Date.now() + 300000;
-    while (Date.now() < deadline) {
-      await sleep(5000);
-      const statusRes = await fetch(`${providerConfig.statusUrl}/${job_id}`, {
-        headers: { HAIPER_KEY: token },
-      });
-      const status = await statusRes.json();
-      if (status.status === "completed" || status.status === "succeeded") {
-        const imgUrl = status.creation_url || status.output?.image_url;
-        if (imgUrl) {
-          const imgRes = await fetch(imgUrl);
-          if (!imgRes.ok) {
-            return {
-              success: false,
-              status: imgRes.status,
-              error: `Failed to download image: ${imgRes.status}`,
-            };
-          }
-          const buf = await imgRes.arrayBuffer();
-          saveCallLog({
-            method: "POST",
-            path: "/v1/images/generations",
-            status: 200,
-            model: `${provider}/${model}`,
-            provider,
-            duration: Date.now() - startTime,
-          }).catch(() => {});
-          return {
-            success: true,
-            data: {
-              created: Math.floor(Date.now() / 1000),
-              data: [{ b64_json: Buffer.from(buf).toString("base64") }],
-            },
-          };
-        }
-      }
-      if (status.status === "failed") {
-        saveCallLog({
-          method: "POST",
-          path: "/v1/images/generations",
-          status: 502,
-          model: `${provider}/${model}`,
-          provider,
-          duration: Date.now() - startTime,
-          error: "Haiper image generation failed",
-        }).catch(() => {});
-        return { success: false, status: 502, error: "Haiper image generation failed" };
-      }
-    }
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 504,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: "Haiper image generation timed out",
-    }).catch(() => {});
-    return { success: false, status: 504, error: "Haiper image generation timed out" };
-  } catch (err) {
-    if (log) log.error("IMAGE", `${provider} haiper error: ${err.message}`);
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: err.message,
-    }).catch(() => {});
-    return {
-      success: false,
-      status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
-    };
-  }
-}
-
-async function handleLeonardoImageGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}) {
-  const startTime = Date.now();
-  const token = credentials?.apiKey || "";
-  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
-  if (log) {
-    log.info("IMAGE", `${provider}/${model} (leonardo) | prompt: "${prompt.slice(0, 60)}..."`);
-  }
-  try {
-    const res = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        modelId: model || "phoenix",
-        prompt,
-        width: body.width || 1024,
-        height: body.height || 1024,
-        num_images: 1,
-      }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      saveCallLog({
-        method: "POST",
-        path: "/v1/images/generations",
-        status: res.status,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
-      }).catch(() => {});
-      return { success: false, status: res.status, error: errorText };
-    }
-    const { sdGenerationJob } = await res.json();
-    const genId = sdGenerationJob?.generationId;
-    if (!genId) {
-      saveCallLog({
-        method: "POST",
-        path: "/v1/images/generations",
-        status: 502,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: "No generation ID returned",
-      }).catch(() => {});
-      return { success: false, status: 502, error: "No generation ID returned" };
-    }
-    const deadline = Date.now() + 300000;
-    while (Date.now() < deadline) {
-      await sleep(5000);
-      const statusRes = await fetch(`${providerConfig.baseUrl}/${genId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const status = await statusRes.json();
-      const gen = status.generations_by_pk || status;
-      if (gen.status === "COMPLETE") {
-        const imgUrl = gen.generated_images?.[0]?.url;
-        if (imgUrl) {
-          const imgRes = await fetch(imgUrl);
-          if (!imgRes.ok) {
-            return {
-              success: false,
-              status: imgRes.status,
-              error: `Failed to download image: ${imgRes.status}`,
-            };
-          }
-          const buf = await imgRes.arrayBuffer();
-          saveCallLog({
-            method: "POST",
-            path: "/v1/images/generations",
-            status: 200,
-            model: `${provider}/${model}`,
-            provider,
-            duration: Date.now() - startTime,
-          }).catch(() => {});
-          return {
-            success: true,
-            data: {
-              created: Math.floor(Date.now() / 1000),
-              data: [{ b64_json: Buffer.from(buf).toString("base64") }],
-            },
-          };
-        }
-      }
-      if (gen.status === "FAILED") {
-        saveCallLog({
-          method: "POST",
-          path: "/v1/images/generations",
-          status: 502,
-          model: `${provider}/${model}`,
-          provider,
-          duration: Date.now() - startTime,
-          error: "Leonardo image generation failed",
-        }).catch(() => {});
-        return { success: false, status: 502, error: "Leonardo image generation failed" };
-      }
-    }
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 504,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: "Leonardo image generation timed out",
-    }).catch(() => {});
-    return { success: false, status: 504, error: "Leonardo image generation timed out" };
-  } catch (err) {
-    if (log) log.error("IMAGE", `${provider} leonardo error: ${err.message}`);
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: err.message,
-    }).catch(() => {});
-    return {
-      success: false,
-      status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
-    };
-  }
-}
-
-async function handleIdeogramImageGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}) {
-  const startTime = Date.now();
-  const token = credentials?.apiKey || "";
-  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
-  if (log) {
-    log.info("IMAGE", `${provider}/${model} (ideogram) | prompt: "${prompt.slice(0, 60)}..."`);
-  }
-  try {
-    const res = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Api-Key": token },
-      body: JSON.stringify({ prompt, aspect_ratio: "ASPECT_16_9", model: model || "V_3" }),
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      saveCallLog({
-        method: "POST",
-        path: "/v1/images/generations",
-        status: res.status,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
-      }).catch(() => {});
-      return { success: false, status: res.status, error: errorText };
-    }
-    const data = await res.json();
-    if (data.data && data.data.length > 0) {
-      const imgUrl = data.data[0].url;
-      const imgRes = await fetch(imgUrl);
-      if (!imgRes.ok) {
-        return {
-          success: false,
-          status: imgRes.status,
-          error: `Failed to download image: ${imgRes.status}`,
-        };
-      }
-      const buf = await imgRes.arrayBuffer();
-      saveCallLog({
-        method: "POST",
-        path: "/v1/images/generations",
-        status: 200,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-      }).catch(() => {});
-      return {
-        success: true,
-        data: {
-          created: Math.floor(Date.now() / 1000),
-          data: [{ b64_json: Buffer.from(buf).toString("base64") }],
-        },
-      };
-    }
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: "No images returned from Ideogram",
-    }).catch(() => {});
-    return { success: false, status: 502, error: "No images returned from Ideogram" };
-  } catch (err) {
-    if (log) log.error("IMAGE", `${provider} ideogram error: ${err.message}`);
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: err.message,
-    }).catch(() => {});
-    return {
-      success: false,
-      status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
-    };
-  }
-}
-
-type Imagen3ImageGenArgs = {
-  model: string;
-  provider: string;
-  providerConfig: { baseUrl: string };
-  body: { prompt?: string; size?: string; n?: number };
-  credentials: { apiKey?: string; accessToken?: string };
-  log?: {
-    info?: (tag: string, msg: string) => void;
-    error?: (tag: string, msg: string) => void;
-  } | null;
-};
-
-type Imagen3NormalizedImage = {
-  b64_json?: unknown;
-  url?: unknown;
-  revised_prompt?: string;
-};
-
-/**
- * Handle Imagen 3 image generation
- */
-async function handleImagen3ImageGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}: Imagen3ImageGenArgs) {
-  const startTime = Date.now();
-  const token = credentials.apiKey || credentials.accessToken;
-  const aspectRatio = mapImageSize(body.size);
-
-  const upstreamBody = {
-    prompt: body.prompt,
-    aspect_ratio: aspectRatio,
-    number_of_images: body.n ?? 1,
-  };
-
-  if (log) {
-    const promptPreview = String(body.prompt ?? "").slice(0, 60);
-    log.info(
-      "IMAGE",
-      `${provider}/${model} (imagen3) | prompt: "${promptPreview}..." | aspect_ratio: ${aspectRatio}`
-    );
-  }
-
-  try {
-    const response = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(upstreamBody),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (log)
-        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
-
-      saveCallLog({
-        method: "POST",
-        path: "/v1/images/generations",
-        status: response.status,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
-        requestBody: upstreamBody,
-      }).catch(() => {});
-
-      return { success: false, status: response.status, error: errorText };
-    }
-
-    const data = await response.json();
-
-    // Normalize response to OpenAI format
-    const images: Imagen3NormalizedImage[] = [];
-    if (Array.isArray(data.images)) {
-      images.push(
-        ...data.images.map((img: Record<string, unknown>) => ({
-          b64_json: img.image ?? img.b64_json ?? img.url ?? img,
-          revised_prompt: body.prompt,
-        }))
-      );
-    } else if (Array.isArray(data.data)) {
-      images.push(...data.data);
-    } else if (data.url || data.b64_json || data.image) {
-      images.push({
-        b64_json: data.image || data.b64_json || data.url,
-        url: data.url,
-        revised_prompt: body.prompt,
-      });
-    }
-
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 200,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      responseBody: { images_count: images.length },
-    }).catch(() => {});
-
-    return {
-      success: true,
-      data: { created: data.created || Math.floor(Date.now() / 1000), data: images },
-    };
-  } catch (err: unknown) {
-    const errMsg = err instanceof Error ? err.message : String(err);
-    if (log) log.error("IMAGE", `${provider} fetch error: ${errMsg}`);
-
-    saveCallLog({
-      method: "POST",
-      path: "/v1/images/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: errMsg,
-    }).catch(() => {});
-
-    return { success: false, status: 502, error: `Image provider error: ${errMsg}` };
-  }
-}

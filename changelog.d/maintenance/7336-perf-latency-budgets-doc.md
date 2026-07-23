@@ -1,0 +1,1 @@
+- **docs:** Add `docs/PERF_BUDGETS.md` — per-endpoint p50/p95/p99 latency, throughput, resource, and cold-start budget reference targets ([#7336](https://github.com/diegosouzapw/OmniRoute/pull/7336)) — thanks @KooshaPari

@@ -1,11 +1,9 @@
-import os from "node:os";
-import path from "node:path";
-
 export interface LogStreamOptions {
   baseUrl?: string;
   filters?: string[];
   follow?: boolean;
   timeout?: number;
+  headers?: HeadersInit;
 }
 
 export interface LogStream {
@@ -18,6 +16,7 @@ export function createLogStream(options: LogStreamOptions = {}): LogStream {
   const filters = options.filters || [];
   const follow = options.follow ?? false;
   const timeout = options.timeout || 30000;
+  const headers = options.headers;
 
   const controller = new AbortController();
   const { signal } = controller;
@@ -35,7 +34,7 @@ export function createLogStream(options: LogStreamOptions = {}): LogStream {
       }, timeout);
 
       try {
-        const response = await fetch(url, { signal });
+        const response = await fetch(url, { signal, headers });
 
         if (!response.ok) {
           controller.error(new Error(`HTTP ${response.status}: ${response.statusText}`));

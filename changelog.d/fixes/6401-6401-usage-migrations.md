@@ -1,0 +1,1 @@
+- fix(db): stop legacy log-archive migration from deleting the live app-logger directory and crashing startup on a stat/stream race (#6401, #6799)

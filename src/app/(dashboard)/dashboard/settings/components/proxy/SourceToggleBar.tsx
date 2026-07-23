@@ -1,8 +1,10 @@
 "use client";
 
-export type SourceId = "1proxy" | "proxifly" | "iplocate";
+import { useTranslations } from "next-intl";
 
-export const ALL_SOURCE_IDS: SourceId[] = ["1proxy", "proxifly", "iplocate"];
+export type SourceId = "1proxy" | "proxifly" | "iplocate" | "webshare";
+
+export const ALL_SOURCE_IDS: SourceId[] = ["1proxy", "proxifly", "iplocate", "webshare"];
 
 export const FREE_POOL_DISABLED_SOURCES_KEY = "freePool.disabledSources";
 
@@ -32,11 +34,14 @@ const SOURCES: Array<{ id: SourceId; label: string }> = [
   { id: "1proxy", label: "1proxy" },
   { id: "proxifly", label: "Proxifly" },
   { id: "iplocate", label: "IPLocate" },
+  { id: "webshare", label: "Webshare" },
 ];
 
 export default function SourceToggleBar({ disabledSources, onToggle }: SourceToggleBarProps) {
+  const t = useTranslations("settings");
+
   return (
-    <div className="flex gap-2 flex-wrap" role="group" aria-label="Toggle proxy sources">
+    <div className="flex flex-wrap gap-2" role="group" aria-label={t("proxyToggleSources")}>
       {SOURCES.map((s) => {
         const enabled = !disabledSources.has(s.id);
         return (

@@ -11,9 +11,11 @@ export interface ModelPricing {
 export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
   "gpt-4o": { inputCostPer1M: 2.5, outputCostPer1M: 10.0, isFree: false },
   "gpt-4o-mini": { inputCostPer1M: 0.15, outputCostPer1M: 0.6, isFree: false },
+  "claude-fable-5": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-opus-4-8": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-opus-4-7": { inputCostPer1M: 15.0, outputCostPer1M: 75.0, isFree: false },
   "claude-sonnet-4-6": { inputCostPer1M: 3.0, outputCostPer1M: 15.0, isFree: false },
+  "claude-sonnet-5": { inputCostPer1M: 3.0, outputCostPer1M: 15.0, isFree: false },
   "claude-haiku-4-5": { inputCostPer1M: 0.8, outputCostPer1M: 4.0, isFree: false },
   "gemini-2.5-flash": { inputCostPer1M: 0.15, outputCostPer1M: 0.6, isFree: false },
   "gemini-2.5-pro": { inputCostPer1M: 1.25, outputCostPer1M: 5.0, isFree: false },
@@ -25,11 +27,11 @@ export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
   "grok-4-fast": { inputCostPer1M: 0.2, outputCostPer1M: 0.5, isFree: false },
   "kimi-k2-thinking": { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true },
   "qwen3-coder-plus": { inputCostPer1M: 0, outputCostPer1M: 0, isFree: true },
-  "longcat-flash-lite": {
-    inputCostPer1M: 0,
-    outputCostPer1M: 0,
+  "longcat-2.0": {
+    inputCostPer1M: 0.75,
+    outputCostPer1M: 2.95,
     isFree: true,
-    freeQuotaLimit: 50000000,
+    freeQuotaLimit: 10000000,
   },
 };
 

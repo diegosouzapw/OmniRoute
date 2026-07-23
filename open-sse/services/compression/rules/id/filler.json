@@ -1,0 +1,138 @@
+{
+  "language": "id",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "id_pleasantries",
+      "pattern": "\\b(?:terima\\s+kasih\\s+banyak|terima\\s+kasih|makasih\\s+banyak|makasih|suwun|hatur\\s+nuhun|nuhun|mohon\\s+bantuannya|tolong\\s+bantuannya|sama-sama|terima\\s+kasih\\s+kembali|kembali|sama\\s+sama|sangat\\s+membantu|senang\\s+membantu|salam\\s+hangat|semoga\\s+membantu|semoga\\s+bermanfaat|terima\\s+kasih\\s+banyak\\s+ya|makasih\\s+ya)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_polite_framing",
+      "pattern": "\\b(?:mohon\\s+info|mohon|tolong|tolong\\s+dong|tlg|tolong\\s+buatkan|saya\\s+ingin\\s+meminta|saya\\s+ingin|ingin\\s+meminta|bisa\\s+tolong|tolong\\s+jelaskan|tolong\\s+tunjukkan|minta\\s+tolong|tolongin|mohon\\s+bantu|mohon\\s+bantuan)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_hedging",
+      "pattern": "\\b(?:sepertinya|tampaknya|mungkin|rasanya|kiranya|kurang\\s+lebih|bisa\\s+jadi|seolah-olah|seolah|kelihatannya)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_verbose_instructions",
+      "pattern": "\\b(?:berikan\\s+penjelasan\\s+rinci\\s+tentang|berikan\\s+penjelasan\\s+detail\\s+tentang|jelaskan\\s+secara\\s+rinci|jelaskan\\s+secara\\s+detail|tuliskan\\s+secara\\s+lengkap|secara\\s+mendetail|secara\\s+mendalam|secara\\s+rinci|secara\\s+detail)\\b\\s*",
+      "replacement": "jelaskan ",
+      "replacementMap": {
+        "berikan penjelasan rinci tentang": "jelaskan ",
+        "berikan penjelasan detail tentang": "jelaskan ",
+        "jelaskan secara rinci": "jelaskan ",
+        "jelaskan secara detail": "jelaskan ",
+        "tuliskan secara lengkap": "tulis ",
+        "secara mendetail": "",
+        "secara mendalam": "",
+        "secara rinci": "",
+        "secara detail": ""
+      },
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_filler_adverbs",
+      "pattern": "\\b(?:pada\\s+dasarnya|sebenarnya|secara\\s+harfiah|gampangnya|mudahnya|sederhananya|saat\\s+ini|sekarang|cuma|hanya)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_filler_phrases",
+      "pattern": "^(?:saya\\s+ingin|saya\\s+butuh|saya\\s+mau|saya\\s+sedang\\s+mencari|tujuan\\s+saya|rencana\\s+saya)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_redundant_openers",
+      "pattern": "^(?:halo\\s+gan|halo\\s+min|halo|hai|hi|hey|heyy|selamat\\s+pagi|selamat\\s+siang|selamat\\s+sore|selamat\\s+malam|permisi|assalamualaikum|assalamu\\'alaikum|assalamualaikum\\s+wr\\s+wb|salam\\s+sejahtera|permisi\\s+(?:kak|gan|sis|bro|mas|bang|min)|permisi\\s+semuanya|halo\\s+(?:bro|kak|sis|guys|kawan))\\b\\s*[,.!?\\s]?\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_verbose_requests",
+      "pattern": "\\b(?:saya\\s+penasaran\\s+apakah|apakah\\s+memungkinkan\\s+untuk|apakah\\s+bisa|apakah\\s+mungkin)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_self_reference",
+      "pattern": "^(?:saya|gw|gua|gue|aku|kita|ane)\\s+(?:sedang|lagi|masih)(?:\\s+(?:mencoba\\s+untuk|mengerjakan))?\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_qualifier_removal",
+      "pattern": "\\b(?:sedikit|agak|terkadang|kadang-kadang|kadang|semacam)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_softeners",
+      "pattern": "\\b(?:jika\\s+memungkinkan|kalau\\s+bisa|kalau\\s+sempat|bila\\s+berkenan|sekadar\\s+bertanya)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_uncertainty_fillers",
+      "pattern": "\\b(?:saya\\s+rasa|saya\\s+kira|kurang\\s+lebih|kira-kira|kira\\s+kira)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_assistant_fillers",
+      "pattern": "^(?:berikut\\s+adalah|berikut|ini\\s+adalah|bawah\\s+ini\\s+adalah)\\s+",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_discourse_fillers",
+      "pattern": "\\b(?:kebetulan|sekadar|sekedar|sejujurnya|secara\\s+pribadi|rupanya|pada\\s+intinya|intinya|singkat\\s+kata|omong-omong|ngomong-ngomong|btw|fyi|asalkan|asal)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "id_particles_removal",
+      "pattern": "\\b(?:dong|deh|sih|kok|loh|lah|tah|kah|pun|tuh|si|kek|ya)\\b",
+      "flags": "gi",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

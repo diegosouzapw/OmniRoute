@@ -1,0 +1,1 @@
+- **fix(oauth):** stop merging distinct Codex OAuth logins that share an email but lack a verifiable account id, preventing silent token overwrite. (thanks @lucasjustinudin)

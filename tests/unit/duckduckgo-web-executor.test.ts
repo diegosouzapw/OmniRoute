@@ -113,7 +113,7 @@ describe("DuckDuckGoWebExecutor", () => {
       
       const response = await executor.execute({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: "test" }],
+        body: { messages: [{ role: "user", content: "test" }] },
         stream: false,
         signal: controller.signal,
       } as any);

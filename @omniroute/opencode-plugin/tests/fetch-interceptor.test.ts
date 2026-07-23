@@ -50,6 +50,52 @@ test("createOmniRouteFetchInterceptor: targets baseURL → Authorization header 
   }
 });
 
+test("createOmniRouteFetchInterceptor: path-prefixed baseURL scopes auth to its normalized inference paths", async () => {
+  const { calls, restore } = installFetchRecorder();
+  try {
+    const prefixedBase = "https://or.example.com/tenant-a/v1";
+    const f = createOmniRouteFetchInterceptor({
+      apiKey: KEY,
+      baseURL: `${prefixedBase}///`,
+    });
+    const streamingBody = '{"stream":true}';
+
+    await f(`${prefixedBase}/chat/completions?trace=1`, {
+      method: "POST",
+      body: streamingBody,
+      headers: { Accept: "text/event-stream" },
+    });
+    await f(`${prefixedBase}/models/?refresh=1`);
+    await f("https://or.example.com/v1/chat/completions", { method: "POST", body: "{}" });
+    await f("https://or.example.com/v1/models");
+    await f("https://or.example.com/tenant-b/v1/chat/completions", {
+      method: "POST",
+      body: "{}",
+    });
+    await f(`${prefixedBase}/chat/completions/batch`, { method: "POST", body: "{}" });
+
+    const headers = calls.map(({ init }) => new Headers(init?.headers));
+    assert.equal(headers[0]?.get("Authorization"), `Bearer ${KEY}`);
+    assert.equal(headers[1]?.get("Authorization"), `Bearer ${KEY}`);
+    for (const index of [2, 3, 4, 5]) {
+      assert.equal(headers[index]?.get("Authorization"), null);
+    }
+    assert.equal(calls[0]?.input, `${prefixedBase}/chat/completions?trace=1`);
+    assert.equal(calls[0]?.init?.body, streamingBody);
+    assert.equal(headers[0]?.get("Accept"), "text/event-stream");
+
+    const suffixingInterceptor = createOmniRouteFetchInterceptor({
+      apiKey: KEY,
+      baseURL: "https://or.example.com/tenant-a/",
+    });
+    await suffixingInterceptor(`${prefixedBase}/models`);
+    const suffixedHeaders = new Headers(calls[6]?.init?.headers);
+    assert.equal(suffixedHeaders.get("Authorization"), `Bearer ${KEY}`);
+  } finally {
+    restore();
+  }
+});
+
 test("createOmniRouteFetchInterceptor: targets baseURL → Authorization OVERRIDES caller-supplied Bearer", async () => {
   const { calls, restore } = installFetchRecorder();
   try {
@@ -259,7 +305,7 @@ test("loader integration: wired interceptor actually injects Bearer when invoked
       {} as never
     );
     const wiredFetch = (result as { fetch: typeof fetch }).fetch;
-    await wiredFetch(`${BASE}/v1/models`, {});
+    await wiredFetch(`${BASE}/models`, {});
     assert.equal(calls.length, 1);
     const sentHeaders = new Headers((calls[0]!.init as RequestInit).headers);
     assert.equal(sentHeaders.get("Authorization"), `Bearer ${KEY}`);

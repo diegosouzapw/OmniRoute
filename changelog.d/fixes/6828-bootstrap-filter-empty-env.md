@@ -1,0 +1,1 @@
+- **fix(bootstrap):** filter empty `process.env` values before spawning embedded services so a blank env var no longer crashes the Docker bootstrap in a restart loop (#6828 — thanks @AndrianBalanescu).

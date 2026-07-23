@@ -1,82 +1,72 @@
 import { handleMusicGeneration } from "@omniroute/open-sse/handlers/musicGeneration.ts";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
-  getProviderCredentials,
+  getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
 } from "@/sse/services/auth";
-import {
-  parseMusicModel,
-  getAllMusicModels,
-  getMusicProvider,
-} from "@omniroute/open-sse/config/musicRegistry.ts";
+import { parseMusicModel, getMusicProvider } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
-import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
-import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
   isAllRateLimitedCredentials,
   rateLimitedProviderResponse,
 } from "@/app/api/v1/_shared/rateLimit";
+import {
+  failedMediaGenerationResponse,
+  mediaGenerationOptionsResponse,
+  promptRequiredResponse,
+  readMediaGenerationBody,
+  successfulMediaGenerationResponse,
+} from "@/app/api/v1/_shared/mediaGenerationRoute";
+import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
+
+export const dynamic = "force-dynamic";
 
 /**
  * Handle CORS preflight
  */
 export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-    },
-  });
+  return mediaGenerationOptionsResponse();
 }
 
 /**
  * GET /v1/music/generations — list available music models
  */
-export async function GET() {
-  const models = getAllMusicModels();
-  return new Response(
-    JSON.stringify({
-      object: "list",
-      data: models.map((m) => ({
-        id: m.id,
-        object: "model",
-        created: Math.floor(Date.now() / 1000),
-        owned_by: m.provider,
-        type: "music",
-      })),
-    }),
-    {
-      headers: { "Content-Type": "application/json" },
-    }
+export async function GET(request?: Request) {
+  return getSpecialtyModelsResponse(
+    request,
+    "/v1/music/generations",
+    (model) => model.type === "music"
   );
+}
+
+/**
+ * #6928: best-effort per-connection base-URL override lookup for local no-auth
+ * media providers (ComfyUI). Returns null instead of failing when no connection
+ * exists — local providers must keep working with zero configuration.
+ */
+async function resolveLocalOverrideCredentials(provider) {
+  const localCredentials = await getProviderCredentialsWithQuotaPreflight(provider);
+  return localCredentials && !isAllRateLimitedCredentials(localCredentials)
+    ? localCredentials
+    : null;
 }
 
 /**
  * POST /v1/music/generations — generate music
  */
-export async function POST(request) {
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    log.warn("MUSIC", "Invalid JSON body");
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+async function postHandler(request, context) {
+  const parsed = await readMediaGenerationBody(request, log, "MUSIC");
+  if (!parsed.ok) {
+    return parsed.response;
   }
+  const body = parsed.body;
+  const startTime = Date.now();
 
-  const validation = validateBody(v1ImageGenerationSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
-  }
-  const body = validation.data;
-
-  if (typeof body.prompt !== "string" || body.prompt.trim().length === 0) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Prompt is required");
-  }
+  const promptError = promptRequiredResponse(body);
+  if (promptError) return promptError;
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
@@ -97,7 +87,7 @@ export async function POST(request) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentials(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -107,21 +97,25 @@ export async function POST(request) {
     if (isAllRateLimitedCredentials(credentials)) {
       return rateLimitedProviderResponse(provider, credentials);
     }
+  } else if (providerConfig?.authType === "none") {
+    credentials = await resolveLocalOverrideCredentials(provider);
   }
 
   const result = await handleMusicGeneration({ body, credentials, log });
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);
-    return new Response(JSON.stringify((result as any).data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    return successfulMediaGenerationResponse({
+      result,
+      billingMode: "audio",
+      provider,
+      model: body.model,
+      startTime,
+      duration: body.duration,
     });
   }
 
-  const errorPayload = toJsonErrorPayload((result as any).error, "Music generation provider error");
-  return new Response(JSON.stringify(errorPayload), {
-    status: (result as any).status,
-    headers: { "Content-Type": "application/json" },
-  });
+  return failedMediaGenerationResponse(result, "Music generation provider error");
 }
+
+export const POST = withInjectionGuard(postHandler);

@@ -5,7 +5,7 @@ import path from "node:path";
 
 const cwd = process.cwd();
 const packageJsonPath = path.resolve(cwd, "package.json");
-const openApiPath = path.resolve(cwd, "docs/reference/openapi.yaml");
+const openApiPath = path.resolve(cwd, "docs/openapi.yaml");
 const changelogPath = path.resolve(cwd, "CHANGELOG.md");
 const llmPath = path.resolve(cwd, "llm.txt");
 const i18nDocsPath = path.resolve(cwd, "docs/i18n");
@@ -177,12 +177,15 @@ function checkI18nChangelogFile(sourcePath) {
       continue;
     }
 
-    // Verify body size is within 25% tolerance of source (translations may
-    // expand or shrink, but drastic size differences indicate stale content)
-    const sizeDiff = Math.abs(normalizedBody.length - sourceBody.length) / sourceBody.length;
+    // Verify body line count is within 25% tolerance of source (translations
+    // should preserve structure — drastic line-count differences indicate
+    // stale or missing content)
+    const sourceLines = sourceBody.split("\n").length;
+    const targetLines = normalizedBody.split("\n").length;
+    const sizeDiff = Math.abs(targetLines - sourceLines) / sourceLines;
     if (sizeDiff > 0.25) {
       fail(
-        `docs/i18n/${locale}/${fileName} body size differs by ${(sizeDiff * 100).toFixed(0)}% from root (expected within 25%)`
+        `docs/i18n/${locale}/${fileName} body line count differs by ${(sizeDiff * 100).toFixed(0)}% from root (expected within 25%)`
       );
       continue;
     }
@@ -209,7 +212,7 @@ try {
 
   const openApiVersion = extractOpenApiVersion(readText(openApiPath));
   if (!openApiVersion) {
-    fail("could not extract docs/reference/openapi.yaml info.version");
+    fail("could not extract docs/openapi.yaml info.version");
   } else if (openApiVersion !== packageVersion) {
     fail(`OpenAPI version (${openApiVersion}) differs from package.json (${packageVersion})`);
   } else {

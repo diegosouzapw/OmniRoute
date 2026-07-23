@@ -20,7 +20,8 @@ import { randomUUID } from "node:crypto";
 let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
 
-const CLAUDE_PROFILE = "chrome_124"; // matches the Chrome 124 UA we send
+export const CLAUDE_TLS_BROWSER_MAJOR_VERSION = "146";
+const CLAUDE_PROFILE = `chrome_${CLAUDE_TLS_BROWSER_MAJOR_VERSION}`;
 const DEFAULT_TIMEOUT_MS =
   Number.parseInt(process.env.OMNIROUTE_CLAUDE_TLS_TIMEOUT_MS || "", 10) || 60_000;
 // Grace period added to the binding's wire-level timeout before our JS-level
@@ -212,23 +213,19 @@ export interface TlsFetchOptions {
 }
 
 import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+import { resolveTlsClientProxyUrl } from "./tlsClientProxy.ts";
 
 /**
  * Resolve the proxy URL for a tls-client request. Per-call value wins;
  * otherwise we use the standard proxy fetch resolution which reads from
  * the dashboard AsyncLocalStorage context or falls back to env vars.
+ *
+ * Fail-closed: if resolution throws (e.g. a configured socks5 proxy with
+ * ENABLE_SOCKS5_PROXY=false), this rethrows rather than returning undefined —
+ * undefined would let the native binding connect directly and leak the real IP.
  */
 function resolveProxyUrl(perCall: string | undefined): string | undefined {
-  if (perCall && perCall.length > 0) return perCall;
-  try {
-    const proxyInfo = resolveProxyForRequest("https://claude.ai");
-    if (proxyInfo && proxyInfo.proxyUrl) {
-      return proxyInfo.proxyUrl;
-    }
-  } catch {
-    // Ignore resolution errors
-  }
-  return undefined;
+  return resolveTlsClientProxyUrl("https://claude.ai", perCall, resolveProxyForRequest);
 }
 
 export interface TlsFetchResult {
@@ -250,7 +247,7 @@ export function __setTlsFetchOverrideForTesting(fn: typeof testOverride): void {
 }
 
 /**
- * Make a single HTTP request to claude.ai with a Firefox-like TLS fingerprint.
+ * Make a single HTTP request to claude.ai with the configured Chrome TLS profile.
  *
  * Throws TlsClientUnavailableError if the native binary failed to load.
  */
@@ -348,7 +345,19 @@ function toHeaders(raw: Record<string, string[]>): Headers {
 // to a file path, terminating when the upstream sends `streamOutputEOFSymbol`.
 // We tail the file from a worker and surface the bytes as a ReadableStream.
 
-async function tlsFetchStreaming(
+// Cap for the bounded fallback read of a non-SSE error body straight from the
+// streaming temp file (mirrors the 2048-byte cap executors/claude-web.ts
+// already applies when reading error bodies) — avoids buffering an unbounded
+// error page into memory. See #7134.
+const MAX_ERROR_BODY_BYTES = 16 * 1024;
+
+/**
+ * Exported for tests (issue #7134): allows injecting a fake `client` so the
+ * non-SSE error-body fallback path can be exercised without
+ * `--experimental-test-module-mocks`, matching the DI pattern already used
+ * by `__setTlsFetchOverrideForTesting` for the outer `tlsFetchClaude`.
+ */
+export async function tlsFetchStreaming(
   client: { request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike> },
   url: string,
   requestOptions: Record<string, unknown>,
@@ -421,11 +430,22 @@ async function tlsFetchStreaming(
     const r = await requestPromise.catch(
       (e) => ({ status: 502, headers: {}, body: String(e) }) as TlsResponseLike
     );
+    // tls-client-node's `streamOutputPath` mode writes the response body to
+    // the temp file chunk-by-chunk and does NOT also populate the resolved
+    // response's in-memory `body` field (confirmed against
+    // node_modules/tls-client-node/dist/response.js) — so for every non-SSE,
+    // non-2xx claude-web response (400/403/429/500 with a real JSON/HTML
+    // error), `r.body` is empty even though the real bytes are sitting in
+    // `path` (we just peeked them above). Prefer `r.body` when it IS
+    // populated (some native-client modes do fill it in); otherwise fall
+    // back to a bounded read of the temp file so the real upstream error
+    // detail reaches the caller instead of being silently discarded. #7134
+    const text = r.body || (await readFirstBytes(path, MAX_ERROR_BODY_BYTES).catch(() => ""));
     await cleanupTempPath(path);
     return {
       status: r.status,
       headers: toHeaders(r.headers),
-      text: r.body,
+      text,
       body: null,
     };
   }

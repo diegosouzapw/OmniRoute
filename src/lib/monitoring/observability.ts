@@ -70,7 +70,7 @@ interface BuildHealthPayloadOptions {
   appVersion: string;
   catalogCount?: number;
   settings: { setupComplete?: boolean } | null | undefined;
-  connections: Array<{ provider?: string; isActive?: boolean | null }>;
+  connections: Array<{ provider?: string; isActive?: boolean | null; rateLimitedUntil?: unknown }>;
   circuitBreakers: CircuitBreakerStatus[];
   rateLimitStatus: JsonRecord;
   learnedLimits: JsonRecord;
@@ -141,6 +141,76 @@ export function buildTelemetryPayload({
   };
 }
 
+/** Per-provider connection-cooldown summary, exposed as `connectionHealth[provider]`. */
+export interface ConnectionCooldownSummary {
+  /** Connections currently in cooldown (future `rateLimitedUntil`). Always > 0 when present. */
+  coolingDown: number;
+  /** Total connections configured for the provider. */
+  total: number;
+  /** Relative ms until the first cooling connection recovers (the soonest). */
+  soonestRetryAfterMs: number;
+}
+
+/**
+ * Parse a connection's `rateLimitedUntil` to an absolute epoch (ms). Mirrors the
+ * canonical `cooldownUntilMs` (open-sse/services/accountFallback.ts, #3954) — kept
+ * inline so this monitoring util stays decoupled from the heavy executor module.
+ * Accepts ISO strings, Date objects, and numeric-epoch strings (the SQLite
+ * TEXT-affinity case where `new Date(...)` would yield NaN).
+ */
+function parseCooldownUntilMs(value: unknown): number {
+  if (value === null || value === undefined || value === "") return NaN;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "number") return value;
+  if (typeof value !== "string") return NaN;
+  const raw = value.trim();
+  if (/^\d+(\.\d+)?$/.test(raw)) return Number(raw);
+  return new Date(raw).getTime();
+}
+
+/**
+ * Aggregate per-connection cooldown state into a per-provider summary. Only providers
+ * with at least one connection still cooling down (future `rateLimitedUntil`) appear in
+ * the result — mirroring `providerHealth`, which only carries non-healthy breakers — so
+ * the cascade overlay attaches a badge only when there is something to show.
+ *
+ * `nowMs` is injected (not read from the clock here) to keep the function pure/testable.
+ */
+export function summarizeConnectionCooldown(
+  connections: Array<{ provider?: string; rateLimitedUntil?: unknown }>,
+  nowMs: number
+): Record<string, ConnectionCooldownSummary> {
+  const byProvider: Record<string, { total: number; coolingDown: number; soonestUntil: number }> =
+    {};
+  for (const connection of connections) {
+    const provider = connection?.provider;
+    if (!provider) continue;
+    const bucket = (byProvider[provider] ??= {
+      total: 0,
+      coolingDown: 0,
+      soonestUntil: Infinity,
+    });
+    bucket.total += 1;
+    const until = parseCooldownUntilMs(connection.rateLimitedUntil);
+    if (Number.isFinite(until) && until > nowMs) {
+      bucket.coolingDown += 1;
+      if (until < bucket.soonestUntil) bucket.soonestUntil = until;
+    }
+  }
+
+  const summary: Record<string, ConnectionCooldownSummary> = {};
+  for (const [provider, bucket] of Object.entries(byProvider)) {
+    if (bucket.coolingDown <= 0) continue;
+    summary[provider] = {
+      coolingDown: bucket.coolingDown,
+      total: bucket.total,
+      soonestRetryAfterMs:
+        bucket.soonestUntil === Infinity ? 0 : Math.max(0, bucket.soonestUntil - nowMs),
+    };
+  }
+  return summary;
+}
+
 export function buildHealthPayload({
   appVersion,
   catalogCount = 0,
@@ -196,6 +266,8 @@ export function buildHealthPayload({
     };
   }
 
+  const connectionHealth = summarizeConnectionCooldown(connections, Date.now());
+
   const configuredProviders = new Set(
     connections.map((connection) => connection.provider).filter(Boolean)
   );
@@ -232,6 +304,7 @@ export function buildHealthPayload({
     },
     providerBreakers,
     providerHealth,
+    connectionHealth,
     providerSummary: {
       catalogCount,
       configuredCount: configuredProviders.size,

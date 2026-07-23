@@ -4,8 +4,14 @@ import {
   decodeExecServerEvent,
   decodeProtobufValue,
   jsonSchemaToProtobufValue,
+  openAIToolsToMcpDefs,
 } from "../../open-sse/utils/cursorAgentProtobuf";
-import { newStreamCtx, processFrame } from "../../open-sse/executors/cursor";
+import {
+  newStreamCtx,
+  processFrame,
+  CursorExecutor,
+  inferCursorClientPlatform,
+} from "../../open-sse/executors/cursor";
 
 // ─── Wire-format helpers ───────────────────────────────────────────────────
 
@@ -58,6 +64,22 @@ function buildMcpArgsEvent(
     varintField(1, execMsgId),
     stringField(15, execId),
     lenPrefixed(11, mca),
+  ]);
+  return lenPrefixed(2, esm);
+}
+
+// AgentServerMessage { exec_server_message (2): ESM { shell_stream_args (14) } }
+function buildShellStreamEvent(
+  execMsgId: number,
+  execId: string,
+  command: string,
+  workingDir: string
+): Buffer {
+  const shellArgs = Buffer.concat([stringField(1, command), stringField(2, workingDir)]);
+  const esm = Buffer.concat([
+    varintField(1, execMsgId),
+    stringField(15, execId),
+    lenPrefixed(14, shellArgs),
   ]);
   return lenPrefixed(2, esm);
 }
@@ -233,4 +255,227 @@ test("processFrame doesn't emit tool_calls for the same exec_id twice", () => {
   processFrame(payload, ctx, acked);
   processFrame(payload, ctx, acked);
   assert.equal(ctx.toolCalls.length, 1);
+});
+
+test("processFrame bridges Cursor shell_stream to an external tool call and cold resume", () => {
+  const emitted: string[] = [];
+  const writes: Buffer[] = [];
+  const ctx = newStreamCtx("claude-fable-5-thinking-xhigh", (s) => emitted.push(s));
+  const mcpTools = openAIToolsToMcpDefs([
+    {
+      type: "function",
+      function: {
+        name: "pty_spawn",
+        description: "Spawn a PTY",
+        parameters: {
+          type: "object",
+          properties: {
+            command: { type: "string" },
+            args: { type: "array", items: { type: "string" } },
+            workdir: { type: "string" },
+            description: { type: "string" },
+            notifyOnExit: { type: "boolean" },
+          },
+          required: ["command", "args", "description"],
+        },
+      },
+    },
+  ]);
+  const h2Req = {
+    write(data: Buffer) {
+      writes.push(Buffer.from(data));
+      return true;
+    },
+  } as unknown as import("http2").ClientHttp2Stream;
+
+  processFrame(
+    buildShellStreamEvent(1, "exec-shell", "mktemp -d /tmp/probe-XXXXXX", "/tmp"),
+    ctx,
+    new Set(),
+    { h2Req, mcpTools, clientPlatform: "posix" }
+  );
+
+  assert.equal(ctx.endReason, "tool_calls");
+  assert.equal(ctx.requiresColdResume, true);
+  assert.equal(ctx.pendingToolCalls.size, 0, "bridged calls must not attempt ExecMcpResult resume");
+  assert.equal(ctx.toolCalls.length, 1);
+  assert.equal(ctx.toolCalls[0].name, "pty_spawn");
+  assert.deepEqual(JSON.parse(ctx.toolCalls[0].argumentsJson), {
+    command: "/bin/sh",
+    args: ["-lc", "mktemp -d /tmp/probe-XXXXXX"],
+    workdir: "/tmp",
+    description: "Run Cursor-requested shell command",
+    notifyOnExit: true,
+  });
+  assert.equal(emitted.length, 3, "role + tool init + tool args chunks");
+  assert.equal(writes.length, 1, "native Cursor shell request must receive a typed rejection");
+  assert.ok(writes[0].includes(Buffer.from("Tool not available in this environment", "utf8")));
+});
+
+test("infers the client platform from explicit environment metadata, not command text", () => {
+  assert.equal(
+    inferCursorClientPlatform([{ role: "system", content: "Client platform: win32" }]),
+    "windows"
+  );
+  assert.equal(
+    inferCursorClientPlatform([{ role: "system", content: "Client platform: linux" }]),
+    "posix"
+  );
+  assert.equal(
+    inferCursorClientPlatform([{ role: "user", content: "Run echo C:\\temp" }]),
+    undefined,
+    "user command text must not influence platform selection"
+  );
+  assert.equal(
+    inferCursorClientPlatform([
+      {
+        role: "system",
+        content: "Build software for Windows and Linux. Client platform: linux",
+      },
+    ]),
+    "posix",
+    "unlabelled platform words must not override explicit metadata"
+  );
+  assert.equal(
+    inferCursorClientPlatform([
+      { role: "system", content: "Document Windows paths, but execute commands carefully." },
+    ]),
+    undefined
+  );
+  assert.equal(
+    inferCursorClientPlatform([
+      { role: "system", content: "Client platform: windows\nPlatform: linux" },
+    ]),
+    undefined,
+    "conflicting metadata must fail closed"
+  );
+  assert.equal(inferCursorClientPlatform([{ role: "user", content: "Run echo hello" }]), undefined);
+});
+
+// ─── Tool-commit directive (ported from composer-api) ──────────────────────
+//
+// transformRequest() returns the encoded Connect-RPC body; the UserMessage.text
+// is plain UTF-8 inside it, so we can assert the directive is present/absent.
+
+const weatherTool = {
+  type: "function",
+  function: {
+    name: "web_search",
+    description: "Search the web",
+    parameters: { type: "object", properties: { q: { type: "string" } } },
+  },
+};
+
+test("transformRequest prepends the tool-commit directive when tools are declared", () => {
+  const exec = new CursorExecutor();
+  const body = exec.transformRequest(
+    "composer-2.5",
+    { messages: [{ role: "user", content: "how's the weather?" }], tools: [weatherTool] },
+    false,
+    {}
+  ) as Uint8Array;
+  const text = Buffer.from(body).toString("utf8");
+  assert.ok(text.includes("you MUST issue the actual tool call"), "directive present with tools");
+  assert.ok(text.includes("how's the weather?"), "original user text preserved");
+});
+
+test("transformRequest omits the directive when no tools are declared", () => {
+  const exec = new CursorExecutor();
+  const body = exec.transformRequest(
+    "composer-2.5",
+    { messages: [{ role: "user", content: "hi there" }] },
+    false,
+    {}
+  ) as Uint8Array;
+  const text = Buffer.from(body).toString("utf8");
+  assert.ok(!text.includes("you MUST issue the actual tool call"), "no directive without tools");
+  assert.ok(text.includes("hi there"), "user text present");
+});
+
+test("transformRequest honors CURSOR_TOOL_DIRECTIVE=0 opt-out", () => {
+  const prev = process.env.CURSOR_TOOL_DIRECTIVE;
+  process.env.CURSOR_TOOL_DIRECTIVE = "0";
+  try {
+    const exec = new CursorExecutor();
+    const body = exec.transformRequest(
+      "composer-2.5",
+      { messages: [{ role: "user", content: "weather?" }], tools: [weatherTool] },
+      false,
+      {}
+    ) as Uint8Array;
+    const text = Buffer.from(body).toString("utf8");
+    assert.ok(
+      !text.includes("you MUST issue the actual tool call"),
+      "directive suppressed by opt-out"
+    );
+  } finally {
+    if (prev === undefined) delete process.env.CURSOR_TOOL_DIRECTIVE;
+    else process.env.CURSOR_TOOL_DIRECTIVE = prev;
+  }
+});
+
+// ─── tool_choice handling (ported from composer-api) ───────────────────────
+
+function encodedText(body: Record<string, unknown>): string {
+  const exec = new CursorExecutor();
+  const buf = exec.transformRequest("composer-2.5", body, false, {}) as Uint8Array;
+  return Buffer.from(buf).toString("utf8");
+}
+
+test("tool_choice:'none' drops tools and the directive", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "weather?" }],
+    tools: [weatherTool],
+    tool_choice: "none",
+  });
+  assert.ok(
+    !text.includes("you MUST issue the actual tool call"),
+    "no directive when tool_choice none"
+  );
+  assert.ok(!text.includes("web_search"), "tool not advertised when tool_choice none");
+});
+
+test("tool_choice:'required' adds the forcing line", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "weather?" }],
+    tools: [weatherTool],
+    tool_choice: "required",
+  });
+  assert.ok(text.includes("you MUST issue the actual tool call"), "base directive present");
+  assert.ok(text.includes("at least one of the available tools"), "required forcing line present");
+});
+
+test("tool_choice specific-function forces that tool by name", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "weather?" }],
+    tools: [weatherTool],
+    tool_choice: { type: "function", function: { name: "web_search" } },
+  });
+  assert.ok(text.includes("You MUST call the `web_search` tool now"), "specific tool forced");
+});
+
+// ─── output constraints (ported from composer-api) ─────────────────────────
+
+test("response_format json_object adds a JSON output constraint", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "give me a profile" }],
+    response_format: { type: "json_object" },
+  });
+  assert.ok(text.includes("OUTPUT CONSTRAINTS:"), "constraints block present");
+  assert.ok(text.includes("single valid JSON object"), "json_object constraint present");
+});
+
+test("max_tokens and stop are surfaced as output constraints", () => {
+  const text = encodedText({
+    messages: [{ role: "user", content: "hi" }],
+    max_tokens: 128,
+    stop: ["END"],
+  });
+  assert.ok(text.includes("within about 128 output tokens"), "max_tokens constraint present");
+  assert.ok(text.includes("Stop before any of these sequences: END"), "stop constraint present");
+});
+
+test("no output constraints block when no constraining params are set", () => {
+  const text = encodedText({ messages: [{ role: "user", content: "hi" }] });
+  assert.ok(!text.includes("OUTPUT CONSTRAINTS:"), "no constraints block by default");
 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { AI_MODELS } from "@/shared/constants/models";
 import { getProviderConnections } from "@/lib/db/providers";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 type EmbeddingModelOption = {
   value: string;
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
         value: `${m.provider}/${m.model}`,
         label: `${m.provider}/${m.model} - ${m.name}`,
       }))
-      .sort((a, b) => a.value.localeCompare(b.value));
+      .sort((a, b) => a.value.localeCompare(b.value)); // teknik sıralama: ASCII kasıtlı
 
     // Add OpenRouter account models that explicitly support embeddings.
     try {
@@ -84,10 +85,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    options.sort((a, b) => a.value.localeCompare(b.value));
+    options.sort((a, b) => a.value.localeCompare(b.value)); // teknik sıralama: ASCII kasıtlı
 
     return NextResponse.json({ models: options });
   } catch (error) {
-    return NextResponse.json({ error: String(error), models: [] }, { status: 500 });
+    const message = sanitizeErrorMessage(error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ error: { message }, models: [] }, { status: 500 });
   }
 }

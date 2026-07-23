@@ -1,0 +1,1 @@
+- **fix(sse):** unwrap bare `{function:{…}}` tools so OpenAI-shape clients no longer have tools silently dropped in Claude translation. (thanks @samir-abis)

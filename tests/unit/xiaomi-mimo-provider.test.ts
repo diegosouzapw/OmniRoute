@@ -11,14 +11,19 @@ import {
 } from "../../src/shared/validation/schemas.ts";
 import { validateBody } from "../../src/shared/validation/helpers.ts";
 
-test("xiaomi-mimo registry uses the current default base URL and MiMo V2.5 + V2 models", () => {
+const DEPRECATED_MIMO_V2_MODELS = ["mimo-v2-pro", "mimo-v2-omni", "mimo-v2-flash", "mimo-v2-tts"];
+
+test("xiaomi-mimo registry uses the current default base URL and MiMo V2.5 models", () => {
   const entry = REGISTRY["xiaomi-mimo"];
 
   assert.ok(entry, "xiaomi-mimo should exist in registry");
   assert.equal(entry.baseUrl, "https://api.xiaomimimo.com/v1");
+  for (const modelId of DEPRECATED_MIMO_V2_MODELS) {
+    assert.ok(!entry.models.some((model) => model.id === modelId), `${modelId} is deprecated`);
+  }
   assert.deepEqual(
     entry.models.map((model) => model.id),
-    ["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]
+    ["mimo-v2.5-pro", "mimo-v2.5"]
   );
 });
 
@@ -98,11 +103,9 @@ test("xiaomi-mimo update schema accepts custom regional baseUrl", () => {
   }
 });
 
-test("MiMo-V2.5, V2.5-Pro, and V2-Omni report vision capability", () => {
-  // Omnimodal models should have supportsVision
-  assert.equal(getModelSpec("mimo-v2.5-pro")?.supportsVision, true);
+test("registered Xiaomi MiMo V2.5 chat models keep capability overrides", () => {
+  // models.dev mislabels the *-pro models (hermes-agent#18884); see the hard override in
+  // src/lib/modelCapabilities.ts.
   assert.equal(getModelSpec("mimo-v2.5")?.supportsVision, true);
-  assert.equal(getModelSpec("mimo-v2-omni")?.supportsVision, true);
-  // Flash is text-only — should NOT have vision
-  assert.equal(getModelSpec("mimo-v2-flash")?.supportsVision, undefined);
+  assert.equal(getModelSpec("mimo-v2.5-pro")?.supportsVision, false);
 });

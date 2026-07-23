@@ -1,0 +1,1 @@
+- **fix(providers):** web-provider model discovery updated — qwen-web uses the slash-terminated models endpoint (avoiding a blocked 307 redirect), and kimi-web matches the current request shape (POST with bearer + `kimi-auth` cookie replay) with its catalog refreshed to the current non-agent models (#6308 — thanks @janeza2).

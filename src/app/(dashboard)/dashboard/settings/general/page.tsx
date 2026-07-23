@@ -2,6 +2,6 @@
 
 import SystemStorageTab from "../components/SystemStorageTab";
 
-export default function SettingsGeneralPage() {
+export default function SettingsStoragePage() {
   return <SystemStorageTab />;
 }

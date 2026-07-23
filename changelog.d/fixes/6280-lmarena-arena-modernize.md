@@ -1,0 +1,1 @@
+- **fix(providers):** modernize the `lmarena` provider for the Arena.ai rebrand — route chat through `arena.ai` create-evaluation with Chrome TLS impersonation, seed a static Direct-chat Text/Search + Image catalog, and keep the `lmarena`/`lma` wire id for back-compat ([#6280](https://github.com/diegosouzapw/OmniRoute/pull/6280)) — thanks @backryun

@@ -15,6 +15,11 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   return (
+    // lang="en" is intentional: global-error is a client-side root boundary that
+    // renders ABOVE the next-intl provider, so the active locale isn't reliably
+    // available here. Its visible text is static English, so lang="en" stays
+    // consistent with the content. User-facing locale is handled by the normal
+    // layout (<html lang={locale}> in src/app/layout.tsx).
     <html lang="en">
       <body className="flex flex-col items-center justify-center min-h-screen p-6 bg-bg text-text-main font-[system-ui,-apple-system,sans-serif] text-center m-0">
         <main role="alert" aria-live="assertive" className="flex flex-col items-center">

@@ -181,7 +181,7 @@ test("GlmExecutor separates OpenAI-compatible coding headers from Anthropic head
   assert.equal(anthropicHeaders["anthropic-version"], "2023-06-01");
   assert.match(anthropicHeaders["anthropic-beta"], /claude-code-20250219/);
   assert.equal(anthropicHeaders["anthropic-dangerous-direct-browser-access"], "true");
-  assert.match(anthropicHeaders["User-Agent"], /^claude-cli\/2\.1\.137 \(external, sdk-cli\)$/);
+  assert.match(anthropicHeaders["User-Agent"], /^claude-cli\/2\.1\.207 \(external, sdk-cli\)$/);
   assert.equal(anthropicHeaders["X-Stainless-Lang"], "js");
   assert.equal(anthropicHeaders["X-Stainless-Runtime"], "node");
 });
@@ -639,4 +639,63 @@ test("GlmExecutor Anthropic fallback keeps tool names unprefixed", async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+// Regression for #4255 — GLM-5.2+ thinking models share a single max_tokens
+// budget for reasoning + response. When the client omits max_tokens, the
+// executor must default to the model's full output capacity (131072) so deep
+// reasoning isn't truncated by the generic GLM default (16_384). Scoped to
+// GLM-5.2+ via transformForTransport — non-thinking GLM models are untouched.
+test("GlmExecutor defaults GLM-5.2+ max_tokens to 131072 when the client omits it", () => {
+  const executor = new GlmExecutor("glm");
+  const body = { messages: [{ role: "user", content: "hi" }] };
+
+  const transformed = executor.transformForTransport(
+    "glm-5.2",
+    body,
+    false,
+    {
+      apiKey: "glm-key",
+    },
+    "openai"
+  ) as any;
+
+  assert.equal((body as any).max_tokens, undefined, "caller body must not be mutated");
+  assert.equal(transformed.max_tokens, 131072);
+});
+
+test("GlmExecutor preserves a client-supplied max_tokens for GLM-5.2+ (no override)", () => {
+  const executor = new GlmExecutor("glm");
+  const body = { messages: [{ role: "user", content: "hi" }], max_tokens: 4096 };
+
+  const transformed = executor.transformForTransport(
+    "glm-5.2",
+    body,
+    false,
+    {
+      apiKey: "glm-key",
+    },
+    "openai"
+  ) as any;
+
+  assert.equal(transformed.max_tokens, 4096);
+});
+
+test("GlmExecutor does NOT bump max_tokens for non-thinking GLM (glm-4.6)", () => {
+  const executor = new GlmExecutor("glm");
+  const body = { messages: [{ role: "user", content: "hi" }] };
+
+  const transformed = executor.transformForTransport(
+    "glm-4.6",
+    body,
+    false,
+    {
+      apiKey: "glm-key",
+    },
+    "openai"
+  ) as any;
+
+  // Stays at the generic GLM default (16_384) — never the 131072 thinking budget.
+  assert.notEqual(transformed.max_tokens, 131072);
+  assert.equal(transformed.max_tokens, 16_384);
 });

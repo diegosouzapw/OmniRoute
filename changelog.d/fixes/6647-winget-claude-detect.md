@@ -1,0 +1,1 @@
+- **fix(cli):** Claude Code installed via WinGet is now detected on Windows (the WinGet install path was missing from the binary lookup) (#6647 — thanks @enjoyer-hub).

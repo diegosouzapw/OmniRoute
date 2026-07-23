@@ -18,8 +18,12 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "gemini-1.5-flash": "gemini-2.5-flash",
   "gemini-1.0-pro": "gemini-2.5-pro",
   "gemini-2.0-flash": "gemini-2.5-flash",
+  "gemini-2.0-flash-lite": "gemini-3.1-flash-lite",
+  "gemini-3.1-flash-lite-preview": "gemini-3.1-flash-lite",
   "gemini-3-pro-high": "gemini-3.1-pro-high",
   "gemini-3-pro-low": "gemini-3.1-pro-low",
+  // Retired free Gemma (was in the gemini-free pool) → current gemini-free model
+  "gemma-4": "gemini-3.1-flash-lite",
 
   // Claude legacy → current
   "claude-3-opus-20240229": "claude-opus-4-20250514",
@@ -46,6 +50,8 @@ const BUILT_IN_ALIASES: Record<string, string> = {
   "mistral-large": "mistral-large-latest",
   "mistral-small": "mistral-small-latest",
   codestral: "codestral-latest",
+  // Sweep 2026-06-19: codestral-2405 retired 2025-06-16 — forward to the current stable.
+  "codestral-2405": "codestral-2508",
 
   // Llama short aliases
   "llama-3.3": "llama-3.3-70b-versatile",
@@ -54,20 +60,40 @@ const BUILT_IN_ALIASES: Record<string, string> = {
 };
 
 // ── Custom Aliases (persisted via Settings API) ─────────────────────────────
-let _customAliases: Record<string, string> = {};
+//
+// Backed by globalThis so the singleton store is shared across the SEPARATE webpack
+// module graphs Next.js builds for `instrumentation.ts` (boot-time hydration via
+// applyRuntimeSettings → setCustomAliases) and the app-route `GET /api/settings/model-aliases`.
+// A plain module-level `let` is DUPLICATED per graph, so startup hydration lands on the
+// instrumentation graph's copy while the API route reads an empty copy — the exact
+// symptom #5777 patched at the route layer. Migrating the store to globalThis fixes the
+// root cause (both instances read/write one store), mirroring the #5312 pattern already
+// applied to thinkingBudget.ts and backgroundTaskDetector.ts (and systemPrompt.ts #2470).
+const CUSTOM_ALIASES_GLOBAL_KEY = "__omniroute_customAliases__";
+const _aliasStore = globalThis as unknown as Record<
+  string,
+  Record<string, string> | undefined
+>;
+
+function customAliases(): Record<string, string> {
+  if (!_aliasStore[CUSTOM_ALIASES_GLOBAL_KEY]) {
+    _aliasStore[CUSTOM_ALIASES_GLOBAL_KEY] = {};
+  }
+  return _aliasStore[CUSTOM_ALIASES_GLOBAL_KEY]!;
+}
 
 /**
  * Set custom aliases (called from settings API or startup).
  */
 export function setCustomAliases(aliases: Record<string, string>): void {
-  _customAliases = { ...aliases };
+  _aliasStore[CUSTOM_ALIASES_GLOBAL_KEY] = { ...aliases };
 }
 
 /**
  * Get current custom aliases.
  */
 export function getCustomAliases(): Record<string, string> {
-  return { ..._customAliases };
+  return { ...customAliases() };
 }
 
 /**
@@ -75,7 +101,7 @@ export function getCustomAliases(): Record<string, string> {
  * Custom aliases take precedence over built-in.
  */
 export function getAllAliases(): Record<string, string> {
-  return { ...BUILT_IN_ALIASES, ..._customAliases };
+  return { ...BUILT_IN_ALIASES, ...customAliases() };
 }
 
 /**
@@ -89,7 +115,8 @@ export function resolveModelAlias(modelId: string): string {
   if (!modelId) return modelId;
 
   // Check custom aliases first (higher priority)
-  if (_customAliases[modelId]) return _customAliases[modelId];
+  const custom = customAliases();
+  if (custom[modelId]) return custom[modelId];
 
   // Then check built-in
   if (BUILT_IN_ALIASES[modelId]) return BUILT_IN_ALIASES[modelId];
@@ -123,15 +150,16 @@ export function isDeprecated(modelId: string): boolean {
  * Add a custom alias.
  */
 export function addCustomAlias(from: string, to: string): void {
-  _customAliases[from] = to;
+  customAliases()[from] = to;
 }
 
 /**
  * Remove a custom alias.
  */
 export function removeCustomAlias(from: string): boolean {
-  if (_customAliases[from]) {
-    delete _customAliases[from];
+  const custom = customAliases();
+  if (custom[from]) {
+    delete custom[from];
     return true;
   }
   return false;

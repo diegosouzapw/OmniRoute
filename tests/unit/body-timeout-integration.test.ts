@@ -80,36 +80,7 @@ test("BodyTimeoutError from withBodyTimeout does not leave timer leaks", async (
   assert.ok(true, "all timers cleaned up successfully");
 });
 
-// ── 4. DELETE /api/logs/active endpoint ──────────────────────────────────
-
-test("DELETE /api/logs/active route requires management authentication", () => {
-  const content = fs.readFileSync("src/app/api/logs/active/route.ts", "utf8");
-
-  assert.ok(
-    content.includes('from "@/lib/api/requireManagementAuth"'),
-    "should import requireManagementAuth"
-  );
-  assert.ok(content.includes("export async function DELETE"), "should export DELETE handler");
-  assert.ok(
-    content.includes("await requireManagementAuth(request)"),
-    "DELETE should check management auth"
-  );
-});
-
-test("DELETE /api/logs/active calls clearPendingRequests", () => {
-  const content = fs.readFileSync("src/app/api/logs/active/route.ts", "utf8");
-
-  assert.ok(
-    content.includes("clearPendingRequests"),
-    "DELETE handler should call clearPendingRequests"
-  );
-  assert.ok(
-    content.includes("Pending request counts cleared"),
-    "DELETE handler should return success message"
-  );
-});
-
-// ── 5. clearPendingRequests + trackPendingRequest integration ────────────
+// ── 4. clearPendingRequests + trackPendingRequest integration ────────────
 
 test("trackPendingRequest followed by clearPendingRequests zeroes all counts", async () => {
   const usageHistory = await import("../../src/lib/usage/usageHistory.ts");

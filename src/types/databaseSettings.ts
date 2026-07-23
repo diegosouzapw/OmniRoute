@@ -35,6 +35,8 @@ export interface DatabaseSettings {
     promptCacheEnabled: boolean;
     promptCacheStrategy: "auto" | "system-only" | "manual";
     alwaysPreserveClientCache: "auto" | "always" | "never";
+    /** Model catalog /v1/models response cache TTL in milliseconds. */
+    modelCatalogCacheTtlMs: number;
   };
 
   /** 5. Retention (per-table cleanup policies) */
@@ -46,6 +48,10 @@ export interface DatabaseSettings {
     callLogs: number;
     usageHistory: number;
     memoryEntries: number;
+    domainCostHistory: number;
+    compressionCacheStats: number;
+    xpAuditLog: number;
+    compressionRunTelemetry: number;
     autoCleanupEnabled: boolean;
   };
 
@@ -97,6 +103,7 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     promptCacheEnabled: true,
     promptCacheStrategy: "auto",
     alwaysPreserveClientCache: "auto",
+    modelCatalogCacheTtlMs: 1500,
   },
   retention: {
     quotaSnapshots: 7,
@@ -106,6 +113,10 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     callLogs: 30,
     usageHistory: 30,
     memoryEntries: 30,
+    domainCostHistory: 30,
+    compressionCacheStats: 30,
+    xpAuditLog: 30,
+    compressionRunTelemetry: 30,
     autoCleanupEnabled: true,
   },
   aggregation: {
@@ -118,7 +129,7 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     scheduledVacuum: "weekly",
     vacuumHour: 2,
     pageSize: 4096,
-    cacheSize: -2000,
+    cacheSize: 65536,
     optimizeOnStartup: true,
   },
 };

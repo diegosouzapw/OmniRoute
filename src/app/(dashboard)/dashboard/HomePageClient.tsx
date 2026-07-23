@@ -9,11 +9,18 @@ import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
+import {
+  isProviderConnectionConnected,
+  isProviderConnectionErrored,
+} from "@/shared/utils/providerConnectionStatus";
 import { useNotificationStore } from "@/store/notificationStore";
+import { extractApiErrorMessage } from "@/shared/http/apiErrorMessage";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
+import { HomeProviderTopologySection } from "./HomeProviderTopologySection";
+import { shouldShowProviderTopologyOnHome } from "./homeAppearance";
 
-const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
 const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
 
@@ -64,11 +71,6 @@ type ProviderMetricSummary = {
   lastErrorStatus?: number | null;
 };
 
-type ActiveRequestSummary = {
-  provider?: string;
-  model?: string;
-};
-
 type ProviderModelSummary = {
   fullModel: string;
   alias?: string;
@@ -107,8 +109,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const isElectron = useIsElectron();
   const { openExternal } = useOpenExternal();
   const t = useTranslations("home");
-  const tc = useTranslations("common");
-  const ts = useTranslations("sidebar");
   const tp = useTranslations("providers");
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
@@ -116,13 +116,23 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [baseUrl, setBaseUrl] = useState("/v1");
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
-  const [activeRequests, setActiveRequests] = useState<ActiveRequestSummary[]>([]);
+  const [providerTopology, setProviderTopology] = useState({ lastProvider: "", errorProvider: "" });
+  const [providerNodes, setProviderNodes] = useState<
+    Array<{ id?: string; prefix?: string; name?: string }>
+  >([]);
+
+  // The live in-flight request feed for the Provider Topology pulse animation is owned by
+  // <HomeProviderTopologySection>, which subscribes to it (gated by the `enabled` prop)
+  // only when the topology is actually shown. HomePageClient must NOT open its own
+  // unconditional live socket: the binding here was unused (ReferenceError in prod,
+  // #4759/#4745) and the socket opened even when topology was hidden (#4596).
 
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
 
   // Platform detection and download links for Electron
-  const platform = typeof window !== "undefined" ? window.electronAPI?.platform : undefined;
+  const platform =
+    typeof globalThis.window === "undefined" ? undefined : globalThis.window.electronAPI?.platform;
   const electronDownload = useMemo(() => {
     const latest = versionInfo?.latest || "";
     const cleanLatest = latest.replace(/^v/, "");
@@ -157,27 +167,22 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   // Electron internal auto-updater state and listeners
   const [electronUpdateStatus, setElectronUpdateStatus] = useState<{
     status:
-      | "idle"
-      | "checking"
-      | "available"
-      | "not-available"
-      | "downloading"
-      | "downloaded"
-      | "error";
+      "idle" | "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error";
     version?: string;
     percent?: number;
     message?: string;
   }>({ status: "idle" });
 
   useEffect(() => {
-    if (!isElectron || typeof window === "undefined" || !window.electronAPI) return;
+    if (!isElectron || typeof globalThis.window === "undefined" || !globalThis.window.electronAPI)
+      return;
 
     // Trigger initial check silently on mount
-    window.electronAPI.checkForUpdates().catch((err: any) => {
+    globalThis.window.electronAPI.checkForUpdates().catch((err: any) => {
       console.error("[Electron] Check for updates failed:", err);
     });
 
-    const dispose = window.electronAPI.onUpdateStatus((data: any) => {
+    const dispose = globalThis.window.electronAPI.onUpdateStatus((data: any) => {
       setElectronUpdateStatus({
         status: data.status,
         version: data.version,
@@ -195,9 +200,12 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   // Appearance settings for home page pinning
   const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
   const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true); // default on
-  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true); // default on
+  // #4596: default hidden until appearance settings load, so the live-WS
+  // topology connection is never opened before we know the user wants it.
+  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(false);
   const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
   const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
+  const [appearanceSettingsLoaded, setAppearanceSettingsLoaded] = useState(false);
 
   useEffect(() => {
     // Fetch the pin settings (lightweight)
@@ -211,9 +219,15 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           if (typeof data.showQuickStartOnHome === "boolean") {
             setShowQuickStartOnHome(data.showQuickStartOnHome);
           }
-          if (typeof data.showProviderTopologyOnHome === "boolean") {
-            setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
-          }
+          // #4596 regression fix: the topology card defaults ON (matches the
+          // AppearanceTab toggle's `!== false`). Honoring only an explicit boolean
+          // left the card hidden whenever the setting was never persisted
+          // (undefined), silently removing it for most installs. The live-WS
+          // connection is still gated by `appearanceSettingsLoaded` in the data
+          // effect, so it is never opened before settings load.
+          setShowProviderTopologyOnHome(
+            shouldShowProviderTopologyOnHome(data.showProviderTopologyOnHome)
+          );
           if (typeof data.autoRefreshProviderQuota === "boolean") {
             setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
           }
@@ -224,21 +238,23 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       })
       .catch(() => {
         /* ignore — defaults stay */
+      })
+      .finally(() => {
+        setAppearanceSettingsLoaded(true);
       });
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setBaseUrl(`${window.location.origin}/v1`);
+    if (typeof globalThis.window !== "undefined") {
+      setBaseUrl(`${globalThis.location.origin}/v1`);
     }
   }, []);
 
   const fetchData = useCallback(async () => {
     try {
-      const [provRes, modelsRes, metricsRes, versionRes] = await Promise.all([
+      const [provRes, modelsRes, versionRes] = await Promise.all([
         fetch("/api/providers"),
         fetch("/api/models"),
-        fetch("/api/provider-metrics"),
         fetch("/api/system/version"),
       ]);
       if (provRes.ok) {
@@ -248,10 +264,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (modelsRes.ok) {
         const modelsData = await modelsRes.json();
         setModels(modelsData.models || []);
-      }
-      if (metricsRes.ok) {
-        const metricsData = await metricsRes.json();
-        setProviderMetrics(metricsData.metrics || {});
       }
       if (versionRes.ok) {
         const versionData = await versionRes.json();
@@ -268,7 +280,19 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     fetchData();
   }, [fetchData]);
 
+  // Fetch provider nodes for display labels (compat providers)
   useEffect(() => {
+    fetch("/api/provider-nodes")
+      .then((r) => (r.ok ? r.json() : { nodes: [] }))
+      .then((d) => setProviderNodes(d.nodes || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!appearanceSettingsLoaded || !showProviderTopologyOnHome) {
+      return;
+    }
+
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let controller: AbortController | null = null;
@@ -277,22 +301,18 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       const currentController = new AbortController();
       controller = currentController;
       try {
-        const [activeRes, metricsRes] = await Promise.all([
-          fetch("/api/logs/active", { cache: "no-store", signal: currentController.signal }),
-          fetch("/api/provider-metrics", { cache: "no-store", signal: currentController.signal }),
-        ]);
-
-        if (activeRes.ok) {
-          const data = await activeRes.json();
-          if (!cancelled) {
-            setActiveRequests(Array.isArray(data.activeRequests) ? data.activeRequests : []);
-          }
-        }
-
+        const metricsRes = await fetch("/api/provider-metrics", {
+          cache: "no-store",
+          signal: currentController.signal,
+        });
         if (metricsRes.ok) {
           const data = await metricsRes.json();
           if (!cancelled) {
             setProviderMetrics(data.metrics || {});
+            setProviderTopology({
+              lastProvider: normalizeProviderId(data.topology?.lastProvider),
+              errorProvider: normalizeProviderId(data.topology?.errorProvider),
+            });
           }
         }
       } catch (error) {
@@ -316,7 +336,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (timeoutId) clearTimeout(timeoutId);
       controller?.abort();
     };
-  }, []);
+  }, [appearanceSettingsLoaded, showProviderTopologyOnHome]);
 
   // T07: Check for unhealthy API keys and show notification (once per session)
   const notifiedUnhealthyKeys = useRef<Set<string>>(new Set());
@@ -352,8 +372,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           if (h.status !== "invalid" && h.status !== "warning") return false;
           // extra_N entries: only flag if the index is still within bounds
           if (keyId.startsWith("extra_")) {
-            const idx = parseInt(keyId.slice(6), 10);
-            if (isNaN(idx) || idx >= extraKeyCount) return false;
+            const idx = Number.parseInt(keyId.slice(6), 10);
+            if (Number.isNaN(idx) || idx >= extraKeyCount) return false;
           }
           return true;
         });
@@ -366,9 +386,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           for (const [keyId] of unhealthyKeys) {
             newUnhealthyKeys.add(`${conn.id}:${keyId}`);
           }
-          if (firstUnhealthyProviderId === null) {
-            firstUnhealthyProviderId = conn.provider;
-          }
+          firstUnhealthyProviderId ??= conn.provider;
           unhealthyConnections.push(conn.name || conn.id);
           unhealthyProviderIds.add(conn.provider);
         }
@@ -409,19 +427,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const providerStats = useMemo(() => {
     return Object.entries(AI_PROVIDERS).map(([providerId, providerInfo]) => {
       const connections = providerConnections.filter((conn) => conn.provider === providerId);
-      const connected = connections.filter(
-        (conn) =>
-          conn.isActive !== false &&
-          (conn.testStatus === "active" ||
-            conn.testStatus === "success" ||
-            conn.testStatus === "unknown")
+      const connected = connections.filter((connection) =>
+        isProviderConnectionConnected(connection)
       ).length;
-      const errors = connections.filter(
-        (conn) =>
-          conn.isActive !== false &&
-          (conn.testStatus === "error" ||
-            conn.testStatus === "expired" ||
-            conn.testStatus === "unavailable")
+      const errors = connections.filter((connection) =>
+        isProviderConnectionErrored(connection)
       ).length;
 
       const providerKeys = new Set([providerId, providerInfo.alias].filter(Boolean));
@@ -454,8 +464,26 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   }, [selectedProvider, models]);
 
   const topologyProviders = useMemo(() => {
-    const byProvider = new Map<string, { id: string; provider: string; name?: string }>();
+    type ProviderHealth = "active" | "error" | "idle";
+    const byProvider = new Map<
+      string,
+      { id: string; provider: string; name?: string; status: ProviderHealth }
+    >();
     const providerConfig = AI_PROVIDERS as Record<string, { name?: string }>;
+
+    // Connection-health per provider, so the topology node reflects "what is connected"
+    // at rest (green healthy / red error) instead of going blank between requests. A
+    // provider with ≥1 healthy connection is "active"; if none are healthy but some are
+    // errored it is "error"; otherwise "idle". Live/recent traffic still overrides this.
+    const healthByProvider = new Map<string, ProviderHealth>();
+    for (const stat of providerStats) {
+      const canonical = normalizeProviderId(stat.id);
+      if (!canonical) continue;
+      healthByProvider.set(
+        canonical,
+        stat.connected > 0 ? "active" : stat.errors > 0 ? "error" : "idle"
+      );
+    }
 
     const addProvider = (providerId?: string | null, name?: string) => {
       const rawProviderId = typeof providerId === "string" ? providerId.trim() : "";
@@ -464,10 +492,17 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       const canonicalProviderId = normalizeProviderId(rawProviderId);
       if (!canonicalProviderId || byProvider.has(canonicalProviderId)) return;
 
+      const resolvedName =
+        getProviderDisplayLabel(rawProviderId, providerNodes) ||
+        name ||
+        providerConfig[canonicalProviderId]?.name ||
+        rawProviderId;
+
       byProvider.set(canonicalProviderId, {
         id: canonicalProviderId,
         provider: canonicalProviderId,
-        name: name || providerConfig[canonicalProviderId]?.name || rawProviderId,
+        name: resolvedName,
+        status: healthByProvider.get(canonicalProviderId) ?? "idle",
       });
     };
 
@@ -475,42 +510,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       .filter((provider) => provider.total > 0)
       .forEach((provider) => addProvider(provider.id, provider.provider.name));
     Object.keys(providerMetrics).forEach((provider) => addProvider(provider));
-    activeRequests.forEach((request) => addProvider(request.provider));
 
     return Array.from(byProvider.values());
-  }, [providerStats, providerMetrics, activeRequests]);
+  }, [providerStats, providerMetrics, providerNodes]);
 
-  const topologyActiveRequests = useMemo(
-    () =>
-      activeRequests.map((request) => ({
-        ...request,
-        provider: normalizeProviderId(request.provider),
-      })),
-    [activeRequests]
-  );
-
-  const { lastProvider, errorProvider } = useMemo(() => {
-    let recentProvider = "";
-    let recentTimestamp = 0;
-    let recentErrorProvider = "";
-    let recentErrorTimestamp = 0;
-
-    for (const [provider, metrics] of Object.entries(providerMetrics)) {
-      const requestTimestamp = metrics.lastRequestAt ? Date.parse(metrics.lastRequestAt) : 0;
-      if (Number.isFinite(requestTimestamp) && requestTimestamp > recentTimestamp) {
-        recentProvider = normalizeProviderId(provider);
-        recentTimestamp = requestTimestamp;
-      }
-
-      const errorTimestamp = metrics.lastErrorAt ? Date.parse(metrics.lastErrorAt) : 0;
-      if (Number.isFinite(errorTimestamp) && errorTimestamp > recentErrorTimestamp) {
-        recentErrorProvider = normalizeProviderId(provider);
-        recentErrorTimestamp = errorTimestamp;
-      }
-    }
-
-    return { lastProvider: recentProvider, errorProvider: recentErrorProvider };
-  }, [providerMetrics]);
+  const { lastProvider, errorProvider } = providerTopology;
 
   const pollBackgroundUpdate = useCallback(
     async ({
@@ -675,7 +679,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       if (contentType.includes("application/json")) {
         const data = await res.json();
         if (!res.ok || !data.success) {
-          notify.error(data.error || "Failed to start update.");
+          // #5991: the error envelope is `{ error: { code, message, correlation_id } }`.
+          // Passing the raw object to notify.error() rendered it as a React child →
+          // "Minified React error #31" crash ("Internal Server Error" screen), e.g. on
+          // the 403 from the loopback-only /api/system/version. Extract the string.
+          notify.error(extractApiErrorMessage(data, "Failed to start update."));
           setUpdating(false);
           setUpdatePhase("idle");
           return;
@@ -750,19 +758,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   useEffect(() => {
     if (updatePhase !== "done") return;
     const timer = setTimeout(() => {
-      window.location.reload();
+      globalThis.window.location.reload();
     }, 8000);
     return () => clearTimeout(timer);
   }, [updatePhase]);
-
-  const stepIcons: Record<string, string> = {
-    install: "download",
-    rebuild: "build",
-    restart: "restart_alt",
-    complete: "check_circle",
-    error: "error",
-  };
-
   const stepLabels: Record<string, string> = {
     install: "Install Package",
     rebuild: "Rebuild Native Modules",
@@ -841,7 +840,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                         error
                       </span>
                     ) : (
-                      <span className="material-symbols-outlined text-yellow-500 text-[18px]">
+                      <span className="material-symbols-outlined text-amber-500 text-[18px]">
                         warning
                       </span>
                     )}
@@ -883,7 +882,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                     setUpdating(false);
                     setUpdatePhase("idle");
                     setUpdateSteps([]);
-                    if (updatePhase === "done") window.location.reload();
+                    if (updatePhase === "done") globalThis.window.location.reload();
                   }}
                 >
                   {updatePhase === "done" ? "Reload Now" : "Close"}
@@ -946,7 +945,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   {electronUpdateStatus.status === "available" && (
                     <Button
                       size="sm"
-                      onClick={() => window.electronAPI?.downloadUpdate()}
+                      onClick={() => globalThis.window.electronAPI?.downloadUpdate()}
                       className="font-semibold"
                     >
                       Download Update
@@ -965,7 +964,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   {electronUpdateStatus.status === "downloaded" && (
                     <Button
                       size="sm"
-                      onClick={() => window.electronAPI?.installUpdate()}
+                      onClick={() => globalThis.window.electronAPI?.installUpdate()}
                       className="font-semibold animate-pulse"
                     >
                       Restart & Install
@@ -978,7 +977,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                       size="sm"
                       onClick={() => {
                         setElectronUpdateStatus({ status: "checking" });
-                        window.electronAPI?.checkForUpdates().catch((err: any) => {
+                        globalThis.window.electronAPI?.checkForUpdates().catch((err: any) => {
                           setElectronUpdateStatus({ status: "error", message: err.message });
                         });
                       }}
@@ -1075,9 +1074,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       {pinProviderQuotaToHome && (
         <Suspense fallback={<CardSkeleton />}>
           <ProviderQuotaWidget
-            autoRefreshInterval={
-              autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0
-            }
+            autoRefreshInterval={autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0}
           />
         </Suspense>
       )}
@@ -1110,7 +1107,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                   <p className="text-text-muted mt-0.5">
                     {t.rich("step1Desc", {
                       endpoint: (chunks) => (
-                        <Link href="/dashboard/endpoint" className="text-primary hover:underline">
+                        <Link
+                          href="/dashboard/api-manager"
+                          className="text-primary hover:underline"
+                        >
                           {chunks}
                         </Link>
                       ),
@@ -1173,35 +1173,13 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         </Card>
       )}
 
-      {/* Provider Topology (controlled by Appearance setting, default on) */}
       {showProviderTopologyOnHome && (
-        <Card>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
-              <p className="text-xs text-text-muted">
-                Connected providers routing through OmniRoute in real time
-              </p>
-            </div>
-            <div className="flex items-center gap-3 text-[11px] text-text-muted">
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-green-500" /> Active
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-amber-500" /> Recent
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-red-500" /> Error
-              </span>
-            </div>
-          </div>
-          <ProviderTopology
-            providers={topologyProviders}
-            activeRequests={topologyActiveRequests}
-            lastProvider={lastProvider}
-            errorProvider={errorProvider}
-          />
-        </Card>
+        <HomeProviderTopologySection
+          providers={topologyProviders}
+          lastProvider={lastProvider}
+          errorProvider={errorProvider}
+          enabled={showProviderTopologyOnHome}
+        />
       )}
 
       {/* Provider Models Modal */}

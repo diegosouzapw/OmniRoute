@@ -1,0 +1,1 @@
+- fix(sse): defer `response.completed` until a trailing usage-only chunk arrives on `/v1/responses` streams (#6906)

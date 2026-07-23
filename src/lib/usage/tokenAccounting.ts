@@ -48,6 +48,13 @@ export function getLoggedInputTokens(tokens: unknown): number {
     return toFiniteNumber(tokenRecord.input);
   }
 
+  // Prefer prompt_tokens when present: translators normalize provider-specific
+  // usage into OpenAI shape there, and may keep input_tokens for compatibility.
+  // Treating that input_tokens as raw Claude usage would add cache tokens again.
+  if (tokenRecord.prompt_tokens !== undefined && tokenRecord.prompt_tokens !== null) {
+    return toFiniteNumber(tokenRecord.prompt_tokens);
+  }
+
   if (tokenRecord.input_tokens !== undefined && tokenRecord.input_tokens !== null) {
     // Anthropic / anthropic-compatible-cc streaming: input_tokens is only the
     // non-cached portion.  The cache counters sit as separate top-level fields
@@ -60,13 +67,7 @@ export function getLoggedInputTokens(tokens: unknown): number {
     );
   }
 
-  // prompt_tokens from translator/extractor already includes cache tokens:
-  //   - OpenAI format: prompt_tokens inherently includes cached
-  //   - Claude non-streaming: extractUsageFromResponse sums input + cache_read + cache_creation
-  //   - Claude streaming: extractUsage (after fix) sums input + cache_read + cache_creation
-  // Do NOT add cache fields here — would double-count.
-  const promptTokens = toFiniteNumber(tokenRecord.prompt_tokens);
-  return promptTokens;
+  return 0;
 }
 
 export function getLoggedOutputTokens(tokens: unknown): number {
@@ -90,6 +91,48 @@ export function getReasoningTokens(tokens: unknown): number {
   return toFiniteNumber(
     tokenRecord.reasoning ?? tokenRecord.reasoning_tokens ?? completionDetails.reasoning_tokens
   );
+}
+
+// Non-greedy, single-capture, no nested variable-length quantifiers → ReDoS-safe.
+const THINK_BLOCK_RE = /<think>([\s\S]*?)<\/think>/gi;
+
+/**
+ * Inspect an assistant message for reasoning/thinking content that the usage
+ * object may not have metered (#6187 — e.g. stepfun step-3.7-flash emits
+ * `reasoning_content` but reports `reasoning_tokens=0`).
+ *
+ * Returns the reasoning SOURCE and the raw CHARACTER count of the observed
+ * reasoning text.
+ *
+ * IMPORTANT: `chars` is a CHARACTER count, NOT a token count. It must NEVER be
+ * fed into cost math (`costCalculator` prices `tokens.reasoning`). It exists
+ * only so call logs can distinguish "reasoned but metered 0" from
+ * "did not reason at all" without corrupting billing.
+ */
+export function getObservedReasoning(message: unknown): {
+  source: "content" | "think" | null;
+  chars: number;
+} {
+  const record = asRecord(message);
+
+  // Explicit reasoning field: `reasoning_content` is the raw provider field;
+  // `reasoning` is what sseTextTransform maps it to.
+  const explicit = record.reasoning_content ?? record.reasoning;
+  if (typeof explicit === "string" && explicit.trim().length > 0) {
+    return { source: "content", chars: explicit.length };
+  }
+
+  // Inline <think>...</think> blocks embedded in message content.
+  const content = record.content;
+  if (typeof content === "string" && content.length > 0) {
+    let chars = 0;
+    for (const match of content.matchAll(THINK_BLOCK_RE)) {
+      chars += (match[1] ?? "").length;
+    }
+    if (chars > 0) return { source: "think", chars };
+  }
+
+  return { source: null, chars: 0 };
 }
 
 // ─── Nullable variants ──────────────────────────────────────────────────

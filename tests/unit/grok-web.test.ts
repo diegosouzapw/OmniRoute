@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { __setTlsFetchOverrideForTesting } from "../../open-sse/services/grokTlsClient.ts";
 
 const { GrokWebExecutor } = await import("../../open-sse/executors/grok-web.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
@@ -18,34 +19,45 @@ function mockGrokStream(events: unknown[]) {
 }
 
 function mockFetch(status: number, events: unknown[]) {
-  const original = globalThis.fetch;
-  globalThis.fetch = async () =>
-    new Response(mockGrokStream(events), {
+  __setTlsFetchOverrideForTesting(async () => {
+    if (status >= 400) {
+      return {
+        status,
+        headers: new Headers({ "Content-Type": "application/json" }),
+        text: JSON.stringify(events),
+        body: null,
+      };
+    }
+    return {
       status,
-      headers: { "Content-Type": "application/json" },
-    });
+      headers: new Headers({ "Content-Type": "application/x-ndjson" }),
+      text: null,
+      body: mockGrokStream(events),
+    };
+  });
   return () => {
-    globalThis.fetch = original;
+    __setTlsFetchOverrideForTesting(null);
   };
 }
 
 function mockFetchCapture(events: unknown[]) {
-  const original = globalThis.fetch;
   let capturedUrl: string | null = null;
   let capturedHeaders: Record<string, string> = {};
   let capturedBody: Record<string, unknown> = {};
-  globalThis.fetch = async (url: any, opts: any) => {
-    capturedUrl = String(url);
-    capturedHeaders = opts?.headers || {};
-    capturedBody = JSON.parse(opts?.body || "{}");
-    return new Response(mockGrokStream(events), {
+  __setTlsFetchOverrideForTesting(async (url, options) => {
+    capturedUrl = url;
+    capturedHeaders = options.headers || {};
+    capturedBody = JSON.parse(options.body || "{}");
+    return {
       status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  };
+      headers: new Headers({ "Content-Type": "application/x-ndjson" }),
+      text: null,
+      body: mockGrokStream(events),
+    };
+  });
   return {
     restore: () => {
-      globalThis.fetch = original;
+      __setTlsFetchOverrideForTesting(null);
     },
     get url() {
       return capturedUrl;
@@ -64,6 +76,10 @@ const SIMPLE_RESPONSE = [
   { result: { response: { token: " world!" } } },
   { result: { response: { modelResponse: { message: "Hello world!", responseId: "resp-123" } } } },
 ];
+
+test.afterEach(() => {
+  __setTlsFetchOverrideForTesting(null);
+});
 
 // ─── Registration ───────────────────────────────────────────────────────────
 
@@ -1077,14 +1093,15 @@ test("Non-streaming: skips unmapped tool_usage_card text structurally", async ()
 
 test("Request: forwards tool results into Grok prompt for the next turn", async () => {
   let capturedBody = "";
-  const originalFetch = global.fetch;
-  global.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
-    capturedBody = String(init?.body || "");
-    return new Response(mockGrokStream([{ result: { response: { modelResponse: { message: "It is sunny." } } } }]), {
+  __setTlsFetchOverrideForTesting(async (_url, options) => {
+    capturedBody = String(options.body || "");
+    return {
       status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  };
+      headers: new Headers({ "Content-Type": "application/json" }),
+      text: null,
+      body: mockGrokStream([{ result: { response: { modelResponse: { message: "It is sunny." } } } }]),
+    };
+  });
   try {
     const executor = new GrokWebExecutor();
     await executor.execute({
@@ -1114,7 +1131,7 @@ test("Request: forwards tool results into Grok prompt for the next turn", async 
     assert.ok(payload.message.includes("do not call the same tool again"));
     assert.ok(payload.message.includes("sunny"));
   } finally {
-    global.fetch = originalFetch;
+    __setTlsFetchOverrideForTesting(null);
   }
 });
 

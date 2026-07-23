@@ -25,5 +25,8 @@
     "base_url": "Základná URL servera OmniRoute",
     "context": "Kontext/profil servera pre tento príkaz",
     "lang": "Nastaviť jazyk zobrazenia CLI (prepíše OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Spustiť miestny kontajner Redis jedným kliknutím (Podman alebo Docker) na ukladanie do vyrovnávacej pamäte a sledovanie kvót OmniRoute"
   }
 }

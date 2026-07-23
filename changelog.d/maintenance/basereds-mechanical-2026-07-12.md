@@ -1,0 +1,1 @@
+- chore(base): re-export relayProbeStats from localDb (db-rules gate, #6909 follow-up) and document OMNI_MAX_CONCURRENT_CONNECTIONS in .env.example/ENVIRONMENT.md (env-doc gate, #6590 follow-up)

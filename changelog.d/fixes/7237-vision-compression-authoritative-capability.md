@@ -1,0 +1,1 @@
+- fix(sse): feed the compression pipeline the authoritative vision capability instead of the conservative model-id heuristic, so vision models absent from the fragment list (e.g. gpt-5.5) no longer have their image_url blocks silently stripped (#7237)

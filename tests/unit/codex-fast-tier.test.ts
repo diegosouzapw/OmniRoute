@@ -38,7 +38,11 @@ test("Codex global service mode distinguishes no setting from explicit tiers", (
   );
   assert.deepEqual(
     resolveCodexGlobalFastServiceTier({ codexServiceTier: { enabled: true, tier: "default" } }),
-    { enabled: true, tier: "default", supportedModels: ["gpt-5.5", "gpt-5.4"] }
+    {
+      enabled: true,
+      tier: "default",
+      supportedModels: ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5"],
+    }
   );
 });
 

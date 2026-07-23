@@ -9,6 +9,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getOpenRouterCatalog, refreshOpenRouterCatalog } from "@/lib/catalog/openrouterCatalog";
+import { getSettings } from "@/lib/db/settings";
+import { isFreeModel } from "@/shared/utils/freeModels";
 
 export async function GET(req: NextRequest) {
   // Require authentication (dashboard/API key)
@@ -19,30 +21,42 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // #6328 (follow-up to #6495): REMOVE — not just hide — paid models from the
+  // OpenRouter catalog echo when hidePaidModels is on. Fail open on settings read.
+  let hidePaid = false;
+  try {
+    const settings = await getSettings();
+    hidePaid = settings?.hidePaidModels === true;
+  } catch {}
+  const applyFilter = <T extends { id?: string }>(data: T[]): T[] =>
+    hidePaid ? data.filter((m) => isFreeModel("or", m as { id: string; pricing?: unknown })) : data;
+
   const forceRefresh = req.nextUrl.searchParams.get("refresh") === "true";
 
   if (forceRefresh) {
     const result = await refreshOpenRouterCatalog();
+    const data = applyFilter(result.data);
     return NextResponse.json({
       object: "list",
-      data: result.data,
+      data,
       meta: {
         source: result.ok ? "fresh" : "error",
-        count: result.data.length,
+        count: data.length,
         error: result.error ?? undefined,
       },
     });
   }
 
   const result = await getOpenRouterCatalog();
+  const data = applyFilter(result.data);
   return NextResponse.json({
     object: "list",
-    data: result.data,
+    data,
     meta: {
       source: result.fromCache ? (result.stale ? "stale-cache" : "cache") : "fresh",
       cachedAt: result.cachedAt ?? undefined,
       stale: result.stale,
-      count: result.data.length,
+      count: data.length,
     },
   });
 }

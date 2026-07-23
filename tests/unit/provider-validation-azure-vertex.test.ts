@@ -47,9 +47,13 @@ test("azure-ai validation accepts a successful v1 models probe", async () => {
 });
 
 test("vertex-partner validation reuses the Vertex service account branch", async () => {
+  // An opaque non-JSON string is now treated as a Vertex Express-mode key (validated at
+  // chat time), so it is accepted. To prove vertex-partner reuses the Service Account
+  // validation branch, feed a JSON object that looks like an SA but is missing the
+  // required client_email/private_key fields — it must be rejected there.
   const invalid = await validateProviderApiKey({
     provider: "vertex-partner",
-    apiKey: "not-json",
+    apiKey: '{"type":"service_account","project_id":"p"}',
   });
 
   assert.equal(invalid.valid, false);

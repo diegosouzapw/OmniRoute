@@ -1,0 +1,1 @@
+- **fix(antigravity):** surface aborted/malformed Gemini tool calls (e.g. `MALFORMED_FUNCTION_CALL`) as an explicit non-`end_turn` finish reason instead of a silent clean completion. (thanks @anhdiepmmk)

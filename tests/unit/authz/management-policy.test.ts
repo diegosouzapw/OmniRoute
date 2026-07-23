@@ -64,9 +64,20 @@ async function dashboardCookieHeader(expiresIn = "1h"): Promise<string> {
   return `auth_token=${token}`;
 }
 
-function ctx(headers: Headers, method = "GET", path = "/api/keys") {
+function ctx(
+  headers: Headers,
+  method = "GET",
+  path = "/api/keys",
+  requestExtras: Record<string, unknown> = {}
+) {
   return {
-    request: { method, headers, url: `http://localhost${path}`, nextUrl: { pathname: path } },
+    request: {
+      method,
+      headers,
+      url: `http://localhost${path}`,
+      nextUrl: { pathname: path },
+      ...requestExtras,
+    },
     classification: {
       routeClass: "MANAGEMENT" as const,
       reason: path.startsWith("/dashboard")
@@ -303,12 +314,16 @@ test("LOCAL_ONLY manage-scope bypass: loopback + no Bearer → allow (local CLI 
   // Match the fresh-bootstrap pattern used by the "allows when auth not
   // required" test above: no password configured + loopback request →
   // `isAuthRequired` returns false → anonymous-allow fires once the LOCAL_ONLY
-  // gate is satisfied via the loopback `host` header.
+  // gate is satisfied. Locality comes from the real peer (socket.remoteAddress)
+  // under the peer-stamp model (2026-05-31) — the spoofable `host` header alone
+  // is deliberately NOT enough.
   await settingsDb.updateSettings({ requireLogin: true, password: null });
 
   const policy = await loadPolicy();
   const out = await policy.evaluate(
-    ctx(new Headers({ host: "localhost:20128" }), "GET", "/api/mcp/stream")
+    ctx(new Headers({ host: "localhost:20128" }), "GET", "/api/mcp/stream", {
+      socket: { remoteAddress: "127.0.0.1" },
+    })
   );
 
   assert.equal(out.allow, true);
@@ -376,4 +391,42 @@ test("managementPolicy: allows internal model sync only on the dedicated provide
 
   const denied = await policy.evaluate(ctx(internalHeaders, "POST", "/api/keys"));
   assert.equal(denied.allow, false);
+});
+
+const INGEST_PATH = "/api/tools/traffic-inspector/internal/ingest";
+
+test("managementPolicy: allows loopback inspector ingest without a dashboard session (D4)", async () => {
+  // Auth is required (password set), and there is NO dashboard cookie / API key.
+  process.env.JWT_SECRET = "test-jwt-secret-for-ingest";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  await settingsDb.updateSettings({ requireLogin: true });
+
+  const policy = await loadPolicy();
+  // Loopback peer (socket.remoteAddress) + ingest path → exempt from management
+  // auth; the route handler validates the shared-secret ingest token.
+  const out = await policy.evaluate(
+    ctx(new Headers(), "POST", INGEST_PATH, { socket: { remoteAddress: "127.0.0.1" } })
+  );
+
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.id, "inspector-ingest");
+    assert.equal(out.subject.label, "inspector-ingest-token");
+  }
+});
+
+test("managementPolicy: rejects remote inspector ingest as LOCAL_ONLY (D4)", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-for-ingest";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  await settingsDb.updateSettings({ requireLogin: true });
+
+  const policy = await loadPolicy();
+  // Non-loopback caller hits the LOCAL_ONLY gate before the ingest carve-out —
+  // the loopback exemption must never widen the endpoint to off-box peers.
+  const out = await policy.evaluate(remoteCtx(new Headers(), "POST", INGEST_PATH));
+
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.code, "LOCAL_ONLY");
+  }
 });

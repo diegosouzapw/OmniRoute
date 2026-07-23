@@ -72,6 +72,7 @@ export default function ComplianceTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [eventType, setEventType] = useState("");
+  const [actor, setActor] = useState("");
   const [severity, setSeverity] = useState<"all" | Severity>("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -85,6 +86,7 @@ export default function ComplianceTab() {
 
     try {
       const params = new URLSearchParams();
+      if (actor) params.set("actor", actor);
       params.set("limit", String(PAGE_SIZE));
       params.set("offset", String(offset));
       if (eventType) params.set("action", eventType);
@@ -105,7 +107,7 @@ export default function ComplianceTab() {
     } finally {
       setLoading(false);
     }
-  }, [eventType, from, offset, t, to]);
+  }, [actor, eventType, from, offset, t, to]);
 
   useEffect(() => {
     void fetchEntries();
@@ -120,10 +122,15 @@ export default function ComplianceTab() {
     return Array.from(new Set(entries.map((entry) => entry.action).filter(Boolean))).sort();
   }, [entries]);
 
+  const actors = useMemo(() => {
+    return Array.from(new Set(entries.map((entry) => entry.actor).filter(Boolean))).sort();
+  }, [entries]);
+
   const canGoNext = offset + PAGE_SIZE < totalCount;
 
   const resetFilters = () => {
     setEventType("");
+    setActor("");
     setSeverity("all");
     setFrom("");
     setTo("");
@@ -186,7 +193,7 @@ export default function ComplianceTab() {
       </Card>
 
       <Card className="p-4">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           <label className="space-y-1">
             <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
               {t("eventType")}
@@ -204,6 +211,26 @@ export default function ComplianceTab() {
             <datalist id="compliance-event-types">
               {eventTypes.map((type) => (
                 <option key={type} value={type} />
+              ))}
+            </datalist>
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
+              {t("actor")}
+            </span>
+            <input
+              list="compliance-actors"
+              value={actor}
+              onChange={(event) => {
+                setOffset(0);
+                setActor(event.target.value);
+              }}
+              placeholder={t("actorPlaceholder")}
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <datalist id="compliance-actors">
+              {actors.map((a) => (
+                <option key={a} value={a} />
               ))}
             </datalist>
           </label>
@@ -303,7 +330,7 @@ export default function ComplianceTab() {
                       </td>
                       <td className="px-4 py-3">
                         <span className="rounded-md border border-border bg-surface px-2 py-1 font-mono text-xs text-text-main">
-                          {entry.action}
+                          {t.has(`eventTypes.${entry.action}`) ? t(`eventTypes.${entry.action}`) : entry.action}
                         </span>
                       </td>
                       <td className="px-4 py-3">

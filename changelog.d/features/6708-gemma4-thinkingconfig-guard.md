@@ -1,0 +1,1 @@
+- **fix(sse):** skip `thinkingConfig` for Gemma models on the OpenAI→Gemini path so OpenAI-shape clients no longer get a 400 from Vertex. (thanks @chy1211)

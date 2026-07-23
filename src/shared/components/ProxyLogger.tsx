@@ -15,6 +15,15 @@ import {
   formatDuration as formatLatency,
   truncateUrl,
 } from "@/shared/utils/formatting";
+import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
+import {
+  LOG_TABLE_CLASS,
+  LOG_TABLE_HEAD_CLASS,
+  LOG_TABLE_HEADER_BG_STYLE,
+  LOG_TABLE_HEADER_CELL_CLASS,
+  LOG_TABLE_HEADER_CELL_RIGHT_CLASS,
+  LOG_TABLE_ROW_CLASS,
+} from "./logTableStyles";
 
 const PROXY_COLUMN_KEYS = [
   "status",
@@ -43,6 +52,9 @@ export default function ProxyLogger() {
   const [selectedLevel, setSelectedLevel] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedLog, setSelectedLog] = useState(null);
+  const [providerNodes, setProviderNodes] = useState<
+    Array<{ id?: string; prefix?: string; name?: string }>
+  >([]);
   const intervalRef = useRef(null);
   const hasLoadedRef = useRef(false);
   const logsSignatureRef = useRef("");
@@ -131,6 +143,14 @@ export default function ProxyLogger() {
     hasLoadedRef.current = true;
     fetchLogs(showLoading);
   }, [fetchLogs]);
+
+  // Fetch provider nodes for display labels
+  useEffect(() => {
+    fetch("/api/provider-nodes")
+      .then((r) => (r.ok ? r.json() : { nodes: [] }))
+      .then((d) => setProviderNodes(d.nodes || []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -370,7 +390,7 @@ export default function ProxyLogger() {
       </div>
 
       {/* Table */}
-      <Card className="overflow-hidden bg-black/5 dark:bg-black/20">
+      <Card className="overflow-hidden bg-surface">
         <div className="p-0 overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto">
           {loading && logs.length === 0 ? (
             <div className="p-8 text-center text-text-muted">{t("loadingProxyLogs")}</div>
@@ -384,64 +404,38 @@ export default function ProxyLogger() {
           ) : sortedLogs.length === 0 ? (
             <div className="p-8 text-center text-text-muted">{t("noMatchingLogs")}</div>
           ) : (
-            <table className="w-full text-left border-collapse text-xs">
-              <thead
-                className="sticky top-0 z-10"
-                style={{ backgroundColor: "var(--bg-primary, #0f1117)" }}
-              >
-                <tr
-                  className="border-b border-border"
-                  style={{ backgroundColor: "var(--bg-primary, #0f1117)" }}
-                >
+            <table className={LOG_TABLE_CLASS}>
+              <thead className={LOG_TABLE_HEAD_CLASS} style={LOG_TABLE_HEADER_BG_STYLE}>
+                <tr className={LOG_TABLE_ROW_CLASS} style={LOG_TABLE_HEADER_BG_STYLE}>
                   {visibleColumns.status && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colStatus")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colStatus")}</th>
                   )}
                   {visibleColumns.proxy && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colProxy")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colProxy")}</th>
                   )}
                   {visibleColumns.tls && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colTls")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colTls")}</th>
                   )}
                   {visibleColumns.type && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colType")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colType")}</th>
                   )}
                   {visibleColumns.level && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colLevel")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colLevel")}</th>
                   )}
                   {visibleColumns.provider && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colProvider")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colProvider")}</th>
                   )}
                   {visibleColumns.target && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colTarget")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colTarget")}</th>
                   )}
                   {visibleColumns.latency && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                      {t("colLatency")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("colLatency")}</th>
                   )}
                   {visibleColumns.ip && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      {t("colClientIp")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("colClientIp")}</th>
                   )}
                   {visibleColumns.time && (
-                    <th className="px-3 py-2.5 font-semibold text-text-muted uppercase tracking-wider text-[10px] text-right">
-                      {t("colTime")}
-                    </th>
+                    <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("colTime")}</th>
                   )}
                 </tr>
               </thead>
@@ -454,10 +448,13 @@ export default function ProxyLogger() {
                     label: log.proxy?.type || "-",
                   };
                   const levelColor = LEVEL_COLORS[log.level] || LEVEL_COLORS.direct;
+                  const resolvedProviderLabel =
+                    getProviderDisplayLabel(log.provider, providerNodes) ||
+                    (log.provider || "-").toUpperCase();
                   const providerColor = PROVIDER_COLORS[log.provider] || {
                     bg: "#374151",
                     text: "#fff",
-                    label: (log.provider || "-").toUpperCase(),
+                    label: resolvedProviderLabel,
                   };
                   const isError = log.status === "error" || log.status === "timeout";
 
@@ -465,7 +462,7 @@ export default function ProxyLogger() {
                     <tr
                       key={log.id}
                       onClick={() => setSelectedLog(selectedLog?.id === log.id ? null : log)}
-                      className={`cursor-pointer hover:bg-primary/5 transition-colors ${isError ? "bg-red-500/5" : ""}`}
+                      className={`cursor-pointer hover:bg-sky-500/10 dark:hover:bg-sky-400/10 transition-colors ${isError ? "bg-red-500/5" : ""}`}
                     >
                       {visibleColumns.status && (
                         <td className="px-3 py-2">

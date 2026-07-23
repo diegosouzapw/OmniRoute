@@ -1,0 +1,1 @@
+- **feat(dashboard):** add 180D and 365D periods to the Cost Explorer range selector. The new ranges thread through `parseCostRange`/`COST_RANGE_VALUES` and the `getRangeStartIso` handlers in the analytics and requests-by-provider-date usage routes, so cost/usage analytics can be viewed over a half-year and full-year window (#7213)

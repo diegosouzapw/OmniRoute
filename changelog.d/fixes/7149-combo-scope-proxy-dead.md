@@ -1,0 +1,1 @@
+- fix(db): honor combo-level proxy assignments from the registry when resolving a connection's proxy (#7149)

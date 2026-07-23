@@ -18,6 +18,9 @@ const mappingsRoute = await import("../../src/app/api/model-combo-mappings/route
 const mappingsIdRoute = await import("../../src/app/api/model-combo-mappings/[id]/route.ts");
 const syncTokens = await import("../../src/lib/sync/tokens.ts");
 
+const repoRoot = path.resolve(import.meta.dirname, "../..");
+const read = (relPath: string) => fs.readFileSync(path.join(repoRoot, relPath), "utf8");
+
 function makeRequest(url: string, options: { method?: string; body?: unknown } = {}) {
   const { method = "GET", body } = options;
   return new Request(url, {
@@ -54,7 +57,7 @@ async function createCombo(name: string, model: string) {
 // ── model-combo-mappings routes ──────────────────────────────────────────────
 
 test("GET /model-combo-mappings returns empty list on fresh DB", async () => {
-  const res = await mappingsRoute.GET();
+  const res = await mappingsRoute.GET(makeRequest("http://localhost/api/model-combo-mappings"));
   assert.equal(res.status, 200);
   const body = (await res.json()) as any;
   assert.ok(Array.isArray(body.mappings), "body.mappings must be an array");
@@ -63,7 +66,7 @@ test("GET /model-combo-mappings returns empty list on fresh DB", async () => {
 });
 
 test("GET /model-combo-mappings error response never leaks raw error.message", async () => {
-  const res = await mappingsRoute.GET();
+  const res = await mappingsRoute.GET(makeRequest("http://localhost/api/model-combo-mappings"));
   // In the success case, there is no error field at all
   const body = (await res.json()) as any;
   if (res.status >= 500) {
@@ -240,6 +243,13 @@ test("buildErrorBody never exposes stack traces in its message", async () => {
   assert.ok(!body.error.message.includes("at /opt"));
 });
 
+test("types barrel keeps the model cooldown payload export only", async () => {
+  const src = await read("src/types/index.ts");
+  assert.match(src, /ModelCooldownErrorPayload/);
+  assert.doesNotMatch(src, /ProviderConnection/);
+  assert.doesNotMatch(src, /ProviderNode/);
+});
+
 // ── sanitizeUpstreamDetails ──────────────────────────────────────────────────
 
 test("sanitizeUpstreamDetails — basic pass-through for safe fields", async () => {
@@ -340,6 +350,63 @@ test("createErrorResult — exposes error code/type on the result object", async
   const result = createErrorResult(504, "upstream timeout", null, "UPSTREAM_TIMEOUT", "timeout");
   assert.equal(result.errorCode, "UPSTREAM_TIMEOUT");
   assert.equal(result.errorType, "timeout");
+});
+
+// ── createErrorResult.rawMessage (#7360) ──────────────────────────────────────
+//
+// `error` is sanitized to its first line (sanitizeErrorMessage) for the
+// client-facing response body — correct per Hard Rule #12. But internal
+// classification (checkFallbackError / Gemini TPM-vs-RPD metric detection)
+// needs the FULL multi-line upstream text, since Google's metric name and
+// retry hint live on lines 2-3. `rawMessage` carries the untruncated text on
+// the returned object only — it must never leak into the HTTP response body.
+
+test("createErrorResult — rawMessage preserves the full multi-line message untruncated", async () => {
+  const { createErrorResult } = await import("../../open-sse/utils/error.ts");
+  const fullMessage =
+    "You exceeded your current quota, please check your plan and billing details.\n" +
+    "* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 16000, model: gemma-4-31b\n" +
+    "Please retry in 8.093498133s.";
+  const result = createErrorResult(429, fullMessage);
+
+  assert.equal(result.rawMessage, fullMessage, "rawMessage must be the complete, untruncated text");
+  assert.ok(
+    result.error.length < fullMessage.length,
+    "error (client-facing) must still be truncated to the first line"
+  );
+  assert.ok(
+    !result.error.includes("generativelanguage.googleapis.com"),
+    "sanitized error must not include the metric name (line 2)"
+  );
+});
+
+test("createErrorResult — rawMessage never appears in the serialized response body", async () => {
+  const { createErrorResult } = await import("../../open-sse/utils/error.ts");
+  const fullMessage =
+    "You exceeded your current quota, please check your plan and billing details.\n" +
+    "* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 16000, model: gemma-4-31b";
+  const result = createErrorResult(429, fullMessage);
+  const bodyText = await result.response.clone().text();
+
+  assert.ok(
+    !bodyText.includes("generativelanguage.googleapis.com"),
+    "the raw multi-line metric text must never reach the HTTP response body"
+  );
+});
+
+test("buildModelCooldownBody returns the public cooldown error payload shape", async () => {
+  const { buildModelCooldownBody } = await import("../../open-sse/utils/error.ts");
+  const body = buildModelCooldownBody({ model: "gpt-4o", retryAfterSec: 1.2 });
+
+  assert.deepEqual(body, {
+    error: {
+      message: "All credentials for model gpt-4o are cooling down",
+      type: "rate_limit_error",
+      code: "model_cooldown",
+      model: "gpt-4o",
+      reset_seconds: 2,
+    },
+  });
 });
 
 test("regression: upstream_details never contains stack trace text", async () => {

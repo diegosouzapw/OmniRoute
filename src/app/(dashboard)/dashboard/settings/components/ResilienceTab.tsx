@@ -5,7 +5,8 @@ import { Button, Card } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import AutoDisableCard from "./AutoDisableCard";
-import ModelCooldownsCard from "./ModelCooldownsCard";
+import ModelLockoutCard from "./ModelLockoutCard";
+import { NumberField, BooleanField } from "./ResilienceFields";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -26,6 +27,7 @@ type ConnectionCooldownProfileSettings = {
 
 type ProviderBreakerProfileSettings = {
   failureThreshold: number;
+  degradationThreshold: number;
   resetTimeoutMs: number;
 };
 
@@ -33,6 +35,23 @@ type WaitForCooldownSettings = {
   enabled: boolean;
   maxRetries: number;
   maxRetryWaitSec: number;
+};
+
+type ComboCooldownWaitSettings = {
+  enabled: boolean;
+  maxWaitMs: number;
+  maxAttempts: number;
+  budgetMs: number;
+};
+
+type QuotaShareConcurrencyLimitSettings = {
+  enabled: boolean;
+};
+
+export type ProviderCooldownSettings = {
+  enabled: boolean;
+  minRetryCooldownMs: number;
+  maxRetryCooldownMs: number;
 };
 
 type ResilienceResponse = {
@@ -46,7 +65,22 @@ type ResilienceResponse = {
     apikey: ProviderBreakerProfileSettings;
   };
   waitForCooldown: WaitForCooldownSettings;
+  comboCooldownWait: ComboCooldownWaitSettings;
+  quotaShareConcurrencyLimit: QuotaShareConcurrencyLimitSettings;
+  providerCooldown: ProviderCooldownSettings;
 };
+
+function toResilienceResponse(json: ResilienceResponse): ResilienceResponse {
+  return {
+    requestQueue: json.requestQueue,
+    connectionCooldown: json.connectionCooldown,
+    providerBreaker: json.providerBreaker,
+    waitForCooldown: json.waitForCooldown,
+    comboCooldownWait: json.comboCooldownWait,
+    quotaShareConcurrencyLimit: json.quotaShareConcurrencyLimit,
+    providerCooldown: json.providerCooldown,
+  };
+}
 
 function formatMs(value: number | null | undefined) {
   if (typeof value !== "number") return "—";
@@ -75,69 +109,6 @@ function SectionDescription({
         <span className="font-semibold text-text-main">{t("effectLabel")}:</span> {effect}
       </div>
     </div>
-  );
-}
-
-function NumberField({
-  label,
-  value,
-  suffix,
-  min = 0,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  suffix?: string;
-  min?: number;
-  onChange: (value: number) => void;
-}) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs text-text-muted">{label}</span>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          min={min}
-          value={value}
-          onChange={(event) => {
-            if (event.target.value === "") return;
-            const nextValue = Number(event.target.value);
-            if (Number.isFinite(nextValue)) {
-              onChange(nextValue);
-            }
-          }}
-          className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm"
-        />
-        {suffix ? <span className="text-xs text-text-muted">{suffix}</span> : null}
-      </div>
-    </label>
-  );
-}
-
-function BooleanField({
-  label,
-  description,
-  checked,
-  onChange,
-}: {
-  label: string;
-  description: string;
-  checked: boolean;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <label className="flex items-start justify-between gap-3 rounded-lg border border-border bg-bg-subtle px-3 py-3">
-      <div>
-        <div className="text-sm font-medium text-text-main">{label}</div>
-        <div className="text-xs text-text-muted">{description}</div>
-      </div>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="mt-1 size-4 rounded border-border"
-      />
-    </label>
   );
 }
 
@@ -540,6 +511,14 @@ function ProviderBreakerCard({
               }
             />
             <NumberField
+              label={t("resilienceDegradationThreshold")}
+              value={current.degradationThreshold}
+              min={1}
+              onChange={(degradationThreshold) =>
+                setDraft((prev) => ({ ...prev, [key]: { ...prev[key], degradationThreshold } }))
+              }
+            />
+            <NumberField
               label={t("resilienceResetTime")}
               value={current.resetTimeoutMs}
               min={1000}
@@ -554,6 +533,10 @@ function ProviderBreakerCard({
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">{t("resilienceFailureThreshold")}</span>
               <span className="font-mono text-text-main">{current.failureThreshold}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-muted">{t("resilienceDegradationThreshold")}</span>
+              <span className="font-mono text-text-main">{current.degradationThreshold}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">{t("resilienceResetTime")}</span>
@@ -702,6 +685,304 @@ function WaitForCooldownCard({
   );
 }
 
+function ComboCooldownWaitCard({
+  value,
+  onSave,
+  saving,
+}: {
+  value: ComboCooldownWaitSettings;
+  onSave: (next: ComboCooldownWaitSettings) => Promise<void>;
+  saving: boolean;
+}) {
+  const t = useTranslations("settings");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  const title = t("resilienceComboCooldownWaitTitle") || "Quota-share combo cooldown wait";
+  const desc =
+    t("resilienceComboCooldownWaitDesc") ||
+    "For quota-share combos only: wait out a short transient cooldown and re-dispatch instead of returning a 429 immediately. Never waits on quota_exhausted.";
+
+  return (
+    <Card className="p-6">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-xl text-primary">timer</span>
+          <h2 className="text-lg font-bold">{title}</h2>
+        </div>
+        <ActionRow
+          editing={editing}
+          saving={saving}
+          onEdit={() => setEditing(true)}
+          onCancel={() => {
+            setDraft(value);
+            setEditing(false);
+          }}
+          onSave={async () => {
+            await onSave(draft);
+            setEditing(false);
+          }}
+        />
+      </div>
+
+      <p className="mb-4 text-sm text-text-muted">{desc}</p>
+
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {editing ? (
+          <>
+            <BooleanField
+              label={t("resilienceEnableServerWait") || "Enabled"}
+              description={
+                t("resilienceComboCooldownWaitToggleDesc") ||
+                "Quota-share combos only; never waits on quota_exhausted."
+              }
+              checked={draft.enabled}
+              onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
+            />
+            <NumberField
+              label={t("resilienceComboCooldownMaxWaitMs") || "Max wait per attempt"}
+              value={draft.maxWaitMs}
+              min={0}
+              suffix="ms"
+              onChange={(maxWaitMs) => setDraft((prev) => ({ ...prev, maxWaitMs }))}
+            />
+            <NumberField
+              label={t("resilienceMaxAttempts") || "Max attempts"}
+              value={draft.maxAttempts}
+              min={0}
+              onChange={(maxAttempts) => setDraft((prev) => ({ ...prev, maxAttempts }))}
+            />
+            <NumberField
+              label={t("resilienceComboCooldownBudgetMs") || "Total wait budget"}
+              value={draft.budgetMs}
+              min={0}
+              suffix="ms"
+              onChange={(budgetMs) => setDraft((prev) => ({ ...prev, budgetMs }))}
+            />
+          </>
+        ) : (
+          <>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">
+                {t("resilienceEnableServerWait") || "Enabled"}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {value.enabled ? t("statusEnabled") : t("statusDisabled")}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">
+                {t("resilienceComboCooldownMaxWaitMs") || "Max wait per attempt"}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {formatMs(value.maxWaitMs)}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">
+                {t("resilienceMaxAttempts") || "Max attempts"}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-text-main">{value.maxAttempts}</div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">
+                {t("resilienceComboCooldownBudgetMs") || "Total wait budget"}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {formatMs(value.budgetMs)}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function QuotaShareConcurrencyLimitCard({
+  value,
+  onSave,
+  saving,
+}: {
+  value: QuotaShareConcurrencyLimitSettings;
+  onSave: (next: QuotaShareConcurrencyLimitSettings) => Promise<void>;
+  saving: boolean;
+}) {
+  const t = useTranslations("settings");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  const title =
+    t("resilienceQuotaShareConcurrencyTitle") || "Quota-share per-connection concurrency";
+  const desc =
+    t("resilienceQuotaShareConcurrencyDesc") ||
+    "For quota-share combos only: when a connection sets a Max Concurrent cap, serialize concurrent requests to that subscription account so it is never flooded past its ceiling — excess requests wait in the queue instead of getting a 429. The cap comes from each connection's Max Concurrent field; this switch only enables/disables honoring it.";
+
+  return (
+    <Card className="p-6">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-xl text-primary">filter_list</span>
+          <h2 className="text-lg font-bold">{title}</h2>
+        </div>
+        <ActionRow
+          editing={editing}
+          saving={saving}
+          onEdit={() => setEditing(true)}
+          onCancel={() => {
+            setDraft(value);
+            setEditing(false);
+          }}
+          onSave={async () => {
+            await onSave(draft);
+            setEditing(false);
+          }}
+        />
+      </div>
+
+      <p className="mb-4 text-sm text-text-muted">{desc}</p>
+
+      <div className="grid grid-cols-1 gap-3">
+        {editing ? (
+          <BooleanField
+            label={t("resilienceEnableServerWait") || "Enabled"}
+            description={
+              t("resilienceQuotaShareConcurrencyToggleDesc") ||
+              "Quota-share combos only; honors each connection's Max Concurrent cap."
+            }
+            checked={draft.enabled}
+            onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
+          />
+        ) : (
+          <div className="rounded-xl border border-border bg-bg-subtle p-4">
+            <div className="text-xs text-text-muted">
+              {t("resilienceEnableServerWait") || "Enabled"}
+            </div>
+            <div className="mt-1 text-sm font-semibold text-text-main">
+              {value.enabled ? t("statusEnabled") : t("statusDisabled")}
+            </div>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+export function ProviderCooldownCard({
+  value,
+  onSave,
+  saving,
+}: {
+  value: ProviderCooldownSettings;
+  onSave: (next: ProviderCooldownSettings) => Promise<void>;
+  saving: boolean;
+}) {
+  const t = useTranslations("settings");
+  const [editing, setEditing] = useState(value);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    setEditing(value);
+  }, [value]);
+
+  return (
+    <Card className="p-6">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-xl text-primary">timer</span>
+            <h2 className="text-lg font-bold">{t("resilienceProviderCooldownTitle")}</h2>
+          </div>
+          <SectionDescription
+            scope={t("resilienceProviderCooldownScope")}
+            trigger={t("resilienceProviderCooldownTrigger")}
+            effect={t("resilienceProviderCooldownEffect")}
+          />
+        </div>
+        <ActionRow
+          editing={isEditing}
+          saving={saving}
+          onEdit={() => setIsEditing(true)}
+          onCancel={() => {
+            setEditing(value);
+            setIsEditing(false);
+          }}
+          onSave={async () => {
+            await onSave(editing);
+            setIsEditing(false);
+          }}
+        />
+      </div>
+
+      <p className="mb-4 text-sm text-text-muted">{t("resilienceProviderCooldownDesc")}</p>
+
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {isEditing ? (
+          <>
+            <BooleanField
+              label={t("resilienceProviderCooldownEnabled")}
+              description={t("resilienceProviderCooldownEnabledDesc")}
+              checked={editing.enabled}
+              onChange={(enabled) => setEditing((prev) => ({ ...prev, enabled }))}
+            />
+            <NumberField
+              label={t("resilienceProviderCooldownMin")}
+              value={editing.minRetryCooldownMs}
+              min={0}
+              max={300000}
+              suffix="ms"
+              onChange={(minRetryCooldownMs) =>
+                setEditing((prev) => ({ ...prev, minRetryCooldownMs }))
+              }
+            />
+            <NumberField
+              label={t("resilienceProviderCooldownMax")}
+              value={editing.maxRetryCooldownMs}
+              min={0}
+              max={3600000}
+              suffix="ms"
+              onChange={(maxRetryCooldownMs) =>
+                setEditing((prev) => ({ ...prev, maxRetryCooldownMs }))
+              }
+            />
+          </>
+        ) : (
+          <>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">
+                {t("resilienceProviderCooldownEnabled")}
+              </div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {value.enabled ? t("statusEnabled") : t("statusDisabled")}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">{t("resilienceProviderCooldownMin")}</div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {formatMs(value.minRetryCooldownMs)}
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg-subtle p-4">
+              <div className="text-xs text-text-muted">{t("resilienceProviderCooldownMax")}</div>
+              <div className="mt-1 text-sm font-semibold text-text-main">
+                {formatMs(value.maxRetryCooldownMs)}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 export default function ResilienceTab() {
   const notify = useNotificationStore();
   const t = useTranslations("settings");
@@ -729,12 +1010,7 @@ export default function ResilienceTab() {
         }
         const json = await response.json();
         if (!mounted) return;
-        setData({
-          requestQueue: json.requestQueue,
-          connectionCooldown: json.connectionCooldown,
-          providerBreaker: json.providerBreaker,
-          waitForCooldown: json.waitForCooldown,
-        });
+        setData(toResilienceResponse(json));
       } catch (error) {
         notify.error(
           error instanceof Error
@@ -764,12 +1040,7 @@ export default function ResilienceTab() {
       if (!response.ok) {
         throw new Error(json?.error?.message || json?.error || `HTTP ${response.status}`);
       }
-      setData({
-        requestQueue: json.requestQueue,
-        connectionCooldown: json.connectionCooldown,
-        providerBreaker: json.providerBreaker,
-        waitForCooldown: json.waitForCooldown,
-      });
+      setData(toResilienceResponse(json));
       notify.success(tx("savedSuccessfully", "Resilience settings updated."));
     } catch (error) {
       notify.error(
@@ -806,24 +1077,7 @@ export default function ResilienceTab() {
 
   return (
     <div className="space-y-6">
-      <ModelCooldownsCard />
       <AutoDisableCard />
-      <Card className="p-6">
-        <div className="flex items-start gap-3">
-          <span className="material-symbols-outlined text-xl text-primary">info</span>
-          <div>
-            <h2 className="text-lg font-bold text-text-main">
-              {tx("resilienceStructureTitle", "Resilience Structure")}
-            </h2>
-            <p className="mt-1 text-sm text-text-muted">
-              {tx(
-                "resilienceStructureDesc",
-                "This page only configures behavior. Live breaker state is shown on the Health page. Combo-specific retry and round-robin slot control remain on combo settings."
-              )}
-            </p>
-          </div>
-        </div>
-      </Card>
 
       <RequestQueueCard
         value={data.requestQueue}
@@ -845,6 +1099,24 @@ export default function ResilienceTab() {
         saving={savingSection === "waitForCooldown"}
         onSave={(waitForCooldown) => savePatch("waitForCooldown", { waitForCooldown })}
       />
+      <ComboCooldownWaitCard
+        value={data.comboCooldownWait}
+        saving={savingSection === "comboCooldownWait"}
+        onSave={(comboCooldownWait) => savePatch("comboCooldownWait", { comboCooldownWait })}
+      />
+      <QuotaShareConcurrencyLimitCard
+        value={data.quotaShareConcurrencyLimit}
+        saving={savingSection === "quotaShareConcurrencyLimit"}
+        onSave={(quotaShareConcurrencyLimit) =>
+          savePatch("quotaShareConcurrencyLimit", { quotaShareConcurrencyLimit })
+        }
+      />
+      <ProviderCooldownCard
+        value={data.providerCooldown}
+        saving={savingSection === "providerCooldown"}
+        onSave={(providerCooldown) => savePatch("providerCooldown", { providerCooldown })}
+      />
+      <ModelLockoutCard />
     </div>
   );
 }

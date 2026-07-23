@@ -1,0 +1,1 @@
+- **CI**: raise the Coverage job timeout 10→20min — the lcov reporter added for Codecov/Sonar (#7114) pushed the 8-shard report merge past the old cap, and three release-tip runs died at exactly 10min as job-timeout "cancelled"

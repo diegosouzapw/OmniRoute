@@ -10,6 +10,7 @@ import { mergeOpenCodeConfigText } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey, getOrCreateApiKey } from "@/shared/services/apiKeyResolver";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
  * POST /api/cli-tools/guide-settings/:toolId
@@ -65,8 +66,6 @@ export async function POST(request, { params }) {
         // (#524) OpenCode config was never saved because only 'continue' was handled here.
         // OpenCode reads ~/.config/opencode/opencode.json — write the OmniRoute settings there.
         return await saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels });
-      case "qwen":
-        return await saveQwenConfig({ baseUrl, apiKey, model });
       case "hermes":
         return await saveHermesConfig({ baseUrl, apiKey, model });
       // hermes-agent now uses the dedicated /api/cli-tools/hermes-agent-settings endpoint
@@ -77,7 +76,10 @@ export async function POST(request, { params }) {
         );
     }
   } catch (error) {
-    return NextResponse.json({ error: (error as any).message }, { status: 500 });
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)) },
+      { status: 500 }
+    );
   }
 }
 
@@ -134,6 +136,7 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
         normalizeApiBase(m.apiBase).includes("omniroute") ||
         normalizeApiBase(m.apiBase).includes(`localhost:${apiPort}`) ||
         normalizeApiBase(m.apiBase).includes(`127.0.0.1:${apiPort}`) ||
+        // eslint-disable-next-line no-restricted-syntax -- teknik string kontrolü, kullanıcı metni araması değil
         String(m.apiKey || "")
           .toLowerCase()
           .includes("sk_omniroute"))
@@ -158,9 +161,9 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
 }
 
 /**
- * Save OpenCode config to:
- * - Linux/macOS: ~/.config/opencode/opencode.json (XDG_CONFIG_HOME aware)
- * - Windows: %APPDATA%/opencode/opencode.json
+ * Save OpenCode config to ~/.config/opencode/opencode.json on ALL platforms
+ * (XDG_CONFIG_HOME aware). OpenCode uses XDG `~/.config` even on Windows
+ * (%USERPROFILE%\.config), NOT %APPDATA% (#3330).
  *
  * (#524) OpenCode was silently failing because this handler was missing.
  */
@@ -196,60 +199,6 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels 
   return NextResponse.json({
     success: true,
     message: `OpenCode config saved to ${configPath}`,
-    configPath,
-  });
-}
-
-/**
- * Save Qwen Code config to ~/.qwen/settings.json
- *
- * Uses security.auth format (not modelProviders) since Qwen Code
- * prioritizes security.auth.selectedType over modelProviders entries.
- * Per official docs: security.auth takes highest precedence.
- */
-async function saveQwenConfig({ baseUrl, apiKey, model }) {
-  const home = os.homedir();
-  const configPath = path.join(home, ".qwen", "settings.json");
-
-  await fs.mkdir(path.dirname(configPath), { recursive: true });
-
-  const normalizedBaseUrl = String(baseUrl || "")
-    .trim()
-    .replace(/\/+$/, "");
-  const resolvedApiKey = apiKey || "sk_omniroute";
-  const resolvedModel = model || "gemini-cli/gemini-3.1-pro-preview";
-
-  // Read existing config to preserve other settings (permissions, mcpServers, etc.)
-  let existingConfig: Record<string, any> = {};
-  try {
-    const raw = await fs.readFile(configPath, "utf-8");
-    existingConfig = JSON.parse(raw);
-  } catch {
-    // File doesn't exist or invalid JSON
-  }
-
-  // Set security.auth for openai auth type with direct credentials
-  // This takes priority over modelProviders entries (per Qwen docs)
-  existingConfig.security = {
-    ...existingConfig.security,
-    auth: {
-      selectedType: "openai",
-      apiKey: resolvedApiKey,
-      baseUrl: normalizedBaseUrl,
-    },
-  };
-
-  // Set model to the selected model
-  existingConfig.model = {
-    ...existingConfig.model,
-    name: resolvedModel,
-  };
-
-  await fs.writeFile(configPath, JSON.stringify(existingConfig, null, 2), "utf-8");
-
-  return NextResponse.json({
-    success: true,
-    message: `Qwen Code config saved to ${configPath}`,
     configPath,
   });
 }

@@ -1,7 +1,7 @@
 ---
 title: "Termux Headless Setup"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Termux Headless Setup
@@ -15,10 +15,10 @@ Install Termux from F-Droid or GitHub releases, then update packages and install
 ```bash
 pkg update
 pkg upgrade
-pkg install nodejs-lts python build-essential git
+pkg install nodejs python build-essential git
 ```
 
-> **Node.js version:** OmniRoute requires Node `>=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <27` (per `engines` in `package.json`). Termux's `nodejs-lts` typically ships Node 20 LTS, which is compatible. If `node --version` reports an older line, install `pkg install nodejs` (current) and verify the major matches a supported range.
+> **Node.js version:** OmniRoute requires Node `>=22.22.2 <23 || >=24.0.0 <27` (matches `engines` in `package.json` / `SUPPORTED_NODE_RANGE`). Termux's `nodejs-lts` typically ships Node 20 LTS, which is **no longer supported** — install `pkg install nodejs` (current) instead and verify `node --version` reports a 22.x/24.x+ line.
 
 If native package compilation fails, rerun the `pkg install` command above and then retry the OmniRoute install.
 
@@ -134,7 +134,7 @@ omniroute
 Install the Termux build toolchain:
 
 ```bash
-pkg install nodejs-lts python build-essential
+pkg install nodejs python build-essential
 ```
 
 Then rerun:

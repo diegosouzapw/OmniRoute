@@ -1,0 +1,1 @@
+- fix(providers): honor the `max_token` capability override in the reasoning-token-buffer output cap (#6524)

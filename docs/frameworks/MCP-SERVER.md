@@ -1,18 +1,14 @@
 ---
 title: "OmniRoute MCP Server Documentation"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 37 tools across routing, cache, compression, memory, skills, and proxy operations.
+> Model Context Protocol server with 104 tools across routing, cache, compression, memory, skills, proxy, pool, and context source operations.
 >
-> Source of truth: `open-sse/mcp-server/schemas/tools.ts` (30 tools) + `open-sse/mcp-server/tools/memoryTools.ts` (3 tools) + `open-sse/mcp-server/tools/skillTools.ts` (4 tools). Tool registration and scope wiring lives in `open-sse/mcp-server/server.ts`.
-
-![MCP tool inventory (37 tools by category)](../diagrams/exported/mcp-tools-37.svg)
-
-> Source: [diagrams/mcp-tools-37.mmd](../diagrams/mcp-tools-37.mmd)
+> Source of truth: `open-sse/mcp-server/server.ts` computes **104 unique tools** with `countUniqueMcpTools()`: 42 canonical definitions (including the six CCR lifecycle tools and the agent-skills trio), plus memory (3), skills (4), GitHub skills (3), pool (6), gamification (8), plugins (8), Notion (6), Obsidian (22), and two RTK-only compression tools.
 
 ## Installation
 
@@ -46,7 +42,7 @@ The active HTTP transport (`sse` or `streamable-http`) is selected by the `mcpTr
 `/api/mcp/*` is in the LOCAL_ONLY tier (`src/server/authz/routeGuard.ts`) — by default only loopback hosts (`localhost`, `127.0.0.1`, `::1`) can reach it. Since v3.8.2, non-loopback clients may connect if they present an `Authorization: Bearer <api-key>` whose key carries the `manage` scope. This is the only way to reach the remote MCP server through a tunnel, reverse proxy, or public hostname.
 
 ```bash
-# Grant manage scope: open the dashboard API Manager and toggle
+# Grant manage scope: open the dashboard API Keys page and toggle
 # "Management Access" on the key, or POST scopes:["manage"] when creating.
 
 # Then connect from a remote MCP client:
@@ -110,7 +106,7 @@ Cursor, Cline, and compatible MCP client setup.
 | `omniroute_cache_stats` | `read:cache`  | Semantic cache, prompt-cache, and idempotency stats |
 | `omniroute_cache_flush` | `write:cache` | Flush cache globally or by signature/model          |
 
-## Compression Tools (5)
+## Compression Tools (13)
 
 | Tool                                | Scopes              | Description                                                                                                              |
 | :---------------------------------- | :------------------ | :----------------------------------------------------------------------------------------------------------------------- |
@@ -119,6 +115,20 @@ Cursor, Cline, and compatible MCP client setup.
 | `omniroute_set_compression_engine`  | `write:compression` | Pick the active engine (off/caveman/rtk/stacked) and Caveman/RTK intensity                                               |
 | `omniroute_list_compression_combos` | `read:compression`  | List named compression combos and their engine pipelines                                                                 |
 | `omniroute_compression_combo_stats` | `read:compression`  | Analytics grouped by compression combo and engine                                                                        |
+| `omniroute_ccr_store`               | `write:compression` | Store caller-isolated content in the bounded in-memory CCR store and return a marker plus `ccr://` reference             |
+| `omniroute_ccr_retrieve`            | `read:compression`  | Retrieve CCR content in full or with head, tail, lines, grep, and stats modes                                            |
+| `omniroute_ccr_inspect`             | `read:compression`  | Inspect caller-owned CCR metadata without returning content                                                              |
+| `omniroute_ccr_list`                | `read:compression`  | List paginated metadata for caller-owned CCR blocks                                                                      |
+| `omniroute_ccr_delete`              | `write:compression` | Delete a caller-owned CCR block                                                                                          |
+| `omniroute_ccr_stats`               | `read:compression`  | Report caller-scoped memory usage, lifecycle counters, and store limits                                                  |
+| `omniroute_rtk_discover`            | `read:compression`  | Discover recurring noise in opt-in RTK output samples                                                                    |
+| `omniroute_rtk_learn`               | `read:compression`  | Generate a reviewable RTK filter draft from opt-in samples                                                               |
+
+CCR entries are in-memory only and disappear on restart. Each block is limited to 2 MiB, each
+principal to 16 MiB, and the global store to 64 MiB. Entries default to a 24-hour TTL (maximum
+seven days). Full MCP retrieval is limited to 256 KiB; larger blocks remain available through the
+ranged and grep modes. Storage, retrieval, listing, inspection, deletion, and stats are isolated by
+the authenticated API-key principal. Audit records contain hashes and size metadata, never content.
 
 `omniroute_compression_status` reports MCP description compression separately under
 `analytics.mcpDescriptionCompression`. Those values are metadata-size estimates for MCP listable
@@ -127,7 +137,7 @@ receipts and are marked with `source: "mcp_metadata_estimate"`.
 
 ### MCP Accessibility Tree Filter (v3.8.0)
 
-Separate from the 5 compression tools above, OmniRoute includes a post-execution filter that
+Separate from the compression tools above, OmniRoute includes a post-execution filter that
 compresses the **tool results** of MCP browser/accessibility tools before they are returned to the
 agent. This filter is not itself a tool — it runs transparently on any tool result that contains
 verbose accessibility-tree or browser-snapshot text (≥2000 chars).
@@ -158,27 +168,67 @@ the runtime compression model behind these tools.
 
 Defined in `open-sse/mcp-server/tools/memoryTools.ts`. Auth/scope is enforced through the standard MCP scope pipeline.
 
-| Tool                      | Description                                                                         |
-| :------------------------ | :---------------------------------------------------------------------------------- |
-| `omniroute_memory_search` | Search memories by query / type / API key with token-budget enforcement             |
-| `omniroute_memory_add`    | Add a new memory entry (`factual` / `episodic` / `procedural` / `semantic`)         |
-| `omniroute_memory_clear`  | Clear memories for an API key, optionally filtered by type or `olderThan` timestamp |
+| Tool                      | Scopes         | Description                                                                         |
+| :------------------------ | :------------- | :---------------------------------------------------------------------------------- |
+| `omniroute_memory_search` | `read:memory`  | Search memories by query / type / API key with token-budget enforcement             |
+| `omniroute_memory_add`    | `write:memory` | Add a new memory entry (`factual` / `episodic` / `procedural` / `semantic`)         |
+| `omniroute_memory_clear`  | `write:memory` | Clear memories for an API key, optionally filtered by type or `olderThan` timestamp |
 
 ## Skill Tools (4)
 
 Defined in `open-sse/mcp-server/tools/skillTools.ts`. Backed by `src/lib/skills/registry` + `src/lib/skills/executor`.
 
-| Tool                          | Description                                                                       |
-| :---------------------------- | :-------------------------------------------------------------------------------- |
-| `omniroute_skills_list`       | List registered skills with optional filtering by API key, name, or enabled state |
-| `omniroute_skills_enable`     | Enable or disable a specific skill by ID                                          |
-| `omniroute_skills_execute`    | Execute a skill with provided input and return the execution record               |
-| `omniroute_skills_executions` | List recent skill execution history                                               |
+| Tool                          | Scopes           | Description                                                                       |
+| :---------------------------- | :--------------- | :-------------------------------------------------------------------------------- |
+| `omniroute_skills_list`       | `read:skills`    | List registered skills with optional filtering by API key, name, or enabled state |
+| `omniroute_skills_enable`     | `write:skills`   | Enable or disable a specific skill by ID                                          |
+| `omniroute_skills_execute`    | `execute:skills` | Execute a skill with provided input and return the execution record               |
+| `omniroute_skills_executions` | `read:skills`    | List recent skill execution history                                               |
+
+## Notion Context Source (6)
+
+Defined in `open-sse/mcp-server/tools/notionTools.ts`. Token stored in `key_value` table via `src/lib/db/notion.ts`. REST client in `src/lib/notion/api.ts`. Settings API in `src/app/api/settings/notion/route.ts`. Dashboard UI in `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx`.
+
+Configure your Notion integration token from the **Context Sources** tab in the Endpoint dashboard, or via the REST API:
+
+```bash
+# Set token
+curl -X POST http://localhost:20128/api/settings/notion \
+  -H "Content-Type: application/json" \
+  -d '{"token": "ntn_..."}'
+
+# Check status
+curl http://localhost:20128/api/settings/notion
+
+# Disconnect
+curl -X DELETE http://localhost:20128/api/settings/notion
+```
+
+| Tool                         | Scopes         | Description                                                    |
+| :--------------------------- | :------------- | :------------------------------------------------------------- |
+| `notion_search`              | `read:notion`  | Full-text search across all pages and databases                |
+| `notion_get_page`            | `read:notion`  | Get a page by ID with its properties                           |
+| `notion_list_block_children` | `read:notion`  | List the child blocks of a page or block                       |
+| `notion_query_database`      | `read:notion`  | Query a database with filters, sorts, and pagination           |
+| `notion_get_database`        | `read:notion`  | Get database schema by ID                                      |
+| `notion_append_blocks`       | `write:notion` | Append children blocks to a parent block (max 100 per request) |
+
+## Agent Skill Catalog Tools (3)
+
+Defined in `open-sse/mcp-server/tools/agentSkillTools.ts`. Backed by `src/lib/agentSkills/catalog`. These tools expose the 42-entry Agent Skills documentation catalog to MCP clients and external agents. Scope: `read:catalog`.
+
+| Tool                              | Scopes         | Description                                                                                                      |
+| :-------------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------------- |
+| `omniroute_agent_skills_list`     | `read:catalog` | List all 42 agent skills with optional `category` (api\|cli) and `area` filters; returns metadata + coverage     |
+| `omniroute_agent_skills_get`      | `read:catalog` | Get full metadata + SKILL.md content for a single skill by canonical `id`                                        |
+| `omniroute_agent_skills_coverage` | `read:catalog` | Coverage stats: how many of the 22 API and 20 CLI skills have SKILL.md files on the filesystem vs catalog totals |
+
+See [AGENT-SKILLS.md](./AGENT-SKILLS.md) for the full catalog and how external agents consume it.
 
 ## Related Frameworks (v3.8.0)
 
-The MCP tool inventory above (37 tools = 30 base + 3 memory + 4 skills) is intentionally
-scoped to runtime routing/cache/compression/memory/skills/proxy operations. Two adjacent
+The MCP tool inventory above (104 unique tools, computed by `countUniqueMcpTools()`) is intentionally
+scoped to runtime routing/cache/compression/memory/skills/proxy/context-source operations. Two adjacent
 frameworks ship alongside the MCP server in v3.8.0 and are documented separately:
 
 ### Cloud Agents
@@ -247,10 +297,44 @@ MCP tools are authenticated through API key scopes. Scope enforcement is central
 | `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                        |
 | `write:compression`   | `compression_configure`, `set_compression_engine`                                                                 |
 | `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                             |
+| `read:notion`         | `notion_search`, `notion_list_databases`, `notion_get_database`, `notion_query_database`, `notion_read`           |
+| `write:notion`        | `notion_append_blocks`                                                                                            |
+| `read:memory`         | `memory_search`                                                                                                   |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                      |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                |
+| `write:skills`        | `skills_enable`                                                                                                   |
+| `execute:skills`      | `skills_execute`                                                                                                  |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                  |
 
 Wildcard scopes are supported: `read:*` grants all read-scopes, `*` grants full access.
 
-Memory and Skill tools currently do not declare static scope requirements in their definitions; access is gated by the caller's API key and audited through the standard MCP audit pipeline.
+### `mcp:connect` — narrow route capability (#7895)
+
+Reaching the HTTP/SSE MCP transport (`/api/mcp/*`) from non-loopback requires the
+`/api/mcp/` LOCAL_ONLY carve-out (see `docs/security/ROUTE_GUARD_TIERS.md`). Historically
+that carve-out only accepted a full `manage`/`admin`-scope API key — too broad for a
+caller that only needs to talk MCP. `src/shared/constants/managementScopes.ts` now
+exports `MCP_CONNECT_SCOPE = "mcp:connect"`: an additive, narrow scope (same precedent as
+`SELF_USAGE_SCOPE`) that authorizes ONLY the `/api/mcp/` bypass in
+`src/server/authz/policies/management.ts` — it grants no other management-route access
+and is deliberately kept OUT of `MANAGEMENT_API_KEY_SCOPES`. A key holding `manage`/`admin`
+still passes the carve-out unchanged; `mcp:connect` is a lower-privilege alternative for
+remote MCP-only callers, checked via `hasMcpConnectOrManageScope()`.
+
+### Per-key HTTP scope binding (#7895)
+
+Over HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` now resolves the caller's real
+`api_keys.scopes` via `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+and passes it to the MCP SDK's `transport.handleRequest(req, { authInfo })`, so
+`extra.authInfo.scopes` reaching each tool call reflects the Bearer key's own scopes.
+`scopeEnforcement.ts`'s `resolveCallerScopeContext()` already prioritized `authInfo` over
+the `_meta` and `OMNIROUTE_MCP_SCOPES` env fallback — this only populates that first,
+highest-priority source, which was previously unfed over HTTP. When no API key resolves
+(no header, invalid key), `authInfo` stays `undefined` and resolution falls through to the
+existing `meta`/env chain unchanged. This does NOT flip `OMNIROUTE_MCP_ENFORCE_SCOPES`'s
+default — enforcement still has to be explicitly enabled; this change only makes the
+per-key path take precedence once it is. stdio has no per-caller identity (see
+`mcpCallerIdentity.ts`) and is unaffected — it stays on the `_meta`/env fallback chain.
 
 ---
 
@@ -264,6 +348,8 @@ Memory and Skill tools currently do not declare static scope requirements in the
 | `OMNIROUTE_MCP_SCOPES`                  | (empty)                            | Comma-separated allowlist of scopes considered "available" by default (used when caller does not provide its own scopes) |
 | `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (unset = on)                       | When set to `0/false/off/no`, disables MCP description compression at registration time                                  |
 | `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (unset = on)                       | Alternate alias for the same toggle as above                                                                             |
+| `MCP_TOOL_DENY`                         | (unset = no filter)                | Comma-separated tool names to drop from `tools/list` (tool-cardinality reduction — see below)                            |
+| `MCP_TOOL_ALLOW`                        | (unset = no filter)                | Comma-separated tool names to keep exclusively (allow-list mode — see below)                                             |
 | `DATA_DIR`                              | `~/.omniroute`                     | Heartbeat file is written to `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                    |
 
 ---
@@ -276,6 +362,33 @@ MCP tool, prompt, and resource registries can compress descriptions at registrat
 - Toggle per-deployment via the `compression.mcpDescriptionCompressionEnabled` value in the `key_value` settings table (default: enabled) — exposed in the UI as **Analytics → MCP description compression**.
 - Toggle process-wide via either `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS=false` or `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION=false`.
 - Realtime stats are surfaced via `omniroute_compression_status` under `analytics.mcpDescriptionCompression` and tagged `source: "mcp_metadata_estimate"` to disambiguate from real provider usage receipts.
+
+---
+
+## Tool Cardinality Reduction (F4.3)
+
+Description compression shrinks each tool's metadata; **tool-cardinality reduction** goes one step further by reducing _how many_ tools are announced at all. Advertising fewer tools in the `tools/list` manifest cuts the per-request token cost the client's model pays for the tool catalog ("layer 5" compression). The implementation is a pure, stateless filter in `open-sse/mcp-server/toolCardinality.ts` (`reduceToolManifest`), wired into the registration loop in `createMcpServer()` (`open-sse/mcp-server/server.ts`).
+
+**Opt-in, off by default.** The filter only runs when at least one of two environment variables is set; with neither set, all 104 tools are announced unchanged.
+
+| Variable         | Mode                                                                                    |
+| :--------------- | :-------------------------------------------------------------------------------------- |
+| `MCP_TOOL_DENY`  | Blacklist — comma-separated tool names that are always dropped from `tools/list`        |
+| `MCP_TOOL_ALLOW` | Allow-list — comma-separated tool names; only these survive, everything else is dropped |
+
+`deny` takes priority over `allow`. Names are comma-separated, trimmed, and empty entries are ignored. Examples:
+
+```bash
+# Drop two tools from the catalog
+MCP_TOOL_DENY="omniroute_get_health,omniroute_list_combos" omniroute --mcp
+
+# Announce only the routing + quota tools (allow-list mode)
+MCP_TOOL_ALLOW="omniroute_route_request,omniroute_check_quota" omniroute --mcp
+```
+
+**How filtered tools are removed:** registration always succeeds; a tool the profile rejects is then `.disable()`d on the MCP SDK handle, so it never appears in `tools/list` but the wiring stays intact (clean enable/disable, no re-registration). The profile parser is `readMcpToolProfileFromEnv(process.env)`, which returns `null` (no filtering) when both vars are empty.
+
+The richer `ToolProfile` shape behind `reduceToolManifest` also supports scope-intersection filtering (`allowScopes`, with `read:*`-style wildcard matching) and a deterministic `maxTools` cap, but those two knobs need the full manifest at registration time and are **not** exposed through the environment variables today (a `tools/list`-level hook is a tracked follow-up). `estimateManifestTokens()` is available to compare the manifest token cost before and after reduction.
 
 ---
 
@@ -294,7 +407,7 @@ The heartbeat snapshot contains:
   "transport": "stdio",
   "scopesEnforced": false,
   "allowedScopes": [],
-  "toolCount": 37
+  "toolCount": 43
 }
 ```
 
@@ -315,22 +428,32 @@ Use the dashboard or the `/api/mcp/audit` and `/api/mcp/audit/stats` REST endpoi
 
 ## Files
 
-| File                                            | Purpose                                                          |
-| :---------------------------------------------- | :--------------------------------------------------------------- |
-| `open-sse/mcp-server/server.ts`                 | MCP server factory, stdio entry point, scoped tool registrations |
-| `open-sse/mcp-server/httpTransport.ts`          | SSE + Streamable HTTP transport (session management)             |
-| `open-sse/mcp-server/scopeEnforcement.ts`       | Tool scope evaluation and caller resolution                      |
-| `open-sse/mcp-server/audit.ts`                  | Tool call audit logging (`mcp_tool_audit`)                       |
-| `open-sse/mcp-server/runtimeHeartbeat.ts`       | stdio heartbeat writer (`mcp-heartbeat.json`)                    |
-| `open-sse/mcp-server/descriptionCompressor.ts`  | Description compression for tool / prompt / resource registries  |
-| `open-sse/mcp-server/schemas/tools.ts`          | Zod schemas + tool registry (`MCP_TOOLS`, 30 entries)            |
-| `open-sse/mcp-server/tools/advancedTools.ts`    | Phase 2 + cache + 1proxy tool handlers                           |
-| `open-sse/mcp-server/tools/compressionTools.ts` | Compression tool handlers                                        |
-| `open-sse/mcp-server/tools/memoryTools.ts`      | Memory tool definitions (3 tools)                                |
-| `open-sse/mcp-server/tools/skillTools.ts`       | Skill tool definitions (4 tools)                                 |
-| `src/app/api/mcp/status/route.ts`               | `/api/mcp/status` endpoint                                       |
-| `src/app/api/mcp/tools/route.ts`                | `/api/mcp/tools` endpoint                                        |
-| `src/app/api/mcp/sse/route.ts`                  | `/api/mcp/sse` SSE transport route                               |
-| `src/app/api/mcp/stream/route.ts`               | `/api/mcp/stream` Streamable HTTP transport route                |
-| `src/app/api/mcp/audit/route.ts`                | `/api/mcp/audit` audit log query                                 |
-| `src/app/api/mcp/audit/stats/route.ts`          | `/api/mcp/audit/stats` aggregated audit metrics                  |
+| File                                                                     | Purpose                                                          |
+| :----------------------------------------------------------------------- | :--------------------------------------------------------------- |
+| `open-sse/mcp-server/server.ts`                                          | MCP server factory, stdio entry point, scoped tool registrations |
+| `open-sse/mcp-server/httpTransport.ts`                                   | SSE + Streamable HTTP transport (session management)             |
+| `open-sse/mcp-server/scopeEnforcement.ts`                                | Tool scope evaluation and caller resolution                      |
+| `open-sse/mcp-server/audit.ts`                                           | Tool call audit logging (`mcp_tool_audit`)                       |
+| `open-sse/mcp-server/runtimeHeartbeat.ts`                                | stdio heartbeat writer (`mcp-heartbeat.json`)                    |
+| `open-sse/mcp-server/descriptionCompressor.ts`                           | Description compression for tool / prompt / resource registries  |
+| `open-sse/mcp-server/schemas/tools.ts`                                   | Zod schemas + tool registry (`MCP_TOOLS`, 34 entries)            |
+| `open-sse/mcp-server/tools/advancedTools.ts`                             | Phase 2 + cache + 1proxy tool handlers                           |
+| `open-sse/mcp-server/tools/compressionTools.ts`                          | Compression tool handlers                                        |
+| `open-sse/mcp-server/tools/memoryTools.ts`                               | Memory tool definitions (3 tools)                                |
+| `open-sse/mcp-server/tools/skillTools.ts`                                | Skill tool definitions (4 tools)                                 |
+| `open-sse/mcp-server/tools/notionTools.ts`                               | Notion context source tool definitions (6 tools)                 |
+| `open-sse/mcp-server/tools/gamificationTools.ts`                         | Gamification tool definitions (8 tools)                          |
+| `open-sse/mcp-server/tools/pluginTools.ts`                               | Plugin registration and management tools (8 tools)               |
+| `src/app/api/mcp/status/route.ts`                                        | `/api/mcp/status` endpoint                                       |
+| `src/app/api/mcp/tools/route.ts`                                         | `/api/mcp/tools` endpoint                                        |
+| `src/app/api/mcp/sse/route.ts`                                           | `/api/mcp/sse` SSE transport route                               |
+| `src/app/api/mcp/stream/route.ts`                                        | `/api/mcp/stream` Streamable HTTP transport route                |
+| `src/app/api/mcp/audit/route.ts`                                         | `/api/mcp/audit` audit log query                                 |
+| `src/app/api/mcp/audit/stats/route.ts`                                   | `/api/mcp/audit/stats` aggregated audit metrics                  |
+| `src/lib/notion/api.ts`                                                  | Notion REST API client (retry, timeout, error classification)    |
+| `src/lib/db/notion.ts`                                                   | Notion token persistence (`key_value` table)                     |
+| `src/app/api/settings/notion/route.ts`                                   | Notion settings API (GET/POST/DELETE)                            |
+| `src/app/(dashboard)/dashboard/endpoint/components/NotionSourceCard.tsx` | Notion token management UI                                       |
+| `tests/unit/notion-api.test.ts`                                          | Notion API client tests (7)                                      |
+| `tests/unit/notion-tools.test.ts`                                        | Notion tools scope enforcement tests (10)                        |
+| `tests/unit/db/notion.test.mjs`                                          | Notion DB module tests (3)                                       |

@@ -1,4 +1,8 @@
-import { KIRO_CONFIG } from "../constants/oauth";
+import { KIRO_CONFIG, assertValidAwsRegion } from "../constants/oauth";
+import {
+  buildExternalIdpRefreshParams,
+  isExternalIdpAuthMethod,
+} from "@omniroute/open-sse/services/kiroExternalIdp.ts";
 
 /**
  * Kiro OAuth Service
@@ -17,6 +21,7 @@ export class KiroService {
    * Returns clientId and clientSecret for device code flow
    */
   async registerClient(region: string = "us-east-1") {
+    assertValidAwsRegion(region);
     const endpoint = `https://oidc.${region}.amazonaws.com/client/register`;
 
     const response = await fetch(endpoint, {
@@ -55,6 +60,7 @@ export class KiroService {
     startUrl: string,
     region: string = "us-east-1"
   ) {
+    assertValidAwsRegion(region);
     const endpoint = `https://oidc.${region}.amazonaws.com/device_authorization`;
 
     const response = await fetch(endpoint, {
@@ -94,6 +100,7 @@ export class KiroService {
     deviceCode: string,
     region: string = "us-east-1"
   ) {
+    assertValidAwsRegion(region);
     const endpoint = `https://oidc.${region}.amazonaws.com/token`;
 
     const response = await fetch(endpoint, {
@@ -184,11 +191,38 @@ export class KiroService {
   async refreshToken(refreshToken: string, providerSpecificData: any = {}) {
     const { authMethod, clientId, clientSecret, region } = providerSpecificData;
 
+    // Enterprise / Microsoft Entra "Your organization" (external_idp) login: refresh with a
+    // standard public-client OAuth2 refresh_token grant against the org IdP's tokenEndpoint
+    // (form-encoded client_id + refresh_token + scope, no client_secret). The AWS SSO OIDC and
+    // Kiro social endpoints cannot refresh these tokens.
+    if (isExternalIdpAuthMethod(authMethod)) {
+      const refreshRequest = buildExternalIdpRefreshParams(refreshToken, providerSpecificData);
+      const response = await fetch(refreshRequest.tokenEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: refreshRequest.body,
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Token refresh failed: ${error}`);
+      }
+      const data = await response.json();
+      return {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || refreshToken,
+        expiresIn: data.expires_in || 3600,
+      };
+    }
+
     // AWS SSO OIDC refresh (Builder ID or IDC).
     // Imported social tokens (authMethod === "imported") have a registered clientId/clientSecret
     // but a Kiro-social refresh token the OIDC client can't refresh — use the social path (#2467).
     if (clientId && clientSecret && authMethod !== "imported") {
       const resolvedRegion = region || "us-east-1";
+      assertValidAwsRegion(resolvedRegion);
       const endpoint = `https://oidc.${resolvedRegion}.amazonaws.com/token`;
 
       const response = await fetch(endpoint, {
@@ -226,7 +260,7 @@ export class KiroService {
             return {
               accessToken: retryData.accessToken,
               refreshToken: retryData.refreshToken || refreshToken,
-              expiresIn: retryData.expiresIn,
+              expiresIn: retryData.expiresIn || 3600,
               _newClientId: newReg.clientId,
               _newClientSecret: newReg.clientSecret,
               _newClientSecretExpiresAt: newReg.clientSecretExpiresAt,
@@ -246,9 +280,13 @@ export class KiroService {
 
       const data = await response.json();
       return {
+        // Builder ID / IDC OIDC refresh: no profileArn (the social path supplies
+        // one; Builder ID connections legitimately have none). expiresIn falls
+        // back to 3600 so the import route never computes Date(NaN) if upstream
+        // omits it (the social path already guards the same way).
         accessToken: data.accessToken,
         refreshToken: data.refreshToken || refreshToken,
-        expiresIn: data.expiresIn,
+        expiresIn: data.expiresIn || 3600,
       };
     }
 
@@ -279,17 +317,58 @@ export class KiroService {
 
   /**
    * Validate and import refresh token.
-   * Registers a dedicated OIDC client so this connection has an isolated refresh session.
-   * If registerClient() fails (network issue, OIDC service down), the import still
-   * succeeds and the connection falls back to the shared social-auth refresh path.
+   * First attempts to validate using cached AWS SSO client credentials (Builder ID path).
+   * If that fails or no cached credentials exist, registers a dedicated OIDC client.
+   * If registerClient() also fails, the import falls back to the shared social-auth refresh path.
    */
-  async validateImportToken(refreshToken: string, region: string = "us-east-1") {
+  async validateImportToken(
+    refreshToken: string,
+    region: string = "us-east-1",
+    clientIdHint?: string
+  ) {
+    assertValidAwsRegion(region);
     // Validate token format
     if (!refreshToken.startsWith("aorAAAAAG")) {
       throw new Error("Invalid token format. Token should start with aorAAAAAG...");
     }
 
-    // Try to refresh to validate
+    // Try to read cached clientId/clientSecret from AWS SSO cache (Builder ID tokens).
+    // When the caller knows the token's own clientId (#1253 — e.g. surfaced by
+    // auto-import from a direct `clientId` field on the token file), pass it
+    // through so the cache lookup can match it exactly instead of guessing via
+    // region + latest-expiry, which can silently adopt an unrelated stale
+    // client registration on hosts with multiple cached SSO sessions.
+    const cachedClient = await this.readCachedClientCredentials(region, clientIdHint);
+
+    // Attempt 1: Try Builder ID refresh using cached credentials
+    if (cachedClient) {
+      try {
+        const result = await this.refreshToken(refreshToken, {
+          clientId: cachedClient.clientId,
+          clientSecret: cachedClient.clientSecret,
+          authMethod: "builder-id",
+          // Forward the requested region so a non-us-east-1 Builder ID validates
+          // against the right OIDC endpoint instead of defaulting to us-east-1.
+          region,
+        });
+        return {
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken || refreshToken,
+          // profileArn is intentionally absent for Builder ID (OIDC) imports —
+          // only the social-auth path returns one, and Builder ID connections
+          // don't require it. The Kiro executor adds profileArn conditionally.
+          profileArn: result.profileArn,
+          expiresIn: result.expiresIn,
+          authMethod: "builder-id",
+          clientId: cachedClient.clientId,
+          clientSecret: cachedClient.clientSecret,
+        };
+      } catch {
+        // Cached credentials didn't work, fall through
+      }
+    }
+
+    // Attempt 2: Try social auth refresh
     let result: Awaited<ReturnType<typeof this.refreshToken>>;
     try {
       result = await this.refreshToken(refreshToken);
@@ -318,6 +397,150 @@ export class KiroService {
       expiresIn: result.expiresIn,
       authMethod: "imported",
       ...(clientId ? { clientId, clientSecret, clientSecretExpiresAt } : {}),
+    };
+  }
+
+  /**
+   * Read clientId/clientSecret from AWS SSO cache (for Builder ID tokens).
+   * The cache is located at ~/.aws/sso/cache/ and contains JSON files from
+   * the OIDC client registration step of the device code flow.
+   */
+  private async readCachedClientCredentials(
+    region?: string,
+    clientIdHint?: string
+  ): Promise<{ clientId: string; clientSecret: string } | null> {
+    try {
+      const { readdir, readFile } = await import("fs/promises");
+      const { homedir } = await import("os");
+      const { join } = await import("path");
+      const cachePath = join(homedir(), ".aws", "sso", "cache");
+      const files = await readdir(cachePath);
+
+      const candidates: {
+        clientId: string;
+        clientSecret: string;
+        region?: string;
+        expiresAt?: string;
+      }[] = [];
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+        try {
+          const content = await readFile(join(cachePath, file), "utf-8");
+          const data = JSON.parse(content);
+          if (data.clientId && data.clientSecret) {
+            candidates.push({
+              clientId: data.clientId,
+              clientSecret: data.clientSecret,
+              region: data.region,
+              expiresAt: data.clientSecretExpiresAt || data.expiresAt,
+            });
+          }
+        } catch {
+          continue;
+        }
+      }
+      if (candidates.length === 0) return null;
+
+      // When the caller knows the token's own clientId (#1253), an exact match
+      // is authoritative — it identifies the one registration that can actually
+      // refresh this token, regardless of region or expiry. Falling through to
+      // the region/latest-expiry heuristic below for an unmatched hint would
+      // silently adopt an unrelated (and non-working) client pair.
+      if (clientIdHint) {
+        const exactMatch = candidates.find((c) => c.clientId === clientIdHint);
+        if (exactMatch) {
+          return { clientId: exactMatch.clientId, clientSecret: exactMatch.clientSecret };
+        }
+      }
+
+      // A host can cache OIDC client registrations for several SSO sessions;
+      // adopting the wrong pair makes the Builder ID refresh fail. Prefer a
+      // registration whose region matches the requested import region, then —
+      // among the candidates — the one with the latest secret expiry, instead
+      // of blindly taking the first file readdir happens to return.
+      const byLatestExpiry = (a: { expiresAt?: string }, b: { expiresAt?: string }): number =>
+        String(b.expiresAt || "").localeCompare(String(a.expiresAt || ""));
+      const matching = region ? candidates.filter((c) => c.region === region) : [];
+      const ordered = (matching.length > 0 ? matching : candidates).slice().sort(byLatestExpiry);
+      const best = ordered[0];
+      return { clientId: best.clientId, clientSecret: best.clientSecret };
+    } catch {
+      // Cache not available
+    }
+    return null;
+  }
+
+  /**
+   * List available CodeWhisperer profiles for an access token or long-lived API key.
+   * Some long-lived API keys can call GenerateAssistantResponse but are explicitly
+   * denied on ListAvailableProfiles, so callers must treat an AccessDenied profile
+   * lookup as an optional discovery failure rather than a hard auth failure.
+   */
+  async listAvailableProfiles(accessToken: string, region: string = "us-east-1") {
+    assertValidAwsRegion(region);
+    const endpoint =
+      region === "us-east-1"
+        ? "https://codewhisperer.us-east-1.amazonaws.com"
+        : `https://q.${region}.amazonaws.com`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/x-amz-json-1.0",
+        "x-amz-target": "AmazonCodeWhispererService.ListAvailableProfiles",
+        Accept: "application/json",
+        tokentype: "API_KEY",
+      },
+      body: JSON.stringify({ maxResults: 10 }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to list profiles: ${error}`);
+    }
+
+    const data = await response.json();
+    const profiles = Array.isArray(data?.profiles) ? data.profiles : [];
+    const arnOf = (profile: any) => profile?.arn || profile?.profileArn || null;
+    const match =
+      profiles.find((profile: any) => String(arnOf(profile) || "").includes(`:${region}:`)) ||
+      profiles[0];
+    return arnOf(match);
+  }
+
+  /**
+   * Normalize a long-lived Kiro/CodeWhisperer API key.
+   */
+  async validateApiKey(apiKey: string, regionInput?: string) {
+    // Default kept OUT of the parameter list: check-public-creds' CRED_KEY_RE matches the
+    // `apiKey:` annotation and flags any string literal in the signature (fn-param FP class).
+    const region = regionInput || "us-east-1";
+    assertValidAwsRegion(region);
+    const accessToken = apiKey.trim();
+    if (!accessToken) {
+      throw new Error("API key is required");
+    }
+
+    let profileArn: string | null = null;
+    try {
+      profileArn = await this.listAvailableProfiles(accessToken, region);
+    } catch (error: any) {
+      const message = String(error?.message || error || "");
+      const isApiKeyProfileDenied =
+        message.includes("AccessDeniedException") &&
+        message.includes("API key authentication is not supported for this operation");
+      if (!isApiKeyProfileDenied) {
+        throw error;
+      }
+    }
+
+    return {
+      accessToken,
+      refreshToken: null,
+      profileArn,
+      region,
+      authMethod: "api_key",
     };
   }
 

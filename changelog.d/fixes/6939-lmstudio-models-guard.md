@@ -1,0 +1,1 @@
+- fix(api): model-list discovery for LAN-local OpenAI-compatible providers (e.g. LM Studio) now uses the same local-first SSRF guard as the connection test, instead of the stricter guard that always blocked LAN hosts (#6939)

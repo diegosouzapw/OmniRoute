@@ -6,6 +6,8 @@
  * race conditions when concurrent requests hit the same deck simultaneously.
  */
 
+import { secureRandomInt } from "./secureRandom";
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface ShuffleDeck {
@@ -28,7 +30,7 @@ const mutexes = new Map<string, Promise<void>>();
 export function fisherYatesShuffle<T>(arr: readonly T[]): T[] {
   const result = [...arr];
   for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = secureRandomInt(i + 1);
     const tmp = result[i];
     result[i] = result[j];
     result[j] = tmp;
@@ -86,7 +88,7 @@ export async function getNextFromDeck(
     const newOrder = fisherYatesShuffle(itemIds);
 
     if (lastUsedId !== undefined && newOrder[0] === lastUsedId && newOrder.length > 1) {
-      const swapIdx = 1 + Math.floor(Math.random() * (newOrder.length - 1));
+      const swapIdx = 1 + secureRandomInt(newOrder.length - 1);
       const tmp = newOrder[0];
       newOrder[0] = newOrder[swapIdx];
       newOrder[swapIdx] = tmp;
@@ -126,7 +128,7 @@ export function getNextFromDeckSync(namespace: string, itemIds: readonly string[
   const newOrder = fisherYatesShuffle(itemIds);
 
   if (lastUsedId !== undefined && newOrder[0] === lastUsedId && newOrder.length > 1) {
-    const swapIdx = 1 + Math.floor(Math.random() * (newOrder.length - 1));
+    const swapIdx = 1 + secureRandomInt(newOrder.length - 1);
     const tmp = newOrder[0];
     newOrder[0] = newOrder[swapIdx];
     newOrder[swapIdx] = tmp;

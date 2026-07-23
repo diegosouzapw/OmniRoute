@@ -13,6 +13,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { projectCombo, type PublicCombo } from "./projectCombo";
 
 export async function OPTIONS() {
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
   const dashboardOk = !apiKeyOk ? await isDashboardSessionAuthenticated(request) : false;
 
   if (!apiKeyOk && !dashboardOk) {
-    if (process.env.REQUIRE_API_KEY === "true") {
+    if (isRequireApiKeyEnabled()) {
       return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
     }
     // REQUIRE_API_KEY=false → still allow anonymous read of public metadata.
@@ -43,7 +44,8 @@ export async function GET(request: Request) {
   try {
     const combos = await getCombos();
     const data = (Array.isArray(combos) ? combos : [])
-      .map((c) => projectCombo(c as Record<string, unknown>))
+      // #3979: advertise resolved capabilities so importing clients enable them
+      .map((c) => projectCombo(c as Record<string, unknown>, { includeCapabilities: true }))
       .filter((c): c is PublicCombo => c !== null);
 
     return NextResponse.json(

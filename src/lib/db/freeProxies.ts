@@ -28,6 +28,9 @@ export interface FreeProxyStats {
   lastSyncAt: string | null;
 }
 
+/** Source id → list of error messages from that source's last sync. */
+export type FreeProxySyncErrors = Record<string, string[]>;
+
 type DbRow = Record<string, unknown>;
 
 function mapRow(row: unknown): FreeProxyRecord {
@@ -109,6 +112,8 @@ export async function listFreeProxies(options?: {
   minQuality?: number;
   onlyInPool?: boolean;
   onlyNotInPool?: boolean;
+  search?: string;
+  sortBy?: "quality" | "latency" | "recent";
   limit?: number;
   offset?: number;
 }): Promise<FreeProxyRecord[]> {
@@ -138,8 +143,18 @@ export async function listFreeProxies(options?: {
   if (options?.onlyNotInPool) {
     sql += " AND in_pool = 0";
   }
+  if (options?.search) {
+    sql += " AND host LIKE ?";
+    params.push(`%${options.search}%`);
+  }
 
-  sql += " ORDER BY quality_score DESC, last_validated DESC";
+  const sortClause =
+    options?.sortBy === "latency"
+      ? "ORDER BY latency_ms IS NULL, latency_ms ASC"
+      : options?.sortBy === "recent"
+        ? "ORDER BY last_validated DESC"
+        : "ORDER BY quality_score DESC, last_validated DESC";
+  sql += ` ${sortClause}`;
 
   if (options?.limit) {
     sql += " LIMIT ?";
@@ -152,6 +167,51 @@ export async function listFreeProxies(options?: {
 
   const rows = db.prepare(sql).all(...params);
   return rows.map(mapRow);
+}
+
+export async function countFreeProxies(options?: {
+  sources?: FreeProxySourceId[];
+  protocol?: string;
+  country?: string;
+  minQuality?: number;
+  onlyInPool?: boolean;
+  onlyNotInPool?: boolean;
+  search?: string;
+}): Promise<number> {
+  const db = getDbInstance();
+  const params: unknown[] = [];
+  let sql = "SELECT COUNT(*) AS count FROM free_proxies WHERE 1=1";
+
+  if (options?.sources?.length) {
+    sql += ` AND source IN (${options.sources.map(() => "?").join(",")})`;
+    params.push(...options.sources);
+  }
+  if (options?.protocol) {
+    sql += " AND type = ?";
+    params.push(options.protocol);
+  }
+  if (options?.country) {
+    sql += " AND country_code = ?";
+    params.push(options.country.toUpperCase());
+  }
+  if (options?.minQuality != null) {
+    sql += " AND quality_score >= ?";
+    params.push(options.minQuality);
+  }
+  if (options?.onlyInPool) {
+    sql += " AND in_pool = 1";
+  }
+  if (options?.onlyNotInPool) {
+    sql += " AND in_pool = 0";
+  }
+  if (options?.search) {
+    sql += " AND host LIKE ?";
+    params.push(`%${options.search}%`);
+  }
+
+  const row = db.prepare(sql).get(...params) as DbRow | undefined;
+  const count = row?.count;
+  return typeof count === "number" ? count : Number(count ?? 0);
 }
 
 export async function listFreeProxiesBySource(
@@ -270,6 +330,65 @@ export async function clearFreeProxiesBySource(source: FreeProxySourceId): Promi
   return result.changes;
 }
 
+/**
+ * Tombstone rows for `source` whose `host:port` is no longer present in the
+ * provider's latest list — e.g. Webshare recycles/retires proxy IDs between
+ * syncs. Rows already promoted to the pool (`in_pool = 1`) are left alone so
+ * runtime resolution of an in-use proxy is never disturbed; only stale,
+ * not-yet-pooled candidates are pruned. Returns the number of rows removed.
+ */
+export async function pruneStaleFreeProxies(
+  source: FreeProxySourceId,
+  activeKeys: ReadonlySet<string>
+): Promise<number> {
+  const db = getDbInstance();
+  const rows = db
+    .prepare("SELECT id, host, port FROM free_proxies WHERE source = ? AND in_pool = 0")
+    .all(source) as Array<{ id: string; host: string; port: number }>;
+
+  const staleIds = rows.filter((r) => !activeKeys.has(`${r.host}:${r.port}`)).map((r) => r.id);
+
+  if (staleIds.length === 0) return 0;
+
+  const placeholders = staleIds.map(() => "?").join(",");
+  const result = db
+    .prepare(`DELETE FROM free_proxies WHERE id IN (${placeholders})`)
+    .run(...staleIds);
+  backupDbFile("pre-write");
+  return result.changes;
+}
+
+// #4878: the displayed "last sync" used to be derived from MAX(last_validated),
+// which only advances when a provider returns at least one new/updated proxy. A
+// sync that returns zero rows (or whose providers all fail) left the timestamp
+// frozen, so "Sync All" appeared to do nothing. We persist an explicit sync
+// timestamp in the generic key_value store and prefer it in the stats.
+const FREE_PROXY_SYNC_NAMESPACE = "free_proxies";
+const FREE_PROXY_SYNC_KEY = "last_sync_at";
+
+/**
+ * Persist the moment a free-proxy sync completed. Returns the stored ISO string
+ * so the route can echo it back. `at` is overridable for deterministic tests.
+ */
+export async function recordFreeProxySync(at?: string): Promise<string> {
+  const db = getDbInstance();
+  const ts = at ?? new Date().toISOString();
+  db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    FREE_PROXY_SYNC_NAMESPACE,
+    FREE_PROXY_SYNC_KEY,
+    ts
+  );
+  backupDbFile("pre-write");
+  return ts;
+}
+
+function getRecordedFreeProxySync(db: ReturnType<typeof getDbInstance>): string | null {
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(FREE_PROXY_SYNC_NAMESPACE, FREE_PROXY_SYNC_KEY) as { value?: string } | undefined;
+  return row?.value != null ? String(row.value) : null;
+}
+
 export async function getFreeProxyStats(): Promise<FreeProxyStats> {
   const db = getDbInstance();
   const totals = db
@@ -288,11 +407,63 @@ export async function getFreeProxyStats(): Promise<FreeProxyStats> {
     )
     .all() as DbRow[];
 
+  // Prefer the explicitly recorded sync timestamp (#4878); fall back to the
+  // newest last_validated only when no sync has ever been recorded.
+  const recordedSyncAt = getRecordedFreeProxySync(db);
+  const derivedSyncAt = totals.last_sync_at != null ? String(totals.last_sync_at) : null;
+
   return {
     total: Number(totals.total) || 0,
     inPool: Number(totals.in_pool_count) || 0,
     avgQuality: totals.avg_quality != null ? Math.round(Number(totals.avg_quality)) : null,
     bySource: bySource.map((r) => ({ source: String(r.source), count: Number(r.count) })),
-    lastSyncAt: totals.last_sync_at != null ? String(totals.last_sync_at) : null,
+    lastSyncAt: recordedSyncAt ?? derivedSyncAt,
   };
+}
+/**
+ * Persist the most recent per-source sync errors. A successful sync for a
+ * source should call clearFreeProxySyncErrors instead so the stale error
+ * stops showing.
+ */
+export async function recordFreeProxySyncErrors(
+  source: FreeProxySourceId,
+  errors: string[]
+): Promise<void> {
+  const db = getDbInstance();
+  const at = new Date().toISOString();
+  db.prepare(
+    "INSERT OR REPLACE INTO free_proxy_sync_errors (source, errors, updated_at) VALUES (?, ?, ?)"
+  ).run(source, JSON.stringify(errors), at);
+  backupDbFile("pre-write");
+}
+
+/** Clear a source's stored sync error (called on a successful sync). */
+export async function clearFreeProxySyncErrors(source: FreeProxySourceId): Promise<void> {
+  const db = getDbInstance();
+  db.prepare("DELETE FROM free_proxy_sync_errors WHERE source = ?").run(source);
+  backupDbFile("pre-write");
+}
+
+/**
+ * Read all stored per-source sync errors as a plain map. Sources with no
+ * recorded error are omitted, so an empty object means a clean (or un-synced)
+ * state.
+ */
+export async function getFreeProxySyncErrors(): Promise<FreeProxySyncErrors> {
+  const db = getDbInstance();
+  const rows = db.prepare("SELECT source, errors FROM free_proxy_sync_errors").all() as Array<{
+    source: string;
+    errors: string;
+  }>;
+  const out: FreeProxySyncErrors = {};
+  for (const row of rows) {
+    if (!row.source) continue;
+    try {
+      const parsed = JSON.parse(row.errors) as unknown;
+      out[row.source] = Array.isArray(parsed) ? parsed.map(String) : [String(row.errors)];
+    } catch {
+      out[row.source] = [String(row.errors)];
+    }
+  }
+  return out;
 }

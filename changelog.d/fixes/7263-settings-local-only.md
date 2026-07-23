@@ -1,0 +1,1 @@
+- fix(authz): classify /api/cli-tools/forge-settings and /api/cli-tools/jcode-settings as LOCAL_ONLY, closing an RCE-via-tunnel gap where getCliRuntimeStatus() spawns a child process without loopback enforcement (#7263)

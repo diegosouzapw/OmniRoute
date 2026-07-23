@@ -35,7 +35,8 @@ import { useIsElectron } from "@/shared/hooks/useElectron";
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 
 // Map sidebar item id → header description i18n key
-const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
+// "omni-skills" is an extended key for the /dashboard/omni-skills route (graceful fallback during deploy)
+const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId | "omni-skills", string>> = {
   home: "homeDescription",
   endpoints: "endpointDescription",
   "api-manager": "apiManagerDescription",
@@ -48,11 +49,14 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   quota: "limitsDescription",
   runtime: "runtimeDescription",
   media: "mediaDescription",
-  agents: "agentsDescription",
+  "cli-code": "cliToolsDescription",
+  "cli-agents": "agentsDescription",
+  "acp-agents": "agentsDescription",
   "cloud-agents": "cloudAgentsDescription",
   memory: "memoryDescription",
   skills: "skillsDescription",
   "agent-skills": "agentSkillsDescription",
+  "omni-skills": "omniSkillsDescription",
   settings: "settingsDescription",
   "context-caveman": "contextCavemanDescription",
   "context-rtk": "contextRtkDescription",
@@ -94,12 +98,11 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   "settings-security": "settingsSecurityDescription",
   "settings-routing": "settingsRoutingDescription",
   "settings-resilience": "settingsResilienceDescription",
+  "settings-cache": "settingsCacheDescription",
   "settings-advanced": "settingsAdvancedDescription",
   // Proxy sub-pages
   "mitm-proxy": "mitmProxyDescription",
   "1proxy": "oneProxyDescription",
-  // OmniProxy items
-  "cli-tools": "cliToolsDescription",
 };
 
 // Build href → sidebar item lookup (non-external items only)
@@ -246,11 +249,11 @@ export default function Header({
               type="button"
               onClick={onOpenCommandPalette}
               className="hidden md:inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-black/10 dark:border-white/10 bg-bg-subtle text-text-muted hover:text-text-main hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors"
-              title="Quick navigation (⌘K / Ctrl+K)"
-              aria-label="Open quick navigation"
+              title={t("quickNavigationTitle")}
+              aria-label={t("openQuickNavigation")}
             >
               <span className="material-symbols-outlined text-[16px]">search</span>
-              <span className="text-xs">Quick nav</span>
+              <span className="text-xs">{t("quickNavigation")}</span>
               <kbd className="hidden lg:inline-flex font-mono text-[10px] px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
                 {isMac ? "⌘K" : "Ctrl+K"}
               </kbd>
@@ -259,7 +262,7 @@ export default function Header({
               type="button"
               onClick={onOpenCommandPalette}
               className="md:hidden p-2 rounded-lg text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              aria-label="Open quick navigation"
+              aria-label={t("openQuickNavigation")}
             >
               <span className="material-symbols-outlined">search</span>
             </button>
@@ -273,6 +276,7 @@ export default function Header({
           onClick={handleLogout}
           className="flex items-center justify-center p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-all"
           title={t("logout")}
+          aria-label={t("logout")}
         >
           <span className="material-symbols-outlined">logout</span>
         </button>

@@ -122,7 +122,7 @@ describe("injectMemory — GLM providers use user role (#1701)", () => {
 // ── normalizeSystemRole — GLM model names ──────────────────────────────────────
 
 describe("normalizeSystemRole — GLM model names (#1701)", () => {
-  it("should convert system→user for glm-5.1", () => {
+  it("should preserve system role for glm-5.1 (GLM 5.1+ accepts system, #5610)", () => {
     const messages = [
       { role: "system", content: "Memory context: test" },
       { role: "user", content: "Hello" },
@@ -130,7 +130,10 @@ describe("normalizeSystemRole — GLM model names (#1701)", () => {
     const result = normalizeSystemRole(messages, "glm", "glm-5.1");
     assert.ok(Array.isArray(result));
     const roles = (result as { role: string }[]).map((m) => m.role);
-    assert.ok(!roles.includes("system"), "system role should be converted");
+    // GLM 5.1 / 5.2 (and newer) accept the `system` role per z.ai docs (#5610), so it
+    // must NOT be folded into the first user turn — unlike bare "glm" and the 4.x / 5.0
+    // families (covered below), which still reject system and get converted.
+    assert.ok(roles.includes("system"), "system role should be preserved for glm-5.1");
     assert.ok(roles.includes("user"), "should have user role");
   });
 

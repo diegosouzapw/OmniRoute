@@ -7,6 +7,9 @@
  * @module inputSanitizer
  */
 
+import { parseEnvBoolean } from "@/shared/utils/envBoolean";
+import { resolveBlockThreshold, shouldBlockDetections } from "@/shared/utils/injectionSeverity";
+
 // ─── Prompt Injection Patterns ───────────────────────────────────────
 
 /** @type {Array<{name: string, pattern: RegExp, severity: string}>} */
@@ -25,8 +28,14 @@ const INJECTION_PATTERNS = [
   },
   {
     name: "system_prompt_leak",
+    // #4041: require a system/initial/hidden/original qualifier before prompt|instructions.
+    // The old pattern matched a bare "instructions" after reveal/show/display/etc, so it
+    // tripped `high` on essentially all coding-agent traffic ("show the instructions",
+    // "display your instructions"), making the always-on guard a hot-path false-positive.
+    // Real leak attempts ("reveal your system prompt", "print the initial prompt") still
+    // match, and qualified instruction leaks ("display your system instructions") now do too.
     pattern:
-      /\b(reveal|show|display|print|output|repeat)\s+(your\s+)?(system\s+prompt|instructions?|initial\s+prompt|hidden\s+prompt)/i,
+      /\b(reveals?|shows?|displays?|prints?|outputs?|repeats?)\s+((your|the)\s+)?(system|initial|hidden|original)\s+(prompt|instructions?)/i,
     severity: "high",
   },
   {
@@ -46,6 +55,20 @@ const INJECTION_PATTERNS = [
     severity: "medium",
   },
 ];
+
+/**
+ * Maximum number of characters scanned for prompt-injection patterns.
+ *
+ * The guard joins every message/system string into one buffer and runs several
+ * regexes over it on every chat request. With no cap that is O(body) CPU on the
+ * hot path — at high concurrency with 300 KB bodies it is a self-inflicted
+ * latency/GC source. Injection directives sit near the top of a prompt, so
+ * scanning hundreds of KB of pasted code / RAG context buys only CPU. We bound
+ * the scan to the first 16 KB (generous: real directives are far shorter) before
+ * the regex loop. The body-size caps that protect ingestion live elsewhere;
+ * this constant only bounds the regex scan. Refs #3932 / #4041.
+ */
+export const MAX_INJECTION_SCAN_BYTES = 16 * 1024;
 
 // ─── PII Patterns ────────────────────────────────────────────────────
 
@@ -91,9 +114,11 @@ const PII_PATTERNS = [
  */
 function getConfig() {
   return {
-    enabled: process.env.INPUT_SANITIZER_ENABLED !== "false",
+    // Default ON (opt-out). Truthy/falsy parsing accepts true/1/yes/on and false/0/no/off.
+    enabled: parseEnvBoolean(process.env.INPUT_SANITIZER_ENABLED, true),
     mode: process.env.INPUT_SANITIZER_MODE || "warn", // "warn" | "block" | "redact"
-    piiRedaction: process.env.PII_REDACTION_ENABLED === "true",
+    piiRedaction: parseEnvBoolean(process.env.PII_REDACTION_ENABLED, false),
+    blockThreshold: resolveBlockThreshold(),
   };
 }
 
@@ -117,13 +142,18 @@ function getConfig() {
 function extractMessageContents(body) {
   const contents = [];
 
-  const messages = body.messages || body.input || [];
+  const messageSource = body.messages !== undefined ? body.messages : body.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource === undefined || messageSource === null
+      ? []
+      : [messageSource];
   for (const msg of messages) {
     if (typeof msg === "string") {
       contents.push(msg);
-    } else if (typeof msg.content === "string") {
+    } else if (msg && typeof msg.content === "string") {
       contents.push(msg.content);
-    } else if (Array.isArray(msg.content)) {
+    } else if (msg && Array.isArray(msg.content)) {
       for (const part of msg.content) {
         if (typeof part === "string") {
           contents.push(part);
@@ -144,6 +174,20 @@ function extractMessageContents(body) {
     }
   }
 
+  if (typeof body.input === "string") contents.push(body.input);
+  if (typeof body.prompt === "string") contents.push(body.prompt);
+  else if (Array.isArray(body.prompt))
+    for (const p of body.prompt) {
+      if (typeof p === "string") contents.push(p);
+    }
+  if (typeof body.instructions === "string") contents.push(body.instructions);
+  if (typeof body.query === "string") contents.push(body.query);
+  if (Array.isArray(body.documents))
+    for (const d of body.documents) {
+      if (typeof d === "string") contents.push(d);
+      else if (d && typeof d.text === "string") contents.push(d.text);
+    }
+
   return contents;
 }
 
@@ -154,8 +198,13 @@ function extractMessageContents(body) {
  */
 function detectInjection(text) {
   const detections = [];
+  // Bound the regex scan to the first 16 KB — see MAX_INJECTION_SCAN_BYTES
+  // (hot-path perf, #3932 / #4041). Slice before the loop so each pattern only
+  // ever scans the capped prefix, never the full (possibly hundreds of KB) body.
+  const scanText =
+    text.length > MAX_INJECTION_SCAN_BYTES ? text.slice(0, MAX_INJECTION_SCAN_BYTES) : text;
   for (const rule of INJECTION_PATTERNS) {
-    const match = text.match(rule.pattern);
+    const match = scanText.match(rule.pattern);
     if (match) {
       detections.push({
         pattern: rule.name,
@@ -227,15 +276,19 @@ export function sanitizeRequest(body, logger = console) {
       );
     }
 
-    if (config.mode === "block" && highSeverity.length > 0) {
+    // Shared threshold policy with evaluatePromptInjection / createInjectionGuard.
+    // Default threshold is "high" (medium is observe-only unless lowered via env).
+    if (config.mode === "block" && shouldBlockDetections(injections, config.blockThreshold)) {
       result.blocked = true;
       return result;
     }
   }
 
   // ── PII Detection / Redaction ──
+  // PII rewrite is controlled by PII_REDACTION_ENABLED only.
+  // INPUT_SANITIZER_MODE is reserved for prompt-injection policy (warn/block/log).
   if (config.piiRedaction) {
-    const piiResult = processPII(fullText, config.mode === "redact");
+    const piiResult = processPII(fullText, true);
     result.piiDetections = piiResult.detections;
 
     if (piiResult.detections.length > 0) {
@@ -243,11 +296,9 @@ export function sanitizeRequest(body, logger = console) {
         `[SANITIZER] PII detected: ${piiResult.detections.map((d) => `${d.type}(${d.count})`).join(", ")}`
       );
 
-      if (config.mode === "redact") {
-        // Deep clone and replace message contents with redacted versions
-        result.sanitizedBody = redactBody(body);
-        result.modified = true;
-      }
+      // Deep clone and replace message contents with redacted versions
+      result.sanitizedBody = redactBody(body);
+      result.modified = true;
     }
   }
 
@@ -260,31 +311,90 @@ export function sanitizeRequest(body, logger = console) {
  * @returns {Object}
  */
 function redactBody(body) {
+  // Deep clone to avoid mutating original
   const clone = JSON.parse(JSON.stringify(body));
-  const messages = clone.messages || clone.input || [];
+  const messageSource = clone.messages !== undefined ? clone.messages : clone.input;
+  const messages = Array.isArray(messageSource)
+    ? messageSource
+    : messageSource === undefined || messageSource === null
+      ? []
+      : [messageSource];
 
-  for (const msg of messages) {
-    if (typeof msg.content === "string") {
-      msg.content = processPII(msg.content, true).text;
-    } else if (Array.isArray(msg.content)) {
-      for (const part of msg.content) {
-        if (typeof part === "string") {
-          const idx = msg.content.indexOf(part);
-          msg.content[idx] = processPII(part, true).text;
-        } else if (part.text) {
-          part.text = processPII(part.text, true).text;
-        }
-      }
+  const redactContentValue = (value) => {
+    if (typeof value === "string") {
+      return processPII(value, true).text;
     }
+    if (Array.isArray(value)) {
+      return value.map((part) => {
+        if (typeof part === "string") {
+          return processPII(part, true).text;
+        }
+        if (part && typeof part === "object") {
+          const next = { ...part };
+          if (typeof next.text === "string") {
+            next.text = processPII(next.text, true).text;
+          }
+          if (typeof next.content === "string") {
+            next.content = processPII(next.content, true).text;
+          }
+          return next;
+        }
+        return part;
+      });
+    }
+    return value;
+  };
+
+  const redactedMessages = messages.map((msg) => {
+    if (typeof msg === "string") {
+      return processPII(msg, true).text;
+    }
+    if (!msg || typeof msg !== "object") {
+      return msg;
+    }
+    const next = { ...msg };
+    if ("content" in next) {
+      next.content = redactContentValue(next.content);
+    }
+    if (typeof next.text === "string") {
+      next.text = processPII(next.text, true).text;
+    }
+    return next;
+  });
+
+  if (clone.messages !== undefined) {
+    clone.messages = Array.isArray(clone.messages) ? redactedMessages : redactedMessages[0];
+  } else if (clone.input !== undefined) {
+    clone.input = Array.isArray(clone.input) ? redactedMessages : redactedMessages[0];
   }
 
   if (typeof clone.system === "string") {
     clone.system = processPII(clone.system, true).text;
+  } else if (Array.isArray(clone.system)) {
+    clone.system = clone.system.map((entry) => {
+      if (typeof entry === "string") return processPII(entry, true).text;
+      if (entry && typeof entry === "object") {
+        const next = { ...entry };
+        if (typeof next.text === "string") next.text = processPII(next.text, true).text;
+        if (typeof next.content === "string") next.content = processPII(next.content, true).text;
+        return next;
+      }
+      return entry;
+    });
+  }
+
+  if (typeof clone.input === "string") {
+    clone.input = processPII(clone.input, true).text;
+  }
+  if (typeof clone.prompt === "string") {
+    clone.prompt = processPII(clone.prompt, true).text;
+  } else if (Array.isArray(clone.prompt)) {
+    clone.prompt = clone.prompt.map((entry) =>
+      typeof entry === "string" ? processPII(entry, true).text : entry
+    );
   }
 
   return clone;
 }
-
-// ─── Exports for Testing ──────────────────────────────────────────────
 
 export { detectInjection, processPII, extractMessageContents, INJECTION_PATTERNS, PII_PATTERNS };

@@ -1,0 +1,1 @@
+- **fix(sse):** xiaomi-tokenplan `mimo` models (e.g. `mimo-v2.5-pro`) are now recognized as thinking-mode upstreams that require `reasoning_content` echoed back on every assistant turn, fixing a persistent `400 reasoning_content must be passed back` error on multi-turn conversations ([#7098](https://github.com/diegosouzapw/OmniRoute/pull/7098)) — thanks @xxue-z

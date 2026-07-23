@@ -54,3 +54,35 @@ test("serve command: --port option has no Commander default", async () => {
   // Ensure the option does NOT have a third argument (Commander default)
   assert.match(serveSource, /\.option\("--port <port>",\s*t\("serve\.port"\)\)/);
 });
+
+/**
+ * Replicate the APP_DIR resolution from bin/cli/commands/serve.mjs to verify the
+ * backward-compatibility fallback introduced by the build-output-isolation refactor:
+ * the standalone bundle now ships in `dist/`, but an upgrade over a partially-replaced
+ * install — or a package built before the rename — must still boot from legacy `app/`.
+ */
+function resolveAppDir(root: string, distServerExists: boolean): string {
+  return distServerExists ? `${root}/dist` : `${root}/app`;
+}
+
+test("serve app dir: resolves to dist/ when dist/server.js exists (current layout)", () => {
+  assert.equal(resolveAppDir("/opt/omniroute", true), "/opt/omniroute/dist");
+});
+
+test("serve app dir: falls back to legacy app/ when dist/server.js is absent (upgrade safety)", () => {
+  assert.equal(resolveAppDir("/opt/omniroute", false), "/opt/omniroute/app");
+});
+
+test("serve command: APP_DIR keeps the dist/ -> app/ backward-compat fallback", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const serveSource = fs.readFileSync(
+    path.resolve(import.meta.dirname, "../../bin/cli/commands/serve.mjs"),
+    "utf-8",
+  );
+  // Must probe dist/server.js and fall back to app/ — never hard-code dist/ only.
+  assert.match(
+    serveSource,
+    /existsSync\(join\(ROOT, "dist", "server\.js"\)\)\s*\?\s*join\(ROOT, "dist"\)\s*:\s*join\(ROOT, "app"\)/,
+  );
+});

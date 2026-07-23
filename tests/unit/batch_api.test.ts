@@ -21,6 +21,8 @@ const {
   formatFileResponse,
   deleteFile,
   getTerminalBatches,
+  ensureBatchItemCheckpoints,
+  markBatchItemResult,
 } = await import("../../src/lib/localDb.ts");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
 const {
@@ -45,6 +47,7 @@ test.afterEach(async () => {
   }
   try {
     const db = getDbInstance();
+    db.prepare("DELETE FROM batch_item_checkpoints").run();
     db.prepare("DELETE FROM batches").run();
     db.prepare("DELETE FROM files").run();
     db.prepare("DELETE FROM provider_connections").run();
@@ -695,28 +698,45 @@ test("Batch processor recovers orphaned finalizing batches during startup recove
   updateBatch(batch.id, {
     status: "finalizing",
     finalizingAt: Math.floor(Date.now() / 1000),
+    requestCountsTotal: 1,
+    requestCountsCompleted: 1,
   });
+  ensureBatchItemCheckpoints(batch.id, [{ lineNumber: 1, customId: "req-recovery" }]);
+  markBatchItemResult(
+    batch.id,
+    { lineNumber: 1, customId: "req-recovery" },
+    {
+      id: "req_checkpointed_recovery",
+      custom_id: "req-recovery",
+      response: {
+        status_code: 200,
+        body: {
+          id: "chatcmpl-mock-recovery",
+          object: "chat.completion",
+          model: "gpt-4o-mini",
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: "recovered ok" },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 1,
+            completion_tokens: 1,
+            total_tokens: 2,
+          },
+        },
+      },
+    }
+  );
 
   const originalFetch = globalThis.fetch;
-  (globalThis as any).fetch = async () => {
-    return Response.json({
-      id: "chatcmpl-mock-recovery",
-      object: "chat.completion",
-      model: "gpt-4o-mini",
-      choices: [
-        {
-          index: 0,
-          message: { role: "assistant", content: "recovered ok" },
-          finish_reason: "stop",
-        },
-      ],
-      usage: {
-        prompt_tokens: 1,
-        completion_tokens: 1,
-        total_tokens: 2,
-      },
-    });
-  };
+  let fetchCount = 0;
+  globalThis.fetch = (async () => {
+    fetchCount++;
+    throw new Error("checkpointed finalizing batch should not dispatch");
+  }) as typeof fetch;
 
   try {
     await processPendingBatches();
@@ -724,6 +744,7 @@ test("Batch processor recovers orphaned finalizing batches during startup recove
 
     const recoveredBatch = getBatch(batch.id);
     assert.strictEqual(recoveredBatch?.status, "completed");
+    assert.strictEqual(fetchCount, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }

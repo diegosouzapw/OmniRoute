@@ -125,6 +125,9 @@ export class CursorSessionManager {
     try {
       session.h2Client.close();
     } catch {}
+    // Drop any unanswered tool-call mappings so a closed session doesn't pin
+    // their (small) entries for the lifetime of the lingering object.
+    session.pendingToolCalls.clear();
     this.sessions.delete(session.conversationId);
   }
 

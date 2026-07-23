@@ -2,6 +2,89 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../request/openai-to-claude.ts";
 import { hasToolCallShim, applyToolCallShimToBuffer } from "../helpers/toolCallShim.ts";
+import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
+import { isAbortFinishReason } from "../../utils/finishReason.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../../utils/reasoningPlaceholder.ts";
+import { REVERSE_MAP } from "../../services/claudeCodeToolRemapper.ts";
+
+function normalizeToolName(name: string): string {
+  return REVERSE_MAP[name] ?? name;
+}
+
+interface XmlToolCall {
+  id: string;
+  name: string;
+  args: Record<string, string>;
+}
+
+/**
+ * Extract complete XML <invoke> blocks from text content.
+ * Some models (e.g. nvidia/abacusai/dracarys) emit tool calls as
+ * XML blocks instead of JSON tool_calls. This function detects
+ * <invoke name="ToolName"><parameter name="arg">value</parameter></invoke>
+ * blocks, converts them to tool calls, and returns the cleaned text.
+ * Incomplete XML is buffered in state for the next chunk.
+ */
+function extractXmlInvokeBlocks(
+  text: string,
+  state
+): { cleaned: string; toolCalls: XmlToolCall[] } {
+  const toolCalls: XmlToolCall[] = [];
+
+  // Prepend any incomplete content from previous chunk
+  const combined = (state._xmlInvokeBuffer || "") + text;
+  state._xmlInvokeBuffer = "";
+
+  let remaining = combined;
+  let cleaned = "";
+
+  while (true) {
+    const startMatch = remaining.match(/<invoke\s+name="([^"]*)"\s*>/);
+    if (!startMatch) {
+      cleaned += remaining;
+      break;
+    }
+
+    // Text before the <invoke> block
+    cleaned += remaining.slice(0, startMatch.index);
+
+    const blockStart = startMatch.index;
+    const restAfterStart = remaining.slice(blockStart);
+    const endMatch = restAfterStart.match(/<\/invoke>/);
+
+    if (!endMatch) {
+      // Incomplete block — buffer for next chunk
+      state._xmlInvokeBuffer = restAfterStart;
+      break;
+    }
+
+    // Complete block found
+    const innerXml = restAfterStart.slice(startMatch[0].length, endMatch.index);
+    const fullBlock = restAfterStart.slice(0, endMatch.index + endMatch[0].length);
+
+    // Parse <parameter name="..." ...>value</parameter>
+    const args: Record<string, string> = {};
+    const paramRegex = /<parameter\s+name="([^"]*)"[^>]*>([\s\S]*?)<\/parameter>/g;
+    let pm;
+    while ((pm = paramRegex.exec(innerXml)) !== null) {
+      args[pm[1]] = pm[2].trim();
+    }
+
+    toolCalls.push({
+      id: `toolu_xml_${Date.now()}_${toolCalls.length}`,
+      name: startMatch[1],
+      args,
+    });
+
+    // Continue scanning after the block
+    remaining = remaining.slice(blockStart + fullBlock.length);
+  }
+
+  return { cleaned, toolCalls };
+}
 
 // Helper: stop thinking block if started
 function stopThinkingBlock(state, results) {
@@ -78,6 +161,8 @@ export function openaiToClaudeResponse(chunk, state) {
     }
     state.model = chunk.model || "unknown";
     state.nextBlockIndex = 0;
+    state._pendingXmlToolCalls = [];
+    state._xmlInvokeBuffer = "";
     results.push({
       type: "message_start",
       message: {
@@ -106,7 +191,7 @@ export function openaiToClaudeResponse(chunk, state) {
     }
     if (parts.length > 0) reasoningContent = parts.join("");
   }
-  if (reasoningContent) {
+  if (reasoningContent && !isInternalReasoningPlaceholder(reasoningContent)) {
     stopTextBlock(state, results);
 
     if (!state.thinkingBlockStarted) {
@@ -126,26 +211,65 @@ export function openaiToClaudeResponse(chunk, state) {
     });
   }
 
-  // Handle regular content
+  // Handle regular content — strip the internal reasoning placeholder if
+  // the model echoed it through ordinary content (#8081). Only the content
+  // block emission is skipped when nothing meaningful remains; the chunk
+  // may still carry tool_calls / finish_reason below, which must still run.
   if (delta?.content) {
-    stopThinkingBlock(state, results);
+    const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+    if (strippedContent) {
+      stopThinkingBlock(state, results);
 
-    if (!state.textBlockStarted) {
-      state.textBlockIndex = state.nextBlockIndex++;
-      state.textBlockStarted = true;
-      state.textBlockClosed = false;
-      results.push({
-        type: "content_block_start",
-        index: state.textBlockIndex,
-        content_block: { type: "text", text: "" },
-      });
+      // Check for XML <invoke> blocks that some models emit instead of JSON tool_calls
+      const { cleaned, toolCalls: xmlToolCalls } = extractXmlInvokeBlocks(strippedContent, state);
+
+      // Accumulate extracted tool calls for emission at finish
+      if (xmlToolCalls.length > 0) {
+        // Close any ongoing text block before tool calls
+        stopTextBlock(state, results);
+        state._pendingXmlToolCalls.push(...xmlToolCalls);
+      }
+
+      // Emit remaining non-XML text content
+      if (!cleaned) {
+        // All content was XML invoke blocks — skip text block entirely
+        // (tool calls will be emitted at finish)
+      } else if (xmlToolCalls.length > 0) {
+        // Text before/between/after XML blocks — (re)start a text block
+        if (!state.textBlockStarted) {
+          state.textBlockIndex = state.nextBlockIndex++;
+          state.textBlockStarted = true;
+          state.textBlockClosed = false;
+          results.push({
+            type: "content_block_start",
+            index: state.textBlockIndex,
+            content_block: { type: "text", text: "" },
+          });
+        }
+        results.push({
+          type: "content_block_delta",
+          index: state.textBlockIndex,
+          delta: { type: "text_delta", text: cleaned },
+        });
+      } else {
+        // No XML — emit as regular text (original behaviour)
+        if (!state.textBlockStarted) {
+          state.textBlockIndex = state.nextBlockIndex++;
+          state.textBlockStarted = true;
+          state.textBlockClosed = false;
+          results.push({
+            type: "content_block_start",
+            index: state.textBlockIndex,
+            content_block: { type: "text", text: "" },
+          });
+        }
+        results.push({
+          type: "content_block_delta",
+          index: state.textBlockIndex,
+          delta: { type: "text_delta", text: cleaned },
+        });
+      }
     }
-
-    results.push({
-      type: "content_block_delta",
-      index: state.textBlockIndex,
-      delta: { type: "text_delta", text: delta.content },
-    });
   }
 
   // Tool calls
@@ -153,62 +277,86 @@ export function openaiToClaudeResponse(chunk, state) {
     for (const tc of delta.tool_calls) {
       const idx = tc.index ?? 0;
 
-      if (tc.id) {
+      // Strip the Claude OAuth prefix from an incoming tool name (if any).
+      const incomingName = (() => {
+        let n = tc.function?.name || "";
+        if (n.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) n = n.slice(CLAUDE_OAUTH_TOOL_PREFIX.length);
+        return n;
+      })();
+
+      // A tool call is identified by its id. Some OpenAI-compatible upstreams
+      // (GLM 5.2) stream the id and function.name in SEPARATE SSE chunks. The
+      // Claude protocol cannot patch a content_block_start after it is emitted,
+      // so we register the tool call on the id chunk but DEFER content_block_start
+      // until the name arrives (#2077 / decolua/9router#2077).
+      if (tc.id && !state.toolCalls.has(idx)) {
         stopThinkingBlock(state, results);
         stopTextBlock(state, results);
 
-        const toolBlockIndex = state.nextBlockIndex++;
-
-        // Strip prefix from tool name for response
-        let toolName = tc.function?.name || "";
-        if (toolName.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) {
-          toolName = toolName.slice(CLAUDE_OAUTH_TOOL_PREFIX.length);
-        }
-
         state.toolCalls.set(idx, {
           id: tc.id,
-          name: toolName,
-          blockIndex: toolBlockIndex,
+          name: incomingName,
+          blockIndex: state.nextBlockIndex++,
           // Shimmed tools buffer their raw args and emit a single corrected
           // input_json_delta at content_block_stop time (see finish handler).
-          shimmed: hasToolCallShim(toolName),
+          shimmed: incomingName ? hasToolCallShim(incomingName) : false,
           argBuffer: "",
-        });
-
-        results.push({
-          type: "content_block_start",
-          index: toolBlockIndex,
-          content_block: {
-            type: "tool_use",
-            id: tc.id,
-            name: toolName,
-            input: {},
-          },
+          startEmitted: false,
         });
       }
 
+      const toolInfo = state.toolCalls.get(idx);
+      if (toolInfo) {
+        // Capture a late-arriving id or name (streamed after the initial chunk).
+        if (tc.id && !toolInfo.id) toolInfo.id = tc.id;
+        if (incomingName && !toolInfo.startEmitted && !toolInfo.name) {
+          toolInfo.name = incomingName;
+          toolInfo.shimmed = hasToolCallShim(incomingName);
+        }
+
+        // Emit content_block_start once we have a name. If arguments arrive before
+        // any name was ever seen, start the block anyway with the (empty) name so
+        // the input_json_delta stays well-formed.
+        if (!toolInfo.startEmitted && (toolInfo.name || tc.function?.arguments != null)) {
+          toolInfo.startEmitted = true;
+          results.push({
+            type: "content_block_start",
+            index: toolInfo.blockIndex,
+            content_block: {
+              type: "tool_use",
+              id: toolInfo.id,
+              name: toolInfo.name || "",
+              input: {},
+            },
+          });
+        }
+      }
+
       if (tc.function?.arguments) {
-        const toolInfo = state.toolCalls.get(idx);
         if (toolInfo) {
           // Always buffer the raw stream so shimmed tools can re-emit a
           // corrected JSON at stop time.
-          toolInfo.argBuffer = (toolInfo.argBuffer || "") + tc.function.arguments;
+          const existingArgs = toolInfo.argBuffer || "";
+          const nextArgs = appendToolCallArgumentDelta(existingArgs, tc.function.arguments);
+          let deltaStr = nextArgs.slice(existingArgs.length);
+          toolInfo.argBuffer = nextArgs;
 
-          if (toolInfo.shimmed) {
-            // Suppress passthrough; we emit one corrective delta at finish.
+          if (toolInfo.shimmed || !deltaStr) {
+            // Suppress passthrough for shimmed tools; emit one corrective delta at finish.
             continue;
           }
 
-          let deltaStr = tc.function.arguments;
-
-          // Fix #1852: Strip empty string and array placeholders from streaming tool arguments
-          if (deltaStr.includes('""') || deltaStr.includes("[]") || deltaStr.includes("[ ]")) {
-            deltaStr = deltaStr
-              .replace(/,"[a-zA-Z0-9_]+":""/g, "")
-              .replace(/"[a-zA-Z0-9_]+":"",/g, "")
-              .replace(/,"[a-zA-Z0-9_]+":\s*\[\s*\]/g, "")
-              .replace(/"[a-zA-Z0-9_]+":\s*\[\s*\],?/g, "");
-          }
+          // NOTE: The regex-based "Fix #1852" strip that previously ran here was
+          // removed in #4951. That strip matched patterns like `"key":""` and
+          // `"key":[]` to remove spurious placeholder fields that some models emit
+          // as noise. However, since #3762 the snapshot-dedup logic in
+          // appendToolCallArgumentDelta already collapses repeated/growing snapshots
+          // into a single delta, so noise-only chunks are naturally suppressed.
+          // More critically, the regex unconditionally deleted any field whose value
+          // happened to be "" or [], silently corrupting intentional empty-string or
+          // empty-array arguments (e.g. {"file_path":"","content":"text"} →
+          // {"content":"text"}). Emit deltaStr as-is; the Claude client parses the
+          // assembled partial_json fragments and tolerates unknown extra fields.
 
           results.push({
             type: "content_block_delta",
@@ -220,12 +368,36 @@ export function openaiToClaudeResponse(chunk, state) {
     }
   }
 
-  // Finish
-  if (choice.finish_reason) {
+  // Finish — guard against duplicate finish_reason chunks (common with OpenAI-compatible models).
+  // Use a dedicated `claudeFinishEmitted` flag rather than `state.finishReason`: in the
+  // Responses→Claude hub path the shared `state` object is also written by the
+  // openai-responses→openai translator, which sets `state.finishReason` on
+  // `response.completed` BEFORE this openai→claude step runs. Reusing `finishReason` as the
+  // guard therefore misfired and silently dropped the terminal message_delta/message_stop
+  // for Responses→Claude streams (#5828 regression).
+  if (choice.finish_reason && !state.claudeFinishEmitted) {
+    state.claudeFinishEmitted = true;
     stopThinkingBlock(state, results);
     stopTextBlock(state, results);
 
     for (const [, toolInfo] of state.toolCalls) {
+      // A tool call whose name/args never arrived (only an id chunk was seen)
+      // still has a reserved block index but no content_block_start. Emit it now
+      // so the terminal content_block_stop is not orphaned (#2077 edge case).
+      if (!toolInfo.startEmitted) {
+        toolInfo.startEmitted = true;
+        results.push({
+          type: "content_block_start",
+          index: toolInfo.blockIndex,
+          content_block: {
+            type: "tool_use",
+            id: toolInfo.id,
+            name: toolInfo.name || "",
+            input: {},
+          },
+        });
+      }
+
       // For shimmed tools, emit one corrective input_json_delta with the
       // fully patched JSON before closing the block.
       if (toolInfo.shimmed) {
@@ -243,14 +415,38 @@ export function openaiToClaudeResponse(chunk, state) {
       });
     }
 
+    // Emit any XML-extracted tool calls (from models like Dracarys that
+    // emit <invoke> blocks in content instead of JSON tool_calls in delta)
+    const xmlToolCalls = state._pendingXmlToolCalls || [];
+    for (const tc of xmlToolCalls) {
+      const blockIndex = state.nextBlockIndex++;
+      results.push({
+        type: "content_block_start",
+        index: blockIndex,
+        content_block: {
+          type: "tool_use",
+          id: tc.id,
+          name: normalizeToolName(tc.name),
+          input: tc.args,
+        },
+      });
+      results.push({
+        type: "content_block_stop",
+        index: blockIndex,
+      });
+    }
+
+    // Override finish_reason to tool_use if XML tool calls were found
+    const overrideFinishReason = xmlToolCalls.length > 0 ? "tool_calls" : choice.finish_reason;
+
     // Mark finish for later usage injection in stream.js
-    state.finishReason = choice.finish_reason;
+    state.finishReason = overrideFinishReason;
 
     // Use tracked usage (will be estimated in stream.js if not valid)
     const finalUsage = state.usage || { input_tokens: 0, output_tokens: 0 };
     results.push({
       type: "message_delta",
-      delta: { stop_reason: convertFinishReason(choice.finish_reason) },
+      delta: { stop_reason: convertFinishReason(overrideFinishReason) },
       usage: finalUsage,
     });
     results.push({ type: "message_stop" });
@@ -269,7 +465,16 @@ function convertFinishReason(reason) {
     case "tool_calls":
       return "tool_use";
     default:
-      return "end_turn";
+      // Gemini/Antigravity abort reasons (e.g. MALFORMED_FUNCTION_CALL,
+      // UNEXPECTED_TOOL_CALL — see isAbortFinishReason) reach here unrecognized
+      // after the OpenAI hub normalization. Collapsing them to a clean
+      // "end_turn" presents an aborted tool call to the client as a successful
+      // completion (9router#2462 sub-bug #2). Surface them as "tool_use" —
+      // the same non-clean-stop signal already used for real tool_calls above —
+      // so the client does not treat the turn as done. Genuinely unknown future
+      // reasons still fall back to "end_turn" so a benign new value does not
+      // start misreporting every Gemini-family turn as an unfinished tool call.
+      return isAbortFinishReason(reason) ? "tool_use" : "end_turn";
   }
 }
 

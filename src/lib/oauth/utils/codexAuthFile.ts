@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { getProviderConnectionById } from "@/lib/localDb";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { createBackup } from "@/shared/services/backupService";
 import { getCliConfigPaths } from "@/shared/services/cliRuntime";
 import {
@@ -197,7 +197,7 @@ function buildCodexAuthPayload(connection: CodexConnectionLike): CodexAuthFilePa
 }
 
 async function resolveFreshCodexConnection(connectionId: string): Promise<CodexConnectionLike> {
-  const connection = (await getProviderConnectionById(connectionId)) as CodexConnectionLike | null;
+  const connection = (await getCachedProviderConnectionById(connectionId)) as CodexConnectionLike | null;
   if (!connection) {
     throw new CodexAuthFileError("Connection not found", 404, "not_found");
   }

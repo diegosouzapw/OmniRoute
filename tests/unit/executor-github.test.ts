@@ -8,6 +8,46 @@ function registerModel(provider, model) {
   PROVIDER_MODELS[provider] = [...(PROVIDER_MODELS[provider] || []), model];
 }
 
+test("GithubExecutor.refreshGitHubToken sends the public client_id and omits client_secret (port from 9router#442)", async () => {
+  // GitHub Copilot is a public device-flow OAuth client (client_id, no client_secret).
+  // The previous code sent client_id/client_secret straight from this.config via
+  // new URLSearchParams, so an undefined config produced the literal
+  // "client_id=undefined&client_secret=undefined". The fix populates the real client_id
+  // and only sends client_secret when one actually exists.
+  const executor = new GithubExecutor();
+  const calls: any[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (url: any, options: any = {}) => {
+    calls.push({ url: String(url), options });
+    return {
+      ok: true,
+      json: async () => ({
+        access_token: "gh-access",
+        refresh_token: "gh-next",
+        expires_in: 3600,
+      }),
+    } as any;
+  }) as any;
+
+  try {
+    const result = await executor.refreshGitHubToken("gh-refresh", { info() {}, error() {} });
+    assert.deepEqual(result, {
+      accessToken: "gh-access",
+      refreshToken: "gh-next",
+      expiresIn: 3600,
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  const body = String(calls[0].options.body);
+  assert.match(body, /client_id=Iv1\./, "the real public github client_id must be sent");
+  assert.ok(
+    !body.includes("client_secret="),
+    "client_secret must be omitted (never the literal 'undefined')"
+  );
+});
+
 test("GithubExecutor.buildUrl routes response-format models to /responses", () => {
   const originalModels = [...(PROVIDER_MODELS.gh || [])];
   registerModel("gh", {
@@ -31,6 +71,33 @@ test("GithubExecutor.buildUrl keeps GitHub Claude Opus 4.6 on /chat/completions"
   assert.equal(url, "https://api.githubcopilot.com/chat/completions");
 });
 
+test("GithubExecutor.buildUrl routes unlisted Codex models to /responses (9router#102)", () => {
+  // Copilot Codex models advertise supported_endpoints: ["/responses"]. When such
+  // a model isn't in the curated gh registry, getModelTargetFormat returns null and
+  // the request fell through to /chat/completions -> upstream 400 "model <id> is not
+  // accessible via the /chat/completions endpoint". Any *-codex id must route to
+  // /responses regardless of whether it's explicitly registered.
+  const executor = new GithubExecutor();
+  for (const model of [
+    "gpt-5-codex",
+    "gpt-5.1-codex",
+    "gpt-5.1-codex-mini",
+    "gpt-5.1-codex-max",
+    "gpt-5.2-codex",
+  ]) {
+    assert.equal(
+      executor.buildUrl(model, true),
+      "https://api.githubcopilot.com/responses",
+      `${model} must route to /responses`
+    );
+  }
+  // Non-codex unlisted models keep the chat/completions default.
+  assert.equal(
+    executor.buildUrl("some-random-chat-model", true),
+    "https://api.githubcopilot.com/chat/completions"
+  );
+});
+
 test("GithubExecutor.transformRequest injects JSON response instructions for Claude and strips reasoning fields", () => {
   const executor = new GithubExecutor();
   const body = {
@@ -45,6 +112,11 @@ test("GithubExecutor.transformRequest injects JSON response instructions for Cla
         reasoning_text: "internal",
         reasoning_content: "internal",
       },
+      // Trailing user turn: dropTrailingAssistantPrefill (9router#2143) strips a
+      // conversation that ends in "assistant", which would otherwise remove the very
+      // message this test inspects below. Keep the array ending in "user" so this test
+      // stays focused on response_format injection + reasoning-field stripping.
+      { role: "user", content: "thanks" },
     ],
   };
 
@@ -55,6 +127,126 @@ test("GithubExecutor.transformRequest injects JSON response instructions for Cla
   assert.match(result.messages[0].content, /Respond only with valid JSON/);
   assert.equal(result.messages[2].reasoning_text, undefined);
   assert.equal(result.messages[2].reasoning_content, undefined);
+});
+
+test("GithubExecutor.transformRequest sanitizes Anthropic-shape content parts (tool_use, tool_result, thinking) for /chat/completions (port from 9router#220)", () => {
+  // GitHub Copilot /chat/completions only accepts {type:'text'} or {type:'image_url'} content
+  // parts. Clients like Cursor IDE pass through Anthropic-shape parts (tool_use, tool_result,
+  // thinking) untouched when using Claude models, which makes the endpoint return:
+  //   "type has to be either 'image_url' or 'text'" (HTTP 400)
+  // Port: serialize unknown part types as text, drop empty content, and skip assistant
+  // messages whose only content was tool_calls (content collapses to null).
+  const executor = new GithubExecutor();
+  const body = {
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "Search for X" },
+          { type: "image_url", image_url: { url: "data:image/png;base64,AAAA" } },
+        ],
+      },
+      {
+        role: "assistant",
+        content: [
+          { type: "thinking", thinking: "let me search" },
+          { type: "tool_use", id: "call_1", name: "search", input: { q: "X" } },
+        ],
+      },
+      {
+        role: "tool",
+        tool_call_id: "call_1",
+        content: [{ type: "tool_result", tool_use_id: "call_1", content: "result" }],
+      },
+    ],
+  };
+
+  // Use an unregistered claude-* id (not "claude-sonnet-4.6"/etc.) so
+  // getModelTargetFormat("gh", ...) resolves to null and this stays on the
+  // /chat/completions path this test targets. Registered claude-* ids now
+  // carry targetFormat:"claude" (native /v1/messages — port of
+  // decolua/9router#2608, see github-copilot-claude-native-messages.test.ts)
+  // and intentionally skip this sanitization.
+  const result = executor.transformRequest("claude-sonnet-4", body, true, {});
+
+  // user message keeps text + image_url parts untouched
+  assert.equal(result.messages[0].content[0].type, "text");
+  assert.equal(result.messages[0].content[0].text, "Search for X");
+  assert.equal(result.messages[0].content[1].type, "image_url");
+  assert.equal(result.messages[0].content[1].image_url?.url, "data:image/png;base64,AAAA");
+
+  // assistant: thinking + tool_use serialized to text type — no unknown type leaks to wire
+  for (const part of result.messages[1].content) {
+    assert.ok(
+      part.type === "text" || part.type === "image_url",
+      `unsupported type leaked: ${part.type}`
+    );
+  }
+  assert.ok(result.messages[1].content.some((p: any) => /let me search/.test(p.text)));
+  assert.ok(
+    result.messages[1].content.some((p: any) => /search/.test(p.text) && /"q":"X"/.test(p.text))
+  );
+
+  // tool message: tool_result serialized to text — no unknown type leaks
+  for (const part of result.messages[2].content) {
+    assert.ok(
+      part.type === "text" || part.type === "image_url",
+      `unsupported type leaked: ${part.type}`
+    );
+  }
+});
+
+test("GithubExecutor.transformRequest collapses assistant content to null when every part stripped to empty", () => {
+  // assistant messages whose only content was tool_use (no text) should not ship empty
+  // strings to /chat/completions — GitHub rejects "" parts. Mirror upstream by dropping
+  // empty parts and falling back to null when nothing meaningful remains.
+  const executor = new GithubExecutor();
+  const body = {
+    messages: [
+      {
+        role: "assistant",
+        content: [{ type: "tool_use", id: "call_x", name: "noop", input: {} }],
+        tool_calls: [
+          { id: "call_x", type: "function", function: { name: "noop", arguments: "{}" } },
+        ],
+      },
+    ],
+  };
+
+  const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
+  // Either null or an array of {text:non-empty} — never an empty-text part.
+  const c = result.messages[0].content;
+  if (Array.isArray(c)) {
+    for (const part of c) {
+      assert.notEqual(part.text, "", "empty text part leaked to wire");
+    }
+  } else {
+    assert.equal(c, null);
+  }
+  // tool_calls must survive — they ride alongside content
+  assert.equal(result.messages[0].tool_calls[0].id, "call_x");
+});
+
+test("GithubExecutor.transformRequest leaves string content and missing content untouched", () => {
+  const executor = new GithubExecutor();
+  const body = {
+    messages: [
+      { role: "user", content: "plain string" },
+      {
+        role: "assistant",
+        tool_calls: [{ id: "c1", type: "function", function: { name: "f", arguments: "{}" } }],
+      },
+      // Trailing tool response: dropTrailingAssistantPrefill (9router#2143) strips a
+      // conversation that ends in "assistant", which would otherwise remove the very
+      // tool_calls message this test inspects below. A real tool round-trip ends in
+      // "tool", not "assistant" — model that shape instead.
+      { role: "tool", tool_call_id: "c1", content: "result" },
+    ],
+  };
+  const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
+  assert.equal(result.messages[0].content, "plain string");
+  assert.equal(result.messages[1].content, undefined);
+  assert.equal(result.messages[1].tool_calls[0].id, "c1");
 });
 
 test("GithubExecutor.buildHeaders prefers Copilot token and sets GitHub-specific headers", () => {
@@ -69,10 +261,10 @@ test("GithubExecutor.buildHeaders prefers Copilot token and sets GitHub-specific
 
   assert.equal(headers.Authorization, "Bearer copilot-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.equal(headers["editor-version"], "vscode/1.117.0");
-  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.45.1");
-  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.45.1");
-  assert.equal(headers["x-github-api-version"], "2025-04-01");
+  assert.equal(headers["editor-version"], "vscode/1.126.0");
+  assert.equal(headers["editor-plugin-version"], "copilot-chat/0.54.0");
+  assert.equal(headers["user-agent"], "GitHubCopilotChat/0.54.0");
+  assert.equal(headers["x-github-api-version"], "2026-06-01");
   assert.equal(headers["openai-intent"], "conversation-panel");
   assert.equal(headers["X-Initiator"], "user");
   assert.ok(headers["x-request-id"]);
@@ -288,6 +480,44 @@ test("GithubExecutor.execute preserves complete SSE responses including terminal
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("GithubExecutor.transformRequest strips temperature for gpt-5.4 (port from 9router#612 / closes upstream #536)", () => {
+  // GitHub Copilot's gpt-5.4 family rejects requests carrying `temperature` with HTTP 400:
+  //   "Unsupported parameter: 'temperature' is not supported with this model."
+  // OmniRoute's existing `stripGpt5SamplingWhenReasoning` guard only fires for
+  // provider==="openai" (raw api.openai.com Chat Completions) — Copilot requests run
+  // through GithubExecutor and never hit that guard. Strip temperature here so the
+  // 400 cannot reach the user. Other GitHub Copilot models keep temperature intact.
+  const executor = new GithubExecutor();
+
+  const stripped = executor.transformRequest(
+    "gpt-5.4",
+    { temperature: 0.7, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(stripped.temperature, undefined, "temperature must be stripped for gpt-5.4");
+
+  const strippedMini = executor.transformRequest(
+    "gpt-5.4-mini",
+    { temperature: 0.3, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(
+    strippedMini.temperature,
+    undefined,
+    "temperature must be stripped for gpt-5.4-mini"
+  );
+
+  const kept = executor.transformRequest(
+    "gpt-4.1",
+    { temperature: 0.7, messages: [{ role: "user", content: "hi" }] },
+    true,
+    {}
+  );
+  assert.equal(kept.temperature, 0.7, "temperature must be preserved for non-gpt-5.4 models");
 });
 
 test("GithubExecutor.transformRequest strips invalid synthetic Responses reasoning ids", () => {

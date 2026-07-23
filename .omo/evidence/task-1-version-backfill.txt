@@ -1,6 +1,0 @@
-001|001_initial_schema.sql
-002|002_mcp_a2a_tables.sql
-003|003_provider_node_custom_paths.sql
-004|004_proxy_registry.sql
-005|005_combo_agent_fields.sql
-006|006_detailed_request_logs.sql

@@ -50,7 +50,7 @@ export function seedWindowUsageFromHistory(limit: TokenLimit, now = Date.now()):
   // Canonical billable total = input + output + reasoning. tokens_cache_read and
   // tokens_cache_creation are a BREAKDOWN already inside tokens_input (see migration
   // 012_fix_token_input_cache_tokens.sql) — summing them again would double-count.
-  // This must mirror computeBillableTokens() in chatCore.ts.
+  // This must mirror computeBillableTokens() in chatCore/upstreamTimeouts.ts.
   const tokenSum = `COALESCE(SUM(
       COALESCE(tokens_input, 0) + COALESCE(tokens_output, 0)
       + COALESCE(tokens_reasoning, 0)

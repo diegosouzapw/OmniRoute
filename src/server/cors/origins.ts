@@ -97,17 +97,76 @@ export function resolveAllowedOrigin(requestOrigin: string | null | undefined): 
 }
 
 /**
+ * Read-only snapshot of the effective CORS allowlist configuration, for
+ * dashboards / monitoring (`/api/settings/authz-inventory`). `allowAll` mirrors
+ * the `CORS_ALLOW_ALL` opt-in (and the legacy `CORS_ORIGIN=*`); `allowedOrigins`
+ * is the merged, normalized, sorted, deduped env + runtime allowlist.
+ *
+ * A `true` `allowAll` is what the dashboard surfaces as a wildcard-CORS warning.
+ * See `docs/security/CORS.md`.
+ */
+export interface CorsStatus {
+  allowAll: boolean;
+  allowedOrigins: string[];
+}
+
+export function getCorsStatus(): CorsStatus {
+  const merged = new Set<string>([...envAllowedOrigins(), ...runtimeAllowedOrigins]);
+  return {
+    allowAll: envAllowAll(),
+    allowedOrigins: [...merged].sort(),
+  };
+}
+
+/**
  * Apply CORS headers to a response in-place. Safe to call on any response
  * (rejections, preflight, normal `next()` continuations). When the origin
  * is not allowed, no `Access-Control-Allow-Origin` is added — browsers
  * will block the response, which is the desired fail-closed behavior.
+ *
+ * `relaxForTokenAuth` opts the response into a permissive origin fallback for
+ * the token-authenticated API surface (OpenAI/Anthropic-compatible `/v1/*` and
+ * `/v1beta/*`, plus read-only public endpoints). Those routes authenticate via
+ * `Authorization` / `x-api-key` headers that browsers NEVER auto-attach, so a
+ * permissive `Access-Control-Allow-Origin` there carries none of the
+ * credentialed-session / CSRF risk that the fail-closed default protects (that
+ * risk lives in cookie-authenticated MANAGEMENT/dashboard routes, which must
+ * pass `relaxForTokenAuth = false` and stay exactly fail-closed). When the
+ * explicit allowlist (`CORS_ALLOW_ALL` / `CORS_ALLOWED_ORIGINS` / runtime
+ * settings) does not match, the caller's `Origin` is echoed back (with
+ * `Vary: Origin`) so browser/Electron renderers can read the response, or `*`
+ * is returned when there is no `Origin` header. This is NEVER paired with
+ * `Access-Control-Allow-Credentials` (these routes are not cookie-authed), so
+ * the echo/wildcard stays safe.
+ *
+ * On that same `relaxForTokenAuth` surface, also appends `Vary: Accept-Encoding`
+ * to every response with a body (RFC 9110 §12.5.5, issue #6737) — Next's built-in
+ * compression middleware only appends it conditionally, so shared caches can't
+ * otherwise reliably tell compressed vs uncompressed variants apart.
  */
-export function applyCorsHeaders(response: Response, request: Request): void {
+export function applyCorsHeaders(
+  response: Response,
+  request: Request,
+  relaxForTokenAuth: boolean = false
+): void {
   const requestOrigin = request.headers.get("origin");
-  const allowed = resolveAllowedOrigin(requestOrigin);
+  let allowed = resolveAllowedOrigin(requestOrigin);
+  if (allowed === null && relaxForTokenAuth) {
+    allowed = requestOrigin && requestOrigin.length > 0 ? requestOrigin : "*";
+  }
   if (allowed !== null) {
     response.headers.set("Access-Control-Allow-Origin", allowed);
     response.headers.append("Vary", "Origin");
+  }
+  // RFC 9110 §12.5.5 (issue #6737): the token-authenticated /v1*/v1beta* surface
+  // (relaxForTokenAuth) negotiates content-encoding via Next's built-in
+  // compression middleware, which only appends `Vary: Accept-Encoding`
+  // conditionally (after its own content-type/threshold filter) — so shared
+  // caches (CDNs/proxies) can't reliably tell compressed vs uncompressed variants
+  // apart. Stamp it explicitly here, at the same chokepoint that already appends
+  // `Vary: Origin`, on every relaxed-CORS response with a body.
+  if (relaxForTokenAuth && response.status !== 204) {
+    response.headers.append("Vary", "Accept-Encoding");
   }
   response.headers.set("Access-Control-Allow-Methods", STANDARD_ALLOW_METHODS);
   response.headers.set("Access-Control-Allow-Headers", STANDARD_ALLOW_HEADERS);

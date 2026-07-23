@@ -9,6 +9,9 @@ const {
   injectEmptyReasoningContentForToolCalls,
 } = await import("../../open-sse/translator/helpers/schemaCoercion.ts");
 const { translateRequest } = await import("../../open-sse/translator/index.ts");
+const { NON_ANTHROPIC_THINKING_PLACEHOLDER } = await import(
+  "../../open-sse/translator/helpers/claudeHelper.ts"
+);
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const { clearModelsDevCapabilities, saveModelsDevCapabilities } =
   await import("../../src/lib/modelsDevSync.ts");
@@ -228,6 +231,6 @@ test("translateRequest injects reasoning_content for DeepSeek assistant tool cal
     "deepseek"
   );
 
-  assert.equal(translated.messages[1].reasoning_content, "");
+  assert.equal(translated.messages[1].reasoning_content, NON_ANTHROPIC_THINKING_PLACEHOLDER);
   clearModelsDevCapabilities();
 });

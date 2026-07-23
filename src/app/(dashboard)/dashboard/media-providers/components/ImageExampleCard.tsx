@@ -1,11 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useApiKey } from "../../providers/hooks/useApiKey";
 import { useProviderModels } from "../../providers/hooks/useProviderModels";
 import { buildCurl } from "../../providers/utils/buildCurl";
 import { PlaygroundCard } from "./PlaygroundCard";
+
+interface SuggestedHfModel {
+  id: string;
+  likes?: number;
+  downloads?: number;
+}
+
+/**
+ * useHfSuggestedImageModels — fetch suggested HuggingFace Hub image models
+ * via GET /api/v1/providers/suggested-models?type=image. Only meaningful for
+ * the `huggingface` provider (the only image-kind entry backed by HF Hub);
+ * other providers simply never trigger the fetch.
+ */
+function useHfSuggestedImageModels(providerId: string): SuggestedHfModel[] {
+  // Keep the fetched models tagged with the providerId they were fetched
+  // for, and derive the return value below — this avoids ever calling
+  // setState synchronously from the effect body (react-hooks/set-state-in-effect)
+  // for the "not huggingface" early-return case; switching providers simply
+  // stops matching the tag instead of requiring an explicit reset call.
+  const [fetched, setFetched] = useState<{ providerId: string; models: SuggestedHfModel[] } | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (providerId !== "huggingface") return;
+    let cancelled = false;
+    fetch("/api/v1/providers/suggested-models?type=image")
+      .then((res) => (res.ok ? (res.json() as Promise<{ data?: SuggestedHfModel[] }>) : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        setFetched({ providerId, models: Array.isArray(data.data) ? data.data : [] });
+      })
+      .catch(() => {
+        // Best-effort suggestions — the static model list still works.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [providerId]);
+
+  return fetched && fetched.providerId === providerId ? fetched.models : [];
+}
 
 interface Props {
   providerId: string;
@@ -24,7 +67,7 @@ function extractError(data: unknown): string | null {
   return null;
 }
 
-function ImageResultRenderer(data: unknown) {
+function ImageResultRenderer(data: unknown, altText: string) {
   if (!data || typeof data !== "object") return null;
   const d = data as Record<string, unknown>;
   const items = Array.isArray(d.data) ? (d.data as Array<Record<string, unknown>>) : [];
@@ -39,12 +82,15 @@ function ImageResultRenderer(data: unknown) {
         const src = url ?? (b64 ? `data:image/png;base64,${b64}` : null);
         if (!src) return null;
         return (
-          <img
+          <Image
             key={i}
             src={src}
-            alt={`Generated image ${i + 1}`}
+            alt={`${altText} ${i + 1}`}
+            width={200}
+            height={200}
+            unoptimized
             className="max-w-full rounded-lg border border-border"
-            style={{ maxHeight: "200px" }}
+            style={{ maxHeight: "200px", objectFit: "contain" }}
           />
         );
       })}
@@ -54,12 +100,14 @@ function ImageResultRenderer(data: unknown) {
 
 export function ImageExampleCard({ providerId }: Props) {
   const t = useTranslations("miniPlayground");
+  const tMedia = useTranslations("media");
   const { apiKey } = useApiKey();
   const { models } = useProviderModels(providerId);
+  const suggestedModels = useHfSuggestedImageModels(providerId);
 
   const firstModel = models[0]?.id ?? "dall-e-3";
   const [model, setModel] = useState<string>("");
-  const [prompt, setPrompt] = useState<string>("A serene landscape with mountains at sunset");
+  const [prompt, setPrompt] = useState<string>(() => t("imageSample"));
   const [size, setSize] = useState<string>("1024x1024");
   const [running, setRunning] = useState<boolean>(false);
   const [result, setResult] = useState<{ data: unknown; latencyMs: number } | undefined>();
@@ -103,24 +151,27 @@ export function ImageExampleCard({ providerId }: Props) {
         setResult({ data, latencyMs });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : t("requestFailed"));
     } finally {
       setRunning(false);
     }
   };
 
-  const modelOptions = models.length > 0 ? models : [{ id: "dall-e-3" }];
+  const staticModelOptions = models.length > 0 ? models : [{ id: "dall-e-3" }];
+  const knownModelIds = new Set(staticModelOptions.map((m) => m.id));
+  const suggestedOnly = suggestedModels.filter((m) => !knownModelIds.has(m.id));
+  const modelOptions = [...staticModelOptions, ...suggestedOnly.map((m) => ({ id: m.id }))];
 
   return (
     <PlaygroundCard
-      kindLabel="Image"
+      kindLabel={t("image")}
       apiEndpoint={ENDPOINT_PATH}
       onRun={handleRun}
       curlSnippet={curlSnippet}
       running={running}
       result={result}
       error={error}
-      resultRenderer={ImageResultRenderer}
+      resultRenderer={(data) => ImageResultRenderer(data, tMedia("generatedImageAlt"))}
     >
       {/* Model */}
       <div>
@@ -137,6 +188,29 @@ export function ImageExampleCard({ providerId }: Props) {
           ))}
         </select>
       </div>
+      {/* Suggested models from HuggingFace Hub (image kind only) */}
+      {suggestedOnly.length > 0 && (
+        <div>
+          <label className="block text-xs text-text-muted mb-1">{tMedia("suggestedModels")}</label>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestedOnly.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setModel(m.id)}
+                aria-pressed={effectiveModel === m.id}
+                className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                  effectiveModel === m.id
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-bg-subtle text-text-muted hover:text-text-main"
+                }`}
+              >
+                {m.id}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Size */}
       <div>
         <label className="block text-xs text-text-muted mb-1">{t("size")}</label>
@@ -159,7 +233,7 @@ export function ImageExampleCard({ providerId }: Props) {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           rows={2}
-          placeholder="A serene landscape..."
+          placeholder={t("imageSample")}
           className="w-full rounded-md border border-border bg-bg-subtle text-sm px-2 py-1.5 text-text-main focus:outline-none focus:ring-1 focus:ring-primary resize-none"
         />
       </div>

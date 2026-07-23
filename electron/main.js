@@ -33,6 +33,10 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
 const { hasEncryptedCredentials } = require("./sqlite-inspection");
+const { loginManager } = require("./loginManager");
+const { killProcessTree } = require("./processTree");
+const { resolveServerEntry } = require("./lib/resolveServerEntry");
+const { resolveDarwinHelperExecutable } = require("./lib/resolveNodeHelper");
 
 // ── Single Instance Lock ───────────────────────────────────
 const gotTheLock = app.requestSingleInstanceLock();
@@ -76,23 +80,16 @@ function resolveNodeExecutable(env = process.env) {
   // flash a shell window. Use the Helper binary instead — macOS treats
   // Helper processes as background tasks with no visible UI artifacts.
   if (process.platform === "darwin" && !isDev) {
-    const helperPath = path.join(path.dirname(process.execPath), `${app.getName()} Helper`);
-    if (fs.existsSync(helperPath)) {
-      return helperPath;
-    }
-    // Electron \u003e= 20 may use "(Renderer)" / "(GPU)" / "(Plugin)" suffixed helpers.
-    // The unsuffixed Helper is the one suitable for ELECTRON_RUN_AS_NODE.
-    const frameworkHelper = path.join(
-      path.dirname(process.execPath),
-      "..",
-      "Frameworks",
-      `${app.getName()} Helper.app`,
-      "Contents",
-      "MacOS",
-      `${app.getName()} Helper`
-    );
-    if (fs.existsSync(frameworkHelper)) {
-      return frameworkHelper;
+    // #7941: derive the Helper name from the packaged binary name
+    // (path.basename(process.execPath)) rather than app.getName(). electron-builder
+    // generates BOTH the main binary and the Helper.app bundles from build.productName
+    // ("OmniRoute"), whereas app.getName() reads package.json `name` ("omniroute-desktop")
+    // — the two diverged, so app.getName() never matched a real Helper path and this fell
+    // through to process.execPath, spawning the main Electron binary and producing a
+    // second, inert macOS Dock icon.
+    const helper = resolveDarwinHelperExecutable({ execPath: process.execPath });
+    if (helper) {
+      return helper;
     }
   }
   return process.execPath;
@@ -199,7 +196,9 @@ async function waitForServerExit(proc, timeoutMs = 5000) {
     new Promise((r) =>
       setTimeout(() => {
         try {
-          proc.kill("SIGKILL");
+          // #3347: force-kill the whole tree (Windows leaves grandchildren alive on a
+          // bare SIGKILL of the direct child, keeping omniroute.exe locked).
+          killProcessTree(proc, { signal: "SIGKILL" });
         } catch {
           /* already dead */
         }
@@ -265,7 +264,18 @@ async function checkForUpdates(silent = false) {
     }
     return;
   }
-  await autoUpdater.checkForUpdates();
+  // Update-check failures (404 when the release manifest isn't published yet,
+  // offline, rate-limited) are surfaced to the user via the autoUpdater "error"
+  // event handler. The promise returned by checkForUpdates() ALSO rejects on
+  // those, so it must be caught here — the startup check (line ~928) fires it
+  // unawaited inside a setTimeout, and an uncaught rejection there becomes an
+  // "Unhandled Rejection" that the packaged-app smoke test treats as fatal.
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[Electron] Update check failed (non-fatal):", msg);
+  }
 }
 
 async function downloadUpdate() {
@@ -274,7 +284,9 @@ async function downloadUpdate() {
 
 function installUpdate() {
   if (nextServer) {
-    nextServer.kill("SIGTERM");
+    // #3347: tree-kill before quitAndInstall — a surviving server child (and its
+    // grandchildren) keeps omniroute.exe locked and the updater fails with "file in use".
+    killProcessTree(nextServer, { signal: "SIGTERM" });
     nextServer = null;
   }
   autoUpdater.quitAndInstall();
@@ -410,6 +422,10 @@ function createTray() {
   try {
     icon = nativeImage.createFromPath(iconPath);
     if (icon.isEmpty()) icon = nativeImage.createEmpty();
+    if (process.platform === "darwin" && !icon.isEmpty()) {
+      icon = icon.resize({ width: 20, height: 20 });
+      icon.setTemplateImage(true);
+    }
   } catch {
     icon = nativeImage.createEmpty();
   }
@@ -504,7 +520,11 @@ function startNextServer() {
     return;
   }
 
-  const serverScript = path.join(NEXT_SERVER_PATH, "server.js");
+  // Prefer server-ws.mjs (peer-stamp wrapper) when present; fall back to server.js.
+  // Without server-ws.mjs every LOCAL_ONLY route (AgentBridge, MCP, services, …) returns
+  // 403 because the authz middleware can't verify the trusted loopback peer-stamp. (#3386)
+  const serverEntryName = resolveServerEntry(NEXT_SERVER_PATH, fs.existsSync.bind(fs));
+  const serverScript = path.join(NEXT_SERVER_PATH, serverEntryName);
   if (!fs.existsSync(serverScript)) {
     console.error("[Electron] Server script not found:", serverScript);
     sendToRenderer("server-status", { status: "error", port: serverPort });
@@ -588,8 +608,32 @@ function startNextServer() {
 
   const nodeExecutable = resolveNodeExecutable(serverEnv);
 
+  // #5172/#5160/#5152: the Electron-spawned server inherited the runtime's low
+  // default V8 heap (~512MB) and OOM-crashed on RAM-rich boxes under load
+  // (65 providers / 2600 models → "Ineffective mark-compacts near heap limit").
+  // Default the heap to ~35% of physical RAM (clamped [512, 4096]); an explicit
+  // OMNIROUTE_MEMORY_MB or a pre-set --max-old-space-size still wins. Mirrors
+  // scripts/build/runtime-env.mjs (CJS can't import the ESM helper).
+  const serverNodeOptions = (() => {
+    const existing = serverEnv.NODE_OPTIONS || "";
+    if (existing.includes("--max-old-space-size")) return existing;
+    const explicit = parseInt(serverEnv.OMNIROUTE_MEMORY_MB, 10);
+    let heapMb;
+    if (Number.isFinite(explicit) && explicit >= 64 && explicit <= 16384) {
+      heapMb = explicit;
+    } else {
+      const totalMb = require("os").totalmem() / (1024 * 1024);
+      heapMb =
+        Number.isFinite(totalMb) && totalMb > 0
+          ? Math.min(4096, Math.max(512, Math.floor(totalMb * 0.35)))
+          : 512;
+    }
+    return `${existing} --max-old-space-size=${heapMb}`.trim();
+  })();
+
   console.log("[Electron] Starting Next.js server on port", serverPort);
   console.log("[Electron] Using Node executable:", nodeExecutable);
+  console.log("[Electron] Server NODE_OPTIONS:", serverNodeOptions);
   sendToRenderer("server-status", { status: "starting", port: serverPort });
 
   // Fix #10: Use pipe instead of inherit for logging & readiness detection
@@ -604,6 +648,7 @@ function startNextServer() {
       NODE_ENV: "production",
       ELECTRON_RUN_AS_NODE: "1",
       NODE_PATH: resolveServerNodePath(serverEnv),
+      NODE_OPTIONS: serverNodeOptions,
     },
     stdio: "pipe",
     windowsHide: true,
@@ -650,7 +695,10 @@ function startNextServer() {
 
 function stopNextServer() {
   if (nextServer) {
-    nextServer.kill("SIGTERM");
+    // #3347: kill the whole tree, not just the direct child. On Windows the server
+    // (omniroute.exe-as-node) spawns grandchildren that a bare SIGTERM leaves alive,
+    // holding a lock on omniroute.exe and blocking updates.
+    killProcessTree(nextServer, { signal: "SIGTERM" });
     nextServer = null;
   }
 }
@@ -794,6 +842,48 @@ function setupIpcHandlers() {
   });
 
   ipcMain.handle("get-app-version", () => app.getVersion());
+
+  // ── Web-Cookie Login IPC Handlers ──────────────────────────
+  // Forward login status events to the renderer. Registered ONCE here — never
+  // inside the login:start handler, which would attach a fresh listener (and
+  // duplicate every subsequent status event) on each invocation.
+  loginManager.on("status", (status) => {
+    sendToRenderer("login:status", status);
+  });
+
+  ipcMain.handle("login:start", async (_event, providerId, options) => {
+    const result = await loginManager.startLogin(providerId, options);
+
+    // Persist extracted credentials
+    if (result.success && result.credentials) {
+      try {
+        // Store as JSON blob under the provider ID
+        const { persistSecret: ps } = require("../src/lib/db/secrets");
+        if (typeof ps === "function") {
+          ps(providerId, JSON.stringify(result.credentials));
+        }
+        sendToRenderer("login:status", {
+          providerId,
+          status: "persisted",
+          message: "Credentials saved",
+        });
+      } catch (err) {
+        console.error("[Electron] Failed to persist credentials:", err);
+        return { success: false, error: "Extracted but failed to save credentials" };
+      }
+    }
+
+    return result;
+  });
+
+  ipcMain.handle("login:cancel", async () => {
+    loginManager.cancel();
+    return { success: true };
+  });
+
+  ipcMain.handle("login:status", async () => {
+    return { active: loginManager.getActiveProvider() !== null };
+  });
 
   // Autostart management handlers
   ipcMain.handle("get-autostart-status", () => {

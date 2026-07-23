@@ -25,5 +25,8 @@
     "base_url": "OmniRoute-palvelimen perus-URL",
     "context": "Palvelimen konteksti/profiili tälle komennolle",
     "lang": "Aseta CLI-näyttökieli (ohittaa OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Käynnistä paikallinen Redis-säiliö yhdellä napsautuksella (Podman tai Docker) OmniRoute-välimuistia ja kiintiöiden seurantaa varten"
   }
 }

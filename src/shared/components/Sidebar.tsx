@@ -1,26 +1,37 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
 import { getActiveSidebarHref } from "@/shared/utils/sidebarRouteMatch";
+import { filterSidebarSectionsByQuery } from "@/shared/utils/sidebarSearch";
+import {
+  expandActiveSection,
+  hydrateExpandedSections,
+  toggleExpandedSection,
+} from "@/shared/utils/sidebarExpansionState";
 import { APP_CONFIG } from "@/shared/constants/appConfig";
 import OmniRouteLogo from "./OmniRouteLogo";
 import Button from "./Button";
+import Input from "./Input";
 import { ConfirmModal } from "./Modal";
 import CloudSyncStatus from "./CloudSyncStatus";
 import { useTranslations } from "next-intl";
+import {
+  HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY,
+  normalizeHiddenSidebarGroupLabels,
+} from "@/shared/constants/sidebarGroupVisibility";
 import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTION_ORDER_KEY,
   SIDEBAR_ITEM_ORDER_KEY,
   SIDEBAR_SECTIONS,
-  getSectionItems,
   normalizeHiddenSidebarItems,
   applySectionOrder,
   applyItemOrder,
+  getSidebarIconAccent,
   type SidebarSectionId,
   type SidebarItemDefinition,
   type SidebarItemGroup,
@@ -31,6 +42,11 @@ const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 const DEFAULT_EXPANDED: SidebarSectionId = "omni-proxy";
 const EXPANDED_SECTIONS_KEY = "sidebar-expanded-sections";
 const PINNED_SECTIONS_KEY = "sidebar-pinned-sections";
+
+type SidebarGlyphStyle = CSSProperties & {
+  "--sidebar-icon-accent": string;
+  color: string;
+};
 
 type SidebarProps = {
   onClose?: () => void;
@@ -64,6 +80,13 @@ export default function Sidebar({
   onToggleCollapse,
   isMacElectron = false,
 }: SidebarProps) {
+  const getIconStyle = (itemId: string): SidebarGlyphStyle => {
+    const accent = getSidebarIconAccent(itemId);
+    return {
+      "--sidebar-icon-accent": accent,
+      color: accent,
+    };
+  };
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const tc = useTranslations("common");
@@ -75,6 +98,7 @@ export default function Sidebar({
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
+  const [hiddenSidebarGroupLabels, setHiddenSidebarGroupLabels] = useState<string[]>([]);
   const [sidebarSectionOrder, setSidebarSectionOrder] = useState<SidebarSectionId[]>([]);
   const [sidebarItemOrder, setSidebarItemOrder] = useState<SidebarItemOrder>({});
   const [customAppName, setCustomAppName] = useState<string | null>(null);
@@ -83,9 +107,12 @@ export default function Sidebar({
     new Set([DEFAULT_EXPANDED])
   );
   const [pinnedSections, setPinnedSections] = useState<Set<SidebarSectionId>>(new Set());
+  const [sidebarExpansionLoaded, setSidebarExpansionLoaded] = useState(false);
+  const skipInitialActiveExpansion = useRef(false);
   const [hoveredItem, setHoveredItem] = useState<HoveredItem>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Load persisted state on mount; OmniProxy is pinned by default on first visit
+  // Load persisted state on mount. A stored [] intentionally means "all sections collapsed".
   useEffect(() => {
     const storedExpanded = loadFromStorage<SidebarSectionId[]>(EXPANDED_SECTIONS_KEY, [
       DEFAULT_EXPANDED,
@@ -102,21 +129,22 @@ export default function Sidebar({
         ? (JSON.parse(pinnedRaw) as SidebarSectionId[])
         : (SIDEBAR_SECTIONS.filter((s) => s.defaultPinned).map((s) => s.id) as SidebarSectionId[]);
 
-    const initialExpanded = new Set<SidebarSectionId>(
-      storedExpanded.length > 0 ? storedExpanded : [DEFAULT_EXPANDED]
-    );
     const initialPinned = new Set<SidebarSectionId>(storedPinned);
-    // Pinned sections must also be expanded
-    for (const id of initialPinned) initialExpanded.add(id);
+    const initialExpanded = hydrateExpandedSections(storedExpanded, initialPinned);
 
+    skipInitialActiveExpansion.current = storedExpanded.length === 0;
     setExpandedSections(initialExpanded);
     setPinnedSections(initialPinned);
+    setSidebarExpansionLoaded(true);
   }, []);
 
   useEffect(() => {
     const applySettings = (data) => {
       setShowDebug(data?.debugMode === true);
       setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
+      setHiddenSidebarGroupLabels(
+        normalizeHiddenSidebarGroupLabels(data?.[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
+      );
       setCustomAppName(data?.instanceName || null);
       setCustomLogo(data?.customLogoBase64 || data?.customLogoUrl || null);
     };
@@ -140,6 +168,11 @@ export default function Sidebar({
       if (HIDDEN_SIDEBAR_ITEMS_SETTING_KEY in detail) {
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
+        );
+      }
+      if (HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY in detail) {
+        setHiddenSidebarGroupLabels(
+          normalizeHiddenSidebarGroupLabels(detail[HIDDEN_SIDEBAR_GROUP_LABELS_SETTING_KEY])
         );
       }
       if (SIDEBAR_SECTION_ORDER_KEY in detail && Array.isArray(detail[SIDEBAR_SECTION_ORDER_KEY])) {
@@ -173,15 +206,18 @@ export default function Sidebar({
 
   const resolveItem = (item: SidebarItemDefinition, hidden: Set<string>) => {
     if (hidden.has(item.id)) return null;
-    const subtitle = item.subtitleKey ? getSidebarLabel(item.subtitleKey, "") : undefined;
+    const subtitle = item.subtitleKey
+      ? getSidebarLabel(item.subtitleKey, item.subtitleFallback ?? "")
+      : item.subtitleFallback;
     return {
       ...item,
-      label: getSidebarLabel(item.i18nKey, item.id),
+      label: getSidebarLabel(item.i18nKey, item.labelFallback ?? item.id),
       subtitle: subtitle || undefined,
     };
   };
 
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
+  const hiddenSidebarGroupLabelsSet = new Set(hiddenSidebarGroupLabels);
 
   const orderedSections = applySectionOrder(
     SIDEBAR_SECTIONS.filter((section) => section.visibility !== "debug" || showDebug),
@@ -207,9 +243,11 @@ export default function Sidebar({
             return {
               ...child,
               title: getSidebarLabel(child.titleKey, child.titleFallback),
+              separatorHidden: hiddenSidebarGroupLabelsSet.has(child.id),
               items,
             } as SidebarItemGroup & {
               title: string;
+              separatorHidden: boolean;
               items: (SidebarItemDefinition & { label: string })[];
             };
           }
@@ -236,18 +274,26 @@ export default function Sidebar({
 
   const activeHref = getActiveSidebarHref(pathname, allVisibleItems);
 
-  // Auto-expand the section containing the active page (without closing others)
+  const isSearching = searchQuery.trim().length > 0;
+  const displaySections = isSearching
+    ? filterSidebarSectionsByQuery(visibleSections, searchQuery)
+    : visibleSections;
+
+  // Keep the active page visible while preserving accordion semantics for unpinned sections.
   useEffect(() => {
-    if (collapsed) return;
+    if (collapsed || !sidebarExpansionLoaded) return;
+    if (skipInitialActiveExpansion.current) {
+      skipInitialActiveExpansion.current = false;
+      return;
+    }
     for (const section of visibleSections) {
       const sectionItems = section.children.flatMap((child: any) =>
         child.type === "group" ? child.items : [child]
       );
       if (sectionItems.some((item: any) => !item.external && item.href === activeHref)) {
         setExpandedSections((prev) => {
-          if (prev.has(section.id as SidebarSectionId)) return prev;
-          const next = new Set(prev);
-          next.add(section.id as SidebarSectionId);
+          const next = expandActiveSection(pinnedSections, section.id as SidebarSectionId);
+          if ([...next].every((id) => prev.has(id)) && next.size === prev.size) return prev;
           saveToStorage(EXPANDED_SECTIONS_KEY, [...next]);
           return next;
         });
@@ -255,26 +301,13 @@ export default function Sidebar({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeHref, collapsed]);
+  }, [activeHref, collapsed, pinnedSections, sidebarExpansionLoaded]);
 
   // Accordion toggle: opening a section closes all non-pinned sections
   const toggleSection = useCallback(
     (sectionId: SidebarSectionId) => {
       setExpandedSections((prev) => {
-        const isOpen = prev.has(sectionId);
-        let next: Set<SidebarSectionId>;
-        if (isOpen) {
-          // Close this section
-          next = new Set(prev);
-          next.delete(sectionId);
-        } else {
-          // Accordion: keep only pinned sections + the new one
-          next = new Set<SidebarSectionId>();
-          for (const id of pinnedSections) {
-            next.add(id);
-          }
-          next.add(sectionId);
-        }
+        const next = toggleExpandedSection(prev, pinnedSections, sectionId);
         saveToStorage(EXPANDED_SECTIONS_KEY, [...next]);
         return next;
       });
@@ -360,7 +393,9 @@ export default function Sidebar({
     );
     const content = (
       <>
-        <span className={iconClassName}>{item.icon}</span>
+        <span className={iconClassName} style={getIconStyle(item.id)}>
+          {item.icon}
+        </span>
         {!collapsed && (
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-sm font-medium">{item.label}</span>
@@ -419,7 +454,7 @@ export default function Sidebar({
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-3 focus:bg-primary focus:text-white focus:rounded-md focus:m-2"
         >
-          Skip to content
+          {t("skipToContent")}
         </a>
 
         {(onToggleCollapse || !isMacElectron) && (
@@ -442,13 +477,13 @@ export default function Sidebar({
             {onToggleCollapse && (
               <button
                 onClick={onToggleCollapse}
-                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                title={collapsed ? t("expandSidebar") : t("collapseSidebar")}
                 aria-expanded={!collapsed}
-                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
                 className={cn(
                   "rounded-md p-1 text-text-muted/50 transition-colors hover:bg-black/5 hover:text-text-muted dark:hover:bg-white/5",
                   collapsed && !isMacElectron && "mt-2",
-                  isMacElectron && "ml-auto"
+                  isMacElectron && "ms-auto"
                 )}
               >
                 <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
@@ -486,16 +521,34 @@ export default function Sidebar({
           </Link>
         </div>
 
+        {!collapsed && (
+          <div className="px-4 pb-2">
+            <Input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={tc("search")}
+              aria-label={tc("search")}
+              icon="search"
+              className="gap-0"
+              inputClassName="py-1.5 text-xs"
+            />
+          </div>
+        )}
+
         <nav
-          aria-label="Main navigation"
+          aria-label={t("mainNavigation")}
           className={cn(
             "min-h-0 flex-1 overflow-y-auto py-1 custom-scrollbar",
             collapsed ? "px-2 space-y-0.5" : "px-3"
           )}
         >
-          {visibleSections.map((section, idx) => {
+          {isSearching && displaySections.length === 0 && (
+            <p className="px-2 py-3 text-xs text-text-muted/60">{tc("noResults")}</p>
+          )}
+          {displaySections.map((section, idx) => {
             const sectionId = section.id as SidebarSectionId;
-            const isExpanded = expandedSections.has(sectionId);
+            const isExpanded = isSearching || expandedSections.has(sectionId);
             const isPinned = pinnedSections.has(sectionId);
             const isFirst = idx === 0;
             const sectionItems = section.children.flatMap((child: any) =>
@@ -542,7 +595,7 @@ export default function Sidebar({
                       e.stopPropagation();
                       togglePin(sectionId);
                     }}
-                    title={isPinned ? "Unpin section" : "Pin section open"}
+                    title={isPinned ? t("unpinSection") : t("pinSectionOpen")}
                     className={cn(
                       "p-0.5 rounded transition-all shrink-0",
                       isPinned
@@ -576,15 +629,17 @@ export default function Sidebar({
                     {section.children.map((child: any) => {
                       if (child.type === "group") {
                         if (child.items.length === 0) return null;
+                        const separatorHidden = child.separatorHidden === true;
                         return (
-                          <div key={child.id} className="mt-2">
-                            {/* Visual sub-group separator */}
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 mb-0.5">
-                              <div className="h-px flex-1 bg-black/8 dark:bg-white/8" />
-                              <span className="text-[8px] font-semibold text-text-muted/40 uppercase tracking-widest">
-                                {child.title}
-                              </span>
-                            </div>
+                          <div key={child.id} className={separatorHidden ? "mt-0.5" : "mt-2"}>
+                            {!separatorHidden && (
+                              <div className="flex items-center gap-1.5 px-2 py-0.5 mb-0.5">
+                                <div className="h-px flex-1 bg-black/8 dark:bg-white/8" />
+                                <span className="text-[8px] font-semibold text-text-muted/40 uppercase tracking-widest">
+                                  {child.title}
+                                </span>
+                              </div>
+                            )}
                             {child.items.map(renderNavLink)}
                           </div>
                         );
@@ -679,12 +734,10 @@ export default function Sidebar({
             <div className="flex items-center justify-center size-16 rounded-full bg-red-500/20 text-red-500 mx-auto mb-4">
               <span className="material-symbols-outlined text-[32px]">power_off</span>
             </div>
-            <h2 className="text-xl font-semibold text-white mb-2">Server Disconnected</h2>
-            <p className="text-text-muted mb-6">
-              The proxy server has been stopped or is restarting.
-            </p>
+            <h2 className="text-xl font-semibold text-white mb-2">{t("serverDisconnected")}</h2>
+            <p className="text-text-muted mb-6">{t("serverDisconnectedMsg")}</p>
             <Button variant="secondary" onClick={() => globalThis.location.reload()}>
-              Reload Page
+              {t("reloadPage")}
             </Button>
           </div>
         </div>

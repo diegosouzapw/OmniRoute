@@ -1,0 +1,1 @@
+- **fix(api):** the compression config PUT schema now accepts `enableRenderers` for the RTK engine instead of rejecting the documented option (#6703, #6757 — thanks @alltomatos, with an independent duplicate fix from @chirag127 via #6756).

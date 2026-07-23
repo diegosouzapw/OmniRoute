@@ -269,12 +269,27 @@ function obfuscateWord(word: string): string {
  * list instead of the module-level singleton, so concurrent requests with
  * different op configs do not race.
  */
+// Per-word regex cache: obfuscateWithList runs over the whole request body on every
+// request when obfuscation is enabled, recompiling one RegExp per word each time. The
+// word list is stable per op config, so memoize. Bounded by distinct configured words
+// (with a defensive cap). Global regexes are safe to reuse: String.replace resets lastIndex.
+const _obfuscationRegexCache = new Map<string, RegExp>();
+function getObfuscationRegex(word: string): RegExp {
+  let regex = _obfuscationRegexCache.get(word);
+  if (!regex) {
+    if (_obfuscationRegexCache.size > 2000) _obfuscationRegexCache.clear();
+    regex = new RegExp(escapeRegex(word), "gi");
+    _obfuscationRegexCache.set(word, regex);
+  }
+  return regex;
+}
+
 function obfuscateWithList(text: string, words: string[]): string {
   if (!text || words.length === 0) return text;
   let result = text;
   for (const word of words) {
     if (!word) continue;
-    const regex = new RegExp(escapeRegex(word), "gi");
+    const regex = getObfuscationRegex(word);
     result = result.replace(regex, (match) => obfuscateWord(match));
   }
   return result;
@@ -434,7 +449,23 @@ function resolveProviderConfig(
 // Runtime singleton.
 // ────────────────────────────────────────────────────────────────────────────
 
-let _systemTransformsConfig: SystemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+// Backed by globalThis so the config is shared across the SEPARATE webpack module
+// graphs Next.js builds for `instrumentation.ts` (boot-time hydration via
+// applyRuntimeSettings → setSystemTransformsConfig) and the app-route / open-sse
+// executors (per-request reads in base.ts / claudeCodeCompatible.ts). A module-local
+// `let` is duplicated per graph, so a Settings-UI override applied at boot never
+// reaches the request path (the #5312-class module-graph bug; the protective
+// compiled default still runs, but operator customizations were silently dropped).
+// Mirrors systemPrompt.ts (#2470) and thinkingBudget.ts (#5312).
+const GLOBAL_KEY = "__omniroute_systemTransforms_config__";
+const _store = globalThis as unknown as Record<string, SystemTransformsConfig | undefined>;
+
+function getStore(): SystemTransformsConfig {
+  if (!_store[GLOBAL_KEY]) {
+    _store[GLOBAL_KEY] = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+  }
+  return _store[GLOBAL_KEY]!;
+}
 
 /**
  * Replace the active system-transforms config. Called from
@@ -445,14 +476,14 @@ let _systemTransformsConfig: SystemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_
  */
 export function setSystemTransformsConfig(input: unknown): void {
   if (!input || typeof input !== "object") {
-    _systemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+    _store[GLOBAL_KEY] = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
     return;
   }
   const candidate = input as Record<string, unknown>;
 
   // Legacy shape: { enabled, pipeline } → migrate to per-provider map.
   if ("pipeline" in candidate && Array.isArray(candidate.pipeline)) {
-    _systemTransformsConfig = {
+    _store[GLOBAL_KEY] = {
       providers: {
         ...DEFAULT_SYSTEM_TRANSFORMS_CONFIG.providers,
         [PROVIDER_CC_BRIDGE]: {
@@ -485,17 +516,17 @@ export function setSystemTransformsConfig(input: unknown): void {
         next.providers[providerId] = providerDefault;
       }
     }
-    _systemTransformsConfig = next;
+    _store[GLOBAL_KEY] = next;
     return;
   }
 
-  _systemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+  _store[GLOBAL_KEY] = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
 }
 
 export function getSystemTransformsConfig(): SystemTransformsConfig {
-  return _systemTransformsConfig;
+  return getStore();
 }
 
 export function resetSystemTransformsConfig(): void {
-  _systemTransformsConfig = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
+  _store[GLOBAL_KEY] = DEFAULT_SYSTEM_TRANSFORMS_CONFIG;
 }

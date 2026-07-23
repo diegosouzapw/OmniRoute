@@ -212,6 +212,21 @@ export function unlockBadge(apiKeyId: string, badgeId: string): void {
     .run(apiKeyId, badgeId);
 }
 
+/**
+ * Whether a specific badge has already been awarded to an API key.
+ *
+ * Reads `user_badges` directly (no JOIN), so the "already unlocked?" check is correct even
+ * when `badge_definitions` is unpopulated. `getBadges()` INNER-JOINs `badge_definitions`, so
+ * it returns nothing until the definitions are seeded — using it as a dedup guard caused
+ * badge-unlock events to re-fire on every request (#3472).
+ */
+export function hasBadge(apiKeyId: string, badgeId: string): boolean {
+  const row = db()
+    .prepare(`SELECT 1 FROM user_badges WHERE api_key_id = ? AND badge_id = ? LIMIT 1`)
+    .get(apiKeyId, badgeId);
+  return !!row;
+}
+
 export function getBadges(apiKeyId: string): UserBadge[] {
   const rows = db()
     .prepare(
@@ -268,6 +283,62 @@ export function getBadgeDefinitions(category?: string): BadgeDefinition[] {
     criteria: r.criteria,
     hidden: r.hidden,
     createdAt: r.created_at,
+  }));
+}
+
+/**
+ * Aggregate XP across every API key (the operator-wide profile view used by the
+ * dashboard profile page, which is not scoped to a single key). Sums total XP and
+ * takes the highest reached level. (#3484)
+ */
+export function getAggregateXp(): UserLevelRow {
+  const row = db()
+    .prepare(
+      `SELECT COALESCE(SUM(total_xp), 0) AS total_xp,
+              COALESCE(MAX(current_level), 1) AS current_level,
+              MAX(updated_at) AS updated_at
+       FROM user_levels`
+    )
+    .get() as { total_xp: number; current_level: number; updated_at: string | null };
+  return {
+    apiKeyId: "*",
+    totalXp: row?.total_xp ?? 0,
+    currentLevel: row?.current_level ?? 1,
+    updatedAt: row?.updated_at ?? "",
+  };
+}
+
+/**
+ * Distinct badges earned by any API key (operator-wide earned set for the profile
+ * page). Deduplicated by badge id, keeping the earliest unlock. (#3484)
+ */
+export function getAllEarnedBadges(): UserBadge[] {
+  const rows = db()
+    .prepare(
+      `SELECT ub.badge_id, MIN(ub.unlocked_at) AS unlocked_at,
+              bd.name, bd.description, bd.icon, bd.category, bd.rarity
+       FROM user_badges ub
+       JOIN badge_definitions bd ON bd.id = ub.badge_id
+       GROUP BY ub.badge_id`
+    )
+    .all() as Array<{
+    badge_id: string;
+    unlocked_at: string;
+    name: string;
+    description: string | null;
+    icon: string | null;
+    category: string | null;
+    rarity: string;
+  }>;
+  return rows.map((r) => ({
+    apiKeyId: "*",
+    badgeId: r.badge_id,
+    unlockedAt: r.unlocked_at,
+    badgeName: r.name,
+    badgeDescription: r.description,
+    badgeIcon: r.icon,
+    badgeCategory: r.category,
+    badgeRarity: r.rarity,
   }));
 }
 
@@ -413,6 +484,17 @@ export function revokeInvite(id: string): void {
 }
 
 // ──────────────── Community Servers ────────────────
+
+/**
+ * Look up a connected community server by its API key hash.
+ * Returns the server id if the key hash matches a 'connected' server, or undefined.
+ * Used by federation routes to authenticate bearer tokens.
+ */
+export function getConnectedServerByKeyHash(apiKeyHash: string): { id: string } | undefined {
+  return db()
+    .prepare("SELECT id FROM community_servers WHERE api_key_hash = ? AND status = 'connected'")
+    .get(apiKeyHash) as { id: string } | undefined;
+}
 
 export function connectServer(id: string, name: string, url: string, apiKeyHash: string): void {
   db()

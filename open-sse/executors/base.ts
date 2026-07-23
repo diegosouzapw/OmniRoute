@@ -1,6 +1,32 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import {
+  mergeClientAnthropicBeta,
+  normalizeAnthropicHeaderVariants,
+} from "../config/anthropicHeaders.ts";
+import { applyContextEditingToBody } from "../config/contextEditing.ts";
+import {
+  findOffendingField,
+  detectUnsupportedParam,
+  stripGroqUnsupportedFields,
+} from "../config/providerFieldStrips.ts";
+import {
+  getParamFilterConfig,
+  addParamToBlocklist,
+  isAutoLearnGloballyEnabled,
+} from "@/lib/db/paramFilters";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsClaudeMaxEffort, supportsXHighEffort } from "../config/providerModels.ts";
+import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
+import {
+  recordFreeWindowAttempt,
+  correctFromRateLimitHeaders,
+  resolveAccountKey,
+  isFreeVariantModel,
+} from "../services/openrouterFreeWindow.ts";
+import type { PoolConfig } from "../services/sessionPool/types.ts";
+import type { Session } from "../services/sessionPool/session.ts";
+import { SessionPool } from "../services/sessionPool/sessionPool.ts";
+import { PoolRegistry } from "../services/sessionPool/poolRegistry.ts";
 import {
   getRotatingApiKey,
   getValidApiKey,
@@ -18,17 +44,24 @@ import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
   appendAnthropicBetaHeader,
   CONTEXT_1M_BETA_HEADER,
+  enforceThinkingTemperature,
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
+import {
+  cloakThirdPartyToolNames,
+  remapToolNamesInRequest,
+} from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
+import { sanitizeClaudeToolSchemas } from "../translator/helpers/schemaCoercion.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 import {
   fixToolPairs,
   fixToolAdjacency,
   stripTrailingAssistantOrphanToolUse,
+  stripTrailingAssistantForProvider,
 } from "../services/contextManager.ts";
 import { randomUUID } from "node:crypto";
 import {
@@ -47,6 +80,29 @@ import {
   stainlessRuntimeVersion,
   stripProxyToolPrefix,
 } from "./claudeIdentity.ts";
+import { withForcedResponsesUpstream } from "./forceResponsesUpstream.ts";
+import {
+  mergeUpstreamExtraHeaders,
+  setUserAgentHeader,
+  applyConfiguredUserAgent,
+  stripStainlessHeadersForOpenAICompat,
+} from "./base/headers.ts";
+import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
+import { applyClineProtocolHeaders } from "@/shared/utils/clineAuth";
+// Header helpers extracted to a pure leaf; re-exported for external importers
+// (executors + tests) that import them from "./base.ts".
+export {
+  mergeUpstreamExtraHeaders,
+  getCustomUserAgent,
+  setUserAgentHeader,
+  applyConfiguredUserAgent,
+  isOpenAICompatibleEndpoint,
+  stripStainlessHeadersForOpenAICompat,
+} from "./base/headers.ts";
+import { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
+// Reasoning-effort sanitation extracted to a pure leaf; re-exported for external
+// importers (mimoThinking service + tests) that import it from "./base.ts".
+export { sanitizeReasoningEffortForProvider } from "./base/reasoningEffort.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -69,6 +125,7 @@ export type ProviderConfig = {
   baseUrl?: string;
   baseUrls?: string[];
   responsesBaseUrl?: string;
+  messagesUrl?: string;
   chatPath?: string;
   clientVersion?: string;
   clientId?: string;
@@ -86,6 +143,7 @@ export type ProviderCredentials = {
   accessToken?: string;
   refreshToken?: string;
   apiKey?: string;
+  email?: string | null;
   projectId?: string | null;
   expiresAt?: string;
   connectionId?: string; // T07: used for API key rotation index
@@ -113,6 +171,11 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
+  /** Response format the end client expects (e.g. "openai-responses"). Executors
+   * that do their own Claude→OpenAI stream translation (GLM, zed-hosted) use
+   * this to apply client-format-aware policies such as `</think>` close-marker
+   * suppression. */
+  clientResponseFormat?: string | null;
   /** Callback to persist tokens that are proactively refreshed during execution.
    * Accepts a partial credentials patch (e.g. `{ accessToken, refreshToken }` or
    * `{ testStatus: "expired", isActive: false }`); the caller merges into the
@@ -122,6 +185,10 @@ export type ExecuteInput = {
   ) => Promise<void> | void;
   /** When true, skip the intra-URL 429 retry in execute() so the caller handles fallback. */
   skipUpstreamRetry?: boolean;
+  /** Delegated Context Editing (Claude only): when enabled, attach the
+   * `context_management.clear_tool_uses` strategy so the provider clears stale
+   * tool-use blocks server-side. Honored only on the genuine `claude` path. */
+  contextEditing?: { enabled: boolean } | null;
 };
 
 export type CountTokensInput = {
@@ -131,48 +198,6 @@ export type CountTokensInput = {
   model: string;
   signal?: AbortSignal | null;
 };
-
-/** Apply model-level extra upstream headers (e.g. Authentication, X-Custom-Auth). */
-export function mergeUpstreamExtraHeaders(
-  headers: Record<string, string>,
-  extra?: Record<string, string> | null
-): void {
-  if (!extra) return;
-  for (const [k, v] of Object.entries(extra)) {
-    if (typeof k === "string" && k.length > 0 && typeof v === "string") {
-      if (k.toLowerCase() === "user-agent") {
-        setUserAgentHeader(headers, v);
-        continue;
-      }
-      headers[k] = v;
-    }
-  }
-}
-
-export function getCustomUserAgent(providerSpecificData?: JsonRecord | null): string | null {
-  const customUserAgent =
-    typeof providerSpecificData?.customUserAgent === "string"
-      ? providerSpecificData.customUserAgent.trim()
-      : "";
-  return customUserAgent || null;
-}
-
-export function setUserAgentHeader(headers: Record<string, string>, userAgent: string): void {
-  headers["User-Agent"] = userAgent;
-  if ("user-agent" in headers) {
-    headers["user-agent"] = userAgent;
-  }
-}
-
-export function applyConfiguredUserAgent(
-  headers: Record<string, string>,
-  providerSpecificData?: JsonRecord | null
-): void {
-  const customUserAgent = getCustomUserAgent(providerSpecificData);
-  if (customUserAgent) {
-    setUserAgentHeader(headers, customUserAgent);
-  }
-}
 
 export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal): AbortSignal {
   const controller = new AbortController();
@@ -203,93 +228,24 @@ function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
 }
 
 /**
- * Sanitize reasoning_effort for providers that don't accept all values.
- *
- * The claude→openai translator may emit reasoning_effort=max/xhigh when the
- * client sends output_config.effort=max on a Claude-shape request. Combined with
- * runtime alias remapping (e.g. claude-opus-4-6 → mimo/mimo-v2.5-pro), this
- * routes xhigh to OpenAI-shape providers that don't accept the value:
- *
- *   xiaomi-mimo : low|medium|high only — 400 literal_error on xhigh
- *   mistral     : devstral models reject reasoning_effort entirely
- *   github      : claude/haiku/oswe models reject reasoning_effort entirely
- *
- * Each rejection burns a combo fallback attempt before reaching a working
- * provider. Apply provider-aware sanitation here (after transformRequest, so
- * reintroductions by per-provider transforms are also caught) before fetch.
- * xhigh support is registry-gated: models that genuinely support xhigh pass
- * through unchanged, and Claude models default to xhigh support unless marked
- * as legacy unsupported entries. max support is Claude/CC-compatible only and
- * intentionally separate: older Opus/Sonnet models may support max even when
- * they do not support xhigh.
+ * Strip the OmniRoute provider prefix from versioned built-in tool model
+ * fields (e.g. `cc/claude-opus-4-8` → `claude-opus-4-8`). Versioned built-in
+ * tool types carry an 8-digit date suffix (`advisor_20260301`, `bash_20250124`);
+ * the real Claude CLI sends a bare model id there, never a prefixed one, so a
+ * leaked OmniRoute prefix makes Anthropic reject the request. Mutates in place.
  */
-const MISTRAL_NO_REASONING_EFFORT_PATTERN = /devstral/i;
-const GITHUB_NO_REASONING_EFFORT_PATTERN = /(claude|haiku|oswe)/i;
-
-function supportsMaxEffortForProvider(provider: string, model: string): boolean {
-  return (
-    (provider === PROVIDER_CLAUDE || isClaudeCodeCompatible(provider)) &&
-    supportsClaudeMaxEffort(model)
-  );
-}
-
-export function sanitizeReasoningEffortForProvider(
-  body: unknown,
-  provider: string,
-  model: string | undefined,
-  log?: { info?: (tag: string, msg: string) => void } | null
-): unknown {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
-  const b = body as Record<string, unknown>;
-  const reasoning =
-    b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
-      ? (b.reasoning as Record<string, unknown>)
-      : null;
-  const hasTopLevelReasoningEffort = Object.prototype.hasOwnProperty.call(b, "reasoning_effort");
-  const effort = b.reasoning_effort ?? reasoning?.effort;
-  if (effort === undefined) return body;
-  const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
-  const modelStr = model || "";
-
-  const shouldDowngradeXHigh = effortStr === "xhigh" && !supportsXHighEffort(provider, modelStr);
-  const shouldDowngradeMax =
-    effortStr === "max" && !supportsMaxEffortForProvider(provider, modelStr);
-
-  if (shouldDowngradeXHigh || shouldDowngradeMax) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: downgraded reasoning_effort ${effortStr} → high`
-    );
-    const next: Record<string, unknown> = { ...b };
-    if (hasTopLevelReasoningEffort) {
-      next.reasoning_effort = "high";
+export function stripVersionedToolModelPrefix(tools: unknown): void {
+  if (!Array.isArray(tools)) return;
+  for (const t of tools as Array<Record<string, unknown>>) {
+    if (
+      typeof t.type === "string" &&
+      /^[a-z][a-z0-9_]*_\d{8}$/.test(t.type) &&
+      typeof t.model === "string" &&
+      t.model.includes("/")
+    ) {
+      t.model = t.model.split("/").pop();
     }
-    if (reasoning) {
-      next.reasoning = { ...reasoning, effort: "high" };
-    }
-    return next;
   }
-
-  const rejecting =
-    (provider === "mistral" && MISTRAL_NO_REASONING_EFFORT_PATTERN.test(modelStr)) ||
-    (provider === "github" && GITHUB_NO_REASONING_EFFORT_PATTERN.test(modelStr));
-  if (rejecting) {
-    log?.info?.(
-      "REASONING_SANITIZE",
-      `${provider}/${modelStr}: removed unsupported reasoning_effort`
-    );
-    const next: Record<string, unknown> = { ...b };
-    delete next.reasoning_effort;
-    if (reasoning) {
-      const r = { ...reasoning };
-      delete r.effort;
-      if (Object.keys(r).length === 0) delete next.reasoning;
-      else next.reasoning = r;
-    }
-    return next;
-  }
-
-  return body;
 }
 
 /**
@@ -301,6 +257,10 @@ export class BaseExecutor {
   provider: string;
   config: ProviderConfig;
 
+  // Session pool support — subclasses can set poolConfig to opt in
+  protected poolConfig?: PoolConfig;
+  private _pool: import("../services/sessionPool/sessionPool.ts").SessionPool | null = null;
+
   constructor(provider: string, config: ProviderConfig) {
     this.provider = provider;
     this.config = config;
@@ -308,6 +268,22 @@ export class BaseExecutor {
 
   getProvider() {
     return this.provider;
+  }
+
+  protected getPool(): SessionPool | null {
+    if (!this.poolConfig) return null;
+    if (!this._pool) {
+      const pool = new SessionPool(this.provider, this.poolConfig);
+      pool.warmUp(this.poolConfig.minSessions).catch(() => {});
+      PoolRegistry.register(this.provider, pool);
+      this._pool = pool;
+    }
+    return this._pool;
+  }
+
+  protected buildPoolHeaders(session: Session | null): Record<string, string> {
+    if (!session) return {};
+    return session.buildHeaders();
   }
 
   getBaseUrls() {
@@ -356,15 +332,52 @@ export class BaseExecutor {
     return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl || "";
   }
 
-  buildHeaders(
+  /**
+   * Resolve the effective base URL for a request, preferring per-connection
+   * providerSpecificData.baseUrl over the static provider config baseUrl.
+   */
+  protected resolveBaseUrl(credentials: ProviderCredentials | null, fallback?: string): string {
+    const psdBaseUrl = credentials?.providerSpecificData?.baseUrl;
+    return (
+      (typeof psdBaseUrl === "string" ? psdBaseUrl : "") || fallback || this.config.baseUrl || ""
+    );
+  }
+
+  /**
+   * Resolve the effective API key via extra-keys round-robin rotation.
+   * Mutates `credentials.providerSpecificData.selectedKeyId` on rotation.
+   */
+  protected resolveEffectiveKey(credentials: ProviderCredentials): string | undefined {
+    const extraKeys =
+      (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+    const selectedKeyId = (credentials.providerSpecificData as Record<string, unknown> | undefined)
+      ?.selectedKeyId as string | undefined;
+    let effectiveKey = credentials.apiKey;
+    if (extraKeys.length > 0 && credentials.connectionId && credentials.apiKey) {
+      const resolved = resolveKeyForRequest(
+        credentials.connectionId,
+        credentials.apiKey,
+        extraKeys,
+        selectedKeyId ?? null
+      );
+      effectiveKey = resolved?.key ?? credentials.apiKey;
+      if (resolved && credentials.providerSpecificData) {
+        (credentials.providerSpecificData as Record<string, unknown>).selectedKeyId =
+          resolved.keyId;
+      }
+    }
+    return effectiveKey;
+  }
+
+  /**
+   * Build the common header preamble shared by BaseExecutor and DefaultExecutor:
+   * Content-Type, config.headers, per-provider User-Agent env override, and
+   * resolved effective key (via extra-keys round-robin).
+   */
+  protected buildHeadersPreamble(
     credentials: ProviderCredentials,
-    stream = true,
-    clientHeaders?: Record<string, string> | null,
-    model?: string,
-    health?: Record<string, KeyHealth>
-  ): Record<string, string> {
-    void clientHeaders;
-    void model;
+    stream: boolean
+  ): { headers: Record<string, string>; effectiveKey: string | undefined } {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.config.headers,
@@ -381,32 +394,31 @@ export class BaseExecutor {
       }
     }
 
+    const effectiveKey = this.resolveEffectiveKey(credentials);
+    void stream;
+    return { headers, effectiveKey };
+  }
+
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null,
+    model?: string,
+    health?: Record<string, KeyHealth>
+  ): Record<string, string> {
+    void clientHeaders;
+    void model;
+    const { headers, effectiveKey } = this.buildHeadersPreamble(credentials, stream);
+
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     } else if (credentials.apiKey) {
-      const extraKeys =
-        (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
-      const selectedKeyId = (
-        credentials.providerSpecificData as Record<string, unknown> | undefined
-      )?.selectedKeyId as string | undefined;
-      let effectiveKey = credentials.apiKey;
-      if (extraKeys.length > 0 && credentials.connectionId) {
-        const resolved = resolveKeyForRequest(
-          credentials.connectionId,
-          credentials.apiKey,
-          extraKeys,
-          selectedKeyId ?? null
-        );
-        effectiveKey = resolved?.key ?? credentials.apiKey;
-        if (resolved && credentials.providerSpecificData) {
-          (credentials.providerSpecificData as Record<string, unknown>).selectedKeyId =
-            resolved.keyId;
-        }
-      }
       headers["Authorization"] = `Bearer ${effectiveKey}`;
     }
 
     headers["Accept"] = stream ? "text/event-stream" : "application/json";
+
+    normalizeAnthropicHeaderVariants(headers);
 
     return headers;
   }
@@ -582,6 +594,7 @@ export class BaseExecutor {
       clientHeaders,
       skipUpstreamRetry = false,
       onCredentialsRefreshed,
+      contextEditing,
     } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
@@ -678,13 +691,37 @@ export class BaseExecutor {
       }
     }
 
+    // Set by the Context Editing 400-fallback below: once an upstream rejects the
+    // `context_management` param, suppress its re-injection on every later
+    // retry/fallback URL (each iteration rebuilds a fresh `transformedBody`).
+    let contextEditingDisabled = false;
+    // Tracks which request fields have already been stripped via the generic 400
+    // field-downgrade below, so each known field is stripped at most once across
+    // all fallback URLs (bounded retry loop).
+    const strippedFields = new Set<string>();
+
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
-      const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
-      const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
-      applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
+      const requestCredentials = withForcedResponsesUpstream(
+        this.provider,
+        body,
+        activeCredentials
+      );
+      const url = this.buildUrl(model, stream, urlIndex, requestCredentials);
+      const headers = this.buildHeaders(requestCredentials, stream, clientHeaders, model);
+      applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
+
+      // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
+      // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
+      const strippedStainless = stripStainlessHeadersForOpenAICompat(headers, this.provider, url);
+      if (strippedStainless.length > 0) {
+        log?.debug?.(
+          "HEADERS",
+          `Stripped X-Stainless-* from OpenAI-compatible request: ${strippedStainless.join(", ")}`
+        );
+      }
 
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
-        ? getClaudeCodeCompatibleRequestDefaults(activeCredentials?.providerSpecificData)
+        ? getClaudeCodeCompatibleRequestDefaults(requestCredentials?.providerSpecificData)
         : {};
       const shouldForwardExtendedContext =
         extendedContext &&
@@ -700,36 +737,51 @@ export class BaseExecutor {
         model,
         body,
         stream,
-        activeCredentials
+        requestCredentials
       );
-      const transformedBody = sanitizeReasoningEffortForProvider(
+      let transformedBody = sanitizeReasoningEffortForProvider(
         rawTransformedBody,
         this.provider,
         model,
         log
       );
+      if (this.provider === "groq") {
+        transformedBody = stripGroqUnsupportedFields(
+          transformedBody as Record<string, unknown>
+        ) as typeof transformedBody;
+      }
 
       try {
-        // Only enforce the timeout while waiting for the initial fetch() response.
-        // Once headers arrive, active streams must not be cut off by total elapsed time;
-        // post-start stalls are handled separately by STREAM_IDLE_TIMEOUT_MS / bodyTimeout.
+        // Timeout only covers response start; stream stalls are handled downstream.
         const fetchStartTimeoutMs = this.getTimeoutMs();
-        const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-        if (timeoutController) {
-          timeoutId = setTimeout(() => {
-            const timeoutError = new Error(
-              `Fetch timeout after ${fetchStartTimeoutMs}ms on ${url}`
-            );
-            timeoutError.name = "TimeoutError";
-            timeoutController.abort(timeoutError);
-          }, fetchStartTimeoutMs);
-        }
-        const timeoutSignal = timeoutController?.signal ?? null;
-        const combinedSignal =
-          signal && timeoutSignal
-            ? mergeAbortSignals(signal, timeoutSignal)
-            : signal || timeoutSignal;
+        const fetchWithStartTimeout = async (requestUrl: string, requestOptions: RequestInit) => {
+          const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
+          let timeoutId: ReturnType<typeof setTimeout> | null = null;
+          if (timeoutController) {
+            timeoutId = setTimeout(() => {
+              const timeoutError = new Error(
+                `Fetch timeout after ${fetchStartTimeoutMs}ms on ${requestUrl}`
+              );
+              timeoutError.name = "TimeoutError";
+              timeoutController.abort(timeoutError);
+            }, fetchStartTimeoutMs);
+          }
+
+          const timeoutSignal = timeoutController?.signal ?? null;
+          const combinedSignal =
+            signal && timeoutSignal
+              ? mergeAbortSignals(signal, timeoutSignal)
+              : signal || timeoutSignal;
+          const optionsWithSignal = combinedSignal
+            ? { ...requestOptions, signal: combinedSignal }
+            : requestOptions;
+
+          try {
+            return await fetch(requestUrl, optionsWithSignal);
+          } finally {
+            if (timeoutId) clearTimeout(timeoutId);
+          }
+        };
 
         const isClaudeCodeClient =
           clientHeaders?.["x-app"] === "cli" ||
@@ -756,6 +808,13 @@ export class BaseExecutor {
 
           stripProxyToolPrefix(tb);
           remapToolNamesInRequest(tb);
+          // Cloak third-party tool names + sanitize invalid tool schemas so
+          // Anthropic does not refuse native Claude OAuth traffic with a
+          // misleading "out of extra usage" placeholder. See Spec E.
+          cloakThirdPartyToolNames(tb);
+          if (Array.isArray(tb.tools)) {
+            tb.tools = sanitizeClaudeToolSchemas(tb.tools);
+          }
           obfuscateInBody(tb);
 
           // NOTE (issue #2260): This is the native `claude` provider OAuth path.
@@ -772,6 +831,9 @@ export class BaseExecutor {
             for (const t of tb.tools as Array<Record<string, unknown>>) {
               delete t.cache_control;
             }
+            // Also strip OmniRoute provider prefix from versioned built-in tool
+            // model fields (e.g. cc/claude-opus-4-8 → claude-opus-4-8).
+            stripVersionedToolModelPrefix(tb.tools);
           }
 
           // Per-request behavior overrides via custom client headers.
@@ -797,7 +859,10 @@ export class BaseExecutor {
               delete (tb.output_config as Record<string, unknown>).effort;
             }
             appliedEffort = "off";
-          } else if (headerEffort && ["low", "medium", "high", "xhigh", "max"].includes(headerEffort)) {
+          } else if (
+            headerEffort &&
+            ["low", "medium", "high", "xhigh", "max"].includes(headerEffort)
+          ) {
             const oc =
               tb.output_config && typeof tb.output_config === "object"
                 ? (tb.output_config as Record<string, unknown>)
@@ -809,7 +874,19 @@ export class BaseExecutor {
             }
           }
 
-          if (headerThinking === "adaptive") {
+          // Anthropic rejects `thinking` (enabled/adaptive) when tool_choice forces a
+          // specific tool ({type:"any"|"tool"}): "Thinking may not be enabled when
+          // tool_choice forces tool use". Treat forced tool_choice as an implicit
+          // `thinking: off` so neither the explicit-adaptive branch nor the default CC
+          // injection below produces the invalid combination (incl. client-sent thinking).
+          const toolChoiceForced =
+            tb.tool_choice === "any" ||
+            (typeof tb.tool_choice === "object" &&
+              tb.tool_choice !== null &&
+              ((tb.tool_choice as Record<string, unknown>).type === "any" ||
+                (tb.tool_choice as Record<string, unknown>).type === "tool"));
+          const effThinking = toolChoiceForced ? "off" : headerThinking;
+          if (effThinking === "adaptive") {
             if (tb.thinking === undefined) {
               tb.thinking = { type: "adaptive" };
               appliedThinking = "adaptive";
@@ -819,25 +896,49 @@ export class BaseExecutor {
                 edits: [{ type: "clear_thinking_20251015", keep: "all" }],
               };
             }
-          } else if (headerThinking === "off") {
+          } else if (effThinking === "off") {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
-          } else if (!headerThinking && !headerEffort) {
-            // Default CC logic when no override headers are present
+          } else if (!effThinking && !headerEffort && isClaudeCodeClient) {
+            // Default Claude Code logic when no override headers are present.
+            // Generic OpenAI-compatible clients that route through native Claude OAuth
+            // must opt in with x-omniroute-thinking; force-injecting adaptive thinking
+            // leaks non-standard reasoning replay fields back into those clients.
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
+            // #5312 RC-B: honor the operator's proxy-level Thinking-Budget mode.
+            // `auto` means "strip — let the provider decide", so suppress the default
+            // adaptive injection. Passthrough/no-config keeps the native Claude Code
+            // behavior (adaptive) so #4633 does not regress (request-side only).
+            const tbMode = getThinkingBudgetConfig().mode;
             if (isHaiku) {
               // Keep tb.thinking — real Claude Desktop keeps thinking enabled for Haiku
               // (issue #2454). Only strip output_config (effort) which Haiku rejects;
               // context_management is re-paired with the preserved thinking below.
               delete tb.output_config;
               delete tb.context_management;
+            } else if (tbMode === ThinkingMode.AUTO) {
+              delete tb.thinking;
+              delete tb.context_management;
+              delete tb.output_config;
             } else if (tb.thinking === undefined && tb.output_config === undefined) {
               tb.thinking = { type: "adaptive" };
               tb.context_management = {
                 edits: [{ type: "clear_thinking_20251015", keep: "all" }],
               };
               tb.output_config = { effort: "high" };
+            }
+            // #5312: Opus 4.7/4.8 accept only thinking.type="adaptive" ("enabled" → 400).
+            // When an operator budget (custom/adaptive mode) produced an enabled block
+            // upstream, remap it to adaptive + output_config.effort here.
+            const th = tb.thinking as Record<string, unknown> | undefined;
+            if (th?.type === "enabled" && tbMode !== ThinkingMode.PASSTHROUGH) {
+              const b = typeof th.budget_tokens === "number" ? th.budget_tokens : 0;
+              tb.thinking = { type: "adaptive" };
+              tb.output_config = {
+                effort: b <= 1024 ? "low" : b <= 10240 ? "medium" : b >= 131072 ? "max" : "high",
+              };
+              tb.context_management = { edits: [{ type: "clear_thinking_20251015", keep: "all" }] };
             }
           }
 
@@ -852,14 +953,11 @@ export class BaseExecutor {
 
           const seed = activeCredentials?.accessToken || activeCredentials?.apiKey || "anon";
           const psd = activeCredentials?.providerSpecificData as
-            | Record<string, unknown>
-            | undefined;
+            Record<string, unknown> | undefined;
 
           let identitySource:
-            | "upstream-metadata"
-            | "upstream-header"
-            | "synthesized"
-            | "synthesized-cloaked" = "synthesized";
+            "upstream-metadata" | "upstream-header" | "synthesized" | "synthesized-cloaked" =
+            "synthesized";
           let sessionId: string;
           let deviceId: string;
           let accountUUID: string;
@@ -949,10 +1047,20 @@ export class BaseExecutor {
           // convention; SSE decoding is gated on body.stream). anthropic-beta
           // is selected per request shape; the full set on a quota probe is
           // itself a fingerprint.
+          // Respect the client's negotiated anthropic-beta (real Claude Code) instead
+          // of force-injecting thinking/effort betas it never requested (#3415).
+          const clientAnthropicBeta =
+            clientHeaders?.["anthropic-beta"] ?? clientHeaders?.["Anthropic-Beta"] ?? null;
           const ccHeaders: Record<string, string> = {
             Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            "anthropic-beta": selectBetaFlags(tb),
+            // #3974: merge the client's allowlisted betas (e.g. tool-search-tool)
+            // on top of the shape-derived set so deferred-tool requests are not
+            // rejected; selectBetaFlags still gates thinking/effort per #3415.
+            "anthropic-beta": mergeClientAnthropicBeta(
+              selectBetaFlags(tb, null, clientAnthropicBeta),
+              clientAnthropicBeta
+            ),
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
             "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
@@ -1022,9 +1130,50 @@ export class BaseExecutor {
             // tool_result isn't in the next message; re-run fixToolPairs to
             // drop any tool_result orphaned by that strip (discussion #2410).
             const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
-            tb.messages = stripTrailingAssistantOrphanToolUse(adjacent);
+            const stripped = stripTrailingAssistantOrphanToolUse(adjacent);
+            // Some providers (e.g. Mistral) require the last message to be user
+            // or tool and reject trailing assistant text messages with 400 (#3396).
+            tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }
+
+        // Anthropic's extended-thinking contract forbids non-default sampling
+        // params: temperature must be 1 and top_p >= 0.95 (or unset) whenever
+        // thinking is enabled/adaptive. Thinking can be injected by per-model
+        // requestDefaults *after* the translator/constraint passes, so normalize
+        // at this final dispatch point — the single chokepoint every Claude
+        // routing mode (grouped/raw/combo) and the native passthrough share,
+        // before fingerprinting and CCH signing serialize the body.
+        if (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) {
+          enforceThinkingTemperature(transformedBody as Record<string, unknown>);
+        }
+
+        // Delegated Context Editing (opt-in): attach the clear_tool_uses strategy so
+        // the provider clears stale tool-use blocks server-side. Runs at this same
+        // chokepoint, composing with the clear_thinking edit the fingerprint path may
+        // have already set. Scoped to genuine `claude` (real Anthropic key/OAuth) and
+        // `anthropic-compatible-cc-*` relays — the latter advertise Claude Code
+        // compatibility, so they are the relays most likely to accept the beta. A
+        // rejecting upstream is caught by the 400-fallback below. Deliberately
+        // EXCLUDED: `claude-web` (a browser relay with a `create_conversation_params`
+        // request shape that never sees `context_management`) and generic
+        // `anthropic-compatible-*` (third-party endpoints with uncertain beta support).
+        // `contextEditingDisabled` (set by the 400-fallback) suppresses re-injection
+        // when a fresh `transformedBody` is built for a retry/fallback URL.
+        if (
+          (this.provider === "claude" || isClaudeCodeCompatible(this.provider)) &&
+          contextEditing?.enabled &&
+          !contextEditingDisabled
+        ) {
+          applyContextEditingToBody(transformedBody as Record<string, unknown>, {
+            enabled: true,
+          });
+          log?.debug?.(
+            "CONTEXT_EDITING",
+            "Delegated context editing on — attached clear_tool_uses to the Claude request"
+          );
+        }
+
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
@@ -1043,21 +1192,160 @@ export class BaseExecutor {
         }
 
         mergeUpstreamExtraHeaders(finalHeaders, upstreamExtraHeaders);
-
+        if (this.provider === "cline" || this.provider === "clinepass") {
+          applyClineProtocolHeaders(finalHeaders, {
+            taskId: headers["X-Task-ID"],
+          });
+        }
+        // Enforce peer tracing after all configurable headers have been merged so
+        // operator/provider metadata cannot accidentally erase the loop guard.
+        applyPeerTraceHeader(finalHeaders, clientHeaders, url);
+        const serializedBody = prl.parseBody(bodyString);
+        // #4307 — Preserve the non-enumerable tool-name cloak/remap reverse map
+        // (`_toolNameMap`, set on the live `transformedBody` by
+        // remapToolNamesInRequest / cloakThirdPartyToolNames) that the JSON
+        // round-trip above drops. chatCore's response-side un-cloak reads it off
+        // `result.transformedBody` to restore the client's original tool-name
+        // casing (e.g. `read`, not the cloaked `Read`). Without this re-attach the
+        // map is lost and the client receives the cloaked casing — a regression
+        // from #3941's serialized-body capture. Mirrors antigravity.ts's
+        // `attachToolNameMap`; non-enumerable so it never re-serializes upstream.
+        if (
+          transformedBody &&
+          typeof transformedBody === "object" &&
+          serializedBody &&
+          typeof serializedBody === "object"
+        ) {
+          const liveToolNameMap = (transformedBody as Record<string, unknown>)._toolNameMap;
+          if (
+            liveToolNameMap instanceof Map &&
+            liveToolNameMap.size > 0 &&
+            !((serializedBody as Record<string, unknown>)._toolNameMap instanceof Map)
+          ) {
+            Object.defineProperty(serializedBody, "_toolNameMap", {
+              value: liveToolNameMap,
+              enumerable: false,
+              configurable: true,
+              writable: true,
+            });
+          }
+        }
         const fetchOptions: RequestInit = {
           method: "POST",
           headers: finalHeaders,
           body: bodyString,
         };
-        if (combinedSignal) fetchOptions.signal = combinedSignal;
 
-        let response;
-        try {
-          response = await fetch(url, fetchOptions);
-        } finally {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
+        // OpenRouter `:free`-variant local window (#6842): record every real
+        // dispatch attempt (failed attempts still consume a request slot per
+        // OpenRouter's own accounting) and self-correct the local counters
+        // from the upstream `X-RateLimit-*` headers on the response. Scoped
+        // to `:free` models only — no-op (and no extra work) for every other
+        // OpenRouter request or provider.
+        const openrouterFreeWindowAccountKey =
+          this.provider === "openrouter" &&
+          isFreeVariantModel(model) &&
+          activeCredentials.connectionId
+            ? resolveAccountKey(activeCredentials.connectionId, activeCredentials)
+            : null;
+        if (openrouterFreeWindowAccountKey) {
+          recordFreeWindowAttempt(openrouterFreeWindowAccountKey);
+        }
+
+        let response = await fetchWithStartTimeout(url, fetchOptions);
+
+        if (openrouterFreeWindowAccountKey) {
+          correctFromRateLimitHeaders(openrouterFreeWindowAccountKey, response.headers);
+        }
+
+        // Context Editing 400-fallback for Claude-compatible relays.
+        if (
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          contextEditing?.enabled &&
+          !contextEditingDisabled &&
+          transformedBody &&
+          typeof transformedBody === "object" &&
+          (transformedBody as Record<string, unknown>).context_management !== undefined
+        ) {
+          const errText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          if (/context[_-]management|context editing/i.test(errText)) {
+            contextEditingDisabled = true;
+            delete (transformedBody as Record<string, unknown>).context_management;
+            let retryBody = JSON.stringify(transformedBody);
+            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.debug?.(
+              "CONTEXT_EDITING",
+              `Upstream 400 rejected context_management on ${url} — retrying without it`
+            );
+            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+          }
+        }
+
+        // Generic reactive 400 field-downgrade; each field is stripped at most once.
+        if (
+          response.status === HTTP_STATUS.BAD_REQUEST &&
+          transformedBody &&
+          typeof transformedBody === "object"
+        ) {
+          const errText = await response
+            .clone()
+            .text()
+            .catch(() => "");
+          const offending = findOffendingField(errText);
+          if (
+            offending &&
+            !strippedFields.has(offending) &&
+            (transformedBody as Record<string, unknown>)[offending] !== undefined
+          ) {
+            strippedFields.add(offending);
+            delete (transformedBody as Record<string, unknown>)[offending];
+            let retryBody = JSON.stringify(transformedBody);
+            if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+              retryBody = await signRequestBody(retryBody);
+            }
+            log?.debug?.(
+              "FIELD_400",
+              `Upstream 400 rejected ${offending} on ${url} — retrying without it`
+            );
+            response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+          } else {
+            // Auto-learn: detect "Unsupported parameter" errors and persist to DB
+            // when the provider config has autoLearn enabled (#6625).
+            const autoLearned = detectUnsupportedParam(errText);
+            if (
+              autoLearned &&
+              !strippedFields.has(autoLearned) &&
+              (transformedBody as Record<string, unknown>)[autoLearned] !== undefined
+            ) {
+              try {
+                const config = getParamFilterConfig(this.provider);
+                const shouldAutoLearn = isAutoLearnGloballyEnabled() || config?.autoLearn === true;
+                if (shouldAutoLearn) {
+                  strippedFields.add(autoLearned);
+                  addParamToBlocklist(this.provider, autoLearned, model);
+                  delete (transformedBody as Record<string, unknown>)[autoLearned];
+                  let retryBody = JSON.stringify(transformedBody);
+                  if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
+                    retryBody = await signRequestBody(retryBody);
+                  }
+                  log?.info?.(
+                    "AUTO_LEARN",
+                    `Auto-learned "${autoLearned}" for provider ${this.provider} (model: ${model}) from 400 on ${url} — retrying`
+                  );
+                  response = await fetchWithStartTimeout(url, { ...fetchOptions, body: retryBody });
+                }
+              } catch (learnError) {
+                log?.warn?.(
+                  "AUTO_LEARN",
+                  `Failed to persist auto-learned param "${autoLearned}" for ${this.provider}: ${String(learnError)}`
+                );
+              }
+            }
           }
         }
 
@@ -1089,7 +1377,7 @@ export class BaseExecutor {
           continue;
         }
 
-        return { response, url, headers: finalHeaders, transformedBody };
+        return { response, url, headers: finalHeaders, transformedBody: serializedBody };
       } catch (error) {
         // Distinguish timeout errors from other abort errors
         const err = error instanceof Error ? error : new Error(String(error));

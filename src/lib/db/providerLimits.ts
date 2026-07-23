@@ -24,6 +24,7 @@ export interface ProviderLimitsCacheEntry {
   message: string | null;
   fetchedAt: string;
   source?: string | null;
+  bankedResetCredits?: number;
 }
 
 const PROVIDER_LIMITS_CACHE_NAMESPACE = "providerLimitsCache";
@@ -48,12 +49,15 @@ function normalizeCacheEntry(value: unknown): ProviderLimitsCacheEntry | null {
     typeof record.fetchedAt === "string" && record.fetchedAt.trim() ? record.fetchedAt : null;
   if (!fetchedAt) return null;
 
+  const bankedResetCredits = Number(record.bankedResetCredits);
+
   return {
     quotas: toRecord(record.quotas),
     plan: record.plan ?? null,
     message: typeof record.message === "string" ? record.message : null,
     fetchedAt,
     source: typeof record.source === "string" ? record.source : null,
+    ...(Number.isFinite(bankedResetCredits) ? { bankedResetCredits } : {}),
   };
 }
 

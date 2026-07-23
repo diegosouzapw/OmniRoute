@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const tokenRefresh = await import("../../open-sse/services/tokenRefresh.ts");
 const { PROVIDERS, OAUTH_ENDPOINTS } = await import("../../open-sse/config/constants.ts");
+const { KIMI_CODE_CLI_PLATFORM, getKimiCodeCliVersion } =
+  await import("../../open-sse/config/providers/registry/kimi/coding/runtime.ts");
 
 const {
   TOKEN_EXPIRY_BUFFER_MS,
@@ -11,7 +13,6 @@ const {
   refreshKimiCodingToken,
   refreshClaudeOAuthToken,
   refreshGoogleToken,
-  refreshQwenToken,
   refreshCodexToken,
   refreshKiroToken,
   refreshQoderToken,
@@ -294,10 +295,9 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
       });
     },
     async () => {
-      // Pass providerSpecificData with a stable deviceId (second positional arg after signature change)
       const result = await refreshKimiCodingToken(
         "kimi-refresh",
-        { deviceId: "test-stable-device" },
+        { deviceId: "test-stable-device", deviceModel: "test-device-model" },
         log
       );
       assert.deepEqual(result, {
@@ -311,18 +311,11 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
   );
 
   assert.equal(calls[0].url, PROVIDERS["kimi-coding"].refreshUrl);
-  // Platform is now "kimi_cli" (matching the real Kimi CLI fingerprint)
-  assert.equal(calls[0].options.headers["X-Msh-Platform"], "kimi_cli");
-  // Version comes from KIMI_CLI_VERSION env or default "1.36.0"
-  assert.ok(calls[0].options.headers["X-Msh-Version"], "X-Msh-Version must be set");
-  // Device-Id must NOT be an ephemeral "kimi-refresh-<timestamp>" value
-  assert.ok(
-    calls[0].options.headers["X-Msh-Device-Id"] &&
-      !calls[0].options.headers["X-Msh-Device-Id"].startsWith("kimi-refresh-"),
-    "X-Msh-Device-Id must be stable (not ephemeral kimi-refresh-<timestamp>)"
-  );
-  // When providerSpecificData.deviceId is provided, it should be used directly
+  assert.equal(calls[0].options.headers["X-Msh-Platform"], KIMI_CODE_CLI_PLATFORM);
+  assert.equal(calls[0].options.headers["X-Msh-Version"], getKimiCodeCliVersion());
+  assert.ok(!calls[0].options.headers["X-Msh-Device-Id"].startsWith("kimi-refresh-"));
   assert.equal(calls[0].options.headers["X-Msh-Device-Id"], "test-stable-device");
+  assert.equal(calls[0].options.headers["X-Msh-Device-Model"], "test-device-model");
   assert.match(bodyToString(calls[0].options.body), /grant_type=refresh_token/);
 });
 
@@ -385,44 +378,6 @@ test("refreshGoogleToken exchanges refresh tokens against the shared google endp
   );
 });
 
-test("refreshQwenToken maps resource_url into providerSpecificData", async () => {
-  const log = createLog();
-
-  await withMockedFetch(
-    async () =>
-      jsonResponse({
-        access_token: "qwen-access",
-        refresh_token: "qwen-refresh-next",
-        expires_in: 1500,
-        resource_url: "https://chat.qwen.ai/workspace/resource",
-      }),
-    async () => {
-      const result = await refreshQwenToken("qwen-refresh", log);
-      assert.deepEqual(result, {
-        accessToken: "qwen-access",
-        refreshToken: "qwen-refresh-next",
-        expiresIn: 1500,
-        providerSpecificData: {
-          resourceUrl: "https://chat.qwen.ai/workspace/resource",
-        },
-      });
-    }
-  );
-});
-
-test("refreshQwenToken surfaces invalid_request as unrecoverable", async () => {
-  const log = createLog();
-
-  await withMockedFetch(
-    async () => textResponse(JSON.stringify({ error: "invalid_request" }), 400),
-    async () => {
-      const result = await refreshQwenToken("qwen-refresh", log);
-      // Normalized to unrecoverable_refresh_error sentinel (Fix 4)
-      assert.deepEqual(result, { error: "unrecoverable_refresh_error", code: "invalid_request" });
-    }
-  );
-});
-
 test("refreshCodexToken recognizes refresh_token_reused responses", async () => {
   const log = createLog();
 
@@ -434,6 +389,37 @@ test("refreshCodexToken recognizes refresh_token_reused responses", async () => 
         error: "unrecoverable_refresh_error",
         code: "refresh_token_reused",
       });
+    }
+  );
+});
+
+// Port from decolua/9router#1821 (sacwooky): a 401 from OpenAI's OAuth token
+// endpoint means the refresh credential itself was rejected (e.g. rotated away
+// or a payload whose error code we do not yet recognize). Retrying with the
+// same refresh token will never succeed — surface re-auth, do not loop.
+test("refreshCodexToken treats any 401 from the token endpoint as unrecoverable", async () => {
+  const log = createLog();
+
+  await withMockedFetch(
+    async () =>
+      textResponse(
+        JSON.stringify({
+          error: {
+            // A payload variant whose code/type are NOT in the existing
+            // unrecoverable set — only the 401 status proves the token is dead.
+            message: "Could not validate your token. Please try signing in again.",
+            type: "invalid_request_error",
+          },
+        }),
+        401
+      ),
+    async () => {
+      const result = await refreshCodexToken("codex-refresh", log);
+      assert.equal(
+        result?.error,
+        "unrecoverable_refresh_error",
+        "401 from OpenAI token endpoint must surface re-auth instead of returning null (which triggers retry)"
+      );
     }
   );
 });
@@ -689,40 +675,43 @@ test("refreshQoderToken uses basic auth once qoder oauth settings are configured
   assert.match(calls[0].options.headers.Authorization, /^Basic /);
 });
 
-test("refreshGitHubToken exchanges the refresh token with github oauth", async () => {
+test("refreshGitHubToken sends the real public github client_id and no client_secret (port from 9router#442)", async () => {
+  // GitHub Copilot's OAuth app is a public device-flow client: it has a client_id but
+  // NO client_secret. PROVIDERS.github.clientId must be populated from the embedded public
+  // cred so the refresh request actually carries a client_id — a missing one makes GitHub
+  // reject the refresh. The previous test patched a fake clientId/clientSecret onto
+  // PROVIDERS.github, masking the fact that the real config had neither. This uses the real
+  // config and asserts the real client_id is sent and no client_secret leaks out.
   const log = createLog();
   const calls: any[] = [];
 
-  await withPatchedProperties(
-    PROVIDERS.github,
-    {
-      clientId: "github-client",
-      clientSecret: "github-secret",
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        access_token: "github-access",
+        refresh_token: "github-refresh-next",
+        expires_in: 3600,
+      });
     },
     async () => {
-      await withMockedFetch(
-        async (url, options = {}) => {
-          calls.push({ url, options });
-          return jsonResponse({
-            access_token: "github-access",
-            refresh_token: "github-refresh-next",
-            expires_in: 3600,
-          });
-        },
-        async () => {
-          const result = await refreshGitHubToken("github-refresh", log);
-          assert.deepEqual(result, {
-            accessToken: "github-access",
-            refreshToken: "github-refresh-next",
-            expiresIn: 3600,
-          });
-        }
-      );
+      const result = await refreshGitHubToken("github-refresh", log);
+      assert.deepEqual(result, {
+        accessToken: "github-access",
+        refreshToken: "github-refresh-next",
+        expiresIn: 3600,
+      });
     }
   );
 
+  const body = bodyToString(calls[0].options.body);
   assert.equal(calls[0].url, OAUTH_ENDPOINTS.github.token);
-  assert.match(bodyToString(calls[0].options.body), /client_id=github-client/);
+  assert.ok(
+    PROVIDERS.github.clientId,
+    "PROVIDERS.github.clientId must be populated from the public cred"
+  );
+  assert.match(body, /client_id=Iv1\./, "the real public github client_id must be sent on refresh");
+  assert.ok(!body.includes("client_secret="), "no client_secret for the public github client");
 });
 
 test("refreshCopilotToken returns the short-lived copilot token", async () => {

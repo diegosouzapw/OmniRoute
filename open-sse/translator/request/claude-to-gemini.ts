@@ -7,19 +7,24 @@ import {
 } from "../helpers/geminiHelper.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
-import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
+import { capMaxOutputTokens, capThinkingBudget } from "../../../src/lib/modelCapabilities.ts";
 
 /**
  * Direct Claude → Gemini request translator.
  * Converts Claude Messages API body directly to Gemini format,
  * skipping the OpenAI hub intermediate step.
  */
-export function claudeToGeminiRequest(model, body, stream) {
+export function claudeToGeminiRequest(model, body, stream, credentials = null) {
   const toolNameMap = new Map<string, string>();
   const sanitizeToolName = (name: string) =>
     sanitizeGeminiToolName(name, {
       toolNameMap,
     });
+  // Vertex AI rejects the `id` field inside function_call / function_response parts
+  // (#3440). The public Gemini API keeps it for Gemini 3+ signature matching, so this
+  // is scoped to the routed vertex provider only (threaded via credentials._provider).
+  const provider = credentials && typeof credentials === "object" ? credentials._provider : null;
+  const stripFunctionCallId = provider === "vertex" || provider === "vertex-partner";
   const result: {
     model: string;
     contents: Array<Record<string, unknown>>;
@@ -36,7 +41,10 @@ export function claudeToGeminiRequest(model, body, stream) {
     model: model,
     contents: [],
     generationConfig: {},
-    safetySettings: DEFAULT_SAFETY_SETTINGS,
+    // Honor an explicit caller-supplied safetySettings (including one that itself
+    // requests HARM_CATEGORY_CIVIC_INTEGRITY — the caller's explicit choice), matching
+    // the openai-to-gemini.ts standard-path behavior. See DEFAULT_SAFETY_SETTINGS (#8231).
+    safetySettings: body.safetySettings || DEFAULT_SAFETY_SETTINGS,
   };
 
   // ── Generation config ──────────────────────────────────────────
@@ -50,7 +58,10 @@ export function claudeToGeminiRequest(model, body, stream) {
     result.generationConfig.topK = body.top_k;
   }
   if (body.max_tokens !== undefined) {
-    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model, body.max_tokens);
+    const maxOutputTokens = capMaxOutputTokens(model, body.max_tokens);
+    if (maxOutputTokens !== null) {
+      result.generationConfig.maxOutputTokens = maxOutputTokens;
+    }
   }
 
   // ── System instruction ─────────────────────────────────────────
@@ -105,7 +116,7 @@ export function claudeToGeminiRequest(model, body, stream) {
             case "tool_use":
               parts.push({
                 functionCall: {
-                  id: block.id,
+                  ...(stripFunctionCallId ? {} : { id: block.id }),
                   name: sanitizeToolName(block.name),
                   args: block.input || {},
                 },
@@ -127,7 +138,7 @@ export function claudeToGeminiRequest(model, body, stream) {
               }
               parts.push({
                 functionResponse: {
-                  id: block.tool_use_id,
+                  ...(stripFunctionCallId ? {} : { id: block.tool_use_id }),
                   name: toolUseNames[block.tool_use_id] || "unknown",
                   response: { result: parsedContent },
                 },
@@ -180,7 +191,9 @@ export function claudeToGeminiRequest(model, body, stream) {
   // Priority: thinking.budget_tokens (Claude native) > output_config.effort (Claude Code).
   if (model.startsWith("gemma-4")) {
     // gemma-4 models returns - 400: Thinking budget is not supported for this model
-  } else if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
+  } else if (body.thinking?.type === "enabled" && body.thinking.budget_tokens !== undefined) {
+    // #6813: a truthy check here dropped `budget_tokens: 0` (dynamic thinking).
+    // `undefined` (no budget specified) still falls through to the effort branch.
     result.generationConfig.thinkingConfig = {
       thinkingBudget: body.thinking.budget_tokens,
       includeThoughts: true,
@@ -195,7 +208,13 @@ export function claudeToGeminiRequest(model, body, stream) {
       max: 131072,
       xhigh: 131072,
     };
-    const budget = effortBudgetMap[effort];
+    const rawBudget = effortBudgetMap[effort];
+    // #3842: clamp to the model's real thinking-budget cap. This path previously
+    // sent the raw value with no cap, so a Claude-Code client hitting a Flash-tier
+    // Gemini target via output_config.effort="high" sent 32768 (> 24576) → 400.
+    // capThinkingBudget narrows 32768 to e.g. gemini-2.5-flash's 24576 while leaving
+    // pro-tier (real cap 32768) untouched.
+    const budget = rawBudget !== undefined ? capThinkingBudget(model, rawBudget) : undefined;
     if (budget !== undefined && budget > 0) {
       result.generationConfig.thinkingConfig = {
         thinkingBudget: budget,
@@ -217,6 +236,6 @@ export function claudeToGeminiRequest(model, body, stream) {
 }
 
 // Register direct path only for plain Gemini API.
-// Gemini CLI / Antigravity require Cloud Code envelope wrapping,
+// Antigravity requires Cloud Code envelope wrapping,
 // so they must use the existing hub path (Claude -> OpenAI -> target).
 register(FORMATS.CLAUDE, FORMATS.GEMINI, claudeToGeminiRequest, null);

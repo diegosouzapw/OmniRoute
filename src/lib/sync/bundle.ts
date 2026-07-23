@@ -4,8 +4,9 @@ import {
   getCombos,
   getModelAliases,
   getProviderConnections,
-  getProviderNodes,
+  getCachedProviderNodes,
   getSettings,
+  getReasoningRoutingRules,
 } from "@/lib/localDb";
 
 type JsonRecord = Record<string, unknown>;
@@ -17,6 +18,7 @@ export interface ConfigSyncBundle {
   modelAliases: JsonRecord;
   combos: JsonRecord[];
   apiKeys: JsonRecord[];
+  reasoningRoutingRules: JsonRecord[];
 }
 
 function asRecord(value: unknown): JsonRecord {
@@ -130,6 +132,34 @@ function sanitizeApiKeyForSync(apiKey: unknown): JsonRecord {
   ]);
 }
 
+function sanitizeReasoningRuleForSync(rule: unknown): JsonRecord {
+  const record = asRecord(rule);
+  return pickDefined(record, [
+    "id",
+    "name",
+    "description",
+    "scope",
+    "apiKeyId",
+    "comboId",
+    "connectionId",
+    "modelPattern",
+    "sourceEffort",
+    "requestTags",
+    "tagMatchMode",
+    "effortMode",
+    "targetEffort",
+    "targetKind",
+    "targetModel",
+    "targetComboId",
+    "budgetAction",
+    "budgetTokens",
+    "priority",
+    "enabled",
+    "createdAt",
+    "updatedAt",
+  ]);
+}
+
 function canonicalizeJson(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map((entry) => canonicalizeJson(entry));
@@ -155,15 +185,23 @@ export function computeConfigSyncVersion(bundle: ConfigSyncBundle) {
 }
 
 export async function buildConfigSyncBundle(): Promise<ConfigSyncBundle> {
-  const [settings, providerConnections, providerNodes, modelAliases, combos, apiKeys] =
-    await Promise.all([
-      getSettings(),
-      getProviderConnections(),
-      getProviderNodes(),
-      getModelAliases(),
-      getCombos(),
-      getApiKeys(),
-    ]);
+  const [
+    settings,
+    providerConnections,
+    providerNodes,
+    modelAliases,
+    combos,
+    apiKeys,
+    reasoningRoutingRules,
+  ] = await Promise.all([
+    getSettings(),
+    getProviderConnections(),
+    getCachedProviderNodes(),
+    getModelAliases(),
+    getCombos(),
+    getApiKeys(),
+    getReasoningRoutingRules(),
+  ]);
 
   return {
     settings: sanitizeSettingsForSync(settings),
@@ -183,6 +221,10 @@ export async function buildConfigSyncBundle(): Promise<ConfigSyncBundle> {
     apiKeys: sortByStringKeys(
       apiKeys.map((apiKey) => sanitizeApiKeyForSync(apiKey)),
       ["name", "id"]
+    ),
+    reasoningRoutingRules: sortByStringKeys(
+      reasoningRoutingRules.map((rule) => sanitizeReasoningRuleForSync(rule)),
+      ["scope", "priority", "createdAt", "id"]
     ),
   };
 }
@@ -204,5 +246,40 @@ export function toLegacyCloudSyncPayload(bundle: ConfigSyncBundle) {
     combos: bundle.combos,
     apiKeys: bundle.apiKeys,
     settings: bundle.settings,
+    reasoningRoutingRules: bundle.reasoningRoutingRules,
   };
+}
+
+export function reconcileReasoningRulesForSync(
+  rules: JsonRecord[],
+  references: {
+    apiKeyIds: Iterable<string>;
+    comboIds: Iterable<string>;
+    connectionIds: Iterable<string>;
+  }
+): { rules: JsonRecord[]; conflicts: Array<{ ruleId: string; missing: string[] }> } {
+  const apiKeyIds = new Set(references.apiKeyIds);
+  const comboIds = new Set(references.comboIds);
+  const connectionIds = new Set(references.connectionIds);
+  const conflicts: Array<{ ruleId: string; missing: string[] }> = [];
+  const reconciled = rules.map((rule) => {
+    const missing: string[] = [];
+    if (rule.scope === "apiKey" && !apiKeyIds.has(String(rule.apiKeyId || ""))) {
+      missing.push("apiKeyId");
+    }
+    if (rule.scope === "combo" && !comboIds.has(String(rule.comboId || ""))) {
+      missing.push("comboId");
+    }
+    if (rule.scope === "connection" && !connectionIds.has(String(rule.connectionId || ""))) {
+      missing.push("connectionId");
+    }
+    if (rule.targetKind === "combo" && !comboIds.has(String(rule.targetComboId || ""))) {
+      missing.push("targetComboId");
+    }
+    if (missing.length === 0) return { ...rule };
+    const ruleId = String(rule.id || "unknown");
+    conflicts.push({ ruleId, missing });
+    return { ...rule, enabled: false };
+  });
+  return { rules: reconciled, conflicts };
 }

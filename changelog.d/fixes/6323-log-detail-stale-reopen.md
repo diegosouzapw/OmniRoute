@@ -1,0 +1,1 @@
+- **fix(logs):** the request-log detail modal no longer reopens by itself after being closed — a stale in-flight detail refresh resolved after close and re-triggered the modal open state (#6323 — thanks @xz-dev).

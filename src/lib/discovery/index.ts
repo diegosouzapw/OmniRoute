@@ -1,17 +1,31 @@
 /**
- * Discovery Service — Automated Provider Discovery
+ * Plugin Discovery Tool — Automated provider scanning.
  *
- * Stub implementation for Phase 1. Scans LLM providers for free/unlimited
- * access methods and reports findings.
+ * Scans LLM providers for free/unlimited access methods and reports findings.
+ * Integrated into OmniRoute as an opt-in service (default off).
  *
- * Default: disabled (opt-in via settings)
+ * Phase 1: Stub with types and config.
+ * Phase 2: Full scanning engine.
+ *
+ * @module discovery
  */
+
+import { logger } from "../../../open-sse/utils/logger.ts";
+import {
+  upsertDiscoveryResult as dbUpsertDiscoveryResult,
+  getDiscoveryResults as dbGetDiscoveryResults,
+  type DiscoveryResult as DbDiscoveryResult,
+} from "../db/discoveryResults";
+
+const log = logger("DISCOVERY");
+
+// ── Types ──
 
 export interface DiscoveryConfig {
   enabled: boolean;
-  scanInterval: number;
+  scanInterval: number; // ms between scans (default: 24h)
   maxConcurrentScans: number;
-  targetProviders: string[];
+  targetProviders: string[]; // empty = scan all known
   notificationWebhook?: string;
 }
 
@@ -31,16 +45,19 @@ export interface DiscoveryResult {
   verifiedAt?: string;
 }
 
-const DEFAULT_CONFIG: DiscoveryConfig = {
+// ── Default Config ──
+
+export const DEFAULT_DISCOVERY_CONFIG: DiscoveryConfig = {
   enabled: false,
   scanInterval: 24 * 60 * 60 * 1000, // 24 hours
   maxConcurrentScans: 3,
   targetProviders: [],
 };
 
+// ── Probe ──
+
 /**
  * Probe a single URL for API availability.
- * Returns basic endpoint info if accessible.
  */
 export async function probeEndpoint(
   url: string,
@@ -62,16 +79,20 @@ export async function probeEndpoint(
   }
 }
 
+// ── Scan ──
+
 /**
  * Scan a provider for free access methods.
- * Stub implementation — returns placeholder data.
+ * Phase 1 stub — returns placeholder. Phase 2 will implement real scanning.
  */
 export async function scanProvider(
   providerId: string,
   _config: Partial<DiscoveryConfig> = {}
 ): Promise<DiscoveryResult[]> {
-  // Phase 1 stub — returns empty results
-  // Phase 2 will implement actual scanning logic
+  log.info("discovery.scan_stub", {
+    providerId,
+    note: "Phase 1 stub — implement real scanning in Phase 2",
+  });
   return [
     {
       providerId,
@@ -86,20 +107,31 @@ export async function scanProvider(
   ];
 }
 
+// ── Results (Reporter — Phase 2) ──
+
 /**
- * Get discovery results from the database.
- * Stub implementation — returns empty array.
+ * Persist a discovery finding to the `discovery_results` table via the DB
+ * module. Uniqueness is keyed on `(providerId, method, endpoint)`, so
+ * re-discovering the same endpoint updates the existing row. Returns the
+ * persisted row (with its id).
  */
-export function getDiscoveryResults(_providerId?: string): DiscoveryResult[] {
-  // Phase 1 stub — Phase 2 will query SQLite
-  return [];
+export function persistDiscoveryResult(result: DiscoveryResult): DiscoveryResult {
+  return dbUpsertDiscoveryResult(result as DbDiscoveryResult) as DiscoveryResult;
 }
+
+/**
+ * Get discovery results from the DB, optionally filtered to one provider.
+ * Newest findings first.
+ */
+export function getDiscoveryResults(providerId?: string): DiscoveryResult[] {
+  return dbGetDiscoveryResults(providerId) as DiscoveryResult[];
+}
+
+// ── Config ──
 
 /**
  * Check if discovery service is enabled.
  */
 export function isDiscoveryEnabled(): boolean {
-  return DEFAULT_CONFIG.enabled;
+  return DEFAULT_DISCOVERY_CONFIG.enabled;
 }
-
-export { DEFAULT_CONFIG };

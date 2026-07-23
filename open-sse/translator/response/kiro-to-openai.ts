@@ -4,6 +4,7 @@
  */
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 
 /**
  * Parse Kiro SSE event and convert to OpenAI format
@@ -91,7 +92,6 @@ export function convertKiroToOpenAI(chunk, state) {
     const content = data.reasoningContentEvent?.content || data.content || "";
     if (!content) return null;
 
-    // Convert to thinking block format (Claude-style)
     const openaiChunk = {
       id: state.responseId,
       object: "chat.completion.chunk",
@@ -102,7 +102,7 @@ export function convertKiroToOpenAI(chunk, state) {
           index: 0,
           delta: {
             ...(state.chunkIndex === 0 ? { role: "assistant" } : {}),
-            content: `<thinking>${content}</thinking>`,
+            reasoning_content: content,
           },
           finish_reason: null,
         },
@@ -116,9 +116,19 @@ export function convertKiroToOpenAI(chunk, state) {
   // Handle tool use events
   if (eventType === "toolUseEvent" || data.toolUseEvent) {
     const toolUse = data.toolUseEvent || data;
-    const toolCallId = toolUse.toolUseId || `call_${Date.now()}`;
-    const toolName = toolUse.name || "";
+    const toolCallId = toolUse.toolUseId || fallbackToolCallId();
+    // #1375: long tool names were hash-truncated for Kiro (sanitizeKiroTools).
+    // Map the streamed name back to the original so the client sees the name
+    // it sent. `state.toolNameMap` carries truncated → original entries.
+    const rawName = toolUse.name || "";
+    const toolName =
+      state.toolNameMap instanceof Map ? state.toolNameMap.get(rawName) || rawName : rawName;
     const toolInput = toolUse.input || {};
+
+    // #3980: record that this stream produced tool calls so the terminal
+    // event reports finish_reason: "tool_calls" instead of "stop" — otherwise
+    // agent clients (Hermes) treat the tool-call turn as finished and break.
+    state.sawToolUse = true;
 
     const openaiChunk = {
       id: state.responseId,
@@ -153,7 +163,10 @@ export function convertKiroToOpenAI(chunk, state) {
 
   // Handle completion/done events
   if (eventType === "messageStopEvent" || eventType === "done" || data.messageStopEvent) {
-    state.finishReason = "stop"; // Mark for usage injection in stream.js
+    // #3980: if the stream produced tool calls, the terminal finish_reason must
+    // be "tool_calls" (OpenAI semantics), not "stop".
+    const finishReason = state.sawToolUse ? "tool_calls" : "stop";
+    state.finishReason = finishReason; // Mark for usage injection in stream.js
 
     const openaiChunk: Record<string, unknown> = {
       id: state.responseId,
@@ -164,7 +177,7 @@ export function convertKiroToOpenAI(chunk, state) {
         {
           index: 0,
           delta: {},
-          finish_reason: "stop",
+          finish_reason: finishReason,
         },
       ],
     };

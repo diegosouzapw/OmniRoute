@@ -1,0 +1,1 @@
+- fix(cli): split `outboundUrlGuard.ts`'s DB/feature-flag helpers into `outboundUrlGuardPolicy.ts` so `omniroute setup-opencode` no longer crashes with `Cannot find package '@/shared'` on a global npm install (#7682)

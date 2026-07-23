@@ -20,6 +20,21 @@ const SENSITIVE_KEYS = new Set([
 
 type JsonRecord = Record<string, unknown>;
 
+/**
+ * True for any binary/opaque byte view (Uint8Array, Buffer, DataView, other
+ * typed arrays). `Array.isArray()` returns false for these, so callers that
+ * branch on it before recursing would otherwise fall into the generic-object
+ * branch and enumerate one JS property key per decoded byte (#7297).
+ */
+function isOpaqueBinary(value: unknown): value is ArrayBufferView {
+  return ArrayBuffer.isView(value);
+}
+
+function describeOpaqueBinary(value: ArrayBufferView): string {
+  const byteLength = value.byteLength;
+  return `[binary ${byteLength} bytes]`;
+}
+
 export function cloneLogPayload<T>(value: T): T {
   if (value === null || value === undefined) return value;
   if (typeof globalThis.structuredClone === "function") {
@@ -43,6 +58,7 @@ export function normalizePayloadForLog(payload: unknown): unknown {
 
 export function redactPayload(payload: unknown): unknown {
   if (!payload || typeof payload !== "object") return payload;
+  if (isOpaqueBinary(payload)) return describeOpaqueBinary(payload);
   if (Array.isArray(payload)) return payload.map(redactPayload);
 
   const redacted: JsonRecord = {};
@@ -64,11 +80,14 @@ export function sanitizePayloadPII(payload: unknown): unknown {
   if (typeof payload === "string") {
     return sanitizePII(payload).text;
   }
-  if (Array.isArray(payload)) {
-    return payload.map(sanitizePayloadPII);
-  }
   if (!payload || typeof payload !== "object") {
     return payload;
+  }
+  if (isOpaqueBinary(payload)) {
+    return describeOpaqueBinary(payload);
+  }
+  if (Array.isArray(payload)) {
+    return payload.map(sanitizePayloadPII);
   }
 
   const sanitized: JsonRecord = {};

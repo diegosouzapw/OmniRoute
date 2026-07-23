@@ -30,10 +30,6 @@ const require = createRequire(import.meta.url);
 const OPTIONAL_OAUTH_SECRETS = [
   { keys: ["ANTIGRAVITY_OAUTH_CLIENT_SECRET"], label: "Antigravity OAuth" },
   { keys: ["QODER_OAUTH_CLIENT_SECRET"], label: "Qoder OAuth" },
-  {
-    keys: ["GEMINI_CLI_OAUTH_CLIENT_SECRET", "GEMINI_OAUTH_CLIENT_SECRET"],
-    label: "Gemini OAuth",
-  },
 ];
 
 // ── Resolve DATA_DIR (mirrors dataPaths.ts logic) ───────────────────────────
@@ -67,6 +63,21 @@ function getPreferredEnvFilePath(env = process.env) {
   return candidates.find((filePath) => existsSync(filePath)) ?? null;
 }
 
+function isNativeSqliteLoadError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+
+  return (
+    message.includes("Module did not self-register") ||
+    message.includes("NODE_MODULE_VERSION") ||
+    message.includes("ERR_DLOPEN_FAILED") ||
+    message.includes("Could not locate the bindings file") ||
+    message.includes("Cannot find module 'better-sqlite3'") ||
+    code === "ERR_DLOPEN_FAILED" ||
+    code === "MODULE_NOT_FOUND"
+  );
+}
+
 function hasEncryptedCredentials(dataDir) {
   const dbPath = join(dataDir, "storage.sqlite");
   if (!existsSync(dbPath)) return false;
@@ -91,6 +102,10 @@ function hasEncryptedCredentials(dataDir) {
       db.close();
     }
   } catch (error) {
+    if (isNativeSqliteLoadError(error)) {
+      return false;
+    }
+
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
   }
@@ -150,7 +165,22 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
 
   // ── Layer 2: Load the same preferred .env that the CLI wrapper uses ───────
   // This keeps run-next / run-standalone consistent with `bin/omniroute.mjs`.
-  const merged = { ...persisted, ...preferredEnv, ...process.env };
+  //
+  // We strip empty values from preferredEnv so an empty placeholder
+  // (e.g. `STORAGE_ENCRYPTION_KEY=` in the project .env template) does not
+  // override the real value persisted in server.env. Only the .env entries
+  // that the operator actually set should win.
+  const preferredEnvFiltered = Object.fromEntries(
+    Object.entries(preferredEnv).filter(([, v]) => typeof v === "string" && v.length > 0)
+  );
+  // Filter empty strings from process.env so that Docker `-e KEY=` (which sets an
+  // empty string) does not override real values persisted in server.env or set
+  // in .env. Only shell/Docker vars that the operator actually set should win.
+  // Mirrors the filtering already applied to preferredEnv above. (fixes #6824)
+  const processEnvFiltered = Object.fromEntries(
+    Object.entries(process.env).filter(([, v]) => typeof v === "string" && v.length > 0)
+  );
+  const merged = { ...persisted, ...preferredEnvFiltered, ...processEnvFiltered };
 
   // ── Auto-generate required secrets ────────────────────────────────────────
   let needsPersist = false;

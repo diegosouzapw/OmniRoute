@@ -114,3 +114,50 @@ test("T25: fallback chat probe treats 429 as valid credentials with warning", as
     globalThis.fetch = originalFetch;
   }
 });
+
+// decolua/9router#2032: OpenAI-compatible "Check" silently passed for ANY
+// non-empty Model ID because a chat-probe 404 (model_not_found) fell through
+// the generic "4xx other than auth" branch with no warning. The user only
+// discovered the bad model id after a real request tripped the per-model
+// lockout. A 404 must surface a warning at Check time instead of a bare pass.
+test("T25 / #2032: fallback chat probe surfaces a warning on 404 model_not_found", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith("/models")) {
+      return new Response(JSON.stringify({ error: "Not Found" }), { status: 404 });
+    }
+    return new Response(
+      JSON.stringify({
+        error: {
+          message: "The model glm-5.2 does not exist.",
+          type: "invalid_request_error",
+          param: null,
+          code: "model_not_found",
+        },
+      }),
+      { status: 404 }
+    );
+  };
+
+  try {
+    const result = await validateProviderApiKey({
+      provider: "openai-compatible-chat-t25-model-not-found",
+      apiKey: "sk-test",
+      providerSpecificData: {
+        baseUrl: "https://api.example.com/v1",
+        validationModelId: "glm-5.2",
+      },
+    });
+
+    // Credentials themselves are fine (404 is not an auth failure), so this
+    // still resolves as valid — but MUST carry an actionable warning instead
+    // of a silent pass, so the user learns about the bad model id at Check
+    // time rather than after the first real request gets locked out.
+    assert.equal(result.valid, true);
+    assert.equal(result.method, "inference_available");
+    assert.match(result.warning, /model.*(?:not found|does not exist|glm-5\.2)/i);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

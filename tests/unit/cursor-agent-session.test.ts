@@ -237,6 +237,22 @@ test("CursorSessionManager.sendToolResult returns false when openAIToolCallId no
   assert.equal(ok, false);
 });
 
+test("CursorSessionManager.close clears unanswered pendingToolCalls", () => {
+  const m = new CursorSessionManager();
+  const { req } = mockReq();
+  const { client } = mockClient();
+  const session = m.open("conv-clear", client, req, new Map());
+  session.pendingToolCalls.set("call_unanswered", {
+    execMsgId: 1,
+    execId: "exec-1",
+    toolName: "get_weather",
+  });
+  m.close(session);
+  // close() drops the unanswered mapping so it isn't pinned on the dead session.
+  assert.equal(session.pendingToolCalls.size, 0);
+  assert.equal(m.size(), 0);
+});
+
 test("CursorSessionManager.open replaces an existing session for the same conversation", () => {
   const m = new CursorSessionManager();
   const r1 = mockReq();

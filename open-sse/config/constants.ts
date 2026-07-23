@@ -1,4 +1,5 @@
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
+import type { LegacyProvider } from "./providerRegistry.ts";
 import { loadProviderCredentials } from "./credentialLoader.ts";
 import { generateLegacyProviders } from "./providerRegistry.ts";
 
@@ -17,10 +18,16 @@ export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 // idle for this duration. Override with STREAM_IDLE_TIMEOUT_MS env var.
 export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 
-// Timeout for the first useful SSE event. Keep this much shorter than the
-// post-start idle timeout so slow-thinking models can keep streaming after the
-// first token, while dead 200 OK streams fail fast enough for combo fallback.
+// Timeout for the first non-ping SSE event. Inherits REQUEST_TIMEOUT_MS when
+// set, unless STREAM_READINESS_TIMEOUT_MS is specified directly. This must stay
+// conservative for large prompts and slow first-byte reasoning providers.
 export const STREAM_READINESS_TIMEOUT_MS = upstreamTimeouts.streamReadinessTimeoutMs;
+
+// Upper bound for adaptive stream readiness extensions (large histories,
+// tool-heavy requests, high-reasoning Codex targets). Override with
+// STREAM_READINESS_MAX_TIMEOUT_MS when an operator needs longer first-event
+// windows for slow-thinking agent workloads.
+export const STREAM_READINESS_MAX_TIMEOUT_MS = upstreamTimeouts.streamReadinessMaxTimeoutMs;
 
 // Error code used when an upstream Antigravity request stalls before response
 // headers are returned. Keep it shared so executor, core normalization and
@@ -41,10 +48,48 @@ export const FETCH_BODY_TIMEOUT_MS = upstreamTimeouts.fetchBodyTimeoutMs;
 // Provider configurations
 // OAuth credentials read from env vars with hardcoded fallbacks for backward compatibility.
 // Use provider-credentials.json or env vars to override in production.
-export const PROVIDERS = generateLegacyProviders();
+// Lazy PROVIDERS: deferred until first property access to speed up startup.
+// The Proxy defers `generateLegacyProviders()` + `loadProviderCredentials()`
+// from module-evaluation time to the first read of any provider property.
+let _providers: Record<string, LegacyProvider> | null = null;
+function initProviders(): Record<string, LegacyProvider> {
+  if (!_providers) {
+    const p = generateLegacyProviders();
+    loadProviderCredentials(p);
+    _providers = p;
+  }
+  return _providers;
+}
 
-// Merge external credentials from data/provider-credentials.json (if present)
-loadProviderCredentials(PROVIDERS);
+export const PROVIDERS: Record<string, LegacyProvider> = new Proxy(
+  {} as Record<string, LegacyProvider>,
+  {
+    get(_, prop) {
+      if (typeof prop === 'symbol') return undefined;
+      return Reflect.get(initProviders(), prop, _providers);
+    },
+    has(_, prop) {
+      if (typeof prop === 'symbol') return false;
+      return Reflect.has(initProviders(), prop);
+    },
+    ownKeys() {
+      return Reflect.ownKeys(initProviders());
+    },
+    getOwnPropertyDescriptor(_, prop) {
+      if (typeof prop === 'symbol') return undefined;
+      return Object.getOwnPropertyDescriptor(initProviders(), prop);
+    },
+    set(_, prop, value) {
+      if (typeof prop === 'symbol') return false;
+      (initProviders() as Record<string, LegacyProvider>)[prop] = value;
+      return true;
+    },
+    deleteProperty(_, prop) {
+      if (typeof prop === 'symbol') return false;
+      return Reflect.deleteProperty(initProviders(), prop);
+    },
+  }
+);
 
 // Claude system prompt
 export const CLAUDE_SYSTEM_PROMPT = "You are Claude Code, Anthropic's official CLI for Claude.";
@@ -67,12 +112,8 @@ export const OAUTH_ENDPOINTS = {
     auth: "https://auth.openai.com/oauth/authorize",
   },
   anthropic: {
-    token: "https://console.anthropic.com/v1/oauth/token",
-    auth: "https://console.anthropic.com/v1/oauth/authorize",
-  },
-  qwen: {
-    token: "https://chat.qwen.ai/api/v1/oauth2/token", // From CLIProxyAPI
-    auth: "https://chat.qwen.ai/api/v1/oauth2/device/code", // From CLIProxyAPI
+    token: "https://api.anthropic.com/v1/oauth/token",
+    auth: "https://api.anthropic.com/v1/oauth/authorize",
   },
   qoder: {
     token: process.env.QODER_OAUTH_TOKEN_URL || "",
@@ -102,6 +143,7 @@ export const PROVIDER_MAX_TOKENS: Record<string, number> = {
   openai: 16384, // GPT-4/4o standard
   anthropic: 65536, // Claude models
   gemini: 65536, // Gemini Studio
+  sensenova: 65536, // SenseNova Token Plan rejects MaxTokens outside [1, 65536]
 };
 
 export const DEFAULT_PROVIDER_MAX_TOKENS = 32000;
@@ -213,9 +255,9 @@ export const PROVIDER_PROFILES = {
 // These are intentionally HIGH — they won't restrict normal usage.
 // Real limits are learned from provider response headers.
 export const DEFAULT_API_LIMITS = {
-  requestsPerMinute: 100, // 100 RPM (most APIs allow 60-600 RPM)
-  minTimeBetweenRequests: 200, // 200ms minimum gap
-  concurrentRequests: 10, // Max 10 parallel per provider
+  requestsPerMinute: 60, // 60 RPM (reduced from 100 — saves Bottleneck queue memory)
+  minTimeBetweenRequests: 350, // 350ms minimum gap (increased from 200)
+  concurrentRequests: 6, // Max 6 parallel per provider (reduced from 10)
 };
 
 // Skip patterns - requests containing these texts will bypass provider
@@ -252,3 +294,24 @@ export const CREDENTIAL_HEALTH_CACHE_TTL = (() => {
   }
   return 300_000;
 })();
+
+/**
+ * Stream-recovery tuning (opt-in, see ResilienceSettings.streamRecovery).
+ *
+ * Ported from free-claude-code's always-on recovery (`core/anthropic/stream_recovery.py`).
+ * In OmniRoute the holdback is disabled by default because buffering the opening
+ * window adds up to HOLDBACK_MS of time-to-first-token latency on every stream;
+ * operators opt in via STREAM_RECOVERY_ENABLED / the resilience settings.
+ *
+ * - HOLDBACK_MS: how long the opening SSE window is held so an early truncation
+ *   can be retried transparently before any byte reaches the client.
+ * - BUFFER_MAX_BYTES: hard cap on the held window — commit (flush + passthrough)
+ *   as soon as this many bytes accumulate, regardless of the timer.
+ * - EARLY_RETRY_MAX: max transparent re-opens of the upstream stream while the
+ *   holdback is still uncommitted (free-claude-code uses 5 total attempts = 4 retries).
+ */
+export const STREAM_RECOVERY = {
+  HOLDBACK_MS: 750,
+  BUFFER_MAX_BYTES: 65536,
+  EARLY_RETRY_MAX: 4,
+} as const;

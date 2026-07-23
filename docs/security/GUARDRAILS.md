@@ -1,13 +1,13 @@
 ---
 title: "Guardrails"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Guardrails
 
 > **Source of truth:** `src/lib/guardrails/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40 (injection-guard coverage + 16 KB scan bound + red-team)
 
 Guardrails enforce safety, policy, and content transformations at the boundary
 between OmniRoute and upstream providers. Each guardrail can inspect (and
@@ -60,12 +60,13 @@ exposes a `deps` constructor option so tests can inject fake `getSettings` and
 
 Runs on **both** stages.
 
-- **`preCall`** clones the payload, walks `system`, `messages`, and `input`
-  arrays, and applies `processPII()` (from `@/shared/utils/inputSanitizer`) to
-  string `content`/`text` fields. When `PII_REDACTION_ENABLED=true` **and**
-  `INPUT_SANITIZER_MODE=redact`, detected PII is stripped/redacted in the
-  outbound payload. Otherwise the call records detection counts without
-  rewriting content.
+- **`preCall`** clones the payload, walks `system`, `messages`, `input`, and
+  `prompt` (including plain string items), and applies `processPII()` (from
+  `@/shared/utils/inputSanitizer`) to string `content`/`text` fields. When
+  `PII_REDACTION_ENABLED=true`, detected PII is redacted in the outbound
+  payload. This is independent of `INPUT_SANITIZER_MODE` (which only controls
+  prompt-injection policy). When redaction is off, the call records detection
+  counts without rewriting content.
 - **`postCall`** deep-clones the response, runs `sanitizePIIResponse()` plus
   the Responses-API-shape masker (`maskResponsesOutput` — covers
   `output_text` and `output[].content[].text`). If any redaction occurs, the
@@ -83,8 +84,16 @@ options:
 | Setting         | Env var                                         | Default | Effect                                  |
 | --------------- | ----------------------------------------------- | ------- | --------------------------------------- |
 | Enabled         | `INPUT_SANITIZER_ENABLED`                       | `true`  | When `false`, guardrail short-circuits. |
-| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE` | `warn`  | `block`, `warn`, or `log`.              |
-| Block threshold | `blockThreshold` option                         | `high`  | Minimum severity required to block.     |
+| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE` | `warn`  | Injection policy: `block`, `warn`, or `log`. (`redact` is accepted for back-compat but does **not** strip injection text; request PII rewrite is controlled by `PII_REDACTION_ENABLED`.) |
+| Block threshold | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`  | Minimum severity required to block. Medium is observe-only at default. |
+
+**Mode precedence** (`getMode`): caller `options.mode` →
+`INJECTION_GUARD_MODE` **DB feature-flag override** (Dashboard → Settings →
+Feature Flags) → `INJECTION_GUARD_MODE` env → `INPUT_SANITIZER_MODE` env →
+`warn`. A dashboard override therefore wins over the env vars, so the Feature
+Flags UI controls the running guard live (no restart). The DB read is fail-safe:
+if it errors, the guard falls back to the env-based behavior, and when no
+override is set behavior is identical to env-only resolution.
 
 Detection sources:
 
@@ -100,6 +109,14 @@ threshold, `preCall` returns `{ block: true, message: "Request rejected:
 suspicious content detected" }`. In `warn`/`log` modes the guardrail logs but
 allows the call. The shared helper `evaluatePromptInjection()` is also exported
 for callers that need to evaluate prompts without going through the registry.
+
+**Scan bound (v3.8.20):** the detector only inspects the **first 16 KB** of
+joined prompt text — `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 bytes) in
+`src/shared/utils/inputSanitizer.ts`. Both `detectInjection()` and
+`evaluatePromptInjection()` `slice(0, MAX_INJECTION_SCAN_BYTES)` before running
+the pattern loop. Injection directives sit near the top of an input, so this
+caps regex CPU/GC on multi-hundred-KB payloads without weakening detection (cf.
+#3932, #4041).
 
 ## Base Contract (`base.ts`)
 
@@ -204,13 +221,15 @@ Guardrails that throw are recorded with `error: <message>` and logged via
 
 Environment variables read by the built-in guardrails:
 
-| Variable                              | Used by                          | Effect                                                |
-| ------------------------------------- | -------------------------------- | ----------------------------------------------------- |
-| `INPUT_SANITIZER_ENABLED`             | `prompt-injection`               | Set `false` to disable detection entirely.            |
-| `INPUT_SANITIZER_MODE`                | `prompt-injection`, `pii-masker` | Shared mode: `warn`, `block`, `log`, or `redact`.     |
-| `INJECTION_GUARD_MODE`                | `prompt-injection`               | Legacy alias for `INPUT_SANITIZER_MODE`.              |
-| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true` + mode `redact`, request PII is stripped. |
-| `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream)        | Controls response-side masker behavior.               |
+| Variable                              | Used by                          | Effect                                                                                           |
+| ------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `INPUT_SANITIZER_ENABLED`             | `prompt-injection`               | Set `false` to disable detection entirely.                                                       |
+| `INPUT_SANITIZER_MODE`                | `prompt-injection`               | Injection policy: `warn`, `block`, or `log`. Legacy value `redact` does not rewrite injection text. |
+| `INJECTION_GUARD_MODE`                | `prompt-injection`               | Mode for the injection guard; also a DB feature flag that **overrides** the env vars (DB > ENV). |
+| `INPUT_SANITIZER_BLOCK_THRESHOLD`     | `prompt-injection`               | Minimum severity that `MODE=block` rejects: `high` (default), `medium`, or `low`.                |
+| `INJECTION_GUARD_BLOCK_THRESHOLD`     | `prompt-injection`               | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD`.                                              |
+| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true`, request PII is redacted (independent of injection mode).                            |
+| `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream)        | Controls response-side masker behavior.                                                          |
 
 The Vision Bridge reads runtime config from the DB-backed settings store
 (`getSettings()`), not env vars: `visionBridgeEnabled`, `visionBridgeModel`,
@@ -267,3 +286,39 @@ exercise the full flow without DB or network access.
   forced-bridge model list
 - `docs/architecture/RESILIENCE_GUIDE.md` — orthogonal layer (circuit breaker, cooldowns)
 - `docs/reference/ENVIRONMENT.md` — full env var reference
+
+## Injection-guard route coverage & red-team (Phase 8 · Block D)
+
+The injection-guard (`createInjectionGuard` / `withInjectionGuard`) covers all routes
+that accept user prompts. It respects `INJECTION_GUARD_MODE` (default `warn` = log only;
+`block` = returns HTTP 400 `SECURITY_001`).
+
+| Type            | Routes                                                                                                                                               | Default mode |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Text (existing) | `/v1/chat/completions`, `/v1/completions`, `/v1/relay/chat/completions`                                                                              | warn         |
+| Generative      | `/v1/messages`, `/v1/responses`, `/v1/images/generations`, `/v1/images/edits`, `/v1/videos/generations`, `/v1/music/generations`, `/v1/audio/speech` | warn         |
+| Data            | `/v1/embeddings`, `/v1/rerank`, `/v1/search`, `/v1/moderations`                                                                                      | warn         |
+
+Text extraction (`extractMessageContents`) covers `messages`/`input`/`prompt`/`query`+`documents`/`instructions`/`system`.
+
+**Red-team (nightly, `nightly-llm-security.yml`):** promptfoo validates that each route blocks
+the OWASP-LLM corpus in `INJECTION_GUARD_MODE=block`; garak runs probes (skips without secret).
+`moderations` is included for consistency — operators in block-mode can exempt it via
+`resolveDisabledGuardrails`.
+
+The nightly workflow (`.github/workflows/nightly-llm-security.yml`, cron + manual
+dispatch) has two jobs:
+
+- **`promptfoo-guard` (blocking)** — runs `promptfoo eval -c promptfooconfig.yaml`
+  with `INJECTION_GUARD_MODE=block`. Each adversarial case (e.g. "ignore all
+  previous instructions…", DAN-style jailbreaks) asserts the response carries
+  `error.code === "SECURITY_001"`, i.e. the guard actually rejected the request.
+- **`garak` (advisory)** — runs garak `--probes promptinject,dan,leakreplay`
+  against a local OmniRoute instance (`http://localhost:20128/v1`). Gated on a
+  provider secret (`PROMPTFOO_PROVIDER_KEY`); skips gracefully and is suffixed
+  `|| true`, so it reports without failing CI.
+
+Coverage of the guard helper (`createInjectionGuard` / `withInjectionGuard`)
+spans every prompt-bearing `/v1` route; prompt text is pulled from
+`messages`/`input`/`prompt`/`query`+`documents`/`instructions`/`system` by
+`extractMessageContents()` in `src/shared/utils/inputSanitizer.ts`.

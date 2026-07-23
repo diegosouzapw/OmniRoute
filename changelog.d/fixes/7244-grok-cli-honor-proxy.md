@@ -1,0 +1,1 @@
+- **fix(providers):** honor a configured proxy on Grok Build egress — the grok-cli executor used raw `https.request()` and bypassed the proxy context, leaking the host IP on chat inference and OAuth token refresh. (thanks @ryanngit)

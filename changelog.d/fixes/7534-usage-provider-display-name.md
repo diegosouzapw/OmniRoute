@@ -1,0 +1,1 @@
+- fix(api): Usage page "by provider" table now shows the configured provider display name (e.g. "OpenAI Codex") instead of the raw internal provider id (e.g. "codex") (#7534)

@@ -91,6 +91,17 @@ describe("Caveman output mode", () => {
     }
   });
 
+  it("skips injection when disabled", () => {
+    const result = applyCavemanOutputMode(
+      { messages: [{ role: "user", content: "Tell me a joke." }] },
+      { enabled: false, intensity: "full", autoClarity: true }
+    );
+    assert.equal(result.applied, false);
+    assert.equal(result.skippedReason, "disabled");
+    assert.equal(result.body.messages?.[0]?.role, "user");
+    assert.equal(result.body.messages?.[0]?.content, "Tell me a joke.");
+  });
+
   it("builds intensity-specific instructions", () => {
     assert.match(
       buildCavemanOutputInstruction({ enabled: true, intensity: "ultra", autoClarity: true }),

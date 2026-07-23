@@ -203,23 +203,19 @@ export interface TlsFetchOptions {
 }
 
 import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+import { resolveTlsClientProxyUrl } from "./tlsClientProxy.ts";
 
 /**
  * Resolve the proxy URL for a tls-client request. Per-call value wins;
  * otherwise we use the standard proxy fetch resolution which reads from
  * the dashboard AsyncLocalStorage context or falls back to env vars.
+ *
+ * Fail-closed: if resolution throws (e.g. a configured socks5 proxy with
+ * ENABLE_SOCKS5_PROXY=false), this rethrows rather than returning undefined —
+ * undefined would let the native binding connect directly and leak the real IP.
  */
 function resolveProxyUrl(perCall: string | undefined): string | undefined {
-  if (perCall && perCall.length > 0) return perCall;
-  try {
-    const proxyInfo = resolveProxyForRequest("https://www.perplexity.ai");
-    if (proxyInfo && proxyInfo.proxyUrl) {
-      return proxyInfo.proxyUrl;
-    }
-  } catch {
-    // Ignore resolution errors
-  }
-  return undefined;
+  return resolveTlsClientProxyUrl("https://www.perplexity.ai", perCall, resolveProxyForRequest);
 }
 
 export interface TlsFetchResult {

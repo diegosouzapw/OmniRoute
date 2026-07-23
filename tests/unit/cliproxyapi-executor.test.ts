@@ -457,14 +457,18 @@ describe("CliproxyapiExecutor", () => {
       );
     });
 
-    it("does not rewrite non-mcp_ tool names", () => {
+    it("cloaks non-mcp third-party tool names to PascalCase (fingerprint defense, PR #2943)", () => {
       const exec = new CliproxyapiExecutor();
       const body = anthropicBodyWithTools([
         { name: "my_tool", description: "My tool", input_schema: {} },
       ]);
       const result = exec.transformRequest("claude-opus-4-7", body, true, {});
       const toolName = (result.tools as Array<{ name: string }>)[0].name;
-      assert.equal(toolName, "my_tool");
+      // Non-Claude-Code tool names are now cloaked (my_tool -> MyTool) so Anthropic
+      // does not fingerprint the third-party harness; restored on the response via
+      // the non-enumerable _toolNameMap.
+      assert.equal(toolName, "MyTool");
+      assert.equal((result._toolNameMap as Map<string, string>).get("MyTool"), "my_tool");
     });
 
     it("rewrites mcp_* tool_use names in assistant message history", () => {

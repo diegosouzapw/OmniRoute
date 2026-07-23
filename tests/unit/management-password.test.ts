@@ -29,30 +29,22 @@ async function runResetPasswordCli(password: string) {
 
   let stdout = "";
   let stderr = "";
-  let answeredPassword = false;
-  let answeredConfirmation = false;
-
-  const answerPrompts = () => {
-    if (!answeredPassword && stdout.includes("Enter new password")) {
-      child.stdin.write(`${password}\n`);
-      answeredPassword = true;
-    }
-    if (answeredPassword && !answeredConfirmation && stdout.includes("Confirm new password")) {
-      child.stdin.write(`${password}\n`);
-      child.stdin.end();
-      answeredConfirmation = true;
-    }
-  };
 
   child.stdout.setEncoding("utf8");
   child.stderr.setEncoding("utf8");
   child.stdout.on("data", (chunk) => {
     stdout += chunk;
-    answerPrompts();
   });
   child.stderr.on("data", (chunk) => {
     stderr += chunk;
   });
+
+  // #6387: the CLI now reads a piped (non-TTY) stdin all at once — the first line is the
+  // password — instead of the old two interactive `Enter new password` / `Confirm new
+  // password` prompts. Feed the password and close stdin immediately; waiting for prompts
+  // the non-TTY path never prints deadlocks the child (was the v3.8.46 CI shard-4 wedge).
+  child.stdin.write(`${password}\n`);
+  child.stdin.end();
 
   const code = await new Promise<number | null>((resolve, reject) => {
     child.on("error", reject);

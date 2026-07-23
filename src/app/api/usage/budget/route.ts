@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { getCostSummary, setBudget, checkBudget } from "@/domain/costRules";
 import { setBudgetSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const apiKeyId = searchParams.get("apiKeyId");
@@ -37,6 +41,9 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody;
   try {
     rawBody = await request.json();

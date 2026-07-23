@@ -6,8 +6,11 @@ import {
   readMcpHeartbeat,
   resolveMcpHeartbeatPath,
 } from "@omniroute/open-sse/mcp-server/runtimeHeartbeat";
-import { getMcpHttpStatus } from "../../../../../open-sse/mcp-server/httpTransport";
-import { getSettings } from "@/lib/db/settings";
+import {
+  getMcpHttpStatus,
+  isMcpHttpTransportReady,
+} from "../../../../../open-sse/mcp-server/httpTransport";
+import { getCachedSettings } from "@/lib/db/settings";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {
@@ -18,18 +21,24 @@ export async function GET(request: Request) {
       readMcpHeartbeat(),
       getAuditStats(),
       queryAuditEntries({ limit: 1, offset: 0 }),
-      getSettings(),
+      getCachedSettings(),
     ]);
 
     const mcpEnabled = !!settings.mcpEnabled;
     const mcpTransport = (settings.mcpTransport as string) || "stdio";
 
-    // Check HTTP transport (SSE / Streamable HTTP) if active
+    // Check HTTP transport active-session state separately from endpoint readiness.
     const httpStatus = getMcpHttpStatus();
 
-    // stdio uses heartbeat file; HTTP transports use in-process state
+    // stdio uses an external process heartbeat. HTTP transports are in-process and lazy-start
+    // on first request, so an enabled HTTP endpoint is online even before any session exists.
     const stdioOnline = isMcpHeartbeatOnline(heartbeat, { requireLivePid: true });
-    const online = mcpTransport === "stdio" ? stdioOnline : httpStatus.online;
+    const online =
+      mcpTransport === "stdio"
+        ? mcpEnabled && stdioOnline
+        : isMcpHttpTransportReady(mcpEnabled, mcpTransport);
+
+    const scopesEnforced = process.env.OMNIROUTE_MCP_ENFORCE_SCOPES === "true";
 
     const lastCall = lastCallPage.entries[0] || null;
     const now = Date.now();
@@ -49,6 +58,7 @@ export async function GET(request: Request) {
       online,
       enabled: mcpEnabled,
       transport: mcpTransport,
+      scopesEnforced,
       heartbeatPath: resolveMcpHeartbeatPath(),
       heartbeat: heartbeat
         ? {

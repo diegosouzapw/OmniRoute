@@ -6,7 +6,7 @@ import { pathToFileURL } from "node:url";
 import { validateBinaryMagic, platformBinaryLabel } from "./magicBytes.mjs";
 
 const RUNTIME_DIR = join(homedir(), ".omniroute", "runtime");
-const BETTER_SQLITE3_VERSION = "better-sqlite3@^12.6.2";
+const BETTER_SQLITE3_VERSION = "better-sqlite3@^12.10.1";
 
 let resolvedCached = null;
 

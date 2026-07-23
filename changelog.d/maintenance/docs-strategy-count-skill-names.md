@@ -1,0 +1,1 @@
+- **docs:** routing-strategy count reconciled to 18 across AUTO-COMBO.md, README and AGENTS.md, and `p2c` casing fixed to match `ROUTING_STRATEGY_VALUES` (#6643, #6644, #6646 — thanks @chirag127); CLAUDE.md updated with the renamed review/triage/implement skill-family names (#6663).

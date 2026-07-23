@@ -37,11 +37,17 @@ describe("Cache Control Policy", () => {
       assert.equal(providerSupportsCaching("claude"), true);
       assert.equal(providerSupportsCaching("anthropic"), true);
       assert.equal(providerSupportsCaching("zai"), true);
-      assert.equal(providerSupportsCaching("qwen"), true);
+      assert.equal(providerSupportsCaching("deepseek"), true);
+      // #3088 — Xiaomi MiMo supports prompt caching; cache_control breakpoints
+      // sent by Claude Code (via cc-switch) must be preserved, not stripped.
+      assert.equal(providerSupportsCaching("xiaomi-mimo"), true);
+      // #3955 — OpenAI / Codex / Azure-OpenAI use automatic prefix caching.
+      assert.equal(providerSupportsCaching("openai"), true);
+      assert.equal(providerSupportsCaching("codex"), true);
+      assert.equal(providerSupportsCaching("azure"), true);
     });
 
     test("rejects non-caching providers", () => {
-      assert.equal(providerSupportsCaching("openai"), false);
       assert.equal(providerSupportsCaching("gemini"), false);
       assert.equal(providerSupportsCaching("unknown"), false);
       assert.equal(providerSupportsCaching(null), false);
@@ -51,6 +57,20 @@ describe("Cache Control Policy", () => {
     test("is case-insensitive", () => {
       assert.equal(providerSupportsCaching("Claude"), true);
       assert.equal(providerSupportsCaching("ANTHROPIC"), true);
+      assert.equal(providerSupportsCaching("Xiaomi-MiMo"), true);
+    });
+
+    // #3088 — regression: a Claude Code client routed to xiaomi-mimo must keep
+    // its client-side cache_control breakpoints so Xiaomi's API sees cache hints.
+    test("preserves client cache_control for xiaomi-mimo single model", () => {
+      assert.equal(
+        shouldPreserveCacheControl({
+          userAgent: "claude-cli/2.1.113 (external, sdk-cli)",
+          isCombo: false,
+          targetProvider: "xiaomi-mimo",
+        }),
+        true
+      );
     });
   });
 
@@ -124,11 +144,12 @@ describe("Cache Control Policy", () => {
     });
 
     test("rejects non-caching providers", () => {
+      // gemini has no prompt caching (openai/codex now do, per #3955).
       assert.equal(
         shouldPreserveCacheControl({
           userAgent: "claude-code/0.1.0",
           isCombo: false,
-          targetProvider: "openai",
+          targetProvider: "gemini",
         }),
         false
       );

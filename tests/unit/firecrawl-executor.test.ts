@@ -183,3 +183,41 @@ test("firecrawlFetch forwards depth and wait_for_selector", async () => {
     globalThis.fetch = originalFetch;
   }
 });
+
+// ── #4692 regression: includeMetadata must NOT send invalid includeTags ────────
+// Firecrawl returns metadata automatically in response.data.metadata. Sending
+// includeTags with non-CSS-selector values ("og:title", "description") crashed
+// Firecrawl's parser with HTTP 500. The includeMetadata flag must only gate
+// whether we surface metadata, never inject includeTags into the request.
+test("firecrawlFetch with includeMetadata=true does not send includeTags (4692)", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedBody: Record<string, unknown> = {};
+
+  globalThis.fetch = async (_url, init = {}) => {
+    capturedBody = JSON.parse(String((init as RequestInit).body ?? "{}"));
+    return new Response(
+      JSON.stringify({
+        data: { markdown: "# Result", metadata: { title: "Test", description: "Desc" } },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await firecrawlFetch({
+      url: "https://example.com",
+      format: "markdown",
+      depth: 0,
+      includeMetadata: true,
+      credentials: { apiKey: "fc-test-key" },
+    });
+
+    assert.equal(result.success, true);
+    assert.ok(
+      !("includeTags" in capturedBody),
+      "includeMetadata must not inject includeTags (Firecrawl 500)"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

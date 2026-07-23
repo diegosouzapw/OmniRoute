@@ -6,7 +6,7 @@ import {
   buildCustomCliEnvScript,
   buildCustomCliJsonConfig,
   normalizeOpenAiBaseUrl,
-} from "../../src/app/(dashboard)/dashboard/cli-tools/components/customCliConfig.ts";
+} from "../../src/app/(dashboard)/dashboard/cli-code/components/customCliConfig.ts";
 
 test("normalizeOpenAiBaseUrl appends /v1 only when needed", () => {
   assert.equal(normalizeOpenAiBaseUrl("http://localhost:20128"), "http://localhost:20128/v1");

@@ -1,0 +1,95 @@
+import { describe, it, afterEach } from "node:test";
+import assert from "node:assert/strict";
+import type { Dispatcher } from "undici";
+import {
+  __createRoundRobinDispatcherForTest,
+  __getDefaultDispatcherOptionsForTest,
+  __getProxyDispatcherOptionsForTest,
+  getDefaultDispatcherConnectionLimit,
+  clearDispatcherCache,
+} from "../../open-sse/utils/proxyDispatcher.ts";
+
+afterEach(() => clearDispatcherCache());
+
+// #4580 — On the DIRECT egress path, concurrent same-provider requests serialized
+// behind a long/streaming request. The proxy dispatcher already got pipelining:0 +
+// a connections cap in #4288, but the first-attempt direct dispatcher
+// (getDispatcherOptions → new Agent) kept undici's default pipelining (1), so long
+// SSE streams bottlenecked the single pooled socket. The direct dispatcher now
+// mirrors that fix while KEEPING keep-alive (a proxy-only concern was the 1ms TTL).
+
+describe("#4580 direct dispatcher options", () => {
+  it("disables pipelining so concurrent streams open separate sockets", () => {
+    const opts = __getDefaultDispatcherOptionsForTest({});
+    assert.equal(opts.pipelining, 0);
+  });
+
+  it("caps connections to a finite number (default 32)", () => {
+    const opts = __getDefaultDispatcherOptionsForTest({});
+    assert.equal(typeof opts.connections, "number");
+    assert.equal(opts.connections, 32);
+  });
+
+  it("preserves keep-alive (NOT the 1ms TTL the proxy path forces)", () => {
+    const direct = __getDefaultDispatcherOptionsForTest({});
+    const proxy = __getProxyDispatcherOptionsForTest({});
+    assert.equal(proxy.keepAliveTimeout, 1);
+    assert.ok(
+      (direct.keepAliveTimeout ?? 0) > 1,
+      `direct keepAliveTimeout should stay > 1 (got ${direct.keepAliveTimeout})`
+    );
+  });
+
+  it("enables Happy Eyeballs (autoSelectFamily) on both direct and proxy options (#1237)", () => {
+    const direct = __getDefaultDispatcherOptionsForTest({}) as {
+      connect?: { autoSelectFamily?: boolean; autoSelectFamilyAttemptTimeout?: number };
+    };
+    assert.equal(
+      direct.connect?.autoSelectFamily,
+      true,
+      "direct egress must race IPv4/IPv6 so a broken IPv6 route does not ETIMEDOUT"
+    );
+    assert.equal(typeof direct.connect?.autoSelectFamilyAttemptTimeout, "number");
+  });
+
+  it("connection limit honors OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS", () => {
+    assert.equal(
+      getDefaultDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "8" }),
+      8
+    );
+  });
+
+  it("connection limit clamps invalid values to the default", () => {
+    assert.equal(
+      getDefaultDispatcherConnectionLimit({ OMNIROUTE_DIRECT_DISPATCHER_CONNECTIONS: "nonsense" }),
+      32
+    );
+    assert.equal(getDefaultDispatcherConnectionLimit({}), 32);
+  });
+
+  it("fans out direct requests across independent dispatcher pools", () => {
+    const calls: number[] = [];
+    const dispatchers = [0, 1, 2].map(
+      (index) =>
+        ({
+          dispatch() {
+            calls.push(index);
+            return true;
+          },
+          close() {},
+          destroy() {},
+        }) as unknown as Dispatcher
+    );
+    const dispatcher = __createRoundRobinDispatcherForTest(dispatchers);
+    const dispatchOptions = {
+      origin: "https://chatgpt.com",
+      path: "/backend-api/codex/responses",
+      method: "POST",
+    } as unknown as Parameters<Dispatcher["dispatch"]>[0];
+    const handler = {} as Parameters<Dispatcher["dispatch"]>[1];
+
+    for (let i = 0; i < 7; i++) dispatcher.dispatch(dispatchOptions, handler);
+
+    assert.deepEqual(calls, [0, 1, 2, 0, 1, 2, 0]);
+  });
+});

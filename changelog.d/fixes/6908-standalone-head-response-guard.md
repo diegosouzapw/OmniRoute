@@ -1,0 +1,1 @@
+- **fix(cli):** ship `head-response-guard.cjs` into the standalone bundle — `server-ws.mjs` imported it without a matching `EXTRA_MODULE_ENTRIES` entry, so every `build:release` dist crashed at boot with `ERR_MODULE_NOT_FOUND`; a new regression test derives the required sidecars from `server-ws.mjs` imports (#6908)

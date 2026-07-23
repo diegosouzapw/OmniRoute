@@ -6,6 +6,88 @@
  */
 
 import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts";
+import type { ComboCooldownWaitSettings } from "../../src/lib/resilience/settings.ts";
+import type { ResponseValidationConfig } from "./combo/responseValidation.ts";
+
+/**
+ * Maximum number of concurrent pre-screen checks (provider profile + availability)
+ * when running parallel pre-screening for priority strategy combos.
+ */
+export const PRE_SCREEN_CONCURRENCY = 5;
+
+/**
+ * Default per-target timeout for combo fallback when a combo does not set its own
+ * `targetTimeoutMs`. Combos exist to fail over fast, so inheriting the full upstream
+ * request timeout (FETCH_TIMEOUT_MS, 600s by default) made a single hung target stall
+ * the whole combo for up to 10 minutes before falling through to the next model
+ * (escalated cmqlrhd7c). For STREAMING requests this only bounds the time-to-first-headers
+ * — token generation streams after the response resolves, so it is NOT cut short. Operators
+ * can still raise it per-combo via `targetTimeoutMs` (capped at the upstream ceiling), or set
+ * a longer value for slow non-streaming reasoning combos.
+ */
+export const DEFAULT_COMBO_TARGET_TIMEOUT_MS = 120_000;
+
+/**
+ * Small buffer added on top of the combo-cooldown-wait budget (see below) when deriving
+ * the per-target timeout floor for wait-eligible combos. The wait itself is bounded by
+ * `resilienceSettings.comboCooldownWait.budgetMs`; this buffer only needs to cover the
+ * dispatch overhead between the wait resolving and the upstream response headers
+ * arriving (streaming responses aren't cut short past that point — see
+ * DEFAULT_COMBO_TARGET_TIMEOUT_MS above), not a full generation.
+ */
+export const COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS = 10_000;
+
+/**
+ * Whether a combo's cooldown-aware wait+retry (#7360) engages for this request: only
+ * "quota-share" and "auto" strategies wait out a short transient cooldown instead of
+ * crystallizing a 429 into a combo-level failure, and only when the operator has the
+ * feature enabled. Shared by combo.ts (to decide whether to wait) and comboSetup.ts (to
+ * size the per-target timeout floor so it doesn't cut the wait off early — see
+ * resolveComboTargetTimeoutMsForCombo below).
+ */
+export function isComboCooldownWaitEligible(
+  strategy: string,
+  comboCooldownWait: Pick<ComboCooldownWaitSettings, "enabled">
+): boolean {
+  return (strategy === "quota-share" || strategy === "auto") && comboCooldownWait.enabled;
+}
+
+/**
+ * Per-target timeout floor to use for a combo, accounting for the cooldown-wait budget.
+ * When the combo is wait-eligible (see isComboCooldownWaitEligible), a single target's
+ * dispatch can legitimately wait out cooldowns for up to `comboCooldownWait.budgetMs`
+ * before it resolves — so the per-target timeout must never be shorter than that budget,
+ * or the wait gets cut off mid-retry and the target times out with a synthetic 524
+ * (open-sse/services/combo/targetTimeoutRunner.ts) instead of completing the wait. This
+ * only raises the *default* floor; an operator's explicit `targetTimeoutMs` on the combo
+ * still wins (see resolveComboTargetTimeoutMs).
+ */
+export function resolveComboTargetTimeoutMsForCombo(
+  config: Record<string, unknown> | null | undefined,
+  upstreamTimeoutMs: number,
+  strategy: string,
+  comboCooldownWait: Pick<ComboCooldownWaitSettings, "enabled" | "budgetMs">
+): number {
+  const defaultTimeoutMs = isComboCooldownWaitEligible(strategy, comboCooldownWait)
+    ? Math.max(
+        DEFAULT_COMBO_TARGET_TIMEOUT_MS,
+        comboCooldownWait.budgetMs + COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS
+      )
+    : DEFAULT_COMBO_TARGET_TIMEOUT_MS;
+  return resolveComboTargetTimeoutMs(config, upstreamTimeoutMs, defaultTimeoutMs);
+}
+
+/**
+ * Default pre-cascade semaphore queue depth for round-robin combos (#3872). When a
+ * combo member's concurrency slot is saturated, this many requests wait in the
+ * member's queue before `SEMAPHORE_QUEUE_FULL` triggers a cascade to the next member.
+ * Kept at 20 for backward compatibility; operators wanting faster failover can lower
+ * it (0 = never queue, fail over to the next member immediately).
+ */
+export const DEFAULT_COMBO_QUEUE_DEPTH = 20;
+
+/** Upper bound for the configurable combo queue depth (defensive clamp). */
+export const MAX_COMBO_QUEUE_DEPTH = 100;
 
 const DEFAULT_COMBO_CONFIG = {
   strategy: "priority",
@@ -14,20 +96,33 @@ const DEFAULT_COMBO_CONFIG = {
   fallbackDelayMs: 0,
   concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
   queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
+  queueDepth: DEFAULT_COMBO_QUEUE_DEPTH, // pre-cascade semaphore queue depth (round-robin, #3872)
   handoffThreshold: 0.85,
   handoffModel: "",
   handoffProviders: ["codex"],
   maxMessagesForSummary: 30,
   maxComboDepth: 3,
+  nestedComboMode: "flatten",
   trackMetrics: true,
+  reasoningTokenBufferEnabled: true,
   manifestRouting: false,
+  // Complexity-aware auto routing (2026): when on, the auto router scores
+  // candidates by how well their tier matches the request's classified
+  // difficulty (feeds tierAffinity/specificityMatch). Opt-in — off by default.
+  complexityAwareRouting: false,
   resetAwareSessionWeight: 0.35,
   resetAwareWeeklyWeight: 0.65,
   resetAwareTieBandPercent: 5,
   resetAwareExhaustionGuardPercent: 10,
   failoverBeforeRetry: true,
+  // Feature 4985: configurable response-body validation predicate (per-combo). When set,
+  // a 200 OK whose body fails the predicate fails over to the next target.
+  responseValidation: undefined as ResponseValidationConfig | undefined,
   maxSetRetries: 0,
   setRetryDelayMs: 2000,
+  // Zero-latency optimizations are opt-in because some modes can race targets or
+  // mutate fallback request bodies for lower tail latency.
+  zeroLatencyOptimizationsEnabled: false,
   // Hedging (Speculative Execution) defaults
   hedging: false,
   hedgeDelayMs: 500,
@@ -44,6 +139,12 @@ const DEFAULT_COMBO_CONFIG = {
   pipeline_fallback: "single-provider",
   resetAwareQuotaCacheTtlMs: 0,
   resetAwareQuotaCacheMaxStaleMs: 0,
+  // Global combo timeout (0 = disabled). When set, limits the total wall-clock time
+  // the combo spends iterating through targets. After each target completes, if the
+  // elapsed time exceeds comboTimeoutMs, remaining targets are skipped and a 504 with
+  // aggregated error diagnostics is returned. Backward-compatible: 0 preserves the
+  // legacy unlimited-iteration behavior.
+  comboTimeoutMs: 0,
   shadowRouting: {
     enabled: false,
     targets: [],
@@ -60,6 +161,16 @@ const DEFAULT_COMBO_CONFIG = {
     latencyWeight: 0.15,
     cacheTtlMs: 60000,
   },
+  // Context window requirements for combo target filtering/sorting (undefined by
+  // default — declared here so resolveComboSetupConfig's inferred return type
+  // includes the key; combo.ts reads config.contextRequirements).
+  contextRequirements: undefined as
+    | {
+        minContextWindow?: number;
+        preferLargeContext?: boolean;
+        contextFilterMode?: "strict" | "lenient";
+      }
+    | undefined,
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
@@ -97,16 +208,40 @@ function normalizePositiveTimeoutMs(value: unknown): number {
 
 export function resolveComboTargetTimeoutMs(
   config: Record<string, unknown> | null | undefined,
-  upstreamTimeoutMs: number
+  upstreamTimeoutMs: number,
+  defaultTimeoutMs: number = 0
 ): number {
-  const inheritedTimeoutMs = normalizePositiveTimeoutMs(upstreamTimeoutMs);
+  const ceilingTimeoutMs = normalizePositiveTimeoutMs(upstreamTimeoutMs);
   const configuredTimeoutMs = isRecord(config)
     ? normalizePositiveTimeoutMs(config.targetTimeoutMs)
     : 0;
 
-  if (configuredTimeoutMs <= 0) return inheritedTimeoutMs;
-  if (inheritedTimeoutMs <= 0) return configuredTimeoutMs;
-  return Math.min(configuredTimeoutMs, inheritedTimeoutMs);
+  // Explicit per-combo config: honour it, but never extend past the upstream ceiling.
+  if (configuredTimeoutMs > 0) {
+    if (ceilingTimeoutMs <= 0) return configuredTimeoutMs;
+    return Math.min(configuredTimeoutMs, ceilingTimeoutMs);
+  }
+
+  // Unset config: fall back to the saner combo default (when provided) so a hung target
+  // fails over fast instead of inheriting the full upstream timeout. Never exceed the
+  // ceiling. When no default is given OR the upstream timeout is disabled (0 = unbounded),
+  // preserve the legacy "inherit the upstream ceiling" behavior.
+  const fallbackDefaultMs = normalizePositiveTimeoutMs(defaultTimeoutMs);
+  if (ceilingTimeoutMs <= 0) return ceilingTimeoutMs;
+  if (fallbackDefaultMs <= 0) return ceilingTimeoutMs;
+  return Math.min(fallbackDefaultMs, ceilingTimeoutMs);
+}
+
+/**
+ * Resolve the effective pre-cascade semaphore queue depth for a round-robin combo
+ * (#3872). Falls back to `DEFAULT_COMBO_QUEUE_DEPTH` for missing/invalid/negative
+ * values and clamps to `MAX_COMBO_QUEUE_DEPTH`. `0` is valid and meaningful: it makes
+ * a saturated combo member fail over to the next member immediately instead of queueing.
+ */
+export function resolveComboQueueDepth(config: Record<string, unknown> | null | undefined): number {
+  const raw = isRecord(config) ? Number(config.queueDepth) : Number.NaN;
+  if (!Number.isFinite(raw) || raw < 0) return DEFAULT_COMBO_QUEUE_DEPTH;
+  return Math.min(Math.floor(raw), MAX_COMBO_QUEUE_DEPTH);
 }
 
 /**
@@ -165,4 +300,16 @@ export function resolveComboConfig(
  */
 export function getDefaultComboConfig() {
   return { ...DEFAULT_COMBO_CONFIG };
+}
+
+/**
+ * Resolve the effective combo config the same way handleComboChat does: cascade via
+ * resolveComboConfig when settings exist, else the defaults merged with the combo's own
+ * config. Encapsulated here so the ternary lives in one place (DRY) and its inferred union
+ * return type is the single source of truth for ComboContext.config (combo/context.ts).
+ */
+export function resolveComboSetupConfig(combo: ComboConfigLike, settings: ComboSettingsLike) {
+  return settings
+    ? resolveComboConfig(combo, settings)
+    : { ...getDefaultComboConfig(), ...((combo?.config as Record<string, unknown>) || {}) };
 }

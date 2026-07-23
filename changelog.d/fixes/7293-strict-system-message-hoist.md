@@ -1,0 +1,1 @@
+- fix(sse): hoist client-injected `system` messages to index 0 for strict OpenAI-compatible providers (xiaomi-mimo) regardless of origin (#7293)

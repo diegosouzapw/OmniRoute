@@ -47,6 +47,11 @@ test.after(() => {
 
 // ── Zod schema validation tests ──
 
+test("skills.sh module keeps runtime schemas exported", () => {
+  assert.equal(typeof SkillsShSkillSchema.safeParse, "function");
+  assert.equal(typeof SkillsShSearchResponseSchema.safeParse, "function");
+});
+
 test("SkillsShSkillSchema parses a valid skill object", () => {
   const result = SkillsShSkillSchema.parse({
     id: "supabase/agent-skills/supabase-postgres",

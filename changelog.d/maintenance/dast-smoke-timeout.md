@@ -1,0 +1,1 @@
+- **CI**: raise the dast-smoke job timeout 12→25min — the CLI bundle build alone varies 6-11min on GitHub-hosted runners, so the old cap killed Schemathesis mid-run (3 consecutive false-negative timeouts on 2026-07-14)

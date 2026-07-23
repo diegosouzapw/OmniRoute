@@ -132,3 +132,56 @@ export function injectSystemPrompt(body) {
 
   return result;
 }
+
+/**
+ * Inject a per-request custom system prompt into the request body.
+ *
+ * Unlike injectSystemPrompt (which reads from globalThis config), this
+ * function takes an explicit prompt string and appends it as a suffix
+ * after any existing system content — mirroring the caveman/ponytail
+ * injection pattern but driven by per-endpoint settings.
+ *
+ * @param body  - Translated request body (OpenAI/Claude/Gemini format)
+ * @param prompt - The custom system prompt text to inject
+ * @returns Modified body with prompt appended to the system message
+ */
+export function injectCustomSystemPrompt(body: Record<string, unknown>, prompt: string) {
+  if (!prompt || typeof prompt !== "string") return body;
+  if (!body || typeof body !== "object") return body;
+  if (body._skipSystemPrompt) return body;
+
+  const result = { ...body };
+
+  // OpenAI/Claude messages[] format
+  if (result.messages && Array.isArray(result.messages)) {
+    const sysIdx = (result.messages as Array<{ role: string; content: unknown }>).findIndex(
+      (m) => m.role === "system" || m.role === "developer"
+    );
+    result.messages = [...(result.messages as Array<{ role: string; content: unknown }>)];
+    if (sysIdx >= 0) {
+      const msg = { ...(result.messages as Array<{ role: string; content: unknown }>)[sysIdx] };
+      if (Array.isArray(msg.content)) {
+        msg.content = [...(msg.content as unknown[]), { type: "text", text: prompt }];
+      } else {
+        msg.content = (msg.content ? msg.content + "\n\n" : "") + prompt;
+      }
+      (result.messages as Array<{ role: string; content: unknown }>)[sysIdx] = msg;
+    } else {
+      result.messages = [
+        { role: "system", content: prompt },
+        ...(result.messages as Array<{ role: string; content: unknown }>),
+      ];
+    }
+  }
+
+  // Claude direct system field
+  if (result.system !== undefined) {
+    if (typeof result.system === "string") {
+      result.system = result.system ? result.system + "\n\n" + prompt : prompt;
+    } else if (Array.isArray(result.system)) {
+      result.system = [...(result.system as unknown[]), { type: "text", text: prompt }];
+    }
+  }
+
+  return result;
+}

@@ -1,0 +1,1 @@
+- fix(resilience): recognize Ollama Cloud's 5-hour session usage-limit 429 as quota-exhausted instead of a generic rate limit (#7071)

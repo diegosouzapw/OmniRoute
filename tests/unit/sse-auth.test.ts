@@ -14,6 +14,7 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
+const fallback = await import("../../open-sse/services/accountFallback.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -32,7 +33,11 @@ async function seedConnection(provider: string, overrides: any = {}) {
     authType: overrides.authType || "apikey",
     name: overrides.name || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
     email: overrides.email,
-    apiKey: overrides.apiKey || "sk-test",
+    // Unique per connection by default — real accounts have distinct keys, and
+    // createProviderConnection dedups by decrypted key value (#3023), so a shared
+    // default would collapse multiple seeded connections into one and break
+    // round-robin / least-used / fallback selection tests.
+    apiKey: overrides.apiKey || `sk-test-${Math.random().toString(16).slice(2, 10)}`,
     accessToken: overrides.accessToken,
     refreshToken: overrides.refreshToken,
     isActive: overrides.isActive ?? true,
@@ -81,6 +86,27 @@ test("extractApiKey parses bearer headers and isValidApiKey validates persisted 
       new Request("http://localhost/v1/chat/completions", {
         headers: { Authorization: "Basic abc123" },
       })
+    ),
+    null
+  );
+  // Security follow-up (#3300): query-string token fallbacks were removed — a
+  // credential in `?token=` must NOT be extracted (it leaks into logs/Referer).
+  assert.equal(
+    auth.extractApiKey(new Request(`http://localhost/v1/chat/completions?token=${created.key}`)),
+    null
+  );
+  // The path-scoped `/vscode/<token>/…` form (VS Code integration) still works.
+  assert.equal(
+    auth.extractApiKey(
+      new Request(`http://localhost/api/v1/vscode/${created.key}/chat/completions`)
+    ),
+    created.key
+  );
+  // …but never when the caller opts out of URL extraction (management auth path).
+  assert.equal(
+    auth.extractApiKey(
+      new Request(`http://localhost/api/v1/vscode/${created.key}/chat/completions`),
+      { allowUrl: false }
     ),
     null
   );
@@ -202,10 +228,12 @@ test("getProviderCredentials enforces generic quota policy unless explicitly byp
   assert.equal(bypassed.connectionId, connection.id);
 });
 
-test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight accounts and selects the next healthy one", async () => {
+test("getProviderCredentialsWithQuotaPreflight persists exhausted accounts until reset and selects a healthy sibling", async () => {
+  const resetAt = futureIso(120_000);
   const blocked = await seedConnection("openai", {
     name: "quota-preflight-blocked",
     apiKey: "sk-preflight-blocked",
+    priority: 1,
     providerSpecificData: {
       quotaPreflightEnabled: true,
     },
@@ -213,21 +241,66 @@ test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight account
   const healthy = await seedConnection("openai", {
     name: "quota-preflight-healthy",
     apiKey: "sk-preflight-healthy",
+    priority: 2,
     providerSpecificData: {
       quotaPreflightEnabled: true,
     },
   });
 
   const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
-  quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
-    used: connectionId === blocked.id ? 100 : 40,
-    total: 100,
-    percentUsed: connectionId === blocked.id ? 1.0 : 0.4,
-  }));
+  const preflightCalls: string[] = [];
+  quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => {
+    preflightCalls.push(connectionId);
+    return {
+      used: connectionId === blocked.id ? 100 : 40,
+      total: 100,
+      percentUsed: connectionId === blocked.id ? 1.0 : 0.4,
+      resetAt: connectionId === blocked.id ? resetAt : null,
+      windows: {
+        session: {
+          percentUsed: connectionId === blocked.id ? 1.0 : 0.4,
+          resetAt: connectionId === blocked.id ? resetAt : null,
+        },
+        weekly: {
+          percentUsed: 0.2,
+          resetAt: null,
+        },
+      },
+    };
+  });
 
-  const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai");
+  const selected = await auth.getProviderCredentialsWithQuotaPreflight(
+    "openai",
+    null,
+    null,
+    "glm-5.2"
+  );
 
   assert.equal((selected as any).connectionId, healthy.id);
+  const blockedAfter = await providersDb.getProviderConnectionById(blocked.id);
+  assert.equal(blockedAfter?.testStatus, "unavailable");
+  assert.equal(blockedAfter?.rateLimitedUntil, resetAt);
+  assert.equal(blockedAfter?.lastErrorType, "quota_exhausted");
+  assert.equal(blockedAfter?.lastErrorSource, "quota_preflight");
+  assert.match(String(blockedAfter?.lastError), /glm-5\.2/);
+
+  const healthyAfter = await providersDb.getProviderConnectionById(healthy.id);
+  assert.equal(healthyAfter?.testStatus, "active");
+  assert.equal(healthyAfter?.rateLimitedUntil ?? null, null);
+
+  preflightCalls.length = 0;
+  const selectedAgain = await auth.getProviderCredentialsWithQuotaPreflight(
+    "openai",
+    null,
+    null,
+    "glm-5.2"
+  );
+  assert.equal((selectedAgain as any).connectionId, healthy.id);
+  assert.deepEqual(
+    preflightCalls,
+    [healthy.id],
+    "persisted lockout must skip the exhausted account on later selections"
+  );
 });
 
 test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a forced connection is blocked by preflight", async () => {
@@ -376,7 +449,9 @@ test("getProviderCredentialsWithQuotaPreflight: explicit quotaPreflightEnabled:f
   });
   // Give the connection per-window overrides (simulates a user-configured
   // threshold) — this is the field that previously caused the gate to keep going.
-  await (await import("../../src/lib/db/providers.ts")).updateProviderConnection(conn.id, {
+  await (
+    await import("../../src/lib/db/providers.ts")
+  ).updateProviderConnection(conn.id, {
     quotaWindowThresholds: { primary: 50 },
   });
 
@@ -675,7 +750,6 @@ test("getProviderCredentials retains rate-limited accounts when allowRateLimited
   assert.equal(bypassed.connectionId, connection.id);
 });
 
-
 test("getProviderCredentials retains terminal accounts for combo live tests", async () => {
   const connection = await seedConnection("openai", {
     name: "suppressed-terminal",
@@ -711,12 +785,14 @@ test("getProviderCredentials skips codex scope-limited accounts unless suppressi
   });
 
   const blocked = await auth.getProviderCredentials("codex", null, null, "codex-spark-mini");
+  const normalCodex = await auth.getProviderCredentials("codex", null, null, "gpt-5.5");
   const bypassed = await auth.getProviderCredentials("codex", null, null, "codex-spark-mini", {
     allowSuppressedConnections: true,
   });
 
   assert.equal(blocked.allRateLimited, true);
   assert.equal(blocked.retryAfter, retryAfter);
+  assert.equal(normalCodex.connectionId, connection.id);
   assert.equal(bypassed.connectionId, connection.id);
 });
 
@@ -1050,6 +1126,14 @@ test("markAccountUnavailable uses configured cooldowns for local 404 model locko
         circuitBreakerReset: 5000,
       },
     },
+    modelLockout: {
+      enabled: true,
+      baseCooldownMs: 250,
+      maxCooldownMs: 1000,
+      maxBackoffSteps: 3,
+      useExponentialBackoff: true,
+      errorCodes: [404],
+    },
   });
 
   const connection = await seedConnection("openai", {
@@ -1074,6 +1158,8 @@ test("markAccountUnavailable uses configured cooldowns for local 404 model locko
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.lastErrorType, "not_found");
   assert.equal(Number(updated.errorCode), 404);
+
+  await settingsDb.updateSettings({ modelLockout: null });
 });
 
 test("markAccountUnavailable applies a model-only lockout for Gemini 429 responses", async () => {
@@ -1122,6 +1208,91 @@ test("markAccountUnavailable applies a model-only lockout for compatible provide
   assert.equal(Number(updated.errorCode), 429);
 });
 
+// #3027 — a per-model subscription/permission 403 from a passthrough provider
+// (ollama-cloud) must lock only the paid model, not the whole connection.
+test("markAccountUnavailable: ollama-cloud per-model subscription 403 locks the model, not the connection (#3027)", async () => {
+  fallback.clearAllModelLockouts();
+  const connection = await seedConnection("ollama-cloud", {
+    name: "ollama-paid-model",
+    providerSpecificData: { passthroughModels: true },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    connection.id,
+    403,
+    "this model requires a subscription, upgrade for access: https://ollama.com/upgrade",
+    "ollama-cloud",
+    "deepseek-v4-pro"
+  );
+  await flushWrites();
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  // Connection stays eligible — only the paid model is cooled down.
+  assert.equal(result.shouldFallback, true);
+  assert.ok(result.cooldownMs > 0);
+  assert.equal(updated.testStatus, "active");
+  assert.equal(updated.rateLimitedUntil, undefined);
+  assert.equal(updated.lastErrorType, "forbidden");
+  assert.equal(Number(updated.errorCode), 403);
+
+  assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "deepseek-v4-pro"), true);
+  // A free model on the same key is still usable.
+  assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "gemma4:31b"), false);
+});
+
+// #3027 regression — a genuine whole-key 403 (deactivated/banned key) must NOT
+// be downgraded to a model lockout; the connection still becomes terminal.
+test("markAccountUnavailable: a whole-key 403 still deactivates the ollama-cloud connection (#3027 regression)", async () => {
+  fallback.clearAllModelLockouts();
+  const connection = await seedConnection("ollama-cloud", {
+    name: "ollama-banned-key",
+    providerSpecificData: { passthroughModels: true },
+  });
+
+  await auth.markAccountUnavailable(
+    connection.id,
+    403,
+    "account has been deactivated",
+    "ollama-cloud",
+    "deepseek-v4-pro"
+  );
+  await flushWrites();
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "deepseek-v4-pro"), false);
+  assert.ok(
+    ["banned", "expired", "credits_exhausted"].includes(updated.testStatus),
+    `expected a terminal connection status, got ${updated.testStatus}`
+  );
+});
+
+// #3027 — repeated subscription 403s on the paid model must never escalate a
+// connection-wide cooldown/backoff (only the model lockout escalates).
+test("markAccountUnavailable: repeated ollama-cloud subscription 403s never escalate connection backoff (#3027)", async () => {
+  fallback.clearAllModelLockouts();
+  const connection = await seedConnection("ollama-cloud", {
+    name: "ollama-repeat-403",
+    providerSpecificData: { passthroughModels: true },
+  });
+
+  for (let i = 0; i < 3; i++) {
+    await auth.markAccountUnavailable(
+      connection.id,
+      403,
+      "this model requires a subscription, upgrade for access",
+      "ollama-cloud",
+      "deepseek-v4-pro"
+    );
+    await flushWrites();
+  }
+  const updated = await providersDb.getProviderConnectionById(connection.id);
+
+  assert.equal(updated.rateLimitedUntil, undefined);
+  assert.notEqual(updated.testStatus, "unavailable");
+  assert.ok(!updated.backoffLevel, "connection backoffLevel must not escalate");
+  assert.equal(fallback.isModelLocked("ollama-cloud", connection.id, "deepseek-v4-pro"), true);
+});
+
 test("markAccountUnavailable honors configured api-key rate-limit cooldowns", async () => {
   await settingsDb.updateSettings({
     providerProfiles: {
@@ -1151,6 +1322,34 @@ test("markAccountUnavailable honors configured api-key rate-limit cooldowns", as
   assert.equal(result.cooldownMs, 125);
 });
 
+test("Codex quota policy keeps normal and Spark windows separate", async () => {
+  const normalConnection = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-normal-quota-policy",
+    apiKey: null,
+    accessToken: "codex-normal-quota-policy-access",
+    refreshToken: "codex-normal-quota-policy-refresh",
+    providerSpecificData: { limitPolicy: { enabled: true, thresholdPercent: 95 } },
+  });
+  quotaCache.setQuotaCache(normalConnection.id, "codex", {
+    session: { remainingPercentage: 80, resetAt: futureIso(60_000) },
+    weekly: { remainingPercentage: 70, resetAt: futureIso(120_000) },
+    gpt_5_3_codex_spark_session: { remainingPercentage: 0, resetAt: futureIso(300_000) },
+  });
+
+  const normalSelected = await auth.getProviderCredentials("codex", null, null, "gpt-5.3-codex");
+  const sparkSelected = await auth.getProviderCredentials(
+    "codex",
+    null,
+    null,
+    "gpt-5.3-codex-spark"
+  );
+
+  assert.equal(normalSelected.connectionId, normalConnection.id);
+  assert.equal(sparkSelected.allRateLimited, true);
+  assert.match(String(sparkSelected.lastError), /configured quota threshold/i);
+});
+
 test("markAccountUnavailable stores Codex scope-specific cooldowns without a global rate limit", async () => {
   const connection = await seedConnection("codex", {
     authType: "oauth",
@@ -1170,6 +1369,7 @@ test("markAccountUnavailable stores Codex scope-specific cooldowns without a glo
   );
   const updated = await providersDb.getProviderConnectionById(connection.id);
   const selected = await auth.getProviderCredentials("codex", null, null, "codex-spark-mini");
+  const normalSelected = await auth.getProviderCredentials("codex", null, null, "gpt-5.3-codex");
 
   assert.equal(result.shouldFallback, true);
   assert.ok(result.cooldownMs > 0);
@@ -1177,6 +1377,7 @@ test("markAccountUnavailable stores Codex scope-specific cooldowns without a glo
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.ok(updated.providerSpecificData.codexScopeRateLimitedUntil.spark);
   assert.equal(selected.allRateLimited, true);
+  assert.equal(normalSelected.connectionId, connection.id);
 });
 
 test("markAccountUnavailable returns without fallback on bad requests", async () => {
@@ -1368,4 +1569,31 @@ test("markAccountUnavailable swallows auto-disable persistence errors", async ()
   } finally {
     db.prepare = originalPrepare;
   }
+});
+
+test("markAccountUnavailable persists in-memory model lockout for combo transient 429 when persistUnavailableState=false", async () => {
+  const connection = await seedConnection("openai", {
+    name: "combo-transient-test",
+  });
+  const model = "gpt-4o";
+  const connId = connection.id as string;
+
+  assert.equal(fallback.isModelLocked("openai", connId, model), false);
+
+  await auth.markAccountUnavailable(connId, 429, "Rate limit exceeded", "openai", model, null, {
+    persistUnavailableState: false,
+  });
+
+  assert.equal(fallback.isModelLocked("openai", connId, model), true);
+
+  assert.equal(fallback.isModelLocked("openai", connId, "gpt-4o-mini"), false);
+
+  const otherConn = await seedConnection("openai", {
+    name: "other-conn",
+  });
+  assert.equal(fallback.isModelLocked("openai", otherConn.id as string, model), false);
+
+  const updated = await providersDb.getProviderConnectionById(connId);
+  assert.equal(updated.rateLimitedUntil == null, true);
+  assert.notEqual(updated.testStatus, "unavailable");
 });

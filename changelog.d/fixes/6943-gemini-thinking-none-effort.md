@@ -1,0 +1,1 @@
+- fix(providers): `openai->gemini` transform now maps `reasoning_effort: "none"` to `thinkingConfig.thinkingBudget: 0` (with `includeThoughts: false`), giving callers an explicit, documented off-switch for Gemini thinking; the no-knob-at-all default injection (#4170) is unchanged (#6813, thanks @rafaumeu)

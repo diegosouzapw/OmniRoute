@@ -5,20 +5,71 @@ import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
-import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import LinkifiedText from "./LinkifiedText";
+import { OAuthDeviceCodePanel, OAuthManualInputPanel } from "./OAuthModalPanels";
+import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
+import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
+import {
+  looksLikeCodexSessionJson,
+  parseCodexSessionJson,
+} from "@/lib/oauth/utils/codexSessionImport";
+import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
+import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
+import { buildPkceLoopbackMismatchWarning } from "@/lib/oauth/utils/pkceLoopbackWarning";
 
-const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy", "gemini-cli"]);
+export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
+
+const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "agy"]);
 
 /** Providers that use a local callback server on a random port (PKCE browser flow). */
-const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex"]);
+const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "xai-oauth", "grok-cli"]);
+
+// grok-cli is wired into BOTH the device-code panel (its default, #7358) and
+// the browser PKCE + import-token paths above/below (#7013) — the user picks
+// via the "Device Code" / "Browser Login" / "JWT Token" tabs rendered further
+// down. See the grokBrowserMode state and handleDeviceCodeMode/handleBrowserMode
+// below for how the method choice is threaded into startOAuthFlow.
+const DEVICE_CODE_PROVIDERS = new Set([
+  "github",
+  "kiro",
+  "amazon-q",
+  "kimi-coding",
+  "kilocode",
+  "codebuddy-cn",
+  "ghe-copilot",
+  "grok-cli",
+]);
+
+const TOKEN_PASTE_PROVIDERS = new Set(["windsurf", "devin-cli", "grok-cli"]);
 
 /**
  * Phase 1 hotfix (2026-05-29): windsurf & devin-cli only support import-token.
  * Their PKCE flow targeting app.devin.ai/editor/signin returned 404 post-rebrand.
  * Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser.
- * Spec: docs/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
+ * Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
  */
 const IMPORT_TOKEN_ONLY_PROVIDERS = new Set(["windsurf", "devin-cli"]);
+
+// POST a bare Codex access token to the access-token-only import endpoint
+// (#1290); shared by the bare-JWT and session-JSON paste branches (#6636).
+async function submitCodexAccessToken(
+  accessToken: string,
+  name: string | undefined,
+  setStep: (s: string) => void,
+  onSuccess?: () => void
+): Promise<void> {
+  const res = await fetch("/api/oauth/codex/import-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken, name }),
+  });
+  const data = (await parseResponseBody(res)) as Record<string, unknown>;
+  if (!res.ok) {
+    throw new Error(getErrorMessage(data, res.status, "Failed to import access token"));
+  }
+  setStep("success");
+  onSuccess?.();
+}
 
 type OAuthModalProps = {
   isOpen: boolean;
@@ -29,6 +80,39 @@ type OAuthModalProps = {
   idcConfig?: unknown;
   reauthConnection?: null | { id?: string };
 };
+
+type DevicePollResult =
+  { status: "pending" | "slow_down" | "success" } | { status: "error"; message: string };
+
+function positiveNumberOr(value: unknown, fallback: number): number {
+  return Math.max(1, Number(value) || fallback);
+}
+
+async function pollDeviceCodeOnce(
+  provider: string | undefined,
+  payload: Record<string, unknown>
+): Promise<DevicePollResult> {
+  try {
+    const res = await fetch(`/api/oauth/${provider}/poll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = (await parseResponseBody(res)) as Record<string, unknown>;
+
+    if (data.success) return { status: "success" };
+    if (data.error === "slow_down") return { status: "slow_down" };
+    if (data.error && !data.pending) {
+      return { status: "error", message: String(data.errorDescription || data.error) };
+    }
+    return { status: "pending" };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Authorization failed",
+    };
+  }
+}
 
 /**
  * OAuth Modal Component
@@ -51,20 +135,23 @@ export default function OAuthModal({
   const [error, setError] = useState(null);
   const [isDeviceCode, setIsDeviceCode] = useState(false);
   const [deviceData, setDeviceData] = useState(null);
+  const [gheUrl, setGheUrl] = useState("");
   const [polling, setPolling] = useState(false);
-  // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
-  const [showPasteToken, setShowPasteToken] = useState(
-    provider === "windsurf" || provider === "devin-cli"
-  );
+  const [deviceCodeExpiresAt, setDeviceCodeExpiresAt] = useState<number | null>(null);
+  const [deviceCodeSecondsRemaining, setDeviceCodeSecondsRemaining] = useState<number | null>(null);
+  // API-key paste mode for direct-token providers.
+  const [showPasteToken, setShowPasteToken] = useState(IMPORT_TOKEN_ONLY_PROVIDERS.has(provider));
   const [pasteToken, setPasteToken] = useState("");
   const [savingToken, setSavingToken] = useState(false);
+  // grok-cli only (#7013 rework): device_code is the default method (matches
+  // DEVICE_CODE_PROVIDERS); flipping this to true routes startOAuthFlow through
+  // the browser PKCE / PKCE_CALLBACK_SERVER_PROVIDERS branch instead.
+  const [grokBrowserMode, setGrokBrowserMode] = useState(false);
 
-  const supportsTokenPaste = provider === "windsurf" || provider === "devin-cli";
-  // Phase 1 hotfix (2026-05-29): windsurf/devin-cli are import-token-only.
-  // Hide the "Browser Login" tab — Phase 2 will restore it via Firebase OAuth.
+  const supportsTokenPaste = TOKEN_PASTE_PROVIDERS.has(provider);
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
   const popupRef = useRef(null);
-  const { copied, copy } = useCopyToClipboard();
+  const deviceFlowRunRef = useRef(0);
   const deviceVerificationUrl =
     deviceData?.verification_uri_complete || deviceData?.verification_uri || "";
 
@@ -98,6 +185,13 @@ export default function OAuthModal({
   const callbackProcessedRef = useRef(false);
   const flowStartedRef = useRef(false);
 
+  const invalidateDeviceFlow = useCallback(() => {
+    deviceFlowRunRef.current += 1;
+    setPolling(false);
+    setDeviceCodeExpiresAt(null);
+    setDeviceCodeSecondsRemaining(null);
+  }, []);
+
   // Define all useCallback hooks BEFORE the useEffects that reference them
 
   // Exchange tokens
@@ -125,7 +219,7 @@ export default function OAuthModal({
           }),
         });
 
-        const data = await res.json();
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
         if (!res.ok) {
           const errorObject =
             typeof data.error === "object" && data.error !== null
@@ -157,9 +251,7 @@ export default function OAuthModal({
           setError(
             "redirect_uri_mismatch: The default Google OAuth credentials only work on localhost. " +
               "For remote use, configure your own OAuth credentials via environment variables: " +
-              (provider === "antigravity"
-                ? "ANTIGRAVITY_OAUTH_CLIENT_ID and ANTIGRAVITY_OAUTH_CLIENT_SECRET"
-                : "GEMINI_CLI_OAUTH_CLIENT_ID and GEMINI_CLI_OAUTH_CLIENT_SECRET") +
+              "ANTIGRAVITY_OAUTH_CLIENT_ID and ANTIGRAVITY_OAUTH_CLIENT_SECRET" +
               ". See the README section 'OAuth on a Remote Server'."
           );
         } else {
@@ -171,15 +263,24 @@ export default function OAuthModal({
     [authData, provider, onSuccess, reauthConnection]
   );
 
-  // Save a raw API token directly (windsurf / devin-cli import-token path)
+  // Save a raw API token directly (windsurf / devin-cli import-token path).
+  // For grok-cli, require the full auth.json object so refresh_token is persisted (#7610).
   const handleSaveToken = useCallback(async () => {
-    const token = pasteToken.trim();
-    if (!token || !provider) return;
+    const raw = pasteToken.trim();
+    if (!raw || !provider) return;
     setSavingToken(true);
     setError(null);
     try {
-      // POST to /exchange with a synthetic "import_token" payload.
-      // The windsurf provider's mapTokens() handles a bare accessToken/apiKey field.
+      let token: string | Record<string, unknown> = raw;
+      if (provider === "grok-cli") {
+        const parsed = parseGrokCliPasteToken(raw);
+        if (!parsed.ok) {
+          setError(parsed.error);
+          return;
+        }
+        token = parsed.token;
+      }
+      // POST to /import-token. Grok accepts full auth.json; windsurf/devin accept bare keys.
       const res = await fetch(`/api/oauth/${provider}/import-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -188,13 +289,9 @@ export default function OAuthModal({
           connectionId: reauthConnection?.id,
         }),
       });
-      const data = await res.json();
+      const data = (await parseResponseBody(res)) as Record<string, unknown>;
       if (!res.ok) {
-        const errMsg =
-          typeof data.error === "object" && data.error !== null
-            ? ((data.error as Record<string, unknown>).message as string) ||
-              JSON.stringify(data.error)
-            : data.error || "Save failed";
+        const errMsg = getErrorMessage(data, res.status, "Save failed");
         throw new Error(errMsg);
       }
       setStep("success");
@@ -209,297 +306,358 @@ export default function OAuthModal({
 
   // Poll for device code token
   const startPolling = useCallback(
-    async (deviceCode, codeVerifier, interval, extraData) => {
+    async (deviceCode, codeVerifier, interval, expiresIn, extraData) => {
+      const runId = ++deviceFlowRunRef.current;
+      const safeInterval = positiveNumberOr(interval, 5);
+      const safeExpiresIn = positiveNumberOr(expiresIn, safeInterval * 60);
+      const deadline = Date.now() + safeExpiresIn * 1000;
+      let currentInterval = safeInterval;
+
       setPolling(true);
-      const maxAttempts = 60;
+      setDeviceCodeExpiresAt(deadline);
 
-      for (let i = 0; i < maxAttempts; i++) {
-        await new Promise((r) => setTimeout(r, interval * 1000));
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, currentInterval * 1000));
+        if (runId !== deviceFlowRunRef.current || Date.now() >= deadline) break;
 
-        try {
-          const res = await fetch(`/api/oauth/${provider}/poll`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              deviceCode,
-              connectionId: reauthConnection?.id,
-              codeVerifier,
-              extraData,
-            }),
-          });
+        const result = await pollDeviceCodeOnce(provider, {
+          deviceCode,
+          connectionId: reauthConnection?.id,
+          codeVerifier,
+          extraData,
+        });
+        if (runId !== deviceFlowRunRef.current) return;
 
-          const data = await res.json();
+        if (result.status === "success") {
+          setStep("success");
+          setPolling(false);
+          setDeviceCodeExpiresAt(null);
+          onSuccess?.();
+          return;
+        }
 
-          if (data.success) {
-            setStep("success");
-            setPolling(false);
-            onSuccess?.();
-            return;
-          }
+        if (result.status === "slow_down") {
+          currentInterval = Math.min(currentInterval + 5, 30);
+          continue;
+        }
 
-          if (data.error === "expired_token" || data.error === "access_denied") {
-            throw new Error(data.errorDescription || data.error);
-          }
-
-          if (data.error === "slow_down") {
-            interval = Math.min(interval + 5, 30);
-          }
-        } catch (err) {
-          setError(err.message);
+        if (result.status === "error") {
+          setError(result.message);
           setStep("error");
           setPolling(false);
+          setDeviceCodeExpiresAt(null);
           return;
         }
       }
 
-      setError("Authorization timeout");
-      setStep("error");
-      setPolling(false);
+      if (runId === deviceFlowRunRef.current) {
+        setError("Authorization timeout");
+        setStep("error");
+        setPolling(false);
+        setDeviceCodeExpiresAt(null);
+      }
     },
     [provider, onSuccess, reauthConnection]
   );
 
-  // Start OAuth flow
-  const startOAuthFlow = useCallback(async () => {
-    if (!provider) return;
-    try {
-      setError(null);
+  // Start OAuth flow. `opts.grokBrowser` lets the grok-cli method tabs force a
+  // specific branch synchronously (avoids reading a just-set state value through
+  // a stale closure); when omitted, falls back to the grokBrowserMode state.
+  const startOAuthFlow = useCallback(
+    async (opts?: { grokBrowser?: boolean }) => {
+      if (!provider) return;
+      try {
+        setError(null);
 
-      // Device code flow (GitHub, Qwen, Kiro, Kimi Coding, KiloCode)
-      if (
-        provider === "github" ||
-        provider === "qwen" ||
-        provider === "kiro" ||
-        provider === "amazon-q" ||
-        provider === "kimi-coding" ||
-        provider === "kilocode"
-      ) {
-        setIsDeviceCode(true);
-        setStep("waiting");
+        const grokWantsBrowser = provider === "grok-cli" && (opts?.grokBrowser ?? grokBrowserMode);
 
-        const deviceCodeUrl = new URL(`/api/oauth/${provider}/device-code`, window.location.origin);
-        if (
-          (provider === "kiro" || provider === "amazon-q") &&
-          idcConfig &&
-          typeof idcConfig === "object"
-        ) {
-          const idc = idcConfig as { startUrl?: string; region?: string };
-          if (typeof idc.startUrl === "string" && idc.startUrl.trim()) {
-            deviceCodeUrl.searchParams.set("startUrl", idc.startUrl.trim());
+        // Device code flow
+        if (DEVICE_CODE_PROVIDERS.has(provider) && !grokWantsBrowser) {
+          invalidateDeviceFlow();
+          setIsDeviceCode(true);
+          setDeviceData(null);
+          setStep("waiting");
+
+          // GHE Copilot needs the enterprise URL collected first (see ghe-config step)
+          if (provider === "ghe-copilot" && !gheUrl.trim()) {
+            setStep("ghe-config");
+            return;
           }
-          if (typeof idc.region === "string" && idc.region.trim()) {
-            deviceCodeUrl.searchParams.set("region", idc.region.trim());
+
+          const deviceCodeUrl = new URL(
+            `/api/oauth/${provider}/device-code`,
+            window.location.origin
+          );
+          if (
+            (provider === "kiro" || provider === "amazon-q") &&
+            idcConfig &&
+            typeof idcConfig === "object"
+          ) {
+            const idc = idcConfig as { startUrl?: string; region?: string };
+            if (typeof idc.startUrl === "string" && idc.startUrl.trim()) {
+              deviceCodeUrl.searchParams.set("startUrl", idc.startUrl.trim());
+            }
+            if (typeof idc.region === "string" && idc.region.trim()) {
+              deviceCodeUrl.searchParams.set("region", idc.region.trim());
+            }
           }
+          if (provider === "ghe-copilot" && gheUrl.trim()) {
+            deviceCodeUrl.searchParams.set("gheUrl", gheUrl.trim());
+          }
+
+          const res = await fetch(deviceCodeUrl.toString());
+          const data = (await parseResponseBody(res)) as Record<string, unknown>;
+          if (!res.ok) {
+            const errMsg = getErrorMessage(data, res.status, "Request failed");
+            throw new Error(errMsg);
+          }
+
+          setDeviceData(data);
+
+          // Open verification URL
+          const verifyUrl = data.verification_uri_complete || data.verification_uri;
+          if (typeof verifyUrl === "string" && verifyUrl) window.open(verifyUrl, "oauth_verify");
+
+          // Start polling - pass extraData for Kiro (contains _clientId, _clientSecret)
+          const extraData =
+            provider === "kiro" || provider === "amazon-q"
+              ? {
+                  _clientId: data._clientId,
+                  _clientSecret: data._clientSecret,
+                  _region: data._region,
+                }
+              : provider === "ghe-copilot" && gheUrl.trim()
+                ? { gheUrl: gheUrl.trim() }
+                : null;
+          startPolling(
+            data.device_code,
+            data.codeVerifier,
+            data.interval || 5,
+            data.expires_in,
+            extraData
+          );
+          return;
         }
 
-        const res = await fetch(deviceCodeUrl.toString());
-        const data = await res.json();
+        let forceManual = false;
+
+        // Claude Code and Cline OAuth flows can finish on provider-hosted pages that
+        // show an auth code instead of redirecting back to OmniRoute.
+        // Start directly in manual mode so users always have an input to paste code/url.
+        // zed-hosted's native-app sign-in always redirects the browser to a local
+        // 127.0.0.1:<port> callback that OmniRoute never listens on (the port is
+        // arbitrary and unrelated to the dashboard's own port) — nothing can
+        // auto-close the popup, so always show the manual paste-URL input.
+        if (provider === "claude" || provider === "cline" || provider === "zed-hosted") {
+          forceManual = true;
+        }
+
+        // PKCE callback server providers (Codex, Windsurf, Devin CLI): true localhost spins
+        // up a callback server + polls; a LAN IP warns (#8046); remote falls through below.
+        if (PKCE_CALLBACK_SERVER_PROVIDERS.has(provider)) {
+          if (isTrueLocalhost) {
+            try {
+              const serverRes = await fetch(`/api/oauth/${provider}/start-callback-server`);
+              const serverData = (await parseResponseBody(serverRes)) as Record<string, unknown>;
+              if (!serverRes.ok)
+                throw new Error(
+                  getErrorMessage(serverData, serverRes.status, "Failed to start callback server")
+                );
+
+              setAuthData({ ...serverData, redirectUri: serverData.redirectUri });
+              setStep("waiting");
+              popupRef.current = window.open(serverData.authUrl, "oauth_auth");
+
+              // If browser blocked the popup, switch to manual input step immediately
+              if (!popupRef.current) {
+                setStep("input");
+              }
+
+              setPolling(true);
+              const maxAttempts = 150;
+              for (let i = 0; i < maxAttempts; i++) {
+                await new Promise((r) => setTimeout(r, 2000));
+
+                const pollRes = await fetch(`/api/oauth/${provider}/poll-callback`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ connectionId: reauthConnection?.id }),
+                });
+                const pollData = (await parseResponseBody(pollRes)) as Record<string, unknown>;
+
+                if (pollData.success) {
+                  setStep("success");
+                  setPolling(false);
+                  onSuccess?.();
+                  return;
+                }
+
+                if (pollData.error && !pollData.pending) {
+                  throw new Error(pollData.errorDescription || pollData.error);
+                }
+              }
+
+              setPolling(false);
+              throw new Error("Authorization timeout");
+            } catch (pkceErr) {
+              console.warn(
+                `${provider} callback server failed, falling back to manual flow`,
+                pkceErr
+              );
+              setPolling(false);
+              forceManual = true;
+            }
+          } else if (isLocalhost) {
+            setError(buildPkceLoopbackMismatchWarning(provider));
+            setStep("error");
+            return;
+          }
+          // Remote (non-LAN): fall through to standard auth code flow below
+        }
+
+        // Authorization code flow
+        // Redirect URI strategy:
+        // - Codex/OpenAI: always port 1455 (registered in OAuth app)
+        // - Windsurf/Devin CLI (remote fallback; true localhost handled above): localhost:port
+        // - Google OAuth providers (antigravity/agy): default to loopback (127.0.0.1 preferred —
+        //   Google docs flag localhost firewall/name-resolution edge cases) so bundled
+        //   native/desktop credentials keep working; the authorize route upgrades this to the
+        //   public callback when custom Google web credentials + a public base URL are configured.
+        // - Other providers on remote: use actual origin (supports PUBLIC_URL env var)
+        // - Localhost: use localhost:port
+        let redirectUri: string;
+        if (provider === "codex" || provider === "openai") {
+          redirectUri = "http://localhost:1455/auth/callback";
+        } else if (provider === "xai-oauth" || provider === "grok-cli") {
+          // Fixed native-app loopback callback, distinct ports so both can run concurrently (#7013).
+          const grokBuildPort = provider === "xai-oauth" ? 56121 : 56122;
+          redirectUri = `http://127.0.0.1:${grokBuildPort}/callback`;
+        } else if (provider === "windsurf" || provider === "devin-cli") {
+          // Remote fallback: use OmniRoute's port with the /auth/callback path Windsurf expects.
+          // On true localhost this code is never reached (callback server handles the flow above).
+          const port = window.location.port || "20128";
+          redirectUri = `http://localhost:${port}/auth/callback`;
+        } else if (GOOGLE_OAUTH_PROVIDERS.has(provider)) {
+          // Google OAuth built-in credentials only accept loopback redirect URIs.
+          // Even in remote deployments we use loopback — user copies the callback URL manually.
+          const port = window.location.port || "20128";
+          redirectUri = `http://127.0.0.1:${port}/callback`;
+        } else if (!isLocalhost) {
+          // Behind reverse proxy: use actual origin (e.g., https://omniroute.example.com/callback)
+          // Supports PUBLIC_URL env var override, or falls back to window.location.origin.
+          const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
+          const origin =
+            publicUrl && publicUrl !== "http://localhost:20128"
+              ? publicUrl.replace(/\/$/, "")
+              : window.location.origin;
+          redirectUri = `${origin}/callback`;
+        } else {
+          const port =
+            window.location.port || (window.location.protocol === "https:" ? "443" : "80");
+          redirectUri = `http://localhost:${port}/callback`;
+        }
+
+        const res = await fetch(
+          `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`
+        );
+        const data = (await parseResponseBody(res)) as Record<string, unknown>;
         if (!res.ok) {
-          const errMsg =
-            typeof data.error === "object" && data.error !== null
-              ? ((data.error as Record<string, unknown>).message as string) ||
-                JSON.stringify(data.error)
-              : data.error || "Request failed";
+          const errMsg = getErrorMessage(data, res.status, "Authorization failed");
           throw new Error(errMsg);
         }
 
-        setDeviceData(data);
+        if (!data.authUrl) {
+          throw new Error(
+            data.error ||
+              "Browser OAuth is unavailable for this provider in the current environment. Use the supported auth method instead."
+          );
+        }
 
-        // Open verification URL
-        const verifyUrl = data.verification_uri_complete || data.verification_uri;
-        if (verifyUrl) window.open(verifyUrl, "oauth_verify");
+        setAuthData({ ...data, redirectUri: data.redirectUri || redirectUri });
 
-        // Start polling - pass extraData for Kiro (contains _clientId, _clientSecret)
-        const extraData =
-          provider === "kiro" || provider === "amazon-q"
-            ? {
-                _clientId: data._clientId,
-                _clientSecret: data._clientSecret,
-                _region: data._region,
-              }
-            : null;
-        startPolling(data.device_code, data.codeVerifier, data.interval || 5, extraData);
-        return;
-      }
+        // For non-true-localhost (LAN IPs, remote) or manual fallback: use manual input mode (user pastes callback URL)
+        if (!isTrueLocalhost || forceManual) {
+          setStep("input");
+          window.open(data.authUrl, "oauth_auth");
+        } else {
+          // Localhost: Open popup and wait for message
+          setStep("waiting");
+          popupRef.current = window.open(data.authUrl, "oauth_popup", "width=600,height=700");
 
-      let forceManual = false;
-
-      // Claude Code and Cline OAuth flows can finish on provider-hosted pages that
-      // show an auth code instead of redirecting back to OmniRoute.
-      // Start directly in manual mode so users always have an input to paste code/url.
-      if (provider === "claude" || provider === "cline") {
-        forceManual = true;
-      }
-
-      // PKCE callback server providers (Codex, Windsurf, Devin CLI):
-      // On localhost, spin up a local callback server and poll for the result.
-      // Codex uses a fixed port 1455; Windsurf/Devin CLI use a random OS-assigned port.
-      // On remote the server is unreachable — fall through to standard manual flow.
-      if (PKCE_CALLBACK_SERVER_PROVIDERS.has(provider)) {
-        if (isTrueLocalhost) {
-          try {
-            const serverRes = await fetch(`/api/oauth/${provider}/start-callback-server`);
-            const serverData = await serverRes.json();
-            if (!serverRes.ok) throw new Error(serverData.error);
-
-            setAuthData({ ...serverData, redirectUri: serverData.redirectUri });
-            setStep("waiting");
-            popupRef.current = window.open(serverData.authUrl, "oauth_auth");
-
-            // If browser blocked the popup, switch to manual input step immediately
-            if (!popupRef.current) {
-              setStep("input");
-            }
-
-            setPolling(true);
-            const maxAttempts = 150;
-            for (let i = 0; i < maxAttempts; i++) {
-              await new Promise((r) => setTimeout(r, 2000));
-
-              const pollRes = await fetch(`/api/oauth/${provider}/poll-callback`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ connectionId: reauthConnection?.id }),
-              });
-              const pollData = await pollRes.json();
-
-              if (pollData.success) {
-                setStep("success");
-                setPolling(false);
-                onSuccess?.();
-                return;
-              }
-
-              if (pollData.error && !pollData.pending) {
-                throw new Error(pollData.errorDescription || pollData.error);
-              }
-            }
-
-            setPolling(false);
-            throw new Error("Authorization timeout");
-          } catch (pkceErr) {
-            console.warn(
-              `${provider} callback server failed, falling back to manual flow`,
-              pkceErr
-            );
-            setPolling(false);
-            forceManual = true;
+          // Check if popup was blocked
+          if (!popupRef.current) {
+            setStep("input");
           }
         }
-        // Remote: fall through to standard auth code flow below
+      } catch (err) {
+        setError(err.message);
+        setStep("error");
       }
+    },
+    [
+      provider,
+      isLocalhost,
+      isTrueLocalhost,
+      startPolling,
+      onSuccess,
+      reauthConnection,
+      idcConfig,
+      gheUrl,
+      invalidateDeviceFlow,
+      grokBrowserMode,
+    ]
+  );
 
-      // Authorization code flow
-      // Redirect URI strategy:
-      // - Codex/OpenAI: always port 1455 (registered in OAuth app)
-      // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
-      //   (on true localhost the callback server handles it; this is only reached on remote)
-      // - Google OAuth providers (antigravity, gemini-cli): default to loopback so the
-      //   bundled native/desktop credentials keep working. Prefer 127.0.0.1 over
-      //   localhost for the Google native-app handoff; Google documents that localhost
-      //   can run into local firewall/name-resolution edge cases. The authorize route
-      //   upgrades this to the public callback when custom Google web credentials plus
-      //   NEXT_PUBLIC_BASE_URL or OMNIROUTE_PUBLIC_BASE_URL are configured.
-      // - Other providers on remote: use actual origin (supports PUBLIC_URL env var)
-      // - Localhost: use localhost:port
-      let redirectUri: string;
-      if (provider === "codex" || provider === "openai") {
-        redirectUri = "http://localhost:1455/auth/callback";
-      } else if (provider === "windsurf" || provider === "devin-cli") {
-        // Remote fallback: use OmniRoute's port with the /auth/callback path Windsurf expects.
-        // On true localhost this code is never reached (callback server handles the flow above).
-        const port = window.location.port || "20128";
-        redirectUri = `http://localhost:${port}/auth/callback`;
-      } else if (GOOGLE_OAUTH_PROVIDERS.has(provider)) {
-        // Google OAuth built-in credentials only accept loopback redirect URIs.
-        // Even in remote deployments we use loopback — user copies the callback URL manually.
-        const port = window.location.port || "20128";
-        redirectUri = `http://127.0.0.1:${port}/callback`;
-      } else if (!isLocalhost) {
-        // Behind reverse proxy: use actual origin (e.g., https://omniroute.example.com/callback)
-        // Supports PUBLIC_URL env var override, or falls back to window.location.origin.
-        const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
-        const origin =
-          publicUrl && publicUrl !== "http://localhost:20128"
-            ? publicUrl.replace(/\/$/, "")
-            : window.location.origin;
-        redirectUri = `${origin}/callback`;
-      } else {
-        const port = window.location.port || (window.location.protocol === "https:" ? "443" : "80");
-        redirectUri = `http://localhost:${port}/callback`;
-      }
-
-      const res = await fetch(
-        `/api/oauth/${provider}/authorize?redirect_uri=${encodeURIComponent(redirectUri)}`
-      );
-      const data = await res.json();
-      if (!res.ok) {
-        const errMsg =
-          typeof data.error === "object" && data.error !== null
-            ? ((data.error as Record<string, unknown>).message as string) ||
-              JSON.stringify(data.error)
-            : data.error || "Authorization failed";
-        throw new Error(errMsg);
-      }
-
-      if (!data.authUrl) {
-        throw new Error(
-          data.error ||
-            "Browser OAuth is unavailable for this provider in the current environment. Use the supported auth method instead."
-        );
-      }
-
-      setAuthData({ ...data, redirectUri: data.redirectUri || redirectUri });
-
-      // For non-true-localhost (LAN IPs, remote) or manual fallback: use manual input mode (user pastes callback URL)
-      if (!isTrueLocalhost || forceManual) {
-        setStep("input");
-        window.open(data.authUrl, "oauth_auth");
-      } else {
-        // Localhost: Open popup and wait for message
-        setStep("waiting");
-        popupRef.current = window.open(data.authUrl, "oauth_popup", "width=600,height=700");
-
-        // Check if popup was blocked
-        if (!popupRef.current) {
-          setStep("input");
-        }
-      }
-    } catch (err) {
-      setError(err.message);
-      setStep("error");
+  useEffect(() => {
+    if (!deviceCodeExpiresAt) {
+      setDeviceCodeSecondsRemaining(null);
+      return;
     }
-  }, [
-    provider,
-    isLocalhost,
-    isTrueLocalhost,
-    startPolling,
-    onSuccess,
-    reauthConnection,
-    idcConfig,
-  ]);
 
-  // Reset guard when modal closes
+    const updateRemaining = () => {
+      setDeviceCodeSecondsRemaining(
+        Math.max(0, Math.ceil((deviceCodeExpiresAt - Date.now()) / 1000))
+      );
+    };
+    updateRemaining();
+    const timer = window.setInterval(updateRemaining, 1000);
+    return () => window.clearInterval(timer);
+  }, [deviceCodeExpiresAt]);
+
+  useEffect(() => {
+    invalidateDeviceFlow();
+    flowStartedRef.current = false;
+    setGrokBrowserMode(false);
+  }, [provider, invalidateDeviceFlow]);
+
   useEffect(() => {
     if (!isOpen) {
+      invalidateDeviceFlow();
       flowStartedRef.current = false;
     }
-  }, [isOpen]);
+  }, [isOpen, invalidateDeviceFlow]);
+
+  useEffect(
+    () => () => {
+      deviceFlowRunRef.current += 1;
+    },
+    []
+  );
 
   // Reset state and start OAuth when modal opens
   useEffect(() => {
-    if (isOpen && provider) {
-      if (flowStartedRef.current) return; // Already started, prevent duplicate
-      flowStartedRef.current = true;
-      setAuthData(null);
-      setCallbackUrl("");
-      setError(null);
-      setIsDeviceCode(false);
-      setDeviceData(null);
-      setPolling(false);
-      // Auto start OAuth
-      startOAuthFlow();
-    }
+    if (!isOpen || !provider || flowStartedRef.current) return;
+    flowStartedRef.current = true;
+    const startsInPasteMode = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
+    setShowPasteToken(startsInPasteMode);
+    setGrokBrowserMode(false);
+    setAuthData(null);
+    setCallbackUrl("");
+    setError(null);
+    setIsDeviceCode(false);
+    setDeviceData(null);
+    setPolling(false);
+    if (!startsInPasteMode) startOAuthFlow();
   }, [isOpen, provider, startOAuthFlow]);
 
   // Listen for OAuth callback via multiple methods
@@ -553,7 +711,11 @@ export default function OAuthModal({
       const isGoogleLoopbackRelay =
         GOOGLE_OAUTH_PROVIDERS.has(provider) && isLoopbackOrigin && hasMatchingState;
 
-      if (event.origin !== window.location.origin && !isLocalhostSamePort && !isGoogleLoopbackRelay) {
+      if (
+        event.origin !== window.location.origin &&
+        !isLocalhostSamePort &&
+        !isGoogleLoopbackRelay
+      ) {
         return;
       }
       if (event.data?.type === "oauth_callback") {
@@ -655,6 +817,36 @@ export default function OAuthModal({
   const handleManualSubmit = async () => {
     try {
       setError(null);
+      if (isCredentialBlob(callbackUrl)) {
+        await submitCredentialBlob(provider, callbackUrl, reauthConnection, setStep, onSuccess);
+        return;
+      }
+
+      // Codex: a bare ChatGPT access token (JWT, no refresh token) pasted
+      // directly instead of a callback URL/code — mirrors the grok-cli
+      // raw-token paste pattern. Routed through the access-token-only import
+      // endpoint (#1290) instead of the authorization-code exchange below.
+      if (provider === "codex" && /^eyJ/.test(callbackUrl.trim())) {
+        await submitCodexAccessToken(callbackUrl.trim(), undefined, setStep, onSuccess);
+        return;
+      }
+
+      // Codex: full session JSON from chatgpt.com/api/auth/session
+      // (`{user, accessToken, expires}`), not just the bare token (#6636).
+      if (provider === "codex" && looksLikeCodexSessionJson(callbackUrl)) {
+        const result = parseCodexSessionJson(JSON.parse(callbackUrl.trim()));
+        if (result.ok === false) {
+          setError(result.error);
+          return;
+        }
+        await submitCodexAccessToken(
+          result.session.accessToken,
+          result.session.email,
+          setStep,
+          onSuccess
+        );
+        return;
+      }
 
       if (!authData) {
         throw new Error(
@@ -698,32 +890,65 @@ export default function OAuthModal({
     }
   };
 
+  const handleClose = useCallback(() => {
+    invalidateDeviceFlow();
+    onClose();
+  }, [invalidateDeviceFlow, onClose]);
+
+  const handlePasteMode = useCallback(() => {
+    invalidateDeviceFlow();
+    setShowPasteToken(true);
+  }, [invalidateDeviceFlow]);
+
+  const handleBrowserMode = useCallback(() => {
+    setShowPasteToken(false);
+    if (provider === "grok-cli") setGrokBrowserMode(true);
+    startOAuthFlow(provider === "grok-cli" ? { grokBrowser: true } : undefined);
+  }, [startOAuthFlow, provider]);
+
+  // grok-cli only (#7013 rework): switch back to the device_code method
+  // (the default) after the user previously chose Browser Login.
+  const handleDeviceCodeMode = useCallback(() => {
+    setShowPasteToken(false);
+    setGrokBrowserMode(false);
+    startOAuthFlow({ grokBrowser: false });
+  }, [startOAuthFlow]);
+
   if (!provider || !providerInfo) return null;
 
   return (
     <Modal
       isOpen={isOpen}
       title={t("title", { providerName: providerInfo.name })}
-      onClose={onClose}
+      onClose={handleClose}
       size="lg"
     >
       <div className="flex flex-col gap-4">
-        {/* Paste-token tab toggle (Windsurf / Devin CLI only).
-            Phase 1 hotfix: when importTokenOnly is true, hide the entire toggle —
-            there is no "Browser Login" tab to switch to until Phase 2 ships. */}
+        {/* Browser login with an optional token-import fallback. grok-cli adds a
+            third "Device Code" tab since it keeps BOTH the device_code flow
+            (#7358, default) and the browser PKCE login (#7013) alongside the
+            paste-token import. */}
         {supportsTokenPaste && !importTokenOnly && step !== "success" && (
           <div className="flex gap-2 border-b border-border pb-3">
+            {provider === "grok-cli" && (
+              <button
+                className={`text-sm px-3 py-1 rounded-t ${!showPasteToken && !grokBrowserMode ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
+                onClick={handleDeviceCodeMode}
+              >
+                Device Code
+              </button>
+            )}
             <button
-              className={`text-sm px-3 py-1 rounded-t ${!showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
-              onClick={() => setShowPasteToken(false)}
+              className={`text-sm px-3 py-1 rounded-t ${!showPasteToken && (provider !== "grok-cli" || grokBrowserMode) ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
+              onClick={handleBrowserMode}
             >
               Browser Login
             </button>
             <button
               className={`text-sm px-3 py-1 rounded-t ${showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
-              onClick={() => setShowPasteToken(true)}
+              onClick={handlePasteMode}
             >
-              Paste API Key
+              {provider === "grok-cli" ? "Import auth.json" : "Paste API Key"}
             </button>
           </div>
         )}
@@ -733,16 +958,28 @@ export default function OAuthModal({
           <div className="flex flex-col gap-3">
             <p className="text-sm text-text-muted">
               {provider === "windsurf"
-                ? "Visit windsurf.com/show-auth-token, copy your Windsurf API key, and paste it below."
-                : "Provide your WINDSURF_API_KEY (obtained via `devin auth login` or windsurf.com/show-auth-token)."}
+                ? 'In the Windsurf / VS Code IDE, run the "Windsurf: Provide Auth Token" command from the command palette (or click the Jupyter "Get Windsurf Authentication Token" button), then copy the shown token and paste it below. Opening windsurf.com/show-auth-token directly only shows a "Redirecting" page — the IDE must initiate the flow.'
+                : provider === "grok-cli"
+                  ? 'Paste the FULL contents of ~/.grok/auth.json (not just the JWT "key" field). A bare JWT has no refresh_token, so the connection dies after expiry (#7610). Prefer the dedicated Import auth.json modal when available.'
+                  : 'Provide your WINDSURF_API_KEY (obtained via `devin auth login`, or via the Windsurf IDE "Windsurf: Provide Auth Token" command).'}
             </p>
-            <Input
-              value={pasteToken}
-              onChange={(e) => setPasteToken(e.target.value)}
-              placeholder="ws-..."
-              type="password"
-              label="API Key / Token"
-            />
+            {provider === "grok-cli" ? (
+              <textarea
+                className="w-full h-32 p-3 text-sm font-mono bg-input border border-border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                value={pasteToken}
+                onChange={(e) => setPasteToken(e.target.value)}
+                placeholder='{"https://auth.x.ai::clientId": {"key": "eyJ...", "refresh_token": "..."}}'
+                aria-label="Grok Build auth.json"
+              />
+            ) : (
+              <Input
+                value={pasteToken}
+                onChange={(e) => setPasteToken(e.target.value)}
+                placeholder="ws-..."
+                type="password"
+                label="API Key / Token"
+              />
+            )}
             {error && <p className="text-sm text-red-500">{error}</p>}
             <div className="flex gap-2">
               <Button
@@ -752,7 +989,7 @@ export default function OAuthModal({
               >
                 {savingToken ? "Saving…" : "Save Connection"}
               </Button>
-              <Button onClick={onClose} variant="ghost" fullWidth>
+              <Button onClick={handleClose} variant="ghost" fullWidth>
                 Cancel
               </Button>
             </div>
@@ -762,6 +999,17 @@ export default function OAuthModal({
         {/* OAuth flow steps — hidden when paste-token mode is active */}
         {(!supportsTokenPaste || !showPasteToken) && (
           <>
+            {/* GHE Copilot: collect the GitHub Enterprise base URL before starting */}
+            {provider === "ghe-copilot" && step === "ghe-config" && (
+              <GheConfigStep
+                gheUrl={gheUrl}
+                setGheUrl={setGheUrl}
+                error={error}
+                setError={setError}
+                startOAuthFlow={startOAuthFlow}
+              />
+            )}
+
             {/* Waiting Step (Localhost - popup mode) */}
             {step === "waiting" && !isDeviceCode && (
               <div className="text-center py-6">
@@ -781,134 +1029,28 @@ export default function OAuthModal({
 
             {/* Device Code Flow - Waiting */}
             {step === "waiting" && isDeviceCode && deviceData && (
-              <>
-                <div className="text-center py-4">
-                  <p className="text-sm text-text-muted mb-4">{t("deviceCodeVisitUrl")}</p>
-                  <div className="bg-sidebar p-4 rounded-lg mb-4">
-                    <p className="text-xs text-text-muted mb-1">{t("deviceCodeVerificationUrl")}</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 text-sm break-all">{deviceVerificationUrl}</code>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        icon={copied === "verify_url" ? "check" : "content_copy"}
-                        onClick={() => copy(deviceVerificationUrl, "verify_url")}
-                      />
-                    </div>
-                  </div>
-                  <div className="bg-primary/10 p-4 rounded-lg">
-                    <p className="text-xs text-text-muted mb-1">{t("deviceCodeYourCode")}</p>
-                    <div className="flex items-center justify-center gap-2">
-                      <p className="text-2xl font-mono font-bold text-primary">
-                        {deviceData.user_code}
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        icon={copied === "user_code" ? "check" : "content_copy"}
-                        onClick={() => copy(deviceData.user_code, "user_code")}
-                      />
-                    </div>
-                  </div>
-                </div>
-                {polling && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
-                    <span className="material-symbols-outlined animate-spin">
-                      progress_activity
-                    </span>
-                    {t("deviceCodeWaiting")}
-                  </div>
-                )}
-              </>
+              <OAuthDeviceCodePanel
+                deviceData={deviceData}
+                verificationUrl={deviceVerificationUrl}
+                secondsRemaining={deviceCodeSecondsRemaining}
+                polling={polling}
+              />
             )}
 
             {/* Manual Input Step */}
             {step === "input" && !isDeviceCode && (
-              <>
-                <div className="space-y-4">
-                  {/* Remote/LAN server info for Google OAuth providers */}
-                  {!isTrueLocalhost && GOOGLE_OAUTH_PROVIDERS.has(provider) && (
-                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-                      <span className="material-symbols-outlined text-sm align-middle mr-1">
-                        warning
-                      </span>
-                      <strong>
-                        {t.rich("googleOAuthWarning", {
-                          code: (c) => <code className="font-mono">{c}</code>,
-                          a: (c) => (
-                            <a
-                              href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
-                              target="_blank"
-                              rel="noreferrer"
-                              className="underline"
-                            >
-                              {c}
-                            </a>
-                          ),
-                        })}
-                      </strong>
-                    </div>
-                  )}
-                  {/* Generic remote info for other providers */}
-                  {!isTrueLocalhost && !GOOGLE_OAUTH_PROVIDERS.has(provider) && (
-                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
-                      <span className="material-symbols-outlined text-sm align-middle mr-1">
-                        info
-                      </span>
-                      {t("remoteAccessInfo")}
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium mb-2">{t("step1OpenUrl")}</p>
-                    <div className="flex gap-2">
-                      <Input
-                        value={authData?.authUrl || ""}
-                        readOnly
-                        className="flex-1 font-mono text-xs"
-                      />
-                      <Button
-                        variant="secondary"
-                        icon={copied === "auth_url" ? "check" : "content_copy"}
-                        onClick={() => copy(authData?.authUrl, "auth_url")}
-                      >
-                        {t("copy")}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2">{t("step2PasteCallback")}</p>
-                    <p className="text-xs text-text-muted mb-2">
-                      {t.rich("step2Hint", {
-                        code: (c) => <code className="font-mono">{c}</code>,
-                      })}
-                    </p>
-                    <Input
-                      value={callbackUrl}
-                      onChange={(e) => setCallbackUrl(e.target.value)}
-                      placeholder={
-                        provider === "claude" || provider === "cline"
-                          ? "code#state or /callback?code=..."
-                          : placeholderUrl
-                      }
-                      className="font-mono text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleManualSubmit}
-                    fullWidth
-                    disabled={!callbackUrl || !authData}
-                  >
-                    {t("connect")}
-                  </Button>
-                  <Button onClick={onClose} variant="ghost" fullWidth>
-                    {t("cancel")}
-                  </Button>
-                </div>
-              </>
+              <OAuthManualInputPanel
+                provider={provider}
+                isGoogleOAuth={GOOGLE_OAUTH_PROVIDERS.has(provider)}
+                isTrueLocalhost={isTrueLocalhost}
+                authUrl={typeof authData?.authUrl === "string" ? authData.authUrl : ""}
+                callbackUrl={callbackUrl}
+                placeholderUrl={placeholderUrl}
+                canSubmit={Boolean(callbackUrl && (authData || isCredentialBlob(callbackUrl)))}
+                onCallbackUrlChange={setCallbackUrl}
+                onSubmit={handleManualSubmit}
+                onClose={handleClose}
+              />
             )}
           </>
         )}
@@ -925,7 +1067,7 @@ export default function OAuthModal({
             <p className="text-sm text-text-muted mb-4">
               {t("successMessage", { providerName: providerInfo.name })}
             </p>
-            <Button onClick={onClose} fullWidth>
+            <Button onClick={handleClose} fullWidth>
               {t("done")}
             </Button>
           </div>
@@ -938,12 +1080,14 @@ export default function OAuthModal({
               <span className="material-symbols-outlined text-3xl text-red-600">error</span>
             </div>
             <h3 className="text-lg font-semibold mb-2">{t("error")}</h3>
-            <p className="text-sm text-red-600 mb-4">{error}</p>
+            <p className="text-sm text-red-600 mb-4">
+              <LinkifiedText text={error} />
+            </p>
             <div className="flex gap-2">
               <Button onClick={startOAuthFlow} variant="secondary" fullWidth>
                 {t("tryAgain")}
               </Button>
-              <Button onClick={onClose} variant="ghost" fullWidth>
+              <Button onClick={handleClose} variant="ghost" fullWidth>
                 {t("cancel")}
               </Button>
             </div>

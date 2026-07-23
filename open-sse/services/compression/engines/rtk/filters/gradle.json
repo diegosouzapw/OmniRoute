@@ -1,0 +1,47 @@
+{
+  "id": "gradle",
+  "label": "Gradle",
+  "description": "Strip Gradle daemon/welcome chatter and no-op tasks; keep build status, failures, and warnings.",
+  "category": "build",
+  "priority": 78,
+  "match": {
+    "outputTypes": ["gradle"],
+    "commands": ["^(?:gradle|gradlew|\\./gradlew)\\b"],
+    "patterns": ["^> Task :", "^BUILD (?:SUCCESSFUL|FAILED)\\b"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": [
+      "^Welcome to Gradle",
+      "^Starting a Gradle Daemon",
+      "^> Task :\\S+ (?:UP-TO-DATE|SKIPPED|NO-SOURCE|FROM-CACHE)$",
+      "^Download https?://",
+      "^\\s*$"
+    ],
+    "collapsePatterns": ["^> Task :\\S+$"],
+    "deduplicate": true,
+    "maxLines": 160,
+    "headLines": 40,
+    "tailLines": 60,
+    "onEmpty": "gradle: ok"
+  },
+  "preserve": {
+    "errorPatterns": [
+      "BUILD FAILED",
+      "FAILED",
+      "What went wrong",
+      "Caused by:",
+      "error:",
+      "> Task :\\S+ FAILED"
+    ],
+    "summaryPatterns": ["BUILD SUCCESSFUL", "actionable task"]
+  },
+  "tests": [
+    {
+      "name": "drops welcome + up-to-date tasks, keeps build status",
+      "command": "gradle build",
+      "input": "Welcome to Gradle 8.5!\n> Task :app:compileJava UP-TO-DATE\nBUILD SUCCESSFUL in 3s\n",
+      "expected": "BUILD SUCCESSFUL in 3s"
+    }
+  ]
+}

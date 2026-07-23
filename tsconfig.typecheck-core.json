@@ -10,6 +10,13 @@
   "include": [],
   "files": [
     "src/app/api/settings/proxy/test/route.ts",
+    "src/app/(dashboard)/dashboard/batch/batch-utils.ts",
+    "src/lib/batches/types.ts",
+    "src/lib/batches/schemas.ts",
+    "src/lib/batches/csvToJsonl.ts",
+    "src/lib/batches/validateJsonl.ts",
+    "src/lib/batches/costEstimator.ts",
+    "src/lib/batches/retryFailed.ts",
     "src/lib/db/apiKeys.ts",
     "src/lib/db/cliToolState.ts",
     "src/lib/db/encryption.ts",

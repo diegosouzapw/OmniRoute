@@ -1,0 +1,1 @@
+- fix(dashboard): restore mobile single-column fallback on the Provider Quota page card grid, fixing clipped labels/buttons on phone-width viewports (#7072)

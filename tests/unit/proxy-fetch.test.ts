@@ -4,6 +4,7 @@ import http from "node:http";
 
 import proxyFetch, {
   runWithProxyContext,
+  runWithProxyContextOrDirect,
   runWithTlsTracking,
   isTlsFingerprintActive,
 } from "../../open-sse/utils/proxyFetch.ts";
@@ -58,11 +59,17 @@ async function withHttpServer(handler, fn) {
   }
 }
 
-const originalTlsAvailable = tlsClient.available;
 const originalTlsFetch = tlsClient.fetch.bind(tlsClient);
 
+// #3323 made `tlsClient.available` a computed getter (library availability +
+// circuit breaker), so it can no longer be assigned. Tests stub it by shadowing
+// the prototype getter with an own data property, then `delete` to restore.
+function setTlsAvailable(value: boolean) {
+  Object.defineProperty(tlsClient, "available", { value, configurable: true, writable: true });
+}
+
 test.afterEach(() => {
-  tlsClient.available = originalTlsAvailable;
+  delete (tlsClient as unknown as { available?: boolean }).available;
   tlsClient.fetch = originalTlsFetch;
 });
 
@@ -120,7 +127,7 @@ test("proxy fetch uses TLS fingerprint transport when enabled and available", as
       NO_PROXY: undefined,
     },
     async () => {
-      tlsClient.available = true;
+      setTlsAvailable(true);
       tlsClient.fetch = async (url, options = {}) => {
         assert.equal(url, "https://omniroute.example.test/hello");
         assert.equal(options.method, "POST");
@@ -158,4 +165,58 @@ test("runWithProxyContext accepts reachable HTTP proxy endpoints and returns cal
       assert.equal(result, "ok");
     }
   );
+});
+
+test("runWithProxyContext throws PROXY_UNREACHABLE for an unreachable proxy by default", async () => {
+  // 127.0.0.1:9 (discard) refuses connections — the proxy is unreachable.
+  await assert.rejects(
+    runWithProxyContext({ type: "http", host: "127.0.0.1", port: "9" }, async () => "unreachable"),
+    /Proxy unreachable/
+  );
+});
+
+test("runWithProxyContext degrades to a direct connection when directFallbackOnUnreachable is set", async () => {
+  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "true" }, async () => {
+    let ran = false;
+    const result = await runWithProxyContext(
+      { type: "http", host: "127.0.0.1", port: "9" },
+      async () => {
+        ran = true;
+        return "direct-ok";
+      },
+      { directFallbackOnUnreachable: true }
+    );
+
+    assert.equal(ran, true, "callback must still run via a direct connection");
+    assert.equal(result, "direct-ok");
+  });
+});
+
+test("runWithProxyContext keeps strict pinning when the direct fallback feature flag is off", async () => {
+  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "false" }, async () => {
+    await assert.rejects(
+      runWithProxyContext(
+        { type: "http", host: "127.0.0.1", port: "9" },
+        async () => "unreachable",
+        { directFallbackOnUnreachable: true }
+      ),
+      /Proxy unreachable/
+    );
+  });
+});
+
+test("runWithProxyContextOrDirect runs the callback directly when the proxy is unreachable", async () => {
+  await withEnv({ OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK: "true" }, async () => {
+    let ran = false;
+    const result = await runWithProxyContextOrDirect(
+      { type: "http", host: "127.0.0.1", port: "9" },
+      async () => {
+        ran = true;
+        return "ok";
+      }
+    );
+
+    assert.equal(ran, true);
+    assert.equal(result, "ok");
+  });
 });

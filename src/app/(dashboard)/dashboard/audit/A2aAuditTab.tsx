@@ -182,7 +182,7 @@ export default function A2aAuditTab() {
                       <span
                         className={`rounded-full border px-2 py-1 text-xs font-medium ${STATE_STYLES[task.state]}`}
                       >
-                        {task.state}
+                        {t(`a2aState${task.state.charAt(0).toUpperCase()}${task.state.slice(1)}`)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-text-muted">{taskDuration(task)}</td>

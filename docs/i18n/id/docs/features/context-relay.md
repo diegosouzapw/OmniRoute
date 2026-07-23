@@ -1,65 +1,65 @@
-# Context Relay (Bahasa Indonesia)
+# Context Relay
 
 🌐 **Languages:** 🇺🇸 [English](../../../../../docs/features/context-relay.md) · 🇪🇸 [es](../../../es/docs/features/context-relay.md) · 🇫🇷 [fr](../../../fr/docs/features/context-relay.md) · 🇩🇪 [de](../../../de/docs/features/context-relay.md) · 🇮🇹 [it](../../../it/docs/features/context-relay.md) · 🇷🇺 [ru](../../../ru/docs/features/context-relay.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/features/context-relay.md) · 🇯🇵 [ja](../../../ja/docs/features/context-relay.md) · 🇰🇷 [ko](../../../ko/docs/features/context-relay.md) · 🇸🇦 [ar](../../../ar/docs/features/context-relay.md) · 🇮🇳 [hi](../../../hi/docs/features/context-relay.md) · 🇮🇳 [in](../../../in/docs/features/context-relay.md) · 🇹🇭 [th](../../../th/docs/features/context-relay.md) · 🇻🇳 [vi](../../../vi/docs/features/context-relay.md) · 🇮🇩 [id](../../../id/docs/features/context-relay.md) · 🇲🇾 [ms](../../../ms/docs/features/context-relay.md) · 🇳🇱 [nl](../../../nl/docs/features/context-relay.md) · 🇵🇱 [pl](../../../pl/docs/features/context-relay.md) · 🇸🇪 [sv](../../../sv/docs/features/context-relay.md) · 🇳🇴 [no](../../../no/docs/features/context-relay.md) · 🇩🇰 [da](../../../da/docs/features/context-relay.md) · 🇫🇮 [fi](../../../fi/docs/features/context-relay.md) · 🇵🇹 [pt](../../../pt/docs/features/context-relay.md) · 🇷🇴 [ro](../../../ro/docs/features/context-relay.md) · 🇭🇺 [hu](../../../hu/docs/features/context-relay.md) · 🇧🇬 [bg](../../../bg/docs/features/context-relay.md) · 🇸🇰 [sk](../../../sk/docs/features/context-relay.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/features/context-relay.md) · 🇮🇱 [he](../../../he/docs/features/context-relay.md) · 🇵🇭 [phi](../../../phi/docs/features/context-relay.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/features/context-relay.md) · 🇨🇿 [cs](../../../cs/docs/features/context-relay.md) · 🇹🇷 [tr](../../../tr/docs/features/context-relay.md)
 
 ---
 
-`context-relay` is a combo strategy that keeps session continuity when the active account
-rotates before the conversation is finished.
+`context-relay` adalah strategi combo yang menjaga kesinambungan sesi ketika akun aktif
+berputar sebelum percakapan selesai.
 
-The current runtime behaves like priority routing for model selection, then adds a
-handoff layer on top:
+Runtime saat ini berperilaku seperti routing prioritas untuk pemilihan model, kemudian menambahkan
+lapisan handoff di atasnya:
 
-- before the active account is exhausted, OmniRoute generates a compact structured summary
-- after authentication selects a different account for the same session, OmniRoute injects
-  that summary as a system message into the next request
-- once the handoff is consumed successfully, it is removed from storage
+- sebelum akun aktif habis, OmniRoute menghasilkan ringkasan terstruktur yang ringkas
+- setelah autentikasi memilih akun berbeda untuk sesi yang sama, OmniRoute menyuntikkan
+  ringkasan tersebut sebagai pesan sistem ke dalam permintaan berikutnya
+- setelah handoff berhasil dikonsumsi, handoff tersebut dihapus dari penyimpanan
 
-## When To Use It
+## Kapan Menggunakannya
 
-Use `context-relay` when all of the following are true:
+Gunakan `context-relay` ketika semua kondisi berikut terpenuhi:
 
-- the combo is expected to rotate between multiple accounts of the same provider
-- losing short-term conversational continuity would hurt task quality
-- the provider exposes enough quota information to predict an approaching account limit
+- combo diharapkan berputar di antara beberapa akun dari penyedia yang sama
+- kehilangan kesinambungan percakapan jangka pendek akan mengurangi kualitas tugas
+- penyedia mengekspos informasi kuota yang cukup untuk memprediksi batas akun yang akan datang
 
-This is most useful for long-running coding or research sessions that may outlive a single
-account window.
+Ini paling berguna untuk sesi coding atau riset yang berjalan lama yang mungkin melampaui satu
+jendela akun.
 
-## Runtime Flow
+## Alur Runtime
 
-The current behavior is intentionally split across two runtime layers.
+Perilaku saat ini secara sengaja dibagi ke dalam dua lapisan runtime.
 
-### 0% to 84% quota used
+### 0% hingga 84% kuota terpakai
 
-No handoff is generated. Requests behave like normal priority routing.
+Tidak ada handoff yang dihasilkan. Permintaan berperilaku seperti routing prioritas normal.
 
-### 85% to 94% quota used
+### 85% hingga 94% kuota terpakai
 
-If the active provider is enabled in `handoffProviders`, OmniRoute generates a structured
-handoff summary in the background before the account is fully exhausted.
+Jika penyedia aktif diaktifkan di `handoffProviders`, OmniRoute menghasilkan ringkasan handoff
+terstruktur di latar belakang sebelum akun habis sepenuhnya.
 
-Important details:
+Detail penting:
 
-- the default warning threshold is `0.85`
-- the hard stop for generation is `0.95`
-- only one in-flight handoff generation is allowed per `sessionId + comboName`
-- if an active handoff already exists for that session/combo, no duplicate summary is generated
+- ambang batas peringatan default adalah `0.85`
+- batas keras untuk pembuatan adalah `0.95`
+- hanya satu pembuatan handoff yang sedang berjalan yang diizinkan per `sessionId + comboName`
+- jika handoff aktif sudah ada untuk sesi/combo tersebut, tidak ada ringkasan duplikat yang dihasilkan
 
-### 95% or more quota used
+### 95% atau lebih kuota terpakai
 
-No new handoff is generated. At this point the system is already in or near exhaustion and
-the runtime avoids scheduling another summary request.
+Tidak ada handoff baru yang dihasilkan. Pada titik ini sistem sudah berada dalam kondisi habis atau
+mendekati habis dan runtime menghindari penjadwalan permintaan ringkasan lain.
 
-### After account rotation
+### Setelah rotasi akun
 
-When the next request for the same session resolves to a different authenticated account,
-OmniRoute prepends the stored handoff as a system message. Injection happens only after the
-real account switch is known.
+Ketika permintaan berikutnya untuk sesi yang sama menghasilkan akun terautentikasi yang berbeda,
+OmniRoute menambahkan handoff yang tersimpan sebagai pesan sistem. Penyuntikan hanya terjadi setelah
+pergantian akun nyata diketahui.
 
-## Handoff Payload
+## Muatan Handoff
 
-The persisted handoff payload is stored in `context_handoffs` and includes:
+Muatan handoff yang dipersistenkan disimpan di `context_handoffs` dan mencakup:
 
 - `sessionId`
 - `comboName`
@@ -74,7 +74,7 @@ The persisted handoff payload is stored in `context_handoffs` and includes:
 - `generatedAt`
 - `expiresAt`
 
-The summary model is instructed to return a JSON object with this structure:
+Model ringkasan diperintahkan untuk mengembalikan objek JSON dengan struktur berikut:
 
 ```json
 {
@@ -85,46 +85,46 @@ The summary model is instructed to return a JSON object with this structure:
 }
 ```
 
-At injection time, OmniRoute converts that payload into a `<context_handoff>` system
-message so the next account can continue with the correct local context.
+Pada saat penyuntikan, OmniRoute mengonversi muatan tersebut menjadi pesan sistem `<context_handoff>`
+agar akun berikutnya dapat melanjutkan dengan konteks lokal yang benar.
 
 ## Konfigurasi
 
-`context-relay` supports these config fields:
+`context-relay` mendukung kolom konfigurasi berikut:
 
-- `handoffThreshold`: warning threshold for summary generation, default `0.85`
-- `handoffModel`: optional model override used only for summary generation
-- `handoffProviders`: allowlist of providers allowed to trigger handoff generation
+- `handoffThreshold`: ambang batas peringatan untuk pembuatan ringkasan, default `0.85`
+- `handoffModel`: penggantian model opsional yang hanya digunakan untuk pembuatan ringkasan
+- `handoffProviders`: daftar izin penyedia yang diperbolehkan memicu pembuatan handoff
 
-Global defaults can be configured in Settings, and combo-specific values can override them
-in the Combos page.
+Nilai default global dapat dikonfigurasi di Pengaturan, dan nilai spesifik combo dapat menggantikannya
+di halaman Combos.
 
-## Architectural Note
+## Catatan Arsitektur
 
-The current implementation does not use a standalone `handleContextRelayCombo` handler.
+Implementasi saat ini tidak menggunakan pengendali `handleContextRelayCombo` yang berdiri sendiri.
 
-Instead:
+Sebaliknya:
 
-- `open-sse/services/combo.ts` decides whether a successful turn should generate a handoff
-- `src/sse/handlers/chat.ts` injects the handoff only after authentication resolves the
-  actual account used for the request
+- `open-sse/services/combo.ts` memutuskan apakah giliran yang berhasil harus menghasilkan handoff
+- `src/sse/handlers/chat.ts` menyuntikkan handoff hanya setelah autentikasi menyelesaikan
+  akun aktual yang digunakan untuk permintaan
 
-This split is intentional in the current codebase because the combo loop alone does not know
-whether the request stayed on the same account or actually switched accounts.
+Pemisahan ini disengaja dalam basis kode saat ini karena loop combo saja tidak mengetahui
+apakah permintaan tetap pada akun yang sama atau benar-benar berpindah akun.
 
-## Limitations
+## Keterbatasan
 
-- Effective runtime support is currently centered on `codex` quota rotation.
-- `handoffProviders` is already modeled as a config surface, but real handoff generation
-  still depends on provider-specific quota plumbing.
-- The summary is intentionally compact and recent-history based; it is not a full transcript
-  replay mechanism.
-- Handoffs are scoped by `sessionId + comboName` and expire automatically.
-- If the session does not switch accounts, the stored handoff is not injected.
+- Dukungan runtime yang efektif saat ini terpusat pada rotasi kuota `codex`.
+- `handoffProviders` sudah dimodelkan sebagai permukaan konfigurasi, tetapi pembuatan handoff
+  nyata masih bergantung pada jalur kuota spesifik penyedia.
+- Ringkasan secara sengaja dibuat ringkas dan berbasis riwayat terkini; ini bukan mekanisme
+  pemutaran ulang transkrip penuh.
+- Handoff dicakupkan oleh `sessionId + comboName` dan kedaluwarsa secara otomatis.
+- Jika sesi tidak berpindah akun, handoff yang tersimpan tidak disuntikkan.
 
-## Recommended Usage Pattern
+## Pola Penggunaan yang Disarankan
 
-- use multiple accounts from the same provider
-- keep stable `sessionId` values across the session
-- set `handoffThreshold` early enough to leave room for the background summary request
-- treat the feature as continuity assistance, not as a replacement for persistent memory
+- gunakan beberapa akun dari penyedia yang sama
+- pertahankan nilai `sessionId` yang stabil sepanjang sesi
+- atur `handoffThreshold` cukup awal untuk menyisakan ruang bagi permintaan ringkasan latar belakang
+- perlakukan fitur ini sebagai bantuan kesinambungan, bukan sebagai pengganti memori persisten

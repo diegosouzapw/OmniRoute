@@ -1,0 +1,1 @@
+- CI: `pr-test-policy` fetches the base branch with full history instead of `--depth=1` — the shallow graft made `merge-base` resolve wrong for PR branches that recently merged the release, so the three-dot diff blamed the PR for OTHER merged PRs' changes (false "deleted test"/"weakened asserts" reds; observed on #7329 being blamed for #7106's files).

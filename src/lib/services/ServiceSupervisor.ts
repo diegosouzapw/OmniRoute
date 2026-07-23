@@ -7,9 +7,30 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getServiceRow, updateServiceField, setToolStatus } from "@/lib/db/versionManager";
 import { RingBuffer } from "./ringBuffer";
 import { HealthChecker } from "./healthCheck";
+import { decidePreSpawn, probeBeforeSpawn, resolvePortPid } from "./portProbe";
 import type { ServiceConfig, ServiceState, ServiceStatus, LogLine, HealthState } from "./types";
 
 const CRASH_FAST_THRESHOLD_MS = 5_000;
+
+/**
+ * Builds the `spawn()` options for a supervised service child process.
+ * `windowsHide: true` suppresses the transient conhost.exe/cmd console
+ * window Windows briefly flashes open for spawned child processes (#8131).
+ * Exported (rather than inlined) so a unit test can assert on it directly
+ * instead of mocking `node:child_process`.
+ */
+export function buildServiceSpawnOptions(
+  env: NodeJS.ProcessEnv | undefined,
+  cwd: string | undefined
+): { env: NodeJS.ProcessEnv | undefined; cwd: string | undefined; detached: boolean; stdio: ["ignore", "pipe", "pipe"]; windowsHide: boolean } {
+  return {
+    env,
+    cwd,
+    detached: false,
+    stdio: ["ignore", "pipe", "pipe"],
+    windowsHide: true,
+  };
+}
 
 export class ServiceSupervisor extends EventEmitter {
   private state: ServiceState = "stopped";
@@ -61,14 +82,42 @@ export class ServiceSupervisor extends EventEmitter {
       this.setState("starting");
       this.lastError = null;
 
+      // Pre-spawn probe (#6205): avoid a raw EADDRINUSE crash when a prior
+      // instance is still holding the port. A healthy instance is adopted; a
+      // held-but-unhealthy port surfaces a clear error instead of a stack.
+      // Opt-in per ServiceConfig so the default spawn path is unchanged.
+      if (this.config.probeBeforeSpawn) {
+        const probe = await probeBeforeSpawn(this.config.healthUrl(), this.config.port);
+        const decision = decidePreSpawn(probe, this.config.port);
+
+        if (decision.action === "adopt") {
+          // Something healthy already serves this port — treat it as running
+          // rather than spawning a duplicate that would die with EADDRINUSE.
+          // We didn't spawn it, so there's no ChildProcess handle to read a
+          // pid from — resolve one from the OS instead. Best-effort: if
+          // resolution fails, pid stays null rather than blocking adoption,
+          // but downstream liveness checks that key off pid will only trust
+          // this instance once a real pid is on record.
+          const adoptedPid = await resolvePortPid(this.config.port);
+          this.checker.start();
+          this.startedAt = new Date().toISOString();
+          this.pid = adoptedPid;
+          this.setState("running");
+          await setToolStatus(this.config.tool, "running", adoptedPid ?? undefined);
+          return this.getStatus();
+        }
+
+        if (decision.action === "error") {
+          this.lastError = sanitizeErrorMessage(decision.message);
+          this.setState("error");
+          await setToolStatus(this.config.tool, "error", undefined, this.lastError);
+          return this.getStatus();
+        }
+      }
+
       const { command, args, env, cwd } = this.config.spawnArgs();
 
-      const child = spawn(command, args, {
-        env,
-        cwd,
-        detached: false,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
+      const child = spawn(command, args, buildServiceSpawnOptions(env, cwd));
 
       this.childProcess = child;
       this.pid = child.pid ?? null;

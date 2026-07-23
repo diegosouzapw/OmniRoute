@@ -1,0 +1,55 @@
+# Mergify merge queue — WS3.4/D5 of the v3.8.49 quality/velocity master plan.
+#
+# WHY: ~85-100 active PR authors/month and 300+ PRs/week peaks, all merged by ONE
+# identity. The manual merge-train validated batches by hand; this queue automates
+# it with batching + automatic batch bisection (a red batch of N costs ~log2(N)
+# revalidations instead of N). Mergify Open Source plan: free, unlimited, public repo.
+#
+# GOVERNANCE (non-negotiable, mirrors CLAUDE.md Hard Rules #21/#22 + the owner's
+# pre-merge ⭐ gate):
+#   • A PR enters the queue ONLY via the `queue` label — applied by the owner (or a
+#     session acting for the owner) AFTER the pre-merge ⭐ report/decision. The label
+#     IS the merge approval; Mergify only executes it.
+#   • During a release-freeze (open issue labeled `release-freeze`), do NOT label PRs
+#     targeting the frozen branch — the freeze is a human-honored coordination signal
+#     the queue cannot see. Retarget to the active release/vX+1 first (Hard Rule #21).
+#   • Never label a PR another session is actively working (Hard Rule #22b).
+#   • Fallback path if Mergify misbehaves or the OSS plan changes: the manual
+#     merge-train runbook (docs/ops/MERGE_TRAIN.md) — remove labels, proceed by hand.
+
+queue_rules:
+  - name: release
+    # Any current or future release branch — the reason GitHub's native queue was
+    # rejected (no wildcard support on personal-account repos).
+    queue_conditions:
+      - base~=^release/v\d+\.\d+\.\d+$
+      - label=queue
+      - -draft
+      - -conflict
+    # "Everything that ran is green, nothing still running, AND the always-on
+    # anchor check succeeded" — robust to the path-filtered fast-gates (docs-only
+    # PRs skip code jobs; matrix shard names vary) while never fail-open: a PR with
+    # zero checks cannot vacuously merge, because `Merge integrity` runs on EVERY
+    # non-draft PR (quality.yml) and must be an affirmative success. Review approval
+    # is intentionally NOT a condition here: the owner-applied `queue` label IS the
+    # approval in this repo's single-maintainer model (see governance header).
+    merge_conditions:
+      - "#check-failure=0"
+      - "#check-pending=0"
+      - "#check-success>=1"
+      - check-success=Merge integrity (changelog + generated skills)
+    # Batching: validate up to 10 queued PRs together (the manual train's sweet spot);
+    # don't hold a lone PR hostage waiting for siblings.
+    batch_size: 10
+    batch_max_wait_time: 5 min
+    # Squash keeps the one-commit-per-PR history the CHANGELOG reconciliation expects.
+    merge_method: squash
+
+pull_request_rules:
+  - name: clean up the queue label after merge
+    conditions:
+      - merged
+    actions:
+      label:
+        remove:
+          - queue

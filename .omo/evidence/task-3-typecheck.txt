@@ -1,5 +1,0 @@
-
-> omniroute@3.6.9 typecheck:core
-> tsc --pretty false -p tsconfig.typecheck-core.json
-
-✓ Task 3 complete: POST /api/compression/preview created and verified

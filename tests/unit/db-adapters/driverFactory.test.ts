@@ -8,7 +8,7 @@ describe("driverFactory", () => {
   test("tryOpenSync retorna adapter síncrono ou null", () => {
     const adapter = tryOpenSync(":memory:");
     if (adapter) {
-      assert.ok(["better-sqlite3", "node:sqlite"].includes(adapter.driver));
+      assert.ok(["better-sqlite3", "node:sqlite", "bun:sqlite"].includes(adapter.driver));
       adapter.exec("CREATE TABLE t (v TEXT)");
       adapter.prepare("INSERT INTO t VALUES (?)").run("ok");
       const row = adapter.prepare("SELECT v FROM t").get() as { v: string };
@@ -21,7 +21,7 @@ describe("driverFactory", () => {
 
   test("openDatabaseAsync sempre retorna um adapter válido", async () => {
     const adapter = await openDatabaseAsync(":memory:");
-    assert.ok(["better-sqlite3", "node:sqlite", "sql.js"].includes(adapter.driver));
+    assert.ok(["better-sqlite3", "node:sqlite", "bun:sqlite", "sql.js"].includes(adapter.driver));
 
     adapter.exec("CREATE TABLE t (v TEXT)");
     adapter.prepare("INSERT INTO t VALUES (?)").run("ok");
@@ -83,6 +83,56 @@ describe("driverFactory", () => {
     assert.equal(rows[1].name, "banana");
 
     adapter.close();
+  });
+
+  // #6628 (remaining gap): concurrent preInitSqlJs() calls for the same
+  // filePath must share ONE in-flight load instead of each caller
+  // independently fs.readFileSync + WASM-decoding the whole file — the
+  // thundering-herd amplifier of the OOM condition #6632 already partly
+  // fixed (restore-cycle-breaker + OOM early-abort), left un-implemented by
+  // the reporter's own proposed promise-sharing fix.
+  test("preInitSqlJs shares one in-flight load across concurrent callers", async (t) => {
+    const os = await import("node:os");
+    const path = await import("node:path");
+    // The dynamic-import namespace object is read-only; grab the mutable CJS
+    // `.default` (== module.exports) so readFileSync can be monkeypatched.
+    const fsNs = await import("node:fs");
+    const fs = fsNs.default;
+
+    const tmpFile = path.join(os.tmpdir(), `sqljs_race_${Date.now()}.sqlite`);
+    fs.writeFileSync(tmpFile, Buffer.alloc(1024 * 1024, 1));
+    t.after(() => {
+      try {
+        fs.unlinkSync(tmpFile);
+      } catch {}
+    });
+
+    let readCountForTarget = 0;
+    const originalReadFileSync = fs.readFileSync;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (fs as any).readFileSync = (...args: Parameters<typeof fs.readFileSync>) => {
+      if (args[0] === tmpFile) readCountForTarget += 1;
+      return originalReadFileSync(...args);
+    };
+    t.after(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (fs as any).readFileSync = originalReadFileSync;
+    });
+
+    const [a, b, c] = await Promise.all([
+      preInitSqlJs(tmpFile),
+      preInitSqlJs(tmpFile),
+      preInitSqlJs(tmpFile),
+    ]);
+
+    assert.equal(
+      readCountForTarget,
+      1,
+      `expected exactly 1 shared full-file read for 3 concurrent preInitSqlJs() calls, got ${readCountForTarget}`
+    );
+    assert.equal(a, b, "concurrent callers must resolve to the SAME adapter instance");
+    assert.equal(b, c, "concurrent callers must resolve to the SAME adapter instance");
+    a.close();
   });
 
   test("cross-driver: escreve com adapter sync, relê com sql.js", async (t) => {

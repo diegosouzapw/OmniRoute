@@ -9,10 +9,10 @@ import {
 import { applyRulesToText } from "../../../open-sse/services/compression/caveman.ts";
 import { getRulesForContext } from "../../../open-sse/services/compression/cavemanRules.ts";
 
-const LANGUAGES = ["pt-BR", "es", "de", "fr", "ja"];
+const LANGUAGES = ["pt-BR", "es", "de", "fr", "ja", "id"];
 
 describe("Caveman language packs", () => {
-  it("ships 5 language packs with at least 15 rules each", () => {
+  it("ships 6 language packs with at least 15 rules each", () => {
     for (const language of LANGUAGES) {
       const rules = loadAllRulesForLanguage(language, { refresh: true });
       assert.ok(rules.length >= 15, `${language} expected 15+ rules, got ${rules.length}`);
@@ -37,6 +37,7 @@ describe("Caveman language packs", () => {
     assert.equal(detectCompressionLanguage("ich brauche diese konfiguration"), "de");
     assert.equal(detectCompressionLanguage("j'ai besoin de corriger cette erreur fichier"), "fr");
     assert.equal(detectCompressionLanguage("このコードを修正してください"), "ja");
+    assert.equal(detectCompressionLanguage("bisa tolong jelaskan tentang database ini"), "id");
   });
 
   it("applies non-English rule packs to golden samples", () => {
@@ -79,6 +80,20 @@ describe("Caveman language packs", () => {
     assert.ok(text.includes("src/auth.ts"));
   });
 
+  it("applies Indonesian rules without touching technical terms", () => {
+    const idRules = getRulesForContext("user", "ultra", "id");
+    const { text } = applyRulesToText(
+      "Tolong berikan penjelasan detail tentang basis data dan autentikasi di src/auth.ts",
+      idRules
+    );
+
+    assert.ok(!text.toLowerCase().includes("tolong"));
+    assert.ok(!text.toLowerCase().includes("penjelasan detail"));
+    assert.ok(text.includes("DB"));
+    assert.ok(text.includes("auth"));
+    assert.ok(text.includes("src/auth.ts"));
+  });
+
   it("builds localized output mode instructions", () => {
     const config = { enabled: true, intensity: "full" as const, autoClarity: true };
 
@@ -87,5 +102,6 @@ describe("Caveman language packs", () => {
     assert.match(buildCavemanOutputInstruction(config, "de"), /Antworte/);
     assert.match(buildCavemanOutputInstruction(config, "fr"), /Reponds/);
     assert.match(buildCavemanOutputInstruction(config, "ja"), /回答/);
+    assert.match(buildCavemanOutputInstruction(config, "id"), /Jawab/);
   });
 });

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Token Usage Tracking - Extract, normalize, estimate and log token usage
  */
@@ -93,6 +92,16 @@ export function invalidateBufferTokensCache(): void {
   _cacheTimestamp = 0;
 }
 
+/**
+ * Directly set the cached buffer value — called by runtimeSettings after a
+ * settings save so the new value is available synchronously on the next request
+ * (no race window between invalidation and the async DB re-read).
+ */
+export function setBufferTokensCache(value: number): void {
+  _cachedBuffer = value;
+  _cacheTimestamp = Date.now();
+}
+
 // Get HH:MM:SS timestamp
 function getTimeString() {
   return new Date().toLocaleTimeString("en-US", {
@@ -110,6 +119,13 @@ function getTimeString() {
  */
 export function addBufferToUsage(usage) {
   if (!usage || typeof usage !== "object") return usage;
+
+  // Heuristic estimates (web/cookie providers with no upstream metering) should
+  // not get the safety buffer — otherwise a 6-token "hi"/"PONG" becomes a flat
+  // ~2000 for every request and looks like fake metering.
+  if ((usage as { estimated?: unknown }).estimated === true) {
+    return usage;
+  }
 
   const buffer = getBufferTokens();
   if (buffer === 0) return usage;
@@ -227,7 +243,7 @@ export function filterUsageForFormat(usage, targetFormat) {
   let fields = formatFields[targetFormat];
 
   // Use same fields for similar formats
-  if (targetFormat === FORMATS.GEMINI_CLI || targetFormat === FORMATS.ANTIGRAVITY) {
+  if (targetFormat === FORMATS.ANTIGRAVITY) {
     fields = formatFields[FORMATS.GEMINI];
   } else if (targetFormat === FORMATS.OPENAI_RESPONSE) {
     fields = formatFields[FORMATS.OPENAI_RESPONSES];
@@ -244,7 +260,7 @@ export function filterUsageForFormat(usage, targetFormat) {
 export function normalizeUsage(usage) {
   if (!usage || typeof usage !== "object" || Array.isArray(usage)) return null;
 
-  const normalized = {};
+  const normalized: Record<string, number> = {};
   const assignNumber = (key, value) => {
     if (value === undefined || value === null) return;
     const numeric = Number(value);
@@ -254,10 +270,22 @@ export function normalizeUsage(usage) {
   assignNumber("prompt_tokens", usage?.prompt_tokens);
   assignNumber("completion_tokens", usage?.completion_tokens);
   assignNumber("total_tokens", usage?.total_tokens);
+  assignNumber("input_tokens", usage?.input_tokens);
+  assignNumber("output_tokens", usage?.output_tokens);
   assignNumber("cache_read_input_tokens", usage?.cache_read_input_tokens);
   assignNumber("cache_creation_input_tokens", usage?.cache_creation_input_tokens);
   assignNumber("cached_tokens", usage?.cached_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
+  // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —
+  // @ryanngit). Ticks → USD conversion happens in costCalculator.ts, not here.
+  const exactCostTicks = usage?.cost_in_usd_ticks;
+  if (
+    typeof exactCostTicks === "number" &&
+    Number.isFinite(exactCostTicks) &&
+    exactCostTicks >= 0
+  ) {
+    normalized.cost_in_usd_ticks = exactCostTicks;
+  }
 
   if (Object.keys(normalized).length === 0) return null;
   return normalized;
@@ -313,6 +341,8 @@ export function extractUsage(chunk) {
       return normalizeUsage({
         prompt_tokens: inputTokens + cacheRead + cacheCreation,
         completion_tokens: u.output_tokens || u.completion_tokens || 0,
+        input_tokens: inputTokens + cacheRead + cacheCreation,
+        output_tokens: u.output_tokens || u.completion_tokens || 0,
         cache_read_input_tokens: u.cache_read_input_tokens,
         cache_creation_input_tokens: u.cache_creation_input_tokens,
       });
@@ -327,6 +357,8 @@ export function extractUsage(chunk) {
     return normalizeUsage({
       prompt_tokens: deltaInput + deltaCacheRead + deltaCacheCreation,
       completion_tokens: chunk.usage.output_tokens || 0,
+      input_tokens: deltaInput + deltaCacheRead + deltaCacheCreation,
+      output_tokens: chunk.usage.output_tokens || 0,
       cache_read_input_tokens: chunk.usage.cache_read_input_tokens,
       cache_creation_input_tokens: chunk.usage.cache_creation_input_tokens,
     });
@@ -372,17 +404,35 @@ export function extractUsage(chunk) {
         chunk.usage.completion_tokens_details?.reasoning_tokens ??
         chunk.usage.output_tokens_details?.reasoning_tokens ??
         chunk.usage.reasoning_tokens,
+      // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A).
+      cost_in_usd_ticks: chunk.usage.cost_in_usd_ticks,
     });
   }
 
   // Gemini format (Antigravity)
-  if (chunk.usageMetadata && typeof chunk.usageMetadata === "object") {
+  // Antigravity wraps usageMetadata inside a `response` envelope:
+  // { response: { usageMetadata: {...} } } — fall back to it so AG-shaped
+  // chunks do not silently drop token usage.
+  const usageMeta = chunk.usageMetadata || chunk.response?.usageMetadata;
+  if (usageMeta && typeof usageMeta === "object") {
     return normalizeUsage({
-      prompt_tokens: chunk.usageMetadata?.promptTokenCount || 0,
-      completion_tokens: chunk.usageMetadata?.candidatesTokenCount || 0,
-      total_tokens: chunk.usageMetadata?.totalTokenCount,
-      cached_tokens: chunk.usageMetadata?.cachedContentTokenCount,
-      reasoning_tokens: chunk.usageMetadata?.thoughtsTokenCount,
+      prompt_tokens: usageMeta.promptTokenCount || 0,
+      completion_tokens: usageMeta.candidatesTokenCount || 0,
+      total_tokens: usageMeta.totalTokenCount,
+      cached_tokens: usageMeta.cachedContentTokenCount,
+      reasoning_tokens: usageMeta.thoughtsTokenCount,
+    });
+  }
+
+  // Ollama NDJSON format (raw from provider, before translation)
+  // Ollama sends: { "model": "...", "done": true, "prompt_eval_count": N, "eval_count": M }
+  if (chunk.done === true && typeof chunk.prompt_eval_count === "number") {
+    const promptEvalCount = chunk.prompt_eval_count || 0;
+    const evalCount = chunk.eval_count || 0;
+    return normalizeUsage({
+      prompt_tokens: promptEvalCount,
+      completion_tokens: evalCount,
+      total_tokens: promptEvalCount + evalCount,
     });
   }
 

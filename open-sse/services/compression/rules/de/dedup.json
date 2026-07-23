@@ -1,0 +1,38 @@
+{
+  "language": "de",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "de_repeated_context",
+      "pattern": "\\b(?:wie bereits besprochen|wie zuvor erwähnt|wie bereits erwähnt|wie ich bereits sagte)\\b[,.]?\\s*",
+      "replacement": "Siehe oben. ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_repeated_question",
+      "pattern": "\\b(?:dieselbe Frage wie zuvor|das habe ich bereits gefragt|das ist dieselbe Frage)\\b[,.]?\\s*",
+      "replacement": "[gleiche Frage] ",
+      "context": "user",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_reestablished_context",
+      "pattern": "\\b(?:zurück zum obigen Code|bezugnehmend auf|zurückkommend auf)\\b\\s*",
+      "replacement": "Re: ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_summary_replacement",
+      "pattern": "\\b(?:um zusammenzufassen was wir besprochen haben|zusammenfassend unser Gespräch|um es zusammenzufassen)\\b[,.]?\\s*",
+      "replacement": "Zusammenfassung: ",
+      "context": "assistant",
+      "category": "dedup",
+      "minIntensity": "lite"
+    }
+  ]
+}

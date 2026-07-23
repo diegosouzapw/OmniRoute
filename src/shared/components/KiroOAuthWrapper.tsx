@@ -24,7 +24,7 @@ export default function KiroOAuthWrapper({
   onClose,
   reauthConnection,
 }: KiroOAuthWrapperProps) {
-  const [authMethod, setAuthMethod] = useState(null); // null | "builder-id" | "idc" | "social" | "import"
+  const [authMethod, setAuthMethod] = useState(null); // null | "builder-id" | "idc" | "social" | "import" | "api-key"
   const [socialProvider, setSocialProvider] = useState(null); // "google" | "github"
   const [idcConfig, setIdcConfig] = useState(null);
 
@@ -43,6 +43,9 @@ export default function KiroOAuthWrapper({
         setSocialProvider(config.provider);
       } else if (method === "import") {
         // Import handled in KiroAuthModal, just close
+        onSuccess?.();
+      } else if (method === "api-key") {
+        // API-key import is handled in KiroAuthModal.
         onSuccess?.();
       }
     },
@@ -104,6 +107,7 @@ export default function KiroOAuthWrapper({
       <KiroSocialOAuthModal
         isOpen={isOpen}
         provider={socialProvider}
+        targetProvider={oauthProviderId}
         providerLabel={providerLabel}
         onSuccess={handleSocialSuccess}
         onClose={handleBack}

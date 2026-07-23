@@ -1,22 +1,24 @@
 /**
  * Video Generation Handler
  *
- * Handles POST /v1/videos/generations requests.
- * Proxies to upstream video generation providers.
- *
- * Supported provider formats:
- * - ComfyUI: submit AnimateDiff/SVD workflow → poll → fetch video
- * - SD WebUI: POST to AnimateDiff extension endpoint
- *
- * Response format (OpenAI-like):
- * {
- *   "created": 1234567890,
- *   "data": [{ "b64_json": "...", "format": "mp4" }]
- * }
+ * Handles POST /v1/videos/generations requests. Proxies to upstream video
+ * generation providers (ComfyUI AnimateDiff/SVD, SD WebUI AnimateDiff, and
+ * more — see the per-format handlers below). Response format (OpenAI-like):
+ * { "created": 1234567890, "data": [{ "b64_json": "...", "format": "mp4" }] }
  */
 
 import { getVideoProvider, parseVideoModel } from "../config/videoRegistry.ts";
 import { kieExecutor } from "../executors/kie.ts";
+import { vertexGenerateVideo } from "../executors/vertexMedia.ts";
+import { handleGoogleFlowVideoGeneration } from "./videoGeneration/googleFlowHandler.ts";
+import { handleDeepinfraVideoGeneration } from "./videoGeneration/deepinfraHandler.ts";
+import { handleLeonardoVideoGeneration } from "./videoGeneration/leonardoHandler.ts";
+import { handleDashscopeVideoGeneration } from "./videoGeneration/dashscopeHandler.ts";
+import { handleNovitaVideoGeneration } from "./videoGeneration/novitaHandler.ts";
+import { handleXaiVideoGeneration } from "./videoGeneration/xaiGrokImagineHandler.ts";
+import { handleSegmindVideoGeneration } from "./videoGeneration/providers/segmind.ts";
+import { handleAdobeFireflyVideoGeneration } from "./videoGeneration/adobeFireflyHandler.ts";
+import { getExecutor } from "../executors/index.ts";
 import { isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
 import {
   buildRunwayApiUrl,
@@ -28,6 +30,7 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -55,8 +58,25 @@ export async function handleVideoGeneration({ body, credentials, log }) {
     };
   }
 
+  if (providerConfig.format === "vertex-veo") {
+    return handleVertexVeoGeneration({ model, body, credentials, log });
+  }
+
+  if (providerConfig.format === "google-flow") {
+    return handleGoogleFlowVideoGeneration({ model, providerConfig, body, credentials, log });
+  }
+
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIVideoGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIVideoGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "sdwebui-video") {
@@ -74,8 +94,62 @@ export async function handleVideoGeneration({ body, credentials, log }) {
   if (providerConfig.format === "haiper-video") {
     return handleHaiperVideoGeneration({ model, provider, providerConfig, body, credentials, log });
   }
+
+  if (providerConfig.format === "veoaifree-web") {
+    return handleVeoAiFreeVideoGeneration({ model, provider, body, credentials, log });
+  }
+
   if (providerConfig.format === "leonardo-video") {
     return handleLeonardoVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "deepinfra-video") {
+    return handleDeepinfraVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "dashscope-video") {
+    return handleDashscopeVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "segmind") {
+    return handleSegmindVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+  if (providerConfig.format === "novita-video") {
+    return handleNovitaVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+  if (providerConfig.format === "xai-video") {
+    return handleXaiVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+  if (providerConfig.format === "adobe-firefly-video") {
+    return handleAdobeFireflyVideoGeneration({
       model,
       provider,
       providerConfig,
@@ -93,9 +167,98 @@ export async function handleVideoGeneration({ body, credentials, log }) {
 }
 
 /**
+ * Veo video generation via Vertex AI (predictLongRunning → poll → MP4).
+ * Uses the Vertex chat credentials (Service Account JSON or Express key).
+ */
+async function handleVertexVeoGeneration({ model, body, credentials, log }) {
+  try {
+    const aspectRatio =
+      typeof body.aspect_ratio === "string"
+        ? body.aspect_ratio
+        : typeof body.aspectRatio === "string"
+          ? body.aspectRatio
+          : typeof body.size === "string"
+            ? body.size
+            : undefined;
+    const durationSeconds =
+      typeof body.duration === "number"
+        ? body.duration
+        : typeof body.durationSeconds === "number"
+          ? body.durationSeconds
+          : undefined;
+
+    const result = await vertexGenerateVideo(credentials, {
+      model,
+      prompt: String(body.prompt ?? ""),
+      aspectRatio,
+      durationSeconds,
+      negativePrompt: typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
+    });
+
+    const item = result.base64
+      ? { b64_json: result.base64, format: result.format }
+      : { url: result.url, format: result.format };
+
+    return {
+      success: true,
+      data: { created: Math.floor(Date.now() / 1000), data: [item] },
+    };
+  } catch (err: any) {
+    log?.error?.("VIDEO", `Vertex Veo generation failed: ${err?.message}`);
+    return {
+      success: false,
+      status: typeof err?.status === "number" ? err.status : 502,
+      error: sanitizeErrorMessage(err?.message || "Vertex Veo generation failed"),
+    };
+  }
+}
+
+/**
  * Handle ComfyUI video generation
  * Submits an AnimateDiff or SVD workflow, polls for completion, fetches output video
  */
+async function handleVeoAiFreeVideoGeneration({ model, provider, body, credentials, log }) {
+  const executor = getExecutor(provider);
+  if (!executor) {
+    return { success: false, status: 400, error: `Unknown video provider: ${provider}` };
+  }
+
+  const prompt = String(body.prompt ?? "");
+  const systemParts = [];
+  if (body.size) systemParts.push(`aspect_ratio: ${body.size}`);
+  if (body.aspect_ratio) systemParts.push(`aspect_ratio: ${body.aspect_ratio}`);
+
+  const response = await executor.execute({
+    model,
+    body: {
+      ...body,
+      model: `${provider}/${model}`,
+      messages: [
+        ...(systemParts.length > 0 ? [{ role: "system", content: systemParts.join("\n") }] : []),
+        { role: "user", content: prompt },
+      ],
+    },
+    stream: false,
+    credentials: credentials || { connectionId: "noauth" },
+    signal: null,
+    log,
+  });
+
+  const upstreamResponse = response instanceof Response ? response : response.response;
+  if (!upstreamResponse.ok) {
+    return {
+      success: false,
+      status: upstreamResponse.status || 502,
+      error: await upstreamResponse.text().catch(() => "Video provider error"),
+    };
+  }
+
+  return {
+    success: true,
+    data: await upstreamResponse.json(),
+  };
+}
+
 async function handleComfyUIVideoGeneration({ model, provider, providerConfig, body, log }) {
   const startTime = Date.now();
   const [width, height] = (body.size || "512x512").split("x").map(Number);
@@ -867,109 +1030,6 @@ async function handleHaiperVideoGeneration({
     error: "Haiper video generation timed out",
   }).catch(() => {});
   return { success: false, status: 504, error: "Haiper video generation timed out" };
-}
-
-async function handleLeonardoVideoGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}) {
-  const startTime = Date.now();
-  const token = credentials?.apiKey || "";
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({
-      modelId: "phoenix",
-      prompt: body.prompt,
-      width: 1024,
-      height: 576,
-      num_frames: 24,
-    }),
-  });
-  if (!res.ok) {
-    const errorText = await res.text();
-    saveCallLog({
-      method: "POST",
-      path: "/v1/videos/generations",
-      status: res.status,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: errorText.slice(0, 500),
-    }).catch(() => {});
-    return { success: false, status: res.status, error: errorText };
-  }
-  const { sdGenerationJob } = await res.json();
-  const genId = sdGenerationJob?.generationId;
-  if (!genId) {
-    saveCallLog({
-      method: "POST",
-      path: "/v1/videos/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: "No generation ID returned",
-    }).catch(() => {});
-    return { success: false, status: 502, error: "No generation ID returned" };
-  }
-  const deadline = Date.now() + 300000;
-  while (Date.now() < deadline) {
-    await sleep(5000);
-    const statusRes = await fetch(`${providerConfig.baseUrl}/${genId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const status = await statusRes.json();
-    const gen = status.generations_by_pk || status;
-    if (gen.status === "COMPLETE") {
-      const imgUrl = gen.generated_images?.[0]?.url;
-      if (imgUrl) {
-        const videoRes = await fetch(imgUrl);
-        const buf = await videoRes.arrayBuffer();
-        saveCallLog({
-          method: "POST",
-          path: "/v1/videos/generations",
-          status: 200,
-          model: `${provider}/${model}`,
-          provider,
-          duration: Date.now() - startTime,
-        }).catch(() => {});
-        return {
-          success: true,
-          data: {
-            created: Math.floor(Date.now() / 1000),
-            data: [{ b64_json: Buffer.from(buf).toString("base64"), format: "mp4" }],
-          },
-        };
-      }
-    }
-    if (gen.status === "FAILED") {
-      saveCallLog({
-        method: "POST",
-        path: "/v1/videos/generations",
-        status: 502,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: "Leonardo video generation failed",
-      }).catch(() => {});
-      return { success: false, status: 502, error: "Leonardo video generation failed" };
-    }
-  }
-  saveCallLog({
-    method: "POST",
-    path: "/v1/videos/generations",
-    status: 504,
-    model: `${provider}/${model}`,
-    provider,
-    duration: Date.now() - startTime,
-    error: "Leonardo video generation timed out",
-  }).catch(() => {});
-  return { success: false, status: 504, error: "Leonardo video generation timed out" };
 }
 
 function sleep(ms) {

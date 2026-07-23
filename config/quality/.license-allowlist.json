@@ -1,0 +1,85 @@
+{
+  "_comment": "SPDX license allowlist for OmniRoute (MIT project). Task 7.20 / PLANO-QUALITY-GATES-FASE7.md.",
+  "_policy": "Production deps with a license outside 'allowed' and not in 'exceptions' fail the gate. devDeps get an advisory warning only.",
+
+  "allowed": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "0BSD",
+    "CC0-1.0",
+    "Unlicense",
+    "Python-2.0",
+    "BlueOak-1.0.0",
+    "Artistic-2.0",
+    "Zlib",
+    "X11",
+    "WTFPL",
+    "PSF-2.0",
+    "CC-BY-3.0"
+  ],
+
+  "allowedExpressions": [
+    "MIT*",
+    "MIT AND ISC",
+    "Apache-2.0 AND MIT",
+    "(MIT OR Apache-2.0)",
+    "(MIT OR CC0-1.0)",
+    "(MIT OR WTFPL)",
+    "(BSD-2-Clause OR MIT OR Apache-2.0)",
+    "(MPL-2.0 OR Apache-2.0)"
+  ],
+
+  "exceptions": {
+    "@img/sharp-libvips-linux-x64": {
+      "license": "LGPL-3.0-or-later",
+      "justification": "Prebuilt native binary (libvips shared library) pulled in transitively by the 'sharp' package (optional dep of next/transformers). LGPL-3.0 on dynamically-linked native code allows use in non-GPL applications as long as the user can replace the library — satisfied here because this is a pre-built shared-object (.so) binary distributed by the sharp project, not source linked into OmniRoute code. OmniRoute does not modify or statically link libvips.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "@img/sharp-libvips-linuxmusl-x64": {
+      "license": "LGPL-3.0-or-later",
+      "justification": "Same rationale as @img/sharp-libvips-linux-x64 — musl variant of the same prebuilt libvips shared library. Dynamically linked, not modified, not statically bundled.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "lightningcss": {
+      "license": "MPL-2.0",
+      "justification": "MPL-2.0 is a weak, file-level copyleft: only modifications to MPL-licensed files must be released under MPL. OmniRoute does not modify lightningcss source. It is pulled in transitively as a runtime dep of vite (via monaco-editor, a production dep). MPL-2.0 is explicitly compatible with Apache/MIT combinations per the Mozilla FAQ and is routinely used in Node.js production stacks. The OmniRoute codebase remains MIT.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "lightningcss-linux-x64-gnu": {
+      "license": "MPL-2.0",
+      "justification": "Platform-specific native binding for lightningcss. Same MPL-2.0 rationale as lightningcss itself: file-level copyleft, not modified by OmniRoute, compatible with MIT project.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "lightningcss-linux-x64-musl": {
+      "license": "MPL-2.0",
+      "justification": "Musl variant of lightningcss native binding. Same MPL-2.0 rationale.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "dompurify": {
+      "license": "(MPL-2.0 OR Apache-2.0)",
+      "justification": "dompurify is dual-licensed: MPL-2.0 OR Apache-2.0. The Apache-2.0 option is permissive and compatible with MIT. OmniRoute uses it indirectly via monaco-editor and mermaid (UI rendering). The gate expression matcher already accepts (MPL-2.0 OR Apache-2.0) as an allowed expression, but this exception is kept for explicitness and audit trail.",
+      "risk": "none",
+      "reviewAt": "v4.0.0"
+    },
+    "caniuse-lite": {
+      "license": "CC-BY-4.0",
+      "justification": "CC-BY-4.0 applies to the caniuse browser-support data (a dataset, not code). The Creative Commons Attribution license requires attribution when distributing — OmniRoute does not distribute caniuse-lite data directly to end users; it is consumed by browserslist/PostCSS at build time to generate CSS compatibility info. This is a widely accepted pattern in the Node.js ecosystem (caniuse-lite is in millions of projects). Attribution is satisfied by keeping the package in node_modules with its original license file.",
+      "risk": "low",
+      "reviewAt": "v4.0.0"
+    },
+    "tls-client-node": {
+      "license": "Custom: LICENSE (Apache-2.0 + Commons Clause)",
+      "justification": "TODO: revisar — tls-client-node uses Apache-2.0 with a 'Commons Clause' addendum that restricts 'Selling' the software (i.e., offering it as a hosted/commercial service whose value derives substantially from tls-client-node). OmniRoute is an open-source proxy; however if deployed as a paid SaaS/hosting service, this restriction could apply. The package is used by grokTlsClient.ts for Grok TLS fingerprinting. RISK: medium — legal review recommended before commercial deployment. Alternatives: consider replacing with a native TLS fingerprinting approach or a truly permissive library.",
+      "risk": "medium",
+      "reviewAt": "v3.9.0"
+    }
+  }
+}

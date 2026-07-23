@@ -25,7 +25,7 @@
  * Backend (configured via env, never committed):
  *   OMNIROUTE_TRANSLATION_API_URL     e.g. https://cloud.omniroute.dev/v1
  *   OMNIROUTE_TRANSLATION_API_KEY     bearer token (kept out of logs)
- *   OMNIROUTE_TRANSLATION_MODEL       e.g. cx/gpt-5.4-mini
+ *   OMNIROUTE_TRANSLATION_MODEL       e.g. cx/gpt-5.6-sol
  *   OMNIROUTE_TRANSLATION_TIMEOUT_MS  optional, default 60000
  *   OMNIROUTE_TRANSLATION_CONCURRENCY optional, default 4
  */

@@ -12,9 +12,10 @@ test.beforeEach(() => {
 function createLog() {
   const entries = [];
   return {
-    info: (tag, msg) => entries.push({ level: "info", tag, msg }),
-    warn: (tag, msg) => entries.push({ level: "warn", tag, msg }),
-    error: (tag, msg) => entries.push({ level: "error", tag, msg }),
+    info: (tag: string, msg: string) => entries.push({ level: "info", tag, msg }),
+    warn: (tag: string, msg: string) => entries.push({ level: "warn", tag, msg }),
+    error: (tag: string, msg: string) => entries.push({ level: "error", tag, msg }),
+    debug: (tag: string, msg: string) => entries.push({ level: "debug", tag, msg }),
     entries,
   };
 }
@@ -56,9 +57,12 @@ test("T24: combo awaits short 503 cooldown before falling through to next model"
     combo: {
       name: "t24-short-cooldown",
       strategy: "priority",
+      // Cross-provider targets: a 503 marks the failing provider's remaining same-provider
+      // targets for skip (#1731v2), so the fallthrough target must be a DIFFERENT provider
+      // for this cooldown-wait test to exercise the fall-through-to-next-model path.
       models: [
         { model: "groq/model-a", weight: 0 },
-        { model: "groq/model-b", weight: 0 },
+        { model: "openai/model-b", weight: 0 },
       ],
       config: { fallbackDelayMs: 2000, maxRetries: 1 },
     },
@@ -75,8 +79,11 @@ test("T24: combo awaits short 503 cooldown before falling through to next model"
   });
 
   assert.equal(result.ok, true);
+  // checkFallbackError returns COOLDOWN_MS.transient (5000ms) for a plain 503.
+  // fallbackDelayMs=2000, cooldownMs=5000 ≤ MAX_FALLBACK_WAIT_MS(5000) → fallbackWaitMs=2000ms.
+  // The combo MUST emit a debug log before waiting, proving the wait behavior is wired.
   const waitLog = log.entries.find((e) => e.msg.includes("Waiting") && e.msg.includes("fallback"));
-  assert.ok(waitLog);
+  assert.ok(waitLog, "combo must emit a debug wait-before-fallback log for short 503 cooldowns");
 });
 
 test("T24: combo skips wait when 503 cooldown is long (>5s)", async () => {
@@ -87,9 +94,11 @@ test("T24: combo skips wait when 503 cooldown is long (>5s)", async () => {
     combo: {
       name: "t24-long-cooldown",
       strategy: "priority",
+      // Cross-provider targets (see t24-short-cooldown): the fall-through target must be a
+      // different provider so the #1731v2 same-provider skip doesn't short-circuit it.
       models: [
         { model: "groq/model-a", weight: 0 },
-        { model: "groq/model-b", weight: 0 },
+        { model: "openai/model-b", weight: 0 },
       ],
       config: { fallbackDelayMs: 2000, maxRetries: 1 },
     },

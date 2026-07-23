@@ -1,0 +1,1 @@
+- fix(sse): classify 401 "model X is not supported" as model-not-found so it locks the model out instead of looping forever (#7268)

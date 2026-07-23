@@ -1,0 +1,1 @@
+- fix(sse): de-flake timing-sensitive combo cooldown/breaker tests + add explicit MCP audit shutdown timeout (#6803)

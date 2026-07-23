@@ -579,7 +579,7 @@ test("proxy test route validates JSON, schema, and proxy types before dispatchin
   );
   const socks4Body = (await socks4Response.json()) as any;
   assert.equal(socks4Response.status, 400);
-  assert.match(socks4Body.error.message, /proxy\.type must be http or https/i);
+  assert.match(socks4Body.error.message, /proxy\.type must be http(, https, or socks5| or https)/i);
 
   const unsupportedResponse = await proxyTestRoute.POST(
     new Request("http://localhost/api/settings/proxy/test", {
@@ -596,7 +596,10 @@ test("proxy test route validates JSON, schema, and proxy types before dispatchin
   );
   const unsupportedBody = (await unsupportedResponse.json()) as any;
   assert.equal(unsupportedResponse.status, 400);
-  assert.match(unsupportedBody.error.message, /proxy\.type must be http or https/i);
+  assert.match(
+    unsupportedBody.error.message,
+    /proxy\.type must be http(, https, or socks5| or https)/i
+  );
 });
 
 test("proxy test route handles invalid proxy ports and uses stored proxy config when proxyId is provided", async () => {

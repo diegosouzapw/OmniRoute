@@ -37,19 +37,27 @@
     ".next/dev/types/**/*.ts",
     ".next/dev/dev/types/**/*.ts",
     ".next-playwright/types/**/*.ts",
-    ".next-playwright/dev/types/**/*.ts"
+    ".next-playwright/dev/types/**/*.ts",
+    ".build/next/types/**/*.ts",
+    ".build/next/dev/types/**/*.ts",
+    ".build/next/dev/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
+    "electron/node_modules",
+    "electron/dist-electron",
+    ".build",
     "open-sse",
-    "antigravity-manager-analysis",
-    "app.__qa_backup",
-    "vscode-extension",
-    "vs_ideia",
+    "dist",
+    "coverage",
+    ".source",
+    ".tmp",
+    ".claude",
+    ".worktrees",
+    "@omniroute",
     "_tasks",
+    "_ideia",
     "_mono_repo",
-    "_references",
-    "omnirouteCloud",
-    "omnirouteSite"
+    "_references"
   ]
 }

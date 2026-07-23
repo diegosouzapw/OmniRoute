@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "content": "What is 2+2?",
+      "role": "user"
+    },
+    {
+      "content": "4",
+      "role": "assistant"
+    },
+    {
+      "content": "And 3+3?",
+      "role": "user"
+    }
+  ],
+  "model": "gpt-4o-mini",
+  "stream": true
+}

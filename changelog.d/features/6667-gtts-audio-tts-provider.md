@@ -1,0 +1,1 @@
+- **feat(providers):** add gTTS (Google Translate TTS) as a free, no-signup audio-speech provider — routes through Google's current `batchexecute` RPC endpoint (the previously proposed `translate_tts` endpoint is deprecated), splitting input at the 100-char-per-request limit. (#6667)

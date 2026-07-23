@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
-import { getApiKeys, createApiKey, isCloudEnabled, updateApiKeyPermissions } from "@/lib/localDb";
+import {
+  getApiKeys,
+  getApiKeysCount,
+  createApiKey,
+  isCloudEnabled,
+  updateApiKeyPermissions,
+} from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { createKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { normalizeSelfServiceScopesForCreate } from "@/shared/constants/selfServiceScopes";
 import * as log from "@/sse/utils/logger";
 
 function parsePagination(request: Request) {
@@ -29,18 +36,18 @@ export async function GET(request: Request) {
   if (authError) return authError;
 
   try {
-    const keys = await getApiKeys();
+    const { limit, offset } = parsePagination(request);
+    const dbLimit = limit ?? undefined;
+    const total = getApiKeysCount();
+    const keys = await getApiKeys(dbLimit, offset);
     const maskedKeys = keys.map((k) => ({
       ...k,
       key: maskStoredApiKey(k.key),
     }));
-    const { limit, offset } = parsePagination(request);
-    const pagedKeys =
-      limit === null ? maskedKeys.slice(offset) : maskedKeys.slice(offset, offset + limit);
 
     return NextResponse.json({
-      keys: pagedKeys,
-      total: maskedKeys.length,
+      keys: maskedKeys,
+      total,
       allowKeyReveal: isApiKeyRevealEnabled(),
     });
   } catch (error) {
@@ -62,17 +69,48 @@ export async function POST(request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { name, noLog, scopes } = validation.data;
+    const {
+      name,
+      noLog,
+      scopes,
+      allowUsageCommand,
+      usageLimitEnabled,
+      dailyUsageLimitUsd,
+      weeklyUsageLimitUsd,
+      chaosModeEnabled,
+    } = validation.data;
 
     // Always get machineId from server
     const machineId = await getConsistentMachineId();
-    const apiKey = await createApiKey(name, machineId, scopes ?? []);
-    if (noLog === true) {
-      await updateApiKeyPermissions(apiKey.id, { noLog: true });
+    const normalizedScopes = normalizeSelfServiceScopesForCreate(scopes);
+    const apiKey = await createApiKey(name, machineId, normalizedScopes);
+    if (
+      noLog === true ||
+      allowUsageCommand === true ||
+      usageLimitEnabled === true ||
+      dailyUsageLimitUsd !== undefined ||
+      weeklyUsageLimitUsd !== undefined ||
+      chaosModeEnabled === true
+    ) {
+      await updateApiKeyPermissions(apiKey.id, {
+        ...(noLog === true && { noLog: true }),
+        ...(allowUsageCommand === true && { allowUsageCommand: true }),
+        ...(usageLimitEnabled === true && { usageLimitEnabled: true }),
+        ...(dailyUsageLimitUsd !== undefined && { dailyUsageLimitUsd }),
+        ...(weeklyUsageLimitUsd !== undefined && { weeklyUsageLimitUsd }),
+        ...(chaosModeEnabled === true && { chaosModeEnabled: true }),
+      });
     }
 
-    // Auto sync to Cloud if enabled
-    await syncKeysToCloudIfEnabled();
+    // Auto sync to Cloud if enabled — fire-and-forget. Cloud sync is a
+    // background side-effect, not part of the key-creation contract, and it
+    // performs an outbound network call. Awaiting it here blocked the HTTP
+    // response on a slow/unreachable Cloud endpoint (e.g. a fresh/offline
+    // install with a misconfigured or unreachable CLOUD_URL): the request
+    // would hang until the fetch settled or timed out (#6570). Errors inside
+    // syncKeysToCloudIfEnabled() are already caught and logged internally, so
+    // this is safe to leave unawaited.
+    void syncKeysToCloudIfEnabled();
 
     return NextResponse.json(
       {
@@ -81,6 +119,12 @@ export async function POST(request) {
         id: apiKey.id,
         machineId: apiKey.machineId,
         noLog: noLog === true,
+        allowUsageCommand: allowUsageCommand === true,
+        usageLimitEnabled: usageLimitEnabled === true,
+        dailyUsageLimitUsd: dailyUsageLimitUsd ?? null,
+        weeklyUsageLimitUsd: weeklyUsageLimitUsd ?? null,
+        chaosModeEnabled: chaosModeEnabled === true,
+        streamDefaultMode: "legacy",
       },
       { status: 201 }
     );

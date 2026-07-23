@@ -1,0 +1,10 @@
+{
+  "messages": [
+    {
+      "content": "Hello from Gemini format!",
+      "role": "user"
+    }
+  ],
+  "model": "gpt-4o",
+  "stream": true
+}

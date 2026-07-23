@@ -42,7 +42,7 @@ test("provider schemas reject non-boolean openaiStoreEnabled values", () => {
   assert.equal(updated.success, false);
 });
 
-test("provider schemas accept boolean requestDefaults.context1m for CC-compatible providers", () => {
+test("provider schemas accept boolean CC-compatible request defaults", () => {
   const created = createProviderSchema.safeParse({
     provider: "anthropic-compatible-cc-demo",
     apiKey: "token",
@@ -50,6 +50,8 @@ test("provider schemas accept boolean requestDefaults.context1m for CC-compatibl
     providerSpecificData: {
       requestDefaults: {
         context1m: true,
+        redactThinking: true,
+        summarizeThinking: true,
       },
     },
   });
@@ -57,6 +59,8 @@ test("provider schemas accept boolean requestDefaults.context1m for CC-compatibl
     providerSpecificData: {
       requestDefaults: {
         context1m: false,
+        redactThinking: false,
+        summarizeThinking: false,
       },
     },
   });
@@ -65,7 +69,7 @@ test("provider schemas accept boolean requestDefaults.context1m for CC-compatibl
   assert.equal(updated.success, true);
 });
 
-test("provider schemas reject non-boolean requestDefaults.context1m values", () => {
+test("provider schemas reject non-boolean CC-compatible request defaults", () => {
   const created = createProviderSchema.safeParse({
     provider: "anthropic-compatible-cc-demo",
     apiKey: "token",
@@ -73,6 +77,8 @@ test("provider schemas reject non-boolean requestDefaults.context1m values", () 
     providerSpecificData: {
       requestDefaults: {
         context1m: "yes",
+        redactThinking: "yes",
+        summarizeThinking: "yes",
       },
     },
   });
@@ -80,6 +86,8 @@ test("provider schemas reject non-boolean requestDefaults.context1m values", () 
     providerSpecificData: {
       requestDefaults: {
         context1m: 1,
+        redactThinking: 1,
+        summarizeThinking: 1,
       },
     },
   });
@@ -109,6 +117,22 @@ test("provider schemas accept Codex default priority and flex service tiers", ()
   }
 });
 
+test("provider schemas accept max but reject ultra as a server-side Codex default", () => {
+  const max = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: { reasoningEffort: "max" },
+    },
+  });
+  const ultra = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      requestDefaults: { reasoningEffort: "ultra" },
+    },
+  });
+
+  assert.equal(max.success, true);
+  assert.equal(ultra.success, false);
+});
+
 test("provider schemas reject unknown Codex service tiers", () => {
   const created = createProviderSchema.safeParse({
     provider: "codex",
@@ -121,6 +145,130 @@ test("provider schemas reject unknown Codex service tiers", () => {
   const updated = updateProviderConnectionSchema.safeParse({
     providerSpecificData: {
       requestDefaults: { serviceTier: "turbo" },
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});
+
+test("provider schemas accept OpenRouter preset in providerSpecificData", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "openrouter",
+    apiKey: "token",
+    name: "OpenRouter",
+    providerSpecificData: {
+      preset: "email-copywriter",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      preset: "code-reviewer",
+    },
+  });
+  const padded = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      preset: `${" ".repeat(120)}prefer${" ".repeat(120)}`,
+    },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+  assert.equal(padded.success, true);
+});
+
+test("provider schemas reject oversized OpenRouter preset values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "openrouter",
+    apiKey: "token",
+    name: "OpenRouter",
+    providerSpecificData: {
+      preset: "x".repeat(201),
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      preset: 123,
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});
+
+test("provider schemas accept quota scraping provider-specific strings", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "opencode-go",
+    apiKey: "token",
+    name: "OpenCode Go",
+    providerSpecificData: {
+      opencodeGoWorkspaceId: "workspace-123",
+      opencodeGoAuthCookie: "auth=cookie-value",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      ollamaCloudUsageCookie: "__Secure-session=cookie-value",
+    },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject malformed quota scraping provider-specific values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "opencode-go",
+    apiKey: "token",
+    name: "OpenCode Go",
+    providerSpecificData: {
+      opencodeGoWorkspaceId: 123,
+      opencodeGoAuthCookie: "x".repeat(10001),
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      ollamaCloudUsageCookie: 123,
+    },
+  });
+
+  assert.equal(created.success, false);
+  assert.equal(updated.success, false);
+});
+
+test("provider schemas accept GLM team quota provider-specific strings", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "glm-cn",
+    apiKey: "id.secret",
+    name: "GLM CN Team",
+    providerSpecificData: {
+      glmOrganizationId: "org-team",
+      glmProjectId: "proj_team",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      glmOrganizationId: "org-team",
+      glmProjectId: "proj_team",
+    },
+  });
+
+  assert.equal(created.success, true);
+  assert.equal(updated.success, true);
+});
+
+test("provider schemas reject incomplete GLM team quota provider-specific values", () => {
+  const created = createProviderSchema.safeParse({
+    provider: "glm-cn",
+    apiKey: "id.secret",
+    name: "GLM CN Team",
+    providerSpecificData: {
+      glmOrganizationId: "org-only",
+    },
+  });
+  const updated = updateProviderConnectionSchema.safeParse({
+    providerSpecificData: {
+      glmProjectId: 123,
     },
   });
 

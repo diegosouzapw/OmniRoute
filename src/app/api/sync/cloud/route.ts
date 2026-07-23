@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getApiKeys, createApiKey, updateSettings } from "@/lib/localDb";
+import { getApiKeys, createApiKey, pickApiKeyForInternalUse, updateSettings } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud, fetchWithTimeout, CLOUD_URL } from "@/lib/cloudSync";
 import fs from "fs/promises";
@@ -24,8 +24,9 @@ export async function GET() {
 
     // Cloud is enabled — try to verify connection
     const machineId = await getConsistentMachineId();
-    const keys = await getApiKeys();
-    const apiKey = keys[0]?.key;
+    // Prefer a manage-scoped or allow-all key so the verify ping is not
+    // rejected upstream when keys[0] is a restricted self:usage key.
+    const apiKey = await pickApiKeyForInternalUse("cloud-sync-verify");
 
     if (!apiKey || !CLOUD_URL) {
       return NextResponse.json({ enabled: true, connected: false });

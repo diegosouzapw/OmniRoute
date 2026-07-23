@@ -2,14 +2,24 @@ import { randomUUID } from "node:crypto";
 import { parseModel } from "@omniroute/open-sse/services/model.ts";
 import { getModelInfo } from "@/sse/services/model";
 import { getModelAliases } from "@/lib/db/models";
-import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
+  getResolvedModelCapabilities,
+  isNonChatCatalogSurface,
+} from "@/lib/modelCapabilities";
+import {
+  getAuthoritativeContextWindow,
+  getAuthoritativeProviderContextWindow,
   getModelSpec,
   resolveModelAlias as resolveStaticModelAlias,
 } from "@/shared/constants/modelSpecs";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { PROVIDER_ID_TO_ALIAS, PROVIDER_MODELS } from "@/shared/constants/models";
-import { getSyncStatus, getSyncedCapability } from "@/lib/modelsDevSync";
+import { getSyncStatus, getSyncedCapability, getModelsDevPricing } from "@/lib/modelsDevSync";
+import { getPricingForModel as getDefaultPricingForModel } from "@/shared/constants/pricing";
+import {
+  CANONICAL_EFFORT_VALUES,
+  extendCodexGpt56EffortValues,
+} from "@/shared/reasoning/effortStandardization";
 
 const MODEL_METADATA_SCHEMA_VERSION = "model-metadata-v1";
 
@@ -251,6 +261,72 @@ export function getCanonicalModelMetadata(input: {
   };
 }
 
+function resolveCatalogPricing(
+  provider: string | null,
+  model: string | null
+): Record<string, number> | null {
+  if (!provider || !model) return null;
+
+  const findInsensitive = <T>(
+    obj: Record<string, T> | null | undefined,
+    key: string
+  ): T | undefined => {
+    if (!obj || !key) return undefined;
+    if (key in obj) return obj[key];
+    const lower = key.toLowerCase();
+    for (const [k, v] of Object.entries(obj)) {
+      if (k.toLowerCase() === lower) return v;
+    }
+    return undefined;
+  };
+
+  // Prefer models.dev synced pricing when present; fall back to hardcoded defaults.
+  try {
+    const modelsDev = getModelsDevPricing() as Record<
+      string,
+      Record<string, Record<string, number>>
+    >;
+    const providerPricing =
+      findInsensitive(modelsDev, provider) ||
+      findInsensitive(modelsDev, provider.replace(/-cn$/, ""));
+    if (providerPricing) {
+      const modelPricing =
+        findInsensitive(providerPricing, model) ||
+        findInsensitive(providerPricing, model.replace(/\./g, "-")) ||
+        findInsensitive(
+          providerPricing,
+          model.includes("/") ? model.split("/").pop() || model : model
+        );
+      if (modelPricing && typeof modelPricing === "object") {
+        const input = modelPricing.input;
+        const output = modelPricing.output;
+        if (typeof input === "number" || typeof output === "number") {
+          const pricing: Record<string, number> = {};
+          if (typeof input === "number") pricing.input = input;
+          if (typeof output === "number") pricing.output = output;
+          if (typeof modelPricing.cached === "number") pricing.cached = modelPricing.cached;
+          if (typeof modelPricing.cache_creation === "number") {
+            pricing.cache_creation = modelPricing.cache_creation;
+          }
+          return pricing;
+        }
+      }
+    }
+  } catch {
+    // pricing lookup must never break catalog assembly
+  }
+
+  try {
+    const defaults = getDefaultPricingForModel(provider, model) as Record<string, number> | null;
+    if (defaults && (typeof defaults.input === "number" || typeof defaults.output === "number")) {
+      return defaults;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export function enrichCatalogModelEntry<T extends JsonRecord>(
   entry: T,
   input?: { provider?: string | null; model?: string | null }
@@ -272,14 +348,48 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   if (!metadata) return entry;
 
   const nextEntry: JsonRecord = { ...entry };
+  const existingName = asNonEmptyString(entry.name);
+  const authoritativeContextWindow =
+    getAuthoritativeProviderContextWindow(metadata.provider, metadata.model) ??
+    getAuthoritativeProviderContextWindow(provider, model) ??
+    getAuthoritativeContextWindow(metadata.model) ??
+    getAuthoritativeContextWindow(model);
+  const specialtySurface = isNonChatCatalogSurface(entry.type);
   const capabilityFields = {
     ...(typeof metadata.capabilities.vision === "boolean"
       ? { vision: metadata.capabilities.vision }
       : {}),
-    tool_calling: metadata.capabilities.toolCalling,
-    reasoning: metadata.capabilities.reasoning,
+    // #8016: never invent chat tool/reasoning defaults onto specialty surfaces.
+    // Only copy boolean true when authoritative metadata says so; specialty rows
+    // default to false instead of optimistic chat heuristics.
+    tool_calling: specialtySurface
+      ? metadata.capabilities.supportsTools === true || metadata.capabilities.toolCalling === true
+        ? true
+        : false
+      : metadata.capabilities.toolCalling,
+    reasoning: specialtySurface
+      ? metadata.capabilities.supportsThinking === true || metadata.capabilities.reasoning === true
+        ? true
+        : false
+      : metadata.capabilities.reasoning,
+    // #6241: surface thinking support + the canonical effort tiers so the frontend can
+    // render the effort/thinking toggles. `thinking` is kept for back-compat; `supportsThinking`
+    // is the explicit flag and `effort_tiers` lists the selectable reasoning levels
+    // (only when the model actually supports thinking).
     ...(typeof metadata.capabilities.supportsThinking === "boolean"
-      ? { thinking: metadata.capabilities.supportsThinking }
+      ? {
+          thinking: metadata.capabilities.supportsThinking,
+          supportsThinking: metadata.capabilities.supportsThinking,
+          ...(metadata.capabilities.supportsThinking
+            ? {
+                effort_tiers: extendCodexGpt56EffortValues(
+                  metadata.provider,
+                  metadata.model,
+                  CANONICAL_EFFORT_VALUES
+                ),
+              }
+            : {}),
+        }
       : {}),
     ...(typeof metadata.capabilities.attachment === "boolean"
       ? { attachment: metadata.capabilities.attachment }
@@ -308,17 +418,32 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   }
 
   if (
-    typeof nextEntry.context_length !== "number" &&
+    !specialtySurface &&
+    (typeof nextEntry.context_length !== "number" || authoritativeContextWindow !== null) &&
     typeof metadata.limits.contextWindow === "number"
   ) {
     nextEntry.context_length = metadata.limits.contextWindow;
+  } else if (
+    specialtySurface &&
+    authoritativeContextWindow !== null &&
+    typeof authoritativeContextWindow === "number"
+  ) {
+    // Only authoritative static windows may decorate specialty rows.
+    nextEntry.context_length = authoritativeContextWindow;
+  } else if (specialtySurface && typeof nextEntry.context_length === "number") {
+    // Keep an explicit source-provided context if the emitter already set one.
+  } else if (specialtySurface) {
+    delete nextEntry.context_length;
   }
 
   if (typeof metadata.limits.maxOutputTokens === "number" && metadata.limits.maxOutputTokens > 0) {
     nextEntry.max_output_tokens = metadata.limits.maxOutputTokens;
   }
 
-  if (typeof metadata.limits.maxInputTokens === "number") {
+  if (
+    typeof metadata.limits.maxInputTokens === "number" &&
+    (typeof nextEntry.max_input_tokens !== "number" || authoritativeContextWindow !== null)
+  ) {
     nextEntry.max_input_tokens = metadata.limits.maxInputTokens;
   }
 
@@ -330,6 +455,14 @@ export function enrichCatalogModelEntry<T extends JsonRecord>(
   if (metadata.metadata.lastUpdated) nextEntry.last_updated = metadata.metadata.lastUpdated;
   if (typeof metadata.metadata.openWeights === "boolean") {
     nextEntry.open_weights = metadata.metadata.openWeights;
+  }
+  if (!existingName && metadata.displayName) {
+    nextEntry.name = metadata.displayName;
+  }
+
+  if (nextEntry.pricing == null) {
+    const pricing = resolveCatalogPricing(provider, model);
+    if (pricing) nextEntry.pricing = pricing;
   }
 
   return nextEntry as T;
@@ -495,4 +628,55 @@ export async function resolveModelAliasLookup(
       metadata: metadata!,
     },
   };
+}
+
+/**
+ * Qualify duplicate model display names with a provider prefix so users can
+ * distinguish between providers that serve the same model.
+ *
+ * Problem: when multiple providers (e.g. `gh`, `cx`, `opencode-zen`) all serve
+ * `gpt-5.5`, each catalog entry gets `name: "GPT-5.5"`. A client like OpenCode
+ * that renders the `name` field (src/plugin.ts: `name: model.name || model.id`)
+ * shows an identical "GPT-5.5" for every provider variant, giving the user no
+ * way to know which provider they are selecting.
+ *
+ * Fix: make a single O(n) pass over the enriched catalog. For any base name that
+ * appears on entries from two or more distinct providers, replace each entry's
+ * `name` with `<providerPrefix>/<baseName>` (e.g. "gh/GPT-5.5", "cx/GPT-5.5").
+ * Entries with a unique name are left untouched, preserving the clean display for
+ * the common single-provider case. The provider prefix is the first segment of
+ * the model id (e.g. `gh` from `gh/gpt-5.5`).
+ *
+ * The modification is purely cosmetic — it only affects the catalog `name` field
+ * used for display. Model IDs, routing, and request parsing are unchanged.
+ */
+export function disambiguateCatalogModelNames<T extends JsonRecord>(models: T[]): T[] {
+  // Count how many distinct provider prefixes use each display name.
+  const nameToProviders = new Map<string, Set<string>>();
+  for (const model of models) {
+    const name = asNonEmptyString(model.name);
+    if (!name) continue;
+    const id = asNonEmptyString(model.id);
+    const prefix = id && id.includes("/") ? id.slice(0, id.indexOf("/")) : null;
+    if (!prefix) continue;
+    const existing = nameToProviders.get(name) || new Set<string>();
+    existing.add(prefix);
+    nameToProviders.set(name, existing);
+  }
+
+  // Only rewrite names that are shared across 2+ providers.
+  const ambiguous = new Set<string>();
+  for (const [name, providers] of nameToProviders) {
+    if (providers.size > 1) ambiguous.add(name);
+  }
+  if (ambiguous.size === 0) return models;
+
+  return models.map((model) => {
+    const name = asNonEmptyString(model.name);
+    if (!name || !ambiguous.has(name)) return model;
+    const id = asNonEmptyString(model.id);
+    const prefix = id && id.includes("/") ? id.slice(0, id.indexOf("/")) : null;
+    if (!prefix) return model;
+    return { ...model, name: `${prefix}/${name}` };
+  });
 }

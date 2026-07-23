@@ -103,10 +103,12 @@ test("combo builder options route aggregates providers, connections, models and 
   });
 
   await modelsDb.addCustomModel("openai", "custom-ops", "Custom Ops");
+  // #6975: embeddings-only models (supportedEndpoints without "chat") are no longer
+  // dropped from the combo builder — they must appear like any other model.
   await modelsDb.addCustomModel(
     "openai",
-    "text-embedding-hidden",
-    "Hidden Embedding",
+    "text-embedding-visible",
+    "Text Embedding",
     "manual",
     "chat-completions",
     ["embeddings"]
@@ -148,9 +150,10 @@ test("combo builder options route aggregates providers, connections, models and 
     false
   );
   assert.ok(openai.models.some((model) => model.id === "custom-ops"));
+  // #6975: embeddings-only models must now appear in the combo builder output.
   assert.equal(
-    openai.models.some((model) => model.id === "text-embedding-hidden"),
-    false
+    openai.models.some((model) => model.id === "text-embedding-visible"),
+    true
   );
   assert.deepEqual(
     openai.connections.map((connection) => ({
@@ -212,7 +215,9 @@ test("combo builder options route includes no-auth provider (opencode) even with
     opencode.models.some((m: any) => m.id === "big-pickle"),
     "big-pickle should be among opencode models"
   );
-  assert.equal(opencode.models[0].qualifiedModel.startsWith("opencode/"), true);
+  // #2901: no-auth opencode routes under its alias "oc/" (the bare "opencode/"
+  // prefix misroutes to the opencode-zen api-key tier via ALIAS_TO_PROVIDER_ID).
+  assert.equal(opencode.models[0].qualifiedModel.startsWith("oc/"), true);
   assert.equal(opencode.source, "system", "opencode should have source=system");
 });
 

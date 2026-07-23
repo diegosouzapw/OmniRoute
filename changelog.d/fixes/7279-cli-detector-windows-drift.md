@@ -1,0 +1,1 @@
+- fix(cli): reuse cliRuntime's win32-aware `locateCommand`/`shell:true` probe in tool-detector so installed CLIs (npm `.cmd` shims) are no longer reported as absent on native Windows (#7279)

@@ -23,7 +23,11 @@ function runCli(dataDir: string): { code: number | null; stderr: string } {
   // the bootstrap skips writing DATA_DIR/.env (the behaviour the test exercises).
   const isolatedHome = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-key-home-"));
   try {
-    const res = spawnSync("node", [BIN, "--help"], {
+    // Use a real (non-informational) command so the STORAGE_ENCRYPTION_KEY
+    // bootstrap runs. `--version`/`--help` are intentionally skipped now (#3129),
+    // so the #1622 provisioning path must be exercised by an actual command.
+    // `config list --json` is fast and offline (no server, no network).
+    const res = spawnSync("node", [BIN, "config", "list", "--json"], {
       cwd: dataDir,
       env: {
         ...cleanEnv,

@@ -1,0 +1,1 @@
+- **fix(sse):** claude-web now surfaces the real upstream error body for non-SSE 400/403/429/500 responses instead of reporting "no response body" — the streaming client was discarding the already-captured temp-file bytes and reading the native binding's empty in-memory body field instead (#7134).

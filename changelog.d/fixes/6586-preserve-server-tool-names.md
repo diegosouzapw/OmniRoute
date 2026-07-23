@@ -1,0 +1,1 @@
+- **fix(sse):** server-tool literal names (e.g. `web_search`) are preserved in message history and `tool_choice` instead of being namespaced/rewritten, so follow-up turns referencing those tools keep working (#6586 — thanks @MikeTuev).

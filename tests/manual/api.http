@@ -1,0 +1,27 @@
+###
+# @name Log with 502 failure, missing provider request and provider response in UI
+GET {{omniroute-address}}/api/logs/1780945510189-ajcf19
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+###
+# @name List all models
+GET {{omniroute-address}}/models
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+###
+# @name Send a standard OpenAI chat request to a model that exist but the endpoint points to a IP that is refusing connection
+POST {{omniroute-address}}/v1/chat/completions
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+{
+  "model": "llamacpp/gemma4-ping:latest",
+  "stream": true,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tell me a joke."
+    }
+  ]
+}
+###

@@ -83,7 +83,12 @@ test("integration: proxy create with inline assignment is atomic and clears lega
   );
   assert.equal(legacyGetRes.status, 200);
   const legacyGet = (await legacyGetRes.json()) as any;
-  assert.equal(legacyGet.proxy, null);
+  // The legacy /api/settings/proxy GET is now a unified bridge over the new proxy
+  // registry (getRegistryProxyForLevel resolves assignments). After the atomic
+  // create-with-inline-assignment, it resolves to the newly assigned proxy
+  // (atomic-flow) and the pre-existing legacy config (legacy-openai) is superseded.
+  assert.equal(legacyGet.proxy?.host, "atomic-flow.local");
+  assert.notEqual(legacyGet.proxy?.host, "legacy-openai.local");
 });
 
 test("integration: proxy registry full flow works and enforces safe delete", async () => {

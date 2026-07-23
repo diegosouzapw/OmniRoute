@@ -5,10 +5,11 @@
  * filesystem artifacts and are loaded only for explicit detail/export flows.
  */
 
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { getDbInstance } from "../db/core";
+import { collectReferencedArtifacts, selectCallLogIdsBefore } from "./callLogsBoundedQueries";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import {
@@ -17,9 +18,9 @@ import {
   getPromptCacheReadTokensOrNull,
   getPromptCacheCreationTokensOrNull,
   getReasoningTokensOrNull,
+  getObservedReasoning,
 } from "./tokenAccounting";
 import { isNoLog } from "../compliance/noLog";
-import { sanitizePII } from "../piiSanitizer";
 import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
 import { getCallLogMaxEntries, getCallLogRetentionDays, getCallLogsTableMaxRows } from "../logEnv";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
@@ -33,6 +34,16 @@ import {
   type CallLogArtifact,
   type CallLogDetailState,
 } from "./callLogArtifacts";
+import {
+  toNumber,
+  toStringOrNull,
+  parseInlineError,
+  normalizeDetailState,
+  sanitizeErrorForLog,
+  toStoredErrorSummary,
+  protectPipelinePayloads,
+  buildRequestSummary,
+} from "./callLogs/format";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -77,8 +88,11 @@ type CallLogSummaryRow = {
   has_response_body: number | null;
   has_pipeline_details: number | null;
   request_summary: string | null;
+  provider_node_name?: string | null;
   provider_node_prefix?: string | null;
   resolved_account?: string | null;
+  correlation_id?: string | null;
+  model_pinned?: number | null;
 };
 
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
@@ -95,126 +109,6 @@ type DeleteResult = {
 };
 
 let logIdCounter = 0;
-
-function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toNumber(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
-function toStringOrNull(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-function truncateText(value: string, maxLength: number) {
-  return value.length > maxLength ? value.slice(0, maxLength) : value;
-}
-
-function parseInlineError(value: unknown): unknown {
-  if (typeof value !== "string" || value.trim().length === 0) return null;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value;
-  }
-}
-
-function normalizeDetailState(value: unknown): CallLogDetailState {
-  if (
-    value === "ready" ||
-    value === "missing" ||
-    value === "corrupt" ||
-    value === "legacy-inline"
-  ) {
-    return value;
-  }
-  return "none";
-}
-
-function sanitizeErrorForLog(error: unknown): unknown {
-  if (error === null || error === undefined) return null;
-  if (typeof error === "string") return sanitizePII(error).text;
-  if (error instanceof Error) {
-    return {
-      message: sanitizePII(error.message).text,
-      stack: sanitizePII(error.stack || "").text || undefined,
-      name: error.name,
-    };
-  }
-  return protectPayloadForLog(error);
-}
-
-function toStoredErrorSummary(error: unknown): string | null {
-  const sanitized = sanitizeErrorForLog(error);
-  if (sanitized === null || sanitized === undefined) return null;
-
-  if (typeof sanitized === "string") {
-    return truncateText(sanitized, 4000);
-  }
-
-  try {
-    return truncateText(JSON.stringify(sanitized), 4000);
-  } catch {
-    return truncateText(String(sanitized), 4000);
-  }
-}
-
-function protectPipelinePayloads(payloads: unknown): RequestPipelinePayloads | null {
-  if (!payloads || typeof payloads !== "object") return null;
-
-  const protectedPayloads: RequestPipelinePayloads = {};
-  for (const [key, value] of Object.entries(payloads as JsonRecord)) {
-    if (value === null || value === undefined) continue;
-
-    if (key === "streamChunks" && value && typeof value === "object") {
-      const chunks = value as Record<string, unknown>;
-      const compacted = Object.fromEntries(
-        Object.entries(chunks).filter(
-          ([, chunkValue]) => Array.isArray(chunkValue) && chunkValue.length > 0
-        )
-      );
-      if (Object.keys(compacted).length > 0) {
-        protectedPayloads.streamChunks = protectPayloadForLog(
-          compacted
-        ) as RequestPipelinePayloads["streamChunks"];
-      }
-      continue;
-    }
-
-    protectedPayloads[key as keyof RequestPipelinePayloads] = protectPayloadForLog(value) as never;
-  }
-
-  return Object.keys(protectedPayloads).length > 0 ? protectedPayloads : null;
-}
-
-function buildRequestSummary(requestType: string | null, requestBody: unknown): string | null {
-  if (requestType !== "search") return null;
-
-  const body = asRecord(requestBody);
-  if (Object.keys(body).length === 0) return null;
-
-  const summary: JsonRecord = {};
-  if (typeof body.query === "string" && body.query.trim().length > 0) {
-    summary.query = sanitizePII(body.query).text;
-  }
-
-  const filters = Object.fromEntries(
-    Object.entries(body).filter(([key]) => key !== "query" && key !== "provider")
-  );
-  if (Object.keys(filters).length > 0) {
-    summary.filters = filters;
-  }
-
-  if (Object.keys(summary).length === 0) return null;
-  return JSON.stringify(summary);
-}
 
 function generateLogId() {
   logIdCounter++;
@@ -349,6 +243,37 @@ function buildArtifact(
   };
 }
 
+// #6187: extract the assistant message from a chat-completion-shaped response
+// body so we can inspect its reasoning_content / <think> content.
+function extractAssistantMessage(responseBody: unknown): unknown {
+  if (!responseBody || typeof responseBody !== "object") return responseBody;
+  const choices = (responseBody as JsonRecord).choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const first = choices[0] as JsonRecord;
+    return first?.message ?? first?.delta ?? first;
+  }
+  return responseBody;
+}
+
+// #6187: decide the reasoning SOURCE and (char-only) count recorded alongside
+// the usage-derived tokens_reasoning. Usage is authoritative when it reports
+// non-zero reasoning tokens; otherwise we fall back to observed reasoning
+// content so "reasoned but metered 0" stays distinguishable. reasoning_chars is
+// a CHARACTER count, never a token count — it must not touch cost math.
+function resolveReasoningObservation(
+  usageReasoning: number | null,
+  responseBody: unknown
+): { source: string | null; chars: number | null } {
+  if (usageReasoning != null && usageReasoning > 0) {
+    return { source: "usage", chars: null };
+  }
+  const observed = getObservedReasoning(extractAssistantMessage(responseBody));
+  if (observed.chars > 0) {
+    return { source: observed.source, chars: observed.chars };
+  }
+  return { source: null, chars: null };
+}
+
 function hasTable(tableName: string): boolean {
   const db = getDbInstance();
   return Boolean(
@@ -414,15 +339,15 @@ function clearArtifactReference(relativePath: string, nextState: CallLogDetailSt
 }
 
 function listReferencedArtifacts() {
-  const db = getDbInstance();
-  const rows = db
-    .prepare("SELECT artifact_relpath FROM call_logs WHERE artifact_relpath IS NOT NULL")
-    .all() as Array<{ artifact_relpath: string | null }>;
-
-  return new Set(
-    rows.map((row) => row.artifact_relpath).filter((value): value is string => Boolean(value))
-  );
+  // #5618: paged to avoid an unbounded `.all()` OOM on large call_logs tables.
+  return collectReferencedArtifacts();
 }
+
+// #5217: SQLite caps a statement at SQLITE_MAX_VARIABLE_NUMBER bound params
+// (~999 on many builds). Callers like trimCallLogsToMaxRows() passed up to 5000
+// ids in one `IN (...)` → "too many SQL variables" aborted trimming. Chunk well
+// under the limit so each DELETE/SELECT stays valid.
+const DELETE_ID_CHUNK_SIZE = 500;
 
 function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
   if (ids.length === 0) {
@@ -430,22 +355,28 @@ function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
   }
 
   const db = getDbInstance();
-  const placeholders = ids.map(() => "?").join(", ");
-  const rows = db
-    .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
-    .all(...ids) as Array<{ artifact_relpath: string | null }>;
-
-  const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...ids);
+  let deletedRows = 0;
   let deletedArtifacts = 0;
-  for (const row of rows) {
-    if (deleteCallArtifact(row.artifact_relpath)) {
-      deletedArtifacts++;
+
+  for (let i = 0; i < ids.length; i += DELETE_ID_CHUNK_SIZE) {
+    const chunk = ids.slice(i, i + DELETE_ID_CHUNK_SIZE);
+    const placeholders = chunk.map(() => "?").join(", ");
+    const rows = db
+      .prepare(`SELECT artifact_relpath FROM call_logs WHERE id IN (${placeholders})`)
+      .all(...chunk) as Array<{ artifact_relpath: string | null }>;
+
+    const result = db.prepare(`DELETE FROM call_logs WHERE id IN (${placeholders})`).run(...chunk);
+    deletedRows += result.changes;
+    for (const row of rows) {
+      if (deleteCallArtifact(row.artifact_relpath)) {
+        deletedArtifacts++;
+      }
     }
   }
   cleanupEmptyCallLogDirs();
 
   return {
-    deletedRows: result.changes,
+    deletedRows,
     deletedArtifacts,
   };
 }
@@ -497,13 +428,18 @@ export function cleanupOverflowCallLogFiles(baseDir = CALL_LOGS_DIR, maxEntries?
 }
 
 export function deleteCallLogsBefore(cutoff: string): DeleteResult {
-  const db = getDbInstance();
-  const ids = db
-    .prepare("SELECT id FROM call_logs WHERE timestamp < ? ORDER BY timestamp ASC")
-    .all(cutoff)
-    .map((row) => String((row as { id: string }).id));
-
-  return deleteCallLogRowsByIds(ids);
+  // #5618: page the id selection so a large backlog never loads in one `.all()`.
+  let deletedRows = 0;
+  let deletedArtifacts = 0;
+  for (;;) {
+    const ids = selectCallLogIdsBefore(cutoff);
+    if (ids.length === 0) break;
+    const result = deleteCallLogRowsByIds(ids);
+    deletedRows += result.deletedRows;
+    deletedArtifacts += result.deletedArtifacts;
+    if (result.deletedRows === 0) break;
+  }
+  return { deletedRows, deletedArtifacts };
 }
 
 export function trimCallLogsToMaxRows(maxRows = getCallLogsTableMaxRows()) {
@@ -536,9 +472,27 @@ export function trimCallLogsToMaxRows(maxRows = getCallLogsTableMaxRows()) {
   return { deletedRows, deletedArtifacts };
 }
 
+function resolveProviderDisplay(
+  provider: string | null,
+  nodeName: string | null,
+  nodePrefix: string | null
+): string | null {
+  const rawProvider = toStringOrNull(provider);
+  if (!rawProvider) return null;
+
+  const name = toStringOrNull(nodeName)?.trim();
+  if (name) return name;
+
+  const prefix = toStringOrNull(nodePrefix)?.trim();
+  if (prefix) return prefix;
+
+  return null;
+}
+
 function mapSummaryRow(row: CallLogSummaryRow) {
   const detailState = normalizeDetailState(row.detail_state);
   const provider = row.provider;
+  const nodeName = row.provider_node_name ?? null;
   const nodePrefix = row.provider_node_prefix ?? null;
   return {
     id: row.id,
@@ -549,6 +503,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     model: row.model,
     requestedModel: applyNodePrefix(row.requested_model, provider, nodePrefix),
     provider,
+    providerDisplay: resolveProviderDisplay(provider, nodeName, nodePrefix),
     account: row.resolved_account || row.account,
     connectionId: row.connection_id,
     duration: toNumber(row.duration),
@@ -578,6 +533,8 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     hasRequestBody: toNumber(row.has_request_body) === 1,
     hasResponseBody: toNumber(row.has_response_body) === 1,
     hasPipelineDetails: toNumber(row.has_pipeline_details) === 1,
+    correlationId: row.correlation_id || null,
+    modelPinned: toNumber(row.model_pinned) === 1,
   };
 }
 
@@ -631,6 +588,10 @@ export async function saveCallLog(entry: any) {
       const nodePrefix = await resolveProviderPrefix(rawProvider);
       resolvedRequestedModel = applyNodePrefix(rawRequestedModel, rawProvider, nodePrefix);
     }
+    // #6187: usage-derived reasoning tokens stay UNCHANGED (cost math reads this),
+    // while reasoning source/char-count are recorded separately for observability.
+    const tokensReasoning = getReasoningTokensOrNull(entry.tokens);
+    const reasoningObservation = resolveReasoningObservation(tokensReasoning, entry.responseBody);
     const logEntry = {
       id: typeof entry.id === "string" && entry.id.length > 0 ? entry.id : generateLogId(),
       timestamp: typeof entry.timestamp === "string" ? entry.timestamp : new Date().toISOString(),
@@ -647,7 +608,9 @@ export async function saveCallLog(entry: any) {
       tokensOut: toNumber(getLoggedOutputTokens(entry.tokens)),
       tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
       tokensCacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
-      tokensReasoning: getReasoningTokensOrNull(entry.tokens),
+      tokensReasoning,
+      reasoningSource: reasoningObservation.source,
+      reasoningChars: reasoningObservation.chars,
       tokensCompressed: entry.tokensCompressed != null ? toNumber(entry.tokensCompressed) : null,
       cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
       requestType: entry.requestType || null,
@@ -659,6 +622,8 @@ export async function saveCallLog(entry: any) {
       comboStepId: toStringOrNull(entry.comboStepId),
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
+      correlationId: entry.correlationId || null,
+      modelPinned: entry.modelPinned ? 1 : 0,
     };
 
     const requestSummary = noLogEnabled
@@ -702,19 +667,23 @@ export async function saveCallLog(entry: any) {
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out,
         tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
+        reasoning_source, reasoning_chars,
         cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
-        has_request_body, has_response_body, has_pipeline_details, request_summary
+        has_request_body, has_response_body, has_pipeline_details, request_summary,
+        correlation_id, model_pinned
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
         @account, @connectionId, @duration, @tokensIn, @tokensOut,
         @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
+        @reasoningSource, @reasoningChars,
         @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
-        @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary
+        @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
+        @correlationId, @modelPinned
       )
     `
     ).run({
@@ -792,7 +761,7 @@ export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
   let sql = `
     SELECT cl.*,
-      pn.prefix AS provider_node_prefix,
+      pn.name AS provider_node_name, pn.prefix AS provider_node_prefix,
       ${RESOLVED_ACCOUNT_SQL} AS resolved_account
     FROM call_logs cl
     LEFT JOIN provider_nodes pn ON pn.id = cl.provider
@@ -807,7 +776,7 @@ export async function getCallLogs(filter: any = {}) {
     } else if (filter.status === "ok") {
       conditions.push("cl.status >= 200 AND cl.status < 300");
     } else {
-      const statusCode = parseInt(filter.status, 10);
+      const statusCode = Number.parseInt(filter.status, 10);
       if (!Number.isNaN(statusCode)) {
         conditions.push("cl.status = @statusCode");
         params.statusCode = statusCode;
@@ -831,6 +800,10 @@ export async function getCallLogs(filter: any = {}) {
     conditions.push("(cl.api_key_name LIKE @apiKeyQ OR cl.api_key_id LIKE @apiKeyQ)");
     params.apiKeyQ = `%${filter.apiKey}%`;
   }
+  if (filter.correlationId) {
+    conditions.push("cl.correlation_id LIKE @correlationId");
+    params.correlationId = `%${filter.correlationId}%`;
+  }
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
   }
@@ -851,6 +824,7 @@ export async function getCallLogs(filter: any = {}) {
       cl.combo_name LIKE @searchQ OR CAST(cl.status AS TEXT) LIKE @searchQ
       OR cl.combo_step_id LIKE @searchQ OR cl.combo_execution_key LIKE @searchQ
       OR cl.error_summary LIKE @searchQ
+      OR cl.correlation_id LIKE @searchQ
     )`);
     params.searchQ = `%${filter.search}%`;
   }
@@ -874,6 +848,7 @@ export async function getCallLogById(id: string) {
   const row = db
     .prepare(
       `SELECT cl.*,
+        pn.name AS provider_node_name,
         pn.prefix AS provider_node_prefix,
         ${RESOLVED_ACCOUNT_SQL} AS resolved_account
        FROM call_logs cl
@@ -899,6 +874,7 @@ export async function getCallLogById(id: string) {
         error: artifactResult.artifact.error ?? entry.error,
         pipelinePayloads: artifactResult.artifact.pipeline ?? buildLegacyPipelinePayloads(id),
         hasPipelineDetails: Boolean(artifactResult.artifact.pipeline) || entry.hasPipelineDetails,
+        active: false,
       };
     }
 
@@ -922,6 +898,7 @@ export async function getCallLogById(id: string) {
         ...legacyInline,
         pipelinePayloads: legacyPipeline,
         hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
+        active: false,
       };
     }
   }
@@ -938,6 +915,7 @@ export async function getCallLogById(id: string) {
       error: legacyDisk.error ?? entry.error,
       pipelinePayloads: legacyPipeline,
       hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
+      active: false,
     };
   }
 
@@ -951,6 +929,7 @@ export async function getCallLogById(id: string) {
     error: entry.error,
     pipelinePayloads: legacyPipeline,
     hasPipelineDetails: Boolean(legacyPipeline) || entry.hasPipelineDetails,
+    active: false,
   };
 }
 

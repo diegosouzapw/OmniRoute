@@ -1,7 +1,13 @@
 "use client";
 
+// Combos screen = Compression Hub (top) + named-combos manager (below).
+//
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { STACKED_PIPELINE_ENGINE_INTENSITIES } from "@/shared/validation/compressionConfigSchemas";
+import { CompressionPipelineEditor } from "@/shared/components/compression/CompressionPipelineEditor";
+import { ComboCompressionModeSelect } from "@/shared/components/compression/ComboCompressionModeSelect";
+import CompressionHub from "./CompressionHub";
 
 type PipelineStep = { engine: string; intensity?: string };
 type CompressionCombo = {
@@ -14,7 +20,11 @@ type CompressionCombo = {
   outputModeIntensity: string;
   isDefault: boolean;
 };
-type RoutingCombo = { id?: string; name?: string };
+type RoutingCombo = {
+  id?: string;
+  name?: string;
+  config?: { compressionMode?: string } | null;
+};
 type LanguagePack = { language: string; ruleCount: number };
 
 const EMPTY_PIPELINE: PipelineStep[] = [
@@ -22,15 +32,11 @@ const EMPTY_PIPELINE: PipelineStep[] = [
   { engine: "caveman", intensity: "full" },
 ];
 
-const ENGINE_INTENSITIES: Record<string, string[]> = {
-  rtk: ["minimal", "standard", "aggressive"],
-  caveman: ["lite", "full", "ultra"],
-  lite: ["lite"],
-  aggressive: ["standard"],
-  ultra: ["ultra"],
-};
+// Engine list is sourced from the API schema so the dropdown can never offer an engine
+// the `PUT /api/context/combos/[id]` route would reject with HTTP 400 (#4955).
+const ENGINE_INTENSITIES: Record<string, readonly string[]> = STACKED_PIPELINE_ENGINE_INTENSITIES;
 
-export default function CompressionCombosPageClient() {
+function NamedCombosManager() {
   const t = useTranslations("contextCombos");
   const [combos, setCombos] = useState<CompressionCombo[]>([]);
   const [routingCombos, setRoutingCombos] = useState<RoutingCombo[]>([]);
@@ -44,6 +50,9 @@ export default function CompressionCombosPageClient() {
   const [outputModeIntensity, setOutputModeIntensity] = useState("full");
   const [assignmentIds, setAssignmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [activeComboId, setActiveComboId] = useState<string | null>(null);
+  const [compressionEnabled, setCompressionEnabled] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = () => {
     fetch("/api/context/combos")
@@ -62,6 +71,13 @@ export default function CompressionCombosPageClient() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setLanguagePacks(Array.isArray(data?.packs) ? data.packs : []))
       .catch(() => {});
+    fetch("/api/settings/compression")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setActiveComboId(data?.activeComboId ?? null);
+        setCompressionEnabled(Boolean(data?.enabled));
+      })
+      .catch(() => {});
   }, []);
 
   const resetForm = () => {
@@ -73,6 +89,7 @@ export default function CompressionCombosPageClient() {
     setOutputMode(false);
     setOutputModeIntensity("full");
     setAssignmentIds([]);
+    setError(null);
   };
 
   const loadAssignments = async (id: string) => {
@@ -97,7 +114,15 @@ export default function CompressionCombosPageClient() {
 
   const saveCombo = async () => {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setError(t("nameRequired"));
+      return;
+    }
+    if (pipeline.length === 0) {
+      setError(t("pipelineRequired"));
+      return;
+    }
+    setError(null);
     setSaving(true);
     try {
       const payload = {
@@ -116,7 +141,11 @@ export default function CompressionCombosPageClient() {
           body: JSON.stringify(payload),
         }
       );
-      if (!res.ok) return;
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setError(body?.error || t("saveComboFailed", { status: res.status }));
+        return;
+      }
       const combo = await res.json();
       await fetch(`/api/context/combos/${combo.id}/assignments`, {
         method: "PUT",
@@ -131,32 +160,9 @@ export default function CompressionCombosPageClient() {
   };
 
   const deleteCombo = async (combo: CompressionCombo) => {
-    if (!confirm(t("deleteConfirm"))) return;
+    if (!confirm(t("deleteNamedConfirm", { name: combo.name }))) return;
     const res = await fetch(`/api/context/combos/${combo.id}`, { method: "DELETE" });
     if (res.ok) refresh();
-  };
-
-  const setDefault = async (id: string) => {
-    const res = await fetch(`/api/context/combos/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isDefault: true }),
-    });
-    if (res.ok) refresh();
-  };
-
-  const updateStep = (index: number, patch: Partial<PipelineStep>) => {
-    setPipeline((current) =>
-      current.map((step, stepIndex) => {
-        if (stepIndex !== index) return step;
-        const next = { ...step, ...patch };
-        const allowed = ENGINE_INTENSITIES[next.engine] ?? ["standard"];
-        return {
-          ...next,
-          intensity: allowed.includes(next.intensity ?? "") ? next.intensity : allowed[0],
-        };
-      })
-    );
   };
 
   const togglePack = (language: string, enabled: boolean) => {
@@ -174,73 +180,39 @@ export default function CompressionCombosPageClient() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
+      <div>
+        <h2 className="text-lg font-semibold text-text-main">{t("namedCombos")}</h2>
+        <p className="text-sm text-text-muted">{t("namedCombosDescription")}</p>
+      </div>
+
       <section className="rounded-lg border border-border bg-surface p-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder={t("name")}
+            placeholder={t("comboNamePlaceholder")}
             className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
           />
           <input
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder={t("descriptionField")}
+            placeholder={t("descriptionPlaceholder")}
             className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
           />
         </div>
 
-        <div className="mt-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-main">{t("pipeline")}</h2>
-            <button
-              onClick={() =>
-                setPipeline((current) => [...current, { engine: "caveman", intensity: "full" }])
-              }
-              className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
-            >
-              {t("addStep")}
-            </button>
-          </div>
-          {pipeline.map((step, index) => (
-            <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-              <select
-                value={step.engine}
-                onChange={(event) => updateStep(index, { engine: event.target.value })}
-                className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
-              >
-                {Object.keys(ENGINE_INTENSITIES).map((engine) => (
-                  <option key={engine} value={engine}>
-                    {engine}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={step.intensity ?? ""}
-                onChange={(event) => updateStep(index, { intensity: event.target.value })}
-                className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
-              >
-                {(ENGINE_INTENSITIES[step.engine] ?? ["standard"]).map((intensity) => (
-                  <option key={intensity} value={intensity}>
-                    {intensity}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => setPipeline((current) => current.filter((_, i) => i !== index))}
-                className="rounded-lg border border-border px-3 py-2 text-sm text-text-main"
-                disabled={pipeline.length <= 1}
-              >
-                {t("removeStep")}
-              </button>
-            </div>
-          ))}
+        <div className="mt-4">
+          <CompressionPipelineEditor
+            steps={pipeline}
+            onChange={setPipeline}
+            engineIntensities={ENGINE_INTENSITIES}
+          />
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div>
-            <h2 className="mb-2 text-sm font-semibold text-text-main">{t("languagePacks")}</h2>
+            <h3 className="mb-2 text-sm font-semibold text-text-main">{t("languagePacks")}</h3>
             <div className="space-y-2 text-sm text-text-main">
               {languagePacks.map((pack) => (
                 <label key={pack.language} className="flex items-center justify-between gap-2">
@@ -258,7 +230,7 @@ export default function CompressionCombosPageClient() {
             </div>
           </div>
           <div className="space-y-2 text-sm text-text-main">
-            <h2 className="text-sm font-semibold text-text-main">{t("outputMode")}</h2>
+            <h3 className="text-sm font-semibold text-text-main">{t("outputMode")}</h3>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -272,13 +244,13 @@ export default function CompressionCombosPageClient() {
               onChange={(event) => setOutputModeIntensity(event.target.value)}
               className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm"
             >
-              <option value="lite">lite</option>
-              <option value="full">full</option>
-              <option value="ultra">ultra</option>
+              <option value="lite">{t("intensityLite")}</option>
+              <option value="full">{t("intensityFull")}</option>
+              <option value="ultra">{t("intensityUltra")}</option>
             </select>
           </div>
           <div>
-            <h2 className="mb-2 text-sm font-semibold text-text-main">{t("assignToRouting")}</h2>
+            <h3 className="mb-2 text-sm font-semibold text-text-main">{t("assignToRouting")}</h3>
             <div className="max-h-44 space-y-2 overflow-auto text-sm text-text-main">
               {routingCombos.length === 0 ? (
                 <p className="text-xs text-text-muted">{t("noAssignments")}</p>
@@ -287,20 +259,34 @@ export default function CompressionCombosPageClient() {
                   const id = combo.id ?? combo.name ?? "";
                   if (!id) return null;
                   return (
-                    <label key={id} className="flex items-center justify-between gap-2">
-                      <span className="truncate">{combo.name ?? id}</span>
-                      <input
-                        type="checkbox"
-                        checked={assignmentIds.includes(id)}
-                        onChange={(event) => toggleAssignment(id, event.target.checked)}
+                    <div key={id} className="flex items-center justify-between gap-2">
+                      <label className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                        <span className="truncate">{combo.name ?? id}</span>
+                        <input
+                          type="checkbox"
+                          checked={assignmentIds.includes(id)}
+                          onChange={(event) => toggleAssignment(id, event.target.checked)}
+                        />
+                      </label>
+                      <ComboCompressionModeSelect
+                        combo={{ id, config: combo.config }}
+                        disabled={!compressionEnabled}
+                        title="Compression override"
+                        className="w-24 shrink-0 rounded-lg border border-border bg-bg px-2 py-1 text-xs text-text-main disabled:opacity-50"
                       />
-                    </label>
+                    </div>
                   );
                 })
               )}
             </div>
           </div>
         </div>
+
+        {error && (
+          <p className="mt-4 text-sm text-danger" role="alert">
+            {error}
+          </p>
+        )}
 
         <div className="mt-4 flex flex-wrap gap-2">
           <button
@@ -326,12 +312,15 @@ export default function CompressionCombosPageClient() {
           <div key={combo.id} className="rounded-lg border border-border bg-surface p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="truncate text-base font-semibold text-text-main">{combo.name}</h2>
+                <h3 className="truncate text-base font-semibold text-text-main">{combo.name}</h3>
                 <p className="mt-1 text-sm text-text-muted">{combo.description}</p>
               </div>
-              {combo.isDefault && (
-                <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                  {t("default")}
+              {combo.id === activeComboId && (
+                <span
+                  data-testid={`active-badge-${combo.id}`}
+                  className="rounded-full bg-green-500/10 px-2 py-1 text-xs font-medium text-green-500"
+                >
+                  ● {t("active")}
                 </span>
               )}
             </div>
@@ -347,7 +336,7 @@ export default function CompressionCombosPageClient() {
               ))}
             </div>
             <p className="mt-3 text-xs text-text-muted">
-              {t("languagePacks")}: {combo.languagePacks.join(", ")}
+              {t("languagePacksList", { packs: combo.languagePacks.join(", ") })}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -356,14 +345,6 @@ export default function CompressionCombosPageClient() {
               >
                 {t("editCombo")}
               </button>
-              {!combo.isDefault && (
-                <button
-                  onClick={() => setDefault(combo.id)}
-                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
-                >
-                  {t("setAsDefault")}
-                </button>
-              )}
               {!combo.isDefault && (
                 <button
                   onClick={() => deleteCombo(combo)}
@@ -376,6 +357,15 @@ export default function CompressionCombosPageClient() {
           </div>
         ))}
       </section>
+    </div>
+  );
+}
+
+export default function CompressionCombosPageClient() {
+  return (
+    <div className="flex flex-col gap-8">
+      <CompressionHub />
+      <NamedCombosManager />
     </div>
   );
 }

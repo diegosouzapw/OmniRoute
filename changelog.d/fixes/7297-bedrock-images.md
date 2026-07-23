@@ -1,0 +1,1 @@
+- fix(sse): treat Uint8Array/Buffer as opaque binary in log redaction to stop per-byte enumeration on Bedrock Converse image requests (#7297)

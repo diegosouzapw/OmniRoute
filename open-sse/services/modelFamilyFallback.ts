@@ -13,7 +13,8 @@
 
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { parseModel } from "./model.ts";
-import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
+import { CONTEXT_OVERFLOW_REGEX, containsModelUnavailableMessage } from "./errorClassifier.ts";
+import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 // ── Model Family Definitions ─────────────────────────────────────────────────
 
@@ -72,13 +73,22 @@ const MODEL_FAMILIES: Record<string, string[]> = {
   "gemini-2.5-pro": ["gemini-2.5-pro-preview-06-05", "gemini-2.5-pro-exp-03-25"],
   "gemini-2.5-pro-preview-06-05": ["gemini-2.5-pro", "gemini-2.5-pro-exp-03-25"],
 
+  // Claude Mythos family (Fable 5) — flagship falls to the next-best Opus
+  // tiers before the cheaper Sonnet, matching the Opus family ordering.
+  "claude-fable-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"],
+
   // Claude Opus family
-  "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6"],
-  "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
-  "claude-opus-4-6": ["claude-opus-4-6-thinking", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
+  "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-5"],
+  "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-5"],
+  "claude-opus-4-6": ["claude-opus-4-6-thinking", "claude-opus-4-5-20251101", "claude-sonnet-5"],
   "claude-opus-4-6-thinking": ["claude-opus-4-6", "claude-opus-4-5-20251101"],
 
-  // Claude Sonnet family
+  // Claude Sonnet family — Sonnet 5 is the newest tier; degrade to 4.6 → 4.5 → 4.
+  "claude-sonnet-5": [
+    "claude-sonnet-4-6",
+    "claude-sonnet-4-5-20250929",
+    "claude-sonnet-4-20250514",
+  ],
   "claude-sonnet-4-6": ["claude-sonnet-4-5-20250929", "claude-sonnet-4-20250514"],
   "claude-sonnet-4-5-20250929": ["claude-sonnet-4-6", "claude-sonnet-4-20250514"],
 
@@ -119,7 +129,8 @@ export function isModelUnavailableError(status: number, errorMessage: string): b
   if (status !== 400 && status !== 403) return false;
 
   const msg = errorMessage.toLowerCase();
-  return MODEL_UNAVAILABLE_FRAGMENTS.some((fragment) => msg.includes(fragment));
+  if (MODEL_UNAVAILABLE_FRAGMENTS.some((fragment) => msg.includes(fragment))) return true;
+  return containsModelUnavailableMessage(errorMessage);
 }
 
 export function isContextOverflowError(status: number, errorMessage: string): boolean {
@@ -128,6 +139,38 @@ export function isContextOverflowError(status: number, errorMessage: string): bo
 }
 
 // ── Fallback Resolution ──────────────────────────────────────────────────────
+
+/**
+ * All notation forms a family-fallback candidate might be registered under
+ * in a provider's catalog: the literal hyphen form, dot-notation variants
+ * (`claude-opus-4-8` -> `claude-opus-4.8`), and — for dated snapshot ids
+ * like `claude-opus-4-5-20251101` — the same variants with the trailing
+ * `-YYYYMMDD` snapshot suffix stripped, so a dated candidate can still
+ * resolve to a provider's undated catalog entry (`claude-opus-4.5`).
+ */
+function candidateNotationVariants(candidate: string): string[] {
+  const variants = [
+    candidate,
+    candidate.replace(/-(\d+)-(\d+)$/, "-$1.$2"),
+    candidate.replace(/-(\d+)-(\d+)-/, "-$1.$2-"),
+  ];
+
+  const dateStripped = candidate.replace(/-\d{8}$/, "");
+  if (dateStripped !== candidate) {
+    variants.push(dateStripped, dateStripped.replace(/-(\d+)-(\d+)$/, "-$1.$2"));
+  }
+
+  return variants;
+}
+
+/**
+ * Resolve a family candidate against the provider's supported model ids.
+ * Returns the matching notation (preferring the first variant found) or
+ * `null` if the candidate is absent from the catalog under every notation.
+ */
+function resolveCandidateNotation(candidate: string, supportedIds: Set<string>): string | null {
+  return candidateNotationVariants(candidate).find((variant) => supportedIds.has(variant)) ?? null;
+}
 
 /**
  * Get the next fallback model from the same family.
@@ -142,14 +185,31 @@ export function getNextFamilyFallback(
 ): string | null {
   const parsed = parseModel(currentModel);
   const bareModel = parsed.model || currentModel;
-  const prefix =
-    parsed.provider || parsed.providerAlias ? `${parsed.provider || parsed.providerAlias}/` : "";
+  const provider = parsed.provider || parsed.providerAlias || "";
+  const prefix = provider ? `${provider}/` : "";
 
-  const family = MODEL_FAMILIES[bareModel];
+  // Normalize dots to hyphens so kiro/claude-opus-4.8 finds the right entry.
+  // Fall back to the bare model name to support keys like "gemini-3.1-pro-high"
+  // whose dots are part of the literal name, not a version separator.
+  const lookupKey = bareModel.replace(/\./g, "-");
+  const family = MODEL_FAMILIES[lookupKey] ?? MODEL_FAMILIES[bareModel];
   if (!family) return null;
 
+  // Resolve the provider's supported model IDs so we can match notation (dot vs hyphen)
+  const registryEntry = provider ? getRegistryEntry(provider) : null;
+  const supportedIds = registryEntry ? new Set(registryEntry.models.map((m) => m.id)) : null;
+
   for (const candidate of family) {
-    const fullCandidate = `${prefix}${candidate}`;
+    let resolvedCandidate = candidate;
+    if (supportedIds && !supportedIds.has(candidate)) {
+      const match = resolveCandidateNotation(candidate, supportedIds);
+      // Provider catalog is known but this candidate has no match under any
+      // notation — it is provably unsupported, so skip it instead of
+      // returning an id the provider will just 400 on again.
+      if (!match) continue;
+      resolvedCandidate = match;
+    }
+    const fullCandidate = `${prefix}${resolvedCandidate}`;
     if (!triedModels.has(fullCandidate)) {
       return fullCandidate;
     }

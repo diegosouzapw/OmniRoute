@@ -2,6 +2,7 @@ import { BaseGuardrail, type GuardrailContext, type GuardrailExecutionResult } f
 import { PIIMaskerGuardrail } from "./piiMasker";
 import { PromptInjectionGuardrail } from "./promptInjection";
 import { VisionBridgeGuardrail } from "./visionBridge";
+import { CredentialMaskerGuardrail } from "./credentialMasker";
 
 type HeadersLike = Headers | Record<string, unknown> | null | undefined;
 
@@ -265,6 +266,7 @@ export function registerDefaultGuardrails() {
 
   guardrailRegistry.register(new VisionBridgeGuardrail());
   guardrailRegistry.register(new PIIMaskerGuardrail());
+  guardrailRegistry.register(new CredentialMaskerGuardrail());
   guardrailRegistry.register(new PromptInjectionGuardrail());
   defaultGuardrailsRegistered = true;
 

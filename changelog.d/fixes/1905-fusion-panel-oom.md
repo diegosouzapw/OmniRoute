@@ -1,0 +1,1 @@
+- **fix(combos):** fusion combos now reject an oversized panel (>40 models by default, tunable via `fusionTuning.maxPanel`) with a clean 400 before fanning out, instead of buffering dozens of concurrent full responses in memory and OOM-crashing the whole container. (thanks @fontvu)

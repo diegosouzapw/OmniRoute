@@ -1,0 +1,1 @@
+- fix(build): extend the Turbopack `ignoreIssue` suppression to `open-sse/services/compression/**`, matching the `getModuleDir()` dynamic-path fs pattern already suppressed for `src/lib/agentSkills/**` in #6582, eliminating the remaining 610 "Overly broad patterns" warnings (#7051)

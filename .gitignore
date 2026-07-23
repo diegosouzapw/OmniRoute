@@ -4,6 +4,30 @@
 .omnivscodeagent/
 omnirouteCloud/
 omnirouteSite/
+_cache/
+_ideia/
+_mono_repo/
+_references/
+_tasks/
+.agents/**
+.claude/**
+.gemini/**
+.config/**
+.data/**
+.logs/**
+.tests/**
+.coverage/**
+coverage/
+.dist/**
+.next/**
+.build/**
+.out/**
+
+# Stryker mutation testing — ephemeral sandbox + generated reports (never commit)
+.stryker-tmp/
+reports/mutation/
+stryker-output-*.json
+
 
 # Memory Bank and Cursor rules (local-only AI agent context)
 memory-bank/
@@ -25,35 +49,19 @@ docs/new-features/
 
 # dependencies
 node_modules/
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-.data/
-.next-playwright/
-
-# devbox
-.devbox/
-
-# testing
-coverage/
-coverage**
-
-# next.js
-.next/
-/out/
-
-# production
-/build
-/app
-cloud/*
-
-# misc
+# Also ignore a root node_modules SYMLINK (worktree setups symlink it from the main
+# checkout). The trailing-slash pattern above only matches a directory, so without this
+# a symlink named node_modules could be staged by `git add -A` and committed.
+/node_modules
+*.map
 .DS_Store
-*.pem
+
+# Obsidian sync plugin — committed for community distribution
+!obsidian-plugin/
+obsidian-plugin/node_modules/
+
+# Serena AI assistant config (local-only tool, not project code)
+.serena/
 
 # debug
 npm-debug.log*
@@ -64,6 +72,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.homolog.example
+# Provider API keys (never commit)
+*.api-key
+.nvidia-api-key
 
 # vercel
 .vercel
@@ -115,10 +127,13 @@ app.__qa_backup/
 .app-build-backup-*/
 backup/
 
-# Production standalone build (created by scripts/prepublish.mjs)
-# Conflicts with Next.js App Router detection in dev (root app/ shadows src/app/)
-# npm publish still includes it via package.json "files" field
-/app/
+# Build intermediates (.build/) and shippable standalone (dist/).
+# These are fully reproducible from source; never committed.
+# Layer 1: Next.js now writes to .build/next (was .next); assembled bundle → dist/
+# (Previously /app/ was the standalone output; renamed to /dist/ in Layer 1.)
+/.build/
+/dist/
+/.next/
 
 # Electron
 electron/dist-electron/
@@ -132,9 +147,6 @@ vscode-extension/
 *.sqlite-shm
 *.sqlite-wal
 *.sqlite-journal
-
-# Compiled npm-package build artifact (not source, should not be in git)
-/app
 
 # IDEA
 .idea/
@@ -150,6 +162,11 @@ typescript
 
 # Superpowers plans/specs (internal tooling, not project code)
 docs/superpowers/
+# Superpowers visual-companion brainstorm mockups (ephemeral)
+.superpowers/
+
+# TIA test-impact map — generated at runtime in CI (build-test-impact-map.mjs), never committed (~21MB)
+config/quality/test-impact-map.json
 
 # GitNexus local index
 .gitnexus
@@ -190,3 +207,46 @@ scripts/i18n/_pending-keys.json
 .agents/
 .antigravitycli/
 .claude/
+
+# PR Reviews and local feedback files
+pr_reviews*.json
+
+#hidden local data directories (never commit)
+.local-data/
+.data-dev/
+/.junie/
+
+# internal setup prompts with personal credentials — never commit
+CODEX-SETUP-PROMPT.md
+# Quality ratchet — métricas efêmeras (baseline commitado em config/quality/; métricas não)
+config/quality/quality-metrics.json
+
+# Runtime logs (diretório local, nunca versionado)
+/logs/
+-home-diegosouzapw-dev-automações-bots-yt-downloader-20260504 .txt
+-home-diegosouzapw-dev-automações-bots-yt-downloader-20260410 .txt
+docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute.md
+docs/prompts/AGENT-OWNERSHIP-PROTOCOL.md
+docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute-mim.md
+docs/prompts/AGENT-OWNERSHIP-PROTOCOL.omniroute-mid.md
+omniroute.md
+
+# mise configuration
+mise.toml
+_artifacts/          # release-green artifacts
+.claude-flow/
+
+# ESLint file cache (npm run lint --cache / complexity ratchets)
+.eslintcache
+.eslintcache-complexity
+
+
+# CI/local quality artifacts (eslint-results.json, quality-ratchet.md, etc.)
+.artifacts/
+
+# Homologation E2E suite (npm run homolog) — real-environment credentials + report output
+.env.homolog
+tests/homolog/.auth/
+tests/homolog/ui/.auth/
+homolog-report/
+docker-compose.yml.bak

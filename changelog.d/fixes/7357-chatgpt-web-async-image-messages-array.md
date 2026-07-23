@@ -1,0 +1,1 @@
+- fix(chatgpt-web): recognize `update_content.messages[]` (plural array) celsius WebSocket frames so async image_gen pointers are no longer silently dropped (#7357)

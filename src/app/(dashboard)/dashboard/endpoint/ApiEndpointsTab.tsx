@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { useDisplayBaseUrl } from "@/shared/hooks";
+import VscodeTokenAliasCard from "./VscodeTokenAliasCard";
+import { matchesSearch } from "@/shared/utils/turkishText";
 
 /* ─── Types ──────────────────────────────────────────── */
 interface Endpoint {
@@ -15,6 +17,7 @@ interface Endpoint {
   security: boolean;
   parameters: any[];
   requestBody: boolean;
+  exampleBody?: any;
   responses: string[];
   loopbackOnly?: boolean;
   alwaysProtected?: boolean;
@@ -59,7 +62,7 @@ export default function ApiEndpointsTab() {
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30"
             title={t("badgeLoopbackTooltip")}
           >
-            LOCAL
+            {t("badgeLocal")}
           </span>
         )}
         {ep.alwaysProtected && (
@@ -67,7 +70,7 @@ export default function ApiEndpointsTab() {
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/15 text-red-500 border border-red-500/30"
             title={t("badgeAlwaysProtectedTooltip")}
           >
-            PROTECTED
+            {t("badgeProtected")}
           </span>
         )}
         {ep.internal && (
@@ -75,7 +78,7 @@ export default function ApiEndpointsTab() {
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-500/15 text-gray-400 border border-gray-500/30"
             title={t("badgeInternalTooltip")}
           >
-            INTERNAL
+            {t("badgeInternal")}
           </span>
         )}
       </div>
@@ -98,8 +101,15 @@ export default function ApiEndpointsTab() {
   const [tryBody, setTryBody] = useState("");
   const [tryResult, setTryResult] = useState<TryItResult | null>(null);
   const [trying, setTrying] = useState(false);
+  const [availableApiKeys, setAvailableApiKeys] = useState<Array<{ id: string; key: string }>>([]);
+  const [selectedApiKeyId, setSelectedApiKeyId] = useState<string>("");
+  const [revealedApiKeys, setRevealedApiKeys] = useState<Record<string, string>>({});
+  const [apiKeyLoadError, setApiKeyLoadError] = useState<string | null>(null);
+  const [manualApiKey, setManualApiKey] = useState("");
+  const [useManualKey, setUseManualKey] = useState(false);
+  const selectedApiKey = availableApiKeys.find((apiKey) => apiKey.id === selectedApiKeyId) || null;
 
-  const loadCatalog = async () => {
+  const loadCatalog = useCallback(async () => {
     try {
       const res = await fetch("/api/openapi/spec");
       if (res.ok) {
@@ -110,13 +120,13 @@ export default function ApiEndpointsTab() {
       const message =
         body && typeof body.error === "string"
           ? body.error
-          : `API catalog request failed with HTTP ${res.status}`;
+          : t("catalogLoadFailed", { status: res.status });
       return { data: null, error: message };
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load API catalog";
+      const message = error instanceof Error ? error.message : t("catalogLoadFailedGeneric");
       return { data: null, error: message };
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -130,18 +140,56 @@ export default function ApiEndpointsTab() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadCatalog]);
+
+  // Load API keys for Try It functionality. The list endpoint returns masked
+  // keys; the selected key is revealed only when sending a Try It request.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/keys?limit=100", { credentials: "same-origin" })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(t("apiKeysLoadFailed", { status: res.status }));
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const rows = Array.isArray(data?.keys) ? data.keys : Array.isArray(data) ? data : [];
+        const keys = rows
+          .filter((k) => k?.id && k.isActive !== false && k.isBanned !== true)
+          .map((k) => ({ id: String(k.id), key: String(k.key || k.id) }));
+        setAvailableApiKeys(keys);
+        setApiKeyLoadError(null);
+        if (keys.length > 0) {
+          setSelectedApiKeyId((current) => current || keys[0].id);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setAvailableApiKeys([]);
+          setApiKeyLoadError(
+            error instanceof Error ? error.message : t("apiKeysLoadFailedGeneric")
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
 
   // Filter endpoints
   const filteredEndpoints = useMemo(() => {
     if (!catalog) return [];
     return catalog.endpoints.filter((ep) => {
+      // Keep the internal-endpoint visibility toggle + security-tier filter
+      // (from release) while using the locale-aware matchesSearch helper. The
+      // local var is matchesEndpoint (not matchesSearch) to avoid shadowing the
+      // imported helper used in its own initializer.
       if (!showInternal && ep.internal) return false;
-      const matchesSearch =
+      const matchesEndpoint =
         !search ||
-        ep.path.toLowerCase().includes(search.toLowerCase()) ||
-        ep.summary.toLowerCase().includes(search.toLowerCase()) ||
-        ep.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()));
+        matchesSearch(ep.path, search) ||
+        matchesSearch(ep.summary, search) ||
+        ep.tags.some((t) => matchesSearch(t, search));
       const matchesTag = !selectedTag || ep.tags.includes(selectedTag);
       const matchesTier =
         securityTier === "all" ||
@@ -149,7 +197,7 @@ export default function ApiEndpointsTab() {
         (securityTier === "always-protected" && ep.alwaysProtected) ||
         (securityTier === "auth" && ep.security && !ep.loopbackOnly && !ep.alwaysProtected) ||
         (securityTier === "public" && !ep.security && !ep.loopbackOnly && !ep.alwaysProtected);
-      return matchesSearch && matchesTag && matchesTier;
+      return matchesEndpoint && matchesTag && matchesTier;
     });
   }, [catalog, search, selectedTag, showInternal, securityTier]);
 
@@ -170,6 +218,13 @@ export default function ApiEndpointsTab() {
   }, [catalog]);
 
   // Try It handler
+  // Generate example body from OpenAPI schema
+  const generateExampleBody = (ep: Endpoint): string => {
+    if (ep.method === "GET") return "";
+    if (ep.exampleBody) return JSON.stringify(ep.exampleBody, null, 2);
+    return "{\n  \n}";
+  };
+
   const handleTryIt = async (ep: Endpoint) => {
     const key = `${ep.method}:${ep.path}`;
     if (tryingEndpoint === key) {
@@ -179,26 +234,71 @@ export default function ApiEndpointsTab() {
     }
     setTryingEndpoint(key);
     setTryResult(null);
-    setTryBody(ep.method === "GET" ? "" : "{\n  \n}");
+    setTryBody(generateExampleBody(ep));
+  };
+
+  const revealSelectedApiKey = async () => {
+    if (!selectedApiKey) return "";
+    if (revealedApiKeys[selectedApiKey.id]) return revealedApiKeys[selectedApiKey.id];
+
+    const res = await fetch(`/api/keys/${encodeURIComponent(selectedApiKey.id)}/reveal`, {
+      credentials: "same-origin",
+    });
+    if (!res.ok) {
+      throw new Error(
+        res.status === 403
+          ? t("apiKeyRevealDisabled")
+          : t("apiKeyRevealFailed", { status: res.status })
+      );
+    }
+    const data = await res.json();
+    if (!data?.key || typeof data.key !== "string") {
+      throw new Error(t("apiKeyRevealInvalid"));
+    }
+    setRevealedApiKeys((current) => ({ ...current, [selectedApiKey.id]: data.key }));
+    return data.key;
   };
 
   const executeTryIt = async (ep: Endpoint) => {
     setTrying(true);
     try {
+      const headers: Record<string, string> = {};
+
+      // Add Authorization header if endpoint requires auth
+      if (ep.security) {
+        let apiKeyForRequest = "";
+        if (useManualKey) {
+          apiKeyForRequest = manualApiKey;
+        } else if (selectedApiKey) {
+          apiKeyForRequest = await revealSelectedApiKey();
+        }
+
+        if (apiKeyForRequest) {
+          headers["Authorization"] = `Bearer ${apiKeyForRequest}`;
+        } else {
+          throw new Error(t("apiKeyRequired"));
+        }
+      }
+
       const res = await fetch("/api/openapi/try", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           method: ep.method,
-          path: ep.path.replace("/api/", "/"),
+          path: ep.path,
+          headers,
           body: tryBody ? JSON.parse(tryBody) : undefined,
         }),
       });
       if (res.ok) setTryResult(await res.json());
+      else {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || t("requestFailed", { status: res.status }));
+      }
     } catch (err: any) {
       setTryResult({
         status: 0,
-        statusText: "Error",
+        statusText: t("errorStatus"),
         headers: {},
         body: { error: err.message },
         latencyMs: 0,
@@ -235,7 +335,10 @@ export default function ApiEndpointsTab() {
                   </span>
                 </div>
                 <p className="text-xs text-text-muted mt-0.5">
-                  {catalog.endpoints.length} endpoints across {allTags.length} categories
+                  {t("catalogStats", {
+                    endpoints: catalog.endpoints.length,
+                    categories: allTags.length,
+                  })}
                 </p>
               </div>
             </div>
@@ -266,31 +369,35 @@ export default function ApiEndpointsTab() {
 
       {/* ═══ API CATALOG ═══ */}
       {!catalog && (
-        <Card className="p-6">
-          <div className="flex items-start gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
-              <span className="material-symbols-outlined text-[20px] text-red-500">error</span>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-text-main">
-                {t("apiEndpointsCatalogUnavailable")}
-              </h3>
-              <p className="text-xs text-text-muted mt-1">
-                {catalogError || "The OpenAPI specification could not be loaded."}
-              </p>
-              <a
-                href="/api/openapi/spec"
-                target="_blank"
-                rel="noopener"
-                className="inline-flex items-center gap-1 mt-3 px-2.5 py-1.5 text-xs font-medium rounded-lg
+        <>
+          <Card className="p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
+                <span className="material-symbols-outlined text-[20px] text-red-500">error</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-text-main">
+                  {t("apiEndpointsCatalogUnavailable")}
+                </h3>
+                <p className="text-xs text-text-muted mt-1">
+                  {catalogError || t("catalogUnavailableDescription")}
+                </p>
+                <a
+                  href="/api/openapi/spec"
+                  target="_blank"
+                  rel="noopener"
+                  className="inline-flex items-center gap-1 mt-3 px-2.5 py-1.5 text-xs font-medium rounded-lg
                            bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                Open JSON response
-              </a>
+                >
+                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                  {t("openJsonResponse")}
+                </a>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+
+          <VscodeTokenAliasCard variant="catalog" />
+        </>
       )}
 
       {catalog && (
@@ -319,7 +426,7 @@ export default function ApiEndpointsTab() {
                       : "bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main"
                   }`}
               >
-                All
+                {t("all")}
               </button>
               {allTags.slice(0, 8).map((tag) => (
                 <button
@@ -337,7 +444,7 @@ export default function ApiEndpointsTab() {
               ))}
               {allTags.length > 8 && (
                 <span className="px-2 py-1 text-[10px] text-text-muted">
-                  +{allTags.length - 8} more
+                  {t("more", { count: allTags.length - 8 })}
                 </span>
               )}
             </div>
@@ -373,12 +480,14 @@ export default function ApiEndpointsTab() {
                       ? "bg-amber-500/10 text-amber-500"
                       : "bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main"
                   }`}
-                title="Show/hide internal routes (hidden by default)"
+                title={t("showInternalTooltip")}
               >
                 {showInternal ? t("hideInternal") : t("showInternal")}
               </button>
             </div>
           </div>
+
+          <VscodeTokenAliasCard variant="catalog" />
 
           {/* Endpoint groups */}
           {Object.entries(groupedEndpoints).map(([tag, endpoints]) => (
@@ -449,7 +558,7 @@ export default function ApiEndpointsTab() {
                                     <span className="material-symbols-outlined text-[12px] text-amber-500">
                                       lock
                                     </span>
-                                    Bearer Auth
+                                    {t("bearerAuth")}
                                   </span>
                                 )}
                                 {ep.requestBody && (
@@ -457,11 +566,11 @@ export default function ApiEndpointsTab() {
                                     <span className="material-symbols-outlined text-[12px]">
                                       description
                                     </span>
-                                    Request Body
+                                    {t("requestBody")}
                                   </span>
                                 )}
                                 <span className="flex items-center gap-1">
-                                  Responses: {ep.responses.join(", ")}
+                                  {t("responses")}: {ep.responses.join(", ")}
                                 </span>
                               </div>
                             </div>
@@ -481,18 +590,18 @@ export default function ApiEndpointsTab() {
                               <span className="material-symbols-outlined text-[12px]">
                                 {isTrying ? "close" : "play_arrow"}
                               </span>
-                              {isTrying ? "Close" : "Try It"}
+                              {isTrying ? t("close") : t("tryIt")}
                             </button>
                           </div>
 
                           {/* curl example */}
                           <div className="rounded-lg bg-black/5 dark:bg-black/30 p-3">
                             <p className="text-[9px] font-semibold text-text-muted uppercase tracking-wider mb-1">
-                              Example
+                              {t("example")}
                             </p>
                             <code className="text-[11px] font-mono text-text-main break-all">
                               curl -X {ep.method} {baseUrl}
-                              {ep.path.replace("/api/", "/")}
+                              {ep.path}
                               {ep.security ? ' -H "Authorization: Bearer YOUR_KEY"' : ""}
                               {ep.requestBody
                                 ? " -H \"Content-Type: application/json\" -d '{...}'"
@@ -503,15 +612,61 @@ export default function ApiEndpointsTab() {
                           {/* Try It panel */}
                           {isTrying && (
                             <div className="rounded-lg border border-primary/20 bg-primary/[0.02] p-3 space-y-3">
+                              {ep.security && (
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <label className="text-[9px] font-semibold text-text-muted uppercase tracking-wider">
+                                      {t("apiKey")}
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() => setUseManualKey(!useManualKey)}
+                                      className="text-[9px] text-primary hover:underline"
+                                    >
+                                      {useManualKey ? t("switchToSelection") : t("enterManually")}
+                                    </button>
+                                  </div>
+
+                                  {useManualKey ? (
+                                    <input
+                                      type="password"
+                                      value={manualApiKey}
+                                      onChange={(e) => setManualApiKey(e.target.value)}
+                                      placeholder={t("pasteApiKey")}
+                                      className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-black/10
+                                               dark:border-white/10 bg-white dark:bg-black/30 focus:outline-none
+                                               focus:ring-1 focus:ring-primary"
+                                    />
+                                  ) : availableApiKeys.length > 0 ? (
+                                    <select
+                                      value={selectedApiKeyId}
+                                      onChange={(e) => setSelectedApiKeyId(e.target.value)}
+                                      className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-black/10
+                                               dark:border-white/10 bg-white dark:bg-black/30 focus:outline-none
+                                               focus:ring-1 focus:ring-primary"
+                                    >
+                                      {availableApiKeys.map((apiKey) => (
+                                        <option key={apiKey.id} value={apiKey.id}>
+                                          {apiKey.key}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <p className="text-[11px] text-amber-500">
+                                      {apiKeyLoadError || t("noActiveApiKeys")}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                               {ep.method !== "GET" && (
                                 <div>
                                   <label className="text-[9px] font-semibold text-text-muted uppercase tracking-wider">
-                                    Request Body (JSON)
+                                    {t("requestBodyJson")}
                                   </label>
                                   <textarea
                                     value={tryBody}
                                     onChange={(e) => setTryBody(e.target.value)}
-                                    rows={4}
+                                    rows={8}
                                     className="w-full mt-1 px-3 py-2 text-xs font-mono rounded-lg border border-black/10
                                              dark:border-white/10 bg-white dark:bg-black/30 focus:outline-none
                                              focus:ring-1 focus:ring-primary resize-none"
@@ -528,7 +683,7 @@ export default function ApiEndpointsTab() {
                                 <span className="material-symbols-outlined text-[14px]">
                                   {trying ? "hourglass_empty" : "send"}
                                 </span>
-                                {trying ? "Sending..." : "Send Request"}
+                                {trying ? t("sending") : t("sendRequest")}
                               </button>
 
                               {tryResult && (
@@ -582,7 +737,7 @@ export default function ApiEndpointsTab() {
                   data_object
                 </span>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  Data Schemas
+                  {t("dataSchemas")}
                 </h3>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/5 text-text-muted">
                   {catalog.schemas.length}

@@ -1,0 +1,1 @@
+- fix(cli): waitForServer() no longer reports ready from a raw TCP accept alone — requires a fast HTTP rejection or a real health response, so the "OmniRoute is running!" banner no longer fires 30-60s before the server can actually answer requests (#6800)

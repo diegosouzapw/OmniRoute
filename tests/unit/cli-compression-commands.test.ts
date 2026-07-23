@@ -64,7 +64,10 @@ test("compression configure envia configuração via mcp", async () => {
 
   globalThis.fetch = origFetch;
   assert.equal(capturedBody.name, "omniroute_compression_configure");
-  assert.equal(capturedBody.arguments.engine, "caveman");
+  // #6571: the configure command now sends the canonical `strategy` field the MCP
+  // tool schema (compressionConfigureInput) + handleCompressionConfigure expect,
+  // not the nonexistent `engine` key (which the non-strict schema silently stripped).
+  assert.equal(capturedBody.arguments.strategy, "caveman");
   assert.ok(capturedBody.arguments.caveman?.aggressiveness === 0.8);
 });
 
@@ -246,5 +249,7 @@ test("compression engine set falls back to PUT /api/settings/compression on MCP 
   const restCall = calls.find((c) => c.url.includes("/api/settings/compression"));
   assert.ok(restCall, "should fall back to PUT /api/settings/compression");
   assert.equal(restCall?.method, "PUT");
-  assert.equal(restCall?.body?.engine, "rtk");
+  // #6571: the REST fallback now PUTs the canonical `defaultMode` field the server's
+  // strict schema accepts, not the nonexistent `engine` key (which made the PUT 400).
+  assert.equal(restCall?.body?.defaultMode, "rtk");
 });

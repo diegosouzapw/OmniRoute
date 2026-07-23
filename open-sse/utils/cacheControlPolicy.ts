@@ -7,7 +7,7 @@
  * Client-side caching (e.g., Claude Code) should be preserved when:
  * 1. Client is Claude Code or similar caching-aware client
  * 2. Request will hit a deterministic target (single model or deterministic combo strategy)
- * 3. Provider supports prompt caching (Anthropic, Alibaba Qwen, etc.)
+ * 3. Provider supports prompt caching (Anthropic, etc.)
  */
 
 import type { RoutingStrategyValue } from "../../src/shared/constants/routingStrategies";
@@ -72,7 +72,114 @@ const DETERMINISTIC_STRATEGIES: Set<RoutingStrategyValue> = new Set(["priority",
 /**
  * Providers that support prompt caching
  */
-const CACHING_PROVIDERS = new Set(["claude", "anthropic", "zai", "qwen", "deepseek"]);
+const CACHING_PROVIDERS = new Set([
+  "claude",
+  "anthropic",
+  "zai",
+  "deepseek",
+  // Kimi Code's OpenAI protocol requires prompt_cache_key for Coding Plan
+  // cache affinity. The OAuth card and hidden API-key compatibility ID share
+  // the same upstream API.
+  "kimi-coding",
+  "kimi-coding-apikey",
+  // #3088 — Xiaomi MiMo honors OpenAI-format cache_control breakpoints. Without
+  // this entry, shouldPreserveCacheControl() returns false for Claude Code
+  // clients and filterToOpenAIFormat() strips cache_control, so Xiaomi never
+  // sees the cache hints and every request is a cache miss.
+  "xiaomi-mimo",
+  // #3955 — OpenAI / Codex / Azure-OpenAI use AUTOMATIC prefix caching: the longest
+  // matching prefix of a request is cached upstream WITHOUT any explicit cache_control
+  // markers. They must count as caching providers so the cache-aware compression guard
+  // preserves the cacheable prefix (system prompt / earliest messages) instead of
+  // rewriting it and forcing a cache miss. This also activates the intended
+  // `prompt_cache_key` cache-routing hint for OpenAI in chatCore.
+  "openai",
+  "codex",
+  "azure",
+  // #2069 — DashScope's OpenAI-compatible endpoints (Alibaba Model Studio and
+  // Qwen Cloud pay-as-you-go, upstream "alicode"/"alicode-intl") natively honor
+  // `cache_control: {type:"ephemeral"}` breakpoints. Without these entries
+  // shouldPreserveCacheControl() returns false for Claude Code clients and the
+  // OpenAI-format translator strips cache_control, so DashScope never sees the
+  // hints and every request is a cache miss.
+  "alibaba",
+  "alibaba-cn",
+  "qwen-cloud",
+]);
+
+/**
+ * Providers that honor EXPLICIT `cache_control` breakpoints carried inside an
+ * OpenAI-format request body (i.e. the markers must be passed THROUGH the
+ * Claude→OpenAI translation instead of stripped).
+ *
+ * This is a strict subset of CACHING_PROVIDERS and deliberately excludes
+ * `openai` / `codex` / `azure`: those use AUTOMATIC prefix caching (#3955) and
+ * do NOT accept explicit `cache_control` fields in the request — forwarding the
+ * markers there is meaningless at best and a 400 "unknown field" at worst, and
+ * it broke the chatCore "strips cache markers for non-Claude providers" test.
+ * Claude-format providers re-inject markers via prepareClaudeRequest, so they
+ * are not listed here either.
+ */
+const OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS = new Set([
+  // #2069 — DashScope OpenAI-compatible endpoints accept ephemeral breakpoints.
+  "alibaba",
+  "alibaba-cn",
+  "qwen-cloud",
+  // #3088 — Xiaomi MiMo honors OpenAI-format cache_control breakpoints.
+  "xiaomi-mimo",
+]);
+
+/**
+ * Per-connection override for cache behavior, resolved from the connection's
+ * `provider_specific_data.cache` JSON sub-object (see `resolveConnectionCacheOverride`).
+ * Lets an operator opt a custom/openai-compatible connection into prompt-cache
+ * behavior that the hardcoded provider-name sets above can never match (#6880).
+ */
+export interface ConnectionCacheOverride {
+  supportsPromptCaching?: boolean;
+  cacheControlPassthrough?: "strip" | "openai-format" | "claude-format";
+}
+
+/**
+ * Extract and validate a `ConnectionCacheOverride` from a connection's
+ * `providerSpecificData` bag. Returns `null` when absent/malformed so every
+ * call site can safely pass the result straight through.
+ */
+export function resolveConnectionCacheOverride(
+  providerSpecificData: unknown
+): ConnectionCacheOverride | null {
+  if (!providerSpecificData || typeof providerSpecificData !== "object") return null;
+  const cache = (providerSpecificData as Record<string, unknown>).cache;
+  if (!cache || typeof cache !== "object" || Array.isArray(cache)) return null;
+  const record = cache as Record<string, unknown>;
+  const result: ConnectionCacheOverride = {};
+  if (typeof record.supportsPromptCaching === "boolean") {
+    result.supportsPromptCaching = record.supportsPromptCaching;
+  }
+  if (
+    record.cacheControlPassthrough === "strip" ||
+    record.cacheControlPassthrough === "openai-format" ||
+    record.cacheControlPassthrough === "claude-format"
+  ) {
+    result.cacheControlPassthrough = record.cacheControlPassthrough;
+  }
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+/**
+ * Whether `cache_control` markers should be PASSED THROUGH the OpenAI-format
+ * translation for this provider (vs. stripped). Used to gate the request-side
+ * passthrough so generic / implicit-cache OpenAI providers keep getting cleaned.
+ */
+export function providerHonorsOpenAIFormatCacheControl(
+  provider: string | null | undefined,
+  connectionCacheOverride?: ConnectionCacheOverride | null
+): boolean {
+  if (connectionCacheOverride?.cacheControlPassthrough === "openai-format") return true;
+  if (connectionCacheOverride?.cacheControlPassthrough === "strip") return false;
+  if (!provider) return false;
+  return OPENAI_FORMAT_CACHE_CONTROL_PROVIDERS.has(provider.toLowerCase());
+}
 
 /**
  * Detect if the client is Claude Code or another caching-aware client
@@ -98,8 +205,12 @@ export function isClaudeCodeClient(userAgent: string | null | undefined): boolea
  */
 export function providerSupportsCaching(
   provider: string | null | undefined,
-  targetFormat?: string | null
+  targetFormat?: string | null,
+  connectionCacheOverride?: ConnectionCacheOverride | null
 ): boolean {
+  if (typeof connectionCacheOverride?.supportsPromptCaching === "boolean") {
+    return connectionCacheOverride.supportsPromptCaching;
+  }
   if (!provider) return false;
   if (CACHING_PROVIDERS.has(provider.toLowerCase())) return true;
   // All Claude-protocol providers support prompt caching
@@ -134,6 +245,7 @@ export function shouldPreserveCacheControl({
   targetProvider,
   targetFormat,
   settings,
+  connectionCacheOverride,
 }: {
   userAgent: string | null | undefined;
   isCombo: boolean;
@@ -141,6 +253,7 @@ export function shouldPreserveCacheControl({
   targetProvider: string | null | undefined;
   targetFormat?: string | null;
   settings?: CacheControlSettings;
+  connectionCacheOverride?: ConnectionCacheOverride | null;
 }): boolean {
   // User override takes precedence
   if (settings?.alwaysPreserveClientCache === "always") {
@@ -157,7 +270,7 @@ export function shouldPreserveCacheControl({
   }
 
   // Target provider must support caching
-  if (!providerSupportsCaching(targetProvider, targetFormat)) {
+  if (!providerSupportsCaching(targetProvider, targetFormat, connectionCacheOverride)) {
     return false;
   }
 

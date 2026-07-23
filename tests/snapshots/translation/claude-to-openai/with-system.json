@@ -1,0 +1,15 @@
+{
+  "max_tokens": 256,
+  "messages": [
+    {
+      "content": "Be helpful.",
+      "role": "system"
+    },
+    {
+      "content": "What is 1+1?",
+      "role": "user"
+    }
+  ],
+  "model": "gpt-4o-mini",
+  "stream": true
+}

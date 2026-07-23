@@ -1,0 +1,1 @@
+- fix(oauth): warn instead of silently opening an unreachable localhost:1455 redirect for Codex/xAI/Grok CLI OAuth when the dashboard is reached from a LAN IP (#8046)

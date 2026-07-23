@@ -1,0 +1,1 @@
+- chore(base): pt-BR/en i18n keys for #6909 relay-repair/free-pool UI + align Cloud Code Gemini defaults test with the #6943 non-thinking-model contract

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -29,6 +30,7 @@ export default function Input({
   onKeyUp: externalOnKeyUp,
   ...props
 }: InputProps) {
+  const t = useTranslations("common");
   const generatedId = useId();
   const inputId = externalId || generatedId;
   const errorId = error ? `${inputId}-error` : undefined;
@@ -111,9 +113,9 @@ export default function Input({
           }}
           className={cn(
             "w-full py-2 px-3 text-sm text-text-main",
-            "bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-md",
+            "bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-control",
             "placeholder-text-muted/60",
-            "focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none",
+            "focus:ring-1 focus:ring-accent/30 focus:border-accent/50 focus:outline-none",
             "transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed",
             // iOS zoom fix
             "text-[16px] sm:text-sm",
@@ -134,7 +136,7 @@ export default function Input({
           <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
             keyboard_capslock
           </span>
-          Caps Lock is on
+          {t("capsLockOn")}
         </p>
       )}
       {error && (

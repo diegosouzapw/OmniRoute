@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDbInstance } from "@/lib/db/core";
+import { updateSkill } from "@/lib/db/skills";
 import { skillRegistry } from "@/lib/skills/registry";
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
@@ -39,37 +39,29 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       return NextResponse.json(validation.error, { status: 400 });
     }
 
-    const db = getDbInstance();
-    const updates: string[] = [];
-    const params: unknown[] = [];
+    const patch: Record<string, unknown> = {};
 
     if (validation.data.enabled !== undefined) {
-      updates.push("enabled = ?");
-      params.push(validation.data.enabled ? 1 : 0);
+      patch.enabled = validation.data.enabled ? 1 : 0;
 
       // Legacy enabled toggle should also keep mode in sync.
       // Without this, skills created as mode="off" remain excluded even after enabled=true.
       if (validation.data.mode === undefined) {
-        updates.push("mode = ?");
-        params.push(validation.data.enabled ? "on" : "off");
+        patch.mode = validation.data.enabled ? "on" : "off";
       }
     }
 
     if (validation.data.mode !== undefined) {
-      updates.push("mode = ?");
-      params.push(validation.data.mode);
+      patch.mode = validation.data.mode;
       // keep enabled column consistent for older codepaths
-      updates.push("enabled = ?");
-      params.push(validation.data.mode === "off" ? 0 : 1);
+      patch.enabled = validation.data.mode === "off" ? 0 : 1;
     }
 
-    if (updates.length === 0) {
+    if (Object.keys(patch).length === 0) {
       return NextResponse.json({ error: "No update payload provided" }, { status: 400 });
     }
 
-    updates.push("updated_at = datetime('now')");
-    params.push(id);
-    db.prepare(`UPDATE skills SET ${updates.join(", ")} WHERE id = ?`).run(...params);
+    updateSkill(id, patch);
 
     await skillRegistry.loadFromDatabase();
 

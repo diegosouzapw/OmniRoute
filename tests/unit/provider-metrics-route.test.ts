@@ -85,6 +85,43 @@ test("GET /api/provider-metrics includes provider recency and error topology", a
   assert.equal(body.topology.errorProvider, "openai");
 });
 
+test("GET /api/provider-metrics errorProvider must NOT flag a provider whose most recent request succeeded", async () => {
+  // Arrange: providerA had an error long ago but recovered (last request = 200).
+  //          providerB never errored.
+  // Bug (pre-fix): errorProvider = "providerA" because lastErrorAt > 0.
+  // Fix (post-fix): errorProvider = "" because lastStatus for providerA is 200.
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).run("a-old-error", "2026-01-01T00:00:00.000Z", "providerA", 500, 100, "old error");
+  db.prepare(
+    `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).run("a-recent-ok", "2026-06-01T00:00:00.000Z", "providerA", 200, 80, null);
+  db.prepare(
+    `INSERT INTO call_logs (id, timestamp, provider, status, duration, error_summary)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).run("b-ok", "2026-05-01T00:00:00.000Z", "providerB", 200, 60, null);
+
+  const response = await providerMetricsRoute.GET();
+  const body = (await response.json()) as ProviderMetricsResponse;
+
+  assert.equal(response.status, 200);
+  // providerA's last request succeeded — must NOT appear as errorProvider
+  assert.notEqual(
+    body.topology.errorProvider,
+    "providerA",
+    "providerA recovered (lastStatus=200) and must not be marked as errorProvider"
+  );
+  // No provider is currently in error — errorProvider should be empty
+  assert.equal(
+    body.topology.errorProvider,
+    "",
+    "errorProvider must be empty when no provider's most recent request was a failure"
+  );
+});
+
 test("GET /api/provider-metrics returns sanitized 500 when metrics cannot be loaded", async () => {
   const db = core.getDbInstance();
   db.close();

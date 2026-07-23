@@ -1,0 +1,1 @@
+- fix(providers): `PROVIDER_LIMITS_SYNC_SPACING_MS` now also throttles local / API-key (Ollama) connections, not just OAuth — spaced between concurrency chunks so a local endpoint isn't hit by a simultaneous refresh burst (#6916)

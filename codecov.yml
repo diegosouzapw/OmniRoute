@@ -1,0 +1,19 @@
+# Codecov — WS5.6/D7 of the v3.8.49 quality/velocity plan.
+# Philosophy: strict patch, lenient project — the project floor/ratchet already
+# lives in quality-baseline.json + the c8 60% gate; Codecov adds the DIFF view
+# ("new lines in this PR are covered"), which the global ratchet cannot see.
+# INFORMATIONAL during calibration: nothing here blocks a PR. Promote by flipping
+# informational to false after ~2 weeks without false blocks (owner decision).
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        target: 70%
+        informational: true
+comment:
+  layout: "condensed_header, diff"
+  behavior: default
+  require_changes: true

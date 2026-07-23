@@ -24,7 +24,7 @@ async function restCompressionStatus() {
   const combosBody = combosRes.ok ? await combosRes.json() : { combos: [] };
   const analytics = analyticsRes && analyticsRes.ok ? await analyticsRes.json() : null;
   return {
-    engine: settings.engine ?? null,
+    strategy: settings.defaultMode || "standard",
     settings,
     combos: combosBody.combos ?? combosBody,
     analytics,
@@ -33,7 +33,10 @@ async function restCompressionStatus() {
 
 async function restCompressionConfigure(config) {
   const body = { ...config };
-  if (body.engine) body.engine = normalizeEngine(body.engine);
+  if (body.strategy) {
+    body.defaultMode = body.strategy === "caveman" ? "standard" : normalizeEngine(body.strategy);
+    delete body.strategy;
+  }
   const res = await apiFetch("/api/settings/compression", { method: "PUT", body });
   if (!res.ok) {
     process.stderr.write(`Error: ${res.status}\n`);
@@ -43,9 +46,10 @@ async function restCompressionConfigure(config) {
 }
 
 async function restSetEngine(name) {
+  const normalized = normalizeEngine(name);
   const res = await apiFetch("/api/settings/compression", {
     method: "PUT",
-    body: { engine: normalizeEngine(name) },
+    body: { defaultMode: normalized === "caveman" ? "standard" : normalized },
   });
   if (!res.ok) {
     process.stderr.write(`Error: ${res.status}\n`);
@@ -103,7 +107,11 @@ export async function runCompressionStatus(opts, cmd) {
 
 export async function runCompressionConfigure(opts, cmd) {
   const config = {};
-  if (opts.engine) config.engine = opts.engine;
+  // #6571 — both the MCP tool schema (compressionConfigureInput) and
+  // handleCompressionConfigure expect `strategy`, not `engine`; a non-strict
+  // MCP schema silently strips an unrecognized `engine` key on the primary
+  // (MCP-mounted) path, so this must be `strategy` on both paths.
+  if (opts.engine) config.strategy = normalizeEngine(opts.engine);
   if (opts.cavemanAggressiveness !== undefined)
     config.caveman = { aggressiveness: opts.cavemanAggressiveness };
   if (opts.rtkBudget !== undefined) config.rtk = { tokenBudget: opts.rtkBudget };
@@ -163,7 +171,7 @@ export function registerCompression(program) {
   engine.command("set <name>").action(runCompressionEngineSet);
   engine.command("get").action(async (opts, cmd) => {
     const data = await mcpCall("omniroute_compression_status", {}, restCompressionStatus);
-    process.stdout.write(`${data.engine ?? "(default)"}\n`);
+    process.stdout.write(`${data.strategy ?? "(default)"}\n`);
   });
 
   const combos = cmp.command("combos").description(t("compression.combos.description"));

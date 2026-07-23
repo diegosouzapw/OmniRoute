@@ -203,8 +203,9 @@ describe("caveman engine", () => {
     assert.ok(result.stats.savingsPercent >= 0);
     assert.ok(result.stats.durationMs >= 0);
     assert.ok(
-      result.stats.durationMs < 50,
-      `Duration ${result.stats.durationMs}ms should be well under 5ms`
+      // Loose catastrophic budget (see the 10K-token test below for rationale).
+      result.stats.durationMs < 500,
+      `Duration ${result.stats.durationMs}ms should stay under the 500ms catastrophic budget`
     );
   });
 
@@ -227,7 +228,11 @@ describe("caveman engine", () => {
       minMessageLength: 50,
       preservePatterns: [],
     });
-    assert.ok(result.stats.durationMs < 25, `Expected <25ms, got ${result.stats.durationMs}ms`);
+    // Catastrophic-regression budget, not a benchmark: under a saturated full
+    // suite (concurrency 20) this measured 175ms on a healthy engine — absolute
+    // wall-clock asserts flake under load (re-wired by 6A.1c, 2026-06-09).
+    // Real perf tracking belongs in tests/benchmarks/.
+    assert.ok(result.stats.durationMs < 500, `Expected <500ms, got ${result.stats.durationMs}ms`);
   });
 
   it("cleans whitespace and punctuation artifacts without regex backtracking", () => {

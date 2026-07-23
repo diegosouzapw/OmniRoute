@@ -1,0 +1,1 @@
+- **fix(providers):** update SenseNova Token Plan support — register the token-plan model ids/constants and adjust the SenseNova registry so token-plan accounts route correctly (#6330 — thanks @xz-dev).

@@ -1,0 +1,1 @@
+- **CI**: promote `test:vitest:ui` to a blocking gate — the suite is 870/870 green again after the WS6.1 triage (#7127), so `continue-on-error` is removed from the vitest job

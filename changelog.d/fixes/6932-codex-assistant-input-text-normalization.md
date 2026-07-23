@@ -1,0 +1,1 @@
+- fix(sse): `normalizeCodexMessageContentPart` now rewrites explicit `type: "input_text"` (not just `type: "text"`) to `output_text` on assistant-role Codex Responses input parts, so replayed assistant history sent by codex-cli as `input_text` is no longer rejected by the Codex/OpenAI backend (#6932)

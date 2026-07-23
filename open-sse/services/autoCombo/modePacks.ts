@@ -23,8 +23,9 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     tierPriority: 0.05,
     tierAffinity: 0,
     specificityMatch: 0,
-    contextAffinity: 0.06,
+    contextAffinity: 0.01,
     resetWindowAffinity: 0,
+    connectionDensity: 0.05,
   },
   // Prioritize cost. tierPriority replaces 0.05 from stability.
   "cost-saver": {
@@ -37,8 +38,9 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     tierPriority: 0.05,
     tierAffinity: 0,
     specificityMatch: 0,
-    contextAffinity: 0.05,
+    contextAffinity: 0.0,
     resetWindowAffinity: 0,
+    connectionDensity: 0.05,
   },
   // Prioritize task fitness. tierPriority replaces 0.05 from latencyInv.
   "quality-first": {
@@ -51,8 +53,9 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     tierPriority: 0.05,
     tierAffinity: 0,
     specificityMatch: 0,
-    contextAffinity: 0.05,
+    contextAffinity: 0.0,
     resetWindowAffinity: 0,
+    connectionDensity: 0.05,
   },
   // Prioritize quota availability. tierPriority replaces 0.05 from taskFit.
   "offline-friendly": {
@@ -65,8 +68,42 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     tierPriority: 0.05,
     tierAffinity: 0,
     specificityMatch: 0,
-    contextAffinity: 0.05,
+    contextAffinity: 0.0,
     resetWindowAffinity: 0,
+    connectionDensity: 0.05,
+  },
+  // #4235 `:reliable` — prioritize healthy, low-variance providers (high availability).
+  // health (circuit-breaker) + stability (latency std-dev) dominate; weights sum to 1.0.
+  "reliability-first": {
+    quota: 0.14,
+    health: 0.37,
+    costInv: 0.04,
+    latencyInv: 0.05,
+    taskFit: 0.1,
+    stability: 0.2,
+    tierPriority: 0.05,
+    tierAffinity: 0,
+    specificityMatch: 0,
+    contextAffinity: 0.0,
+    resetWindowAffinity: 0,
+    connectionDensity: 0.05,
+  },
+  // Chaos mode — priority: health > stability > taskFit > quota diversity.
+  // Selects top-N healthy providers for parallel dispatch. Favors providers with
+  // closed circuit breakers, low latency variance, and high task fitness.
+  "chaos-mode": {
+    quota: 0.1,
+    health: 0.4,
+    costInv: 0.02,
+    latencyInv: 0.03,
+    taskFit: 0.2,
+    stability: 0.15,
+    tierPriority: 0.02,
+    tierAffinity: 0,
+    specificityMatch: 0,
+    contextAffinity: 0.03,
+    resetWindowAffinity: 0,
+    connectionDensity: 0.05,
   },
 };
 

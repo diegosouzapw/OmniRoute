@@ -3,7 +3,37 @@ import { apiFetch } from "../api.mjs";
 import { emit } from "../output.mjs";
 import { t } from "../i18n.mjs";
 
-const VALID_TYPES = ["user", "feedback", "project", "reference"];
+const VALID_TYPES = ["factual", "episodic", "procedural", "semantic"];
+
+const LEGACY_TYPE_MAP = {
+  user: "factual",
+  feedback: "factual",
+  project: "factual",
+  reference: "factual",
+};
+
+/**
+ * Plan 21 Bug#4/D17 fix: remap legacy types in ALL CLI subcommands
+ * (search/list/clear in addition to add), with a stderr warning on remap.
+ * Returns the canonical type, or the original value (which the backend will
+ * 400 on if invalid) — never throws.
+ */
+function applyLegacyTypeMap(type) {
+  if (!type) return type;
+  if (Object.prototype.hasOwnProperty.call(LEGACY_TYPE_MAP, type)) {
+    const mapped = LEGACY_TYPE_MAP[type];
+    process.stderr.write(
+      `Warning: legacy type '${type}' is deprecated; using '${mapped}'. Use --type factual|episodic|procedural|semantic.\n`
+    );
+    return mapped;
+  }
+  if (!VALID_TYPES.includes(type)) {
+    process.stderr.write(
+      `Warning: unknown type '${type}'. Valid types: factual, episodic, procedural, semantic.\n`
+    );
+  }
+  return type;
+}
 
 function truncate(v, len = 60) {
   if (v == null) return "-";
@@ -53,7 +83,8 @@ async function confirm(question) {
 export async function runMemorySearch(query, opts, cmd) {
   const globalOpts = cmd.optsWithGlobals();
   const params = new URLSearchParams({ q: query, limit: String(opts.limit ?? 20) });
-  if (opts.type) params.set("type", opts.type);
+  const mappedSearchType = applyLegacyTypeMap(opts.type);
+  if (mappedSearchType) params.set("type", mappedSearchType);
   if (opts.apiKey) params.set("apiKey", opts.apiKey);
   if (opts.tokenBudget) params.set("tokenBudget", String(opts.tokenBudget));
   const res = await apiFetch(`/api/memory?${params}`);
@@ -72,9 +103,10 @@ export async function runMemoryAdd(opts, cmd) {
     process.stderr.write("--content or --file required\n");
     process.exit(2);
   }
+  const resolvedType = opts.type ? applyLegacyTypeMap(opts.type) : "factual";
   const body = {
     content,
-    type: opts.type ?? "user",
+    type: resolvedType,
     ...(opts.metadata ? { metadata: JSON.parse(opts.metadata) } : {}),
     ...(opts.apiKey ? { apiKey: opts.apiKey } : {}),
   };
@@ -94,7 +126,8 @@ export async function runMemoryClear(opts, cmd) {
     if (!ok) process.exit(0);
   }
   const params = new URLSearchParams();
-  if (opts.type) params.set("type", opts.type);
+  const mappedClearType = applyLegacyTypeMap(opts.type);
+  if (mappedClearType) params.set("type", mappedClearType);
   if (opts.olderThan) {
     const iso = parseDuration(opts.olderThan);
     if (!iso) {
@@ -112,7 +145,8 @@ export async function runMemoryClear(opts, cmd) {
 export async function runMemoryList(opts, cmd) {
   const globalOpts = cmd.optsWithGlobals();
   const params = new URLSearchParams({ limit: String(opts.limit ?? 100) });
-  if (opts.type) params.set("type", opts.type);
+  const mappedListType = applyLegacyTypeMap(opts.type);
+  if (mappedListType) params.set("type", mappedListType);
   if (opts.apiKey) params.set("apiKey", opts.apiKey);
   const res = await apiFetch(`/api/memory?${params}`);
   if (!res.ok) {

@@ -1,0 +1,1 @@
+- **chore(ci):** fix two shared base-reds on the release tip that blocked the PR queue — register `cliproxyapi-model-mapping-dispatch.test.ts` in `stryker.conf.json` `tap.testFiles` (mutation-coverage gap left by #6903) and update `provider-models-route-codex.test.ts` to expect Codex client version `0.144.0` (stale assertion left by #6780's production bump).

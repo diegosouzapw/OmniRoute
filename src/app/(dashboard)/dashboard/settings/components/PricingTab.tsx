@@ -5,6 +5,7 @@ import { Card, Button } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import InfoTooltip from "@/shared/components/InfoTooltip";
 import { useTranslations } from "next-intl";
+import { compareTr, matchesSearch } from "@/shared/utils/turkishText";
 
 type CoverageFilter = "all" | "lt50" | "gte50lt100" | "full";
 type AuthFilter = "all" | "oauth" | "apikey" | "unknown";
@@ -141,15 +142,13 @@ export default function PricingTab() {
   }, [catalog, pricingData]);
 
   const filteredProviders = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    const matchesSearch = (provider: (typeof allProviders)[number]) => {
-      if (!query) return true;
+    const providerMatchesSearch = (provider: (typeof allProviders)[number]) => {
+      if (!searchQuery.trim()) return true;
       return (
-        provider.alias.toLowerCase().includes(query) ||
-        provider.id.toLowerCase().includes(query) ||
+        matchesSearch(provider.alias, searchQuery) ||
+        matchesSearch(provider.id, searchQuery) ||
         provider.models.some(
-          (model) =>
-            model.id.toLowerCase().includes(query) || model.name.toLowerCase().includes(query)
+          (model) => matchesSearch(model.id, searchQuery) || matchesSearch(model.name, searchQuery)
         )
       );
     };
@@ -171,7 +170,7 @@ export default function PricingTab() {
     };
 
     const filtered = allProviders.filter(
-      (p) => matchesSearch(p) && matchesCoverage(p) && matchesAuth(p)
+      (p) => providerMatchesSearch(p) && matchesCoverage(p) && matchesAuth(p)
     );
 
     // Sort
@@ -187,7 +186,7 @@ export default function PricingTab() {
         sorted.sort((a, b) => coveragePct(a) - coveragePct(b));
         break;
       case "nameAsc":
-        sorted.sort((a, b) => a.alias.localeCompare(b.alias));
+        sorted.sort((a, b) => compareTr(a.alias, b.alias));
         break;
     }
     return sorted;
@@ -438,10 +437,6 @@ export default function PricingTab() {
     }
   }, [loadData, showStatus, t]);
 
-  const selectProviderFilter = useCallback((alias: string) => {
-    setSelectedProvider((previous) => (previous === alias ? null : alias));
-  }, []);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -521,7 +516,9 @@ export default function PricingTab() {
                     }`}
                   />
                   <span className="text-xs text-text-main font-medium">
-                    {syncStatus?.enabled ? t("syncEnabled") : t("syncDisabled")}
+                    {syncStatus?.enabled
+                      ? t("pricingAutoSyncEnabled")
+                      : t("pricingAutoSyncDisabled")}
                   </span>
                 </div>
               </div>
@@ -593,11 +590,11 @@ export default function PricingTab() {
           </div>
 
           <FilterSelect
-            label="Coverage"
+            label={t("pricingCoverage")}
             value={coverageFilter}
             onChange={(v) => setCoverageFilter(v as CoverageFilter)}
             options={[
-              { value: "all", label: `All (${allProviders.length})` },
+              { value: "all", label: `${t("pricingAll")} (${allProviders.length})` },
               { value: "lt50", label: "<50%" },
               { value: "gte50lt100", label: "50–99%" },
               { value: "full", label: "100%" },
@@ -605,26 +602,29 @@ export default function PricingTab() {
           />
 
           <FilterSelect
-            label="Auth"
+            label={t("pricingAuth")}
             value={authFilter}
             onChange={(v) => setAuthFilter(v as AuthFilter)}
             options={[
-              { value: "all", label: "All" },
+              { value: "all", label: t("pricingAll") },
               { value: "oauth", label: `OAuth (${authCounts.oauth})` },
               { value: "apikey", label: `API Key (${authCounts.apikey})` },
-              { value: "unknown", label: `Unknown (${authCounts.unknown})` },
+              {
+                value: "unknown",
+                label: `${t("pricingAuthUnknown")} (${authCounts.unknown})`,
+              },
             ]}
           />
 
           <FilterSelect
-            label="Sort"
+            label={t("pricingSort")}
             value={sortKey}
             onChange={(v) => setSortKey(v as SortKey)}
             options={[
-              { value: "modelsDesc", label: "Most models" },
-              { value: "coverageDesc", label: "Highest coverage" },
-              { value: "coverageAsc", label: "Lowest coverage" },
-              { value: "nameAsc", label: "Name (A–Z)" },
+              { value: "modelsDesc", label: t("pricingMostModels") },
+              { value: "coverageDesc", label: t("pricingHighestCoverage") },
+              { value: "coverageAsc", label: t("pricingLowestCoverage") },
+              { value: "nameAsc", label: t("pricingNameAscending") },
             ]}
           />
         </div>
@@ -641,7 +641,7 @@ export default function PricingTab() {
             }`}
           >
             <span className="material-symbols-outlined text-[14px]">warning</span>
-            Coverage gaps ({coverageGapCount})
+            {t("pricingCoverageGaps")} ({coverageGapCount})
           </button>
           {(searchQuery ||
             coverageFilter !== "all" ||
@@ -660,12 +660,16 @@ export default function PricingTab() {
               className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-bg-subtle text-xs text-text-muted hover:text-text-main cursor-pointer"
             >
               <span className="material-symbols-outlined text-[14px]">close</span>
-              Clear filters
+              {t("pricingClearFilters")}
             </button>
           )}
           <span className="text-text-muted ml-auto">
-            Showing {displayProviders.length} of {totalFiltered}
-            {totalFiltered !== allProviders.length && ` (filtered from ${allProviders.length})`}
+            {t("pricingShowingProviders", {
+              visible: displayProviders.length,
+              total: totalFiltered,
+            })}
+            {totalFiltered !== allProviders.length &&
+              ` ${t("pricingFilteredFrom", { count: allProviders.length })}`}
           </span>
         </div>
       </div>
@@ -702,8 +706,10 @@ export default function PricingTab() {
             className="mt-2 mx-auto px-4 py-2 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-sm text-text-main cursor-pointer flex items-center gap-1.5"
           >
             <span className="material-symbols-outlined text-[16px]">expand_more</span>
-            Show {Math.min(VISIBLE_INCREMENT, totalFiltered - visibleCount)} more (
-            {totalFiltered - visibleCount} remaining)
+            {t("pricingShowMoreProviders", {
+              count: Math.min(VISIBLE_INCREMENT, totalFiltered - visibleCount),
+              remaining: totalFiltered - visibleCount,
+            })}
           </button>
         )}
       </div>

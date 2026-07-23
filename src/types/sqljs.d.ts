@@ -1,6 +1,6 @@
 declare module "sql.js" {
   export interface SqlJsStatement {
-    bind(values: unknown[]): void;
+    bind(values: unknown[] | Record<string, unknown>): void;
     step(): boolean;
     getAsObject(): Record<string, unknown>;
     free(): void;
@@ -24,5 +24,9 @@ declare module "sql.js" {
     Database: new (data?: Uint8Array) => SqlJsDatabase;
   }
 
-  export default function initSqlJs(): Promise<SqlJsStatic>;
+  export interface SqlJsInitOptions {
+    locateFile?: (fileName: string) => string;
+  }
+
+  export default function initSqlJs(options?: SqlJsInitOptions): Promise<SqlJsStatic>;
 }

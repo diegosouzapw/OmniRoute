@@ -1,0 +1,1 @@
+- fix(sse): classify LAN embeddings providers (10/8, 192.168/16, CGNAT) as no-auth instead of forcing bearer auth (#6925)

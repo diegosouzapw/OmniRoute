@@ -1,12 +1,12 @@
 import { isIP } from "node:net";
-import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
-
-const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
 export const PROVIDER_URL_BLOCKED_MESSAGE = "Blocked private or local provider URL";
-export const PRIVATE_PROVIDER_URLS_ENV = "OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS";
+export const CLOUD_METADATA_BLOCKED_MESSAGE = "Blocked cloud-metadata endpoint";
 
-export type OutboundUrlGuardMode = "none" | "public-only";
+// "block-metadata": allow private/LAN hosts but still reject cloud-metadata / link-local
+// endpoints (the SSRF→IAM-credential pivot). Used by the provider-validation path under the
+// local-first default; never relaxes the metadata block.
+export type OutboundUrlGuardMode = "none" | "public-only" | "block-metadata";
 export type OutboundUrlGuardErrorCode = "OUTBOUND_URL_GUARD_BLOCKED" | "OUTBOUND_URL_INVALID";
 
 type OutboundUrlGuardErrorInit = {
@@ -81,6 +81,27 @@ export function isPrivateHost(hostname: string) {
   return false;
 }
 
+const CLOUD_METADATA_HOSTNAMES = new Set([
+  "169.254.169.254", // AWS / GCP / Azure / Oracle IMDS
+  "metadata.google.internal", // GCP
+  "metadata.goog", // GCP
+  "100.100.100.200", // Alibaba Cloud
+  "fd00:ec2::254", // AWS IPv6 IMDS
+]);
+
+/**
+ * Cloud-metadata and IPv4 link-local (169.254.0.0/16) endpoints are the classic
+ * SSRF→IAM-credential pivot and have no legitimate webhook/automation use case. They are
+ * blocked UNCONDITIONALLY — even when private targets are explicitly opted in. (#3269)
+ */
+export function isCloudMetadataHost(hostname: string): boolean {
+  const host = normalizeHost(hostname);
+  if (!host) return false;
+  if (CLOUD_METADATA_HOSTNAMES.has(host)) return true;
+  if (host.startsWith("169.254.")) return true; // IPv4 link-local /16
+  return false;
+}
+
 export function parseOutboundUrl(input: string | URL) {
   let url: URL;
   try {
@@ -125,40 +146,31 @@ export function parseAndValidatePublicUrl(input: string | URL) {
   return url;
 }
 
-function isTrueValue(raw: unknown): boolean {
-  if (typeof raw !== "string") return false;
-  return TRUE_ENV_VALUES.has(raw.trim().toLowerCase());
-}
+/**
+ * #5066: provider-validation variant. Allows private/LAN hosts (so a local OpenAI-compatible
+ * provider at 127.0.0.1 validates) but ALWAYS rejects cloud-metadata / link-local endpoints —
+ * the classic SSRF→IAM-credential pivot, which is never a legitimate provider endpoint.
+ * Protocol and embedded-credential checks from {@link parseOutboundUrl} still apply.
+ */
+export function parseAndValidateNonMetadataUrl(input: string | URL) {
+  const url = parseOutboundUrl(input);
 
-export function arePrivateProviderUrlsAllowed() {
-  // 1) DB override takes precedence — it represents an explicit user toggle in
-  //    the dashboard ("Allow Private Provider URLs"). This is critical for the
-  //    Electron build (#2575) where the server is spawned with the env value
-  //    captured at boot, so subsequent UI toggles only land in the DB and the
-  //    env-first ordering would otherwise mask them.
-  try {
-    const dbValue = resolveFeatureFlag(PRIVATE_PROVIDER_URLS_ENV);
-    if (isTrueValue(dbValue)) return true;
-  } catch {
-    // DB not initialized yet — fall through to env-only check.
+  if (isCloudMetadataHost(url.hostname)) {
+    throw new OutboundUrlGuardError(CLOUD_METADATA_BLOCKED_MESSAGE, {
+      code: "OUTBOUND_URL_GUARD_BLOCKED",
+      url: url.toString(),
+      hostname: url.hostname || null,
+    });
   }
 
-  // 2) Explicit env opt-in (for headless/Docker users who set it before boot).
-  if (isTrueValue(process.env[PRIVATE_PROVIDER_URLS_ENV])) return true;
-
-  // 3) Legacy escape hatch — disabling the outbound guard implies allowing
-  //    private URLs.
-  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
-  if (
-    typeof legacyValue === "string" &&
-    ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase())
-  ) {
-    return true;
-  }
-
-  return false;
+  return url;
 }
 
-export function getProviderOutboundGuard(): OutboundUrlGuardMode {
-  return arePrivateProviderUrlsAllowed() ? "none" : "public-only";
-}
+// NOTE (#7682): `arePrivateProviderUrlsAllowed`, `areLocalProviderUrlsAllowed`,
+// `getProviderOutboundGuard`, `getProviderValidationGuard`, and `parseAndValidateWebhookUrl`
+// live in the sibling `./outboundUrlGuardPolicy.ts` module, NOT here. Those helpers need
+// `@/shared/utils/featureFlags` (which transitively pulls in the DB layer), and this file is
+// loaded by the packaged CLI (`omniroute setup-opencode` → cli-helper/config-generator/
+// opencode.ts) where no `tsconfig.json` is present to resolve the `@/*` path alias. Keeping
+// this module free of ANY `@/`-aliased import is what makes it safe to load from the CLI.
+// Do not add a `@/`-aliased import here — see docs/security/… (packaging) and #7682.

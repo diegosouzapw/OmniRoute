@@ -522,11 +522,17 @@ export function cavemanCompress(
         ? detectCompressionLanguage(textPart)
         : (config.language ?? "en");
       const enabledPacks = config.enabledLanguagePacks ?? ["en", detectedLanguage];
-      const language = enabledPacks.includes(detectedLanguage)
+      // When auto-detect is on, honor the detected language directly: the detector only
+      // returns languages that have a rule pack, and falling back to the English pack on
+      // non-English text mangles it (the EN `articles` rule deletes pt-BR "a"/"o").
+      // enabledPacks still gates MANUAL pack selection (auto-detect off). (B-LANG-DORMANT)
+      const language = config.autoDetectLanguage
         ? detectedLanguage
-        : enabledPacks.includes("en")
-          ? "en"
-          : detectedLanguage;
+        : enabledPacks.includes(detectedLanguage)
+          ? detectedLanguage
+          : enabledPacks.includes("en")
+            ? "en"
+            : detectedLanguage;
       const rules = getRulesForContext(msg.role, config.intensity, language).filter(
         (rule) => !config.skipRules.includes(rule.name)
       );

@@ -1,0 +1,1 @@
+- fix(api): raise the main server's `keepAliveTimeout`/`headersTimeout` well above Node's 5s default so pooled keep-alive clients (e.g. JetBrains AI Assistant's JVM `HttpClient`) stop getting 0 bytes back on a reused connection (#7003)

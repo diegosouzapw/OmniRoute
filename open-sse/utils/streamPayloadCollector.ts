@@ -3,6 +3,7 @@ import { FORMATS } from "../translator/formats.ts";
 
 type StructuredSSEEvent = {
   index: number;
+  timestamp?: string;
   event?: string;
   data: unknown;
 };
@@ -128,13 +129,29 @@ function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string
     function: { name: string; arguments: string };
   };
   const toolCalls = new Map<string, ToolCall>();
+  // Aliases every `idx:N` key we've seen to the `id:X` it was first observed with (and
+  // vice versa), so a later delta chunk that only carries one of the two dimensions
+  // (e.g. a continuation chunk with `id` but no `index` — a known quirk of some
+  // OpenAI-compatible proxies) still resolves to the SAME accumulator entry instead of
+  // splitting one logical tool call into two (#6276).
+  const keyAliases = new Map<string, string>();
   let unknownToolCallSeq = 0;
   let finishReason = "stop";
   let usage: JsonRecord | null = null;
 
   const getToolCallKey = (toolCall: JsonRecord) => {
-    if (Number.isInteger(toolCall.index)) return `idx:${toolCall.index}`;
-    if (toolCall.id) return `id:${toolCall.id}`;
+    const idKey = typeof toolCall.id === "string" && toolCall.id ? `id:${toolCall.id}` : null;
+    const idxKey = Number.isInteger(toolCall.index) ? `idx:${toolCall.index}` : null;
+
+    const resolvedKey = (idKey && keyAliases.get(idKey)) || (idxKey && keyAliases.get(idxKey));
+    const key = resolvedKey || idKey || idxKey;
+
+    if (key) {
+      if (idKey) keyAliases.set(idKey, key);
+      if (idxKey) keyAliases.set(idxKey, key);
+      return key;
+    }
+
     unknownToolCallSeq += 1;
     return `seq:${unknownToolCallSeq}`;
   };
@@ -356,9 +373,21 @@ function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string
   let role = "assistant";
   let stopReason = "end_turn";
   let stopSequence: string | null = null;
+  // Context Editing (`anthropic-beta: context-management-2025-06-27`) surfaces
+  // `context_management.applied_edits[]` on the final `message_delta` snapshot. Preserve it
+  // so streaming context-clear savings reach `extractContextEditingTelemetry`, mirroring the
+  // non-streaming JSON path. Last-writer-wins: the final snapshot is authoritative.
+  let contextManagement: JsonRecord | null = null;
 
   for (const payload of payloads) {
     const eventType = toString(payload.type);
+    if (
+      payload.context_management &&
+      typeof payload.context_management === "object" &&
+      !Array.isArray(payload.context_management)
+    ) {
+      contextManagement = asRecord(payload.context_management);
+    }
     if (eventType === "message_start") {
       const message = asRecord(payload.message);
       messageId = toString(message.id, messageId || `msg_${Date.now()}`);
@@ -506,6 +535,7 @@ function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string
     stop_reason: stopReason,
     ...(stopSequence ? { stop_sequence: stopSequence } : {}),
     ...(Object.keys(usage).length > 0 ? { usage } : {}),
+    ...(contextManagement ? { context_management: contextManagement } : {}),
   };
 }
 
@@ -596,7 +626,6 @@ export function buildStreamSummaryFromEvents(
     case FORMATS.CLAUDE:
       return buildClaudeSummary(events, fallbackModel);
     case FORMATS.GEMINI:
-    case FORMATS.GEMINI_CLI:
     case FORMATS.ANTIGRAVITY:
       return buildGeminiSummary(events, fallbackModel);
     default:
@@ -648,6 +677,7 @@ export function createStructuredSSECollector(options: CollectorOptions = {}) {
 
       const event: StructuredSSEEvent = {
         index: events.length + droppedEvents,
+        timestamp: new Date().toISOString(),
         data: cloneLogPayload(payload),
       };
 
