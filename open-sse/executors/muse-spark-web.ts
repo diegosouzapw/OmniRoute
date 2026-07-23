@@ -942,7 +942,9 @@ async function graphqlPost(
   } catch (err) {
     return {
       ok: false,
-      error: `${label} fetch failed: ${err instanceof Error ? err.message : String(err)}`,
+      error: `${label} fetch failed: ${sanitizeErrorMessage(
+        err instanceof Error ? err.message : String(err)
+      )}`,
     };
   }
 }
