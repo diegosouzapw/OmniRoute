@@ -144,3 +144,19 @@ export function resolveAlibabaProviderModelsUrl(
     .replace(/\/(?:chat\/completions|messages|models)$/i, "");
   return baseUrl ? `${baseUrl}/models` : "";
 }
+
+/**
+ * Resolve the dedicated Alibaba-family media API root from the connection's
+ * regional OpenAI/Anthropic-compatible endpoint.
+ */
+export function resolveAlibabaProviderMediaBaseUrl(
+  providerId: string,
+  providerSpecificData?: unknown,
+  fallback = ""
+): string {
+  return resolveAlibabaProviderBaseUrl(providerId, providerSpecificData, fallback)
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/compatible-mode\/v1(?:\/(?:chat\/completions|models))?$/i, "/api/v1")
+    .replace(/\/apps\/anthropic(?:\/v1)?(?:\/messages)?$/i, "/api/v1");
+}
