@@ -90,13 +90,23 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
 
 export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [...GEMINI_UNSUPPORTED_SCHEMA_KEYS];
 
-// Default safety settings
+// Default safety settings for the standard Gemini API surface.
+//
+// HARM_CATEGORY_CIVIC_INTEGRITY is intentionally NOT included here (#8231): the
+// dynamic validation on some models/endpoints rejects it with a hard 400
+// (`safety_settings[N]: element predicate failed`), taking down every request
+// through that model. The Antigravity/Cloud Code surface already worked around
+// this for #5003 (see ANTIGRAVITY_UNSUPPORTED_SAFETY_CATEGORIES in
+// open-sse/executors/antigravity.ts) — this drops the same category from the
+// standard-path default so behavior is consistent across Gemini surfaces. A
+// caller that explicitly supplies safetySettings (including one that itself
+// requests CIVIC_INTEGRITY) is still honored as-is — only this unconditional
+// default is scoped down.
 export const DEFAULT_SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "OFF" },
   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "OFF" },
   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "OFF" },
   { category: "HARM_CATEGORY_HARASSMENT", threshold: "OFF" },
-  { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "OFF" },
 ];
 
 function normalizeAudioMimeType(format: unknown): string {
