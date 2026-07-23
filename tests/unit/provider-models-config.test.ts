@@ -89,9 +89,7 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
 
   assert.deepEqual(ids, [...GITHUB_COPILOT_MODEL_ALLOWLIST]);
   assert.equal(getModelTargetFormat("gh", "gpt-5.3-codex"), "openai-responses");
-  // "claude-opus-4.6" is not a real Copilot model id (unlike claude-sonnet-4.6);
-  // it never appears in the registry, so its target format stays null.
-  assert.equal(getModelTargetFormat("gh", "claude-opus-4.6"), null);
+  assert.equal(getModelTargetFormat("gh", "claude-opus-4.6"), "claude");
   // Claude models route through Copilot's Anthropic-native /v1/messages shim
   // (executors/github.ts) — the only endpoint that surfaces prompt-cache token
   // counts for Claude and avoids a lossy tool_use/tool_result round-trip through
