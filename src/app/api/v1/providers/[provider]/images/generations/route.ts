@@ -13,6 +13,8 @@ import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
+import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
 
 /**
  * Handle CORS preflight
@@ -55,6 +57,14 @@ export async function POST(request, { params }) {
     body.model = `${rawProvider}/${body.model}`;
   }
 
+  const apiKeyRaw = extractApiKey(request);
+  if (isRequireApiKeyEnabled() && !apiKeyRaw) {
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
+  }
+  if (apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
+  }
+
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
@@ -84,7 +94,13 @@ export async function POST(request, { params }) {
     );
   }
 
-  const result = await handleImageGeneration({ body, credentials, log });
+  const result = await runWithCallLogApiKeyContext(
+    {
+      apiKeyId: policy.apiKeyInfo?.id ?? null,
+      apiKeyName: policy.apiKeyInfo?.name ?? null,
+    },
+    () => handleImageGeneration({ body, credentials, log })
+  );
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);

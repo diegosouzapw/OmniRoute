@@ -12,6 +12,7 @@ import { getDbInstance } from "../db/core";
 import { collectReferencedArtifacts, selectCallLogIdsBefore } from "./callLogsBoundedQueries";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
+import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -550,7 +551,9 @@ export async function saveCallLog(entry: any) {
   if (!shouldPersistToDisk) return;
 
   try {
-    const apiKeyId = entry.apiKeyId || null;
+    const apiKeyContext = getCallLogApiKeyContext();
+    const apiKeyId = entry.apiKeyId ?? apiKeyContext?.apiKeyId ?? null;
+    const apiKeyName = entry.apiKeyName ?? apiKeyContext?.apiKeyName ?? null;
     const noLogEnabled = Boolean(entry.noLog) || (apiKeyId ? isNoLog(apiKeyId) : false);
 
     const protectedRequestBody = noLogEnabled ? null : protectPayloadForLog(entry.requestBody);
@@ -597,7 +600,7 @@ export async function saveCallLog(entry: any) {
       sourceFormat: entry.sourceFormat || null,
       targetFormat: entry.targetFormat || null,
       apiKeyId,
-      apiKeyName: entry.apiKeyName || null,
+      apiKeyName,
       comboName: entry.comboName || null,
       comboStepId: toStringOrNull(entry.comboStepId),
       comboExecutionKey:
