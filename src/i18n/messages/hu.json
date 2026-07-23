@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Kliensprofil",
     "antigravityClientProfileHint": "Válassza ki, melyik Antigravity kliensidentitást mutassa az OmniRoute az API felé.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "A Codex Fast szint aktív",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "Google Cloud Project ID",

@@ -42,7 +42,11 @@ import {
   resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
-import { FetchTimeoutError, fetchWithTimeout, getConfiguredTimeout } from "@/shared/utils/fetchTimeout";
+import {
+  FetchTimeoutError,
+  fetchWithTimeout,
+  getConfiguredTimeout,
+} from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 // --- Per-provider handlers (extracted to co-located files in PR-#4582-batch) ---
@@ -69,7 +73,10 @@ import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmin
 import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
-
+import {
+  applyPollinationsAnonymousFallback,
+  reportPollinationsAnonOutcome,
+} from "./imageGeneration/pollinationsAnonAuth.ts";
 
 interface KieImageOptions {
   model: string;
@@ -135,9 +142,7 @@ const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
  */
 export function resolveImageBaseUrl(
   credentials:
-    | { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null }
-    | null
-    | undefined,
+    { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
   fallback: string,
   endpoint: "generations" | "edits" = "generations"
 ): string {
@@ -1031,15 +1036,28 @@ async function handleOpenAIImageGeneration({
   }
 
   // Build headers
-  const headers = {
+  let headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
   const token = credentials.apiKey || credentials.accessToken;
-  if (providerConfig.authHeader === "bearer") {
+  if (token && providerConfig.authHeader === "bearer") {
     headers["Authorization"] = `Bearer ${token}`;
-  } else if (providerConfig.authHeader === "x-api-key") {
+  } else if (token && providerConfig.authHeader === "x-api-key") {
     headers["x-api-key"] = token;
+  }
+
+  // #8085 — keyless Pollinations image requests (the common free case) get
+  // no Authorization header above. Mirror the chat executor's anonymous
+  // fingerprint-pool fallback (open-sse/executors/pollinations.ts) so the
+  // outbound request isn't sent bare and rejected by Pollinations' own 401.
+  let pollinationsAnonSession: Awaited<
+    ReturnType<typeof applyPollinationsAnonymousFallback>
+  >["session"] = null;
+  if (providerConfig.id === "pollinations") {
+    const anon = await applyPollinationsAnonymousFallback(providerConfig.id, token, headers);
+    headers = anon.headers;
+    pollinationsAnonSession = anon.session;
   }
 
   if (log) {
@@ -1080,6 +1098,10 @@ async function handleOpenAIImageGeneration({
       provider,
       log
     );
+  }
+
+  if (pollinationsAnonSession) {
+    reportPollinationsAnonOutcome(pollinationsAnonSession, result.status);
   }
 
   // Save call log after result is determined
@@ -1188,7 +1210,10 @@ export async function handleOpenAIImageEdit({
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   if (log) {
-    log.info("IMAGE", `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`);
+    log.info(
+      "IMAGE",
+      `${provider}/${model} (edit) | prompt: "${prompt.slice(0, 60)}..." -> ${url}`
+    );
   }
 
   const result = await fetchImageEndpoint(
@@ -2297,6 +2322,9 @@ async function handleCodexImageGeneration({
   body,
   credentials,
   log,
+  referenceImages = [],
+  signal = null,
+  logPath = "/v1/images/generations",
 }) {
   const startTime = Date.now();
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
@@ -2307,6 +2335,7 @@ async function handleCodexImageGeneration({
       status: 400,
       startTime,
       error: "Prompt is required for Codex image generation",
+      path: logPath,
     });
   }
 
@@ -2327,6 +2356,7 @@ async function handleCodexImageGeneration({
       status: 401,
       startTime,
       error: "Codex credentials missing accessToken — reconnect the Codex provider",
+      path: logPath,
     });
   }
 
@@ -2342,6 +2372,7 @@ async function handleCodexImageGeneration({
   // (model, n, background, moderation, output_compression) is left to the
   // Codex backend's defaults — today that's `gpt-image-2`.
   const toolConfig: Record<string, unknown> = { type: "image_generation", output_format: "png" };
+  if (referenceImages.length > 0) toolConfig.action = "edit";
   if (typeof body.size === "string" && body.size.trim()) {
     toolConfig.size = body.size.trim();
   }
@@ -2349,20 +2380,44 @@ async function handleCodexImageGeneration({
     toolConfig.quality = mapLegacyImageQualityToImageTool(body.quality.trim());
   }
 
+  const inputContent: Array<Record<string, unknown>> = [{ type: "input_text", text: prompt }];
+  for (const image of referenceImages) {
+    inputContent.push({
+      type: "input_image",
+      image_url: `data:${image.mime || "image/png"};base64,${image.bytes.toString("base64")}`,
+    });
+  }
+
   const upstreamBody: Record<string, unknown> = {
     model,
     instructions:
-      "You must call the image_generation tool exactly once to fulfill the user's request. Do not add narration.",
+      referenceImages.length > 0
+        ? `You must call the image_generation tool exactly once to edit the supplied ${referenceImages.length === 1 ? "reference image" : "reference images"}. Treat all supplied images as references for the user's requested composition or style. Do not add narration.`
+        : "You must call the image_generation tool exactly once to fulfill the user's request. Do not add narration.",
     input: [
       {
         role: "user",
-        content: [{ type: "input_text", text: prompt }],
+        content: inputContent,
       },
     ],
     tools: [toolConfig],
     stream: true,
     store: false,
   };
+  const requestBodyForLog =
+    referenceImages.length > 0
+      ? {
+          model,
+          prompt_chars: prompt.length,
+          reference_images: referenceImages.map((image) => ({
+            mime: image.mime || "image/png",
+            bytes: image.bytes.length,
+          })),
+          tools: [toolConfig],
+          stream: true,
+          store: false,
+        }
+      : upstreamBody;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -2378,10 +2433,9 @@ async function handleCodexImageGeneration({
   }
 
   if (log) {
-    log.info(
-      "IMAGE",
-      `${provider}/${model} (codex-responses) | prompt: "${prompt.slice(0, 60)}..."`
-    );
+    const promptSummary =
+      referenceImages.length > 0 ? `${prompt.length} chars` : `"${prompt.slice(0, 60)}..."`;
+    log.info("IMAGE", `${provider}/${model} (codex-responses) | prompt: ${promptSummary}`);
   }
 
   const fetchOneImage = async () => {
@@ -2391,9 +2445,11 @@ async function handleCodexImageGeneration({
         method: "POST",
         headers,
         body: JSON.stringify(upstreamBody),
+        signal,
       });
     } catch (err) {
-      if (log) log.error("IMAGE", `${provider} fetch error: ${(err as Error).message}`);
+      const message = sanitizeErrorMessage(err);
+      if (log) log.error("IMAGE", `${provider} fetch error: ${message}`);
       return {
         ok: false as const,
         error: {
@@ -2401,16 +2457,19 @@ async function handleCodexImageGeneration({
           model,
           status: 502,
           startTime,
-          error: `Image provider error: ${(err as Error).message}`,
-          requestBody: upstreamBody,
+          error: `Image provider error: ${message}`,
+          requestBody: requestBodyForLog,
+          path: logPath,
         },
       };
     }
 
     if (!response.ok) {
       const errorText = await response.text();
-      if (log)
-        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
+      const safeError = sanitizeImageProviderError(errorText);
+      const safeErrorLog =
+        typeof safeError === "string" ? safeError : JSON.stringify(safeError ?? {});
+      if (log) log.error("IMAGE", `${provider} error ${response.status}: ${safeErrorLog}`);
       return {
         ok: false as const,
         error: {
@@ -2418,8 +2477,9 @@ async function handleCodexImageGeneration({
           model,
           status: response.status,
           startTime,
-          error: errorText,
-          requestBody: upstreamBody,
+          error: safeError,
+          requestBody: requestBodyForLog,
+          path: logPath,
         },
       };
     }
@@ -2436,7 +2496,8 @@ async function handleCodexImageGeneration({
           startTime,
           error:
             "Codex completed without producing an image_generation_call — the model may have declined the tool",
-          requestBody: upstreamBody,
+          requestBody: requestBodyForLog,
+          path: logPath,
         },
       };
     }
@@ -2471,10 +2532,57 @@ async function handleCodexImageGeneration({
     provider,
     model,
     startTime,
-    requestBody: upstreamBody,
+    requestBody: requestBodyForLog,
     responseBody: { images_count: data.length },
     images: data,
+    path: logPath,
   });
+}
+
+type CodexImageEditResult =
+  | { success: true; data: { created: number; data: Array<Record<string, unknown>> } }
+  | { success: false; status: number; error: unknown };
+
+/**
+ * Run a stateless Codex reference-image edit through the native Responses hosted tool.
+ * This deliberately reuses the text-to-image implementation so OAuth headers, SSE parsing,
+ * response formatting, and error handling cannot drift between generations and edits.
+ */
+export async function handleCodexImageEdit({
+  model,
+  provider,
+  providerConfig,
+  body,
+  referenceImages,
+  credentials,
+  log,
+  signal = null,
+}: {
+  model: string;
+  provider: string;
+  providerConfig: unknown;
+  body: Record<string, unknown>;
+  referenceImages: Array<{ bytes: Buffer; mime: string }>;
+  credentials: unknown;
+  log: {
+    info: (tag: string, message: string) => void;
+    warn: (tag: string, message: string) => void;
+    error: (tag: string, message: string) => void;
+  } | null;
+  signal?: AbortSignal | null;
+}): Promise<CodexImageEditResult> {
+  const result = await handleCodexImageGeneration({
+    model,
+    provider,
+    providerConfig,
+    body: { ...body, n: 1 },
+    credentials,
+    log,
+    referenceImages,
+    signal,
+    logPath: "/v1/images/edits",
+  });
+  return result as CodexImageEditResult;
 }
 
 export function saveImageSuccessResult({
@@ -2485,10 +2593,11 @@ export function saveImageSuccessResult({
   responseBody = null,
   created = null,
   images,
+  path = "/v1/images/generations",
 }) {
   saveCallLog({
     method: "POST",
-    path: "/v1/images/generations",
+    path,
     status: 200,
     model: `${provider}/${model}`,
     provider,
@@ -2506,10 +2615,18 @@ export function saveImageSuccessResult({
   };
 }
 
-export function saveImageErrorResult({ provider, model, status, startTime, error, requestBody = null }) {
+export function saveImageErrorResult({
+  provider,
+  model,
+  status,
+  startTime,
+  error,
+  requestBody = null,
+  path = "/v1/images/generations",
+}) {
   saveCallLog({
     method: "POST",
-    path: "/v1/images/generations",
+    path,
     status,
     model: `${provider}/${model}`,
     provider,

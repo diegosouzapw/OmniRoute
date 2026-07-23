@@ -1,6 +1,9 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
-import { isInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
+import {
+  isInternalReasoningPlaceholder,
+  stripInternalReasoningPlaceholder,
+} from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
 /**
@@ -533,93 +536,104 @@ export function createResponsesApiTransformStream(
 
           // Handle text content. Generic prompt-format tags are visible text;
           // only tag-native models opt into textual reasoning extraction.
+          // Strip the internal reasoning placeholder if the model echoed it
+          // through ordinary content (#8081). Only the text-content emission
+          // is skipped when nothing meaningful remains — this must NOT skip
+          // this message's tool_calls / finish_reason handling below, so we
+          // gate the whole block on strippedContent instead of returning /
+          // continuing out of the msg loop early.
           if (delta.content) {
-            // Close reasoning if it was opened via native reasoning_content
-            // and is still open, before emitting message content. Without this
-            // the reasoning item is never closed and the message reuses the
-            // reasoning output_index, producing a protocol-invalid stream.
-            if (
-              state.reasoningId &&
-              !state.reasoningDone &&
-              (!parseTextualReasoningTags || !state.inThinking)
-            ) {
-              closeReasoning(controller);
-            }
-
-            let content = delta.content;
-
-            if (parseTextualReasoningTags) {
-              if (content.includes("<think>")) {
-                state.inThinking = true;
-                content = content.replaceAll("<think>", "");
-                startReasoning(controller, idx);
-              }
-
-              if (content.includes("</think>")) {
-                const parts = content.split("</think>");
-                const thinkPart = parts[0];
-                const textPart = parts.slice(1).join("</think>");
-
-                if (thinkPart) emitReasoningDelta(controller, thinkPart);
+            const strippedContent = stripInternalReasoningPlaceholder(delta.content);
+            if (strippedContent) {
+              // Close reasoning if it was opened via native reasoning_content
+              // and is still open, before emitting message content. Without this
+              // the reasoning item is never closed and the message reuses the
+              // reasoning output_index, producing a protocol-invalid stream.
+              if (
+                state.reasoningId &&
+                !state.reasoningDone &&
+                (!parseTextualReasoningTags || !state.inThinking)
+              ) {
                 closeReasoning(controller);
-                state.inThinking = false;
-                content = textPart;
               }
 
-              if (state.inThinking && content) {
-                emitReasoningDelta(controller, content);
-                continue;
-              }
-            }
+              let content = strippedContent;
 
-            // Regular text content
-            if (content) {
-              // Use a distinct output_index for the message when reasoning was
-              // emitted, so the message item does not collide with the
-              // reasoning item's output_index.
-              const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
+              if (parseTextualReasoningTags) {
+                if (content.includes("<think>")) {
+                  state.inThinking = true;
+                  content = content.replaceAll("<think>", "");
+                  startReasoning(controller, idx);
+                }
 
-              // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
-              if (!state.msgTextBuf[msgIdx]) {
-                content = content.trimStart();
-              }
+                if (content.includes("</think>")) {
+                  const parts = content.split("</think>");
+                  const thinkPart = parts[0];
+                  const textPart = parts.slice(1).join("</think>");
 
-              if (!content) continue;
+                  if (thinkPart) emitReasoningDelta(controller, thinkPart);
+                  closeReasoning(controller);
+                  state.inThinking = false;
+                  content = textPart;
+                }
 
-              if (!state.msgItemAdded[msgIdx]) {
-                state.msgItemAdded[msgIdx] = true;
-                const msgId = `msg_${state.responseId}_${msgIdx}`;
-
-                emit(controller, "response.output_item.added", {
-                  type: "response.output_item.added",
-                  output_index: msgIdx,
-                  item: { id: msgId, type: "message", content: [], role: "assistant" },
-                });
+                if (state.inThinking && content) {
+                  emitReasoningDelta(controller, content);
+                  // Pre-existing behaviour (unrelated to #8081): a still-open
+                  // textual <think> block ends this message's handling early.
+                  continue;
+                }
               }
 
-              if (!state.msgContentAdded[msgIdx]) {
-                state.msgContentAdded[msgIdx] = true;
+              // Regular text content
+              if (content) {
+                // Use a distinct output_index for the message when reasoning was
+                // emitted, so the message item does not collide with the
+                // reasoning item's output_index.
+                const msgIdx = state.reasoningId ? state.reasoningIndex + 1 : idx;
 
-                emit(controller, "response.content_part.added", {
-                  type: "response.content_part.added",
+                // Fix for #1211: Strip leading double-newlines / blank spaces from the very first text chunk
+                if (!state.msgTextBuf[msgIdx]) {
+                  content = content.trimStart();
+                }
+
+                if (!content) continue;
+
+                if (!state.msgItemAdded[msgIdx]) {
+                  state.msgItemAdded[msgIdx] = true;
+                  const msgId = `msg_${state.responseId}_${msgIdx}`;
+
+                  emit(controller, "response.output_item.added", {
+                    type: "response.output_item.added",
+                    output_index: msgIdx,
+                    item: { id: msgId, type: "message", content: [], role: "assistant" },
+                  });
+                }
+
+                if (!state.msgContentAdded[msgIdx]) {
+                  state.msgContentAdded[msgIdx] = true;
+
+                  emit(controller, "response.content_part.added", {
+                    type: "response.content_part.added",
+                    item_id: `msg_${state.responseId}_${msgIdx}`,
+                    output_index: msgIdx,
+                    content_index: 0,
+                    part: { type: "output_text", annotations: [], logprobs: [], text: "" },
+                  });
+                }
+
+                emit(controller, "response.output_text.delta", {
+                  type: "response.output_text.delta",
                   item_id: `msg_${state.responseId}_${msgIdx}`,
                   output_index: msgIdx,
                   content_index: 0,
-                  part: { type: "output_text", annotations: [], logprobs: [], text: "" },
+                  delta: content,
+                  logprobs: [],
                 });
+
+                if (!state.msgTextBuf[msgIdx]) state.msgTextBuf[msgIdx] = "";
+                state.msgTextBuf[msgIdx] += content;
               }
-
-              emit(controller, "response.output_text.delta", {
-                type: "response.output_text.delta",
-                item_id: `msg_${state.responseId}_${msgIdx}`,
-                output_index: msgIdx,
-                content_index: 0,
-                delta: content,
-                logprobs: [],
-              });
-
-              if (!state.msgTextBuf[msgIdx]) state.msgTextBuf[msgIdx] = "";
-              state.msgTextBuf[msgIdx] += content;
             }
           }
 

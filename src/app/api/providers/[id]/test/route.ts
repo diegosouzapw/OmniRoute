@@ -615,6 +615,9 @@ async function testApiKeyConnection(connection: any) {
     error,
     warning: result.warning || null,
     diagnosis,
+    ...(Array.isArray((result as any).deployments)
+      ? { deployments: (result as any).deployments }
+      : {}),
   };
 }
 

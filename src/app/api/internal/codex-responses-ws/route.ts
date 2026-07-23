@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { CodexExecutor } from "@omniroute/open-sse/executors/codex.ts";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
@@ -32,6 +32,7 @@ import {
 import { resolveRequestRoutingTags } from "@/domain/tagRouter";
 import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
 import { persistResponsesWsCallHistory } from "./history";
+import { applyResponsesWsCompression } from "./compression";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -512,6 +513,14 @@ async function prepare(body: JsonRecord) {
     responseBodyWithMemory = applyReasoningRuleDirective(withDirective) as JsonRecord;
     delete responseBodyWithMemory._omnirouteReasoningRouteTrace;
   }
+  // #8052: the WS bridge previously skipped the whole prompt-compression pipeline that the
+  // HTTP/SSE path (chatCore.ts) runs on every request — wire the same core pipeline in here,
+  // per logical turn, before handing off to the executor.
+  responseBodyWithMemory = await applyResponsesWsCompression(responseBodyWithMemory, {
+    provider,
+    model,
+    requestId: randomUUID(),
+  });
   const transformed = (await executor.transformRequest(
     model,
     responseBodyWithMemory,

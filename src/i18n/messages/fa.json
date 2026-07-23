@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "پروفایل کلاینت",
     "antigravityClientProfileHint": "انتخاب کنید که OmniRoute کدام هویت کلاینت Antigravity را به API ارائه دهد.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "سطح Codex Fast فعال است",
     "tierFast": "سریع",
     "antigravityProjectIdLabel": "شناسه پروژه Google Cloud",

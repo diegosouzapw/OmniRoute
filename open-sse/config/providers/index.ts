@@ -101,6 +101,7 @@ import { t3_webProvider } from "./registry/t3-web/index.ts";
 import { iflytekProvider } from "./registry/iflytek/index.ts";
 import { crofProvider } from "./registry/crof/index.ts";
 import { moonshotProvider } from "./registry/moonshot/index.ts";
+import { poeProvider } from "./registry/poe/index.ts";
 import { bazaarlinkProvider } from "./registry/bazaarlink/index.ts";
 import { perplexityProvider } from "./registry/perplexity/index.ts";
 import { perplexity_webProvider } from "./registry/perplexity/web/index.ts";
@@ -184,6 +185,7 @@ import { maritalkProvider } from "./registry/maritalk/index.ts";
 import { basetenProvider } from "./registry/baseten/index.ts";
 import { geminiProvider } from "./registry/gemini/index.ts";
 import { gemini_webProvider } from "./registry/gemini/web/index.ts";
+import { gemini_cliProvider } from "./registry/gemini-cli/index.ts";
 import { clineProvider } from "./registry/cline/index.ts";
 import { herokuProvider } from "./registry/heroku/index.ts";
 import { bluesmindsProvider } from "./registry/bluesminds/index.ts";
@@ -314,6 +316,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   iflytek: iflytekProvider,
   crof: crofProvider,
   moonshot: moonshotProvider,
+  poe: poeProvider,
   bazaarlink: bazaarlinkProvider,
   perplexity: perplexityProvider,
   "perplexity-web": perplexity_webProvider,
@@ -396,6 +399,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   baseten: basetenProvider,
   gemini: geminiProvider,
   "gemini-web": gemini_webProvider,
+  "gemini-cli": gemini_cliProvider,
   cline: clineProvider,
   heroku: herokuProvider,
   bluesminds: bluesmindsProvider,
