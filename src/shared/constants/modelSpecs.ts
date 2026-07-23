@@ -360,12 +360,14 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   },
 
   // ── Kimi K3 (Moonshot API — 1M context/output, native vision) ────
+  // `k3` is the Kimi Coding / kimi-coding-apikey wire id (#8250).
   "kimi-k3": {
     maxOutputTokens: 1048576,
     contextWindow: 1048576,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
+    aliases: ["k3"],
   },
 
   // ── Kimi K2.6 (Moonshot API — 262K native) ──────────────────────

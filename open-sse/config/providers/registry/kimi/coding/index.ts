@@ -9,6 +9,8 @@ export const KIMI_CODING_MODELS: RegistryModel[] = [
     name: "Kimi K3",
     contextLength: 1048576,
     supportsReasoning: true,
+    // Native Moonshot vision — keep registry aligned with MODEL_SPECS / sync (#8250).
+    supportsVision: true,
   },
   {
     id: "kimi-for-coding",
