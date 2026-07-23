@@ -260,9 +260,17 @@ export default function ProviderCard({
     onToggle(allDisabled);
   };
 
+  const handleCardClick = () => {
+    window.history.replaceState(null, "", `#provider-${providerId}`);
+  };
+
   return (
-    <div className="flex flex-col h-full">
-      <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
+    <div id={`provider-${providerId}`} className="flex flex-col h-full">
+      <Link
+        href={`/dashboard/providers/${providerId}`}
+        className="group flex-1 flex flex-col"
+        onClick={handleCardClick}
+      >
         <Card
           padding="xs"
           className={`h-full flex flex-col hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${
