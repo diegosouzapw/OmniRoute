@@ -1,0 +1,1 @@
+- **fix(dashboard):** Normalize Codex client URLs, restore the analytics input-bar color, resolve OAuth modal TypeScript regressions, synchronize the documented compression-engine count, and sanitize Muse Spark fetch errors ([#8233](https://github.com/diegosouzapw/OmniRoute/pull/8233)) — thanks @nguyenha935

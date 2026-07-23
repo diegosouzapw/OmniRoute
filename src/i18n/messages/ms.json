@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "Profil klien",
     "antigravityClientProfileHint": "Pilih identiti klien Antigravity yang dibentangkan oleh OmniRoute kepada API.",
     "antigravityClientProfileIde": "IDE",
-    "antigravityClientProfileHarness": "Harness / CLI",
+    "antigravityClientProfileCli": "Harness / CLI",
     "codexFastTierActiveChip": "Tier Fast Codex aktif",
     "tierFast": "Fast",
     "antigravityProjectIdLabel": "ID Projek Awan Google",

@@ -1,0 +1,1 @@
+- **Providers**: AGY model sync now discovers newly announced chat models from the live Antigravity catalog while filtering internal and tab-completion-only models, with the bundled catalog retained as an offline fallback

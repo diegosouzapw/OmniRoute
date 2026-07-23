@@ -5,6 +5,7 @@ import WebSocket from "ws";
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
   normalizeSessionCookieHeader,
   normalizeSessionCookieHeaders,
@@ -12,9 +13,8 @@ import {
 import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
-// Meta rebranded the chat product from "Abra" to "Ecto"; the session cookie
-// `abra_sess` was replaced by `ecto_1_sess`. `normalizeSessionCookieHeader`
-// only uses this constant when the user pastes a bare cookie value with no
+// Meta rebranded "Abra" to "Ecto"; `abra_sess` became `ecto_1_sess`.
+// `normalizeSessionCookieHeader` only uses this constant for bare values with no
 // `name=` prefix; full cookie lines (with any cookie names) pass through
 // untouched, so users who paste their entire DevTools cookie line still work.
 const META_AI_DEFAULT_COOKIE = "ecto_1_sess";
@@ -522,7 +522,7 @@ function buildErrorResponse(status: number, message: string, code?: string | nul
   return new Response(
     JSON.stringify({
       error: {
-        message,
+        message: sanitizeErrorMessage(message),
         type: "upstream_error",
         ...(code ? { code } : {}),
       },

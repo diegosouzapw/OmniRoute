@@ -171,6 +171,21 @@ the provider ID starts with `anthropic-compatible-cc-` (note the trailing dash �
 see `CLAUDE_CODE_COMPATIBLE_PREFIX` in `open-sse/services/claudeCodeCompatible.ts`)
 and the feature flag is enabled.
 
+**`unauthorized client detected` / HTML error page even though an AgentRouter
+provider already exists** — you likely have **more than one** AgentRouter provider
+and your request is hitting the wrong one. If a leftover hand-made
+`anthropic-compatible-*` (non-`cc`) or `openai-compatible-chat-*` provider was
+created with the `agentrouter` prefix, it can own the `agentrouter/<model>` model
+IDs (and combos may reference it by node ID), so traffic routes to that provider —
+which sends a generic User-Agent and gets rejected — instead of the built-in
+`agentrouter` provider that already ships the correct wire image. Check where the
+model actually resolves in the omniroute logs (`ROUTING` tag shows
+`agentrouter/<model> → <providerId>/<model>`); if `<providerId>` is not
+`agentrouter`, consolidate on the native provider: point combos at
+`agentrouter/<model>` (providerId `agentrouter`) and delete the duplicate
+compatible providers. The native provider needs no wire-image configuration and no
+`customUserAgent`.
+
 ---
 
 ## See also

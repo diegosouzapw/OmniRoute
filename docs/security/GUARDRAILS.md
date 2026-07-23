@@ -60,12 +60,13 @@ exposes a `deps` constructor option so tests can inject fake `getSettings` and
 
 Runs on **both** stages.
 
-- **`preCall`** clones the payload, walks `system`, `messages`, and `input`
-  arrays, and applies `processPII()` (from `@/shared/utils/inputSanitizer`) to
-  string `content`/`text` fields. When `PII_REDACTION_ENABLED=true` **and**
-  `INPUT_SANITIZER_MODE=redact`, detected PII is stripped/redacted in the
-  outbound payload. Otherwise the call records detection counts without
-  rewriting content.
+- **`preCall`** clones the payload, walks `system`, `messages`, `input`, and
+  `prompt` (including plain string items), and applies `processPII()` (from
+  `@/shared/utils/inputSanitizer`) to string `content`/`text` fields. When
+  `PII_REDACTION_ENABLED=true`, detected PII is redacted in the outbound
+  payload. This is independent of `INPUT_SANITIZER_MODE` (which only controls
+  prompt-injection policy). When redaction is off, the call records detection
+  counts without rewriting content.
 - **`postCall`** deep-clones the response, runs `sanitizePIIResponse()` plus
   the Responses-API-shape masker (`maskResponsesOutput` — covers
   `output_text` and `output[].content[].text`). If any redaction occurs, the
@@ -83,8 +84,8 @@ options:
 | Setting         | Env var                                         | Default | Effect                                  |
 | --------------- | ----------------------------------------------- | ------- | --------------------------------------- |
 | Enabled         | `INPUT_SANITIZER_ENABLED`                       | `true`  | When `false`, guardrail short-circuits. |
-| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE` | `warn`  | `block`, `warn`, or `log`.              |
-| Block threshold | `blockThreshold` option                         | `high`  | Minimum severity required to block.     |
+| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE` | `warn`  | Injection policy: `block`, `warn`, or `log`. (`redact` is accepted for back-compat but does **not** strip injection text; request PII rewrite is controlled by `PII_REDACTION_ENABLED`.) |
+| Block threshold | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`  | Minimum severity required to block. Medium is observe-only at default. |
 
 **Mode precedence** (`getMode`): caller `options.mode` →
 `INJECTION_GUARD_MODE` **DB feature-flag override** (Dashboard → Settings →
@@ -223,9 +224,11 @@ Environment variables read by the built-in guardrails:
 | Variable                              | Used by                          | Effect                                                                                           |
 | ------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `INPUT_SANITIZER_ENABLED`             | `prompt-injection`               | Set `false` to disable detection entirely.                                                       |
-| `INPUT_SANITIZER_MODE`                | `prompt-injection`, `pii-masker` | Shared mode: `warn`, `block`, `log`, or `redact`.                                                |
+| `INPUT_SANITIZER_MODE`                | `prompt-injection`               | Injection policy: `warn`, `block`, or `log`. Legacy value `redact` does not rewrite injection text. |
 | `INJECTION_GUARD_MODE`                | `prompt-injection`               | Mode for the injection guard; also a DB feature flag that **overrides** the env vars (DB > ENV). |
-| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true` + mode `redact`, request PII is stripped.                                            |
+| `INPUT_SANITIZER_BLOCK_THRESHOLD`     | `prompt-injection`               | Minimum severity that `MODE=block` rejects: `high` (default), `medium`, or `low`.                |
+| `INJECTION_GUARD_BLOCK_THRESHOLD`     | `prompt-injection`               | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD`.                                              |
+| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true`, request PII is redacted (independent of injection mode).                            |
 | `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream)        | Controls response-side masker behavior.                                                          |
 
 The Vision Bridge reads runtime config from the DB-backed settings store

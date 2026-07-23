@@ -236,3 +236,22 @@ test("muse-spark-web: GraphQL error in 200 response is detected", async () => {
     restore();
   }
 });
+
+test("muse-spark-web: fetch failures do not expose stack traces or source paths", async () => {
+  __resetMuseSparkConversationCacheForTesting();
+  const executor = new MuseSparkWebExecutor();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error("socket failed at /srv/omniroute/secrets.ts:42\n    at fetchGraphql");
+  };
+
+  try {
+    const result = await executor.execute(withConnection("conn-fetch-error"));
+    assert.equal(result.response.status, 502);
+    const body = await result.response.json();
+    assert.equal(body.error.message, "Warmup fetch failed: socket failed at <path>");
+    assert.doesNotMatch(body.error.message, /secrets\.ts|fetchGraphql|\n/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

@@ -399,6 +399,17 @@ export async function checkConnection(conn) {
   const intervalMin = conn.healthCheckInterval ?? DEFAULT_HEALTH_CHECK_INTERVAL_MIN;
   if (intervalMin <= 0) return;
   if (!conn.isActive) return;
+
+  // #8182: skip terminal connections (credits_exhausted / banned / expired).
+  // These can never self-heal via a token refresh — probing them wastes
+  // CPU and network on every sweep cycle. Mirrors isTerminalConnectionStatus
+  // in src/sse/services/auth.ts and TERMINAL_CONNECTION_STATUSES in
+  // src/lib/quota/connectionRecovery.ts.
+  const terminalStatuses = new Set(["credits_exhausted", "banned", "expired"]);
+  if (typeof conn.testStatus === "string" && terminalStatuses.has(conn.testStatus.toLowerCase())) {
+    return;
+  }
+
   if (!conn.refreshToken || typeof conn.refreshToken !== "string") {
     if (isGitHubAccessTokenOnlyConnection(conn)) {
       const now = new Date().toISOString();

@@ -72,6 +72,7 @@ export const SIDEBAR_ICON_ACCENTS: Partial<Record<SidebarItemId, string>> = {
   "settings-advanced": "#F97316",
   "settings-security": "#EF4444",
   "settings-feature-flags": "#FACC15",
+  "settings-cache": "#84CC16",
   "settings-sidebar": "#38BDF8",
   docs: "#2563EB",
   issues: "#DC2626",

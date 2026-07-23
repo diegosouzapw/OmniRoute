@@ -41,7 +41,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     model: model,
     contents: [],
     generationConfig: {},
-    safetySettings: DEFAULT_SAFETY_SETTINGS,
+    // Honor an explicit caller-supplied safetySettings (including one that itself
+    // requests HARM_CATEGORY_CIVIC_INTEGRITY — the caller's explicit choice), matching
+    // the openai-to-gemini.ts standard-path behavior. See DEFAULT_SAFETY_SETTINGS (#8231).
+    safetySettings: body.safetySettings || DEFAULT_SAFETY_SETTINGS,
   };
 
   // ── Generation config ──────────────────────────────────────────

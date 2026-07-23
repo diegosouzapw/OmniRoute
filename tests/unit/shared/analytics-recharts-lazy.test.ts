@@ -22,3 +22,13 @@ test("usage analytics keeps Recharts behind the lazy loader boundary", () => {
     assert.doesNotMatch(source, /import\("recharts"\)/);
   }
 });
+
+test("usage analytics bars use the defined primary color token", () => {
+  const chartSource = readFileSync(
+    "src/shared/components/analytics/rechartsUsageCharts.tsx",
+    "utf8"
+  );
+
+  assert.match(chartSource, /fill="var\(--color-primary\)"/);
+  assert.doesNotMatch(chartSource, /fill="var\(--primary\)"/);
+});

@@ -114,6 +114,9 @@ export const githubProvider: RegistryEntry = {
       contextLength: 1000000,
       maxOutputTokens: 64000,
     },
+    { id: "gpt-5.6-sol", name: "GPT-5.6 Sol", maxOutputTokens: 128000 },
+    { id: "gpt-5.6-terra", name: "GPT-5.6 Terra", maxOutputTokens: 128000 },
+    { id: "gpt-5.6-luna", name: "GPT-5.6 Luna", maxOutputTokens: 128000 },
     { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES, maxOutputTokens: 128000 },
     {
       id: "gpt-5.4",

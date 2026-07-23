@@ -5460,7 +5460,7 @@
     "antigravityClientProfileLabel": "الملف الشخصي للعميل",
     "antigravityClientProfileHint": "اختر هوية عميل Antigravity التي يقدمها OmniRoute إلى واجهة برمجة التطبيقات.",
     "antigravityClientProfileIde": "بيئة تطوير متكاملة",
-    "antigravityClientProfileHarness": "أداة التشغيل / CLI",
+    "antigravityClientProfileCli": "أداة التشغيل / CLI",
     "codexFastTierActiveChip": "طبقة Codex السريعة نشطة",
     "tierFast": "سريع",
     "antigravityProjectIdLabel": "معرّف مشروع Google Cloud",

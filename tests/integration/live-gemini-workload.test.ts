@@ -240,3 +240,60 @@ test("[29] streaming: correlation IDs are unique per request", { skip }, async (
     `expected ${count} unique CIDs, got ${unique.size}: ${cids.join(", ")}`
   );
 });
+
+// ── Responses API — same coverage as the Chat Completions streaming tests
+// above, but against /v1/responses (#7360 follow-up) ─────────────────────
+
+test("[30] responses API: streaming payloads return content", { skip }, async () => {
+  const failures: string[] = [];
+
+  for (let i = 0; i < CASE_BUILDERS.length; i++) {
+    const tc = CASE_BUILDERS[i];
+    const label = `responses-${String(i + 1).padStart(2, "0")}: ${tc.name}`;
+    try {
+      const r = await sendAndValidate(label, tc.build, true, "responses");
+      if (r.contentLength === 0) {
+        failures.push(`${tc.name}: 0 bytes content`);
+      }
+      if (r.status !== 200) {
+        failures.push(`${tc.name}: HTTP ${r.status}`);
+      }
+    } catch (err) {
+      failures.push(`${tc.name}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  if (failures.length > 0) {
+    console.log(`\n  Responses API streaming failures (${failures.length}):`);
+    for (const f of failures) console.log(`    ${f}`);
+  }
+
+  assert.equal(
+    failures.length,
+    0,
+    `${failures.length}/${CASE_BUILDERS.length} Responses API streaming payloads failed`
+  );
+});
+
+test("[31] responses API: correlation IDs are unique per request", { skip }, async () => {
+  const cids: string[] = [];
+  const count = 5;
+
+  for (let i = 0; i < count; i++) {
+    const tc = CASE_BUILDERS[i % CASE_BUILDERS.length];
+    const r = await sendAndValidate(
+      `responses-cid-${i + 1}: ${tc.name}`,
+      tc.build,
+      true,
+      "responses"
+    );
+    cids.push(r.correlationId);
+  }
+
+  const unique = new Set(cids);
+  assert.equal(
+    unique.size,
+    count,
+    `expected ${count} unique CIDs, got ${unique.size}: ${cids.join(", ")}`
+  );
+});

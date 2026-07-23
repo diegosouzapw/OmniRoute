@@ -1,0 +1,1 @@
+- Add a per-model/endpoint compression exclusion filter: name model ids or `provider/model` patterns (`*` wildcard) that must never be compressed, checked before any engine runs so the request passes through byte-identical; configurable from a new Dashboard → Compression → Exclusions tab (#8034)
