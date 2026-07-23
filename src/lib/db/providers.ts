@@ -781,14 +781,21 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
   );
 }
 
+type CodexScopedQuotaPatch = {
+  quotaState?: JsonRecord;
+  exhaustedWindow?: "5h" | "7d";
+  rateLimitedUntil?: string;
+  rateLimitSource?: "fallback" | "quota_reset";
+};
+
 /**
- * Atomically merge one virtual Codex child's cooldown into its persisted parent.
+ * Atomically merge one virtual Codex child's quota evidence into its persisted parent.
  * The transaction reads the latest row so sibling child state cannot be lost.
  */
-export async function updateCodexScopeCooldown(
+export async function updateCodexScopedQuotaState(
   id: string,
   scope: "codex" | "spark",
-  rateLimitedUntil: string
+  patch: CodexScopedQuotaPatch
 ): Promise<JsonRecord | null> {
   const db = getDbInstance() as unknown as DbLike;
   const candidate = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
@@ -802,14 +809,53 @@ export async function updateCodexScopeCooldown(
     const existingRecord = toRecord(rowToCamel(existing));
     if (existingRecord.provider !== "codex") return null;
     const providerSpecificData = toRecord(existingRecord.providerSpecificData);
-    const scopeCooldowns = toRecord(providerSpecificData.codexScopeRateLimitedUntil);
-    const nextProviderSpecificData = {
-      ...providerSpecificData,
-      codexScopeRateLimitedUntil: {
+    const nextProviderSpecificData: JsonRecord = { ...providerSpecificData };
+
+    if (patch.quotaState) {
+      const quotaByScope = toRecord(providerSpecificData.codexQuotaStateByScope);
+      nextProviderSpecificData.codexQuotaStateByScope = {
+        ...quotaByScope,
+        [scope]: patch.quotaState,
+      };
+      nextProviderSpecificData.codexQuotaState = {
+        ...patch.quotaState,
+        scope,
+        updatedAt: patch.quotaState.observedAt,
+      };
+    }
+
+    if (patch.exhaustedWindow) {
+      const exhaustedByScope = toRecord(providerSpecificData.codexExhaustedWindowByScope);
+      nextProviderSpecificData.codexExhaustedWindowByScope = {
+        ...exhaustedByScope,
+        [scope]: patch.exhaustedWindow,
+      };
+      nextProviderSpecificData.codexExhaustedWindow = patch.exhaustedWindow;
+    }
+
+    if (patch.rateLimitedUntil) {
+      const scopeCooldowns = toRecord(providerSpecificData.codexScopeRateLimitedUntil);
+      const sourceByScope = toRecord(providerSpecificData.codexScopeRateLimitSource);
+      const existingCooldownMs =
+        typeof scopeCooldowns[scope] === "string"
+          ? new Date(scopeCooldowns[scope] as string).getTime()
+          : NaN;
+      const existingIsAuthoritative =
+        sourceByScope[scope] === "quota_reset" &&
+        patch.rateLimitSource !== "quota_reset" &&
+        Number.isFinite(existingCooldownMs) &&
+        existingCooldownMs > Date.now();
+      nextProviderSpecificData.codexScopeRateLimitedUntil = {
         ...scopeCooldowns,
-        [scope]: rateLimitedUntil,
-      },
-    };
+        [scope]: existingIsAuthoritative ? scopeCooldowns[scope] : patch.rateLimitedUntil,
+      };
+      nextProviderSpecificData.codexScopeRateLimitSource = {
+        ...sourceByScope,
+        [scope]: existingIsAuthoritative
+          ? sourceByScope[scope]
+          : (patch.rateLimitSource ?? "fallback"),
+      };
+    }
 
     db.prepare(
       `UPDATE provider_connections
@@ -819,10 +865,20 @@ export async function updateCodexScopeCooldown(
     return nextProviderSpecificData;
   })();
 
-  if (persisted) {
-    invalidateDbCache("connections");
-  }
+  if (persisted) invalidateDbCache("connections");
   return persisted;
+}
+
+/** Persist one child cooldown through the shared scoped quota-state transaction. */
+export async function updateCodexScopeCooldown(
+  id: string,
+  scope: "codex" | "spark",
+  rateLimitedUntil: string
+): Promise<JsonRecord | null> {
+  return updateCodexScopedQuotaState(id, scope, {
+    rateLimitedUntil,
+    rateLimitSource: "fallback",
+  });
 }
 
 /**

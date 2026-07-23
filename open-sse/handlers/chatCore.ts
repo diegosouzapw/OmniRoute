@@ -266,7 +266,7 @@ import {
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
 import { isCompactResponsesEndpoint } from "../executors/codex.ts";
-import { buildCodexQuotaPersistence } from "./chatCore/codexQuota.ts";
+import { persistCodexChildQuotaResponse } from "../services/codexAccount/index.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
 import { unwrapClineNonStreamingEnvelope } from "./chatCore/clineResponseEnvelope.ts";
@@ -551,46 +551,6 @@ export async function handleChatCore({
     status: number,
     creds: Record<string, unknown> | null | undefined
   ): void => recordKeyHealthStatusFor(status, creds, log);
-
-  const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
-    const currentConnectionId = getCurrentConnectionId();
-    if (provider !== "codex" || !currentConnectionId || !headers) return;
-
-    try {
-      const existingProviderData =
-        credentials?.providerSpecificData && typeof credentials.providerSpecificData === "object"
-          ? (credentials.providerSpecificData as Record<string, unknown>)
-          : {};
-      // Pure payload build extracted to chatCore/codexQuota.ts (#3501). Returns null when the
-      // response carries no quota headers (nothing to persist).
-      const built = buildCodexQuotaPersistence({
-        headers,
-        existingProviderData,
-        modelForScope: model || requestedModel || "",
-        status,
-      });
-      if (!built) return;
-
-      if (built.exhaustionLog) {
-        log?.debug?.("CODEX", built.exhaustionLog);
-      }
-
-      // Invalidate the preflight cache for this connection so the next
-      // isModelAvailable check fetches fresh quota data.
-      if (status === 429) {
-        invalidateCodexQuotaCache(currentConnectionId);
-      }
-
-      await updateProviderConnection(currentConnectionId, {
-        providerSpecificData: built.nextProviderData,
-      });
-
-      credentials.providerSpecificData = built.nextProviderData;
-    } catch (err) {
-      const errMessage = err instanceof Error ? err.message : String(err);
-      log?.debug?.("CODEX", `Failed to persist codex quota state: ${errMessage}`);
-    }
-  };
 
   // ── Phase 9.2: Idempotency check ──
   // Resolve the idempotency key once here and reuse it at the Phase 9.2 save site below,
@@ -2677,6 +2637,29 @@ export async function handleChatCore({
               const res = normalizeExecutorResult(rawExecutorResult);
               trace("post_executor", { status: res?.response?.status });
 
+              if (provider === "codex" && attemptConnectionId) {
+                try {
+                  const persistedQuota = await persistCodexChildQuotaResponse({
+                    connectionId: String(attemptConnectionId),
+                    model: modelToCall || model || requestedModel || "",
+                    headers: normalizeHeaders(res.response.headers),
+                    status: res.response.status,
+                  });
+                  if (persistedQuota) {
+                    execCreds.providerSpecificData = persistedQuota.providerSpecificData;
+                    if (persistedQuota.exhaustionLog) {
+                      log?.debug?.("CODEX", persistedQuota.exhaustionLog);
+                    }
+                  }
+                  if (res.response.status === 429) {
+                    invalidateCodexQuotaCache(String(attemptConnectionId));
+                  }
+                } catch (err) {
+                  const errMessage = err instanceof Error ? err.message : String(err);
+                  log?.debug?.("CODEX", `Failed to persist codex quota state: ${errMessage}`);
+                }
+              }
+
               // Track Gemini RPM + RPD request counts for 429 classification
               if (provider === "gemini") {
                 incrementRequestCount(modelToCall);
@@ -3435,8 +3418,6 @@ export async function handleChatCore({
       }
     }
   }
-
-  await persistCodexQuotaState(normalizeHeaders(providerResponse.headers), providerResponse.status);
 
   // Check provider response - return error info for fallback handling
   providerFailure: if (!providerResponse.ok) {

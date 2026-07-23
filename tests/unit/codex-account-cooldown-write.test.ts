@@ -32,6 +32,10 @@ interface SeededConnection {
 interface PersistedConnection extends SeededConnection {
   providerSpecificData: {
     codexScopeRateLimitedUntil: Record<string, unknown>;
+    codexScopeRateLimitSource?: unknown;
+    codexQuotaStateByScope?: unknown;
+    codexQuotaState?: unknown;
+    codexExhaustedWindowByScope?: unknown;
     unrelated?: unknown;
   };
 }
@@ -121,6 +125,136 @@ test("chatCore failover mirrors persisted child state into the failed credential
   assert.equal(persisted.backoffLevel, parentBefore.backoffLevel);
   assert.equal(persisted.providerSpecificData.codexScopeRateLimitedUntil.spark, sparkUntil);
   assert.deepEqual(credentials.providerSpecificData, persisted.providerSpecificData);
+});
+
+function quotaHeaders(resetAt5h: string, resetAt7d: string, weeklyUsage = "10") {
+  return {
+    "x-codex-5h-usage": "95",
+    "x-codex-5h-limit": "100",
+    "x-codex-5h-reset-at": resetAt5h,
+    "x-codex-7d-usage": weeklyUsage,
+    "x-codex-7d-limit": "100",
+    "x-codex-7d-reset-at": resetAt7d,
+  };
+}
+
+test("Codex and Spark quota responses retain independent scoped snapshots across restart", async () => {
+  const connection = await seedCodexConnection();
+  const codexReset5h = new Date(Date.now() + 60_000).toISOString();
+  const codexReset7d = new Date(Date.now() + 600_000).toISOString();
+  const sparkReset5h = new Date(Date.now() + 120_000).toISOString();
+  const sparkReset7d = new Date(Date.now() + 1_200_000).toISOString();
+
+  await codexAccount.persistCodexChildQuotaResponse({
+    connectionId: connection.id,
+    model: "gpt-5.5",
+    headers: quotaHeaders(codexReset5h, codexReset7d),
+    status: 200,
+  });
+  await codexAccount.persistCodexChildQuotaResponse({
+    connectionId: connection.id,
+    model: "gpt-5.3-codex-spark",
+    headers: quotaHeaders(sparkReset5h, sparkReset7d),
+    status: 200,
+  });
+
+  core.resetDbInstance();
+  const persisted = await readConnection(connection.id);
+  const byScope = persisted.providerSpecificData.codexQuotaStateByScope as Record<
+    string,
+    Record<string, unknown>
+  >;
+
+  assert.equal(byScope.codex.resetAt5h, codexReset5h);
+  assert.equal(byScope.spark.resetAt5h, sparkReset5h);
+  assert.equal(
+    (persisted.providerSpecificData.codexQuotaState as Record<string, unknown>).scope,
+    "spark"
+  );
+  assert.deepEqual(persisted.providerSpecificData.unrelated, { retained: true });
+});
+
+test("concurrent Codex and Spark quota responses retain both scoped snapshots", async () => {
+  const connection = await seedCodexConnection();
+  const codexReset5h = new Date(Date.now() + 60_000).toISOString();
+  const sparkReset5h = new Date(Date.now() + 120_000).toISOString();
+  const reset7d = new Date(Date.now() + 600_000).toISOString();
+
+  await Promise.all([
+    codexAccount.persistCodexChildQuotaResponse({
+      connectionId: connection.id,
+      model: "gpt-5.5",
+      headers: quotaHeaders(codexReset5h, reset7d),
+      status: 200,
+    }),
+    codexAccount.persistCodexChildQuotaResponse({
+      connectionId: connection.id,
+      model: "gpt-5.3-codex-spark",
+      headers: quotaHeaders(sparkReset5h, reset7d),
+      status: 200,
+    }),
+  ]);
+  const persisted = await readConnection(connection.id);
+  const byScope = persisted.providerSpecificData.codexQuotaStateByScope as Record<
+    string,
+    Record<string, unknown>
+  >;
+
+  assert.equal(byScope.codex.resetAt5h, codexReset5h);
+  assert.equal(byScope.spark.resetAt5h, sparkReset5h);
+});
+
+test("header-derived exhausted reset survives fallback cooldown persistence", async () => {
+  const connection = await seedCodexConnection();
+  const exactReset5h = new Date(Date.now() + 30_000).toISOString();
+  const reset7d = new Date(Date.now() + 600_000).toISOString();
+  const fallbackUntil = new Date(Date.now() + 60_000).toISOString();
+
+  await codexAccount.persistCodexChildQuotaResponse({
+    connectionId: connection.id,
+    model: "gpt-5.5",
+    headers: quotaHeaders(exactReset5h, reset7d),
+    status: 429,
+  });
+  await codexAccount.persistCodexChildCooldown({
+    connectionId: connection.id,
+    model: "gpt-5.5",
+    rateLimitedUntil: fallbackUntil,
+  });
+  const persisted = await readConnection(connection.id);
+
+  assert.equal(persisted.providerSpecificData.codexScopeRateLimitedUntil.codex, exactReset5h);
+  assert.equal(
+    (persisted.providerSpecificData.codexExhaustedWindowByScope as Record<string, unknown>).codex,
+    "5h"
+  );
+  assert.equal(
+    (persisted.providerSpecificData.codexScopeRateLimitSource as Record<string, unknown>).codex,
+    "quota_reset"
+  );
+});
+
+test("a newer fallback supersedes an expired authoritative reset", async () => {
+  const connection = await seedCodexConnection();
+  const expiredReset = new Date(Date.now() - 60_000).toISOString();
+  const fallbackUntil = new Date(Date.now() + 60_000).toISOString();
+  await providersDb.updateCodexScopedQuotaState(connection.id, "codex", {
+    rateLimitedUntil: expiredReset,
+    rateLimitSource: "quota_reset",
+  });
+
+  await codexAccount.persistCodexChildCooldown({
+    connectionId: connection.id,
+    model: "gpt-5.5",
+    rateLimitedUntil: fallbackUntil,
+  });
+  const persisted = await readConnection(connection.id);
+
+  assert.equal(persisted.providerSpecificData.codexScopeRateLimitedUntil.codex, fallbackUntil);
+  assert.equal(
+    (persisted.providerSpecificData.codexScopeRateLimitSource as Record<string, unknown>).codex,
+    "fallback"
+  );
 });
 
 test("concurrent Codex and Spark child cooldown writes retain both scopes", async () => {

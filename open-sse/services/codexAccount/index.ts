@@ -64,6 +64,8 @@ export {
 } from "./state.ts";
 export { persistCodexChildCooldown } from "./write.ts";
 export type { PersistCodexChildCooldownResult } from "./write.ts";
+export { persistCodexChildQuotaResponse } from "./quota.ts";
+export type { PersistCodexChildQuotaResult } from "./quota.ts";
 export type {
   CodexAccount,
   CodexAccountConnection,
