@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "locale": "zh-CN",
+  "description": "Canonical zh-CN terminology for recurring OmniRoute concepts. Consumed by scripts/i18n/check-glossary-consistency.mjs. Each concept lists the canonical translation plus any non-canonical synonym that is actively normalized (drift enforced by the consistency gate). Concepts whose `synonyms` array is empty are seeded for documentation only — the catalog already uses more than one legitimate rendering for them today, so enforcement is deferred to a follow-up normalization pass rather than gating this PR.",
+  "terms": {
+    "provider": {
+      "canonical": "提供者",
+      "synonyms": ["提供商"]
+    },
+    "connection": {
+      "canonical": "连接",
+      "synonyms": []
+    },
+    "routing": {
+      "canonical": "路由",
+      "synonyms": []
+    },
+    "fallback": {
+      "canonical": "回退",
+      "synonyms": []
+    },
+    "quota": {
+      "canonical": "配额",
+      "synonyms": []
+    },
+    "context window": {
+      "canonical": "上下文窗口",
+      "synonyms": []
+    },
+    "reasoning": {
+      "canonical": "推理",
+      "synonyms": []
+    },
+    "tool call": {
+      "canonical": "工具调用",
+      "synonyms": []
+    },
+    "cache": {
+      "canonical": "缓存",
+      "synonyms": []
+    },
+    "circuit breaker": {
+      "canonical": "断路器",
+      "synonyms": []
+    }
+  }
+}
