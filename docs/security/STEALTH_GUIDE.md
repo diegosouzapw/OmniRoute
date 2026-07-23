@@ -6,7 +6,7 @@ lastUpdated: 2026-06-28
 
 # Stealth Guide
 
-> **Source of truth:** `open-sse/utils/tlsClient.ts`, `open-sse/services/{chatgptTlsClient,claudeCodeCCH,claudeCodeFingerprint,claudeCodeObfuscation,claudeCodeCompatible,antigravityObfuscation}.ts`, `open-sse/config/cliFingerprints.ts`, `src/mitm/`
+> **Source of truth:** `open-sse/utils/tlsClient.ts`, `open-sse/services/{chatgptTlsClient,claudeCodeCCH,claudeCodeFingerprint,claudeCodeObfuscation,claudeCodeCompatible}.ts`, `open-sse/config/cliFingerprints.ts`, `src/mitm/`
 > **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Engineers maintaining provider-specific stealth integrations.
 
@@ -107,9 +107,7 @@ Sister modules in the same bundle:
 
 ## Antigravity Stealth
 
-### `antigravityObfuscation.ts`
-
-Same zero-width-joiner trick as Claude Code, but with an expanded word list that also masks: `claude code`, `claude-code`, `kilo code`, `kilocode`, **`omniroute`**. Mirrors ZeroGravity's `ZEROGRAVITY_SENSITIVE_WORDS` and CLIProxyAPI's cloak system.
+Antigravity requests preserve caller text byte-for-byte. OmniRoute does not insert zero-width characters into prompts or rename/inject tools to imitate an IDE client.
 
 ### `antigravityHeaderScrub.ts`
 
@@ -129,13 +127,13 @@ The upstream enforcement is on **Google's side**, not anything OmniRoute can pre
 
 **Recommended posture:**
 
-1. **Default to `ANTIGRAVITY_CREDITS=retry`** — overages are used only when free-tier returns 429, not on every request. This is the safer of the two non-zero modes.
+1. Keep the default `ANTIGRAVITY_CREDITS=off` unless the operator explicitly accepts paid-credit and account-enforcement risk. `retry` sends the normal request first and injects credits at most once after an eligible quota 429; `always` injects credits on the first request.
 2. **Spread load across providers via Auto-Combo** (`model: "auto"` or `kr/glm/etc`-combo) instead of saturating a single Antigravity account.
 3. **Set per-connection RPM limits** in the Antigravity provider's edit page (Dashboard → Providers → Antigravity → connection → rate limit). 30–60 RPM is a defensible upper bound for sustained use.
-4. **Use distinct upstream IPs** per Antigravity account when possible (residential proxies aimed at the same account from many users compounds the abuse signal).
+4. **Use stable, operator-controlled upstream networking** and avoid sharing one account across unrelated users or workloads.
 5. **If banned**: appeal via `support.google.com` → "Restore Workspace/Account access" with the exact `quota_exceeded` / `service disabled` response body Google sent. Restoration is not guaranteed.
 
-This warning is also surfaced inline in the dashboard near the Antigravity provider edit screen when `ANTIGRAVITY_CREDITS` is set to `always` (or will be in v3.8.0; tracked separately).
+The environment reference documents the account and spend implications of each credits mode.
 
 Touch points:
 

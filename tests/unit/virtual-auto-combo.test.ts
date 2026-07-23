@@ -203,38 +203,31 @@ test("createVirtualAutoCombo includes no-auth OpenCode Free without provider_con
   assert.ok(combo.autoConfig.candidatePool.includes("opencode"));
 });
 
-test("createVirtualAutoCombo includes all chat-capable no-auth providers without connections", async () => {
+test("createVirtualAutoCombo restricts the no-auth pool to the allowlist", async () => {
+  // Policy: the no-auth (keyless) auto-combo allowlist is narrowed to `opencode`
+  // and `felo-web` (open-sse/services/autoCombo/virtualFactory.ts::AUTO_COMBO_NOAUTH_ALLOWLIST) —
+  // the keyless backends verified to work without configuration on our reference
+  // egress. The others stay usable via direct `<alias>/<model>` calls but must
+  // NOT be auto-routed to. Dedicated guard:
+  // tests/unit/noauth-autocombo-allowlist.test.ts.
   const combo: VirtualComboResult = await virtualFactory.createVirtualAutoCombo("fast");
 
-  // Each noAuth provider should have multiple models (not just the first)
-  const ddgwModels = combo.models.filter((m) => m.providerId === "duckduckgo-web");
-  assert.ok(ddgwModels.length >= 1, "duckduckgo-web should have at least one model");
-  assert.ok(
-    ddgwModels.every((m) => m.connectionId === "noauth"),
-    "all ddgw models should use noauth connection"
-  );
-  assert.ok(
-    ddgwModels.some((m) => m.model.startsWith("ddgw/")),
-    "ddgw models should have correct prefix"
-  );
+  for (const allowed of ["opencode", "felo-web"]) {
+    const models = combo.models.filter((m) => m.providerId === allowed);
+    assert.ok(models.length >= 1, `${allowed} should have at least one model`);
+    assert.ok(
+      models.every((m) => m.connectionId === "noauth"),
+      `all ${allowed} models should use noauth connection`
+    );
+  }
 
-  const tllmModels = combo.models.filter((m) => m.providerId === "theoldllm");
-  assert.ok(tllmModels.length >= 1, "theoldllm should have at least one model");
-  assert.ok(
-    tllmModels.every((m) => m.connectionId === "noauth"),
-    "all tllm models should use noauth connection"
-  );
-  assert.ok(
-    tllmModels.some((m) => m.model === "tllm/GPT_5_4"),
-    "tllm should include GPT_5_4"
-  );
-
-  const chipotleModels = combo.models.filter((m) => m.providerId === "chipotle");
-  assert.ok(chipotleModels.length >= 1, "chipotle should have at least one model");
-  assert.ok(
-    chipotleModels.every((m) => m.connectionId === "noauth"),
-    "all chipotle models should use noauth connection"
-  );
+  for (const excluded of ["duckduckgo-web", "theoldllm", "chipotle", "aihorde"]) {
+    assert.equal(
+      combo.models.some((model) => model.providerId === excluded),
+      false,
+      `no-auth provider "${excluded}" must be excluded from the auto-combo pool (not in allowlist)`
+    );
+  }
 
   assert.equal(
     combo.models.some((model) => model.providerId === "veoaifree-web"),

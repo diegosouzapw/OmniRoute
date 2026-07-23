@@ -5,6 +5,20 @@ import { randomUUID } from "crypto";
 // Default model when not specified
 export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-6";
 
+export type ClaudeWebOperation = "completion" | "retry_completion";
+
+export interface ClaudeWebTurnFields {
+  operation: ClaudeWebOperation;
+  prompt: string;
+  timezone: string;
+  locale: string;
+  parentMessageUuid?: string;
+  humanMessageUuid?: string;
+  assistantMessageUuid: string;
+  isNewConversation: boolean;
+  toolStates?: unknown[];
+}
+
 export interface ClaudeWebRequestPayload {
   prompt: string;
   model: string;
@@ -29,16 +43,18 @@ export interface ClaudeWebRequestPayload {
     type?: string;
   }>;
   turn_message_uuids: {
-    human_message_uuid: string;
+    human_message_uuid?: string;
     assistant_message_uuid: string;
   };
+  parent_message_uuid?: string;
   attachments: unknown[];
   effort: string;
   files: unknown[];
   sync_sources: unknown[];
   rendering_mode: string;
   thinking_mode: string;
-  create_conversation_params: {
+  tool_states?: unknown[];
+  create_conversation_params?: {
     name: string;
     model: string;
     include_conversation_preferences: boolean;
@@ -66,6 +82,34 @@ export interface ClaudeWebStreamChunk {
   [key: string]: unknown;
 }
 
+type ClaudeWebTool = ClaudeWebRequestPayload["tools"][number];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function transformOpenAiTool(candidate: unknown): ClaudeWebTool | null {
+  if (!isRecord(candidate) || candidate.type !== "function" || !isRecord(candidate.function)) {
+    return null;
+  }
+
+  const definition = candidate.function;
+  if (typeof definition.name !== "string" || !definition.name.trim()) return null;
+
+  const description =
+    typeof definition.description === "string" && definition.description.trim()
+      ? definition.description
+      : undefined;
+  const schemaCandidate = definition.parameters ?? definition.input_schema;
+  const inputSchema = isRecord(schemaCandidate) ? schemaCandidate : undefined;
+
+  return {
+    name: definition.name.trim(),
+    ...(description ? { description } : {}),
+    ...(inputSchema ? { input_schema: inputSchema } : {}),
+  };
+}
+
 /**
  * Generate UUIDs for turn message tracking
  */
@@ -77,61 +121,22 @@ export function generateMessageUUIDs() {
 }
 
 /**
- * Get default tool definitions for Claude Web API
+ * Convert caller-provided OpenAI function tools to Claude Web tool definitions.
+ *
+ * Claude's own browser tools are account- and rollout-dependent. Inventing a
+ * static list makes the request diverge from the authenticated UI, so only
+ * explicit, structurally valid caller tools are forwarded here.
  */
-export function getDefaultTools(): ClaudeWebRequestPayload["tools"] {
-  return [
-    {
-      name: "show_widget",
-      description: "Display interactive widgets and visualizations",
-      input_schema: {
-        type: "object",
-        properties: {
-          widget_type: {
-            type: "string",
-            description: "Type of widget to display",
-          },
-        },
-      },
-      integration_name: "visualize",
-      is_mcp_app: true,
-    },
-    {
-      name: "read_me",
-      description: "Read and reference documents",
-      input_schema: {
-        type: "object",
-        properties: {
-          file_path: {
-            type: "string",
-            description: "Path to the file to read",
-          },
-        },
-      },
-      integration_name: "visualize",
-      is_mcp_app: false,
-    },
-    {
-      type: "web_search_v0",
-      name: "web_search",
-    },
-    {
-      type: "artifacts_v0",
-      name: "artifacts",
-    },
-    {
-      type: "repl_v0",
-      name: "repl",
-    },
-    { type: "widget", name: "weather_fetch" },
-    { type: "widget", name: "recipe_display_v0" },
-    { type: "widget", name: "places_map_display_v0" },
-    { type: "widget", name: "message_compose_v1" },
-    { type: "widget", name: "ask_user_input_v0" },
-    { type: "widget", name: "recommend_claude_apps" },
-    { type: "widget", name: "places_search" },
-    { type: "widget", name: "fetch_sports_data" },
-  ];
+export function transformOpenAiTools(tools: unknown): ClaudeWebRequestPayload["tools"] {
+  if (!Array.isArray(tools)) return [];
+
+  const transformed: ClaudeWebRequestPayload["tools"] = [];
+  for (const candidate of tools) {
+    const transformedTool = transformOpenAiTool(candidate);
+    if (transformedTool) transformed.push(transformedTool);
+  }
+
+  return transformed;
 }
 
 /**
@@ -167,19 +172,114 @@ export function getDefaultPersonalizedStyle(): ClaudeWebRequestPayload["personal
  * because it was never requested in the first place (#6662).
  */
 export function wantsExtendedThinking(body: Record<string, unknown>): boolean {
+  return resolveClaudeWebReasoningEffort(body) !== null;
+}
+
+const CLAUDE_WEB_REASONING_EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
+
+/**
+ * Resolve the caller's explicit reasoning level into the effort values
+ * accepted by Claude Web. An explicit `none` disables thinking, while a
+ * native `thinking: { type: "enabled" }` request uses the existing low
+ * default when no graduated effort was supplied.
+ */
+export function resolveClaudeWebReasoningEffort(
+  body: Record<string, unknown>
+): (typeof CLAUDE_WEB_REASONING_EFFORTS)[number] | null {
   const reasoning =
     body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
       ? (body.reasoning as Record<string, unknown>)
       : null;
   const effort = body.reasoning_effort ?? reasoning?.effort;
-  if (typeof effort === "string" && effort.trim() && effort.toLowerCase() !== "none") {
-    return true;
+  if (typeof effort === "string" && effort.trim()) {
+    const normalized = effort.trim().toLowerCase();
+    if (normalized === "none") return null;
+    if ((CLAUDE_WEB_REASONING_EFFORTS as readonly string[]).includes(normalized)) {
+      return normalized as (typeof CLAUDE_WEB_REASONING_EFFORTS)[number];
+    }
   }
   const thinking = body.thinking;
   if (thinking && typeof thinking === "object" && !Array.isArray(thinking)) {
-    if ((thinking as Record<string, unknown>).type === "enabled") return true;
+    if ((thinking as Record<string, unknown>).type === "enabled") return "low";
   }
-  return false;
+  return null;
+}
+
+function contentPartText(part: unknown): string {
+  if (!isRecord(part)) return "";
+  return typeof part.text === "string" ? part.text : "";
+}
+
+function messageText(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content.map(contentPartText).filter(Boolean).join("\n");
+}
+
+function latestUserPrompt(messages: unknown[]): string {
+  let prompt = "";
+  for (const candidate of messages) {
+    if (!isRecord(candidate) || candidate.role !== "user") continue;
+    prompt = messageText(candidate.content);
+  }
+  return prompt;
+}
+
+function defaultTurn(prompt: string): ClaudeWebTurnFields {
+  const messageUuids = generateMessageUUIDs();
+  return {
+    operation: "completion",
+    prompt,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    locale: "en-US",
+    humanMessageUuid: messageUuids.human_message_uuid,
+    assistantMessageUuid: messageUuids.assistant_message_uuid,
+    isNewConversation: true,
+  };
+}
+
+function createConversationParams(model: string) {
+  return {
+    name: "",
+    model,
+    include_conversation_preferences: true,
+    paprika_mode: null,
+    compass_mode: null,
+    is_temporary: false,
+    enabled_imagine: true,
+    tool_search_mode: "auto",
+  };
+}
+
+function buildClaudeWebPayload(
+  body: Record<string, unknown>,
+  model: string,
+  reasoningEffort: ReturnType<typeof resolveClaudeWebReasoningEffort>,
+  turn: ClaudeWebTurnFields
+): ClaudeWebRequestPayload {
+  return {
+    prompt: turn.prompt,
+    model,
+    timezone: turn.timezone,
+    personalized_styles: getDefaultPersonalizedStyle(),
+    locale: turn.locale,
+    tools: transformOpenAiTools(body.tools),
+    turn_message_uuids: {
+      ...(turn.humanMessageUuid ? { human_message_uuid: turn.humanMessageUuid } : {}),
+      assistant_message_uuid: turn.assistantMessageUuid,
+    },
+    ...(turn.parentMessageUuid ? { parent_message_uuid: turn.parentMessageUuid } : {}),
+    attachments: [],
+    effort: reasoningEffort ?? "low",
+    files: [],
+    sync_sources: [],
+    rendering_mode: "messages",
+    thinking_mode: reasoningEffort ? "extended" : "off",
+    ...(turn.toolStates ? { tool_states: turn.toolStates } : {}),
+    ...(turn.isNewConversation
+      ? { create_conversation_params: createConversationParams(model) }
+      : {}),
+  };
 }
 
 /**
@@ -187,50 +287,19 @@ export function wantsExtendedThinking(body: Record<string, unknown>): boolean {
  */
 export function transformToClaude(
   body: Record<string, unknown>,
-  model: string
+  model: string,
+  turn?: ClaudeWebTurnFields
 ): ClaudeWebRequestPayload {
   const messages = Array.isArray(body.messages) ? body.messages : [];
+  const reasoningEffort = resolveClaudeWebReasoningEffort(body);
+  const resolvedModel = model || DEFAULT_CLAUDE_MODEL;
+  const resolvedTurn = turn ?? defaultTurn(latestUserPrompt(messages));
 
-  // Extract the last user message as the prompt
-  let prompt = "";
-  for (const msg of messages) {
-    if (typeof msg === "object" && msg !== null) {
-      const message = msg as Record<string, unknown>;
-      if (message.role === "user") {
-        prompt = String(message.content || "");
-      }
-    }
-  }
-
-  if (!prompt.trim()) {
+  if (resolvedTurn.operation === "completion" && !resolvedTurn.prompt.trim()) {
     throw new Error("No user message found in request");
   }
 
-  return {
-    prompt,
-    model: model || DEFAULT_CLAUDE_MODEL,
-    timezone: "Asia/Jakarta",
-    personalized_styles: getDefaultPersonalizedStyle(),
-    locale: "en-US",
-    tools: getDefaultTools(),
-    turn_message_uuids: generateMessageUUIDs(),
-    attachments: [],
-    effort: "low",
-    files: [],
-    sync_sources: [],
-    rendering_mode: "messages",
-    thinking_mode: wantsExtendedThinking(body) ? "on" : "off",
-    create_conversation_params: {
-      name: "",
-      model: model || DEFAULT_CLAUDE_MODEL,
-      include_conversation_preferences: true,
-      paprika_mode: null,
-      compass_mode: null,
-      is_temporary: false,
-      enabled_imagine: true,
-      tool_search_mode: "auto",
-    },
-  };
+  return buildClaudeWebPayload(body, resolvedModel, reasoningEffort, resolvedTurn);
 }
 
 /**

@@ -38,6 +38,20 @@ function looksLikeAbsolutePath(tok: string): boolean {
   return (SOURCE_EXT as readonly string[]).includes(ext);
 }
 
+function redactSensitiveErrorText(value: string): string {
+  return value
+    .replace(/data:[^,\s]+;base64,[A-Za-z0-9+/=_-]+/gi, "[REDACTED_DATA_URL]")
+    .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]+/gi, "$1 [REDACTED]")
+    .replace(
+      /(["']?(?:api[_-]?key|access[_-]?token|authorization|cookie|secret)["']?\s*[:=]\s*["'])[^"']*(["'])/gi,
+      "$1[REDACTED]$2"
+    )
+    .replace(
+      /(["']?(?:api[_-]?key|access[_-]?token|authorization|cookie|secret)["']?\s*[:=]\s*)[^"',\s}]+/gi,
+      "$1[REDACTED]"
+    );
+}
+
 /**
  * Strip stack-trace tail and absolute source paths from error messages.
  *
@@ -55,10 +69,11 @@ export function sanitizeErrorMessage(message: unknown): string {
   for (let i = 0; i < parts.length; i++) {
     if (looksLikeAbsolutePath(parts[i])) parts[i] = "<path>";
   }
-  return parts.join("");
+  return redactSensitiveErrorText(parts.join(""));
 }
 
-const BLOCKED_KEYS = /stack|trace|path|file|cwd|dir|password|secret|token|key/i;
+const BLOCKED_KEYS =
+  /stack|trace|path|file|cwd|dir|password|secret|token|key|authorization|cookie/i;
 const MAX_DEPTH = 4;
 
 /**
@@ -519,6 +534,18 @@ export function createErrorResult(
     success: false;
     status: number;
     error: string;
+    /**
+     * #7360: the FULL, un-sanitized upstream message — `error` above is
+     * truncated to its first line by sanitizeErrorMessage() (correctly, for
+     * the client-facing response body). Server-side classification
+     * (checkFallbackError / Gemini TPM-vs-RPD metric detection) needs the
+     * complete multi-line text — e.g. Google's metric name and retry hint
+     * live on lines 2-3, after the generic "quota exceeded" preamble on
+     * line 1. This field NEVER reaches the HTTP response body (`response`
+     * below is already built from the sanitized `body`); it exists purely
+     * for internal callers that inspect the returned object.
+     */
+    rawMessage: string;
     errorType?: string;
     errorCode?: string;
     response: Response;
@@ -527,6 +554,7 @@ export function createErrorResult(
     success: false,
     status: statusCode,
     error: body.error.message,
+    rawMessage: message,
     errorType,
     errorCode,
     response: new Response(JSON.stringify(body), {

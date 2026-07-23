@@ -1,12 +1,8 @@
 import {
-  ANTIGRAVITY_BASE_URLS,
+  ANTIGRAVITY_BOOTSTRAP_BASE_URLS,
+  ANTIGRAVITY_RUNTIME_BASE_URLS,
   getAntigravityFetchAvailableModelsUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import {
-  ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
-  ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
-  getAntigravityLoadCodeAssistClientMetadata,
-} from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   GITHUB_COPILOT_API_VERSION,
   GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
@@ -199,19 +195,18 @@ export const ANTIGRAVITY_CONFIG = {
     "https://www.googleapis.com/auth/experimentsandconfigs",
   ],
   // Antigravity specific
-  apiEndpoint: ANTIGRAVITY_BASE_URLS[0],
+  apiEndpoint: ANTIGRAVITY_RUNTIME_BASE_URLS[0],
   apiVersion: "v1internal",
-  loadCodeAssistEndpoints: ANTIGRAVITY_BASE_URLS.map(
+  loadCodeAssistEndpoints: ANTIGRAVITY_BOOTSTRAP_BASE_URLS.map(
     (baseUrl) => `${baseUrl}/v1internal:loadCodeAssist`
   ),
-  onboardUserEndpoints: ANTIGRAVITY_BASE_URLS.map((baseUrl) => `${baseUrl}/v1internal:onboardUser`),
+  onboardUserEndpoints: ANTIGRAVITY_BOOTSTRAP_BASE_URLS.map(
+    (baseUrl) => `${baseUrl}/v1internal:onboardUser`
+  ),
   fetchAvailableModelsEndpoints: getAntigravityFetchAvailableModelsUrls(),
-  loadCodeAssistEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:loadCodeAssist`,
-  onboardUserEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:onboardUser`,
+  loadCodeAssistEndpoint: `${ANTIGRAVITY_BOOTSTRAP_BASE_URLS[0]}/v1internal:loadCodeAssist`,
+  onboardUserEndpoint: `${ANTIGRAVITY_BOOTSTRAP_BASE_URLS[0]}/v1internal:onboardUser`,
   fetchAvailableModelsEndpoint: getAntigravityFetchAvailableModelsUrls()[0],
-  loadCodeAssistUserAgent: ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
-  loadCodeAssistApiClient: ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
-  loadCodeAssistClientMetadata: getAntigravityLoadCodeAssistClientMetadata(),
 };
 
 // Antigravity CLI (`agy`) OAuth Configuration.
@@ -237,9 +232,6 @@ export const AGY_CONFIG = {
   loadCodeAssistEndpoint: ANTIGRAVITY_CONFIG.loadCodeAssistEndpoint,
   onboardUserEndpoint: ANTIGRAVITY_CONFIG.onboardUserEndpoint,
   fetchAvailableModelsEndpoint: ANTIGRAVITY_CONFIG.fetchAvailableModelsEndpoint,
-  loadCodeAssistUserAgent: ANTIGRAVITY_CONFIG.loadCodeAssistUserAgent,
-  loadCodeAssistApiClient: ANTIGRAVITY_CONFIG.loadCodeAssistApiClient,
-  loadCodeAssistClientMetadata: ANTIGRAVITY_CONFIG.loadCodeAssistClientMetadata,
 };
 
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)

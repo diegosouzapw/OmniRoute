@@ -39,6 +39,15 @@ export const AUDIO_ONLY_PROVIDERS = {
     textIcon: "CA",
     website: "https://cartesia.ai",
   },
+  fishaudio: {
+    id: "fishaudio",
+    alias: "fishaudio",
+    name: "Fish Audio",
+    icon: "graphic_eq",
+    color: "#3B82F6",
+    textIcon: "FA",
+    website: "https://fish.audio",
+  },
   playht: {
     id: "playht",
     alias: "playht",

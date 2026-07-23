@@ -41,6 +41,8 @@ ALIAS_TO_PROVIDER_ID["xiaomi"] = "xiaomi-mimo";
 // prefix is "llamacpp". Register it so parseModel("llamacpp/<model>") resolves
 // provider = "llama-cpp" instead of the identity fallback ("llamacpp").
 ALIAS_TO_PROVIDER_ID["llamacpp"] = "llama-cpp";
+// agy/ is the short alias for antigravity provider.
+ALIAS_TO_PROVIDER_ID["agy"] = "antigravity";
 
 // Provider-scoped legacy model aliases. Used to normalize provider/model inputs
 // and keep backward compatibility when upstream IDs change.
@@ -75,11 +77,8 @@ const PROVIDER_MODEL_ALIASES: ProviderModelAliasMap = {
     "syn:small:text": "hf:zai-org/GLM-4.7-Flash",
     "syn:nemotron-3-super": "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
   },
-  // Antigravity model aliases must be applied by the Antigravity executor, not by
-  // the global model resolver. Applying them here rewrites the client-visible model
-  // before credential/account routing and before UI/logging, causing clean IDs like
-  // gemini-3.5-flash-high to be exposed and retried as upstream-only legacy ids such
-  // as gemini-3-flash-agent. The executor owns provider-wire normalization.
+  // Antigravity public model ids already match the upstream wire ids. Keep this map
+  // empty so the global resolver cannot rewrite them before routing or logging.
   antigravity: {},
   kiro: {
     "claude-opus-4-7": "claude-opus-4.7",
@@ -599,10 +598,28 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     };
   }
 
-  if (candidatesToUse.length === 1) {
-    const provider = candidatesToUse[0];
-    const canonicalModel = resolveInferredProviderModel(provider, modelId);
-    return { provider, model: canonicalModel, extendedContext };
+  // Canonicalize candidates (deduplicate alias providers pointing to the same provider ID)
+  const canonicalCandidates = Array.from(
+    new Set(candidatesToUse.map((p) => resolveProviderAlias(p)).filter((p): p is string => p !== null))
+  );
+
+  // Filter candidates by active connections configured in the database
+  let activeCandidates: string[] = [];
+  if (activeProviders && activeProviders.size > 0) {
+    activeCandidates = canonicalCandidates.filter((p) => activeProviders.has(p));
+  }
+
+  // Auto-pick:
+  // 1. If active providers match, pick from active candidates (first active provider).
+  // 2. If no active providers filter applied, but canonical candidates deduplicate to 1 provider, pick it.
+  const effectiveCandidates = activeCandidates.length > 0 ? activeCandidates : canonicalCandidates;
+
+  if (effectiveCandidates.length >= 1) {
+    if (activeCandidates.length > 0 || effectiveCandidates.length === 1) {
+      const provider = effectiveCandidates[0];
+      const canonicalModel = resolveInferredProviderModel(provider, modelId);
+      return { provider, model: canonicalModel, extendedContext };
+    }
   }
 
   if (candidatesToUse.length > 1) {

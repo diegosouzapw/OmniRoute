@@ -104,6 +104,61 @@ interface ParsedImageEditInput {
   responseFormat: string | null;
   imageBytes: Buffer | null;
   imageMime: string | null;
+  images: Array<{ bytes: Buffer; mime: string }>;
+  imageInputCount: number;
+}
+
+export const MAX_CODEX_IMAGE_EDIT_BYTES = 20 * 1024 * 1024;
+export const MAX_CODEX_IMAGE_EDIT_REFERENCES = 8;
+export const MAX_CODEX_IMAGE_EDIT_TOTAL_BYTES = 20 * 1024 * 1024;
+
+const CODEX_IMAGE_MIME_MAGIC: Readonly<Record<string, (bytes: Buffer) => boolean>> = {
+  "image/png": (bytes) =>
+    bytes.length >= 8 &&
+    bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  "image/jpeg": (bytes) =>
+    bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff,
+  "image/webp": (bytes) =>
+    bytes.length >= 12 &&
+    bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
+    bytes.subarray(8, 12).toString("ascii") === "WEBP",
+};
+
+/** Validate one decoded Codex edit reference without trusting the client-supplied MIME. */
+export function validateCodexImageEditReference(
+  image: { bytes: Buffer; mime: string },
+  maxBytes = MAX_CODEX_IMAGE_EDIT_BYTES
+): string | null {
+  const mime = image.mime.trim().toLowerCase();
+  const matchesMagic = CODEX_IMAGE_MIME_MAGIC[mime];
+  if (!matchesMagic) return "Codex image edit accepts PNG, JPEG, or WebP references";
+  if (image.bytes.length > maxBytes) {
+    return `Codex image edit reference exceeds the ${Math.floor(maxBytes / (1024 * 1024))} MiB limit`;
+  }
+  if (!matchesMagic(image.bytes)) return `Image content does not match declared MIME type: ${mime}`;
+  return null;
+}
+
+/** Validate a bounded Codex reference set before encoding it into a Responses request. */
+export function validateCodexImageEditReferences(
+  images: Array<{ bytes: Buffer; mime: string }>,
+  maxReferences = MAX_CODEX_IMAGE_EDIT_REFERENCES,
+  maxTotalBytes = MAX_CODEX_IMAGE_EDIT_TOTAL_BYTES
+): string | null {
+  if (images.length > maxReferences) {
+    return `Codex image edit accepts at most ${maxReferences} reference images`;
+  }
+
+  let totalBytes = 0;
+  for (let index = 0; index < images.length; index += 1) {
+    const validationError = validateCodexImageEditReference(images[index]);
+    if (validationError) return `Reference image ${index + 1}: ${validationError}`;
+    totalBytes += images[index].bytes.length;
+  }
+  if (totalBytes > maxTotalBytes) {
+    return `Codex image edit references exceed the ${Math.floor(maxTotalBytes / (1024 * 1024))} MiB total decoded limit`;
+  }
+  return null;
 }
 
 /** Parse a `data:<mime>;base64,<data>` URL into raw bytes + mime, or null when invalid. */
@@ -115,9 +170,21 @@ export function parseDataUrl(value: unknown): { bytes: Buffer; mime: string } | 
   const isBase64 = Boolean(match[2]);
   const payload = match[3] ?? "";
   try {
-    const bytes = isBase64
-      ? Buffer.from(payload, "base64")
-      : Buffer.from(decodeURIComponent(payload), "utf8");
+    if (isBase64) {
+      if (
+        payload.length === 0 ||
+        payload.length % 4 !== 0 ||
+        !/^[A-Za-z0-9+/]*={0,2}$/.test(payload)
+      ) {
+        return null;
+      }
+      const bytes = Buffer.from(payload, "base64");
+      const canonical = bytes.toString("base64");
+      if (canonical !== payload) return null;
+      return bytes.length > 0 ? { bytes, mime } : null;
+    }
+
+    const bytes = Buffer.from(decodeURIComponent(payload), "utf8");
     if (bytes.length === 0) return null;
     return { bytes, mime };
   } catch {
@@ -145,24 +212,34 @@ export function extractImageEditInputFromJson(body: unknown): ParsedImageEditInp
   const images = obj.images;
   if (Array.isArray(images)) {
     for (const entry of images) {
-      if (typeof entry === "string") candidates.push(entry);
-      else if (entry && typeof entry === "object") {
+      if (entry && typeof entry === "object") {
         const e = entry as Record<string, unknown>;
         candidates.push(e.image_url ?? e.url ?? e.b64_json);
+      } else {
+        // Preserve every scalar/null array slot as a submitted candidate. Parsing will
+        // reject unsupported values, and the route can detect partial image sets.
+        candidates.push(entry);
       }
     }
+  } else if (images !== undefined) {
+    candidates.push(images);
   }
 
-  let imageBytes: Buffer | null = null;
-  let imageMime: string | null = null;
+  const parsedImages: Array<{ bytes: Buffer; mime: string }> = [];
   for (const candidate of candidates) {
     const parsed = parseDataUrl(candidate);
-    if (parsed) {
-      imageBytes = parsed.bytes;
-      imageMime = parsed.mime;
-      break;
-    }
+    if (parsed) parsedImages.push(parsed);
   }
+  const firstImage = parsedImages[0] ?? null;
 
-  return { prompt, model, size, responseFormat, imageBytes, imageMime };
+  return {
+    prompt,
+    model,
+    size,
+    responseFormat,
+    imageBytes: firstImage?.bytes ?? null,
+    imageMime: firstImage?.mime ?? null,
+    images: parsedImages,
+    imageInputCount: candidates.length,
+  };
 }

@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
+import { pathToFileURL } from "node:url";
 
 import {
   runFabricatedDocsCheck,
   formatHumanReport,
+  isDirectExecution,
 } from "../../scripts/check/check-fabricated-docs.mjs";
 
 // ── Fixture helpers ─────────────────────────────────────────────────────────
@@ -61,6 +63,20 @@ test("runFabricatedDocsCheck: runs without throwing on the real repo", () => {
   assert.ok(result.index.apiRoutes instanceof Set);
   assert.ok(result.index.envVars instanceof Set);
   assert.ok(result.index.cliCommands instanceof Set);
+});
+
+test("runFabricatedDocsCheck: real documentation has no fabricated claims", () => {
+  const result = runFabricatedDocsCheck();
+  assert.equal(result.totalFindings, 0, formatHumanReport(result));
+});
+
+test("isDirectExecution: matches a module URL to its filesystem argv path", () => {
+  const scriptPath = path.resolve("scripts/check/check-fabricated-docs.mjs");
+  const testPath = path.resolve("tests/unit/check-fabricated-docs.test.ts");
+
+  assert.equal(isDirectExecution(pathToFileURL(scriptPath).href, scriptPath), true);
+  assert.equal(isDirectExecution(pathToFileURL(scriptPath).href, testPath), false);
+  assert.equal(isDirectExecution(pathToFileURL(scriptPath).href, undefined), false);
 });
 
 test("runFabricatedDocsCheck: index contains real OmniRoute routes", () => {

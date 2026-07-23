@@ -1,7 +1,7 @@
 import type { RegistryEntry } from "../../shared.ts";
 import {
   buildAntigravityUrl,
-  ANTIGRAVITY_BASE_URLS,
+  ANTIGRAVITY_RUNTIME_BASE_URLS,
   ANTIGRAVITY_PUBLIC_MODELS,
   getAntigravityProviderHeaders,
   resolvePublicCred,
@@ -12,7 +12,7 @@ export const antigravityProvider: RegistryEntry = {
   alias: undefined,
   format: "antigravity",
   executor: "antigravity",
-  baseUrls: [...ANTIGRAVITY_BASE_URLS],
+  baseUrls: [...ANTIGRAVITY_RUNTIME_BASE_URLS],
   urlBuilder: buildAntigravityUrl,
   authType: "oauth",
   authHeader: "bearer",

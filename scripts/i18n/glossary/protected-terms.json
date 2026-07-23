@@ -1,0 +1,25 @@
+{
+  "description": "Product/provider/model/protocol/header/CLI/env/identifier names that must appear verbatim (untranslated) inside any zh-CN localized string that mentions them. Distinct from untranslatable-keys.json, which excludes whole KEYS from drift checks at key-granularity; this list is consumed by scripts/i18n/check-glossary-consistency.mjs to flag a VALUE that mentions the concept but altered/translated the protected term itself.",
+  "terms": [
+    "OmniRoute",
+    "OAuth",
+    "MCP",
+    "A2A",
+    "JWT",
+    "SSE",
+    "API",
+    "SQLite",
+    "GitHub",
+    "DATA_DIR",
+    "cf_clearance",
+    "JSON",
+    "URL",
+    "HTTP",
+    "HTTPS",
+    "WebSocket",
+    "CLI",
+    "Docker",
+    "Electron",
+    "Playwright"
+  ]
+}

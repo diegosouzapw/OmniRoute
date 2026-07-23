@@ -37,6 +37,7 @@ import {
   resolveComboConfig,
   getDefaultComboConfig,
   resolveComboQueueDepth,
+  isComboCooldownWaitEligible,
 } from "./comboConfig.ts";
 import {
   maybeGenerateHandoff,
@@ -1448,12 +1449,15 @@ export async function handleComboChat({
 
   let globalAttempts = 0;
 
-  // Quota-share cooldown-aware retry (Variante A). Only quota-share (qtSd/)
-  // combos opt in: when the set loop would crystallize a 429 model_cooldown
-  // because the target hit a SHORT transient cooldown, we wait it out and
-  // re-run the whole set loop instead of propagating the 429. `globalAttempts`
-  // persists across these waits so MAX_GLOBAL_ATTEMPTS still bounds total work.
-  // The wait happens at the crystallization point. The only semaphore slot the
+  // Cooldown-aware retry (Variante A). Originally quota-share (qtSd/) only;
+  // extended to "auto" combos too (#7360 — a 2-model "default" auto combo
+  // hitting Gemini TPM/RPM on both targets was crystallizing a 503 "all
+  // targets exhausted" after ~6s instead of waiting out the ~60s TPM window):
+  // when the set loop would crystallize a 429 model_cooldown because the
+  // target hit a SHORT transient cooldown, we wait it out and re-run the
+  // whole set loop instead of propagating the 429. `globalAttempts` persists
+  // across these waits so MAX_GLOBAL_ATTEMPTS still bounds total work. The
+  // wait happens at the crystallization point. The only semaphore slot the
   // quota-share path may hold is the FASE 2.1 per-connection concurrency slot
   // (acquired once around dispatchWithCooldownRetry below); it is intentionally
   // kept across the wait so the account stays "busy", and is released by the
@@ -1465,7 +1469,10 @@ export async function handleComboChat({
   // re-runs ONLY the set loop (selection / shadow routing / setup above stay
   // untouched), preserving the pre-existing `continue`-to-top-of-set-loop
   // semantics exactly.
-  const comboCooldownWaitEnabled = resilienceSettings.comboCooldownWait.enabled;
+  const comboCooldownWaitEnabled = isComboCooldownWaitEligible(
+    strategy,
+    resilienceSettings.comboCooldownWait
+  );
   let comboCooldownAttempt = 0;
   let comboCooldownBudgetLeftMs = resilienceSettings.comboCooldownWait.budgetMs;
 
@@ -1489,6 +1496,21 @@ export async function handleComboChat({
     strategy === "quota-share" && resilienceSettings.quotaShareConcurrencyLimit.enabled;
 
   const dispatchWithCooldownRetry = async (): Promise<Response> => {
+    // #7360: hoisted OUTSIDE the setTry loop (not reset each iteration) so they
+    // persist across set retries. Without this, a combo whose targets all get
+    // locked out on setTry 0 would have every SUBSEQUENT setTry pre-skip both
+    // targets via the isModelLocked check (no real dispatch, so these are never
+    // touched) — and the wait/crystallize decision below only runs on the FINAL
+    // setTry, which would see lastStatus/earliestRetryAfter reset to null and
+    // wrongly fall into the generic "all accounts inactive" 503 instead of ever
+    // reaching the cooldown-aware wait, even though a real 429 with a known
+    // retry-after WAS observed earlier in the same dispatch (live incident,
+    // #7360 follow-up: log id 1784416706646-51 — 6.9s to a 503 despite both
+    // targets reporting a clean 40s rate_limit lockout on the first attempt).
+    let lastError: string | null = null;
+    let earliestRetryAfter: ComboRetryAfter | null = null;
+    let lastStatus: number | null = null;
+
     for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
       // #1731: Per-set-iteration set of providers whose quota is fully exhausted.
       // Reset each retry so providers excluded in a previous attempt get another chance.
@@ -1514,9 +1536,6 @@ export async function handleComboChat({
         }
       }
 
-      let lastError: string | null = null;
-      let earliestRetryAfter: ComboRetryAfter | null = null;
-      let lastStatus: number | null = null;
       const startTime = Date.now();
       let fallbackCount = 0;
       let recordedAttempts = 0;
@@ -2134,7 +2153,26 @@ export async function handleComboChat({
                   (typeof parsedError === "string" ? parsedError : null) ||
                   errorBody?.message ||
                   errorText;
-                retryAfter = errorBody?.retryAfter || null;
+                // Live incident (log id 1784457764961-73 follow-up): the pre-dispatch
+                // "all credentials cooling down" rejection (buildModelCooldownBody /
+                // handleNoCredentials in src/sse/handlers/chatHelpers.ts) nests its
+                // retry hint as error.retry_after (ISO string) / error.reset_seconds
+                // (seconds), not the top-level `retryAfter` every other 429 shape
+                // uses. Without this fallback, lastStatus gets recorded (fixed above)
+                // but earliestRetryAfter stays null, so the final check falls through
+                // to the generic "all combo models unavailable" error instead of ever
+                // reaching the cooldown-wait decision — same class of bug, different
+                // response shape.
+                const nestedRetryAfter =
+                  typeof parsedError === "object" ? (parsedError?.retry_after ?? null) : null;
+                const nestedResetSeconds =
+                  typeof parsedError === "object" ? (parsedError?.reset_seconds ?? null) : null;
+                retryAfter =
+                  errorBody?.retryAfter ||
+                  nestedRetryAfter ||
+                  (typeof nestedResetSeconds === "number" && nestedResetSeconds > 0
+                    ? new Date(Date.now() + nestedResetSeconds * 1000).toISOString()
+                    : null);
               }
             } catch {
               /* Clone parse failed */
@@ -2347,6 +2385,16 @@ export async function handleComboChat({
               isModelLocked(provider, targetWithConnection.connectionId || "", rawModel)
             ) {
               log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
+              // Live incident (log id 1784457764961-73): earliestRetryAfter is already
+              // captured above from THIS dispatch's own response, but lastStatus was
+              // never recorded on this bail-out path — so once every target in the set
+              // hit an existing lockout, lastStatus stayed null and the final `if
+              // (!lastStatus)` check crystallized an immediate ALL_ACCOUNTS_INACTIVE 503
+              // instead of ever reaching the `if (earliestRetryAfter)` cooldown-wait
+              // decision below, even though a real 429 with a short (~1min) retry-after
+              // was just observed. Recording it here mirrors the "done retrying" path.
+              lastError = errorText || String(result.status);
+              if (!lastStatus) lastStatus = result.status;
               if (i > 0) fallbackCount++;
               return null;
             }
@@ -2377,6 +2425,10 @@ export async function handleComboChat({
             }
             if (lockoutRecorded) {
               log.info("COMBO", `Skipping retry for ${modelStr} — model lockout active`);
+              // Same fix as the already-locked branch above — this is the
+              // first-failure lockout path, so lastStatus needs recording here too.
+              lastError = errorText || String(result.status);
+              if (!lastStatus) lastStatus = result.status;
               if (i > 0) fallbackCount++;
               return null;
             }
@@ -2424,15 +2476,18 @@ export async function handleComboChat({
           log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
           // #5976: per-model-quota providers (Gemini, GitHub, etc.) multiplex models
-          // behind one connection. A model-level 500 must NOT cool down the entire
-          // provider — sibling models may still succeed. Skip cooldown recording for
-          // these providers on 500 errors so the next target can try.
+          // behind one connection. A model-level 500 or 429 (RPM) must NOT cool down
+          // the entire provider — sibling models may still succeed. Skip cooldown
+          // recording for these providers on 500/429 errors so the next target can try.
           if (
             resilienceSettings.providerCooldown.enabled &&
             provider &&
             provider !== "unknown" &&
             !requestScopedFailure &&
-            !(result.status === 500 && hasPerModelQuota(provider, rawModel))
+            !(
+              (result.status === 500 || result.status === 429) &&
+              hasPerModelQuota(provider, rawModel)
+            )
           ) {
             recordProviderCooldown(
               provider,
@@ -3434,7 +3489,7 @@ async function handleRoundRobinCombo({
           provider !== "unknown" &&
           !requestScopedFailure &&
           !(
-            result.status === 500 &&
+            (result.status === 500 || result.status === 429) &&
             hasPerModelQuota(provider, parseModel(modelStr).model || modelStr)
           )
         ) {
