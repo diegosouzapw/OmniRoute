@@ -1,7 +1,7 @@
 import { isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
 import { isRequestScopedUpstreamFailure } from "./comboFailureLogging";
 
-const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+export const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
 // #7907/#7908: single-model breaker trip bypasses the `isFailure` option (only applies
 // inside `breaker.execute()`), so it needs its own `isLocalStreamLifecycleError` guard —
