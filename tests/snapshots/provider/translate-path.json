@@ -1971,32 +1971,6 @@
       "stream": "https://generativelanguage.googleapis.com/v1beta/models/test-model:streamGenerateContent?alt=sse"
     }
   },
-  "gemini-cli": {
-    "format": "antigravity",
-    "headers": {
-      "apiKey": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
-      },
-      "nonStream": {
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
-      },
-      "oauth": {
-        "Accept": "text/event-stream",
-        "Authorization": "Bearer <TOK>",
-        "Content-Type": "application/json",
-        "User-Agent": "antigravity/ide/2.1.1 <OS>/<ARCH>"
-      }
-    },
-    "url": {
-      "nonStream": "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent",
-      "stream": "https://daily-cloudcode-pa.googleapis.com/v1internal:streamGenerateContent?alt=sse"
-    }
-  },
   "gemini-web": {
     "format": "openai",
     "headers": {

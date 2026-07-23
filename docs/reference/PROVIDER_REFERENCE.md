@@ -33,7 +33,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 ---
 
-## OAuth Providers (24)
+## OAuth Providers (23)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -47,7 +47,6 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `codex` | `cx` | OpenAI Codex | OAuth | — | — |
 | `cursor` | `cu` | Cursor IDE | OAuth | — | — |
 | `devin-cli` | `dv` | Devin CLI (Official) | OAuth | [link](https://cli.devin.ai) | Requires the Devin CLI binary. Run `devin auth login` to authenticate, or provide your WINDSURF_API_KEY. Install: https://cli.devin.ai |
-| `gemini-cli` | — | Gemini CLI | OAuth | — | — |
 | `ghe-copilot` | `ghe-copilot` | GitHub Enterprise Copilot | OAuth | — | Enter your GHE instance URL (e.g., https://ghe.company.com) in provider settings, then authenticate via device flow. |
 | `github` | `gh` | GitHub Copilot | OAuth | — | — |
 | `gitlab-duo` | `gitlab-duo` | GitLab Duo | OAuth | [link](https://docs.gitlab.com/user/duo_agent_platform/code_suggestions/) | OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance. |
