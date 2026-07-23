@@ -74,6 +74,8 @@ interface ProviderCardProps {
   stats: ProviderStats;
   authType?: string;
   onToggle: (active: boolean) => void;
+  shouldHighlight?: boolean;
+  onBeforeNavigate?: (id: string) => void;
 }
 
 const DOT_COLORS: Record<string, string> = {
@@ -158,6 +160,8 @@ export default function ProviderCard({
   stats,
   authType = "apikey",
   onToggle,
+  shouldHighlight,
+  onBeforeNavigate,
 }: ProviderCardProps) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
@@ -166,14 +170,15 @@ export default function ProviderCard({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (history.state?.providerId !== providerId) return;
+    if (!shouldHighlight) return;
     const el = wrapperRef.current;
     if (!el) return;
     el.scrollIntoView({ behavior: "auto", block: "center" });
-    if (history.state?.focusOnElement) {
-      const link = el.querySelector("a");
-      if (link) (link as HTMLElement).focus({ preventScroll: true });
+    const link = el.querySelector("a");
+    if (link) {
+      link.focus({ preventScroll: true });
     }
+
     const surface = el.firstElementChild?.firstElementChild as HTMLElement | undefined;
     if (surface) {
       surface.animate(
@@ -186,7 +191,7 @@ export default function ProviderCard({
         { duration: 3000, easing: "ease-in-out" }
       );
     }
-  }, [providerId]);
+  }, [shouldHighlight]);
 
   // Show the Test button for LLM providers (when serviceKinds includes "llm"
   // OR when the provider has no explicit serviceKinds but is a regular LLM provider
@@ -285,8 +290,8 @@ export default function ProviderCard({
   };
 
   const handleCardClick = useCallback(() => {
-    window.history.replaceState({ providerId, focusOnElement: true }, "");
-  }, [providerId]);
+    onBeforeNavigate?.(providerId);
+  }, [onBeforeNavigate, providerId]);
 
   return (
     <div ref={wrapperRef} id={`provider-${providerId}`} className="flex flex-col h-full">
@@ -454,7 +459,7 @@ export default function ProviderCard({
                     <Toggle
                       size="xs"
                       checked={!allDisabled}
-                      onChange={() => {}}
+                      onChange={undefined}
                       title={allDisabled ? t("enableProvider") : t("disableProvider")}
                     />
                   </div>

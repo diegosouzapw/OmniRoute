@@ -205,6 +205,13 @@ export default function ProvidersPage() {
   // #4240: media-category (serviceKind) filter — composes with activeCategory,
   // search and configured-only. null = no serviceKind filter.
   const [activeServiceKind, setActiveServiceKind] = useState<string | null>(null);
+  const [highlightedProviderId, setHighlightedProviderId] = useState<string | null>(() => {
+    return history.state?.providerId ?? null;
+  });
+
+  const handleProviderNavigate = useCallback((id: string) => {
+    window.history.replaceState({ providerId: id, focusOnElement: true }, "");
+  }, []);
   const notify = useNotificationStore();
   const sectionCategoryAliases: Record<string, string> = {
     cloud: "cloudagent",
@@ -918,6 +925,8 @@ export default function ProvidersPage() {
                 onToggle={(active) =>
                   handleToggleProvider(entry.providerId, entry.toggleAuthType, active)
                 }
+                shouldHighlight={entry.providerId === highlightedProviderId}
+                onBeforeNavigate={handleProviderNavigate}
               />
             ))}
           </div>
@@ -1004,6 +1013,8 @@ export default function ProvidersPage() {
                         onToggle={(active) =>
                           handleToggleProvider(providerId, toggleAuthType, active)
                         }
+                        shouldHighlight={providerId === highlightedProviderId}
+                        onBeforeNavigate={handleProviderNavigate}
                       />
                     )
                   )}
@@ -1078,6 +1089,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   ))}
               </div>
@@ -1136,6 +1149,8 @@ export default function ProvidersPage() {
                         onToggle={(active) =>
                           handleToggleProvider(providerId, toggleAuthType, active)
                         }
+                        shouldHighlight={providerId === highlightedProviderId}
+                        onBeforeNavigate={handleProviderNavigate}
                       />
                     )
                   )}
@@ -1184,6 +1199,8 @@ export default function ProvidersPage() {
                     stats={stats}
                     authType="web-cookie"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                    shouldHighlight={providerId === highlightedProviderId}
+                    onBeforeNavigate={handleProviderNavigate}
                   />
                 ))}
               </div>
@@ -1232,6 +1249,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   )
                 )}
@@ -1285,6 +1304,8 @@ export default function ProvidersPage() {
                           onToggle={(active) =>
                             handleToggleProvider(providerId, toggleAuthType, active)
                           }
+                          shouldHighlight={providerId === highlightedProviderId}
+                          onBeforeNavigate={handleProviderNavigate}
                         />
                       )
                     )}
@@ -1351,6 +1372,8 @@ export default function ProvidersPage() {
                     stats={stats}
                     authType="upstream-proxy"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                    shouldHighlight={providerId === highlightedProviderId}
+                    onBeforeNavigate={handleProviderNavigate}
                   />
                 ))}
               </div>
@@ -1383,6 +1406,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   )
                 )}
@@ -1416,6 +1441,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   )
                 )}
@@ -1449,6 +1476,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   )
                 )}
@@ -1499,6 +1528,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   )
                 )}
@@ -1546,6 +1577,8 @@ export default function ProvidersPage() {
                     stats={stats}
                     authType="local"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                    shouldHighlight={providerId === highlightedProviderId}
+                    onBeforeNavigate={handleProviderNavigate}
                   />
                 ))}
               </div>
@@ -1592,6 +1625,8 @@ export default function ProvidersPage() {
                     stats={stats}
                     authType="search"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                    shouldHighlight={providerId === highlightedProviderId}
+                    onBeforeNavigate={handleProviderNavigate}
                   />
                 ))}
               </div>
@@ -1624,6 +1659,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   )
                 )}
@@ -1657,6 +1694,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   )
                 )}
@@ -1704,6 +1743,8 @@ export default function ProvidersPage() {
                     stats={stats}
                     authType="audio"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                    shouldHighlight={providerId === highlightedProviderId}
+                    onBeforeNavigate={handleProviderNavigate}
                   />
                 ))}
               </div>
@@ -1736,6 +1777,8 @@ export default function ProvidersPage() {
                       onToggle={(active) =>
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
+                      shouldHighlight={providerId === highlightedProviderId}
+                      onBeforeNavigate={handleProviderNavigate}
                     />
                   )
                 )}
