@@ -195,6 +195,7 @@
       "tests/unit/headroom-codex-quota-snapshot-6379.test.ts",
       "tests/unit/headroom-proxy-lifecycle.test.ts",
       "tests/unit/idempotency-fusion-collision.test.ts",
+      "tests/unit/image-generation-codex-account-fallback.test.ts",
       "tests/unit/issue-6343-v0-web-alias-collision.test.ts",
       "tests/unit/issue-6638-ollama-quota.test.ts",
       "tests/unit/issue-6686-quota-preflight-coverage.test.ts",
