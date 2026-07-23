@@ -65,6 +65,34 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
+  // Gemini 3.6 Flash (released 2026-07-21) - three tier variants like 3.5 Flash.
+  {
+    id: "gemini-3.6-flash-low",
+    name: "Gemini 3.6 Flash (Low)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.6-flash-medium",
+    name: "Gemini 3.6 Flash (Medium)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.6-flash-high",
+    name: "Gemini 3.6 Flash (High)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
   {
     id: "gemini-3-pro-preview",
     name: "Gemini 3.1 Pro",
@@ -162,6 +190,9 @@ export const ANTIGRAVITY_MODEL_ALIASES = Object.freeze({
   "gemini-3.5-flash-low": "gemini-3.5-flash-extra-low",
   "gemini-3.5-flash-medium": "gemini-3.5-flash-low",
   "gemini-3.5-flash-high": "gemini-3-flash-agent",
+  // Gemini 3.6 Flash - no aliases needed; upstream IDs match public IDs
+  // (verified via agy --log-file). Unlike 3.5-flash which has non-trivial
+  // alias mappings, 3.6-flash uses consistent naming throughout.
   // Backward-compat: the retired flagship public id `gemini-3.5-flash-preview`
   // (Antigravity 2.0's "Gemini 3.5 Flash") is kept as a HIDDEN alias so saved
   // combos/configs keep routing — it maps to the reasoning-capable High tier
@@ -233,6 +264,7 @@ export const ANTIGRAVITY_REVERSE_MODEL_ALIASES: AntigravityModelAliasMap = Objec
   "gemini-3.1-pro": "gemini-3-pro-preview",
   "gemini-3-pro-image": "gemini-3-pro-image-preview",
   "rev19-uic3-1p": "gemini-2.5-computer-use-preview-10-2025",
+  // Gemini 3.6 Flash - no reverse aliases needed; upstream IDs match public IDs
 });
 
 const CLIENT_VISIBLE_MODEL_NAMES = Object.freeze(

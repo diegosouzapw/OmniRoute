@@ -350,6 +350,29 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 4.5,
       cache_creation: 0.5,
     },
+    // Gemini 3.6 Flash (released 2026-07-21) - three tier variants like 3.5 Flash.
+    // Pricing: $1.50 input / $7.50 output per MTok. Thinking tokens billed at output rate.
+    "gemini-3.6-flash-low": {
+      input: 1.5,
+      output: 7.5,
+      cached: 0.15,
+      reasoning: 7.5,
+      cache_creation: 1.5,
+    },
+    "gemini-3.6-flash-medium": {
+      input: 1.5,
+      output: 7.5,
+      cached: 0.15,
+      reasoning: 7.5,
+      cache_creation: 1.5,
+    },
+    "gemini-3.6-flash-high": {
+      input: 1.5,
+      output: 7.5,
+      cached: 0.15,
+      reasoning: 7.5,
+      cache_creation: 1.5,
+    },
     // `gemini-pro-agent` is the Antigravity v1.23+ Agent-mode alias for the
     // Gemini 3.1 Pro (High) tier — bills at the same rates as `gemini-3.1-pro-high`.
     "gemini-pro-agent": {

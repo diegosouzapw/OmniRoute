@@ -93,6 +93,10 @@ test("isUserCallableAntigravityModelId only allows public chat-capable model IDs
   assert.equal(isUserCallableAntigravityModelId("gemini-3.5-flash-medium"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3.5-flash-high"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3.5-flash-extra-low"), true);
+  // Gemini 3.6 Flash tiers are user-callable
+  assert.equal(isUserCallableAntigravityModelId("gemini-3.6-flash-low"), true);
+  assert.equal(isUserCallableAntigravityModelId("gemini-3.6-flash-medium"), true);
+  assert.equal(isUserCallableAntigravityModelId("gemini-3.6-flash-high"), true);
   assert.equal(isUserCallableAntigravityModelId("tab_flash_lite_preview"), false);
   assert.equal(isUserCallableAntigravityModelId("unknown-model"), false);
 });
@@ -154,6 +158,34 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and cap
     getPublicModel("gemini-2.5-computer-use-preview-10-2025").maxOutputTokens,
     undefined
   );
+  // Gemini 3.6 Flash entries
+  assert.deepEqual(getPublicModel("gemini-3.6-flash-low"), {
+    id: "gemini-3.6-flash-low",
+    name: "Gemini 3.6 Flash (Low)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  });
+  assert.deepEqual(getPublicModel("gemini-3.6-flash-medium"), {
+    id: "gemini-3.6-flash-medium",
+    name: "Gemini 3.6 Flash (Medium)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  });
+  assert.deepEqual(getPublicModel("gemini-3.6-flash-high"), {
+    id: "gemini-3.6-flash-high",
+    name: "Gemini 3.6 Flash (High)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  });
 });
 
 test("ANTIGRAVITY_PUBLIC_MODELS has no duplicate model IDs", () => {
