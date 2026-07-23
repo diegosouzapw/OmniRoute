@@ -106,10 +106,10 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
     if (!res.ok) throw new Error(`status ${res.status}`);
   } catch {
     console.error(
-      (t("launch.notRunning") || "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.").replace(
-        "{port}",
-        baseUrl
-      )
+      (
+        t("launch.notRunning") ||
+        "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'."
+      ).replace("{port}", baseUrl)
     );
     return 1;
   }
@@ -120,7 +120,14 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
   const env = buildClaudeEnv(process.env, baseUrl, authToken, { configDir });
 
   return await new Promise((resolve) => {
-    const child = spawn("claude", claudeArgs, { env, stdio: "inherit" });
+    // #8246: on Windows, npm installs claude as a .cmd shim — spawn() without
+    // shell:true cannot resolve PATHEXT shims and fails with ENOENT.
+    const claudeCommand = process.platform === "win32" ? "claude.cmd" : "claude";
+    const child = spawn(claudeCommand, claudeArgs, {
+      env,
+      stdio: "inherit",
+      ...(process.platform === "win32" ? { shell: true, windowsHide: true } : {}),
+    });
     child.on("error", (err) => {
       if (err && err.code === "ENOENT") {
         console.error(t("launch.notFound") || "The 'claude' CLI was not found in PATH.");
@@ -142,7 +149,10 @@ export function registerLaunch(program) {
     )
     .option("--port <port>", t("serve.port") || "Proxy port", "20128")
     .option("--remote <url>", "Remote OmniRoute base URL (overrides --port and the active context)")
-    .option("--profile <name>", "Claude Code profile to use (CLAUDE_CONFIG_DIR ~/.claude/profiles/<name>)")
+    .option(
+      "--profile <name>",
+      "Claude Code profile to use (CLAUDE_CONFIG_DIR ~/.claude/profiles/<name>)"
+    )
     .option("--token <token>", t("launch.token") || "Token Claude sends (ANTHROPIC_AUTH_TOKEN)")
     .option("--api-key <key>", "Alias for --token (OmniRoute access token / API key)")
     .allowUnknownOption(true)
