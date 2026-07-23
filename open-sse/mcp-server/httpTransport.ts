@@ -149,6 +149,33 @@ function errorResponse(message: string, code: number, status = 400): Response {
   );
 }
 
+export function protectMcpSseResponse(request: Request, response: Response): Response {
+  if (
+    request.method !== "GET" ||
+    !response.headers.get("content-type")?.toLowerCase().includes("text/event-stream")
+  ) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set("x-accel-buffering", "no");
+  const cacheControl = headers.get("cache-control");
+  const missingDirectives = ["no-cache", "no-transform"].filter(
+    (directive) => !new RegExp(`(?:^|,)\\s*${directive}(?:\\s*(?:,|$))`, "i").test(cacheControl ?? "")
+  );
+  if (missingDirectives.length > 0) {
+    headers.set(
+      "cache-control",
+      [cacheControl, ...missingDirectives].filter(Boolean).join(", ")
+    );
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 function withSessionHeader(response: Response, sessionId: string): Response {
   if (response.headers.get("mcp-session-id")) {
     return response;
@@ -244,7 +271,7 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
  * Used by the Next.js route at /api/mcp/stream.
  */
 export async function handleMcpStreamableHTTP(request: Request): Promise<Response> {
-  return handleStreamableRequest(request);
+  return protectMcpSseResponse(request, await handleStreamableRequest(request));
 }
 
 /**
@@ -256,7 +283,8 @@ export async function handleMcpSSE(request: Request): Promise<Response> {
   const { transport } = ensureSseServer();
 
   try {
-    return await withMcpHttpAuthContext(request, () => transport.handleRequest(request));
+    const response = await withMcpHttpAuthContext(request, () => transport.handleRequest(request));
+    return protectMcpSseResponse(request, response);
   } catch (err) {
     console.error("[MCP] SSE error:", err);
     return new Response(JSON.stringify({ error: "MCP SSE transport error" }), {
