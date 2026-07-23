@@ -14,8 +14,9 @@ type RuntimeState = ReturnType<typeof initState> & {
 };
 
 // Build the side-band identity ledger for a single namespace sub-tool. The
-// ledger keys on the BARE LEAF the model echoes back on the Chat wire; the
-// response translator resolves back to `{namespace, name}` without splitting.
+// ledger keys on the NAMESPACE-QUALIFIED name the model echoes back on the
+// Chat wire (#8295); the response translator resolves back to
+// `{namespace, name}` without splitting.
 function identityMapFor(namespace: string, name: string) {
   const request = openaiResponsesToOpenAIRequest(
     "any-model",
@@ -92,12 +93,17 @@ function functionItems(events: ResponseEvent[]) {
   };
 }
 
-// The model echoes back `tool_list` (the bare leaf we stamped on the Chat wire in
-// #7905). The response translator resolves that leaf against the side-band ledger
-// and emits the codex-compatible `{namespace, name}` tuple on every output item.
+// The model echoes back `mcp__1mcp__tool_list` (the namespace-qualified name we
+// stamped on the Chat wire in #8295). The response translator resolves that
+// qualified name against the side-band ledger and emits the codex-compatible
+// `{namespace, name}` tuple on every output item.
 test("Chat -> Responses emits namespace tuple in added, done, and completed output", () => {
-  const leaf = "tool_list";
-  const events = collectToolEvents(leaf, "call_1mcp", identityMapFor("mcp__1mcp", "tool_list"));
+  const wireName = "mcp__1mcp__tool_list";
+  const events = collectToolEvents(
+    wireName,
+    "call_1mcp",
+    identityMapFor("mcp__1mcp", "tool_list")
+  );
   for (const item of Object.values(functionItems(events))) {
     assert.deepEqual(
       { namespace: item.namespace, name: item.name },
@@ -106,12 +112,11 @@ test("Chat -> Responses emits namespace tuple in added, done, and completed outp
   }
 });
 
-// Multiple namespaces share the same leaf name. The ledger entry for that leaf is
-// ambiguous and dropped (see openai-responses.ts request translator), so the bare
-// leaf echoes back verbatim with no `namespace` field — the codex client falls
-// back to its own native dispatch table lookup by `name`.
-test("Chat -> Responses leaves ambiguous leaves without a namespace (collision safety)", () => {
-  // Build one ledger whose leaf "read" exists from two namespaces: ambiguous → dropped.
+// #8295 — multiple namespaces sharing the same leaf name each get their own
+// namespace-qualified wire name (mcp__alpha__read vs mcp__beta__read), so the
+// ledger no longer needs an ambiguity-drop: both entries resolve correctly, with
+// no collision possible.
+test("Chat -> Responses restores both identities when namespaces share a leaf name", () => {
   const request = openaiResponsesToOpenAIRequest(
     "any-model",
     {
@@ -129,14 +134,23 @@ test("Chat -> Responses leaves ambiguous leaves without a namespace (collision s
     false,
     { provider: "any-provider" }
   ) as { _toolNameMap?: Map<string, NamespaceIdentity> };
-  // Ambiguous leaf dropped → whole ledger is empty → _toolNameMap not injected at
-  // all (translator skips defineProperty when size === 0).
-  assert.ok(!request._toolNameMap || request._toolNameMap.size === 0);
+  assert.ok(request._toolNameMap instanceof Map);
+  assert.equal(request._toolNameMap.size, 2);
 
-  const events = collectToolEvents("read", "call_amb", request._toolNameMap);
-  for (const item of Object.values(functionItems(events))) {
-    assert.equal(item.name, "read");
-    assert.equal("namespace" in item, false);
+  const alphaEvents = collectToolEvents("mcp__alpha__read", "call_alpha", request._toolNameMap);
+  for (const item of Object.values(functionItems(alphaEvents))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "mcp__alpha", name: "read" }
+    );
+  }
+
+  const betaEvents = collectToolEvents("mcp__beta__read", "call_beta", request._toolNameMap);
+  for (const item of Object.values(functionItems(betaEvents))) {
+    assert.deepEqual(
+      { namespace: item.namespace, name: item.name },
+      { namespace: "mcp__beta", name: "read" }
+    );
   }
 });
 
@@ -181,16 +195,15 @@ test("Chat -> Responses keeps apply_patch as a custom tool without namespace res
   }
 });
 
-test("Chat -> Responses keeps same leaves isolated between per-request stream states", () => {
-  // Two independent streams issuing the same bare leaf "read" resolve to
+test("Chat -> Responses keeps same wire names isolated between per-request stream states", () => {
+  // Two independent streams issuing the same qualified wire name resolve to
   // different namespaces because the ledger is per-request, not global.
+  const wireName = "mcp__shared__read";
   const firstMap = identityMapFor("mcp__shared", "read");
-  const secondMap = new Map(firstMap);
-  secondMap.delete("read");
-  secondMap.set("read", { namespace: "mcp__two", name: "read" });
+  const secondMap = new Map([[wireName, { namespace: "mcp__two", name: "read" }]]);
 
-  const first = functionItems(collectToolEvents("read", "call_one", firstMap));
-  const second = functionItems(collectToolEvents("read", "call_two", secondMap));
+  const first = functionItems(collectToolEvents(wireName, "call_one", firstMap));
+  const second = functionItems(collectToolEvents(wireName, "call_two", secondMap));
   assert.deepEqual(
     { namespace: first.completed.namespace, name: first.completed.name },
     { namespace: "mcp__shared", name: "read" }
