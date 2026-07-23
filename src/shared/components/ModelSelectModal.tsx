@@ -40,7 +40,15 @@ type ModelSelectModalProps = {
   onDeselect?: (model: unknown) => void;
   selectedModel?: string;
   selectedModels?: string[];
-  activeProviders?: Array<{ provider: string; id?: string | number }>;
+  activeProviders?: Array<{
+    provider: string;
+    id?: string | number;
+    // Present on real connection objects (see fetchConnections() callers);
+    // consumed by hasEligibleConnectionForModel() for the "configured only"
+    // filter toggle below (#8219 dashboard-typecheck fix — the prop type was
+    // too narrow for the field the new filter actually reads).
+    providerSpecificData?: unknown;
+  }>;
   title?: string;
   modelAliases?: Record<string, string>;
   addedModelValues?: string[];
