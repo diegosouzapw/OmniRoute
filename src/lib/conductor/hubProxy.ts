@@ -156,6 +156,52 @@ export async function getConductorTaskDetail(
   }
 }
 
+export interface DelegationInput {
+  repoUrl: string;
+  prompt: string;
+  baseRef?: string;
+  mode?: string;
+  cli?: string;
+  model?: string;
+}
+
+/**
+ * Delegates work to the fleet: translates an external A2A task into the hub's
+ * `POST /v1/tasks` (Conductor PRD RF5). Uses the orchestrator credential when
+ * set (CONDUCTOR_ORCHESTRATOR_TOKEN), falling back to the hub token. States
+ * flow back through the RF1 mirror — this call only creates.
+ */
+export async function createConductorTask(
+  input: DelegationInput,
+  opts: HubProxyOptions = {}
+): Promise<{ ok: boolean; status: number; task_id?: string }> {
+  const cfg = hubConfig();
+  if (!cfg) return { ok: false, status: 503 };
+  const token = process.env.CONDUCTOR_ORCHESTRATOR_TOKEN?.trim() || cfg.token;
+  const body: Record<string, unknown> = {
+    repo: { url: input.repoUrl, base_ref: input.baseRef?.trim() || "main" },
+    spec: { prompt: input.prompt },
+    mode: input.mode?.trim() || "solo",
+  };
+  const requirements: Record<string, string> = {};
+  if (input.cli?.trim()) requirements.cli = input.cli.trim();
+  if (input.model?.trim()) requirements.model = input.model.trim();
+  if (Object.keys(requirements).length) body.requirements = requirements;
+  try {
+    const doFetch = opts.fetchImpl ?? fetch;
+    const res = await doFetch(`${cfg.url}/v1/tasks`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return { ok: false, status: res.status };
+    const created = z.object({ id: z.string() }).parse(await res.json());
+    return { ok: true, status: res.status, task_id: created.id };
+  } catch {
+    return { ok: false, status: 503 };
+  }
+}
+
 /** Cancels a task on the hub. Returns the hub's verdict without leaking its body on error. */
 export async function cancelConductorTask(
   taskId: string,

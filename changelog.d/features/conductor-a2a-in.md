@@ -1,0 +1,1 @@
+- feat(a2a): inbound delegation to the OmniConductor fleet — `POST /api/a2a/tasks` translates an external A2A task into the hub's `POST /v1/tasks` (fleet skills only, repo required, `CONDUCTOR_ORCHESTRATOR_TOKEN` with hub-token fallback); states flow back through the SSE→A2A mirror
