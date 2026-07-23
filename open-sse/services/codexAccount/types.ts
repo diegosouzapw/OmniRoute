@@ -57,6 +57,35 @@ export interface CodexChildAccountState {
 
 export type CodexAccountState = CodexAccountPoolState | CodexChildAccountState;
 
+export interface CodexPersistedQuotaState {
+  readonly usage5h?: number;
+  readonly limit5h?: number;
+  readonly resetAt5h?: string | null;
+  readonly usage7d?: number;
+  readonly limit7d?: number;
+  readonly resetAt7d?: string | null;
+  readonly observedAt?: string | null;
+}
+
+export interface CodexChildQuotaHydration {
+  readonly scope: CodexQuotaScope;
+  readonly quotaState: CodexPersistedQuotaState | null;
+  readonly exhaustedWindow: "5h" | "7d" | null;
+  readonly rateLimitedUntil: string | null;
+}
+
+export interface CodexParentAccountDiagnostic {
+  readonly status: CodexAccountPoolStatus;
+  readonly limitedScopeCount: number;
+  readonly cooldown: {
+    readonly coolingDown: boolean;
+    readonly soonestRetryAfterMs: number;
+  };
+  readonly quota: {
+    readonly observedScopeCount: number;
+  };
+}
+
 export interface CodexChildCooldown {
   readonly account: CodexChildAccount;
   readonly until: string;

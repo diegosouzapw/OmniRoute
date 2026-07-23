@@ -55,6 +55,35 @@ test("model resolution selects a scoped child and blank models resolve to the pa
   assert.equal(codexAccount.resolveCodexAccount(pool, "   ").kind, "parent");
 });
 
+test("quota hydration reads scoped facts without leaking legacy singleton state", () => {
+  const sparkResetAt = futureTimestamp(90_000);
+  const pool = codexAccount.createCodexAccountPool({
+    id: "connection-quota-hydration",
+    provider: "codex",
+    providerSpecificData: {
+      codexQuotaStateByScope: {
+        codex: { usage5h: 25, limit5h: 100, resetAt5h: futureTimestamp(30_000) },
+      },
+      codexExhaustedWindowByScope: { codex: "5h" },
+      codexQuotaState: {
+        scope: "spark",
+        usage5h: 100,
+        limit5h: 100,
+        resetAt5h: sparkResetAt,
+      },
+      codexExhaustedWindow: "7d",
+    },
+  });
+
+  const codex = codexAccount.getCodexChildQuotaHydration(pool.children[0]);
+  const spark = codexAccount.getCodexChildQuotaHydration(pool.children[1]);
+
+  assert.equal(codex.quotaState?.usage5h, 25);
+  assert.equal(codex.exhaustedWindow, "5h");
+  assert.equal(spark.quotaState?.usage5h, 100);
+  assert.equal(spark.exhaustedWindow, "7d");
+});
+
 test("parent inspection is an aggregate of child cooldowns", () => {
   const pool = codexAccount.createCodexAccountPool({
     id: "codex-parent-3",

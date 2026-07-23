@@ -6,7 +6,10 @@ import type {
   CodexChildAccount,
   CodexChildAccountState,
   CodexChildCooldown,
+  CodexChildQuotaHydration,
+  CodexPersistedQuotaState,
   CodexParentAccount,
+  CodexParentAccountDiagnostic,
   CodexAccountState,
   CodexAccount,
 } from "./types.ts";
@@ -28,6 +31,36 @@ function getLegacyCooldownMap(connection: LegacyStateOwner): Readonly<Record<str
 function getLegacyCooldown(account: CodexChildAccount): string | null {
   const value = getLegacyCooldownMap(account.connection)[account.scope];
   return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function asQuotaState(value: unknown): CodexPersistedQuotaState | null {
+  const record = asRecord(value);
+  return Object.keys(record).length > 0 ? (record as CodexPersistedQuotaState) : null;
+}
+
+function asExhaustedWindow(value: unknown): "5h" | "7d" | null {
+  return value === "5h" || value === "7d" ? value : null;
+}
+
+/** Decode persisted quota facts for exactly one virtual child. */
+export function getCodexChildQuotaHydration(account: CodexChildAccount): CodexChildQuotaHydration {
+  const data = account.connection.providerSpecificData;
+  const scopedQuota = asQuotaState(asRecord(data.codexQuotaStateByScope)[account.scope]);
+  const legacyQuota = asRecord(data.codexQuotaState);
+  const matchingLegacyQuota =
+    legacyQuota.scope === account.scope ? asQuotaState(legacyQuota) : null;
+  const exhaustedByScope = asRecord(data.codexExhaustedWindowByScope);
+  const scopedExhaustedWindow = asExhaustedWindow(exhaustedByScope[account.scope]);
+  const legacyExhaustedWindow = matchingLegacyQuota
+    ? asExhaustedWindow(data.codexExhaustedWindow)
+    : null;
+
+  return {
+    scope: account.scope,
+    quotaState: scopedQuota ?? matchingLegacyQuota,
+    exhaustedWindow: scopedExhaustedWindow ?? legacyExhaustedWindow,
+    rateLimitedUntil: getLegacyCooldown(account),
+  };
 }
 
 function parseFutureTimestamp(value: string | null, nowMs: number): number | null {
@@ -96,6 +129,30 @@ export function getEarliestCodexChildCooldown(
     }
   }
   return earliest;
+}
+
+/** Build one parent-only diagnostic from virtual child state. */
+export function getCodexParentAccountDiagnostic(
+  pool: CodexAccountPool,
+  nowMs = Date.now()
+): CodexParentAccountDiagnostic {
+  const state = getCodexAccountPoolState(pool, nowMs);
+  const retryTimestamps = pool.children
+    .map((child) => parseFutureTimestamp(getLegacyCooldown(child), nowMs))
+    .filter((value): value is number => value !== null);
+  const observedScopeCount = pool.children.filter(
+    (child) => getCodexChildQuotaHydration(child).quotaState !== null
+  ).length;
+  return {
+    status: state.status,
+    limitedScopeCount: state.limitedScopes.length,
+    cooldown: {
+      coolingDown: state.status === "fully_limited",
+      soonestRetryAfterMs:
+        retryTimestamps.length > 0 ? Math.max(0, Math.min(...retryTimestamps) - nowMs) : 0,
+    },
+    quota: { observedScopeCount },
+  };
 }
 
 /** Aggregate the two virtual child states as a read-only parent view. */

@@ -329,6 +329,164 @@ test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a for
   assert.match(selected.lastError, /quota preflight/i);
 });
 
+test("Codex Spark preflight cooldown leaves normal models on the same parent selectable", async () => {
+  const resetAt = futureIso(120_000);
+  const connection = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-scoped-preflight",
+    email: "codex-preflight@example.com",
+    apiKey: null,
+    accessToken: "codex-preflight-access",
+    refreshToken: "codex-preflight-refresh",
+    providerSpecificData: {
+      quotaPreflightEnabled: true,
+    },
+  });
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  quotaPreflight.registerQuotaFetcher("codex", async (_connectionId, credentials) => {
+    const isSpark = String((credentials as { requestedModel?: unknown }).requestedModel).includes(
+      "spark"
+    );
+    return {
+      used: isSpark ? 100 : 20,
+      total: 100,
+      percentUsed: isSpark ? 1 : 0.2,
+      resetAt: isSpark ? resetAt : null,
+      windows: {
+        session: { percentUsed: isSpark ? 1 : 0.2, resetAt: isSpark ? resetAt : null },
+      },
+    };
+  });
+
+  const spark = await auth.getProviderCredentialsWithQuotaPreflight(
+    "codex",
+    null,
+    null,
+    "gpt-5.3-codex-spark"
+  );
+  const normal = await auth.getProviderCredentialsWithQuotaPreflight(
+    "codex",
+    null,
+    null,
+    "gpt-5.5"
+  );
+  const persisted = await providersDb.getProviderConnectionById(connection.id);
+
+  assert.equal(spark.allRateLimited, true);
+  assert.equal(normal.connectionId, connection.id);
+  assert.equal(persisted.rateLimitedUntil, undefined);
+  assert.equal(persisted.testStatus, "active");
+  assert.equal(persisted.providerSpecificData.codexScopeRateLimitedUntil.spark, resetAt);
+});
+
+test("Codex preflight skips a blocked parent and selects a healthy sibling parent", async () => {
+  const resetAt = futureIso(120_000);
+  const blocked = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-preflight-blocked-parent",
+    email: "codex-preflight-blocked@example.com",
+    apiKey: null,
+    accessToken: "codex-preflight-blocked-access",
+    refreshToken: "codex-preflight-blocked-refresh",
+    priority: 1,
+    providerSpecificData: { quotaPreflightEnabled: true },
+  });
+  const healthy = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-preflight-healthy-parent",
+    email: "codex-preflight-healthy@example.com",
+    apiKey: null,
+    accessToken: "codex-preflight-healthy-access",
+    refreshToken: "codex-preflight-healthy-refresh",
+    priority: 2,
+    providerSpecificData: { quotaPreflightEnabled: true },
+  });
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  const preflightCalls: string[] = [];
+  quotaPreflight.registerQuotaFetcher("codex", async (connectionId) => {
+    preflightCalls.push(connectionId);
+    return {
+      used: connectionId === blocked.id ? 100 : 20,
+      total: 100,
+      percentUsed: connectionId === blocked.id ? 1 : 0.2,
+      resetAt: connectionId === blocked.id ? resetAt : null,
+      windows: {
+        session: {
+          percentUsed: connectionId === blocked.id ? 1 : 0.2,
+          resetAt: connectionId === blocked.id ? resetAt : null,
+        },
+      },
+    };
+  });
+
+  const selected = await auth.getProviderCredentialsWithQuotaPreflight(
+    "codex",
+    null,
+    null,
+    "gpt-5.3-codex-spark"
+  );
+  const blockedAfter = await providersDb.getProviderConnectionById(blocked.id);
+
+  assert.equal(selected.connectionId, healthy.id);
+  assert.deepEqual(preflightCalls, [blocked.id, healthy.id]);
+  assert.equal(blockedAfter.rateLimitedUntil, undefined);
+  assert.equal(blockedAfter.testStatus, "active");
+  assert.equal(blockedAfter.providerSpecificData.codexScopeRateLimitedUntil.spark, resetAt);
+});
+
+test("Codex preflight returns allRateLimited only after checking every exhausted parent", async () => {
+  const resetAt = futureIso(120_000);
+  const first = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-preflight-exhausted-first",
+    email: "codex-preflight-exhausted-first@example.com",
+    apiKey: null,
+    accessToken: "codex-preflight-exhausted-first-access",
+    refreshToken: "codex-preflight-exhausted-first-refresh",
+    priority: 1,
+    providerSpecificData: { quotaPreflightEnabled: true },
+  });
+  const second = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-preflight-exhausted-second",
+    email: "codex-preflight-exhausted-second@example.com",
+    apiKey: null,
+    accessToken: "codex-preflight-exhausted-second-access",
+    refreshToken: "codex-preflight-exhausted-second-refresh",
+    priority: 2,
+    providerSpecificData: { quotaPreflightEnabled: true },
+  });
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  const preflightCalls: string[] = [];
+  quotaPreflight.registerQuotaFetcher("codex", async (connectionId) => {
+    preflightCalls.push(connectionId);
+    return {
+      used: 100,
+      total: 100,
+      percentUsed: 1,
+      resetAt,
+      windows: { session: { percentUsed: 1, resetAt } },
+    };
+  });
+
+  const selected = await auth.getProviderCredentialsWithQuotaPreflight(
+    "codex",
+    null,
+    null,
+    "gpt-5.3-codex-spark"
+  );
+  const firstAfter = await providersDb.getProviderConnectionById(first.id);
+  const secondAfter = await providersDb.getProviderConnectionById(second.id);
+
+  assert.equal(selected.allRateLimited, true);
+  assert.deepEqual(preflightCalls, [first.id, second.id]);
+  for (const connection of [firstAfter, secondAfter]) {
+    assert.equal(connection.rateLimitedUntil, undefined);
+    assert.equal(connection.testStatus, "active");
+    assert.equal(connection.providerSpecificData.codexScopeRateLimitedUntil.spark, resetAt);
+  }
+});
+
 test("getProviderCredentialsWithQuotaPreflight skips the upstream fetcher when no limits are configured", async () => {
   // Latency gate regression test. When a connection has no per-window
   // overrides AND its provider has no per-(provider, window) defaults seeded

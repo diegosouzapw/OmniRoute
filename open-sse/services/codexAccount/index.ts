@@ -59,6 +59,8 @@ export function resolveCodexAccount(
 
 export {
   getCodexAccountPoolState,
+  getCodexChildQuotaHydration,
+  getCodexParentAccountDiagnostic,
   getEarliestCodexChildCooldown,
   inspectCodexAccount,
 } from "./state.ts";
@@ -77,5 +79,8 @@ export type {
   CodexAccountState,
   CodexChildAccountState,
   CodexChildCooldown,
+  CodexChildQuotaHydration,
   CodexParentAccount,
+  CodexParentAccountDiagnostic,
+  CodexPersistedQuotaState,
 } from "./types.ts";
