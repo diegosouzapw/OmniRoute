@@ -1,0 +1,15 @@
+{
+  "name": "@omniroute/browser-pool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional browser pool service for OmniRoute — CloakBrowser and Playwright-backed chat",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "playwright": "1.61.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22"
+  }
+}

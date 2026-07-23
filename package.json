@@ -47,7 +47,8 @@
     "!**/*.spec.tsx"
   ],
   "workspaces": [
-    "open-sse"
+    "open-sse",
+    "packages/browser-pool"
   ],
   "engines": {
     "node": ">=22.22.2 <23 || >=24.0.0 <27"
