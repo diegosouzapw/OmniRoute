@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -260,9 +260,9 @@ export default function ProviderCard({
     onToggle(allDisabled);
   };
 
-  const handleCardClick = () => {
+  const handleCardClick = useCallback(() => {
     window.history.replaceState(null, "", `#provider-${providerId}`);
-  };
+  }, [providerId]);
 
   return (
     <div id={`provider-${providerId}`} className="flex flex-col h-full">
