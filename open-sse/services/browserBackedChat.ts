@@ -61,15 +61,6 @@ const COOKIE_POLL_TIMEOUT_MS = 5 * 1000;
 
 // ===================== MODULE PROXY =====================
 
-let modPromise: Promise<any> | null = null;
-
-function getMod(): Promise<any> {
-  if (!modPromise) {
-    modPromise = import("@omniroute/browser-pool").catch(() => null);
-  }
-  return modPromise;
-}
-
 // ===================== COOKIE CACHE (DELEGATED) =====================
 
 async function getCachedCookies(domain: string | undefined): Promise<string | undefined> {
@@ -91,11 +82,13 @@ export async function clearCookieCache(): Promise<void> {
 
 // ===================== TEST OVERRIDES =====================
 
-let browserBackedChatOverride: ((req: BrowserBackedChatRequest) => Promise<BrowserBackedChatResult>) | null = null;
-let httpBackedChatOverride: ((req: BrowserBackedChatRequest) => Promise<BrowserBackedChatResult>) | null = null;
+let browserBackedChatOverride:
+  ((req: BrowserBackedChatRequest) => Promise<BrowserBackedChatResult>) | null = null;
+let httpBackedChatOverride:
+  ((req: BrowserBackedChatRequest) => Promise<BrowserBackedChatResult>) | null = null;
 
 export function __setBrowserBackedChatOverrideForTesting(
-  fn: ((req: BrowserBackedChatRequest) => Promise<BrowserBackedChatResult>) | null,
+  fn: ((req: BrowserBackedChatRequest) => Promise<BrowserBackedChatResult>) | null
 ): void {
   browserBackedChatOverride = fn;
 }
@@ -105,7 +98,7 @@ export function __resetBrowserBackedChatOverrideForTesting(): void {
 }
 
 export function __setHttpBackedChatOverrideForTesting(
-  fn: ((req: BrowserBackedChatRequest) => Promise<BrowserBackedChatResult>) | null,
+  fn: ((req: BrowserBackedChatRequest) => Promise<BrowserBackedChatResult>) | null
 ): void {
   httpBackedChatOverride = fn;
 }
@@ -149,7 +142,9 @@ export function isChallengeResponse(status: number): boolean {
 
 // ===================== HTTP-BACKED CHAT (INLINE) =====================
 
-export async function httpBackedChat(req: BrowserBackedChatRequest): Promise<BrowserBackedChatResult> {
+export async function httpBackedChat(
+  req: BrowserBackedChatRequest
+): Promise<BrowserBackedChatResult> {
   if (httpBackedChatOverride) return httpBackedChatOverride(req);
 
   const startTime = Date.now();
@@ -185,7 +180,13 @@ export async function httpBackedChat(req: BrowserBackedChatRequest): Promise<Bro
       contentType: "text/plain",
       body: Buffer.from(msg),
       isStealth: true,
-      timing: { acquireContextMs: 0, navigateMs: 0, submitMs: 0, captureResponseMs: 0, totalMs: Date.now() - startTime },
+      timing: {
+        acquireContextMs: 0,
+        navigateMs: 0,
+        submitMs: 0,
+        captureResponseMs: 0,
+        totalMs: Date.now() - startTime,
+      },
     };
   }
 
@@ -210,7 +211,10 @@ export async function httpBackedChat(req: BrowserBackedChatRequest): Promise<Bro
             body: Buffer.from("Response exceeded maximum size"),
             isStealth: true,
             timing: {
-              acquireContextMs: 0, navigateMs: 0, submitMs: 0, captureResponseMs: 0,
+              acquireContextMs: 0,
+              navigateMs: 0,
+              submitMs: 0,
+              captureResponseMs: 0,
               totalMs: Date.now() - startTime,
             },
           };
@@ -229,13 +233,21 @@ export async function httpBackedChat(req: BrowserBackedChatRequest): Promise<Bro
     contentType,
     body: responseBody,
     isStealth: true,
-    timing: { acquireContextMs: 0, navigateMs: 0, submitMs: 0, captureResponseMs: 0, totalMs: Date.now() - startTime },
+    timing: {
+      acquireContextMs: 0,
+      navigateMs: 0,
+      submitMs: 0,
+      captureResponseMs: 0,
+      totalMs: Date.now() - startTime,
+    },
   };
 }
 
 // ===================== TRY-BACKED CHAT (INLINE) =====================
 
-export async function tryBackedChat(req: BrowserBackedChatRequest): Promise<BrowserBackedChatResult> {
+export async function tryBackedChat(
+  req: BrowserBackedChatRequest
+): Promise<BrowserBackedChatResult> {
   const startTime = Date.now();
 
   // Background-load the package module
@@ -291,7 +303,7 @@ export async function tryBackedChat(req: BrowserBackedChatRequest): Promise<Brow
                   message: "tryBackedChat timed out",
                   type: "timeout_error",
                 },
-              }),
+              })
             ),
             isStealth: false,
             timing: {
@@ -319,10 +331,16 @@ export async function tryBackedChat(req: BrowserBackedChatRequest): Promise<Brow
               message: "tryBackedChat timed out",
               type: "timeout_error",
             },
-          }),
+          })
         ),
         isStealth: false,
-        timing: { acquireContextMs: 0, navigateMs: 0, submitMs: 0, captureResponseMs: 0, totalMs: Date.now() - startTime },
+        timing: {
+          acquireContextMs: 0,
+          navigateMs: 0,
+          submitMs: 0,
+          captureResponseMs: 0,
+          totalMs: Date.now() - startTime,
+        },
       };
     }
     throw err;
@@ -331,7 +349,9 @@ export async function tryBackedChat(req: BrowserBackedChatRequest): Promise<Brow
 
 // ===================== BROWSER-BACKED CHAT (DELEGATED) =====================
 
-export async function browserBackedChat(req: BrowserBackedChatRequest): Promise<BrowserBackedChatResult> {
+export async function browserBackedChat(
+  req: BrowserBackedChatRequest
+): Promise<BrowserBackedChatResult> {
   if (browserBackedChatOverride) return browserBackedChatOverride(req);
   const mod = await getMod();
   if (!mod) throw new Error("Browser pool package not available");
