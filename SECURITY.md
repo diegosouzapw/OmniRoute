@@ -98,6 +98,7 @@ Configure via dashboard (Settings → Security) or `.env`:
 ```env
 INPUT_SANITIZER_ENABLED=true
 INPUT_SANITIZER_MODE=block    # warn | block (injection policy; legacy "redact" does not strip injection text)
+INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (default) | medium | low — severities at/above this are blocked in block mode
 ```
 
 ### 🔒 PII Redaction

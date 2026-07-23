@@ -85,7 +85,7 @@ options:
 | --------------- | ----------------------------------------------- | ------- | --------------------------------------- |
 | Enabled         | `INPUT_SANITIZER_ENABLED`                       | `true`  | When `false`, guardrail short-circuits. |
 | Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE` | `warn`  | Injection policy: `block`, `warn`, or `log`. (`redact` is accepted for back-compat but does **not** strip injection text; request PII rewrite is controlled by `PII_REDACTION_ENABLED`.) |
-| Block threshold | `blockThreshold` option                         | `high`  | Minimum severity required to block.     |
+| Block threshold | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`  | Minimum severity required to block. Medium is observe-only at default. |
 
 **Mode precedence** (`getMode`): caller `options.mode` →
 `INJECTION_GUARD_MODE` **DB feature-flag override** (Dashboard → Settings →
@@ -226,6 +226,8 @@ Environment variables read by the built-in guardrails:
 | `INPUT_SANITIZER_ENABLED`             | `prompt-injection`               | Set `false` to disable detection entirely.                                                       |
 | `INPUT_SANITIZER_MODE`                | `prompt-injection`               | Injection policy: `warn`, `block`, or `log`. Legacy value `redact` does not rewrite injection text. |
 | `INJECTION_GUARD_MODE`                | `prompt-injection`               | Mode for the injection guard; also a DB feature flag that **overrides** the env vars (DB > ENV). |
+| `INPUT_SANITIZER_BLOCK_THRESHOLD`     | `prompt-injection`               | Minimum severity that `MODE=block` rejects: `high` (default), `medium`, or `low`.                |
+| `INJECTION_GUARD_BLOCK_THRESHOLD`     | `prompt-injection`               | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD`.                                              |
 | `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true`, request PII is redacted (independent of injection mode).                            |
 | `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream)        | Controls response-side masker behavior.                                                          |
 
