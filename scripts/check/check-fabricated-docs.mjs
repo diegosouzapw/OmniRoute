@@ -402,9 +402,9 @@ function allScanFiles(root = ROOT) {
   const files = [];
   for (const p of SCAN_PATHS) walkMarkdown(p, files, root);
   return files.filter((f) => {
-    const rel = path.relative(root, f);
+    const rel = path.relative(root, f).split(path.sep).join("/");
     for (const skip of SKIP_DOC_FILES) {
-      if (rel === skip || rel.startsWith(skip + path.sep)) return false;
+      if (rel === skip || rel.startsWith(skip + "/")) return false;
     }
     return true;
   });
@@ -861,9 +861,13 @@ export function formatHumanReport(result) {
   return lines.join("\n");
 }
 
+export function isDirectExecution(moduleUrl, argvEntry) {
+  if (!argvEntry) return false;
+  return path.resolve(fileURLToPath(moduleUrl)) === path.resolve(argvEntry);
+}
+
 // CLI entry — only run when invoked directly (not when imported for tests).
-const isMain = import.meta.url === `file://${process.argv[1]}`;
-if (isMain) {
+if (isDirectExecution(import.meta.url, process.argv[1])) {
   main();
 }
 
