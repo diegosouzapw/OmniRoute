@@ -431,6 +431,7 @@ export default function Sidebar({
       <Link
         key={item.href}
         href={item.href}
+        prefetch={false}
         onClick={onClose}
         className={className}
         {...sharedProps}
@@ -497,6 +498,7 @@ export default function Sidebar({
         <div className={cn("py-3", collapsed ? "px-2" : "px-4")}>
           <Link
             href="/home"
+            prefetch={false}
             className={cn("flex items-center", collapsed ? "justify-center" : "gap-2.5")}
           >
             <div className="flex items-center justify-center size-8 rounded bg-linear-to-br from-[#E54D5E] to-[#C93D4E] shrink-0">
