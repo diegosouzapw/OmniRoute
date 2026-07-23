@@ -86,10 +86,10 @@ test("credentialed providers expose one logical candidate per visible registry m
     "provider/model candidates must not be duplicated per connection"
   );
   for (const model of [
-    "antigravity/claude-sonnet-5",
-    "antigravity/gemini-3.5-flash-low",
-    "antigravity/gemini-3.5-flash-medium",
-    "antigravity/gemini-3.5-flash-high",
+    "antigravity/claude-sonnet-4-6",
+    "antigravity/gemini-3.6-flash-low",
+    "antigravity/gemini-3.6-flash-medium",
+    "antigravity/gemini-3.6-flash-high",
   ]) {
     assert.ok(modelStrings.includes(model), `${model} should be eligible for auto routing`);
   }
@@ -110,7 +110,7 @@ test("candidate transparency expands a logical model into per-account rows", asy
   const result = await candidateHandler.getAutoComboCandidates("auto", null);
   const sonnetRows = result.candidates.filter(
     (candidate) =>
-      candidate.provider === "antigravity" && candidate.model === "antigravity/claude-sonnet-5"
+      candidate.provider === "antigravity" && candidate.model === "antigravity/claude-sonnet-4-6"
   );
 
   assert.deepEqual(
@@ -121,12 +121,12 @@ test("candidate transparency expands a logical model into per-account rows", asy
 });
 
 test("connection model exclusions narrow only that model's account allowlist", async () => {
-  const { first, second } = await seedConnections(["gemini-3.5-*"]);
+  const { first, second } = await seedConnections(["gemini-3.6-*"]);
 
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
   const candidates = antigravityCandidates(combo);
   const geminiCandidates = candidates.filter((candidate) =>
-    candidate.model.startsWith("antigravity/gemini-3.5-")
+    candidate.model.startsWith("antigravity/gemini-3.6-")
   );
 
   assert.ok(geminiCandidates.length >= 3, "Gemini 3.5 candidates should remain available");
@@ -134,23 +134,25 @@ test("connection model exclusions narrow only that model's account allowlist", a
     assert.deepEqual(candidate.allowedConnectionIds, [second.id]);
   }
 
-  const sonnet = candidates.find((candidate) => candidate.model === "antigravity/claude-sonnet-5");
+  const sonnet = candidates.find(
+    (candidate) => candidate.model === "antigravity/claude-sonnet-4-6"
+  );
   assert.ok(sonnet, "Claude Sonnet 5 should remain in the candidate pool");
   assert.deepEqual([...(sonnet.allowedConnectionIds ?? [])].sort(), [first.id, second.id].sort());
 });
 
 test("hiding the first registry model does not drop the credentialed provider", async () => {
   await seedConnections();
-  modelsDb.setModelIsHidden("antigravity", "claude-sonnet-5", true);
+  modelsDb.setModelIsHidden("antigravity", "claude-sonnet-4-6", true);
 
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
   const modelStrings = antigravityCandidates(combo).map((candidate) => candidate.model);
 
-  assert.equal(modelStrings.includes("antigravity/claude-sonnet-5"), false);
+  assert.equal(modelStrings.includes("antigravity/claude-sonnet-4-6"), false);
   for (const model of [
-    "antigravity/gemini-3.5-flash-low",
-    "antigravity/gemini-3.5-flash-medium",
-    "antigravity/gemini-3.5-flash-high",
+    "antigravity/gemini-3.6-flash-low",
+    "antigravity/gemini-3.6-flash-medium",
+    "antigravity/gemini-3.6-flash-high",
   ]) {
     assert.ok(modelStrings.includes(model), `${model} should remain after Sonnet is hidden`);
   }

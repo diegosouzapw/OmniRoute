@@ -577,7 +577,6 @@ export function selectLockoutCooldownMs(
   }
   return settings.useExponentialBackoff ? 0 : settings.baseCooldownMs;
 }
-
 export function recordModelLockoutFailure(
   provider: string,
   connectionId: string,
@@ -586,7 +585,11 @@ export function recordModelLockoutFailure(
   status: number,
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null,
-  options: { exactCooldownMs?: number | null; maxCooldownMs?: number } = {}
+  options: {
+    exactCooldownMs?: number | null;
+    maxCooldownMs?: number;
+    exactCooldownIsUpstreamReset?: boolean;
+  } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model, reason, status);
@@ -607,17 +610,14 @@ export function recordModelLockoutFailure(
     previous &&
     now - previous.lastFailureAt <= previous.resetAfterMs + (previous.lastCooldownMs ?? 0);
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
-
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  // Cap both exponential backoff and exact cooldowns (e.g. daily-quota
-  // until-midnight) against maxCooldownMs so user-configured caps are honored.
   const maxCooldownMs =
     typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
       ? options.maxCooldownMs
       : null;
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? maxCooldownMs !== null
+      ? maxCooldownMs !== null && !options.exactCooldownIsUpstreamReset
         ? Math.min(options.exactCooldownMs, maxCooldownMs)
         : options.exactCooldownMs
       : Math.min(
