@@ -549,8 +549,9 @@ export async function handleChatCore({
   // and delegate so the existing call sites stay byte-identical.
   const recordKeyHealthStatus = (
     status: number,
-    creds: Record<string, unknown> | null | undefined
-  ): void => recordKeyHealthStatusFor(status, creds, log);
+    creds: Record<string, unknown> | null | undefined,
+    transport?: string
+  ): void => recordKeyHealthStatusFor(status, creds, log, transport);
 
   const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
     const currentConnectionId = getCurrentConnectionId();
