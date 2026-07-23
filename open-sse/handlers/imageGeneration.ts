@@ -2350,6 +2350,7 @@ async function handleCodexImageGeneration({
     return saveImageErrorResult({
       provider,
       model,
+      connectionId: credentials?.connectionId,
       status: 400,
       startTime,
       error: "Prompt is required for Codex image generation",
@@ -2371,6 +2372,7 @@ async function handleCodexImageGeneration({
     return saveImageErrorResult({
       provider,
       model,
+      connectionId: credentials?.connectionId,
       status: 401,
       startTime,
       error: "Codex credentials missing accessToken — reconnect the Codex provider",
@@ -2473,6 +2475,7 @@ async function handleCodexImageGeneration({
         error: {
           provider,
           model,
+          connectionId: credentials?.connectionId,
           status: 502,
           startTime,
           error: `Image provider error: ${message}`,
@@ -2493,6 +2496,7 @@ async function handleCodexImageGeneration({
         error: {
           provider,
           model,
+          connectionId: credentials?.connectionId,
           status: response.status,
           startTime,
           error: safeError,
@@ -2510,6 +2514,7 @@ async function handleCodexImageGeneration({
         error: {
           provider,
           model,
+          connectionId: credentials?.connectionId,
           status: 502,
           startTime,
           error:
@@ -2549,6 +2554,7 @@ async function handleCodexImageGeneration({
   return saveImageSuccessResult({
     provider,
     model,
+    connectionId: credentials?.connectionId,
     startTime,
     requestBody: requestBodyForLog,
     responseBody: { images_count: data.length },
@@ -2606,6 +2612,7 @@ export async function handleCodexImageEdit({
 export function saveImageSuccessResult({
   provider,
   model,
+  connectionId = null,
   startTime,
   requestBody = null,
   responseBody = null,
@@ -2619,6 +2626,7 @@ export function saveImageSuccessResult({
     status: 200,
     model: `${provider}/${model}`,
     provider,
+    connectionId,
     duration: Date.now() - startTime,
     requestBody,
     responseBody,
@@ -2636,6 +2644,7 @@ export function saveImageSuccessResult({
 export function saveImageErrorResult({
   provider,
   model,
+  connectionId = null,
   status,
   startTime,
   error,
@@ -2648,6 +2657,7 @@ export function saveImageErrorResult({
     status,
     model: `${provider}/${model}`,
     provider,
+    connectionId,
     duration: Date.now() - startTime,
     error: typeof error === "string" ? error.slice(0, 500) : String(error).slice(0, 500),
     requestBody,
