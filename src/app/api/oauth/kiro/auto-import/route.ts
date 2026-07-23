@@ -111,8 +111,7 @@ async function tryKiroCliSqlite(): Promise<{
         for (const table of ["auth_kv", "ItemTable", "storage"]) {
           try {
             const row = db.prepare(`SELECT value FROM ${table} WHERE key = ?`).get(key) as
-              | { value: string }
-              | undefined;
+              { value: string } | undefined;
             if (row?.value) {
               try {
                 tokenData = JSON.parse(row.value);
@@ -139,8 +138,7 @@ async function tryKiroCliSqlite(): Promise<{
         for (const table of ["auth_kv", "ItemTable", "storage"]) {
           try {
             const row = db.prepare(`SELECT value FROM ${table} WHERE key = ?`).get(key) as
-              | { value: string }
-              | undefined;
+              { value: string } | undefined;
             if (row?.value) {
               try {
                 regData = JSON.parse(row.value);
@@ -262,11 +260,13 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
   triedPath?: string;
   refreshToken?: string;
   accessToken?: string | null;
+  expiresAt?: string | null;
   source?: string;
   clientId?: string | null;
   clientSecret?: string | null;
   region?: string | null;
   authMethod?: string | null;
+  provider?: string | null;
   profileArn?: string | null;
   tokenEndpoint?: string | null;
   scopes?: string | string[] | null;
@@ -302,6 +302,30 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
         !!data.refreshToken &&
         (isExternalIdpAuthMethod(data.authMethod) ||
           String(data.provider || "").toLowerCase() === "externalidp");
+
+      const isSocial =
+        !!data.refreshToken && String(data.authMethod || "").toLowerCase() === "social";
+
+      if (isSocial) {
+        const profileArn =
+          (typeof data.profileArn === "string" && data.profileArn.trim()) ||
+          (await readKiroIdeProfileArn());
+        const arnRegion =
+          typeof profileArn === "string"
+            ? profileArn.match(/^arn:aws:codewhisperer:([a-z0-9-]+):/)?.[1]
+            : undefined;
+        return {
+          found: true,
+          source: file,
+          refreshToken: data.refreshToken,
+          accessToken: data.accessToken || null,
+          expiresAt: data.expiresAt || null,
+          region: data.region || arnRegion || null,
+          authMethod: "social",
+          provider: typeof data.provider === "string" ? data.provider : null,
+          profileArn: profileArn || null,
+        };
+      }
 
       if (isExternalIdp) {
         const region: string | null = data.region || null;
@@ -455,6 +479,7 @@ type SaveAndRespondResult = Awaited<ReturnType<typeof tryKiroCliSqlite>> & {
   // Fields added by tryAwsSsoCache for External IdP (organization) tokens
   tokenEndpoint?: string | null;
   scopes?: string | string[] | null;
+  provider?: string | null;
 };
 
 async function saveAndRespond(
@@ -554,13 +579,17 @@ async function saveAndRespond(
     const resolvedAuthMethod =
       result.source === "kiro-cli-sqlite"
         ? "kiro-cli"
-        : result.clientId
-          ? result.authMethod || "idc"
-          : "imported";
+        : result.authMethod === "social"
+          ? "social"
+          : result.clientId
+            ? result.authMethod || "idc"
+            : "imported";
 
     const providerSpecificData: Record<string, any> = {
       authMethod: resolvedAuthMethod,
-      provider: result.source === "kiro-cli-sqlite" ? "kiro-cli SQLite" : "AWS SSO Cache",
+      provider:
+        result.provider ||
+        (result.source === "kiro-cli-sqlite" ? "kiro-cli SQLite" : "AWS SSO Cache"),
     };
 
     if (result.clientId) providerSpecificData.clientId = result.clientId;
@@ -571,7 +600,7 @@ async function saveAndRespond(
     // For the SSO-cache fallback path the token came from ~/.aws/sso/cache and has no
     // per-connection OIDC client. Register one now so this connection gets an isolated
     // refresh session (#2328). The SQLite path already sets result.clientId.
-    if (!result.clientId) {
+    if (!result.clientId && resolvedAuthMethod !== "social") {
       try {
         const reg = await runWithProxyContext(proxy, () => kiroService.registerClient());
         providerSpecificData.clientId = reg.clientId;

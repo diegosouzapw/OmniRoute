@@ -49,6 +49,7 @@ const core = await import("../../src/lib/db/core.ts");
 const { GET } = await import("../../src/app/api/oauth/kiro/auto-import/route.ts");
 
 const ORIGINAL_HOME = process.env.HOME;
+const ORIGINAL_USERPROFILE = process.env.USERPROFILE;
 const ORIGINAL_APPDATA = process.env.APPDATA;
 const ORIGINAL_FETCH = globalThis.fetch;
 
@@ -60,6 +61,7 @@ test.beforeEach(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   process.env.HOME = tmpHome;
+  process.env.USERPROFILE = tmpHome;
   delete process.env.APPDATA;
   // Reset fetch so tests with mocks don't bleed into each other.
   globalThis.fetch = ORIGINAL_FETCH;
@@ -67,6 +69,11 @@ test.beforeEach(() => {
 
 test.afterEach(() => {
   process.env.HOME = ORIGINAL_HOME;
+  if (ORIGINAL_USERPROFILE !== undefined) {
+    process.env.USERPROFILE = ORIGINAL_USERPROFILE;
+  } else {
+    delete process.env.USERPROFILE;
+  }
   if (ORIGINAL_APPDATA !== undefined) {
     process.env.APPDATA = ORIGINAL_APPDATA;
   } else {
@@ -346,6 +353,57 @@ test("auto-import: without clientIdHash, fallback still works and clientId/clien
     body.clientSecret === null || body.clientSecret === undefined,
     `clientSecret must be null/undefined when no clientIdHash, got: ${body.clientSecret}`
   );
+});
+
+test("auto-import: current Kiro IDE social cache preserves native identity fields", async () => {
+  const profileArn = "arn:aws:codewhisperer:us-east-1:123456789012:profile/SOCIAL";
+  writeAwsSsoCache({
+    tokenData: {
+      accessToken: "social-access-current",
+      refreshToken: "aorAAAAAGsocial-current",
+      expiresAt: "2099-01-01T00:00:00.000Z",
+      authMethod: "social",
+      provider: "Github",
+      profileArn,
+    },
+  });
+
+  const fetchedUrls: string[] = [];
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = String(input);
+    fetchedUrls.push(url);
+    if (url.endsWith("/refreshToken")) {
+      return new Response(
+        JSON.stringify({
+          accessToken: "social-access-refreshed",
+          refreshToken: "aorAAAAAGsocial-refreshed",
+          expiresIn: 3600,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (url.endsWith("/client/register")) {
+      return new Response(JSON.stringify({ clientId: "must-not-register" }), { status: 200 });
+    }
+    throw new Error(`[kiro-social-current test] unexpected fetch to ${url}`);
+  }) as typeof fetch;
+
+  const { body } = await callGet();
+  assert.equal(body.found, true, `expected found:true, got: ${JSON.stringify(body)}`);
+  assert.equal(body.profileArn, profileArn);
+  assert.ok(fetchedUrls.some((url) => url.endsWith("/refreshToken")));
+  assert.equal(
+    fetchedUrls.some((url) => url.endsWith("/client/register")),
+    false,
+    "social imports must not register an unrelated AWS OIDC client"
+  );
+
+  const providersDb = await import("../../src/lib/db/providers.ts");
+  const [connection] = await providersDb.getProviderConnections({ provider: "kiro" });
+  const providerSpecificData = connection.providerSpecificData as Record<string, unknown>;
+  assert.equal(providerSpecificData.authMethod, "social");
+  assert.equal(providerSpecificData.provider, "Github");
+  assert.equal(providerSpecificData.profileArn, profileArn);
 });
 
 test("auto-import: clientIdHash present but registration file missing — gracefully continues without clientId", async () => {
