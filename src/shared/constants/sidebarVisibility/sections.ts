@@ -189,15 +189,6 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       icon: "grain",
     },
     {
-      id: "compression-studio",
-      href: "/dashboard/compression/studio",
-      i18nKey: "compressionStudio",
-      labelFallback: "Compression Studio",
-      subtitleKey: "compressionStudioSubtitle",
-      subtitleFallback: "Live engine cascade",
-      icon: "monitoring",
-    },
-    {
       id: "compression-exclusions",
       href: "/dashboard/compression/exclusions",
       i18nKey: "compressionExclusions",
@@ -205,6 +196,17 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       subtitleKey: "compressionExclusionsSubtitle",
       subtitleFallback: "Per-model/endpoint bypass",
       icon: "block",
+    },
+    // Compression Studio stays the final showcase item of the compression group
+    // (sidebar-engine-items "Studio must be last" invariant); new pages go above it.
+    {
+      id: "compression-studio",
+      href: "/dashboard/compression/studio",
+      i18nKey: "compressionStudio",
+      labelFallback: "Compression Studio",
+      subtitleKey: "compressionStudioSubtitle",
+      subtitleFallback: "Live engine cascade",
+      icon: "monitoring",
     },
   ],
 };
