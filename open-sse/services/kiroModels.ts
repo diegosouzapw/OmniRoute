@@ -27,6 +27,7 @@ import { createHash } from "node:crypto";
 
 import { v4 as uuidv4 } from "uuid";
 
+import { KIRO_IDE_VERSION } from "./kiroClientProfile.ts";
 import { resolveKiroRuntimeRegion } from "./kiroRegion.ts";
 
 type RawRecord = Record<string, unknown>;
@@ -34,8 +35,7 @@ type RawRecord = Record<string, unknown>;
 const KIRO_RUNTIME_SDK_VERSION = "1.0.0";
 const KIRO_AGENT_OS = "windows";
 const KIRO_AGENT_OS_VERSION = "10.0.26200";
-const KIRO_NODE_VERSION = "22.21.1";
-const KIRO_IDE_VERSION = "0.10.32";
+const KIRO_NODE_VERSION = "22.22.0";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 const catalogCache = new Map<string, { expiresAt: number; models: KiroModel[] }>();

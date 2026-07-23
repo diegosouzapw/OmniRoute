@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
@@ -6,7 +8,7 @@ import {
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { v4 as uuidv4 } from "uuid";
+import { buildKiroClientHeaders } from "../services/kiroClientProfile.ts";
 import { refreshKiroToken } from "../services/tokenRefresh.ts";
 import {
   isExternalIdpAuthMethod,
@@ -189,10 +191,13 @@ export class KiroExecutor extends BaseExecutor {
     void stream;
     const headers = {
       ...this.config.headers,
+      ...buildKiroClientHeaders(
+        credentials.providerSpecificData,
+        credentials.accessToken || credentials.apiKey || "",
+        "runtime"
+      ),
       "Amz-Sdk-Request": "attempt=1; max=3",
       "Amz-Sdk-Invocation-Id": uuidv4(),
-      "x-amzn-bedrock-cache-control": "enable",
-      "anthropic-beta": "prompt-caching-2024-07-31",
     };
 
     const authMethod =

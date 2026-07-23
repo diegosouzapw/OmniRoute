@@ -17,8 +17,8 @@ export const QWEN_STAINLESS_LANG = "js";
 
 export const QODER_DEFAULT_USER_AGENT = "Qoder-Cli";
 
-export const KIRO_SDK_USER_AGENT = "AWS-SDK-JS/3.0.0 kiro-ide/1.0.0";
-export const KIRO_AMZ_USER_AGENT = "aws-sdk-js/3.0.0 kiro-ide/1.0.0";
+export const KIRO_SDK_USER_AGENT = "aws-sdk-js/1.0.0 KiroIDE-1.0.203";
+export const KIRO_AMZ_USER_AGENT = "aws-sdk-js/1.0.0 KiroIDE-1.0.203";
 export const KIRO_STREAMING_TARGET =
   "AmazonCodeWhispererStreamingService.GenerateAssistantResponse";
 
@@ -145,6 +145,8 @@ export function getKiroServiceHeaders(
     "X-Amz-Target": KIRO_STREAMING_TARGET,
     "User-Agent": KIRO_SDK_USER_AGENT,
     "X-Amz-User-Agent": KIRO_AMZ_USER_AGENT,
+    "x-amzn-kiro-agent-mode": "vibe",
+    "x-amzn-codewhisperer-optout": "true",
   };
 }
 

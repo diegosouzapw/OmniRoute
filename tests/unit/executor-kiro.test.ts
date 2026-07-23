@@ -1,10 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
 
 import { KiroExecutor } from "../../open-sse/executors/kiro.ts";
+import { buildKiroClientHeaders } from "../../open-sse/services/kiroClientProfile.ts";
 import { hasStreamReadinessSignal } from "../../open-sse/utils/streamReadiness.ts";
 
 const textEncoder = new TextEncoder();
+const { machineIdSync } = createRequire(import.meta.url)("node-machine-id") as {
+  machineIdSync: () => string;
+};
 
 function crc32(buf) {
   const table = new Uint32Array(256);
@@ -139,12 +144,48 @@ test("KiroExecutor.transformEventStreamToSSE emits an early role-only start chun
 
 test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () => {
   const executor = new KiroExecutor();
-  const headers = executor.buildHeaders({ accessToken: "kiro-token" }, true);
+  const headers = executor.buildHeaders(
+    {
+      accessToken: "kiro-token",
+      providerSpecificData: {
+        profileArn: "arn:aws:codewhisperer:us-east-1:123:profile/ABC",
+      },
+    },
+    true
+  );
 
   assert.equal(headers.Authorization, "Bearer kiro-token");
-  assert.equal(headers["anthropic-beta"], "prompt-caching-2024-07-31");
-  assert.equal(headers["x-amzn-bedrock-cache-control"], "enable");
+  assert.match(headers["User-Agent"], /aws-sdk-js\/1\.0\.0/);
+  assert.match(headers["User-Agent"], /api\/kiroruntime#1\.0\.0/);
+  assert.match(headers["User-Agent"], /KiroIDE-1\.0\.203-[a-f0-9]{64}$/);
+  assert.match(headers["X-Amz-User-Agent"], /KiroIDE-1\.0\.203-[a-f0-9]{64}$/);
+  assert.equal(headers["x-amzn-kiro-agent-mode"], "vibe");
+  assert.equal(headers["x-amzn-codewhisperer-optout"], "true");
+  assert.equal(headers["anthropic-beta"], undefined);
+  assert.equal(headers["x-amzn-bedrock-cache-control"], undefined);
   assert.ok(headers["Amz-Sdk-Invocation-Id"]);
+});
+
+test("KiroExecutor.buildHeaders uses the same native machine id as Kiro IDE", () => {
+  const executor = new KiroExecutor();
+  const headers = executor.buildHeaders(
+    {
+      accessToken: "kiro-token",
+      providerSpecificData: { kiroMachineId: "00000000-0000-0000-0000-000000000000" },
+    },
+    true
+  );
+
+  assert.ok(headers["User-Agent"].endsWith(`KiroIDE-1.0.203-${machineIdSync()}`));
+});
+
+test("buildKiroClientHeaders emits the control-plane identity without runtime agent mode", () => {
+  const headers = buildKiroClientHeaders({}, "kiro-token", "control-plane");
+
+  assert.match(headers["User-Agent"], /api\/kirocontrolplanebearer#1\.0\.0/);
+  assert.match(headers["User-Agent"], /KiroIDE-1\.0\.203-[a-f0-9]{64}$/);
+  assert.equal(headers["x-amzn-codewhisperer-optout"], "true");
+  assert.equal(headers["x-amzn-kiro-agent-mode"], undefined);
 });
 
 test("KiroExecutor.buildHeaders marks long-lived Kiro API keys", () => {
