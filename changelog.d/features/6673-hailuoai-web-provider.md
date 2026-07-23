@@ -1,0 +1,1 @@
+- **feat(providers):** add Hailuo Web (`hailuo-web`) — a free, `_token`-based web-cookie chat provider for the MiniMax consumer chat product at hailuo.ai, ported from the g4f reference implementation (MD5-chain request signing, custom `event:`/`data:` SSE parsing). Distinct from the existing paid API-key `minimax`/`minimax-cn` providers. (#6673)

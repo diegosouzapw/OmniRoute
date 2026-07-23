@@ -18,7 +18,7 @@ function normalizeModelId(model: string | null | undefined): string {
 export function getAntigravityQuotaFamily(
   model: string | null | undefined
 ): AntigravityQuotaFamily {
-  const normalized = normalizeModelId(model).replace(/^antigravity\//, "");
+  const normalized = normalizeModelId(model).replace(/^(antigravity|agy)\//, "");
   const slashIndex = normalized.indexOf("/");
   const bare = slashIndex >= 0 ? normalized.slice(slashIndex + 1) : normalized;
 
@@ -42,7 +42,7 @@ export function getQuotaScopedModelForProvider(
   model: string | null | undefined
 ): string | null {
   if (!model) return null;
-  if (provider !== ANTIGRAVITY_PROVIDER_ID) return model;
+  if (provider !== "antigravity" && provider !== "agy") return model;
   const family = getAntigravityQuotaFamily(model);
   return family === "other" ? model : `family:${family}`;
 }
@@ -51,6 +51,6 @@ export function getQuotaScopeLabelForProvider(
   provider: string | null | undefined,
   model: string | null | undefined
 ): string {
-  if (provider !== ANTIGRAVITY_PROVIDER_ID) return "model";
+  if (provider !== "antigravity" && provider !== "agy") return "model";
   return getAntigravityQuotaFamily(model) === "other" ? "model" : "family";
 }

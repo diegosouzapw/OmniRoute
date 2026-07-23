@@ -21,7 +21,11 @@ import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.ts"
 import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexGenerateSpeech } from "../executors/vertexMedia.ts";
+import { handleAwsPollySpeech } from "../executors/awsPollyTts.ts";
+import { handleEdgeTtsSpeech } from "../executors/edgeTts.ts";
+import { GttsUpstreamError, normalizeGttsLang, synthesizeGtts } from "../executors/gtts.ts";
 import { errorResponse } from "../utils/error.ts";
+import { audioStreamResponse, upstreamErrorResponse } from "../utils/audioResponse.ts";
 import {
   getKieCallbackUrl,
   getKieErrorMessage,
@@ -29,59 +33,6 @@ import {
   isJsonObject,
   parseKieResultJson,
 } from "../utils/kieTask.ts";
-import { signAwsRequest } from "../utils/awsSigV4.ts";
-
-/**
- * Return a CORS error response from an upstream fetch failure
- */
-function extractUpstreamErrorMessage(parsed) {
-  const detail = parsed?.detail;
-  const candidates = [
-    parsed?.err_msg,
-    parsed?.error?.message,
-    typeof parsed?.error === "string" ? parsed.error : null,
-    parsed?.message,
-    typeof detail === "string" ? detail : detail?.message,
-  ];
-
-  const raw = candidates.find(Boolean);
-  return raw ? String(raw) : null;
-}
-
-function upstreamErrorResponse(res, errText) {
-  // Always return JSON so the client can detect 401/credential errors reliably
-  let errorMessage: string;
-  try {
-    const parsed = JSON.parse(errText);
-    errorMessage =
-      extractUpstreamErrorMessage(parsed) || errText || `Upstream error (${res.status})`;
-  } catch {
-    errorMessage = errText || `Upstream error (${res.status})`;
-  }
-
-  return Response.json(
-    { error: { message: errorMessage, code: res.status } },
-    {
-      status: res.status,
-      headers: { ...CORS_HEADERS },
-    }
-  );
-}
-
-/**
- * Return a CORS audio stream response
- */
-function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
-  const contentType = res.headers.get("content-type") || defaultContentType;
-  return new Response(res.body, {
-    status: 200,
-    headers: {
-      ...CORS_HEADERS,
-      "Content-Type": contentType,
-      "Transfer-Encoding": "chunked",
-    },
-  });
-}
 
 function normalizeKieElevenLabsVoice(voice: unknown): string {
   const value = typeof voice === "string" ? voice.trim() : "";
@@ -178,30 +129,6 @@ function getStringValue(value): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
-function getAwsPollyProviderData(credentials) {
-  return credentials?.providerSpecificData &&
-    typeof credentials.providerSpecificData === "object" &&
-    !Array.isArray(credentials.providerSpecificData)
-    ? credentials.providerSpecificData
-    : {};
-}
-
-function resolveAwsPollyRegion(providerSpecificData) {
-  return (
-    getStringValue(providerSpecificData.region) ||
-    getStringValue(providerSpecificData.awsRegion) ||
-    process.env.AWS_REGION ||
-    process.env.AWS_DEFAULT_REGION ||
-    "us-east-1"
-  );
-}
-
-function resolveAwsPollyBaseUrl(providerSpecificData, region) {
-  const configuredBaseUrl = getStringValue(providerSpecificData.baseUrl);
-  const baseUrl = configuredBaseUrl || `https://polly.${region}.amazonaws.com`;
-  return stripTrailingSlashes(baseUrl.replace(/\/v1\/speech\/?$/i, ""));
-}
-
 function getProviderSpecificData(credentials) {
   return credentials?.providerSpecificData &&
     typeof credentials.providerSpecificData === "object" &&
@@ -247,50 +174,6 @@ function getXiaomiMimoAudioData(data) {
     getStringValue(data?.audioContent) ||
     getStringValue(data?.audio_content)
   );
-}
-
-function normalizeAwsPollyEngine(modelId) {
-  const engine = getStringValue(modelId) || "standard";
-  return ["standard", "neural", "long-form", "generative"].includes(engine) ? engine : "standard";
-}
-
-function normalizeAwsPollyOutputFormat(responseFormat) {
-  const format = getStringValue(responseFormat)?.toLowerCase();
-  switch (format) {
-    case "pcm":
-    case "wav":
-      return "pcm";
-    case "opus":
-    case "ogg_opus":
-      return "ogg_opus";
-    case "ogg":
-    case "ogg_vorbis":
-      return "ogg_vorbis";
-    case "json":
-      return "json";
-    case "mp3":
-    default:
-      return "mp3";
-  }
-}
-
-function normalizeAwsPollyTextType(body) {
-  const explicitTextType = getStringValue(body.text_type || body.textType)?.toLowerCase();
-  if (explicitTextType === "ssml") return "ssml";
-  if (explicitTextType === "text") return "text";
-
-  const input = getStringValue(body.input) || "";
-  return input.trim().startsWith("<speak") ? "ssml" : "text";
-}
-
-function getAwsPollySampleRate(responseFormat, sampleRate) {
-  const explicit = getStringValue(sampleRate || null);
-  if (explicit) return explicit;
-
-  const outputFormat = normalizeAwsPollyOutputFormat(responseFormat);
-  if (outputFormat === "ogg_opus") return "48000";
-  if (outputFormat === "pcm") return "16000";
-  return undefined;
 }
 
 /**
@@ -518,6 +401,35 @@ async function handleCartesiaSpeech(providerConfig, body, modelId, token) {
 }
 
 /**
+ * Handle Fish Audio TTS
+ * POST { text, format, reference_id, prosody } → binary audio bytes
+ * Auth: Authorization: Bearer <api-key>, model as an HTTP header
+ * Docs: https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech
+ */
+async function handleFishAudioSpeech(providerConfig, body, modelId, token) {
+  const res = await fetch(providerConfig.baseUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      model: modelId,
+    },
+    body: JSON.stringify({
+      text: body.input,
+      format: body.response_format || "mp3",
+      ...(body.voice ? { reference_id: body.voice } : {}),
+      ...(body.speed ? { prosody: { speed: body.speed } } : {}),
+    }),
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  return audioStreamResponse(res);
+}
+
+/**
  * Handle PlayHT TTS
  * POST { text, voice, voice_engine, output_format } → audio stream
  * Auth: X-USER-ID header (from token string "userId:apiKey")
@@ -646,80 +558,6 @@ async function pollKieAudioResult(baseUrl, modelId, taskId, token) {
   }
 
   return errorResponse(504, "Kie audio generation timed out or failed");
-}
-
-/**
- * Handle AWS Polly TTS
- * POST /v1/speech signed with AWS SigV4.
- * The configured apiKey stores AWS Secret Access Key; providerSpecificData.accessKeyId stores
- * AWS Access Key ID, with optional region/baseUrl/defaultVoice/sessionToken.
- */
-async function handleAwsPollySpeech(providerConfig, body, modelId, token, credentials) {
-  const providerSpecificData = getAwsPollyProviderData(credentials);
-  const accessKeyId =
-    getStringValue(providerSpecificData.accessKeyId) ||
-    getStringValue(providerSpecificData.awsAccessKeyId);
-  const secretAccessKey = getStringValue(token);
-
-  if (!accessKeyId) {
-    return errorResponse(400, "AWS Polly requires providerSpecificData.accessKeyId");
-  }
-  if (!secretAccessKey) {
-    return errorResponse(401, "No AWS Secret Access Key for AWS Polly");
-  }
-
-  const region = resolveAwsPollyRegion(providerSpecificData);
-  const baseUrl = resolveAwsPollyBaseUrl(providerSpecificData, region);
-  const url = `${baseUrl}/v1/speech`;
-  const outputFormat = normalizeAwsPollyOutputFormat(body.response_format);
-  const sampleRate = getAwsPollySampleRate(
-    body.response_format,
-    body.sample_rate || body.sampleRate
-  );
-
-  const requestBody = {
-    Engine: normalizeAwsPollyEngine(modelId),
-    OutputFormat: outputFormat,
-    Text: body.input,
-    TextType: normalizeAwsPollyTextType(body),
-    VoiceId:
-      getStringValue(body.voice) || getStringValue(providerSpecificData.defaultVoice) || "Joanna",
-    ...(getStringValue(body.language_code || body.languageCode)
-      ? { LanguageCode: getStringValue(body.language_code || body.languageCode) }
-      : {}),
-    ...(sampleRate ? { SampleRate: sampleRate } : {}),
-  };
-  const serializedBody = JSON.stringify(requestBody);
-
-  const signedHeaders = signAwsRequest({
-    method: "POST",
-    url,
-    region,
-    service: "polly",
-    headers: {
-      "content-type": "application/json",
-    },
-    body: serializedBody,
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-      sessionToken:
-        getStringValue(providerSpecificData.sessionToken) ||
-        getStringValue(providerSpecificData.awsSessionToken),
-    },
-  });
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: signedHeaders,
-    body: serializedBody,
-  });
-
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
-
-  return audioStreamResponse(res, outputFormat === "pcm" ? "audio/pcm" : "audio/mpeg");
 }
 
 /**
@@ -918,6 +756,28 @@ async function handleTortoiseSpeech(providerConfig, body) {
 }
 
 /**
+ * Handle gTTS TTS (local no-auth, Google Translate batchexecute RPC).
+ * `voice` doubles as the language code since gTTS has no voice concept —
+ * defaults to English when omitted or unrecognized.
+ */
+async function handleGttsSpeech(body) {
+  try {
+    const audio = await synthesizeGtts({
+      text: body.input,
+      lang: normalizeGttsLang(body.voice),
+    });
+    return new Response(audio, {
+      status: 200,
+      headers: { ...CORS_HEADERS, "Content-Type": "audio/mpeg" },
+    });
+  } catch (err) {
+    const status = err instanceof GttsUpstreamError ? err.status : 502;
+    const message = err instanceof Error ? err.message : "gTTS synthesis failed";
+    return errorResponse(status, message);
+  }
+}
+
+/**
  * Handle audio speech (TTS) request
  *
  * @param {Object} options
@@ -931,6 +791,7 @@ export async function handleAudioSpeech({
   credentials,
   resolvedProvider = null,
   resolvedModel = null,
+  clientIp = null,
 }) {
   if (!body.model) {
     return errorResponse(400, "model is required");
@@ -952,7 +813,7 @@ export async function handleAudioSpeech({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, kie, aws-polly, xiaomi-mimo, coqui, tortoise, qwen`
+      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, fishaudio, playht, kie, aws-polly, xiaomi-mimo, edgetts, gtts, coqui, tortoise, qwen`
     );
   }
 
@@ -1005,6 +866,10 @@ export async function handleAudioSpeech({
       return handleCartesiaSpeech(providerConfig, body, modelId, token);
     }
 
+    if (providerConfig.format === "fishaudio") {
+      return handleFishAudioSpeech(providerConfig, body, modelId, token);
+    }
+
     if (providerConfig.format === "playht") {
       return handlePlayHtSpeech(providerConfig, body, modelId, token);
     }
@@ -1015,6 +880,14 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "aws-polly") {
       return handleAwsPollySpeech(providerConfig, body, modelId, token, credentials);
+    }
+
+    if (providerConfig.format === "edgetts") {
+      return handleEdgeTtsSpeech(body, clientIp);
+    }
+
+    if (providerConfig.format === "gtts") {
+      return handleGttsSpeech(body);
     }
 
     if (providerConfig.format === "xiaomi-mimo-tts") {

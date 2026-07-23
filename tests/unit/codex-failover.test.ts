@@ -60,11 +60,9 @@ test("extractSessionAffinityKey returns null for empty input", () => {
 // ── Test 2: maxAttempts logic — codex gets 3, other providers get 1 ──────────
 test("codex maxAttempts is 3 (validates retry budget for account rotation)", () => {
   // This mirrors the logic: provider === "codex" ? 3 : 1
-  const getMaxAttempts = (provider: string) =>
-    provider === "qwen" ? 3 : provider === "codex" ? 3 : 1;
+  const getMaxAttempts = (provider: string) => (provider === "codex" ? 3 : 1);
 
   assert.equal(getMaxAttempts("codex"), 3, "Codex should have 3 max attempts");
-  assert.equal(getMaxAttempts("qwen"), 3, "Qwen should have 3 max attempts (unchanged)");
   assert.equal(getMaxAttempts("openai"), 1, "OpenAI should have 1 max attempt (unchanged)");
   assert.equal(getMaxAttempts("anthropic"), 1, "Anthropic should have 1 max attempt (unchanged)");
   assert.equal(getMaxAttempts("gemini"), 1, "Gemini should have 1 max attempt (unchanged)");

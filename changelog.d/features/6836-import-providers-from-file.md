@@ -1,0 +1,1 @@
+- feat(dashboard): import multiple, possibly different providers from a CSV/JSON file — per-row validation, a checklist to pick which parsed rows to import, and a new `POST /api/providers/import` route with partial-failure results (#6836)

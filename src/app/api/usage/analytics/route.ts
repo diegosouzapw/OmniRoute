@@ -22,6 +22,8 @@ import {
   getPresetCostModelRows,
 } from "@/lib/db/usageAnalytics";
 import { getFallbackStats } from "@/lib/db/callLogStats";
+import { buildByProviderRows } from "@/lib/usage/providerDisplayNames";
+import { toNumber } from "@/shared/utils/numeric";
 
 function getRangeStartIso(range: string): string | null {
   const end = new Date();
@@ -39,6 +41,12 @@ function getRangeStartIso(range: string): string | null {
       break;
     case "90d":
       start.setDate(start.getDate() - 90);
+      break;
+    case "180d":
+      start.setDate(start.getDate() - 180);
+      break;
+    case "365d":
+      start.setDate(start.getDate() - 365);
       break;
     case "ytd":
       start.setMonth(0, 1);
@@ -66,15 +74,6 @@ type GetCodexFastCostMultiplier = (
   model: string | null | undefined,
   serviceTier: string | null | undefined
 ) => number;
-
-function toNumber(value: unknown): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
 
 function toStringValue(value: unknown, fallback = ""): string {
   return typeof value === "string" && value.trim().length > 0 ? value : fallback;
@@ -662,23 +661,11 @@ export async function GET(request: Request) {
       providerCostByProvider.set(provider, (providerCostByProvider.get(provider) || 0) + cost);
     }
 
-    const byProvider = providerRows.map((row) => ({
-      provider: getProviderById(toStringValue(row.provider))?.name ?? toStringValue(row.provider),
-      requests: Number(row.requests),
-      promptTokens: Number(row.promptTokens),
-      completionTokens: Number(row.completionTokens),
-      totalTokens: Number(row.totalTokens),
-      avgLatencyMs: Math.round(Number(row.avgLatencyMs)),
-      successRatePct:
-        Number(row.requests) > 0
-          ? Number((Number(row.successfulRequests) / Number(row.requests)) * 100).toFixed(2)
-          : 0,
-      cost: roundCost(providerCostByProvider.get(toStringValue(row.provider)) || 0),
-    }));
+    const byProvider = await buildByProviderRows(providerRows, providerCostByProvider);
 
     const accountCostByAccount = new Map<string, number>();
     for (const row of accountCostRows) {
-      const account = toStringValue(row.account, "unknown");
+      const accountKey = toStringValue(row.accountKey, "unknown");
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
@@ -686,7 +673,7 @@ export async function GET(request: Request) {
         normalizeModelName,
         computeCostFromPricing
       );
-      accountCostByAccount.set(account, (accountCostByAccount.get(account) || 0) + cost);
+      accountCostByAccount.set(accountKey, (accountCostByAccount.get(accountKey) || 0) + cost);
     }
 
     const byAccount = accountRows.map((row) => ({
@@ -697,7 +684,7 @@ export async function GET(request: Request) {
       totalTokens: Number(row.totalTokens),
       avgLatencyMs: Math.round(Number(row.avgLatencyMs)),
       lastUsed: row.lastUsed,
-      cost: roundCost(accountCostByAccount.get(toStringValue(row.account, "unknown")) || 0),
+      cost: roundCost(accountCostByAccount.get(toStringValue(row.accountKey, "unknown")) || 0),
     }));
 
     const apiKeyMap = new Map<

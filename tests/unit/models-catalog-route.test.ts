@@ -679,32 +679,35 @@ test("v1 models catalog exposes bare Codex-preferred IDs for native Codex client
   assert.equal(providerModel.parent, aliasModel.id);
 });
 
-test("v1 models catalog exposes Antigravity client-visible preview aliases instead of upstream internal IDs", async () => {
+test("v1 models catalog exposes current Antigravity aliases without retired model IDs", async () => {
   await seedConnection("antigravity", {
     authType: "oauth",
     name: "antigravity-preview",
     apiKey: null,
     accessToken: "antigravity-access",
   });
-
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as any;
   const ids = new Set(body.data.map((item) => item.id));
-
   assert.equal(response.status, 200);
-  assert.ok(ids.has("antigravity/gemini-3-pro-preview"));
+  assert.equal(ids.has("antigravity/gemini-3-pro-preview"), false);
+  assert.equal(ids.has("antigravity/gemini-3.1-pro"), false);
+  assert.equal(ids.has("antigravity/gemini-2.5-computer-use-preview-10-2025"), false);
+  assert.equal(ids.has("antigravity/rev19-uic3-1p"), false);
+  assert.ok(ids.has("antigravity/gemini-3.6-flash-high"));
+  assert.ok(ids.has("antigravity/gemini-3.6-flash-medium"));
+  assert.ok(ids.has("antigravity/gemini-3.6-flash-low"));
+  assert.ok(ids.has("antigravity/gemini-3.5-flash-extra-low"));
   assert.ok(ids.has("antigravity/gemini-3.5-flash-low"));
-  assert.ok(ids.has("antigravity/gemini-3.5-flash-medium"));
-  assert.ok(ids.has("antigravity/gemini-3.5-flash-high"));
+  assert.ok(ids.has("antigravity/gemini-3-flash-agent"));
+  assert.equal(ids.has("antigravity/gemini-3.5-flash-medium"), false);
+  assert.equal(ids.has("antigravity/gemini-3.5-flash-high"), false);
+  assert.equal(ids.has("antigravity/gemini-3.5-flash-preview"), false);
   assert.equal(ids.has("antigravity/gemini-3-flash-preview"), false);
-  assert.equal(ids.has("antigravity/gemini-3-flash-agent"), false);
-  // Gemini 3.1 Pro budget tiers remain client-visible aliases for the plain
-  // `gemini-3.1-pro` upstream id — see ANTIGRAVITY_MODEL_ALIASES.
-  assert.ok(ids.has("antigravity/gemini-3.1-pro-high"));
-  // The legacy `gemini-claude-*` ids are alias KEYS (remapped to live upstream
-  // ids), not public catalog entries, so they stay unexposed.
+  assert.equal(ids.has("antigravity/gemini-3.1-pro-high"), false);
+  assert.ok(ids.has("antigravity/gemini-pro-agent"));
   assert.equal(ids.has("antigravity/gemini-claude-sonnet-4-5"), false);
   assert.equal(ids.has("antigravity/gemini-claude-sonnet-4-5-thinking"), false);
   assert.equal(ids.has("antigravity/gemini-claude-opus-4-5-thinking"), false);
@@ -1419,7 +1422,7 @@ test("v1 models catalog auto-calculates combo context_length from targets when n
   });
 
   // Create a combo with targets having different context limits.
-  // openai/gpt-4o context = 128000, claude/claude-sonnet-4-6 = 200000.
+  // openai/gpt-4o context = 128000, claude/claude-sonnet-4-6 = 1000000 (#7129: 1M GA).
   // The combo should expose context_length = min = 128000.
   const combo = await combosDb.createCombo({
     name: "auto-context-combo",

@@ -1,0 +1,1 @@
+- **fix(opencode-plugin):** the official `@omniroute/opencode-plugin` now accepts an optional `managementReadToken` for management-plane catalog GETs while keeping inference requests on the connected `apiKey` — existing configurations continue to fall back to `apiKey`, and MCP token selection remains independent. (thanks @RaviTharuma)

@@ -1,0 +1,1 @@
+- feat(providers): add Freepik (Magnific Mystic) API-key image generation provider — async submit/poll flow with realism/fluid/zen/flexible/super_real/editorial_portraits models (#6654)

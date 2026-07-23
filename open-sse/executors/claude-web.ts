@@ -23,6 +23,7 @@ import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { tlsFetchClaude } from "../services/claudeTlsClient.ts";
 import { getCfClearanceToken } from "../services/claudeTurnstileSolver.ts";
+import { CLAUDE_WEB_FINGERPRINT } from "../config/claudeWebFingerprint.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { randomUUID } from "crypto";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -37,8 +38,7 @@ import {
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
 const CLAUDE_WEB_ORGS_URL = `${CLAUDE_WEB_API_BASE}/organizations`;
 
-const CLAUDE_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
+const CLAUDE_USER_AGENT = CLAUDE_WEB_FINGERPRINT.userAgent;
 
 // Session cookie constants
 const CLAUDE_SESSION_COOKIE_NAME = "sessionKey";
@@ -108,9 +108,9 @@ function getBrowserHeaders(deviceId?: string): Record<string, string> {
     Pragma: "no-cache",
     Priority: "u=1, i",
     Referer: "https://claude.ai/new",
-    "Sec-Ch-Ua": '"Chromium";v="149", "Not-A.Brand";v="24", "Google Chrome";v="149"',
+    "Sec-Ch-Ua": CLAUDE_WEB_FINGERPRINT.secChUa,
     "Sec-Ch-Ua-Mobile": "?0",
-    "Sec-Ch-Ua-Platform": '"Linux"',
+    "Sec-Ch-Ua-Platform": CLAUDE_WEB_FINGERPRINT.secChUaPlatform,
     "Sec-Fetch-Dest": "empty",
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "same-origin",
@@ -296,6 +296,7 @@ async function buildClaudeStreamingResponse(
     async start(controller) {
       const reader = src!.getReader();
       const decoder = new TextDecoder();
+      const encoder = new TextEncoder();
       let buffer = "";
 
       try {
@@ -329,7 +330,7 @@ async function buildClaudeStreamingResponse(
                 if (block?.type === "thinking") {
                   const chunk = transformFromClaude("", model, undefined, "reasoning");
                   const out = `data: ${JSON.stringify(chunk)}\n\n`;
-                  controller.enqueue(new TextEncoder().encode(out));
+                  controller.enqueue(encoder.encode(out));
                 }
               }
               // Content block delta — contains the actual text, or (for a
@@ -344,18 +345,18 @@ async function buildClaudeStreamingResponse(
                 if (text) {
                   const chunk = transformFromClaude(text, model);
                   const out = `data: ${JSON.stringify(chunk)}\n\n`;
-                  controller.enqueue(new TextEncoder().encode(out));
+                  controller.enqueue(encoder.encode(out));
                 } else if (thinking) {
                   const chunk = transformFromClaude(thinking, model, undefined, "reasoning");
                   const out = `data: ${JSON.stringify(chunk)}\n\n`;
-                  controller.enqueue(new TextEncoder().encode(out));
+                  controller.enqueue(encoder.encode(out));
                 }
               }
               // message_stop — final event from Claude.
               else if (parsed.type === "message_stop") {
                 const chunk = transformFromClaude("", model, "end_turn");
                 const out = `data: ${JSON.stringify(chunk)}\n\n`;
-                controller.enqueue(new TextEncoder().encode(out));
+                controller.enqueue(encoder.encode(out));
                 finished = true;
               }
               // message_delta — may carry a stop_reason.
@@ -365,7 +366,7 @@ async function buildClaudeStreamingResponse(
                 if (stopReason) {
                   const chunk = transformFromClaude("", model, stopReason);
                   const out = `data: ${JSON.stringify(chunk)}\n\n`;
-                  controller.enqueue(new TextEncoder().encode(out));
+                  controller.enqueue(encoder.encode(out));
                 }
               }
             } catch {
@@ -388,12 +389,12 @@ async function buildClaudeStreamingResponse(
                 if (text) {
                   const chunk = transformFromClaude(text, model);
                   controller.enqueue(
-                    new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`)
+                    encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
                   );
                 } else if (thinking) {
                   const chunk = transformFromClaude(thinking, model, undefined, "reasoning");
                   controller.enqueue(
-                    new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`)
+                    encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`)
                   );
                 }
               }
@@ -405,7 +406,7 @@ async function buildClaudeStreamingResponse(
 
         // Send terminal DONE marker if we haven't sent a message_stop.
         if (!finished) {
-          controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         }
       } catch (err) {
         log?.error?.("CLAUDE-WEB-STREAM", `Stream error: ${String(err)}`);

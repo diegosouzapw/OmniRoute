@@ -35,6 +35,7 @@ import {
   normalizeUsageQuotasForProvider,
   sanitizeUsageQuotasForProvider,
 } from "./providerLimits/quotaNormalize";
+import { syncInChunksWithSpacing } from "./providerLimits/chunkedSpacingSync";
 
 type JsonRecord = Record<string, unknown>;
 type SyncSource = "manual" | "scheduled";
@@ -79,6 +80,14 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   // Qoder connections are PAT-based (authType "apikey"); the usage fetcher
   // exchanges the PAT for a job token and reads openapi.qoder.sh/user/status.
   "qoder",
+  "promptql", // PromptQL playground JWT → getCreditSummary USD credits
+  "pql",
+  // Adobe Firefly: web-cookie / JWT stored as apikey → credits/balance
+  "adobe-firefly",
+  "firefly",
+  // HyperAgent session cookie → billing/usage creditBlocks
+  "hyperagent",
+  "ha",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
@@ -616,15 +625,18 @@ export function getProviderLimitsSyncIntervalMs(): number {
 const DEFAULT_PROVIDER_LIMITS_SYNC_SPACING_MS = 1500;
 
 /**
- * Spacing (ms) between consecutive OAuth provider-limits fetches in a bulk sync.
+ * Spacing (ms) applied between consecutive provider-limits fetch batches in a
+ * bulk sync, for BOTH the OAuth and local/API-key paths.
  *
  * OAuth providers (Codex/Claude/Kimi-coding/…) are fetched ONE AT A TIME with
  * this gap so a single host never bursts several simultaneous usage/refresh
  * requests to the same upstream — bursts read as automated traffic and
  * contribute to session termination / anomaly flags (and, for rotating-token
- * providers, to the Auth0 family-revocation race). Stateless API-key providers
- * keep the fast concurrent path. Tunable via `PROVIDER_LIMITS_SYNC_SPACING_MS`;
- * set to `"0"` to opt out.
+ * providers, to the Auth0 family-revocation race). Local/API-key connections
+ * (e.g. Ollama) keep their fast in-chunk concurrent path, but the gap is now
+ * also applied BETWEEN concurrency chunks so a local endpoint isn't hit by a
+ * simultaneous refresh burst either (#6916). Tunable via
+ * `PROVIDER_LIMITS_SYNC_SPACING_MS`; set to `"0"` to opt out on either path.
  */
 export function getProviderLimitsSyncSpacingMs(): number {
   const rawEnv = process.env.PROVIDER_LIMITS_SYNC_SPACING_MS;
@@ -632,8 +644,6 @@ export function getProviderLimitsSyncSpacingMs(): number {
   const raw = Number(rawEnv);
   return Number.isFinite(raw) && raw >= 0 ? raw : DEFAULT_PROVIDER_LIMITS_SYNC_SPACING_MS;
 }
-
-const syncDelay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export async function getLastProviderLimitsAutoSyncTime(): Promise<string | null> {
   try {
@@ -955,31 +965,27 @@ export async function syncAllProviderLimits(
     return { connectionId: connection.id, cache };
   };
 
-  // OAuth connections are processed STRICTLY SEQUENTIALLY with a spacing gap so a
-  // single host never bursts simultaneous usage/refresh requests to the same
-  // upstream (anomaly/session-termination guard; see getProviderLimitsSyncSpacingMs).
-  // Stateless API-key connections keep the fast chunked-concurrent path.
+  // OAuth connections are processed STRICTLY SEQUENTIALLY (chunk size 1) with a
+  // spacing gap so a single host never bursts simultaneous usage/refresh
+  // requests to the same upstream (anomaly/session-termination guard; see
+  // getProviderLimitsSyncSpacingMs). Local/API-key connections keep their fast
+  // in-chunk concurrent path, spaced BETWEEN chunks (#6916).
   const oauthConnections = connections.filter((c) => c.authType === "oauth");
   const otherConnections = connections.filter((c) => c.authType !== "oauth");
   const spacingMs = getProviderLimitsSyncSpacingMs();
 
-  for (let i = 0; i < otherConnections.length; i += concurrency) {
-    const chunk = otherConnections.slice(i, i + concurrency);
-    const results = await Promise.allSettled(chunk.map(fetchOne));
+  const recordChunk = (
+    chunk: ProviderConnectionLike[],
+    results: PromiseSettledResult<{ connectionId: string; cache: ProviderLimitsCacheEntry }>[]
+  ) => {
     results.forEach((result, index) => {
       const connectionId = chunk[index]?.id;
       if (connectionId) recordResult(connectionId, result);
     });
-  }
+  };
 
-  for (let i = 0; i < oauthConnections.length; i++) {
-    const connection = oauthConnections[i];
-    const [result] = await Promise.allSettled([fetchOne(connection)]);
-    recordResult(connection.id, result);
-    if (spacingMs > 0 && i < oauthConnections.length - 1) {
-      await syncDelay(spacingMs);
-    }
-  }
+  await syncInChunksWithSpacing(otherConnections, concurrency, spacingMs, fetchOne, recordChunk);
+  await syncInChunksWithSpacing(oauthConnections, 1, spacingMs, fetchOne, recordChunk);
 
   if (cacheEntries.length > 0) {
     setProviderLimitsCacheBatch(cacheEntries);

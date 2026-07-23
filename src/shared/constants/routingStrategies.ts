@@ -15,6 +15,7 @@ export const ROUTING_STRATEGY_VALUES = [
   "auto",
   "lkgp",
   "context-optimized",
+  "cache-optimized",
   "fusion",
   "pipeline",
   "debate",
@@ -197,6 +198,13 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     combosDescKey: "contextOptimizedDesc",
     settingsDescKey: "contextOptDesc",
     icon: "text_snippet",
+  },
+  {
+    value: "cache-optimized",
+    labelKey: "cacheOpt",
+    combosDescKey: "cacheOptimizedDesc",
+    settingsDescKey: "cacheOptDesc",
+    icon: "cached",
   },
   {
     value: "fusion",

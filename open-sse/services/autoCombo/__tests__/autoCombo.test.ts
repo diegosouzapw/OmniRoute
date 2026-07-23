@@ -195,10 +195,12 @@ describe("Self-Healing", () => {
 });
 
 describe("Mode Packs", () => {
-  it("should have 5 mode packs", () => {
+  it("should have 6 mode packs", () => {
     // #4235 Phase B added reliability-first (for the `:reliable` tier).
-    expect(getModePackNames()).toHaveLength(5);
+    // chaos-mode added for the `auto/chaos` parallel-dispatch variant.
+    expect(getModePackNames()).toHaveLength(6);
     expect(getModePackNames()).toContain("reliability-first");
+    expect(getModePackNames()).toContain("chaos-mode");
   });
 
   it("reliability-first should prioritize health and stability", () => {

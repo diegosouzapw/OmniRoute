@@ -1,0 +1,1 @@
+- fix(electron): resolve macOS Helper by binary name to remove second inert Dock icon (#7941)

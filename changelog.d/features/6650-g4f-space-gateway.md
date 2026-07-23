@@ -1,0 +1,1 @@
+- feat(sse): add 5 no-key g4f.space gateway providers — `g4f-groq`, `g4f-gemini`, `g4f-pollinations`, `g4f-ollama`, `g4f-nvidia` — a free, no-signup reverse proxy (gpt4free project) fronting Groq, Gemini, Pollinations, Ollama, and NVIDIA NIM, rate-limited to 5 req/min per IP (#6650 — thanks @chirag127).

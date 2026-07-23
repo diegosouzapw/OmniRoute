@@ -1,0 +1,1 @@
+- fix(quality): tolerate ESLint's trailing unpruned-suppressions stderr text in validate-release-green (#7837)

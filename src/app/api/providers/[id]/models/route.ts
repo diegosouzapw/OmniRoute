@@ -7,10 +7,12 @@ import {
 } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getModelsByProviderId } from "@/shared/constants/models";
+import { resolveAlibabaProviderModelsUrl } from "@/shared/constants/alibabaProviderRegions";
 import { getStaticModelsForProvider } from "@/lib/providers/staticModels";
+import { providerUsesCuratedModelsOnly } from "@/lib/providers/modelListingCapability";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
 import {
-  getProviderConnectionById,
+  getCachedProviderConnectionById,
   getSettings,
   getModelIsHidden,
   resolveProxyForProvider,
@@ -24,11 +26,14 @@ import {
 import {
   getProviderOutboundGuard,
   getProviderValidationGuard,
-} from "@/shared/network/outboundUrlGuard";
+} from "@/shared/network/outboundUrlGuardPolicy";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
-import { fetchGitHubCopilotModels } from "@omniroute/open-sse/services/githubCopilotModels.ts";
+import {
+  fetchGitHubCopilotModels,
+  fetchGheCopilotModels,
+} from "@omniroute/open-sse/services/githubCopilotModels.ts";
 import { fetchKiroAvailableModels } from "@omniroute/open-sse/services/kiroModels.ts";
 import {
   buildGlmCodingHeaders,
@@ -40,6 +45,14 @@ import {
   discoverBedrockNativeModels,
   isBedrockNativeApiError,
 } from "@omniroute/open-sse/services/bedrock.ts";
+import {
+  discoverPromptQlModels,
+  PROMPTQL_FALLBACK_MODELS,
+} from "@omniroute/open-sse/services/promptqlModels.ts";
+import {
+  discoverNotionWebModels,
+  NOTION_WEB_FALLBACK_MODELS,
+} from "@omniroute/open-sse/services/notionWebModels.ts";
 import {
   AZURE_AI_DEFAULT_BASE_URL,
   buildAzureAiModelsUrl,
@@ -85,6 +98,7 @@ import {
   getAzureOpenAIApiVersion,
   isLocalOpenAIStyleProvider,
   mergeLocalCatalogModels,
+  mergeSpecialtyCatalogIntoLiveModels,
   buildOptionalBearerHeaders,
   buildNamedOpenAiStyleHeaders,
 } from "./discovery/helpers";
@@ -107,6 +121,91 @@ import {
   fetchCodexGithubCatalogModels,
 } from "./discovery/codex";
 
+function toLiveModel(item: Record<string, unknown>): { id: string; name: string } | null {
+  const itemId = typeof item.id === "string" ? item.id.trim() : "";
+  if (!itemId) return null;
+  const itemName =
+    typeof item.display_name === "string"
+      ? item.display_name
+      : typeof item.name === "string"
+        ? item.name
+        : itemId;
+  return { id: itemId, name: itemName };
+}
+
+async function fetchLiveNoAuthModels(
+  modelsUrl: string,
+  providerId: string,
+  connectionId: string,
+  excludeHidden: boolean
+): Promise<NextResponse | null> {
+  try {
+    const liveResponse = await safeOutboundFetch(modelsUrl, {
+      ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+      guard: getProviderOutboundGuard(),
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!liveResponse.ok) return null;
+
+    const data = await liveResponse.json();
+    const liveModels: Array<{ id: string; name: string }> = (
+      (data.data || data.models || []) as Array<Record<string, unknown>>
+    )
+      .map(toLiveModel)
+      .filter((model): model is { id: string; name: string } => model !== null);
+    if (liveModels.length === 0) return null;
+
+    const visible = excludeHidden
+      ? liveModels.filter((model) => !getModelIsHidden(providerId, model.id))
+      : liveModels;
+    return NextResponse.json({
+      provider: providerId,
+      connectionId,
+      models: visible,
+      source: "upstream",
+    });
+  } catch {
+    // Live fetch failed — fall back to the bundled catalog.
+    return null;
+  }
+}
+
+async function buildNoAuthModelsResponse(
+  providerId: string,
+  connectionId: string,
+  excludeHidden: boolean
+) {
+  if (isProviderBlockedByIdOrAlias(providerId, (await getSettings()).blockedProviders)) {
+    return NextResponse.json({ error: "Provider is disabled" }, { status: 403 });
+  }
+
+  const registryEntry = getRegistryEntry(providerId);
+  const modelsUrl =
+    typeof registryEntry?.modelsUrl === "string" && registryEntry.modelsUrl.length > 0
+      ? registryEntry.modelsUrl
+      : null;
+
+  if (modelsUrl) {
+    const live = await fetchLiveNoAuthModels(modelsUrl, providerId, connectionId, excludeHidden);
+    if (live) return live;
+  }
+
+  const catalog = mergeLocalCatalogModels(
+    getModelsByProviderId(providerId) || [],
+    getStaticModelsForProvider(providerId) || []
+  ).map((model) => ({ id: model.id, name: model.name || model.id }));
+  const visible = excludeHidden
+    ? catalog.filter((model) => !getModelIsHidden(providerId, model.id))
+    : catalog;
+  return NextResponse.json({
+    provider: providerId,
+    connectionId,
+    models: visible,
+    source: "local_catalog",
+  });
+}
+
 /**
  * GET /api/providers/[id]/models - Get models list from provider
  */
@@ -124,83 +223,32 @@ export async function GET(
     const excludeCustom = searchParams.get("excludeCustom") === "true";
     const refresh = searchParams.get("refresh") === "true";
 
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
+    const connectionProvider =
+      typeof connection?.provider === "string" && connection.provider.trim().length > 0
+        ? connection.provider
+        : null;
+    const noAuthProviderId =
+      (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true
+        ? id
+        : connectionProvider &&
+            (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[connectionProvider]
+              ?.noAuth === true
+          ? connectionProvider
+          : null;
+
+    // No-auth providers may persist a connection row solely for fingerprints
+    // and account-proxy metadata. That row must not turn public model discovery
+    // into an API-key flow that expects a token.
+    if (noAuthProviderId) {
+      return buildNoAuthModelsResponse(
+        noAuthProviderId,
+        typeof connection?.id === "string" ? connection.id : id,
+        excludeHidden
+      );
+    }
 
     if (!connection) {
-      // #3047 — no-auth providers have no connection rows; serve their catalog by provider id.
-      const isNoAuthProvider =
-        (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean }>)[id]?.noAuth === true;
-      if (isNoAuthProvider) {
-        if (isProviderBlockedByIdOrAlias(id, (await getSettings()).blockedProviders)) {
-          return NextResponse.json({ error: "Provider is disabled" }, { status: 403 });
-        }
-
-        // #3611 — prefer the live public modelsUrl when present; fall back to local_catalog.
-        const noAuthRegistryEntry = getRegistryEntry(id);
-        const noAuthModelsUrl =
-          typeof noAuthRegistryEntry?.modelsUrl === "string" &&
-          noAuthRegistryEntry.modelsUrl.length > 0
-            ? noAuthRegistryEntry.modelsUrl
-            : null;
-
-        if (noAuthModelsUrl) {
-          try {
-            const liveResponse = await safeOutboundFetch(noAuthModelsUrl, {
-              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-              guard: getProviderOutboundGuard(),
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            });
-
-            if (liveResponse.ok) {
-              const data = await liveResponse.json();
-              const liveModels: Array<{ id: string; name: string }> = (
-                (data.data || data.models || []) as Array<Record<string, unknown>>
-              )
-                .map((item) => {
-                  const itemId = typeof item.id === "string" ? item.id.trim() : "";
-                  if (!itemId) return null;
-                  const itemName =
-                    typeof item.display_name === "string"
-                      ? item.display_name
-                      : typeof item.name === "string"
-                        ? item.name
-                        : itemId;
-                  return { id: itemId, name: itemName };
-                })
-                .filter((m): m is { id: string; name: string } => m !== null);
-
-              if (liveModels.length > 0) {
-                const visible = excludeHidden
-                  ? liveModels.filter((m) => !getModelIsHidden(id, m.id))
-                  : liveModels;
-                return NextResponse.json({
-                  provider: id,
-                  connectionId: id,
-                  models: visible,
-                  source: "upstream",
-                });
-              }
-            }
-          } catch {
-            // Live fetch failed — fall through to local_catalog below.
-          }
-        }
-
-        const catalog = mergeLocalCatalogModels(
-          getModelsByProviderId(id) || [],
-          getStaticModelsForProvider(id) || []
-        ).map((model) => ({ id: model.id, name: model.name || model.id }));
-        const visible = excludeHidden
-          ? catalog.filter((m) => !getModelIsHidden(id, m.id))
-          : catalog;
-        return NextResponse.json({
-          provider: id,
-          connectionId: id,
-          models: visible,
-          source: "local_catalog",
-        });
-      }
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
@@ -211,13 +259,11 @@ export async function GET(
     const staleEncryptionResponse = buildStaleEncryptionKeyResponse(connection);
     if (staleEncryptionResponse) return staleEncryptionResponse;
 
-    const provider =
-      typeof connection.provider === "string" && connection.provider.trim().length > 0
-        ? connection.provider
-        : null;
+    const provider = connectionProvider;
     if (!provider) {
       return NextResponse.json({ error: "Invalid connection provider" }, { status: 400 });
     }
+    const usesCuratedModelsOnly = providerUsesCuratedModelsOnly(provider);
 
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(provider);
@@ -268,7 +314,9 @@ export async function GET(
     const apiKey = typeof connection.apiKey === "string" ? connection.apiKey : "";
     const accessToken = typeof connection.accessToken === "string" ? connection.accessToken : "";
     const autoFetchModels = isAutoFetchModelsEnabled(connection.providerSpecificData);
-    const cachedDiscoveryModels = await getCachedDiscoveredModels(provider, connectionId);
+    const cachedDiscoveryModels = usesCuratedModelsOnly
+      ? []
+      : await getCachedDiscoveredModels(provider, connectionId);
 
     // Check for synced models from ANY connection of this provider.
     // When sync has been performed (even on a different connection),
@@ -280,7 +328,7 @@ export async function GET(
       supportedEndpoints?: string[];
     }> | null = null;
     try {
-      const allSynced = await getSyncedAvailableModels(provider);
+      const allSynced = usesCuratedModelsOnly ? [] : await getSyncedAvailableModels(provider);
       if (Array.isArray(allSynced) && allSynced.length > 0) {
         providerSyncedModels = allSynced.map((m) => ({
           id: m.id,
@@ -408,10 +456,15 @@ export async function GET(
     ) => {
       const discoveredModels = await persistDiscoveredModels(provider, connectionId, models);
       if (discoveredModels.length > 0) {
+        // #6976 — merge curated embedding/rerank specialty entries (e.g.
+        // OpenRouter's embeddingRegistry catalog) into the live-discovery
+        // response; the live /v1/models endpoint only lists chat models, and
+        // the specialty catalog otherwise only reached local_catalog fallback.
+        const mergedModels = mergeSpecialtyCatalogIntoLiveModels(models, provider);
         return buildResponse({
           provider,
           connectionId,
-          models,
+          models: mergedModels,
           source: "api",
           ...(warning ? { warning } : {}),
           ...extraPayload,
@@ -484,6 +537,126 @@ export async function GET(
       // (avoids CF bot burn and thrashy initialModels rows).
       const localCatalog = buildLocalCatalogResponse(undefined, true);
       if (localCatalog) return localCatalog;
+    }
+
+    // PromptQL playground: live catalog via GraphQL FetchLlmConfigs (Bearer JWT).
+    if (provider === "promptql" || provider === "pql") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = (apiKey || accessToken || "").replace(/^Bearer\s+/i, "").trim();
+      const seedModels = PROMPTQL_FALLBACK_MODELS.map((m) => ({
+        id: m.id,
+        name: m.name,
+      }));
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No JWT configured — using cached catalog",
+          localWarning: "No JWT configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: seedModels,
+          source: "local_catalog",
+          intentional: true,
+          warning: "No PromptQL Bearer JWT — using seed model list",
+        });
+      }
+
+      try {
+        const graphqlEndpoint =
+          (typeof connection.providerSpecificData?.graphqlEndpoint === "string" &&
+            connection.providerSpecificData.graphqlEndpoint) ||
+          process.env.PROMPTQL_GRAPHQL_ENDPOINT ||
+          "https://data.prompt.ql.app/promptql/playground-v2-hge/v1/graphql";
+        const discovered = await discoverPromptQlModels({
+          token,
+          graphqlEndpoint,
+        });
+        const models = discovered.map((m) => ({ id: m.id, name: m.name }));
+        return buildApiDiscoveryResponse(models);
+      } catch (error) {
+        console.log("Error fetching models from promptql", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "PromptQL FetchLlmConfigs failed — using cached catalog",
+          localWarning: "PromptQL FetchLlmConfigs failed — using seed catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: seedModels,
+          source: "local_catalog",
+          intentional: true,
+          warning: "API unavailable — using seed PromptQL model list",
+        });
+      }
+    }
+
+    // #7600 follow-up: notion-web live catalog via cookie-auth getAvailableModels.
+    // Needs spaceId (from cookie or getSpaces); falls back to seeded local catalog.
+    if (provider === "notion-web") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = apiKey || accessToken;
+      if (!token) {
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "No token configured — using cached catalog",
+          localWarning: "No token configured — using local catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: NOTION_WEB_FALLBACK_MODELS,
+          source: "local_catalog",
+          intentional: true,
+          warning: "No token_v2 cookie — using seed Notion AI model list",
+        });
+      }
+
+      try {
+        const discovery = await discoverNotionWebModels({
+          token,
+          fetchImpl: (url, init) =>
+            safeOutboundFetch(url, {
+              ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+              guard: getProviderOutboundGuard(),
+              proxyConfig: proxy,
+              ...init,
+            }),
+        });
+        // Pass through plan-lock warnings (e.g. Fable 5 requires Business/Enterprise).
+        return buildApiDiscoveryResponse(discovery.models, discovery.warning);
+      } catch (error) {
+        console.log("Error fetching models from notion-web", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: "Notion getAvailableModels failed — using cached catalog",
+          localWarning: "Notion getAvailableModels failed — using seed catalog",
+        });
+        if (fallback) return fallback;
+        return buildResponse({
+          provider,
+          connectionId,
+          models: NOTION_WEB_FALLBACK_MODELS,
+          source: "local_catalog",
+          intentional: true,
+          warning: "API unavailable — using seed Notion AI model list",
+        });
+      }
     }
 
     if (provider === "bedrock") {
@@ -1362,14 +1535,14 @@ export async function GET(
       return buildApiDiscoveryResponse(models);
     }
 
-    if (provider === "antigravity") {
+    if (provider === "antigravity" || provider === "agy") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      const staticModels = getStaticModelsForProvider("antigravity") || [];
+      const staticModels = getStaticModelsForProvider(provider) || [];
 
       if (!accessToken) {
         const fallback = buildDiscoveryFallbackResponse({
@@ -1390,7 +1563,8 @@ export async function GET(
         accessToken,
         connectionId,
         proxy,
-        connection.providerSpecificData
+        connection.providerSpecificData,
+        provider
       );
       if (remoteModels.length > 0) {
         return buildApiDiscoveryResponse(remoteModels);
@@ -1404,7 +1578,7 @@ export async function GET(
         connectionId,
         models: staticModels,
         source: "local_catalog",
-        warning: "API unavailable — using local catalog",
+        ...(usesCuratedModelsOnly ? {} : { warning: "API unavailable — using local catalog" }),
       });
     }
 
@@ -1455,6 +1629,51 @@ export async function GET(
         models: discovery.models,
         source: "local_catalog",
         warning: "Copilot models API unavailable — using local catalog",
+      });
+    }
+
+    if (provider === "ghe-copilot") {
+      // GHE Copilot exposes a per-enterprise chat model catalog at
+      // <copilotApiUrl>/models (endpoints.api from the token endpoint) — NOT the
+      // proxy host, which only serves NES/autocomplete models. The IDs are
+      // enterprise-specific (no static allowlist applies), so discover them live
+      // from copilotApiUrl with the Copilot bearer token.
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const psd = asRecord(connection.providerSpecificData);
+      const copilotToken =
+        toNonEmptyString(psd.copilotToken) || toNonEmptyString(accessToken) || null;
+      // endpoints.api serves the real chat model catalog; endpoints.proxy only
+      // has NES/autocomplete models. Prefer the api host, fall back to proxy for
+      // legacy connections that predate copilotApiUrl capture.
+      const copilotApiUrl =
+        toNonEmptyString(psd.copilotApiUrl) || toNonEmptyString(psd.copilotProxyUrl) || null;
+
+      const models = await fetchGheCopilotModels({
+        apiUrl: copilotApiUrl,
+        token: copilotToken,
+        fetchImpl: (url, init) => fetch(url as string, init as RequestInit),
+      });
+
+      if (models.length > 0) {
+        return buildApiDiscoveryResponse(models);
+      }
+
+      const fallback = buildDiscoveryFallbackResponse({
+        cacheWarning: "GHE Copilot models API unavailable — using cached catalog",
+        localWarning: "GHE Copilot models API unavailable — using local catalog",
+      });
+      if (fallback) return fallback;
+      return buildResponse({
+        provider,
+        connectionId,
+        models: [],
+        source: "local_catalog",
+        warning: "GHE Copilot models API unavailable — using local catalog",
       });
     }
 
@@ -1718,25 +1937,6 @@ export async function GET(
       provider in PROVIDER_MODELS_CONFIG
         ? PROVIDER_MODELS_CONFIG[provider as keyof typeof PROVIDER_MODELS_CONFIG]
         : deriveConfigFromRegistryModelsUrl(provider);
-    // Static model providers (no remote /models API)
-    // Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
-    if (provider === "qwen" && connection.authType === "oauth") {
-      const qwenModels = getModelsByProviderId("qwen");
-      return buildResponse({
-        provider,
-        connectionId,
-        models: qwenModels.map((m: any) => ({
-          id: m.id,
-          name: m.name || m.id,
-          owned_by: "qwen",
-        })),
-        source: "local_catalog",
-        // #5460/#5465 — Qwen OAuth has no OAuth-compatible remote /models list;
-        // the static catalog is intentional, so model-sync should import it.
-        intentional: true,
-      });
-    }
-
     if (provider === "codex") {
       // Auto-merge live/GitHub/local (future-proof discovery), then apply explicit
       // denylist filters (e.g. drop GPT-5.4 family). Do not gate remote-only IDs.
@@ -1889,6 +2089,13 @@ export async function GET(
 
     // Build request URL
     let url = config.url;
+    if (provider === "alibaba" || provider === "alibaba-cn" || provider === "qwen-cloud") {
+      url = resolveAlibabaProviderModelsUrl(
+        provider,
+        connection.providerSpecificData,
+        config.url.replace(/\/models\/?$/, "")
+      );
+    }
     // VibeProxy: honor a user-configured custom base URL for the built-in
     // `openai` provider (e.g. an OpenAI-compatible gateway / proxy). Without
     // this, model discovery always hit the hardcoded api.openai.com and ignored
@@ -1926,12 +2133,15 @@ export async function GET(
       }
       url = url.replace("{accountId}", accountId);
     }
+    const paginationBaseUrl = url;
     if (config.authQuery) {
       url += `${url.includes("?") ? "&" : "?"}${config.authQuery}=${token}`;
     }
 
     // Build headers
-    const headers = config.buildHeaders ? config.buildHeaders(token) : { ...config.headers };
+    const headers = config.buildHeaders
+      ? config.buildHeaders(token, connection)
+      : { ...config.headers };
     if (!config.buildHeaders && config.authHeader && !config.authQuery) {
       headers[config.authHeader] = (config.authPrefix || "") + token;
     }
@@ -1992,7 +2202,7 @@ export async function GET(
         break;
       }
       seenTokens.add(nextPageToken);
-      pageUrl = `${config.url}${config.url.includes("?") ? "&" : "?"}pageToken=${encodeURIComponent(nextPageToken)}`;
+      pageUrl = `${paginationBaseUrl}${paginationBaseUrl.includes("?") ? "&" : "?"}pageToken=${encodeURIComponent(nextPageToken)}`;
       if (config.authQuery) {
         pageUrl += `&${config.authQuery}=${token}`;
       }

@@ -2,7 +2,7 @@
 // …). Extracted from validation.ts (god-file decomposition) — top-level functions/data with no
 // dispatcher-state captures; behavior is byte-identical to the original inline defs.
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { withCustomUserAgent } from "./headers";
 import { toValidationErrorResult, validationWrite } from "./transport";
 

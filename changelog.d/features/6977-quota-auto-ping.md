@@ -1,0 +1,1 @@
+- **feat(quota):** Add opt-in auto-ping to keep Codex quota windows warm — per-connection toggle in Settings → AI that sends a tiny request right after a Codex session window resets, so it isn't cold on the next real request ([#6977](https://github.com/diegosouzapw/OmniRoute/issues/6977))

@@ -165,11 +165,6 @@ const EMBEDDED_DEFAULTS = {
     14, 29, 30, 54, 55, 34, 26, 21, 8, 104, 53, 47, 85, 95, 15, 83, 110, 29, 105, 14, 53, 30, 94,
     26, 29, 20, 26, 11,
   ],
-  // Qwen Code CLI — qwen oauth client (public, device flow)
-  qwen_id: [
-    9, 93, 93, 89, 70, 92, 66, 71, 7, 26, 68, 20, 86, 88, 13, 81, 79, 67, 9, 91, 12, 93, 15, 16, 88,
-    69, 23, 4, 20, 21, 64, 84,
-  ],
   // Kimi coding CLI — moonshot oauth client (public)
   kimi_id: [
     94, 90, 11, 92, 20, 89, 66, 69, 72, 73, 65, 76, 86, 65, 93, 7, 75, 20, 28, 86, 90, 94, 95, 95,
@@ -184,6 +179,34 @@ const EMBEDDED_DEFAULTS = {
   ],
   // Trae Cloud IDE — public oauth client id
   trae_id: [10, 3, 95, 6, 10, 22, 66, 3, 11, 90, 72, 31, 91, 2],
+  // Microsoft Designer web app — public ClientId header sent by the
+  // designer.microsoft.com frontend to designerapp.officeapps.live.com
+  // (not a secret — every browser session sends the same fixed value;
+  // reverse-engineered from the g4f MicrosoftDesigner provider reference).
+  microsoft_designer_client_id: [
+    13, 88, 13, 91, 68, 89, 65, 21, 72, 26, 21, 76, 0, 65, 93, 2, 26, 23, 28, 87, 14, 87, 8, 95, 12,
+    17, 70, 6, 24, 66, 17, 1, 10, 95, 81, 28,
+  ],
+  // Microsoft Edge Read Aloud (EdgeTTS) — public "trusted client token" used to
+  // derive the Sec-MS-GEC anti-abuse header. Hardcoded in every known Edge
+  // browser build and every open-source edge-tts reimplementation (e.g.
+  // rany2/edge-tts constants.py) — not a per-user secret, just an
+  // abuse-mitigation constant Microsoft ships in public client binaries.
+  edgetts_token: [
+    89, 44, 91, 40, 51, 94, 49, 64, 32, 108, 54, 51, 86, 41, 80, 37, 111, 69, 6, 42, 95, 93, 45, 68,
+    87, 65, 77, 84, 105, 70, 51, 86,
+  ],
+  // Adobe Firefly web (firefly.adobe.com) — public x-api-key + IMS client_id
+  // (`clio-playground-web`). Captured from live browser generate/discovery calls.
+  // Not a per-user secret; every Firefly SPA session sends the same value.
+  // (Express still uses `projectx_webapp` — see adobe_firefly_express_client_id.)
+  adobe_firefly_api_key: [12, 1, 7, 6, 95, 31, 25, 21, 28, 74, 2, 26, 23, 2, 13, 78, 90, 19, 83],
+  // Adobe Express fallback IMS client_id for cookie exchange when Firefly
+  // clio-playground-web refresh fails (older Express cookies).
+  adobe_firefly_express_client_id: [31, 31, 1, 3, 23, 12, 1, 12, 58, 90, 21, 23, 3, 28, 25],
+  // Firefly credits balance endpoint public x-api-key (`SunbreakWebUI1`) from
+  // GET firefly.adobe.io/v1/credits/balance browser traffic.
+  adobe_firefly_balance_api_key: [60, 24, 0, 11, 0, 10, 20, 31, 50, 72, 18, 32, 43, 93],
 } as const;
 
 export type EmbeddedDefaultKey = keyof typeof EMBEDDED_DEFAULTS;

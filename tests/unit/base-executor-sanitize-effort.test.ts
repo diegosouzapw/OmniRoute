@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { sanitizeReasoningEffortForProvider } = await import("../../open-sse/executors/base.ts");
+const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 
 function makeLog() {
   const messages: Array<[string, string]> = [];
@@ -394,6 +395,114 @@ test("sanitizeReasoningEffortForProvider: non-object body returns unchanged", ()
   assert.equal(sanitizeReasoningEffortForProvider(arr, "xiaomi-mimo", "x", null), arr);
 });
 
+// ── NVIDIA NIM GLM-5.2 (#7215) ─────────────────────────────────────────────
+
+test("sanitizeReasoningEffortForProvider: NVIDIA GLM-5.2 enables thinking for active effort", () => {
+  for (const effort of ["low", "medium", "high", "xhigh", "max"]) {
+    const body = { reasoning_effort: effort, messages: [] };
+    const result = sanitizeReasoningEffortForProvider(
+      body,
+      "nvidia",
+      "z-ai/glm-5.2",
+      null
+    ) as Record<string, unknown>;
+
+    assert.notEqual(result, body);
+    assert.equal(result.reasoning_effort, undefined);
+    assert.deepEqual(result.chat_template_kwargs, { enable_thinking: true });
+  }
+});
+
+test("sanitizeReasoningEffortForProvider: NVIDIA GLM-5.2 maps none to thinking off", () => {
+  const result = sanitizeReasoningEffortForProvider(
+    { reasoning_effort: "none", messages: [] },
+    "nvidia",
+    "z-ai/glm-5.2",
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, undefined);
+  assert.deepEqual(result.chat_template_kwargs, { enable_thinking: false });
+});
+
+test("sanitizeReasoningEffortForProvider: NVIDIA GLM-5.2 maps nested reasoning.effort", () => {
+  const result = sanitizeReasoningEffortForProvider(
+    { reasoning: { effort: "high" }, messages: [] },
+    "nvidia",
+    "z-ai/glm-5.2",
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning, undefined);
+  assert.deepEqual(result.chat_template_kwargs, { enable_thinking: true });
+});
+
+test("DefaultExecutor: NVIDIA GLM-5.2 maps nested effort before unsupported-param stripping", () => {
+  const result = new DefaultExecutor("nvidia").transformRequest(
+    "z-ai/glm-5.2",
+    {
+      model: "z-ai/glm-5.2",
+      reasoning: { effort: "high", summary: "auto" },
+      messages: [],
+    },
+    false,
+    {}
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning, undefined);
+  assert.equal(result.reasoning_effort, undefined);
+  assert.deepEqual(result.chat_template_kwargs, { enable_thinking: true });
+});
+
+test("DefaultExecutor: NVIDIA reasoning levels remain intact for GPT-OSS", () => {
+  const result = new DefaultExecutor("nvidia").transformRequest(
+    "openai/gpt-oss-120b",
+    {
+      model: "openai/gpt-oss-120b",
+      reasoning_effort: "low",
+      messages: [],
+    },
+    false,
+    {}
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, "low");
+  assert.equal(result.chat_template_kwargs, undefined);
+});
+
+test("sanitizeReasoningEffortForProvider: NVIDIA GLM-5.2 preserves a native thinking switch", () => {
+  const result = sanitizeReasoningEffortForProvider(
+    {
+      reasoning_effort: "xhigh",
+      chat_template_kwargs: { enable_thinking: false, custom_flag: true },
+      messages: [],
+    },
+    "nvidia",
+    "z-ai/glm-5.2",
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, undefined);
+  assert.deepEqual(result.chat_template_kwargs, {
+    enable_thinking: false,
+    custom_flag: true,
+  });
+});
+
+test("sanitizeReasoningEffortForProvider: NVIDIA GLM-5.2 mapping is narrowly scoped", () => {
+  const otherModel = { reasoning_effort: "high", messages: [] };
+  const otherProvider = { reasoning_effort: "high", messages: [] };
+
+  assert.equal(
+    sanitizeReasoningEffortForProvider(otherModel, "nvidia", "z-ai/glm-5.1", null),
+    otherModel
+  );
+  assert.equal(
+    sanitizeReasoningEffortForProvider(otherProvider, "openai", "z-ai/glm-5.2", null),
+    otherProvider
+  );
+});
+
 // ── Native DeepSeek (api.deepseek.com) ───────────────────────────────────────
 // DeepSeek V4 thinking mode accepts reasoning_effort ONLY as {high, max}. The
 // internal OmniRoute scale (low|medium|high|xhigh, xhigh = top) must be mapped
@@ -542,4 +651,39 @@ test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model st
   const result = sanitizeReasoningEffortForProvider(body, "opencode-go", "mimo-v2.5-pro", null);
   assert.notEqual(result, body);
   assert.equal((result as any).reasoning_effort, "xhigh");
+});
+
+test("sanitizeReasoningEffortForProvider: #7044 output_config.effort (Claude native) xhigh is downgraded, not bypassed", () => {
+  const log = makeLog();
+  const body = {
+    model: "claude-opus-4-6",
+    output_config: { effort: "xhigh" },
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", log);
+  assert.notEqual(result, body, "must return a new object when mutating");
+  assert.equal(
+    (result as any).output_config.effort,
+    "high",
+    "xhigh downgraded to high on the output_config carrier"
+  );
+  assert.ok(
+    !("reasoning_effort" in (result as any)),
+    "no spurious reasoning_effort injected when only output_config was present"
+  );
+  assert.ok(
+    log.messages.some(([tag, m]) => tag === "REASONING_SANITIZE" && /xhigh → high/.test(m)),
+    "logs the downgrade"
+  );
+});
+
+test("sanitizeReasoningEffortForProvider: #7044 output_config.effort high passes through unchanged", () => {
+  const body = {
+    model: "claude-opus-4-6",
+    output_config: { effort: "high" },
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = sanitizeReasoningEffortForProvider(body, "claude", "claude-opus-4-6", null);
+  assert.equal(result, body, "high is supported — body returned unchanged");
+  assert.equal((result as any).output_config.effort, "high");
 });

@@ -66,8 +66,6 @@ export async function POST(request, { params }) {
         // (#524) OpenCode config was never saved because only 'continue' was handled here.
         // OpenCode reads ~/.config/opencode/opencode.json — write the OmniRoute settings there.
         return await saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels });
-      case "qwen":
-        return await saveQwenConfig({ baseUrl, apiKey, model });
       case "hermes":
         return await saveHermesConfig({ baseUrl, apiKey, model });
       // hermes-agent now uses the dedicated /api/cli-tools/hermes-agent-settings endpoint
@@ -201,60 +199,6 @@ async function saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels 
   return NextResponse.json({
     success: true,
     message: `OpenCode config saved to ${configPath}`,
-    configPath,
-  });
-}
-
-/**
- * Save Qwen Code config to ~/.qwen/settings.json
- *
- * Uses security.auth format (not modelProviders) since Qwen Code
- * prioritizes security.auth.selectedType over modelProviders entries.
- * Per official docs: security.auth takes highest precedence.
- */
-async function saveQwenConfig({ baseUrl, apiKey, model }) {
-  const home = os.homedir();
-  const configPath = path.join(home, ".qwen", "settings.json");
-
-  await fs.mkdir(path.dirname(configPath), { recursive: true });
-
-  const normalizedBaseUrl = String(baseUrl || "")
-    .trim()
-    .replace(/\/+$/, "");
-  const resolvedApiKey = apiKey || "sk_omniroute";
-  const resolvedModel = model || "qwen/qwen3-coder-plus";
-
-  // Read existing config to preserve other settings (permissions, mcpServers, etc.)
-  let existingConfig: Record<string, any> = {};
-  try {
-    const raw = await fs.readFile(configPath, "utf-8");
-    existingConfig = JSON.parse(raw);
-  } catch {
-    // File doesn't exist or invalid JSON
-  }
-
-  // Set security.auth for openai auth type with direct credentials
-  // This takes priority over modelProviders entries (per Qwen docs)
-  existingConfig.security = {
-    ...existingConfig.security,
-    auth: {
-      selectedType: "openai",
-      apiKey: resolvedApiKey,
-      baseUrl: normalizedBaseUrl,
-    },
-  };
-
-  // Set model to the selected model
-  existingConfig.model = {
-    ...existingConfig.model,
-    name: resolvedModel,
-  };
-
-  await fs.writeFile(configPath, JSON.stringify(existingConfig, null, 2), "utf-8");
-
-  return NextResponse.json({
-    success: true,
-    message: `Qwen Code config saved to ${configPath}`,
     configPath,
   });
 }

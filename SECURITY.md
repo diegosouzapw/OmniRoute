@@ -42,7 +42,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
 | **API Key Auth**      | HMAC-signed keys with CRC validation                                                                                                      |
-| **OAuth 2.0 + PKCE**  | 14 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Windsurf, GitLab Duo) |
+| **OAuth 2.0 + PKCE**  | 13 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Kiro, Qoder, Windsurf, GitLab Duo)       |
 | **Token Refresh**     | Automatic OAuth token refresh before expiry                                                                                               |
 | **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
 | **Authz Pipeline**    | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |
@@ -91,7 +91,7 @@ Configure via dashboard (Settings → Security) or `.env`:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
+INPUT_SANITIZER_MODE=block    # warn | block (injection policy; legacy "redact" does not strip injection text)
 ```
 
 ### 🔒 PII Redaction
@@ -108,7 +108,8 @@ Automatic detection and optional redaction of personally identifiable informatio
 | SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true
+PII_REDACTION_ENABLED=true   # request PII rewrite; independent of INPUT_SANITIZER_MODE
+PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses returned to clients
 ```
 
 ### 🌐 Network Security

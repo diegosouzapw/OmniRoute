@@ -1,0 +1,1 @@
+- fix(guardrails/chat): do not whole-request-reroute Vision Bridge away from credentialed models (e.g. combo target zai/glm-5.2 or grok-cli → opencode-zen noauth 401); align body.model with X-Route-Model so post-guardrail cannot undo the routing header

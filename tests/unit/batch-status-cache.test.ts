@@ -59,6 +59,14 @@ test("getCached returns entry when mtime is 0 and stored mtime is also 0", () =>
   assert.deepEqual(result, status);
 });
 
+test("getCached expires unchanged negative results after 30 seconds", () => {
+  const status = makeStatus(false);
+  setCached("codex", 0, status, 1_000);
+
+  assert.deepEqual(getCached("codex", 0, 30_999), status);
+  assert.equal(getCached("codex", 0, 31_000), null);
+});
+
 // ── invalidate ────────────────────────────────────────────────────────────────
 
 test("invalidate removes entry from cache", () => {

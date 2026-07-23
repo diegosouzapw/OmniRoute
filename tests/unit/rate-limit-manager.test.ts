@@ -284,3 +284,46 @@ test("rate limit manager recomputes auto-enabled API key connections when queue 
   assert.equal(rateLimitManager.isRateLimitEnabled(explicitConnection.id), true);
   assert.ok(rateLimitManager.getAllRateLimitStatus()[`openai:${autoConnection.id}`]);
 });
+
+test("withRateLimit rejects cleanly when the caller aborts with the default DOMException reason", async () => {
+  // `AbortController.abort()` called with no argument (e.g. modelTestRunner's
+  // timeout path) produces a native DOMException as `signal.reason`, whose
+  // `name` is a read-only getter. withRateLimit's abort handling used to
+  // mutate `reason.name = "AbortError"` in place, which throws
+  // `TypeError: Cannot set property name of [object DOMException] which has
+  // only a getter` instead of rejecting with a clean AbortError — surfacing
+  // as an unhandled rejection rather than the intended timeout/slow result.
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "abort-reason-regression",
+    apiKey: "sk-abort-reason-regression",
+    isActive: true,
+  });
+  rateLimitManager.enableRateLimitProtection(String(connection.id));
+
+  const controller = new AbortController();
+  // Mirror how a real executor call behaves: it settles once the signal it
+  // was handed aborts, so this job doesn't dangle forever in Bottleneck once
+  // withRateLimit's own Promise.race settles via the abort path below.
+  const settlesOnAbort = (signal) =>
+    new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+    });
+
+  const pending = rateLimitManager.withRateLimit(
+    "openai",
+    String(connection.id),
+    "gpt-4o",
+    () => settlesOnAbort(controller.signal),
+    controller.signal
+  );
+
+  controller.abort(); // no reason argument -> default DOMException
+
+  await assert.rejects(pending, (err) => {
+    assert.ok(err instanceof Error);
+    assert.equal(err.name, "AbortError");
+    return true;
+  });
+});

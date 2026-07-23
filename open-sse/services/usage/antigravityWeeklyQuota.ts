@@ -19,6 +19,8 @@
 
 import { toRecord, toNumber } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
+import { getAntigravityContentHeaders } from "../antigravityHeaders.ts";
+import type { AntigravityClientProfile } from "../antigravityClientProfile.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -43,8 +45,12 @@ const _weeklyQuotaCacheCleanupTimer = setInterval(
 );
 _weeklyQuotaCacheCleanupTimer.unref?.();
 
-function buildCacheKey(accessToken: string, projectId?: string | null): string {
-  return `${accessToken.substring(0, 16)}:${projectId || "default"}`;
+function buildCacheKey(
+  accessToken: string,
+  projectId: string | null | undefined,
+  clientProfile: AntigravityClientProfile
+): string {
+  return `${accessToken.substring(0, 16)}:${projectId || "default"}:${clientProfile}`;
 }
 
 /**
@@ -55,13 +61,18 @@ function buildCacheKey(accessToken: string, projectId?: string | null): string {
 export async function fetchAntigravityUserQuotaSummaryCached(
   accessToken: string,
   projectId?: string | null,
+  clientProfile: AntigravityClientProfile = "ide",
   options: AntigravityWeeklyQuotaOptions = {}
 ): Promise<unknown | null> {
   if (!accessToken || !projectId) return null;
 
-  const cacheKey = buildCacheKey(accessToken, projectId);
+  const cacheKey = buildCacheKey(accessToken, projectId, clientProfile);
   const cached = _weeklyQuotaCache.get(cacheKey);
-  if (!options.forceRefresh && cached && Date.now() - cached.fetchedAt < WEEKLY_QUOTA_CACHE_TTL_MS) {
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < WEEKLY_QUOTA_CACHE_TTL_MS
+  ) {
     return cached.data;
   }
 
@@ -74,10 +85,7 @@ export async function fetchAntigravityUserQuotaSummaryCached(
         "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary",
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
+          headers: getAntigravityContentHeaders(clientProfile, accessToken),
           body: JSON.stringify({ project: projectId }),
           signal: AbortSignal.timeout(10000),
         }
@@ -184,8 +192,14 @@ function parseGroupWeeklyQuota(group: JsonRecord): { key: string; quota: UsageQu
 export async function fetchAndParseAntigravityWeeklyQuotas(
   accessToken: string,
   projectId: string | undefined | null,
+  clientProfile: AntigravityClientProfile = "ide",
   options: AntigravityWeeklyQuotaOptions = {}
 ): Promise<Record<string, UsageQuota>> {
-  const data = await fetchAntigravityUserQuotaSummaryCached(accessToken, projectId, options);
+  const data = await fetchAntigravityUserQuotaSummaryCached(
+    accessToken,
+    projectId,
+    clientProfile,
+    options
+  );
   return parseAntigravityWeeklyQuotas(data);
 }

@@ -46,7 +46,7 @@ test('does NOT flag empty-string fallback (process.env || "")', () => {
 });
 
 test("does NOT flag an *Env key — it carries the env-var NAME, not the secret", () => {
-  const src = `clientIdEnv: "QWEN_OAUTH_CLIENT_ID",`;
+  const src = `clientIdEnv: "EXAMPLE_OAUTH_CLIENT_ID",`;
   assert.deepEqual(findLiteralCreds(src, new Set(), "x.ts"), []);
 });
 
@@ -114,8 +114,8 @@ test("every frozen literal is actually present in a scanned file (no dead allowl
 });
 
 test("with an empty allowlist the real scanned files surface zero violations (all migrated to resolvePublicCred)", () => {
-  // All five public client_ids (9 call-sites) were migrated to resolvePublicCred() in
-  // #3493, so neither anchor file has literal credentials anymore.
+  // Public client_ids were migrated to resolvePublicCred() in #3493, so neither
+  // anchor file has literal credentials anymore.
   const reg = fs.readFileSync(
     path.join(repoRoot, "open-sse/config/providerRegistry.ts"),
     "utf8"

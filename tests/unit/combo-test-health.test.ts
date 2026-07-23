@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { buildComboTestRequestBody, extractComboTestResponseText } =
-  await import("../../src/lib/combos/testHealth.ts");
+const {
+  buildComboTestRequestBody,
+  extractComboTestResponseText,
+  extractComboTestStreamResult,
+  extractComboTestStreamText,
+} = await import("../../src/lib/combos/testHealth.ts");
 
 test("combo test helper builds a realistic smoke payload", () => {
   const originalRandom = Math.random;
@@ -24,6 +28,30 @@ test("combo test helper builds a realistic smoke payload", () => {
   assert.equal(body.max_tokens, 2048);
   assert.equal("temperature" in body, false);
   assert.equal(body.stream, false);
+});
+
+test("combo test helper builds a small streaming model probe", () => {
+  const body = buildComboTestRequestBody("nvidia/z-ai/glm-5.2", false, { stream: true });
+  assert.equal(body.stream, true);
+  assert.equal(body.max_tokens, 64);
+});
+
+test("combo test helper ignores keepalives and extracts streamed model content", () => {
+  const text = extractComboTestStreamText(
+    ': omniroute-keepalive\n\ndata: {"choices":[{"delta":{"content":"O"}}]}\n\n' +
+      'data: {"choices":[{"delta":{"content":"K"}}]}\n\ndata: [DONE]\n\n'
+  );
+  assert.equal(text, "OK");
+});
+
+test("combo test helper preserves streamed upstream errors", () => {
+  const result = extractComboTestStreamResult(
+    'data: {"error":{"message":"Rate limit exceeded","code":"429"}}\n\n'
+  );
+  assert.deepEqual(result, {
+    text: "",
+    error: { message: "Rate limit exceeded", statusCode: 429 },
+  });
 });
 
 test("combo test helper extracts text from chat-completions responses", () => {

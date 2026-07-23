@@ -85,6 +85,11 @@ test("services + traffic-inspector remain LOCAL_ONLY paths", () => {
   assert.equal(isLocalOnlyPath("/api/tools/traffic-inspector/sessions"), true);
 });
 
+test("issue-agent routes are LOCAL_ONLY by default", () => {
+  assert.equal(isLocalOnlyPath("/api/issue-agent/runs"), true);
+  assert.equal(isLocalOnlyPath("/api/issue-agent/runs/recorded-triage"), true);
+});
+
 test("management policy must NOT derive locality from the spoofable Host header", () => {
   const src = readFileSync(
     join(import.meta.dirname, "../../src/server/authz/policies/management.ts"),

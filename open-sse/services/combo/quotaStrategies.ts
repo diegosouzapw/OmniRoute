@@ -25,7 +25,7 @@ import { getRuntimeProviderProfile, type ProviderProfile } from "../accountFallb
 import { PRE_SCREEN_CONCURRENCY } from "../comboConfig.ts";
 import { getQuotaFetcher } from "../quotaPreflight.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker";
-import { getProviderConnections } from "../../../src/lib/db/providers";
+import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
 import { MAX_RR_COUNTERS, rrCounters } from "./rrState.ts";
 import type { ResolvedComboTarget, IsModelAvailable } from "./types.ts";
 import {
@@ -74,7 +74,7 @@ async function getQuotaAwareConnectionsForTarget(
         provider,
         (async () => {
           try {
-            const connections = await getProviderConnections({ provider, isActive: true });
+            const connections = await getCachedProviderConnections({ provider, isActive: true });
             const activeConnections = Array.isArray(connections)
               ? (connections as Array<Record<string, unknown>>)
               : [];

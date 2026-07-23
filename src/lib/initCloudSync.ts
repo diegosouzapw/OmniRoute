@@ -1,18 +1,11 @@
 import initializeCloudSync from "@/shared/services/initializeCloudSync";
 import { startBudgetResetJob } from "@/lib/jobs/budgetResetJob";
 import { startModelSyncScheduler } from "@/shared/services/modelSyncScheduler";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 // Initialize runtime background sync services once per server process.
 let initialized = false;
 
-function isAutomatedTestProcess(
-  env: NodeJS.ProcessEnv = process.env,
-  argv: string[] = process.argv
-): boolean {
-  return (
-    env.NODE_ENV === "test" || env.VITEST !== undefined || argv.some((arg) => arg.includes("test"))
-  );
-}
 
 export function shouldSkipCloudSyncInitialization(
   env: NodeJS.ProcessEnv = process.env,
@@ -27,7 +20,7 @@ export function shouldSkipCloudSyncInitialization(
     return true;
   }
 
-  return isAutomatedTestProcess(env, argv) && env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1";
+  return isAutomatedTestProcess(argv, env) && env.OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS !== "1";
 }
 
 export async function ensureCloudSyncInitialized() {

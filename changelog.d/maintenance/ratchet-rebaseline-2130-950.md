@@ -1,0 +1,1 @@
+- chore(quality): owner-approved ratchet rebaseline for the v3.8.49 merge campaign — complexity 2072→2130, cognitive-complexity 900→950 (the day's 17 merged PRs consumed the entire slack; wide margin chosen over per-PR extraction for the rest of the cycle)

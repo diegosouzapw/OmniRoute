@@ -6,6 +6,7 @@ import Card from "@/shared/components/Card";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { translateUsageOrFallback } from "../dashboard/usage/components/ProviderLimits/i18nFallback";
+import { isProviderQuotaVisible } from "@/shared/utils/providerQuotaVisibility";
 
 type Connection = {
   id: string;
@@ -13,6 +14,7 @@ type Connection = {
   authType?: string;
   email?: string;
   name?: string;
+  quotaVisible?: boolean;
 };
 
 type QuotaData = Record<string, any>;
@@ -121,6 +123,7 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
     // Only keep connections that are usage/quota supported
     const relevant = conns.filter(
       (c) =>
+        isProviderQuotaVisible(c) &&
         USAGE_SUPPORTED_PROVIDERS.includes(c.provider) &&
         (c.authType === "oauth" || c.authType === "apikey")
     );

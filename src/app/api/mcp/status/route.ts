@@ -10,7 +10,7 @@ import {
   getMcpHttpStatus,
   isMcpHttpTransportReady,
 } from "../../../../../open-sse/mcp-server/httpTransport";
-import { getSettings } from "@/lib/db/settings";
+import { getCachedSettings } from "@/lib/db/settings";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       readMcpHeartbeat(),
       getAuditStats(),
       queryAuditEntries({ limit: 1, offset: 0 }),
-      getSettings(),
+      getCachedSettings(),
     ]);
 
     const mcpEnabled = !!settings.mcpEnabled;

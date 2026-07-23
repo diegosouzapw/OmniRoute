@@ -11,7 +11,7 @@ import {
   WEB_COOKIE_PROVIDERS,
 } from "@/shared/constants/providers";
 import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
-import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { resolveNvidiaValidationModel } from "@/lib/providers/nvidiaValidationModel";
 import { MODAL_DEFAULT_VALIDATION_MODEL_ID } from "@/shared/constants/modal";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
@@ -19,9 +19,10 @@ import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 import { KiroService } from "@/lib/oauth/services/kiro";
 import { usesCcWireImage } from "@omniroute/open-sse/services/ccWireImageBuiltins.ts";
 import {
-  buildProviderHeaders,
-  buildProviderUrl,
-} from "@omniroute/open-sse/services/provider.ts";
+  isAlibabaRegionalProvider,
+  resolveAlibabaProviderBaseUrl,
+} from "@/shared/constants/alibabaProviderRegions";
+import { buildProviderHeaders, buildProviderUrl } from "@omniroute/open-sse/services/provider.ts";
 
 import {
   OPENAI_LIKE_FORMATS,
@@ -31,7 +32,13 @@ import {
   resolveBaseUrl,
 } from "./validation/urlHelpers";
 import { STANDARD_USER_AGENT, directHttpsRequest, buildBearerHeaders } from "./validation/headers";
-import { validationRead, validationWrite, toValidationErrorResult } from "./validation/transport";
+import {
+  validationRead,
+  validationWrite,
+  toValidationErrorResult,
+  toWebCookieValidationErrorResult,
+  WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API,
+} from "./validation/transport";
 import {
   validateDeepSeekWebProvider,
   validateQwenWebProvider,
@@ -52,6 +59,7 @@ import {
   validateJulesProvider,
   validateDevinCloudAgentProvider,
   validateInnerAiProvider,
+  validateNotionWebProvider,
 } from "./validation/webProvidersB";
 import {
   validateHerokuProvider,
@@ -68,11 +76,13 @@ import {
 import {
   validateDeepgramProvider,
   validateAssemblyAIProvider,
+  validateRevAiProvider,
   validateElevenLabsProvider,
   validateInworldProvider,
   validateKieProvider,
   validateAwsPollyProvider,
   validateBailianCodingPlanProvider,
+  validateQwenCloudTokenPlanProvider,
   validateRekaProvider,
   validateMaritalkProvider,
   validateNlpCloudProvider,
@@ -135,7 +145,7 @@ export async function validateWebCookieProvider({
 
     if (!entry) {
       // Providers listed in WEB_COOKIE_PROVIDERS without a providerRegistry entry (e.g.
-      // lmarena, gemini-business, poe-web, venice-web, v0-vercel-web) only expose a
+      // gemini-business, poe-web, venice-web, v0-vercel-web) only expose a
       // marketing website URL, not a real API host. Probing `${website}/models`
       // does not reliably signal session validity for these —
       // live verification showed most return redirects or SPA 200s regardless of
@@ -153,6 +163,21 @@ export async function validateWebCookieProvider({
     // Attempt a minimal request to check if the session is valid
     // Use /models endpoint or a minimal completion request depending on the provider
     const baseUrl = normalizeBaseUrl(entry.baseUrl || "");
+
+    // Defense-in-depth: only an http(s) baseUrl without a query string is safe to
+    // probe by blindly appending `/models`. A ws(s):// baseUrl (e.g. copilot-web) is
+    // already rejected by the outbound URL guard downstream, but reject it explicitly
+    // here for the honest "unsupported" result instead of a confusing security-block
+    // message — this also covers a future http(s) baseUrl carrying a query string,
+    // which the guard does not currently block (#7857 acceptance criteria).
+    if (!/^https?:\/\//i.test(baseUrl) || baseUrl.includes("?")) {
+      return {
+        valid: false,
+        error: "Provider validation not supported",
+        unsupported: true,
+      };
+    }
+
     const testUrl = `${baseUrl}/models`;
 
     const res = await validationRead(
@@ -176,12 +201,26 @@ export async function validateWebCookieProvider({
       };
     }
 
+    // #7857: for providers whose baseUrl is a conversation/completion endpoint rather
+    // than a real API root, the /models path never existed upstream — a redirect,
+    // login-HTML 200, 404, 405, or 429 from it is not a meaningful auth signal and is
+    // indistinguishable from a genuinely valid session. Report the same honest
+    // "unsupported" result the !entry branch above already gives its no-registry
+    // siblings, instead of a false `valid: true`.
+    if (WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API.has(provider)) {
+      return {
+        valid: false,
+        error: "Provider validation not supported",
+        unsupported: true,
+      };
+    }
+
     // Any other response (200, 404, 405, 429, ...) means the cookie was accepted —
     // a 401/403 from the /models probe is the only definitive "session expired" signal
     // for web-cookie auth, so a non-auth status is treated as a valid session.
     return { valid: true, error: null, unsupported: false };
   } catch (error: unknown) {
-    return toValidationErrorResult(error);
+    return toWebCookieValidationErrorResult(provider, error);
   }
 }
 
@@ -478,6 +517,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     bytez: validateBytezProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
+    "rev-ai": validateRevAiProvider,
     "fal-ai": ({ apiKey, providerSpecificData }: any) =>
       validateImageProviderApiKey({ provider: "fal-ai", apiKey, providerSpecificData }),
     "stability-ai": ({ apiKey, providerSpecificData }: any) =>
@@ -493,6 +533,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
+    "qwen-cloud-token-plan": validateQwenCloudTokenPlanProvider,
     heroku: validateHerokuProvider,
     databricks: validateDatabricksProvider,
     datarobot: validateDataRobotProvider,
@@ -530,6 +571,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "adapta-web": validateAdaptaWebProvider,
     "claude-web": validateClaudeWebProvider,
     "gemini-web": validateGeminiWebProvider,
+    "notion-web": validateNotionWebProvider,
     "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,
@@ -814,7 +856,10 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   const validationEntry = entry.testKeyBaseUrl
     ? { ...entry, baseUrl: entry.testKeyBaseUrl }
     : entry;
-  const baseUrl = resolveBaseUrl(validationEntry, providerSpecificData);
+  const usesAlibabaRegionalEndpoint = isAlibabaRegionalProvider(provider);
+  const baseUrl = usesAlibabaRegionalEndpoint
+    ? resolveAlibabaProviderBaseUrl(provider, providerSpecificData, validationEntry.baseUrl)
+    : resolveBaseUrl(validationEntry, providerSpecificData);
 
   try {
     if (OPENAI_LIKE_FORMATS.has(entry.format)) {
@@ -824,7 +869,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         headers: entry.headers || {},
         providerSpecificData,
         modelId,
-        modelsUrl: entry.modelsUrl,
+        modelsUrl: usesAlibabaRegionalEndpoint ? "" : entry.testKeyModelsUrl || entry.modelsUrl,
         isLocal,
       });
     }

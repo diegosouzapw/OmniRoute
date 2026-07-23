@@ -8,6 +8,8 @@
 
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
+import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
+import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -143,6 +145,13 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
  *   apply connection cooldown ONLY — never trip the whole-provider breaker.
  *
+ * #7907/#7908: also skip the breaker trip when the failure is a local stream lifecycle
+ * event (client-side abort — `request_signal_aborted`, "Client disconnected: ...", or an
+ * AbortError with no upstream status, which defaults to 502). Otherwise a client abort mid
+ * combo-target-loop still trips the whole-provider breaker exactly like a genuine upstream
+ * failure would, undermining the same #4602 policy `shouldSkipConnDisable()` already applies
+ * to connection-level cooldown.
+ *
  * Pure predicate so the breaker decision is unit-testable without the full combo harness.
  */
 export function shouldRecordProviderBreakerFailure(args: {
@@ -150,12 +159,73 @@ export function shouldRecordProviderBreakerFailure(args: {
   status: number;
   sameProviderNext: boolean;
   skipProviderBreaker?: boolean;
+  requestScopedFailure?: boolean;
+  error?: unknown;
 }): boolean {
   return (
     !args.isStreamReadinessFailure &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     !args.sameProviderNext &&
-    !args.skipProviderBreaker
+    !args.skipProviderBreaker &&
+    !args.requestScopedFailure &&
+    !isLocalStreamLifecycleError(args.error)
+  );
+}
+
+const REQUEST_SCOPED_UPSTREAM_ERROR_CODES = new Set([
+  "context_length_exceeded",
+  "upstream_empty_response",
+  "upstream_response_failed",
+]);
+
+/** Request/model-specific failures must not poison provider-wide resilience state. */
+export function isRequestScopedUpstreamFailure(error?: {
+  code?: string | null;
+  type?: string | null;
+}): boolean {
+  const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
+  const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
+  return REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(code) || type === "context_length_exceeded";
+}
+
+/**
+ * #7177: whether handleSingleModelChat should skip the connection-level cooldown
+ * (markAccountUnavailable) for a failed attempt — client disconnects, a 401 when the
+ * connection has extra keys to rotate through, a known request-scoped upstream failure
+ * (e.g. context overflow — not a connection health signal), a plugin refusing the
+ * request (our own policy, not a provider fault — see below), or our own
+ * self-inflicted timeout all mean the connection itself is healthy and should not be
+ * cooled down.
+ *
+ * A plugin block (`plugin_block`) is our own policy decision, not the provider
+ * rejecting us. Banning the account here would let a working security plugin destroy
+ * the connection it protects — one block would ban the provider for every later
+ * request, valid ones included — and would trigger a pointless retry loop across other
+ * accounts the plugin would refuse identically.
+ */
+export function shouldSkipConnDisable(
+  result: {
+    status: number;
+    errorCode?: string | null;
+    errorType?: string | null;
+    error?: unknown;
+  },
+  is401: boolean,
+  hasExtraKeys: boolean,
+  provider: string
+): boolean {
+  return (
+    result.status === 499 ||
+    result.errorCode === "client_disconnected" ||
+    result.errorType === "client_disconnected" ||
+    // Client abort surfaced as a bare error (no statusCode → defaults to 502):
+    // a local lifecycle event, not a provider failure (#4602 policy).
+    isLocalStreamLifecycleError(result.error) ||
+    result.errorCode === "plugin_block" ||
+    result.errorType === "plugin_block" ||
+    (is401 && hasExtraKeys) ||
+    isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) ||
+    isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider)
   );
 }
 

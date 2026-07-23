@@ -6,7 +6,7 @@
  * Phase 2: 'standard' mode (caveman engine).
  * Phase 3: 'aggressive' mode (summarization + tool compression + aging).
  * Phase 4: 'ultra' mode (heuristic token pruning + optional SLM tier).
- * Phase 5: 'rtk' and 'stacked' modes (tool-output filters + multi-engine pipeline).
+ * Phase 5: 'rtk', 'codex-responses', and 'stacked' modes (tool-output filters + multi-engine pipeline).
  */
 
 import { ENGINE_IDS } from "./engineCatalog.ts";
@@ -25,7 +25,15 @@ import type { QuantumLockConfig, QuantumLockStats } from "./quantumLock/quantumP
 export { ENGINE_IDS };
 
 export type CompressionMode =
-  "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "omniglyph" | "stacked";
+  | "off"
+  | "lite"
+  | "standard"
+  | "aggressive"
+  | "ultra"
+  | "rtk"
+  | "codex-responses"
+  | "omniglyph"
+  | "stacked";
 export type CavemanIntensity = "lite" | "full" | "ultra";
 export type RtkIntensity = "minimal" | "standard" | "aggressive";
 export type RtkRawOutputRetention = "never" | "failures" | "always";
@@ -40,7 +48,8 @@ export type CompressionEngineId =
   | "ccr"
   | "llmlingua"
   | "relevance"
-  | "omniglyph";
+  | "omniglyph"
+  | "codex-responses";
 
 export interface CavemanRule {
   name: string;
@@ -107,6 +116,18 @@ export interface RtkConfig {
   renderers?: string[];
 }
 
+/** Conservative, lossless-first Responses tool-output compression controls. */
+export interface CodexResponsesConfig {
+  enabled: boolean;
+  minBytes: number;
+  maxOutputBytes: number;
+  maxCandidateBytes: number;
+  maxLines: number;
+  minSearchMatches: number;
+  minLogLines: number;
+  preserveToolNames: string[];
+}
+
 export interface RelevanceConfig {
   enabled: boolean;
   overlapThreshold: number;
@@ -128,6 +149,11 @@ export interface CompressionLanguageConfig {
  * request-time header/body injection is a separate slice.
  */
 export interface ContextEditingConfig {
+  enabled: boolean;
+}
+
+/** Cache-aligned compression: freeze a previously transformed prefix and process only new items. */
+export interface LiveZoneConfig {
   enabled: boolean;
 }
 
@@ -187,12 +213,17 @@ export interface CompressionConfig {
   /** Phase 4A: selected output styles (supersedes cavemanOutputMode via a back-compat shim). */
   outputStyles?: OutputStyleSelectionEntry[];
   rtkConfig?: RtkConfig;
+  codexResponsesConfig?: CodexResponsesConfig;
   relevanceConfig?: RelevanceConfig;
   languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
+  /** Headroom SmartCrusher detail settings (minRows gate). */
+  headroom?: HeadroomConfig;
   /** Provider-delegated context editing (Claude/Anthropic only). */
   contextEditing?: ContextEditingConfig;
+  /** Opt-in cache-aligned live-zone compression (default disabled). */
+  liveZone?: LiveZoneConfig;
   /** Per-engine opt-in toggles for the config panel. */
   engines: Record<string, EngineToggle>;
   /** Active combo preset id, or null if none selected. */
@@ -237,6 +268,13 @@ export interface CompressionConfig {
   ultraSlmPrewarm?: boolean;
   /** Opt-in result memoization for deterministic engines only (default off). */
   memoizeCompressionResults?: boolean;
+  /**
+   * #8034 — per-model/endpoint compression exclusion filter. Patterns are matched
+   * case-insensitively against both the bare model id and the `provider/model`
+   * composite (`*` is the only wildcard). Absent/empty → no exclusions, default
+   * behavior unchanged. See `open-sse/services/compression/exclusions.ts`.
+   */
+  exclusions?: string[];
 }
 
 export interface CompressionStats {
@@ -294,6 +332,11 @@ export interface CompressionStats {
   }>;
   /** Present only when QuantumLock stabilized ≥1 fragment this run. */
   quantumLock?: QuantumLockStats;
+  liveZone?: {
+    cacheHit: boolean;
+    frozenItems: number;
+    liveItems: number;
+  };
 }
 
 export interface CompressionResult {
@@ -301,6 +344,32 @@ export interface CompressionResult {
   compressed: boolean;
   stats: CompressionStats | null;
 }
+
+export const DEFAULT_CODEX_RESPONSES_CONFIG: CodexResponsesConfig = {
+  enabled: false,
+  minBytes: 512,
+  maxOutputBytes: 2 * 1024 * 1024,
+  maxCandidateBytes: 512 * 1024,
+  maxLines: 160,
+  minSearchMatches: 8,
+  minLogLines: 24,
+  preserveToolNames: [
+    "Read",
+    "Glob",
+    "Grep",
+    "Write",
+    "Edit",
+    "WebSearch",
+    "WebFetch",
+    "read",
+    "glob",
+    "grep",
+    "write",
+    "edit",
+    "web_search",
+    "web_fetch",
+  ],
+};
 
 export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   enabled: false,
@@ -321,6 +390,8 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   activeComboId: null,
   ultraEngine: "heuristic",
   ultraSlmPrewarm: false,
+  liveZone: { enabled: false },
+  codexResponsesConfig: { ...DEFAULT_CODEX_RESPONSES_CONFIG },
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
@@ -472,6 +543,24 @@ export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
   minScoreThreshold: 0.3,
   slmFallbackToAggressive: true,
   maxTokensPerMessage: 0,
+};
+
+// ─── Headroom SmartCrusher detail settings ───────────────────────────────────
+// Persisted under compression settings key `headroom`. Engine apply reads
+// minRows from stepConfig, which the stacked runner merges from this sub-object.
+
+/** Configuration for the Headroom SmartCrusher engine detail page. */
+export interface HeadroomConfig {
+  /**
+   * Minimum number of rows in a homogeneous JSON array to trigger tabular
+   * compaction. Default 8 (matches DEFAULT_MIN_ROWS in smartcrusher.ts).
+   * Operators may lower this (e.g. 5) for denser compaction on smaller arrays.
+   */
+  minRows: number;
+}
+
+export const DEFAULT_HEADROOM_CONFIG: HeadroomConfig = {
+  minRows: 8,
 };
 
 export type { McpAccessibilityConfig } from "./engines/mcpAccessibility/constants.ts";

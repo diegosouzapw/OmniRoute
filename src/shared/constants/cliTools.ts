@@ -1,14 +1,17 @@
 // CLI Tools configuration
 import { getClaudeCodeDefaultModels } from "@omniroute/open-sse/config/providerRegistry";
 import type { CliCatalogEntry } from "@/shared/schemas/cliCatalog";
+import { GROK_BUILD_CLI_TOOL } from "@/shared/constants/cliToolsGrokBuild";
 
 const _cc = getClaudeCodeDefaultModels();
+type CliModel = NonNullable<CliCatalogEntry["defaultModels"]>[number];
+const createCliModel = (id: string, name: string): CliModel => ({ id, name, alias: id });
 
 export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   claude: {
     id: "claude",
     name: "Claude Code",
-    icon: "terminal",
+    image: "/providers/claude.svg",
     color: "#D97757",
     description: "Anthropic Claude Code CLI — ANTHROPIC_BASE_URL points to OmniRoute",
     docsUrl: "https://docs.anthropic.com/en/docs/claude-code/overview",
@@ -70,6 +73,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   codex: {
     id: "codex",
     name: "OpenAI Codex CLI",
+    image: "/providers/codex.svg",
     color: "#10A37F",
     description: "OpenAI Codex CLI — OpenAI-compatible base URL targets OmniRoute",
     docsUrl: "https://github.com/openai/codex",
@@ -97,7 +101,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   openclaw: {
     id: "openclaw",
     name: "Open Claw",
-    image: "/providers/openclaw.png",
+    image: "/providers/openclaw.svg",
     color: "#FF6B35",
     description: "Open Claw — open-source multi-backend agent CLI (OSS, P. Steinberger)",
     docsUrl: "/docs?section=cli-tools&tool=openclaw",
@@ -111,7 +115,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   cursor: {
     id: "cursor",
     name: "Cursor",
-    image: "/providers/cursor.png",
+    image: "/providers/cursor.svg",
     color: "#000000",
     // Cursor App routes via its own cloud server — local base URL not supported.
     // Use cursor-cli entry for headless/agent CLI mode with custom endpoint.
@@ -143,6 +147,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   cline: {
     id: "cline",
     name: "Cline",
+    image: "/providers/cline.svg",
     color: "#00D1B2",
     description: "Cline — open-source VS Code coding agent with OpenAI-compatible base URL",
     docsUrl: "https://docs.cline.bot/",
@@ -170,7 +175,7 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   continue: {
     id: "continue",
     name: "Continue",
-    image: "/providers/continue.png",
+    image: "/providers/continue.svg",
     color: "#7C3AED",
     description: "Continue — open-source AI coding assistant with full provider config",
     docsUrl: "https://docs.continue.dev/",
@@ -214,34 +219,36 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     acpSpawnable: false,
     baseUrlSupport: "none",
     modelAliases: [
+      "gemini-3.6-flash-high",
+      "gemini-3.6-flash-medium",
+      "gemini-3.6-flash-low",
       "claude-opus-4-6-thinking",
       "claude-sonnet-4-6",
-      "gemini-3-flash",
-      "gpt-oss-120b-medium",
-      "gemini-3.1-pro-high",
+      "gemini-pro-agent",
       "gemini-3.1-pro-low",
+      "gemini-3-flash-agent",
+      "gemini-3.5-flash-low",
+      "gemini-3.5-flash-extra-low",
+      "gpt-oss-120b-medium",
     ],
     defaultModels: [
-      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High", alias: "gemini-3.1-pro-high" },
-      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low", alias: "gemini-3.1-pro-low" },
-      { id: "gemini-3-flash", name: "Gemini 3 Flash", alias: "gemini-3-flash" },
-      {
-        id: "claude-sonnet-4-6",
-        name: "Claude Sonnet 4.6",
-        alias: "claude-sonnet-4-6",
-      },
-      {
-        id: "claude-opus-4-6-thinking",
-        name: "Claude Opus 4.6 Thinking",
-        alias: "claude-opus-4-6-thinking",
-      },
-      { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium", alias: "gpt-oss-120b-medium" },
+      createCliModel("gemini-3.6-flash-high", "Gemini 3.6 Flash High"),
+      createCliModel("gemini-3.6-flash-medium", "Gemini 3.6 Flash Medium"),
+      createCliModel("gemini-3.6-flash-low", "Gemini 3.6 Flash Low"),
+      createCliModel("gemini-pro-agent", "Gemini 3.1 Pro High"),
+      createCliModel("gemini-3.1-pro-low", "Gemini 3.1 Pro Low"),
+      createCliModel("gemini-3-flash-agent", "Gemini 3.5 Flash High"),
+      createCliModel("gemini-3.5-flash-low", "Gemini 3.5 Flash Medium"),
+      createCliModel("gemini-3.5-flash-extra-low", "Gemini 3.5 Flash Low"),
+      createCliModel("claude-sonnet-4-6", "Claude Sonnet 4.6"),
+      createCliModel("claude-opus-4-6-thinking", "Claude Opus 4.6 Thinking"),
+      createCliModel("gpt-oss-120b-medium", "GPT OSS 120B Medium"),
     ],
   },
   copilot: {
     id: "copilot",
     name: "GitHub Copilot",
-    image: "/providers/copilot.png",
+    image: "/providers/copilot.svg",
     color: "#1F6FEB",
     // D-nota: copilot suporta COPILOT_PROVIDER_BASE_URL desde v1.0.19+
     description: "GitHub Copilot Chat — VS Code extension with COPILOT_PROVIDER_BASE_URL support",
@@ -401,10 +408,9 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
   qwen: {
     id: "qwen",
     name: "Qwen Code",
-    icon: "psychology",
+    image: "/providers/qwen.svg",
     color: "#10B981",
-    description:
-      "Alibaba Qwen Code CLI — supports OpenAI, Anthropic & Gemini providers via OmniRoute",
+    description: "Qwen Code CLI — current V4 OpenAI-compatible model provider via OmniRoute",
     docsUrl: "https://qwenlm.github.io/qwen-code-docs/en/users/configuration/model-providers/",
     configType: "guide",
     category: "code",
@@ -412,91 +418,15 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     acpSpawnable: true,
     baseUrlSupport: "full",
     defaultCommand: "qwen",
+    previewConfigMode: "qwen",
     notes: [
       {
         type: "info",
-        text: "Qwen Code supports multiple provider types (openai, anthropic, gemini) via modelProviders in settings.json. OmniRoute works as an OpenAI-compatible endpoint.",
+        text: "OmniRoute is registered under modelProviders.openai using Qwen Code's current bare-array V4 format.",
       },
       {
         type: "info",
-        text: "Any model available in OmniRoute can be used — not just Qwen models. Select from Qwen, Claude, Gemini, GPT, and more.",
-      },
-      {
-        type: "warning",
-        text: "Config path: Linux/macOS ~/.qwen/settings.json • Windows %USERPROFILE%\\.qwen\\settings.json",
-      },
-      {
-        type: "error",
-        text: "Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with bailian-coding-plan/alibaba/alibaba-cn/openrouter/anthropic/gemini providers instead.",
-      },
-    ],
-    modelAliases: [
-      "coder-model",
-      "qwen3-coder-plus",
-      "qwen3-coder-flash",
-      "vision-model",
-      "claude-sonnet-4-6",
-      "claude-opus-4-6-thinking",
-      "gemini-3-flash",
-      "gemini-3.1-pro-high",
-    ],
-    defaultModels: [
-      {
-        id: "coder-model",
-        name: "Coder Model (Qwen 3.6 Plus)",
-        alias: "coder-model",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "coder-model",
-        isTopLevel: true,
-      },
-      {
-        id: "qwen3-coder-plus",
-        name: "Qwen 3 Coder Plus",
-        alias: "qwen3-coder-plus",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "qwen3-coder-plus",
-      },
-      {
-        id: "qwen3-coder-flash",
-        name: "Qwen 3 Coder Flash",
-        alias: "qwen3-coder-flash",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "qwen3-coder-flash",
-      },
-      {
-        id: "vision-model",
-        name: "Vision Model (Multimodal)",
-        alias: "vision-model",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "vision-model",
-      },
-      {
-        id: "claude-sonnet-4-6",
-        name: "Claude Sonnet 4.6",
-        alias: "claude-sonnet-4-6",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "claude-sonnet-4-6",
-      },
-      {
-        id: "claude-opus-4-6-thinking",
-        name: "Claude Opus 4.6 Thinking",
-        alias: "claude-opus-4-6-thinking",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "claude-opus-4-6-thinking",
-      },
-      {
-        id: "gemini-3.1-pro-high",
-        name: "Gemini 3.1 Pro High",
-        alias: "gemini-3.1-pro-high",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "gemini-3.1-pro-high",
-      },
-      {
-        id: "gemini-3-flash",
-        name: "Gemini 3 Flash",
-        alias: "gemini-3-flash",
-        envKey: "OPENAI_MODEL",
-        defaultValue: "gemini-3-flash",
+        text: "The API key is stored only as OMNIROUTE_API_KEY in ~/.qwen/.env, leaving your existing provider credentials untouched.",
       },
     ],
     guideSteps: [
@@ -507,23 +437,24 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
       {
         step: 5,
         title: "Save Config",
-        desc: "Click Save Config below to write your settings.json automatically.",
+        desc: "Write the modelProviders entry and dedicated .env key without replacing other Qwen Code settings.",
       },
     ],
     codeBlock: {
       language: "json",
-      code: `# ~/.qwen/settings.json — OmniRoute via security.auth
-{
-  "security": {
-    "auth": {
-      "selectedType": "openai",
-      "apiKey": "{{apiKey}}",
-      "baseUrl": "{{baseUrl}}"
-    }
+      code: `{
+  "modelProviders": {
+    "openai": [
+      {
+        "id": "{{model}}",
+        "name": "{{model}} (OmniRoute)",
+        "envKey": "OMNIROUTE_API_KEY",
+        "baseUrl": "{{baseUrl}}"
+      }
+    ]
   },
-  "model": {
-    "name": "{{model}}"
-  }
+  "security": { "auth": { "selectedType": "openai" } },
+  "model": { "name": "{{model}}", "baseUrl": "{{baseUrl}}" }
 }`,
     },
   },
@@ -540,7 +471,6 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
     acpSpawnable: false,
     baseUrlSupport: "full",
   },
-
   // ── Code entries — aider ──────────────────────────────────────────────────
   aider: {
     id: "aider",
@@ -567,7 +497,6 @@ export const CLI_TOOLS: Record<string, CliCatalogEntry> = {
 aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     },
   },
-
   // ── Code entries — forge ──────────────────────────────────────────────────
   forge: {
     id: "forge",
@@ -584,11 +513,12 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
     defaultCommand: "forge",
   },
 
+  "grok-build": GROK_BUILD_CLI_TOOL,
   // ── Code entries — cursor-cli ─────────────────────────────────────────────
   "cursor-cli": {
     id: "cursor-cli",
     name: "Cursor Agent CLI",
-    icon: "terminal",
+    image: "/providers/cursor.svg",
     color: "#000000",
     description: "Cursor Agent CLI — headless agent mode with custom provider endpoint",
     docsUrl: "https://docs.cursor.com/advanced/api",
@@ -612,7 +542,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   roo: {
     id: "roo",
     name: "Roo Code",
-    icon: "terminal",
+    image: "/providers/roocode.svg",
     color: "#7C3AED",
     description: "Roo Code AI Assistant — VS Code extension with OpenAI-compatible custom base URL",
     docsUrl: "https://docs.roocode.com/",
@@ -655,7 +585,7 @@ aider --openai-api-base "{{baseUrl}}" --model "{{model}}"`,
   "deepseek-tui": {
     id: "deepseek-tui",
     name: "DeepSeek TUI",
-    icon: "terminal",
+    image: "/providers/deepseek.svg",
     color: "#4F46E5",
     description: "DeepSeek TUI — Rust-based coding agent CLI with OPENAI_BASE_URL support",
     docsUrl: "https://github.com/hunterbown/deepseek-tui",

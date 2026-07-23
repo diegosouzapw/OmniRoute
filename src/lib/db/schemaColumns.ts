@@ -18,6 +18,18 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       name?: string;
     }>;
     const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
+    for (const [column, type] of [
+      ["auth_type", "TEXT"],
+      ["name", "TEXT"],
+      ["email", "TEXT"],
+      ["display_name", "TEXT"],
+      ["provider_specific_data", "TEXT"],
+    ]) {
+      if (!columnNames.has(column)) {
+        db.exec(`ALTER TABLE provider_connections ADD COLUMN ${column} ${type}`);
+        console.log(`[DB] Added provider_connections.${column} column`);
+      }
+    }
     if (!columnNames.has("rate_limit_protection")) {
       db.exec(
         "ALTER TABLE provider_connections ADD COLUMN rate_limit_protection INTEGER DEFAULT 0"
@@ -48,6 +60,12 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       );
       console.log("[DB] Added provider_connections.per_key_proxy_enabled column");
     }
+    if (!columnNames.has("quota_visible")) {
+      db.exec(
+        "ALTER TABLE provider_connections ADD COLUMN quota_visible INTEGER NOT NULL DEFAULT 1"
+      );
+      console.log("[DB] Added provider_connections.quota_visible column");
+    }
     if (!columnNames.has("quota_window_thresholds_json")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
       console.log("[DB] Added provider_connections.quota_window_thresholds_json column");
@@ -56,12 +74,34 @@ export function ensureProviderConnectionsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN rate_limit_overrides_json TEXT");
       console.log("[DB] Added provider_connections.rate_limit_overrides_json column");
     }
+    // `refresh_token` is part of 001_initial_schema.sql, but `CREATE TABLE IF NOT EXISTS`
+    // is a no-op on a pre-existing legacy table that predates it — heal it defensively
+    // before the index below relies on it, or a very old DB fails startup entirely.
+    if (!columnNames.has("refresh_token")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN refresh_token TEXT");
+      console.log("[DB] Added provider_connections.refresh_token column");
+    }
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
+    );
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_pc_auth_active_refresh ON provider_connections(auth_type, is_active, refresh_token)"
+    );
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_pc_provider_auth_type ON provider_connections(provider, auth_type)"
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify provider_connections schema:", message);
+  }
+}
+
+export function ensureUsageHistoryAccountIndex(db: SqliteDatabase) {
+  try {
+    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_account_key ON usage_history(account_key)");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("[DB] Failed to verify usage_history account index:", message);
   }
 }
 
@@ -98,6 +138,32 @@ export function ensureUsageHistoryColumns(db: SqliteDatabase) {
       console.log("[DB] Added usage_history.combo_strategy column");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_uh_combo_strategy ON usage_history(combo_strategy)");
+    if (!columnNames.has("account_key")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN account_key TEXT");
+      console.log("[DB] Added usage_history.account_key column");
+    }
+    if (!columnNames.has("account_label")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN account_label TEXT");
+      console.log("[DB] Added usage_history.account_label column");
+    }
+    if (!columnNames.has("account_label_priority")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN account_label_priority INTEGER DEFAULT 0");
+      console.log("[DB] Added usage_history.account_label_priority column");
+    }
+    db.exec(
+      "CREATE INDEX IF NOT EXISTS idx_uh_provider_model_timestamp ON usage_history(provider, model, timestamp)"
+    );
+    db.exec(
+      `CREATE INDEX IF NOT EXISTS idx_uh_dedup ON usage_history(
+        timestamp,
+        COALESCE(provider, ''),
+        COALESCE(model, ''),
+        COALESCE(connection_id, ''),
+        COALESCE(api_key_id, ''),
+        tokens_input,
+        tokens_output
+      )`
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify usage_history schema:", message);

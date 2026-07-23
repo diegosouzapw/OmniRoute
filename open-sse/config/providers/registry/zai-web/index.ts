@@ -12,8 +12,8 @@ export const zai_webProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "cookie",
   models: [
-    { id: "glm-4.6", name: "GLM-4.6" },
-    { id: "glm-4.5", name: "GLM-4.5" },
-    { id: "glm-4.5v", name: "GLM-4.5V (Vision)" },
+    { id: "glm-4.6", name: "GLM-4.6", toolCalling: false },
+    { id: "glm-4.5", name: "GLM-4.5", toolCalling: false },
+    { id: "glm-4.5v", name: "GLM-4.5V (Vision)", toolCalling: false },
   ],
 };

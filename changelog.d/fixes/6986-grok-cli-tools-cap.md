@@ -1,0 +1,1 @@
+- **fix(providers):** cap grok-cli tools at 200 per request, matching xAI's cli-chat-proxy limit, and document the non-reasoning capability of grok-build/grok-composer-2.5-fast in the registry (#6986, thanks @gitcommit90)

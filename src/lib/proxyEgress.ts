@@ -79,11 +79,15 @@ export function clearEgressCache(): void {
  * echo-IP round-trip. Returns null if not yet probed.
  */
 export function getCachedEgressIp(proxyUrl: string | null): string | null {
-  const cached = egressCache.get(proxyUrl ?? "__direct__");
+  const key = proxyUrl ?? "__direct__";
+  const cached = egressCache.get(key);
   if (!cached) return null;
-  if (Date.now() - cached.at >= EGRESS_CACHE_TTL_MS) return null;
+  if (Date.now() - cached.at >= EGRESS_CACHE_TTL_MS) {
+    egressCache.delete(key);
+    return null;
+  }
   return cached.ip;
-}
+ }
 
 const warmingInFlight = new Set<string>();
 
@@ -270,7 +274,8 @@ export async function validateProxyPool(deps?: {
     deps?.listProxies ??
     (async () => {
       const { listProxies: real } = await import("./db/proxies");
-      return (await real({ includeSecrets: true })) as Array<{
+      const result = await real({ includeSecrets: true });
+      return result.items as Array<{
         id: string;
         type: string;
         host: string;

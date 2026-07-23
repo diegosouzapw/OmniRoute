@@ -1,18 +1,20 @@
 import {
-  ANTIGRAVITY_BASE_URLS,
+  ANTIGRAVITY_BOOTSTRAP_BASE_URLS,
+  ANTIGRAVITY_RUNTIME_BASE_URLS,
   getAntigravityFetchAvailableModelsUrls,
 } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import {
-  ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
-  ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
-  getAntigravityLoadCodeAssistClientMetadata,
-} from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   GITHUB_COPILOT_API_VERSION,
   GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+import {
+  GROK_BUILD_DEVICE_CODE_URL,
+  GROK_BUILD_OAUTH_ISSUER,
+  GROK_BUILD_OAUTH_SCOPES,
+  GROK_BUILD_TOKEN_URL,
+} from "@omniroute/open-sse/config/grokBuild.ts";
 import { resolvePublicCred } from "@omniroute/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
@@ -71,15 +73,6 @@ export const CODEX_CONFIG = {
   },
 };
 
-// Qwen OAuth Configuration (Device Code Flow with PKCE)
-export const QWEN_CONFIG = {
-  clientId: resolvePublicCred("qwen_id", "QWEN_OAUTH_CLIENT_ID"),
-  deviceCodeUrl: "https://qwen.ai/api/v1/oauth2/device/code",
-  tokenUrl: "https://qwen.ai/api/v1/oauth2/token",
-  scope: "openid profile email model.completion",
-  codeChallengeMethod: "S256",
-};
-
 // Qoder OAuth Configuration (Authorization Code)
 const QODER_OAUTH_AUTHORIZE_URL = process.env.QODER_OAUTH_AUTHORIZE_URL || "";
 const QODER_OAUTH_TOKEN_URL = process.env.QODER_OAUTH_TOKEN_URL || "";
@@ -119,11 +112,44 @@ export const CODEBUDDY_CN_CONFIG = {
   pollInterval: 5000,
 };
 
-// Grok Build (xAI) OAuth Configuration (Import-Token Flow with refresh)
+// Grok Build (xAI) OAuth Configuration (Device Code + import-token fallback)
 // Public client_id resolved through resolvePublicCred so it is never a literal.
 export const GROK_CLI_CONFIG = {
   clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  issuer: GROK_BUILD_OAUTH_ISSUER,
+  deviceCodeUrl: GROK_BUILD_DEVICE_CODE_URL,
+  tokenUrl: GROK_BUILD_TOKEN_URL,
+  scope: GROK_BUILD_OAUTH_SCOPES.join(" "),
+};
+
+// Grok Build (xAI) OAuth Configuration (Browser PKCE Flow — added #7013)
+// Same auth.x.ai authorize/token endpoints and public client_id as XAI_OAUTH_CONFIG,
+// but scoped to the Grok Build (cli-chat-proxy.grok.com) entitlement and kept as a
+// separate config so grok-cli's own baseUrl/model registry stay untouched.
+export const GROK_BUILD_OAUTH_CONFIG = {
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  authorizeUrl: "https://auth.x.ai/oauth2/authorize",
   tokenUrl: "https://auth.x.ai/oauth2/token",
+  scope: "openid profile email offline_access grok-cli:access",
+  codeChallengeMethod: "S256",
+  loopbackPort: 56122, // distinct from xai-oauth's 56121 — both can run concurrently
+  callbackPath: "/callback",
+  callbackHost: "127.0.0.1",
+};
+
+// xAI API OAuth Configuration (Authorization Code Flow with PKCE)
+// This intentionally uses a separate provider from Grok Build: both use the
+// public Grok CLI OAuth client, but their inference endpoints and model
+// entitlements differ (`api.x.ai` vs `cli-chat-proxy.grok.com`).
+export const XAI_OAUTH_CONFIG = {
+  clientId: resolvePublicCred("grok_id", "GROK_OAUTH_CLIENT_ID"),
+  authorizeUrl: "https://auth.x.ai/oauth2/authorize",
+  tokenUrl: "https://auth.x.ai/oauth2/token",
+  scope: "openid profile email offline_access grok-cli:access api:access",
+  codeChallengeMethod: "S256",
+  loopbackPort: 56121,
+  callbackPath: "/callback",
+  callbackHost: "127.0.0.1",
 };
 
 // Kimi Coding OAuth Configuration (Device Code Flow)
@@ -169,19 +195,18 @@ export const ANTIGRAVITY_CONFIG = {
     "https://www.googleapis.com/auth/experimentsandconfigs",
   ],
   // Antigravity specific
-  apiEndpoint: ANTIGRAVITY_BASE_URLS[0],
+  apiEndpoint: ANTIGRAVITY_RUNTIME_BASE_URLS[0],
   apiVersion: "v1internal",
-  loadCodeAssistEndpoints: ANTIGRAVITY_BASE_URLS.map(
+  loadCodeAssistEndpoints: ANTIGRAVITY_BOOTSTRAP_BASE_URLS.map(
     (baseUrl) => `${baseUrl}/v1internal:loadCodeAssist`
   ),
-  onboardUserEndpoints: ANTIGRAVITY_BASE_URLS.map((baseUrl) => `${baseUrl}/v1internal:onboardUser`),
+  onboardUserEndpoints: ANTIGRAVITY_BOOTSTRAP_BASE_URLS.map(
+    (baseUrl) => `${baseUrl}/v1internal:onboardUser`
+  ),
   fetchAvailableModelsEndpoints: getAntigravityFetchAvailableModelsUrls(),
-  loadCodeAssistEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:loadCodeAssist`,
-  onboardUserEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:onboardUser`,
+  loadCodeAssistEndpoint: `${ANTIGRAVITY_BOOTSTRAP_BASE_URLS[0]}/v1internal:loadCodeAssist`,
+  onboardUserEndpoint: `${ANTIGRAVITY_BOOTSTRAP_BASE_URLS[0]}/v1internal:onboardUser`,
   fetchAvailableModelsEndpoint: getAntigravityFetchAvailableModelsUrls()[0],
-  loadCodeAssistUserAgent: ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
-  loadCodeAssistApiClient: ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
-  loadCodeAssistClientMetadata: getAntigravityLoadCodeAssistClientMetadata(),
 };
 
 // Antigravity CLI (`agy`) OAuth Configuration.
@@ -207,9 +232,6 @@ export const AGY_CONFIG = {
   loadCodeAssistEndpoint: ANTIGRAVITY_CONFIG.loadCodeAssistEndpoint,
   onboardUserEndpoint: ANTIGRAVITY_CONFIG.onboardUserEndpoint,
   fetchAvailableModelsEndpoint: ANTIGRAVITY_CONFIG.fetchAvailableModelsEndpoint,
-  loadCodeAssistUserAgent: ANTIGRAVITY_CONFIG.loadCodeAssistUserAgent,
-  loadCodeAssistApiClient: ANTIGRAVITY_CONFIG.loadCodeAssistApiClient,
-  loadCodeAssistClientMetadata: ANTIGRAVITY_CONFIG.loadCodeAssistClientMetadata,
 };
 
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)
@@ -239,6 +261,22 @@ export const GITHUB_CONFIG = {
   scopes: "read:user",
   apiVersion: GITHUB_COPILOT_API_VERSION,
   copilotTokenUrl: "https://api.github.com/copilot_internal/v2/token",
+  userAgent: GITHUB_COPILOT_CHAT_USER_AGENT,
+  editorVersion: GITHUB_COPILOT_EDITOR_VERSION,
+  editorPluginVersion: GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
+};
+
+// GitHub Enterprise (GHE) Copilot OAuth Configuration (Device Code Flow)
+export const GHE_COPILOT_CONFIG = {
+  clientId:
+    process.env.GHE_COPILOT_OAUTH_CLIENT_ID ||
+    resolvePublicCred("github_copilot_id", "GITHUB_OAUTH_CLIENT_ID"),
+  deviceCodeUrl: "", // Derived dynamically in provider flow
+  tokenUrl: "", // Derived dynamically in provider flow
+  userInfoUrl: "", // Derived dynamically in provider flow
+  scopes: "read:user",
+  apiVersion: GITHUB_COPILOT_API_VERSION,
+  copilotTokenUrl: "", // Derived dynamically in provider flow
   userAgent: GITHUB_COPILOT_CHAT_USER_AGENT,
   editorVersion: GITHUB_COPILOT_EDITOR_VERSION,
   editorPluginVersion: GITHUB_COPILOT_CHAT_PLUGIN_VERSION,
@@ -471,13 +509,13 @@ export const PROVIDERS = {
   CLAUDE: "claude",
   CODEX: "codex",
   GEMINI: "gemini",
-  QWEN: "qwen",
   QODER: "qoder",
   ANTIGRAVITY: "antigravity",
   AGY: "agy",
   KIMI_CODING: "kimi-coding",
   OPENAI: "openai",
   GITHUB: "github",
+  GHE_COPILOT: "ghe-copilot",
   GITLAB_DUO: "gitlab-duo",
   KIRO: "kiro",
   AMAZON_Q: "amazon-q",
@@ -490,6 +528,7 @@ export const PROVIDERS = {
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",
   GROK_CLI: "grok-cli",
+  XAI_OAUTH: "xai-oauth",
   ZED: "zed",
   ZED_HOSTED: "zed-hosted",
 };

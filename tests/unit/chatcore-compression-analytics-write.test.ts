@@ -12,9 +12,8 @@ const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-comp-analytics-t
 process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
-const { writeCompressionAnalytics } = await import(
-  "../../open-sse/handlers/chatCore/compressionAnalyticsWrite.ts"
-);
+const { writeCompressionAnalytics } =
+  await import("../../open-sse/handlers/chatCore/compressionAnalyticsWrite.ts");
 
 type Stats = Parameters<typeof writeCompressionAnalytics>[0]["stats"];
 
@@ -37,7 +36,7 @@ function analyticsRow(requestId: string): Record<string, unknown> | undefined {
     return coreDb
       .getDbInstance()
       .prepare(
-        "SELECT mode, engine, original_tokens AS orig, compressed_tokens AS comp, tokens_saved AS saved, validation_fallback AS vf FROM compression_analytics WHERE request_id = ?"
+        "SELECT mode, engine, original_tokens AS orig, compressed_tokens AS comp, tokens_saved AS saved, estimated_usd_saved AS usd, validation_fallback AS vf FROM compression_analytics WHERE request_id = ?"
       )
       .get(requestId) as Record<string, unknown> | undefined;
   } catch {
@@ -120,6 +119,19 @@ test("inserts a per-engine breakdown when present", async () => {
   );
   await waitFor(() => breakdownCount("ca-req-3") >= 2);
   assert.equal(breakdownCount("ca-req-3"), 2);
+});
+
+test("inserts the analytics row when calculateCost throws", async () => {
+  await writeCompressionAnalytics(baseOpts("ca-req-cost-error"), {
+    calculateCost: async () => {
+      throw new Error("forced cost-estimate failure");
+    },
+  });
+
+  const row = analyticsRow("ca-req-cost-error");
+  assert.ok(row, "expected a compression_analytics row despite the cost-estimate failure");
+  assert.equal(row!.saved, 120);
+  assert.equal(row!.usd, null);
 });
 
 test("never rejects even on a bad write (fail-open)", async () => {

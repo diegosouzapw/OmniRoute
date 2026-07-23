@@ -180,46 +180,6 @@ export const DEFAULT_PRICING_OAUTH = {
       cache_creation: 1.0,
     },
   },
-  qw: {
-    "qwen3-coder-plus": {
-      input: 1.0,
-      output: 4.0,
-      cached: 0.5,
-      reasoning: 6.0,
-      cache_creation: 1.0,
-    },
-    // Next-generation Qwen Coder tier (added Mar 2026)
-    "qwen3-coder-next": {
-      input: 2.0,
-      output: 8.0,
-      cached: 1.0,
-      reasoning: 12.0,
-      cache_creation: 2.0,
-    },
-    "qwen3-coder-flash": {
-      input: 0.5,
-      output: 2.0,
-      cached: 0.25,
-      reasoning: 3.0,
-      cache_creation: 0.5,
-    },
-    "vision-model": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-    // Qwen3.5/3.6 Coder Model — ported from upstream 9router PR #156 (zx07).
-    // Priced identically to the vision tier per upstream defaults.
-    "coder-model": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-  },
   if: {
     "qwen3-coder-plus": {
       input: 1.0,
@@ -315,27 +275,20 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 18.0,
       cache_creation: 2.0,
     },
-    "gemini-3.1-pro-high": {
-      input: 4.0,
-      output: 18.0,
-      cached: 0.5,
-      reasoning: 27.0,
-      cache_creation: 4.0,
-    },
-    "gemini-3-flash": {
+    // Antigravity 2.0.4+ exposes Gemini 3.5 Flash as three public client ids
+    // (see ANTIGRAVITY_PUBLIC_MODELS in open-sse/config/antigravityModelAliases.ts):
+    //   gemini-3.5-flash-extra-low → "Gemini 3.5 Flash (Low)"
+    //   gemini-3-flash-agent   → "Gemini 3.5 Flash (High)"
+    //   gemini-3.5-flash-low   → "Gemini 3.5 Flash (Medium)"
+    // Without these rows, getPricingForModel("ag", id) returns null and downstream
+    // cost and quota calculations silently fall back to $0.
+    "gemini-3.5-flash-extra-low": {
       input: 0.5,
       output: 3.0,
       cached: 0.03,
       reasoning: 4.5,
       cache_creation: 0.5,
     },
-    // Antigravity 2.0.4+ exposes Gemini 3.5 Flash as three public client ids
-    // (see ANTIGRAVITY_PUBLIC_MODELS in open-sse/config/antigravityModelAliases.ts):
-    //   gemini-3-flash-agent   → "Gemini 3.5 Flash (High)"
-    //   gemini-3.5-flash-low   → "Gemini 3.5 Flash (Medium)"
-    // Both bill at the same per-MTok rates as legacy `gemini-3-flash` above —
-    // without these rows, getPricingForModel("ag", id) returned null and downstream
-    // cost / quota calculations silently fell back to $0.
     "gemini-3-flash-agent": {
       input: 0.5,
       output: 3.0,
@@ -350,8 +303,7 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 4.5,
       cache_creation: 0.5,
     },
-    // `gemini-pro-agent` is the Antigravity v1.23+ Agent-mode alias for the
-    // Gemini 3.1 Pro (High) tier — bills at the same rates as `gemini-3.1-pro-high`.
+    // `gemini-pro-agent` is the callable Antigravity id for Gemini 3.1 Pro (High).
     "gemini-pro-agent": {
       input: 4.0,
       output: 18.0,
@@ -592,5 +544,10 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 15.0,
       cache_creation: 3.0,
     },
+    // Kiro's GPT-5.6 family (kiro.dev/changelog/models, 2026-07-14) — same
+    // per-tier rates the codex/openai aliases already bill at.
+    "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-luna": GPT_5_6_LUNA_PRICING,
   },
 };

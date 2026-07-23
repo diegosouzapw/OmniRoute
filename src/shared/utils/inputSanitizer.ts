@@ -278,8 +278,10 @@ export function sanitizeRequest(body, logger = console) {
   }
 
   // ── PII Detection / Redaction ──
+  // PII rewrite is controlled by PII_REDACTION_ENABLED only.
+  // INPUT_SANITIZER_MODE is reserved for prompt-injection policy (warn/block/log).
   if (config.piiRedaction) {
-    const piiResult = processPII(fullText, config.mode === "redact");
+    const piiResult = processPII(fullText, true);
     result.piiDetections = piiResult.detections;
 
     if (piiResult.detections.length > 0) {
@@ -287,11 +289,9 @@ export function sanitizeRequest(body, logger = console) {
         `[SANITIZER] PII detected: ${piiResult.detections.map((d) => `${d.type}(${d.count})`).join(", ")}`
       );
 
-      if (config.mode === "redact") {
-        // Deep clone and replace message contents with redacted versions
-        result.sanitizedBody = redactBody(body);
-        result.modified = true;
-      }
+      // Deep clone and replace message contents with redacted versions
+      result.sanitizedBody = redactBody(body);
+      result.modified = true;
     }
   }
 
@@ -304,36 +304,90 @@ export function sanitizeRequest(body, logger = console) {
  * @returns {Object}
  */
 function redactBody(body) {
+  // Deep clone to avoid mutating original
   const clone = JSON.parse(JSON.stringify(body));
   const messageSource = clone.messages !== undefined ? clone.messages : clone.input;
   const messages = Array.isArray(messageSource)
     ? messageSource
-    : messageSource && typeof messageSource === "object"
-      ? [messageSource]
-      : [];
+    : messageSource === undefined || messageSource === null
+      ? []
+      : [messageSource];
 
-  for (const msg of messages) {
-    if (typeof msg.content === "string") {
-      msg.content = processPII(msg.content, true).text;
-    } else if (Array.isArray(msg.content)) {
-      for (const part of msg.content) {
-        if (typeof part === "string") {
-          const idx = msg.content.indexOf(part);
-          msg.content[idx] = processPII(part, true).text;
-        } else if (part.text) {
-          part.text = processPII(part.text, true).text;
-        }
-      }
+  const redactContentValue = (value) => {
+    if (typeof value === "string") {
+      return processPII(value, true).text;
     }
+    if (Array.isArray(value)) {
+      return value.map((part) => {
+        if (typeof part === "string") {
+          return processPII(part, true).text;
+        }
+        if (part && typeof part === "object") {
+          const next = { ...part };
+          if (typeof next.text === "string") {
+            next.text = processPII(next.text, true).text;
+          }
+          if (typeof next.content === "string") {
+            next.content = processPII(next.content, true).text;
+          }
+          return next;
+        }
+        return part;
+      });
+    }
+    return value;
+  };
+
+  const redactedMessages = messages.map((msg) => {
+    if (typeof msg === "string") {
+      return processPII(msg, true).text;
+    }
+    if (!msg || typeof msg !== "object") {
+      return msg;
+    }
+    const next = { ...msg };
+    if ("content" in next) {
+      next.content = redactContentValue(next.content);
+    }
+    if (typeof next.text === "string") {
+      next.text = processPII(next.text, true).text;
+    }
+    return next;
+  });
+
+  if (clone.messages !== undefined) {
+    clone.messages = Array.isArray(clone.messages) ? redactedMessages : redactedMessages[0];
+  } else if (clone.input !== undefined) {
+    clone.input = Array.isArray(clone.input) ? redactedMessages : redactedMessages[0];
   }
 
   if (typeof clone.system === "string") {
     clone.system = processPII(clone.system, true).text;
+  } else if (Array.isArray(clone.system)) {
+    clone.system = clone.system.map((entry) => {
+      if (typeof entry === "string") return processPII(entry, true).text;
+      if (entry && typeof entry === "object") {
+        const next = { ...entry };
+        if (typeof next.text === "string") next.text = processPII(next.text, true).text;
+        if (typeof next.content === "string") next.content = processPII(next.content, true).text;
+        return next;
+      }
+      return entry;
+    });
+  }
+
+  if (typeof clone.input === "string") {
+    clone.input = processPII(clone.input, true).text;
+  }
+  if (typeof clone.prompt === "string") {
+    clone.prompt = processPII(clone.prompt, true).text;
+  } else if (Array.isArray(clone.prompt)) {
+    clone.prompt = clone.prompt.map((entry) =>
+      typeof entry === "string" ? processPII(entry, true).text : entry
+    );
   }
 
   return clone;
 }
-
-// ─── Exports for Testing ──────────────────────────────────────────────
 
 export { detectInjection, processPII, extractMessageContents, INJECTION_PATTERNS, PII_PATTERNS };

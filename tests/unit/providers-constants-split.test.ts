@@ -1,13 +1,18 @@
 // Characterization of the providers.ts catalog split (god-file decomposition): the host became a
 // barrel that re-exports 10 data catalogs now living under constants/providers/*, and APIKEY is
 // merged from 6 semantic family files (apikey/<family>.ts). Locks: the public surface (every catalog
-// + helpers still exported), the spread-merge integrity (167 APIKEY entries, no loss/dup), and that
+// + helpers still exported), the spread-merge integrity (187 APIKEY entries, no loss/dup), and that
 // load-time Zod validation still runs. Pure-data move → behavior must be identical.
 // Count was 171 before obsolete provider removals (PR #6675: glhf/kluster/cablyai/inclusionai etc.,
 // 171->167) plus #6126 (ClinePass dual-auth): the API-key-only APIKEY_PROVIDERS_GATEWAYS entry was
 // removed as a duplicate now that clinepass is OAuth-primary (OAUTH_PROVIDERS.clinepass) with its
 // BYOK path admitted through the DUAL_AUTH_APIKEY_PROVIDER_IDS gate instead (167->166), then the
-// OpenVecta inference-gateway addition brought it back to 167.
+// OpenVecta inference-gateway addition brought it back to 167, then #7246 (Chenzk API gateway)
+// brought it to 168, then more additions brought it to 172, then #6650 (g4f.space no-key gateway:
+// 5 new sub-path entries — g4f-groq/g4f-gemini/g4f-pollinations/g4f-ollama/g4f-nvidia) brought it
+// to 177, then 2 more provider additions in the v3.8.49 cycle brought it to 179, the free-catalog
+// expansion (#7840, navy) to 180, the Alibaba/Qwen Cloud regional additions (#7882) to 182, and
+// #7887 (5 free-tier providers: ainative/aion/sealion/routeway/nara) to 187.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
@@ -36,12 +41,12 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test("APIKEY_PROVIDERS merges the 6 family files into 167 entries (no loss / no dup)", async () => {
+test("APIKEY_PROVIDERS merges the 6 family files into 187 entries (no loss / no dup)", async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
-  assert.equal(keys.length, 167);
-  assert.equal(new Set(keys).size, 167, "duplicate keys after spread-merge");
+  assert.equal(keys.length, 187);
+  assert.equal(new Set(keys).size, 187, "duplicate keys after spread-merge");
   // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
-  // strict partition (every provider in exactly one), so the sum must be exactly 167.
+  // strict partition (every provider in exactly one), so the sum must be exactly 187.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
@@ -61,7 +66,7 @@ test("APIKEY_PROVIDERS merges the 6 family files into 167 entries (no loss / no 
       seen.add(k);
     }
   }
-  assert.equal(famTotal, 167, "families must partition all 167 providers");
+  assert.equal(famTotal, 187, "families must partition all 187 providers");
 });
 
 test("AI_PROVIDERS Proxy aggregates all sections; lookups resolve", () => {

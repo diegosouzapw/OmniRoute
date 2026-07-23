@@ -10,6 +10,7 @@ import {
   getAntigravityEnvelopeUserAgent,
   getAntigravitySessionId,
 } from "../../services/antigravityIdentity.ts";
+import { fixToolPairs } from "../../services/contextManager.ts";
 import {
   capMaxOutputTokens,
   capThinkingBudget,
@@ -68,7 +69,7 @@ type GeminiRequest = {
   contents?: GeminiContent[];
   [key: string]: unknown;
   generationConfig: GeminiGenerationConfig;
-  safetySettings: unknown;
+  safetySettings?: unknown;
   systemInstruction?: GeminiContent;
   tools?: Array<{
     functionDeclarations?: GeminiFunctionDeclaration[];
@@ -82,7 +83,7 @@ type CloudCodeEnvelope = {
   project: string;
   model?: string;
   user_prompt_id?: string;
-  userAgent?: "antigravity" | "jetski" | string;
+  userAgent?: string;
   requestId?: string;
   requestType?: string;
   enabledCreditTypes?: string[];
@@ -258,7 +259,17 @@ function openaiToGeminiBase(
 
   // Build tool_call_id -> name map
   const tcID2Name: Record<string, string> = {};
-  const messages = body.messages as Array<Record<string, unknown>> | undefined;
+  // #7752: strip any non-trailing tool_call whose id has no matching tool_result
+  // anywhere in history — same guard `BaseExecutor.execute()` applies for the mainline
+  // Claude path (#2382/#4714) and `antigravityToOpenAIRequest` applies for the mirror
+  // incoming direction (#6026). Without this, an orphaned tool_call (e.g. left behind by
+  // OpenCode's known abort/cancel bug) reaches Google's Cloud Code envelope as an unpaired
+  // functionCall, which Vertex's Claude backend rejects with HTTP 400.
+  const rawMessages = body.messages as Array<Record<string, unknown>> | undefined;
+  const messages =
+    rawMessages && Array.isArray(rawMessages)
+      ? (fixToolPairs(rawMessages) as Array<Record<string, unknown>>)
+      : rawMessages;
   if (messages && Array.isArray(messages)) {
     for (const msg of messages) {
       const toolCalls = msg.tool_calls as Array<Record<string, unknown>> | undefined;
@@ -600,12 +611,20 @@ export function openaiToCloudCodeGeminiRequest(
     signaturelessToolCallMode?: "native" | "text" | "context";
   } = {}
 ) {
-  return openaiToGeminiBase(model, body, stream, {
+  const request = openaiToGeminiBase(model, body, stream, {
     stripNamespace: true,
     signatureNamespace: options.signatureNamespace,
     signaturelessToolCallMode: options.signaturelessToolCallMode,
     supportsSignatureBypass: true,
   });
+
+  // Standard Gemini requests retain the historical all-OFF defaults, but Cloud Code
+  // must receive safety policy only when the caller explicitly supplied it.
+  if (!Object.prototype.hasOwnProperty.call(body, "safetySettings")) {
+    delete request.safetySettings;
+  }
+
+  return request;
 }
 
 function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
@@ -643,7 +662,6 @@ function wrapInCloudCodeEnvelope(model, cloudCodeRequest, credentials = null) {
     model: cleanModel,
     userAgent: getAntigravityEnvelopeUserAgent(credentials),
     requestType: "agent",
-    enabledCreditTypes: ["GOOGLE_ONE_AI"],
   };
   if (cloudCodeRequest._toolNameMap instanceof Map && cloudCodeRequest._toolNameMap.size > 0) {
     envelope._toolNameMap = cloudCodeRequest._toolNameMap;

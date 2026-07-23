@@ -51,8 +51,8 @@
   "ccr": {
     "tasks": {
       "prose": 129,
-      "tool-output": 56,
-      "json": 14
+      "tool-output": 81,
+      "json": 64
     }
   }
 }

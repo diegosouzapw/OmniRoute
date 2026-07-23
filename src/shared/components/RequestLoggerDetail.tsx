@@ -7,6 +7,7 @@ import {
   getProtocolColor,
 } from "@/shared/constants/colors";
 import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
+import { formatErrorForDisplay } from "@/shared/utils/formatting";
 
 // ─── Payload Code Block ─────────────────────────────────────────────────────
 
@@ -196,6 +197,7 @@ export default function RequestLoggerDetail({
     text: "#fff",
     label: (log.provider || "-").toUpperCase(),
   };
+  const providerLabel = log.providerDisplay || providerColor.label;
 
   const providerStatus = detail?.pipelinePayloads?.providerResponse?.status;
   const hasStatusDiscrepancy = providerStatus && providerStatus !== log.status;
@@ -400,7 +402,7 @@ export default function RequestLoggerDetail({
                   className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
                   style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
                 >
-                  {providerColor.label}
+                  {providerLabel}
                 </span>
               </div>
               <div className="min-w-[120px] flex-1">
@@ -523,7 +525,7 @@ export default function RequestLoggerDetail({
                   className="inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase"
                   style={{ backgroundColor: providerColor.bg, color: providerColor.text }}
                 >
-                  {providerColor.label}
+                  {providerLabel}
                 </span>
               </div>
               <div>
@@ -616,8 +618,8 @@ export default function RequestLoggerDetail({
               <div className="text-[10px] text-red-600 dark:text-red-400 uppercase tracking-wider mb-1 font-bold">
                 Error
               </div>
-              <div className="text-sm text-red-600 dark:text-red-300 font-mono">
-                {detail?.error || log.error}
+              <div className="text-sm text-red-600 dark:text-red-300 font-mono whitespace-pre-wrap break-words">
+                {formatErrorForDisplay(detail?.error || log.error)}
               </div>
             </div>
           )}

@@ -6,10 +6,8 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import {
-  parseAndValidateWebhookUrl,
-  OutboundUrlGuardError,
-} from "@/shared/network/outboundUrlGuard";
+import { OutboundUrlGuardError } from "@/shared/network/outboundUrlGuard";
+import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuardPolicy";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
 const validateUrlSchema = z.object({

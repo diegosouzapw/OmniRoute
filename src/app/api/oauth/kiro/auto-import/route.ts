@@ -343,6 +343,34 @@ async function tryAwsSsoCache(targetProvider: string): Promise<{
           }
         }
 
+        // Newer kiro-auth-token.json files omit `clientIdHash` and instead carry
+        // the OIDC `clientId` directly on the token object (#1253). In that case
+        // find the client-registration file whose own `clientId` matches the
+        // token's `clientId`, rather than leaving clientId/clientSecret unset.
+        // Matching by exact clientId (not region/latest-expiry) avoids picking
+        // an unrelated stale registration on hosts with multiple cached SSO
+        // client registrations.
+        if (!clientId && data.clientId) {
+          for (const candidateFile of files) {
+            if (candidateFile === file || !candidateFile.endsWith(".json")) continue;
+            try {
+              const candidateContent = await readFile(join(cachePath, candidateFile), "utf-8");
+              const candidateData = JSON.parse(candidateContent);
+              if (
+                candidateData.clientId === data.clientId &&
+                typeof candidateData.clientSecret === "string" &&
+                candidateData.clientSecret
+              ) {
+                clientId = candidateData.clientId;
+                clientSecret = candidateData.clientSecret;
+                break;
+              }
+            } catch {
+              // Skip unreadable/malformed candidate files.
+            }
+          }
+        }
+
         // Read profileArn from Kiro IDE's profile.json. The region is preserved
         // verbatim by readKiroIdeProfileArn() (#2314) — see its docstring for why.
         const profileArn: string | null = await readKiroIdeProfileArn();

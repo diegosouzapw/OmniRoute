@@ -1,0 +1,1 @@
+- **fix(sse):** Anthropic requests that reject a completed historical thinking signature now retry once with only that historical thinking omitted, while valid requests and active tool-use cycles remain unchanged. ([#7906](https://github.com/diegosouzapw/OmniRoute/pull/7906))

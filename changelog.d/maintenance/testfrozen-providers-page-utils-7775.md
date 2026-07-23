@@ -1,0 +1,1 @@
+- Rebaseline `testFrozen` for `tests/unit/providers-page-utils.test.ts` (1107 → 1294) after #7775 legitimately grew it with the Kimi provider pinning + supporter-card coverage; the merged PR did not update the baseline, leaving the `test-file-size` gate red on the release tip.

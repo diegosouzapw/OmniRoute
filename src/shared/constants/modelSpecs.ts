@@ -30,6 +30,16 @@ export interface ModelSpec {
   // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
   // variant on for any other model, or `false` to suppress it. See open-sse/utils/noThinkingAlias.ts.
   noThinkingAlias?: boolean;
+  // Per-model default reasoning effort (#6879). When the incoming request carries no
+  // `reasoning_effort` / `reasoning` / `thinking` field of any shape, the resolved
+  // upstream model's `defaultReasoningEffort` is injected as `reasoning_effort` on the
+  // OpenAI-format dispatch path before the request leaves the gateway. An explicit
+  // client value — including one forwarded verbatim through a combo leg — always wins;
+  // this is a no-op for it. Unset preserves current behavior (no injection). Lets an
+  // operator strip-by-default a thinks-by-default model (measured: gemini-flash-lite
+  // burns ~277 reasoning tokens on a plain request; `reasoning_effort:"none"` → 0)
+  // without patching every client. See open-sse/services/defaultReasoningEffort.ts.
+  defaultReasoningEffort?: "none" | "low" | "medium" | "high";
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
@@ -69,6 +79,14 @@ const GPT_5_6_MODEL_SPEC = {
   maxOutputTokens: 128000,
   contextWindow: 1050000,
   supportsThinking: true,
+  supportsTools: true,
+  supportsVision: true,
+} satisfies ModelSpec;
+
+const GEMINI_35_FLASH_MODEL_SPEC = {
+  maxOutputTokens: 65536,
+  contextWindow: 1048576,
+  supportsThinking: false,
   supportsTools: true,
   supportsVision: true,
 } satisfies ModelSpec;
@@ -137,13 +155,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  "gemini-3.5-flash-low": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    supportsThinking: false,
-    supportsTools: true,
-    supportsVision: true,
-  },
+  "gemini-3.5-flash-extra-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.5-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3-flash-agent": { ...GEMINI_35_FLASH_MODEL_SPEC },
+
+  // ── Gemini 3.6 Flash (Antigravity live tiers) ───────────────────
+  // The model id itself selects the upstream 10k/4k/1k reasoning tier. Antigravity
+  // still rejects client-supplied thinking parameters, so keep the explicit-parameter
+  // capability aligned with the existing Gemini 3.5 tier ids.
+  "gemini-3.6-flash-high": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-medium": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
 
   // ── Gemini 3 Flash series ───────────────────────────────────────
   "gemini-3-flash": {
@@ -168,6 +190,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: [
+      "gemini-pro-agent",
       "gemini-3.1-pro-high",
       "gemini-3-pro-high",
       "gemini-3-pro-preview",
@@ -190,11 +213,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
 
   // ── Gemini 3.5 Flash ─────────────────────────────────────────────
   "gemini-3.5-flash": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    supportsThinking: false,
-    supportsTools: true,
-    supportsVision: true,
+    ...GEMINI_35_FLASH_MODEL_SPEC,
     aliases: ["gemini-3.5-flash-high"],
   },
 
@@ -340,14 +359,23 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["claude-haiku-4.5"],
   },
 
-  // ── Kimi K2.6 (Moonshot Kimi Code OAuth — 262K native) ──────────
+  // ── Kimi K3 (Moonshot API — 1M context/output, native vision) ────
+  "kimi-k3": {
+    maxOutputTokens: 1048576,
+    contextWindow: 1048576,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+
+  // ── Kimi K2.6 (Moonshot API — 262K native) ──────────────────────
   "kimi-k2.6": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
+    aliases: ["kimi-k2.6-thinking"],
   },
 
   // ── Kimi K2.7 Code (Moonshot — 262K native, parity with K2.6) ───
@@ -359,7 +387,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking"],
+    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking", "kimi-k2.7-code-highspeed"],
   },
 
   // ── Kimi K2.5 (Moonshot — 262K native, parity with K2.6) ────────
@@ -380,6 +408,13 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: ["qwen3.7-max", "qwen3-max-2026-01-23"],
+  },
+  "qwen3.8-max-preview": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
   },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,

@@ -130,6 +130,7 @@ export interface TestAllModelOutcome {
   status: "ok" | "error";
   shouldHide: boolean;
 }
+type TestAllEntryStatus = "ok" | "error" | "slow";
 
 /**
  * Decide a model's per-row test status (the green/red icon) and whether it should
@@ -142,27 +143,27 @@ export interface TestAllModelOutcome {
  * model failed (unlike the single-model ▶ test).
  *
  * Auto-hide policy: when `autoHideFailed` is on, only NON-TRANSIENT failures are
- * hidden. Transient failures (rate-limited, timeout) are surfaced as 'error' on
- * the row icon but NOT hidden, because:
- *   - The provider may have been temporarily throttled during a parallel batch
- *     (a single Test All across 10+ models routinely trips per-account rate
- *     limits on subscription-tier APIs).
- *   - The model itself is not broken — a retry seconds later would succeed.
- *   - Hidden state persists across server restarts and silently removes the
- *     model from `/v1/models`, so a transient blip turns into a permanent
- *     catalog gap that the user can only recover from by editing the DB or
- *     hand-toggling each row.
+ * hidden. Transient failures remain visible because the model may still be healthy
+ * and hidden state persists across restarts, removing it from `/v1/models`.
  *
  * Genuine failures (`status:"error"` without a transient flag — e.g. upstream
  * 400 "invalid model", schema mismatch, auth failure) ARE still auto-hidden,
  * which is the intended use of the toggle.
  */
 export function evaluateTestAllEntry(
-  entry: { status?: "ok" | "error"; rateLimited?: boolean; isTimeout?: boolean } | null | undefined,
+  entry:
+    | {
+        status?: TestAllEntryStatus;
+        rateLimited?: boolean;
+        isTimeout?: boolean;
+        isTransient?: boolean;
+      }
+    | null
+    | undefined,
   autoHideFailed: boolean
 ): TestAllModelOutcome {
   const ok = entry?.status === "ok";
-  const transient = Boolean(entry?.rateLimited || entry?.isTimeout);
+  const transient = [entry?.rateLimited, entry?.isTimeout, entry?.isTransient].some(Boolean);
   return {
     status: ok ? "ok" : "error",
     // Hide only persistent failures. Transient (rate-limited, timeout) are
@@ -214,7 +215,6 @@ export function readBooleanToggle(value: unknown, fallback: boolean): boolean {
 export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "azure-openai",
   "azure-ai",
-  "bailian-coding-plan",
   "xiaomi-mimo",
   "siliconflow",
   "heroku",
@@ -222,6 +222,7 @@ export const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "snowflake",
   "searxng-search",
   "petals",
+  "comfyui",
 ]);
 
 export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
@@ -232,6 +233,7 @@ export const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   siliconflow: "https://api.siliconflow.com/v1",
   "searxng-search": "http://localhost:8888/search",
   petals: "https://chat.petals.dev/api/v1/generate",
+  comfyui: "http://localhost:8188",
 };
 
 export function getLocalProviderMetadata(providerId?: string | null) {
@@ -313,6 +315,7 @@ export function getProviderBaseUrlPlaceholder(providerId?: string | null) {
       return "https://my-resource.openai.azure.com";
     case "bailian-coding-plan":
     case "xiaomi-mimo":
+    case "comfyui":
       return getProviderBaseUrlDefault(providerId);
     case "siliconflow":
       return "https://api.siliconflow.cn/v1";
@@ -337,29 +340,9 @@ export function isGlmProvider(providerId?: string | null) {
 // Routing-tags / excluded-models parse + format
 // ---------------------------------------------------------------------------
 
-export function parseRoutingTagsInput(value: string): string[] | undefined {
-  const tags = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((tag) => tag.trim().toLowerCase())
-        .filter(Boolean)
-    )
-  );
-  return tags.length > 0 ? tags : undefined;
-}
-
-export function parseExcludedModelsInput(value: string): string[] | undefined {
-  const patterns = Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((pattern) => pattern.trim())
-        .filter(Boolean)
-    )
-  );
-  return patterns.length > 0 ? patterns : undefined;
-}
+// parseRoutingTagsInput / parseExcludedModelsInput moved to the pure leaf
+// providerInputParsers.ts (kept re-exported here for existing UI importers).
+export { parseExcludedModelsInput, parseRoutingTagsInput } from "./providerInputParsers";
 
 export function formatRoutingTagsInput(value: unknown): string {
   if (!Array.isArray(value)) return "";

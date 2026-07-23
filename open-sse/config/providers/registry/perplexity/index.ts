@@ -6,11 +6,8 @@ export const perplexityProvider: RegistryEntry = {
   format: "openai",
   executor: "default",
   baseUrl: "https://api.perplexity.ai/chat/completions",
-  // Perplexity deprecated the unversioned `/models` endpoint (returns 404), so
-  // pin an explicit `modelsUrl` here. Without it, validateOpenAILikeProvider
-  // (src/lib/providers/validation.ts) derives `<baseUrl>/models` via
-  // addModelsSuffix and probes the dead endpoint, misclassifying valid keys.
-  modelsUrl: "https://api.perplexity.ai/v1/models",
+  // `/v1/models` lists the Agent API catalog, so use it for key validation only.
+  testKeyModelsUrl: "https://api.perplexity.ai/v1/models",
   authType: "apikey",
   authHeader: "bearer",
   models: [

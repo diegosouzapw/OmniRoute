@@ -314,6 +314,24 @@ export async function installCertResult(
   }
 }
 
+/**
+ * Install the persisted MITM root CA cert (`cert/rootCa.ts`) into the OS
+ * trust store. Named wrapper over {@link installCertResult} for call-site
+ * clarity — the underlying platform installers
+ * (`installCertLinux`/`installCertMac`/`installCertWindows`) are already
+ * cert-path-agnostic and keep writing to the same `omniroute-mitm.crt`
+ * trust-store slot the old single-leaf install used, so the CA cert simply
+ * supersedes the old leaf under that slot; no new slot, no dual-trust
+ * cleanup needed. Distinct from TPROXY's own `omniroute-tproxy-ca.crt` slot
+ * (`src/mitm/tproxy/caTrust.ts`), which this feature does not touch. #6684
+ */
+export async function installCaCert(
+  sudoPassword: string,
+  caCertPath: string
+): Promise<CertInstallResult> {
+  return installCertResult(sudoPassword, caCertPath);
+}
+
 async function installCertMac(sudoPassword: string, certPath: string): Promise<void> {
   try {
     await execFileWithPassword(

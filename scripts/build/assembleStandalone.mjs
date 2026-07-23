@@ -189,6 +189,17 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["node_modules", "playwright-core"],
   },
   {
+    // esbuild's `--packages=external` leaves `undici` as a static top-level ESM
+    // import in the compiled MCP server bundle (dist/open-sse/mcp-server/server.js),
+    // resolved at module-link time. Next.js's standalone output-file tracer (nft)
+    // sometimes emits a hollow dist/node_modules/undici/ (package.json only), which
+    // SHADOWS the fully-populated sibling node_modules/undici and crashes
+    // `omniroute --mcp` at startup. See #7701.
+    label: "undici (MCP server static import — #7701)",
+    src: ["node_modules", "undici"],
+    dest: ["node_modules", "undici"],
+  },
+  {
     label: "sqlite-vec wrapper (vector memory - loaded at runtime via createRequire)",
     src: ["node_modules", "sqlite-vec"],
     dest: ["node_modules", "sqlite-vec"],

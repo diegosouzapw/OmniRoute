@@ -10,8 +10,29 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const serviceModelsDb = await import("../../src/lib/db/serviceModels.ts");
 const providerModelsRoute =
   await import("../../src/app/api/v1/providers/[provider]/models/route.ts");
+
+interface SeedConnectionOverrides {
+  authType?: string;
+  name?: string;
+  apiKey?: string | null;
+  accessToken?: string | null;
+  isActive?: boolean;
+  testStatus?: string;
+  providerSpecificData?: Record<string, unknown>;
+}
+
+type ProviderModelsResponse = {
+  data: Array<Record<string, unknown>>;
+  object?: string;
+  error?: {
+    message?: string;
+    code?: string;
+    type?: string;
+  };
+};
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -19,7 +40,7 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-async function seedConnection(provider: string, overrides: Record<string, any> = {}) {
+async function seedConnection(provider: string, overrides: SeedConnectionOverrides = {}) {
   return providersDb.createProviderConnection({
     provider,
     authType: overrides.authType || "apikey",
@@ -62,8 +83,8 @@ test("provider models route returns only selected provider models with unprefixe
     }
   );
 
-  const body = (await response.json()) as any;
-  const ids = body.data.map((model: any) => model.id);
+  const body = (await response.json()) as ProviderModelsResponse;
+  const ids = body.data.map((model) => String(model.id));
 
   assert.equal(response.status, 200);
   assert.ok(ids.length > 0);
@@ -72,7 +93,7 @@ test("provider models route returns only selected provider models with unprefixe
     false
   );
   assert.equal(
-    body.data.some((model: any) => model.owned_by !== "openai"),
+    body.data.some((model) => String(model.owned_by) !== "openai"),
     false
   );
   assert.equal(ids.includes("team-router"), false);
@@ -93,13 +114,59 @@ test("provider models route accepts provider alias in path", async () => {
     }
   );
 
-  const body = (await response.json()) as any;
-  const ids = body.data.map((model: any) => model.id);
+  const body = (await response.json()) as ProviderModelsResponse;
+  const ids = body.data.map((model) => String(model.id));
 
   assert.equal(response.status, 200);
   assert.ok(ids.includes("claude-sonnet-4-6"));
   assert.equal(
     ids.some((id: string) => id.startsWith("cc/") || id.startsWith("claude/")),
+    false
+  );
+});
+
+test("provider models route supports service provider 9router", async () => {
+  serviceModelsDb.saveServiceModels("9router", [
+    { id: "gpt-4o-mini", name: "Local9R Test", available: true },
+  ]);
+
+  const response = await providerModelsRoute.GET(
+    new Request("http://localhost/api/v1/providers/9router/models"),
+    {
+      params: Promise.resolve({ provider: "9router" }),
+    }
+  );
+
+  const body = (await response.json()) as ProviderModelsResponse;
+  const ids = body.data.map((model) => String(model.id));
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.includes("gpt-4o-mini"));
+  assert.equal(
+    ids.some((id: string) => id.includes("/")),
+    false
+  );
+});
+
+test("provider models route supports service provider cliproxyapi", async () => {
+  serviceModelsDb.saveServiceModels("cliproxyapi", [
+    { id: "llama-3", name: "Clip Test", available: true },
+  ]);
+
+  const response = await providerModelsRoute.GET(
+    new Request("http://localhost/api/v1/providers/cliproxyapi/models"),
+    {
+      params: Promise.resolve({ provider: "cliproxyapi" }),
+    }
+  );
+
+  const body = (await response.json()) as ProviderModelsResponse;
+  const ids = body.data.map((model) => String(model.id));
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.includes("llama-3"));
+  assert.equal(
+    ids.some((id: string) => id.includes("/")),
     false
   );
 });
@@ -112,8 +179,60 @@ test("provider models route returns 400 for unknown provider", async () => {
     }
   );
 
-  const body = (await response.json()) as any;
+  const body = (await response.json()) as ProviderModelsResponse;
 
   assert.equal(response.status, 400);
   assert.equal(body.error.code, "invalid_provider");
+});
+
+test("provider models route resolves local provider by canonical ID (ollama-local)", async () => {
+  const response = await providerModelsRoute.GET(
+    new Request("http://localhost/api/v1/providers/ollama-local/models"),
+    {
+      params: Promise.resolve({ provider: "ollama-local" }),
+    }
+  );
+
+  // Must NOT return 400 invalid_provider — should resolve via catalog fallback
+  assert.notEqual(response.status, 400, "ollama-local must not return 400");
+  const body = (await response.json()) as ProviderModelsResponse;
+  assert.notEqual(
+    body.error?.code,
+    "invalid_provider",
+    "ollama-local must not be rejected as unknown provider"
+  );
+});
+
+test("provider models route resolves local provider by alias (ollama)", async () => {
+  const response = await providerModelsRoute.GET(
+    new Request("http://localhost/api/v1/providers/ollama/models"),
+    {
+      params: Promise.resolve({ provider: "ollama" }),
+    }
+  );
+
+  assert.notEqual(response.status, 400, "ollama (alias) must not return 400");
+  const body = (await response.json()) as ProviderModelsResponse;
+  assert.notEqual(
+    body.error?.code,
+    "invalid_provider",
+    "ollama (alias) must not be rejected as unknown provider"
+  );
+});
+
+test("provider models route resolves another local provider by ID (lm-studio)", async () => {
+  const response = await providerModelsRoute.GET(
+    new Request("http://localhost/api/v1/providers/lm-studio/models"),
+    {
+      params: Promise.resolve({ provider: "lm-studio" }),
+    }
+  );
+
+  assert.notEqual(response.status, 400, "lm-studio must not return 400");
+  const body = (await response.json()) as ProviderModelsResponse;
+  assert.notEqual(
+    body.error?.code,
+    "invalid_provider",
+    "lm-studio must not be rejected as unknown provider"
+  );
 });

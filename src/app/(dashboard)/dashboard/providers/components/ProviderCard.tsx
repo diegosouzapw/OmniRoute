@@ -16,6 +16,7 @@ import {
 } from "@/shared/constants/providers";
 
 import { CategoryDot } from "./CategoryDot";
+import { isKimiPartnerProviderId } from "../featuredProviders";
 
 interface ProviderStats {
   total?: number;
@@ -187,6 +188,9 @@ export default function ProviderCard({
   const isCompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId) && !isCcCompatible;
+  // Kimi (Moonshot AI) official-partnership highlight (2026-07): UI-only accent,
+  // see featuredProviders.ts — never affects routing/fallback order.
+  const isKimiPartner = isKimiPartnerProviderId(provider.id || providerId);
   const codexServiceTierLabel =
     stats.codexServiceTier === "flex"
       ? providerText(t, "codexTierFlexLabel", "Flex")
@@ -210,6 +214,23 @@ export default function ProviderCard({
         {codexServiceTierLabel}
       </span>
     ) : null;
+
+  // Kimi (Moonshot AI) official-partnership badge — literal brand-blue Tailwind
+  // arbitrary values must stay in sync with KIMI_BRAND_COLOR (featuredProviders.ts).
+  const kimiOfficialSupporterChip = isKimiPartner ? (
+    <span
+      key="kimi-official-supporter"
+      className="inline-flex items-center gap-0.5 rounded-full border border-[#1783FF]/30 bg-[#1783FF]/10 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide leading-none text-[#1067CC] dark:text-[#7CB8FF]"
+      title={providerText(
+        t,
+        "kimiOfficialSupporterTooltip",
+        "Kimi (Moonshot AI) is OmniRoute's founding Open Source Friend"
+      )}
+    >
+      <span className="material-symbols-outlined text-[10px] leading-none">verified</span>
+      {providerText(t, "kimiOfficialSupporterBadge", "Founding Friend")}
+    </span>
+  ) : null;
 
   const dotLabels: Record<string, string> = {
     free: tc("free"),
@@ -244,7 +265,17 @@ export default function ProviderCard({
       <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
         <Card
           padding="xs"
-          className={`h-full flex flex-col hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/40 transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
+          className={`h-full flex flex-col hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${
+            isKimiPartner
+              ? // Kimi (Moonshot AI) official-partnership accent — official Kimi blue
+                // (#1783FF) border (2px, clearly legible) + a subtle whole-card tint
+                // (inset shadow — avoids clobbering Card's own bg-surface via
+                // twMerge) + soft outer glow. Kept identical in light/dark since it
+                // is a raw (non-token) brand hex, not a theme color. Keep the hex in
+                // sync with KIMI_BRAND_COLOR (featuredProviders.ts).
+                "border-2 border-[#1783FF]/70 hover:border-[#1783FF]/90 shadow-[inset_0_0_0_100px_rgba(23,131,255,0.035),0_4px_16px_-4px_rgba(23,131,255,0.45)]"
+              : "hover:border-primary/40"
+          } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >
           <div className="flex flex-col gap-2 h-full">
             {/* Row 1 — Identity: icon + full name + risk/category indicators */}
@@ -316,8 +347,10 @@ export default function ProviderCard({
             {((provider.serviceKinds && provider.serviceKinds.length > 0) ||
               isCompatible ||
               isCcCompatible ||
-              isAnthropicCompatible) && (
+              isAnthropicCompatible ||
+              isKimiPartner) && (
               <div className="flex flex-wrap items-center gap-1">
+                {kimiOfficialSupporterChip}
                 {provider.serviceKinds?.map((k) => (
                   <span
                     key={k}

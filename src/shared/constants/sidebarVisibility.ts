@@ -4,6 +4,7 @@ export { COMPRESSION_CONTEXT_GROUP, SIDEBAR_SECTIONS } from "./sidebarVisibility
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "./sidebarVisibility/types";
 import type {
   HideableSidebarItemId,
+  SidebarItemId,
   SidebarSectionId,
   SidebarItemDefinition,
   SidebarSectionChild,
@@ -11,7 +12,7 @@ import type {
   SidebarPresetDefinition,
 } from "./sidebarVisibility/types";
 
-export const SIDEBAR_ICON_ACCENTS: Partial<Record<HideableSidebarItemId, string>> = {
+export const SIDEBAR_ICON_ACCENTS: Partial<Record<SidebarItemId, string>> = {
   home: "#60A5FA",
   "api-manager": "#F59E0B",
   endpoints: "#38BDF8",
@@ -117,7 +118,7 @@ function getDeterministicIconAccent(id: string): string {
 
 export function getSidebarIconAccent(id: string): string {
   return (
-    SIDEBAR_ICON_ACCENTS[id as HideableSidebarItemId] ||
+    SIDEBAR_ICON_ACCENTS[id as SidebarItemId] ||
     SIDEBAR_SUBITEM_ICON_ACCENTS[id] ||
     getDeterministicIconAccent(id)
   );

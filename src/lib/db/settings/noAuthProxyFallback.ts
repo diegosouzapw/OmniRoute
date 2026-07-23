@@ -55,8 +55,10 @@ async function resolveOneNoAuthProviderProxy(
 }
 
 export async function resolveNoAuthSharedProviderProxy(
-  legacyProviders: LegacyProviderProxyMap
+  legacyProviders: LegacyProviderProxyMap,
+  providerId?: string
 ): Promise<NoAuthProxyResolutionResult | null> {
+  if (providerId) return resolveOneNoAuthProviderProxy(providerId, legacyProviders);
   for (const providerId of Object.keys(NOAUTH_PROVIDERS)) {
     const resolved = await resolveOneNoAuthProviderProxy(providerId, legacyProviders);
     if (resolved) return resolved;

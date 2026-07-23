@@ -96,6 +96,11 @@ test("opencode-go family: context/output caps match upstream provider docs", () 
   // Qwen3.x Plus / Max: 1M context, 65K output (Bailian)
   assert.equal(getModelSpec("qwen3-max").contextWindow, 1000000);
   assert.equal(getModelSpec("qwen3-max").maxOutputTokens, 65536);
+  assert.equal(getModelSpec("qwen3.8-max-preview").contextWindow, 1000000);
+  assert.equal(getModelSpec("qwen3.8-max-preview").maxOutputTokens, 65536);
+  assert.equal(getModelSpec("qwen3.8-max-preview").supportsThinking, true);
+  assert.equal(getModelSpec("qwen3.8-max-preview").supportsTools, true);
+  assert.equal(getModelSpec("qwen3.8-max-preview").supportsVision, true);
   assert.equal(getModelSpec("qwen3.7-max").contextWindow, 1000000);
   assert.equal(getModelSpec("qwen3-max-2026-01-23").contextWindow, 1000000);
   assert.equal(getModelSpec("qwen3.6-plus").contextWindow, 1000000);
@@ -132,6 +137,7 @@ test("opencode-go family: capMaxOutputTokens grants full upstream budget", () =>
   // Without explicit specs these models would fall back to __default__ (8192).
   // Assert they now receive the real upstream cap.
   assert.equal(capMaxOutputTokens("qwen3-max", 100000), 65536);
+  assert.equal(capMaxOutputTokens("qwen3.8-max-preview", 100000), 65536);
   assert.equal(capMaxOutputTokens("qwen3.7-max", 100000), 65536);
   assert.equal(capMaxOutputTokens("qwen3-max-2026-01-23", 100000), 65536);
   assert.equal(capMaxOutputTokens("kimi-k2.5", 300000), 262144);

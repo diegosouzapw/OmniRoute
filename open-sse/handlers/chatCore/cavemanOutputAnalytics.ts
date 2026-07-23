@@ -5,11 +5,11 @@
  * Extracted from handleChatCore's request-setup compression path: when only the caveman output
  * mode was applied (no upstream compression run recorded a row), persist a single analytics row so
  * output-caveman runs still surface in compression analytics. Best-effort — returns the write
- * promise (the caller assigns it to compressionAnalyticsWritePromise) and swallows its own errors.
- * Behaviour is byte-identical to the previous inline block.
+ * promise so the caller can finish persistence before dispatch; errors remain non-fatal but are
+ * logged at warning level.
  */
 
-type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
+type LoggerLike = { warn?: (...args: unknown[]) => void } | null | undefined;
 
 export function writeCavemanOutputAnalytics(args: {
   comboName: string | null | undefined;
@@ -37,7 +37,7 @@ export function writeCavemanOutputAnalytics(args: {
         output_mode: args.cavemanOutputModeIntensity,
       });
     } catch (err) {
-      args.log?.debug?.(
+      args.log?.warn?.(
         "COMPRESSION",
         "Caveman output analytics write skipped: " +
           (err instanceof Error ? err.message : String(err))

@@ -1,13 +1,22 @@
 import { randomUUID, createHash } from "crypto";
+import { extractGoogApiKeyHeader } from "./googApiKeyAuth.ts";
 import {
+  getCachedRawProviderConnections,
   getProviderConnections,
-  getProviderNodes,
+  getCachedProviderNodes,
   validateApiKey,
   updateProviderConnection,
-  clearConnectionErrorIfUnchanged,
+  resetConnectionBackoff,
   getSettings,
   getCachedSettings,
+  touchConnectionLastUsed,
+  clearConnectionErrorIfUnchanged,
 } from "@/lib/localDb";
+import {
+  createLazyConnectionView,
+  toProviderConnection,
+  type ProviderConnectionView,
+} from "@/lib/db/providers/lazyConnectionView";
 import {
   DEFAULT_QUOTA_THRESHOLD_PERCENT,
   getQuotaCache,
@@ -15,6 +24,7 @@ import {
   isQuotaExhaustedForRequest,
 } from "@/domain/quotaCache";
 import { getQuotaScopeLabelForProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
+import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import {
   isAccountUnavailable,
   getUnavailableUntil,
@@ -69,37 +79,6 @@ import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
 type JsonRecord = Record<string, unknown>;
-
-interface ProviderConnectionView {
-  id: string;
-  provider: string;
-  email: string | null;
-  isActive: boolean;
-  rateLimitedUntil: string | null;
-  testStatus: string | null;
-  apiKey: string | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  tokenExpiresAt: string | null;
-  expiresAt: string | null;
-  projectId: string | null;
-  defaultModel: string | null;
-  providerSpecificData: JsonRecord;
-  lastUsedAt: string | null;
-  consecutiveUseCount: number;
-  priority: number;
-  lastError: string | null;
-  lastErrorType: string | null;
-  lastErrorSource: string | null;
-  errorCode: string | number | null;
-  backoffLevel: number;
-  maxConcurrent: number | null;
-  // Per-window quota cutoff overrides — null means "no overrides, inherit
-  // resilience-settings defaults." Read by getProviderCredentialsWithQuotaPreflight
-  // to decide whether to invoke the upstream usage fetcher.
-  quotaWindowThresholds: Record<string, number> | null;
-}
-
 interface RecoverableConnectionState {
   connectionId: string;
   testStatus?: string | null;
@@ -158,50 +137,12 @@ function toNullableNumber(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function toProviderConnection(value: unknown): ProviderConnectionView {
-  const row = asRecord(value);
-  // Only accept the per-window override map when it's a plain object —
-  // anything else collapses to null so the preflight gate treats it as "no
-  // overrides set."
-  const rawThresholds = row.quotaWindowThresholds;
-  const quotaWindowThresholds: Record<string, number> | null =
-    rawThresholds && typeof rawThresholds === "object" && !Array.isArray(rawThresholds)
-      ? (rawThresholds as Record<string, number>)
-      : null;
-  return {
-    id: toStringOrNull(row.id) || "",
-    provider: toStringOrNull(row.provider) || "",
-    email: toStringOrNull(row.email),
-    isActive: row.isActive === true,
-    rateLimitedUntil: toStringOrNull(row.rateLimitedUntil),
-    testStatus: toStringOrNull(row.testStatus),
-    apiKey: toStringOrNull(row.apiKey),
-    accessToken: toStringOrNull(row.accessToken),
-    refreshToken: toStringOrNull(row.refreshToken),
-    tokenExpiresAt: toStringOrNull(row.tokenExpiresAt),
-    expiresAt: toStringOrNull(row.expiresAt),
-    projectId: toStringOrNull(row.projectId),
-    defaultModel: toStringOrNull(row.defaultModel),
-    providerSpecificData: asRecord(row.providerSpecificData),
-    lastUsedAt: toStringOrNull(row.lastUsedAt),
-    consecutiveUseCount: toNumber(row.consecutiveUseCount, 0),
-    priority: toNumber(row.priority, 999),
-    lastError: toStringOrNull(row.lastError),
-    lastErrorType: toStringOrNull(row.lastErrorType),
-    lastErrorSource: toStringOrNull(row.lastErrorSource),
-    errorCode:
-      typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
-    backoffLevel: toNumber(row.backoffLevel, 0),
-    maxConcurrent: toNullableNumber(row.maxConcurrent),
-    quotaWindowThresholds,
-  };
-}
 
 function toBooleanOrDefault(value: unknown, fallback: boolean): boolean {
   return typeof value === "boolean" ? value : fallback;
 }
 
-function readHeaderValue(
+export function readHeaderValue(
   headers:
     | Headers
     | { get?: (name: string) => string | null }
@@ -655,15 +596,22 @@ function getConnectionRecencyPenalty(connection: ProviderConnectionView): number
 function getP2CConnectionScore(
   provider: string,
   connection: ProviderConnectionView,
-  requestedModel: string | null = null
+  requestedModel: string | null = null,
+  quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>
 ): { score: number; quotaHeadroomPercent: number | null } {
-  const quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
-  const quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
-  const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(
-    provider,
-    connection,
-    requestedModel
-  );
+  let quotaBlocked: boolean;
+  let quotaExhausted: boolean;
+
+  if (connection.id && quotaResults?.has(connection.id)) {
+    const cached = quotaResults.get(connection.id)!;
+    quotaBlocked = cached.blocked;
+    quotaExhausted = cached.exhausted;
+  } else {
+    quotaBlocked = evaluateQuotaLimitPolicy(provider, connection, requestedModel).blocked;
+    quotaExhausted = isQuotaExhaustedForRequest(connection.id, provider, requestedModel);
+  }
+
+  const quotaHeadroomPercent = getConnectionQuotaHeadroomPercent(provider, connection, requestedModel);
 
   let quotaPenalty = 0;
   if (quotaHeadroomPercent !== null) {
@@ -691,10 +639,11 @@ function compareP2CConnections(
   provider: string,
   a: ProviderConnectionView,
   b: ProviderConnectionView,
-  requestedModel: string | null = null
+  requestedModel: string | null = null,
+  quotaResults?: Map<string, { blocked: boolean; exhausted: boolean }>
 ): number {
-  const aScore = getP2CConnectionScore(provider, a, requestedModel);
-  const bScore = getP2CConnectionScore(provider, b, requestedModel);
+  const aScore = getP2CConnectionScore(provider, a, requestedModel, quotaResults);
+  const bScore = getP2CConnectionScore(provider, b, requestedModel, quotaResults);
   if (aScore.score !== bScore.score) {
     return aScore.score - bScore.score;
   }
@@ -957,6 +906,10 @@ const markMutexes = new Map<string, Promise<void>>();
 // Re-export for backwards compat with existing test imports.
 export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 
+const PROVIDER_SEARCH_PAIRS: string[][] = [
+  ["nvidia", "nvidia_nim"],
+  ["kimi-coding", "kimi-coding-apikey"],
+];
 /**
  * Resolve provider aliases (e.g., nvidia -> nvidia_nim) for DB lookup
  */
@@ -964,12 +917,8 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
   const canonicalProvider = resolveProviderId(provider);
   const canonicalAlias = getProviderAlias(canonicalProvider);
 
-  if (provider === "nvidia") {
-    return ["nvidia", "nvidia_nim"];
-  }
-  if (provider === "nvidia_nim") {
-    return ["nvidia_nim", "nvidia"];
-  }
+  const pair = PROVIDER_SEARCH_PAIRS.find((aliases) => aliases.includes(provider));
+  if (pair) return pair[0] === provider ? pair : [pair[1], pair[0]];
 
   const searchPool = new Set([provider, canonicalProvider, canonicalAlias].filter(Boolean));
 
@@ -984,7 +933,7 @@ async function getProviderSearchPool(provider: string): Promise<string[]> {
   // (for example "78code/gpt-5.4"), but live credentials are stored under
   // internal provider ids like openai-compatible-responses-<uuid>.
   try {
-    const providerNodes = await getProviderNodes();
+    const providerNodes = await getCachedProviderNodes();
     for (const node of Array.isArray(providerNodes) ? providerNodes : []) {
       const nodeRecord = asRecord(node);
       const nodePrefix = typeof nodeRecord.prefix === "string" ? nodeRecord.prefix.trim() : "";
@@ -1066,12 +1015,12 @@ export async function getProviderCredentials(
     // Fix #922: Check for aliases (nvidia/nvidia_nim) to ensure credentials are found
     const providersToSearch = await getProviderSearchPool(provider);
     const connectionResults = await Promise.all(
-      providersToSearch.map((p) => getProviderConnections({ provider: p, isActive: true }))
+      providersToSearch.map((p) => getCachedRawProviderConnections({ provider: p, isActive: true }))
     );
     const connectionsRaw = connectionResults.filter(Array.isArray).flat();
 
     let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
-      .map(toProviderConnection)
+      .map(createLazyConnectionView)
       .filter((conn) => conn.id.length > 0);
     // allowedConnections: restrict to specific connection IDs (from API key policy, #363)
     if (allowedConnections && allowedConnections.length > 0) {
@@ -1207,32 +1156,39 @@ export async function getProviderCredentials(
         !isAccountUnavailable(c.rateLimitedUntil)
       ) {
         c.backoffLevel = 0;
-        updateProviderConnection(c.id, {
-          backoffLevel: 0,
-          testStatus: "active",
-          lastError: null,
-          lastErrorAt: null,
-          lastErrorType: null,
-          lastErrorSource: null,
-          errorCode: null,
-        }).catch(() => {});
+        resetConnectionBackoff(c.id).catch(() => {});
       }
     }
 
     let modelLockedCount = 0;
     let familyLockedCount = 0;
+    const connectionFilterStatus = new Map<string, string>();
     // Filter out unavailable accounts and excluded connection
     const availableConnections = connections.filter((c) => {
-      if (excludedConnectionIds.has(c.id)) return false;
+      if (excludedConnectionIds.has(c.id)) {
+        connectionFilterStatus.set(c.id, "excluded");
+        return false;
+      }
       if (requestedModel && isModelExcludedByConnection(requestedModel, c.providerSpecificData)) {
+        connectionFilterStatus.set(c.id, "modelExcluded");
         return false;
       }
       if (!allowSuppressedConnections) {
-        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
-        if (isTerminalConnectionStatus(c)) return false;
-        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
+        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) {
+          connectionFilterStatus.set(c.id, "rateLimited");
+          return false;
+        }
+        if (isTerminalConnectionStatus(c)) {
+          connectionFilterStatus.set(c.id, "terminalStatus");
+          return false;
+        }
+        if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) {
+          connectionFilterStatus.set(c.id, "codexScopeLimited");
+          return false;
+        }
         // Per-model lockout: if this specific model/family is locked on this connection, skip it
         if (requestedModel && isModelLocked(provider, c.id, requestedModel)) {
+          connectionFilterStatus.set(c.id, "modelLocked");
           if (
             provider === "antigravity" &&
             getQuotaScopeLabelForProvider(provider, requestedModel) === "family"
@@ -1244,6 +1200,7 @@ export async function getProviderCredentials(
           return false;
         }
       }
+      connectionFilterStatus.set(c.id, "available");
       return true;
     });
 
@@ -1258,15 +1215,13 @@ export async function getProviderCredentials(
       );
     }
     connections.forEach((c) => {
-      const excluded = excludedConnectionIds.has(c.id);
-      const rateLimited = isAccountUnavailable(c.rateLimitedUntil);
-      const terminalStatus = isTerminalConnectionStatus(c);
-      const codexScopeLimited = provider === "codex" && isCodexScopeUnavailable(c, requestedModel);
-      const modelLocked =
-        Boolean(requestedModel) && isModelLocked(provider, c.id, requestedModel as string);
-      const modelExcluded =
-        Boolean(requestedModel) &&
-        isModelExcludedByConnection(requestedModel as string, c.providerSpecificData);
+      const status = connectionFilterStatus.get(c.id);
+      const excluded = status === "excluded";
+      const rateLimited = status === "rateLimited";
+      const terminalStatus = status === "terminalStatus";
+      const codexScopeLimited = status === "codexScopeLimited";
+      const modelLocked = status === "modelLocked";
+      const modelExcluded = status === "modelExcluded";
       if (excluded || rateLimited) {
         log.debug(
           "AUTH",
@@ -1395,10 +1350,12 @@ export async function getProviderCredentials(
       reasons: string[];
       resetAt: string | null;
     }> = [];
+    const quotaResults = new Map<string, { blocked: boolean; exhausted: boolean }>();
 
     if (!bypassQuotaPolicy) {
       policyEligibleConnections = availableConnections.filter((connection) => {
         const evaluation = evaluateQuotaLimitPolicy(provider, connection, requestedModel);
+        quotaResults.set(connection.id, { blocked: evaluation.blocked, exhausted: false });
         if (!evaluation.blocked) return true;
 
         blockedByPolicy.push({
@@ -1409,7 +1366,7 @@ export async function getProviderCredentials(
         return false;
       });
     } else if (availableConnections.length > 0) {
-      log.debug("AUTH", `${provider} | bypassing quota policy for combo live test`);
+      log.debug("AUTH", `${provider} | bypassing cached quota policy for this request`);
     }
 
     if (blockedByPolicy.length > 0) {
@@ -1438,13 +1395,19 @@ export async function getProviderCredentials(
       };
     }
 
-    // Quota-aware: filter out accounts with exhausted quota for the requested scope.
-    const withQuota = policyEligibleConnections.filter(
-      (c) => !isQuotaExhaustedForRequest(c.id, provider, requestedModel)
-    );
-    const exhaustedQuota = policyEligibleConnections.filter((c) =>
-      isQuotaExhaustedForRequest(c.id, provider, requestedModel)
-    );
+    // Quota-aware: partition accounts with and without quota for the requested scope.
+    const withQuota: typeof policyEligibleConnections = [];
+    const exhaustedQuota: typeof policyEligibleConnections = [];
+    for (const c of policyEligibleConnections) {
+      const exhausted = isQuotaExhaustedForRequest(c.id, provider, requestedModel);
+      const existing = quotaResults.get(c.id);
+      if (existing) existing.exhausted = exhausted;
+      if (!exhausted) {
+        withQuota.push(c);
+      } else {
+        exhaustedQuota.push(c);
+      }
+    }
 
     if (exhaustedQuota.length > 0) {
       log.info(
@@ -1482,8 +1445,7 @@ export async function getProviderCredentials(
       { fallbackStrategy?: string; stickyRoundRobinLimit?: number }
     >;
     const providerOverride = providerStrategyOverrides[resolvedId] || {};
-    const strategy =
-      providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
+    const strategy = providerOverride.fallbackStrategy || settings.fallbackStrategy || "fill-first";
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(
@@ -1534,10 +1496,16 @@ export async function getProviderCredentials(
             `${provider} round-robin: staying with ${current.id?.slice(0, 8)}... (count=${currentCount}/${stickyLimit})`
           );
           // Update lastUsedAt and increment count (await to ensure persistence)
-          await updateProviderConnection(connection.id, {
-            lastUsedAt: new Date().toISOString(),
-            consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
-          });
+          const nextCount = (connection.consecutiveUseCount || 0) + 1;
+          await touchConnectionLastUsed(connection.id, nextCount);
+          // Sync raw cache row so subsequent calls within TTL see fresh stats
+          for (const r of connectionsRaw as Record<string, unknown>[]) {
+            if (r.id === connection.id) {
+              r.lastUsedAt = new Date().toISOString();
+              r.consecutiveUseCount = nextCount;
+              break;
+            }
+          }
         } else {
           // Pick the least recently used (excluding current if possible)
           // Also penalize accounts with high backoffLevel (previously rate-limited)
@@ -1560,10 +1528,15 @@ export async function getProviderCredentials(
           );
 
           // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-          await updateProviderConnection(connection.id, {
-            lastUsedAt: new Date().toISOString(),
-            consecutiveUseCount: 1,
-          });
+          await touchConnectionLastUsed(connection.id, 1);
+          // Sync raw cache row so subsequent calls within TTL see fresh LRU stats
+          for (const r of connectionsRaw as Record<string, unknown>[]) {
+            if (r.id === connection.id) {
+              r.lastUsedAt = new Date().toISOString();
+              r.consecutiveUseCount = 1;
+              break;
+            }
+          }
         }
       } else {
         // Fallback scenario: excluded an account due to failure
@@ -1586,10 +1559,15 @@ export async function getProviderCredentials(
         );
 
         // Update lastUsedAt and reset count to 1 (await to ensure persistence)
-        await updateProviderConnection(connection.id, {
-          lastUsedAt: new Date().toISOString(),
-          consecutiveUseCount: 1,
-        });
+        await touchConnectionLastUsed(connection.id, 1);
+        // Sync raw cache row so subsequent calls within TTL see fresh stats
+        for (const r of connectionsRaw as Record<string, unknown>[]) {
+          if (r.id === connection.id) {
+            r.lastUsedAt = new Date().toISOString();
+            r.consecutiveUseCount = 1;
+            break;
+          }
+        }
       }
     } else if (strategy === "p2c") {
       const candidatePool = withQuota.length > 0 ? withQuota : orderedConnections;
@@ -1597,7 +1575,7 @@ export async function getProviderCredentials(
       // health instead of defaulting to random-first selection.
       if (candidatePool.length <= 2) {
         connection = [...candidatePool].sort((a, b) =>
-          compareP2CConnections(provider, a, b, requestedModel)
+          compareP2CConnections(provider, a, b, requestedModel, quotaResults)
         )[0];
       } else {
         const i =
@@ -1607,7 +1585,7 @@ export async function getProviderCredentials(
         if (j >= i) j++;
         const a = candidatePool[i];
         const b = candidatePool[j];
-        connection = compareP2CConnections(provider, a, b, requestedModel) <= 0 ? a : b;
+        connection = compareP2CConnections(provider, a, b, requestedModel, quotaResults) <= 0 ? a : b;
       }
     } else if (strategy === "random") {
       // Random: Fisher-Yates-inspired random pick
@@ -1701,13 +1679,22 @@ export async function getProviderCredentialsWithQuotaPreflight(
   requestedModel: string | null = null,
   options: CredentialSelectionOptions = {}
 ) {
-  if (options.bypassQuotaPolicy === true) {
+  // Credits-first requests intentionally skip both cached quota cutoffs and live
+  // usage preflight. The user inference itself is the one credit-bearing request;
+  // probing normal quota first would spend up to two extra credit calls.
+  const bypassQuotaPolicy =
+    options.bypassQuotaPolicy === true ||
+    (provider === "antigravity" && getCreditsMode() === "always");
+  if (bypassQuotaPolicy) {
     return getProviderCredentials(
       provider,
       excludeConnectionId,
       allowedConnections,
       requestedModel,
-      options
+      {
+        ...options,
+        bypassQuotaPolicy: true,
+      }
     );
   }
 
@@ -1833,8 +1820,10 @@ export async function getProviderCredentialsWithQuotaPreflight(
       }
       return defaultThresholdPercent;
     };
+    // #6842: openrouter also needs requestedModel, for the :free-window check.
+    const modelAwarePreflight = provider === "codex" || provider === "openrouter";
     const preflightCredentials =
-      requestedModel && provider === "codex" ? { ...credentials, requestedModel } : credentials;
+      requestedModel && modelAwarePreflight ? { ...credentials, requestedModel } : credentials;
     const preflight = await preflightQuota(provider, connectionId, preflightCredentials, {
       resolveMinRemainingPercent,
       resolveWarnRemainingPercent: () => warnThresholdPercent,
@@ -2391,7 +2380,7 @@ function readNonEmptyUrlToken(request: AuthRequestLike): string | null {
  * path-scoped URL token:
  * - `Authorization: Bearer <key>` (OpenAI / OmniRoute / Codex CLI / Bearer clients)
  * - `x-api-key: <key>` (Anthropic Messages API contract — Claude Code,
- *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`)
+ *   `@anthropic-ai/sdk`, any SDK that sets `anthropic-version`) / `x-goog-api-key` (#7034)
  * - `/vscode/<key>/...` (path-scoped tokenized aliases — only when `allowUrl`)
  *
  * When multiple inputs are present, explicit auth headers win.
@@ -2436,6 +2425,8 @@ export function extractApiKey(request: AuthRequestLike, opts?: { allowUrl?: bool
     }
   }
 
+  const xGoogApiKey = extractGoogApiKeyHeader(request?.headers); // Issue #7034
+  if (xGoogApiKey) return xGoogApiKey;
   if (opts?.allowUrl === false) return null;
   return readNonEmptyUrlToken(request);
 }

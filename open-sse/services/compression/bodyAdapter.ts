@@ -6,6 +6,17 @@ type MessageLike = {
   [key: string]: unknown;
 };
 
+export const CODEX_RESPONSE_ITEM_META = Symbol("codexResponseItemMeta");
+
+export type CodexResponseItemMeta = {
+  type: string;
+  eligible: boolean;
+};
+
+type CodexMessageLike = MessageLike & {
+  [CODEX_RESPONSE_ITEM_META]?: CodexResponseItemMeta;
+};
+
 type ResponsesItem = {
   type?: unknown;
   role?: unknown;
@@ -14,7 +25,13 @@ type ResponsesItem = {
   [key: string]: unknown;
 };
 
-const RESPONSES_MESSAGE_TYPES = new Set(["message", "function_call_output"]);
+const RESPONSES_MESSAGE_TYPES = new Set([
+  "message",
+  "function_call_output",
+  "custom_tool_call_output",
+  "local_shell_call_output",
+  "apply_patch_call_output",
+]);
 const COMPRESSION_INPUT_INDEX = Symbol("compressionInputIndex");
 
 // Kiro envelope path back to the original tool-result text inside
@@ -60,11 +77,52 @@ function fromChatContent(nextContent: unknown, originalContent: unknown): unknow
   return nextContent;
 }
 
-function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
+function customToolOutputToChatContent(rawOutput: unknown): unknown {
+  if (typeof rawOutput !== "string") {
+    if (isRecord(rawOutput) && typeof rawOutput.output === "string") return rawOutput.output;
+    return rawOutput;
+  }
+
+  try {
+    const parsed = JSON.parse(rawOutput) as unknown;
+    if (isRecord(parsed) && typeof parsed.output === "string") return parsed.output;
+  } catch {
+    // Plain-text custom tool output is already in the form compression engines expect.
+  }
+  return rawOutput;
+}
+
+function restoreCustomToolOutput(nextContent: unknown, originalOutput: unknown): unknown {
+  if (typeof originalOutput === "string") {
+    try {
+      const parsed = JSON.parse(originalOutput) as unknown;
+      if (isRecord(parsed) && typeof parsed.output === "string") {
+        return JSON.stringify({ ...parsed, output: nextContent });
+      }
+    } catch {
+      // Preserve the original plain-text representation below.
+    }
+  }
+  if (isRecord(originalOutput) && typeof originalOutput.output === "string") {
+    return { ...originalOutput, output: nextContent };
+  }
+  return fromChatContent(nextContent, originalOutput);
+}
+
+function responsesToolOutputField(item: ResponsesItem): "output" | "content" {
+  return item.output !== null && item.output !== undefined ? "output" : "content";
+}
+
+function responsesItemToMessage(item: ResponsesItem): CodexMessageLike | null {
   const type = typeof item.type === "string" ? item.type : "message";
   if (!RESPONSES_MESSAGE_TYPES.has(type)) return null;
 
-  if (type === "function_call_output") {
+  if (
+    type === "function_call_output" ||
+    type === "custom_tool_call_output" ||
+    type === "local_shell_call_output" ||
+    type === "apply_patch_call_output"
+  ) {
     const rawOutput = item.output ?? item.content;
     // OpenAI Responses shape (Codex): body.input holds Responses items. When
     // output is a JSON object (not a string or content array), serialise it so
@@ -77,7 +135,13 @@ function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
       !Array.isArray(rawOutput);
     return {
       role: "tool",
-      content: isObjectOutput ? JSON.stringify(rawOutput) : toChatContent(rawOutput),
+      content:
+        type === "custom_tool_call_output"
+          ? customToolOutputToChatContent(rawOutput)
+          : isObjectOutput
+            ? JSON.stringify(rawOutput)
+            : toChatContent(rawOutput),
+      [CODEX_RESPONSE_ITEM_META]: { type, eligible: false },
     };
   }
 
@@ -87,12 +151,73 @@ function responsesItemToMessage(item: ResponsesItem): MessageLike | null {
   };
 }
 
+const DEFAULT_CODEX_PROTECTED_TOOL_NAMES = new Set([
+  "read",
+  "glob",
+  "grep",
+  "write",
+  "edit",
+  "websearch",
+  "webfetch",
+  "web_search",
+  "web_fetch",
+]);
+function markCodexResponseEligibility(
+  messages: CodexMessageLike[],
+  inputItems: unknown[],
+  preserveToolNames: string[] = []
+): void {
+  const protectedNames = new Set([
+    ...DEFAULT_CODEX_PROTECTED_TOOL_NAMES,
+    ...preserveToolNames.map((name) => name.trim().toLowerCase()),
+  ]);
+  const functionCalls = new Map<string, string>();
+  const skippedCallIds = new Set<string>();
+  for (const raw of inputItems) {
+    if (!isRecord(raw) || raw.type !== "function_call") continue;
+    if (typeof raw.call_id !== "string" || raw.call_id.length === 0) continue;
+    const name = typeof raw.name === "string" ? raw.name : "";
+    functionCalls.set(raw.call_id, name);
+    if (
+      protectedNames.has(name.trim().toLowerCase()) ||
+      name === "headless_retrieval" ||
+      name.endsWith("__headless_retrieval")
+    ) {
+      skippedCallIds.add(raw.call_id);
+    }
+  }
+
+  for (const message of messages) {
+    const meta = message[CODEX_RESPONSE_ITEM_META];
+    if (!meta) continue;
+    if (meta.type === "local_shell_call_output" || meta.type === "apply_patch_call_output") {
+      meta.eligible = true;
+      continue;
+    }
+    if (meta.type !== "function_call_output") continue;
+    const rawIndex = message[COMPRESSION_INPUT_INDEX];
+    const rawItem = typeof rawIndex === "number" ? inputItems[rawIndex] : null;
+    const callId = isRecord(rawItem) && typeof rawItem.call_id === "string" ? rawItem.call_id : "";
+    meta.eligible = callId.length > 0 && functionCalls.has(callId) && !skippedCallIds.has(callId);
+  }
+}
+
 function messageToResponsesItem(message: MessageLike, originalItem: ResponsesItem): ResponsesItem {
   const type = typeof originalItem.type === "string" ? originalItem.type : "message";
-  if (type === "function_call_output") {
+  if (
+    type === "function_call_output" ||
+    type === "custom_tool_call_output" ||
+    type === "local_shell_call_output" ||
+    type === "apply_patch_call_output"
+  ) {
+    const outputField = responsesToolOutputField(originalItem);
+    const originalOutput = originalItem[outputField];
     return {
       ...originalItem,
-      output: fromChatContent(message.content, originalItem.output),
+      [outputField]:
+        type === "custom_tool_call_output"
+          ? restoreCustomToolOutput(message.content, originalOutput)
+          : fromChatContent(message.content, originalOutput),
     };
   }
 
@@ -116,7 +241,10 @@ export type CompressionBodyAdapter = {
   restore(compressedBody: Record<string, unknown>): Record<string, unknown>;
 };
 
-export function adaptBodyForCompression(body: Record<string, unknown>): CompressionBodyAdapter {
+export function adaptBodyForCompression(
+  body: Record<string, unknown>,
+  preserveToolNames: string[] = []
+): CompressionBodyAdapter {
   if (Array.isArray(body.messages)) {
     return {
       body,
@@ -154,6 +282,8 @@ export function adaptBodyForCompression(body: Record<string, unknown>): Compress
     mappings.push({ index, item: item as ResponsesItem });
     messages.push({ ...message, [COMPRESSION_INPUT_INDEX]: index });
   });
+
+  markCodexResponseEligibility(messages, inputItems, preserveToolNames);
 
   if (messages.length === 0) {
     return {
@@ -332,7 +462,12 @@ function rewriteKiroEntry(
     let trChanged = false;
     const nextContent = content.map((part, partIdx) => {
       if (!isRecord(part) || typeof part.text !== "string") return part;
-      const key = kiroPathKey({ scope, historyIndex, toolResultIndex: trIdx, contentIndex: partIdx });
+      const key = kiroPathKey({
+        scope,
+        historyIndex,
+        toolResultIndex: trIdx,
+        contentIndex: partIdx,
+      });
       const rewritten = rewrites.get(key);
       if (rewritten === undefined || rewritten === part.text) return part;
       trChanged = true;

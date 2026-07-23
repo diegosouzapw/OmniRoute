@@ -18,6 +18,8 @@ import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
 import { parseModel } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
+import { evaluateContextLimit } from "./contextOverrideGate.ts";
+import { hasEstimableContent } from "./knownContextOverflow.ts";
 import {
   normalizeModelEntry,
   orderTargetsForWeightedFallback,
@@ -409,7 +411,7 @@ export function getModelContextLimitForModelString(modelStr: string) {
   return getModelContextLimit(provider, model);
 }
 
-type RequestCompatibilityRequirements = {
+export type RequestCompatibilityRequirements = {
   requiresTools: boolean;
   requiresVision: boolean;
   requiresStructuredOutput: boolean;
@@ -438,7 +440,7 @@ function requestRequiresStructuredOutput(body: Record<string, unknown>): boolean
 function estimateRequestInputTokens(body: Record<string, unknown>): number {
   const estimatePayload: Record<string, unknown> = {};
   for (const key of ["messages", "input", "tools", "functions", "response_format"]) {
-    if (body[key] !== undefined) estimatePayload[key] = body[key];
+    if (hasEstimableContent(body[key])) estimatePayload[key] = body[key];
   }
   return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
 }
@@ -460,7 +462,7 @@ function valueContainsImagePart(value: unknown, depth = 0): boolean {
   return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
 }
 
-function deriveRequestCompatibilityRequirements(
+export function deriveRequestCompatibilityRequirements(
   body: Record<string, unknown>
 ): RequestCompatibilityRequirements {
   const estimatedInputTokens = estimateRequestInputTokens(body);
@@ -486,21 +488,13 @@ function exceedsKnownOutputLimit(
   return maxOutputTokens < requestedOutputTokens;
 }
 
-function getKnownContextLimit(capabilities: {
-  maxInputTokens?: number | null;
-  contextWindow?: number | null;
-}): number | null {
-  return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
-}
-
 function hasKnownCompatibleContextLimit(
   target: ResolvedComboTarget,
-  requiredContextTokens: number
+  requirements: RequestCompatibilityRequirements
 ): boolean {
-  if (requiredContextTokens <= 0) return false;
+  if (requirements.requiredContextTokens <= 0) return false;
   const capabilities = getResolvedModelCapabilities(target.modelStr);
-  const contextLimit = getKnownContextLimit(capabilities);
-  return contextLimit !== null && contextLimit >= requiredContextTokens;
+  return evaluateContextLimit(capabilities, requirements, target.modelStr) === true;
 }
 
 function hasOnlyContextWindowFailures(reasons: string[]): boolean {
@@ -539,12 +533,8 @@ function getTargetCompatibilityFailures(
     failures.push("output_tokens");
   }
 
-  const contextLimit = getKnownContextLimit(capabilities);
-  if (
-    requirements.requiredContextTokens > 0 &&
-    contextLimit !== null &&
-    contextLimit < requirements.requiredContextTokens
-  ) {
+  const contextVerdict = evaluateContextLimit(capabilities, requirements, target.modelStr);
+  if (requirements.requiredContextTokens > 0 && contextVerdict === false) {
     failures.push("context_window");
   }
 
@@ -584,7 +574,7 @@ export function filterTargetsByRequestCompatibility(
   );
   if (requirements.requiredContextTokens > 0 && rejectedForContextWindow) {
     const knownContextCompatible = compatible.filter((target) =>
-      hasKnownCompatibleContextLimit(target, requirements.requiredContextTokens)
+      hasKnownCompatibleContextLimit(target, requirements)
     );
 
     if (knownContextCompatible.length > 0 && knownContextCompatible.length < compatible.length) {

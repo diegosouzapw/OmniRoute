@@ -159,7 +159,7 @@ export default function PassthroughModelsSection({
           results?: Record<
             string,
             {
-              status?: "ok" | "error";
+              status?: "ok" | "error" | "slow";
               rateLimited?: boolean;
               isTimeout?: boolean;
               error?: string;

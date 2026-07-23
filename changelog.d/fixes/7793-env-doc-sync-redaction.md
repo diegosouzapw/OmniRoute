@@ -1,0 +1,1 @@
+- fix(docs): document CREDENTIAL_REDACTION_ENABLED and GHE_COPILOT_OAUTH_CLIENT_ID in .env.example/ENVIRONMENT.md, closing the env-doc-sync gate drift (#7793)

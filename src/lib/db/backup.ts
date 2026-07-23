@@ -14,6 +14,7 @@ import {
   DATA_DIR,
 } from "./core";
 import { resetAllDbModuleState } from "./stateReset";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 type CountRow = { cnt?: number };
 
@@ -287,12 +288,7 @@ export function isAutoBackupDisabledBySetting(): boolean {
     // Apply precedence: last non-null wins (mirrors getUserDatabaseSettings — flat alias
     // first, then nested key). Default (no persisted value) → not disabled.
     let enabled: boolean | null = null;
-    for (const candidate of [
-      fromSettingsNested,
-      fromSettingsBackup,
-      fromDbFlat,
-      fromDbNested,
-    ]) {
+    for (const candidate of [fromSettingsNested, fromSettingsBackup, fromDbFlat, fromDbNested]) {
       if (candidate !== null) enabled = candidate;
     }
 
@@ -308,12 +304,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function isSqliteAutoBackupDisabled() {
-  const isTest =
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((a) => a.includes("test")));
-  if (isTest) return true;
+  if (isAutomatedTestProcess()) return true;
 
   const value = process.env.DISABLE_SQLITE_AUTO_BACKUP;
   if (!value) return false;
@@ -599,6 +590,7 @@ export interface ExportAllRows {
   combos: unknown[];
   providers: unknown[];
   apiKeys: unknown[];
+  reasoningRoutingRules: unknown[];
 }
 
 /**
@@ -663,7 +655,14 @@ export function exportAllSummaryRows(): ExportAllRows {
     // api_keys table might not exist
   }
 
-  return { settings, combos, providers, apiKeys };
+  const reasoningRoutingRules: unknown[] = [];
+  try {
+    reasoningRoutingRules.push(...db.prepare("SELECT * FROM reasoning_routing_rules").all());
+  } catch {
+    // reasoning_routing_rules table might not exist in an older backup
+  }
+
+  return { settings, combos, providers, apiKeys, reasoningRoutingRules };
 }
 
 // ──────────────── Import validation helpers (for /api/db-backups/import) ────────────────

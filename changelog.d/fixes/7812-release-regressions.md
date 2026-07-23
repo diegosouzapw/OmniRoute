@@ -1,0 +1,1 @@
+- **fix(runtime):** Apply refreshed request-queue settings, restore inter-batch health-check jitter, and invalidate database read caches when the SQLite singleton resets; refresh stale CI baselines and fixtures exposed by clean release runs ([#7812](https://github.com/diegosouzapw/OmniRoute/pull/7812) by [@backryun](https://github.com/backryun)).

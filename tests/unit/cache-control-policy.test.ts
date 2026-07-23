@@ -37,7 +37,6 @@ describe("Cache Control Policy", () => {
       assert.equal(providerSupportsCaching("claude"), true);
       assert.equal(providerSupportsCaching("anthropic"), true);
       assert.equal(providerSupportsCaching("zai"), true);
-      assert.equal(providerSupportsCaching("qwen"), true);
       assert.equal(providerSupportsCaching("deepseek"), true);
       // #3088 — Xiaomi MiMo supports prompt caching; cache_control breakpoints
       // sent by Claude Code (via cc-switch) must be preserved, not stripped.

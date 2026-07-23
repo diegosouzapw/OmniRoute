@@ -1,24 +1,23 @@
 /**
  * Video Generation Handler
  *
- * Handles POST /v1/videos/generations requests.
- * Proxies to upstream video generation providers.
- *
- * Supported provider formats:
- * - ComfyUI: submit AnimateDiff/SVD workflow → poll → fetch video
- * - SD WebUI: POST to AnimateDiff extension endpoint
- *
- * Response format (OpenAI-like):
- * {
- *   "created": 1234567890,
- *   "data": [{ "b64_json": "...", "format": "mp4" }]
- * }
+ * Handles POST /v1/videos/generations requests. Proxies to upstream video
+ * generation providers (ComfyUI AnimateDiff/SVD, SD WebUI AnimateDiff, and
+ * more — see the per-format handlers below). Response format (OpenAI-like):
+ * { "created": 1234567890, "data": [{ "b64_json": "...", "format": "mp4" }] }
  */
 
 import { getVideoProvider, parseVideoModel } from "../config/videoRegistry.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexGenerateVideo } from "../executors/vertexMedia.ts";
 import { handleGoogleFlowVideoGeneration } from "./videoGeneration/googleFlowHandler.ts";
+import { handleDeepinfraVideoGeneration } from "./videoGeneration/deepinfraHandler.ts";
+import { handleLeonardoVideoGeneration } from "./videoGeneration/leonardoHandler.ts";
+import { handleDashscopeVideoGeneration } from "./videoGeneration/dashscopeHandler.ts";
+import { handleNovitaVideoGeneration } from "./videoGeneration/novitaHandler.ts";
+import { handleXaiVideoGeneration } from "./videoGeneration/xaiGrokImagineHandler.ts";
+import { handleSegmindVideoGeneration } from "./videoGeneration/providers/segmind.ts";
+import { handleAdobeFireflyVideoGeneration } from "./videoGeneration/adobeFireflyHandler.ts";
 import { getExecutor } from "../executors/index.ts";
 import { isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
 import {
@@ -31,6 +30,7 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sanitizeErrorMessage } from "../utils/error.ts";
@@ -67,7 +67,16 @@ export async function handleVideoGeneration({ body, credentials, log }) {
   }
 
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIVideoGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIVideoGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "sdwebui-video") {
@@ -101,8 +110,46 @@ export async function handleVideoGeneration({ body, credentials, log }) {
     });
   }
 
+  if (providerConfig.format === "deepinfra-video") {
+    return handleDeepinfraVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   if (providerConfig.format === "dashscope-video") {
     return handleDashscopeVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "segmind") {
+    return handleSegmindVideoGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+  if (providerConfig.format === "novita-video") {
+    return handleNovitaVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+  if (providerConfig.format === "xai-video") {
+    return handleXaiVideoGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+  if (providerConfig.format === "adobe-firefly-video") {
+    return handleAdobeFireflyVideoGeneration({
       model,
       provider,
       providerConfig,
@@ -117,177 +164,6 @@ export async function handleVideoGeneration({ body, credentials, log }) {
     status: 400,
     error: `Unsupported video format: ${providerConfig.format}`,
   };
-}
-
-/**
- * Alibaba (DashScope) Wan video generation: create async task → poll → MP4.
- * Targets wan2.7-t2v on the DashScope intl region. Reuses the stored alibaba
- * provider Bearer apiKey — no separate credential flow.
- */
-async function handleDashscopeVideoGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}: {
-  model: string;
-  provider: string;
-  providerConfig: { baseUrl: string; statusUrl?: string };
-  body: Record<string, unknown> & {
-    prompt?: unknown;
-    negative_prompt?: unknown;
-    size?: unknown;
-    aspect_ratio?: unknown;
-    duration?: unknown;
-    timeout_ms?: unknown;
-    poll_interval_ms?: unknown;
-  };
-  credentials?: { apiKey?: string; accessToken?: string } | null;
-  log?: {
-    info: (scope: string, message: string) => void;
-    error: (scope: string, message: string) => void;
-  } | null;
-}) {
-  const startTime = Date.now();
-  const timeoutMs = Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000;
-  const pollIntervalMs = Number(body.poll_interval_ms) > 0 ? Number(body.poll_interval_ms) : 2500;
-  const token = credentials?.apiKey || credentials?.accessToken;
-  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
-  const statusUrl = (providerConfig.statusUrl || `${baseUrl}/tasks`).replace(/\/$/, "");
-  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
-
-  if (!token) {
-    return { success: false, status: 401, error: "Alibaba DashScope API key is required" };
-  }
-
-  const sizeParam = normalizeDashscopeSize(body.size, body.aspect_ratio);
-  const parameters: Record<string, unknown> = {};
-  if (sizeParam) parameters.size = sizeParam;
-  if (body.duration != null) parameters.duration = Number(body.duration);
-
-  const payload = {
-    model,
-    input: {
-      prompt,
-      ...(typeof body.negative_prompt === "string"
-        ? { negative_prompt: body.negative_prompt }
-        : {}),
-    },
-    parameters,
-  };
-
-  if (log) {
-    log.info(
-      "VIDEO",
-      `${provider}/${model} (dashscope-video) | prompt: "${prompt.slice(0, 60)}..."`
-    );
-  }
-
-  try {
-    // Step 1: create async task (X-DashScope-Async: enable)
-    const createRes = await fetch(`${baseUrl}/services/aigc/video-generation/video-synthesis`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "X-DashScope-Async": "enable",
-      },
-      body: JSON.stringify(payload),
-    });
-    const createData = await createRes.json().catch(() => ({}));
-    const taskId = createData?.output?.task_id;
-    if (!taskId) {
-      const errorMessage =
-        createData?.message ||
-        createData?.errors?.[0]?.message ||
-        "DashScope video generation did not return task_id";
-      if (log) {
-        log.error("VIDEO", `DashScope createTask failed: ${JSON.stringify(createData)}`);
-      }
-      return { success: false, status: 502, error: String(errorMessage) };
-    }
-
-    // Step 2: poll statusUrl/{task_id} until terminal
-    const deadline = startTime + timeoutMs;
-    let lastStatus = "PENDING";
-    while (Date.now() < deadline) {
-      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
-      const pollRes = await fetch(`${statusUrl}/${taskId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const pollData = await pollRes.json().catch(() => ({}));
-      lastStatus = pollData?.output?.task_status || "PENDING";
-
-      if (lastStatus === "SUCCEEDED") {
-        const videoUrl = pollData?.output?.video_url;
-        if (!videoUrl) {
-          return {
-            success: false,
-            status: 502,
-            error: "DashScope task SUCCEEDED but no video_url",
-          };
-        }
-        saveCallLog({
-          method: "POST",
-          path: "/v1/videos/generations",
-          status: 200,
-          model: `${provider}/${model}`,
-          provider,
-          duration: Date.now() - startTime,
-          responseBody: { videos_count: 1 },
-        }).catch(() => {});
-        return {
-          success: true,
-          data: {
-            created: Math.floor(Date.now() / 1000),
-            data: [{ url: videoUrl, format: "mp4" }],
-          },
-        };
-      }
-
-      if (lastStatus === "FAILED" || lastStatus === "UNKNOWN_ERROR") {
-        const errorMessage =
-          pollData?.output?.message ||
-          pollData?.output?.errors?.[0]?.message ||
-          "DashScope video task FAILED";
-        return { success: false, status: 502, error: String(errorMessage) };
-      }
-      // PENDING / RUNNING → keep polling
-    }
-
-    return {
-      success: false,
-      status: 504,
-      error: `DashScope task ${taskId} timed out (status: ${lastStatus})`,
-    };
-  } catch (err: unknown) {
-    return {
-      success: false,
-      status: isJsonObject(err) && Number.isFinite(Number(err.status)) ? Number(err.status) : 502,
-      error: sanitizeErrorMessage(err) || "Video provider error",
-    };
-  }
-}
-
-// Map OmniRoute size/aspect_ratio → Alibaba DashScope "WxH" (1280*720).
-// Accepts "1280*720", "1280x720", or a ratio "16:9". Returns undefined if unparseable
-// (then omitted from the payload so DashScope applies its own default).
-function normalizeDashscopeSize(size: unknown, aspectRatio: unknown): string | undefined {
-  if (typeof size === "string") {
-    if (/^\d+\*\d+$/.test(size)) return size;
-    if (/^\d+x\d+$/.test(size)) return size.replace("x", "*");
-  }
-  if (typeof aspectRatio === "string") {
-    const ratioMap: Record<string, string> = {
-      "16:9": "1280*720",
-      "9:16": "720*1280",
-      "1:1": "960*960",
-    };
-    return ratioMap[aspectRatio];
-  }
-  return undefined;
 }
 
 /**
@@ -1154,109 +1030,6 @@ async function handleHaiperVideoGeneration({
     error: "Haiper video generation timed out",
   }).catch(() => {});
   return { success: false, status: 504, error: "Haiper video generation timed out" };
-}
-
-async function handleLeonardoVideoGeneration({
-  model,
-  provider,
-  providerConfig,
-  body,
-  credentials,
-  log,
-}) {
-  const startTime = Date.now();
-  const token = credentials?.apiKey || "";
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({
-      modelId: "phoenix",
-      prompt: body.prompt,
-      width: 1024,
-      height: 576,
-      num_frames: 24,
-    }),
-  });
-  if (!res.ok) {
-    const errorText = await res.text();
-    saveCallLog({
-      method: "POST",
-      path: "/v1/videos/generations",
-      status: res.status,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: errorText.slice(0, 500),
-    }).catch(() => {});
-    return { success: false, status: res.status, error: errorText };
-  }
-  const { sdGenerationJob } = await res.json();
-  const genId = sdGenerationJob?.generationId;
-  if (!genId) {
-    saveCallLog({
-      method: "POST",
-      path: "/v1/videos/generations",
-      status: 502,
-      model: `${provider}/${model}`,
-      provider,
-      duration: Date.now() - startTime,
-      error: "No generation ID returned",
-    }).catch(() => {});
-    return { success: false, status: 502, error: "No generation ID returned" };
-  }
-  const deadline = Date.now() + 300000;
-  while (Date.now() < deadline) {
-    await sleep(5000);
-    const statusRes = await fetch(`${providerConfig.baseUrl}/${genId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const status = await statusRes.json();
-    const gen = status.generations_by_pk || status;
-    if (gen.status === "COMPLETE") {
-      const imgUrl = gen.generated_images?.[0]?.url;
-      if (imgUrl) {
-        const videoRes = await fetch(imgUrl);
-        const buf = await videoRes.arrayBuffer();
-        saveCallLog({
-          method: "POST",
-          path: "/v1/videos/generations",
-          status: 200,
-          model: `${provider}/${model}`,
-          provider,
-          duration: Date.now() - startTime,
-        }).catch(() => {});
-        return {
-          success: true,
-          data: {
-            created: Math.floor(Date.now() / 1000),
-            data: [{ b64_json: Buffer.from(buf).toString("base64"), format: "mp4" }],
-          },
-        };
-      }
-    }
-    if (gen.status === "FAILED") {
-      saveCallLog({
-        method: "POST",
-        path: "/v1/videos/generations",
-        status: 502,
-        model: `${provider}/${model}`,
-        provider,
-        duration: Date.now() - startTime,
-        error: "Leonardo video generation failed",
-      }).catch(() => {});
-      return { success: false, status: 502, error: "Leonardo video generation failed" };
-    }
-  }
-  saveCallLog({
-    method: "POST",
-    path: "/v1/videos/generations",
-    status: 504,
-    model: `${provider}/${model}`,
-    provider,
-    duration: Date.now() - startTime,
-    error: "Leonardo video generation timed out",
-  }).catch(() => {});
-  return { success: false, status: 504, error: "Leonardo video generation timed out" };
 }
 
 function sleep(ms) {

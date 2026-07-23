@@ -1,8 +1,5 @@
 import { errorResponse, unavailableResponse } from "../../utils/error.ts";
-import {
-  BudgetExceededError,
-  selectProvider as selectAutoProvider,
-} from "../autoCombo/engine.ts";
+import { BudgetExceededError, selectProvider as selectAutoProvider } from "../autoCombo/engine.ts";
 import {
   resolveRequestModePack,
   parseRequestBudgetCap,
@@ -10,6 +7,7 @@ import {
 } from "../autoCombo/requestControls.ts";
 import { selectWithStrategy } from "../autoCombo/routerStrategy.ts";
 import { buildComplexityRoutingHint } from "../autoCombo/complexityRouter";
+import { getModePack } from "../autoCombo/modePacks.ts";
 import { recordComboIntent } from "../comboMetrics.ts";
 import { estimateTokens } from "../contextManager.ts";
 import { classifyWithConfig } from "../intentClassifier.ts";
@@ -20,6 +18,10 @@ import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
 import { parseAutoConfig } from "./autoConfig.ts";
 import { dedupeTargetsByExecutionKey } from "./comboData.ts";
 import { getModelContextLimitForModelString } from "./comboStructure.ts";
+import {
+  calculatePromptCacheAffinityScores,
+  promptCacheTargetIdentity,
+} from "./promptCacheAffinity.ts";
 import type { ResetWindowConfig } from "./quotaScoring.ts";
 import {
   _registerExecutionCandidates,
@@ -160,7 +162,7 @@ export async function resolveAutoStrategyOrder(
   const {
     routingStrategy,
     candidatePool,
-    weights,
+    weights: configWeights,
     explorationRate,
     budgetCap: configBudgetCap,
     budgetFallback: configBudgetFallback,
@@ -180,7 +182,22 @@ export async function resolveAutoStrategyOrder(
   const budgetFallback = requestBudgetFallback ?? configBudgetFallback;
   const requestModePack = resolveRequestModePack(relayOptions?.mode);
   const modePack = requestModePack.override ? requestModePack.modePack : configModePack;
-  if (requestModePack.override || requestBudgetCap !== undefined || requestBudgetFallback !== undefined) {
+  // #7008: `weights` must track the *effective* (post-override) modePack, not just
+  // the combo's stored one. `selectAutoProvider()` (engine.ts) already re-derives
+  // weights internally from the `modePack` it's given, so it correctly reacts to a
+  // per-request X-OmniRoute-Mode override — but `scoreAutoTargets()` (the fallback
+  // ranking below) has no such re-derivation and only ever sees whatever `weights`
+  // it's handed. Without this recompute, a request overriding e.g. `quality-first`
+  // to `ship-fast` would select its primary target under ship-fast weights but rank
+  // every fallback under the stale quality-first weights — the same
+  // select-under-one-policy/rank-under-another bug this module's original fix
+  // (parseAutoConfig honoring the combo's own stored modePack) set out to close.
+  const weights = modePack ? getModePack(modePack) || configWeights : configWeights;
+  if (
+    requestModePack.override ||
+    requestBudgetCap !== undefined ||
+    requestBudgetFallback !== undefined
+  ) {
     log.debug?.(
       "COMBO",
       `Auto strategy: per-request controls applied (mode=${
@@ -215,6 +232,10 @@ export async function resolveAutoStrategyOrder(
     resetWindowConfig,
     autoCandidateResilienceSettings
   );
+  const cacheAffinityScores = calculatePromptCacheAffinityScores(candidates, body);
+  for (const candidate of candidates) {
+    candidate.cacheAffinity = cacheAffinityScores.get(promptCacheTargetIdentity(candidate)) ?? 0;
+  }
   const routableCandidates = candidates.filter(
     (candidate) => candidate.quotaCutoffBlocked !== true
   );
@@ -238,6 +259,7 @@ export async function resolveAutoStrategyOrder(
   if (routableCandidates.length > 0) {
     let selectedProvider: string | null = null;
     let selectedModel: string | null = null;
+    let selectedConnectionId: string | null = null;
     let selectionReason = "";
 
     if (routingStrategy !== "rules") {
@@ -255,6 +277,7 @@ export async function resolveAutoStrategyOrder(
         );
         selectedProvider = decision.provider;
         selectedModel = decision.model;
+        selectedConnectionId = decision.connectionId ?? null;
         selectionReason = decision.reason;
         autoUsedExplicitRouter = true;
       } catch (err) {
@@ -294,6 +317,7 @@ export async function resolveAutoStrategyOrder(
       }
       selectedProvider = selection.provider;
       selectedModel = selection.model;
+      selectedConnectionId = selection.connectionId ?? null;
       selectionReason = `score=${selection.score.toFixed(3)}${selection.isExploration ? " (exploration)" : ""}`;
     }
 
@@ -321,7 +345,11 @@ export async function resolveAutoStrategyOrder(
       scoredTargets.find((entry) => {
         const parsed = parseModel(entry.target.modelStr);
         const modelId = parsed.model || entry.target.modelStr;
-        return entry.target.provider === selectedProvider && modelId === selectedModel;
+        return (
+          entry.target.provider === selectedProvider &&
+          modelId === selectedModel &&
+          (!selectedConnectionId || entry.target.connectionId === selectedConnectionId)
+        );
       })?.target ||
       rankedTargets[0] ||
       eligibleTargets[0];

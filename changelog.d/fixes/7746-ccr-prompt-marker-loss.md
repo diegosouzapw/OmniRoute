@@ -1,0 +1,1 @@
+- fix(compression): CCR no longer collapses a whole prompt into a bare, unretrievable `[CCR retrieve hash=...]` marker on non-MCP upstreams — a short preamble of the original text is always kept alongside the marker (#7746)

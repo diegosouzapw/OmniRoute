@@ -16,11 +16,11 @@ const ACP_SPAWNABLE_IDS = [
   "aider",
   "opencode",
   "cline",
-  "qwen",
   "forge",
   "interpreter",
   "cursor-cli",
   "warp",
+  "qwen",
 ];
 
 for (const id of ACP_SPAWNABLE_IDS) {
