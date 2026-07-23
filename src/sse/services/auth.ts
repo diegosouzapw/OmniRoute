@@ -373,10 +373,21 @@ function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean
   return status === "credits_exhausted" || status === "banned" || status === "expired";
 }
 
+// #8200: cookie-auth providers (perplexity-web, grok-web, ...) use a rotating browser
+// session, not a static API key — a 401 means "session needs a refresh", not "dead".
+function isRecoverableCookieAuth401(provider: string | null, providerErrorType: string | null): boolean {
+  return (
+    providerErrorType !== PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED &&
+    provider != null &&
+    resolveProviderId(provider) in WEB_COOKIE_PROVIDERS
+  );
+}
+
 function resolveTerminalConnectionStatus(
   status: number,
   result: { permanent?: boolean; creditsExhausted?: boolean },
-  providerErrorType: string | null = null
+  providerErrorType: string | null = null,
+  provider: string | null = null
 ): string | null {
   if (result.creditsExhausted || status === 402) return "credits_exhausted";
   if (
@@ -389,9 +400,10 @@ function resolveTerminalConnectionStatus(
     return "banned";
   }
   if (
-    providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
-    providerErrorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED ||
-    status === 401
+    (providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
+      providerErrorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED ||
+      status === 401) &&
+    !isRecoverableCookieAuth401(provider, providerErrorType)
   ) {
     return "expired";
   }
@@ -2086,7 +2098,8 @@ export async function markAccountUnavailable(
     const terminalStatus = resolveTerminalConnectionStatus(
       status,
       result as { permanent?: boolean; creditsExhausted?: boolean },
-      providerErrorType
+      providerErrorType,
+      provider
     );
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 
