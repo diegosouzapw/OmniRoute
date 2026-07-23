@@ -48,7 +48,26 @@ export interface BrowserPoolModule {
   setProxyResolver(fn: ProxyResolver): void;
 }
 let modPromise: Promise<BrowserPoolModule | null> | null = null;
+// Test-only escape hatch: lets tests simulate the "optional @omniroute/browser-pool
+// package is not installed" path deterministically, without depending on a real
+// failing dynamic import (which can otherwise trip unrelated module-resolution
+// network fallbacks and hang the test process).
+let modOverride: BrowserPoolModule | null | undefined = undefined;
+
+export function __setBrowserPoolModOverrideForTesting(
+  value: BrowserPoolModule | null | undefined
+): void {
+  modOverride = value;
+  modPromise = null;
+}
+
+export function __resetBrowserPoolModOverrideForTesting(): void {
+  modOverride = undefined;
+  modPromise = null;
+}
+
 function getMod(): Promise<BrowserPoolModule | null> {
+  if (modOverride !== undefined) return Promise.resolve(modOverride);
   if (!modPromise) {
     modPromise = import("@omniroute/browser-pool").catch(() => null);
   }
@@ -276,50 +295,62 @@ export async function tryBackedChat(
     // Need browser-backed path — await the module
     const loaded = await mod;
 
-    // Get fresh cookies via browser
-    if (loaded) {
-      try {
-        const fresh = await loaded.getFreshCookiesWithWarmup(req);
-        if (fresh) {
-          if (req.cookieDomain) await setCachedCookies(req.cookieDomain, fresh);
-          const retry = await httpBackedChat({ ...req, cookieString: fresh });
-          if (!isChallengeResponse(retry.status)) return retry;
-        }
-      } catch {
-        // fall through to browser fallback
-      }
-
-      // Full browser fallback
-      try {
-        return await browserBackedChat(req);
-      } catch (inner: unknown) {
-        if (inner instanceof DOMException && inner.name === "AbortError") {
-          return {
-            status: 504,
-            contentType: "application/json",
-            body: Buffer.from(
-              JSON.stringify({
-                error: {
-                  message: "tryBackedChat timed out",
-                  type: "timeout_error",
-                },
-              })
-            ),
-            isStealth: false,
-            timing: {
-              acquireContextMs: 0,
-              navigateMs: 0,
-              submitMs: 0,
-              captureResponseMs: 0,
-              totalMs: 0,
-            },
-          };
-        }
-        throw inner;
-      }
+    // The optional @omniroute/browser-pool package is not installed. Unlike
+    // the pre-refactor inline implementation (which always had the browser
+    // fallback available), there is no way to solve the challenge here —
+    // silently returning the stale httpResult (the 403/challenge body) would
+    // make callers (claude-web, duckduckgo-web) treat an unsolved challenge
+    // as a definitive upstream response. Throw instead so upstream fallback
+    // handling (combo routing / executor error paths) can react correctly.
+    if (!loaded) {
+      throw new Error(
+        "tryBackedChat: upstream returned a challenge response " +
+          `(status ${httpResult.status}) and the optional @omniroute/browser-pool ` +
+          "package is not installed — cannot solve the challenge. Install " +
+          "@omniroute/browser-pool to enable the browser-backed fallback."
+      );
     }
 
-    return httpResult;
+    // Get fresh cookies via browser
+    try {
+      const fresh = await loaded.getFreshCookiesWithWarmup(req);
+      if (fresh) {
+        if (req.cookieDomain) await setCachedCookies(req.cookieDomain, fresh);
+        const retry = await httpBackedChat({ ...req, cookieString: fresh });
+        if (!isChallengeResponse(retry.status)) return retry;
+      }
+    } catch {
+      // fall through to browser fallback
+    }
+
+    // Full browser fallback
+    try {
+      return await browserBackedChat(req);
+    } catch (inner: unknown) {
+      if (inner instanceof DOMException && inner.name === "AbortError") {
+        return {
+          status: 504,
+          contentType: "application/json",
+          body: Buffer.from(
+            JSON.stringify({
+              error: {
+                message: "tryBackedChat timed out",
+                type: "timeout_error",
+              },
+            })
+          ),
+          isStealth: false,
+          timing: {
+            acquireContextMs: 0,
+            navigateMs: 0,
+            submitMs: 0,
+            captureResponseMs: 0,
+            totalMs: 0,
+          },
+        };
+      }
+      throw inner;
+    }
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === "AbortError") {
       return {

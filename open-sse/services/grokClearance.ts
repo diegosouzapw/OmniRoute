@@ -1,5 +1,3 @@
-import type { PooledContext } from "@omniroute/browser-pool";
-
 export function shouldUseGrokBrowserBacked(): boolean {
   const flag = process.env.WEB_COOKIE_USE_BROWSER;
   if (flag === "1" || flag === "true" || flag === "on") return true;
@@ -7,16 +5,20 @@ export function shouldUseGrokBrowserBacked(): boolean {
   return poolFlag === "on" || poolFlag === "1" || poolFlag === "true";
 }
 
-let grokClearanceAcquireOverride: ((prompt: string) => Promise<PooledContext | null>) | null = null;
+let grokClearanceAcquireOverride:
+  ((signal?: AbortSignal | null) => Promise<string | null>)
+  | null = null;
 
 export function __setGrokClearanceAcquireOverrideForTesting(
-  fn: ((prompt: string) => Promise<PooledContext | null>) | null,
+  fn: ((signal?: AbortSignal | null) => Promise<string | null>) | null,
 ): void {
   grokClearanceAcquireOverride = fn;
 }
 
-export async function acquireFreshGrokClearance(prompt: string): Promise<PooledContext | null> {
-  if (grokClearanceAcquireOverride) return grokClearanceAcquireOverride(prompt);
+export async function acquireFreshGrokClearance(
+  signal?: AbortSignal | null,
+): Promise<string | null> {
+  if (grokClearanceAcquireOverride) return grokClearanceAcquireOverride(signal);
   const mod = await import("@omniroute/browser-pool");
-  return mod.acquireFreshGrokClearance(prompt);
+  return mod.acquireFreshGrokClearance(signal);
 }

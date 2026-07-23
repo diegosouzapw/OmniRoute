@@ -146,6 +146,21 @@ export async function resolvePlaywrightProxy(
   }
 }
 
+/**
+ * Resolve the proxy for a browser-pool context key. Scoped context keys
+ * (e.g. "claude-web:account-scope") carry a stable `proxyProviderKey` so the
+ * proxy lookup always targets the underlying provider, not the scoped key.
+ * Kept inline alongside resolvePlaywrightProxy — trivial wrapper, no
+ * playwright/browser-pool dependency.
+ */
+export async function resolveBrowserContextProxy(
+  contextKey: string,
+  options: Pick<BrowserPoolContextOptions, "proxyProviderKey">,
+  deps?: ResolvePlaywrightProxyDeps
+): Promise<import("playwright").LaunchOptions["proxy"] | undefined> {
+  return resolvePlaywrightProxy(options.proxyProviderKey ?? contextKey, deps);
+}
+
 // ---------------------------------------------------------------------------
 // getBrowserPoolStatus — INLINE (returns disabled status)
 // ---------------------------------------------------------------------------
