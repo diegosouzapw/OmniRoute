@@ -1,0 +1,1 @@
+- fix(providers): stop marking a multi-quota-window provider exhausted when only some windows are depleted (LIMIT-200 snapshot eviction drops idle healthy windows) (#8431)
