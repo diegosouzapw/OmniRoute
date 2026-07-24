@@ -449,6 +449,9 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "firefly",
   "hyperagent",
   "ha",
+  // xAI OAuth (Grok) weekly quota (id + public alias, same pattern as ha/agy)
+  "xai-oauth",
+  "xao",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

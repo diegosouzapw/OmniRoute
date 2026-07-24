@@ -354,6 +354,76 @@ async function getXaiUsage(connectionId: string) {
 }
 
 /**
+ * Weekly quota for xAI OAuth (Grok) — live credit pool.
+ *
+ * Same billing endpoint as grok-web / Grok CLI usage
+ * (`cli-chat-proxy.grok.com/v1/billing?format=credits`) using the connection
+ * OAuth access token (not ~/.grok/auth.json).
+ * `creditUsagePercent` is percent **used** (0–100), matching grok.com Usage.
+ */
+async function getXaiOauthUsage(
+  connectionId: string,
+  accessToken?: string,
+  connection?: UsageProviderConnection
+) {
+  if (!connectionId) {
+    return { message: "xAI OAuth: connection id unavailable." };
+  }
+
+  try {
+    const { fetchXaiOauthQuota } = await import("./xaiOauthQuotaFetcher.ts");
+    const live = await fetchXaiOauthQuota(connectionId, {
+      ...(connection || {}),
+      accessToken: accessToken || connection?.accessToken,
+      credentials: {
+        accessToken: accessToken || connection?.accessToken,
+      },
+    } as Record<string, unknown>);
+
+    if (live && typeof live.percentUsed === "number") {
+      // QuotaInfo.percentUsed is a 0–1 fraction used
+      const usedPct = Math.round(Math.min(100, Math.max(0, live.percentUsed * 100)));
+      return {
+        plan: "xAI OAuth (Grok) · Weekly",
+        quotas: {
+          weekly: createQuotaFromUsage(usedPct, 100, live.resetAt ?? null),
+        },
+      };
+    }
+  } catch (error) {
+    console.warn(
+      "[usage] xai-oauth live quota failed, falling back to self-track:",
+      (error as Error)?.message || error
+    );
+  }
+
+  try {
+    const { getMonthlyProviderTokensForConnection } = await import("@/lib/usage/usageStats");
+    const used =
+      getMonthlyProviderTokensForConnection("xai-oauth", connectionId) ||
+      getMonthlyProviderTokensForConnection("xao", connectionId) ||
+      0;
+    return {
+      plan: "xAI OAuth (Grok) · OmniRoute-tracked",
+      message:
+        "Live weekly quota unavailable; showing OmniRoute-routed token totals only.",
+      quotas: {
+        monthly: {
+          used,
+          total: 0,
+          remaining: 100,
+          remainingPercentage: 100,
+          resetAt: null,
+          unlimited: true,
+        } as UsageQuota,
+      },
+    };
+  } catch (error) {
+    return { message: `xAI OAuth usage error: ${(error as Error).message}` };
+  }
+}
+
+/**
  * OpenCode Go / OpenCode / OpenCode Zen Usage
  * Delegates to the dedicated opencodeQuotaFetcher and shapes the result into
  * the standard `{ plan, quotas }` usage response expected by the limits page.
@@ -539,6 +609,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "opencode-zen",
   "xiaomi-mimo",
   "xai",
+  "xai-oauth",
+  "xao",
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
@@ -628,16 +700,15 @@ export async function getUsageForProvider(
       return await getXiaomiMimoUsage(id || "");
     case "xai":
       return await getXaiUsage(id || "");
+    case "xai-oauth":
+    case "xao":
+      return await getXaiOauthUsage(id || "", accessToken, connection);
     case "codebuddy-cn":
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
     case "promptql":
     case "pql":
       // DDN lux JWTs carry projectId only in JWT aud; connection.projectId may be set by sync.
-      return await getPromptQlUsage(
-        apiKey || accessToken,
-        providerSpecificData,
-        projectId
-      );
+      return await getPromptQlUsage(apiKey || accessToken, providerSpecificData, projectId);
     case "adobe-firefly":
     case "firefly":
       // Cookie or IMS JWT in apiKey/accessToken → GET firefly.adobe.io/v1/credits/balance
