@@ -304,6 +304,7 @@ test("resolveProxyForConnection uses apiKey proxy before account-level proxy", a
     name: "api-key-proxy",
     apiKey: "sk-apikey-proxy",
   });
+  const connId = (conn as any).id;
 
   const accountProxy = await proxiesDb.createProxy({
     name: "Account Proxy",
@@ -311,17 +312,20 @@ test("resolveProxyForConnection uses apiKey proxy before account-level proxy", a
     host: "account.local",
     port: 8081,
   });
-  await proxiesDb.assignProxyToScope("account", (conn as any).id, accountProxy.id);
+  await proxiesDb.assignProxyToScope("account", connId, accountProxy.id);
 
   const key = await apiKeysDb.createApiKey("proxy-test-key", "machine-p1");
 
-  // Enable per-key proxy globally so the API key's proxy_id is honored
+  // Enable per-key proxy globally (master gate) and on the connection itself
+  // (#8385: the global toggle is a true AND-override, not an independent
+  // opt-in path — both must be on for the api-key-level proxy to apply).
   core
     .getDbInstance()
     .prepare(
       "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'perKeyProxyEnabled', 'true')"
     )
     .run();
+  await providersDb.updateProviderConnection(connId, { perKeyProxyEnabled: true });
 
   const apiKeyProxy = await proxiesDb.createProxy({
     name: "API Key Proxy",
@@ -331,7 +335,7 @@ test("resolveProxyForConnection uses apiKey proxy before account-level proxy", a
   });
   await apiKeysDb.updateApiKeyPermissions(key.id, { proxyId: apiKeyProxy.id });
 
-  const resolved = await settingsDb.resolveProxyForConnection((conn as any).id, key.id);
+  const resolved = await settingsDb.resolveProxyForConnection(connId, key.id);
   assert.ok(resolved);
   assert.equal((resolved as any).level, "apiKey");
   assert.equal((resolved as any).proxy.host, "apikey.local");
