@@ -1,0 +1,1 @@
+- fix(dashboard): persist compression engine detail settings (Headroom / session dedup / CCR) instead of dropping them on save (#8388)
