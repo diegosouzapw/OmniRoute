@@ -198,11 +198,14 @@ Coverage notes:
 
 ### Pull Request Requirements
 
-Before opening or merging a PR:
+Before opening a PR, run the focused loop for what you changed. The full unit suite
+(4 CI shards), Vitest, the **60%+** coverage gate, and the production build are CI's
+responsibility — running them locally adds no signal the PR checks will not already
+give you, and on smaller machines it can saturate the host (#8084):
 
-- Run `npm run test:unit`
-- Run `npm run test:coverage`
-- Ensure the coverage gate stays at **60%+** statements/lines/functions/branches
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
 - Include the changed or added test files in the PR description when production code changed
 - Check the SonarQube result on the PR when the project secrets are configured in CI
 

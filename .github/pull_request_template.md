@@ -9,10 +9,12 @@
 
 ## Validation
 
+Run only the focused loop for what you changed — the full unit suite, Vitest, the
+60% coverage gate, and the production build all run in CI on this PR (#8329):
+
+- [ ] Focused tests for the change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
 - [ ] `npm run lint`
-- [ ] `npm run test:unit`
-- [ ] `npm run test:coverage`
-- [ ] Coverage is still `>= 60%` for statements, lines, functions, and branches
+- [ ] Production-code changes include a new or updated automated test in this PR
 - [ ] SonarQube PR analysis is green or any remaining issues are explicitly documented below
 
 ## Tests Added Or Updated
