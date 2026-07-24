@@ -2064,6 +2064,13 @@ export async function markAccountUnavailable(
               ? fallbackResult.cooldownMs
               : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
+          // #6863 vs #7940: exactCooldownMs above is only ever set from a genuine
+          // upstream signal (Retry-After/reset header or a parsed quotaResetHintMs) —
+          // never a synthetic estimate — so it must bypass maxCooldownMs instead of
+          // being clamped down to a window the upstream already told us is wrong.
+          exactCooldownVerified:
+            fallbackResult.usedUpstreamRetryHint === true ||
+            typeof fallbackResult.quotaResetHintMs === "number",
         }
       );
       // Update last error for observability (without changing terminal status)
@@ -2133,6 +2140,10 @@ export async function markAccountUnavailable(
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
           maxCooldownMs: mlSettings.maxCooldownMs,
+          // #6863 vs #7940: only a genuine upstream retry hint bypasses maxCooldownMs;
+          // absent a hint, exactCooldownMs above is null and this falls through to the
+          // (still-capped) exponential-backoff branch.
+          exactCooldownVerified: fallbackResult.usedUpstreamRetryHint === true,
         }
       );
       updateProviderConnection(connectionId, {
