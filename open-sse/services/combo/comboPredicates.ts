@@ -188,6 +188,23 @@ export function isRequestScopedUpstreamFailure(error?: {
   return REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(code) || type === "context_length_exceeded";
 }
 
+const INPUT_BOUND_ERROR_CODES = new Set(["context_length_exceeded", "context_window_exceeded"]);
+
+/**
+ * #8375: Whether an upstream error is input-bound — i.e. determined solely by the
+ * request content, not by the provider/account state. A context_length_exceeded
+ * for a 159K-token input will fail on every account of that same model, so the
+ * combo loop should propagate the error immediately instead of retrying.
+ */
+export function isInputBoundRequestFailure(error?: {
+  code?: string | null;
+  type?: string | null;
+}): boolean {
+  const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
+  const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
+  return INPUT_BOUND_ERROR_CODES.has(code) || type === "context_length_exceeded";
+}
+
 /**
  * #7177: whether handleSingleModelChat should skip the connection-level cooldown
  * (markAccountUnavailable) for a failed attempt — client disconnects, a 401 when the
