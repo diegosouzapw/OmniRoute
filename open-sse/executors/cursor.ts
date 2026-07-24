@@ -64,8 +64,11 @@ import { promisify } from "node:util";
 import { toolChoiceDirectiveLine, buildCursorOutputConstraints } from "./cursor/prompt.ts";
 import {
   bridgeCursorBuiltinTool,
+  bridgeCursorNativeTodoWrite,
+  extractLatestTodoHistory,
   selectCursorBridgeTools,
   type CursorClientPlatform,
+  type CursorTodoHistoryItem,
 } from "./cursor/builtinToolBridge.ts";
 import {
   isComposerModel,
@@ -463,6 +466,7 @@ export function processFrame(
     mcpTools?: McpToolDefinition[];
     blobStore?: Map<string, Buffer>;
     clientPlatform?: CursorClientPlatform;
+    todoHistory?: CursorTodoHistoryItem[];
   } = {}
 ): void {
   // 1. JSON error envelope (Connect-RPC style — usually status > 200).
@@ -573,7 +577,18 @@ export function processFrame(
     return;
   }
   for (const d of deltas) {
-    if (d.kind === "text" && d.text) {
+    if (d.kind === "native_todo_write") {
+      const dedupKey = `native_todo_write:${d.toolCallId}`;
+      if (!ackedExecIds.has(dedupKey)) {
+        ackedExecIds.add(dedupKey);
+        const bridge = bridgeCursorNativeTodoWrite(d, opts.mcpTools ?? [], opts.todoHistory);
+        if (bridge) {
+          emitStructuredToolCall(ctx, bridge.toolName, bridge.arguments);
+          ctx.requiresColdResume = true;
+          ctx.endReason = "tool_calls";
+        }
+      }
+    } else if (d.kind === "text" && d.text) {
       if (!ctx.emittedRoleChunk) {
         emitChunk(ctx, { role: "assistant", content: "" });
         ctx.emittedRoleChunk = true;
@@ -987,6 +1002,7 @@ export class CursorExecutor extends BaseExecutor {
     mcpTools: McpToolDefinition[] | undefined,
     blobStore: Map<string, Buffer> | undefined,
     clientPlatform: CursorClientPlatform | undefined,
+    todoHistory: CursorTodoHistoryItem[] | undefined,
     signal?: AbortSignal
   ): Promise<void> {
     const ackedExecIds = new Set<string>();
@@ -1090,6 +1106,7 @@ export class CursorExecutor extends BaseExecutor {
                 mcpTools,
                 blobStore,
                 clientPlatform,
+                todoHistory,
               });
             } catch (err) {
               debugLog(
@@ -1148,6 +1165,7 @@ export class CursorExecutor extends BaseExecutor {
       : undefined;
     const mcpTools = selectCursorBridgeTools(declaredMcpTools, body.tool_choice);
     const clientPlatform = inferCursorClientPlatform(messages);
+    const todoHistory = extractLatestTodoHistory(messages);
 
     // Sanitize error messages: strip stack traces and absolute paths to
     // prevent information exposure. Shared helper in utils/error.ts.
@@ -1314,7 +1332,7 @@ export class CursorExecutor extends BaseExecutor {
           start: async (controller) => {
             const ctx = newStreamCtx(model, (s) => controller.enqueue(enc.encode(s)));
             try {
-              await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, signal);
+              await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, todoHistory, signal);
               this.finalizeSseStream(ctx, body);
               finishLifecycle(ctx, false);
               controller.close();
@@ -1344,7 +1362,7 @@ export class CursorExecutor extends BaseExecutor {
     // Non-streaming: drive to completion, return chat.completion JSON.
     const ctx = newStreamCtx(model, () => {});
     try {
-      await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, signal);
+      await this.driveH2(h2, ctx, mcpTools, blobStore, clientPlatform, todoHistory, signal);
     } catch (err) {
       finishLifecycle(ctx, true);
       const message = err instanceof Error ? err.message : String(err);
