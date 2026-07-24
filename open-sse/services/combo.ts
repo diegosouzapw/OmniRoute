@@ -2295,6 +2295,12 @@ export async function handleComboChat({
             fallbackResult.usedUpstreamRetryHint === true
               ? cooldownMs
               : (fallbackResult.quotaResetHintMs ?? 0);
+          // #6863 vs #7940: lockoutHintMs is only ever nonzero when it traces back to
+          // a genuine upstream signal (usedUpstreamRetryHint or a parsed quotaResetHintMs)
+          // — never a synthetic estimate. Tell recordModelLockoutFailure to honor it
+          // exactly instead of clamping it to maxCooldownMs (#7940's cap still applies
+          // to the exponential-backoff / synthetic-default paths).
+          const lockoutHintVerified = lockoutHintMs > 0;
           const selectedConnectionId =
             result.headers?.get("X-OmniRoute-Selected-Connection-Id") ||
             result.headers?.get("x-omniroute-selected-connection-id") ||
@@ -2441,9 +2447,12 @@ export async function handleComboChat({
                   profile,
                   {
                     // #1308/#6863: honor a long upstream reset (e.g. "Resets in 160h") over
-                    // the short base cooldown / exponential backoff when present.
+                    // the short base cooldown / exponential backoff when present. #7940's
+                    // maxCooldownMs cap only applies to synthetic values — a verified
+                    // upstream reset (lockoutHintVerified) bypasses it.
                     exactCooldownMs: selectLockoutCooldownMs(lockoutHintMs, mlSettings),
                     maxCooldownMs: mlSettings.maxCooldownMs,
+                    exactCooldownVerified: lockoutHintVerified,
                   }
                 );
                 lockoutRecorded = true;
@@ -2493,8 +2502,11 @@ export async function handleComboChat({
                 profile,
                 {
                   // #1308/#6863: honor a long upstream reset over base/exponential cooldown.
+                  // #7940's maxCooldownMs cap only applies to synthetic values — a verified
+                  // upstream reset (lockoutHintVerified) bypasses it.
                   exactCooldownMs: selectLockoutCooldownMs(lockoutHintMs, mlSettings),
                   maxCooldownMs: mlSettings.maxCooldownMs,
+                  exactCooldownVerified: lockoutHintVerified,
                 }
               );
             }
