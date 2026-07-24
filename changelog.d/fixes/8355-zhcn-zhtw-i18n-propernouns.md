@@ -1,0 +1,1 @@
+- **fix(i18n):** Restore brand/model proper nouns (Claude, OpenAI, Anthropic, Gemini, MiniMax, etc.) in zh-CN and zh-TW — replace Chinese phonetic/translation forms (克劳德/打开Ai/人择/双子座) with original English, unify "provider" translation to "供应商/供應商", and apply zh-TW localized terminology (網路/設定/檔案/新增/啟用/搜尋/儲存) instead of mainland defaults (#8355 — thanks @ikelvingo).
