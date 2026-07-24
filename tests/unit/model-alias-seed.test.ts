@@ -43,7 +43,7 @@ test("default model alias seed writes missing aliases and is idempotent", async 
 
   const routed = await sseModelService.getModelInfo("gemini-3.1-pro");
   assert.deepEqual(routed, {
-    provider: "agy",
+    provider: "antigravity",
     model: "gemini-pro-agent",
     extendedContext: false,
   });
