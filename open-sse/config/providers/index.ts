@@ -173,6 +173,7 @@ import { veoaifree_webProvider } from "./registry/veoaifree-web/index.ts";
 import { codexProvider } from "./registry/codex/index.ts";
 import { veniceProvider } from "./registry/venice/index.ts";
 import { kiroProvider } from "./registry/kiro/index.ts";
+import { amazonQProvider } from "./registry/amazonq/index.ts";
 import { openadapterProvider } from "./registry/openadapter/index.ts";
 import { ditProvider } from "./registry/dit/index.ts";
 import { tokenrouterProvider } from "./registry/tokenrouter/index.ts";
@@ -358,6 +359,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   codex: codexProvider,
   venice: veniceProvider,
   kiro: kiroProvider,
+  "amazon-q": amazonQProvider,
   byteplus: byteplusProvider,
   mimocode: mimocodeProvider,
   wafer: waferProvider,

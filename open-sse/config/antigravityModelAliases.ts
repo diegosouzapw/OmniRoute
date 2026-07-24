@@ -65,6 +65,38 @@ export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
     supportsVision: true,
     toolCalling: true,
   },
+  // Gemini 3.6 Flash tiers — live-probed via includeUnmapped discovery (2026-07-24):
+  // raw ids come back clean/unprefixed (gemini-3.6-flash-low/medium/high), same
+  // no-alias-needed pattern as gemini-3.1-pro-high below (#3696). A "Flash Lite" tier
+  // for this generation was NOT confirmed in the same probe — several distinct raw ids
+  // (gemini-2.5-flash, gemini-2.5-flash-lite, gemini-2.5-flash-thinking) all echoed the
+  // same "Gemini 3.1 Flash Lite" displayName, too ambiguous to add an entry from.
+  {
+    id: "gemini-3.6-flash-low",
+    name: "Gemini 3.6 Flash (Low)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.6-flash-medium",
+    name: "Gemini 3.6 Flash (Medium)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.6-flash-high",
+    name: "Gemini 3.6 Flash (High)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
   {
     id: "gemini-3-pro-preview",
     name: "Gemini 3.1 Pro",

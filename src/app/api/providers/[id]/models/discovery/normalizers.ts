@@ -82,10 +82,17 @@ export async function fetchAntigravityDiscoveryModelsCached(
   accessToken: string,
   connectionId: string,
   proxy: unknown,
-  providerSpecificData?: unknown
+  providerSpecificData?: unknown,
+  // #catalog-maintenance — when true, skip the user-callable filter and the
+  // client-id remap so callers can see every raw upstream id Google reports,
+  // not just the ones already present in ANTIGRAVITY_PUBLIC_MODELS. Used to
+  // discover newly-launched tiers (e.g. a Flash Lite variant) before they are
+  // added to the static catalog. Management-auth only (same guard this route
+  // already requires) — never exposed to unauthenticated/client callers.
+  includeUnmapped = false
 ): Promise<Array<{ id: string; name: string }>> {
   const profile = normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile);
-  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
+  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}:${includeUnmapped ? "raw" : "mapped"}`;
   const inflight = antigravityDiscoveryInflight.get(cacheKey);
   if (inflight) return inflight;
 
@@ -119,9 +126,10 @@ export async function fetchAntigravityDiscoveryModelsCached(
           continue;
         }
 
-        const models = filterUserCallableAntigravityModels(
-          normalizeAntigravityModelsResponse(await response.json())
-        ).map(mapAntigravityModelForClient);
+        const normalized = normalizeAntigravityModelsResponse(await response.json());
+        const models = includeUnmapped
+          ? normalized
+          : filterUserCallableAntigravityModels(normalized).map(mapAntigravityModelForClient);
         if (models.length > 0) {
           return models;
         }

@@ -123,6 +123,10 @@ export async function GET(
     const excludeHidden = searchParams.get("excludeHidden") === "true";
     const excludeCustom = searchParams.get("excludeCustom") === "true";
     const refresh = searchParams.get("refresh") === "true";
+    // #catalog-maintenance — raw upstream discovery for admins adding new tiers
+    // to the static catalog (see fetchAntigravityDiscoveryModelsCached). Already
+    // behind this route's requireManagementAuth; not client-reachable.
+    const includeUnmapped = searchParams.get("includeUnmapped") === "true";
 
     const connection = await getProviderConnectionById(id);
 
@@ -379,7 +383,7 @@ export async function GET(
     };
 
     const maybeReturnCachedDiscovery = () => {
-      if (!refresh && cachedDiscoveryModels.length > 0) {
+      if (!refresh && !includeUnmapped && cachedDiscoveryModels.length > 0) {
         return buildCachedDiscoveryResponse();
       }
       return null;
@@ -1390,9 +1394,22 @@ export async function GET(
         accessToken,
         connectionId,
         proxy,
-        connection.providerSpecificData
+        connection.providerSpecificData,
+        includeUnmapped
       );
       if (remoteModels.length > 0) {
+        // includeUnmapped is a read-only probe — never persist raw/unvetted
+        // upstream ids via buildApiDiscoveryResponse's persistDiscoveredModels
+        // (that would make them directly callable, bypassing the static
+        // catalog's user-callable allowlist and alias remapping).
+        if (includeUnmapped) {
+          return NextResponse.json({
+            provider,
+            connectionId,
+            models: remoteModels,
+            source: "api_raw_unpersisted",
+          });
+        }
         return buildApiDiscoveryResponse(remoteModels);
       }
 
