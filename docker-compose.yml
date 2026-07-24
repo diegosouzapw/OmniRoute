@@ -41,6 +41,7 @@ x-common: &common
     - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
     - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
     - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    - NODE_OPTIONS=--max-old-space-size=2048
   volumes:
     - ./data:/app/data
   healthcheck:
