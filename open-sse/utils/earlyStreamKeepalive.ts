@@ -187,7 +187,15 @@ export type EarlyStreamKeepaliveOptions = {
   errorFrame?: Uint8Array;
 };
 
-type SettledHandler = { ok: true; response: Response } | { ok: false; error: unknown };
+/**
+ * Tagged with a string rather than an `ok: true | false` boolean: this workspace compiles
+ * with `strictNullChecks: false`, where a boolean-literal discriminant narrows the positive
+ * branch but not the negative one — so reading `.error` off the rejected arm did not
+ * type-check. A string discriminant narrows both branches under the same settings.
+ */
+type SettledHandler =
+  | { status: "fulfilled"; response: Response }
+  | { status: "rejected"; error: unknown };
 
 export async function withEarlyStreamKeepalive(
   handlerPromise: Promise<Response>,
@@ -209,8 +217,8 @@ export async function withEarlyStreamKeepalive(
   // Settle into a tagged result so neither race branch leaves an unhandled
   // rejection when the threshold timer wins.
   const settled: Promise<SettledHandler> = handlerPromise.then(
-    (response) => ({ ok: true as const, response }),
-    (error) => ({ ok: false as const, error })
+    (response) => ({ status: "fulfilled" as const, response }),
+    (error) => ({ status: "rejected" as const, error })
   );
 
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -224,8 +232,9 @@ export async function withEarlyStreamKeepalive(
 
   if (raced.kind === "settled") {
     // Fast path — return verbatim, or rethrow so the route's normal error handling runs.
-    if (raced.result.ok) return raced.result.response;
-    throw raced.result.error;
+    const result = raced.result;
+    if (result.status === "fulfilled") return result.response;
+    throw result.error;
   }
 
   // Slow path — open the SSE stream now and keep it warm until the handler resolves.
@@ -287,13 +296,13 @@ export async function withEarlyStreamKeepalive(
         if (aborted) {
           // The synthetic keepalive response can be cancelled before the handler resolves.
           // Cancel the eventual real response so its upstream work and lifecycle hooks finish.
-          if (result.ok && result.response.body) {
+          if (result.status === "fulfilled" && result.response.body) {
             await result.response.body.cancel().catch(() => undefined);
           }
           return;
         }
 
-        if (!result.ok) {
+        if (result.status === "rejected") {
           // Handler rejected — emit a generic error frame (never the raw error/stack).
           controller.enqueue(errorFrame);
         } else {
