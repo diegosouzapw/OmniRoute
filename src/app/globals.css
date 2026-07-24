@@ -428,6 +428,91 @@ button .material-symbols-outlined,
   animation: border-glow 2s ease-in-out infinite;
 }
 
+/* Topology: router-core pulse (logo-only center node) + electric "kame beam" edge.
+ * Adapted from the 9Router usage topology. The center node shows only the logo,
+ * so there is no label-flicker here (unlike the source). Colors keep the electric
+ * cyan/green/amber signature but the core glow is mixed with --color-primary so it
+ * tracks the app theme. */
+@keyframes topology-router-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 6px #fde047,
+      0 0 14px color-mix(in srgb, var(--color-primary) 65%, transparent),
+      0 0 22px rgba(34, 211, 238, 0.38),
+      inset 0 0 7px rgba(253, 224, 71, 0.28);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow:
+      0 0 10px #fef08a,
+      0 0 20px #facc15,
+      0 0 30px rgba(34, 211, 238, 0.55),
+      inset 0 0 10px rgba(255, 255, 255, 0.22);
+  }
+}
+@keyframes topology-router-icon-shake {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 2px #fde047);
+  }
+  25% {
+    transform: rotate(-5deg) scale(1.08);
+    filter: drop-shadow(0 0 6px #facc15);
+  }
+  75% {
+    transform: rotate(5deg) scale(1.08);
+    filter: drop-shadow(0 0 6px #22d3ee);
+  }
+}
+@keyframes topology-edge-dash {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+@keyframes topology-edge-flicker {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  40% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.55;
+  }
+  70% {
+    opacity: 1;
+  }
+}
+.topology-router-core {
+  animation: topology-router-pulse 0.75s ease-in-out infinite;
+  border-color: #fde047 !important;
+}
+.topology-router-icon {
+  animation: topology-router-icon-shake 0.45s ease-in-out infinite;
+}
+.topology-router-badge {
+  box-shadow:
+    0 0 10px #fde047,
+    0 0 16px rgba(34, 211, 238, 0.6);
+}
+.topology-edge-kame {
+  stroke-dasharray: 8 6;
+  animation: topology-edge-dash 0.22s linear infinite;
+}
+.topology-edge-halo {
+  animation: topology-edge-flicker 0.18s steps(2) infinite;
+}
+.topology-edge-plasma {
+  stroke-dasharray: 14 10;
+  animation:
+    topology-edge-dash 0.18s linear infinite,
+    topology-edge-flicker 0.22s steps(3) infinite;
+}
+
 /* macOS Vibrancy/Blur Effect */
 .bg-vibrancy {
   backdrop-filter: blur(20px);

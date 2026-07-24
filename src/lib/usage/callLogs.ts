@@ -807,6 +807,14 @@ export async function getCallLogs(filter: any = {}) {
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
   }
+  if (filter.excludeTests) {
+    // Home "Recent Requests" is an allowlist of real provider inference, not a
+    // blacklist of known backend log types. Persisted provider requests enter via
+    // the public gateway namespaces (/v1/* or /api/v1/*); internal management work
+    // (connection tests, model sync, and future /api/providers/* jobs) does not.
+    // Apply this before LIMIT so backend rows can never displace real traffic.
+    conditions.push(`(cl.path LIKE '/v1/%' OR cl.path LIKE '/api/v1/%')`);
+  }
   if (filter.since) {
     conditions.push("cl.timestamp >= @since");
     params.since = filter.since instanceof Date ? filter.since.toISOString() : String(filter.since);

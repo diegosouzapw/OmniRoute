@@ -471,48 +471,42 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     >();
     const providerConfig = AI_PROVIDERS as Record<string, { name?: string }>;
 
-    // Connection-health per provider, so the topology node reflects "what is connected"
-    // at rest (green healthy / red error) instead of going blank between requests. A
-    // provider with ≥1 healthy connection is "active"; if none are healthy but some are
-    // errored it is "error"; otherwise "idle". Live/recent traffic still overrides this.
-    const healthByProvider = new Map<string, ProviderHealth>();
+    // A topology node is drawn ONLY for a provider that has at least one *enabled*
+    // connection (`isActive !== false`), deduplicated to one node per provider — this
+    // mirrors 9Router (`UsageStats.js` provider filter) and is the source of truth for
+    // "what is connected". We deliberately do NOT seed nodes from `providerMetrics`:
+    // that aggregates all-time `call_logs` with no time window and no connection check,
+    // so a provider that was ever called once — or merely connection-tested — used to
+    // linger as a ghost node forever after its connection was disabled or removed.
+    // Connection health only affects the node's rest colour (green connected / red
+    // errored); live + recent traffic still overrides it downstream via active/last/error.
     for (const stat of providerStats) {
+      // `connected` counts enabled connections whose test status is healthy/unknown;
+      // `errors` counts enabled connections that failed their test. Their sum is the
+      // number of enabled connections — disabled ones (isActive === false) are in
+      // neither, so a provider with only disabled connections is skipped here.
+      const enabled = stat.connected + stat.errors;
+      if (enabled <= 0) continue;
+
       const canonical = normalizeProviderId(stat.id);
-      if (!canonical) continue;
-      healthByProvider.set(
-        canonical,
-        stat.connected > 0 ? "active" : stat.errors > 0 ? "error" : "idle"
-      );
-    }
-
-    const addProvider = (providerId?: string | null, name?: string) => {
-      const rawProviderId = typeof providerId === "string" ? providerId.trim() : "";
-      if (!rawProviderId) return;
-
-      const canonicalProviderId = normalizeProviderId(rawProviderId);
-      if (!canonicalProviderId || byProvider.has(canonicalProviderId)) return;
+      if (!canonical || byProvider.has(canonical)) continue;
 
       const resolvedName =
-        getProviderDisplayLabel(rawProviderId, providerNodes) ||
-        name ||
-        providerConfig[canonicalProviderId]?.name ||
-        rawProviderId;
+        getProviderDisplayLabel(stat.id, providerNodes) ||
+        stat.provider?.name ||
+        providerConfig[canonical]?.name ||
+        stat.id;
 
-      byProvider.set(canonicalProviderId, {
-        id: canonicalProviderId,
-        provider: canonicalProviderId,
+      byProvider.set(canonical, {
+        id: canonical,
+        provider: canonical,
         name: resolvedName,
-        status: healthByProvider.get(canonicalProviderId) ?? "idle",
+        status: stat.connected > 0 ? "active" : "error",
       });
-    };
-
-    providerStats
-      .filter((provider) => provider.total > 0)
-      .forEach((provider) => addProvider(provider.id, provider.provider.name));
-    Object.keys(providerMetrics).forEach((provider) => addProvider(provider));
+    }
 
     return Array.from(byProvider.values());
-  }, [providerStats, providerMetrics, providerNodes]);
+  }, [providerStats, providerNodes]);
 
   const { lastProvider, errorProvider } = providerTopology;
 

@@ -36,7 +36,12 @@ export function edgeStyle(
 ): FlowEdgeStyle {
   if (error) return { stroke: FLOW_EDGE_COLORS.error, strokeWidth: 2, opacity: 0.85 };
   if (active) return { stroke: FLOW_EDGE_COLORS.active, strokeWidth: 2.5, opacity: 1 };
-  if (last) return { stroke: FLOW_EDGE_COLORS.last, strokeWidth: 1.5, opacity: 0.6 };
-  if (healthy) return { stroke: FLOW_EDGE_COLORS.active, strokeWidth: 1.5, opacity: 0.4 };
-  return { stroke: FLOW_EDGE_COLORS.idle, strokeWidth: 1, opacity: 0.3 };
+  // At rest the connectors must read as faint hairlines — only a live call (active)
+  // or a real error is allowed to stand out. `last` is a brief amber afterglow of the
+  // most-recent call that then fades; `idle` is barely-there. These were far too dark
+  // before (last 0.6 / idle 0.3), keeping every line prominent after traffic stopped —
+  // the "đường truyền vẫn đậm chưa nhạt bớt" report.
+  if (last) return { stroke: FLOW_EDGE_COLORS.last, strokeWidth: 1.25, opacity: 0.3 };
+  if (healthy) return { stroke: FLOW_EDGE_COLORS.active, strokeWidth: 1.25, opacity: 0.22 };
+  return { stroke: FLOW_EDGE_COLORS.idle, strokeWidth: 1, opacity: 0.12 };
 }
