@@ -405,8 +405,23 @@ export async function checkConnection(conn) {
   // CPU and network on every sweep cycle. Mirrors isTerminalConnectionStatus
   // in src/sse/services/auth.ts and TERMINAL_CONNECTION_STATUSES in
   // src/lib/quota/connectionRecovery.ts.
+  //
+  // #5326 exception: a GitHub Copilot access-token-only connection parked in
+  // "expired" with errorCode "no_refresh_token" is NOT actually terminal — it's
+  // the exact target of the self-heal below (canClearGitHubNoRefreshTokenState),
+  // which clears that stale status back to "active" once the Copilot sub-token
+  // proves usable. Treating it as terminal here made that self-heal unreachable,
+  // leaving healthy Copilot connections stuck at "expired" forever.
+  const isRecoverableGithubCopilotNoRefresh =
+    conn.testStatus === "expired" &&
+    conn.errorCode === "no_refresh_token" &&
+    isGitHubAccessTokenOnlyConnection(conn);
   const terminalStatuses = new Set(["credits_exhausted", "banned", "expired"]);
-  if (typeof conn.testStatus === "string" && terminalStatuses.has(conn.testStatus.toLowerCase())) {
+  if (
+    typeof conn.testStatus === "string" &&
+    terminalStatuses.has(conn.testStatus.toLowerCase()) &&
+    !isRecoverableGithubCopilotNoRefresh
+  ) {
     return;
   }
 
