@@ -1113,6 +1113,7 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",

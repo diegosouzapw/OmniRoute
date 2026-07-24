@@ -1113,6 +1113,7 @@
     "providerQuota": "Provayder Kvota",
     "runtime": "İcra müddəti",
     "consoleLogs": "Konsol qeydləri",
+    "logsTimeline": "Timeline",
     "globalRouting": "Qlobal marşrutlaşdırma",
     "mitmProxy": "MITM Proksi",
     "oneProxy": "1 Proksi",
