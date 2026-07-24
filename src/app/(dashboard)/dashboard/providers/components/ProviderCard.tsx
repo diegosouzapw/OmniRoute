@@ -166,6 +166,9 @@ const ProviderCard = forwardRef<HTMLDivElement, ProviderCardProps>(function Prov
   useImperativeHandle(ref, () => innerRef.current, []);
 
   useEffect(() => {
+    // Handle the case where the parent wants the card to be highlighted
+    // so the user's eye will be drawn to this card.
+    // There is a small animation that comes in and fades away.
     if (!shouldHighlight) {
       return;
     }

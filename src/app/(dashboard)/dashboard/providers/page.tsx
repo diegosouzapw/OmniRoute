@@ -210,10 +210,13 @@ export default function ProvidersPage() {
   });
 
   const handleProviderNavigate = useCallback((id: string) => {
+    // upon navigating to a provider, we want to set the providerId in the history state
+    // so that if the user refreshes the page, we can scroll it into view and highlight the provider card
     window.history.replaceState({ providerId: id }, "");
   }, []);
 
   const highlightedCardRef = useCallback(
+    // This gets invoked when the ref is assigned. We check to see if the card is the one that should be highlighted, and if so, we scroll it into view.
     (node: HTMLDivElement | null) => {
       if (node && highlightedProviderId && node.id === `provider-${highlightedProviderId}`) {
         node.scrollIntoView({ behavior: "auto", block: "center" });
