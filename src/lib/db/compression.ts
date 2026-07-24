@@ -40,6 +40,7 @@ import {
   normalizePreserveSystemPromptMode,
 } from "@omniroute/open-sse/services/compression/preserveSystemPromptMode.ts";
 import { maybePrewarmUltraSlmOnConfig } from "@omniroute/open-sse/services/compression/ultra.ts";
+import { applyDetailConfigUpdate, buildDetailConfigDefaults } from "./compressionDetailNormalizers";
 
 const NAMESPACE = "compression";
 const COMPRESSION_MODES = new Set<CompressionMode>([
@@ -612,6 +613,7 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
     aggressive: normalizeAggressiveConfig(undefined),
     ultra: normalizeUltraConfig(undefined),
     headroom: normalizeHeadroomConfig(undefined),
+    ...buildDetailConfigDefaults(),
     contextBudget: normalizeContextBudgetConfig(undefined),
     contextEditing: { ...DEFAULT_CONTEXT_EDITING_CONFIG },
     liveZone: { enabled: false },
@@ -723,6 +725,10 @@ export async function getCompressionSettings(): Promise<CompressionConfig> {
       case "headroom":
       case "headroomConfig":
         config.headroom = normalizeHeadroomConfig(parsed);
+        break;
+      case "sessionDedup":
+      case "ccr":
+        applyDetailConfigUpdate(config, key, parsed);
         break;
       case "contextBudget":
         config.contextBudget = normalizeContextBudgetConfig(parsed);
