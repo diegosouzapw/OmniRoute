@@ -200,6 +200,19 @@ export function findMatchingErrorRule(statusCode: number, message: unknown): Err
   return matchErrorRuleByText(message) || matchErrorRuleByStatus(statusCode);
 }
 
+// #8248: NVIDIA NIM function-state DEGRADED — some NIM deployments signal a non-standard
+// HTTP 400 whose body reports the backing "function" is DEGRADED (e.g. `Function id "<uuid>"
+// submitted for inference is DEGRADED`) instead of a clean model-not-found/5xx. Bounded
+// lookahead ({0,80}) — ReDoS-safe, no nested quantifiers.
+const NIM_FUNCTION_DEGRADED_PATTERNS = [
+  /\bfunction\b[\s\S]{0,80}?\bDEGRADED\b/i,
+  /\bDEGRADED\b[\s\S]{0,80}?\bfunction\b/i,
+];
+
+export function isNimFunctionDegraded(errorText: string): boolean {
+  return NIM_FUNCTION_DEGRADED_PATTERNS.some((p) => p.test(errorText));
+}
+
 export interface ServiceSupervisorCooldown {
   shouldFallback: true;
   cooldownMs: number;

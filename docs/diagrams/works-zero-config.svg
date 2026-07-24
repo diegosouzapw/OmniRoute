@@ -1,0 +1,117 @@
+<svg viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Works the second you install it — zero config. Three steps: 1. Install — npm install -g omniroute, one command, server on localhost port 20128. 2. Point your tool at http://localhost:20128/v1 — any OpenAI-compatible tool. 3. It answers — call model auto and get an instant reply with no API key, no signup, no configuration. Keyless free providers OpenCode Free and Felo are pre-wired into the auto combo, so a fresh install responds out of the box.">
+  <desc>Animated flow card: three step tiles (Install, Point your tool, It answers) fade in left to right, a dot travels along the connectors between them in a loop, and the final check pulses.</desc>
+  <defs>
+    <pattern id="gridW" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bgGlowW" cx="72%" cy="12%" r="60%">
+      <stop offset="0%" stop-color="#7ee787" stop-opacity="0.12"/>
+      <stop offset="55%" stop-color="#00cec9" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="430" fill="#0b0e14"/>
+  <rect width="1200" height="430" fill="url(#gridW)"/>
+  <rect width="1200" height="430" fill="url(#bgGlowW)"/>
+
+  <!-- header -->
+  <text x="40" y="56" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#7ee787">WORKS THE SECOND YOU INSTALL IT</text>
+  <line x1="392" y1="51" x2="1160" y2="51" stroke="#232b38" stroke-width="1.5"/>
+  <text x="40" y="98" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="23" font-weight="600" fill="#c9d1d9">Fresh install → it already answers. <tspan fill="#7ee787" font-weight="800">Zero config.</tspan></text>
+
+  <!-- connectors (drawn under the tiles) -->
+  <g stroke="#2b3543" stroke-width="2" stroke-dasharray="5 5" fill="none">
+    <path id="cW1" d="M 372 218 L 432 218"/>
+    <path id="cW2" d="M 767 218 L 827 218"/>
+  </g>
+  <!-- traveling dots along the connectors -->
+  <circle r="4" fill="#a78bfa">
+    <animateMotion dur="2.6s" begin="1.4s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+      <mpath href="#cW1"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.85;1" dur="2.6s" begin="1.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle r="4" fill="#7ee787">
+    <animateMotion dur="2.6s" begin="1.9s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+      <mpath href="#cW2"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.15;0.85;1" dur="2.6s" begin="1.9s" repeatCount="indefinite"/>
+  </circle>
+
+  <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif">
+
+    <!-- step 1: install (blue) -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="0.1s" fill="freeze"/>
+      <rect x="40" y="132" width="332" height="172" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="40" y="148" width="4" height="140" rx="2" fill="#0984e3"/>
+      <circle cx="80" cy="172" r="15" fill="#74b9ff" fill-opacity="0.12"/>
+      <text x="80" y="178" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="800" fill="#74b9ff">1</text>
+      <g transform="translate(108,161)" stroke="#74b9ff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 11 2 L 11 15 M 6 10 L 11 15 L 16 10"/>
+        <path d="M 3 19 L 19 19"/>
+      </g>
+      <text x="140" y="179" font-size="18" font-weight="800" fill="#74b9ff">Install</text>
+      <text x="66" y="222" font-family="Consolas, 'Courier New', monospace" font-size="14" fill="#e6edf3">$ npm i -g omniroute</text>
+      <text x="66" y="258" font-size="13.5" fill="#a1a1aa">One command. Server boots on</text>
+      <text x="66" y="279" font-family="Consolas, 'Courier New', monospace" font-size="13" fill="#8b949e">localhost:20128</text>
+    </g>
+
+    <!-- step 2: point your tool (violet) -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="0.5s" fill="freeze"/>
+      <rect x="435" y="132" width="332" height="172" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="435" y="148" width="4" height="140" rx="2" fill="#8b5cf6"/>
+      <circle cx="475" cy="172" r="15" fill="#a78bfa" fill-opacity="0.12"/>
+      <text x="475" y="178" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="800" fill="#a78bfa">2</text>
+      <g transform="translate(503,161)" stroke="#a78bfa" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 8 6 L 5 9 A 4 4 0 0 0 5 15 L 8 18 M 14 6 L 17 9 A 4 4 0 0 1 17 15 L 14 18 M 8.5 12 L 13.5 12"/>
+      </g>
+      <text x="535" y="179" font-size="18" font-weight="800" fill="#a78bfa">Point your tool</text>
+      <text x="461" y="222" font-family="Consolas, 'Courier New', monospace" font-size="13" fill="#e6edf3">http://localhost:20128/v1</text>
+      <text x="461" y="258" font-size="13.5" fill="#a1a1aa">Any OpenAI-compatible tool —</text>
+      <text x="461" y="279" font-size="13.5" fill="#a1a1aa">Claude Code, Cursor, Cline…</text>
+    </g>
+
+    <!-- step 3: it answers (green) -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1" dur="0.5s" begin="0.9s" fill="freeze"/>
+      <rect x="830" y="132" width="330" height="172" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="830" y="132" width="330" height="172" rx="14" fill="none" stroke="#7ee787" stroke-width="1.5" opacity="0">
+        <animate attributeName="opacity" values="0;0.9;0" keyTimes="0;0.5;1" dur="2.6s" begin="3.2s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="830" y="148" width="4" height="140" rx="2" fill="#22c55e"/>
+      <circle cx="870" cy="172" r="15" fill="#7ee787" fill-opacity="0.12"/>
+      <text x="870" y="178" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="15" font-weight="800" fill="#7ee787">3</text>
+      <g transform="translate(898,161)" stroke="#7ee787" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 3 11 L 9 17 L 19 5"/>
+      </g>
+      <text x="930" y="179" font-size="18" font-weight="800" fill="#7ee787">It answers</text>
+      <text x="856" y="222" font-family="Consolas, 'Courier New', monospace" font-size="14" fill="#e6edf3">model: <tspan fill="#7ee787" font-weight="700">"auto"</tspan> → reply</text>
+      <text x="856" y="258" font-size="13.5" fill="#a1a1aa">Instant. OmniRoute builds a virtual</text>
+      <text x="856" y="279" font-size="13.5" fill="#a1a1aa">combo from keyless free providers.</text>
+    </g>
+  </g>
+
+  <!-- "no ___" chips -->
+  <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="700" opacity="0">
+    <animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.3s" fill="freeze"/>
+    <g transform="translate(40,332)">
+      <rect x="0" y="0" width="168" height="34" rx="17" fill="#161b22" stroke="#7ee787" stroke-opacity="0.35" stroke-width="1"/>
+      <text x="24" y="22" fill="#c9d1d9">✕ no API key</text>
+    </g>
+    <g transform="translate(224,332)">
+      <rect x="0" y="0" width="168" height="34" rx="17" fill="#161b22" stroke="#7ee787" stroke-opacity="0.35" stroke-width="1"/>
+      <text x="24" y="22" fill="#c9d1d9">✕ no signup</text>
+    </g>
+    <g transform="translate(408,332)">
+      <rect x="0" y="0" width="188" height="34" rx="17" fill="#161b22" stroke="#7ee787" stroke-opacity="0.35" stroke-width="1"/>
+      <text x="24" y="22" fill="#c9d1d9">✕ no configuration</text>
+    </g>
+  </g>
+
+  <!-- footer -->
+  <text x="40" y="406" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">OpenCode Free &#38; Felo are pre-wired into <tspan fill="#7ee787">auto</tspan> — a fresh install responds out of the box.</text>
+  <text x="1160" y="406" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" letter-spacing="1.5" fill="#71717a">$0 · MIT</text>
+</svg>

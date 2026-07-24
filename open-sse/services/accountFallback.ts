@@ -12,6 +12,7 @@ import {
   matchErrorRuleByText,
   matchErrorRuleByStatus,
   serviceSupervisorCooldown,
+  isNimFunctionDegraded,
 } from "../config/errorConfig.ts";
 import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
 import * as rot from "./rotationConfig.ts";
@@ -586,7 +587,22 @@ export function recordModelLockoutFailure(
   status: number,
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null,
-  options: { exactCooldownMs?: number | null; maxCooldownMs?: number } = {}
+  options: {
+    exactCooldownMs?: number | null;
+    maxCooldownMs?: number;
+    /**
+     * #6863 vs #7940: set true only when `exactCooldownMs` was parsed/verified from
+     * an actual upstream signal (Retry-After header, X-RateLimit-Reset, or a reset
+     * parsed from the error body — i.e. `usedUpstreamRetryHint`/`quotaResetHintMs`
+     * from `checkFallbackError`). A verified reset is honored exactly, even past
+     * `maxCooldownMs` — a real "Resets in 92h" must not be clamped down to minutes,
+     * or the router hammers 429 against quota that is known not to come back.
+     * Leave false/omitted for SYNTHETIC estimates (e.g. the quota_exhausted
+     * until-midnight default below, or plain exponential backoff) — those stay
+     * capped, per #7940.
+     */
+    exactCooldownVerified?: boolean;
+  } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model, reason, status);
@@ -609,15 +625,19 @@ export function recordModelLockoutFailure(
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
 
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  // Cap both exponential backoff and exact cooldowns (e.g. daily-quota
-  // until-midnight) against maxCooldownMs so user-configured caps are honored.
+  // Cap exponential backoff and SYNTHETIC exact cooldowns (e.g. the daily-quota
+  // until-midnight heuristic below) against maxCooldownMs so user-configured caps
+  // are honored (#7940). A caller-VERIFIED exact cooldown (#6863 — parsed from an
+  // actual upstream Retry-After/reset signal, see `exactCooldownVerified` above)
+  // bypasses the cap instead of being clamped to a window the upstream already
+  // told us is wrong.
   const maxCooldownMs =
     typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
       ? options.maxCooldownMs
       : null;
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? maxCooldownMs !== null
+      ? maxCooldownMs !== null && !options.exactCooldownVerified
         ? Math.min(options.exactCooldownMs, maxCooldownMs)
         : options.exactCooldownMs
       : Math.min(
@@ -1519,8 +1539,8 @@ export function checkFallbackError(
       }
     }
 
-    // T10 (sub2api #1169): Credits/quota exhausted — long cooldown, distinct from rate limit
-    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr)) {
+    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped.
+    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr) && !isCompatibleProvider(provider)) {
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
@@ -1697,8 +1717,8 @@ export function checkFallbackError(
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
     const isParamValidation = PARAM_VALIDATION_PATTERNS.some((p) => p.test(errorStr));
     const isModelAccessDenied = isModelAccessDeniedStructured || matchesModelAccessPattern;
-
-    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied) {
+    const isNimDegraded = isNimFunctionDegraded(errorStr);
+    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied || isNimDegraded) {
       return {
         shouldFallback: true,
         cooldownMs: 0,

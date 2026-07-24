@@ -6,8 +6,33 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 const mod = await import("../../open-sse/executors/notion-web.ts");
+const { __setTlsFetchOverrideForTesting } = await import(
+  "../../open-sse/services/notionTlsClient.ts"
+);
 
 const COOKIE_WITH_SPACE = "token_v2=xyz; space_id=space-1; notion_user_id=user-1";
+
+/** Mock the Chrome-JA3 path used by sendNotionInferenceRequest (not global fetch). */
+function installNotionTlsMock(
+  handler: (url: string, opts: { headers?: Record<string, string>; body?: string }) => Promise<{
+    status: number;
+    text: string;
+  }>
+): () => void {
+  __setTlsFetchOverrideForTesting(async (url, options) => {
+    const r = await handler(url, {
+      headers: options.headers as Record<string, string> | undefined,
+      body: options.body,
+    });
+    return {
+      status: r.status,
+      headers: new Headers(),
+      text: r.text,
+      body: null,
+    };
+  });
+  return () => __setTlsFetchOverrideForTesting(null);
+}
 
 describe("Notion thread session continuity", () => {
   const {
@@ -119,50 +144,48 @@ describe("Notion thread session continuity", () => {
     const executor = new NotionWebExecutor();
     const captured: Array<{ createThread?: boolean; threadId?: string }> = [];
     let n = 0;
-    const originalFetch = globalThis.fetch;
-    try {
-      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
-        const body = JSON.parse(String(opts.body)) as {
-          createThread?: boolean;
-          threadId?: string;
+    const restore = installNotionTlsMock(async (_url, opts) => {
+      const body = JSON.parse(String(opts.body)) as {
+        createThread?: boolean;
+        threadId?: string;
+      };
+      captured.push(body);
+      n++;
+      if (n === 1) {
+        return {
+          status: 200,
+          text: JSON.stringify({
+            id: "e1",
+            type: "error",
+            message: "Something went wrong. Please try again later.",
+            subType: "temporarily-unavailable",
+            isRetryable: false,
+          }),
         };
-        captured.push(body);
-        n++;
-        if (n === 1) {
-          return new Response(
-            JSON.stringify({
-              id: "e1",
-              type: "error",
-              message: "Something went wrong. Please try again later.",
-              subType: "temporarily-unavailable",
-              isRetryable: false,
-            }),
-            { status: 200 }
-          );
-        }
-        const ndjson = [
-          JSON.stringify({ type: "patch-start", data: { s: [] } }),
-          JSON.stringify({
-            type: "record-map",
-            recordMap: {
-              thread_message: {
-                m1: {
+      }
+      const ndjson = [
+        JSON.stringify({ type: "patch-start", data: { s: [] } }),
+        JSON.stringify({
+          type: "record-map",
+          recordMap: {
+            thread_message: {
+              m1: {
+                value: {
                   value: {
-                    value: {
-                      step: {
-                        type: "agent-inference",
-                        value: [{ type: "text", content: "recovered" }],
-                      },
+                    step: {
+                      type: "agent-inference",
+                      value: [{ type: "text", content: "recovered" }],
                     },
                   },
                 },
               },
             },
-          }),
-        ].join("\n");
-        return new Response(ndjson, { status: 200 });
-      }) as typeof fetch;
-
+          },
+        }),
+      ].join("\n");
+      return { status: 200, text: ndjson };
+    });
+    try {
       const result = await executor.execute({
         model: "fable-5",
         body: { messages: turn1 },
@@ -178,7 +201,7 @@ describe("Notion thread session continuity", () => {
       const json = (await result.response.json()) as { choices?: { message?: { content?: string } }[] };
       assert.match(String(json.choices?.[0]?.message?.content || ""), /recovered/);
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
       __resetNotionThreadSessionsForTests();
     }
   });
@@ -206,33 +229,31 @@ describe("Notion thread session continuity", () => {
     __resetNotionThreadSessionsForTests();
     const executor = new mod.NotionWebExecutor();
     const captured: Array<{ createThread?: boolean; threadId?: string }> = [];
-    const originalFetch = globalThis.fetch;
-    try {
-      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
-        captured.push(JSON.parse(String(opts.body)));
-        const ndjson = [
-          JSON.stringify({ type: "patch-start", data: { s: [] } }),
-          JSON.stringify({
-            type: "record-map",
-            recordMap: {
-              thread_message: {
-                m1: {
+    const restore = installNotionTlsMock(async (_url, opts) => {
+      captured.push(JSON.parse(String(opts.body)));
+      const ndjson = [
+        JSON.stringify({ type: "patch-start", data: { s: [] } }),
+        JSON.stringify({
+          type: "record-map",
+          recordMap: {
+            thread_message: {
+              m1: {
+                value: {
                   value: {
-                    value: {
-                      step: {
-                        type: "agent-inference",
-                        value: [{ type: "text", content: "ok" }],
-                      },
+                    step: {
+                      type: "agent-inference",
+                      value: [{ type: "text", content: "ok" }],
                     },
                   },
                 },
               },
             },
-          }),
-        ].join("\n");
-        return new Response(ndjson, { status: 200 });
-      }) as typeof fetch;
-
+          },
+        }),
+      ].join("\n");
+      return { status: 200, text: ndjson };
+    });
+    try {
       const r1 = await executor.execute({
         model: "fable-5",
         body: { messages: [{ role: "user", content: "hello continuity" }] },
@@ -265,7 +286,7 @@ describe("Notion thread session continuity", () => {
       assert.equal(captured[1].createThread, false);
       assert.equal(captured[1].threadId, t1);
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
       __resetNotionThreadSessionsForTests();
     }
   });
@@ -276,38 +297,36 @@ describe("Notion thread session continuity", () => {
     const pinned = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
     let capturedCreateThread: boolean | undefined;
     let capturedThreadId: string | undefined;
-    const originalFetch = globalThis.fetch;
-    try {
-      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
-        const body = JSON.parse(String(opts.body)) as {
-          createThread?: boolean;
-          threadId?: string;
-        };
-        capturedCreateThread = body.createThread;
-        capturedThreadId = body.threadId;
-        const ndjson = [
-          JSON.stringify({ type: "patch-start", data: { s: [] } }),
-          JSON.stringify({
-            type: "record-map",
-            recordMap: {
-              thread_message: {
-                m1: {
+    const restore = installNotionTlsMock(async (_url, opts) => {
+      const body = JSON.parse(String(opts.body)) as {
+        createThread?: boolean;
+        threadId?: string;
+      };
+      capturedCreateThread = body.createThread;
+      capturedThreadId = body.threadId;
+      const ndjson = [
+        JSON.stringify({ type: "patch-start", data: { s: [] } }),
+        JSON.stringify({
+          type: "record-map",
+          recordMap: {
+            thread_message: {
+              m1: {
+                value: {
                   value: {
-                    value: {
-                      step: {
-                        type: "agent-inference",
-                        value: [{ type: "text", content: "ok" }],
-                      },
+                    step: {
+                      type: "agent-inference",
+                      value: [{ type: "text", content: "ok" }],
                     },
                   },
                 },
               },
             },
-          }),
-        ].join("\n");
-        return new Response(ndjson, { status: 200 });
-      }) as typeof fetch;
-
+          },
+        }),
+      ].join("\n");
+      return { status: 200, text: ndjson };
+    });
+    try {
       // Real ExecuteInput shape: clientHeaders only (headers is undefined).
       const result = await executor.execute({
         model: "fable-5",
@@ -323,7 +342,7 @@ describe("Notion thread session continuity", () => {
       // Client-supplied thread id must force follow-up mode (createThread=false).
       assert.equal(capturedCreateThread, false);
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
       __resetNotionThreadSessionsForTests();
     }
   });

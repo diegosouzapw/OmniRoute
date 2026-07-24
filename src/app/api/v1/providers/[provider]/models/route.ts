@@ -3,6 +3,7 @@ import { getServiceModels } from "@/lib/db/serviceModels";
 import { isServiceBackendPluginId } from "@/lib/services/serviceBackends";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { getProviderById, getProviderByAlias } from "@/shared/constants/providers";
+import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
 
 /**
  * Handle CORS preflight
@@ -51,9 +52,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ prov
       providerAlias = catalogEntry.alias || providerId;
     } else {
       // Allow fetching models by connection ID for compatible providers
-      const isCompatibleConnectionId = /^(openai|anthropic)-compatible-chat-[a-f0-9-]+$/.test(
-        rawProvider
-      );
+      const isCompatibleConnectionId = isCompatibleProviderConnectionId(rawProvider);
       if (!isCompatibleConnectionId) {
         return Response.json(
           {

@@ -1,6 +1,6 @@
 {
   "name": "@omniroute/opencode-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "OpenCode plugin for the OmniRoute AI Gateway. Drives dynamic model discovery, /connect auth flow, and multi-instance OmniRoute providers via the official @opencode-ai/plugin contract.",
   "type": "module",
   "main": "./dist/index.js",
@@ -23,7 +23,7 @@
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
-    "test": "node --import tsx/esm --test tests/scaffold.test.ts tests/auth.test.ts tests/options-schema.test.ts tests/multi-instance.test.ts tests/fetch-interceptor.test.ts tests/provider.test.ts tests/gemini-sanitize.test.ts tests/combos.test.ts tests/config-shim.test.ts tests/features.test.ts tests/usable-combo.test.ts tests/disk-snapshot-perms.test.ts tests/fork-features.test.ts tests/auto-combo-context.test.ts tests/provider-id-routing.test.ts tests/management-read-token.test.ts",
+    "test": "node --import tsx/esm --test tests/scaffold.test.ts tests/auth.test.ts tests/options-schema.test.ts tests/multi-instance.test.ts tests/fetch-interceptor.test.ts tests/provider.test.ts tests/gemini-sanitize.test.ts tests/combos.test.ts tests/config-shim.test.ts tests/features.test.ts tests/usable-combo.test.ts tests/disk-snapshot-perms.test.ts tests/fork-features.test.ts tests/auto-combo-context.test.ts tests/provider-id-routing.test.ts tests/management-read-token.test.ts tests/auto-sync.test.ts",
     "prepublishOnly": "npm run clean && npm run build && npm test"
   },
   "keywords": [

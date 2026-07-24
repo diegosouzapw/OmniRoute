@@ -9,6 +9,11 @@ export const KIMI_CODING_MODELS: RegistryModel[] = [
     name: "Kimi K3",
     contextLength: 1048576,
     supportsReasoning: true,
+    // NOTE: supportsVision intentionally left unset here — this static/stable
+    // fallback catalog must stay text-only per #4071. The Kimi K3 vision
+    // capability is applied on the discovered path via MODEL_SPECS["kimi-k3"]
+    // (aliases: ["k3"]) and modelCapabilities.ts::resolveVisionCapability
+    // (#8250), not on this registry fallback entry.
   },
   {
     id: "kimi-for-coding",

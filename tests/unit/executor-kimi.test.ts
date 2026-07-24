@@ -5,10 +5,15 @@ import {
   KIMI_CODING_ANTHROPIC_URL,
   KIMI_CODING_OPENAI_URL,
 } from "../../open-sse/config/providers/registry/kimi/coding/runtime.ts";
+import { REGISTRY } from "../../open-sse/config/providers/index.ts";
+import { getExecutor } from "../../open-sse/executors/index.ts";
 import { KimiExecutor } from "../../open-sse/executors/kimi.ts";
+import { MoonshotExecutor } from "../../open-sse/executors/moonshot.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
+import { resolveStreamFlag } from "../../open-sse/utils/aiSdkCompat.ts";
 
 type TransformedBody = {
+  stream?: boolean;
   thinking?: Record<string, unknown>;
   output_config?: Record<string, unknown>;
   context_management?: Record<string, unknown>;
@@ -39,6 +44,39 @@ function credentials(
 }
 
 describe("KimiExecutor", () => {
+  it("forces the primary Kimi upstream to stream while preserving JSON client semantics", () => {
+    assert.equal(REGISTRY.kimi?.forceStream, true);
+
+    const executor = getExecutor("kimi");
+    assert.ok(executor instanceof MoonshotExecutor);
+    assert.equal(
+      executor.buildUrl("kimi-k2.5", true, 0, credentials(FORMATS.OPENAI)),
+      "https://api.moonshot.ai/v1/chat/completions"
+    );
+
+    const transformed = executor.transformRequest(
+      "kimi-k2.5",
+      { stream: false, messages: [{ role: "user", content: "hi" }] },
+      true,
+      credentials(FORMATS.OPENAI)
+    ) as TransformedBody;
+
+    assert.equal(transformed.stream, true);
+    assert.equal(resolveStreamFlag(false, "application/json", "openai"), false);
+  });
+
+  it("keeps explicit non-stream mode when the executor is not asked to stream", () => {
+    const executor = new KimiExecutor();
+    const transformed = executor.transformRequest(
+      "k3",
+      { stream: false, messages: [{ role: "user", content: "hi" }] },
+      false,
+      credentials(FORMATS.OPENAI)
+    ) as TransformedBody;
+
+    assert.equal(transformed.stream, false);
+  });
+
   it("routes OAuth OpenAI models to chat/completions with CLI identity headers", () => {
     const executor = new KimiExecutor();
     const creds = credentials(FORMATS.OPENAI);

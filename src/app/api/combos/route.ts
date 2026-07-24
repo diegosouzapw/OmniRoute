@@ -16,6 +16,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { comboErrorResponse } from "@/lib/api/comboErrorResponse";
 import { computeComboContextLength } from "@/lib/combos/comboContext";
+import { ComboInvariantError } from "@/lib/combos/invariants";
 
 // GET /api/combos - Get all combos
 export async function GET(request: Request) {
@@ -121,6 +122,9 @@ export async function POST(request) {
 
     return NextResponse.json(combo, { status: 201 });
   } catch (error) {
+    if (error instanceof ComboInvariantError) {
+      return comboErrorResponse("COMBO_008", 400, { reason: error.message }, request);
+    }
     console.log("Error creating combo:", error);
     return NextResponse.json({ error: "Failed to create combo" }, { status: 500 });
   }

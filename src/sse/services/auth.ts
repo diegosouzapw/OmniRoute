@@ -75,6 +75,7 @@ import {
 } from "./sessionAffinityPin";
 import { isNoAuthProviderBlockedBySettings } from "./noAuthProviderSettings";
 import { resolveAccountProxiesFromRegistry } from "./noAuthProxyResolution";
+import { getNoAuthHydrationProviderIds } from "./noAuthProviderSiblings";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
 
@@ -373,10 +374,21 @@ function isTerminalConnectionStatus(connection: ProviderConnectionView): boolean
   return status === "credits_exhausted" || status === "banned" || status === "expired";
 }
 
+// #8200: cookie-auth providers (perplexity-web, grok-web, ...) use a rotating browser
+// session, not a static API key — a 401 means "session needs a refresh", not "dead".
+function isRecoverableCookieAuth401(provider: string | null, providerErrorType: string | null): boolean {
+  return (
+    providerErrorType !== PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED &&
+    provider != null &&
+    resolveProviderId(provider) in WEB_COOKIE_PROVIDERS
+  );
+}
+
 function resolveTerminalConnectionStatus(
   status: number,
   result: { permanent?: boolean; creditsExhausted?: boolean },
-  providerErrorType: string | null = null
+  providerErrorType: string | null = null,
+  provider: string | null = null
 ): string | null {
   if (result.creditsExhausted || status === 402) return "credits_exhausted";
   if (
@@ -389,9 +401,10 @@ function resolveTerminalConnectionStatus(
     return "banned";
   }
   if (
-    providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
-    providerErrorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED ||
-    status === 401
+    (providerErrorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED ||
+      providerErrorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED ||
+      status === 401) &&
+    !isRecoverableCookieAuth401(provider, providerErrorType)
   ) {
     return "expired";
   }
@@ -716,28 +729,40 @@ function buildSyntheticNoAuthCredentials(providerSpecificData: JsonRecord = {}):
   };
 }
 
+/** Merge one connection's fingerprints/accountProxies into `hydrated`, first-wins. */
+function mergeNoAuthProviderSpecificData(hydrated: JsonRecord, conn: { providerSpecificData?: unknown }): void {
+  const psd = conn.providerSpecificData;
+  if (!psd || typeof psd !== "object") return;
+  const record = psd as JsonRecord;
+  if (Array.isArray(record.fingerprints) && !Array.isArray(hydrated.fingerprints)) {
+    hydrated.fingerprints = record.fingerprints;
+  }
+  if (Array.isArray(record.accountProxies) && !Array.isArray(hydrated.accountProxies)) {
+    hydrated.accountProxies = record.accountProxies;
+  }
+}
+
 /**
  * #4954 / #5217 (Gap 1) — no-auth providers persist a connection row whose
  * `providerSpecificData` carries `fingerprints` + `accountProxies`. Hydrate those
  * and resolve by-id Proxy Pool references to live records (./noAuthProxyResolution)
  * so the executor gets a resolved inline `proxy`. Best-effort: failures → empty.
+ *
+ * #7993: also checks sibling ids (e.g. "opencode-zen" -> "opencode") so a
+ * proxy/fingerprint row saved under the no-auth id is still found when
+ * credentials are hydrated for the apikey-gateway id that shares its public
+ * endpoint.
  */
 async function loadNoAuthProviderSpecificData(providerId: string): Promise<JsonRecord> {
   try {
-    const connectionsRaw = await getProviderConnections({ provider: providerId });
-    const connections = (Array.isArray(connectionsRaw) ? connectionsRaw : []).map(
-      toProviderConnection
-    );
+    const providerIdsToQuery = getNoAuthHydrationProviderIds(providerId);
     const hydrated: JsonRecord = {};
-    for (const conn of connections) {
-      const psd = conn.providerSpecificData;
-      if (!psd || typeof psd !== "object") continue;
-      if (Array.isArray(psd.fingerprints) && !Array.isArray(hydrated.fingerprints)) {
-        hydrated.fingerprints = psd.fingerprints;
-      }
-      if (Array.isArray(psd.accountProxies) && !Array.isArray(hydrated.accountProxies)) {
-        hydrated.accountProxies = psd.accountProxies;
-      }
+    for (const pid of providerIdsToQuery) {
+      const connectionsRaw = await getProviderConnections({ provider: pid });
+      const connections = (Array.isArray(connectionsRaw) ? connectionsRaw : []).map(
+        toProviderConnection
+      );
+      for (const conn of connections) mergeNoAuthProviderSpecificData(hydrated, conn);
     }
     if (Array.isArray(hydrated.accountProxies)) {
       hydrated.accountProxies = await resolveAccountProxiesFromRegistry(hydrated.accountProxies);
@@ -2039,6 +2064,13 @@ export async function markAccountUnavailable(
               ? fallbackResult.cooldownMs
               : (fallbackResult.quotaResetHintMs ?? null),
           maxCooldownMs: mlSettings.maxCooldownMs,
+          // #6863 vs #7940: exactCooldownMs above is only ever set from a genuine
+          // upstream signal (Retry-After/reset header or a parsed quotaResetHintMs) —
+          // never a synthetic estimate — so it must bypass maxCooldownMs instead of
+          // being clamped down to a window the upstream already told us is wrong.
+          exactCooldownVerified:
+            fallbackResult.usedUpstreamRetryHint === true ||
+            typeof fallbackResult.quotaResetHintMs === "number",
         }
       );
       // Update last error for observability (without changing terminal status)
@@ -2086,7 +2118,8 @@ export async function markAccountUnavailable(
     const terminalStatus = resolveTerminalConnectionStatus(
       status,
       result as { permanent?: boolean; creditsExhausted?: boolean },
-      providerErrorType
+      providerErrorType,
+      provider
     );
     const cooldownMs = terminalStatus ? 0 : rawCooldownMs;
 
@@ -2107,6 +2140,10 @@ export async function markAccountUnavailable(
           exactCooldownMs:
             fallbackResult.usedUpstreamRetryHint === true ? fallbackResult.cooldownMs : null,
           maxCooldownMs: mlSettings.maxCooldownMs,
+          // #6863 vs #7940: only a genuine upstream retry hint bypasses maxCooldownMs;
+          // absent a hint, exactCooldownMs above is null and this falls through to the
+          // (still-capped) exponential-backoff branch.
+          exactCooldownVerified: fallbackResult.usedUpstreamRetryHint === true,
         }
       );
       updateProviderConnection(connectionId, {

@@ -274,7 +274,7 @@
     "material-symbols": "^0.45.2",
     "mermaid": "^11.15.0",
     "monaco-editor": "^0.56.0",
-    "next": "^16.2.6",
+    "next": "^16.2.11",
     "next-intl": "^4.12.0",
     "next-themes": "^0.4.6",
     "node-machine-id": "^1.1.12",

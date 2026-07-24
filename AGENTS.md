@@ -570,12 +570,16 @@ This repository is a fork of `diegosouzapw/OmniRoute`. Keep fork-only operationa
 changes (for example GHCR image publishing, personal deployment workflows, or local
 automation) out of upstream contribution PRs.
 
-When preparing a PR for upstream, always start the work branch from `upstream/main`,
-not from this fork's `main`:
+When preparing a PR for upstream, always start the work branch from the upstream
+**default branch** — the active `release/vX.Y.Z` line (today `release/v3.8.49`).
+Never branch from `main`: `main` only receives release squash-merges, so a branch
+cut there is weeks behind and produces conflict-heavy PRs
+(see `CONTRIBUTING.md` and `docs/ops/BRANCHING_MODEL.md`):
 
 ```bash
 git fetch upstream
-git switch -c <branch-name> upstream/main
+# the default branch is the active release line, e.g. release/v3.8.49
+git switch -c <branch-name> upstream/release/vX.Y.Z
 ```
 
 Only cherry-pick or reapply the changes intended for the upstream PR.
