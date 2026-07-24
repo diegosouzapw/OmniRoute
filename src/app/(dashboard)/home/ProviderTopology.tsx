@@ -2,11 +2,13 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Handle, Position, type Node, type Edge, type NodeTypes } from "@xyflow/react";
+import { Handle, Position, type Node, type Edge, type NodeTypes, type EdgeTypes } from "@xyflow/react";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import OmniRouteLogo from "@/shared/components/OmniRouteLogo";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import { StatusDot } from "@/shared/components/flow/StatusDot";
+import { KameBeamEdge } from "@/shared/components/flow/KameBeamEdge";
 import { edgeStyle, FLOW_EDGE_COLORS } from "@/shared/components/flow/edgeStyles";
 import { getFallbackProviderColor } from "@/shared/utils/providerFallbackColor";
 import { resolveTopologyNodeLabel } from "./topologyLabel";
@@ -41,28 +43,24 @@ type ProviderNodeData = {
   providerId: string;
   active: boolean;
   error: boolean;
-  /** Connection-health base state: a healthy connection with no in-flight traffic. */
-  healthy: boolean;
 };
 
 function ProviderNode({ data }: { data: ProviderNodeData }) {
-  const { label, color, providerId, active, error, healthy } = data;
+  const { label, color, providerId, active, error } = data;
   const GREEN = FLOW_EDGE_COLORS.active;
   const RED = FLOW_EDGE_COLORS.error;
 
   return (
     <div
-      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border-2 transition-all duration-300 bg-bg"
+      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition-all duration-300 bg-bg"
       style={{
-        borderColor: error ? RED : active ? color : healthy ? GREEN : "var(--color-border)",
-        boxShadow: error
-          ? `0 0 12px ${RED}30`
-          : active
-            ? `0 0 12px ${color}30`
-            : healthy
-              ? `0 0 10px ${GREEN}20`
-              : "none",
-        minWidth: "136px",
+        // Idle providers (including healthy-but-quiet connections) sit muted with the
+        // default border and no glow — only live traffic (active) or a real error
+        // lights a node up, matching 9Router's calm-at-rest map. This kills the
+        // "everything glows green" clutter anh Hà flagged.
+        borderColor: error ? RED : active ? color : "var(--color-border)",
+        boxShadow: error ? `0 0 10px ${RED}26` : active ? `0 0 10px ${color}26` : "none",
+        minWidth: "128px",
       }}
     >
       <Handle
@@ -100,13 +98,13 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
       <span
         className="text-xs font-medium truncate flex-1"
         style={{
-          color: active ? color : error ? RED : healthy ? GREEN : "var(--color-text-main)",
+          color: active ? color : error ? RED : "var(--color-text-main)",
         }}
       >
         {label}
       </span>
 
-      {(active || error || healthy) && (
+      {(active || error) && (
         <StatusDot color={active ? color : GREEN} error={error} pulse={active || error} />
       )}
     </div>
@@ -116,8 +114,13 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
 type RouterNodeData = { activeCount: number };
 
 function RouterNode({ data }: { data: RouterNodeData }) {
+  const active = data.activeCount > 0;
   return (
-    <div className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-primary bg-primary/8 shadow-lg min-w-[140px] justify-center">
+    <div
+      className={`relative flex items-center justify-center size-12 rounded-xl border border-primary/70 bg-primary/8 transition-all duration-300${
+        active ? " topology-router-core" : ""
+      }`}
+    >
       <Handle
         type="source"
         position={Position.Top}
@@ -143,12 +146,12 @@ function RouterNode({ data }: { data: RouterNodeData }) {
         className="!bg-transparent !border-0 !w-0 !h-0"
       />
 
-      <div className="flex items-center justify-center size-7 rounded-md bg-primary/15 shrink-0">
-        <span className="material-symbols-outlined text-primary text-[16px]">route</span>
-      </div>
-      <span className="text-sm font-bold text-primary">OmniRoute</span>
-      {data.activeCount > 0 && (
-        <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary text-white text-[10px] font-bold leading-none">
+      <OmniRouteLogo
+        size={24}
+        className={`text-primary${active ? " topology-router-icon" : ""}`}
+      />
+      {active && (
+        <span className="topology-router-badge absolute -top-2 -right-2 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-white text-[10px] font-bold leading-none">
           {data.activeCount}
         </span>
       )}
@@ -159,6 +162,10 @@ function RouterNode({ data }: { data: RouterNodeData }) {
 const nodeTypes: NodeTypes = {
   provider: ProviderNode as any,
   router: RouterNode as any,
+};
+
+const edgeTypes: EdgeTypes = {
+  kame: KameBeamEdge as any,
 };
 
 type ProviderHealth = "active" | "error" | "idle";
@@ -183,8 +190,8 @@ function buildLayout(
 ): { nodes: Node[]; edges: Edge[] } {
   const nodeW = 156;
   const nodeH = 28;
-  const routerW = 148;
-  const routerH = 44;
+  const routerW = 48;
+  const routerH = 48;
 
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -199,21 +206,13 @@ function buildLayout(
 
   if (providers.length === 0) return { nodes, edges };
 
-  // Sort: active → error → last-used → healthy(connected) → rest (alpha within groups)
-  const sorted = [...providers].sort((a, b) => {
-    const rank = (p: ProviderEntry) => {
-      const id = p.provider.toLowerCase();
-      if (activeSet.has(id)) return 0;
-      if (errorSet.has(id) || p.status === "error") return 1;
-      if (lastSet.has(id)) return 2;
-      if (p.status === "active") return 3;
-      return 4;
-    };
-    const d = rank(a) - rank(b);
-    return d !== 0
-      ? d
-      : a.provider.toLowerCase().localeCompare(b.provider.toLowerCase()); // ASCII kasıtlı
-  });
+  // Stable alphabetical order. Node POSITION never depends on activity — a provider
+  // keeps its ring slot whether or not it's mid-request, so the map no longer
+  // reshuffles ("jumps") every time a call lands. Activity is conveyed purely by
+  // node/edge styling, matching 9Router's `providers.forEach((p, i) => ...)`.
+  const sorted = [...providers].sort((a, b) =>
+    a.provider.toLowerCase().localeCompare(b.provider.toLowerCase())
+  );
 
   let provIdx = 0;
   for (let ri = 0; ri < RINGS.length && provIdx < sorted.length; ri++) {
@@ -223,15 +222,15 @@ function buildLayout(
     for (let i = 0; i < count; i++) {
       const p = sorted[provIdx++];
       const pid = p.provider.toLowerCase();
+      // Edge/node state is driven PURELY by transient traffic, exactly like 9Router:
+      //   active (in-flight) > last (single most-recent) > error (a live failed request).
+      // Connection-health (`p.status`) is deliberately NOT painted onto the edge — that
+      // was an Omni-only addition that kept a line lit forever ("hiện mãi") for a quiet
+      // or test-failed connection. With it gone the connector changes and then fades to
+      // the muted idle stroke once traffic stops, matching 9Router's calm-at-rest map.
       const active = activeSet.has(pid);
-      // Traffic signals (live/recent request) take precedence; connection health is the
-      // base state shown when a provider has no in-flight or recent traffic, so the map
-      // still reflects "what is connected" at rest instead of going blank after a restart.
-      const trafficError = !active && errorSet.has(pid);
-      const last = !active && !trafficError && lastSet.has(pid);
-      const healthError = !active && !trafficError && !last && p.status === "error";
-      const healthy = !active && !trafficError && !last && !healthError && p.status === "active";
-      const error = trafficError || healthError;
+      const error = !active && errorSet.has(pid);
+      const last = !active && !error && lastSet.has(pid);
       const config = getProviderConfig(p.provider);
       const nodeId = `provider-${p.provider}`;
 
@@ -250,19 +249,24 @@ function buildLayout(
           providerId: p.provider,
           active,
           error,
-          healthy,
         } satisfies ProviderNodeData,
         draggable: false,
       });
 
       edges.push({
         id: `e-${nodeId}`,
+        type: "kame",
         source: "router",
         sourceHandle,
         target: nodeId,
         targetHandle,
-        animated: active,
-        style: edgeStyle(active, last, error, healthy),
+        // The kame beam runs its own SVG animation on active edges; the flat
+        // BaseEdge fallback (idle/last/error) is styled by edgeStyle(). Healthy-but-quiet
+        // connections fall through to the muted idle stroke on purpose — the map stays
+        // calm at rest and only lights up on real traffic, matching 9Router.
+        animated: false,
+        data: { active },
+        style: edgeStyle(active, last, error),
       });
     }
   }
@@ -296,6 +300,17 @@ export default function ProviderTopology({
   const lastKey = lastProvider.toLowerCase();
   const errorKey = errorProvider.toLowerCase();
 
+  // A provider's beam is active for EXACTLY as long as it has a live request in the
+  // WS snapshot — the beam starts on `request.started` and stops only when
+  // `request.completed`/`request.failed` drains that request from useLiveRequests'
+  // active Map (matched by request id). We deliberately impose NO frontend timeout: an
+  // earlier per-provider wall-clock cutoff killed the beam mid-flight for any request
+  // that outran the limit (and, being keyed per-provider, could cut an overlapping
+  // request almost immediately), which broke the contract — the effect must run until
+  // the success/failure RESULT arrives, not on a timer. If a stuck in-flight signal is
+  // ever a concern, the server must emit the terminal event (authoritative, per request
+  // id); the client must not second-guess it with a timer. Guarded by
+  // tests/unit/home-provider-topology-live-state.test.ts.
   const activeSet = useMemo(
     () => new Set<string>(activeKey ? activeKey.split(",") : []),
     [activeKey]
@@ -318,8 +333,15 @@ export default function ProviderTopology({
     [providers]
   );
 
+  // The diagram keeps its rounded border frame (the "khung" anh Hà wants kept) but its
+  // background is fully TRANSPARENT — the page's fixed graph-paper wallpaper (body::before)
+  // must show straight THROUGH the frame ("xuyên qua"), not be repainted or covered by an
+  // opaque fill. This only works because the section no longer wraps the tile in an opaque
+  // Card (see HomeProviderTopologySection) — with a solid surface behind it the wallpaper
+  // could never bleed through. Matches 9Router, where the topology tile sits directly on
+  // the page grid and only Recent Requests is a solid card.
   const containerClass =
-    "h-[300px] w-full min-w-0 rounded-xl border border-border bg-bg-subtle/20 overflow-hidden sm:h-[420px]";
+    "h-[300px] w-full min-w-0 rounded-xl border border-border bg-transparent overflow-hidden sm:h-[420px]";
 
   if (providers.length === 0) {
     return (
@@ -337,6 +359,7 @@ export default function ProviderTopology({
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       fitKey={providersKey}
       className={containerClass}
     />

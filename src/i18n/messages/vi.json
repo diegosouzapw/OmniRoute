@@ -1723,7 +1723,12 @@
     "updateAvailableDesc": "Đã có phiên bản mới. Nhấp để cập nhật.",
     "updateStarted": "Đã bắt đầu cập nhật...",
     "reloadingPageAutomatically": "Đang tự động tải lại trang...",
-    "providerTopology": "Cấu trúc liên kết nhà cung cấp"
+    "providerTopology": "Cấu trúc liên kết nhà cung cấp",
+    "recentRequests": "Yêu cầu gần đây",
+    "recentRequestsEmpty": "Chưa có yêu cầu nào.",
+    "recentRequestsModel": "Mô hình",
+    "recentRequestsTokens": "Vào / Ra",
+    "recentRequestsWhen": "Thời điểm"
   },
   "analytics": {
     "title": "Phân tích",

@@ -1723,7 +1723,12 @@
     "updateAvailableDesc": "A new version is available. Click to update.",
     "updateStarted": "Update started...",
     "reloadingPageAutomatically": "Reloading page automatically...",
-    "providerTopology": "Provider Topology"
+    "providerTopology": "Provider Topology",
+    "recentRequests": "Recent Requests",
+    "recentRequestsEmpty": "No requests yet.",
+    "recentRequestsModel": "Model",
+    "recentRequestsTokens": "In / Out",
+    "recentRequestsWhen": "When"
   },
   "analytics": {
     "title": "Analytics",

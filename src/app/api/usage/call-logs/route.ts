@@ -143,6 +143,9 @@ export async function GET(request: Request) {
     if (searchParams.get("correlationId")) filter.correlationId = searchParams.get("correlationId");
     if (searchParams.get("limit")) filter.limit = parseInt(searchParams.get("limit"));
     if (searchParams.get("offset")) filter.offset = parseInt(searchParams.get("offset"));
+    // Home Recent Requests feed sets excludeTests=1 so connection-test probe rows
+    // are dropped at the SQL layer (before LIMIT), not client-side after slicing.
+    if (searchParams.get("excludeTests") === "1") filter.excludeTests = true;
 
     const [logs, connections, providerNodes] = await Promise.all([
       getCallLogs(filter),
