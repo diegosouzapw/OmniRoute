@@ -161,6 +161,54 @@ no blob needed. Keep the tunnel open until the connection shows as active.
 
 ---
 
+## Connecting Codex / Grok on a remote install (fixed-loopback providers)
+
+Codex, xAI (`xai-oauth`) and Grok CLI (`grok-cli`) register a **fixed** loopback
+`redirect_uri` with their upstream OAuth app. OmniRoute cannot change it — the
+provider always sends the browser back to the same hardcoded address:
+
+| Provider    | Fixed callback the provider redirects to |
+| ----------- | ---------------------------------------- |
+| `codex`     | `http://localhost:1455/auth/callback`    |
+| `xai-oauth` | `http://127.0.0.1:56121/callback`        |
+| `grok-cli`  | `http://127.0.0.1:56122/callback`        |
+
+`localhost` there means **the machine running the browser**, while OmniRoute's PKCE
+callback server listens on the **server's** loopback. Open the dashboard at a LAN
+address like `http://192.168.0.15:20128` and the two never meet: the authorization
+code is delivered to your own laptop's `localhost:1455`, where nothing is listening,
+and the provider fails the sign-in without surfacing an error.
+
+The dashboard detects this before opening the popup and shows the tunnel command
+instead of letting the login fail silently (#8046).
+
+### Fix — forward **both** ports
+
+```bash
+# On the machine running the BROWSER:
+ssh -L 20128:127.0.0.1:20128 -L 1455:127.0.0.1:1455 <user>@192.168.0.15
+# then browse to http://localhost:20128 and connect Codex from there
+```
+
+Two forwards are required, and forwarding only one still fails:
+
+- **`20128`** (the dashboard port) makes the origin true-localhost, which is what
+  makes OmniRoute start the PKCE callback server at all — a LAN origin never
+  reaches that branch.
+- **`1455`** (the provider's fixed callback port) is where the browser is sent back
+  to; it has to tunnel through to the server's loopback.
+
+Swap `1455` for `56121`/`56122` when connecting xAI or Grok CLI, and `20128` for
+your actual dashboard port. Keep the tunnel open until the connection shows as
+active.
+
+> **No SSH access?** Codex and Grok CLI also accept a pasted token — the **Paste API
+> Key** / **Import auth.json** tab on the connect dialog. That path has no loopback
+> callback, so it works from any origin. Codex additionally accepts a bare access
+> token or a `~/.codex/auth.json` session blob.
+
+---
+
 ## Managing tokens
 
 ```bash
@@ -203,20 +251,20 @@ base Codex setup (the `[model_providers.omniroute]` block), see
 Each supported CLI has a remote-aware setup command (all honour the active
 context, or `--remote <url> --api-key <key>`):
 
-| CLI | Command | What it writes |
-|-----|---------|----------------|
-| Codex | `omniroute setup-codex` | `~/.codex/<name>.config.toml` profiles (per model) |
-| Claude Code | `omniroute setup-claude` | `~/.claude/profiles/<name>/settings.json` (per model) |
-| OpenCode | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — the `omniroute` openai-compatible provider with every catalog model (run `opencode -m omniroute/<model>`) |
-| Cline | `omniroute setup-cline` | `~/.cline/data/{globalState,secrets}.json` (CLI mode) + prints the VS Code extension settings to paste (OpenAI-compatible, Base URL **without** `/v1`) |
-| Kilo Code | `omniroute setup-kilo` | `~/.local/share/kilo/auth.json` (CLI) + VS Code `kilocode.*` settings — OpenAI-compatible, Base URL **with** `/v1` |
-| Continue | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + `cn` CLI) — `provider: openai`, `apiBase` **with** `/v1`, key via `${{ secrets.OMNIROUTE_API_KEY }}` |
-| Cursor | `omniroute setup-cursor` | prints the in-app steps (Settings → Models → Override OpenAI Base URL **with** `/v1` + key + model). Cursor config is opaque SQLite — chat panel only |
-| Roo Code | `omniroute setup-roo` | writes a Roo import JSON (`~/.omniroute/roo-settings.json`) + sets `roo-cline.autoImportSettingsPath` + prints UI steps (OpenAI-compatible, Base URL **with** `/v1`) |
-| Crush | `omniroute setup-crush` | `~/.config/crush/crush.json` — `openai-compat` provider, `base_url` **with** `/v1`, key via `$OMNIROUTE_API_KEY` |
-| Goose | `omniroute setup-goose` | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **without** `/v1` + `GOOSE_MODEL`) + env recipe |
-| Aider | `omniroute setup-aider` | `~/.aider.conf.yml` (`openai-api-base` **without** `/v1` + `model: openai/<id>`) + env recipe (`aider --message --yes`) |
-| Qwen Code | `omniroute setup-qwen` | `~/.qwen/settings.json` V4 `modelProviders.openai` entry + `OMNIROUTE_API_KEY` in `~/.qwen/.env` |
+| CLI         | Command                    | What it writes                                                                                                                                                       |
+| ----------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Codex       | `omniroute setup-codex`    | `~/.codex/<name>.config.toml` profiles (per model)                                                                                                                   |
+| Claude Code | `omniroute setup-claude`   | `~/.claude/profiles/<name>/settings.json` (per model)                                                                                                                |
+| OpenCode    | `omniroute setup-opencode` | `~/.config/opencode/opencode.json` — the `omniroute` openai-compatible provider with every catalog model (run `opencode -m omniroute/<model>`)                       |
+| Cline       | `omniroute setup-cline`    | `~/.cline/data/{globalState,secrets}.json` (CLI mode) + prints the VS Code extension settings to paste (OpenAI-compatible, Base URL **without** `/v1`)               |
+| Kilo Code   | `omniroute setup-kilo`     | `~/.local/share/kilo/auth.json` (CLI) + VS Code `kilocode.*` settings — OpenAI-compatible, Base URL **with** `/v1`                                                   |
+| Continue    | `omniroute setup-continue` | `~/.continue/config.yaml` (VS Code/JetBrains + `cn` CLI) — `provider: openai`, `apiBase` **with** `/v1`, key via `${{ secrets.OMNIROUTE_API_KEY }}`                  |
+| Cursor      | `omniroute setup-cursor`   | prints the in-app steps (Settings → Models → Override OpenAI Base URL **with** `/v1` + key + model). Cursor config is opaque SQLite — chat panel only                |
+| Roo Code    | `omniroute setup-roo`      | writes a Roo import JSON (`~/.omniroute/roo-settings.json`) + sets `roo-cline.autoImportSettingsPath` + prints UI steps (OpenAI-compatible, Base URL **with** `/v1`) |
+| Crush       | `omniroute setup-crush`    | `~/.config/crush/crush.json` — `openai-compat` provider, `base_url` **with** `/v1`, key via `$OMNIROUTE_API_KEY`                                                     |
+| Goose       | `omniroute setup-goose`    | `~/.config/goose/config.yaml` (`GOOSE_PROVIDER=openai` + `OPENAI_HOST` **without** `/v1` + `GOOSE_MODEL`) + env recipe                                               |
+| Aider       | `omniroute setup-aider`    | `~/.aider.conf.yml` (`openai-api-base` **without** `/v1` + `model: openai/<id>`) + env recipe (`aider --message --yes`)                                              |
+| Qwen Code   | `omniroute setup-qwen`     | `~/.qwen/settings.json` V4 `modelProviders.openai` entry + `OMNIROUTE_API_KEY` in `~/.qwen/.env`                                                                     |
 
 ```bash
 # OpenCode (openai-compatible provider, all catalog models, remote VPS)
