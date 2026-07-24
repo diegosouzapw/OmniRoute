@@ -42,7 +42,8 @@ const IS_API_ROUTE = /^src\/app\/api\/.+\/route\.tsx?$/;
 export const KNOWN_MISSING_ERROR_HELPER = new Set([
   // --- original open-sse/executors + handlers scope (pre-6A.8) ---
   // --- 6A.8 expanded scope: src/app/api/**/route.ts pre-existing violations ---
-  // TODO(6A.8): pre-existing, triage — route through buildErrorBody()/sanitizeErrorMessage()
+  // (empty — #8233 made open-sse/executors/muse-spark-web.ts import sanitizeErrorMessage,
+  // resolving the last frozen violator; see docs/security/ERROR_SANITIZATION.md)
 ]);
 
 // Import specifiers that count as "uses the error helper" (path ends in utils/error).
