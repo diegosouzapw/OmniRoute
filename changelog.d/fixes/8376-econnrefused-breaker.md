@@ -1,0 +1,1 @@
+- fix(resilience): treat an unreachable-proxy ECONNREFUSED as a circuit-breaker event so combo fails over instead of hitting the 503 max-retry limit (#8376)

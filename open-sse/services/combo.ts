@@ -2376,12 +2376,11 @@ export async function handleComboChat({
             return { ok: false, response: result };
           }
 
-          // Trigger shared provider circuit breaker for 5xx errors and connection failures.
-          // If the next target in the combo is on the same provider, don't mark the provider
-          // as failed — different models on the same provider may still succeed.
-          // G-02: when fallbackResult.skipProviderBreaker is set (embedded service supervisor
-          // outage signalled via X-Omni-Fallback-Hint: connection_cooldown) apply connection
-          // cooldown only — do NOT trip the whole-provider breaker.
+          // Trigger shared provider circuit breaker for 5xx errors and connection failures. If the
+          // next target is on the same provider, don't mark it failed (a different model may still
+          // succeed) — #8376: EXCEPT a proxy-unreachable failure, which poisons every model alike.
+          // G-02: when fallbackResult.skipProviderBreaker is set (embedded service supervisor outage
+          // signalled via X-Omni-Fallback-Hint: connection_cooldown) apply cooldown only — never trip.
           const nextTarget = orderedTargets[i + 1];
           const sameProviderNext =
             typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
@@ -2393,6 +2392,7 @@ export async function handleComboChat({
               skipProviderBreaker: fallbackResult.skipProviderBreaker,
               requestScopedFailure,
               error: errorText,
+              isProxyUnreachable: structuredError?.code === "proxy_unreachable",
             })
           ) {
             recordProviderFailure(provider, log, targetWithConnection.connectionId, profile);
