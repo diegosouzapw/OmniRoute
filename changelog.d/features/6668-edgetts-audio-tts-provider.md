@@ -1,1 +1,0 @@
-- **feat(sse):** add EdgeTTS (Microsoft Edge "Read Aloud") as a free, no-API-key `audio-tts` provider — the first WebSocket-transport speech provider, with per-client-IP rate limiting. (#6668)

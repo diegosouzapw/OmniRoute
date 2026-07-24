@@ -1,1 +1,0 @@
-- fix(api): fold namespace into the flattened Chat tool name so cross-namespace leaves do not collide

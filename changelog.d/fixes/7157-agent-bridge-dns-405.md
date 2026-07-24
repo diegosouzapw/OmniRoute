@@ -1,1 +1,0 @@
-- fix(dashboard): Agent Bridge DNS toggle now sends POST (was PUT), fixing HTTP 405 on Start/Stop DNS (#7157)

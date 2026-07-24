@@ -1,7 +1,0 @@
-{
-  "status": "ok",
-  "filters": [
-    "rtk",
-    "caveman"
-  ]
-}

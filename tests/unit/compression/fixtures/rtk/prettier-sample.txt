@@ -1,4 +1,0 @@
-Checking formatting...
-[warn] src/app.ts
-[warn] src/routes.ts
-[warn] Code style issues found in 2 files. Run Prettier with --write to fix.

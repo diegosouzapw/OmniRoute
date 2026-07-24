@@ -1,1 +1,0 @@
-- **feat(api):** add `Vary: Accept-Encoding` to token-authenticated `/v1*`/`/v1beta*` responses so downstream caches distinguish compressed vs uncompressed variants (RFC 9110 §12.5.5). (thanks @chirag127)

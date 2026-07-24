@@ -1,8 +1,0 @@
-node_modules/
-*.log
-.DS_Store
-test/
-*.test.js
-.env
-.env.*
-

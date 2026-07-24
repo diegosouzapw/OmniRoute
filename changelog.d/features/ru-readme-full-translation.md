@@ -1,1 +1,0 @@
-- docs(i18n): rewrite Russian README as a full native manual (structure aligned with modern EN/zh-CN, fixed relative asset links).

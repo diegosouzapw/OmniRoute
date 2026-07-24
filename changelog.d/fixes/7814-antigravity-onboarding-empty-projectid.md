@@ -1,1 +1,0 @@
-- fix(oauth): attempt Antigravity onboarding inline when `projectId` is empty, fixing a regression from #5193 that re-introduced the #2541 catch-22 for new accounts (#7814)

@@ -1,1 +1,0 @@
-- **grok-cli:** OAuth paste-import now requires the full `~/.grok/auth.json` (with `refresh_token`) instead of a bare JWT `key`, preventing connections that can never auto-refresh (#7610).

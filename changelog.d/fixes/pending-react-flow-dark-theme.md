@@ -1,1 +1,0 @@
-- **fix(ui):** Theme React Flow controls correctly in dark mode, improve idle connector contrast, and localize the provider topology legend.

@@ -1,1 +1,0 @@
-- feat(mcp): add a narrow `mcp:connect` API-key scope for the `/api/mcp/` LOCAL_ONLY carve-out (separate from `manage`/`admin`) and populate `authInfo.scopes` from the caller's real per-key scopes over HTTP/SSE so `scopeEnforcement.ts` prefers per-key scopes over the `OMNIROUTE_MCP_SCOPES` env fallback when enforcement is enabled (#7895).

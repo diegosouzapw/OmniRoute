@@ -1,1 +1,0 @@
-- feat(providers): add Gladia as an async speech-to-text provider (#6657)

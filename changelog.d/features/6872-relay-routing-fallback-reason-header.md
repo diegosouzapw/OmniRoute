@@ -1,1 +1,0 @@
-- feat(api): add a structured `X-Routing-Fallback-Reason` header to relay routing responses, exposing a stable machine-readable reason code alongside the legacy `X-Routing-Fallback` detail string (#6872)

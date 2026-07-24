@@ -123,6 +123,21 @@ export const OAUTH_TEST_CONFIG = {
     checkExpiry: true,
     refreshable: true,
   },
+  agy: {
+    // #8408: agy shares the Antigravity backend and the same Google OAuth token
+    // lifecycle — mirror antigravity's userinfo probe.
+    url: "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+    method: "GET",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    refreshable: true,
+  },
+  "devin-cli": {
+    // #8408: Devin CLI drives a local binary over ACP stdio with no HTTP endpoint
+    // to probe — validate via token presence/expiry, same as other local-CLI
+    // providers (cursor, kilocode, cline, grok-cli).
+    checkExpiry: true,
+  },
   "ghe-copilot": {
     // GHE Copilot: probe the enterprise user-info endpoint derived from gheUrl
     // (stored in providerSpecificData).

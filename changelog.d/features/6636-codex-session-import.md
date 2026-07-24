@@ -1,1 +1,0 @@
-- feat(oauth): accept the full ChatGPT session JSON (not just a bare access token) when pasting Codex credentials manually or via `POST /api/oauth/codex/import-token` (#6636)

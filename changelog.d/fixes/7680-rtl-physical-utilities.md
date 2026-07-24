@@ -1,1 +1,0 @@
-- fix(dashboard): mirror connection-row action-icon spacing under RTL via Tailwind logical utility (#7680)

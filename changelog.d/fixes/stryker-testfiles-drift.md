@@ -1,1 +1,0 @@
-- fix(quality): register the two covering unit tests missing from stryker tap.testFiles (#6846, #7333)

@@ -1,1 +1,0 @@
-- fix(sse): preserve parallel_tool_calls for GPT-5.6 ultra/max delegation under Codex Responses Lite (#7821)
