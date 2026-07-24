@@ -189,7 +189,11 @@ test("getProviderConcurrencyCap resolves override -> static default -> fallback"
   );
   setProviderQuotaOverrides({ nvidia: { concurrency: 3 } });
   try {
-    assert.equal(getProviderConcurrencyCap("nvidia", 99), 3, "override wins over the static default");
+    assert.equal(
+      getProviderConcurrencyCap("nvidia", 99),
+      3,
+      "override wins over the static default"
+    );
   } finally {
     setProviderQuotaOverrides(null);
   }
@@ -218,16 +222,9 @@ test("nvidia 429 does not trip the provider circuit breaker (unchanged 408/500/5
   // documentation-alignment guard proving Phase 1 didn't accidentally widen
   // PROVIDER_BREAKER_FAILURE_STATUSES to include 429 (which would collapse the
   // per-model lockout this PR adds into a whole-connection/provider outage).
-  // #8013 extracted the const from src/sse/handlers/chat.ts into chatPredicates.ts
-  // (still consumed by chat.ts's breaker paths) — read the declaration from its
-  // current home.
-  const chatHandlerPath = path.join(
-    process.cwd(),
-    "src",
-    "sse",
-    "handlers",
-    "chatPredicates.ts"
-  );
+  // The PROVIDER_BREAKER_FAILURE_STATUSES declaration was extracted from chat.ts into
+  // the sibling chatPredicates.ts (chat.ts now imports it); read it from its home.
+  const chatHandlerPath = path.join(process.cwd(), "src", "sse", "handlers", "chatPredicates.ts");
   const source = fs.readFileSync(chatHandlerPath, "utf8");
   const match = source.match(/PROVIDER_BREAKER_FAILURE_STATUSES\s*=\s*new Set\(\[([^\]]+)\]\)/);
   assert.ok(match, "PROVIDER_BREAKER_FAILURE_STATUSES declaration found");
