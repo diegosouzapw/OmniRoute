@@ -30,6 +30,7 @@ function githubModel(id: string): ModelEntry | undefined {
 // Claude/Gemini models that must NOT route through the Responses API.
 const MUST_NOT_BE_RESPONSES = [
   "claude-fable-5",
+  "claude-opus-5",
   "claude-opus-4.7",
   "claude-opus-4.8",
   "claude-opus-4.8-fast",

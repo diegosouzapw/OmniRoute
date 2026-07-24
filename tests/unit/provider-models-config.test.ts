@@ -88,6 +88,7 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
   const ids = githubModels.map((model) => model.id);
 
   assert.deepEqual(ids, [...GITHUB_COPILOT_MODEL_ALLOWLIST]);
+  assert.equal(getModelTargetFormat("gh", "claude-opus-5"), "claude");
   assert.equal(getModelTargetFormat("gh", "gpt-5.3-codex"), "openai-responses");
   // "claude-opus-4.6" is not a real Copilot model id (unlike claude-sonnet-4.6);
   // it never appears in the registry, so its target format stays null.
@@ -108,6 +109,16 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
   assert.equal(ids.includes("claude-opus-4.1"), false);
   assert.equal(ids.includes("claude-opus-4-5-20251101"), false);
   assert.equal(ids.includes("gemini-3-flash-preview"), false);
+});
+
+test("Claude flagship catalogs keep Fable 5 first", () => {
+  for (const provider of ["anthropic", "cc", "cw", "gh", "ghe-copilot"]) {
+    assert.equal(
+      getProviderModels(provider)[0]?.id,
+      "claude-fable-5",
+      `${provider} must list the strongest Claude model first`
+    );
+  }
 });
 
 test("Kiro registry exposes the current CLI model lineup with context windows", () => {
@@ -143,6 +154,8 @@ test("Claude max effort support excludes Haiku family and non-Claude IDs", () =>
 test("xhigh effort support defaults to pass-through and opts out explicit false models", () => {
   const claudeModels = new Set(getModelsByProviderId("claude").map((model) => model.id));
 
+  assert.ok(claudeModels.has("claude-opus-5"));
+  assert.equal(supportsXHighEffort("claude", "claude-opus-5"), true);
   assert.ok(claudeModels.has("claude-opus-4-8"));
   assert.equal(supportsXHighEffort("claude", "claude-opus-4-8"), true);
   assert.equal(supportsXHighEffort("claude", "claude-opus-4-7"), true);

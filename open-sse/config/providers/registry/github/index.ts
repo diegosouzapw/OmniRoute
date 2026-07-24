@@ -44,6 +44,14 @@ export const githubProvider: RegistryEntry = {
       maxOutputTokens: 64000,
     },
     {
+      id: "claude-opus-5",
+      name: "Claude Opus 5",
+      targetFormat: "claude",
+      contextLength: 1000000,
+      maxOutputTokens: 64000,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
       id: "claude-opus-4.8-fast",
       name: "Claude Opus 4.8 (fast mode)",
       targetFormat: "claude",

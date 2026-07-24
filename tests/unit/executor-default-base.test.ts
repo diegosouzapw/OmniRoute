@@ -645,6 +645,23 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
       },
       extendedContext: true,
     });
+    await cc.execute({
+      model: "claude-opus-5",
+      body: {
+        model: "claude-opus-5",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          ccSessionId: "session-1",
+          requestDefaults: { context1m: true },
+        },
+      },
+      extendedContext: true,
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -664,6 +681,8 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
   // gets the context-1m beta header (shouldForwardExtendedContext in base.ts), same as any other
   // 1M-capable model.
   assert.equal(calls[2].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
+  // Opus 5 has a native 1M window and must not receive the legacy context beta.
+  assert.equal(calls[3].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
 });
 
 test("DefaultExecutor.execute reports the exact serialized provider request before fetch", async () => {
@@ -1450,10 +1469,12 @@ test("DefaultExecutor.execute does not produce duplicate anthropic-version heade
   const executor = new DefaultExecutor("claude");
   const originalFetch = globalThis.fetch;
   let capturedHeaders: Record<string, string> = {};
+  let capturedBody = "";
 
   globalThis.fetch = async (_url, init = {}) => {
     // Capture raw headers without normalisation so case-variant duplicate keys are visible.
     capturedHeaders = (init.headers as Record<string, string>) || {};
+    capturedBody = String(init.body ?? "");
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -1486,4 +1507,12 @@ test("DefaultExecutor.execute does not produce duplicate anthropic-version heade
   );
   assert.equal(versionKeys.length, 1, "Duplicate anthropic-version header keys found");
   assert.equal(capturedHeaders[versionKeys[0]], "2023-06-01");
+  assert.equal(capturedHeaders["X-Stainless-Runtime-Version"], "v26.3.0");
+  assert.equal(capturedHeaders["X-Stainless-Package-Version"], "0.94.0");
+
+  const sentBody = JSON.parse(capturedBody) as { system?: Array<{ text?: string }> };
+  assert.match(
+    sentBody.system?.[0]?.text ?? "",
+    /^x-anthropic-billing-header: cc_version=2\.1\.219\.250; cc_entrypoint=cli; cch=[0-9a-f]{5};$/
+  );
 });

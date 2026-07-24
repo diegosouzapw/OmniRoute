@@ -165,7 +165,13 @@ export async function getSettings() {
     codexServiceTier: { enabled: false },
     claudeFastMode: {
       enabled: false,
-      supportedModels: ["claude-fable-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"],
+      supportedModels: [
+        "claude-fable-5",
+        "claude-opus-5",
+        "claude-opus-4-8",
+        "claude-opus-4-7",
+        "claude-opus-4-6",
+      ],
     },
     // #7274: renamed from codexSessionAffinityTtlMs — session affinity now
     // applies to any provider, not just Codex. No default here on purpose:

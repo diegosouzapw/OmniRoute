@@ -17,6 +17,20 @@ export const anthropicProvider: RegistryEntry = {
   },
   models: [
     {
+      id: "claude-fable-5",
+      name: "Claude Fable 5",
+      contextLength: 1048576,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
+      id: "claude-opus-5",
+      name: "Claude Opus 5",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportsXHighEffort: true,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
       id: "claude-opus-4.7",
       name: "Claude Opus 4.7",
       // Opus 4.7+ rejects non-default temperature/top_p/top_k with a 400 (sampling fixed;
@@ -28,12 +42,6 @@ export const anthropicProvider: RegistryEntry = {
       name: "Claude Opus 4.8",
       contextLength: 1048576,
       // Opus 4.7+ (incl. 4.8, Fable 5) reject non-default sampling with a 400. Mirrors claude-opus-4.7.
-      unsupportedParams: ["temperature", "top_p", "top_k"],
-    },
-    {
-      id: "claude-fable-5",
-      name: "Claude Fable 5",
-      contextLength: 1048576,
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     { id: "claude-opus-4.6", name: "Claude Opus 4.6" },

@@ -5,18 +5,19 @@ import path from "node:path";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../..");
 
-// ─── Parse CONTEXT_1M_SUPPORTED_MODELS from source (no module import needed) ───
+// ─── Parse 1M model lists from source (no module import needed) ───
 
-function parseSupportedModels(): string[] {
-  const src = fs.readFileSync(
-    path.join(REPO_ROOT, "open-sse/services/claudeCodeCompatible.ts"),
-    "utf8"
-  );
+function parseModelList(constantName: string): string[] {
+  const sourceFile =
+    constantName === "CONTEXT_1M_NATIVE_MODELS"
+      ? "open-sse/config/claudeCodeCompatibleIdentity.ts"
+      : "open-sse/services/claudeCodeCompatible.ts";
+  const src = fs.readFileSync(path.join(REPO_ROOT, sourceFile), "utf8");
   // Strip type annotations before matching to handle `const X: string[] = [...]`
   const match = src
     .replace(/:\s*\w+(\[\])?/, "")
-    .match(/CONTEXT_1M_SUPPORTED_MODELS\s*=\s*\[([\s\S]*?)\]/);
-  if (!match) throw new Error("CONTEXT_1M_SUPPORTED_MODELS not found in source");
+    .match(new RegExp(`${constantName}\\s*=\\s*\\[([\\s\\S]*?)\\]`));
+  if (!match) throw new Error(`${constantName} not found in source`);
   return match[1]
     .split(",")
     .map((s) => s.replace(/["'\s]/g, "").toLowerCase())
@@ -107,8 +108,11 @@ test("parser finds at least one Claude model in the registry", () => {
 
 // ─── Forward: every high-context Claude model must be in the allowlist ───
 
-test("every Claude model with contextLength > 200K is in CONTEXT_1M_SUPPORTED_MODELS", () => {
-  const supportedModels = parseSupportedModels();
+test("every Claude model with contextLength > 200K is in a known 1M model list", () => {
+  const supportedModels = [
+    ...parseModelList("CONTEXT_1M_SUPPORTED_MODELS"),
+    ...parseModelList("CONTEXT_1M_NATIVE_MODELS"),
+  ];
   const claudeModels = parseClaudeRegistryModels();
   const violations: string[] = [];
 
@@ -121,16 +125,19 @@ test("every Claude model with contextLength > 200K is in CONTEXT_1M_SUPPORTED_MO
   assert.deepEqual(
     violations,
     [],
-    `Claude models with contextLength > 200K missing from CONTEXT_1M_SUPPORTED_MODELS.\n` +
-      `Add the model prefix to the allowlist in claudeCodeCompatible.ts.\n` +
+    `Claude models with contextLength > 200K missing from the beta/native 1M lists.\n` +
+      `Add the model prefix to the correct source list.\n` +
       `Violations:\n  ${violations.join("\n  ")}`
   );
 });
 
 // ─── Reverse: every allowlist entry must have a matching high-context model ───
 
-test("every CONTEXT_1M_SUPPORTED_MODELS entry has a matching Claude model with contextLength > 200K", () => {
-  const supportedModels = parseSupportedModels();
+test("every known 1M model entry has a matching high-context Claude model", () => {
+  const supportedModels = [
+    ...parseModelList("CONTEXT_1M_SUPPORTED_MODELS"),
+    ...parseModelList("CONTEXT_1M_NATIVE_MODELS"),
+  ];
   const claudeModels = parseClaudeRegistryModels();
   const orphans: string[] = [];
 
@@ -146,8 +153,13 @@ test("every CONTEXT_1M_SUPPORTED_MODELS entry has a matching Claude model with c
   assert.deepEqual(
     orphans,
     [],
-    `CONTEXT_1M_SUPPORTED_MODELS entries with no matching high-context Claude model.\n` +
+    `Known 1M entries with no matching high-context Claude model.\n` +
       `Remove stale entries or check model id spelling.\n` +
       `Orphans:\n  ${orphans.join("\n  ")}`
   );
+});
+
+test("Claude Opus 5 uses native 1M context without the legacy beta header", () => {
+  assert.equal(parseModelList("CONTEXT_1M_SUPPORTED_MODELS").includes("claude-opus-5"), false);
+  assert.equal(parseModelList("CONTEXT_1M_NATIVE_MODELS").includes("claude-opus-5"), true);
 });

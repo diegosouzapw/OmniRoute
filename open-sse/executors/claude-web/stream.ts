@@ -182,6 +182,14 @@ function deltaText(delta: Record<string, unknown>, fields: string[]): string {
   throw new ClaudeWebProtocolError("Content delta text is invalid");
 }
 
+function thinkingSummaryText(delta: Record<string, unknown>): string {
+  if (typeof delta.summary === "string") return delta.summary;
+  if (delta.summary && typeof delta.summary === "object" && !Array.isArray(delta.summary)) {
+    return deltaText(delta.summary as Record<string, unknown>, ["summary", "text", "thinking"]);
+  }
+  return deltaText(delta, ["text", "thinking"]);
+}
+
 interface ProtocolState {
   phase: StreamPhase;
   openBlocks: Map<number, BlockKind>;
@@ -265,7 +273,7 @@ function handleContentBlockDelta(
     return { kind: "reasoning", text: deltaText(delta, ["thinking", "text"]) };
   }
   if (delta.type === "thinking_summary_delta" && block === "thinking") {
-    return { kind: "reasoning", text: deltaText(delta, ["summary", "text", "thinking"]) };
+    return { kind: "reasoning", text: thinkingSummaryText(delta) };
   }
   return protocolFailure(state, "Content delta type does not match its block");
 }

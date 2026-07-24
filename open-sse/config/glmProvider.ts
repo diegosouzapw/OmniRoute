@@ -1,3 +1,5 @@
+import { getClaudeCodeUserAgent } from "@/shared/constants/claudeCodeClient";
+
 import { ANTHROPIC_VERSION_HEADER } from "./anthropicHeaders.ts";
 
 type JsonRecord = Record<string, unknown>;
@@ -150,7 +152,7 @@ export const GLMT_REQUEST_DEFAULTS = Object.freeze({
 });
 
 export const GLM_COUNT_TOKENS_TIMEOUT_MS = 3_000;
-export const GLM_CLAUDE_CODE_USER_AGENT = "claude-cli/2.1.207 (external, sdk-cli)";
+export const GLM_CLAUDE_CODE_USER_AGENT = getClaudeCodeUserAgent("sdk-cli");
 export const GLM_ANTHROPIC_BETA = [
   "claude-code-20250219",
   "interleaved-thinking-2025-05-14",

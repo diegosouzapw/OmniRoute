@@ -48,6 +48,39 @@ afterEach(() => {
 });
 
 describe("Claude Web live request alignment", () => {
+  it("uses the current Claude Web Opus 5 high/auto defaults", () => {
+    const payload = transformToClaude(
+      { messages: [{ role: "user", content: "Hello" }] },
+      "claude-opus-5"
+    );
+
+    assert.equal(payload.effort, "high");
+    assert.equal(payload.thinking_mode, "auto");
+  });
+
+  it("keeps Opus 5 thinking on auto when the caller selects an effort", () => {
+    const payload = transformToClaude(
+      {
+        messages: [{ role: "user", content: "Think carefully" }],
+        reasoning_effort: "max",
+      },
+      "claude-opus-5"
+    );
+
+    assert.equal(payload.effort, "max");
+    assert.equal(payload.thinking_mode, "auto");
+  });
+
+  it("does not apply the Opus 5 thinking contract to other Claude Web models", () => {
+    const payload = transformToClaude(
+      { messages: [{ role: "user", content: "Hello" }] },
+      "claude-sonnet-5"
+    );
+
+    assert.equal(payload.effort, "low");
+    assert.equal(payload.thinking_mode, "off");
+  });
+
   it("maps an explicit reasoning effort to Claude Web extended thinking", () => {
     const payload = transformToClaude(
       {

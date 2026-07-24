@@ -67,6 +67,21 @@ export function resolveCooldownAwareRetrySettings(
   };
 }
 
+export function disableCooldownAwareRetry(
+  settings: CooldownAwareRetrySettings,
+  disabled: boolean
+): CooldownAwareRetrySettings {
+  if (!disabled) return settings;
+  return {
+    ...settings,
+    enabled: false,
+    maxRetries: 0,
+    maxRetryWaitSec: 0,
+    maxRetryWaitMs: 0,
+    budgetMs: 0,
+  };
+}
+
 export function computeClosestRetryAfter(retryAfter: unknown): {
   retryAfter: string | null;
   retryAfterHuman: string;

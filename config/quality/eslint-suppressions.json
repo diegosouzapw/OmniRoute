@@ -4,11 +4,6 @@
       "count": 1
     }
   },
-  "open-sse/executors/claudeIdentity.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "open-sse/executors/cliproxyapi.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
