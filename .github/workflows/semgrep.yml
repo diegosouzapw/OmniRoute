@@ -6,6 +6,12 @@ on:
     branches: ["main"]
 permissions:
   contents: read
+
+# Cancel superseded PR runs (same rule as quality.yml). No paths filter on purpose:
+# p/secrets must keep scanning docs-only diffs too — credentials leak in .md files.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   semgrep:
     runs-on: ubuntu-latest
