@@ -1,0 +1,1 @@
+- fix(providers): classify HTTP 400 model-unavailable as MODEL_NOT_FOUND so Antigravity Pro fallback locks out the deprecated model

@@ -232,8 +232,18 @@ export function classifyProviderError(
   }
   if (statusCode >= 500) return PROVIDER_ERROR_TYPES.SERVER_ERROR;
 
-  if (statusCode === 400 && isContextOverflow(bodyStr)) {
-    return PROVIDER_ERROR_TYPES.CONTEXT_OVERFLOW;
+  if (statusCode === 400) {
+    if (isContextOverflow(bodyStr)) {
+      return PROVIDER_ERROR_TYPES.CONTEXT_OVERFLOW;
+    }
+    // Some providers (e.g. Antigravity's Pro-fallback chain, #8136) return a
+    // plain 400 for a model that is no longer available, instead of 404/401.
+    // Without this check the error falls through to `return null`, so
+    // lockModel() never fires and the same dead model gets retried on every
+    // request. Detect the phrasing here, same as the 401 branch above (#7268).
+    if (containsModelUnavailableMessage(bodyStr)) {
+      return PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND;
+    }
   }
 
   return null;
