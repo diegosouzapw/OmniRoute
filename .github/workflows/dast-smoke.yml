@@ -2,8 +2,20 @@ name: DAST smoke (PR)
 on:
   pull_request:
     branches: ["main", "release/**"]
+    # Runner-cost guard (#8084): the CLI-bundle build alone is 6-11min; a docs-only PR
+    # cannot change DAST behavior, so skip the whole workflow for pure docs/markdown
+    # changes. Any code path in the diff still runs the full smoke.
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
 permissions:
   contents: read
+
+# Superseded runs on the same PR must not stack 25-minute advisory builds
+# (force-push storms were holding 2-3 runners each). Same group rule as quality.yml.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   dast-smoke:
     runs-on: ubuntu-latest

@@ -198,11 +198,14 @@ Coverage notes:
 
 ### Pull Request Requirements
 
-Before opening or merging a PR:
+Before opening a PR, run the focused loop for what you changed. The full unit suite
+(4 CI shards), Vitest, the **60%+** coverage gate, and the production build are CI's
+responsibility — running them locally adds no signal the PR checks will not already
+give you, and on smaller machines it can saturate the host (#8084):
 
-- Run `npm run test:unit`
-- Run `npm run test:coverage`
-- Ensure the coverage gate stays at **60%+** statements/lines/functions/branches
+- Run the test files that cover your change: `node --import tsx/esm --test tests/unit/<file>.test.ts`
+- Run `npm run lint`
+- Include or update automated tests in the same PR whenever production code changes
 - Include the changed or added test files in the PR description when production code changed
 - Check the SonarQube result on the PR when the project secrets are configured in CI
 
@@ -227,6 +230,31 @@ Current test status: **122 unit test files** covering:
 - **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
 - **Zod validation** — Use Zod v4 schemas for all API input validation
 - **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+
+### Error handling / empty catch blocks
+
+Never leave a `catch` unexplained. Classify it into one of two buckets (operationalizes
+the hard rule "never silently swallow errors in SSE streams"):
+
+- **Intentional (our own best-effort cleanup/telemetry)** — a failure here is expected and
+  harmless; add a one-line rationale comment, no logging (logging on every request is the
+  noise this convention avoids).
+
+  ```ts
+  } catch {} // closing an already-closed controller after client disconnect is expected
+  ```
+
+- **Should log (external/caller-supplied code, or the swallow changes control flow)** — keep
+  the catch (never let it break the stream) but emit a contextual `console.debug`/`warn` so the
+  failure is discoverable.
+
+  ```ts
+  } catch (e) {
+    console.debug("[STREAM] onFailure callback error:", e);
+  }
+  ```
+
+See `open-sse/utils/stream.ts` and `open-sse/utils/streamHandler.ts` for applied examples.
 
 ---
 

@@ -143,11 +143,23 @@ const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 // and the others are unreliable. The excluded providers stay fully usable via
 // direct `<alias>/<model>` calls — they are just kept OUT of auto-routing until
 // re-verified. Re-add an id here to bring it back into every auto/* pool.
+//
+// Scope (operator decision 2026-07-24, refs #8183/#6453/#7032): this allowlist
+// targets public-HTTP-egress reliability for the category/tier and flat-variant
+// `auto/*` pools (auto/best-free, auto/coding:fast, ...). It does NOT apply to
+// `auto/<family>` pools (auto/glm, auto/zai, ...) — a family combo is an
+// identity selector ("whatever genuinely serves GLM"), not a reliability-curated
+// pool, so it admits any no-auth backend that genuinely serves the family (e.g.
+// auggie, a local CLI subprocess with zero HTTP egress, belongs in auto/glm
+// regardless of this list). See the `bypassAllowlist` param below.
 const AUTO_COMBO_NOAUTH_ALLOWLIST = new Set<string>(["opencode", "felo-web"]);
 
-function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): boolean {
+function isChatAutoComboNoAuthProvider(
+  providerDef: NoAuthProviderDefinition,
+  bypassAllowlist: boolean
+): boolean {
   if (providerDef.noAuth !== true) return false;
-  if (!AUTO_COMBO_NOAUTH_ALLOWLIST.has(providerDef.id)) return false;
+  if (!bypassAllowlist && !AUTO_COMBO_NOAUTH_ALLOWLIST.has(providerDef.id)) return false;
   if (!Array.isArray(providerDef.serviceKinds) || providerDef.serviceKinds.length === 0)
     return true;
   return providerDef.serviceKinds.includes("llm");
@@ -158,13 +170,14 @@ function getNoAuthCandidates(
   blockedProviders: Set<string>,
   disabledNoAuthProviders: Set<string>,
   noAuthProviderSpecificData: Map<string, Record<string, unknown> | null | undefined>,
-  hiddenModelsMap: Map<string, Set<string>>
+  hiddenModelsMap: Map<string, Set<string>>,
+  bypassAllowlist: boolean
 ): VirtualAutoComboCandidate[] {
   const registry = getProviderRegistry();
   const candidates: VirtualAutoComboCandidate[] = [];
 
   for (const providerDef of Object.values(NOAUTH_PROVIDERS) as NoAuthProviderDefinition[]) {
-    if (!isChatAutoComboNoAuthProvider(providerDef)) continue;
+    if (!isChatAutoComboNoAuthProvider(providerDef, bypassAllowlist)) continue;
 
     const providerId = providerDef.id;
     if (!providerId || excludedProviders.has(providerId)) continue;
@@ -386,7 +399,13 @@ export async function createVirtualAutoCombo(
       blockedProviders,
       disabledNoAuthProviders,
       noAuthProviderSpecificData,
-      hiddenModelsMap
+      hiddenModelsMap,
+      // #6453/#8183 (operator decision 2026-07-24): auto/<family> combos are an
+      // identity selector, not a reliability-curated pool — bypass the no-auth
+      // allowlist gate so any backend that genuinely serves the family (e.g.
+      // auggie for auto/glm) is admitted. Category/tier and flat-variant pools
+      // (spec.family unset) keep the allowlist gate intact.
+      Boolean(spec?.family)
     )
   );
 

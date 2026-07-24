@@ -1,0 +1,1 @@
+- fix(providers): classify per-model-quota 403 and DEGRADED 400 as model-unhealthy in checkFallbackError (#8247, #8248)

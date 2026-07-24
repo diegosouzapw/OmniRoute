@@ -126,6 +126,36 @@ function liveVecQuantization(): VecQuantization {
   return storedVecQuantization(getMemoryVecMeta().embeddingSignature);
 }
 
+/**
+ * True for the specific SQLite error `ensureReady()`'s check-then-act race can
+ * produce: a concurrent caller's `resetForSignature()` (DROP + CREATE) drops
+ * the table between THIS caller's own `ensureReady()` and its subsequent
+ * write/delete, so the table is briefly and unexpectedly gone even though
+ * `memory_vec_meta` still says it's ready.
+ */
+function isMissingVecTableError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /no such table:\s*vec_memories\b/.test(msg);
+}
+
+/**
+ * Recreate `vec_memories` from the last-known-good `memory_vec_meta` row
+ * (not a fresh `EmbeddingResolution` — the caller may not have one handy at
+ * this point, e.g. inside a catch block). No-op (returns false) if there is
+ * no recorded dimension to recreate from, in which case the original error
+ * should be rethrown by the caller.
+ */
+function recreateFromMeta(): boolean {
+  const meta = getMemoryVecMeta();
+  if (meta.activeDim == null) return false;
+  const db = getDbInstance();
+  const q = storedVecQuantization(meta.embeddingSignature);
+  db.exec(
+    `CREATE VIRTUAL TABLE IF NOT EXISTS vec_memories USING vec0(embedding ${vecColumnType(meta.activeDim, q)})`,
+  );
+  return true;
+}
+
 // ──────────────── Implementation ────────────────
 
 class VectorStoreImpl implements VectorStore {
@@ -188,18 +218,37 @@ class VectorStoreImpl implements VectorStore {
     // INSERT OR REPLACE is not supported by vec0 — use DELETE + INSERT for upsert semantics.
     // int8 tables quantize the float32 blob in SQL (vec_quantize_int8); float32 bind raw.
     const q = liveVecQuantization();
-    db.prepare("DELETE FROM vec_memories WHERE rowid = ?").run(BigInt(row.rowid));
-    db.prepare(`INSERT INTO vec_memories(rowid, embedding) VALUES (?, ${vecValueExpr(q)})`).run(
-      BigInt(row.rowid),
-      encodeVector(vector),
-    );
+    try {
+      db.prepare("DELETE FROM vec_memories WHERE rowid = ?").run(BigInt(row.rowid));
+      db.prepare(`INSERT INTO vec_memories(rowid, embedding) VALUES (?, ${vecValueExpr(q)})`).run(
+        BigInt(row.rowid),
+        encodeVector(vector),
+      );
+    } catch (err: unknown) {
+      // Self-heal: a concurrent ensureReady()'s reset raced ahead of us and
+      // dropped the table after our own ensureReady() already ran. Recreate
+      // from the last-known-good meta and retry once before giving up.
+      if (!isMissingVecTableError(err) || !recreateFromMeta()) throw err;
+      db.prepare("DELETE FROM vec_memories WHERE rowid = ?").run(BigInt(row.rowid));
+      db.prepare(`INSERT INTO vec_memories(rowid, embedding) VALUES (?, ${vecValueExpr(q)})`).run(
+        BigInt(row.rowid),
+        encodeVector(vector),
+      );
+    }
   }
 
   async deleteVector(memoryId: string): Promise<void> {
     const db = getDbInstance();
-    db.prepare(
-      "DELETE FROM vec_memories WHERE rowid = (SELECT rowid FROM memories WHERE id = ?)",
-    ).run(memoryId);
+    try {
+      db.prepare(
+        "DELETE FROM vec_memories WHERE rowid = (SELECT rowid FROM memories WHERE id = ?)",
+      ).run(memoryId);
+    } catch (err: unknown) {
+      if (!isMissingVecTableError(err)) throw err;
+      // Table already gone (racing reset, or nothing to delete) — recreating it
+      // empty is sufficient; there is nothing left to delete either way.
+      recreateFromMeta();
+    }
   }
 
   async searchVector(

@@ -177,17 +177,26 @@ jobs:
           git fetch --no-tags origin "$GITHUB_BASE_REF" || true
           node scripts/quality/build-test-impact-map.mjs
           SEL="$(node scripts/quality/select-impacted-tests.mjs)"
-          if [ -z "$SEL" ]; then echo "No source/test changes — skipping unit tests"; exit 0; fi
+          # Shadow evidence (#8084): persist every selection so TIA false negatives can
+          # be measured against fast-unit's full-suite verdict across releases BEFORE
+          # any gate authority moves off ordinary PRs. Artifact uploaded below.
+          printf '%s\n' "$SEL" > tia-selection.txt
+          if [ -z "$SEL" ]; then
+            echo "TIA selection: empty (no source/test changes)" >> "$GITHUB_STEP_SUMMARY"
+            echo "No source/test changes — skipping unit tests"; exit 0
+          fi
           # CI runners are 4-vCPU; run at --test-concurrency=4 (matching the ci.yml unit
           # job) rather than test:unit's local-tuned concurrency=20. Oversubscribing the
           # runner makes timing-sensitive tests (db-backup, upstream-timeout, ...) flake,
           # which must not happen on a blocking gate. DATA_DIR isolation keeps the parallel
           # run race-free regardless of concurrency.
           if echo "$SEL" | grep -q "__RUN_ALL__"; then
+            echo "TIA selection: __RUN_ALL__ (fail-safe) — full-suite authority stays with fast-unit" >> "$GITHUB_STEP_SUMMARY"
             echo "Fail-safe: __RUN_ALL__ — deferring FULL unit suite to fast-unit (4-shard)."
             echo "Not re-running unsharded test:unit:ci here (duplicate of fast-unit coverage)."
             exit 0
           fi
+          echo "TIA selection: $(grep -c . tia-selection.txt) impacted test file(s) — full suite still runs in fast-unit (shadow-evidence phase, #8084)" >> "$GITHUB_STEP_SUMMARY"
           echo "Running impacted tests:"; echo "$SEL"
           mapfile -t FILES <<< "$SEL"
           # Loader parity with test:unit:ci:shard (#6787): tests/unit/dashboard/** runs
@@ -210,6 +219,16 @@ jobs:
             node --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=4 "${DASH[@]}" || RC=$?
           fi
           exit $RC
+      # #8084 shadow evidence: keep the raw selection downloadable so TIA misses can be
+      # audited against fast-unit failures on the same run (gate moves need this data).
+      - name: Upload TIA selection (shadow evidence)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tia-selection
+          path: tia-selection.txt
+          if-no-files-found: ignore
+          retention-days: 30
 
   fast-vitest:
     name: Vitest (fast-path)

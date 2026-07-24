@@ -446,11 +446,13 @@ const UI_DEFAULTS_SNAPSHOT = {
             "@earendil-works/pi-coding-agent",
             "/.pi/",
             "Pi documentation (read only when the user asks about pi itself",
+            "hermes-agent.nousresearch.com",
+            "github.com/NousResearch/hermes-agent",
           ],
         },
         {
           kind: "drop_paragraph_if_starts_with",
-          prefixes: ["You are OpenCode", "You are Open WebUI"],
+          prefixes: ["You are OpenCode", "You are Open WebUI", "You are Hermes Agent"],
         },
         {
           kind: "replace_text",
@@ -481,6 +483,8 @@ const UI_DEFAULTS_SNAPSHOT = {
             "codecompanion",
             "openwebui",
             "open-webui",
+            "hermes-agent",
+            "hermes",
           ],
           targets: ["system", "messages", "tools"],
         },

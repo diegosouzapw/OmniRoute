@@ -549,8 +549,9 @@ export async function handleChatCore({
   // and delegate so the existing call sites stay byte-identical.
   const recordKeyHealthStatus = (
     status: number,
-    creds: Record<string, unknown> | null | undefined
-  ): void => recordKeyHealthStatusFor(status, creds, log);
+    creds: Record<string, unknown> | null | undefined,
+    transport?: string
+  ): void => recordKeyHealthStatusFor(status, creds, log, transport);
 
   const persistCodexQuotaState = async (headers: Record<string, string> | null, status = 0) => {
     const currentConnectionId = getCurrentConnectionId();
@@ -2988,7 +2989,11 @@ export async function handleChatCore({
           rawResult._executionCredentials?.connectionId &&
           rawResult._executionCredentials?.apiKey
         ) {
-          recordKeyHealthStatus(status, rawResult._executionCredentials);
+          recordKeyHealthStatus(
+            status,
+            rawResult._executionCredentials,
+            rawResult.transport
+          );
         }
         releaseRawResultAccountSemaphore =
           typeof rawResult._accountSemaphoreRelease === "function"
@@ -4233,7 +4238,12 @@ export async function handleChatCore({
       });
     }
 
-    applyClientUsageBuffer(translatedResponse, body, clientResponseFormat);
+    // #8331: keep the client-visible metering fields real everywhere except Claude-Code-compatible
+    // providers, where Claude Code's own context accounting relies on the buffered number — see
+    // clientUsageBuffer.ts module docstring.
+    applyClientUsageBuffer(translatedResponse, body, clientResponseFormat, {
+      preserveContextBudgetInVisibleUsage: isClaudeCodeCompatible,
+    });
 
     if (memoryOwnerId && memorySettings?.enabled && memorySettings.maxTokens > 0) {
       const requestMemoryText = extractMemoryTextFromRequestBody(body as Record<string, unknown>);

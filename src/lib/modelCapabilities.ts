@@ -366,6 +366,14 @@ function isKnownTextOnlyDespiteSync(modelId: string | null | undefined): boolean
   return KNOWN_TEXT_ONLY_DESPITE_SYNC.some((pattern) => pattern.test(id));
 }
 
+/** True when a modality list declares image and/or video input/output. */
+function modalitiesDeclareVision(modalities: readonly string[]): boolean {
+  return modalities.some((entry) => {
+    const lower = String(entry).toLowerCase();
+    return lower.includes("image") || lower.includes("video");
+  });
+}
+
 function resolveVisionCapability(
   spec: ModelSpec | undefined,
   registryModel: { supportsVision?: boolean } | null,
@@ -384,6 +392,13 @@ function resolveVisionCapability(
   if (isKnownTextOnlyDespiteSync(modelId)) return false;
 
   if (typeof synced?.attachment === "boolean") {
+    // #8250: models.dev sometimes ships attachment=false alongside image/video
+    // modalities (observed for Kimi K3). Prefer the richer modality signal over
+    // the contradictory false flag so supportsVision / attachment / modalities
+    // can be reconciled to a single vision-capable verdict.
+    if (synced.attachment === false && modalitiesDeclareVision(allModalities)) {
+      return true;
+    }
     return synced.attachment;
   }
 
@@ -507,6 +522,22 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
 
   const maxTokenOverride = getMaxTokenCapabilityOverride(resolved);
 
+  const supportsVision = resolveVisionCapability(
+    spec,
+    registryModel,
+    synced,
+    modalitiesInput,
+    modalitiesOutput,
+    lookupKey
+  );
+
+  // #8250: when resolve promoted vision over a contradictory attachment=false,
+  // expose attachment=true so catalog / Vision Bridge / clients see one verdict.
+  let attachment = synced?.attachment ?? null;
+  if (supportsVision === true && attachment === false) {
+    attachment = true;
+  }
+
   return {
     provider: resolved.provider,
     model: resolved.model,
@@ -515,16 +546,9 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     reasoning: supportsThinking ?? heuristicReasoning(lookupKey),
     supportsThinking,
     supportsTools,
-    supportsVision: resolveVisionCapability(
-      spec,
-      registryModel,
-      synced,
-      modalitiesInput,
-      modalitiesOutput,
-      lookupKey
-    ),
+    supportsVision,
     supportsMaxTokens: heuristicMaxTokens(lookupKey),
-    attachment: synced?.attachment ?? null,
+    attachment,
     structuredOutput: synced?.structured_output ?? null,
     temperature: synced?.temperature ?? null,
     contextWindow,

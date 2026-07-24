@@ -7,6 +7,16 @@
  * usage block, fall back to estimating from the serialized content length. Mutates
  * `translatedResponse.usage` in place — byte-identical to the previous inline block, including the
  * `?.usage` guard, the `JSON.stringify(... || "")` content-length, and the `> 0` estimate gate.
+ *
+ * #8331 scoping: `addBufferToUsage()` now keeps the safety margin OUT of the client-visible
+ * metering fields (prompt_tokens/input_tokens/total_tokens) for normal API clients, so billing
+ * reflects real upstream usage. Claude-Code-compatible providers are the one exception — the
+ * buffer's original purpose (see `usageTracking.ts` module docstring) is CLI context-window
+ * headroom, and Claude Code's own context accounting reads the buffered number straight out of
+ * the response `usage` block. `preserveContextBudgetInVisibleUsage` re-folds the computed
+ * `context_budget_*` fields back into the visible fields for that one path only, before
+ * `filterUsageForFormat()` strips the internal fields — every other caller keeps the real,
+ * unbuffered #8331 numbers.
  */
 import {
   addBufferToUsage as defaultAddBuffer,
@@ -60,15 +70,42 @@ function isEmptyUsage(usage: unknown): boolean {
   return true;
 }
 
+/** context_budget_* → visible-field mapping folded back in for Claude-Code-compatible
+ * responses only (see module docstring above). */
+const CONTEXT_BUDGET_TO_VISIBLE_FIELD: Record<string, string> = {
+  context_budget_prompt_tokens: "prompt_tokens",
+  context_budget_input_tokens: "input_tokens",
+  context_budget_total_tokens: "total_tokens",
+};
+
+function foldContextBudgetIntoVisibleUsage(usage: Record<string, unknown>): void {
+  for (const [budgetField, visibleField] of Object.entries(CONTEXT_BUDGET_TO_VISIBLE_FIELD)) {
+    const value = usage[budgetField];
+    if (typeof value === "number") {
+      usage[visibleField] = value;
+    }
+  }
+}
+
+export interface ApplyClientUsageBufferOptions {
+  /** Claude-Code-compatible providers only (#8331 scoping) — see module docstring. */
+  preserveContextBudgetInVisibleUsage?: boolean;
+}
+
 export function applyClientUsageBuffer(
   translatedResponse: ResponseLike,
   body: unknown,
   clientResponseFormat: unknown,
+  options: ApplyClientUsageBufferOptions = {},
   deps: ClientUsageBufferDeps = DEFAULT_DEPS
 ): void {
+  const { preserveContextBudgetInVisibleUsage = false } = options;
   // Add buffer and filter usage for client (to prevent CLI context errors)
   if (translatedResponse?.usage && !isEmptyUsage(translatedResponse.usage)) {
-    const buffered = deps.addBufferToUsage(translatedResponse.usage);
+    const buffered = deps.addBufferToUsage(translatedResponse.usage) as Record<string, unknown>;
+    if (preserveContextBudgetInVisibleUsage) {
+      foldContextBudgetIntoVisibleUsage(buffered);
+    }
     translatedResponse.usage = deps.filterUsageForFormat(buffered, clientResponseFormat);
   } else {
     // Fallback: estimate usage when provider returned no usage block

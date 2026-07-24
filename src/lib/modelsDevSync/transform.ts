@@ -243,14 +243,30 @@ export function transformModelsDevToCapabilities(raw: ModelsDevData): Capabiliti
     const omniRouteProviders = mapProviderId(providerId);
 
     for (const [modelId, model] of Object.entries(providerData.models || {})) {
+      const modalitiesInput = model.modalities?.input ?? [];
+      const modalitiesOutput = model.modalities?.output ?? [];
+      // #8250: models.dev can ship attachment=false while modalities.input still
+      // lists image/video (Kimi K3). Normalize at sync so persisted rows stay
+      // internally consistent before resolve-time reconciliation.
+      let attachment = model.attachment ?? null;
+      if (
+        attachment === false &&
+        [...modalitiesInput, ...modalitiesOutput].some((entry) => {
+          const lower = String(entry).toLowerCase();
+          return lower.includes("image") || lower.includes("video");
+        })
+      ) {
+        attachment = true;
+      }
+
       const cap: ModelCapabilityEntry = {
         tool_call: model.tool_call ?? null,
         reasoning: model.reasoning ?? null,
-        attachment: model.attachment ?? null,
+        attachment,
         structured_output: model.structured_output ?? null,
         temperature: model.temperature ?? null,
-        modalities_input: JSON.stringify(model.modalities?.input ?? []),
-        modalities_output: JSON.stringify(model.modalities?.output ?? []),
+        modalities_input: JSON.stringify(modalitiesInput),
+        modalities_output: JSON.stringify(modalitiesOutput),
         knowledge_cutoff: model.knowledge ?? null,
         release_date: model.release_date ?? null,
         last_updated: model.last_updated ?? null,

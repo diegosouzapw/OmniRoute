@@ -8,6 +8,7 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import { FlowCanvas } from "@/shared/components/flow/FlowCanvas";
 import { StatusDot } from "@/shared/components/flow/StatusDot";
 import { edgeStyle, FLOW_EDGE_COLORS } from "@/shared/components/flow/edgeStyles";
+import { getFallbackProviderColor } from "@/shared/utils/providerFallbackColor";
 import { resolveTopologyNodeLabel } from "./topologyLabel";
 
 // Rings: [capacity, rx, ry]. Each successive ring fits ~6 more nodes.
@@ -23,9 +24,12 @@ const RINGS: [number, number, number][] = [
 type ProviderConfig = { color?: string; name?: string; textIcon?: string };
 
 function getProviderConfig(providerId: string): ProviderConfig {
+  // Predefined providers keep their registry color/name untouched. Anything else (custom
+  // openai-compatible-*/anthropic-compatible-* provider_nodes) gets a deterministic,
+  // per-id fallback color instead of one shared gray — see #8328.
   return (
     (AI_PROVIDERS as Record<string, ProviderConfig>)[providerId] || {
-      color: "#6b7280",
+      color: getFallbackProviderColor(providerId),
       name: providerId,
     }
   );

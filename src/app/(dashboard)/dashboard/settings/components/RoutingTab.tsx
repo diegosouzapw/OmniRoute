@@ -12,6 +12,7 @@ import {
 } from "@/shared/constants/cliCompatProviders";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { compareTr } from "@/shared/utils/turkishText";
+import { HERMES } from "./systemTransformsHermesDefaults";
 
 // Provider keys (mirror of open-sse/services/systemTransforms.ts).
 const PROVIDER_CLAUDE = "claude";
@@ -80,6 +81,8 @@ const DEFAULT_OBFUSCATE_WORDS = [
   "codecompanion",
   "openwebui",
   "open-webui",
+  "hermes-agent",
+  "hermes",
 ];
 
 // Mirror of DEFAULT_SYSTEM_TRANSFORMS_CONFIG from open-sse/services/systemTransforms.ts.
@@ -96,11 +99,12 @@ const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
             ...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS,
             ...OPENWEBUI_PARAGRAPH_ANCHORS,
             ...PI_PARAGRAPH_ANCHORS,
+            ...HERMES.anchors,
           ],
         },
         {
           kind: "drop_paragraph_if_starts_with",
-          prefixes: [...DEFAULT_IDENTITY_PREFIXES, "You are Open WebUI"],
+          prefixes: [...DEFAULT_IDENTITY_PREFIXES, "You are Open WebUI", ...HERMES.prefixes],
         },
         ...DEFAULT_TEXT_REPLACEMENTS.map((r) => ({
           kind: "replace_text" as const,
