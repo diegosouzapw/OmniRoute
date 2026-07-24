@@ -343,6 +343,32 @@ Web/search provider abstraction (Tavily, Brave, Exa, Serper, etc.).
 
 ---
 
+## Web Fetch API
+
+Extract content from a URL via a configured web-fetch provider (Firecrawl, Jina
+Reader, Tavily Extract, TinyFish Fetch).
+
+| Method | Path           | Description                                                              |
+| ------ | -------------- | ------------------------------------------------------------------------- |
+| POST   | `/v1/web/fetch` | Fetch/scrape a URL — body validated by `v1WebFetchSchema`               |
+
+**Auth:** Bearer API key (`extractApiKey` + `isValidApiKey`). Policy enforced via `enforceApiKeyPolicy`.
+
+**Quota-aware fallback (#8297):** when no explicit `provider` is given, the pool
+(`firecrawl` → `jina-reader` → `tavily-search` → `tinyfish`) is walked in fixed
+priority order (fill-first) — a rate-limited-but-configured provider is skipped
+instead of short-circuiting the request, and a retryable/quota upstream failure
+(HTTP 429 always; 402/403 for Firecrawl/Tavily/TinyFish quota-style free tiers —
+not for Jina Reader, and never for a plain 400 bad request) falls through to the
+next untried credentialed provider at request time. When every provider in the
+pool is exhausted, the endpoint returns a single `429` (with a `Retry-After`
+header) instead of the previous generic `400`. When an explicit `provider` is
+requested, there is **no** silent fallback — a rate-limited or failing explicit
+provider surfaces its own error (`429` if rate-limited, otherwise the upstream
+status).
+
+---
+
 ## WebSocket Streaming
 
 ```bash
