@@ -168,6 +168,7 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   const tp = useTranslations("miniPlayground");
   const [testExpanded, setTestExpanded] = useState<boolean>(false);
   const innerRef = useRef<HTMLDivElement>(null);
+  const linkElementRef = useRef<HTMLAnchorElement>(null);
 
   useImperativeHandle(
     ref,
@@ -178,8 +179,8 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
       highlight() {
         const el = innerRef.current;
         if (!el) return;
-        (el.firstElementChild as HTMLElement)?.focus();
-        const surface = el.firstElementChild?.firstElementChild as HTMLElement | undefined;
+        linkElementRef.current?.focus();
+        const surface = linkElementRef.current?.firstElementChild;
         surface?.animate(
           [
             { backgroundColor: "rgba(59,130,246,0.22)" },
@@ -195,7 +196,7 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
         el.scrollIntoView({ behavior: "auto", block: "center" });
       },
     }),
-    [providerId]
+    [providerId, innerRef, linkElementRef]
   );
 
   // Show the Test button for LLM providers (when serviceKinds includes "llm"
@@ -301,6 +302,7 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   return (
     <div ref={innerRef} id={`provider-${providerId}`} className="flex flex-col h-full">
       <Link
+        ref={linkElementRef}
         href={`/dashboard/providers/${providerId}`}
         className="group flex-1 flex flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/60"
         onClick={handleCardClick}
