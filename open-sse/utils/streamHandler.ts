@@ -247,7 +247,10 @@ export function createStreamController({
     try {
       trackPendingRequest(model || "", provider || "", connectionId ?? null, false);
     } catch (e) {
-      console.error(`[${getTimeString()}] [streamHandler] trackPendingRequest decrement failed — counter may drift`, e);
+      console.error(
+        `[${getTimeString()}] [streamHandler] trackPendingRequest decrement failed — counter may drift`,
+        e
+      );
     }
   };
 
@@ -583,7 +586,9 @@ export function createDisconnectAwareStream(transformStream, streamController) {
 
           try {
             controller.close();
-          } catch {}
+          } catch {
+            // Closing an already-closed/aborted controller after client disconnect is expected.
+          }
         }
       },
 
