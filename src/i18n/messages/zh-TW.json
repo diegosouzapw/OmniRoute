@@ -5846,7 +5846,16 @@
     "zedSaving": "正在儲存…",
     "zedUnsupportedCredentials": "找到 {count} 個鑰匙圈憑證，但均未匹配支援的提供者",
     "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex 配額集區",
+    "codexPoolAvailable": "可用",
+    "codexPoolPartiallyLimited": "部分受限",
+    "codexPoolFullyLimited": "全部受限",
+    "codexPoolLimited": "{count} 個受限",
+    "codexPoolQuotaExhausted": "配額已用盡",
+    "codexPoolCoolingDown": "冷卻中",
+    "codexPoolUsed": "已使用",
+    "codexPoolUntil": "截至 {value}"
   },
   "settings": {
     "title": "設定",

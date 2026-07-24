@@ -5958,7 +5958,16 @@
     "kimiOfficialSupporterBadge": "Amigo Fundador",
     "kimiOfficialSupporterTooltip": "A Kimi (Moonshot AI) é a amiga fundadora de código aberto do OmniRoute",
     "kimiPartnerLinkNote": "Link de parceiro — apoia o OmniRoute sem custo extra para você",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Pools de cotas do Codex",
+    "codexPoolAvailable": "Disponível",
+    "codexPoolPartiallyLimited": "Parcialmente limitado",
+    "codexPoolFullyLimited": "Totalmente limitado",
+    "codexPoolLimited": "{count} limitados",
+    "codexPoolQuotaExhausted": "Cota esgotada",
+    "codexPoolCoolingDown": "Em período de espera",
+    "codexPoolUsed": "usado",
+    "codexPoolUntil": "Até {value}"
   },
   "settings": {
     "title": "Configurações",

@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "بانی دوست",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) OmniRoute کا بانی اوپن سورس دوست ہے",
     "kimiPartnerLinkNote": "پارٹنر لنک — آپ کے لیے بغیر کسی اضافی قیمت کے OmniRoute کو سپورٹ کرتا ہے",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex کوٹا پولز",
+    "codexPoolAvailable": "دستیاب",
+    "codexPoolPartiallyLimited": "جزوی طور پر محدود",
+    "codexPoolFullyLimited": "مکمل طور پر محدود",
+    "codexPoolLimited": "{count} محدود",
+    "codexPoolQuotaExhausted": "کوٹا ختم ہو گیا",
+    "codexPoolCoolingDown": "وقفۂ انتظار میں",
+    "codexPoolUsed": "استعمال شدہ",
+    "codexPoolUntil": "{value} تک"
   },
   "settings": {
     "title": "Settings",

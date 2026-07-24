@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "창립 프렌드",
     "kimiOfficialSupporterTooltip": "Kimi(Moonshot AI)는 OmniRoute의 창립 오픈소스 프렌드입니다",
     "kimiPartnerLinkNote": "파트너 링크 — 추가 비용 없이 OmniRoute를 지원합니다",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex 할당량 풀",
+    "codexPoolAvailable": "사용 가능",
+    "codexPoolPartiallyLimited": "일부 제한됨",
+    "codexPoolFullyLimited": "모두 제한됨",
+    "codexPoolLimited": "{count}개 제한됨",
+    "codexPoolQuotaExhausted": "할당량 소진",
+    "codexPoolCoolingDown": "대기 시간 적용 중",
+    "codexPoolUsed": "사용됨",
+    "codexPoolUntil": "{value}까지"
   },
   "settings": {
     "title": "설정",

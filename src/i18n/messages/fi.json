@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Perustajaystävä",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) on OmniRouten perustajan avoimen lähdekoodin ystävä",
     "kimiPartnerLinkNote": "Kumppanilinkki — tukee OmniRoutea ilman lisäkustannuksia sinulle",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex-kiintiöpoolit",
+    "codexPoolAvailable": "Käytettävissä",
+    "codexPoolPartiallyLimited": "Osittain rajoitettu",
+    "codexPoolFullyLimited": "Täysin rajoitettu",
+    "codexPoolLimited": "{count} rajoitettua",
+    "codexPoolQuotaExhausted": "Kiintiö käytetty loppuun",
+    "codexPoolCoolingDown": "Jäähdytysjaksolla",
+    "codexPoolUsed": "käytetty",
+    "codexPoolUntil": "{value} asti"
   },
   "settings": {
     "title": "Asetukset",

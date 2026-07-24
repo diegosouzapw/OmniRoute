@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Grunnleggende venn",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) er OmniRoutes grunnleggende åpen kildekode-venn",
     "kimiPartnerLinkNote": "Partnerlenke — støtter OmniRoute uten ekstra kostnad for deg",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex-kvotepuljer",
+    "codexPoolAvailable": "Tilgjengelig",
+    "codexPoolPartiallyLimited": "Delvis begrenset",
+    "codexPoolFullyLimited": "Fullstendig begrenset",
+    "codexPoolLimited": "{count} begrenset",
+    "codexPoolQuotaExhausted": "Kvoten er oppbrukt",
+    "codexPoolCoolingDown": "I nedkjølingsperiode",
+    "codexPoolUsed": "brukt",
+    "codexPoolUntil": "Til {value}"
   },
   "settings": {
     "title": "Innstillinger",

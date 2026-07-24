@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "创始好友",
     "kimiOfficialSupporterTooltip": "Kimi（Moonshot AI）是 OmniRoute 的创始开源好友",
     "kimiPartnerLinkNote": "合作伙伴链接 — 支持 OmniRoute，您无需承担额外费用",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex 配额池",
+    "codexPoolAvailable": "可用",
+    "codexPoolPartiallyLimited": "部分受限",
+    "codexPoolFullyLimited": "全部受限",
+    "codexPoolLimited": "{count} 个受限",
+    "codexPoolQuotaExhausted": "配额已用尽",
+    "codexPoolCoolingDown": "冷却中",
+    "codexPoolUsed": "已使用",
+    "codexPoolUntil": "截至 {value}"
   },
   "settings": {
     "title": "设置",

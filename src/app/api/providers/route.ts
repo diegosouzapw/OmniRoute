@@ -26,6 +26,7 @@ import {
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { normalizeQoderPatProviderData } from "@omniroute/open-sse/services/qoderCli";
+import { projectCodexAccountPool } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import {
   normalizeProviderSpecificData,
   sanitizeProviderSpecificDataForResponse,
@@ -61,16 +62,31 @@ export async function GET(request: Request) {
     const revealKeys = isApiKeyRevealEnabled();
 
     // Hide or mask sensitive fields
-    const safeConnections = connections.map((c) => ({
-      ...c,
-      apiKey: revealKeys ? c.apiKey : c.apiKey ? maskStoredApiKey(c.apiKey) : undefined,
-      accessToken: undefined,
-      refreshToken: undefined,
-      idToken: undefined,
-      providerSpecificData: c.providerSpecificData
+    const safeConnections = connections.map((c) => {
+      const providerSpecificData = c.providerSpecificData
         ? sanitizeProviderSpecificDataForResponse(c.providerSpecificData)
-        : undefined,
-    }));
+        : undefined;
+      return {
+        ...c,
+        apiKey: revealKeys ? c.apiKey : c.apiKey ? maskStoredApiKey(c.apiKey) : undefined,
+        accessToken: undefined,
+        refreshToken: undefined,
+        idToken: undefined,
+        providerSpecificData,
+        ...(c.provider === "codex"
+          ? {
+              codexAccountPool: projectCodexAccountPool(
+                {
+                  id: c.id,
+                  provider: c.provider,
+                  providerSpecificData: c.providerSpecificData ?? {},
+                },
+                Date.now()
+              ),
+            }
+          : {}),
+      };
+    });
 
     return NextResponse.json({ connections: safeConnections, total });
   } catch (error) {

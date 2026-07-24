@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "వ్యవస్థాపక మిత్రుడు",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) అనేది OmniRoute యొక్క వ్యవస్థాపక ఓపెన్ సోర్స్ మిత్రుడు",
     "kimiPartnerLinkNote": "భాగస్వామి లింక్ — మీకు ఎటువంటి అదనపు ఖర్చు లేకుండా OmniRouteకు మద్దతు ఇస్తుంది",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex కోటా పూల్‌లు",
+    "codexPoolAvailable": "అందుబాటులో ఉంది",
+    "codexPoolPartiallyLimited": "పాక్షికంగా పరిమితం",
+    "codexPoolFullyLimited": "పూర్తిగా పరిమితం",
+    "codexPoolLimited": "{count} పరిమితం",
+    "codexPoolQuotaExhausted": "కోటా అయిపోయింది",
+    "codexPoolCoolingDown": "నిరీక్షణ వ్యవధిలో ఉంది",
+    "codexPoolUsed": "ఉపయోగించబడింది",
+    "codexPoolUntil": "{value} వరకు"
   },
   "settings": {
     "title": "Settings",

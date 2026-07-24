@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Rakan Pengasas",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) ialah rakan sumber terbuka pengasas OmniRoute",
     "kimiPartnerLinkNote": "Pautan rakan kongsi — menyokong OmniRoute tanpa kos tambahan kepada anda",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Kumpulan kuota Codex",
+    "codexPoolAvailable": "Tersedia",
+    "codexPoolPartiallyLimited": "Dihadkan sebahagian",
+    "codexPoolFullyLimited": "Dihadkan sepenuhnya",
+    "codexPoolLimited": "{count} dihadkan",
+    "codexPoolQuotaExhausted": "Kuota telah habis",
+    "codexPoolCoolingDown": "Dalam tempoh menunggu",
+    "codexPoolUsed": "digunakan",
+    "codexPoolUntil": "Sehingga {value}"
   },
   "settings": {
     "title": "tetapan",

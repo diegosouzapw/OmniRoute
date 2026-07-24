@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Rafiki Mwanzilishi",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) ni rafiki mwanzilishi wa chanzo huria wa OmniRoute",
     "kimiPartnerLinkNote": "Kiungo cha mshirika — kinaunga mkono OmniRoute bila gharama ya ziada kwako",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Makundi ya mgao wa Codex",
+    "codexPoolAvailable": "Inapatikana",
+    "codexPoolPartiallyLimited": "Imewekewa kikomo kwa sehemu",
+    "codexPoolFullyLimited": "Imewekewa kikomo kikamilifu",
+    "codexPoolLimited": "{count} zimewekewa kikomo",
+    "codexPoolQuotaExhausted": "Mgao umeisha",
+    "codexPoolCoolingDown": "Katika kipindi cha kusubiri",
+    "codexPoolUsed": "imetumika",
+    "codexPoolUntil": "Hadi {value}"
   },
   "settings": {
     "title": "Settings",

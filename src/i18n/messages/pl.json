@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Przyjaciel-założyciel",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) jest przyjacielem-założycielem open source OmniRoute",
     "kimiPartnerLinkNote": "Link partnerski — wspiera OmniRoute bez żadnych dodatkowych kosztów dla Ciebie",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Pule limitów Codex",
+    "codexPoolAvailable": "Dostępna",
+    "codexPoolPartiallyLimited": "Częściowo ograniczona",
+    "codexPoolFullyLimited": "Całkowicie ograniczona",
+    "codexPoolLimited": "Ograniczone: {count}",
+    "codexPoolQuotaExhausted": "Limit wyczerpany",
+    "codexPoolCoolingDown": "W okresie oczekiwania",
+    "codexPoolUsed": "wykorzystano",
+    "codexPoolUntil": "Do {value}"
   },
   "settings": {
     "title": "Ustawienia",

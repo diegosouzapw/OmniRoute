@@ -1350,36 +1350,6 @@ test("Codex quota policy keeps normal and Spark windows separate", async () => {
   assert.match(String(sparkSelected.lastError), /configured quota threshold/i);
 });
 
-test("markAccountUnavailable stores Codex scope-specific cooldowns without a global rate limit", async () => {
-  const connection = await seedConnection("codex", {
-    authType: "oauth",
-    name: "codex-scope",
-    email: "codex@example.com",
-    apiKey: null,
-    accessToken: "codex-access",
-    refreshToken: "codex-refresh",
-  });
-
-  const result = await auth.markAccountUnavailable(
-    connection.id,
-    429,
-    "quota reached",
-    "codex",
-    "codex-spark-mini"
-  );
-  const updated = await providersDb.getProviderConnectionById(connection.id);
-  const selected = await auth.getProviderCredentials("codex", null, null, "codex-spark-mini");
-  const normalSelected = await auth.getProviderCredentials("codex", null, null, "gpt-5.3-codex");
-
-  assert.equal(result.shouldFallback, true);
-  assert.ok(result.cooldownMs > 0);
-  assert.equal(updated.testStatus, "unavailable");
-  assert.equal(updated.rateLimitedUntil, undefined);
-  assert.ok(updated.providerSpecificData.codexScopeRateLimitedUntil.spark);
-  assert.equal(selected.allRateLimited, true);
-  assert.equal(normalSelected.connectionId, connection.id);
-});
-
 test("markAccountUnavailable returns without fallback on bad requests", async () => {
   const connection = await seedConnection("openai", {
     name: "bad-request-no-fallback",

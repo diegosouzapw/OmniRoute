@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "เพื่อนผู้ก่อตั้ง",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) คือเพื่อนโอเพนซอร์สผู้ก่อตั้งของ OmniRoute",
     "kimiPartnerLinkNote": "ลิงก์พันธมิตร — สนับสนุน OmniRoute โดยไม่มีค่าใช้จ่ายเพิ่มเติมสำหรับคุณ",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "พูลโควตา Codex",
+    "codexPoolAvailable": "พร้อมใช้งาน",
+    "codexPoolPartiallyLimited": "ถูกจำกัดบางส่วน",
+    "codexPoolFullyLimited": "ถูกจำกัดทั้งหมด",
+    "codexPoolLimited": "ถูกจำกัด {count} รายการ",
+    "codexPoolQuotaExhausted": "โควตาหมดแล้ว",
+    "codexPoolCoolingDown": "อยู่ในช่วงพัก",
+    "codexPoolUsed": "ใช้แล้ว",
+    "codexPoolUntil": "จนถึง {value}"
   },
   "settings": {
     "title": "การตั้งค่า",

@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Zakládající přítel",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) je zakládající open source přítel OmniRoute",
     "kimiPartnerLinkNote": "Partnerský odkaz — podporuje OmniRoute bez jakýchkoli dalších nákladů pro vás",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Fondy kvót Codex",
+    "codexPoolAvailable": "Dostupný",
+    "codexPoolPartiallyLimited": "Částečně omezený",
+    "codexPoolFullyLimited": "Plně omezený",
+    "codexPoolLimited": "Omezeno: {count}",
+    "codexPoolQuotaExhausted": "Kvóta vyčerpána",
+    "codexPoolCoolingDown": "Probíhá čekací lhůta",
+    "codexPoolUsed": "využito",
+    "codexPoolUntil": "Do {value}"
   },
   "settings": {
     "title": "Nastavení",

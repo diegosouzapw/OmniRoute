@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Tagapagtatag na Kaibigan",
     "kimiOfficialSupporterTooltip": "Ang Kimi (Moonshot AI) ang tagapagtatag na open source na kaibigan ng OmniRoute",
     "kimiPartnerLinkNote": "Link ng kasosyo — sumusuporta sa OmniRoute nang walang karagdagang gastos sa iyo",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Mga pool ng quota ng Codex",
+    "codexPoolAvailable": "Magagamit",
+    "codexPoolPartiallyLimited": "Bahagyang limitado",
+    "codexPoolFullyLimited": "Ganap na limitado",
+    "codexPoolLimited": "{count} limitado",
+    "codexPoolQuotaExhausted": "Ubos na ang quota",
+    "codexPoolCoolingDown": "Nasa panahon ng paghihintay",
+    "codexPoolUsed": "nagamit",
+    "codexPoolUntil": "Hanggang {value}"
   },
   "settings": {
     "title": "Mga setting",

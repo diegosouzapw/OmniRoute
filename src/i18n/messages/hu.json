@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Alapító barát",
     "kimiOfficialSupporterTooltip": "A Kimi (Moonshot AI) az OmniRoute alapító nyílt forráskódú barátja",
     "kimiPartnerLinkNote": "Partnerhivatkozás — az Ön számára további költség nélkül támogatja az OmniRoute-ot",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex-kvótakészletek",
+    "codexPoolAvailable": "Elérhető",
+    "codexPoolPartiallyLimited": "Részben korlátozott",
+    "codexPoolFullyLimited": "Teljesen korlátozott",
+    "codexPoolLimited": "{count} korlátozott",
+    "codexPoolQuotaExhausted": "A kvóta kimerült",
+    "codexPoolCoolingDown": "Várakozási időszakban",
+    "codexPoolUsed": "felhasználva",
+    "codexPoolUntil": "Eddig: {value}"
   },
   "settings": {
     "title": "Beállítások elemre",

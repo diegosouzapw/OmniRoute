@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "Kurucu Dost",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI), OmniRoute'un kurucu açık kaynak dostu",
     "kimiPartnerLinkNote": "Ortaklık bağlantısı — size hiçbir ek ücret ödetmeden OmniRoute'u destekler",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "Codex kota havuzları",
+    "codexPoolAvailable": "Kullanılabilir",
+    "codexPoolPartiallyLimited": "Kısmen sınırlı",
+    "codexPoolFullyLimited": "Tamamen sınırlı",
+    "codexPoolLimited": "{count} sınırlı",
+    "codexPoolQuotaExhausted": "Kota tükendi",
+    "codexPoolCoolingDown": "Bekleme süresinde",
+    "codexPoolUsed": "kullanıldı",
+    "codexPoolUntil": "{value} tarihine kadar"
   },
   "settings": {
     "title": "Ayarlar",

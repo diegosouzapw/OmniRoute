@@ -5948,7 +5948,16 @@
     "kimiOfficialSupporterBadge": "الصديق المؤسس",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) هو الصديق المؤسس للمصادر المفتوحة لـ OmniRoute",
     "kimiPartnerLinkNote": "رابط شريك — يدعم OmniRoute دون أي تكلفة إضافية عليك",
-    "accountSearchPlaceholder": "Search accounts…"
+    "accountSearchPlaceholder": "Search accounts…",
+    "codexQuotaPools": "مجموعات حصص Codex",
+    "codexPoolAvailable": "متاح",
+    "codexPoolPartiallyLimited": "محدود جزئيًا",
+    "codexPoolFullyLimited": "محدود بالكامل",
+    "codexPoolLimited": "{count} محدود",
+    "codexPoolQuotaExhausted": "نفدت الحصة",
+    "codexPoolCoolingDown": "في فترة تهدئة",
+    "codexPoolUsed": "مُستخدم",
+    "codexPoolUntil": "حتى {value}"
   },
   "settings": {
     "title": "الإعدادات",

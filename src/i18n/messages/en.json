@@ -5961,7 +5961,16 @@
     "lmarenaWebCookieHint": "Open arena.ai, sign in, then copy the full Cookie header from a Network request. Include arena-auth-prod-v1.0 and arena-auth-prod-v1.1 (and further chunks if present), preferably with cf_clearance. Do not paste only the empty arena-auth-prod-v1 cookie. Optional: providerSpecificData.recaptchaV3Token if create-evaluation still returns 403.",
     "kimiOfficialSupporterBadge": "Founding Friend",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) is OmniRoute's founding Open Source Friend",
-    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you",
+    "codexQuotaPools": "Codex quota pools",
+    "codexPoolAvailable": "Available",
+    "codexPoolPartiallyLimited": "Partially limited",
+    "codexPoolFullyLimited": "Fully limited",
+    "codexPoolLimited": "{count} limited",
+    "codexPoolQuotaExhausted": "Quota exhausted",
+    "codexPoolCoolingDown": "Cooling down",
+    "codexPoolUsed": "used",
+    "codexPoolUntil": "Until {value}"
   },
   "settings": {
     "title": "Settings",
