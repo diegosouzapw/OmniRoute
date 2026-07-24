@@ -2453,7 +2453,10 @@ export async function handleComboChat({
                     // upstream reset (lockoutHintVerified) bypasses it.
                     exactCooldownMs: selectLockoutCooldownMs(lockoutHintMs, mlSettings),
                     maxCooldownMs: mlSettings.maxCooldownMs,
-                    exactCooldownVerified: lockoutHintVerified,
+                    // #6863: a parsed upstream quota reset is authoritative — the upstream
+                    // told us exactly when it resets, so honor it in full instead of
+                    // clamping to maxCooldownMs (which only bounds computed backoff).
+                    exactCooldownIsUpstreamReset: lockoutHintMs > mlSettings.baseCooldownMs,
                   }
                 );
                 lockoutRecorded = true;
@@ -2507,7 +2510,9 @@ export async function handleComboChat({
                   // upstream reset (lockoutHintVerified) bypasses it.
                   exactCooldownMs: selectLockoutCooldownMs(lockoutHintMs, mlSettings),
                   maxCooldownMs: mlSettings.maxCooldownMs,
-                  exactCooldownVerified: lockoutHintVerified,
+                  // #6863: an authoritative parsed upstream reset must be honored in full,
+                  // never clamped to maxCooldownMs (which only bounds computed backoff).
+                  exactCooldownIsUpstreamReset: lockoutHintMs > mlSettings.baseCooldownMs,
                 }
               );
             }
@@ -2925,7 +2930,11 @@ async function handleRoundRobinCombo({
   // BEFORE availability is known; if every compat-kept target then turns out to be
   // runtime-unavailable, we must reconsider these before returning 503, instead of
   // permanently dropping a compat-rejected-but-healthy provider.
-  const compatRejectedTargets = computeCompatRejectedTargets(evalRankedTargets, filteredTargets, body);
+  const compatRejectedTargets = computeCompatRejectedTargets(
+    evalRankedTargets,
+    filteredTargets,
+    body
+  );
   let modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
