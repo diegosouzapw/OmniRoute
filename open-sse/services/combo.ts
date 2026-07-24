@@ -178,6 +178,7 @@ import { resolveShadowTargets, scheduleShadowRouting } from "./combo/shadowRouti
 import { attemptCompatRejectedFallback } from "./combo/comboCompatFallback.ts";
 import { applyContextRequirements } from "./combo/contextRequirements.ts";
 import {
+  computeCompatRejectedTargets,
   filterTargetsByRequestCompatibility,
   resolveComboRuntimeUnits,
   resolveComboTargets,
@@ -2924,8 +2925,7 @@ async function handleRoundRobinCombo({
   // BEFORE availability is known; if every compat-kept target then turns out to be
   // runtime-unavailable, we must reconsider these before returning 503, instead of
   // permanently dropping a compat-rejected-but-healthy provider.
-  const compatKeptSet = new Set(filteredTargets);
-  const compatRejectedTargets = evalRankedTargets.filter((target) => !compatKeptSet.has(target));
+  const compatRejectedTargets = computeCompatRejectedTargets(evalRankedTargets, filteredTargets, body);
   let modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
