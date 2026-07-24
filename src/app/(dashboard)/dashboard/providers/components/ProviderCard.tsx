@@ -177,12 +177,12 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
       },
       highlight() {
         const el = innerRef.current;
+        (el.firstElementChild as HTMLElement)?.focus();
         const surface = el.firstElementChild?.firstElementChild as HTMLElement | undefined;
         surface?.animate(
           [
             { backgroundColor: "rgba(59,130,246,0.22)" },
             { backgroundColor: "rgba(59,130,246,0.08)" },
-            { backgroundColor: "rgba(59,130,246,0.22)" },
             { backgroundColor: "transparent" },
           ],
           { duration: 3000, easing: "ease-in-out" }
