@@ -212,6 +212,15 @@ export default function ProvidersPage() {
   const handleProviderNavigate = useCallback((id: string) => {
     window.history.replaceState({ providerId: id }, "");
   }, []);
+
+  const highlightedCardRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (node && highlightedProviderId && node.id === `provider-${highlightedProviderId}`) {
+        node.scrollIntoView({ behavior: "auto", block: "center" });
+      }
+    },
+    [highlightedProviderId]
+  );
   const notify = useNotificationStore();
   const sectionCategoryAliases: Record<string, string> = {
     cloud: "cloudagent",
@@ -927,6 +936,7 @@ export default function ProvidersPage() {
                 }
                 shouldHighlight={entry.providerId === highlightedProviderId}
                 onBeforeNavigate={handleProviderNavigate}
+                ref={highlightedCardRef}
               />
             ))}
           </div>
@@ -1015,6 +1025,7 @@ export default function ProvidersPage() {
                         }
                         shouldHighlight={providerId === highlightedProviderId}
                         onBeforeNavigate={handleProviderNavigate}
+                        ref={highlightedCardRef}
                       />
                     )
                   )}
@@ -1091,6 +1102,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   ))}
               </div>
@@ -1151,6 +1163,7 @@ export default function ProvidersPage() {
                         }
                         shouldHighlight={providerId === highlightedProviderId}
                         onBeforeNavigate={handleProviderNavigate}
+                        ref={highlightedCardRef}
                       />
                     )
                   )}
@@ -1201,6 +1214,7 @@ export default function ProvidersPage() {
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
                     shouldHighlight={providerId === highlightedProviderId}
                     onBeforeNavigate={handleProviderNavigate}
+                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1251,6 +1265,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1306,6 +1321,7 @@ export default function ProvidersPage() {
                           }
                           shouldHighlight={providerId === highlightedProviderId}
                           onBeforeNavigate={handleProviderNavigate}
+                          ref={highlightedCardRef}
                         />
                       )
                     )}
@@ -1374,6 +1390,7 @@ export default function ProvidersPage() {
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
                     shouldHighlight={providerId === highlightedProviderId}
                     onBeforeNavigate={handleProviderNavigate}
+                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1408,6 +1425,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1443,6 +1461,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1478,6 +1497,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1530,6 +1550,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1579,6 +1600,7 @@ export default function ProvidersPage() {
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
                     shouldHighlight={providerId === highlightedProviderId}
                     onBeforeNavigate={handleProviderNavigate}
+                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1627,6 +1649,7 @@ export default function ProvidersPage() {
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
                     shouldHighlight={providerId === highlightedProviderId}
                     onBeforeNavigate={handleProviderNavigate}
+                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1661,6 +1684,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1696,6 +1720,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   )
                 )}
@@ -1745,6 +1770,7 @@ export default function ProvidersPage() {
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
                     shouldHighlight={providerId === highlightedProviderId}
                     onBeforeNavigate={handleProviderNavigate}
+                    ref={highlightedCardRef}
                   />
                 ))}
               </div>
@@ -1779,6 +1805,7 @@ export default function ProvidersPage() {
                       }
                       shouldHighlight={providerId === highlightedProviderId}
                       onBeforeNavigate={handleProviderNavigate}
+                      ref={highlightedCardRef}
                     />
                   )
                 )}

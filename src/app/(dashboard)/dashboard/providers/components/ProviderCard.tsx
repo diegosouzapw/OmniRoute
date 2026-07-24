@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -154,44 +154,33 @@ function getStatusDisplay(
   return parts;
 }
 
-export default function ProviderCard({
-  providerId,
-  provider,
-  stats,
-  authType = "apikey",
-  onToggle,
-  shouldHighlight,
-  onBeforeNavigate,
-}: ProviderCardProps) {
+const ProviderCard = forwardRef<HTMLDivElement, ProviderCardProps>(function ProviderCard(
+  { providerId, provider, stats, authType = "apikey", onToggle, shouldHighlight, onBeforeNavigate },
+  ref
+) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const tp = useTranslations("miniPlayground");
   const [testExpanded, setTestExpanded] = useState<boolean>(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  useImperativeHandle(ref, () => innerRef.current, []);
 
   useEffect(() => {
-    if (!shouldHighlight) return;
-    const el = wrapperRef.current;
-    if (!el) return;
-    el.scrollIntoView({ behavior: "auto", block: "center" });
-    const link = el.querySelector("a");
-    if (link) {
-      link.focus({ preventScroll: true });
+    if (!shouldHighlight) {
+      return;
     }
 
-    const surface = el.firstElementChild?.firstElementChild as HTMLElement | undefined;
-    if (surface) {
-      surface.animate(
-        [
-          { backgroundColor: "rgba(59,130,246,0.22)" },
-          { backgroundColor: "rgba(59,130,246,0.08)" },
-          { backgroundColor: "rgba(59,130,246,0.22)" },
-          { backgroundColor: "transparent" },
-        ],
-        { duration: 3000, easing: "ease-in-out" }
-      );
-    }
-  }, [shouldHighlight]);
+    const surface = innerRef.current?.firstElementChild?.firstElementChild as
+      HTMLElement | undefined;
+    surface?.animate(
+      [
+        { backgroundColor: "rgba(59,130,246,0.22)" },
+        { backgroundColor: "rgba(59,130,246,0.08)" },
+        { backgroundColor: "transparent" },
+      ],
+      { duration: 2500, easing: "ease-in-out" }
+    );
+  }, [shouldHighlight, providerId, innerRef]);
 
   // Show the Test button for LLM providers (when serviceKinds includes "llm"
   // OR when the provider has no explicit serviceKinds but is a regular LLM provider
@@ -294,7 +283,7 @@ export default function ProviderCard({
   }, [onBeforeNavigate, providerId]);
 
   return (
-    <div ref={wrapperRef} id={`provider-${providerId}`} className="flex flex-col h-full">
+    <div ref={innerRef} id={`provider-${providerId}`} className="flex flex-col h-full">
       <Link
         href={`/dashboard/providers/${providerId}`}
         className="group flex-1 flex flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/60"
@@ -498,4 +487,6 @@ export default function ProviderCard({
       )}
     </div>
   );
-}
+});
+
+export default ProviderCard;
