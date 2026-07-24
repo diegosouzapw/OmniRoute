@@ -234,6 +234,40 @@ test("header-derived exhausted reset survives fallback cooldown persistence", as
   );
 });
 
+test("a successful quota observation clears earlier exhaustion for only that child", async () => {
+  const connection = await seedCodexConnection();
+  const futureReset5h = new Date(Date.now() + 60_000).toISOString();
+  const futureReset7d = new Date(Date.now() + 600_000).toISOString();
+
+  await codexAccount.persistCodexChildQuotaResponse({
+    connectionId: connection.id,
+    model: "gpt-5.5",
+    headers: quotaHeaders(futureReset5h, futureReset7d),
+    status: 429,
+  });
+  await codexAccount.persistCodexChildQuotaResponse({
+    connectionId: connection.id,
+    model: "gpt-5.3-codex-spark",
+    headers: quotaHeaders(futureReset5h, futureReset7d),
+    status: 429,
+  });
+  await codexAccount.persistCodexChildQuotaResponse({
+    connectionId: connection.id,
+    model: "gpt-5.5",
+    headers: quotaHeaders(futureReset5h, futureReset7d),
+    status: 200,
+  });
+
+  const persisted = await readConnection(connection.id);
+  const exhaustedByScope = persisted.providerSpecificData.codexExhaustedWindowByScope as Record<
+    string,
+    unknown
+  >;
+
+  assert.equal(exhaustedByScope.codex, undefined);
+  assert.equal(exhaustedByScope.spark, "5h");
+});
+
 test("a newer fallback supersedes an expired authoritative reset", async () => {
   const connection = await seedCodexConnection();
   const expiredReset = new Date(Date.now() - 60_000).toISOString();

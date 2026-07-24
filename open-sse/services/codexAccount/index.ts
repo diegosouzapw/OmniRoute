@@ -78,7 +78,17 @@ export function projectCodexAccountPool(
     const cooldownActive = Boolean(
       state.rateLimitedUntil && new Date(state.rateLimitedUntil).getTime() > now
     );
-    const unavailable = cooldownActive || hydration.exhaustedWindow !== null;
+    const exhaustedWindow = hydration.exhaustedWindow;
+    const exhaustedResetAt =
+      exhaustedWindow === "5h"
+        ? hydration.quotaState?.resetAt5h
+        : exhaustedWindow === "7d"
+          ? hydration.quotaState?.resetAt7d
+          : null;
+    const exhaustionActive = Boolean(
+      exhaustedWindow && exhaustedResetAt && new Date(exhaustedResetAt).getTime() > now
+    );
+    const unavailable = cooldownActive || exhaustionActive;
     return {
       key: child.key,
       unavailable,
@@ -87,7 +97,7 @@ export function projectCodexAccountPool(
         rateLimitedUntil: cooldownActive ? state.rateLimitedUntil : null,
       },
       quota: {
-        exhaustedWindow: hydration.exhaustedWindow,
+        exhaustedWindow: exhaustionActive ? exhaustedWindow : null,
         observedAt: hydration.quotaState?.observedAt ?? null,
         windows: { "5h": quotaWindow("5h"), "7d": quotaWindow("7d") },
       },

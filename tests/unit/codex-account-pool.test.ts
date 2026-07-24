@@ -180,7 +180,12 @@ test("projects quota exhaustion and active cooldown as distinct child facts", ()
       providerSpecificData: {
         codexScopeRateLimitedUntil: { spark: sparkCooldown },
         codexQuotaStateByScope: {
-          codex: { usage5h: 100, limit5h: 100, observedAt: "2025-12-31T23:59:00.000Z" },
+          codex: {
+            usage5h: 100,
+            limit5h: 100,
+            resetAt5h: "2026-01-01T02:00:00.000Z",
+            observedAt: "2025-12-31T23:59:00.000Z",
+          },
           spark: { usage7d: 80, limit7d: 100, resetAt7d: "2026-01-02T00:00:00.000Z" },
         },
         codexExhaustedWindowByScope: { codex: "5h" },
@@ -242,4 +247,33 @@ test("projects neither exhaustion nor an expired cooldown as unavailable", () =>
     active: false,
     rateLimitedUntil: null,
   });
+});
+
+test("projects an exhausted window as available after its reset passes", () => {
+  const now = Date.parse("2026-01-01T00:00:00.000Z");
+  const projected = codexAccount.projectCodexAccountPool(
+    {
+      id: "codex-expired-quota-projection",
+      provider: "codex",
+      providerSpecificData: {
+        codexScopeRateLimitedUntil: { codex: "2025-12-31T23:59:59.000Z" },
+        codexQuotaStateByScope: {
+          codex: {
+            usage5h: 100,
+            limit5h: 100,
+            resetAt5h: "2025-12-31T23:59:59.000Z",
+            observedAt: "2025-12-31T18:59:00.000Z",
+          },
+        },
+        codexExhaustedWindowByScope: { codex: "5h" },
+      },
+    },
+    now
+  );
+
+  assert.equal(projected.aggregate.status, "available");
+  assert.equal(projected.aggregate.limitedChildCount, 0);
+  assert.equal(projected.children[0].unavailable, false);
+  assert.equal(projected.children[0].quota.exhaustedWindow, null);
+  assert.equal(projected.children[0].quota.windows["5h"]?.resetAt, "2025-12-31T23:59:59.000Z");
 });

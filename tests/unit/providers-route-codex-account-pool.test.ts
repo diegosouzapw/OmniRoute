@@ -37,6 +37,7 @@ test("GET keeps one parent row and projects raw Codex state without exposing cre
         spark: {
           usage5h: 100,
           limit5h: 100,
+          resetAt5h: cooldown,
           observedAt: "2026-01-01T00:00:00.000Z",
         },
       },

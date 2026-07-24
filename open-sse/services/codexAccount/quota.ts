@@ -50,7 +50,7 @@ export async function persistCodexChildQuotaResponse(params: {
 
   const providerSpecificData = await updateCodexScopedQuotaState(params.connectionId, scope, {
     quotaState,
-    ...(exhaustedWindow ? { exhaustedWindow } : {}),
+    exhaustedWindow: exhaustedWindow ?? null,
     ...(rateLimitedUntil
       ? {
           rateLimitedUntil,

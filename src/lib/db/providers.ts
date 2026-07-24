@@ -783,7 +783,7 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
 
 type CodexScopedQuotaPatch = {
   quotaState?: JsonRecord;
-  exhaustedWindow?: "5h" | "7d";
+  exhaustedWindow?: "5h" | "7d" | null;
   rateLimitedUntil?: string;
   rateLimitSource?: "fallback" | "quota_reset";
 };
@@ -824,13 +824,16 @@ export async function updateCodexScopedQuotaState(
       };
     }
 
-    if (patch.exhaustedWindow) {
-      const exhaustedByScope = toRecord(providerSpecificData.codexExhaustedWindowByScope);
-      nextProviderSpecificData.codexExhaustedWindowByScope = {
-        ...exhaustedByScope,
-        [scope]: patch.exhaustedWindow,
-      };
-      nextProviderSpecificData.codexExhaustedWindow = patch.exhaustedWindow;
+    if (patch.exhaustedWindow !== undefined) {
+      const exhaustedByScope = { ...toRecord(providerSpecificData.codexExhaustedWindowByScope) };
+      if (patch.exhaustedWindow) exhaustedByScope[scope] = patch.exhaustedWindow;
+      else delete exhaustedByScope[scope];
+      nextProviderSpecificData.codexExhaustedWindowByScope = exhaustedByScope;
+      if (patch.exhaustedWindow) {
+        nextProviderSpecificData.codexExhaustedWindow = patch.exhaustedWindow;
+      } else {
+        delete nextProviderSpecificData.codexExhaustedWindow;
+      }
     }
 
     if (patch.rateLimitedUntil) {
