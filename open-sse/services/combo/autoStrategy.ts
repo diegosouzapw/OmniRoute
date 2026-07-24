@@ -33,11 +33,12 @@ import { getTaskFitness } from "../autoCombo/taskFitness.ts";
 import {
   calculateFactors,
   calculateScore,
+  computePoolMaxima,
   type ProviderCandidate,
   type ScoringWeights,
 } from "../autoCombo/scoring.ts";
 import type { RoutingHint } from "../manifestAdapter";
-import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
+import { getProviderConnections } from "../../../src/lib/db/providers";
 import { getProviderModels } from "../../config/providerModels.ts";
 import {
   getConnectionRoutingTags,
@@ -248,7 +249,7 @@ export async function applyRequestTagRouting(
   await Promise.all(
     providerIds.map(async (providerId) => {
       try {
-        const connections = await getCachedProviderConnections({ provider: providerId, isActive: true });
+        const connections = await getProviderConnections({ provider: providerId, isActive: true });
         providerConnections.set(
           providerId,
           Array.isArray(connections) ? (connections as Array<Record<string, unknown>>) : []
@@ -348,6 +349,11 @@ export function scoreAutoTargets(
 ) {
   const targetByExecutionKey = new Map(targets.map((target) => [target.executionKey, target]));
   const activeCandidates = candidates.filter((candidate) => candidate.quotaCutoffBlocked !== true);
+  // Computed once per scoring pass, not per candidate — see computePoolMaxima's
+  // doc comment (scoring.ts) for the O(n^2) OOM this avoids on large auto-combo
+  // candidate pools (#OOM incident, zero-config auto combo expanding to 1000s
+  // of provider/model targets).
+  const poolMaxima = computePoolMaxima(activeCandidates as unknown as ProviderCandidate[]);
 
   return activeCandidates
     .map((candidate) => {
@@ -370,10 +376,11 @@ export function scoreAutoTargets(
       };
       const factors = calculateFactors(
         candidate as ProviderCandidate,
-        activeCandidates,
+        activeCandidates as unknown as ProviderCandidate[],
         taskType ?? "general",
         getTaskFitness,
-        manifestHint ?? undefined
+        manifestHint ?? undefined,
+        poolMaxima
       );
       let score = calculateScore(factors, weights);
       // B17: Quota Share soft-policy deprioritization
@@ -419,17 +426,8 @@ export async function expandAutoComboCandidatePool(
   if (Array.isArray(localAutoConfig?.candidatePool) && localAutoConfig.candidatePool.length > 0)
     return eligibleTargets;
 
-  // #COMBO-REF: if the combo references other combos via kind:"combo-ref" entries,
-  // the resolved eligibleTargets already represent the operator's intended pool.
-  // Expanding to ALL providers would defeat the purpose of the combo-ref constraint
-  // (e.g. an "auto" combo delegating to a "priority" sub-combo should not pull in
-  // every model from every active provider).
-  const rawModels = (combo as Record<string, unknown> | null | undefined)?.models;
-  if (Array.isArray(rawModels) && rawModels.some((m) => isRecord(m) && m.kind === "combo-ref"))
-    return eligibleTargets;
-
   try {
-    const allConnections = await getCachedProviderConnections({ isActive: true });
+    const allConnections = await getProviderConnections({ isActive: true });
     const providerIds = [
       ...new Set(
         (allConnections as Array<{ provider?: unknown }>)
@@ -437,11 +435,16 @@ export async function expandAutoComboCandidatePool(
           .filter((p): p is string => typeof p === "string" && p.length > 0)
       ),
     ];
+    // Pre-build a Set of already-present modelStr values so candidate-pool
+    // expansion doesn't turn into O(n^2) per provider. See #OOM incident
+    // (zero-config auto combo expanding to 1000s of provider/model targets).
+    const seenModelStrs = new Set(eligibleTargets.map((t) => t.modelStr));
     for (const providerId of providerIds) {
       const providerModels = getProviderModels(providerId);
       for (const model of providerModels) {
         const modelStr = `${providerId}/${model.id}`;
-        if (!eligibleTargets.some((t) => t.modelStr === modelStr)) {
+        if (!seenModelStrs.has(modelStr)) {
+          seenModelStrs.add(modelStr);
           eligibleTargets.push({
             kind: "model",
             stepId: modelStr,

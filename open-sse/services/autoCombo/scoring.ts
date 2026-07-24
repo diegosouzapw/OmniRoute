@@ -19,7 +19,6 @@ export interface ScoringFactors {
   tierAffinity: number;
   specificityMatch: number;
   contextAffinity: number;
-  cacheAffinity?: number;
   resetWindowAffinity: number;
   connectionDensity: number;
 }
@@ -35,7 +34,6 @@ export interface ScoringWeights {
   tierAffinity: number;
   specificityMatch: number;
   contextAffinity: number;
-  cacheAffinity?: number;
   resetWindowAffinity: number;
   connectionDensity: number;
 }
@@ -51,29 +49,9 @@ export const DEFAULT_WEIGHTS: ScoringWeights = {
   tierAffinity: 0.05,
   specificityMatch: 0.05,
   contextAffinity: 0.05,
-  cacheAffinity: 0,
   resetWindowAffinity: 0,
   connectionDensity: 0.05,
 };
-
-/** Normalize independently configured UI weights into a scoring distribution. */
-export function normalizeScoringWeights(
-  weights: Partial<ScoringWeights> | null | undefined
-): ScoringWeights {
-  if (!weights) return { ...DEFAULT_WEIGHTS };
-  const entries = Object.keys(DEFAULT_WEIGHTS) as Array<keyof ScoringWeights>;
-  const sanitized = Object.fromEntries(
-    entries.map((key) => {
-      const value = Number(weights?.[key]);
-      return [key, Number.isFinite(value) && value >= 0 ? value : 0];
-    })
-  ) as unknown as ScoringWeights;
-  const total = entries.reduce((sum, key) => sum + Number(sanitized[key] ?? 0), 0);
-  if (total <= 0) return { ...DEFAULT_WEIGHTS };
-  return Object.fromEntries(
-    entries.map((key) => [key, Number(sanitized[key] ?? 0) / total])
-  ) as unknown as ScoringWeights;
-}
 
 export interface ProviderCandidate {
   provider: string;
@@ -99,8 +77,6 @@ export interface ProviderCandidate {
   quotaResetIntervalSecs?: number;
   /** Score [0..1] for staying on the current session's provider/account/model path. */
   contextAffinity?: number;
-  /** Score [0..1] for the account selected by the stable prompt-cache key. */
-  cacheAffinity?: number;
   /** Score [0..1] for quota reset-window preference; sooner selected reset windows score higher. */
   resetWindowAffinity?: number;
   connectionPoolSize?: number;
@@ -134,7 +110,6 @@ export function calculateScore(factors: ScoringFactors, weights: ScoringWeights)
       (weights.tierAffinity ?? 0) * factors.tierAffinity +
       (weights.specificityMatch ?? 0) * factors.specificityMatch +
       (weights.contextAffinity ?? 0) * factors.contextAffinity +
-      (weights.cacheAffinity ?? 0) * (factors.cacheAffinity ?? 0) +
       (weights.resetWindowAffinity ?? 0) * factors.resetWindowAffinity +
       (weights.connectionDensity ?? 0) * factors.connectionDensity
   );
@@ -201,16 +176,43 @@ function calculateSpecificityMatch(
   }
 }
 
+/**
+ * Pool-wide maxima used to normalize cost/latency/stability factors. These are
+ * identical for every candidate in a given pool, so callers scoring many
+ * candidates against the same pool should compute this ONCE via
+ * computePoolMaxima() and pass it to calculateFactors — recomputing it inside
+ * a per-candidate loop turns an O(n) scoring pass into O(n^2) (#OOM incident:
+ * a zero-config "auto" combo with no explicit candidatePool can expand the
+ * pool to 1000s of provider/model targets, at which point the repeated
+ * `pool.map()` + spread here dominates heap churn and can OOM the process).
+ */
+export interface PoolMaxima {
+  maxCost: number;
+  maxLatency: number;
+  maxStdDev: number;
+}
+
+export function computePoolMaxima(pool: ProviderCandidate[]): PoolMaxima {
+  let maxCost = 0.001;
+  let maxLatency = 1;
+  let maxStdDev = 0.001;
+  for (const p of pool) {
+    if (p.costPer1MTokens > maxCost) maxCost = p.costPer1MTokens;
+    if (p.p95LatencyMs > maxLatency) maxLatency = p.p95LatencyMs;
+    if (p.latencyStdDev > maxStdDev) maxStdDev = p.latencyStdDev;
+  }
+  return { maxCost, maxLatency, maxStdDev };
+}
+
 export function calculateFactors(
   candidate: ProviderCandidate,
   pool: ProviderCandidate[],
   taskType: string,
   getTaskFitness: (model: string, taskType: string) => number,
-  manifestHint?: RoutingHint | null
+  manifestHint?: RoutingHint | null,
+  precomputedMaxima?: PoolMaxima
 ): ScoringFactors {
-  const maxCost = Math.max(...pool.map((p) => p.costPer1MTokens), 0.001);
-  const maxLatency = Math.max(...pool.map((p) => p.p95LatencyMs), 1);
-  const maxStdDev = Math.max(...pool.map((p) => p.latencyStdDev), 0.001);
+  const { maxCost, maxLatency, maxStdDev } = precomputedMaxima ?? computePoolMaxima(pool);
 
   // Every factor is contractually [0,1]. clamp01 guards against bad telemetry
   // (negative quota / cost / latency, NaN, out-of-range candidate-supplied
@@ -232,7 +234,6 @@ export function calculateFactors(
     tierAffinity: calculateTierAffinity(candidate, manifestHint),
     specificityMatch: calculateSpecificityMatch(candidate, manifestHint),
     contextAffinity: clamp01(candidate.contextAffinity ?? 0.5),
-    cacheAffinity: clamp01(candidate.cacheAffinity ?? 0),
     resetWindowAffinity: clamp01(candidate.resetWindowAffinity ?? 0.5),
     connectionDensity: clamp01(((candidate.connectionPoolSize ?? 1) - 1) / 10),
   };
@@ -245,9 +246,17 @@ export function scorePool(
   getTaskFitness: (model: string, taskType: string) => number = () => 0.5,
   manifestHint?: RoutingHint | null
 ): ScoredProvider[] {
+  const poolMaxima = computePoolMaxima(pool);
   return pool
     .map((candidate) => {
-      const factors = calculateFactors(candidate, pool, taskType, getTaskFitness, manifestHint);
+      const factors = calculateFactors(
+        candidate,
+        pool,
+        taskType,
+        getTaskFitness,
+        manifestHint,
+        poolMaxima
+      );
       return {
         provider: candidate.provider,
         model: candidate.model,
