@@ -641,9 +641,7 @@ function restoreClaudePassthroughToolUseName(parsed: JsonRecord, toolNameMap: un
 // to avoid shared state issues with concurrent streams (TextDecoder with {stream:true}
 // maintains internal buffering state between decode() calls).
 
-/**
- * Stream modes
- */
+// Stream modes
 const STREAM_MODE = {
   TRANSLATE: "translate", // Full translation between formats
   PASSTHROUGH: "passthrough", // No translation, normalize output, extract usage
@@ -813,7 +811,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   let pendingToolFinishTime: number | null = null;
   try {
     pendingToolFinishTime = consumeToolFinishTime(sessionId);
-  } catch {}
+  } catch {} // best-effort read of optional timing state — absence is normal
 
   // Guard against duplicate [DONE] events — ensures exactly one per stream
   let doneSent = false;
@@ -1830,7 +1828,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                             toolTs ? now - toolTs : null,
                             lastChunkTs ? now - lastChunkTs : null
                           );
-                        } catch {}
+                        } catch {} // best-effort telemetry — must never break the stream
                         pendingToolFinishTime = null;
                       }
                     }
@@ -1867,7 +1865,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     toolFinishTime = now;
                     try {
                       markToolFinish(sessionId);
-                    } catch {}
+                    } catch {} // best-effort bookkeeping write — a miss just skips latency correlation
                   }
 
                   // T18: Normalize finish_reason to 'tool_calls' if tool calls were used
@@ -1943,7 +1941,9 @@ export function createSSEStream(options: StreamOptions = {}) {
               if (onFailure) {
                 try {
                   failureHandled = onFailure(failurePayload) === true;
-                } catch {}
+                } catch (e) {
+                  console.debug(`[STREAM] onFailure callback error:`, e);
+                }
               }
               clearIdleTimer();
               if (!failureHandled) {
@@ -1995,7 +1995,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             toolFinishTime = now;
             try {
               markToolFinish(sessionId);
-            } catch {}
+            } catch {} // best-effort bookkeeping write — a miss just skips latency correlation
           }
 
           // Track content length and accumulate for call log (from raw provider chunk, so content is never missed)
@@ -2109,7 +2109,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                   toolTs ? now - toolTs : null,
                   lastChunkTs ? now - lastChunkTs : null
                 );
-              } catch {}
+              } catch {} // best-effort telemetry — must never break the stream
               pendingToolFinishTime = null;
             }
           }
