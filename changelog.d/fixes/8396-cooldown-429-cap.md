@@ -1,0 +1,1 @@
+- fix(resilience): cap the connection cooldown after a 429 burst so combo fallback is not blacked out past the real rate-limit window (#8396)

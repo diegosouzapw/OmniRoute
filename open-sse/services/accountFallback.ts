@@ -56,6 +56,7 @@ import {
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
 import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
+import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
 
 export type ProviderProfile = {
   baseCooldownMs: number;
@@ -1451,9 +1452,14 @@ export function checkFallbackError(
       typeof profile?.baseCooldownMs === "number" && profile.baseCooldownMs >= 0
         ? profile.baseCooldownMs
         : COOLDOWN_MS.transientInitial;
+    // #8396: cap against profile.maxCooldownMs, mirroring the model-lockout path.
     return {
       baseCooldownMs,
-      cooldownMs: getScaledCooldown(baseCooldownMs, level + 1, maxBackoffSteps),
+      cooldownMs: capScaledCooldownMs(
+        getScaledCooldown(baseCooldownMs, level + 1, maxBackoffSteps),
+        profile?.maxCooldownMs,
+        BACKOFF_CONFIG.max
+      ),
       newBackoffLevel: Math.min(level + 1, maxBackoffSteps),
     };
   }
