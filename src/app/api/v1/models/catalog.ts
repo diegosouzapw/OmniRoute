@@ -357,6 +357,18 @@ async function buildUnifiedModelsResponseCore(
       }
     }
 
+    // #8327: `resolveCanonicalProviderId`/`canonicalProviderId` only know the static
+    // AI_PROVIDERS/PROVIDER_MODELS alias maps, so a compatible-provider node (whose raw
+    // `id` is an internal UUID, never present in those static maps) falls through every
+    // lookup and returns the raw UUID verbatim. That UUID is still required for the
+    // internal registry/connection/hidden-model lookups that key off `canonicalProviderId`
+    // (getConnectionsForProvider, getModelIsHidden, etc. are keyed by the raw node id, not
+    // the prefix) — so `canonicalProviderId` itself must stay untouched. What must NOT leak
+    // is the raw UUID in the *public* `owned_by` field: resolve it to the operator's
+    // configured prefix there, and only there.
+    const resolvePublicOwnerId = (providerId: string, canonicalProviderId: string): string =>
+      providerIdToPrefix[providerId] || canonicalProviderId;
+
     // Get combos
     let combos = [];
     try {
@@ -890,7 +902,7 @@ async function buildUnifiedModelsResponseCore(
               id: aliasId,
               object: "model",
               created: timestamp,
-              owned_by: canonicalProviderId,
+              owned_by: resolvePublicOwnerId(providerId, canonicalProviderId),
               permission: [],
               root: sm.id,
               parent: null,
@@ -902,7 +914,7 @@ async function buildUnifiedModelsResponseCore(
               id: aliasId,
               object: "model",
               created: timestamp,
-              owned_by: canonicalProviderId,
+              owned_by: resolvePublicOwnerId(providerId, canonicalProviderId),
               permission: [],
               root: sm.id,
               parent: null,
@@ -925,7 +937,7 @@ async function buildUnifiedModelsResponseCore(
                 id: providerPrefixedId,
                 object: "model",
                 created: timestamp,
-                owned_by: canonicalProviderId,
+                owned_by: resolvePublicOwnerId(providerId, canonicalProviderId),
                 permission: [],
                 root: sm.id,
                 parent: includeAlias ? aliasId : null,
@@ -1247,7 +1259,7 @@ async function buildUnifiedModelsResponseCore(
               id: aliasId,
               object: "model",
               created: timestamp,
-              owned_by: canonicalProviderId,
+              owned_by: resolvePublicOwnerId(providerId, canonicalProviderId),
               permission: [],
               root: modelId,
               parent: null,
@@ -1278,7 +1290,7 @@ async function buildUnifiedModelsResponseCore(
               id: providerPrefixedId,
               object: "model",
               created: timestamp,
-              owned_by: canonicalProviderId,
+              owned_by: resolvePublicOwnerId(providerId, canonicalProviderId),
               permission: [],
               root: modelId,
               parent: includeAlias ? aliasId : null,
@@ -1352,7 +1364,7 @@ async function buildUnifiedModelsResponseCore(
             id: aliasId,
             object: "model",
             created: timestamp,
-            owned_by: canonicalProviderId,
+            owned_by: resolvePublicOwnerId(providerKey, canonicalProviderId),
             permission: [],
             root: modelId,
             parent: null,
@@ -1373,7 +1385,7 @@ async function buildUnifiedModelsResponseCore(
             id: providerPrefixedId,
             object: "model",
             created: timestamp,
-            owned_by: canonicalProviderId,
+            owned_by: resolvePublicOwnerId(providerKey, canonicalProviderId),
             permission: [],
             root: modelId,
             parent: includeAlias ? aliasId : null,
@@ -1421,7 +1433,7 @@ async function buildUnifiedModelsResponseCore(
           id: aliasId,
           object: "model",
           created: timestamp,
-          owned_by: providerId,
+          owned_by: resolvePublicOwnerId(providerId, canonicalProviderId),
           permission: [],
           root: modelId,
           parent: null,
