@@ -253,6 +253,25 @@ export function stripVersionedToolModelPrefix(tools: unknown): void {
  * Implements the Strategy pattern: subclasses override specific methods
  * (buildUrl, buildHeaders, transformRequest, etc.) for each provider.
  */
+/**
+ * What an executor's `execute()` may resolve to.
+ *
+ * Both arms are real: the web/scraping executors return a bare `Response` from their
+ * error and passthrough paths, while the HTTP executors return the richer capture
+ * object used for upstream request logging. `normalizeExecutorResult()` accepts
+ * exactly this union and wraps the bare form, so the contract is the union — not the
+ * object shape that `BaseExecutor.execute` happens to infer from its single return.
+ */
+export type ExecutorExecuteResult =
+  | Response
+  | {
+      response: Response;
+      url?: string;
+      headers?: Record<string, string>;
+      transformedBody?: unknown;
+      transport?: string;
+    };
+
 export class BaseExecutor {
   provider: string;
   config: ProviderConfig;
@@ -581,7 +600,7 @@ export class BaseExecutor {
     }
   }
 
-  async execute(input: ExecuteInput) {
+  async execute(input: ExecuteInput): Promise<ExecutorExecuteResult> {
     const {
       model,
       body,
