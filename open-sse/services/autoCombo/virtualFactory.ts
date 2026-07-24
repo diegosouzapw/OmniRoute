@@ -16,6 +16,7 @@ import {
   type AutoCategory,
   type AutoTier,
 } from "./suffixComposition";
+import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
@@ -570,11 +571,35 @@ export async function createVirtualAutoCombo(
     routerStrategy,
   };
 
-  // Chaos mode fans out to the top-N most stable models in parallel. We cap the
-  // panel size so a single IDE request doesn't fan out to dozens of providers.
+  // Chaos mode fans out to the top-N most stable models in parallel. Panel size
+  // is capped to keep a single IDE request from fanning out to dozens of providers;
+  // operators can override via env var OMNIROUTE_CHAOS_MAX_PANEL (default 5).
+  //
+  // Provider diversity: when multiple candidates from the same provider exist, only
+  // the highest-scored model per provider is included. This prevents a single
+  // provider from monopolizing the panel and gives the IDE truly diverse answers.
   const isChaos = variant === "chaos";
-  const CHAOS_MAX_PANEL = 5;
-  const chaosModels = isChaos ? models.slice(0, CHAOS_MAX_PANEL) : models;
+  const CHAOS_MAX_PANEL = (() => {
+    const env = process.env.OMNIROUTE_CHAOS_MAX_PANEL;
+    const parsed = env ? parseInt(env, 10) : 5;
+    return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 10) : 5;
+  })();
+  let chaosModels: typeof models;
+  if (isChaos) {
+    // Deduplicate by provider: keep first occurrence per provider (models are
+    // already scored/sorted by health + stability from scoring).
+    const seenProviders = new Set<string>();
+    const diverse: typeof models = [];
+    for (const m of models) {
+      if (seenProviders.has(m.providerId)) continue;
+      seenProviders.add(m.providerId);
+      diverse.push(m);
+      if (diverse.length >= CHAOS_MAX_PANEL) break;
+    }
+    chaosModels = diverse.length > 0 ? diverse : models.slice(0, CHAOS_MAX_PANEL);
+  } else {
+    chaosModels = models;
+  }
 
   const advertisedLimits = computeAdvertisedLimits(effectivePool);
 
@@ -582,7 +607,7 @@ export async function createVirtualAutoCombo(
     id: `virtual-auto-${variant || "default"}`,
     name: `Auto ${variant || "Default"}`,
     type: "auto",
-    strategy: isChaos ? "fusion" : "auto",
+    strategy: "auto",
     models: chaosModels,
     candidatePool: providerPool,
     weights,
@@ -599,6 +624,11 @@ export async function createVirtualAutoCombo(
               enabled: true,
               panelSize: chaosModels.length,
               judgeModel: chaosModels[0]?.model,
+              tuning: {
+                panelHardTimeoutMs:
+                  Number(process.env.OMNIROUTE_CHAOS_PANEL_TIMEOUT_MS) || undefined,
+                minPanel: Number(process.env.OMNIROUTE_CHAOS_MIN_PANEL) || undefined,
+              },
             },
           }
         : {}),

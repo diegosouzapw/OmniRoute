@@ -15,6 +15,7 @@ import {
   getRuntimeProviderProfile,
   hasPerModelQuota,
   isModelLocked,
+  MODEL_ACCESS_DENIED_PATTERNS,
   recordModelLockoutFailure,
   recordProviderFailure,
   selectLockoutCooldownMs,
@@ -146,7 +147,7 @@ import {
   waitForCooldownAwareRetry,
 } from "../../src/sse/services/cooldownAwareRetry.ts";
 import { handleFusionChat, type FusionTuning } from "./fusion.ts";
-import { dispatchChaosFromCombo } from "./autoCombo/chaosEngine.ts";
+import { dispatchChaosFromCombo, type ChaosTuning } from "./autoCombo/chaosEngine.ts";
 import { handlePipelineChat, type PipelineStep } from "./pipeline.ts";
 import {
   TRANSIENT_FOR_SEMAPHORE,
@@ -697,6 +698,28 @@ export function isParamValidation400(errorText) {
     /\bis illegal.*range\b/i.test(errorText)
   );
 }
+/**
+ * #5249 / #2101: model-scoped 400s must NEVER stop the combo.
+ * Upstream often wraps "model X is not supported" in `invalid_request_error` /
+ * "Bad Request" envelopes. Those wrapper words match the body-specific stop
+ * substrings, so without this exemption the combo hard-stops on the first
+ * unavailable model instead of trying the next target. Keep the models in the
+ * combo — if one rejects, advance.
+ * @param {string} errorText
+ */
+export function isModelScoped400(errorText) {
+  const text = String(errorText || "");
+  if (!text) return false;
+  if (MODEL_ACCESS_DENIED_PATTERNS.some((p) => p.test(text))) return true;
+  // Extra model-rejection shapes that providers emit outside the shared list
+  // (Responses API, Copilot, gateway wrappers).
+  return (
+    /\bmodel\b[\s\S]{0,80}?\b(?:not\s+supported|unsupported|unknown|unavailable)\b/i.test(text) ||
+    /\b(?:not\s+supported|unsupported|unknown)\b[\s\S]{0,80}?\bmodel\b/i.test(text) ||
+    /\bunsupported_api_for_model\b/i.test(text) ||
+    /\bdoes\s+not\s+support\s+(?:the\s+)?responses\s+api\b/i.test(text)
+  );
+}
 
 /** @param {object} options */
 export async function handleComboChat({
@@ -895,7 +918,7 @@ export async function handleComboChat({
   });
   if (chaosDispatch) return chaosDispatch;
 
-  // Pipeline strategy: sequential chain — each step's output feeds the next step's
+  // Pipeline strategy: sequential chain
   // input, only the final step's response is returned. Handled in a separate module
   // because it neither iterates targets as fallbacks nor needs the failover/retry
   // machinery below — it runs targets in order, threading output → input. The step
@@ -2302,16 +2325,19 @@ export async function handleComboChat({
 
           // #2101: Prevent infinite fallback loops with 400 Bad Request errors that are genuinely
           // body-specific (malformed JSON, bad format, missing required fields).
-          // Context overflow and parameter validation errors are NOT body-specific:
+          // These should NOT stop the combo:
           // - Context overflow: different models have different context windows
           // - Max_tokens / param errors: different models have different output limits
-          // - Model access denied: different providers serve different model sets
-          // These should fall through so the next combo target can try.
+          // - Model access denied / "not supported": different providers serve different
+          //   model sets — keep the model in the combo and try the next target (#5249).
+          // Wrapper words like "invalid" / "bad request" still stop only when the text is
+          // NOT model-scoped (e.g. "invalid message format").
           if (
             result.status === 400 &&
             fallbackResult.shouldFallback &&
             !isContextOverflow400(errorText) &&
             !isParamValidation400(errorText) &&
+            !isModelScoped400(errorText) &&
             (errorText.toLowerCase().includes("context") ||
               errorText.toLowerCase().includes("prompt") ||
               errorText.toLowerCase().includes("token") ||

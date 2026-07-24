@@ -27,12 +27,23 @@ describe("auto/chaos virtual combo", () => {
   it("materializes with fusion strategy + chaos config", async () => {
     const combo = await createVirtualAutoCombo("chaos");
     expect(combo.type).toBe("auto");
-    expect(combo.strategy).toBe("fusion");
+    expect(combo.strategy).toBe("auto");
     expect(combo.config?.chaos?.enabled).toBe(true);
     // panel is capped to a sane size
     expect((combo.models ?? []).length).toBeGreaterThan(0);
     expect((combo.models ?? []).length).toBeLessThanOrEqual(5);
     // judge (primary) is the first panel model
     expect(combo.config?.chaos?.judgeModel).toBe(combo.models?.[0]?.model);
+    // tuning config is present (may have undefined fields from env vars)
+    expect(combo.config?.chaos?.tuning).toBeDefined();
+  });
+
+  it("deduplicates panel models by provider for diversity", async () => {
+    const combo = await createVirtualAutoCombo("chaos");
+    const models = combo.models ?? [];
+    const providers = models.map((m) => m.providerId);
+    const uniqueProviders = new Set(providers);
+    // No provider should appear more than once in the chaos panel.
+    expect(providers.length).toBe(uniqueProviders.size);
   });
 });

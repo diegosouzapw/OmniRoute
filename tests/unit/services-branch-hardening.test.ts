@@ -184,6 +184,32 @@ test("combo agent middleware covers system override, tool filtering, tag strippi
   assert.equal(passthrough.body, body);
 });
 
+test("combo agent middleware preserves Responses API input and instructions", () => {
+  const body = {
+    model: "combo/default",
+    input: "Reply with exactly: pong",
+  };
+
+  const unchanged = comboAgentMiddleware.applyComboAgentMiddleware(
+    body,
+    { context_cache_protection: true },
+    "openai/gpt-4o"
+  );
+  assert.deepEqual(unchanged.body, body);
+  assert.equal(Object.hasOwn(unchanged.body, "messages"), false);
+
+  const overridden = comboAgentMiddleware.applyComboAgentMiddleware(
+    { ...body, instructions: "client instruction" },
+    { system_message: "combo instruction" },
+    "openai/gpt-4o"
+  );
+  assert.deepEqual(overridden.body, {
+    ...body,
+    instructions: "combo instruction",
+  });
+  assert.equal(Object.hasOwn(overridden.body, "messages"), false);
+});
+
 test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and reset", async () => {
   const release = await rateLimitSemaphore.acquire("model-a", { maxConcurrency: 1 });
   assert.deepEqual(rateLimitSemaphore.getStats()["model-a"], {

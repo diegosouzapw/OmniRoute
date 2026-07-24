@@ -8,8 +8,8 @@ function normalizeUrlPath(pathname: string, wireApi: CodexWireApi): string {
   }
 
   path = path.replace(/\/v1$/i, "").replace(/\/api$/i, "");
-  const apiPath = `${path}/api/v1`.replace(/\/{2,}/g, "/");
-  return apiPath.startsWith("/") ? apiPath : `/${apiPath}`;
+  const v1Path = `${path}/v1`.replace(/\/{2,}/g, "/");
+  return v1Path.startsWith("/") ? v1Path : `/${v1Path}`;
 }
 
 export function normalizeCodexBaseUrl(baseUrl: string, wireApi: CodexWireApi = "chat"): string {
@@ -27,6 +27,6 @@ export function normalizeCodexBaseUrl(baseUrl: string, wireApi: CodexWireApi = "
     if (wireApi === "responses") {
       normalized = normalized.replace(/\/responses(?:\/.*)?$/i, "");
     }
-    return normalized.replace(/\/v1$/i, "").replace(/\/api$/i, "") + "/api/v1";
+    return normalized.replace(/\/v1$/i, "").replace(/\/api$/i, "") + "/v1";
   }
 }

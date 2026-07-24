@@ -54,11 +54,6 @@
       "count": 3
     }
   },
-  "open-sse/handlers/imageGeneration.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
   "open-sse/handlers/musicGeneration.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -1843,11 +1838,6 @@
   "tests/unit/prompt-injection-guard.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    }
-  },
-  "tests/unit/prompt-required-routes.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
     }
   },
   "tests/unit/provider-connection-apikey-dedup.test.ts": {

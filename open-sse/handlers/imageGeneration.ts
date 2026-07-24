@@ -24,6 +24,7 @@ import { kieExecutor } from "../executors/kie.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { ChatGptWebExecutor } from "../executors/chatgpt-web.ts";
+import type { ExecutorLog, ProviderCredentials } from "../executors/base.ts";
 import { getChatGptImage, findChatGptImageBySha256 } from "../services/chatgptImageCache.ts";
 import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usageDb";
@@ -73,6 +74,7 @@ import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmin
 import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
 import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
@@ -612,6 +614,22 @@ export async function handleImageGeneration({
 
   if (providerConfig.format === "minimax-image") {
     return handleMinimaxImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (
+    providerConfig.format === "alibaba-image" ||
+    providerConfig.format === "qwen-cloud-image" ||
+    providerConfig.format === "qwen-token-plan-image" ||
+    providerConfig.format === "bailian-coding-plan-image"
+  ) {
+    return handleAlibabaImageGeneration({
       model,
       provider,
       providerConfig,
@@ -1256,11 +1274,11 @@ export async function handleImageEdit({
 }: {
   provider: string;
   model: string;
-  body: Record<string, any>;
+  body: Record<string, unknown>;
   imageBytes: Buffer;
   imageMime?: string; // accepted for symmetry with route layer; not used
-  credentials: any;
-  log: any;
+  credentials: ProviderCredentials | null | undefined;
+  log: ExecutorLog | null | undefined;
   signal?: AbortSignal | null;
   clientHeaders?: Record<string, string> | null;
 }) {

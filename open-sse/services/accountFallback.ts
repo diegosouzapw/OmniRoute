@@ -12,6 +12,7 @@ import {
   matchErrorRuleByText,
   matchErrorRuleByStatus,
   serviceSupervisorCooldown,
+  isNimFunctionDegraded,
 } from "../config/errorConfig.ts";
 import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
 import * as rot from "./rotationConfig.ts";
@@ -241,10 +242,18 @@ const MODEL_ACCESS_AMBIGUOUS_TYPES = new Set([
 
 // Model access patterns — the account does not have access to the requested model
 // but a different account (e.g. PRO vs free tier) may support it.
-const MODEL_ACCESS_DENIED_PATTERNS = [
+// Exported so combo.ts #2101 can exempt model-scoped 400s from the body-specific
+// stop guard (#5249): "model not supported" must advance to the next combo target
+// even when the message also contains wrapper words like "invalid" / "bad request".
+export const MODEL_ACCESS_DENIED_PATTERNS = [
   /\binvalid model\b/i,
   /\bmodel.*not.*(?:available|found|supported|accessible)\b/i,
   /\bmodel.*(?:does not exist|doesn't exist)\b/i,
+  // "does not support" / "unsupported model" — GitHub Copilot / OpenAI-compatible
+  // often phrase model rejection this way without the "is not supported" word order.
+  /\bmodel\b[\s\S]{0,80}?\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b/i,
+  /\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b[\s\S]{0,80}?\bmodel\b/i,
+  /\bunsupported\s+model\b/i,
   /\baccess.*denied.*model\b/i,
   /\bmodel.*access.*denied\b/i,
   /\bplease select a different model\b/i,
@@ -1511,8 +1520,8 @@ export function checkFallbackError(
       }
     }
 
-    // T10 (sub2api #1169): Credits/quota exhausted — long cooldown, distinct from rate limit
-    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr)) {
+    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped.
+    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr) && !isCompatibleProvider(provider)) {
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
@@ -1689,8 +1698,8 @@ export function checkFallbackError(
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
     const isParamValidation = PARAM_VALIDATION_PATTERNS.some((p) => p.test(errorStr));
     const isModelAccessDenied = isModelAccessDeniedStructured || matchesModelAccessPattern;
-
-    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied) {
+    const isNimDegraded = isNimFunctionDegraded(errorStr);
+    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied || isNimDegraded) {
       return {
         shouldFallback: true,
         cooldownMs: 0,

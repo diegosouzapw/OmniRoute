@@ -428,7 +428,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
       input.log?.warn?.("CPA", `CLIProxyAPI rate limited: ${response.status}`);
     }
 
-    return { response, url, headers, transformedBody };
+    return { response, url, headers, transformedBody, transport: "cliproxyapi" as const };
   }
 
   /**
