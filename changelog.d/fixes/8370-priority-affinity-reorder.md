@@ -1,0 +1,1 @@
+- fix(backend): stop prompt-cache affinity from silently reordering an explicit priority combo across models (#8370)
