@@ -184,4 +184,21 @@ describe("tryBackedChat", () => {
     // If the timer leaked and fired, it would try to abort an already-resolved controller.
     // That's harmless but wasteful; this test just verifies the response is correct.
   });
+
+  // --------------------------------------------------------------------------
+  // 9. Fallback when browser pool package absent (issue #5 from PR review)
+  //    HTTP challenge → no cookieDomain → browserBackedChat throws "not available"
+  // --------------------------------------------------------------------------
+  it("propagates error when browser pool package is absent after HTTP challenge", async () => {
+    __setHttpBackedChatOverrideForTesting(() => Promise.resolve(CHALLENGE_RESPONSE));
+    // Simulate what browserBackedChat does when getMod() returns null
+    __setBrowserBackedChatOverrideForTesting(() =>
+      Promise.reject(new Error("Browser pool package not available"))
+    );
+
+    await assert.rejects(
+      tryBackedChat({ ...BASE_REQ, cookieDomain: undefined }),
+      /Browser pool package not available/
+    );
+  });
 });

@@ -276,7 +276,7 @@ export async function tryBackedChat(
     // Need browser-backed path — await the module
     const loaded = await mod;
 
-    // Get fresh cookies via browser
+    // Get fresh cookies via browser (delegated — null check is safe)
     if (loaded) {
       try {
         const fresh = await loaded.getFreshCookiesWithWarmup(req);
@@ -288,35 +288,36 @@ export async function tryBackedChat(
       } catch {
         // fall through to browser fallback
       }
+    }
 
-      // Full browser fallback
-      try {
-        return await browserBackedChat(req);
-      } catch (inner: unknown) {
-        if (inner instanceof DOMException && inner.name === "AbortError") {
-          return {
-            status: 504,
-            contentType: "application/json",
-            body: Buffer.from(
-              JSON.stringify({
-                error: {
-                  message: "tryBackedChat timed out",
-                  type: "timeout_error",
-                },
-              })
-            ),
-            isStealth: false,
-            timing: {
-              acquireContextMs: 0,
-              navigateMs: 0,
-              submitMs: 0,
-              captureResponseMs: 0,
-              totalMs: 0,
-            },
-          };
-        }
-        throw inner;
+    // Full browser fallback — runs regardless of loaded state
+    // (browserBackedChat checks test override first, then dynamic import)
+    try {
+      return await browserBackedChat(req);
+    } catch (inner: unknown) {
+      if (inner instanceof DOMException && inner.name === "AbortError") {
+        return {
+          status: 504,
+          contentType: "application/json",
+          body: Buffer.from(
+            JSON.stringify({
+              error: {
+                message: "tryBackedChat timed out",
+                type: "timeout_error",
+              },
+            })
+          ),
+          isStealth: false,
+          timing: {
+            acquireContextMs: 0,
+            navigateMs: 0,
+            submitMs: 0,
+            captureResponseMs: 0,
+            totalMs: 0,
+          },
+        };
       }
+      throw inner;
     }
 
     return httpResult;
