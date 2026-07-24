@@ -1,0 +1,1 @@
+- **fix(sse):** Combo middleware preserves OpenAI Responses request bodies and maps combo system overrides to `instructions`, preventing Responses-native fallbacks from receiving an unsupported `messages` parameter. ([#8310](https://github.com/diegosouzapw/OmniRoute/pull/8310)) — thanks @ridho9
