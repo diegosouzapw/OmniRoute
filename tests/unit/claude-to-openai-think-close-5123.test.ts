@@ -106,10 +106,11 @@ test("thinking block followed by tool_use: </think> must NOT appear in any conte
 });
 
 // ─── Case (b): thinking block followed by text (pure-text response) ──────────
-// This is the #4633 happy path. </think> MUST still be emitted so Claude Code /
-// Cursor know when the thinking section ends.
-test("thinking block followed by text: </think> IS still emitted (preserves #4633)", () => {
-  const state = newState();
+// #4633 opt-in path: when suppressThinkClose is false (header `on`), </think>
+// is still emitted for legacy content-scanning clients. Production default
+// (#8245) sets suppressThinkClose=true via resolveSuppressThinkClose.
+test("thinking block followed by text: </think> emitted when suppressThinkClose=false (#4633 opt-in)", () => {
+  const state = { ...newState(), suppressThinkClose: false };
 
   const allResults: ReturnType<typeof claudeToOpenAIResponse>[] = [];
 
@@ -174,4 +175,51 @@ test("thinking block followed by text: </think> IS still emitted (preserves #463
     hasThinkClose,
     `Expected a chunk with delta.content === "</think>" in a pure-text thinking response, but none found.\nAll chunks: ${JSON.stringify(chunks, null, 2)}`
   );
+});
+
+// #8245 production default: suppressThinkClose=true → no literal marker in content.
+test("thinking block followed by text: </think> suppressed when suppressThinkClose=true (#8245)", () => {
+  const state = { ...newState(), suppressThinkClose: true };
+  const allResults: ReturnType<typeof claudeToOpenAIResponse>[] = [];
+
+  allResults.push(
+    claudeToOpenAIResponse({ type: "message_start", message: { id: "msg_3", model: "claude-3-7-sonnet" } }, state)
+  );
+  allResults.push(
+    claudeToOpenAIResponse(
+      { type: "content_block_start", index: 0, content_block: { type: "thinking", thinking: "" } },
+      state
+    )
+  );
+  allResults.push(
+    claudeToOpenAIResponse(
+      {
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "thinking_delta", thinking: "Plan..." },
+      },
+      state
+    )
+  );
+  allResults.push(claudeToOpenAIResponse({ type: "content_block_stop", index: 0 }, state));
+  allResults.push(
+    claudeToOpenAIResponse(
+      { type: "content_block_start", index: 1, content_block: { type: "text", text: "" } },
+      state
+    )
+  );
+  allResults.push(
+    claudeToOpenAIResponse(
+      { type: "content_block_delta", index: 1, delta: { type: "text_delta", text: "Hello!" } },
+      state
+    )
+  );
+
+  const chunks = collectChunks(allResults);
+  const hasThinkClose = chunks.some(
+    (chunk: any) => chunk?.choices?.[0]?.delta?.content === "</think>"
+  );
+  assert.equal(hasThinkClose, false, "marker must not leak into content under #8245 default");
+  const hasText = chunks.some((chunk: any) => chunk?.choices?.[0]?.delta?.content === "Hello!");
+  assert.ok(hasText, "assistant text must still be emitted");
 });

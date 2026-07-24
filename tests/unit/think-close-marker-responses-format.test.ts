@@ -35,24 +35,32 @@ test("openai-responses suppression wins over an explicit keep header", () => {
   );
 });
 
-test("openai chat format keeps the conservative default (marker on)", () => {
+test("openai chat format suppresses the marker by default (#8245)", () => {
   assert.equal(
     resolveSuppressThinkClose({
       userAgent: "OpenAI/JS 6.26.0",
       thinkingMarkerHeader: null,
       clientResponseFormat: FORMATS.OPENAI,
     }),
-    false
+    true
   );
 });
 
-test("absent client format preserves the UA/header policy", () => {
+test("absent client format suppresses by default; header on keeps the marker (#8245)", () => {
   assert.equal(
     resolveSuppressThinkClose({ userAgent: "opencode/1.0", thinkingMarkerHeader: null }),
     true
   );
   assert.equal(
     resolveSuppressThinkClose({ userAgent: "unknown-client", thinkingMarkerHeader: null }),
+    true
+  );
+  assert.equal(
+    resolveSuppressThinkClose({
+      userAgent: "unknown-client",
+      thinkingMarkerHeader: "on",
+      clientResponseFormat: FORMATS.OPENAI,
+    }),
     false
   );
 });
