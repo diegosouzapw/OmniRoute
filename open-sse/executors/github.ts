@@ -250,7 +250,10 @@ export class GithubExecutor extends BaseExecutor {
 
   async execute(input: ExecuteInput) {
     const result = await super.execute(input);
-    if (!result || !result.response) return result;
+    // BaseExecutor.execute() is typed as the union it contracts for; the bare-Response
+    // arm has nothing to materialize, which is what the existing `!result.response`
+    // guard already meant.
+    if (result instanceof Response || !result?.response) return result;
 
     if (!input.stream) {
       // wreq-js clone/text semantics consume the original response body. Materialize
