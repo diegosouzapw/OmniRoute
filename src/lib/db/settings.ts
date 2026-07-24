@@ -523,8 +523,10 @@ export async function resolveProxyForConnection(
 
   // Step 2: API key-level proxy (only if per-key proxy is enabled globally or per-connection)
   if (apiKeyId) {
-    // Check if per-key proxy is allowed: globally OR per-connection
-    const perKeyEnabled = globalPerKeyProxyEnabled || connectionPerKeyProxyEnabled;
+    // Check if per-key proxy is allowed: the global toggle is a true override —
+    // when it is off, no connection's per-key assignment may apply, regardless
+    // of that connection's own per_key_proxy_enabled flag (#8385).
+    const perKeyEnabled = globalPerKeyProxyEnabled && connectionPerKeyProxyEnabled;
 
     if (perKeyEnabled) {
       try {
