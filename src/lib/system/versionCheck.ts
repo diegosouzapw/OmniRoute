@@ -36,6 +36,16 @@ const GITHUB_RELEASES_LATEST_URL =
   "https://api.github.com/repos/diegosouzapw/OmniRoute/releases/latest";
 
 const LOOKUP_TIMEOUT_MS = 10_000;
+const MAX_VERSION_RESPONSE_BYTES = 16 * 1024;
+const LATEST_VERSION_CACHE_TTL_MS = 10 * 60_000;
+const MAX_LATEST_VERSION_CACHE_TTL_MS = 10 * 60_000;
+
+type LatestVersionCacheEntry = { value: string; expiresAt: number };
+
+let latestVersionCache: LatestVersionCacheEntry | null = null;
+let latestVersionLookup: Promise<string | null> | null = null;
+let latestVersionRefresh: Promise<string | null> | null = null;
+let latestVersionCacheGeneration = 0;
 
 // The pure semver helpers live in `./versionCompare` (dependency-free) so
 // client-reachable modules can import them without pulling this file's
@@ -64,6 +74,40 @@ export async function getLatestVersionFromNpmCli(): Promise<string | null> {
  * Latest published version via the npm registry HTTP API. Needs only network access — no
  * `npm` binary — so it works in Docker / desktop / locked-down installs.
  */
+async function readBoundedJson(response: Response): Promise<unknown> {
+  const declaredLength = Number(response.headers.get("Content-Length"));
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_VERSION_RESPONSE_BYTES) {
+    await response.body?.cancel();
+    throw new Error("Version metadata response is too large");
+  }
+
+  if (!response.body) return response.json();
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_VERSION_RESPONSE_BYTES) {
+        await reader.cancel();
+        throw new Error("Version metadata response is too large");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return JSON.parse(new TextDecoder().decode(body));
+}
+
 export async function getLatestVersionFromRegistry(
   fetchImpl: typeof fetch = fetch
 ): Promise<string | null> {
@@ -72,7 +116,7 @@ export async function getLatestVersionFromRegistry(
       signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { version?: unknown };
+    const data = (await readBoundedJson(res)) as { version?: unknown };
     return typeof data?.version === "string" && data.version ? data.version : null;
   } catch {
     return null;
@@ -99,7 +143,7 @@ export async function getLatestVersionFromGitHub(
       },
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { tag_name?: unknown };
+    const data = (await readBoundedJson(res)) as { tag_name?: unknown };
     return typeof data?.tag_name === "string" && data.tag_name ? data.tag_name : null;
   } catch {
     return null;
@@ -112,6 +156,51 @@ export async function getLatestVersionFromGitHub(
  * warning — instead of silently degrading to "no update available" — when ALL sources fail.
  * Thunks are injectable for tests.
  */
+export function clearLatestVersionCache(): void {
+  latestVersionCache = null;
+  latestVersionCacheGeneration += 1;
+}
+
+/** Coalesce and briefly cache successful latest-version lookups. */
+export async function resolveLatestVersionCached(opts?: {
+  lookup?: () => Promise<string | null>;
+  bypassCache?: boolean;
+  storeResult?: boolean;
+  now?: () => number;
+  ttlMs?: number;
+}): Promise<string | null> {
+  const now = opts?.now ?? Date.now;
+  if (!opts?.bypassCache && latestVersionCache?.expiresAt > now()) {
+    return latestVersionCache.value;
+  }
+
+  const inFlight = opts?.bypassCache ? latestVersionRefresh : latestVersionLookup;
+  if (inFlight) return inFlight;
+  if (opts?.bypassCache) clearLatestVersionCache();
+
+  const generation = latestVersionCacheGeneration;
+  const lookup = opts?.lookup ?? resolveLatestVersion;
+  const ttlMs = Math.min(
+    Math.max(opts?.ttlMs ?? LATEST_VERSION_CACHE_TTL_MS, 0),
+    MAX_LATEST_VERSION_CACHE_TTL_MS
+  );
+  const pending = lookup().then((value) => {
+    if (value && opts?.storeResult !== false && latestVersionCacheGeneration === generation) {
+      latestVersionCache = { value, expiresAt: now() + ttlMs };
+    }
+    return value;
+  });
+  if (opts?.bypassCache) latestVersionRefresh = pending;
+  else latestVersionLookup = pending;
+
+  try {
+    return await pending;
+  } finally {
+    if (latestVersionLookup === pending) latestVersionLookup = null;
+    if (latestVersionRefresh === pending) latestVersionRefresh = null;
+  }
+}
+
 export async function resolveLatestVersion(opts?: {
   npmCli?: () => Promise<string | null>;
   registry?: () => Promise<string | null>;

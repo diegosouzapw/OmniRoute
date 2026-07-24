@@ -5,6 +5,7 @@
  * Security: Requires admin authentication (same as other management routes).
  * Safety: Update only runs if a newer version is available on npm.
  */
+import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { execFile } from "child_process";
 import { promisify } from "util";
@@ -17,7 +18,11 @@ import {
   PROJECT_ROOT,
 } from "@/lib/system/autoUpdate";
 import { NEWS_JSON_URL, parseActiveNewsPayload } from "@/shared/utils/releaseNotes";
-import { isNewer, resolveLatestVersion } from "@/lib/system/versionCheck";
+import {
+  clearLatestVersionCache,
+  isNewer,
+  resolveLatestVersionCached,
+} from "@/lib/system/versionCheck";
 import { resolveGlobalOmniroutePath } from "@/lib/system/globalPackagePath";
 // #5542 — On Windows npm is `npm.cmd`; Node ≥24 refuses to execFile a `.cmd` without
 // a shell (nodejs/node#52554 → "spawn npm ENOENT"). buildNpmExecOptions enables the
@@ -56,21 +61,34 @@ export async function GET(req: NextRequest) {
   const config = getAutoUpdateConfig();
 
   const [latest, news, validation] = await Promise.all([
-    resolveLatestVersion(),
+    resolveLatestVersionCached({
+      bypassCache: /(?:^|,)\s*(?:no-cache|no-store)\b/i.test(
+        req.headers.get("Cache-Control") ?? ""
+      ),
+      storeResult: !/(?:^|,)\s*no-store\b/i.test(req.headers.get("Cache-Control") ?? ""),
+    }),
     getNews(),
     validateAutoUpdateRuntime(config),
   ]);
 
-  const updateAvailable = isNewer(latest, current);
-
-  return NextResponse.json({
+  const body = {
     current,
     latest: latest ?? "unavailable",
-    updateAvailable,
+    updateAvailable: isNewer(latest, current),
     channel: config.mode,
     autoUpdateSupported: validation.supported,
     autoUpdateError: validation.reason,
     news,
+  };
+  const serialized = JSON.stringify(body);
+  const etag = `"${createHash("sha256").update(serialized).digest("base64url")}"`;
+  const headers = { "Cache-Control": "private, no-cache, must-revalidate", ETag: etag };
+  const validators = req.headers.get("If-None-Match")?.split(",").map((value) => value.trim());
+  if (validators?.some((value) => value === etag || value === `W/${etag}`)) {
+    return new NextResponse(null, { status: 304, headers });
+  }
+  return new NextResponse(serialized, {
+    headers: { ...headers, "Content-Type": "application/json" },
   });
 }
 
@@ -80,7 +98,7 @@ export async function POST(req: NextRequest) {
   }
 
   const current = getCurrentVersion();
-  const latest = await resolveLatestVersion();
+  const latest = await resolveLatestVersionCached({ bypassCache: true });
 
   if (!latest) {
     return NextResponse.json(
@@ -128,6 +146,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    clearLatestVersionCache();
     return NextResponse.json({
       success: true,
       message: `Update to v${latest} started. Docker rebuild is running in the background.`,
@@ -339,6 +358,7 @@ export async function POST(req: NextRequest) {
             });
           }
 
+        clearLatestVersionCache();
         send({
           step: "complete",
           status: "done",
