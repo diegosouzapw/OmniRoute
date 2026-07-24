@@ -33,6 +33,8 @@ type Page = import("playwright").Page;
 export interface BrowserPoolContextOptions {
   cookieDomain: string;
   cookieString?: string | null;
+  localStorage?: Record<string, string>;
+  localStorageOrigin?: string;
   warmupUrl?: string | null;
   userAgent?: string;
   locale?: string;
@@ -355,6 +357,22 @@ export async function acquireBrowserContext(
       if (cookies.length > 0) {
         await context.addCookies(cookies);
       }
+    }
+
+    if (options.localStorage && Object.keys(options.localStorage).length > 0) {
+      const origin = new URL(options.localStorageOrigin || options.warmupUrl || "").origin;
+      await context.addInitScript(
+        ({ expectedOrigin, entries }) => {
+          if (window.location.origin !== expectedOrigin) return;
+          for (const [name, value] of entries) {
+            window.localStorage.setItem(name, value);
+          }
+        },
+        {
+          expectedOrigin: origin,
+          entries: Object.entries(options.localStorage),
+        }
+      );
     }
 
     let warmupPage: Page | null = null;

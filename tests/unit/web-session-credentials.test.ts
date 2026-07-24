@@ -42,6 +42,18 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     acceptsFullCookieHeader: false,
     storageKeys: ["token", "userToken"],
   });
+  {
+    const req = webSessionCredentials.getWebSessionCredentialRequirement("zai-web");
+    assert.ok(req && req.kind === "token");
+    assert.equal(req.credentialName, 'Local Storage value named "token"');
+    assert.equal(req.acceptsFullCookieHeader, false);
+    assert.deepEqual(req.storageKeys, ["token"]);
+    assert.equal(req.hintKey, "zaiWebCredentialHint");
+    assert.ok(req.hintFallback?.includes("Do not copy a Cookie header"));
+    assert.equal(req.guideSteps?.length, 4);
+    assert.ok(req.guideSteps?.some((step) => step.includes("Local Storage")));
+    assert.ok(req.guideSteps?.some((step) => step.includes("browser transport")));
+  }
   // Arena (lmarena): assert contract/intent only — do not freeze UX copy.
   // #3810 chunk name, #4271 split SSR cookies, full Cookie header paste.
   {

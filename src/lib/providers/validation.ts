@@ -23,6 +23,7 @@ import {
   resolveAlibabaProviderBaseUrl,
 } from "@/shared/constants/alibabaProviderRegions";
 import { buildProviderHeaders, buildProviderUrl } from "@omniroute/open-sse/services/provider.ts";
+import { extractZaiToken } from "@omniroute/open-sse/executors/zai-web.ts";
 
 import {
   OPENAI_LIKE_FORMATS,
@@ -178,16 +179,32 @@ export async function validateWebCookieProvider({
       };
     }
 
-    const testUrl = `${baseUrl}/models`;
+    const isZaiWeb = provider === "zai-web";
+    const testUrl = `${baseUrl}${isZaiWeb ? "/api/models" : "/models"}`;
+    const zaiToken = isZaiWeb ? extractZaiToken(cookie) : "";
+    if (isZaiWeb && !zaiToken) {
+      return {
+        valid: false,
+        error: "Z.ai web-session credential required",
+        unsupported: false,
+      };
+    }
 
     const res = await validationRead(
       testUrl,
       {
         method: "GET",
-        headers: {
-          "User-Agent": STANDARD_USER_AGENT,
-          Cookie: cookie,
-        },
+        headers: isZaiWeb
+          ? {
+              Accept: "application/json",
+              "Accept-Language": "en-US",
+              Authorization: `Bearer ${zaiToken}`,
+              "User-Agent": STANDARD_USER_AGENT,
+            }
+          : {
+              "User-Agent": STANDARD_USER_AGENT,
+              Cookie: cookie,
+            },
       },
       isLocalProvider(provider)
     );

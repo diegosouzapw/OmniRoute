@@ -12,7 +12,7 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
-export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
+export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 60_000;
 const DOLA_PRO_TEST_TIMEOUT_MS = 90_000;
 const GITHUB_PHI_REASONING_TEST_TIMEOUT_MS = 60_000;
 const DOUBAO_WEB_PROVIDER_ID = "doubao-web";
@@ -32,6 +32,12 @@ function getErrorMessage(error: unknown): string {
 
 function getErrorName(error: unknown): string {
   return error instanceof Error ? error.name : "";
+}
+
+export function createModelTestTimeoutError(timeoutMs: number): Error {
+  const error = new Error(`Model test deadline exceeded after ${timeoutMs}ms`);
+  error.name = "TimeoutError";
+  return error;
 }
 
 function extractUpstreamDetailMessage(value: unknown): string | null {
@@ -238,6 +244,16 @@ export type ModelTestResponseText = {
   error?: { message: string; statusCode?: number };
 };
 
+export function classifyModelTestOutput(
+  timedOut: boolean,
+  responseText: string,
+  allowsEmptyOutput: boolean
+): "ok" | "empty" | "timeout" {
+  if (timedOut) return "timeout";
+  if (!responseText && !allowsEmptyOutput) return "empty";
+  return "ok";
+}
+
 export async function extractModelTestResponseText(
   response: Response,
   streamChat: boolean
@@ -307,7 +323,7 @@ export async function runSingleModelTest(
   let timedOut = false;
   const timeoutHandle = setTimeout(() => {
     timedOut = true;
-    controller.abort();
+    controller.abort(createModelTestTimeoutError(effectiveTimeoutMs));
   }, effectiveTimeoutMs);
 
   const runInner = async (signal: AbortSignal): Promise<Response> => {
@@ -340,17 +356,17 @@ export async function runSingleModelTest(
     clearTimeout(timeoutHandle);
     const latencyMs = Date.now() - startTime;
     const errorName = getErrorName(error);
+    if (timedOut) {
+      return {
+        modelId: fullModelStr,
+        status: "slow",
+        latencyMs,
+        httpStatus: 504,
+        error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
+        isTimeout: true,
+      };
+    }
     if (errorName === "AbortError") {
-      if (timedOut) {
-        return {
-          modelId: fullModelStr,
-          status: "slow",
-          latencyMs,
-          httpStatus: 504,
-          error: `No model output within ${Math.round(effectiveTimeoutMs / 1000)}s`,
-          isTimeout: true,
-        };
-      }
       // AbortError without timeout = withRateLimit queue rejection / abort.
       // Surface as rate_limited so the batch endpoint can stop the loop.
       return {
@@ -439,7 +455,12 @@ export async function runSingleModelTest(
         ...(rateLimited || isBotBlock ? { isTransient: true } : {}),
       };
     }
-    if (timedOut && !responseText) {
+    const outputState = classifyModelTestOutput(timedOut, responseText, isEmbedding || isRerank);
+    // A streaming response can yield partial text just as the test timeout
+    // aborts the underlying request. Partial output does not make an aborted
+    // request healthy: the call log correctly records that race as 499, so
+    // the model-test result must remain a timeout instead of turning green.
+    if (outputState === "timeout") {
       return {
         modelId: fullModelStr,
         status: "slow",
@@ -458,7 +479,7 @@ export async function runSingleModelTest(
         responseText: "[Rerank completed successfully]",
       };
     }
-    if (!responseText && !isEmbedding) {
+    if (outputState === "empty") {
       return {
         modelId: fullModelStr,
         status: "error",

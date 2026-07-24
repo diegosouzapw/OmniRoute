@@ -11,7 +11,7 @@
 const TOOL_ONLY_SERVICE_KINDS = new Set<string>(["webSearch", "webFetch"]);
 
 /** Providers whose registry catalog is the complete, intentional model list. */
-const CURATED_MODEL_ONLY_PROVIDERS = new Set<string>(["kimi-web"]);
+const CURATED_MODEL_ONLY_PROVIDERS = new Set<string>(["kimi-web", "zai-web"]);
 
 export function providerUsesCuratedModelsOnly(providerId: string): boolean {
   return CURATED_MODEL_ONLY_PROVIDERS.has(providerId.trim().toLowerCase());
