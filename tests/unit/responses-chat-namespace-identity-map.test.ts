@@ -24,11 +24,14 @@ function translate(tools: unknown[]): ChatRequest {
   ) as ChatRequest;
 }
 
-// #7936 — namespace sub-tools are flattened to Chat with the BARE LEAF as the
-// wire-visible `tool.function.name` (per #7905's chat-completions contract), while
-// the original `{namespace, name}` pair is carried in a side-band `_toolNameMap`
-// for the response translator to restore on `response.output_item.*` items.
-test("namespace children keep bare-leaf wire name + side-band identity ledger", () => {
+// #8295 — namespace sub-tools are flattened to Chat with the NAMESPACE-QUALIFIED
+// name as the wire-visible `tool.function.name` (folding the namespace into the
+// wire name, superseding #7905/#7936's bare-leaf contract), so two namespaces that
+// declare a child with the same leaf name never collapse into duplicate Chat
+// `tool.function.name` entries. The original `{namespace, name}` pair is carried
+// in a side-band `_toolNameMap` for the response translator to restore on
+// `response.output_item.*` items.
+test("namespace children get namespace-qualified wire names + side-band identity ledger", () => {
   const result = translate([
     {
       type: "namespace",
@@ -48,24 +51,24 @@ test("namespace children keep bare-leaf wire name + side-band identity ledger", 
     { type: "function", name: "top_level", parameters: { type: "object" } },
   ]);
 
-  // Wire-visible names stay as bare leaves (mcp__alpha sends the model "read", not
-  // "mcp__alpha__read", avoiding upstream truncation/rewriting of long `__` names
-  // by non-OpenAI providers).
+  // Wire-visible names fold the namespace in, so mcp__alpha/read and mcp__beta/read
+  // (same leaf, different namespace) never collide into duplicate Chat tool names.
   assert.deepEqual(
     result.tools.map((tool) => tool.function.name),
-    ["read", "read", "write", "top_level"]
+    ["mcp__alpha__read", "mcp__beta__read", "mcp__trailing__write", "top_level"]
   );
 
-  // Side-band identity ledger keys on the bare leaf emitted on the wire, so the
-  // response translator can resolve back to `{namespace, name}` without parsing.
-  // When the same leaf belongs to two different namespaces (mcp__alpha/read and
-  // mcp__beta/read), the entry is ambiguous and dropped — the response translator
-  // then echoes the bare leaf with no `namespace`, leaving the codex client to
-  // fall back to its native dispatch table.
+  // Side-band identity ledger keys on the qualified wire name, so the response
+  // translator can resolve back to `{namespace, name}` without parsing. Qualified
+  // names cannot collide across namespaces, so every namespace child gets an entry
+  // — there is no more ambiguity to detect/drop.
   assert.ok(result._toolNameMap instanceof Map);
   assert.deepEqual(
     [...result._toolNameMap.entries()],
-    [["write", { namespace: "mcp__trailing__", name: "write" }]]
+    [
+      ["mcp__alpha__read", { namespace: "mcp__alpha", name: "read" }],
+      ["mcp__beta__read", { namespace: "mcp__beta", name: "read" }],
+      ["mcp__trailing__write", { namespace: "mcp__trailing__", name: "write" }],
+    ]
   );
-  assert.ok(!result._toolNameMap.has("read"), "ambiguous read leaf must be dropped");
 });
