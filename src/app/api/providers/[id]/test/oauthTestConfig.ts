@@ -51,6 +51,18 @@ export const OAUTH_TEST_CONFIG = {
     authPrefix: "Bearer ",
     refreshable: true,
   },
+  // `agy` is a separate connection id that shares the Antigravity backend and the same
+  // Google OAuth token lifecycle (tokenRefresh.ts routes it to refreshGoogleToken), but
+  // it was missing here — so "Test Connection" fell through to "Provider test not
+  // supported", recorded testStatus="error", and painted the home topology node red on a
+  // perfectly good account. Probe the same userinfo endpoint as antigravity.
+  agy: {
+    url: "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
+    method: "GET",
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    refreshable: true,
+  },
   xai: {
     url: "https://api.x.ai/v1/chat/completions",
     method: "POST",
@@ -111,6 +123,16 @@ export const OAUTH_TEST_CONFIG = {
     // verified through real /v2/chat/completions traffic.
     checkExpiry: true,
     refreshable: true,
+  },
+  "devin-cli": {
+    // Same gap as grok-cli #7610: absent from this table, so "Test Connection"
+    // always fell through to "Provider test not supported" and left a working
+    // connection showing a red ERR badge. There is no HTTP probe to hit — the
+    // executor drives the local `devin` binary over ACP stdio and the binary
+    // owns its own credentials (`devin auth login`), so there is no refresh
+    // token to rotate either. Validate on token presence/expiry; real
+    // connectivity is proven by every chat/completions request.
+    checkExpiry: true,
   },
   "grok-cli": {
     // #7610: was entirely absent from OAUTH_TEST_CONFIG, so "Test Connection"
