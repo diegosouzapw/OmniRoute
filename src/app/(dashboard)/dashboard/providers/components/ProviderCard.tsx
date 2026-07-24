@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import { useState } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -74,6 +74,7 @@ interface ProviderCardProps {
   stats: ProviderStats;
   authType?: string;
   onToggle: (active: boolean) => void;
+  onCardClick?: (id: string) => void;
 }
 
 const DOT_COLORS: Record<string, string> = {
@@ -152,17 +153,51 @@ function getStatusDisplay(
   return parts;
 }
 
-export default function ProviderCard({
-  providerId,
-  provider,
-  stats,
-  authType = "apikey",
-  onToggle,
-}: ProviderCardProps) {
+export type ProviderCardHandle = {
+  highlight: () => void;
+  getProviderId(): string;
+  scrollIntoView: (options?: ScrollIntoViewOptions) => void;
+};
+
+const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function ProviderCard(
+  { providerId, provider, stats, authType = "apikey", onToggle, onCardClick },
+  ref
+) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const tp = useTranslations("miniPlayground");
   const [testExpanded, setTestExpanded] = useState<boolean>(false);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const linkElementRef = useRef<HTMLAnchorElement>(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getProviderId() {
+        return providerId;
+      },
+      highlight() {
+        const el = innerRef.current;
+        if (!el) return;
+        linkElementRef.current?.focus();
+        const surface = linkElementRef.current?.firstElementChild;
+        surface?.animate(
+          [
+            { backgroundColor: "rgba(59,130,246,0.22)" },
+            { backgroundColor: "rgba(59,130,246,0.08)" },
+            { backgroundColor: "transparent" },
+          ],
+          { duration: 3000, easing: "ease-in-out" }
+        );
+      },
+      scrollIntoView() {
+        const el = innerRef.current;
+        if (!el) return;
+        el.scrollIntoView({ behavior: "auto", block: "center" });
+      },
+    }),
+    [providerId, innerRef, linkElementRef]
+  );
 
   // Show the Test button for LLM providers (when serviceKinds includes "llm"
   // OR when the provider has no explicit serviceKinds but is a regular LLM provider
@@ -260,9 +295,18 @@ export default function ProviderCard({
     onToggle(allDisabled);
   };
 
+  const handleCardClick = useCallback(() => {
+    onCardClick?.(providerId);
+  }, [onCardClick, providerId]);
+
   return (
-    <div className="flex flex-col h-full">
-      <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
+    <div ref={innerRef} id={`provider-${providerId}`} className="flex flex-col h-full">
+      <Link
+        ref={linkElementRef}
+        href={`/dashboard/providers/${providerId}`}
+        className="group flex-1 flex flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/60"
+        onClick={handleCardClick}
+      >
         <Card
           padding="xs"
           className={`h-full flex flex-col hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${
@@ -422,7 +466,7 @@ export default function ProviderCard({
                     <Toggle
                       size="xs"
                       checked={!allDisabled}
-                      onChange={() => {}}
+                      onChange={undefined}
                       title={allDisabled ? t("enableProvider") : t("disableProvider")}
                     />
                   </div>
@@ -461,4 +505,6 @@ export default function ProviderCard({
       )}
     </div>
   );
-}
+});
+
+export default ProviderCard;
