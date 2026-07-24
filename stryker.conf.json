@@ -39,9 +39,7 @@
   "incremental": true,
   "incrementalFile": "reports/mutation/stryker-incremental.json",
   "testRunner": "tap",
-  "plugins": [
-    "@stryker-mutator/tap-runner"
-  ],
+  "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
       "tests/unit/account-fallback-anthropic-quota.test.ts",
@@ -50,6 +48,7 @@
       "tests/unit/account-fallback-route-restriction-403.test.ts",
       "tests/unit/account-fallback-service.test.ts",
       "tests/unit/accountfallback-ratelimit-400-4976.test.ts",
+      "tests/unit/adobe-firefly.test.ts",
       "tests/unit/anthropic-thinking-signature-recovery.test.ts",
       "tests/unit/antigravity-429-quota-tdd.test.ts",
       "tests/unit/api-key-rotator-health.test.ts",
@@ -66,6 +65,7 @@
       "tests/unit/authz/route-guard-local-prefix.test.ts",
       "tests/unit/authz/route-guard-skills-collect.test.ts",
       "tests/unit/authz/route-guard-version-get-exemption.test.ts",
+      "tests/unit/authz/route-guard-vnc-session-local-only.test.ts",
       "tests/unit/authz/routeGuard.test.ts",
       "tests/unit/auto-combo-context-advertising.test.ts",
       "tests/unit/auto-combo-engine.test.ts",
@@ -185,6 +185,7 @@
       "tests/unit/embeddings-auth.test.ts",
       "tests/unit/error-classification.test.ts",
       "tests/unit/error-message-sanitization.test.ts",
+      "tests/unit/error-sensitive-redaction.test.ts",
       "tests/unit/executor-antigravity.test.ts",
       "tests/unit/executor-web-cookie-sweep.test.ts",
       "tests/unit/format-provider-error-cause.test.ts",
@@ -194,6 +195,7 @@
       "tests/unit/headroom-codex-quota-snapshot-6379.test.ts",
       "tests/unit/headroom-proxy-lifecycle.test.ts",
       "tests/unit/idempotency-fusion-collision.test.ts",
+      "tests/unit/image-generation-codex-account-fallback.test.ts",
       "tests/unit/issue-6343-v0-web-alias-collision.test.ts",
       "tests/unit/issue-6638-ollama-quota.test.ts",
       "tests/unit/issue-6686-quota-preflight-coverage.test.ts",
@@ -211,6 +213,7 @@
       "tests/unit/model-cooldowns-route-auth.test.ts",
       "tests/unit/model-cooldowns-route.test.ts",
       "tests/unit/model-lockout-decay.test.ts",
+      "tests/unit/model-lockout-exact-cooldown-cap.test.ts",
       "tests/unit/model-lockout-max-cooldown.test.ts",
       "tests/unit/no-memory-header.test.ts",
       "tests/unit/non-streaming-sse-terminal-typescan-4459.test.ts",
@@ -242,6 +245,7 @@
       "tests/unit/rate-limit-enhanced.test.ts",
       "tests/unit/rate-limit-manager.test.ts",
       "tests/unit/rate-limit-queue-timeout-lockout.test.ts",
+      "tests/unit/repro-antigravity-404-family-cooldown-hijack.test.ts",
       "tests/unit/responses-handler.test.ts",
       "tests/unit/rotation-config-omniroute.test.ts",
       "tests/unit/route-explainability.test.ts",
@@ -267,6 +271,7 @@
       "tests/unit/session-affinity-generic-7274.test.ts",
       "tests/unit/settings/authz-bypass.test.ts",
       "tests/unit/skip-provider-breaker-consumer-2743.test.ts",
+      "tests/unit/sse-auth-antigravity-credits.test.ts",
       "tests/unit/sse-auth.test.ts",
       "tests/unit/strict-random-deck.test.ts",
       "tests/unit/strip-reasoning-header.test.ts",
@@ -392,11 +397,7 @@
     ".worktrees",
     ".stryker-tmp"
   ],
-  "reporters": [
-    "progress",
-    "html",
-    "json"
-  ],
+  "reporters": ["progress", "html", "json"],
   "htmlReporter": {
     "fileName": "reports/mutation/mutation.html"
   },

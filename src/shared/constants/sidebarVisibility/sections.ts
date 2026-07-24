@@ -189,15 +189,6 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       icon: "grain",
     },
     {
-      id: "compression-studio",
-      href: "/dashboard/compression/studio",
-      i18nKey: "compressionStudio",
-      labelFallback: "Compression Studio",
-      subtitleKey: "compressionStudioSubtitle",
-      subtitleFallback: "Live engine cascade",
-      icon: "monitoring",
-    },
-    {
       id: "compression-exclusions",
       href: "/dashboard/compression/exclusions",
       i18nKey: "compressionExclusions",
@@ -205,6 +196,15 @@ export const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       subtitleKey: "compressionExclusionsSubtitle",
       subtitleFallback: "Per-model/endpoint bypass",
       icon: "block",
+    },
+    {
+      id: "compression-studio",
+      href: "/dashboard/compression/studio",
+      i18nKey: "compressionStudio",
+      labelFallback: "Compression Studio",
+      subtitleKey: "compressionStudioSubtitle",
+      subtitleFallback: "Live engine cascade",
+      icon: "monitoring",
     },
   ],
 };

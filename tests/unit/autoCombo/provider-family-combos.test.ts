@@ -87,10 +87,15 @@ describe("detectModelFamily (pure)", () => {
   });
 
   it("advertises exactly one auto/<family> catalog id per family", () => {
-    assert.deepEqual(
-      [...AUTO_FAMILY_IDS].sort(),
-      ["auto/gemini", "auto/gemma", "auto/glm", "auto/llama", "auto/mimo", "auto/minimax", "auto/zai"]
-    );
+    assert.deepEqual([...AUTO_FAMILY_IDS].sort(), [
+      "auto/gemini",
+      "auto/gemma",
+      "auto/glm",
+      "auto/llama",
+      "auto/mimo",
+      "auto/minimax",
+      "auto/zai",
+    ]);
   });
 });
 
@@ -128,12 +133,10 @@ describe("auto/<family> materialization (#6453)", () => {
     // exactly one row. The #6453 invariant is which providers span the family,
     // not the per-provider candidate count.
     const providerIds = [...new Set(combo.models.map((m) => m.providerId))].sort();
-    // Includes the always-on `auggie` no-auth candidate: its registry (v0.32.0 CLI
-    // model ids) advertises a literal "glm-5.2" model, and — same as the
-    // "degrades gracefully" test below documents for opencode/minimax — a
-    // no-auth backend that genuinely serves a family model IS a legitimate
-    // member of the family pool, not just credentialed provider_connections rows.
-    assert.deepEqual(providerIds, ["auggie", "glm", "zai"]);
+    // `auggie` also advertises glm-5.2, but it is intentionally excluded from
+    // auto-routing because only reliability-verified no-auth providers belong to
+    // AUTO_COMBO_NOAUTH_ALLOWLIST. Explicit credentialed GLM backends remain.
+    assert.deepEqual(providerIds, ["glm", "zai"]);
     // Every candidate must be a glm-family model (the Cartesian pool now surfaces
     // each backend's full glm line-up, not only the glm-5.2 default), and the
     // connected openai/gpt-4o-mini backend must be excluded — same family
@@ -200,7 +203,6 @@ describe("auto/<family> materialization (#6453)", () => {
       "every candidate in auto/minimax must actually be a minimax model"
     );
   });
-
 
   it("rejects auto/<unknownfamily> with the same clean error as any unknown combo", async () => {
     await assert.rejects(

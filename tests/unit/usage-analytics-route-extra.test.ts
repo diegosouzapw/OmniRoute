@@ -104,8 +104,9 @@ test("GET /api/usage/analytics does not double-count raw and aggregated rows", a
   const db = core.getDbInstance();
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
+  const rawRetentionDays = localDb.getUserDatabaseSettings().retention.usageHistory;
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 30);
+  cutoffDate.setDate(cutoffDate.getDate() - rawRetentionDays);
   const olderDate = new Date(cutoffDate);
   olderDate.setDate(olderDate.getDate() - 1);
   const olderDateStr = olderDate.toISOString().split("T")[0];

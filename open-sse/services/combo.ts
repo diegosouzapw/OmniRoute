@@ -2440,10 +2440,9 @@ export async function handleComboChat({
                   mlSettings.baseCooldownMs,
                   profile,
                   {
-                    // #1308/#6863: honor a long upstream reset (e.g. "Resets in 160h") over
-                    // the short base cooldown / exponential backoff when present.
                     exactCooldownMs: selectLockoutCooldownMs(lockoutHintMs, mlSettings),
                     maxCooldownMs: mlSettings.maxCooldownMs,
+                    exactCooldownIsUpstreamReset: lockoutHintMs > mlSettings.baseCooldownMs,
                   }
                 );
                 lockoutRecorded = true;
@@ -2495,6 +2494,7 @@ export async function handleComboChat({
                   // #1308/#6863: honor a long upstream reset over base/exponential cooldown.
                   exactCooldownMs: selectLockoutCooldownMs(lockoutHintMs, mlSettings),
                   maxCooldownMs: mlSettings.maxCooldownMs,
+                  exactCooldownIsUpstreamReset: lockoutHintMs > mlSettings.baseCooldownMs,
                 }
               );
             }

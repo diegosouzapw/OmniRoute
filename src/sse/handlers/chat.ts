@@ -76,6 +76,7 @@ import {
 import {
   isAntigravityMissingProjectError,
   shouldTripProviderBreakerForResult,
+  PROVIDER_BREAKER_FAILURE_STATUSES,
 } from "./chatPredicates";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
@@ -90,7 +91,6 @@ import {
 } from "./reasoningRouting";
 import { createVirtualAutoCombo, resolveAutoRoutingState } from "./autoRouting";
 import { getComboFailureLogError } from "./comboFailureLogging";
-
 // Pipeline integration — wired modules
 import { classify429FromError, type FailureKind } from "@/shared/utils/classify429";
 import { resolveUseUpstream429BreakerHints } from "@/shared/utils/providerHints";

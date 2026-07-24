@@ -30,8 +30,8 @@ test("VIDEO_PROVIDERS exposes the alibaba dashscope-video entry", () => {
   assert.ok(VIDEO_PROVIDERS.alibaba, "alibaba video provider is registered");
   assert.equal(VIDEO_PROVIDERS.alibaba.format, "dashscope-video");
   assert.ok(
-    VIDEO_PROVIDERS.alibaba.models.some((m) => m.id === "wan2.7-t2v"),
-    "wan2.7-t2v is listed"
+    VIDEO_PROVIDERS.alibaba.models.some((m) => m.id === "wan2.7-t2v-2026-06-12"),
+    "wan2.7-t2v-2026-06-12 is listed"
   );
 });
 
@@ -73,7 +73,7 @@ test("handleVideoGeneration creates + polls a DashScope task and returns mp4 URL
   try {
     const result = await handleVideoGeneration({
       body: {
-        model: "alibaba/wan2.7-t2v",
+        model: "alibaba/wan2.7-t2v-2026-06-12",
         prompt: "a neon city in the rain",
         negative_prompt: "blurry",
         aspect_ratio: "16:9",
@@ -86,11 +86,10 @@ test("handleVideoGeneration creates + polls a DashScope task and returns mp4 URL
     // Create request shape
     assert.equal(createRequest.headers["X-DashScope-Async"], "enable");
     assert.equal(createRequest.headers["Authorization"], "Bearer dashscope-key");
-    assert.equal(createRequest.body.model, "wan2.7-t2v");
+    assert.equal(createRequest.body.model, "wan2.7-t2v-2026-06-12");
     assert.equal(createRequest.body.input.prompt, "a neon city in the rain");
     assert.equal(createRequest.body.input.negative_prompt, "blurry");
-    // aspect_ratio "16:9" → DashScope size "1280*720"
-    assert.equal(createRequest.body.parameters.size, "1280*720");
+    assert.equal(createRequest.body.parameters.ratio, "16:9");
     assert.equal(createRequest.body.parameters.duration, 5);
 
     // Response shape
@@ -105,7 +104,7 @@ test("handleVideoGeneration creates + polls a DashScope task and returns mp4 URL
 
 test("handleVideoGeneration rejects DashScope requests without credentials", async () => {
   const result = await handleVideoGeneration({
-    body: { model: "alibaba/wan2.7-t2v", prompt: "x" },
+    body: { model: "alibaba/wan2.7-t2v-2026-06-12", prompt: "x" },
     credentials: null,
     log: null,
   });
@@ -121,7 +120,7 @@ test("handleVideoGeneration surfaces a 502 when DashScope returns no task_id", a
 
   try {
     const result = await handleVideoGeneration({
-      body: { model: "alibaba/wan2.7-t2v", prompt: "x" },
+      body: { model: "alibaba/wan2.7-t2v-2026-06-12", prompt: "x" },
       credentials: { apiKey: "bad-key" },
       log: null,
     });
@@ -154,7 +153,7 @@ test("handleVideoGeneration returns 502 when the DashScope task FAILED", async (
 
   try {
     const result = await handleVideoGeneration({
-      body: { model: "alibaba/wan2.7-t2v", prompt: "x" },
+      body: { model: "alibaba/wan2.7-t2v-2026-06-12", prompt: "x" },
       credentials: { apiKey: "dashscope-key" },
       log: null,
     });
@@ -196,7 +195,7 @@ test("handleVideoGeneration returns 504 when the DashScope task never completes"
   try {
     const result = await handleVideoGeneration({
       body: {
-        model: "alibaba/wan2.7-t2v",
+        model: "alibaba/wan2.7-t2v-2026-06-12",
         prompt: "x",
         timeout_ms: 5000,
         poll_interval_ms: 100,

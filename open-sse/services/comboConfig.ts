@@ -38,18 +38,18 @@ export const DEFAULT_COMBO_TARGET_TIMEOUT_MS = 120_000;
 export const COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS = 10_000;
 
 /**
- * Whether a combo's cooldown-aware wait+retry (#7360) engages for this request: only
- * "quota-share" and "auto" strategies wait out a short transient cooldown instead of
- * crystallizing a 429 into a combo-level failure, and only when the operator has the
- * feature enabled. Shared by combo.ts (to decide whether to wait) and comboSetup.ts (to
- * size the per-target timeout floor so it doesn't cut the wait off early — see
- * resolveComboTargetTimeoutMsForCombo below).
+ * Whether a combo's cooldown-aware wait+retry (#7360) engages for this request.
+ * Every strategy waits out an eligible short transient cooldown instead of crystallizing
+ * a 429 into a combo-level failure when the operator has the feature enabled. Shared by
+ * combo.ts (to decide whether to wait) and comboSetup.ts (to size the per-target timeout
+ * floor so it doesn't cut the wait off early — see resolveComboTargetTimeoutMsForCombo
+ * below).
  */
 export function isComboCooldownWaitEligible(
-  strategy: string,
+  _strategy: string,
   comboCooldownWait: Pick<ComboCooldownWaitSettings, "enabled">
 ): boolean {
-  return (strategy === "quota-share" || strategy === "auto") && comboCooldownWait.enabled;
+  return comboCooldownWait.enabled;
 }
 
 /**
