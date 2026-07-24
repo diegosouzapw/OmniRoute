@@ -37,3 +37,21 @@ test("ag/gemini-pro-agent matches the Gemini 3.1 Pro (High) tier", () => {
   assert.equal(p.reasoning, 27.0);
   assert.equal(p.cache_creation, 4.0);
 });
+
+// Gemini 3.6 Flash (released 2026-07-21) ships three public client IDs in
+// ANTIGRAVITY_PUBLIC_MODELS (`open-sse/config/antigravityModelAliases.ts`) and
+// MODEL_SPECS (`src/shared/constants/modelSpecs.ts`), but was missing pricing
+// rows in `ag` (DEFAULT_PRICING.ag) — cost / quota calculations silently fell
+// back to $0. Pricing: $1.50 input / $7.50 output / $0.15 cached per MTok
+// (Google's 2026-07-21 announcement). Thinking tokens billed at output rate.
+for (const tier of ["low", "medium", "high"]) {
+  test(`ag/gemini-3.6-flash-${tier} has a non-null pricing row`, () => {
+    const p = getDefaultPricing().ag[`gemini-3.6-flash-${tier}`];
+    assert.ok(p, `expected a pricing row for ag/gemini-3.6-flash-${tier}`);
+    assert.equal(p.input, 1.5);
+    assert.equal(p.output, 7.5);
+    assert.equal(p.cached, 0.15);
+    assert.equal(p.reasoning, 7.5);
+    assert.equal(p.cache_creation, 1.5);
+  });
+}
