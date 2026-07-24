@@ -513,6 +513,8 @@ export async function checkConnection(conn) {
     // cosmetic "Token Expired". Surface reality as a terminal "expired" status instead.
     // Guard tightly so we do NOT clobber:
     //   - providers that simply don't use refresh tokens (supportsTokenRefresh=false)
+    //     (see #8407: local-CLI import-token providers like devin-cli must not be
+    //     listed in supportsTokenRefresh's explicit set)
     //   - connections already in a terminal/specific state (expired/banned/credits_exhausted)
     //   - transient cooldown state (unavailable) owned by the request path
     const refreshCapableNeedsReauth =
