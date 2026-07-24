@@ -501,6 +501,38 @@ function hasOnlyContextWindowFailures(reasons: string[]): boolean {
   return reasons.length > 0 && reasons.every((reason) => reason === "context_window");
 }
 
+/**
+ * #8332: vision is a hard requirement, not a soft preference — a target whose vision
+ * support is not confirmed can never succeed on an image_url request. Callers
+ * reconsidering compat-rejected targets (fallback tiers, degrade-to-unfiltered) MUST
+ * exclude these via this predicate.
+ */
+export function isVisionIncompatibleTarget(
+  target: ResolvedComboTarget,
+  requirements: RequestCompatibilityRequirements
+): boolean {
+  if (!requirements.requiresVision) return false;
+  const capabilities = getResolvedModelCapabilities(target.modelStr);
+  return capabilities.supportsVision !== true;
+}
+
+/**
+ * Builds the #6238 last-resort fallback candidate set: ranked targets the compat
+ * pre-filter rejected, minus anything rejected for vision (#8332 — see
+ * isVisionIncompatibleTarget).
+ */
+export function computeCompatRejectedTargets(
+  rankedTargets: ResolvedComboTarget[],
+  compatKeptTargets: ResolvedComboTarget[],
+  body: Record<string, unknown>
+): ResolvedComboTarget[] {
+  const requirements = deriveRequestCompatibilityRequirements(body);
+  const keptSet = new Set(compatKeptTargets);
+  return rankedTargets.filter(
+    (target) => !keptSet.has(target) && !isVisionIncompatibleTarget(target, requirements)
+  );
+}
+
 function getTargetCompatibilityFailures(
   target: ResolvedComboTarget,
   requirements: RequestCompatibilityRequirements
@@ -633,6 +665,11 @@ export function filterTargetsByRequestCompatibility(
         .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
         .join(", ")}`
     );
+    // #8332: vision is never safe to guess — this safety net must not resurrect a
+    // vision-rejected target, even if nothing else remains.
+    if (requirements.requiresVision) {
+      return targets.filter((target) => !isVisionIncompatibleTarget(target, requirements));
+    }
     return targets;
   }
 
