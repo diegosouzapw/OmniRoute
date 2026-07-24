@@ -3,11 +3,7 @@
  */
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 import { getRuntimePorts } from "@/lib/runtime/ports";
-import {
-  getBestVisionModel,
-  getFallbackModels,
-  recordLatency,
-} from "./visionBridgeRouter";
+import { getBestVisionModel, getFallbackModels, recordLatency } from "./visionBridgeRouter";
 /**
  * Provider to environment variable mapping for API key resolution.
  */
@@ -217,14 +213,14 @@ export async function callVisionModel(
   routerConfig?: Partial<import("./visionBridgeRouter").VisionBridgeRouterConfig>
 ): Promise<string> {
   // Auto-select the best vision model if not explicitly configured
-  const modelToUse = getBestVisionModel({
+  const modelToUse = await getBestVisionModel({
     fixedModel: config.model,
     ...routerConfig,
   });
   let lastError: Error | null = null;
 
   // Try primary model + fallbacks
-  const modelsToTry = [modelToUse, ...getFallbackModels(modelToUse, routerConfig)];
+  const modelsToTry = [modelToUse, ...(await getFallbackModels(modelToUse, routerConfig))];
   const maxAttempts = Math.min(modelsToTry.length, routerConfig?.maxFallbackAttempts ?? 3);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {

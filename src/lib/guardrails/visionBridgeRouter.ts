@@ -5,6 +5,7 @@
 
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels";
+import { hasUsableCredentialsForModel } from "./visionBridgeCredentials";
 
 export interface VisionModelCandidate {
   modelId: string;
@@ -95,10 +96,18 @@ function calculateSuccessRate(modelId: string): number {
 }
 
 /**
- * Get all vision-capable models from the registry.
+ * Get all vision-capable models from the registry that also have a usable
+ * active connection on this instance.
+ *
+ * Without this credential check, a model with no working connection (e.g. the
+ * hardcoded default `openai/gpt-4o-mini` on an instance with no `openai`
+ * provider connected) could win selection, fail the describe call, and leave
+ * the guardrail's describe-failure fallback to forward the raw image to a
+ * non-vision backend, which rejects it with an opaque upstream error.
  */
-function getVisionCapableModels(): VisionModelCandidate[] {
+async function getVisionCapableModels(): Promise<VisionModelCandidate[]> {
   const candidates: VisionModelCandidate[] = [];
+  const checks: Array<Promise<void>> = [];
 
   for (const [providerAlias, models] of Object.entries(PROVIDER_MODELS)) {
     if (!Array.isArray(models)) continue;
@@ -110,33 +119,43 @@ function getVisionCapableModels(): VisionModelCandidate[] {
       const caps = getResolvedModelCapabilities(fullModelId);
 
       if (caps.supportsVision === true) {
-        // Determine priority based on provider type (lower = better).
-        // Do NOT prefer opencode-* first: those catalog entries often resolve to a
-        // noauth connection and 401 "Missing API key", hijacking working providers
-        // (e.g. zai/glm-5.2 combo targets) when Vision Bridge auto-reroutes.
-        let priority = 100;
-        if (providerAlias === "openai" || providerAlias === "anthropic") {
-          priority = 50; // Major providers with real API keys
-        } else if (providerAlias === "vertex" || providerAlias === "gemini") {
-          priority = 55;
-        } else if (providerAlias.startsWith("opencode-")) {
-          priority = 95; // Free/catalog — only if nothing credentialed is available
-        } else {
-          priority = 75; // Other providers
-        }
+        checks.push(
+          hasUsableCredentialsForModel(fullModelId).then((usable) => {
+            // Only a confirmed `false` excludes a candidate — `null` (indeterminate,
+            // e.g. unit tests / early boot) fails open so existing behavior is preserved
+            // when the credential store can't be checked.
+            if (usable === false) return;
 
-        candidates.push({
-          modelId: model.id,
-          fullName: fullModelId,
-          priority,
-          averageLatencyMs: calculateAverageLatency(fullModelId),
-          lastUsedAt: 0,
-          successRate: calculateSuccessRate(fullModelId),
-        });
+            // Determine priority based on provider type (lower = better).
+            // Do NOT prefer opencode-* first: those catalog entries often resolve to a
+            // noauth connection and 401 "Missing API key", hijacking working providers
+            // (e.g. zai/glm-5.2 combo targets) when Vision Bridge auto-reroutes.
+            let priority = 100;
+            if (providerAlias === "openai" || providerAlias === "anthropic") {
+              priority = 50; // Major providers with real API keys
+            } else if (providerAlias === "vertex" || providerAlias === "gemini") {
+              priority = 55;
+            } else if (providerAlias.startsWith("opencode-")) {
+              priority = 95; // Free/catalog — only if nothing credentialed is available
+            } else {
+              priority = 75; // Other providers
+            }
+
+            candidates.push({
+              modelId: model.id,
+              fullName: fullModelId,
+              priority,
+              averageLatencyMs: calculateAverageLatency(fullModelId),
+              lastUsedAt: 0,
+              successRate: calculateSuccessRate(fullModelId),
+            });
+          })
+        );
       }
     }
   }
 
+  await Promise.all(checks);
   return candidates;
 }
 
@@ -177,9 +196,9 @@ function selectBestModel(
  * Get the best vision model for image description.
  * Respects fixed model override if configured.
  */
-export function getBestVisionModel(
+export async function getBestVisionModel(
   config: Partial<VisionBridgeRouterConfig> = {}
-): string {
+): Promise<string> {
   const fullConfig = { ...DEFAULT_ROUTER_CONFIG, ...config };
 
   // If fixed model is configured, use it
@@ -189,16 +208,17 @@ export function getBestVisionModel(
 
   // Check selection cache — key includes excluded models to prevent cache pollution
   // across different configurations
-  const cacheKey = fullConfig.excludedModels.length > 0
-    ? `excl:${[...fullConfig.excludedModels].sort().join(",")}`
-    : "default";
+  const cacheKey =
+    fullConfig.excludedModels.length > 0
+      ? `excl:${[...fullConfig.excludedModels].sort().join(",")}`
+      : "default";
   const cached = selectionCache.get(cacheKey);
   if (cached && cached.expiresAt > Date.now()) {
     return cached.modelId;
   }
 
   // Get all vision-capable candidates
-  const candidates = getVisionCapableModels();
+  const candidates = await getVisionCapableModels();
 
   // Select best model
   const best = selectBestModel(candidates, fullConfig);
@@ -220,12 +240,12 @@ export function getBestVisionModel(
 /**
  * Get fallback models for retry logic.
  */
-export function getFallbackModels(
+export async function getFallbackModels(
   excludeModel: string,
   config: Partial<VisionBridgeRouterConfig> = {}
-): string[] {
+): Promise<string[]> {
   const fullConfig = { ...DEFAULT_ROUTER_CONFIG, ...config };
-  const candidates = getVisionCapableModels();
+  const candidates = await getVisionCapableModels();
 
   const filtered = candidates.filter(
     (c) =>
@@ -255,7 +275,10 @@ export function clearSelectionCache(): void {
 /**
  * Get latency statistics for debugging.
  */
-export function getLatencyStats(): Record<string, { avg: number; samples: number; successRate: number }> {
+export function getLatencyStats(): Record<
+  string,
+  { avg: number; samples: number; successRate: number }
+> {
   const stats: Record<string, { avg: number; samples: number; successRate: number }> = {};
 
   for (const [modelId, records] of latencyStore.entries()) {
