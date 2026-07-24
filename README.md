@@ -5,7 +5,7 @@
 <br/>
 <br/>
 
-## 🚀 OmniRoute — The Free AI Gateway
+# 🚀 OmniRoute — The Free AI Gateway
 
 <img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Never stop coding. Every AI tool → 290 providers — 90+ free — through one endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini with auto-fallback. RTK + Caveman stacked compression saves 15–95% tokens (~89% avg) — never hit limits. 290 AI providers · 90+ free tiers · ~1.53B free tokens/mo · 19 routing strategies · $0 to start."/>
 
@@ -170,7 +170,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 💥 The Promise
+# 💥 The Promise
 
 </div>
 
@@ -181,7 +181,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🤔 Why OmniRoute?
+# 🤔 Why OmniRoute?
 
 </div>
 
@@ -262,27 +262,108 @@ No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds
 
 All **19** strategies — mix & match per combo step:
 
-| #   | Strategy            | What it does                                                                                                                                                             |
-| --- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | `priority`          | First-target ordered list — drain each before the next 🥇                                                                                                                |
-| 2   | `fill-first`        | Fill each target's quota fully before moving on                                                                                                                          |
-| 3   | `weighted`          | Weighted random by per-target weight                                                                                                                                     |
-| 4   | `round-robin`       | Cycle through targets in order                                                                                                                                           |
-| 5   | `p2c`               | Power-of-two-choices random load balancing                                                                                                                               |
-| 6   | `least-used`        | Pick the target with the lowest current load                                                                                                                             |
-| 7   | `random`            | Uniform random pick (deduplicated)                                                                                                                                       |
-| 8   | `strict-random`     | Random without de-duplicating repeats 🎲                                                                                                                                 |
-| 9   | `cost-optimized`    | Minimize $ per request from live catalog pricing 💸                                                                                                                      |
-| 10  | `headroom`          | Pick the target with the most remaining quota                                                                                                                            |
-| 11  | `reset-window`      | Prefer the target whose quota window resets soonest                                                                                                                      |
-| 12  | `reset-aware`       | Rank by quota reset time — short windows first 📊                                                                                                                        |
-| 13  | `context-relay`     | Hand off context across targets for long conversations 🧠                                                                                                                |
-| 14  | `context-optimized` | Pick the best fit for the current context size                                                                                                                           |
-| 15  | `cache-optimized`   | Pin each reusable prompt prefix to the same account — maximize prompt-cache hits 🎯                                                                                      |
-| 16  | `lkgp`              | Last-Known-Good Path — sticky to the last successful target                                                                                                              |
-| 17  | `auto`              | 12-factor live scoring across every connection 🤖                                                                                                                        |
-| 18  | `fusion`            | Fan out to a panel of models + a judge synthesizes one answer 🧬                                                                                                         |
-| 19  | `pipeline`          | Chain steps — each target's output feeds the next one 🔗                                                                                                                 |
+<table>
+  <tr>
+    <th>#</th>
+    <th align="left">Strategy</th>
+    <th align="left">What it does</th>
+  </tr>
+  <tr>
+    <td align="center">1</td>
+    <td nowrap><code>priority</code></td>
+    <td>First-target ordered list — drain each before the next 🥇</td>
+  </tr>
+  <tr>
+    <td align="center">2</td>
+    <td nowrap><code>fill-first</code></td>
+    <td>Fill each target's quota fully before moving on</td>
+  </tr>
+  <tr>
+    <td align="center">3</td>
+    <td nowrap><code>weighted</code></td>
+    <td>Weighted random by per-target weight</td>
+  </tr>
+  <tr>
+    <td align="center">4</td>
+    <td nowrap><code>round-robin</code></td>
+    <td>Cycle through targets in order</td>
+  </tr>
+  <tr>
+    <td align="center">5</td>
+    <td nowrap><code>p2c</code></td>
+    <td>Power-of-two-choices random load balancing</td>
+  </tr>
+  <tr>
+    <td align="center">6</td>
+    <td nowrap><code>least-used</code></td>
+    <td>Pick the target with the lowest current load</td>
+  </tr>
+  <tr>
+    <td align="center">7</td>
+    <td nowrap><code>random</code></td>
+    <td>Uniform random pick (deduplicated)</td>
+  </tr>
+  <tr>
+    <td align="center">8</td>
+    <td nowrap><code>strict-random</code></td>
+    <td>Random without de-duplicating repeats 🎲</td>
+  </tr>
+  <tr>
+    <td align="center">9</td>
+    <td nowrap><code>cost-optimized</code></td>
+    <td>Minimize $ per request from live catalog pricing 💸</td>
+  </tr>
+  <tr>
+    <td align="center">10</td>
+    <td nowrap><code>headroom</code></td>
+    <td>Pick the target with the most remaining quota</td>
+  </tr>
+  <tr>
+    <td align="center">11</td>
+    <td nowrap><code>reset-window</code></td>
+    <td>Prefer the target whose quota window resets soonest</td>
+  </tr>
+  <tr>
+    <td align="center">12</td>
+    <td nowrap><code>reset-aware</code></td>
+    <td>Rank by quota reset time — short windows first 📊</td>
+  </tr>
+  <tr>
+    <td align="center">13</td>
+    <td nowrap><code>context-relay</code></td>
+    <td>Hand off context across targets for long conversations 🧠</td>
+  </tr>
+  <tr>
+    <td align="center">14</td>
+    <td nowrap><code>context-optimized</code></td>
+    <td>Pick the best fit for the current context size</td>
+  </tr>
+  <tr>
+    <td align="center">15</td>
+    <td nowrap><code>cache-optimized</code></td>
+    <td>Pin each reusable prompt prefix to the same account — maximize prompt-cache hits 🎯</td>
+  </tr>
+  <tr>
+    <td align="center">16</td>
+    <td nowrap><code>lkgp</code></td>
+    <td>Last-Known-Good Path — sticky to the last successful target</td>
+  </tr>
+  <tr>
+    <td align="center">17</td>
+    <td nowrap><code>auto</code></td>
+    <td>12-factor live scoring across every connection 🤖</td>
+  </tr>
+  <tr>
+    <td align="center">18</td>
+    <td nowrap><code>fusion</code></td>
+    <td>Fan out to a panel of models + a judge synthesizes one answer 🧬</td>
+  </tr>
+  <tr>
+    <td align="center">19</td>
+    <td nowrap><code>pipeline</code></td>
+    <td>Chain steps — each target's output feeds the next one 🔗</td>
+  </tr>
+</table>
 
 <sub>The Auto-Combo engine scores every candidate on **12 factors** (health, quota, cost, latency, success rate, freshness…) — see [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
@@ -535,9 +616,9 @@ omniroute contexts use default            # ← switch back to the local server
 Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopback-only.
 <sub>📖 [Remote Mode](docs/guides/REMOTE-MODE.md)</sub>
 
-<div align="center">
+<div align="left">
 
-<img src="./docs/diagrams/cli-terminal.svg" width="100%" alt="Animated terminal demoing the OmniRoute CLI — omniroute providers list, omniroute combo list, omniroute health — cycling over the 80+ command surface: providers · oauth · keys · combo · nodes · models · cache · compression · cost · usage · quota · health · resilience · telemetry · logs · audit · mcp · a2a · cloud · memory · skills · eval · tunnel · backup · sync · webhooks · policy · pricing · translator · simulate …"/>
+<img src="./docs/diagrams/cli-terminal.svg" width="50%" alt="Animated terminal demoing the OmniRoute CLI — omniroute providers list, omniroute combo list, omniroute health — cycling over the 80+ command surface: providers · oauth · keys · combo · nodes · models · cache · compression · cost · usage · quota · health · resilience · telemetry · logs · audit · mcp · a2a · cloud · memory · skills · eval · tunnel · backup · sync · webhooks · policy · pricing · translator · simulate …"/>
 
 </div>
 
@@ -814,43 +895,23 @@ same process on one port, so there is no separate CLI-only package today.
 
 <div align="center">
 
-# 📸 Dashboard Screenshots
-
-</div>
-
-<div align="center">
-<table>
-  <tr>
-    <td align="center"><b>Providers</b><br/><img src="docs/screenshots/01-providers.png" width="400" alt="Providers"/></td>
-    <td align="center"><b>Combos</b><br/><img src="docs/screenshots/02-combos.png" width="400" alt="Combos"/></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Analytics</b><br/><img src="docs/screenshots/03-analytics.png" width="400" alt="Analytics"/></td>
-    <td align="center"><b>Health</b><br/><img src="docs/screenshots/04-health.png" width="400" alt="Health"/></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Translator</b><br/><img src="docs/screenshots/05-translator.png" width="400" alt="Translator"/></td>
-    <td align="center"><b>Settings</b><br/><img src="docs/screenshots/06-settings.png" width="400" alt="Settings"/></td>
-  </tr>
-  <tr>
-    <td align="center"><b>CLI Tools</b><br/><img src="docs/screenshots/07-cli-tools.png" width="400" alt="CLI Tools"/></td>
-    <td align="center"><b>Usage Logs</b><br/><img src="docs/screenshots/08-usage.png" width="400" alt="Usage Logs"/></td>
-  </tr>
-</table>
-</div>
-
-<br/>
-
-<div align="center">
-
 # 📧 Support & Community
 
-> 💬 **Chat with the community** — Discord, Telegram & WhatsApp (🌍 / 🇧🇷) links are at the [top of this README](#-join-the-community).
+> Everything in one place — follow the maintainer, chat with the community, or open an issue.
 
-- 🌍 **Website**: [omniroute.online](https://omniroute.online)
-- 🐙 **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
-- 🐛 **Issues**: [report a bug](https://github.com/diegosouzapw/OmniRoute/issues) (attach `npm run system-info` output)
-- 🤝 **Contributing**: see [CONTRIBUTING.md](CONTRIBUTING.md), [Branching & Release Model](docs/ops/BRANCHING_MODEL.md), or pick a `good first issue`
+| Channel                                    | Where / how                                                                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| 💼 **LinkedIn** — follow the maintainer    | [linkedin.com/in/diegosouzapw](https://www.linkedin.com/in/diegosouzapw/)                                                 |
+| 🐙 **GitHub** — follow for releases & tips | [@diegosouzapw](https://github.com/diegosouzapw)                                                                          |
+| 💬 **Discord**                             | [discord.gg/U47eFqAXCn](https://discord.gg/U47eFqAXCn)                                                                    |
+| ✈️ **Telegram**                            | [t.me/omnirouteOficial](https://t.me/omnirouteOficial)                                                                    |
+| 🟢 **WhatsApp — 🌍 Global**                | [join the group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)                                              |
+| 🟢 **WhatsApp — 🇧🇷 Brasil**                | [entrar no grupo](https://chat.whatsapp.com/LTSpdFhXTxjH4R6CCNiKWz)                                                       |
+| 🌍 **Website**                             | [omniroute.online](https://omniroute.online)                                                                              |
+| 📦 **Source code**                         | [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)                                            |
+| 🐛 **Report a bug**                        | [open an issue](https://github.com/diegosouzapw/OmniRoute/issues) — attach `npm run system-info` output                   |
+| 🤝 **Contribute**                          | [CONTRIBUTING.md](CONTRIBUTING.md) · [Branching & Release Model](docs/ops/BRANCHING_MODEL.md) · pick a `good first issue` |
+| ⭐ **Support the project**                 | [Star the repo](https://github.com/diegosouzapw/OmniRoute) · [GitHub Sponsors](https://github.com/sponsors/diegosouzapw)  |
 
 </div>
 
