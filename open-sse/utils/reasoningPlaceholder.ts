@@ -14,6 +14,14 @@ export function isInternalReasoningPlaceholder(value: unknown): boolean {
  * echo the sentinel through ordinary `message.content` / `delta.content`
  * (#8081). Removes all occurrences and trims; returns "" when nothing
  * meaningful remains so callers can skip emission entirely.
+ *
+ * The trim only applies when the sentinel was actually present. This is
+ * called per streaming `delta.content` chunk, not on the fully-assembled
+ * message — tokenizers routinely emit sub-word tokens with a leading space
+ * as part of the token (e.g. " en", " riktig"), so unconditionally trimming
+ * every chunk silently ate the space between words for the (overwhelming)
+ * majority of chunks that never contain the sentinel at all, producing
+ * streamed text with words run together ("Bilden är en" -> "Bildenären").
  */
 export function stripInternalReasoningPlaceholder(value: string): string {
   if (!value.includes(NON_ANTHROPIC_THINKING_PLACEHOLDER)) return value;
