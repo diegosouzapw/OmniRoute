@@ -636,6 +636,17 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
     // superseded-call eviction where a new call replaced this one at the same index).
     if (recordAsCompleted) {
       recordCompletedItem(state, normalizedIndex, funcItem);
+      // Mirror into the shared state.toolCalls map (populated by the other response
+      // translators) so stream.ts's completion-log summary reports finish_reason
+      // "tool_calls" and message.tool_calls instead of "stop" with no tool calls.
+      if (state.toolCalls instanceof Map) {
+        state.toolCalls.set(idx, {
+          id: callId,
+          index: normalizedIndex,
+          type: isCustomTool ? "custom_tool_call" : "function",
+          function: { name: funcItem.name, arguments: args },
+        });
+      }
     }
 
     state.funcItemDone[idx] = true;
