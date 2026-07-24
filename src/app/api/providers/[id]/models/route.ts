@@ -278,7 +278,7 @@ export async function GET(
     // (dedup by id). Internal model-sync discovery opts out because these rows
     // are a response projection, not provider-discovered models.
     let customModelsForProvider: Array<{ id: string; name?: string }> = [];
-    if (!excludeCustom) {
+    if (!excludeCustom && !usesCuratedModelsOnly) {
       try {
         const custom = await getCustomModels(provider);
         if (Array.isArray(custom)) {

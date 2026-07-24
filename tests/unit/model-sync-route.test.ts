@@ -190,6 +190,64 @@ test("model sync route returns 404 for unknown connections after internal auth p
   assert.deepEqual(await response.json(), { error: "Connection not found" });
 });
 
+test("curated zai-web sync removes stale imported models without touching manual models", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "zai-web",
+    authType: "apikey",
+    name: "Z.ai Web",
+    apiKey: "current-local-storage-token",
+  });
+  await modelsDb.replaceSyncedAvailableModelsForConnection("zai-web", connection.id, [
+    { id: "glm-4.6v", name: "GLM-4.6V", source: "imported" },
+    { id: "deep-research", name: "Z1-Rumination", source: "imported" },
+  ]);
+  await modelsDb.addCustomModel("zai-web", "glm-4-air-250414", "GLM-4-32B", "imported");
+  await modelsDb.addCustomModel("zai-web", "manual-keep", "Manual Keep", "manual");
+
+  let fetchCalls = 0;
+  globalThis.fetch = (async () => {
+    fetchCalls += 1;
+    throw new Error("curated provider sync must not fetch a remote model catalog");
+  }) as typeof globalThis.fetch;
+
+  const response = await modelSyncRoute.POST(
+    new Request(`http://localhost/api/providers/${connection.id}/sync-models`, {
+      method: "POST",
+      headers: scheduler.buildModelSyncInternalHeaders(),
+    }),
+    { params: { id: connection.id } }
+  );
+  const body = (await response.json()) as {
+    source: string;
+    skipped: string;
+    cleanup: {
+      removedSyncedLists: number;
+      removedImportedModels: number;
+    };
+  };
+  const syncedModels = await modelsDb.getSyncedAvailableModels("zai-web");
+  const customModels = (await modelsDb.getCustomModels("zai-web")) as Array<{
+    id: string;
+    source: string;
+  }>;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "curated");
+  assert.equal(body.skipped, "curated-models-only");
+  assert.deepEqual(body.cleanup, {
+    removedSyncedLists: 1,
+    removedImportedModels: 1,
+  });
+  assert.deepEqual(syncedModels, []);
+  assert.deepEqual(
+    customModels.map((model) => ({ id: model.id, source: model.source })),
+    [{ id: "manual-keep", source: "manual" }]
+  );
+  assert.equal(fetchCalls, 0);
+});
+
 test("model sync route propagates upstream failures and records an error log entry", async () => {
   await resetStorage();
 

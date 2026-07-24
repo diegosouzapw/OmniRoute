@@ -135,6 +135,10 @@ export interface BrowserBackedChatRequest {
    * For DDG this is empty — the browser is anonymous.
    */
   cookieString?: string | null;
+  /** Values injected into localStorage before the provider page initializes. */
+  localStorage?: Record<string, string>;
+  /** Origin whose localStorage receives the injected values. */
+  localStorageOrigin?: string;
   /**
    * Cookie domain. Used together with cookieString.
    */
@@ -170,6 +174,27 @@ export interface BrowserBackedChatRequest {
    */
   submitButtonSelector?: string;
   /**
+   * Use a DOM click when an animated overlay makes coordinate-based
+   * actionability unreliable even though the provider button is enabled.
+   */
+  submitButtonMode?: "playwright" | "dom";
+  /**
+   * Optional in-memory files to attach through the provider page's native
+   * upload input before submission. The page remains responsible for its
+   * authenticated upload request and for wiring returned file ids into chat.
+   */
+  attachments?: Array<{
+    name: string;
+    mimeType: string;
+    buffer: Buffer;
+  }>;
+  /**
+   * Optional provider-specific UI configuration performed after navigation
+   * and before the prompt is entered. Use this for request options that the
+   * consumer site only exposes through its own controls.
+   */
+  beforeSubmit?: (page: import("playwright").Page) => Promise<void>;
+  /**
    * Wait after submit for SSE/JSON to arrive. Default 15 seconds.
    */
   postSubmitWaitMs?: number;
@@ -190,6 +215,8 @@ export interface BrowserBackedChatResult {
   contentType: string | null;
   body: Buffer;
   isStealth: boolean;
+  /** Sanitized POST targets observed while submitting, useful when an endpoint path changes. */
+  observedPostUrls?: string[];
   timing: {
     acquireContextMs: number;
     navigateMs: number;
@@ -197,6 +224,50 @@ export interface BrowserBackedChatResult {
     captureResponseMs: number;
     totalMs: number;
   };
+}
+
+async function uploadBrowserAttachments(
+  page: import("playwright").Page,
+  attachments: NonNullable<BrowserBackedChatRequest["attachments"]>,
+  chatUrlMatchDomain: string,
+  signal?: AbortSignal | null
+): Promise<void> {
+  if (attachments.length === 0) return;
+
+  const fileInput = page.locator('input[type="file"]').first();
+  await fileInput.waitFor({ state: "attached", timeout: 10_000, signal: signal ?? undefined });
+
+  for (const attachment of attachments) {
+    const uploadResponsePromise = page.waitForResponse(
+      (response) => {
+        if (response.request().method() !== "POST") return false;
+        try {
+          const url = new URL(response.url());
+          return (
+            url.hostname.endsWith(chatUrlMatchDomain) && /\/api\/v1\/files\/?$/.test(url.pathname)
+          );
+        } catch {
+          return false;
+        }
+      },
+      { timeout: 30_000 }
+    );
+
+    const [uploadResponse] = await Promise.all([
+      uploadResponsePromise,
+      fileInput.setInputFiles({
+        name: attachment.name,
+        mimeType: attachment.mimeType,
+        buffer: attachment.buffer,
+      }),
+    ]);
+    if (!uploadResponse.ok()) {
+      throw new Error(`attachment upload returned HTTP ${uploadResponse.status()}`);
+    }
+    // Let the provider commit its uploaded-file state before another file or
+    // the chat submission is triggered.
+    await waitWithSignal(150, signal);
+  }
 }
 
 async function settlePoolKey(
@@ -257,6 +328,8 @@ export async function browserBackedChat(
     chatPageUrl,
     userMessage,
     cookieString,
+    localStorage,
+    localStorageOrigin,
     cookieDomain,
     chatUrlMatchDomain,
     userAgent,
@@ -264,6 +337,9 @@ export async function browserBackedChat(
     timezone,
     inputSelector,
     submitButtonSelector,
+    submitButtonMode = "playwright",
+    attachments = [],
+    beforeSubmit,
     postSubmitWaitMs = 15000,
     signal,
     reuseContext = true,
@@ -274,6 +350,8 @@ export async function browserBackedChat(
   const pooled: PooledContext = await acquireBrowserContext(key, {
     cookieDomain: cookieDomain || chatUrlMatchDomain,
     cookieString: cookieString || null,
+    localStorage,
+    localStorageOrigin,
     warmupUrl: chatPageUrl,
     userAgent,
     locale,
@@ -282,6 +360,18 @@ export async function browserBackedChat(
   const acquireContextMs = Date.now() - tAcquireStart;
 
   const page = await openPage(pooled);
+  const observedPostUrls: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() !== "POST") return;
+    try {
+      const url = new URL(request.url());
+      if (!url.hostname.endsWith(chatUrlMatchDomain)) return;
+      const sanitized = `${url.origin}${url.pathname}`;
+      if (!observedPostUrls.includes(sanitized)) observedPostUrls.push(sanitized);
+    } catch {
+      // Ignore malformed/non-HTTP request URLs.
+    }
+  });
   try {
     const tNavStart = Date.now();
     await page.goto(chatPageUrl, {
@@ -291,6 +381,11 @@ export async function browserBackedChat(
     });
     await waitWithSignal(2500, signal);
     const navigateMs = Date.now() - tNavStart;
+
+    if (beforeSubmit) {
+      await beforeSubmit(page);
+    }
+    await uploadBrowserAttachments(page, attachments, chatUrlMatchDomain, signal);
 
     const inputLocator = page.locator(inputSelector).first();
     await inputLocator.waitFor({ state: "visible", timeout: 10000, signal: signal ?? undefined });
@@ -318,7 +413,11 @@ export async function browserBackedChat(
       const btn = page.locator(submitButtonSelector).first();
       if ((await btn.count()) > 0) {
         try {
-          await btn.click({ timeout: 2000 });
+          if (submitButtonMode === "dom") {
+            await btn.evaluate((element) => (element as HTMLElement).click());
+          } else {
+            await btn.click({ timeout: 2000 });
+          }
         } catch {
           await page.keyboard.press("Enter");
         }
@@ -336,10 +435,13 @@ export async function browserBackedChat(
       signal.removeEventListener("abort", abortListener);
     }
     if (response) {
-      // Wait for the upstream SSE to finish streaming
-      await waitWithSignal(Math.min(postSubmitWaitMs, 30000), signal);
-    } else {
-      await waitWithSignal(postSubmitWaitMs, signal);
+      // Most provider streams finish well before the safety window. Return as
+      // soon as Playwright reports completion instead of always paying the
+      // full fixed delay before reading the already-buffered body.
+      await Promise.race([
+        response.finished().then(() => undefined),
+        waitWithSignal(Math.min(postSubmitWaitMs, 30000), signal),
+      ]);
     }
     const captureResponseMs = Date.now() - tCaptureStart;
     const submitMs = captureResponseMs;
@@ -373,6 +475,7 @@ export async function browserBackedChat(
       contentType,
       body,
       isStealth: pooled.isStealth,
+      observedPostUrls,
       timing: {
         acquireContextMs,
         navigateMs,
@@ -397,6 +500,7 @@ export async function browserBackedChat(
       contentType: "application/json",
       body,
       isStealth: pooled.isStealth,
+      observedPostUrls,
       timing: {
         acquireContextMs,
         navigateMs: 0,

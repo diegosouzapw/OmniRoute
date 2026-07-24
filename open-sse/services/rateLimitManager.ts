@@ -9,6 +9,7 @@
  */
 
 import Bottleneck from "bottleneck";
+import { toNumber } from "@/shared/utils/numeric";
 import { parseRetryAfterFromBody } from "./accountFallback.ts";
 import { getAntigravityQuotaFamily } from "./antigravityQuotaFamily.ts";
 import { getProviderCategory } from "../config/providerRegistry.ts";
@@ -48,16 +49,6 @@ type JsonRecord = Record<string, unknown>;
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  const parsed =
-    typeof value === "number"
-      ? value
-      : typeof value === "string" && value.trim().length > 0
-        ? Number(value)
-        : Number.NaN;
-  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function isNodeTestRunnerChild(): boolean {
@@ -632,22 +623,19 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
       return await limiter.schedule(scheduleOpts, fn);
     }
   } catch (err) {
-    // Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is
-    // indistinguishable from an upstream gateway timeout, so it leaks into 502
-    // bodies / call-log `last_error` and gets misdiagnosed as a provider outage
-    // (#4165). Rewrite it into a clear, OmniRoute-owned error (knob named,
-    // upstream disclaimed, original kept as `cause`, `code` for classification).
-    // Behavior is unchanged — the job is still dropped so combo can fall back.
+    // Bottleneck's `expiration` covers the complete scheduled job: time waiting
+    // in its queue plus execution after dispatch. Rewrite the raw timeout so it
+    // does not falsely claim either an upstream timeout or queue saturation.
     if (err?.message?.includes("This job timed out")) {
       const key = getLimiterKey(provider, connectionId, model);
       logRateLimit(
-        `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
+        `⏰ [RATE-LIMIT] ${key} — scheduled job exceeded ${Math.ceil((maxWaitMs || 0) / 1000)}s local budget, dropping`
       );
       const queueErr = new Error(
-        `Request dropped after exceeding the local rate-limit queue budget maxWaitMs (${maxWaitMs}ms) for ` +
-          `${model ? `${provider}/${model}` : provider} — this is OmniRoute's request queue ` +
-          `(resilienceSettings.requestQueue.maxWaitMs), not an upstream timeout. Raise it in ` +
-          `Settings → Resilience if this is queue saturation rather than a slow provider.`,
+        `Request exceeded OmniRoute's local rate-limit scheduling budget maxWaitMs (${maxWaitMs}ms) for ` +
+          `${model ? `${provider}/${model}` : provider}. This budget covers both queue wait and execution ` +
+          `after dispatch; it is not an upstream timeout. Configure it with ` +
+          `resilienceSettings.requestQueue.maxWaitMs.`,
         { cause: err }
       ) as Error & { code?: string };
       queueErr.code = "RATE_LIMIT_QUEUE_TIMEOUT";

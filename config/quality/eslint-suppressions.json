@@ -220,11 +220,6 @@
       "count": 1
     }
   },
-  "open-sse/services/rateLimitManager.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "open-sse/services/taskAwareRouter.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4

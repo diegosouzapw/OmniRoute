@@ -1,19 +1,20 @@
 /**
- * #4165 — surface a clear error when the request-queue (Bottleneck) drops a job.
+ * #4165 — surface a clear error when Bottleneck expires a scheduled job.
  *
  * OmniRoute schedules every rate-limited request through Bottleneck with
  * `{ expiration: requestQueue.maxWaitMs }` (open-sse/services/rateLimitManager.ts).
- * When a job exceeds that budget Bottleneck throws the raw message
+ * Bottleneck applies that expiration to queue wait plus execution. When the
+ * combined scheduled job exceeds the budget, Bottleneck throws the raw message
  * `"This job timed out after <N> ms."` — which is indistinguishable from an
  * upstream gateway timeout. In #4165 an operator spent ~3h misdiagnosing local
  * queue saturation as a provider outage because the 502 body / call-log
  * `last_error` carried that upstream-looking string across many providers.
  *
  * The fix rewrites that specific Bottleneck error into a clear, OmniRoute-owned
- * message that names the knob (`resilienceSettings.requestQueue.maxWaitMs`) and
- * explicitly says it is NOT an upstream timeout, while preserving the original
- * error as `.cause` and tagging `.code = "RATE_LIMIT_QUEUE_TIMEOUT"` so callers
- * can classify it. Behavior is unchanged: the job is still dropped.
+ * message that names the knob (`resilienceSettings.requestQueue.maxWaitMs`),
+ * accurately describes the combined budget, and explicitly says it is NOT an
+ * upstream timeout, while preserving the original error as `.cause` and
+ * tagging `.code = "RATE_LIMIT_QUEUE_TIMEOUT"` so callers can classify it.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -41,8 +42,8 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-// Drive a real Bottleneck `expiration` failure: a tiny maxWaitMs and a job that
-// runs longer than it.
+// Drive a real Bottleneck `expiration` failure: a tiny maxWaitMs and an already
+// dispatched job that runs longer than it.
 async function triggerQueueTimeout() {
   await rateLimitManager.applyRequestQueueSettings({
     ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
@@ -76,6 +77,7 @@ test("#4165 queue-timeout surfaces a clear OmniRoute error, not the raw upstream
   // The surfaced message must read as a local queue limit, naming the knob,
   // and must NOT masquerade as an upstream "This job timed out" gateway error.
   assert.match(caught.message, /maxWaitMs/, "message should name the maxWaitMs knob");
+  assert.match(caught.message, /queue wait and execution/i);
   assert.match(
     caught.message,
     /not an upstream/i,

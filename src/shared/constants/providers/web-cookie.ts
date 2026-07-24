@@ -379,19 +379,20 @@ export const WEB_COOKIE_PROVIDERS = {
   "zai-web": {
     id: "zai-web",
     alias: "zw",
-    name: "Z.ai Web (Free)",
+    name: "Z.ai Web",
     icon: "auto_awesome",
     color: "#2563EB",
     textIcon: "ZW",
     website: "https://chat.z.ai",
     hasFree: true,
     freeNote:
-      "Free consumer web session — GLM chat models via chat.z.ai. Distinct from the API-key zai/glm providers. No subscription required.",
+      "Consumer web session for the four models currently visible in chat.z.ai. Distinct from the API-key zai/glm providers.",
     subscriptionRisk: true,
     riskNoticeVariant: "webCookie",
-    authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
+    authHint:
+      'Copy the "token" value from chat.z.ai → DevTools → Application → Local Storage. Do not copy cookies; OmniRoute handles the per-request CAPTCHA through its browser transport.',
   },
-  "promptql": {
+  promptql: {
     id: "promptql",
     alias: "pql",
     name: "PromptQL (Unofficial/Experimental)",

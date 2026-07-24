@@ -36,8 +36,8 @@ export type {
 } from "./settings/types";
 
 export const DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS = (() => {
-  const parsed = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || "15000");
-  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 15000;
+  const parsed = Number(process.env.RATE_LIMIT_MAX_WAIT_MS || "60000");
+  return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : 60000;
 })();
 
 // Issue #6593: opt-in admission cap on the local rate-limit queue depth.
