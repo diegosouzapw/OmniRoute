@@ -5,7 +5,7 @@
 <br/>
 <br/>
 
-# 🚀 OmniRoute — The Free AI Gateway
+## 🚀 OmniRoute — The Free AI Gateway
 
 <img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Never stop coding. Every AI tool → 290 providers — 90+ free — through one endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini with auto-fallback. RTK + Caveman stacked compression saves 15–95% tokens (~89% avg) — never hit limits. 290 AI providers · 90+ free tiers · ~1.53B free tokens/mo · 19 routing strategies · $0 to start."/>
 
@@ -13,7 +13,7 @@
 
 <div align="center">
 
-# 💰 ~1.53B Free Tokens / Month
+## 💰 ~1.53B Free Tokens / Month
 
 </div>
 
@@ -56,7 +56,7 @@
 
 <br/>
 
-### 🧩 Available
+## 🧩 Available
 
 [![npm version](https://img.shields.io/npm/v/omniroute?color=cb3837&logo=npm)](https://www.npmjs.com/package/omniroute)
 ![NPM Monthly](https://img.shields.io/npm/dm/omniroute?label=npm/month&color=cb3837&logo=npm)
@@ -151,7 +151,7 @@
 
 <div align="center">
 
-# 🆓 Works the second you install it — no keys, no config
+## 🆓 Works the second you install it — no keys, no config
 
 </div>
 
@@ -170,7 +170,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-# 💥 The Promise
+## 💥 The Promise
 
 </div>
 
@@ -181,7 +181,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-# 🤔 Why OmniRoute?
+## 🤔 Why OmniRoute?
 
 </div>
 
@@ -197,7 +197,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-# 🤝 Supported by our Open Source Friends
+## 🤝 Supported by our Open Source Friends
 
 </div>
 
@@ -235,7 +235,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-# 🎯 Combos — The Flagship
+## 🎯 Combos — The Flagship
 
 </div>
 
@@ -298,7 +298,7 @@ All **19** strategies — mix & match per combo step:
 
 <div align="center">
 
-# 🏆 What Sets OmniRoute Apart
+## 🏆 What Sets OmniRoute Apart
 
 </div>
 
@@ -320,7 +320,7 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 <div align="center">
 
-# ✨ What's New
+## ✨ What's New
 
 </div>
 
@@ -347,7 +347,7 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 <div align="center">
 
-# 🤖 Compatible CLIs & Coding Agents
+## 🤖 Compatible CLIs & Coding Agents
 
 > One config — `http://localhost:20128/v1` — and **every** AI IDE or CLI runs on free & low-cost models.
 
@@ -400,7 +400,7 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 <div align="center">
 
-# 🌐 290 AI Providers — 90+ Free
+## 🌐 290 AI Providers — 90+ Free
 
 </div>
 
@@ -469,7 +469,7 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 <div align="center">
 
-# 🖥️ Where OmniRoute Runs — Anywhere
+## 🖥️ Where OmniRoute Runs — Anywhere
 
 </div>
 
@@ -492,7 +492,7 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 <div align="center">
 
-# 🔒 Private & Local-First
+## 🔒 Private & Local-First
 
 </div>
 
@@ -504,7 +504,7 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 <div align="center">
 
-# 🔌 Full CLI + A2A & MCP
+## 🔌 Full CLI + A2A & MCP
 
 </div>
 
@@ -566,9 +566,23 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 <div align="center">
 
-# 🗜️ Save 15–95% Tokens — Automatically
+## 🗜️ Save 15–95% Tokens — Automatically
 
 </div>
+
+### 📖 How it works — pipeline, architecture & savings math
+
+<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute compression pipeline: a client request of 10,000 tokens passes through 12 stacked engines — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra, OmniGlyph — and reaches the provider at about 1,080 tokens, up to 95% saved. Code, URLs and JSON are always preserved byte-perfect."/>
+
+Default stacked combo runs `RTK → Caveman`. When both act on the same tool/context payload, savings compound:
+
+```txt
+combined = 1 − (1 − RTK) × (1 − Caveman_input)
+average  = 1 − (1 − 0.80) × (1 − 0.46) = 89.2%
+range    = 78.4 – 94.6%
+```
+
+Code blocks, URLs, JSON and structured data are **always protected** by the preservation engine.
 
 > **Why use many tokens when few tokens do the trick?** Every request passes through OmniRoute's compression pipeline **transparently** — no client changes. It's now a **stack of 12 composable engines** that run in order and mix & match per routing combo — building on ideas from [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua), and [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
 
@@ -619,20 +633,6 @@ Code blocks, URLs and structured data are **always preserved** byte-perfect. **O
 > **Mesma resposta. ~70% menos tokens. Precisão técnica intacta.** ✅
 
 <br/>
-
-### 📖 How it works — pipeline, architecture & savings math
-
-<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute compression pipeline: a client request of 10,000 tokens passes through 12 stacked engines — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra, OmniGlyph — and reaches the provider at about 1,080 tokens, up to 95% saved. Code, URLs and JSON are always preserved byte-perfect."/>
-
-Default stacked combo runs `RTK → Caveman`. When both act on the same tool/context payload, savings compound:
-
-```txt
-combined = 1 − (1 − RTK) × (1 − Caveman_input)
-average  = 1 − (1 − 0.80) × (1 − 0.46) = 89.2%
-range    = 78.4 – 94.6%
-```
-
-Code blocks, URLs, JSON and structured data are **always protected** by the preservation engine.
 
 ### 🎚️ Beyond the engines — output styles, the adaptive dial & per-request control
 
