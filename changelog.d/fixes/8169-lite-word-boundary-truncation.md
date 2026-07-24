@@ -1,1 +1,0 @@
-- fix(backend): word-boundary-safe tool-result truncation in lite compression mode (#8169)

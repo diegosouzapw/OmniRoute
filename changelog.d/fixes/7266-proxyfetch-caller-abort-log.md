@@ -1,1 +1,0 @@
-- **fix(sse):** stop logging a caller-initiated request abort/timeout as a noisy proxy transport failure in `proxyFetch`. (thanks @TuyulSpam)

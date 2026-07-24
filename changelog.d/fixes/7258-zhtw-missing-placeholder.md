@@ -1,1 +1,0 @@
-- fix(i18n): treat `__MISSING__:` sync-script placeholders as absent so the EN fallback renders instead of the raw sentinel (#7258)

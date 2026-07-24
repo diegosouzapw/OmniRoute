@@ -1,1 +1,0 @@
-- feat(providers): add Mixedbread AI as an embeddings provider (`mxbai-embed-large-v1`, `mxbai-embed-2d-large-v1`, free tier) (#6660)

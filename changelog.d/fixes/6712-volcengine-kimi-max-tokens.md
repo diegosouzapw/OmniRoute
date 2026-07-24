@@ -1,1 +1,0 @@
-- **fix(volcengine):** clamp `max_tokens` to the VolcEngine Ark endpoint cap for the Kimi model so oversized values no longer 400. (thanks @whale9820)

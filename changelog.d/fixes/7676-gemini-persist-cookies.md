@@ -1,1 +1,0 @@
-- fix(sse): persist rotated Gemini web-session cookies via onCredentialsRefreshed (#7676)

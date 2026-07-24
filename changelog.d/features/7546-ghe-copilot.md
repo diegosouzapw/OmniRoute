@@ -1,1 +1,0 @@
-- **feat(providers):** Complete GHE Copilot OAuth provider implementation with device-code flow, validation, error sanitization, and DNS provisioning mapping ([#7546](https://github.com/diegosouzapw/OmniRoute/pull/7546))

@@ -1,1 +1,0 @@
-- **feat(models):** add a Settings → AI "Model Overrides" UI plus `/api/model-capability-overrides` CRUD and a `model_capability_overrides` table, letting operators set a manual max-output-token override per provider/model (#6727 — thanks @xz-dev).

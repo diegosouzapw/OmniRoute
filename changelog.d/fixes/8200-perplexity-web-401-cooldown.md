@@ -1,1 +1,0 @@
-- fix(providers): carve cookie-auth providers out of terminal 401 'expired' classification so one 401 cooldowns instead of killing the connection

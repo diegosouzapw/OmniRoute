@@ -1,1 +1,0 @@
-- feat(dashboard): confirm before removing a single connection, naming the account, mirroring the existing batch-delete confirm UX (#7361)

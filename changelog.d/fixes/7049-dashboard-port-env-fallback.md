@@ -1,1 +1,0 @@
-- **fix(cli):** `omniroute dashboard` (no `--port` flag) now respects `PORT` from the environment instead of always opening `localhost:20128`, matching `serve`/`launch` precedence (`--port` > `PORT` env > `20128` default) (#7049 — thanks @kaon0388v1).

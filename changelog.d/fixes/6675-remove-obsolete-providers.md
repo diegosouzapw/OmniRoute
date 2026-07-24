@@ -1,1 +1,0 @@
-- **fix(providers):** removed obsolete/defunct providers from the catalog (glhf, kluster, cablyai, inclusionai) (#6675 — thanks @backryun).

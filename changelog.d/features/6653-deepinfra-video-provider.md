@@ -1,1 +1,0 @@
-- feat(sse): add DeepInfra as a video-generation provider via its native synchronous inference endpoint (#6653)

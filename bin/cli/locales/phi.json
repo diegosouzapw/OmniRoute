@@ -1,5 +1,0 @@
-{
-  "redis": {
-    "description": "Launch a 1-click local Redis container (Podman or Docker) for OmniRoute caching and quota tracking"
-  }
-}

@@ -1,1 +1,0 @@
-- **fix(electron): materialize Turbopack hashed-module symlinks during packaging (#6724, #6594)** (#6794 — thanks @huohua-dev).

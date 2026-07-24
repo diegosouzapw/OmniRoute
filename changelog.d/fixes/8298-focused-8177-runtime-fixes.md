@@ -1,1 +1,0 @@
-- **fix(runtime):** sanitize Muse Spark fetch failures before logging and resolve the sql.js WASM asset without the unexported package metadata subpath ([#8298](https://github.com/diegosouzapw/OmniRoute/pull/8298)) — thanks @backryun

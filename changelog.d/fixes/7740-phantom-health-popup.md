@@ -1,1 +1,0 @@
-- fix(db): purge in-memory API-key health/rotation state when a provider connection is deleted (#7740)

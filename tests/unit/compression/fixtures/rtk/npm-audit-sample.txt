@@ -1,2 +1,0 @@
-found 1 vulnerabilities (1 critical)
-  run `npm audit fix` to fix them, or `npm audit` for details

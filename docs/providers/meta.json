@@ -1,5 +1,0 @@
-{
-  "title": "Providers",
-  "description": "Provider-specific integration guides",
-  "pages": ["ALIBABA-QWEN-PROVIDER-FAMILIES", "CLAUDE_WEB", "AGENTROUTER", "ZED-DOCKER"]
-}

@@ -1,1 +1,0 @@
-- **fix(codex): strip include from compact responses requests** (#6805 — thanks @yinaoxiong).

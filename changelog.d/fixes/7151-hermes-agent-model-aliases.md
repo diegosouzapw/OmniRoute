@@ -1,1 +1,0 @@
-- fix(dashboard): wire modelAliases fetch into HermesAgentToolCard so OpenRouter and other passthrough providers appear in the Hermes Agent role picker (#7151)

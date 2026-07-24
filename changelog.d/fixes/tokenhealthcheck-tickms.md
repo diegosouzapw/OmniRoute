@@ -1,1 +1,0 @@
-- fix(auth): restore the TICK_MS constant dropped by #7719, which made initTokenHealthCheck() throw a ReferenceError at startup

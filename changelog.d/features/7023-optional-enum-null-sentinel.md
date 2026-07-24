@@ -1,1 +1,0 @@
-- **feat(sse):** Add optional-enum `null`-omission idiom for Responses-API (codex) strict-mode tool schemas, closing the #6951 follow-up ([#7023](https://github.com/diegosouzapw/OmniRoute/issues/7023))
