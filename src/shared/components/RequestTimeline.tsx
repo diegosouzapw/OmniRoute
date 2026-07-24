@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { getHttpStatusStyle } from "@/shared/constants/colors";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import RequestLoggerDetail from "@/shared/components/RequestLoggerDetail";
@@ -130,7 +131,12 @@ function formatDateLabel(ms: number): string {
   return `${months[d.getMonth()]} ${d.getDate()}`;
 }
 
-export default function RequestTimeline() {
+export default function RequestTimeline({
+  initialSelectedId,
+}: {
+  initialSelectedId?: string | null;
+} = {}) {
+  const router = useRouter();
   const [logs, setLogs] = useState<TimelineLog[]>([]);
   const [mode, setMode] = useState<ViewMode>("follow");
   const [zoom, setZoom] = useState(1);
@@ -149,6 +155,12 @@ export default function RequestTimeline() {
   const [detailLoading, setDetailLoading] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<number>(0);
+  // Guards the ?id= deep-link mount effect below. Also armed by any manual
+  // open/close so a stale `initialSelectedId` (App Router's router.replace()
+  // commits the URL after the re-render it triggers, so the prop can briefly
+  // still reflect the just-closed id on the very next render) can never
+  // reopen the modal right after the user closed it.
+  const initialOpenedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -317,18 +329,80 @@ export default function RequestTimeline() {
 
   const contentHeight = Math.max((maxLane + 1) * LANE_HEIGHT + 20, 200);
 
-  const handleBarClick = useCallback((log: TimelineLog) => {
-    setSelectedLog(log);
+  const handleBarClick = useCallback(
+    (log: TimelineLog) => {
+      initialOpenedRef.current = true;
+      setSelectedLog(log);
+      setDetailData(null);
+      setDetailLoading(true);
+      try {
+        const url = new URL(globalThis.location.href);
+        url.searchParams.set("id", log.id);
+        router.replace(url.pathname + url.search);
+      } catch {
+        // ignore navigation errors
+      }
+      fetch(`/api/logs/${log.id}`, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) setDetailData(data);
+        })
+        .catch(() => {})
+        .finally(() => setDetailLoading(false));
+    },
+    [router]
+  );
+
+  const closeDetail = useCallback(() => {
+    initialOpenedRef.current = true;
+    setSelectedLog(null);
     setDetailData(null);
+    try {
+      const url = new URL(globalThis.location.href);
+      url.searchParams.delete("id");
+      router.replace(url.pathname + url.search);
+    } catch {
+      // ignore navigation errors
+    }
+  }, [router]);
+
+  // Deep-link support: open the request from ?id= on mount without waiting for
+  // it to show up in the polled `logs` list (mirrors RequestLoggerV2's openDetail).
+  const openById = useCallback(async (id: string) => {
     setDetailLoading(true);
-    fetch(`/api/logs/${log.id}`, { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setDetailData(data);
-      })
-      .catch(() => {})
-      .finally(() => setDetailLoading(false));
+    try {
+      const res = await fetch(`/api/logs/${id}`, { cache: "no-store" });
+      const data = res.ok ? await res.json() : null;
+      if (data) {
+        setSelectedLog({
+          id: data.id ?? id,
+          timestamp: data.timestamp,
+          status: data.status ?? 0,
+          model: data.model ?? null,
+          provider: data.provider ?? null,
+          account: data.account ?? null,
+          duration: data.duration ?? 0,
+          tokens: data.tokens ?? { in: 0, out: 0 },
+          active: data.active,
+          error: data.error ?? null,
+          path: data.path ?? null,
+        });
+        setDetailData(data);
+      }
+    } catch {
+      // ignore fetch errors
+    } finally {
+      setDetailLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!initialSelectedId || initialOpenedRef.current) return;
+    initialOpenedRef.current = true;
+    openById(initialSelectedId)
+      .then((r) => r)
+      .catch(() => {});
+  }, [initialSelectedId, openById]);
 
   const handleBarHover = (log: TimelineLog, e: React.MouseEvent) => {
     setHoveredId(log.id);
@@ -491,6 +565,7 @@ export default function RequestTimeline() {
           {barElements.map(({ log, leftPct, widthPct, topPx, color, opacity }) => (
             <div
               key={log.id}
+              data-testid={`timeline-bar-${log.id}`}
               className="absolute rounded-sm cursor-pointer transition-opacity duration-100"
               style={{
                 left: `${leftPct}%`,
@@ -673,10 +748,7 @@ export default function RequestTimeline() {
           loading={detailLoading}
           debugEnabled={false}
           emailsVisible={false}
-          onClose={() => {
-            setSelectedLog(null);
-            setDetailData(null);
-          }}
+          onClose={closeDetail}
           onCopy={copyToClipboard}
           onPrevious={undefined}
           onNext={undefined}
