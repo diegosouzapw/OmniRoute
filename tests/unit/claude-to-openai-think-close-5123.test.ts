@@ -25,8 +25,13 @@ function newState() {
   };
 }
 
-function collectChunks(results: ReturnType<typeof claudeToOpenAIResponse>[]): unknown[] {
-  return results.flatMap((r) => (Array.isArray(r) ? r : r ? [r] : []));
+/** Minimal shape these assertions read off a translated SSE chunk. */
+type StreamChunk = { choices?: Array<{ delta?: { content?: unknown } }> };
+
+function collectChunks(results: ReturnType<typeof claudeToOpenAIResponse>[]): StreamChunk[] {
+  // The translator returns a chunk, an array of chunks, or nothing; narrow once here so
+  // the call sites below can read `choices[0].delta.content` without per-callback casts.
+  return results.flatMap((r) => (Array.isArray(r) ? r : r ? [r] : [])) as StreamChunk[];
 }
 
 // ─── Case (a): thinking block followed by tool_use ───────────────────────────
@@ -95,7 +100,7 @@ test("thinking block followed by tool_use: </think> must NOT appear in any conte
   const chunks = collectChunks(allResults);
 
   const spuriousThinkClose = chunks.filter(
-    (chunk: any) => chunk?.choices?.[0]?.delta?.content === "</think>"
+    (chunk) => chunk?.choices?.[0]?.delta?.content === "</think>"
   );
 
   assert.equal(
@@ -168,7 +173,7 @@ test("thinking block followed by text: </think> emitted when suppressThinkClose=
   const chunks = collectChunks(allResults);
 
   const hasThinkClose = chunks.some(
-    (chunk: any) => chunk?.choices?.[0]?.delta?.content === "</think>"
+    (chunk) => chunk?.choices?.[0]?.delta?.content === "</think>"
   );
 
   assert.ok(
@@ -217,9 +222,9 @@ test("thinking block followed by text: </think> suppressed when suppressThinkClo
 
   const chunks = collectChunks(allResults);
   const hasThinkClose = chunks.some(
-    (chunk: any) => chunk?.choices?.[0]?.delta?.content === "</think>"
+    (chunk) => chunk?.choices?.[0]?.delta?.content === "</think>"
   );
   assert.equal(hasThinkClose, false, "marker must not leak into content under #8245 default");
-  const hasText = chunks.some((chunk: any) => chunk?.choices?.[0]?.delta?.content === "Hello!");
+  const hasText = chunks.some((chunk) => chunk?.choices?.[0]?.delta?.content === "Hello!");
   assert.ok(hasText, "assistant text must still be emitted");
 });
