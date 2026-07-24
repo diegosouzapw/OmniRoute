@@ -9,6 +9,7 @@ import { invalidateDbCache } from "./readCache";
 import { invalidateReasoningRoutingRuleCache } from "./reasoningRoutingRules";
 import { normalizeComboRecord } from "@/lib/combos/steps";
 import { clearSessionModelHistoryForCombo } from "./contextHandoffs";
+import { validateComboInvariant } from "@/lib/combos/invariants";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -184,6 +185,7 @@ export async function createCombo(data: JsonRecord) {
     typeof data.name === "string" ? [data.name] : []
   );
 
+  validateComboInvariant(combo);
   const contextCache = data.context_cache_protection ? 1 : 0;
   db.prepare(
     "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at, context_cache_protection) VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -227,6 +229,12 @@ export async function updateCombo(id: string, data: JsonRecord) {
       ? merged["name"]
       : currentName;
   const normalizedMerged = normalizeStoredCombo({ ...merged, name: nextName }, db, [nextName]);
+  validateComboInvariant({
+    ...normalizedMerged,
+    ...data,
+    name: nextName,
+    models: normalizedMerged.models,
+  });
   const contextCacheProtection = normalizedMerged.context_cache_protection ? 1 : 0;
 
   db.prepare(
