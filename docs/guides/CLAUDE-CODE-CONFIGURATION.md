@@ -1,7 +1,7 @@
 ---
 title: "Claude Code CLI — Configuration with OmniRoute"
 version: 3.8.40
-lastUpdated: 2026-06-28
+lastUpdated: 2026-07-24
 ---
 
 # Claude Code CLI — Configuration with OmniRoute
@@ -143,6 +143,16 @@ handles this for you.
 v2.1.129+ and `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`. Only `claude*` /
 `anthropic*` model IDs appear in the picker; force any other model with
 `ANTHROPIC_MODEL=<id>` (this is what profiles do).
+
+**`400 Ambiguous model 'claude-…'`** — Claude Code always sends **unprefixed**
+model IDs (e.g. `claude-opus-4-8`), so when both the Claude Code (`cc/…`) and
+Claude (`claude/…`) providers are connected the bare id matches two routes and
+OmniRoute refuses to guess. Fix it either way: pin a prefixed id with
+`ANTHROPIC_MODEL=cc/claude-opus-4-8`, or enable **Prefer Claude Code for
+unprefixed Claude models** — the toggle on the Claude provider page, or
+`OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS=true` (default off;
+see [Environment](../reference/ENVIRONMENT.md)) — which routes bare `claude-*`
+IDs to Claude Code instead. Explicit provider prefixes always win.
 
 **Auth errors** — the profile holds no token. Use `omniroute launch --profile`
 (injects it) or export `ANTHROPIC_AUTH_TOKEN`.
