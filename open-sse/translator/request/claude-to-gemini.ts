@@ -8,6 +8,7 @@ import {
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 import { capMaxOutputTokens, capThinkingBudget } from "../../../src/lib/modelCapabilities.ts";
+import { getModelSpec } from "../../../src/shared/constants/modelSpecs.ts";
 
 /**
  * Direct Claude → Gemini request translator.
@@ -191,13 +192,30 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
   // Priority: thinking.budget_tokens (Claude native) > output_config.effort (Claude Code).
   if (model.startsWith("gemma-4")) {
     // gemma-4 models returns - 400: Thinking budget is not supported for this model
-  } else if (body.thinking?.type === "enabled" && body.thinking.budget_tokens !== undefined) {
+  } else if (body.thinking?.type === "enabled" && typeof body.thinking.budget_tokens === "number") {
+    // typeof check ensures only numeric budget_tokens triggers the thinking path;
+    // non-numeric values (e.g. string "auto") fall through to the effort-based path.
     // #6813: a truthy check here dropped `budget_tokens: 0` (dynamic thinking).
     // `undefined` (no budget specified) still falls through to the effort branch.
-    result.generationConfig.thinkingConfig = {
-      thinkingBudget: body.thinking.budget_tokens,
-      includeThoughts: true,
-    };
+    // #3842: cap to the model's real thinking-budget limit.
+    const cappedBudget = capThinkingBudget(model, body.thinking.budget_tokens);
+    // Only send thinkingConfig if the model supports thinking via budget.
+    // Models with thinkingBudgetCap:0 (e.g. gemini-3-flash) reject
+    // thinkingConfig even when capped to 0. The supportsThinking flag
+    // tracks thinkingLevel support, not thinkingBudget; use thinkingBudgetCap
+    // as the reliable indicator (gemini-2.5-flash has supportsThinking:false
+    // but thinkingBudgetCap:24576, meaning it supports thinking via budget).
+    // Models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.
+    if (cappedBudget > 0 || getModelSpec(model)?.thinkingBudgetCap !== 0) {
+      result.generationConfig.thinkingConfig = {
+        thinkingBudget: cappedBudget,
+        // #6813: `budget_tokens: 0` on this explicit path is the client's dynamic-thinking
+        // sentinel, not an off-switch — includeThoughts stays true regardless of the
+        // (possibly cap-clamped) budget value. Only the reasoning_effort/output_config.effort
+        // paths below treat a resulting budget of 0 as "thinking disabled".
+        includeThoughts: true,
+      };
+    }
   } else if (typeof body.output_config?.effort === "string") {
     const effort = body.output_config.effort.toLowerCase();
     const effortBudgetMap: Record<string, number> = {
@@ -216,10 +234,15 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     // pro-tier (real cap 32768) untouched.
     const budget = rawBudget !== undefined ? capThinkingBudget(model, rawBudget) : undefined;
     if (budget !== undefined && budget > 0) {
-      result.generationConfig.thinkingConfig = {
-        thinkingBudget: budget,
-        includeThoughts: true,
-      };
+      // Only send thinkingConfig if the model supports thinking via budget.
+      // Models with thinkingBudgetCap:0 (e.g. gemini-3-flash) reject
+      // thinkingConfig even for effort-based paths.
+      if (getModelSpec(model)?.thinkingBudgetCap !== 0) {
+        result.generationConfig.thinkingConfig = {
+          thinkingBudget: budget,
+          includeThoughts: true,
+        };
+      }
     }
   }
 

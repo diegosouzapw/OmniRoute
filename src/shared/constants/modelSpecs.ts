@@ -78,6 +78,10 @@ const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
 const GPT_5_6_MODEL_SPEC = {
   maxOutputTokens: 128000,
   contextWindow: 1050000,
+  // Reserve 32K for visible response: thinking + response must both fit
+  // under maxOutputTokens. A cap equal to maxOutputTokens leaves zero room
+  // for the actual response when thinking consumes the full budget.
+  thinkingBudgetCap: 96000,
   supportsThinking: true,
   supportsTools: true,
   supportsVision: true,
@@ -155,9 +159,15 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  "gemini-3.5-flash-extra-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.5-flash-extra-low": {
+    ...GEMINI_35_FLASH_MODEL_SPEC,
+    thinkingBudgetCap: 0,
+  },
   "gemini-3.5-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
-  "gemini-3-flash-agent": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3-flash-agent": {
+    ...GEMINI_35_FLASH_MODEL_SPEC,
+    thinkingBudgetCap: 0,
+  },
 
   // ── Gemini 3.6 Flash (Antigravity live tiers) ───────────────────
   // The model id itself selects the upstream 10k/4k/1k reasoning tier. Antigravity
@@ -232,6 +242,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-5": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -253,6 +264,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-6": {
     maxOutputTokens: 64000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -343,6 +355,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-5-20250929": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -353,6 +366,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-haiku-4-5-20251001": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -363,6 +377,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "kimi-k3": {
     maxOutputTokens: 1048576,
     contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -372,6 +387,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "kimi-k2.6": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -384,6 +400,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "kimi-k2.7-code": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -394,6 +411,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "kimi-k2.5": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -404,6 +422,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3-max": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -412,6 +431,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3.8-max-preview": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -419,6 +439,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3.6-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -426,6 +447,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3.5-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -470,18 +492,21 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "glm-5.2": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5.2-high": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5.2-max": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -490,12 +515,14 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "glm-5.1": {
     maxOutputTokens: 128000,
     contextWindow: 200000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5": {
     maxOutputTokens: 128000,
     contextWindow: 200000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -506,6 +533,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m3": {
     maxOutputTokens: 512000,
     contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M3", "MiniMaxAI/MiniMax-M3"],
@@ -515,6 +543,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m2.7": {
     maxOutputTokens: 131072,
     contextWindow: 204800,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M2.7", "MiniMaxAI/MiniMax-M2.7"],
@@ -522,6 +551,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m2.5": {
     maxOutputTokens: 131072,
     contextWindow: 200000,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M2.5"],
@@ -531,12 +561,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "deepseek-v4-pro": {
     maxOutputTokens: 384000,
     contextWindow: 1000000,
+    // Reserve 4K for visible response: thinking + response must both fit
+    // under maxOutputTokens. A cap equal to maxOutputTokens leaves zero room
+    // for the actual response when thinking consumes the full budget.
+    thinkingBudgetCap: 380000,
     supportsThinking: true,
     supportsTools: true,
   },
   "deepseek-v4-flash": {
     maxOutputTokens: 384000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 380000,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -545,6 +580,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "hy3-preview": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
   },
