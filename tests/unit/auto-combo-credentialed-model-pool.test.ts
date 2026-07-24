@@ -87,9 +87,9 @@ test("credentialed providers expose one logical candidate per visible registry m
   );
   for (const model of [
     "antigravity/claude-sonnet-4-6",
-    "antigravity/gemini-3-flash-agent",
-    "antigravity/gemini-3.5-flash-low",
-    "antigravity/gemini-3.5-flash-extra-low",
+    "antigravity/gemini-3.6-flash-low",
+    "antigravity/gemini-3.6-flash-medium",
+    "antigravity/gemini-3.6-flash-high",
   ]) {
     assert.ok(modelStrings.includes(model), `${model} should be eligible for auto routing`);
   }
@@ -134,8 +134,10 @@ test("connection model exclusions narrow only that model's account allowlist", a
     assert.deepEqual(candidate.allowedConnectionIds, [second.id]);
   }
 
-  const sonnet = candidates.find((candidate) => candidate.model === "antigravity/claude-sonnet-4-6");
-  assert.ok(sonnet, "Claude Sonnet 4.6 should remain in the candidate pool");
+  const sonnet = candidates.find(
+    (candidate) => candidate.model === "antigravity/claude-sonnet-4-6"
+  );
+  assert.ok(sonnet, "Claude Sonnet 5 should remain in the candidate pool");
   assert.deepEqual([...(sonnet.allowedConnectionIds ?? [])].sort(), [first.id, second.id].sort());
 });
 
@@ -148,9 +150,9 @@ test("hiding the first registry model does not drop the credentialed provider", 
 
   assert.equal(modelStrings.includes("antigravity/claude-sonnet-4-6"), false);
   for (const model of [
-    "antigravity/gemini-3-flash-agent",
-    "antigravity/gemini-3.5-flash-low",
-    "antigravity/gemini-3.5-flash-extra-low",
+    "antigravity/gemini-3.6-flash-low",
+    "antigravity/gemini-3.6-flash-medium",
+    "antigravity/gemini-3.6-flash-high",
   ]) {
     assert.ok(modelStrings.includes(model), `${model} should remain after Sonnet is hidden`);
   }
