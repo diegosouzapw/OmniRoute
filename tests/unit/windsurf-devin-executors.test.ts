@@ -1,78 +1,43 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-// ─── Model alias resolution (windsurf) ───────────────────────────────────────
-// We exercise the alias map indirectly through the exported class because
-// resolveWsModelId is not exported. WindsurfExecutor.buildRequest() calls it.
+// ─── Devin Desktop raw model IDs ────────────────────────────────────────────
 
-describe("Windsurf MODEL_ALIAS_MAP", () => {
-  const ALIAS_CASES: [string, string][] = [
-    // SWE dot→dash conversions
-    ["swe-1.6-fast", "swe-1-6-fast"],
-    ["swe-1.6", "swe-1-6"],
-    ["swe-1.5", "swe-1p5"],
-    ["swe-1.5-fast", "swe-1p5"],
-    // GPT-5.5 default effort
-    ["gpt-5.5", "gpt-5-5-medium"],
-    // GPT-5.4 default effort
-    ["gpt-5.4", "gpt-5-4-medium"],
-    // GPT-5.3-codex default
-    ["gpt-5.3-codex", "gpt-5-3-codex-medium"],
-    // Claude aliases
-    ["claude-sonnet-4.6", "claude-sonnet-4-6"],
-    ["claude-opus-4.7-max", "claude-opus-4-7-max"],
-    // Gemini aliases
-    ["gemini-2.5-pro", "MODEL_GOOGLE_GEMINI_2_5_PRO"],
-  ];
+import { getExecutor } from "../../open-sse/executors/index.ts";
 
-  const PASSTHROUGH_CASES = [
-    "gpt-5",
-    "gpt-5-codex",
-    "grok-code-fast-1",
-    "deepseek-v4",
-    "some-unknown-model",
-    // These aliases were removed from MODEL_ALIAS_MAP in v3.8.x — pass through unchanged:
-    "claude-3.7-sonnet-thinking",
-    "gemini-3.0-pro",
-    "kimi-k2",
-  ];
-
-  // Load the alias map from the module source — we parse it at test time to
-  // avoid importing the full executor (which would require provider registry).
-  let aliasMap: Record<string, string>;
-
-  test("setup: parse MODEL_ALIAS_MAP from executor source", async () => {
-    const fs = await import("node:fs/promises");
-    const src = await fs.readFile(
-      new URL("../../open-sse/executors/windsurf.ts", import.meta.url),
-      "utf8"
-    );
-    const match = src.match(/const MODEL_ALIAS_MAP[^=]*=\s*(\{[\s\S]*?\n\})/);
-    assert.ok(match, "MODEL_ALIAS_MAP block should be found in source");
-    // Safe eval via Function constructor replacement — build a JS object literal
-    const objSrc = match[1]
-      .replace(/\/\/[^\n]*/g, "") // strip line comments
-      .trim();
-    // Parse using JSON after stripping trailing commas (simple approach)
-    const jsonLike = objSrc
-      .replace(/,\s*([\]}])/g, "$1") // trailing commas
-      .replace(/'/g, '"'); // single → double quotes
-    aliasMap = JSON.parse(jsonLike);
-    assert.ok(typeof aliasMap === "object");
-  });
-
-  for (const [input, expected] of ALIAS_CASES) {
-    test(`alias: "${input}" → "${expected}"`, () => {
-      const result = aliasMap[input] ?? input;
-      assert.equal(result, expected);
-    });
+function containsBytes(haystack: Uint8Array, needle: Uint8Array): boolean {
+  outer: for (let i = 0; i <= haystack.length - needle.length; i++) {
+    for (let j = 0; j < needle.length; j++) {
+      if (haystack[i + j] !== needle[j]) continue outer;
+    }
+    return true;
   }
+  return false;
+}
 
-  for (const model of PASSTHROUGH_CASES) {
-    test(`passthrough: "${model}" has no alias (returns itself)`, () => {
-      const result = aliasMap[model] ?? model;
-      assert.equal(result, model);
+test("Devin Desktop sends the curated raw model id without alias rewriting", async () => {
+  const executor = getExecutor("devin-desktop");
+  const originalFetch = globalThis.fetch;
+  let requestBody: Uint8Array | null = null;
+  globalThis.fetch = async (_url, init) => {
+    requestBody = init?.body as Uint8Array;
+    return new Response("expected test stop", { status: 418 });
+  };
+
+  try {
+    const model = "gpt-5-6-sol-high";
+    const result = await executor.execute({
+      model,
+      body: { messages: [{ role: "user", content: "hello" }] },
+      stream: true,
+      credentials: { accessToken: "test-devin-desktop-token" },
     });
+
+    assert.equal(result.response.status, 418);
+    assert.ok(requestBody);
+    assert.equal(containsBytes(requestBody, new TextEncoder().encode(model)), true);
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 
@@ -140,7 +105,7 @@ describe("openAIMessagesToWs", () => {
   });
 });
 
-// ─── gRPC-web frame parser (Windsurf) ────────────────────────────────────────
+// ─── Devin Desktop gRPC-web frame parser ─────────────────────────────────────
 
 function* parseGrpcWebFramesLocal(
   buf: Uint8Array
@@ -235,24 +200,28 @@ describe("DevinCli binary resolution", () => {
   });
 });
 
-// ─── Phase 1 hotfix: windsurf/devin-cli import-token flow ────────────────────
+// ─── Devin Desktop / CLI import-token flow ───────────────────────────────────
 import { generateAuthData, getProvider } from "@/lib/oauth/providers";
 
-test("windsurf provider: flowType is import_token (PKCE disabled post-rebrand)", () => {
-  const provider = getProvider("windsurf");
+test("devin-desktop provider: flowType is import_token", () => {
+  const provider = getProvider("devin-desktop");
   assert.equal(provider.flowType, "import_token");
 });
 
-test("devin-cli provider: flowType is import_token (shares windsurf config)", () => {
+test("devin-cli provider: flowType is import_token (shares Devin token config)", () => {
   const provider = getProvider("devin-cli");
   assert.equal(provider.flowType, "import_token");
 });
 
-test("windsurf provider: generateAuthData returns no authUrl (PKCE flow disabled)", () => {
-  const data = generateAuthData("windsurf", "http://localhost:0/auth/callback");
+test("legacy windsurf provider is no longer public", () => {
+  assert.throws(() => getProvider("windsurf"), /Unknown provider/i);
+});
+
+test("devin-desktop provider: generateAuthData returns no authUrl", () => {
+  const data = generateAuthData("devin-desktop", "http://localhost:0/auth/callback");
   assert.equal(data.authUrl, undefined);
   assert.equal(data.supported, false);
-  assert.match(data.error ?? "", /import-token|disabled|app\.devin\.ai/i);
+  assert.match(data.error ?? "", /import-token|disabled/i);
 });
 
 test("devin-cli provider: generateAuthData returns no authUrl", () => {
@@ -264,15 +233,15 @@ test("devin-cli provider: generateAuthData returns no authUrl", () => {
 // ─── Phase 1 hotfix: retired PKCE actions return 410 Gone ────────────────────
 import { GET as oauthGet, POST as oauthPost } from "@/app/api/oauth/[provider]/[action]/route";
 
-test("OAuth route: GET windsurf/start-callback-server returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/windsurf/start-callback-server";
+test("OAuth route: GET devin-desktop/start-callback-server returns Devin guidance", async () => {
+  const url = "http://localhost:20128/api/oauth/devin-desktop/start-callback-server";
   const request = new Request(url, { method: "GET" });
   const response = await oauthGet(request, {
-    params: Promise.resolve({ provider: "windsurf", action: "start-callback-server" }),
+    params: Promise.resolve({ provider: "devin-desktop", action: "start-callback-server" }),
   } as never);
   assert.equal(response.status, 410);
   const body = await response.json();
-  assert.match(body.error, /import-token|disabled|410|show-auth-token/i);
+  assert.match(body.error, /Devin: Copy API Key to Clipboard/);
 });
 
 test("OAuth route: GET devin-cli/authorize returns 410 Gone", async () => {
@@ -286,24 +255,24 @@ test("OAuth route: GET devin-cli/authorize returns 410 Gone", async () => {
   assert.match(body.error, /import-token|disabled|410|show-auth-token/i);
 });
 
-test("OAuth route: GET windsurf/poll-callback returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/windsurf/poll-callback";
+test("OAuth route: GET devin-desktop/poll-callback returns 410 Gone", async () => {
+  const url = "http://localhost:20128/api/oauth/devin-desktop/poll-callback";
   const request = new Request(url, { method: "GET" });
   const response = await oauthGet(request, {
-    params: Promise.resolve({ provider: "windsurf", action: "poll-callback" }),
+    params: Promise.resolve({ provider: "devin-desktop", action: "poll-callback" }),
   } as never);
   assert.equal(response.status, 410);
 });
 
-test("OAuth route: POST windsurf/poll-callback returns 410 Gone", async () => {
-  const url = "http://localhost:20128/api/oauth/windsurf/poll-callback";
+test("OAuth route: POST devin-desktop/poll-callback returns 410 Gone", async () => {
+  const url = "http://localhost:20128/api/oauth/devin-desktop/poll-callback";
   const request = new Request(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
   const response = await oauthPost(request, {
-    params: Promise.resolve({ provider: "windsurf", action: "poll-callback" }),
+    params: Promise.resolve({ provider: "devin-desktop", action: "poll-callback" }),
   } as never);
   assert.equal(response.status, 410);
 });
@@ -322,8 +291,8 @@ test("OAuth route: GET codex/authorize is NOT retired (regression check)", async
 // bind layer when the route called `mapTokens({ accessToken })`: the object
 // got stored as accessToken and SQLite rejected it with
 //   "SQLite3 can only bind numbers, strings, bigints, buffers, and null".
-test("windsurf mapTokens: accepts object {accessToken} and returns string accessToken", () => {
-  const provider = getProvider("windsurf");
+test("devin-desktop mapTokens: accepts object {accessToken} and returns string accessToken", () => {
+  const provider = getProvider("devin-desktop");
   const mapped = provider.mapTokens({ accessToken: "sk-ws-test-token-1234567890" });
   assert.equal(typeof mapped.accessToken, "string");
   assert.equal(mapped.accessToken, "sk-ws-test-token-1234567890");

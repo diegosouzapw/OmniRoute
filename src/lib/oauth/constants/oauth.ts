@@ -414,57 +414,17 @@ export const TRAE_CONFIG = {
     "Authorize via trae.ai in the popup, or sign in to solo.trae.ai and paste the Cloud-IDE-JWT from the Authorization header (~14-day lifetime).",
 };
 
-// Windsurf / Devin CLI Configuration
-//
-// 2026-05-29 (Phase 1 hotfix):
-//   The browser PKCE flow targeting https://app.devin.ai/editor/signin returned
-//   404 post-rebrand. PKCE-only fields (`authorizeUrl`, `codeChallengeMethod`,
-//   `callbackPort`, `callbackPath`, `apiServerUrl`, `exchangePath`) are kept
-//   below for archival reference but are NO LONGER consumed by any code path —
-//   the provider exports flowType="import_token" only.
-//
-//   Phase 2 will reintroduce browser login via Firebase OAuth + RegisterUser
-//   (ported from fendoushaonian/WindSurf-gRPC-API).
-//   Spec: _tasks/superpowers/specs/2026-05-29-windsurf-login-fix-design.md.
-//
-// Active fields:
-//   - inferenceUrl       → used by WindsurfExecutor (open-sse/executors/windsurf.ts)
-//   - showAuthTokenUrl   → reference URL; the real token only renders when the
-//                          IDE "Windsurf: Provide Auth Token" command opens it
-//                          with an IDE-supplied ?state= param (see field below)
-//   - firebaseApiKey     → reserved for Phase 2
-//   - ideName            → sent in extension headers
-export const WINDSURF_CONFIG = {
-  // RETIRED 2026-05-29 — endpoint returns 404 post-rebrand. Phase 2 will replace.
-  authorizeUrl: "https://app.devin.ai/editor/signin",
-  // RETIRED 2026-05-29 — PKCE flow disabled, see header comment.
-  codeChallengeMethod: "S256" as const,
-  // RETIRED 2026-05-29 — no callback server is started for windsurf/devin-cli.
-  callbackPort: 0,
-  // RETIRED 2026-05-29 — no callback path is registered for windsurf/devin-cli.
-  callbackPath: "/auth/callback",
-  // RETIRED 2026-05-29 — exchange endpoint no longer reached because PKCE is disabled.
+// Devin Desktop / Devin CLI import-token configuration.
+// Public product identity is Devin. The upstream still requires the legacy
+// `windsurf` IDE name and WINDSURF_* environment variables, so those values stay
+// isolated in this internal transport config.
+export const DEVIN_DESKTOP_CONFIG = {
   apiServerUrl: "https://server.codeium.com",
-  // RETIRED 2026-05-29 — see apiServerUrl.
-  exchangePath: "/exa.seat_management_pb.SeatManagementService/ExchangePKCEAuthorizationCode",
-  // ── Active fields (still consumed by runtime) ─────────────────────────────
-  // Inference server URL (gRPC-web requests go here)
-  inferenceUrl: "https://server.self-serve.windsurf.com",
-  // Primary login path: the user runs the "Windsurf: Provide Auth Token" command
-  // inside the Windsurf/VS Code IDE (or clicks the Jupyter "Get Windsurf
-  // Authentication Token" button), which opens this URL WITH an IDE-supplied
-  // `?state=<xyz>` param and renders the token. Opening this bare URL directly
-  // only shows a "Redirecting" page with no token (#3324).
-  showAuthTokenUrl: "https://windsurf.com/show-auth-token",
-  // Token refresh via Firebase Secure Token Service (reserved for Phase 2).
-  // Default is the public Firebase Web client identifier embedded in the
-  // Windsurf/Devin CLI binary; users may override via WINDSURF_FIREBASE_API_KEY.
+  inferenceUrl: "https://server.codeium.com",
   firebaseApiKey: resolvePublicCred("windsurf_fb", "WINDSURF_FIREBASE_API_KEY"),
   firebaseTokenUrl: "https://securetoken.googleapis.com/v1/token",
-  // IDE identity sent with every gRPC request
   ideName: "windsurf",
-  ideVersion: "3.14.0",
-  extensionVersion: "3.14.0",
+  defaultVersion: "3.4.27",
 };
 
 // Zed IDE credential import — no standard OAuth flow.
@@ -523,7 +483,7 @@ export const PROVIDERS = {
   KILOCODE: "kilocode",
   CLINE: "cline",
   CLINEPASS: "clinepass",
-  WINDSURF: "windsurf",
+  DEVIN_DESKTOP: "devin-desktop",
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",

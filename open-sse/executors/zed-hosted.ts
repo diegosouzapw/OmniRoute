@@ -21,7 +21,7 @@
  *
  * Ported from decolua/9router PR #2328 (open-sse/executors/zed.js),
  * adapted to TypeScript + OmniRoute's BaseExecutor/translator conventions.
- * Like WindsurfExecutor, this overrides execute() entirely rather than
+ * Like DevinDesktopExecutor, this overrides execute() entirely rather than
  * using BaseExecutor's default Claude-Code-oriented pipeline, because the
  * Zed wire request/response shape (thread envelope, LLM-token exchange,
  * NDJSON status frames) doesn't fit the generic transformRequest/buildUrl
@@ -38,7 +38,12 @@ import { openaiToOpenAIResponsesRequest } from "../translator/request/openai-res
 import { claudeToOpenAIResponse } from "../translator/response/claude-to-openai.ts";
 import { geminiToOpenAIResponse } from "../translator/response/gemini-to-openai.ts";
 import { openaiResponsesToOpenAIResponse } from "../translator/response/openai-responses.ts";
-import { ZED_HEADERS, resolveZedModels, zedLlmFetch, type ZedCredentials } from "../shared/zedAuth.ts";
+import {
+  ZED_HEADERS,
+  resolveZedModels,
+  zedLlmFetch,
+  type ZedCredentials,
+} from "../shared/zedAuth.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 
 const ZED_PROVIDER = {
@@ -335,7 +340,8 @@ export class ZedHostedExecutor extends BaseExecutor {
           "Content-Type": "application/json",
           Accept: "application/x-ndjson, text/event-stream, */*",
           "User-Agent": `OmniRoute/zed-hosted`,
-          "x-zed-version": (this.config as Record<string, unknown>)?.appVersion?.toString() || "0.200.0",
+          "x-zed-version":
+            (this.config as Record<string, unknown>)?.appVersion?.toString() || "0.200.0",
           [ZED_HEADERS.clientSupportsStatus]: "true",
           [ZED_HEADERS.clientSupportsStreamEnded]: "true",
         },
@@ -371,7 +377,10 @@ export class ZedHostedExecutor extends BaseExecutor {
     const errorObj = (parsed?.error as Record<string, unknown>) || undefined;
     const code = (parsed?.code as string) || (errorObj?.code as string) || "";
     const rawMessage =
-      (parsed?.message as string) || (errorObj?.message as string) || bodyText || response.statusText;
+      (parsed?.message as string) ||
+      (errorObj?.message as string) ||
+      bodyText ||
+      response.statusText;
     if (code === "trial_blocked") {
       return {
         status: response.status,

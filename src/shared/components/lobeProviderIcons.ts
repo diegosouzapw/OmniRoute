@@ -468,7 +468,7 @@ const LOBE_PROVIDER_ALIASES = {
   voyage: "Voyage",
   "voyage-ai": "Voyage",
   watsonx: "IBM",
-  windsurf: "Windsurf",
+  "devin-desktop": "Windsurf",
   "workers-ai": "WorkersAI",
   workersai: "WorkersAI",
   xai: "XAI",

@@ -85,3 +85,49 @@ test("ensureProviderConnectionsColumns repairs quota visibility with a visible d
     db.close?.();
   }
 });
+
+test("ensureProviderConnectionsColumns restores base columns required by later migrations", () => {
+  const db = openMemoryDb();
+  try {
+    db.exec(`
+      CREATE TABLE provider_connections (
+        id TEXT PRIMARY KEY,
+        provider TEXT NOT NULL,
+        auth_type TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1
+      )
+    `);
+    assert.equal(hasColumn(db, "provider_connections", "provider_specific_data"), false);
+    assert.equal(hasColumn(db, "provider_connections", "default_model"), false);
+
+    ensureProviderConnectionsColumns(db);
+
+    assert.equal(hasColumn(db, "provider_connections", "provider_specific_data"), true);
+    assert.equal(hasColumn(db, "provider_connections", "default_model"), true);
+    const columnsAfterFirstRun = getTableColumns(db, "provider_connections").sort();
+    const indexesAfterFirstRun = (
+      db.prepare("PRAGMA index_list(provider_connections)").all() as Array<{ name: string }>
+    )
+      .map((index) => index.name)
+      .sort();
+    const warnings: unknown[][] = [];
+    const originalWarn = console.warn;
+    try {
+      console.warn = (...args: unknown[]) => warnings.push(args);
+      ensureProviderConnectionsColumns(db);
+    } finally {
+      console.warn = originalWarn;
+    }
+
+    assert.deepEqual(getTableColumns(db, "provider_connections").sort(), columnsAfterFirstRun);
+    assert.deepEqual(
+      (db.prepare("PRAGMA index_list(provider_connections)").all() as Array<{ name: string }>)
+        .map((index) => index.name)
+        .sort(),
+      indexesAfterFirstRun
+    );
+    assert.deepEqual(warnings, []);
+  } finally {
+    db.close?.();
+  }
+});

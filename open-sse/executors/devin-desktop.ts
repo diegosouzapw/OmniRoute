@@ -1,155 +1,32 @@
 /**
- * WindsurfExecutor — routes requests to Windsurf (Devin CLI / Codeium) backend.
+ * DevinDesktopExecutor — routes OpenAI-style chat requests through the
+ * Devin Desktop language-server gRPC-web endpoint.
  *
- * Wire protocol: gRPC-web over HTTPS (Content-Type: application/grpc-web+proto).
- * Service:       exa.language_server_pb.LanguageServerService
- * Method:        GetChatMessage  (unary → streamed as SSE)
- *
- * Authentication:
- *   credentials.accessToken  = Codeium API key from windsurf.com/show-auth-token
- *   — placed in Metadata.api_key protobuf field of every request.
- *
- * Model IDs accepted by this executor (snake_case sent to Windsurf wire):
- *   Cognition SWE:  swe-1, swe-1-5, swe-1-6, swe-1-6-fast, swe-1-lite
- *   Claude:         claude-4-5-sonnet, claude-4-5-opus, claude-4-sonnet, claude-4-opus,
- *                   claude-3-7-sonnet, claude-3-7-sonnet-thinking
- *   Gemini:         gemini-2-5-pro, gemini-2-5-flash, gemini-3-0-pro, gemini-3-0-flash
- *   OpenAI:         gpt-4-1, gpt-4-5, o1, o1-mini
- *
- * OmniRoute → Windsurf model-ID mapping lives in MODEL_ID_MAP below.
+ * The upstream still requires the legacy "windsurf" IDE identity. Keep that
+ * compatibility string isolated here; it is not a public OmniRoute provider id.
  */
 
-import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
-import { PROVIDERS } from "../config/constants.ts";
 import { randomUUID } from "node:crypto";
 
-// ─── Windsurf API constants ──────────────────────────────────────────────────
+import { PROVIDERS } from "../config/constants.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 
-const WS_BASE_URL = "https://server.self-serve.windsurf.com";
-const WS_SERVICE = "exa.language_server_pb.LanguageServerService";
-const WS_METHOD_CHAT = "GetChatMessage";
-const WS_CHAT_URL = `${WS_BASE_URL}/${WS_SERVICE}/${WS_METHOD_CHAT}`;
+// ─── Devin Desktop upstream constants ───────────────────────────────────────
 
-const WS_IDE_NAME = "windsurf";
-const WS_IDE_VERSION = "3.14.0";
-const WS_EXT_VERSION = "3.14.0";
-const WS_LOCALE = "en-US";
+const DEVIN_DESKTOP_BASE_URL = "https://server.codeium.com";
+const DEVIN_DESKTOP_SERVICE = "exa.language_server_pb.LanguageServerService";
+const DEVIN_DESKTOP_CHAT_METHOD = "GetChatMessage";
+const DEVIN_DESKTOP_CHAT_URL = `${DEVIN_DESKTOP_BASE_URL}/${DEVIN_DESKTOP_SERVICE}/${DEVIN_DESKTOP_CHAT_METHOD}`;
 
-// ─── Model alias normalizer ──────────────────────────────────────────────────
-//
-// Model names are passed directly to the Windsurf API as ModelOrAlias strings.
-// The API accepts the catalog names as-is (e.g. "claude-4.5-sonnet", "swe-1.6-fast").
-//
-// This table handles only OmniRoute-style backwards-compat aliases where users
-// might type dashes instead of dots (e.g. "swe-1-6-fast" → "swe-1.6-fast").
+const DEVIN_UPSTREAM_IDE_NAME = "windsurf";
+const VERIFIED_DEVIN_DESKTOP_VERSION = "3.4.27";
+const DEVIN_DESKTOP_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
+const DEVIN_LOCALE = "en-US";
 
-// Model IDs — source: model_configs_v2.bin extracted from Devin CLI binary.
-// OmniRoute uses dot-notation user IDs (e.g. "gpt-5.5-high").
-// Windsurf API accepts dash-notation modelUids (e.g. "gpt-5-5-high").
-// This map normalises dot→dash for newer models and handles legacy aliases.
-const MODEL_ALIAS_MAP: Record<string, string> = {
-  // ── SWE ─────────────────────────────────────────────────────────────────
-  "swe-1.6-fast": "swe-1-6-fast",
-  "swe-1.6": "swe-1-6",
-  "swe-1.5-fast": "swe-1p5", // fast variant
-  "swe-1.5": "swe-1p5",
-  // ── Claude Opus 4.7 ──────────────────────────────────────────────────────
-  "claude-opus-4.7-max": "claude-opus-4-7-max",
-  "claude-opus-4.7-xhigh": "claude-opus-4-7-xhigh",
-  "claude-opus-4.7-high": "claude-opus-4-7-high",
-  "claude-opus-4.7-medium": "claude-opus-4-7-medium",
-  "claude-opus-4.7-low": "claude-opus-4-7-low",
-  "claude-opus-4.7-review": "opus-4-7-review",
-  // ── Claude Opus/Sonnet 4.6 ───────────────────────────────────────────────
-  "claude-sonnet-4.6-thinking-1m": "claude-sonnet-4-6-thinking-1m",
-  "claude-sonnet-4.6-1m": "claude-sonnet-4-6-1m",
-  "claude-sonnet-4.6-thinking": "claude-sonnet-4-6-thinking",
-  "claude-sonnet-4.6": "claude-sonnet-4-6",
-  "claude-opus-4.6-thinking": "claude-opus-4-6-thinking",
-  "claude-opus-4.6": "claude-opus-4-6",
-  // ── Claude 4.5 ───────────────────────────────────────────────────────────
-  "claude-opus-4.5-thinking": "MODEL_CLAUDE_4_5_OPUS_THINKING",
-  "claude-opus-4.5": "MODEL_CLAUDE_4_5_OPUS",
-  "claude-sonnet-4.5-thinking": "MODEL_PRIVATE_3",
-  "claude-sonnet-4.5": "MODEL_PRIVATE_2",
-  "claude-haiku-4.5": "MODEL_PRIVATE_11",
-  // backward-compat flat names
-  "claude-4.5-opus-thinking": "MODEL_CLAUDE_4_5_OPUS_THINKING",
-  "claude-4.5-opus": "MODEL_CLAUDE_4_5_OPUS",
-  "claude-4.5-sonnet-thinking": "MODEL_PRIVATE_3",
-  "claude-4.5-sonnet": "MODEL_PRIVATE_2",
-  "claude-4.5-haiku": "MODEL_PRIVATE_11",
-  // ── GPT-5.5 ──────────────────────────────────────────────────────────────
-  "gpt-5.5-xhigh-fast": "gpt-5-5-xhigh-priority",
-  "gpt-5.5-high-fast": "gpt-5-5-high-priority",
-  "gpt-5.5-medium-fast": "gpt-5-5-medium-priority",
-  "gpt-5.5-low-fast": "gpt-5-5-low-priority",
-  "gpt-5.5-none-fast": "gpt-5-5-none-priority",
-  "gpt-5.5-xhigh": "gpt-5-5-xhigh",
-  "gpt-5.5-high": "gpt-5-5-high",
-  "gpt-5.5-medium": "gpt-5-5-medium",
-  "gpt-5.5-low": "gpt-5-5-low",
-  "gpt-5.5-none": "gpt-5-5-none",
-  "gpt-5.5-review": "gpt-5-5-review",
-  "gpt-5.5": "gpt-5-5-medium", // default effort level
-  // ── GPT-5.4 ──────────────────────────────────────────────────────────────
-  "gpt-5.4-xhigh-fast": "gpt-5-4-xhigh-priority",
-  "gpt-5.4-high-fast": "gpt-5-4-high-priority",
-  "gpt-5.4-medium-fast": "gpt-5-4-medium-priority",
-  "gpt-5.4-low-fast": "gpt-5-4-low-priority",
-  "gpt-5.4-none-fast": "gpt-5-4-none-priority",
-  "gpt-5.4-xhigh": "gpt-5-4-xhigh",
-  "gpt-5.4-high": "gpt-5-4-high",
-  "gpt-5.4-medium": "gpt-5-4-medium",
-  "gpt-5.4-low": "gpt-5-4-low",
-  "gpt-5.4-none": "gpt-5-4-none",
-  "gpt-5.4-mini-xhigh": "gpt-5-4-mini-xhigh",
-  "gpt-5.4-mini-high": "gpt-5-4-mini-high",
-  "gpt-5.4-mini-medium": "gpt-5-4-mini-medium",
-  "gpt-5.4-mini-low": "gpt-5-4-mini-low",
-  "gpt-5.4": "gpt-5-4-medium", // default effort level
-  // ── GPT-5.3-Codex ────────────────────────────────────────────────────────
-  "gpt-5.3-codex-xhigh-fast": "gpt-5-3-codex-xhigh-priority",
-  "gpt-5.3-codex-high-fast": "gpt-5-3-codex-high-priority",
-  "gpt-5.3-codex-medium-fast": "gpt-5-3-codex-medium-priority",
-  "gpt-5.3-codex-low-fast": "gpt-5-3-codex-low-priority",
-  "gpt-5.3-codex-xhigh": "gpt-5-3-codex-xhigh",
-  "gpt-5.3-codex-high": "gpt-5-3-codex-high",
-  "gpt-5.3-codex-medium": "gpt-5-3-codex-medium",
-  "gpt-5.3-codex-low": "gpt-5-3-codex-low",
-  "gpt-5.3-codex": "gpt-5-3-codex-medium",
-  // ── GPT-5.2 ──────────────────────────────────────────────────────────────
-  "gpt-5.2-xhigh": "MODEL_GPT_5_2_XHIGH",
-  "gpt-5.2-high": "MODEL_GPT_5_2_HIGH",
-  "gpt-5.2-medium": "MODEL_GPT_5_2_MEDIUM",
-  "gpt-5.2-low": "MODEL_GPT_5_2_LOW",
-  "gpt-5.2-none": "MODEL_GPT_5_2_NONE",
-  "gpt-5.2": "MODEL_GPT_5_2_MEDIUM",
-  // ── GPT-5 ────────────────────────────────────────────────────────────────
-  "gpt-5": "gpt-5",
-  // ── GPT-4.1 / 4o ─────────────────────────────────────────────────────────
-  "gpt-4.1": "MODEL_CHAT_GPT_4_1_2025_04_14",
-  "gpt-4.1-mini": "gpt-4.1-mini",
-  "gpt-4o": "MODEL_CHAT_GPT_4O_2024_08_06",
-  // ── Gemini ────────────────────────────────────────────────────────────────
-  "gemini-3.1-pro-high": "gemini-3-1-pro-high",
-  "gemini-3.1-pro-low": "gemini-3-1-pro-low",
-  "gemini-3.1-pro": "gemini-3-1-pro-high",
-  "gemini-3.0-flash-high": "MODEL_GOOGLE_GEMINI_3_0_FLASH_HIGH",
-  "gemini-3.0-flash-medium": "MODEL_GOOGLE_GEMINI_3_0_FLASH_MEDIUM",
-  "gemini-3.0-flash-low": "MODEL_GOOGLE_GEMINI_3_0_FLASH_LOW",
-  "gemini-3.0-flash-minimal": "MODEL_GOOGLE_GEMINI_3_0_FLASH_MINIMAL",
-  "gemini-3.0-flash": "MODEL_GOOGLE_GEMINI_3_0_FLASH_HIGH",
-  "gemini-2.5-pro": "MODEL_GOOGLE_GEMINI_2_5_PRO",
-  // ── Others ───────────────────────────────────────────────────────────────
-  "deepseek-v4": "deepseek-v4",
-  "kimi-k2.6": "kimi-k2-6",
-  "kimi-k2.5": "kimi-k2-5",
-  "glm-5.1": "glm-5-1",
-};
-
-function resolveWsModelId(model: string): string {
-  return MODEL_ALIAS_MAP[model] ?? model;
+export function resolveDevinDesktopVersion(): string {
+  const override = process.env.DEVIN_DESKTOP_VERSION?.trim() ?? "";
+  return DEVIN_DESKTOP_VERSION_PATTERN.test(override) ? override : VERIFIED_DEVIN_DESKTOP_VERSION;
 }
 
 // ─── Minimal protobuf encoder ────────────────────────────────────────────────
@@ -202,13 +79,14 @@ function encodeMessage(fieldNum: number, msg: Uint8Array): Uint8Array {
 // ─── Protobuf message builders ───────────────────────────────────────────────
 
 function buildMetadata(apiKey: string, sessionId: string): Uint8Array {
+  const version = resolveDevinDesktopVersion();
   return concatBytes([
     encodeString(1, apiKey),
-    encodeString(2, WS_IDE_NAME),
-    encodeString(3, WS_IDE_VERSION),
-    encodeString(4, WS_EXT_VERSION),
+    encodeString(2, DEVIN_UPSTREAM_IDE_NAME),
+    encodeString(3, version),
+    encodeString(4, version),
     encodeString(5, sessionId),
-    encodeString(6, WS_LOCALE),
+    encodeString(6, DEVIN_LOCALE),
   ]);
 }
 
@@ -316,7 +194,7 @@ function decodeCompletionChunk(buf: Uint8Array): DecodedChunk {
       } else if (fieldNum === 4) {
         // ErrorChunk — field 1 inside = error message string
         const msg = decodeStringField(payload, 1);
-        return { kind: "error", message: msg ?? "unknown windsurf error" };
+        return { kind: "error", message: msg ?? "unknown Devin Desktop upstream error" };
       }
       // field 2 = ToolCallChunk — not yet handled; skip
     } else if (wireType === 0) {
@@ -414,7 +292,7 @@ function decodeStringField(buf: Uint8Array, targetField: number): string | null 
   return null;
 }
 
-// ─── Convert OpenAI messages → Windsurf WsChatMessage[] ──────────────────────
+// ─── Convert OpenAI messages → Devin Desktop messages ────────────────────────
 
 type OpenAIMessage = {
   role?: string;
@@ -442,15 +320,21 @@ function openAIMessagesToWs(messages: OpenAIMessage[]): WsChatMessage[] {
   return out;
 }
 
-// ─── WindsurfExecutor ─────────────────────────────────────────────────────────
+// ─── DevinDesktopExecutor ─────────────────────────────────────────────────────────
 
-export class WindsurfExecutor extends BaseExecutor {
+export class DevinDesktopExecutor extends BaseExecutor {
   constructor() {
-    super("windsurf", PROVIDERS["windsurf"] || { id: "windsurf", baseUrl: WS_CHAT_URL });
+    super(
+      "devin-desktop",
+      PROVIDERS["devin-desktop"] || {
+        id: "devin-desktop",
+        baseUrl: DEVIN_DESKTOP_CHAT_URL,
+      }
+    );
   }
 
   buildUrl(): string {
-    return WS_CHAT_URL;
+    return DEVIN_DESKTOP_CHAT_URL;
   }
 
   buildHeaders(credentials: { accessToken?: string; apiKey?: string }): Record<string, string> {
@@ -461,7 +345,7 @@ export class WindsurfExecutor extends BaseExecutor {
       // Codeium API key also goes in Metadata.api_key (protobuf field) — see request body.
       // Some endpoints also accept it as a Bearer token header.
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      "User-Agent": `windsurf/${WS_IDE_VERSION}`,
+      "User-Agent": `windsurf/${resolveDevinDesktopVersion()}`,
       "X-Grpc-Web": "1",
     };
   }
@@ -486,7 +370,23 @@ export class WindsurfExecutor extends BaseExecutor {
     transformedBody: unknown;
   }> {
     const apiKey = credentials.accessToken || credentials.apiKey || "";
-    const wsModel = resolveWsModelId(model);
+    if (!apiKey) {
+      const url = this.buildUrl();
+      const headers = this.buildHeaders(credentials);
+      return {
+        response: new Response(
+          JSON.stringify(buildErrorBody(401, "Devin Desktop API key is required")),
+          {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          }
+        ),
+        url,
+        headers,
+        transformedBody: null,
+      };
+    }
+    const upstreamModel = model;
 
     // Parse OpenAI messages from request body
     const b = (body ?? {}) as Record<string, unknown>;
@@ -498,14 +398,14 @@ export class WindsurfExecutor extends BaseExecutor {
     }
 
     // Build and frame the protobuf request
-    const protoPayload = buildGetChatMessageRequest(apiKey, wsModel, wsMessages);
+    const protoPayload = buildGetChatMessageRequest(apiKey, upstreamModel, wsMessages);
     const framedPayload = grpcWebFrame(protoPayload);
 
     const url = this.buildUrl();
     const headers = this.buildHeaders(credentials);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
-    log?.info?.("WS", `Windsurf → ${wsModel} (${wsMessages.length} messages)`);
+    log?.info?.("DEVIN", `Devin Desktop → ${upstreamModel} (${wsMessages.length} messages)`);
 
     const upstream = await fetch(url, {
       method: "POST",
@@ -525,7 +425,7 @@ export class WindsurfExecutor extends BaseExecutor {
 
   /** Convert a gRPC-web response body into an OpenAI-compatible SSE stream. */
   private transformToSSE(upstream: Response, model: string, _stream: boolean): Response {
-    const responseId = `chatcmpl-ws-${Date.now()}`;
+    const responseId = `chatcmpl-devin-desktop-${Date.now()}`;
     const created = Math.floor(Date.now() / 1000);
 
     const sseStream = new ReadableStream<Uint8Array>({
@@ -628,9 +528,14 @@ export class WindsurfExecutor extends BaseExecutor {
           drainFrames();
 
           if (hadError) {
+            const safeMessage = sanitizeErrorMessage(hadError);
             emit(
               `data: ${JSON.stringify({
-                error: { message: hadError, type: "windsurf_error", code: "upstream_error" },
+                error: {
+                  message: safeMessage,
+                  type: "devin_desktop_error",
+                  code: "upstream_error",
+                },
               })}\n\n`
             );
             emit("data: [DONE]\n\n");
@@ -681,10 +586,13 @@ export class WindsurfExecutor extends BaseExecutor {
           emit(`data: ${JSON.stringify(finishPayload)}\n\n`);
           emit("data: [DONE]\n\n");
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
+          const msg = sanitizeErrorMessage(err instanceof Error ? err.message : String(err));
           emit(
             `data: ${JSON.stringify({
-              error: { message: `Windsurf stream error: ${msg}`, type: "windsurf_error" },
+              error: {
+                message: `Devin Desktop stream error: ${msg}`,
+                type: "devin_desktop_error",
+              },
             })}\n\n`
           );
           emit("data: [DONE]\n\n");
