@@ -890,11 +890,6 @@
       "count": 8
     }
   },
-  "tests/unit/claude-to-openai-think-close-5123.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "tests/unit/cli-a2a-invoke-commands.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 16
