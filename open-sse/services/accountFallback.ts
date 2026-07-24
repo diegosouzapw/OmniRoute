@@ -12,6 +12,7 @@ import {
   matchErrorRuleByText,
   matchErrorRuleByStatus,
   serviceSupervisorCooldown,
+  isNimFunctionDegraded,
 } from "../config/errorConfig.ts";
 import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
 import * as rot from "./rotationConfig.ts";
@@ -1519,8 +1520,8 @@ export function checkFallbackError(
       }
     }
 
-    // T10 (sub2api #1169): Credits/quota exhausted — long cooldown, distinct from rate limit
-    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr)) {
+    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped.
+    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr) && !isCompatibleProvider(provider)) {
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
@@ -1697,8 +1698,8 @@ export function checkFallbackError(
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
     const isParamValidation = PARAM_VALIDATION_PATTERNS.some((p) => p.test(errorStr));
     const isModelAccessDenied = isModelAccessDeniedStructured || matchesModelAccessPattern;
-
-    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied) {
+    const isNimDegraded = isNimFunctionDegraded(errorStr);
+    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied || isNimDegraded) {
       return {
         shouldFallback: true,
         cooldownMs: 0,
