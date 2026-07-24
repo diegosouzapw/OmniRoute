@@ -90,6 +90,7 @@ import {
   expandPromptCacheAffinityTargets,
   expandPromptCacheAffinityTargetsFromConnections,
   resolvePromptCacheAffinityKey,
+  shouldProtectOriginalFirst,
 } from "./combo/promptCacheAffinity.ts";
 import type { CompressionMode } from "./compression/types.ts";
 import { getCachedProviderConnections } from "../../src/lib/db/readCache";
@@ -1389,10 +1390,7 @@ export async function handleComboChat({
   );
   if (promptCacheAffinity.applied) {
     const protectedOriginal =
-      (_sticky.stuck ||
-        autoUsedExplicitRouter ||
-        strategy === "quota-share" ||
-        strategy === "weighted") &&
+      shouldProtectOriginalFirst(_sticky.stuck, autoUsedExplicitRouter, strategy) &&
       orderedTargets[0];
     const protectedFirst = protectedOriginal
       ? (promptCacheAffinity.targets.find(
