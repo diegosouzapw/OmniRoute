@@ -74,7 +74,7 @@ interface ProviderCardProps {
   stats: ProviderStats;
   authType?: string;
   onToggle: (active: boolean) => void;
-  onBeforeNavigate?: (id: string) => void;
+  onCardClick?: (id: string) => void;
 }
 
 const DOT_COLORS: Record<string, string> = {
@@ -160,7 +160,7 @@ export type ProviderCardHandle = {
 };
 
 const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function ProviderCard(
-  { providerId, provider, stats, authType = "apikey", onToggle, onBeforeNavigate },
+  { providerId, provider, stats, authType = "apikey", onToggle, onCardClick },
   ref
 ) {
   const t = useTranslations("providers");
@@ -294,8 +294,8 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
   };
 
   const handleCardClick = useCallback(() => {
-    onBeforeNavigate?.(providerId);
-  }, [onBeforeNavigate, providerId]);
+    onCardClick?.(providerId);
+  }, [onCardClick, providerId]);
 
   return (
     <div ref={innerRef} id={`provider-${providerId}`} className="flex flex-col h-full">

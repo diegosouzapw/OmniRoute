@@ -206,11 +206,13 @@ export default function ProvidersPage() {
   // #4240: media-category (serviceKind) filter — composes with activeCategory,
   // search and configured-only. null = no serviceKind filter.
   const [activeServiceKind, setActiveServiceKind] = useState<string | null>(null);
+
+  // a highlighted card is one that we should scroll into view and highlight upon navigation
   const [highlightedProviderId, setHighlightedProviderId] = useState<string | null>(() => {
     return history.state?.providerId ?? null;
   });
 
-  const handleProviderNavigate = useCallback((id: string) => {
+  const handleCardClick = useCallback((id: string) => {
     // upon navigating to a provider, we want to set the providerId in the history state
     // so that if the user refreshes the page, we can scroll it into view and highlight the provider card
     window.history.replaceState({ providerId: id }, "");
@@ -941,7 +943,7 @@ export default function ProvidersPage() {
                   handleToggleProvider(entry.providerId, entry.toggleAuthType, active)
                 }
 
-                onBeforeNavigate={handleProviderNavigate}
+                onCardClick={handleCardClick}
                 ref={highlightedCardRef}
               />
             ))}
@@ -1030,7 +1032,7 @@ export default function ProvidersPage() {
                           handleToggleProvider(providerId, toggleAuthType, active)
                         }
 
-                        onBeforeNavigate={handleProviderNavigate}
+                        onCardClick={handleCardClick}
                         ref={highlightedCardRef}
                       />
                     )
@@ -1107,7 +1109,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   ))}
@@ -1168,7 +1170,7 @@ export default function ProvidersPage() {
                           handleToggleProvider(providerId, toggleAuthType, active)
                         }
 
-                        onBeforeNavigate={handleProviderNavigate}
+                        onCardClick={handleCardClick}
                         ref={highlightedCardRef}
                       />
                     )
@@ -1219,7 +1221,7 @@ export default function ProvidersPage() {
                     authType="web-cookie"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
 
-                    onBeforeNavigate={handleProviderNavigate}
+                    onCardClick={handleCardClick}
                     ref={highlightedCardRef}
                   />
                 ))}
@@ -1270,7 +1272,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   )
@@ -1326,7 +1328,7 @@ export default function ProvidersPage() {
                             handleToggleProvider(providerId, toggleAuthType, active)
                           }
 
-                          onBeforeNavigate={handleProviderNavigate}
+                          onCardClick={handleCardClick}
                           ref={highlightedCardRef}
                         />
                       )
@@ -1395,7 +1397,7 @@ export default function ProvidersPage() {
                     authType="upstream-proxy"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
 
-                    onBeforeNavigate={handleProviderNavigate}
+                    onCardClick={handleCardClick}
                     ref={highlightedCardRef}
                   />
                 ))}
@@ -1430,7 +1432,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   )
@@ -1466,7 +1468,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   )
@@ -1502,7 +1504,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   )
@@ -1555,7 +1557,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   )
@@ -1605,7 +1607,7 @@ export default function ProvidersPage() {
                     authType="local"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
 
-                    onBeforeNavigate={handleProviderNavigate}
+                    onCardClick={handleCardClick}
                     ref={highlightedCardRef}
                   />
                 ))}
@@ -1654,7 +1656,7 @@ export default function ProvidersPage() {
                     authType="search"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
 
-                    onBeforeNavigate={handleProviderNavigate}
+                    onCardClick={handleCardClick}
                     ref={highlightedCardRef}
                   />
                 ))}
@@ -1689,7 +1691,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   )
@@ -1725,7 +1727,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   )
@@ -1775,7 +1777,7 @@ export default function ProvidersPage() {
                     authType="audio"
                     onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
 
-                    onBeforeNavigate={handleProviderNavigate}
+                    onCardClick={handleCardClick}
                     ref={highlightedCardRef}
                   />
                 ))}
@@ -1810,7 +1812,7 @@ export default function ProvidersPage() {
                         handleToggleProvider(providerId, toggleAuthType, active)
                       }
 
-                      onBeforeNavigate={handleProviderNavigate}
+                      onCardClick={handleCardClick}
                       ref={highlightedCardRef}
                     />
                   )
