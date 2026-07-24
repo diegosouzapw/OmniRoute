@@ -39,12 +39,18 @@ type ProviderNodeData = {
   error: boolean;
   /** Connection-health base state: a healthy connection with no in-flight traffic. */
   healthy: boolean;
+  /** Most recently routed provider. Orthogonal to health — it can be last *and* healthy. */
+  last: boolean;
 };
 
 function ProviderNode({ data }: { data: ProviderNodeData }) {
-  const { label, color, providerId, active, error, healthy } = data;
+  const { label, color, providerId, active, error, healthy, last } = data;
   const GREEN = FLOW_EDGE_COLORS.active;
   const RED = FLOW_EDGE_COLORS.error;
+  const AMBER = FLOW_EDGE_COLORS.last;
+  // "Last routed" is a traffic annotation, not a health state: the border keeps saying
+  // whether the connection is up, and only the dot turns amber to mark recency.
+  const dotColor = active ? color : last ? AMBER : GREEN;
 
   return (
     <div
@@ -102,8 +108,8 @@ function ProviderNode({ data }: { data: ProviderNodeData }) {
         {label}
       </span>
 
-      {(active || error || healthy) && (
-        <StatusDot color={active ? color : GREEN} error={error} pulse={active || error} />
+      {(active || error || healthy || last) && (
+        <StatusDot color={dotColor} error={error} pulse={active || error} />
       )}
     </div>
   );
@@ -206,9 +212,7 @@ function buildLayout(
       return 4;
     };
     const d = rank(a) - rank(b);
-    return d !== 0
-      ? d
-      : a.provider.toLowerCase().localeCompare(b.provider.toLowerCase()); // ASCII kasıtlı
+    return d !== 0 ? d : a.provider.toLowerCase().localeCompare(b.provider.toLowerCase()); // ASCII kasıtlı
   });
 
   let provIdx = 0;
@@ -225,8 +229,13 @@ function buildLayout(
       // still reflects "what is connected" at rest instead of going blank after a restart.
       const trafficError = !active && errorSet.has(pid);
       const last = !active && !trafficError && lastSet.has(pid);
-      const healthError = !active && !trafficError && !last && p.status === "error";
-      const healthy = !active && !trafficError && !last && !healthError && p.status === "active";
+      // Health is orthogonal to recency: having just served a request does not make a
+      // connection any less connected. `last` used to suppress `healthy`/`healthError`,
+      // and because the node had no `last` visual it fell all the way through to the idle
+      // grey — so the provider you had just used rendered *less* connected than an idle
+      // peer, while its edge was amber. Health drives the border, `last` only the dot.
+      const healthError = !active && !trafficError && p.status === "error";
+      const healthy = !active && !trafficError && !healthError && p.status === "active";
       const error = trafficError || healthError;
       const config = getProviderConfig(p.provider);
       const nodeId = `provider-${p.provider}`;
@@ -247,6 +256,7 @@ function buildLayout(
           active,
           error,
           healthy,
+          last,
         } satisfies ProviderNodeData,
         draggable: false,
       });
