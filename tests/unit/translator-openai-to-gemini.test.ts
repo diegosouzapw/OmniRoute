@@ -1582,9 +1582,12 @@ test("OpenAI -> Gemini skips thinkingConfig for model with thinkingBudgetCap=0",
   );
 });
 
-// Guard: models with thinkingBudgetCap=0 must not receive thinkingConfig
-// via the reasoning_effort path either.
-test("OpenAI -> Gemini skips reasoning_effort thinkingConfig for model with thinkingBudgetCap=0", () => {
+// Guard: models with thinkingBudgetCap=0 (e.g. gemini-3-flash) still receive
+// thinkingConfig on the reasoning_effort path, clamped to budget 0 / includeThoughts
+// false — matching the pre-#6943 native-defaults contract (see
+// translator-openai-to-gemini-defaults.test.ts). Omitting thinkingConfig entirely
+// here would crash callers that read `.thinkingConfig.thinkingBudget` unconditionally.
+test("OpenAI -> Gemini clamps reasoning_effort thinkingConfig to 0 for model with thinkingBudgetCap=0", () => {
   const result = openaiToGeminiRequest(
     "gemini-3-flash",
     {
@@ -1593,11 +1596,8 @@ test("OpenAI -> Gemini skips reasoning_effort thinkingConfig for model with thin
     },
     false
   ) as any;
-  assert.equal(
-    result.generationConfig.thinkingConfig,
-    undefined,
-    "gemini-3-flash (thinkingBudgetCap:0) must not receive reasoning_effort thinkingConfig"
-  );
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 0);
+  assert.equal(result.generationConfig.thinkingConfig.includeThoughts, false);
 });
 
 // Guard: models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.

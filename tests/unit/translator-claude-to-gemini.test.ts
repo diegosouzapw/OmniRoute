@@ -330,7 +330,12 @@ test("Claude -> Gemini thinking.budget_tokens is capped by model thinkingBudgetC
   });
 });
 
-test("Claude -> Gemini thinking.budget_tokens=0 disables thinking after cap", () => {
+// #6813: an explicit `budget_tokens: 0` on this path is the client's dynamic-thinking
+// sentinel, not an off-switch — includeThoughts must stay true even after capping (see
+// tests/unit/claude-to-gemini-budget-tokens-zero-6813.test.ts for the canonical
+// regression). This mirrors that contract for a model with an explicit
+// thinkingBudgetCap.
+test("Claude -> Gemini thinking.budget_tokens=0 preserves dynamic-thinking sentinel after cap (#6813)", () => {
   const result = claudeToGeminiRequest(
     "gemini-2.5-flash",
     {
@@ -341,7 +346,7 @@ test("Claude -> Gemini thinking.budget_tokens=0 disables thinking after cap", ()
   );
   assert.deepEqual(result.generationConfig.thinkingConfig, {
     thinkingBudget: 0,
-    includeThoughts: false,
+    includeThoughts: true,
   });
 });
 

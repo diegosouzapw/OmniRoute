@@ -256,15 +256,16 @@ function openaiToGeminiBase(
       const budget =
         budgetMap[body.reasoning_effort as string] ??
         capThinkingBudget(model, getDefaultThinkingBudget(model) ?? 8192);
-      // Only send thinkingConfig if the model supports thinking via budget.
-      // Models with thinkingBudgetCap:0 (e.g. gemini-3-flash) reject
-      // thinkingConfig even for effort-based paths.
-      if (getModelSpec(model)?.thinkingBudgetCap !== 0) {
-        result.generationConfig.thinkingConfig = {
-          thinkingBudget: budget,
-          includeThoughts: budget !== 0,
-        };
-      }
+      // Always send thinkingConfig on this path — including for models with
+      // thinkingBudgetCap:0 (e.g. gemini-3-flash), where the cap collapses the
+      // requested budget down to 0. Omitting thinkingConfig entirely here regressed
+      // the pre-#6943 native-defaults contract (thinkingBudget 0 / includeThoughts
+      // false must still be present) and crashed callers that read
+      // .thinkingConfig.thinkingBudget unconditionally.
+      result.generationConfig.thinkingConfig = {
+        thinkingBudget: budget,
+        includeThoughts: budget !== 0,
+      };
     }
     // 2. Claude format: thinking (type: enabled, budget_tokens)
     // Use an explicit numeric check (not truthy) so an explicit `budget_tokens: 0` — the

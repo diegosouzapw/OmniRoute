@@ -209,7 +209,11 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     if (cappedBudget > 0 || getModelSpec(model)?.thinkingBudgetCap !== 0) {
       result.generationConfig.thinkingConfig = {
         thinkingBudget: cappedBudget,
-        includeThoughts: cappedBudget !== 0,
+        // #6813: `budget_tokens: 0` on this explicit path is the client's dynamic-thinking
+        // sentinel, not an off-switch — includeThoughts stays true regardless of the
+        // (possibly cap-clamped) budget value. Only the reasoning_effort/output_config.effort
+        // paths below treat a resulting budget of 0 as "thinking disabled".
+        includeThoughts: true,
       };
     }
   } else if (typeof body.output_config?.effort === "string") {
