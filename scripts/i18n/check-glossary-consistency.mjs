@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — zh-CN terminology glossary consistency gate.
+ * OmniRoute — terminology glossary consistency gate (zh-CN, ko).
  *
  * Complements the existing parity (check-ui-keys-coverage.mjs) and ICU
  * (validate_translation.py) checks with a native-quality layer:
@@ -10,10 +10,13 @@
  *   - protected-term-altered: a value renders a protected product/provider/
  *     protocol/CLI/env identifier (scripts/i18n/glossary/protected-terms.json)
  *     using a known incorrect translation instead of leaving it verbatim.
+ *     Known incorrect renderings come from the legacy KNOWN_MISTRANSLATIONS
+ *     map below (zh-CN) merged with the optional per-locale
+ *     `protectedTermMistranslations` object in the locale's glossary file (ko).
  *
  * Usage:
  *   node scripts/i18n/check-glossary-consistency.mjs                 # zh-CN, exit 1 on drift
- *   node scripts/i18n/check-glossary-consistency.mjs --locale=zh-CN
+ *   node scripts/i18n/check-glossary-consistency.mjs --locale=ko
  *   node scripts/i18n/check-glossary-consistency.mjs --json
  *   node scripts/i18n/check-glossary-consistency.mjs --report        # print, always exit 0
  */
@@ -29,6 +32,9 @@ const MESSAGES_DIR = path.join(ROOT, "src", "i18n", "messages");
 const GLOSSARY_DIR = path.join(SCRIPT_DIR, "glossary");
 const LOG_PREFIX = "[i18n-glossary]";
 
+// Legacy zh-CN map of known incorrect renderings for protected terms — newer
+// locales (ko) keep theirs in `protectedTermMistranslations` inside their
+// scripts/i18n/glossary/<locale>.json instead of growing this constant.
 // Small, maintained map of known incorrect renderings for protected terms —
 // identifiers that must survive translation verbatim. NOT exhaustive by
 // design (a full back-translation model is out of scope for a static gate),
@@ -95,10 +101,16 @@ export function checkGlossaryConsistency(localeMessages, glossary, protectedTerm
     }
   }
 
+  const localeMistranslations = isPlainObject(glossary?.protectedTermMistranslations)
+    ? glossary.protectedTermMistranslations
+    : {};
   const protectedList = Array.isArray(protectedTerms) ? protectedTerms : [];
   for (const term of protectedList) {
-    const badRenderings = KNOWN_MISTRANSLATIONS[term];
-    if (!badRenderings || badRenderings.length === 0) continue;
+    const fromGlossary = Array.isArray(localeMistranslations[term])
+      ? localeMistranslations[term]
+      : [];
+    const badRenderings = [...(KNOWN_MISTRANSLATIONS[term] || []), ...fromGlossary];
+    if (badRenderings.length === 0) continue;
     for (const bad of badRenderings) {
       for (const leaf of leaves) {
         if (leaf.value.includes(bad)) {
