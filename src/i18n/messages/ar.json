@@ -1110,6 +1110,7 @@
     "providerQuota": "حصة المزود",
     "runtime": "وقت التشغيل",
     "consoleLogs": "سجلات وحدة التحكم",
+    "logsTimeline": "Timeline",
     "globalRouting": "التوجيه العام",
     "mitmProxy": "بروكسي MITM",
     "oneProxy": "1Proxy",
