@@ -633,10 +633,13 @@ export function openaiResponsesToOpenAIRequest(
         );
       }
 
-      result.tools = chatTools.filter((toolValue) =>
+      // Keep the filtered array in a local: `result` is a Record<string, unknown>, so
+      // reading `result.tools` back gives `unknown` and `.length` does not type-check.
+      const allowedTools = chatTools.filter((toolValue) =>
         allowedNames.has(toString(toRecord(toRecord(toolValue).function).name))
       );
-      if (result.tools.length === 0) {
+      result.tools = allowedTools;
+      if (allowedTools.length === 0) {
         throw unsupportedFeature(
           "Unsupported Responses API feature: allowed_tools resolved to zero Chat Completions function tools"
         );
