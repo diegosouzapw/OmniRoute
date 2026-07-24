@@ -221,8 +221,9 @@ export default function ProvidersPage() {
       if (node && highlightedProviderId && node.id === `provider-${highlightedProviderId}`) {
         node.scrollIntoView({ behavior: "auto", block: "center" });
       }
+      setHighlightedProviderId(null); // Clear the highlighted provider ID so we don't keep scrolling to it on re-renders
     },
-    [highlightedProviderId]
+    [highlightedProviderId, setHighlightedProviderId]
   );
   const notify = useNotificationStore();
   const sectionCategoryAliases: Record<string, string> = {
