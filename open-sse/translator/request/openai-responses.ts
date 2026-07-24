@@ -13,6 +13,7 @@ import {
   requiresPlainStringContent,
 } from "../../config/providerRegistry.ts";
 import { collectResponsesTools } from "./openai-responses/additionalTools.ts";
+import { flattenNamespaceToolName } from "./openai-responses/namespaceFlatten.ts";
 import { openaiToOpenAIResponsesRequest } from "./openai-responses/toResponses.ts";
 import {
   JsonRecord,
@@ -87,10 +88,11 @@ export function openaiResponsesToOpenAIRequest(
   const result: JsonRecord = { ...root };
 
   // Request-scoped response-side identity for Responses namespace child tools.
-  // The Chat wire `tool.function.name` is the bare leaf (per #7905 #7936), and
-  // the original `{namespace, name}` pair is retained in this side-band map so
-  // the response translator can emit codex-compatible `namespace` + `name`
-  // fields without reparsing the wire name.
+  // The Chat wire `tool.function.name` is the namespace-qualified name (#8295:
+  // folding the namespace in makes cross-namespace leaf collisions structurally
+  // impossible), and the original `{namespace, name}` pair is retained in this
+  // side-band map so the response translator can emit codex-compatible
+  // `namespace` + `name` fields without reparsing the wire name.
   const namespaceToolIdentityMap = new Map<string, { namespace: string; name: string }>();
 
   // #7533: `verbosity` and `prompt_cache_key` are GPT-5/OpenAI-only Chat Completions
@@ -423,28 +425,20 @@ export function openaiResponsesToOpenAIRequest(
             .filter((sub) => toString(sub.name))
             .map((sub) => {
               const leaf = toString(sub.name);
-              // Stamp the identity for the response-side seam. The wire name
-              // remains the bare leaf (matching #7905), so `namespaceToolIdentityMap`
-              // keys on the leaf. A later child that shares the same leaf name
-              // with a different namespace is ambiguous: drop the conflicting
-              // entry rather than silently overwriting.
+              // #8295: fold the namespace into the wire name so two namespaces
+              // sharing a leaf (e.g. two MCP servers both exposing `_search`)
+              // never collide into duplicate Chat tool names. Stamp the
+              // identity for the response-side seam keyed on that qualified
+              // wire name — qualified names cannot collide across namespaces,
+              // so there is no ambiguity to detect/drop here anymore.
+              const wireName = flattenNamespaceToolName(nsName, leaf);
               if (nsName && leaf) {
-                const identity = { namespace: nsName, name: leaf };
-                const existingIdentity = namespaceToolIdentityMap.get(leaf);
-                if (
-                  !existingIdentity ||
-                  (existingIdentity.namespace === identity.namespace &&
-                    existingIdentity.name === identity.name)
-                ) {
-                  namespaceToolIdentityMap.set(leaf, identity);
-                } else {
-                  namespaceToolIdentityMap.delete(leaf);
-                }
+                namespaceToolIdentityMap.set(wireName, { namespace: nsName, name: leaf });
               }
               return {
                 type: "function",
                 function: {
-                  name: leaf,
+                  name: wireName,
                   description: toString(sub.description),
                   parameters:
                     toString(sub.type) === "custom"

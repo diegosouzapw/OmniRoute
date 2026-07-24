@@ -1,0 +1,1 @@
+- fix(providers): route noauth opencode-zen connections through their assigned proxy

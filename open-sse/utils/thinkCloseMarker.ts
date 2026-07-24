@@ -2,31 +2,28 @@
  * `</think>` close-marker client policy.
  *
  * When OmniRoute translates a Claude-native streamed response to OpenAI Chat
- * Completions shape (`claude-to-openai.ts`), it emits a single `</think>`
- * close marker as `delta.content` so clients that scan content for the marker
- * (Claude Code, Cursor) can split reasoning from the final answer — see #4633.
+ * Completions shape (`claude-to-openai.ts`), it historically emitted a single
+ * `</think>` close marker as `delta.content` so clients that scan content for
+ * the marker (Claude Code, Cursor) could split reasoning from the final answer
+ * — see #4633.
  *
- * Some OpenAI-compatible consumers do NOT parse that marker and render it
- * verbatim, so a bare `</think>` leaks into the visible reply (#5245). OpenCode
- * is one such client.
+ * Modern Chat Completions clients already receive reasoning on the separate
+ * `reasoning_content` field. Emitting the in-band marker by default now
+ * corrupts that split (literal `</think>` in visible content) for ordinary
+ * OpenAI clients — see #8245. OpenCode / Antigravity had the same leak earlier
+ * (#5245 / #1061).
  *
- * Policy is conservative and opt-OUT by allowlist: the marker stays ON by
- * default (preserving #4633 for Claude Code / Cursor and any unrecognized
- * client), and is suppressed ONLY for known clients that render it literally.
- * Detection is by inbound `User-Agent`.
+ * Policy (#8245):
+ *   - Default: SUPPRESS the marker on OpenAI Chat Completions.
+ *   - Explicit opt-in: `x-omniroute-thinking-marker: on` force-keeps it for the
+ *     shrinking set of content-scanning clients (#4633).
+ *   - Explicit opt-out: `x-omniroute-thinking-marker: off` (same as default).
+ *   - Responses API (`openai-responses`): always suppress (#7747) — wins over
+ *     the header; there is no legitimate marker consumer on that path.
  *
- * Clients that DO render the marker verbatim but are not in the UA allowlist
- * (e.g. Cursor's reasoning_content-native OpenAI path — #5312 / #5245) can opt
- * in explicitly with the request header `x-omniroute-thinking-marker: off`,
- * which suppresses the marker regardless of User-Agent. `on` forces it kept
- * (overriding the UA allowlist). The default (header absent) is byte-identical
- * to the UA-only policy, so #4633 / #5123 are never regressed.
- *
- * Responses API clients (`openai-responses`) are always suppressed: the
- * Responses transformer maps `reasoning_content` to structured reasoning items
- * natively, so no consumer on that path scans content for the marker — it can
- * only leak verbatim into `response.output_text.delta` (observed with
- * kimi-coding: a stray `</think>` at the start of the assistant text).
+ * The User-Agent allowlist below is retained for diagnostics / callers that
+ * still query `shouldSuppressThinkCloseMarker` directly; the resolved default
+ * no longer depends on UA.
  */
 
 import { FORMATS } from "../translator/formats.ts";
@@ -34,18 +31,15 @@ import { FORMATS } from "../translator/formats.ts";
 /** Header clients send to explicitly opt in/out of the `</think>` close marker. */
 export const THINKING_MARKER_HEADER = "x-omniroute-thinking-marker";
 
-// Lowercased User-Agent substrings of clients that render the textual
-// `</think>` marker verbatim and therefore want it suppressed.
-// - `opencode` (#5245): renders the marker as literal text.
-// - `antigravity` (#1061): the Antigravity IDE client (UA
-//   `vscode/<v> (Antigravity/<v>)`) renders a bare `</think>` as the sole
-//   visible content on thinking-only turns, which trips its loop-detection.
+// Lowercased User-Agent substrings of clients that historically rendered the
+// textual `</think>` marker verbatim (#5245 / #1061). Kept for direct callers;
+// resolveSuppressThinkClose no longer needs UA to decide the default (#8245).
 const SUPPRESS_THINK_CLOSE_UA_MARKERS = ["opencode", "antigravity"];
 
 /**
  * Whether the streamed `</think>` close marker should be suppressed for the
- * given inbound client. Returns false (emit the marker) for unknown clients and
- * for Claude Code / Cursor, so #4633 is never regressed.
+ * given inbound client User-Agent. Prefer `resolveSuppressThinkClose` for
+ * request policy — UA alone is no longer the Chat Completions default (#8245).
  */
 export function shouldSuppressThinkCloseMarker(userAgent: string | null | undefined): boolean {
   if (!userAgent || typeof userAgent !== "string") return false;
@@ -56,7 +50,7 @@ export function shouldSuppressThinkCloseMarker(userAgent: string | null | undefi
 /**
  * Interpret the explicit `x-omniroute-thinking-marker` request header.
  * Returns `true` (suppress the marker), `false` (force-keep the marker), or
- * `null` when the header is absent/unrecognized (defer to the UA policy).
+ * `null` when the header is absent/unrecognized (defer to the default policy).
  */
 export function thinkingMarkerHeaderSignal(
   headerValue: string | null | undefined
@@ -70,10 +64,12 @@ export function thinkingMarkerHeaderSignal(
 
 /**
  * Resolve whether the streamed `</think>` close marker should be suppressed for
- * this request. An explicit `x-omniroute-thinking-marker` header wins; absent
- * that, the conservative User-Agent allowlist policy applies. With no header and
- * an unrecognized UA the result is `false` (marker kept), so #4633 / #5123 stay
- * byte-identical by default.
+ * this request.
+ *
+ * Precedence:
+ *   1. Responses API format → always suppress (#7747)
+ *   2. Explicit `x-omniroute-thinking-marker` header → honor on/off (#5312)
+ *   3. Default → suppress on Chat Completions (#8245)
  */
 export function resolveSuppressThinkClose(opts: {
   userAgent?: string | null;
@@ -82,10 +78,12 @@ export function resolveSuppressThinkClose(opts: {
 }): boolean {
   // The marker only exists for Chat Completions clients that scan content for
   // it; Responses API clients receive reasoning as structured items instead.
-  // This wins over the UA allowlist AND the explicit header: there is no
-  // legitimate marker consumer in the Responses format.
+  // This wins over the explicit header: there is no legitimate marker consumer
+  // in the Responses format.
   if (opts.clientResponseFormat === FORMATS.OPENAI_RESPONSES) return true;
   const headerSignal = thinkingMarkerHeaderSignal(opts.thinkingMarkerHeader);
   if (headerSignal !== null) return headerSignal;
-  return shouldSuppressThinkCloseMarker(opts.userAgent);
+  // #8245: suppress by default. Reasoning already ships as reasoning_content.
+  // Legacy content-scanning clients opt in with x-omniroute-thinking-marker: on.
+  return true;
 }
