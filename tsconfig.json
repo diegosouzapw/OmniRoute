@@ -19,7 +19,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@omniroute/open-sse": ["./open-sse"],
-      "@omniroute/open-sse/*": ["./open-sse/*"]
+      "@omniroute/open-sse/*": ["./open-sse/*"],
+      "@omniroute/browser-pool": ["./packages/browser-pool/src"]
     },
     "plugins": [
       {
