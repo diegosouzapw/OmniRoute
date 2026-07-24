@@ -209,6 +209,25 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
   },
 
+  // Cursor plan image generation via the Agent CLI native `generateImage` tool.
+  // Reuses the same OAuth/API-key connection as chat (`provider: "cursor"`).
+  // Requires the `agent` binary (CURSOR_AGENT_BIN) — see cursorAgentImage handler.
+  cursor: {
+    id: "cursor",
+    alias: "cu",
+    // Sentinel: execution is local Agent CLI, not an HTTP image API.
+    baseUrl: "agent://cursor-agent",
+    authType: "oauth",
+    authHeader: "bearer",
+    format: "cursor-agent-image",
+    models: [
+      { id: "auto", name: "Cursor Auto (Image)" },
+      { id: "composer-2", name: "Composer 2 (Image)" },
+      { id: "composer-2.5", name: "Composer 2.5 (Image)" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024", "1024x1536", "1536x1024"],
+  },
+
   "microsoft-designer-web": {
     id: "microsoft-designer-web",
     alias: "msdesigner",

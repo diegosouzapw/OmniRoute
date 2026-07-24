@@ -1,0 +1,1 @@
+- feat(sse): add Cursor plan image generation via Agent CLI (`IMAGE_PROVIDERS.cursor`, format `cursor-agent-image`), reusing the chat Cursor OAuth connection

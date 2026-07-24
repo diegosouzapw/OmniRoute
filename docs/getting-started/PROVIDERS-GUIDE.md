@@ -221,3 +221,7 @@ Go to Providers → click on the provider → click **Disconnect**.
 - **[Free Tiers Guide](./FREE-TIERS-GUIDE.md)** — Get free AI with no credit card
 - **[Troubleshooting](./TROUBLESHOOTING.md)** — Fix common issues
 - **[Provider Reference](../reference/PROVIDER_REFERENCE.md)** — Full list of 226 providers
+
+## Cursor images
+
+Cursor plan images use `IMAGE_PROVIDERS.cursor` (`cursor-agent-image`). See [CURSOR_IMAGE.md](../providers/CURSOR_IMAGE.md).
