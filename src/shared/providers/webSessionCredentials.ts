@@ -15,6 +15,9 @@ export type WebSessionCredentialRequirement =
        */
       hintKey?: string;
       hintFallback?: string;
+      /** Provider-specific replacement for the generic four-step DevTools guide. */
+      guideSteps?: readonly string[];
+      guideNote?: string;
     }
   | {
       kind: "none";
@@ -270,11 +273,22 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     storageKeys: ["cookie", "manus_session"],
   },
   "zai-web": {
-    kind: "cookie",
-    credentialName: "token",
-    placeholder: "token=... or full Cookie header from chat.z.ai",
-    acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "token"],
+    kind: "token",
+    credentialName: 'Local Storage value named "token"',
+    placeholder: "eyJ... (chat.z.ai → DevTools → Application → Local Storage → token)",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token"],
+    hintKey: "zaiWebCredentialHint",
+    hintFallback:
+      'Copy only the "token" value from chat.z.ai Local Storage. Do not copy a Cookie header. OmniRoute uses its browser transport to obtain the per-request CAPTCHA proof.',
+    guideSteps: [
+      "Open chat.z.ai and sign in.",
+      "Open DevTools → Application → Local Storage → https://chat.z.ai.",
+      'Find the row named "token" and copy only its value. Do not copy any Cookie header.',
+      "Paste the token below and check the connection. OmniRoute handles the per-request CAPTCHA through its browser transport.",
+    ],
+    guideNote:
+      "Treat the token like a password. Browser transport is enabled by default; do not set OMNIROUTE_BROWSER_POOL=off for this connection. If Z.ai signs you out or the token expires, repeat these steps with the new value.",
   },
   lmarena: {
     kind: "cookie",

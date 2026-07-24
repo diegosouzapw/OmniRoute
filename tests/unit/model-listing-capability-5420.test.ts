@@ -29,9 +29,11 @@ describe("providerLacksModelListing (#5420)", () => {
     assert.equal(providerLacksModelListing("z", ["embedding"]), false);
   });
 
-  it("keeps Kimi Web visible while marking its model catalog as curated-only", () => {
+  it("keeps curated web providers visible while disabling remote model import", () => {
     assert.equal(providerLacksModelListing("kimi-web", ["llm"]), false);
+    assert.equal(providerLacksModelListing("zai-web", ["llm"]), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-web"), true);
+    assert.equal(providerUsesCuratedModelsOnly("zai-web"), true);
     assert.equal(providerUsesCuratedModelsOnly("qwen-cloud"), false);
     assert.equal(providerUsesCuratedModelsOnly("kimi-coding"), false);
   });

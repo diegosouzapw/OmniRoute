@@ -42,10 +42,17 @@ test.after(() => {
 });
 
 test("zai-web cookie validation routes through the configured HTTP_PROXY (#7058)", async () => {
-  assert.ok(zaiWebEntry, "zai-web must have a providerRegistry entry for this test to be meaningful");
+  assert.ok(
+    zaiWebEntry,
+    "zai-web must have a providerRegistry entry for this test to be meaningful"
+  );
 
   // Stand-in for chat.z.ai's /models probe target.
-  const target = http.createServer((_req, res) => {
+  let targetPath = "";
+  let targetAuthorization = "";
+  const target = http.createServer((req, res) => {
+    targetPath = req.url ?? "";
+    targetAuthorization = req.headers.authorization ?? "";
     res.writeHead(200, { "content-type": "application/json" });
     res.end("{}");
   });
@@ -90,6 +97,8 @@ test("zai-web cookie validation routes through the configured HTTP_PROXY (#7058)
         "(bypassProxyPatch:true unconditionally uses the native, unpatched fetch)"
     );
     assert.equal(result.valid, true, `expected a valid session, got ${JSON.stringify(result)}`);
+    assert.equal(targetPath, "/api/models");
+    assert.equal(targetAuthorization, "Bearer fake");
   } finally {
     target.close();
     proxy.close();

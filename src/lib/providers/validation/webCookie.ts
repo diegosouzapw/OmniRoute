@@ -3,6 +3,7 @@
 // byte-identical to the original inline defs.
 import { WEB_COOKIE_PROVIDERS, isLocalProvider } from "@/shared/constants/providers";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { extractZaiToken } from "@omniroute/open-sse/executors/zai-web.ts";
 import { normalizeBaseUrl } from "./urlHelpers";
 import { STANDARD_USER_AGENT, buildBearerHeaders } from "./headers";
 import {
@@ -73,16 +74,33 @@ export async function validateWebCookieProvider({
       };
     }
 
-    const testUrl = `${baseUrl}/models`;
+    // zai-web is the one web-cookie provider whose session is a localStorage
+    // Bearer JWT rather than a cookie: chat.z.ai serves its catalog at
+    // /api/models and authenticates with `Authorization: Bearer`, so probing
+    // `${baseUrl}/models` with a Cookie header reports a live session as dead.
+    const isZaiWeb = provider === "zai-web";
+    const zaiToken = isZaiWeb ? extractZaiToken(cookie) : "";
+    if (isZaiWeb && !zaiToken) {
+      return { valid: false, error: "Z.ai web-session credential required", unsupported: false };
+    }
+
+    const testUrl = `${baseUrl}${isZaiWeb ? "/api/models" : "/models"}`;
 
     const res = await validationRead(
       testUrl,
       {
         method: "GET",
-        headers: {
-          "User-Agent": STANDARD_USER_AGENT,
-          Cookie: cookie,
-        },
+        headers: isZaiWeb
+          ? {
+              Accept: "application/json",
+              "Accept-Language": "en-US",
+              Authorization: `Bearer ${zaiToken}`,
+              "User-Agent": STANDARD_USER_AGENT,
+            }
+          : {
+              "User-Agent": STANDARD_USER_AGENT,
+              Cookie: cookie,
+            },
       },
       isLocalProvider(provider)
     );
