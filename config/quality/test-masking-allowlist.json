@@ -40,6 +40,10 @@
     "tests/unit/video-dashscope.test.ts": {
       "replacement": "tests/unit/alibaba-video-media.test.ts",
       "reason": "v3.8.49 #8266 reorganized the Alibaba video catalog: the flat wan2.7-t2v id moved out of the plain \"alibaba\" provider (which now only exposes the dated wan2.7-t2v-2026-06-12) and lives only under \"qwen-cloud\" today. All 6 tests in the deleted file built requests against alibaba/wan2.7-t2v, which the new allowlist now rejects with HTTP 400 (verified directly against VIDEO_PROVIDERS in open-sse/config/videoRegistry.ts before deletion). Coverage for this exact id already exists and was confirmed green pre-deletion in tests/unit/alibaba-video-media.test.ts (including an explicit \"Alibaba rejects video models outside its own allowlist\" case for alibaba/wan2.7-t2v) and tests/unit/qwen-cloud-video-media.test.ts (covers the same flat id under qwen-cloud/wan2.7-t2v). Verified legitimate, not masking."
+    },
+    "tests/unit/usage-analytics-route-extra.test.ts": {
+      "replacement": "tests/unit/usage-analytics-route.test.ts",
+      "reason": "v3.8.49 base-red reconcile: the file was a 100% duplicate — all 10 of its test names exist verbatim (comm -12 verified) among the 22 in tests/unit/usage-analytics-route.test.ts, created by #7700 before #7300 fixed the retention-cutoff fixture only in the main file (reads getUserDatabaseSettings().retention.usageHistory live instead of hardcoding 30d). The stale copy red-failed 'does not double-count raw and aggregated rows' (1 !== 2) against correct production behavior. Zero unique coverage lost; the maintained main file passes 22/22. Verified legitimate, not masking."
     }
   },
   "tests/unit/catalog-updates-v3x.test.ts": "v3.8.45 #6248: fix(providers) remove deprecated MiMo V2 entries — os 5 asserts removidos pinavam specs de modelos mimo-v2-* que deixaram de existir no catálogo (54→49). Asserts seguem a remoção dos modelos, não enfraquecimento. Verificado legítimo. Prune após v3.8.45 mergear para main.",
