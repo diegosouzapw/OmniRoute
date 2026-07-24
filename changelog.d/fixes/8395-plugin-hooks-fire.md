@@ -1,0 +1,1 @@
+- fix(plugins): fire registered+active plugin hooks (onRequest/onResponse/onError) during proxying instead of never invoking them (#8395)
