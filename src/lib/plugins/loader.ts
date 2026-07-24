@@ -22,6 +22,13 @@ const log = logger("PLUGIN_LOADER");
 const DEFAULT_HOOK_TIMEOUT = 10_000;
 const SIGKILL_GRACE_MS = 3_000;
 
+// #8395: stdout/stderr forwarding hygiene — cap how much of a plugin's own console
+// output we relay per stream, so a runaway/misbehaving plugin can't flood memory or
+// the log sink. Mirrors the per-plugin rate-limit hygiene already used for hooks
+// (hooks.ts::isRateLimited).
+const MAX_FORWARDED_LINES_PER_STREAM = 500;
+const MAX_FORWARDED_LINE_LENGTH = 4_000;
+
 /**
  * Compute a `sha256-<base64>` integrity hash of the given source string.
  * Matches the SRI (Subresource Integrity) format: `sha256-<base64>`.
@@ -36,6 +43,44 @@ export interface LoadedPlugin {
   manifest: PluginManifestWithDefaults;
   plugin: Plugin;
   cleanup: () => void;
+}
+
+/**
+ * #8395: forward a plugin child process's stdout/stderr to the parent's structured
+ * logger, line-buffered. Without this, plugin console.log/console.error output is
+ * silently discarded at the OS level (the child is spawned with that stream set to
+ * "ignore"), even though the plugin's hook handlers do run correctly over IPC.
+ * Caps total forwarded lines per stream to avoid a runaway plugin flooding the log.
+ */
+function forwardChildOutput(
+  stream: NodeJS.ReadableStream | null,
+  pluginName: string,
+  level: "info" | "error"
+): void {
+  if (!stream) return;
+
+  let buffer = "";
+  let forwardedLines = 0;
+
+  stream.on("data", (chunk: Buffer) => {
+    buffer += chunk.toString("utf-8");
+    let newlineIndex = buffer.indexOf("\n");
+    while (newlineIndex !== -1) {
+      const line = buffer.slice(0, newlineIndex).trim();
+      buffer = buffer.slice(newlineIndex + 1);
+
+      if (line.length > 0 && forwardedLines < MAX_FORWARDED_LINES_PER_STREAM) {
+        forwardedLines++;
+        const truncated =
+          line.length > MAX_FORWARDED_LINE_LENGTH
+            ? `${line.slice(0, MAX_FORWARDED_LINE_LENGTH)}…`
+            : line;
+        log[level]("plugin.output", { name: pluginName, line: truncated });
+      }
+
+      newlineIndex = buffer.indexOf("\n");
+    }
+  });
 }
 
 // ── Plugin host script (runs in child process over IPC) ──
@@ -139,8 +184,15 @@ export async function loadPlugin(
   const child = spawn(process.execPath, ["--no-warnings", hostScriptPath, entryPoint], {
     windowsHide: true,
     env,
-    stdio: ["ignore", "ignore", "ignore", "ipc"],
+    // #8395: stdout/stderr must be piped (not "ignore") so the plugin's own
+    // console.log/console.error output — the SDK's documented logging pattern
+    // (sdk.ts) — is observable on the parent side instead of discarded at the OS
+    // level. See forwardChildOutput() below.
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
   });
+
+  forwardChildOutput(child.stdout, manifest.name, "info");
+  forwardChildOutput(child.stderr, manifest.name, "error");
 
   // Track pending calls with timeout support
   const pendingCalls: Map<

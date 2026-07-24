@@ -4477,6 +4477,13 @@ export async function handleChatCore({
     if (typeof model === "string" && model) echoModelInObject(translatedResponse, model);
     // #1311: echo the requested alias/combo name in the non-streaming response model.
     if (echoModel) echoModelInObject(translatedResponse, echoModel);
+
+    // ── Plugin onResponse hook (fire-and-forget) ──
+    // #8395: the streaming branch below already calls this; the non-streaming
+    // (stream:false) branch returned without it, so onResponse never fired for
+    // non-streaming requests at all.
+    await runPluginOnResponseHook({ requestId: traceId, body, model, provider, apiKeyInfo });
+
     return {
       success: true,
       response: buildNonStreamingJsonResponse(translatedResponse, responseHeaders),
