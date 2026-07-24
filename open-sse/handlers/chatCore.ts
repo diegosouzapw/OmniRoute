@@ -1798,7 +1798,7 @@ export async function handleChatCore({
     (Array.isArray(body?.tools) ? estimateTokens(body.tools) : 0) +
     estimateTokens(body?.system) +
     estimateTokens(body?.instructions);
-  const finalContextLimit = getTokenLimit(provider, effectiveModel);
+  const finalContextLimit = contextLimit;
   const outputBudget = enforceOutputTokenBudget(
     body as Record<string, unknown>,
     finalEstimatedInputTokens,
