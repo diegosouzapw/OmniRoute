@@ -16,5 +16,6 @@ export function isInternalReasoningPlaceholder(value: unknown): boolean {
  * meaningful remains so callers can skip emission entirely.
  */
 export function stripInternalReasoningPlaceholder(value: string): string {
+  if (!value.includes(NON_ANTHROPIC_THINKING_PLACEHOLDER)) return value;
   return value.replaceAll(NON_ANTHROPIC_THINKING_PLACEHOLDER, "").trim();
 }
