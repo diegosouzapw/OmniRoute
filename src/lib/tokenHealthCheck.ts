@@ -498,18 +498,12 @@ export async function checkConnection(conn) {
     // cosmetic "Token Expired". Surface reality as a terminal "expired" status instead.
     // Guard tightly so we do NOT clobber:
     //   - providers that simply don't use refresh tokens (supportsTokenRefresh=false)
+    //     (see #8407: local-CLI import-token providers like devin-cli must not be
+    //     listed in supportsTokenRefresh's explicit set)
     //   - connections already in a terminal/specific state (expired/banned/credits_exhausted)
     //   - transient cooldown state (unavailable) owned by the request path
-    // devin-cli shares the windsurf refresh case only as a formality: it is a
-    // local-binary provider whose credentials are owned by `devin auth login`
-    // (~/.local/share/devin/credentials.toml), and its connections never carry a
-    // refresh token. Marking it "expired" here made a perfectly usable account
-    // terminal — auth.ts skips terminal statuses, so routing then failed with
-    // "No active credentials for provider: devin-cli" until it was re-tested.
-    const authenticatesViaLocalCli = conn.provider === "devin-cli";
     const refreshCapableNeedsReauth =
       supportsTokenRefresh(conn.provider) &&
-      !authenticatesViaLocalCli &&
       (!conn.testStatus || conn.testStatus === "active") &&
       !(conn.apiKey && conn.apiKey.length > 0); // API-key-only connections don't need refresh tokens
     if (refreshCapableNeedsReauth) {

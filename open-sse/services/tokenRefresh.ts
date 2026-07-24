@@ -472,7 +472,11 @@ export function supportsTokenRefresh(provider) {
     "cline",
     "kimi-coding",
     "windsurf",
-    "devin-cli",
+    // #8407: do NOT list "devin-cli" here. It is import-token / local-CLI owned
+    // (`devin auth login`); connections never carry a refresh token. Leaving it
+    // in this set made tokenHealthCheck treat it as refresh-capable and force
+    // testStatus="expired" / errorCode="no_refresh_token". Keep it out of the
+    // explicit set (same idea as not listing non-refresh local-CLI providers).
     "gitlab-duo",
     "codebuddy-cn",
   ]);

@@ -1,4 +1,5 @@
-// #8407: devin-cli local CLI connections must not be force-expired by health check sweep
+// #8407: devin-cli must not be treated as refresh-capable, so the health sweep
+// never force-expires local CLI connections that legitimately have no refresh token.
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -13,6 +14,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const tokenHealthCheck = await import("../../src/lib/tokenHealthCheck.ts");
+const { supportsTokenRefresh } = await import("../../open-sse/services/tokenRefresh.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -30,6 +32,18 @@ function getCreatedConnectionId(connection: { id?: unknown }): string {
 test.after(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("supportsTokenRefresh excludes devin-cli (#8407)", () => {
+  // Root fix: drop "devin-cli" from the explicit set so the health sweep's
+  // supportsTokenRefresh=false guard applies (same idea as not listing a
+  // non-refresh local-CLI provider). windsurf stays refresh-capable.
+  assert.equal(
+    supportsTokenRefresh("devin-cli"),
+    false,
+    "devin-cli is local import-token / CLI-owned — not refresh-capable"
+  );
+  assert.equal(supportsTokenRefresh("windsurf"), true);
 });
 
 test("checkConnection leaves a devin-cli connection with no refresh token untouched (#8407)", async () => {
