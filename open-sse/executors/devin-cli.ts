@@ -274,9 +274,12 @@ export class DevinCliExecutor extends BaseExecutor {
             // ── Initialize response ───────────────────────────────────────
             if (!initDone && msg.result !== undefined && !msg.method) {
               initDone = true;
-              // Create session: send session/new with model and a temp cwd
+              // Create session: send session/new with model and a temp cwd.
+              // `mcpServers` is NOT optional — devin CLI 3000.2.x rejects the
+              // request with -32602 `missing field \`mcpServers\`` if omitted.
               sendRpc("session/new", {
                 cwd: process.cwd(),
+                mcpServers: [],
                 model: model || undefined,
               });
               continue;
@@ -295,25 +298,68 @@ export class DevinCliExecutor extends BaseExecutor {
               promptSent = true;
               sendRpc("session/prompt", {
                 sessionId,
-                content: [{ type: "text", text: promptText }],
+                // ACP names this field `prompt`; `content` is rejected with
+                // -32602 `missing field \`prompt\`` by devin CLI 3000.2.x.
+                prompt: [{ type: "text", text: promptText }],
               });
               continue;
             }
 
-            // ── session/prompt response (ack) ─────────────────────────────
-            if (sessionCreated && promptSent && msg.result !== undefined && !msg.method) {
-              // Acknowledged — streaming notifications will follow
-              continue;
-            }
+            // NOTE: `session/prompt` is a unary call — its response IS the end of
+            // the turn (it carries `stopReason`), not an ack. Swallowing it here
+            // used to hang the request until the client timed out, so the final
+            // result is handled by the branch further down instead.
 
             // ── Streaming notifications (session/update) ──────────────────
             if (msg.method === "session/update" || msg.method === "$/update") {
               const params = msg.params as Record<string, unknown> | undefined;
               if (!params) continue;
 
-              const type = params.type as string | undefined;
+              // devin CLI 3000.2.x nests the payload:
+              //   params.update = { sessionUpdate: "agent_message_chunk",
+              //                     content: { type: "text", text: "…" } }
+              // Older/other ACP agents use a flat `params.type` + `params.content`.
+              const update = params.update as Record<string, unknown> | undefined;
+              const kind = (update?.sessionUpdate as string | undefined) ?? undefined;
+              const type = kind ?? (params.type as string | undefined);
 
-              if (type === "message_delta" || type === "text_delta" || type === "content_delta") {
+              if (kind === "agent_message_chunk") {
+                const delta = extractChunkText(update?.content);
+                if (delta) {
+                  if (!roleEmitted) {
+                    emit(
+                      `data: ${JSON.stringify({
+                        id: responseId,
+                        object: "chat.completion.chunk",
+                        created,
+                        model,
+                        choices: [
+                          {
+                            index: 0,
+                            delta: { role: "assistant", content: "" },
+                            finish_reason: null,
+                          },
+                        ],
+                      })}\n\n`
+                    );
+                    roleEmitted = true;
+                  }
+                  totalText += delta;
+                  emit(
+                    `data: ${JSON.stringify({
+                      id: responseId,
+                      object: "chat.completion.chunk",
+                      created,
+                      model,
+                      choices: [{ index: 0, delta: { content: delta }, finish_reason: null }],
+                    })}\n\n`
+                  );
+                }
+              } else if (
+                type === "message_delta" ||
+                type === "text_delta" ||
+                type === "content_delta"
+              ) {
                 const delta =
                   (params.content as string) ||
                   (params.delta as string) ||
@@ -449,6 +495,20 @@ export class DevinCliExecutor extends BaseExecutor {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Try to extract text from a final ACP session/prompt result object. */
+/**
+ * Pull display text out of an ACP `session/update` content payload, which may be
+ * a bare string, a single `{type:"text", text}` block, or an array of blocks.
+ */
+function extractChunkText(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) return content.map((c) => extractChunkText(c)).join("");
+  if (content && typeof content === "object") {
+    const text = (content as Record<string, unknown>).text;
+    if (typeof text === "string") return text;
+  }
+  return "";
+}
+
 function extractResultText(result: Record<string, unknown>): string {
   // Common result shapes:
   // { message: { content: "..." } }
