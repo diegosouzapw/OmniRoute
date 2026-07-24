@@ -49,11 +49,23 @@ const EFFORT_LEVELS = ["low", "medium", "high", "max"] as const;
  *   low/medium are not supported on the OpenAI transport)
  * - mimo-v2.5: high/max only (same reasoning; Xiaomi MiMo does not document
  *   low/medium effort tiers)
+ * - #8353 OpenCode Go registry effort variants (exact suffix sets from
+ *   `opencode models opencode-go --verbose`; MiniMax M3 excluded — different
+ *   thinking-mode mapping):
+ *   deepseek-v4-flash high/max; grok-4.5 low/medium/high; hy3 none/low/high;
+ *   kimi-k3 max; qwen3.6-plus / qwen3.7-max / qwen3.7-plus high/max
  */
 const EFFORT_TIERS: Record<string, readonly string[]> = {
   "deepseek-v4-pro": EFFORT_LEVELS,
+  "deepseek-v4-flash": ["high", "max"],
   "glm-5.2": ["high", "max"],
   "mimo-v2.5": ["high", "max"],
+  "grok-4.5": ["low", "medium", "high"],
+  hy3: ["none", "low", "high"],
+  "kimi-k3": ["max"],
+  "qwen3.6-plus": ["high", "max"],
+  "qwen3.7-max": ["high", "max"],
+  "qwen3.7-plus": ["high", "max"],
 };
 
 /**
