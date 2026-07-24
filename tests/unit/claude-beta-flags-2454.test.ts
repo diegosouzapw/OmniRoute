@@ -41,13 +41,25 @@ test("#2454 Sonnet full-agent includes heavy-agent flags but omits context-1m", 
   assert.ok(flags.includes("thinking-token-count-2026-05-13"));
   assert.ok(flags.includes("redact-thinking-2026-02-12"), "Sonnet sends redact-thinking");
   assert.ok(!flags.includes("afk-mode-2026-01-31"), "afk-mode removed — not in any CC capture");
-  assert.ok(!flags.includes("mid-conversation-system-2026-04-07"), "Sonnet must NOT receive mid-conversation-system");
+  assert.ok(
+    !flags.includes("mid-conversation-system-2026-04-07"),
+    "Sonnet must NOT receive mid-conversation-system"
+  );
 });
 
 test("#2454 Opus full-agent includes context-1m and mid-conversation-system", () => {
   const flags = selectBetaFlags(fullAgentBody("claude-opus-4-7"));
   assert.ok(flags.includes("context-1m-2025-08-07"), "Opus should receive context-1m");
-  assert.ok(flags.includes("mid-conversation-system-2026-04-07"), "Opus should receive mid-conversation-system");
+  assert.ok(
+    flags.includes("mid-conversation-system-2026-04-07"),
+    "Opus should receive mid-conversation-system"
+  );
+});
+
+test("Opus 5 full-agent omits the legacy context-1m beta", () => {
+  const flags = selectBetaFlags(fullAgentBody("claude-opus-5"));
+  assert.ok(!flags.includes("context-1m-2025-08-07"));
+  assert.ok(flags.includes("mid-conversation-system-2026-04-07"));
 });
 
 test("#2454 explicit model arg overrides body.model for tiering", () => {

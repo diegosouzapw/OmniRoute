@@ -178,6 +178,15 @@ describe("claudeIdentity — selectBetaFlags", () => {
     assert.ok(flags.includes("context-1m-2025-08-07"));
   });
 
+  it("omits the legacy context-1m beta for Opus 5", () => {
+    const body = {
+      system: "test",
+      tools: [{ name: "test_tool" }],
+    };
+    const flags = mod.selectBetaFlags(body, "claude-opus-5");
+    assert.ok(!flags.includes("context-1m-2025-08-07"));
+  });
+
   it("does not include context-1m for sonnet", () => {
     const body = {
       system: "test",
@@ -185,20 +194,6 @@ describe("claudeIdentity — selectBetaFlags", () => {
     };
     const flags = mod.selectBetaFlags(body, "claude-sonnet-4");
     assert.ok(!flags.includes("context-1m"));
-  });
-});
-
-describe("claudeIdentity — buildHashFor", () => {
-  it("returns 3-char hex string", () => {
-    const hash = mod.buildHashFor("1.0.0", "2026-01-01");
-    assert.equal(hash.length, 3);
-    assert.ok(/^[0-9a-f]{3}$/.test(hash));
-  });
-
-  it("returns same hash for same inputs", () => {
-    const a = mod.buildHashFor("1.0.0", "2026-01-01");
-    const b = mod.buildHashFor("1.0.0", "2026-01-01");
-    assert.equal(a, b);
   });
 });
 

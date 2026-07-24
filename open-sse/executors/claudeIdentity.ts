@@ -10,11 +10,16 @@
 
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 
+import {
+  CLAUDE_CODE_CLIENT_VERSION,
+  CLAUDE_CODE_SDK_PACKAGE_VERSION,
+} from "@/shared/constants/claudeCodeClient";
+
 // ---------- Versions ------------------------------------------------------
 
-export const CLAUDE_CODE_VERSION = "2.1.207";
+export const CLAUDE_CODE_VERSION = CLAUDE_CODE_CLIENT_VERSION;
 /** Bundled @anthropic-ai/sdk version for the pinned CLI release. */
-export const CLAUDE_CODE_STAINLESS_VERSION = "0.94.0";
+export const CLAUDE_CODE_STAINLESS_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
 
 // ---------- Stainless OS / Arch / Runtime --------------------------------
 
@@ -157,16 +162,19 @@ export async function fetchClaudeBootstrap(accessToken: string): Promise<ClaudeB
       signal: ctrl.signal,
     });
     if (!res.ok) return null;
-    const data: any = await res.json().catch(() => null);
-    const acct = data?.oauth_account;
+    const data: unknown = await res.json().catch(() => null);
+    const acct =
+      data && typeof data === "object" ? (data as Record<string, unknown>).oauth_account : null;
     if (!acct || typeof acct !== "object") return null;
+    const account = acct as Record<string, unknown>;
+    const stringOrNull = (value: unknown) => (typeof value === "string" ? value : null);
     return {
-      account_uuid: acct.account_uuid || null,
-      account_email: acct.account_email || null,
-      organization_uuid: acct.organization_uuid || null,
-      organization_name: acct.organization_name || null,
-      organization_type: acct.organization_type || null,
-      organization_rate_limit_tier: acct.organization_rate_limit_tier || null,
+      account_uuid: stringOrNull(account.account_uuid),
+      account_email: stringOrNull(account.account_email),
+      organization_uuid: stringOrNull(account.organization_uuid),
+      organization_name: stringOrNull(account.organization_name),
+      organization_type: stringOrNull(account.organization_type),
+      organization_rate_limit_tier: stringOrNull(account.organization_rate_limit_tier),
     };
   } catch {
     return null;
@@ -261,14 +269,14 @@ export function parseUpstreamMetadataUserId(
   const md = body.metadata as Record<string, unknown> | undefined;
   const raw = md?.user_id;
   if (typeof raw !== "string" || raw.length === 0) return null;
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
   } catch {
     return null;
   }
   if (!parsed || typeof parsed !== "object") return null;
-  const { device_id, account_uuid, session_id } = parsed;
+  const { device_id, account_uuid, session_id } = parsed as Record<string, unknown>;
   if (
     typeof device_id !== "string" ||
     !HEX64_RE.test(device_id) ||
@@ -293,8 +301,10 @@ const HEAVY_AGENT_BETA_MODEL_PREFIXES = ["claude-opus", "claude-sonnet"];
 /**
  * Models that support the context-1m beta tier. Only Opus is eligible;
  * Sonnet trips long-context credit gates under OAuth full-agent traffic.
+ * Opus 5 is excluded because its 1M context window is native.
  */
 const CONTEXT_1M_BETA_MODEL_PREFIXES = ["claude-opus"];
+const CONTEXT_1M_NATIVE_MODEL_PREFIXES = ["claude-opus-5"];
 
 function matchesModelPrefix(model: unknown, prefixes: string[]): boolean {
   if (typeof model !== "string") return false;
@@ -307,7 +317,10 @@ function isHeavyAgentModel(model: unknown): boolean {
 }
 
 function isContext1mModel(model: unknown): boolean {
-  return matchesModelPrefix(model, CONTEXT_1M_BETA_MODEL_PREFIXES);
+  return (
+    matchesModelPrefix(model, CONTEXT_1M_BETA_MODEL_PREFIXES) &&
+    !matchesModelPrefix(model, CONTEXT_1M_NATIVE_MODEL_PREFIXES)
+  );
 }
 
 /**
@@ -360,14 +373,15 @@ export function selectBetaFlags(
   const isFullAgent = hasTools && hasSystem;
   const effectiveModel = model ?? (typeof b.model === "string" ? b.model : "");
   const isHeavyAgent = isFullAgent && isHeavyAgentModel(effectiveModel);
+  const isOpusAgent =
+    isFullAgent && matchesModelPrefix(effectiveModel, CONTEXT_1M_BETA_MODEL_PREFIXES);
   const isContext1m = isFullAgent && isContext1mModel(effectiveModel);
 
   const flags: string[] = [];
   if (isFullAgent) flags.push("claude-code-20250219");
   flags.push("oauth-2025-04-20");
-  if (isContext1m) {
-    flags.push("context-1m-2025-08-07", "mid-conversation-system-2026-04-07");
-  }
+  if (isContext1m) flags.push("context-1m-2025-08-07");
+  if (isOpusAgent) flags.push("mid-conversation-system-2026-04-07");
   // Thinking betas: gated on the client header (#3415). interleaved-thinking forces
   // interleaved-thinking semantics that conflict with a tool_choice-forced turn,
   // producing malformed opus tool_use streams when the client never asked for it.
@@ -390,18 +404,6 @@ export function selectBetaFlags(
     flags.push("advanced-tool-use-2025-11-20", "effort-2025-11-24");
   }
   return flags.join(",");
-}
-
-// ---------- billing-header build hash ------------------------------------
-
-/**
- * 3-char build hash for the billing header `cc_version=X.Y.Z.HASH`. Stable
- * per (day, version) — Anthropic does not appear to validate the value, so
- * we keep prompt-cache prefix stable within a day for a given version
- * without coupling to any captured value.
- */
-export function buildHashFor(version: string, dayStamp: string): string {
-  return createHash("sha256").update(`${dayStamp}${version}`).digest("hex").slice(0, 3);
 }
 
 // ---------- Tool-name normalisation --------------------------------------

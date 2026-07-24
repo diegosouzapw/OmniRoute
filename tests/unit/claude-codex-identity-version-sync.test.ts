@@ -18,9 +18,11 @@ const hdr = await import("../../open-sse/config/anthropicHeaders.ts");
 const compat = await import("../../open-sse/services/claudeCodeCompatible.ts");
 const bridge = await import("../../open-sse/services/ccBridgeTransforms.ts");
 const codexCfg = await import("../../open-sse/config/codexClient.ts");
+const canonical = await import("../../src/shared/constants/claudeCodeClient.ts");
 
 test("Claude CLI version constants are in lockstep across all 4 sources", () => {
-  const V = id.CLAUDE_CODE_VERSION;
+  const V = canonical.CLAUDE_CODE_CLIENT_VERSION;
+  assert.equal(id.CLAUDE_CODE_VERSION, V, "claudeIdentity.CLAUDE_CODE_VERSION drift");
   assert.equal(hdr.CLAUDE_CLI_VERSION, V, "anthropicHeaders.CLAUDE_CLI_VERSION drift");
   assert.equal(compat.CLAUDE_CODE_COMPATIBLE_VERSION, V, "claudeCodeCompatible version drift");
   assert.equal(bridge.DEFAULT_CLAUDE_CODE_VERSION, V, "ccBridgeTransforms version drift");
@@ -36,8 +38,23 @@ test("Claude CLI version constants are in lockstep across all 4 sources", () => 
   );
 });
 
-test("Claude CLI is pinned to the captured 2.1.207 release", () => {
-  assert.equal(id.CLAUDE_CODE_VERSION, "2.1.207");
+test("Claude CLI wire versions match the captured 2.1.219 binary", () => {
+  assert.equal(canonical.CLAUDE_CODE_CLIENT_VERSION, "2.1.219");
+  assert.equal(canonical.CLAUDE_CODE_CLIENT_BUILD_REVISION, "250");
+  assert.equal(canonical.CLAUDE_CODE_CLIENT_BILLING_VERSION, "2.1.219.250");
+  assert.equal(canonical.CLAUDE_CODE_SDK_PACKAGE_VERSION, "0.94.0");
+  assert.equal(canonical.CLAUDE_CODE_RUNTIME_VERSION, "v26.3.0");
+  assert.equal(
+    compat.CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION,
+    canonical.CLAUDE_CODE_SDK_PACKAGE_VERSION
+  );
+  assert.equal(
+    compat.CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION,
+    canonical.CLAUDE_CODE_RUNTIME_VERSION
+  );
+  assert.equal(hdr.CLAUDE_CLI_STAINLESS_PACKAGE_VERSION, canonical.CLAUDE_CODE_SDK_PACKAGE_VERSION);
+  assert.equal(hdr.CLAUDE_CLI_STAINLESS_RUNTIME_VERSION, canonical.CLAUDE_CODE_RUNTIME_VERSION);
+  assert.equal(hdr.CLAUDE_CLI_BILLING_VERSION, canonical.CLAUDE_CODE_CLIENT_BILLING_VERSION);
 });
 
 test("Codex client is pinned to the captured 0.144.1 release", () => {

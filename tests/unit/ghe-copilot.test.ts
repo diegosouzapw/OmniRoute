@@ -1,8 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { GheCopilotExecutor } from "../../open-sse/executors/ghe-copilot.ts";
+import { gheCopilotProvider } from "../../open-sse/config/providers/registry/ghe-copilot/index.ts";
 import { GHE_COPILOT_TARGET } from "../../src/mitm/targets/ghe-copilot.ts";
 import type { ProviderCredentials } from "../../open-sse/executors/base.ts";
+
+test("GHE Copilot registry exposes Claude Opus 5", () => {
+  const opus5 = gheCopilotProvider.models.find((model) => model.id === "claude-opus-5");
+
+  assert.deepStrictEqual(opus5, {
+    id: "claude-opus-5",
+    name: "Claude Opus 5",
+    contextLength: 1000000,
+    maxOutputTokens: 64000,
+    unsupportedParams: ["temperature", "top_p", "top_k"],
+  });
+});
 
 test("GHE_COPILOT_TARGET has correct id and patterns", () => {
   assert.strictEqual(GHE_COPILOT_TARGET.id, "ghe-copilot");

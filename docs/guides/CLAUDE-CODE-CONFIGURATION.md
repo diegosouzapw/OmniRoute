@@ -140,7 +140,7 @@ extra flags needed. Override per-invocation with `--remote` / `--api-key`.
 handles this for you.
 
 **`/model` picker is empty / missing gateway models** — needs Claude Code
-v2.1.129+ and `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`. Only `claude*` /
+v2.1.219+ and `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`. Only `claude*` /
 `anthropic*` model IDs appear in the picker; force any other model with
 `ANTHROPIC_MODEL=<id>` (this is what profiles do).
 

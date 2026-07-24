@@ -22,6 +22,7 @@ import { getGitHubCopilotChatHeaders } from "../config/providerHeaderProfiles.ts
 export const GITHUB_COPILOT_MODELS_URL = "https://api.githubcopilot.com/models";
 export const GITHUB_COPILOT_MODEL_ALLOWLIST = [
   "claude-fable-5",
+  "claude-opus-5",
   "claude-opus-4.8-fast",
   "claude-opus-4.8",
   "claude-opus-4.7",

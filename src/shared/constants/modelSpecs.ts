@@ -22,9 +22,12 @@ export interface ModelSpec {
   // Model ONLY supports adaptive thinking: manual extended thinking was removed. Sending
   // `thinking.type:"enabled"` or any `thinking.budget_tokens` returns HTTP 400; reasoning
   // is steered exclusively by `output_config.effort` (low/medium/high/xhigh/max). True for
-  // Claude Opus 4.7 and later (Opus 4.7/4.8, Fable 5). Per Anthropic's migration guide
-  // (2026-05-19): "Any request that tries to set a fixed thinking budget gets a 400 error."
+  // Claude Opus 4.7 and later (Opus 4.7/4.8/5, Fable 5). Per Anthropic's migration guide,
+  // any request that tries to set a fixed thinking budget gets a 400 error.
   adaptiveThinkingOnly?: boolean;
+  // Highest effort accepted while `thinking.type:"disabled"` is present. Claude Opus 5
+  // rejects disabled thinking with xhigh/max, while accepting it through high.
+  maxEffortWhenThinkingDisabled?: "high";
   // Explicit operator override for the no-thinking gateway alias (Fase 8.1). When unset,
   // the catalog auto-advertises a `no-think/…` variant for
   // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
@@ -334,6 +337,20 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     // …and, like Opus 4.7+, rejects manual budgets/`type:"enabled"` (adaptive-only).
     adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
+  },
+
+  // ── Claude Opus 5 ───────────────────────────────────────────────
+  "claude-opus-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    maxEffortWhenThinkingDisabled: "high",
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-5"),
   },
 
   // ── Claude Opus 4.8 ─────────────────────────────────────────────
@@ -690,6 +707,13 @@ export function getDefaultThinkingBudget(modelId: string): number {
 export function isAdaptiveThinkingOnly(modelId: string | null | undefined): boolean {
   if (typeof modelId !== "string" || modelId.length === 0) return false;
   return getModelSpec(modelId)?.adaptiveThinkingOnly === true;
+}
+
+export function getMaxEffortWhenThinkingDisabled(
+  modelId: string | null | undefined
+): "high" | null {
+  if (typeof modelId !== "string" || modelId.length === 0) return null;
+  return getModelSpec(modelId)?.maxEffortWhenThinkingDisabled ?? null;
 }
 
 export function capThinkingBudget(modelId: string, budget: number): number {

@@ -44,6 +44,7 @@ const commonOperations = [
     versionFormat: "ex-machina",
     cchAlgo: "sha256-first-user",
     version: "1.0.0",
+    buildRevision: "250",
   },
 ] as const;
 
