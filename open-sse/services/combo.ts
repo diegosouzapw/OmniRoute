@@ -158,6 +158,7 @@ import {
   shouldSkipForPredictedTtft,
   shouldRecordProviderBreakerFailure,
   isRequestScopedUpstreamFailure,
+  isInputBoundRequestFailure,
   shouldSkipConnDisable,
   resolveDelayMs,
   comboModelNotFoundResponse,
@@ -2272,6 +2273,28 @@ export async function handleComboChat({
                 }
               : undefined;
           const requestScopedFailure = isRequestScopedUpstreamFailure(structuredError);
+
+          // #8375: input-bound request-scoped failures (context_length_exceeded) are
+          // deterministic for the same input — retrying on other accounts of the same
+          // model will fail identically. Short-circuit the combo immediately with the
+          // original error instead of burning MAX_GLOBAL_ATTEMPTS.
+          const isInputBoundFailure = isInputBoundRequestFailure(structuredError);
+          if (isInputBoundFailure) {
+            log.warn(
+              "COMBO",
+              `Input-bound request failure from ${modelStr} — aborting combo (same input will fail identically on every account)`
+            );
+            recordComboRequest(combo.name, modelStr, {
+              success: false,
+              latencyMs: Date.now() - startTime,
+              fallbackCount,
+              strategy,
+              target: toRecordedTarget(target),
+            });
+            recordedAttempts++;
+            if (i > 0) fallbackCount++;
+            return { ok: false, response: result };
+          }
           const fallbackResult = checkFallbackError(
             result.status,
             errorText,
@@ -2925,7 +2948,11 @@ async function handleRoundRobinCombo({
   // BEFORE availability is known; if every compat-kept target then turns out to be
   // runtime-unavailable, we must reconsider these before returning 503, instead of
   // permanently dropping a compat-rejected-but-healthy provider.
-  const compatRejectedTargets = computeCompatRejectedTargets(evalRankedTargets, filteredTargets, body);
+  const compatRejectedTargets = computeCompatRejectedTargets(
+    evalRankedTargets,
+    filteredTargets,
+    body
+  );
   let modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
