@@ -310,7 +310,6 @@
     "smol-toml": "1.7.1",
     "socks": "^2.8.7",
     "sql.js": "^1.14.1",
-    "sqlite-vec": "^0.1.9",
     "tailwind-merge": "^3.6.0",
     "tsx": "^4.23.0",
     "undici": "^8.3.0",
@@ -330,7 +329,8 @@
     "js-tiktoken": "^1.0.20",
     "keytar": "^7.9.0",
     "tls-client-node": "^0.2.0",
-    "wreq-js": "^2.3.1"
+    "wreq-js": "^2.3.1",
+    "sqlite-vec": "^0.1.9"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
