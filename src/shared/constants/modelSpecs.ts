@@ -163,36 +163,19 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     ...GEMINI_35_FLASH_MODEL_SPEC,
     thinkingBudgetCap: 0,
   },
-  "gemini-3.5-flash-low": {
-    ...GEMINI_35_FLASH_MODEL_SPEC,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-  },
+  "gemini-3.5-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
   "gemini-3-flash-agent": {
     ...GEMINI_35_FLASH_MODEL_SPEC,
     thinkingBudgetCap: 0,
   },
 
   // ── Gemini 3.6 Flash (Antigravity live tiers) ───────────────────
-  // The model id itself selects the upstream reasoning tier. Google docs
-  // confirm gemini-3.6-flash supports thinking (default: medium, levels:
-  // minimal/low/medium/high). thinkingBudget accepted for backward compat
-  // with Gemini 2.5 callers; capped at 24576 matching the Flash family max.
-  "gemini-3.6-flash-high": {
-    ...GEMINI_35_FLASH_MODEL_SPEC,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-  },
-  "gemini-3.6-flash-medium": {
-    ...GEMINI_35_FLASH_MODEL_SPEC,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-  },
-  "gemini-3.6-flash-low": {
-    ...GEMINI_35_FLASH_MODEL_SPEC,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
-  },
+  // The model id itself selects the upstream 10k/4k/1k reasoning tier. Antigravity
+  // still rejects client-supplied thinking parameters, so keep the explicit-parameter
+  // capability aligned with the existing Gemini 3.5 tier ids.
+  "gemini-3.6-flash-high": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-medium": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
 
   // ── Gemini 3 Flash series ───────────────────────────────────────
   "gemini-3-flash": {
@@ -241,8 +224,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   // ── Gemini 3.5 Flash ─────────────────────────────────────────────
   "gemini-3.5-flash": {
     ...GEMINI_35_FLASH_MODEL_SPEC,
-    thinkingBudgetCap: 24576,
-    supportsThinking: true,
     aliases: ["gemini-3.5-flash-high"],
   },
 
