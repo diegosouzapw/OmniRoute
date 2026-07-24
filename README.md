@@ -247,14 +247,15 @@ curl http://localhost:20128/v1/chat/completions \
 
 No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds a virtual combo from your connected providers, scored live:
 
-| Model ID       | What it optimizes for                                                                                                                                                                  |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `auto`         | 🎯 Balanced default (LKGP — sticks to your last good provider)                                                                                                                         |
-| `auto/coding`  | 🧑‍💻 Quality-first weights for code generation                                                                                                                                           |
-| `auto/fast`    | ⚡ Lowest latency first                                                                                                                                                                |
-| `auto/cheap`   | 💰 Cheapest per token first                                                                                                                                                            |
-| `auto/offline` | 🔋 Most quota / rate-limit headroom first                                                                                                                                              |
-| `auto/smart`   | 🔭 Quality-first + 10% exploration to discover better models                                                                                                                           |
+<table>
+  <tr><th align="left">Model ID</th><th align="left">What it optimizes for</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 Balanced default (LKGP — sticks to your last good provider)</td></tr>
+  <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑‍💻 Quality-first weights for code generation</td></tr>
+  <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ Lowest latency first</td></tr>
+  <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 Cheapest per token first</td></tr>
+  <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 Most quota / rate-limit headroom first</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 Quality-first + 10% exploration to discover better models</td></tr>
+</table>
 
 ##
 
@@ -556,16 +557,17 @@ OmniRoute is free and open source, built and maintained in the open. If it saves
 
 > Same app, your machine, your rules. From a global npm install to **your phone** via Termux.
 
-| Platform                  | Install                                  | Highlights                                                |
-| ------------------------- | ---------------------------------------- | --------------------------------------------------------- |
-| 📦 **npm (global)**       | `npm install -g omniroute`               | One command, any OS                                       |
-| 🐳 **Docker**             | `docker run … diegosouzapw/omniroute`    | Multi-arch **AMD64 + ARM64**                              |
-| 🖥️ **Desktop (Electron)** | `npm run electron:build`                 | Native window + system tray — **Windows / macOS / Linux** |
-| 💪 **ARM**                | native `arm64`                           | Raspberry Pi, ARM servers, Apple Silicon                  |
-| 📱 **Android (Termux)**   | `pkg install nodejs && npx -y omniroute` | Runs **on your phone**, 24/7, no root                     |
-| 📲 **PWA**                | "Add to Home Screen"                     | Fullscreen, offline, installable from browser             |
-| 🧩 **OpenCode plugin**    | `@omniroute/opencode-provider`           | Native OpenCode integration                               |
-| 🛠️ **From source**        | `npm install && npm run dev`             | Hack on it, contribute                                    |
+<table>
+  <tr><th align="left">Platform</th><th align="left">Install</th><th align="left">Highlights</th></tr>
+  <tr><td align="left" nowrap>📦 <b>npm (global)</b></td><td align="left" nowrap><code>npm install -g omniroute</code></td><td align="left">One command, any OS</td></tr>
+  <tr><td align="left" nowrap>🐳 <b>Docker</b></td><td align="left" nowrap><code>docker run … diegosouzapw/omniroute</code></td><td align="left">Multi-arch <b>AMD64 + ARM64</b></td></tr>
+  <tr><td align="left" nowrap>🖥️ <b>Desktop (Electron)</b></td><td align="left" nowrap><code>npm run electron:build</code></td><td align="left">Native window + system tray — <b>Windows / macOS / Linux</b></td></tr>
+  <tr><td align="left" nowrap>💪 <b>ARM</b></td><td align="left" nowrap>native <code>arm64</code></td><td align="left">Raspberry Pi, ARM servers, Apple Silicon</td></tr>
+  <tr><td align="left" nowrap>📱 <b>Android (Termux)</b></td><td align="left" nowrap><code>pkg install nodejs && npx -y omniroute</code></td><td align="left">Runs <b>on your phone</b>, 24/7, no root</td></tr>
+  <tr><td align="left" nowrap>📲 <b>PWA</b></td><td align="left" nowrap>"Add to Home Screen"</td><td align="left">Fullscreen, offline, installable from browser</td></tr>
+  <tr><td align="left" nowrap>🧩 <b>OpenCode plugin</b></td><td align="left" nowrap><code>@omniroute/opencode-provider</code></td><td align="left">Native OpenCode integration</td></tr>
+  <tr><td align="left" nowrap>🛠️ <b>From source</b></td><td align="left" nowrap><code>npm install && npm run dev</code></td><td align="left">Hack on it, contribute</td></tr>
+</table>
 
 <sub>📖 [Docker Guide](docs/guides/DOCKER_GUIDE.md) · [Desktop](electron/README.md) · [Termux](docs/guides/TERMUX_GUIDE.md) · [PWA](docs/guides/PWA_GUIDE.md) · [OpenCode](docs/frameworks/OPENCODE.md)</sub>
 
@@ -626,15 +628,16 @@ Tokens are scoped `read` / `write` / `admin`; process-spawning routes stay loopb
 
 Expose OmniRoute over **MCP**, **A2A**, a **REST API**, **webhooks** or a **remote CLI** — any capable agent (or your own code) gets the keys to the whole gateway: routing, providers, combos, cache, compression, memory — autonomously. HTTP endpoints below are served under `http://localhost:20128`.
 
-| Interface          | Endpoint / command         | Use it for                                               |
-| ------------------ | -------------------------- | -------------------------------------------------------- |
-| 🧰 **MCP (stdio)** | `omniroute --mcp`          | Plug into Claude Desktop, Cursor, any MCP client         |
-| 🌊 **MCP (HTTP)**  | `/api/mcp/stream`          | Remote MCP — **104 tools**, 31 scopes, full audit trail  |
-| 📡 **MCP (SSE)**   | `/api/mcp/sse`             | Streaming MCP transport                                  |
-| 🤝 **A2A**         | `/.well-known/agent.json`  | Agent-to-agent, **JSON-RPC 2.0** + SSE, 6 skills         |
-| 🌐 **REST API**    | `/v1/*`                    | OpenAI-compatible — chat, embeddings, images, audio, OCR |
-| 🔔 **Webhooks**    | `/api/webhooks`            | Push events (usage, quota, errors, routing) to your URL  |
-| 🛰️ **Remote CLI**  | `omniroute connect <host>` | Drive a remote instance with scoped access tokens        |
+<table>
+  <tr><th align="left">Interface</th><th align="left">Endpoint / command</th><th align="left">Use it for</th></tr>
+  <tr><td align="left" nowrap>🧰 <b>MCP (stdio)</b></td><td align="left" nowrap><code>omniroute --mcp</code></td><td align="left">Plug into Claude Desktop, Cursor, any MCP client</td></tr>
+  <tr><td align="left" nowrap>🌊 <b>MCP (HTTP)</b></td><td align="left" nowrap><code>/api/mcp/stream</code></td><td align="left">Remote MCP — <b>104 tools</b>, 31 scopes, full audit trail</td></tr>
+  <tr><td align="left" nowrap>📡 <b>MCP (SSE)</b></td><td align="left" nowrap><code>/api/mcp/sse</code></td><td align="left">Streaming MCP transport</td></tr>
+  <tr><td align="left" nowrap>🤝 <b>A2A</b></td><td align="left" nowrap><code>/.well-known/agent.json</code></td><td align="left">Agent-to-agent, <b>JSON-RPC 2.0</b> + SSE, 6 skills</td></tr>
+  <tr><td align="left" nowrap>🌐 <b>REST API</b></td><td align="left" nowrap><code>/v1/*</code></td><td align="left">OpenAI-compatible — chat, embeddings, images, audio, OCR</td></tr>
+  <tr><td align="left" nowrap>🔔 <b>Webhooks</b></td><td align="left" nowrap><code>/api/webhooks</code></td><td align="left">Push events (usage, quota, errors, routing) to your URL</td></tr>
+  <tr><td align="left" nowrap>🛰️ <b>Remote CLI</b></td><td align="left" nowrap><code>omniroute connect <host></code></td><td align="left">Drive a remote instance with scoped access tokens</td></tr>
+</table>
 
 ```bash
 # Give Claude Code the full OmniRoute toolset over MCP:
@@ -671,31 +674,33 @@ Code blocks, URLs, JSON and structured data are **always protected** by the pres
 
 Engines run in pipeline order; each is independently toggleable and configurable per combo:
 
-| #   | Engine                    | What it does                                                                                              |
-| --- | ------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 1   | **Session-Dedup**         | Drops content repeated across turns (content-addressed, cross-turn)                                       |
-| 2   | **CCR**                   | Archives large blocks behind retrieve markers, fetched on demand                                          |
-| 3   | **Lite**                  | Whitespace + image-URL trimming (latency-light baseline)                                                  |
-| 4   | **RTK**                   | Smart tool-result filtering, dedup & truncation (command-aware)                                           |
-| 5   | **Responses Tool Output** | Lossless-first JSON + bounded diagnostic compression for shell/patch/search/build outputs (Responses API) |
-| 6   | **Headroom**              | Lossless tabular compaction of JSON arrays (~30%) via a vendored **GCF** codec                            |
-| 7   | **Relevance**             | Extractive sentence scoring against the last user query                                                   |
-| 8   | **Caveman**               | Rule-based prose compression (~65–75% on output)                                                          |
-| 9   | **Aggressive**            | Summarization + progressive aging of old turns                                                            |
-| 10  | **LLMLingua-2**           | ML semantic pruning via MobileBERT ONNX — code-safe, async                                                |
-| 11  | **Ultra**                 | Heuristic token pruning with an optional small-model (SLM) tier                                           |
-| 12  | **OmniGlyph**             | Experimental context-as-image encoding routed to Claude Fable 5 (most aggressive; opt-in)                 |
+<table>
+  <tr><th align="center">#</th><th align="left">Engine</th><th align="left">What it does</th></tr>
+  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">Drops content repeated across turns (content-addressed, cross-turn)</td></tr>
+  <tr><td align="center" nowrap>2</td><td align="left" nowrap><b>CCR</b></td><td align="left">Archives large blocks behind retrieve markers, fetched on demand</td></tr>
+  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">Whitespace + image-URL trimming (latency-light baseline)</td></tr>
+  <tr><td align="center" nowrap>4</td><td align="left" nowrap><b>RTK</b></td><td align="left">Smart tool-result filtering, dedup & truncation (command-aware)</td></tr>
+  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">Lossless-first JSON + bounded diagnostic compression for shell/patch/search/build outputs (Responses API)</td></tr>
+  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">Lossless tabular compaction of JSON arrays (~30%) via a vendored <b>GCF</b> codec</td></tr>
+  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">Extractive sentence scoring against the last user query</td></tr>
+  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">Rule-based prose compression (~65–75% on output)</td></tr>
+  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">Summarization + progressive aging of old turns</td></tr>
+  <tr><td align="center" nowrap>10</td><td align="left" nowrap><b>LLMLingua-2</b></td><td align="left">ML semantic pruning via MobileBERT ONNX — code-safe, async</td></tr>
+  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">Heuristic token pruning with an optional small-model (SLM) tier</td></tr>
+  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">Experimental context-as-image encoding routed to Claude Fable 5 (most aggressive; opt-in)</td></tr>
+</table>
 
 Code blocks, URLs and structured data are **always preserved** byte-perfect. **One-click presets** combine the engines:
 
-| Mode                           | Savings    | Best for                                                                                                                                        |
-| ------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🪶 **Lite**                    | ~15%       | Always-on safe default                                                                                                                          |
-| 🪨 **Standard (Caveman)**      | ~30%       | Daily coding                                                                                                                                    |
-| ⚡ **Aggressive**              | ~50%       | Long tool-heavy sessions                                                                                                                        |
-| 🔥 **Ultra**                   | ~75%       | Maximum savings                                                                                                                                 |
-| 🧰 **RTK**                     | 60–90%     | Shell/test/build/git output                                                                                                                     |
-| 🔗 **Stacked (RTK → Caveman)** | **78–95%** | Mixed prompts + tool logs                                                                                                                       |
+<table>
+  <tr><th align="left">Mode</th><th align="left">Savings</th><th align="left">Best for</th></tr>
+  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~15%</td><td align="left">Always-on safe default</td></tr>
+  <tr><td align="left" nowrap>🪨 <b>Standard (Caveman)</b></td><td align="left" nowrap>~30%</td><td align="left">Daily coding</td></tr>
+  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~50%</td><td align="left">Long tool-heavy sessions</td></tr>
+  <tr><td align="left" nowrap>🔥 <b>Ultra</b></td><td align="left" nowrap>~75%</td><td align="left">Maximum savings</td></tr>
+  <tr><td align="left" nowrap>🧰 <b>RTK</b></td><td align="left" nowrap>60–90%</td><td align="left">Shell/test/build/git output</td></tr>
+  <tr><td align="left" nowrap>🔗 <b>Stacked (RTK → Caveman)</b></td><td align="left" nowrap><b>78–95%</b></td><td align="left">Mixed prompts + tool logs</td></tr>
+</table>
 
 **Real example — Standard mode:**
 
@@ -924,21 +929,26 @@ same process on one port, so there is no separate CLI-only package today.
 
 </div>
 
-- **Runtime**: Node.js 22.x or 24.x LTS (24 LTS recommended) — `>=22.22.2 <23 || >=24.0.0 <27`
-- **Language**: TypeScript 6.0 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
-- **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
-- **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
-- **Schemas**: Zod (MCP tool I/O validation, API contracts)
-- **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
-- **Streaming**: Server-Sent Events (SSE) + WebSocket bridge (`/v1/ws`)
-- **Auth**: OAuth 2.0 (PKCE) + JWT + API Keys + MCP Scoped Authorization
-- **Testing**: Node.js test runner + Vitest (**25,000+ test cases** across 3,300+ files — unit, integration, E2E, security, ecosystem)
-- **Platforms**: Desktop (Electron), Android (Termux), PWA (any browser)
-- **CI/CD**: GitHub Actions (auto npm publish + Docker Hub on release)
-- **Website**: [omniroute.online](https://omniroute.online)
-- **Package**: [npmjs.com/package/omniroute](https://www.npmjs.com/package/omniroute)
-- **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
-- **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing, auto-combo self-healing
+<table>
+  <tr><th align="left">Layer</th><th align="left">Technology</th></tr>
+  <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Language</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> across <code>src/</code> and <code>open-sse/</code> (zero <code>any</code> in core since v2.0)</td></tr>
+  <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL journaling) + LowDB (JSON legacy) — 95 domain modules, 110 migrations</td></tr>
+  <tr><td nowrap><b>Memory</b></td><td>SQLite FTS5 full-text + int8-quantized vector embeddings, typed decay</td></tr>
+  <tr><td nowrap><b>Schemas</b></td><td>Zod 4 — MCP tool I/O validation + API contracts</td></tr>
+  <tr><td nowrap><b>Protocols</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
+  <tr><td nowrap><b>Streaming</b></td><td>Server-Sent Events (SSE) + WebSocket bridge (<code>/v1/ws</code>)</td></tr>
+  <tr><td nowrap><b>Compression</b></td><td>12-engine pipeline — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Auth &amp; security</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCP scoped auth · AES-256-GCM at rest · DOMPurify</td></tr>
+  <tr><td nowrap><b>Stealth</b></td><td>wreq-js — JA3 / JA4 TLS fingerprint impersonation, 3-level proxy</td></tr>
+  <tr><td nowrap><b>Resilience</b></td><td>Circuit breaker, exponential backoff, anti-thundering-herd, auto-combo self-healing</td></tr>
+  <tr><td nowrap><b>Logging</b></td><td>pino — structured JSON logs with request context</td></tr>
+  <tr><td nowrap><b>Testing</b></td><td>Node.js test runner + Vitest — <b>25,000+ test cases</b> across 3,300+ files (unit, integration, E2E, security, ecosystem)</td></tr>
+  <tr><td nowrap><b>Platforms</b></td><td>Desktop (Electron) · Android (Termux) · PWA (any browser)</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — auto npm publish + Docker Hub on release</td></tr>
+  <tr><td nowrap><b>Links</b></td><td><a href="https://omniroute.online">Website</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
+</table>
 
 <div align="center">
 
@@ -1107,19 +1117,34 @@ same process on one port, so there is no separate CLI-only package today.
 
 ## 💖 Sponsors
 
-A heartfelt thank-you to the people who fund OmniRoute out of their own pocket. Every contribution keeps the project free, independent and moving.
+<div align="center">
 
-<p align="center">
-  <a href="https://github.com/igormorais123"><img src="https://github.com/igormorais123.png?size=140" width="80" alt="Professor Igor Morais Vasconcelos (@igormorais123)"/></a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://github.com/longtao77"><img src="https://github.com/longtao77.png?size=140" width="80" alt="longtao (@longtao77)"/></a>
-</p>
+A heartfelt thank-you to the people who fund OmniRoute out of their own pocket — every contribution keeps the project free, independent and moving.
 
-<p align="center">
-  <sub><b><a href="https://github.com/igormorais123">Professor Igor Morais Vasconcelos</a></b> &nbsp;·&nbsp; <b><a href="https://github.com/longtao77">longtao</a></b> &nbsp;·&nbsp; and others who prefer to stay private 💛</sub>
-</p>
+<table>
+  <tr>
+    <td align="center" width="180">
+      <a href="https://github.com/igormorais123">
+        <img src="https://github.com/igormorais123.png?size=140" width="72" style="border-radius:50%" alt="Professor Igor Morais Vasconcelos"/><br/>
+        <b>Prof. Igor Morais</b>
+      </a><br/>
+      <sub>💛 Sponsor</sub>
+    </td>
+    <td align="center" width="180">
+      <a href="https://github.com/longtao77">
+        <img src="https://github.com/longtao77.png?size=140" width="72" style="border-radius:50%" alt="longtao"/><br/>
+        <b>longtao</b>
+      </a><br/>
+      <sub>💛 Sponsor</sub>
+    </td>
+  </tr>
+</table>
 
-> **Want to support OmniRoute?** <a href="https://github.com/sponsors/diegosouzapw"><b>Become a sponsor →</b></a> Every dollar goes straight into keeping the project free and independent.
+<sub>… and others who prefer to stay private 💛</sub>
+
+<b><a href="https://github.com/sponsors/diegosouzapw">💖 Become a sponsor →</a></b> — every dollar keeps OmniRoute free and independent.
+
+</div>
 
 <br/>
 
@@ -1192,78 +1217,78 @@ OmniRoute stands on the shoulders of giants. It started as a fork of **[9router]
 
 ### 🧬 Lineage & gateway
 
-| Project                                                                         |    ⭐ | How it inspired OmniRoute                                                                                                             |
-| ------------------------------------------------------------------------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **[9router](https://github.com/decolua/9router)** · decolua                     | 22.7k | The original project this fork is built on — extended here with multi-modal APIs and a full TypeScript rewrite.                       |
-| **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** · router-for-me | 43.6k | The Go implementation that inspired this JavaScript / TypeScript port.                                                                |
-| **[LiteLLM](https://github.com/BerriAI/litellm)** · BerriAI                     | 54.0k | The AI gateway whose public pricing dataset feeds our cost-tracking sync and whose provider-normalization model informed our routing. |
+| Project                                                         |  ⭐   |
+| :-------------------------------------------------------------- | :---: |
+| **[9router](https://github.com/decolua/9router)**               | 22.7k |
+| **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** | 43.6k |
+| **[LiteLLM](https://github.com/BerriAI/litellm)**               | 54.0k |
 
 ### 🗜️ Context & token compression — engines
 
-| Project                                                                       |    ⭐ | How it inspired OmniRoute                                                                                                                                                                                |
-| ----------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **[Caveman](https://github.com/JuliusBrussee/caveman)** · JuliusBrussee       | 90.8k | The viral "why use many token when few token do trick" project — its caveman-speak philosophy powers our standard compression mode and 30+ filler/condensation rules.                                    |
-| **[RTK – Rust Token Killer](https://github.com/rtk-ai/rtk)** · rtk-ai         | 71.8k | High-performance command-output compression — inspired our RTK engine, JSON filter DSL, raw-output recovery and the stacked RTK → Caveman pipeline.                                                      |
-| **[headroom](https://github.com/headroomlabs-ai/headroom)** · headroomlabs-ai | 60.1k | Reversible context-compression (SmartCrusher) — inspired our `headroom` engine and the `ccr` retrieve-marker pattern.                                                                                    |
-| **[LLMLingua](https://github.com/microsoft/LLMLingua)** · Microsoft           |  6.5k | Prompt-compression research (LLMLingua / LLMLingua-2) — inspired our async, code-safe, fail-open `llmlingua` engine.                                                                                     |
-| **[llmlingua-2-js](https://github.com/atjsh/llmlingua-2-js)** · atjsh         |    30 | The JS/ONNX port (MobileBERT / XLM-RoBERTa) used as the worker-thread backend for our LLMLingua engine.                                                                                                  |
-| **[Troglodita](https://github.com/leninejunior/troglodita)** · Lenine Júnior  |    26 | PT-BR token compression — powers our pt-BR language pack: pleonasm reduction and filler removal tuned for Brazilian-Portuguese grammar.                                                                  |
-| **[ponytail](https://github.com/DietrichGebert/ponytail)** · DietrichGebert   | 86.0k | The viral "lazy senior dev" YAGNI-coder skill — inspired our **less-code** Output Style: smallest-working-change steering that cuts _generated_ code (the output-axis sibling to Caveman's terse prose). |
+| Project                                                       |  ⭐   |
+| :------------------------------------------------------------ | :---: |
+| **[Caveman](https://github.com/JuliusBrussee/caveman)**       | 90.8k |
+| **[RTK – Rust Token Killer](https://github.com/rtk-ai/rtk)**  | 71.8k |
+| **[headroom](https://github.com/headroomlabs-ai/headroom)**   | 60.1k |
+| **[LLMLingua](https://github.com/microsoft/LLMLingua)**       | 6.5k  |
+| **[llmlingua-2-js](https://github.com/atjsh/llmlingua-2-js)** |  30   |
+| **[Troglodita](https://github.com/leninejunior/troglodita)**  |  26   |
+| **[ponytail](https://github.com/DietrichGebert/ponytail)**    | 86.0k |
 
 ### 🧩 Compact formats, token research & code-aware tooling
 
-| Project                                                                                        |    ⭐ | How it inspired OmniRoute                                                                                                                                                                                      |
-| ---------------------------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **[TOON](https://github.com/toon-format/toon)** · toon-format                                  | 24.9k | Token-Oriented Object Notation — its columnar, header-plus-rows model shaped our tabular compaction stage.                                                                                                     |
-| **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** · Blackwell Systems |    22 | First inspired our tabular compaction stage; now its zero-dependency, lossless generic-profile encoder is **vendored directly** as the Headroom codec (MIT, SPDX-marked), current with GCF spec v3.2.          |
-| **[token-optimizer-mcp](https://github.com/ooples/token-optimizer-mcp)** · ooples              |   444 | Brotli/SQLite cache + per-session context-delta — inspired our `session-dedup` engine.                                                                                                                         |
-| **[token-savior](https://github.com/Mibayy/token-savior)** · Mibayy                            |  1.1k | Bash-output compaction + MCP profiles — inspired our compression bail-out discipline and MCP tool-manifest reduction.                                                                                          |
-| **[token-saver](https://github.com/ppgranger/token-saver)** · ppgranger                        |   117 | Content-aware, per-file-type output compression with failure-aware bail-out — validated our per-type dispatch and minimum-gain skip.                                                                           |
-| **[token-optimizer](https://github.com/alexgreensh/token-optimizer)** · alexgreensh            |  1.7k | "Find the ghost tokens" — its offload + recoverable-handle pattern informed our CCR offload thinking.                                                                                                          |
-| **[TokenMizer](https://github.com/Shweta-Mishra-ai/tokenmizer)** · Shweta-Mishra-ai            |    16 | A session-graph + cross-turn line-dedup blueprint that informed our session-dedup design.                                                                                                                      |
-| **[OmniCompress](https://github.com/jessefreitas/OmniCompress)** · jessefreitas                |     3 | Rust columnar-JSON + content-addressed retrieve + cross-message dedup — validated our `headroom`/`ccr`/`session-dedup` engine design and the cache-stable "compressed form is position-independent" invariant. |
-| **[mcp-compressor](https://github.com/atlassian-labs/mcp-compressor)** · Atlassian Labs        |    98 | MCP tool-schema/description compression — informed our MCP tool-manifest cardinality reduction.                                                                                                                |
-| **[RepoMapper](https://github.com/pdavis68/RepoMapper)** · pdavis68                            |   187 | Aider-style repo-map ranking — informed our repo-map / retrieval-ranking exploration.                                                                                                                          |
-| **[quiet-shell-mcp](https://github.com/mrsimpson/quiet-shell-mcp)** · mrsimpson                |     4 | Declarative shell-output reduction over MCP — validated our declarative bash-output compaction.                                                                                                                |
-| **[ts-morph](https://github.com/dsherret/ts-morph)** · David Sherret                           |  6.1k | TypeScript Compiler API toolkit — inspired our parser-based comment removal that preserves string, template and regex literals.                                                                                |
+| Project                                                                    |  ⭐   |
+| :------------------------------------------------------------------------- | :---: |
+| **[TOON](https://github.com/toon-format/toon)**                            | 24.9k |
+| **[GCF – Graph Compact Format](https://github.com/blackwell-systems/gcf)** |  22   |
+| **[token-optimizer-mcp](https://github.com/ooples/token-optimizer-mcp)**   |  444  |
+| **[token-savior](https://github.com/Mibayy/token-savior)**                 | 1.1k  |
+| **[token-saver](https://github.com/ppgranger/token-saver)**                |  117  |
+| **[token-optimizer](https://github.com/alexgreensh/token-optimizer)**      | 1.7k  |
+| **[TokenMizer](https://github.com/Shweta-Mishra-ai/tokenmizer)**           |  16   |
+| **[OmniCompress](https://github.com/jessefreitas/OmniCompress)**           |   3   |
+| **[mcp-compressor](https://github.com/atlassian-labs/mcp-compressor)**     |  98   |
+| **[RepoMapper](https://github.com/pdavis68/RepoMapper)**                   |  187  |
+| **[quiet-shell-mcp](https://github.com/mrsimpson/quiet-shell-mcp)**        |   4   |
+| **[ts-morph](https://github.com/dsherret/ts-morph)**                       | 6.1k  |
 
 ### 🧠 Memory & RAG
 
-| Project                                                            |    ⭐ | How it inspired OmniRoute                                                                                           |
-| ------------------------------------------------------------------ | ----: | ------------------------------------------------------------------------------------------------------------------- |
-| **[Mem0](https://github.com/mem0ai/mem0)** · mem0ai                | 61.2k | Universal memory layer — its proxy-as-write/read-boundary model shaped our memory architecture.                     |
-| **[Letta (MemGPT)](https://github.com/letta-ai/letta)** · letta-ai | 23.9k | Stateful agents with tiered memory — inspired our Context Control & Recovery (CCR) tiered model.                    |
-| **[WFGY](https://github.com/onestardao/WFGY)** · onestardao        |  1.8k | The ProblemMap taxonomy of 16 recurring RAG/LLM failure modes — the shared vocabulary in our troubleshooting guide. |
+| Project                                                 |  ⭐   |
+| :------------------------------------------------------ | :---: |
+| **[Mem0](https://github.com/mem0ai/mem0)**              | 61.2k |
+| **[Letta (MemGPT)](https://github.com/letta-ai/letta)** | 23.9k |
+| **[WFGY](https://github.com/onestardao/WFGY)**          | 1.8k  |
 
 ### 🛰️ Traffic inspection, MITM & transparent proxy
 
-| Project                                                                           |   ⭐ | How it inspired OmniRoute                                                                                                                                                        |
-| --------------------------------------------------------------------------------- | ---: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **[llm-interceptor](https://github.com/chouzz/llm-interceptor)** · chouzz         |   49 | MITM interception/analysis of coding-assistant ↔ LLM traffic — our Traffic Inspector ports its SSE merge, conversation normalization, host passthrough and secret masking (MIT). |
-| **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** · InterceptSuite | 5.5k | Transparent per-process proxy routing — inspired our crash-safe MITM teardown, socket idle-timeouts, `/proc` process attribution and TPROXY capture.                             |
+| Project                                                          |  ⭐  |
+| :--------------------------------------------------------------- | :--: |
+| **[llm-interceptor](https://github.com/chouzz/llm-interceptor)** |  49  |
+| **[ProxyBridge](https://github.com/InterceptSuite/ProxyBridge)** | 5.5k |
 
 ### 📚 Model data, observability & UI
 
-| Project                                                                    |    ⭐ | How it inspired OmniRoute                                                                                                  |
-| -------------------------------------------------------------------------- | ----: | -------------------------------------------------------------------------------------------------------------------------- |
-| **[models.dev](https://github.com/anomalyco/models.dev)** · SST / OpenCode |  6.0k | Open database of AI model specs, pricing and capabilities — synced natively into our model catalog.                        |
-| **[React Flow / xyflow](https://github.com/xyflow/xyflow)** · xyflow       | 37.7k | The node-based graph library powering our real-time Compression Studio and Combo/Routing Studio.                           |
-| **[LangGraph](https://github.com/langchain-ai/langgraph)** · LangChain     | 37.6k | LangGraph Studio's live workflow-graph visualization inspired our Studios' real-time cascade view.                         |
-| **[Langfuse](https://github.com/langfuse/langfuse)** · Langfuse            | 31.4k | Its trace → span → generation observability model shaped our Compression Studio waterfall.                                 |
-| **[Kiali](https://github.com/kiali/kiali)** · Kiali                        |  3.6k | Istio service-mesh observability — inspired our circuit-breaker badges and error-edge visuals in the Routing/Combo Studio. |
-| **[lobe-icons](https://github.com/lobehub/lobe-icons)** · LobeHub          |  2.2k | AI/LLM brand logos that render the provider icons across our dashboard.                                                    |
+| Project                                                     |  ⭐   |
+| :---------------------------------------------------------- | :---: |
+| **[models.dev](https://github.com/anomalyco/models.dev)**   | 6.0k  |
+| **[React Flow / xyflow](https://github.com/xyflow/xyflow)** | 37.7k |
+| **[LangGraph](https://github.com/langchain-ai/langgraph)**  | 37.6k |
+| **[Langfuse](https://github.com/langfuse/langfuse)**        | 31.4k |
+| **[Kiali](https://github.com/kiali/kiali)**                 | 3.6k  |
+| **[lobe-icons](https://github.com/lobehub/lobe-icons)**     | 2.2k  |
 
 ### 🛡️ Security
 
-| Project                                                                                     |  ⭐ | How it inspired OmniRoute                                                                                                                        |
-| ------------------------------------------------------------------------------------------- | --: | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **[awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)** · tldrsec | 710 | A curated list of secure-by-default libraries that guides our security choices (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). |
+| Project                                                                           | ⭐  |
+| :-------------------------------------------------------------------------------- | :-: |
+| **[awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)** | 710 |
 
 ### 🧭 Complementary tools
 
-| Project                                                                       | How it composes with OmniRoute                                                                                                                                                                             |
-| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **[CodeWebChat](https://github.com/robertpiosik/CodeWebChat)** · robertpiosik | Editor-side companion — VS Code + browser extension that autofills 15+ chatbot web UIs with editor context. Owns the free-web-UI rail alongside OmniRoute's API rail; can point its API mode at OmniRoute. |
+| Project                                                        |                                                                                                     ⭐                                                                                                     |
+| :------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| **[CodeWebChat](https://github.com/robertpiosik/CodeWebChat)** | Editor-side companion — VS Code + browser extension that autofills 15+ chatbot web UIs with editor context. Owns the free-web-UI rail alongside OmniRoute's API rail; can point its API mode at OmniRoute. |
 
 ## 📄 License
 
