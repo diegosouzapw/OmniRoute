@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import type { PkceLoopbackMismatchHint } from "@/lib/oauth/utils/pkceLoopbackWarning";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
 import Button from "./Button";
@@ -80,6 +81,122 @@ export function OAuthDeviceCodePanel({
           {t("deviceCodeWaiting")}
         </div>
       )}
+    </>
+  );
+}
+
+type OAuthLoopbackMismatchPanelProps = {
+  providerName: string;
+  hint: PkceLoopbackMismatchHint;
+  onClose: () => void;
+};
+
+/**
+ * Shown instead of the generic red "Connection failed" step when a
+ * PKCE_CALLBACK_SERVER_PROVIDERS login is attempted from a LAN IP (#8046).
+ *
+ * The flow is not retryable from here — retrying the same origin fails the same
+ * way — so the panel spends its space on the diagnosis and the copy-pasteable
+ * fix instead of offering a "Try again" button.
+ */
+export function OAuthLoopbackMismatchPanel({
+  providerName,
+  hint,
+  onClose,
+}: OAuthLoopbackMismatchPanelProps) {
+  const t = useTranslations("oauthModal");
+  const { copied, copy } = useCopyToClipboard();
+
+  const steps = [
+    {
+      key: "cmd",
+      body: t("loopbackMismatchStep1"),
+      value: hint.tunnelCommand,
+      copyId: "tunnel_cmd",
+      // "<user>" is passed as a VALUE, never inlined into the catalog: next-intl
+      // parses angle brackets in a message as rich-text tags and would throw.
+      note: t("loopbackMismatchStep1Note", { userPlaceholder: "<user>" }),
+    },
+    {
+      key: "url",
+      body: t("loopbackMismatchStep2"),
+      value: hint.localDashboardUrl,
+      copyId: "local_url",
+      note: null,
+    },
+    {
+      key: "retry",
+      body: t("loopbackMismatchStep3", { providerName }),
+      value: null,
+      copyId: null,
+      note: null,
+    },
+  ];
+
+  return (
+    <>
+      <div className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="size-10 shrink-0 rounded-full bg-amber-500/15 flex items-center justify-center">
+            <span className="material-symbols-outlined text-xl text-amber-500">lan</span>
+          </div>
+          <div>
+            <h3 className="text-base font-semibold">{t("loopbackMismatchTitle")}</h3>
+            <p className="text-xs text-text-muted mt-0.5 font-mono">
+              {hint.dashboardHost}:{hint.dashboardPort}
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-500 mb-1">
+            {t("loopbackMismatchWhatHappened")}
+          </p>
+          <p className="text-sm text-text-muted">
+            {t.rich("loopbackMismatchExplanation", {
+              providerName,
+              redirectUri: hint.redirectUri,
+              code: (chunks) => <code className="font-mono text-xs">{chunks}</code>,
+            })}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm font-medium mb-2">{t("loopbackMismatchHowToFix")}</p>
+          <ol className="space-y-3">
+            {steps.map((step, index) => (
+              <li key={step.key} className="flex gap-3">
+                <span className="size-5 shrink-0 mt-0.5 rounded-full bg-primary/15 text-primary text-xs font-semibold flex items-center justify-center">
+                  {index + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm">{step.body}</p>
+                  {step.value && (
+                    <div className="flex gap-2 mt-1.5">
+                      <Input value={step.value} readOnly className="flex-1 font-mono text-xs" />
+                      <Button
+                        variant="secondary"
+                        icon={copied === step.copyId ? "check" : "content_copy"}
+                        onClick={() => copy(step.value as string, step.copyId as string)}
+                      >
+                        {t("copy")}
+                      </Button>
+                    </div>
+                  )}
+                  {step.note && <p className="text-xs text-text-muted mt-1">{step.note}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <p className="text-xs text-text-muted">{t("loopbackMismatchAlternative")}</p>
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={onClose} variant="secondary" fullWidth>
+          {t("cancel")}
+        </Button>
+      </div>
     </>
   );
 }

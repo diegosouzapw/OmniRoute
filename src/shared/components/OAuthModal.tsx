@@ -6,7 +6,11 @@ import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
 import LinkifiedText from "./LinkifiedText";
-import { OAuthDeviceCodePanel, OAuthManualInputPanel } from "./OAuthModalPanels";
+import {
+  OAuthDeviceCodePanel,
+  OAuthLoopbackMismatchPanel,
+  OAuthManualInputPanel,
+} from "./OAuthModalPanels";
 import { parseResponseBody, getErrorMessage } from "@/shared/utils/api";
 import { isCredentialBlob, submitCredentialBlob } from "@/shared/components/oauthBlobSubmit";
 import {
@@ -15,7 +19,10 @@ import {
 } from "@/lib/oauth/utils/codexSessionImport";
 import GheConfigStep from "@/shared/components/oauthModal/GheConfigStep";
 import { parseGrokCliPasteToken } from "@/lib/oauth/utils/grokCliAuthJson";
-import { buildPkceLoopbackMismatchWarning } from "@/lib/oauth/utils/pkceLoopbackWarning";
+import {
+  buildPkceLoopbackMismatchHint,
+  type PkceLoopbackMismatchHint,
+} from "@/lib/oauth/utils/pkceLoopbackWarning";
 
 export { formatDeviceCodeRemaining } from "./OAuthModalPanels";
 
@@ -147,6 +154,9 @@ export default function OAuthModal({
   // DEVICE_CODE_PROVIDERS); flipping this to true routes startOAuthFlow through
   // the browser PKCE / PKCE_CALLBACK_SERVER_PROVIDERS branch instead.
   const [grokBrowserMode, setGrokBrowserMode] = useState(false);
+  // #8046 follow-up: structured diagnosis for the LAN-IP loopback mismatch, rendered
+  // by its own step instead of as prose inside the generic red error step.
+  const [loopbackHint, setLoopbackHint] = useState<PkceLoopbackMismatchHint | null>(null);
 
   const supportsTokenPaste = TOKEN_PASTE_PROVIDERS.has(provider);
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
@@ -162,6 +172,7 @@ export default function OAuthModal({
         isLocalhost: false,
         isTrueLocalhost: false,
         placeholderUrl: "/callback?code=...",
+        loopbackLocation: { hostname: "", port: "", protocol: "http:" },
       };
     }
 
@@ -178,10 +189,15 @@ export default function OAuthModal({
       isLocalhost: isLocal,
       isTrueLocalhost: isTrulyLocal,
       placeholderUrl: `${window.location.origin}/callback?code=...`,
+      loopbackLocation: {
+        hostname,
+        port: window.location.port,
+        protocol: window.location.protocol,
+      },
     };
   }, []);
 
-  const { isLocalhost, isTrueLocalhost, placeholderUrl } = runtimeLocation;
+  const { isLocalhost, isTrueLocalhost, placeholderUrl, loopbackLocation } = runtimeLocation;
   const callbackProcessedRef = useRef(false);
   const flowStartedRef = useRef(false);
 
@@ -508,8 +524,8 @@ export default function OAuthModal({
               forceManual = true;
             }
           } else if (isLocalhost) {
-            setError(buildPkceLoopbackMismatchWarning(provider));
-            setStep("error");
+            setLoopbackHint(buildPkceLoopbackMismatchHint(provider, loopbackLocation));
+            setStep("loopback-mismatch");
             return;
           }
           // Remote (non-LAN): fall through to standard auth code flow below
@@ -598,6 +614,7 @@ export default function OAuthModal({
       provider,
       isLocalhost,
       isTrueLocalhost,
+      loopbackLocation,
       startPolling,
       onSuccess,
       reauthConnection,
@@ -1071,6 +1088,17 @@ export default function OAuthModal({
               {t("done")}
             </Button>
           </div>
+        )}
+
+        {/* LAN-IP loopback mismatch (#8046) — a dedicated, actionable panel rather
+            than the generic red error step: retrying this origin cannot succeed, so
+            the space goes to the diagnosis + the copy-pasteable tunnel command. */}
+        {step === "loopback-mismatch" && loopbackHint && !showPasteToken && (
+          <OAuthLoopbackMismatchPanel
+            providerName={providerInfo.name}
+            hint={loopbackHint}
+            onClose={handleClose}
+          />
         )}
 
         {/* Error Step — OAuth errors only; paste-token errors shown inline */}
