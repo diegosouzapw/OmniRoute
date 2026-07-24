@@ -29,11 +29,7 @@ function loadLocale(locale: string): Record<string, unknown> {
   return JSON.parse(raw) as Record<string, unknown>;
 }
 
-function collectPlaceholderLeaves(
-  node: unknown,
-  pathPrefix: string,
-  out: string[]
-): void {
+function collectPlaceholderLeaves(node: unknown, pathPrefix: string, out: string[]): void {
   if (node === null || typeof node !== "object") {
     if (typeof node === "string" && node.startsWith(PLACEHOLDER_PREFIX)) {
       out.push(pathPrefix);
@@ -50,13 +46,40 @@ function collectPlaceholderLeaves(
 // 1. Focused repro: the exact keys from the issue report
 // ---------------------------------------------------------------------------
 
-test("#7258 repro: zh-TW keys carry a raw __MISSING__: placeholder before the fix is exercised", () => {
-  const zhTW = loadLocale("zh-TW");
+test("#7258 repro: a raw __MISSING__: placeholder is detected before the fix (deepMergeFallback) is exercised", () => {
+  // This originally loaded the real zh-TW.json and asserted it still carried
+  // leftover __MISSING__: placeholders (the translation content backlog that
+  // was present when #7258 was filed). #8024 completed the Traditional
+  // Chinese translation to 100%, invalidating that premise — and re-coupling
+  // this repro to whatever completeness zh-TW.json happens to have on a given
+  // day (it necessarily carries fresh __MISSING__: stubs again whenever
+  // scripts/i18n/sync-ui-keys.mjs discovers new keys, until those are
+  // translated) would make the test flaky either way.
+  //
+  // Use a synthetic fixture instead — same style as the deepMergeFallback
+  // fixtures below — standing in for a locale JSON shipped with untranslated
+  // content, the exact shape scripts/i18n/sync-ui-keys.mjs produces for any
+  // key a locale doesn't have yet. This proves the same underlying behavior
+  // the repro always proved: collectPlaceholderLeaves() finds a raw,
+  // untranslated placeholder leaf when the fix (deepMergeFallback) has not
+  // been exercised on it.
+  const rawLocaleFixture: Record<string, unknown> = {
+    settings: {
+      localUsageCommand: `${PLACEHOLDER_PREFIX}Run this command locally`,
+    },
+  };
+
   const leaves: string[] = [];
-  collectPlaceholderLeaves(zhTW, "", leaves);
+  collectPlaceholderLeaves(rawLocaleFixture, "", leaves);
+
   assert.ok(
     leaves.length > 0,
-    "expected zh-TW.json to still contain __MISSING__: placeholders (translation content backlog)"
+    "expected the raw locale fixture to still contain __MISSING__: placeholders before deepMergeFallback is applied"
+  );
+  assert.deepEqual(
+    leaves,
+    ["settings.localUsageCommand"],
+    "collectPlaceholderLeaves should surface the exact dotted path of the raw placeholder"
   );
 });
 

@@ -1051,7 +1051,6 @@
     "combosLiveSubtitle": "Cascata de roteamento em tempo real",
     "compressionStudio": "Compression Studio",
     "compressionExclusions": "Exclusões",
-    "compressionExclusionsSubtitle": "Bypass por modelo/endpoint",
     "contextSettingsSubtitle": "Padrões globais",
     "contextHeadroomSubtitle": "Compactação tabular",
     "contextSessionDedupSubtitle": "Deduplicação entre turnos",
@@ -1062,6 +1061,7 @@
     "contextUltraSubtitle": "Poda heurística",
     "contextOmniglyphSubtitle": "Contexto como imagens",
     "compressionStudioSubtitle": "Cascata de mecanismos em tempo real",
+    "compressionExclusionsSubtitle": "Bypass por modelo/endpoint",
     "chaosConfigSubtitle": "Execução paralela multimodelo",
     "routingSection": "Routing",
     "protocolsSection": "Protocols",
@@ -1102,6 +1102,7 @@
     "settingsSecurity": "Security",
     "settingsAccessTokens": "Tokens de Acesso",
     "settingsFeatureFlags": "Sinalizadores de recursos",
+    "settingsCache": "Cache",
     "settingsAuthz": "Autorização",
     "settingsRouting": "Routing",
     "settingsResilience": "Resilience",
@@ -1186,6 +1187,7 @@
     "settingsSecuritySubtitle": "Auth e criptografia",
     "settingsAccessTokensSubtitle": "Tokens de CLI com escopo para modo remoto",
     "settingsFeatureFlagsSubtitle": "Alternar recursos do sistema",
+    "settingsCacheSubtitle": "Catálogo de modelos e cache de respostas",
     "settingsSidebar": "Sidebar",
     "settingsSidebarSubtitle": "Customize sidebar layout",
     "settingsAuthzSubtitle": "Inventário de rotas e política de bypass",
@@ -1548,6 +1550,7 @@
     "settingsGeneralDescription": "Storage, database, and general instance configuration",
     "settingsAppearanceDescription": "Theme, branding, and visual customization",
     "settingsAiDescription": "AI behaviors, thinking budgets, vision, and memory settings",
+    "settingsCacheDescription": "TTL das entradas do cache de catálogo de modelos",
     "settingsSecurityDescription": "Authentication, authorization, and access control settings",
     "featureFlags": "Sinalizadores de recursos",
     "featureFlagsDescription": "Capacidades do sistema de controle e recursos experimentais",
@@ -3000,6 +3003,7 @@
     "randomDesc": "Seleção aleatória uniforme, depois fallback para modelos restantes",
     "leastUsedDesc": "Escolhe o modelo com menos requisições, equilibrando carga ao longo do tempo",
     "costOptimizedDesc": "Roteia para o modelo mais barato primeiro baseado em preços",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
     "resetAware": "RR com reconhecimento de redefinição",
     "resetAwareDesc": "Equilibra a cota restante com redefinições de 5h e semanais e, em seguida, faz um round-robin de pontuações semelhantes",
     "strictRandom": "Aleatório Estrito",
@@ -3263,6 +3267,7 @@
     "weightTaskFit": "Task Fit",
     "weightStability": "Stability",
     "weightTierPriority": "Tier",
+    "weightCacheAffinity": "Cache Hit Affinity",
     "reviewIntelligentTitle": "Intelligent Routing Config",
     "strategyRecommendations": {
       "priority": {
@@ -3486,9 +3491,7 @@
     "sessionStickinessDisabled": "Fixação desativada",
     "kimiPresetTitle": "Preset do Kimi Coding",
     "kimiPresetDescription": "Kimi K3 como o modelo principal (Moonshot API), com fallback automático para suas conexões do Kimi Code (kimi-coding, kimi-web) quando configurado.",
-    "kimiPresetCta": "Adicionar preset",
-    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
-    "weightCacheAffinity": "Cache Hit Affinity"
+    "kimiPresetCta": "Adicionar preset"
   },
   "costs": {
     "title": "Custos",
@@ -4930,6 +4933,7 @@
     "filterError": "Erro",
     "filterBanned": "Banido",
     "filterCreditsExhausted": "Créditos esgotados",
+    "accountSearchPlaceholder": "Search accounts…",
     "noFilteredConnections": "Nenhuma conexão corresponde ao filtro atual.",
     "failedSetAlias": "Falha ao definir alias",
     "setAliasSuccess": "Alias {alias} definido",
@@ -5957,8 +5961,7 @@
     "lmarenaWebCookieHint": "Abra arena.ai, faça login e depois copie o cabeçalho Cookie completo de uma requisição de rede. Inclua arena-auth-prod-v1.0 e arena-auth-prod-v1.1 (e outros fragmentos, se houver), preferencialmente com cf_clearance. Não cole apenas o cookie vazio arena-auth-prod-v1. Opcional: providerSpecificData.recaptchaV3Token se create-evaluation ainda retornar 403.",
     "kimiOfficialSupporterBadge": "Amigo Fundador",
     "kimiOfficialSupporterTooltip": "A Kimi (Moonshot AI) é a amiga fundadora de código aberto do OmniRoute",
-    "kimiPartnerLinkNote": "Link de parceiro — apoia o OmniRoute sem custo extra para você",
-    "accountSearchPlaceholder": "Search accounts…"
+    "kimiPartnerLinkNote": "Link de parceiro — apoia o OmniRoute sem custo extra para você"
   },
   "settings": {
     "title": "Configurações",
@@ -6053,6 +6056,18 @@
     "requestBodyLimitSaving": "Saving...",
     "requestBodyLimitSave": "Save",
     "requestBodyLimitCurrent": "Current: {value}",
+    "cacheConfigLoadFailed": "Falha ao carregar as configurações de cache",
+    "cacheConfigSaveSuccess": "Configurações de cache salvas",
+    "cacheConfigSaveFailed": "Falha ao salvar as configurações de cache",
+    "modelCatalogTtlWholeNumberError": "Use um número inteiro",
+    "modelCatalogTtlMinimumError": "Mínimo é {min} ms",
+    "modelCatalogTtlMaximumError": "Máximo é {max} ms",
+    "modelCatalogCacheTtl": "TTL do Cache de Catálogo de Modelos",
+    "modelCatalogCacheTtlDescription": "Por quanto tempo as respostas do catálogo de modelos ficam em cache antes de serem atualizadas",
+    "modelCatalogCacheTtlLabel": "TTL do cache de catálogo de modelos em milissegundos",
+    "modelCatalogCacheTtlSaving": "Salvando...",
+    "modelCatalogCacheTtlSave": "Salvar",
+    "modelCatalogCacheTtlCurrent": "Atual: {value} ms",
     "mitmProxy": "Proxy MITM",
     "pricing": "Preços",
     "storage": "Armazenamento",
@@ -6776,6 +6791,8 @@
     "resetting": "Redefinindo...",
     "contextOpt": "Context Optimized",
     "contextOptDesc": "Routes based on context window requirements and conversation length",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "priorityDesc": "Sequential fallback - tries provider 1 first, then provider 2, and so on",
     "weightedDesc": "Distributes traffic by percentage weights across providers",
     "modelRoutingTitle": "Model Routing Rules",
@@ -6908,6 +6925,8 @@
     "minutes": "minutos",
     "compressionModeRtk": "RTK",
     "compressionModeRtkDesc": "Command-aware tool output filtering",
+    "compressionModeCodexResponses": "Saída de ferramenta do Responses",
+    "compressionModeCodexResponsesDesc": "Compressão conservadora para saídas elegíveis de shell, patch, busca, build e JSON",
     "compressionModeStacked": "Stacked",
     "compressionModeStackedDesc": "RTK tool-output filtering followed by Caveman message compression",
     "qdrantTitle": "Qdrant (Memoria vetorial)",
@@ -7210,6 +7229,10 @@
         "label": "RTK",
         "description": "Filtragem de saída de comandos."
       },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
+      },
       "headroom": {
         "label": "Headroom",
         "description": "Compactação de JSON tabular."
@@ -7237,10 +7260,6 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "Contexto como imagem (Claude Fable 5, rota direta)."
-      },
-      "codex-responses": {
-        "label": "Responses Tool Output",
-        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7529,18 +7548,14 @@
     "modelLockoutMaxBackoffStepsDescription": "Número máximo de etapas de backoff antes que o cooldown pare de aumentar. O limite do Cooldown máximo é atingido primeiro na maioria das configurações, tornando este um teto de segurança para quando o Cooldown máximo for aumentado.",
     "disableSessionStickiness": "Desabilitar fixação de sessão",
     "disableSessionStickinessDesc": "Combos round-robin e aleatórios alternam para uma conexão diferente a cada requisição, em vez de fixar toda a conversa em uma conexão pelo hash da primeira mensagem. Deixe desativado para preservar acertos de cache de prompt em conversas com múltiplos turnos. Sobrescritas por combo têm prioridade.",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
     "credentialRedaction": "Ocultação de credenciais",
     "credentialRedactionDesc": "Oculte chaves de API, tokens e segredos do contexto enviado aos provedores e das respostas.",
     "enableCredentialRedaction": "Ativar ocultação de credenciais",
     "enableCredentialRedactionDesc": "Remove chaves de API, tokens, chaves privadas e JWTs de mensagens, chamadas de ferramentas e respostas.",
     "pricingAutoSyncDisabled": "Sincronização automática desativada",
-    "pricingAutoSyncEnabled": "Sincronização automática ativada",
-    "cacheOpt": "Cache Optimized",
-    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
-    "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
-    "compressionModeCodexResponses": "Saída de ferramenta do Responses",
-    "compressionModeCodexResponsesDesc": "Compressão conservadora para saídas elegíveis de shell, patch, busca, build e JSON"
+    "pricingAutoSyncEnabled": "Sincronização automática ativada"
   },
   "contextRtk": {
     "title": "Motor RTK",

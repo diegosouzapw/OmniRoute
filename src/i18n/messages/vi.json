@@ -1102,6 +1102,7 @@
     "settingsSecurity": "Bảo mật",
     "settingsAccessTokens": "Token truy cập",
     "settingsFeatureFlags": "Cờ tính năng",
+    "settingsCache": "Cache",
     "settingsAuthz": "Phân quyền",
     "settingsRouting": "Định tuyến",
     "settingsResilience": "Khả năng phục hồi",
@@ -1186,6 +1187,7 @@
     "settingsSecuritySubtitle": "Xác thực và mã hóa",
     "settingsAccessTokensSubtitle": "Token CLI có phạm vi cho chế độ từ xa",
     "settingsFeatureFlagsSubtitle": "Chuyển đổi các khả năng của hệ thống",
+    "settingsCacheSubtitle": "Danh mục mô hình và cache phản hồi",
     "settingsSidebar": "Thanh bên",
     "settingsSidebarSubtitle": "Tùy chỉnh bố cục thanh bên",
     "settingsAuthzSubtitle": "Kiểm kê định tuyến và chính sách bỏ qua",
@@ -1548,6 +1550,7 @@
     "settingsGeneralDescription": "Cài đặt lưu trữ, cơ sở dữ liệu, sao lưu và thời gian lưu giữ",
     "settingsAppearanceDescription": "Chủ đề, thương hiệu và tùy chỉnh giao diện",
     "settingsAiDescription": "Cài đặt về hành vi AI, ngân sách suy luận, khả năng thị giác và bộ nhớ",
+    "settingsCacheDescription": "TTL cho các mục cache danh mục mô hình",
     "settingsSecurityDescription": "Cài đặt xác thực, phân quyền và kiểm soát truy cập",
     "featureFlags": "Cờ tính năng",
     "featureFlagsDescription": "Kiểm soát khả năng của hệ thống và các tính năng thử nghiệm",
@@ -3000,6 +3003,7 @@
     "randomDesc": "Lựa chọn ngẫu nhiên đồng đều, sau đó dự phòng sang các mô hình còn lại",
     "leastUsedDesc": "Chọn mô hình có ít yêu cầu nhất, cân bằng tải theo thời gian",
     "costOptimizedDesc": "Định tuyến đến mô hình có giá thấp nhất trước dựa trên mức giá",
+    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
     "resetAware": "RR nhận biết đặt lại",
     "resetAwareDesc": "Cân bằng hạn ngạch còn lại với các mốc đặt lại sau 5 giờ và hằng tuần, sau đó xoay vòng các mô hình có điểm số tương tự",
     "strictRandom": "Ngẫu nhiên nghiêm ngặt",
@@ -3263,6 +3267,7 @@
     "weightTaskFit": "Độ phù hợp tác vụ",
     "weightStability": "Độ ổn định",
     "weightTierPriority": "Phân hạng",
+    "weightCacheAffinity": "Cache Hit Affinity",
     "reviewIntelligentTitle": "Cấu hình định tuyến thông minh",
     "strategyRecommendations": {
       "priority": {
@@ -3486,9 +3491,7 @@
     "sessionStickinessDisabled": "Tắt liên kết phiên",
     "kimiPresetTitle": "Kimi Coding preset",
     "kimiPresetDescription": "Kimi K3 as the primary model (Moonshot API), with automatic fallback to your Kimi Code connections (kimi-coding, kimi-web) when configured.",
-    "kimiPresetCta": "Add preset",
-    "cacheOptimizedDesc": "Routes each reusable prompt prefix consistently to the same provider account",
-    "weightCacheAffinity": "Cache Hit Affinity"
+    "kimiPresetCta": "Add preset"
   },
   "costs": {
     "title": "Chi phí",
@@ -4930,6 +4933,7 @@
     "filterError": "Lỗi",
     "filterBanned": "Bị cấm",
     "filterCreditsExhausted": "Hết tín dụng",
+    "accountSearchPlaceholder": "Search accounts…",
     "noFilteredConnections": "Không có kết nối nào khớp với bộ lọc hiện tại.",
     "failedSetAlias": "Không thể đặt bí danh",
     "setAliasSuccess": "Đã đặt bí danh {alias}",
@@ -5957,8 +5961,7 @@
     "lmarenaWebCookieHint": "Mở arena.ai, đăng nhập, sau đó sao chép toàn bộ header Cookie từ một yêu cầu mạng. Bao gồm arena-auth-prod-v1.0 và arena-auth-prod-v1.1 (và các phần tiếp theo nếu có), ưu tiên kèm theo cf_clearance. Không chỉ dán cookie arena-auth-prod-v1 trống. Tùy chọn: providerSpecificData.recaptchaV3Token nếu create-evaluation vẫn trả về 403.",
     "kimiOfficialSupporterBadge": "Người Bạn Sáng Lập",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) là người bạn mã nguồn mở sáng lập của OmniRoute",
-    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you",
-    "accountSearchPlaceholder": "Search accounts…"
+    "kimiPartnerLinkNote": "Partner link — supports OmniRoute at no extra cost to you"
   },
   "settings": {
     "title": "Cài đặt",
@@ -6053,6 +6056,18 @@
     "requestBodyLimitSaving": "Đang lưu...",
     "requestBodyLimitSave": "Lưu",
     "requestBodyLimitCurrent": "Hiện tại: {value}",
+    "cacheConfigLoadFailed": "Không thể tải cài đặt cache",
+    "cacheConfigSaveSuccess": "Đã lưu cài đặt cache",
+    "cacheConfigSaveFailed": "Không thể lưu cài đặt cache",
+    "modelCatalogTtlWholeNumberError": "Sử dụng một số nguyên",
+    "modelCatalogTtlMinimumError": "Tối thiểu là {min} ms",
+    "modelCatalogTtlMaximumError": "Tối đa là {max} ms",
+    "modelCatalogCacheTtl": "TTL cache danh mục mô hình",
+    "modelCatalogCacheTtlDescription": "Thời gian phản hồi danh mục mô hình được lưu trong cache trước khi làm mới",
+    "modelCatalogCacheTtlLabel": "TTL cache danh mục mô hình tính bằng mili giây",
+    "modelCatalogCacheTtlSaving": "Đang lưu...",
+    "modelCatalogCacheTtlSave": "Lưu",
+    "modelCatalogCacheTtlCurrent": "Hiện tại: {value} ms",
     "mitmProxy": "MITM Proxy",
     "pricing": "Định giá",
     "storage": "Lưu trữ",
@@ -6269,6 +6284,14 @@
     "proxyPoolTab": "Nhóm proxy",
     "freePoolTab": "Nhóm miễn phí",
     "proxyDocumentationTab": "Tài liệu",
+    "proxySubscriptionsTab": "Gói đăng ký",
+    "proxySubscription": {
+      "error": {
+        "LOCAL_CORE_ENDPOINT_INVALID": "Điểm cuối proxy-core cục bộ không hợp lệ; các nút SS/VMess/Trojan/VLESS đã bị bỏ qua.",
+        "NEEDS_CORE_NOT_CONFIGURED": "Gói đăng ký này có các nút cần một proxy core cục bộ (SS/VMess/Trojan/VLESS); chúng sẽ không được định tuyến cho đến khi bạn cấu hình điểm cuối SOCKS5 của core cục bộ.",
+        "NO_USABLE_NODES": "Gói đăng ký không tạo ra nút nào có thể sử dụng (http/https/socks5 hoặc các nút có điểm cuối core cục bộ)."
+      }
+    },
     "bulkHealthcheck": "Kiểm tra tình trạng hàng loạt",
     "bulkHealthcheckDesc": "Kiểm tra tất cả proxy đã cấu hình với một URL đích để xác định proxy nào hoạt động.",
     "healthcheckTesting": "Đang kiểm tra...",
@@ -6768,6 +6791,8 @@
     "resetting": "Đang đặt lại...",
     "contextOpt": "Tối ưu hóa ngữ cảnh",
     "contextOptDesc": "Định tuyến dựa trên yêu cầu cửa sổ ngữ cảnh và độ dài hội thoại",
+    "cacheOpt": "Cache Optimized",
+    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
     "priorityDesc": "Dự phòng tuần tự - thử nhà cung cấp 1 trước, sau đó là nhà cung cấp 2, v.v.",
     "weightedDesc": "Phân phối lưu lượng theo tỷ trọng phần trăm giữa các nhà cung cấp",
     "modelRoutingTitle": "Quy tắc định tuyến mô hình",
@@ -6900,6 +6925,8 @@
     "minutes": "phút",
     "compressionModeRtk": "RTK",
     "compressionModeRtkDesc": "Bộ lọc đầu ra công cụ nhận biết lệnh",
+    "compressionModeCodexResponses": "Đầu ra công cụ của Responses",
+    "compressionModeCodexResponsesDesc": "Nén thận trọng cho các đầu ra shell, patch, tìm kiếm, build và JSON đủ điều kiện",
     "compressionModeStacked": "Xếp chồng",
     "compressionModeStackedDesc": "Lọc đầu ra công cụ RTK, sau đó nén tin nhắn bằng Caveman",
     "qdrantTitle": "Qdrant (Bộ nhớ vectơ)",
@@ -7202,6 +7229,10 @@
         "label": "RTK",
         "description": "Lọc đầu ra của lệnh."
       },
+      "codex-responses": {
+        "label": "Responses Tool Output",
+        "description": "Conservative compression for supported Responses tool outputs."
+      },
       "headroom": {
         "label": "Headroom",
         "description": "Nén gọn JSON dạng bảng."
@@ -7229,10 +7260,6 @@
       "omniglyph": {
         "label": "OmniGlyph",
         "description": "Chuyển ngữ cảnh thành hình ảnh (Claude Fable 5, định tuyến trực tiếp)."
-      },
-      "codex-responses": {
-        "label": "Responses Tool Output",
-        "description": "Conservative compression for supported Responses tool outputs."
       }
     },
     "compressionOutputStyle": {
@@ -7521,26 +7548,14 @@
     "modelLockoutMaxBackoffStepsDescription": "Số bước tăng thời gian chờ tối đa trước khi thời gian chờ ngừng tăng. Trong hầu hết cấu hình, giới hạn Thời gian chờ tối đa sẽ được đạt đến trước, vì vậy đây là giới hạn an toàn trong trường hợp tăng Thời gian chờ tối đa.",
     "disableSessionStickiness": "Tắt tính năng gắn kết phiên",
     "disableSessionStickinessDesc": "Các tổ hợp luân phiên và ngẫu nhiên sẽ chuyển sang một kết nối khác với mỗi yêu cầu, thay vì gắn toàn bộ cuộc trò chuyện với một kết nối dựa trên mã băm của tin nhắn đầu tiên. Hãy để tùy chọn này tắt để duy trì các lần trúng cache prompt cho các cuộc trò chuyện nhiều lượt. Các thiết lập ghi đè theo từng tổ hợp được ưu tiên.",
+    "promptCacheAffinity": "Prompt-cache locality routing",
+    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
     "credentialRedaction": "Credential Redaction",
     "credentialRedactionDesc": "Redact API keys, tokens, and secrets from context sent to providers and from responses.",
     "enableCredentialRedaction": "Enable credential redaction",
     "enableCredentialRedactionDesc": "Scrubs API keys, tokens, private keys, and JWTs from messages, tool calls, and responses.",
-    "proxySubscriptionsTab": "Gói đăng ký",
-    "proxySubscription": {
-      "error": {
-        "LOCAL_CORE_ENDPOINT_INVALID": "Điểm cuối proxy-core cục bộ không hợp lệ; các nút SS/VMess/Trojan/VLESS đã bị bỏ qua.",
-        "NEEDS_CORE_NOT_CONFIGURED": "Gói đăng ký này có các nút cần một proxy core cục bộ (SS/VMess/Trojan/VLESS); chúng sẽ không được định tuyến cho đến khi bạn cấu hình điểm cuối SOCKS5 của core cục bộ.",
-        "NO_USABLE_NODES": "Gói đăng ký không tạo ra nút nào có thể sử dụng (http/https/socks5 hoặc các nút có điểm cuối core cục bộ)."
-      }
-    },
     "pricingAutoSyncDisabled": "Đã tắt đồng bộ hóa tự động",
-    "pricingAutoSyncEnabled": "Đã bật đồng bộ hóa tự động",
-    "cacheOpt": "Cache Optimized",
-    "cacheOptDesc": "Keeps the same reusable prompt prefix on the same provider account",
-    "promptCacheAffinity": "Prompt-cache locality routing",
-    "promptCacheAffinityDesc": "Prefer the same provider account for matching prompt-cache keys while preserving health and quota failover.",
-    "compressionModeCodexResponses": "Đầu ra công cụ của Responses",
-    "compressionModeCodexResponsesDesc": "Nén thận trọng cho các đầu ra shell, patch, tìm kiếm, build và JSON đủ điều kiện"
+    "pricingAutoSyncEnabled": "Đã bật đồng bộ hóa tự động"
   },
   "contextRtk": {
     "title": "RTK Engine",
