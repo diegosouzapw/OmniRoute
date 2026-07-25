@@ -540,7 +540,12 @@ describe("ZaiWebExecutor", () => {
         signal: null,
       });
 
-      assert.equal(capture.completionUrl, "https://chat.z.ai/api/v2/chat/completions");
+      // #8014: completions must target the versioned v2 path. The query string
+      // carries the per-request signature payload, so match the endpoint prefix.
+      assert.ok(
+        String(capture.completionUrl).startsWith("https://chat.z.ai/api/v2/chat/completions?"),
+        `expected the v2 completions endpoint, got ${capture.completionUrl}`
+      );
       const newChatBody = JSON.parse(String(capture.newChatInit?.body));
       assert.equal(newChatBody.chat.enable_thinking, true);
       assert.equal(newChatBody.chat.reasoning_effort, "high");
