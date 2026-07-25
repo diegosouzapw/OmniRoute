@@ -176,3 +176,50 @@ test("legacy Alibaba China connections also sync only Beijing text models", asyn
     expectedModelIds: ALIBABA_MODEL_STUDIO_MODEL_IDS,
   });
 });
+
+test("Alibaba free billing mode syncs all live text models, not only the curated catalog", async () => {
+  await resetStorage();
+  const connection = await providersDb.createProviderConnection({
+    provider: "alibaba",
+    authType: "apikey",
+    name: "alibaba-free-live",
+    apiKey: "test-dashscope-key",
+    providerSpecificData: { region: "global-sg", alibabaBillingMode: "free" },
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ object: "list", data: MIXED_DASHSCOPE_MODELS }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })) as typeof globalThis.fetch;
+
+  try {
+    const response = await modelsRoute.GET(
+      new Request(`http://localhost/api/providers/${connection.id}/models?refresh=true`),
+      { params: { id: connection.id } }
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.ok(
+      body.models.length > ALIBABA_MODEL_STUDIO_MODEL_IDS.length,
+      "free billing mode should expose more than the curated catalog"
+    );
+    assert.ok(
+      body.models.some((model: { id: string }) => model.id === "qwen3-coder-next"),
+      "expected upstream-only free-tier model to be included"
+    );
+    assert.equal(
+      body.models.some((model: { id: string }) => model.id === "qwen-image-2.0-pro"),
+      false,
+      "non-text models must still be filtered out"
+    );
+    assert.equal(
+      body.models.some((model: { id: string }) => model.id === "kimi-k2.7-code"),
+      false,
+      "third-party paid-only models must be excluded from free billing discovery"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

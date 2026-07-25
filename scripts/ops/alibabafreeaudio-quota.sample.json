@@ -1,0 +1,427 @@
+{
+  "code": "200",
+  "data": {
+    "DataV2": {
+      "data": {
+        "data": {
+          "freeTierQuotas": [
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-asr-flash-2025-09-08",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-omni-30b-a3b-captioner",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-vd-2026-01-26",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-vc-realtime-2026-01-15",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "cosyvoice-v3-flash",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-flash-realtime",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-voice-enrollment",
+              "quotaTotal": 1000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "fun-asr-2025-08-25",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "fun-asr-mtl",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "fun-asr-realtime-2025-11-07",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-flash-2025-09-18",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-flash",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-flash-realtime-2025-09-18",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-asr-flash-realtime-2026-02-10",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-livetranslate-flash-realtime-2025-09-22",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-vc-2026-01-22",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1791820800000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-audio-3.0-tts-flash",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-instruct-flash-2026-01-26",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "fun-asr-2025-11-07",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-flash-2025-11-27",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-vc-realtime-2025-11-27",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-asr-flash-realtime-2025-10-27",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-asr-flash-realtime",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-vd-realtime-2025-12-16",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "cosyvoice-v3-plus",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-instruct-flash-realtime-2026-01-22",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-asr-flash-2026-02-10",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-instruct-flash",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-instruct-flash-realtime",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "fun-asr-mtl-2025-08-25",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1791820800000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-audio-3.0-tts-plus",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-vd-realtime-2026-01-15",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-livetranslate-flash",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "fun-asr-realtime",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-asr-flash-filetrans",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-asr-flash-filetrans-2025-11-17",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-livetranslate-flash-realtime",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-tts-flash-realtime-2025-11-27",
+              "quotaTotal": 10000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-livetranslate-flash-realtime-2026-05-19",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "fun-asr",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-livetranslate-flash-realtime",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-livetranslate-flash-2025-12-01",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-asr-flash",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 36000,
+              "quotaValidityPeriod": 1789488000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "fun-asr-flash-2026-06-15",
+              "quotaTotal": 36000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 40,
+              "model": "qwen-voice-design",
+              "quotaTotal": 4,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 0,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 0,
+              "model": "voice-enrollment",
+              "quotaTotal": 0,
+              "quotaStatus": "VALID"
+            }
+          ]
+        },
+        "success": true
+      }
+    }
+  }
+}

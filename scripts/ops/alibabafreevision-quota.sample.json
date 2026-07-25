@@ -1,0 +1,573 @@
+{
+  "code": "200",
+  "data": {
+    "DataV2": {
+      "ret": ["SUCCESS::接口调用成功"],
+      "data": {
+        "data": {
+          "freeTierQuotas": [
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.1-vace-plus",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-videoedit",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 200,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.1-kf2v-plus",
+              "quotaTotal": 200,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-edit-plus",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10,
+              "quotaValidityPeriod": 1789920000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "happyhorse-1.1-i2v",
+              "quotaTotal": 10,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-edit-plus-2025-10-30",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-i2v",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.6-image",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.6-t2v",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-edit",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.2-t2v-plus",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-2.0",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-t2v",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "z-image-turbo",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-max-2025-12-30",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-r2v",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.2-animate-move",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-edit-max-2026-01-16",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.6-i2v",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.5-t2v-preview",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 200,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.1-t2v-plus",
+              "quotaTotal": 200,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "happyhorse-1.0-t2v",
+              "quotaTotal": 10,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "happyhorse-1.0-r2v",
+              "quotaTotal": 10,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.5-t2i-preview",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1790092800000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-2.0-pro-2026-06-22",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 200,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.1-i2v-turbo",
+              "quotaTotal": 200,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 200,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.1-t2v-turbo",
+              "quotaTotal": 200,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 200,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.1-t2i-turbo",
+              "quotaTotal": 200,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "happyhorse-1.0-video-edit",
+              "quotaTotal": 10,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10,
+              "quotaValidityPeriod": 1789920000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "happyhorse-1.1-r2v",
+              "quotaTotal": 10,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-i2v-2026-04-25",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10,
+              "quotaValidityPeriod": 1789920000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "happyhorse-1.1-t2v",
+              "quotaTotal": 10,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.5-i2v-preview",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.2-t2i-flash",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.2-i2v-plus",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.2-t2i-plus",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.2-i2v-flash",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1790697600000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-t2v-2026-06-12",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1790697600000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-r2v-2026-06-12",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-2.0-2026-03-03",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-edit-max",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-max",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-2.0-pro-2026-03-03",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.5-i2i-preview",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-plus",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-2.0-pro",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-plus-2026-01-09",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 200,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.1-i2v-plus",
+              "quotaTotal": 200,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-image-pro",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.6-r2v",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 200,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.1-t2i-plus",
+              "quotaTotal": 200,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.2-animate-mix",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.6-t2i",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-2.0-pro-2026-04-22",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.6-i2v-flash",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-t2v-2026-04-25",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 100,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-image-edit-plus-2025-12-15",
+              "quotaTotal": 100,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.6-r2v-flash",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 10,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "happyhorse-1.0-i2v",
+              "quotaTotal": 10,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 50,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 100,
+              "model": "wan2.7-image",
+              "quotaTotal": 50,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 0,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 0,
+              "model": "qwen-image-3.0-pro",
+              "quotaTotal": 0,
+              "quotaStatus": "VALID"
+            }
+          ]
+        },
+        "success": true
+      }
+    },
+    "success": true
+  }
+}

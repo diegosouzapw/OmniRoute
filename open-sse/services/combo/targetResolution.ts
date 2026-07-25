@@ -161,6 +161,12 @@ async function isTargetSelectableForWeighted(
   ) {
     return false;
   }
+  if (target.provider && rawModel && target.connectionId) {
+    const { isAlibabaFreeTierModelRoutable } = await import("../alibabaFreeTier.ts");
+    if (!(await isAlibabaFreeTierModelRoutable(target.provider, target.connectionId, rawModel))) {
+      return false;
+    }
+  }
   return isModelAvailable ? await isModelAvailable(target.modelStr, target) : true;
 }
 

@@ -1,0 +1,201 @@
+{
+  "code": "200",
+  "data": {
+    "DataV2": {
+      "data": {
+        "data": {
+          "freeTierQuotas": [
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-omni-plus-2026-03-15",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-omni-flash-realtime-2025-09-15",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-omni-flash-realtime",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-omni-turbo-realtime-2025-05-08",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-omni-flash-realtime-2026-03-15",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-omni-plus",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-omni-flash",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-omni-flash-2025-12-01",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-omni-turbo-realtime",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-omni-turbo",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen2.5-omni-7b",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-omni-plus-realtime",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen-omni-turbo-2025-03-26",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-omni-flash",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-omni-flash-realtime-2025-12-01",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-omni-plus-realtime-2026-03-15",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-omni-flash-realtime",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3.5-omni-flash-2026-03-15",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 1000000,
+              "quotaValidityPeriod": 1786896000000,
+              "freeTierOnly": true,
+              "quotaTotalPercentage": 100,
+              "model": "qwen3-omni-flash-2025-09-15",
+              "quotaTotal": 1000000,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 0,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 0,
+              "model": "qwen-omni-turbo-realtime-latest",
+              "quotaTotal": 0,
+              "quotaStatus": "VALID"
+            },
+            {
+              "quotaInitTotal": 0,
+              "freeTierOnly": false,
+              "quotaTotalPercentage": 0,
+              "model": "qwen-omni-turbo-latest",
+              "quotaTotal": 0,
+              "quotaStatus": "VALID"
+            }
+          ]
+        },
+        "success": true
+      }
+    }
+  }
+}
