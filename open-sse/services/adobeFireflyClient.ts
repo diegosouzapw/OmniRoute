@@ -339,7 +339,7 @@ export function decodeAdobeJwtPayload(token: string): Record<string, unknown> | 
     // Do not call extractAdobeCredentialToken here (would recurse via guest checks).
     let raw = String(token || "").trim().replace(/^bearer\s+/i, "").trim();
     // If a blob was passed, take the first JWT-shaped segment.
-    const m = raw.match(/eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}/);
+    const m = raw.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
     if (m) raw = m[0];
     const part = raw.split(".")[1];
     if (!part) return null;
@@ -432,11 +432,11 @@ export function extractAdobeCredentialToken(raw: string): string {
   }
 
   // Authorization: Bearer eyJ...
-  const authMatch = value.match(/Authorization\s*:\s*Bearer\s+([A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096})/i);
+  const authMatch = value.match(/Authorization\s*:\s*Bearer\s+([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i);
   if (authMatch?.[1] && looksLikeAdobeJwt(authMatch[1])) return authMatch[1];
 
   // Any eyJ… JWT in the blob (HAR / multi-line). Prefer user AdobeID tokens.
-  const jwtMatches = value.match(/eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}/g);
+  const jwtMatches = value.match(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g);
   if (jwtMatches && jwtMatches.length > 0) {
     const sorted = [...jwtMatches].sort((a, b) => b.length - a.length);
     const user = sorted.find((t) => looksLikeAdobeJwt(t) && isAdobeUserAccessToken(t));
@@ -485,14 +485,14 @@ export function extractAdobeCookieHeader(raw: string): string {
       if (/^bearer\s+/i.test(line)) return false;
       if (looksLikeAdobeJwt(line)) return false;
       // Drop standalone eyJ… segments
-      if (/^eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}$/.test(line)) return false;
+      if (/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(line)) return false;
       return true;
     })
     .join("; ");
 
   // Also strip inline eyJ JWT tokens that may sit inside a cookie string
   const noJwt = cleaned
-    .replace(/eyJ[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}\.[A-Za-z0-9_-]{1,4096}/g, "")
+    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "")
     .replace(/;\s*;/g, ";")
     .replace(/^;\s*|\s*;$/g, "")
     .trim();
@@ -699,7 +699,7 @@ export function buildAdobeImagePayload(opts: {
       seeds,
       output: { storeInputs: true },
       prompt: opts.prompt,
-      referenceBlobs: [],
+      referenceBlobs: [] as Array<Record<string, unknown>>,
       modelSpecificPayload: { size: "auto" },
       modelId: opts.modelSpec.upstreamModelId,
       modelVersion: opts.modelSpec.upstreamModelVersion,
@@ -710,14 +710,20 @@ export function buildAdobeImagePayload(opts: {
       },
     };
     if (opts.sourceImageIds?.length) {
+      // gpt-image subject references (mask path uses separate mask blob when present).
       payload.generationMetadata = { module: "image2image", submodule: "ff-image-generate" };
-      payload.referenceBlobs = opts.sourceImageIds.map((id) => ({ id, usage: "subject" }));
+      payload.referenceBlobs = opts.sourceImageIds.map((id) => ({
+        id: String(id),
+        usage: "subject",
+      }));
       payload.modelSpecificPayload = {};
     }
     return payload;
   }
 
-  // nano (Gemini Flash) + generic (Flux / Seedream / Runway image): same 3P image shape
+  // nano (Gemini Flash) + generic (Flux / Seedream / Runway image): same 3P image shape.
+  // Live capture (browser network capture): referenceBlobs with usage "general"
+  // keep module "text2image" (not image2image) for nano multi-ref composition.
   const sizeMap = NANO_SIZE_MAP[opts.outputResolution] || NANO_SIZE_MAP["2K"];
   const pixel = sizeMap[ratio] || sizeMap["1:1"];
   const payload: Record<string, unknown> = {
@@ -735,13 +741,19 @@ export function buildAdobeImagePayload(opts: {
       parameters: { addWatermark: false },
       aspectRatio: ratio,
     },
-    referenceBlobs: [],
+    referenceBlobs: [] as Array<Record<string, unknown>>,
   };
   if (Object.keys(genSettings).length) payload.generationSettings = genSettings;
 
   if (opts.sourceImageIds?.length) {
-    payload.generationMetadata = { module: "image2image", submodule: "ff-image-generate" };
-    payload.referenceBlobs = opts.sourceImageIds.map((id) => ({ id, usage: "general" }));
+    payload.referenceBlobs = opts.sourceImageIds.map((id) => ({
+      id: String(id),
+      usage: "general",
+    }));
+    // Flux / Seedream / Runway image historically used image2image; nano keeps text2image.
+    if (opts.modelSpec.family === "generic") {
+      payload.generationMetadata = { module: "image2image", submodule: "ff-image-generate" };
+    }
   }
   return payload;
 }
@@ -933,32 +945,245 @@ export function buildAdobeSubmitNonce(accessToken: string, prompt: string): stri
 }
 
 /**
- * Synthesize x-arp-session-id when no sherlockToken cookie is available.
- * Shape matches adobe2api / GPT2Image-Pro: base64(JSON({sid, ftr})).
- * Working clients ALWAYS send this header on generate-async.
+ * Live firefly.adobe.com Arkose public key (browser network capture, 2026-07).
+ * Browser x-arp-session-id is base64(JSON({sid, ark, ftr})) — synthetic sessions without a
+ * real Arkose blob often get colligo HTTP 408 "system under load". Prefer pasted sherlockToken.
  */
-export function buildAdobeArpSessionId(): string {
+export const ADOBE_FIREFLY_ARKOSE_PUBLIC_KEY = "BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C";
+/** Live ftr magic (replaces older adobe2api `dUAL43-mnts-ants-d4_31ck__tt`). */
+export const ADOBE_FIREFLY_FTR_MAGIC = "__UDF43-m4_31ck";
+
+/**
+ * True when a string looks like a Firefly ARP session (base64 JSON with sid).
+ */
+export function isValidAdobeArpSessionId(value: string): boolean {
+  const t = String(value || "").trim();
+  if (t.length < 4) return false;
+  // Never treat Cookie name=value pairs (e.g. aux_sid=…, forter=…) as ARP.
+  // Live ARP is base64(JSON) or a bare opaque token — not "key=value".
+  if (/^[A-Za-z_][A-Za-z0-9_.%-]*=/.test(t) && !t.startsWith("eyJ")) return false;
+  try {
+    const padded = t + "=".repeat((4 - (t.length % 4)) % 4);
+    const json = Buffer.from(padded.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString(
+      "utf8"
+    );
+    // Reject binary garbage that "decodes" but isn't JSON (corrupted sherlock paste).
+    if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(json)) return false;
+    const obj = JSON.parse(json) as { sid?: unknown; ftr?: unknown; ark?: unknown };
+    return typeof obj.sid === "string" && obj.sid.length > 0;
+  } catch {
+    // Opaque short sherlockToken values (tests / non-JSON) when non-empty.
+    // No mid-string "=" (cookie pair leftovers); padding "=" at end is OK.
+    if (/=.+/.test(t.replace(/=+$/, ""))) return false;
+    return !looksLikeAdobeJwt(t) && /^[A-Za-z0-9+/_=-]+$/.test(t);
+  }
+}
+
+/**
+ * Synthesize x-arp-session-id when no browser sherlockToken is available.
+ * Shape matches live successful generate (adobe/image_generate.txt):
+ *   base64(JSON({sid, ark, bfp, ftr, fpjs}))
+ * ALWAYS send this header on generate-async / storage upload.
+ * Prefer real sherlockToken / cookie rebuild (forter+arkose+sid) when available.
+ */
+export function buildAdobeArpSessionId(region = "eu-west-1"): string {
   const nowMs = Date.now();
-  const rand = randomBytes(16).toString("hex");
   const sid = randomUUID();
-  const pid = typeof process !== "undefined" && process.pid ? process.pid : 0;
-  // Magic suffix is part of the wire contract reverse-engineered by adobe2api.
-  const ftr = `${rand}_${nowMs}_${pid}_dUAL43-mnts-ants-d4_31ck__tt`;
-  const raw = JSON.stringify({ sid, ftr });
+  const randHex = randomBytes(16).toString("hex");
+  // Live ftr: {32hex}_{ms}__UDF43-m4_31ck_{b64}=-N-v2_tt
+  const mid = randomBytes(12).toString("base64url");
+  const n = 1000 + Math.floor(Math.random() * 9000);
+  const ftr = `${randHex}_${nowMs}${ADOBE_FIREFLY_FTR_MAGIC}_${mid}=-${n}-v2_tt`;
+  // Arkose session-shaped string (public pk from firefly SPA). Without a real
+  // Arkose solve this may still 408; real sherlockToken is the stable path.
+  const arkSession = `${randomBytes(8).toString("hex")}.${Math.random().toFixed(10).slice(2)}`;
+  const ark =
+    `${arkSession}|r=${region}|meta=3|metabgclr=transparent|metaiconclr=%23757575|` +
+    `guitextcolor=%23000000|pk=${ADOBE_FIREFLY_ARKOSE_PUBLIC_KEY}|at=40|sup=1|rid=13|ag=101|` +
+    `cdn_url=https%3A%2F%2Farks-client.adobe.com%2Fcdn%2Ffc|` +
+    `surl=https%3A%2F%2Farks-client.adobe.com|` +
+    `smurl=https%3A%2F%2Farks-client.adobe.com%2Fcdn%2Ffc%2Fassets%2Fstyle-manager`;
+  // Successful browser ARP also carries Browser Fingerprint + FingerprintJS payload.
+  const bfp = randomUUID();
+  const fpjs = JSON.stringify({
+    requestId: `${nowMs}.${randomBytes(3).toString("base64url")}`,
+    visitorId: randomBytes(12).toString("base64url"),
+  });
+  const raw = JSON.stringify({ sid, ark, bfp, ftr, fpjs });
   return Buffer.from(raw, "utf-8").toString("base64");
 }
 
 /**
- * Pull sherlockToken / x-arp-session-id from a Cookie header if present.
- * Browser generate sends Cookie.sherlockToken as x-arp-session-id.
+ * Pull sherlockToken / x-arp-session-id from Cookie header, HAR paste, or multi-line credential.
+ * Browser generate sends Cookie.sherlockToken (or the request header) as x-arp-session-id.
+ * Live value is base64({sid, ark, ftr}) — includes Arkose session data.
+ *
+ * Also handles PasswordBox mangling (JWT + ARP joined by a single space) and full fetch()
+ * copy/paste from DevTools (browser network capture).
  */
 export function extractAdobeArpSessionId(cookieOrBlob: string): string {
   const raw = String(cookieOrBlob || "");
-  const m = raw.match(/(?:^|[;\s])sherlockToken=([^;]+)/i);
-  if (m?.[1]) return decodeURIComponent(m[1].trim());
-  const m2 = raw.match(/(?:^|[;\s])x-arp-session-id=([^;]+)/i);
-  if (m2?.[1]) return decodeURIComponent(m2[1].trim());
-  return "";
+  if (!raw.trim()) return "";
+
+  const candidates: string[] = [];
+  const push = (v: string | undefined | null) => {
+    if (!v) return;
+    let t = v.trim().replace(/^["']|["']$/g, "").trim();
+    try {
+      // Cookie values are often URI-encoded
+      if (/%[0-9A-Fa-f]{2}/.test(t)) t = decodeURIComponent(t);
+    } catch {
+      /* keep raw */
+    }
+    if (t) candidates.push(t);
+  };
+
+  // Cookie: sherlockToken=...
+  const m = raw.match(/(?:^|[;\s\n\r])sherlockToken=([^;\s\n\r]+)/i);
+  if (m?.[1]) push(m[1]);
+
+  // Cookie or form: x-arp-session-id=...
+  const m2 = raw.match(/(?:^|[;\s\n\r])x-arp-session-id=([^;\s\n\r]+)/i);
+  if (m2?.[1]) push(m2[1]);
+
+  // HAR / Network / fetch() headers: "x-arp-session-id": "eyJ..." or x-arp-session-id: eyJ...
+  const m3 = raw.match(/["']?x-arp-session-id["']?\s*[:=]\s*["']?([A-Za-z0-9+/=_-]{40,})["']?/i);
+  if (m3?.[1]) push(m3[1]);
+
+  // HAR: "sherlockToken": "eyJ..."
+  const m4 = raw.match(/["']?sherlockToken["']?\s*[:=]\s*["']?([A-Za-z0-9+/=_-]{40,})["']?/i);
+  if (m4?.[1]) push(m4[1]);
+
+  // Bare base64 ARP blob on its own line (line 2 of two-line paste)
+  for (const line of raw.split(/[\r\n]+/)) {
+    const t = line.trim().replace(/^["']|["']$/g, "");
+    // Skip pure JWT lines
+    if (looksLikeAdobeJwt(t)) continue;
+    if (t.length >= 40 && isValidAdobeArpSessionId(t)) push(t);
+  }
+
+  // JWT + ARP joined by whitespace (single-line PasswordBox paste collapses \n → space)
+  // Split on whitespace only — NOT on "=" — so we never treat "aux_sid=…" as a token.
+  const withoutJwt = raw.replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, " ");
+  for (const token of withoutJwt.split(/[\s,;"']+/)) {
+    let t = token.trim();
+    // If this chunk is name=value from a Cookie header, only keep the value when
+    // the name is sherlockToken / x-arp-session-id; skip aux_sid, forter, etc.
+    const eq = t.indexOf("=");
+    if (eq > 0 && eq < 40 && /^[A-Za-z0-9_.%-]+$/.test(t.slice(0, eq))) {
+      const name = t.slice(0, eq).toLowerCase();
+      if (name === "sherlocktoken" || name === "x-arp-session-id") {
+        t = t.slice(eq + 1).trim();
+      } else {
+        continue;
+      }
+    }
+    if (t.length >= 40 && isValidAdobeArpSessionId(t)) push(t);
+  }
+
+  // Prefer ARP that decodes to JSON with sid+ark (real browser session over opaque short tokens)
+  const ranked = candidates
+    .map((c) => c.replace(/^["']|["']$/g, "").trim())
+    .filter((v) => isValidAdobeArpSessionId(v));
+  ranked.sort((a, b) => scoreAdobeArpCandidate(b) - scoreAdobeArpCandidate(a));
+  return ranked[0] || "";
+}
+
+/** Higher = more like a live firefly-3p x-arp-session-id (sid+ark+ftr[+bfp+fpjs] base64). */
+function scoreAdobeArpCandidate(value: string): number {
+  let score = value.length;
+  try {
+    const padded = value + "=".repeat((4 - (value.length % 4)) % 4);
+    const json = Buffer.from(padded.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+    const obj = JSON.parse(json) as {
+      sid?: unknown;
+      ark?: unknown;
+      ftr?: unknown;
+      bfp?: unknown;
+      fpjs?: unknown;
+    };
+    if (typeof obj.sid === "string" && obj.sid) score += 1000;
+    if (typeof obj.ark === "string" && obj.ark.length > 20) score += 500;
+    if (typeof obj.ftr === "string" && obj.ftr.includes(ADOBE_FIREFLY_FTR_MAGIC)) score += 200;
+    if (typeof obj.ark === "string" && obj.ark.includes(ADOBE_FIREFLY_ARKOSE_PUBLIC_KEY)) score += 100;
+    // Live successful generates (adobe/image_generate.txt) include browser fingerprint fields.
+    if (typeof obj.bfp === "string" && obj.bfp.length >= 8) score += 150;
+    if (typeof obj.fpjs === "string" && obj.fpjs.length > 10) score += 150;
+  } catch {
+    /* opaque sherlockToken */
+  }
+  return score;
+}
+
+/**
+ * True when the credential blob already contains a browser ARP / sherlockToken
+ * OR enough cookie pieces to rebuild one (ff_session_guid + arkose + forterToken).
+ * Synthetic-only ARP is a fallback — real cookie pieces are required for stable generate.
+ */
+export function hasBrowserAdobeArpSession(sessionCookieOrBlob?: string): boolean {
+  const blob = String(sessionCookieOrBlob || "");
+  if (extractAdobeArpSessionId(blob)) return true;
+  // Rebuild path counts as browser ARP (same pieces the SPA uses for sherlockToken).
+  const sid = blob.match(/(?:^|[;\s])ff_session_guid=([^;\s]+)/i)?.[1];
+  const ark = blob.match(/(?:^|[;\s])arkose=([^;\s]+)/i)?.[1];
+  const ftr =
+    blob.match(/(?:^|[;\s])forterToken=([^;\s]+)/i)?.[1] ||
+    blob.match(/(?:^|[;\s])forter=([^;\s]+)/i)?.[1];
+  return Boolean(sid && ark && ftr && !/^[a-f0-9]{32},\d+$/i.test(ftr));
+}
+
+/**
+ * Resolve ARP for a Firefly request.
+ * Prefer cookie rebuild (ff_session_guid + arkose + forterToken [+bfp/fpjs]) over a
+ * frozen sherlockToken paste — Forter advances while the pasted ARP goes stale.
+ * Fall back to sherlockToken / x-arp-session-id extract, then synthetic rich ARP.
+ * Mint once per generate/upload chain and reuse (browser uses the same ARP for upload+submit);
+ * on 408 the submit loop rotates ARP separately.
+ */
+export function resolveAdobeArpSessionId(sessionCookieOrBlob?: string): string {
+  const blob = String(sessionCookieOrBlob || "");
+  // Lazy require of rebuild helper to avoid circular import at module load.
+  // Inline minimal rebuild here (sid+ark+ftr) so resolve stays self-contained.
+  const getCookie = (name: string): string => {
+    const m = blob.match(
+      new RegExp(`(?:^|[;\\s\\n\\r])${name}=([^;\\s\\n\\r]+)`, "i")
+    );
+    if (!m?.[1]) return "";
+    let v = m[1].trim();
+    try {
+      if (/%[0-9A-Fa-f]{2}/.test(v)) v = decodeURIComponent(v);
+    } catch {
+      /* keep */
+    }
+    return v;
+  };
+  const sid = getCookie("ff_session_guid");
+  const ark = getCookie("arkose");
+  let ftr = getCookie("forterToken") || getCookie("forter");
+  try {
+    if (/%[0-9A-Fa-f]{2}/.test(ftr)) ftr = decodeURIComponent(ftr);
+  } catch {
+    /* keep */
+  }
+  if (ftr.endsWith("v2") && !ftr.endsWith("v2_tt")) ftr = `${ftr}_tt`;
+  // Skip localStorage-style "id,timestamp" forter values
+  if (/^[a-f0-9]{32},\d+$/i.test(ftr)) ftr = "";
+  if (sid && ark && ftr) {
+    const bfp = getCookie("bfp");
+    let fpjs = getCookie("fpjs");
+    try {
+      if (fpjs && /%[0-9A-Fa-f]{2}/.test(fpjs)) fpjs = decodeURIComponent(fpjs);
+    } catch {
+      /* keep */
+    }
+    const obj: Record<string, string> = { sid, ark, ftr };
+    if (bfp) obj.bfp = bfp;
+    if (fpjs) obj.fpjs = fpjs;
+    return Buffer.from(JSON.stringify(obj), "utf-8").toString("base64");
+  }
+  const extracted = extractAdobeArpSessionId(blob);
+  if (extracted) return extracted;
+  return buildAdobeArpSessionId();
 }
 
 export function buildAdobeSubmitHeaders(
@@ -971,17 +1196,21 @@ export function buildAdobeSubmitHeaders(
     prompt?: string;
   }
 ): Record<string, string> {
-  // Live capture + working open-source clients (GPT2Image-Pro / adobe2api):
-  // Authorization + x-api-key + deterministic x-nonce + ALWAYS x-arp-session-id.
-  // Do NOT attach firefly.adobe.com page Cookie to firefly-3p (wrong origin / soft 408).
-  void extras?.cookie;
+  // Live capture (browser network capture) + working clients:
+  // Authorization + x-api-key + x-nonce + ALWAYS x-arp-session-id (sid+ark+ftr).
+  // Do NOT attach firefly.adobe.com page Cookie to firefly-3p (wrong origin).
+  // Prefer real sherlockToken from cookie blob; synthetic ARP is fallback only.
+  const cookieBlob = String(extras?.cookie || "").trim();
   const deterministic =
     extras?.nonce ||
     (extras?.prompt ? buildAdobeSubmitNonce(accessToken, extras.prompt) : "") ||
     generateAdobeNonce();
-  // Prefer pasted sherlockToken; otherwise mint a synthetic ARP session (required).
+  // Explicit arpSessionId wins (caller may pass synthetic short test ids or real browser ARP).
+  const explicitArp = extras?.arpSessionId ? String(extras.arpSessionId).trim() : "";
   const arp =
-    (extras?.arpSessionId && String(extras.arpSessionId).trim()) || buildAdobeArpSessionId();
+    explicitArp ||
+    extractAdobeArpSessionId(cookieBlob) ||
+    buildAdobeArpSessionId();
   const headers: Record<string, string> = {
     ...browserHeaders(),
     Authorization: `Bearer ${accessToken}`,
@@ -996,6 +1225,364 @@ export function buildAdobeSubmitHeaders(
     "x-arp-session-id": arp,
   };
   return headers;
+}
+
+/** Max reference image size for Firefly storage upload (20 MiB). */
+export const ADOBE_FIREFLY_MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+
+/**
+ * Headers for POST /v2/storage/image (raw image body).
+ * Live capture (browser network capture): Bearer + x-api-key + x-arp + x-nonce
+ * + content-type image/png|jpeg (not application/json).
+ */
+export function buildAdobeUploadHeaders(
+  accessToken: string,
+  contentType: string,
+  extras?: {
+    arpSessionId?: string;
+    nonce?: string;
+    cookie?: string;
+    prompt?: string;
+  }
+): Record<string, string> {
+  const base = buildAdobeSubmitHeaders(accessToken, {
+    arpSessionId: extras?.arpSessionId,
+    nonce: extras?.nonce,
+    cookie: extras?.cookie,
+    prompt: extras?.prompt || "upload",
+  });
+  const ct = String(contentType || "image/png").trim().toLowerCase() || "image/png";
+  return {
+    ...base,
+    "content-type": ct.startsWith("image/") ? ct : "image/png",
+  };
+}
+
+/**
+ * Collect reference image sources from an OpenAI-style / Media-page image|video body.
+ * Supports: image_url, image, images[], image_urls[], input_image(s), reference_images,
+ * provider_options.*, and prompt_image fields used by the WinUI Media page.
+ */
+export function extractAdobeSourceImageSources(body: unknown, max = 4): string[] {
+  if (!body || typeof body !== "object") return [];
+  const b = body as Record<string, unknown>;
+  const po =
+    b.provider_options && typeof b.provider_options === "object" && !Array.isArray(b.provider_options)
+      ? (b.provider_options as Record<string, unknown>)
+      : {};
+
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const push = (v: unknown) => {
+    if (out.length >= max) return;
+    if (typeof v === "string") {
+      const t = v.trim();
+      if (!t || seen.has(t)) return;
+      // Skip empty / clearly non-image
+      if (t === "null" || t === "undefined") return;
+      seen.add(t);
+      out.push(t);
+      return;
+    }
+    if (Array.isArray(v)) {
+      for (const item of v) {
+        if (out.length >= max) break;
+        push(item);
+      }
+      return;
+    }
+    if (v && typeof v === "object") {
+      const o = v as Record<string, unknown>;
+      if (typeof o.url === "string") push(o.url);
+      else if (typeof o.image_url === "string") push(o.image_url);
+      else if (o.image_url && typeof o.image_url === "object") {
+        const inner = (o.image_url as Record<string, unknown>).url;
+        if (typeof inner === "string") push(inner);
+      } else if (typeof o.b64_json === "string") {
+        push(`data:image/png;base64,${o.b64_json}`);
+      } else if (typeof o.base64 === "string") {
+        push(`data:image/png;base64,${o.base64}`);
+      }
+    }
+  };
+
+  // Order matches MediaViewModel / OpenAI edit aliases (primary single fields first).
+  const keys = [
+    "image_url",
+    "imageUrl",
+    "input_image",
+    "source_image",
+    "promptImage",
+    "prompt_image",
+    "image",
+    "images",
+    "image_urls",
+    "imageUrls",
+    "input_images",
+    "reference_images",
+    "referenceImages",
+    "reference_image",
+  ];
+  for (const k of keys) {
+    push(b[k]);
+    push(po[k]);
+  }
+
+  // OpenAI chat-style content parts (rare on /v1/images but harmless).
+  if (Array.isArray(b.messages)) {
+    for (const msg of b.messages) {
+      if (!msg || typeof msg !== "object") continue;
+      const content = (msg as Record<string, unknown>).content;
+      if (!Array.isArray(content)) continue;
+      for (const part of content) {
+        if (!part || typeof part !== "object") continue;
+        const p = part as Record<string, unknown>;
+        if (p.type === "image_url" || p.type === "image") {
+          push(p.image_url ?? p.image ?? p.url);
+        }
+      }
+    }
+  }
+
+  return out.slice(0, max);
+}
+
+export function parseAdobeImageSourceBytes(source: string): {
+  buffer: Buffer;
+  contentType: string;
+} {
+  const trimmed = String(source || "").trim();
+  if (!trimmed) {
+    throw new AdobeFireflyError("Empty image reference", 400, "bad_image");
+  }
+
+  const dataUri = /^data:([^;,]+)?(?:;charset=[^;,]+)?(;base64)?,([\s\S]+)$/i.exec(trimmed);
+  if (dataUri) {
+    const mime = (dataUri[1] || "image/png").trim().toLowerCase() || "image/png";
+    const isB64 = Boolean(dataUri[2]);
+    const payload = dataUri[3] || "";
+    if (!isB64) {
+      throw new AdobeFireflyError(
+        "Image data URL must be base64-encoded (data:image/...;base64,...)",
+        400,
+        "bad_image"
+      );
+    }
+    const buffer = Buffer.from(payload.replace(/\s/g, ""), "base64");
+    if (!buffer.length) {
+      throw new AdobeFireflyError("Image data URL decoded to empty bytes", 400, "bad_image");
+    }
+    if (buffer.length > ADOBE_FIREFLY_MAX_UPLOAD_BYTES) {
+      throw new AdobeFireflyError(
+        `Image reference too large (${buffer.length} bytes; max ${ADOBE_FIREFLY_MAX_UPLOAD_BYTES})`,
+        400,
+        "bad_image"
+      );
+    }
+    return { buffer, contentType: mime.startsWith("image/") ? mime : "image/png" };
+  }
+
+  // Raw base64 without data: prefix
+  if (!/^https?:\/\//i.test(trimmed) && /^[A-Za-z0-9+/=\s]+$/.test(trimmed) && trimmed.length > 64) {
+    const buffer = Buffer.from(trimmed.replace(/\s/g, ""), "base64");
+    if (buffer.length > 0 && buffer.length <= ADOBE_FIREFLY_MAX_UPLOAD_BYTES) {
+      return { buffer, contentType: "image/png" };
+    }
+  }
+
+  throw new AdobeFireflyError(
+    "Unsupported image reference (need data:image/...;base64,... or raw base64). " +
+      "HTTP(S) URLs are resolved by the caller before upload.",
+    400,
+    "bad_image"
+  );
+}
+
+/**
+ * Parse Firefly storage upload response: {"images":[{"id":"uuid"}]}.
+ */
+export function parseAdobeStorageUploadResponse(body: unknown): string {
+  if (!body || typeof body !== "object") return "";
+  const images = (body as Record<string, unknown>).images;
+  if (Array.isArray(images) && images.length > 0) {
+    const first = images[0];
+    if (first && typeof first === "object") {
+      const id = (first as Record<string, unknown>).id;
+      if (typeof id === "string" && id.trim()) return id.trim();
+    }
+  }
+  const id = (body as Record<string, unknown>).id;
+  if (typeof id === "string" && id.trim()) return id.trim();
+  return "";
+}
+
+/**
+ * Upload one image to Firefly storage → blob id for referenceBlobs.
+ * Wire: POST https://firefly-3p.ff.adobe.io/v2/storage/image (raw bytes).
+ */
+export async function uploadAdobeFireflyImage(opts: {
+  accessToken: string;
+  bytes: Buffer | Uint8Array;
+  contentType?: string;
+  sessionCookie?: string;
+  /** Reuse the same ARP as generate-async (browser does). */
+  arpSessionId?: string;
+  /** Used for deterministic x-nonce (optional). */
+  prompt?: string;
+  fetchImpl?: typeof fetch;
+  log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
+}): Promise<string> {
+  const fetchImpl = opts.fetchImpl || fetch;
+  const buffer = Buffer.isBuffer(opts.bytes) ? opts.bytes : Buffer.from(opts.bytes);
+  if (!buffer.length) {
+    throw new AdobeFireflyError("Cannot upload empty image", 400, "bad_image");
+  }
+  if (buffer.length > ADOBE_FIREFLY_MAX_UPLOAD_BYTES) {
+    throw new AdobeFireflyError(
+      `Image reference too large (${buffer.length} bytes; max ${ADOBE_FIREFLY_MAX_UPLOAD_BYTES})`,
+      400,
+      "bad_image"
+    );
+  }
+
+  const sessionCookie = String(opts.sessionCookie || "").trim();
+  const cookieHeader = extractAdobeCookieHeader(sessionCookie);
+  // One ARP for the whole chain — do not mint a new synthetic id per upload.
+  const arpSessionId =
+    (opts.arpSessionId && String(opts.arpSessionId).trim()) ||
+    resolveAdobeArpSessionId(cookieHeader || sessionCookie);
+  const contentType =
+    (opts.contentType && opts.contentType.trim()) ||
+    (buffer[0] === 0xff && buffer[1] === 0xd8
+      ? "image/jpeg"
+      : buffer[0] === 0x89 && buffer[1] === 0x50
+        ? "image/png"
+        : "image/png");
+
+  const resp = await fetchImpl(ADOBE_FIREFLY_IMAGE_UPLOAD_URL, {
+    method: "POST",
+    headers: buildAdobeUploadHeaders(opts.accessToken, contentType, {
+      arpSessionId,
+      cookie: cookieHeader || undefined,
+      prompt: opts.prompt || "upload",
+    }),
+    body: buffer,
+  });
+
+  const text = await resp.text().catch(() => "");
+  if (resp.status === 401 || resp.status === 403) {
+    throw new AdobeFireflyError(
+      "Adobe Firefly image upload unauthorized — paste a fresh IMS JWT",
+      401,
+      "auth"
+    );
+  }
+  if (!resp.ok) {
+    throw new AdobeFireflyError(
+      `Adobe Firefly image upload failed (${resp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`,
+      resp.status >= 400 && resp.status < 500 ? resp.status : 502,
+      "upload"
+    );
+  }
+
+  let json: unknown = {};
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch {
+    throw new AdobeFireflyError(
+      "Adobe Firefly image upload returned non-JSON body",
+      502,
+      "upload"
+    );
+  }
+  const id = parseAdobeStorageUploadResponse(json);
+  if (!id) {
+    throw new AdobeFireflyError(
+      "Adobe Firefly image upload succeeded but no images[].id was returned",
+      502,
+      "upload"
+    );
+  }
+  opts.log?.info?.("ADOBE-FIREFLY", `uploaded reference image id=${id} (${buffer.length} bytes)`);
+  return id;
+}
+
+/**
+ * Resolve Media/OpenAI body image fields → Firefly storage blob ids.
+ * - data: URLs / raw base64 → upload
+ * - http(s) URLs → fetch then upload
+ * - already looks like a UUID blob id → use as-is (advanced)
+ */
+export async function resolveAdobeSourceImageIds(opts: {
+  accessToken: string;
+  body: unknown;
+  max?: number;
+  sessionCookie?: string;
+  /** Shared ARP for upload+generate (required for stable Firefly 3P). */
+  arpSessionId?: string;
+  prompt?: string;
+  fetchImpl?: typeof fetch;
+  log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
+}): Promise<string[]> {
+  const max = Math.max(1, Math.min(8, opts.max ?? 4));
+  const sources = extractAdobeSourceImageSources(opts.body, max);
+  if (!sources.length) return [];
+
+  const fetchImpl = opts.fetchImpl || fetch;
+  const ids: string[] = [];
+  // One ARP for all uploads in this request (browser reuses the same header).
+  const arpSessionId =
+    (opts.arpSessionId && String(opts.arpSessionId).trim()) ||
+    resolveAdobeArpSessionId(opts.sessionCookie);
+
+  for (const src of sources) {
+    // Already a Firefly storage id (uuid)
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(src)) {
+      ids.push(src);
+      continue;
+    }
+
+    let buffer: Buffer;
+    let contentType = "image/png";
+
+    if (/^https?:\/\//i.test(src)) {
+      const r = await fetchImpl(src, {
+        method: "GET",
+        headers: { accept: "image/*,*/*" },
+      });
+      if (!r.ok) {
+        throw new AdobeFireflyError(
+          `Failed to download reference image (${r.status}): ${src.slice(0, 120)}`,
+          400,
+          "bad_image"
+        );
+      }
+      const ab = await r.arrayBuffer();
+      buffer = Buffer.from(ab);
+      const ct = r.headers.get("content-type") || "";
+      if (ct.toLowerCase().startsWith("image/")) {
+        contentType = ct.split(";")[0]!.trim();
+      }
+    } else {
+      const parsed = parseAdobeImageSourceBytes(src);
+      buffer = parsed.buffer;
+      contentType = parsed.contentType;
+    }
+
+    const id = await uploadAdobeFireflyImage({
+      accessToken: opts.accessToken,
+      bytes: buffer,
+      contentType,
+      sessionCookie: opts.sessionCookie,
+      arpSessionId,
+      prompt: opts.prompt,
+      fetchImpl,
+      log: opts.log,
+    });
+    ids.push(id);
+  }
+
+  return ids;
 }
 
 /** Transient Adobe 3P overload / rate / edge errors worth retrying. */
@@ -1050,13 +1637,29 @@ export function buildAdobeDiscoveryHeaders(accessToken: string): Record<string, 
 }
 
 /** User-facing message when Adobe colligo returns 408 "system under load". */
-export function formatAdobeSystemUnderLoadError(kind: "image" | "video", attempts: number): string {
+export function formatAdobeSystemUnderLoadError(
+  kind: "image" | "video",
+  attempts: number,
+  opts?: { hadBrowserArp?: boolean }
+): string {
+  const hadArp = opts?.hadBrowserArp === true;
+  if (!hadArp) {
+    return (
+      `Adobe Firefly ${kind} generation failed (HTTP 408 "system under load", after ${attempts} attempt` +
+      `${attempts === 1 ? "" : "s"}). Your credential is missing a browser x-arp-session-id / sherlockToken ` +
+      `(JWT alone almost always 408s even when credits/Limits work). Re-open the Adobe Firefly account and paste ` +
+      `TWO lines from a SUCCESSFUL firefly-3p.ff.adobe.io generate-async request (F12 → Network): ` +
+      `(1) Authorization token AFTER "Bearer " (eyJ… JWT), (2) the raw x-arp-session-id header value ` +
+      `OR Cookie containing sherlockToken. Use the multi-line credential box so both lines are kept.`
+    );
+  }
   return (
-    `Adobe Firefly ${kind} generation is currently unavailable (HTTP 408 "system under load", ` +
-    `${attempts} attempt${attempts === 1 ? "" : "s"}). This is Adobe-side capacity/rate limiting ` +
-    `— not an invalid token (credits/models may still work). Wait 1–2 minutes and retry, or paste a ` +
-    `fresh IMS JWT from a browser request that just succeeded: firefly.adobe.com → F12 → Network → ` +
-    `firefly-3p generate-async → Authorization → copy token after "Bearer ".`
+    `Adobe Firefly ${kind} generation failed (HTTP 408 "system under load", after ${attempts} attempt` +
+    `${attempts === 1 ? "" : "s"}). JWT was accepted for balance/discovery but colligo rejected the risk session ` +
+    `(Forter/Arkose). The app auto-rebuilds x-arp-session-id from Cookie (forterToken+arkose+ff_session_guid) and ` +
+    `rotates ARP on each retry — paste the full firefly.adobe.com Cookie once alongside the JWT so refresh can ` +
+    `run automatically. If this keeps failing, open firefly.adobe.com, generate one image in-browser, then paste ` +
+    `a FRESH multi-line credential (JWT + Cookie) once; subsequent generates should not need re-paste.`
   );
 }
 
@@ -1698,6 +2301,8 @@ export async function adobeFireflyGenerateImage(opts: {
   negativePrompt?: string;
   /** Optional Cookie blob — used only to lift sherlockToken → x-arp-session-id */
   sessionCookie?: string;
+  /** Shared ARP (sid+ark+ftr). Reuse with uploads; do not mint per retry. */
+  arpSessionId?: string;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
@@ -1719,20 +2324,25 @@ export async function adobeFireflyGenerateImage(opts: {
 
   const sessionCookie = String(opts.sessionCookie || "").trim();
   const cookieHeader = extractAdobeCookieHeader(sessionCookie);
-  // Prefer real browser sherlockToken; buildAdobeSubmitHeaders mints synthetic ARP if empty.
-  const arpSessionId =
-    extractAdobeArpSessionId(cookieHeader) || extractAdobeArpSessionId(sessionCookie);
+  // Prefer real browser sherlockToken / cookie rebuild (forter+arkose). Only the raw
+  // credential paste counts as "browser ARP" — never the pure synthetic fallback.
+  const hadBrowserArp = hasBrowserAdobeArpSession(cookieHeader || sessionCookie);
+  // Rotate ARP on each 408 retry — reusing a rejected Arkose/Forter session never recovers.
+  let arpSessionId =
+    (opts.arpSessionId && String(opts.arpSessionId).trim()) ||
+    resolveAdobeArpSessionId(cookieHeader || sessionCookie);
   let submitData: unknown = {};
   let submitHeaders: Headers | Record<string, string | null | undefined> = new Headers();
   let lastSubmitError = "";
   let sawSystemUnderLoad = false;
+  let accessToken = opts.accessToken;
 
   for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
-    // Deterministic x-nonce from user_id+prompt (adobe2api/GPT2Image-Pro). Fresh ARP each attempt.
+    // Deterministic x-nonce from user_id+prompt; ARP may rotate after 408.
     const submitResp = await fetchImpl(ADOBE_FIREFLY_IMAGE_SUBMIT_URL, {
       method: "POST",
-      headers: buildAdobeSubmitHeaders(opts.accessToken, {
-        arpSessionId: arpSessionId || undefined,
+      headers: buildAdobeSubmitHeaders(accessToken, {
+        arpSessionId,
         prompt: opts.prompt,
         cookie: cookieHeader || undefined,
       }),
@@ -1745,7 +2355,8 @@ export async function adobeFireflyGenerateImage(opts: {
         throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
       }
       throw new AdobeFireflyError(
-        "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p), not page cookies alone.",
+        "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p) " +
+          "plus the firefly.adobe.com Cookie once — the app will auto-refresh ARP after that.",
         401,
         "auth"
       );
@@ -1758,20 +2369,50 @@ export async function adobeFireflyGenerateImage(opts: {
       }
       lastSubmitError = `Adobe Firefly image submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`;
       if (isAdobeTransientSubmitError(submitResp.status, text) && attempt < SUBMIT_MAX_ATTEMPTS) {
-        // Exponential backoff: 2s, 4s, 8s, 16s… capped at 45s (+ jitter)
+        // Mint a fresh ARP for the next attempt (stale sherlockToken is the usual 408 cause).
+        try {
+          const { resolveAdobeArpSessionIdSmart, rotateAdobeFireflySessionOnError } = await import(
+            "./adobeFireflySession.ts"
+          );
+          // Attempt 2: rebuild from cookies; attempt 3+: also try Playwright warm-up once.
+          // Prefer cookie rebuild over pure synthetic. Playwright warm is opt-in only —
+          // headless Forter tokens are rejected by colligo (still 408).
+          const tryBrowser =
+            attempt >= 3 && process.env.ADOBE_FIREFLY_BROWSER_REFRESH === "1";
+          if (cookieHeader) {
+            const rotated = await rotateAdobeFireflySessionOnError(
+              {
+                accessToken,
+                cookie: cookieHeader,
+                arpSessionId,
+                tokenExpiresAt: 0,
+                updatedAt: Date.now(),
+                fingerprint: "inline",
+                source: "rebuild",
+              },
+              { tryBrowser, log: opts.log }
+            );
+            accessToken = rotated.accessToken || accessToken;
+            arpSessionId = rotated.arpSessionId;
+          } else {
+            arpSessionId = resolveAdobeArpSessionIdSmart(sessionCookie, { rotate: true });
+          }
+        } catch {
+          arpSessionId = buildAdobeArpSessionId();
+        }
         const delay =
           Math.min(45_000, SUBMIT_BASE_DELAY_MS * Math.pow(2, attempt - 1)) +
           Math.floor(Math.random() * 750);
         opts.log?.info?.(
           "ADOBE-FIREFLY",
-          `image submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms`
+          `image submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms (ARP rotated)`
         );
         await sleep(delay);
         continue;
       }
       if (sawSystemUnderLoad && isAdobeTransientSubmitError(submitResp.status, text)) {
         throw new AdobeFireflyError(
-          formatAdobeSystemUnderLoadError("image", attempt),
+          formatAdobeSystemUnderLoadError("image", attempt, { hadBrowserArp }),
           408,
           "system_under_load"
         );
@@ -1791,7 +2432,7 @@ export async function adobeFireflyGenerateImage(opts: {
   if (!pollUrl) {
     if (sawSystemUnderLoad) {
       throw new AdobeFireflyError(
-        formatAdobeSystemUnderLoadError("image", SUBMIT_MAX_ATTEMPTS),
+        formatAdobeSystemUnderLoadError("image", SUBMIT_MAX_ATTEMPTS, { hadBrowserArp }),
         408,
         "system_under_load"
       );
@@ -1829,6 +2470,8 @@ export async function adobeFireflyGenerateVideo(opts: {
   negativePrompt?: string;
   generateAudio?: boolean;
   sessionCookie?: string;
+  /** Shared ARP (sid+ark+ftr). Reuse with frame uploads. */
+  arpSessionId?: string;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
@@ -1863,18 +2506,21 @@ export async function adobeFireflyGenerateVideo(opts: {
 
   const sessionCookie = String(opts.sessionCookie || "").trim();
   const cookieHeader = extractAdobeCookieHeader(sessionCookie);
-  const arpSessionId =
-    extractAdobeArpSessionId(cookieHeader) || extractAdobeArpSessionId(sessionCookie);
+  const hadBrowserArp = hasBrowserAdobeArpSession(cookieHeader || sessionCookie);
+  let arpSessionId =
+    (opts.arpSessionId && String(opts.arpSessionId).trim()) ||
+    resolveAdobeArpSessionId(cookieHeader || sessionCookie);
   let submitData: unknown = {};
   let submitHeaders: Headers | Record<string, string | null | undefined> = new Headers();
   let lastSubmitError = "";
   let sawSystemUnderLoad = false;
+  let accessToken = opts.accessToken;
 
   for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
     const submitResp = await fetchImpl(ADOBE_FIREFLY_VIDEO_SUBMIT_URL, {
       method: "POST",
-      headers: buildAdobeSubmitHeaders(opts.accessToken, {
-        arpSessionId: arpSessionId || undefined,
+      headers: buildAdobeSubmitHeaders(accessToken, {
+        arpSessionId,
         prompt: opts.prompt,
         cookie: cookieHeader || undefined,
       }),
@@ -1887,7 +2533,8 @@ export async function adobeFireflyGenerateVideo(opts: {
         throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
       }
       throw new AdobeFireflyError(
-        "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p), not page cookies alone.",
+        "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p) " +
+          "plus the firefly.adobe.com Cookie once — the app will auto-refresh ARP after that.",
         401,
         "auth"
       );
@@ -1900,19 +2547,46 @@ export async function adobeFireflyGenerateVideo(opts: {
       }
       lastSubmitError = `Adobe Firefly video submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`;
       if (isAdobeTransientSubmitError(submitResp.status, text) && attempt < SUBMIT_MAX_ATTEMPTS) {
+        try {
+          const { resolveAdobeArpSessionIdSmart, rotateAdobeFireflySessionOnError } = await import(
+            "./adobeFireflySession.ts"
+          );
+          const tryBrowser =
+            attempt >= 3 && process.env.ADOBE_FIREFLY_BROWSER_REFRESH === "1";
+          if (cookieHeader) {
+            const rotated = await rotateAdobeFireflySessionOnError(
+              {
+                accessToken,
+                cookie: cookieHeader,
+                arpSessionId,
+                tokenExpiresAt: 0,
+                updatedAt: Date.now(),
+                fingerprint: "inline",
+                source: "rebuild",
+              },
+              { tryBrowser, log: opts.log }
+            );
+            accessToken = rotated.accessToken || accessToken;
+            arpSessionId = rotated.arpSessionId;
+          } else {
+            arpSessionId = resolveAdobeArpSessionIdSmart(sessionCookie, { rotate: true });
+          }
+        } catch {
+          arpSessionId = buildAdobeArpSessionId();
+        }
         const delay =
           Math.min(45_000, SUBMIT_BASE_DELAY_MS * Math.pow(2, attempt - 1)) +
           Math.floor(Math.random() * 750);
         opts.log?.info?.(
           "ADOBE-FIREFLY",
-          `video submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms`
+          `video submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms (ARP rotated)`
         );
         await sleep(delay);
         continue;
       }
       if (sawSystemUnderLoad && isAdobeTransientSubmitError(submitResp.status, text)) {
         throw new AdobeFireflyError(
-          formatAdobeSystemUnderLoadError("video", attempt),
+          formatAdobeSystemUnderLoadError("video", attempt, { hadBrowserArp }),
           408,
           "system_under_load"
         );
@@ -1932,7 +2606,7 @@ export async function adobeFireflyGenerateVideo(opts: {
   if (!pollUrl) {
     if (sawSystemUnderLoad) {
       throw new AdobeFireflyError(
-        formatAdobeSystemUnderLoadError("video", SUBMIT_MAX_ATTEMPTS),
+        formatAdobeSystemUnderLoadError("video", SUBMIT_MAX_ATTEMPTS, { hadBrowserArp }),
         408,
         "system_under_load"
       );

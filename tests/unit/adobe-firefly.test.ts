@@ -9,19 +9,24 @@ import {
   buildAdobeImagePayload,
   buildAdobePollHeaders,
   buildAdobeSubmitHeaders,
+  buildAdobeUploadHeaders,
   buildAdobeVideoPayload,
   extractAdobeAccountIdFromToken,
   extractAdobeCredentialToken,
   extractAdobeMediaUrl,
   extractAdobeResultLink,
+  extractAdobeSourceImageSources,
   looksLikeAdobeJwt,
   normalizeAdobeAspectRatio,
   normalizeAdobeOutputResolution,
   normalizeAdobePollUrl,
   parseAdobeCreditsBalance,
   parseAdobeModelsDiscovery,
+  parseAdobeImageSourceBytes,
+  parseAdobeStorageUploadResponse,
   resolveAdobeImageModel,
   resolveAdobeVideoModel,
+  resolveAdobeSourceImageIds,
   adobeFireflyGenerateImage,
   adobeFireflyGenerateVideo,
   exchangeAdobeCookieForAccessToken,
@@ -31,6 +36,7 @@ import {
   generateAdobeNonce,
   extractAdobeArpSessionId,
   resolveAdobeAccessToken,
+  ADOBE_FIREFLY_IMAGE_UPLOAD_URL,
 } from "../../open-sse/services/adobeFireflyClient.ts";
 import {
   ADOBE_FIREFLY_FALLBACK_MODELS,
@@ -186,6 +192,115 @@ test("buildAdobeImagePayload produces nano and gpt-image shapes", () => {
   assert.equal(gpt.outputResolution, undefined);
 });
 
+test("buildAdobeImagePayload attaches referenceBlobs like live adobe_atach_images capture", () => {
+  // Live: referenceBlobs usage "general", module stays text2image for nano
+  const nano = buildAdobeImagePayload({
+    prompt: "teest",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["nano-banana"],
+    sourceImageIds: [
+      "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94",
+      "84c11d1a-e798-4300-a63e-c06504ca2068",
+    ],
+  });
+  assert.deepEqual(nano.referenceBlobs, [
+    { id: "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94", usage: "general" },
+    { id: "84c11d1a-e798-4300-a63e-c06504ca2068", usage: "general" },
+  ]);
+  assert.equal(
+    (nano.generationMetadata as Record<string, unknown>).module,
+    "text2image"
+  );
+
+  const gpt = buildAdobeImagePayload({
+    prompt: "edit me",
+    aspectRatio: "1:1",
+    outputResolution: "1K",
+    modelSpec: ADOBE_FIREFLY_IMAGE_MODELS["gpt-image"],
+    sourceImageIds: ["aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"],
+  });
+  assert.deepEqual(gpt.referenceBlobs, [
+    { id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee", usage: "subject" },
+  ]);
+  assert.equal(
+    (gpt.generationMetadata as Record<string, unknown>).module,
+    "image2image"
+  );
+});
+
+test("extractAdobeSourceImageSources reads Media page image fields", () => {
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  const sources = extractAdobeSourceImageSources({
+    prompt: "x",
+    image_url: tinyPng,
+    image_urls: [tinyPng, "https://cdn.example/b.png"],
+    provider_options: { images: ["https://cdn.example/c.png"] },
+  });
+  assert.ok(sources.includes(tinyPng));
+  assert.ok(sources.includes("https://cdn.example/b.png"));
+  assert.ok(sources.includes("https://cdn.example/c.png"));
+  assert.equal(sources.length, 3); // tinyPng deduped from image_url + image_urls[0]
+});
+
+test("parseAdobeImageSourceBytes + parseAdobeStorageUploadResponse", () => {
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  const { buffer, contentType } = parseAdobeImageSourceBytes(tinyPng);
+  assert.ok(buffer.length > 10);
+  assert.equal(contentType, "image/png");
+  assert.equal(
+    parseAdobeStorageUploadResponse({
+      images: [{ id: "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94" }],
+    }),
+    "2a4f1025-e0dc-4671-a11a-7dfd3c07bd94"
+  );
+  assert.equal(parseAdobeStorageUploadResponse({}), "");
+});
+
+test("buildAdobeUploadHeaders uses image content-type not json", () => {
+  const h = buildAdobeUploadHeaders("tok", "image/png", { arpSessionId: "arp" });
+  assert.equal(h["content-type"], "image/png");
+  assert.equal(h.Authorization, "Bearer tok");
+  assert.equal(h["x-api-key"], "clio-playground-web");
+  assert.equal(h["x-arp-session-id"], "arp");
+  assert.ok(h["x-nonce"]);
+});
+
+test("resolveAdobeSourceImageIds uploads data URLs then returns blob ids", async () => {
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+  let uploadCalls = 0;
+  const fetchImpl = async (url: string | URL, init?: RequestInit) => {
+    const u = String(url);
+    if (u.includes("/v2/storage/image")) {
+      uploadCalls += 1;
+      assert.equal(init?.method, "POST");
+      const headers = init?.headers as Record<string, string>;
+      assert.match(String(headers["content-type"] || headers["Content-Type"] || ""), /image\//);
+      assert.ok(init?.body);
+      return new Response(
+        JSON.stringify({ images: [{ id: `blob-${uploadCalls}` }] }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    throw new Error(`unexpected fetch ${u}`);
+  };
+
+  const ids = await resolveAdobeSourceImageIds({
+    accessToken: "tok",
+    body: { image_url: tinyPng, image_urls: [tinyPng] },
+    max: 4,
+    prompt: "ref",
+    fetchImpl: fetchImpl as typeof fetch,
+  });
+  // Same data URL deduped → one upload
+  assert.deepEqual(ids, ["blob-1"]);
+  assert.equal(uploadCalls, 1);
+  assert.equal(ADOBE_FIREFLY_IMAGE_UPLOAD_URL.includes("storage/image"), true);
+});
+
 test("buildAdobeVideoPayload produces sora and veo shapes", () => {
   const sora = buildAdobeVideoPayload({
     prompt: "ocean waves",
@@ -291,17 +406,46 @@ test("buildAdobeSubmitNonce is sha256(user_id + prompt[:256])", async () => {
   assert.notEqual(buildAdobeSubmitNonce(token, prompt + "!"), nonce);
   assert.equal(extractAdobeAccountIdFromToken(token), "0EB681AF6A5FF6C10A495FF2@AdobeID");
 
+  const {
+    isValidAdobeArpSessionId,
+    resolveAdobeArpSessionId,
+    extractAdobeArpSessionId,
+    ADOBE_FIREFLY_FTR_MAGIC,
+  } = await import("../../open-sse/services/adobeFireflyClient.ts");
   const arp = buildAdobeArpSessionId();
   assert.ok(arp.length > 20);
+  assert.equal(isValidAdobeArpSessionId(arp), true);
   const decoded = JSON.parse(Buffer.from(arp, "base64").toString("utf8"));
   assert.ok(decoded.sid);
-  assert.match(String(decoded.ftr), /dUAL43-mnts-ants-d4_31ck__tt$/);
+  // Live SPA shape (2026-07): sid + ark (Arkose) + ftr + bfp + fpjs
+  assert.ok(decoded.ark, "synthetic ARP must include ark field");
+  assert.match(String(decoded.ark), /pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C/);
+  assert.match(String(decoded.ftr), new RegExp(ADOBE_FIREFLY_FTR_MAGIC));
+  assert.match(String(decoded.ftr), /-v2_tt$/);
+  assert.ok(decoded.bfp, "synthetic ARP must include bfp (browser fingerprint)");
+  assert.ok(decoded.fpjs, "synthetic ARP must include fpjs");
 
   // Headers: deterministic nonce + always ARP (synthetic when none provided)
   const h = buildAdobeSubmitHeaders(token, { prompt });
   assert.equal(h["x-nonce"], nonce);
   assert.ok(h["x-arp-session-id"]);
   assert.equal(h.cookie, undefined);
+
+  // Prefer real sherlockToken / x-arp-session-id from paste over synthetic
+  const realArp = Buffer.from(
+    JSON.stringify({
+      sid: "11111111-2222-3333-4444-555555555555",
+      ark: "sess.123|r=eu-west-1|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C",
+      ftr: "aa_1" + ADOBE_FIREFLY_FTR_MAGIC + "_x=-1-v2_tt",
+    }),
+    "utf8"
+  ).toString("base64");
+  assert.equal(extractAdobeArpSessionId(`a=1; sherlockToken=${realArp}; b=2`), realArp);
+  assert.equal(
+    extractAdobeArpSessionId(`x-arp-session-id: ${realArp}\nAuthorization: Bearer x`),
+    realArp
+  );
+  assert.equal(resolveAdobeArpSessionId(`sherlockToken=${realArp}`), realArp);
 });
 
 test("normalizeAdobePollUrl rewrites firefly-epo jobs/result to BKS", () => {
@@ -468,6 +612,50 @@ test("handleAdobeFireflyImageGeneration submit+poll happy path (mocked)", async 
   assert.ok(calls >= 2);
 });
 
+test("handleAdobeFireflyImageGeneration uploads refs and submits referenceBlobs", async () => {
+  const tinyPng =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+  let sawGenerateBody: Record<string, unknown> | null = null;
+  let uploadCalls = 0;
+  const fetchImpl = async (url: string | URL, init?: RequestInit) => {
+    const u = String(url);
+    if (u.includes("/v2/storage/image")) {
+      uploadCalls += 1;
+      return jsonResponse(200, { images: [{ id: "ref-blob-1" }] });
+    }
+    if (u.includes("generate-async")) {
+      sawGenerateBody = JSON.parse(String(init?.body || "{}"));
+      return jsonResponse(
+        200,
+        { links: { result: { href: "https://poll.example/j1" } } },
+        { "x-override-status-link": "https://poll.example/j1" }
+      );
+    }
+    if (u.includes("poll.example")) {
+      return jsonResponse(200, {
+        status: "COMPLETED",
+        outputs: [{ image: { presignedUrl: "https://cdn.example/out.png" } }],
+      });
+    }
+    throw new Error(`unexpected fetch ${u}`);
+  };
+
+  const result = await handleAdobeFireflyImageGeneration({
+    model: "nano-banana",
+    provider: "adobe-firefly",
+    body: { prompt: "teest", image_url: tinyPng },
+    credentials: { apiKey: userImsJwt() },
+    fetchImpl: fetchImpl as typeof fetch,
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(uploadCalls, 1);
+  assert.ok(sawGenerateBody);
+  const refs = sawGenerateBody!.referenceBlobs as Array<{ id: string; usage: string }>;
+  assert.deepEqual(refs, [{ id: "ref-blob-1", usage: "general" }]);
+});
+
 test("adobeFireflyGenerateVideo submit+poll happy path (mocked)", async () => {
   const fetchImpl = async (url: string) => {
     const u = String(url);
@@ -583,6 +771,113 @@ test("cookie exchange rejects guest IMS tokens", async () => {
   );
 });
 
+test("extractAdobeArpSessionId recovers JWT+ARP joined by space (PasswordBox mangling)", async () => {
+  const { extractAdobeArpSessionId, hasBrowserAdobeArpSession, formatAdobeSystemUnderLoadError } =
+    await import("../../open-sse/services/adobeFireflyClient.ts");
+  const realArp = Buffer.from(
+    JSON.stringify({
+      sid: "bdf37b8a-117f-467d-a737-7792932d98b4",
+      ark: "60818c561473ddb23.0684402805|r=eu-west-1|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C",
+      ftr: "aab9dc9eb48f4ee1916428649f908f7d_1__UDF43-m4_31ck_x=-1-v2_tt",
+    }),
+    "utf8"
+  ).toString("base64");
+  // Fake 3-segment JWT shape long enough for looksLikeAdobeJwt
+  const fakeJwt =
+    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9." +
+    "eyJ1c2VyX2lkIjoiMEVCNjgxQUY2QTVGRjZDMTBBNDk1RkYyQEFkb2JlSUQifQ." +
+    "sigABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop";
+  const joined = `${fakeJwt} ${realArp}`;
+  assert.equal(extractAdobeArpSessionId(joined), realArp);
+  assert.equal(hasBrowserAdobeArpSession(joined), true);
+  assert.equal(hasBrowserAdobeArpSession(fakeJwt), false);
+  assert.match(
+    formatAdobeSystemUnderLoadError("image", 2, { hadBrowserArp: false }),
+    /missing a browser x-arp-session-id/
+  );
+  assert.match(
+    formatAdobeSystemUnderLoadError("image", 2, { hadBrowserArp: true }),
+    /auto-rebuilds x-arp-session-id|Cookie once|Forter\/Arkose/i
+  );
+});
+
+test("extractAdobeArpSessionId does not pick aux_sid over sherlockToken", async () => {
+  const { extractAdobeArpSessionId, isValidAdobeArpSessionId } = await import(
+    "../../open-sse/services/adobeFireflyClient.ts"
+  );
+  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../open-sse/services/adobeFireflyClient.ts");
+  const realArp = Buffer.from(
+    JSON.stringify({
+      sid: "bdf37b8a-117f-467d-a737-7792932d98b4",
+      ark: "10618c58b8d3cd588.3119555905|r=eu-west-1|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C",
+      ftr: `aa_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1-v2_tt`,
+    }),
+    "utf8"
+  ).toString("base64");
+  // Long aux_sid must NOT win ranking (this was the live 408 root cause)
+  const aux = "A" + "x".repeat(780);
+  const cookie = `ff_session_guid=bdf37b8a-117f-467d-a737-7792932d98b4; sherlockToken=${realArp}; aux_sid=${aux}; forterToken=x`;
+  const got = extractAdobeArpSessionId(cookie);
+  assert.equal(got, realArp);
+  assert.equal(isValidAdobeArpSessionId(`aux_sid=${aux}`), false);
+  assert.equal(isValidAdobeArpSessionId(realArp), true);
+});
+
+test("rebuild ARP from cookie components (forter+arkose+sid)", async () => {
+  const {
+    buildAdobeArpSessionIdFromCookies,
+    canRebuildAdobeArpFromCookies,
+    mergeAdobeCookieHeaders,
+    resolveAdobeArpSessionIdSmart,
+    serializeAdobeFireflyCredential,
+    normalizeAdobeForterToken,
+  } = await import("../../open-sse/services/adobeFireflySession.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../open-sse/services/adobeFireflyClient.ts");
+
+  const ftr = `aab9dc9eb48f4ee1916428649f908f7d_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1092-v2_tt`;
+  const ark =
+    "87818c58b11662a57.5347274705|r=eu-west-1|meta=3|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C|at=40";
+  const cookie =
+    `ff_session_guid=bdf37b8a-117f-467d-a737-7792932d98b4; arkose=${ark}; ` +
+    `forterToken=${encodeURIComponent(ftr)}; bfp=58ef2899-b1c4-42e4-9625-ae265e1b4994; ` +
+    `fpjs=${encodeURIComponent(JSON.stringify({ requestId: "1.x", visitorId: "v" }))}`;
+
+  assert.equal(canRebuildAdobeArpFromCookies(cookie), true);
+  const arp = buildAdobeArpSessionIdFromCookies(cookie);
+  assert.ok(arp.length > 40);
+  const decoded = JSON.parse(Buffer.from(arp, "base64").toString("utf8"));
+  assert.equal(decoded.sid, "bdf37b8a-117f-467d-a737-7792932d98b4");
+  assert.equal(decoded.ark, ark);
+  assert.ok(String(decoded.ftr).includes(ADOBE_FIREFLY_FTR_MAGIC));
+  assert.equal(decoded.bfp, "58ef2899-b1c4-42e4-9625-ae265e1b4994");
+  assert.ok(decoded.fpjs);
+
+  // forter without _tt suffix gets normalized
+  assert.match(normalizeAdobeForterToken("abc_1__UDF43-m4_31ck_x=-1-v2"), /-v2_tt$/);
+  // localStorage comma form is rejected
+  assert.equal(normalizeAdobeForterToken("aab9dc9eb48f4ee1916428649f908f7d,1784986682306"), "");
+
+  const merged = mergeAdobeCookieHeaders(
+    "ff_session_guid=old; arkose=a1",
+    "arkose=a2; forterToken=newftr"
+  );
+  assert.match(merged, /arkose=a2/);
+  assert.match(merged, /forterToken=newftr/);
+  assert.match(merged, /ff_session_guid=old/);
+
+  // Smart resolve prefers rebuild when cookie pieces present
+  const smart = resolveAdobeArpSessionIdSmart(cookie);
+  assert.equal(smart, arp);
+
+  const ser = serializeAdobeFireflyCredential({
+    accessToken: "eyJ.token.sig",
+    cookie,
+    arpSessionId: arp,
+  });
+  assert.match(ser, /eyJ\.token\.sig/);
+  assert.match(ser, /ff_session_guid=/);
+});
+
 test("isAdobeTransientSubmitError detects 408 system under load", () => {
   assert.equal(isAdobeTransientSubmitError(408, '{"error_code":"timeout_error","message":"system under load"}'), true);
   assert.equal(isAdobeTransientSubmitError(429, "rate"), true);
@@ -658,6 +953,11 @@ test("image submit retries on 408 then succeeds", async () => {
 });
 
 test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async () => {
+  const { __resetAdobeFireflySessionCacheForTests } = await import(
+    "../../open-sse/services/adobeFireflySession.ts"
+  );
+  __resetAdobeFireflySessionCacheForTests();
+
   const userTok =
     `eyJhbGciOiJSUzI1NiJ9.` +
     Buffer.from(
