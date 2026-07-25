@@ -10,6 +10,7 @@ import {
   AdobeFireflyError,
   adobeFireflyGenerateVideo,
   resolveAdobeAccessToken,
+  resolveAdobeArpSessionId,
   resolveAdobeSourceImageIds,
   resolveAdobeVideoModel,
 } from "../../services/adobeFireflyClient.ts";
@@ -55,7 +56,8 @@ export async function handleAdobeFireflyVideoGeneration({
           ? Number(body.seed)
           : undefined;
     // Keep raw paste for Cookie + sherlockToken (x-arp-session-id).
-    const psd = (credentials as { providerSpecificData?: { cookie?: string } })?.providerSpecificData;
+    const psd = (credentials as { providerSpecificData?: { cookie?: string } })
+      ?.providerSpecificData;
     const sessionCookie =
       (typeof psd?.cookie === "string" && psd.cookie.trim()) ||
       (typeof credentials?.apiKey === "string" && credentials.apiKey.trim()) ||
@@ -66,11 +68,14 @@ export async function handleAdobeFireflyVideoGeneration({
     // Kling i2v / Veo ref / Sora frame: upload reference images first.
     const { id: videoModelId } = resolveAdobeVideoModel(String(model));
     const maxFrames = videoModelId.includes("kling") || videoModelId.includes("sora") ? 2 : 3;
+    // One ARP for frame upload + video submit (matches browser).
+    const arpSessionId = resolveAdobeArpSessionId(sessionCookie);
     const sourceImageIds = await resolveAdobeSourceImageIds({
       accessToken,
       body,
       max: maxFrames,
       sessionCookie,
+      arpSessionId,
       prompt,
       fetchImpl,
       log,
@@ -101,6 +106,7 @@ export async function handleAdobeFireflyVideoGeneration({
       generateAudio: body.generate_audio !== false && body.generateAudio !== false,
       sourceImageIds: sourceImageIds.length ? sourceImageIds : undefined,
       sessionCookie,
+      arpSessionId,
       timeoutMs,
       fetchImpl,
       log,
