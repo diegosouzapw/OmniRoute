@@ -27,6 +27,15 @@ import {
 import tlsClient from "../utils/tlsClient.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import { resolveHttpBackedChatFingerprint } from "./httpBackedChatFingerprint.ts";
+import type {
+  BrowserBackedChatRequest,
+  BrowserBackedChatResult,
+} from "./browserBackedChat/types.ts";
+
+export type {
+  BrowserBackedChatRequest,
+  BrowserBackedChatResult,
+} from "./browserBackedChat/types.ts";
 
 // Safety constants
 const MAX_RESPONSE_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -104,126 +113,6 @@ function waitWithSignal(ms: number, signal?: AbortSignal | null): Promise<void> 
   }).catch((err) => {
     if (err instanceof DOMException && err.name === "AbortError") throw err;
   });
-}
-
-export interface BrowserBackedChatRequest {
-  /**
-   * Pool key — typically a provider id like "duckduckgo-web" or
-   * "claude-web", optionally suffixed by user/account id if cookies
-   * differ.
-   */
-  poolKey: string;
-  /**
-   * Chat URL the page should submit to. The page's `fetch` will hit
-   * this URL when the user clicks Send, and we capture the response.
-   */
-  chatUrl: string;
-  /**
-   * Chat page URL to navigate to before typing. The page must already
-   * have its chat UI rendered for the input/button selectors to work.
-   */
-  chatPageUrl: string;
-  /**
-   * The text the user wants to send. Combined with the model message
-   * prefix (e.g. "Reply with exactly: ...") so the user message is the
-   * literal text typed into the chat box.
-   */
-  userMessage: string;
-  /**
-   * Cookie string (raw) to inject into the browser context. Used by
-   * Claude web (cookies from `docs/CLAUDE_COOKIE.md` or similar).
-   * For DDG this is empty — the browser is anonymous.
-   */
-  cookieString?: string | null;
-  /** Values injected into localStorage before the provider page initializes. */
-  localStorage?: Record<string, string>;
-  /** Origin whose localStorage receives the injected values. */
-  localStorageOrigin?: string;
-  /**
-   * Cookie domain. Used together with cookieString.
-   */
-  cookieDomain?: string;
-  /**
-   * Domain for the page's `fetch` to identify which path on the
-   * upstream is the chat endpoint. e.g. "duckduckgo.com" for DDG,
-   * "claude.ai" for Claude.
-   */
-  chatUrlMatchDomain: string;
-  /**
-   * User-Agent string for the browser context.
-   */
-  userAgent?: string;
-  /**
-   * Locale (BCP 47). Defaults to en-US.
-   */
-  locale?: string;
-  /**
-   * IANA timezone. Defaults to America/New_York.
-   */
-  timezone?: string;
-  /**
-   * Selector for the chat input. DDG uses `textarea` with the "Ask
-   * anything privately" placeholder; Claude uses a contenteditable
-   * div. Override per provider.
-   */
-  inputSelector: string;
-  /**
-   * Selector for the submit button. If the page exposes one, click
-   * it. Otherwise the helper falls back to pressing Enter in the
-   * input.
-   */
-  submitButtonSelector?: string;
-  /**
-   * Use a DOM click when an animated overlay makes coordinate-based
-   * actionability unreliable even though the provider button is enabled.
-   */
-  submitButtonMode?: "playwright" | "dom";
-  /**
-   * Optional in-memory files to attach through the provider page's native
-   * upload input before submission. The page remains responsible for its
-   * authenticated upload request and for wiring returned file ids into chat.
-   */
-  attachments?: Array<{
-    name: string;
-    mimeType: string;
-    buffer: Buffer;
-  }>;
-  /**
-   * Optional provider-specific UI configuration performed after navigation
-   * and before the prompt is entered. Use this for request options that the
-   * consumer site only exposes through its own controls.
-   */
-  beforeSubmit?: (page: import("playwright").Page) => Promise<void>;
-  /**
-   * Wait after submit for SSE/JSON to arrive. Default 15 seconds.
-   */
-  postSubmitWaitMs?: number;
-  /**
-   * Optional AbortSignal. Cancels navigation/submit.
-   */
-  signal?: AbortSignal | null;
-  /**
-   * Reuse the same context across requests when true. When false, a
-   * fresh context is opened each time (slower but bypasses
-   * per-context rate limits). Default true.
-   */
-  reuseContext?: boolean;
-}
-
-export interface BrowserBackedChatResult {
-  status: number;
-  contentType: string | null;
-  body: Buffer;
-  isStealth: boolean;
-  /** Sanitized POST targets observed while submitting, useful when an endpoint path changes. */
-  observedPostUrls?: string[];
-  timing: {
-    acquireContextMs: number;
-    navigateMs: number;
-    submitMs: number;
-    captureResponseMs: number;
-    totalMs: number;
-  };
 }
 
 async function uploadBrowserAttachments(
