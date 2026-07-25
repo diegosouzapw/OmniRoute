@@ -1,7 +1,36 @@
+import { sanitizeErrorMessage } from "../../utils/error.ts";
+
 export interface ZaiDelta {
   content: string;
   reasoning: string;
   done: boolean;
+  /** Set when the frame carried an upstream error rather than a delta. */
+  error?: string;
+}
+
+/**
+ * Pull a human-readable message out of an error-shaped frame.
+ *
+ * z.ai answers some failures with HTTP 200 and an error payload in the SSE body
+ * (rejected signature, expired captcha, stale token). Those frames carry no
+ * `delta_content`, so without this they take the same "no usable delta" path as
+ * a benign phase frame and are dropped — the caller then sees a successful
+ * empty completion. Only an *explicit* error field counts: contentless frames
+ * remain a normal, skipped part of the protocol.
+ */
+function readFrameError(frame: Record<string, unknown>): string | null {
+  const data = (frame.data ?? {}) as Record<string, unknown>;
+  const raw = frame.error ?? data.error;
+  if (!raw) return null;
+
+  if (typeof raw === "string") return sanitizeErrorMessage(raw) || "upstream error";
+  if (typeof raw === "object") {
+    const rec = raw as Record<string, unknown>;
+    const message = rec.detail ?? rec.message ?? rec.msg;
+    if (typeof message === "string" && message) return sanitizeErrorMessage(message);
+    return sanitizeErrorMessage(JSON.stringify(raw));
+  }
+  return sanitizeErrorMessage(String(raw));
 }
 
 export type ZaiChunkEmitter = (
@@ -47,6 +76,12 @@ function parseInternalEnvelopeFrame(
 export function parseZaiFrame(raw: unknown): ZaiDelta | null {
   if (!raw || typeof raw !== "object") return null;
   const frame = raw as Record<string, unknown>;
+
+  // Checked before the delta paths: an error frame is terminal, and must not
+  // fall through to the "no usable delta" null that would silently drop it.
+  const error = readFrameError(frame);
+  if (error) return { content: "", reasoning: "", done: true, error };
+
   const choices = frame.choices as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(choices) && choices.length > 0) {
     return parseOpenAiShapedFrame(choices);
@@ -102,12 +137,17 @@ function emitDeltaChunks(
   emitChunk: ZaiChunkEmitter,
   roleState: { emitted: boolean }
 ): boolean {
-  if (!roleState.emitted && (delta.content || delta.reasoning)) {
+  if (!roleState.emitted && (delta.content || delta.reasoning || delta.error)) {
     roleState.emitted = true;
     emitChunk(controller, { role: "assistant", content: "" });
   }
   if (delta.reasoning) emitChunk(controller, { reasoning_content: delta.reasoning });
   if (delta.content) emitChunk(controller, { content: delta.content });
+  // Surfaced as visible content, matching the other web executors' mid-stream
+  // error convention (see zed-hosted's createErrorChunk): the 200 is already on
+  // the wire, so the status cannot change — but the caller must not be left
+  // reading an empty success. Any content streamed before the failure is kept.
+  if (delta.error) emitChunk(controller, { content: `[Z.ai error] ${delta.error}` });
   if (delta.done) {
     emitChunk(controller, {}, "stop");
     controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
