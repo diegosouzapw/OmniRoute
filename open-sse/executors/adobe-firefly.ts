@@ -23,7 +23,7 @@ export class AdobeFireflyExecutor extends BaseExecutor {
     return makeExecutorErrorResult(
       400,
       "adobe-firefly is a media-generation provider and does not support chat completions. " +
-        "Use POST /v1/images/generations (e.g. model \"adobe-firefly/nano-banana-pro\") " +
+        "Use POST /v1/images/generations or /v1/images/edits (e.g. model \"adobe-firefly/nano-banana-pro\") " +
         "or POST /v1/videos/generations (e.g. model \"adobe-firefly/sora-2\").",
       _input.body,
       ADOBE_FIREFLY_BASE_URL

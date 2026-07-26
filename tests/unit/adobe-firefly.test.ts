@@ -918,6 +918,11 @@ test("resolveAdobeImageModel maps gpt-image-2 alias", async () => {
 });
 
 test("image submit retries on 408 then succeeds", async () => {
+  const { __resetAdobeFireflySessionCacheForTests } = await import(
+    "../../open-sse/services/adobeFireflySession.ts"
+  );
+  __resetAdobeFireflySessionCacheForTests();
+
   let submits = 0;
   const userTok = userImsJwt();
   const fetchImpl = async (url: string) => {
@@ -950,6 +955,91 @@ test("image submit retries on 408 then succeeds", async () => {
   });
   assert.equal(submits, 3);
   assert.match(result.url, /retry\.png/);
+});
+
+test("sticky ARP: successful submit is reused by ensure on next call", async () => {
+  const {
+    __resetAdobeFireflySessionCacheForTests,
+    markAdobeFireflyArpSuccess,
+    ensureAdobeFireflySession,
+    fingerprintAdobeCredential,
+  } = await import("../../open-sse/services/adobeFireflySession.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../open-sse/services/adobeFireflyClient.ts");
+  __resetAdobeFireflySessionCacheForTests();
+
+  const userTok = userImsJwt();
+  const ftr = `aab9dc9eb48f4ee1916428649f908f7d_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1-v2_tt`;
+  const ark =
+    "87818c58b11662a57.5347274705|r=eu-west-1|meta=3|pk=BBCC314C-4937-4CCD-B0A3-FDF0F0F7603C|at=40";
+  const cookie =
+    `ff_session_guid=bdf37b8a-117f-467d-a737-7792932d98b4; arkose=${ark}; ` +
+    `forterToken=${encodeURIComponent(ftr)}`;
+  const cred = `${userTok}\n${cookie}`;
+  const fp = fingerprintAdobeCredential(cred);
+  const stickyArp = Buffer.from(
+    JSON.stringify({ sid: "sticky-sid", ark: "sticky-ark", ftr: "sticky-ftr" }),
+    "utf8"
+  ).toString("base64");
+
+  markAdobeFireflyArpSuccess(fp, stickyArp);
+
+  const session = await ensureAdobeFireflySession({
+    credentials: { apiKey: cred },
+    allowBrowserRefresh: false,
+    fetchImpl: (async () => {
+      throw new Error("no network expected");
+    }) as typeof fetch,
+  });
+  assert.equal(session.arpSessionId, stickyArp, "ensure must stick to last successful ARP");
+  assert.equal(session.fingerprint, fp);
+});
+
+test("rotateAdobeFireflySessionOnError: attempt1-2 reuse sticky; attempt3 keeps ARP without browser", async () => {
+  const {
+    __resetAdobeFireflySessionCacheForTests,
+    rotateAdobeFireflySessionOnError,
+    markAdobeFireflyArpSuccess,
+    buildAdobeArpSessionIdFromCookies,
+  } = await import("../../open-sse/services/adobeFireflySession.ts");
+  const { ADOBE_FIREFLY_FTR_MAGIC } = await import("../../open-sse/services/adobeFireflyClient.ts");
+  __resetAdobeFireflySessionCacheForTests();
+
+  const ftr = `aa_${Date.now()}${ADOBE_FIREFLY_FTR_MAGIC}_x=-1-v2_tt`;
+  const cookie =
+    `ff_session_guid=sid-1; arkose=ark-1; forterToken=${encodeURIComponent(ftr)}`;
+  const rebuilt = buildAdobeArpSessionIdFromCookies(cookie);
+  assert.ok(rebuilt);
+
+  const base = {
+    accessToken: userImsJwt(),
+    cookie,
+    arpSessionId: rebuilt!,
+    tokenExpiresAt: Date.now() + 3600_000,
+    updatedAt: Date.now(),
+    fingerprint: "fp-rotate-test",
+    source: "paste" as const,
+  };
+  markAdobeFireflyArpSuccess(base.fingerprint, rebuilt!);
+
+  const a1 = await rotateAdobeFireflySessionOnError(base, {
+    attempt: 1,
+    tryBrowser: false,
+  });
+  assert.equal(a1.arpSessionId, rebuilt, "attempt 1 reuses ARP (rate-limit quiet)");
+
+  const a2 = await rotateAdobeFireflySessionOnError(
+    { ...base, arpSessionId: rebuilt! },
+    { attempt: 2, tryBrowser: false }
+  );
+  assert.equal(a2.arpSessionId, rebuilt, "attempt 2 still reuses ARP (mid-batch quiet)");
+
+  const a3 = await rotateAdobeFireflySessionOnError(
+    { ...base, arpSessionId: rebuilt! },
+    { attempt: 3, tryBrowser: false }
+  );
+  // attempt 3 without browser: cookie rebuild (identical forter → same ARP)
+  assert.ok(a3.arpSessionId, "attempt 3 still yields an ARP");
+  assert.equal(a3.arpSessionId, rebuilt, "identical cookie rebuild keeps ARP (no synthetic thrash)");
 });
 
 test("adobeFireflyGenerateImage cookie path exchanges IMS token first", async () => {

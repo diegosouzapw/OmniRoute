@@ -103,6 +103,7 @@ export async function handleAdobeFireflyVideoGeneration({
       sourceImageIds: sourceImageIds.length ? sourceImageIds : undefined,
       sessionCookie,
       arpSessionId,
+      sessionFingerprint: session.fingerprint,
       timeoutMs,
       fetchImpl,
       log,

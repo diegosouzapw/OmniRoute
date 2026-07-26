@@ -8,7 +8,7 @@
 // Reference images (Media page / OpenAI edit aliases):
 //   1) POST raw bytes → firefly-3p /v2/storage/image → { images:[{ id }] }
 //   2) generate-async with referenceBlobs:[{ id, usage:"general"|"subject" }]
-// See browser network capture for live captures.
+// See web_providers/adobe_atach_images.txt for live captures.
 
 import { sanitizeErrorMessage } from "../../../utils/error.ts";
 import { saveImageErrorResult, saveImageSuccessResult } from "../../imageGeneration.ts";
@@ -124,6 +124,7 @@ export async function handleAdobeFireflyImageGeneration({
       sourceImageIds: sourceImageIds.length ? sourceImageIds : undefined,
       sessionCookie,
       arpSessionId,
+      sessionFingerprint: session.fingerprint,
       timeoutMs,
       fetchImpl,
       log,

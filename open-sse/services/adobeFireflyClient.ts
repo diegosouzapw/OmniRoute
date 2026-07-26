@@ -722,7 +722,7 @@ export function buildAdobeImagePayload(opts: {
   }
 
   // nano (Gemini Flash) + generic (Flux / Seedream / Runway image): same 3P image shape.
-  // Live capture (browser network capture): referenceBlobs with usage "general"
+  // Live capture (web_providers/adobe_atach_images.txt): referenceBlobs with usage "general"
   // keep module "text2image" (not image2image) for nano multi-ref composition.
   const sizeMap = NANO_SIZE_MAP[opts.outputResolution] || NANO_SIZE_MAP["2K"];
   const pixel = sizeMap[ratio] || sizeMap["1:1"];
@@ -945,7 +945,7 @@ export function buildAdobeSubmitNonce(accessToken: string, prompt: string): stri
 }
 
 /**
- * Live firefly.adobe.com Arkose public key (browser network capture, 2026-07).
+ * Live firefly.adobe.com Arkose public key (web_providers/adobe_atach_images.txt, 2026-07).
  * Browser x-arp-session-id is base64(JSON({sid, ark, ftr})) — synthetic sessions without a
  * real Arkose blob often get colligo HTTP 408 "system under load". Prefer pasted sherlockToken.
  */
@@ -1019,7 +1019,7 @@ export function buildAdobeArpSessionId(region = "eu-west-1"): string {
  * Live value is base64({sid, ark, ftr}) — includes Arkose session data.
  *
  * Also handles PasswordBox mangling (JWT + ARP joined by a single space) and full fetch()
- * copy/paste from DevTools (browser network capture).
+ * copy/paste from DevTools (web_providers/adobe_atach_images.txt).
  */
 export function extractAdobeArpSessionId(cookieOrBlob: string): string {
   const raw = String(cookieOrBlob || "");
@@ -1196,7 +1196,7 @@ export function buildAdobeSubmitHeaders(
     prompt?: string;
   }
 ): Record<string, string> {
-  // Live capture (browser network capture) + working clients:
+  // Live capture (web_providers/adobe_atach_images.txt) + working clients:
   // Authorization + x-api-key + x-nonce + ALWAYS x-arp-session-id (sid+ark+ftr).
   // Do NOT attach firefly.adobe.com page Cookie to firefly-3p (wrong origin).
   // Prefer real sherlockToken from cookie blob; synthetic ARP is fallback only.
@@ -1232,7 +1232,7 @@ export const ADOBE_FIREFLY_MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
 /**
  * Headers for POST /v2/storage/image (raw image body).
- * Live capture (browser network capture): Bearer + x-api-key + x-arp + x-nonce
+ * Live capture (web_providers/adobe_atach_images.txt): Bearer + x-api-key + x-arp + x-nonce
  * + content-type image/png|jpeg (not application/json).
  */
 export function buildAdobeUploadHeaders(
@@ -1656,10 +1656,10 @@ export function formatAdobeSystemUnderLoadError(
   return (
     `Adobe Firefly ${kind} generation failed (HTTP 408 "system under load", after ${attempts} attempt` +
     `${attempts === 1 ? "" : "s"}). JWT was accepted for balance/discovery but colligo rejected the risk session ` +
-    `(Forter/Arkose). The app auto-rebuilds x-arp-session-id from Cookie (forterToken+arkose+ff_session_guid) and ` +
-    `rotates ARP on each retry — paste the full firefly.adobe.com Cookie once alongside the JWT so refresh can ` +
-    `run automatically. If this keeps failing, open firefly.adobe.com, generate one image in-browser, then paste ` +
-    `a FRESH multi-line credential (JWT + Cookie) once; subsequent generates should not need re-paste.`
+    `(Forter/Arkose stale or rate-limited). The app spaces submits, sticks to the last working x-arp-session-id, ` +
+    `and on 408 auto-warms a fresh Forter/ARP via off-screen headed Chrome (not headless — colligo rejects that). ` +
+    `Paste the full firefly.adobe.com Cookie once with the JWT so recovery can run. If it still fails after that, ` +
+    `open firefly.adobe.com, generate one image in-browser, then paste a FRESH multi-line credential (JWT + Cookie) once.`
   );
 }
 
@@ -2283,11 +2283,19 @@ async function pollAdobeJob(opts: {
   throw new AdobeFireflyError(`Adobe Firefly ${opts.kind} generation timed out`, 504, "timeout");
 }
 
-// Colligo often returns instant 408 with x-colligo-timeout:0.0 under load.
-// Keep retries short: hammering Adobe with 8 long waits makes the Media page
-// look broken while balance still works. SPA succeeds on a healthy queue/token.
-const SUBMIT_MAX_ATTEMPTS = 4;
-const SUBMIT_BASE_DELAY_MS = 1200;
+// Colligo often returns instant 408 with x-colligo-timeout:0.0 under load OR when
+// generate-async is hammered in a batch. Space submits (gate) + reuse sticky ARP;
+// do NOT thrash synthetic rebuilds on every retry (identical forter → no-op).
+// More attempts: 1–2 reuse sticky ARP when forter is fresh; stale forter / attempt 3+ → off-screen Chrome warm.
+const SUBMIT_MAX_ATTEMPTS = 5;
+/** Base backoff after 408; combined with withAdobeFireflySubmitGate (~12s min gap). */
+function submitBaseDelayMs(): number {
+  if (process.env.ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS != null && process.env.ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS !== "") {
+    return Math.max(0, Number(process.env.ADOBE_FIREFLY_SUBMIT_BASE_DELAY_MS) || 0);
+  }
+  if (process.env.NODE_ENV === "test" || process.env.VITEST || process.env.NODE_TEST_CONTEXT) return 20;
+  return 8000;
+}
 
 export async function adobeFireflyGenerateImage(opts: {
   accessToken: string;
@@ -2303,6 +2311,8 @@ export async function adobeFireflyGenerateImage(opts: {
   sessionCookie?: string;
   /** Shared ARP (sid+ark+ftr). Reuse with uploads; do not mint per retry. */
   arpSessionId?: string;
+  /** Session cache key from ensureAdobeFireflySession — sticky ARP across batch jobs. */
+  sessionFingerprint?: string;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
@@ -2327,7 +2337,6 @@ export async function adobeFireflyGenerateImage(opts: {
   // Prefer real browser sherlockToken / cookie rebuild (forter+arkose). Only the raw
   // credential paste counts as "browser ARP" — never the pure synthetic fallback.
   const hadBrowserArp = hasBrowserAdobeArpSession(cookieHeader || sessionCookie);
-  // Rotate ARP on each 408 retry — reusing a rejected Arkose/Forter session never recovers.
   let arpSessionId =
     (opts.arpSessionId && String(opts.arpSessionId).trim()) ||
     resolveAdobeArpSessionId(cookieHeader || sessionCookie);
@@ -2337,96 +2346,118 @@ export async function adobeFireflyGenerateImage(opts: {
   let sawSystemUnderLoad = false;
   let accessToken = opts.accessToken;
 
-  for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
-    // Deterministic x-nonce from user_id+prompt; ARP may rotate after 408.
-    const submitResp = await fetchImpl(ADOBE_FIREFLY_IMAGE_SUBMIT_URL, {
-      method: "POST",
-      headers: buildAdobeSubmitHeaders(accessToken, {
-        arpSessionId,
-        prompt: opts.prompt,
-        cookie: cookieHeader || undefined,
-      }),
-      body: JSON.stringify(payload),
-    });
+  const {
+    withAdobeFireflySubmitGate,
+    markAdobeFireflyArpSuccess,
+    noteAdobeFireflySubmitFailure,
+    rotateAdobeFireflySessionOnError,
+    resolveAdobeArpSessionIdSmart,
+    fingerprintAdobeCredential,
+  } = await import("./adobeFireflySession.ts");
 
-    if (submitResp.status === 401 || submitResp.status === 403) {
-      const accessError = submitResp.headers.get("x-access-error") || "";
-      if (accessError === "taste_exhausted") {
-        throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
-      }
-      throw new AdobeFireflyError(
-        "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p) " +
-          "plus the firefly.adobe.com Cookie once — the app will auto-refresh ARP after that.",
-        401,
-        "auth"
-      );
-    }
+  // Stable sticky key — do NOT include arpSessionId (it changes and would break sticky).
+  const fingerprint =
+    String(opts.sessionFingerprint || "").trim() ||
+    fingerprintAdobeCredential([accessToken, cookieHeader || sessionCookie].filter(Boolean).join("\n"));
 
-    if (!submitResp.ok) {
-      const text = await submitResp.text().catch(() => "");
-      if (isAdobeTransientSubmitError(submitResp.status, text)) {
-        sawSystemUnderLoad = true;
-      }
-      lastSubmitError = `Adobe Firefly image submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`;
-      if (isAdobeTransientSubmitError(submitResp.status, text) && attempt < SUBMIT_MAX_ATTEMPTS) {
-        // Mint a fresh ARP for the next attempt (stale sherlockToken is the usual 408 cause).
-        try {
-          const { resolveAdobeArpSessionIdSmart, rotateAdobeFireflySessionOnError } = await import(
-            "./adobeFireflySession.ts"
+  // Gate serialize + min gap: mid-batch 408 is often rate-limit thrash, not "dead" ARP.
+  await withAdobeFireflySubmitGate(async () => {
+    for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
+      const submitResp = await fetchImpl(ADOBE_FIREFLY_IMAGE_SUBMIT_URL, {
+        method: "POST",
+        headers: buildAdobeSubmitHeaders(accessToken, {
+          arpSessionId,
+          prompt: opts.prompt,
+          cookie: cookieHeader || undefined,
+        }),
+        body: JSON.stringify(payload),
+      });
+
+      if (submitResp.status === 401 || submitResp.status === 403) {
+        noteAdobeFireflySubmitFailure();
+        const accessError = submitResp.headers.get("x-access-error") || "";
+        if (accessError === "taste_exhausted") {
+          throw new AdobeFireflyError(
+            "Adobe Firefly quota exhausted for this account",
+            429,
+            "quota_exhausted"
           );
-          // Attempt 2: rebuild from cookies; attempt 3+: also try Playwright warm-up once.
-          // Prefer cookie rebuild over pure synthetic. Playwright warm is opt-in only —
-          // headless Forter tokens are rejected by colligo (still 408).
-          const tryBrowser =
-            attempt >= 3 && process.env.ADOBE_FIREFLY_BROWSER_REFRESH === "1";
-          if (cookieHeader) {
-            const rotated = await rotateAdobeFireflySessionOnError(
-              {
-                accessToken,
-                cookie: cookieHeader,
-                arpSessionId,
-                tokenExpiresAt: 0,
-                updatedAt: Date.now(),
-                fingerprint: "inline",
-                source: "rebuild",
-              },
-              { tryBrowser, log: opts.log }
-            );
-            accessToken = rotated.accessToken || accessToken;
-            arpSessionId = rotated.arpSessionId;
-          } else {
-            arpSessionId = resolveAdobeArpSessionIdSmart(sessionCookie, { rotate: true });
-          }
-        } catch {
-          arpSessionId = buildAdobeArpSessionId();
         }
-        const delay =
-          Math.min(45_000, SUBMIT_BASE_DELAY_MS * Math.pow(2, attempt - 1)) +
-          Math.floor(Math.random() * 750);
-        opts.log?.info?.(
-          "ADOBE-FIREFLY",
-          `image submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms (ARP rotated)`
-        );
-        await sleep(delay);
-        continue;
-      }
-      if (sawSystemUnderLoad && isAdobeTransientSubmitError(submitResp.status, text)) {
         throw new AdobeFireflyError(
-          formatAdobeSystemUnderLoadError("image", attempt, { hadBrowserArp }),
-          408,
-          "system_under_load"
+          "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p) " +
+            "plus the firefly.adobe.com Cookie once — the app will auto-refresh ARP after that.",
+          401,
+          "auth"
         );
       }
-      throw new AdobeFireflyError(
-        lastSubmitError,
-        submitResp.status >= 400 && submitResp.status < 500 ? submitResp.status : 502
-      );
-    }
 
-    submitData = await submitResp.json().catch(() => ({}));
-    submitHeaders = submitResp.headers;
-    break;
-  }
+      if (!submitResp.ok) {
+        const text = await submitResp.text().catch(() => "");
+        if (isAdobeTransientSubmitError(submitResp.status, text)) {
+          sawSystemUnderLoad = true;
+        }
+        lastSubmitError = `Adobe Firefly image submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`;
+        if (isAdobeTransientSubmitError(submitResp.status, text) && attempt < SUBMIT_MAX_ATTEMPTS) {
+          try {
+            if (cookieHeader || sessionCookie) {
+              const rotated = await rotateAdobeFireflySessionOnError(
+                {
+                  accessToken,
+                  cookie: cookieHeader || sessionCookie,
+                  arpSessionId,
+                  tokenExpiresAt: 0,
+                  updatedAt: Date.now(),
+                  fingerprint,
+                  source: "rebuild",
+                },
+                {
+                  // Stale forter warms immediately; fresh forter quiet-reuses on 1–2 then warms.
+                  attempt,
+                  tryBrowser: process.env.ADOBE_FIREFLY_BROWSER_REFRESH !== "0",
+                  log: opts.log,
+                }
+              );
+              accessToken = rotated.accessToken || accessToken;
+              arpSessionId = rotated.arpSessionId;
+            } else {
+              arpSessionId = resolveAdobeArpSessionIdSmart(sessionCookie, { rotate: true });
+            }
+          } catch {
+            // Keep prior ARP — synthetic thrash rarely recovers colligo 408.
+          }
+          const base = submitBaseDelayMs();
+          const delay =
+            base <= 50
+              ? base
+              : Math.min(90_000, base * Math.pow(2, attempt - 1)) + Math.floor(Math.random() * 1500);
+          opts.log?.info?.(
+            "ADOBE-FIREFLY",
+            `image submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms (recovery attempt=${attempt})`
+          );
+          await sleep(delay);
+          continue;
+        }
+        noteAdobeFireflySubmitFailure();
+        if (sawSystemUnderLoad && isAdobeTransientSubmitError(submitResp.status, text)) {
+          throw new AdobeFireflyError(
+            formatAdobeSystemUnderLoadError("image", attempt, { hadBrowserArp }),
+            408,
+            "system_under_load"
+          );
+        }
+        throw new AdobeFireflyError(
+          lastSubmitError,
+          submitResp.status >= 400 && submitResp.status < 500 ? submitResp.status : 502
+        );
+      }
+
+      submitData = await submitResp.json().catch(() => ({}));
+      submitHeaders = submitResp.headers;
+      // Sticky: remember ARP that colligo accepted so the next batch image reuses it.
+      markAdobeFireflyArpSuccess(fingerprint, arpSessionId);
+      break;
+    }
+  });
 
   let pollUrl = extractAdobeResultLink(submitHeaders, submitData);
   if (!pollUrl) {
@@ -2446,7 +2477,7 @@ export async function adobeFireflyGenerateImage(opts: {
 
   const { mediaUrl, latest } = await pollAdobeJob({
     pollUrl,
-    accessToken: opts.accessToken,
+    accessToken,
     kind: "image",
     timeoutMs: opts.timeoutMs && opts.timeoutMs > 0 ? opts.timeoutMs : DEFAULT_IMAGE_TIMEOUT_MS,
     fetchImpl,
@@ -2472,6 +2503,8 @@ export async function adobeFireflyGenerateVideo(opts: {
   sessionCookie?: string;
   /** Shared ARP (sid+ark+ftr). Reuse with frame uploads. */
   arpSessionId?: string;
+  /** Session cache key from ensureAdobeFireflySession — sticky ARP across batch jobs. */
+  sessionFingerprint?: string;
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
@@ -2516,91 +2549,114 @@ export async function adobeFireflyGenerateVideo(opts: {
   let sawSystemUnderLoad = false;
   let accessToken = opts.accessToken;
 
-  for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
-    const submitResp = await fetchImpl(ADOBE_FIREFLY_VIDEO_SUBMIT_URL, {
-      method: "POST",
-      headers: buildAdobeSubmitHeaders(accessToken, {
-        arpSessionId,
-        prompt: opts.prompt,
-        cookie: cookieHeader || undefined,
-      }),
-      body: JSON.stringify(payload),
-    });
+  const {
+    withAdobeFireflySubmitGate,
+    markAdobeFireflyArpSuccess,
+    noteAdobeFireflySubmitFailure,
+    rotateAdobeFireflySessionOnError,
+    resolveAdobeArpSessionIdSmart,
+    fingerprintAdobeCredential,
+  } = await import("./adobeFireflySession.ts");
 
-    if (submitResp.status === 401 || submitResp.status === 403) {
-      const accessError = submitResp.headers.get("x-access-error") || "";
-      if (accessError === "taste_exhausted") {
-        throw new AdobeFireflyError("Adobe Firefly quota exhausted for this account", 429, "quota_exhausted");
-      }
-      throw new AdobeFireflyError(
-        "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p) " +
-          "plus the firefly.adobe.com Cookie once — the app will auto-refresh ARP after that.",
-        401,
-        "auth"
-      );
-    }
+  const fingerprint =
+    String(opts.sessionFingerprint || "").trim() ||
+    fingerprintAdobeCredential([accessToken, cookieHeader || sessionCookie].filter(Boolean).join("\n"));
 
-    if (!submitResp.ok) {
-      const text = await submitResp.text().catch(() => "");
-      if (isAdobeTransientSubmitError(submitResp.status, text)) {
-        sawSystemUnderLoad = true;
-      }
-      lastSubmitError = `Adobe Firefly video submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`;
-      if (isAdobeTransientSubmitError(submitResp.status, text) && attempt < SUBMIT_MAX_ATTEMPTS) {
-        try {
-          const { resolveAdobeArpSessionIdSmart, rotateAdobeFireflySessionOnError } = await import(
-            "./adobeFireflySession.ts"
+  await withAdobeFireflySubmitGate(async () => {
+    for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt++) {
+      const submitResp = await fetchImpl(ADOBE_FIREFLY_VIDEO_SUBMIT_URL, {
+        method: "POST",
+        headers: buildAdobeSubmitHeaders(accessToken, {
+          arpSessionId,
+          prompt: opts.prompt,
+          cookie: cookieHeader || undefined,
+        }),
+        body: JSON.stringify(payload),
+      });
+
+      if (submitResp.status === 401 || submitResp.status === 403) {
+        noteAdobeFireflySubmitFailure();
+        const accessError = submitResp.headers.get("x-access-error") || "";
+        if (accessError === "taste_exhausted") {
+          throw new AdobeFireflyError(
+            "Adobe Firefly quota exhausted for this account",
+            429,
+            "quota_exhausted"
           );
-          const tryBrowser =
-            attempt >= 3 && process.env.ADOBE_FIREFLY_BROWSER_REFRESH === "1";
-          if (cookieHeader) {
-            const rotated = await rotateAdobeFireflySessionOnError(
-              {
-                accessToken,
-                cookie: cookieHeader,
-                arpSessionId,
-                tokenExpiresAt: 0,
-                updatedAt: Date.now(),
-                fingerprint: "inline",
-                source: "rebuild",
-              },
-              { tryBrowser, log: opts.log }
-            );
-            accessToken = rotated.accessToken || accessToken;
-            arpSessionId = rotated.arpSessionId;
-          } else {
-            arpSessionId = resolveAdobeArpSessionIdSmart(sessionCookie, { rotate: true });
-          }
-        } catch {
-          arpSessionId = buildAdobeArpSessionId();
         }
-        const delay =
-          Math.min(45_000, SUBMIT_BASE_DELAY_MS * Math.pow(2, attempt - 1)) +
-          Math.floor(Math.random() * 750);
-        opts.log?.info?.(
-          "ADOBE-FIREFLY",
-          `video submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms (ARP rotated)`
-        );
-        await sleep(delay);
-        continue;
-      }
-      if (sawSystemUnderLoad && isAdobeTransientSubmitError(submitResp.status, text)) {
         throw new AdobeFireflyError(
-          formatAdobeSystemUnderLoadError("video", attempt, { hadBrowserArp }),
-          408,
-          "system_under_load"
+          "Adobe Firefly token invalid or expired. Paste a fresh IMS JWT (Authorization: Bearer on firefly-3p) " +
+            "plus the firefly.adobe.com Cookie once — the app will auto-refresh ARP after that.",
+          401,
+          "auth"
         );
       }
-      throw new AdobeFireflyError(
-        lastSubmitError,
-        submitResp.status >= 400 && submitResp.status < 500 ? submitResp.status : 502
-      );
-    }
 
-    submitData = await submitResp.json().catch(() => ({}));
-    submitHeaders = submitResp.headers;
-    break;
-  }
+      if (!submitResp.ok) {
+        const text = await submitResp.text().catch(() => "");
+        if (isAdobeTransientSubmitError(submitResp.status, text)) {
+          sawSystemUnderLoad = true;
+        }
+        lastSubmitError = `Adobe Firefly video submit failed (${submitResp.status}): ${sanitizeErrorMessage(text.slice(0, 300))}`;
+        if (isAdobeTransientSubmitError(submitResp.status, text) && attempt < SUBMIT_MAX_ATTEMPTS) {
+          try {
+            if (cookieHeader || sessionCookie) {
+              const rotated = await rotateAdobeFireflySessionOnError(
+                {
+                  accessToken,
+                  cookie: cookieHeader || sessionCookie,
+                  arpSessionId,
+                  tokenExpiresAt: 0,
+                  updatedAt: Date.now(),
+                  fingerprint,
+                  source: "rebuild",
+                },
+                {
+                  attempt,
+                  tryBrowser: process.env.ADOBE_FIREFLY_BROWSER_REFRESH !== "0",
+                  log: opts.log,
+                }
+              );
+              accessToken = rotated.accessToken || accessToken;
+              arpSessionId = rotated.arpSessionId;
+            } else {
+              arpSessionId = resolveAdobeArpSessionIdSmart(sessionCookie, { rotate: true });
+            }
+          } catch {
+            /* keep prior ARP */
+          }
+          const base = submitBaseDelayMs();
+          const delay =
+            base <= 50
+              ? base
+              : Math.min(90_000, base * Math.pow(2, attempt - 1)) + Math.floor(Math.random() * 1500);
+          opts.log?.info?.(
+            "ADOBE-FIREFLY",
+            `video submit transient ${submitResp.status}, retry ${attempt}/${SUBMIT_MAX_ATTEMPTS} in ${delay}ms (recovery attempt=${attempt})`
+          );
+          await sleep(delay);
+          continue;
+        }
+        noteAdobeFireflySubmitFailure();
+        if (sawSystemUnderLoad && isAdobeTransientSubmitError(submitResp.status, text)) {
+          throw new AdobeFireflyError(
+            formatAdobeSystemUnderLoadError("video", attempt, { hadBrowserArp }),
+            408,
+            "system_under_load"
+          );
+        }
+        throw new AdobeFireflyError(
+          lastSubmitError,
+          submitResp.status >= 400 && submitResp.status < 500 ? submitResp.status : 502
+        );
+      }
+
+      submitData = await submitResp.json().catch(() => ({}));
+      submitHeaders = submitResp.headers;
+      markAdobeFireflyArpSuccess(fingerprint, arpSessionId);
+      break;
+    }
+  });
 
   let pollUrl = extractAdobeResultLink(submitHeaders, submitData);
   if (!pollUrl) {
@@ -2620,7 +2676,7 @@ export async function adobeFireflyGenerateVideo(opts: {
 
   const { mediaUrl, latest } = await pollAdobeJob({
     pollUrl,
-    accessToken: opts.accessToken,
+    accessToken,
     kind: "video",
     timeoutMs: opts.timeoutMs && opts.timeoutMs > 0 ? opts.timeoutMs : DEFAULT_VIDEO_TIMEOUT_MS,
     fetchImpl,
