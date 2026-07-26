@@ -37,9 +37,9 @@ test("resolveModelAlias: resolves deprecated Claude model", () => {
   assert.equal(resolveModelAlias("claude-3-5-sonnet-latest"), "claude-sonnet-4-20250514");
 });
 
-test("resolveModelAlias: resolves deprecated OpenAI model", () => {
-  assert.equal(resolveModelAlias("gpt-4-turbo-preview"), "gpt-4-turbo");
-  assert.equal(resolveModelAlias("gpt-3.5-turbo-0125"), "gpt-3.5-turbo");
+test("resolveModelAlias: does not silently reroute retired OpenAI models", () => {
+  assert.equal(resolveModelAlias("gpt-4-turbo-preview"), "gpt-4-turbo-preview");
+  assert.equal(resolveModelAlias("gpt-3.5-turbo-0125"), "gpt-3.5-turbo-0125");
 });
 
 test("resolveModelAlias: handles null/empty", () => {

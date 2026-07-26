@@ -6,6 +6,7 @@ import { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 export { extractSystemRoleMessages } from "./chatCore/claudeSystemRole.ts";
 import { checkIdempotencyCache } from "./chatCore/idempotency.ts";
 import { checkSemanticCache } from "./chatCore/semanticCache.ts";
+import { checkLifecycle, resolveLifecycle } from "./chatCore/modelLifecyclePolicy.ts";
 import {
   shouldDefaultAllowClassifier,
   buildDefaultAllowClaudeMessage,
@@ -114,7 +115,6 @@ import {
   getStripTypesForProviderModel,
   stripIncompatibleMessageContent,
 } from "../services/modelStrip.ts";
-import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { normalizeMimoThinking } from "../services/mimoThinking.ts";
 import {
   isOpencodeGoProvider,
@@ -650,6 +650,9 @@ export async function handleChatCore({
     responsesInputItems
   );
 
+  const requestedLifecycleError = checkLifecycle(provider, model, log);
+  if (requestedLifecycleError) return requestedLifecycleError;
+
   // Check for bypass patterns (warmup, skip) - return fake response
   const bypassResponse = handleBypassRequest(body, model, userAgent);
   if (bypassResponse) {
@@ -714,16 +717,13 @@ export async function handleChatCore({
     });
   }
 
-  // Apply custom model aliases (Settings → Model Aliases → Pattern→Target) before routing (#315, #472)
-  // Custom aliases take priority over built-in and must be resolved here so the
-  // downstream getModelTargetFormat() lookup AND the actual provider request use
-  // the correct, aliased model ID. Without this, aliases only affect format detection.
-  const resolvedModel = resolveModelAlias(model);
-  // Use resolvedModel for all downstream operations (routing, provider requests, logging)
-  let effectiveModel = resolvedModel === model ? model : resolvedModel;
-  if (resolvedModel !== model) {
-    log?.info?.("ALIAS", `Model alias applied: ${model} → ${resolvedModel}`);
-  }
+  // Custom aliases remain explicit; lifecycle replacements are advisory and never silently routed.
+  let [resolvedModel, effectiveModel, routedLifecycleError] = resolveLifecycle(
+    provider,
+    model,
+    log
+  );
+  if (routedLifecycleError) return routedLifecycleError;
 
   // Effort-variant model ids: the Claude / Claude-Code model picker (e.g. VS Code's
   // "Effort" slider) advertises claude-...-{low,medium,high,xhigh,max}. Anthropic has
@@ -3838,8 +3838,8 @@ export async function handleChatCore({
     // Before returning a model-unavailable error upstream, try sibling models
     // from the same family. This keeps the request alive on the same account
     // instead of failing the entire combo.
-    if (isModelUnavailableError(statusCode, message)) {
-      const nextModel = getNextFamilyFallback(currentModel, triedModels);
+    if (isModelUnavailableError(statusCode, message, provider)) {
+      const nextModel = getNextFamilyFallback(currentModel, triedModels, provider);
       if (nextModel) {
         triedModels.add(nextModel);
         currentModel = nextModel;
@@ -3925,12 +3925,12 @@ export async function handleChatCore({
         );
       }
     } else if (isContextOverflowError(statusCode, message)) {
-      const familyCandidates = getModelFamily(currentModel).filter(
+      const familyCandidates = getModelFamily(currentModel, provider).filter(
         (m) => m !== currentModel && !triedModels.has(m)
       );
       const nextModel =
-        findLargerContextModel(currentModel, familyCandidates) ??
-        getNextFamilyFallback(currentModel, triedModels);
+        findLargerContextModel(currentModel, familyCandidates, provider) ??
+        getNextFamilyFallback(currentModel, triedModels, provider);
       if (nextModel) {
         triedModels.add(nextModel);
         currentModel = nextModel;
@@ -4181,7 +4181,7 @@ export async function handleChatCore({
       persistFailureUsage(HTTP_STATUS.BAD_GATEWAY, "empty_content");
 
       // Trigger non-recursive fallback for empty content
-      const nextModel = getNextFamilyFallback(currentModel, triedModels);
+      const nextModel = getNextFamilyFallback(currentModel, triedModels, provider);
       if (nextModel) {
         triedModels.add(nextModel);
         currentModel = nextModel;

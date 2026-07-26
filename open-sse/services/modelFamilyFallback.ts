@@ -19,6 +19,7 @@ import {
   isResourceNotFoundResponse,
 } from "./errorClassifier.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { isModelSelectable } from "./modelLifecycle.ts";
 
 // ── Model Family Definitions ─────────────────────────────────────────────────
 
@@ -26,7 +27,7 @@ import { getRegistryEntry } from "../config/providerRegistry.ts";
  * Ordered candidate lists per model family.
  * First entry is the most preferred; fallback proceeds in order.
  */
-const MODEL_FAMILIES: Record<string, string[]> = {
+const FAMILY_FALLBACK_TEMPLATES: Record<string, readonly string[]> = {
   // Gemini 3 / 3.1 Pro family — ordered by preference
   "gemini-3-pro": [
     "gemini-3.1-pro-preview",
@@ -96,10 +97,6 @@ const MODEL_FAMILIES: Record<string, string[]> = {
   ],
   "claude-sonnet-4-6": ["claude-sonnet-4-5-20250929", "claude-sonnet-4-20250514"],
   "claude-sonnet-4-5-20250929": ["claude-sonnet-4-6", "claude-sonnet-4-20250514"],
-
-  // GPT-5 family
-  "gpt-5": ["gpt-5-mini", "gpt-4o"],
-  "gpt-5.1": ["gpt-5.1-mini", "gpt-5", "gpt-4o"],
 };
 
 // ── Error Detection ──────────────────────────────────────────────────────────
@@ -119,21 +116,24 @@ const MODEL_UNAVAILABLE_FRAGMENTS = [
   "this model does not exist",
   "invalid model",
   "model not supported",
-  "does not support",
   "not enabled for",
   "access to model",
-  "improperly formed request", // Kiro 400 (model unavailable)
 ];
 
 /**
  * Returns true if the HTTP status + error message indicates the model
  * itself is not available, not a transient server error.
  */
-export function isModelUnavailableError(status: number, errorMessage: string): boolean {
+export function isModelUnavailableError(
+  status: number,
+  errorMessage: string,
+  provider?: string | null
+): boolean {
   if (status === 404) return !isResourceNotFoundResponse(errorMessage);
   if (status !== 400 && status !== 403) return false;
 
   const msg = errorMessage.toLowerCase();
+  if (provider === "kiro" && msg.includes("improperly formed request")) return true;
   if (MODEL_UNAVAILABLE_FRAGMENTS.some((fragment) => msg.includes(fragment))) return true;
   return containsModelUnavailableMessage(errorMessage);
 }
@@ -177,46 +177,88 @@ function resolveCandidateNotation(candidate: string, supportedIds: Set<string>):
   return candidateNotationVariants(candidate).find((variant) => supportedIds.has(variant)) ?? null;
 }
 
+function resolveFamilyContext(currentModel: string, providerHint?: string | null) {
+  const parsed = parseModel(currentModel);
+  const bareModel = parsed.model || currentModel;
+  const explicitProvider = parsed.provider || parsed.providerAlias || null;
+  const registryEntry = getRegistryEntry(explicitProvider || providerHint || "");
+  if (!registryEntry) return null;
+
+  const lookupKey = bareModel.replace(/\./g, "-");
+  const family =
+    FAMILY_FALLBACK_TEMPLATES[lookupKey] ?? FAMILY_FALLBACK_TEMPLATES[bareModel] ?? null;
+  if (!family) return null;
+
+  return {
+    bareModel,
+    family,
+    provider: registryEntry.id,
+    outputPrefix: explicitProvider ? `${registryEntry.id}/` : "",
+    supportedIds: new Set(registryEntry.models.map((model) => model.id)),
+  };
+}
+
+function wasCandidateTried(
+  candidateModel: string,
+  provider: string,
+  triedModels: Set<string>
+): boolean {
+  for (const attempted of triedModels) {
+    const parsed = parseModel(attempted);
+    const attemptedModel = parsed.model || attempted;
+    const attemptedProvider = parsed.provider || parsed.providerAlias || provider;
+    const registryEntry = getRegistryEntry(attemptedProvider);
+    if (
+      (registryEntry?.id || attemptedProvider) === provider &&
+      attemptedModel === candidateModel
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function resolveProviderFamilyCandidates(
+  currentModel: string,
+  providerHint?: string | null
+): { provider: string; outputPrefix: string; candidates: string[] } | null {
+  const context = resolveFamilyContext(currentModel, providerHint);
+  if (!context) return null;
+
+  const candidates: string[] = [];
+  for (const candidate of context.family) {
+    const resolvedCandidate = resolveCandidateNotation(candidate, context.supportedIds);
+    if (!resolvedCandidate) continue;
+    if (!isModelSelectable(context.provider, resolvedCandidate)) continue;
+    if (!candidates.includes(resolvedCandidate)) candidates.push(resolvedCandidate);
+  }
+
+  return {
+    provider: context.provider,
+    outputPrefix: context.outputPrefix,
+    candidates,
+  };
+}
+
 /**
  * Get the next fallback model from the same family.
  *
  * @param currentModel  The model that just failed
  * @param triedModels   Set of model IDs already tried (to avoid cycles)
+ * @param providerHint  Current provider when currentModel is an unprefixed wire ID
  * @returns             Next model to try, or null if family exhausted
  */
 export function getNextFamilyFallback(
   currentModel: string,
-  triedModels: Set<string>
+  triedModels: Set<string>,
+  providerHint?: string | null
 ): string | null {
-  const parsed = parseModel(currentModel);
-  const bareModel = parsed.model || currentModel;
-  const provider = parsed.provider || parsed.providerAlias || "";
-  const prefix = provider ? `${provider}/` : "";
+  const resolved = resolveProviderFamilyCandidates(currentModel, providerHint);
+  if (!resolved) return null;
 
-  // Normalize dots to hyphens so kiro/claude-opus-4.8 finds the right entry.
-  // Fall back to the bare model name to support keys like "gemini-3.1-pro-high"
-  // whose dots are part of the literal name, not a version separator.
-  const lookupKey = bareModel.replace(/\./g, "-");
-  const family = MODEL_FAMILIES[lookupKey] ?? MODEL_FAMILIES[bareModel];
-  if (!family) return null;
-
-  // Resolve the provider's supported model IDs so we can match notation (dot vs hyphen)
-  const registryEntry = provider ? getRegistryEntry(provider) : null;
-  const supportedIds = registryEntry ? new Set(registryEntry.models.map((m) => m.id)) : null;
-
-  for (const candidate of family) {
-    let resolvedCandidate = candidate;
-    if (supportedIds && !supportedIds.has(candidate)) {
-      const match = resolveCandidateNotation(candidate, supportedIds);
-      // Provider catalog is known but this candidate has no match under any
-      // notation — it is provably unsupported, so skip it instead of
-      // returning an id the provider will just 400 on again.
-      if (!match) continue;
-      resolvedCandidate = match;
-    }
-    const fullCandidate = `${prefix}${resolvedCandidate}`;
-    if (!triedModels.has(fullCandidate)) {
-      return fullCandidate;
+  for (const candidate of resolved.candidates) {
+    if (!wasCandidateTried(candidate, resolved.provider, triedModels)) {
+      return `${resolved.outputPrefix}${candidate}`;
     }
   }
 
@@ -226,24 +268,18 @@ export function getNextFamilyFallback(
 /**
  * Check if a model belongs to any registered family.
  */
-export function isInModelFamily(model: string): boolean {
-  const parsed = parseModel(model);
-  const bareModel = parsed.model || model;
-  return bareModel in MODEL_FAMILIES;
+export function isInModelFamily(model: string, providerHint?: string | null): boolean {
+  const resolved = resolveProviderFamilyCandidates(model, providerHint);
+  return Boolean(resolved?.candidates.length);
 }
 
 /**
  * Get all members of a model's family (including itself).
  */
-export function getModelFamily(model: string): string[] {
-  const parsed = parseModel(model);
-  const bareModel = parsed.model || model;
-  const prefix =
-    parsed.provider || parsed.providerAlias ? `${parsed.provider || parsed.providerAlias}/` : "";
-
-  const family = MODEL_FAMILIES[bareModel];
-  if (!family) return [model];
-  return [model, ...family.map((c) => `${prefix}${c}`)];
+export function getModelFamily(model: string, providerHint?: string | null): string[] {
+  const resolved = resolveProviderFamilyCandidates(model, providerHint);
+  if (!resolved) return [model];
+  return [model, ...resolved.candidates.map((candidate) => `${resolved.outputPrefix}${candidate}`)];
 }
 
 /**
@@ -252,10 +288,12 @@ export function getModelFamily(model: string): string[] {
  */
 export function findLargerContextModel(
   currentModel: string,
-  availableModels: string[]
+  availableModels: string[],
+  providerHint?: string | null
 ): string | null {
   const currentParsed = parseModel(currentModel);
-  const currentProvider = currentParsed.provider || currentParsed.providerAlias || "unknown";
+  const currentProvider =
+    currentParsed.provider || currentParsed.providerAlias || providerHint || "unknown";
   const currentModelId = currentParsed.model || currentModel;
   const currentLimit = getModelContextLimit(currentProvider, currentModelId) ?? 0;
 
@@ -265,7 +303,7 @@ export function findLargerContextModel(
   for (const candidate of availableModels) {
     if (candidate === currentModel) continue;
     const parsed = parseModel(candidate);
-    const provider = parsed.provider || parsed.providerAlias || "unknown";
+    const provider = parsed.provider || parsed.providerAlias || providerHint || "unknown";
     const modelId = parsed.model || candidate;
     const limit = getModelContextLimit(provider, modelId) ?? 0;
 

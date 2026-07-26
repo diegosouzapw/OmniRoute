@@ -1788,7 +1788,7 @@
   },
   "tests/unit/chatcore-translation-paths.test.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 34
+      "count": 31
     }
   },
   "tests/unit/chatgpt-web-tools-5240.test.ts": {

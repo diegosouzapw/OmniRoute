@@ -65,27 +65,27 @@ export const PROVIDERS: Record<string, LegacyProvider> = new Proxy(
   {} as Record<string, LegacyProvider>,
   {
     get(_, prop) {
-      if (typeof prop === 'symbol') return undefined;
+      if (typeof prop === "symbol") return undefined;
       return Reflect.get(initProviders(), prop, _providers);
     },
     has(_, prop) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       return Reflect.has(initProviders(), prop);
     },
     ownKeys() {
       return Reflect.ownKeys(initProviders());
     },
     getOwnPropertyDescriptor(_, prop) {
-      if (typeof prop === 'symbol') return undefined;
+      if (typeof prop === "symbol") return undefined;
       return Object.getOwnPropertyDescriptor(initProviders(), prop);
     },
     set(_, prop, value) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       (initProviders() as Record<string, LegacyProvider>)[prop] = value;
       return true;
     },
     deleteProperty(_, prop) {
-      if (typeof prop === 'symbol') return false;
+      if (typeof prop === "symbol") return false;
       return Reflect.deleteProperty(initProviders(), prop);
     },
   }
@@ -157,6 +157,7 @@ export const HTTP_STATUS = {
   NOT_FOUND: 404,
   NOT_ACCEPTABLE: 406,
   REQUEST_TIMEOUT: 408,
+  GONE: 410,
   RATE_LIMITED: 429,
   SERVER_ERROR: 500,
   BAD_GATEWAY: 502,
