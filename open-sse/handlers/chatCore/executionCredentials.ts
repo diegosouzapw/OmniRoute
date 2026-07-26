@@ -51,8 +51,22 @@ export function resolveExecutionCredentials(opts: {
     providerSpecificData.apiType = "responses";
   }
 
-  if (targetFormat === FORMATS.OPENAI_RESPONSES && (provider === "azure-ai" || provider === "oci")) {
+  if (
+    targetFormat === FORMATS.OPENAI_RESPONSES &&
+    (provider === "azure-ai" || provider === "oci")
+  ) {
     providerSpecificData._omnirouteForceResponsesUpstream = true;
+  }
+
+  // GitHub Copilot custom models (custom-model dropdown, #2905) can carry a
+  // per-model targetFormat override resolving to "openai-responses" so a
+  // Codex-family custom model routes through Copilot's native /responses
+  // endpoint. GithubExecutor.buildUrl() only consults the static
+  // PROVIDER_MODELS registry via getModelTargetFormat() and has no other way
+  // to see a custom model's override — mirrors the zai/glm-coding-apikey fix
+  // (#7364) for the same class of bug.
+  if (targetFormat === FORMATS.OPENAI_RESPONSES && provider === "github") {
+    providerSpecificData.targetFormat = targetFormat;
   }
 
   const withApiType = {
