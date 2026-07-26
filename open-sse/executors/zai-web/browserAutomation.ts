@@ -6,6 +6,20 @@ import {
   type ZaiVlmConfig,
 } from "./protocol.ts";
 
+/**
+ * Run one Playwright interaction, re-throwing any failure tagged with the stage
+ * that produced it. Every step below is a blind DOM poke against a UI we do not
+ * control, so an untagged "click timed out" is unactionable in a bug report.
+ */
+async function runStage(name: string, action: () => Promise<void>): Promise<void> {
+  try {
+    await action();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`${name}: ${message}`);
+  }
+}
+
 async function selectZaiBrowserModel(page: Page, modelName: string): Promise<void> {
   const selector = page.locator('[aria-label="Select a model"]').first();
   await selector.waitFor({ state: "visible", timeout: 10_000 });
@@ -59,53 +73,42 @@ async function setZaiBrowserWebSearch(page: Page, enabled: boolean): Promise<voi
   }
 }
 
+/** Pick the High/Max effort button inside an already-open Deep Think menu. */
+async function selectZaiBrowserEffortLevel(
+  menu: ReturnType<Page["locator"]>,
+  effort: ZaiThinkingConfig["effort"]
+): Promise<void> {
+  const effortButton = menu.locator("button").filter({
+    hasText: effort === "high" ? "High" : "Max",
+  });
+  if ((await effortButton.getAttribute("data-selected")) === "true") return;
+  await runStage(`select ${effort}`, () =>
+    effortButton.evaluate((element) => (element as HTMLElement).click())
+  );
+}
+
 async function configureZaiBrowserEffort(page: Page, config: ZaiThinkingConfig): Promise<void> {
   const trigger = page
     .locator("[data-dropdown-menu-trigger]")
     .filter({ hasText: "Deep Think" })
     .first();
   await trigger.waitFor({ state: "visible", timeout: 10_000 });
-  try {
-    await trigger.evaluate((element) => (element as HTMLElement).click());
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`open menu: ${message}`);
-  }
+  await runStage("open menu", () =>
+    trigger.evaluate((element) => (element as HTMLElement).click())
+  );
 
   const menu = page.locator('[role="menu"]').filter({ hasText: "Deep Think" }).first();
   await menu.waitFor({ state: "visible", timeout: 5_000 });
   const toggle = menu.locator('[role="switch"]').first();
   const checked = (await toggle.getAttribute("aria-checked")) === "true";
 
-  if (!config.enabled) {
-    if (checked) {
-      try {
-        await toggle.click({ timeout: 5_000 });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`disable toggle: ${message}`);
-      }
-    }
-  } else {
-    if (!checked) {
-      try {
-        await toggle.click({ timeout: 5_000 });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`enable toggle: ${message}`);
-      }
-    }
-    const effortButton = menu.locator("button").filter({
-      hasText: config.effort === "high" ? "High" : "Max",
-    });
-    if ((await effortButton.getAttribute("data-selected")) !== "true") {
-      try {
-        await effortButton.evaluate((element) => (element as HTMLElement).click());
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        throw new Error(`select ${config.effort}: ${message}`);
-      }
-    }
+  if (checked !== config.enabled) {
+    await runStage(config.enabled ? "enable toggle" : "disable toggle", () =>
+      toggle.click({ timeout: 5_000 })
+    );
+  }
+  if (config.enabled) {
+    await selectZaiBrowserEffortLevel(menu, config.effort);
   }
 
   if (await menu.isVisible()) {
@@ -121,15 +124,6 @@ export async function configureZaiBrowserRequest(
     vlm: ZaiVlmConfig;
   }
 ): Promise<void> {
-  const runStage = async (name: string, action: () => Promise<void>): Promise<void> => {
-    try {
-      await action();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`${name}: ${message}`);
-    }
-  };
-
   await runStage("model selection", () =>
     selectZaiBrowserModel(page, browserModelName(input.modelId))
   );

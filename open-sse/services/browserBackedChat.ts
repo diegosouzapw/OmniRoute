@@ -97,7 +97,21 @@ export function __resetHttpBackedChatOverrideForTesting(): void {
   cookieCache.clear();
 }
 
-// Helper to make Playwright waitForTimeout abortable via AbortSignal
+async function withAbort<T>(promise: Promise<T>, signal?: AbortSignal | null): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+  let abortListener: (() => void) | undefined;
+  const aborted = new Promise<never>((_, reject) => {
+    abortListener = () => reject(new DOMException("Aborted", "AbortError"));
+    signal.addEventListener("abort", abortListener, { once: true });
+  });
+  try {
+    return await Promise.race([promise, aborted]);
+  } finally {
+    if (abortListener) signal.removeEventListener("abort", abortListener);
+  }
+}
+
 function waitWithSignal(ms: number, signal?: AbortSignal | null): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) return reject(new DOMException("Aborted", "AbortError"));
@@ -110,8 +124,6 @@ function waitWithSignal(ms: number, signal?: AbortSignal | null): Promise<void> 
       resolve();
     }, ms);
     signal?.addEventListener("abort", onAbort, { once: true });
-  }).catch((err) => {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
   });
 }
 
@@ -124,7 +136,7 @@ async function uploadBrowserAttachments(
   if (attachments.length === 0) return;
 
   const fileInput = page.locator('input[type="file"]').first();
-  await fileInput.waitFor({ state: "attached", timeout: 10_000, signal: signal ?? undefined });
+  await withAbort(fileInput.waitFor({ state: "attached", timeout: 10_000 }), signal);
 
   for (const attachment of attachments) {
     const uploadResponsePromise = page.waitForResponse(
@@ -277,7 +289,7 @@ export async function browserBackedChat(
     await uploadBrowserAttachments(page, attachments, chatUrlMatchDomain, signal);
 
     const inputLocator = page.locator(inputSelector).first();
-    await inputLocator.waitFor({ state: "visible", timeout: 10000, signal: signal ?? undefined });
+    await withAbort(inputLocator.waitFor({ state: "visible", timeout: 10000 }), signal);
     await inputLocator.fill(userMessage);
     await waitWithSignal(800, signal);
 
