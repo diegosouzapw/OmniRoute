@@ -21,7 +21,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // ---------------------------------------------------------------------------
 
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => {
+    const t = (key: string) => key;
+    t.has = () => true;
+    return t;
+  },
+  useLocale: () => "en",
 }));
 
 // Stub shared components
@@ -91,11 +96,10 @@ async function renderComponent(
     forceOpen?: boolean;
     inputContent?: string;
     onOpenChange?: (open: boolean) => void;
-  } = {},
+  } = {}
 ) {
-  const { default: CompressionPreviewAccordion } = await import(
-    "@/app/(dashboard)/dashboard/translator/components/advanced/CompressionPreviewAccordion"
-  );
+  const { default: CompressionPreviewAccordion } =
+    await import("@/app/(dashboard)/dashboard/translator/components/advanced/CompressionPreviewAccordion");
   const container = makeContainer();
   const root = createRoot(container);
   await act(async () => {
@@ -106,9 +110,7 @@ async function renderComponent(
 
 /** Click the accordion toggle button to open/close it. */
 async function clickToggle(container: HTMLElement) {
-  const btn = container.querySelector(
-    "button[aria-expanded]",
-  ) as HTMLButtonElement | null;
+  const btn = container.querySelector("button[aria-expanded]") as HTMLButtonElement | null;
   expect(btn).toBeTruthy();
   await act(async () => {
     btn?.click();
@@ -137,9 +139,8 @@ afterEach(() => {
 
 describe("CompressionPreviewAccordion — export", () => {
   it("exports a default function component", async () => {
-    const mod = await import(
-      "@/app/(dashboard)/dashboard/translator/components/advanced/CompressionPreviewAccordion"
-    );
+    const mod =
+      await import("@/app/(dashboard)/dashboard/translator/components/advanced/CompressionPreviewAccordion");
     expect(typeof mod.default).toBe("function");
   });
 });
@@ -345,7 +346,7 @@ describe("CompressionPreviewAccordion — Preview fetch", () => {
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({ "Content-Type": "application/json" }),
-      }),
+      })
     );
 
     // Verify body has correct shape
@@ -534,7 +535,7 @@ describe("CompressionPreviewAccordion — error path (Hard Rule #12)", () => {
 
   it("error message does NOT contain stack-trace lines (at /path/...)", async () => {
     const stackError = new Error(
-      "Something went wrong\n    at /home/user/app/src/file.ts:42:13\n    at Object.<anonymous> /home/user/app/tests/test.ts:10:5",
+      "Something went wrong\n    at /home/user/app/src/file.ts:42:13\n    at Object.<anonymous> /home/user/app/tests/test.ts:10:5"
     );
     const fetchMock = vi.fn().mockRejectedValue(stackError);
     vi.stubGlobal("fetch", fetchMock);
@@ -578,7 +579,7 @@ describe("CompressionPreviewAccordion — error path (Hard Rule #12)", () => {
 
     const errorEl = container.querySelector("[role='alert']");
     expect(errorEl).toBeTruthy();
-    expect(errorEl?.textContent).toContain("Preview failed");
+    expect(errorEl?.textContent).toContain("compressionPreviewFailed");
 
     vi.unstubAllGlobals();
   });

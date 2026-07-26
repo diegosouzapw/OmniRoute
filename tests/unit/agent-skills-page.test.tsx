@@ -8,7 +8,12 @@ import type { AgentSkill, SkillCoverage } from "../../src/lib/agentSkills/types"
 
 // ── i18n stub ────────────────────────────────────────────────────────────────
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
+  useTranslations: () => {
+    const t = (key: string) => key;
+    t.has = () => false;
+    return t;
+  },
 }));
 
 // ── next/link stub ───────────────────────────────────────────────────────────
@@ -30,7 +35,10 @@ vi.mock("next/link", () => ({
 
 // ── next/dynamic stub — renders placeholder immediately ───────────────────────
 vi.mock("next/dynamic", () => ({
-  default: (loader: () => Promise<{ default: React.ComponentType<{ children: string }> }>, _opts?: unknown) => {
+  default: (
+    loader: () => Promise<{ default: React.ComponentType<{ children: string }> }>,
+    _opts?: unknown
+  ) => {
     // Return a synchronous stub that renders children as plain text.
     return function DynamicStub({ children }: { children: string }) {
       return <div data-testid="react-markdown">{children}</div>;
@@ -49,7 +57,8 @@ function makeSkill(overrides: Partial<AgentSkill> = {}): AgentSkill {
     area: "providers",
     icon: "hub",
     endpoints: ["POST /api/providers", "GET /api/providers"],
-    rawUrl: "https://raw.githubusercontent.com/diegosouzapw/OmniRoute/refs/heads/main/skills/omni-providers/SKILL.md",
+    rawUrl:
+      "https://raw.githubusercontent.com/diegosouzapw/OmniRoute/refs/heads/main/skills/omni-providers/SKILL.md",
     githubUrl: "https://github.com/diegosouzapw/OmniRoute/blob/main/skills/omni-providers/SKILL.md",
     ...overrides,
   };
@@ -63,7 +72,7 @@ function make42Skills(): AgentSkill[] {
         id: `omni-skill-${i}`,
         name: `API Skill ${i}`,
         category: "api",
-      }),
+      })
     );
   }
   for (let i = 0; i < 20; i++) {
@@ -74,7 +83,7 @@ function make42Skills(): AgentSkill[] {
         category: "cli",
         endpoints: undefined,
         cliCommands: [`skill${i} run`, `skill${i} status`],
-      }),
+      })
     );
   }
   return skills;
@@ -96,7 +105,11 @@ const PARTIAL_COVERAGE: SkillCoverage = {
 
 // ── Fetch mock factory ───────────────────────────────────────────────────────
 
-function mockFetch(skills: AgentSkill[], coverage: SkillCoverage, rawMarkdown = "# Test Skill\nContent here.") {
+function mockFetch(
+  skills: AgentSkill[],
+  coverage: SkillCoverage,
+  rawMarkdown = "# Test Skill\nContent here."
+) {
   return vi.fn(async (url: string | Request) => {
     const urlStr = typeof url === "string" ? url : url.toString();
     if (urlStr === "/api/agent-skills") {
@@ -128,7 +141,9 @@ function makeContainer(): HTMLElement {
 }
 
 beforeEach(() => {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
   // Mock clipboard
   Object.defineProperty(navigator, "clipboard", {
     value: { writeText: vi.fn().mockResolvedValue(undefined) },
@@ -165,9 +180,8 @@ describe("AgentSkillsPageClient", () => {
     const skills = make42Skills();
     vi.stubGlobal("fetch", mockFetch(skills, FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
@@ -181,9 +195,8 @@ describe("AgentSkillsPageClient", () => {
   it("renders SkillsConceptCard variant=agent at the top", async () => {
     vi.stubGlobal("fetch", mockFetch(make42Skills(), FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
@@ -198,16 +211,17 @@ describe("AgentSkillsPageClient", () => {
     const skills = make42Skills();
     vi.stubGlobal("fetch", mockFetch(skills, FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
       root?.render(<AgentSkillsPageClient />);
     });
 
-    const filterApiBtn = container.querySelector("[data-testid='filter-api']") as HTMLButtonElement | null;
+    const filterApiBtn = container.querySelector(
+      "[data-testid='filter-api']"
+    ) as HTMLButtonElement | null;
     expect(filterApiBtn).not.toBeNull();
 
     await act(async () => {
@@ -222,16 +236,17 @@ describe("AgentSkillsPageClient", () => {
     const skills = make42Skills();
     vi.stubGlobal("fetch", mockFetch(skills, FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
       root?.render(<AgentSkillsPageClient />);
     });
 
-    const filterCliBtn = container.querySelector("[data-testid='filter-cli']") as HTMLButtonElement | null;
+    const filterCliBtn = container.querySelector(
+      "[data-testid='filter-cli']"
+    ) as HTMLButtonElement | null;
     await act(async () => {
       filterCliBtn?.click();
     });
@@ -246,16 +261,17 @@ describe("AgentSkillsPageClient", () => {
     const fetchMock = mockFetch(skills, FULL_COVERAGE, "# omni-skill-0 doc");
     vi.stubGlobal("fetch", fetchMock);
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
       root?.render(<AgentSkillsPageClient />);
     });
 
-    const firstCard = container.querySelector("[data-testid='skill-card-omni-skill-0']") as HTMLElement | null;
+    const firstCard = container.querySelector(
+      "[data-testid='skill-card-omni-skill-0']"
+    ) as HTMLElement | null;
     expect(firstCard).not.toBeNull();
 
     await act(async () => {
@@ -264,7 +280,7 @@ describe("AgentSkillsPageClient", () => {
 
     // Before debounce fires — raw fetch should NOT have been made yet
     const rawFetchCallsBefore = (fetchMock as ReturnType<typeof vi.fn>).mock.calls.filter(
-      ([url]: [string]) => typeof url === "string" && url.includes("/raw"),
+      ([url]: [string]) => typeof url === "string" && url.includes("/raw")
     );
     expect(rawFetchCallsBefore.length).toBe(0);
 
@@ -275,7 +291,7 @@ describe("AgentSkillsPageClient", () => {
 
     // Now the raw fetch should have been triggered
     const rawFetchCallsAfter = (fetchMock as ReturnType<typeof vi.fn>).mock.calls.filter(
-      ([url]: [string]) => typeof url === "string" && url.includes("/raw"),
+      ([url]: [string]) => typeof url === "string" && url.includes("/raw")
     );
     expect(rawFetchCallsAfter.length).toBeGreaterThan(0);
 
@@ -285,9 +301,8 @@ describe("AgentSkillsPageClient", () => {
   it("preview pane shows empty state when no card is selected", async () => {
     vi.stubGlobal("fetch", mockFetch(make42Skills(), FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
@@ -301,9 +316,8 @@ describe("AgentSkillsPageClient", () => {
   it("CoverageBar is rendered with 100% = green bars when coverage is full", async () => {
     vi.stubGlobal("fetch", mockFetch(make42Skills(), FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
@@ -328,9 +342,8 @@ describe("AgentSkillsPageClient", () => {
   it("generate button is hidden when coverage is 100%", async () => {
     vi.stubGlobal("fetch", mockFetch(make42Skills(), FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
@@ -344,9 +357,8 @@ describe("AgentSkillsPageClient", () => {
   it("generate button is visible when coverage is partial", async () => {
     vi.stubGlobal("fetch", mockFetch(make42Skills(), PARTIAL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
@@ -361,16 +373,17 @@ describe("AgentSkillsPageClient", () => {
     const skills = make42Skills();
     vi.stubGlobal("fetch", mockFetch(skills, FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
       root?.render(<AgentSkillsPageClient />);
     });
 
-    const searchInput = container.querySelector("[data-testid='search-input']") as HTMLInputElement | null;
+    const searchInput = container.querySelector(
+      "[data-testid='search-input']"
+    ) as HTMLInputElement | null;
     expect(searchInput).not.toBeNull();
 
     await act(async () => {
@@ -380,7 +393,7 @@ describe("AgentSkillsPageClient", () => {
         // React uses onChange
         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
           window.HTMLInputElement.prototype,
-          "value",
+          "value"
         )?.set;
         nativeInputValueSetter?.call(searchInput, "API Skill 0");
         searchInput.dispatchEvent(new Event("change", { bubbles: true }));
@@ -396,9 +409,8 @@ describe("AgentSkillsPageClient", () => {
   it("MCP and A2A links bar is present", async () => {
     vi.stubGlobal("fetch", mockFetch(make42Skills(), FULL_COVERAGE));
 
-    const { AgentSkillsPageClient } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient"
-    );
+    const { AgentSkillsPageClient } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/AgentSkillsPageClient");
     const container = makeContainer();
     root = createRoot(container);
     await act(async () => {
@@ -414,9 +426,8 @@ describe("AgentSkillsPageClient", () => {
 
 describe("CoverageBar", () => {
   it("renders two progressbars with correct aria attributes", async () => {
-    const { CoverageBar } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/CoverageBar"
-    );
+    const { CoverageBar } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/CoverageBar");
     const container = makeContainer();
     const localRoot = createRoot(container);
     await act(async () => {
@@ -438,9 +449,8 @@ describe("CoverageBar", () => {
   });
 
   it("applies red color class when coverage is below 75%", async () => {
-    const { CoverageBar } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/CoverageBar"
-    );
+    const { CoverageBar } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/CoverageBar");
     const lowCoverage: SkillCoverage = {
       api: { have: 5, total: 22 },
       cli: { have: 0, total: 20 },
@@ -462,9 +472,8 @@ describe("CoverageBar", () => {
   });
 
   it("applies amber color class when coverage is between 75% and 100%", async () => {
-    const { CoverageBar } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/CoverageBar"
-    );
+    const { CoverageBar } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/CoverageBar");
     const partialCoverage: SkillCoverage = {
       api: { have: 18, total: 22 }, // ~81.8% = amber
       cli: { have: 15, total: 20 }, // 75% = amber
@@ -490,9 +499,8 @@ describe("CoverageBar", () => {
 
 describe("SkillCard", () => {
   it("renders skill name and description", async () => {
-    const { SkillCard } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard"
-    );
+    const { SkillCard } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard");
     const skill = makeSkill({ name: "Providers", description: "Manage connections" });
     const container = makeContainer();
     const localRoot = createRoot(container);
@@ -507,9 +515,8 @@ describe("SkillCard", () => {
   });
 
   it("has role=button and aria-pressed=false when not selected", async () => {
-    const { SkillCard } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard"
-    );
+    const { SkillCard } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard");
     const container = makeContainer();
     const localRoot = createRoot(container);
     await act(async () => {
@@ -524,9 +531,8 @@ describe("SkillCard", () => {
   });
 
   it("has aria-pressed=true when selected", async () => {
-    const { SkillCard } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard"
-    );
+    const { SkillCard } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard");
     const container = makeContainer();
     const localRoot = createRoot(container);
     await act(async () => {
@@ -540,9 +546,8 @@ describe("SkillCard", () => {
   });
 
   it("calls onClick when clicked", async () => {
-    const { SkillCard } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard"
-    );
+    const { SkillCard } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard");
     const handleClick = vi.fn();
     const container = makeContainer();
     const localRoot = createRoot(container);
@@ -558,9 +563,8 @@ describe("SkillCard", () => {
   });
 
   it("shows first 2 endpoints as chips for API skill", async () => {
-    const { SkillCard } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard"
-    );
+    const { SkillCard } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/SkillCard");
     const skill = makeSkill({
       endpoints: ["POST /api/providers", "GET /api/providers", "DELETE /api/providers/:id"],
     });
@@ -583,15 +587,12 @@ describe("SkillCard", () => {
 
 describe("SkillPreviewPane", () => {
   it("renders empty state when skillId is null", async () => {
-    const { SkillPreviewPane } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/SkillPreviewPane"
-    );
+    const { SkillPreviewPane } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/SkillPreviewPane");
     const container = makeContainer();
     const localRoot = createRoot(container);
     await act(async () => {
-      localRoot.render(
-        <SkillPreviewPane skillId={null} markdown={null} loading={false} />,
-      );
+      localRoot.render(<SkillPreviewPane skillId={null} markdown={null} loading={false} />);
     });
 
     const empty = container.querySelector("[data-testid='skill-preview-empty']");
@@ -602,9 +603,8 @@ describe("SkillPreviewPane", () => {
   });
 
   it("renders markdown when skillId and markdown are provided", async () => {
-    const { SkillPreviewPane } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/SkillPreviewPane"
-    );
+    const { SkillPreviewPane } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/SkillPreviewPane");
     const container = makeContainer();
     const localRoot = createRoot(container);
     await act(async () => {
@@ -613,7 +613,7 @@ describe("SkillPreviewPane", () => {
           skillId="omni-providers"
           markdown="# Providers\nContent here."
           loading={false}
-        />,
+        />
       );
     });
 
@@ -625,15 +625,12 @@ describe("SkillPreviewPane", () => {
   });
 
   it("shows error state when skillId provided but markdown is empty string", async () => {
-    const { SkillPreviewPane } = await import(
-      "../../src/app/(dashboard)/dashboard/agent-skills/components/SkillPreviewPane"
-    );
+    const { SkillPreviewPane } =
+      await import("../../src/app/(dashboard)/dashboard/agent-skills/components/SkillPreviewPane");
     const container = makeContainer();
     const localRoot = createRoot(container);
     await act(async () => {
-      localRoot.render(
-        <SkillPreviewPane skillId="omni-providers" markdown="" loading={false} />,
-      );
+      localRoot.render(<SkillPreviewPane skillId="omni-providers" markdown="" loading={false} />);
     });
 
     // markdown is "" (falsy) — should show error state

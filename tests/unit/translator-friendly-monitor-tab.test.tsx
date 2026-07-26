@@ -6,7 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── i18n stub — returns fallback key so we can assert on translateOrFallback ──
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
+  useTranslations: () => {
+    const t = (key: string) => key;
+    t.has = () => false;
+    return t;
+  },
 }));
 
 // ── Shared component stubs ────────────────────────────────────────────────────
@@ -58,16 +63,13 @@ vi.mock("@/shared/components", () => ({
 }));
 
 // ── FORMAT_META stub ──────────────────────────────────────────────────────────
-vi.mock(
-  "@/app/(dashboard)/dashboard/translator/exampleTemplates",
-  () => ({
-    FORMAT_META: {
-      openai: { label: "OpenAI", color: "green" },
-      claude: { label: "Claude", color: "orange" },
-      gemini: { label: "Gemini", color: "blue" },
-    },
-  }),
-);
+vi.mock("@/app/(dashboard)/dashboard/translator/exampleTemplates", () => ({
+  FORMAT_META: {
+    openai: { label: "OpenAI", color: "green" },
+    claude: { label: "Claude", color: "orange" },
+    gemini: { label: "Gemini", color: "blue" },
+  },
+}));
 
 // ── fetch mock helpers ────────────────────────────────────────────────────────
 function mockFetchEmpty() {
@@ -76,7 +78,7 @@ function mockFetchEmpty() {
     vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ success: true, events: [] }),
-    }),
+    })
   );
 }
 
@@ -90,14 +92,14 @@ function mockFetchWithEvents(
     targetFormat?: string;
     status?: string;
     latency?: number;
-  }>,
+  }>
 ) {
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ success: true, events }),
-    }),
+    })
   );
 }
 
@@ -120,7 +122,7 @@ function makeContainer(): HTMLElement {
  */
 async function mountAndFlushInitialFetch(
   component: React.ReactElement,
-  container: HTMLElement,
+  container: HTMLElement
 ): Promise<ReturnType<typeof createRoot>> {
   const root = createRoot(container);
   await act(async () => {
@@ -137,8 +139,9 @@ async function mountAndFlushInitialFetch(
 describe("MonitorTab", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-      true;
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
   });
 
   afterEach(() => {
@@ -152,17 +155,14 @@ describe("MonitorTab", () => {
 
   // ── 1. Smoke render ──────────────────────────────────────────────────────────
   it("exports a default function component", async () => {
-    const mod = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const mod = await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     expect(typeof mod.default).toBe("function");
   });
 
   it("renders the origin hint header (monitorOriginHint) always visible", async () => {
     mockFetchEmpty();
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
@@ -176,9 +176,8 @@ describe("MonitorTab", () => {
 
   it("renders 6 StatCards with correct icons", async () => {
     mockFetchEmpty();
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
@@ -196,9 +195,8 @@ describe("MonitorTab", () => {
   // ── 2. Empty state ───────────────────────────────────────────────────────────
   it("shows empty state when events array is empty", async () => {
     mockFetchEmpty();
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
@@ -210,30 +208,30 @@ describe("MonitorTab", () => {
 
   it("empty state shows CTA description text from monitorEmptyCta", async () => {
     mockFetchEmpty();
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
     // When t() mock returns key, translateOrFallback detects key === translation and uses hardcoded fallback
     const emptyDescription = container.querySelector("[data-testid='empty-description']");
-    expect(emptyDescription?.textContent).toContain("Volte para a aba Translate");
+    expect(emptyDescription?.textContent).toContain("Go back to the Translate tab");
   });
 
-  it("empty state 'Ir para Translate' button calls onGoToTranslate callback", async () => {
+  it("empty state 'Go to Translate' button calls onGoToTranslate callback", async () => {
     mockFetchEmpty();
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     const onGoToTranslate = vi.fn();
     await mountAndFlushInitialFetch(<MonitorTab onGoToTranslate={onGoToTranslate} />, container);
 
-    const actionBtn = container.querySelector("[data-testid='empty-action']") as HTMLButtonElement | null;
+    const actionBtn = container.querySelector(
+      "[data-testid='empty-action']"
+    ) as HTMLButtonElement | null;
     expect(actionBtn).toBeTruthy();
     // Label comes from monitorOpenTranslateButton fallback
-    expect(actionBtn?.textContent).toContain("Ir para Translate");
+    expect(actionBtn?.textContent).toContain("Go to Translate");
 
     await act(async () => {
       actionBtn?.click();
@@ -243,9 +241,8 @@ describe("MonitorTab", () => {
 
   it("empty state action button is not rendered when onGoToTranslate is not provided", async () => {
     mockFetchEmpty();
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
@@ -280,9 +277,8 @@ describe("MonitorTab", () => {
     ];
     mockFetchWithEvents(sampleEvents);
 
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
@@ -309,9 +305,8 @@ describe("MonitorTab", () => {
     ];
     mockFetchWithEvents(sampleEvents);
 
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
@@ -324,9 +319,8 @@ describe("MonitorTab", () => {
     const sampleEvents = [{ id: "x", status: "success" }];
     mockFetchWithEvents(sampleEvents);
 
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
@@ -343,14 +337,13 @@ describe("MonitorTab", () => {
   // ── 4. Auto-refresh toggle ───────────────────────────────────────────────────
   it("toggle auto-refresh button is present with aria-label and shows live state text", async () => {
     mockFetchEmpty();
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
     const toggleBtn = container.querySelector(
-      "[data-testid='auto-refresh-toggle']",
+      "[data-testid='auto-refresh-toggle']"
     ) as HTMLButtonElement | null;
     expect(toggleBtn).toBeTruthy();
 
@@ -362,14 +355,13 @@ describe("MonitorTab", () => {
 
   it("clicking toggle changes button text from live to paused", async () => {
     mockFetchEmpty();
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
     const toggleBtn = container.querySelector(
-      "[data-testid='auto-refresh-toggle']",
+      "[data-testid='auto-refresh-toggle']"
     ) as HTMLButtonElement | null;
     expect(toggleBtn).toBeTruthy();
 
@@ -389,9 +381,8 @@ describe("MonitorTab", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
@@ -412,15 +403,14 @@ describe("MonitorTab", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     await mountAndFlushInitialFetch(<MonitorTab />, container);
 
     // Pause auto-refresh
     const toggleBtn = container.querySelector(
-      "[data-testid='auto-refresh-toggle']",
+      "[data-testid='auto-refresh-toggle']"
     ) as HTMLButtonElement | null;
     await act(async () => {
       toggleBtn?.click();
@@ -452,14 +442,13 @@ describe("MonitorTab", () => {
   it("fetch error does not leak stack traces into the DOM", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockRejectedValue(
-        new Error("Network Error\n    at fetch (/some/internal/path.ts:42:10)"),
-      ),
+      vi
+        .fn()
+        .mockRejectedValue(new Error("Network Error\n    at fetch (/some/internal/path.ts:42:10)"))
     );
 
-    const { default: MonitorTab } = await import(
-      "@/app/(dashboard)/dashboard/translator/components/MonitorTab"
-    );
+    const { default: MonitorTab } =
+      await import("@/app/(dashboard)/dashboard/translator/components/MonitorTab");
     const container = makeContainer();
     // Don't use mountAndFlushInitialFetch here — we want to let the rejection settle
     const root = createRoot(container);
