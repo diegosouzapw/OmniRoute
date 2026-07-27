@@ -1466,7 +1466,11 @@ export async function uploadAdobeFireflyImage(opts: {
       cookie: cookieHeader || undefined,
       prompt: opts.prompt || "upload",
     }),
-    body: buffer,
+    // Node Buffer's `buffer` field is typed `ArrayBufferLike` in TS 6 lib
+    // types (covers SharedArrayBuffer too), which DOM `BodyInit` rejects.
+    // Copy into a fresh Uint8Array backed by a plain ArrayBuffer to satisfy
+    // the type check; the cost is one heap copy of the upload bytes.
+    body: new Uint8Array(buffer),
   });
 
   const text = await resp.text().catch(() => "");

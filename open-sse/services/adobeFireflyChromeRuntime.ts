@@ -408,7 +408,7 @@ async function ensureChromeStarted(
         }
       } catch {
         try {
-          await runtime.browser?.close();
+          await runtime?.browser?.close();
         } catch {
           /* ignore */
         }
