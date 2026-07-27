@@ -13,7 +13,8 @@ import {
   modalitiesRequireImageInput,
 } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { lockModel } from "@omniroute/open-sse/services/accountFallback.ts";
+import { COOLDOWN_MS, HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { isAllRateLimitedCredentials } from "@/app/api/v1/_shared/rateLimit";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
@@ -89,6 +90,36 @@ function publicBaseUrlHeaders(headers: Headers): Record<string, string> {
   return out;
 }
 
+function isCodexChatGptModelAccessError(
+  result: { status?: unknown; error?: unknown },
+  requestedModel: string
+): boolean {
+  if (result.status !== HTTP_STATUS.BAD_REQUEST) return false;
+
+  const error = result.error;
+  let detail: string | null = typeof error === "string" ? error : null;
+  if (error && typeof error === "object") {
+    if ("detail" in error && typeof error.detail === "string") {
+      detail = error.detail;
+    } else if ("message" in error && typeof error.message === "string") {
+      detail = error.message;
+    } else if (
+      "error" in error &&
+      error.error &&
+      typeof error.error === "object" &&
+      "message" in error.error &&
+      typeof error.error.message === "string"
+    ) {
+      detail = error.error.message;
+    }
+  }
+
+  return (
+    detail ===
+    `The '${requestedModel}' model is not supported when using Codex with a ChatGPT account.`
+  );
+}
+
 async function postHandler(request, context) {
   let rawBody;
   try {
@@ -116,7 +147,7 @@ async function postHandler(request, context) {
   body.model = await resolveImageRouteModel(body.model);
 
   // Parse model to get provider
-  let { provider } = parseImageModel(body.model);
+  let { provider, model: requestedModel } = parseImageModel(body.model);
   let isCustomModel = false;
 
   // If not in built-in registry, check custom models tagged for images
@@ -131,6 +162,7 @@ async function postHandler(request, context) {
           const fullId = `${providerId}/${model.id}`;
           if (fullId === body.model) {
             provider = providerId;
+            requestedModel = model.id;
             isCustomModel = true;
             break;
           }
@@ -179,7 +211,12 @@ async function postHandler(request, context) {
   // Get credentials — skip for local providers (authType: "none")
   let credentials = null;
   if (providerConfig && providerConfig.authType !== "none") {
-    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      null,
+      requestedModel
+    );
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -195,7 +232,12 @@ async function postHandler(request, context) {
       );
     }
   } else if (isCustomModel) {
-    credentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    credentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      null,
+      requestedModel
+    );
     if (!credentials) {
       return errorResponse(
         HTTP_STATUS.BAD_REQUEST,
@@ -214,40 +256,77 @@ async function postHandler(request, context) {
     // #6928: best-effort per-connection base-URL override lookup for local
     // no-auth media providers (ComfyUI). A connection is optional here — unlike
     // the authType !== "none" branch above, we never 400 when none exists.
-    const localCredentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    const localCredentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      null,
+      null,
+      requestedModel
+    );
     if (localCredentials && !isAllRateLimitedCredentials(localCredentials)) {
       credentials = localCredentials;
     }
   }
 
-  // Resolve proxy for the connection if credentials exist (#1904)
-  let proxyInfo = null;
-  if (credentials?.connectionId) {
-    try {
-      proxyInfo = await resolveProxyForConnection(credentials.connectionId);
-    } catch {
-      log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
+  const executeImageGeneration = async (selectedCredentials) => {
+    // Resolve proxy per attempt so an account fallback never reuses another
+    // connection's proxy configuration (#1904).
+    let proxyInfo = null;
+    if (selectedCredentials?.connectionId) {
+      try {
+        proxyInfo = await resolveProxyForConnection(selectedCredentials.connectionId);
+      } catch {
+        log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
+      }
+    }
+
+    const generateImage = () =>
+      handleImageGeneration({
+        body,
+        credentials: selectedCredentials,
+        log,
+        ...(isCustomModel && { resolvedProvider: provider }),
+        signal: request.signal,
+        clientHeaders: publicBaseUrlHeaders(request.headers),
+      });
+
+    return selectedCredentials?.connectionId
+      ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
+          success: false,
+          status: err.statusCode || 500,
+          error: err.message,
+        }))
+      : generateImage();
+  };
+
+  let result = await executeImageGeneration(credentials);
+
+  // Some ChatGPT accounts can use Codex but do not have the requested model
+  // entitlement. Retry one sibling account for that exact upstream response;
+  // ordinary client 400s remain single-attempt failures.
+  if (
+    provider === "codex" &&
+    credentials?.connectionId &&
+    requestedModel &&
+    isCodexChatGptModelAccessError(result, requestedModel)
+  ) {
+    lockModel(
+      provider,
+      credentials.connectionId,
+      requestedModel,
+      "model_access_denied",
+      COOLDOWN_MS.notFound
+    );
+    const fallbackCredentials = await getProviderCredentialsWithQuotaPreflight(
+      provider,
+      credentials.connectionId,
+      null,
+      requestedModel
+    );
+    if (fallbackCredentials?.connectionId && !isAllRateLimitedCredentials(fallbackCredentials)) {
+      credentials = fallbackCredentials;
+      result = await executeImageGeneration(credentials);
     }
   }
-
-  const generateImage = () =>
-    handleImageGeneration({
-      body,
-      credentials,
-      log,
-      ...(isCustomModel && { resolvedProvider: provider }),
-      signal: request.signal,
-      clientHeaders: publicBaseUrlHeaders(request.headers),
-    });
-
-  // Execute with proxy context when available, direct otherwise (#1904)
-  const result = await (credentials?.connectionId
-    ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
-        success: false,
-        status: err.statusCode || 500,
-        error: err.message,
-      }))
-    : generateImage());
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);

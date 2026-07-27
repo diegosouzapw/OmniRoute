@@ -12,6 +12,7 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const accountFallback = await import("../../open-sse/services/accountFallback.ts");
 const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
 const { MAX_BODY_BYTES_IMAGE_EDIT } = await import("../../src/shared/middleware/bodySizeGuard.ts");
@@ -30,6 +31,13 @@ interface ImageResponseBody {
 
 interface ErrorResponseBody {
   error: { message: string; code?: string };
+}
+
+interface ImageCallLogRow {
+  account: string | null;
+  connection_id: string | null;
+  model: string;
+  status: number;
 }
 
 interface CapturedResponsesBody {
@@ -70,6 +78,7 @@ function createCodexEditForm(
 async function resetStorage() {
   globalThis.fetch = originalFetch;
   apiKeysDb.resetApiKeyState();
+  accountFallback.clearAllModelLockouts();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -85,18 +94,80 @@ async function seedConnection(
   provider: string,
   overrides: {
     apiKey?: string | null;
+    email?: string;
+    name?: string;
+    priority?: number;
     providerSpecificData?: Record<string, unknown>;
   } = {}
 ) {
   return providersDb.createProviderConnection({
     provider,
     authType: "apikey",
-    name: `${provider}-${Math.random().toString(16).slice(2, 8)}`,
+    name: overrides.name ?? `${provider}-${Math.random().toString(16).slice(2, 8)}`,
+    email: overrides.email,
     apiKey: overrides.apiKey ?? "test-key",
     isActive: true,
+    priority: overrides.priority,
     testStatus: "active",
     providerSpecificData: overrides.providerSpecificData ?? {},
   });
+}
+
+function codexImageSuccessResponse(result = "Y29kZXgtaW1hZ2U="): Response {
+  const event = {
+    type: "response.output_item.done",
+    item: {
+      type: "image_generation_call",
+      id: "ig_route_test",
+      status: "completed",
+      result,
+    },
+  };
+  return new Response(`data: ${JSON.stringify(event)}\n\ndata: [DONE]\n\n`, {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
+}
+
+function postCodexImageGeneration(): Promise<Response> {
+  return imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "codex/gpt-5.6-sol",
+        prompt: "draw a route regression guard",
+        response_format: "b64_json",
+      }),
+    })
+  );
+}
+
+async function waitForImageCallLogs(
+  expectedCount: number,
+  connectionIds: string[] = []
+): Promise<ImageCallLogRow[]> {
+  const db = core.getDbInstance();
+  const expectedConnectionIds = new Set(connectionIds);
+  const deadline = Date.now() + 2_000;
+  let rows: ImageCallLogRow[] = [];
+  while (rows.length < expectedCount && Date.now() < deadline) {
+    const persistedRows = db
+      .prepare(
+        "SELECT account, connection_id, model, status FROM call_logs WHERE path = ? ORDER BY timestamp ASC, id ASC"
+      )
+      .all("/v1/images/generations") as ImageCallLogRow[];
+    rows =
+      expectedConnectionIds.size > 0
+        ? persistedRows.filter(
+            (row) => row.connection_id && expectedConnectionIds.has(row.connection_id)
+          )
+        : persistedRows;
+    if (rows.length < expectedCount) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 10));
+    }
+  }
+  return rows;
 }
 
 test.beforeEach(async () => {
@@ -106,6 +177,7 @@ test.beforeEach(async () => {
 test.after(() => {
   globalThis.fetch = originalFetch;
   apiKeysDb.resetApiKeyState();
+  accountFallback.clearAllModelLockouts();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -591,3 +663,4 @@ test("v1 image generation POST executes directly when credentials.connectionId i
   assert.equal(response.status, 200);
   assert.ok(body.data, "should have image data");
 });
+
