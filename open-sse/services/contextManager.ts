@@ -23,7 +23,8 @@ const DEFAULT_LIMITS: Record<string, number> = {
 };
 
 // Environment variable overrides (highest priority)
-function getEnvOverride(provider: string): number | null {
+function getEnvOverride(provider: string | null | undefined): number | null {
+  if (!provider) return null;
   const envKey = `CONTEXT_LENGTH_${provider.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
   const envValue = process.env[envKey];
   if (envValue) {
@@ -191,7 +192,10 @@ export function estimateTokens(text: string | object | null | undefined): number
  * Get token limit for a provider/model combination
  * Priority: Env override > models.dev DB > Registry defaultContextLength > DEFAULT_LIMITS
  */
-export function getTokenLimit(provider: string, model: string | null = null): number {
+export function getTokenLimit(
+  provider: string | null | undefined,
+  model: string | null = null
+): number {
   return resolveTokenLimit(provider, model).limit;
 }
 
@@ -202,23 +206,24 @@ export function getTokenLimit(provider: string, model: string | null = null): nu
  * catch-all default.
  */
 function resolveTokenLimit(
-  provider: string,
+  provider: string | null | undefined,
   model: string | null = null
 ): { limit: number; specific: boolean } {
+  const safeProvider = provider || "unknown";
   // 1. Check environment variable override first
-  const envOverride = getEnvOverride(provider);
+  const envOverride = getEnvOverride(safeProvider);
   if (envOverride) return { limit: envOverride, specific: true };
 
   const lowerModel = (model || "").toLowerCase();
 
   // 2. Check models.dev synced DB for per-model context limit
   if (model) {
-    const dbLimit = getModelContextLimit(provider, model);
+    const dbLimit = getModelContextLimit(safeProvider, model);
     if (dbLimit && dbLimit > 0) return { limit: dbLimit, specific: true };
   }
 
   // 3. Check registry for provider default
-  const registryEntry = REGISTRY[provider];
+  const registryEntry = REGISTRY[safeProvider];
   if (registryEntry?.defaultContextLength) {
     return { limit: registryEntry.defaultContextLength, specific: true };
   }
@@ -238,7 +243,7 @@ function resolveTokenLimit(
   }
 
   // 5. Fallback to DEFAULT_LIMITS or default
-  if (DEFAULT_LIMITS[provider]) return { limit: DEFAULT_LIMITS[provider], specific: true };
+  if (DEFAULT_LIMITS[safeProvider]) return { limit: DEFAULT_LIMITS[safeProvider], specific: true };
   return { limit: DEFAULT_LIMITS.default, specific: false };
 }
 

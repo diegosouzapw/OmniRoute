@@ -1704,9 +1704,10 @@ export async function handleChatCore({
             comboConfig as unknown as { name: string; models: unknown[] },
             allCombosData as unknown as { name: string; models: unknown[] }[]
           );
-          comboTargetLimits = targets.map((t: { modelStr?: string }) => {
+          comboTargetLimits = targets.map((t: { modelStr?: string; provider?: string }) => {
             const parsed = parseModel(t.modelStr);
-            return getTokenLimit(parsed.provider, parsed.model);
+            const provider = t.provider || parsed.provider || parsed.providerAlias || "unknown";
+            return getTokenLimit(provider, parsed.model);
           });
         }
         // chatCore executes per concrete target (handleSingleModel resolves
