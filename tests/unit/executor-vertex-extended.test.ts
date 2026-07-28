@@ -90,11 +90,15 @@ test("VertexExecutor.buildUrl routes partner and org-prefixed models to the glob
   );
 });
 
-test("VertexExecutor.buildUrl routes current-generation Claude models to the global partner endpoint (#1985)", () => {
+test("VertexExecutor.buildUrl routes current-generation Claude models to the native Anthropic rawPredict endpoint (#1985)", () => {
   const executor = new VertexExecutor();
 
   // These model IDs post-date the old pinned "claude-3-5-sonnet" / "claude-3-opus" /
-  // "claude-3-haiku" prefixes and were previously misrouted to the Google-publisher path.
+  // "claude-3-haiku" prefixes and were previously misrouted to the Google-publisher path,
+  // then (once generalized to a "claude-" prefix, #1985) to the generic OpenAI-compatible
+  // partner endpoint. Claude models use Vertex's native Anthropic Messages API
+  // (publishers/anthropic/.../rawPredict) instead — the partner endpoint 404s/"malformed
+  // argument"s for Claude on at least some projects.
   const claude4Sonnet = executor.buildUrl("claude-sonnet-4-6", false, 0, {
     apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
   });
@@ -104,11 +108,11 @@ test("VertexExecutor.buildUrl routes current-generation Claude models to the glo
 
   assert.equal(
     claude4Sonnet,
-    "https://aiplatform.googleapis.com/v1/projects/proj-claude/locations/global/endpoints/openapi/chat/completions"
+    "https://aiplatform.googleapis.com/v1/projects/proj-claude/locations/us-central1/publishers/anthropic/models/claude-sonnet-4-6:rawPredict"
   );
   assert.equal(
     claude4Haiku,
-    "https://aiplatform.googleapis.com/v1/projects/proj-claude/locations/global/endpoints/openapi/chat/completions"
+    "https://aiplatform.googleapis.com/v1/projects/proj-claude/locations/us-central1/publishers/anthropic/models/claude-haiku-4-5@20251001:rawPredict"
   );
 });
 
@@ -237,4 +241,111 @@ test("VertexExecutor.execute rejects incomplete Service Account JSON clearly", a
       }),
     /missing required fields/
   );
+});
+
+test("VertexExecutor.execute strips the client's model field and injects anthropic_version for Claude models", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url: String(url), body: String(options?.body || "") });
+    return new Response(
+      JSON.stringify({
+        id: "msg_1",
+        type: "message",
+        role: "assistant",
+        model: "claude-sonnet-4-6",
+        content: [{ type: "text", text: "hi" }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 3, output_tokens: 1 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    await executor.execute({
+      model: "claude-sonnet-4-6",
+      // rawPredict rejects a body-level "model" field ("Extra inputs are not permitted") since
+      // the model is already encoded in the URL — the openai→claude request translator copies
+      // the client's model field over, so the executor must strip it before sending.
+      body: { model: "vertex/claude-sonnet-4-6", messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {
+        apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
+        accessToken: "ya29.claude",
+      },
+    });
+
+    assert.equal(calls.length, 1);
+    const sentBody = JSON.parse(calls[0].body);
+    assert.equal(sentBody.model, undefined);
+    assert.equal(sentBody.anthropic_version, "vertex-2023-10-16");
+    assert.deepEqual(sentBody.messages, [{ role: "user", content: "hi" }]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("VertexExecutor.execute synthesizes a genuine Anthropic-format SSE stream when rawPredict returns a complete JSON body for a streaming request", async () => {
+  const executor = new VertexExecutor();
+  const originalFetch = globalThis.fetch;
+
+  // rawPredict is a non-streaming endpoint — Vertex can still hand back a complete,
+  // non-chunked JSON body for a request that asked for stream:true. Without synthesis
+  // this reaches the client as a single JSON blob the OpenAI-only jsonToSse fallback
+  // can't parse (it looks for "choices", not Anthropic's "content" shape), producing
+  // "Provider returned empty content" instead of real streamed text.
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        id: "msg_stream_1",
+        type: "message",
+        role: "assistant",
+        model: "claude-sonnet-4-6",
+        content: [{ type: "text", text: "hello" }],
+        stop_reason: "end_turn",
+        stop_sequence: null,
+        usage: { input_tokens: 5, output_tokens: 2 },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+
+  try {
+    const result = await executor.execute({
+      model: "claude-sonnet-4-6",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: true,
+      credentials: {
+        apiKey: createServiceAccountJson({ projectId: "proj-claude" }),
+        accessToken: "ya29.claude",
+      },
+    });
+
+    const response = result.response;
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "text/event-stream");
+
+    const text = await response.text();
+    assert.match(text, /event: message_start/);
+    assert.match(text, /"type":"content_block_delta".*"text":"hello"/);
+    assert.match(text, /event: message_stop/);
+
+    const dataLines = text
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => JSON.parse(line.slice(5).trim()));
+    const types = dataLines.map((d) => d.type);
+    assert.deepEqual(types, [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop",
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

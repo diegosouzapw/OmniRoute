@@ -1447,6 +1447,7 @@ async function handleSingleModelChat(
         comboExecutionKey: runtimeOptions.comboExecutionKey ?? runtimeOptions.comboStepId ?? null,
         extendedContext,
         modelApiFormat: apiFormat,
+        modelTargetFormat: targetFormat,
         providerProfile,
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
