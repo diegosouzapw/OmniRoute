@@ -14,6 +14,7 @@ import {
   classifyAlibabaFreeTierQuotaEntry,
   classifyAlibabaMultimodalFreeTierQuotaEntries,
   classifyAlibabaVisionFreeTierQuotaEntries,
+  isAlibabaQuotaValidityExpired,
   mergeAlibabaFreeTierQuotaClassification,
   normalizeAlibabaConsoleCookie,
   parseAlibabaFreeTierQuotaEntries,
@@ -257,6 +258,31 @@ test("classifyAlibabaFreeTierQuotaEntry maps console flags", () => {
   );
 });
 
+test("classifyAlibabaFreeTierQuotaEntry treats expired quotaValidityPeriod as not_capable", () => {
+  assert.equal(
+    classifyAlibabaFreeTierQuotaEntry(
+      {
+        model: "qwen3.6-plus",
+        freeTierOnly: true,
+        quotaStatus: "VALID",
+        quotaTotal: 100,
+        quotaValidityPeriod: Date.now() - 60_000,
+      },
+      Date.now()
+    ),
+    "not_capable"
+  );
+  assert.equal(
+    isAlibabaQuotaValidityExpired({
+      model: "qwen3.6-plus",
+      freeTierOnly: true,
+      quotaStatus: "VALID",
+      quotaValidityPeriod: Date.now() + 60_000,
+    }),
+    false
+  );
+});
+
 test("classifyAlibabaFreeTierQuotaEntries filters text-only models for alibabafree", () => {
   const classification = classifyAlibabaFreeTierQuotaEntries(
     parseAlibabaFreeTierQuotaEntries(SAMPLE_CONSOLE_RESPONSE),
@@ -410,7 +436,7 @@ test("buildAlibabaFreeTierTextFilterContext uses canonical sibling free-model li
   );
 
   assert.ok((context.alibabaFreeTierCapableModels as string[]).includes("qwen3.6-plus"));
-  assert.ok((context.alibabaFreeTierCapableModels as string[]).includes("glm-5.2"));
+  assert.equal((context.alibabaFreeTierCapableModels as string[]).includes("glm-5.2"), false);
   assert.ok((context.alibabaNoFreeTierModels as string[]).includes("qwen3.7-max"));
   assert.ok((context.alibabaNoFreeTierModels as string[]).includes("glm-5.2-fast-preview"));
 });

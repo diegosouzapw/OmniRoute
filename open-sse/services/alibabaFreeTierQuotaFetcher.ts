@@ -141,6 +141,25 @@ export function getAlibabaFreeTierQuotaLastSyncAt(
   return toTrimmedString(asRecord(providerSpecificData).alibabaFreeTierQuotaLastSyncAt);
 }
 
+/** True when the connection has a live console/API quota snapshot (not builtin fallback). */
+export function isAlibabaLiveQuotaSyncAt(syncAt: string | null | undefined): boolean {
+  if (!syncAt || syncAt === "builtin-allowlist") return false;
+  return Number.isFinite(Date.parse(syncAt));
+}
+
+export function isAlibabaQuotaValidityExpired(
+  entry: AlibabaFreeTierQuotaEntry,
+  nowMs: number = Date.now()
+): boolean {
+  if (
+    typeof entry.quotaValidityPeriod !== "number" ||
+    !Number.isFinite(entry.quotaValidityPeriod)
+  ) {
+    return false;
+  }
+  return entry.quotaValidityPeriod < nowMs;
+}
+
 function parseQuotaEntry(value: unknown): AlibabaFreeTierQuotaEntry | null {
   const record = asRecord(value);
   const model = toTrimmedString(record.model);
@@ -171,8 +190,13 @@ export function parseAlibabaFreeTierQuotaEntries(payload: unknown): AlibabaFreeT
 }
 
 export function classifyAlibabaFreeTierQuotaEntry(
-  entry: AlibabaFreeTierQuotaEntry
+  entry: AlibabaFreeTierQuotaEntry,
+  nowMs: number = Date.now()
 ): "available" | "capable_unknown" | "drained" | "not_capable" {
+  if (isAlibabaQuotaValidityExpired(entry, nowMs)) {
+    return "not_capable";
+  }
+
   if (!entry.freeTierOnly) {
     return "not_capable";
   }
@@ -192,8 +216,13 @@ export function classifyAlibabaFreeTierQuotaEntry(
 }
 
 export function classifyAlibabaVisionFreeTierQuotaEntry(
-  entry: AlibabaFreeTierQuotaEntry
+  entry: AlibabaFreeTierQuotaEntry,
+  nowMs: number = Date.now()
 ): "available" | "drained" | "not_capable" {
+  if (isAlibabaQuotaValidityExpired(entry, nowMs)) {
+    return "not_capable";
+  }
+
   if (!isDashscopeVisionModelId(entry.model)) {
     return "not_capable";
   }
@@ -606,24 +635,26 @@ export function buildAlibabaFreeTierTextFilterContext(
     ALIBABA_TEXT_ELIGIBILITY_FIELDS
   );
 
+  const useBuiltinFallback =
+    !eligibility.hasQuotaSync || !isAlibabaLiveQuotaSyncAt(eligibility.quotaSyncAt ?? null);
+
   const merged: Record<string, unknown> = {
     alibabaBillingMode: "free",
-    alibabaFreeTierCapableModels: unionModelIdLists([
-      eligibility.capable,
-      getAlibabaBuiltinFreeTierTextCapableModels(),
-    ]),
-    alibabaNoFreeTierModels: unionModelIdLists([
-      eligibility.noFreeTier,
-      getAlibabaBuiltinNoFreeTierTextModels(),
-    ]),
+    alibabaFreeTierCapableModels: useBuiltinFallback
+      ? unionModelIdLists([eligibility.capable, getAlibabaBuiltinFreeTierTextCapableModels()])
+      : eligibility.capable,
+    alibabaNoFreeTierModels: useBuiltinFallback
+      ? unionModelIdLists([eligibility.noFreeTier, getAlibabaBuiltinNoFreeTierTextModels()])
+      : eligibility.noFreeTier,
     alibabaFreeDrainedModels: normalizeModelIdList(targetPsd.alibabaFreeDrainedModels),
   };
 
-  if (eligibility.hasQuotaSync || getAlibabaBuiltinFreeTierTextCapableModels().length > 0) {
-    merged.alibabaFreeTierQuotaLastSyncAt =
-      eligibility.quotaSyncAt ||
-      getAlibabaFreeTierQuotaLastSyncAt(targetPsd) ||
-      "builtin-allowlist";
+  const syncAt =
+    eligibility.quotaSyncAt ||
+    getAlibabaFreeTierQuotaLastSyncAt(targetPsd) ||
+    (useBuiltinFallback ? "builtin-allowlist" : null);
+  if (syncAt) {
+    merged.alibabaFreeTierQuotaLastSyncAt = syncAt;
   }
 
   return merged;

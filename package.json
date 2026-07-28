@@ -242,7 +242,8 @@
     "release:contributors": "node scripts/release/gen-contributors.mjs",
     "release:uncovered": "node scripts/release/list-uncovered-commits.mjs",
     "test:coverage:runner": "node --max-old-space-size=8192 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=8 tests/unit/*.test.ts \"tests/unit/{api,auth,authz,build,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,ui,usage}/**/*.test.ts\" \"tests/unit/**/*.test.mjs\" && cross-env DISABLE_SQLITE_AUTO_BACKUP=true NODE_OPTIONS=--max-old-space-size=8192 c8 --merge-async --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 60 --lines 60 --functions 60 --branches 60 node --max-old-space-size=8192 --import tsx --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=8 \"tests/unit/dashboard/**/*.test.ts\" && npm run test:unit:serial",
-    "test:unit:serial": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=4096 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/unit/serial/**/*.test.ts\""
+    "test:unit:serial": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --max-old-space-size=4096 --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/unit/serial/**/*.test.ts\"",
+    "alibaba:sync-allowlist": "node --import tsx/esm scripts/ops/sync-alibaba-allowlist.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1073.0",

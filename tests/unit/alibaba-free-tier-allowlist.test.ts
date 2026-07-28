@@ -12,6 +12,9 @@ import {
   ALIBABA_NO_FREE_TIER_TEXT_MODELS,
   isAlibabaBuiltinFreeTierTextModel,
   isAlibabaBuiltinNoFreeTierTextModel,
+  isAlibabaFreeTierAllowlistPackValid,
+  loadAlibabaFreeTierAllowlistPack,
+  resetAlibabaFreeTierAllowlistCache,
 } from "../../open-sse/services/alibabaFreeTierAllowlist.ts";
 
 test("built-in allowlist includes operator free models and excludes paid blocklist", () => {
@@ -22,4 +25,20 @@ test("built-in allowlist includes operator free models and excludes paid blockli
   assert.equal(isAlibabaBuiltinFreeTierTextModel("qwen3.6-plus"), true);
   assert.equal(isAlibabaBuiltinNoFreeTierTextModel("kimi-k2.7-code"), true);
   assert.equal(isAlibabaBuiltinFreeTierTextModel("qwen3.7-max"), false);
+});
+
+test("allowlist JSON pack overrides embedded lists when valid", () => {
+  const previousPath = process.env.ALIBABA_FREE_TIER_ALLOWLIST_PATH;
+  const packPath = `${process.cwd()}/config/alibaba-free-tier-allowlist.json`;
+  process.env.ALIBABA_FREE_TIER_ALLOWLIST_PATH = packPath;
+  resetAlibabaFreeTierAllowlistCache();
+
+  const pack = loadAlibabaFreeTierAllowlistPack();
+  assert.ok(pack);
+  assert.ok(isAlibabaFreeTierAllowlistPackValid(pack!));
+  assert.ok(pack!.capable.includes("qwen3.6-plus"));
+
+  if (previousPath) process.env.ALIBABA_FREE_TIER_ALLOWLIST_PATH = previousPath;
+  else delete process.env.ALIBABA_FREE_TIER_ALLOWLIST_PATH;
+  resetAlibabaFreeTierAllowlistCache();
 });

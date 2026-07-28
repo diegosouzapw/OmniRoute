@@ -1,13 +1,25 @@
 /**
  * @file alibabaFreeTierAllowlist.ts
- * @description Built-in Alibaba Model Studio free-tier text model allowlists from operator console quota export.
+ * @description Offline fallback allowlist for Alibaba Model Studio free-tier text models.
  *
- * Source: bailian-commerce freeTrial.queryFreeTierQuotaAsyn (2026-07-25, Singapore intl console).
- * Baseline for alibabafree routing when connection PSD lists are empty or stale.
+ * Prefer live console quota sync (`alibabaFreeTierQuotaFetcher.ts`). This pack is used
+ * only when no recent console snapshot exists on the connection.
  *
  * @changes
+ * - [2026-07-28] [Composer] - Load dated JSON pack from DATA_DIR/config with embedded fallback
  * - [2026-07-25] [Composer] - Hardcode text free/paid model lists from operator console quota export
  */
+
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+export type AlibabaFreeTierAllowlistPack = {
+  asOf: string;
+  validUntil?: string;
+  capable: string[];
+  noFreeTier: string[];
+};
 
 export const ALIBABA_FREE_TIER_TEXT_CAPABLE_MODELS = [
   "deepseek-v3.2",
@@ -89,18 +101,102 @@ export const ALIBABA_NO_FREE_TIER_TEXT_MODELS = [
   "qwen3.7-plus",
 ] as const;
 
+const EMBEDDED_ALLOWLIST_PACK: AlibabaFreeTierAllowlistPack = {
+  asOf: "2026-07-25",
+  capable: [...ALIBABA_FREE_TIER_TEXT_CAPABLE_MODELS],
+  noFreeTier: [...ALIBABA_NO_FREE_TIER_TEXT_MODELS],
+};
+
+let cachedPack: AlibabaFreeTierAllowlistPack | null | undefined;
+
+export function resetAlibabaFreeTierAllowlistCache(): void {
+  cachedPack = undefined;
+}
+
+function resolveAllowlistPaths(): string[] {
+  const paths: string[] = [];
+  const envPath = process.env.ALIBABA_FREE_TIER_ALLOWLIST_PATH?.trim();
+  if (envPath) paths.push(envPath);
+
+  const dataDir = process.env.DATA_DIR?.trim() || path.join(os.homedir(), ".omniroute");
+  paths.push(path.join(dataDir, "alibaba-free-tier-allowlist.json"));
+  paths.push(path.join(process.cwd(), "config", "alibaba-free-tier-allowlist.json"));
+  return paths;
+}
+
+function parseAllowlistPack(raw: unknown): AlibabaFreeTierAllowlistPack | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const record = raw as Record<string, unknown>;
+  const capable = Array.isArray(record.capable)
+    ? record.capable.filter(
+        (entry): entry is string => typeof entry === "string" && entry.length > 0
+      )
+    : [];
+  const noFreeTier = Array.isArray(record.noFreeTier)
+    ? record.noFreeTier.filter(
+        (entry): entry is string => typeof entry === "string" && entry.length > 0
+      )
+    : [];
+  const asOf = typeof record.asOf === "string" && record.asOf.trim() ? record.asOf.trim() : null;
+  if (!asOf || capable.length === 0) return null;
+
+  return {
+    asOf,
+    validUntil:
+      typeof record.validUntil === "string" && record.validUntil.trim()
+        ? record.validUntil.trim()
+        : undefined,
+    capable,
+    noFreeTier,
+  };
+}
+
+export function isAlibabaFreeTierAllowlistPackValid(
+  pack: AlibabaFreeTierAllowlistPack,
+  nowMs: number = Date.now()
+): boolean {
+  if (!pack.validUntil) return true;
+  const expiresAt = Date.parse(pack.validUntil);
+  if (!Number.isFinite(expiresAt)) return true;
+  return expiresAt >= nowMs;
+}
+
+export function loadAlibabaFreeTierAllowlistPack(): AlibabaFreeTierAllowlistPack | null {
+  if (cachedPack !== undefined) return cachedPack;
+
+  for (const candidatePath of resolveAllowlistPaths()) {
+    try {
+      if (!fs.existsSync(candidatePath)) continue;
+      const parsed = parseAllowlistPack(JSON.parse(fs.readFileSync(candidatePath, "utf8")));
+      if (parsed && isAlibabaFreeTierAllowlistPackValid(parsed)) {
+        cachedPack = parsed;
+        return cachedPack;
+      }
+    } catch {
+      // Try next path.
+    }
+  }
+
+  cachedPack = null;
+  return cachedPack;
+}
+
+function resolveActiveAllowlistPack(): AlibabaFreeTierAllowlistPack {
+  return loadAlibabaFreeTierAllowlistPack() ?? EMBEDDED_ALLOWLIST_PACK;
+}
+
 export function getAlibabaBuiltinFreeTierTextCapableModels(): readonly string[] {
-  return ALIBABA_FREE_TIER_TEXT_CAPABLE_MODELS;
+  return resolveActiveAllowlistPack().capable;
 }
 
 export function getAlibabaBuiltinNoFreeTierTextModels(): readonly string[] {
-  return ALIBABA_NO_FREE_TIER_TEXT_MODELS;
+  return resolveActiveAllowlistPack().noFreeTier;
 }
 
 export function isAlibabaBuiltinFreeTierTextModel(modelId: string): boolean {
-  return (ALIBABA_FREE_TIER_TEXT_CAPABLE_MODELS as readonly string[]).includes(modelId);
+  return getAlibabaBuiltinFreeTierTextCapableModels().includes(modelId);
 }
 
 export function isAlibabaBuiltinNoFreeTierTextModel(modelId: string): boolean {
-  return (ALIBABA_NO_FREE_TIER_TEXT_MODELS as readonly string[]).includes(modelId);
+  return getAlibabaBuiltinNoFreeTierTextModels().includes(modelId);
 }
