@@ -6,9 +6,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { applyClientUsageBuffer } = await import(
-  "../../open-sse/handlers/chatCore/clientUsageBuffer.ts"
-);
+const { applyClientUsageBuffer } =
+  await import("../../open-sse/handlers/chatCore/clientUsageBuffer.ts");
+const { invalidateBufferTokensCache } = await import("../../open-sse/utils/usageTracking.ts");
 
 function makeDeps(overrides: Record<string, unknown> = {}) {
   const calls = { buffer: [] as unknown[], estimate: [] as unknown[], filter: [] as unknown[] };
@@ -130,4 +130,45 @@ test("without the option the visible usage keeps the real unbuffered #8331 numbe
 
   const filtered = calls.filter[0] as Record<string, unknown>;
   assert.equal(filtered.prompt_tokens, 5, "default path must not inflate client-visible metering");
+});
+
+test("real client-visible usage is not inflated by the context safety buffer", () => {
+  const saved = process.env.USAGE_TOKEN_BUFFER;
+  process.env.USAGE_TOKEN_BUFFER = "2000";
+  invalidateBufferTokensCache();
+
+  try {
+    const response: Record<string, unknown> = {
+      usage: { prompt_tokens: 69, completion_tokens: 5, total_tokens: 74 },
+    };
+    applyClientUsageBuffer(response, { messages: [{ role: "user", content: "hello" }] }, "openai");
+
+    assert.deepEqual(response.usage, {
+      prompt_tokens: 69,
+      completion_tokens: 5,
+      total_tokens: 74,
+    });
+  } finally {
+    if (saved === undefined) delete process.env.USAGE_TOKEN_BUFFER;
+    else process.env.USAGE_TOKEN_BUFFER = saved;
+    invalidateBufferTokensCache();
+  }
+});
+
+test("usage is validated against the provider-bound body with injected context", () => {
+  const providerBody = {
+    system: "x".repeat(10_000),
+    messages: [{ role: "user", content: "hello" }],
+  };
+  const response: Record<string, unknown> = {
+    usage: { prompt_tokens: 15_000, completion_tokens: 5, total_tokens: 15_005 },
+  };
+
+  applyClientUsageBuffer(response, providerBody, "openai");
+
+  assert.deepEqual(response.usage, {
+    prompt_tokens: 15_000,
+    completion_tokens: 5,
+    total_tokens: 15_005,
+  });
 });

@@ -30,6 +30,7 @@ export type PassthroughTailProcessorContext = {
   emitConvertedOutput: (output: string) => void;
   pushProviderPayload: (payload: unknown) => void;
   pushClientPayload: (payload: unknown) => void;
+  sanitizeUsagePayload: (payload: unknown) => boolean;
   setPassthroughResponsesId: (value: string) => void;
   setUsage: (value: unknown) => void;
   addTotalContentLength: (value: number) => void;
@@ -275,6 +276,9 @@ export function processBufferedPassthroughLine(
     }
 
     const parsed = parsedPassthroughData as JsonRecord;
+    if (context.sanitizeUsagePayload(parsed)) {
+      output = `data: ${JSON.stringify(parsed)}\n\n`;
+    }
     const parsedType = typeof parsed.type === "string" ? parsed.type : "";
     const isResponses = parsedType.startsWith("response.");
     const isClaude = context.isClaudeEventPayload(parsed);

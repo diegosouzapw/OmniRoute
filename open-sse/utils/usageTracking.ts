@@ -151,11 +151,11 @@ export function addBufferToUsage(usage) {
     result.context_budget_prompt_tokens = result.prompt_tokens + buffer;
   }
 
-  // Calculate or update the context-budget total
+  // Keep real total_tokens intact and calculate separate context-budget headroom.
   if (result.total_tokens !== undefined) {
     result.context_budget_total_tokens = result.total_tokens + buffer;
   } else if (result.prompt_tokens !== undefined && result.completion_tokens !== undefined) {
-    // Calculate total_tokens if not exists (real value — not buffered)
+    // Calculate a real total if the provider omitted it.
     result.total_tokens = result.prompt_tokens + result.completion_tokens;
     result.context_budget_total_tokens = result.total_tokens + buffer;
   }
@@ -262,6 +262,232 @@ export function filterUsageForFormat(usage, targetFormat) {
   }
 
   return pickFields(fields);
+}
+
+// Provider usage is normally authoritative, but compatibility gateways can return
+// stale/cumulative cache counters. A token cannot encode less than one UTF-8 byte,
+// so a stateless request's input count must remain related to the complete wire
+// body. The 2x multiplier plus fixed allowance deliberately tolerates provider
+// templates, tokenization differences, and format translation while still catching
+// catastrophic values such as 336k tokens for a 115 KB request.
+const INPUT_USAGE_BYTE_MULTIPLIER = 2;
+const INPUT_USAGE_FIXED_ALLOWANCE = 8192;
+
+const REMOTE_CONTEXT_REFERENCE_KEYS = new Set([
+  "previous_response_id",
+  "previousResponseId",
+  "conversation_id",
+  "conversationId",
+  "thread_id",
+  "threadId",
+  "parent_message_id",
+  "parentMessageId",
+  "cached_content",
+  "cachedContent",
+  "file_id",
+  "fileId",
+  "image_url",
+  "imageUrl",
+  "audio_url",
+  "audioUrl",
+  "video_url",
+  "videoUrl",
+]);
+
+function hasValue(value): boolean {
+  if (value === null || value === undefined || value === false) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value).length > 0;
+  return true;
+}
+
+function hasRemoteContextReference(value, depth = 0): boolean {
+  if (!value || typeof value !== "object" || depth > 8) return false;
+
+  if (Array.isArray(value)) {
+    return value.some((item) => hasRemoteContextReference(item, depth + 1));
+  }
+
+  for (const [key, nested] of Object.entries(value)) {
+    if (REMOTE_CONTEXT_REFERENCE_KEYS.has(key) && hasValue(nested)) {
+      return true;
+    }
+    if (hasRemoteContextReference(nested, depth + 1)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getSerializedBodyBytes(body): number | null {
+  if (!body || typeof body !== "object" || hasRemoteContextReference(body)) return null;
+  try {
+    const serialized = JSON.stringify(body);
+    if (!serialized) return null;
+    return Buffer.byteLength(serialized, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+function tokenNumber(value): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+/**
+ * Return true when a provider-reported input count is plausible for this request.
+ * `null`/unserializable bodies and server-side context references fail open.
+ */
+export function isInputTokenCountPlausible(inputTokens, body): boolean {
+  if (typeof inputTokens !== "number" || !Number.isFinite(inputTokens) || inputTokens < 0) {
+    return false;
+  }
+
+  const bodyBytes = getSerializedBodyBytes(body);
+  if (bodyBytes === null) return true;
+  const maximum = bodyBytes * INPUT_USAGE_BYTE_MULTIPLIER + INPUT_USAGE_FIXED_ALLOWANCE;
+  return inputTokens <= maximum;
+}
+
+function resolveUsageFormat(usage, targetFormat) {
+  if (targetFormat === FORMATS.CLAUDE) return FORMATS.CLAUDE;
+  if (targetFormat === FORMATS.GEMINI || targetFormat === FORMATS.ANTIGRAVITY) {
+    return FORMATS.GEMINI;
+  }
+  if (targetFormat === FORMATS.OPENAI_RESPONSES || targetFormat === FORMATS.OPENAI_RESPONSE) {
+    return FORMATS.OPENAI_RESPONSES;
+  }
+  if (targetFormat === FORMATS.OPENAI) return FORMATS.OPENAI;
+
+  if (usage?.promptTokenCount !== undefined || usage?.candidatesTokenCount !== undefined) {
+    return FORMATS.GEMINI;
+  }
+  if (
+    usage?.cache_read_input_tokens !== undefined ||
+    usage?.cache_creation_input_tokens !== undefined
+  ) {
+    return FORMATS.CLAUDE;
+  }
+  if (usage?.input_tokens_details !== undefined) return FORMATS.OPENAI_RESPONSES;
+  return FORMATS.OPENAI;
+}
+
+function getReportedInputTokens(usage, format): number {
+  if (format === FORMATS.CLAUDE) {
+    return (
+      tokenNumber(usage.input_tokens) +
+      tokenNumber(usage.cache_read_input_tokens) +
+      tokenNumber(usage.cache_creation_input_tokens)
+    );
+  }
+  if (format === FORMATS.GEMINI) {
+    return tokenNumber(usage.promptTokenCount);
+  }
+  if (format === FORMATS.OPENAI_RESPONSES) {
+    return tokenNumber(usage.input_tokens ?? usage.prompt_tokens);
+  }
+  return tokenNumber(usage.prompt_tokens ?? usage.input_tokens);
+}
+
+function clearCachedTokenDetail(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const result = { ...value };
+  if (result.cached_tokens !== undefined) result.cached_tokens = 0;
+  return result;
+}
+
+/**
+ * Replace only physically implausible provider input/cache usage with the local
+ * request estimate. Valid usage is returned by reference and remains untouched.
+ */
+export function sanitizeProviderUsageForRequest(usage, body, targetFormat = null) {
+  if (!usage || typeof usage !== "object" || Array.isArray(usage)) return usage;
+
+  const format = resolveUsageFormat(usage, targetFormat);
+  const reportedInput = getReportedInputTokens(usage, format);
+  if (reportedInput <= 0 || isInputTokenCountPlausible(reportedInput, body)) {
+    return usage;
+  }
+
+  const estimatedInput = Math.max(1, estimateInputTokens(body));
+  const result = { ...usage };
+
+  if (format === FORMATS.CLAUDE) {
+    result.input_tokens = estimatedInput;
+    result.cache_read_input_tokens = 0;
+    result.cache_creation_input_tokens = 0;
+    return result;
+  }
+
+  if (format === FORMATS.GEMINI) {
+    const output =
+      tokenNumber(result.candidatesTokenCount) + tokenNumber(result.thoughtsTokenCount);
+    result.promptTokenCount = estimatedInput;
+    result.cachedContentTokenCount = 0;
+    if (result.totalTokenCount !== undefined) {
+      result.totalTokenCount = estimatedInput + output;
+    }
+    return result;
+  }
+
+  if (format === FORMATS.OPENAI_RESPONSES) {
+    result.input_tokens = estimatedInput;
+    result.input_tokens_details = clearCachedTokenDetail(result.input_tokens_details);
+    result.cache_read_input_tokens = 0;
+    result.cache_creation_input_tokens = 0;
+    if (result.total_tokens !== undefined) {
+      result.total_tokens = estimatedInput + tokenNumber(result.output_tokens);
+    }
+    return result;
+  }
+
+  result.prompt_tokens = estimatedInput;
+  result.cached_tokens = 0;
+  result.cache_read_input_tokens = 0;
+  result.cache_creation_input_tokens = 0;
+  result.prompt_tokens_details = clearCachedTokenDetail(result.prompt_tokens_details);
+  if (result.total_tokens !== undefined) {
+    result.total_tokens = estimatedInput + tokenNumber(result.completion_tokens);
+  }
+  return result;
+}
+
+/**
+ * Sanitize the usage container used by native provider responses/SSE events.
+ * Returns true only when the payload was changed and must be re-serialized.
+ */
+export function sanitizeUsagePayloadForRequest(payload, body, targetFormat = null): boolean {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+
+  const replaceUsage = (owner, key, format) => {
+    if (!owner || typeof owner !== "object" || !owner[key]) return false;
+    const sanitized = sanitizeProviderUsageForRequest(owner[key], body, format);
+    if (sanitized === owner[key]) return false;
+    owner[key] = sanitized;
+    return true;
+  };
+
+  if (payload.type === "message_start" && payload.message?.usage) {
+    return replaceUsage(payload.message, "usage", FORMATS.CLAUDE);
+  }
+  if (payload.type === "message_delta" && payload.usage) {
+    return replaceUsage(payload, "usage", FORMATS.CLAUDE);
+  }
+  if (payload.response?.usage) {
+    return replaceUsage(payload.response, "usage", FORMATS.OPENAI_RESPONSES);
+  }
+  if (payload.response?.usageMetadata) {
+    return replaceUsage(payload.response, "usageMetadata", FORMATS.GEMINI);
+  }
+  if (payload.usageMetadata) {
+    return replaceUsage(payload, "usageMetadata", FORMATS.GEMINI);
+  }
+  if (payload.usage) {
+    const format = payload.type === "message" ? FORMATS.CLAUDE : targetFormat;
+    return replaceUsage(payload, "usage", format);
+  }
+  return false;
 }
 
 /**
