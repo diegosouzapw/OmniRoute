@@ -333,16 +333,18 @@ export function stripStoredItemReferences(body: Record<string, unknown>): void {
   }
 }
 
-function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): void {
+function repairMissingCodexToolCallOutputs(body: Record<string, unknown>): void {
   if (!Array.isArray(body.input)) return;
 
-  const existingOutputIds = new Set<string>();
+  const existingOutputKeys = new Set<string>();
   for (const item of body.input) {
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     const record = item as Record<string, unknown>;
-    if (record.type !== "function_call_output") continue;
+    if (record.type !== "function_call_output" && record.type !== "custom_tool_call_output") {
+      continue;
+    }
     if (typeof record.call_id === "string" && record.call_id.trim()) {
-      existingOutputIds.add(record.call_id.trim());
+      existingOutputKeys.add(`${record.type}:${record.call_id.trim()}`);
     }
   }
 
@@ -352,23 +354,26 @@ function repairMissingCodexFunctionCallOutputs(body: Record<string, unknown>): v
     repaired.push(item);
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     const record = item as Record<string, unknown>;
-    if (record.type !== "function_call") continue;
+    if (record.type !== "function_call" && record.type !== "custom_tool_call") continue;
     const callId = typeof record.call_id === "string" ? record.call_id.trim() : "";
-    if (!callId || existingOutputIds.has(callId)) continue;
+    const outputType =
+      record.type === "custom_tool_call" ? "custom_tool_call_output" : "function_call_output";
+    const outputKey = `${outputType}:${callId}`;
+    if (!callId || existingOutputKeys.has(outputKey)) continue;
 
     repaired.push({
-      type: "function_call_output",
+      type: outputType,
       call_id: callId,
       output: "",
     });
-    existingOutputIds.add(callId);
+    existingOutputKeys.add(outputKey);
     insertedCount++;
   }
 
   if (insertedCount > 0) {
     body.input = repaired;
     console.debug(
-      `[Codex] repairMissingCodexFunctionCallOutputs: inserted ${insertedCount} empty function_call_output item(s)`
+      `[Codex] repairMissingCodexToolCallOutputs: inserted ${insertedCount} empty tool output item(s)`
     );
   }
 }
@@ -1319,7 +1324,7 @@ export class CodexExecutor extends BaseExecutor {
         dropInternalAssistantMessages: !nativeCodexPassthrough,
       });
     }
-    repairMissingCodexFunctionCallOutputs(body);
+    repairMissingCodexToolCallOutputs(body);
 
     // ── Cache-aware system prompt handling (both paths) ──
     //
