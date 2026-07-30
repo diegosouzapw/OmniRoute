@@ -21,6 +21,7 @@ import { assembleStreamingResponseHeaders } from "./chatCore/streamingResponseHe
 import { storeStreamingSemanticCacheResponse } from "./chatCore/streamingSemanticCacheStore.ts";
 import { assembleStreamingPipeline } from "./chatCore/streamingPipeline.ts";
 import { sanitizeChatRequestBody } from "./chatCore/sanitization.ts";
+import { applyResponsesInputPolicy } from "../services/responsesInputPolicy.ts";
 import {
   getHeaderValueCaseInsensitive,
   isNoMemoryRequested,
@@ -1069,6 +1070,13 @@ export async function handleChatCore({
   });
   if (cacheHit) {
     return cacheHit;
+  }
+
+  if (targetFormat === FORMATS.OPENAI_RESPONSES && body && typeof body === "object") {
+    applyResponsesInputPolicy(
+      body as Record<string, unknown>,
+      credentials?.providerSpecificData?.preserveEncryptedReasoning === true
+    );
   }
 
   body = sanitizeChatRequestBody(body, sourceFormat, targetFormat);
