@@ -329,6 +329,7 @@ const LOBE_PROVIDER_ALIASES = {
   "black-forest-labs": "Bfl",
   cerebras: "Cerebras",
   "chatgpt-web": "OpenAI",
+  "chatgpt-web-codex": "OpenAI",
   claude: "ClaudeCode",
   "claude-web": "Claude",
   cline: "Cline",

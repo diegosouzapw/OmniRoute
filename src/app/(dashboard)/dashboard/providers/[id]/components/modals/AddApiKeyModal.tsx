@@ -93,6 +93,7 @@ export default function AddApiKeyModal({
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
+  const isChatGptWebCodex = provider === "chatgpt-web-codex";
   const webSessionCredential = getWebSessionCredentialRequirement(provider);
   const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
   const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
@@ -130,9 +131,16 @@ export default function AddApiKeyModal({
     ccCompatibleSummarizeThinking: false,
     passthroughModels: false,
     importFreeModelsOnly: false,
+    tunnelId: "",
+    runtimeKey: "",
+    connectorName: "OmniRoute Codex",
   });
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
+  const [validationCapabilities, setValidationCapabilities] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -233,12 +241,18 @@ export default function AddApiKeyModal({
           baseUrl: formData.baseUrl.trim() || undefined,
           region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
           cx: formData.cx.trim() || undefined,
+          runtimeKey: isChatGptWebCodex ? formData.runtimeKey.trim() || undefined : undefined,
+          tunnelId: isChatGptWebCodex ? formData.tunnelId.trim() || undefined : undefined,
+          connectorName: isChatGptWebCodex ? formData.connectorName.trim() || undefined : undefined,
         }),
       });
       const data = await res.json();
       const ok = !!data.valid;
       const unsupported = !!data.unsupported;
       setValidationResult(ok ? "success" : unsupported ? "unsupported" : "failed");
+      setValidationCapabilities(
+        ok && data.capabilities && typeof data.capabilities === "object" ? data.capabilities : null
+      );
       // #5088: surface backend reason (e.g. TLS/EACCES) instead of bare "invalid".
       if (!ok && !unsupported && typeof data.error === "string" && data.error) {
         setSaveError(data.error);
@@ -285,6 +299,7 @@ export default function AddApiKeyModal({
       let isValid = Boolean(isNoAuthWebSessionCredential && !credentialInput);
       let validationError: string | null = null;
       let isUnsupported = false; // #5565/#5567: no live validator → save anyway
+      let validatedProviderSpecificData: Record<string, unknown> | undefined;
       if (!isValid) {
         try {
           setValidating(true);
@@ -300,6 +315,11 @@ export default function AddApiKeyModal({
               baseUrl: formData.baseUrl.trim() || undefined,
               region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
               cx: formData.cx.trim() || undefined,
+              runtimeKey: isChatGptWebCodex ? formData.runtimeKey.trim() || undefined : undefined,
+              tunnelId: isChatGptWebCodex ? formData.tunnelId.trim() || undefined : undefined,
+              connectorName: isChatGptWebCodex
+                ? formData.connectorName.trim() || undefined
+                : undefined,
             }),
           });
           const data = await res.json();
@@ -307,6 +327,13 @@ export default function AddApiKeyModal({
           isUnsupported = !!data.unsupported;
           if (!isValid && data.error) {
             validationError = data.error;
+          }
+          if (
+            isValid &&
+            data.providerSpecificData &&
+            typeof data.providerSpecificData === "object"
+          ) {
+            validatedProviderSpecificData = data.providerSpecificData;
           }
           setValidationResult(isValid ? "success" : isUnsupported ? "unsupported" : "failed");
         } catch {
@@ -339,14 +366,28 @@ export default function AddApiKeyModal({
         isCloudflare,
         isCcCompatible,
       });
+      const mergedProviderSpecificData = {
+        ...(providerSpecificData || {}),
+        ...(validatedProviderSpecificData || {}),
+      };
 
+      const encodedCredential = isChatGptWebCodex
+        ? JSON.stringify({
+            version: 1,
+            cookie: credentialInput.trim().replace(/^cookie\s*:\s*/i, ""),
+            runtimeKey: formData.runtimeKey.trim(),
+          })
+        : credentialInput.trim();
       const payload = {
         name: formData.name,
-        apiKey: credentialInput.trim() || undefined,
+        apiKey: encodedCredential || undefined,
         priority: formData.priority,
         testStatus: "active",
         defaultModel: isCompatible ? formData.defaultModel.trim() || undefined : undefined,
-        providerSpecificData,
+        providerSpecificData:
+          Object.keys(mergedProviderSpecificData).length > 0
+            ? mergedProviderSpecificData
+            : undefined,
       };
 
       const error = await onSave(payload);
@@ -734,6 +775,59 @@ export default function AddApiKeyModal({
                         : t("check")}
                   </Button>
                 </div>
+              </div>
+            )}
+            {isChatGptWebCodex && (
+              <div className="space-y-3 rounded-lg border border-border bg-surface/40 p-3">
+                <div>
+                  <p className="text-sm font-medium text-text-main">Codex-Toolverbindung</p>
+                  <p className="mt-1 text-xs text-text-muted">
+                    Der Tunnel bleibt ausschließlich ausgehend. Lokale Tools werden weiterhin nur
+                    von Codex gemäß dessen Sandbox- und Freigaberichtlinie ausgeführt.
+                  </p>
+                </div>
+                <Input
+                  label="Tunnel-ID"
+                  value={formData.tunnelId}
+                  onChange={(e) => setFormData({ ...formData, tunnelId: e.target.value })}
+                  placeholder="tunnel_0123456789abcdef0123456789abcdef"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <Input
+                  label="Tunnel Runtime-Key"
+                  type="password"
+                  value={formData.runtimeKey}
+                  onChange={(e) => setFormData({ ...formData, runtimeKey: e.target.value })}
+                  placeholder="Runtime-Key"
+                  hint="Wird zusammen mit dem Cookie verschlüsselt gespeichert und nie in Logs ausgegeben."
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <Input
+                  label="ChatGPT-Custom-Connector"
+                  value={formData.connectorName}
+                  onChange={(e) => setFormData({ ...formData, connectorName: e.target.value })}
+                  placeholder="OmniRoute Codex"
+                />
+                {validationCapabilities && (
+                  <div className="grid grid-cols-2 gap-2 text-xs text-text-muted">
+                    <div>Browser: bereit</div>
+                    <div>Storage-State: geprüft</div>
+                    <div>ChatGPT-Anmeldung: bestätigt</div>
+                    <div>Temporary Chat: bereit</div>
+                    <div>
+                      Pro:{" "}
+                      {validationCapabilities.proAvailable === true ? "verfügbar" : "nicht erkannt"}
+                    </div>
+                    <div>
+                      Toolmodus:{" "}
+                      {formData.tunnelId.trim() && formData.runtimeKey.trim()
+                        ? "konfiguriert"
+                        : "global oder read-only"}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {isModal && (
