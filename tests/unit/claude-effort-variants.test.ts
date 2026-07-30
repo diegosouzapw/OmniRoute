@@ -6,6 +6,7 @@ import {
   CLAUDE_XHIGH_EFFORT_LEVEL,
   formatClaudeEffortLabel,
   shouldExposeClaudeEffortVariants,
+  isKnownClaudeEffortBaseModel,
   claudeEffortLevelsFor,
   appendClaudeEffortVariants,
 } from "../../open-sse/utils/claudeEffortVariants.ts";
@@ -61,6 +62,26 @@ test("non-string / empty / non-object ids never match", () => {
   assert.equal(shouldExposeClaudeEffortVariants(undefined as never), false);
   assert.equal(shouldExposeClaudeEffortVariants({ id: "" }), false);
   assert.equal(shouldExposeClaudeEffortVariants({ id: 42 as never }), false);
+});
+
+// ── isKnownClaudeEffortBaseModel ─────────────────────────────────────────────
+
+test("isKnownClaudeEffortBaseModel returns true for a real effort-capable Claude model", () => {
+  assert.equal(isKnownClaudeEffortBaseModel("claude-fable-5"), true);
+});
+
+test("isKnownClaudeEffortBaseModel returns false for a non-Claude model", () => {
+  assert.equal(isKnownClaudeEffortBaseModel("gpt-4o"), false);
+});
+
+test("isKnownClaudeEffortBaseModel returns false for an unregistered model id", () => {
+  assert.equal(isKnownClaudeEffortBaseModel("totally-unregistered-model-xyz"), false);
+});
+
+test("isKnownClaudeEffortBaseModel returns false for a non-Claude model that also supports thinking (SC-1)", () => {
+  // gpt-5.5 has supportsThinking:true in MODEL_SPECS (like 36+ other non-Claude models) —
+  // the /claude/i name check is the only thing excluding it, not the thinking flag alone.
+  assert.equal(isKnownClaudeEffortBaseModel("gpt-5.5"), false);
 });
 
 // ── claudeEffortLevelsFor ────────────────────────────────────────────────────
