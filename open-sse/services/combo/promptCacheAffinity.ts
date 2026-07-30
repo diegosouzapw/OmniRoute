@@ -6,10 +6,12 @@ import {
 import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
 import { parseModel } from "../model.ts";
 import type { ResolvedComboTarget } from "./types.ts";
+import { getOAuthSessionAvailability } from "../oauthSessionOccupancy.ts";
 
 interface PromptCacheAffinityTarget {
   executionKey: string;
   connectionId?: string | null;
+  authType?: string | null;
 }
 
 export type PromptCacheAffinitySource = "explicit" | "prefix";
@@ -126,6 +128,23 @@ function rendezvousScore(key: string, identity: string): bigint {
   return BigInt(`0x${digest.slice(0, 32)}`);
 }
 
+const MAX_RENDEZVOUS_HIGH_BITS = (1n << 64n) - 1n;
+
+function normalizedRendezvousScore(key: string, identity: string): number {
+  return Number(rendezvousScore(key, identity) >> 64n) / Number(MAX_RENDEZVOUS_HIGH_BITS);
+}
+
+function combinedAffinityScore(
+  key: string,
+  target: PromptCacheAffinityTarget,
+  sessionKey?: string | null
+): number {
+  const cacheScore = normalizedRendezvousScore(key, promptCacheTargetIdentity(target));
+  const availability =
+    target.authType === "oauth" ? getOAuthSessionAvailability(target.connectionId, sessionKey) : 1;
+  return cacheScore * 0.75 + availability * 0.25;
+}
+
 /**
  * Return a normalized cache-locality score for auto-combo scoring. The target
  * selected by rendezvous hashing receives 1; all other accounts receive 0.
@@ -133,15 +152,16 @@ function rendezvousScore(key: string, identity: string): bigint {
  */
 export function calculatePromptCacheAffinityScores(
   targets: PromptCacheAffinityTarget[],
-  body: Record<string, unknown> | null | undefined
+  body: Record<string, unknown> | null | undefined,
+  sessionKey?: string | null
 ): Map<string, number> {
   const resolution = resolvePromptCacheAffinityKey(body);
   if (!resolution || targets.length === 0) return new Map();
   let winnerIdentity = "";
-  let winnerScore = -1n;
+  let winnerScore = -1;
   for (const target of targets) {
     const identity = promptCacheTargetIdentity(target);
-    const score = rendezvousScore(resolution.key, identity);
+    const score = combinedAffinityScore(resolution.key, target, sessionKey);
     if (score > winnerScore || (score === winnerScore && identity < winnerIdentity)) {
       winnerIdentity = identity;
       winnerScore = score;
@@ -166,15 +186,13 @@ export async function expandPromptCacheAffinityTargets(
 ): Promise<ResolvedComboTarget[]> {
   const providers = Array.from(
     new Set(
-      targets
-        .filter((target) => !target.connectionId)
-        .map(
-          (target) =>
-            target.provider ||
-            parseModel(target.modelStr).provider ||
-            parseModel(target.modelStr).providerAlias ||
-            "unknown"
-        )
+      targets.map(
+        (target) =>
+          target.provider ||
+          parseModel(target.modelStr).provider ||
+          parseModel(target.modelStr).providerAlias ||
+          "unknown"
+      )
     )
   );
   const connectionsByProvider = new Map<string, Array<Record<string, unknown>>>();
@@ -201,7 +219,18 @@ export function expandPromptCacheAffinityTargetsFromConnections(
   const expandedTargets: ResolvedComboTarget[] = [];
   for (const target of targets) {
     if (target.connectionId) {
-      expandedTargets.push(target);
+      const provider =
+        target.provider ||
+        parseModel(target.modelStr).provider ||
+        parseModel(target.modelStr).providerAlias ||
+        "unknown";
+      const connection = (connectionsByProvider.get(provider) || []).find(
+        (candidate) => candidate?.id === target.connectionId
+      );
+      expandedTargets.push({
+        ...target,
+        authType: typeof connection?.authType === "string" ? connection.authType : target.authType,
+      });
       continue;
     }
     const parsed = parseModel(target.modelStr);
@@ -227,9 +256,13 @@ export function expandPromptCacheAffinityTargetsFromConnections(
       continue;
     }
     for (const connectionId of scopedConnectionIds) {
+      const connection = (connectionsByProvider.get(provider) || []).find(
+        (candidate) => candidate?.id === connectionId
+      );
       expandedTargets.push({
         ...target,
         connectionId,
+        authType: typeof connection?.authType === "string" ? connection.authType : null,
         executionKey: `${target.executionKey}@${connectionId}`,
       });
     }
@@ -273,7 +306,8 @@ export function shouldProtectOriginalFirst(
 export function applyPromptCacheAffinity(
   targets: ResolvedComboTarget[],
   body: Record<string, unknown> | null | undefined,
-  enabled: boolean = true
+  enabled: boolean = true,
+  sessionKey?: string | null
 ): PromptCacheAffinityResult {
   const resolution = enabled ? resolvePromptCacheAffinityKey(body) : null;
   if (!resolution || targets.length <= 1) {
@@ -289,7 +323,7 @@ export function applyPromptCacheAffinity(
     target,
     index,
     identity: promptCacheTargetIdentity(target),
-    score: rendezvousScore(resolution.key, promptCacheTargetIdentity(target)),
+    score: combinedAffinityScore(resolution.key, target, sessionKey),
   }));
 
   ranked.sort((a, b) => {

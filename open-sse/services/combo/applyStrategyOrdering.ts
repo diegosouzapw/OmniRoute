@@ -26,6 +26,7 @@ export interface ApplyStrategyOrderingDeps {
   body: Record<string, unknown>;
   log: ComboLogger;
   apiKeyAllowedConnections: string[] | null;
+  sessionKey?: string | null;
 }
 
 /**
@@ -45,7 +46,7 @@ export async function applyStrategyOrdering(
   initialOrderedTargets: ResolvedComboTarget[],
   deps: ApplyStrategyOrderingDeps
 ): Promise<ResolvedComboTarget[]> {
-  const { combo, config, body, log, apiKeyAllowedConnections } = deps;
+  const { combo, config, body, log, apiKeyAllowedConnections, sessionKey } = deps;
   let orderedTargets = initialOrderedTargets;
 
   if (strategy === "lkgp") {
@@ -205,7 +206,7 @@ export async function applyStrategyOrdering(
     if (resolvePromptCacheAffinityKey(body)) {
       orderedTargets = await expandPromptCacheAffinityTargets(orderedTargets);
     }
-    const affinity = applyPromptCacheAffinity(orderedTargets, body);
+    const affinity = applyPromptCacheAffinity(orderedTargets, body, true, sessionKey);
     orderedTargets = affinity.targets;
     log.info(
       "COMBO",

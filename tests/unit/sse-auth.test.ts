@@ -15,6 +15,7 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 const quotaCache = await import("../../src/domain/quotaCache.ts");
 const fallback = await import("../../open-sse/services/accountFallback.ts");
+const oauthOccupancy = await import("../../open-sse/services/oauthSessionOccupancy.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -64,6 +65,7 @@ async function flushWrites() {
 }
 
 test.beforeEach(async () => {
+  oauthOccupancy._clearOAuthSessionOccupancyForTest();
   await resetStorage();
 });
 
@@ -523,6 +525,45 @@ test("getProviderCredentials keeps separate codex affinity per session", async (
   assert.equal(sessionB1.connectionId, second.id);
   assert.equal(sessionA2.connectionId, first.id);
   assert.equal(sessionB2.connectionId, second.id);
+});
+
+test("concurrent OAuth selections reserve different available accounts atomically", async () => {
+  await settingsDb.updateSettings({
+    fallbackStrategy: "fill-first",
+    codexSessionAffinityTtlMs: 0,
+  });
+  const first = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-occupancy-a",
+    priority: 1,
+  });
+  const second = await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-occupancy-b",
+    priority: 1,
+  });
+  assert.ok(second.priority <= first.priority + 1);
+
+  const [sessionA, sessionB] = await Promise.all([
+    auth.getProviderCredentials("codex", null, null, "gpt-5.5", {
+      sessionKey: "occupancy-session-a",
+      reserveOAuthSession: true,
+    }),
+    auth.getProviderCredentials("codex", null, null, "gpt-5.5", {
+      sessionKey: "occupancy-session-b",
+      reserveOAuthSession: true,
+    }),
+  ]);
+
+  assert.equal(sessionA.authType, "oauth");
+  assert.equal(typeof sessionA.releaseOAuthSession, "function");
+  assert.equal(
+    oauthOccupancy.getForeignOAuthSessionCount(sessionA.connectionId, "occupancy-session-b"),
+    1
+  );
+  assert.notEqual(sessionA.connectionId, sessionB.connectionId);
+  sessionA.releaseOAuthSession?.();
+  sessionB.releaseOAuthSession?.();
 });
 
 test("getProviderCredentials rebinds codex session when affinity connection is excluded", async () => {

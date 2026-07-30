@@ -3283,6 +3283,7 @@
     "weightStability": "Stability",
     "weightTierPriority": "Tier",
     "weightCacheAffinity": "Cache-Treffer-Affinität",
+    "weightSessionAvailability": "Session-Verfügbarkeit",
     "reviewIntelligentTitle": "Intelligent Routing Config",
     "strategyRecommendations": {
       "priority": {
