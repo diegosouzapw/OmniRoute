@@ -175,6 +175,40 @@ export function remapToolNamesInResponse(
   return text;
 }
 
+/**
+ * Restore a tool name for Claude-format clients (#9008).
+ *
+ * Preference order:
+ * 1. Exact `_toolNameMap` hit (sanitized → original)
+ * 2. Case-insensitive match against map keys/values (Gemini/Antigravity may
+ *    echo a lowercased name for a PascalCase Claude Code tool)
+ * 3. REVERSE_MAP TitleCase → lowercase fallback for clients with no request map
+ *    (#7926 XML / OpenCode-style lowercase tools)
+ *
+ * Never apply REVERSE_MAP after a request-side original is known — that is what
+ * turned Claude Code's `Read`/`WebSearch` into `read`/`websearch`.
+ */
+export function restoreClaudeToolName(
+  rawName: string,
+  toolNameMap?: Map<string, string> | null
+): string {
+  if (!rawName) return rawName;
+
+  const exact = toolNameMap?.get(rawName);
+  if (typeof exact === "string") return exact;
+
+  if (toolNameMap?.size) {
+    const lower = rawName.toLowerCase();
+    for (const [sanitized, original] of toolNameMap.entries()) {
+      if (sanitized.toLowerCase() === lower || original.toLowerCase() === lower) {
+        return original;
+      }
+    }
+  }
+
+  return REVERSE_MAP[rawName] ?? rawName;
+}
+
 export { TOOL_RENAME_MAP, REVERSE_MAP };
 
 /**

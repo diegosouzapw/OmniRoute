@@ -246,13 +246,10 @@ export function claudeToGeminiRequest(model, body, stream, credentials = null) {
     }
   }
 
-  const changedToolNameMap = new Map(
-    [...toolNameMap.entries()].filter(
-      ([sanitizedName, originalName]) => sanitizedName !== originalName
-    )
-  );
-  if (changedToolNameMap.size > 0) {
-    result._toolNameMap = changedToolNameMap;
+  // #9008: keep identity mappings so Claude Code PascalCase tool names can be
+  // restored when Gemini/Antigravity echoes a different case.
+  if (toolNameMap.size > 0) {
+    result._toolNameMap = new Map(toolNameMap);
   }
 
   return result;
