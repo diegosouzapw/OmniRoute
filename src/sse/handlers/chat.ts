@@ -33,7 +33,11 @@ import {
   HTTP_STATUS,
   ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
 } from "@omniroute/open-sse/config/constants.ts";
-import { getTargetFormat, detectFormatFromUrl } from "@omniroute/open-sse/services/provider.ts";
+import {
+  getTargetFormat,
+  detectFormatFromEndpoint,
+  detectFormatFromUrl,
+} from "@omniroute/open-sse/services/provider.ts";
 import {
   getModelsByProviderId,
   getModelTargetFormat,
@@ -779,6 +783,9 @@ export async function handleChat(
     const response = await (handleComboChat as any)({
       body,
       combo,
+      clientManagedResponsesContext:
+        sourceFormat === "openai-responses" &&
+        new URL(request.url).pathname.split("/").includes("responses"),
       handleSingleModel: (
         b: any,
         m: string,
@@ -1046,6 +1053,11 @@ async function handleSingleModelChat(
     return handleComboChat({
       body,
       combo: redirectCombo,
+      clientManagedResponsesContext:
+        detectFormatFromEndpoint(body, clientRawRequest?.endpoint || "") === "openai-responses" &&
+        String(clientRawRequest?.endpoint || "")
+          .split("/")
+          .includes("responses"),
       handleSingleModel: (
         b: any,
         m: string,

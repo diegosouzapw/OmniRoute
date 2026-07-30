@@ -111,6 +111,7 @@ export interface ResolveComboTargetPipelineDeps {
    * this leaf), so importing it directly would create an import cycle.
    */
   buildAutoCandidates: ResolveAutoStrategyDeps["buildAutoCandidates"];
+  clientManagedResponsesContext?: boolean;
 }
 
 export interface ResolvedComboTargetPipeline {
@@ -692,7 +693,9 @@ export async function resolveComboTargetPipeline(
 
   orderedTargets = await applyRequestTagRouting(orderedTargets, body, log);
 
-  const overflow = getKnownContextOverflow(orderedTargets, body);
+  const overflow = getKnownContextOverflow(orderedTargets, body, {
+    clientManagedResponsesContext: deps.clientManagedResponsesContext,
+  });
   if (overflow) {
     return { earlyResponse: buildContextOverflowResponse(overflow, orderedTargets, log) };
   }
