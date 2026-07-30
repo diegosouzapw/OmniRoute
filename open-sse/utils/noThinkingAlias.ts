@@ -31,6 +31,15 @@ import { getModelSpec } from "@/shared/constants/modelSpecs";
 
 export const NO_THINKING_PREFIX = "no-think/";
 
+// Ids that already carry a Claude reasoning-effort suffix (see
+// claudeEffortVariants.ts's identical constant) — a no-think variant of an effort
+// variant would combine two independent OmniRoute catalog conventions on the same
+// id. Dispatch-time, applyNoThinkingAlias pre-sets reasoning_effort:"none" before
+// applyClaudeEffortVariant's hasExplicitClaudeEffort() check runs, so the pre-set
+// "none" is treated as explicit and the suffix's implied effort is silently
+// discarded — semantically incoherent, so never advertise the combination.
+const CLAUDE_EFFORT_SUFFIX_RE = /-(?:xhigh|high|medium|low)$/i;
+
 /** True when `modelId` carries the no-thinking gateway prefix. */
 export function isNoThinkingAlias(modelId: unknown): modelId is string {
   return typeof modelId === "string" && modelId.startsWith(NO_THINKING_PREFIX);
@@ -108,6 +117,7 @@ export function shouldExposeNoThinkingAlias(model: CatalogModelEntry): boolean {
   if (typeof id !== "string" || id.length === 0) return false;
   if (model.owned_by === "combo") return false; // combos are virtual
   if (isNoThinkingAlias(id)) return false; // never double-alias
+  if (CLAUDE_EFFORT_SUFFIX_RE.test(id)) return false; // never combine with an effort-suffix id
 
   const name = bareModelName(id);
   const spec = getModelSpec(name);
@@ -158,7 +168,8 @@ export function appendNoThinkingVariants<T extends CatalogModelEntry>(
     const rawId = model.id as string;
     const qualifiedId = aliasToCanonical ? normalizeProviderPrefix(rawId, aliasToCanonical) : rawId;
     const aliasId = toNoThinkingAlias(qualifiedId);
-    const variant: T = { ...model, id: aliasId, root: aliasId };
+    const bareRoot = toNoThinkingAlias(bareModelName(qualifiedId));
+    const variant: T = { ...model, id: aliasId, root: bareRoot };
     if (typeof model.name === "string" && model.name) {
       variant.name = `${model.name} (no thinking)`;
     }

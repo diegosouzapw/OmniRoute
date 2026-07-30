@@ -69,6 +69,13 @@ function isMirrorableId(id: string): boolean {
   return !EFFORT_SUFFIX_RE.test(id);
 }
 
+/** Strip a `<provider>/` prefix to get the bare model name, matching the convention in
+ * claudeEffortVariants.ts / noThinkingAlias.ts. */
+function bareModelName(id: string): string {
+  const slash = id.lastIndexOf("/");
+  return slash >= 0 ? id.slice(slash + 1) : id;
+}
+
 export function appendCcDiscoveryAliases<T extends CcDiscoveryCatalogEntry>(
   models: T[],
   isEnabled: (entry: T) => boolean
@@ -90,7 +97,10 @@ export function appendCcDiscoveryAliases<T extends CcDiscoveryCatalogEntry>(
     aliases.push({
       ...model,
       id: aliasId,
-      root: id,
+      // Combo names may legally contain "/" (comboNameSchema allows it), so a combo's
+      // root must stay the full name verbatim — only real provider-qualified ids get
+      // the "/" stripped down to the bare model name.
+      root: isCombo ? id : bareModelName(id),
       display_name: `${label} (OmniRoute)`,
     } as T);
   }
