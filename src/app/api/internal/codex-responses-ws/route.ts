@@ -34,6 +34,8 @@ import { resolveRequestRoutingTags } from "@/domain/tagRouter";
 import { validateApiKeyRoutingTarget } from "@/shared/utils/apiKeyPolicy";
 import { persistResponsesWsCallHistory } from "./history";
 import { applyResponsesWsCompression } from "./compression";
+import { getComboByName } from "@/lib/db/combos";
+import { getComboModelString } from "@/lib/combos/steps";
 
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
 const executor = new CodexExecutor();
@@ -506,6 +508,17 @@ async function resolveCodexProxy(provider: string): Promise<string | undefined> 
 async function prepare(body: JsonRecord) {
   const context = await resolveCodexRequestContext(body);
   if ("error" in context) return context.error;
+  const combo = await getComboByName(context.requestedModel).catch(() => null);
+  if (combo) {
+    const models = Array.isArray(combo.models) ? combo.models : [];
+    if (models.some((model) => getComboModelString(model)?.startsWith("chatgpt-web-codex/"))) {
+      return jsonError(
+        426,
+        "responses_websocket_http_fallback",
+        "This Combo contains ChatGPT Web (Codex) and must use the HTTP/SSE Responses transport"
+      );
+    }
+  }
   const upstream = await resolveCodexUpstreamContext(context);
   if ("error" in upstream) return upstream.error;
   const { responseBody, metadata, provider, model, credentials: refreshedCredentials } = upstream;

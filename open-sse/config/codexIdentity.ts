@@ -100,6 +100,39 @@ export function isCodexOriginatedHeaders(
   return getHeader("user-agent").startsWith("codex");
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+/** Require the native Codex thread/turn binding; prompt text and cache keys are not authority. */
+export function hasNativeCodexTurnBinding(body: unknown): boolean {
+  const metadata = asRecord(asRecord(body)?.client_metadata);
+  const raw = metadata?.["x-codex-turn-metadata"];
+  let turn = asRecord(raw);
+  if (typeof raw === "string") {
+    try {
+      turn = asRecord(JSON.parse(raw));
+    } catch {
+      return false;
+    }
+  }
+  return (
+    typeof turn?.thread_id === "string" &&
+    turn.thread_id.trim().length > 0 &&
+    typeof turn.turn_id === "string" &&
+    turn.turn_id.trim().length > 0
+  );
+}
+
+export function isVerifiedNativeCodexRequest(
+  body: unknown,
+  headers: Headers | Record<string, unknown> | null | undefined
+): boolean {
+  return isCodexOriginatedHeaders(headers) && hasNativeCodexTurnBinding(body);
+}
+
 export function applyCodexClientMetadata(
   body: Record<string, unknown>,
   identity?: CodexClientIdentity | null

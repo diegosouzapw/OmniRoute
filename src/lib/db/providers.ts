@@ -119,7 +119,7 @@ export async function getProviderConnections(
   filter: JsonRecord = {},
   limit?: number,
   offset?: number,
-  columns?: string[],
+  columns?: string[]
 ) {
   const useCache = !columns?.length && limit === undefined && offset === undefined;
   const raw = useCache
@@ -145,7 +145,7 @@ export async function getRawProviderConnections(
   filter: JsonRecord = {},
   limit?: number,
   offset?: number,
-  columns?: string[],
+  columns?: string[]
 ) {
   const db = getDbInstance() as unknown as DbLike;
   let selectCols = "*";
@@ -176,8 +176,6 @@ export async function getRawProviderConnections(
     conditions.push("auth_type = @authType");
     params.authType = filter.authType;
   }
-
-
 
   if (conditions.length > 0) {
     sql += " WHERE " + conditions.join(" AND ");
@@ -907,6 +905,9 @@ export async function deleteProviderConnection(id: string) {
   db.prepare("DELETE FROM provider_connections WHERE id = ?").run(id);
   removeConnectionHealth(id);
   removeConnectionIndex(id);
+  void import("@omniroute/open-sse/services/combo/nativeCodexTurnPin.ts")
+    .then((module) => module.revokeNativeCodexTurnPinsForConnection(id))
+    .catch(() => {});
   bumpProxyConfigGeneration();
   const existingRecord = toRecord(existing);
   const providerId =
@@ -936,6 +937,9 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
   for (const id of ids) {
     removeConnectionHealth(id);
     removeConnectionIndex(id);
+    void import("@omniroute/open-sse/services/combo/nativeCodexTurnPin.ts")
+      .then((module) => module.revokeNativeCodexTurnPinsForConnection(id))
+      .catch(() => {});
   }
   backupDbFile("pre-write");
   invalidateDbCache("connections");
@@ -965,6 +969,9 @@ export async function deleteProviderConnectionsByProvider(providerId: string) {
   for (const connectionId of connectionIds) {
     removeConnectionHealth(connectionId);
     removeConnectionIndex(connectionId);
+    void import("@omniroute/open-sse/services/combo/nativeCodexTurnPin.ts")
+      .then((module) => module.revokeNativeCodexTurnPinsForConnection(connectionId))
+      .catch(() => {});
   }
   backupDbFile("pre-write");
   invalidateDbCache("connections");
@@ -1005,10 +1012,7 @@ export async function getDistinctGroups(): Promise<string[]> {
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
 }
 
-export {
-  autoMigrateLegacyEncryptedConnections,
-  getGheCopilotHosts,
-} from "./providers/migrations";
+export { autoMigrateLegacyEncryptedConnections, getGheCopilotHosts } from "./providers/migrations";
 
 // ──────────────── Re-exports from leaf modules ────────────────
 

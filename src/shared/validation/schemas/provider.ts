@@ -589,6 +589,9 @@ export const validateProviderApiKeySchema = z
     baseUrl: z.string().trim().url().optional(),
     region: z.string().trim().max(64).optional(),
     cx: z.string().trim().max(500).optional(),
+    runtimeKey: z.string().trim().max(65_536).optional(),
+    tunnelId: z.string().trim().max(128).optional(),
+    connectorName: z.string().trim().max(200).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.provider === "google-pse-search" && !data.cx) {

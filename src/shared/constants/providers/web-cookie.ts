@@ -3,6 +3,20 @@
  * Pure data literal; re-exported by the providers.ts barrel. No behavior change.
  */
 export const WEB_COOKIE_PROVIDERS = {
+  "chatgpt-web-codex": {
+    id: "chatgpt-web-codex",
+    alias: "cgpt-codex",
+    name: "ChatGPT Web (Codex)",
+    icon: "terminal",
+    color: "#10A37F",
+    textIcon: "CC",
+    website: "https://chatgpt.com",
+    authHint:
+      "Paste the full ChatGPT Cookie header. OmniRoute verifies it in an isolated headless browser profile.",
+    subscriptionRisk: true,
+    riskNoticeVariant: "webCookie",
+    toolCalling: "native",
+  },
   "chatgpt-web": {
     id: "chatgpt-web",
     alias: "cgpt-web",
@@ -391,7 +405,7 @@ export const WEB_COOKIE_PROVIDERS = {
     riskNoticeVariant: "webCookie",
     authHint: "Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie)",
   },
-  "promptql": {
+  promptql: {
     id: "promptql",
     alias: "pql",
     name: "PromptQL (Unofficial/Experimental)",

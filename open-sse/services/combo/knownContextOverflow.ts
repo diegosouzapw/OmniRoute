@@ -75,10 +75,13 @@ export function getKnownContextOverflow(
   // Native Codex Responses clients compact their own item history. Let the concrete
   // Codex target enforce its effective context limit (including operator overrides)
   // instead of rejecting early against a smaller catalog hint. Keep this scoped to
-  // all-Codex pools so other Responses clients/providers retain the hard preflight.
+  // pools made exclusively from native Codex-capable targets so other Responses
+  // clients/providers retain the hard preflight.
   if (
     options.clientManagedResponsesContext === true &&
-    targets.every((target) => target.provider === "codex")
+    targets.every(
+      (target) => target.provider === "codex" || target.provider === "chatgpt-web-codex"
+    )
   ) {
     return null;
   }
