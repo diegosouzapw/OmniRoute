@@ -8,3 +8,7 @@
   other model on that connection for 2 minutes — Vertex 404s are now scoped to a per-model
   lockout via `passthroughModels` instead of a connection-wide cooldown
   ([#9006](https://github.com/diegosouzapw/OmniRoute/pull/9006))
+- **fix(sse):** Vertex `PERMISSION_DENIED` 403s are now disambiguated using Google's own
+  documented error format — a genuinely connection-wide cause (API disabled, project-level IAM
+  denial) still cools the whole connection, while a model-specific denial locks out only that
+  model ([#9006](https://github.com/diegosouzapw/OmniRoute/pull/9006))
