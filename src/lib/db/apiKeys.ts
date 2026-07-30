@@ -46,6 +46,7 @@ import {
   parseNullableTimestamp,
   parseIsBanned,
   parseStreamDefaultMode,
+  parseCacheDefaultMode,
   parseChaosModeEnabled,
 } from "./apiKeys/rowParsers";
 import type { AccessSchedule, RateLimitRule } from "./apiKeys/types";
@@ -94,6 +95,7 @@ interface ApiKeyMetadata {
   proxyId: string | null;
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
+  cacheDefaultMode: "legacy" | "bypass";
   disableNonPublicModels: boolean;
   allowUsageCommand: boolean;
   usageLimitEnabled: boolean;
@@ -131,6 +133,8 @@ interface ApiKeyRow extends JsonRecord {
   proxy_id?: unknown;
   stream_default_mode?: unknown;
   streamDefaultMode?: unknown;
+  cache_default_mode?: unknown;
+  cacheDefaultMode?: unknown;
   allow_usage_command?: unknown;
   allowUsageCommand?: unknown;
   usage_limit_enabled?: unknown;
@@ -182,6 +186,7 @@ interface ApiKeyView extends JsonRecord {
   expiresAt?: string | null;
   allowedEndpoints: string[];
   streamDefaultMode: "legacy" | "json";
+  cacheDefaultMode: "legacy" | "bypass";
   disableNonPublicModels?: boolean;
   allowUsageCommand?: boolean;
   usageLimitEnabled?: boolean;
@@ -410,7 +415,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, blocked_models, allowed_combos, allowed_connections, allowed_quotas, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints, stream_default_mode, cache_default_mode, disable_non_public_models, allow_usage_command, usage_limit_enabled, daily_usage_limit_usd, weekly_usage_limit_usd, chaos_mode_enabled, proxy_id FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -465,6 +470,7 @@ export async function getApiKeys(limit?: number, offset?: number) {
     camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
     camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
     camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
+    camelRow.cacheDefaultMode = parseCacheDefaultMode((camelRow as JsonRecord).cacheDefaultMode);
     camelRow.disableNonPublicModels = parseDisableNonPublicModels(
       (camelRow as JsonRecord).disableNonPublicModels
     );
@@ -575,6 +581,7 @@ export async function getApiKeyById(id: string) {
   camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
   camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
   camelRow.streamDefaultMode = parseStreamDefaultMode((camelRow as JsonRecord).streamDefaultMode);
+  camelRow.cacheDefaultMode = parseCacheDefaultMode((camelRow as JsonRecord).cacheDefaultMode);
   camelRow.disableNonPublicModels = parseDisableNonPublicModels(
     (camelRow as JsonRecord).disableNonPublicModels
   );
@@ -701,6 +708,7 @@ export async function updateApiKeyPermissions(
         proxyId?: string | null;
         allowedEndpoints?: string[] | null;
         streamDefaultMode?: "legacy" | "json" | null;
+        cacheDefaultMode?: "legacy" | "bypass" | null;
         disableNonPublicModels?: boolean;
         allowUsageCommand?: boolean;
         usageLimitEnabled?: boolean;
@@ -738,6 +746,8 @@ export async function updateApiKeyPermissions(
           allowedEndpoints: (update as { allowedEndpoints?: string[] | null }).allowedEndpoints,
           streamDefaultMode: (update as { streamDefaultMode?: "legacy" | "json" | null })
             .streamDefaultMode,
+          cacheDefaultMode: (update as { cacheDefaultMode?: "legacy" | "bypass" | null })
+            .cacheDefaultMode,
           disableNonPublicModels: (update as { disableNonPublicModels?: boolean })
             .disableNonPublicModels,
           allowUsageCommand: (update as { allowUsageCommand?: boolean }).allowUsageCommand,
@@ -770,6 +780,7 @@ export async function updateApiKeyPermissions(
     (normalized as Record<string, unknown>).proxyId === undefined &&
     (normalized as Record<string, unknown>).allowedEndpoints === undefined &&
     (normalized as Record<string, unknown>).streamDefaultMode === undefined &&
+    (normalized as Record<string, unknown>).cacheDefaultMode === undefined &&
     normalized.disableNonPublicModels === undefined &&
     normalized.allowUsageCommand === undefined &&
     normalized.chaosModeEnabled === undefined &&
@@ -801,6 +812,7 @@ export async function updateApiKeyPermissions(
     scopes?: string;
     proxyId?: string | null;
     streamDefaultMode?: "legacy" | "json";
+    cacheDefaultMode?: "legacy" | "bypass";
     disableNonPublicModels?: number;
     allowUsageCommand?: number;
     usageLimitEnabled?: number;
@@ -943,6 +955,12 @@ export async function updateApiKeyPermissions(
   if (streamDefaultModeUpdate !== undefined) {
     updates.push("stream_default_mode = @streamDefaultMode");
     params.streamDefaultMode = parseStreamDefaultMode(streamDefaultModeUpdate);
+  }
+
+  const cacheDefaultModeUpdate = (normalized as Record<string, unknown>).cacheDefaultMode;
+  if (cacheDefaultModeUpdate !== undefined) {
+    updates.push("cache_default_mode = @cacheDefaultMode");
+    params.cacheDefaultMode = parseCacheDefaultMode(cacheDefaultModeUpdate);
   }
 
   const scopesUpdate = (normalized as Record<string, unknown>).scopes;
@@ -1297,6 +1315,7 @@ export async function getApiKeyMetadata(
       proxyId: null,
       allowedEndpoints: [],
       streamDefaultMode: "legacy",
+      cacheDefaultMode: "legacy",
       disableNonPublicModels: false,
       allowUsageCommand: false,
       usageLimitEnabled: false,
@@ -1368,6 +1387,9 @@ export async function getApiKeyMetadata(
     ),
     streamDefaultMode: parseStreamDefaultMode(
       (record as JsonRecord).stream_default_mode ?? (record as JsonRecord).streamDefaultMode
+    ),
+    cacheDefaultMode: parseCacheDefaultMode(
+      (record as JsonRecord).cache_default_mode ?? (record as JsonRecord).cacheDefaultMode
     ),
     disableNonPublicModels: parseDisableNonPublicModels(
       (record as JsonRecord).disable_non_public_models ??

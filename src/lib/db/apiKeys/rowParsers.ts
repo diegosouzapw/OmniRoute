@@ -163,3 +163,7 @@ export function parseIsBanned(value: unknown): boolean {
 export function parseStreamDefaultMode(value: unknown): "legacy" | "json" {
   return value === "json" ? "json" : "legacy";
 }
+
+export function parseCacheDefaultMode(value: unknown): "legacy" | "bypass" {
+  return value === "bypass" ? "bypass" : "legacy";
+}
