@@ -35,6 +35,10 @@ function resolvePlaygroundKeyId(
   return keys.find((k) => k.key === selectedMaskedKey)?.id ?? null;
 }
 
+// Mirrors NO_THINKING_PREFIX in open-sse/utils/noThinkingAlias.ts — kept as a local literal
+// (not imported) to avoid pulling server-side catalog modules into the client bundle.
+const NO_THINKING_PREFIX = "no-think/";
+
 /**
  * Qualify a provider-scoped playground model with its routing prefix so
  * OmniRoute can resolve it unambiguously. The previous heuristic only prefixed
@@ -52,6 +56,14 @@ export function qualifyPlaygroundModel(
 ): string {
   const m = (model ?? "").trim();
   if (!m || !routingPrefix) return m;
+  // A no-think id's real wire form is `no-think/<provider>/<model>` — the provider segment
+  // sits AFTER the prefix, not at the front, so it needs its own qualification branch instead
+  // of the generic leading-prefix check below.
+  if (m.startsWith(NO_THINKING_PREFIX)) {
+    const inner = m.slice(NO_THINKING_PREFIX.length);
+    const alreadyQualified = inner === routingPrefix || inner.startsWith(`${routingPrefix}/`);
+    return alreadyQualified ? m : `${NO_THINKING_PREFIX}${routingPrefix}/${inner}`;
+  }
   return m === routingPrefix || m.startsWith(`${routingPrefix}/`) ? m : `${routingPrefix}/${m}`;
 }
 
