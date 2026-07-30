@@ -199,6 +199,62 @@ test("VB-S02b: respects native vision support for GPT-family models", async () =
   }
 });
 
+test("VB-S02c: Conol multimodal models bypass the vision bridge", async () => {
+  const guardrail = createGuardrail();
+  const model = "conol-web/claude-fable-5-xhigh";
+  const payload = createPayload({
+    model,
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is this?" },
+          {
+            type: "image_url",
+            image_url: { url: "data:image/png;base64,aW1hZ2U=" },
+          },
+        ],
+      },
+    ],
+  });
+  visionCallCount = 0;
+
+  const result = await guardrail.preCall(payload, createContext({ model }));
+
+  assert.equal(getResolvedModelCapabilities(model).supportsVision, true);
+  assert.strictEqual(result.block, false);
+  assert.strictEqual(result.modifiedPayload, undefined);
+  assert.strictEqual(visionCallCount, 0);
+});
+
+test("VB-S02d: Conol text-only models remain eligible for the vision bridge", async () => {
+  const guardrail = createGuardrail();
+  const model = "conol-web/deepseek/deepseek-v4-pro";
+  const payload = createPayload({
+    model,
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is this?" },
+          {
+            type: "image_url",
+            image_url: { url: "data:image/png;base64,aW1hZ2U=" },
+          },
+        ],
+      },
+    ],
+  });
+  visionCallCount = 0;
+
+  const result = await guardrail.preCall(payload, createContext({ model }));
+
+  assert.equal(getResolvedModelCapabilities(model).supportsVision, false);
+  assert.strictEqual(result.block, false);
+  assert.notStrictEqual(result.modifiedPayload, undefined);
+  assert.strictEqual(visionCallCount, 1);
+});
+
 test("VB-S02: model capabilities returns supportsVision for known models", () => {
   const gpt4oCaps = getResolvedModelCapabilities("openai/gpt-4o");
   // supportsVision may be true (if sync data exists) or null (if not synced)

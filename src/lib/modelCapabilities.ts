@@ -89,7 +89,9 @@ function getRegistryModel(providerIdOrAlias: string | null, modelId: string | nu
   const providerAlias = PROVIDER_ID_TO_ALIAS[providerIdOrAlias] || providerIdOrAlias;
   const models = PROVIDER_MODELS[providerAlias];
   if (!Array.isArray(models)) return null;
-  return models.find((model) => model?.id === modelId) || null;
+  const normalizedModelId =
+    providerAlias === "cnl" ? modelId.replace(/-(?:xhigh|high|medium|low)$/i, "") : modelId;
+  return models.find((model) => model?.id === normalizedModelId) || null;
 }
 
 function resolveCapabilityInput(input: CapabilityInput) {
@@ -283,9 +285,7 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     modalitiesOutput,
     interleavedField:
       synced?.interleaved_field ??
-      (typeof registryModel?.interleavedField === "string"
-        ? registryModel.interleavedField
-        : null),
+      (typeof registryModel?.interleavedField === "string" ? registryModel.interleavedField : null),
   };
 }
 

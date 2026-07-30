@@ -3,6 +3,7 @@ import { CONOL_SESSION_COOKIE_NAME, normalizeConolCookie } from "./conolAuth.ts"
 export interface ConolModel {
   id: string;
   name: string;
+  supportsVision?: boolean;
 }
 
 export interface ConolModelDiscovery {
@@ -44,6 +45,17 @@ const FALLBACK_MODEL_IDS = [
   "xiaomi/mimo-v2.5-pro",
 ] as const;
 
+const TEXT_ONLY_FALLBACK_MODELS = new Set<string>([
+  "deepseek/deepseek-v4-pro",
+  "openrouter/fusion",
+  "z-ai/glm-5.2",
+  "z-ai/glm-5.1",
+  "tencent/hy3",
+  "qwen/qwen3.7-max",
+  "deepseek/deepseek-v4-flash",
+  "xiaomi/mimo-v2.5-pro",
+]);
+
 function modelName(id: string): string {
   return id
     .split("/")
@@ -60,6 +72,7 @@ function modelName(id: string): string {
 export const CONOL_FALLBACK_MODELS: ConolModel[] = FALLBACK_MODEL_IDS.map((id) => ({
   id,
   name: modelName(id),
+  supportsVision: !TEXT_ONLY_FALLBACK_MODELS.has(id),
 }));
 
 function readString(value: unknown): string {
@@ -79,21 +92,26 @@ function toModel(value: unknown): ConolModel | null {
     readString(item.value) ||
     readString(item.name);
   if (!id) return null;
+  const inputModalities = Array.isArray(item.inputModalities)
+    ? item.inputModalities.filter((modality): modality is string => typeof modality === "string")
+    : null;
   return {
     id,
     name: readString(item.displayName) || readString(item.name) || modelName(id),
+    ...(inputModalities
+      ? { supportsVision: inputModalities.some((modality) => modality.toLowerCase() === "image") }
+      : {}),
   };
 }
 
 export function parseConolAgentServers(payload: unknown): ConolModelDiscovery {
-  const root =
-    Array.isArray(payload)
-      ? payload
-      : payload && typeof payload === "object"
-        ? ((payload as Record<string, unknown>).agentServers ??
-          (payload as Record<string, unknown>).servers ??
-          [])
-        : [];
+  const root = Array.isArray(payload)
+    ? payload
+    : payload && typeof payload === "object"
+      ? ((payload as Record<string, unknown>).agentServers ??
+        (payload as Record<string, unknown>).servers ??
+        [])
+      : [];
   const servers = Array.isArray(root) ? root : [];
   const server = servers.find(
     (value) => value && typeof value === "object" && !Array.isArray(value)
@@ -117,13 +135,11 @@ export function parseConolAgentServers(payload: unknown): ConolModelDiscovery {
     : Array.isArray(server?.models)
       ? server.models
       : [];
-  const models = rawModels
-    .map(toModel)
-    .filter((model): model is ConolModel => {
-      if (!model || seen.has(model.id)) return false;
-      seen.add(model.id);
-      return true;
-    });
+  const models = rawModels.map(toModel).filter((model): model is ConolModel => {
+    if (!model || seen.has(model.id)) return false;
+    seen.add(model.id);
+    return true;
+  });
 
   return {
     agentServerId: readString(server?.id),

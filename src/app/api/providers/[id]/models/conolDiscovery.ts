@@ -1,7 +1,4 @@
-import {
-  SAFE_OUTBOUND_FETCH_PRESETS,
-  safeOutboundFetch,
-} from "@/shared/network/safeOutboundFetch";
+import { SAFE_OUTBOUND_FETCH_PRESETS, safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { resolveConolCredentials } from "@omniroute/open-sse/services/conolAuth.ts";
 import {
@@ -49,6 +46,7 @@ export async function maybeHandleConolModelDiscovery(
   const seedModels = CONOL_FALLBACK_MODELS.map((model) => ({
     id: model.id,
     name: model.name,
+    supportsVision: model.supportsVision,
   }));
   if (!cookie) {
     const fallback = options.buildDiscoveryFallbackResponse({

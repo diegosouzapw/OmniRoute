@@ -41,6 +41,12 @@ test("web session credential metadata identifies cookie, token, and no-auth prov
     placeholder: "convex-session-id=abc123...; Cookie: ...",
     acceptsFullCookieHeader: true,
   });
+  assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("conol-web"), {
+    kind: "cookie",
+    credentialName: "__Secure-better-auth.session_token",
+    placeholder: "__Secure-better-auth.session_token=... or full Cookie header from conol.ai",
+    acceptsFullCookieHeader: true,
+  });
 });
 
 test("no-auth web providers can be saved without an API key", () => {

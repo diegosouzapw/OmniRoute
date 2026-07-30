@@ -135,6 +135,12 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "Paste your Qwen token from chat.qwen.ai (Local Storage → token)",
     acceptsFullCookieHeader: false,
   },
+  "conol-web": {
+    kind: "cookie",
+    credentialName: "__Secure-better-auth.session_token",
+    placeholder: "__Secure-better-auth.session_token=... or full Cookie header from conol.ai",
+    acceptsFullCookieHeader: true,
+  },
 } satisfies Record<keyof typeof WEB_COOKIE_PROVIDERS, WebSessionCredentialRequirement>;
 
 export function getWebSessionCredentialRequirement(

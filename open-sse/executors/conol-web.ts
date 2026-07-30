@@ -4,20 +4,16 @@
  * Protocol verified against the web client on 2026-07-30:
  *   - POST /api/assets for raw image uploads
  *   - POST /api/sessions to create a session and submit typed messages
+ *   - POST /api/sessions/{id}/messages for subsequent turns in the same session
  *   - GET /api/sessions/{id}/messages?logDeltas=1 for cumulative NDJSON updates
  *   - Cookie authentication via __Secure-better-auth.session_token
  */
+import { createHash } from "node:crypto";
+
 import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
-import {
-  CursorImageError,
-  extractImageUrls,
-  resolveCursorImages,
-} from "../utils/cursorImages.ts";
-import {
-  normalizeConolCookie,
-  resolveConolCredentials,
-} from "../services/conolAuth.ts";
+import { CursorImageError, extractImageUrls, resolveCursorImages } from "../utils/cursorImages.ts";
+import { normalizeConolCookie, resolveConolCredentials } from "../services/conolAuth.ts";
 import { resolveConolModelSelection } from "../services/conolModels.ts";
 
 export { normalizeConolCookie, resolveConolCredentials };
@@ -26,6 +22,8 @@ const CONOL_ORIGIN = "https://conol.ai";
 const CONOL_SESSION_URL = `${CONOL_ORIGIN}/api/sessions`;
 const CONOL_REQUEST_TIMEOUT_MS = 300_000;
 const CONOL_MAX_STREAM_BYTES = 16 * 1024 * 1024;
+const CONOL_SESSION_TTL_MS = 6 * 60 * 60 * 1000;
+const CONOL_MAX_SESSION_BINDINGS = 500;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
 
@@ -38,12 +36,29 @@ interface ConolRequestBody {
   messages?: ChatMessage[];
   model?: string;
   timezone?: string;
+  metadata?: unknown;
+  conversation_id?: unknown;
+  conversationId?: unknown;
+  session_id?: unknown;
+  sessionId?: unknown;
+  prompt_cache_key?: unknown;
+  promptCacheKey?: unknown;
 }
 
 interface ConolMessagePart {
   type: "text" | "image";
   content: string;
   mediaType?: string;
+}
+
+interface ConolUserTurn {
+  text: string;
+  imageUrls: string[];
+}
+
+interface ConolSessionBinding {
+  upstreamSessionId: string;
+  lastUsedAt: number;
 }
 
 export interface ParsedConolStream {
@@ -53,6 +68,9 @@ export interface ParsedConolStream {
   modelId: string;
   done: boolean;
 }
+
+const conolSessionBindings = new Map<string, ConolSessionBinding>();
+const conolSessionLocks = new Map<string, Promise<void>>();
 
 function readString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -79,32 +97,189 @@ function extractText(value: unknown): string {
   );
 }
 
-function roleLabel(role: string): string {
-  switch (role.toLowerCase()) {
-    case "system":
-    case "developer":
-      return "System";
-    case "assistant":
-    case "model":
-      return "Assistant";
-    case "tool":
-    case "function":
-      return "Tool";
-    default:
-      return "User";
+function extractUserText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value == null) return "";
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => extractUserText(item))
+      .filter(Boolean)
+      .join("\n");
   }
+  if (typeof value !== "object") return "";
+
+  const record = value as Record<string, unknown>;
+  const type = readString(record.type).toLowerCase();
+  if (type === "text" || type === "input_text" || type === "output_text") {
+    return readString(record.text) || readString(record.content);
+  }
+  if (type) {
+    // Conol owns the agent loop. Do not flatten tool calls/results, images, or
+    // other agentic protocol blocks into the user's text prompt.
+    return "";
+  }
+  return readString(record.text) || extractUserText(record.content);
+}
+
+function stripGeneratedImageMarkers(value: string): string {
+  return value
+    .replace(/^\s*\[Image\s+\d+\]:\s*\(unavailable\)\s*$/gim, "")
+    .replace(/^\s*\[Image:\s*source:\s*[^\]\r\n]+\]\s*$/gim, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export function buildConolUserTurn(messages: ChatMessage[]): ConolUserTurn {
+  const latestUserMessage = [...messages]
+    .reverse()
+    .find((message) => readString(message.role).toLowerCase() === "user");
+  if (!latestUserMessage) return { text: "", imageUrls: [] };
+
+  return {
+    text: stripGeneratedImageMarkers(extractUserText(latestUserMessage.content)),
+    imageUrls: extractImageUrls(latestUserMessage.content),
+  };
 }
 
 export function buildConolPromptText(messages: ChatMessage[]): string {
-  return messages
-    .map((message) => {
-      const text = extractText(message.content).trim();
-      const hasImage = extractImageUrls(message.content).length > 0;
-      const content = text || (hasImage ? "[Image attached]" : "");
-      return content ? `[${roleLabel(message.role)}]\n${content}` : "";
-    })
-    .filter(Boolean)
-    .join("\n\n");
+  return buildConolUserTurn(messages).text;
+}
+
+function readHeader(headers: Record<string, string> | null | undefined, name: string): string {
+  if (!headers) return "";
+  const direct = readString(headers[name]);
+  if (direct) return direct;
+  const normalizedName = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === normalizedName) return readString(value);
+  }
+  return "";
+}
+
+function readMetadataSessionId(metadata: unknown): string {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return "";
+  const record = metadata as Record<string, unknown>;
+  const direct = readString(record.session_id) || readString(record.sessionId);
+  if (direct) return direct;
+
+  const userId = record.user_id;
+  if (userId && typeof userId === "object" && !Array.isArray(userId)) {
+    return readString((userId as Record<string, unknown>).session_id);
+  }
+  if (typeof userId !== "string" || userId.length > 4096) return "";
+  try {
+    const parsed = JSON.parse(userId) as unknown;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? readString((parsed as Record<string, unknown>).session_id)
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+function hashKey(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+export function resolveConolClientSessionKey(
+  body: ConolRequestBody,
+  clientHeaders?: Record<string, string> | null
+): string | null {
+  const candidates = [
+    readHeader(clientHeaders, "x-claude-code-session-id"),
+    readHeader(clientHeaders, "x-codex-session-id"),
+    readHeader(clientHeaders, "x-session-id"),
+    readHeader(clientHeaders, "x_session_id"),
+    readHeader(clientHeaders, "session-id"),
+    readHeader(clientHeaders, "session_id"),
+    readHeader(clientHeaders, "x-omniroute-session-id"),
+    readHeader(clientHeaders, "x-omniroute-session"),
+    readMetadataSessionId(body.metadata),
+    readString(body.conversation_id),
+    readString(body.conversationId),
+    readString(body.session_id),
+    readString(body.sessionId),
+    readString(body.prompt_cache_key),
+    readString(body.promptCacheKey),
+  ];
+  const candidate = candidates.find((value) => value.length > 0 && value.length <= 4096);
+  return candidate ? hashKey(candidate) : null;
+}
+
+function sweepConolSessionBindings(now = Date.now()): void {
+  for (const [key, binding] of conolSessionBindings) {
+    if (now - binding.lastUsedAt > CONOL_SESSION_TTL_MS) {
+      conolSessionBindings.delete(key);
+    }
+  }
+  while (conolSessionBindings.size > CONOL_MAX_SESSION_BINDINGS) {
+    let oldestKey = "";
+    let oldestTime = Number.POSITIVE_INFINITY;
+    for (const [key, binding] of conolSessionBindings) {
+      if (binding.lastUsedAt < oldestTime) {
+        oldestKey = key;
+        oldestTime = binding.lastUsedAt;
+      }
+    }
+    if (!oldestKey) break;
+    conolSessionBindings.delete(oldestKey);
+  }
+}
+
+function getConolSessionBinding(key: string): ConolSessionBinding | null {
+  sweepConolSessionBindings();
+  const binding = conolSessionBindings.get(key);
+  if (!binding) return null;
+  binding.lastUsedAt = Date.now();
+  return binding;
+}
+
+function setConolSessionBinding(key: string, upstreamSessionId: string): void {
+  conolSessionBindings.set(key, { upstreamSessionId, lastUsedAt: Date.now() });
+  sweepConolSessionBindings();
+}
+
+function buildConolSessionBindingKey(
+  input: ExecuteInput,
+  cookie: string,
+  clientSessionKey: string,
+  model: string,
+  effort?: string
+): string {
+  const accountKey = input.credentials.connectionId
+    ? `connection:${hashKey(input.credentials.connectionId)}`
+    : `cookie:${hashKey(cookie)}`;
+  return hashKey(`${accountKey}:${clientSessionKey}:${model}:${effort || "default"}`);
+}
+
+async function withConolSessionLock<T>(
+  key: string | null,
+  operation: () => Promise<T>
+): Promise<T> {
+  if (!key) return operation();
+
+  const previous = conolSessionLocks.get(key) ?? Promise.resolve();
+  let releaseCurrent!: () => void;
+  const currentGate = new Promise<void>((resolve) => {
+    releaseCurrent = resolve;
+  });
+  const current = previous.catch(() => undefined).then(() => currentGate);
+  conolSessionLocks.set(key, current);
+  await previous.catch(() => undefined);
+
+  try {
+    return await operation();
+  } finally {
+    releaseCurrent();
+    if (conolSessionLocks.get(key) === current) {
+      conolSessionLocks.delete(key);
+    }
+  }
+}
+
+export function clearConolSessionBindingsForTests(): void {
+  conolSessionBindings.clear();
+  conolSessionLocks.clear();
 }
 
 function messageText(value: unknown): string {
@@ -114,10 +289,7 @@ function messageText(value: unknown): string {
   return extractText(message.content).trim();
 }
 
-function stageAssistantText(
-  stages: unknown,
-  field: "logs" | "preview"
-): string {
+function stageAssistantText(stages: unknown, field: "logs" | "preview"): string {
   if (!Array.isArray(stages)) return "";
   let result = "";
   for (const stage of stages) {
@@ -276,13 +448,19 @@ export function parseConolMessageStream(raw: string): ParsedConolStream {
   };
 }
 
-function conolHeaders(cookie: string, extra?: Record<string, string>): Record<string, string> {
+function conolHeaders(
+  cookie: string,
+  extra?: Record<string, string>,
+  sessionId?: string
+): Record<string, string> {
   return {
     accept: "application/json",
     "accept-language": "en-US,en;q=0.9",
     cookie,
     origin: CONOL_ORIGIN,
-    referer: `${CONOL_ORIGIN}/home`,
+    referer: sessionId
+      ? `${CONOL_ORIGIN}/home?chat_session=${encodeURIComponent(sessionId)}`
+      : `${CONOL_ORIGIN}/home`,
     "user-agent": USER_AGENT,
     ...extra,
   };
@@ -301,17 +479,22 @@ function safeTimezone(value: unknown): string {
 async function uploadConolImages(
   cookie: string,
   imageUrls: string[],
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  sessionId?: string
 ): Promise<ConolMessagePart[]> {
   const images = await resolveCursorImages(imageUrls);
   const parts: ConolMessagePart[] = [];
   for (const image of images) {
     const response = await fetch(`${CONOL_ORIGIN}/api/assets`, {
       method: "POST",
-      headers: conolHeaders(cookie, {
-        accept: "application/json",
-        "content-type": image.mimeType,
-      }),
+      headers: conolHeaders(
+        cookie,
+        {
+          accept: "application/json",
+          "content-type": image.mimeType,
+        },
+        sessionId
+      ),
       body: image.data,
       signal: signal ?? undefined,
     });
@@ -414,10 +597,16 @@ export class ConolWebExecutor extends BaseExecutor {
   async execute(input: ExecuteInput) {
     const requestBody = (input.body || {}) as ConolRequestBody;
     const messages = Array.isArray(requestBody.messages) ? requestBody.messages : [];
-    const prompt = buildConolPromptText(messages);
-    const imageUrls = messages.flatMap((message) => extractImageUrls(message.content));
+    const userTurn = buildConolUserTurn(messages);
+    const prompt = userTurn.text;
+    const imageUrls = userTurn.imageUrls;
     if (!prompt && imageUrls.length === 0) {
-      return makeErrorResult(400, "No user message found", { model: input.model }, CONOL_SESSION_URL);
+      return makeErrorResult(
+        400,
+        "No user message found",
+        { model: input.model },
+        CONOL_SESSION_URL
+      );
     }
 
     const { cookie } = resolveConolCredentials(input.credentials);
@@ -431,96 +620,163 @@ export class ConolWebExecutor extends BaseExecutor {
     }
 
     const { model, effort } = resolveConolModelSelection(input.model || requestBody.model);
+    const clientSessionKey = resolveConolClientSessionKey(requestBody, input.clientHeaders);
+    const sessionBindingKey = clientSessionKey
+      ? buildConolSessionBindingKey(input, cookie, clientSessionKey, model, effort)
+      : null;
     const timeoutSignal = AbortSignal.timeout(CONOL_REQUEST_TIMEOUT_MS);
     const upstreamSignal = input.signal
       ? mergeAbortSignals(input.signal, timeoutSignal)
       : timeoutSignal;
     try {
-      const imageParts = await uploadConolImages(cookie, imageUrls, upstreamSignal);
-      const parts: ConolMessagePart[] = [];
-      if (prompt) parts.push({ type: "text", content: prompt });
-      parts.push(...imageParts);
+      return await withConolSessionLock(sessionBindingKey, async () => {
+        if (upstreamSignal.aborted) {
+          throw upstreamSignal.reason ?? new DOMException("Aborted", "AbortError");
+        }
 
-      const upstreamBody = {
-        source: { type: "home" },
-        messages: parts,
-        timezone: safeTimezone(requestBody.timezone),
-        agentModel: model,
-        ...(effort ? { agentEffort: effort } : {}),
-      };
-      const createResponse = await fetch(CONOL_SESSION_URL, {
-        method: "POST",
-        headers: conolHeaders(cookie, { "content-type": "application/json" }),
-        body: JSON.stringify(upstreamBody),
-        signal: upstreamSignal,
+        const cachedBinding = sessionBindingKey ? getConolSessionBinding(sessionBindingKey) : null;
+        let sessionId = cachedBinding?.upstreamSessionId || "";
+        let reusedSession = false;
+        const imageParts = await uploadConolImages(
+          cookie,
+          imageUrls,
+          upstreamSignal,
+          sessionId || undefined
+        );
+        const parts: ConolMessagePart[] = [...imageParts];
+        if (prompt) parts.push({ type: "text", content: prompt });
+        const timezone = safeTimezone(requestBody.timezone);
+
+        if (sessionId) {
+          const followUpUrl = `${CONOL_SESSION_URL}/${sessionId}/messages`;
+          const followUpResponse = await fetch(followUpUrl, {
+            method: "POST",
+            headers: conolHeaders(cookie, { "content-type": "application/json" }, sessionId),
+            body: JSON.stringify({ messages: parts, timezone }),
+            signal: upstreamSignal,
+          });
+          if (followUpResponse.status === 401 || followUpResponse.status === 403) {
+            return makeErrorResult(
+              followUpResponse.status,
+              "Conol session expired or is invalid — sign in again",
+              { model },
+              followUpUrl
+            );
+          }
+          if (followUpResponse.status === 404 || followUpResponse.status === 410) {
+            if (sessionBindingKey) conolSessionBindings.delete(sessionBindingKey);
+            sessionId = "";
+          } else if (!followUpResponse.ok) {
+            return makeErrorResult(
+              followUpResponse.status,
+              `Conol follow-up submission failed (HTTP ${followUpResponse.status})`,
+              { model, sessionId },
+              followUpUrl
+            );
+          } else {
+            reusedSession = true;
+            await followUpResponse.body?.cancel().catch(() => undefined);
+          }
+        }
+
+        if (!sessionId) {
+          const upstreamBody = {
+            source: { type: "home" },
+            messages: parts,
+            timezone,
+            agentModel: model,
+            ...(effort ? { agentEffort: effort } : {}),
+          };
+          const createResponse = await fetch(CONOL_SESSION_URL, {
+            method: "POST",
+            headers: conolHeaders(cookie, { "content-type": "application/json" }),
+            body: JSON.stringify(upstreamBody),
+            signal: upstreamSignal,
+          });
+          if (createResponse.status === 401 || createResponse.status === 403) {
+            return makeErrorResult(
+              createResponse.status,
+              "Conol session expired or is invalid — sign in again",
+              { model },
+              CONOL_SESSION_URL
+            );
+          }
+          if (!createResponse.ok) {
+            return makeErrorResult(
+              createResponse.status,
+              `Conol session creation failed (HTTP ${createResponse.status})`,
+              { model },
+              CONOL_SESSION_URL
+            );
+          }
+
+          const created = (await createResponse.json()) as Record<string, unknown>;
+          sessionId = readString(created.sessionId);
+          if (!/^[A-Za-z0-9_-]+$/.test(sessionId)) {
+            return makeErrorResult(
+              502,
+              "Conol returned an invalid session identifier",
+              { model },
+              CONOL_SESSION_URL
+            );
+          }
+          if (sessionBindingKey) {
+            setConolSessionBinding(sessionBindingKey, sessionId);
+          }
+        }
+
+        const messagesUrl = `${CONOL_SESSION_URL}/${sessionId}/messages?logDeltas=1`;
+        const messageResponse = await fetch(messagesUrl, {
+          method: "GET",
+          headers: conolHeaders(
+            cookie,
+            { accept: "text/event-stream, application/x-ndjson" },
+            sessionId
+          ),
+          signal: upstreamSignal,
+        });
+        if (!messageResponse.ok) {
+          if (
+            sessionBindingKey &&
+            (messageResponse.status === 404 || messageResponse.status === 410)
+          ) {
+            conolSessionBindings.delete(sessionBindingKey);
+          }
+          return makeErrorResult(
+            messageResponse.status,
+            `Conol message stream failed (HTTP ${messageResponse.status})`,
+            { model, sessionId },
+            messagesUrl
+          );
+        }
+
+        const parsed = parseConolMessageStream(await collectConolMessageStream(messageResponse));
+        if (!parsed.text) {
+          return makeErrorResult(
+            502,
+            "Conol returned no assistant response",
+            { model, sessionId },
+            messagesUrl
+          );
+        }
+        const response = input.stream
+          ? streamResponse(parsed.text, model, sessionId)
+          : completionResponse(parsed.text, model, sessionId, prompt);
+
+        return {
+          response,
+          url: messagesUrl,
+          headers: { cookie: "***" },
+          transformedBody: {
+            model,
+            ...(effort ? { effort } : {}),
+            sessionId,
+            reusedSession,
+            clientSessionBound: sessionBindingKey !== null,
+            imageCount: imageParts.length,
+          },
+        };
       });
-      if (createResponse.status === 401 || createResponse.status === 403) {
-        return makeErrorResult(
-          createResponse.status,
-          "Conol session expired or is invalid — sign in again",
-          { model },
-          CONOL_SESSION_URL
-        );
-      }
-      if (!createResponse.ok) {
-        return makeErrorResult(
-          createResponse.status,
-          `Conol session creation failed (HTTP ${createResponse.status})`,
-          { model },
-          CONOL_SESSION_URL
-        );
-      }
-
-      const created = (await createResponse.json()) as Record<string, unknown>;
-      const sessionId = readString(created.sessionId);
-      if (!/^[A-Za-z0-9_-]+$/.test(sessionId)) {
-        return makeErrorResult(
-          502,
-          "Conol returned an invalid session identifier",
-          { model },
-          CONOL_SESSION_URL
-        );
-      }
-
-      const messagesUrl = `${CONOL_SESSION_URL}/${sessionId}/messages?logDeltas=1`;
-      const messageResponse = await fetch(messagesUrl, {
-        method: "GET",
-        headers: conolHeaders(cookie, { accept: "text/event-stream, application/x-ndjson" }),
-        signal: upstreamSignal,
-      });
-      if (!messageResponse.ok) {
-        return makeErrorResult(
-          messageResponse.status,
-          `Conol message stream failed (HTTP ${messageResponse.status})`,
-          { model, sessionId },
-          messagesUrl
-        );
-      }
-
-      const parsed = parseConolMessageStream(await collectConolMessageStream(messageResponse));
-      if (!parsed.text) {
-        return makeErrorResult(
-          502,
-          "Conol returned no assistant response",
-          { model, sessionId },
-          messagesUrl
-        );
-      }
-      const response = input.stream
-        ? streamResponse(parsed.text, model, sessionId)
-        : completionResponse(parsed.text, model, sessionId, prompt);
-
-      return {
-        response,
-        url: messagesUrl,
-        headers: { cookie: "***" },
-        transformedBody: {
-          model,
-          ...(effort ? { effort } : {}),
-          sessionId,
-          imageCount: imageParts.length,
-        },
-      };
     } catch (error) {
       const isTimeout = error instanceof Error && error.name === "TimeoutError";
       const status = error instanceof CursorImageError ? error.status : isTimeout ? 504 : 502;
