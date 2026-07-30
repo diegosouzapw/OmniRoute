@@ -569,6 +569,7 @@ export async function handleComboChat({
   signal,
   apiKeyAllowedConnections = null,
   nesting = null,
+  clientManagedResponsesContext = false,
 }: HandleComboChatOptions): Promise<Response> {
   const comboCtx = createComboContext({ body, combo, settings, relayOptions, log });
   const {
@@ -683,6 +684,7 @@ export async function handleComboChat({
       settings,
       allCombos,
       signal,
+      clientManagedResponsesContext,
     });
   }
 
@@ -707,6 +709,7 @@ export async function handleComboChat({
     isModelAvailable,
     handleSingleModelWithTimeout,
     buildAutoCandidates,
+    clientManagedResponsesContext,
   });
   if ("earlyResponse" in targetResolution) return targetResolution.earlyResponse;
   const { stickyWeightedLimit, getWeightedStepKeyForTarget, preScreenMap } = targetResolution;
@@ -2177,6 +2180,7 @@ async function handleRoundRobinCombo({
   settings,
   allCombos,
   signal,
+  clientManagedResponsesContext,
 }: HandleRoundRobinOptions): Promise<Response> {
   const config = settings
     ? resolveComboConfig(combo, settings)
@@ -2219,7 +2223,9 @@ async function handleRoundRobinCombo({
   );
   const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
   const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
-  const knownContextOverflow = getKnownContextOverflow(evalRankedTargets, body);
+  const knownContextOverflow = getKnownContextOverflow(evalRankedTargets, body, {
+    clientManagedResponsesContext,
+  });
   if (knownContextOverflow) {
     return errorResponseWithComboDiagnostics(
       400,
