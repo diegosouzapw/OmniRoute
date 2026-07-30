@@ -46,6 +46,7 @@ import { V0VercelWebExecutor } from "./v0-vercel-web.ts";
 import { KimiWebExecutor } from "./kimi-web.ts";
 import { DoubaoWebExecutor } from "./doubao-web.ts";
 import { QwenWebExecutor } from "./qwen-web.ts";
+import { ConolWebExecutor } from "./conol-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -131,6 +132,8 @@ const executors = {
   db: new DoubaoWebExecutor(), // Alias
   "qwen-web": new QwenWebExecutor(),
   qw: new QwenWebExecutor(), // Alias
+  "conol-web": new ConolWebExecutor(),
+  cnl: new ConolWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -187,3 +190,4 @@ export { AdaptaWebExecutor } from "./adapta-web.ts";
 export { T3ChatWebExecutor } from "./t3-chat-web.ts";
 export { InnerAiExecutor } from "./inner-ai.ts";
 export { QwenWebExecutor } from "./qwen-web.ts";
+export { ConolWebExecutor } from "./conol-web.ts";

@@ -77,6 +77,7 @@ import {
   persistDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
 import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
+import { maybeHandleConolModelDiscovery } from "./conolDiscovery";
 
 type JsonRecord = Record<string, unknown>;
 const antigravityDiscoveryInflight = new Map<
@@ -914,6 +915,21 @@ export async function GET(
       const localCatalog = buildLocalCatalogResponse();
       if (localCatalog) return localCatalog;
     }
+
+    const conolResponse = await maybeHandleConolModelDiscovery({
+      provider,
+      connectionId,
+      apiKey,
+      accessToken,
+      providerSpecificData: connection.providerSpecificData,
+      proxy,
+      maybeReturnCachedDiscovery,
+      maybeReturnAutoFetchDisabled,
+      buildDiscoveryFallbackResponse,
+      buildResponse,
+      buildApiDiscoveryResponse,
+    });
+    if (conolResponse) return conolResponse;
 
     if (provider === "bedrock") {
       const cachedResponse = maybeReturnCachedDiscovery();

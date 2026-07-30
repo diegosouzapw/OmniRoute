@@ -38,6 +38,7 @@ import {
   getRuntimeArch,
 } from "./providerHeaderProfiles.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+import { CONOL_FALLBACK_MODELS } from "../services/conolModels.ts";
 import { resolvePublicCred } from "../utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "@/lib/oauth/gitlab";
 
@@ -2870,6 +2871,20 @@ const _REGISTRY_EAGER: Record<string, RegistryEntry> = {
       { id: "adapta-deepseek", name: "DeepSeek R2 (via Adapta)" },
       { id: "adapta-llama", name: "Llama 4 (via Adapta)" },
     ],
+  },
+
+  // conol.ai — unofficial browser-session chat.
+  // POST /api/sessions, then cumulative NDJSON from /messages?logDeltas=1.
+  "conol-web": {
+    id: "conol-web",
+    alias: "cnl",
+    format: "openai",
+    executor: "conol-web",
+    baseUrl: "https://conol.ai/api/sessions",
+    authType: "apikey",
+    authHeader: "cookie",
+    passthroughModels: true,
+    models: CONOL_FALLBACK_MODELS,
   },
 
   // t3.chat — Convex-based chat app. Cookie session auth via T3ChatWebExecutor.
