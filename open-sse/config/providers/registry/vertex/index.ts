@@ -30,4 +30,5 @@ export const vertexProvider: RegistryEntry = {
     { id: "claude-opus-4-7", name: "Claude Opus 4.7 (Vertex)" },
     { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 (Vertex)" },
   ],
+  passthroughModels: true,
 };
