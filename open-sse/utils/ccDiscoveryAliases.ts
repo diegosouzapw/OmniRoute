@@ -33,7 +33,7 @@ export const CC_DISCOVERY_COMBO_PREFIX = "claude/combo/";
 // Ids that already live under the claude/anthropic namespace — never re-mirror them.
 const ALREADY_CLAUDE_RE = /^(?:claude|anthropic)(?:\/|$)/i;
 // Ids that already carry a reasoning-effort suffix — v1 only mirrors base ids.
-const EFFORT_SUFFIX_RE = /-(?:xhigh|high|medium|low)$/i;
+const CLAUDE_EFFORT_SUFFIX_RE = /-(?:xhigh|high|medium|low)$/i;
 const NO_THINKING_PREFIX = "no-think/";
 // Built-in `auto`/`auto/*` combos are synthesized by createBuiltinAutoCombo, NOT
 // stored in the DB combos table — the request-path resolver (getComboByName) can't
@@ -66,7 +66,7 @@ function isMirrorableId(id: string): boolean {
   if (id.length === 0) return false;
   if (ALREADY_CLAUDE_RE.test(id)) return false;
   if (id.startsWith(NO_THINKING_PREFIX)) return false;
-  return !EFFORT_SUFFIX_RE.test(id);
+  return !CLAUDE_EFFORT_SUFFIX_RE.test(id);
 }
 
 /** Strip a `<provider>/` prefix to get the bare model name, matching the convention in
