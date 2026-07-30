@@ -239,3 +239,54 @@ test("403 with IAM_PERMISSION_DENIED reason and a project-level resource cools d
   const lockout = accountFallback.getModelLockoutInfo("vertex", conn.id, "claude-sonnet-5-high");
   assert.equal(lockout, null);
 });
+
+test("multi-detail error body correlates reason+resource per-detail, not across details", async () => {
+  // Adversarial case: detail[0] has a model-scoped resource under an unrelated reason,
+  // detail[1] carries the actual IAM_PERMISSION_DENIED with a project-level resource. A
+  // naive independent-regex scan would match detail[0]'s resource against detail[1]'s
+  // reason and wrongly conclude "model-scoped" — this must resolve to connection-wide.
+  await resetStorage();
+  const conn = await seedVertex();
+
+  const body = JSON.stringify({
+    error: {
+      status: "PERMISSION_DENIED",
+      details: [
+        {
+          "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+          reason: "SOME_OTHER_REASON",
+          domain: "iam.googleapis.com",
+          metadata: {
+            resource:
+              "projects/12345/locations/us-central1/publishers/google/models/claude-sonnet-5",
+          },
+        },
+        {
+          "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+          reason: "IAM_PERMISSION_DENIED",
+          domain: "iam.googleapis.com",
+          metadata: {
+            permission: "aiplatform.googleapis.com/models.predict",
+            resource: "projects/12345",
+          },
+        },
+      ],
+    },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    conn.id,
+    403,
+    body,
+    "vertex",
+    "claude-sonnet-5-high"
+  );
+  assert.equal(result.shouldFallback, true);
+
+  const after2 = await providersDb.getProviderConnectionById(conn.id);
+  assert.equal(after2.testStatus, "unavailable");
+  assert.ok(after2.rateLimitedUntil, "connection must be cooled down, not left active");
+
+  const lockout2 = accountFallback.getModelLockoutInfo("vertex", conn.id, "claude-sonnet-5-high");
+  assert.equal(lockout2, null);
+});
