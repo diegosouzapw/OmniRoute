@@ -291,6 +291,12 @@ test("native Responses context bypasses catalog overflow only for all-Codex pool
     }),
     null
   );
+  assert.equal(
+    getKnownContextOverflow([target("codex/large"), target("chatgpt-web-codex/large")], body, {
+      clientManagedResponsesContext: true,
+    }),
+    null
+  );
   assert.ok(
     getKnownContextOverflow([target("unit-known-context/large")], body, {
       clientManagedResponsesContext: true,
