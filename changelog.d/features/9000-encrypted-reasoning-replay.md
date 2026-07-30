@@ -1,1 +1,1 @@
-- Add an opt-in Codex connection setting that forwards client-supplied encrypted Responses reasoning items for replay, including per-target combo routing.
+- Add a default-off connection setting for Codex, OpenAI, and OpenAI-compatible Responses API providers that preserves client-supplied `reasoning.encrypted_content` items for replay, including per-target combo routing.
