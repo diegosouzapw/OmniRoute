@@ -1898,6 +1898,27 @@ export async function getProviderCredentialsWithQuotaPreflight(
   }
 }
 
+/**
+ * Google's google.rpc.ErrorInfo proto reliably distinguishes a connection-wide
+ * PERMISSION_DENIED (API not enabled, or a project-level IAM denial) from a
+ * model-specific one (IAM denial scoped to a .../models/<id> resource) — see
+ * https://cloud.google.com/apis/design/errors#error_info. Only returns true on
+ * POSITIVE evidence of a connection-wide cause; any other shape (including a
+ * missing/malformed resource field) falls through to the existing per-model
+ * lockout behavior, since that's the safer default and the actual bug this
+ * plan fixes (avoid defaulting BACK toward the connection-wide cooldown this
+ * plan exists to avoid).
+ */
+function isVertexConnectionWidePermissionDenied(errorText: string | null | undefined): boolean {
+  if (!errorText) return false;
+  if (/"reason"\s*:\s*"SERVICE_DISABLED"/.test(errorText)) return true;
+  if (/"reason"\s*:\s*"IAM_PERMISSION_DENIED"/.test(errorText)) {
+    const resourceMatch = errorText.match(/"resource"\s*:\s*"([^"]*)"/);
+    if (resourceMatch && !resourceMatch[1].includes("/models/")) return true;
+  }
+  return false;
+}
+
 /** Persist exponential-backoff state for an unavailable provider connection. */
 export async function markAccountUnavailable(
   connectionId: string,
@@ -2146,7 +2167,14 @@ export async function markAccountUnavailable(
         : rawCooldownMs;
 
     // ── #3027: per-model subscription/permission 403 → model-only lockout ──
-    if (isPerModelQuotaProvider && status === 403 && provider && model && !terminalStatus) {
+    if (
+      isPerModelQuotaProvider &&
+      status === 403 &&
+      provider &&
+      model &&
+      !terminalStatus &&
+      !(provider === "vertex" && isVertexConnectionWidePermissionDenied(errorText))
+    ) {
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,

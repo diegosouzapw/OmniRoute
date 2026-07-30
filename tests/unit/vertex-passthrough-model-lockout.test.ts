@@ -119,3 +119,123 @@ test("403 PERMISSION_DENIED on Vertex locks only that model too (accepted trade-
   const lockout = accountFallback.getModelLockoutInfo("vertex", conn.id, "claude-sonnet-5-high");
   assert.equal(lockout?.reason, "forbidden");
 });
+
+// ── 403 disambiguation via google.rpc.ErrorInfo (Task 7) ────────────────────
+// Google Cloud's documented error format (https://cloud.google.com/apis/design/errors#error_info)
+// lets us tell a genuinely connection-wide PERMISSION_DENIED (API disabled, or a
+// project-level IAM denial) apart from one scoped to a single model — the former must
+// fall through to the existing connection-wide cooldown instead of the #3027 per-model
+// lockout path, since a per-model lockout would leave a broken connection "active".
+
+test("403 with SERVICE_DISABLED ErrorInfo reason cools down the whole Vertex connection", async () => {
+  await resetStorage();
+  const conn = await seedVertex();
+
+  const body = JSON.stringify({
+    error: {
+      status: "PERMISSION_DENIED",
+      details: [
+        {
+          "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+          reason: "SERVICE_DISABLED",
+          domain: "googleapis.com",
+          metadata: { service: "aiplatform.googleapis.com", consumer: "projects/12345" },
+        },
+      ],
+    },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    conn.id,
+    403,
+    body,
+    "vertex",
+    "claude-sonnet-5-high"
+  );
+  assert.equal(result.shouldFallback, true);
+
+  const after = await providersDb.getProviderConnectionById(conn.id);
+  assert.equal(after.testStatus, "unavailable");
+  assert.ok(after.rateLimitedUntil, "connection must be cooled down, not left active");
+
+  // The #3027 per-model lockout path must NOT have run.
+  const lockout = accountFallback.getModelLockoutInfo("vertex", conn.id, "claude-sonnet-5-high");
+  assert.equal(lockout, null);
+});
+
+test("403 with IAM_PERMISSION_DENIED reason and a model-scoped resource still locks only that model", async () => {
+  await resetStorage();
+  const conn = await seedVertex();
+
+  const body = JSON.stringify({
+    error: {
+      status: "PERMISSION_DENIED",
+      details: [
+        {
+          "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+          reason: "IAM_PERMISSION_DENIED",
+          domain: "iam.googleapis.com",
+          metadata: {
+            permission: "aiplatform.endpoints.predict",
+            resource:
+              "projects/12345/locations/us-central1/publishers/google/models/claude-sonnet-5",
+          },
+        },
+      ],
+    },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    conn.id,
+    403,
+    body,
+    "vertex",
+    "claude-sonnet-5-high"
+  );
+  assert.equal(result.shouldFallback, true);
+
+  const after = await providersDb.getProviderConnectionById(conn.id);
+  assert.equal(after.testStatus, "active");
+  assert.ok(!after.rateLimitedUntil, "connection must not be rate-limited");
+
+  const lockout = accountFallback.getModelLockoutInfo("vertex", conn.id, "claude-sonnet-5-high");
+  assert.equal(lockout?.reason, "forbidden");
+});
+
+test("403 with IAM_PERMISSION_DENIED reason and a project-level resource cools down the whole connection", async () => {
+  await resetStorage();
+  const conn = await seedVertex();
+
+  const body = JSON.stringify({
+    error: {
+      status: "PERMISSION_DENIED",
+      details: [
+        {
+          "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+          reason: "IAM_PERMISSION_DENIED",
+          domain: "iam.googleapis.com",
+          metadata: {
+            permission: "aiplatform.googleapis.com/models.predict",
+            resource: "projects/12345",
+          },
+        },
+      ],
+    },
+  });
+
+  const result = await auth.markAccountUnavailable(
+    conn.id,
+    403,
+    body,
+    "vertex",
+    "claude-sonnet-5-high"
+  );
+  assert.equal(result.shouldFallback, true);
+
+  const after = await providersDb.getProviderConnectionById(conn.id);
+  assert.equal(after.testStatus, "unavailable");
+  assert.ok(after.rateLimitedUntil, "connection must be cooled down, not left active");
+
+  const lockout = accountFallback.getModelLockoutInfo("vertex", conn.id, "claude-sonnet-5-high");
+  assert.equal(lockout, null);
+});
