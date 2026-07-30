@@ -254,6 +254,42 @@ if (existsSync(mcpSrcFile)) {
   }
 }
 
+const chatGptWebCodexMcpSrcFile = join(
+  ROOT,
+  "open-sse",
+  "vendor",
+  "codex-chatgpt-web",
+  "adapters",
+  "chatgpt-web",
+  "mcp-server.ts"
+);
+const chatGptWebCodexMcpDestFile = join(
+  DIST_DIR,
+  "open-sse",
+  "vendor",
+  "codex-chatgpt-web",
+  "adapters",
+  "chatgpt-web",
+  "mcp-server.js"
+);
+if (existsSync(chatGptWebCodexMcpSrcFile)) {
+  console.log("  🔨 Bundling ChatGPT Web (Codex) MCP bridge...");
+  mkdirSync(dirname(chatGptWebCodexMcpDestFile), { recursive: true });
+  execFileSync(
+    NPX_BIN,
+    [
+      "esbuild",
+      "open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.ts",
+      "--bundle",
+      "--platform=node",
+      "--packages=external",
+      "--format=esm",
+      "--outfile=dist/open-sse/vendor/codex-chatgpt-web/adapters/chatgpt-web/mcp-server.js",
+    ],
+    { cwd: ROOT, stdio: "inherit" }
+  );
+}
+
 // ── Step 8.6: Bundle LLMLingua ONNX worker ────────────────────────────
 // The worker is spawned via worker_threads at a path the Next.js bundler cannot
 // statically trace, so it must ship as a standalone .js (mirrors the MCP-server

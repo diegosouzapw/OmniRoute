@@ -98,10 +98,39 @@ services:
       args:
         OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
     image: omniroute:web
+    depends_on:
+      chatgpt-web-codex-browser:
+        condition: service_started
+    environment:
+      - DATA_DIR=/app/data
+      - PORT=${PORT:-20128}
+      - DASHBOARD_PORT=${DASHBOARD_PORT:-20128}
+      - API_PORT=${API_PORT:-20129}
+      - API_HOST=${API_HOST:-0.0.0.0}
+      - LIVE_WS_PORT=${LIVE_WS_PORT:-20132}
+      - LIVE_WS_HOST=${LIVE_WS_HOST:-0.0.0.0}
+      - LIVE_WS_ALLOWED_ORIGINS=${LIVE_WS_ALLOWED_ORIGINS:-http://localhost:20128,http://127.0.0.1:20128}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
+      - CHATGPT_WEB_CODEX_CDP_URL=http://chatgpt-web-codex-browser:9223
     ports:
       - "${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${API_PORT:-20129}:${API_PORT:-20129}"
       - "${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
+    profiles:
+      - web
+
+  # Internal-only Chromium runtime for ChatGPT Web (Codex). No CDP or browser
+  # UI port is published to the host.
+  chatgpt-web-codex-browser:
+    build:
+      context: .
+      dockerfile: docker/chatgpt-web-codex-browser/Dockerfile
+    image: omniroute:chatgpt-web-codex-browser
+    restart: unless-stopped
+    shm_size: "2gb"
+    volumes:
+      - chatgpt-web-codex-browser-data:/browser-profile
     profiles:
       - web
 
@@ -252,6 +281,8 @@ services:
       - cliproxyapi
 
 volumes:
+  chatgpt-web-codex-browser-data:
+    name: omniroute-chatgpt-web-codex-browser-data
   cliproxyapi-data:
     name: cliproxyapi-data
   redis-data:

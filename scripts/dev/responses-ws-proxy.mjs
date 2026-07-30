@@ -585,12 +585,18 @@ class ResponsesWsSession {
   // preparedContext, but never touches this.upstream/this.upstreamReady; the caller decides
   // whether a new upstream socket is needed.
   async runPrepare(message, responseBody) {
-    const prepared = await callInternal(this.fetchImpl, this.baseUrl, this.bridgeSecret, "prepare", {
-      requestUrl: this.requestUrl,
-      headers: getAuthHeaders(this.requestUrl, this.requestHeaders),
-      message,
-      response: responseBody,
-    });
+    const prepared = await callInternal(
+      this.fetchImpl,
+      this.baseUrl,
+      this.bridgeSecret,
+      "prepare",
+      {
+        requestUrl: this.requestUrl,
+        headers: getAuthHeaders(this.requestUrl, this.requestHeaders),
+        message,
+        response: responseBody,
+      }
+    );
 
     if (!prepared.ok) {
       const message2 =
@@ -602,6 +608,7 @@ class ResponsesWsSession {
       const error = new Error(message2);
       error.code = code;
       error.status = prepared.status;
+      if (code === "responses_websocket_http_fallback") error.httpFallback = true;
       throw error;
     }
 
@@ -716,11 +723,28 @@ class ResponsesWsSession {
         // otherwise every turn after the first bypasses the whole pipeline. This reuses
         // the already-established upstream transport; it must NOT recreate the socket.
         const prepared = await this.runPrepare(message, nextTurnBody);
-        this.upstream.send(jsonStringifySafe(withPreparedResponseCreate(message, prepared.json.response)));
+        this.upstream.send(
+          jsonStringifySafe(withPreparedResponseCreate(message, prepared.json.response))
+        );
         return;
       }
       this.upstream.send(jsonStringifySafe(message));
     } catch (error) {
+      if (error?.httpFallback) {
+        const failurePayload = this.sendFailure(
+          "responses_websocket_http_fallback",
+          "Retry this request over HTTP/SSE Responses"
+        );
+        void this.persistHistory({
+          status: 426,
+          success: false,
+          errorCode: "responses_websocket_http_fallback",
+          errorMessage: "HTTP/SSE Responses transport required",
+          terminalMessage: failurePayload,
+        });
+        this.close(1013, "http_fallback_required");
+        return;
+      }
       const code = error?.code || "upstream_websocket_connect_failed";
       const messageText = error instanceof Error ? error.message : String(error);
       const failurePayload = this.sendFailure(code, messageText);
