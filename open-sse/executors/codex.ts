@@ -235,11 +235,15 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  * This function:
  *   1. Removes bare string references ("rs_abc123") from the input array
  *   2. Removes object items with type "item_reference" (explicit stored-item refs)
- *   3. Strips the "id" field from any object in input whose id matches a
- *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
- *      preserved but the backend won't try to look it up
+ *   3. Removes reasoning items unless encrypted reasoning preservation is enabled
+ *      and the item has non-empty encrypted_content
+ *   4. Strips the "id" field from any remaining object in input whose id matches
+ *      a server-generated prefix (rs_, fc_, resp_, msg_)
  */
-export function stripStoredItemReferences(body: Record<string, unknown>): void {
+export function stripStoredItemReferences(
+  body: Record<string, unknown>,
+  preserveEncryptedReasoning = false
+): void {
   if (Array.isArray(body.input) && body.input.length === 0) {
     body.input = [
       {
@@ -273,21 +277,24 @@ export function stripStoredItemReferences(body: Record<string, unknown>): void {
       return false;
     }
 
-    // Reasoning blobs (encrypted_content) are unusable with store=false since
-    // previous_response_id is deleted — strip them to avoid wasting context
-    // tokens (O(n^2) growth across agentic turns).
+    // Reasoning items normally cannot be replayed with store=false. A selected
+    // connection may explicitly preserve encrypted reasoning input, which is
+    // self-contained and must remain unchanged for the upstream to consume it.
     if (
       item &&
       typeof item === "object" &&
       !Array.isArray(item) &&
       (item as Record<string, unknown>).type === "reasoning"
     ) {
+      const encryptedContent = (item as Record<string, unknown>).encrypted_content;
+      if (preserveEncryptedReasoning && typeof encryptedContent === "string" && encryptedContent) {
+        return true;
+      }
       strippedCount++;
       return false;
     }
 
     // Object items with server-generated IDs: strip the id field but keep the item.
-    // e.g. { id: "rs_...", type: "reasoning", summary: [...] } → keep content, remove id
     // e.g. { id: "fc_...", type: "function_call", ... } → keep content, remove id
     if (item && typeof item === "object" && !Array.isArray(item)) {
       const record = item as Record<string, unknown>;
@@ -1420,9 +1427,12 @@ export class CodexExecutor extends BaseExecutor {
     });
 
     // Strip stored response item references (rs_, resp_, msg_ IDs) from input.
-    // The /codex/responses endpoint does not persist responses even with store=true,
-    // so any references to previous response items would cause 404 errors.
-    stripStoredItemReferences(body);
+    // The selected connection may opt into replaying self-contained encrypted
+    // reasoning items; plaintext and summary-only reasoning remains stripped.
+    stripStoredItemReferences(
+      body,
+      credentials?.providerSpecificData?.preserveEncryptedReasoning === true
+    );
 
     // Issue #806: Even for native passthrough, some clients (purist completions) might indiscriminately inject
     // a `messages` or `prompt` array which the strict Codex Responses schema rejects.

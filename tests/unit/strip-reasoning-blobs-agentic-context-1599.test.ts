@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { stripStoredItemReferences } from "../../open-sse/executors/codex.ts";
+import { CodexExecutor, stripStoredItemReferences } from "../../open-sse/executors/codex.ts";
 import { filterToOpenAIFormat } from "../../open-sse/translator/helpers/openaiHelper.ts";
 
 // Port of decolua/9router#1599 — strip reasoning blobs from agentic context to
@@ -43,6 +43,69 @@ test("stripStoredItemReferences drops object items with type=reasoning", () => {
   assert.equal(input[0].type, "message");
   assert.equal(input[1].type, "function_call");
   assert.equal(input[1].id, undefined, "fc_ server id stripped, item kept");
+});
+
+test("Codex selected connection preserves encrypted reasoning input", () => {
+  const encryptedReasoning = {
+    id: "rs_encrypted123",
+    type: "reasoning",
+    encrypted_content: "encrypted-blob",
+    summary: [{ type: "summary_text", text: "safe summary" }],
+  };
+  const executor = new CodexExecutor();
+
+  const result = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      _nativeCodexPassthrough: true,
+      input: [
+        encryptedReasoning,
+        { type: "message", role: "user", content: [{ type: "input_text", text: "continue" }] },
+      ],
+    },
+    true,
+    { providerSpecificData: { preserveEncryptedReasoning: true } }
+  );
+
+  assert.deepEqual(result.input, [
+    encryptedReasoning,
+    { type: "message", role: "user", content: [{ type: "input_text", text: "continue" }] },
+  ]);
+});
+
+test("preserving encrypted reasoning still removes stored references", () => {
+  const body: Record<string, unknown> = {
+    input: [
+      { id: "rs_encrypted123", type: "reasoning", encrypted_content: "encrypted-blob" },
+      "rs_stored123",
+      { type: "item_reference", id: "resp_stored123" },
+      { type: "function_call", id: "fc_stored123", call_id: "call_1" },
+    ],
+  };
+
+  stripStoredItemReferences(body, true);
+
+  assert.deepEqual(body.input, [
+    { id: "rs_encrypted123", type: "reasoning", encrypted_content: "encrypted-blob" },
+    { type: "function_call", call_id: "call_1" },
+  ]);
+});
+
+test("stripStoredItemReferences still drops summary-only reasoning when preservation is enabled", () => {
+  const body: Record<string, unknown> = {
+    input: [
+      { id: "rs_summary123", type: "reasoning", summary: [{ text: "thinking..." }] },
+      { type: "reasoning", encrypted_content: "" },
+      { type: "reasoning", encrypted_content: 42 },
+      { type: "message", role: "user", content: [{ type: "input_text", text: "hi" }] },
+    ],
+  };
+
+  stripStoredItemReferences(body, true);
+
+  assert.deepEqual(body.input, [
+    { type: "message", role: "user", content: [{ type: "input_text", text: "hi" }] },
+  ]);
 });
 
 test("filterToOpenAIFormat strips reasoning_content from assistant+tool_calls messages", () => {

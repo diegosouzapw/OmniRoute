@@ -169,6 +169,49 @@ describe("EditConnectionModal — import only free models", () => {
   });
 });
 
+describe("EditConnectionModal — encrypted Codex reasoning", () => {
+  const PRESERVE_TOGGLE = 'button[role="switch"][aria-label="Preserve encrypted reasoning"]';
+
+  it("defaults existing Codex connections to disabled", () => {
+    const el = render({
+      providerId: "codex",
+      connection: {
+        id: "conn-codex-default",
+        provider: "codex",
+        authType: "oauth",
+        providerSpecificData: {},
+      },
+    });
+
+    expect(el.querySelector(PRESERVE_TOGGLE)?.getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("loads and saves the persisted boolean", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const el = render({
+      providerId: "codex",
+      connection: {
+        id: "conn-codex-preserve",
+        provider: "codex",
+        authType: "oauth",
+        providerSpecificData: { preserveEncryptedReasoning: true },
+      },
+      onSave,
+    });
+    const toggle = el.querySelector<HTMLButtonElement>(PRESERVE_TOGGLE)!;
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+
+    act(() => toggle.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    const saveBtn = Array.from(el.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "save"
+    )!;
+    act(() => saveBtn.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+
+    await waitFor(() => onSave.mock.calls.length > 0);
+    expect(onSave.mock.calls[0][0].providerSpecificData?.preserveEncryptedReasoning).toBe(false);
+  });
+});
+
 describe("EditConnectionModal — quota scraping fields", () => {
   it("saves OpenCode Go workspace and replacement auth cookie", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);

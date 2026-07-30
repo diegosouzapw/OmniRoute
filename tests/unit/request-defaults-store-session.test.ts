@@ -15,6 +15,21 @@ test("Codex request defaults accept max but leave ultra to the Codex client", ()
   assert.equal(normalizeCodexReasoningEffort("ultra"), undefined);
 });
 
+test("normalizeProviderSpecificData keeps only boolean preserveEncryptedReasoning", () => {
+  assert.equal(
+    normalizeProviderSpecificData("codex", { preserveEncryptedReasoning: true })
+      ?.preserveEncryptedReasoning,
+    true
+  );
+  assert.equal(
+    normalizeProviderSpecificData("codex", {
+      preserveEncryptedReasoning: "yes",
+      tag: "primary",
+    })?.preserveEncryptedReasoning,
+    undefined
+  );
+});
+
 test("buildOpenAIStoreSessionId normalizes external and generated session ids", () => {
   assert.equal(
     buildOpenAIStoreSessionId("ext:client session/abc"),

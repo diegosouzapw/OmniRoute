@@ -1,0 +1,1 @@
+- Add an opt-in Codex connection setting that forwards client-supplied encrypted Responses reasoning items for replay, including per-target combo routing.
