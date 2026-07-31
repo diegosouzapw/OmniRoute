@@ -22,7 +22,10 @@
  */
 
 import { getAuthzBypassSnapshot } from "@/lib/config/runtimeSettings";
-import { SPAWN_CAPABLE_PREFIXES } from "@/shared/constants/spawnCapablePrefixes";
+import {
+  SPAWN_CAPABLE_PREFIXES,
+  SPAWN_CAPABLE_PATTERNS,
+} from "@/shared/constants/spawnCapablePrefixes";
 import { VNC_ROUTE_PREFIX } from "@/lib/vncSession/manifest";
 
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
@@ -62,24 +65,37 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
  * parameter, so a flat prefix in `LOCAL_ONLY_API_PREFIXES` cannot target them
  * without over-broadening (e.g. locking the entire `/api/providers/` subtree,
  * which remote dashboards legitimately use for provider CRUD). These are matched
- * by regex instead.
+ * by regex instead against the concrete resolved path — which is already
+ * `request.nextUrl.pathname` (see `runAuthzPipeline`/`classifyRoute`), the
+ * SAME string Next.js's own file-based router uses to resolve the `[id]`
+ * dynamic segment, so there is no decode/normalization mismatch between what
+ * this regex sees and what actually gets dispatched to the route handler.
  *
  *   - `POST /api/providers/{id}/login` launches a headful Playwright Chromium
  *     (a child process) to drive a web-cookie login. Loopback enforcement must
  *     happen unconditionally before any auth check (Hard Rules #15 + #17), so a
  *     leaked JWT via tunnel cannot trigger a browser spawn.
+ *   - `POST /api/providers/{id}/refresh-cursor` nudges `cursor-agent`
+ *     (`--list-models`/`status`, via `src/lib/cursor/renewal.ts`) as part of
+ *     a manual Cursor session renewal attempt — the same RCE-via-tunnel
+ *     surface (Hard Rules #15 + #17). The rest of `/api/providers/`,
+ *     including the generic `/refresh` route, intentionally stays
+ *     remote-reachable — only this Cursor-specific spawn-capable path is
+ *     gated, matching the `/login` precedent's narrow-scoping rationale.
  */
 export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/[^/]+\/login\/?$/,
+  /^\/api\/providers\/[^/]+\/refresh-cursor\/?$/,
 ];
 
-// `SPAWN_CAPABLE_PREFIXES` (the spawn-capable deny-list) now lives in the
-// server-free leaf module `@/shared/constants/spawnCapablePrefixes` so that
-// client-reachable validation schemas can import it without pulling this module's
-// server runtime (runtimeSettings → localDb → ioredis) into the browser bundle.
+// `SPAWN_CAPABLE_PREFIXES` / `SPAWN_CAPABLE_PATTERNS` (the spawn-capable
+// deny-lists) now live in the server-free leaf module
+// `@/shared/constants/spawnCapablePrefixes` so that client-reachable
+// validation schemas can import them without pulling this module's server
+// runtime (runtimeSettings → localDb → ioredis) into the browser bundle.
 // Imported above for the runtime check in `isLocalOnlyBypassableByManageScope`;
 // re-exported here so existing `@/server/authz/routeGuard` importers keep working.
-export { SPAWN_CAPABLE_PREFIXES };
+export { SPAWN_CAPABLE_PREFIXES, SPAWN_CAPABLE_PATTERNS };
 
 /**
  * Compile-time default of the manage-scope bypass list. Kept as an exported
@@ -174,9 +190,7 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
  *   triggers the auto-update flow (spawns git checkout + npm install + pm2).
  *   Hard Rules #15/#17 still apply to POST.
  */
-export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
-  "/api/system/version",
-]);
+export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set(["/api/system/version"]);
 
 /** Safe HTTP methods that can be exempted for read-only paths. */
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -221,6 +235,13 @@ export function isLocalOnlyPath(path: string, method?: string): boolean {
  * O(1) (no I/O, no async). Hot-reload SLA: <50 ms — satisfied structurally.
  */
 export function isLocalOnlyBypassableByManageScope(path: string): boolean {
+  // Precise, unconditional early-deny for regex-matched spawn-capable routes
+  // (e.g. /api/providers/{id}/login, /api/providers/{id}/refresh-cursor).
+  // Unlike the flat-prefix defence-in-depth check below, this has the
+  // concrete resolved `path` already, so it's an exact match — no
+  // reachability heuristics needed.
+  if (SPAWN_CAPABLE_PATTERNS.some((re) => re.test(path))) return false;
+
   const snapshot = getAuthzBypassSnapshot();
   if (!snapshot.enabled) return false;
   return snapshot.prefixes.some((p) => {

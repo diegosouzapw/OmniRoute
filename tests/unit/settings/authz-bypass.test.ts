@@ -271,6 +271,75 @@ test("AC-8: PATCH with /api/cli-tools/runtime/ in bypass list → 400 BYPASS_PRE
   assert.equal(snapshotAfter.enabled, snapshotBefore.enabled);
 });
 
+// ─── Cursor renewal plan, Task 4 Step 3: the new SPAWN_CAPABLE_PATTERNS /
+// SPAWN_CAPABLE_PATTERN_ANCESTORS mechanism must reject a candidate bypass
+// prefix of "/api/providers/" (which would otherwise cover both the new
+// refresh-cursor route AND the pre-existing /login route) while leaving an
+// unrelated, already-passing prefix untouched ────────────────────────────
+
+test("PATCH with /api/providers/ in bypass list → 400 BYPASS_PREFIX_NOT_ALLOWED + snapshot unchanged (SPAWN_CAPABLE_PATTERN_ANCESTORS)", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-authz-bypass";
+  process.env.INITIAL_PASSWORD = "initial-pass-cursor-t4";
+  await settingsDb.updateSettings({ requireLogin: true });
+  const { ensurePersistentManagementPasswordHash } =
+    await import("../../../src/lib/auth/managementPassword.ts");
+  await ensurePersistentManagementPasswordHash({ source: "test.bootstrap" });
+  const seeded = await settingsDb.getSettings();
+  await runtime.applyRuntimeSettings(seeded);
+  const snapshotBefore = runtime.getAuthzBypassSnapshot();
+
+  const response = await settingsRoute.PATCH(
+    await makeManagementSessionRequest("http://localhost/api/settings", {
+      method: "PATCH",
+      body: {
+        localOnlyManageScopeBypassPrefixes: ["/api/mcp/", "/api/providers/"],
+        currentPassword: "initial-pass-cursor-t4",
+      },
+    })
+  );
+
+  assert.equal(response.status, 400);
+  const body = (await response.json()) as {
+    error: { details?: Array<{ field: string; message: string }> };
+  };
+  const offending = body.error.details?.find((d) =>
+    d.message.includes("BYPASS_PREFIX_NOT_ALLOWED")
+  );
+  assert.ok(offending, `expected BYPASS_PREFIX_NOT_ALLOWED in details: ${JSON.stringify(body)}`);
+
+  // The unrelated, already-passing "/api/mcp/" prefix is untouched by this
+  // rejection — no regression to the existing Layer-1 check: persisted state
+  // stays at its prior valid value, not silently split-accepted.
+  const settings = await settingsDb.getSettings();
+  assert.deepEqual(settings.localOnlyManageScopeBypassPrefixes, ["/api/mcp/"]);
+  const snapshotAfter = runtime.getAuthzBypassSnapshot();
+  assert.deepEqual(snapshotAfter.prefixes, snapshotBefore.prefixes);
+  assert.equal(snapshotAfter.enabled, snapshotBefore.enabled);
+});
+
+test("PATCH with ONLY the unrelated /api/mcp/ prefix still succeeds (no regression from the /api/providers/ ancestor check)", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-authz-bypass";
+  process.env.INITIAL_PASSWORD = "initial-pass-cursor-t4b";
+  await settingsDb.updateSettings({ requireLogin: true });
+  const { ensurePersistentManagementPasswordHash } =
+    await import("../../../src/lib/auth/managementPassword.ts");
+  await ensurePersistentManagementPasswordHash({ source: "test.bootstrap" });
+
+  const response = await settingsRoute.PATCH(
+    await makeManagementSessionRequest("http://localhost/api/settings", {
+      method: "PATCH",
+      body: {
+        localOnlyManageScopeBypassPrefixes: ["/api/mcp/"],
+        currentPassword: "initial-pass-cursor-t4b",
+      },
+    })
+  );
+
+  assert.equal(response.status, 200);
+  const settings = await settingsDb.getSettings();
+  assert.deepEqual(settings.localOnlyManageScopeBypassPrefixes, ["/api/mcp/"]);
+});
+
 // ─── Defence-in-depth: snapshot mutation alone cannot grant spawn bypass ─
 
 test("Defence-in-depth: even if a malformed snapshot lists /api/cli-tools/runtime/, the runtime predicate rejects it", async () => {
