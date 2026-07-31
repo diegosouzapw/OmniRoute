@@ -5793,7 +5793,6 @@
       "friendliai": "سطح رایگان برای استنتاج بدون سرور (serverless inference) — بدون نیاز به کارت اعتباری",
       "gemini": "رایگان برای همیشه: ۱,۵۰۰ درخواست در روز برای Gemini 2.5 Flash — بدون نیاز به کارت اعتباری، کلید را در aistudio.google.com دریافت کنید",
       "gigachat": "اتصال GigaChat (Sber) با یک کلید API.",
-      "github-models": "یک GitHub PAT با محدوده (scope) 'models: read' در github.com/settings/tokens ایجاد کنید",
       "gitlab": "توکن دسترسی شخصی GitLab برای API عمومی Code Suggestions. در صورت عدم استفاده از gitlab.com، یک URL پایه خودمیزبانی‌شده (self-hosted) پیکربندی کنید.",
       "gitlawb-gmi": "کلید API خود را از داشبورد Gitlawb Opengateway دریافت کنید.",
       "gitlawb": "کلید API خود را از داشبورد Gitlawb Opengateway دریافت کنید.",

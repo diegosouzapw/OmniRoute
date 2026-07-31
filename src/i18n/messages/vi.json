@@ -5837,7 +5837,6 @@
       "friendliai": "Gói miễn phí cho suy luận serverless — không cần thẻ tín dụng",
       "gemini": "Miễn phí vĩnh viễn: 1.500 yêu cầu/ngày cho Gemini 2.5 Flash — không cần thẻ tín dụng, lấy khóa tại aistudio.google.com",
       "gigachat": "Kết nối GigaChat (Sber) bằng khóa API.",
-      "github-models": "Tạo GitHub PAT với phạm vi 'models: read' tại github.com/settings/tokens",
       "gitlab": "Personal access token GitLab cho API Code Suggestions công khai. Cấu hình URL cơ sở tự lưu trữ khi không dùng gitlab.com.",
       "gitlawb-gmi": "Lấy khóa API của bạn từ Gitlawb Opengateway dashboard.",
       "gitlawb": "Lấy khóa API của bạn từ Gitlawb Opengateway dashboard.",

@@ -69,6 +69,41 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "059",
     toName: "manifest_routing",
   },
+  {
+    fromVersion: "135",
+    fromName: "retired_provider_purge",
+    toVersion: "143",
+    toName: "retired_provider_purge",
+  },
+  {
+    fromVersion: "136",
+    fromName: "retired_provider_purge",
+    toVersion: "143",
+    toName: "retired_provider_purge",
+  },
+  {
+    fromVersion: "137",
+    fromName: "retired_provider_purge",
+    toVersion: "143",
+    toName: "retired_provider_purge",
+  },
+  {
+    // This PR published the purge as 141 before #9759 assigned that slot to
+    // modality_bridge_settings. Preserve branch installs and free 141 for the
+    // release migration before applying the canonical purge at 143.
+    fromVersion: "141",
+    fromName: "retired_provider_purge",
+    toVersion: "143",
+    toName: "retired_provider_purge",
+  },
+  {
+    // 142 was published on this PR before #9762 assigned that slot to
+    // radar_referrals_cache. Preserve branch installs and free 142 for release.
+    fromVersion: "142",
+    fromName: "retired_provider_purge",
+    toVersion: "143",
+    toName: "retired_provider_purge",
+  },
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [

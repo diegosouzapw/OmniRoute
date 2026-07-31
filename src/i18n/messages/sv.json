@@ -5793,7 +5793,6 @@
       "friendliai": "Gratisnivå för serverlös inferens — inget kreditkort krävs",
       "gemini": "Gratis för alltid: 1 500 anrop/dag för Gemini 2.5 Flash — inget kreditkort, hämta nyckel på aistudio.google.com",
       "gigachat": "Anslut GigaChat (Sber) med en API-nyckel.",
-      "github-models": "Skapa en GitHub PAT med omfånget 'models: read' på github.com/settings/tokens",
       "gitlab": "Personlig åtkomsttoken för GitLab för det offentliga Code Suggestions-API:et. Konfigurera en egenvärd bas-URL när du inte använder gitlab.com.",
       "gitlawb-gmi": "Hämta din API-nyckel från instrumentpanelen för Gitlawb Opengateway.",
       "gitlawb": "Hämta din API-nyckel från instrumentpanelen för Gitlawb Opengateway.",

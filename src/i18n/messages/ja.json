@@ -5793,7 +5793,6 @@
       "friendliai": "サーバーレス推論の無料枠 — クレジットカード不要",
       "gemini": "永久無料: Gemini 2.5 Flashが1,500 req/日 — クレジットカード不要、aistudio.google.com でキーを取得",
       "gigachat": "APIキーでGigaChat (Sber)に接続します。",
-      "github-models": "github.com/settings/tokens で 'models: read' スコープを持つGitHub PATを作成",
       "gitlab": "パブリックCode Suggestions API用のGitLabパーソナルアクセストークン。gitlab.comを使用しない場合は、セルフホストのベースURLを設定してください。",
       "gitlawb-gmi": "Gitlawb OpengatewayダッシュボードからAPIキーを取得します。",
       "gitlawb": "Gitlawb OpengatewayダッシュボードからAPIキーを取得します。",

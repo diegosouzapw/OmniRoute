@@ -5793,7 +5793,6 @@
       "friendliai": "Tingkat gratis untuk inferensi serverless — tidak memerlukan kartu kredit",
       "gemini": "Gratis selamanya: 1.500 req/hari untuk Gemini 2.5 Flash — tanpa kartu kredit, dapatkan kunci di aistudio.google.com",
       "gigachat": "Hubungkan GigaChat (Sber) dengan kunci API.",
-      "github-models": "Buat PAT GitHub dengan cakupan 'models: read' di github.com/settings/tokens",
       "gitlab": "Token akses pribadi GitLab untuk Code Suggestions API publik. Konfigurasikan URL dasar yang di-host sendiri saat tidak menggunakan gitlab.com.",
       "gitlawb-gmi": "Dapatkan kunci API Anda dari dasbor Gitlawb Opengateway.",
       "gitlawb": "Dapatkan kunci API Anda dari dasbor Gitlawb Opengateway.",

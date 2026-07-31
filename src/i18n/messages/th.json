@@ -5793,7 +5793,6 @@
       "friendliai": "ระดับการใช้งานฟรีสำหรับการอนุมานแบบ Serverless — ไม่ต้องใช้บัตรเครดิต",
       "gemini": "ฟรีตลอดชีพ: 1,500 คำขอ/วันสำหรับ Gemini 2.5 Flash — ไม่ต้องใช้บัตรเครดิต รับคีย์ได้ที่ aistudio.google.com",
       "gigachat": "เชื่อมต่อ GigaChat (Sber) ด้วยคีย์ API",
-      "github-models": "สร้าง GitHub PAT ที่มีขอบเขต 'models: read' ที่ github.com/settings/tokens",
       "gitlab": "โทเค็นการเข้าถึงส่วนตัวของ GitLab สำหรับ Code Suggestions API สาธารณะ กำหนดค่า URL ฐานแบบโฮสต์เองเมื่อไม่ได้ใช้งาน gitlab.com",
       "gitlawb-gmi": "รับคีย์ API ของคุณจากแดชบอร์ด Gitlawb Opengateway",
       "gitlawb": "รับคีย์ API ของคุณจากแดชบอร์ด Gitlawb Opengateway",

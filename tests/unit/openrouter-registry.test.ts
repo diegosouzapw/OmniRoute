@@ -7,7 +7,7 @@ import {
 } from "../../open-sse/config/embeddingRegistry.ts";
 import { getImageProvider, parseImageModel } from "../../open-sse/config/imageRegistry.ts";
 
-describe("OpenRouter & GitHub registry entries (#960)", () => {
+describe("OpenRouter registry entries (#960)", () => {
   // ── Embedding Registry ──────────────────────────────────────────────────
 
   describe("embeddingRegistry — openrouter", () => {
@@ -33,26 +33,6 @@ describe("OpenRouter & GitHub registry entries (#960)", () => {
       const all = getAllEmbeddingModels();
       const orModels = all.filter((m) => m.provider === "openrouter");
       assert.ok(orModels.length > 0, "Expected openrouter models in full list");
-    });
-  });
-
-  describe("embeddingRegistry — github", () => {
-    it("resolves github provider config", () => {
-      const p = getEmbeddingProvider("github");
-      assert.ok(p, "github should be in EMBEDDING_PROVIDERS");
-      assert.equal(p.baseUrl, "https://models.inference.ai.azure.com/embeddings");
-      assert.equal(p.authHeader, "bearer");
-    });
-
-    it("github has at least 2 models", () => {
-      const p = getEmbeddingProvider("github");
-      assert.ok(p.models.length >= 2, `Expected ≥2 models, got ${p.models.length}`);
-    });
-
-    it("parses github/text-embedding-3-small correctly", () => {
-      const result = parseEmbeddingModel("github/text-embedding-3-small");
-      assert.equal(result.provider, "github");
-      assert.equal(result.model, "text-embedding-3-small");
     });
   });
 

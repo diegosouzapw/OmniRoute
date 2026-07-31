@@ -5793,7 +5793,6 @@
       "friendliai": "Peringkat percuma untuk inferens tanpa pelayan — tiada kad kredit diperlukan",
       "gemini": "Percuma selamanya: 1,500 req/hari untuk Gemini 2.5 Flash — tiada kad kredit, dapatkan kunci di aistudio.google.com",
       "gigachat": "Sambungkan GigaChat (Sber) dengan kunci API.",
-      "github-models": "Cipta PAT GitHub dengan skop 'models: read' di github.com/settings/tokens",
       "gitlab": "Token akses peribadi GitLab untuk API Code Suggestions awam. Konfigurasikan URL asas dihoskan sendiri apabila tidak menggunakan gitlab.com.",
       "gitlawb-gmi": "Dapatkan kunci API anda daripada papan pemuka Gitlawb Opengateway.",
       "gitlawb": "Dapatkan kunci API anda daripada papan pemuka Gitlawb Opengateway.",

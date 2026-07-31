@@ -3,7 +3,6 @@
  *
  * All domain modules import `getDbInstance` and helpers from here.
  */
-
 import type { SqliteAdapter } from "./adapters/types";
 import {
   tryOpenSync,
@@ -38,6 +37,7 @@ import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 import { rowToCamel } from "./caseMapping";
 import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
+import { runRetiredProviderPurgeAtStartup } from "./retiredProviderPurge";
 // Re-exported so existing call sites that pull these helpers off the core module keep working.
 export { toSnakeCase, toCamelCase, objToSnake, rowToCamel, cleanNulls } from "./caseMapping";
 import {
@@ -1255,7 +1255,7 @@ export function getDbInstance(): SqliteDatabase {
       );
     }
   }
-
+  runRetiredProviderPurgeAtStartup(db);
   // Store schema version
   const versionStmt = db.prepare(
     "INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', '1')"

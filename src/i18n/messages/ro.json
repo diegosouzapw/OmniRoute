@@ -5793,7 +5793,6 @@
       "friendliai": "Nivel gratuit pentru inferență serverless — nu este necesar card de credit",
       "gemini": "Gratuit pentru totdeauna: 1.500 req/zi pentru Gemini 2.5 Flash — fără card de credit, obțineți cheia la aistudio.google.com",
       "gigachat": "Conectați GigaChat (Sber) cu o cheie API.",
-      "github-models": "Creați un GitHub PAT cu scope-ul 'models: read' la github.com/settings/tokens",
       "gitlab": "Token de acces personal GitLab pentru API-ul public Code Suggestions. Configurați un URL de bază self-hosted când nu utilizați gitlab.com.",
       "gitlawb-gmi": "Obțineți cheia API din tabloul de bord Gitlawb Opengateway.",
       "gitlawb": "Obțineți cheia API din tabloul de bord Gitlawb Opengateway.",

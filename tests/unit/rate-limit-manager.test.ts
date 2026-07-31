@@ -358,7 +358,7 @@ test("withRateLimit forwards AbortController DOMException without mutating it", 
   rateLimitManager.enableRateLimitProtection(connectionId);
 
   const pending = rateLimitManager.withRateLimit(
-    "github-models",
+    "openai",
     connectionId,
     "microsoft/phi-4-reasoning",
     async () => {

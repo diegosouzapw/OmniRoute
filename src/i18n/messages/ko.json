@@ -5793,7 +5793,6 @@
       "friendliai": "서버리스 추론을 위한 무료 티어 — 신용카드 불필요",
       "gemini": "평생 무료: Gemini 2.5 Flash 기준 1,500회 요청/일 — 신용카드 불필요, aistudio.google.com 에서 키 발급",
       "gigachat": "API 키로 GigaChat (Sber) 연결.",
-      "github-models": "github.com/settings/tokens 에서 'models: read' 범위(scope)를 가진 GitHub PAT를 생성하세요.",
       "gitlab": "공개 Code Suggestions API용 GitLab 개인 액세스 토큰. gitlab.com을 사용하지 않는 경우 자체 호스팅 베이스 URL을 구성하세요.",
       "gitlawb-gmi": "Gitlawb Opengateway 대시보드에서 API 키를 가져오세요.",
       "gitlawb": "Gitlawb Opengateway 대시보드에서 API 키를 가져오세요.",

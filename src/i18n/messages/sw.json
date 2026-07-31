@@ -5793,7 +5793,6 @@
       "friendliai": "Kiwango cha bure cha makisio yasiyo na seva — hakuna kadi ya mkopo inayohitajika",
       "gemini": "Bure milele: maombi 1,500/siku kwa Gemini 2.5 Flash — hakuna kadi ya mkopo, pata ufunguo kwenye aistudio.google.com",
       "gigachat": "Unganisha GigaChat (Sber) kwa kutumia ufunguo wa API.",
-      "github-models": "Unda PAT ya GitHub yenye upeo wa 'models: read' kwenye github.com/settings/tokens",
       "gitlab": "Tokeni ya ufikiaji wa kibinafsi ya GitLab kwa ajili ya API ya umma ya Code Suggestions. Sanidi URL ya msingi ya self-hosted wakati hutumii gitlab.com.",
       "gitlawb-gmi": "Pata ufunguo wako wa API kutoka kwenye dashibodi ya Gitlawb Opengateway.",
       "gitlawb": "Pata ufunguo wako wa API kutoka kwenye dashibodi ya Gitlawb Opengateway.",

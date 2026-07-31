@@ -1807,7 +1807,7 @@ export interface OmniRouteEnrichmentEntry {
   providerCanonical?: string;
   /**
    * Human-readable upstream provider label (e.g. `Claude`, `Kiro`,
-   * `Windsurf`, `GitHub Models`). Populated from the per-provider
+   * `Windsurf`, `Baidu Qianfan`). Populated from the per-provider
    * `entry.name` field inside `/api/pricing/models`. Used by the
    * `providerTag` feature to suffix `ModelV2.name` with the routing
    * destination so the OC TUI picker can differentiate the same
@@ -1893,7 +1893,7 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
               ? canonicalRaw
               : providerAlias;
           // Upstream provider human label (e.g. `Claude`, `Kiro`,
-          // `GitHub Models`). Optional — falls back to undefined when
+          // `Baidu Qianfan`). Optional — falls back to undefined when
           // OmniRoute hasn't curated a label for this slot.
           const slotNameRaw = (slot as { name?: unknown }).name;
           const providerDisplayName =
@@ -2184,7 +2184,7 @@ export function shortProviderLabel(
  *   → `Claude - Claude Opus 4.7`
  *   → `Kiro - Claude Opus 4.7`
  *   → `AssemblyAI - Universal 2 (Transcription)` (slot.name fits, used verbatim)
- *   → `GHM - GPT 5`           (slot.name "GitHub Models" > 12 chars → UPPER(alias))
+ *   → `Qianfan - ERNIE 5.1` (slot.name "Baidu Qianfan" > 12 chars → titleCase(alias))
  *
  * Mutates the model in place and is idempotent — running twice never
  * double-prefixes. No-op when:
@@ -2208,7 +2208,7 @@ export function applyProviderTag(
   const prefix = `${label}${PROVIDER_TAG_SEPARATOR}`;
   if (model.name.startsWith(prefix)) return model;
   // When enrichment already prepended [Free], move it before the provider
-  // tag: "[Free] GPT-4.1" → "[Free] GHM - GPT-4.1" not "GHM - [Free] GPT-4.1"
+  // tag: "[Free] ERNIE 5.1" → "[Free] Qianfan - ERNIE 5.1" not "Qianfan - [Free] ERNIE 5.1"
   if (model.name.startsWith("[Free] ")) {
     model.name = `[Free] ${prefix}${model.name.slice(7)}`;
   } else {

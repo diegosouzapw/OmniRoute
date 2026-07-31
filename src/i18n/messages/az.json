@@ -5793,7 +5793,6 @@
       "friendliai": "Serverless çıxarış üçün pulsuz tarif — kredit kartı tələb olunmur",
       "gemini": "Həmişə pulsuz: Gemini 2.5 Flash üçün gündə 1,500 sorğu — kredit kartı yoxdur, açarı aistudio.google.com ünvanından əldə edin",
       "gigachat": "GigaChat (Sber)-ı API açarı ilə qoşun.",
-      "github-models": "github.com/settings/tokens ünvanında 'models: read' əhatə dairəsi ilə GitHub PAT yaradın",
       "gitlab": "İctimai Code Suggestions API üçün GitLab şəxsi giriş tokeni. gitlab.com istifadə etmədikdə, self-hosted baza URL-i konfiqurasiya edin.",
       "gitlawb-gmi": "API açarınızı Gitlawb Opengateway idarəetmə panelindən əldə edin.",
       "gitlawb": "API açarınızı Gitlawb Opengateway idarəetmə panelindən əldə edin.",

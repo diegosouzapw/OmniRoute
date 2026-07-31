@@ -5793,7 +5793,6 @@
       "friendliai": "فئة مجانية للاستدلال بدون خادم — لا يلزم وجود بطاقة ائتمان",
       "gemini": "مجاني للأبد: 1,500 طلب/يوم لـ Gemini 2.5 Flash — بدون بطاقة ائتمان، احصل على المفتاح من aistudio.google.com",
       "gigachat": "ربط GigaChat (Sber) بمفتاح API.",
-      "github-models": "أنشئ رمز وصول شخصي (PAT) لـ GitHub بنطاق 'models: read' على github.com/settings/tokens",
       "gitlab": "رمز وصول شخصي لـ GitLab لواجهة برمجة تطبيقات مقترحات الأكواد العامة. قم بتكوين عنوان URL أساسي مستضاف ذاتيًا عند عدم استخدام gitlab.com.",
       "gitlawb-gmi": "احصل على مفتاح API الخاص بك من لوحة تحكم Gitlawb Opengateway.",
       "gitlawb": "احصل على مفتاح API الخاص بك من لوحة تحكم Gitlawb Opengateway.",
