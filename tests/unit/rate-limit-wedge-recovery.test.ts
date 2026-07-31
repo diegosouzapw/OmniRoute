@@ -101,23 +101,3 @@ test("stop({ dropWaitingJobs: true }) rejects a genuinely queued (nothing-runnin
     "expected Bottleneck to reject with our dropErrorMessage verbatim"
   );
 });
-
-test("watchdog wedge branch uses stop({ dropWaitingJobs: true }), not disconnect()", async () => {
-  const source = await import("node:fs/promises").then((fs) =>
-    fs.readFile(new URL("../../open-sse/services/rateLimitManager.ts", import.meta.url), "utf8")
-  );
-
-  const wedgeBlockStart = source.indexOf("WEDGED:");
-  assert.ok(wedgeBlockStart >= 0, "expected to find the WEDGED log line in rateLimitManager.ts");
-  const wedgeBlock = source.slice(wedgeBlockStart, wedgeBlockStart + 1500);
-
-  assert.ok(
-    wedgeBlock.includes("stop({ dropWaitingJobs: true"),
-    "wedge-recovery branch must call stop({ dropWaitingJobs: true }) so orphaned queued jobs reject " +
-      "promptly instead of hanging until the outer per-target timeout (live incident 1784465227489-a2cbc0)"
-  );
-  assert.ok(
-    !/limiter\.disconnect\(\)/.test(wedgeBlock),
-    "wedge-recovery branch must not still call disconnect() — it doesn't reject queued jobs"
-  );
-});
