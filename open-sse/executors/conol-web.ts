@@ -3,10 +3,15 @@
  *
  * Protocol verified against the web client on 2026-07-30:
  *   - POST /api/assets for raw image uploads
- *   - POST /api/sessions to create a session and submit typed messages
- *   - POST /api/sessions/{id}/messages for subsequent turns in the same session
+ *   - POST /api/sessions to create a session
+ *   - POST /api/sessions/{id}/model to pin preset, then model, then effort
+ *   - POST /api/sessions/{id}/messages to submit a turn
  *   - GET /api/sessions/{id}/messages?logDeltas=1 for cumulative NDJSON updates
  *   - Cookie authentication via __Secure-better-auth.session_token
+ *
+ * Session creation ignores agentModel/agentEffort and answers with
+ * `modelDowngraded: true` on the account default, so the session is always
+ * created empty and configured via /model before the first turn is submitted.
  */
 import { createHash } from "node:crypto";
 
@@ -14,7 +19,11 @@ import { BaseExecutor, mergeAbortSignals, type ExecuteInput } from "./base.ts";
 import { makeExecutorErrorResult as makeErrorResult } from "../utils/error.ts";
 import { CursorImageError, extractImageUrls, resolveCursorImages } from "../utils/cursorImages.ts";
 import { normalizeConolCookie, resolveConolCredentials } from "../services/conolAuth.ts";
-import { resolveConolModelSelection } from "../services/conolModels.ts";
+import { resolveConolModelSelection, type ConolEffort } from "../services/conolModels.ts";
+import {
+  applyConolSessionModel,
+  buildConolSessionModelPlan,
+} from "../services/conolSessionModel.ts";
 
 export { normalizeConolCookie, resolveConolCredentials };
 
@@ -59,6 +68,13 @@ interface ConolUserTurn {
 interface ConolSessionBinding {
   upstreamSessionId: string;
   lastUsedAt: number;
+  /** Model preset already primed on this session — sent once, not per turn. */
+  presetApplied: boolean;
+  /** Model/effort currently pinned upstream, so we only re-pin on an actual switch. */
+  appliedModel: string;
+  appliedEffort: ConolEffort | null;
+  /** Conol wants `hasImageHistory` sticky once the session has seen an image. */
+  hasImageHistory: boolean;
 }
 
 export interface ParsedConolStream {
@@ -234,22 +250,28 @@ function getConolSessionBinding(key: string): ConolSessionBinding | null {
   return binding;
 }
 
-function setConolSessionBinding(key: string, upstreamSessionId: string): void {
-  conolSessionBindings.set(key, { upstreamSessionId, lastUsedAt: Date.now() });
+function setConolSessionBinding(
+  key: string,
+  binding: Omit<ConolSessionBinding, "lastUsedAt">
+): void {
+  conolSessionBindings.set(key, { ...binding, lastUsedAt: Date.now() });
   sweepConolSessionBindings();
 }
 
+/**
+ * Model/effort are deliberately excluded: switching models must re-pin the
+ * existing Conol session (POST /model) rather than stranding it and losing the
+ * conversation history.
+ */
 function buildConolSessionBindingKey(
   input: ExecuteInput,
   cookie: string,
-  clientSessionKey: string,
-  model: string,
-  effort?: string
+  clientSessionKey: string
 ): string {
   const accountKey = input.credentials.connectionId
     ? `connection:${hashKey(input.credentials.connectionId)}`
     : `cookie:${hashKey(cookie)}`;
-  return hashKey(`${accountKey}:${clientSessionKey}:${model}:${effort || "default"}`);
+  return hashKey(`${accountKey}:${clientSessionKey}`);
 }
 
 async function withConolSessionLock<T>(
@@ -280,6 +302,14 @@ async function withConolSessionLock<T>(
 export function clearConolSessionBindingsForTests(): void {
   conolSessionBindings.clear();
   conolSessionLocks.clear();
+}
+
+/** True when this turn continues a session we created on an earlier request. */
+function reusedSessionCandidate(
+  cachedBinding: ConolSessionBinding | null,
+  sessionId: string
+): boolean {
+  return !!cachedBinding && cachedBinding.upstreamSessionId === sessionId;
 }
 
 function messageText(value: unknown): string {
@@ -619,10 +649,12 @@ export class ConolWebExecutor extends BaseExecutor {
       );
     }
 
-    const { model, effort } = resolveConolModelSelection(input.model || requestBody.model);
+    const { model, effort, effortExplicit } = resolveConolModelSelection(
+      input.model || requestBody.model
+    );
     const clientSessionKey = resolveConolClientSessionKey(requestBody, input.clientHeaders);
     const sessionBindingKey = clientSessionKey
-      ? buildConolSessionBindingKey(input, cookie, clientSessionKey, model, effort)
+      ? buildConolSessionBindingKey(input, cookie, clientSessionKey)
       : null;
     const timeoutSignal = AbortSignal.timeout(CONOL_REQUEST_TIMEOUT_MS);
     const upstreamSignal = input.signal
@@ -637,6 +669,9 @@ export class ConolWebExecutor extends BaseExecutor {
         const cachedBinding = sessionBindingKey ? getConolSessionBinding(sessionBindingKey) : null;
         let sessionId = cachedBinding?.upstreamSessionId || "";
         let reusedSession = false;
+        let presetApplied = cachedBinding?.presetApplied ?? false;
+        let appliedModel = cachedBinding?.appliedModel ?? "";
+        let appliedEffort: ConolEffort | null = cachedBinding?.appliedEffort ?? null;
         const imageParts = await uploadConolImages(
           cookie,
           imageUrls,
@@ -646,51 +681,19 @@ export class ConolWebExecutor extends BaseExecutor {
         const parts: ConolMessagePart[] = [...imageParts];
         if (prompt) parts.push({ type: "text", content: prompt });
         const timezone = safeTimezone(requestBody.timezone);
+        // Sticky: once a session has carried an image, Conol keeps treating it as
+        // multimodal, which drives preset text/multimodal model resolution.
+        const hasImageHistory =
+          (cachedBinding?.hasImageHistory ?? false) || imageParts.length > 0;
 
-        if (sessionId) {
-          const followUpUrl = `${CONOL_SESSION_URL}/${sessionId}/messages`;
-          const followUpResponse = await fetch(followUpUrl, {
-            method: "POST",
-            headers: conolHeaders(cookie, { "content-type": "application/json" }, sessionId),
-            body: JSON.stringify({ messages: parts, timezone }),
-            signal: upstreamSignal,
-          });
-          if (followUpResponse.status === 401 || followUpResponse.status === 403) {
-            return makeErrorResult(
-              followUpResponse.status,
-              "Conol session expired or is invalid — sign in again",
-              { model },
-              followUpUrl
-            );
-          }
-          if (followUpResponse.status === 404 || followUpResponse.status === 410) {
-            if (sessionBindingKey) conolSessionBindings.delete(sessionBindingKey);
-            sessionId = "";
-          } else if (!followUpResponse.ok) {
-            return makeErrorResult(
-              followUpResponse.status,
-              `Conol follow-up submission failed (HTTP ${followUpResponse.status})`,
-              { model, sessionId },
-              followUpUrl
-            );
-          } else {
-            reusedSession = true;
-            await followUpResponse.body?.cancel().catch(() => undefined);
-          }
-        }
-
+        // Conol ignores agentModel/agentEffort on session creation, so create the
+        // session empty and configure it before any turn is submitted. Otherwise the
+        // very first turn silently runs on the downgraded account default.
         if (!sessionId) {
-          const upstreamBody = {
-            source: { type: "home" },
-            messages: parts,
-            timezone,
-            agentModel: model,
-            ...(effort ? { agentEffort: effort } : {}),
-          };
           const createResponse = await fetch(CONOL_SESSION_URL, {
             method: "POST",
             headers: conolHeaders(cookie, { "content-type": "application/json" }),
-            body: JSON.stringify(upstreamBody),
+            body: JSON.stringify({ source: { type: "home" }, messages: [], timezone }),
             signal: upstreamSignal,
           });
           if (createResponse.status === 401 || createResponse.status === 403) {
@@ -720,9 +723,103 @@ export class ConolWebExecutor extends BaseExecutor {
               CONOL_SESSION_URL
             );
           }
-          if (sessionBindingKey) {
-            setConolSessionBinding(sessionBindingKey, sessionId);
+          presetApplied = false;
+          appliedModel = "";
+          appliedEffort = null;
+        }
+
+        const plan = buildConolSessionModelPlan({ model, effort, hasImageHistory });
+        const desiredEffort = plan.effort?.agentEffort ?? null;
+        // Re-pin only on a real change: a new session, a model switch, or an
+        // effort switch. Steady-state follow-ups cost no extra round trips.
+        const needsModelUpdate =
+          !presetApplied || appliedModel !== model || appliedEffort !== desiredEffort;
+        if (needsModelUpdate) {
+          const configured = await applyConolSessionModel({
+            sessionId,
+            plan,
+            skipPreset: presetApplied,
+            buildHeaders: (id) => conolHeaders(cookie, undefined, id),
+            signal: upstreamSignal,
+            onWarning: (message) => input.log?.warn?.("conol-web", message),
+          });
+          presetApplied = presetApplied || configured.presetApplied;
+          if (configured.modelApplied) {
+            appliedModel = model;
+            appliedEffort = configured.effortApplied;
           }
+        }
+
+        if (reusedSessionCandidate(cachedBinding, sessionId)) {
+          const followUpUrl = `${CONOL_SESSION_URL}/${sessionId}/messages`;
+          const followUpResponse = await fetch(followUpUrl, {
+            method: "POST",
+            headers: conolHeaders(cookie, { "content-type": "application/json" }, sessionId),
+            body: JSON.stringify({ messages: parts, timezone }),
+            signal: upstreamSignal,
+          });
+          if (followUpResponse.status === 401 || followUpResponse.status === 403) {
+            return makeErrorResult(
+              followUpResponse.status,
+              "Conol session expired or is invalid — sign in again",
+              { model },
+              followUpUrl
+            );
+          }
+          if (followUpResponse.status === 404 || followUpResponse.status === 410) {
+            if (sessionBindingKey) conolSessionBindings.delete(sessionBindingKey);
+            return makeErrorResult(
+              followUpResponse.status,
+              "Conol session no longer exists — retry to start a new session",
+              { model, sessionId },
+              followUpUrl
+            );
+          }
+          if (!followUpResponse.ok) {
+            return makeErrorResult(
+              followUpResponse.status,
+              `Conol follow-up submission failed (HTTP ${followUpResponse.status})`,
+              { model, sessionId },
+              followUpUrl
+            );
+          }
+          reusedSession = true;
+          await followUpResponse.body?.cancel().catch(() => undefined);
+        } else {
+          const firstTurnUrl = `${CONOL_SESSION_URL}/${sessionId}/messages`;
+          const firstTurnResponse = await fetch(firstTurnUrl, {
+            method: "POST",
+            headers: conolHeaders(cookie, { "content-type": "application/json" }, sessionId),
+            body: JSON.stringify({ messages: parts, timezone }),
+            signal: upstreamSignal,
+          });
+          if (firstTurnResponse.status === 401 || firstTurnResponse.status === 403) {
+            return makeErrorResult(
+              firstTurnResponse.status,
+              "Conol session expired or is invalid — sign in again",
+              { model },
+              firstTurnUrl
+            );
+          }
+          if (!firstTurnResponse.ok) {
+            return makeErrorResult(
+              firstTurnResponse.status,
+              `Conol message submission failed (HTTP ${firstTurnResponse.status})`,
+              { model, sessionId },
+              firstTurnUrl
+            );
+          }
+          await firstTurnResponse.body?.cancel().catch(() => undefined);
+        }
+
+        if (sessionBindingKey) {
+          setConolSessionBinding(sessionBindingKey, {
+            upstreamSessionId: sessionId,
+            presetApplied,
+            appliedModel,
+            appliedEffort,
+            hasImageHistory,
+          });
         }
 
         const messagesUrl = `${CONOL_SESSION_URL}/${sessionId}/messages?logDeltas=1`;
@@ -769,7 +866,9 @@ export class ConolWebExecutor extends BaseExecutor {
           headers: { cookie: "***" },
           transformedBody: {
             model,
-            ...(effort ? { effort } : {}),
+            ...(appliedEffort ? { effort: appliedEffort } : {}),
+            effortRequested: effort,
+            effortExplicit,
             sessionId,
             reusedSession,
             clientSessionBound: sessionBindingKey !== null,
