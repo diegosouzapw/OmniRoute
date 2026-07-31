@@ -1,1 +1,1 @@
-- **fix(resilience):** Recover idle-capacity rate-limit queues before downstream client timeouts ([#9041](https://github.com/diegosouzapw/OmniRoute/pull/9041)) — thanks @Thinkscape
+- **fix(resilience):** Detect and reset idle-capacity rate-limit queue wedges on an eligible watchdog scan so routing can fall back promptly ([#9041](https://github.com/diegosouzapw/OmniRoute/pull/9041)) — thanks @Thinkscape

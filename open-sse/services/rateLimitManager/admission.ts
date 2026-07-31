@@ -13,8 +13,10 @@
  * @module services/rateLimitManager/admission
  */
 
+import { RATE_LIMIT_QUEUE_FULL_CODE } from "./errors";
+
 export interface QueueFullError extends Error {
-  code: "RATE_LIMIT_QUEUE_FULL";
+  code: typeof RATE_LIMIT_QUEUE_FULL_CODE;
   status: 429;
 }
 
@@ -37,7 +39,7 @@ export function checkQueueAdmission(
       `— this is OmniRoute's request queue (resilienceSettings.requestQueue.maxQueueDepth), not an ` +
       `upstream rejection. Raise it in Settings → Resilience if this is expected burst traffic.`
   ) as Error & { code?: string; status?: number };
-  err.code = "RATE_LIMIT_QUEUE_FULL";
+  err.code = RATE_LIMIT_QUEUE_FULL_CODE;
   // chatCore's generic catch-all fallback (open-sse/handlers/chatCore.ts) maps a
   // status-less error to HTTP 502 — which also risks tripping the whole-provider
   // circuit breaker (PROVIDER_BREAKER_FAILURE_STATUSES includes 502) for what is a

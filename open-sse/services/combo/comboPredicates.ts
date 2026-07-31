@@ -12,6 +12,7 @@ import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldown
 import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
 import { CONTEXT_OVERFLOW_PATTERNS, MODEL_ACCESS_DENIED_PATTERNS } from "../accountFallback.ts";
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
+import { isLocalRateLimitErrorCode } from "../rateLimitManager/errors.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -182,11 +183,11 @@ export function shouldRecordProviderBreakerFailure(args: {
   );
 }
 
-const REQUEST_SCOPED_UPSTREAM_ERROR_CODES = new Set([
-  "context_length_exceeded",
-  "upstream_empty_response",
-  "upstream_response_failed",
-]);
+const REQUEST_SCOPED_UPSTREAM_ERROR_CODES: Record<string, true> = {
+  context_length_exceeded: true,
+  upstream_empty_response: true,
+  upstream_response_failed: true,
+};
 
 /** Request/model-specific failures must not poison provider-wide resilience state. */
 export function isRequestScopedUpstreamFailure(error?: {
@@ -195,7 +196,11 @@ export function isRequestScopedUpstreamFailure(error?: {
 }): boolean {
   const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
   const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
-  return REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(code) || type === "context_length_exceeded";
+  return (
+    isLocalRateLimitErrorCode(error?.code) ||
+    REQUEST_SCOPED_UPSTREAM_ERROR_CODES[code] === true ||
+    type === "context_length_exceeded"
+  );
 }
 
 /** Request-scoped classification that also has access to the HTTP body. */

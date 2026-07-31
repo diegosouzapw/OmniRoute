@@ -16,6 +16,10 @@ export interface RequestQueueSettings {
   requestsPerMinute: number;
   minTimeBetweenRequestsMs: number;
   concurrentRequests: number;
+  /**
+   * Legacy persisted key used as Bottleneck's post-dispatch execution
+   * expiration. It does not bound time spent in Bottleneck's QUEUED state.
+   */
   maxWaitMs: number;
   /**
    * Issue #6593: opt-in admission cap on the local rate-limit queue. When the

@@ -291,6 +291,7 @@ import {
   updateFromResponseBody,
   initializeRateLimits,
 } from "../services/rateLimitManager.ts";
+import { getLocalRateLimitFailureStatus } from "../services/rateLimitManager/errors.ts";
 import {
   acquire as acquireAccountSemaphore,
   markBlocked as markAccountSemaphoreBlocked,
@@ -3309,10 +3310,9 @@ export async function handleChatCore({
         errorCode: error.code,
       };
     }
-    // abort(reason) can reject the upstream fetch with a raw string reason
-    // (e.g. "request_signal_aborted") that has no `name`/`status`; classify
-    // via isLocalStreamLifecycleError so those map to 499 instead of falling
-    // through to the 502 provider-failure default.
+    // abort(reason) can reject with a raw string lacking `name`/`status`; classify
+    // it through isLocalStreamLifecycleError so it maps to 499 rather than the
+    // 502 provider-failure default.
     const isRequestAborted = isLocalStreamLifecycleError(error);
     // #8376: an unreachable upstream proxy (ECONNREFUSED/ECONNRESET/...) is tagged by
     // proxyFetch.ts (tagProxyUnreachable) with `.errorCode = "proxy_unreachable"` before
@@ -3323,13 +3323,13 @@ export async function handleChatCore({
     const isProxyUnreachableFailure =
       !isRequestAborted && (error as { errorCode?: unknown })?.errorCode === "proxy_unreachable";
     const errorCode = getUpstreamErrorIdentifier(error);
-    const isLocalQueueTimeout = errorCode === "RATE_LIMIT_QUEUE_TIMEOUT";
+    const localRateLimitStatus = getLocalRateLimitFailureStatus(errorCode);
     const failureStatus = isRequestAborted
       ? 499
       : isProxyUnreachableFailure
         ? HTTP_STATUS.BAD_GATEWAY
-        : isLocalQueueTimeout
-          ? HTTP_STATUS.SERVICE_UNAVAILABLE
+        : localRateLimitStatus !== null
+          ? localRateLimitStatus
           : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
             ? HTTP_STATUS.GATEWAY_TIMEOUT
             : error.status && typeof error.status === "number"

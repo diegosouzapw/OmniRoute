@@ -7,6 +7,7 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rate-limit-manager-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
+// Dynamic imports are required because DATA_DIR must be set before DB modules evaluate.
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const resilienceSettings = await import("../../src/lib/resilience/settings.ts");
@@ -14,25 +15,52 @@ const rateLimitManager = await import("../../open-sse/services/rateLimitManager.
 const accountFallback = await import("../../open-sse/services/accountFallback.ts");
 const Bottleneck = (await import("bottleneck")).default;
 
+// These integration-style tests exercise real Bottleneck timer/event behavior.
 function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  const { promise, resolve } = Promise.withResolvers<void>();
+  setTimeout(resolve, ms);
+  return promise;
 }
 
 type TestBottleneck = InstanceType<typeof Bottleneck> & {
   _drainAll: (...args: unknown[]) => Promise<unknown>;
 };
 
-async function waitForCondition(condition: () => boolean, message: string): Promise<void> {
+/**
+ * Fault injection for the observed Bottleneck failure mode: jobs enter the real
+ * Bottleneck queue, but its internal drain loop stops making progress. Keep the
+ * private mutation in this one helper so the tests otherwise exercise public
+ * manager and Bottleneck behavior.
+ */
+function injectDrainWedge(limiter: InstanceType<typeof Bottleneck>): TestBottleneck {
+  const wedged = limiter as TestBottleneck;
+  wedged._drainAll = () => Promise.resolve(null);
+  return wedged;
+}
+
+async function waitForCondition(
+  condition: () => boolean | Promise<boolean>,
+  message: string
+): Promise<void> {
   const deadline = Date.now() + 1_000;
-  while (!condition()) {
+  while (!(await condition())) {
     if (Date.now() >= deadline) throw new Error(message);
     await wait(5);
   }
 }
 
+async function expectWedgeError(promise: Promise<unknown>): Promise<void> {
+  await assert.rejects(promise, (error: Error & { code?: string }) => {
+    assert.equal(error.code, "RATE_LIMIT_QUEUE_WEDGED");
+    return true;
+  });
+}
+
 async function flushBackgroundWork() {
   await wait(50);
-  await new Promise((resolve) => setImmediate(resolve));
+  const { promise, resolve } = Promise.withResolvers<void>();
+  setImmediate(resolve);
+  await promise;
 }
 
 async function resetStorage() {
@@ -72,7 +100,7 @@ test("rate limit manager bypasses disabled connections and exposes inactive stat
   assert.deepEqual(rateLimitManager.getAllRateLimitStatus(), {});
 });
 
-test("idle-capacity watchdog evicts a real queued job and recovers its caller early", async () => {
+test("idle-capacity watchdog honors grace, cleans up in order, and rejects the stranded caller", async () => {
   await rateLimitManager.applyRequestQueueSettings({
     ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
     autoEnableApiKeyProviders: false,
@@ -86,10 +114,10 @@ test("idle-capacity watchdog evicts a real queued job and recovers its caller ea
   const cleanupEvents: string[] = [];
   let limitersCreated = 0;
   rateLimitManager.__setLimiterFactoryForTests((options) => {
-    const limiter = new Bottleneck(options) as TestBottleneck;
+    const limiter = new Bottleneck(options);
     limitersCreated++;
     if (limitersCreated === 1) {
-      limiter._drainAll = () => Promise.resolve(null);
+      injectDrainWedge(limiter);
       const originalStop = limiter.stop.bind(limiter);
       const originalDisconnect = limiter.disconnect.bind(limiter);
       limiter.stop = async (stopOptions) => {
@@ -113,32 +141,113 @@ test("idle-capacity watchdog evicts a real queued job and recovers its caller ea
     "gpt-4o",
     async () => {
       executions++;
-      assert.deepEqual(
-        cleanupEvents,
-        ["stop:start", "stop:done", "disconnect"],
-        "the old queue must be stopped, dropped, and disconnected before replacement execution"
-      );
-      return "recovered";
+      return "must-not-run";
     }
   );
 
   await waitForCondition(
     () => rateLimitManager.getRateLimitStatus("openai", "idle-capacity-conn").queued === 1,
-    "the first limiter never established a real queued job"
+    "the injected drain failure never established a real queued job"
+  );
+  const queuedObservedAt = Date.now();
+
+  await rateLimitManager.__runLimiterWatchdogForTests(queuedObservedAt + 9_000);
+  assert.equal(
+    rateLimitManager.getRateLimitStatus("openai", "idle-capacity-conn").queued,
+    1,
+    "the queue must survive before the 10s stability grace"
   );
 
-  await rateLimitManager.__runLimiterWatchdogForTests(Date.now() + 30_000);
-  const result = await Promise.race([
-    pending,
-    wait(250).then(() => {
-      throw new Error("idle-capacity recovery did not complete before the legacy 120s threshold");
-    }),
-  ]);
+  await rateLimitManager.__runLimiterWatchdogForTests(queuedObservedAt + 11_000);
+  await expectWedgeError(pending);
 
-  assert.equal(result, "recovered");
-  assert.equal(executions, 1);
-  assert.equal(limitersCreated, 2, "recovery must execute on a fresh limiter");
+  assert.equal(executions, 0, "watchdog recovery must never replay application work");
+  assert.equal(limitersCreated, 1, "dropped callers must not create a replacement limiter");
   assert.deepEqual(cleanupEvents, ["stop:start", "stop:done", "disconnect"]);
+});
+
+test("wedge eviction rejects every queued caller and preserves learned state for future traffic", async () => {
+  await rateLimitManager.applyRequestQueueSettings({
+    ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
+    autoEnableApiKeyProviders: false,
+    maxWaitMs: 240_000,
+    requestsPerMinute: 60,
+    concurrentRequests: 6,
+    minTimeBetweenRequestsMs: 0,
+    maxQueueDepth: 0,
+  });
+
+  const createdOptions: Bottleneck.ConstructorOptions[] = [];
+  const createdLimiters: InstanceType<typeof Bottleneck>[] = [];
+  rateLimitManager.__setLimiterFactoryForTests((options) => {
+    createdOptions.push({ ...options });
+    const limiter = new Bottleneck(options);
+    createdLimiters.push(limiter);
+    if (createdLimiters.length === 1) injectDrainWedge(limiter);
+    return limiter;
+  });
+
+  const connectionId = "learned-state-conn";
+  rateLimitManager.enableRateLimitProtection(connectionId);
+  rateLimitManager.updateFromHeaders(
+    "openai",
+    connectionId,
+    {
+      "x-ratelimit-limit-requests": "100",
+      "x-ratelimit-remaining-requests": "1",
+      "x-ratelimit-reset-requests": "60s",
+    },
+    200,
+    "gpt-4o"
+  );
+  await waitForCondition(
+    async () =>
+      (await rateLimitManager.__getLimiterStateForTests("openai", connectionId, "gpt-4o"))
+        ?.reservoir === 1,
+    "the learned reservoir was not applied"
+  );
+
+  let executions = 0;
+  const stranded = Array.from({ length: 3 }, () =>
+    rateLimitManager.withRateLimit("openai", connectionId, "gpt-4o", async () => {
+      executions++;
+      return "must-not-run";
+    })
+  );
+  await waitForCondition(
+    () => rateLimitManager.getRateLimitStatus("openai", connectionId).queued === 3,
+    "all callers did not enter the wedged queue"
+  );
+
+  await rateLimitManager.__runLimiterWatchdogForTests(Date.now() + 11_000);
+  const settled = await Promise.allSettled(stranded);
+  assert.equal(executions, 0);
+  assert.equal(createdLimiters.length, 1, "wedge recovery must not retry any dropped caller");
+  for (const result of settled) {
+    assert.equal(result.status, "rejected");
+    assert.equal((result as PromiseRejectedResult).reason.code, "RATE_LIMIT_QUEUE_WEDGED");
+  }
+
+  assert.equal(
+    await rateLimitManager.withRateLimit("openai", connectionId, "gpt-4o", async () => "future"),
+    "future"
+  );
+  assert.equal(createdLimiters.length, 2, "future traffic should create one replacement limiter");
+  assert.equal(createdOptions[1].reservoir, 1, "replacement must retain the remaining reservoir");
+  assert.equal(createdOptions[1].minTime, 590, "replacement must retain learned request spacing");
+
+  const queuedAfterPreservedPermit = rateLimitManager.withRateLimit(
+    "openai",
+    connectionId,
+    "gpt-4o",
+    async () => "after-refill"
+  );
+  await waitForCondition(
+    () => rateLimitManager.getRateLimitStatus("openai", connectionId).queued === 1,
+    "the preserved reservoir should allow only one request"
+  );
+  await createdLimiters[1].incrementReservoir(1);
+  assert.equal(await queuedAfterPreservedPermit, "after-refill");
 });
 
 test("idle-capacity watchdog preserves a legitimate exhausted-reservoir queue", async () => {
@@ -183,7 +292,7 @@ test("idle-capacity watchdog preserves a legitimate exhausted-reservoir queue", 
   assert.equal(
     rateLimitManager.getRateLimitStatus("openai", "zero-reservoir-conn").queued,
     1,
-    "a zero-reservoir wait must survive even beyond the legacy wedge threshold"
+    "a zero-reservoir wait must survive regardless of elapsed time"
   );
 
   assert.ok(limiter);
@@ -191,28 +300,19 @@ test("idle-capacity watchdog preserves a legitimate exhausted-reservoir queue", 
   assert.equal(await pending, "after-refresh");
 });
 
-test("idle-capacity watchdog gives a legitimate minTime queue grace", async () => {
+test("idle-capacity watchdog preserves a real Bottleneck minTime wait", async () => {
   await rateLimitManager.applyRequestQueueSettings({
     ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
     autoEnableApiKeyProviders: false,
     maxWaitMs: 240_000,
     requestsPerMinute: 0,
     concurrentRequests: 1,
-    minTimeBetweenRequestsMs: 500,
+    minTimeBetweenRequestsMs: 100,
     maxQueueDepth: 0,
   });
 
-  let limiter: TestBottleneck | null = null;
-  rateLimitManager.__setLimiterFactoryForTests((options) => {
-    limiter = new Bottleneck(options) as TestBottleneck;
-    return limiter;
-  });
   rateLimitManager.enableRateLimitProtection("min-time-conn");
   await rateLimitManager.withRateLimit("openai", "min-time-conn", "gpt-4o", async () => "first");
-
-  assert.ok(limiter);
-  const originalDrainAll = limiter._drainAll.bind(limiter);
-  limiter._drainAll = () => Promise.resolve(null);
   const pending = rateLimitManager.withRateLimit(
     "openai",
     "min-time-conn",
@@ -220,24 +320,20 @@ test("idle-capacity watchdog gives a legitimate minTime queue grace", async () =
     async () => "after-min-time"
   );
   await waitForCondition(
-    () => rateLimitManager.getRateLimitStatus("openai", "min-time-conn").queued === 1,
-    "the minTime-delayed request did not enter the real queue"
+    () => rateLimitManager.getRateLimitStatus("openai", "min-time-conn").running === 1,
+    "Bottleneck did not place the minTime-delayed job in RUNNING"
   );
 
   await rateLimitManager.__runLimiterWatchdogForTests(Date.now() + 150_000);
   assert.equal(
-    rateLimitManager.getRateLimitStatus("openai", "min-time-conn").queued,
+    rateLimitManager.getRateLimitStatus("openai", "min-time-conn").running,
     1,
-    "capacity that is not yet eligible under minTime must not be evicted"
+    "a legitimate RUNNING minTime delay must not be evicted"
   );
-
-  limiter._drainAll = originalDrainAll;
-  await wait(550);
-  await limiter.updateSettings({ minTime: 0 });
   assert.equal(await pending, "after-min-time");
 });
 
-test("idle-capacity recovery retries at most once when the replacement also wedges", async () => {
+test("events from an evicted limiter cannot erase replacement queue progress", async () => {
   await rateLimitManager.applyRequestQueueSettings({
     ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
     autoEnableApiKeyProviders: false,
@@ -248,39 +344,96 @@ test("idle-capacity recovery retries at most once when the replacement also wedg
     maxQueueDepth: 0,
   });
 
-  let limitersCreated = 0;
+  const limiters: InstanceType<typeof Bottleneck>[] = [];
   rateLimitManager.__setLimiterFactoryForTests((options) => {
-    const limiter = new Bottleneck(options) as TestBottleneck;
-    limiter._drainAll = () => Promise.resolve(null);
-    limitersCreated++;
+    const limiter = new Bottleneck(options);
+    limiters.push(limiter);
+    if (limiters.length === 2) injectDrainWedge(limiter);
     return limiter;
   });
-  rateLimitManager.enableRateLimitProtection("bounded-retry-conn");
-  const pending = rateLimitManager.withRateLimit(
+
+  const connectionId = "stale-listener-conn";
+  rateLimitManager.enableRateLimitProtection(connectionId);
+  const { promise: oldGate, resolve: releaseOld } = Promise.withResolvers<void>();
+  const oldExecuting = rateLimitManager.withRateLimit(
     "openai",
-    "bounded-retry-conn",
+    connectionId,
+    "gpt-4o",
+    async () => {
+      await oldGate;
+      return "old-first";
+    }
+  );
+  await waitForCondition(
+    () => limiters[0]?.counts().EXECUTING === 1,
+    "the old limiter did not begin executing"
+  );
+  const oldQueued = rateLimitManager.withRateLimit(
+    "openai",
+    connectionId,
+    "gpt-4o",
+    async () => "old-second"
+  );
+  await waitForCondition(
+    () => limiters[0]?.counts().QUEUED === 1,
+    "the old limiter did not queue its second job"
+  );
+
+  rateLimitManager.refreshConnectionRateLimits(connectionId, {});
+  const replacementPending = rateLimitManager.withRateLimit(
+    "openai",
+    connectionId,
     "gpt-4o",
     async () => "must-not-run"
   );
-
   await waitForCondition(
-    () => rateLimitManager.getRateLimitStatus("openai", "bounded-retry-conn").queued === 1,
-    "the original wedged limiter did not queue"
+    () => rateLimitManager.getRateLimitStatus("openai", connectionId).queued === 1,
+    "the replacement limiter did not establish its queue"
   );
-  await rateLimitManager.__runLimiterWatchdogForTests(Date.now() + 30_000);
-  await waitForCondition(
-    () =>
-      limitersCreated === 2 &&
-      rateLimitManager.getRateLimitStatus("openai", "bounded-retry-conn").queued === 1,
-    "the bounded retry did not queue on the replacement limiter"
-  );
-  await rateLimitManager.__runLimiterWatchdogForTests(Date.now() + 30_000);
 
-  await assert.rejects(pending, (error: Error & { code?: string }) => {
-    assert.equal(error.code, "RATE_LIMIT_QUEUE_WEDGED");
-    return true;
+  releaseOld();
+  assert.equal(await oldExecuting, "old-first");
+  assert.equal(await oldQueued, "old-second");
+
+  await rateLimitManager.__runLimiterWatchdogForTests(Date.now() + 11_000);
+  await expectWedgeError(replacementPending);
+});
+
+test("watchdog ticks are serialized while an eligibility check is in flight", async () => {
+  const { promise: checkGate, resolve: releaseCheck } = Promise.withResolvers<void>();
+  let checks = 0;
+  rateLimitManager.__setLimiterFactoryForTests((options) => {
+    const limiter = injectDrainWedge(new Bottleneck(options));
+    const originalCheck = limiter.check.bind(limiter);
+    limiter.check = async (weight) => {
+      checks++;
+      await checkGate;
+      return originalCheck(weight);
+    };
+    return limiter;
   });
-  assert.equal(limitersCreated, 2, "a second wedge must not create a third limiter");
+
+  const connectionId = "serialized-watchdog-conn";
+  rateLimitManager.enableRateLimitProtection(connectionId);
+  const pending = rateLimitManager.withRateLimit(
+    "openai",
+    connectionId,
+    "gpt-4o",
+    async () => "must-not-run"
+  );
+  await waitForCondition(
+    () => rateLimitManager.getRateLimitStatus("openai", connectionId).queued === 1,
+    "the serialized-watchdog fixture did not queue"
+  );
+
+  const now = Date.now() + 11_000;
+  const firstTick = rateLimitManager.__runLimiterWatchdogForTests(now);
+  const secondTick = rateLimitManager.__runLimiterWatchdogForTests(now);
+  await waitForCondition(() => checks === 1, "the first tick did not reach limiter.check()");
+  releaseCheck();
+  await Promise.all([firstTick, secondTick]);
+  await expectWedgeError(pending);
+  assert.equal(checks, 1, "overlapping watchdog calls must share one scan");
 });
 
 test("application errors resembling Bottleneck failures remain untouched", async () => {
@@ -566,21 +719,18 @@ test("withRateLimit rejects cleanly when the caller aborts with the default DOME
     isActive: true,
   });
   rateLimitManager.enableRateLimitProtection(String(connection.id));
-
   const controller = new AbortController();
-  // Mirror how a real executor call behaves: it settles once the signal it
-  // was handed aborts, so this job doesn't dangle forever in Bottleneck once
-  // withRateLimit's own Promise.race settles via the abort path below.
-  const settlesOnAbort = (signal) =>
-    new Promise((_resolve, reject) => {
-      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
-    });
-
   const pending = rateLimitManager.withRateLimit(
     "openai",
     String(connection.id),
     "gpt-4o",
-    () => settlesOnAbort(controller.signal),
+    () => {
+      const { promise, reject } = Promise.withResolvers<never>();
+      controller.signal.addEventListener("abort", () => reject(controller.signal.reason), {
+        once: true,
+      });
+      return promise;
+    },
     controller.signal
   );
 
