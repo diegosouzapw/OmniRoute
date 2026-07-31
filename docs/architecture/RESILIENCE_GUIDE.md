@@ -229,8 +229,8 @@ backed by Bottleneck), one layer below the three mechanisms above.
 `expiration`, whose timer starts only after dispatch. It therefore bounds
 limiter-managed execution, not time spent in the local queue. Expiration is
 surfaced as trusted local `code: "RATE_LIMIT_EXECUTION_TIMEOUT"` (HTTP 504);
-the former `RATE_LIMIT_QUEUE_TIMEOUT` name is accepted only for trusted
-internal backward compatibility. The default is 15000ms; override via
+the former queue-timeout code name is accepted only for trusted internal
+backward compatibility. The default is 15000ms; override via
 `RATE_LIMIT_MAX_WAIT_MS` (env) or the dashboard (**Settings → Resilience**,
 1–30000ms UI ceiling). Queue residence has no time deadline; use
 `maxQueueDepth` below to bound queued callers.

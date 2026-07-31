@@ -21,7 +21,7 @@ import {
   isProviderExhaustedReason,
 } from "../accountFallback.ts";
 import { RateLimitReason } from "../../config/constants.ts";
-import { isProviderCircuitOpenResult } from "./comboPredicates.ts";
+import { isProviderCircuitOpenResult, isRequestScopedUpstreamFailure } from "./comboPredicates.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 
 // Connection-level failure statuses: the provider connection itself is likely bad (upstream
@@ -127,7 +127,7 @@ function isProviderQuotaExhausted(
   } = opts;
   return (
     Boolean(provider && provider !== "unknown") &&
-    !requestScopedFailure &&
+    !(requestScopedFailure || isRequestScopedUpstreamFailure(structuredError)) &&
     !hasPerModelQuota(provider as string, rawModel) &&
     (isProviderExhaustedReason(fallbackResult) ||
       classifyErrorText(structuredError?.code || errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
@@ -157,8 +157,17 @@ function markTransientOrConnectionLevel(
   target: ResolvedComboTarget,
   opts: ApplyComboTargetExhaustionOptions
 ): void {
-  const { result, errorText, rawModel, isTokenLimitBreach, requestScopedFailure, sets, log, tag } =
-    opts;
+  const {
+    result,
+    errorText,
+    rawModel,
+    isTokenLimitBreach,
+    requestScopedFailure,
+    sets,
+    log,
+    tag,
+    structuredError,
+  } = opts;
   const provider = target.provider;
   if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
     sets.transientRateLimitedProviders.add(provider);
@@ -171,6 +180,7 @@ function markTransientOrConnectionLevel(
     tag,
     rawModel,
     requestScopedFailure,
+    structuredError,
   });
 }
 
@@ -213,10 +223,18 @@ function markConnectionLevelExhaustion(
   target: ResolvedComboTarget,
   opts: Pick<
     ApplyComboTargetExhaustionOptions,
-    "result" | "errorText" | "sets" | "log" | "tag" | "rawModel" | "requestScopedFailure"
+    | "result"
+    | "errorText"
+    | "sets"
+    | "log"
+    | "tag"
+    | "rawModel"
+    | "requestScopedFailure"
+    | "structuredError"
   >
 ): void {
-  const { result, errorText, sets, log, tag, rawModel, requestScopedFailure } = opts;
+  const { result, errorText, sets, log, tag, rawModel, requestScopedFailure, structuredError } =
+    opts;
   const provider = target.provider;
   if (
     !provider ||
@@ -224,6 +242,7 @@ function markConnectionLevelExhaustion(
     !CONNECTION_LEVEL_ERROR_STATUSES.includes(result.status) ||
     isProviderCircuitOpenResult(result, errorText) ||
     requestScopedFailure ||
+    isRequestScopedUpstreamFailure(structuredError) ||
     // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
     // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)
     // be tried in-request.
