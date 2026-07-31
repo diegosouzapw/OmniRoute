@@ -1,0 +1,1 @@
+- **fix(resilience):** Recover idle-capacity rate-limit queues before downstream client timeouts ([#9041](https://github.com/diegosouzapw/OmniRoute/pull/9041)) — thanks @Thinkscape
