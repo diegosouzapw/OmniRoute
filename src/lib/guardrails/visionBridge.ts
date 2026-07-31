@@ -221,11 +221,17 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
     // request with model=auto would land on a text-only model (#7871). Keeping
     // "auto" is never the answer there, so the keep-credentialed-model skip
     // below does not apply to auto — only the reroute-target credential guard.
-    if ((comboVisionBridgeDecision === "not-combo" || isAuto) && !forceVisionBridge) {
+    // Operators can opt in to direct VLM routing for every text-only route. This keeps image
+    // bytes in the final request instead of replacing them with a lossy bridge description.
+    const rerouteTextOnly = settings.visionBridgeRerouteTextOnly === true;
+    const shouldReroute =
+      rerouteTextOnly ||
+      ((comboVisionBridgeDecision === "not-combo" || isAuto) && !forceVisionBridge);
+    if (shouldReroute) {
       const checkCreds = this.deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
       const originalUsable = await checkCreds(model);
 
-      if (originalUsable === true && !isAuto) {
+      if (originalUsable === true && !isAuto && !rerouteTextOnly) {
         // Keep the credentialed model; describe images below if needed.
         context.log?.debug?.(
           "VISION_BRIDGE",

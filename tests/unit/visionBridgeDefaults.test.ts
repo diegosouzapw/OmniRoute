@@ -30,6 +30,7 @@ test("VISION_BRIDGE_SETTINGS_KEYS exports all expected keys", () => {
     "visionBridgePrompt",
     "visionBridgeTimeout",
     "visionBridgeMaxImages",
+    "visionBridgeRerouteTextOnly",
   ]);
 });
 

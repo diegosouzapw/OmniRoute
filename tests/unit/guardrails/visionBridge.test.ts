@@ -742,6 +742,46 @@ test("VB-CRED-01: does NOT whole-request-reroute when original model has usable 
   assert.notStrictEqual(meta?.rerouted, true, "must not set rerouted meta for credentialed model");
 });
 
+test("VB-CRED-01A: reroutes a credentialed text-only model when configured to preserve images", async () => {
+  mockSettings.visionBridgeRerouteTextOnly = true;
+  const guardrail = createGuardrail({
+    deps: {
+      hasUsableCredentials: async (m: string) =>
+        m === "zai/glm-5.2" || m === "openai/gpt-4o-mini" ? true : null,
+    },
+  });
+
+  const payload = createPayload({
+    model: "zai/glm-5.2",
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: "What is in this screenshot?" },
+          {
+            type: "image_url",
+            image_url: { url: "https://example.com/shot.png" },
+          },
+        ],
+      },
+    ],
+  });
+
+  const result = await guardrail.preCall(payload, createContext({ model: "zai/glm-5.2" }));
+  assert.strictEqual(result.block, false);
+
+  const modified = result.modifiedPayload as {
+    model?: string;
+    messages: Array<{ content: Array<{ type: string; image_url?: { url: string } }> }>;
+  };
+  assert.strictEqual(modified.model, "openai/gpt-4o-mini");
+  assert.deepStrictEqual(modified.messages[0].content[1], {
+    type: "image_url",
+    image_url: { url: "https://example.com/shot.png" },
+  });
+  assert.strictEqual(visionCallCount, 0, "the bridge must not replace the image with text");
+});
+
 test("VB-CRED-02: does NOT reroute to a vision model known to lack credentials", async () => {
   mockSettings.visionBridgeModel = "opencode-zen/gpt-5.4";
   const guardrail = createGuardrail({

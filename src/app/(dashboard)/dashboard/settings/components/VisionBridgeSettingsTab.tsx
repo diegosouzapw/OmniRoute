@@ -11,6 +11,7 @@ type SettingsState = {
   visionBridgePrompt: string;
   visionBridgeTimeout: number;
   visionBridgeMaxImages: number;
+  visionBridgeRerouteTextOnly: boolean;
 };
 
 export default function VisionBridgeSettingsTab() {
@@ -21,6 +22,7 @@ export default function VisionBridgeSettingsTab() {
     visionBridgePrompt: VISION_BRIDGE_DEFAULTS.prompt,
     visionBridgeTimeout: VISION_BRIDGE_DEFAULTS.timeoutMs,
     visionBridgeMaxImages: VISION_BRIDGE_DEFAULTS.maxImagesPerRequest,
+    visionBridgeRerouteTextOnly: false,
   });
   const [loading, setLoading] = useState(true);
 
@@ -36,6 +38,7 @@ export default function VisionBridgeSettingsTab() {
           visionBridgeTimeout: data.visionBridgeTimeout ?? VISION_BRIDGE_DEFAULTS.timeoutMs,
           visionBridgeMaxImages:
             data.visionBridgeMaxImages ?? VISION_BRIDGE_DEFAULTS.maxImagesPerRequest,
+          visionBridgeRerouteTextOnly: data.visionBridgeRerouteTextOnly ?? false,
         });
       })
       .finally(() => setLoading(false));
@@ -79,6 +82,18 @@ export default function VisionBridgeSettingsTab() {
           <Toggle
             checked={settings.visionBridgeEnabled}
             onChange={(checked) => updateSetting({ visionBridgeEnabled: checked })}
+            disabled={loading}
+          />
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-medium">{t("visionBridgeRerouteTextOnlyLabel")}</p>
+            <p className="text-sm text-text-muted">{t("visionBridgeRerouteTextOnlyDesc")}</p>
+          </div>
+          <Toggle
+            checked={settings.visionBridgeRerouteTextOnly}
+            onChange={(checked) => updateSetting({ visionBridgeRerouteTextOnly: checked })}
             disabled={loading}
           />
         </div>
