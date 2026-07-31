@@ -1,16 +1,16 @@
 ---
 title: "Provider Reference"
 version: 3.8.50
-lastUpdated: 2026-07-30
+lastUpdated: 2026-07-31
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-07-30
+> **Last generated:** 2026-07-31
 
-Total providers: **290**. See category breakdown below.
+Total providers: **291**. See category breakdown below.
 
 ## Categories
 
@@ -97,7 +97,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `zai-web` | `zw` | Z.ai Web (Free) | Web cookie | [link](https://chat.z.ai) | Paste the full Cookie header from chat.z.ai (must include the token=<JWT> cookie) | — |
 | `zenmux-free` | `zmf` | ZenMux Free (Web) | Web cookie | [link](https://zenmux.ai) | Login at zenmux.ai, then export all cookies using EditThisCookie or Cookie-Editor and paste the full Cookie header string here. Refresh every ~30 days. | — |
 
-## API Key Providers (paid / paid-with-free-credits) (195)
+## API Key Providers (paid / paid-with-free-credits) (196)
 
 | ID | Alias | Name | Tags | Website | Notes |
 |----|-------|------|------|---------|-------|
@@ -130,6 +130,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `bytez` | `bytez` | Bytez | API key | [link](https://bytez.com) | $1 free credits, refreshes every 4 weeks |
 | `cerebras` | `cerebras` | Cerebras | API key | [link](https://inference.cerebras.ai) | Free Trial: 1M tokens/day, 30K TPM, 5 RPM — no credit card. |
 | `charm-hyper` | `charm-hyper` | Charm Hyper | API key | [link](https://hyper.charm.land) | 100 free monthly Hypercredits on signup |
+| `cheaperinference` | `cinf` | Cheaper Inference | API key | [link](https://cheaperinference.com) | — |
 | `chenzk` | `chenzk` | Chenzk API | API key | [link](https://chenzk.top) | — |
 | `chutes` | `chutes` | Chutes.ai | API key, aggregator | [link](https://chutes.ai) | Bearer API key for the Chutes OpenAI-compatible gateway. |
 | `clarifai` | `clarifai` | Clarifai | API key, enterprise | [link](https://docs.clarifai.com) | Use your Clarifai PAT or app-specific API key. OmniRoute targets the OpenAI-compatible endpoint at https://api.clarifai.com/v2/ext/openai/v1 and authenticates with Authorization: Key <token>. |
@@ -201,7 +202,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `leonardo` | `leo` | Leonardo AI | API key, video | [link](https://leonardo.ai) | Get API key at leonardo.ai/developer |
 | `liquid` | `liquid` | Liquid AI | API key | [link](https://liquid.ai) | Get API key at liquid.ai |
 | `llamagate` | `llamagate` | LlamaGate | API key | [link](https://llamagate.ai) | — |
-| `llm7` | `llm7` | LLM7.io | API key | [link](https://llm7.io) | No signup required - 2 req/s, 20 RPM, 100 req/hr free tier |
+| `llm7` | `llm7` | LLM7.io | API key | [link](https://llm7.io) | Use any non-empty key (for example 'unused'). If older built-in models return model_unavailable, use Available Models → Import from /models or Auto-Sync; verified live model: gemini-3.1-flash-lite. |
 | `longcat` | `lc` | LongCat AI | API key | [link](https://longcat.chat/platform/docs) | Free: one-time 10M-token grant after account signup + KYC verification (LongCat-2.0). One-time only — not a recurring daily/monthly allowance. |
 | `maritalk` | `maritalk` | Maritalk | API key | [link](https://www.maritaca.ai) | — |
 | `meta-llama` | `meta` | Meta Llama API | API key | [link](https://llama.developer.meta.com) | — |
@@ -240,7 +241,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `pioneer` | `pn` | Pioneer AI | API key | [link](https://pioneer.ai) | $75 free usage credits — no credit card required |
 | `plamo` | `plamo` | PLaMo | API key | [link](https://plamo.preferredai.jp/api) | — |
 | `poe` | `poe` | Poe | API key, aggregator | [link](https://creator.poe.com/api-reference) | Bearer API key for the Poe OpenAI-compatible API. |
-| `pollinations` | `pol` | Pollinations AI | API key, video | [link](https://pollinations.ai) | Free keyless tier: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. Premium models (claude, gemini, midijourney) require a Pollinations API key from enter.pollinations.ai. |
+| `pollinations` | `pol` | Pollinations AI | API key, video | [link](https://pollinations.ai) | Anonymous/keyless access to the documented free models is best-effort. Local v3.8.50 verification (2026-07-31) returned 401 via OmniRoute and Cloudflare 1010 on direct upstream probes from the same network. Premium models still require a Pollinations API key from enter.pollinations.ai. |
 | `predibase` | `predibase` | Predibase | API key | [link](https://predibase.com) | ⚠️ **DEPRECATED.** serving.app.predibase.com no longer resolves (sweep 2026-06-19); the managed serving API appears discontinued. |
 | `publicai` | `publicai` | PublicAI | API key | [link](https://publicai.co) | Requires an API key — one-time signup credit, then paid |
 | `puter` | `pu` | Puter AI | API key | [link](https://puter.com) | Get token at puter.com/dashboard → Copy Auth Token |
@@ -276,7 +277,7 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `topaz` | `topaz` | Topaz | API key, image | [link](https://topazlabs.com) | — |
 | `typhoon` | `typhoon` | Typhoon | API key | [link](https://docs.opentyphoon.ai) | Free API key with a 5 req/s and 200 req/m rate limit. |
 | `udio` | `udio` | Udio | API key | [link](https://udio.com) | Paste session cookie from udio.com (Supabase auth) |
-| `uncloseai` | `unc` | UncloseAI | API key | [link](https://uncloseai.com) | No auth required. API accepts any non-empty string as key for identification. |
+| `uncloseai` | `unc` | UncloseAI | API key | [link](https://uncloseai.com) | No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: solidrust/Hermes-3-Llama-3.1-8B-AWQ. |
 | `upstage` | `upstage` | Upstage | API key | [link](https://www.upstage.ai) | — |
 | `v0-vercel` | `v0` | v0 (Vercel) | API key | [link](https://v0.dev) | — |
 | `venice` | `venice` | Venice.ai | API key | [link](https://venice.ai) | — |

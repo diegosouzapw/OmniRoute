@@ -258,7 +258,8 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     hasFree: true,
     freeNote: "Free forever — no signup, no credit card. OpenAI-compatible endpoints.",
     passthroughModels: true,
-    authHint: "No auth required. API accepts any non-empty string as key for identification.",
+    authHint:
+      "No auth required. API accepts any non-empty string as key for identification. If older built-in models return 404, use Available Models → Import from /models or Auto-Sync; verified live model: solidrust/Hermes-3-Llama-3.1-8B-AWQ.",
   },
   hackclub: {
     id: "hackclub",
@@ -380,6 +381,8 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     website: "https://llm7.io",
     hasFree: true,
     freeNote: "No signup required - 2 req/s, 20 RPM, 100 req/hr free tier",
+    authHint:
+      "Use any non-empty key (for example 'unused'). If older built-in models return model_unavailable, use Available Models → Import from /models or Auto-Sync; verified live model: gemini-3.1-flash-lite.",
     apiHint:
       "Works without API key (use 'unused' as key). Get free token at token.llm7.io for higher limits.",
   },
