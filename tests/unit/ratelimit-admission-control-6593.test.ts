@@ -19,6 +19,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { checkQueueAdmission } from "../../open-sse/services/rateLimitManager/admission.ts";
+import { getTrustedLocalRateLimitError } from "../../open-sse/services/rateLimitManager/errors.ts";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rl-admission-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -78,6 +79,10 @@ test("#6593 checkQueueAdmission: rejects with a typed error at/over the cap", ()
   // also risks tripping the whole-provider circuit breaker for a purely local
   // admission decision.
   assert.equal(err?.status, 429);
+  assert.deepEqual(getTrustedLocalRateLimitError(err), {
+    code: "RATE_LIMIT_QUEUE_FULL",
+    status: 429,
+  });
   assert.match(err?.message ?? "", /maxQueueDepth/);
   assert.match(err?.message ?? "", /openai\/gpt-4o/);
 
@@ -106,16 +111,26 @@ test("#6593 withRateLimit: fast-fails once the queue is at the configured maxQue
   // Job 1 occupies the single concurrent slot. Poll (not a fixed sleep) until
   // Bottleneck has actually dispatched it, since QUEUED -> EXECUTING takes a
   // few event-loop ticks, not one.
-  const job1 = rateLimitManager.withRateLimit("openai", "conn-admission-cap", "gpt-4o", async () => {
-    await wait(150);
-    return "job1";
-  });
+  const job1 = rateLimitManager.withRateLimit(
+    "openai",
+    "conn-admission-cap",
+    "gpt-4o",
+    async () => {
+      await wait(150);
+      return "job1";
+    }
+  );
   await pollUntil(() => (status()?.executing ?? 0) + (status()?.running ?? 0) >= 1);
 
   // Job 2 has to wait behind job1 -> occupies the one allowed queue slot (QUEUED=1).
-  const job2 = rateLimitManager.withRateLimit("openai", "conn-admission-cap", "gpt-4o", async () => {
-    return "job2";
-  });
+  const job2 = rateLimitManager.withRateLimit(
+    "openai",
+    "conn-admission-cap",
+    "gpt-4o",
+    async () => {
+      return "job2";
+    }
+  );
   await pollUntil(() => (status()?.queued ?? 0) >= 1);
 
   // Job 3 arrives while QUEUED (1) is already at maxQueueDepth (1) -> fast-rejected.
@@ -124,6 +139,10 @@ test("#6593 withRateLimit: fast-fails once the queue is at the configured maxQue
     (err: Error & { code?: string; status?: number }) => {
       assert.equal(err.code, "RATE_LIMIT_QUEUE_FULL");
       assert.equal(err.status, 429);
+      assert.deepEqual(getTrustedLocalRateLimitError(err), {
+        code: "RATE_LIMIT_QUEUE_FULL",
+        status: 429,
+      });
       assert.match(err.message, /maxQueueDepth/);
       return true;
     }
@@ -161,10 +180,7 @@ test("#6593 withRateLimit: default maxQueueDepth=0 preserves unbounded-queue beh
 test("#6593 DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS is 15s absent RATE_LIMIT_MAX_WAIT_MS", () => {
   assert.equal(process.env.RATE_LIMIT_MAX_WAIT_MS, undefined);
   assert.equal(resilienceSettings.DEFAULT_REQUEST_QUEUE_MAX_WAIT_MS, 15000);
-  assert.equal(
-    resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxWaitMs,
-    15000
-  );
+  assert.equal(resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue.maxWaitMs, 15000);
 });
 
 test("#6593 DEFAULT_REQUEST_QUEUE_MAX_DEPTH defaults to 0 (disabled) absent an env override", () => {

@@ -1,5 +1,6 @@
 import { isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
 import { isRequestScopedUpstreamFailure } from "./comboFailureLogging";
+import { getTrustedLocalRateLimitResponse } from "@omniroute/open-sse/services/rateLimitManager/errors";
 
 export const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
@@ -8,7 +9,13 @@ export const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 50
 // otherwise a client abort (502 default, error='request_signal_aborted') trips the
 // provider-wide breaker. Pure predicate, unit-testable without the full request path.
 export function shouldTripProviderBreakerForResult(
-  result: { status: number; errorCode?: string | null; errorType?: string | null; error?: unknown },
+  result: {
+    status: number;
+    response?: Response;
+    errorCode?: string | null;
+    errorType?: string | null;
+    error?: unknown;
+  },
   isCombo: boolean,
   forceLiveComboTest: boolean
 ): boolean {
@@ -16,6 +23,7 @@ export function shouldTripProviderBreakerForResult(
     !forceLiveComboTest &&
     !isCombo &&
     !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
+    !(result.response && getTrustedLocalRateLimitResponse(result.response)) &&
     !isLocalStreamLifecycleError(result.error) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
   );

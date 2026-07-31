@@ -10,6 +10,7 @@ import {
 import { getCustomModels } from "@/lib/localDb";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { withRateLimit } from "@omniroute/open-sse/services/rateLimitManager";
+import { getTrustedLocalRateLimitError } from "@omniroute/open-sse/services/rateLimitManager/errors";
 
 const INTERNAL_ORIGIN = "http://omniroute.internal";
 export const DEFAULT_MODEL_TEST_TIMEOUT_MS = 30_000;
@@ -362,12 +363,14 @@ export async function runSingleModelTest(
         rateLimited: true,
       };
     }
+    const localRateLimitFailure = getTrustedLocalRateLimitError(error);
     return {
       modelId: fullModelStr,
-      status: "error",
+      status: localRateLimitFailure?.status === 429 ? "rate_limited" : "error",
       latencyMs,
-      httpStatus: 500,
+      httpStatus: localRateLimitFailure?.status ?? 500,
       error: getErrorMessage(error),
+      ...(localRateLimitFailure?.status === 429 ? { rateLimited: true } : {}),
     };
   }
   let latencyMs = Date.now() - startTime;

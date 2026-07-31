@@ -12,7 +12,7 @@ import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldown
 import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
 import { CONTEXT_OVERFLOW_PATTERNS, MODEL_ACCESS_DENIED_PATTERNS } from "../accountFallback.ts";
 import { isResourceNotFoundResponse } from "../errorClassifier.ts";
-import { isLocalRateLimitErrorCode } from "../rateLimitManager/errors.ts";
+import { getTrustedLocalRateLimitResponse } from "../rateLimitManager/errors.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -196,22 +196,19 @@ export function isRequestScopedUpstreamFailure(error?: {
 }): boolean {
   const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
   const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
-  return (
-    isLocalRateLimitErrorCode(error?.code) ||
-    REQUEST_SCOPED_UPSTREAM_ERROR_CODES[code] === true ||
-    type === "context_length_exceeded"
-  );
+  return REQUEST_SCOPED_UPSTREAM_ERROR_CODES[code] === true || type === "context_length_exceeded";
 }
 
 /** Request-scoped classification that also has access to the HTTP body. */
 export function isComboRequestScopedFailure(
-  status: number,
+  response: Response,
   errorText: string,
   error?: { code?: string | null; type?: string | null }
 ): boolean {
   return (
+    getTrustedLocalRateLimitResponse(response) !== null ||
     isRequestScopedUpstreamFailure(error) ||
-    (status === 404 && isResourceNotFoundResponse(errorText))
+    (response.status === 404 && isResourceNotFoundResponse(errorText))
   );
 }
 
@@ -250,6 +247,7 @@ export function isInputBoundRequestFailure(error?: {
 export function shouldSkipConnDisable(
   result: {
     status: number;
+    response?: Response;
     errorCode?: string | null;
     errorType?: string | null;
     error?: unknown;
@@ -265,6 +263,7 @@ export function shouldSkipConnDisable(
     // Client abort surfaced as a bare error (no statusCode → defaults to 502):
     // a local lifecycle event, not a provider failure (#4602 policy).
     isLocalStreamLifecycleError(result.error) ||
+    (result.response ? getTrustedLocalRateLimitResponse(result.response) !== null : false) ||
     result.errorCode === "plugin_block" ||
     result.errorType === "plugin_block" ||
     (is401 && hasExtraKeys) ||

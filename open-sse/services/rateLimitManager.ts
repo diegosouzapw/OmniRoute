@@ -27,6 +27,7 @@ import {
 } from "./rateLimitManager/headers";
 import { checkQueueAdmission } from "./rateLimitManager/admission";
 import {
+  markLocalRateLimitError,
   RATE_LIMIT_EXECUTION_TIMEOUT_CODE,
   RATE_LIMIT_QUEUE_WEDGED_CODE,
 } from "./rateLimitManager/errors";
@@ -178,6 +179,12 @@ function updateAllLimiterSettings() {
   const defaults = buildLimiterDefaults();
   for (const limiter of limiters.values()) {
     updateLimiterSettings(limiter, defaults);
+  }
+}
+
+function clearPreservedReplacementSettings(connectionId: string): void {
+  for (const key of preservedReplacementSettings.keys()) {
+    if (key.includes(connectionId)) preservedReplacementSettings.delete(key);
   }
 }
 
@@ -350,8 +357,12 @@ export async function initializeRateLimits() {
 
 export async function applyRequestQueueSettings(nextSettings: RequestQueueSettings) {
   currentRequestQueueSettings = { ...nextSettings };
+  // Global policy changes invalidate snapshots from the previous generation.
+  preservedReplacementSettings.clear();
   const { getCachedProviderConnections } = await import("@/lib/localDb");
   const connections = await getCachedProviderConnections();
+  // Also discard any snapshot created while the asynchronous DB read yielded.
+  preservedReplacementSettings.clear();
   reconcileEnabledConnections(connections as unknown[], currentRequestQueueSettings);
   updateAllLimiterSettings();
 }
@@ -360,6 +371,7 @@ export async function applyRequestQueueSettings(nextSettings: RequestQueueSettin
  * Get or create a limiter for a given provider+connection combination
  */
 export function enableRateLimitProtection(connectionId) {
+  if (!enabledConnections.has(connectionId)) clearPreservedReplacementSettings(connectionId);
   enabledConnections.add(connectionId);
 }
 
@@ -368,6 +380,7 @@ export function enableRateLimitProtection(connectionId) {
  */
 export function disableRateLimitProtection(connectionId) {
   enabledConnections.delete(connectionId);
+  clearPreservedReplacementSettings(connectionId);
   // Ordinary administrative eviction uses disconnect(), not stop(), so
   // in-flight requests can finish. Wedge recovery is the deliberate exception:
   // it removes the limiter from the cache first, then stops it to settle jobs
@@ -377,7 +390,6 @@ export function disableRateLimitProtection(connectionId) {
       limiters.delete(key);
       limiterWatchdog.forget(limiter);
       limiterLastUsed.delete(key);
-      preservedReplacementSettings.delete(key);
       trackAsyncOperation(limiter.disconnect());
     }
   }
@@ -406,13 +418,13 @@ export function refreshConnectionRateLimits(connectionId, overrides) {
   } else {
     connectionRateLimitOverrides.set(connectionId, overrides);
   }
+  clearPreservedReplacementSettings(connectionId);
   // Evict limiters referencing this connection so they get recreated on next use
   for (const [key, limiter] of Array.from(limiters)) {
     if (key.includes(connectionId)) {
       limiters.delete(key);
       limiterWatchdog.forget(limiter);
       limiterLastUsed.delete(key);
-      preservedReplacementSettings.delete(key);
       trackAsyncOperation(limiter.disconnect());
     }
   }
@@ -593,15 +605,16 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
       logRateLimit(
         `⏰ [RATE-LIMIT] ${key} — limiter-managed execution expired after ${Math.ceil((executionExpirationMs || 0) / 1000)}s`
       );
-      const executionErr = new Error(
-        `Request exceeded OmniRoute's local rate-limit execution expiration ` +
-          `(legacy resilienceSettings.requestQueue.maxWaitMs=${executionExpirationMs}ms) for ` +
-          `${model ? `${provider}/${model}` : provider}. Bottleneck applies this deadline only ` +
-          `after dispatch; it does not bound queue wait and is not an upstream-generated timeout.`,
-        { cause: err }
-      ) as Error & { code?: string };
-      executionErr.code = RATE_LIMIT_EXECUTION_TIMEOUT_CODE;
-      throw executionErr;
+      throw markLocalRateLimitError(
+        new Error(
+          `Request exceeded OmniRoute's local rate-limit execution expiration ` +
+            `(legacy resilienceSettings.requestQueue.maxWaitMs=${executionExpirationMs}ms) for ` +
+            `${model ? `${provider}/${model}` : provider}. Bottleneck applies this deadline only ` +
+            `after dispatch; it does not bound queue wait and is not an upstream-generated timeout.`,
+          { cause: err }
+        ),
+        RATE_LIMIT_EXECUTION_TIMEOUT_CODE
+      );
     }
 
     if (
@@ -626,10 +639,9 @@ export async function withRateLimit(provider, connectionId, model, fn, signal = 
           `was detected as wedged (stalled with nothing executing) and force-reset. OmniRoute does ` +
           `not replay dropped work automatically; combo routing may fall back to another target.`,
         { cause: err }
-      ) as Error & { cleanupError?: unknown; code?: string };
+      ) as Error & { cleanupError?: unknown };
       if (cleanupError !== undefined) wedgeErr.cleanupError = cleanupError;
-      wedgeErr.code = RATE_LIMIT_QUEUE_WEDGED_CODE;
-      throw wedgeErr;
+      throw markLocalRateLimitError(wedgeErr, RATE_LIMIT_QUEUE_WEDGED_CODE);
     }
     throw err;
   }

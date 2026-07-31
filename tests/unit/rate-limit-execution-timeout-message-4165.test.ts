@@ -22,6 +22,9 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const resilienceSettings = await import("../../src/lib/resilience/settings.ts");
 const rateLimitManager = await import("../../open-sse/services/rateLimitManager.ts");
+const { getClientSafeLocalRateLimitError, getTrustedLocalRateLimitError } =
+  await import("../../open-sse/services/rateLimitManager/errors.ts");
+const { formatProviderError } = await import("../../open-sse/utils/error.ts");
 
 // This contract test deliberately drives Bottleneck's real expiration timer.
 function wait(ms: number) {
@@ -89,6 +92,20 @@ test("#4165 execution expiration is local and accurately named", async () => {
   // The original Bottleneck error is preserved for debugging.
   assert.ok(caught.cause, "original error should be preserved as cause");
   assert.match(String(caught.cause?.message ?? ""), /This job timed out/);
+
+  assert.deepEqual(getTrustedLocalRateLimitError(caught), {
+    code: "RATE_LIMIT_EXECUTION_TIMEOUT",
+    status: 504,
+  });
+  const safeError = getClientSafeLocalRateLimitError(caught);
+  assert.ok(safeError);
+  const clientMessage = formatProviderError(safeError, "openai", "gpt-4o", 504);
+  assert.match(clientMessage, /execution expiration/i);
+  assert.doesNotMatch(
+    clientMessage,
+    /This job timed out/,
+    "client and call-log formatting must not append the retained Bottleneck cause"
+  );
 });
 
 test("#4165 a job that completes within the execution expiration is unaffected", async () => {
