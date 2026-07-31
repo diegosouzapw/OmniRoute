@@ -5,13 +5,24 @@
  */
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Toggle } from "@/shared/components";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
 const NAME = "cliproxy";
 
+function renderPrefix(chunks: ReactNode) {
+  return <code className="font-mono bg-bg-subtle px-1 rounded">{chunks}</code>;
+}
+
+function renderSmallPrefix(chunks: ReactNode) {
+  return <code className="font-mono bg-bg-subtle px-1 rounded text-xs">{chunks}</code>;
+}
+
 export function CliproxyProviderExposureCard() {
+  const t = useTranslations("cliproxyProviderExposure");
   const { data, mutate } = useServiceStatus(NAME);
   const [pending, setPending] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -28,14 +39,14 @@ export function CliproxyProviderExposureCard() {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const errorMsg =
-          body?.error?.message ?? body?.message ?? `Failed to update (HTTP ${res.status})`;
+          body?.error?.message ?? body?.message ?? t("updateFailed", { status: res.status });
         setMsg({ ok: false, text: errorMsg });
         return;
       }
       setMsg(null);
       mutate();
     } catch {
-      setMsg({ ok: false, text: "Network error — could not update provider exposure setting" });
+      setMsg({ ok: false, text: t("networkError") });
     } finally {
       setPending(false);
     }
@@ -48,10 +59,9 @@ export function CliproxyProviderExposureCard() {
           <span className="material-symbols-outlined text-sky-500 text-xl">hub</span>
         </div>
         <div>
-          <h3 className="font-medium text-sm">Provider Exposure</h3>
+          <h3 className="font-medium text-sm">{t("title")}</h3>
           <p className="text-xs text-text-muted">
-            Expose CLIProxyAPI models as a routing target under the{" "}
-            <code className="font-mono bg-bg-subtle px-1 rounded">cliproxyapi/</code> prefix.
+            {t.rich("description", { prefix: renderPrefix })}
           </p>
         </div>
       </div>
@@ -73,17 +83,15 @@ export function CliproxyProviderExposureCard() {
 
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm">
-            Expose as{" "}
-            <code className="font-mono bg-bg-subtle px-1 rounded text-xs">cliproxyapi/...</code>
-          </p>
-          <p className="text-xs text-text-muted mt-0.5">
-            When enabled, discovered models appear in provider selects across OmniRoute.
-          </p>
+          <p className="text-sm">{t.rich("label", { prefix: renderSmallPrefix })}</p>
+          <p className="text-xs text-text-muted mt-0.5">{t("hint")}</p>
         </div>
-        <Toggle checked={data?.providerExpose ?? false} onChange={handleToggle} disabled={pending || !data} />
+        <Toggle
+          checked={data?.providerExpose ?? false}
+          onChange={handleToggle}
+          disabled={pending || !data}
+        />
       </div>
     </Card>
   );
 }
-

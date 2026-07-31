@@ -133,9 +133,9 @@ export default function AutoRoutingAnalyticsTab() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-2 px-3 font-medium">Provider</th>
-                <th className="text-right py-2 px-3 font-medium">Requests</th>
-                <th className="text-right py-2 px-3 font-medium">Share</th>
+                <th className="text-left py-2 px-3 font-medium">{t("chartProvider")}</th>
+                <th className="text-right py-2 px-3 font-medium">{t("chartRequests")}</th>
+                <th className="text-right py-2 px-3 font-medium">{t("chartShare")}</th>
               </tr>
             </thead>
             <tbody>

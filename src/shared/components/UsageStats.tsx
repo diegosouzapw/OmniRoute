@@ -357,7 +357,7 @@ export default function UsageStats() {
       {/* {t("usageByModel")} Table */}
       <Card className="overflow-hidden">
         <div className="p-4 border-b border-border bg-bg-subtle/50">
-          <h3 className="font-semibold">Usage by Model</h3>
+          <h3 className="font-semibold">{t("usageByModel")}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -516,7 +516,7 @@ export default function UsageStats() {
       {/* {t("usageByAccount")} Table */}
       <Card className="overflow-hidden">
         <div className="p-4 border-b border-border bg-bg-subtle/50">
-          <h3 className="font-semibold">Usage by Account</h3>
+          <h3 className="font-semibold">{t("usageByAccount")}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">

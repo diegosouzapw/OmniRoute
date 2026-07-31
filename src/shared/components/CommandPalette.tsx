@@ -353,7 +353,7 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
             ))}
           </ul>
         ) : (
-          <div className="py-10 text-center text-text-muted text-sm">No results</div>
+          <div className="py-10 text-center text-text-muted text-sm">{t("noResults")}</div>
         )}
 
         <div className="flex items-center gap-4 px-4 py-2 border-t border-black/5 dark:border-white/5 text-[11px] text-text-muted">

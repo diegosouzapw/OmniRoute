@@ -53,7 +53,7 @@ function PageHeader() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-semibold">OmniGlyph</h1>
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
           {t("preview")}
         </span>

@@ -2,10 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "OmniRoute AI Gateway",
+    name: "OmniRoute AI 网关",
     short_name: "OmniRoute",
-    description:
-      "OmniRoute is an AI gateway for multi-provider LLMs. One endpoint for all your AI providers.",
+    description: "OmniRoute 是一个面向多提供者 LLM 的 AI 网关。一个端点连接您所有的 AI 提供者。",
     start_url: "/dashboard",
     scope: "/",
     display: "standalone",
