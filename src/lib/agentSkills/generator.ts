@@ -202,7 +202,11 @@ export function buildSkillMarkdown(
   };
 
   const bodyLines =
-    skill.category === "api" ? buildApiBody(skill, sources) : buildCliBody(skill, sources);
+    skill.category === "api"
+      ? buildApiBody(skill, sources)
+      : skill.category === "cli"
+        ? buildCliBody(skill, sources)
+        : ""; // external: content lives in the custom block below
 
   // Re-inject custom block if present in existing content
   let customBlock = "";
