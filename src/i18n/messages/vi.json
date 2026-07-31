@@ -7118,6 +7118,8 @@
     "visionBridgeDesc": "Tự động chạy phương án dự phòng chuyển đổi hình ảnh sang văn bản trước khi định tuyến các yêu cầu hình ảnh đến các mô hình chỉ hỗ trợ văn bản.",
     "visionBridgeEnabledLabel": "Đã bật",
     "visionBridgeEnabledDesc": "Bật/tắt cầu nối trước cuộc gọi để thay thế các phần hình ảnh bằng văn bản được trích xuất.",
+    "visionBridgeRerouteTextOnlyLabel": "Định tuyến lại các mô hình chỉ có văn bản",
+    "visionBridgeRerouteTextOnlyDesc": "Gửi yêu cầu hoàn chỉnh, bao gồm hình ảnh, tới mô hình cầu nối khi mô hình được chọn không hỗ trợ đầu vào hình ảnh.",
     "visionBridgeModel": "Mô hình cầu nối",
     "visionBridgeModelPlaceholder": "openai/gpt-4o-mini",
     "visionBridgeModelHint": "Có thể sử dụng bất kỳ ID mô hình OmniRoute nào hỗ trợ xử lý hình ảnh ở đây.",
