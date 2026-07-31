@@ -29,6 +29,7 @@ import path from "node:path";
 import {
   runCursorAgentNudge,
   checkCursorAgentAvailability,
+  getCachedCursorAgentAvailability,
   renewCursorConnection,
   buildCursorRenewedUpdate,
   runCursorRenewalExclusive,
@@ -258,6 +259,63 @@ describe("checkCursorAgentAvailability", () => {
           "must not spawn when nothing is found"
         );
       }
+    );
+  });
+});
+
+describe("getCachedCursorAgentAvailability (Task 5 Step 1 — 5-minute TTL wrapper for UI callers)", () => {
+  const ORIGINAL_HOME = process.env.HOME;
+  const ORIGINAL_USERPROFILE = process.env.USERPROFILE;
+  const CACHE_TTL_MS = 5 * 60 * 1000; // mirrors CURSOR_AGENT_AVAILABILITY_CACHE_TTL_MS in renewal.ts
+  let tmpHome: string;
+  let logPath: string;
+
+  beforeEach(() => {
+    tmpHome = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cursor-avail-cache-"));
+    process.env.HOME = tmpHome;
+    process.env.USERPROFILE = tmpHome;
+    writeFakeCursorAgentBinary(path.join(tmpHome, ".local", "bin", "cursor-agent"));
+    logPath = path.join(tmpHome, "log.jsonl");
+    process.env.FAKE_CURSOR_AGENT_LOG = logPath;
+    process.env.FAKE_CURSOR_AGENT_STATUS_MODE = "authenticated";
+  });
+
+  afterEach(() => {
+    process.env.HOME = ORIGINAL_HOME;
+    if (ORIGINAL_USERPROFILE !== undefined) process.env.USERPROFILE = ORIGINAL_USERPROFILE;
+    else delete process.env.USERPROFILE;
+    clearFakeCursorAgentEnv();
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+  });
+
+  // A single test, one continuous mocked timeline: getCachedCursorAgentAvailability()'s
+  // module-level cache has no exported reset hook and persists for the life of the
+  // process, so two separate `it()` blocks each assuming a "fresh" cache would be
+  // order-dependent (a later test could silently inherit an earlier test's still-valid
+  // cache entry, since node:test's per-test mock-timer teardown restores the REAL clock
+  // between tests, not the fake one — the leftover `expiresAt` would still be far in
+  // that real future). Keeping both assertions on one uninterrupted fake clock avoids that.
+  it("reuses the cached result within the TTL window, then spawns exactly once more after it expires", async (t) => {
+    t.mock.timers.enable({ apis: ["Date"] });
+
+    const first = await getCachedCursorAgentAvailability();
+    assert.equal(readLoggedInvocations(logPath).length, 1, "the first call must spawn");
+
+    t.mock.timers.tick(CACHE_TTL_MS - 1000); // still inside the window
+    const second = await getCachedCursorAgentAvailability();
+    assert.deepEqual(first, second);
+    assert.equal(
+      readLoggedInvocations(logPath).length,
+      1,
+      "still within the TTL — no second spawn"
+    );
+
+    t.mock.timers.tick(2000); // now past the TTL (cumulative: TTL + 1000ms)
+    await getCachedCursorAgentAvailability();
+    assert.equal(
+      readLoggedInvocations(logPath).length,
+      2,
+      "expiry must trigger exactly one fresh spawn"
     );
   });
 });

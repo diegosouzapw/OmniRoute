@@ -103,6 +103,34 @@ export async function checkCursorAgentAvailability(): Promise<{
   }
 }
 
+const CURSOR_AGENT_AVAILABILITY_CACHE_TTL_MS = 5 * 60 * 1000;
+
+let cachedAvailability: {
+  result: { available: boolean; binaryPath: string | null };
+  expiresAt: number;
+} | null = null;
+
+/**
+ * Cached wrapper around checkCursorAgentAvailability(), for INFORMATIONAL/UI
+ * callers only (5-minute TTL) — e.g. the dashboard's install-nudge banner,
+ * which may mount/refetch frequently. Task 3's sweep and Task 4's manual
+ * refresh route continue calling the UNCACHED checkCursorAgentAvailability()
+ * directly: a "refresh now" click must always see a fresh status, never a
+ * stale cached answer.
+ */
+export async function getCachedCursorAgentAvailability(): Promise<{
+  available: boolean;
+  binaryPath: string | null;
+}> {
+  const now = Date.now();
+  if (cachedAvailability && cachedAvailability.expiresAt > now) {
+    return cachedAvailability.result;
+  }
+  const result = await checkCursorAgentAvailability();
+  cachedAvailability = { result, expiresAt: now + CURSOR_AGENT_AVAILABILITY_CACHE_TTL_MS };
+  return result;
+}
+
 export type CursorRenewalResult =
   | {
       status: "renewed";
