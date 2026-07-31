@@ -5272,6 +5272,7 @@
     "compatibleProdPlaceholder": "{type} Compatible (Prod)",
     "tokenRefreshed": "Token refreshed successfully",
     "tokenRefreshFailed": "Token refresh failed",
+    "cursorSessionUnchanged": "Session already current",
     "applyCodexAuthLocal": "Apply auth",
     "exportCodexAuthFile": "Export auth",
     "applyClaudeAuthLocal": "Apply auth",
