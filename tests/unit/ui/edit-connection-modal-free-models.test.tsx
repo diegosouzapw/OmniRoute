@@ -261,6 +261,11 @@ describe("EditConnectionModal — encrypted Responses reasoning", () => {
     expect(
       el.querySelector('button[role="switch"][aria-label="openaiResponsesStoreLabel"]')
     ).toBeTruthy();
+    const cooldownToggle = el.querySelector<HTMLButtonElement>(
+      'button[role="switch"][aria-label="disableCoolingLabel"]'
+    )!;
+    const reasoningToggle = el.querySelector<HTMLButtonElement>(PRESERVE_TOGGLE)!;
+    expect(reasoningToggle.parentElement?.nextElementSibling).toBe(cooldownToggle.parentElement);
     const saveBtn = Array.from(el.querySelectorAll("button")).find(
       (button) => button.textContent?.trim() === "save"
     )!;
