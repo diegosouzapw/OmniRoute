@@ -51,13 +51,31 @@ export function decodeSkillToolName(toolName: string): string {
   }
 }
 
+// Skills store a flat JSON Schema record ({ "text": { "type": "string" } }),
+// but Gemini (function_declarations[].parameters) and Anthropic
+// (input_schema) require a full object schema with a properties wrapper.
+// Normalize to { "type": "object", "properties": {...} } when the stored
+// schema is a bare property map.
+function normalizeInputSchema(input: Record<string, unknown>): Record<string, unknown> {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    return input ?? {};
+  }
+  if (typeof input.type === "string") {
+    return input;
+  }
+  return {
+    type: "object",
+    properties: input,
+  };
+}
+
 function skillToOpenAI(skill: Skill): OpenAITool {
   return {
     type: "function",
     function: {
       name: encodeSkillToolName(skill.name, skill.version),
       description: skill.description,
-      parameters: skill.schema.input,
+      parameters: normalizeInputSchema(skill.schema.input),
     },
   };
 }
@@ -66,7 +84,7 @@ function skillToClaude(skill: Skill): ClaudeTool {
   return {
     name: encodeSkillToolName(skill.name, skill.version),
     description: skill.description,
-    input_schema: skill.schema.input,
+    input_schema: normalizeInputSchema(skill.schema.input),
   };
 }
 
@@ -74,7 +92,7 @@ function skillToGemini(skill: Skill): GeminiTool {
   return {
     name: encodeSkillToolName(skill.name, skill.version),
     description: skill.description,
-    parameters: skill.schema.input,
+    parameters: normalizeInputSchema(skill.schema.input),
   };
 }
 
