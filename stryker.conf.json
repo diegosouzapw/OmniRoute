@@ -259,6 +259,8 @@
       "tests/unit/quota-streaming-consumption-usd.test.ts",
       "tests/unit/qwen-web-content-array-serialization.test.ts",
       "tests/unit/rate-limit-enhanced.test.ts",
+      "tests/unit/rate-limit-execution-timeout-message-4165.test.ts",
+      "tests/unit/rate-limit-local-error-classification.test.ts",
       "tests/unit/rate-limit-manager.test.ts",
       "tests/unit/rate-limit-queue-timeout-lockout.test.ts",
       "tests/unit/repro-7503-no-choices.test.ts",
