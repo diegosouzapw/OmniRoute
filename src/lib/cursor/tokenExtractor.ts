@@ -279,7 +279,12 @@ export async function tryIdeAuth(): Promise<{
   let db: SqliteAdapter | null;
   try {
     const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
-    db = tryOpenSync(dbPath, { readonly: true, fileMustExist: true });
+    // Bounded busy-timeout: tryIdeAuth() is now also called from an unattended
+    // sweep tick (src/lib/cursor/renewal.ts::renewCursorConnection()) on every
+    // near-expiry cycle, not just the explicit auto-import modal action, so a
+    // WAL-lock collision with a running Cursor IDE needs a retry window on
+    // every driver path (see driverFactory.ts::toNodeSqliteOptions()).
+    db = tryOpenSync(dbPath, { readonly: true, fileMustExist: true, timeout: 2000 });
     if (!db) {
       if (platform === "darwin") {
         return {

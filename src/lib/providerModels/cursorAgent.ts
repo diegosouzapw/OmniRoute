@@ -5,10 +5,11 @@ import { delimiter, join } from "node:path";
 
 // cursor-agent waits on stdin when given a piped fd, so we always launch it
 // with stdin closed ("ignore") so it exits as soon as it prints the model list.
-function runCursorAgent(
+export function runCursorAgent(
   binary: string,
   args: string[],
-  timeoutMs: number
+  timeoutMs: number,
+  options?: { sigkillFollowupMs?: number }
 ): Promise<{ stdout: string; stderr: string; code: number | null; signal: NodeJS.Signals | null }> {
   return new Promise((resolve, reject) => {
     let child;
@@ -20,6 +21,8 @@ function runCursorAgent(
     }
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    let sigkillTimer: NodeJS.Timeout | undefined;
     child.stdout.setEncoding("utf8");
     child.stderr.setEncoding("utf8");
     child.stdout.on("data", (chunk) => {
@@ -28,13 +31,27 @@ function runCursorAgent(
     child.stderr.on("data", (chunk) => {
       stderr += chunk;
     });
-    const killTimer = setTimeout(() => child.kill("SIGTERM"), timeoutMs);
+    const killTimer = setTimeout(() => {
+      child.kill("SIGTERM");
+      // Unattended-execution hardening: nothing interactively supervises a
+      // background spawn, so a process that ignores SIGTERM needs a hard
+      // follow-up kill rather than lingering indefinitely.
+      if (options?.sigkillFollowupMs !== undefined) {
+        sigkillTimer = setTimeout(() => {
+          if (!settled) child.kill("SIGKILL");
+        }, options.sigkillFollowupMs);
+      }
+    }, timeoutMs);
     child.on("error", (err) => {
+      settled = true;
       clearTimeout(killTimer);
+      clearTimeout(sigkillTimer);
       reject(err);
     });
     child.on("close", (code, signal) => {
+      settled = true;
       clearTimeout(killTimer);
+      clearTimeout(sigkillTimer);
       resolve({ stdout, stderr, code, signal });
     });
   });
@@ -42,17 +59,20 @@ function runCursorAgent(
 
 // Resolve cursor-agent across common install locations, since the standalone
 // Next.js server may run with a PATH that doesn't include the user's local bin.
-function resolveCursorAgentBinary(): string | null {
+export function resolveCursorAgentBinary(options?: { allowPathFallback?: boolean }): string | null {
+  const allowPathFallback = options?.allowPathFallback ?? true;
   const home = homedir();
   const candidates = [
     join(home, ".local", "bin", "cursor-agent"),
     "/root/.local/bin/cursor-agent",
     "/usr/local/bin/cursor-agent",
     "/usr/bin/cursor-agent",
+    "/opt/homebrew/bin/cursor-agent",
   ];
   for (const candidate of candidates) {
     if (existsSync(candidate)) return candidate;
   }
+  if (!allowPathFallback) return null;
   // Fallback: PATH-based lookup (lets execFile do the resolution).
   const pathDirs = (process.env.PATH || "").split(delimiter).filter(Boolean);
   for (const dir of pathDirs) {
