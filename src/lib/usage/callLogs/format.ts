@@ -1,6 +1,6 @@
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { sanitizePII } from "../../piiSanitizer";
-import { protectPayloadForLog } from "../../logPayloads";
+import { omitEncryptedReasoningFromLogChunks, protectPayloadForLog } from "../../logPayloads";
 import type { CallLogDetailState } from "../callLogArtifacts";
 // #7879: re-export the canonical helper so existing consumers of this module
 // keep importing `toNumber` from here unchanged.
@@ -79,9 +79,12 @@ export function protectPipelinePayloads(payloads: unknown): RequestPipelinePaylo
     if (key === "streamChunks" && value && typeof value === "object") {
       const chunks = value as Record<string, unknown>;
       const compacted = Object.fromEntries(
-        Object.entries(chunks).filter(
-          ([, chunkValue]) => Array.isArray(chunkValue) && chunkValue.length > 0
-        )
+        Object.entries(chunks)
+          .filter(([, chunkValue]) => Array.isArray(chunkValue) && chunkValue.length > 0)
+          .map(([stage, chunkValue]) => [
+            stage,
+            omitEncryptedReasoningFromLogChunks(chunkValue as string[]),
+          ])
       );
       if (Object.keys(compacted).length > 0) {
         protectedPayloads.streamChunks = protectPayloadForLog(
