@@ -3333,13 +3333,17 @@ export async function handleChatCore({
     const isProxyUnreachableFailure =
       !isRequestAborted && (error as { errorCode?: unknown })?.errorCode === "proxy_unreachable";
     const errorCode = getUpstreamErrorIdentifier(error);
-    const isLocalQueueTimeout = errorCode === "RATE_LIMIT_QUEUE_TIMEOUT";
+    const isLocalQueueCapacity = [
+      "RATE_LIMIT_QUEUE_TIMEOUT",
+      "RATE_LIMIT_QUEUE_FULL",
+      "RATE_LIMIT_QUEUE_WEDGED",
+    ].includes(errorCode);
     const failureStatus = isRequestAborted
       ? 499
       : isProxyUnreachableFailure
         ? HTTP_STATUS.BAD_GATEWAY
-        : isLocalQueueTimeout
-          ? HTTP_STATUS.SERVICE_UNAVAILABLE
+        : isLocalQueueCapacity
+          ? HTTP_STATUS.RATE_LIMITED
           : error.name === "TimeoutError" || error.name === "BodyTimeoutError"
             ? HTTP_STATUS.GATEWAY_TIMEOUT
             : error.status && typeof error.status === "number"
@@ -3347,7 +3351,9 @@ export async function handleChatCore({
               : HTTP_STATUS.BAD_GATEWAY;
     const failureMessage = isRequestAborted
       ? "Request aborted"
-      : formatProviderError(error, provider, model, failureStatus);
+      : isLocalQueueCapacity
+        ? error.message || "Local rate-limit queue capacity exceeded"
+        : formatProviderError(error, provider, model, failureStatus);
     const upstreamErrorCode = isProxyUnreachableFailure ? "proxy_unreachable" : errorCode;
     // Tag our own deadline timeouts (fetch-start TimeoutError / body BodyTimeoutError,
     // both surfaced as a 504) as "upstream_timeout" so the cooldown layer can tell a
@@ -3356,8 +3362,9 @@ export async function handleChatCore({
     const isOwnDeadlineTimeout =
       failureStatus === HTTP_STATUS.GATEWAY_TIMEOUT &&
       (error.name === "TimeoutError" || error.name === "BodyTimeoutError");
-    const upstreamErrorType =
-      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE || isOwnDeadlineTimeout
+    const upstreamErrorType = isLocalQueueCapacity
+      ? "local_queue_capacity"
+      : upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE || isOwnDeadlineTimeout
         ? "upstream_timeout"
         : failureStatus === 401
           ? "authentication_error"

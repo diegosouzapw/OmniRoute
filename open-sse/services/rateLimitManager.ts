@@ -25,7 +25,7 @@ import {
   parseResetTime,
   toPlainHeaders,
 } from "./rateLimitManager/headers";
-import { checkQueueAdmission } from "./rateLimitManager/admission";
+import { checkQueueAdmission, scheduleWithQueueWaitBudget } from "./rateLimitManager/admission";
 
 interface LearnedLimitEntry {
   provider: string;
@@ -559,32 +559,7 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-async function getQueueHealthSnapshot(key: string, limiter: Bottleneck) {
-  const counts = limiter.counts();
-  let reservoirRemaining: number | null = null;
-  try {
-    reservoirRemaining = await limiter.currentReservoir();
-  } catch {
-    // Snapshot logging must never affect request handling.
-  }
-  const lastDispatch = lastDispatchAt.get(key);
-  return {
-    queued: counts.QUEUED,
-    running: counts.RUNNING,
-    executing: counts.EXECUTING,
-    reservoirRemaining,
-    lastDispatchAgeMs: lastDispatch ? Date.now() - lastDispatch : null,
-  };
-}
-
-export async function withRateLimit(
-  provider,
-  connectionId,
-  model,
-  fn,
-  signal = null,
-  retryAfterWedge = true
-) {
+export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
   if (!enabledConnections.has(connectionId)) {
     return fn();
   }
@@ -608,7 +583,6 @@ export async function withRateLimit(
 
   const limiter = getLimiter(provider, connectionId, model);
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
-  const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
 
   // Issue #6593: opt-in admission cap — fast-reject before Bottleneck's
   // schedule() (and before any downstream compression/prompt work runs) when
@@ -626,92 +600,26 @@ export async function withRateLimit(
   }
 
   try {
-    if (signal) {
-      let abortListener: (() => void) | undefined;
-      const abortPromise = new Promise<never>((_, reject) => {
-        const onAbort = () => {
-          const reason = signal.reason;
-          // Preserve native Error reasons (including AbortController's
-          // read-only DOMException) instead of mutating or wrapping them.
-          if (reason instanceof Error) {
-            reject(reason);
-            return;
-          }
-          const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
-          err.name = "AbortError";
-          if (reason !== undefined) {
-            (err as Error & { cause?: unknown }).cause = reason;
-          }
-          reject(err);
-        };
-        if (signal.aborted) {
-          onAbort();
-          return;
-        }
-        abortListener = onAbort;
-        signal.addEventListener("abort", abortListener, { once: true });
-      });
-
-      try {
-        return await Promise.race([limiter.schedule(scheduleOpts, fn), abortPromise]);
-      } finally {
-        if (abortListener) {
-          signal.removeEventListener("abort", abortListener);
-        }
-      }
-    } else {
-      return await limiter.schedule(scheduleOpts, fn);
-    }
+    return await scheduleWithQueueWaitBudget(
+      (job: () => Promise<unknown>) => limiter.schedule(job),
+      fn,
+      maxWaitMs,
+      model ? `${provider}/${model}` : provider,
+      signal
+    );
   } catch (err) {
-    // Bottleneck's raw `This job timed out after <maxWaitMs> ms.` is
-    // indistinguishable from an upstream gateway timeout, so it leaks into 502
-    // bodies / call-log `last_error` and gets misdiagnosed as a provider outage
-    // (#4165). Rewrite it into a clear, OmniRoute-owned error (knob named,
-    // upstream disclaimed, original kept as `cause`, `code` for classification).
-    // If the limiter is idle with capacity after the expiry, the scheduler is wedged.
-    // Reset it and retry this never-dispatched function once on a fresh limiter.
-    if (err?.message?.includes("This job timed out")) {
-      const key = getLimiterKey(provider, connectionId, model);
-      const queueState = await getQueueHealthSnapshot(key, limiter);
-      logRateLimit(
-        `⏰ [RATE-LIMIT] ${key} — job expired after ${Math.ceil((maxWaitMs || 0) / 1000)}s in queue, dropping`
-      );
-      const limiterIsWedged =
-        retryAfterWedge &&
-        queueState.running === 0 &&
-        queueState.executing === 0 &&
-        typeof queueState.reservoirRemaining === "number" &&
-        queueState.reservoirRemaining > 0 &&
-        typeof queueState.lastDispatchAgeMs === "number" &&
-        queueState.lastDispatchAgeMs >= Math.max(1, maxWaitMs || 0);
-      if (limiterIsWedged) {
-        logRateLimit(`🔄 [RATE-LIMIT] ${key} — recovering idle limiter after queue expiry`);
-        evictWedgeLimiter(key, limiter);
-        return withRateLimit(provider, connectionId, model, fn, signal, false);
-      }
-      const queueErr = new Error(
-        `Request dropped after exceeding the local rate-limit queue budget maxWaitMs (${maxWaitMs}ms) for ` +
-          `${model ? `${provider}/${model}` : provider} — this is OmniRoute's request queue ` +
-          `(resilienceSettings.requestQueue.maxWaitMs), not an upstream timeout. Raise it in ` +
-          `Settings → Resilience if this is queue saturation rather than a slow provider.`,
-        { cause: err }
-      ) as Error & { code?: string };
-      queueErr.code = "RATE_LIMIT_QUEUE_TIMEOUT";
-      throw queueErr;
-    }
-    // The watchdog's stop({ dropWaitingJobs: true }) wedge-recovery (above) rejects
-    // queued jobs with this exact message. Rewrite it the same way as the timeout
-    // case — a clear, OmniRoute-owned, classifiable error — so combo's transient-error
-    // handling (which already treats a 502 as retryable) falls back to the next target
-    // immediately instead of surfacing Bottleneck's internal wording.
+    // The watchdog rejects queued placeholders with this exact marker when it
+    // force-resets a genuinely idle/wedged limiter. Keep the failure local and
+    // classifiable; it must never masquerade as a provider 5xx.
     if (err?.message === "rate-limit-watchdog-wedge-reset") {
       const wedgeErr = new Error(
         `Request dropped: the local rate-limit queue for ${model ? `${provider}/${model}` : provider} ` +
           `was detected as wedged (stalled with nothing executing) and force-reset. This is OmniRoute's ` +
           `own queue recovering, not an upstream error.`,
         { cause: err }
-      ) as Error & { code?: string };
+      ) as Error & { code?: string; status?: number };
       wedgeErr.code = "RATE_LIMIT_QUEUE_WEDGED";
+      wedgeErr.status = 429;
       throw wedgeErr;
     }
     throw err;
