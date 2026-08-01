@@ -70,6 +70,7 @@ export interface EditConnectionModalConnection {
   provider?: string;
   apiKey?: string;
   providerSpecificData?: Record<string, unknown>;
+  defaultModel?: string | null;
   healthCheckInterval?: number;
   projectId?: string | null;
 }
@@ -119,6 +120,7 @@ export default function EditConnectionModal({
     region: "",
     apiRegion: "international",
     validationModelId: "",
+    defaultModel: "",
     tag: "",
     routingTags: "",
     excludedModels: "",
@@ -301,6 +303,7 @@ export default function EditConnectionModal({
         region: existingRegion || (showsRegion ? defaultRegion : ""),
         apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
+        defaultModel: (connection.defaultModel as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
         routingTags: formatRoutingTagsInput(connection.providerSpecificData?.tags),
         excludedModels: formatExcludedModelsInput(
@@ -541,6 +544,9 @@ export default function EditConnectionModal({
         }
       }
       if (!isOAuth) {
+        if (isCompatible) {
+          updates.defaultModel = formData.defaultModel.trim() || null;
+        }
         updates.providerSpecificData = {
           ...(connection.providerSpecificData || {}),
         };
@@ -1007,6 +1013,20 @@ export default function EditConnectionModal({
                   </div>
                 </div>
               </div>
+            )}
+            {isCompatible && (
+              <Input
+                label={t("compatibleDefaultModelLabel")}
+                value={formData.defaultModel}
+                onChange={(e) => setFormData({ ...formData, defaultModel: e.target.value })}
+                placeholder={
+                  isAnthropicCompatibleProvider(provider)
+                    ? "claude-3-5-sonnet-latest"
+                    : "gpt-4o-mini"
+                }
+                hint={t("compatibleDefaultModelHint")}
+                data-testid="compat-default-model-input"
+              />
             )}
             <Input
               label={t("validationModelIdLabel")}

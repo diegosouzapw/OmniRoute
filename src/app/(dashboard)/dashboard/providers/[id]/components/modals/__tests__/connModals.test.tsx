@@ -418,4 +418,109 @@ describe("conn-modals (Phase 1c extraction)", () => {
       )
     ).not.toThrow();
   });
+
+  it("AddApiKeyModal allows saving a compatible connection without a Default Model", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const c = renderModal(
+      <AddApiKeyModal
+        isOpen={true}
+        provider="openai-compatible-test"
+        providerName="Test Compatible"
+        isCompatible={true}
+        onSave={onSave}
+        onClose={vi.fn()}
+      />
+    );
+    const saveButton = Array.from(c.querySelectorAll("button")).find(
+      (button) => button.textContent === "providers.save"
+    );
+    expect(saveButton).toBeDefined();
+    expect((saveButton as HTMLButtonElement).disabled).toBe(false);
+    await act(async () => {
+      saveButton!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    const payload = onSave.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload).toHaveProperty("defaultModel");
+    expect(payload.defaultModel).toBeUndefined();
+  });
+
+  it("EditConnectionModal renders and prefills the Default Model for a compatible connection", () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const connection = {
+      id: "conn-compat",
+      name: "Test Compat",
+      provider: "openai-compatible-test",
+      authType: "apikey",
+      priority: 1,
+      defaultModel: "gpt-4o-mini",
+    };
+    const c = renderModal(
+      <EditConnectionModal
+        isOpen={true}
+        connection={connection}
+        providerId="openai-compatible-test"
+        onSave={onSave}
+        onClose={vi.fn()}
+      />
+    );
+    const input = c.querySelector<HTMLInputElement>('[data-testid="compat-default-model-input"]');
+    expect(input).not.toBeNull();
+    expect(input?.value).toBe("gpt-4o-mini");
+  });
+
+  it("EditConnectionModal does not render Default Model for non-compatible connections", () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const connection = {
+      id: "conn-openai",
+      name: "OpenAI",
+      provider: "openai",
+      authType: "apikey",
+      priority: 1,
+      defaultModel: "gpt-4o-mini",
+    };
+    const c = renderModal(
+      <EditConnectionModal
+        isOpen={true}
+        connection={connection}
+        providerId="openai"
+        onSave={onSave}
+        onClose={vi.fn()}
+      />
+    );
+    expect(c.querySelector('[data-testid="compat-default-model-input"]')).toBeNull();
+  });
+
+  it("EditConnectionModal sends defaultModel null when the field is cleared", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const connection = {
+      id: "conn-compat",
+      name: "Test Compat",
+      provider: "openai-compatible-test",
+      authType: "apikey",
+      priority: 1,
+      defaultModel: "gpt-4o-mini",
+    };
+    const c = renderModal(
+      <EditConnectionModal
+        isOpen={true}
+        connection={connection}
+        providerId="openai-compatible-test"
+        onSave={onSave}
+        onClose={vi.fn()}
+      />
+    );
+    const input = c.querySelector<HTMLInputElement>('[data-testid="compat-default-model-input"]');
+    setInputValue(input!, "");
+    const saveButton = Array.from(c.querySelectorAll("button")).find(
+      (button) => button.textContent === "providers.save"
+    );
+    await act(async () => {
+      saveButton!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ defaultModel: null }));
+  });
 });

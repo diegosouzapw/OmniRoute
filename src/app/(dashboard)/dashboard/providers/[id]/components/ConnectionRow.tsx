@@ -15,11 +15,7 @@ import {
   getCodexEffectiveServiceTier,
   type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
-import {
-  normalizeCodexLimitPolicy,
-  providerText,
-  ERROR_TYPE_LABELS,
-} from "../providerPageHelpers";
+import { normalizeCodexLimitPolicy, providerText, ERROR_TYPE_LABELS } from "../providerPageHelpers";
 import { getCodexPlanLabel } from "../codexPlanLabel";
 import ProviderQuotaVisibilityToggle from "./ProviderQuotaVisibilityToggle";
 
@@ -44,6 +40,7 @@ export interface ConnectionRowConnection {
   errorCode?: string | number;
   globalPriority?: number;
   providerSpecificData?: Record<string, unknown>;
+  defaultModel?: string | null;
   expiresAt?: string;
   tokenExpiresAt?: string;
   maxConcurrent?: number | null;
