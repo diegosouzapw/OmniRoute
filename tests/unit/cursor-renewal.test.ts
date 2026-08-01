@@ -76,6 +76,8 @@ if (process.env.FAKE_CURSOR_AGENT_HANG === "1") {
     process.stdout.write(JSON.stringify({ status: "unauthenticated", isAuthenticated: false }));
   } else if (mode === "garbage") {
     process.stdout.write("not json output at all");
+  } else if (mode === "legacy-unauthenticated") {
+    process.stderr.write("Error: Not logged in. Run 'cursor-agent login' to authenticate.");
   }
 }
 `;
@@ -195,8 +197,19 @@ describe("checkCursorAgentAvailability", () => {
     assert.equal(result.binaryPath, binaryPath);
   });
 
-  it("reports available:false (does not throw) on unparseable/legacy-style stdout", async () => {
+  it("reports available:true (legacy-authenticated) on unparseable stdout with no auth-required signal", async () => {
+    // Mirrors fetchCursorAgentModels()'s legacy fallback convention in
+    // cursorAgent.ts: an older CLI release predating `--format json` support
+    // on `status` still produces some non-JSON output, but absent an
+    // explicit "not authenticated" signal, the binary is treated as available.
     process.env.FAKE_CURSOR_AGENT_STATUS_MODE = "garbage";
+    const result = await checkCursorAgentAvailability();
+    assert.equal(result.available, true);
+    assert.equal(result.binaryPath, binaryPath);
+  });
+
+  it("reports available:false (legacy-unauthenticated) when unparseable stdout/stderr matches the auth-required pattern", async () => {
+    process.env.FAKE_CURSOR_AGENT_STATUS_MODE = "legacy-unauthenticated";
     const result = await checkCursorAgentAvailability();
     assert.equal(result.available, false);
     assert.equal(result.binaryPath, binaryPath);
@@ -380,6 +393,20 @@ describe("renewCursorConnection", () => {
     fs.writeFileSync(path.join(authDir, "auth.json"), JSON.stringify({ accessToken }));
   }
 
+  async function updateIdeToken(accessToken: string): Promise<void> {
+    const { openDatabaseAsync } = await import("@/lib/db/adapters/driverFactory");
+    const dbPath = path.join(
+      tmpHome,
+      "Library/Application Support/Cursor/User/globalStorage/state.vscdb"
+    );
+    const db = await openDatabaseAsync(dbPath);
+    db.prepare("INSERT OR REPLACE INTO itemTable (key, value) VALUES (?, ?)").run(
+      "cursorAuth/accessToken",
+      accessToken
+    );
+    db.close();
+  }
+
   it("(a) cursor-agent unavailable + IDE re-scrape finds a new token -> renewed via cursor-ide", async () => {
     process.env.FAKE_CURSOR_AGENT_STATUS_MODE = "unauthenticated"; // cursor-agent "unavailable"
     await writeIdeToken("new-ide-token", "machine-1");
@@ -517,6 +544,52 @@ describe("renewCursorConnection", () => {
       status: "renewed",
       accessToken: "new-ide-token-after-nudge-timeout",
       machineId: "machine-9",
+      source: "cursor-ide",
+    });
+  });
+
+  it("(g) dedupes tryIdeAuth() across near-simultaneous calls (PERF-001): a stale cached result is served within the TTL, then a fresh one after it expires", async (t) => {
+    // Simulates multiple Cursor connections becoming due for renewal in the
+    // same sweep tick: renewCursorConnection() is called back-to-back for
+    // the SAME host, so the second call must reuse the first's in-flight/
+    // recently-resolved tryIdeAuth() result rather than re-opening
+    // state.vscdb — this is a resource-usage guard (PERF-001), not a
+    // correctness fix. Uses fake timers on `Date` (same technique as
+    // getCachedCursorAgentAvailability's TTL test) since renewal.ts's dedup
+    // cache is keyed on Date.now(), not a mockable timer/interval.
+    t.mock.timers.enable({ apis: ["Date"] });
+    process.env.FAKE_CURSOR_AGENT_STATUS_MODE = "unauthenticated"; // skip the nudge; isolate the IDE-cache behavior
+
+    await writeIdeToken("token-A", "machine-a");
+
+    const first = await renewCursorConnection({ accessToken: "old-token" });
+    assert.deepEqual(first, {
+      status: "renewed",
+      accessToken: "token-A",
+      machineId: "machine-a",
+      source: "cursor-ide",
+    });
+
+    // Underlying file now has a NEW token, but a second call within the TTL
+    // must still observe the CACHED "token-A" — proven by comparing against
+    // current.accessToken: "token-A" (the first result) reads as unchanged
+    // only if the cache is actually being served instead of a fresh re-scrape.
+    await updateIdeToken("token-B");
+    t.mock.timers.tick(2000); // well within the 5s dedup TTL
+    const second = await renewCursorConnection({ accessToken: "token-A" });
+    assert.deepEqual(
+      second,
+      { status: "unchanged" },
+      "expected the cached (stale) tryIdeAuth() result, not a fresh state.vscdb read"
+    );
+
+    // Past the TTL, the next call must re-open the file and observe "token-B".
+    t.mock.timers.tick(4000); // cumulative 6s, past the 5s TTL
+    const third = await renewCursorConnection({ accessToken: "token-A" });
+    assert.deepEqual(third, {
+      status: "renewed",
+      accessToken: "token-B",
+      machineId: "machine-a",
       source: "cursor-ide",
     });
   });

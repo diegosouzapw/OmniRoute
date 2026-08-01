@@ -1,3 +1,4 @@
+import { homedir } from "os";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createKeyedMutex } from "@/shared/utils/keyedMutex";
 import { resolveCursorAgentBinary, runCursorAgent } from "@/lib/providerModels/cursorAgent";
@@ -96,10 +97,15 @@ export async function checkCursorAgentAvailability(): Promise<{
     return { available: parsed.isAuthenticated === true, binaryPath: binary };
   } catch {
     // Unparseable/empty output (e.g. an older CLI release predating
-    // `--format json` support on `status`). Fail closed: absent a
-    // parseable, positive confirmation, treat as unavailable rather than
-    // risk nudging an unconfirmed session.
-    return { available: false, binaryPath: binary };
+    // `--format json` support on `status`). Fall back to the same legacy
+    // auth-detection convention `cursorAgent.ts` already uses for
+    // `--list-models`/`--model --help`: absent an explicit "not
+    // authenticated" signal in stdout/stderr, treat the binary as available.
+    const combined = `${result.stdout}\n${result.stderr}`;
+    if (/Authentication required|Not logged in/i.test(combined)) {
+      return { available: false, binaryPath: binary };
+    }
+    return { available: true, binaryPath: binary };
   }
 }
 
@@ -129,6 +135,35 @@ export async function getCachedCursorAgentAvailability(): Promise<{
   const result = await checkCursorAgentAvailability();
   cachedAvailability = { result, expiresAt: now + CURSOR_AGENT_AVAILABILITY_CACHE_TTL_MS };
   return result;
+}
+
+const IDE_AUTH_DEDUP_TTL_MS = 5_000;
+
+let cachedIdeAuthCall: {
+  home: string;
+  promise: ReturnType<typeof tryIdeAuth>;
+  expiresAt: number;
+} | null = null;
+
+/**
+ * Collapses duplicate tryIdeAuth() calls — each of which opens and queries
+ * the host's Cursor state.vscdb — across multiple Cursor connections that
+ * become due for renewal in the same sweep tick. Mirrors
+ * getCachedCursorAgentAvailability()'s short-TTL cache pattern above; keyed
+ * by homedir() since that determines which physical file(s) tryIdeAuth()
+ * would probe. Only wraps the REAL tryIdeAuth() — renewCursorConnection()'s
+ * `deps.tryIdeAuth` test override bypasses this cache entirely (a test mock
+ * isn't reading a real shared file, so there is nothing to dedup).
+ */
+function dedupedTryIdeAuth(): ReturnType<typeof tryIdeAuth> {
+  const home = homedir();
+  const now = Date.now();
+  if (cachedIdeAuthCall && cachedIdeAuthCall.home === home && cachedIdeAuthCall.expiresAt > now) {
+    return cachedIdeAuthCall.promise;
+  }
+  const promise = tryIdeAuth();
+  cachedIdeAuthCall = { home, promise, expiresAt: now + IDE_AUTH_DEDUP_TTL_MS };
+  return promise;
 }
 
 export type CursorRenewalResult =
@@ -175,7 +210,7 @@ export async function renewCursorConnection(
     checkCursorAgentAvailability?: typeof checkCursorAgentAvailability;
   }
 ): Promise<CursorRenewalResult> {
-  const resolveIdeAuth = deps?.tryIdeAuth ?? tryIdeAuth;
+  const resolveIdeAuth = deps?.tryIdeAuth ?? dedupedTryIdeAuth;
   const resolveAgentAuth = deps?.tryAgentAuth ?? tryAgentAuth;
   const resolveAvailability = deps?.checkCursorAgentAvailability ?? checkCursorAgentAvailability;
 

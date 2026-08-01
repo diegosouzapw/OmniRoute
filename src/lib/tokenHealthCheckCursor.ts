@@ -27,37 +27,63 @@ export async function checkCursorConnectionIfNeeded(params: {
   logError: (message: string, ...args: any[]) => void;
   getConnectionLogLabel: (conn: { name?: string; email?: string; id?: string }) => string;
   logPrefix: string;
+  /** Testability seam forwarded verbatim to renewCursorConnection() — mirrors
+   * the deps param Task 2 added there, so tests can force a {status:"error"}
+   * result without a mock.module() shim. */
+  deps?: Parameters<typeof renewCursorConnection>[1];
 }): Promise<void> {
-  const { conn, now, buildRefreshFailureUpdate, log, logWarn, getConnectionLogLabel, logPrefix } =
-    params;
+  const {
+    conn,
+    now,
+    buildRefreshFailureUpdate,
+    log,
+    logWarn,
+    logError,
+    getConnectionLogLabel,
+    logPrefix,
+    deps,
+  } = params;
 
   await runCursorRenewalExclusive(conn.id, async () => {
-    const result = await renewCursorConnection({
-      accessToken: conn.accessToken,
-      machineId: conn.providerSpecificData?.machineId ?? null,
-    });
-
-    if (result.status === "renewed") {
-      await updateProviderConnection(conn.id, buildCursorRenewedUpdate(conn, result, now));
-      log(
-        `${logPrefix} ✓ Cursor session renewed for ${getConnectionLogLabel(conn)} (source: ${result.source})`
-      );
-      return;
-    }
-
-    const message =
-      result.status === "error"
-        ? `Cursor session renewal failed: ${result.error}`
-        : "Cursor session unchanged — no newer token found on this host.";
-    await updateProviderConnection(
-      conn.id,
-      buildRefreshFailureUpdate(conn, now, {
-        errorCode: "cursor_session_stale",
-        lastErrorType: "cursor_session_stale",
-        lastError: message,
-        testStatus: "active",
-      })
+    const result = await renewCursorConnection(
+      {
+        accessToken: conn.accessToken,
+        machineId: conn.providerSpecificData?.machineId ?? null,
+      },
+      deps
     );
-    logWarn(`${logPrefix} ✗ Cursor session stale for ${getConnectionLogLabel(conn)}: ${message}`);
+
+    switch (result.status) {
+      case "renewed": {
+        await updateProviderConnection(conn.id, buildCursorRenewedUpdate(conn, result, now));
+        log(
+          `${logPrefix} ✓ Cursor session renewed for ${getConnectionLogLabel(conn)} (source: ${result.source})`
+        );
+        return;
+      }
+      case "unchanged":
+      case "error": {
+        const message =
+          result.status === "error"
+            ? `Cursor session renewal failed: ${result.error}`
+            : "Cursor session unchanged — no newer token found on this host.";
+        await updateProviderConnection(
+          conn.id,
+          buildRefreshFailureUpdate(conn, now, {
+            errorCode: "cursor_session_stale",
+            lastErrorType: "cursor_session_stale",
+            lastError: message,
+            testStatus: "active",
+          })
+        );
+        const logFn = result.status === "error" ? logError : logWarn;
+        logFn(`${logPrefix} ✗ Cursor session stale for ${getConnectionLogLabel(conn)}: ${message}`);
+        return;
+      }
+      default: {
+        const _exhaustive: never = result;
+        throw new Error(`Unhandled CursorRenewalResult status: ${JSON.stringify(_exhaustive)}`);
+      }
+    }
   });
 }

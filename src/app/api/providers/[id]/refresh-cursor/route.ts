@@ -28,6 +28,17 @@ const MANUAL_REFRESH_COOLDOWN_MS = 30_000;
  */
 const lastManualRefreshAttemptAt = new Map<string, number>();
 
+/** Opportunistic eviction — no separate timer needed since this route is
+ * already called on every manual-refresh click; keeps the map from growing
+ * unbounded across the lifetime of the process as connections are added/removed. */
+function evictExpiredManualRefreshAttempts(now: number): void {
+  for (const [connectionId, attemptedAt] of lastManualRefreshAttemptAt) {
+    if (now - attemptedAt >= MANUAL_REFRESH_COOLDOWN_MS) {
+      lastManualRefreshAttemptAt.delete(connectionId);
+    }
+  }
+}
+
 /**
  * POST /api/providers/[id]/refresh-cursor
  * Manually trigger a Cursor session renewal attempt (nudge `cursor-agent`,
@@ -57,8 +68,11 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       );
     }
 
+    const now = Date.now();
+    evictExpiredManualRefreshAttempts(now);
+
     const lastAttempt = lastManualRefreshAttemptAt.get(connection.id) ?? 0;
-    const elapsedMs = Date.now() - lastAttempt;
+    const elapsedMs = now - lastAttempt;
     if (elapsedMs < MANUAL_REFRESH_COOLDOWN_MS) {
       const retryAfterMs = MANUAL_REFRESH_COOLDOWN_MS - elapsedMs;
       return NextResponse.json(
@@ -74,7 +88,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }
     // Set immediately before invoking renewCursorConnection() — regardless of
     // outcome — so rapid repeated clicks are throttled either way.
-    lastManualRefreshAttemptAt.set(connection.id, Date.now());
+    lastManualRefreshAttemptAt.set(connection.id, now);
 
     return await runCursorRenewalExclusive(connection.id, async () => {
       const result = await renewCursorConnection({
@@ -82,35 +96,44 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         machineId: connection.providerSpecificData?.machineId as string | null | undefined,
       });
 
-      if (result.status === "renewed") {
-        const now = new Date().toISOString();
-        const update = buildCursorRenewedUpdate(connection, result, now);
-        await updateProviderConnection(connection.id, update);
-        return NextResponse.json({
-          success: true,
-          connectionId: connection.id,
-          provider: "cursor",
-          expiresAt: update.expiresAt as string,
-          refreshedAt: now,
-        });
+      switch (result.status) {
+        case "renewed": {
+          const nowIso = new Date().toISOString();
+          const update = buildCursorRenewedUpdate(connection, result, nowIso);
+          await updateProviderConnection(connection.id, update);
+          return NextResponse.json({
+            success: true,
+            connectionId: connection.id,
+            provider: "cursor",
+            expiresAt: update.expiresAt as string,
+            refreshedAt: nowIso,
+          });
+        }
+        case "unchanged": {
+          return NextResponse.json({
+            success: true,
+            unchanged: true,
+            connectionId: connection.id,
+            provider: "cursor",
+            expiresAt: connection.expiresAt ?? null,
+            refreshedAt: new Date().toISOString(),
+            message: "Cursor session is already current — no newer token found on this host.",
+          });
+        }
+        case "error": {
+          return NextResponse.json(
+            {
+              error: "Token refresh failed — provider returned no new token",
+              details: result.error,
+            },
+            { status: 502 }
+          );
+        }
+        default: {
+          const _exhaustive: never = result;
+          throw new Error(`Unhandled CursorRenewalResult status: ${JSON.stringify(_exhaustive)}`);
+        }
       }
-
-      if (result.status === "unchanged") {
-        return NextResponse.json({
-          success: true,
-          unchanged: true,
-          connectionId: connection.id,
-          provider: "cursor",
-          expiresAt: connection.expiresAt ?? null,
-          refreshedAt: new Date().toISOString(),
-          message: "Cursor session is already current — no newer token found on this host.",
-        });
-      }
-
-      return NextResponse.json(
-        { error: "Token refresh failed — provider returned no new token", details: result.error },
-        { status: 502 }
-      );
     });
   } catch (error) {
     return NextResponse.json(

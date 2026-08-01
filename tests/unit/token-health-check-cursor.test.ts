@@ -33,6 +33,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const tokenHealthCheck = await import("../../src/lib/tokenHealthCheck.ts");
+const tokenHealthCheckCursor = await import("../../src/lib/tokenHealthCheckCursor.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -271,28 +272,66 @@ test('checkConnection: Cursor "unchanged" result marks cursor_session_stale, sta
   });
 });
 
-test(
-  'checkConnection: Cursor "error" result -> DB update shape',
-  {
-    skip:
-      "Same root-cause testability gap as tests/unit/cursor-renewal.test.ts's original " +
-      "case (d), one level up: checkCursorConnectionIfNeeded() (src/lib/tokenHealthCheckCursor.ts) " +
-      "calls the real renewCursorConnection() with NO deps override, so there is no way to force " +
-      'it to return {status:"error"} from here (tryIdeAuth()/tryAgentAuth() never throw for real — ' +
-      "verified in Task 1/2's tests — and this harness has no mock.module() support). " +
-      "renewCursorConnection()'s OWN error-mapping (sanitizeErrorMessage wiring) is already " +
-      "covered directly in tests/unit/cursor-renewal.test.ts's case (d), using its deps seam. " +
-      "The remaining untested surface is narrowly this file's message-building line " +
-      "(`Cursor session renewal failed: ${result.error}`) plus the cursor_session_stale/testStatus:" +
-      '"active" override — both of which ARE exercised by the "unchanged" test above via the ' +
-      "identical buildRefreshFailureUpdate call site (only the interpolated message text differs). " +
-      "Flagged to the team lead/reviewer: forwarding an optional deps param from " +
-      "checkCursorConnectionIfNeeded() through to its internal renewCursorConnection() call " +
-      "(mirroring the seam already added to renewCursorConnection() itself for Task 2) would close " +
-      "this specific gap with a small, additive change.",
-  },
-  async () => {}
-);
+test('checkCursorConnectionIfNeeded: Cursor "error" result -> DB update shape (via the deps testability seam)', async () => {
+  await resetStorage();
+  const id = await createCursorConnection({
+    accessToken: "old-token",
+    tokenExpiresAt: NEAR_EXPIRY_ISO,
+    expiresAt: NEAR_EXPIRY_ISO,
+  });
+
+  // Closes the gap the skipped test above used to document: checkCursorConnectionIfNeeded()
+  // now forwards an optional `deps` param straight through to renewCursorConnection() (mirroring
+  // the seam Task 2 added there), so this can force a {status:"error"} result directly instead
+  // of going through tokenHealthCheck.checkConnection(), which has no deps param of its own.
+  const rawMessage =
+    "Failed to read Cursor IDE database at " +
+    "/Users/secret-user/project/src/lib/cursor/tokenExtractor.ts:284:15 - permission denied";
+  const throwingTryIdeAuth = async (): Promise<never> => {
+    throw new Error(rawMessage);
+  };
+  const throwingTryAgentAuth = async (): Promise<never> => {
+    throw new Error(rawMessage);
+  };
+
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const now = new Date().toISOString();
+
+  await tokenHealthCheckCursor.checkCursorConnectionIfNeeded({
+    conn: await freshConn(id),
+    now,
+    buildRefreshFailureUpdate: tokenHealthCheck.buildRefreshFailureUpdate,
+    log: () => {},
+    logWarn: (message: string) => warnings.push(message),
+    logError: (message: string) => errors.push(message),
+    getConnectionLogLabel: (c) => String(c.email ?? c.id ?? "unknown"),
+    logPrefix: "[test]",
+    deps: {
+      tryIdeAuth: throwingTryIdeAuth,
+      tryAgentAuth: throwingTryAgentAuth,
+      checkCursorAgentAvailability: async () => ({ available: false, binaryPath: null }),
+    },
+  });
+
+  const updated = await freshConn(id);
+  assert.equal(updated.errorCode, "cursor_session_stale");
+  assert.equal(updated.lastErrorType, "cursor_session_stale");
+  assert.match(updated.lastError as string, /Cursor session renewal failed:/);
+  assert.equal(
+    updated.testStatus,
+    "active",
+    "must NOT be terminal — future sweeps must keep retrying"
+  );
+  assert.ok(updated.lastHealthCheckAt);
+
+  assert.equal(errors.length, 1, "the error branch must log via logError, not logWarn");
+  assert.equal(warnings.length, 0);
+  assert.ok(
+    !errors[0].includes("/Users/secret-user"),
+    `raw absolute path must not survive sanitization, got: ${errors[0]}`
+  );
+});
 
 // ============================================================================
 // Step 1: buildRefreshFailureUpdate's overrides param — DB-shape-adjacent proof

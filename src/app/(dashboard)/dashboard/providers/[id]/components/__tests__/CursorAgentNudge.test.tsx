@@ -7,6 +7,26 @@
  * is the precedent this component follows), and this directory's own
  * __tests__/phase1d.test.tsx for the createRoot/act mounting convention.
  */
+// NOTE ON WHICH CONFIG DISCOVERS THIS FILE (kept as a `//` block — see why
+// below): unlike tests/unit/ui/use-provider-connections-cursor-refresh.test.tsx
+// and tests/unit/ui/connectionsSearchFilter.test.tsx (which had to relocate
+// out of their __tests__/ directories because vitest.mcp.config.ts's
+// src/app/(dashboard)/**/__tests__/**/*.test.tsx glob spells out the
+// (dashboard) path segment literally, which tinyglobby parses as an (empty)
+// extglob group — matching nothing), THIS file's location IS correct per the
+// plan: vitest.config.ts's glob (src/app/**/dashboard/providers/**/__tests__/
+// **/*.test.tsx) never spells out (dashboard) literally — its ** wildcard
+// swallows that segment regardless of its literal name — so it matches here
+// without hitting the same bug. That means this file is collected only by
+// vitest.config.ts (`npm run test:vitest:ui`), NOT by vitest.mcp.config.ts
+// (`npm run test:vitest`) — confirmed via a direct `vitest list` probe
+// against both configs. Both jobs are CI-blocking (`test:vitest:ui` was
+// promoted from advisory to blocking per ci.yml's own comment, PR #7127),
+// so this is a coverage-attribution quirk, not a real CI gap — this file
+// still runs and gates merges, just via the sibling config.
+// (This note is a `//` block, not part of the /** */ JSDoc above, because
+// the glob patterns it quotes contain a literal `*/` sequence that would
+// otherwise terminate a block comment early.)
 import React from "react";
 import { act } from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";

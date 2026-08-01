@@ -171,16 +171,24 @@ export function cursorDbCandidatePaths(
  *      login (the official curl-installer convention).
  *   2. `~/.cursor/agent-cli-state.json` — a second candidate this codebase's
  *      own `src/shared/services/cliRuntime.ts` (`CLI_TOOLS.cursor.paths.state`)
- *      already lists but did not previously probe for auth. Its schema is
- *      UNVERIFIED against a real authenticated install; if it lacks a usable
- *      `accessToken` string field, this candidate is skipped gracefully.
+ *      already lists but did not previously probe for auth. If it lacks a
+ *      usable `accessToken` string field, this candidate is skipped
+ *      gracefully.
  *
  * KNOWN LIMITATION: some `cursor-agent` releases may store the access/refresh
  * token in the OS keychain instead of a locally-readable file. When neither
  * candidate above yields a token, this function correctly reports
  * `{found: false}` even if `cursor-agent status` reports the CLI as
  * authenticated — this is a documented, accepted gap (see the renewal plan's
- * "Trade-offs Accepted" section), not a silent bug.
+ * "Trade-offs Accepted" section), not a silent bug. Confirmed, not just
+ * hypothetical: empirically validated against a real, authenticated
+ * `cursor-agent` install (v2026.07.23, Homebrew Cask `cursor-cli`) on
+ * 2026-07-31 — that install's `~/.cursor/agent-cli-state.json` exists but its
+ * actual schema is `{version, hasShownAgentCommandTip,
+ * hasClearedLegacyStatsigFields}`, with no `accessToken` field at all, while
+ * `cursor-agent status --format json` reported `isAuthenticated: true`. This
+ * candidate is correctly skipped for that install; the graceful-degradation
+ * fallback below is confirmed correct, not a gap in this specific case.
  */
 export async function tryAgentAuth(): Promise<{
   found: boolean;
