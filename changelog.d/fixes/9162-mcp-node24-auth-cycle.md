@@ -1,0 +1,1 @@
+- **fix(mcp):** prevent the bundled stdio MCP server from crashing on Node 24 when the auth and Google API-key header helpers are bundled together ([#9162](https://github.com/diegosouzapw/OmniRoute/pull/9162))
