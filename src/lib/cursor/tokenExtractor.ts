@@ -229,14 +229,27 @@ export async function tryAgentAuth(): Promise<{
  * Cursor renames a key in a future release.
  *
  * Linux and Windows code paths are unchanged.
+ *
+ * `options.timeoutMs` bounds the SQLite busy-timeout on the open (default
+ * 2000ms, byte-identical for existing callers). The unattended sweep path
+ * (`src/lib/cursor/renewal.ts`) passes a much shorter override — an
+ * automated background job that fails to acquire the lock quickly should
+ * fail fast and let the existing exponential circuit-breaker retry on a
+ * later tick, rather than blocking the shared Node event loop for up to
+ * ~2s per driver in the fallback cascade (worst case ~4s: better-sqlite3's
+ * busy-timeout elapsing, then node:sqlite's). The one-shot, user-initiated
+ * `/api/oauth/cursor/auto-import` modal action keeps the longer default,
+ * since a single explicit click reasonably can wait longer for a better
+ * one-time success rate.
  */
-export async function tryIdeAuth(): Promise<{
+export async function tryIdeAuth(options?: { timeoutMs?: number }): Promise<{
   found: boolean;
   accessToken?: string;
   machineId?: string;
   source?: string;
   error?: string;
 }> {
+  const timeoutMs = options?.timeoutMs ?? 2000;
   const platform = process.platform;
   const candidates = cursorDbCandidatePaths(platform, {
     home: homedir(),
@@ -291,8 +304,10 @@ export async function tryIdeAuth(): Promise<{
     // sweep tick (src/lib/cursor/renewal.ts::renewCursorConnection()) on every
     // near-expiry cycle, not just the explicit auto-import modal action, so a
     // WAL-lock collision with a running Cursor IDE needs a retry window on
-    // every driver path (see driverFactory.ts::toNodeSqliteOptions()).
-    db = tryOpenSync(dbPath, { readonly: true, fileMustExist: true, timeout: 2000 });
+    // every driver path (see driverFactory.ts::toNodeSqliteOptions()). The
+    // sweep path overrides `timeoutMs` to a much shorter value (see the
+    // options.timeoutMs doc comment above).
+    db = tryOpenSync(dbPath, { readonly: true, fileMustExist: true, timeout: timeoutMs });
     if (!db) {
       if (platform === "darwin") {
         return {

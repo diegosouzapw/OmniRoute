@@ -139,6 +139,21 @@ export async function getCachedCursorAgentAvailability(): Promise<{
 
 const IDE_AUTH_DEDUP_TTL_MS = 5_000;
 
+/**
+ * Busy-timeout for a background-triggered tryIdeAuth() open — deliberately
+ * much shorter than tryIdeAuth()'s own 2000ms default (used by the one-shot,
+ * user-initiated auto-import modal, a code path outside this orchestrator).
+ * Both the sweep AND the manual-refresh route share the same Node event loop
+ * as the HTTP server, so either one blocking on a WAL-lock collision stalls
+ * every other in-flight request on the instance — not just their own. An
+ * automated/backend-triggered call should fail fast and let the existing
+ * exponential circuit-breaker (sweep) or the user's next click (manual route)
+ * retry, rather than risk up to ~2s per driver in the fallback cascade
+ * (worst case ~4s total). Exported so the manual-refresh route can reuse the
+ * same value when it bypasses the dedup cache below for freshness.
+ */
+export const BACKGROUND_IDE_AUTH_TIMEOUT_MS = 250;
+
 let cachedIdeAuthCall: {
   home: string;
   promise: ReturnType<typeof tryIdeAuth>;
@@ -161,7 +176,7 @@ function dedupedTryIdeAuth(): ReturnType<typeof tryIdeAuth> {
   if (cachedIdeAuthCall && cachedIdeAuthCall.home === home && cachedIdeAuthCall.expiresAt > now) {
     return cachedIdeAuthCall.promise;
   }
-  const promise = tryIdeAuth();
+  const promise = tryIdeAuth({ timeoutMs: BACKGROUND_IDE_AUTH_TIMEOUT_MS });
   cachedIdeAuthCall = { home, promise, expiresAt: now + IDE_AUTH_DEDUP_TTL_MS };
   return promise;
 }

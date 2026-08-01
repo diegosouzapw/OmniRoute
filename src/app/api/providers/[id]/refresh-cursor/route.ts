@@ -2,11 +2,30 @@ import { NextResponse } from "next/server";
 import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { updateProviderConnection } from "@/lib/db/providers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { tryIdeAuth } from "@/lib/cursor/tokenExtractor";
 import {
   renewCursorConnection,
   buildCursorRenewedUpdate,
   runCursorRenewalExclusive,
+  BACKGROUND_IDE_AUTH_TIMEOUT_MS,
 } from "@/lib/cursor/renewal";
+
+/**
+ * A manual "Refresh" click must always see a fresh IDE-credential read, never
+ * a stale answer memoized by renewCursorConnection()'s default sweep-facing
+ * dedup cache (renewal.ts's dedupedTryIdeAuth, keyed host-wide with a 5s TTL
+ * — correct for coalescing multiple Cursor connections due in the SAME sweep
+ * tick, but wrong for a click that could otherwise reuse a read taken before
+ * THIS request's own nudge attempt completed). Matches the same
+ * always-uncached convention this plan already established for
+ * checkCursorAgentAvailability() vs. getCachedCursorAgentAvailability().
+ * Keeps the shared short busy-timeout (not the interactive auto-import
+ * route's longer 2000ms default) since this request shares the same event
+ * loop as every other in-flight request on this instance.
+ */
+function uncachedTryIdeAuth(): ReturnType<typeof tryIdeAuth> {
+  return tryIdeAuth({ timeoutMs: BACKGROUND_IDE_AUTH_TIMEOUT_MS });
+}
 
 interface CursorConnectionLike {
   id: string;
@@ -91,10 +110,13 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     lastManualRefreshAttemptAt.set(connection.id, now);
 
     return await runCursorRenewalExclusive(connection.id, async () => {
-      const result = await renewCursorConnection({
-        accessToken: connection.accessToken ?? "",
-        machineId: connection.providerSpecificData?.machineId as string | null | undefined,
-      });
+      const result = await renewCursorConnection(
+        {
+          accessToken: connection.accessToken ?? "",
+          machineId: connection.providerSpecificData?.machineId as string | null | undefined,
+        },
+        { tryIdeAuth: uncachedTryIdeAuth }
+      );
 
       switch (result.status) {
         case "renewed": {
