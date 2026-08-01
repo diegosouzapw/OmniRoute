@@ -1,0 +1,1 @@
+- **fix(dashboard):** the "Default Model" of an OpenAI-compatible connection is now visible and editable after creation (was set once, then invisible), and it is no longer required when creating a connection — matching the API which always treated it as optional. ([#9179](https://github.com/diegosouzapw/OmniRoute/pull/9179))
