@@ -83,7 +83,9 @@ export async function checkCursorAgentAvailability(): Promise<{
   let result: { stdout: string; stderr: string };
   try {
     result = await runLockedCursorAgentSpawn("status", () =>
-      runCursorAgent(binary, ["status", "--format", "json"], CURSOR_AGENT_STATUS_TIMEOUT_MS)
+      runCursorAgent(binary, ["status", "--format", "json"], CURSOR_AGENT_STATUS_TIMEOUT_MS, {
+        sigkillFollowupMs: Math.max(1, Math.floor(CURSOR_AGENT_STATUS_TIMEOUT_MS / 2)),
+      })
     );
   } catch {
     // Spawn itself failed (e.g. binary vanished between resolve and spawn) —
