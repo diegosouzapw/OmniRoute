@@ -31,6 +31,7 @@ import {
   looksLikeQuotaExhausted,
   type FailureKind,
 } from "../../src/shared/utils/classify429";
+import { recordProviderSuccess as resetCooldownFailureCount } from "./providerCooldownTracker.ts";
 import { resolveProviderId } from "../../src/shared/constants/providers";
 import { resolveUseUpstream429BreakerHints } from "../../src/shared/utils/providerHints";
 import { getCodexModelScope } from "../config/codexQuotaScopes.ts";
@@ -996,6 +997,47 @@ export function recordProviderFailure(
 }
 
 /**
+ * Record a successful request for a provider.
+ * Symmetric counterpart of recordProviderFailure:
+ * - Resets cooldown failureCount (exponential backoff) for all non-OPEN states.
+ * - HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
+ *
+ * When the breaker is OPEN (provider is failing), this is a no-op -- the
+ * cooldown stays intact and the breaker keeps its cooldown period.
+ *
+ * Matches execute()'s behavior: _onSuccess() is called for all non-OPEN states.
+ */
+export function recordProviderSuccess(
+  provider: string | null | undefined,
+  connectionId?: string | null
+): void {
+  if (!provider || provider === "unknown") return;
+
+  const breaker = getProviderBreaker(provider);
+  if (!breaker) return;
+  const breakerState = breaker.getStatus().state;
+
+  // When breaker is OPEN, the provider is failing -- do not reset cooldown
+  // even if one request slipped through (dispatched before the open).
+  // The cooldown resets when the breaker reaches HALF_OPEN and the probe
+  // succeeds below.
+  if (breakerState === "OPEN") return;
+
+  // Reset cooldown failureCount (exponential backoff) -- symmetric with
+  // recordProviderCooldown which increments it on each failure.
+  resetCooldownFailureCount(provider, connectionId ?? undefined);
+
+  // Clear failure-dedup window so the next genuine failure is not suppressed.
+  if (connectionId) {
+    lastConnectionFailure.delete(`${provider}:${connectionId}`);
+  }
+
+  // Transition breaker on success, matching execute()'s behavior:
+  // HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
+  breaker._onSuccess();
+}
+
+/**
  * Reset the shared provider breaker.
  */
 export function clearProviderFailure(provider: string | null | undefined): void {
@@ -1625,7 +1667,11 @@ export function checkFallbackError(
       !errorStr.toLowerCase().includes("hour quota") &&
       !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
-      return resolveApiKeyForbiddenFallback(errorStr, buildRetryableFallback, RateLimitReason.AUTH_ERROR);
+      return resolveApiKeyForbiddenFallback(
+        errorStr,
+        buildRetryableFallback,
+        RateLimitReason.AUTH_ERROR
+      );
     }
   }
 

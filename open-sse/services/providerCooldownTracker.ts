@@ -171,6 +171,11 @@ export function getRemainingCooldownMs(
 /**
  * Record a successful request for a provider/connection.
  * Resets the failure count (but keeps the entry for reference).
+ *
+ * @deprecated Use accountFallback.recordProviderSuccess instead -- it also
+ * transitions the circuit breaker from HALF_OPEN to CLOSED. This function
+ * only resets the cooldown failureCount without touching the breaker, which
+ * leaves the breaker stuck in HALF_OPEN after repeated failures.
  */
 export function recordProviderSuccess(provider: string, connectionId: string | undefined): void {
   if (!provider || provider === "unknown") return;
