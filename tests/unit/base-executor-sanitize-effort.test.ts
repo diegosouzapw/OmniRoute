@@ -640,6 +640,25 @@ test("sanitizeReasoningEffortForProvider: opencode-go DeepSeek V4 Pro preserves 
   }
 });
 
+test("sanitizeReasoningEffortForProvider: command-code preserves literal max", () => {
+  const body = { reasoning_effort: "max" };
+  const result = sanitizeReasoningEffortForProvider(body, "command-code", "deepseek/deepseek-v4-flash", null) as any;
+  assert.equal(result.reasoning_effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: command-code preserves nested literal max", () => {
+  const body = { reasoning: { effort: "max" } };
+  const result = sanitizeReasoningEffortForProvider(body, "command-code", "gpt-5.6-luna", null) as any;
+  assert.equal(result.reasoning.effort, "max");
+});
+
+test("sanitizeReasoningEffortForProvider: command-code maps normalized xhigh back to max", () => {
+  const body = { reasoning_effort: "xhigh", reasoning: { effort: "xhigh" } };
+  const result = sanitizeReasoningEffortForProvider(body, "command-code", "gpt-5.6-luna", null) as any;
+  assert.equal(result.reasoning_effort, "max");
+  assert.equal(result.reasoning.effort, "max");
+});
+
 test("sanitizeReasoningEffortForProvider: opencode-go with non-DeepSeek model still normalizes max → xhigh", () => {
   // The opt-in must be scoped to DeepSeek models on opencode-go only — other
   // opencode-go models (e.g. glm/kimi/mimo) follow the default xhigh policy.
