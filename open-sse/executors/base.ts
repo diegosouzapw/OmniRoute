@@ -1190,66 +1190,83 @@ export class BaseExecutor {
           // convention; SSE decoding is gated on body.stream). anthropic-beta
           // is selected per request shape; the full set on a quota probe is
           // itself a fingerprint.
-          // Respect the client's negotiated anthropic-beta (real Claude Code) instead
-          // of force-injecting thinking/effort betas it never requested (#3415).
-          const clientAnthropicBeta =
-            clientHeaders?.["anthropic-beta"] ?? clientHeaders?.["Anthropic-Beta"] ?? null;
-          const ccHeaders: Record<string, string> = {
-            Accept: "application/json",
-            "anthropic-version": "2023-06-01",
-            // #3974: merge the client's allowlisted betas (e.g. tool-search-tool)
-            // on top of the shape-derived set so deferred-tool requests are not
-            // rejected; selectBetaFlags still gates thinking/effort per #3415.
-            "anthropic-beta": mergeClientAnthropicBeta(
-              selectBetaFlags(tb, null, clientAnthropicBeta),
-              clientAnthropicBeta
-            ),
-            "anthropic-dangerous-direct-browser-access": "true",
-            "x-app": "cli",
-            "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
-            "X-Stainless-Package-Version": CLAUDE_CODE_STAINLESS_VERSION,
-            "X-Stainless-Timeout": "600",
-            "accept-encoding": "gzip, deflate, br, zstd",
-            connection: "keep-alive",
-            "x-client-request-id": randomUUID(),
-            "X-Claude-Code-Session-Id": sessionId,
-          };
+          //
+          // This whole header shape (billing/session headers, Stainless
+          // metadata, selectBetaFlags()-derived anthropic-beta) mimics a
+          // genuine Claude Code CLI request — correct for real `claude`
+          // traffic, agentrouter's wire-image mimicry, and a "vanilla" (no
+          // requestDefaults) CC-compatible relay, none of which have their
+          // own per-connection header preferences to defer to. A relay with
+          // explicit providerSpecificData.requestDefaults (context1m /
+          // redactThinking / summarizeThinking) is different: it already got
+          // its own correctly-configured header set from
+          // buildClaudeCodeCompatibleHeaders() above, which selectBetaFlags()
+          // has no visibility into (it only reasons about the request body
+          // shape) — replacing those headers here would silently discard the
+          // relay's own opt-in configuration (#agentrouter regression: this
+          // whole block used to run only for real `claude` clients, where
+          // this distinction didn't exist).
+          const hasCcRequestDefaults = Object.keys(ccRequestDefaults).length > 0;
+          const isNativeClaudeHeaderShape =
+            this.provider === "claude" || usesCcWireImage(this.provider) || !hasCcRequestDefaults;
+          if (isNativeClaudeHeaderShape) {
+            // Respect the client's negotiated anthropic-beta (real Claude Code) instead
+            // of force-injecting thinking/effort betas it never requested (#3415).
+            const clientAnthropicBeta =
+              clientHeaders?.["anthropic-beta"] ?? clientHeaders?.["Anthropic-Beta"] ?? null;
+            const ccHeaders: Record<string, string> = {
+              Accept: "application/json",
+              "anthropic-version": "2023-06-01",
+              // #3974: merge the client's allowlisted betas (e.g. tool-search-tool)
+              // on top of the shape-derived set so deferred-tool requests are not
+              // rejected; selectBetaFlags still gates thinking/effort per #3415.
+              "anthropic-beta": mergeClientAnthropicBeta(
+                selectBetaFlags(tb, null, clientAnthropicBeta),
+                clientAnthropicBeta
+              ),
+              "anthropic-dangerous-direct-browser-access": "true",
+              "x-app": "cli",
+              "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
+              "X-Stainless-Package-Version": CLAUDE_CODE_STAINLESS_VERSION,
+              "X-Stainless-Timeout": "600",
+              "accept-encoding": "gzip, deflate, br, zstd",
+              connection: "keep-alive",
+              "x-client-request-id": randomUUID(),
+              "X-Claude-Code-Session-Id": sessionId,
+            };
 
-          // Drop case variants of the same header name before merging — undici
-          // would otherwise concatenate them (issue #1454).
-          const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
-          for (const key of Object.keys(headers)) {
-            if (ccKeysLower.has(key.toLowerCase())) delete headers[key];
-          }
-          Object.assign(headers, ccHeaders);
-          if (usesCcWireImage(this.provider) && usesClaudeCodeProtocol) {
-            delete headers["Authorization"];
-            headers["x-api-key"] =
-              activeCredentials?.apiKey || activeCredentials?.accessToken || "";
-          }
-          // The Object.assign() above just replaced "anthropic-beta" wholesale
-          // with the selectBetaFlags()-derived set, silently wiping out the
-          // CONTEXT_1M_BETA_HEADER appended earlier from this CC-compatible
-          // relay's own requestDefaults.context1m (selectBetaFlags has no
-          // visibility into per-connection requestDefaults — it only reasons
-          // about the request body shape). Restore it for CC-compatible
-          // relays (not wire-image/native traffic, which never went through
-          // that earlier append in the first place).
-          if (usesClaudeCodeProtocol && !usesCcWireImage(this.provider)) {
-            if (shouldForwardCcCompatibleContext1m) {
-              appendAnthropicBetaHeader(headers, CONTEXT_1M_BETA_HEADER);
+            // Drop case variants of the same header name before merging — undici
+            // would otherwise concatenate them (issue #1454).
+            const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
+            for (const key of Object.keys(headers)) {
+              if (ccKeysLower.has(key.toLowerCase())) delete headers[key];
             }
-            // selectBetaFlags() always includes redact-thinking for an
-            // "opaque" client (no client-negotiated anthropic-beta) — correct
-            // for real `claude` traffic and agentrouter's wire-image
-            // mimicry, both of which must look identical to a genuine Claude
-            // Code CLI request. A plain CC-compatible relay is neither:
-            // redactThinking there is an explicit per-connection opt-in
-            // (providerSpecificData.requestDefaults), not an "opaque client"
-            // default. Strip it back out unless the relay's own
-            // requestDefaults opted in (#agentrouter regression: this whole
-            // block used to run only for real `claude` clients, where this
-            // distinction didn't exist).
+            Object.assign(headers, ccHeaders);
+            if (usesCcWireImage(this.provider) && usesClaudeCodeProtocol) {
+              delete headers["Authorization"];
+              headers["x-api-key"] =
+                activeCredentials?.apiKey || activeCredentials?.accessToken || "";
+            }
+            delete headers["X-Stainless-Helper-Method"];
+
+            // OS/arch follow the host running the signed binary. Runtime version
+            // is pinned to the captured CLI wire image, not OmniRoute's Node.
+            headers["X-Stainless-Arch"] = stainlessArch();
+            headers["X-Stainless-Lang"] = "js";
+            headers["X-Stainless-OS"] = stainlessOS();
+            headers["X-Stainless-Runtime"] = "node";
+            headers["X-Stainless-Runtime-Version"] = CLAUDE_CLI_STAINLESS_RUNTIME_VERSION;
+            headers["X-Stainless-Retry-Count"] = "0";
+            delete headers["X-Stainless-Os"];
+          }
+          // selectBetaFlags() above always includes redact-thinking for an
+          // "opaque" client (no client-negotiated anthropic-beta) — correct
+          // for real `claude` traffic and agentrouter's wire-image mimicry.
+          // A plain CC-compatible relay (bare or configured) never opts into
+          // that "opaque client" default implicitly; it's an explicit
+          // requestDefaults.redactThinking choice. Strip it back out unless
+          // this relay's own requestDefaults opted in.
+          if (usesClaudeCodeProtocol && !usesCcWireImage(this.provider)) {
             const betaKey = Object.keys(headers).find(
               (key) => key.toLowerCase() === "anthropic-beta"
             );
@@ -1261,17 +1278,6 @@ export class BaseExecutor {
                 .join(",");
             }
           }
-          delete headers["X-Stainless-Helper-Method"];
-
-          // OS/arch follow the host running the signed binary. Runtime version
-          // is pinned to the captured CLI wire image, not OmniRoute's Node.
-          headers["X-Stainless-Arch"] = stainlessArch();
-          headers["X-Stainless-Lang"] = "js";
-          headers["X-Stainless-OS"] = stainlessOS();
-          headers["X-Stainless-Runtime"] = "node";
-          headers["X-Stainless-Runtime-Version"] = CLAUDE_CLI_STAINLESS_RUNTIME_VERSION;
-          headers["X-Stainless-Retry-Count"] = "0";
-          delete headers["X-Stainless-Os"];
 
           const overrideTag =
             appliedEffort || appliedThinking
