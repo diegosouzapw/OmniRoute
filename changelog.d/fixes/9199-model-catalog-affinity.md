@@ -1,1 +1,2 @@
 - **fix(models):** Preserve published model catalogs during session-affinity bookkeeping so routine affinity updates do not force unnecessary cold rebuilds ([#9199](https://github.com/diegosouzapw/OmniRoute/pull/9199)) — thanks @xz-dev
+- **fix(models):** Reuse one build-local virtual-auto candidate snapshot across built-in catalog entries and cooperatively yield during cold catalog generation, while detaching invalidated in-flight generations so policy changes cannot publish stale results ([#9199](https://github.com/diegosouzapw/OmniRoute/pull/9199)) — thanks @xz-dev
