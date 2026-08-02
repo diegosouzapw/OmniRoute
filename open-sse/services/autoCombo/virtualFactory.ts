@@ -65,6 +65,12 @@ export interface VirtualAutoComboCandidate {
   model: string;
   modelStr: string; // e.g., 'openai/gpt-4o'
   costPer1MTokens: number; // from providerRegistry
+  /** Build-local capability snapshot. Runtime calls rebuild it; catalog entries reuse it. */
+  resolvedContextLength?: number | null;
+  resolvedMaxOutputTokens?: number | null;
+  resolvedSupportsVision?: boolean;
+  resolvedReasoning?: boolean;
+  resolvedSupportsThinking?: boolean;
 }
 
 type VirtualAutoCombo = AutoComboConfig & {
@@ -298,7 +304,14 @@ function getNoAuthCandidates(
  */
 const DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS = 8192;
 
-export function computeAdvertisedLimits(candidates: Array<{ provider: string; model: string }>): {
+type AdvertisedLimitCandidate = {
+  provider: string;
+  model: string;
+  resolvedContextLength?: number | null;
+  resolvedMaxOutputTokens?: number | null;
+};
+
+export function computeAdvertisedLimits(candidates: AdvertisedLimitCandidate[]): {
   contextLength: number | null;
   maxOutputTokens: number | null;
 } {
@@ -309,14 +322,20 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
   let contextLength: number | null = null;
   let maxOutputTokens: number | null = null;
   for (const candidate of candidates) {
-    const limit = getTokenLimit(candidate.provider, candidate.model);
-    if (Number.isFinite(limit) && limit > 0) {
+    const limit =
+      candidate.resolvedContextLength !== undefined
+        ? candidate.resolvedContextLength
+        : getTokenLimit(candidate.provider, candidate.model);
+    if (typeof limit === "number" && Number.isFinite(limit) && limit > 0) {
       contextLength = contextLength === null ? limit : Math.max(contextLength, limit);
     }
-    const output = getResolvedModelCapabilities({
-      provider: candidate.provider,
-      model: candidate.model,
-    }).maxOutputTokens;
+    const output =
+      candidate.resolvedMaxOutputTokens !== undefined
+        ? candidate.resolvedMaxOutputTokens
+        : getResolvedModelCapabilities({
+            provider: candidate.provider,
+            model: candidate.model,
+          }).maxOutputTokens;
     if (typeof output === "number" && Number.isFinite(output) && output > 0) {
       maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
     }
@@ -327,7 +346,68 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
   return { contextLength, maxOutputTokens };
 }
 
-export async function prepareVirtualAutoComboInputs(): Promise<PreparedVirtualAutoComboInputs> {
+const PREPARED_CAPABILITY_YIELD_INTERVAL = 16;
+
+type PreparedCapabilityValues = {
+  resolvedContextLength: number | null;
+  resolvedMaxOutputTokens: number | null;
+  resolvedSupportsVision: boolean;
+  resolvedReasoning: boolean;
+  resolvedSupportsThinking: boolean;
+};
+
+type PreparedCapabilityState = {
+  byTarget: Map<string, PreparedCapabilityValues>;
+  resolvedSinceYield: number;
+};
+
+function yieldVirtualAutoPreparationTurn(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+async function attachPreparedCapabilityValues(
+  candidates: readonly VirtualAutoComboCandidate[],
+  state: PreparedCapabilityState
+): Promise<VirtualAutoComboCandidate[]> {
+  const prepared: VirtualAutoComboCandidate[] = [];
+  for (const candidate of candidates) {
+    const targetKey = `${candidate.provider}\u0000${candidate.model}`;
+    let values = state.byTarget.get(targetKey);
+    if (!values) {
+      const contextLength = getTokenLimit(candidate.provider, candidate.model);
+      const capabilities = getResolvedModelCapabilities({
+        provider: candidate.provider,
+        model: candidate.model,
+      });
+      const maxOutputTokens = capabilities.maxOutputTokens;
+      values = {
+        resolvedContextLength:
+          Number.isFinite(contextLength) && contextLength > 0 ? contextLength : null,
+        resolvedMaxOutputTokens:
+          typeof maxOutputTokens === "number" &&
+          Number.isFinite(maxOutputTokens) &&
+          maxOutputTokens > 0
+            ? maxOutputTokens
+            : null,
+        resolvedSupportsVision: capabilities.supportsVision === true,
+        resolvedReasoning: capabilities.reasoning === true,
+        resolvedSupportsThinking: capabilities.supportsThinking === true,
+      };
+      state.byTarget.set(targetKey, values);
+      state.resolvedSinceYield++;
+      if (state.resolvedSinceYield >= PREPARED_CAPABILITY_YIELD_INTERVAL) {
+        state.resolvedSinceYield = 0;
+        await yieldVirtualAutoPreparationTurn();
+      }
+    }
+    prepared.push({ ...candidate, ...values });
+  }
+  return prepared;
+}
+
+export async function prepareVirtualAutoComboInputs(
+  options: { includeResolvedCapabilities?: boolean } = {}
+): Promise<PreparedVirtualAutoComboInputs> {
   const [connections, disabledNoAuthConnections, settings] = await Promise.all([
     getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
     // #6557: no-auth providers (opencode/mimocode/etc.) don't get an isActive
@@ -440,10 +520,20 @@ export async function prepareVirtualAutoComboInputs(): Promise<PreparedVirtualAu
     return pool;
   };
 
+  const regularCandidates = buildPreparedPool(false);
+  // #6453/#8183: family selectors bypass the reliability-curated no-auth allowlist.
+  const familyCandidates = buildPreparedPool(true);
+  if (!options.includeResolvedCapabilities) {
+    return { regularCandidates, familyCandidates };
+  }
+
+  const capabilityState: PreparedCapabilityState = {
+    byTarget: new Map(),
+    resolvedSinceYield: 0,
+  };
   return {
-    regularCandidates: buildPreparedPool(false),
-    // #6453/#8183: family selectors bypass the reliability-curated no-auth allowlist.
-    familyCandidates: buildPreparedPool(true),
+    regularCandidates: await attachPreparedCapabilityValues(regularCandidates, capabilityState),
+    familyCandidates: await attachPreparedCapabilityValues(familyCandidates, capabilityState),
   };
 }
 
@@ -532,9 +622,7 @@ export async function createVirtualAutoComboFromPrepared(
       ? buildAutoCandidateFilter(spec.category, spec.tier)
       : null;
   if (candidateFilter) {
-    const narrowed = candidatePool.filter((c) =>
-      candidateFilter({ provider: c.provider, model: c.model })
-    );
+    const narrowed = candidatePool.filter((candidate) => candidateFilter(candidate));
     const label = spec?.family
       ? `auto/${spec.family}`
       : `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""}`;

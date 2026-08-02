@@ -115,7 +115,7 @@ export function isPaidTierAutoId(autoId: string): boolean {
 
 export async function prepareBuiltinAutoComboInputs(): Promise<PreparedVirtualAutoComboInputs> {
   const { prepareVirtualAutoComboInputs } = await import("./virtualFactory.ts");
-  return prepareVirtualAutoComboInputs();
+  return prepareVirtualAutoComboInputs({ includeResolvedCapabilities: true });
 }
 
 export async function createBuiltinAutoCombo(
