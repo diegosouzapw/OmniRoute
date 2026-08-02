@@ -15,6 +15,10 @@ const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const capabilityOverrides = await import("../../src/lib/db/modelCapabilityOverrides.ts");
+const contextOverrides = await import("../../src/lib/db/modelContextOverrides.ts");
+const readCache = await import("../../src/lib/db/readCache.ts");
+const modelsDevSync = await import("../../src/lib/modelsDevSync.ts");
 const v1ModelsCatalog = await import("../../src/app/api/v1/models/catalog.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 
@@ -115,6 +119,116 @@ test("catalog-affecting connection changes still rebuild the published catalog",
     v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
     2,
     "catalog-affecting connection changes must keep hard invalidation"
+  );
+});
+
+test("#9199 capability data writes advance the model-catalog generation", () => {
+  const expectGenerationAdvance = (label: string, mutate: () => void) => {
+    const before = readCache.getModelCatalogCacheVersion();
+    mutate();
+    assert.ok(
+      readCache.getModelCatalogCacheVersion() > before,
+      `${label} must hard-invalidate the published model catalog`
+    );
+  };
+  const expectGenerationUnchanged = (label: string, mutate: () => void) => {
+    const before = readCache.getModelCatalogCacheVersion();
+    mutate();
+    assert.equal(
+      readCache.getModelCatalogCacheVersion(),
+      before,
+      `${label} must not invalidate when no capability row changed`
+    );
+  };
+
+  expectGenerationAdvance("setModelCapabilityOverride", () => {
+    assert.equal(
+      capabilityOverrides.setModelCapabilityOverride("openai/gpt-5.4-mini", "max_token", 64000),
+      true
+    );
+  });
+  expectGenerationAdvance("removeModelCapabilityOverride", () => {
+    assert.equal(
+      capabilityOverrides.removeModelCapabilityOverride("openai/gpt-5.4-mini", "max_token"),
+      true
+    );
+  });
+  expectGenerationAdvance("setModelContextOverride", () => {
+    assert.equal(contextOverrides.setModelContextOverride("openai", "gpt-5.4-mini", 400000), true);
+  });
+  expectGenerationAdvance("removeModelContextOverride", () => {
+    assert.equal(contextOverrides.removeModelContextOverride("openai", "gpt-5.4-mini"), true);
+  });
+
+  expectGenerationUnchanged("empty saveModelsDevCapabilities", () => {
+    modelsDevSync.saveModelsDevCapabilities({});
+  });
+  expectGenerationAdvance("saveModelsDevCapabilities", () => {
+    modelsDevSync.saveModelsDevCapabilities({
+      openai: {
+        "gpt-5.4-mini": {
+          tool_call: true,
+          reasoning: true,
+          attachment: false,
+          structured_output: true,
+          temperature: true,
+          modalities_input: '["text"]',
+          modalities_output: '["text"]',
+          knowledge_cutoff: null,
+          release_date: null,
+          last_updated: null,
+          status: null,
+          family: "gpt",
+          open_weights: false,
+          limit_context: 400000,
+          limit_input: 380000,
+          limit_output: 64000,
+          interleaved_field: null,
+        },
+      },
+    });
+  });
+  expectGenerationAdvance("clearModelsDevCapabilities", () => {
+    modelsDevSync.clearModelsDevCapabilities();
+  });
+  expectGenerationUnchanged("empty clearModelsDevCapabilities", () => {
+    modelsDevSync.clearModelsDevCapabilities();
+  });
+});
+
+test("#9199 a capability mutation during preparation detaches the obsolete generation", async () => {
+  let firstSettled = false;
+  const firstPromise = v1ModelsCatalog
+    .getUnifiedModelsResponse(catalogRequest())
+    .then((response) => {
+      firstSettled = true;
+      return response;
+    });
+
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.equal(
+    firstSettled,
+    false,
+    "the mutation must occur while capability preparation is active"
+  );
+  assert.equal(
+    capabilityOverrides.setModelCapabilityOverride("openai/gpt-5.4-mini", "max_token", 64000),
+    true
+  );
+
+  const secondPromise = v1ModelsCatalog.getUnifiedModelsResponse(catalogRequest());
+  await Promise.all([firstPromise, secondPromise]);
+  assert.equal(
+    v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
+    2,
+    "a post-mutation caller must not join capability work from the old generation"
+  );
+
+  await v1ModelsCatalog.getUnifiedModelsResponse(catalogRequest());
+  assert.equal(
+    v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
+    2,
+    "obsolete capability work must not repopulate the current cache generation"
   );
 });
 

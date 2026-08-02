@@ -413,11 +413,12 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
   `);
 
   const now = new Date().toISOString();
+  let changed = false;
   const tx = db.transaction(() => {
-    del.run();
+    if (del.run().changes > 0) changed = true;
     for (const [provider, models] of Object.entries(data)) {
       for (const [modelId, cap] of Object.entries(models)) {
-        insert.run(
+        const info = insert.run(
           provider,
           modelId,
           cap.tool_call === null ? null : cap.tool_call ? 1 : 0,
@@ -439,6 +440,7 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
           cap.interleaved_field,
           now
         );
+        if (info.changes > 0) changed = true;
       }
     }
   });
@@ -446,6 +448,7 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
   backupDbFile("pre-write");
   cachedCapabilities = data;
   cachedCapabilitiesLoadedAll = true;
+  if (changed) invalidateDbCache("model-capabilities");
 }
 
 /**
@@ -454,10 +457,11 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
 export function clearModelsDevCapabilities(): void {
   const db = getDbInstance();
   ensureCapabilitiesTable();
-  db.prepare("DELETE FROM model_capabilities").run();
+  const info = db.prepare("DELETE FROM model_capabilities").run();
   backupDbFile("pre-write");
   cachedCapabilities = {};
   cachedCapabilitiesLoadedAll = true;
+  if (info.changes > 0) invalidateDbCache("model-capabilities");
 }
 
 // ─── Main sync function ──────────────────────────────────
