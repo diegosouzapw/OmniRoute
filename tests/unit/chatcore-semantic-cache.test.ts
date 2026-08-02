@@ -408,7 +408,7 @@ test("checkSemanticCache isolates HITs per apiKeyId (no cross-key cache sharing)
   assert.ok(hitA, "keyA must resolve its own cached entry");
 });
 
-// ─── cacheDefaultMode: per-key bypass (W3 fix) ──────────────────────────────
+// ─── cacheDefaultMode: per-key bypass ───────────────────────────────────────
 
 test("checkSemanticCache returns null when cacheDefaultMode is 'bypass' (even with cacheable body)", async () => {
   clearCache();
@@ -461,7 +461,7 @@ test("checkSemanticCache returns a HIT when cacheDefaultMode is 'legacy' (defaul
   assert.equal(result.success, true);
 });
 
-// ─── cacheLatency marker header (W3 fix) ─────────────────────────────────────
+// ─── cacheLatency marker header ─────────────────────────────────────────────
 
 test("checkSemanticCache HIT includes X-OmniRoute-Cache-Latency: synthetic header", async () => {
   clearCache();
