@@ -56,6 +56,7 @@ import type { ProviderRequestDefaults } from "../services/providerRequestDefault
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
   appendAnthropicBetaHeader,
+  CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA,
   CONTEXT_1M_BETA_HEADER,
   enforceThinkingTemperature,
   modelHasNativeContext1m,
@@ -1225,6 +1226,40 @@ export class BaseExecutor {
             delete headers["Authorization"];
             headers["x-api-key"] =
               activeCredentials?.apiKey || activeCredentials?.accessToken || "";
+          }
+          // The Object.assign() above just replaced "anthropic-beta" wholesale
+          // with the selectBetaFlags()-derived set, silently wiping out the
+          // CONTEXT_1M_BETA_HEADER appended earlier from this CC-compatible
+          // relay's own requestDefaults.context1m (selectBetaFlags has no
+          // visibility into per-connection requestDefaults — it only reasons
+          // about the request body shape). Restore it for CC-compatible
+          // relays (not wire-image/native traffic, which never went through
+          // that earlier append in the first place).
+          if (usesClaudeCodeProtocol && !usesCcWireImage(this.provider)) {
+            if (shouldForwardCcCompatibleContext1m) {
+              appendAnthropicBetaHeader(headers, CONTEXT_1M_BETA_HEADER);
+            }
+            // selectBetaFlags() always includes redact-thinking for an
+            // "opaque" client (no client-negotiated anthropic-beta) — correct
+            // for real `claude` traffic and agentrouter's wire-image
+            // mimicry, both of which must look identical to a genuine Claude
+            // Code CLI request. A plain CC-compatible relay is neither:
+            // redactThinking there is an explicit per-connection opt-in
+            // (providerSpecificData.requestDefaults), not an "opaque client"
+            // default. Strip it back out unless the relay's own
+            // requestDefaults opted in (#agentrouter regression: this whole
+            // block used to run only for real `claude` clients, where this
+            // distinction didn't exist).
+            const betaKey = Object.keys(headers).find(
+              (key) => key.toLowerCase() === "anthropic-beta"
+            );
+            if (betaKey && ccRequestDefaults.redactThinking !== true) {
+              headers[betaKey] = headers[betaKey]
+                .split(",")
+                .map((value) => value.trim())
+                .filter((value) => value && value !== CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA)
+                .join(",");
+            }
           }
           delete headers["X-Stainless-Helper-Method"];
 
