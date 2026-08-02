@@ -1,0 +1,1 @@
+- **fix(models):** Preserve published model catalogs during session-affinity bookkeeping so routine affinity updates do not force unnecessary cold rebuilds ([#9199](https://github.com/diegosouzapw/OmniRoute/pull/9199)) — thanks @xz-dev
