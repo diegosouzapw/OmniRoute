@@ -83,6 +83,17 @@ curl https://localhost:20128/api/providers/{id}/models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/providers/cursor/agent-availability
+
+Check cursor-agent availability
+
+Credential-free, informational check for whether cursor-agent is installed and authenticated on this host — backs the dashboard's dismissible install-nudge banner. Returns only cursorAgentAvailable (boolean); never tokens or machineId.
+
+```bash
+curl https://localhost:20128/api/providers/cursor/agent-availability \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ### POST /api/providers/test-batch
 
 Test multiple providers at once
