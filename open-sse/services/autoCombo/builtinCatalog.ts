@@ -1,5 +1,6 @@
 import type { AutoVariant } from "./autoPrefix";
 import { VALID_VARIANTS } from "./autoPrefix";
+import type { PreparedVirtualAutoComboInputs } from "./virtualFactory";
 import { parseAutoSuffix } from "./suffixComposition";
 import { isValidModelFamily, AUTO_FAMILY_IDS } from "./modelFamily";
 
@@ -112,13 +113,30 @@ export function isPaidTierAutoId(autoId: string): boolean {
   return parsed.valid && parsed.tier === "pro";
 }
 
-export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
-  const { createVirtualAutoCombo } = await import("./virtualFactory.ts");
+export async function prepareBuiltinAutoComboInputs(): Promise<PreparedVirtualAutoComboInputs> {
+  const { prepareVirtualAutoComboInputs } = await import("./virtualFactory.ts");
+  return prepareVirtualAutoComboInputs();
+}
+
+export async function createBuiltinAutoCombo(
+  modelStr: string,
+  suffix: string,
+  prepared?: PreparedVirtualAutoComboInputs
+) {
+  const { createVirtualAutoCombo, createVirtualAutoComboFromPrepared } =
+    await import("./virtualFactory.ts");
+  const materialize = (
+    variant: AutoVariant | undefined,
+    spec?: Parameters<typeof createVirtualAutoCombo>[1]
+  ) =>
+    prepared
+      ? createVirtualAutoComboFromPrepared(prepared, variant, spec)
+      : createVirtualAutoCombo(variant, spec);
 
   const resolved = resolveAutoVariant(modelStr, suffix);
   if (resolved.recognized) {
     const spec = modelStr === "auto/best-free" ? { tier: "free" as const } : undefined;
-    const virtualCombo = await createVirtualAutoCombo(resolved.variant, spec);
+    const virtualCombo = await materialize(resolved.variant, spec);
     virtualCombo.name = modelStr;
     virtualCombo.id = modelStr;
     return virtualCombo;
@@ -127,7 +145,7 @@ export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
   // #4235 Phase B: `auto/<category>[:<tier>]` (e.g. auto/coding:fast, auto/vision).
   const parsed = parseAutoSuffix(suffix);
   if (parsed.valid) {
-    const virtualCombo = await createVirtualAutoCombo(undefined, {
+    const virtualCombo = await materialize(undefined, {
       category: parsed.category,
       tier: parsed.tier,
     });
@@ -140,7 +158,7 @@ export async function createBuiltinAutoCombo(modelStr: string, suffix: string) {
   // auto/gemma, auto/llama, auto/gemini) — spans whatever installed backends
   // currently expose that model family, degrading gracefully as backends rotate.
   if (isValidModelFamily(suffix)) {
-    const virtualCombo = await createVirtualAutoCombo(undefined, { family: suffix });
+    const virtualCombo = await materialize(undefined, { family: suffix });
     virtualCombo.name = modelStr;
     virtualCombo.id = modelStr;
     return virtualCombo;

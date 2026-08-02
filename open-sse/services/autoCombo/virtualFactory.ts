@@ -106,6 +106,15 @@ type VirtualAutoCombo = AutoComboConfig & {
   };
 };
 
+/**
+ * Build-local candidate snapshots shared by the built-in entries in one model-catalog build.
+ * Runtime routing does not retain or reuse this object across requests.
+ */
+export interface PreparedVirtualAutoComboInputs {
+  readonly regularCandidates: readonly VirtualAutoComboCandidate[];
+  readonly familyCandidates: readonly VirtualAutoComboCandidate[];
+}
+
 function toExpiryMs(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
 
@@ -318,12 +327,7 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
   return { contextLength, maxOutputTokens };
 }
 
-export async function createVirtualAutoCombo(
-  variant: AutoVariant | undefined,
-  spec?: AutoComboSpec,
-  apiKeyId?: string,
-  autoChannel?: string
-): Promise<VirtualAutoCombo> {
+export async function prepareVirtualAutoComboInputs(): Promise<PreparedVirtualAutoComboInputs> {
   const [connections, disabledNoAuthConnections, settings] = await Promise.all([
     getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
     // #6557: no-auth providers (opencode/mimocode/etc.) don't get an isActive
@@ -405,50 +409,65 @@ export async function createVirtualAutoCombo(
     }
   }
 
-  candidatePool.push(
-    ...getNoAuthCandidates(
-      new Set(validConnections.map((conn) => conn.provider)),
-      blockedProviders,
-      disabledNoAuthProviders,
-      noAuthProviderSpecificData,
-      hiddenModelsMap,
-      // #6453/#8183 (operator decision 2026-07-24): auto/<family> combos are an
-      // identity selector, not a reliability-curated pool — bypass the no-auth
-      // allowlist gate so any backend that genuinely serves the family (e.g.
-      // auggie for auto/glm) is admitted. Category/tier and flat-variant pools
-      // (spec.family unset) keep the allowlist gate intact.
-      Boolean(spec?.family)
-    )
-  );
-
   // #7623: honor existing model lockouts + connection cooldown/terminal state so
   // auto/* never advertises models the dispatch path would immediately skip.
   const connectionsById = new Map<string, ConnectionResilienceView>();
   for (const conn of [...connections, ...disabledNoAuthConnections]) {
     connectionsById.set(conn.id, conn);
   }
-  const resilienceFilteredPool = filterResilienceBlockedCandidates(
-    candidatePool,
-    connectionsById
-  );
-  if (resilienceFilteredPool !== candidatePool) {
-    candidatePool.length = 0;
-    candidatePool.push(...resilienceFilteredPool);
-  }
 
-  // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
-  // exclude paid-only backends from EVERY `auto/*` candidate pool — not just the
-  // `/v1/models` listing — so auto-routing never picks a model that will 402/403.
-  // If this empties the pool the existing graceful empty-pool path below handles it
-  // (consistent with the opt-in intent). Default OFF → pool unchanged.
-  const paidFilteredPool = filterPaidOnlyCandidates(
-    candidatePool,
-    settings.hidePaidModels === true
+  const connectedProviders = new Set(validConnections.map((conn) => conn.provider));
+  const buildPreparedPool = (bypassNoAuthAllowlist: boolean) => {
+    let pool = [
+      ...candidatePool,
+      ...getNoAuthCandidates(
+        connectedProviders,
+        blockedProviders,
+        disabledNoAuthProviders,
+        noAuthProviderSpecificData,
+        hiddenModelsMap,
+        bypassNoAuthAllowlist
+      ),
+    ];
+
+    const resilienceFilteredPool = filterResilienceBlockedCandidates(pool, connectionsById);
+    if (resilienceFilteredPool !== pool) pool = resilienceFilteredPool;
+
+    // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
+    // exclude paid-only backends from EVERY `auto/*` candidate pool.
+    const paidFilteredPool = filterPaidOnlyCandidates(pool, settings.hidePaidModels === true);
+    if (paidFilteredPool !== pool) pool = paidFilteredPool;
+    return pool;
+  };
+
+  return {
+    regularCandidates: buildPreparedPool(false),
+    // #6453/#8183: family selectors bypass the reliability-curated no-auth allowlist.
+    familyCandidates: buildPreparedPool(true),
+  };
+}
+
+function clonePreparedCandidates(
+  candidates: readonly VirtualAutoComboCandidate[]
+): VirtualAutoComboCandidate[] {
+  return candidates.map((candidate) => ({
+    ...candidate,
+    ...(candidate.allowedConnectionIds
+      ? { allowedConnectionIds: [...candidate.allowedConnectionIds] }
+      : {}),
+  }));
+}
+
+export async function createVirtualAutoComboFromPrepared(
+  prepared: PreparedVirtualAutoComboInputs,
+  variant: AutoVariant | undefined,
+  spec?: AutoComboSpec,
+  apiKeyId?: string,
+  autoChannel?: string
+): Promise<VirtualAutoCombo> {
+  let candidatePool = clonePreparedCandidates(
+    spec?.family ? prepared.familyCandidates : prepared.regularCandidates
   );
-  if (paidFilteredPool !== candidatePool) {
-    candidatePool.length = 0;
-    candidatePool.push(...paidFilteredPool);
-  }
 
   // #7819 (Level 2): per-API-key candidate exclusions. Fail-open — an absent
   // apiKeyId/autoChannel (every caller before #7819) or a DB lookup failure
@@ -682,4 +701,14 @@ export async function createVirtualAutoCombo(
     advertisedContextLength: advertisedLimits.contextLength,
     advertisedMaxOutputTokens: advertisedLimits.maxOutputTokens,
   };
+}
+
+export async function createVirtualAutoCombo(
+  variant: AutoVariant | undefined,
+  spec?: AutoComboSpec,
+  apiKeyId?: string,
+  autoChannel?: string
+): Promise<VirtualAutoCombo> {
+  const prepared = await prepareVirtualAutoComboInputs();
+  return createVirtualAutoComboFromPrepared(prepared, variant, spec, apiKeyId, autoChannel);
 }

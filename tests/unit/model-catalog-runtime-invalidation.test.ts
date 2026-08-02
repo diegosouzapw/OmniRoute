@@ -117,3 +117,46 @@ test("catalog-affecting connection changes still rebuild the published catalog",
     "catalog-affecting connection changes must keep hard invalidation"
   );
 });
+
+test("#9199 a mutation during a cooperative catalog build detaches the obsolete generation", async () => {
+  await settingsDb.updateSettings({ blockedProviders: [] });
+
+  let firstSettled = false;
+  const firstPromise = v1ModelsCatalog
+    .getUnifiedModelsResponse(catalogRequest())
+    .then((response) => {
+      firstSettled = true;
+      return response;
+    });
+
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.equal(firstSettled, false, "the mutation must occur while the first build is in flight");
+
+  await settingsDb.updateSettings({ blockedProviders: ["auto"] });
+  const secondPromise = v1ModelsCatalog.getUnifiedModelsResponse(catalogRequest());
+
+  const [firstResponse, secondResponse] = await Promise.all([firstPromise, secondPromise]);
+  const firstBody = (await firstResponse.json()) as { data: Array<{ id: string }> };
+  const secondBody = (await secondResponse.json()) as { data: Array<{ id: string }> };
+  const thirdResponse = await v1ModelsCatalog.getUnifiedModelsResponse(catalogRequest());
+  const thirdBody = (await thirdResponse.json()) as { data: Array<{ id: string }> };
+  const advertisesAuto = (body: { data: Array<{ id: string }> }) =>
+    body.data.some((model) => model.id === "auto/best-coding");
+
+  assert.equal(advertisesAuto(firstBody), true, "the pre-mutation caller keeps its own snapshot");
+  assert.equal(
+    advertisesAuto(secondBody),
+    false,
+    "a post-mutation caller must not join the obsolete in-flight build"
+  );
+  assert.equal(
+    advertisesAuto(thirdBody),
+    false,
+    "the obsolete build must not repopulate the current cache generation"
+  );
+  assert.equal(
+    v1ModelsCatalog.__getCatalogBuilderRunsForTest(),
+    2,
+    "the current generation must publish from a distinct builder run"
+  );
+});
