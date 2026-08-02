@@ -19,6 +19,7 @@ import {
   MODEL_ACCESS_DENIED_PATTERNS,
   recordModelLockoutFailure,
   recordProviderFailure,
+  recordProviderSuccess,
   selectLockoutCooldownMs,
 } from "./accountFallback.ts";
 import {
@@ -89,11 +90,7 @@ import {
 } from "./combo/promptCacheAffinity.ts";
 import type { CompressionMode } from "./compression/types.ts";
 import { getCachedProviderConnections } from "../../src/lib/db/readCache";
-import {
-  isProviderInCooldown,
-  recordProviderCooldown,
-  recordProviderSuccess,
-} from "./providerCooldownTracker.ts";
+import { isProviderInCooldown, recordProviderCooldown } from "./providerCooldownTracker.ts";
 import {
   resolveResilienceSettings,
   type ResilienceSettings,
