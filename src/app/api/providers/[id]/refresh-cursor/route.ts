@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCachedProviderConnectionById } from "@/lib/localDb";
+import { getCachedProviderConnectionById } from "@/lib/db/readCache";
 import { updateProviderConnection } from "@/lib/db/providers";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { tryIdeAuth } from "@/lib/cursor/tokenExtractor";

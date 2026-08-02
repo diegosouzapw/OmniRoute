@@ -6,11 +6,12 @@
  *
  * Sibling to tokenHealthCheckCopilot.ts (same injection-to-avoid-circular-
  * import technique — tokenHealthCheck.ts-private helpers passed as params
- * rather than imported, and updateProviderConnection imported directly from
- * @/lib/localDb) but greenfield: type-checked normally, no @ts-nocheck.
+ * rather than imported) but greenfield: type-checked normally, no
+ * @ts-nocheck, and imports updateProviderConnection directly from its
+ * owning module rather than the localDb barrel (Hard Rule #2).
  */
 
-import { updateProviderConnection } from "@/lib/localDb";
+import { updateProviderConnection } from "@/lib/db/providers";
 import {
   renewCursorConnection,
   buildCursorRenewedUpdate,
