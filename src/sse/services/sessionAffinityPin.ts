@@ -29,7 +29,7 @@ import {
   touchSessionAccountAffinity,
   deleteSessionAccountAffinity,
 } from "@/lib/db/sessionAccountAffinity";
-import { updateProviderConnection } from "@/lib/db/providers";
+import { touchConnectionLastUsed } from "@/lib/db/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { isAccountQuotaExhausted } from "@/domain/quotaCache";
 import {
@@ -52,6 +52,16 @@ export interface SessionAffinityConnection {
   lastUsedAt?: string | null;
   consecutiveUseCount?: number | null;
   priority?: number | null;
+}
+
+export function syncSessionAffinityRuntimeFields(
+  connections: SessionAffinityConnection[],
+  selected: SessionAffinityConnection
+): void {
+  const cached = connections.find((connection) => connection.id === selected.id);
+  if (!cached) return;
+  cached.lastUsedAt = selected.lastUsedAt;
+  cached.consecutiveUseCount = selected.consecutiveUseCount;
 }
 
 export function formatSessionKeyForLog(sessionKey: string): string {
@@ -89,10 +99,10 @@ export async function selectSessionAffinityConnection<T extends SessionAffinityC
     const connection = connections.find((candidate) => candidate.id === existing.connectionId);
     if (connection) {
       touchSessionAccountAffinity(sessionKey, provider, Date.now(), ttlMs);
-      await updateProviderConnection(connection.id, {
-        lastUsedAt: new Date().toISOString(),
-        consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
-      });
+      const nextCount = (connection.consecutiveUseCount || 0) + 1;
+      await touchConnectionLastUsed(connection.id, nextCount);
+      connection.lastUsedAt = new Date().toISOString();
+      connection.consecutiveUseCount = nextCount;
       log.info(
         "AUTH",
         `session_key=${formatSessionKeyForLog(sessionKey)} -> connection ${connection.id.slice(
@@ -114,10 +124,9 @@ export async function selectSessionAffinityConnection<T extends SessionAffinityC
   if (!connection) return null;
 
   upsertSessionAccountAffinity(sessionKey, provider, connection.id, Date.now(), ttlMs);
-  await updateProviderConnection(connection.id, {
-    lastUsedAt: new Date().toISOString(),
-    consecutiveUseCount: 1,
-  });
+  await touchConnectionLastUsed(connection.id, 1);
+  connection.lastUsedAt = new Date().toISOString();
+  connection.consecutiveUseCount = 1;
   log.info(
     "AUTH",
     `new affinity created for session_key=${formatSessionKeyForLog(
@@ -163,9 +172,7 @@ export function resolveSessionAffinityTtlMs(
 ): number {
   const override = Number(options.sessionAffinityTtlMs);
   if (Number.isFinite(override) && override > 0) return override;
-  const configured = Number(
-    settings.sessionAffinityTtlMs ?? settings.codexSessionAffinityTtlMs
-  );
+  const configured = Number(settings.sessionAffinityTtlMs ?? settings.codexSessionAffinityTtlMs);
   if (Number.isFinite(configured) && configured > 0) return configured;
   return 0;
 }
