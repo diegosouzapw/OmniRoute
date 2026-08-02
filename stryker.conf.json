@@ -39,9 +39,7 @@
   "incremental": true,
   "incrementalFile": "reports/mutation/stryker-incremental.json",
   "testRunner": "tap",
-  "plugins": [
-    "@stryker-mutator/tap-runner"
-  ],
+  "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
       "tests/unit/7993-noauth-proxy-routing.test.ts",
@@ -191,6 +189,7 @@
       "tests/unit/cooldown-epoch-string-3954.test.ts",
       "tests/unit/correctness/combo.property.test.ts",
       "tests/unit/correctness/sanitizers.property.test.ts",
+      "tests/unit/cursor-renewal.test.ts",
       "tests/unit/custom-model-target-format.test.ts",
       "tests/unit/db-reset-module-state.test.ts",
       "tests/unit/ddg-circuit-breaker-null-content-6999-7000.test.ts",
@@ -267,6 +266,8 @@
       "tests/unit/rotation-config-omniroute.test.ts",
       "tests/unit/route-explainability.test.ts",
       "tests/unit/route-guard-acp-agents-local-only.test.ts",
+      "tests/unit/route-guard-cursor-agent-availability.test.ts",
+      "tests/unit/route-guard-cursor-refresh.test.ts",
       "tests/unit/route-guard-forge-jcode-settings-local-only.test.ts",
       "tests/unit/route-guard-grok-build-settings-local-only.test.ts",
       "tests/unit/route-guard-middleware-local-only.test.ts",
@@ -417,11 +418,7 @@
     ".worktrees",
     ".stryker-tmp"
   ],
-  "reporters": [
-    "progress",
-    "html",
-    "json"
-  ],
+  "reporters": ["progress", "html", "json"],
   "htmlReporter": {
     "fileName": "reports/mutation/mutation.html"
   },
