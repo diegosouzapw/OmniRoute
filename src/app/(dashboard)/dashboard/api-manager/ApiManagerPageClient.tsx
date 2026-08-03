@@ -27,7 +27,9 @@ import { hasProviderQuotaBypassScope } from "@/shared/constants/apiKeyPolicyScop
 import { UsageLimitSettings } from "./components/UsageLimitSettings";
 import { ChaosModeAccessToggle } from "./components/ChaosModeAccessToggle";
 import { BypassProviderQuotaToggle } from "./components/BypassProviderQuotaToggle";
+import ProviderModelPermissionList from "./components/ProviderModelPermissionList";
 import ReasoningRoutingRules from "@/shared/components/ReasoningRoutingRules";
+import { buildModelAccessSavePayload } from "./apiManagerPageUtils";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -111,6 +113,8 @@ interface ApiKey {
   name: string;
   key: string;
   allowedModels: string[] | null;
+  /** Public shape: "all" | "restricted". Absent on legacy keys. */
+  modelAccessMode?: "all" | "restricted" | null;
   blockedModels?: string[] | null;
   allowedCombos: string[] | null;
   allowedConnections: string[] | null;
@@ -796,7 +800,8 @@ export default function ApiManagerPageClient() {
     dailyUsageLimitUsd: number | null,
     weeklyUsageLimitUsd: number | null,
     blockedModels: string[],
-    chaosModeEnabled: boolean
+    chaosModeEnabled: boolean,
+    modelAccessMode: "all" | "restricted"
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -846,6 +851,7 @@ export default function ApiManagerPageClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: sanitizedName,
+          modelAccessMode,
           allowedModels: validModels,
           blockedModels: validBlockedModels,
           allowedCombos: validCombos,
@@ -1652,7 +1658,8 @@ const PermissionsModal = memo(function PermissionsModal({
     dailyUsageLimitUsd: number | null,
     weeklyUsageLimitUsd: number | null,
     blockedModels: string[],
-    chaosModeEnabled: boolean
+    chaosModeEnabled: boolean,
+    modelAccessMode: "all" | "restricted"
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -1675,7 +1682,11 @@ const PermissionsModal = memo(function PermissionsModal({
   >(() => getBlockedClaudeCodeFamilies(initialBlockedModels));
   const [claudeCodeFamiliesExpanded, setClaudeCodeFamiliesExpanded] = useState(false);
   const [selectedCombos, setSelectedCombos] = useState<string[]>(initialCombos);
-  const [allowAll, setAllowAll] = useState(initialModels.length === 0);
+  // Explicit restricted mode reopens in Restrict even with zero selections
+  // (restricted + empty = deny-all); legacy absent mode keeps "empty = allow all".
+  const [allowAll, setAllowAll] = useState(
+    apiKey?.modelAccessMode === "restricted" ? false : initialModels.length === 0
+  );
   const [allowAllCombos, setAllowAllCombos] = useState(initialCombos.length === 0);
   const [noLogEnabled, setNoLogEnabled] = useState(apiKey?.noLog === true);
   const [autoResolveEnabled, setAutoResolveEnabled] = useState(apiKey?.autoResolve === true);
@@ -1757,34 +1768,23 @@ const PermissionsModal = memo(function PermissionsModal({
   );
 
   // Memoize callbacks to prevent child re-renders
+  const handleSelectionChange = useCallback((next: string[]) => {
+    setSelectedModels(next);
+  }, []);
+
+  const handleClaudeCodeDefaultDeselected = useCallback(() => {
+    setClaudeCodeFamiliesExpanded(false);
+  }, []);
+
   const handleToggleModel = useCallback(
     (modelId: string) => {
       if (allowAll) return;
-
       setSelectedModels((prev) => {
         if (prev.includes(modelId)) {
-          if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) {
-            setClaudeCodeFamiliesExpanded(false);
-          }
+          if (modelId === CLAUDE_CODE_DEFAULT_MODEL_ID) setClaudeCodeFamiliesExpanded(false);
           return prev.filter((m) => m !== modelId);
         }
         return [...prev, modelId];
-      });
-    },
-    [allowAll]
-  );
-
-  const handleToggleProvider = useCallback(
-    (provider: string, models: Model[]) => {
-      if (allowAll) return;
-
-      const modelIds = models.map((m) => m.id);
-      setSelectedModels((prev) => {
-        const allSelected = modelIds.every((id) => prev.includes(id));
-        if (allSelected) {
-          return prev.filter((m) => !modelIds.includes(m));
-        }
-        return [...new Set([...prev, ...modelIds])];
       });
     },
     [allowAll]
@@ -1916,9 +1916,10 @@ const PermissionsModal = memo(function PermissionsModal({
         blockedModels.push(...CLAUDE_CODE_FAMILY_BLOCK_PATTERNS[familyId]);
       }
     }
+    const modelAccess = buildModelAccessSavePayload({ allowAll, selectedModels });
     onSave(
       keyName,
-      allowAll ? [] : selectedModels,
+      modelAccess.allowedModels,
       allowAllCombos ? [] : selectedCombos,
       noLogEnabled,
       allowAllConnections ? [] : selectedConnections,
@@ -1944,7 +1945,8 @@ const PermissionsModal = memo(function PermissionsModal({
       parseUsdLimitInput(dailyUsageLimitUsd),
       parseUsdLimitInput(weeklyUsageLimitUsd),
       blockedModels,
-      chaosModeEnabled
+      chaosModeEnabled,
+      modelAccess.modelAccessMode
     );
   }, [
     onSave,
@@ -1988,6 +1990,8 @@ const PermissionsModal = memo(function PermissionsModal({
     t,
   ]);
 
+  // selectedCount counts provider scopes as one entry each; inherited
+  // children render selected via the owner lookup inside the list component.
   const selectedCount = selectedModels.length;
   const totalModels = allModels.length;
   const hasClaudeCodeDefaultSelected =
@@ -2735,124 +2739,18 @@ const PermissionsModal = memo(function PermissionsModal({
 
         {/* Search and Model Selection (only in restrict mode) */}
         {!allowAll && (
-          <>
-            <div className="relative">
-              <Input
-                value={searchModel}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder={t("searchModels")}
-                icon="search"
-              />
-              {searchModel && (
-                <button
-                  onClick={() => onSearchChange("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main"
-                >
-                  <span className="material-symbols-outlined text-[18px]">close</span>
-                </button>
-              )}
-            </div>
-
-            <div className="max-h-[280px] overflow-y-auto border border-border rounded-lg divide-y divide-border">
-              {modelsByProvider.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-6 text-text-muted">
-                  <span className="material-symbols-outlined text-2xl mb-1">search_off</span>
-                  <p className="text-xs">{t("noModelsFound")}</p>
-                </div>
-              ) : (
-                modelsByProvider.map(([provider, models]) => {
-                  const selectedInProvider = selectedModels.filter((m) =>
-                    models.some((model) => model.id === m)
-                  ).length;
-                  const allSelected = models.every((m) => selectedModels.includes(m.id));
-                  const someSelected = selectedInProvider > 0 && !allSelected;
-
-                  return (
-                    <div key={provider} className="group">
-                      <button
-                        onClick={() => handleToggleExpand(provider)}
-                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface/50 transition-colors text-left"
-                      >
-                        <span
-                          className={`material-symbols-outlined text-base transition-transform duration-200 ${
-                            expandedProviders.has(provider) ? "rotate-90" : ""
-                          }`}
-                        >
-                          chevron_right
-                        </span>
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <div
-                            className="relative flex items-center cursor-pointer shrink-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleProvider(provider, models);
-                            }}
-                          >
-                            <div
-                              className={`w-4 h-4 rounded border-2 transition-colors flex items-center justify-center ${
-                                allSelected
-                                  ? "bg-primary border-primary"
-                                  : someSelected
-                                    ? "bg-primary/20 border-primary"
-                                    : "border-border hover:border-primary/50"
-                              }`}
-                            >
-                              {allSelected && (
-                                <span className="material-symbols-outlined text-white text-[12px]">
-                                  check
-                                </span>
-                              )}
-                              {someSelected && !allSelected && (
-                                <span className="material-symbols-outlined text-primary text-[12px]">
-                                  remove
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <span className="text-xs font-semibold text-text-main truncate">
-                            {provider}
-                          </span>
-                          <span className="text-[10px] text-text-muted bg-surface px-1 py-0.5 rounded shrink-0">
-                            {models.length}
-                          </span>
-                        </div>
-                        {selectedInProvider > 0 && (
-                          <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full shrink-0">
-                            {selectedInProvider}
-                          </span>
-                        )}
-                      </button>
-
-                      {/* Expandable model list */}
-                      {expandedProviders.has(provider) && (
-                        <div className="px-3 pb-2 pl-9">
-                          <div className="flex flex-wrap gap-1">
-                            {models.map((model) => {
-                              const isSelected = selectedModels.includes(model.id);
-                              return (
-                                <button
-                                  key={model.id}
-                                  onClick={() => handleToggleModel(model.id)}
-                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-mono transition-all ${
-                                    isSelected
-                                      ? "bg-primary text-white"
-                                      : "bg-surface border border-border text-text-muted hover:border-primary/50 hover:text-text-main"
-                                  }`}
-                                  title={model.id}
-                                >
-                                  {getModelDisplayName(model.id)}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </>
+          <ProviderModelPermissionList
+            modelsByProvider={modelsByProvider}
+            allModels={allModels}
+            selectedModels={selectedModels}
+            expandedProviders={expandedProviders}
+            searchModel={searchModel}
+            onSearchChange={onSearchChange}
+            onToggleExpand={handleToggleExpand}
+            onSelectionChange={handleSelectionChange}
+            getModelDisplayName={getModelDisplayName}
+            onClaudeCodeDefaultDeselected={handleClaudeCodeDefaultDeselected}
+          />
         )}
 
         {/* Allowed Connections Section */}

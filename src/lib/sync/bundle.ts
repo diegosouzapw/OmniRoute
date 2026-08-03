@@ -118,6 +118,7 @@ function sanitizeApiKeyForSync(apiKey: unknown): JsonRecord {
     "name",
     "key",
     "machineId",
+    "modelAccessMode",
     "allowedModels",
     "allowedCombos",
     "allowedConnections",

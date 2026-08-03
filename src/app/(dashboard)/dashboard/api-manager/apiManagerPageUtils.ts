@@ -12,6 +12,8 @@ export interface ApiKeyShape {
   scopes?: string[];
   allowedModels?: string[] | null;
   allowedConnections?: string[] | null;
+  /** Public shape: "all" | "restricted". Absent on legacy keys. */
+  modelAccessMode?: "all" | "restricted" | null;
 }
 
 export function isKeyActive(k: ApiKeyShape): boolean {
@@ -31,6 +33,10 @@ export function isExpired(k: ApiKeyShape): boolean {
 }
 
 export function isRestricted(k: ApiKeyShape): boolean {
+  // Explicit restricted mode classifies as restricted even with an empty
+  // allow-list (restricted + zero selections means deny-all). Legacy keys
+  // without a mode keep the historical "empty means allow all" semantics.
+  if (k.modelAccessMode === "restricted") return true;
   const hasModelRestrictions = Array.isArray(k.allowedModels) && k.allowedModels.length > 0;
   const hasConnectionRestrictions =
     Array.isArray(k.allowedConnections) && k.allowedConnections.length > 0;
@@ -124,4 +130,143 @@ export function toggleKeyVisibility(prev: Set<string>, keyId: string): Set<strin
   if (next.has(keyId)) next.delete(keyId);
   else next.add(keyId);
   return next;
+}
+
+// ──────────────── Provider-scope (dynamic provider/*) model permissions ────────────────
+
+/** Reference to a catalog model used to resolve provider ownership. */
+export interface ProviderModelRef {
+  id: string;
+  owned_by?: string;
+  providerId?: string;
+}
+
+export interface ProviderScopeOptions {
+  /** Canonical provider id (fallback owner for alias-prefixed catalog ids). */
+  providerId?: string;
+  /** Canonical owner id (fallback owner when providerId is absent). */
+  ownedBy?: string;
+  /** Catalog models used to map alias-prefixed ids to their canonical owner. */
+  providerModels?: ProviderModelRef[];
+}
+
+/** Canonical provider id segment of a wildcard entry ("ollama-cloud/*" → "ollama-cloud"). */
+function providerWildcardId(entry: string): string | null {
+  return entry.endsWith("/*") ? entry.slice(0, -2) : null;
+}
+
+/**
+ * Resolve the canonical owner id of a single entry. Exact model ids resolve
+ * through the catalog (alias-prefixed ids like `ollamacloud/llama3` map to
+ * their canonical `owned_by`), falling back to the id's prefix segment and
+ * then to the provided canonical provider fallback. Wildcards resolve to
+ * their own provider segment (already canonical).
+ */
+function resolveEntryProvider(entry: string, options?: ProviderScopeOptions): string {
+  const wildcard = providerWildcardId(entry);
+  if (wildcard !== null) return wildcard;
+  const model = options?.providerModels?.find((m) => m.id === entry);
+  const fallback = options?.providerId ?? options?.ownedBy;
+  return model?.owned_by ?? model?.providerId ?? entry.split("/")[0] ?? fallback ?? entry;
+}
+
+/**
+ * Resolve the canonical owner id of a catalog model. Prefers the catalog
+ * `owned_by` (alias-prefixed ids map to their canonical owner), then the
+ * provided provider fallback, then the model-id prefix.
+ */
+function resolveModelProvider(modelId: string, options?: ProviderScopeOptions): string {
+  const model = options?.providerModels?.find((m) => m.id === modelId);
+  return (
+    model?.owned_by ??
+    model?.providerId ??
+    options?.ownedBy ??
+    options?.providerId ??
+    modelId.split("/")[0]
+  );
+}
+
+/**
+ * Toggle a canonical `provider/*` scope on/off inside a selection list.
+ *
+ * Selecting: removes every currently known exact entry owned by the provider
+ * (exact id-prefix children, alias-prefixed catalog children and the raw
+ * wildcard alike), then appends the canonical wildcard. Unknown/offline rules
+ * and exact selections from other providers are preserved.
+ * Deselecting: removes only that provider's wildcard, preserving everything else.
+ */
+export function toggleProviderWildcardSelection(
+  selected: string[],
+  providerId: string,
+  options?: ProviderScopeOptions
+): string[] {
+  const wildcard = `${providerId}/*`;
+  if (selected.includes(wildcard)) {
+    return selected.filter((entry) => entry !== wildcard);
+  }
+  const kept = selected.filter(
+    (entry) =>
+      providerWildcardId(entry) !== null || resolveEntryProvider(entry, options) !== providerId
+  );
+  return [...kept, wildcard];
+}
+
+/**
+ * Whether a model is covered by a selected `provider/*` scope. Ownership is
+ * resolved via the canonical owner (catalog `owned_by` / provided fallback),
+ * not the model-id prefix, so alias-prefixed catalog ids still inherit.
+ */
+export function isModelInheritedByProviderScope(
+  selected: string[],
+  modelId: string,
+  options?: ProviderScopeOptions
+): boolean {
+  const owner = resolveModelProvider(modelId, options);
+  return owner != null && selected.includes(`${owner}/*`);
+}
+
+/**
+ * Whether a model may be toggled individually. Models inherited through a
+ * selected provider scope are disabled/non-toggleable; manual exact models
+ * from other providers stay toggleable.
+ */
+export function isModelIndividuallyToggleable(
+  selected: string[],
+  modelId: string,
+  options?: ProviderScopeOptions
+): boolean {
+  return !isModelInheritedByProviderScope(selected, modelId, options);
+}
+
+/**
+ * Split persisted allowedModels back into provider wildcards and exact model
+ * entries so reopening the modal restores provider-level selections.
+ * `providerModels` is accepted for forward-compatible owner normalization but
+ * is not required: wildcard entries are already canonical.
+ */
+export function restoreProviderScopeSelection(
+  allowedModels: string[],
+  _options?: { providerModels?: ProviderModelRef[] }
+): { providerWildcards: string[]; exactModels: string[] } {
+  void _options;
+  const providerWildcards: string[] = [];
+  const exactModels: string[] = [];
+  for (const entry of allowedModels) {
+    if (providerWildcardId(entry) !== null) providerWildcards.push(entry);
+    else exactModels.push(entry);
+  }
+  return { providerWildcards, exactModels };
+}
+
+/**
+ * Persisted payload for the model access section. Allow All always saves an
+ * empty allow-list with mode "all"; Restrict (including zero selections)
+ * saves the exact selection with mode "restricted".
+ */
+export function buildModelAccessSavePayload(input: {
+  allowAll: boolean;
+  selectedModels: string[];
+}): { modelAccessMode: "all" | "restricted"; allowedModels: string[] } {
+  if (input.allowAll) return { modelAccessMode: "all", allowedModels: [] };
+  return { modelAccessMode: "restricted", allowedModels: input.selectedModels };
 }

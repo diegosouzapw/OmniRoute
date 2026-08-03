@@ -82,6 +82,7 @@ export const setTokenLimitSchema = z
 export const updateKeyPermissionsSchema = z
   .object({
     name: z.string().trim().min(1).max(200).optional(),
+    modelAccessMode: z.enum(["all", "restricted"]).optional(),
     allowedModels: z.array(z.string().trim().min(1)).max(1000).optional(),
     allowedCombos: z.array(z.string().trim().min(1).max(200)).max(500).optional(),
     allowedConnections: z.array(z.string().uuid()).max(100).optional(),
@@ -114,8 +115,16 @@ export const updateKeyPermissionsSchema = z
     chaosModeEnabled: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
+    if (value.modelAccessMode === "all" && value.allowedModels && value.allowedModels.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "allowedModels must be empty when modelAccessMode is 'all'",
+        path: ["allowedModels"],
+      });
+    }
     if (
       value.name === undefined &&
+      value.modelAccessMode === undefined &&
       value.allowedModels === undefined &&
       value.allowedCombos === undefined &&
       value.allowedConnections === undefined &&
