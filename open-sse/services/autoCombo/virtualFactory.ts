@@ -9,7 +9,11 @@ import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 import { getTokenLimit } from "../contextManager";
-import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import {
+  createModelCapabilityResolutionSnapshot,
+  getResolvedModelCapabilities,
+  type ModelCapabilityResolutionSnapshot,
+} from "@/lib/modelCapabilities";
 import {
   buildAutoCandidateFilter,
   tierToWeightVariant,
@@ -357,8 +361,11 @@ type PreparedCapabilityValues = {
 };
 
 type PreparedCapabilityState = {
-  byTarget: Map<string, PreparedCapabilityValues>;
+  /** Nested provider → model memo; collision-free for arbitrary model ids. */
+  byTarget: Map<string, Map<string, PreparedCapabilityValues>>;
   resolvedSinceYield: number;
+  /** Build-local bulk maps; one per catalog prepare, never retained at runtime. */
+  resolutionSnapshot: ModelCapabilityResolutionSnapshot;
 };
 
 function yieldVirtualAutoPreparationTurn(): Promise<void> {
@@ -371,14 +378,25 @@ async function attachPreparedCapabilityValues(
 ): Promise<VirtualAutoComboCandidate[]> {
   const prepared: VirtualAutoComboCandidate[] = [];
   for (const candidate of candidates) {
-    const targetKey = `${candidate.provider}\u0000${candidate.model}`;
-    let values = state.byTarget.get(targetKey);
+    let byModel = state.byTarget.get(candidate.provider);
+    if (!byModel) {
+      byModel = new Map();
+      state.byTarget.set(candidate.provider, byModel);
+    }
+    let values = byModel.get(candidate.model);
     if (!values) {
-      const contextLength = getTokenLimit(candidate.provider, candidate.model);
-      const capabilities = getResolvedModelCapabilities({
-        provider: candidate.provider,
-        model: candidate.model,
-      });
+      const contextLength = getTokenLimit(
+        candidate.provider,
+        candidate.model,
+        state.resolutionSnapshot
+      );
+      const capabilities = getResolvedModelCapabilities(
+        {
+          provider: candidate.provider,
+          model: candidate.model,
+        },
+        state.resolutionSnapshot
+      );
       const maxOutputTokens = capabilities.maxOutputTokens;
       values = {
         resolvedContextLength:
@@ -393,7 +411,7 @@ async function attachPreparedCapabilityValues(
         resolvedReasoning: capabilities.reasoning === true,
         resolvedSupportsThinking: capabilities.supportsThinking === true,
       };
-      state.byTarget.set(targetKey, values);
+      byModel.set(candidate.model, values);
       state.resolvedSinceYield++;
       if (state.resolvedSinceYield >= PREPARED_CAPABILITY_YIELD_INTERVAL) {
         state.resolvedSinceYield = 0;
@@ -527,9 +545,13 @@ export async function prepareVirtualAutoComboInputs(
     return { regularCandidates, familyCandidates };
   }
 
+  // One uninterrupted bulk read of all three capability tables for this prepare only.
+  // Do not yield between the three loads; later cooperative yields remain fine because
+  // catalog generation guards already prevent publishing across intervening writes.
   const capabilityState: PreparedCapabilityState = {
     byTarget: new Map(),
     resolvedSinceYield: 0,
+    resolutionSnapshot: createModelCapabilityResolutionSnapshot(),
   };
   return {
     regularCandidates: await attachPreparedCapabilityValues(regularCandidates, capabilityState),

@@ -78,11 +78,20 @@ export function getModelContextOverrideRecord(
   }
 }
 
+/** Nested provider → model → context map used by build-local snapshots. */
+export type NestedContextOverrideMap = ReadonlyMap<string, ReadonlyMap<string, number>>;
+
 /** The overridden context window (tokens) for (provider, modelId), or null. Never throws. */
 export function getModelContextOverride(
   provider: string | null | undefined,
-  modelId: string | null | undefined
+  modelId: string | null | undefined,
+  bulkContextOverrides?: NestedContextOverrideMap | null
 ): number | null {
+  if (bulkContextOverrides) {
+    const key = normalizeKey(provider, modelId);
+    if (!key) return null;
+    return bulkContextOverrides.get(key.provider)?.get(key.modelId) ?? null;
+  }
   const record = getModelContextOverrideRecord(provider, modelId);
   return record ? record.realContext : null;
 }

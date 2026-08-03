@@ -114,6 +114,40 @@ test("#9199 prepared auto inputs resolve each candidate capability before materi
   );
 });
 
+test("#9199 catalog capability preparation bulk-loads each capability table once", async () => {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare;
+  const callPrepare = originalPrepare.bind(db);
+  const counts = {
+    synced: 0,
+    capabilityOverrides: 0,
+    contextOverrides: 0,
+  };
+
+  (db as unknown as { prepare: typeof db.prepare }).prepare = ((sql: string) => {
+    const normalized = String(sql).replace(/\s+/g, " ").trim();
+    if (normalized.includes("FROM model_capabilities")) counts.synced++;
+    if (normalized.includes("FROM model_capability_overrides")) counts.capabilityOverrides++;
+    if (normalized.includes("FROM model_context_overrides")) counts.contextOverrides++;
+    return callPrepare(sql);
+  }) as typeof db.prepare;
+
+  try {
+    const prepared = await virtualFactory.prepareVirtualAutoComboInputs({
+      includeResolvedCapabilities: true,
+    });
+    assert.ok(prepared.regularCandidates.length + prepared.familyCandidates.length > 0);
+  } finally {
+    (db as unknown as { prepare: typeof db.prepare }).prepare = originalPrepare;
+  }
+
+  assert.deepEqual(counts, {
+    synced: 1,
+    capabilityOverrides: 1,
+    contextOverrides: 1,
+  });
+});
+
 test("#9199 default runtime preparation does not retain catalog-only capabilities", async () => {
   const prepared = await virtualFactory.prepareVirtualAutoComboInputs();
   const candidates = [...prepared.regularCandidates, ...prepared.familyCandidates];
@@ -123,6 +157,38 @@ test("#9199 default runtime preparation does not retain catalog-only capabilitie
     candidates.every((candidate) => !Object.hasOwn(candidate, "resolvedContextLength")),
     "runtime routing should keep its existing on-demand capability resolution"
   );
+});
+
+test("#9199 default runtime preparation does not bulk-load capability tables", async () => {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare;
+  const callPrepare = originalPrepare.bind(db);
+  const counts = {
+    synced: 0,
+    capabilityOverrides: 0,
+    contextOverrides: 0,
+  };
+
+  (db as unknown as { prepare: typeof db.prepare }).prepare = ((sql: string) => {
+    const normalized = String(sql).replace(/\s+/g, " ").trim();
+    if (normalized.includes("FROM model_capabilities")) counts.synced++;
+    if (normalized.includes("FROM model_capability_overrides")) counts.capabilityOverrides++;
+    if (normalized.includes("FROM model_context_overrides")) counts.contextOverrides++;
+    return callPrepare(sql);
+  }) as typeof db.prepare;
+
+  try {
+    const prepared = await virtualFactory.prepareVirtualAutoComboInputs();
+    assert.ok(prepared.regularCandidates.length + prepared.familyCandidates.length > 0);
+  } finally {
+    (db as unknown as { prepare: typeof db.prepare }).prepare = originalPrepare;
+  }
+
+  assert.deepEqual(counts, {
+    synced: 0,
+    capabilityOverrides: 0,
+    contextOverrides: 0,
+  });
 });
 
 test("#9199 capability preparation yields before publishing the snapshot", async () => {
