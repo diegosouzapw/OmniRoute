@@ -37,6 +37,7 @@ const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
+const suffixComposition = await import("../../open-sse/services/autoCombo/suffixComposition.ts");
 const contextManager = await import("../../open-sse/services/contextManager.ts");
 const combosAutoRoute = await import("../../src/app/api/combos/auto/route.ts");
 
@@ -75,6 +76,169 @@ test("computeAdvertisedLimits returns MAX of candidates' known context windows",
     typeof result.maxOutputTokens === "number" && result.maxOutputTokens > 0,
     "maxOutputTokens should be a positive number"
   );
+});
+
+test("#9199 computeAdvertisedLimits reuses build-local prepared capability values", () => {
+  const result = virtualFactory.computeAdvertisedLimits([
+    {
+      provider: "prepared-provider",
+      model: "prepared-model",
+      resolvedContextLength: 654321,
+      resolvedMaxOutputTokens: 12345,
+    },
+  ]);
+
+  assert.deepEqual(result, {
+    contextLength: 654321,
+    maxOutputTokens: 12345,
+  });
+});
+
+test("#9199 prepared auto inputs resolve each candidate capability before materialization", async () => {
+  const prepared = await virtualFactory.prepareVirtualAutoComboInputs({
+    includeResolvedCapabilities: true,
+  });
+  const candidates = [...prepared.regularCandidates, ...prepared.familyCandidates];
+
+  assert.ok(candidates.length > 0, "the built-in no-auth registry should provide candidates");
+  assert.ok(
+    candidates.every(
+      (candidate) =>
+        Object.hasOwn(candidate, "resolvedContextLength") &&
+        Object.hasOwn(candidate, "resolvedMaxOutputTokens") &&
+        Object.hasOwn(candidate, "resolvedSupportsVision") &&
+        Object.hasOwn(candidate, "resolvedReasoning") &&
+        Object.hasOwn(candidate, "resolvedSupportsThinking")
+    ),
+    "every prepared candidate should carry a build-local capability snapshot"
+  );
+});
+
+test("#9199 catalog capability preparation bulk-loads each capability table once", async () => {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare;
+  const callPrepare = originalPrepare.bind(db);
+  const counts = {
+    synced: 0,
+    capabilityOverrides: 0,
+    contextOverrides: 0,
+  };
+
+  (db as unknown as { prepare: typeof db.prepare }).prepare = ((sql: string) => {
+    const normalized = String(sql).replace(/\s+/g, " ").trim();
+    if (normalized.includes("FROM model_capabilities")) counts.synced++;
+    if (normalized.includes("FROM model_capability_overrides")) counts.capabilityOverrides++;
+    if (normalized.includes("FROM model_context_overrides")) counts.contextOverrides++;
+    return callPrepare(sql);
+  }) as typeof db.prepare;
+
+  try {
+    const prepared = await virtualFactory.prepareVirtualAutoComboInputs({
+      includeResolvedCapabilities: true,
+    });
+    assert.ok(prepared.regularCandidates.length + prepared.familyCandidates.length > 0);
+  } finally {
+    (db as unknown as { prepare: typeof db.prepare }).prepare = originalPrepare;
+  }
+
+  assert.deepEqual(counts, {
+    synced: 1,
+    capabilityOverrides: 1,
+    contextOverrides: 1,
+  });
+});
+
+test("#9199 default runtime preparation does not retain catalog-only capabilities", async () => {
+  const prepared = await virtualFactory.prepareVirtualAutoComboInputs();
+  const candidates = [...prepared.regularCandidates, ...prepared.familyCandidates];
+
+  assert.ok(candidates.length > 0);
+  assert.ok(
+    candidates.every((candidate) => !Object.hasOwn(candidate, "resolvedContextLength")),
+    "runtime routing should keep its existing on-demand capability resolution"
+  );
+});
+
+test("#9199 default runtime preparation does not bulk-load capability tables", async () => {
+  const db = core.getDbInstance();
+  const originalPrepare = db.prepare;
+  const callPrepare = originalPrepare.bind(db);
+  const counts = {
+    synced: 0,
+    capabilityOverrides: 0,
+    contextOverrides: 0,
+  };
+
+  (db as unknown as { prepare: typeof db.prepare }).prepare = ((sql: string) => {
+    const normalized = String(sql).replace(/\s+/g, " ").trim();
+    if (normalized.includes("FROM model_capabilities")) counts.synced++;
+    if (normalized.includes("FROM model_capability_overrides")) counts.capabilityOverrides++;
+    if (normalized.includes("FROM model_context_overrides")) counts.contextOverrides++;
+    return callPrepare(sql);
+  }) as typeof db.prepare;
+
+  try {
+    const prepared = await virtualFactory.prepareVirtualAutoComboInputs();
+    assert.ok(prepared.regularCandidates.length + prepared.familyCandidates.length > 0);
+  } finally {
+    (db as unknown as { prepare: typeof db.prepare }).prepare = originalPrepare;
+  }
+
+  assert.deepEqual(counts, {
+    synced: 0,
+    capabilityOverrides: 0,
+    contextOverrides: 0,
+  });
+});
+
+test("#9199 capability preparation yields before publishing the snapshot", async () => {
+  let heartbeatRan = false;
+  const preparation = virtualFactory.prepareVirtualAutoComboInputs({
+    includeResolvedCapabilities: true,
+  });
+  setImmediate(() => {
+    heartbeatRan = true;
+  });
+
+  await preparation;
+  assert.equal(heartbeatRan, true);
+});
+
+test("#9199 category filters reuse prepared capability flags", () => {
+  const filter = suffixComposition.buildAutoCandidateFilter("reasoning");
+  assert.ok(filter);
+  assert.equal(
+    filter({
+      provider: "openai",
+      model: "gpt-5.4",
+      resolvedReasoning: false,
+      resolvedSupportsThinking: false,
+    }),
+    false
+  );
+});
+
+test("#9199 materialization passes prepared capability flags into category filters", async () => {
+  const candidate = {
+    provider: "openai",
+    connectionId: null,
+    allowedConnectionIds: ["prepared-connection"],
+    model: "gpt-5.4",
+    modelStr: "openai/gpt-5.4",
+    costPer1MTokens: 0,
+    resolvedContextLength: 400000,
+    resolvedMaxOutputTokens: 64000,
+    resolvedSupportsVision: false,
+    resolvedReasoning: false,
+    resolvedSupportsThinking: false,
+  };
+  const combo = await virtualFactory.createVirtualAutoComboFromPrepared(
+    { regularCandidates: [candidate], familyCandidates: [candidate] },
+    undefined,
+    { category: "reasoning" }
+  );
+
+  assert.equal(combo.models.length, 0);
 });
 
 test("computeAdvertisedLimits returns null limits for an empty candidate pool", () => {

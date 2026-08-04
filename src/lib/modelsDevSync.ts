@@ -281,6 +281,49 @@ export function ensureCapabilitiesTable(): void {
   `);
 }
 
+function defineEnumerableDataProperty<T extends object>(
+  target: T,
+  key: string,
+  value: unknown
+): void {
+  Object.defineProperty(target, key, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+}
+
+function capabilitiesFromRows(rows: unknown[]): CapabilitiesByProvider {
+  const result: CapabilitiesByProvider = {};
+
+  for (const row of rows) {
+    const record = toRecord(row);
+    const prov = typeof record.provider === "string" ? record.provider : null;
+    const mid = typeof record.model_id === "string" ? record.model_id : null;
+    if (!prov || !mid) continue;
+
+    if (!Object.hasOwn(result, prov)) {
+      defineEnumerableDataProperty(result, prov, {});
+    }
+    defineEnumerableDataProperty(result[prov], mid, mapCapabilityRecord(record));
+  }
+
+  return result;
+}
+
+/**
+ * Uncached full-table models.dev capability read for build-local snapshots.
+ * Shares mapping with the ordinary all-row API but never mutates the module-global
+ * `cachedCapabilities` / `cachedCapabilitiesLoadedAll` runtime cache.
+ */
+export function loadAllSyncedCapabilitiesUncached(): CapabilitiesByProvider {
+  const db = getDbInstance();
+  ensureCapabilitiesTable();
+  const rows = db.prepare("SELECT * FROM model_capabilities").all();
+  return capabilitiesFromRows(rows);
+}
+
 /**
  * Read synced capabilities from `model_capabilities` table.
  */
@@ -313,18 +356,7 @@ export function getSyncedCapabilities(provider?: string, modelId?: string): Capa
     }
   }
 
-  const rows = db.prepare(query).all(...params);
-  const result: CapabilitiesByProvider = {};
-
-  for (const row of rows) {
-    const record = toRecord(row);
-    const prov = typeof record.provider === "string" ? record.provider : null;
-    const mid = typeof record.model_id === "string" ? record.model_id : null;
-    if (!prov || !mid) continue;
-
-    if (!result[prov]) result[prov] = {};
-    result[prov][mid] = mapCapabilityRecord(record);
-  }
+  const result = capabilitiesFromRows(db.prepare(query).all(...params));
 
   if (!provider && !modelId) {
     cachedCapabilities = result;
@@ -348,25 +380,47 @@ const SYNCED_CAPABILITY_FALLBACK_ALIASES: Record<string, string[]> = {
   "opencode-go": ["opencode-zen"],
 };
 
+function lookupSyncedCapabilityWithFallbacks(
+  provider: string,
+  modelId: string,
+  lookup: (provider: string) => ModelCapabilityEntry | null
+): ModelCapabilityEntry | null {
+  const direct = lookup(provider);
+  if (direct) return direct;
+
+  const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
+  if (fallbacks) {
+    for (const alt of fallbacks) {
+      const found = lookup(alt);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
 export function getSyncedCapability(
   provider: string,
-  modelId: string
+  modelId: string,
+  bulk?: CapabilitiesByProvider | null
 ): ModelCapabilityEntry | null {
   if (!provider || !modelId) return null;
 
+  if (bulk) {
+    return lookupSyncedCapabilityWithFallbacks(
+      provider,
+      modelId,
+      (p) => bulk[p]?.[modelId] ?? null
+    );
+  }
+
   // Fast path: every provider is in the in-memory cache, skip SQLite entirely.
   if (cachedCapabilitiesLoadedAll) {
-    const lookupCached = (p: string) => cachedCapabilities?.[p]?.[modelId] ?? null;
-    const directCached = lookupCached(provider);
-    if (directCached) return directCached;
-    const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
-    if (fallbacks) {
-      for (const alt of fallbacks) {
-        const found = lookupCached(alt);
-        if (found) return found;
-      }
-    }
-    return null;
+    return lookupSyncedCapabilityWithFallbacks(
+      provider,
+      modelId,
+      (p) => cachedCapabilities?.[p]?.[modelId] ?? null
+    );
   }
 
   // Cold path: hit SQLite. Prepare the statement once, reuse for every alias.
@@ -375,24 +429,11 @@ export function getSyncedCapability(
   const stmt = db.prepare(
     "SELECT * FROM model_capabilities WHERE provider = ? AND model_id = ? LIMIT 1"
   );
-  const lookupDb = (p: string): ModelCapabilityEntry | null => {
+  return lookupSyncedCapabilityWithFallbacks(provider, modelId, (p) => {
     const row = stmt.get(p, modelId);
     if (!row) return null;
     return mapCapabilityRecord(toRecord(row));
-  };
-
-  const direct = lookupDb(provider);
-  if (direct) return direct;
-
-  const fallbacks = SYNCED_CAPABILITY_FALLBACK_ALIASES[provider];
-  if (fallbacks) {
-    for (const alt of fallbacks) {
-      const found = lookupDb(alt);
-      if (found) return found;
-    }
-  }
-
-  return null;
+  });
 }
 
 /**
@@ -413,11 +454,12 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
   `);
 
   const now = new Date().toISOString();
+  let changed = false;
   const tx = db.transaction(() => {
-    del.run();
+    if (del.run().changes > 0) changed = true;
     for (const [provider, models] of Object.entries(data)) {
       for (const [modelId, cap] of Object.entries(models)) {
-        insert.run(
+        const info = insert.run(
           provider,
           modelId,
           cap.tool_call === null ? null : cap.tool_call ? 1 : 0,
@@ -439,6 +481,7 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
           cap.interleaved_field,
           now
         );
+        if (info.changes > 0) changed = true;
       }
     }
   });
@@ -446,6 +489,7 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
   backupDbFile("pre-write");
   cachedCapabilities = data;
   cachedCapabilitiesLoadedAll = true;
+  if (changed) invalidateDbCache("model-capabilities");
 }
 
 /**
@@ -454,10 +498,11 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
 export function clearModelsDevCapabilities(): void {
   const db = getDbInstance();
   ensureCapabilitiesTable();
-  db.prepare("DELETE FROM model_capabilities").run();
+  const info = db.prepare("DELETE FROM model_capabilities").run();
   backupDbFile("pre-write");
   cachedCapabilities = {};
   cachedCapabilitiesLoadedAll = true;
+  if (info.changes > 0) invalidateDbCache("model-capabilities");
 }
 
 // ─── Main sync function ──────────────────────────────────

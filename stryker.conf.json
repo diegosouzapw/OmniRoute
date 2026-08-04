@@ -39,9 +39,7 @@
   "incremental": true,
   "incrementalFile": "reports/mutation/stryker-incremental.json",
   "testRunner": "tap",
-  "plugins": [
-    "@stryker-mutator/tap-runner"
-  ],
+  "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
       "tests/unit/7993-noauth-proxy-routing.test.ts",
@@ -225,6 +223,7 @@
       "tests/unit/microsoft-designer-web-6672.test.ts",
       "tests/unit/middleware-header-strip-5849.test.ts",
       "tests/unit/middleware-hooks-error-sanitization.test.ts",
+      "tests/unit/model-catalog-runtime-invalidation.test.ts",
       "tests/unit/model-cooldowns-route-auth.test.ts",
       "tests/unit/model-cooldowns-route.test.ts",
       "tests/unit/model-lockout-decay.test.ts",
@@ -417,11 +416,7 @@
     ".worktrees",
     ".stryker-tmp"
   ],
-  "reporters": [
-    "progress",
-    "html",
-    "json"
-  ],
+  "reporters": ["progress", "html", "json"],
   "htmlReporter": {
     "fileName": "reports/mutation/mutation.html"
   },

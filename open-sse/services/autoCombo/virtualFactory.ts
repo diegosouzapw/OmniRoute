@@ -9,7 +9,11 @@ import { NOAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { hasUsableWebSessionCredential } from "@/shared/providers/webSessionCredentials";
 import { defaultLogger as log } from "@omniroute/open-sse/utils/logger";
 import { getTokenLimit } from "../contextManager";
-import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
+import {
+  createModelCapabilityResolutionSnapshot,
+  getResolvedModelCapabilities,
+  type ModelCapabilityResolutionSnapshot,
+} from "@/lib/modelCapabilities";
 import {
   buildAutoCandidateFilter,
   tierToWeightVariant,
@@ -65,6 +69,12 @@ export interface VirtualAutoComboCandidate {
   model: string;
   modelStr: string; // e.g., 'openai/gpt-4o'
   costPer1MTokens: number; // from providerRegistry
+  /** Build-local capability snapshot. Runtime calls rebuild it; catalog entries reuse it. */
+  resolvedContextLength?: number | null;
+  resolvedMaxOutputTokens?: number | null;
+  resolvedSupportsVision?: boolean;
+  resolvedReasoning?: boolean;
+  resolvedSupportsThinking?: boolean;
 }
 
 type VirtualAutoCombo = AutoComboConfig & {
@@ -105,6 +115,15 @@ type VirtualAutoCombo = AutoComboConfig & {
     };
   };
 };
+
+/**
+ * Build-local candidate snapshots shared by the built-in entries in one model-catalog build.
+ * Runtime routing does not retain or reuse this object across requests.
+ */
+export interface PreparedVirtualAutoComboInputs {
+  readonly regularCandidates: readonly VirtualAutoComboCandidate[];
+  readonly familyCandidates: readonly VirtualAutoComboCandidate[];
+}
 
 function toExpiryMs(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -289,7 +308,14 @@ function getNoAuthCandidates(
  */
 const DEFAULT_ADVERTISED_MAX_OUTPUT_TOKENS = 8192;
 
-export function computeAdvertisedLimits(candidates: Array<{ provider: string; model: string }>): {
+type AdvertisedLimitCandidate = {
+  provider: string;
+  model: string;
+  resolvedContextLength?: number | null;
+  resolvedMaxOutputTokens?: number | null;
+};
+
+export function computeAdvertisedLimits(candidates: AdvertisedLimitCandidate[]): {
   contextLength: number | null;
   maxOutputTokens: number | null;
 } {
@@ -300,14 +326,20 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
   let contextLength: number | null = null;
   let maxOutputTokens: number | null = null;
   for (const candidate of candidates) {
-    const limit = getTokenLimit(candidate.provider, candidate.model);
-    if (Number.isFinite(limit) && limit > 0) {
+    const limit =
+      candidate.resolvedContextLength !== undefined
+        ? candidate.resolvedContextLength
+        : getTokenLimit(candidate.provider, candidate.model);
+    if (typeof limit === "number" && Number.isFinite(limit) && limit > 0) {
       contextLength = contextLength === null ? limit : Math.max(contextLength, limit);
     }
-    const output = getResolvedModelCapabilities({
-      provider: candidate.provider,
-      model: candidate.model,
-    }).maxOutputTokens;
+    const output =
+      candidate.resolvedMaxOutputTokens !== undefined
+        ? candidate.resolvedMaxOutputTokens
+        : getResolvedModelCapabilities({
+            provider: candidate.provider,
+            model: candidate.model,
+          }).maxOutputTokens;
     if (typeof output === "number" && Number.isFinite(output) && output > 0) {
       maxOutputTokens = maxOutputTokens === null ? output : Math.max(maxOutputTokens, output);
     }
@@ -318,12 +350,82 @@ export function computeAdvertisedLimits(candidates: Array<{ provider: string; mo
   return { contextLength, maxOutputTokens };
 }
 
-export async function createVirtualAutoCombo(
-  variant: AutoVariant | undefined,
-  spec?: AutoComboSpec,
-  apiKeyId?: string,
-  autoChannel?: string
-): Promise<VirtualAutoCombo> {
+const PREPARED_CAPABILITY_YIELD_INTERVAL = 16;
+
+type PreparedCapabilityValues = {
+  resolvedContextLength: number | null;
+  resolvedMaxOutputTokens: number | null;
+  resolvedSupportsVision: boolean;
+  resolvedReasoning: boolean;
+  resolvedSupportsThinking: boolean;
+};
+
+type PreparedCapabilityState = {
+  /** Nested provider → model memo; collision-free for arbitrary model ids. */
+  byTarget: Map<string, Map<string, PreparedCapabilityValues>>;
+  resolvedSinceYield: number;
+  /** Build-local bulk maps; one per catalog prepare, never retained at runtime. */
+  resolutionSnapshot: ModelCapabilityResolutionSnapshot;
+};
+
+function yieldVirtualAutoPreparationTurn(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
+async function attachPreparedCapabilityValues(
+  candidates: readonly VirtualAutoComboCandidate[],
+  state: PreparedCapabilityState
+): Promise<VirtualAutoComboCandidate[]> {
+  const prepared: VirtualAutoComboCandidate[] = [];
+  for (const candidate of candidates) {
+    let byModel = state.byTarget.get(candidate.provider);
+    if (!byModel) {
+      byModel = new Map();
+      state.byTarget.set(candidate.provider, byModel);
+    }
+    let values = byModel.get(candidate.model);
+    if (!values) {
+      const contextLength = getTokenLimit(
+        candidate.provider,
+        candidate.model,
+        state.resolutionSnapshot
+      );
+      const capabilities = getResolvedModelCapabilities(
+        {
+          provider: candidate.provider,
+          model: candidate.model,
+        },
+        state.resolutionSnapshot
+      );
+      const maxOutputTokens = capabilities.maxOutputTokens;
+      values = {
+        resolvedContextLength:
+          Number.isFinite(contextLength) && contextLength > 0 ? contextLength : null,
+        resolvedMaxOutputTokens:
+          typeof maxOutputTokens === "number" &&
+          Number.isFinite(maxOutputTokens) &&
+          maxOutputTokens > 0
+            ? maxOutputTokens
+            : null,
+        resolvedSupportsVision: capabilities.supportsVision === true,
+        resolvedReasoning: capabilities.reasoning === true,
+        resolvedSupportsThinking: capabilities.supportsThinking === true,
+      };
+      byModel.set(candidate.model, values);
+      state.resolvedSinceYield++;
+      if (state.resolvedSinceYield >= PREPARED_CAPABILITY_YIELD_INTERVAL) {
+        state.resolvedSinceYield = 0;
+        await yieldVirtualAutoPreparationTurn();
+      }
+    }
+    prepared.push({ ...candidate, ...values });
+  }
+  return prepared;
+}
+
+export async function prepareVirtualAutoComboInputs(
+  options: { includeResolvedCapabilities?: boolean } = {}
+): Promise<PreparedVirtualAutoComboInputs> {
   const [connections, disabledNoAuthConnections, settings] = await Promise.all([
     getCachedProviderConnections({ isActive: true }) as Promise<VirtualFactoryConn[]>,
     // #6557: no-auth providers (opencode/mimocode/etc.) don't get an isActive
@@ -405,50 +507,79 @@ export async function createVirtualAutoCombo(
     }
   }
 
-  candidatePool.push(
-    ...getNoAuthCandidates(
-      new Set(validConnections.map((conn) => conn.provider)),
-      blockedProviders,
-      disabledNoAuthProviders,
-      noAuthProviderSpecificData,
-      hiddenModelsMap,
-      // #6453/#8183 (operator decision 2026-07-24): auto/<family> combos are an
-      // identity selector, not a reliability-curated pool — bypass the no-auth
-      // allowlist gate so any backend that genuinely serves the family (e.g.
-      // auggie for auto/glm) is admitted. Category/tier and flat-variant pools
-      // (spec.family unset) keep the allowlist gate intact.
-      Boolean(spec?.family)
-    )
-  );
-
   // #7623: honor existing model lockouts + connection cooldown/terminal state so
   // auto/* never advertises models the dispatch path would immediately skip.
   const connectionsById = new Map<string, ConnectionResilienceView>();
   for (const conn of [...connections, ...disabledNoAuthConnections]) {
     connectionsById.set(conn.id, conn);
   }
-  const resilienceFilteredPool = filterResilienceBlockedCandidates(
-    candidatePool,
-    connectionsById
-  );
-  if (resilienceFilteredPool !== candidatePool) {
-    candidatePool.length = 0;
-    candidatePool.push(...resilienceFilteredPool);
+
+  const connectedProviders = new Set(validConnections.map((conn) => conn.provider));
+  const buildPreparedPool = (bypassNoAuthAllowlist: boolean) => {
+    let pool = [
+      ...candidatePool,
+      ...getNoAuthCandidates(
+        connectedProviders,
+        blockedProviders,
+        disabledNoAuthProviders,
+        noAuthProviderSpecificData,
+        hiddenModelsMap,
+        bypassNoAuthAllowlist
+      ),
+    ];
+
+    const resilienceFilteredPool = filterResilienceBlockedCandidates(pool, connectionsById);
+    if (resilienceFilteredPool !== pool) pool = resilienceFilteredPool;
+
+    // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
+    // exclude paid-only backends from EVERY `auto/*` candidate pool.
+    const paidFilteredPool = filterPaidOnlyCandidates(pool, settings.hidePaidModels === true);
+    if (paidFilteredPool !== pool) pool = paidFilteredPool;
+    return pool;
+  };
+
+  const regularCandidates = buildPreparedPool(false);
+  // #6453/#8183: family selectors bypass the reliability-curated no-auth allowlist.
+  const familyCandidates = buildPreparedPool(true);
+  if (!options.includeResolvedCapabilities) {
+    return { regularCandidates, familyCandidates };
   }
 
-  // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
-  // exclude paid-only backends from EVERY `auto/*` candidate pool — not just the
-  // `/v1/models` listing — so auto-routing never picks a model that will 402/403.
-  // If this empties the pool the existing graceful empty-pool path below handles it
-  // (consistent with the opt-in intent). Default OFF → pool unchanged.
-  const paidFilteredPool = filterPaidOnlyCandidates(
-    candidatePool,
-    settings.hidePaidModels === true
+  // One uninterrupted bulk read of all three capability tables for this prepare only.
+  // Do not yield between the three loads; later cooperative yields remain fine because
+  // catalog generation guards already prevent publishing across intervening writes.
+  const capabilityState: PreparedCapabilityState = {
+    byTarget: new Map(),
+    resolvedSinceYield: 0,
+    resolutionSnapshot: createModelCapabilityResolutionSnapshot(),
+  };
+  return {
+    regularCandidates: await attachPreparedCapabilityValues(regularCandidates, capabilityState),
+    familyCandidates: await attachPreparedCapabilityValues(familyCandidates, capabilityState),
+  };
+}
+
+function clonePreparedCandidates(
+  candidates: readonly VirtualAutoComboCandidate[]
+): VirtualAutoComboCandidate[] {
+  return candidates.map((candidate) => ({
+    ...candidate,
+    ...(candidate.allowedConnectionIds
+      ? { allowedConnectionIds: [...candidate.allowedConnectionIds] }
+      : {}),
+  }));
+}
+
+export async function createVirtualAutoComboFromPrepared(
+  prepared: PreparedVirtualAutoComboInputs,
+  variant: AutoVariant | undefined,
+  spec?: AutoComboSpec,
+  apiKeyId?: string,
+  autoChannel?: string
+): Promise<VirtualAutoCombo> {
+  let candidatePool = clonePreparedCandidates(
+    spec?.family ? prepared.familyCandidates : prepared.regularCandidates
   );
-  if (paidFilteredPool !== candidatePool) {
-    candidatePool.length = 0;
-    candidatePool.push(...paidFilteredPool);
-  }
 
   // #7819 (Level 2): per-API-key candidate exclusions. Fail-open — an absent
   // apiKeyId/autoChannel (every caller before #7819) or a DB lookup failure
@@ -513,9 +644,7 @@ export async function createVirtualAutoCombo(
       ? buildAutoCandidateFilter(spec.category, spec.tier)
       : null;
   if (candidateFilter) {
-    const narrowed = candidatePool.filter((c) =>
-      candidateFilter({ provider: c.provider, model: c.model })
-    );
+    const narrowed = candidatePool.filter((candidate) => candidateFilter(candidate));
     const label = spec?.family
       ? `auto/${spec.family}`
       : `auto/${spec?.category ?? ""}${spec?.tier ? `:${spec.tier}` : ""}`;
@@ -682,4 +811,14 @@ export async function createVirtualAutoCombo(
     advertisedContextLength: advertisedLimits.contextLength,
     advertisedMaxOutputTokens: advertisedLimits.maxOutputTokens,
   };
+}
+
+export async function createVirtualAutoCombo(
+  variant: AutoVariant | undefined,
+  spec?: AutoComboSpec,
+  apiKeyId?: string,
+  autoChannel?: string
+): Promise<VirtualAutoCombo> {
+  const prepared = await prepareVirtualAutoComboInputs();
+  return createVirtualAutoComboFromPrepared(prepared, variant, spec, apiKeyId, autoChannel);
 }

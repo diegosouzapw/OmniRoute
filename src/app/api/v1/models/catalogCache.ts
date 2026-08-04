@@ -65,8 +65,13 @@ export const CATALOG_STALE_WHILE_REVALIDATE_MS = 30_000;
  */
 export const CATALOG_CACHE_TTL_MS_DEFAULT = 60_000;
 
+type CatalogInFlight = {
+  version: number;
+  promise: Promise<CachedCatalog>;
+};
+
 const catalogCache = new Map<string, CachedCatalog>();
-const catalogInFlight = new Map<string, Promise<CachedCatalog>>();
+const catalogInFlight = new Map<string, CatalogInFlight>();
 
 let _catalogBuilderRuns = 0;
 
@@ -90,10 +95,11 @@ function dropCatalogCacheIfStateChanged(): void {
   if (currentVersion === lastSeenCatalogCacheVersion) return;
   lastSeenCatalogCacheVersion = currentVersion;
   catalogCache.clear();
-  // Deliberately NOT clearing catalogInFlight: an in-flight build already reads live
-  // DB/settings state as of when it started, so letting it finish and populate the
-  // (now-current) cache entry is correct — clearing it would just force a redundant
-  // second builder run for requests that arrive mid-flight.
+  // A cooperative catalog build can now span a DB/settings mutation. Detach old work so
+  // post-mutation callers start the current generation instead of joining a stale snapshot.
+  // The detached promise may still complete for its original caller, but storePayload()
+  // guards publication and cannot repopulate the current cache.
+  catalogInFlight.clear();
 }
 
 // Header sources mix Title-Case keys (diagnostic/cors headers built by app code) with
@@ -116,13 +122,22 @@ export function mergeCatalogHeaders(
   return merged;
 }
 
-function storePayload(cacheKey: string, payload: CatalogPayload): CachedCatalog {
+function storePayload(
+  cacheKey: string,
+  payload: CatalogPayload,
+  inFlight: CatalogInFlight
+): CachedCatalog {
   const entry: CachedCatalog = {
     body: payload.body,
     headers: payload.headers,
     status: payload.status,
     expiresAt: Date.now() + payload.cacheTTL,
   };
+
+  dropCatalogCacheIfStateChanged();
+  if (inFlight.version !== lastSeenCatalogCacheVersion) return entry;
+  if (catalogInFlight.get(cacheKey) !== inFlight) return entry;
+
   catalogCache.set(cacheKey, entry);
   return entry;
 }
@@ -151,10 +166,11 @@ function scheduleBackgroundRefresh(
 ): void {
   if (catalogInFlight.has(cacheKey)) return; // a refresh for this key is already running
 
-  const refreshPromise: Promise<CachedCatalog> = new Promise((resolve, reject) => {
+  let inFlight!: CatalogInFlight;
+  const promise: Promise<CachedCatalog> = new Promise((resolve, reject) => {
     setTimeout(() => {
       runBuilder(buildPayload, request)
-        .then((payload) => resolve(storePayload(cacheKey, payload)))
+        .then((payload) => resolve(storePayload(cacheKey, payload, inFlight)))
         .catch((err) => {
           console.error(
             `[catalog] Background stale-while-revalidate refresh failed for key "${cacheKey}":`,
@@ -164,17 +180,18 @@ function scheduleBackgroundRefresh(
         });
     }, 0);
   });
+  inFlight = { version: lastSeenCatalogCacheVersion, promise };
 
   // Nobody on the stale path awaits this, so pre-handle the rejection; a cold-path
   // caller that joins it via catalogInFlight attaches its own handler and still
   // observes the failure.
-  refreshPromise.catch(() => {});
+  promise.catch(() => {});
 
-  catalogInFlight.set(cacheKey, refreshPromise);
-  refreshPromise
+  catalogInFlight.set(cacheKey, inFlight);
+  promise
     .catch(() => {})
     .finally(() => {
-      if (catalogInFlight.get(cacheKey) === refreshPromise) catalogInFlight.delete(cacheKey);
+      if (catalogInFlight.get(cacheKey) === inFlight) catalogInFlight.delete(cacheKey);
     });
 }
 
@@ -229,16 +246,21 @@ export async function resolveCachedCatalogResponse(
     });
   }
 
-  let inflight = catalogInFlight.get(cacheKey);
-  if (!inflight) {
-    inflight = runBuilder(buildPayload, request).then((payload) => storePayload(cacheKey, payload));
-    catalogInFlight.set(cacheKey, inflight);
-    inflight.finally(() => {
-      if (catalogInFlight.get(cacheKey) === inflight) catalogInFlight.delete(cacheKey);
+  let inFlight = catalogInFlight.get(cacheKey);
+  if (!inFlight) {
+    let started!: CatalogInFlight;
+    const promise = runBuilder(buildPayload, request).then((payload) =>
+      storePayload(cacheKey, payload, started)
+    );
+    started = { version: lastSeenCatalogCacheVersion, promise };
+    inFlight = started;
+    catalogInFlight.set(cacheKey, started);
+    promise.finally(() => {
+      if (catalogInFlight.get(cacheKey) === started) catalogInFlight.delete(cacheKey);
     });
   }
 
-  const payload = await inflight;
+  const payload = await inFlight.promise;
   return new Response(payload.body, {
     status: payload.status,
     headers: mergeCatalogHeaders(corsHeaders, payload.headers, diagnosticHeaders),
@@ -284,7 +306,7 @@ export function __setCatalogCacheEntryForTest(request: Request, entry: CachedCat
 
 /** Awaits any background refresh in flight, instead of guessing at a real-time sleep. */
 export async function __flushCatalogBackgroundRefreshForTest(): Promise<void> {
-  await Promise.all([...catalogInFlight.values()].map((p) => p.catch(() => {})));
+  await Promise.all([...catalogInFlight.values()].map(({ promise }) => promise.catch(() => {})));
 }
 
 /**
@@ -301,5 +323,8 @@ export async function __flushCatalogBackgroundRefreshForTest(): Promise<void> {
 export function __forceCatalogInFlightRejectionForTest(request: Request, error: unknown): void {
   const rejected: Promise<CachedCatalog> = Promise.reject(error);
   rejected.catch(() => {}); // mark as handled — avoids an unhandledRejection warning
-  catalogInFlight.set(buildCatalogCacheKey(request), rejected);
+  catalogInFlight.set(buildCatalogCacheKey(request), {
+    version: lastSeenCatalogCacheVersion,
+    promise: rejected,
+  });
 }
