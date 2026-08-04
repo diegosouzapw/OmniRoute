@@ -1231,8 +1231,10 @@
     "groupSeparatorLabel": "隔断",
     "discovery": "发现",
     "discoverySubtitle": "扫描供应商以获取免费访问",
-    "radar": "雷达目录",
-    "radarSubtitle": "由社区丰富的免费模型目录"
+    "radarSubtitle": "由社区丰富的免费模型目录",
+    "conversations": "__MISSING__:Conversations",
+    "conversationsSubtitle": "__MISSING__:Multi-turn agentic conversations",
+    "radar": "雷达目录"
   },
   "webhooks": {
     "title": "Webhook",
@@ -1437,42 +1439,78 @@
     "actor": "演员",
     "actorPlaceholder": "按演员筛选",
     "eventTypes": {
-      "apiKey.activate": "API Key已激活",
-      "apiKey.ban": "API Key已已禁止",
-      "apiKey.deactivate": "API Key已停用",
-      "apiKey.regenerate": "API Key已重新生成",
-      "apiKey.scopes.grant": "API Key范围已授予",
-      "apiKey.scopes.revoke": "API Key范围已已撤销",
-      "apiKey.scopes.update": "API Key范围已更新",
-      "apiKey.unban": "API Key已解禁",
-      "auth.login.error": "登录错误",
-      "auth.login.failed": "登录失败",
-      "auth.login.locked": "登录已锁定",
-      "auth.login.misconfigured": "登录配置错误",
-      "auth.login.setup_required": "需要登录设置",
-      "auth.login.success": "登录成功",
-      "auth.logout.success": "注销成功",
-      "compliance.cleanup": "合规清理",
-      "provider.credentials.applied": "供应商凭据已应用",
-      "provider.credentials.batch_revoked": "供应商凭据批次已撤销",
-      "provider.credentials.bulk_created": "供应商凭据批量创建",
-      "provider.credentials.bulk_imported": "供应商凭据已批量导入",
-      "provider.credentials.created": "供应商凭据已创建",
-      "provider.credentials.imported": "供应商凭据已导入",
-      "provider.credentials.revoked": "供应商凭据已已撤销",
-      "provider.credentials.updated": "供应商凭据已更新",
-      "provider.validation.ssrf_blocked": "供应商SSRF已阻止",
-      "quota.plan.updated": "配额计划已更新",
-      "quota.pool.created": "配额池已创建",
-      "quota.pool.deleted": "配额池已删除",
-      "quota.pool.updated": "配额池已更新",
-      "quota.store.driver_changed": "配额存储驱动程序已更改",
-      "server.start": "服务器启动",
-      "service.reveal_api_key": "服务API Key已泄露",
-      "settings.update": "设置已更新",
-      "settings.update_failed": "设置更新失败",
-      "sync.token.created": "同步令牌已创建",
-      "sync.token.revoked": "同步令牌已撤销"
+      "apiKey": {
+        "activate": "API Key已激活",
+        "ban": "API Key已已禁止",
+        "deactivate": "API Key已停用",
+        "regenerate": "API Key已重新生成",
+        "scopes": {
+          "grant": "API Key范围已授予",
+          "revoke": "API Key范围已已撤销",
+          "update": "API Key范围已更新"
+        },
+        "unban": "API Key已解禁"
+      },
+      "auth": {
+        "login": {
+          "error": "登录错误",
+          "failed": "登录失败",
+          "locked": "登录已锁定",
+          "misconfigured": "登录配置错误",
+          "setup_required": "需要登录设置",
+          "success": "登录成功"
+        },
+        "logout": {
+          "success": "注销成功"
+        }
+      },
+      "compliance": {
+        "cleanup": "合规清理"
+      },
+      "provider": {
+        "credentials": {
+          "applied": "供应商凭据已应用",
+          "batch_revoked": "供应商凭据批次已撤销",
+          "bulk_created": "供应商凭据批量创建",
+          "bulk_imported": "供应商凭据已批量导入",
+          "created": "供应商凭据已创建",
+          "imported": "供应商凭据已导入",
+          "revoked": "供应商凭据已已撤销",
+          "updated": "供应商凭据已更新"
+        },
+        "validation": {
+          "ssrf_blocked": "供应商SSRF已阻止"
+        }
+      },
+      "quota": {
+        "plan": {
+          "updated": "配额计划已更新"
+        },
+        "pool": {
+          "created": "配额池已创建",
+          "deleted": "配额池已删除",
+          "updated": "配额池已更新"
+        },
+        "store": {
+          "driver_changed": "配额存储驱动程序已更改"
+        }
+      },
+      "server": {
+        "start": "服务器启动"
+      },
+      "service": {
+        "reveal_api_key": "服务API Key已泄露"
+      },
+      "settings": {
+        "update": "设置已更新",
+        "update_failed": "设置更新失败"
+      },
+      "sync": {
+        "token": {
+          "created": "同步令牌已创建",
+          "revoked": "同步令牌已撤销"
+        }
+      }
     }
   },
   "themesPage": {
@@ -2955,7 +2993,29 @@
     "ccOnboardingCopy": "__MISSING__:Copy",
     "ccOnboardingCopied": "__MISSING__:Copied",
     "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
-    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early.",
+    "hermesRoleMonitor": "__MISSING__:Monitor",
+    "hermesRoleMemoryQueryRewriteDesc": "__MISSING__:Memory search query rewriting",
+    "hermesRoleTriageSpecifierDesc": "__MISSING__:Issue and PR triage specification",
+    "hermesRoleProfileDescriberDesc": "__MISSING__:User profile description",
+    "hermesRoleGoalJudgeDesc": "__MISSING__:Goal completion judging",
+    "hermesRoleTitleGenerationDesc": "__MISSING__:Session title generation",
+    "hermesRoleBackgroundReviewDesc": "__MISSING__:Background code review",
+    "hermesRoleTitleGeneration": "__MISSING__:Title Generation",
+    "hermesRoleMonitorDesc": "__MISSING__:Background monitoring",
+    "hermesRoleTtsAudioTagsDesc": "__MISSING__:TTS audio tag generation",
+    "hermesRoleTtsAudioTags": "__MISSING__:TTS Audio Tags",
+    "hermesRoleBackgroundReview": "__MISSING__:Background Review",
+    "hermesRoleKanbanDecomposer": "__MISSING__:Kanban Decomposer",
+    "hermesRoleMcpDesc": "__MISSING__:MCP server tool calls",
+    "hermesRoleMemoryQueryRewrite": "__MISSING__:Memory Query Rewrite",
+    "hermesRoleCurator": "__MISSING__:Curator",
+    "hermesRoleTriageSpecifier": "__MISSING__:Triage Specifier",
+    "hermesRoleProfileDescriber": "__MISSING__:Profile Describer",
+    "hermesRoleCuratorDesc": "__MISSING__:Skill and memory curation",
+    "hermesRoleKanbanDecomposerDesc": "__MISSING__:Kanban task decomposition",
+    "hermesRoleGoalJudge": "__MISSING__:Goal Judge",
+    "hermesRoleMcp": "__MISSING__:MCP"
   },
   "combos": {
     "title": "组合",
@@ -5994,7 +6054,10 @@
     "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
     "ccAliasAddModelButton": "__MISSING__:Add override",
     "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
-    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}",
+    "apiProtocolHint": "__MISSING__:Some providers publish the same models over more than one protocol. Leave the default unless you need the alternative.",
+    "apiProtocolLabel": "__MISSING__:API protocol",
+    "apiProtocolDefault": "__MISSING__:OpenAI-compatible (default)"
   },
   "settings": {
     "title": "设置",
@@ -10260,7 +10323,8 @@
       "compressed": "压缩",
       "tps": "TPS",
       "duration": "时长",
-      "time": "时间"
+      "time": "时间",
+      "conversation": "__MISSING__:Conversation"
     },
     "loadingLogs": "正在加载日志...",
     "noLogs": "暂无日志记录。进行一些API调用以在此处查看它们。",
@@ -12189,84 +12253,84 @@
   },
   "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.",
   "radarPage": {
+    "campaignsTitle": "Limited-time campaigns",
+    "feedFetched": "最后获取",
+    "contributorHint": "Verify your GitHub account — 5+ merged pull requests or a top-100 contributor spot unlocks a free supporter key.",
+    "activateButton": "激活",
+    "syncCta": "立即同步",
+    "fixedLinksEmpty": "No referral links available yet. Sync Radar to check for updates.",
+    "capThinking": "思考",
+    "supporterHint": "Support OmniRoute to get a supporter key with the live catalog and extra perks.",
+    "errorLoading": "加载雷达目录失败",
+    "syncing": "正在同步...",
+    "campaignsEmpty": "No active campaigns right now — check back later.",
+    "freeCreditsSubtitle": "Referral links from Radar-tracked providers — using them costs you nothing extra and helps support OmniRoute.",
+    "supporterButton": "Support the project",
+    "capTools": "工具",
+    "colContext": "上下文",
+    "newBadge": "新",
+    "catalogTab": "Catalog",
+    "emptyState": "还没有目录数据。同步以下载最新数据。",
+    "capVision": "视觉",
+    "colModel": "模型",
+    "setupGuide": "设置指南",
+    "colProvider": "提供者",
+    "activateWithKeyButton": "Activate supporter",
     "title": "雷达目录",
     "subtitle": "由社区智能丰富的免费模型目录",
-    "loading": "正在加载目录...",
-    "errorLoading": "加载雷达目录失败",
-    "emptyState": "还没有目录数据。同步以下载最新数据。",
-    "syncNow": "立即同步",
-    "syncing": "正在同步...",
-    "syncCta": "立即同步",
-    "syncFailed": "同步失败",
-    "flagDisabled": "雷达已禁用",
-    "activationFailed": "激活失败",
-    "feedVersion": "数据源版本",
-    "feedTier": "级别",
-    "feedFetched": "最后获取",
-    "tierLive": "实时",
-    "tierCommunity": "社区（30天延迟）",
-    "activateTitle": "激活雷达",
-    "activateDescription": "雷达通过社区来源的智能丰富免费模型目录——更新模型可用性、配额和设置指南。",
-    "privacyNoUpload": "没有上传任何内容——您的数据保持本地",
-    "privacyOnlySigned": "仅下载经过加密签名的元数据",
-    "privacyLocalOnly": "所有处理都在您的OmniRoute实例上进行",
-    "activateButton": "激活",
-    "activating": "正在激活...",
+    "freeCreditsTab": "Free credits",
     "keySectionTitle": "Already have a supporter key?",
-    "keyInvalidFormatError": "Invalid key format. It must start with \"omr_\" followed by 40 hex characters.",
-    "activateWithKeyButton": "Activate supporter",
-    "changeKeyButton": "Change key",
-    "claimSectionTitle": "Don't have a supporter key yet?",
-    "contributorButton": "I'm a contributor",
-    "contributorHint": "Verify your GitHub account — 5+ merged pull requests or a top-100 contributor spot unlocks a free supporter key.",
-    "supporterButton": "Support the project",
-    "supporterHint": "Support OmniRoute to get a supporter key with the live catalog and extra perks.",
-    "colProvider": "提供者",
-    "colModel": "模型",
-    "colQuota": "配额",
-    "colContext": "上下文",
+    "claimButton": "Claim credits",
+    "syncNow": "立即同步",
     "colCapabilities": "能力",
     "colTos": "ToS风险",
-    "newBadge": "新",
-    "setupGuide": "设置指南",
-    "disabledByFeed": "被雷达数据源禁用",
-    "capTools": "工具",
-    "capVision": "视觉",
-    "capThinking": "思考",
-    "catalogTab": "Catalog",
-    "freeCreditsTab": "Free credits",
-    "freeCreditsSubtitle": "Referral links from Radar-tracked providers — using them costs you nothing extra and helps support OmniRoute.",
-    "fixedLinksEmpty": "No referral links available yet. Sync Radar to check for updates.",
+    "campaignsValidUntil": "Valid until {date}",
+    "tierLive": "实时",
+    "keyInvalidFormatError": "Invalid key format. It must start with \"omr_\" followed by 40 hex characters.",
     "requiredActionLabel": "What to do:",
-    "claimButton": "Claim credits",
-    "campaignsTitle": "Limited-time campaigns",
-    "campaignsEmpty": "No active campaigns right now — check back later.",
+    "privacyNoUpload": "没有上传任何内容——您的数据保持本地",
+    "activateDescription": "雷达通过社区来源的智能丰富免费模型目录——更新模型可用性、配额和设置指南。",
+    "feedTier": "级别",
+    "privacyOnlySigned": "仅下载经过加密签名的元数据",
+    "flagDisabled": "雷达已禁用",
+    "claimSectionTitle": "Don't have a supporter key yet?",
+    "privacyLocalOnly": "所有处理都在您的OmniRoute实例上进行",
     "campaignsUpsellCommunity": "Limited-time campaigns are a supporter extra. Everything on this page's fixed links stays free for everyone.",
-    "campaignsValidUntil": "Valid until {date}"
+    "tierCommunity": "社区（30天延迟）",
+    "changeKeyButton": "Change key",
+    "activationFailed": "激活失败",
+    "contributorButton": "I'm a contributor",
+    "loading": "正在加载目录...",
+    "colQuota": "配额",
+    "syncFailed": "同步失败",
+    "feedVersion": "数据源版本",
+    "disabledByFeed": "被雷达数据源禁用",
+    "activating": "正在激活...",
+    "activateTitle": "激活雷达"
   },
   "radarSetupPage": {
+    "testFailed": "连接测试失败",
+    "providerConfigured": "提供者已配置并准备就绪",
+    "addConnectionDescription": "还没有连接？在提供者仪表板中添加一个。",
     "title": "提供者设置",
-    "setupTitle": "设置：{provider}",
-    "setupSubtitle": "按照以下步骤配置此提供者",
-    "loading": "正在加载...",
     "loadFailed": "加载设置数据失败",
     "flagDisabled": "雷达已禁用",
-    "providerNotFound": "目录中未找到提供者\"{provider}\"",
-    "noProvider": "未指定提供者。返回目录并选择一个提供者。",
+    "addConnection": "添加连接",
     "backToCatalog": "返回目录",
-    "providerConfigured": "提供者已配置并准备就绪",
-    "getApiKey": "获取您的API密钥",
-    "setupSteps": "设置步骤",
-    "noGuide": "此提供者没有可用的设置指南。",
-    "visitDocs": "访问提供者文档",
     "testConnection": "测试连接",
     "testDescription": "验证您的连接是否正常工作。",
-    "testButton": "测试连接",
+    "setupTitle": "设置：{provider}",
+    "visitDocs": "访问提供者文档",
     "testing": "正在测试...",
+    "loading": "正在加载...",
+    "addConnectionLink": "前往提供者 →",
+    "noGuide": "此提供者没有可用的设置指南。",
     "testSuccess": "连接成功！",
-    "testFailed": "连接测试失败",
-    "addConnection": "添加连接",
-    "addConnectionDescription": "还没有连接？在提供者仪表板中添加一个。",
-    "addConnectionLink": "前往提供者 →"
+    "setupSteps": "设置步骤",
+    "setupSubtitle": "按照以下步骤配置此提供者",
+    "providerNotFound": "目录中未找到提供者\"{provider}\"",
+    "getApiKey": "获取您的API密钥",
+    "noProvider": "未指定提供者。返回目录并选择一个提供者。",
+    "testButton": "测试连接"
   }
 }

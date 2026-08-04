@@ -229,7 +229,7 @@ function systemTurnFromAnthropic(system: unknown): NormalizedTurn | null {
   return { role: "system", blocks };
 }
 
-function buildRequestTurns(body: unknown): NormalizedTurn[] | null {
+export function buildRequestTurns(body: unknown): NormalizedTurn[] | null {
   const obj = asRecord(body);
   if (!obj) return null;
 
@@ -345,7 +345,7 @@ function extractGeminiResponseTurn(message: unknown): NormalizedTurn | null {
   return { role: "assistant", blocks };
 }
 
-function buildResponseTurns(req: InterceptedRequest): NormalizedTurn[] {
+export function buildResponseTurns(req: InterceptedRequest): NormalizedTurn[] {
   const raw = req.responseBody ?? "";
   if (!raw) return [];
 

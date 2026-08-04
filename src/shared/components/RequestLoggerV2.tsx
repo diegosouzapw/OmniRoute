@@ -124,6 +124,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
         { key: "tps", label: t("columns.tps") },
         { key: "duration", label: t("columns.duration") },
         { key: "time", label: t("columns.time") },
+        { key: "conversation", label: t("columns.conversation") },
       ],
       [t]
     );
@@ -1240,6 +1241,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                         {getSortIndicator("time")}
                       </th>
                     )}
+                    {visibleColumns.conversation && (
+                      <th className={LOG_TABLE_HEADER_CELL_CLASS}>{t("columns.conversation")}</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/30">
@@ -1563,6 +1567,15 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                             {formatTime(log.timestamp)}
                           </td>
                         )}
+                        {visibleColumns.conversation && (
+                          <td className="px-3 py-2 font-mono text-[10px] text-text-muted">
+                            {log.sessionTag ? (
+                              <span title={log.sessionTag}>{log.sessionTag.slice(0, 12)}…</span>
+                            ) : (
+                              <span className="text-text-muted">—</span>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -1616,6 +1629,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
               closeDetail();
               openDetail(r);
             }}
+            onNavigateToLog={(id) => openDetail({ id })}
           />
         )}
       </div>

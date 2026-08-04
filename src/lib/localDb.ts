@@ -822,3 +822,4 @@ export {
   setRadarReferralsCache,
 } from "./db/radar";
 export type { RadarCache, RadarSettings, RadarReferralsCache } from "./db/radar";
+export * from "./db/agenticConversations"; // Multi-turn conversation id tracking (X-ConversationId)

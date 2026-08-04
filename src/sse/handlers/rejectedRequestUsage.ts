@@ -30,6 +30,8 @@ export interface RejectedRequestUsageInput {
   comboStepId?: string | null;
   comboExecutionKey?: string | null;
   correlationId?: string | null;
+  /** Conversation id (X-ConversationId) — see open-sse/services/conversationTracker.ts. */
+  sessionTag?: string | null;
   apiKeyId?: string | null;
   apiKeyName?: string | null;
   connectionId?: string | null;
@@ -56,6 +58,7 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
     comboStepId = null,
     comboExecutionKey = null,
     correlationId = null,
+    sessionTag = null,
     apiKeyId = null,
     apiKeyName = null,
     connectionId = undefined,
@@ -86,6 +89,7 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
     apiKeyId,
     apiKeyName,
     correlationId,
+    sessionTag,
   }).catch(() => {});
 
   // 2. usage_history — so the per-api-key usage counter reflects rejected

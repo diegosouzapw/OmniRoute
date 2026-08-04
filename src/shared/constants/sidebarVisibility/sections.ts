@@ -401,6 +401,13 @@ const LOGS_GROUP: SidebarItemGroup = {
       subtitleKey: "logsTimelineSubtitle",
       icon: "view_timeline",
     },
+    {
+      id: "conversations",
+      href: "/dashboard/conversations",
+      i18nKey: "conversations",
+      subtitleKey: "conversationsSubtitle",
+      icon: "forum",
+    },
   ],
 };
 

@@ -1122,6 +1122,8 @@
     "consoleLogs": "Console Logs",
     "logsTimeline": "Timeline",
     "logsTimelineSubtitle": "Visual request timeline",
+    "conversations": "Conversations",
+    "conversationsSubtitle": "Multi-turn agentic conversations",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -10306,7 +10308,8 @@
       "compressed": "Compression",
       "tps": "TPS",
       "duration": "Duration",
-      "time": "Time"
+      "time": "Time",
+      "conversation": "Conversation"
     },
     "loadingLogs": "Loading logs...",
     "noLogs": "No logs yet. Make some API calls to see them here.",

@@ -76,6 +76,13 @@ export type NormalizedBlock =
 export interface NormalizedTurn {
   role: "system" | "user" | "assistant" | "tool";
   blocks: NormalizedBlock[];
+  /** call_logs.id that produced this turn — set only by the multi-row
+   * conversation transcript builder (src/mitm/inspector/multiRowConversation.ts),
+   * absent for the single-request traffic-inspector ConversationTab usage. */
+  sourceCallLogId?: string;
+  /** ISO timestamp of the call_logs row that produced this turn — same
+   * scoping as sourceCallLogId. */
+  timestamp?: string;
 }
 
 export interface NormalizedConversation {

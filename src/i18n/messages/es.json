@@ -1231,8 +1231,10 @@
     "groupSeparatorLabel": "Separador",
     "discovery": "Descubrimiento",
     "discoverySubtitle": "Escanear proveedores para acceso gratuito",
-    "radar": "Catálogo de Radar",
-    "radarSubtitle": "Catálogo de modelos gratuito enriquecido por la comunidad"
+    "radarSubtitle": "Catálogo de modelos gratuito enriquecido por la comunidad",
+    "conversations": "__MISSING__:Conversations",
+    "conversationsSubtitle": "__MISSING__:Multi-turn agentic conversations",
+    "radar": "Catálogo de Radar"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -1437,42 +1439,78 @@
     "actor": "Actor",
     "actorPlaceholder": "Filtrar por actor",
     "eventTypes": {
-      "apiKey.activate": "Clave de API activada",
-      "apiKey.ban": "Clave de API bloqueada",
-      "apiKey.deactivate": "Clave de API desactivada",
-      "apiKey.regenerate": "Clave de API regenerada",
-      "apiKey.scopes.grant": "Ámbitos de clave de API concedidos",
-      "apiKey.scopes.revoke": "Ámbitos de clave de API revocados",
-      "apiKey.scopes.update": "Ámbitos de clave de API actualizados",
-      "apiKey.unban": "Clave de API desbloqueada",
-      "auth.login.error": "Error de inicio de sesión",
-      "auth.login.failed": "Inicio de sesión fallido",
-      "auth.login.locked": "Inicio de sesión bloqueado",
-      "auth.login.misconfigured": "Inicio de sesión mal configurado",
-      "auth.login.setup_required": "Configuración de inicio de sesión requerida",
-      "auth.login.success": "Inicio de sesión exitoso",
-      "auth.logout.success": "Cierre de sesión exitoso",
-      "compliance.cleanup": "Limpieza de cumplimiento",
-      "provider.credentials.applied": "Credenciales de proveedor aplicadas",
-      "provider.credentials.batch_revoked": "Credenciales de proveedor revocadas por lotes",
-      "provider.credentials.bulk_created": "Credenciales de proveedor creadas de forma masiva",
-      "provider.credentials.bulk_imported": "Credenciales de proveedor importadas de forma masiva",
-      "provider.credentials.created": "Credenciales de proveedor creadas",
-      "provider.credentials.imported": "Credenciales de proveedor importadas",
-      "provider.credentials.revoked": "Credenciales de proveedor revocadas",
-      "provider.credentials.updated": "Credenciales de proveedor actualizadas",
-      "provider.validation.ssrf_blocked": "SSRF de proveedor bloqueado",
-      "quota.plan.updated": "Plan de cuota actualizado",
-      "quota.pool.created": "Grupo de cuotas creado",
-      "quota.pool.deleted": "Grupo de cuotas eliminado",
-      "quota.pool.updated": "Grupo de cuotas actualizado",
-      "quota.store.driver_changed": "Controlador de almacenamiento de cuotas cambiado",
-      "server.start": "Inicio del servidor",
-      "service.reveal_api_key": "Clave de API del servicio revelada",
-      "settings.update": "Ajustes actualizados",
-      "settings.update_failed": "Error al actualizar los ajustes",
-      "sync.token.created": "Token de sincronización creado",
-      "sync.token.revoked": "Token de sincronización revocado"
+      "apiKey": {
+        "activate": "Clave de API activada",
+        "ban": "Clave de API bloqueada",
+        "deactivate": "Clave de API desactivada",
+        "regenerate": "Clave de API regenerada",
+        "scopes": {
+          "grant": "Ámbitos de clave de API concedidos",
+          "revoke": "Ámbitos de clave de API revocados",
+          "update": "Ámbitos de clave de API actualizados"
+        },
+        "unban": "Clave de API desbloqueada"
+      },
+      "auth": {
+        "login": {
+          "error": "Error de inicio de sesión",
+          "failed": "Inicio de sesión fallido",
+          "locked": "Inicio de sesión bloqueado",
+          "misconfigured": "Inicio de sesión mal configurado",
+          "setup_required": "Configuración de inicio de sesión requerida",
+          "success": "Inicio de sesión exitoso"
+        },
+        "logout": {
+          "success": "Cierre de sesión exitoso"
+        }
+      },
+      "compliance": {
+        "cleanup": "Limpieza de cumplimiento"
+      },
+      "provider": {
+        "credentials": {
+          "applied": "Credenciales de proveedor aplicadas",
+          "batch_revoked": "Credenciales de proveedor revocadas por lotes",
+          "bulk_created": "Credenciales de proveedor creadas de forma masiva",
+          "bulk_imported": "Credenciales de proveedor importadas de forma masiva",
+          "created": "Credenciales de proveedor creadas",
+          "imported": "Credenciales de proveedor importadas",
+          "revoked": "Credenciales de proveedor revocadas",
+          "updated": "Credenciales de proveedor actualizadas"
+        },
+        "validation": {
+          "ssrf_blocked": "SSRF de proveedor bloqueado"
+        }
+      },
+      "quota": {
+        "plan": {
+          "updated": "Plan de cuota actualizado"
+        },
+        "pool": {
+          "created": "Grupo de cuotas creado",
+          "deleted": "Grupo de cuotas eliminado",
+          "updated": "Grupo de cuotas actualizado"
+        },
+        "store": {
+          "driver_changed": "Controlador de almacenamiento de cuotas cambiado"
+        }
+      },
+      "server": {
+        "start": "Inicio del servidor"
+      },
+      "service": {
+        "reveal_api_key": "Clave de API del servicio revelada"
+      },
+      "settings": {
+        "update": "Ajustes actualizados",
+        "update_failed": "Error al actualizar los ajustes"
+      },
+      "sync": {
+        "token": {
+          "created": "Token de sincronización creado",
+          "revoked": "Token de sincronización revocado"
+        }
+      }
     }
   },
   "themesPage": {
@@ -2955,7 +2993,29 @@
     "ccOnboardingCopy": "__MISSING__:Copy",
     "ccOnboardingCopied": "__MISSING__:Copied",
     "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
-    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early.",
+    "hermesRoleMonitor": "__MISSING__:Monitor",
+    "hermesRoleMemoryQueryRewriteDesc": "__MISSING__:Memory search query rewriting",
+    "hermesRoleTriageSpecifierDesc": "__MISSING__:Issue and PR triage specification",
+    "hermesRoleProfileDescriberDesc": "__MISSING__:User profile description",
+    "hermesRoleGoalJudgeDesc": "__MISSING__:Goal completion judging",
+    "hermesRoleTitleGenerationDesc": "__MISSING__:Session title generation",
+    "hermesRoleBackgroundReviewDesc": "__MISSING__:Background code review",
+    "hermesRoleTitleGeneration": "__MISSING__:Title Generation",
+    "hermesRoleMonitorDesc": "__MISSING__:Background monitoring",
+    "hermesRoleTtsAudioTagsDesc": "__MISSING__:TTS audio tag generation",
+    "hermesRoleTtsAudioTags": "__MISSING__:TTS Audio Tags",
+    "hermesRoleBackgroundReview": "__MISSING__:Background Review",
+    "hermesRoleKanbanDecomposer": "__MISSING__:Kanban Decomposer",
+    "hermesRoleMcpDesc": "__MISSING__:MCP server tool calls",
+    "hermesRoleMemoryQueryRewrite": "__MISSING__:Memory Query Rewrite",
+    "hermesRoleCurator": "__MISSING__:Curator",
+    "hermesRoleTriageSpecifier": "__MISSING__:Triage Specifier",
+    "hermesRoleProfileDescriber": "__MISSING__:Profile Describer",
+    "hermesRoleCuratorDesc": "__MISSING__:Skill and memory curation",
+    "hermesRoleKanbanDecomposerDesc": "__MISSING__:Kanban task decomposition",
+    "hermesRoleGoalJudge": "__MISSING__:Goal Judge",
+    "hermesRoleMcp": "__MISSING__:MCP"
   },
   "combos": {
     "title": "Combos",
@@ -5994,7 +6054,10 @@
     "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
     "ccAliasAddModelButton": "__MISSING__:Add override",
     "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
-    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}",
+    "apiProtocolHint": "__MISSING__:Some providers publish the same models over more than one protocol. Leave the default unless you need the alternative.",
+    "apiProtocolLabel": "__MISSING__:API protocol",
+    "apiProtocolDefault": "__MISSING__:OpenAI-compatible (default)"
   },
   "settings": {
     "title": "Ajustes",
@@ -10260,7 +10323,8 @@
       "compressed": "Compresión",
       "tps": "TPS",
       "duration": "Duración",
-      "time": "Hora"
+      "time": "Hora",
+      "conversation": "__MISSING__:Conversation"
     },
     "loadingLogs": "Cargando logs...",
     "noLogs": "Aún no hay logs. Realiza algunas llamadas a la API para verlas aquí.",
@@ -12189,84 +12253,84 @@
   },
   "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.",
   "radarPage": {
+    "campaignsTitle": "Limited-time campaigns",
+    "feedFetched": "Última obtención",
+    "contributorHint": "Verify your GitHub account — 5+ merged pull requests or a top-100 contributor spot unlocks a free supporter key.",
+    "activateButton": "Activar",
+    "syncCta": "Sincronizar ahora",
+    "fixedLinksEmpty": "No referral links available yet. Sync Radar to check for updates.",
+    "capThinking": "Pensando",
+    "supporterHint": "Support OmniRoute to get a supporter key with the live catalog and extra perks.",
+    "errorLoading": "Falló al cargar el catálogo de Radar",
+    "syncing": "Sincronizando...",
+    "campaignsEmpty": "No active campaigns right now — check back later.",
+    "freeCreditsSubtitle": "Referral links from Radar-tracked providers — using them costs you nothing extra and helps support OmniRoute.",
+    "supporterButton": "Support the project",
+    "capTools": "Herramientas",
+    "colContext": "Contexto",
+    "newBadge": "nuevo",
+    "catalogTab": "Catalog",
+    "emptyState": "Aún no hay datos del catálogo. Sincroniza para descargar el último feed.",
+    "capVision": "Visión",
+    "colModel": "Modelo",
+    "setupGuide": "Guía de configuración",
+    "colProvider": "Proveedor",
+    "activateWithKeyButton": "Activate supporter",
     "title": "Catálogo de Radar",
     "subtitle": "Catálogo de modelos gratuito enriquecido con inteligencia de la comunidad",
-    "loading": "Cargando catálogo...",
-    "errorLoading": "Falló al cargar el catálogo de Radar",
-    "emptyState": "Aún no hay datos del catálogo. Sincroniza para descargar el último feed.",
-    "syncNow": "Sincronizar ahora",
-    "syncing": "Sincronizando...",
-    "syncCta": "Sincronizar ahora",
-    "syncFailed": "Sincronización fallida",
-    "flagDisabled": "Radar está desactivado",
-    "activationFailed": "Activación fallida",
-    "feedVersion": "Versión del feed",
-    "feedTier": "Nivel",
-    "feedFetched": "Última obtención",
-    "tierLive": "En vivo (tiempo real)",
-    "tierCommunity": "Comunidad (retraso de 30 días)",
-    "activateTitle": "Activar Radar",
-    "activateDescription": "Radar enriquece el catálogo de modelos gratuito con inteligencia de la comunidad: disponibilidad de modelos actualizada, cuotas y guías de configuración.",
-    "privacyNoUpload": "No se ha subido nada: tus datos permanecen locales",
-    "privacyOnlySigned": "Solo se descarga metadatos firmados criptográficamente",
-    "privacyLocalOnly": "Todo el procesamiento ocurre en tu instancia de OmniRoute",
-    "activateButton": "Activar",
-    "activating": "Activando...",
+    "freeCreditsTab": "Free credits",
     "keySectionTitle": "Already have a supporter key?",
-    "keyInvalidFormatError": "Invalid key format. It must start with \"omr_\" followed by 40 hex characters.",
-    "activateWithKeyButton": "Activate supporter",
-    "changeKeyButton": "Change key",
-    "claimSectionTitle": "Don't have a supporter key yet?",
-    "contributorButton": "I'm a contributor",
-    "contributorHint": "Verify your GitHub account — 5+ merged pull requests or a top-100 contributor spot unlocks a free supporter key.",
-    "supporterButton": "Support the project",
-    "supporterHint": "Support OmniRoute to get a supporter key with the live catalog and extra perks.",
-    "colProvider": "Proveedor",
-    "colModel": "Modelo",
-    "colQuota": "Cuota",
-    "colContext": "Contexto",
+    "claimButton": "Claim credits",
+    "syncNow": "Sincronizar ahora",
     "colCapabilities": "Capacidades",
     "colTos": "Riesgo de ToS",
-    "newBadge": "nuevo",
-    "setupGuide": "Guía de configuración",
-    "disabledByFeed": "Desactivado por el feed de Radar",
-    "capTools": "Herramientas",
-    "capVision": "Visión",
-    "capThinking": "Pensando",
-    "catalogTab": "Catalog",
-    "freeCreditsTab": "Free credits",
-    "freeCreditsSubtitle": "Referral links from Radar-tracked providers — using them costs you nothing extra and helps support OmniRoute.",
-    "fixedLinksEmpty": "No referral links available yet. Sync Radar to check for updates.",
+    "campaignsValidUntil": "Valid until {date}",
+    "tierLive": "En vivo (tiempo real)",
+    "keyInvalidFormatError": "Invalid key format. It must start with \"omr_\" followed by 40 hex characters.",
     "requiredActionLabel": "What to do:",
-    "claimButton": "Claim credits",
-    "campaignsTitle": "Limited-time campaigns",
-    "campaignsEmpty": "No active campaigns right now — check back later.",
+    "privacyNoUpload": "No se ha subido nada: tus datos permanecen locales",
+    "activateDescription": "Radar enriquece el catálogo de modelos gratuito con inteligencia de la comunidad: disponibilidad de modelos actualizada, cuotas y guías de configuración.",
+    "feedTier": "Nivel",
+    "privacyOnlySigned": "Solo se descarga metadatos firmados criptográficamente",
+    "flagDisabled": "Radar está desactivado",
+    "claimSectionTitle": "Don't have a supporter key yet?",
+    "privacyLocalOnly": "Todo el procesamiento ocurre en tu instancia de OmniRoute",
     "campaignsUpsellCommunity": "Limited-time campaigns are a supporter extra. Everything on this page's fixed links stays free for everyone.",
-    "campaignsValidUntil": "Valid until {date}"
+    "tierCommunity": "Comunidad (retraso de 30 días)",
+    "changeKeyButton": "Change key",
+    "activationFailed": "Activación fallida",
+    "contributorButton": "I'm a contributor",
+    "loading": "Cargando catálogo...",
+    "colQuota": "Cuota",
+    "syncFailed": "Sincronización fallida",
+    "feedVersion": "Versión del feed",
+    "disabledByFeed": "Desactivado por el feed de Radar",
+    "activating": "Activando...",
+    "activateTitle": "Activar Radar"
   },
   "radarSetupPage": {
+    "testFailed": "Falló la prueba de conexión",
+    "providerConfigured": "El proveedor está configurado y listo",
+    "addConnectionDescription": "¿Aún no tienes una conexión? Agrega una en el panel de proveedores.",
     "title": "Configuración del proveedor",
-    "setupTitle": "Configuración: {provider}",
-    "setupSubtitle": "Sigue los pasos a continuación para configurar este proveedor",
-    "loading": "Cargando...",
     "loadFailed": "Falló al cargar los datos de configuración",
     "flagDisabled": "Radar está desactivado",
-    "providerNotFound": "Proveedor \"{provider}\" no encontrado en el catálogo",
-    "noProvider": "No se especificó ningún proveedor. Regresa al catálogo y selecciona un proveedor.",
+    "addConnection": "Agregar conexión",
     "backToCatalog": "Volver al catálogo",
-    "providerConfigured": "El proveedor está configurado y listo",
-    "getApiKey": "Obtén tu clave API",
-    "setupSteps": "Pasos de configuración",
-    "noGuide": "No hay guía de configuración disponible para este proveedor.",
-    "visitDocs": "Visita la documentación del proveedor",
     "testConnection": "Probar conexión",
     "testDescription": "Verifica que tu conexión esté funcionando correctamente.",
-    "testButton": "Probar conexión",
+    "setupTitle": "Configuración: {provider}",
+    "visitDocs": "Visita la documentación del proveedor",
     "testing": "Probando...",
+    "loading": "Cargando...",
+    "addConnectionLink": "Ir a proveedores →",
+    "noGuide": "No hay guía de configuración disponible para este proveedor.",
     "testSuccess": "¡Conexión exitosa!",
-    "testFailed": "Falló la prueba de conexión",
-    "addConnection": "Agregar conexión",
-    "addConnectionDescription": "¿Aún no tienes una conexión? Agrega una en el panel de proveedores.",
-    "addConnectionLink": "Ir a proveedores →"
+    "setupSteps": "Pasos de configuración",
+    "setupSubtitle": "Sigue los pasos a continuación para configurar este proveedor",
+    "providerNotFound": "Proveedor \"{provider}\" no encontrado en el catálogo",
+    "getApiKey": "Obtén tu clave API",
+    "noProvider": "No se especificó ningún proveedor. Regresa al catálogo y selecciona un proveedor.",
+    "testButton": "Probar conexión"
   }
 }

@@ -54,6 +54,7 @@ export type PendingRequestMetadata = {
   stage?: string | null;
   stageUpdatedAt?: number | null;
   correlationId?: string | null;
+  sessionTag?: string | null;
 };
 export type PendingRequestDetail = {
   id: string;
@@ -75,6 +76,7 @@ export type PendingRequestDetail = {
   stage?: string | null;
   stageUpdatedAt?: number | null;
   correlationId?: string | null;
+  sessionTag?: string | null;
   streamChunks?: {
     provider?: string[];
     openai?: string[];
@@ -133,6 +135,9 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
   }
   if (metadata.correlationId !== undefined) {
     normalized.correlationId = toStringOrNull(metadata.correlationId) || null;
+  }
+  if (metadata.sessionTag !== undefined) {
+    normalized.sessionTag = toStringOrNull(metadata.sessionTag) || null;
   }
 
   return normalized;

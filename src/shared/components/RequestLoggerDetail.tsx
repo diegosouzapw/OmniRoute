@@ -8,6 +8,11 @@ import {
 } from "@/shared/constants/colors";
 import { formatDuration, formatApiKeyLabel, maskAccount } from "@/shared/utils/formatting";
 import { formatErrorForDisplay } from "@/shared/utils/formatting";
+import { ChatBubble } from "@/app/(dashboard)/dashboard/tools/traffic-inspector/components/chat/ChatBubble";
+// Same key RequestTimeline.tsx persists its lane-reuse-window setting under —
+// deliberately reused (not a separate setting) so "is this conversation still
+// in progress" means the same thing everywhere in the dashboard.
+import { CONVERSATION_LANE_REUSE_STORAGE_KEY } from "@/shared/components/RequestTimeline";
 
 // ─── Payload Code Block ─────────────────────────────────────────────────────
 
@@ -57,6 +62,283 @@ function PayloadSection({ title, json, onCopy, collapsible = true, defaultOpen =
         <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
           {json}
         </pre>
+      )}
+    </div>
+  );
+}
+
+// ─── Full Conversation transcript section ───────────────────────────────────
+// Renders the multi-turn chat transcript for this request's conversation
+// (see open-sse/services/conversationTracker.ts and
+// src/mitm/inspector/multiRowConversation.ts). The API route
+// (src/app/api/logs/[id]/route.ts) already reconstructs the turn-relative
+// transcript (turns up to and including the currently-viewed request) tagged
+// with each turn's own source call_logs id + timestamp, so this component
+// only needs to render + wire up navigation/auto-refresh — no normalization
+// happens here.
+
+// Waiting for a brand new row/turn to appear (nothing streaming right now).
+const CONVERSATION_POLL_INTERVAL_MS = 4000;
+// The currently-viewed row itself is actively streaming (detail.active===true)
+// — poll fast so the live turn's text visibly grows, matching the raw SSE panel.
+const CONVERSATION_ACTIVE_POLL_INTERVAL_MS = 1200;
+const DEFAULT_CONVERSATION_REUSE_WINDOW_MINUTES = 2;
+// Set right before navigating via "View next message" so the freshly-mounted
+// section (a new request's detail remounts this component via key={log.id})
+// knows to scroll itself into view instead of leaving the reader at the top
+// of the modal — sessionStorage survives the remount without needing this
+// threaded as a prop through every host page (RequestLoggerV2/RequestTimeline/
+// the conversations list panel).
+const CONVERSATION_SCROLL_FLAG_KEY = "conversationScrollToPanelOnMount";
+// Same naming convention as StreamSection's "pref:stream:autoscroll".
+const CONVERSATION_AUTO_FOLLOW_STORAGE_KEY = "pref:conversation:autoFollow";
+
+function getConversationReuseWindowMs() {
+  try {
+    const saved = localStorage.getItem(CONVERSATION_LANE_REUSE_STORAGE_KEY);
+    const minutes = saved ? Number(saved) : DEFAULT_CONVERSATION_REUSE_WINDOW_MINUTES;
+    if (Number.isFinite(minutes) && minutes > 0) return minutes * 60 * 1000;
+  } catch {
+    // localStorage unavailable — fall through to default
+  }
+  return DEFAULT_CONVERSATION_REUSE_WINDOW_MINUTES * 60 * 1000;
+}
+
+function ConversationTranscriptSection({
+  turns,
+  nextId,
+  isLatest,
+  lastSeenAt,
+  earlierTurnsOmitted,
+  currentLogId,
+  onNavigateToLog,
+}) {
+  const [open, setOpen] = useState(true);
+  const [polling, setPolling] = useState(false);
+  const [liveTurns, setLiveTurns] = useState(turns);
+  const [autoFollow, setAutoFollow] = useState(() => {
+    try {
+      const v = localStorage.getItem(CONVERSATION_AUTO_FOLLOW_STORAGE_KEY);
+      return v == null ? true : v === "1";
+    } catch {
+      return true;
+    }
+  });
+  const [reuseMinutes, setReuseMinutes] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CONVERSATION_LANE_REUSE_STORAGE_KEY);
+      const n = saved ? Number(saved) : DEFAULT_CONVERSATION_REUSE_WINDOW_MINUTES;
+      return Number.isFinite(n) && n > 0 ? n : DEFAULT_CONVERSATION_REUSE_WINDOW_MINUTES;
+    } catch {
+      return DEFAULT_CONVERSATION_REUSE_WINDOW_MINUTES;
+    }
+  });
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const turnsBoxRef = useRef<HTMLDivElement>(null);
+
+  // Keep the box scrolled to the newest turn as liveTurns grows — same
+  // scroll-on-content-change idea as StreamSection's autoscroll, applied to
+  // the turn list instead of the raw chunk text.
+  useEffect(() => {
+    if (!open) return;
+    const el = turnsBoxRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      try {
+        el.scrollTop = el.scrollHeight;
+      } catch {
+        // ignore — best-effort UX only
+      }
+    });
+  }, [liveTurns, open]);
+
+  const toggleAutoFollow = () => {
+    const next = !autoFollow;
+    setAutoFollow(next);
+    try {
+      localStorage.setItem(CONVERSATION_AUTO_FOLLOW_STORAGE_KEY, next ? "1" : "0");
+    } catch {
+      // localStorage unavailable — the toggle still works for this session
+    }
+  };
+
+  useEffect(() => {
+    let shouldScroll = false;
+    try {
+      shouldScroll = sessionStorage.getItem(CONVERSATION_SCROLL_FLAG_KEY) === "1";
+      if (shouldScroll) sessionStorage.removeItem(CONVERSATION_SCROLL_FLAG_KEY);
+    } catch {
+      // sessionStorage unavailable — skip the scroll-into-view convenience
+    }
+    if (shouldScroll) sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const scheduleNext = (delayMs: number) => {
+      if (cancelled) return;
+      timeoutId = setTimeout(tick, delayMs);
+    };
+
+    // "Is this conversation still in progress" depends on Date.now(), an
+    // impure read — it must not happen directly during render (useMemo) or as
+    // a synchronous setState call at the top of this effect. Deferring the
+    // first evaluation into a callback (same shape as the ticks that follow
+    // it) mirrors the pattern RequestTimeline.tsx already uses for its own
+    // Date.now()-based nowMs state (set inside a requestAnimationFrame
+    // callback, never synchronously in the effect body).
+    // Self-rescheduling (setTimeout, not setInterval) so the delay can shrink
+    // to CONVERSATION_ACTIVE_POLL_INTERVAL_MS while the currently-viewed
+    // request is itself streaming, and fall back to the slower interval once
+    // it's just waiting for a new row to appear.
+    const tick = () => {
+      if (cancelled) return;
+      if (!isLatest || !lastSeenAt) {
+        setPolling(false);
+        return;
+      }
+      const reuseWindowMs = getConversationReuseWindowMs();
+      const withinWindow = Date.now() - new Date(lastSeenAt).getTime() < reuseWindowMs;
+      setPolling(withinWindow);
+      if (!withinWindow) return;
+      if (document.visibilityState !== "visible") {
+        scheduleNext(CONVERSATION_POLL_INTERVAL_MS);
+        return;
+      }
+
+      fetch(`/api/logs/${currentLogId}`, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (cancelled || !data) return;
+          if (Array.isArray(data.conversationTurns)) setLiveTurns(data.conversationTurns);
+          if (data.conversationNextId && autoFollow) {
+            onNavigateToLog(data.conversationNextId);
+            return; // this section is about to unmount (key={log.id} remount)
+          }
+          scheduleNext(
+            data.active ? CONVERSATION_ACTIVE_POLL_INTERVAL_MS : CONVERSATION_POLL_INTERVAL_MS
+          );
+        })
+        .catch(() => {
+          scheduleNext(CONVERSATION_POLL_INTERVAL_MS);
+        });
+    };
+
+    timeoutId = setTimeout(tick, 0);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isLatest, lastSeenAt, currentLogId, onNavigateToLog, autoFollow]);
+
+  return (
+    <div ref={sectionRef}>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-3">
+          <h3 className="text-[11px] text-text-muted uppercase tracking-wider font-bold">
+            Full Conversation
+          </h3>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+            aria-label={open ? "Collapse Full Conversation" : "Expand Full Conversation"}
+          >
+            <span className="material-symbols-outlined text-[16px]">
+              {open ? "expand_less" : "expand_more"}
+            </span>
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleAutoFollow}
+            title={autoFollow ? "Auto-follow: on (jumps to the next turn as soon as it lands)" : "Auto-follow: off"}
+            className={`p-1 rounded hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors ${autoFollow ? "text-primary" : ""}`}
+            aria-pressed={autoFollow}
+            aria-label="Toggle auto-follow to next turn"
+          >
+            <span className="material-symbols-outlined text-[18px]">vertical_align_bottom</span>
+          </button>
+          {/* Same setting Timeline's "Lane reuse" control persists under (shared key) —
+              changing it here also changes when Timeline treats a lane as reusable. */}
+          <label
+            className="flex items-center gap-1 px-2 py-1 text-[10px] text-text-muted bg-bg-subtle rounded-md border border-border"
+            title="How long after the last turn this conversation is still considered 'in progress' and auto-refreshed."
+          >
+            <span>Auto-refresh</span>
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={reuseMinutes}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                const next = Math.max(1, Number(e.target.value) || 1);
+                setReuseMinutes(next);
+                try {
+                  localStorage.setItem(CONVERSATION_LANE_REUSE_STORAGE_KEY, String(next));
+                } catch {
+                  // localStorage unavailable — the input still works for this session
+                }
+              }}
+              className="w-8 bg-transparent text-center font-mono focus:outline-none"
+            />
+            <span>min</span>
+          </label>
+        </div>
+      </div>
+      {open && (
+        <div
+          ref={turnsBoxRef}
+          className="rounded-xl bg-black/5 dark:bg-black/30 border border-border max-h-150 overflow-y-auto p-3 space-y-2"
+        >
+          {earlierTurnsOmitted && (
+            <div className="text-xs text-text-muted italic mb-2">
+              Earlier turns not shown for this long-running conversation.
+            </div>
+          )}
+          {liveTurns.map((turn, i) => {
+            const isCurrent = turn.sourceCallLogId === currentLogId;
+            return (
+              <ChatBubble
+                key={i}
+                turn={turn}
+                isCurrent={isCurrent}
+                onClick={
+                  turn.sourceCallLogId && !isCurrent
+                    ? () => onNavigateToLog(turn.sourceCallLogId)
+                    : undefined
+                }
+              />
+            );
+          })}
+          {nextId && (
+            <button
+              onClick={() => {
+                try {
+                  sessionStorage.setItem(CONVERSATION_SCROLL_FLAG_KEY, "1");
+                } catch {
+                  // sessionStorage unavailable — navigation still works, just without
+                  // the scroll-into-view convenience
+                }
+                onNavigateToLog(nextId);
+              }}
+              className="w-full text-center text-xs text-primary hover:underline py-2"
+            >
+              View next message →
+            </button>
+          )}
+          {polling && (
+            <div className="flex items-center justify-center gap-1.5 text-[10px] text-text-muted py-1">
+              {/* Same ring-spinner markup as the "in progress" status badge above
+                  (not the shared <Spinner> icon glyph, which spins visibly off-axis). */}
+              <span className="inline-block h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
+              <span>watching for new turns…</span>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -195,6 +477,7 @@ export default function RequestLoggerDetail({
   onNext,
   relatedLogs = [],
   onSelectRelated,
+  onNavigateToLog,
 }) {
   // Close on Escape key
   useEffect(() => {
@@ -348,7 +631,7 @@ export default function RequestLoggerDetail({
   const codexAccountRotation = getCodexAccountRotation(detail);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center px-2 pt-[5vh] sm:px-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -356,12 +639,12 @@ export default function RequestLoggerDetail({
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-primary border border-border rounded-xl w-full max-w-225 max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="relative w-full max-w-225 max-h-[90vh] overflow-x-hidden overflow-y-auto rounded-xl border border-border bg-bg-primary shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
-          <div className="flex items-center gap-3">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl sm:px-6 sm:py-4">
+          <div className="flex flex-wrap items-center gap-2 min-w-0 sm:gap-3">
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 {log.active ? (
@@ -408,7 +691,7 @@ export default function RequestLoggerDetail({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={onPrevious}
               disabled={!onPrevious}
@@ -435,7 +718,7 @@ export default function RequestLoggerDetail({
           </div>
         </div>
 
-        <div className="p-6 flex flex-col gap-6">
+        <div className="p-4 flex flex-col gap-6 sm:p-6">
           {/* Metadata Grid */}
           {log.active ? (
             <div className="flex flex-wrap gap-4 p-4 bg-bg-subtle rounded-xl border border-border">
@@ -840,6 +1123,19 @@ export default function RequestLoggerDetail({
             </div>
           ) : (
             <>
+              {Array.isArray(detail?.conversationTurns) && detail.conversationTurns.length > 0 && (
+                <ConversationTranscriptSection
+                  key={log.id}
+                  turns={detail.conversationTurns}
+                  nextId={detail.conversationNextId ?? null}
+                  isLatest={detail.conversationIsLatest ?? false}
+                  lastSeenAt={detail.conversationLastSeenAt ?? null}
+                  earlierTurnsOmitted={detail.conversationEarlierTurnsOmitted ?? false}
+                  currentLogId={log.id}
+                  onNavigateToLog={onNavigateToLog}
+                />
+              )}
+
               {streamChunks && streamChunks.provider && (
                 <StreamSection
                   title="Provider Event Stream"
