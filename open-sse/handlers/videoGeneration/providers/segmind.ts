@@ -5,7 +5,7 @@
 // handler (imageGeneration/providers/segmind.ts): x-api-key auth, raw video
 // bytes response (e.g. `video/mp4`) on success, no JSON envelope.
 
-import { segmindRequest } from "../../../utils/segmindClient.ts";
+import { isSegmindFailure, segmindRequest } from "../../../utils/segmindClient.ts";
 
 function buildSegmindVideoBody(body: Record<string, unknown>, prompt: string) {
   const upstreamBody: Record<string, unknown> = { prompt };
@@ -43,7 +43,7 @@ export async function handleSegmindVideoGeneration({
     log,
   });
 
-  if (!result.ok) {
+  if (isSegmindFailure(result)) {
     return { success: false, status: result.status, error: result.error };
   }
 

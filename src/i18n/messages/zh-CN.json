@@ -168,6 +168,10 @@
     "noModelsFound": "未找到 Model",
     "clear": "清除",
     "done": "完成",
+    "selectAll": "全选",
+    "unselectAll": "取消全选",
+    "visibleModels": "可见",
+    "selectAllConfirm": "将 {count} 个模型添加到此组合？",
     "errorOccurred": "错误发生",
     "comboDeleted": "Combo 已删除",
     "hide": "隐藏",
@@ -933,6 +937,7 @@
   "disabled": "已禁用",
   "featureFlagOmnirouteEmergencyFallbackDescription": "将预算耗尽的请求路由到紧急免费备用提供者/模型。",
   "featureFlagArenaEloSyncEnabledDescription": "启用定期同步 Arena AI 排行榜 ELO，用于模型智能排名。",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "首页",
     "dashboard": "仪表板",
@@ -1113,6 +1118,7 @@
     "providerQuota": "提供者配额",
     "runtime": "运行时",
     "consoleLogs": "控制台日志",
+    "logsTimeline": "Timeline",
     "globalRouting": "全局路由",
     "mitmProxy": "MITM 代理",
     "oneProxy": "1Proxy",
@@ -1158,6 +1164,7 @@
     "logsSubtitle": "应用日志",
     "logsProxySubtitle": "代理流量日志",
     "consoleLogsSubtitle": "控制台输出",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "logsActivitySubtitle": "用户活动日志",
     "healthSubtitle": "系统健康检查",
     "costsPricingSubtitle": "按模型定价规则",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "粘贴到：",
     "copilotReloadInstruction": "然后重新加载 VS Code 并在输入提示框中设置 API 密钥。",
     "wireApiChatCompletions": "聊天完成 (/chat/completions)",
-    "wireApiResponses": "响应 API (/responses)"
+    "wireApiResponses": "响应 API (/responses)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "组合",
@@ -3689,7 +3704,7 @@
     "modelsCount": "{count, plural, one {# 个模型} other {# 个模型}}",
     "sectionTitle": "集成入口",
     "sectionDescription": "OpenAI 兼容 API 与操作协议端点",
-    "tabApis": "OpenAI 兼容 API",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "协议",
     "tabsAria": "端点分区",
     "protocolsTitle": "协议",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "没有新模型可导入 — 所有模型已在注册表或自定义模型列表中",
     "skippingExistingModels": "跳过 {count} 个已有模型",
     "autoSync": "自动同步",
+    "autoSyncShort": "同步",
     "autoSyncTooltip": "每 24 小时自动刷新模型列表（可通过 MODEL_SYNC_INTERVAL_HOURS 配置）",
     "autoSyncEnabled": "自动同步已启用 — 模型将定期刷新",
     "autoSyncDisabled": "自动同步已禁用",
     "autoSyncToggleFailed": "切换自动同步失败",
+    "autoSyncPartialFailure": "已为部分连接更新自动同步，但并非全部",
     "clearAllModels": "清除所有模型",
     "clearAllModelsConfirm": "您确定要删除此提供者的所有模型吗？",
     "clearAllModelsSuccess": "所有模型已清除",
@@ -5394,8 +5411,8 @@
     "t3ChatWebCookieHint": "打开 t3.chat → 开发工具 → 应用程序 → 本地存储 → https://t3.chat，复制“凸会话 ID”。然后打开 DevTools → Network，从任何聊天请求中复制完整的 Cookie 标头。将这两个值粘贴到下面的字段中。",
     "t3ChatWebCookiePlaceholder": "凸会话 ID=abc123...",
     "grokWebCookieHint": "从 Grok Web 会话复制 Cookie。",
-    "blockClaudeExtraUsageDescription": "隐藏部分 Provider 返回的重复 Claude 额外用量记录，避免和主 token 统计重复。",
-    "blockClaudeExtraUsageLabel": "屏蔽重复 Claude 用量",
+    "blockClaudeExtraUsageDescription": "__MISSING__:When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
+    "blockClaudeExtraUsageLabel": "__MISSING__:Block extra Claude usage",
     "disableCoolingDescription": "跳过瞬态冷却，以便此连接在发生可恢复错误后仍符合条件（被禁/过期等终态仍适用）。",
     "disableCoolingLabel": "禁用此连接的冷却",
     "bulkPasteAdded": "{count, plural, one {已添加 1 个 key} other {已添加 # 个 key}}",
@@ -5574,13 +5591,13 @@
     "importGrokAuth": "导入 Grok Build 身份验证",
     "zedImportTitle": "从 Zed 钥匙串导入",
     "zedImportDescription": "发现 Zed IDE 存储在操作系统钥匙串中的 AI 提供者凭据（OpenAI、Anthropic、Google、Mistral、xAI）并将其导入为连接。此机器上必须安装 Zed IDE。",
-    "zedImportButton": "从 Zed 导入",
-    "zedImportFailed": "Zed 导入失败",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "从 Zed 配置中导入 Provider。",
     "zedImportNetworkError": "Zed 导入网络错误",
     "zedImportNone": "没有可从 Zed 导入的内容",
-    "zedImportSuccess": "Zed 导入成功",
-    "zedImporting": "正在从 Zed 导入",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "在钥匙串中未找到 Zed 凭据",
     "zedUnsupportedCredentials": "找到 {count} 个钥匙串凭据，但没有与支持的提供者匹配的凭据",
     "zedManualTitle": "手动导入令牌",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "打开 arena.ai，登录，然后从网络请求中复制完整的 Cookie 请求头。包含 arena-auth-prod-v1.0 和 arena-auth-prod-v1.1（如果存在更多分块也一并包含），最好附带 cf_clearance。请勿仅粘贴空的 arena-auth-prod-v1 cookie。可选：如果 create-evaluation 仍返回 403，可提供 providerSpecificData.recaptchaV3Token。",
     "kimiOfficialSupporterBadge": "创始好友",
     "kimiOfficialSupporterTooltip": "Kimi（Moonshot AI）是 OmniRoute 的创始开源好友",
-    "kimiPartnerLinkNote": "合作伙伴链接 — 支持 OmniRoute，您无需承担额外费用"
+    "cheaperInferenceSupporterBadge": "开源好友",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference 作为开源好友支持 OmniRoute",
+    "kimiPartnerLinkNote": "合作伙伴链接 — 支持 OmniRoute，您无需承担额外费用",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "设置",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "定价如何运作",
     "cacheWrite": "缓存写入",
     "unsaved": "未保存",
-    "resetDefaults": "重置默认值",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "保存提供者",
     "model": "模型",
     "models": "模型",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "更少代码",
         "description": "YAGNI 阶梯：最小可行改动，无未要求的抽象。"
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "精简 CJK (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "验证 URL",
     "deviceCodeYourCode": "您的代码",
     "deviceCodeWaiting": "等待授权...",
-    "googleOAuthWarning": "远程访问 + Google OAuth：默认凭据仅接受重定向到 <code>localhost</code>。授权后，您的浏览器将尝试打开 <code>localhost</code> — 复制该完整 URL 并粘贴到下方。要完全远程使用而无需此手动步骤，<a>配置您自己的 OAuth 凭据</a>。",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "远程访问：由于您是远程访问 OmniRoute，授权后您会看到一个错误页面（localhost 未找到）。这是正常的 — 只需从浏览器地址栏复制完整 URL 并粘贴到下方。",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "步骤 1：在浏览器中打开此 URL",
     "copy": "复制",
     "step2PasteCallback": "步骤 2：在此处粘贴回调 URL 或授权代码",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "要删除此组吗？必须先重新分配或移除其池。",
     "deleteGroupHasPools": "该组仍然有池 — 请先重新分配或删除它们。",
     "ungroupedTitle": "未分组",
-    "ungroupedHint": "这些池未分配给已知组。编辑一个池以将其移动到真实组中。"
+    "ungroupedHint": "这些池未分配给已知组。编辑一个池以将其移动到真实组中。",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "插件",
@@ -11274,7 +11326,7 @@
       }
     },
     "pageTitle": "特工技能",
-    "pageSubtitle": "教你的代理操作 OmniRoute — 22 个 API 区域 + 20 个 CLI 家族",
+    "pageSubtitle": "__MISSING__:Teach your agent to operate OmniRoute — 23 API areas + 21 CLI families",
     "conceptCard": {
       "agent": {
         "title": "代理技能 — 外呼",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "在技能沙箱中启用网络访问。"
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "组合控制中心",
@@ -12131,5 +12184,6 @@
     "cta": "获取 Kimi Code",
     "partnerLinkNote": "合作伙伴链接",
     "dismissAriaLabel": "关闭"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

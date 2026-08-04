@@ -39,7 +39,7 @@ export interface RemoteImageFetchOptions {
 }
 
 export interface RemoteImageFetchResult {
-  buffer: Buffer;
+  buffer: Buffer<ArrayBuffer>;
   contentType: string;
   url: string;
 }

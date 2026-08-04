@@ -55,6 +55,7 @@ function useProviderAccountRoutingState(providerKey: string) {
         const res = await fetch("/api/settings", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch current settings");
         const data = await res.json();
+        const revision = typeof data.settingsRevision === "number" ? data.settingsRevision : 0;
         const current = (data?.providerStrategies || {}) as Record<
           string,
           ProviderStrategyOverride
@@ -70,8 +71,12 @@ function useProviderAccountRoutingState(providerKey: string) {
         const patchRes = await fetch("/api/settings", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ providerStrategies: updated }),
+          body: JSON.stringify({ providerStrategies: updated, expectedRevision: revision }),
         });
+        if (patchRes.status === 409) {
+          await load();
+          throw new Error("Settings conflict — refreshed from server");
+        }
         if (!patchRes.ok) throw new Error("Failed to save provider routing settings");
       } catch (e) {
         console.error(e);

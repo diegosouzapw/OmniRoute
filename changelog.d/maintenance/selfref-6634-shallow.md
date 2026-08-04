@@ -1,1 +1,0 @@
-- **Tests**: the #6634 self-reference test now fetches `origin/main` on demand and skips cleanly when the ref is unreachable — it failed as a false positive on shallow/single-ref checkouts (GitHub-hosted runners)

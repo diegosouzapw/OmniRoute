@@ -11,6 +11,7 @@
  * we reuse it: `getCliRuntimeStatus("qoder")` returns an absolute `.cmd`/`.exe`
  * `commandPath`, and `shouldUseShellForCommand()` tells us whether it needs cmd.exe.
  */
+import path from "path";
 import {
   getCliRuntimeStatus,
   getKnownToolPaths,
@@ -76,7 +77,16 @@ export async function resolveQoderCliInvocation(
     /* fall back to the bare/explicit command — spawn will surface a real ENOENT */
   }
 
-  const invocation: QoderCliInvocation = { command, useShell: shouldUseShell(command) };
+  // On Windows, if explicit CLI_QODER_BIN / command is a bare binary name like "qodercli" or "qoder" (no path or extension),
+  // spawn(cmd, { shell: false }) will fail with ENOENT post Node CVE-2024-27980.
+  // Enabling shell: true for bare command names on win32 lets system PATH resolution find qodercli.cmd / qoder.cmd.
+  const useShell =
+    shouldUseShell(command) ||
+    (process.platform === "win32" &&
+      !path.isAbsolute(command) &&
+      !path.basename(command).includes("."));
+
+  const invocation: QoderCliInvocation = { command, useShell };
   if (cacheable) {
     qoderInvocationCache = {
       ...invocation,

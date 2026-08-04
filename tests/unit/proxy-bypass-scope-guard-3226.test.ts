@@ -39,12 +39,18 @@ test("bypassProxyPatch is absent from the chat hot path (scope guard — #3226)"
   // If either of these assertions starts failing, a code change has silently
   // extended the NVIDIA-only exception to the chat/usage egress path.
   const chatHelpers = readFileSync("src/sse/handlers/chatHelpers.ts", "utf8");
+  // Anchor: without it, extracting the egress code into another module would make the
+  // negative guard below pass against a file that no longer contains the hot path.
+  assert.match(chatHelpers, /export async function executeChatWithBreaker\(/);
   assert.ok(
     !chatHelpers.includes("bypassProxyPatch"),
     "chatHelpers.ts must not bypass the proxy patch — only NVIDIA validation may do this (#3226)"
   );
 
   const chatCore = readFileSync("open-sse/handlers/chatCore.ts", "utf8");
+  // Anchor: chatCore.ts is actively being split, so pin the entry point the route
+  // imports — the negative guard is worthless if this read silently misses the file.
+  assert.match(chatCore, /export async function handleChatCore\(/);
   assert.ok(
     !chatCore.includes("bypassProxyPatch"),
     "chatCore.ts must not bypass the proxy patch — only NVIDIA validation may do this (#3226)"

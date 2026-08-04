@@ -1,1 +1,0 @@
-- **fix(providers):** reconcile Kimi K3 vision metadata when synced `attachment=false` contradicts image/video `modalities_input`, so `supportsVision`, `attachment`, and exposed modalities agree ([#8250](https://github.com/diegosouzapw/OmniRoute/issues/8250)) — thanks @Prudhvivuda

@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import {
   buildRecoveryHint,
   buildNoUpstreamResponseDiagnostics,
+  buildEmptyComboTargetsPayload,
 } from "../../../open-sse/services/combo/pinRecovery.ts";
 
 test("buildRecoveryHint: reasoning_budget_exhausted maps to switch-combo", () => {
@@ -51,6 +52,12 @@ test("buildRecoveryHint: no_executable_targets maps to switch-combo", () => {
   assert.match(hint.next_step, /no executable targets/);
 });
 
+test("buildRecoveryHint: context_requirements_exhausted maps to switch-combo (#8786)", () => {
+  const hint = buildRecoveryHint("context_requirements_exhausted");
+  assert.equal(hint.action, "switch-combo");
+  assert.match(hint.next_step, /minContextWindow|contextFilterMode|lenient/i);
+});
+
 test("buildRecoveryHint: unknown terminalReason falls back to retry", () => {
   const hint = buildRecoveryHint("some_unrecognized_reason");
   assert.equal(hint.action, "retry");
@@ -72,4 +79,29 @@ test("buildNoUpstreamResponseDiagnostics: zero poolSize is passed through as-is"
   const diag = buildNoUpstreamResponseDiagnostics(0);
   assert.equal(diag.poolSize, 0);
   assert.equal(diag.terminalReason, "no_upstream_response");
+});
+
+test("buildEmptyComboTargetsPayload: pre-filter pool → context_requirements_exhausted (#8786)", () => {
+  const { message, diagnostics } = buildEmptyComboTargetsPayload(
+    [
+      { provider: "openai", modelStr: "gpt-4o" },
+      { provider: "custom", modelStr: "tiny" },
+    ],
+    500000
+  );
+  assert.match(message, /context requirements filtering/);
+  assert.match(message, /minContextWindow: 500000/);
+  assert.equal(diagnostics.terminalReason, "context_requirements_exhausted");
+  assert.equal(diagnostics.poolSize, 2);
+  assert.equal(diagnostics.excluded?.length, 2);
+  assert.equal(diagnostics.excluded?.[0]?.reason, "context_requirements");
+  assert.equal(diagnostics.recovery?.action, "switch-combo");
+});
+
+test("buildEmptyComboTargetsPayload: empty pre-filter pool → generic no_executable_targets", () => {
+  const { message, diagnostics } = buildEmptyComboTargetsPayload([], 128000);
+  assert.equal(message, "Combo has no executable targets");
+  assert.equal(diagnostics.terminalReason, "no_executable_targets");
+  assert.equal(diagnostics.poolSize, 0);
+  assert.deepEqual(diagnostics.excluded, []);
 });

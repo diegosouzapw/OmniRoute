@@ -120,7 +120,44 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
   }
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
-export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
+// Bare Codex CLI defaults must always route to the `codex` provider (chatgpt.com
+// OAuth) even when other providers that also catalog the model id (e.g.
+// `agentrouter`, `openai`) are active. The Codex cookie quota on the user's
+// account is the source of truth for capacity, and bare-id requests from
+// `codex` (CLI)/`Codex` (web) would otherwise silently fan out to whichever
+// provider won the inference race — leaving the user wondering why the
+// canonical ChatGPT subscription stopped working. Override per-request by
+// prefixing the model id (e.g. `agentrouter/gpt-5.6-sol`,
+// `openai/gpt-5.6-sol`) — the prefix path always wins.
+export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set([
+  "codex-auto-review",
+  "gpt-5.6-sol",
+  "gpt-5.6-sol-ultra",
+  "gpt-5.6-sol-max",
+  "gpt-5.6-sol-xhigh",
+  "gpt-5.6-sol-high",
+  "gpt-5.6-sol-medium",
+  "gpt-5.6-sol-low",
+  "gpt-5.6-terra",
+  "gpt-5.6-terra-ultra",
+  "gpt-5.6-terra-max",
+  "gpt-5.6-terra-xhigh",
+  "gpt-5.6-terra-high",
+  "gpt-5.6-terra-medium",
+  "gpt-5.6-terra-low",
+  "gpt-5.6-luna",
+  "gpt-5.6-luna-max",
+  "gpt-5.6-luna-xhigh",
+  "gpt-5.6-luna-high",
+  "gpt-5.6-luna-medium",
+  "gpt-5.6-luna-low",
+  "gpt-5.5",
+  "gpt-5.5-xhigh",
+  "gpt-5.5-high",
+  "gpt-5.5-medium",
+  "gpt-5.5-low",
+  "gpt-5.3-codex-spark",
+]);
 
 interface ProviderConnectionLike {
   provider?: unknown;
@@ -520,21 +557,49 @@ function parseAliasTarget(target: string): ResolvedModelTarget | null {
 }
 
 async function resolveModelByProviderInference(modelId: string, extendedContext: boolean) {
-  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
-    return {
-      provider: "codex",
-      model: modelId,
-      extendedContext,
-    };
-  }
-
   const [activeProviders, activeSyncedProviders, preferClaudeCodeForUnprefixedClaudeModels] =
     await Promise.all([
       getActiveProviderSet(),
       getActiveSyncedProvidersForModel(modelId),
       getPreferClaudeCodeForUnprefixedClaudeModels(),
     ]);
-  const providers = getInferredProvidersForModel(modelId, activeSyncedProviders);
+
+  // Codex-native bare ids prefer the ChatGPT subscription, but the preference is only
+  // allowed to PREEMPT another provider when a codex connection is actually active.
+  // Returning "codex" unconditionally (as this did once the set grew past
+  // `codex-auto-review` to cover gpt-5.5 / the gpt-5.6-sol tiers) hands ids that OpenAI
+  // also serves to a provider the operator may not have configured: an OpenAI-only
+  // install fails with "no active credentials for provider: codex" on a model that
+  // works, and an install whose codex connection is merely *inactive* fails the same way.
+  // Ids only codex catalogs (e.g. `codex-auto-review`) keep resolving to codex with no
+  // connection at all — there is no alternative to preempt, and "no codex credentials"
+  // is the honest error. With codex active the preference still beats OpenAI, and an
+  // explicit `openai/…` prefix remains the per-request override either way.
+  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
+    const codexNativeAlternatives = (MODEL_TO_PROVIDERS.get(modelId) || []).filter(
+      (p) => p !== "codex"
+    );
+    if (codexNativeAlternatives.length === 0 || activeProviders?.has("codex")) {
+      return {
+        provider: "codex",
+        model: modelId,
+        extendedContext,
+      };
+    }
+  }
+  // #FIX: synced catalogs (populated from `/v1/models` per connection) can
+  // claim ownership of models the provider does not actually serve (e.g. a
+  // `kiro` upstream briefly advertising `claude-opus-5` before it was
+  // vendored into the registry). Without this filter the bare-routing path
+  // would forward traffic to providers that 404 on the upstream call.
+  // Auto-discovery still wins when no static registry entry exists for the
+  // model id — only entries that conflict with the static catalog are dropped.
+  const staticCatalogProviders = MODEL_TO_PROVIDERS.get(modelId) || [];
+  const validatedSyncedProviders =
+    staticCatalogProviders.length > 0
+      ? activeSyncedProviders.filter((p) => staticCatalogProviders.includes(p))
+      : activeSyncedProviders;
+  const providers = getInferredProvidersForModel(modelId, validatedSyncedProviders);
   const nonOpenAIProviders = providers.filter((p) => p !== "openai");
 
   // Bare model IDs from Codex CLI do not preserve OmniRoute's `cx/` prefix.

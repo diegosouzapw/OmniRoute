@@ -40,7 +40,13 @@ function healthy200(model: string) {
       id: "ok",
       object: "chat.completion",
       model,
-      choices: [{ index: 0, message: { role: "assistant", content: "hello from " + model }, finish_reason: "stop" }],
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content: "hello from " + model },
+          finish_reason: "stop",
+        },
+      ],
     }),
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
@@ -92,7 +98,8 @@ test("#5085 combo fails over to the next leg when leg 1 returns empty-content 50
 // connection exhausted and skips every REMAINING SAME-PROVIDER leg (#1731v2).
 // An empty completion arrived on a HEALTHY connection (HTTP 200, no content) and
 // must not be treated as a bad connection.
-const { applyComboTargetExhaustion } = await import("../../open-sse/services/combo/targetExhaustion.ts");
+const { applyComboTargetExhaustion } =
+  await import("../../open-sse/services/combo/targetExhaustion.ts");
 
 function makeTarget(provider: string, modelStr: string, connectionId: string | null = null) {
   return {
@@ -118,24 +125,58 @@ function freshSets() {
 
 test("#5085 empty-content 502 must NOT mark the provider/connection exhausted (model-level, not connection-level)", () => {
   const sets = freshSets();
-  const providerExhausted = applyComboTargetExhaustion(makeTarget("nvidia", "nvidia/minimaxai/minimax-m3"), {
-    result: { status: 502, headers: new Headers() },
-    fallbackResult: { reason: "server_error" },
-    errorText: "Provider returned empty content",
-    rawModel: "minimaxai/minimax-m3",
-    isTokenLimitBreach: false,
-    allAccountsRateLimited: false,
-    sets,
-    log,
-    tag: "COMBO",
-    exhaustedLogLevel: "info",
-  });
+  const providerExhausted = applyComboTargetExhaustion(
+    makeTarget("nvidia", "nvidia/minimaxai/minimax-m3"),
+    {
+      result: { status: 502, headers: new Headers() },
+      fallbackResult: { reason: "server_error" },
+      errorText: "Provider returned empty content",
+      rawModel: "minimaxai/minimax-m3",
+      isTokenLimitBreach: false,
+      allAccountsRateLimited: false,
+      sets,
+      log,
+      tag: "COMBO",
+      exhaustedLogLevel: "info",
+    }
+  );
 
   assert.equal(providerExhausted, false, "empty-content is not a quota exhaustion");
   assert.equal(
     sets.exhaustedProviders.has("nvidia"),
     false,
     "empty-content 502 must NOT mark the whole provider exhausted — remaining same-provider legs must still be tried"
+  );
+});
+
+test("#8397 empty-response 502 (no usable choices/output) must NOT mark provider/connection exhausted", () => {
+  const sets = freshSets();
+  const providerExhausted = applyComboTargetExhaustion(
+    makeTarget("nvidia", "nvidia/minimaxai/minimax-m3"),
+    {
+      result: { status: 502, headers: new Headers() },
+      fallbackResult: { reason: "server_error" },
+      errorText: "upstream returned an empty response without usable output",
+      rawModel: "minimaxai/minimax-m3",
+      isTokenLimitBreach: false,
+      allAccountsRateLimited: false,
+      sets,
+      log,
+      tag: "COMBO",
+      exhaustedLogLevel: "info",
+    }
+  );
+
+  assert.equal(providerExhausted, false, "empty-response is not a quota exhaustion");
+  assert.equal(
+    sets.exhaustedProviders.has("nvidia"),
+    false,
+    "empty-response 502 must NOT mark the whole provider exhausted"
+  );
+  assert.equal(
+    sets.exhaustedConnections.size,
+    0,
+    "empty-response 502 must NOT mark any connection exhausted"
   );
 });
 

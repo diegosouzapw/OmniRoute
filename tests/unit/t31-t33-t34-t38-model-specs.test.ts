@@ -15,11 +15,14 @@ const {
   capThinkingBudget,
 } = await import("../../src/shared/constants/modelSpecs.ts");
 
-test("T31: antigravity static catalog exposes client-visible Gemini model IDs", () => {
-  // Antigravity's static catalog surfaces the live, client-visible model IDs returned by
-  // the model selector (#8013 refactor: gemini-3.6-flash-high is the current defaultAgentModelId).
+test("T31: antigravity static catalog exposes client-visible Gemini preview IDs", () => {
+  // Antigravity exposes client-visible Gemini IDs even though the upstream still
+  // accepts its internal model identifiers. #8013 (align official clients / callable
+  // catalog) retired the `gemini-3-pro-preview` alias, so assert the current
+  // client-visible top flash tier instead.
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
   assert.ok(staticIds.includes("gemini-3.6-flash-high"));
+  assert.ok(!staticIds.includes("gemini-3-pro-preview"));
   // #3303 (agy parity, discussion #3184): the Gemini + Claude budget tiers ARE
   // client-visible on the Antigravity OAuth backend (Claude was never removed).
   assert.ok(staticIds.includes("gemini-3.1-pro-low"));

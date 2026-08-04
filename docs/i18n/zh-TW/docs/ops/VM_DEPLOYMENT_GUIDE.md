@@ -14,16 +14,16 @@ lastUpdated: 2026-06-28
 
 ## 前置需求
 
-| 項目        | 最低規格                   | 建議規格           |
-| ----------- | -------------------------- | ------------------ |
-| **CPU**     | 1 vCPU                     | 2 vCPU             |
-| **RAM**     | 1 GB                       | 2 GB               |
-| **硬碟**    | 10 GB SSD                  | 25 GB SSD          |
-| **作業系統**| Ubuntu 22.04 LTS           | Ubuntu 24.04 LTS   |
-| **網域**    | 在 Cloudflare 註冊         | —                  |
-| **Docker**  | Docker Engine 24+          | Docker 27+         |
+| 項目         | 最低規格           | 建議規格         |
+| ------------ | ------------------ | ---------------- |
+| **CPU**      | 1 vCPU             | 2 vCPU           |
+| **RAM**      | 1 GB               | 2 GB             |
+| **硬碟**     | 10 GB SSD          | 25 GB SSD        |
+| **作業系統** | Ubuntu 22.04 LTS   | Ubuntu 24.04 LTS |
+| **網域**     | 在 Cloudflare 註冊 | —                |
+| **Docker**   | Docker Engine 24+  | Docker 27+       |
 
-**經測試的提供商**: Akamai (Linode)、DigitalOcean、Vultr、Hetzner、AWS Lightsail。
+**經測試的提供者**: Akamai (Linode)、DigitalOcean、Vultr、Hetzner、AWS Lightsail。
 
 ---
 
@@ -31,7 +31,7 @@ lastUpdated: 2026-06-28
 
 ### 1.1 建立執行個體
 
-在你偏好的 VPS 提供商：
+在你偏好的 VPS 提供者：
 
 - 選擇 Ubuntu 24.04 LTS
 - 選擇最低方案（1 vCPU / 1 GB RAM）
@@ -270,9 +270,9 @@ nginx -t && systemctl reload nginx
 
 在 Cloudflare 儀表板 → DNS：
 
-| 類型 | 名稱   | 內容                     | Proxy       |
-| ---- | ------ | ----------------------- | ----------- |
-| A    | `llms` | `203.0.113.10`（VM IP） | ✅ 已代理   |
+| 類型 | 名稱   | 內容                    | Proxy     |
+| ---- | ------ | ----------------------- | --------- |
+| A    | `llms` | `203.0.113.10`（VM IP） | ✅ 已代理 |
 
 ### 4.2 設定 SSL
 
@@ -414,9 +414,9 @@ npx wrangler deploy
 
 ## 連接埠摘要
 
-| 連接埠  | 服務          | 存取方式                        |
-| ------ | ------------- | ------------------------------ |
-| 22     | SSH           | 公開（搭配 fail2ban）           |
-| 80     | nginx HTTP    | 重新導向 → HTTPS               |
-| 443    | nginx HTTPS   | 經由 Cloudflare Proxy          |
-| 20128  | OmniRoute     | 僅限本機（經由 nginx）          |
+| 連接埠 | 服務        | 存取方式               |
+| ------ | ----------- | ---------------------- |
+| 22     | SSH         | 公開（搭配 fail2ban）  |
+| 80     | nginx HTTP  | 重新導向 → HTTPS       |
+| 443    | nginx HTTPS | 經由 Cloudflare Proxy  |
+| 20128  | OmniRoute   | 僅限本機（經由 nginx） |

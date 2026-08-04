@@ -171,7 +171,6 @@ config/quality/test-impact-map.json
 # GitNexus local index
 .gitnexus
 .worktrees
-bin/omniroute.mjs
 
 # Consistent with .dockerignore / .npmignore
 .omc/
@@ -201,7 +200,10 @@ scripts/i18n/_pending-keys.json
 .codegraph/
 
 # Fumadocs generated source
-.source/
+/.source/
+
+# Temporary local worktrees used to build unpublished npm tarballs
+/.deploy-build-*/
 
 # AI agent local settings and configs
 .agents/
@@ -250,3 +252,4 @@ tests/homolog/.auth/
 tests/homolog/ui/.auth/
 homolog-report/
 docker-compose.yml.bak
+.playwright-cli/

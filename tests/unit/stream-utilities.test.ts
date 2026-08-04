@@ -91,6 +91,57 @@ test("createPassthroughStreamWithLogger omits [DONE] for Responses clients", asy
   assert.doesNotMatch(result, /data: \[DONE\]/);
 });
 
+test("createPassthroughStreamWithLogger separates K3 thinking tags", async () => {
+  const transform = createPassthroughStreamWithLogger(
+    "kimi-coding",
+    null,
+    null,
+    "k3",
+    null,
+    null,
+    null,
+    null,
+    null,
+    "openai"
+  );
+  const writer = transform.writable.getWriter();
+  const encoder = new TextEncoder();
+
+  await writer.write(
+    encoder.encode(
+      'data: {"id":"chatcmpl_1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"<think>reasoning"},"finish_reason":null}]}\n\n'
+    )
+  );
+  await writer.write(
+    encoder.encode(
+      'data: {"id":"chatcmpl_1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"</think>final answer"},"finish_reason":null}]}\n\n'
+    )
+  );
+  await writer.close();
+
+  const reader = transform.readable.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value);
+  }
+
+  const payloads = result
+    .split("\n")
+    .filter((line) => line.startsWith("data: {") && line !== "data: [DONE]")
+    .map((line) => JSON.parse(line.slice(6)));
+  const visible = payloads.map((payload) => payload.choices?.[0]?.delta?.content || "").join("");
+  const reasoning = payloads
+    .map((payload) => payload.choices?.[0]?.delta?.reasoning_content || "")
+    .join("");
+
+  assert.equal(visible, "final answer");
+  assert.equal(reasoning, "reasoning");
+  assert.doesNotMatch(result, /<\/?think>/);
+});
+
 test("createPassthroughStreamWithLogger synthesizes reasoning summary events from reasoning output items", async () => {
   const transform = createPassthroughStreamWithLogger(
     "codex",

@@ -26,16 +26,18 @@ export async function checkSemanticCache({
   apiKeyId,
 }: {
   semanticCacheEnabled: boolean;
-  body: Record<string, unknown>;
-  clientRawRequest: unknown;
+  // Only the fields this read path actually touches are named; everything else
+  // on the request body stays `unknown` via the index signature.
+  body: Record<string, unknown> & { temperature?: number; top_p?: number };
+  clientRawRequest: { headers?: unknown } | null;
   model: string;
   provider: string;
   stream: boolean;
-  reqLogger: unknown;
-  effectiveServiceTier: unknown;
+  reqLogger: { logConvertedResponse: (response: Record<string, unknown>) => void };
+  effectiveServiceTier: string | null | undefined;
   connectionId: string | null;
   startTime: number;
-  log: unknown;
+  log: { debug?: (...args: unknown[]) => void } | null;
   persistAttemptLogs: (args: unknown) => void;
   apiKeyId?: string | null;
 }) {

@@ -1973,7 +1973,7 @@ test("handleComboChat skips tool, vision, and structured-output incompatible fal
   assert.deepEqual(calls, ["openai/compatible"]);
 });
 
-test("handleComboChat preserves strategy order when context-aware filtering rejects all targets", async () => {
+test("handleComboChat fails closed when context-aware filtering rejects all targets (#8488)", async () => {
   saveModelsDevCapabilities({
     openai: {
       "no-tools-a": capabilityEntry(128000, { tool_call: false }),
@@ -1981,7 +1981,7 @@ test("handleComboChat preserves strategy order when context-aware filtering reje
     },
   });
 
-  const calls: any[] = [];
+  const calls: string[] = [];
   const result = await handleComboChat({
     body: {
       messages: [{ role: "user", content: "Use a tool." }],
@@ -1992,14 +1992,54 @@ test("handleComboChat preserves strategy order when context-aware filtering reje
       strategy: "priority",
       models: ["openai/no-tools-a", "openai/no-tools-b"],
     },
-    handleSingleModel: async (_body: any, modelStr: any) => {
+    handleSingleModel: async (_body: Record<string, unknown>, modelStr: string) => {
       calls.push(modelStr);
       return okResponse();
     },
     isModelAvailable: async () => true,
     log: createLog(),
     settings: null,
-    relayOptions: null as any,
+    relayOptions: null,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.status, 400);
+  assert.deepEqual(calls, []);
+  const body = await result.json();
+  assert.match(String(body?.error?.message || ""), /supports tool calling/i);
+  assert.equal(body?.error?.code, "capability_mismatch");
+  assert.equal(body?.diagnostics?.terminalReason, "capability_mismatch");
+});
+
+test("handleComboChat compatFilterFailOpen restores dispatch when all targets fail tools (#8488)", async () => {
+  saveModelsDevCapabilities({
+    openai: {
+      "no-tools-a": capabilityEntry(128000, { tool_call: false }),
+      "no-tools-b": capabilityEntry(128000, { tool_call: false }),
+    },
+  });
+
+  const calls: string[] = [];
+  const result = await handleComboChat({
+    body: {
+      messages: [{ role: "user", content: "Use a tool." }],
+      tools: [{ type: "function", function: { name: "lookup", parameters: {} } }],
+    },
+    combo: {
+      name: "context-aware-fail-open",
+      strategy: "priority",
+      models: ["openai/no-tools-a", "openai/no-tools-b"],
+      config: { compatFilterFailOpen: true },
+    },
+    handleSingleModel: async (_body: Record<string, unknown>, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null,
     allCombos: null,
   });
 

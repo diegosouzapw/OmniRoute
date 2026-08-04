@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { UsageAnalytics, CardSkeleton } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
 import EvalsTab from "../usage/components/EvalsTab";
+import CacheHealthTab from "./CacheHealthTab";
 import ComboHealthTab from "./ComboHealthTab";
 import ProviderUtilizationTab from "./ProviderUtilizationTab";
 import RouteExplainabilityTab from "./RouteExplainabilityTab";
@@ -13,7 +14,13 @@ import SearchAnalyticsTab from "./SearchAnalyticsTab";
 import DiversityScoreCard from "./components/DiversityScoreCard";
 
 type AnalyticsTab =
-  "overview" | "evals" | "search" | "utilization" | "combo-health" | "route-trace";
+  | "overview"
+  | "evals"
+  | "search"
+  | "utilization"
+  | "combo-health"
+  | "cache-health"
+  | "route-trace";
 
 const ANALYTICS_TABS: Array<{
   id: AnalyticsTab;
@@ -31,6 +38,12 @@ const ANALYTICS_TABS: Array<{
     label: "Combo Health",
     icon: "health_and_safety",
   },
+  {
+    id: "cache-health",
+    labelKey: "cacheHealth",
+    label: "Cache Health",
+    icon: "database",
+  },
   { id: "route-trace", labelKey: "routeTrace", label: "Route Trace", icon: "alt_route" },
 ];
 
@@ -44,7 +57,13 @@ function analyticsText(t: AnalyticsTranslator, key: string, fallback: string) {
 
 function normalizeTab(tab: string | null): AnalyticsTab {
   if (tab === "route-trace" || tab === "route-explain") return "route-trace";
-  if (tab === "evals" || tab === "search" || tab === "utilization" || tab === "combo-health") {
+  if (
+    tab === "evals" ||
+    tab === "search" ||
+    tab === "utilization" ||
+    tab === "combo-health" ||
+    tab === "cache-health"
+  ) {
     return tab;
   }
   return "overview";
@@ -118,6 +137,7 @@ function AnalyticsPageContent() {
         {activeTab === "search" ? <SearchAnalyticsTab /> : null}
         {activeTab === "utilization" ? <ProviderUtilizationTab /> : null}
         {activeTab === "combo-health" ? <ComboHealthTab /> : null}
+        {activeTab === "cache-health" ? <CacheHealthTab /> : null}
         {activeTab === "route-trace" ? (
           <RouteExplainabilityTab initialRequestId={initialRequestId} />
         ) : null}

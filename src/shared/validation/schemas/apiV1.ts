@@ -283,6 +283,7 @@ export const v1SearchSchema = z
         "perplexity-search",
         "exa-search",
         "tavily-search",
+        "firecrawl",
         "google-pse-search",
         "linkup-search",
         "ollama-search",

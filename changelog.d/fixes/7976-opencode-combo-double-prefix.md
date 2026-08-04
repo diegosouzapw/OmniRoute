@@ -1,1 +1,0 @@
-- fix(cli): stop double-prefixing combo model ids in the opencode plugin's static provider catalog (#7976)

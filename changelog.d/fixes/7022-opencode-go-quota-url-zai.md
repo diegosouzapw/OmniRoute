@@ -1,1 +1,0 @@
-- fix(usage): stop opencode-go quota lookup from defaulting to an unrelated Z.AI endpoint (#7022)

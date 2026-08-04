@@ -113,6 +113,22 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     cacheTTLMs: 5 * 60 * 1000,
   },
 
+  firecrawl: {
+    id: "firecrawl",
+    name: "Firecrawl",
+    baseUrl: "https://api.firecrawl.dev/v2/search",
+    method: "POST",
+    authType: "apikey",
+    authHeader: "bearer",
+    costPerQuery: 0.002,
+    freeMonthlyQuota: 1000,
+    searchTypes: ["web", "news"],
+    defaultMaxResults: 5,
+    maxMaxResults: 100,
+    timeoutMs: 30_000,
+    cacheTTLMs: 5 * 60 * 1000,
+  },
+
   "google-pse-search": {
     id: "google-pse-search",
     name: "Google Programmable Search",

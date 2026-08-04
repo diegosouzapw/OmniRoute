@@ -23,6 +23,12 @@ import { filterPaidOnlyCandidates } from "./paidModelFilter";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { filterExcludedCandidates } from "./candidateOverrides";
 import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
+import {
+  filterResilienceBlockedCandidates,
+  SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID,
+  type ConnectionResilienceView,
+} from "./resilienceCandidateFilter";
+import type { ChaosTuning } from "./chaosEngine";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -91,6 +97,12 @@ type VirtualAutoCombo = AutoComboConfig & {
       explorationRate: number;
       routerStrategy: string;
     };
+    chaos?: {
+      enabled: true;
+      panelSize: number;
+      judgeModel?: string;
+      tuning: ChaosTuning;
+    };
   };
 };
 
@@ -133,7 +145,7 @@ function hasUsableConnectionCredential(conn: VirtualFactoryConn): boolean {
   return hasApiKey || hasUsableOAuthToken(conn) || hasProviderSpecificSessionData(conn);
 }
 
-const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+const SYNTHETIC_NOAUTH_CONNECTION_ID = RESILIENCE_NOAUTH_CONNECTION_ID;
 
 // Allowlist of no-auth (keyless) providers permitted to enter the `auto`/`auto-*`
 // candidate pool. Narrowed to the backends verified to answer without any
@@ -408,6 +420,21 @@ export async function createVirtualAutoCombo(
       Boolean(spec?.family)
     )
   );
+
+  // #7623: honor existing model lockouts + connection cooldown/terminal state so
+  // auto/* never advertises models the dispatch path would immediately skip.
+  const connectionsById = new Map<string, ConnectionResilienceView>();
+  for (const conn of [...connections, ...disabledNoAuthConnections]) {
+    connectionsById.set(conn.id, conn);
+  }
+  const resilienceFilteredPool = filterResilienceBlockedCandidates(
+    candidatePool,
+    connectionsById
+  );
+  if (resilienceFilteredPool !== candidatePool) {
+    candidatePool.length = 0;
+    candidatePool.push(...resilienceFilteredPool);
+  }
 
   // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
   // exclude paid-only backends from EVERY `auto/*` candidate pool — not just the

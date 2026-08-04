@@ -138,6 +138,11 @@ When adding a new route or executor, copy the assertion pattern from this file. 
 parsed body from the upstream provider). When provided, it is sanitized by
 `sanitizeUpstreamDetails` before inclusion in the response as `upstream_details`.
 
+An optional fourth argument `classification` (`{ type?: string; code?: string }`)
+preserves an explicit error type/code instead of re-deriving both from the
+status-code table — used when the caller already classified the failure (e.g.
+HTTP 499 → `client_disconnected`).
+
 Sanitization rules applied to `upstreamDetails`:
 
 1. String leaves: run through `sanitizeErrorMessage` (strips stacks + absolute paths).

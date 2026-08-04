@@ -12,14 +12,14 @@ import type { CompressionConfig, CompressionPipelineStep } from "./types.ts";
 export function resolveStepDetailConfig(
   engine: CompressionPipelineStep["engine"],
   config: CompressionConfig | undefined
-): Record<string, unknown> {
+) {
   switch (engine) {
     case "headroom":
-      return (config?.headroom as Record<string, unknown> | undefined) ?? {};
+      return config?.headroom ?? {};
     case "session-dedup":
-      return (config?.sessionDedup as Record<string, unknown> | undefined) ?? {};
+      return config?.sessionDedup ?? {};
     case "ccr":
-      return (config?.ccr as Record<string, unknown> | undefined) ?? {};
+      return config?.ccr ?? {};
     default:
       return {};
   }

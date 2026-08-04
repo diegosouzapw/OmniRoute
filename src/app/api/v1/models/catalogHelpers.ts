@@ -83,7 +83,8 @@ export function minKnownNumber(values: Array<number | undefined>): number | unde
 export function getThinkingCapabilityFields(
   providerId: string,
   modelId: string,
-  resolvedThinking?: boolean | null
+  resolvedThinking?: boolean | null,
+  supportedThinkingEfforts?: readonly string[]
 ): Record<string, boolean | string[]> {
   const supportsThinking = resolvedThinking;
   if (typeof supportsThinking !== "boolean") return {};
@@ -92,7 +93,10 @@ export function getThinkingCapabilityFields(
     supportsThinking,
     ...(supportsThinking
       ? {
-          effort_tiers: extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES),
+          effort_tiers:
+            supportedThinkingEfforts && supportedThinkingEfforts.length > 0
+              ? [...supportedThinkingEfforts]
+              : extendCodexGpt56EffortValues(providerId, modelId, CANONICAL_EFFORT_VALUES),
         }
       : {}),
   };

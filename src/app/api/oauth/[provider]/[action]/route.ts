@@ -37,6 +37,7 @@ import {
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { GITLAB_DUO_OAUTH_SETUP_MESSAGE } from "@/shared/constants/gitlabDuoSetupMessage";
 import { keychainImportOnlyGuard } from "./keychainImportOnly";
 import { buildRemoteOAuthHint } from "./remoteOAuthHint";
 
@@ -174,17 +175,14 @@ export async function GET(
             "Qoder browser OAuth is experimental and disabled by default. Configure QODER_OAUTH_* environment variables or use a Personal Access Token.",
         });
       }
-      // #3861: GitLab Duo needs a self-registered OAuth app. Without a client_id,
+      // #3861 / #8688: GitLab Duo needs a self-registered OAuth app. Without a client_id,
       // buildAuthUrl returns null — surface a clear setup message instead of a 500.
+      // Same copy is shown in the OAuthModal setup step *before* authorize (#8688).
       if (provider === "gitlab-duo" && !authData.authUrl) {
         return NextResponse.json({
           ...authData,
           supported: false,
-          error:
-            "GitLab Duo OAuth is not configured. Register an OAuth application at " +
-            "https://gitlab.com/-/profile/applications with redirect URI " +
-            'http://localhost:20128/callback and scopes "ai_features read_user", then set ' +
-            "GITLAB_DUO_OAUTH_CLIENT_ID (and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET) and restart.",
+          error: GITLAB_DUO_OAUTH_SETUP_MESSAGE,
         });
       }
       return NextResponse.json(authData);

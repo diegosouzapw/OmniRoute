@@ -204,7 +204,12 @@ export class FeloWebExecutor extends BaseExecutor {
     signal?: AbortSignal
   ): Promise<boolean> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.getTimeoutMs());
+    const feloTestMs = this.getTimeoutMs();
+    const timeout = setTimeout(() => {
+      const err = new Error(`felo-web testConnection timeout after ${feloTestMs}ms`);
+      err.name = "TimeoutError";
+      controller.abort(err);
+    }, feloTestMs);
     try {
       const mergedSignal = signal
         ? AbortSignal.any([signal, controller.signal])
@@ -243,7 +248,12 @@ export class FeloWebExecutor extends BaseExecutor {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.getTimeoutMs());
+    const feloExecMs = this.getTimeoutMs();
+    const timeout = setTimeout(() => {
+      const err = new Error(`felo-web execute timeout after ${feloExecMs}ms`);
+      err.name = "TimeoutError";
+      controller.abort(err);
+    }, feloExecMs);
     const mergedSignal = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
 
     try {

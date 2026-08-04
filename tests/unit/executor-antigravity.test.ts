@@ -629,6 +629,173 @@ test("AntigravityExecutor.refreshCredentials refreshes Google OAuth tokens", asy
   }
 });
 
+test("AntigravityExecutor.refreshCredentials discovers projectId when stored value is empty", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  clearAntigravityProjectCache();
+
+  let fetchCalls: string[] = [];
+  globalThis.fetch = async (url, init) => {
+    const urlStr = String(url);
+    fetchCalls.push(urlStr);
+    // Token refresh endpoint
+    if (urlStr.includes("oauth2.googleapis.com/token")) {
+      return new Response(
+        JSON.stringify({
+          access_token: "new-token",
+          refresh_token: "new-refresh",
+          expires_in: 3600,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    // loadCodeAssist endpoint - returns a projectId
+    if (urlStr.includes("loadCodeAssist")) {
+      return new Response(JSON.stringify({ cloudaicompanionProject: "discovered-project" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response("not found", { status: 404 });
+  };
+
+  try {
+    const result = await executor.refreshCredentials(
+      { refreshToken: "refresh", projectId: "", connectionId: "conn-1" },
+      null
+    );
+    assert.equal(result?.projectId, "discovered-project");
+    assert.equal(result?.accessToken, "new-token");
+    assert.equal(result?.refreshToken, "new-refresh");
+    assert.equal(result?.expiresIn, 3600);
+    assert.ok(
+      fetchCalls.some((u) => u.includes("oauth2.googleapis.com/token")),
+      "should call token endpoint"
+    );
+    assert.ok(
+      fetchCalls.some((u) => u.includes("loadCodeAssist")),
+      "should call loadCodeAssist"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
+  }
+});
+
+test("AntigravityExecutor.refreshCredentials skips discovery when projectId already set", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  clearAntigravityProjectCache();
+
+  let fetchCalls: string[] = [];
+  globalThis.fetch = async (url) => {
+    const urlStr = String(url);
+    fetchCalls.push(urlStr);
+    if (urlStr.includes("oauth2.googleapis.com/token")) {
+      return new Response(
+        JSON.stringify({
+          access_token: "new-token",
+          refresh_token: "new-refresh",
+          expires_in: 3600,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    return new Response("not found", { status: 404 });
+  };
+
+  try {
+    const result = await executor.refreshCredentials(
+      { refreshToken: "refresh", projectId: "existing-project" },
+      null
+    );
+    assert.equal(result?.projectId, "existing-project");
+    assert.ok(
+      !fetchCalls.some((u) => u.includes("loadCodeAssist")),
+      "should NOT call loadCodeAssist"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
+  }
+});
+
+test("AntigravityExecutor.refreshCredentials handles discovery failure gracefully", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  clearAntigravityProjectCache();
+
+  globalThis.fetch = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes("oauth2.googleapis.com/token")) {
+      return new Response(
+        JSON.stringify({
+          access_token: "new-token",
+          refresh_token: "new-refresh",
+          expires_in: 3600,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    // loadCodeAssist fails
+    if (urlStr.includes("loadCodeAssist")) {
+      return new Response("server error", { status: 500 });
+    }
+    return new Response("not found", { status: 404 });
+  };
+
+  try {
+    const result = await executor.refreshCredentials(
+      { refreshToken: "refresh", projectId: "", connectionId: "conn-1" },
+      null
+    );
+    // Discovery failed, projectId stays empty but refresh still succeeds
+    assert.equal(result?.projectId, "");
+    assert.equal(result?.accessToken, "new-token");
+    assert.equal(result?.refreshToken, "new-refresh");
+    assert.equal(result?.expiresIn, 3600);
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
+  }
+});
+
+test("AntigravityExecutor.refreshCredentials skips discovery when access_token is not a string", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  clearAntigravityProjectCache();
+
+  let fetchCalls: string[] = [];
+  globalThis.fetch = async (url) => {
+    const urlStr = String(url);
+    fetchCalls.push(urlStr);
+    if (urlStr.includes("oauth2.googleapis.com/token")) {
+      // access_token missing from response
+      return new Response(JSON.stringify({ refresh_token: "new-refresh", expires_in: 3600 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response("not found", { status: 404 });
+  };
+
+  try {
+    const result = await executor.refreshCredentials(
+      { refreshToken: "refresh", projectId: "", connectionId: "conn-1" },
+      null
+    );
+    assert.equal(result?.projectId, "");
+    assert.equal(result?.accessToken, undefined);
+    assert.ok(
+      !fetchCalls.some((u) => u.includes("loadCodeAssist")),
+      "should NOT call loadCodeAssist"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
+  }
+});
+
 // The non-streaming passthrough drain test ("auto-retries short 429 responses and
 // collects SSE for non-stream clients") lives in
 // tests/unit/antigravity-streaming-passthrough.test.ts with the other passthrough tests.

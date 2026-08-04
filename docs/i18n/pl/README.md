@@ -659,18 +659,23 @@ devbox run npm run dev
 **🦭 Podman**
 
 ```bash
-# 1. Zbuduj obraz
-podman build --target runner-base -t omniroute:base .
+# 1. Przygotuj katalog danych montowany z hosta
+mkdir -p data
 
-# 2. Napraw uprawnienia katalogu danych dla Podmana bez roota
-mkdir -p data && podman unshare chown 1000:1000 ./data
+# 2. Tylko Linux + lokalny Podman bez roota (nigdy zdalny klient Podman Machine)
+podman unshare chown 1000:1000 ./data
 
-# 3. Ustaw środowisko wykonawcze w .env, a następnie uruchom (zobacz contrib/podman/ dla Quadlet)
+# 3. Ustaw wskazówkę środowiska, zbuduj lokalny obraz Compose i uruchom
 echo "CONTAINER_HOST=podman" >> .env
-podman compose --profile base up -d
+podman compose --profile base up -d --build
 ```
 
-📖 [Podręcznik Podman](../../../contrib/podman/README.md) — Integracja Quadlet z systemd, podman-compose, Quadlet.
+W systemach macOS i Windows Podman korzysta ze zdalnej maszyny Podman Machine:
+pomiń `podman unshare` i postępuj zgodnie z
+[instrukcjami dla odpowiedniej topologii](../../../contrib/podman/README.md#data-directory-permissions-by-topology).
+
+📖 [Podręcznik Podman](../../../contrib/podman/README.md) — budowanie przez
+Compose, Podman Machine oraz Quadlet wyłącznie dla Linux/systemd.
 
 **⚡ Szybsza / lżejsza instalacja (pomiń budowanie natywne)**
 

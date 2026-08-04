@@ -106,9 +106,13 @@ export function createStreamFailureFinalizers({
     const status = failure.status || HTTP_STATUS.BAD_GATEWAY;
     const message = failure.message || "Upstream stream error";
     const code = failure.code || failure.type || String(status);
+    const classification =
+      failure.code || failure.type
+        ? { code: failure.code, type: failure.type }
+        : undefined;
 
     if (!isFailureCompletionRecorded()) {
-      const errorBody = buildErrorBody(status, message);
+      const errorBody = buildErrorBody(status, message, undefined, classification);
       onStreamComplete({
         status,
         usage: null,

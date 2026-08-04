@@ -16,6 +16,10 @@ export const OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME = "omniroute_web_fetch";
 const WEB_FETCH_TOOL_TYPES = new Set(["web_fetch", "web_fetch_20250910"]);
 
 type JsonRecord = Record<string, unknown>;
+type WebFetchFallbackBody = JsonRecord & {
+  tools?: unknown;
+  tool_choice?: unknown;
+};
 
 export interface WebFetchFallbackPlan {
   enabled: boolean;
@@ -88,7 +92,7 @@ export function supportsNativeWebFetchFallbackBypass({
 }: {
   provider?: string | null;
   sourceFormat?: string | null;
-  targetFormat: string | null | undefined;
+  targetFormat?: string | null;
   nativeCodexPassthrough: boolean;
   // Per-model rule (#3384/#7339) — resolveInterceptFetch() in src/lib/db/interceptionRules.ts.
   // true = force interception; anything else (false/undefined, i.e. no operator
@@ -104,7 +108,7 @@ export function supportsNativeWebFetchFallbackBypass({
   return interceptFetchOverride !== true;
 }
 
-export function prepareWebFetchFallbackBody<T extends JsonRecord>(
+export function prepareWebFetchFallbackBody<T extends WebFetchFallbackBody>(
   body: T,
   options: {
     provider?: string | null;

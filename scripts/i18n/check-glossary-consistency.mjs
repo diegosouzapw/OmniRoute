@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OmniRoute — zh-CN terminology glossary consistency gate.
+ * OmniRoute — Chinese terminology glossary consistency gate (zh-CN + zh-TW).
  *
  * Complements the existing parity (check-ui-keys-coverage.mjs) and ICU
  * (validate_translation.py) checks with a native-quality layer:
@@ -22,6 +22,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { hasUnblockedOccurrence } from "./glossary-normalize.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, "..", "..");
@@ -79,10 +80,11 @@ export function checkGlossaryConsistency(localeMessages, glossary, protectedTerm
   const terms = glossary && glossary.terms ? glossary.terms : {};
   for (const [concept, def] of Object.entries(terms)) {
     const synonyms = Array.isArray(def.synonyms) ? def.synonyms : [];
+    const blockedPrefixes = Array.isArray(def.blockedPrefixes) ? def.blockedPrefixes : [];
     for (const synonym of synonyms) {
       if (!synonym) continue;
       for (const leaf of leaves) {
-        if (leaf.value.includes(synonym)) {
+        if (hasUnblockedOccurrence(leaf.value, synonym, blockedPrefixes)) {
           violations.push({
             type: "glossary-synonym",
             concept,
@@ -179,7 +181,9 @@ async function main() {
   logInfo(`FAIL — ${violations.length} violation(s) in ${opts.locale}.`);
   for (const v of violations.slice(0, 50)) {
     if (v.type === "glossary-synonym") {
-      console.log(`  - [${v.concept}] ${v.path}: found "${v.found}", canonical is "${v.canonical}"`);
+      console.log(
+        `  - [${v.concept}] ${v.path}: found "${v.found}", canonical is "${v.canonical}"`
+      );
     } else {
       console.log(`  - [protected-term] ${v.path}: "${v.term}" rendered as "${v.found}"`);
     }

@@ -106,7 +106,13 @@ vi.mock("@/shared/constants/models", () => ({
 
 // Stub specialized cards — render a testid so we can identify which was rendered
 vi.mock("../../../src/app/(dashboard)/dashboard/cli-code/components/index", () => ({
-  ClaudeToolCard: () => <div data-testid="ClaudeToolCard" />,
+  ClaudeToolCard: ({ hasActiveProviders, availableModels }: any) => (
+    <div
+      data-testid="ClaudeToolCard"
+      data-has-active-providers={String(hasActiveProviders)}
+      data-available-models={JSON.stringify(availableModels)}
+    />
+  ),
   CodexToolCard: () => <div data-testid="CodexToolCard" />,
   DroidToolCard: () => <div data-testid="DroidToolCard" />,
   OpenClawToolCard: () => <div data-testid="OpenClawToolCard" />,
@@ -127,9 +133,8 @@ vi.mock("../../../src/app/(dashboard)/dashboard/cli-code/components/CliproxyapiT
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-const { default: ToolDetailClient } = await import(
-  "@/app/(dashboard)/dashboard/cli-code/components/ToolDetailClient"
-);
+const { default: ToolDetailClient } =
+  await import("@/app/(dashboard)/dashboard/cli-code/components/ToolDetailClient");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -153,7 +158,10 @@ beforeEach(() => {
   (
     globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
   ).IS_REACT_ACT_ENVIRONMENT = true;
-  mockFetch.mockClear();
+  mockFetch.mockReset().mockResolvedValue({
+    ok: true,
+    json: async () => ({ connections: [], keys: [], data: [], cloudEnabled: false }),
+  });
 });
 
 afterEach(() => {
@@ -183,6 +191,93 @@ describe("ToolDetailClient", () => {
     const container = renderDetail("custom", "code");
     await act(async () => {});
     expect(container.querySelector("[data-testid='CustomCliCard']")).not.toBeNull();
+  });
+
+  it("keeps Apply available for an active dynamic compatible provider", async () => {
+    mockFetch.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/api/providers") {
+        return {
+          ok: true,
+          json: async () => ({
+            connections: [
+              {
+                provider: "openai-compatible-chat-node-123",
+                name: "Kimi gateway",
+                isActive: true,
+                testStatus: "active",
+                defaultModel: "Kimi-K3",
+                providerSpecificData: { prefix: "kimi-gateway" },
+              },
+            ],
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({ keys: [], data: [], cloudEnabled: false }),
+      };
+    });
+
+    const container = renderDetail("claude", "code");
+    await act(async () => {});
+
+    const card = container.querySelector("[data-testid='ClaudeToolCard']");
+    expect(card?.getAttribute("data-has-active-providers")).toBe("true");
+    expect(JSON.parse(card?.getAttribute("data-available-models") || "[]")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: "kimi-gateway/Kimi-K3",
+          provider: "openai-compatible-chat-node-123",
+          modelId: "Kimi-K3",
+        }),
+      ])
+    );
+  });
+
+  it("accepts compatible-provider models published under the connection prefix", async () => {
+    mockFetch.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === "/api/providers") {
+        return {
+          ok: true,
+          json: async () => ({
+            connections: [
+              {
+                provider: "anthropic-compatible-node-456",
+                name: "Claude gateway",
+                isActive: true,
+                providerSpecificData: { prefix: "claude-gateway" },
+              },
+            ],
+          }),
+        };
+      }
+      if (url === "/v1/models") {
+        return {
+          ok: true,
+          json: async () => ({ data: [{ id: "claude-gateway/claude-sonnet" }] }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({ keys: [], cloudEnabled: false }),
+      };
+    });
+
+    const container = renderDetail("claude", "code");
+    await act(async () => {});
+
+    const card = container.querySelector("[data-testid='ClaudeToolCard']");
+    expect(card?.getAttribute("data-has-active-providers")).toBe("true");
+    expect(JSON.parse(card?.getAttribute("data-available-models") || "[]")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: "claude-gateway/claude-sonnet",
+          modelId: "claude-sonnet",
+        }),
+      ])
+    );
   });
 
   it("renders DefaultToolCard for unknown tool (forge, configType:custom)", async () => {

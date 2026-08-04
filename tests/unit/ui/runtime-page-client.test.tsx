@@ -65,79 +65,88 @@ vi.mock("@/shared/components/ProviderIcon", () => ({
   ),
 }));
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => {
-    const messages: Record<string, string> = {
-      title: "Runtime",
-      description: "Realtime observability",
-      pause: "Pause",
-      resume: "Resume",
-      refreshNow: "Refresh now",
-      kpiSessions: "Sessions",
-      kpiCircuits: "Circuits",
-      kpiCooldowns: "Cooldowns",
-      kpiLockouts: "Lockouts",
-      hintStickyBound: "{count} sticky-bound",
-      hintRecovering: "{count} recovering",
-      hintAllHealthy: "all healthy",
-      hintOpen: "open",
-      hintConnsCooling: "connections cooling",
-      hintModelsBlocked: "models blocked",
-      resilienceTitle: "3-Layer Resilience",
-      resilienceSubtitle: "Mirrors the documented resilience model",
-      providersHealthy: "{percent}% providers healthy",
-      layer: "Layer {n}",
-      layer1Title: "Provider Circuit Breakers",
-      layer1Desc: "Stop traffic to providers failing at the upstream level",
-      layer2Title: "Connection Cooldowns",
-      layer2Desc: "Skip one bad account/key",
-      layer3Title: "Model Lockouts",
-      layer3Desc: "Per-model rate-limit locks",
-      badgeAffectedOf: "{affected} of {total} affected",
-      badgeCooling: "{count} cooling",
-      badgeLocked: "{count} locked",
-      emptyCircuits: "No circuit breakers active yet",
-      emptyCooldowns: "No connection cooldowns active",
-      emptyLockouts: "No model lockouts",
-      feedTitle: "Live Feed",
-      feedSubtitle: "Last {count} events",
-      feedFilterAll: "All",
-      feedFilterCircuits: "Circuits",
-      feedFilterCooldowns: "Cooldowns",
-      feedFilterLockouts: "Lockouts",
-      feedFilterSessions: "Sessions",
-      feedFilterQuotas: "Quotas",
-      feedClear: "Clear",
-      feedEmptyWaiting: "Waiting for events...",
-      feedEmptyFiltered: "No events match this filter",
-      sessionsTitle: "Active Sessions",
-      sessionsSubtitle: "Sticky-bound request fingerprints",
-      sessionsActive: "{count} active",
-      sessionsEmptyTitle: "No active sessions",
-      sessionsEmptyHint: "Sessions appear as requests flow through the proxy",
-      tblSession: "Session",
-      tblAge: "Age",
-      tblIdle: "Idle",
-      tblReqs: "Reqs",
-      tblBoundTo: "Bound to",
-      topApiKeys: "Top API keys",
-      quotaMonitorsTitle: "Quota Monitors",
-      quotaMonitorsSubtitle: "Live quota state per account window",
-      openQuota: "Open Quota",
-      allQuotasHealthy: "All quotas healthy",
-      moreSuffix: "+{count} more",
-    };
+// Real next-intl's `useTranslations()` returns a REFERENTIALLY STABLE function across
+// re-renders. RuntimePageClient depends on that (`t` sits in a `useCallback`/`useEffect`
+// dependency array); building `messages`/the returned function fresh inside the arrow
+// below — as this mock used to — hands back a NEW closure on every call, so the effect
+// sees a "new" `t` every render and never stops re-firing (a hidden infinite render
+// loop that manifests as the whole test file hanging past any timeout instead of
+// failing fast). Build `messages` and `t` once, outside `useTranslations`, so every
+// call returns the same reference — mirrors the fix applied to the global mock in
+// tests/_setup/vitestUiPolyfills.ts.
+const runtimePageClientMessages: Record<string, string> = {
+  title: "Runtime",
+  description: "Realtime observability",
+  pause: "Pause",
+  resume: "Resume",
+  refreshNow: "Refresh now",
+  kpiSessions: "Sessions",
+  kpiCircuits: "Circuits",
+  kpiCooldowns: "Cooldowns",
+  kpiLockouts: "Lockouts",
+  hintStickyBound: "{count} sticky-bound",
+  hintRecovering: "{count} recovering",
+  hintAllHealthy: "all healthy",
+  hintOpen: "open",
+  hintConnsCooling: "connections cooling",
+  hintModelsBlocked: "models blocked",
+  resilienceTitle: "3-Layer Resilience",
+  resilienceSubtitle: "Mirrors the documented resilience model",
+  providersHealthy: "{percent}% providers healthy",
+  layer: "Layer {n}",
+  layer1Title: "Provider Circuit Breakers",
+  layer1Desc: "Stop traffic to providers failing at the upstream level",
+  layer2Title: "Connection Cooldowns",
+  layer2Desc: "Skip one bad account/key",
+  layer3Title: "Model Lockouts",
+  layer3Desc: "Per-model rate-limit locks",
+  badgeAffectedOf: "{affected} of {total} affected",
+  badgeCooling: "{count} cooling",
+  badgeLocked: "{count} locked",
+  emptyCircuits: "No circuit breakers active yet",
+  emptyCooldowns: "No connection cooldowns active",
+  emptyLockouts: "No model lockouts",
+  feedTitle: "Live Feed",
+  feedSubtitle: "Last {count} events",
+  feedFilterAll: "All",
+  feedFilterCircuits: "Circuits",
+  feedFilterCooldowns: "Cooldowns",
+  feedFilterLockouts: "Lockouts",
+  feedFilterSessions: "Sessions",
+  feedFilterQuotas: "Quotas",
+  feedClear: "Clear",
+  feedEmptyWaiting: "Waiting for events...",
+  feedEmptyFiltered: "No events match this filter",
+  sessionsTitle: "Active Sessions",
+  sessionsSubtitle: "Sticky-bound request fingerprints",
+  sessionsActive: "{count} active",
+  sessionsEmptyTitle: "No active sessions",
+  sessionsEmptyHint: "Sessions appear as requests flow through the proxy",
+  tblSession: "Session",
+  tblAge: "Age",
+  tblIdle: "Idle",
+  tblReqs: "Reqs",
+  tblBoundTo: "Bound to",
+  topApiKeys: "Top API keys",
+  quotaMonitorsTitle: "Quota Monitors",
+  quotaMonitorsSubtitle: "Live quota state per account window",
+  openQuota: "Open Quota",
+  allQuotasHealthy: "All quotas healthy",
+  moreSuffix: "+{count} more",
+};
 
-    return (key: string, values?: Record<string, unknown>) => {
-      let message = messages[key] ?? key;
-      if (values) {
-        for (const [name, value] of Object.entries(values)) {
-          message = message.replace(`{${name}}`, String(value));
-        }
-      }
-      return message;
-    };
-  },
+function runtimePageClientTranslate(key: string, values?: Record<string, unknown>): string {
+  let message = runtimePageClientMessages[key] ?? key;
+  if (values) {
+    for (const [name, value] of Object.entries(values)) {
+      message = message.replace(`{${name}}`, String(value));
+    }
+  }
+  return message;
+}
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => runtimePageClientTranslate,
 }));
 
 describe("RuntimePageClient", () => {

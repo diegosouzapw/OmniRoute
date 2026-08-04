@@ -1,1 +1,0 @@
-- fix(providers): correct Chutes registry baseUrl from api.chutesai.com to llm.chutes.ai (#7621)

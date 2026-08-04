@@ -216,6 +216,59 @@ const optionsSchema = z
  */
 export type OmniRoutePluginOptions = z.infer<typeof optionsSchema>;
 
+/**
+ * Explicit default state for every boolean `features.*` toggle.
+ *
+ * #7624: `featuresSchema` marks every flag `.optional()` with no default, and
+ * the effective value is applied implicitly at each read site (default-ON flags
+ * use the `features.X !== false` convention, default-OFF flags use
+ * `features.X === true`). That implicit convention is scattered across the file,
+ * so an operator who omits the `features` block cannot tell whether
+ * combos / autoCombos / enrichment are enabled — they think features are
+ * disabled when they are actually on. Centralising the declared defaults here
+ * (mirroring the read-site conventions exactly, so runtime behaviour is
+ * unchanged) makes the effective flags introspectable and self-documenting.
+ */
+export const OMNIROUTE_FEATURE_DEFAULTS = {
+  // default-ON (read sites use `features.X !== false`)
+  combos: true,
+  autoCombos: true,
+  enrichment: true,
+  diskCache: true,
+  providerTag: true,
+  fetchInterceptor: true,
+  geminiSanitization: true,
+  // default-OFF (read sites use `features.X === true`)
+  compressionMetadata: false,
+  usableOnly: false,
+  mcpAutoEmit: false,
+  debugLog: false,
+  startupDebug: false,
+} as const;
+
+/** Union of the boolean feature-flag keys declared in `OMNIROUTE_FEATURE_DEFAULTS`. */
+export type OmniRouteFeatureFlag = keyof typeof OMNIROUTE_FEATURE_DEFAULTS;
+
+/**
+ * Resolve the EFFECTIVE boolean state of every feature toggle, applying the
+ * declared default for any flag the operator omitted. A missing `features`
+ * block (or an empty one) yields the full default set — so callers and the
+ * startup diagnostics can surface exactly which features are active instead of
+ * relying on the implicit `!== false` / `=== true` conventions. Purely
+ * derived: it does not mutate options nor change any read-site behaviour.
+ */
+export function resolveEffectiveFeatureFlags(
+  features?: OmniRoutePluginOptions["features"]
+): Record<OmniRouteFeatureFlag, boolean> {
+  const f: Partial<Record<OmniRouteFeatureFlag, boolean>> = features ?? {};
+  const out = {} as Record<OmniRouteFeatureFlag, boolean>;
+  for (const key of Object.keys(OMNIROUTE_FEATURE_DEFAULTS) as OmniRouteFeatureFlag[]) {
+    const val = f[key];
+    out[key] = typeof val === "boolean" ? val : OMNIROUTE_FEATURE_DEFAULTS[key];
+  }
+  return out;
+}
+
 export const OMNIROUTE_PROVIDER_KEY = "omniroute" as const;
 
 /** Deployed plugin version (injected at build time by tsup define). */
@@ -2000,6 +2053,7 @@ async function writeStartupDiagnostics(params: {
   autoComboCount: number;
   enrichment: OmniRouteEnrichmentMap;
   autoCombos: OmniRouteRawAutoCombo[];
+  features?: OmniRoutePluginOptions["features"];
 }): Promise<void> {
   const {
     providerId,
@@ -2010,6 +2064,7 @@ async function writeStartupDiagnostics(params: {
     autoComboCount,
     enrichment,
     autoCombos,
+    features,
   } = params;
   const enriched = [...enrichment.entries()];
   const withName = enriched.filter(([, e]) => e.name);
@@ -2021,6 +2076,16 @@ async function writeStartupDiagnostics(params: {
   lines.push(`providerId=${providerId} baseURL=${baseURL}`);
   lines.push(
     `models=${modelCount} combos=${comboCount} enrichment=${enrichmentSize} autoCombos=${autoComboCount}`
+  );
+  // #7624: surface the EFFECTIVE feature flags so an operator who omitted the
+  // `features` block can see combos/autoCombos/enrichment are on (the counts
+  // above can read 0 for reasons unrelated to the flags — e.g. missing auth).
+  const effectiveFlags = resolveEffectiveFeatureFlags(features);
+  lines.push(
+    `features(effective): ` +
+      (Object.keys(effectiveFlags) as OmniRouteFeatureFlag[])
+        .map((k) => `${k}=${effectiveFlags[k] ? "on" : "off"}`)
+        .join(" ")
   );
   lines.push(
     `enrichment: ${withName.length} with name, ${withPricing.length} with pricing, ${withFree.length} free`
@@ -3130,6 +3195,7 @@ export function createOmniRouteProviderHook(
             autoComboCount: rawAutoCombos.length,
             enrichment: rawEnrichment,
             autoCombos: rawAutoCombos,
+            features: resolved.features,
           });
         }
       }
@@ -5208,6 +5274,7 @@ export function createOmniRouteConfigHook(
           autoComboCount: rawAutoCombos.length,
           enrichment: rawEnrichment,
           autoCombos: rawAutoCombos,
+          features: resolved.features,
         });
       }
 

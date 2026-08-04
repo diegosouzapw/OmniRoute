@@ -168,6 +168,10 @@
     "noModelsFound": "No models found",
     "clear": "Clear",
     "done": "Done",
+    "selectAll": "அனைத்தையும் தேர்ந்தெடு",
+    "unselectAll": "தேர்வை நீக்கு",
+    "visibleModels": "காணக்கூடியவை",
+    "selectAllConfirm": "இந்தக் கூட்டில் {count} மாதிரிகளைச் சேர்க்கவா?",
     "errorOccurred": "Error Occurred",
     "comboDeleted": "Combo Deleted",
     "hide": "Hide",
@@ -933,6 +937,7 @@
   "disabled": "முடக்கப்பட்டது",
   "featureFlagOmnirouteEmergencyFallbackDescription": "பட்ஜெட் தீர்ந்த கோரிக்கைகளை அவசரகால இலவச ஃபால்பேக் வழங்குநர்/மாடலுக்கு வழிசெலுத்துங்கள்.",
   "featureFlagArenaEloSyncEnabledDescription": "மாடல் நுண்ணறிவு தரவரிசைகளுக்காக அவ்வப்போதான Arena AI லீடர்போர்டு ELO ஒத்திசைவை இயக்குங்கள்.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "Home",
     "dashboard": "Dashboard",
@@ -1113,6 +1118,7 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -1158,6 +1164,7 @@
     "logsSubtitle": "Application logs",
     "logsProxySubtitle": "Proxy traffic logs",
     "consoleLogsSubtitle": "Console output",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "logsActivitySubtitle": "User activity log",
     "healthSubtitle": "System health check",
     "costsPricingSubtitle": "Per-model pricing rules",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "இதில் ஒட்டவும்:",
     "copilotReloadInstruction": "பின்னர் VS Code-ஐ மீண்டும் ஏற்றி, உள்ளீட்டு வரியில் API விசையை அமைக்கவும்.",
     "wireApiChatCompletions": "அரட்டை நிறைவுகள் (/அரட்டை/நிறைவுகள்)",
-    "wireApiResponses": "பதில்கள் API (/பதில்கள்)"
+    "wireApiResponses": "பதில்கள் API (/பதில்கள்)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "Combos",
@@ -3689,7 +3704,7 @@
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "sectionTitle": "Integration Surface",
     "sectionDescription": "OpenAI-compatible APIs and operational protocol endpoints",
-    "tabApis": "OpenAI-compatible APIs",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "Protocols",
     "tabsAria": "Endpoint sections",
     "protocolsTitle": "Protocols",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "No new models to import — all models are already in the registry or custom models list",
     "skippingExistingModels": "Skipping {count} existing models",
     "autoSync": "Auto-Sync",
+    "autoSyncShort": "Sync",
     "autoSyncTooltip": "Automatically refresh model list every 24h (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Auto-sync enabled — models will refresh periodically",
     "autoSyncDisabled": "Auto-sync disabled",
     "autoSyncToggleFailed": "Failed to toggle auto-sync",
+    "autoSyncPartialFailure": "Auto-sync updated for some connections, but not all",
     "clearAllModels": "Clear All Models",
     "clearAllModelsConfirm": "Are you sure you want to remove all models for this provider? This cannot be undone.",
     "clearAllModelsSuccess": "All models cleared",
@@ -5394,8 +5411,8 @@
     "t3ChatWebCookieHint": "t3.chat → DevTools → Application → Local Storage → https://t3.chat ஐ திறக்கவும், 'convex-session-id' ஐ நகலெடுக்கவும். பின்னர் DevTools → Networkஐத் திறந்து, எந்த அரட்டை கோரிக்கையிலிருந்தும் முழு குக்கீ தலைப்பையும் நகலெடுக்கவும். இரண்டு மதிப்புகளையும் கீழே உள்ள புலங்களில் ஒட்டவும்.",
     "t3ChatWebCookiePlaceholder": "convex-session-id=abc123...",
     "grokWebCookieHint": "Grok Web Cookie Hint",
-    "blockClaudeExtraUsageDescription": "Block Claude Extra Usage Description",
-    "blockClaudeExtraUsageLabel": "Block Claude Extra Usage Label",
+    "blockClaudeExtraUsageDescription": "__MISSING__:When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
+    "blockClaudeExtraUsageLabel": "__MISSING__:Block extra Claude usage",
     "disableCoolingDescription": "தற்காலிக கூல்டவுனைத் தவிர்க்கவும், இதனால் மீட்டெடுக்கக்கூடிய பிழைகளுக்குப் பிறகும் இந்த இணைப்பு தகுதியுடையதாக இருக்கும் (தடைசெய்யப்பட்ட/காலாவதியான போன்ற இறுதி நிலைகள் இன்னும் பொருந்தும்).",
     "disableCoolingLabel": "இந்த இணைப்பிற்கான கூல்டவுனை முடக்கவும்",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -5574,13 +5591,13 @@
     "importGrokAuth": "Grok Build அங்கீகாரத்தை இறக்குமதி செய்யவும்",
     "zedImportTitle": "Zed கீசெயினிலிருந்து இறக்குமதி செய்யவும்",
     "zedImportDescription": "OS keychain-இல் Zed IDE சேமித்துள்ள AI வழங்குநர் நற்சான்றுகளை (OpenAI, Anthropic, Google, Mistral, xAI) கண்டறிந்து அவற்றை இணைப்புகளாக இறக்குமதி செய்யவும். இந்த கணினியில் Zed IDE நிறுவப்பட்டிருக்க வேண்டும்.",
-    "zedImportButton": "Zed Import Button",
-    "zedImportFailed": "Zed Import Failed",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "Zed Import Hint",
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
-    "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "keychain-இல் Zed நற்சான்றுகள் எதுவும் கண்டறியப்படவில்லை",
     "zedUnsupportedCredentials": "{count} keychain நற்சான்று(கள்) கண்டறியப்பட்டது, ஆனால் எதுவும் ஆதரிக்கப்படும் வழங்குநர்களுடன் பொருந்தவில்லை",
     "zedManualTitle": "கைமுறை டோக்கன் இறக்குமதி",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "arena.ai-ஐத் திறந்து, உள்நுழைந்து, பின்னர் Network கோரிக்கையிலிருந்து முழு Cookie தலைப்பை நகலெடுக்கவும். arena-auth-prod-v1.0 மற்றும் arena-auth-prod-v1.1 (மற்றும் கூடுதல் பகுதிகள் இருந்தால்) ஆகியவற்றைச் சேர்க்கவும், முன்னுரிமையாக cf_clearance உடன். வெற்று arena-auth-prod-v1 குக்கியை மட்டும் ஒட்ட வேண்டாம். விருப்பத்தேர்வு: create-evaluation இன்னும் 403-ஐ வழங்கினால் providerSpecificData.recaptchaV3Token.",
     "kimiOfficialSupporterBadge": "நிறுவன நண்பர்",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) என்பது OmniRoute இன் நிறுவன திறந்த மூல நண்பர் ஆகும்",
-    "kimiPartnerLinkNote": "பங்குதாரர் இணைப்பு — உங்களுக்கு எந்த கூடுதல் கட்டணமும் இன்றி OmniRoute-ஐ ஆதரிக்கிறது"
+    "cheaperInferenceSupporterBadge": "திறந்த மூல நண்பர்",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference ஒரு திறந்த மூல நண்பராக OmniRoute-ஐ ஆதரிக்கிறது",
+    "kimiPartnerLinkNote": "பங்குதாரர் இணைப்பு — உங்களுக்கு எந்த கூடுதல் கட்டணமும் இன்றி OmniRoute-ஐ ஆதரிக்கிறது",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "Settings",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "How Pricing Works",
     "cacheWrite": "Cache Write",
     "unsaved": "unsaved",
-    "resetDefaults": "Reset Defaults",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "Save Provider",
     "model": "Model",
     "models": "models",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "குறைந்த குறியீடு",
         "description": "YAGNI ஏணி: மிகச்சிறிய வேலை செய்யும் மாற்றம், கோரப்படாத சுருக்கங்கள் இல்லை."
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "சுருக்கமான CJK (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "Verification URL",
     "deviceCodeYourCode": "Your code",
     "deviceCodeWaiting": "Waiting for authorization...",
-    "googleOAuthWarning": "Remote access + Google OAuth: Default credentials only accept redirects to <code>localhost</code>. After authorizing, your browser will try to open <code>localhost</code> — copy that full URL and paste it below. For fully remote use without this manual step, <a>configure your own OAuth credentials</a>.",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "Remote access: Since you're accessing OmniRoute remotely, after authorization you'll see an error page (localhost not found). This is normal — just copy the full URL from your browser address bar and paste it below.",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "Step 1: Open this URL in your browser",
     "copy": "Copy",
     "step2PasteCallback": "Step 2: Paste callback URL or authorization code here",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "இந்தக் குழுவை நீக்கவா? இதன் பூல்கள் முதலில் மறுஒதுக்கீடு செய்யப்பட வேண்டும் அல்லது அகற்றப்பட வேண்டும்.",
     "deleteGroupHasPools": "இந்தக் குழுவில் இன்னும் பூல்கள் உள்ளன — முதலில் அவற்றை மறுஒதுக்கீடு செய்யவும் அல்லது நீக்கவும்.",
     "ungroupedTitle": "குழுப்படுத்தப்படாதவை",
-    "ungroupedHint": "இந்தப் பூல்கள் அறியப்பட்ட எந்தக் குழுவிலும் ஒதுக்கப்படவில்லை. ஒரு பூலை உண்மையான குழுவிற்கு நகர்த்த அதைத் திருத்தவும்."
+    "ungroupedHint": "இந்தப் பூல்கள் அறியப்பட்ட எந்தக் குழுவிலும் ஒதுக்கப்படவில்லை. ஒரு பூலை உண்மையான குழுவிற்கு நகர்த்த அதைத் திருத்தவும்.",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "Plugins",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "skills சாண்ட்பாக்ஸில் நெட்வொர்க் அணுகலை இயக்கவும்."
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "காம்போ கட்டுப்பாட்டு மையம்",
@@ -12131,5 +12184,6 @@
     "cta": "Kimi Code-ஐப் பெறுங்கள்",
     "partnerLinkNote": "பங்குதாரர் இணைப்பு",
     "dismissAriaLabel": "நிராகரி"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

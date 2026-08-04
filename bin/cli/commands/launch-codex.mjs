@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { t } from "../i18n.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { quoteShellArgs } from "../utils/winShellArgs.mjs";
 
 /** OpenAI/Codex env keys stripped from the child so a stale OpenAI key/base-url
  *  in the shell can't shadow the omniroute provider (defense-in-depth). Mirrors
@@ -27,6 +28,23 @@ export function resolveCodexSpawn(platform) {
     return { command: "codex.cmd", shell: true };
   }
   return { command: "codex", shell: undefined };
+}
+
+/**
+ * `shell: true` makes Node join argv with plain spaces and no escaping (the
+ * DEP0190 warning). That mangles every launch-codex invocation on Windows, not
+ * just the ones with a multi-word user argument: the injected `-c` provider
+ * flags carry TOML values whose quotes cmd.exe strips
+ * (`model_providers.omniroute.name="OmniRoute"` arrives unquoted and no longer
+ * parses as TOML). Quote the args ourselves on that path; off Windows there is
+ * no shell, so argv is passed through untouched. Same fix as `launch` (#8837).
+ *
+ * @param {string[]} args
+ * @param {NodeJS.Platform|string} platform
+ * @returns {string[]}
+ */
+export function quoteCodexArgs(args, platform) {
+  return quoteShellArgs(args, platform);
 }
 
 function stripTrailingSlash(value) {
@@ -153,7 +171,7 @@ export async function runLaunchCodexCommand(opts = {}, codexArgs = []) {
 
   return await new Promise((resolve) => {
     const { command: codexLaunch, shell: shellValue } = resolveCodexSpawn(process.platform);
-    const child = spawn(codexLaunch, extraArgs, {
+    const child = spawn(codexLaunch, quoteCodexArgs(extraArgs, process.platform), {
       env,
       stdio: "inherit",
       shell: shellValue,
@@ -195,7 +213,10 @@ export function registerLaunchCodex(program) {
     .argument("[codexArgs...]", "arguments passed through to the codex binary")
     .action(async (codexArgs, opts) => {
       const merged = { ...opts, profile: opts.profile ?? opts.p };
-      const exitCode = await runLaunchCodexCommand(merged, codexArgs ?? []);
-      if (exitCode !== 0) process.exit(exitCode);
+      // process.exit() here aborted the process with a libuv assertion on
+      // Windows (`!(handle->flags & UV_HANDLE_CLOSING)`, async.c:94): it tears
+      // the loop down while the inherited stdio handles of the just-exited
+      // child are still closing. Setting exitCode lets the loop drain first.
+      process.exitCode = await runLaunchCodexCommand(merged, codexArgs ?? []);
     });
 }

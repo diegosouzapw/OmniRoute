@@ -3,8 +3,6 @@ import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
 } from "@/sse/services/auth";
 import {
   parseImageModel,
@@ -28,6 +26,8 @@ import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
+import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
+import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
 
 export const dynamic = "force-dynamic";
 
@@ -104,6 +104,11 @@ async function postHandler(request, context) {
   }
   const body = validation.data;
   const startTime = Date.now();
+
+  // Authenticate before policy enforcement. Policy checks intentionally allow
+  // keyless local mode and assume the route has already rejected invalid keys.
+  const authRejection = await enforceClientApiRouteAuth(request);
+  if (authRejection) return authRejection;
 
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
@@ -231,14 +236,21 @@ async function postHandler(request, context) {
   }
 
   const generateImage = () =>
-    handleImageGeneration({
-      body,
-      credentials,
-      log,
-      ...(isCustomModel && { resolvedProvider: provider }),
-      signal: request.signal,
-      clientHeaders: publicBaseUrlHeaders(request.headers),
-    });
+    runWithCallLogApiKeyContext(
+      {
+        apiKeyId: policy.apiKeyInfo?.id ?? null,
+        apiKeyName: policy.apiKeyInfo?.name ?? null,
+      },
+      () =>
+        handleImageGeneration({
+          body,
+          credentials,
+          log,
+          ...(isCustomModel && { resolvedProvider: provider }),
+          signal: request.signal,
+          clientHeaders: publicBaseUrlHeaders(request.headers),
+        })
+    );
 
   // Execute with proxy context when available, direct otherwise (#1904)
   const result = await (credentials?.connectionId

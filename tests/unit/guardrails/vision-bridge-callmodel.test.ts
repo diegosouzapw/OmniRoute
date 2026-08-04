@@ -24,6 +24,22 @@ process.env.VISION_BRIDGE_ENABLED = "false";
 const { callVisionModel } = await import(
   "../../../src/lib/guardrails/visionBridgeHelpers.ts"
 );
+const { createProviderConnection } = await import("../../../src/lib/db/providers.ts");
+
+// PR #8433 taught getFallbackModels() to exclude any candidate without a
+// usable active connection (see visionBridgeRouter.ts::getVisionCapableModels).
+// This test's isolated DATA_DIR starts with zero provider connections, so
+// without a seeded connection every fallback candidate is confirmed
+// unusable and callVisionModel has nothing left to retry — seed one
+// credentialed connection so the fallback-retry mechanics under test here
+// stay independent of that (unrelated) credential-filtering behavior.
+await createProviderConnection({
+  provider: "anthropic",
+  authType: "apikey",
+  name: "vision-bridge-callmodel-test-fallback",
+  apiKey: "sk-test-anthropic-fallback",
+  isActive: true,
+});
 
 const originalFetch = globalThis.fetch;
 

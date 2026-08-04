@@ -1,0 +1,1 @@
+- **fix(sse):** error-only streams now preserve sanitized executor diagnostics for operators without changing stream-readiness fallback classification ([#9022](https://github.com/diegosouzapw/OmniRoute/pull/9022)) — thanks @shixi-li

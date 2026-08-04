@@ -16,7 +16,6 @@ const GRANDFATHERED_WITHOUT_TEST_CONFIG = new Set([
   "zed-hosted",
   "trae",
   "windsurf",
-  "xai-oauth",
 ]);
 
 test("#8408: devin-cli and agy are present in OAUTH_TEST_CONFIG", () => {

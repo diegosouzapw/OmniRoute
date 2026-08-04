@@ -502,7 +502,7 @@ export function __resetBrowserPoolMetricsForTest(): void {
 
 export async function readPageResponseBody(
   response: import("playwright").Response
-): Promise<{ status: number; headers: Record<string, string>; body: Buffer }> {
+): Promise<{ status: number; headers: Record<string, string>; body: Buffer<ArrayBuffer> }> {
   const headers: Record<string, string> = {};
   for (const [name, value] of Object.entries(response.headers())) {
     headers[name] = value;

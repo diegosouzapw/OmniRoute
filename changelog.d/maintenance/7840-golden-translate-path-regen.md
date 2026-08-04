@@ -1,1 +1,0 @@
-- **chore(quality):** regenerate the provider translate-path golden snapshot for the navy/aihorde entries and the liquid inference URL added by #7840 — the missing regen left the golden gate (Unit shard 4/4) red on the release tip for every fresh PR run.

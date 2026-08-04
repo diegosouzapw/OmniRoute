@@ -7,9 +7,11 @@ import type { SearchProviderCatalogItem } from "../../../src/shared/schemas/sear
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-}));
+// next-intl: no local mock — falls through to the real-EN-text default mock in
+// tests/_setup/vitestUiPolyfills.ts. CompareTab renders `{count}`/`{overlap}`
+// interpolated copy (search.maxCompareProviders, search.overlapSummary) that the
+// previous `(key) => key` mock rendered as the raw key, never matching this file's
+// literal-text assertions.
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) =>

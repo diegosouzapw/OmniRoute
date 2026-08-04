@@ -6,9 +6,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-}));
+// next-intl: no local mock — falls through to the real-EN-text default mock in
+// tests/_setup/vitestUiPolyfills.ts. Every check below (button text "Send"/
+// "Regenerate", "Start a conversation" empty state) already expects real production
+// copy, which the previous `(key) => key` mock never rendered.
 
 vi.mock("@/lib/playground/types", () => ({
   getModelPricing: () => null,

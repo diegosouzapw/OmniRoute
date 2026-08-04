@@ -240,8 +240,11 @@ test("P3: refreshWindsurfToken parses Firebase USER_DISABLED/TOKEN_EXPIRED error
 
 // ─── isUnrecoverableRefreshError consistency ──────────────────────────────────
 
+// isUnrecoverableRefreshError moved to tokenRefresh/shared.ts in the god-file
+// decomposition (tokenRefresh.ts re-exports it, so the public surface is unchanged);
+// this source-text assertion has to follow it to the file that defines the body.
 test("isUnrecoverableRefreshError detects the normalized sentinel shape", async () => {
-  const src = await read("open-sse/services/tokenRefresh.ts");
+  const src = await read("open-sse/services/tokenRefresh/shared.ts");
   const fnMatch = src.match(/export\s+function\s+isUnrecoverableRefreshError\([\s\S]+?\n\}/);
   assert.ok(fnMatch, "isUnrecoverableRefreshError function body not found");
   assert.match(

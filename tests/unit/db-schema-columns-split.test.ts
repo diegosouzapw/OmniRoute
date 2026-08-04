@@ -4,10 +4,13 @@
 // columns and is safe to re-run; hasTable/hasColumn/getTableColumns/quoteIdentifier introspect.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { tryOpenSync } from "../../src/lib/db/adapters/driverFactory.ts";
 import {
   ensureUsageHistoryColumns,
   ensureProviderConnectionsColumns,
+  ensureProxyLogsColumns,
   hasColumn,
   hasTable,
   quoteIdentifier,
@@ -81,6 +84,35 @@ test("ensureProviderConnectionsColumns repairs quota visibility with a visible d
     assert.equal(column?.notnull, 1);
     assert.equal(column?.dflt_value, "1");
     assert.doesNotThrow(() => ensureProviderConnectionsColumns(db));
+  } finally {
+    db.close?.();
+  }
+});
+
+test("ensureProxyLogsColumns self-heals a bare proxy_logs (upgrade path)", () => {
+  const db = openMemoryDb();
+  try {
+    db.exec("CREATE TABLE proxy_logs (id TEXT PRIMARY KEY, timestamp TEXT NOT NULL)");
+    assert.equal(hasColumn(db, "proxy_logs", "egress_ip"), false);
+
+    ensureProxyLogsColumns(db);
+    assert.equal(hasColumn(db, "proxy_logs", "egress_ip"), true);
+    assert.doesNotThrow(() => ensureProxyLogsColumns(db));
+  } finally {
+    db.close?.();
+  }
+});
+
+test("migration 134 SQL applies egress_ip to a bare proxy_logs", () => {
+  const db = openMemoryDb();
+  try {
+    db.exec("CREATE TABLE proxy_logs (id TEXT PRIMARY KEY, timestamp TEXT NOT NULL)");
+    const sql = fs.readFileSync(
+      path.join(process.cwd(), "src/lib/db/migrations/134_proxy_logs_egress_ip.sql"),
+      "utf8"
+    );
+    db.exec(sql);
+    assert.equal(hasColumn(db, "proxy_logs", "egress_ip"), true);
   } finally {
     db.close?.();
   }

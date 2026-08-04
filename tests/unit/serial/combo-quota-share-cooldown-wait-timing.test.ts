@@ -20,9 +20,8 @@
  * The non-quota-share (priority) scenario was UPDATED for the "universal
  * cooldown-aware retry" change: comboCooldownWait is no longer gated on
  * `strategy === "quota-share"` — every combo strategy now waits out a SHORT
- * transient 429 and re-dispatches (using a "rate_limit" reason and the
- * earliest retry-after hint directly, since non quota-share strategies have no
- * per-connection model-lockout tracking to consult). It used to assert the
+ * transient 429 and re-dispatches via the same resolveComboCooldownWaitDecision
+ * path (real model-lockout reason + allow-list). It used to assert the
  * OPPOSITE (immediate propagation, no wait) — that assertion is now testing
  * dead behavior, so it was rewritten to assert the new intended behavior
  * instead of being deleted or weakened.
@@ -147,11 +146,8 @@ test("non quota-share (priority): short 429 cooldown → waits and re-dispatches
   const handleSingleModel = async () => {
     calls += 1;
     // 1st dispatch: transient 429 with a short retry-after hint. 2nd dispatch
-    // (after the universal cooldown wait): success. Priority combos have no
-    // per-connection model-lockout tracking, so this exercises the
-    // `shouldWaitForComboCooldown({ reason: "rate_limit", ... })` path fed
-    // directly by the earliest retry-after hint (not resolveComboCooldownWaitDecision's
-    // per-target lock lookup, which stays quota-share-only).
+    // (after the universal cooldown wait): success. Exercises the shared
+    // resolveComboCooldownWaitDecision path (real model-lockout reason).
     return calls === 1 ? rateLimitResponse(429) : okResponse();
   };
 
@@ -182,18 +178,18 @@ test("non quota-share (priority): a quota_exhausted lock drives the decision wit
   //
   // Barrier 1 = the reason allow-list. Barrier 2 = the maxWaitMs ceiling.
   // This scenario is engineered so ONLY barrier 1 can stop the wait:
-  //   - modelLockout.errorCodes is [403] ONLY, so model-a's 429 crystallizes
-  //     status 429 (the sole status that opens the cooldown-wait branch) WITHOUT
-  //     recording a competing `rate_limit` lock.
+  //   - modelLockout.errorCodes is [403] ONLY, so model-a's 429 contributes a
+  //     retry-after hint (opens the cooldown-wait decision) WITHOUT recording a
+  //     competing `rate_limit` lock.
   //   - model-b's 403 records the only lock in play: `quota_exhausted`. It is
   //     therefore the lock resolveComboCooldownWaitDecision picks, so its reason
   //     is what drives the decision.
   //   - The resulting wait is SHORT (well under maxWaitMs=5000), so barrier 2
   //     lets it through. Only the allow-list can reject it.
   //
-  // With the reason hardcoded to "rate_limit" (as the non-quota-share path did
-  // before), barrier 1 is gone and this exact input waits + redispatches against
-  // a quota-exhausted model — verified: the same test yields 6 dispatches.
+  // With the reason hardcoded to "rate_limit", barrier 1 is gone and this exact
+  // input waits + redispatches against a quota-exhausted model — verified: the
+  // same test yields 6 dispatches.
   const calls: string[] = [];
   const handleSingleModel = async (_body: unknown, modelStr: string) => {
     calls.push(modelStr);
@@ -222,7 +218,10 @@ test("non quota-share (priority): a quota_exhausted lock drives the decision wit
     allCombos: null,
   });
 
-  assert.equal(res.status, 429, "the crystallized 429 must be propagated, not retried");
+  // Final status is the last target's 403 (aggregation last-wins). The security
+  // invariant is that the allow-list rejected the wait — not that a peer 429 is
+  // re-surfaced as the HTTP status.
+  assert.equal(res.status, 403, "quota_exhausted target status crystallizes; wait must not redispatch");
   // Deterministic proof (no wall-clock dependency, so it cannot flake under
   // CI-runner contention): each target is dispatched EXACTLY ONCE. Had the wait
   // fired, the whole set loop would re-run — maxAttempts=2 within the 8s budget

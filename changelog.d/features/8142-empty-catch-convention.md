@@ -1,1 +1,0 @@
-- refactor(sse): classify SSE critical-path empty catches + add CONTRIBUTING convention (#8142)

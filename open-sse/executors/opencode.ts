@@ -263,7 +263,11 @@ export class OpencodeExecutor extends BaseExecutor {
     model?: string
   ) {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
-    const key = credentials?.apiKey || credentials?.accessToken;
+    // #8467: honor Extra API Keys rotation via BaseExecutor.resolveEffectiveKey.
+    // Fall back to accessToken only when no apiKey/extras resolve to a key.
+    const key = credentials
+      ? this.resolveEffectiveKey(credentials) || credentials.accessToken
+      : undefined;
 
     if (key) {
       if (this._requestFormat === "claude") {
@@ -338,13 +342,11 @@ export class OpencodeExecutor extends BaseExecutor {
     ) {
       delete (modifiedBody as Record<string, unknown>).client_metadata;
     }
-    if (
-      modifiedBody &&
-      typeof modifiedBody === "object" &&
-      Array.isArray(modifiedBody.tools) &&
-      modifiedBody.tools.length > 128
-    ) {
-      modifiedBody.tools = modifiedBody.tools.slice(0, 128);
+    if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
+      const mb = modifiedBody as Record<string, unknown>;
+      if (Array.isArray(mb.tools) && mb.tools.length > 128) {
+        mb.tools = mb.tools.slice(0, 128);
+      }
     }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;

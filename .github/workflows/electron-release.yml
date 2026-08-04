@@ -120,6 +120,18 @@ jobs:
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
           NODE_OPTIONS: "--max_old_space_size=6144"
+          # Linux builds with webpack, not Turbopack. Turbopack's production build
+          # allocates natively (Rust, off the V8 heap), so --max_old_space_size does
+          # not bound it, and on this module graph it peaks above what the hosted
+          # runner can give — the VM is reclaimed mid-compile with "The runner has
+          # received a shutdown signal", no exit code. That is what silently took the
+          # whole desktop channel out of v3.8.49: the linux leg died, `release` was
+          # skipped, and the release shipped with ZERO assets. Measured on a 32 GB
+          # box the same build passes and peaks past 14 GB. The webpack fallback is
+          # the project's documented escape hatch for RAM-constrained machines
+          # (docs/reference/ENVIRONMENT.md, #6409) and is the same remedy already
+          # applied to nightly-compat's Node 26 build (#8090).
+          OMNIROUTE_USE_TURBOPACK: ${{ matrix.platform == 'linux' && '0' || '1' }}
         run: npm run build
 
       - name: Sync version in electron/package.json
@@ -217,6 +229,16 @@ jobs:
   release:
     name: Create Release
     needs: [validate, build]
+    # Fail-partial, not fail-closed. `build` is a 4-leg matrix with `fail-fast: false`,
+    # so the legs that succeed still upload their artifacts — but a default `needs:`
+    # gate skips this job the moment ANY leg fails, discarding all of them. That is
+    # exactly what happened to v3.8.49: the linux leg died and the release shipped with
+    # ZERO assets, throwing away 1.7 GB of good Windows/macOS installers **and** the
+    # source archives + SBOM, which do not depend on a build at all. The result was
+    # indistinguishable from "this version has no desktop channel".
+    # Now: attach everything that did build, then fail the job loudly (see the last
+    # step) so an incomplete channel is visible instead of silent.
+    if: ${{ !cancelled() && needs.validate.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # softprops/action-gh-release creates the GitHub Release
@@ -227,11 +249,33 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      # `merge-multiple` is deliberately OFF. It resolves same-name collisions by ARRIVAL
+      # ORDER, and the two macOS jobs each emit their own `latest-mac.yml` listing only their
+      # own dmg (measured: 338 and 350 bytes, different content, identical name). One silently
+      # overwrote the other — arm64 won in the published v3.8.48, and since the Intel dmg
+      # carries no arch suffix in its name, electron-updater's
+      # `files.find(url includes process.arch) ?? files.shift()` sends every Intel Mac to the
+      # ARM dmg. Downloading into per-artifact subdirectories keeps both, so they can be
+      # merged on purpose instead of by luck.
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
-          path: release-assets
-          merge-multiple: true
+          path: artifacts
+
+      # Writes release-assets/latest-mac.yml with BOTH dmgs, un-suffixed entry first (that is
+      # the one electron-updater can only reach through its fallback). Refuses to write when the
+      # inputs disagree on version — a manifest stitched from two builds is worse than none.
+      - name: Merge the per-arch macOS updater manifests
+        run: node scripts/release/merge-mac-update-manifest.mjs artifacts release-assets
+
+      # Everything else moves across as-is. The partial latest-mac.yml files are excluded so
+      # they cannot clobber the merged one; -n is a second belt on the same braces.
+      - name: Collect the remaining artifacts
+        run: |
+          mkdir -p release-assets
+          find artifacts -type f ! -name latest-mac.yml -exec cp -n {} release-assets/ \;
+          echo "release-assets:"
+          ls -la release-assets/
 
       - name: Create source archives
         env:
@@ -274,6 +318,47 @@ jobs:
             release-assets/*.source.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  verify-desktop-assets:
+    name: Verify desktop assets landed
+    needs: [validate, release]
+    # Deliberately a SEPARATE job, not a final step of `release`: failing inside
+    # `release` would cascade into `publish-npm` (which gates on `needs: release`) and
+    # block the npm channel over a desktop-only gap. Here the assets are attached, npm
+    # still publishes, and an incomplete desktop channel shows up as a red job instead
+    # of passing unnoticed — the v3.8.49 release had ZERO assets and every gate was
+    # green, because nothing ever asserted the release HAS binaries.
+    if: ${{ !cancelled() && needs.release.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Assert every platform is present on the release
+        env:
+          # Regex-validated (^v[0-9]+\.[0-9]+\.[0-9]+$) in the `validate` job, and
+          # passed via env rather than interpolated into the script body.
+          VERSION: ${{ needs.validate.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          names=$(gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" \
+                    --json assets --jq '.assets[].name')
+          echo "Assets on $VERSION:"
+          echo "$names" | sed 's/^/  /'
+
+          missing=""
+          # `[ ... ] && missing=...` as the last command in a branch returns 1 and
+          # would abort the whole script under Actions' default `set -e`. Use if/fi.
+          for want in '\.exe$' '\.dmg$' '\.AppImage$' '\.deb$' '^latest.*\.yml$' '\.source\.tar\.gz$'; do
+            if ! echo "$names" | grep -qE "$want"; then
+              missing="$missing $want"
+            fi
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::error::Desktop channel incomplete on $VERSION — no asset matching:$missing"
+            exit 1
+          fi
+          echo "✓ every platform present on $VERSION"
 
   publish-npm:
     name: Publish to npm

@@ -4,7 +4,7 @@
 // client (open-sse/utils/segmindClient.ts) — see that module for the wire
 // shape (x-api-key auth, raw image bytes response, no JSON envelope).
 
-import { segmindRequest } from "../../../utils/segmindClient.ts";
+import { isSegmindFailure, segmindRequest } from "../../../utils/segmindClient.ts";
 
 function parseSegmindSize(size: unknown): { width: number; height: number } {
   if (typeof size === "string" && size.includes("x")) {
@@ -63,7 +63,7 @@ export async function handleSegmindImageGeneration({
     log,
   });
 
-  if (!result.ok) {
+  if (isSegmindFailure(result)) {
     return { success: false, status: result.status, error: result.error };
   }
 

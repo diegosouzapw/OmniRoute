@@ -402,6 +402,9 @@ describe("Claude Web executor transport orchestration", () => {
       "utf8"
     );
 
+    // Anchor: proves the read still resolved to the real executor module, so the
+    // negative guard below cannot pass against a moved/emptied file.
+    assert.match(executorSource, /export class ClaudeWebExecutor extends BaseExecutor/);
     assert.doesNotMatch(executorSource, /claudeTurnstileSolver|getCfClearanceToken|tryBackedChat/);
     assert.doesNotMatch(indexSource, /ClaudeWebWithAutoRefresh/);
     assert.match(indexSource, /"claude-web": new ClaudeWebExecutor\(\)/);

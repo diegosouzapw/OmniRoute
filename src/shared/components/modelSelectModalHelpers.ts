@@ -73,3 +73,23 @@ export function buildNodeAliasModels(
       source: "alias" as const,
     }));
 }
+
+/**
+ * "Select all" adds every currently-visible model to the combo in one click,
+ * with no cap — turning off "Show configured only" (or just having a large
+ * provider catalog) can put hundreds of candidates behind a single click.
+ * Above this threshold the caller must confirm before batch-adding (#8526).
+ *
+ * A native `confirm()` — not a bespoke modal — matches the existing bulk /
+ * destructive-action pattern already used in this codebase (e.g.
+ * `ReasoningRoutingRules.tsx::deleteConfirm`, `combos/page.tsx::deleteConfirm`),
+ * so no new UI primitive is needed for this one interaction.
+ */
+export const SELECT_ALL_CONFIRM_THRESHOLD = 20;
+
+export function shouldConfirmSelectAll(
+  candidateCount: number,
+  threshold: number = SELECT_ALL_CONFIRM_THRESHOLD
+): boolean {
+  return Number.isFinite(candidateCount) && candidateCount > threshold;
+}

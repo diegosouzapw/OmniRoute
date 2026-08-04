@@ -22,6 +22,14 @@ test("T30: 404 still maps to model-unavailable", () => {
   assert.equal(unavailable, true);
 });
 
+test("T30: a missing Files API resource does not trigger model-family fallback", () => {
+  const unavailable = isModelUnavailableError(
+    404,
+    "[404]: Files [file-be30851bd1614656872e725e] were not found"
+  );
+  assert.equal(unavailable, false);
+});
+
 test("T30: model family helper returns a sibling candidate when available", () => {
   const next = getNextFamilyFallback("gemini-3.1-pro-high", new Set(["gemini-3.1-pro-high"]));
   assert.equal(typeof next, "string");

@@ -475,6 +475,28 @@ export function formatSSE(data: unknown, sourceFormat: string): string {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
 
+/**
+ * Build a synthetic OpenAI-shaped chat completion chunk for a manually
+ * assembled SSE delta (end-of-stream flushes, textual tool-call fallback,
+ * think-tag reasoning flush, terminal finish_reason synthesis, etc). Reuses
+ * the same `id`/`created` fallback and `choices[0]` shape every passthrough
+ * flush site needs.
+ */
+export function buildSyntheticChatChunk(
+  responsesId: string | null | undefined,
+  model: string | null | undefined,
+  delta: Record<string, unknown>,
+  finishReason: string | null = null
+): Record<string, unknown> {
+  return {
+    id: responsesId || `chatcmpl-${Date.now()}`,
+    object: "chat.completion.chunk",
+    created: Math.floor(Date.now() / 1000),
+    model: model || "unknown",
+    choices: [{ index: 0, delta, finish_reason: finishReason }],
+  };
+}
+
 const STREAM_SUMMARY_TEXT_LIMIT = 64 * 1024;
 
 // Bounded accumulator for streamed content/reasoning text — caps memory on long streams

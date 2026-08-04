@@ -52,6 +52,60 @@ function isLoopbackPeer(addr: string | undefined): boolean {
   return ip.startsWith("127.");
 }
 
+export type IpScope = "loopback" | "private" | "public" | "unknown";
+
+/**
+ * Whether an IPv4/IPv6 address falls inside a private (RFC 1918 / RFC 4193) or
+ * link-local range. Uses bounded string-prefix checks (no variable-length regex)
+ * to stay ReDoS-safe. Callers must pass an already-normalized, validated IP.
+ */
+function isPrivateIp(ip: string): boolean {
+  // IPv4 private / link-local ranges.
+  if (ip.startsWith("10.")) return true;
+  if (ip.startsWith("192.168.")) return true;
+  if (ip.startsWith("169.254.")) return true; // link-local (APIPA)
+  if (ip.startsWith("172.")) {
+    // 172.16.0.0 – 172.31.255.255 (the /12 block).
+    const secondOctet = Number.parseInt(ip.split(".")[1] ?? "", 10);
+    if (secondOctet >= 16 && secondOctet <= 31) return true;
+  }
+  // IPv6 unique-local (fc00::/7 → fc/fd) and link-local (fe80::/10).
+  const lower = ip.toLowerCase();
+  if (lower.startsWith("fc") || lower.startsWith("fd")) return true;
+  if (
+    lower.startsWith("fe8") ||
+    lower.startsWith("fe9") ||
+    lower.startsWith("fea") ||
+    lower.startsWith("feb")
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Classify an address by network scope: `loopback` (the host itself),
+ * `private` (LAN / RFC 1918 / ULA / link-local), `public` (routable), or
+ * `unknown` (empty / non-IP string like "unknown").
+ *
+ * Used to distinguish audit events — notably failed dashboard logins
+ * (`auth.login.failed`) — that originate from the box itself or the local
+ * network from genuinely external ones, so an internal mistyped password or a
+ * browser-autofill replay does not read as an external intrusion attempt.
+ *
+ * Ref: issue #8336.
+ */
+export function classifyIpScope(addr: string | null | undefined): IpScope {
+  const ip = normalizePeer(addr ?? undefined);
+  if (!ip) return "unknown";
+  if (isLoopbackPeer(ip)) return "loopback";
+  // isIP returns 0 for non-IP strings ("unknown", hostnames); only classify
+  // real addresses beyond loopback so hostnames never resolve to private.
+  if (isIP(ip) === 0) return "unknown";
+  if (isPrivateIp(ip)) return "private";
+  return "public";
+}
+
 /**
  * Extract client IP from a Request or NextRequest object.
  *

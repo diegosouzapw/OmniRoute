@@ -1,1 +1,0 @@
-- fix(cli): fall back to the node:sqlite driver cascade in `bin/cli/sqlite.mjs` so `omniroute doctor` no longer reports a false "FAIL Database"/"FAIL Storage/encryption" on machines without a working better-sqlite3 native binary (#7586)

@@ -32,7 +32,7 @@ function buildHeartbeatPayload(
 ): string {
   switch (shape) {
     case HEARTBEAT_SHAPES.ANTHROPIC_PING:
-      return "event: ping\ndata: {}\n\n";
+      return 'event: ping\ndata: {"type":"ping"}\n\n';
     case HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS:
       return 'data: {"type":"response.in_progress"}\n\n';
     case HEARTBEAT_SHAPES.OPENAI_CHUNK: {

@@ -9,7 +9,8 @@
  */
 
 import { spawn } from "child_process";
-import { writeFile, rm, readFile } from "fs/promises";
+import { writeFile, readFile } from "fs/promises";
+import { rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID, createHash } from "crypto";
@@ -81,6 +82,19 @@ function forwardChildOutput(
       newlineIndex = buffer.indexOf("\n");
     }
   });
+}
+
+/**
+ * Delete the generated host script synchronously. An async unlink loses the race
+ * against process exit — under `node --test --test-force-exit` the runner exits
+ * before the promise settles, leaking one temp .mjs per plugin load.
+ */
+function removeHostScript(path: string): void {
+  try {
+    rmSync(path, { force: true });
+  } catch {
+    // Best-effort: a leftover temp script is harmless; a throw from an exit handler is not.
+  }
 }
 
 // ── Plugin host script (runs in child process over IPC) ──
@@ -236,7 +250,7 @@ export async function loadPlugin(
       pending.reject(new Error(`Plugin process exited with code ${code}`));
     }
     pendingCalls.clear();
-    rm(hostScriptPath, { force: true }).catch(() => {});
+    removeHostScript(hostScriptPath);
   });
 
   // Call a hook in the child process with timeout + SIGTERM + SIGKILL escalation
@@ -358,7 +372,7 @@ export async function loadPlugin(
       } catch {}
     }, SIGKILL_GRACE_MS);
     child.once("exit", () => clearTimeout(killTimer));
-    rm(hostScriptPath, { force: true }).catch(() => {});
+    removeHostScript(hostScriptPath);
     log.info("loader.cleanup", { name: manifest.name });
   };
 

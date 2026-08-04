@@ -191,7 +191,11 @@ export function openaiToClaudeResponse(chunk, state) {
     }
     if (parts.length > 0) reasoningContent = parts.join("");
   }
-  if (reasoningContent && !isInternalReasoningPlaceholder(reasoningContent)) {
+  if (
+    typeof reasoningContent === "string" &&
+    reasoningContent !== "" &&
+    !isInternalReasoningPlaceholder(reasoningContent)
+  ) {
     stopTextBlock(state, results);
 
     if (!state.thinkingBlockStarted) {

@@ -39,6 +39,29 @@ export function addModelCandidate(candidates: Set<string>, modelId: string): voi
   candidates.add(stripExtendedContextSuffix(clean));
 }
 
+/**
+ * Expand provider-scoped model ids with canonical provider id + public alias forms
+ * (e.g. codex/gpt-5.6-terra ↔ cx/gpt-5.6-terra) so API-key allow/block patterns match
+ * dashboard restrictions regardless of which prefix the client sends.
+ */
+export function addProviderAliasScopedCandidates(
+  candidates: Set<string>,
+  providerOrAlias: string,
+  providerScopedModel: string,
+  resolveProviderId: (aliasOrId: string) => string,
+  getProviderAlias: (providerId: string) => string
+): void {
+  if (!providerScopedModel) return;
+  const canonicalId = resolveProviderId(providerOrAlias);
+  const alias = getProviderAlias(canonicalId);
+  if (canonicalId !== providerOrAlias) {
+    addModelCandidate(candidates, `${canonicalId}/${providerScopedModel}`);
+  }
+  if (alias !== providerOrAlias && alias !== canonicalId) {
+    addModelCandidate(candidates, `${alias}/${providerScopedModel}`);
+  }
+}
+
 export function modelPatternMatches(pattern: string, candidates: string[]): boolean {
   for (const candidate of candidates) {
     if (pattern === candidate) return true;

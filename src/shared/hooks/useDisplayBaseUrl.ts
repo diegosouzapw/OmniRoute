@@ -11,6 +11,54 @@ function normalizeUrl(value?: string): string | null {
 }
 
 /**
+ * Normalize a Next.js-style basePath to a leading-slash form without a trailing slash.
+ * Empty / root values become `""`.
+ */
+export function normalizeBasePath(value?: string | null): string {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed || trimmed === "/") return "";
+  const withSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return withSlash.replace(/\/+$/, "");
+}
+
+/**
+ * Resolve the deploy basePath for display URLs (e.g. `/omniroute`).
+ *
+ * Priority:
+ * 1. Explicit `envBasePath` argument / `NEXT_PUBLIC_OMNIROUTE_BASE_PATH`
+ * 2. Non-root path of `configuredBaseUrl` (`NEXT_PUBLIC_BASE_URL`)
+ */
+export function resolveDeployBasePath(
+  envBasePath?: string | null,
+  configuredBaseUrl?: string | null,
+  browserPathname?: string | null
+): string {
+  const fromEnv = normalizeBasePath(
+    envBasePath ??
+      (typeof process !== "undefined"
+        ? process.env.NEXT_PUBLIC_OMNIROUTE_BASE_PATH || process.env.OMNIROUTE_BASE_PATH
+        : undefined)
+  );
+  if (fromEnv) return fromEnv;
+
+  const configured = normalizeUrl(configuredBaseUrl ?? undefined);
+  if (configured) {
+    try {
+      const path = normalizeBasePath(new URL(configured).pathname);
+      if (path) return path;
+    } catch {
+      /* ignore invalid URL */
+    }
+  }
+
+  // browserPathname kept for API symmetry with resolveDisplayBaseUrl; basePath
+  // must come from env / configured URL so root deploys never invent a prefix.
+  void browserPathname;
+
+  return "";
+}
+
+/**
  * One RFC1918 / special-use IPv4 range, expressed as closed intervals on the
  * first two octets. Unbounded ends use +/-Infinity so a single numeric
  * comparison covers them without an extra branch.
@@ -110,22 +158,69 @@ export function isPublicDisplayBaseUrl(value?: string): boolean {
   }
 }
 
-export function resolveDisplayBaseUrl(envValue?: string, browserOrigin?: string): string {
+function urlPathname(value: string): string {
+  try {
+    return normalizeBasePath(new URL(value).pathname);
+  } catch {
+    return "";
+  }
+}
+
+function joinOriginAndBasePath(origin: string, basePath: string): string {
+  if (!basePath) return origin;
+  return `${origin.replace(/\/+$/, "")}${basePath}`;
+}
+
+/**
+ * Resolve the public origin (+ optional basePath) shown in the dashboard.
+ *
+ * @param envValue          `NEXT_PUBLIC_BASE_URL` (may include a path for subpath deploys)
+ * @param browserOrigin     `window.location.origin`
+ * @param browserPathname   `window.location.pathname` (still includes Next basePath)
+ * @param envBasePath       `NEXT_PUBLIC_OMNIROUTE_BASE_PATH` / `OMNIROUTE_BASE_PATH`
+ */
+export function resolveDisplayBaseUrl(
+  envValue?: string,
+  browserOrigin?: string,
+  browserPathname?: string,
+  envBasePath?: string
+): string {
   const configuredUrl = normalizeUrl(envValue);
   const currentOrigin = normalizeUrl(browserOrigin);
+  const basePath = resolveDeployBasePath(envBasePath, configuredUrl, browserPathname);
 
-  if (currentOrigin && isPublicDisplayBaseUrl(currentOrigin)) return currentOrigin;
-  if (configuredUrl && isPublicDisplayBaseUrl(configuredUrl)) return configuredUrl;
-  return currentOrigin ?? configuredUrl ?? DEFAULT_DISPLAY_BASE_URL;
+  // Configured public URL that already includes a non-root path wins (subpath deploy).
+  // Example: NEXT_PUBLIC_BASE_URL=https://host/omniroute must not be collapsed to
+  // https://host when the browser origin is the same host without a path.
+  if (configuredUrl && isPublicDisplayBaseUrl(configuredUrl) && urlPathname(configuredUrl)) {
+    return configuredUrl;
+  }
+
+  // Reachable public browser origin, with basePath re-applied when configured.
+  // Existing behavior: prefer the live origin over a different configured *host*
+  // (tunnels / alternate domains). basePath keeps /v1 examples correct under
+  // reverse-proxy subpaths (OMNIROUTE_BASE_PATH).
+  if (currentOrigin && isPublicDisplayBaseUrl(currentOrigin)) {
+    return joinOriginAndBasePath(currentOrigin, basePath);
+  }
+
+  // Configured public URL without a path — append basePath if present.
+  if (configuredUrl && isPublicDisplayBaseUrl(configuredUrl)) {
+    return joinOriginAndBasePath(configuredUrl, basePath);
+  }
+
+  const fallback = currentOrigin ?? configuredUrl ?? DEFAULT_DISPLAY_BASE_URL;
+  return joinOriginAndBasePath(fallback, basePath);
 }
 
 /**
  * Returns the public base URL to display in the dashboard.
  *
  * Resolution chain after client mount:
- *   1. Public browser origin — proves the current tunnel/domain is reachable.
- *   2. Public NEXT_PUBLIC_BASE_URL — keeps a configured public URL when opened locally.
- *   3. Current browser origin, configured URL, then localhost as local fallbacks.
+ *   1. Public browser origin (+ OMNIROUTE_BASE_PATH when set) — proves the
+ *      current tunnel/domain is reachable.
+ *   2. Public NEXT_PUBLIC_BASE_URL (path-preserving when it includes a subpath).
+ *   3. Local fallbacks (current origin / configured URL / localhost).
  *
  * DISPLAY ONLY — do NOT use this hook for OAuth `redirect_uri`.
  * OAuth callers must read `process.env.NEXT_PUBLIC_BASE_URL` directly to avoid
@@ -134,11 +229,21 @@ export function resolveDisplayBaseUrl(envValue?: string, browserOrigin?: string)
  */
 export function useDisplayBaseUrl(): string {
   const envValue = normalizeUrl(process.env.NEXT_PUBLIC_BASE_URL);
+  const envBasePath = normalizeBasePath(
+    process.env.NEXT_PUBLIC_OMNIROUTE_BASE_PATH || process.env.OMNIROUTE_BASE_PATH
+  );
 
-  const [url, setUrl] = useState<string>(envValue ?? DEFAULT_DISPLAY_BASE_URL);
+  const [url, setUrl] = useState<string>(() =>
+    resolveDisplayBaseUrl(envValue ?? undefined, undefined, undefined, envBasePath || undefined)
+  );
 
   useEffect(() => {
-    const resolvedUrl = resolveDisplayBaseUrl(envValue ?? undefined, window.location.origin);
+    const resolvedUrl = resolveDisplayBaseUrl(
+      envValue ?? undefined,
+      window.location.origin,
+      window.location.pathname,
+      envBasePath || undefined
+    );
     // Schedule via queueMicrotask so setState is called inside a callback,
     // not synchronously in the effect body (react-hooks/set-state-in-effect).
     // The unmounted guard prevents a stale setState on a torn-down root
@@ -151,7 +256,7 @@ export function useDisplayBaseUrl(): string {
     return () => {
       unmounted = true;
     };
-  }, [envValue]);
+  }, [envValue, envBasePath]);
 
   return url;
 }

@@ -6,10 +6,10 @@ Requires=omniroute-redis.service
 After=omniroute-redis.service
 
 [Container]
-# Use this image if your building locally
+# Use this image after building locally
 Image=localhost/omniroute:base
-# Use this image if you are pulling from Docker Hub
-# Image=diegosouzapw/omniroute:base
+# Or use the fully qualified published image (there is no published :base tag)
+# Image=docker.io/diegosouzapw/omniroute:latest
 
 ContainerName=omniroute
 

@@ -5,6 +5,7 @@ import {
   type SyncedAvailableModel,
 } from "@/lib/db/models";
 import { CANONICAL_EFFORT_VALUES } from "@/shared/reasoning/effortStandardization";
+import { isObsoleteKiroModelAlias } from "@omniroute/open-sse/services/kiroModels.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -257,12 +258,8 @@ export function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel
         ? { supportsThinking: record.supportsThinking }
         : {}),
       ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
-      ...(typeof record.supportsTools === "boolean"
-        ? { supportsTools: record.supportsTools }
-        : {}),
-      ...(typeof record.supportsVideo === "boolean"
-        ? { supportsVideo: record.supportsVideo }
-        : {}),
+      ...(typeof record.supportsTools === "boolean" ? { supportsTools: record.supportsTools } : {}),
+      ...(typeof record.supportsVideo === "boolean" ? { supportsVideo: record.supportsVideo } : {}),
       ...(supportsVision ? { supportsVision: true } : {}),
     });
   }
@@ -274,7 +271,10 @@ export async function getCachedDiscoveredModels(
   providerId: string,
   connectionId: string
 ): Promise<SyncedAvailableModel[]> {
-  return getSyncedAvailableModelsForConnection(providerId, connectionId);
+  const models = await getSyncedAvailableModelsForConnection(providerId, connectionId);
+  return providerId === "kiro"
+    ? models.filter((model) => !isObsoleteKiroModelAlias(model.id))
+    : models;
 }
 
 export async function persistDiscoveredModels(

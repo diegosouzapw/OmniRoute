@@ -38,13 +38,22 @@ test("codex/openai redirectUri is still hardcoded to localhost:1455 (anchor, unc
 
 test("PKCE callback-server providers now warn (not window.open) on a LAN-IP origin (#8046 fix)", () => {
   // The callback-server branch must gain an isLocalhost-but-not-isTrueLocalhost arm
-  // that surfaces the loopback-mismatch warning instead of falling through silently.
+  // that surfaces the loopback mismatch instead of falling through silently.
+  // The follow-up swapped the flat warning string for the structured hint that feeds
+  // the dedicated panel (buildPkceLoopbackMismatchHint) — the guard itself is unchanged.
+  const arm = modal.match(/else if \(isLocalhost\) \{[\s\S]{0,300}?\n {10}\}/);
+  assert.ok(arm, "expected an `else if (isLocalhost)` arm inside the callback-server branch");
   assert.match(
-    modal,
-    /else if \(isLocalhost\) \{[\s\S]{0,200}buildPkceLoopbackMismatchWarning/,
-    "OAuthModal.tsx should warn via buildPkceLoopbackMismatchWarning() for isLocalhost && !isTrueLocalhost " +
+    arm![0],
+    /buildPkceLoopbackMismatchHint/,
+    "OAuthModal.tsx should surface the loopback mismatch for isLocalhost && !isTrueLocalhost " +
       "inside the PKCE_CALLBACK_SERVER_PROVIDERS branch, instead of silently falling through to " +
       "window.open() an authUrl with an unreachable hardcoded loopback redirect_uri."
+  );
+  assert.match(
+    arm![0],
+    /\breturn;/,
+    "the arm must stop the flow, not merely annotate it before falling through"
   );
 });
 

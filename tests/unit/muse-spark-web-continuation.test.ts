@@ -54,6 +54,19 @@ class MockWebSocket {
   }
 }
 
+/**
+ * Decode the conversationId Meta AI sees for a turn. The WS intro frame
+ * (type 0x0f, 6-byte header + JSON payload) carries it in the clear, so we
+ * don't need to touch the protobuf-encoded prompt frame to observe which
+ * conversation a turn actually used.
+ */
+function decodeIntroConversationId(ws: MockWebSocket): string {
+  const frame = ws.sentData[0];
+  assert.ok(frame instanceof Uint8Array && frame[0] === 0x0f, "first frame is the intro frame");
+  const json = JSON.parse(new TextDecoder().decode((frame as Uint8Array).slice(6)));
+  return json["x-dgw-app-x-ecto-conversation-id"];
+}
+
 type ExecuteParams = Parameters<MuseSparkWebExecutor["execute"]>[0];
 
 function makeBaseInput(overrides?: Partial<ExecuteParams>): ExecuteParams {
@@ -231,6 +244,243 @@ test("muse-spark-web: GraphQL error in 200 response is detected", async () => {
     assert.equal(result.response.status, 502);
     const body = await result.response.json();
     assert.match(body.error.message, /AttachmentInput/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+  }
+});
+
+// ─── Test 6: Connection isolation — cache key includes connectionId ─────────
+
+test("muse-spark-web: two connections with identical history get independent conversations", async () => {
+  __resetMuseSparkConversationCacheForTesting();
+  MockWebSocket.instances = [];
+  const executor = new MuseSparkWebExecutor();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("{}", { status: 200 });
+
+  const restore = __setMuseSparkWebSocketForTesting(MockWebSocket as unknown as typeof WebSocket);
+  try {
+    const continuationBody = {
+      messages: [
+        { role: "user", content: "ping" },
+        { role: "assistant", content: "pong" },
+        { role: "user", content: "ping again" },
+      ],
+    };
+
+    await executor.execute(withConnection("conn-iso-A"));
+    const convA1 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    await executor.execute(withConnection("conn-iso-B"));
+    const convB1 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    await executor.execute(withConnection("conn-iso-A", { body: continuationBody }));
+    const convA2 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    await executor.execute(withConnection("conn-iso-B", { body: continuationBody }));
+    const convB2 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    assert.equal(convA2, convA1, "conn A's continuation reuses conn A's own conversation");
+    assert.equal(convB2, convB1, "conn B's continuation reuses conn B's own conversation");
+    assert.notEqual(
+      convB2,
+      convA1,
+      "conn B's continuation must not resurrect conn A's conversationId " +
+        "even though both connections share identical history text"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+  }
+});
+
+// ─── Test 7: Cache eviction on failure — dead entry isn't reused ─────────────
+
+class FailingWebSocket {
+  onopen: (() => void) | null = null;
+  onmessage: ((evt: MockWsMessage) => void) | null = null;
+  onclose: (() => void) | null = null;
+  onerror: ((evt: Error) => void) | null = null;
+  readyState = WebSocket.CONNECTING;
+  url: string;
+  constructor(url: string) {
+    this.url = url;
+    setTimeout(() => this.onerror?.(new Error("upstream dropped the connection")), 10);
+  }
+  send(_data: Uint8Array | string) {}
+  close() {
+    this.onclose?.();
+  }
+}
+
+test("muse-spark-web: WS failure during continuation evicts the cache so the next turn opens a new conversation", async () => {
+  __resetMuseSparkConversationCacheForTesting();
+  MockWebSocket.instances = [];
+  const executor = new MuseSparkWebExecutor();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("{}", { status: 200 });
+
+  const continuationBody = {
+    messages: [
+      { role: "user", content: "ping" },
+      { role: "assistant", content: "pong" },
+      { role: "user", content: "ping again" },
+    ],
+  };
+
+  let restore = __setMuseSparkWebSocketForTesting(MockWebSocket as unknown as typeof WebSocket);
+  try {
+    // Turn 1: new conversation succeeds and gets cached for continuation.
+    await executor.execute(withConnection("conn-evict"));
+    const conv1 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    // Turn 2: same history is recognized as a continuation (cache hit), but
+    // the WS connection fails — this must evict the dead cache entry.
+    restore();
+    restore = __setMuseSparkWebSocketForTesting(FailingWebSocket as unknown as typeof WebSocket);
+    const failResult = await executor.execute(
+      withConnection("conn-evict", { body: continuationBody })
+    );
+    assert.ok(
+      failResult.response.status === 502 || failResult.response.status === 401,
+      `turn 2 fails as expected: ${failResult.response.status}`
+    );
+
+    // Turn 3: identical continuation history. If eviction had not happened,
+    // this would reuse the dead conv1 conversationId (still within TTL).
+    restore();
+    restore = __setMuseSparkWebSocketForTesting(MockWebSocket as unknown as typeof WebSocket);
+    await executor.execute(withConnection("conn-evict", { body: continuationBody }));
+    const conv3 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    assert.notEqual(
+      conv3,
+      conv1,
+      "a failed continuation must evict the cache — the next identical-history " +
+        "turn should open a brand new conversation, not resurrect the dead one"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+  }
+});
+
+// ─── Test 8: Parallel chats with identical assistant text don't collide ─────
+
+test("muse-spark-web: parallel chats with identical assistant replies don't collide in the cache", async () => {
+  __resetMuseSparkConversationCacheForTesting();
+  MockWebSocket.instances = [];
+  const executor = new MuseSparkWebExecutor();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("{}", { status: 200 });
+
+  const restore = __setMuseSparkWebSocketForTesting(MockWebSocket as unknown as typeof WebSocket);
+  try {
+    // Same connectionId, two independent chat threads. The mock WS always
+    // answers "pong", so both threads' cached prefixes end in identical
+    // assistant text — only the differing question text keeps them apart.
+    await executor.execute(
+      withConnection("conn-parallel", { body: { messages: [{ role: "user", content: "tell me a joke" }] } })
+    );
+    const convX1 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    await executor.execute(
+      withConnection("conn-parallel", {
+        body: { messages: [{ role: "user", content: "what's the weather" }] },
+      })
+    );
+    const convY1 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    await executor.execute(
+      withConnection("conn-parallel", {
+        body: {
+          messages: [
+            { role: "user", content: "tell me a joke" },
+            { role: "assistant", content: "pong" },
+            { role: "user", content: "tell me another" },
+          ],
+        },
+      })
+    );
+    const convX2 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    await executor.execute(
+      withConnection("conn-parallel", {
+        body: {
+          messages: [
+            { role: "user", content: "what's the weather" },
+            { role: "assistant", content: "pong" },
+            { role: "user", content: "and tomorrow" },
+          ],
+        },
+      })
+    );
+    const convY2 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    assert.equal(convX2, convX1, "the joke thread continues its own conversation");
+    assert.equal(convY2, convY1, "the weather thread continues its own conversation");
+    assert.notEqual(
+      convX2,
+      convY2,
+      "identical assistant text ('pong') must not make the two threads collide — " +
+        "the cache key hashes the full history, not just the last response"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    restore();
+  }
+});
+
+// ─── Test 9: Empty user-content guard — no user turn falls through to a new conversation ─
+
+test("muse-spark-web: history with no user-role message never reuses a cached conversation", async () => {
+  __resetMuseSparkConversationCacheForTesting();
+  MockWebSocket.instances = [];
+  const executor = new MuseSparkWebExecutor();
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("{}", { status: 200 });
+
+  const restore = __setMuseSparkWebSocketForTesting(MockWebSocket as unknown as typeof WebSocket);
+  try {
+    // Turn A: an assistant-only payload (no user role anywhere). This still
+    // succeeds via the folded prompt and gets written to the cache under a
+    // prefix that itself has no user role — a write-side entry the guard
+    // must never let a future turn read back into a "continuation".
+    await executor.execute(
+      withConnection("conn-empty-guard", {
+        body: { messages: [{ role: "assistant", content: "prefill" }] },
+      })
+    );
+    const convA = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    // Turn B: the exact prefix cached by turn A ([assistant:"prefill",
+    // assistant:"pong"]), still with zero user-role messages. Without the
+    // `latestUserContent` guard this would hit turn A's cache entry and POST
+    // empty content with isNewConversation:false.
+    const resultB = await executor.execute(
+      withConnection("conn-empty-guard", {
+        body: {
+          messages: [
+            { role: "assistant", content: "prefill" },
+            { role: "assistant", content: "pong" },
+          ],
+        },
+      })
+    );
+    const convB = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
+
+    assert.equal(resultB.response.status, 200, "the assistant-only turn still succeeds");
+    assert.notEqual(
+      convB,
+      convA,
+      "a history with no user-role message must never be treated as a cache hit, " +
+        "even when its prefix matches a previously written entry"
+    );
   } finally {
     globalThis.fetch = originalFetch;
     restore();

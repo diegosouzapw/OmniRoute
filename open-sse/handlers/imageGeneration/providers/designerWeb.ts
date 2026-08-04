@@ -104,15 +104,26 @@ interface DesignerWebRequestConfig {
   pollIntervalMs: number;
 }
 
+/**
+ * Outcome of request validation. String-discriminated rather than `ok: boolean`
+ * because `open-sse` compiles with `strictNullChecks: false`, where a
+ * boolean-literal discriminant narrows the positive branch but leaves the
+ * negative one as the full union — so `if (!resolved.ok)` would not expose
+ * `status`/`error`. All three unions in this file shared that root cause.
+ */
+type DesignerWebRequestResolution =
+  | { state: "resolved"; config: DesignerWebRequestConfig }
+  | { state: "invalid"; status: number; error: string };
+
 /** Validates the request and resolves auth + poll timing. Returns an error status/message on failure. */
 function resolveDesignerWebRequest(
   body: { prompt?: unknown; size?: unknown; timeout_ms?: unknown; poll_interval_ms?: unknown },
   credentials: { apiKey?: string; accessToken?: string }
-): { ok: true; config: DesignerWebRequestConfig } | { ok: false; status: number; error: string } {
+): DesignerWebRequestResolution {
   const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
   if (!prompt) {
     return {
-      ok: false,
+      state: "invalid",
       status: 400,
       error: "Prompt is required for Microsoft Designer image generation",
     };
@@ -120,7 +131,11 @@ function resolveDesignerWebRequest(
 
   const accessToken = credentials?.apiKey || credentials?.accessToken;
   if (!accessToken) {
-    return { ok: false, status: 401, error: "Microsoft Designer credentials missing access_token" };
+    return {
+      state: "invalid",
+      status: 401,
+      error: "Microsoft Designer credentials missing access_token",
+    };
   }
 
   const timeoutMs = normalizePositiveNumber(
@@ -139,7 +154,7 @@ function resolveDesignerWebRequest(
   );
 
   return {
-    ok: true,
+    state: "resolved",
     config: {
       prompt,
       accessToken,
@@ -151,10 +166,20 @@ function resolveDesignerWebRequest(
   };
 }
 
-type DesignerWebStepResult =
-  | { done: false; waitMs: number }
-  | { done: true; success: true; imageUrls: string[] }
-  | { done: true; success: false; status: number; error: string };
+type DesignerWebPending = { state: "pending"; waitMs: number };
+type DesignerWebReady = { state: "ready"; imageUrls: string[] };
+type DesignerWebFailed = { state: "failed"; status: number; error: string };
+
+/** One poll cycle: still working, finished with images, or finished with an error. */
+type DesignerWebStepResult = DesignerWebPending | DesignerWebReady | DesignerWebFailed;
+
+/**
+ * What the poll loop hands back. Deliberately excludes the pending arm — the
+ * loop either returns a terminal step or synthesizes a 504, and never surfaces
+ * `pending` to its caller. The previous signature admitted it, which is why
+ * `outcome.success` did not exist on every member of that union.
+ */
+type DesignerWebOutcome = DesignerWebReady | DesignerWebFailed;
 
 /** Runs one submit/poll fetch cycle and classifies the outcome. */
 async function stepDesignerWebPoll(
@@ -167,23 +192,29 @@ async function stepDesignerWebPoll(
   const resp = await fetchImpl(baseUrl, { method: "POST", headers, body: formBody });
 
   if (!resp.ok) {
-    return { done: true, success: false, status: resp.status, error: sanitizeErrorMessage(await resp.text()) };
+    return {
+      state: "failed",
+      status: resp.status,
+      error: sanitizeErrorMessage(await resp.text()),
+    };
   }
 
   const parsed = parseDesignerWebResponse(await resp.json());
 
   if (parsed.status === "ready") {
-    return { done: true, success: true, imageUrls: parsed.imageUrls };
+    return { state: "ready", imageUrls: parsed.imageUrls };
   }
   if (parsed.status === "empty") {
     return {
-      done: true,
-      success: false,
+      state: "failed",
       status: 502,
       error: "Microsoft Designer response did not contain image data or polling metadata",
     };
   }
-  return { done: false, waitMs: Math.min(parsed.pollIntervalMs ?? pollIntervalMs, pollIntervalMs) };
+  return {
+    state: "pending",
+    waitMs: Math.min(parsed.pollIntervalMs ?? pollIntervalMs, pollIntervalMs),
+  };
 }
 
 /** Drives the submit-then-poll loop to completion, timeout, or a terminal error. */
@@ -192,7 +223,7 @@ async function runDesignerWebPollLoop(
   config: DesignerWebRequestConfig,
   fetchImpl: typeof fetch,
   log?: { info?: (...args: unknown[]) => void }
-): Promise<DesignerWebStepResult | { done: true; success: false; status: 504; error: string }> {
+): Promise<DesignerWebOutcome> {
   const deadline = Date.now() + config.timeoutMs;
   let attempt = 0;
 
@@ -205,14 +236,13 @@ async function runDesignerWebPollLoop(
       config.pollIntervalMs,
       fetchImpl
     );
-    if (step.done) return step;
+    if (step.state !== "pending") return step;
     log?.info?.("IMAGE", `designer-web pending, poll #${attempt} in ${step.waitMs}ms`);
     await new Promise((resolve) => setTimeout(resolve, step.waitMs));
   }
 
   return {
-    done: true,
-    success: false,
+    state: "failed",
     status: 504,
     error: "Microsoft Designer image generation timed out waiting for a result",
   };
@@ -237,13 +267,19 @@ export async function handleDesignerWebImageGeneration({
 }) {
   const startTime = Date.now();
   const resolved = resolveDesignerWebRequest(body, credentials);
-  if (!resolved.ok) {
-    return saveImageErrorResult({ provider, model, status: resolved.status, startTime, error: resolved.error });
+  if (resolved.state === "invalid") {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: resolved.status,
+      startTime,
+      error: resolved.error,
+    });
   }
 
   try {
     const outcome = await runDesignerWebPollLoop(providerConfig.baseUrl, resolved.config, fetchImpl, log);
-    if (outcome.success) {
+    if (outcome.state === "ready") {
       return saveImageSuccessResult({
         provider,
         model,

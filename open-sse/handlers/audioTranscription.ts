@@ -24,6 +24,7 @@ import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexTranscribe } from "../executors/vertexMedia.ts";
 import { errorResponse } from "../utils/error.ts";
+import { isJsonObject } from "../utils/kieTask.ts";
 import { handleOpenRouterTranscription } from "./openrouterTranscription.ts";
 
 type TranscriptionCredentials = {
@@ -72,11 +73,16 @@ function getUploadedFileName(file: Blob & { name?: unknown }): string {
   return typeof file.name === "string" && file.name.length > 0 ? file.name : "audio.wav";
 }
 
+/**
+ * `body` is `Uint8Array<ArrayBuffer>`, not bare `Uint8Array`: `new Uint8Array(n)`
+ * is always ArrayBuffer-backed, and only that narrower form satisfies `BodyInit`
+ * (the bare type widens to `ArrayBufferLike`, which admits `SharedArrayBuffer`).
+ */
 export async function buildMultipartBody(
   file: Blob & { name?: unknown },
   fields: Record<string, string>,
   fileFieldName = "file"
-): Promise<{ body: Uint8Array; contentType: string }> {
+): Promise<{ body: Uint8Array<ArrayBuffer>; contentType: string }> {
   const boundary = "----OmniRouteAudioBoundary" + Date.now().toString(36);
   const parts: Uint8Array[] = [];
   const encoder = new TextEncoder();
@@ -388,6 +394,18 @@ async function handleHuggingFaceTranscription(providerConfig, file, modelId, tok
 /**
  * Handle Kie.ai transcription
  */
+function normalizeKieTranscriptionText(recordData: unknown): string {
+  const record = isJsonObject(recordData) ? recordData : {};
+  const data = isJsonObject(record.data) ? record.data : {};
+  const response = isJsonObject(data.response) ? data.response : {};
+
+  for (const value of [response.text, data.resultText, data.text, record.text]) {
+    if (typeof value === "string") return value;
+  }
+
+  return "";
+}
+
 async function handleKieAudioTranscription(providerConfig, file, modelId, token) {
   const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
   const fileBuffer = await file.arrayBuffer();
@@ -451,12 +469,7 @@ async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
     });
 
     if (state === "success") {
-      const text =
-        data?.data?.response?.text ||
-        data?.data?.resultText ||
-        data?.data?.text ||
-        data?.text ||
-        "";
+      const text = normalizeKieTranscriptionText(data);
       return Response.json({ text }, { headers: { ...CORS_HEADERS } });
     }
   } catch (err: unknown) {

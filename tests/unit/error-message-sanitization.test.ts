@@ -243,6 +243,26 @@ test("buildErrorBody never exposes stack traces in its message", async () => {
   assert.ok(!body.error.message.includes("at /opt"));
 });
 
+test("buildErrorBody(499) yields client_disconnected for type and code", async () => {
+  const { buildErrorBody } = await import("../../open-sse/utils/error.ts");
+  const body = buildErrorBody(499, "Client disconnected: request_signal_aborted");
+  assert.equal(body.error.type, "client_disconnected");
+  assert.equal(body.error.code, "client_disconnected");
+  assert.equal(body.error.message, "Client disconnected: request_signal_aborted");
+});
+
+test("buildErrorBody preserves caller-supplied type/code overrides", async () => {
+  const { buildErrorBody } = await import("../../open-sse/utils/error.ts");
+  const body = buildErrorBody(502, "Upstream stream error", undefined, {
+    type: "stream_error",
+    code: "stream_pipeline_error",
+  });
+  assert.equal(body.error.type, "stream_error");
+  assert.equal(body.error.code, "stream_pipeline_error");
+  assert.notEqual(body.error.type, "server_error");
+  assert.notEqual(body.error.code, "bad_gateway");
+});
+
 test("types barrel keeps the model cooldown payload export only", async () => {
   const src = await read("src/types/index.ts");
   assert.match(src, /ModelCooldownErrorPayload/);

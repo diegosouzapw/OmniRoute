@@ -1,1 +1,0 @@
-- fix(translator): set `status: "completed"` on translated OpenAI Responses `input` items so strict Responses-compatible upstreams stop rejecting them with 400 MissingParameter input.status (#8083)

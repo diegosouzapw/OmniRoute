@@ -57,7 +57,7 @@ import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaR
 import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
 import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
-
+import { resolveApiKeyForbiddenFallback } from "./accountFallback/nonRetryableUpstream.ts";
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
@@ -592,17 +592,17 @@ export function recordModelLockoutFailure(
     exactCooldownMs?: number | null;
     maxCooldownMs?: number;
     /**
-     * #6863 vs #7940: set true only when `exactCooldownMs` was parsed/verified from
-     * an actual upstream signal (Retry-After header, X-RateLimit-Reset, or a reset
-     * parsed from the error body — i.e. `usedUpstreamRetryHint`/`quotaResetHintMs`
-     * from `checkFallbackError`). A verified reset is honored exactly, even past
-     * `maxCooldownMs` — a real "Resets in 92h" must not be clamped down to minutes,
-     * or the router hammers 429 against quota that is known not to come back.
-     * Leave false/omitted for SYNTHETIC estimates (e.g. the quota_exhausted
-     * until-midnight default below, or plain exponential backoff) — those stay
+     * #6863 vs #7940: set true only when `exactCooldownMs` came from an actual
+     * upstream signal (Retry-After header, X-RateLimit-Reset, or a reset parsed
+     * from the error body — i.e. `usedUpstreamRetryHint`/`quotaResetHintMs` from
+     * `checkFallbackError`). Such a reset is honored exactly, even past
+     * `maxCooldownMs` — a real "Resets in 92h" must not be clamped down to
+     * minutes, or the router hammers 429 against quota that is known not to be
+     * back yet. Leave false/omitted for SYNTHETIC estimates (the quota_exhausted
+     * until-midnight default below, plain exponential backoff) — those stay
      * capped, per #7940.
      */
-    exactCooldownVerified?: boolean;
+    exactCooldownIsUpstreamReset?: boolean;
   } = {}
 ) {
   ensureCleanupTimer();
@@ -626,19 +626,18 @@ export function recordModelLockoutFailure(
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
 
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  // Cap exponential backoff and SYNTHETIC exact cooldowns (e.g. the daily-quota
-  // until-midnight heuristic below) against maxCooldownMs so user-configured caps
-  // are honored (#7940). A caller-VERIFIED exact cooldown (#6863 — parsed from an
-  // actual upstream Retry-After/reset signal, see `exactCooldownVerified` above)
-  // bypasses the cap instead of being clamped to a window the upstream already
-  // told us is wrong.
+  // Cap both exponential backoff and computed exact cooldowns (e.g. daily-quota
+  // until-midnight, #7940/#7980) against maxCooldownMs so user-configured caps are
+  // honored — EXCEPT an authoritative parsed upstream reset (#6863, e.g. Antigravity
+  // "Resets in 92h27m28s"), which the upstream told us to wait and must be honored
+  // exactly, never clamped down to maxCooldownMs.
   const maxCooldownMs =
     typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
       ? options.maxCooldownMs
       : null;
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? maxCooldownMs !== null && !options.exactCooldownVerified
+      ? maxCooldownMs !== null && !options.exactCooldownIsUpstreamReset
         ? Math.min(options.exactCooldownMs, maxCooldownMs)
         : options.exactCooldownMs
       : Math.min(
@@ -1579,7 +1578,8 @@ export function checkFallbackError(
       const subResult = buildSubscriptionQuotaFallback(
         errorStr,
         getUpstreamRetryHintMs,
-        parseRetryFromErrorText
+        parseRetryFromErrorText,
+        provider
       );
       if (subResult) return subResult;
     }
@@ -1625,7 +1625,7 @@ export function checkFallbackError(
       !errorStr.toLowerCase().includes("hour quota") &&
       !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
-      return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
+      return resolveApiKeyForbiddenFallback(errorStr, buildRetryableFallback, RateLimitReason.AUTH_ERROR);
     }
   }
 

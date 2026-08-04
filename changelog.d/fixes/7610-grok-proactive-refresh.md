@@ -1,1 +1,0 @@
-- fix(sse): proactively refresh Grok Build's expiring OAuth token before dispatch, and add it to the connection-test config so "Test Connection" no longer reports "unsupported" (#7610)

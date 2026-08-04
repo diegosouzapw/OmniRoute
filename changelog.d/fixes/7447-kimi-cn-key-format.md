@@ -1,1 +1,0 @@
-- fix(providers): expose a base-URL override for Kimi/Moonshot so CN-region API keys (issued on platform.kimi.com / moonshot.cn) can be pointed at api.moonshot.cn instead of being rejected by the international host (#7447)

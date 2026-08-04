@@ -103,7 +103,12 @@ export const DEFAULT_DATABASE_SETTINGS: Omit<DatabaseSettings, "location" | "sta
     promptCacheEnabled: true,
     promptCacheStrategy: "auto",
     alwaysPreserveClientCache: "auto",
-    modelCatalogCacheTtlMs: 1500,
+    // Keep in sync with CATALOG_CACHE_TTL_MS_DEFAULT
+    // (src/app/api/v1/models/catalogCache.ts) — this value is what actually takes
+    // effect, since catalog.ts reads it as `dbSettings.cache?.modelCatalogCacheTtlMs
+    // ?? CATALOG_CACHE_TTL_MS_DEFAULT` and the `??` never falls through while a
+    // default is declared here. Guarded by tests/unit/v1-models-catalog-ttl.test.ts.
+    modelCatalogCacheTtlMs: 60_000,
   },
   retention: {
     quotaSnapshots: 7,

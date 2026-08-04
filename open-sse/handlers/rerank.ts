@@ -16,6 +16,25 @@ import { resolveProxyForConnection } from "@/lib/db/settings";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 import * as log from "@/sse/utils/logger";
 
+/** A document as the Cohere-compatible rerank API accepts it: a bare string or `{ text }`. */
+type RerankDocument = string | { text?: string };
+
+/**
+ * The caller-side request fields the response adapters need to rebuild Cohere's
+ * `results[]`. Upstreams either omit the documents entirely (DeepInfra returns
+ * bare scores) or echo them in their own shape (Voyage returns plain strings),
+ * so document text is always synthesized from the caller's originals — and
+ * `top_n` / `return_documents` are honored here rather than upstream.
+ *
+ * Every field is optional: the parameter defaults to `{}` and the unit suites
+ * call it with subsets (e.g. `{ documents: ["a", "b"] }`).
+ */
+interface RerankResponseOptions {
+  documents?: RerankDocument[];
+  return_documents?: boolean;
+  top_n?: number;
+}
+
 /**
  * Build authorization header for a rerank provider
  */
@@ -76,7 +95,11 @@ function buildAuthHeader(providerConfig, token) {
 /**
  * Transform response from provider-specific formats back to Cohere format
  */
-/* @testonly */ export function transformResponseFromProvider(providerConfig, data, options = {}) {
+/* @testonly */ export function transformResponseFromProvider(
+  providerConfig,
+  data,
+  options: RerankResponseOptions = {}
+) {
   if (providerConfig.format === "nvidia") {
     return {
       id: data.id != null ? String(data.id) : `rerank-${Date.now()}`,

@@ -1,1 +1,0 @@
-- Extract `resolveHeadroomDetail()` from the compression-preview `dispatchCompression` dispatcher so it stays under the cognitive-complexity gate after the #8056 headroom-minRows threading (pure refactor, no behavior change).

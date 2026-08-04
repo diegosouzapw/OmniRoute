@@ -198,7 +198,7 @@ async function synthesizeGttsChunk(
 export async function synthesizeGtts(
   input: GttsSynthInput,
   fetchImpl: FetchLike = fetch
-): Promise<Buffer> {
+): Promise<Buffer<ArrayBuffer>> {
   const lang = normalizeGttsLang(input.lang);
   const tld = (typeof input.tld === "string" && input.tld.trim()) || DEFAULT_TLD;
   const chunks = chunkGttsText(input.text);

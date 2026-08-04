@@ -83,6 +83,24 @@ function removeNativeModules(baseDir, prefixes = ["keytar"]) {
   }
 }
 
+// Fail the build if hashed native copies survived the cleanup above. Without this,
+// a wrong baseDir makes removeNativeModules() a silent no-op (it early-returns when
+// the directory does not exist) and the ABI mismatch only surfaces at runtime on a
+// user machine as "Internal Server Error" on every route.
+function assertNoStaleHashedNatives(baseDir, prefixes) {
+  if (!existsSync(baseDir)) return;
+  const leftovers = readdirSync(baseDir).filter((dir) =>
+    prefixes.some((p) => dir.startsWith(p))
+  );
+  if (leftovers.length > 0) {
+    throw new Error(
+      `[electron] stale native module copies survived cleanup in ${baseDir}: ` +
+        `${leftovers.join(", ")}. These carry the plain-Node ABI and shadow the ` +
+        `Electron-rebuilt binaries at runtime (ERR_DLOPEN_FAILED -> sql.js fallback -> OOM).`
+    );
+  }
+}
+
 // --- Electron-UNIQUE: rebuild better-sqlite3 against the Electron ABI --------
 //
 // The `npm ci` at the repo root compiles better-sqlite3 for the CI *Node* ABI
@@ -197,7 +215,16 @@ removeGeneratedElectronArtifacts();
 // so it cannot shadow the rebuilt one.
 rebuildBetterSqlite3ForElectron(join(ELECTRON_STANDALONE_DIR, "node_modules"));
 removeNativeModules(join(ELECTRON_STANDALONE_DIR, "node_modules"), ["keytar"]);
-removeNativeModules(join(ELECTRON_STANDALONE_DIR, ".next", "node_modules"), [
+removeNativeModules(join(ELECTRON_STANDALONE_DIR, NEXT_DIST_DIR, "node_modules"), [
+  "better-sqlite3",
+  "keytar",
+]);
+
+// Post-condition: the cleanup above must actually have removed the stale Node-ABI
+// copies. It silently no-opped across releases because the path was hardcoded to
+// ".next" while distDir is ".build/next", so an ABI-mismatched better_sqlite3.node
+// shipped inside the installer and the app fell back to sql.js and OOM-ed.
+assertNoStaleHashedNatives(join(ELECTRON_STANDALONE_DIR, NEXT_DIST_DIR, "node_modules"), [
   "better-sqlite3",
   "keytar",
 ]);

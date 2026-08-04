@@ -1,7 +1,7 @@
 ---
 title: "Codex CLI — Configuration with OmniRoute"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.49
+lastUpdated: 2026-07-26
 ---
 
 # Codex CLI — Configuration with OmniRoute
@@ -389,6 +389,110 @@ Inside an interactive session:
 
 ---
 
+## Long-running tasks
+
+Two OmniRoute defaults can silently sabotage multi-hour Codex CLI sessions. Neither is a Codex CLI setting — both live on the OmniRoute side. Users migrating a config from upstream proxies that pin accounts and disable idle cutoffs often hit both and conclude OmniRoute “cannot sustain a long session.”
+
+| Symptom                                                                          | Likely cause                                                       | Knob                     |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------ |
+| Session keeps switching accounts / prompt-cache continuity is lost between turns | Session affinity TTL is `0` (disabled)                             | `sessionAffinityTtlMs`   |
+| Connection dies mid-reasoning with no client-facing prompt                       | Stream idle watchdog fired after 10 minutes with no upstream chunk | `STREAM_IDLE_TIMEOUT_MS` |
+
+Related discussions: [#7126](https://github.com/diegosouzapw/OmniRoute/discussions/7126) (long task drops), [#5718](https://github.com/diegosouzapw/OmniRoute/discussions/5718) (why affinity defaults off). Tracking: [#7287](https://github.com/diegosouzapw/OmniRoute/issues/7287).
+
+### 1. Session affinity — pin one conversation to one account
+
+**Default:** `sessionAffinityTtlMs = 0` (disabled).
+
+**Where to set it**
+
+- Dashboard → **Settings → Routing** → **Session affinity** → **Affinity TTL (seconds)** (`ComboDefaultsTab`)
+- Or PATCH settings with `sessionAffinityTtlMs` in **milliseconds** (Zod range `0`–`86_400_000`, i.e. up to 24 hours)
+
+> Renamed in #7274 from the Codex-only `codexSessionAffinityTtlMs`. The legacy key is still accepted as a read-only alias; new configs should use `sessionAffinityTtlMs`. Affinity now applies to **any** provider once the TTL is above `0`, not only Codex — see [`docs/architecture/RESILIENCE_GUIDE.md`](../architecture/RESILIENCE_GUIDE.md) → Session affinity.
+
+**What breaks when it stays at 0**
+
+Every turn of a multi-turn Codex conversation is routed independently by the active combo strategy and can land on a **different account per turn**. That breaks upstream session / prompt-cache continuity. OmniRoute only consults Codex session headers (`x-codex-session-id` / `x-session-id` / `x-omniroute-session`) and body fields such as `prompt_cache_key` / `session_id` when the TTL is greater than `0` (`extractSessionAffinityKey` in `src/sse/services/auth.ts`).
+
+**Recommended for a multi-hour single task**
+
+Set the TTL **above the expected wall-clock length of the task** (UI max is **86400 seconds** = 24 hours):
+
+| Expected task length | Affinity TTL (UI, seconds) | `sessionAffinityTtlMs` |
+| -------------------- | -------------------------- | ---------------------- |
+| A few hours          | `14400` (4h)               | `14400000`             |
+| Overnight / ~12h     | `43200` (12h)              | `43200000`             |
+| Full day             | `86400` (24h, maximum)     | `86400000`             |
+
+Opt-in is deliberate: disabling affinity favors load-balancing across accounts; enabling it favors continuity for one long agent session. This guide does **not** change the default — operators running long Codex tasks must opt in.
+
+### 2. Stream idle timeout — do not kill quiet reasoning turns
+
+**Default:** `STREAM_IDLE_TIMEOUT_MS = 600000` (10 minutes). It inherits from `REQUEST_TIMEOUT_MS` when unset; the shared baseline is also 600000. See [`docs/guides/SETUP_GUIDE.md`](SETUP_GUIDE.md) → Timeouts.
+
+**What breaks at the default**
+
+A Codex reasoning / tool turn that stays silent for more than 10 minutes with **no real upstream chunk** is force-closed by the SSE idle watchdog (`open-sse/utils/stream.ts`). The client often sees a bare connection drop — matching “stopped automatically without any notification.”
+
+Critical detail: OmniRoute’s synthetic SSE **heartbeat does not reset** the idle clock. Only a real upstream body chunk updates `lastChunkTime`. A quiet model that is still “thinking” looks identical to a stalled upstream from the watchdog’s point of view.
+
+Related Undici body inactivity: `FETCH_BODY_TIMEOUT_MS` (also defaults to the same 10-minute baseline; `0` disables it). For streaming, `FETCH_TIMEOUT_MS` only covers connection setup / first headers — once the stream is active, stalls are governed by `STREAM_IDLE_TIMEOUT_MS` and `FETCH_BODY_TIMEOUT_MS`.
+
+**Recommended for a multi-hour single task**
+
+In the OmniRoute process environment (`.env` / compose / systemd):
+
+```bash
+# Disable stream idle + body inactivity cutoffs for long reasoning turns
+STREAM_IDLE_TIMEOUT_MS=0
+FETCH_BODY_TIMEOUT_MS=0
+```
+
+Or raise them above the longest quiet gap you expect (values are milliseconds):
+
+```bash
+# Example: allow up to 2 hours of silence between upstream chunks
+STREAM_IDLE_TIMEOUT_MS=7200000
+FETCH_BODY_TIMEOUT_MS=7200000
+```
+
+Restart OmniRoute after changing these env vars.
+
+### Concrete recipe — multi-hour Codex task
+
+1. **Pin the account:** Dashboard → Settings → Routing → Session affinity → Affinity TTL = `43200` (12h) or `86400` (24h max).
+2. **Raise / disable idle cutoffs** in OmniRoute’s environment:
+
+```bash
+STREAM_IDLE_TIMEOUT_MS=0
+FETCH_BODY_TIMEOUT_MS=0
+```
+
+3. Keep the usual Codex `config.toml` (`wire_api = "responses"`, correct `base_url`, `OMNIROUTE_API_KEY`) — no Codex-side affinity/idle knobs exist for these two behaviors.
+4. Restart OmniRoute, then start the long Codex task.
+
+### Defaults decision (#7287)
+
+| Knob                     | Ship default      | Change in this guide?                                                                     |
+| ------------------------ | ----------------- | ----------------------------------------------------------------------------------------- |
+| `sessionAffinityTtlMs`   | `0` (off)         | **No** — remains opt-in (load-balancing vs continuity; see Discussion #5718)              |
+| `STREAM_IDLE_TIMEOUT_MS` | `600000` (10 min) | **No** — remains 10 minutes for general traffic; long Codex operators raise or disable it |
+
+Flipping either default globally would change behavior for every client of an instance, not only Codex. Document the knobs; leave the defaults alone until an explicit operator decision says otherwise.
+
+### Diagnosing idle cuts
+
+When the idle watchdog fires, OmniRoute logs a line shaped like:
+
+```text
+[STREAM] Idle timeout: no data from codex for 600000ms (model: cx/gpt-5.5)
+```
+
+Grep for `Idle timeout: no data from` (or the code `stream_idle_timeout` / error name `StreamIdleTimeoutError`). The provider segment is whatever OmniRoute used for that request (`codex`, another provider id, or `provider` if unknown) — it is not always the literal string `codex`.
+
+---
+
 ## Troubleshooting
 
 **`Error: wire_api = "chat" is no longer supported`**
@@ -411,3 +515,6 @@ Lower `model_auto_compact_token_limit` to 80–85% of the window. Never set abov
 
 **Profile not loading (`-p <name>` silently ignored)**
 Confirm the file exists at `~/.codex/<name>.config.toml` (no `profile-` prefix). Run `ls ~/.codex/*.config.toml`.
+
+**Long Codex task drops mid-run / switches accounts between turns**
+See [Long-running tasks](#long-running-tasks). Enable session affinity (TTL above task length) and raise or disable `STREAM_IDLE_TIMEOUT_MS` / `FETCH_BODY_TIMEOUT_MS`. Grep OmniRoute logs for `Idle timeout: no data from`.

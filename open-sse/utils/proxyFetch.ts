@@ -35,16 +35,20 @@ const PROXY_UNREACHABLE_ERROR_CODES = new Set([
   "EHOSTUNREACH",
   "EPIPE",
   "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_SOCKET",
 ]);
 
 function isProxyUnreachableError(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
   const code = (err as { code?: unknown }).code;
   if (typeof code === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(code)) return true;
-  const causeCode = (err as { cause?: { code?: unknown } }).cause?.code;
-  return typeof causeCode === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(causeCode);
+  const cause = (err as { cause?: unknown }).cause;
+  const causeCode =
+    cause && typeof cause === "object" ? (cause as { code?: unknown }).code : undefined;
+  if (typeof causeCode === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(causeCode)) return true;
+  const msg = (err as Error).message;
+  return typeof msg === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(msg);
 }
-
 /**
  * #8376: tag a connect-failure error with a stable `.code`/`.errorCode` BEFORE it is
  * rethrown, so chatCore's catch block (and, through the response body, the combo
@@ -55,7 +59,7 @@ function isProxyUnreachableError(err: unknown): boolean {
 function tagProxyUnreachable<T>(err: T): T {
   if (isProxyUnreachableError(err)) {
     const e = err as Error & { code?: string; errorCode?: string };
-    e.code = e.code || "PROXY_UNREACHABLE";
+    e.code = "PROXY_UNREACHABLE";
     e.errorCode = "proxy_unreachable";
   }
   return err;
@@ -143,7 +147,6 @@ export function describeFetchCause(err: unknown): string {
   }
   return parts.join(" | ") || String(err);
 }
-
 
 function isStreamLikeBody(body: unknown): boolean {
   return (
@@ -392,9 +395,11 @@ export async function runWithProxyContext(
       }
       const err = new Error(`[Proxy Fast-Fail] Proxy unreachable: ${proxyLabel}`) as Error & {
         code?: string;
+        errorCode?: string;
         statusCode?: number;
       };
       err.code = "PROXY_UNREACHABLE";
+      err.errorCode = "proxy_unreachable";
       err.statusCode = 503;
       throw err;
     }
@@ -547,6 +552,7 @@ async function patchedFetch(
         // Prefer the .code property when available (more stable across undici
         // versions than message-string matching); fall back to substring match
         // for errors that lack a structured code.
+        tagProxyUnreachable(dispatcherError);
         const errCode = (dispatcherError as { code?: unknown })?.code;
         if (
           msg.includes("fetch failed") ||
@@ -612,9 +618,11 @@ async function patchedFetch(
             if (nativeError instanceof Error) {
               (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
             }
-            throw tagProxyUnreachable(nativeError);
+            tagProxyUnreachable(nativeError);
+            throw nativeError;
           }
         }
+        tagProxyUnreachable(dispatcherError);
         throw dispatcherError;
       }
     }

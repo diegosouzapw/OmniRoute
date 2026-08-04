@@ -35,6 +35,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { normalizeLocaleText } from "./glossary-normalize.mjs";
 
 // ----- .env loader --------------------------------------------------------
 // Loads variables from a local `.env` (gitignored) into process.env without
@@ -436,7 +437,11 @@ async function translateBody(body, localeEntry, backend) {
     }
   }
   // Re-join with a blank line between chunks (we split on `## ` headings).
-  return translated.join("\n\n");
+  // Then normalize terminology to the locale's canonical glossary — the model
+  // reliably converts characters but not vocabulary habits, so zh-TW output
+  // otherwise keeps mainland renderings (默認 for 預設, 緩存 for 快取) and
+  // wrong-homophone conversions (上遊 for 上游, 儀錶板 for 儀表板).
+  return normalizeLocaleText(translated.join("\n\n"), localeEntry.code);
 }
 
 // Simple promise-based semaphore (avoid runtime deps).

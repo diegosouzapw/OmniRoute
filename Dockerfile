@@ -1,5 +1,5 @@
 # ── Common base with runtime deps ──────────────────────────────────────────
-FROM node:24-trixie-slim AS base
+FROM node:26-trixie-slim AS base
 WORKDIR /app
 
 # `apt-get upgrade` pulls the security-patched versions of the Debian (trixie)
@@ -8,8 +8,8 @@ WORKDIR /app
 # that already have a fix published in trixie. CVEs without an upstream fix yet
 # (local-only TOCTOU, etc.) remain until the distro patches them and the image
 # is rebuilt; none are reachable from the proxy's request surface at runtime.
-RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=shared \
-  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
@@ -29,8 +29,8 @@ FROM base AS builder
 
 # Build tools for native module compilation
 # apt-get update needed here because base's rm -rf clears the shared cache
-RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=shared \
-  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
@@ -94,6 +94,11 @@ RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
 # escape hatch: `--build-arg`/-e OMNIROUTE_USE_TURBOPACK=0.
 # See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
 ENV OMNIROUTE_USE_TURBOPACK=1
+
+# Next.js basePath is fixed at build time; pass OMNIROUTE_BASE_PATH here when the
+# image should serve under a reverse-proxy subpath without a runtime patch.
+ARG OMNIROUTE_BASE_PATH=""
+ENV OMNIROUTE_BASE_PATH=$OMNIROUTE_BASE_PATH
 
 # Docker containers cannot run the MITM/Agent-Bridge stack (no host DNS/cert
 # access), so keep @/mitm/manager on the graceful stub (#3390). This flag is

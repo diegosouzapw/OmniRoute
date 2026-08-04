@@ -46,9 +46,15 @@ function makeTmpPlugin(name: string, manifest: Record<string, unknown> = {}) {
 function simulateRestart(name: string) {
   // loadedPlugins is private — this is exactly the module-state loss a real restart
   // causes (a fresh process never had this entry in the first place).
-  (mod.pluginManager as unknown as { loadedPlugins: Map<string, unknown> }).loadedPlugins.delete(
-    name
-  );
+  const loadedPlugins = (
+    mod.pluginManager as unknown as { loadedPlugins: Map<string, { cleanup: () => void }> }
+  ).loadedPlugins;
+  // Drop the entry without cleanup() and the child process becomes unreachable —
+  // deactivate() in the test's finally can then only reach the *reloaded* child, and
+  // this one dangles. A real restart takes the whole process tree down, so killing it
+  // here is both the faithful simulation and the only way to avoid the leak.
+  loadedPlugins.get(name)?.cleanup();
+  loadedPlugins.delete(name);
 }
 
 describe("pluginManager reload after restart (#7806)", () => {

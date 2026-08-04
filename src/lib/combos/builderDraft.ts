@@ -267,3 +267,105 @@ export function getPreviousComboBuilderStage(
   if (stageIndex <= 0) return "basics";
   return stages[stageIndex - 1];
 }
+
+export type ComboBuilderModelCandidate = {
+  value?: unknown;
+  providerId?: unknown;
+};
+
+export type ComboBuilderDraftModelStep = {
+  model: string;
+  providerId?: string;
+  weight: number;
+};
+
+/**
+ * Resolve the providerId for one "Select all" candidate: an exact/alias/prefix
+ * match in `builderProviders` wins, falling back to whatever provider prefix
+ * the qualified model string itself carries. Split out of
+ * `computeBatchAddModelSteps` to keep that loop under the complexity budget.
+ */
+function resolveBatchCandidateProviderId(
+  model: ComboBuilderModelCandidate,
+  parsedModel: { providerId: string; modelId: string } | null,
+  builderProviders: ComboBuilderProviderIdentity[]
+): string | null {
+  return (
+    resolveComboBuilderProviderId(model?.providerId, builderProviders) ||
+    resolveComboBuilderProviderId(parsedModel?.providerId, builderProviders) ||
+    (typeof model?.providerId === "string" && model.providerId.trim()) ||
+    parsedModel?.providerId ||
+    null
+  );
+}
+
+/**
+ * Batch-add handler for ModelSelectModal's "Select all" (`onSelectMany`) in
+ * the combo builder — must apply every candidate against a growing list in
+ * ONE pass. Looping the single-add handler N times would have each call
+ * close over the same stale `models` snapshot and only the last selected
+ * model would survive (#8526).
+ *
+ * This is the real implementation `ComboFormModal::handleAddModels` in
+ * `page.tsx` delegates to, so unit tests exercise actual production logic
+ * instead of a hand-maintained copy that can drift from the component.
+ */
+export function computeBatchAddModelSteps(
+  models: ComboBuilderDraftModelStep[],
+  selected: ComboBuilderModelCandidate[],
+  builderProviders: ComboBuilderProviderIdentity[] = []
+): { next: ComboBuilderDraftModelStep[]; addedAny: boolean } {
+  if (!Array.isArray(selected) || selected.length === 0) {
+    return { next: models, addedAny: false };
+  }
+  const next = [...models];
+  let addedAny = false;
+  for (const model of selected) {
+    const qualifiedModel = typeof model?.value === "string" ? model.value : "";
+    if (!qualifiedModel) continue;
+    const parsedModel = parseQualifiedModel(qualifiedModel);
+    const resolvedProviderId = resolveBatchCandidateProviderId(
+      model,
+      parsedModel,
+      builderProviders
+    );
+    const nextEntry: ComboBuilderDraftModelStep = {
+      model: qualifiedModel,
+      ...(resolvedProviderId ? { providerId: resolvedProviderId } : {}),
+      weight: 0,
+    };
+    if (hasExactModelStepDuplicate(next, nextEntry)) continue;
+    next.push(nextEntry);
+    addedAny = true;
+  }
+  return { next, addedAny };
+}
+
+/**
+ * Batch-remove handler for ModelSelectModal's "Unselect all" (`onDeselectMany`)
+ * in the combo builder — same stale-snapshot reasoning as
+ * `computeBatchAddModelSteps` above. Accepts either `{ value }` candidate
+ * objects (from the modal) or raw qualified-model strings.
+ *
+ * Returns the same `models` reference (no-op) when there is nothing to
+ * remove, so callers can skip the `setModels` call.
+ */
+export function computeBatchDeselectModelSteps(
+  models: ComboBuilderDraftModelStep[],
+  toRemove: Array<{ value?: unknown } | string>
+): ComboBuilderDraftModelStep[] {
+  if (!Array.isArray(toRemove) || toRemove.length === 0) return models;
+  const values = new Set(
+    toRemove
+      .map((model) =>
+        typeof (model as { value?: unknown })?.value === "string"
+          ? (model as { value: string }).value
+          : typeof model === "string"
+            ? model
+            : ""
+      )
+      .filter(Boolean)
+  );
+  if (values.size === 0) return models;
+  return models.filter((m) => !values.has(m.model));
+}

@@ -49,6 +49,8 @@ services:
     build:
       context: .
       target: runner-cli
+      args:
+        OMNIROUTE_BASE_PATH: ${OMNIROUTE_BASE_PATH:-}
     image: omniroute:prod
     restart: unless-stopped
     stop_grace_period: 40s
@@ -64,6 +66,7 @@ services:
       - API_HOST=${API_HOST:-0.0.0.0}
       - HOSTNAME=0.0.0.0
       - DATA_DIR=/app/data
+      - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
     ports:
       - "${PROD_DASHBOARD_PORT:-20130}:${DASHBOARD_PORT:-${PORT:-20128}}"
       - "${PROD_API_PORT:-20131}:${API_PORT:-20129}"

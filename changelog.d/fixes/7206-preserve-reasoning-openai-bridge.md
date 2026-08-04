@@ -1,1 +1,0 @@
-- **fix(translator):** preserve Gemini thinking-mode `thought:true` parts as `reasoning_content` instead of leaking them into visible assistant text on the OpenAI request bridge. (thanks @warelik)

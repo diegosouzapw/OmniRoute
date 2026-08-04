@@ -168,6 +168,10 @@
     "noModelsFound": "No models found",
     "clear": "Clear",
     "done": "Done",
+    "selectAll": "Tümünü seç",
+    "unselectAll": "Seçimi kaldır",
+    "visibleModels": "görünür",
+    "selectAllConfirm": "Bu kombinasyona {count} model eklensin mi?",
     "errorOccurred": "Error Occurred",
     "comboDeleted": "Combo Deleted",
     "hide": "Hide",
@@ -933,6 +937,7 @@
   "disabled": "Devre dışı",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Bütçesi tükenmiş istekleri acil durum ücretsiz yedek sağlayıcıya/modele yönlendirin.",
   "featureFlagArenaEloSyncEnabledDescription": "Model zekası sıralamaları için periyodik Arena AI liderlik tablosu ELO senkronizasyonunu etkinleştirin.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "Ana Sayfa",
     "dashboard": "Kontrol Paneli",
@@ -1113,6 +1118,7 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -1158,6 +1164,7 @@
     "logsSubtitle": "Application logs",
     "logsProxySubtitle": "Proxy traffic logs",
     "consoleLogsSubtitle": "Console output",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "logsActivitySubtitle": "User activity log",
     "healthSubtitle": "System health check",
     "costsPricingSubtitle": "Per-model pricing rules",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "Şuraya yapıştırın:",
     "copilotReloadInstruction": "Ardından VS Code'u yeniden yükleyin ve giriş isteminde API anahtarını ayarlayın.",
     "wireApiChatCompletions": "Sohbet Tamamlamaları (/sohbet/tamamlamalar)",
-    "wireApiResponses": "Yanıtlar API'si (/yanıtlar)"
+    "wireApiResponses": "Yanıtlar API'si (/yanıtlar)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "Kombolar",
@@ -3689,7 +3704,7 @@
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "sectionTitle": "Entegrasyon Yüzeyi",
     "sectionDescription": "OpenAI uyumlu API'ler ve operasyonel protokol uç noktaları",
-    "tabApis": "OpenAI uyumlu API'ler",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "Protokoller",
     "tabsAria": "Uç nokta bölümleri",
     "protocolsTitle": "Protokoller",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "İçe aktarılacak yeni model yok — tüm modeller zaten kayıt defterinde veya özel modeller listesinde",
     "skippingExistingModels": "{count} mevcut model atlanıyor",
     "autoSync": "Otomatik Senkronizasyon",
+    "autoSyncShort": "Senkronize Et",
     "autoSyncTooltip": "Model listesini her 24 saatte bir otomatik olarak yenileyin (MODEL_SYNC_INTERVAL_HOURS aracılığıyla yapılandırılabilir)",
     "autoSyncEnabled": "Otomatik senkronizasyon etkin — modeller periyodik olarak yenilenecek",
     "autoSyncDisabled": "Otomatik senkronizasyon devre dışı bırakıldı",
     "autoSyncToggleFailed": "Otomatik senkronizasyon durumu değiştirilemedi",
+    "autoSyncPartialFailure": "Otomatik senkronizasyon bazı bağlantılar için güncellendi, ancak hepsi değil",
     "clearAllModels": "Tüm Modelleri Temizle",
     "clearAllModelsConfirm": "Bu sağlayıcının tüm modellerini kaldırmak istediğinizden emin misiniz? Bu geri alınamaz.",
     "clearAllModelsSuccess": "Tüm modeller temizlendi",
@@ -5394,8 +5411,8 @@
     "t3ChatWebCookieHint": "t3.chat → DevTools → Uygulama → Yerel Depolama → https://t3.chat'i açın, 'convex-session-id'yi kopyalayın. Ardından DevTools → Ağ'ı açın ve herhangi bir sohbet isteğindeki Çerez başlığının tamamını kopyalayın. Her iki değeri de aşağıdaki alanlara yapıştırın.",
     "t3ChatWebCookiePlaceholder": "dışbükey-oturum-id=abc123...",
     "grokWebCookieHint": "Grok Web Cookie Hint",
-    "blockClaudeExtraUsageDescription": "Block Claude Extra Usage Description",
-    "blockClaudeExtraUsageLabel": "Block Claude Extra Usage Label",
+    "blockClaudeExtraUsageDescription": "__MISSING__:When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
+    "blockClaudeExtraUsageLabel": "__MISSING__:Block extra Claude usage",
     "disableCoolingDescription": "Geçici bekleme süresini atlayın; böylece bu bağlantı kurtarılabilir hatalardan sonra bile uygun kalmaya devam eder (yasaklandı/süresi doldu gibi nihai durumlar yine de geçerlidir).",
     "disableCoolingLabel": "Bu bağlantı için bekleme süresini devre dışı bırak",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -5574,13 +5591,13 @@
     "importGrokAuth": "Grok Build kimlik doğrulamasını içe aktar",
     "zedImportTitle": "Zed Keychain'den içe aktar",
     "zedImportDescription": "Zed IDE tarafından işletim sistemi anahtar zincirinde saklanan yapay zeka sağlayıcı kimlik bilgilerini (OpenAI, Anthropic, Google, Mistral, xAI) keşfedin ve bunları bağlantı olarak içe aktarın. Zed IDE bu makinede yüklü olmalıdır.",
-    "zedImportButton": "Zed Import Button",
-    "zedImportFailed": "Zed Import Failed",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "Zed Import Hint",
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
-    "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "Anahtar zincirinde hiçbir Zed kimlik bilgisi bulunamadı",
     "zedUnsupportedCredentials": "{count} anahtar zinciri kimlik bilgisi bulundu, ancak hiçbiri desteklenen sağlayıcılarla eşleşmedi",
     "zedManualTitle": "Manuel Token İçe Aktarma",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "arena.ai adresini açın, oturum açın ve ardından bir Ağ isteğinden tam Cookie başlığını kopyalayın. Tercihen cf_clearance ile birlikte arena-auth-prod-v1.0 ve arena-auth-prod-v1.1 (ve varsa diğer parçaları) ekleyin. Yalnızca boş arena-auth-prod-v1 çerezini yapıştırmayın. İsteğe bağlı: create-evaluation hala 403 döndürüyorsa providerSpecificData.recaptchaV3Token.",
     "kimiOfficialSupporterBadge": "Kurucu Dost",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI), OmniRoute'un kurucu açık kaynak dostu",
-    "kimiPartnerLinkNote": "Ortaklık bağlantısı — size hiçbir ek ücret ödetmeden OmniRoute'u destekler"
+    "cheaperInferenceSupporterBadge": "Açık Kaynak Dostu",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference, OmniRoute'u Açık Kaynak Dostu olarak destekliyor",
+    "kimiPartnerLinkNote": "Ortaklık bağlantısı — size hiçbir ek ücret ödetmeden OmniRoute'u destekler",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "Ayarlar",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "Fiyatlandırma Nasıl Çalışır?",
     "cacheWrite": "Önbellek Yazımı",
     "unsaved": "kaydedilmemiş",
-    "resetDefaults": "Varsayılanları Sıfırla",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "Sağlayıcıyı Kaydet",
     "model": "Model",
     "models": "modeller",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "Daha az kod",
         "description": "YAGNI merdiveni: çalışan en küçük değişiklik, talep edilmeyen soyutlamalar yok."
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "Kısa ve öz CJK (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "Doğrulama URL'si",
     "deviceCodeYourCode": "Kodunuz",
     "deviceCodeWaiting": "Yetki bekleniyor...",
-    "googleOAuthWarning": "Uzaktan erişim + Google OAuth: Varsayılan kimlik bilgileri yalnızca <code>localhost</code> adresine yönlendirmeleri kabul eder. Yetkilendirmeden sonra tarayıcınız <code>localhost</code>'yi açmayı deneyecek; bu tam URL'yi kopyalayıp aşağıya yapıştırın. Bu manuel adım olmadan tamamen uzaktan kullanım için <a>kendi OAuth kimlik bilgilerinizi yapılandırın</a>.",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "Uzaktan erişim: OmniRoute'a uzaktan eriştiğiniz için, yetkilendirme sonrasında bir hata sayfası göreceksiniz (localhost bulunamadı). Bu normaldir; tarayıcınızın adres çubuğundan tam URL'yi kopyalayıp aşağıya yapıştırmanız yeterlidir.",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "1. Adım: Bu URL'yi tarayıcınızda açın",
     "copy": "Kopyala",
     "step2PasteCallback": "2. Adım: Geri arama URL'sini veya yetkilendirme kodunu buraya yapıştırın",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "Bu grup silinsin mi? Önce havuzları yeniden atanmalı veya kaldırılmalıdır.",
     "deleteGroupHasPools": "Bu grupta hâlâ havuzlar var — önce bunları yeniden atayın veya silin.",
     "ungroupedTitle": "Gruplanmamış",
-    "ungroupedHint": "Bu havuzlar bilinen bir gruba atanmamış. Gerçek bir gruba taşımak için bir havuzu düzenleyin."
+    "ungroupedHint": "Bu havuzlar bilinen bir gruba atanmamış. Gerçek bir gruba taşımak için bir havuzu düzenleyin.",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "Plugins",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Yetenekler korumalı alanında (skills sandbox) ağ erişimini etkinleştirin."
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "Kombo Kontrol Merkezi",
@@ -12131,5 +12184,6 @@
     "cta": "Kimi Code Edin",
     "partnerLinkNote": "Ortaklık bağlantısı",
     "dismissAriaLabel": "Kapat"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

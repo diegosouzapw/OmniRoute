@@ -12,6 +12,7 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { normalizeLocaleText } from "./glossary-normalize.mjs";
 
 console.warn(
   "[generate-multilang] DEPRECATED: prefer `npm run i18n:run` for docs (this script will be removed in v3.10)."
@@ -523,10 +524,21 @@ function protectText(input, options = {}) {
   return { output, tokens };
 }
 
-function restoreText(input, tokens) {
+// Post-translation terminology normalization is driven by
+// scripts/i18n/glossary/<locale>.json through the shared helper, so this
+// generator, the active run-translation.mjs pipeline and the drift gate can
+// never disagree about what canonical means.
+function postProcessLocaleText(text, targetLanguage) {
+  return normalizeLocaleText(text, targetLanguage);
+}
+
+function restoreText(input, tokens, targetLanguage = null) {
   let output = input;
   for (let i = 0; i < tokens.length; i += 1) {
     output = output.replaceAll(`__OMNI_TOKEN_${i}__`, tokens[i]);
+  }
+  if (targetLanguage) {
+    output = postProcessLocaleText(output, targetLanguage);
   }
   return output;
 }
@@ -718,7 +730,9 @@ async function translateStrings(values, targetLanguage, options = {}) {
     finalMasked[mapping[i]] = translatedUnits[i];
   }
 
-  return finalMasked.map((value, index) => restoreText(value, protectedValues[index].tokens));
+  return finalMasked.map((value, index) =>
+    restoreText(value, protectedValues[index].tokens, targetLanguage)
+  );
 }
 
 function collectStringLeaves(node, pathSoFar = [], output = []) {
@@ -860,7 +874,7 @@ async function translateMarkdownDocument(content, targetLanguage) {
   }
 
   const joined = parts.join("");
-  return restoreText(joined, protectedDoc.tokens);
+  return restoreText(joined, protectedDoc.tokens, targetLanguage);
 }
 
 async function generateMessageTranslations() {

@@ -329,6 +329,17 @@ export async function main() {
           projectRoot,
           copyNatives: true,
         });
+        const { spawnSync } = await import("node:child_process");
+        const basePathWrite = spawnSync(
+          process.execPath,
+          [path.join(projectRoot, "scripts", "build", "write-build-base-path.mjs")],
+          { cwd: projectRoot, env: process.env, stdio: "inherit" }
+        );
+        if (basePathWrite.status !== 0) {
+          console.warn(
+            "[build-next-isolated] Non-fatal error writing BUILD_OMNIROUTE_BASE_PATH sentinel"
+          );
+        }
       } catch (assembleErr) {
         console.warn("[build-next-isolated] Non-fatal error assembling standalone:", assembleErr);
       }

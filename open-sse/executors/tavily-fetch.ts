@@ -40,7 +40,11 @@ export async function tavilyFetch(opts: TavilyFetchOptions): Promise<WebFetchRes
   };
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TAVILY_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => {
+    const err = new Error(`tavily-fetch timeout after ${TAVILY_TIMEOUT_MS}ms`);
+    err.name = "TimeoutError";
+    controller.abort(err);
+  }, TAVILY_TIMEOUT_MS);
 
   try {
     const response = await fetch(TAVILY_EXTRACT_URL, {

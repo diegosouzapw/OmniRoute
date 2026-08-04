@@ -8,9 +8,10 @@ title: "Release-Green — keeping the queue and release branch green"
 
 The **full gate** (`.github/workflows/ci.yml` — unit shards, vitest, ratchets,
 `package-artifact`, SonarQube, E2E) runs **only on the release PR** (PR → `main`). PRs targeting
-`release/**` receive only the **fast-gates** (`quality.yml`: TIA-impacted tests + typecheck +
-lint). Consequence: reds accumulate silently on the release branch and **explode in layers
-of ~40 min** at release time, one at a time.
+`release/**` receive the **fast-gates** (`quality.yml`: TIA-impacted tests + typecheck + lint)
+and, for code changes, an **advisory** production build. Consequence: release-only reds can still
+accumulate silently on the release branch and **explode in layers of ~40 min** at release time,
+one at a time.
 
 The "release-green family" exists to **anticipate** those reds — validate the equivalent of the full
 gate **locally / outside of release**, at any time, so the release PR is already
@@ -33,6 +34,15 @@ green on its first CI run.
 **Short answer to "is this only for releases?":** **no.** `/green-prs` was designed to
 run **periodically, between releases**. Running independently is the normal use — release is just
 the moment when running it yields the most value.
+
+## PR-to-release advisory build
+
+`quality.yml` now includes `Build (advisory)` for non-draft code PRs and Mergify queue branches.
+It mirrors the production build recipe from `ci.yml`: Node 24, `npm-ci-retry`,
+`check:node-runtime`, and `npm run build` with `OMNIROUTE_USE_TURBOPACK=1`. It intentionally
+does not upload a build artifact because no downstream quality job consumes one in this workflow.
+Remove `continue-on-error` after one week of stable release-PR runs so the signal becomes a
+blocking PR-to-release gate.
 
 ## Solution C — `npm run check:release-green` (the engine)
 

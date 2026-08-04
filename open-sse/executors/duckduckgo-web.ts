@@ -401,7 +401,12 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
   ): Promise<boolean> {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      const ddgTestMs = FETCH_TIMEOUT_MS;
+      const timeout = setTimeout(() => {
+        const err = new Error(`duckduckgo-web testConnection timeout after ${ddgTestMs}ms`);
+        err.name = "TimeoutError";
+        controller.abort(err);
+      }, ddgTestMs);
 
       const mergedSignal = signal
         ? AbortSignal.any([signal, controller.signal])
@@ -518,7 +523,12 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      const ddgExecMs = FETCH_TIMEOUT_MS;
+      const timeout = setTimeout(() => {
+        const err = new Error(`duckduckgo-web execute timeout after ${ddgExecMs}ms`);
+        err.name = "TimeoutError";
+        controller.abort(err);
+      }, ddgExecMs);
       const mergedSignal = signal
         ? AbortSignal.any([signal, controller.signal])
         : controller.signal;

@@ -80,7 +80,7 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     "/api/skills/collect/",
     "/api/headroom/start",
     "/api/headroom/stop",
-    "/api/vnc-session", // #7892: spawns Docker containers via child_process.spawn
+    "/api/vnc-session",
   ]) {
     assert.ok(
       SPAWN_CAPABLE_PREFIXES.includes(prefix),

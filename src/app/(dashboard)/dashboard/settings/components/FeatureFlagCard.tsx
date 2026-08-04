@@ -93,6 +93,28 @@ function Spinner() {
   );
 }
 
+/**
+ * `EXPOSE_CC_DISCOVERY_ALIASES` resolves with env-wins-over-db precedence (see
+ * db/ccDiscoveryAliases.ts::getCcAliasGlobalState), the opposite of every other
+ * flag — so a plain ENV badge could be misread as "toggle it off here" when the
+ * environment variable is what is actually forcing it on. Renders nothing for
+ * any other flag or source.
+ */
+function EnvPrecedenceWarning({
+  flag,
+  text,
+}: {
+  flag: FeatureFlagCardProps["flag"];
+  text: string;
+}) {
+  if (flag.key !== "EXPOSE_CC_DISCOVERY_ALIASES" || flag.source !== "env") return null;
+  return (
+    <p className="mb-3 rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+      {text}
+    </p>
+  );
+}
+
 export default function FeatureFlagCard({
   flag,
   onToggle,
@@ -192,6 +214,8 @@ export default function FeatureFlagCard({
 
       {/* Description */}
       <p className="mb-3 line-clamp-2 text-xs text-text-muted">{flag.description}</p>
+
+      <EnvPrecedenceWarning flag={flag} text={t("ccDiscoveryAliasesEnvWarning")} />
 
       {/* Bottom row: source badge + reset button */}
       <div className="flex items-center justify-between">

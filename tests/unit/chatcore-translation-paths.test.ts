@@ -673,10 +673,13 @@ test("chatCore builds Claude Code-compatible upstream requests for CC providers"
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.headers.Accept ?? call.headers.accept, "text/event-stream");
-  assert.deepEqual([call.body.stream, call.body.context_management], [true, undefined]);
-  assert.equal(call.body.system.length, 1);
-  assert.match(call.body.system[0].text, /Claude Agent SDK/);
+  assert.equal(call.headers.Accept ?? call.headers.accept, "application/json");
+  assert.equal(call.body.stream, true);
+  assert.equal(call.body.context_management.edits[0].type, "clear_thinking_20251015");
+  assert.equal(
+    call.body.system.some((block: { text?: string }) => /Claude Agent SDK/.test(block.text || "")),
+    true
+  );
   assert.equal(typeof call.body.metadata.user_id, "string");
   assert.equal(call.body.messages[0].role, "user");
   assert.equal(call.body.messages[0].content[0].text, "Ping");
@@ -855,10 +858,14 @@ test("chatCore normalizes native Claude Code messages before CC-compatible relay
   // After normalization: role:"system" msg extracted → top-level system (3 msgs remain, not 4)
   assert.equal(call.body.messages.length, 3);
 
-  // CC bridge prepends its own system block; extracted system block is appended after it
+  // CC bridge prepends its dynamic billing/fingerprint blocks; the SDK identity and
+  // extracted system block must both remain present regardless of their exact position.
   assert.equal(
-    call.body.system[0].text,
-    "You are a Claude agent, built on Anthropic's Claude Agent SDK."
+    call.body.system.some(
+      (block: { text?: string }) =>
+        block.text === "You are a Claude agent, built on Anthropic's Claude Agent SDK."
+    ),
+    true
   );
   assert.equal(
     call.body.system.some(

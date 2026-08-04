@@ -1,1 +1,0 @@
-- chore(ci): resync the stale `no-explicit-any` suppression count for `tests/unit/proxy-registry.test.ts` (frozen at 55, actual 54 since #8447) — ESLint was failing the whole run with "There are suppressions left that do not occur anymore", turning `npm run lint` red on `release/v3.8.49` for every PR branched off it

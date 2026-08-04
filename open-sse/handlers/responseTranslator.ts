@@ -539,13 +539,26 @@ export function translateNonStreamingResponse(
 
       const usage = toRecord(root.usage);
       if (Object.keys(usage).length > 0) {
-        const promptTokens = toNumber(usage.input_tokens, 0);
+        // Mirror the streaming translator's usage contract (#1426/#2215):
+        // cache_read folds into prompt_tokens (it is billed prompt input);
+        // cache_creation stays out of prompt_tokens and is exposed via
+        // prompt_tokens_details, alongside cached_tokens (OpenAI field name).
+        const cachedTokens = toNumber(usage.cache_read_input_tokens, 0);
+        const cacheCreationTokens = toNumber(usage.cache_creation_input_tokens, 0);
+        const promptTokens = toNumber(usage.input_tokens, 0) + cachedTokens;
         const completionTokens = toNumber(usage.output_tokens, 0);
-        result.usage = {
+        const usageOut: JsonRecord = {
           prompt_tokens: promptTokens,
           completion_tokens: completionTokens,
           total_tokens: promptTokens + completionTokens,
         };
+        if (cachedTokens > 0 || cacheCreationTokens > 0) {
+          const details: JsonRecord = {};
+          if (cachedTokens > 0) details.cached_tokens = cachedTokens;
+          if (cacheCreationTokens > 0) details.cache_creation_tokens = cacheCreationTokens;
+          usageOut.prompt_tokens_details = details;
+        }
+        result.usage = usageOut;
       }
 
       intermediateOpenAI = result;

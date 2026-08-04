@@ -145,6 +145,9 @@ describe("CompressionHub — Context Editing", () => {
     });
     await flush();
 
+    // CompressionHub deliberately does NOT use useTranslations (see the
+    // hydration note at the top of CompressionHub.tsx) — its strings are
+    // literal English text, exactly like EngineConfigPage.
     const text = container.textContent ?? "";
     expect(text).toContain("Provider-delegated compression");
     expect(text).toContain("Context Editing (Claude)");

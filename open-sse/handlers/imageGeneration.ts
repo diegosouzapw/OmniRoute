@@ -32,6 +32,7 @@ import { sleep } from "../utils/sleep.ts";
 import {
   getKieErrorMessage,
   getKieErrorStatus,
+  getKieTaskId,
   isJsonObject,
   parseKieResultJson,
 } from "../utils/kieTask.ts";
@@ -79,6 +80,9 @@ import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
 } from "./imageGeneration/pollinationsAnonAuth.ts";
+
+// Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
+export { handleAdobeFireflyImageGeneration };
 
 interface KieImageOptions {
   model: string;
@@ -755,7 +759,7 @@ async function handleKieImageGeneration({
       payload,
       endpoint,
     });
-    const taskId = createData?.data?.taskId || createData?.taskId;
+    const taskId = getKieTaskId(createData);
 
     if (!taskId) {
       const errorMessage =

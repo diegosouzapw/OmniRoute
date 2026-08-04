@@ -92,6 +92,8 @@ const transformObfuscateWordsSchema = z.object({
 });
 
 export const updateSettingsSchema = z.object({
+  /** #7784: opt-in optimistic concurrency — must match GET settingsRevision / ETag. */
+  expectedRevision: z.number().int().nonnegative().optional(),
   newPassword: z.string().min(1).max(200).optional(),
   currentPassword: z.string().max(200).optional(),
   credentialRedactionEnabled: z.boolean().optional(),

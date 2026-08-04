@@ -168,6 +168,10 @@
     "noModelsFound": "No models found",
     "clear": "Clear",
     "done": "Done",
+    "selectAll": "Markera alla",
+    "unselectAll": "Avmarkera alla",
+    "visibleModels": "synliga",
+    "selectAllConfirm": "Lägg till {count} modeller i den här kombinationen?",
     "errorOccurred": "Error Occurred",
     "comboDeleted": "Combo Deleted",
     "hide": "Hide",
@@ -933,6 +937,7 @@
   "disabled": "Inaktiverad",
   "featureFlagOmnirouteEmergencyFallbackDescription": "Dirigera anrop med förbrukad budget till den kostnadsfria reservleverantören/-modellen för nödfall.",
   "featureFlagArenaEloSyncEnabledDescription": "Aktivera periodisk synkronisering av Arena AI-topplistans ELO för rankning av modellintelligens.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "Hem",
     "dashboard": "Instrumentpanel",
@@ -1113,6 +1118,7 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -1158,6 +1164,7 @@
     "logsSubtitle": "Application logs",
     "logsProxySubtitle": "Proxy traffic logs",
     "consoleLogsSubtitle": "Console output",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "logsActivitySubtitle": "User activity log",
     "healthSubtitle": "System health check",
     "costsPricingSubtitle": "Per-model pricing rules",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "Klistra in i:",
     "copilotReloadInstruction": "Ladda sedan om VS Code och ange API-nyckeln i inmatningsfältet.",
     "wireApiChatCompletions": "Chattavslut (/chat/kompletteringar)",
-    "wireApiResponses": "Responses API (/responses)"
+    "wireApiResponses": "Responses API (/responses)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "Combos",
@@ -3689,7 +3704,7 @@
     "modelsCount": "{count, plural, one {# model} other {# models}}",
     "sectionTitle": "Integrationsyta",
     "sectionDescription": "OpenAI-kompatibla API:er och operativa protokollslutpunkter",
-    "tabApis": "OpenAI-kompatibla API:er",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "Protokoll",
     "tabsAria": "Slutpunktssektioner",
     "protocolsTitle": "Protokoll",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "Inga nya modeller att importera — alla modeller finns redan i registret eller listan över anpassade modeller",
     "skippingExistingModels": "Hoppar över {count} befintliga modeller",
     "autoSync": "Automatisk synkronisering",
+    "autoSyncShort": "Synkronisera",
     "autoSyncTooltip": "Uppdatera modelllistan automatiskt var 24:e timme (konfigurerbar via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Automatisk synkronisering aktiverad — modeller uppdateras regelbundet",
     "autoSyncDisabled": "Automatisk synkronisering inaktiverad",
     "autoSyncToggleFailed": "Det gick inte att växla automatisk synkronisering",
+    "autoSyncPartialFailure": "Automatisk synkronisering uppdaterad för vissa anslutningar, men inte alla",
     "clearAllModels": "Rensa alla modeller",
     "clearAllModelsConfirm": "Är du säker på att du vill ta bort alla modeller för den här leverantören? Detta kan inte ångras.",
     "clearAllModelsSuccess": "Alla modeller rensade",
@@ -5394,8 +5411,8 @@
     "t3ChatWebCookieHint": "Öppna t3.chat → DevTools → Application → Local Storage → https://t3.chat, kopiera 'convex-session-id'. Öppna sedan DevTools → Nätverk, kopiera hela Cookie-huvudet från valfri chattförfrågan. Klistra in båda värdena i fälten nedan.",
     "t3ChatWebCookiePlaceholder": "convex-session-id=abc123...",
     "grokWebCookieHint": "Grok Web Cookie Hint",
-    "blockClaudeExtraUsageDescription": "Block Claude Extra Usage Description",
-    "blockClaudeExtraUsageLabel": "Block Claude Extra Usage Label",
+    "blockClaudeExtraUsageDescription": "__MISSING__:When enabled, OmniRoute marks this Claude connection unavailable as soon as the usage API reports queued extra usage, so fallback switches to another connection instead of continuing on pay-as-you-go extra billing.",
+    "blockClaudeExtraUsageLabel": "__MISSING__:Block extra Claude usage",
     "disableCoolingDescription": "Hoppa över den tillfälliga cooldown-perioden så att denna anslutning förblir tillgänglig även efter återställningsbara fel (slutgiltiga tillstånd som banned/expired gäller fortfarande).",
     "disableCoolingLabel": "Inaktivera cooldown för denna anslutning",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -5574,13 +5591,13 @@
     "importGrokAuth": "Importera Grok Build-autentisering",
     "zedImportTitle": "Importera från Zed-nyckelring",
     "zedImportDescription": "Hitta autentiseringsuppgifter för AI-leverantörer (OpenAI, Anthropic, Google, Mistral, xAI) som lagrats av Zed IDE i operativsystemets nyckelring och importera dem som anslutningar. Zed IDE måste vara installerat på den här datorn.",
-    "zedImportButton": "Zed Import Button",
-    "zedImportFailed": "Zed Import Failed",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "Zed Import Hint",
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
-    "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "Inga Zed-autentiseringsuppgifter hittades i nyckelringen",
     "zedUnsupportedCredentials": "Hittade {count} autentiseringsuppgift(er) i nyckelringen, men ingen matchade leverantörer som stöds",
     "zedManualTitle": "Manuell tokenimport",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "Öppna arena.ai, logga in och kopiera sedan hela Cookie-headern från en nätverksbegäran. Inkludera arena-auth-prod-v1.0 och arena-auth-prod-v1.1 (och ytterligare delar om de finns), helst med cf_clearance. Klistra inte in bara den tomma arena-auth-prod-v1-cookien. Valfritt: providerSpecificData.recaptchaV3Token om create-evaluation fortfarande returnerar 403.",
     "kimiOfficialSupporterBadge": "Grundande vän",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) är OmniRoutes grundande öppen källkod-vän",
-    "kimiPartnerLinkNote": "Partnerlänk — stöder OmniRoute utan extra kostnad för dig"
+    "cheaperInferenceSupporterBadge": "Öppen källkod-vän",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference stödjer OmniRoute som öppen källkod-vän",
+    "kimiPartnerLinkNote": "Partnerlänk — stöder OmniRoute utan extra kostnad för dig",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "Inställningar",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "Hur prissättning fungerar",
     "cacheWrite": "Cache Skriv",
     "unsaved": "osparade",
-    "resetDefaults": "Återställ standardvärden",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "Spara leverantör",
     "model": "Modell",
     "models": "modeller",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "Mindre kod",
         "description": "YAGNI-stege: minsta fungerande ändring, inga oombedda abstraktioner."
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "Kortfattad CJK (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "Verifierings-URL",
     "deviceCodeYourCode": "Din kod",
     "deviceCodeWaiting": "Väntar på auktorisation...",
-    "googleOAuthWarning": "Fjärråtkomst + Google OAuth: Standardinloggningsuppgifter accepterar endast omdirigeringar till <code>localhost</code>. Efter auktorisering kommer din webbläsare att försöka öppna <code>localhost</code> — kopiera den fullständiga webbadressen och klistra in den nedan. För helt fjärranvändning utan detta manuella steg, <a>konfigurera dina egna OAuth-uppgifter</a>.",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "Fjärråtkomst: Eftersom du använder OmniRoute på distans, kommer du efter auktorisering att se en felsida (lokalvärd hittades inte). Detta är normalt - kopiera bara hela webbadressen från webbläsarens adressfält och klistra in den nedan.",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "Steg 1: Öppna denna URL i din webbläsare",
     "copy": "Kopiera",
     "step2PasteCallback": "Steg 2: Klistra in återuppringningsadressen eller auktoriseringskoden här",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "Ta bort denna grupp? Dess pooler måste tilldelas på nytt eller tas bort först.",
     "deleteGroupHasPools": "Denna grupp har fortfarande pooler — tilldela dem på nytt eller ta bort dem först.",
     "ungroupedTitle": "Ogrupperade",
-    "ungroupedHint": "Dessa pooler är inte tilldelade till en känd grupp. Redigera en pool för att flytta den till en riktig grupp."
+    "ungroupedHint": "Dessa pooler är inte tilldelade till en känd grupp. Redigera en pool för att flytta den till en riktig grupp.",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "Plugins",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "Aktivera nätverksåtkomst i kompetenssandlådan."
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "Kombinationskontrollcenter",
@@ -12131,5 +12184,6 @@
     "cta": "Hämta Kimi Code",
     "partnerLinkNote": "Partnerlänk",
     "dismissAriaLabel": "Avvisa"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

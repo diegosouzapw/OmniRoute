@@ -139,6 +139,7 @@ async function spawnQoderCli(options: SpawnQoderCliOptions): Promise<QoderCliRun
         env,
         cwd: options.cwd || undefined,
         stdio: ["pipe", "pipe", "pipe"],
+        windowsHide: true,
         ...(useShell ? { shell: true } : {}),
       });
     } catch (err) {

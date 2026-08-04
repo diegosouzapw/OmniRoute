@@ -10,11 +10,21 @@ import {
 } from "./supervisorPolicy.mjs";
 import { buildNodeHeapArgs } from "../../../scripts/build/runtime-env.mjs";
 import { stopProcessGracefully } from "../../../src/shared/platform/windowsProcess.ts";
+import {
+  isFatalInstrumentationHookFailure,
+  formatAndroidInstrumentationFailureHint,
+} from "../utils/ensureAndroidCacheDir.mjs";
 
 const CRASH_LOG_LINES = 50;
 
 export class ServerSupervisor {
-  constructor({ serverPath, env, maxRestarts = DEFAULT_MAX_RESTARTS, memoryLimit = 512, onCrashCallback }) {
+  constructor({
+    serverPath,
+    env,
+    maxRestarts = DEFAULT_MAX_RESTARTS,
+    memoryLimit = 512,
+    onCrashCallback,
+  }) {
     this.serverPath = serverPath;
     this.env = env;
     this.maxRestarts = maxRestarts;
@@ -25,11 +35,13 @@ export class ServerSupervisor {
     this.crashLog = [];
     this.child = null;
     this.isShuttingDown = false;
+    this.instrumentationFailureHintPrinted = false;
   }
 
   start() {
     this.startedAt = Date.now();
     this.crashLog = [];
+    this.instrumentationFailureHintPrinted = false;
 
     const showLog = process.env.OMNIROUTE_SHOW_LOG === "1";
     // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
@@ -41,22 +53,34 @@ export class ServerSupervisor {
     // silently, so a boot that never becomes ready looked like a dead hang with zero
     // output even at APP_LOG_LEVEL=debug. Pipe stdout too and buffer it alongside
     // stderr so a readiness timeout can surface what the child actually printed.
-    this.child = spawn(process.versions.bun ? process.execPath : "node", [
-      ...(process.versions.bun ? [] : heapArgs),
-      this.serverPath,
-    ], {
-      cwd: dirname(this.serverPath),
-      env: this.env,
-      stdio: showLog ? "inherit" : ["ignore", "pipe", "pipe"],
-    });
+    this.child = spawn(
+      process.versions.bun ? process.execPath : "node",
+      [...(process.versions.bun ? [] : heapArgs), this.serverPath],
+      {
+        cwd: dirname(this.serverPath),
+        env: this.env,
+        stdio: showLog ? "inherit" : ["ignore", "pipe", "pipe"],
+      }
+    );
 
     writePidFile("server", this.child.pid);
 
     const bufferOutput = (data) => {
-      const lines = data.toString().split("\n").filter(Boolean);
+      const text = data.toString();
+      const lines = text.split("\n").filter(Boolean);
       this.crashLog.push(...lines);
       if (this.crashLog.length > CRASH_LOG_LINES) {
         this.crashLog = this.crashLog.slice(-CRASH_LOG_LINES);
+      }
+      // Surface Android/Termux instrumentation-hook failures even when --log is
+      // off (output is only buffered otherwise).
+      if (!this.instrumentationFailureHintPrinted && isFatalInstrumentationHookFailure(text)) {
+        this.instrumentationFailureHintPrinted = true;
+        process.stderr.write(
+          formatAndroidInstrumentationFailureHint(
+            this.env?.XDG_CACHE_HOME || process.env.XDG_CACHE_HOME
+          )
+        );
       }
     };
 

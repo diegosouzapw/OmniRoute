@@ -229,7 +229,9 @@ describe("PlaygroundStudio", () => {
     const el = renderStudio();
 
     // Verify config pane is rendered
-    const configPaneLabel = el.querySelector("[aria-label='Config pane']");
+    // This file's next-intl mock renders raw translation keys (see the `vi.mock`
+    // above), matching the rest of this file's assertions ("tabChat", "tabApi", ...).
+    const configPaneLabel = el.querySelector("[aria-label='configPane']");
     expect(configPaneLabel).toBeTruthy();
 
     // Switch to API tab
@@ -242,7 +244,7 @@ describe("PlaygroundStudio", () => {
     });
 
     // Config pane should still be visible
-    const configPaneAfterSwitch = el.querySelector("[aria-label='Config pane']");
+    const configPaneAfterSwitch = el.querySelector("[aria-label='configPane']");
     expect(configPaneAfterSwitch).toBeTruthy();
   });
 

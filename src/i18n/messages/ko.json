@@ -168,6 +168,10 @@
     "noModelsFound": "No models found",
     "clear": "Clear",
     "done": "Done",
+    "selectAll": "모두 선택",
+    "unselectAll": "선택 해제",
+    "visibleModels": "표시됨",
+    "selectAllConfirm": "이 조합에 모델 {count}개를 추가할까요?",
     "errorOccurred": "Error Occurred",
     "comboDeleted": "Combo Deleted",
     "hide": "Hide",
@@ -933,6 +937,7 @@
   "disabled": "비활성화됨",
   "featureFlagOmnirouteEmergencyFallbackDescription": "예산이 소진된 요청을 긴급 무료 폴백 제공자/모델로 라우팅합니다.",
   "featureFlagArenaEloSyncEnabledDescription": "모델 지능 순위를 위해 주기적인 Arena AI 리더보드 ELO 동기화를 활성화합니다.",
+  "featureFlagExposeCcDiscoveryAliasesDescription": "__MISSING__:Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "sidebar": {
     "home": "홈",
     "dashboard": "대시보드",
@@ -1113,6 +1118,7 @@
     "providerQuota": "Provider Quota",
     "runtime": "Runtime",
     "consoleLogs": "Console Logs",
+    "logsTimeline": "Timeline",
     "globalRouting": "Global Routing",
     "mitmProxy": "MITM Proxy",
     "oneProxy": "1Proxy",
@@ -1158,6 +1164,7 @@
     "logsSubtitle": "Application logs",
     "logsProxySubtitle": "Proxy traffic logs",
     "consoleLogsSubtitle": "Console output",
+    "logsTimelineSubtitle": "__MISSING__:Visual request timeline",
     "logsActivitySubtitle": "User activity log",
     "healthSubtitle": "System health check",
     "costsPricingSubtitle": "Per-model pricing rules",
@@ -2938,7 +2945,15 @@
     "copilotPasteInto": "다음 위치에 붙여넣습니다.",
     "copilotReloadInstruction": "그런 다음 VS Code를 다시 로드하고 입력 프롬프트에 API 키를 설정하세요.",
     "wireApiChatCompletions": "채팅 완료(/chat/completions)",
-    "wireApiResponses": "응답 API(/responses)"
+    "wireApiResponses": "응답 API(/responses)",
+    "ccDiscoveryInfoButton": "__MISSING__:How to enable discovery in Claude Code",
+    "ccDiscoveryInfoTooltip": "__MISSING__:Advertise non-Claude models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Doubles catalog entries for all clients when enabled globally.",
+    "ccDiscoveryInfoLink": "__MISSING__:Open Feature Flags",
+    "ccOnboardingTitle": "__MISSING__:settings.json for gateway model discovery",
+    "ccOnboardingCopy": "__MISSING__:Copy",
+    "ccOnboardingCopied": "__MISSING__:Copied",
+    "ccOnboardingKeyPlaceholder": "__MISSING__:<your OmniRoute API key>",
+    "ccOnboardingWindowNote": "__MISSING__:Claude Code assumes a 200K context window for any model id it does not recognize. For a model with a different real window, add CLAUDE_CODE_AUTO_COMPACT_WINDOW just under it so auto-compaction does not fire too early."
   },
   "combos": {
     "title": "콤보",
@@ -4958,10 +4973,12 @@
     "noNewModelsToImport": "가져올 새 모델 없음 — 모든 모델이 이미 레지스트리 또는 사용자 정의 모델 목록에 있습니다",
     "skippingExistingModels": "{count}개의 기존 모델 건너뛰기",
     "autoSync": "자동 동기화",
+    "autoSyncShort": "동기화",
     "autoSyncTooltip": "24시간마다 모델 목록 자동 업데이트 (MODEL_SYNC_INTERVAL_HOURS로 구성 가능)",
     "autoSyncEnabled": "자동 동기화 활성화 — 모델이 주기적으로 업데이트됩니다",
     "autoSyncDisabled": "자동 동기화 비활성화",
     "autoSyncToggleFailed": "자동 동기화 전환 실패",
+    "autoSyncPartialFailure": "자동 동기화가 일부 연결에 대해 업데이트되었지만 모두는 아닙니다",
     "clearAllModels": "모든 모델 삭제",
     "clearAllModelsConfirm": "이 공급자의 모든 모델을 제거하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     "clearAllModelsSuccess": "모든 모델 삭제됨",
@@ -5961,7 +5978,21 @@
     "lmarenaWebCookieHint": "arena.ai를 열고 로그인한 다음 Network 요청에서 전체 Cookie 헤더를 복사하세요. arena-auth-prod-v1.0 및 arena-auth-prod-v1.1(있는 경우 추가 청크 포함)을 포함해야 하며, 가급적 cf_clearance도 포함하는 것이 좋습니다. 비어 있는 arena-auth-prod-v1 쿠키만 붙여넣지 마세요. 선택 사항: create-evaluation에서 여전히 403을 반환하는 경우 providerSpecificData.recaptchaV3Token.",
     "kimiOfficialSupporterBadge": "창립 프렌드",
     "kimiOfficialSupporterTooltip": "Kimi(Moonshot AI)는 OmniRoute의 창립 오픈소스 프렌드입니다",
-    "kimiPartnerLinkNote": "파트너 링크 — 추가 비용 없이 OmniRoute를 지원합니다"
+    "cheaperInferenceSupporterBadge": "오픈 소스 친구",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference는 오픈 소스 친구로서 OmniRoute를 후원합니다",
+    "kimiPartnerLinkNote": "파트너 링크 — 추가 비용 없이 OmniRoute를 지원합니다",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "설정",
@@ -6721,7 +6752,7 @@
     "howPricingWorks": "가격 책정 방식",
     "cacheWrite": "캐시 쓰기",
     "unsaved": "저장되지 않은",
-    "resetDefaults": "기본값 재설정",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "공급자 저장",
     "model": "모델",
     "models": "모델",
@@ -7270,6 +7301,10 @@
       "less-code": {
         "label": "코드 최소화",
         "description": "YAGNI 사다리: 작동하는 최소한의 변경, 요청되지 않은 추상화 배제."
+      },
+      "ponytail": {
+        "label": "Ponytail (lazy senior dev)",
+        "description": "Lazy senior-dev discipline: climb the YAGNI ladder, fix root cause, smallest working diff."
       },
       "terse-cjk": {
         "label": "간결한 CJK (文言)",
@@ -9688,8 +9723,23 @@
     "deviceCodeVerificationUrl": "확인 URL",
     "deviceCodeYourCode": "귀하의 코드",
     "deviceCodeWaiting": "승인을 기다리는 중...",
-    "googleOAuthWarning": "원격 액세스 + Google OAuth: 기본 제공 자격 증명은 <code>127.0.0.1</code>과 같은 루프백 리디렉션만 허용합니다. Google 승인을 진행하는 브라우저가 해당 로컬 포트의 OmniRoute에 접근할 수 있어야 하며, 보통 OmniRoute를 로컬에서 열거나 SSH/로컬 포워딩 터널을 사용합니다. 원격 설치에 권장: 본인 컴퓨터에서 <code>npx omniroute login antigravity</code>를 실행하고 출력된 자격 증명 블롭을 아래 필드에 붙여넣으세요. 이 로컬 콜백 없이 완전히 원격으로 사용하려면 <a>자체 OAuth 자격 증명을 구성</a>하세요.",
+    "googleLoopbackTitle": "__MISSING__:Google sign-in can't complete from this address",
+    "googleLoopbackWhatHappens": "__MISSING__:Google only releases the authorization code once <code>{redirectUri}</code> is reachable from the browser that approves the sign-in. Here that address points at this computer, not at the OmniRoute server — so the consent screen hangs instead of redirecting, and there is no callback URL to copy.",
+    "googleLoopbackRecommended": "__MISSING__:Recommended — run this on your own computer, then paste the result below:",
+    "googleLoopbackHelperNote": "__MISSING__:It opens the Google consent locally (where 127.0.0.1 works) and prints a one-line omniroute-cred-v1.… blob. Paste that blob into the Step 2 field below — it accepts a credential blob as well as a callback URL.",
+    "googleLoopbackTunnelLabel": "__MISSING__:Or forward the dashboard port over SSH and reload OmniRoute through the tunnel:",
+    "googleLoopbackTunnelNote": "__MISSING__:Replace {userPlaceholder} with your SSH username, keep the terminal open, then open {localUrl} and connect again from there.",
+    "googleLoopbackHeadlessAlt": "__MISSING__:For fully headless use with no local callback at all, <a>configure your own Google OAuth credentials</a> plus a public base URL.",
     "remoteAccessInfo": "원격 액세스: OmniRoute에 원격으로 액세스하므로 인증 후 오류 페이지가 표시됩니다(localhost를 찾을 수 없음). 이것은 정상적인 현상입니다. 브라우저 주소 표시줄에서 전체 URL을 복사하여 아래에 붙여넣으면 됩니다.",
+    "loopbackMismatchTitle": "__MISSING__:Sign-in can't complete from this address",
+    "loopbackMismatchWhatHappened": "__MISSING__:What's happening",
+    "loopbackMismatchExplanation": "__MISSING__:After you approve the login, {providerName} always sends the browser back to <code>{redirectUri}</code>. That address points at the computer running this browser, not at the OmniRoute server — so the authorization code never reaches OmniRoute and the provider fails the sign-in without showing an error.",
+    "loopbackMismatchHowToFix": "__MISSING__:How to fix it",
+    "loopbackMismatchStep1": "__MISSING__:On this computer, open a terminal and start an SSH tunnel to the OmniRoute server:",
+    "loopbackMismatchStep1Note": "__MISSING__:Replace {userPlaceholder} with your SSH username. Keep this terminal open until the connection shows as active — both ports are needed: one serves the dashboard, the other receives the callback.",
+    "loopbackMismatchStep2": "__MISSING__:In this browser, reopen OmniRoute through the tunnel:",
+    "loopbackMismatchStep3": "__MISSING__:Then connect {providerName} again from the new tab. The callback now reaches the server and the login completes normally.",
+    "loopbackMismatchAlternative": "__MISSING__:No SSH access? If this provider offers a token import tab, connect with a token instead — that path doesn't use a loopback callback.",
     "step1OpenUrl": "1단계: 브라우저에서 이 URL을 엽니다.",
     "copy": "복사",
     "step2PasteCallback": "2단계: 여기에 콜백 URL 또는 승인 코드를 붙여넣으세요.",
@@ -10476,7 +10526,9 @@
     "deleteGroupConfirm": "이 그룹을 삭제하시겠습니까? 먼저 해당 그룹의 풀을 재할당하거나 제거해야 합니다.",
     "deleteGroupHasPools": "이 그룹에 아직 풀이 있습니다. 먼저 재할당하거나 삭제하세요.",
     "ungroupedTitle": "그룹 없음",
-    "ungroupedHint": "이 풀들은 알려진 그룹에 할당되지 않았습니다. 풀을 편집하여 실제 그룹으로 이동하세요."
+    "ungroupedHint": "이 풀들은 알려진 그룹에 할당되지 않았습니다. 풀을 편집하여 실제 그룹으로 이동하세요.",
+    "removeFailed": "Could not remove this pool.",
+    "dismiss": "Dismiss"
   },
   "plugins": {
     "title": "Plugins",
@@ -11784,7 +11836,8 @@
       "SKILLS_SANDBOX_NETWORK_ENABLED": {
         "description": "스킬 샌드박스에서 네트워크 액세스를 활성화합니다."
       }
-    }
+    },
+    "ccDiscoveryAliasesEnvWarning": "__MISSING__:Active via environment variable (EXPOSE_CC_DISCOVERY_ALIASES) — this overrides any dashboard toggle below."
   },
   "comboControl": {
     "title": "콤보 제어 센터",
@@ -12131,5 +12184,6 @@
     "cta": "Kimi Code 가져오기",
     "partnerLinkNote": "파트너 링크",
     "dismissAriaLabel": "닫기"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

@@ -24,6 +24,7 @@ export { default as ManualConfigModal } from "./ManualConfigModal";
 export { default as UsageStats } from "./UsageStats";
 export { default as UsageAnalytics } from "./UsageAnalytics";
 export { default as RequestLoggerV2 } from "./RequestLoggerV2";
+export { default as RequestTimeline } from "./RequestTimeline";
 export { default as ProxyConfigModal } from "./ProxyConfigModal";
 export { default as ProxyLogger } from "./ProxyLogger";
 export { default as KiroAuthModal } from "./KiroAuthModal";

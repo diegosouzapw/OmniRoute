@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -195,5 +196,68 @@ export async function onUninstall(_payload) {}
 
     // The wired method must bridge to the worker without throwing (fire-and-forget).
     await loaded.plugin.onActivate?.({ name: "lifecycle-test", version: "1.0.0" });
+  }
+);
+
+// Regression (Hard Rule #18): the generated host script used to be deleted with a
+// fire-and-forget `rm(...).catch()`. That unlink loses the race against process exit —
+// under `npm run test:unit` (--test-force-exit) the runner tore the process down before
+// the promise settled, so every plugin load leaked one omniroute-plugin-host-*.mjs into
+// TMPDIR and they accumulated run over run. cleanup() must have removed it by return.
+test(
+  "cleanup() removes the generated host script before returning",
+  { timeout: 5_000 },
+  async (t) => {
+    const pluginDir = await mkdtemp(join(tmpdir(), "omniroute-plugin-loader-"));
+    const entryPoint = join(pluginDir, "index.mjs");
+    // Redirect the loader's tmpdir() so a concurrent test file's host scripts cannot
+    // land in the directory we count (test:unit runs at --test-concurrency=20).
+    // POSIX reads TMPDIR, Windows reads TEMP/TMP — set all three.
+    const hostScriptDir = await mkdtemp(join(tmpdir(), "omniroute-hostscript-"));
+    const tmpEnvKeys = ["TMPDIR", "TEMP", "TMP"] as const;
+    const savedEnv = tmpEnvKeys.map((k) => [k, process.env[k]] as const);
+    let loaded: LoadedPlugin | undefined;
+
+    t.after(async () => {
+      loaded?.cleanup();
+      for (const [key, value] of savedEnv) {
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+      await rm(pluginDir, { recursive: true, force: true });
+      await rm(hostScriptDir, { recursive: true, force: true });
+    });
+
+    await writeFile(entryPoint, "export async function onRequest() { return {}; }\n", "utf-8");
+    for (const key of tmpEnvKeys) process.env[key] = hostScriptDir;
+
+    loaded = await loadPlugin(entryPoint, {
+      name: "host-script-cleanup-test",
+      version: "1.0.0",
+      license: "MIT",
+      main: "index.mjs",
+      source: "local",
+      tags: [],
+      requires: { permissions: [] },
+      hooks: { onRequest: true, onResponse: false, onError: false },
+      skills: [],
+      enabledByDefault: false,
+      configSchema: {},
+    });
+
+    assert.deepEqual(
+      readdirSync(hostScriptDir).filter((f) => f.startsWith("omniroute-plugin-host-")).length,
+      1,
+      "sanity: loadPlugin writes exactly one host script"
+    );
+
+    loaded.cleanup();
+    loaded = undefined;
+
+    assert.deepEqual(
+      readdirSync(hostScriptDir).filter((f) => f.startsWith("omniroute-plugin-host-")),
+      [],
+      "cleanup() must delete the host script synchronously, not on a later tick"
+    );
   }
 );

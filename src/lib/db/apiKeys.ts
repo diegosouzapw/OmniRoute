@@ -17,6 +17,7 @@ import {
 } from "./apiKeyUsageLimitFields";
 import { setNoLog } from "../compliance/noLog";
 import { resolveModelAlias } from "@omniroute/open-sse/services/modelDeprecation.ts";
+import { getProviderAlias, resolveProviderId } from "@/shared/constants/providers";
 import { getSyncedAvailableModelsByConnection, getCustomModels, getModelIsHidden } from "./models";
 import {
   CLAUDE_CODE_PROVIDER_PREFIXES,
@@ -24,6 +25,7 @@ import {
   stripExtendedContextSuffix,
   isPotentialUnprefixedClaudeCodeModel,
   addModelCandidate,
+  addProviderAliasScopedCandidates,
   modelPatternMatches,
   hasClaudeCodeWildcardPermission,
   matchesWildcardPattern,
@@ -306,6 +308,15 @@ async function getModelPermissionCandidates(modelId: string): Promise<string[]> 
       addModelCandidate(candidates, providerScopedModel);
       addModelCandidate(candidates, `cc/${providerScopedModel}`);
       addModelCandidate(candidates, `claude/${providerScopedModel}`);
+    }
+    if (providerScopedModel) {
+      addProviderAliasScopedCandidates(
+        candidates,
+        providerOrAlias,
+        providerScopedModel,
+        resolveProviderId,
+        getProviderAlias
+      );
     }
     return Array.from(candidates);
   }

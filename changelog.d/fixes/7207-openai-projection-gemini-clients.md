@@ -1,1 +1,0 @@
-- **fix(translator):** register the missing OpenAI→Gemini response projection so combo-routed OpenAI-native providers no longer leak raw `chat.completion.chunk` shapes to Gemini-format clients. (thanks @warelik)
