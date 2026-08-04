@@ -71,6 +71,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
  */
 export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/[^/]+\/login\/?$/,
+  /^\/api\/providers\/[^/]+\/chatgpt-web-codex-doctor\/?$/,
 ];
 
 // `SPAWN_CAPABLE_PREFIXES` (the spawn-capable deny-list) now lives in the
