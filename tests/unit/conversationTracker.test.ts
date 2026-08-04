@@ -19,9 +19,7 @@ import {
   hashTurnsBounded,
   resolveConversationId,
 } from "../../open-sse/services/conversationTracker.ts";
-import {
-  findAgenticConversationsByFingerprint,
-} from "../../src/lib/db/agenticConversations.ts";
+import { findAgenticConversationsByFingerprint } from "../../src/lib/db/agenticConversations.ts";
 
 test("extractCanonicalTurns: OpenAI messages array", () => {
   const turns = extractCanonicalTurns({
@@ -194,10 +192,70 @@ test("resolveConversationId: divergent history mints a new id despite a shared f
 
   // Both conversations really do share one fingerprint bucket — proves the
   // prefix check, not just the fingerprint, is what kept them separate.
-  const turns = extractCanonicalTurns({ messages: [{ role: "user", content: "same first message" }] });
-  const fingerprint = computeFingerprintHash({ apiKeyId, model: "big-pickle", turns, toolNames: [] });
+  const turns = extractCanonicalTurns({
+    messages: [{ role: "user", content: "same first message" }],
+  });
+  const fingerprint = computeFingerprintHash({
+    apiKeyId,
+    model: "big-pickle",
+    turns,
+    toolNames: [],
+  });
   const candidates = findAgenticConversationsByFingerprint(fingerprint);
   assert.ok(candidates.length >= 2);
+});
+
+test("resolveConversationId: continuation is detected even when the system prompt is regenerated every turn (dynamic CLI boilerplate)", async () => {
+  // Real coding-agent CLIs (Claude Code, opencode, etc.) commonly regenerate
+  // the system prompt on EVERY request with live context (timestamp, cwd,
+  // git status...). If the fingerprint/prefix-hash treat the system message
+  // like any other turn, that volatility alone breaks continuation detection
+  // for real traffic — every turn mints a brand new conversation id, even
+  // though apiKeyId/model/toolNames and the actual user/assistant history are
+  // unchanged. Discovered live on a real deployment (#9315 follow-up): 28
+  // consecutive requests from one growing session, each with turn_count=1.
+  const apiKeyId = "key-volatile-system";
+  const dynamicSystem = (n: number) =>
+    `You are an agent. Current time: 2026-08-04T12:0${n}:00Z. cwd: /home/user/project`;
+
+  const turn1 = await resolveConversationId({
+    body: {
+      model: "big-pickle",
+      messages: [
+        { role: "system", content: dynamicSystem(0) },
+        { role: "user", content: "please fix the bug in foo.ts" },
+      ],
+    },
+    model: "big-pickle",
+    apiKeyId,
+    clientSessionIdHeader: null,
+  });
+  assert.equal(turn1.isNewConversation, true);
+
+  const turn2 = await resolveConversationId({
+    body: {
+      model: "big-pickle",
+      messages: [
+        // System prompt regenerated with a DIFFERENT timestamp — everything
+        // else (apiKeyId, model, tool set, actual conversation content) is
+        // identical/growing normally.
+        { role: "system", content: dynamicSystem(1) },
+        { role: "user", content: "please fix the bug in foo.ts" },
+        { role: "assistant", content: "Sure, I'll look at it." },
+        { role: "user", content: "thanks, also check bar.ts" },
+      ],
+    },
+    model: "big-pickle",
+    apiKeyId,
+    clientSessionIdHeader: null,
+  });
+
+  assert.equal(
+    turn2.conversationId,
+    turn1.conversationId,
+    "expected turn2 to be recognized as a continuation despite the regenerated system prompt"
+  );
+  assert.equal(turn2.isNewConversation, false);
 });
 
 test("resolveConversationId: two independent single-message requests must NOT merge, even with byte-identical content", async () => {

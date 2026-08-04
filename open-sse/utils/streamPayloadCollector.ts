@@ -12,6 +12,16 @@ type CollectorOptions = {
   maxEvents?: number;
   maxBytes?: number;
   stage?: string;
+  // When set, every pushed payload — even ones dropped from the retained
+  // `events` array once maxEvents/maxBytes is hit — is also fed to a live
+  // per-format summary reducer, so build()'s summary reflects the FULL
+  // stream, not just the surviving (possibly truncated) event slice.
+  // See #9315: reconstructing the summary from getEvents() after the fact
+  // means a long stream that exceeds the cap gets a stale/incomplete
+  // "provider response" (missing tool_calls, wrong finish_reason, cut-off
+  // content) even though the actual served response was correct.
+  format?: string | null;
+  fallbackModel?: string | null;
 };
 
 type BuildOptions = {
@@ -19,6 +29,11 @@ type BuildOptions = {
 };
 
 type JsonRecord = Record<string, unknown>;
+
+interface SummaryReducer {
+  ingest(payload: JsonRecord): void;
+  finalize(): unknown;
+}
 
 function getEventName(payload: unknown): string | undefined {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return undefined;
@@ -113,13 +128,15 @@ function tryParseJson(raw: string): unknown {
   }
 }
 
-function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string | null): unknown {
-  const payloads = events
-    .map((evt) => asRecord(evt.data))
-    .filter((payload) => Object.keys(payload).length);
-  if (payloads.length === 0) return null;
+// ─── Per-format live reducers ────────────────────────────────────────────────
+// Each reducer mirrors the corresponding build*Summary()'s original for-loop
+// body exactly (ingest = one loop iteration, finalize = the post-loop return),
+// just restructured so it can be fed one payload at a time as chunks arrive —
+// including chunks that will later be dropped from the retained event array
+// once the collector's storage cap is hit.
 
-  const first = payloads[0];
+function createOpenAIReducer(fallbackModel?: string | null): SummaryReducer {
+  let first: JsonRecord | null = null;
   const contentParts: string[] = [];
   const reasoningParts: string[] = [];
   type ToolCall = {
@@ -156,124 +173,126 @@ function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string
     return `seq:${unknownToolCallSeq}`;
   };
 
-  for (const chunk of payloads) {
-    const choice = asRecord(Array.isArray(chunk.choices) ? chunk.choices[0] : null);
-    const delta = asRecord(choice.delta);
+  return {
+    ingest(chunk: JsonRecord) {
+      if (Object.keys(chunk).length === 0) return;
+      if (!first) first = chunk;
 
-    if (typeof delta.content === "string" && delta.content.length > 0) {
-      contentParts.push(delta.content);
-    }
-    if (Array.isArray(delta.content)) {
-      for (const part of delta.content) {
-        const partObj = asRecord(part);
-        if (typeof partObj.text === "string" && partObj.text.length > 0) {
-          contentParts.push(partObj.text);
+      const choice = asRecord(Array.isArray(chunk.choices) ? chunk.choices[0] : null);
+      const delta = asRecord(choice.delta);
+
+      if (typeof delta.content === "string" && delta.content.length > 0) {
+        contentParts.push(delta.content);
+      }
+      if (Array.isArray(delta.content)) {
+        for (const part of delta.content) {
+          const partObj = asRecord(part);
+          if (typeof partObj.text === "string" && partObj.text.length > 0) {
+            contentParts.push(partObj.text);
+          }
         }
       }
-    }
-    if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0) {
-      reasoningParts.push(delta.reasoning_content);
-    }
-    // Normalize `reasoning` alias (NVIDIA kimi-k2.5 etc.)
-    if (
-      typeof delta.reasoning === "string" &&
-      delta.reasoning.length > 0 &&
-      !delta.reasoning_content
-    ) {
-      reasoningParts.push(delta.reasoning);
-    }
-
-    if (Array.isArray(delta.tool_calls)) {
-      for (const item of delta.tool_calls) {
-        const toolCall = asRecord(item);
-        const key = getToolCallKey(toolCall);
-        const existing = toolCalls.get(key);
-        const deltaArgs =
-          typeof asRecord(toolCall.function).arguments === "string"
-            ? String(asRecord(toolCall.function).arguments)
-            : "";
-
-        if (!existing) {
-          toolCalls.set(key, {
-            id: typeof toolCall.id === "string" ? toolCall.id : null,
-            index: Number.isInteger(toolCall.index) ? Number(toolCall.index) : toolCalls.size,
-            type: toString(toolCall.type, "function"),
-            function: {
-              name: toString(asRecord(toolCall.function).name, "unknown"),
-              arguments: deltaArgs,
-            },
-          });
-          continue;
-        }
-
-        existing.id = existing.id || (typeof toolCall.id === "string" ? toolCall.id : null);
-        if (
-          (!Number.isInteger(existing.index) || existing.index < 0) &&
-          Number.isInteger(toolCall.index)
-        ) {
-          existing.index = Number(toolCall.index);
-        }
-        if (typeof asRecord(toolCall.function).name === "string" && !existing.function.name) {
-          existing.function.name = String(asRecord(toolCall.function).name);
-        }
-        existing.function.arguments += deltaArgs;
+      if (typeof delta.reasoning_content === "string" && delta.reasoning_content.length > 0) {
+        reasoningParts.push(delta.reasoning_content);
       }
-    }
+      // Normalize `reasoning` alias (NVIDIA kimi-k2.5 etc.)
+      if (
+        typeof delta.reasoning === "string" &&
+        delta.reasoning.length > 0 &&
+        !delta.reasoning_content
+      ) {
+        reasoningParts.push(delta.reasoning);
+      }
 
-    if (typeof choice.finish_reason === "string" && choice.finish_reason.length > 0) {
-      finishReason = choice.finish_reason;
-    }
-    if (chunk.usage && typeof chunk.usage === "object") {
-      usage = { ...asRecord(chunk.usage) };
-    }
-  }
+      if (Array.isArray(delta.tool_calls)) {
+        for (const item of delta.tool_calls) {
+          const toolCall = asRecord(item);
+          const key = getToolCallKey(toolCall);
+          const existing = toolCalls.get(key);
+          const deltaArgs =
+            typeof asRecord(toolCall.function).arguments === "string"
+              ? String(asRecord(toolCall.function).arguments)
+              : "";
 
-  const joinedContent = contentParts.length > 0 ? contentParts.join("").trim() : null;
-  const joinedReasoning = reasoningParts.length > 0 ? reasoningParts.join("").trim() : null;
-  const message: JsonRecord = {
-    role: "assistant",
-    content: joinedContent || null,
+          if (!existing) {
+            toolCalls.set(key, {
+              id: typeof toolCall.id === "string" ? toolCall.id : null,
+              index: Number.isInteger(toolCall.index) ? Number(toolCall.index) : toolCalls.size,
+              type: toString(toolCall.type, "function"),
+              function: {
+                name: toString(asRecord(toolCall.function).name, "unknown"),
+                arguments: deltaArgs,
+              },
+            });
+            continue;
+          }
+
+          existing.id = existing.id || (typeof toolCall.id === "string" ? toolCall.id : null);
+          if (
+            (!Number.isInteger(existing.index) || existing.index < 0) &&
+            Number.isInteger(toolCall.index)
+          ) {
+            existing.index = Number(toolCall.index);
+          }
+          if (typeof asRecord(toolCall.function).name === "string" && !existing.function.name) {
+            existing.function.name = String(asRecord(toolCall.function).name);
+          }
+          existing.function.arguments += deltaArgs;
+        }
+      }
+
+      if (typeof choice.finish_reason === "string" && choice.finish_reason.length > 0) {
+        finishReason = choice.finish_reason;
+      }
+      if (chunk.usage && typeof chunk.usage === "object") {
+        usage = { ...asRecord(chunk.usage) };
+      }
+    },
+
+    finalize(): unknown {
+      if (!first) return null;
+
+      const joinedContent = contentParts.length > 0 ? contentParts.join("").trim() : null;
+      const joinedReasoning = reasoningParts.length > 0 ? reasoningParts.join("").trim() : null;
+      const message: JsonRecord = {
+        role: "assistant",
+        content: joinedContent || null,
+      };
+      if (joinedReasoning) {
+        message.reasoning_content = joinedReasoning;
+      }
+
+      const finalToolCalls = [...toolCalls.values()].sort((a, b) => a.index - b.index);
+      if (finalToolCalls.length > 0) {
+        finishReason = "tool_calls";
+        message.tool_calls = finalToolCalls;
+      }
+
+      const result: JsonRecord = {
+        id: toString(first.id, `chatcmpl-${Date.now()}`),
+        object: "chat.completion",
+        created: toNumber(first.created, Math.floor(Date.now() / 1000)),
+        model: toString(first.model, fallbackModel || "unknown"),
+        choices: [
+          {
+            index: 0,
+            message,
+            finish_reason: finishReason,
+          },
+        ],
+      };
+
+      if (usage && Object.keys(usage).length > 0) {
+        result.usage = usage;
+      }
+
+      return result;
+    },
   };
-  if (joinedReasoning) {
-    message.reasoning_content = joinedReasoning;
-  }
-
-  const finalToolCalls = [...toolCalls.values()].sort((a, b) => a.index - b.index);
-  if (finalToolCalls.length > 0) {
-    finishReason = "tool_calls";
-    message.tool_calls = finalToolCalls;
-  }
-
-  const result: JsonRecord = {
-    id: toString(first.id, `chatcmpl-${Date.now()}`),
-    object: "chat.completion",
-    created: toNumber(first.created, Math.floor(Date.now() / 1000)),
-    model: toString(first.model, fallbackModel || "unknown"),
-    choices: [
-      {
-        index: 0,
-        message,
-        finish_reason: finishReason,
-      },
-    ],
-  };
-
-  if (usage && Object.keys(usage).length > 0) {
-    result.usage = usage;
-  }
-
-  return result;
 }
 
-function buildResponsesSummary(
-  events: StructuredSSEEvent[],
-  fallbackModel?: string | null
-): unknown {
-  const payloads = events
-    .map((evt) => asRecord(evt.data))
-    .filter((payload) => Object.keys(payload).length);
-  if (payloads.length === 0) return null;
-
+function createResponsesReducer(fallbackModel?: string | null): SummaryReducer {
+  let sawAny = false;
   let completed: JsonRecord | null = null;
   let latestResponse: JsonRecord | null = null;
   let usage: JsonRecord | null = null;
@@ -289,67 +308,72 @@ function buildResponsesSummary(
         ]
       : [];
 
-  for (const payload of payloads) {
-    const eventType = toString(payload.type);
-    if (
-      eventType === "response.completed" &&
-      payload.response &&
-      typeof payload.response === "object"
-    ) {
-      completed = asRecord(payload.response);
-    }
-    if (payload.response && typeof payload.response === "object") {
-      latestResponse = asRecord(payload.response);
-    } else if (payload.object === "response") {
-      latestResponse = payload;
-    }
-    if (
-      eventType === "response.output_text.delta" &&
-      typeof payload.delta === "string" &&
-      payload.delta.length > 0
-    ) {
-      textParts.push(payload.delta);
-    }
-    if (payload.usage && typeof payload.usage === "object") {
-      usage = { ...asRecord(payload.usage) };
-    } else if (payload.response && typeof asRecord(payload.response).usage === "object") {
-      usage = { ...asRecord(asRecord(payload.response).usage) };
-    }
-  }
-
-  const picked = completed || latestResponse;
-  if (picked && Object.keys(picked).length > 0) {
-    const pickedOutput = Array.isArray(picked.output) ? picked.output : [];
-    return {
-      id: toString(picked.id, `resp_${Date.now()}`),
-      object: "response",
-      model: toString(picked.model, fallbackModel || "unknown"),
-      output: pickedOutput.length > 0 ? pickedOutput : buildOutputFromText(),
-      usage: picked.usage ?? usage ?? null,
-      status: toString(picked.status, completed ? "completed" : "in_progress"),
-      created_at: toNumber(picked.created_at, Math.floor(Date.now() / 1000)),
-      metadata: asRecord(picked.metadata),
-    };
-  }
-
   return {
-    id: `resp_${Date.now()}`,
-    object: "response",
-    model: fallbackModel || "unknown",
-    output: buildOutputFromText(),
-    usage: usage ?? null,
-    status: "completed",
-    created_at: Math.floor(Date.now() / 1000),
-    metadata: {},
+    ingest(payload: JsonRecord) {
+      if (Object.keys(payload).length === 0) return;
+      sawAny = true;
+
+      const eventType = toString(payload.type);
+      if (
+        eventType === "response.completed" &&
+        payload.response &&
+        typeof payload.response === "object"
+      ) {
+        completed = asRecord(payload.response);
+      }
+      if (payload.response && typeof payload.response === "object") {
+        latestResponse = asRecord(payload.response);
+      } else if (payload.object === "response") {
+        latestResponse = payload;
+      }
+      if (
+        eventType === "response.output_text.delta" &&
+        typeof payload.delta === "string" &&
+        payload.delta.length > 0
+      ) {
+        textParts.push(payload.delta);
+      }
+      if (payload.usage && typeof payload.usage === "object") {
+        usage = { ...asRecord(payload.usage) };
+      } else if (payload.response && typeof asRecord(payload.response).usage === "object") {
+        usage = { ...asRecord(asRecord(payload.response).usage) };
+      }
+    },
+
+    finalize(): unknown {
+      if (!sawAny) return null;
+
+      const picked = completed || latestResponse;
+      if (picked && Object.keys(picked).length > 0) {
+        const pickedOutput = Array.isArray(picked.output) ? picked.output : [];
+        return {
+          id: toString(picked.id, `resp_${Date.now()}`),
+          object: "response",
+          model: toString(picked.model, fallbackModel || "unknown"),
+          output: pickedOutput.length > 0 ? pickedOutput : buildOutputFromText(),
+          usage: picked.usage ?? usage ?? null,
+          status: toString(picked.status, completed ? "completed" : "in_progress"),
+          created_at: toNumber(picked.created_at, Math.floor(Date.now() / 1000)),
+          metadata: asRecord(picked.metadata),
+        };
+      }
+
+      return {
+        id: `resp_${Date.now()}`,
+        object: "response",
+        model: fallbackModel || "unknown",
+        output: buildOutputFromText(),
+        usage: usage ?? null,
+        status: "completed",
+        created_at: Math.floor(Date.now() / 1000),
+        metadata: {},
+      };
+    },
   };
 }
 
-function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string | null): unknown {
-  const payloads = events
-    .map((evt) => asRecord(evt.data))
-    .filter((payload) => Object.keys(payload).length);
-  if (payloads.length === 0) return null;
-
+function createClaudeReducer(fallbackModel?: string | null): SummaryReducer {
+  let sawAny = false;
   type ClaudeBlock =
     | { type: "text"; index: number; text: string }
     | { type: "thinking"; index: number; thinking: string; signature?: string }
@@ -379,172 +403,177 @@ function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string
   // non-streaming JSON path. Last-writer-wins: the final snapshot is authoritative.
   let contextManagement: JsonRecord | null = null;
 
-  for (const payload of payloads) {
-    const eventType = toString(payload.type);
-    if (
-      payload.context_management &&
-      typeof payload.context_management === "object" &&
-      !Array.isArray(payload.context_management)
-    ) {
-      contextManagement = asRecord(payload.context_management);
-    }
-    if (eventType === "message_start") {
-      const message = asRecord(payload.message);
-      messageId = toString(message.id, messageId || `msg_${Date.now()}`);
-      model = toString(message.model, model);
-      role = toString(message.role, role);
-      mergeUsage(usage, message.usage);
-      continue;
-    }
+  return {
+    ingest(payload: JsonRecord) {
+      if (Object.keys(payload).length === 0) return;
+      sawAny = true;
 
-    if (eventType === "content_block_start") {
-      const index = toNumber(payload.index, blocks.size);
-      const contentBlock = asRecord(payload.content_block);
-      const blockType = toString(contentBlock.type);
-
-      if (blockType === "thinking") {
-        blocks.set(index, {
-          type: "thinking",
-          index,
-          thinking: toString(contentBlock.thinking),
-          signature:
-            typeof contentBlock.signature === "string" ? contentBlock.signature : undefined,
-        });
-      } else if (blockType === "tool_use") {
-        blocks.set(index, {
-          type: "tool_use",
-          index,
-          id: toString(contentBlock.id, `toolu_${Date.now()}_${index}`),
-          name: toString(contentBlock.name),
-          input: cloneLogPayload(contentBlock.input ?? {}),
-          inputJson: "",
-        });
-      } else {
-        blocks.set(index, {
-          type: "text",
-          index,
-          text: toString(contentBlock.text),
-        });
+      const eventType = toString(payload.type);
+      if (
+        payload.context_management &&
+        typeof payload.context_management === "object" &&
+        !Array.isArray(payload.context_management)
+      ) {
+        contextManagement = asRecord(payload.context_management);
       }
-      continue;
-    }
+      if (eventType === "message_start") {
+        const message = asRecord(payload.message);
+        messageId = toString(message.id, messageId || `msg_${Date.now()}`);
+        model = toString(message.model, model);
+        role = toString(message.role, role);
+        mergeUsage(usage, message.usage);
+        return;
+      }
 
-    if (eventType === "content_block_delta") {
-      const index = toNumber(payload.index, 0);
-      const delta = asRecord(payload.delta);
-      const deltaType = toString(delta.type);
-      const existing = blocks.get(index);
+      if (eventType === "content_block_start") {
+        const index = toNumber(payload.index, blocks.size);
+        const contentBlock = asRecord(payload.content_block);
+        const blockType = toString(contentBlock.type);
 
-      if (deltaType === "input_json_delta") {
-        const toolUse =
-          existing && existing.type === "tool_use"
+        if (blockType === "thinking") {
+          blocks.set(index, {
+            type: "thinking",
+            index,
+            thinking: toString(contentBlock.thinking),
+            signature:
+              typeof contentBlock.signature === "string" ? contentBlock.signature : undefined,
+          });
+        } else if (blockType === "tool_use") {
+          blocks.set(index, {
+            type: "tool_use",
+            index,
+            id: toString(contentBlock.id, `toolu_${Date.now()}_${index}`),
+            name: toString(contentBlock.name),
+            input: cloneLogPayload(contentBlock.input ?? {}),
+            inputJson: "",
+          });
+        } else {
+          blocks.set(index, {
+            type: "text",
+            index,
+            text: toString(contentBlock.text),
+          });
+        }
+        return;
+      }
+
+      if (eventType === "content_block_delta") {
+        const index = toNumber(payload.index, 0);
+        const delta = asRecord(payload.delta);
+        const deltaType = toString(delta.type);
+        const existing = blocks.get(index);
+
+        if (deltaType === "input_json_delta") {
+          const toolUse =
+            existing && existing.type === "tool_use"
+              ? existing
+              : {
+                  type: "tool_use" as const,
+                  index,
+                  id: `toolu_${Date.now()}_${index}`,
+                  name: "",
+                  input: {},
+                  inputJson: "",
+                };
+          toolUse.inputJson += toString(delta.partial_json);
+          blocks.set(index, toolUse);
+          return;
+        }
+
+        if (deltaType === "thinking_delta" || typeof delta.thinking === "string") {
+          const thinking =
+            existing && existing.type === "thinking"
+              ? existing
+              : { type: "thinking" as const, index, thinking: "", signature: undefined };
+          thinking.thinking += toString(delta.thinking);
+          blocks.set(index, thinking);
+          return;
+        }
+
+        const textBlock =
+          existing && existing.type === "text"
             ? existing
             : {
-                type: "tool_use" as const,
+                type: "text" as const,
                 index,
-                id: `toolu_${Date.now()}_${index}`,
-                name: "",
-                input: {},
-                inputJson: "",
+                text: "",
               };
-        toolUse.inputJson += toString(delta.partial_json);
-        blocks.set(index, toolUse);
-        continue;
+        textBlock.text += toString(delta.text);
+        blocks.set(index, textBlock);
+        return;
       }
 
-      if (deltaType === "thinking_delta" || typeof delta.thinking === "string") {
-        const thinking =
-          existing && existing.type === "thinking"
-            ? existing
-            : { type: "thinking" as const, index, thinking: "", signature: undefined };
-        thinking.thinking += toString(delta.thinking);
-        blocks.set(index, thinking);
-        continue;
+      if (eventType === "message_delta") {
+        const delta = asRecord(payload.delta);
+        stopReason = toString(delta.stop_reason, stopReason);
+        stopSequence =
+          typeof delta.stop_sequence === "string" ? String(delta.stop_sequence) : stopSequence;
+        mergeUsage(usage, payload.usage);
+        return;
       }
 
-      const textBlock =
-        existing && existing.type === "text"
-          ? existing
-          : {
-              type: "text" as const,
-              index,
-              text: "",
-            };
-      textBlock.text += toString(delta.text);
-      blocks.set(index, textBlock);
-      continue;
-    }
-
-    if (eventType === "message_delta") {
-      const delta = asRecord(payload.delta);
-      stopReason = toString(delta.stop_reason, stopReason);
-      stopSequence =
-        typeof delta.stop_sequence === "string" ? String(delta.stop_sequence) : stopSequence;
       mergeUsage(usage, payload.usage);
-      continue;
-    }
+    },
 
-    mergeUsage(usage, payload.usage);
-  }
+    finalize(): unknown {
+      if (!sawAny) return null;
 
-  const content = [...blocks.values()]
-    .sort((a, b) => a.index - b.index)
-    .flatMap<ClaudeContentBlock>((block) => {
-      if (block.type === "text") {
-        return block.text
-          ? [
-              {
-                type: "text",
-                text: block.text,
-              },
-            ]
-          : [];
-      }
-      if (block.type === "thinking") {
-        return block.thinking
-          ? [
-              {
-                type: "thinking",
-                thinking: block.thinking,
-                ...(block.signature ? { signature: block.signature } : {}),
-              },
-            ]
-          : [];
-      }
+      const content = [...blocks.values()]
+        .sort((a, b) => a.index - b.index)
+        .flatMap<ClaudeContentBlock>((block) => {
+          if (block.type === "text") {
+            return block.text
+              ? [
+                  {
+                    type: "text",
+                    text: block.text,
+                  },
+                ]
+              : [];
+          }
+          if (block.type === "thinking") {
+            return block.thinking
+              ? [
+                  {
+                    type: "thinking",
+                    thinking: block.thinking,
+                    ...(block.signature ? { signature: block.signature } : {}),
+                  },
+                ]
+              : [];
+          }
 
-      const parsedInput =
-        block.inputJson.trim().length > 0
-          ? tryParseJson(block.inputJson)
-          : cloneLogPayload(block.input);
-      return [
-        {
-          type: "tool_use",
-          id: block.id,
-          name: block.name,
-          input: parsedInput,
-        },
-      ];
-    });
+          const parsedInput =
+            block.inputJson.trim().length > 0
+              ? tryParseJson(block.inputJson)
+              : cloneLogPayload(block.input);
+          return [
+            {
+              type: "tool_use",
+              id: block.id,
+              name: block.name,
+              input: parsedInput,
+            },
+          ];
+        });
 
-  return {
-    id: messageId || `msg_${Date.now()}`,
-    type: "message",
-    role,
-    model,
-    content,
-    stop_reason: stopReason,
-    ...(stopSequence ? { stop_sequence: stopSequence } : {}),
-    ...(Object.keys(usage).length > 0 ? { usage } : {}),
-    ...(contextManagement ? { context_management: contextManagement } : {}),
+      return {
+        id: messageId || `msg_${Date.now()}`,
+        type: "message",
+        role,
+        model,
+        content,
+        stop_reason: stopReason,
+        ...(stopSequence ? { stop_sequence: stopSequence } : {}),
+        ...(Object.keys(usage).length > 0 ? { usage } : {}),
+        ...(contextManagement ? { context_management: contextManagement } : {}),
+      };
+    },
   };
 }
 
-function buildGeminiSummary(events: StructuredSSEEvent[], fallbackModel?: string | null): unknown {
-  const payloads = events
-    .map((evt) => asRecord(evt.data))
-    .filter((payload) => Object.keys(payload).length);
-  if (payloads.length === 0) return null;
-
+function createGeminiReducer(fallbackModel?: string | null): SummaryReducer {
+  let sawAny = false;
   const parts: JsonRecord[] = [];
   const usageMetadata: JsonRecord = {};
   let modelVersion = fallbackModel || "gemini";
@@ -565,52 +594,108 @@ function buildGeminiSummary(events: StructuredSSEEvent[], fallbackModel?: string
     parts.push(part);
   };
 
-  for (const payload of payloads) {
-    if (typeof payload.modelVersion === "string" && payload.modelVersion.length > 0) {
-      modelVersion = payload.modelVersion;
-    }
-    mergeUsage(usageMetadata, payload.usageMetadata);
-
-    const candidate = asRecord(Array.isArray(payload.candidates) ? payload.candidates[0] : null);
-    if (typeof candidate.finishReason === "string" && candidate.finishReason.length > 0) {
-      finishReason = candidate.finishReason;
-    }
-
-    const content = asRecord(candidate.content);
-    if (typeof content.role === "string" && content.role.length > 0) {
-      role = content.role;
-    }
-
-    if (!Array.isArray(content.parts)) continue;
-    for (const item of content.parts) {
-      const part = asRecord(item);
-      if (part.functionCall && typeof part.functionCall === "object") {
-        parts.push({
-          functionCall: cloneLogPayload(part.functionCall),
-        });
-      } else if (typeof part.text === "string" && part.text.length > 0) {
-        appendPart({
-          text: part.text,
-          ...(part.thought === true ? { thought: true } : {}),
-        });
-      }
-    }
-  }
-
   return {
-    candidates: [
-      {
-        index: 0,
-        content: {
-          role,
-          parts,
-        },
-        finishReason,
-      },
-    ],
-    ...(Object.keys(usageMetadata).length > 0 ? { usageMetadata } : {}),
-    modelVersion,
+    ingest(payload: JsonRecord) {
+      if (Object.keys(payload).length === 0) return;
+      sawAny = true;
+
+      if (typeof payload.modelVersion === "string" && payload.modelVersion.length > 0) {
+        modelVersion = payload.modelVersion;
+      }
+      mergeUsage(usageMetadata, payload.usageMetadata);
+
+      const candidate = asRecord(Array.isArray(payload.candidates) ? payload.candidates[0] : null);
+      if (typeof candidate.finishReason === "string" && candidate.finishReason.length > 0) {
+        finishReason = candidate.finishReason;
+      }
+
+      const content = asRecord(candidate.content);
+      if (typeof content.role === "string" && content.role.length > 0) {
+        role = content.role;
+      }
+
+      if (!Array.isArray(content.parts)) return;
+      for (const item of content.parts) {
+        const part = asRecord(item);
+        if (part.functionCall && typeof part.functionCall === "object") {
+          parts.push({
+            functionCall: cloneLogPayload(part.functionCall),
+          });
+        } else if (typeof part.text === "string" && part.text.length > 0) {
+          appendPart({
+            text: part.text,
+            ...(part.thought === true ? { thought: true } : {}),
+          });
+        }
+      }
+    },
+
+    finalize(): unknown {
+      if (!sawAny) return null;
+
+      return {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role,
+              parts,
+            },
+            finishReason,
+          },
+        ],
+        ...(Object.keys(usageMetadata).length > 0 ? { usageMetadata } : {}),
+        modelVersion,
+      };
+    },
   };
+}
+
+function createSummaryReducer(
+  format: string | null | undefined,
+  fallbackModel?: string | null
+): SummaryReducer | undefined {
+  const normalized = normalizeFormat(format);
+  if (!normalized) return undefined;
+
+  switch (normalized) {
+    case FORMATS.OPENAI_RESPONSES:
+      return createResponsesReducer(fallbackModel);
+    case FORMATS.CLAUDE:
+      return createClaudeReducer(fallbackModel);
+    case FORMATS.GEMINI:
+    case FORMATS.ANTIGRAVITY:
+      return createGeminiReducer(fallbackModel);
+    default:
+      return createOpenAIReducer(fallbackModel);
+  }
+}
+
+function buildOpenAISummary(events: StructuredSSEEvent[], fallbackModel?: string | null): unknown {
+  const reducer = createOpenAIReducer(fallbackModel);
+  for (const evt of events) reducer.ingest(asRecord(evt.data));
+  return reducer.finalize();
+}
+
+function buildResponsesSummary(
+  events: StructuredSSEEvent[],
+  fallbackModel?: string | null
+): unknown {
+  const reducer = createResponsesReducer(fallbackModel);
+  for (const evt of events) reducer.ingest(asRecord(evt.data));
+  return reducer.finalize();
+}
+
+function buildClaudeSummary(events: StructuredSSEEvent[], fallbackModel?: string | null): unknown {
+  const reducer = createClaudeReducer(fallbackModel);
+  for (const evt of events) reducer.ingest(asRecord(evt.data));
+  return reducer.finalize();
+}
+
+function buildGeminiSummary(events: StructuredSSEEvent[], fallbackModel?: string | null): unknown {
+  const reducer = createGeminiReducer(fallbackModel);
+  for (const evt of events) reducer.ingest(asRecord(evt.data));
+  return reducer.finalize();
 }
 
 export function buildStreamSummaryFromEvents(
@@ -666,19 +751,25 @@ export function compactStructuredStreamPayload(payload: unknown): unknown {
 }
 
 export function createStructuredSSECollector(options: CollectorOptions = {}) {
-  const { maxEvents = 200, maxBytes = 49152, stage } = options;
+  const { maxEvents = 200, maxBytes = 49152, stage, format, fallbackModel } = options;
   const events: StructuredSSEEvent[] = [];
   let usedBytes = 0;
   let droppedEvents = 0;
+  // Live-updated on every push() regardless of the storage cap above — see
+  // the CollectorOptions.format doc comment for why (#9315).
+  const reducer = createSummaryReducer(format, fallbackModel);
 
   return {
     push(payload: unknown, explicitEvent?: string) {
       if (payload === null || payload === undefined) return;
 
+      const clonedData = cloneLogPayload(payload);
+      reducer?.ingest(asRecord(clonedData));
+
       const event: StructuredSSEEvent = {
         index: events.length + droppedEvents,
         timestamp: new Date().toISOString(),
-        data: cloneLogPayload(payload),
+        data: clonedData,
       };
 
       const eventName = explicitEvent || getEventName(payload);
@@ -698,6 +789,17 @@ export function createStructuredSSECollector(options: CollectorOptions = {}) {
 
     getEvents() {
       return events.map((event) => cloneLogPayload(event));
+    },
+
+    // The reducer-computed summary, built incrementally from EVERY pushed
+    // payload (see CollectorOptions.format) — unlike
+    // buildStreamSummaryFromEvents(getEvents(), ...), this is correct even
+    // once the collector has truncated its retained event array. Returns
+    // undefined if no format was configured (e.g. the client-response
+    // collector, which builds its summary from independently-accumulated
+    // response state instead).
+    getSummary(): unknown {
+      return reducer?.finalize();
     },
 
     build(summary?: unknown, buildOptions: BuildOptions = {}) {

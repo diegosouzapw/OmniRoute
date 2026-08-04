@@ -111,11 +111,18 @@ function hashShort(text: string): string {
   return hashHex(text).slice(0, 16);
 }
 
-function extractSystemOrFirstUserText(turns: CanonicalTurn[]): string | null {
-  const system = turns.find((t) => t.role === "system");
-  if (system) return system.text;
-  const firstUser = turns.find((t) => t.role === "user");
-  return firstUser ? firstUser.text : null;
+// Deliberately ignores the system message. Real coding-agent CLIs (Claude
+// Code, opencode, etc.) commonly regenerate the system prompt on EVERY
+// request with live context (timestamp, cwd, git status...) — anchoring
+// identity to it would mint a brand new conversation on every single turn
+// for exactly that kind of real traffic, even though the actual
+// user/assistant history is a genuine, unbroken continuation. Discovered
+// live on a real deployment: 28 consecutive requests from one growing
+// session, each recorded as its own turn_count=1 conversation (issue #9315
+// follow-up).
+function extractFirstNonSystemText(turns: CanonicalTurn[]): string | null {
+  const first = turns.find((t) => t.role !== "system");
+  return first ? first.text : null;
 }
 
 function extractToolNames(body: JsonRecord | null | undefined): string[] {
@@ -124,7 +131,8 @@ function extractToolNames(body: JsonRecord | null | undefined): string[] {
   for (const tool of body.tools as unknown[]) {
     const rec = tool && typeof tool === "object" ? (tool as JsonRecord) : {};
     const fn = rec.function && typeof rec.function === "object" ? (rec.function as JsonRecord) : {};
-    const name = typeof rec.name === "string" ? rec.name : typeof fn.name === "string" ? fn.name : "";
+    const name =
+      typeof rec.name === "string" ? rec.name : typeof fn.name === "string" ? fn.name : "";
     if (name) names.push(name);
   }
   return names.sort();
@@ -136,7 +144,7 @@ export function computeFingerprintHash(input: {
   turns: CanonicalTurn[];
   toolNames: string[];
 }): string {
-  const firstText = extractSystemOrFirstUserText(input.turns);
+  const firstText = extractFirstNonSystemText(input.turns);
   const parts = [
     input.apiKeyId ?? "",
     input.model ?? "",
@@ -162,16 +170,21 @@ const HEAD_TURNS = 2;
 const TAIL_TURNS = 3;
 
 export function hashTurnsBounded(turns: CanonicalTurn[]): string {
-  const head = turns.slice(0, HEAD_TURNS);
-  const tail = turns.length > HEAD_TURNS ? turns.slice(-TAIL_TURNS) : [];
-  const roleSequence = turns.map((t) => t.role[0]).join("");
+  // Same reasoning as extractFirstNonSystemText: a regenerated-every-turn
+  // system prompt must not be part of the continuation signal, or it alone
+  // breaks the head-hash for real CLI traffic even once the fingerprint
+  // bucket lookup (above) correctly finds the right candidate.
+  const relevant = turns.filter((t) => t.role !== "system");
+  const head = relevant.slice(0, HEAD_TURNS);
+  const tail = relevant.length > HEAD_TURNS ? relevant.slice(-TAIL_TURNS) : [];
+  const roleSequence = relevant.map((t) => t.role[0]).join("");
   const parts = [
-    String(turns.length),
+    String(relevant.length),
     roleSequence,
     ...head.map((t) => t.text),
     ...tail.map((t) => t.text),
   ];
-  return hashHex(parts.join(""));
+  return hashHex(parts.join(""));
 }
 
 // ── Orchestration ─────────────────────────────────────────────────────────

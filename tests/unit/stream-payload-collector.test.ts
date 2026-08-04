@@ -110,7 +110,9 @@ test("buildStreamSummaryFromEvents merges tool_call deltas when every chunk carr
       ],
     }),
     toolCallEvent({
-      tool_calls: [{ index: 0, id: "call_a", type: "function", function: { arguments: '{"x":1}' } }],
+      tool_calls: [
+        { index: 0, id: "call_a", type: "function", function: { arguments: '{"x":1}' } },
+      ],
     }),
     toolCallEvent({}, "tool_calls"),
   ];
@@ -214,4 +216,100 @@ test("buildStreamSummaryFromEvents keeps two genuinely different interleaved too
   assert.equal(toolCalls[0].function.arguments, '{"cmd":"a"}');
   assert.equal(toolCalls[1].function.name, "Read");
   assert.equal(toolCalls[1].function.arguments, '{"path":"b"}');
+});
+
+type OpenAIStreamSummary = {
+  choices: Array<{
+    finish_reason: string;
+    message: {
+      tool_calls?: Array<{ function: { name: string; arguments: string } }>;
+      reasoning_content?: string;
+    };
+  }>;
+  usage?: { total_tokens: number };
+};
+
+// #9315 — the dashboard's "Provider Response" panel went stale/incomplete for
+// long streamed responses because it was reconstructed from
+// buildStreamSummaryFromEvents(collector.getEvents(), ...) — and getEvents()
+// only returns whatever survived the collector's maxEvents/maxBytes cap. Once
+// a stream exceeded that cap, every chunk after the cutoff (final
+// finish_reason, tool_calls, rest of reasoning_content, usage) was silently
+// dropped from the reconstruction, even though the client actually received
+// the complete, correct response.
+test("#9315: collector.getSummary() reflects the full stream even after maxEvents truncation", () => {
+  const c = collector.createStructuredSSECollector({
+    maxEvents: 3,
+    format: "openai",
+    fallbackModel: "test-model",
+  });
+
+  // First 3 chunks fill the cap.
+  c.push({
+    id: "chatcmpl-1",
+    object: "chat.completion.chunk",
+    created: 1,
+    model: "test-model",
+    choices: [{ index: 0, delta: { role: "assistant", content: "Thinking" } }],
+  });
+  c.push({ choices: [{ index: 0, delta: { content: " about it" } }] });
+  c.push({ choices: [{ index: 0, delta: { reasoning_content: "step one. " } }] });
+
+  // These all arrive AFTER the cap is full — the OLD reconstruction-from-
+  // getEvents() approach silently loses every one of them.
+  c.push({ choices: [{ index: 0, delta: { reasoning_content: "step two." } }] });
+  c.push({
+    choices: [
+      {
+        index: 0,
+        delta: {
+          tool_calls: [
+            {
+              index: 0,
+              id: "call_1",
+              type: "function",
+              function: { name: "Bash", arguments: '{"cmd":"date"}' },
+            },
+          ],
+        },
+      },
+    ],
+  });
+  c.push({ choices: [{ index: 0, delta: {}, finish_reason: "tool_calls" }] });
+  c.push({
+    choices: [{ index: 0, delta: {} }],
+    usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 },
+  });
+
+  // Sanity check: this test is only meaningful if truncation genuinely happened.
+  const retained = c.getEvents();
+  assert.equal(retained.length, 3, "expected the raw event array to be capped at maxEvents");
+
+  // Characterize the pre-fix bug: reconstructing from the truncated retained
+  // events (the old approach every call site in stream.ts used) misses
+  // everything that arrived after the cap.
+  const staleSummary = collector.buildStreamSummaryFromEvents(
+    retained,
+    "openai",
+    "test-model"
+  ) as OpenAIStreamSummary;
+  assert.equal(staleSummary.choices[0].finish_reason, "stop");
+  assert.equal(staleSummary.choices[0].message.tool_calls, undefined);
+  assert.equal(staleSummary.choices[0].message.reasoning_content, "step one.");
+
+  // The fix: getSummary() was fed every pushed chunk, truncated from storage
+  // or not, so it reflects the true final state.
+  const liveSummary = c.getSummary() as OpenAIStreamSummary;
+  assert.equal(liveSummary.choices[0].finish_reason, "tool_calls");
+  assert.equal(liveSummary.choices[0].message.tool_calls.length, 1);
+  assert.equal(liveSummary.choices[0].message.tool_calls[0].function.name, "Bash");
+  assert.equal(liveSummary.choices[0].message.tool_calls[0].function.arguments, '{"cmd":"date"}');
+  assert.equal(liveSummary.choices[0].message.reasoning_content, "step one. step two.");
+  assert.equal(liveSummary.usage.total_tokens, 30);
+});
+
+test("#9315: getSummary() returns undefined when no format was configured (unaffected client-response collector)", () => {
+  const c = collector.createStructuredSSECollector({ maxEvents: 200 });
+  c.push({ choices: [{ index: 0, delta: { content: "hi" } }] });
+  assert.equal(c.getSummary(), undefined);
 });
