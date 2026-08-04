@@ -6,6 +6,8 @@ import {
   hasStreamReadinessSignal,
   hasUsefulStreamContent,
 } from "../../open-sse/utils/streamReadiness.ts";
+import { checkFallbackError } from "../../open-sse/services/accountFallback.ts";
+import { resolveStreamReadinessClassificationError } from "../../src/sse/handlers/chatPredicates.ts";
 
 const encoder = new TextEncoder();
 
@@ -576,7 +578,93 @@ test("ensureStreamReadiness returns 502 when stream ends without a non-ping SSE 
 
   const result = await ensureStreamReadiness(response, { timeoutMs: 100 });
   assert.equal(result.ok, false);
+  if (result.ok) assert.fail("keepalive-only SSE payload must remain a readiness failure");
   assert.equal(result.response.status, 502);
+  assert.equal(result.reason, "Stream ended before producing a non-ping SSE event");
+  assert.equal(result.classificationReason, result.reason);
+  const body = (await result.response.json()) as Record<string, unknown>;
+  assert.equal("upstream_details" in body, false);
+});
+
+test("ensureStreamReadiness preserves sanitized error-only diagnostics on early EOF (#8972)", async () => {
+  const warnings: string[] = [];
+  const response = new Response(
+    streamFromChunks([
+      `data: ${JSON.stringify({
+        error: {
+          message:
+            "UPSTREAM_DETAIL quota exhausted; retry after 2s; empty content " +
+            "Bearer TOP_SECRET /srv/omniroute/handler.ts:42",
+        },
+      })}\n\n`,
+      `data: ${JSON.stringify({ error: { message: "SECOND_DETAIL" } })}\n\n`,
+    ]),
+    { status: 200, headers: { "Content-Type": "text/event-stream" } }
+  );
+
+  const result = await ensureStreamReadiness(response, {
+    timeoutMs: 100,
+    provider: "test-provider",
+    model: "test-model",
+    log: {
+      warn: (_tag, message) => warnings.push(message),
+    },
+  });
+
+  assert.equal(result.ok, false);
+  if (result.ok) assert.fail("error-only SSE payload must remain a readiness failure");
+  assert.equal(result.response.status, 502);
+  assert.equal(result.code, "STREAM_EARLY_EOF");
+  assert.equal(result.type, "stream_early_eof");
+  assert.equal(
+    result.classificationReason,
+    "Stream ended before producing a non-ping SSE event"
+  );
+  assert.equal(
+    result.upstreamDiagnostic,
+    "UPSTREAM_DETAIL quota exhausted; retry after 2s; empty content Bearer [REDACTED] <path>"
+  );
+
+  const body = (await result.response.json()) as {
+    error: { message: string; code: string; type: string };
+    upstream_details: { error: { message: string } };
+  };
+  assert.equal(body.error.message, result.classificationReason);
+  assert.doesNotMatch(body.error.message, /quota|retry after|empty content/i);
+  assert.equal(body.error.code, "STREAM_EARLY_EOF");
+  assert.equal(body.error.type, "stream_early_eof");
+  assert.equal(body.upstream_details.error.message, result.upstreamDiagnostic);
+  assert.equal(warnings.length, 1);
+
+  for (const surfaced of [
+    result.reason,
+    body.upstream_details.error.message,
+    warnings[0],
+  ]) {
+    assert.match(surfaced, /UPSTREAM_DETAIL/);
+    assert.doesNotMatch(
+      surfaced,
+      /SECOND_DETAIL|TOP_SECRET|\/srv\/omniroute\/handler\.ts/
+    );
+  }
+});
+
+test("stream-readiness diagnostics cannot reclassify Antigravity account exhaustion (#8972)", () => {
+  const classificationError = "Stream ended before producing a non-ping SSE event";
+  const diagnostic = "UPSTREAM_DETAIL quota exhausted; retry after 2s; empty content";
+  const routedError = resolveStreamReadinessClassificationError({
+    classificationError,
+    error: `${classificationError}: ${diagnostic}`,
+    errorCode: "STREAM_EARLY_EOF",
+  });
+
+  assert.equal(routedError, classificationError);
+  assert.equal(checkFallbackError(502, routedError, 0, null, "antigravity").reason, "server_error");
+  assert.equal(
+    checkFallbackError(502, diagnostic, 0, null, "antigravity").reason,
+    "quota_exhausted",
+    "the regression fixture must prove that leaking the operator diagnostic changes routing"
+  );
 });
 
 test("ensureStreamReadiness accepts a final event without a trailing blank line", async () => {

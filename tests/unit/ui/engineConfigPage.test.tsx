@@ -201,8 +201,10 @@ describe("EngineConfigPage", () => {
       await Promise.resolve();
     });
 
-    // EngineConfigForm should render the "Min rows" field label from the schema
-    expect(container.textContent).toContain("Min rows");
+    // EngineConfigForm prefers the i18n label (compressionEngineConfig.fields.minRows.label
+    // in en.json) over the mocked schema's own "Min rows" when a translation exists — see
+    // EngineConfigPage.tsx's `t.has(labelKey) ? t(labelKey) : field.label`.
+    expect(container.textContent).toContain("Minimum rows to compact");
   });
 
   it("keeps detailed config but renders no engine enable checkbox", async () => {
@@ -222,7 +224,8 @@ describe("EngineConfigPage", () => {
     // The on/off enable toggle (a checkbox with data-toggle="enable") is gone; the
     // detailed config form (the schema fields minus `enabled`) still renders.
     expect(container.querySelector("input[type='checkbox'][data-toggle='enable']")).toBeNull();
-    expect(container.textContent).toContain("Min rows");
+    // See the i18n-label-override note above (compressionEngineConfig.fields.minRows.label).
+    expect(container.textContent).toContain("Minimum rows to compact");
     expect(container.textContent).toContain("Configuration");
   });
 

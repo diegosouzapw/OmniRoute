@@ -532,6 +532,8 @@ Response example:
 | `/api/usage/request-logs`   | GET             | Request-level logs              |
 | `/api/usage/[connectionId]` | GET             | Per-connection usage            |
 | `/api/usage/token-limits`   | GET/POST/DELETE | Per-API-key token-limit budgets |
+| `/api/usage/model-latency-stats` | GET        | Rolling per-provider/model latency aggregate (avg/p50/p95/p99, success rate); filters: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873) |
+| `/api/usage/cache-health`   | GET             | Prompt-cache health summary over `call_logs` — write/read ratio, p50/p90/p99 write-size distribution, heavy-write concentration, per-model split, and a `healthy`/`degraded`/`thrash`/`no-data` verdict; query params `range` (`1h`\|`24h`\|`7d`\|`30d`, default `24h`) and optional `model` (#8827) |
 
 ### Settings
 

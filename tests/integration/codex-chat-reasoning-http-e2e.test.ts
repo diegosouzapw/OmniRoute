@@ -271,11 +271,14 @@ test("chat completions streams Codex Responses reasoning through real route HTTP
     assert.equal(recorded[0].url, CODEX_RESPONSES_URL);
     assert.equal(recorded[0].method, "POST");
     assert.deepEqual(recorded[0].body.reasoning, { effort: "high", summary: "auto" });
+    // `status: "completed"` on input items is required by strict upstream Responses
+    // validators — added deliberately by #8507 (#8083); it is part of the contract now.
     assert.deepEqual(recorded[0].body.input, [
       {
         type: "message",
         role: "user",
         content: [{ type: "input_text", text: "What is the answer?" }],
+        status: "completed",
       },
     ]);
 

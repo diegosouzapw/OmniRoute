@@ -1,7 +1,9 @@
+import { z } from "zod";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { callCloudWithMachineId } from "@/shared/utils/cloud";
 import { handleChat } from "@/sse/handlers/chat";
 import { generateRequestId } from "@/shared/utils/requestId";
+import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { createInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { acceptHeaderForcesStream } from "@omniroute/open-sse/utils/aiSdkCompat.ts";
@@ -43,6 +45,28 @@ function ensureInitialized() {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
+
+// Minimal request-shape validation (Rule #7 / T06 gate). This is the hottest path in the
+// proxy, and the body is already parsed exactly once above into `parsedBody` (see the
+// #4380/#7862 comment on the single `request.json()` call) — so this only runs `.safeParse()`
+// over that already-parsed object, it does NOT read the body again.
+//
+// Deliberately permissive: `src/sse/handlers/chat.ts` (deeper in `handleChat`) owns the real
+// validation of this payload — messages/model/temperature/top_p/max_tokens/n — and accepts
+// shapes this schema must not newly reject, e.g. a `model` that is entirely absent (resolved
+// later via `input`/antigravity) or `null`, and message `role`s such as `"developer"` (see
+// `open-sse/services/roleNormalizer.ts`) that a stricter enum would exclude. `.passthrough()`
+// keeps every other field (stream, tools, reasoning, provider-specific extras, ...) intact.
+// This schema only asserts what the route already assumes before handing `parsedBody` to
+// `handleChat`: a non-null object, `model` a nullable string when present, `messages` an
+// array when present — so `.safeParse()` failing here is always a shape the deep validation
+// would already have rejected with its own 400, never a new rejection.
+const chatCompletionsRouteShapeSchema = z
+  .object({
+    model: z.string().nullable().optional(),
+    messages: z.array(z.unknown()).optional(),
+  })
+  .passthrough();
 
 /**
  * Handle CORS preflight
@@ -103,6 +127,18 @@ export async function POST(request) {
     try {
       parsedBody = await request.json().catch(() => null);
       if (parsedBody) {
+        // Route-level shape gate (T06) — validates the object already parsed above; it
+        // never reads the request body a second time. See chatCompletionsRouteShapeSchema
+        // for why this stays scoped to record-shaped bodies and deliberately permissive.
+        if (isRecord(parsedBody)) {
+          const shapeCheck = chatCompletionsRouteShapeSchema.safeParse(parsedBody);
+          if (!shapeCheck.success) {
+            const issue = shapeCheck.error.issues[0];
+            const field = issue?.path?.length ? issue.path.join(".") : "body";
+            return finishAdmission(errorResponse(400, `${field}: ${issue?.message ?? "Invalid request"}`));
+          }
+        }
+
         const structuralAdmission = admitChatStructure(parsedBody, admission.lease);
         if (structuralAdmission.admit === false) {
           admission.lease?.release();

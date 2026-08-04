@@ -20,21 +20,11 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => {
-    const messages: Record<string, string> = {
-      "card.detected": "Detected",
-      "card.notDetected": "Not detected",
-      "card.configure": "Configure →",
-      "card.howToInstall": "How to install →",
-      "card.baseUrlPartial": "Partial Base URL",
-      "card.alsoAcp": "also ACP",
-      "card.connectProviderHint": "Connect a provider in Providers",
-    };
-    return (key: string) => messages[key] ?? key;
-  },
-  useLocale: () => "en",
-}));
+// next-intl: no local mock — falls through to the real-EN-text default mock in
+// tests/_setup/vitestUiPolyfills.ts. The previous local mock hand-copied a partial
+// message subset under a single flat table shared across both `useTranslations("cliCommon")`
+// and `useTranslations("cliTools")` calls in CliToolCard.tsx, which drifted out of sync
+// (missing "versionNotFound"/"manualConfig") and didn't separate namespaces.
 
 // Stub CliStatusBadge so it doesn't need next-intl internals
 vi.mock("@/app/(dashboard)/dashboard/cli-code/components/CliStatusBadge", () => ({

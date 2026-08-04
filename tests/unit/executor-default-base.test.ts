@@ -669,9 +669,9 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
   assert.equal(calls[0].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
   assert.equal(
     calls[0].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
-    false
+    true
   );
-  assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
+  assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
   assert.equal(
     calls[1].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
     true
@@ -1513,6 +1513,6 @@ test("DefaultExecutor.execute does not produce duplicate anthropic-version heade
   const sentBody = JSON.parse(capturedBody) as { system?: Array<{ text?: string }> };
   assert.match(
     sentBody.system?.[0]?.text ?? "",
-    /^x-anthropic-billing-header: cc_version=2\.1\.219\.250; cc_entrypoint=cli; cch=[0-9a-f]{5};$/
+    /^x-anthropic-billing-header: cc_version=2\.1\.220\.1f2; cc_entrypoint=cli; cch=[0-9a-f]{5};$/
   );
 });

@@ -3,6 +3,7 @@ import { parseSSEDataPayload } from "./streamHelpers.ts";
 import {
   backfillResponsesCompletedOutput,
   normalizeResponsesSseIds,
+  normalizeResponsesCompletedUsage,
   pushUniqueResponsesOutputItems,
   stringifyIdValue,
   stripResponsesLifecycleEcho,
@@ -174,13 +175,20 @@ function handleResponsesTailPayload(
   const outputPayload = textualToolCallBackfilled
     ? context.toResponsesCompletedWithToolCalls(parsed)
     : parsed;
+  const usageNormalized = normalizeResponsesCompletedUsage(outputPayload);
   const stripped = stripResponsesLifecycleEcho(outputPayload);
   const backfilled = backfillResponsesCompletedOutput(
     outputPayload,
     context.passthroughResponsesOutputItems
   );
 
-  if (stripped || backfilled || textualToolCallBackfilled || responsesIdsNormalized) {
+  if (
+    stripped ||
+    backfilled ||
+    textualToolCallBackfilled ||
+    responsesIdsNormalized ||
+    usageNormalized
+  ) {
     output = `data: ${JSON.stringify(outputPayload)}\n\n`;
   }
 

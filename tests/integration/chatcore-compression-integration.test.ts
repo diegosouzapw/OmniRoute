@@ -167,25 +167,28 @@ test("chatCore integration: disabled prompt compression leaves combo override re
     },
   });
 
-  // Body sits in (0.7*limit, limit): proves compression skip without the #7379 over-window reject.
+  // Body stays BELOW the reactive-compaction threshold (70% of the window): #8595/#8560
+  // decoupled REACTIVE compaction from the `enabled` switch, so a larger body is legitimately
+  // pruned even with compression off. Under test here: `enabled: false` makes resolveBasePlan()
+  // (compression/strategySelector.ts) return mode "off" before it ever reads comboOverrides.
   const body = {
     model: "combo/disabled-compression-combo",
     stream: false,
     messages: [
       { role: "system", content: "You are helpful." },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(450)}First long turn.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(300)}First long turn.` },
       { role: "assistant", content: "Response 1" },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(450)}Second long turn.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(300)}Second long turn.` },
       { role: "assistant", content: "Response 2" },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(450)}Final question.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(300)}Final question.` },
     ],
   };
   const contextLimit = getTokenLimit(provider, model);
   const proactiveThreshold = Math.floor(contextLimit * 0.7);
   const estimatedBodyTokens = estimateTokens(JSON.stringify(body.messages));
   assert.ok(
-    estimatedBodyTokens > proactiveThreshold && estimatedBodyTokens < contextLimit,
-    `Body tokens must sit in (${proactiveThreshold}, ${contextLimit}): ${estimatedBodyTokens}`
+    estimatedBodyTokens > 0 && estimatedBodyTokens < proactiveThreshold,
+    `Body tokens must stay below the reactive-compaction threshold (${proactiveThreshold}): ${estimatedBodyTokens}`
   );
 
   let capturedBody: { messages?: Array<{ role?: string; content?: string }> } | null = null;

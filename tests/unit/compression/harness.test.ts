@@ -77,7 +77,7 @@ describe("compression harness — eval runner (C1)", () => {
 });
 
 describe("compression harness — tokens-per-task gate (N4)", () => {
-  const longInput = "lorem ipsum dolor sit amet ".repeat(40);
+  const longInput = "example content for testing purposes ".repeat(40);
 
   it("passes when cost/task matches the baseline", async () => {
     const corpus = [{ id: "a", input: longInput, task: "chat" }];

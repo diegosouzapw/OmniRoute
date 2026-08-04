@@ -20,14 +20,15 @@ request. Blocking is an explicit decision (`block: true`), never an accident.
 
 ## Built-in Guardrails
 
-The registry auto-loads three guardrails in priority order on import
+The registry auto-loads four guardrails in priority order on import
 (see `registry.ts` → `registerDefaultGuardrails()`):
 
-| Priority | Name               | Stage(s)       | File                 |
-| -------- | ------------------ | -------------- | -------------------- |
-| `5`      | `vision-bridge`    | `preCall`      | `visionBridge.ts`    |
-| `10`     | `pii-masker`       | `pre` + `post` | `piiMasker.ts`       |
-| `20`     | `prompt-injection` | `preCall`      | `promptInjection.ts` |
+| Priority | Name                 | Stage(s)       | File                  |
+| -------- | -------------------- | -------------- | --------------------- |
+| `5`      | `vision-bridge`       | `preCall`      | `visionBridge.ts`     |
+| `10`     | `pii-masker`          | `pre` + `post` | `piiMasker.ts`        |
+| `20`     | `prompt-injection`    | `preCall`      | `promptInjection.ts`  |
+| `95`     | `credential-masker`   | `pre` + `post` | `credentialMasker.ts` |
 
 Lower priority numbers run **first**.
 
@@ -117,6 +118,36 @@ joined prompt text — `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 bytes) in
 the pattern loop. Injection directives sit near the top of an input, so this
 caps regex CPU/GC on multi-hundred-KB payloads without weakening detection (cf.
 #3932, #4041).
+
+### Credential Masker (`credentialMasker.ts`)
+
+Runs on **both** stages, last in the default chain (priority `95`). Redacts
+well-known API-key / secret-token patterns from the outbound payload (message
+content, tool-call arguments, tool results) **and** the provider response, so a
+credential pasted into a prompt (or echoed back by a tool result) is not leaked
+to the upstream provider or back to the client.
+
+- **Opt-in only**, same convention as PII redaction (Hard Rule #20-adjacent):
+  disabled unless `settings.credentialRedactionEnabled === true` **or**
+  `CREDENTIAL_REDACTION_ENABLED=true`. With it off, the guardrail is a no-op —
+  it never blocks and never rewrites.
+- `redactCredentials()` walks the full payload/response tree (`walkValue()`,
+  prototype-pollution-safe, cycle-safe via `WeakSet`) and replaces matches with
+  a `[REDACTED:<type>]` placeholder, cloning only the branches that actually
+  changed.
+- `CREDENTIAL_PATTERNS` covers LLM provider keys (OpenAI, OpenAI-proj,
+  Anthropic, Google, Hugging Face, Replicate), VCS/SaaS tokens (GitHub, Slack,
+  Linear, Notion, npm, Postman, Discord), payment keys (Stripe, Square), cloud
+  keys (AWS access key, Twilio, SendGrid, Mailgun), private keys / JWTs,
+  credential-bearing connection strings (`mongodb://user:pass@...`, etc.), and
+  a generic `Authorization`/`x-api-key`/`api-key`/`apikey` header-value
+  pattern. Header-shaped keys (`authorization`, `x-api-key`, `api-key`,
+  `apikey`) are redacted structurally (value only, scheme prefix like
+  `Bearer `/`Basic ` preserved) rather than via the generic text regex.
+- The guardrail never blocks; it only rewrites (`modifiedPayload` /
+  `modifiedResponse`) and annotates (`meta.credentialsRedacted`, `meta.count`).
+
+Regression guard: `tests/unit/credential-masker-guardrail.test.ts`.
 
 ## Base Contract (`base.ts`)
 

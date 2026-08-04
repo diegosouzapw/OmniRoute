@@ -3726,7 +3726,7 @@
     "modelsCount": "{count, plural, one {# 個模型} other {# 個模型}}",
     "sectionTitle": "整合入口",
     "sectionDescription": "OpenAI 相容 API 與操作協議端點",
-    "tabApis": "OpenAI 相容 API",
+    "tabApis": "__MISSING__:APIs",
     "tabProtocols": "協議",
     "tabsAria": "端點分割槽",
     "protocolsTitle": "協議",
@@ -5623,13 +5623,13 @@
     "importGrokAuth": "匯入 Grok Build 驗證",
     "zedImportTitle": "從 Zed 鑰匙圈匯入",
     "zedImportDescription": "探索 Zed IDE 存放在 OS 鑰匙圈中的 AI 提供者憑證（OpenAI、Anthropic、Google、Mistral、xAI），並將其匯入為連線。此機器上必須已安裝 Zed IDE。",
-    "zedImportButton": "從 Zed 匯入",
-    "zedImportFailed": "Zed 匯入失敗",
+    "zedImportButton": "__MISSING__:Import from Zed",
+    "zedImportFailed": "__MISSING__:Zed import failed",
     "zedImportHint": "從 Zed 設定中匯入 Provider。",
     "zedImportNetworkError": "Zed 匯入網路錯誤",
     "zedImportNone": "沒有可從 Zed 匯入的內容",
-    "zedImportSuccess": "Zed 匯入成功",
-    "zedImporting": "正在從 Zed 匯入",
+    "zedImportSuccess": "__MISSING__:Imported {credentials} credential(s) from Zed for {providers} provider(s)",
+    "zedImporting": "__MISSING__:Importing…",
     "zedNoCredentials": "在鑰匙圈中找不到 Zed 憑證",
     "zedUnsupportedCredentials": "找到 {count} 個鑰匙圈憑證，但均未匹配支援的提供者",
     "zedManualTitle": "手動 Token 匯入",
@@ -6013,7 +6013,22 @@
     "lmarenaWebCookieHint": "開啟 arena.ai，登入後從網路請求中複製完整的 Cookie 標頭。請包含 arena-auth-prod-v1.0 和 arena-auth-prod-v1.1（以及後續區塊，如有），最好附帶 cf_clearance。請勿僅貼上空白的 arena-auth-prod-v1 cookie。可選：若 create-evaluation 仍然回傳 403，可提供 providerSpecificData.recaptchaV3Token。",
     "kimiOfficialSupporterBadge": "創始好友",
     "kimiOfficialSupporterTooltip": "Kimi（Moonshot AI）是 OmniRoute 的創始開源好友",
-    "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費"
+    "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費",
+    "cheaperInferenceSupporterBadge": "開源好友",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference 作為開源好友支持 OmniRoute",
+    "kimiPartnerLinkNote": "合作夥伴連結 — 支援 OmniRoute，您無需額外付費",
+    "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
+    "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
+    "ccAliasProviderLevelLabel": "__MISSING__:Provider default",
+    "ccAliasModelOverridesLabel": "__MISSING__:Per-model overrides",
+    "ccAliasModelOverrideAriaLabel": "__MISSING__:Override for {modelId}",
+    "ccAliasStateInherit": "__MISSING__:Inherit",
+    "ccAliasStateOn": "__MISSING__:On",
+    "ccAliasStateOff": "__MISSING__:Off",
+    "ccAliasAddModelPlaceholder": "__MISSING__:Model id (e.g. gpt-4o)",
+    "ccAliasAddModelButton": "__MISSING__:Add override",
+    "ccAliasLoadError": "__MISSING__:Failed to load discovery-alias settings: {error}",
+    "ccAliasSaveError": "__MISSING__:Failed to save discovery-alias setting: {error}"
   },
   "settings": {
     "title": "設定",
@@ -6828,7 +6843,7 @@
     "howPricingWorks": "定價如何運作",
     "cacheWrite": "快取寫入",
     "unsaved": "未儲存",
-    "resetDefaults": "重置預設值",
+    "resetDefaults": "__MISSING__:Reset defaults",
     "saveProvider": "儲存提供者",
     "model": "模型",
     "models": "模型",
@@ -11402,7 +11417,7 @@
       }
     },
     "pageTitle": "特工技能",
-    "pageSubtitle": "教你的代理操作 OmniRoute — 22 個 API 區域 + 20 個 CLI 家族",
+    "pageSubtitle": "__MISSING__:Teach your agent to operate OmniRoute — 23 API areas + 21 CLI families",
     "conceptCard": {
       "agent": {
         "title": "代理技能 — 外呼",
@@ -12260,5 +12275,6 @@
     "cta": "取得 Kimi Code",
     "partnerLinkNote": "合作夥伴連結",
     "dismissAriaLabel": "關閉"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

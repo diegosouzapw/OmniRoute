@@ -96,7 +96,7 @@ function getNextSortOrder() {
 export async function getCombos(limit?: number, offset?: number) {
   const db = getDbInstance();
   let sql =
-    "SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC";
+    "SELECT id, data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC";
   const params: unknown[] = [];
   if (limit !== undefined) {
     sql += " LIMIT ? OFFSET ?";

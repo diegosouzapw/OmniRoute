@@ -55,6 +55,7 @@ import { forwardOpencodeClientHeaders } from "../utils/opencodeHeaders.ts";
 import { resolveZaiUrl } from "./default/zaiFormatOverride.ts";
 import { acquireNvidiaConcurrencySlot } from "./default/nvidiaConcurrencyGate.ts";
 import { resolveAlibabaProviderBaseUrl } from "@/shared/constants/alibabaProviderRegions";
+import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
 
 import type { PoolConfig } from "../services/sessionPool/types.ts";
 
@@ -291,6 +292,10 @@ export class DefaultExecutor extends BaseExecutor {
       case "minimax":
       case "minimax-cn":
         return `${this.config.baseUrl}?beta=true`;
+      case "agentrouter":
+        return this.usesClaudeCodeProtocol(credentials)
+          ? `${this.config.baseUrl}?beta=true`
+          : this.config.baseUrl;
       case "gemini":
         return `${this.config.baseUrl}/${model}:${stream ? "streamGenerateContent?alt=sse" : "generateContent"}`;
       default: {
@@ -413,7 +418,7 @@ export class DefaultExecutor extends BaseExecutor {
         applyClineAuthHeaders(headers, credentials, effectiveKey, clientHeaders, false);
         break;
       default:
-        if (isClaudeCodeCompatible(this.provider)) {
+        if (this.usesClaudeCodeProtocol(credentials)) {
           const ccRequestDefaults = getClaudeCodeCompatibleRequestDefaults(
             credentials?.providerSpecificData
           );
@@ -423,6 +428,10 @@ export class DefaultExecutor extends BaseExecutor {
             credentials?.providerSpecificData?.ccSessionId,
             { redactThinking: ccRequestDefaults.redactThinking === true }
           );
+          if (usesCcWireImage(this.provider)) {
+            delete ccHeaders["Authorization"];
+            ccHeaders["x-api-key"] = effectiveKey || credentials.accessToken || "";
+          }
           // CC nodes are also anthropic-compatible-*, so honor operator custom
           // headers here (the early return skips the shared block below).
           applyCustomHeaders(ccHeaders, credentials.providerSpecificData?.customHeaders);

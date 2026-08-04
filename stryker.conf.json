@@ -291,6 +291,7 @@
       "tests/unit/sse-auth-antigravity-credits.test.ts",
       "tests/unit/sse-auth-resource-404.test.ts",
       "tests/unit/sse-auth.test.ts",
+      "tests/unit/stream-readiness.test.ts",
       "tests/unit/strict-random-deck.test.ts",
       "tests/unit/strip-reasoning-header.test.ts",
       "tests/unit/system-role-extraction.test.ts",

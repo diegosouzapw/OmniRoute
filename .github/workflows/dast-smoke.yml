@@ -59,8 +59,14 @@ jobs:
       - run: pip install schemathesis
       - name: Schemathesis smoke (high-risk endpoints, blocking)
         run: |
+          # /api/auth/oidc/* is a BROWSER redirect flow (302 to the IdP, 302 back to
+          # /login?oidc_error=... on every failure), not a REST endpoint: Schemathesis reads
+          # those 302s as "the API accepted a schema-violating request" and the configured-off
+          # 400 as "rejected a schema-compliant request". Documenting the flow in the spec is
+          # still right (operators need it); fuzzing it is not what this smoke is for.
           schemathesis run docs/openapi.yaml --url http://localhost:20128 \
             --include-path-regex '^/v1/(chat/completions|models)$|^/api/(auth|keys)' \
+            --exclude-path-regex '^/api/auth/oidc/' \
             --max-examples 8 --workers 4 --checks all --max-response-time 30 \
             --request-timeout 20 --suppress-health-check all --no-color
       - name: promptfoo injection-guard (blocking)
