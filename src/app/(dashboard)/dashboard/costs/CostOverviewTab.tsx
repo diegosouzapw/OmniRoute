@@ -1,26 +1,28 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useProviderNodeMap, resolveProviderName } from "@/lib/display/useProviderNodeMap";
 import { Card, EmptyState, SegmentedControl, CardSkeleton } from "@/shared/components";
 import {
   getServiceTierDisplayLabel,
   type TranslationFn as CostTranslationFn,
 } from "@/shared/utils/serviceTierLabels";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  BarChart,
-  Bar,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+const CostTrendCard = dynamic(
+  () => import("./components/CostCharts").then((m) => ({ default: m.CostTrendCard })),
+  { ssr: false }
+);
+const ProviderSpendCard = dynamic(
+  () => import("./components/CostCharts").then((m) => ({ default: m.ProviderSpendCard })),
+  { ssr: false }
+);
+const WeeklyPatternCard = dynamic(
+  () => import("./components/CostCharts").then((m) => ({ default: m.WeeklyPatternCard })),
+  { ssr: false }
+);
 
 import {
   buildCostExplorerRows,
@@ -30,7 +32,16 @@ import {
   type CostExplorerSortKey,
 } from "./costExplorerUtils";
 
-type CostRange = "7d" | "30d" | "90d" | "all";
+import {
+  parseApiKeyIds,
+  parseCostRange,
+  parseExplorerGroupBy,
+  type CostRange,
+} from "./costExplorerParams";
+import { ApiKeyUsageLimitCard } from "./components/ApiKeyUsageLimitCard";
+import { MetricCard } from "./components/MetricCard";
+import { TopListCard } from "./components/TopListCard";
+import { useApiKeyUsageLimits } from "./useApiKeyUsageLimits";
 
 interface UsageAnalyticsSummary {
   totalCost: number;
@@ -117,6 +128,8 @@ const RANGE_OPTIONS: Array<{ value: CostRange; labelKey: string }> = [
   { value: "7d", labelKey: "range7d" },
   { value: "30d", labelKey: "range30d" },
   { value: "90d", labelKey: "range90d" },
+  { value: "180d", labelKey: "range180d" },
+  { value: "365d", labelKey: "range365d" },
   { value: "all", labelKey: "rangeAll" },
 ];
 
@@ -142,7 +155,25 @@ const CHART_COLORS = [
   "#ec4899",
 ];
 
-function createCurrencyFormatter(locale: string) {
+const SHORT_WEEKDAY_INDEX: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+function formatWeekdayLabel(day: string, locale: string): string {
+  const index = SHORT_WEEKDAY_INDEX[day.slice(0, 3)];
+  if (index === undefined) return day;
+  return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(
+    new Date(Date.UTC(2024, 0, 7 + index))
+  );
+}
+
+export function createCurrencyFormatter(locale: string) {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "USD",
@@ -273,8 +304,14 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 export default function CostOverviewTab() {
   const t = useTranslations("costs");
   const locale = useLocale();
+  const nodeMap = useProviderNodeMap();
+  const searchParams = useSearchParams();
+  const apiKeyIdsParam = searchParams.get("apiKeyIds");
+  const selectedApiKeyIds = useMemo(() => parseApiKeyIds(apiKeyIdsParam), [apiKeyIdsParam]);
+  const selectedApiKeyId = selectedApiKeyIds.length === 1 ? selectedApiKeyIds[0] : null;
+  const apiKeyFilter = useMemo(() => selectedApiKeyIds.join(","), [selectedApiKeyIds]);
   const currencyFormatter = useMemo(() => createCurrencyFormatter(locale), [locale]);
-  const [range, setRange] = useState<CostRange>("30d");
+  const [range, setRange] = useState<CostRange>(() => parseCostRange(searchParams.get("range")));
   const [analytics, setAnalytics] = useState<UsageAnalyticsPayload | null>(null);
   const [presetCosts, setPresetCosts] = useState<Record<"1d" | "7d" | "30d", number>>({
     "1d": 0,
@@ -284,11 +321,18 @@ export default function CostOverviewTab() {
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [explorerGroupBy, setExplorerGroupBy] = useState<CostExplorerGroupBy>("provider");
+  const [explorerGroupBy, setExplorerGroupBy] = useState<CostExplorerGroupBy>(() =>
+    parseExplorerGroupBy(searchParams.get("groupBy"))
+  );
   const [explorerSearch, setExplorerSearch] = useState("");
   const [explorerSortKey, setExplorerSortKey] = useState<CostExplorerSortKey>("cost");
   const [explorerSortDirection, setExplorerSortDirection] =
     useState<CostExplorerSortDirection>("desc");
+  const {
+    payload: apiKeyUsageLimits,
+    loading: apiKeyUsageLimitsLoading,
+    save: saveApiKeyUsageLimits,
+  } = useApiKeyUsageLimits(selectedApiKeyId);
 
   useEffect(() => {
     let active = true;
@@ -297,9 +341,12 @@ export default function CostOverviewTab() {
       try {
         setLoading(true);
         setSummaryLoading(true);
-        const response = await fetch(
-          `/api/usage/analytics?range=${encodeURIComponent(range)}&presets=1d,7d,30d`
-        );
+        const params = new URLSearchParams({
+          range,
+          presets: "1d,7d,30d",
+        });
+        if (apiKeyFilter) params.set("apiKeyIds", apiKeyFilter);
+        const response = await fetch(`/api/usage/analytics?${params.toString()}`);
         if (!response.ok) {
           throw new Error(t("overviewLoadFailed"));
         }
@@ -330,7 +377,7 @@ export default function CostOverviewTab() {
     return () => {
       active = false;
     };
-  }, [range, t]);
+  }, [apiKeyFilter, range, t]);
 
   const selectedRangeLabel = t(
     RANGE_OPTIONS.find((option) => option.value === range)?.labelKey || "range30d"
@@ -353,7 +400,8 @@ export default function CostOverviewTab() {
 
   const providersByCost = [...(analytics?.byProvider || [])]
     .filter((provider) => (hasCostData ? provider.cost > 0 : provider.requests > 0))
-    .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
+    .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests))
+    .map((row) => ({ ...row, provider: resolveProviderName(row.provider, nodeMap) }));
   const modelsByCost = [...(analytics?.byModel || [])]
     .filter((model) => (hasCostData ? model.cost > 0 : model.requests > 0))
     .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
@@ -521,6 +569,15 @@ export default function CostOverviewTab() {
           color="text-amber-400"
         />
       </div>
+
+      {selectedApiKeyId && (
+        <ApiKeyUsageLimitCard
+          payload={apiKeyUsageLimits}
+          loading={apiKeyUsageLimitsLoading}
+          locale={locale}
+          onSave={saveApiKeyUsageLimits}
+        />
+      )}
 
       <Card className="p-5">
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
@@ -774,6 +831,7 @@ export default function CostOverviewTab() {
               rows={providersByCost}
               locale={locale}
               hasCostData={hasCostData}
+              legacyFreeLabel={t("legacyFreeLabel")}
             />
             <TopListCard
               title={t("topModels")}
@@ -784,6 +842,7 @@ export default function CostOverviewTab() {
               rows={modelsByCost}
               locale={locale}
               hasCostData={hasCostData}
+              legacyFreeLabel={t("legacyFreeLabel")}
             />
           </div>
 
@@ -834,14 +893,19 @@ export default function CostOverviewTab() {
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.5fr] gap-4">
               <WeeklyPatternCard
                 title={t("weeklyUsagePattern")}
-                rows={analytics?.weeklyPattern || []}
+                rows={(analytics?.weeklyPattern || []).map((row) => ({
+                  ...row,
+                  day: formatWeekdayLabel(row.day, locale),
+                }))}
                 locale={locale}
+                tokensLabel={t("tokens")}
               />
               <ActivityHeatmap
                 title={t("activityHeatmap")}
                 activityMap={analytics?.activityMap || {}}
                 lessLabel={t("less")}
                 moreLabel={t("more")}
+                tokensLabel={t("tokens")}
                 locale={locale}
               />
             </div>
@@ -849,28 +913,6 @@ export default function CostOverviewTab() {
         </>
       )}
     </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  subValue,
-  color = "text-text-main",
-  loading = false,
-}: {
-  label: string;
-  value: string;
-  subValue?: string;
-  color?: string;
-  loading?: boolean;
-}) {
-  return (
-    <Card className="px-4 py-3">
-      <p className="text-xs uppercase tracking-wide text-text-muted font-semibold">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${color}`}>{loading ? "…" : value}</p>
-      {subValue ? <p className="text-xs text-text-muted mt-1">{subValue}</p> : null}
-    </Card>
   );
 }
 
@@ -1078,202 +1120,19 @@ function CompactMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ProviderSpendCard({
-  title,
-  rows,
-  locale,
-}: {
-  title: string;
-  rows: UsageAnalyticsProviderRow[];
-  locale: string;
-}) {
-  const currencyFormatter = createCurrencyFormatter(locale);
-  const chartRows = rows.slice(0, 6).map((row, index) => ({
-    name: row.provider,
-    value: row.cost,
-    fill: CHART_COLORS[index % CHART_COLORS.length],
-  }));
-
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
-        {title}
-      </h3>
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="w-full md:w-45 h-45">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartRows}
-                dataKey="value"
-                nameKey="name"
-                innerRadius={45}
-                outerRadius={72}
-                paddingAngle={2}
-              >
-                {chartRows.map((entry) => (
-                  <Cell key={entry.name} fill={entry.fill} stroke="none" />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value: number) => currencyFormatter.format(value || 0)}
-                contentStyle={{
-                  background: "var(--surface)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="flex-1 space-y-2">
-          {chartRows.map((row) => (
-            <div key={row.name} className="flex items-center justify-between gap-3 text-sm">
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: row.fill }}
-                />
-                <span className="truncate text-text-main">{row.name}</span>
-              </div>
-              <span className="font-mono text-text-muted">
-                {currencyFormatter.format(row.value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function CostTrendCard({
-  title,
-  rows,
-  locale,
-}: {
-  title: string;
-  rows: UsageAnalyticsTrendRow[];
-  locale: string;
-}) {
-  const currencyFormatter = createCurrencyFormatter(locale);
-  const chartRows = rows.map((row) => ({
-    date: row.date.slice(5),
-    cost: row.cost || 0,
-  }));
-
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
-        {title}
-      </h3>
-      <div className="h-55">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartRows} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-            <XAxis
-              dataKey="date"
-              tick={{ fontSize: 10, fill: "var(--text-muted)" }}
-              axisLine={false}
-              tickLine={false}
-              interval={Math.max(Math.floor(chartRows.length / 8), 0)}
-            />
-            <YAxis
-              tick={{ fontSize: 10, fill: "var(--text-muted)" }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(value) => currencyFormatter.format(value).replace(".00", "")}
-              width={48}
-            />
-            <Tooltip
-              formatter={(value: number) => currencyFormatter.format(value || 0)}
-              contentStyle={{
-                background: "var(--surface)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "12px",
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="cost"
-              stroke="#10b981"
-              strokeWidth={2.5}
-              dot={false}
-              activeDot={{ r: 4 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
-  );
-}
-
-function WeeklyPatternCard({
-  title,
-  rows,
-  locale,
-}: {
-  title: string;
-  rows: Array<{ day: string; avgTokens: number; totalTokens: number }>;
-  locale: string;
-}) {
-  const chartData = rows.map((row) => ({
-    day: row.day,
-    tokens: row.avgTokens || 0,
-  }));
-
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
-        {title}
-      </h3>
-      <div className="h-40">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
-            <XAxis
-              dataKey="day"
-              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fontSize: 10, fill: "var(--text-muted)" }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(value) =>
-                new Intl.NumberFormat(locale, { notation: "compact" }).format(Number(value || 0))
-              }
-              width={40}
-            />
-            <Tooltip
-              formatter={(value: number) =>
-                `${new Intl.NumberFormat(locale).format(value || 0)} tokens`
-              }
-              contentStyle={{
-                background: "var(--surface)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "12px",
-              }}
-            />
-            <Bar dataKey="tokens" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
-  );
-}
-
 function ActivityHeatmap({
   title,
   activityMap,
   lessLabel,
   moreLabel,
+  tokensLabel,
   locale,
 }: {
   title: string;
   activityMap: Record<string, number>;
   lessLabel: string;
   moreLabel: string;
+  tokensLabel: string;
   locale: string;
 }) {
   const days: Array<{ date: string; value: number }> = [];
@@ -1317,7 +1176,7 @@ function ActivityHeatmap({
                   className={`w-2.75 h-2.75 rounded-xs ${getIntensity(day.value)}`}
                   title={`${day.date}: ${
                     day.value > 0
-                      ? `${new Intl.NumberFormat(locale).format(day.value)} tokens`
+                      ? `${new Intl.NumberFormat(locale).format(day.value)} ${tokensLabel}`
                       : "No activity"
                   }`}
                 />
@@ -1336,63 +1195,6 @@ function ActivityHeatmap({
           <div className="w-2.5 h-2.5 rounded-xs bg-emerald-400" />
         </div>
         <span>{moreLabel}</span>
-      </div>
-    </Card>
-  );
-}
-
-function TopListCard({
-  title,
-  rows,
-  nameKey,
-  valueKey,
-  secondaryKey,
-  secondaryLabel,
-  locale,
-  hasCostData,
-}: {
-  title: string;
-  rows: Array<Record<string, any>>;
-  nameKey: string;
-  valueKey: string;
-  secondaryKey?: string;
-  secondaryLabel?: string;
-  locale: string;
-  hasCostData?: boolean;
-}) {
-  const currencyFormatter = createCurrencyFormatter(locale);
-
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
-        {title}
-      </h3>
-      <div className="space-y-2">
-        {rows.slice(0, 6).map((row) => (
-          <div
-            key={String(row[nameKey])}
-            className="flex items-center justify-between gap-3 rounded-lg border border-border/20 bg-surface/20 px-4 py-3"
-          >
-            <span className="text-sm text-text-main truncate">{String(row[nameKey])}</span>
-            <div className="flex items-center gap-3 shrink-0">
-              {secondaryKey ? (
-                <span className="text-xs text-text-muted">
-                  {new Intl.NumberFormat(locale, { notation: "compact" }).format(
-                    Number(row[secondaryKey] || 0)
-                  )}{" "}
-                  {secondaryLabel}
-                </span>
-              ) : null}
-              <span className="text-sm font-mono text-text-muted">
-                {hasCostData || Number(row[valueKey] || 0) > 0 ? (
-                  currencyFormatter.format(Number(row[valueKey] || 0))
-                ) : (
-                  <span className="text-xs italic opacity-70">{t("legacyFreeLabel")}</span>
-                )}
-              </span>
-            </div>
-          </div>
-        ))}
       </div>
     </Card>
   );

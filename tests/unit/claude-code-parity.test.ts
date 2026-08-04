@@ -260,6 +260,33 @@ describe("enforceThinkingTemperature", () => {
     enforceThinkingTemperature(body);
     assert.equal(body.temperature, 0.7, "temperature should be unchanged when no thinking");
   });
+
+  it("drops top_p and pins temperature when thinking is enabled (both sent)", () => {
+    const body: Record<string, unknown> = {
+      thinking: { type: "enabled", budget_tokens: 1000 },
+      temperature: 0.7,
+      top_p: 0.9,
+    };
+    enforceThinkingTemperature(body);
+    assert.equal(body.temperature, 1, "temperature must be pinned to 1 when thinking is active");
+    assert.ok(!("top_p" in body), "top_p must be dropped when thinking is active");
+  });
+
+  it("drops a lone top_p (< 0.95) under adaptive thinking", () => {
+    const body: Record<string, unknown> = {
+      thinking: { type: "adaptive" },
+      top_p: 0.9,
+    };
+    enforceThinkingTemperature(body);
+    assert.ok(!("top_p" in body), "top_p must be dropped under adaptive thinking");
+    assert.equal(body.temperature, 1, "temperature must be set to 1 under adaptive thinking");
+  });
+
+  it("leaves top_p untouched when thinking is not present", () => {
+    const body: Record<string, unknown> = { top_p: 0.9, messages: [] };
+    enforceThinkingTemperature(body);
+    assert.equal(body.top_p, 0.9, "top_p should be unchanged when no thinking");
+  });
 });
 
 describe("disableThinkingIfToolChoiceForced", () => {

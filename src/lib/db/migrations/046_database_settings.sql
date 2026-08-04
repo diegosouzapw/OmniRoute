@@ -40,5 +40,5 @@ INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSetting
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'autoVacuumMode', '"INCREMENTAL"');
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'scheduledVacuum', '"weekly"');
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'pageSize', '4096');
-INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'cacheSize', '10000');
+INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'cacheSize', '16384');
 INSERT OR IGNORE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'mmapSize', '268435456');

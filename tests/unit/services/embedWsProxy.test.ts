@@ -21,6 +21,7 @@ import {
   unregisterSupervisor,
   getSupervisor,
 } from "../../../src/lib/services/registry.ts";
+const registryPublicApi = await import("../../../src/lib/services/registry.ts");
 import type { ServiceSupervisor } from "../../../src/lib/services/ServiceSupervisor.ts";
 import {
   activeConnections,
@@ -76,6 +77,10 @@ function joined(received: Buffer[]): string {
 // ─── tests ───────────────────────────────────────────────────────────────────
 
 describe("embedWsProxy", () => {
+  it("registry public surface excludes unused supervisor listing helper", () => {
+    assert.equal("listSupervisors" in registryPublicApi, false);
+  });
+
   it("idempotent — initEmbedWsProxy does not bind twice", async () => {
     // Reset the global flag so we can test it from scratch
     const prev = globalThis.__omnirouteEmbedWsStarted;

@@ -58,15 +58,37 @@ export async function resolveCodexWsModelInfo(
  *
  * @param requestedModel the model id from the Responses API request body
  * @param resolve a getModelInfo-style resolver
+ * @param isCombo optional predicate — when the bare id is a combo name, skip the codex
+ *        rewrite so downstream combo routing resolves it (#3227/#3233).
  * @returns { model, changed } — model is the (possibly rewritten) id;
  *          changed=true means a codex/ prefix was applied.
  */
 export async function resolveResponsesApiModel(
   requestedModel: string,
-  resolve: ModelResolver
+  resolve: ModelResolver,
+  isCombo?: (name: string) => Promise<boolean> | boolean
 ): Promise<{ model: string; changed: boolean }> {
   if (!requestedModel || requestedModel.includes("/")) {
     return { model: requestedModel, changed: false };
+  }
+
+  // #3509: "auto" is OmniRoute's zero-config auto-routing keyword (handled by the
+  // isAutoRouting path in chat.ts, not a DB combo). It must NEVER be rewritten to
+  // "codex/auto" — ChatGPT rejects it with "The 'auto' model is not supported when using
+  // Codex with a ChatGPT account". ("auto/<strategy>" already returns via the slash guard above.)
+  if (requestedModel === "auto") {
+    return { model: requestedModel, changed: false };
+  }
+
+  // #3227/#3233: a bare combo name (e.g. "n8n-text", "paid-premium") must NOT be
+  // force-prefixed to codex/ — Codex accepts arbitrary model strings, so the rewrite
+  // would shadow the combo and route to codex. Let downstream combo routing handle it.
+  if (isCombo) {
+    try {
+      if (await isCombo(requestedModel)) return { model: requestedModel, changed: false };
+    } catch {
+      // combo lookup unavailable — fall through to normal codex-preference resolution
+    }
   }
 
   try {

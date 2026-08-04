@@ -68,6 +68,10 @@ vi.mock("@/shared/components/MonacoEditor", () => ({
 
 vi.mock("@/shared/constants/providers", () => ({
   ALIAS_TO_ID: {},
+  AI_PROVIDERS: {},
+  OPENAI_COMPATIBLE_PREFIX: "openai-compatible-",
+  ANTHROPIC_COMPATIBLE_PREFIX: "anthropic-compatible-",
+  CLAUDE_CODE_COMPATIBLE_PREFIX: "anthropic-compatible-cc-",
 }));
 
 vi.mock("@/shared/utils/maskEmail", () => ({
@@ -225,7 +229,9 @@ describe("PlaygroundStudio", () => {
     const el = renderStudio();
 
     // Verify config pane is rendered
-    const configPaneLabel = el.querySelector("[aria-label='Config pane']");
+    // This file's next-intl mock renders raw translation keys (see the `vi.mock`
+    // above), matching the rest of this file's assertions ("tabChat", "tabApi", ...).
+    const configPaneLabel = el.querySelector("[aria-label='configPane']");
     expect(configPaneLabel).toBeTruthy();
 
     // Switch to API tab
@@ -238,7 +244,7 @@ describe("PlaygroundStudio", () => {
     });
 
     // Config pane should still be visible
-    const configPaneAfterSwitch = el.querySelector("[aria-label='Config pane']");
+    const configPaneAfterSwitch = el.querySelector("[aria-label='configPane']");
     expect(configPaneAfterSwitch).toBeTruthy();
   });
 

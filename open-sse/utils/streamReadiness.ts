@@ -1,4 +1,5 @@
 import { HTTP_STATUS } from "../config/constants.ts";
+import { buildErrorBody, sanitizeErrorMessage } from "./error.ts";
 
 type StreamReadinessLogger = {
   debug?: (tag: string, message: string) => void;
@@ -7,7 +8,18 @@ type StreamReadinessLogger = {
 
 export type StreamReadinessResult =
   | { ok: true; response: Response }
-  | { ok: false; response: Response; reason: string; code: string; type: string };
+  | {
+      ok: false;
+      response: Response;
+      /** Sanitized operator-facing context for logs and persisted diagnostics. */
+      reason: string;
+      /** Stable internal text for retry, quota, and account-health classification. */
+      classificationReason: string;
+      /** First non-empty sanitized message from an error-only SSE payload. */
+      upstreamDiagnostic?: string;
+      code: string;
+      type: string;
+    };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -71,83 +83,51 @@ function hasUsefulJsonPayload(payload: unknown): boolean {
   return hasUsefulValue(payload);
 }
 
-function hasOpenAIResponseLifecyclePayload(
-  payload: Record<string, unknown>,
-  type: string
-): boolean {
-  if (type === "response.created" || type === "response.in_progress") {
-    const response = payload.response;
-    if (!isRecord(response)) return false;
+function isPingEventType(type: string): boolean {
+  return /^(?:ping|keepalive|heartbeat)$/i.test(type);
+}
 
-    return (
-      hasNonEmptyString(response.id) ||
-      hasNonEmptyString(response.object) ||
-      hasNonEmptyString(response.status) ||
-      typeof response.created_at === "number"
-    );
+function getPayloadType(payload: unknown, eventType = ""): string {
+  if (!isRecord(payload)) return eventType;
+  const type = payload.type ?? payload.event ?? payload.object;
+  return typeof type === "string" ? type : eventType;
+}
+
+// Keys that indicate a frame carries (or is starting to carry) actual model
+// output — as opposed to a bare `{error:{...}}` frame with no output signal
+// at all. A stream that only ever emits error-only frames (e.g. a CLI
+// passthrough executor's mid-stream spawn failure, #7503) must NOT be
+// classified as "ready" — treating it as ready lets the malformed frame
+// reach the client as a fake 200 success and blocks combo fallback to the
+// next candidate.
+const CONTENT_BEARING_KEYS = [
+  "choices",
+  "candidates",
+  "content_block",
+  "delta",
+  "output",
+  "response",
+  "parts",
+  "tool_calls",
+  "tool_use",
+  "function_call",
+  "function_call_output",
+];
+
+function isErrorOnlyStructuredPayload(payload: Record<string, unknown>): boolean {
+  if (!("error" in payload)) return false;
+  return !CONTENT_BEARING_KEYS.some((key) => key in payload);
+}
+
+function hasNonPingStructuredPayload(payload: unknown, eventType = ""): boolean {
+  const type = getPayloadType(payload, eventType);
+  if (isPingEventType(eventType) || isPingEventType(type)) return false;
+  if (Array.isArray(payload)) return payload.length > 0;
+  if (isRecord(payload)) {
+    if (Object.keys(payload).length === 0) return false;
+    return !isErrorOnlyStructuredPayload(payload);
   }
-
-  if (type === "response.output_item.added") {
-    const item = payload.item;
-    if (!isRecord(item)) return false;
-
-    return (
-      hasNonEmptyString(item.id) ||
-      hasNonEmptyString(item.type) ||
-      hasNonEmptyString(item.status) ||
-      Array.isArray(item.content) ||
-      isRecord(item.content)
-    );
-  }
-
-  return false;
-}
-
-function hasChatCompletionToolCallStart(value: unknown): boolean {
-  const hasToolCallId = (item: unknown) => isRecord(item) && hasNonEmptyString(item.id);
-  if (Array.isArray(value)) return value.some(hasToolCallId);
-  return hasToolCallId(value);
-}
-
-function hasChatCompletionFunctionCallStart(value: unknown): boolean {
-  return isRecord(value) && hasNonEmptyString(value.name);
-}
-
-function hasChatCompletionChunkStartPayload(payload: Record<string, unknown>): boolean {
-  if (payload.object !== "chat.completion.chunk" && payload.type !== "chat.completion.chunk") {
-    return false;
-  }
-
-  const choices = payload.choices;
-  if (!Array.isArray(choices) || choices.length === 0) return false;
-
-  return choices.some((choice) => {
-    if (!isRecord(choice)) return false;
-    const delta = choice.delta;
-    if (!isRecord(delta)) return false;
-
-    return (
-      hasNonEmptyString(delta.role) ||
-      hasChatCompletionToolCallStart(delta.tool_calls) ||
-      hasChatCompletionFunctionCallStart(delta.function_call)
-    );
-  });
-}
-
-function hasAcceptedStreamStartPayload(payload: unknown, eventType = ""): boolean {
-  if (!isRecord(payload)) return false;
-
-  // Anthropic/Claude streams can legitimately start with lifecycle frames and
-  // OpenAI Responses streams can do the same before the first text/tool delta
-  // arrives. Treating structurally valid lifecycle frames as readiness prevents
-  // false 504s while ping-only/generic-empty zombie streams still fail below.
-  const type = typeof payload.type === "string" ? payload.type : eventType;
-  if (type === "message_start" && isRecord(payload.message)) return true;
-  if (type === "content_block_start" && isRecord(payload.content_block)) return true;
-  if (hasOpenAIResponseLifecyclePayload(payload, type)) return true;
-  if (hasChatCompletionChunkStartPayload(payload)) return true;
-
-  return false;
+  return payload !== null && payload !== undefined;
 }
 
 export function hasUsefulStreamContent(text: string): boolean {
@@ -172,15 +152,141 @@ export function hasUsefulStreamContent(text: string): boolean {
   return false;
 }
 
+// Terminal states where a completion legitimately carries no content, kept in
+// step with errorClassifier.ts's LEGIT_EMPTY_OPENAI_FINISH / LEGIT_EMPTY_CLAUDE_STOP
+// so the streaming and non-streaming empty-content checks agree.
+const LEGIT_EMPTY_TERMINAL_REASONS = new Set([
+  "length",
+  "tool_calls",
+  "content_filter",
+  "max_tokens",
+  "tool_use",
+]);
+
+const TERMINAL_REASON_PATTERN = /"(?:finish_reason|stop_reason)"\s*:\s*"([^"]+)"/g;
+
+const SSE_FIELD_LINE = /(?:^|\r?\n)\s*(?:data|event):/;
+
+export type StreamContentWatcher = {
+  /** Feed a decoded slice of the client-facing stream. Safe to call with partial frames. */
+  note: (text: string) => void;
+  /** Flush any buffered trailing frame; call once the stream is done. */
+  finish: () => void;
+  /** True once any frame carried real model output (text, reasoning, or a tool call). */
+  sawContent: () => boolean;
+  /** True once a terminal state was seen where emitting no content is valid. */
+  sawLegitEmptyTerminal: () => boolean;
+  /**
+   * True once the stream looked like SSE at all. Not every body reaching the
+   * client wrapper is event-stream — a plain JSON completion is forwarded
+   * through the same path — and a non-SSE body has no `data:` frames to judge,
+   * so callers must not read emptiness into it.
+   */
+  sawSseFrame: () => boolean;
+};
+
+/**
+ * Watch a client-facing SSE stream for whether it ever produced actual model
+ * output, so a stream that terminates cleanly while carrying nothing can be
+ * reported instead of closing as a silent empty turn (#8649).
+ *
+ * Frames are buffered until a blank-line boundary so a delta split across two
+ * network chunks is still scanned as one payload. The buffer is bounded — a
+ * single frame larger than the cap is scanned in pieces, which can only ever
+ * lose content-detection precision in the direction of "saw content", never
+ * toward a false empty.
+ */
+export function createStreamContentWatcher(): StreamContentWatcher {
+  const MAX_BUFFERED = 64 * 1024;
+  let pending = "";
+  let content = false;
+  let legitEmpty = false;
+  let sse = false;
+
+  const inspect = (frame: string): void => {
+    if (!frame) return;
+    if (!sse && SSE_FIELD_LINE.test(frame)) sse = true;
+    if (!content && hasUsefulStreamContent(frame)) content = true;
+    if (legitEmpty) return;
+    for (const match of frame.matchAll(TERMINAL_REASON_PATTERN)) {
+      if (LEGIT_EMPTY_TERMINAL_REASONS.has(match[1])) {
+        legitEmpty = true;
+        return;
+      }
+    }
+  };
+
+  return {
+    note(text: string): void {
+      if (!text) return;
+      pending += text;
+      for (;;) {
+        const boundary = pending.search(/\r?\n\r?\n/);
+        if (boundary === -1) break;
+        inspect(pending.slice(0, boundary));
+        pending = pending.slice(boundary).replace(/^\r?\n\r?\n/, "");
+      }
+      if (pending.length > MAX_BUFFERED) {
+        inspect(pending);
+        pending = "";
+      }
+    },
+    finish(): void {
+      inspect(pending);
+      pending = "";
+    },
+    sawContent: () => content,
+    sawLegitEmptyTerminal: () => legitEmpty,
+    sawSseFrame: () => sse,
+  };
+}
+
 type StreamReadinessSignalState = {
   currentEvent: string;
+  dataLines: string[];
   pendingLine: string;
+  upstreamDiagnostic: string | null;
 };
+
+function resetCurrentEvent(state: StreamReadinessSignalState): void {
+  state.currentEvent = "";
+  state.dataLines = [];
+}
+
+function processStreamReadinessEvent(state: StreamReadinessSignalState): boolean {
+  const eventType = state.currentEvent;
+  const data = state.dataLines.join("\n").trim();
+  resetCurrentEvent(state);
+
+  if (isPingEventType(eventType) || !data || data === "[DONE]") return false;
+
+  try {
+    const payload: unknown = JSON.parse(data);
+    if (
+      !state.upstreamDiagnostic &&
+      isRecord(payload) &&
+      isErrorOnlyStructuredPayload(payload)
+    ) {
+      const error = payload.error;
+      const rawMessage =
+        typeof error === "string"
+          ? error
+          : isRecord(error) && typeof error.message === "string"
+            ? error.message
+            : "";
+      const diagnostic = sanitizeErrorMessage(rawMessage).trim();
+      if (diagnostic) state.upstreamDiagnostic = diagnostic;
+    }
+    return hasNonPingStructuredPayload(payload, eventType);
+  } catch {
+    return data.length > 0;
+  }
+}
 
 function processStreamReadinessLine(state: StreamReadinessSignalState, line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed || trimmed.startsWith(":")) {
-    if (!trimmed) state.currentEvent = "";
+    if (!trimmed) return processStreamReadinessEvent(state);
     return false;
   }
 
@@ -189,20 +295,10 @@ function processStreamReadinessLine(state: StreamReadinessSignalState, line: str
     return false;
   }
 
-  if (/^(?:ping|keepalive)$/i.test(state.currentEvent)) return false;
-  if (!trimmed.startsWith("data:")) return false;
-
-  const data = trimmed.slice(5).trim();
-  if (!data || data === "[DONE]") return false;
-
-  try {
-    const parsed = JSON.parse(data);
-    return (
-      hasUsefulJsonPayload(parsed) || hasAcceptedStreamStartPayload(parsed, state.currentEvent)
-    );
-  } catch {
-    return data.length > 0;
+  if (trimmed.startsWith("data:")) {
+    state.dataLines.push(trimmed.slice(5).trimStart());
   }
+  return false;
 }
 
 function appendStreamReadinessSignal(state: StreamReadinessSignalState, chunk: string): boolean {
@@ -216,30 +312,39 @@ function appendStreamReadinessSignal(state: StreamReadinessSignalState, chunk: s
   return false;
 }
 
+function finishStreamReadinessSignal(state: StreamReadinessSignalState): boolean {
+  if (state.pendingLine && processStreamReadinessLine(state, state.pendingLine)) return true;
+  state.pendingLine = "";
+  return processStreamReadinessEvent(state);
+}
+
 export function hasStreamReadinessSignal(text: string): boolean {
   const state: StreamReadinessSignalState = {
     currentEvent: "",
+    dataLines: [],
     pendingLine: "",
+    upstreamDiagnostic: null,
   };
   if (appendStreamReadinessSignal(state, text)) return true;
-  if (state.pendingLine) return processStreamReadinessLine(state, state.pendingLine);
-  return false;
+  return finishStreamReadinessSignal(state);
 }
 
 function createErrorResponse(
   status: number,
   message: string,
   code: string,
-  type: string
+  type: string,
+  upstreamDiagnostic?: string
 ): Response {
   return new Response(
-    JSON.stringify({
-      error: {
+    JSON.stringify(
+      buildErrorBody(
+        status,
         message,
-        type,
-        code,
-      },
-    }),
+        upstreamDiagnostic ? { error: { message: upstreamDiagnostic } } : undefined,
+        { code, type }
+      )
+    ),
     { status, headers: { "Content-Type": "application/json" } }
   );
 }
@@ -310,17 +415,30 @@ export async function ensureStreamReadiness(
   const decoder = new TextDecoder();
   const readinessState: StreamReadinessSignalState = {
     currentEvent: "",
+    dataLines: [],
     pendingLine: "",
+    upstreamDiagnostic: null,
   };
   const startedAt = Date.now();
-  const deadline = startedAt + options.timeoutMs;
+  const effectiveTimeoutMs = Math.max(0, Math.floor(options.timeoutMs));
+  const deadline = startedAt + effectiveTimeoutMs;
   let handedOffReader = false;
+
+  const buildReadyResponse = () =>
+    new Response(prependBufferedChunks(chunks, reader), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+
+  const timeoutReason = () =>
+    `Stream produced no non-ping SSE event within ${effectiveTimeoutMs}ms`;
 
   try {
     while (true) {
       const remainingMs = deadline - Date.now();
       if (remainingMs <= 0) {
-        const reason = `Stream produced no useful content within ${options.timeoutMs}ms`;
+        const reason = timeoutReason();
         options.log?.warn?.(
           "STREAM",
           `${reason} (${options.provider || "provider"}/${options.model || "unknown"})`
@@ -329,6 +447,7 @@ export async function ensureStreamReadiness(
         return {
           ok: false,
           reason,
+          classificationReason: reason,
           code: "STREAM_READINESS_TIMEOUT",
           type: "stream_timeout",
           response: createErrorResponse(
@@ -344,7 +463,7 @@ export async function ensureStreamReadiness(
       try {
         readResult = await readWithTimeout(reader, remainingMs);
       } catch {
-        const reason = `Stream produced no useful content within ${options.timeoutMs}ms`;
+        const reason = timeoutReason();
         options.log?.warn?.(
           "STREAM",
           `${reason} (${options.provider || "provider"}/${options.model || "unknown"})`
@@ -353,6 +472,7 @@ export async function ensureStreamReadiness(
         return {
           ok: false,
           reason,
+          classificationReason: reason,
           code: "STREAM_READINESS_TIMEOUT",
           type: "stream_timeout",
           response: createErrorResponse(
@@ -365,7 +485,21 @@ export async function ensureStreamReadiness(
       }
 
       if (readResult.done) {
-        const reason = "Stream ended before producing useful content";
+        const tail = decoder.decode(undefined, { stream: false });
+        if (tail && appendStreamReadinessSignal(readinessState, tail)) {
+          handedOffReader = true;
+          return { ok: true, response: buildReadyResponse() };
+        }
+        if (finishStreamReadinessSignal(readinessState)) {
+          handedOffReader = true;
+          return { ok: true, response: buildReadyResponse() };
+        }
+
+        const classificationReason = "Stream ended before producing a non-ping SSE event";
+        const upstreamDiagnostic = readinessState.upstreamDiagnostic || undefined;
+        const reason = upstreamDiagnostic
+          ? `${classificationReason}: ${upstreamDiagnostic}`
+          : classificationReason;
         options.log?.warn?.(
           "STREAM",
           `${reason} (${options.provider || "provider"}/${options.model || "unknown"})`
@@ -373,13 +507,16 @@ export async function ensureStreamReadiness(
         return {
           ok: false,
           reason,
+          classificationReason,
+          ...(upstreamDiagnostic ? { upstreamDiagnostic } : {}),
           code: "STREAM_EARLY_EOF",
           type: "stream_early_eof",
           response: createErrorResponse(
             HTTP_STATUS.BAD_GATEWAY,
-            reason,
+            classificationReason,
             "STREAM_EARLY_EOF",
-            "stream_early_eof"
+            "stream_early_eof",
+            upstreamDiagnostic
           ),
         };
       }
@@ -396,11 +533,7 @@ export async function ensureStreamReadiness(
         handedOffReader = true;
         return {
           ok: true,
-          response: new Response(prependBufferedChunks(chunks, reader), {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers,
-          }),
+          response: buildReadyResponse(),
         };
       }
     }

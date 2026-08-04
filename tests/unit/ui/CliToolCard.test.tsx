@@ -20,10 +20,11 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-  useLocale: () => "en",
-}));
+// next-intl: no local mock — falls through to the real-EN-text default mock in
+// tests/_setup/vitestUiPolyfills.ts. The previous local mock hand-copied a partial
+// message subset under a single flat table shared across both `useTranslations("cliCommon")`
+// and `useTranslations("cliTools")` calls in CliToolCard.tsx, which drifted out of sync
+// (missing "versionNotFound"/"manualConfig") and didn't separate namespaces.
 
 // Stub CliStatusBadge so it doesn't need next-intl internals
 vi.mock("@/app/(dashboard)/dashboard/cli-code/components/CliStatusBadge", () => ({
@@ -98,8 +99,9 @@ function renderCard(
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-    true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
 afterEach(() => {
@@ -137,34 +139,34 @@ describe("CliToolCard", () => {
     expect(container.textContent).toContain("not found");
   });
 
-  it("shows 'Configurar →' footer when installed", () => {
+  it("shows configure footer when installed", () => {
     const container = renderCard(makeTool(), makeBatchStatus(), "/detail", true);
-    expect(container.textContent).toContain("Configurar →");
+    expect(container.textContent).toContain("Configure →");
   });
 
-  it("shows 'Como instalar →' footer when not installed", () => {
+  it("shows install footer when not installed", () => {
     const status = makeBatchStatus({
       detection: { installed: false, runnable: false },
     });
     const container = renderCard(makeTool(), status, "/detail", true);
-    expect(container.textContent).toContain("Como instalar →");
+    expect(container.textContent).toContain("How to install →");
   });
 
   it("shows partial baseUrl amber badge", () => {
     const tool = makeTool({ baseUrlSupport: "partial" });
     const container = renderCard(tool, makeBatchStatus(), "/detail", true);
-    expect(container.textContent).toContain("Base URL parcial");
+    expect(container.textContent).toContain("Partial Base URL");
   });
 
-  it("shows 'também ACP' badge when acpSpawnable is true", () => {
+  it("shows also ACP badge when acpSpawnable is true", () => {
     const tool = makeTool({ acpSpawnable: true });
     const container = renderCard(tool, makeBatchStatus(), "/detail", true);
-    expect(container.textContent).toContain("também ACP");
+    expect(container.textContent).toContain("also ACP");
   });
 
   it("shows provider tooltip text when hasActiveProviders is false", () => {
     const container = renderCard(makeTool(), makeBatchStatus(), "/detail", false);
-    expect(container.textContent).toContain("Conecte um provider em Providers");
+    expect(container.textContent).toContain("Connect a provider in Providers");
   });
 
   it("shows install chips when not installed and configType is not guide", () => {

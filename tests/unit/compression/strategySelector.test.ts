@@ -2,12 +2,17 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   selectCompressionStrategy,
+  selectCompressionPlan,
+  enginesMapDerivesStackedPipeline,
   getEffectiveMode,
   applyCompression,
   checkComboOverride,
   shouldAutoTrigger,
 } from "../../../open-sse/services/compression/strategySelector.ts";
-import type { CompressionConfig } from "../../../open-sse/services/compression/types.ts";
+import {
+  DEFAULT_COMPRESSION_CONFIG,
+  type CompressionConfig,
+} from "../../../open-sse/services/compression/types.ts";
 
 const baseConfig: CompressionConfig = {
   enabled: true,
@@ -17,6 +22,25 @@ const baseConfig: CompressionConfig = {
   preserveSystemPrompt: true,
   comboOverrides: {},
 };
+
+/**
+ * Builds a PANEL-CONFIGURED config whose only enabled engines are the ones named (all others
+ * off). `enginesExplicit: true` models a stored engines row (the operator used the panel), so
+ * the engines map drives dispatch. Pass `enginesExplicit: false` via overrides to model a
+ * legacy/backfilled install where dispatch falls back to defaultMode.
+ */
+function engineConfig(
+  engines: CompressionConfig["engines"],
+  overrides: Partial<CompressionConfig> = {}
+): CompressionConfig {
+  return {
+    ...DEFAULT_COMPRESSION_CONFIG,
+    enabled: true,
+    engines,
+    enginesExplicit: true,
+    ...overrides,
+  };
+}
 
 describe("checkComboOverride", () => {
   it("returns null when comboId is null", () => {
@@ -102,6 +126,96 @@ describe("getEffectiveMode", () => {
       comboOverrides: { "my-combo": "off" as const },
     };
     assert.equal(getEffectiveMode(config, "my-combo", 500), "off");
+  });
+});
+
+describe("selectCompressionStrategy resolves via the engines map (Task 7)", () => {
+  it("resolves mode rtk when only rtk is enabled in the engines map", () => {
+    const config = engineConfig({ rtk: { enabled: true } });
+    assert.equal(selectCompressionStrategy(config, null, 0), "rtk");
+  });
+
+  it("resolves mode stacked when rtk + caveman are both enabled, exposing the derived pipeline", () => {
+    const config = engineConfig({
+      rtk: { enabled: true },
+      caveman: { enabled: true, level: "full" },
+    });
+    assert.equal(selectCompressionStrategy(config, null, 0), "stacked");
+    const plan = selectCompressionPlan(config, null, 0);
+    assert.equal(plan.mode, "stacked");
+    // stackPriority order: rtk (10) before caveman (20).
+    assert.deepEqual(plan.stackedPipeline, [
+      { engine: "rtk" },
+      { engine: "caveman", intensity: "full" },
+    ]);
+  });
+
+  it("auto-trigger still overrides the derived default", () => {
+    const config = engineConfig(
+      { rtk: { enabled: true } },
+      { autoTriggerTokens: 1000, autoTriggerMode: "aggressive" }
+    );
+    // Below threshold: derived default (rtk) wins.
+    assert.equal(selectCompressionStrategy(config, null, 500), "rtk");
+    // At/above threshold: auto-trigger mode wins.
+    assert.equal(selectCompressionStrategy(config, null, 1500), "aggressive");
+  });
+
+  it("routing-combo override still wins over the derived default", () => {
+    const config = engineConfig(
+      { rtk: { enabled: true } },
+      { comboOverrides: { "my-combo": "off" } }
+    );
+    assert.equal(selectCompressionStrategy(config, "my-combo", 0), "off");
+  });
+});
+
+describe("engines map drives dispatch ONLY when explicit (zero behaviour change for legacy)", () => {
+  it("legacy install (enginesExplicit false) ignores the backfilled engines map, uses defaultMode", () => {
+    // A backfilled map with rtk+caveman would derive "stacked", but a legacy install must keep
+    // its historical defaultMode until the operator saves via the panel.
+    const legacy: CompressionConfig = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      enabled: true,
+      defaultMode: "lite",
+      engines: { rtk: { enabled: true }, caveman: { enabled: true, level: "full" } },
+      enginesExplicit: false,
+    };
+    assert.equal(selectCompressionStrategy(legacy, null, 0), "lite");
+  });
+
+  it("explicit install (enginesExplicit true) uses the engines map over defaultMode", () => {
+    const explicit = engineConfig(
+      { rtk: { enabled: true }, caveman: { enabled: true, level: "full" } },
+      { defaultMode: "lite" }
+    );
+    assert.equal(selectCompressionStrategy(explicit, null, 0), "stacked");
+  });
+});
+
+describe("enginesMapDerivesStackedPipeline", () => {
+  it("true only for an explicit multi-engine stacked map", () => {
+    assert.equal(
+      enginesMapDerivesStackedPipeline(
+        engineConfig({ rtk: { enabled: true }, caveman: { enabled: true, level: "full" } })
+      ),
+      true
+    );
+  });
+  it("false for a single-mode explicit map (not stacked)", () => {
+    assert.equal(enginesMapDerivesStackedPipeline(engineConfig({ rtk: { enabled: true } })), false);
+  });
+  it("false for an empty/all-off explicit map", () => {
+    assert.equal(enginesMapDerivesStackedPipeline(engineConfig({})), false);
+  });
+  it("false for a legacy (non-explicit) install even when the backfilled map is stacked", () => {
+    const legacy: CompressionConfig = {
+      ...DEFAULT_COMPRESSION_CONFIG,
+      enabled: true,
+      engines: { rtk: { enabled: true }, caveman: { enabled: true, level: "full" } },
+      enginesExplicit: false,
+    };
+    assert.equal(enginesMapDerivesStackedPipeline(legacy), false);
   });
 });
 

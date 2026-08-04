@@ -84,6 +84,7 @@ async function seedOpenAIConnection({
     errorCode: "refresh_failed",
     rateLimitedUntil,
     backoffLevel: 2,
+    proxyEnabled: false,
   });
 }
 
@@ -728,6 +729,7 @@ test("management proxies route covers auth, pagination, lookup, where-used, patc
 });
 
 test("embeddings route covers options, custom-model listing and defensive POST branches", async () => {
+  await seedOpenAIConnection({ provider: "custom-embedder", email: "custom-embedder@example.com" });
   await modelsDb.addCustomModel(
     "custom-embedder",
     "text-embed-1",
@@ -1040,6 +1042,11 @@ test("embeddings route returns normalized upstream failures", async () => {
 });
 
 test("embeddings route GET skips malformed, non-embedding, and duplicate custom model rows", async () => {
+  await seedOpenAIConnection();
+  await seedOpenAIConnection({
+    provider: "mixed-embed-provider",
+    email: "mixed-embed-provider@example.com",
+  });
   await modelsDb.addCustomModel(
     "openai",
     "text-embedding-3-small",
@@ -1195,7 +1202,7 @@ test("embeddings route handles responses provider nodes, invalid local nodes, an
     );
     assert.equal(localResponse.status, 200);
     assert.equal(fetchCalls[0].url, "http://localhost:7790/v1/embeddings");
-
+    localDb.invalidateDbCache("nodes");
     const remoteResponse = await withPrepareOverride(
       "SELECT * FROM provider_nodes",
       ({ statement }) =>

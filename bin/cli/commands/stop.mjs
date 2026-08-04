@@ -8,6 +8,7 @@ import {
   sleep,
 } from "../utils/pid.mjs";
 import { t } from "../i18n.mjs";
+import { stopProcessGracefully } from "../../../src/shared/platform/windowsProcess.ts";
 
 const execFileAsync = promisify(execFile);
 
@@ -27,18 +28,11 @@ export async function runStopCommand(opts = {}) {
   if (pid && isPidRunning(pid)) {
     console.log(t("stop.stopping", { pid }));
     try {
-      process.kill(pid, "SIGTERM");
-
-      let waited = 0;
-      while (waited < 5000 && isPidRunning(pid)) {
-        await sleep(100);
-        waited += 100;
-      }
-
-      if (isPidRunning(pid)) {
-        process.kill(pid, "SIGKILL");
-        await sleep(500);
-      }
+      // #8045: on win32, process.kill(pid, "SIGTERM") unconditionally force-terminates
+      // the target instead of delivering an interceptable signal, racing (and beating)
+      // the server's own async graceful shutdown / WAL checkpoint. stopProcessGracefully
+      // skips the immediate SIGTERM on win32 and just polls before escalating to SIGKILL.
+      await stopProcessGracefully({ pid, timeoutMs: 5000, isPidRunning, sleep });
 
       killAllSubprocesses();
       cleanupPidFile("server");

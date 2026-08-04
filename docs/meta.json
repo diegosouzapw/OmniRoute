@@ -1,5 +1,6 @@
 {
   "pages": [
+    "getting-started",
     "guides",
     "architecture",
     "reference",
@@ -7,6 +8,8 @@
     "routing",
     "security",
     "compression",
+    "providers",
+    "comparison",
     "ops"
   ]
 }

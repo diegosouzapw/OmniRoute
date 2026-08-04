@@ -8,7 +8,7 @@
 
 export interface WsSubscribeMessage {
   type: "subscribe";
-  channels: Array<"requests" | "combo" | "credentials">;
+  channels: Array<"requests" | "combo" | "credentials" | "compression">;
 }
 
 export interface WsPingMessage {
@@ -21,7 +21,7 @@ export type WsClientMessage = WsSubscribeMessage | WsPingMessage;
 
 export interface WsEventMessage {
   type: "event";
-  channel: "requests" | "combo" | "credentials";
+  channel: "requests" | "combo" | "credentials" | "compression";
   event: string;
   data: unknown;
 }
@@ -35,7 +35,7 @@ export interface WsWelcomeMessage {
   version: string;
   sessionId: string;
   serverTime: number;
-  channels: Array<"requests" | "combo" | "credentials">;
+  channels: Array<"requests" | "combo" | "credentials" | "compression">;
   /** Number of buffered events since last reconnect */
   backlog: number;
 }

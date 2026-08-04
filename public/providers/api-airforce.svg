@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <title>API Airforce</title>
+  <!-- Shield shape -->
+  <path fill="#0066FF" d="M12 2L4 5v6c0 5.25 4.67 9 8 10 3.33-1 8-4.75 8-10V5l-8-3zm-1.2 14.5l-1.5-3H7.5v3H6V9h3.5c.83 0 1.5.67 1.5 1.5v2c0 .65-.42 1.2-1 1.4l1.6 3.3l-1.8-.7zM7.5 11.5H9V10H7.5v1.5zm7.7-1.5H13v1.5h2.2V13H13v1.5h2.2v1.5H13v-1h-1.5v3.5h-1.5V9H13v1.5h2.2v1.5z"/>
+</svg>

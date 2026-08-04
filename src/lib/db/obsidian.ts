@@ -1,5 +1,6 @@
 import { getDbInstance } from "./core";
 import { getApiKeyContextSource } from "./apiKeyContextSources";
+import { encrypt, decrypt } from "./encryption";
 
 const OBSIDIAN_NAMESPACE = "obsidian";
 const OBSIDIAN_TOKEN_KEY = "api_key";
@@ -14,7 +15,11 @@ export function getObsidianToken(): string | null {
     const row = db
       .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
       .get(OBSIDIAN_NAMESPACE, OBSIDIAN_TOKEN_KEY) as KeyValueRow | undefined;
-    return typeof row?.value === "string" ? JSON.parse(row.value) : null;
+    if (typeof row?.value !== "string") return null;
+    const parsed = JSON.parse(row.value);
+    if (typeof parsed !== "string" || parsed.length === 0) return null;
+    // Graceful fallback: if decrypt fails (e.g. no key set) return as-is
+    return decrypt(parsed) ?? parsed;
   } catch {
     return null;
   }
@@ -23,9 +28,10 @@ export function getObsidianToken(): string | null {
 export function setObsidianToken(token: string): void {
   try {
     const db = getDbInstance();
+    const encrypted = encrypt(token) ?? token;
     db.prepare(
       "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-    ).run(OBSIDIAN_NAMESPACE, OBSIDIAN_TOKEN_KEY, JSON.stringify(token));
+    ).run(OBSIDIAN_NAMESPACE, OBSIDIAN_TOKEN_KEY, JSON.stringify(encrypted));
   } catch {
     // Non-fatal — token still works in-memory if persistence fails.
   }
@@ -168,7 +174,9 @@ export function getWebdavPassword(): string | null {
       .get(OBSIDIAN_NAMESPACE, "webdav_password") as KeyValueRow | undefined;
     if (typeof row?.value === "string") {
       const parsed = JSON.parse(row.value);
-      return typeof parsed === "string" && parsed.length > 0 ? parsed : null;
+      if (typeof parsed !== "string" || parsed.length === 0) return null;
+      // Graceful fallback: if decrypt fails return as-is (plaintext backward compat)
+      return decrypt(parsed) ?? parsed;
     }
     return null;
   } catch {
@@ -179,9 +187,10 @@ export function getWebdavPassword(): string | null {
 export function setWebdavPassword(password: string): void {
   try {
     const db = getDbInstance();
+    const encrypted = encrypt(password) ?? password;
     db.prepare(
       "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-    ).run(OBSIDIAN_NAMESPACE, "webdav_password", JSON.stringify(password));
+    ).run(OBSIDIAN_NAMESPACE, "webdav_password", JSON.stringify(encrypted));
   } catch {
     // Non-fatal.
   }

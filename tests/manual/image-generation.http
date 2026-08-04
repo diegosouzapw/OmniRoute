@@ -59,7 +59,7 @@ Authorization: Bearer {{OMNIROUTE_API_KEY}}
 Content-Type: application/json
 
 {
-  "model": "codex/gpt-5.4",
+  "model": "codex/gpt-5.6-sol",
   "prompt": "A happy red kitten, highly detailed fur, studio lighting",
   "n": 1,
   "size": "1024x1024",

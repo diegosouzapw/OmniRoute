@@ -18,7 +18,7 @@ export default function TranslatorConceptCard() {
         return fallback;
       }
     },
-    [t],
+    [t]
   );
 
   return (
@@ -35,13 +35,13 @@ export default function TranslatorConceptCard() {
             <h2 className="text-sm font-semibold text-text-main mb-1">
               {tr(
                 "conceptHeadline",
-                'Sua app fala o "idioma" de uma API. O Translator converte para usar outro provider.',
+                'Your app speaks one API "language". Translator converts it to use another provider.'
               )}
             </h2>
             <p className="text-xs text-text-muted">
               {tr(
                 "friendlySubtitle",
-                "Use sua app existente com qualquer provider — sem reescrever código.",
+                "Use your existing app with any provider without rewriting code."
               )}
             </p>
           </div>
@@ -56,7 +56,7 @@ export default function TranslatorConceptCard() {
           aria-controls="translator-concept-how-it-works"
           className="flex items-center gap-2 text-xs font-medium text-primary hover:text-primary/80 transition-colors w-full justify-start py-1 rounded"
         >
-          <span>{tr("conceptHowItWorksToggle", "Como funciona")}</span>
+          <span>{tr("conceptHowItWorksToggle", "How it works")}</span>
           <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
             {open ? "expand_less" : "expand_more"}
           </span>
@@ -69,7 +69,7 @@ export default function TranslatorConceptCard() {
           >
             {tr(
               "conceptHowItWorksBody",
-              "Sua app envia um pedido no formato dela. O Translator detecta o formato, converte via OpenAI como hub intermediário (ou direto, quando há tradutor direto disponível), envia ao provider escolhido e devolve a resposta convertida de volta no formato da sua app.",
+              "Your app sends a request in its own format. Translator detects that format, converts through OpenAI as an intermediate hub (or directly when a direct translator is available), sends it to the selected provider, and converts the response back to your app's format."
             )}
           </div>
         )}

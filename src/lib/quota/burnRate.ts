@@ -25,6 +25,43 @@ export interface BurnRateResult {
 }
 
 /**
+ * Compute burn rate from a single snapshot using the sliding window context.
+ *
+ * When only one sample is available (the common case for on-demand pool usage
+ * queries), we derive the rate from the consumption within the current window:
+ *   rate = consumedTotal / elapsedInWindow
+ *
+ * This assumes consumption is roughly uniform within the window — a reasonable
+ * approximation for token/request budgets over hourly/daily/weekly periods.
+ *
+ * @param consumedTotal  Cumulative consumption in the current sliding window.
+ * @param windowMs       The window duration in milliseconds (e.g. 5h = 18_000_000).
+ * @param remaining      Optional remaining quota (same unit as consumedTotal).
+ */
+export function computeBurnRateFromWindow(
+  consumedTotal: number,
+  windowMs: number,
+  remaining?: number
+): BurnRateResult {
+  if (consumedTotal <= 0 || windowMs <= 0) {
+    return { tokensPerSecond: 0, timeToExhaustionMs: null };
+  }
+
+  const nowMs = Date.now();
+  const currentBucketIndex = Math.floor(nowMs / windowMs);
+  const windowStartMs = currentBucketIndex * windowMs;
+  const elapsedMs = Math.max(1, nowMs - windowStartMs); // avoid division by zero
+
+  const safeRate = consumedTotal / (elapsedMs / 1000); // per second
+  const timeToExhaustionMs =
+    safeRate > 0 && remaining !== undefined && remaining >= 0
+      ? (remaining / safeRate) * 1000
+      : null;
+
+  return { tokensPerSecond: safeRate, timeToExhaustionMs };
+}
+
+/**
  * Compute the current burn rate from a series of samples.
  *
  * @param history   Array of { ts, consumed } ordered oldest → newest.

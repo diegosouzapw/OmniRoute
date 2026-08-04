@@ -145,7 +145,10 @@ function ProviderCard({
   );
 }
 
-export default function ProviderCatalog({ selectedProvider, onSelectProvider }: ProviderCatalogProps) {
+export default function ProviderCatalog({
+  selectedProvider,
+  onSelectProvider,
+}: ProviderCatalogProps) {
   const [providers, setProviders] = useState<SearchProviderCatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -211,7 +214,7 @@ export default function ProviderCatalog({ selectedProvider, onSelectProvider }: 
             data-testid={`filter-${kind}`}
           >
             {kind === "all"
-              ? `Todos (${providers.length})`
+              ? `All (${providers.length})`
               : kind === "search"
                 ? `Search (${searchCount})`
                 : `Fetch (${fetchCount})`}
@@ -221,17 +224,14 @@ export default function ProviderCatalog({ selectedProvider, onSelectProvider }: 
 
       {filtered.length === 0 && (
         <div className="text-xs text-text-muted py-4 text-center">
-          Nenhum provider encontrado.{" "}
+          No provider found.{" "}
           <Link href="/dashboard/providers" className="text-accent hover:underline">
-            Configurar providers →
+            Configure providers →
           </Link>
         </div>
       )}
 
-      <div
-        className="grid grid-cols-1 gap-2"
-        data-testid="provider-catalog-grid"
-      >
+      <div className="grid grid-cols-1 gap-2" data-testid="provider-catalog-grid">
         {filtered.map((item) => (
           <ProviderCard
             key={item.id}

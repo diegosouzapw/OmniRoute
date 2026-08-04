@@ -332,3 +332,90 @@ test("removeQuotaCombosForPool: unknown pool id — no throw", async () => {
     "removeQuotaCombosForPool with unknown poolId should not throw"
   );
 });
+
+// ---------------------------------------------------------------------------
+// Guard B (issue #10): a pool whose connections no longer resolve (empty/dangling
+// connection list) must NOT prune/delete the group's existing combos. Pruning is
+// provider-scoped, and with no resolvable connection the provider is unknown — so
+// syncQuotaCombos returns early (poolProvider === undefined) BEFORE the prune loop.
+// This proves the `if (!poolProvider) return` guard covers the empty-connection
+// path: a transient connection-resolution failure cannot wipe a group's combos.
+// ---------------------------------------------------------------------------
+
+test("syncQuotaCombos: pool with no resolvable connection does NOT prune existing combos (Guard B)", async () => {
+  // 1. Seed a glm connection + pool and mint combos.
+  const conn = await providersDb.createProviderConnection({
+    provider: "glm",
+    authType: "apikey",
+    name: "quota-combos-guardB",
+    apiKey: "sk-test-glm-guardb",
+  });
+  const connId = (conn as Record<string, unknown>).id as string;
+  const pool = poolsDb.createPool({ connectionId: connId, name: "GuardBPool" });
+
+  await syncQuotaCombos(pool.id);
+  const before = await listQuotaCombos();
+  assert.ok(before.length > 0, "expected combos after initial sync");
+  const beforeNames = new Set(before.map((c) => c.name));
+
+  // 2. Delete the provider connection while the pool still references it.
+  //    The join row (quota_pool_connections) remains → getConnectionIds returns a
+  //    dangling id whose getProviderConnectionById() resolves to null. This is the
+  //    "connections do not resolve" scenario.
+  const removed = await providersDb.deleteProviderConnection(connId);
+  assert.equal(removed, true, "connection should be deleted");
+  assert.equal(
+    await providersDb.getProviderConnectionById(connId),
+    null,
+    "connection must no longer resolve"
+  );
+
+  // 3. Re-sync. With no resolvable connection, poolProvider is undefined → the
+  //    guard returns before pruning. Existing combos must be untouched.
+  await syncQuotaCombos(pool.id);
+
+  const after = await listQuotaCombos();
+  assert.equal(
+    after.length,
+    before.length,
+    "combos must NOT be pruned when the pool has no resolvable connection"
+  );
+  for (const name of beforeNames) {
+    const stillThere = after.some((c) => c.name === name);
+    assert.ok(stillThere, `combo was wrongly pruned: ${name}`);
+  }
+});
+
+test("syncQuotaCombos: pool whose join table is emptied (truly no connectionIds) does NOT prune combos (Guard B)", async () => {
+  // Variant of Guard B where the join table itself is empty AND the primary
+  // connection is gone — connectionIds falls back to [pool.connectionId], which
+  // also fails to resolve. Still must not prune.
+  const conn = await providersDb.createProviderConnection({
+    provider: "glm",
+    authType: "apikey",
+    name: "quota-combos-guardB-empty",
+    apiKey: "sk-test-glm-guardb-empty",
+  });
+  const connId = (conn as Record<string, unknown>).id as string;
+  const pool = poolsDb.createPool({ connectionId: connId, name: "GuardBEmptyPool" });
+
+  await syncQuotaCombos(pool.id);
+  const before = await listQuotaCombos();
+  assert.ok(before.length > 0, "expected combos after initial sync");
+
+  // Empty the join table for this pool AND delete the connection row.
+  const db = core.getDbInstance() as unknown as {
+    prepare: (sql: string) => { run: (...p: unknown[]) => unknown };
+  };
+  db.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(pool.id);
+  await providersDb.deleteProviderConnection(connId);
+
+  await syncQuotaCombos(pool.id);
+
+  const after = await listQuotaCombos();
+  assert.equal(
+    after.length,
+    before.length,
+    "combos must survive when the pool has an empty/unresolvable connection set"
+  );
+});

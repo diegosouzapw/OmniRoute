@@ -1,1 +1,1 @@
-export { analyzePrefix, shouldInjectCacheControl, generatePromptCacheKey } from "./prefixAnalyzer";
+export { analyzePrefix, generatePromptCacheKey } from "./prefixAnalyzer";

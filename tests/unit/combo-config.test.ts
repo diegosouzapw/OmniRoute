@@ -1,11 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { resolveComboConfig, getDefaultComboConfig, resolveComboTargetTimeoutMs } =
-  await import("../../open-sse/services/comboConfig.ts");
+const {
+  resolveComboConfig,
+  getDefaultComboConfig,
+  resolveComboTargetTimeoutMs,
+  DEFAULT_COMBO_TARGET_TIMEOUT_MS,
+  COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS,
+  isComboCooldownWaitEligible,
+  resolveComboTargetTimeoutMsForCombo,
+  resolveComboQueueDepth,
+} = await import("../../open-sse/services/comboConfig.ts");
 const { createComboSchema, updateComboDefaultsSchema } =
   await import("../../src/shared/validation/schemas.ts");
 const { MAX_TIMER_TIMEOUT_MS } = await import("../../src/shared/utils/runtimeTimeouts.ts");
+const { ROUTING_STRATEGY_VALUES, INTERNAL_ROUTING_STRATEGY_VALUES } =
+  await import("../../src/shared/constants/routingStrategies.ts");
+const ALL_COMBO_STRATEGIES = [...ROUTING_STRATEGY_VALUES, ...INTERNAL_ROUTING_STRATEGY_VALUES];
 
 test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   const first = getDefaultComboConfig();
@@ -21,9 +32,11 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.handoffThreshold, 0.85);
   assert.equal(first.maxMessagesForSummary, 30);
   assert.deepEqual(first.handoffProviders, ["codex"]);
+  assert.equal(first.nestedComboMode, "flatten");
   assert.equal(first.failoverBeforeRetry, true);
   assert.equal(first.maxSetRetries, 0);
   assert.equal(first.setRetryDelayMs, 2000);
+  assert.equal(first.reasoningTokenBufferEnabled, true);
   assert.equal(first.zeroLatencyOptimizationsEnabled, false);
   assert.equal(first.hedging, false);
   assert.equal(first.fallbackCompressionMode, "lite");
@@ -68,6 +81,39 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
   assert.equal(result.targetTimeoutMs, 45000);
   assert.ok(!("timeoutMs" in result));
   assert.ok(!("healthCheckEnabled" in result));
+});
+
+test("resolveComboConfig cascades reasoning token buffer feature flag", () => {
+  const providerDisabled = resolveComboConfig(
+    {},
+    {
+      comboDefaults: {
+        reasoningTokenBufferEnabled: true,
+      },
+      providerOverrides: {
+        openai: {
+          reasoningTokenBufferEnabled: false,
+        },
+      },
+    },
+    "openai"
+  );
+
+  const comboEnabled = resolveComboConfig(
+    {
+      config: {
+        reasoningTokenBufferEnabled: true,
+      },
+    },
+    {
+      comboDefaults: {
+        reasoningTokenBufferEnabled: false,
+      },
+    }
+  );
+
+  assert.equal(providerDisabled.reasoningTokenBufferEnabled, false);
+  assert.equal(comboEnabled.reasoningTokenBufferEnabled, true);
 });
 
 test("resolveComboConfig preserves nested routing defaults for partial overrides", () => {
@@ -132,19 +178,23 @@ test("updateComboDefaultsSchema accepts arbitrarily large timeout defaults and p
     comboDefaults: {
       timeoutMs: 3600000,
       targetTimeoutMs: 30000,
+      reasoningTokenBufferEnabled: false,
     },
     providerOverrides: {
       anthropic: {
         timeoutMs: 5400000,
         targetTimeoutMs: 45000,
+        reasoningTokenBufferEnabled: false,
       },
     },
   });
 
   assert.equal(parsed.comboDefaults.timeoutMs, 3600000);
   assert.equal(parsed.comboDefaults.targetTimeoutMs, 30000);
+  assert.equal(parsed.comboDefaults.reasoningTokenBufferEnabled, false);
   assert.equal(parsed.providerOverrides.anthropic.timeoutMs, 5400000);
   assert.equal(parsed.providerOverrides.anthropic.targetTimeoutMs, 45000);
+  assert.equal(parsed.providerOverrides.anthropic.reasoningTokenBufferEnabled, false);
 });
 
 test("combo config schema accepts explicit zero-latency opt-in controls", () => {
@@ -169,9 +219,12 @@ test("combo config schema accepts explicit zero-latency opt-in controls", () => 
   assert.equal(parsed.config.predictiveTtftMs, 1800);
 });
 
-test("combo config schema rejects enabled zero-latency subfeatures without opt-in", () => {
+test("combo config schema auto-promotes the zero-latency gate for legacy configs without opt-in", () => {
+  // Pre-3.8.33 combos carry zero-latency subfeatures without the
+  // zeroLatencyOptimizationsEnabled gate. The schema now auto-promotes the gate
+  // (instead of 400-ing on the first GUI edit) so they round-trip. See #4774/#4382.
   const result = createComboSchema.safeParse({
-    name: "zero-latency-noop",
+    name: "zero-latency-legacy",
     models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
     config: {
       hedging: true,
@@ -180,11 +233,45 @@ test("combo config schema rejects enabled zero-latency subfeatures without opt-i
     },
   });
 
-  assert.equal(result.success, false);
-  assert.deepEqual(
-    result.error.issues.map((issue) => issue.path.join(".")),
-    ["config.hedging", "config.predictiveTtftMs", "config.fallbackCompressionMode"]
-  );
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.zeroLatencyOptimizationsEnabled, true);
+  // The enabled subfeatures are preserved verbatim.
+  assert.equal(result.data.config.hedging, true);
+  assert.equal(result.data.config.fallbackCompressionMode, "lite");
+  assert.equal(result.data.config.predictiveTtftMs, 1800);
+});
+
+test("combo config schema leaves the zero-latency gate untouched when no subfeature is enabled", () => {
+  // A plain config with no zero-latency subfeature must NOT be auto-promoted —
+  // the gate stays at its default (false) so we don't silently flip optimizations on.
+  const result = createComboSchema.safeParse({
+    name: "no-zero-latency",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      fallbackCompressionMode: "off",
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.notEqual(result.data.config.zeroLatencyOptimizationsEnabled, true);
+});
+
+test("combo config schema no longer rejects v3.8.31-era removed config keys (#4382 round-trip)", () => {
+  // Keys dropped after v3.8.31 still live in stored JSON. The schema switched
+  // .strict() (which 400'd) → .passthrough(); the route + migration 103 scrub them.
+  const result = createComboSchema.safeParse({
+    name: "legacy-removed-keys",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    config: {
+      queueDepth: 4,
+      fallbackDelayMs: 200,
+      maxComboDepth: 3,
+      shadowRouting: { enabled: false },
+      resetAwareEnabled: true,
+    },
+  });
+
+  assert.equal(result.success, true);
 });
 
 test("combo config schema allows zero-latency tuning fields when subfeatures stay disabled", () => {
@@ -217,6 +304,67 @@ test("resolveComboTargetTimeoutMs inherits the upstream timeout and only shorten
     MAX_TIMER_TIMEOUT_MS
   );
   assert.equal(resolveComboTargetTimeoutMs({}, 999999999999), MAX_TIMER_TIMEOUT_MS);
+});
+
+test("resolveComboTargetTimeoutMs falls back to the saner combo default when unset", () => {
+  // The combo default is the documented 120s fallback-latency cap.
+  assert.equal(DEFAULT_COMBO_TARGET_TIMEOUT_MS, 120000);
+  // Unset config → use the default (capped at the ceiling), NOT the full upstream ceiling.
+  // This is what shortens a hung-target failover from 600s to 120s (escalated cmqlrhd7c).
+  assert.equal(resolveComboTargetTimeoutMs({}, 600000, 120000), 120000);
+  // Operators can still extend beyond the default, up to the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 300000 }, 600000, 120000), 300000);
+  // Explicit config above the ceiling is still capped at the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000, 120000), 600000);
+  // A default larger than the ceiling is clamped to the ceiling.
+  assert.equal(resolveComboTargetTimeoutMs({}, 100000, 120000), 100000);
+  // Backward-compat: omitting the default arg keeps the legacy inherit-the-ceiling behavior.
+  assert.equal(resolveComboTargetTimeoutMs({}, 600000), 600000);
+  // Disabled upstream timeout (0 = unbounded) stays unbounded even with a default present.
+  assert.equal(resolveComboTargetTimeoutMs({}, 0, 120000), 0);
+});
+
+// #7360 / #7301: any strategy with comboCooldownWait enabled waits out cooldowns for up
+// to comboCooldownWait.budgetMs, so the per-target timeout floor must cover that budget
+// (DEFAULT_COMBO_TARGET_TIMEOUT_MS alone would cut a long wait short into a 524).
+test("isComboCooldownWaitEligible engages for every strategy when the feature is enabled", () => {
+  for (const strategy of ALL_COMBO_STRATEGIES) {
+    assert.equal(isComboCooldownWaitEligible(strategy, { enabled: true }), true);
+    assert.equal(isComboCooldownWaitEligible(strategy, { enabled: false }), false);
+  }
+});
+
+test("resolveComboTargetTimeoutMsForCombo raises the floor to cover the cooldown-wait budget when enabled", () => {
+  const comboCooldownWait = { enabled: true, budgetMs: 130000 };
+  const floor = 130000 + COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS;
+  const disabled = { enabled: false, budgetMs: 130000 };
+
+  // Feature on: floor is budget + buffer for every strategy; off: 120s default.
+  for (const strategy of ALL_COMBO_STRATEGIES) {
+    assert.equal(
+      resolveComboTargetTimeoutMsForCombo({}, 600000, strategy, comboCooldownWait),
+      floor
+    );
+    assert.equal(
+      resolveComboTargetTimeoutMsForCombo({}, 600000, strategy, disabled),
+      DEFAULT_COMBO_TARGET_TIMEOUT_MS
+    );
+  }
+
+  // A small budget below the 120s default never lowers the floor.
+  assert.equal(
+    resolveComboTargetTimeoutMsForCombo({}, 600000, "auto", { enabled: true, budgetMs: 5000 }),
+    DEFAULT_COMBO_TARGET_TIMEOUT_MS
+  );
+
+  // Explicit per-combo targetTimeoutMs still wins over the derived floor.
+  assert.equal(
+    resolveComboTargetTimeoutMsForCombo({ targetTimeoutMs: 45000 }, 600000, "auto", comboCooldownWait),
+    45000
+  );
+
+  // The derived floor is still capped at the upstream ceiling.
+  assert.equal(resolveComboTargetTimeoutMsForCombo({}, 100000, "auto", comboCooldownWait), 100000);
 });
 
 test("combo timeout schema rejects values beyond the safe timer limit", () => {
@@ -270,7 +418,7 @@ test("resolveComboConfig tolerates invalid or missing inputs and falls back to d
 test("createComboSchema accepts context-relay strategy with handoff config", () => {
   const parsed = createComboSchema.parse({
     name: "codex-relay",
-    models: ["codex/gpt-5.4"],
+    models: ["codex/gpt-5.6-sol"],
     strategy: "context-relay",
     config: {
       handoffThreshold: 0.85,
@@ -344,7 +492,7 @@ test("createComboSchema accepts structured combo steps with pinned connection an
         kind: "model",
         id: "step-codex-a",
         providerId: "codex",
-        model: "gpt-5.4",
+        model: "gpt-5.6-sol",
         connectionId: "conn-codex-a",
         weight: 10,
       },
@@ -373,14 +521,14 @@ test("createComboSchema accepts composite tiers that reference normalized combo 
         kind: "model",
         id: "step-primary",
         providerId: "codex",
-        model: "gpt-5.4",
+        model: "gpt-5.6-sol",
         connectionId: "conn-codex-a",
       },
       {
         kind: "model",
         id: "step-backup",
         providerId: "codex",
-        model: "gpt-5.4",
+        model: "gpt-5.6-sol",
         connectionId: "conn-codex-b",
       },
     ],
@@ -470,6 +618,66 @@ test("createComboSchema accepts failoverBeforeRetry, maxSetRetries and setRetryD
   assert.equal(parsed.config.setRetryDelayMs, 1500);
 });
 
+test("createComboSchema accepts nestedComboMode and rejects invalid values", () => {
+  const parsed = createComboSchema.parse({
+    name: "nested-execute",
+    models: [{ kind: "combo-ref", comboName: "child" }],
+    strategy: "priority",
+    config: { nestedComboMode: "execute" },
+  });
+  assert.equal(parsed.config.nestedComboMode, "execute");
+
+  const flatten = createComboSchema.parse({
+    name: "nested-flatten",
+    models: ["openai/gpt-4o-mini"],
+    config: { nestedComboMode: "flatten" },
+  });
+  assert.equal(flatten.config.nestedComboMode, "flatten");
+
+  const invalid = createComboSchema.safeParse({
+    name: "nested-invalid",
+    models: ["openai/gpt-4o-mini"],
+    config: { nestedComboMode: "redirect" },
+  });
+  assert.equal(invalid.success, false);
+});
+
+test("createComboSchema accepts per-combo stickyRoundRobinLimit and rejects out-of-range", () => {
+  const parsed = createComboSchema.parse({
+    name: "sticky-override",
+    models: ["openai/gpt-4o-mini"],
+    strategy: "round-robin",
+    config: { stickyRoundRobinLimit: 2 },
+  });
+  assert.equal(parsed.config.stickyRoundRobinLimit, 2);
+
+  const tooHigh = createComboSchema.safeParse({
+    name: "sticky-too-high",
+    models: ["openai/gpt-4o-mini"],
+    strategy: "round-robin",
+    config: { stickyRoundRobinLimit: 1001 },
+  });
+  assert.equal(tooHigh.success, false);
+});
+
+test("createComboSchema accepts per-combo stickyWeightedLimit and rejects out-of-range", () => {
+  const parsed = createComboSchema.parse({
+    name: "sticky-weighted",
+    models: [{ model: "openai/gpt-4o-mini", weight: 100 }],
+    strategy: "weighted",
+    config: { stickyWeightedLimit: 2 },
+  });
+  assert.equal(parsed.config.stickyWeightedLimit, 2);
+
+  const tooHigh = createComboSchema.safeParse({
+    name: "sticky-weighted-too-high",
+    models: [{ model: "openai/gpt-4o-mini", weight: 100 }],
+    strategy: "weighted",
+    config: { stickyWeightedLimit: 1001 },
+  });
+  assert.equal(tooHigh.success, false);
+});
+
 test("createComboSchema coerces string numbers for maxSetRetries and setRetryDelayMs", () => {
   const parsed = createComboSchema.parse({
     name: "coerce-test",
@@ -521,6 +729,17 @@ test("createComboSchema rejects setRetryDelayMs out of range", () => {
   assert.equal(negative.success, false);
 });
 
+test("resolveComboConfig cascades nestedComboMode", () => {
+  const result = resolveComboConfig(
+    { config: { nestedComboMode: "execute" } },
+    { comboDefaults: { nestedComboMode: "flatten" } }
+  );
+  assert.equal(result.nestedComboMode, "execute");
+
+  const defaulted = resolveComboConfig({ config: {} }, { comboDefaults: {} });
+  assert.equal(defaulted.nestedComboMode, "flatten");
+});
+
 test("resolveComboConfig cascades failoverBeforeRetry, maxSetRetries and setRetryDelayMs", () => {
   const result = resolveComboConfig(
     {
@@ -542,4 +761,169 @@ test("resolveComboConfig cascades failoverBeforeRetry, maxSetRetries and setRetr
   assert.equal(result.failoverBeforeRetry, true);
   assert.equal(result.maxSetRetries, 2);
   assert.equal(result.setRetryDelayMs, 3000);
+});
+
+// Issue #3872: combo round-robin always queued ~20 deep before cascading on
+// semaphore saturation because handleRoundRobinCombo never threaded a queue depth
+// into accountSemaphore.acquire (it fell back to the hardcoded DEFAULT_MAX_QUEUE_SIZE
+// of 20). Expose `queueDepth` as combo config so operators can shrink the pre-cascade
+// queue (0 = fail over immediately) for faster failover, while keeping 20 as the
+// backward-compatible default.
+test("getDefaultComboConfig exposes the backward-compatible queueDepth default of 20", () => {
+  assert.equal(getDefaultComboConfig().queueDepth, 20);
+});
+
+test("resolveComboConfig cascades queueDepth from defaults through provider and combo overrides", () => {
+  const fromDefault = resolveComboConfig({ config: {} }, { comboDefaults: {} });
+  assert.equal(fromDefault.queueDepth, 20);
+
+  const cascaded = resolveComboConfig(
+    {
+      config: {
+        queueDepth: 1,
+      },
+    },
+    {
+      comboDefaults: {
+        queueDepth: 10,
+      },
+      providerOverrides: {
+        openai: {
+          queueDepth: 5,
+        },
+      },
+    },
+    "openai"
+  );
+
+  // Most specific (combo.config) wins over provider override and global default.
+  assert.equal(cascaded.queueDepth, 1);
+});
+
+test("resolveComboQueueDepth defaults to 20, honors configured values, and clamps the range", () => {
+  assert.equal(resolveComboQueueDepth(null), 20);
+  assert.equal(resolveComboQueueDepth({}), 20);
+  assert.equal(resolveComboQueueDepth({ queueDepth: 5 }), 5);
+  // 0 is a valid, meaningful value: queue nothing → fail over to the next member immediately.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 0 }), 0);
+  // Invalid / negative inputs fall back to the safe default.
+  assert.equal(resolveComboQueueDepth({ queueDepth: -3 }), 20);
+  assert.equal(resolveComboQueueDepth({ queueDepth: Number.NaN }), 20);
+  // Out-of-range high values are clamped, not trusted.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 99999 }), 100);
+  // Fractional values floor to an integer queue slot count.
+  assert.equal(resolveComboQueueDepth({ queueDepth: 3.9 }), 3);
+});
+
+test("createComboSchema accepts queueDepth, coerces strings, and allows 0 for immediate failover", () => {
+  const parsed = createComboSchema.parse({
+    name: "fast-failover",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    strategy: "round-robin",
+    config: {
+      queueDepth: "0",
+    },
+  });
+
+  assert.equal(parsed.config.queueDepth, 0);
+});
+
+test("createComboSchema rejects queueDepth outside the supported range", () => {
+  const tooHigh = createComboSchema.safeParse({
+    name: "bad-queue-depth-high",
+    models: ["openai/gpt-4"],
+    strategy: "round-robin",
+    config: { queueDepth: 101 },
+  });
+  assert.equal(tooHigh.success, false);
+
+  const negative = createComboSchema.safeParse({
+    name: "bad-queue-depth-negative",
+    models: ["openai/gpt-4"],
+    strategy: "round-robin",
+    config: { queueDepth: -1 },
+  });
+  assert.equal(negative.success, false);
+});
+
+// ─── Fusion strategy config (judgeModel + fusionTuning) ──────────────────
+// Backs the dashboard combo-editor Fusion fields (judge model + tuning). The
+// editor only writes these; the backend (open-sse/services/fusion.ts) reads
+// config.judgeModel / config.fusionTuning. The schema must accept + bound them.
+
+test("createComboSchema accepts judgeModel and fusionTuning for a fusion combo", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-panel",
+    models: ["cc/claude-opus-4-7", "cx/gpt-5.5", "glm/glm-5.1"],
+    strategy: "fusion",
+    config: {
+      judgeModel: "cc/claude-opus-4-7",
+      fusionTuning: { minPanel: 2, stragglerGraceMs: 8000, panelHardTimeoutMs: 90000 },
+    },
+  });
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.judgeModel, "cc/claude-opus-4-7");
+  assert.deepEqual(result.data.config.fusionTuning, {
+    minPanel: 2,
+    stragglerGraceMs: 8000,
+    panelHardTimeoutMs: 90000,
+  });
+});
+
+test("createComboSchema accepts a fusion combo with no fusion config (defaults apply at runtime)", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-bare",
+    models: ["cc/claude-opus-4-7", "cx/gpt-5.5"],
+    strategy: "fusion",
+    config: {},
+  });
+  assert.equal(result.success, true);
+});
+
+test("createComboSchema coerces numeric-string fusionTuning values", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-coerce",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: "3", stragglerGraceMs: "5000" } },
+  });
+  assert.equal(result.success, true);
+  assert.equal(result.data.config.fusionTuning.minPanel, 3);
+  assert.equal(result.data.config.fusionTuning.stragglerGraceMs, 5000);
+});
+
+test("createComboSchema rejects out-of-range fusionTuning values", () => {
+  const minPanelTooHigh = createComboSchema.safeParse({
+    name: "fusion-bad-minpanel",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: 51 } },
+  });
+  assert.equal(minPanelTooHigh.success, false);
+
+  const graceNegative = createComboSchema.safeParse({
+    name: "fusion-bad-grace",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { stragglerGraceMs: -1 } },
+  });
+  assert.equal(graceNegative.success, false);
+
+  const hardTimeoutTooLow = createComboSchema.safeParse({
+    name: "fusion-bad-hardtimeout",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { panelHardTimeoutMs: 500 } },
+  });
+  assert.equal(hardTimeoutTooLow.success, false);
+});
+
+test("createComboSchema rejects unknown keys inside fusionTuning (strict object)", () => {
+  const result = createComboSchema.safeParse({
+    name: "fusion-unknown-key",
+    models: ["a/m1", "b/m2"],
+    strategy: "fusion",
+    config: { fusionTuning: { minPanel: 2, bogusKey: 1 } },
+  });
+  assert.equal(result.success, false);
 });

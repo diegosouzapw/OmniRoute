@@ -11,6 +11,7 @@ import {
   setObsidianVaultPath,
 } from "@/lib/db/obsidian";
 import { createObsidianClient } from "@/lib/obsidian/api";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const setTokenSchema = z.object({
   token: z.string().min(1).max(5000),
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       vaultPath: config.vaultPath,
     });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ error: msg, connected: false }, { status: 400 });
+    return NextResponse.json({ error: sanitizeErrorMessage(msg), connected: false }, { status: 400 });
   }
 }
 
@@ -112,6 +113,6 @@ export async function DELETE(request: NextRequest) {
       message: "Obsidian integration disconnected",
     });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }

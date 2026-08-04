@@ -2,6 +2,8 @@
 
 // src/app/(dashboard)/dashboard/playground/components/ParamSliders.tsx
 
+import { useTranslations } from "next-intl";
+
 export interface PlaygroundParams {
   temperature: number;
   max_tokens: number;
@@ -11,6 +13,10 @@ export interface PlaygroundParams {
   seed: number | null;
   stop: string;
   jsonMode: boolean;
+  // #6241: canonical reasoning params — surfaced by ReasoningControls only when the selected
+  // model supports thinking. `effort: ""` means "not set" (left off the request body).
+  effort: string;
+  thinking: boolean;
 }
 
 export const DEFAULT_PARAMS: PlaygroundParams = {
@@ -22,6 +28,8 @@ export const DEFAULT_PARAMS: PlaygroundParams = {
   seed: null,
   stop: "",
   jsonMode: false,
+  effort: "",
+  thinking: false,
 };
 
 interface ParamSlidersProps {
@@ -74,6 +82,7 @@ function SliderRow({ label, value, min, max, step, onChange }: SliderRowProps) {
  * Props: { params, setParams }
  */
 export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
+  const t = useTranslations("playground");
   function update<K extends keyof PlaygroundParams>(key: K, value: PlaygroundParams[K]) {
     setParams({ ...params, [key]: value });
   }
@@ -81,7 +90,7 @@ export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
   return (
     <div className="space-y-3">
       <SliderRow
-        label="Temperature"
+        label={t("temperature")}
         value={params.temperature}
         min={0}
         max={2}
@@ -90,7 +99,7 @@ export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
       />
 
       <SliderRow
-        label="Max tokens"
+        label={t("maxTokens")}
         value={params.max_tokens}
         min={1}
         max={32768}
@@ -99,7 +108,7 @@ export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
       />
 
       <SliderRow
-        label="Top-p"
+        label={t("topP")}
         value={params.top_p}
         min={0}
         max={1}
@@ -108,7 +117,7 @@ export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
       />
 
       <SliderRow
-        label="Presence penalty"
+        label={t("presencePenalty")}
         value={params.presence_penalty}
         min={-2}
         max={2}
@@ -117,7 +126,7 @@ export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
       />
 
       <SliderRow
-        label="Frequency penalty"
+        label={t("frequencyPenalty")}
         value={params.frequency_penalty}
         min={-2}
         max={2}
@@ -127,11 +136,11 @@ export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
 
       {/* Seed input */}
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-text-muted font-medium">Seed</label>
+        <label className="text-xs text-text-muted font-medium">{t("seed")}</label>
         <input
           type="number"
           value={params.seed ?? ""}
-          placeholder="Random (leave empty)"
+          placeholder={t("seedPlaceholder")}
           onChange={(e) => {
             const raw = e.target.value;
             update("seed", raw === "" ? null : parseInt(raw, 10));
@@ -142,11 +151,11 @@ export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
 
       {/* Stop sequences */}
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-text-muted font-medium">Stop sequences</label>
+        <label className="text-xs text-text-muted font-medium">{t("stopSequences")}</label>
         <input
           type="text"
           value={params.stop}
-          placeholder='e.g. "\n\n" or "END"'
+          placeholder={t("stopSequencesPlaceholder")}
           onChange={(e) => update("stop", e.target.value)}
           className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
         />
@@ -154,7 +163,7 @@ export default function ParamSliders({ params, setParams }: ParamSlidersProps) {
 
       {/* JSON mode toggle */}
       <div className="flex items-center justify-between">
-        <label className="text-xs text-text-muted font-medium">JSON mode</label>
+        <label className="text-xs text-text-muted font-medium">{t("jsonMode")}</label>
         <button
           type="button"
           role="switch"

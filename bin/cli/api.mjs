@@ -1,8 +1,6 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { resolveDataDir } from "./data-dir.mjs";
 import { getCliToken, CLI_TOKEN_HEADER } from "./utils/cliToken.mjs";
+import { resolveActiveContext } from "./contexts.mjs";
 
 export const RETRY_DEFAULTS = Object.freeze({
   maxAttempts: 3,
@@ -28,14 +26,12 @@ export function getBaseUrl(opts = {}) {
   const envUrl = process.env.OMNIROUTE_BASE_URL;
   if (envUrl) return stripTrailingSlash(envUrl);
 
+  // Resolve from the active context (canonical store + legacy profile fallback).
+  // This is what makes "remote mode" work: `omniroute contexts use <remote>`
+  // routes every command at the remote server's baseUrl.
   try {
-    const configPath = join(resolveDataDir(), "config.json");
-    if (existsSync(configPath)) {
-      const cfg = JSON.parse(readFileSync(configPath, "utf8"));
-      const profile = cfg.activeProfile && cfg.profiles?.[cfg.activeProfile];
-      if (profile?.baseUrl) return stripTrailingSlash(profile.baseUrl);
-      if (cfg.baseUrl) return stripTrailingSlash(cfg.baseUrl);
-    }
+    const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+    if (ctx?.baseUrl) return stripTrailingSlash(ctx.baseUrl);
   } catch {
     // Config read failures are not fatal — fall through to default.
   }
@@ -56,15 +52,40 @@ function resolveUrl(path, opts) {
   return `${getBaseUrl(opts)}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-async function buildHeaders(opts) {
+export async function buildHeaders(opts) {
   const headers = new Headers(opts.headers || {});
   if (!headers.has("accept")) headers.set("accept", "application/json");
   if (opts.body && !headers.has("content-type") && typeof opts.body !== "string") {
     headers.set("content-type", "application/json");
   }
-  const apiKey = opts.apiKey ?? process.env.OMNIROUTE_API_KEY;
-  if (apiKey && !headers.has("authorization")) {
-    headers.set("authorization", `Bearer ${apiKey}`);
+  // Auth precedence: explicit key → active-context credential → ambient env key.
+  //
+  // The active context's scoped token MUST win over the ambient OMNIROUTE_API_KEY:
+  // `omniroute connect <remote>` saves the context's token, but users keep
+  // OMNIROUTE_API_KEY in their shell. The global `--api-key` option is bound to
+  // that env var (.env("OMNIROUTE_API_KEY")), so commands that spread
+  // `optsWithGlobals()` into apiFetch carry opts.apiKey === the env value. If that
+  // echoed value outranked the context, every remote management command would send
+  // the local inference key and fail with "Invalid management token" — defeating
+  // remote mode. So an opts.apiKey that merely mirrors the ambient env var is
+  // treated as ambient (a fallback), NOT as an explicit override; only a DISTINCT
+  // key — a real `--api-key <x>` flag or a command-supplied token like
+  // `connect --key` — counts as explicit and wins. Within a context the scoped
+  // accessToken wins over the legacy apiKey.
+  const ambientKey = process.env.OMNIROUTE_API_KEY || null;
+  const explicitKey = opts.apiKey && opts.apiKey !== ambientKey ? opts.apiKey : null;
+  let auth = explicitKey;
+  if (!auth) {
+    try {
+      const ctx = resolveActiveContext(opts.context ?? process.env.OMNIROUTE_CONTEXT);
+      auth = ctx?.accessToken || ctx?.apiKey || null;
+    } catch {
+      // No context credential available — fall through to the ambient fallback.
+    }
+  }
+  if (!auth) auth = opts.apiKey || ambientKey || null;
+  if (auth && !headers.has("authorization")) {
+    headers.set("authorization", `Bearer ${auth}`);
   }
   // Inject machine-id derived CLI token; env var override for testing.
   const cliToken = opts.cliToken ?? process.env.OMNIROUTE_CLI_TOKEN ?? (await getCliToken());

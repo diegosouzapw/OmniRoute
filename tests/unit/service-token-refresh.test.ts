@@ -9,13 +9,39 @@ describe("tokenRefresh helpers", () => {
       assert.equal(mod.getRefreshLeadMs("codex"), 5 * 60 * 1000);
       assert.equal(mod.getRefreshLeadMs("openai"), 5 * 60 * 1000);
       assert.equal(mod.getRefreshLeadMs("claude"), 5 * 60 * 1000);
-      assert.equal(mod.getRefreshLeadMs("iflow"), 24 * 60 * 60 * 1000);
-      assert.equal(mod.getRefreshLeadMs("gemini-cli"), 15 * 60 * 1000);
+      assert.equal(mod.getRefreshLeadMs("antigravity"), 15 * 60 * 1000);
     });
 
     it("falls back to TOKEN_EXPIRY_BUFFER_MS for unknown providers", () => {
       assert.equal(mod.getRefreshLeadMs("unknown-provider"), mod.TOKEN_EXPIRY_BUFFER_MS);
       assert.equal(mod.getRefreshLeadMs(""), mod.TOKEN_EXPIRY_BUFFER_MS);
+      // `iflow` was removed from the product; its 24h entry outlived it in the TTL map.
+      // Asserted here rather than deleted from the "known providers" case above, so a
+      // silent reintroduction of the entry turns this red instead of passing unnoticed.
+      assert.equal(mod.getRefreshLeadMs("iflow"), mod.TOKEN_EXPIRY_BUFFER_MS);
+    });
+
+    it("honors a positive per-connection refreshLeadMs override", () => {
+      // Override beats both the provider default and the fallback buffer.
+      assert.equal(mod.getRefreshLeadMs("codex", { refreshLeadMs: 90_000 }), 90_000);
+      assert.equal(mod.getRefreshLeadMs("unknown-provider", { refreshLeadMs: 12_345 }), 12_345);
+    });
+
+    it("ignores invalid or non-positive override values", () => {
+      // Falls through to provider default / buffer when the override is unusable.
+      assert.equal(mod.getRefreshLeadMs("codex", null), 5 * 60 * 1000);
+      assert.equal(mod.getRefreshLeadMs("codex", {}), 5 * 60 * 1000);
+      assert.equal(mod.getRefreshLeadMs("codex", { refreshLeadMs: 0 }), 5 * 60 * 1000);
+      assert.equal(mod.getRefreshLeadMs("codex", { refreshLeadMs: -1 }), 5 * 60 * 1000);
+      assert.equal(
+        mod.getRefreshLeadMs("codex", { refreshLeadMs: "60000" as unknown as number }),
+        5 * 60 * 1000
+      );
+      assert.equal(mod.getRefreshLeadMs("codex", { refreshLeadMs: NaN }), 5 * 60 * 1000);
+      assert.equal(
+        mod.getRefreshLeadMs("unknown-provider", { refreshLeadMs: -5 }),
+        mod.TOKEN_EXPIRY_BUFFER_MS
+      );
     });
   });
 

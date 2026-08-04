@@ -1,23 +1,19 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
-import { getApiKeys, getComboByName, getCombos } from "@/lib/localDb";
+import { getComboByName, getCombos, pickApiKeyForInternalUse } from "@/lib/localDb";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 async function getInternalApiKey(): Promise<string | null> {
-  try {
-    const keys = await getApiKeys();
-    const active = (
-      keys as Array<{ key: string; isActive?: boolean; revokedAt?: string | null }>
-    ).find((k) => k.key && k.isActive !== false && !k.revokedAt);
-    return active?.key ?? null;
-  } catch {
-    return null;
-  }
+  // Combo health-check probes hit /v1/chat/completions, which enforces
+  // per-key model allowlists (see shared/utils/apiKeyPolicy.ts). Picking
+  // an arbitrary active key is unsafe — see pickApiKeyForInternalUse.
+  return pickApiKeyForInternalUse("combo-health-check");
 }
 
 function buildComboTestResult(target, partial = {}) {
@@ -120,7 +116,7 @@ async function testComboTarget(target, baseInternalUrl, internalApiKey: string |
     const latencyMs = Date.now() - startTime;
     return buildComboTestResult(target, {
       status: "error",
-      error: error.name === "AbortError" ? "Timeout (20s)" : error.message,
+      error: error.name === "AbortError" ? "Timeout (20s)" : sanitizeErrorMessage(error.message),
       latencyMs,
     });
   }

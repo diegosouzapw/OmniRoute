@@ -38,7 +38,13 @@ export class PollinationsExecutor extends BaseExecutor {
     if (typeof body === "object" && body !== null) {
       body.model = model;
       body.stream = stream;
-      body.jsonMode = true;
+      // #3981: Pollinations treats jsonMode=true as "the model MUST return JSON"
+      // and rejects (HTTP 400) any request whose messages don't mention "json".
+      // Only enable it when the caller actually asked for JSON output.
+      const responseFormatType = body.response_format?.type;
+      if (responseFormatType === "json_object" || responseFormatType === "json_schema") {
+        body.jsonMode = true;
+      }
     }
     return body;
   }
@@ -73,7 +79,9 @@ export class PollinationsExecutor extends BaseExecutor {
       const result = await super.execute(input);
 
       if (session && pool) {
-        const status = result.response.status;
+        // execute() contracts for `Response | { response, ... }`; both arms carry the
+        // status this pool bookkeeping needs.
+        const status = (result instanceof Response ? result : result.response).status;
         if (status === 429) {
           pool.reportCooldown(session);
         } else if (status >= 500) {
@@ -84,9 +92,24 @@ export class PollinationsExecutor extends BaseExecutor {
       }
 
       return result;
-    } catch (err) {
+    } catch (err: any) {
       if (session && pool) {
         pool.reportCooldown(session);
+      }
+      // Enhance 401 errors with actionable guidance
+      if (err?.status === 401 || err?.statusCode === 401) {
+        const premiumModels = ["claude", "claude-fast", "claude-large", "gemini", "gemini-fast", "midijourney", "midijourney-large"];
+        const model = input.model || "";
+        if (premiumModels.includes(model)) {
+          const enhanced = new Error(
+            `Pollinations model "${model}" requires an API key. ` +
+            `Free keyless models: openai, openai-fast, openai-large, qwen-coder, mistral, deepseek, grok, gemini-flash-lite-3.1, perplexity-fast, perplexity-reasoning. ` +
+            `Get a Pollinations API key at https://enter.pollinations.ai and add it in Settings → API Keys.`
+          );
+          (enhanced as any).status = 401;
+          (enhanced as any).type = "authentication_error";
+          throw enhanced;
+        }
       }
       throw err;
     } finally {

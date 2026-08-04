@@ -10,6 +10,7 @@ const harness = await createChatPipelineHarness("memory-pipeline");
 // The harness sets DATA_DIR before importing DB modules, so these must resolve after that.
 const { extractFactsFromText } = await import("../../src/lib/memory/extraction.ts");
 const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");
+const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
 const { injectMemory, formatMemoryContext } = await import("../../src/lib/memory/injection.ts");
 const {
   BaseExecutor,
@@ -45,24 +46,29 @@ function dropFts5Artifacts() {
 test.beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
+  invalidateMemorySettingsCache();
   dropFts5Artifacts();
 });
 
 test.afterEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = harness.originalRetryDelayMs;
   await resetStorage();
+  invalidateMemorySettingsCache();
 });
 
 test.after(async () => {
   await harness.cleanup();
 });
 
-async function enableMemory(maxTokens = 400) {
+async function enableMemory(
+  maxTokens = 400,
+  strategy: "recent" | "semantic" | "hybrid" = "recent"
+) {
   await settingsDb.updateSettings({
     memoryEnabled: true,
     memoryMaxTokens: maxTokens,
     memoryRetentionDays: 30,
-    memoryStrategy: "recent",
+    memoryStrategy: strategy,
   });
 }
 
@@ -169,6 +175,7 @@ test("later requests inject retrieved memories into upstream messages", async ()
 
 test("memory search ranks query-relevant memories first", async () => {
   const apiKey = await seedApiKey();
+  await enableMemory(400, "hybrid");
 
   await memoryTools.omniroute_memory_add.handler({
     apiKeyId: apiKey.id,

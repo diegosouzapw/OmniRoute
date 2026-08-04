@@ -33,7 +33,7 @@ test("webhooks create, update, query enabled hooks and delete records", () => {
   });
 
   assert.match(created.secret, /^whsec_/);
-  assert.equal(webhooksDb.getWebhooks().length, 1);
+  assert.equal(webhooksDb.getWebhooks().webhooks.length, 1);
   assert.equal(webhooksDb.getEnabledWebhooks().length, 1);
 
   const updated = webhooksDb.updateWebhook(created.id, {

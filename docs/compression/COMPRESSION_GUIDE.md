@@ -1,7 +1,7 @@
 ---
 title: "🗜️ Prompt Compression Guide — OmniRoute"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # 🗜️ Prompt Compression Guide — OmniRoute
@@ -93,6 +93,8 @@ RTK mode is optimized for verbose tool outputs that appear in coding-agent sessi
   TypeScript/Vite/Webpack builds, ESLint/Biome/Prettier, npm audit/installs, Docker logs, infra
   output, and generic shell output
 - Applies JSON filter packs from `open-sse/services/compression/engines/rtk/filters/`
+- Imports RTK TOML schema v1 filters from project or global `filters.toml` files, with inline-test
+  validation and trust-gating for project files
 - Ships 49 built-in filters with inline verify samples
 - Removes ANSI control sequences, progress bars, repeated lines, and non-actionable noise
 - Preserves failures, errors, warnings, changed files, summaries, and the tail of long output
@@ -181,12 +183,39 @@ Combo: "free-forever"
   Compression Combo: "coding-agent-stack"
   Pipeline: RTK -> Caveman
   Targets:
-    1. gc/gemini-3-flash
-    2. if/kimi-k2-thinking
+    1. if/kimi-k2.7-code
+    2. if/qwen3.8-max-preview
 ```
 
 This lets you use stacked compression on free/coding providers while keeping lite mode on paid
 subscriptions.
+
+This "Per-Combo Override" assignment is a different control from the **routing-combo compression
+mode** override (Default/Off/Lite/Standard/Aggressive/Ultra) — that override does not pick a named
+compression-combo pipeline; it just sets the `compressionMode` field consulted by
+`resolveCompressionPlan`. It can be set either on the combo card (`Dashboard → Combos`) or, since
+#6760, per routing combo in the "Assign to routing" list on
+`Dashboard → Context & Cache → Compression Combos`, right next to the pipeline-assignment checkbox
+documented above. Both surfaces persist through the same `PUT /api/combos/{id}` endpoint.
+
+### Per-request override
+
+Send the `x-omniroute-compression` request header to override the compression plan for a single
+request. It has the highest precedence — it beats the routing-combo override, the active profile,
+auto-trigger, and the panel Default. Unknown values are ignored (the request is never rejected) and
+the global master switch still gates everything: when compression is off globally, the header cannot
+turn it on. Values:
+
+| Value         | Effect                                                               |
+| ------------- | -------------------------------------------------------------------- |
+| `off`         | No compression for this request.                                     |
+| `default`     | The panel-derived Default profile (ignores the active profile).      |
+| `engine:<id>` | A single engine when enabled, e.g. `engine:rtk`.                     |
+| `<combo>`     | A named combo, matched by name (case-insensitive) first, then by id. |
+
+The applied plan is echoed back in the `X-OmniRoute-Compression: <mode>; source=<source>` response
+header, where `<source>` is one of `request-header`, `routing-override`, `active-profile`,
+`auto-trigger`, `default`, or `off`.
 
 ### API
 
@@ -254,12 +283,13 @@ Every compressed request includes stats in the server logs:
 
 ## Phase Roadmap
 
-| Phase   | Modes                                | Status     |
-| ------- | ------------------------------------ | ---------- |
-| Phase 1 | Off, Lite                            | ✅ Shipped |
-| Phase 2 | Standard, Aggressive, Ultra          | ✅ Shipped |
-| Phase 3 | RTK, Stacked, Compression Combos     | ✅ Shipped |
-| Phase 4 | Per-model adaptive, ML-based pruning | 🗓️ Planned |
+| Phase    | Modes                                                                                                        | Status                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Phase 1  | Off, Lite                                                                                                    | ✅ Shipped                                                             |
+| Phase 2  | Standard, Aggressive, Ultra                                                                                  | ✅ Shipped                                                             |
+| Phase 3  | RTK, Stacked, Compression Combos                                                                             | ✅ Shipped                                                             |
+| Phase 4  | Output Styles, SLM-tier Ultra, eval harness                                                                  | ✅ Shipped                                                             |
+| Phase 4C | Adaptive context-budget ("dial") — compute engine + API (`contextBudget` on `PUT /api/settings/compression`) | ✅ Shipped (API-configurable; dashboard controls not yet built, #7005) |
 
 ---
 
@@ -268,6 +298,217 @@ Every compressed request includes stats in the server logs:
 Standard mode compression rules are inspired by **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — the viral "why use many token when few token do trick" project. Caveman reports `~75%` fewer output tokens, `65%` benchmark average output savings, a `22-87%` output range, and a `~46%` input-compression tool.
 
 RTK mode is inspired by **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** by **[RTK AI](https://github.com/rtk-ai)** — the high-performance command-output compression project for terminal, build, test, git, and tool-output filtering. RTK reports `60-90%` savings, with its README sample session showing `~80%` saved.
+
+---
+
+## Advanced Compression Systems
+
+Beyond the 7 standard modes, OmniRoute includes several advanced compression
+systems that work automatically based on context.
+
+### Cache-Aware Compression
+
+Some providers (like Anthropic with prompt caching) support **prompt caching**,
+which lets them cache parts of the prompt to reduce costs and latency. When
+caching is enabled, aggressive compression can actually **hurt** performance
+because it changes the cached tokens, invalidating the cache.
+
+The `cachingAware.ts` module solves this by **detecting caching context** and
+**adjusting the compression strategy** accordingly.
+
+#### How it works
+
+1. **Detect caching context** — Scans the request body for `cache_control` markers
+2. **Identify caching providers** — Checks if the target provider supports caching
+3. **Adjust strategy** — Downgrades `aggressive`/`ultra` to `standard` for caching providers
+4. **Skip system prompt** — System prompts are usually cached, so don't compress them
+5. **Use deterministic transformations** — Only use transformations that produce consistent output
+
+#### Code example
+
+```ts
+import {
+  detectCachingContext,
+  getCacheAwareStrategy,
+} from "@omniroute/open-sse/services/compression/cachingAware";
+
+const body = {
+  model: "anthropic/claude-sonnet-4.5",
+  messages: [{ role: "user", content: "Hello" }],
+  cache_control: { type: "ephemeral" }, // ← Cache marker
+};
+
+const ctx = detectCachingContext(body, { provider: "anthropic" });
+// → { hasCacheControl: true, provider: "anthropic", isCachingProvider: true }
+
+const strategy = getCacheAwareStrategy("aggressive", ctx);
+// → { strategy: "standard", skipSystemPrompt: true, deterministicOnly: true }
+```
+
+#### When to use
+
+Cache-aware compression is **always on** — no configuration needed. It only kicks in
+when:
+
+- The request has `cache_control` markers
+- The target provider supports prompt caching (Anthropic, OpenAI, etc.)
+
+### Progressive Aging
+
+Long conversations accumulate many message turns, but older turns become less
+relevant. The `progressiveAging.ts` module **degrades messages by turn distance**:
+
+- **Recent turns (0-3)**: Kept verbatim (full detail)
+- **Medium turns (4-8)**: Lite compression (whitespace, formatting cleanup)
+- **Old turns (9+)**: Caveman compression (filler removal, summarization)
+- **Very old turns (20+)**: Heavily summarized or dropped
+
+#### Code example
+
+```ts
+import { applyAging } from "@omniroute/open-sse/services/compression/progressiveAging";
+
+const messages = [
+  { role: "system", content: "You are a helpful assistant" },
+  { role: "user", content: "What is 2+2?" },
+  { role: "assistant", content: "4" },
+  // ... 50 more turns ...
+];
+
+const { messages: aged, saved } = applyAging(messages, {
+  verbatim: 3, // First 3 turns: verbatim
+  light: 8, // Turns 4-8: lite compression
+  moderate: 20, // Turns 9-20: caveman compression
+  // Turns 21+: heavy summarization
+});
+
+// saved = number of tokens saved
+```
+
+#### When to use
+
+Progressive aging is **always on** for `aggressive` and `ultra` modes. It's
+particularly effective for:
+
+- Long-running coding sessions
+- Multi-day conversations
+- Agentic workflows with many tool calls
+
+### Caveman Output Mode
+
+The `outputMode.ts` module injects **system prompt instructions** to make the
+model itself produce compressed, terse output (a "caveman" style).
+
+#### How it works
+
+Instead of compressing the input, this mode adds a system prompt like:
+
+> "Reply in minimal words. Skip pleasantries. Use short sentences."
+
+This works particularly well for:
+
+- Code generation (terser output = fewer tokens)
+- Quick Q&A (no need for elaborate explanations)
+- Batch processing (maximize throughput)
+
+#### When to use
+
+Caveman output mode is **opt-in** — set it via the combo config:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "auto": {
+      "outputMode": "caveman"
+    }
+  }
+}
+```
+
+### Tool Result Compression
+
+The `toolResultCompressor.ts` module provides **5 specialized compression strategies**
+for tool results (function calls, agent outputs, search results, etc.):
+
+1. **Search result compression** — Removes redundant results, keeps top-N
+2. **File read compression** — Truncates large files, preserves headers/imports
+3. **Code execution compression** — Keeps only essential stdout/stderr
+4. **Database query compression** — Limits rows, removes verbose metadata
+5. **API response compression** — Strips null fields, condenses arrays
+
+#### When to use
+
+Tool result compression is **always on** when tool calls are present. No
+configuration needed.
+
+### Stacked Pipeline
+
+The stacked mode runs **multiple engines in sequence** — usually RTK first
+(60-90% savings on tool output), then Caveman (30% additional savings on the
+remaining text). This achieves **78-95% total savings**.
+
+#### How it works
+
+```
+Input (1000 tokens)
+  → RTK (command-aware filter) → 200 tokens
+    → Caveman (filler removal) → 140 tokens
+  → Output (140 tokens, 86% savings)
+```
+
+#### When to use
+
+Use stacked mode for:
+
+- Tool-heavy workflows (agentic coding, research)
+- Cost-sensitive batch processing
+- When you need maximum token savings
+
+Configure via combo:
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "auto": {
+      "modePack": "stacked"
+    }
+  }
+}
+```
+
+---
+
+## Compression Combo Overrides
+
+You can override the global compression mode **per combo** to fine-tune behavior
+for different use cases:
+
+```json
+{
+  "id": "coding-combo",
+  "strategy": "priority",
+  "config": {
+    "auto": {
+      "weights": { "taskFit": 0.5 },
+      "modePack": "quality-first"
+    }
+  },
+  "compressionOverride": {
+    "mode": "aggressive",
+    "stackedPipelines": ["rtk", "caveman"],
+    "preserveToolDefinitions": true
+  }
+}
+```
+
+This is useful for:
+
+- **Coding combos**: Use `aggressive` mode for long sessions
+- **Quick Q&A combos**: Use `lite` mode for fast responses
+- **Tool-heavy combos**: Use `stacked` mode for max savings
+- **Production combos**: Use `cache-aware` mode for caching providers
 
 ---
 

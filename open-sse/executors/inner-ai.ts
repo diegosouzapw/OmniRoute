@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 const INNER_AI_CHAT_URL = "https://chatapi.innerai.com/chat";
@@ -7,7 +8,7 @@ const INNER_AI_PROFILE_URL = "https://platformapi.innerai.com/api/v1/users/profi
 const INNER_AI_MODELS_URL = "https://platformapi.innerai.com/api/v1/ai_models";
 
 const INNER_AI_USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
 const MODELS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -301,16 +302,23 @@ async function resolveModels(
  * 1. Exact `llm_model` match
  * 2. Case-insensitive `llm_model` match
  * 3. `llm_model` contains the requested ID
- * 4. Fallback: first model in list
+ *
+ * Returns `null` when nothing matches. The caller then builds a synthetic entry
+ * carrying the *requested* model name, so the request is sent for the model the
+ * user actually asked for (and Inner.ai can reject it with a meaningful error if
+ * the plan does not expose it). Previously this fell back to `models[0]`, which
+ * silently rerouted every unmatched model to whatever was first in the live list
+ * (typically gpt-4o) — so users saw "only gpt-4o responds" instead of a clear
+ * error. (escalated bug)
  */
-function findModel(models: InnerAiModel[], requestedId: string): InnerAiModel | null {
+export function findModel(models: InnerAiModel[], requestedId: string): InnerAiModel | null {
   if (models.length === 0) return null;
   const lower = requestedId.toLowerCase();
   return (
     models.find((m) => m.llm_model === requestedId) ??
     models.find((m) => m.llm_model.toLowerCase() === lower) ??
     models.find((m) => m.llm_model.toLowerCase().includes(lower)) ??
-    models[0]
+    null
   );
 }
 
@@ -599,7 +607,11 @@ export class InnerAiExecutor extends BaseExecutor {
 
     // Build message content from OpenAI messages array
     const rawMessages = Array.isArray(bodyObj.messages) ? bodyObj.messages : [];
-    const messages = rawMessages as Array<Record<string, unknown>>;
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      bodyObj,
+      rawMessages
+    );
+    const messages = effectiveMessages as Array<Record<string, unknown>>;
     const messageContent = buildMessageContent(messages);
     if (!messageContent.trim()) {
       return makeErrorResult(400, "No message content to send", body);
@@ -693,6 +705,39 @@ export class InnerAiExecutor extends BaseExecutor {
       throw err;
     }
     const completionId = `chatcmpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    if (hasTools) {
+      const {
+        content: cleaned,
+        toolCalls,
+        finishReason,
+      } = buildToolAwareResult(content, requestedTools, "inner");
+      if (toolCalls) {
+        return {
+          response: new Response(
+            JSON.stringify({
+              id: completionId,
+              object: "chat.completion",
+              created: Math.floor(Date.now() / 1000),
+              model: resolvedModel,
+              choices: [
+                {
+                  index: 0,
+                  message: { role: "assistant", content: null, tool_calls: toolCalls },
+                  finish_reason: finishReason,
+                },
+              ],
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          ),
+          url: INNER_AI_CHAT_URL,
+          headers: reqHeaders,
+          transformedBody: innerAiBody,
+        };
+      }
+      content = cleaned;
+    }
+
     return {
       response: new Response(
         JSON.stringify({

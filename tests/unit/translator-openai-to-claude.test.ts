@@ -84,7 +84,8 @@ test("OpenAI -> Claude maps system messages, parameters and assistant cache mark
   assert.equal(result.stream, true);
   assert.equal(result.max_tokens, 33);
   assert.equal(result.temperature, 0.25);
-  assert.equal(result.top_p, 0.8);
+  // top_p is stripped when temperature is also present (Anthropic rejects both).
+  assert.equal(result.top_p, undefined);
   assert.deepEqual(result.stop_sequences, ["DONE"]);
   assert.equal(result.system[0].text, "Rule A\nRule B\nRule C");
   assert.equal(result.messages[0].role, "user");
@@ -94,10 +95,30 @@ test("OpenAI -> Claude maps system messages, parameters and assistant cache mark
   assert.deepEqual(result.messages[1].content[0].cache_control, { type: "ephemeral" });
 });
 
+test("OpenAI -> Claude strips top_p when temperature is also present", () => {
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      temperature: 0.25,
+      top_p: 0.8,
+    },
+    false
+  );
+
+  assert.equal(result.temperature, 0.25);
+  assert.equal(result.top_p, undefined);
+});
+
 test("OpenAI -> Claude converts multimodal content, tool declarations, tool calls and tool results", () => {
   const result = openaiToClaudeRequest(
     "claude-4-sonnet",
     {
+      // #5945: the redacted_thinking precursor is only emitted when the outbound
+      // request actually has extended thinking enabled (Anthropic's schema
+      // requirement). Set it explicitly so this test keeps exercising that
+      // legitimate #5312 case alongside the multimodal/tool assertions below.
+      thinking: { type: "enabled", budget_tokens: 4096 },
       messages: [
         {
           role: "user",
@@ -180,9 +201,12 @@ test("OpenAI -> Claude converts multimodal content, tool declarations, tool call
 
   const assistantMessage = result.messages.find((message) => message.role === "assistant");
   assert.ok(assistantMessage, "expected an assistant message");
-  assert.equal(assistantMessage.content[0].type, "thinking");
-  assert.equal(assistantMessage.content[0].thinking, "Need a tool");
-  assert.equal(assistantMessage.content[0].signature, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  // #5312 RC-D: signature-less reasoning_content becomes a redacted_thinking
+  // placeholder (no fabricated signature), not a thinking block.
+  assert.equal(assistantMessage.content[0].type, "redacted_thinking");
+  assert.equal(assistantMessage.content[0].data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(assistantMessage.content[0].signature, undefined);
+  assert.equal(assistantMessage.content[0].thinking, undefined);
   assert.equal(assistantMessage.content[1].text, "Calling tool");
   assert.equal(assistantMessage.content[2].type, "tool_use");
   assert.equal(assistantMessage.content[2].name, `${CLAUDE_OAUTH_TOOL_PREFIX}weather.get`);
@@ -199,6 +223,70 @@ test("OpenAI -> Claude converts multimodal content, tool declarations, tool call
     tool_use_id: "call_weather",
     content: [{ type: "text", text: "20C" }],
   });
+});
+
+test("OpenAI -> Claude does not leave tool results separated from their tool use", () => {
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [
+        { role: "user", content: "Start" },
+        {
+          role: "assistant",
+          content: "Calling tool",
+          tool_calls: [
+            {
+              id: "call_weather",
+              type: "function",
+              function: {
+                name: "weather.get",
+                arguments: '{"city":"Tokyo"}',
+              },
+            },
+          ],
+        },
+        { role: "user", content: "Please wait before using that result." },
+        {
+          role: "tool",
+          tool_call_id: "call_weather",
+          content: "20C",
+        },
+      ],
+    },
+    false
+  );
+
+  const toolResultIndex = result.messages.findIndex(
+    (message) =>
+      message.role === "user" &&
+      message.content.some(
+        (block) => block.type === "tool_result" && block.tool_use_id === "call_weather"
+      )
+  );
+
+  assert.notEqual(toolResultIndex, -1, "expected the delayed tool_result to be preserved");
+  const previousMessage = result.messages[toolResultIndex - 1];
+  assert.equal(previousMessage?.role, "assistant");
+  assert.ok(
+    previousMessage.content.some(
+      (block) => block.type === "tool_use" && block.id === "call_weather"
+    ),
+    "tool_result must immediately follow its matching tool_use"
+  );
+
+  const waitMessageIndex = result.messages.findIndex(
+    (message) =>
+      message.role === "user" &&
+      message.content.some(
+        (block) =>
+          block.type === "text" &&
+          block.text === "Please wait before using that result."
+      )
+  );
+  assert.ok(
+    waitMessageIndex > toolResultIndex,
+    "intervening user text should be moved after the repaired tool_result turn"
+  );
 });
 
 test("OpenAI -> Claude maps tool_choice and injects response_format instructions into system", () => {
@@ -240,7 +328,9 @@ test("OpenAI -> Claude maps tool_choice and injects response_format instructions
 });
 
 test("OpenAI -> Claude turns reasoning settings into thinking budgets and expands max tokens", () => {
-  // `claude-4-sonnet` is a fixture that doesn't match any spec → default cap = 8192.
+  // `claude-4-sonnet` is a fixture that doesn't match any spec. Unknown caps
+  // should not get an implicit default; the translator only preserves the
+  // response room + thinking budget relationship.
   // fitThinkingToMaxTokens floors response room at MIN_RESPONSE_ROOM (1024)
   // and targets max_tokens = responseRoom + budget capped at modelCap.
   const effortResult = openaiToClaudeRequest(
@@ -254,7 +344,7 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
   );
 
   assert.deepEqual(effortResult.thinking, { type: "enabled", budget_tokens: 1024 });
-  // responseRoom=max(10,1024)=1024; target=min(1024+1024, 8192)=2048
+  // responseRoom=max(10,1024)=1024; target=1024+1024=2048
   assert.equal(effortResult.max_tokens, 2048);
 
   const explicitThinkingResult = openaiToClaudeRequest(
@@ -272,8 +362,23 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
     budget_tokens: 2000,
     max_tokens: 3000,
   });
-  // responseRoom=max(1000,1024)=1024; target=min(1024+2000, 8192)=3024
+  // responseRoom=max(1000,1024)=1024; target=1024+2000=3024
   assert.equal(explicitThinkingResult.max_tokens, 3024);
+});
+
+test("OpenAI -> Claude does not cap unknown models to a fallback maxOutputTokens", () => {
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [{ role: "user", content: "Reason about something hard" }],
+      max_tokens: 32000,
+      reasoning_effort: "high",
+    },
+    false
+  );
+
+  assert.equal(result.max_tokens, 163072);
+  assert.deepEqual(result.thinking, { type: "enabled", budget_tokens: 131072 });
 });
 
 test("OpenAI -> Claude preserves xhigh only for Claude models that expose it", () => {
@@ -333,15 +438,17 @@ test("OpenAI -> Claude preserves max effort except for Haiku models", () => {
   assert.equal(haiku.max_tokens, 64000);
 });
 
-test("OpenAI -> Claude fits thinking budget within Opus 4.7 output cap (regression)", () => {
+test("OpenAI -> Claude fits thinking budget within a 128k output cap (regression)", () => {
   // Real-world OpenCode scenario: caller asks for max_tokens=32000 with high effort.
   // High effort maps to budget=131072. The previous naive
-  // `budget + 8192 = 139264` exceeded Opus 4.7's 128000 output cap and caused
+  // `budget + 8192 = 139264` exceeded the 128000 output cap and caused
   // HTTP 400 "max_tokens > 128000".
   // fitThinkingToMaxTokens must preserve caller's 32000 response room and
   // shrink budget to (128000 - 32000) = 96000.
+  // Pinned on Opus 4.6 — a model that still uses manual budgets. Opus 4.7+/Fable 5 are
+  // adaptive-only now (no budget_tokens), so their effort path is covered separately below.
   const result = openaiToClaudeRequest(
-    "claude-opus-4-7",
+    "claude-opus-4-6",
     {
       messages: [{ role: "user", content: "Reason about something hard" }],
       max_tokens: 32000,
@@ -358,6 +465,56 @@ test("OpenAI -> Claude fits thinking budget within Opus 4.7 output cap (regressi
     96000,
     "budget must shrink to (cap - caller max_tokens) to preserve response room"
   );
+});
+
+test("OpenAI -> Claude steers adaptive-only models via output_config.effort for EVERY level", () => {
+  // Opus 4.7+/Fable 5 reject a manual `thinking.budget_tokens`/`type:"enabled"` with 400.
+  // reasoning_effort low/medium/high must therefore map to adaptive + output_config.effort
+  // (preserving the requested level), NOT to the budget buckets older models use.
+  for (const effort of ["low", "medium", "high", "xhigh", "max"]) {
+    for (const model of ["claude-opus-4-8", "claude-opus-4-7", "claude-fable-5"]) {
+      const result = openaiToClaudeRequest(
+        model,
+        {
+          messages: [{ role: "user", content: "Reason" }],
+          max_tokens: 4000,
+          reasoning_effort: effort,
+        },
+        false
+      );
+      assert.deepEqual(
+        result.thinking,
+        { type: "adaptive" },
+        `${model} @ ${effort} must use adaptive thinking, never a manual budget`
+      );
+      assert.deepEqual(
+        result.output_config,
+        { effort },
+        `${model} @ ${effort} must carry the effort on output_config`
+      );
+      assert.equal(
+        (result.thinking as Record<string, unknown>).budget_tokens,
+        undefined,
+        `${model} @ ${effort} must NOT emit budget_tokens (hard 400 on adaptive-only models)`
+      );
+    }
+  }
+});
+
+test("OpenAI -> Claude keeps manual budgets for low/medium/high on pre-4.7 models (regression)", () => {
+  // Opus 4.6 still supports manual extended thinking: the budget buckets must be untouched.
+  const result = openaiToClaudeRequest(
+    "claude-opus-4-6",
+    {
+      messages: [{ role: "user", content: "Reason" }],
+      max_tokens: 20000,
+      reasoning_effort: "medium",
+    },
+    false
+  );
+  assert.equal((result.thinking as { type: string }).type, "enabled");
+  assert.equal((result.thinking as { budget_tokens: number }).budget_tokens, 10240);
+  assert.equal(result.output_config, undefined);
 });
 
 test("OpenAI -> Claude can disable OAuth prefixes and Antigravity strips Claude-only prompting", () => {
@@ -466,13 +623,21 @@ test("OpenAI -> Claude preserves reasoning_content on assistant tool call messag
   assert.equal(assistantMsgs.length, 1, "expected exactly one assistant message");
 
   const assistantMsg = assistantMsgs[0];
-  const thinkingBlock = assistantMsg.content.find((b) => b.type === "thinking");
+  // #5312 RC-D: reasoning_content becomes a signature-less redacted_thinking
+  // placeholder; the real text is re-hydrated downstream (reasoningCache) for
+  // non-Anthropic upstreams, while Anthropic accepts it without signature validation.
+  const thinkingBlock = assistantMsg.content.find((b) => b.type === "redacted_thinking");
   const textBlock = assistantMsg.content.find((b) => b.type === "text");
   const toolUseBlock = assistantMsg.content.find((b) => b.type === "tool_use");
 
-  assert.ok(thinkingBlock, "expected thinking block from reasoning_content");
-  assert.equal(thinkingBlock.thinking, "I need to check the weather");
-  assert.equal(thinkingBlock.signature, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.ok(thinkingBlock, "expected redacted_thinking placeholder from reasoning_content");
+  assert.equal(thinkingBlock.data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(thinkingBlock.signature, undefined);
+  assert.equal(
+    assistantMsg.content.find((b) => b.type === "thinking"),
+    undefined,
+    "must NOT emit a thinking block with a fabricated signature (#5312)"
+  );
 
   assert.ok(textBlock, "expected text block");
   assert.equal(textBlock.text, "Let me check that for you.");

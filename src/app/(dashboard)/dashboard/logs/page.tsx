@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { ConfirmModal, RequestLoggerV2 } from "@/shared/components";
-import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
-import ActiveRequestsPanel from "@/shared/components/ActiveRequestsPanel";
 import { useTranslations } from "next-intl";
 
 const TIME_RANGES = [
@@ -13,7 +12,28 @@ const TIME_RANGES = [
   { label: "24h", hours: 24 },
 ];
 
-export default function LogsPage() {
+type LogsTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
+function logsText(
+  t: LogsTranslator,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+) {
+  if (typeof t.has !== "function" || !t.has(key)) return fallback;
+  return values ? t(key, values) : t(key);
+}
+
+function LogsPageContent() {
+  const searchParams = useSearchParams();
+  // Read ONCE: #6830 fixed the detail modal reopening on first close by freezing this
+  // value, and the #8354 page rewrite regressed it by reading the live searchParams on
+  // every render — the prop flips mid-session and re-fires the child's deep-link effect
+  // exactly when the modal closes.
+  const [initialId] = useState(() => searchParams.get("id"));
+
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showCleanHistory, setShowCleanHistory] = useState(false);
@@ -21,7 +41,8 @@ export default function LogsPage() {
   const [cleanHistoryStatus, setCleanHistoryStatus] = useState<string | null>(null);
   const [requestLogKey, setRequestLogKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const t = useTranslations("logs");
+  const requestLoggerRef = useRef<any>(null);
+  const t = useTranslations("logs") as LogsTranslator;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -61,26 +82,40 @@ export default function LogsPage() {
     setShowCleanHistory(false);
     setCleanHistoryStatus(null);
     try {
-      const res = await fetch("/api/settings/purge-logs", { method: "POST" });
+      const res = await fetch("/api/settings/purge-request-history", { method: "POST" });
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to clean log history.");
+        throw new Error(
+          data?.error || logsText(t, "cleanHistoryFailed", "Failed to clean log history.")
+        );
       }
 
       const deleted = typeof data?.deleted === "number" ? data.deleted : 0;
-      const deletedArtifacts = typeof data?.deletedArtifacts === "number" ? data.deletedArtifacts : 0;
+      const deletedArtifacts =
+        typeof data?.deletedArtifacts === "number" ? data.deletedArtifacts : 0;
+      const deletedDetailedLogs =
+        typeof data?.deletedDetailedLogs === "number" ? data.deletedDetailedLogs : 0;
+      const successFallback = `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"}, ${deletedArtifacts} artifact${
+        deletedArtifacts === 1 ? "" : "s"
+      }, and ${deletedDetailedLogs} legacy detail row${deletedDetailedLogs === 1 ? "" : "s"}.`;
       setRequestLogKey((key) => key + 1);
       setCleanHistoryStatus(
-        deleted || deletedArtifacts
-          ? `Cleaned ${deleted} log entr${deleted === 1 ? "y" : "ies"} and ${deletedArtifacts} artifact${
-              deletedArtifacts === 1 ? "" : "s"
-            }.`
-          : "No expired log history needed cleanup."
+        deleted || deletedArtifacts || deletedDetailedLogs
+          ? logsText(t, "cleanHistorySuccess", successFallback, {
+              deleted,
+              deletedArtifacts,
+              deletedDetailedLogs,
+            })
+          : logsText(t, "cleanHistoryEmpty", "No request log history was found.")
       );
     } catch (err) {
-      console.error("Failed to clean log history", err);
-      setCleanHistoryStatus(err instanceof Error ? err.message : "Failed to clean log history.");
+      console.error(logsText(t, "cleanHistoryFailed", "Failed to clean log history."), err);
+      setCleanHistoryStatus(
+        err instanceof Error
+          ? err.message
+          : logsText(t, "cleanHistoryFailed", "Failed to clean log history.")
+      );
     } finally {
       setCleaningHistory(false);
     }
@@ -88,19 +123,17 @@ export default function LogsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex-shrink-0 flex items-center justify-between gap-4 flex-wrap">
         <h2 className="text-lg font-semibold text-text-main">{t("requestLogs")}</h2>
 
         <div className="flex items-center gap-2">
-          <EmailPrivacyToggle size="md" />
-
           <button
             id="clean-log-history-btn"
             onClick={() => setShowCleanHistory(true)}
             disabled={cleaningHistory}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
-              border border-red-500/30 bg-red-500/10 text-red-200 hover:bg-red-500/20
-              hover:border-red-400/50 transition-all duration-200
+              border border-red-500/30 bg-red-500/10 text-red-700 hover:bg-red-500/15
+              hover:border-red-500/50 dark:text-red-300 dark:hover:bg-red-500/20 transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg
@@ -117,7 +150,7 @@ export default function LogsPage() {
                 strokeLinejoin="round"
               />
             </svg>
-            Clean history
+            {logsText(t, "cleanHistoryButton", "Clean history")}
           </button>
 
           <div className="relative" ref={dropdownRef}>
@@ -179,26 +212,43 @@ export default function LogsPage() {
       </div>
 
       {cleanHistoryStatus && (
-        <div className="rounded-lg border border-[var(--border,#333)] bg-[var(--card-bg,#1e1e2e)] px-4 py-3 text-sm text-[var(--text-secondary,#aaa)]">
+        <div className="flex-shrink-0 rounded-lg border border-[var(--border,#333)] bg-[var(--card-bg,#1e1e2e)] px-4 py-3 text-sm text-[var(--text-secondary,#aaa)]">
           {cleanHistoryStatus}
         </div>
       )}
 
-      <div className="flex flex-col gap-6">
-        <ActiveRequestsPanel />
-        <RequestLoggerV2 key={requestLogKey} />
+      <div className="min-h-0">
+        <RequestLoggerV2 key={requestLogKey} ref={requestLoggerRef} initialSelectedId={initialId} />
       </div>
 
       <ConfirmModal
         isOpen={showCleanHistory}
         onClose={() => setShowCleanHistory(false)}
         onConfirm={handleCleanHistory}
-        title="Clean log history?"
-        message="This clears expired log history and prunes related artifacts using the current retention policy. The live page will refresh after cleanup."
-        confirmText="Clean history"
-        cancelText="Cancel"
+        title={logsText(t, "cleanHistoryTitle", "Clean log history?")}
+        message={logsText(
+          t,
+          "cleanHistoryMessage",
+          "This permanently clears all request log rows, legacy detail rows, and local artifact files under DATA_DIR/call_logs. The live page will refresh after cleanup."
+        )}
+        confirmText={logsText(t, "cleanHistoryConfirm", "Clean history")}
+        cancelText={logsText(t, "cleanHistoryCancel", "Cancel")}
         loading={cleaningHistory}
       />
     </div>
+  );
+}
+
+export default function LogsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-12 text-text-muted text-sm">
+          Loading logs...
+        </div>
+      }
+    >
+      <LogsPageContent />
+    </Suspense>
   );
 }

@@ -6,10 +6,8 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import {
-  parseAndValidatePublicUrl,
-  OutboundUrlGuardError,
-} from "@/shared/network/outboundUrlGuard";
+import { OutboundUrlGuardError } from "@/shared/network/outboundUrlGuard";
+import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuardPolicy";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
 const validateUrlSchema = z.object({
@@ -35,7 +33,7 @@ export async function POST(request: Request) {
   const { url } = validation.data;
 
   try {
-    parseAndValidatePublicUrl(url);
+    parseAndValidateWebhookUrl(url);
     return NextResponse.json({ valid: true });
   } catch (err) {
     if (err instanceof OutboundUrlGuardError) {

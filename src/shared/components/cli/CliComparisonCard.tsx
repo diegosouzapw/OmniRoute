@@ -54,7 +54,7 @@ export default function CliComparisonCard({ currentType }: CliComparisonCardProp
                     href={TYPE_HREFS[type]}
                     className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-black/5 dark:bg-white/5 text-text-muted hover:text-primary hover:bg-primary/10 transition-colors whitespace-nowrap"
                   >
-                    Ver →
+                    {t("comparison.open")}
                   </Link>
                 )}
               </div>

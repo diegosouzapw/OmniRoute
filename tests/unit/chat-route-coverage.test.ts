@@ -140,14 +140,14 @@ test("handleChat redacts PII before sending the upstream request", async () => {
   assert.equal(json.choices[0].message.content, "Redacted response");
 });
 
-test("handleChat treats Accept text/event-stream as stream=true and returns a session header", async () => {
+test("handleChat treats a pure Accept: text/event-stream as stream=true and returns a session header", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-stream" });
 
   globalThis.fetch = async () => buildOpenAIStreamResponse("Accept header stream");
 
   const response = await handleChat(
     buildRequest({
-      headers: { Accept: "application/json, text/event-stream" },
+      headers: { Accept: "text/event-stream" },
       body: {
         model: "openai/gpt-4.1",
         messages: [{ role: "user", content: "stream please" }],
@@ -161,6 +161,27 @@ test("handleChat treats Accept text/event-stream as stream=true and returns a se
   assert.ok(response.headers.get("X-OmniRoute-Session-Id"));
   assert.match(raw, /Accept header stream/);
   assert.match(raw, /\[DONE\]/);
+});
+
+test("handleChat returns JSON (not SSE) for the OpenAI/Vercel SDK non-stream signature — Accept: application/json, text/event-stream with stream omitted (#5305)", async () => {
+  await seedConnection("openai", { apiKey: "sk-openai-5305" });
+
+  globalThis.fetch = async () => buildOpenAIResponse("non-stream json");
+
+  const response = await handleChat(
+    buildRequest({
+      headers: { Accept: "application/json, text/event-stream" },
+      body: {
+        model: "openai/gpt-4.1",
+        messages: [{ role: "user", content: "no stream field" }],
+      },
+    })
+  );
+
+  const json = (await response.json()) as any;
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("Content-Type") || "", /application\/json/);
+  assert.equal(json.choices[0].message.content, "non-stream json");
 });
 
 test("handleChat rejects requests without a model", async () => {
@@ -300,7 +321,11 @@ test("handleChat keeps the combo error when the global fallback throws", async (
   assert.match(json.error.message, /primary combo failed/i);
 });
 
-test("handleChat returns 400 when no provider credentials exist", async () => {
+test("handleChat returns 404 when no provider credentials exist", async () => {
+  // Upstream port decolua/9router#336 (Ibrahim Ryan): the no-credentials branch
+  // of handleNoCredentials now surfaces 404 NOT_FOUND so combo routing can fall
+  // through to the next target instead of being killed by the combo 400-hard-stop
+  // guard (open-sse/services/combo.ts, PR #4316 / issue #4279).
   const response = await handleChat(
     buildRequest({
       body: {
@@ -312,8 +337,8 @@ test("handleChat returns 400 when no provider credentials exist", async () => {
   );
   const json = (await response.json()) as any;
 
-  assert.equal(response.status, 400);
-  assert.match(json.error.message, /No credentials for provider: openai/);
+  assert.equal(response.status, 404);
+  assert.match(json.error.message, /No active credentials for provider: openai/);
 });
 
 test("handleChat returns 503 for cooled-down connections and 503 for open circuit breakers", async () => {
@@ -419,7 +444,10 @@ test("handleChat uses the emergency fallback model on budget exhaustion", async 
   assert.equal(seenBodies.length, 2);
   assert.equal(seenBodies[1].model, "openai/gpt-oss-120b");
   assert.equal(seenBodies[1].max_tokens, 4096);
-  assert.equal(seenBodies[1].max_completion_tokens, 4096);
+  // nvidia supports the legacy `max_tokens` field (#6912 symmetric normalization in
+  // chatCore.ts), so the redundant `max_completion_tokens` is renamed away rather than
+  // sent alongside it — only one output-token field reaches the upstream request.
+  assert.equal(seenBodies[1].max_completion_tokens, undefined);
   assert.equal(json.choices[0].message.content, "Emergency fallback answered");
 });
 
@@ -459,7 +487,11 @@ test("handleChat returns the primary budget error when emergency fallback also f
   const json = (await response.json()) as any;
 
   assert.equal(response.status, 402);
-  assert.deepEqual(seenModels, ["gpt-4.1", "openai/gpt-oss-120b", "openai/gpt-oss-120b"]);
+  // Exactly ONE emergency hop: the routing layer resolves nvidia credentials and
+  // tries the free model once. (The second hop used to come from the executor-level
+  // fallback inside chatCore, which re-sent the OpenAI credentials to the nvidia
+  // endpoint — removed as a cross-provider credential leak.)
+  assert.deepEqual(seenModels, ["gpt-4.1", "openai/gpt-oss-120b"]);
   assert.match(json.error.message, /quota exceeded/i);
 });
 

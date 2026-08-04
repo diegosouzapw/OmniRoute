@@ -200,7 +200,7 @@ test("listPools returns connectionIds on every pool", () => {
     connectionIds: ["lc-2", "lc-3"],
   });
 
-  const pools = poolsDb.listPools();
+  const { items: pools } = poolsDb.listPools();
   assert.equal(pools.length, 2);
 
   const p1 = pools.find((p) => p.name === "Pool 1")!;

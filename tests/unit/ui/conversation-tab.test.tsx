@@ -1,7 +1,7 @@
 /**
  * Tests for ConversationTab — normalizeConversation + chat bubble rendering logic
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import { normalizeConversation } from "../../../src/mitm/inspector/conversationNormalizer.ts";
 import type { InterceptedRequest } from "../../../src/mitm/inspector/types.ts";

@@ -347,6 +347,15 @@ export const AUTO_COMBO_TEMPLATES: AutoComboTemplate[] = [
     tiers: ["premium", "balanced"],
     strategy: "priority",
   },
+  {
+    name: "auto/best-free",
+    displayName: "Best Free",
+    categories: ["coding", "chat", "fast"],
+    tiers: ["free"],
+    strategy: "weighted",
+    systemMessage:
+      "You are a helpful coding assistant. Write clean, efficient code.",
+  },
 ];
 
 export {};

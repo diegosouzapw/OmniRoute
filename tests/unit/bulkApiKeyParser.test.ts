@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   parseBulkApiKeys,
+  resolveBulkNameCollisions,
   BULK_API_KEY_MAX_LINES,
 } from "../../src/shared/utils/bulkApiKeyParser.ts";
 
@@ -86,4 +87,67 @@ test("input exceeding cap is truncated with warning", () => {
   assert.equal(entries.length, BULK_API_KEY_MAX_LINES);
   assert.equal(warnings.length, 1);
   assert.match(warnings[0], /only the first/);
+});
+
+// #2587 — resolveBulkNameCollisions: guards against createProviderConnection's
+// name-based upsert silently replacing an existing connection when bulk-add
+// auto-naming ("Key 1", "Key 2", ...) restarts from 1 and collides with a
+// name already saved for the provider.
+test("resolveBulkNameCollisions: no-op when nothing collides", () => {
+  const entries = [{ name: "Key 1" }, { name: "Key 2" }];
+  const out = resolveBulkNameCollisions(entries, ["Prod"]);
+  assert.deepEqual(
+    out.map((e) => e.name),
+    ["Key 1", "Key 2"]
+  );
+});
+
+test("resolveBulkNameCollisions: renames an auto-named entry colliding with an existing connection", () => {
+  // Provider already has "Key 1" saved; a fresh bulk parse restarts auto-naming
+  // at "Key 1" too. Without renaming, createProviderConnection would upsert
+  // into the existing row instead of inserting.
+  const entries = [{ name: "Key 1" }, { name: "Key 2" }];
+  const out = resolveBulkNameCollisions(entries, ["Key 1"]);
+  assert.deepEqual(
+    out.map((e) => e.name),
+    ["Key 2", "Key 3"]
+  );
+  // Never reuses an existing name.
+  assert.ok(!out.some((e) => e.name === "Key 1"));
+});
+
+test("resolveBulkNameCollisions: renames a custom name colliding with an existing connection", () => {
+  const entries = [{ name: "Prod" }];
+  const out = resolveBulkNameCollisions(entries, ["Prod"]);
+  assert.deepEqual(out.map((e) => e.name), ["Prod 1"]);
+});
+
+test("resolveBulkNameCollisions: dedupes two identical custom names within the same batch", () => {
+  // Two "Prod|apiKey" lines pasted in the same batch previously collided with
+  // EACH OTHER (custom names get no auto-index), so the second entry would
+  // upsert into the first instead of inserting a second connection.
+  const entries = [{ name: "Prod" }, { name: "Prod" }];
+  const out = resolveBulkNameCollisions(entries, []);
+  const names = out.map((e) => e.name);
+  assert.equal(new Set(names).size, names.length);
+  assert.deepEqual(names, ["Prod", "Prod 1"]);
+});
+
+test("resolveBulkNameCollisions: preserves non-name fields on renamed entries", () => {
+  const entries = [{ name: "Key 1", apiKey: "sk-new" }];
+  const out = resolveBulkNameCollisions(entries, ["Key 1"]);
+  assert.equal(out[0].apiKey, "sk-new");
+  assert.equal(out[0].name, "Key 2");
+});
+
+test("resolveBulkNameCollisions: name comparison is case-insensitive", () => {
+  const entries = [{ name: "key 1" }];
+  const out = resolveBulkNameCollisions(entries, ["KEY 1"]);
+  assert.equal(out[0].name, "key 2");
+});
+
+test("resolveBulkNameCollisions: tolerates non-array existingNames", () => {
+  const entries = [{ name: "Key 1" }];
+  const out = resolveBulkNameCollisions(entries, null);
+  assert.equal(out[0].name, "Key 1");
 });

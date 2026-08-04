@@ -41,7 +41,3 @@ export const SkillConfigSchema = z.object({
   timeout: z.number().int().positive().default(30000),
   maxRetries: z.number().int().min(0).default(3),
 });
-
-export type SkillCreateInput = z.infer<typeof SkillCreateInputSchema>;
-export type SkillUpdateInput = z.infer<typeof SkillUpdateInputSchema>;
-export type SkillConfig = z.infer<typeof SkillConfigSchema>;

@@ -36,6 +36,10 @@ db.prepare(
   `INSERT OR IGNORE INTO version_manager (tool, status, port, auto_start, auto_update, provider_expose)
    VALUES ('test-lock', 'stopped', 29997, 0, 0, 0)`
 ).run();
+db.prepare(
+  `INSERT OR IGNORE INTO version_manager (tool, status, port, auto_start, auto_update, provider_expose)
+   VALUES ('test-adopt', 'stopped', 29996, 0, 0, 0)`
+).run();
 
 const { ServiceSupervisor } = await import("../../../src/lib/services/ServiceSupervisor.ts");
 
@@ -131,8 +135,13 @@ test("crash sets state=error and lastError (no auto-restart)", async () => {
     await sup.start();
     assert.equal(sup.getStatus().state, "running");
 
-    // Wait for crash (process exits at 1.5s, health checker detects within 3 intervals)
-    await new Promise((r) => setTimeout(r, 2_500));
+    // Poll for the crash to be detected (process exits at 1.5s, health checker detects it
+    // within ~3 intervals). A fixed sleep flakes under CPU contention because the child's
+    // exit timer and the health-check intervals all slip; poll with a generous deadline.
+    const deadline = Date.now() + 10_000;
+    while (sup.getStatus().state !== "error" && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
 
     const status = sup.getStatus();
     assert.equal(status.state, "error", "state should be error after crash");
@@ -196,6 +205,60 @@ test("does NOT auto-restart on crash", async () => {
       `supervisor should not auto-restart: state was "${status.state}"`
     );
   } finally {
+    healthServer.close();
+  }
+});
+
+// #6205: when probeBeforeSpawn is enabled and a healthy instance already serves
+// the port, the supervisor ADOPTS it (marks running, no child spawned) instead
+// of spawning a duplicate that would die with EADDRINUSE.
+test("#6205: probeBeforeSpawn adopts a healthy existing instance (no spawn)", async () => {
+  const healthServer = startHealthServer(29996);
+  const cfg = { ...tickConfig("test-adopt", 29996), probeBeforeSpawn: true };
+  const sup = new ServiceSupervisor(cfg);
+
+  try {
+    const status = await sup.start();
+    assert.equal(status.state, "running", "adopted instance is marked running");
+    // No child process handle exists on adoption (nothing was spawned), but a
+    // real pid is still resolved from the OS — see the dedicated pid-tracking
+    // test below. Historically this asserted pid === null, which just
+    // reflected the missing resolution rather than a deliberate "no pid for
+    // adopted services" design choice.
+    assert.ok(status.pid !== null, "adopted instance still gets a tracked pid");
+    // No child means no captured stdout ticks.
+    await new Promise((r) => setTimeout(r, 300));
+    assert.equal(sup.getRingBuffer().snapshot().length, 0, "no logs — nothing was spawned");
+  } finally {
+    await sup.stop();
+    healthServer.close();
+  }
+});
+
+// Regression test: the adopt branch used to call setToolStatus(tool, "running")
+// with no pid argument at all, leaving `pid` permanently null for any service
+// adopted on a supervisor restart (common in production — e.g. after
+// `systemctl --user restart omniroute.service`, sidecar child processes can
+// outlive the restart and get adopted rather than spawned fresh). Downstream
+// consumers that key liveness tracking off pid would then treat a genuinely
+// healthy, running service as untrustworthy/stale. This asserts the resolved
+// pid on adoption matches the real process actually holding the port.
+test("adopted service resolves and records the real pid of the process holding the port", async () => {
+  const healthServer = startHealthServer(29996);
+  const cfg = { ...tickConfig("test-adopt", 29996), probeBeforeSpawn: true };
+  const sup = new ServiceSupervisor(cfg);
+
+  try {
+    const status = await sup.start();
+    assert.equal(status.state, "running");
+    // The health server above runs inline in this test process (no child
+    // process spawned for it), so the pid actually bound to port 29996 is
+    // this test process's own pid — that's exactly what resolvePortPid()
+    // should find and what the supervisor should record.
+    assert.equal(status.pid, process.pid, "resolved pid matches the process holding the port");
+    assert.equal(sup.getStatus().pid, process.pid, "in-memory supervisor state also has the pid");
+  } finally {
+    await sup.stop();
     healthServer.close();
   }
 });

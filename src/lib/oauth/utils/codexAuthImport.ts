@@ -4,6 +4,7 @@ import {
   updateProviderConnection,
 } from "@/lib/localDb";
 import { CodexAuthFileError } from "@/lib/oauth/utils/codexAuthFile";
+import { pickCodexConnectionForUser } from "@/lib/oauth/utils/codexConnectionSelection";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -28,12 +29,23 @@ function decodeJwtPayload(jwt: string): JsonRecord | null {
   }
 }
 
-function extractExpiresAt(idToken: string): string | null {
-  const payload = decodeJwtPayload(idToken);
+function extractExpFromJwt(jwt: string): number | null {
+  const payload = decodeJwtPayload(jwt);
   if (!payload) return null;
   const exp = payload.exp;
-  if (typeof exp !== "number" || !Number.isFinite(exp)) return null;
-  return new Date(exp * 1000).toISOString();
+  return typeof exp === "number" && Number.isFinite(exp) ? exp : null;
+}
+
+// Prefer access_token.exp over id_token.exp — the id_token may be expired
+// while the access_token (and refresh_token) are still valid. Using a stale
+// id_token expiry would mark the connection as expired immediately after import
+// and trigger an unnecessary refresh (which can invalidate the token family).
+function extractExpiresAt(accessToken: string, idToken: string): string | null {
+  const accessExp = extractExpFromJwt(accessToken);
+  if (accessExp !== null) return new Date(accessExp * 1000).toISOString();
+  const idExp = extractExpFromJwt(idToken);
+  if (idExp !== null) return new Date(idExp * 1000).toISOString();
+  return null;
 }
 
 function extractJwtEmail(idToken: string): string | null {
@@ -54,25 +66,38 @@ function extractCodexAccountId(
   );
 }
 
-// ──── Public types ────────────────────────────────────────────────────────────
-
-export interface CodexAuthFileInput {
-  auth_mode?: unknown;
-  OPENAI_API_KEY?: unknown;
-  tokens?: {
-    id_token?: unknown;
-    access_token?: unknown;
-    refresh_token?: unknown;
-    account_id?: unknown;
-  };
-  last_refresh?: unknown;
+// Two DISTINCT users can share the SAME workspace/account id (e.g. two members of the
+// same ChatGPT Team). The account id alone is NOT a unique connection key. The id_token
+// auth claim carries the per-user `chatgpt_user_id`; use it (falling back to `user_id`,
+// then the JWT `sub`) so imports can be deduped by workspace AND user. See #6301.
+function extractCodexUserId(idToken: string): string | null {
+  const payload = decodeJwtPayload(idToken);
+  if (!payload) return null;
+  const authInfo = toRecord(payload["https://api.openai.com/auth"]);
+  return (
+    toNonEmptyString(authInfo.chatgpt_user_id) ||
+    toNonEmptyString(authInfo.user_id) ||
+    toNonEmptyString(payload.sub) ||
+    null
+  );
 }
+
+// On overwrite, keep the incoming per-user id but fall back to the one already stored
+// on the existing connection (legacy imports carried none) rather than dropping it (#6301).
+function mergeCodexUserId(incomingUserId: string | null, existing: JsonRecord): string | null {
+  return incomingUserId ?? toNonEmptyString(toRecord(existing.providerSpecificData).chatgptUserId);
+}
+
+// ──── Public types ────────────────────────────────────────────────────────────
 
 export interface ParsedCodexAuth {
   idToken: string;
   accessToken: string;
   refreshToken: string;
   accountId: string;
+  // Per-user identity within the workspace (chatgpt_user_id / user_id / JWT sub).
+  // Distinct users can share the same accountId, so this disambiguates them (#6301).
+  userId: string | null;
   email: string | null;
   expiresAt: string | null;
 }
@@ -143,8 +168,9 @@ export function parseAndValidateCodexAuth(raw: unknown): ParsedCodexAuth {
     accessToken,
     refreshToken,
     accountId,
+    userId: extractCodexUserId(idToken),
     email: extractJwtEmail(idToken),
-    expiresAt: extractExpiresAt(idToken),
+    expiresAt: extractExpiresAt(accessToken, idToken),
   };
 }
 
@@ -154,7 +180,11 @@ export async function createConnectionFromAuthFile(
   parsed: ParsedCodexAuth,
   options: CreateConnectionOptions
 ): Promise<{ connection: JsonRecord; created: boolean }> {
-  const existing = await findExistingCodexConnection(parsed.accountId);
+  const existing = await findExistingCodexConnection(
+    parsed.accountId,
+    parsed.userId,
+    options.email || parsed.email || null
+  );
 
   if (existing) {
     if (!options.overwriteExisting) {
@@ -181,6 +211,7 @@ export async function createConnectionFromAuthFile(
       providerSpecificData: {
         ...toRecord(existing.providerSpecificData),
         workspaceId: parsed.accountId,
+        chatgptUserId: mergeCodexUserId(parsed.userId, existing),
         importedAt: new Date().toISOString(),
       },
     });
@@ -203,6 +234,7 @@ export async function createConnectionFromAuthFile(
     testStatus: "active",
     providerSpecificData: {
       workspaceId: parsed.accountId,
+      chatgptUserId: parsed.userId,
       importedAt: new Date().toISOString(),
     },
   });
@@ -229,12 +261,28 @@ export async function createConnectionFromAuthFile(
   return { connection, created: true };
 }
 
-async function findExistingCodexConnection(accountId: string): Promise<JsonRecord | null> {
-  const connections = await getProviderConnections({ provider: "codex" });
-  return (
-    (connections.find((c) => {
-      const psd = toRecord((c as JsonRecord).providerSpecificData);
-      return toNonEmptyString(psd.workspaceId) === accountId;
-    }) as JsonRecord | undefined) ?? null
+// Dedup key is the workspace/account id AND the per-user id. Two distinct users in the
+// same workspace share an accountId but have different userIds, so they must NOT collide
+// (#6301). Backward-compat: connections imported before the chatgptUserId field existed
+// carry no stored userId — when NONE of the workspace matches has a stored userId we
+// promote the legacy row with a compatible email, or an email-less legacy row. From the
+// connections already matched on workspace/account id, pick the one that belongs to the
+// incoming user. A different user in the same workspace is NOT a duplicate — refuse to
+// dedup when some stored connection actually records a different userId.
+async function findExistingCodexConnection(
+  accountId: string,
+  userId: string | null,
+  email: string | null
+): Promise<JsonRecord | null> {
+  const connections = await getProviderConnections({
+    provider: "codex",
+    authType: "oauth",
+  });
+  const workspaceMatches = (connections as JsonRecord[]).filter(
+    (c) => toNonEmptyString(toRecord(c.providerSpecificData).workspaceId) === accountId
   );
+  if (workspaceMatches.length === 0) return null;
+  // No incoming userId → legacy accountId-only dedup with the first workspace match.
+  if (!userId) return workspaceMatches[0];
+  return pickCodexConnectionForUser(workspaceMatches, userId, email);
 }

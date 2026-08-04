@@ -114,6 +114,36 @@ test("bypass predicate: true for Claude -> Claude passthrough", () => {
   );
 });
 
+// #4481: MiniMax's Anthropic-compatible endpoint claims Claude format but does NOT
+// implement Anthropic's typed server tools, so forwarding web_search_20250305 untouched
+// (the Claude->Claude bypass) makes api.minimax.io return HTTP 400 "invalid params,
+// function name or parameters is empty (2013)". For such providers we must NOT bypass —
+// the tool has to be converted to the omniroute_web_search function fallback (which the
+// model accepts as a normal function tool).
+test("bypass predicate: false for Claude -> Claude when provider lacks Anthropic server tools (minimax, #4481)", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "minimax",
+      sourceFormat: "claude",
+      targetFormat: "claude",
+      nativeCodexPassthrough: false,
+    }),
+    false
+  );
+});
+
+test("bypass predicate: still true for Claude -> Claude on a real Claude provider (regression guard, #4481)", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "anthropic",
+      sourceFormat: "claude",
+      targetFormat: "claude",
+      nativeCodexPassthrough: false,
+    }),
+    true
+  );
+});
+
 test("bypass predicate: false for standard OpenAI -> OpenAI", () => {
   assert.equal(
     supportsNativeWebSearchFallbackBypass({
@@ -224,4 +254,62 @@ test("OpenAI -> Claude (non-passthrough): built-in web_search IS still converted
   const tools = (body.tools as Record<string, any>[]) || [];
   const toolNames = tools.map((t) => (t.function ? t.function.name : t.name));
   assert.ok(toolNames.includes(OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME));
+});
+
+// ── #3384: per-model interceptSearch override wins over every native-bypass default ──
+
+test("#3384 interceptSearchOverride=true forces interception even on the Claude->Claude bypass path", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "claude",
+      sourceFormat: "claude",
+      targetFormat: "claude",
+      nativeCodexPassthrough: false,
+      interceptSearchOverride: true,
+    }),
+    false,
+    "explicit interceptSearch:true must NOT bypass, overriding the native Claude passthrough"
+  );
+});
+
+test("#3384 interceptSearchOverride=false forces native passthrough even for a standard provider", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "openai",
+      sourceFormat: "openai",
+      targetFormat: "openai",
+      nativeCodexPassthrough: false,
+      interceptSearchOverride: false,
+    }),
+    true,
+    "explicit interceptSearch:false must bypass even though OpenAI->OpenAI has no native default bypass"
+  );
+});
+
+test("#3384 interceptSearchOverride=undefined falls through to the existing native-bypass defaults", () => {
+  assert.equal(
+    supportsNativeWebSearchFallbackBypass({
+      provider: "claude",
+      sourceFormat: "claude",
+      targetFormat: "claude",
+      nativeCodexPassthrough: false,
+      interceptSearchOverride: undefined,
+    }),
+    true,
+    "no override configured — default Claude->Claude bypass still applies"
+  );
+});
+
+test("#3384 end-to-end: interceptSearchOverride=true converts the tool on the Claude->Claude bypass path", () => {
+  const inputBody = { tools: [{ type: "web_search" }] };
+  const { fallback } = prepareWebSearchFallbackBody(inputBody, {
+    provider: "claude",
+    sourceFormat: "claude",
+    targetFormat: "claude",
+    nativeCodexPassthrough: false,
+    interceptSearchOverride: true,
+  });
+
+  assert.equal(fallback.enabled, true);
+  assert.equal(fallback.toolName, OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME);
 });

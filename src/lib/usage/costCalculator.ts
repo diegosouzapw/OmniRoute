@@ -7,6 +7,8 @@
  * @module lib/usage/costCalculator
  */
 
+import { isFlatRateProvider } from "./flatRateProviders";
+
 /**
  * Normalize model name — strip provider path prefixes.
  * Examples:
@@ -26,7 +28,42 @@ export type CostCalculationOptions = {
   provider?: string | null;
   model?: string | null;
   serviceTier?: string | null;
+  /**
+   * When true, return $0 for flat-rate (subscription / cookie-web) providers
+   * instead of the per-token estimate (#5552). Opt-in so only analytics/display
+   * surfaces zero out; budget / quota / routing keep estimating. Requires
+   * `provider` to be set.
+   */
+  flatRateAsZero?: boolean;
 };
+
+/**
+ * xAI reports the exact provider-billed cost of a request in the chat-completions
+ * `usage` object via `cost_in_usd_ticks` (port of decolua/9router#2453, capability
+ * A — @ryanngit). Per the official docs — both
+ * https://docs.x.ai/developers/cost-tracking and the API reference's usage schema
+ * ("TICKS_IN_USD_CENT: i64 = 100_000_000") — there are 10_000_000_000 (1e10) ticks
+ * per USD. Example from the docs: 37756000 ticks ≈ $0.0038.
+ *
+ * NOTE: this divisor is intentionally 1e10, not the 1e12 used by the upstream PR
+ * (which under-reports cost 100x) — verified directly against the xAI docs.
+ */
+const USD_TICKS_PER_DOLLAR = 10_000_000_000;
+
+/**
+ * Extract an exact, provider-reported USD cost from a token/usage record when one
+ * is present, so callers can trust it over the token × pricing estimate. Currently
+ * only xAI's `cost_in_usd_ticks` field is handled — see comment above.
+ */
+function extractExactCostUsd(
+  tokens: Record<string, number | undefined> | null | undefined
+): number | null {
+  const ticks = tokens?.cost_in_usd_ticks;
+  if (typeof ticks === "number" && Number.isFinite(ticks) && ticks >= 0) {
+    return ticks / USD_TICKS_PER_DOLLAR;
+  }
+  return null;
+}
 
 function toNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -42,7 +79,7 @@ function normalizeServiceTier(value: unknown): string {
 }
 
 function stripCodexEffortSuffix(model: string): string {
-  return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
+  return model.replace(/-(?:ultra|max|xhigh|high|medium|low|none)$/i, "");
 }
 
 export function getCodexFastCostMultiplier(
@@ -64,6 +101,12 @@ export function getCodexFastCostMultiplier(
 
   const modelKey = stripCodexEffortSuffix(normalizeModelName(String(model || "")).toLowerCase());
   const compactModelKey = modelKey.replace(/-/g, "");
+  if (
+    /^gpt-5\.6-(?:sol|terra|luna)$/.test(modelKey) ||
+    /^gpt5\.6(?:sol|terra|luna)$/.test(compactModelKey)
+  ) {
+    return 1.5;
+  }
   if (modelKey === "gpt-5.5" || compactModelKey === "gpt5.5") return 2.5;
   if (modelKey === "gpt-5.4" || compactModelKey === "gpt5.4") return 2;
   return 1;
@@ -86,7 +129,16 @@ export function computeCostFromPricing(
   tokens: Record<string, number | undefined> | null | undefined,
   options: CostCalculationOptions = {}
 ): number {
-  if (!pricing || !tokens) return 0;
+  if (!tokens) return 0;
+  // Trust an exact, provider-reported cost over the token × pricing estimate
+  // when one is present — works even when no local pricing row exists yet.
+  const exactCostUsd = extractExactCostUsd(tokens);
+  if (exactCostUsd !== null) return exactCostUsd;
+  if (!pricing) return 0;
+  // Flat-rate (subscription / cookie-web) providers don't bill per token — their
+  // per-token pricing rows exist only for estimation, so display surfaces opt in
+  // to show $0 instead of an inflated estimate (#5552).
+  if (options.flatRateAsZero && isFlatRateProvider(options.provider)) return 0;
   const inputPrice = toNumber(pricing.input, 0);
   const cachedPrice = toNumber(pricing.cached, inputPrice);
   const outputPrice = toNumber(pricing.output, 0);
@@ -125,6 +177,11 @@ export async function calculateCost(
 ): Promise<number> {
   if (!tokens || !provider || !model) return 0;
 
+  // Short-circuit before any pricing DB lookup when an exact, provider-reported
+  // cost is present (currently xAI's `cost_in_usd_ticks` — see extractExactCostUsd).
+  const exactCostUsd = extractExactCostUsd(tokens);
+  if (exactCostUsd !== null) return exactCostUsd;
+
   try {
     const { getPricingForModel } = await import("@/lib/localDb");
 
@@ -156,6 +213,114 @@ export async function calculateCost(
     });
   } catch (error) {
     console.error("Error calculating cost:", error);
+    return 0;
+  }
+}
+
+type ModalPricing = Record<string, unknown>;
+
+/** Per-image cost: flat per-image × n. 0 when pricing/usage absent. */
+export function computeImageCost(
+  pricing: ModalPricing | null | undefined,
+  usage: { n?: number }
+): number {
+  if (!pricing) return 0;
+  const perImage = toNumber(pricing.output_cost_per_image ?? pricing.input_cost_per_image, 0);
+  const n = Math.max(0, Math.floor(toNumber(usage.n, 0)));
+  return perImage * n;
+}
+
+/** Audio cost: per-second (transcription) OR per-character (TTS). 0 when no dimension. */
+export function computeAudioCost(
+  pricing: ModalPricing | null | undefined,
+  usage: { seconds?: number; characters?: number }
+): number {
+  if (!pricing) return 0;
+  const seconds = toNumber(usage.seconds, 0);
+  if (seconds > 0) {
+    const perSecond = toNumber(pricing.input_cost_per_second ?? pricing.output_cost_per_second, 0);
+    if (perSecond > 0) return perSecond * seconds;
+  }
+  const characters = toNumber(usage.characters, 0);
+  if (characters > 0) {
+    const perChar = toNumber(
+      pricing.input_cost_per_character ?? pricing.output_cost_per_character,
+      0
+    );
+    // Round to 10 decimals to drop binary-FP artifacts (e.g. 0.000015 * 1000).
+    if (perChar > 0) return Math.round(perChar * characters * 1e10) / 1e10;
+  }
+  return 0;
+}
+
+/** Rerank cost: per search unit (Cohere-style billed_units.search_units). */
+export function computeRerankCost(
+  pricing: ModalPricing | null | undefined,
+  usage: { searchUnits?: number }
+): number {
+  if (!pricing) return 0;
+  const perUnit = toNumber(pricing.search_unit_cost ?? pricing.input_cost_per_query, 0);
+  const units = Math.max(0, toNumber(usage.searchUnits, 0));
+  return perUnit * units;
+}
+
+/** Video cost: per video-second. */
+export function computeVideoCost(
+  pricing: ModalPricing | null | undefined,
+  usage: { seconds?: number }
+): number {
+  if (!pricing) return 0;
+  const perSecond = toNumber(
+    pricing.output_cost_per_video_per_second ?? pricing.input_cost_per_video_per_second,
+    0
+  );
+  const seconds = toNumber(usage.seconds, 0);
+  return perSecond * seconds;
+}
+
+export type Modality = "image" | "audio" | "rerank" | "video";
+export type ModalUsage = {
+  n?: number;
+  seconds?: number;
+  characters?: number;
+  searchUnits?: number;
+};
+
+/**
+ * Load pricing for (provider, model) and dispatch to the per-modality cost
+ * function. Like `calculateCost` for tokens: returns 0 (never throws) when
+ * pricing is missing.
+ */
+export async function calculateModalCost(
+  modality: Modality,
+  provider: string,
+  model: string,
+  usage: ModalUsage
+): Promise<number> {
+  if (!provider || !model) return 0;
+  try {
+    const { getPricingForModel } = await import("@/lib/localDb");
+    let pricing = await getPricingForModel(provider, model);
+    if (!pricing) {
+      const normalized = normalizeModelName(model);
+      if (normalized !== model) pricing = await getPricingForModel(provider, normalized);
+    }
+    if (!pricing) return 0;
+    const rec = pricing as Record<string, unknown>;
+    switch (modality) {
+      case "image":
+        return computeImageCost(rec, usage);
+      case "audio":
+        return computeAudioCost(rec, usage);
+      case "rerank":
+        return computeRerankCost(rec, usage);
+      case "video":
+        return computeVideoCost(rec, usage);
+      default:
+        return 0;
+    }
+  } catch (error) {
+    console.error("Error calculating modal cost:", error);
     return 0;
   }
 }

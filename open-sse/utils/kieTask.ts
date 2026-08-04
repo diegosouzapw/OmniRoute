@@ -2,12 +2,6 @@ export type JsonObject = Record<string, unknown>;
 
 export type KieTaskState = "success" | "failed" | "pending";
 
-export type KieCallbackBody = {
-  callBackUrl?: unknown;
-  callback_url?: unknown;
-  callbackUrl?: unknown;
-};
-
 const FALLBACK_KIE_CALLBACK_URL = "https://omniroute.local/api/kie/callback";
 
 export function isJsonObject(value: unknown): value is JsonObject {
@@ -42,8 +36,9 @@ function getConfiguredKieCallbackUrl(): string {
   );
 }
 
-export function getKieCallbackUrl(body: KieCallbackBody = {}): string {
-  const callbackUrl = body.callBackUrl ?? body.callback_url ?? body.callbackUrl;
+export function getKieCallbackUrl(body: unknown = {}): string {
+  const record = isJsonObject(body) ? body : {};
+  const callbackUrl = record.callBackUrl ?? record.callback_url ?? record.callbackUrl;
   return typeof callbackUrl === "string" && callbackUrl.trim().length > 0
     ? callbackUrl
     : getConfiguredKieCallbackUrl();
@@ -63,6 +58,13 @@ export function parseKieResultJson(recordData: unknown): JsonObject {
   }
 
   return isJsonObject(resultJson) ? resultJson : {};
+}
+
+export function getKieTaskId(createData: unknown): string | null {
+  const record = isJsonObject(createData) ? createData : {};
+  const data = isJsonObject(record.data) ? record.data : {};
+  const taskId = data.taskId || record.taskId;
+  return taskId ? String(taskId) : null;
 }
 
 export function normalizeKieTaskState(recordData: unknown): KieTaskState {

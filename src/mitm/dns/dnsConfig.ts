@@ -1,11 +1,14 @@
+import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import {
   execFileWithPassword,
   getErrorMessage,
+  isRoot,
   quotePowerShell,
   runElevatedPowerShell,
 } from "../systemCommands.ts";
+import { ALL_TARGETS } from "../targets/index.ts";
 
 // Legacy Antigravity defaults preserved for backward compat.
 const ANTIGRAVITY_HOSTS = [
@@ -15,10 +18,73 @@ const ANTIGRAVITY_HOSTS = [
   "autopush-cloudcode-pa.sandbox.googleapis.com",
 ];
 
+export function resolveHostsForAgent(agentId?: string): string[] {
+  if (!agentId) return ANTIGRAVITY_HOSTS;
+  const target = ALL_TARGETS.find((t) => t.id === agentId);
+  return target?.hosts ?? ANTIGRAVITY_HOSTS;
+}
+
 const IS_WIN = process.platform === "win32";
 const HOSTS_FILE = IS_WIN
   ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "drivers", "etc", "hosts")
   : "/etc/hosts";
+
+export interface DnsCommandDependencies {
+  execFileWithPassword?: typeof execFileWithPassword;
+  runElevatedPowerShell?: typeof runElevatedPowerShell;
+}
+
+function resolveCommandDependencies(deps?: DnsCommandDependencies) {
+  return {
+    execFileWithPassword: deps?.execFileWithPassword ?? execFileWithPassword,
+    runElevatedPowerShell: deps?.runElevatedPowerShell ?? runElevatedPowerShell,
+  };
+}
+
+/**
+ * Return true if `sudo` is available on PATH. Windows always reports `true`
+ * (no sudo concept — UAC handles elevation). Minimal containers without sudo
+ * also report `false`, so callers can fall through to the no-elevation path.
+ */
+export function isSudoAvailable(): boolean {
+  if (IS_WIN) return true;
+  try {
+    // `which sudo` exits 0 when found, non-zero otherwise. Fixed args, no
+    // shell expansion — safe per Hard Rule #13.
+    execFileSync("which", ["sudo"], { stdio: "ignore", windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Return true when MITM elevation can proceed without prompting for a sudo
+ * password — i.e. Windows (UAC handles it), root user, no sudo binary
+ * (minimal container), or `sudo -n true` succeeds (passwordless NOPASSWD).
+ */
+export function canRunSudoWithoutPassword(): boolean {
+  if (IS_WIN) return true;
+  if (isRoot()) return true;
+  if (!isSudoAvailable()) return true;
+  try {
+    // `sudo -n true` exits 0 when the user can run sudo without a password
+    // (cached credential or NOPASSWD). Exits non-zero otherwise. Fixed args.
+    execFileSync("sudo", ["-n", "true"], { stdio: "ignore", windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Server-side helper for the MITM API: true when a sudo password must be
+ * collected from the user before invoking privileged commands.
+ * False on Windows, root, missing-sudo containers, or NOPASSWD sudoers.
+ */
+export function isSudoPasswordRequired(): boolean {
+  return !IS_WIN && isSudoAvailable() && !canRunSudoWithoutPassword();
+}
 
 /**
  * Build the set of /etc/hosts lines for a given hostname.
@@ -61,9 +127,19 @@ function hasHostEntry(hostsContent: string, hostname: string): boolean {
  * Add /etc/hosts entries for every hostname in `hosts`.
  * Idempotent — existing entries are not duplicated.
  * Complies with Hard Rule #13: no string interpolation in shell commands.
+ *
+ * On Windows, all missing entries are batched into a single elevated PowerShell
+ * invocation so the user gets one UAC prompt instead of one per line.
  */
-export async function addDNSEntries(hosts: string[], sudoPassword: string): Promise<void> {
+export async function addDNSEntries(
+  hosts: string[],
+  sudoPassword: string,
+  deps?: DnsCommandDependencies
+): Promise<void> {
+  if (process.env.OMNIROUTE_SKIP_DNS_WRITE === "1") return;
+  const commands = resolveCommandDependencies(deps);
   const hostsContent = readHostsFile();
+  const missingEntries: string[] = [];
 
   for (const hostname of hosts) {
     const lines = dnsLines(hostname);
@@ -75,29 +151,28 @@ export async function addDNSEntries(hosts: string[], sudoPassword: string): Prom
         return parts.length >= 2 && parts[0] === ip && parts.includes(host);
       });
     });
+    missingEntries.push(...missing);
+  }
 
-    for (const entry of missing) {
-      if (IS_WIN) {
-        // HR#13: build PowerShell command via concat (not template literal) so grep
-        // for `\${` inside script bodies returns zero hits. Values pass through
-        // `quotePowerShell()` for single-quote escaping — safe against injection
-        // since both HOSTS_FILE (OS const) and entry (internal `IP host` string)
-        // are non-user-supplied.
-        const cmd =
-          "Add-Content -LiteralPath " +
-          quotePowerShell(HOSTS_FILE) +
-          " -Value " +
-          quotePowerShell(entry);
-        await runElevatedPowerShell(cmd);
-      } else {
-        // Hard Rule #13: entry is passed as stdin data, not interpolated into the command.
-        await execFileWithPassword(
-          "sudo",
-          ["-S", "tee", "-a", HOSTS_FILE],
-          sudoPassword,
-          `${entry}\n`
-        );
-      }
+  if (missingEntries.length === 0) return;
+
+  if (IS_WIN) {
+    const psHostsFile = quotePowerShell(HOSTS_FILE);
+    const psEntries = missingEntries.map((e) => quotePowerShell(e)).join(", ");
+    const script = "Add-Content -LiteralPath " + psHostsFile + " -Value " + psEntries;
+    await commands.runElevatedPowerShell(script);
+    for (const entry of missingEntries) {
+      console.log(`[DNS] Added entry: ${entry}`);
+    }
+  } else {
+    const data = missingEntries.map((e) => `${e}\n`).join("");
+    await commands.execFileWithPassword(
+      "sudo",
+      ["-S", "tee", "-a", HOSTS_FILE],
+      sudoPassword,
+      data
+    );
+    for (const entry of missingEntries) {
       console.log(`[DNS] Added entry: ${entry}`);
     }
   }
@@ -121,46 +196,49 @@ fs.writeFileSync(filePath, filtered.join("\\n").replace(/\\n*$/, "\\n"));
  * Remove /etc/hosts entries for every hostname in `hosts`.
  * Idempotent — silently skips hosts that are not present.
  * Complies with Hard Rule #13: HOSTS_FILE and hostname are passed as argv, not interpolated.
+ *
+ * On Windows, all hostnames are filtered in a single elevated PowerShell
+ * invocation so the user gets one UAC prompt instead of one per host.
  */
-export async function removeDNSEntries(hosts: string[], sudoPassword: string): Promise<void> {
+export async function removeDNSEntries(
+  hosts: string[],
+  sudoPassword: string,
+  deps?: DnsCommandDependencies
+): Promise<void> {
+  if (process.env.OMNIROUTE_SKIP_DNS_WRITE === "1") return;
+  const commands = resolveCommandDependencies(deps);
   const hostsContent = readHostsFile();
+  const presentHosts = hosts.filter((h) => hasHostEntry(hostsContent, h));
 
-  for (const hostname of hosts) {
-    if (!hasHostEntry(hostsContent, hostname)) {
-      console.log(`[DNS] Entry for ${hostname} not present — skipping`);
-      continue;
-    }
+  if (presentHosts.length === 0) return;
 
-    try {
-      if (IS_WIN) {
-        // HR#13: build PowerShell script via concat (not template literal) so grep
-        // for `\${` inside script bodies returns zero hits. `psHostsFile` and
-        // `psTargetHost` are quotePowerShell-escaped values (single-quote escape).
-        const psHostsFile = quotePowerShell(HOSTS_FILE);
-        const psTargetHost = quotePowerShell(hostname);
-        const script =
-          "\n          $hostsFile = " +
-          psHostsFile +
-          ";\n          $targetHost = " +
-          psTargetHost +
-          ";\n          $lines = Get-Content -LiteralPath $hostsFile;\n" +
-          "          $filtered = $lines | Where-Object {\n" +
-          "            $parts = ($_ -split '\\s+') | Where-Object { $_ };\n" +
-          "            -not (($parts.Length -ge 2) -and ($parts -contains $targetHost))\n" +
-          "          };\n" +
-          "          Set-Content -LiteralPath $hostsFile -Value $filtered;\n        ";
-        await runElevatedPowerShell(script);
-      } else {
-        // Hard Rule #13: HOSTS_FILE and hostname are argv arguments, not interpolated.
-        await execFileWithPassword(
-          "sudo",
-          ["-S", process.execPath, "-e", REMOVE_HOSTS_ENTRY_SCRIPT, HOSTS_FILE, hostname],
-          sudoPassword
-        );
-      }
+  if (IS_WIN) {
+    const psHostsFile = quotePowerShell(HOSTS_FILE);
+    const psTargets = presentHosts.map((h) => quotePowerShell(h)).join(", ");
+    const script =
+      "$hostsFile = " +
+      psHostsFile +
+      ";\n          $targetHosts = @(" +
+      psTargets +
+      ");\n" +
+      "          $lines = Get-Content -LiteralPath $hostsFile;\n" +
+      "          $filtered = $lines | Where-Object {\n" +
+      "            $part = ($_ -split '\\s+') | Where-Object { $_ };\n" +
+      "            -not ($part.Length -ge 2 -and ($targetHosts -contains $part[1]))\n" +
+      "          };\n" +
+      "          Set-Content -LiteralPath $hostsFile -Value $filtered;\n        ";
+    await commands.runElevatedPowerShell(script);
+    for (const hostname of presentHosts) {
       console.log(`[DNS] Removed entries for ${hostname}`);
-    } catch (error) {
-      throw new Error(`Failed to remove DNS entry for ${hostname}: ${getErrorMessage(error)}`);
+    }
+  } else {
+    for (const hostname of presentHosts) {
+      await commands.execFileWithPassword(
+        "sudo",
+        ["-S", process.execPath, "-e", REMOVE_HOSTS_ENTRY_SCRIPT, HOSTS_FILE, hostname],
+        sudoPassword
+      );
+      console.log(`[DNS] Removed entries for ${hostname}`);
     }
   }
 }
@@ -179,17 +257,40 @@ export function checkDNSEntry(): boolean {
 }
 
 /**
- * Add DNS entries for the Antigravity default hosts.
- * Delegates to `addDNSEntries` — backward compat wrapper.
+ * Check whether ALL hosts for the given agent are present in /etc/hosts.
+ * Falls back to the Antigravity legacy hosts when `agentId` is omitted or
+ * unknown, via `resolveHostsForAgent()` — so callers get the same host set
+ * that `addDNSEntry`/`removeDNSEntry` already use for that agent. Used by
+ * `getMitmStatus()` to answer "are THIS agent's hosts spoofed?" instead of
+ * always checking the Antigravity-only set (#8466).
  */
-export async function addDNSEntry(sudoPassword: string): Promise<void> {
-  await addDNSEntries(ANTIGRAVITY_HOSTS, sudoPassword);
+export function checkDNSEntryForAgent(agentId?: string): boolean {
+  const hostsContent = readHostsFile();
+  return resolveHostsForAgent(agentId).every((h) => hasHostEntry(hostsContent, h));
 }
 
 /**
- * Remove DNS entries for the Antigravity default hosts.
+ * Add DNS entries for the Antigravity default hosts, or for a specific agent
+ * when `agentId` is provided.
+ * Delegates to `addDNSEntries` — backward compat wrapper.
+ */
+export async function addDNSEntry(
+  sudoPassword: string,
+  agentId?: string,
+  deps?: DnsCommandDependencies
+): Promise<void> {
+  await addDNSEntries(resolveHostsForAgent(agentId), sudoPassword, deps);
+}
+
+/**
+ * Remove DNS entries for the Antigravity default hosts, or for a specific agent
+ * when `agentId` is provided.
  * Delegates to `removeDNSEntries` — backward compat wrapper.
  */
-export async function removeDNSEntry(sudoPassword: string): Promise<void> {
-  await removeDNSEntries(ANTIGRAVITY_HOSTS, sudoPassword);
+export async function removeDNSEntry(
+  sudoPassword: string,
+  agentId?: string,
+  deps?: DnsCommandDependencies
+): Promise<void> {
+  await removeDNSEntries(resolveHostsForAgent(agentId), sudoPassword, deps);
 }

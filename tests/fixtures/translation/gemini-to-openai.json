@@ -1,0 +1,24 @@
+[
+  {
+    "name": "gemini-to-openai/basic-chat",
+    "sourceFormat": "gemini",
+    "targetFormat": "openai",
+    "input": {
+      "model": "gpt-4o",
+      "contents": [{ "role": "user", "parts": [{ "text": "Hello from Gemini format!" }] }]
+    }
+  },
+  {
+    "name": "gemini-to-openai/multi-turn",
+    "sourceFormat": "gemini",
+    "targetFormat": "openai",
+    "input": {
+      "model": "gpt-4o-mini",
+      "contents": [
+        { "role": "user", "parts": [{ "text": "What is 2+2?" }] },
+        { "role": "model", "parts": [{ "text": "4" }] },
+        { "role": "user", "parts": [{ "text": "And 3+3?" }] }
+      ]
+    }
+  }
+]

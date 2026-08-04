@@ -224,6 +224,30 @@ test("eviction: shadow metrics respect their own MAX_METRICS_ENTRIES cap", () =>
   );
 });
 
+test("eviction: shadow overflow does not delete production metrics with the same name", () => {
+  resetAllComboMetrics();
+  const MAX = 500;
+
+  recordComboRequest("shared-combo", "gpt-4", { success: true, latencyMs: 10 });
+
+  for (let i = 0; i < MAX; i++) {
+    recordComboShadowRequest(i === 0 ? "shared-combo" : "shadow-fill-" + i, "gpt-4", {
+      success: true,
+      latencyMs: 10,
+    });
+  }
+
+  recordComboShadowRequest("shadow-after-capacity", "gpt-4", {
+    success: true,
+    latencyMs: 50,
+  });
+
+  const metrics = getComboMetrics("shared-combo");
+  assert.ok(metrics, "production metrics must survive shadow-only eviction");
+  assert.equal(metrics.productionTraffic, true);
+  assert.equal(metrics.totalRequests, 1);
+});
+
 test("eviction: recordComboIntent respects MAX_METRICS_ENTRIES cap", () => {
   resetAllComboMetrics();
   const MAX = 500;

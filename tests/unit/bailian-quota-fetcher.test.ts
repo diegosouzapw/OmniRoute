@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  BAILIAN_WINDOW_5H,
+  BAILIAN_WINDOW_MONTHLY,
+  BAILIAN_WINDOW_WEEKLY,
   fetchBailianQuota,
   invalidateBailianQuotaCache,
   registerBailianCodingPlanQuotaFetcher,
@@ -216,6 +219,9 @@ test("fetchBailianQuota parses triple-window and returns percentUsed = max(5h%, 
   assert.equal(quota?.window5h?.percentUsed, 0.6);
   assert.equal(quota?.windowWeekly?.percentUsed, 0.8);
   assert.equal(quota?.windowMonthly?.percentUsed, 0.4);
+  assert.equal(quota?.windows?.[BAILIAN_WINDOW_5H]?.percentUsed, 0.6);
+  assert.equal(quota?.windows?.[BAILIAN_WINDOW_WEEKLY]?.percentUsed, 0.8);
+  assert.equal(quota?.windows?.[BAILIAN_WINDOW_MONTHLY]?.percentUsed, 0.4);
 
   invalidateBailianQuotaCache(connectionId);
 });

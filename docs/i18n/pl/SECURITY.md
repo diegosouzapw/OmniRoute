@@ -1,91 +1,111 @@
-# Security Policy (Polski)
+# Polityka bezpieczeństwa
 
-🌐 **Languages:** 🇺🇸 [English](../../../SECURITY.md) · 🇸🇦 [ar](../ar/SECURITY.md) · 🇧🇬 [bg](../bg/SECURITY.md) · 🇧🇩 [bn](../bn/SECURITY.md) · 🇨🇿 [cs](../cs/SECURITY.md) · 🇩🇰 [da](../da/SECURITY.md) · 🇩🇪 [de](../de/SECURITY.md) · 🇪🇸 [es](../es/SECURITY.md) · 🇮🇷 [fa](../fa/SECURITY.md) · 🇫🇮 [fi](../fi/SECURITY.md) · 🇫🇷 [fr](../fr/SECURITY.md) · 🇮🇳 [gu](../gu/SECURITY.md) · 🇮🇱 [he](../he/SECURITY.md) · 🇮🇳 [hi](../hi/SECURITY.md) · 🇭🇺 [hu](../hu/SECURITY.md) · 🇮🇩 [id](../id/SECURITY.md) · 🇮🇹 [it](../it/SECURITY.md) · 🇯🇵 [ja](../ja/SECURITY.md) · 🇰🇷 [ko](../ko/SECURITY.md) · 🇮🇳 [mr](../mr/SECURITY.md) · 🇲🇾 [ms](../ms/SECURITY.md) · 🇳🇱 [nl](../nl/SECURITY.md) · 🇳🇴 [no](../no/SECURITY.md) · 🇵🇭 [phi](../phi/SECURITY.md) · 🇵🇱 [pl](../pl/SECURITY.md) · 🇵🇹 [pt](../pt/SECURITY.md) · 🇧🇷 [pt-BR](../pt-BR/SECURITY.md) · 🇷🇴 [ro](../ro/SECURITY.md) · 🇷🇺 [ru](../ru/SECURITY.md) · 🇸🇰 [sk](../sk/SECURITY.md) · 🇸🇪 [sv](../sv/SECURITY.md) · 🇰🇪 [sw](../sw/SECURITY.md) · 🇮🇳 [ta](../ta/SECURITY.md) · 🇮🇳 [te](../te/SECURITY.md) · 🇹🇭 [th](../th/SECURITY.md) · 🇹🇷 [tr](../tr/SECURITY.md) · 🇺🇦 [uk-UA](../uk-UA/SECURITY.md) · 🇵🇰 [ur](../ur/SECURITY.md) · 🇻🇳 [vi](../vi/SECURITY.md) · 🇨🇳 [zh-CN](../zh-CN/SECURITY.md)
+## Zgłaszanie luk bezpieczeństwa
 
----
+Jeśli odkryjesz lukę bezpieczeństwa w OmniRoute, zgłoś ją w odpowiedzialny sposób:
 
-## Reporting Vulnerabilities
+1. **NIE** otwieraj publicznego zgłoszenia (issue) na GitHub
+2. Użyj [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
+3. Dołącz: opis, kroki reprodukcji oraz potencjalny wpływ
 
-If you discover a security vulnerability in OmniRoute, please report it responsibly:
+## Harmonogram reakcji
 
-1. **DO NOT** open a public GitHub issue
-2. Use [GitHub Security Advisories](https://github.com/diegosouzapw/OmniRoute/security/advisories/new)
-3. Include: description, reproduction steps, and potential impact
+| Etap             | Cel                          |
+| ---------------- | ---------------------------- |
+| Potwierdzenie    | 48 godzin                    |
+| Triage i ocena   | 5 dni roboczych              |
+| Wydanie poprawki | 14 dni roboczych (krytyczne) |
 
-## Response Timeline
+## Wspierane wersje
 
-| Stage               | Target                      |
-| ------------------- | --------------------------- |
-| Acknowledgment      | 48 hours                    |
-| Triage & Assessment | 5 business days             |
-| Patch Release       | 14 business days (critical) |
-
-## Supported Versions
-
-| Version | Support Status |
-| ------- | -------------- |
-| 3.6.x   | ✅ Active      |
-| 3.5.x   | ✅ Security    |
-| < 3.5.0 | ❌ Unsupported |
+| Wersja  | Status wsparcia   |
+| ------- | ----------------- |
+| 3.8.x   | ✅ Aktywne        |
+| 3.7.x   | ✅ Bezpieczeństwo |
+| < 3.7.0 | ❌ Niewspierane   |
 
 ---
 
-## Security Architecture
+## Architektura bezpieczeństwa
 
-OmniRoute implements a multi-layered security model:
+OmniRoute wdraża wielowarstwowy model bezpieczeństwa:
 
 ```
-Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+Request → CORS → Authz pipeline (classify → policies → enforce)
+       → Guardrails (PII masker, prompt injection, vision bridge)
+       → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
 ```
 
-### 🔐 Authentication & Authorization
+### 🔐 Uwierzytelnianie i autoryzacja
 
-| Feature              | Implementation                                             |
-| -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
+| Funkcja               | Implementacja                                                                                                                                       |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard Login**   | Uwierzytelnianie hasłem z tokenami JWT (ciasteczka HttpOnly)                                                                                        |
+| **API Key Auth**      | Klucze podpisane HMAC z walidacją CRC                                                                                                               |
+| **OAuth 2.0 + PKCE**  | 13 dostawców (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Kiro, Qoder, Windsurf, GitLab Duo)                 |
+| **Token Refresh**     | Automatyczne odświeżanie tokenów OAuth przed wygaśnięciem                                                                                           |
+| **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` dla środowisk HTTPS                                                                                                       |
+| **Authz Pipeline**    | Klasyfikacja tras (PUBLIC / CLIENT_API / MANAGEMENT) — zob. `docs/architecture/AUTHZ_GUIDE.md`                                                      |
+| **Route Guard Tiers** | Model 3-poziomowy dla tras zarządzania (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — zob. `docs/security/ROUTE_GUARD_TIERS.md`                     |
+| **Manage-Scope MCP**  | Zdalny dostęp `/api/mcp/*` ograniczony kluczami API ze scope `manage`; `/api/cli-tools/runtime/*` pozostaje strict-loopback. Zob. ROUTE_GUARD_TIERS |
+| **MCP Scopes**        | ~13 granularnych scope'ów (read:health, write:combos, execute:completions itd.) — zob. `docs/frameworks/MCP-SERVER.md`                              |
 
-### 🛡️ Encryption at Rest
+### 🛡️ Szyfrowanie w spoczynku
 
-All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scrypt key derivation:
+Wszystkie wrażliwe dane przechowywane w SQLite są szyfrowane algorytmem **AES-256-GCM** z derywacją klucza scrypt:
 
-- API keys, access tokens, refresh tokens, and ID tokens
-- Versioned format: `enc:v1:<iv>:<ciphertext>:<authTag>`
-- Passthrough mode (plaintext) when `STORAGE_ENCRYPTION_KEY` is not set
+- Klucze API, tokeny dostępu, tokeny odświeżania oraz tokeny ID
+- Wersjonowany format: `enc:v1:<iv>:<ciphertext>:<authTag>`
+- Tryb passthrough (tekst jawny), gdy `STORAGE_ENCRYPTION_KEY` nie jest ustawiony
 
 ```bash
 # Generate encryption key:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-### 🧠 Prompt Injection Guard
+### 🛡️ Framework Guardrails
 
-Middleware that detects and blocks prompt injection attacks in LLM requests:
+OmniRoute dostarcza przeładowywalny na gorąco **rejestr guardrails** (`src/lib/guardrails/`) z 3 wbudowanymi guardrails uporządkowanymi według priorytetu:
 
-| Pattern Type        | Severity | Example                                        |
-| ------------------- | -------- | ---------------------------------------------- |
-| System Override     | High     | "ignore all previous instructions"             |
-| Role Hijack         | High     | "you are now DAN, you can do anything"         |
-| Delimiter Injection | Medium   | Encoded separators to break context boundaries |
-| DAN/Jailbreak       | High     | Known jailbreak prompt patterns                |
-| Instruction Leak    | Medium   | "show me your system prompt"                   |
+| Guardrail          | Priorytet | Cel                                                                                      |
+| ------------------ | --------- | ---------------------------------------------------------------------------------------- |
+| `vision-bridge`    | 5         | Mostkuje modele bez wizji opisami uwzględniającymi obraz; ochrona SSRF dla URL-i obrazów |
+| `pii-masker`       | 10        | Redakcja PII przed i po wywołaniu (e-maile, telefon, CPF, CNPJ, karty kredytowe, SSN)    |
+| `prompt-injection` | 20        | Wykrywa wzorce override / role-hijack / jailbreak / leak                                 |
 
-Configure via dashboard (Settings → Security) or `.env`:
+Własne guardrails rejestruje się przez `registerGuardrail(new MyGuardrail())`. Model jest fail-open (wyjątki nigdy nie blokują ruchu). Rezygnacja per żądanie przez nagłówek `x-omniroute-disabled-guardrails`. → Zob. [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
+
+### 🧠 Ochrona przed prompt injection
+
+Heurystyczny middleware best-effort, który wykrywa wzorce prompt injection w żądaniach LLM.
+**To nie jest kompletna zapora przed prompt injection** — może generować fałszywe alarmy (nieszkodliwe
+prompty persona/RPG) oraz pomijać ataki (leetspeak, odstępy, wzorce w innych językach).
+
+| Typ wzorca          | Dotkliwość | Przykład                                                 |
+| ------------------- | ---------- | -------------------------------------------------------- |
+| System Override     | High       | "ignore all previous instructions"                       |
+| Role Hijack         | Medium     | "you are now DAN, you can do anything"                   |
+| Delimiter Injection | High       | Zakodowane separatory łamiące granice kontekstu          |
+| DAN/Jailbreak       | Medium     | Znane wzorce promptów jailbreak                          |
+| Instruction Leak    | High       | "show me your system prompt"                             |
+| Encoding Evasion    | Medium     | dekodowanie base64/rot13/hex + słowa kluczowe instrukcji |
+
+W trybie `block` blokowane są wyłącznie detekcje o dotkliwości **High**. Rodziny o
+dotkliwości Medium są logowane, ale nigdy nie blokowane przez `sanitizeRequest`.
+
+Konfiguracja przez dashboard (Settings → Security) lub `.env`:
 
 ```env
 INPUT_SANITIZER_ENABLED=true
-INPUT_SANITIZER_MODE=block    # warn | block | redact
+INPUT_SANITIZER_MODE=block    # warn | block (injection policy; legacy "redact" does not strip injection text)
+INPUT_SANITIZER_BLOCK_THRESHOLD=high  # high (default) | medium | low — severities at/above this are blocked in block mode
 ```
 
-### 🔒 PII Redaction
+### 🔒 Redakcja PII
 
-Automatic detection and optional redaction of personally identifiable information:
+Automatyczne wykrywanie i opcjonalna redakcja danych osobowych (PII):
 
-| PII Type      | Pattern               | Replacement        |
+| Typ PII       | Wzorzec               | Zamiennik          |
 | ------------- | --------------------- | ------------------ |
 | Email         | `user@domain.com`     | `[EMAIL_REDACTED]` |
 | CPF (Brazil)  | `123.456.789-00`      | `[CPF_REDACTED]`   |
@@ -95,44 +115,45 @@ Automatic detection and optional redaction of personally identifiable informatio
 | SSN (US)      | `123-45-6789`         | `[SSN_REDACTED]`   |
 
 ```env
-PII_REDACTION_ENABLED=true
+PII_REDACTION_ENABLED=true   # request PII rewrite; independent of INPUT_SANITIZER_MODE
+PII_RESPONSE_SANITIZATION=true  # optional: redact PII in provider responses returned to clients
 ```
 
-### 🌐 Network Security
+### 🌐 Bezpieczeństwo sieci
 
-| Feature                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| **CORS**                 | Configurable origin control (`CORS_ORIGIN` env var, default `*`) |
-| **IP Filtering**         | Allowlist/blocklist IP ranges in dashboard                       |
-| **Rate Limiting**        | Per-provider rate limits with automatic backoff                  |
-| **Anti-Thundering Herd** | Mutex + per-connection locking prevents cascading 502s           |
-| **TLS Fingerprint**      | Browser-like TLS fingerprint spoofing to reduce bot detection    |
-| **CLI Fingerprint**      | Per-provider header/body ordering to match native CLI signatures |
+| Funkcja                  | Opis                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| **CORS**                 | Jawna lista dozwolonych originów (`CORS_ALLOWED_ORIGINS`; legacy `CORS_ORIGIN`) |
+| **IP Filtering**         | Listy allowlist/blocklist zakresów IP w dashboardzie                            |
+| **Rate Limiting**        | Limity zapytań per dostawca z automatycznym backoffiem                          |
+| **Anti-Thundering Herd** | Mutex + blokady per połączenie zapobiegają kaskadowym 502                       |
+| **TLS Fingerprint**      | Spoofing odcisku TLS jak w przeglądarce w celu ograniczenia detekcji botów      |
+| **CLI Fingerprint**      | Kolejność nagłówków/ciała per dostawca dopasowana do natywnych sygnatur CLI     |
 
-### 🔌 Resilience & Availability
+### 🔌 Odporność i dostępność
 
-| Feature                 | Description                                                        |
-| ----------------------- | ------------------------------------------------------------------ |
-| **Circuit Breaker**     | 3-state (Closed → Open → Half-Open) per provider, SQLite-persisted |
-| **Request Idempotency** | 5-second dedup window for duplicate requests                       |
-| **Exponential Backoff** | Automatic retry with increasing delays                             |
-| **Health Dashboard**    | Real-time provider health monitoring                               |
+| Funkcja                 | Opis                                                                 |
+| ----------------------- | -------------------------------------------------------------------- |
+| **Circuit Breaker**     | 3 stany (Closed → Open → Half-Open) per dostawca, utrwalone w SQLite |
+| **Request Idempotency** | 5-sekundowe okno deduplikacji dla powielonych żądań                  |
+| **Exponential Backoff** | Automatyczne ponawianie z rosnącymi opóźnieniami                     |
+| **Health Dashboard**    | Monitorowanie zdrowia dostawców w czasie rzeczywistym                |
 
-### 📋 Compliance
+### 📋 Zgodność
 
-| Feature            | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| **Log Retention**  | Automatic cleanup after `CALL_LOG_RETENTION_DAYS`           |
-| **No-Log Opt-out** | Per API key `noLog` flag disables request logging           |
-| **Audit Log**      | Administrative actions tracked in `audit_log` table         |
-| **MCP Audit**      | SQLite-backed audit logging for all MCP tool calls          |
-| **Zod Validation** | All API inputs validated with Zod v4 schemas at module load |
+| Funkcja            | Opis                                                                     |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Log Retention**  | Automatyczne czyszczenie po `CALL_LOG_RETENTION_DAYS`                    |
+| **No-Log Opt-out** | Flaga `noLog` per klucz API wyłącza logowanie żądań                      |
+| **Audit Log**      | Działania administracyjne śledzone w tabeli `audit_log`                  |
+| **MCP Audit**      | Audyt w SQLite dla wszystkich wywołań narzędzi MCP                       |
+| **Zod Validation** | Wszystkie wejścia API walidowane schematami Zod v4 przy ładowaniu modułu |
 
 ---
 
-## Required Environment Variables
+## Wymagane zmienne środowiskowe
 
-All secrets must be set before starting the server. The server will **fail fast** if they are missing or weak.
+Wszystkie sekrety muszą być ustawione przed uruchomieniem serwera. Serwer **zakończy się natychmiast (fail fast)**, jeśli brakuje ich lub są słabe.
 
 ```bash
 # REQUIRED — server will not start without these:
@@ -143,17 +164,17 @@ API_KEY_SECRET=$(openssl rand -hex 32)    # min 16 chars
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
 
-The server actively rejects known-weak values like `changeme`, `secret`, or `password`.
+Serwer aktywnie odrzuca znane słabe wartości, takie jak `changeme`, `secret` lub `password`.
 
 ---
 
-## Docker Security
+## Bezpieczeństwo Dockera
 
-- Use non-root user in production
-- Mount secrets as read-only volumes
-- Never copy `.env` files into Docker images
-- Use `.dockerignore` to exclude sensitive files
-- Set `AUTH_COOKIE_SECURE=true` when behind HTTPS
+- Używaj użytkownika non-root w produkcji
+- Montuj sekrety jako wolumeny tylko do odczytu
+- Nigdy nie kopiuj plików `.env` do obrazów Dockera
+- Używaj `.dockerignore`, aby wykluczyć pliki wrażliwe
+- Ustaw `AUTH_COOKIE_SECURE=true` za HTTPS
 
 ```bash
 docker run -d \
@@ -170,10 +191,63 @@ docker run -d \
 
 ---
 
-## Dependencies
+## Zależności
 
-- Run `npm audit` regularly
-- Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- Regularnie uruchamiaj `npm audit` (`npm run audit:deps` obejmuje main + electron)
+- Utrzymuj zależności w aktualnej wersji
+- Projekt używa `husky` + `lint-staged` do kontroli pre-commit (lint-staged + check-docs-sync + check:any-budget:t11)
+- Pipeline CI uruchamia reguły bezpieczeństwa ESLint przy każdym pushu (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Stałe dostawców walidowane przy ładowaniu modułu przez Zod (`src/shared/validation/schemas.ts`)
+- Używane biblioteki secure-by-default: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (brak ryzyka SQLi dzięki zapytaniom parametryzowanym), `bcryptjs` (hashowanie haseł)
+
+## Twarde reguły bezpieczeństwa
+
+Te reguły są egzekwowane przez narzędzia i recenzentów:
+
+1. **Nigdy nie commituj sekretów** — `.env` jest w gitignore; `.env.example` to szablon (bez literałów, tylko komentarze — zob. PUBLIC_CREDS.md poniżej)
+2. **Nigdy nie używaj `eval()`, `new Function()` ani implied eval** — egzekwowane przez ESLint
+3. **Nigdy nie omijaj hooków Husky** (`--no-verify`, `--no-gpg-sign`) bez wyraźnej zgody operatora
+4. **Nigdy nie pisz surowego SQL w trasach** — zawsze przez `src/lib/db/` (parametryzowane)
+5. **Zawsze waliduj wejścia Zod** — `src/shared/validation/schemas.ts`
+6. **Zawsze sanityzuj nagłówki upstream** — denylist w `src/shared/constants/upstreamHeaders.ts`
+7. **Szyfruj poświadczenia w spoczynku** — AES-256-GCM przez `src/lib/db/encryption.ts`
+8. **Publiczne identyfikatory OAuth upstream przez `resolvePublicCred()`** — nigdy nie umieszczaj w źródle literałów `AIza…` / `GOCSPX-…` / `…apps.googleusercontent.com`. Zob. [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md).
+9. **Odpowiedzi błędów przez `buildErrorBody()` / `sanitizeErrorMessage()`** — nigdy nie umieszczaj surowego `err.stack` / `err.message` w ciałach odpowiedzi HTTP / SSE / executor / MCP. Zob. [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md).
+10. **Wartości runtime `exec()` / `spawn()` przez opcję `env`** — nigdy nie interpoluj zewnętrznych ścieżek ani niezaufanych wartości w skryptach przekazywanych do powłoki. Odniesienie: `src/mitm/cert/install.ts::updateNssDatabases`.
+11. **Preferuj biblioteki secure-by-default** — zob. [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink). Sięgaj po nie, zanim napiszesz własne.
+
+## Ustalenia skanerów łańcucha dostaw (Socket.dev / Snyk / podobne)
+
+Opublikowany artefakt npm `omniroute` bundluje build Next.js `output: "standalone"`,
+co oznacza, że każdy route handler — w tym udokumentowane uprzywilejowane
+funkcje (MITM, Zed import, Cloud Sync, embedded service supervisor) — trafia
+do zminifikowanych chunków `.next/server/*.js`. Heurystyczne skanery łańcucha dostaw
+często dopasowują te chunki do sygnatur malware.
+
+Dla każdej kategorii ustaleń utrzymujemy poświadczenie maintainerów per ustalenie:
+
+- **[`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)** —
+  mapa per ustalenie: plik źródłowy ↔ oflagowany chunk ↔ zachowanie ↔ mitygacja
+  zastosowana w v3.8.6.
+- Bloki `SECURITY-AUDITOR-NOTE:` w źródle przy każdej oflagowanej funkcji odsyłają
+  do tego samego dokumentu.
+
+Dla użytkowników, których pipeline nie może poluzować alertu: buduj z
+`OMNIROUTE_BUILD_PROFILE=minimal npm run build`. To zastępuje cztery
+wrażliwe moduły stubami zwracającymi HTTP 503 `feature-disabled` w
+runtime, więc uprzywilejowane ścieżki kodu są fizycznie nieobecne w bundlu.
+Zob. [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md)
+dla receptury publikacji.
+
+## Odniesienia
+
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — potok autoryzacji
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — framework guardrails
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — dziennik audytu i retencja
+- [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md) — **obowiązkowy** wzorzec dla publicznych poświadczeń upstream
+- [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md) — **obowiązkowy** wzorzec dla odpowiedzi błędów
+- [`docs/security/SOCKET_DEV_FINDINGS.md`](docs/security/SOCKET_DEV_FINDINGS.md) — poświadczenie maintainerów dla ustaleń skanerów łańcucha dostaw
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — fingerprinting TLS (uwaga prawna/etyczna)
+- [`CLAUDE.md`](CLAUDE.md) — twarde reguły dla agentów AI
+- [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) — wyselekcjonowane biblioteki secure-by-default

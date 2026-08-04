@@ -43,6 +43,17 @@ curl https://localhost:20128/api/context/rtk/filters \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### POST /api/context/rtk/import
+
+Validate or install an RTK TOML schema v1 filter file
+
+```bash
+curl -X POST https://localhost:20128/api/context/rtk/import \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### POST /api/context/rtk/test
 
 Run RTK compression preview for text
@@ -65,4 +76,4 @@ curl https://localhost:20128/api/context/rtk/raw-output/{id} \
 
 ## Payloads
 
-See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/reference/openapi.yaml` for detailed request/response schemas.
+See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

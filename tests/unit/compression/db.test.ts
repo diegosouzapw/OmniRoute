@@ -51,6 +51,8 @@ describe("getCompressionSettings", () => {
     assert.equal(settings.autoTriggerTokens, 0);
     assert.equal(settings.cacheMinutes, 5);
     assert.equal(settings.preserveSystemPrompt, true);
+    assert.equal(settings.preserveSystemPromptMode, "always");
+    assert.deepEqual(settings.liveZone, { enabled: false });
     assert.deepEqual(settings.comboOverrides, {});
     assert.equal(settings.ultra?.enabled, false);
     assert.equal(settings.ultra?.compressionRate, 0.5);
@@ -77,12 +79,41 @@ describe("updateCompressionSettings", () => {
     await updateCompressionSettings({ defaultMode: "off" } as any);
   });
 
+  it("round-trips preserveSystemPromptMode and ignores unknown tokens (T05/C5)", async () => {
+    await updateCompressionSettings({ preserveSystemPromptMode: "never" } as any);
+    let settings = await getCompressionSettings();
+    assert.equal(settings.preserveSystemPromptMode, "never");
+
+    await updateCompressionSettings({ preserveSystemPromptMode: "whenNoCache" } as any);
+    settings = await getCompressionSettings();
+    assert.equal(settings.preserveSystemPromptMode, "whenNoCache");
+
+    // An unknown persisted token is rejected on read and falls back to the safe
+    // default mode ("always"), never crashing the settings load.
+    await updateCompressionSettings({ preserveSystemPromptMode: "garbage" } as any);
+    settings = await getCompressionSettings();
+    assert.equal(settings.preserveSystemPromptMode, "always");
+
+    // Reset
+    await updateCompressionSettings({ preserveSystemPromptMode: "always" } as any);
+  });
+
   it("updates autoTriggerTokens", async () => {
     await updateCompressionSettings({ autoTriggerTokens: 5000 } as any);
     const settings = await getCompressionSettings();
     assert.equal(settings.autoTriggerTokens, 5000);
     // Reset
     await updateCompressionSettings({ autoTriggerTokens: 0 } as any);
+  });
+
+  it("round-trips cache-aligned live-zone compression", async () => {
+    await updateCompressionSettings({ liveZone: { enabled: true } });
+    let settings = await getCompressionSettings();
+    assert.deepEqual(settings.liveZone, { enabled: true });
+
+    await updateCompressionSettings({ liveZone: { enabled: false } });
+    settings = await getCompressionSettings();
+    assert.deepEqual(settings.liveZone, { enabled: false });
   });
 
   it("updates multiple settings at once", async () => {
@@ -138,5 +169,20 @@ describe("updateCompressionSettings", () => {
     assert.equal(settings.ultra?.slmFallbackToAggressive, false);
     assert.equal(settings.ultra?.modelPath, "/tmp/model.onnx");
     assert.equal(settings.ultra?.maxTokensPerMessage, 512);
+  });
+
+  it("round-trips ultraEngine + ultraSlmPrewarm (Phase 4 B), defaulting off", async () => {
+    const before = await getCompressionSettings();
+    assert.equal(before.ultraEngine, "heuristic");
+    assert.equal(before.ultraSlmPrewarm, false);
+
+    await updateCompressionSettings({
+      ultraEngine: "slm",
+      ultraSlmPrewarm: true,
+    } as any);
+
+    const after = await getCompressionSettings();
+    assert.equal(after.ultraEngine, "slm");
+    assert.equal(after.ultraSlmPrewarm, true);
   });
 });

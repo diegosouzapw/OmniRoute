@@ -1,9 +1,10 @@
-import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
+import { getAntigravityContentHeaders } from "../services/antigravityHeaders.ts";
+import type { AntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 
-export const GITHUB_COPILOT_API_VERSION = "2025-04-01";
-export const GITHUB_COPILOT_EDITOR_VERSION = "vscode/1.117.0";
-export const GITHUB_COPILOT_CHAT_PLUGIN_VERSION = "copilot-chat/0.45.1";
-export const GITHUB_COPILOT_CHAT_USER_AGENT = "GitHubCopilotChat/0.45.1";
+export const GITHUB_COPILOT_API_VERSION = "2026-06-01";
+export const GITHUB_COPILOT_EDITOR_VERSION = "vscode/1.126.0";
+export const GITHUB_COPILOT_CHAT_PLUGIN_VERSION = "copilot-chat/0.54.0";
+export const GITHUB_COPILOT_CHAT_USER_AGENT = "GitHubCopilotChat/0.54.0";
 export const GITHUB_COPILOT_REFRESH_PLUGIN_VERSION = "copilot/1.388.0";
 export const GITHUB_COPILOT_REFRESH_USER_AGENT = "GithubCopilot/1.0";
 export const GITHUB_COPILOT_INTEGRATION_ID = "vscode-chat";
@@ -11,13 +12,8 @@ export const GITHUB_COPILOT_OPENAI_INTENT = "conversation-panel";
 export const GITHUB_COPILOT_DEFAULT_INITIATOR = "user";
 export const GITHUB_COPILOT_USER_AGENT_LIBRARY = "electron-fetch";
 
-export const QWEN_CLI_VERSION = "0.15.9";
+export const QWEN_CLI_VERSION = "0.19.3";
 export const QWEN_STAINLESS_LANG = "js";
-export const QWEN_STAINLESS_PACKAGE_VERSION = "5.11.0";
-export const QWEN_STAINLESS_RETRY_COUNT = "1";
-export const QWEN_STAINLESS_RUNTIME = "node";
-export const QWEN_ACCEPT_LANGUAGE = "*";
-export const QWEN_SEC_FETCH_MODE = "cors";
 
 export const QODER_DEFAULT_USER_AGENT = "Qoder-Cli";
 
@@ -26,7 +22,7 @@ export const KIRO_AMZ_USER_AGENT = "aws-sdk-js/3.0.0 kiro-ide/1.0.0";
 export const KIRO_STREAMING_TARGET =
   "AmazonCodeWhispererStreamingService.GenerateAssistantResponse";
 
-export const CURSOR_REGISTRY_VERSION = "3.3";
+export const CURSOR_REGISTRY_VERSION = "3.9";
 
 export function getGitHubCopilotChatHeaders(
   accept = "application/json",
@@ -85,8 +81,8 @@ export function normalizeStainlessArch(arch: string = getRuntimeArch()): string 
 }
 
 export function getQwenCliUserAgent(version = QWEN_CLI_VERSION): string {
-  // Qwen Code builds this from the runtime process values. Keep it runtime-derived so
-  // packaged deployments use their own platform/architecture instead of a maintainer's host.
+  // Qoder's DashScope-compatible backend expects Qwen Code's runtime-derived wire identity.
+  // Keep it runtime-derived so packaged deployments use their own platform/architecture.
   return `QwenCode/${version} (${getRuntimePlatform()}; ${getRuntimeArch()})`;
 }
 
@@ -111,26 +107,6 @@ export function getGitHubCopilotRefreshHeaders(authorization: string): Record<st
   };
 }
 
-export function getQwenOauthHeaders(): Record<string, string> {
-  const userAgent = getQwenCliUserAgent();
-  return {
-    "User-Agent": userAgent,
-    "X-Dashscope-AuthType": "qwen-oauth",
-    "X-Dashscope-CacheControl": "enable",
-    "X-Dashscope-UserAgent": userAgent,
-    "X-Stainless-Arch": normalizeStainlessArch(),
-    "X-Stainless-Lang": QWEN_STAINLESS_LANG,
-    "X-Stainless-Os": normalizeStainlessPlatform(),
-    "X-Stainless-Package-Version": QWEN_STAINLESS_PACKAGE_VERSION,
-    "X-Stainless-Retry-Count": QWEN_STAINLESS_RETRY_COUNT,
-    "X-Stainless-Runtime": QWEN_STAINLESS_RUNTIME,
-    "X-Stainless-Runtime-Version": getRuntimeVersion(),
-    Connection: "keep-alive",
-    "Accept-Language": QWEN_ACCEPT_LANGUAGE,
-    "Sec-Fetch-Mode": QWEN_SEC_FETCH_MODE,
-  };
-}
-
 export function getQoderDefaultHeaders(): Record<string, string> {
   return {
     "User-Agent": QODER_DEFAULT_USER_AGENT,
@@ -150,14 +126,14 @@ export function getQoderDashscopeCompatHeaders(): Record<string, string> {
   };
 }
 
-export function getAntigravityUserAgent(): string {
-  return antigravityUserAgent();
+export function getAntigravityUserAgent(profile: AntigravityClientProfile = "ide"): string {
+  return getAntigravityContentHeaders(profile)["User-Agent"];
 }
 
-export function getAntigravityProviderHeaders(): Record<string, string> {
-  return {
-    "User-Agent": getAntigravityUserAgent(),
-  };
+export function getAntigravityProviderHeaders(
+  profile: AntigravityClientProfile = "ide"
+): Record<string, string> {
+  return getAntigravityContentHeaders(profile);
 }
 
 export function getKiroServiceHeaders(

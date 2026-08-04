@@ -38,6 +38,10 @@ const PLUGIN_ROUTES: Array<{ rel: string; label: string }> = [
     rel: "src/app/api/plugins/[name]/config/route.ts",
     label: "GET+PUT /api/plugins/[name]/config",
   },
+  {
+    rel: "src/app/api/plugins/marketplace/route.ts",
+    label: "GET /api/plugins/marketplace",
+  },
 ];
 
 for (const { rel, label } of PLUGIN_ROUTES) {

@@ -17,3 +17,20 @@ test("cliModelConfigSchema accepts Codex xhigh reasoning effort", () => {
     assert.equal(result.data.reasoningEffort, "xhigh");
   }
 });
+
+test("cliModelConfigSchema accepts Codex max and ultra reasoning efforts", () => {
+  for (const reasoningEffort of ["max", "ultra"] as const) {
+    const result = cliModelConfigSchema.safeParse({
+      baseUrl: "http://localhost:20128/api/v1",
+      apiKey: "sk_omniroute",
+      model: "gpt-5.6-sol",
+      reasoningEffort,
+      wireApi: "responses",
+    });
+
+    assert.equal(result.success, true, reasoningEffort);
+    if (result.success) {
+      assert.equal(result.data.reasoningEffort, reasoningEffort);
+    }
+  }
+});

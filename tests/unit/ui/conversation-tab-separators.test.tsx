@@ -3,7 +3,7 @@
  * Validates the rendering logic: both sections appear when both request/response have turns;
  * only CONTEXT HISTORY appears when response is empty.
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import { normalizeConversation } from "../../../src/mitm/inspector/conversationNormalizer.ts";
 import type { InterceptedRequest } from "../../../src/mitm/inspector/types.ts";

@@ -1,5 +1,9 @@
 import { handleSearch } from "@omniroute/open-sse/handlers/search.ts";
-import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  extractApiKey,
+  isValidApiKey,
+} from "@/sse/services/auth";
 import {
   getAllSearchProviders,
   getSearchProvider,
@@ -26,6 +30,7 @@ import {
   rateLimitedProviderResponse,
   type RateLimitedCredentials,
 } from "@/app/api/v1/_shared/rateLimit";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -63,13 +68,15 @@ type SearchCredentials = Record<string, any>;
 type SearchCredentialLookup = SearchCredentials | RateLimitedCredentials | null;
 
 async function resolveSearchCredentials(providerId: string): Promise<SearchCredentialLookup> {
-  const credentials = await getProviderCredentials(providerId).catch(() => null);
+  const credentials = await getProviderCredentialsWithQuotaPreflight(providerId).catch(() => null);
   if (credentials && !isAllRateLimitedCredentials(credentials)) return credentials;
 
   const fallbackId = SEARCH_CREDENTIAL_FALLBACKS[providerId];
   if (!fallbackId) return credentials;
 
-  const fallbackCredentials = await getProviderCredentials(fallbackId).catch(() => null);
+  const fallbackCredentials = await getProviderCredentialsWithQuotaPreflight(fallbackId).catch(
+    () => null
+  );
   if (fallbackCredentials && !isAllRateLimitedCredentials(fallbackCredentials)) {
     return fallbackCredentials;
   }
@@ -101,7 +108,7 @@ function buildDomainFilter(filters?: {
 /**
  * POST /v1/search — execute a web search
  */
-export async function POST(request: Request) {
+async function postHandler(request: Request, context: unknown) {
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -176,9 +183,12 @@ export async function POST(request: Request) {
     }
 
     if (!credentials) {
-      // Sort by cost to find cheapest with credentials
+      // Sort by cost to find cheapest with credentials (fallback-only providers
+      // are reached via the last-resort step below, never the primary pick).
       const sortedIds = Object.values(SEARCH_PROVIDERS)
-        .filter((provider) => supportsSearchType(provider, body.search_type))
+        .filter(
+          (provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type)
+        )
         .sort((a, b) => a.costPerQuery - b.costPerQuery)
         .map((p) => p.id);
 
@@ -211,9 +221,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Find alternate for failover — must bind credentials to the matched provider
+    // Find alternate for failover — must bind credentials to the matched provider.
+    // Exclude fallback-only providers; they are only used by the last-resort step.
     const otherIds = Object.values(SEARCH_PROVIDERS)
-      .filter((provider) => supportsSearchType(provider, body.search_type))
+      .filter(
+        (provider) => !provider.fallbackOnly && supportsSearchType(provider, body.search_type)
+      )
       .sort((a, b) => a.costPerQuery - b.costPerQuery)
       .map((p) => p.id)
       .filter((id) => id !== providerConfig.id);
@@ -226,6 +239,22 @@ export async function POST(request: Request) {
         alternateProviderId = pid;
         alternateCredentials = creds;
         break;
+      }
+    }
+
+    // Last-resort: guarantee a free no-key fallback (e.g. duckduckgo-free) as the
+    // failover so out-of-the-box search still works when no credentialed provider
+    // is configured. Only used when no real alternate was found above.
+    if (!alternateProviderId) {
+      for (const provider of Object.values(SEARCH_PROVIDERS)) {
+        if (!provider.fallbackOnly || provider.id === providerConfig.id) continue;
+        if (!supportsSearchType(provider, body.search_type)) continue;
+        const fallbackCreds = await resolveSearchExecutionCredentials(provider);
+        if (fallbackCreds && !isAllRateLimitedCredentials(fallbackCreds)) {
+          alternateProviderId = provider.id;
+          alternateCredentials = fallbackCreds;
+          break;
+        }
       }
     }
   }
@@ -241,7 +270,13 @@ export async function POST(request: Request) {
     clampedMaxResults,
     body.country,
     body.language,
-    { filters: body.filters, offset: body.offset, time_range: body.time_range }
+    {
+      filters: body.filters,
+      offset: body.offset,
+      time_range: body.time_range,
+      content: body.content,
+      provider_options: body.provider_options,
+    }
   );
 
   const ttl = providerConfig.cacheTTLMs ?? SEARCH_CACHE_DEFAULT_TTL_MS;
@@ -319,3 +354,5 @@ class SearchError extends Error {
     this.statusCode = statusCode;
   }
 }
+
+export const POST = withInjectionGuard(postHandler);

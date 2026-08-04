@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { CustomHostsManager } from "./CustomHostsManager";
 import { HttpProxySnippetCard } from "./HttpProxySnippetCard";
+import {
+  fetchTproxyStatus,
+  startTproxyCaptureMode,
+  stopTproxyCaptureMode,
+} from "@/lib/inspector/tproxyCaptureApi";
 
 interface CaptureModeState {
   agentBridge: boolean; // always on, cannot disable
@@ -29,9 +34,53 @@ export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProp
   const [showProxy, setShowProxy] = useState(false);
   const [proxyPort] = useState(8080);
 
+  // TPROXY decrypt capture is real backend state (route #4211), gated on the
+  // native addon (Linux + root). Reflect the server status and drive start/stop.
+  const [tproxy, setTproxy] = useState<{
+    running: boolean;
+    available: boolean;
+    interceptCount?: number;
+  }>({ running: false, available: false });
+  const [tproxyBusy, setTproxyBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    fetchTproxyStatus()
+      .then((s) => {
+        if (alive) {
+          setTproxy({ running: s.running, available: s.available, interceptCount: s.interceptCount });
+        }
+      })
+      .catch(() => {
+        // status route unreachable → leave defaults (disabled toggle)
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const toggleMode = (key: keyof CaptureModeState) => {
     if (key === "agentBridge") return; // always on
     setModes((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleTproxy = async () => {
+    if (!tproxy.available || tproxyBusy) return;
+    setTproxyBusy(true);
+    try {
+      const status = tproxy.running
+        ? await stopTproxyCaptureMode()
+        : await startTproxyCaptureMode();
+      setTproxy({
+        running: status.running,
+        available: status.available,
+        interceptCount: status.interceptCount,
+      });
+    } catch {
+      // keep the prior state; the route sanitizes + reports its own errors
+    } finally {
+      setTproxyBusy(false);
+    }
   };
 
   const buttons: Array<{
@@ -89,6 +138,32 @@ export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProp
             </button>
           );
         })}
+
+        <button
+          type="button"
+          onClick={toggleTproxy}
+          disabled={!tproxy.available || tproxyBusy}
+          title={!tproxy.available ? t("tproxyModeUnavailable") : undefined}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-xs font-medium transition-colors",
+            "focus-ring disabled:cursor-not-allowed disabled:opacity-50",
+            tproxy.running
+              ? "border-amber-500/50 bg-amber-900/30 text-amber-300"
+              : "border-border text-text-muted hover:text-text-main hover:bg-surface"
+          )}
+        >
+          <span
+            className={cn(
+              "inline-block h-1.5 w-1.5 rounded-full",
+              tproxy.running ? "bg-amber-400" : "bg-gray-600"
+            )}
+          />
+          {t("tproxyMode")}
+          {tproxy.running && typeof tproxy.interceptCount === "number" && (
+            <span className="text-amber-400">· {tproxy.interceptCount}</span>
+          )}
+          <span className="text-amber-400">⚠</span>
+        </button>
 
         <div className="ml-auto flex items-center gap-2">
           <button

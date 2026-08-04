@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getTaskManager } from "@/lib/a2a/taskManager";
-import { getSettings } from "@/lib/db/settings";
+import { getCachedSettings } from "@/lib/db/settings";
 
 export async function GET() {
   try {
     const [settings, stats] = await Promise.all([
-      getSettings(),
+      getCachedSettings(),
       Promise.resolve(getTaskManager().getStats()),
     ]);
     const enabled = settings.a2aEnabled === true;

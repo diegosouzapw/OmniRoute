@@ -285,7 +285,9 @@ test("shutdownMcpHttp removes sessions created via handleMcpStreamableHTTP", asy
       body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 2 }),
     });
     const staleRes = await mod.handleMcpStreamableHTTP(staleReq);
-    assert.equal(staleRes.status, 400);
+    // MCP spec (2025-03-26 / 2025-11-25, Session Management): a terminated/unknown
+    // session id MUST return 404 Not Found so the client re-initializes (issue #5169).
+    assert.equal(staleRes.status, 404);
   }
 });
 
@@ -302,8 +304,119 @@ test("handleMcpStreamableHTTP rejects request with unknown session id", async ()
     body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 1 }),
   });
   const res = await mod.handleMcpStreamableHTTP(req);
-  assert.equal(res.status, 400);
+  // Per MCP spec, a present-but-unknown session id MUST yield 404 (not 400), so
+  // the client knows to start a fresh session rather than hard-fail (issue #5169).
+  assert.equal(res.status, 404);
   const body = await res.json();
   assert.ok(body.error);
   assert.ok(body.error.message.includes("Unknown"));
+});
+
+// ── Regression #5169: unknown/expired session → HTTP 404 (not 400) ───────────
+
+test("handleMcpStreamableHTTP returns 404 (not 400) for an unknown session id", async () => {
+  mod.shutdownMcpHttp();
+  const req = new Request("http://localhost/api/mcp/stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "mcp-session-id": "expired-or-unknown-session",
+    },
+    body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 7 }),
+  });
+  const res = await mod.handleMcpStreamableHTTP(req);
+  // The 400-vs-404 distinction is the whole bug: clients only re-initialize on 404.
+  assert.equal(res.status, 404);
+  const body = await res.json();
+  assert.equal(body.jsonrpc, "2.0");
+  assert.equal(body.error.code, -32000);
+  assert.ok(body.error.message.includes("Mcp-Session-Id"));
+});
+
+// ── Guard: a *missing* session id on a non-initialize request stays 400 ───────
+
+test("handleMcpStreamableHTTP keeps 400 for a missing session id (non-initialize)", async () => {
+  mod.shutdownMcpHttp();
+  const req = new Request("http://localhost/api/mcp/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 8 }),
+  });
+  const res = await mod.handleMcpStreamableHTTP(req);
+  // Spec reserves 400 for a *missing* session id on non-initialize requests —
+  // only the *present-but-unknown* case changed to 404. This must NOT regress.
+  assert.equal(res.status, 400);
+});
+
+test("handleMcpStreamableHTTP auto-recovers when stale session id is sent with initialize", async () => {
+  mod.shutdownMcpHttp();
+
+  const initReq = new Request("http://localhost/api/mcp/stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      method: "initialize",
+      id: 1,
+      params: {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test-client", version: "1.0.0" },
+      },
+    }),
+  });
+
+  const firstRes = await mod.handleMcpStreamableHTTP(initReq);
+  const staleSessionId = firstRes.headers.get("mcp-session-id");
+  if (!staleSessionId) {
+    mod.shutdownMcpHttp();
+    return;
+  }
+
+  mod.shutdownMcpHttp();
+  assert.equal(mod.isMcpHttpActive(), false);
+
+  const reinitReq = new Request("http://localhost/api/mcp/stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+      "mcp-session-id": staleSessionId,
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      method: "initialize",
+      id: 2,
+      params: {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        clientInfo: { name: "test-client", version: "1.0.0" },
+      },
+    }),
+  });
+
+  const recoveryRes = await mod.handleMcpStreamableHTTP(reinitReq);
+
+  assert.notEqual(
+    recoveryRes.status,
+    404,
+    "Stale session + initialize must NOT return 404 — server should auto-recover"
+  );
+  assert.ok(
+    recoveryRes.status >= 200 && recoveryRes.status < 300,
+    `Expected 2xx response on auto-recovery, got ${recoveryRes.status}`
+  );
+
+  const newSessionId = recoveryRes.headers.get("mcp-session-id");
+  assert.ok(newSessionId, "Server must issue a new mcp-session-id on auto-recovery");
+  assert.equal(
+    mod.isMcpHttpActive(),
+    true,
+    "Server must have an active session after auto-recovery"
+  );
+
+  mod.shutdownMcpHttp();
 });

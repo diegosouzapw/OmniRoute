@@ -1,7 +1,7 @@
 {
   "name": "@omniroute/opencode-provider",
   "version": "0.1.0",
-  "description": "OpenCode provider helper for the OmniRoute AI Gateway. Generates a schema-valid provider entry for opencode.json that delegates the runtime to @ai-sdk/openai-compatible.",
+  "description": "DEPRECATED — use @omniroute/opencode-plugin instead (it fetches the live OmniRoute /v1/models catalog at startup, so models never drift). This static-config generator still works but is no longer the recommended path. OpenCode provider helper for the OmniRoute AI Gateway.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -56,5 +56,8 @@
     "tsup": "^8.5.1",
     "tsx": "^4.22.3",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
   }
 }

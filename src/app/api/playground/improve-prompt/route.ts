@@ -22,6 +22,7 @@ import {
   buildImproveChatBody,
   parseImprovedContent,
 } from "@/lib/playground/promptImprover";
+import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -64,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
 
   // 3. Optional auth (mirrors /v1/web/fetch pattern)
   const apiKeyRaw = extractApiKey(request);
-  if (process.env.REQUIRE_API_KEY === "true" && !apiKeyRaw) {
+  if (isRequireApiKeyEnabled() && !apiKeyRaw) {
     return errorResp(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
   }
   if (apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {
@@ -76,8 +77,7 @@ export async function POST(request: Request): Promise<Response> {
 
   // 5. Call /v1/chat/completions on ourselves (D8)
   const port = process.env.PORT ?? "20128";
-  const baseUrl =
-    process.env.OMNIROUTE_BASE_URL ?? `http://127.0.0.1:${port}`;
+  const baseUrl = process.env.OMNIROUTE_BASE_URL ?? `http://127.0.0.1:${port}`;
   const upstreamUrl = `${baseUrl}/v1/chat/completions`;
 
   let upstreamResponse: Response;

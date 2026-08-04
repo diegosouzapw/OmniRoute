@@ -2,16 +2,32 @@
  * Claude Code API constraints.
  *
  * Enforces Anthropic API requirements that real Claude Code handles:
- * 1. temperature=1 when thinking is enabled
+ * 1. Sampling params under extended thinking: temperature=1 and top_p>=0.95
+ *    (or unset) when thinking is enabled/adaptive
  * 2. Disable thinking when tool_choice forces a specific tool
  * 3. Enforce max 4 cache_control breakpoints
  * 4. Normalize cache_control TTL ordering
  */
 
+/**
+ * Anthropic's extended-thinking contract rejects non-default sampling params:
+ * with thinking enabled/adaptive, `temperature` may only be 1 and `top_p` must
+ * be >= 0.95 (or unset) — otherwise the Messages API returns HTTP 400
+ * ("`temperature` may only be set to 1 ..." / "`top_p` must be greater than or
+ * equal to 0.95 ..."). Clients such as the VS Code Copilot "Ollama" provider
+ * routinely send other values (e.g. temperature 0.7, top_p 0.9), and thinking
+ * can be injected by per-model requestDefaults *after* the request is built, so
+ * normalize here: pin temperature to 1 and drop top_p (Anthropic's "unset"
+ * branch — which also preserves the "never send both temperature and top_p"
+ * invariant).
+ */
 export function enforceThinkingTemperature(body: Record<string, unknown>): void {
   const thinking = body.thinking as Record<string, unknown> | undefined;
   if (thinking?.type === "enabled" || thinking?.type === "adaptive") {
     body.temperature = 1;
+    if (body.top_p !== undefined) {
+      delete body.top_p;
+    }
   }
 }
 

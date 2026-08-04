@@ -103,10 +103,12 @@ test("combo builder options route aggregates providers, connections, models and 
   });
 
   await modelsDb.addCustomModel("openai", "custom-ops", "Custom Ops");
+  // #6975: embeddings-only models (supportedEndpoints without "chat") are no longer
+  // dropped from the combo builder — they must appear like any other model.
   await modelsDb.addCustomModel(
     "openai",
-    "text-embedding-hidden",
-    "Hidden Embedding",
+    "text-embedding-visible",
+    "Text Embedding",
     "manual",
     "chat-completions",
     ["embeddings"]
@@ -148,9 +150,10 @@ test("combo builder options route aggregates providers, connections, models and 
     false
   );
   assert.ok(openai.models.some((model) => model.id === "custom-ops"));
+  // #6975: embeddings-only models must now appear in the combo builder output.
   assert.equal(
-    openai.models.some((model) => model.id === "text-embedding-hidden"),
-    false
+    openai.models.some((model) => model.id === "text-embedding-visible"),
+    true
   );
   assert.deepEqual(
     openai.connections.map((connection) => ({

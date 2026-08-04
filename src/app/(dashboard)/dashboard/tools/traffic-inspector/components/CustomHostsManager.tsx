@@ -22,12 +22,16 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const HostInputSchema = z.string().min(1).max(253).regex(/^[a-z0-9.-]+$/i, "Invalid hostname");
+  const HostInputSchema = z
+    .string()
+    .min(1)
+    .max(253)
+    .regex(/^[a-z0-9.-]+$/i, t("invalidHostname"));
 
   const fetchHosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/tools/traffic-inspector/custom-hosts");
+      const res = await fetch("/api/tools/traffic-inspector/hosts");
       if (res.ok) {
         const data = (await res.json()) as { hosts: CustomHost[] };
         setHosts(data.hosts ?? []);
@@ -45,31 +49,31 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
     setError(null);
     const parsed = HostInputSchema.safeParse(input.trim());
     if (!parsed.success) {
-      setError(parsed.error.errors[0]?.message ?? "Invalid host");
+      setError(parsed.error.errors[0]?.message ?? t("invalidHost"));
       return;
     }
     const host = parsed.data;
     try {
-      const res = await fetch("/api/tools/traffic-inspector/custom-hosts", {
+      const res = await fetch("/api/tools/traffic-inspector/hosts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ host, enabled: true }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: { message?: string } };
-        setError(body?.error?.message ?? "Failed to add host");
+        setError(body?.error?.message ?? t("addHostFailed"));
         return;
       }
       setInput("");
       await fetchHosts();
     } catch {
-      setError("Network error");
+      setError(t("networkError"));
     }
   };
 
   const deleteHost = async (host: string) => {
     try {
-      await fetch(`/api/tools/traffic-inspector/custom-hosts/${encodeURIComponent(host)}`, {
+      await fetch(`/api/tools/traffic-inspector/hosts/${encodeURIComponent(host)}`, {
         method: "DELETE",
       });
       await fetchHosts();
@@ -87,9 +91,11 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
             type="button"
             onClick={onClose}
             className="text-text-muted hover:text-text-main focus-ring rounded"
-            aria-label="Close"
+            aria-label={t("close")}
           >
-            <span className="material-symbols-outlined" aria-hidden="true">close</span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              close
+            </span>
           </button>
         </div>
 
@@ -127,7 +133,7 @@ export function CustomHostsManager({ onClose }: CustomHostsManagerProps) {
                 type="button"
                 onClick={() => deleteHost(h.host)}
                 className="text-text-muted hover:text-red-400 focus-ring rounded"
-                aria-label={`Remove ${h.host}`}
+                aria-label={t("removeHost", { host: h.host })}
               >
                 <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
                   delete

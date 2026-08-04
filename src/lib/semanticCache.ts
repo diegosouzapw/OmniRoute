@@ -113,16 +113,31 @@ function getMemoryCache() {
  * @param {Array} messages - Normalized messages array
  * @param {number} temperature
  * @param {number} topP
+ * @param {string} [apiKeyId] - API key ID for per-key isolation (prevents cross-user cache hits)
  * @returns {string} hex signature
  */
-export function generateSignature(model, conversation, temperature = 0, topP = 1) {
+export function generateSignature(
+  model,
+  conversation,
+  temperature = 0,
+  topP = 1,
+  apiKeyId?: string
+) {
   const payload = JSON.stringify({
     model,
     messages: normalizeConversation(conversation),
     temperature,
     top_p: topP,
   });
-  return crypto.createHash("sha256").update(payload).digest("hex");
+  const digest = crypto.createHash("sha256").update(payload).digest("hex");
+  // Per-key cache isolation (#3740) namespaces the signature with the apiKeyId as a
+  // PLAINTEXT prefix instead of folding it into the digest. The apiKeyId is an internal
+  // identifier used purely to namespace a deterministic cache key — not a stored
+  // credential — so it must never flow into a hash (a salted/slow password hash would
+  // also break the determinism the cache relies on). Keeping it out of the digest
+  // preserves isolation + determinism and avoids the false-positive
+  // CodeQL js/insufficient-password-hash on a cache signature.
+  return apiKeyId ? `${apiKeyId}.${digest}` : digest;
 }
 
 function stringifyForSignature(value: unknown): string {
@@ -238,24 +253,6 @@ export function setCachedResponse(signature, model, response, tokensSaved = 0, t
   }
 }
 
-// ─── Maintenance ─────────────────
-
-/**
- * Remove expired entries from SQLite.
- * @returns {number} Number of entries removed
- */
-export function cleanExpiredEntries() {
-  try {
-    const db = getDbInstance();
-    const result = db
-      .prepare("DELETE FROM semantic_cache WHERE expires_at <= datetime('now')")
-      .run();
-    return result.changes;
-  } catch {
-    return 0;
-  }
-}
-
 /**
  * Invalidate cache entries by model name.
  * Useful when a model is updated/changed and cached responses are stale.
@@ -299,48 +296,6 @@ export function invalidateStale(maxAgeMs: number): number {
   try {
     const db = getDbInstance();
     const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
-    const result = db.prepare("DELETE FROM semantic_cache WHERE created_at < ?").run(cutoff);
-    return result.changes || 0;
-  } catch {
-    return 0;
-  }
-}
-
-// ── Auto-cleanup timer ──
-
-let _cleanupTimer: ReturnType<typeof setInterval> | null = null;
-
-/**
- * Start periodic auto-cleanup of expired entries.
- * @param {number} intervalMs - Cleanup interval (default: 5 minutes)
- */
-export function startAutoCleanup(intervalMs = 300_000): void {
-  stopAutoCleanup();
-  _cleanupTimer = setInterval(() => {
-    const removed = cleanExpiredEntries();
-    if (removed > 0) {
-      console.log(`[SemanticCache] Auto-cleaned ${removed} expired entries`);
-    }
-  }, intervalMs);
-  if (_cleanupTimer && typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
-    (_cleanupTimer as { unref?: () => void }).unref?.();
-  }
-}
-
-/**
- * Stop periodic auto-cleanup.
- */
-export function stopAutoCleanup(): void {
-  if (_cleanupTimer) {
-    clearInterval(_cleanupTimer);
-    _cleanupTimer = null;
-  }
-}
-
-export function cleanOldMetrics(retentionDays = 90): number {
-  try {
-    const db = getDbInstance();
-    const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
     const result = db.prepare("DELETE FROM semantic_cache WHERE created_at < ?").run(cutoff);
     return result.changes || 0;
   } catch {

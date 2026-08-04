@@ -16,14 +16,21 @@
 
 import { getMusicProvider, parseMusicModel } from "../config/musicRegistry.ts";
 import { kieExecutor } from "../executors/kie.ts";
+import { vertexGenerateMusic } from "../executors/vertexMedia.ts";
 import {
   submitComfyWorkflow,
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
-import { getKieCallbackUrl, isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
+import {
+  getKieCallbackUrl,
+  getKieTaskId,
+  isJsonObject,
+  parseKieResultJson,
+} from "../utils/kieTask.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 function normalizeKieSunoModel(model: string): string {
@@ -94,8 +101,40 @@ export async function handleMusicGeneration({ body, credentials, log }) {
     };
   }
 
+  if (providerConfig.format === "vertex-lyria") {
+    try {
+      const { base64, format } = await vertexGenerateMusic(credentials, {
+        model,
+        prompt: String(body.prompt ?? ""),
+        negativePrompt: typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
+        sampleCount: typeof body.sample_count === "number" ? body.sample_count : undefined,
+        seed: typeof body.seed === "number" ? body.seed : undefined,
+      });
+      return {
+        success: true,
+        data: { created: Math.floor(Date.now() / 1000), data: [{ b64_json: base64, format }] },
+      };
+    } catch (err: any) {
+      log?.error?.("MUSIC", `Vertex Lyria generation failed: ${err?.message}`);
+      return {
+        success: false,
+        status: typeof err?.status === "number" ? err.status : 502,
+        error: sanitizeErrorMessage(err?.message || "Vertex Lyria generation failed"),
+      };
+    }
+  }
+
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIMusicGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIMusicGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "kie-music") {
@@ -307,7 +346,7 @@ async function handleKieMusicGeneration({
   try {
     const endpoint = new URL(url).pathname;
     const createData = await kieExecutor.createTask({ baseUrl, token, payload, endpoint });
-    const taskId = createData?.data?.taskId || createData?.taskId;
+    const taskId = getKieTaskId(createData);
     if (!taskId) {
       const errorMessage =
         createData?.msg ||

@@ -61,7 +61,12 @@ test("PuterExecutor.execute uses inherited BaseExecutor flow", async () => {
     });
 
     assert.equal(result.response.status, 200);
-    assert.equal(result.transformedBody, body);
+    // #3941 ("Capture actual upstream provider requests") makes BaseExecutor return
+    // transformedBody as the JSON-round-tripped serialized body (the real on-the-wire
+    // payload, post fingerprint/sign), so it is a structurally-equal new object rather
+    // than the same reference. Puter's transformRequest is still a passthrough, so the
+    // body must match structurally.
+    assert.deepEqual(result.transformedBody, body);
     assert.equal(result.url, "https://api.puter.com/puterai/openai/v1/chat/completions");
     assert.equal(captured.options.headers.Authorization, "Bearer puter-key");
     assert.equal(captured.options.body, JSON.stringify(body));

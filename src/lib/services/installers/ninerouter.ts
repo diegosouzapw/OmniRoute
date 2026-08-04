@@ -77,16 +77,10 @@ export async function install(version = "latest"): Promise<InstallResult> {
   }
 
   await runNpm(
-    [
-      "install",
-      `${NINEROUTER_PACKAGE}@${version}`,
-      "--omit=dev",
-      "--no-audit",
-      "--no-fund",
-      "--prefix",
-      NINEROUTER_INSTALL_DIR,
-    ],
-    { cwd: NINEROUTER_INSTALL_DIR }
+    ["install", `${NINEROUTER_PACKAGE}@${version}`, "--omit=dev", "--no-audit", "--no-fund"],
+    // `--prefix` is passed via `prefix` (→ npm_config_prefix env) instead of an
+    // argv path so an install dir with spaces survives the Windows shell (#5379).
+    { cwd: NINEROUTER_INSTALL_DIR, prefix: NINEROUTER_INSTALL_DIR }
   );
 
   const installedVersion = await getInstalledVersion();

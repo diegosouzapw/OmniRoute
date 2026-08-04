@@ -2,7 +2,7 @@
  * Integration tests for GET /api/search/providers — extended catalog (F4).
  *
  * Tests:
- * - Returns 15 items total (12 search + 3 fetch providers).
+ * - Returns 18 items total (14 search + 4 fetch providers).
  * - Each item carries the correct `kind` field.
  * - Status reflects actual DB credential state:
  *   - "configured"  when an active, non-rate-limited connection exists.
@@ -27,9 +27,7 @@ import {
 // ---------------------------------------------------------------------------
 // Isolated temp DB for this test suite
 // ---------------------------------------------------------------------------
-const TEST_DATA_DIR = fs.mkdtempSync(
-  path.join(os.tmpdir(), "omniroute-search-providers-catalog-")
-);
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-search-providers-catalog-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret-search-catalog";
 // Disable dashboard password requirement by default
@@ -50,8 +48,11 @@ const route = await import("../../src/app/api/search/providers/route.ts");
 // Constants
 // ---------------------------------------------------------------------------
 
-const EXPECTED_SEARCH_COUNT = 12;
-const EXPECTED_FETCH_COUNT = 3;
+// 14 search-kind providers: serper, brave, perplexity, exa, tavily, firecrawl,
+// google-pse, linkup, searchapi, youcom, searxng, ollama, zai + duckduckgo-free
+// (registry open-sse/config/searchRegistry.ts).
+const EXPECTED_SEARCH_COUNT = 14;
+const EXPECTED_FETCH_COUNT = 4;
 const EXPECTED_TOTAL = EXPECTED_SEARCH_COUNT + EXPECTED_FETCH_COUNT;
 
 // ---------------------------------------------------------------------------
@@ -137,7 +138,7 @@ test("search-providers-catalog: returns 401 for unauthenticated requests when au
   assert.ok(!bodyStr.includes(" at /"), "error body must not contain stack trace");
 });
 
-test("search-providers-catalog: returns 15 providers (12 search + 3 fetch)", async () => {
+test("search-providers-catalog: returns 16 providers (13 search + 3 fetch)", async () => {
   const req = await buildAuthRequest();
   const res = await route.GET(req);
 
@@ -268,11 +269,7 @@ test("search-providers-catalog: back-compat data field has legacy shape", async 
 
   // Legacy shape: { id, object, created, name, search_types }
   assert.ok(Array.isArray(body.data), "`data` array must be present for back-compat");
-  assert.equal(
-    body.data.length,
-    EXPECTED_TOTAL,
-    "data array should have same length as providers"
-  );
+  assert.equal(body.data.length, EXPECTED_TOTAL, "data array should have same length as providers");
 
   for (const item of body.data) {
     assert.ok(typeof item.id === "string", "data item must have id");
@@ -293,11 +290,12 @@ test("search-providers-catalog: fetch providers have correct metadata", async ()
   assert.ok(ids.includes("firecrawl"), "firecrawl must be present");
   assert.ok(ids.includes("jina-reader"), "jina-reader must be present");
   assert.ok(ids.includes("tavily-search"), "tavily-search must be present");
+  assert.ok(ids.includes("tinyfish"), "tinyfish must be present");
 
   const firecrawl = fetchProviders.find((p: { id: string }) => p.id === "firecrawl");
   assert.equal(firecrawl.name, "Firecrawl");
   assert.equal(firecrawl.costPerQuery, 0.002);
-  assert.equal(firecrawl.freeMonthlyQuota, 500);
+  assert.equal(firecrawl.freeMonthlyQuota, 1000);
   assert.ok(Array.isArray(firecrawl.fetchFormats), "fetchFormats must be an array");
   assert.ok(
     firecrawl.fetchFormats.includes("markdown"),
@@ -316,6 +314,14 @@ test("search-providers-catalog: fetch providers have correct metadata", async ()
   const tavily = fetchProviders.find((p: { id: string }) => p.id === "tavily-search");
   assert.equal(tavily.name, "Tavily Extract");
   assert.equal(tavily.costPerQuery, 0.001);
+
+  const tinyfish = fetchProviders.find((p: { id: string }) => p.id === "tinyfish");
+  assert.equal(tinyfish.name, "TinyFish Fetch");
+  assert.equal(tinyfish.costPerQuery, 0);
+  assert.ok(
+    tinyfish.fetchFormats.includes("markdown"),
+    "tinyfish fetchFormats must include markdown"
+  );
 });
 
 test("search-providers-catalog: search providers have correct fields", async () => {
@@ -328,10 +334,7 @@ test("search-providers-catalog: search providers have correct fields", async () 
     assert.ok(typeof item.id === "string", "search item must have id");
     assert.ok(typeof item.name === "string", "search item must have name");
     assert.ok(typeof item.costPerQuery === "number", "search item must have costPerQuery");
-    assert.ok(
-      typeof item.freeMonthlyQuota === "number",
-      "search item must have freeMonthlyQuota"
-    );
+    assert.ok(typeof item.freeMonthlyQuota === "number", "search item must have freeMonthlyQuota");
     assert.ok(Array.isArray(item.searchTypes), "search item must have searchTypes array");
     assert.equal(
       item.configureHref,
@@ -345,6 +348,14 @@ test("search-providers-catalog: search providers have correct fields", async () 
   assert.ok(serper, "serper-search must be in search providers");
   assert.ok(serper.searchTypes.includes("web"), "serper must support web search");
   assert.equal(serper.kind, "search");
+
+  const firecrawlSearch = searchProviders.find((p: { id: string }) => p.id === "firecrawl");
+  assert.ok(firecrawlSearch, "firecrawl must be in search providers");
+  assert.equal(firecrawlSearch.kind, "search");
+  assert.equal(firecrawlSearch.costPerQuery, 0.002);
+  assert.equal(firecrawlSearch.freeMonthlyQuota, 1000);
+  assert.ok(firecrawlSearch.searchTypes.includes("web"), "firecrawl must support web");
+  assert.ok(firecrawlSearch.searchTypes.includes("news"), "firecrawl must support news");
 });
 
 test("search-providers-catalog: response validates against SearchProviderCatalogResponseSchema", async () => {
@@ -352,9 +363,8 @@ test("search-providers-catalog: response validates against SearchProviderCatalog
   const res = await route.GET(req);
   const body = await res.json();
 
-  const { SearchProviderCatalogResponseSchema } = await import(
-    "../../src/shared/schemas/searchTools.ts"
-  );
+  const { SearchProviderCatalogResponseSchema } =
+    await import("../../src/shared/schemas/searchTools.ts");
 
   const result = SearchProviderCatalogResponseSchema.safeParse({ providers: body.providers });
   assert.ok(

@@ -18,7 +18,7 @@ export const AgentSkillSchema = z.object({
 });
 
 export const SkillCoverageSchema = z.object({
-  api: z.object({ have: z.number().int().nonnegative(), total: z.literal(22) }),
+  api: z.object({ have: z.number().int().nonnegative(), total: z.literal(23) }),
   cli: z.object({ have: z.number().int().nonnegative(), total: z.literal(20) }),
   totalSkills: z.number().int().nonnegative(),
   generatedAt: z.string().datetime(),
@@ -34,8 +34,3 @@ export const GenerateBodySchema = z.object({
   prune: z.boolean().default(false),
   onlyIds: z.array(z.string()).optional(),
 });
-
-export type AgentSkillT = z.infer<typeof AgentSkillSchema>;
-export type SkillCoverageT = z.infer<typeof SkillCoverageSchema>;
-export type ListQueryT = z.infer<typeof ListQuerySchema>;
-export type GenerateBodyT = z.infer<typeof GenerateBodySchema>;

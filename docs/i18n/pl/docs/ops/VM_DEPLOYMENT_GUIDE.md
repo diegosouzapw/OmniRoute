@@ -1,52 +1,56 @@
-# OmniRoute — Deployment Guide on VM with Cloudflare (Polski)
+---
+title: "OmniRoute — Przewodnik wdrożenia na VM z Cloudflare"
+version: 3.8.40
+lastUpdated: 2026-06-28
+---
 
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/VM_DEPLOYMENT_GUIDE.md) · 🇸🇦 [ar](../../ar/docs/VM_DEPLOYMENT_GUIDE.md) · 🇧🇬 [bg](../../bg/docs/VM_DEPLOYMENT_GUIDE.md) · 🇧🇩 [bn](../../bn/docs/VM_DEPLOYMENT_GUIDE.md) · 🇨🇿 [cs](../../cs/docs/VM_DEPLOYMENT_GUIDE.md) · 🇩🇰 [da](../../da/docs/VM_DEPLOYMENT_GUIDE.md) · 🇩🇪 [de](../../de/docs/VM_DEPLOYMENT_GUIDE.md) · 🇪🇸 [es](../../es/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇷 [fa](../../fa/docs/VM_DEPLOYMENT_GUIDE.md) · 🇫🇮 [fi](../../fi/docs/VM_DEPLOYMENT_GUIDE.md) · 🇫🇷 [fr](../../fr/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [gu](../../gu/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇱 [he](../../he/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [hi](../../hi/docs/VM_DEPLOYMENT_GUIDE.md) · 🇭🇺 [hu](../../hu/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇩 [id](../../id/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇹 [it](../../it/docs/VM_DEPLOYMENT_GUIDE.md) · 🇯🇵 [ja](../../ja/docs/VM_DEPLOYMENT_GUIDE.md) · 🇰🇷 [ko](../../ko/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [mr](../../mr/docs/VM_DEPLOYMENT_GUIDE.md) · 🇲🇾 [ms](../../ms/docs/VM_DEPLOYMENT_GUIDE.md) · 🇳🇱 [nl](../../nl/docs/VM_DEPLOYMENT_GUIDE.md) · 🇳🇴 [no](../../no/docs/VM_DEPLOYMENT_GUIDE.md) · 🇵🇭 [phi](../../phi/docs/VM_DEPLOYMENT_GUIDE.md) · 🇵🇱 [pl](../../pl/docs/VM_DEPLOYMENT_GUIDE.md) · 🇵🇹 [pt](../../pt/docs/VM_DEPLOYMENT_GUIDE.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/VM_DEPLOYMENT_GUIDE.md) · 🇷🇴 [ro](../../ro/docs/VM_DEPLOYMENT_GUIDE.md) · 🇷🇺 [ru](../../ru/docs/VM_DEPLOYMENT_GUIDE.md) · 🇸🇰 [sk](../../sk/docs/VM_DEPLOYMENT_GUIDE.md) · 🇸🇪 [sv](../../sv/docs/VM_DEPLOYMENT_GUIDE.md) · 🇰🇪 [sw](../../sw/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [ta](../../ta/docs/VM_DEPLOYMENT_GUIDE.md) · 🇮🇳 [te](../../te/docs/VM_DEPLOYMENT_GUIDE.md) · 🇹🇭 [th](../../th/docs/VM_DEPLOYMENT_GUIDE.md) · 🇹🇷 [tr](../../tr/docs/VM_DEPLOYMENT_GUIDE.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/VM_DEPLOYMENT_GUIDE.md) · 🇵🇰 [ur](../../ur/docs/VM_DEPLOYMENT_GUIDE.md) · 🇻🇳 [vi](../../vi/docs/VM_DEPLOYMENT_GUIDE.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/VM_DEPLOYMENT_GUIDE.md)
+# OmniRoute — Przewodnik wdrożenia na VM z Cloudflare
+
+🌐 **Languages:** 🇺🇸 [English](./VM_DEPLOYMENT_GUIDE.md) | 🇧🇷 [Português (Brasil)](../i18n/pt-BR/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇪🇸 [Español](../i18n/es/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇷 [Français](../i18n/fr/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇹 [Italiano](../i18n/it/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇺 [Русский](../i18n/ru/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇳 [中文 (简体)](../i18n/zh-CN/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇪 [Deutsch](../i18n/de/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇳 [हिन्दी](../i18n/in/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇹🇭 [ไทย](../i18n/th/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇺🇦 [Українська](../i18n/uk-UA/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇦 [العربية](../i18n/ar/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇯🇵 [日本語](../i18n/ja/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇻🇳 [Tiếng Việt](../i18n/vi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇧🇬 [Български](../i18n/bg/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇩🇰 [Dansk](../i18n/da/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇫🇮 [Suomi](../i18n/fi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇱 [עברית](../i18n/he/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇭🇺 [Magyar](../i18n/hu/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇮🇩 [Bahasa Indonesia](../i18n/id/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇰🇷 [한국어](../i18n/ko/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇲🇾 [Bahasa Melayu](../i18n/ms/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇱 [Nederlands](../i18n/nl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇳🇴 [Norsk](../i18n/no/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇹 [Português (Portugal)](../i18n/pt/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇷🇴 [Română](../i18n/ro/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇱 [Polski](../i18n/pl/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇰 [Slovenčina](../i18n/sk/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇸🇪 [Svenska](../i18n/sv/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇵🇭 [Filipino](../i18n/phi/docs/ops/VM_DEPLOYMENT_GUIDE.md) | 🇨🇿 [Čeština](../i18n/cs/docs/ops/VM_DEPLOYMENT_GUIDE.md)
+
+Kompletny przewodnik instalacji i konfiguracji OmniRoute na VM (VPS) z domeną zarządzaną przez Cloudflare.
 
 ---
 
-Complete guide to install and configure OmniRoute on a VM (VPS) with domain managed via Cloudflare.
+## Wymagania wstępne
+
+| Element    | Minimum                     | Zalecane         |
+| ---------- | --------------------------- | ---------------- |
+| **CPU**    | 1 vCPU                      | 2 vCPU           |
+| **RAM**    | 1 GB                        | 2 GB             |
+| **Dysk**   | 10 GB SSD                   | 25 GB SSD        |
+| **OS**     | Ubuntu 22.04 LTS            | Ubuntu 24.04 LTS |
+| **Domena** | Zarejestrowana w Cloudflare | —                |
+| **Docker** | Docker Engine 24+           | Docker 27+       |
+
+**Przetestowani dostawcy**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
 
 ---
 
-## Prerequisites
+## 1. Konfiguracja VM
 
-| Item       | Minimum                  | Recommended      |
-| ---------- | ------------------------ | ---------------- |
-| **CPU**    | 1 vCPU                   | 2 vCPU           |
-| **RAM**    | 1 GB                     | 2 GB             |
-| **Disk**   | 10 GB SSD                | 25 GB SSD        |
-| **OS**     | Ubuntu 22.04 LTS         | Ubuntu 24.04 LTS |
-| **Domain** | Registered on Cloudflare | —                |
-| **Docker** | Docker Engine 24+        | Docker 27+       |
+### 1.1 Utwórz instancję
 
-**Tested providers**: Akamai (Linode), DigitalOcean, Vultr, Hetzner, AWS Lightsail.
+U wybranego dostawcy VPS:
 
----
+- Wybierz Ubuntu 24.04 LTS
+- Wybierz minimalny plan (1 vCPU / 1 GB RAM)
+- Ustaw silne hasło root lub skonfiguruj klucz SSH
+- Zanotuj **publiczny IP** (np. `203.0.113.10`)
 
-## 1. Configure the VM
-
-### 1.1 Create the instance
-
-On your preferred VPS provider:
-
-- Choose Ubuntu 24.04 LTS
-- Select the minimum plan (1 vCPU / 1 GB RAM)
-- Set a strong root password or configure SSH key
-- Note the **public IP** (e.g., `203.0.113.10`)
-
-### 1.2 Connect via SSH
+### 1.2 Połącz się przez SSH
 
 ```bash
 ssh root@203.0.113.10
 ```
 
-### 1.3 Update the system
+### 1.3 Zaktualizuj system
 
 ```bash
 apt update && apt upgrade -y
 ```
 
-### 1.4 Install Docker
+### 1.4 Zainstaluj Docker
 
 ```bash
 # Install dependencies
@@ -56,18 +60,18 @@ apt install -y ca-certificates curl gnupg
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
 
-### 1.5 Install nginx
+### 1.5 Zainstaluj nginx
 
 ```bash
 apt install -y nginx
 ```
 
-### 1.6 Configure Firewall (UFW)
+### 1.6 Skonfiguruj zaporę (UFW)
 
 ```bash
 ufw default deny incoming
@@ -78,22 +82,22 @@ ufw allow 443/tcp   # HTTPS
 ufw enable
 ```
 
-> **Tip**: For maximum security, restrict ports 80 and 443 to Cloudflare IPs only. See the [Advanced Security](#advanced-security) section.
+> **Wskazówka**: Dla maksymalnego bezpieczeństwa ogranicz porty 80 i 443 wyłącznie do IP Cloudflare. Zobacz sekcję [Zaawansowane zabezpieczenia](#zaawansowane-zabezpieczenia).
 
 ---
 
-## 2. Install OmniRoute
+## 2. Instalacja OmniRoute
 
-### 2.1 Create configuration directory
+### 2.1 Utwórz katalog konfiguracji
 
 ```bash
 mkdir -p /opt/omniroute
 ```
 
-### 2.2 Create environment variables file
+### 2.2 Utwórz plik zmiennych środowiskowych
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
+cat > /opt/omniroute/.env << 'EOF'
 # === Security ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
@@ -101,20 +105,24 @@ API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # REQUIRED em produção: usado pelo Codex Responses WS bridge
 
 # === App ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
-AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SECURE=true
 REQUIRE_API_KEY=false
 
-# === Domain (change to your domain) ===
-BASE_URL=https://llms.seudominio.com
+# === URLs (change to your domain) ===
+# Internal server-to-server base URL for scheduled jobs / self-fetches.
+BASE_URL=http://127.0.0.1:20128
+# Browser-facing URL used for OAuth callbacks, dashboard links, and generated public URLs.
 NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
+# Optional explicit public origin override for generated public asset URLs.
+# OMNIROUTE_PUBLIC_BASE_URL=https://llms.seudominio.com
 
 # === Cloud Sync (optional) ===
 # CLOUD_URL=https://cloud.omniroute.online
@@ -122,9 +130,9 @@ NEXT_PUBLIC_BASE_URL=https://llms.seudominio.com
 EOF
 ```
 
-> ⚠️ **IMPORTANT**: Generate unique secret keys! Use `openssl rand -hex 32` for each key.
+> ⚠️ **WAŻNE**: Wygeneruj unikalne klucze tajne! Użyj `openssl rand -hex 32` dla każdego klucza.
 
-### 2.3 Start the container
+### 2.3 Uruchom kontener
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -138,27 +146,27 @@ docker run -d \
   diegosouzapw/omniroute:latest
 ```
 
-### 2.4 Verify that it is running
+### 2.4 Sprawdź, czy działa
 
 ```bash
 docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-It should display: `[DB] SQLite database ready` and `listening on port 20128`.
+Powinno pojawić się: `[DB] SQLite database ready` oraz `listening on port 20128`.
 
 ---
 
-## 3. Configure nginx (Reverse Proxy)
+## 3. Konfiguracja nginx (reverse proxy)
 
-### 3.1 Generate SSL certificate (Cloudflare Origin)
+### 3.1 Wygeneruj certyfikat SSL (Cloudflare Origin)
 
-In the Cloudflare dashboard:
+W panelu Cloudflare:
 
-1. Go to **SSL/TLS → Origin Server**
-2. Click **Create Certificate**
-3. Keep the defaults (15 years, \*.yourdomain.com)
-4. Copy the **Origin Certificate** and the **Private Key**
+1. Przejdź do **SSL/TLS → Origin Server**
+2. Kliknij **Create Certificate**
+3. Zostaw domyślne ustawienia (15 lat, \*.yourdomain.com)
+4. Skopiuj **Origin Certificate** oraz **Private Key**
 
 ```bash
 mkdir -p /etc/nginx/ssl
@@ -172,10 +180,10 @@ nano /etc/nginx/ssl/origin.key
 chmod 600 /etc/nginx/ssl/origin.key
 ```
 
-### 3.2 Nginx Configuration
+### 3.2 Konfiguracja Nginx
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
 # Default server — blocks direct access via IP
 server {
     listen 80 default_server;
@@ -203,6 +211,7 @@ server {
     location / {
         proxy_pass http://127.0.0.1:20128;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -210,7 +219,7 @@ server {
         # WebSocket support
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
         # SSE (Server-Sent Events) — streaming AI responses
         proxy_buffering off;
@@ -230,11 +239,19 @@ server {
 NGINX
 ```
 
-Keep reverse-proxy stream timeouts aligned with your OmniRoute timeout env vars. If you raise
-`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, raise `proxy_read_timeout` / `proxy_send_timeout`
-above the same threshold.
+Utrzymuj limity czasu strumienia reverse proxy w zgodzie ze zmiennymi timeout OmniRoute. Jeśli podniesiesz
+`FETCH_TIMEOUT_MS` / `STREAM_IDLE_TIMEOUT_MS`, podnieś też `proxy_read_timeout` / `proxy_send_timeout`
+powyżej tego samego progu.
 
-### 3.3 Enable and Test
+OmniRoute używa `NEXT_PUBLIC_BASE_URL` jako kanonicznego, przeglądarkowego originu dla callbacków OAuth
+oraz generowanych publicznych linków. Uwierzytelnione zapisy w panelu korzystają z żądań same-origin
+oraz ochrony CSRF powiązanej z sesją, więc nie wymagają statycznego publicznego base URL. Nagłówki
+`X-Forwarded-*` powyżej nadal są przydatnymi metadanymi routingu, ale nie zastępują jawnego publicznego
+URL, gdy OAuth lub generowane linki przeglądarkowe go potrzebują. Włączaj
+`OMNIROUTE_TRUST_PROXY` tylko wtedy, gdy OmniRoute nie jest bezpośrednio osiągalny przez klientów, a Twój proxy
+usuwa/przebudowuje przychodzące nagłówki forwarded.
+
+### 3.3 Włącz i przetestuj
 
 ```bash
 # Remove default configuration
@@ -249,29 +266,29 @@ nginx -t && systemctl reload nginx
 
 ---
 
-## 4. Configure Cloudflare DNS
+## 4. Konfiguracja DNS w Cloudflare
 
-### 4.1 Add DNS record
+### 4.1 Dodaj rekord DNS
 
-In the Cloudflare dashboard → DNS:
+W panelu Cloudflare → DNS:
 
-| Type | Name   | Content                | Proxy      |
-| ---- | ------ | ---------------------- | ---------- |
-| A    | `llms` | `203.0.113.10` (VM IP) | ✅ Proxied |
+| Typ | Nazwa  | Zawartość              | Proxy      |
+| --- | ------ | ---------------------- | ---------- |
+| A   | `llms` | `203.0.113.10` (IP VM) | ✅ Proxied |
 
-### 4.2 Configure SSL
+### 4.2 Skonfiguruj SSL
 
-Under **SSL/TLS → Overview**:
+W **SSL/TLS → Overview**:
 
-- Mode: **Full (Strict)**
+- Tryb: **Full (Strict)**
 
-Under **SSL/TLS → Edge Certificates**:
+W **SSL/TLS → Edge Certificates**:
 
 - Always Use HTTPS: ✅ On
 - Minimum TLS Version: TLS 1.2
 - Automatic HTTPS Rewrites: ✅ On
 
-### 4.3 Testing
+### 4.3 Testowanie
 
 ```bash
 curl -sI https://llms.seudominio.com/health
@@ -280,9 +297,9 @@ curl -sI https://llms.seudominio.com/health
 
 ---
 
-## 5. Operations and Maintenance
+## 5. Operacje i utrzymanie
 
-### Upgrade to a new version
+### Aktualizacja do nowej wersji
 
 ```bash
 docker pull diegosouzapw/omniroute:latest
@@ -294,14 +311,14 @@ docker run -d --name omniroute --restart unless-stopped \
   diegosouzapw/omniroute:latest
 ```
 
-### View logs
+### Podgląd logów
 
 ```bash
 docker logs -f omniroute          # Real-time stream
 docker logs omniroute --tail 50   # Last 50 lines
 ```
 
-### Manual database backup
+### Ręczna kopia zapasowa bazy danych
 
 ```bash
 # Copy data from the volume to the host
@@ -312,23 +329,23 @@ docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
   alpine tar czf /backup/omniroute-data-$(date +%F).tar.gz /data
 ```
 
-### Restore from backup
+### Przywracanie z kopii zapasowej
 
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
 ---
 
-## 6. Advanced Security
+## 6. Zaawansowane zabezpieczenia
 
-### Restrict nginx to Cloudflare IPs
+### Ogranicz nginx do IP Cloudflare
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
 # Cloudflare IPv4 ranges — update periodically
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;
@@ -350,13 +367,13 @@ real_ip_header CF-Connecting-IP;
 CF
 ```
 
-Add the following to `nginx.conf` inside the `http {}` block:
+Dodaj poniższe do `nginx.conf` wewnątrz bloku `http {}`:
 
 ```nginx
 include /etc/nginx/cloudflare-ips.conf;
 ```
 
-### Install fail2ban
+### Zainstaluj fail2ban
 
 ```bash
 apt install -y fail2ban
@@ -367,7 +384,7 @@ systemctl start fail2ban
 fail2ban-client status sshd
 ```
 
-### Block direct access to the Docker port
+### Zablokuj bezpośredni dostęp do portu Dockera
 
 ```bash
 # Prevent direct external access to port 20128
@@ -381,9 +398,9 @@ netfilter-persistent save
 
 ---
 
-## 7. Deploy to Cloudflare Workers (Optional)
+## 7. Wdrożenie na Cloudflare Workers (opcjonalnie)
 
-For remote access via Cloudflare Workers (without exposing the VM directly):
+Dla zdalnego dostępu przez Cloudflare Workers (bez bezpośredniego wystawiania VM):
 
 ```bash
 # In the local repository
@@ -393,15 +410,15 @@ npx wrangler login
 npx wrangler deploy
 ```
 
-See the full documentation at [omnirouteCloud/README.md](../omnirouteCloud/README.md).
+Zobacz też [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md) — przewodnik po Cloudflare Tunnel w tym repozytorium. Samodzielny worker `omnirouteCloud/` znajduje się w osobnym repozytorium towarzyszącym.
 
 ---
 
-## Port Summary
+## Podsumowanie portów
 
-| Port  | Service     | Access                     |
-| ----- | ----------- | -------------------------- |
-| 22    | SSH         | Public (with fail2ban)     |
-| 80    | nginx HTTP  | Redirect → HTTPS           |
-| 443   | nginx HTTPS | Via Cloudflare Proxy       |
-| 20128 | OmniRoute   | Localhost only (via nginx) |
+| Port  | Usługa      | Dostęp                        |
+| ----- | ----------- | ----------------------------- |
+| 22    | SSH         | Publiczny (z fail2ban)        |
+| 80    | nginx HTTP  | Przekierowanie → HTTPS        |
+| 443   | nginx HTTPS | Przez Cloudflare Proxy        |
+| 20128 | OmniRoute   | Tylko localhost (przez nginx) |

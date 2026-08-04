@@ -22,7 +22,8 @@ export const PROVIDER_COLORS = {
   qoder: { bg: "#EC4899", text: "#fff", label: "Qoder" },
   fireworks: { bg: "#F97316", text: "#fff", label: "Fireworks" },
   kimi: { bg: "#06B6D4", text: "#fff", label: "Kimi" },
-  "gemini-cli": { bg: "#34A853", text: "#fff", label: "Gemini CLI" },
+  // Dark foreground: #31f889 is a bright green, white text on it fails contrast.
+  cheaperinference: { bg: "#31f889", text: "#04170d", label: "Cheaper Inference" },
 };
 
 // ═══════════════════════════════════════════
@@ -127,21 +128,6 @@ export function getProxyStatusStyle(status) {
   if (status === "error") return { bg: "#DC2626", text: "#fff" };
   if (status === "timeout") return { bg: "#D97706", text: "#fff" };
   return { bg: "#6B7280", text: "#fff" };
-}
-
-/**
- * Get default fallback for a provider color lookup.
- * @param {string} provider - Provider key
- * @returns {{ bg: string, text: string, label: string }}
- */
-export function getProviderColor(provider) {
-  return (
-    PROVIDER_COLORS[provider] || {
-      bg: "#374151",
-      text: "#fff",
-      label: (provider || "-").toUpperCase(),
-    }
-  );
 }
 
 /**

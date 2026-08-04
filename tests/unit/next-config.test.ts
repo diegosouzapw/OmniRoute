@@ -37,6 +37,15 @@ test("next config exposes standalone build settings and canonical rewrites", asy
     "fumadocs-ui",
     "fumadocs-core",
   ]);
+  // #6062: `ws` and its native masking helpers must stay external so the
+  // copilot-m365-web executor keeps a working WebSocket masking path at runtime
+  // (bundling ws breaks `bufferutil` → `TypeError: b.mask is not a function`).
+  for (const pkg of ["ws", "bufferutil", "utf-8-validate"]) {
+    assert.ok(
+      nextConfig.serverExternalPackages.includes(pkg),
+      `expected serverExternalPackages to externalize "${pkg}" (#6062)`
+    );
+  }
   assert.equal(headers[0].source, "/:path*");
   assert.match(securityHeaders["Content-Security-Policy"], /default-src 'self'/);
   assert.match(securityHeaders["Content-Security-Policy"], /frame-ancestors 'none'/);
@@ -70,13 +79,23 @@ test("next config declares Turbopack aliases, runtime assets and server external
   const tracingExcludes = nextConfig.outputFileTracingExcludes["/*"];
 
   assert.equal(nextConfig.turbopack.root, process.cwd());
-  assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], "./src/mitm/manager.stub.ts");
+  // #6344: the @/mitm/manager stub alias is OPT-IN (OMNIROUTE_MITM_STUB=1, Docker only).
+  // A default production build must NOT alias it, or the stub ships to npm/Electron/VPS
+  // artifacts and breaks Agent Bridge start. See the dedicated env-matrix test below.
+  assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], undefined);
   assert.equal(nextConfig.outputFileTracingRoot, process.cwd());
   assert.ok(tracingIncludes.includes("./src/lib/db/migrations/**/*"));
   assert.ok(
     tracingIncludes.includes("./open-sse/services/compression/engines/rtk/filters/**/*.json")
   );
   assert.ok(tracingIncludes.includes("./open-sse/services/compression/rules/**/*.json"));
+  // sql.js WASM must ship in the standalone bundle: sqljsAdapter resolves it from
+  // node_modules/sql.js/dist/sql-wasm.wasm at runtime (driver fallback tier), but
+  // Next traces sql-wasm.js without auto-including the runtime .wasm asset.
+  assert.ok(
+    tracingIncludes.includes("./node_modules/sql.js/dist/sql-wasm.wasm"),
+    "sql-wasm.wasm must be trace-included so the sql.js fallback works in standalone builds"
+  );
   assert.ok(tracingExcludes.includes("./_tasks/**/*"));
   assert.ok(tracingExcludes.includes("./tests/**/*"));
 
@@ -95,6 +114,25 @@ test("next config declares Turbopack aliases, runtime assets and server external
     "tls",
   ]) {
     assert.ok(serverExternalPackages.has(packageName), `${packageName} should be externalized`);
+  }
+});
+
+test("Turbopack aliases @/mitm/manager to the stub ONLY when OMNIROUTE_MITM_STUB=1 (#6344)", async () => {
+  const original = process.env.OMNIROUTE_MITM_STUB;
+  try {
+    delete process.env.OMNIROUTE_MITM_STUB;
+    const { default: def } = await loadNextConfig("mitm-default");
+    assert.equal(def.turbopack.resolveAlias["@/mitm/manager"], undefined);
+
+    process.env.OMNIROUTE_MITM_STUB = "1";
+    const { default: docker } = await loadNextConfig("mitm-docker");
+    assert.equal(
+      docker.turbopack.resolveAlias["@/mitm/manager"],
+      "./src/mitm/manager.stub.ts"
+    );
+  } finally {
+    if (original === undefined) delete process.env.OMNIROUTE_MITM_STUB;
+    else process.env.OMNIROUTE_MITM_STUB = original;
   }
 });
 
@@ -231,4 +269,64 @@ test("next-intl webpack hook preserves caller config and filters known extractor
     config.ignoreWarnings[0]({ message: "Critical dependency: request is expression" }),
     false
   );
+});
+
+test("turbopack.ignoreIssue suppresses the agentSkills over-bundling warning (#6582)", async () => {
+  // src/lib/agentSkills/generator.ts joins process.cwd() with a runtime
+  // `outputDir` parameter — not a compile-time literal — so Turbopack's
+  // file-tracing analyzer can't narrow it and emits an "Overly broad
+  // patterns..." warning per entry point importing the module. The fs access
+  // is legitimate and bounded, so it's suppressed via turbopack.ignoreIssue
+  // rather than fought. This guards the config shape so the suppression rule
+  // isn't silently dropped in a future edit.
+  const { default: nextConfig } = await loadNextConfig("ignore-issue");
+  const rules = nextConfig.turbopack?.ignoreIssue;
+
+  assert.ok(Array.isArray(rules), "expected turbopack.ignoreIssue to be an array");
+  const agentSkillsRule = rules.find((rule) => String(rule.path).includes("agentSkills"));
+  assert.ok(agentSkillsRule, "expected an ignoreIssue rule targeting src/lib/agentSkills/**");
+  assert.match(String(agentSkillsRule.description), /Overly broad patterns/);
+});
+
+test("turbopack.ignoreIssue suppresses the compression module over-bundling warning (#7051)", async () => {
+  // open-sse/services/compression/ruleLoader.ts and
+  // .../engines/rtk/filterLoader.ts both define an identical getModuleDir()
+  // helper that walks up directories via path.resolve(anchor) +
+  // fs.existsSync(...) in a loop with a non-literal argument — the same
+  // class of dynamic-path fs access that #6582 suppressed for
+  // src/lib/agentSkills/**, but that narrow allowlist glob didn't cover this
+  // module, so the warning kept firing (610 times) for every entry point
+  // transitively importing the compression module. This guards the config
+  // shape so the suppression rule isn't silently dropped in a future edit.
+  const { default: nextConfig } = await loadNextConfig("ignore-issue-compression");
+  const rules = nextConfig.turbopack?.ignoreIssue;
+
+  assert.ok(Array.isArray(rules), "expected turbopack.ignoreIssue to be an array");
+  const compressionRule = rules.find((rule) =>
+    String(rule.path).includes("open-sse/services/compression")
+  );
+  assert.ok(
+    compressionRule,
+    "expected an ignoreIssue rule targeting open-sse/services/compression/**"
+  );
+  assert.match(String(compressionRule.description), /Overly broad patterns/);
+});
+
+test("optimizePackageImports excludes the internal @omniroute/open-sse workspace (build-OOM guard)", async () => {
+  // Regression guard: adding the internal `@omniroute/open-sse` workspace to
+  // optimizePackageImports makes Next.js resolve its entire barrel at build
+  // time, driving the webpack production pass into a heap runaway that OOM'd
+  // even at 28 GB. optimizePackageImports is for EXTERNAL barrel libs only.
+  const { default: nextConfig } = await loadNextConfig("optimize-pkg-imports");
+  const list = nextConfig.experimental?.optimizePackageImports ?? [];
+
+  assert.ok(Array.isArray(list), "optimizePackageImports should be an array");
+  assert.ok(
+    !list.includes("@omniroute/open-sse"),
+    "do NOT add the internal @omniroute/open-sse workspace to optimizePackageImports — it OOMs the production build"
+  );
+  // The intended external barrel libs must remain optimized.
+  for (const lib of ["lucide-react", "date-fns", "next-intl"]) {
+    assert.ok(list.includes(lib), `expected external barrel lib ${lib} to stay optimized`);
+  }
 });

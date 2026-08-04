@@ -21,11 +21,14 @@ const quotaSnapshotsDb = await import("../../src/lib/db/quotaSnapshots.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const comboMetrics = await import("../../open-sse/services/comboMetrics.ts");
 const inspector = await import("../../src/lib/usage/comboScoringInspector.ts");
+const comboHealthDashboard = await import("../../src/lib/usage/comboHealthDashboard.ts");
 const route = await import("../../src/app/api/usage/combo-scoring-inspector/route.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
 const { lockModel, clearAllModelLockouts } =
   await import("../../open-sse/services/accountFallback.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
+const { DEFAULT_WEIGHTS } = await import("../../open-sse/services/autoCombo/scoring.ts");
+const { MODE_PACKS } = await import("../../open-sse/services/autoCombo/modePacks.ts");
 
 async function resetStorage() {
   comboMetrics.resetAllComboMetrics();
@@ -41,10 +44,11 @@ async function enableManagementAuth() {
   await settingsDb.updateSettings({ requireLogin: true, password: "" });
 }
 
-async function seedAutoCombo() {
+async function seedAutoCombo(comboOverrides: Record<string, unknown> = {}) {
   const comboInput = {
     name: "combo-scoring-auto",
     strategy: "auto",
+    ...comboOverrides,
     models: [
       {
         kind: "model",
@@ -165,6 +169,8 @@ test("scoring inspector ranks targets and explains score contributions", async (
   assert.equal(response.method, "read_only_recompute");
   assert.equal(response.combos.length, 1);
   assert.equal(response.combos[0].strategy, "auto");
+  assert.equal(response.combos[0].weightSource, "default");
+  assert.equal(response.combos[0].modePack, null);
   assert.equal(response.combos[0].targets.length, 2);
   assert.equal(response.combos[0].selectedExecutionKey, firstStep.id);
   assert.equal(response.combos[0].targets[0].executionKey, firstStep.id);
@@ -179,6 +185,60 @@ test("scoring inspector ranks targets and explains score contributions", async (
   assert.ok(
     response.combos[0].targets[0].factors.some((factor) => factor.source === "combo_health")
   );
+});
+
+test("scoring inspector reports mode packs over explicit auto weights", async () => {
+  const combo = await combosDb.createCombo({
+    name: "combo-scoring-mode-pack",
+    strategy: "auto",
+    models: ["openai/gpt-4o-mini"],
+    config: {
+      auto: {
+        modePack: "ship-fast",
+        weights: { ...DEFAULT_WEIGHTS },
+      },
+    },
+  });
+
+  const response = await inspector.buildComboScoringInspectorResponse({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    combos: [combo],
+    skipAutopilot: true,
+  });
+
+  assert.equal(response.combos.length, 1);
+  assert.equal(response.combos[0].weightSource, "mode_pack");
+  assert.equal(response.combos[0].modePack, "ship-fast");
+  assert.deepEqual(response.combos[0].weights, MODE_PACKS["ship-fast"]);
+});
+
+test("scoring inspector reports valid explicit auto weights", async () => {
+  const explicitWeights = {
+    ...DEFAULT_WEIGHTS,
+    latencyInv: 0.2,
+    costInv: 0.07,
+  };
+  const combo = await combosDb.createCombo({
+    name: "combo-scoring-explicit-weights",
+    strategy: "auto",
+    models: ["openai/gpt-4o-mini"],
+    autoConfig: { weights: explicitWeights },
+  });
+
+  const response = await inspector.buildComboScoringInspectorResponse({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    combos: [combo],
+    skipAutopilot: true,
+  });
+
+  assert.equal(response.combos.length, 1);
+  assert.equal(response.combos[0].weightSource, "explicit");
+  assert.equal(response.combos[0].modePack, null);
+  assert.deepEqual(response.combos[0].weights, explicitWeights);
 });
 
 test("scoring inspector marks non-auto combos as explanatory recompute", async () => {
@@ -267,11 +327,15 @@ test("scoring inspector skipAutopilot avoids rebuilding autopilot report", async
     },
     skipAutopilot: true,
   };
-  Object.defineProperty(options, "combos", {
-    get() {
-      throw new Error("autopilot should not read combos when skipped");
-    },
-  });
+  // #7087: this used to assert that `options.combos` is never even READ when
+  // health/forecast/skipAutopilot are all supplied (via a getter that throws on
+  // access) — but that was pinning the exact bug: resolveConfiguredCombos() must
+  // check `options.combos` FIRST, unconditionally, so a caller-supplied `combos`
+  // array (e.g. from buildComboHealthDashboardResponse()) is never silently
+  // discarded just because health/forecast/autopilot were already resolved too.
+  // This test's own `options` genuinely has no `combos` (undefined), which still
+  // exercises the "no combos supplied + already have health signals -> skip the
+  // getCombos() DB round-trip" branch — no getter/trap needed for that.
 
   const response = await inspector.buildComboScoringInspectorResponse(options);
 
@@ -416,4 +480,42 @@ test("scoring inspector route requires auth, validates query, and returns 404", 
   assert.equal(body.method, "read_only_recompute");
   assert.equal(body.combos.length, 1);
   assert.equal(body.combos[0].targets.length, 2);
+});
+
+// #7087 follow-up: resolveConfiguredCombos() used to unconditionally return `[]`
+// whenever healthResponse + forecastResponse + (skipAutopilot || autopilotReport)
+// were ALL supplied, regardless of whether options.combos was also populated. That
+// is exactly the call shape comboHealthDashboard.ts::buildComboHealthDashboardResponse
+// always uses (it fetches combos once, then threads combos/healthResponse/
+// forecastResponse/autopilotReport into buildComboScoringInspectorResponse
+// together) -- so through the real dashboard integration, `combosById`/`combosByName`
+// (which resolveInspectorWeights() reads to report a combo's real configured
+// modePack/weights) always came back empty, and every combo's weightSource silently
+// fell back to "default" no matter what was actually configured. This test drives
+// the real buildComboHealthDashboardResponse() end-to-end (not
+// buildComboScoringInspectorResponse() directly, which the PR's own tests already
+// covered) with a combo configured for modePack "ship-fast".
+test("scoring inspector reports the configured weight source through the dashboard integration", async () => {
+  const { combo } = await seedAutoCombo({
+    config: { auto: { modePack: "ship-fast" } },
+  });
+
+  const dashboard = await comboHealthDashboard.buildComboHealthDashboardResponse({
+    range: "24h",
+    horizon: "7d",
+    comboId: String(combo.id),
+    taskType: "coding",
+    combos: [combo],
+  });
+
+  assert.equal(dashboard.errors.scoring, undefined);
+  assert.ok(dashboard.scoring, "expected a scoring inspector response, not null");
+  assert.equal(dashboard.scoring?.combos.length, 1);
+  assert.equal(
+    dashboard.scoring?.combos[0].weightSource,
+    "mode_pack",
+    "dashboard's own combos should drive the reported weight source, not silently fall back to default"
+  );
+  assert.equal(dashboard.scoring?.combos[0].modePack, "ship-fast");
+  assert.deepEqual(dashboard.scoring?.combos[0].weights, MODE_PACKS["ship-fast"]);
 });

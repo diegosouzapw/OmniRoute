@@ -156,14 +156,14 @@ test("handleComboChat context-relay skips unavailable models and falls through t
     combo: {
       name: "relay-skip-unavailable",
       strategy: "context-relay",
-      models: ["codex/gpt-5.4", "openai/gpt-4o-mini"],
+      models: ["codex/gpt-5.6-sol", "openai/gpt-4o-mini"],
       config: { maxRetries: 0 },
     },
     handleSingleModel: async (_body, modelStr) => {
       calls.push(modelStr);
       return okResponse();
     },
-    isModelAvailable: async (modelStr) => modelStr !== "codex/gpt-5.4",
+    isModelAvailable: async (modelStr) => modelStr !== "codex/gpt-5.6-sol",
     log: createLog(),
     settings: null,
     allCombos: null,
@@ -181,7 +181,7 @@ test("handleComboChat context-relay treats provider circuit breaker responses as
   const combo = {
     name: "relay-breaker",
     strategy: "context-relay",
-    models: ["codex/gpt-5.4", "openai/gpt-4o-mini"],
+    models: ["codex/gpt-5.6-sol", "openai/gpt-4o-mini"],
     config: { maxRetries: 0 },
   };
   const calls = [];
@@ -193,7 +193,7 @@ test("handleComboChat context-relay treats provider circuit breaker responses as
     combo,
     handleSingleModel: async (_body, modelStr) => {
       calls.push(modelStr);
-      if (modelStr === "codex/gpt-5.4") {
+      if (modelStr === "codex/gpt-5.6-sol") {
         return providerBreakerOpenResponse();
       }
       return okResponse();
@@ -205,7 +205,7 @@ test("handleComboChat context-relay treats provider circuit breaker responses as
   });
 
   assert.equal(result.ok, true);
-  assert.deepEqual(calls, ["codex/gpt-5.4", "openai/gpt-4o-mini"]);
+  assert.deepEqual(calls, ["codex/gpt-5.6-sol", "openai/gpt-4o-mini"]);
 });
 
 test("handleComboChat context-relay persists a handoff when codex quota reaches the warning threshold", async () => {
@@ -235,7 +235,7 @@ test("handleComboChat context-relay persists a handoff when codex quota reaches 
     combo: {
       name: "relay-generate",
       strategy: "context-relay",
-      models: ["codex/gpt-5.4"],
+      models: ["codex/gpt-5.6-sol"],
       config: { maxRetries: 0, handoffThreshold: 0.85, handoffProviders: ["codex"] },
     },
     handleSingleModel: async (body) => {
@@ -309,7 +309,7 @@ test("handleComboChat context-relay respects handoffProviders and skips generati
     combo: {
       name: "relay-disabled-provider",
       strategy: "context-relay",
-      models: ["codex/gpt-5.4"],
+      models: ["codex/gpt-5.6-sol"],
       config: { maxRetries: 0, handoffProviders: ["openai"] },
     },
     handleSingleModel: async (body) => {
@@ -363,7 +363,7 @@ test("handleComboChat context-relay treats explicit empty handoffProviders as di
     combo: {
       name: "relay-empty-providers",
       strategy: "context-relay",
-      models: ["codex/gpt-5.4"],
+      models: ["codex/gpt-5.6-sol"],
       config: { maxRetries: 0, handoffProviders: [] },
     },
     handleSingleModel: async () => okResponse(),
@@ -530,4 +530,146 @@ test("handleComboChat universal handoff detects model switch before recording cu
   assert.equal(summaryCalls, 1);
   assert.ok(saved);
   assert.equal(saved.lastModel, "openai/previous");
+});
+
+// ── Rule #18 gate — PR #3399: server-side context cache pinning ─────────────
+// Proves that when context_cache_protection=true and session_model_history has
+// a prior model, handleComboChat overrides body.model with the pinned model
+// (no client-side <omniModel> tag injection required).
+
+test("context_cache_protection: pins body.model to last session model when history exists", async () => {
+  const sessionId = "sess-cache-pin-active";
+  const comboName = "cache-pin-combo";
+
+  // Pre-record a prior model usage for this session/combo
+  handoffDb.recordSessionModelUsage(
+    sessionId,
+    comboName,
+    "anthropic/claude-3-5-sonnet",
+    "anthropic"
+  );
+
+  // Ensure anthropic provider has an active connection so the pin isn't
+  // dropped by isPinnedModelDurablyUnhealthy (no connections = durably down).
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT OR IGNORE INTO provider_connections (id, provider, auth_type, name, is_active, test_status, created_at, updated_at)
+     VALUES ('test-anthropic-conn', 'anthropic', 'api_key', 'test-anthropic', 1, 'active', datetime('now'), datetime('now'))`
+  ).run();
+
+  const capturedModels: string[] = [];
+
+  const result = await handleComboChat({
+    body: {
+      model: "openai/gpt-4o",
+      messages: [{ role: "user", content: "Continue the task" }],
+    },
+    combo: {
+      name: comboName,
+      strategy: "priority",
+      models: ["openai/gpt-4o", "anthropic/claude-3-5-sonnet"],
+      config: { maxRetries: 0 },
+      context_cache_protection: true,
+    },
+    handleSingleModel: async (body, modelStr) => {
+      capturedModels.push(modelStr);
+      capturedModels.push(body?.model as string);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: { sessionId },
+  });
+
+  assert.equal(result.ok, true);
+  // The first model tried must be the pinned one, not the combo's first model
+  assert.equal(capturedModels[0], "anthropic/claude-3-5-sonnet", "modelStr must be pinned model");
+  // body.model must also reflect the pinned model
+  assert.equal(capturedModels[1], "anthropic/claude-3-5-sonnet", "body.model must be pinned model");
+});
+
+test("context_cache_protection: does NOT pin when no session history exists (first request)", async () => {
+  const sessionId = "sess-cache-pin-first";
+  const comboName = "cache-pin-first-combo";
+  // No prior recordSessionModelUsage call — fresh session
+
+  const capturedModels: string[] = [];
+
+  const result = await handleComboChat({
+    body: {
+      model: "openai/gpt-4o",
+      messages: [{ role: "user", content: "First message" }],
+    },
+    combo: {
+      name: comboName,
+      strategy: "priority",
+      models: ["openai/gpt-4o"],
+      config: { maxRetries: 0 },
+      context_cache_protection: true,
+    },
+    handleSingleModel: async (body, modelStr) => {
+      capturedModels.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    allCombos: null,
+    relayOptions: { sessionId },
+  });
+
+  assert.equal(result.ok, true);
+  // No pinning on first request — should use the combo's first model
+  assert.equal(
+    capturedModels[0],
+    "openai/gpt-4o",
+    "first request must use combo model (no pinning)"
+  );
+});
+
+// ── clearSessionModelHistoryForCombo ────────────────────────────────────────
+// Proves that clearing pins for a combo name removes stale session history,
+// so that after a combo edit the next request does NOT use the old pinned model.
+
+test("clearSessionModelHistoryForCombo removes all pins for a combo", async () => {
+  const comboName = "test-clear-pins";
+
+  // Seed history for two different sessions on the same combo
+  handoffDb.recordSessionModelUsage("sess-A", comboName, "openai/gpt-4o", "openai");
+  handoffDb.recordSessionModelUsage(
+    "sess-B",
+    comboName,
+    "anthropic/claude-3-5-sonnet",
+    "anthropic"
+  );
+
+  // Sanity: pins exist
+  assert.equal(handoffDb.getLastSessionModel("sess-A", comboName), "openai/gpt-4o");
+  assert.equal(handoffDb.getLastSessionModel("sess-B", comboName), "anthropic/claude-3-5-sonnet");
+
+  // Clear pins for this combo
+  const cleared = handoffDb.clearSessionModelHistoryForCombo(comboName);
+  assert.ok(cleared >= 2, `should have cleared at least 2 entries, got ${cleared}`);
+
+  // Pins are gone
+  assert.equal(handoffDb.getLastSessionModel("sess-A", comboName), null);
+  assert.equal(handoffDb.getLastSessionModel("sess-B", comboName), null);
+});
+
+test("clearSessionModelHistoryForCombo does not affect other combos", async () => {
+  const comboA = "combo-keep";
+  const comboB = "combo-clear";
+
+  handoffDb.recordSessionModelUsage("sess-1", comboA, "openai/gpt-4o", "openai");
+  handoffDb.recordSessionModelUsage("sess-1", comboB, "anthropic/claude-3-5-sonnet", "anthropic");
+
+  // Clear only comboB
+  handoffDb.clearSessionModelHistoryForCombo(comboB);
+
+  // comboA is untouched
+  assert.equal(handoffDb.getLastSessionModel("sess-1", comboA), "openai/gpt-4o");
+  // comboB is cleared
+  assert.equal(handoffDb.getLastSessionModel("sess-1", comboB), null);
 });

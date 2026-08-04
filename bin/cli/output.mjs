@@ -37,6 +37,7 @@ function inferSchema(sample) {
 function formatCell(v, col) {
   if (v == null) return "";
   if (col.formatter) return col.formatter(v);
+  if (typeof v === "object") return JSON.stringify(v);
   return String(v);
 }
 

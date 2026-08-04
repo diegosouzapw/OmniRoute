@@ -17,7 +17,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { Settings } from "../../../src/types/settings";
+
+type SettingsPatch = Record<string, unknown>;
 
 let activeFixture: SettingsFixture | null = null;
 
@@ -61,9 +62,9 @@ export function setupSettingsFixture(slug: string): SettingsFixture {
  * `updateSettings → applyRuntimeSettings` pipeline. Hot-reload side effects
  * (route guard snapshot, etc.) fire exactly as they do in `PATCH /api/settings`.
  */
-export async function mockSettings(partial: Partial<Settings>): Promise<Record<string, unknown>> {
+export async function mockSettings(partial: SettingsPatch): Promise<Record<string, unknown>> {
   const settingsDb = await import("../../../src/lib/db/settings.ts");
-  return settingsDb.updateSettings(partial as Record<string, unknown>);
+  return settingsDb.updateSettings(partial);
 }
 
 /**

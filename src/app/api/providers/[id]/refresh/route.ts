@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
+import { updateProviderConnection } from "@/lib/db/providers";
 import { getAccessToken, updateProviderCredentials } from "@/sse/services/tokenRefresh";
 import { rotationGroupFor } from "@omniroute/open-sse/services/refreshSerializer.ts";
 
@@ -21,7 +22,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   try {
     const { id } = await params;
 
-    const connection = await getProviderConnectionById(id);
+    const connection = await getCachedProviderConnectionById(id);
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
@@ -46,19 +47,13 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
 
     const provider = connection.provider;
 
-    // Codex multi-account family-revocation cascade guard.
-    // Rotating-refresh providers (Codex/OpenAI share one Auth0 client_id, etc.)
-    // mint a single-use refresh_token on every refresh. This endpoint is invoked
-    // per-connection by the dashboard (incl. an OLD cached frontend that bulk-
-    // refreshes every expiring connection on a page load); rotating several
-    // sibling accounts makes Auth0 revoke the whole token family
-    // (openai/codex#9648), killing every account but the last. Never proactively
-    // rotate a rotating provider here — the access_token is reused as-is and
-    // genuine expiry is handled by the reactive, serialized 401 path on the next
-    // real request. This was the last unguarded proactive-refresh entry point
-    // (refreshAndUpdateCredentials and the connection-test route are already
-    // guarded). Non-rotating providers keep refreshing on demand below.
-    if (rotationGroupFor(provider) !== null) {
+    // Codex/OpenAI multi-account family-revocation cascade guard.
+    // These two providers share the same Auth0 client_id and can revoke sibling
+    // accounts when several refresh_tokens are rotated proactively. Other
+    // serialized providers (for example Kiro) still support safe manual refresh;
+    // the serializer only prevents concurrent sibling refreshes.
+    const rotationGroup = rotationGroupFor(provider);
+    if (rotationGroup === "openai-auth0") {
       return NextResponse.json({
         success: true,
         skipped: true,
@@ -99,12 +94,30 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         newCredentials.error === "refresh_token_reused" ||
         newCredentials.error === "invalid_grant"
       ) {
+        // A deprecated provider reuses the unrecoverable contract so callers stop
+        // retrying, but "Refresh token expired" would be a lie: the token is fine, the
+        // provider is gone. Say that, and say where to go — the operator otherwise
+        // re-authenticates in a loop against something that no longer exists.
+        const isDeprecated = newCredentials.code === "provider_deprecated";
+        const reason =
+          isDeprecated && typeof newCredentials.reason === "string"
+            ? newCredentials.reason
+            : "Refresh token expired. Please re-authenticate this account.";
         await updateProviderConnection(id, {
-          testStatus: "invalid",
-          lastError: "Refresh token expired. Please re-authenticate this account.",
+          testStatus: isDeprecated ? "expired" : "invalid",
+          lastError: reason,
+          ...(isDeprecated
+            ? { lastErrorType: "provider_deprecated", errorCode: "provider_deprecated" }
+            : {}),
         });
         return NextResponse.json(
-          { error: "Token refresh failed — provider returned no new token", requiresReauth: true },
+          {
+            error: isDeprecated
+              ? "This provider was deprecated and can no longer be refreshed"
+              : "Token refresh failed — provider returned no new token",
+            requiresReauth: true,
+            ...(isDeprecated ? { deprecated: true, migrateTo: newCredentials.migrateTo } : {}),
+          },
           { status: 401 }
         );
       }

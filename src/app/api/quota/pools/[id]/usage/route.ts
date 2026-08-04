@@ -2,19 +2,7 @@
  * GET /api/quota/pools/[id]/usage — pool consumption snapshot with dimensions
  *
  * Resolves the pool's provider plan to get dimensions, then calls
- * poolUsageWithDimensions on the concrete store implementation.
- *
- * Note on poolUsageWithDimensions availability:
- *   This method is defined on SqliteQuotaStore (and RedisQuotaStore) but is NOT
- *   part of the QuotaStore interface (keeping the interface minimal). F8 accesses
- *   it via dynamic type-narrowing:
- *
- *     const storeExt = store as { poolUsageWithDimensions?: (...) => Promise<...> };
- *     if (typeof storeExt.poolUsageWithDimensions === "function") { ... }
- *     else { fallback to store.poolUsage(id) }
- *
- *   This avoids modifying the QuotaStore interface (F6 responsibility) while
- *   still using the richer method when available.
+ * poolUsageWithDimensions on the QuotaStore interface.
  *
  * Auth: requireManagementAuth
  * Sanitization: all error responses via buildErrorBody (Hard Rule #12, B25)
@@ -28,6 +16,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getPool } from "@/lib/localDb";
 import { getQuotaStore } from "@/lib/quota/QuotaStore";
 import { resolvePlan } from "@/lib/quota/planResolver";
+import { resolveConnectionProvider } from "@/lib/quota/connectionProvider";
 import type { PoolUsageSnapshot } from "@/lib/quota/types";
 
 export const dynamic = "force-dynamic";
@@ -47,28 +36,21 @@ export async function GET(request: Request, { params }: RouteParams): Promise<Re
       return NextResponse.json(buildErrorBody(404, "Pool not found"), { status: 404 });
     }
 
-    // 2. Resolve the provider plan for this pool's connection
-    //    Provider name is not stored on pool — use empty string to trigger catalog/empty fallback
-    const plan = resolvePlan(pool.connectionId, "");
+    // 2. Resolve the provider plan for this pool's connection.
+    //    The provider name is not stored on the pool — resolve it from the
+    //    connection so catalog-only pools surface their plan dimensions
+    //    (passing "" here previously degraded every catalog pool to empty).
+    const provider = await resolveConnectionProvider(pool.connectionId);
+    const plan = resolvePlan(pool.connectionId, provider);
 
-    // 3. Get the quota store and call poolUsageWithDimensions when available
+    // 3. Get the quota store and call poolUsageWithDimensions (on the interface since v3.8.12)
     const store = await getQuotaStore();
 
     let snapshot: PoolUsageSnapshot;
-    const storeExt = store as unknown as {
-      poolUsageWithDimensions?: (
-        poolId: string,
-        dimensions: Array<{ unit: string; window: string; limit: number }>
-      ) => Promise<PoolUsageSnapshot>;
-    };
-
-    if (
-      typeof storeExt.poolUsageWithDimensions === "function" &&
-      plan.dimensions.length > 0
-    ) {
-      snapshot = await storeExt.poolUsageWithDimensions(id, plan.dimensions);
+    if (plan.dimensions.length > 0) {
+      snapshot = await store.poolUsageWithDimensions(id, plan.dimensions);
     } else {
-      // Fallback: use the interface-standard poolUsage (dimensions come from stored data only)
+      // Fallback: no plan dimensions configured — return minimal snapshot
       snapshot = await store.poolUsage(id);
     }
 

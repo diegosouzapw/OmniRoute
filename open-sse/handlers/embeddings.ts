@@ -15,7 +15,10 @@
 
 import {
   getEmbeddingProvider,
+  getEmbeddingModelDefaultParams,
+  getEmbeddingModelModalities,
   parseEmbeddingModel,
+  type EmbeddingModality,
   type EmbeddingProvider,
 } from "../config/embeddingRegistry.ts";
 import { saveCallLog } from "@/lib/usageDb";
@@ -24,6 +27,13 @@ import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
 import { getCallLogPipelineCaptureStreamChunks } from "@/lib/logEnv";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { stripStaleEncodingHeaders } from "../utils/upstreamResponseHeaders.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
+import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import {
+  hasStructuredEmbeddingInput,
+  prepareStructuredEmbeddingRequest,
+} from "./embeddingStructuredInput.ts";
+import { MAX_EMBEDDING_INLINE_ITEM_BYTES } from "@/shared/validation/schemas/apiV1";
 
 interface ClientRawRequest {
   endpoint: string;
@@ -78,7 +88,7 @@ export async function handleEmbedding({
 
   // Set up request logger for pipeline artifact capture
   const detailedLoggingEnabled = await isDetailedLoggingEnabled();
-  const captureStreamChunks = await getCallLogPipelineCaptureStreamChunks();
+  const captureStreamChunks = getCallLogPipelineCaptureStreamChunks();
   const reqLogger = await createRequestLogger(
     provider || "openai",
     "openai",
@@ -86,6 +96,9 @@ export async function handleEmbedding({
     {
       enabled: detailedLoggingEnabled,
       captureStreamChunks,
+      connectionId: connectionId || undefined,
+      model: model || (body.model as string),
+      provider: provider || undefined,
     }
   );
 
@@ -121,11 +134,36 @@ export async function handleEmbedding({
     };
   }
 
+  const structuredItems = Array.isArray(body.input)
+    ? body.input.filter(
+        (item): item is { type: EmbeddingModality } =>
+          typeof item === "object" && item !== null && "type" in item
+      )
+    : [];
+  if (structuredItems.length > 0) {
+    const supportedModalities = getEmbeddingModelModalities(providerConfig, model);
+    if (!supportedModalities) {
+      return {
+        success: false,
+        status: 400,
+        error: `Embedding model ${body.model} does not advertise structured embedding input support`,
+      };
+    }
+    const unsupported = structuredItems.find((item) => !supportedModalities.includes(item.type));
+    if (unsupported) {
+      return {
+        success: false,
+        status: 400,
+        error: `Embedding model ${body.model} does not support ${unsupported.type} input`,
+      };
+    }
+  }
+
   // Build upstream request — start with standard fields, then forward extra fields
   // the client sent (e.g. input_type, user, truncate for NVIDIA NIM asymmetric models).
   const KNOWN_FIELDS = new Set(["model", "input", "dimensions", "encoding_format"]);
 
-  const upstreamBody: Record<string, unknown> = {
+  let upstreamBody: Record<string, unknown> = {
     model: model,
     input: body.input,
   };
@@ -138,6 +176,37 @@ export async function handleEmbedding({
       upstreamBody[key] = value;
     }
   }
+
+  // Gemini embedding models (gemini-embedding-001 / -2-preview / text-embedding-004)
+  // default to 3072-dim vectors. Clients targeting pgvector-style schemas typically
+  // request a smaller size (e.g. 1536) via OpenAI's `dimensions` field, but Google's
+  // OpenAI-compatibility shim at /v1beta/openai/embeddings does not document the
+  // `dimensions` → `outputDimensionality` translation. Mirror the request value into
+  // the Gemini-native `outputDimensionality` field so the upstream actually returns
+  // the requested vector size. Ported from upstream decolua/9router#1366.
+  if (provider === "gemini" && upstreamBody.outputDimensionality === undefined) {
+    const outputDimensionality = Number(body.dimensions);
+    if (Number.isFinite(outputDimensionality) && outputDimensionality > 0) {
+      upstreamBody.outputDimensionality = outputDimensionality;
+    }
+  }
+
+  // Inject model-level default params (e.g. NVIDIA NIM asymmetric models require
+  // `input_type`) only for keys the client did not already supply, so a
+  // client-sent value is never overwritten. Symmetric models carry no defaults
+  // and are unaffected. See issue #1378.
+  const defaultParams = getEmbeddingModelDefaultParams(providerConfig, model);
+  if (defaultParams) {
+    for (const [key, value] of Object.entries(defaultParams)) {
+      if (upstreamBody[key] === undefined) {
+        upstreamBody[key] = value;
+      }
+    }
+  }
+
+  let upstreamUrl = providerConfig.baseUrl;
+  let normalizeProviderResponse:
+    ((data: Record<string, unknown>) => Record<string, unknown>) | null = null;
 
   // Build headers
   const headers: Record<string, string> = {
@@ -161,6 +230,44 @@ export async function handleEmbedding({
     };
   }
 
+  if (hasStructuredEmbeddingInput(body.input)) {
+    if (!model) {
+      return {
+        success: false,
+        status: 400,
+        error: `Invalid embedding model: ${body.model}. Use format: provider/model`,
+      };
+    }
+    try {
+      const prepared = await prepareStructuredEmbeddingRequest(
+        providerConfig,
+        model,
+        body,
+        token ?? "",
+        {
+          fetchMedia: async (url) => {
+            const result = await fetchRemoteImage(url, {
+              guard: "public-only",
+              maxBytes: MAX_EMBEDDING_INLINE_ITEM_BYTES,
+              pinDns: true,
+            });
+            return { buffer: result.buffer, contentType: result.contentType || null };
+          },
+        }
+      );
+      upstreamBody = prepared.body;
+      upstreamUrl = prepared.url;
+      normalizeProviderResponse = prepared.normalizeResponse ?? null;
+      if (prepared.authHeader) {
+        delete headers.Authorization;
+        delete headers["x-api-key"];
+        headers[prepared.authHeader.name] = prepared.authHeader.value;
+      }
+    } catch (error) {
+      return { success: false, status: 400, error: sanitizeErrorMessage(error) };
+    }
+  }
+
   if (log) {
     log.info(
       "EMBED",
@@ -169,10 +276,33 @@ export async function handleEmbedding({
   }
 
   try {
-    // Log provider request
-    reqLogger.logTargetRequest(providerConfig.baseUrl, headers, upstreamBody);
+    // Quota share enforcement (fail-open: errors allow the request through)
+    if (apiKeyId && connectionId && provider) {
+      try {
+        const { enforceQuotaShare } = await import("@/lib/quota/enforce");
+        const quotaDecision = await enforceQuotaShare({
+          apiKeyId,
+          connectionId,
+          provider,
+          // Per-(key,model) cap — resolved embedding model id (same scope used in logs/routing).
+          model: model || undefined,
+        });
+        if (quotaDecision.kind === "block") {
+          return {
+            success: false,
+            status: quotaDecision.httpStatus ?? 429,
+            error: quotaDecision.reason || "Quota share limit reached",
+          };
+        }
+      } catch {
+        // fail-open per B16
+      }
+    }
 
-    const response = await fetch(providerConfig.baseUrl, {
+    // Log provider request
+    reqLogger.logTargetRequest(upstreamUrl, headers, upstreamBody);
+
+    const response = await fetch(upstreamUrl, {
       method: "POST",
       headers,
       body: JSON.stringify(upstreamBody),
@@ -220,7 +350,11 @@ export async function handleEmbedding({
       };
     }
 
-    const data = await response.json();
+    const rawData = (await response.json()) as Record<string, unknown>;
+    const data = (normalizeProviderResponse ? normalizeProviderResponse(rawData) : rawData) as {
+      data?: unknown[] | unknown;
+      usage?: { prompt_tokens?: number; total_tokens?: number };
+    };
 
     // Log provider response
     reqLogger.logProviderResponse(response.status, "", response.headers, data);
@@ -255,7 +389,7 @@ export async function handleEmbedding({
       responseBody: {
         usage: data.usage || null,
         object: "list",
-        data_count: data.data?.length || 0,
+        data_count: Array.isArray(data.data) ? data.data.length : 0,
       },
       pipelinePayloads,
       apiKeyId,
@@ -263,7 +397,26 @@ export async function handleEmbedding({
       connectionId,
     }).catch(() => {});
 
-    // Normalize response to OpenAI format
+    // Record quota consumption (fire-and-forget, never blocks)
+    if (apiKeyId && connectionId && provider) {
+      try {
+        const { scheduleRecordConsumption } = await import("@/lib/quota/spendRecorder");
+        scheduleRecordConsumption({
+          apiKeyId,
+          connectionId,
+          provider,
+          // Per-(key,model) cap accounting — same resolved model id used at enforce time.
+          model: model || undefined,
+          cost: {
+            tokens: data.usage?.prompt_tokens || data.usage?.total_tokens || 0,
+            requests: 1,
+          },
+        });
+      } catch {
+        // fail-open per B29
+      }
+    }
+
     return {
       success: true,
       data: normalizedResponse,
@@ -298,7 +451,7 @@ export async function handleEmbedding({
     return {
       success: false,
       status: 502,
-      error: `Embedding provider error: ${err.message}`,
+      error: `Embedding provider error: ${sanitizeErrorMessage(err.message)}`,
     };
   }
 }

@@ -311,8 +311,19 @@ test("execute: sends PoW response header", async () => {
       "Has Bearer token"
     );
     assert.ok(compCall.headers["X-Ds-Pow-Response"], "Has PoW header");
-    assert.ok(compCall.headers["X-App-Version"], "Has X-App-Version");
-    assert.ok(compCall.headers["X-Client-Platform"] === "web", "Has X-Client-Platform");
+    // Header set matches the current chat.deepseek.com web client (v2.0.0):
+    // legacy X-App-Version dropped, X-Client-Bundle-Id added, version bumped.
+    assert.ok(
+      !("X-App-Version" in compCall.headers),
+      "Legacy X-App-Version must not be sent (removed in web client 2.0.0)"
+    );
+    assert.equal(
+      compCall.headers["X-Client-Bundle-Id"],
+      "com.deepseek.chat",
+      "Sends X-Client-Bundle-Id"
+    );
+    assert.equal(compCall.headers["X-Client-Version"], "2.0.0", "Sends current X-Client-Version");
+    assert.equal(compCall.headers["X-Client-Platform"], "web", "Has X-Client-Platform");
   } finally {
     mock.restore();
   }

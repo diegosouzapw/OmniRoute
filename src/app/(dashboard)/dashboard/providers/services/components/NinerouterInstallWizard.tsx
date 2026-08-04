@@ -6,6 +6,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Button } from "@/shared/components";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
@@ -13,6 +14,7 @@ const NAME = "9router";
 const DEFAULT_PORT = 20130;
 
 export function NinerouterInstallWizard() {
+  const t = useTranslations("embeddedServices");
   const { mutate } = useServiceStatus(NAME);
   const [version, setVersion] = useState("latest");
   const [port, setPort] = useState(String(DEFAULT_PORT));
@@ -31,14 +33,14 @@ export function NinerouterInstallWizard() {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const errorMsg =
-          body?.error?.message ?? body?.message ?? `Installation failed (HTTP ${res.status})`;
+          body?.error?.message ?? body?.message ?? t("installationFailed", { status: res.status });
         setMsg({ ok: false, text: errorMsg });
         return;
       }
-      setMsg({ ok: true, text: "9Router installed successfully. Starting up…" });
+      setMsg({ ok: true, text: t("installationSucceeded") });
       mutate();
     } catch {
-      setMsg({ ok: false, text: "Network error — could not reach the install endpoint" });
+      setMsg({ ok: false, text: t("networkInstallFailed") });
     } finally {
       setInstalling(false);
     }
@@ -51,10 +53,8 @@ export function NinerouterInstallWizard() {
           <span className="material-symbols-outlined text-blue-500 text-xl">download</span>
         </div>
         <div>
-          <h3 className="font-medium text-sm">Install 9Router</h3>
-          <p className="text-xs text-text-muted">
-            Downloads and installs 9Router via npm. Requires ~500 MB disk space.
-          </p>
+          <h3 className="font-medium text-sm">{t("install9Router")}</h3>
+          <p className="text-xs text-text-muted">{t("install9RouterDescription")}</p>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export function NinerouterInstallWizard() {
         {/* Version field */}
         <div>
           <label className="block text-xs font-medium mb-1" htmlFor="ninerouter-version">
-            Version
+            {t("version")}
           </label>
           <input
             id="ninerouter-version"
@@ -73,15 +73,13 @@ export function NinerouterInstallWizard() {
             placeholder="latest"
             disabled={installing}
           />
-          <p className="mt-1 text-xs text-text-muted">
-            Enter &quot;latest&quot; or a specific version (e.g. 1.2.3).
-          </p>
+          <p className="mt-1 text-xs text-text-muted">{t("versionHint")}</p>
         </div>
 
         {/* Port field */}
         <div>
           <label className="block text-xs font-medium mb-1" htmlFor="ninerouter-port">
-            Port
+            {t("servicePort")}
           </label>
           <input
             id="ninerouter-port"
@@ -93,9 +91,7 @@ export function NinerouterInstallWizard() {
             max={65535}
             disabled={installing}
           />
-          <p className="mt-1 text-xs text-text-muted">
-            OmniRoute uses port 20128. Keep 9Router on a different port (default 20130).
-          </p>
+          <p className="mt-1 text-xs text-text-muted">{t("servicePortHint")}</p>
         </div>
 
         {/* Message */}
@@ -121,10 +117,10 @@ export function NinerouterInstallWizard() {
               <span className="material-symbols-outlined animate-spin text-[14px]">
                 progress_activity
               </span>
-              Installing…
+              {t("installing")}
             </span>
           ) : (
-            "Install 9Router"
+            t("install9Router")
           )}
         </Button>
       </div>

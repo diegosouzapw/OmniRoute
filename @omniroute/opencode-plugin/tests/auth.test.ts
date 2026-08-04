@@ -13,12 +13,12 @@ import { createOmniRouteAuthHook } from "../src/index.js";
 
 test("createOmniRouteAuthHook: default providerId is 'omniroute'", () => {
   const hook = createOmniRouteAuthHook();
-  assert.equal(hook.provider, "omniroute");
+  assert.equal(hook.provider, "opencode-omniroute");
 });
 
 test("createOmniRouteAuthHook: custom providerId binds to hook.provider (multi-instance)", () => {
   const hook = createOmniRouteAuthHook({ providerId: "omniroute-preprod" });
-  assert.equal(hook.provider, "omniroute-preprod");
+  assert.equal(hook.provider, "opencode-omniroute-preprod");
 });
 
 test("createOmniRouteAuthHook: methods[0] is type 'api' with label including displayName", () => {
@@ -30,7 +30,7 @@ test("createOmniRouteAuthHook: methods[0] is type 'api' with label including dis
   assert.equal(m.label, "OmniRoute API Key");
 
   const custom = createOmniRouteAuthHook({ providerId: "omniroute-preprod" });
-  assert.equal(custom.methods[0].label, "OmniRoute (omniroute-preprod) API Key");
+  assert.equal(custom.methods[0].label, "OmniRoute (opencode-omniroute-preprod) API Key");
 });
 
 test("createOmniRouteAuthHook: prompts[0] uses key='apiKey' per @opencode-ai/plugin contract", () => {

@@ -25,5 +25,8 @@
     "base_url": "عنوان URL الأساسي لخادم OmniRoute",
     "context": "سياق/ملف تعريف الخادم المستخدم في هذا الأمر",
     "lang": "تعيين لغة عرض CLI (يتجاوز OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "تشغيل حاوية Redis محلية بضغطة واحدة (Podman أو Docker) لتخزين التخزين المؤقت وتتبع الحصة في OmniRoute"
   }
 }

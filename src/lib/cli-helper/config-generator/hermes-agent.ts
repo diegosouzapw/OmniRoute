@@ -26,9 +26,8 @@
  * }
  */
 
-import path from "node:path";
-import os from "node:os";
 import * as yaml from "js-yaml";
+import { getHermesConfigPath } from "./hermesHome.ts";
 
 export const HERMES_AGENT_ROLES = [
   { id: "default", label: "Default (main)", description: "Primary conversation model" },
@@ -38,10 +37,37 @@ export const HERMES_AGENT_ROLES = [
     description: "Orchestrator and sub-agent spawning model",
   },
   { id: "vision", label: "Vision", description: "Image and screenshot understanding" },
-  { id: "compression", label: "Compression", description: "Prompt compression and summarization" },
   { id: "web_extract", label: "Web Extract", description: "Web page / content extraction" },
+  { id: "compression", label: "Compression", description: "Prompt compression and summarization" },
   { id: "skills_hub", label: "Skills Hub", description: "Skills and tool-use reasoning" },
   { id: "approval", label: "Approval", description: "Safety and approval decisions" },
+  { id: "mcp", label: "MCP", description: "MCP server tool calls" },
+  { id: "title_generation", label: "Title Generation", description: "Session title generation" },
+  {
+    id: "memory_query_rewrite",
+    label: "Memory Query Rewrite",
+    description: "Memory search query rewriting",
+  },
+  { id: "tts_audio_tags", label: "TTS Audio Tags", description: "TTS audio tag generation" },
+  {
+    id: "triage_specifier",
+    label: "Triage Specifier",
+    description: "Issue / PR triage specification",
+  },
+  {
+    id: "kanban_decomposer",
+    label: "Kanban Decomposer",
+    description: "Kanban task decomposition",
+  },
+  { id: "profile_describer", label: "Profile Describer", description: "User profile description" },
+  { id: "goal_judge", label: "Goal Judge", description: "Goal completion judging" },
+  { id: "curator", label: "Curator", description: "Skill and memory curation" },
+  { id: "monitor", label: "Monitor", description: "Background monitoring" },
+  {
+    id: "background_review",
+    label: "Background Review",
+    description: "Background code review",
+  },
 ] as const;
 
 export type HermesAgentRole = (typeof HERMES_AGENT_ROLES)[number]["id"];
@@ -58,7 +84,8 @@ export interface HermesAgentConfigPayload {
   selections: HermesAgentRoleSelection[];
 }
 
-const CONFIG_PATH = path.join(os.homedir(), ".hermes", "config.yaml");
+// Resolved lazily at call-time so HERMES_HOME is always honoured (#3628).
+const getConfigPath = () => getHermesConfigPath();
 
 // Build a normalized base URL for Hermes (no trailing slash, no /v1 suffix on the provider entry)
 function normalizeBaseUrl(base: string): string {
@@ -98,7 +125,7 @@ export async function generateHermesAgentConfig(
   let existing: any = {};
   try {
     const fs = await import("node:fs/promises");
-    const raw = await fs.readFile(CONFIG_PATH, "utf-8");
+    const raw = await fs.readFile(getConfigPath(), "utf-8");
     existing = yaml.load(raw) || {};
   } catch {
     // no existing file — start fresh
@@ -167,7 +194,7 @@ export async function getCurrentHermesAgentRoles(): Promise<
   let config: any = {};
 
   try {
-    const raw = await fs.readFile(CONFIG_PATH, "utf-8");
+    const raw = await fs.readFile(getConfigPath(), "utf-8");
     config = yaml.load(raw) || {};
   } catch {
     return {};

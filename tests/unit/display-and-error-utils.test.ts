@@ -6,6 +6,7 @@ const { createErrorResponse, createErrorResponseFromUnknown } =
   await import("../../src/lib/api/errorResponse.ts");
 const { getAccountDisplayName, getProviderDisplayName } =
   await import("../../src/lib/display/names.ts");
+const { resolveProviderName } = await import("../../src/lib/display/useProviderNodeMap.ts");
 
 test("toJsonErrorPayload: preserves upstream error objects that already have error payloads", () => {
   const payload = {
@@ -201,6 +202,32 @@ test("getAccountDisplayName: respects priority order and fallback", () => {
   assert.equal(getAccountDisplayName(null), "Unknown Account");
 });
 
+test("resolveProviderName: returns user-given name from nodeMap for custom provider", () => {
+  const nodeMap = new Map([
+    ["openai-compatible-chat-abc123", { name: "My LLM", prefix: "my-llm" }],
+  ]);
+  assert.equal(
+    resolveProviderName("openai-compatible-chat-abc123", nodeMap),
+    "My LLM",
+    "should return the user-given name when present in the map"
+  );
+  // Falls back to prefix when name is blank
+  const mapNoName = new Map([
+    ["openai-compatible-chat-abc123", { name: null, prefix: "my-prefix" }],
+  ]);
+  assert.equal(resolveProviderName("openai-compatible-chat-abc123", mapNoName), "my-prefix");
+  // Falls back to de-UUIDed label when no node entry exists
+  assert.equal(
+    resolveProviderName("openai-compatible-chat-02669115-2545-4896-b003-cb4dac09d441", new Map()),
+    "Compatible (openai)"
+  );
+  // Falls back gracefully for unknown ids not in the map
+  assert.equal(resolveProviderName("plain-provider", nodeMap), "plain-provider");
+  // Handles null/undefined id
+  assert.equal(resolveProviderName(null, nodeMap), "Unknown Provider");
+  assert.equal(resolveProviderName(undefined, null), "Unknown Provider");
+});
+
 test("getProviderDisplayName: prefers node metadata and simplifies compatible IDs", () => {
   assert.equal(
     getProviderDisplayName("openai-compatible-chat-02669115-2545-4896-b003-cb4dac09d441", {
@@ -210,7 +237,7 @@ test("getProviderDisplayName: prefers node metadata and simplifies compatible ID
     "Friendly Node"
   );
   assert.equal(
-    getProviderDisplayName("anthropic-compatible-responses-02669115-2545-4896-b003-cb4dac09d441", {
+    getProviderDisplayName("anthropic-compatible-02669115-2545-4896-b003-cb4dac09d441", {
       name: " ",
       prefix: "Anthropic Prefix",
     }),
@@ -221,8 +248,18 @@ test("getProviderDisplayName: prefers node metadata and simplifies compatible ID
     "Compatible (openai)"
   );
   assert.equal(
-    getProviderDisplayName("anthropic-compatible-responses-02669115-2545-4896-b003-cb4dac09d441"),
+    getProviderDisplayName("openai-compatible-responses-02669115-2545-4896-b003-cb4dac09d441"),
+    "Compatible (openai)"
+  );
+  // Segment-less anthropic-compatible ids (the actual generated shape, #8326) now
+  // resolve to a friendly label too, instead of falling through to the raw ID.
+  assert.equal(
+    getProviderDisplayName("anthropic-compatible-02669115-2545-4896-b003-cb4dac09d441"),
     "Compatible (anthropic)"
+  );
+  assert.equal(
+    getProviderDisplayName("anthropic-compatible-cc-02669115-2545-4896-b003-cb4dac09d441"),
+    "CC Compatible"
   );
   assert.equal(getProviderDisplayName(undefined), "Unknown Provider");
   assert.equal(getProviderDisplayName("plain-provider-id"), "plain-provider-id");

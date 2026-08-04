@@ -5,9 +5,11 @@ import { isDraining } from "../../lib/gracefulShutdown";
 import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySizeGuard";
 import { generateRequestId } from "../../shared/utils/requestId";
 import { applyCorsHeaders } from "../cors/origins";
+import { validateBrowserMutationOrigin } from "../origin/publicOrigin";
 import { classifyRoute } from "./classify";
-import { classifyHostLocality } from "./routeGuard";
-import { resolveStampedPeer } from "./peerStamp";
+import { validateDashboardCsrfToken } from "./csrf";
+import { classifyStampedPeerLocality } from "./peerStamp";
+import { checkRequestIP } from "@omniroute/open-sse/services/ipFilter.ts";
 import { clientApiPolicy } from "./policies/clientApi";
 import { managementPolicy } from "./policies/management";
 import { publicPolicy } from "./policies/public";
@@ -21,6 +23,7 @@ import {
   AUTHZ_HEADER_ROUTE_CLASS,
   AUTHZ_TRUSTED_HEADERS,
   PEER_IP_HEADER,
+  VIA_PROXY_HEADER,
 } from "./headers";
 import type { AuthSubject, RouteClass, RouteClassification } from "./types";
 import type { AuthOutcome, RoutePolicy } from "./context";
@@ -34,6 +37,29 @@ const POLICIES: Record<RouteClass, RoutePolicy> = {
   CLIENT_API: clientApiPolicy,
   MANAGEMENT: managementPolicy,
 };
+
+let staleDashboardJwtWarningEmitted = false;
+
+function isStaleDashboardJwtError(error: unknown): boolean {
+  const code =
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string"
+      ? (error as { code: string }).code
+      : "";
+
+  if (
+    code === "ERR_JWS_SIGNATURE_VERIFICATION_FAILED" ||
+    code === "ERR_JWT_EXPIRED" ||
+    code === "ERR_JWS_INVALID" ||
+    code === "ERR_JWT_CLAIM_VALIDATION_FAILED"
+  ) {
+    return true;
+  }
+
+  return error instanceof Error && error.message.includes("signature verification failed");
+}
 
 function stampSubject(headers: Headers, subject: AuthSubject): void {
   headers.set(AUTHZ_HEADER_AUTH_KIND, subject.kind);
@@ -141,12 +167,21 @@ async function refreshDashboardSessionIfNeeded(
       path: "/",
     });
   } catch (error) {
+    if (isStaleDashboardJwtError(error)) {
+      response.cookies.delete("auth_token");
+      if (!staleDashboardJwtWarningEmitted) {
+        staleDashboardJwtWarningEmitted = true;
+        console.warn("[Authz] Dropped stale dashboard session cookie during auto-refresh");
+      }
+      return;
+    }
+
     console.error("[Authz] JWT auto-refresh failed:", error);
   }
 }
 
 function dashboardLoginRedirect(request: NextRequest, requestId: string): NextResponse {
-  const response = NextResponse.redirect(new URL("/login", request.url));
+  const response = NextResponse.redirect(new URL(`${request.nextUrl.basePath}/login`, request.url));
   response.cookies.delete("auth_token");
   stampRouteResponse(response, requestId, "MANAGEMENT");
   applyCorsHeaders(response, request);
@@ -166,6 +201,27 @@ function drainingResponse(requestId: string): NextResponse {
   );
   response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
   return response;
+}
+
+function invalidOriginResponse(requestId: string): NextResponse {
+  const response = NextResponse.json(
+    {
+      error: {
+        code: "INVALID_ORIGIN",
+        message:
+          "Invalid request origin. Same-origin dashboard writes must include a valid dashboard CSRF token. " +
+          "Refresh the dashboard and retry, or set OMNIROUTE_PUBLIC_BASE_URL for non-dashboard browser integrations.",
+        correlation_id: requestId,
+      },
+    },
+    { status: 403 }
+  );
+  response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
+  return response;
+}
+
+function isUnsafeMutationMethod(method: string): boolean {
+  return !["GET", "HEAD", "OPTIONS"].includes(method.toUpperCase());
 }
 
 function stampRouteResponse(
@@ -200,7 +256,9 @@ export async function runAuthzPipeline(
   const requestId = generateRequestId();
 
   if (pathname === "/") {
-    const response = NextResponse.redirect(new URL("/dashboard", request.url));
+    const response = NextResponse.redirect(
+      new URL(`${request.nextUrl.basePath}/dashboard`, request.url)
+    );
     return stampRouteResponse(response, requestId, "MANAGEMENT");
   }
 
@@ -208,10 +266,23 @@ export async function runAuthzPipeline(
   const guardedPathname = classification.normalizedPath;
   const managementDashboardRoute = isManagementDashboardRoute(classification, pathname);
 
+  // Relax the CORS origin fallback ONLY for the token-authenticated API
+  // surface (CLIENT_API: /v1/*, /v1beta/*, codex/responses aliases) and
+  // read-only PUBLIC endpoints. These authenticate via Authorization /
+  // x-api-key headers that browsers never auto-attach, so echoing the caller's
+  // Origin (or `*`) there carries no credentialed-session / CSRF risk — it just
+  // lets browser/Electron clients (issue #5242) read responses they are already
+  // entitled to. MANAGEMENT (cookie-authed dashboard) and non-read-only PUBLIC
+  // routes (e.g. /api/cloud/, which sets Allow-Credentials in its own handler)
+  // stay exactly fail-closed.
+  const corsRelaxOrigin =
+    classification.routeClass === "CLIENT_API" ||
+    (classification.routeClass === "PUBLIC" && classification.reason === "public_readonly_prefix");
+
   if (guardedPathname.startsWith("/api/") && isDraining()) {
     const response = drainingResponse(requestId);
     stampRouteResponse(response, requestId, classification.routeClass);
-    applyCorsHeaders(response, request);
+    applyCorsHeaders(response, request, corsRelaxOrigin);
     return response;
   }
 
@@ -223,7 +294,7 @@ export async function runAuthzPipeline(
     );
     if (bodySizeRejection) {
       stampRouteResponse(bodySizeRejection, requestId, classification.routeClass);
-      applyCorsHeaders(bodySizeRejection, request);
+      applyCorsHeaders(bodySizeRejection, request, corsRelaxOrigin);
       return bodySizeRejection;
     }
   }
@@ -232,29 +303,35 @@ export async function runAuthzPipeline(
   for (const trusted of AUTHZ_TRUSTED_HEADERS) {
     requestHeaders.delete(trusted);
   }
-  // The trusted peer-IP stamp is read by the policy from the ORIGINAL request
-  // (above); strip it from the forwarded headers so the per-process token never
-  // reaches route handlers or upstream providers.
+  // The trusted peer-IP + via-proxy stamps are read by the policy from the
+  // ORIGINAL request (above); strip them from the forwarded headers so the
+  // per-process token never reaches route handlers or upstream providers.
   requestHeaders.delete(PEER_IP_HEADER);
+  requestHeaders.delete(VIA_PROXY_HEADER);
 
   requestHeaders.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
   requestHeaders.set(AUTHZ_HEADER_REQUEST_ID, requestId);
   // Stamp a trusted, non-secret locality verdict derived from the real stamped
-  // peer IP. Route handlers (e.g. cliTokenAuth) read this instead of re-deriving
-  // locality from the spoofable Host header. The client-supplied value (if any)
-  // was already removed by the AUTHZ_TRUSTED_HEADERS strip above.
-  requestHeaders.set(
-    AUTHZ_HEADER_PEER_LOCALITY,
-    classifyHostLocality(
-      resolveStampedPeer(request.headers.get(PEER_IP_HEADER), process.env.OMNIROUTE_PEER_STAMP_TOKEN)
-    )
+  // peer IP AND the via-proxy marker. Route handlers (e.g. cliTokenAuth) read
+  // this instead of re-deriving locality from the spoofable Host header. The
+  // client-supplied values (if any) were already removed by the
+  // AUTHZ_TRUSTED_HEADERS strip above. When the via-proxy marker is set, a
+  // loopback socket is the proxy hop, not the end-user — verdict is downgraded
+  // to "remote" so the LOCAL_ONLY gate is not bypassed by a request arriving
+  // through an external reverse proxy (nginx / Caddy / Cloudflare Tunnel).
+  // See peerStamp.ts and the upstream da667836 reference for the full rationale.
+  const peerLocality = classifyStampedPeerLocality(
+    request.headers.get(PEER_IP_HEADER),
+    request.headers.get(VIA_PROXY_HEADER),
+    process.env.OMNIROUTE_PEER_STAMP_TOKEN
   );
+  requestHeaders.set(AUTHZ_HEADER_PEER_LOCALITY, peerLocality);
 
   if (method === "OPTIONS") {
     const preflight = new NextResponse(null, { status: 204 });
     preflight.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
     preflight.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-    applyCorsHeaders(preflight, request);
+    applyCorsHeaders(preflight, request, corsRelaxOrigin);
     return preflight;
   }
 
@@ -262,8 +339,25 @@ export async function runAuthzPipeline(
     const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
     response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-    applyCorsHeaders(response, request);
+    applyCorsHeaders(response, request, corsRelaxOrigin);
     return response;
+  }
+
+  // IP filter (#6131): enforce the operator's IP blacklist/whitelist on the
+  // external surface. Loopback is exempt so the local operator can never lock
+  // themselves out of the dashboard (they can always fix the list from
+  // localhost). checkIP is a no-op when the filter is disabled.
+  if (peerLocality !== "loopback") {
+    const ipVerdict = checkRequestIP(request);
+    if (!ipVerdict.allowed) {
+      const blocked = NextResponse.json(
+        { error: ipVerdict.reason || "Access denied" },
+        { status: 403 }
+      );
+      stampRouteResponse(blocked, requestId, classification.routeClass);
+      applyCorsHeaders(blocked, request, corsRelaxOrigin);
+      return blocked;
+    }
   }
 
   const policy = POLICIES[classification.routeClass];
@@ -275,8 +369,24 @@ export async function runAuthzPipeline(
     }
 
     const rejection = rejectionResponse(outcome, classification, requestId);
-    applyCorsHeaders(rejection, request);
+    applyCorsHeaders(rejection, request, corsRelaxOrigin);
     return rejection;
+  }
+
+  if (
+    classification.routeClass === "MANAGEMENT" &&
+    outcome.subject.kind === "dashboard_session" &&
+    isUnsafeMutationMethod(method)
+  ) {
+    const originVerdict = validateBrowserMutationOrigin(request);
+    const csrfOriginFallback =
+      originVerdict.reason === "invalid-origin" && validateDashboardCsrfToken(request);
+    if (!originVerdict.ok && !csrfOriginFallback) {
+      const rejection = invalidOriginResponse(requestId);
+      rejection.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
+      applyCorsHeaders(rejection, request);
+      return rejection;
+    }
   }
 
   stampSubject(requestHeaders, outcome.subject);
@@ -284,7 +394,7 @@ export async function runAuthzPipeline(
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set(AUTHZ_HEADER_REQUEST_ID, requestId);
   response.headers.set(AUTHZ_HEADER_ROUTE_CLASS, classification.routeClass);
-  applyCorsHeaders(response, request);
+  applyCorsHeaders(response, request, corsRelaxOrigin);
   if (managementDashboardRoute) {
     await refreshDashboardSessionIfNeeded(response, request);
   }

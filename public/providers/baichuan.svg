@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <circle cx="16" cy="16" r="14" fill="#6366F1" opacity="0.15"/>
-  <circle cx="16" cy="16" r="14" fill="none" stroke="#6366F1" stroke-width="2"/>
-  <text x="16" y="16" text-anchor="middle" dominant-baseline="central" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="600" fill="#6366F1">BC</text>
-</svg>
+<svg height="1em" style="flex:none;line-height:1" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><title>Baichuan</title><defs><linearGradient id="lobe-icons-baichuan-_R_0_" x1="17.764%" x2="100%" y1="8.678%" y2="91.322%"><stop offset="0%" stop-color="#FEC13E"></stop><stop offset="100%" stop-color="#FF6933"></stop></linearGradient></defs><path d="M7.333 2h-3.2l-2 4.333V17.8L0 22h5.2l2.028-4.2L7.333 2zm7.334 0h-5.2v20h5.2V2zM16.8 7.733H22V22h-5.2V7.733zM22 2h-5.2v4.133H22V2z" fill="url(#lobe-icons-baichuan-_R_0_)" fill-rule="nonzero"></path></svg>

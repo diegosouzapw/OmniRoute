@@ -59,7 +59,7 @@ export function scrubProxyAndFingerprintHeaders(
     }
     if (lowerKey === "authorization") {
       // Defer Authorization so it lands last in the serialized order — matches
-      // the native Gemini CLI / Antigravity fingerprint where Authorization
+      // the native Antigravity fingerprint where Authorization
       // is the final header before the body.
       authorizationValue = value;
       continue;

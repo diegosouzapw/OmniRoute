@@ -12,6 +12,7 @@ process.env.API_KEY_SECRET = "test-usage-analytics-secret";
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const analyticsRoute = await import("../../src/app/api/usage/analytics/route.ts");
 
@@ -144,7 +145,7 @@ test("GET /api/usage/analytics resolves Codex GPT-5.5 pricing through provider a
 
   assert.equal(response.status, 200);
   assertClose(body.summary.totalCost, 0.02);
-  assert.equal(body.byProvider[0].provider, "codex");
+  assert.equal(body.byProvider[0].provider, "OpenAI Codex");
   assertClose(body.byProvider[0].cost, 0.02);
   assert.equal(body.byModel[0].model, "gpt-5.5");
   assertClose(body.byModel[0].cost, 0.02);
@@ -220,22 +221,32 @@ test("GET /api/usage/analytics does not report flex savings for non-Codex provid
   assert.equal(flexTier.usageSavingsTokens, 0);
 });
 
-test("GET /api/usage/analytics applies Codex GPT-5.4 Fast multiplier", async () => {
+test("GET /api/usage/analytics applies Codex GPT-5.6 Sol Fast multiplier", async () => {
   await localDb.updatePricing({
-    codex: { "gpt-5.4": { input: 5, output: 30 } },
+    codex: { "gpt-5.6-sol": { input: 5, output: 30 } },
   });
   const db = core.getDbInstance();
   db.prepare(
     `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run("codex", "gpt-5.4", "codex-fast", 1000, 500, 1, 250, "priority", new Date().toISOString());
+  ).run(
+    "codex",
+    "gpt-5.6-sol",
+    "codex-fast",
+    1000,
+    500,
+    1,
+    250,
+    "priority",
+    new Date().toISOString()
+  );
 
   const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
   const body = await response.json();
 
   assert.equal(response.status, 200);
-  assertClose(body.summary.totalCost, 0.04);
-  assertClose(body.summary.fastCost, 0.04);
+  assertClose(body.summary.totalCost, 0.03);
+  assertClose(body.summary.fastCost, 0.03);
 });
 
 test("GET /api/usage/analytics maps Codex auto-review usage to GPT-5.5 pricing", async () => {
@@ -314,9 +325,12 @@ test("GET /api/usage/analytics includes byAccount array with cost data", async (
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(body.byAccount));
   assert.ok(body.byAccount.length > 0);
-  assert.equal(body.byAccount[0].account, "test-conn");
-  assert.equal(typeof body.byAccount[0].cost, "number");
-  assertClose(body.byAccount[0].cost, body.summary.totalCost);
+  assert.ok(body.byAccount.every((row) => row.account === "test-conn"));
+  assert.ok(body.byAccount.every((row) => typeof row.cost === "number"));
+  assertClose(
+    body.byAccount.reduce((sum, row) => sum + row.cost, 0),
+    body.summary.totalCost
+  );
 });
 
 test("GET /api/usage/analytics includes cost by API key", async () => {
@@ -337,8 +351,15 @@ test("GET /api/usage/analytics does not double-count raw and aggregated rows", a
   const db = core.getDbInstance();
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
+  // The raw/aggregated split boundary is retention.usageHistory (365 days by
+  // default — see cleanupUsageHistory in src/lib/db/cleanup.ts, which rolls up
+  // and deletes usage_history rows using that exact setting). Read it live
+  // instead of hardcoding 30 days so this fixture stays valid regardless of
+  // the configured retention window.
+  const { getUserDatabaseSettings } = await import("../../src/lib/db/databaseSettings.ts");
+  const rawRetentionDays = getUserDatabaseSettings().retention.usageHistory;
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 30);
+  cutoffDate.setDate(cutoffDate.getDate() - rawRetentionDays);
   const olderDate = new Date(cutoffDate);
   olderDate.setDate(olderDate.getDate() - 1);
   const olderDateStr = olderDate.toISOString().split("T")[0];
@@ -519,4 +540,53 @@ test("GET /api/usage/analytics returns 500 on database errors", async () => {
 
   assert.equal(response.status, 200);
   assert.ok(body.summary.totalRequests === 0);
+});
+
+test("GET /api/usage/analytics does not throw Unknown named parameter on short range (needsAggregated=false)", async () => {
+  // Regression: shared params object leaked agg-only bindings (@sinceDate, @rawCutoffDate)
+  // into queries that don't reference them, causing better-sqlite3 to throw.
+  // A short range (1h) triggers needsAggregated=false because the entire window
+  // falls within the raw-data-only period.
+  const db = core.getDbInstance();
+  const now = new Date();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "test-conn", 100, 50, 1, 200, now.toISOString());
+
+  const response = await analyticsRoute.GET(
+    makeRequest("http://localhost/api/usage/analytics?range=1h")
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.summary.totalRequests, 1);
+});
+
+test("GET /api/usage/analytics does not throw Unknown named parameter with apiKey filter on long range", async () => {
+  // Regression: Object.assign(presetParams, params) leaked all main-query bindings
+  // into preset queries that only reference preset-prefixed placeholders.
+  const apiKey = await apiKeysDb.createApiKey("Preset Key", "machine-preset1234");
+  const db = core.getDbInstance();
+  const now = new Date();
+
+  // Seed data old enough to trigger aggregated + preset path
+  for (let i = 0; i < 5; i++) {
+    const ts = new Date(now.getTime() - (35 + i) * 24 * 60 * 60 * 1000).toISOString();
+    db.prepare(
+      `INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name, tokens_input, tokens_output, success, latency_ms, timestamp)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run("openai", "gpt-4o", "test-conn", apiKey.id, apiKey.name, 100, 50, 1, 200, ts);
+  }
+
+  const response = await analyticsRoute.GET(
+    makeRequest(`http://localhost/api/usage/analytics?range=60d&apiKeyId=${apiKey.id}`)
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  // Core regression check: no "Unknown named parameter" error.
+  // The exact count depends on raw-vs-aggregated boundary; we only need to
+  // confirm the endpoint returns 200 without throwing.
+  assert.ok(typeof body.summary.totalRequests === "number");
 });

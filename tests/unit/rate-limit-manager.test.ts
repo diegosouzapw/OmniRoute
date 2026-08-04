@@ -12,6 +12,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const resilienceSettings = await import("../../src/lib/resilience/settings.ts");
 const rateLimitManager = await import("../../open-sse/services/rateLimitManager.ts");
 const accountFallback = await import("../../open-sse/services/accountFallback.ts");
+const Bottleneck = (await import("bottleneck")).default;
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -57,6 +58,70 @@ test("rate limit manager bypasses disabled connections and exposes inactive stat
     running: 0,
   });
   assert.deepEqual(rateLimitManager.getAllRateLimitStatus(), {});
+});
+
+test("idle-capacity queue expiry resets the limiter and retries once", async () => {
+  await rateLimitManager.applyRequestQueueSettings({
+    ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
+    autoEnableApiKeyProviders: false,
+    maxWaitMs: 20,
+    requestsPerMinute: 0,
+    concurrentRequests: 1,
+    minTimeBetweenRequestsMs: 0,
+    maxQueueDepth: 0,
+  });
+
+  const originalSchedule = Bottleneck.prototype.schedule;
+  let attempts = 0;
+  Bottleneck.prototype.schedule = function (...args) {
+    attempts++;
+    if (attempts === 1) {
+      return new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("This job timed out after 20 ms.")), 30);
+      });
+    }
+    return originalSchedule.apply(this, args);
+  };
+
+  try {
+    rateLimitManager.enableRateLimitProtection("idle-capacity-conn");
+    const result = await rateLimitManager.withRateLimit(
+      "openai",
+      "idle-capacity-conn",
+      "gpt-4o",
+      async () => "recovered"
+    );
+
+    assert.equal(result, "recovered");
+    assert.equal(attempts, 2, "the expired job should be retried once on a fresh limiter");
+  } finally {
+    Bottleneck.prototype.schedule = originalSchedule;
+  }
+});
+
+test("withRateLimit forwards AbortController DOMException without mutating it", async () => {
+  const connectionId = "conn-abort-domexception";
+  const controller = new AbortController();
+  rateLimitManager.enableRateLimitProtection(connectionId);
+
+  const pending = rateLimitManager.withRateLimit(
+    "github-models",
+    connectionId,
+    "microsoft/phi-4-reasoning",
+    async () => {
+      await wait(50);
+      return "late";
+    },
+    controller.signal
+  );
+
+  controller.abort();
+
+  await assert.rejects(pending, (error: unknown) => {
+    assert.ok(error instanceof DOMException);
+    assert.equal(error.name, "AbortError");
+    return true;
+  });
 });
 
 test("rate limit manager handles soft over-limit warnings and normal header learning", async () => {
@@ -283,4 +348,47 @@ test("rate limit manager recomputes auto-enabled API key connections when queue 
   assert.equal(rateLimitManager.isRateLimitEnabled(autoConnection.id), true);
   assert.equal(rateLimitManager.isRateLimitEnabled(explicitConnection.id), true);
   assert.ok(rateLimitManager.getAllRateLimitStatus()[`openai:${autoConnection.id}`]);
+});
+
+test("withRateLimit rejects cleanly when the caller aborts with the default DOMException reason", async () => {
+  // `AbortController.abort()` called with no argument (e.g. modelTestRunner's
+  // timeout path) produces a native DOMException as `signal.reason`, whose
+  // `name` is a read-only getter. withRateLimit's abort handling used to
+  // mutate `reason.name = "AbortError"` in place, which throws
+  // `TypeError: Cannot set property name of [object DOMException] which has
+  // only a getter` instead of rejecting with a clean AbortError — surfacing
+  // as an unhandled rejection rather than the intended timeout/slow result.
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "abort-reason-regression",
+    apiKey: "sk-abort-reason-regression",
+    isActive: true,
+  });
+  rateLimitManager.enableRateLimitProtection(String(connection.id));
+
+  const controller = new AbortController();
+  // Mirror how a real executor call behaves: it settles once the signal it
+  // was handed aborts, so this job doesn't dangle forever in Bottleneck once
+  // withRateLimit's own Promise.race settles via the abort path below.
+  const settlesOnAbort = (signal) =>
+    new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+    });
+
+  const pending = rateLimitManager.withRateLimit(
+    "openai",
+    String(connection.id),
+    "gpt-4o",
+    () => settlesOnAbort(controller.signal),
+    controller.signal
+  );
+
+  controller.abort(); // no reason argument -> default DOMException
+
+  await assert.rejects(pending, (err) => {
+    assert.ok(err instanceof Error);
+    assert.equal(err.name, "AbortError");
+    return true;
+  });
 });

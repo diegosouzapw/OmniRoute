@@ -45,6 +45,20 @@ export interface QuotaStore {
    */
   poolConsumedTotal(poolId: string, dim: DimensionKey): Promise<number>;
   poolUsage(poolId: string): Promise<PoolUsageSnapshot>;
+  /**
+   * Build a PoolUsageSnapshot with explicit plan dimensions. This is the
+   * primary method for dashboard / REST usage — it resolves per-key
+   * consumption, fair-share, deficit, borrowing, and burn-rate from the
+   * plan's dimension list.
+   *
+   * The parameterless `poolUsage()` is kept for backward compatibility but
+   * returns minimal data (no plan context). Prefer this method when plan
+   * dimensions are available.
+   */
+  poolUsageWithDimensions(
+    poolId: string,
+    planDimensions: Array<{ unit: string; window: string; limit: number }>
+  ): Promise<PoolUsageSnapshot>;
   clear(apiKeyId: string, dim: DimensionKey): Promise<void>;
 }
 
@@ -52,6 +66,13 @@ export interface EnforceInput {
   apiKeyId: string;
   connectionId: string;
   provider: string;
+  /**
+   * Optional model identifier. When present, `enforceQuotaShare` checks for a
+   * per-(key, model) cap row in `quota_allocation_model_caps` and blocks only
+   * this model if the cap is reached (Fase 3 #7). Fully backward-compatible:
+   * callers that do not pass `model` receive unchanged behaviour.
+   */
+  model?: string;
   estimatedCost?: { tokens?: number; usd?: number; requests?: number };
 }
 
@@ -63,5 +84,11 @@ export interface RecordConsumptionInput {
   apiKeyId: string;
   connectionId: string;
   provider: string;
+  /**
+   * Optional model identifier. When present, `recordConsumption` also
+   * increments the per-(key, model) consumption bucket used by the model-cap
+   * pre-check in `enforceQuotaShare` (Fase 3 #7). Backward-compatible.
+   */
+  model?: string;
   cost: { tokens?: number; usd?: number; requests?: number };
 }

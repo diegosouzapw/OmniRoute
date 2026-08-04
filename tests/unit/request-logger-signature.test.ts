@@ -4,6 +4,7 @@ import {
   computeLogsSignature,
   resolveInitialVisibility,
   shouldAutoRefresh,
+  shouldTriggerInfiniteScroll,
 } from "../../src/shared/components/requestLoggerSignature.ts";
 
 const PAGE_SIZE = 50;
@@ -14,6 +15,42 @@ test("shouldAutoRefresh: polls only while recording AND on the first page", () =
   assert.equal(shouldAutoRefresh(false, 10, PAGE_SIZE), false); // not recording
   assert.equal(shouldAutoRefresh(true, PAGE_SIZE + 1, PAGE_SIZE), false); // scrolled past page 1
   assert.equal(shouldAutoRefresh(true, 500, PAGE_SIZE), false); // deep history window
+});
+
+// #4269: the IntersectionObserver sentinel (rootMargin 200px) is already visible on
+// mount when the first page does not fill the scroll container, which fired a "ghost"
+// loadMore — growing the window to limit>PAGE_SIZE and permanently pausing auto-refresh
+// (shouldAutoRefresh returns false once limit>pageSize). Infinite-scroll loadMore must
+// only fire after a REAL user scroll.
+test("shouldTriggerInfiniteScroll: does NOT fire on mount before the user scrolls (#4269)", () => {
+  assert.equal(
+    shouldTriggerInfiniteScroll({
+      isIntersecting: true,
+      hasMore: true,
+      loading: false,
+      hasScrolled: false,
+    }),
+    false
+  );
+});
+
+test("shouldTriggerInfiniteScroll: fires once the user has actually scrolled", () => {
+  assert.equal(
+    shouldTriggerInfiniteScroll({
+      isIntersecting: true,
+      hasMore: true,
+      loading: false,
+      hasScrolled: true,
+    }),
+    true
+  );
+});
+
+test("shouldTriggerInfiniteScroll: never fires when not intersecting / no more / loading", () => {
+  const base = { isIntersecting: true, hasMore: true, loading: false, hasScrolled: true };
+  assert.equal(shouldTriggerInfiniteScroll({ ...base, isIntersecting: false }), false);
+  assert.equal(shouldTriggerInfiniteScroll({ ...base, hasMore: false }), false);
+  assert.equal(shouldTriggerInfiniteScroll({ ...base, loading: true }), false);
 });
 
 test("computeLogsSignature: stable across identical snapshots", () => {

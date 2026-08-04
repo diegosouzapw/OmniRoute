@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { KiroExecutor } from "../../open-sse/executors/kiro.ts";
+import { hasStreamReadinessSignal } from "../../open-sse/utils/streamReadiness.ts";
 
 const textEncoder = new TextEncoder();
 
@@ -98,6 +99,44 @@ function parseSSEJsonChunks(text) {
     .map((payload) => JSON.parse(payload));
 }
 
+test("KiroExecutor.transformEventStreamToSSE emits an early role-only start chunk that satisfies stream readiness", async () => {
+  const executor = new KiroExecutor();
+  // A corrupted prelude frame must NOT trigger the start chunk; only the first
+  // successfully-parsed frame should. Here the first valid frame is metadata-only
+  // (contextUsageEvent emits no SSE of its own), proving the start chunk is driven
+  // by frame parsing rather than by the first content token.
+  const invalidPreludeFrame = buildEventFrame("assistantResponseEvent", { content: "skip me" });
+  invalidPreludeFrame[8] ^= 0xff;
+
+  const response = buildEventStreamResponse([
+    invalidPreludeFrame,
+    buildEventFrame("contextUsageEvent", { contextUsagePercentage: 5 }),
+    buildEventFrame("assistantResponseEvent", { content: "Answer" }),
+    buildEventFrame("messageStopEvent", {}),
+    buildEventFrame("metricsEvent", { inputTokens: 3, outputTokens: 5 }),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const text = await transformed.text();
+  const chunks = parseSSEJsonChunks(text);
+
+  // The very first emitted chunk is a role-only start frame (no content yet).
+  assert.equal(chunks[0].object, "chat.completion.chunk");
+  assert.equal(chunks[0].choices[0].delta.role, "assistant");
+  assert.equal(chunks[0].choices[0].delta.content, undefined);
+
+  // That first frame alone must release the backend stream-readiness gate so the
+  // client is not held until the first content token (the slow-Kiro regression).
+  const firstFrameText = `data: ${JSON.stringify(chunks[0])}\n\n`;
+  assert.equal(hasStreamReadinessSignal(firstFrameText), true);
+
+  // Content is still delivered, and role is not duplicated on the content delta.
+  const contentChunk = chunks.find((chunk) => chunk.choices?.[0]?.delta?.content === "Answer");
+  assert.ok(contentChunk);
+  assert.equal(contentChunk.choices[0].delta.role, undefined);
+  assert.match(text, /\[DONE\]/);
+});
+
 test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () => {
   const executor = new KiroExecutor();
   const headers = executor.buildHeaders({ accessToken: "kiro-token" }, true);
@@ -106,6 +145,17 @@ test("KiroExecutor.buildHeaders includes Kiro-specific auth and metadata", () =>
   assert.equal(headers["anthropic-beta"], "prompt-caching-2024-07-31");
   assert.equal(headers["x-amzn-bedrock-cache-control"], "enable");
   assert.ok(headers["Amz-Sdk-Invocation-Id"]);
+});
+
+test("KiroExecutor.buildHeaders marks long-lived Kiro API keys", () => {
+  const executor = new KiroExecutor();
+  const headers = executor.buildHeaders(
+    { apiKey: "kiro-api-key", providerSpecificData: { authMethod: "api_key" } },
+    true
+  );
+
+  assert.equal(headers.Authorization, "Bearer kiro-api-key");
+  assert.equal(headers.tokentype, "API_KEY");
 });
 
 test("KiroExecutor.transformRequest removes the top-level model field", () => {
@@ -123,10 +173,38 @@ test("KiroExecutor.transformRequest removes the top-level model field", () => {
 
   const result = executor.transformRequest("kiro-model", body, true, {});
   assert.equal("model" in result, false);
-  assert.equal(
-    (result as any).conversationState.currentMessage.userInputMessage.modelId,
-    "kiro-model"
-  );
+  const kiroResult = result as unknown as {
+    conversationState: { currentMessage: { userInputMessage: { modelId: string } } };
+  };
+  assert.equal(kiroResult.conversationState.currentMessage.userInputMessage.modelId, "kiro-model");
+});
+
+test("KiroExecutor.transformRequest forwards additionalModelRequestFields (thinking) to AWS", () => {
+  const executor = new KiroExecutor();
+  const body = {
+    model: "kiro-model",
+    conversationState: {
+      currentMessage: { userInputMessage: { modelId: "kiro-model" } },
+    },
+    additionalModelRequestFields: {
+      output_config: { effort: "high" },
+      thinking: { type: "adaptive", display: "summarized" },
+      max_tokens: 32000,
+    },
+  };
+
+  const result = executor.transformRequest("kiro-model", body, true, {}) as unknown as Record<
+    string,
+    unknown
+  >;
+  // The thinking control must survive the strict allowlist — otherwise graded
+  // reasoning never reaches CodeWhisperer (the field the openai-to-kiro
+  // translator builds would be silently dropped).
+  assert.deepEqual(result.additionalModelRequestFields, {
+    output_config: { effort: "high" },
+    thinking: { type: "adaptive", display: "summarized" },
+    max_tokens: 32000,
+  });
 });
 
 test("KiroExecutor.transformEventStreamToSSE converts text, tool calls, usage and DONE", async () => {
@@ -161,6 +239,39 @@ test("KiroExecutor.transformEventStreamToSSE converts text, tool calls, usage an
   assert.match(text, /"completion_tokens":6/);
   assert.match(text, /"finish_reason":"tool_calls"/);
   assert.match(text, /\[DONE\]/);
+});
+
+test("KiroExecutor.transformEventStreamToSSE surfaces native reasoning frames as reasoning_content", async () => {
+  const executor = new KiroExecutor();
+  // Verified live wire format: Kiro streams adaptive-thinking reasoning as a
+  // dedicated `reasoningContentEvent` frame carrying `{ text, signature }`. Also
+  // cover the `reasoningText` object variant and a signature-only frame.
+  const response = buildEventStreamResponse([
+    buildEventFrame("reasoningContentEvent", { text: "Let me think... " }),
+    buildEventFrame("reasoningContentEvent", { text: "step two. " }),
+    buildEventFrame("reasoningContentEvent", { signature: "sig-only-frame" }),
+    buildEventFrame("assistantResponseEvent", { reasoningText: { text: "variant." } }),
+    buildEventFrame("assistantResponseEvent", { content: "The answer is 42." }),
+    buildEventFrame("metricsEvent", { inputTokens: 3, outputTokens: 5 }),
+  ]);
+
+  const transformed = executor.transformEventStreamToSSE(response, "kiro-model");
+  const chunks = parseSSEJsonChunks(await transformed.text());
+  const reasoning = chunks
+    .map((c) => c.choices?.[0]?.delta?.reasoning_content)
+    .filter(Boolean)
+    .join("");
+  const content = chunks
+    .map((c) => c.choices?.[0]?.delta?.content)
+    .filter(Boolean)
+    .join("");
+
+  assert.equal(
+    reasoning,
+    "Let me think... step two. variant.",
+    "reasoningContentEvent frames + reasoningText variant must all surface"
+  );
+  assert.match(content, /The answer is 42\./, "normal content must still flow");
 });
 
 test("KiroExecutor.transformEventStreamToSSE parses fragmented frames and waits for post-stop usage", async () => {
@@ -282,6 +393,13 @@ test("KiroExecutor.refreshCredentials handles missing and AWS-style refresh toke
 
   try {
     assert.equal(await executor.refreshCredentials({}, null), null);
+    assert.equal(
+      await executor.refreshCredentials(
+        { refreshToken: "ignored", providerSpecificData: { authMethod: "api_key" } },
+        null
+      ),
+      null
+    );
     const result = await executor.refreshCredentials(
       {
         refreshToken: "refresh",

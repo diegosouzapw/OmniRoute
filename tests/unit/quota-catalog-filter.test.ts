@@ -12,7 +12,7 @@ import { filterModelsToQuotaPools } from "../../src/lib/quota/quotaCombos.js";
 describe("filterModelsToQuotaPools", () => {
   const models = [
     { id: "qtSd/times/codex/gpt-5.5" },
-    { id: "qtSd/times/codex/gpt-5.4" },
+    { id: "qtSd/times/codex/gpt-5.6-sol" },
     { id: "cx/gpt-5.5" },
     { id: "qtSd/other/codex/m" },
   ];
@@ -21,7 +21,7 @@ describe("filterModelsToQuotaPools", () => {
     const result = filterModelsToQuotaPools(models, ["times"]);
     assert.deepEqual(result, [
       { id: "qtSd/times/codex/gpt-5.5" },
-      { id: "qtSd/times/codex/gpt-5.4" },
+      { id: "qtSd/times/codex/gpt-5.6-sol" },
     ]);
   });
 
@@ -40,7 +40,7 @@ describe("filterModelsToQuotaPools", () => {
     const result = filterModelsToQuotaPools(models, ["times", "other"]);
     assert.deepEqual(result, [
       { id: "qtSd/times/codex/gpt-5.5" },
-      { id: "qtSd/times/codex/gpt-5.4" },
+      { id: "qtSd/times/codex/gpt-5.6-sol" },
       { id: "qtSd/other/codex/m" },
     ]);
   });
@@ -51,9 +51,7 @@ describe("filterModelsToQuotaPools", () => {
       { id: "cx/gpt-5.5", object: "model", owned_by: "cx" },
     ];
     const result = filterModelsToQuotaPools(richModels, ["times"]);
-    assert.deepEqual(result, [
-      { id: "qtSd/times/cx/gpt-5.5", object: "model", owned_by: "combo" },
-    ]);
+    assert.deepEqual(result, [{ id: "qtSd/times/cx/gpt-5.5", object: "model", owned_by: "combo" }]);
   });
 
   it("does not match a model from a different group when only one slug is provided", () => {

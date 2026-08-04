@@ -25,5 +25,8 @@
     "base_url": "OmniRoute-serverns bas-URL",
     "context": "Serverkontext/profil för det här kommandot",
     "lang": "Ange CLI-visningsspråk (åsidosätter OMNIROUTE_LANG)"
+  },
+  "redis": {
+    "description": "Starta en lokal Redis-container med ett klick (Podman eller Docker) för OmniRoute-cachning och kvotspårning"
   }
 }

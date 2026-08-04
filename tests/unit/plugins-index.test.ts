@@ -2,18 +2,19 @@ import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 
 import {
-  registerPlugin,
-  unregisterPlugin,
-  setPluginEnabled,
-  listPlugins,
+  registerHook,
+  unregisterHooks,
+  emitHookBlocking,
+  emitHook,
   runOnRequest,
   runOnResponse,
   runOnError,
-  resetPlugins,
-} from "../../src/lib/plugins/index.ts";
+  resetHooks,
+  getHooks,
+} from "../../src/lib/plugins/hooks.ts";
 
 beforeEach(() => {
-  resetPlugins();
+  resetHooks();
 });
 
 const makeCtx = () => ({
@@ -24,205 +25,168 @@ const makeCtx = () => ({
   metadata: {},
 });
 
-describe("registerPlugin", () => {
-  it("registers plugin with defaults", () => {
-    registerPlugin({ name: "test", onRequest: () => {} });
-    const list = listPlugins();
+describe("registerHook", () => {
+  it("registers a hook for an event", () => {
+    registerHook("onRequest", "test-plugin", () => {});
+    const list = getHooks("onRequest");
     assert.equal(list.length, 1);
-    assert.equal(list[0].name, "test");
+    assert.equal(list[0].pluginName, "test-plugin");
     assert.equal(list[0].priority, 100);
-    assert.equal(list[0].enabled, true);
-    assert.ok(list[0].hooks.includes("onRequest"));
   });
 
-  it("sorts by priority", () => {
-    registerPlugin({ name: "low", priority: 200, onRequest: () => {} });
-    registerPlugin({ name: "high", priority: 10, onRequest: () => {} });
-    registerPlugin({ name: "mid", priority: 100, onRequest: () => {} });
-    const list = listPlugins();
-    assert.equal(list[0].name, "high");
-    assert.equal(list[1].name, "mid");
-    assert.equal(list[2].name, "low");
+  it("sorts hooks by priority", () => {
+    registerHook("onRequest", "low", () => {}, 200);
+    registerHook("onRequest", "high", () => {}, 10);
+    registerHook("onRequest", "mid", () => {}, 100);
+    const list = getHooks("onRequest");
+    assert.equal(list[0].pluginName, "high");
+    assert.equal(list[1].pluginName, "mid");
+    assert.equal(list[2].pluginName, "low");
   });
 
-  it("re-registers plugin with same name", () => {
-    registerPlugin({ name: "p1", onRequest: () => {} });
-    registerPlugin({ name: "p1", onResponse: () => {} });
-    const list = listPlugins();
+  it("prevents duplicate registration", () => {
+    const handler = () => {};
+    registerHook("onRequest", "p1", handler);
+    registerHook("onRequest", "p1", handler);
+    const list = getHooks("onRequest");
     assert.equal(list.length, 1);
-    assert.ok(list[0].hooks.includes("onResponse"));
   });
 
-  it("lists hooks correctly", () => {
-    registerPlugin({
-      name: "multi",
-      onRequest: () => {},
-      onResponse: () => {},
-      onError: () => {},
-    });
-    const list = listPlugins();
-    assert.deepEqual(list[0].hooks.sort(), ["onError", "onRequest", "onResponse"]);
+  it("allows same plugin with different handlers", () => {
+    registerHook("onRequest", "p1", () => {});
+    registerHook("onRequest", "p1", () => {});
+    const list = getHooks("onRequest");
+    assert.equal(list.length, 2);
   });
 });
 
-describe("unregisterPlugin", () => {
-  it("removes plugin by name", () => {
-    registerPlugin({ name: "p1", onRequest: () => {} });
-    assert.equal(unregisterPlugin("p1"), true);
-    assert.equal(listPlugins().length, 0);
-  });
-
-  it("returns false for unknown plugin", () => {
-    assert.equal(unregisterPlugin("unknown"), false);
-  });
-});
-
-describe("setPluginEnabled", () => {
-  it("enables/disables plugin", () => {
-    registerPlugin({ name: "p1", onRequest: () => {} });
-    assert.equal(setPluginEnabled("p1", false), true);
-    assert.equal(listPlugins()[0].enabled, false);
-    assert.equal(setPluginEnabled("p1", true), true);
-    assert.equal(listPlugins()[0].enabled, true);
-  });
-
-  it("returns false for unknown plugin", () => {
-    assert.equal(setPluginEnabled("unknown", false), false);
+describe("unregisterHooks", () => {
+  it("removes all hooks for a plugin", () => {
+    registerHook("onRequest", "p1", () => {});
+    registerHook("onResponse", "p1", () => {});
+    registerHook("onRequest", "p2", () => {});
+    unregisterHooks("p1");
+    assert.equal(getHooks("onRequest").length, 1);
+    assert.equal(getHooks("onResponse").length, 0);
   });
 });
 
-describe("listPlugins", () => {
-  it("returns empty array when no plugins", () => {
-    assert.deepEqual(listPlugins(), []);
+describe("emitHookBlocking", () => {
+  it("returns empty when no hooks registered", async () => {
+    const result = await emitHookBlocking("onRequest", makeCtx());
+    assert.equal(result.blocked, undefined);
+  });
+
+  it("blocks request when hook returns blocked", async () => {
+    registerHook("onRequest", "blocker", () => ({
+      blocked: true,
+      response: { error: "denied" },
+    }));
+    const result = await emitHookBlocking("onRequest", makeCtx());
+    assert.equal(result.blocked, true);
+    assert.deepEqual(result.response, { error: "denied" });
+  });
+
+  it("chains body/metadata through hooks", async () => {
+    registerHook("onRequest", "p1", (payload: any) => ({
+      body: { ...payload.body, added: true },
+      metadata: { p1: true },
+    }), 10);
+    registerHook("onRequest", "p2", (payload: any) => ({
+      metadata: { ...payload.metadata, p2: true },
+    }), 20);
+    const result = await emitHookBlocking("onRequest", makeCtx());
+    assert.equal(result.blocked, undefined);
+    assert.equal((result.body as any).added, true);
+    assert.deepEqual(result.metadata, { p1: true, p2: true });
+  });
+
+  it("swallows hook errors", async () => {
+    registerHook("onRequest", "p1", () => { throw new Error("boom"); });
+    const result = await emitHookBlocking("onRequest", makeCtx());
+    assert.equal(result.blocked, undefined);
   });
 });
 
 describe("runOnRequest", () => {
-  it("returns not blocked when no plugins", async () => {
+  it("returns not blocked when no hooks", async () => {
     const result = await runOnRequest(makeCtx());
-    assert.equal(result.blocked, false);
+    assert.equal(result.blocked, undefined);
   });
 
-  it("returns not blocked when plugin returns void", async () => {
-    registerPlugin({ name: "p1", onRequest: () => {} });
-    const result = await runOnRequest(makeCtx());
-    assert.equal(result.blocked, false);
-  });
-
-  it("blocks request when plugin returns blocked", async () => {
-    registerPlugin({
-      name: "blocker",
-      onRequest: () => ({ blocked: true, response: { error: "denied" } }),
-    });
+  it("blocks request when hook returns blocked", async () => {
+    registerHook("onRequest", "blocker", () => ({
+      blocked: true,
+      response: { error: "denied" },
+    }));
     const result = await runOnRequest(makeCtx());
     assert.equal(result.blocked, true);
     assert.deepEqual(result.response, { error: "denied" });
   });
 
-  it("chains body/metadata through plugins", async () => {
-    registerPlugin({
-      name: "p1",
-      priority: 10,
-      onRequest: (ctx) => ({ body: { ...ctx.body, added: true }, metadata: { p1: true } }),
-    });
-    registerPlugin({
-      name: "p2",
-      priority: 20,
-      onRequest: (ctx) => ({ metadata: { ...ctx.metadata, p2: true } }),
-    });
+  it("chains body/metadata through hooks", async () => {
+    registerHook("onRequest", "p1", (payload: any) => ({
+      body: { ...payload.body, added: true },
+      metadata: { p1: true },
+    }), 10);
+    registerHook("onRequest", "p2", (payload: any) => ({
+      metadata: { ...payload.metadata, p2: true },
+    }), 20);
     const result = await runOnRequest(makeCtx());
-    assert.equal(result.blocked, false);
-    assert.equal((result.ctx.body as any).added, true);
-    assert.deepEqual(result.ctx.metadata, { p1: true, p2: true });
+    assert.equal(result.blocked, undefined);
+    assert.equal((result.body as any).added, true);
+    assert.deepEqual(result.metadata, { p1: true, p2: true });
   });
 
-  it("skips disabled plugins", async () => {
-    registerPlugin({ name: "p1", enabled: false, onRequest: () => ({ blocked: true }) });
+  it("swallows hook errors", async () => {
+    registerHook("onRequest", "p1", () => { throw new Error("boom"); });
     const result = await runOnRequest(makeCtx());
-    assert.equal(result.blocked, false);
-  });
-
-  it("swallows plugin errors", async () => {
-    registerPlugin({ name: "p1", onRequest: () => { throw new Error("boom"); } });
-    const result = await runOnRequest(makeCtx());
-    assert.equal(result.blocked, false);
+    assert.equal(result.blocked, undefined);
   });
 });
 
 describe("runOnResponse", () => {
-  it("returns original response when no plugins", async () => {
+  it("returns original response when no hooks", async () => {
     const resp = { choices: [{ message: { content: "hi" } }] };
     const result = await runOnResponse(makeCtx(), resp);
     assert.deepEqual(result, resp);
   });
 
-  it("chains response through plugins", async () => {
-    registerPlugin({
-      name: "p1",
-      onResponse: (_ctx, resp: any) => ({ ...resp, p1: true }),
-    });
-    registerPlugin({
-      name: "p2",
-      onResponse: (_ctx, resp: any) => ({ ...resp, p2: true }),
-    });
+  it("chains response through hooks", async () => {
+    registerHook("onResponse", "p1", (payload: any) => ({
+      response: { ...payload.response, p1: true },
+    }));
+    registerHook("onResponse", "p2", (payload: any) => ({
+      response: { ...payload.response, p2: true },
+    }));
     const result = await runOnResponse(makeCtx(), { original: true });
     assert.deepEqual(result, { original: true, p1: true, p2: true });
   });
 
-  it("skips disabled plugins", async () => {
-    registerPlugin({
-      name: "p1",
-      enabled: false,
-      onResponse: () => ({ modified: true }),
-    });
-    const result = await runOnResponse(makeCtx(), { original: true });
-    assert.deepEqual(result, { original: true });
-  });
-
-  it("swallows plugin errors", async () => {
-    registerPlugin({ name: "p1", onResponse: () => { throw new Error("boom"); } });
+  it("swallows hook errors", async () => {
+    registerHook("onResponse", "p1", () => { throw new Error("boom"); });
     const result = await runOnResponse(makeCtx(), { original: true });
     assert.deepEqual(result, { original: true });
   });
 });
 
 describe("runOnError", () => {
-  it("returns null when no plugins handle error", async () => {
-    const result = await runOnError(makeCtx(), new Error("test"));
-    assert.equal(result, null);
-  });
-
-  it("returns recovery when plugin handles error", async () => {
-    registerPlugin({
-      name: "recover",
-      onError: () => ({ recovered: true }),
+  it("fires error hooks", async () => {
+    let caught = false;
+    registerHook("onError", "p1", (payload: any) => {
+      caught = true;
     });
-    const result = await runOnError(makeCtx(), new Error("test"));
-    assert.deepEqual(result, { recovered: true });
-  });
-
-  it("skips disabled plugins", async () => {
-    registerPlugin({
-      name: "p1",
-      enabled: false,
-      onError: () => ({ recovered: true }),
-    });
-    const result = await runOnError(makeCtx(), new Error("test"));
-    assert.equal(result, null);
-  });
-
-  it("swallows plugin errors", async () => {
-    registerPlugin({ name: "p1", onError: () => { throw new Error("boom"); } });
-    const result = await runOnError(makeCtx(), new Error("test"));
-    assert.equal(result, null);
+    await runOnError(makeCtx(), new Error("test"));
+    assert.equal(caught, true);
   });
 });
 
-describe("resetPlugins", () => {
-  it("clears all plugins", () => {
-    registerPlugin({ name: "p1", onRequest: () => {} });
-    registerPlugin({ name: "p2", onResponse: () => {} });
-    resetPlugins();
-    assert.equal(listPlugins().length, 0);
+describe("resetHooks", () => {
+  it("clears all hooks", () => {
+    registerHook("onRequest", "p1", () => {});
+    registerHook("onResponse", "p2", () => {});
+    resetHooks();
+    assert.equal(getHooks("onRequest").length, 0);
+    assert.equal(getHooks("onResponse").length, 0);
   });
 });

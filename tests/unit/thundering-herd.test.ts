@@ -39,9 +39,15 @@ test("API profile has shorter transient cooldown", () => {
 test("Exponential backoff clamps to the configured maxBackoffLevel", () => {
   const result = checkFallbackError(502, "", 20, null, null);
   assert.equal(result.newBackoffLevel, BACKOFF_CONFIG.maxLevel);
+  // #8396: the level still clamps at maxLevel, but capScaledCooldownMs also
+  // bounds the duration — with no provider profile the ceiling is
+  // BACKOFF_CONFIG.max rather than the unbounded baseCooldownMs * 2^level.
   assert.equal(
     result.cooldownMs,
-    COOLDOWN_MS.transientInitial * Math.pow(2, BACKOFF_CONFIG.maxLevel)
+    Math.min(
+      COOLDOWN_MS.transientInitial * Math.pow(2, BACKOFF_CONFIG.maxLevel),
+      BACKOFF_CONFIG.max
+    )
   );
 });
 

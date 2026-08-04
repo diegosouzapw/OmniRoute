@@ -181,7 +181,11 @@ export async function computeAnalytics(
     const modelShort = shortModelName(entry.model);
 
     const pricingKey = `${entry.provider}|||${entry.model}`;
-    const cost = computeCostFromPricing(pricingCache.get(pricingKey), entry.tokens);
+    const cost = computeCostFromPricing(pricingCache.get(pricingKey), entry.tokens, {
+      provider: entry.provider,
+      model: entry.model,
+      flatRateAsZero: true,
+    });
 
     // Summary
     summary.promptTokens += pt;

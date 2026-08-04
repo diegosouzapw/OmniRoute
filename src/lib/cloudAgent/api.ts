@@ -1,18 +1,39 @@
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getProviderConnections } from "@/lib/db/providers";
+import { resolveAllowedOrigin, getCorsStatus } from "@/server/cors/origins";
 import type { AgentCredentials } from "./baseAgent.ts";
 import type { CloudAgentTaskRow } from "./db.ts";
 
 type JsonRecord = Record<string, unknown>;
 
-export function getCloudAgentCorsHeaders(request?: Request) {
-  const origin = request?.headers.get("origin");
-  return {
-    "Access-Control-Allow-Origin": origin || "*",
+/**
+ * CORS headers for the cloud-agent surface. These routes are MANAGEMENT
+ * (cookie/session) authed (`requireCloudAgentManagementAuth`), so their CORS
+ * must be fail-closed: the previous `origin || "*"` reflected ANY caller's
+ * origin AND paired it with `Allow-Credentials: true`, which lets any website
+ * make credentialed (cookie-bearing) requests against the management API — a
+ * classic CSRF/exfil hole. We now defer to the central allowlist
+ * (`resolveAllowedOrigin`): only an allowlisted origin is echoed, and
+ * `Allow-Credentials` is emitted ONLY for an EXPLICITLY allowlisted origin —
+ * never for a `CORS_ALLOW_ALL` wildcard echo. Same-origin dashboard calls need
+ * no ACAO at all. See docs/security/CORS.md.
+ */
+export function getCloudAgentCorsHeaders(request?: Request): Record<string, string> {
+  const requestOrigin = request?.headers.get("origin") ?? null;
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Credentials": "true",
   };
+  const allowed = resolveAllowedOrigin(requestOrigin);
+  if (allowed) {
+    headers["Access-Control-Allow-Origin"] = allowed;
+    headers["Vary"] = "Origin";
+    const normalized = requestOrigin?.toLowerCase().replace(/\/+$/, "") ?? "";
+    if (normalized && getCorsStatus().allowedOrigins.includes(normalized)) {
+      headers["Access-Control-Allow-Credentials"] = "true";
+    }
+  }
+  return headers;
 }
 
 export function withCloudAgentCors(response: Response, request?: Request): Response {

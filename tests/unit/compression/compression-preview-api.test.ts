@@ -9,6 +9,10 @@ import {
 describe("compression preview API contract", () => {
   it("accepts RTK and stacked preview payloads", () => {
     assert.equal(
+      PreviewCompressionConfigSchema.safeParse({ liveZone: { enabled: true } }).success,
+      true
+    );
+    assert.equal(
       PreviewRequestSchema.safeParse({
         messages: [{ role: "tool", content: "same\nsame\nsame" }],
         mode: "rtk",

@@ -132,6 +132,20 @@
       "listTitle": "Chaves que expiram nos próximos {days} dias:"
     }
   },
+  "authExport": {
+    "description": "Exportar credenciais DESCRIPTOGRAFADAS de provedores (somente local, saída em texto puro)",
+    "idOpt": "Exportar apenas a conexão correspondente a este id/nome/provedor",
+    "formatOpt": "Formato de saída: json ou env",
+    "outOpt": "Gravar a saída em um arquivo em vez do stdout (gravado com permissão 0600)",
+    "forceOpt": "Confirma que você entende que isso imprime/grava segredos em texto puro",
+    "warning": "⚠ Isso imprime/grava chaves de API e tokens OAuth DESCRIPTOGRAFADOS em texto puro. Garanta que sua tela, o histórico do shell e qualquer arquivo de saída permaneçam privados.",
+    "confirmHeading": "⚠ AVISO: isso exporta credenciais de provedores DESCRIPTOGRAFADAS em texto puro",
+    "confirmBody": "Este comando descriptografa e imprime/grava apiKey, accessToken, refreshToken e\nidToken da(s) conexão(ões) selecionada(s). Trate a saída como um segredo.",
+    "confirmFooter": "Para confirmar, execute:\n  omniroute auth export --force",
+    "missingKey": "STORAGE_ENCRYPTION_KEY é obrigatório para exportar credenciais.",
+    "notFound": "Conexão não encontrada: {id}",
+    "invalidFormat": "Formato inválido: {format}. Use json ou env."
+  },
   "stream": {
     "description": "Transmitir resposta de chat com modos de inspeção SSE",
     "file": "Ler prompt de arquivo",
@@ -298,6 +312,9 @@
     "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
     "cleared": "Cache limpo.",
     "clearFailed": "Falha ao limpar cache."
+  },
+  "redis": {
+    "description": "Iniciar um contêiner Redis local com um clique (Podman ou Docker) para cache e rastreamento de cotas do OmniRoute"
   },
   "test": {
     "description": "Testar conexão com um provedor",
@@ -1228,6 +1245,7 @@
     "description": "Gerenciar inicialização automática do OmniRoute no login",
     "enable": "Habilitar inicialização automática no login",
     "disable": "Desabilitar inicialização automática no login",
+    "toggle": "Alternar inicialização automática no login",
     "status": "Mostrar status de inicialização automática"
   },
   "runtime": {
@@ -1254,5 +1272,29 @@
     "search": "Buscar plugins disponíveis no npm",
     "update": "Atualizar plugin(s) instalado(s)",
     "scaffold": "Gerar boilerplate de novo plugin"
+  },
+  "launch": {
+    "description": "Inicia o Claude Code apontando para o OmniRoute (local ou remoto, com --profile)",
+    "token": "Token que o cliente Claude deve enviar (ANTHROPIC_AUTH_TOKEN)",
+    "notRunning": "OmniRoute não está acessível em {port}. Inicie com 'omniroute serve'.",
+    "notFound": "O CLI 'claude' não foi encontrado no PATH."
+  },
+  "setupClaude": {
+    "description": "Gera profiles do Claude Code em ~/.claude/profiles a partir do catálogo de modelos do OmniRoute"
+  },
+  "connect": {
+    "description": "Conecta a um servidor OmniRoute remoto e entra no modo remoto"
+  },
+  "tokens": {
+    "description": "Gerencia tokens de acesso CLI com escopo (modo remoto)"
+  },
+  "configure": {
+    "description": "Escolhe um provedor+modelo do servidor ativo e grava uma configuração de CLI local"
+  },
+  "launchCodex": {
+    "description": "Inicia o Codex CLI apontando para o OmniRoute (local ou VPS remoto)"
+  },
+  "setupCodex": {
+    "description": "Gera os arquivos de perfil ~/.codex a partir do catálogo de modelos ao vivo do OmniRoute"
   }
 }

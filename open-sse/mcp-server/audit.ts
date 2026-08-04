@@ -7,6 +7,7 @@
  */
 
 import { hashInput, summarizeOutput } from "./schemas/audit.ts";
+import { isNativeSqliteLoadError } from "../../src/lib/db/core.ts";
 
 // ============ Database Connection ============
 
@@ -21,6 +22,61 @@ interface AuditDatabase {
   pragma: (sql: string) => unknown;
   close: () => void;
   open?: boolean;
+  driver?: "better-sqlite3" | "node:sqlite";
+}
+
+interface NodeSqliteDatabase {
+  prepare: (sql: string) => {
+    run: (...params: unknown[]) => { changes: number | bigint; lastInsertRowid: number | bigint };
+    get: (...params: unknown[]) => unknown;
+    all: (...params: unknown[]) => unknown[];
+  };
+  exec: (sql: string) => void;
+  close: () => void;
+}
+
+/**
+ * node:sqlite's `DatabaseSync` does NOT expose a boolean `open` property —
+ * `open` and `close` are methods on the prototype, and the only state
+ * surface is the `isOpen` getter. Track open state locally in a closure
+ * so the adapter's `AuditDatabase` contract (`open?: boolean`) is honored
+ * and `getCachedAuditDb()`'s truthy check doesn't return a closed handle
+ * after `closeAuditDb()`.
+ */
+function createNodeSqliteAuditAdapter(db: NodeSqliteDatabase): AuditDatabase {
+  let _isOpen = true;
+  return {
+    driver: "node:sqlite",
+    get open() {
+      return _isOpen;
+    },
+    prepare<TRow = unknown>(sql: string) {
+      const stmt = db.prepare(sql);
+      return {
+        get: (...params: unknown[]) => stmt.get(...params) as TRow | undefined,
+        all: (...params: unknown[]) => stmt.all(...params) as TRow[],
+        run: (...params: unknown[]) => stmt.run(...params),
+      };
+    },
+    pragma(pragmaSql: string) {
+      // node:sqlite has no .pragma() helper — route through .exec() for
+      // statement-shaped PRAGMAs (e.g. "wal_checkpoint(TRUNCATE)").
+      try {
+        db.exec(`PRAGMA ${pragmaSql}`);
+        return null;
+      } catch (err) {
+        return err instanceof Error ? err.message : String(err);
+      }
+    },
+    close: () => {
+      if (!_isOpen) return;
+      try {
+        db.close();
+      } finally {
+        _isOpen = false;
+      }
+    },
+  };
 }
 
 declare global {
@@ -150,9 +206,61 @@ function toString(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+async function openBetterSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
+  const Database = (await import("better-sqlite3")).default as unknown as new (
+    dbPath: string
+  ) => AuditDatabase;
+  return new Database(dbPath);
+}
+
+function nodeSqliteFallbackAvailable(): boolean {
+  const [maj, min] = (process.versions.node ?? "0.0").split(".").map(Number);
+  return maj > 22 || (maj === 22 && (min ?? 0) >= 5);
+}
+
+async function openNodeSqliteAuditDb(dbPath: string): Promise<AuditDatabase> {
+  const { DatabaseSync } = (await import("node:sqlite")) as {
+    DatabaseSync: new (p: string) => NodeSqliteDatabase;
+  };
+  return createNodeSqliteAuditAdapter(new DatabaseSync(dbPath));
+}
+
+async function openFallbackAuditDb(dbPath: string, nativeMessage: string): Promise<AuditDatabase | null> {
+  if (!nodeSqliteFallbackAvailable()) {
+    console.error(
+      `[MCP Audit] better-sqlite3 native binding unavailable and Node ${process.version} ` +
+        "has no built-in sqlite. Audit logging disabled. Fix: run " +
+        "`npm rebuild better-sqlite3` in the omniroute install root."
+    );
+    return null;
+  }
+
+  try {
+    const adapter = await openNodeSqliteAuditDb(dbPath);
+    console.warn(
+      `[MCP Audit] better-sqlite3 binding unavailable — fell back to node:sqlite ` +
+        `(${nativeMessage.split("\n")[0]})`
+    );
+    return adapter;
+  } catch (nodeErr) {
+    const nodeMessage = nodeErr instanceof Error ? nodeErr.message : String(nodeErr);
+    console.error("[MCP Audit] Failed to connect to database:", nodeMessage);
+    return null;
+  }
+}
+
 /**
  * Lazy-load the database connection.
  * Uses the same SQLite database as the main OmniRoute app.
+ *
+ * Driver priority:
+ *   1. better-sqlite3 — fast native binding (when its compiled `.node`
+ *      binary is present, see scripts/build/postinstall.mjs).
+ *   2. node:sqlite    — built-in to Node 22.5+. Used as a transparent
+ *      fallback so the MCP audit logger still works on installs where
+ *      the better-sqlite3 binary failed to resolve (e.g. missing
+ *      `dist/node_modules/better-sqlite3/build/Release/better_sqlite3.node`
+ *      in some global-install / Docker scenarios).
  */
 async function getDb(): Promise<AuditDatabase | null> {
   const cachedDb = getCachedAuditDb();
@@ -173,12 +281,20 @@ async function getDb(): Promise<AuditDatabase | null> {
       return null;
     }
 
-    const Database = (await import("better-sqlite3")).default as unknown as new (
-      dbPath: string
-    ) => AuditDatabase;
-    const database = new Database(dbPath);
-    setCachedAuditDb(database);
-    return database;
+    try {
+      const database = await openBetterSqliteAuditDb(dbPath);
+      setCachedAuditDb(database);
+      return database;
+    } catch (nativeErr) {
+      const nativeMessage = nativeErr instanceof Error ? nativeErr.message : String(nativeErr);
+      if (!isNativeSqliteLoadError(nativeErr)) {
+        console.error("[MCP Audit] Failed to connect to database:", nativeMessage);
+        return null;
+      }
+      const fallbackDb = await openFallbackAuditDb(dbPath, nativeMessage);
+      setCachedAuditDb(fallbackDb);
+      return fallbackDb;
+    }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[MCP Audit] Failed to connect to database:", message);

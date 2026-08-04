@@ -1,7 +1,7 @@
 /**
  * Tests for SessionRecorderBar — start/stop flow + timer logic
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 function formatElapsed(s: number): string {

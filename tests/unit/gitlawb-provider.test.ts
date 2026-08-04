@@ -10,7 +10,8 @@ describe("Gitlawb Opengateway providers", () => {
       assert.strictEqual(provider.id, "gitlawb");
       assert.strictEqual(provider.alias, "glb");
       assert.ok(provider.name.includes("Gitlawb"));
-      assert.strictEqual(provider.hasFree, true);
+      // Free MiMo (xiaomi/mimo-v2.5) revoked 2026-05; Opengateway is now pay-as-you-go (re-verified 2026-06-18).
+      assert.strictEqual(provider.hasFree, false);
     });
 
     it("should have registry entry with correct baseUrl", async () => {
@@ -52,7 +53,8 @@ describe("Gitlawb Opengateway providers", () => {
       assert.ok(provider, "gitlawb-gmi should exist in APIKEY_PROVIDERS");
       assert.strictEqual(provider.id, "gitlawb-gmi");
       assert.strictEqual(provider.alias, "glb-gmi");
-      assert.strictEqual(provider.hasFree, true);
+      // Free Nemotron promo ended 2026-06; GMI Cloud route is pay-as-you-go (re-verified 2026-06-18).
+      assert.strictEqual(provider.hasFree, false);
     });
 
     it("should have registry entry with gmi-cloud baseUrl", async () => {

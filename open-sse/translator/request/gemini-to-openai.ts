@@ -46,8 +46,8 @@ export function geminiToOpenAIRequest(model, body, stream) {
 
   // Convert contents to messages
   if (body.contents && Array.isArray(body.contents)) {
-    for (const content of body.contents) {
-      const converted = convertGeminiContent(content);
+    for (const content of splitCoLocatedFunctionResponses(body.contents)) {
+      const converted = convertGeminiContentWithReasoning(content);
       if (converted) {
         result.messages.push(converted);
       }
@@ -77,6 +77,38 @@ export function geminiToOpenAIRequest(model, body, stream) {
 }
 
 // Convert Gemini content to OpenAI message
+// convertGeminiContent() early-returns the tool message on the first
+// `functionResponse` part in a content, dropping any co-located parts
+// (another functionCall, or trailing text). Gemini clients can send those
+// co-located. Pre-split each such content into: one single-part content per
+// functionResponse (each early-returns cleanly as a tool message, emitted
+// first to keep tool-result-before-next-turn ordering) plus one content for
+// the remaining non-functionResponse parts.
+function splitCoLocatedFunctionResponses(contents) {
+  const out = [];
+  for (const content of contents) {
+    if (!content || !Array.isArray(content.parts)) {
+      out.push(content);
+      continue;
+    }
+    const hasFunctionResponse = content.parts.some((p) => p && p.functionResponse);
+    if (!hasFunctionResponse) {
+      out.push(content);
+      continue;
+    }
+    for (const part of content.parts) {
+      if (part && part.functionResponse) {
+        out.push({ ...content, parts: [part] });
+      }
+    }
+    const nonFRParts = content.parts.filter((p) => !(p && p.functionResponse));
+    if (nonFRParts.length > 0) {
+      out.push({ ...content, parts: nonFRParts });
+    }
+  }
+  return out;
+}
+
 function convertGeminiContent(content) {
   const role = content.role === "user" ? "user" : "assistant";
 
@@ -148,6 +180,50 @@ function convertGeminiContent(content) {
   return null;
 }
 
+// Gemini marks thinking-mode output with `part.thought === true` on the model's own
+// `parts` array (no separate field on the content itself). Left alone,
+// convertGeminiContent() treats a thought part exactly like a visible text part —
+// merging the model's internal reasoning into the message's regular `content`, which
+// both leaks the private reasoning to whatever the OpenAI pivot forwards to next and
+// prevents Reasoning Replay Cache (docs/routing/REASONING_REPLAY.md) from ever seeing
+// it as `reasoning_content`. Split thought parts out first and re-attach the joined
+// text as `reasoning_content` on the resulting message instead.
+function convertGeminiContentWithReasoning(content) {
+  if (!content || !Array.isArray(content.parts)) {
+    return convertGeminiContent(content);
+  }
+
+  let reasoningContent = "";
+  const visibleParts = [];
+  for (const part of content.parts) {
+    if (part && part.thought === true) {
+      if (typeof part.text === "string") reasoningContent += part.text;
+    } else {
+      visibleParts.push(part);
+    }
+  }
+
+  if (!reasoningContent) {
+    return convertGeminiContent(content);
+  }
+
+  const converted = convertGeminiContent({ ...content, parts: visibleParts });
+
+  if (converted && converted.role !== "tool") {
+    return { ...converted, reasoning_content: reasoningContent };
+  }
+
+  if (!converted) {
+    const role = content.role === "user" ? "user" : "assistant";
+    return { role, reasoning_content: reasoningContent };
+  }
+
+  // A `tool` message (functionResponse) can't carry reasoning_content — fall back to
+  // returning it unchanged rather than fabricating a field the tool-message schema
+  // doesn't expect.
+  return converted;
+}
+
 // Extract text from Gemini content
 function extractGeminiText(content) {
   if (typeof content === "string") return content;
@@ -159,4 +235,3 @@ function extractGeminiText(content) {
 
 // Register
 register(FORMATS.GEMINI, FORMATS.OPENAI, geminiToOpenAIRequest, null);
-register(FORMATS.GEMINI_CLI, FORMATS.OPENAI, geminiToOpenAIRequest, null);

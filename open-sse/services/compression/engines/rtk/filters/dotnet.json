@@ -1,0 +1,47 @@
+{
+  "id": "dotnet",
+  "label": ".NET CLI",
+  "description": "Strip the .NET build banner and restore chatter; keep build/test status, warnings (CS####), and errors.",
+  "category": "build",
+  "priority": 78,
+  "match": {
+    "outputTypes": ["dotnet"],
+    "commands": ["^dotnet\\b"],
+    "patterns": ["^Build (?:succeeded|FAILED)\\b", "\\b(?:error|warning) CS\\d+\\b"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": [
+      "^Microsoft \\(R\\)",
+      "^Copyright \\(C\\) Microsoft",
+      "Determining projects to restore",
+      "^\\s*Restored ",
+      "^\\s*$",
+      "^Time Elapsed "
+    ],
+    "collapsePatterns": ["^\\s*Restored "],
+    "deduplicate": true,
+    "maxLines": 160,
+    "headLines": 40,
+    "tailLines": 60,
+    "onEmpty": "dotnet: ok"
+  },
+  "preserve": {
+    "errorPatterns": [
+      "Build FAILED",
+      "FAILED",
+      "\\berror CS\\d+\\b",
+      "\\bwarning CS\\d+\\b",
+      "Failed!"
+    ],
+    "summaryPatterns": ["Build succeeded", "Passed!", "Total tests:"]
+  },
+  "tests": [
+    {
+      "name": "drops build banner + restore chatter, keeps status",
+      "command": "dotnet build",
+      "input": "Microsoft (R) Build Engine version 17.8\n  Determining projects to restore...\nBuild succeeded.\n",
+      "expected": "Build succeeded."
+    }
+  ]
+}

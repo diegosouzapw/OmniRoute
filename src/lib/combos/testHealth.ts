@@ -1,6 +1,7 @@
 type JsonRecord = Record<string, unknown>;
 
 const COMBO_TEST_MAX_TOKENS = 2048;
+const STREAMING_MODEL_TEST_MAX_TOKENS = 64;
 const COMBO_TEST_OPERAND_MIN = 10000;
 const COMBO_TEST_OPERAND_RANGE = 90000;
 
@@ -118,7 +119,11 @@ function buildComboTestPrompt() {
   return `Calculate ${left}+${right}, and reply with the result only.`;
 }
 
-export function buildComboTestRequestBody(modelStr: string, isEmbedding: boolean = false) {
+export function buildComboTestRequestBody(
+  modelStr: string,
+  isEmbedding: boolean = false,
+  options: { stream?: boolean; maxTokens?: number } = {}
+) {
   if (isEmbedding) {
     return {
       model: modelStr,
@@ -133,9 +138,82 @@ export function buildComboTestRequestBody(modelStr: string, isEmbedding: boolean
     messages: [{ role: "user", content: buildComboTestPrompt() }],
     // Give reasoning-heavy models enough headroom to finish the request and
     // still emit a visible answer without immediate truncation.
-    max_tokens: COMBO_TEST_MAX_TOKENS,
-    stream: false,
+    max_tokens:
+      options.maxTokens ??
+      (options.stream ? STREAMING_MODEL_TEST_MAX_TOKENS : COMBO_TEST_MAX_TOKENS),
+    stream: options.stream ?? false,
   };
+}
+
+export type ComboTestStreamResult = {
+  text: string;
+  error?: { message: string; statusCode?: number };
+};
+
+function extractStreamError(body: JsonRecord): ComboTestStreamResult["error"] {
+  const error = asRecord(body.error);
+  const message =
+    typeof error.message === "string"
+      ? error.message.trim()
+      : typeof body.message === "string"
+        ? body.message.trim()
+        : "";
+  if (!message) return undefined;
+
+  const status = error.status ?? error.statusCode ?? error.code ?? body.status ?? body.statusCode;
+  const statusCode =
+    typeof status === "number"
+      ? status
+      : typeof status === "string" && /^\d+$/.test(status)
+        ? Number(status)
+        : undefined;
+  return {
+    message,
+    ...(Number.isInteger(statusCode) ? { statusCode } : {}),
+  };
+}
+
+function extractStreamPayload(payload: string): ComboTestStreamResult | undefined {
+  try {
+    const body = JSON.parse(payload);
+    const error = extractStreamError(asRecord(body));
+    if (error) return { text: "", error };
+
+    const collected: string[] = [];
+    const direct = extractComboTestResponseText(body);
+    if (direct) collected.push(direct);
+    for (const choice of Array.isArray(body?.choices) ? body.choices : []) {
+      const delta = asRecord(choice?.delta);
+      const content = extractTextFromContent(delta.content);
+      const reasoning = extractReasoningText(delta);
+      if (content) collected.push(content);
+      else if (reasoning) collected.push(reasoning);
+    }
+    return { text: collected.join("") };
+  } catch {
+    // Ignore malformed/non-JSON SSE events; a later valid event can still
+    // prove that the model is healthy.
+    return undefined;
+  }
+}
+
+export function extractComboTestStreamResult(streamBody: string): ComboTestStreamResult {
+  const collected: string[] = [];
+  let streamError: ComboTestStreamResult["error"];
+  for (const line of streamBody.split(/\r?\n/)) {
+    if (!line.startsWith("data:")) continue;
+    const payload = line.slice(5).trim();
+    if (!payload || payload === "[DONE]") continue;
+    const result = extractStreamPayload(payload);
+    if (!result) continue;
+    if (result.error) streamError = result.error;
+    else if (result.text) collected.push(result.text);
+  }
+  return { text: collected.join("").trim(), ...(streamError ? { error: streamError } : {}) };
+}
+
+export function extractComboTestStreamText(streamBody: string): string {
+  return extractComboTestStreamResult(streamBody).text;
 }
 
 export function extractComboTestResponseText(responseBody: unknown): string {

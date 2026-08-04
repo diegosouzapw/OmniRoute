@@ -4,6 +4,6 @@
  */
 import { openaiResponsesToOpenAIRequest } from "../request/openai-responses.ts";
 
-export function convertResponsesApiFormat(body, credentials = null) {
-  return openaiResponsesToOpenAIRequest(null, body, null, credentials);
+export function convertResponsesApiFormat(body, credentials = null, provider = null) {
+  return openaiResponsesToOpenAIRequest(provider, body, null, credentials);
 }

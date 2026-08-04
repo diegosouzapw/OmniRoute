@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   normalizeForSearch,
   matchesSearch,
+  matchesAnyToken,
   compareTr,
 } from "../../src/shared/utils/turkishText.ts";
 
@@ -72,4 +73,72 @@ test("compareTr: null/undefined argümanları güvenli (?? '' guard)", () => {
   assert.equal(compareTr(null, "a") < 0, true);
   assert.equal(compareTr("a", null) > 0, true);
   assert.equal(compareTr(null, undefined), 0);
+});
+
+// ---------------------------------------------------------------------------
+// matchesAnyToken — Türkçe bölümü (release tarafı)
+// ---------------------------------------------------------------------------
+
+test("matchesAnyToken: tek token eşleşmesi", () => {
+  assert.equal(matchesAnyToken("pollinations", "pollinations sambanova"), true);
+});
+
+test("matchesAnyToken: birden fazla token'dan biri eşleşir", () => {
+  assert.equal(matchesAnyToken("sambanova", "pollinations sambanova huggingface"), true);
+});
+
+test("matchesAnyToken: hiçbir token eşleşmez", () => {
+  assert.equal(matchesAnyToken("openai", "pollinations sambanova"), false);
+});
+
+test("matchesAnyToken: Türkçe ve aksan duyarsız çoklu token eşleşmesi", () => {
+  assert.equal(matchesAnyToken("İstanbul Provider", "ankara istanbul"), true);
+});
+
+test("matchesAnyToken: boş veya yalnızca boşluk sorgusu her şeyi eşler", () => {
+  assert.equal(matchesAnyToken("herhangi", ""), true);
+  assert.equal(matchesAnyToken("herhangi", "   "), true);
+});
+
+test("matchesAnyToken: null/undefined text/query güvenli", () => {
+  assert.equal(matchesAnyToken(null, "test"), false);
+  assert.equal(matchesAnyToken("test", null), true);
+});
+
+// ---------------------------------------------------------------------------
+// matchesAnyToken — PR #8660 bölümü (space-separated query)
+// ---------------------------------------------------------------------------
+
+test("matchesAnyToken: single token behaves like matchesSearch", () => {
+  assert.equal(matchesAnyToken("İstanbul", "istanbul"), true);
+  assert.equal(matchesAnyToken("OpenAI", "anthropic"), false);
+});
+
+test("matchesAnyToken: multi-token query matches any token (OR fallback)", () => {
+  assert.equal(matchesAnyToken("pollinations", "pollinations sambanova"), true);
+  assert.equal(matchesAnyToken("sambanova", "pollinations sambanova"), true);
+  assert.equal(matchesAnyToken("huggingface", "pollinations sambanova"), false);
+  assert.equal(matchesAnyToken("testorg", "testorg github"), true);
+  assert.equal(matchesAnyToken("github", "testorg github"), true);
+});
+
+test("matchesAnyToken: full query match takes priority before OR split", () => {
+  assert.equal(matchesAnyToken("pollinations sambanova", "pollinations sambanova"), true);
+});
+
+test("matchesAnyToken: Turkish normalization works across tokens", () => {
+  assert.equal(matchesAnyToken("Şarj", "sarj istanbul"), true);
+  assert.equal(matchesAnyToken("İstanbul", "istanbul sarj"), true);
+});
+
+test("matchesAnyToken: empty or whitespace query matches all", () => {
+  assert.equal(matchesAnyToken("anything", ""), true);
+  assert.equal(matchesAnyToken("anything", "   "), true);
+});
+
+test("matchesAnyToken: null/undefined guard mirrors matchesSearch", () => {
+  assert.equal(matchesAnyToken(null, "query"), false);
+  assert.equal(matchesAnyToken("text", null), true);
+  assert.equal(matchesAnyToken(undefined, "query"), false);
+  assert.equal(matchesAnyToken("text", undefined), true);
 });

@@ -53,10 +53,7 @@ function rowToGroup(row: GroupRow): QuotaGroup {
 }
 
 function makeId(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-  return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+  return crypto.randomUUID();
 }
 
 // ---------------------------------------------------------------------------
@@ -115,9 +112,7 @@ export function listGroups(): QuotaGroup[] {
  * Returns true if the row was updated, false if the group was not found.
  */
 export function renameGroup(id: string, name: string): boolean {
-  const result = getDb()
-    .prepare("UPDATE quota_groups SET name = ? WHERE id = ?")
-    .run(name, id);
+  const result = getDb().prepare("UPDATE quota_groups SET name = ? WHERE id = ?").run(name, id);
   return result.changes > 0;
 }
 
@@ -144,13 +139,9 @@ export function deleteGroup(id: string): boolean {
     .prepare<{ cnt: number }>("SELECT COUNT(*) AS cnt FROM quota_pools WHERE group_id = ?")
     .get(id);
   if (refRow && refRow.cnt > 0) {
-    throw new Error(
-      `Group '${id}' has pools; reassign or delete them first.`
-    );
+    throw new Error(`Group '${id}' has pools; reassign or delete them first.`);
   }
 
-  const result = getDb()
-    .prepare("DELETE FROM quota_groups WHERE id = ?")
-    .run(id);
+  const result = getDb().prepare("DELETE FROM quota_groups WHERE id = ?").run(id);
   return result.changes > 0;
 }

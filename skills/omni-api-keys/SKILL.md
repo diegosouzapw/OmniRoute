@@ -34,6 +34,26 @@ curl -X POST https://localhost:20128/api/keys \
   -d '{}'
 ```
 
+### GET /api/keys/{id}
+
+Get API key
+
+```bash
+curl https://localhost:20128/api/keys/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PATCH /api/keys/{id}
+
+Update API key
+
+```bash
+curl -X PATCH https://localhost:20128/api/keys/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### DELETE /api/keys/{id}
 
 Delete API key
@@ -43,6 +63,17 @@ curl -X DELETE https://localhost:20128/api/keys/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/keys/{id}/devices
+
+List devices for an API key
+
+Lists the distinct devices (masked IP + User-Agent fingerprints) tracked for an API key by the in-memory device tracker. IPs are masked before storage; the route never sees the raw client IP.
+
+```bash
+curl https://localhost:20128/api/keys/{id}/devices \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
-See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/reference/openapi.yaml` for detailed request/response schemas.
+See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

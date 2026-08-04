@@ -21,10 +21,7 @@
 export type Category = "unknown" | "rate_limited" | "quota_exhausted" | "soft_rate_limit";
 
 export type DecisionKind =
-  | "soft_retry"
-  | "instant_retry_same_auth"
-  | "short_cooldown_switch_auth"
-  | "full_quota_exhausted";
+  "soft_retry" | "instant_retry_same_auth" | "short_cooldown_switch_auth" | "full_quota_exhausted";
 
 export interface Decision {
   kind: DecisionKind;
@@ -32,7 +29,14 @@ export interface Decision {
   reason: string;
 }
 
-const QUOTA_EXHAUSTED_KEYWORDS = ["quota_exhausted", "quota exhausted"];
+const QUOTA_EXHAUSTED_KEYWORDS = [
+  "quota_exhausted",
+  "quota exhausted",
+  // Antigravity native message: "Individual quota reached. Contact your administrator to enable overages."
+  "quota reached",
+  "enable overages",
+  "individual quota",
+];
 
 const CREDITS_EXHAUSTED_KEYWORDS = [
   "google_one_ai",
@@ -46,7 +50,8 @@ const CREDITS_EXHAUSTED_KEYWORDS = [
   "minimumcreditamountforusage",
   "minimum credit amount for usage",
   "minimum credit",
-  "resource has been exhausted",
+  "insufficient_g1_credits_balance",
+  "g1_credits",
 ];
 
 const SHORT_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { BedrockExecutor, openAIToBedrockConverse } from "../../open-sse/executors/bedrock.ts";
+import { runWithCapture } from "../../open-sse/utils/providerRequestLogging.ts";
 
 function credentials(region = "eu-west-2") {
   return {
@@ -94,6 +95,19 @@ test("openAIToBedrockConverse avoids duplicate Bedrock toolUse ids from mixed to
   assert.equal(toolUseBlocks[0].toolUse.toolUseId, "call_dup");
   assert.deepEqual(toolUseBlocks[0].toolUse.input, { source: "tool_calls" });
   assert.equal(payload.messages[2].content[0].toolResult.toolUseId, "call_dup");
+});
+
+test("openAIToBedrockConverse preserves additionalModelRequestFields", () => {
+  const payload = openAIToBedrockConverse("anthropic.claude-3-7-sonnet-20250219-v1:0", {
+    messages: [{ role: "user", content: "Hello" }],
+    additionalModelRequestFields: {
+      thinking: { type: "enabled", budget_tokens: 2048 },
+    },
+  });
+
+  assert.deepStrictEqual(payload.additionalModelRequestFields, {
+    thinking: { type: "enabled", budget_tokens: 2048 },
+  });
 });
 
 test("openAIToBedrockConverse drops duplicate pending tool call ids", () => {
@@ -271,6 +285,8 @@ test("openAIToBedrockConverse removes tool uses whose results are not immediatel
 
 test("BedrockExecutor converts non-streaming Converse output to OpenAI chat completion JSON", async () => {
   const sent = [];
+  let prepared = null;
+  let preparedBeforeSend = false;
   const executor = new BedrockExecutor(() => ({
     send: async (command) => {
       sent.push(command);
@@ -282,15 +298,31 @@ test("BedrockExecutor converts non-streaming Converse output to OpenAI chat comp
     },
   }));
 
-  const result = await executor.execute({
-    model: "anthropic.claude-sonnet-4-6",
-    body: { messages: [{ role: "user", content: "Hi" }], max_tokens: 8 },
-    stream: false,
-    credentials: credentials(),
-  });
+  const requestCapture = {
+    capture(request) {
+      preparedBeforeSend = sent.length === 0;
+      prepared = request;
+    },
+    body(fallback) {
+      return prepared?.body ?? fallback;
+    },
+    latest() {
+      return prepared;
+    },
+  };
+  const result = await runWithCapture(requestCapture, () =>
+    executor.execute({
+      model: "anthropic.claude-sonnet-4-6",
+      body: { messages: [{ role: "user", content: "Hi" }], max_tokens: 8 },
+      stream: false,
+      credentials: credentials(),
+    })
+  );
 
   assert.equal(sent[0].constructor.name, "ConverseCommand");
   assert.equal(sent[0].input.modelId, "anthropic.claude-sonnet-4-6");
+  assert.equal(preparedBeforeSend, true);
+  assert.deepEqual(prepared.body, sent[0].input);
   assert.equal(result.response.status, 200);
   const body = await result.response.json();
   assert.equal(body.model, "anthropic.claude-sonnet-4-6");

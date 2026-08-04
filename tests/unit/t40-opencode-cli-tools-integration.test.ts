@@ -21,7 +21,10 @@ test("T40: OpenCode card documents config paths and --variant usage", () => {
     .toLowerCase();
 
   assert.match(notesText, /\.config\/opencode\/opencode\.json/);
-  assert.match(notesText, /%appdata%/);
+  // #3330: OpenCode uses ~/.config on all platforms (incl. Windows) — the note
+  // must no longer point Windows users at %APPDATA%.
+  assert.doesNotMatch(notesText, /%appdata%/);
+  assert.match(notesText, /%userprofile%/);
   assert.match(notesText, /--variant/);
 });
 
@@ -36,15 +39,22 @@ test("T40: OpenCode config path resolves per-platform", () => {
   const linuxDefault = resolveOpencodeConfigPath("linux", {}, "/home/dev");
   assert.equal(linuxDefault, path.join("/home/dev", ".config", "opencode", "opencode.json"));
 
+  // #3330: OpenCode uses XDG `~/.config/opencode/` on ALL platforms including
+  // Windows (NOT %APPDATA%) — OmniRoute must write where OpenCode reads.
   const windowsPath = resolveOpencodeConfigPath(
     "win32",
     { APPDATA: "C:\\Users\\dev\\AppData\\Roaming" },
     "C:\\Users\\dev"
   );
-  assert.equal(
-    windowsPath,
-    path.join("C:\\Users\\dev\\AppData\\Roaming", "opencode", "opencode.json")
+  assert.equal(windowsPath, path.join("C:\\Users\\dev", ".config", "opencode", "opencode.json"));
+
+  // Windows still honors XDG_CONFIG_HOME when set.
+  const windowsXdg = resolveOpencodeConfigPath(
+    "win32",
+    { XDG_CONFIG_HOME: "D:\\xdg" },
+    "C:\\Users\\dev"
   );
+  assert.equal(windowsXdg, path.join("D:\\xdg", "opencode", "opencode.json"));
 });
 
 test("T40: OpenCode config generator includes endpoint and selected API key", () => {
@@ -136,8 +146,8 @@ test("T40: OpenCode merge preserves unrelated config and updates only provider.o
     {
       baseUrl: "http://localhost:20128/v1",
       apiKey: "sk_test_opencode",
-      models: ["cx/gpt-5.4"],
-      modelLabels: { "cx/gpt-5.4": "GPT-5.4" },
+      models: ["cx/gpt-5.6-sol"],
+      modelLabels: { "cx/gpt-5.6-sol": "GPT-5.6 Sol" },
     }
   );
 
@@ -146,7 +156,7 @@ test("T40: OpenCode merge preserves unrelated config and updates only provider.o
     github: { command: "npx", args: ["-y", "@modelcontextprotocol/server-github"] },
   });
   assert.deepEqual(mergedConfig.provider.omniroute.models, {
-    "cx/gpt-5.4": { name: "GPT-5.4" },
+    "cx/gpt-5.6-sol": { name: "GPT-5.6 Sol" },
   });
 });
 

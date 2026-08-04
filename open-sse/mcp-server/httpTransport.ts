@@ -11,6 +11,7 @@
 
 import { randomUUID } from "node:crypto";
 import { createMcpServer } from "./server.ts";
+import { resolveMcpCallerAuthInfo, withMcpHttpAuthContext } from "./httpAuthContext.ts";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -134,6 +135,23 @@ async function isInitializeRequest(request: Request): Promise<boolean> {
   }
 }
 
+/**
+ * Resolve the caller's per-key scopes (#7895) and hand the request to the
+ * transport with `authInfo` populated, so `extra.authInfo.scopes` reaching
+ * tool handlers reflects the real `api_keys.scopes` row instead of the
+ * `OMNIROUTE_MCP_SCOPES` env fallback. When no per-key auth can be resolved
+ * (no key, invalid key, stdio has no `Request` at all), `authInfo` stays
+ * `undefined` and `scopeEnforcement.ts` falls through to its existing
+ * meta/env chain unchanged.
+ */
+async function handleRequestWithAuthInfo(
+  transport: WebStandardStreamableHTTPServerTransport,
+  request: Request
+): Promise<Response> {
+  const authInfo = await resolveMcpCallerAuthInfo(request);
+  return transport.handleRequest(request, { authInfo });
+}
+
 function errorResponse(message: string, code: number, status = 400): Response {
   return new Response(
     JSON.stringify({
@@ -146,6 +164,26 @@ function errorResponse(message: string, code: number, status = 400): Response {
       headers: { "Content-Type": "application/json" },
     }
   );
+}
+
+export function protectMcpSseResponse(request: Request, response: Response): Response {
+  if (
+    request.method !== "POST" ||
+    !response.headers.get("content-type")?.toLowerCase().includes("text/event-stream")
+  ) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  const cacheControl = headers.get("cache-control");
+  if (!/(?:^|,)\s*no-transform(?:\s*(?:,|$))/i.test(cacheControl ?? "")) {
+    headers.set("cache-control", [cacheControl, "no-transform"].filter(Boolean).join(", "));
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 function withSessionHeader(response: Response, sessionId: string): Response {
@@ -168,12 +206,39 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
   if (sessionId) {
     const session = _streamableSessions.get(sessionId);
     if (!session) {
-      return errorResponse("Bad Request: Unknown Mcp-Session-Id header", -32000);
+      // MCP spec (2025-03-26 / 2025-11-25, Session Management): once a session is
+      // terminated/unknown, the server MUST respond with HTTP 404 Not Found so the
+      // client re-initializes. A 400 here is non-recoverable for spec-compliant
+      // clients (they only re-init on 404). See issue #5169.
+      //
+      // Auto-recovery: if the client sends an initialize request with a stale session
+      // id (e.g. after a server restart or idle eviction), treat it as a fresh
+      // initialization rather than hard-failing with 404. This avoids requiring users
+      // to manually restart their MCP client after every server restart.
+      if (await isInitializeRequest(request)) {
+        const newSession = createStreamableSession();
+        try {
+          const response = await withMcpHttpAuthContext(request, () =>
+            handleRequestWithAuthInfo(newSession.transport, request)
+          );
+          return withSessionHeader(response, newSession.sessionId);
+        } catch (err) {
+          closeStreamableSession(newSession.sessionId);
+          console.error("[MCP] Streamable HTTP error during stale-session recovery:", err);
+          return new Response(JSON.stringify({ error: "MCP transport error" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      }
+      return errorResponse("Not Found: Unknown Mcp-Session-Id header", -32000, 404);
     }
 
     try {
       session.lastActivityAt = Date.now();
-      const response = await session.transport.handleRequest(request);
+      const response = await withMcpHttpAuthContext(request, () =>
+        handleRequestWithAuthInfo(session.transport, request)
+      );
       if (request.method === "DELETE") {
         closeStreamableSession(sessionId);
       }
@@ -197,7 +262,9 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
   const session = createStreamableSession();
 
   try {
-    const response = await session.transport.handleRequest(request);
+    const response = await withMcpHttpAuthContext(request, () =>
+      handleRequestWithAuthInfo(session.transport, request)
+    );
     return withSessionHeader(response, session.sessionId);
   } catch (err) {
     closeStreamableSession(session.sessionId);
@@ -214,7 +281,7 @@ async function handleStreamableRequest(request: Request): Promise<Response> {
  * Used by the Next.js route at /api/mcp/stream.
  */
 export async function handleMcpStreamableHTTP(request: Request): Promise<Response> {
-  return handleStreamableRequest(request);
+  return protectMcpSseResponse(request, await handleStreamableRequest(request));
 }
 
 /**
@@ -226,7 +293,10 @@ export async function handleMcpSSE(request: Request): Promise<Response> {
   const { transport } = ensureSseServer();
 
   try {
-    return await transport.handleRequest(request);
+    const response = await withMcpHttpAuthContext(request, () =>
+      handleRequestWithAuthInfo(transport, request)
+    );
+    return protectMcpSseResponse(request, response);
   } catch (err) {
     console.error("[MCP] SSE error:", err);
     return new Response(JSON.stringify({ error: "MCP SSE transport error" }), {

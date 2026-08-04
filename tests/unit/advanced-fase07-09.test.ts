@@ -234,6 +234,13 @@ import {
   getActiveStreams,
   archiveStream,
 } from "../../src/sse/services/streamState.ts";
+import * as streamStateModule from "../../src/sse/services/streamState.ts";
+
+test("stream state public surface excludes removed completed-history accessor", () => {
+  assert.equal(Object.hasOwn(streamStateModule, "getRecentCompletedStreams"), false);
+  assert.equal(typeof streamStateModule.getActiveStreams, "function");
+  assert.equal(typeof streamStateModule.archiveStream, "function");
+});
 
 test("StreamTracker: starts in INITIALIZED state", () => {
   const tracker = new StreamTracker("req-1");

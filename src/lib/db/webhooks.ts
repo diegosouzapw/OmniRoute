@@ -47,10 +47,26 @@ function rowToWebhook(row: WebhookRow): Webhook {
   };
 }
 
-export function getWebhooks(): Webhook[] {
+interface CountResult {
+  cnt: number;
+}
+
+export function getWebhooks(options?: { limit?: number; offset?: number }): {
+  webhooks: Webhook[];
+  total: number;
+} {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM webhooks ORDER BY created_at DESC").all() as WebhookRow[];
-  return rows.map(rowToWebhook);
+  const limit = options?.limit;
+  const offset = options?.offset ?? 0;
+  let sql = "SELECT * FROM webhooks ORDER BY created_at DESC";
+  const params: unknown[] = [];
+  if (limit !== undefined) {
+    sql += " LIMIT ? OFFSET ?";
+    params.push(limit, offset);
+  }
+  const rows = db.prepare(sql).all(...params) as WebhookRow[];
+  const total = (db.prepare("SELECT count(*) as cnt FROM webhooks").get() as CountResult).cnt;
+  return { webhooks: rows.map(rowToWebhook), total };
 }
 
 export function getWebhook(id: string): Webhook | null {

@@ -58,6 +58,70 @@ test("parseToolCallsFromText returns null toolCalls when there is no tool block"
   assert.equal(content, "just a normal answer");
 });
 
+test("parseToolCallsFromText detects bare JSON tool calls when requested tools are present", () => {
+  const text = '{"name":"get_weather","arguments":{"city":"Paris"}}';
+  const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(content, "");
+  assert.equal(toolCalls?.length, 1);
+  assert.equal(toolCalls?.[0].function.name, "get_weather");
+  assert.deepEqual(JSON.parse(toolCalls?.[0].function.arguments || "{}"), { city: "Paris" });
+});
+
+test("parseToolCallsFromText does not parse bare JSON without requested tools", () => {
+  const text = '{"name":"get_weather","arguments":{"city":"Paris"}}';
+  const { content, toolCalls } = parseToolCallsFromText(text);
+
+  assert.equal(toolCalls, null);
+  assert.equal(content, text);
+});
+
+test("parseToolCallsFromText tolerates Python-dict-ish bare tool JSON", () => {
+  const text = "{'command': 'get_weather', 'arguments': {'city': 'Paris', 'units': 'metric', 'fresh': True}}";
+  const { toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(toolCalls?.length, 1);
+  assert.equal(toolCalls?.[0].function.name, "get_weather");
+  assert.deepEqual(JSON.parse(toolCalls?.[0].function.arguments || "{}"), {
+    city: "Paris",
+    units: "metric",
+    fresh: true,
+  });
+});
+
+test("parseToolCallsFromText escapes double quotes inside single-quoted strings", () => {
+  const text = "{'command': 'get_weather', 'arguments': {'city': 'Paris \"City\"'}}";
+  const { toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(toolCalls?.length, 1);
+  assert.deepEqual(JSON.parse(toolCalls?.[0].function.arguments || "{}"), { city: 'Paris "City"' });
+});
+
+test("parseToolCallsFromText fuzzy-matches emitted tool names to requested tools", () => {
+  const text = '{"name":"getWeather","arguments":{"city":"Paris"}}';
+  const { toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(toolCalls?.length, 1);
+  assert.equal(toolCalls?.[0].function.name, "get_weather");
+});
+
+test("parseToolCallsFromText strips bare JSON while preserving surrounding text", () => {
+  const text = 'I will check now.\n{"name":"get_weather","arguments":"{\\"city\\":\\"Paris\\"}"}\nDone.';
+  const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(toolCalls?.length, 1);
+  assert.deepEqual(JSON.parse(toolCalls?.[0].function.arguments || "{}"), { city: "Paris" });
+  assert.equal(content, "I will check now.\nDone.");
+});
+
+test("parseToolCallsFromText ignores bare JSON whose tool is not requested", () => {
+  const text = '{"name":"delete_everything","arguments":{"force":true}}';
+  const { content, toolCalls } = parseToolCallsFromText(text, "call", TOOLS);
+
+  assert.equal(toolCalls, null);
+  assert.equal(content, text);
+});
+
 test("parseToolCallsFromText parses multiple tool calls", () => {
   const text =
     '<tool>{"name": "a", "arguments": {"x": 1}}</tool>\n<tool>{"name": "b", "arguments": {}}</tool>';

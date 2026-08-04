@@ -24,6 +24,18 @@ const NUMERIC_SCHEMA_FIELDS = [
   "multipleOf",
 ] as const;
 
+// Fix (9router#1556): OpenAI/Codex's Responses API rejects JSON Schema `pattern`
+// values that use regex lookaround (lookahead/lookbehind) with
+// "Invalid JSON schema: regex lookaround is not supported.". IDE/SDK agent
+// harnesses commonly emit lookahead patterns (e.g. `^(?=.*@).+$`), so any
+// `pattern` field containing `(?=`, `(?!`, `(?<=`, or `(?<!` must be dropped
+// before the schema reaches the Codex/OpenAI upstream.
+const REGEX_LOOKAROUND_PATTERN = /\(\?<?[=!]/;
+
+function hasUnsupportedRegexLookaround(pattern: unknown): boolean {
+  return typeof pattern === "string" && REGEX_LOOKAROUND_PATTERN.test(pattern);
+}
+
 function isPlainObject(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -79,6 +91,11 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
   // Fix #1782: Strip 'default' property to prevent upstream models from eagerly injecting optional fields
   if ("default" in result) {
     delete result.default;
+  }
+
+  // Fix (9router#1556): drop unsupported regex lookaround from `pattern`.
+  if (hasUnsupportedRegexLookaround(result.pattern)) {
+    delete result.pattern;
   }
 
   for (const field of NUMERIC_SCHEMA_FIELDS) {
@@ -138,6 +155,70 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
   }
 
   keepOpaqueObjectSchemasOpen(result);
+
+  return result;
+}
+
+// Sub-schema maps keyed by property name (each value is itself walked recursively).
+const REGEX_STRIP_OBJECT_MAP_FIELDS = [
+  "properties",
+  "patternProperties",
+  "definitions",
+  "$defs",
+] as const;
+
+// Sub-schema lists (each entry is itself walked recursively).
+const REGEX_STRIP_ARRAY_MAP_FIELDS = ["prefixItems", "anyOf", "oneOf", "allOf"] as const;
+
+/** Recursively strips unsupported regex lookaround from every value of an object map field. */
+function stripRegexFromObjectMap(record: JsonRecord): JsonRecord {
+  return Object.fromEntries(
+    Object.entries(record).map(([key, value]) => [key, stripUnsupportedRegexPatterns(value)])
+  );
+}
+
+/**
+ * Strip regex `pattern` constraints that use lookaround (lookahead/lookbehind),
+ * which OpenAI/Codex's Responses API rejects outright with a 400
+ * ("Invalid JSON schema: regex lookaround is not supported."). Walks the same
+ * JSON Schema shape as `coerceSchemaNumericFields` (properties, items,
+ * anyOf/oneOf/allOf, $defs/definitions, etc). See 9router#1556.
+ */
+export function stripUnsupportedRegexPatterns(schema: unknown): unknown {
+  if (Array.isArray(schema)) {
+    return schema.map((entry) => stripUnsupportedRegexPatterns(entry));
+  }
+  if (!isPlainObject(schema)) return schema;
+
+  const result: JsonRecord = { ...schema };
+
+  if (hasUnsupportedRegexLookaround(result.pattern)) {
+    delete result.pattern;
+  }
+
+  for (const field of REGEX_STRIP_OBJECT_MAP_FIELDS) {
+    if (isPlainObject(result[field])) {
+      result[field] = stripRegexFromObjectMap(result[field]);
+    }
+  }
+
+  for (const field of REGEX_STRIP_ARRAY_MAP_FIELDS) {
+    if (Array.isArray(result[field])) {
+      result[field] = (result[field] as unknown[]).map((entry) =>
+        stripUnsupportedRegexPatterns(entry)
+      );
+    }
+  }
+
+  if (result.items !== undefined) {
+    result.items = stripUnsupportedRegexPatterns(result.items);
+  }
+  if (result.additionalProperties && typeof result.additionalProperties === "object") {
+    result.additionalProperties = stripUnsupportedRegexPatterns(result.additionalProperties);
+  }
+  if (isPlainObject(result.not)) {
+    result.not = stripUnsupportedRegexPatterns(result.not);
+  }
 
   return result;
 }
@@ -205,6 +286,72 @@ export function coerceToolSchemas(tools: unknown): unknown {
       });
     }
 
+    return result;
+  });
+}
+
+// #7023 — Responses API strict mode forces every "optional" tool property into
+// `required`, so a model that intends to OMIT an optional enum property (no declared
+// `default`) must still emit a concrete value (e.g. Agent.isolation:"remote"). Neither
+// #6992 op (drop-if-default / drop-if-empty) can catch this, so we widen such properties
+// to accept `null` on the request side (OpenAI's own documented nullable-union idiom for
+// this exact strict-mode limitation) and drop the key response-side when the model emits
+// `null` (see pureHelpers.ts::isDroppableNullEntry). Scope: top-level
+// `properties[key].enum` only — does not recurse into `items`/`anyOf`/`oneOf` branches
+// (no real-world case beyond Agent.isolation is documented; extend with a concrete repro).
+function shouldInjectNullOmission(key: string, propSchema: unknown, required: Set<string>): boolean {
+  return (
+    isPlainObject(propSchema) &&
+    Array.isArray(propSchema.enum) &&
+    !required.has(key) &&
+    !hasOwn(propSchema, "default")
+  );
+}
+
+function widenPropertyForNullOmission(propSchema: JsonRecord): JsonRecord {
+  const widened: JsonRecord = { ...propSchema };
+  const enumValues = propSchema.enum as unknown[];
+  widened.enum = enumValues.includes(null) ? enumValues : [...enumValues, null];
+  if (typeof propSchema.type === "string") {
+    widened.type = [propSchema.type, "null"];
+  } else if (Array.isArray(propSchema.type) && !propSchema.type.includes("null")) {
+    widened.type = [...propSchema.type, "null"];
+  }
+  const note = "null = omit this parameter";
+  widened.description =
+    typeof propSchema.description === "string" && propSchema.description.length > 0
+      ? `${propSchema.description} (${note})`
+      : note;
+  return widened;
+}
+
+export function injectOptionalEnumOmissionSentinel(schema: unknown): unknown {
+  if (!isPlainObject(schema) || !isPlainObject(schema.properties)) return schema;
+
+  const required = new Set(Array.isArray(schema.required) ? schema.required : []);
+  let changed = false;
+  const nextProperties: JsonRecord = { ...schema.properties };
+
+  for (const [key, propSchema] of Object.entries(schema.properties)) {
+    if (!shouldInjectNullOmission(key, propSchema, required)) continue;
+    nextProperties[key] = widenPropertyForNullOmission(propSchema as JsonRecord);
+    changed = true;
+  }
+
+  if (!changed) return schema;
+  return { ...schema, properties: nextProperties };
+}
+
+export function injectOptionalEnumOmissionForTools(tools: unknown): unknown {
+  if (!Array.isArray(tools)) return tools;
+
+  return tools.map((tool) => {
+    if (!isPlainObject(tool)) return tool;
+
+    const result: JsonRecord = { ...tool };
+    if ("parameters" in result && !isPlainObject(result.function)) {
+      result.parameters = injectOptionalEnumOmissionSentinel(result.parameters);
+    }
     return result;
   });
 }

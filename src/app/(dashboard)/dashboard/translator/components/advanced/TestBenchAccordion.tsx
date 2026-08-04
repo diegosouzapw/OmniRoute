@@ -160,7 +160,7 @@ function TestBenchContent() {
       const latency = Date.now() - start;
 
       if (!sendRes.ok) {
-        const errData = await sendRes.json().catch(() => ({})) as { error?: string };
+        const errData = (await sendRes.json().catch(() => ({}))) as { error?: string };
         setResults((prev) => ({
           ...prev,
           [scenario.id]: {
@@ -425,10 +425,7 @@ function TestBenchContent() {
   );
 }
 
-export default function TestBenchAccordion({
-  forceOpen,
-  onOpenChange,
-}: TestBenchAccordionProps) {
+export default function TestBenchAccordion({ forceOpen, onOpenChange }: TestBenchAccordionProps) {
   const t = useTranslations("translator");
 
   const translateOrFallback = (key: string, fallback: string): string => {
@@ -462,10 +459,10 @@ export default function TestBenchAccordion({
 
   return (
     <Collapsible
-      title={translateOrFallback("advancedTestBenchTitle", "Test Bench (8 cenários)")}
+      title={translateOrFallback("advancedTestBenchTitle", "Test Bench (8 scenarios)")}
       subtitle={translateOrFallback(
         "advancedTestBenchSubtitle",
-        "Roda todos os cenários e reporta pass/fail + compatibilidade %.",
+        "Runs every scenario and reports pass/fail plus compatibility percentage."
       )}
       icon="science"
       defaultOpen={forceOpen ?? false}

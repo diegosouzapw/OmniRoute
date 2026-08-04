@@ -22,6 +22,10 @@ const budget = [
   { file: "src/lib/db/prompts.ts", maxAny: 0 },
   { file: "src/lib/db/providers.ts", maxAny: 0 },
   { file: "src/lib/db/settings.ts", maxAny: 0 },
+  // #3512: saveRequestUsage typed with UsageEntry (DB-entity 1:1 interface); the
+  // other any's in this file (getUsageHistory filter, nextCursor cast,
+  // appendRequestLog tokens, getRecentLogs catch) were cleaned in the same pass.
+  { file: "src/lib/usage/usageHistory.ts", maxAny: 0 },
   { file: "open-sse/config/providerRegistry.ts", maxAny: 0 },
   { file: "open-sse/config/providerModels.ts", maxAny: 0 },
   { file: "open-sse/mcp-server/audit.ts", maxAny: 0 },
@@ -49,7 +53,11 @@ const budget = [
   { file: "open-sse/handlers/responseTranslator.ts", maxAny: 0 },
   { file: "open-sse/utils/stream.ts", maxAny: 0 },
   { file: "open-sse/translator/request/openai-responses.ts", maxAny: 0 },
-  { file: "open-sse/executors/base.ts", maxAny: 0 },
+  // 2 FALSE POSITIVES: #4389 compares the Anthropic `tool_choice` value against the
+  // STRING literal "any" (`tb.tool_choice === "any"` and `.type === "any"`) to detect
+  // forced tool use. The checker strips comments but not strings, and there are zero
+  // actual TypeScript `any` types in this file. Budget set to the matched count.
+  { file: "open-sse/executors/base.ts", maxAny: 2 },
   { file: "open-sse/executors/kiro.ts", maxAny: 0 },
   // 3 FALSE POSITIVES: the word "any" appears in #3104's tool-commit / output-
   // constraint prompt STRINGS ("not any other tool", "any text", "any of these
@@ -61,7 +69,12 @@ const budget = [
   { file: "open-sse/utils/tlsClient.ts", maxAny: 0 },
   { file: "open-sse/utils/proxyFetch.ts", maxAny: 0 },
   { file: "open-sse/utils/error.ts", maxAny: 0 },
-  { file: "open-sse/translator/request/openai-to-gemini.ts", maxAny: 0 },
+  // 2 FALSE POSITIVES: convertOpenAIToolChoiceToGemini() compares the OpenAI
+  // `tool_choice` value against the STRING literal "any" (`choice === "any"` and
+  // `c.type === "any"`) — same tool_choice-detection pattern as the executors/base.ts
+  // entry above. The checker strips comments but not strings, and there are zero
+  // actual TypeScript `any` types in this file. Budget set to the matched count.
+  { file: "open-sse/translator/request/openai-to-gemini.ts", maxAny: 2 },
   { file: "open-sse/translator/request/antigravity-to-openai.ts", maxAny: 0 },
   { file: "open-sse/translator/request/claude-to-openai.ts", maxAny: 0 },
   { file: "open-sse/handlers/audioTranscription.ts", maxAny: 0 },

@@ -1,0 +1,31 @@
+packages:
+  - "open-sse"
+allowBuilds:
+  "@parcel/watcher": true
+  "@swc/core": true
+  better-sqlite3: true
+  core-js: true
+  esbuild: true
+  keytar: true
+  koffi: true
+  libxmljs2: true
+  onnxruntime-node: true
+  protobufjs: true
+  sharp: true
+  tls-client-node: true
+  unrs-resolver: true
+onlyBuiltDependencies:
+  - "@parcel/watcher"
+  - "@swc/core"
+  - "better-sqlite3"
+  - "core-js"
+  - "esbuild"
+  - "keytar"
+  - "koffi"
+  - "libxmljs2"
+  - "onnxruntime-node"
+  - "omniroute"
+  - "protobufjs"
+  - "sharp"
+  - "tls-client-node"
+  - "unrs-resolver"

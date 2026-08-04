@@ -30,7 +30,6 @@ const AGENT_ICON_MAP: Record<string, string> = {
   claude: "anthropic",
   "claude-code": "anthropic",
   codex: "openai",
-  "gemini-cli": "google",
   gemini: "google",
   opencode: "opencode",
   openclaw: "openclaw",

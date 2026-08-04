@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { UsageAnalytics, CardSkeleton } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
 import EvalsTab from "../usage/components/EvalsTab";
+import CacheHealthTab from "./CacheHealthTab";
 import ComboHealthTab from "./ComboHealthTab";
 import ProviderUtilizationTab from "./ProviderUtilizationTab";
 import RouteExplainabilityTab from "./RouteExplainabilityTab";
@@ -18,6 +19,7 @@ type AnalyticsTab =
   | "search"
   | "utilization"
   | "combo-health"
+  | "cache-health"
   | "route-trace";
 
 const ANALYTICS_TABS: Array<{
@@ -36,6 +38,12 @@ const ANALYTICS_TABS: Array<{
     label: "Combo Health",
     icon: "health_and_safety",
   },
+  {
+    id: "cache-health",
+    labelKey: "cacheHealth",
+    label: "Cache Health",
+    icon: "database",
+  },
   { id: "route-trace", labelKey: "routeTrace", label: "Route Trace", icon: "alt_route" },
 ];
 
@@ -49,7 +57,13 @@ function analyticsText(t: AnalyticsTranslator, key: string, fallback: string) {
 
 function normalizeTab(tab: string | null): AnalyticsTab {
   if (tab === "route-trace" || tab === "route-explain") return "route-trace";
-  if (tab === "evals" || tab === "search" || tab === "utilization" || tab === "combo-health") {
+  if (
+    tab === "evals" ||
+    tab === "search" ||
+    tab === "utilization" ||
+    tab === "combo-health" ||
+    tab === "cache-health"
+  ) {
     return tab;
   }
   return "overview";
@@ -82,7 +96,7 @@ function AnalyticsPageContent() {
     <div className="flex flex-col gap-6">
       <div
         role="tablist"
-        aria-label="Analytics sections"
+        aria-label={t("sectionsAria")}
         className="flex flex-wrap items-center gap-1 rounded-lg border border-border bg-bg-subtle p-1"
       >
         {ANALYTICS_TABS.map((tab) => {
@@ -123,6 +137,7 @@ function AnalyticsPageContent() {
         {activeTab === "search" ? <SearchAnalyticsTab /> : null}
         {activeTab === "utilization" ? <ProviderUtilizationTab /> : null}
         {activeTab === "combo-health" ? <ComboHealthTab /> : null}
+        {activeTab === "cache-health" ? <CacheHealthTab /> : null}
         {activeTab === "route-trace" ? (
           <RouteExplainabilityTab initialRequestId={initialRequestId} />
         ) : null}

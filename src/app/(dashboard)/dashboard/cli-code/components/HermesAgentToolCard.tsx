@@ -1,27 +1,85 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Button, ModelSelectModal } from "@/shared/components";
 
 interface Role {
   id: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
 }
 
 const HERMES_ROLES: Role[] = [
-  { id: "default", label: "Default (main)", description: "Primary conversation model" },
+  { id: "default", labelKey: "hermesRoleDefault", descriptionKey: "hermesRoleDefaultDesc" },
   {
     id: "delegation",
-    label: "Delegation (subagents)",
-    description: "Orchestrator and sub-agent model",
+    labelKey: "hermesRoleDelegation",
+    descriptionKey: "hermesRoleDelegationDesc",
   },
-  { id: "vision", label: "Vision", description: "Image and screenshot understanding" },
-  { id: "compression", label: "Compression", description: "Prompt compression & summarization" },
-  { id: "web_extract", label: "Web Extract", description: "Web page content extraction" },
-  { id: "skills_hub", label: "Skills Hub", description: "Skills and tool-use reasoning" },
-  { id: "approval", label: "Approval", description: "Safety and approval decisions" },
+  { id: "vision", labelKey: "hermesRoleVision", descriptionKey: "hermesRoleVisionDesc" },
+  {
+    id: "web_extract",
+    labelKey: "hermesRoleWebExtract",
+    descriptionKey: "hermesRoleWebExtractDesc",
+  },
+  {
+    id: "compression",
+    labelKey: "hermesRoleCompression",
+    descriptionKey: "hermesRoleCompressionDesc",
+  },
+  {
+    id: "skills_hub",
+    labelKey: "hermesRoleSkillsHub",
+    descriptionKey: "hermesRoleSkillsHubDesc",
+  },
+  {
+    id: "approval",
+    labelKey: "hermesRoleApproval",
+    descriptionKey: "hermesRoleApprovalDesc",
+  },
+  { id: "mcp", labelKey: "hermesRoleMcp", descriptionKey: "hermesRoleMcpDesc" },
+  {
+    id: "title_generation",
+    labelKey: "hermesRoleTitleGeneration",
+    descriptionKey: "hermesRoleTitleGenerationDesc",
+  },
+  {
+    id: "memory_query_rewrite",
+    labelKey: "hermesRoleMemoryQueryRewrite",
+    descriptionKey: "hermesRoleMemoryQueryRewriteDesc",
+  },
+  {
+    id: "tts_audio_tags",
+    labelKey: "hermesRoleTtsAudioTags",
+    descriptionKey: "hermesRoleTtsAudioTagsDesc",
+  },
+  {
+    id: "triage_specifier",
+    labelKey: "hermesRoleTriageSpecifier",
+    descriptionKey: "hermesRoleTriageSpecifierDesc",
+  },
+  {
+    id: "kanban_decomposer",
+    labelKey: "hermesRoleKanbanDecomposer",
+    descriptionKey: "hermesRoleKanbanDecomposerDesc",
+  },
+  {
+    id: "profile_describer",
+    labelKey: "hermesRoleProfileDescriber",
+    descriptionKey: "hermesRoleProfileDescriberDesc",
+  },
+  { id: "goal_judge", labelKey: "hermesRoleGoalJudge", descriptionKey: "hermesRoleGoalJudgeDesc" },
+  { id: "curator", labelKey: "hermesRoleCurator", descriptionKey: "hermesRoleCuratorDesc" },
+  { id: "monitor", labelKey: "hermesRoleMonitor", descriptionKey: "hermesRoleMonitorDesc" },
+  {
+    id: "background_review",
+    labelKey: "hermesRoleBackgroundReview",
+    descriptionKey: "hermesRoleBackgroundReviewDesc",
+  },
 ];
+
+const HERMES_AGENT_ZERO_CONFIG_PROVIDERS = ["opencode"];
 
 export default function HermesAgentToolCard({
   tool,
@@ -34,6 +92,7 @@ export default function HermesAgentToolCard({
   cloudEnabled,
   batchStatus,
 }: any) {
+  const t = useTranslations("cliTools");
   type RoleSelection = { model: string; provider: string };
 
   const [selections, setSelections] = useState<Record<string, RoleSelection>>({});
@@ -45,6 +104,10 @@ export default function HermesAgentToolCard({
   const [previewYaml, setPreviewYaml] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [firstSetupAt, setFirstSetupAt] = useState<string | null>(null);
+  // Model aliases drive the passthrough provider groups (OpenRouter, Requesty,
+  // DGrid, AgentRouter, Charm Hyper, ...) in ModelSelectModal — without them,
+  // those providers never surface in the Hermes Agent role picker (#7151).
+  const [modelAliases, setModelAliases] = useState({});
 
   // Track whether we have already seeded from batchStatus on this expand
   const seededFromBatchRef = useRef(false);
@@ -54,41 +117,14 @@ export default function HermesAgentToolCard({
     const diff = Date.now() - then;
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (days > 0) return `${days}d`;
+    if (days > 0) return t("daysAgoShort", { count: days });
     const hours = Math.floor(diff / (1000 * 60 * 60));
-    if (hours > 0) return `${hours}h`;
+    if (hours > 0) return t("hoursAgoShort", { count: hours });
     const minutes = Math.floor(diff / (1000 * 60));
-    return `${minutes}m`;
+    return t("minutesAgoShort", { count: minutes });
   }
 
-  useEffect(() => {
-    if (isExpanded) {
-      // Phase 3: Seed from detector snapshot (batchStatus) for instant UI
-      if (
-        !seededFromBatchRef.current &&
-        Object.keys(currentRoles).length === 0 &&
-        batchStatus?.hermesAgentRoles
-      ) {
-        const seeded: Record<string, any> = {};
-        Object.entries(batchStatus.hermesAgentRoles).forEach(([role, info]: [string, any]) => {
-          seeded[role] = {
-            model: info.model,
-            provider: info.provider,
-          };
-        });
-        setCurrentRoles(seeded);
-        seededFromBatchRef.current = true;
-      }
-      loadCurrentConfig();
-    } else {
-      // Reset seed flag when collapsed so it can seed again on next expand
-      seededFromBatchRef.current = false;
-      setPreviewYaml(null);
-      setFirstSetupAt(null);
-    }
-  }, [isExpanded, batchStatus, currentRoles]);
-
-  const loadCurrentConfig = async () => {
+  const loadCurrentConfig = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/cli-tools/hermes-agent-settings");
@@ -104,6 +140,46 @@ export default function HermesAgentToolCard({
       console.warn("Could not load current Hermes Agent config", e);
     } finally {
       setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isExpanded) {
+      // Reset seed flag when collapsed so it can seed again on next expand
+      seededFromBatchRef.current = false;
+      setPreviewYaml(null);
+      setFirstSetupAt(null);
+      return;
+    }
+    // Phase 3: Seed from detector snapshot (batchStatus) for instant UI — once per expand.
+    // NOTE: currentRoles is intentionally NOT a dependency. loadCurrentConfig() below sets
+    // currentRoles to a fresh object on every fetch; if currentRoles were a dep, the effect
+    // would re-fire → refetch → setCurrentRoles → re-fire … an infinite loop. On the detail
+    // page isExpanded is hardcoded true, so that loop spun forever (the "loading forever" +
+    // console spam of /api/cli-tools/hermes-agent-settings). We read currentRoles only via a
+    // functional update so the emptiness guard sees the latest value without subscribing to it.
+    if (!seededFromBatchRef.current && batchStatus?.hermesAgentRoles) {
+      seededFromBatchRef.current = true;
+      setCurrentRoles((prev) => {
+        if (Object.keys(prev).length > 0) return prev;
+        const seeded: Record<string, any> = {};
+        Object.entries(batchStatus.hermesAgentRoles).forEach(([role, info]: [string, any]) => {
+          seeded[role] = { model: info.model, provider: info.provider };
+        });
+        return seeded;
+      });
+    }
+    loadCurrentConfig();
+    fetchModelAliases();
+  }, [isExpanded, batchStatus, loadCurrentConfig]);
+
+  const fetchModelAliases = async () => {
+    try {
+      const res = await fetch("/api/models/alias");
+      const data = await res.json();
+      if (res.ok) setModelAliases(data.aliases || {});
+    } catch (error) {
+      console.warn("Error fetching model aliases:", error);
     }
   };
 
@@ -141,7 +217,7 @@ export default function HermesAgentToolCard({
     }
 
     if (payloadSelections.length === 0) {
-      setMessage("Select models for roles (or ensure roles are loaded) before previewing.");
+      setMessage(t("hermesSelectBeforePreview"));
       return;
     }
 
@@ -162,10 +238,10 @@ export default function HermesAgentToolCard({
       if (res.ok && data.yaml) {
         setPreviewYaml(data.yaml);
       } else {
-        setMessage(data.error || "Failed to generate preview");
+        setMessage(data.error || t("hermesPreviewFailed"));
       }
     } catch {
-      setMessage("Failed to generate preview");
+      setMessage(t("hermesPreviewFailed"));
     } finally {
       setIsPreviewLoading(false);
     }
@@ -193,15 +269,15 @@ export default function HermesAgentToolCard({
 
       const data = await res.json();
       if (res.ok) {
-        setMessage(`Saved to ${data.configPath}`);
+        setMessage(t("hermesSavedTo", { path: data.configPath }));
         setSelections({}); // clear pending user choices after successful save
         setPreviewYaml(null); // hide any open preview after apply
         await loadCurrentConfig();
       } else {
-        setMessage(data.error || "Failed to save");
+        setMessage(data.error || t("failedToSave"));
       }
     } catch {
-      setMessage("Network error");
+      setMessage(t("networkError"));
     } finally {
       setIsSaving(false);
     }
@@ -270,10 +346,12 @@ export default function HermesAgentToolCard({
                 {firstSetupAt && (
                   <span
                     className="text-[10px] text-text-muted flex items-center gap-0.5 font-normal"
-                    title={`First set up via OmniRoute on ${new Date(firstSetupAt).toLocaleDateString()}`}
+                    title={t("hermesFirstSetupTitle", {
+                      date: new Date(firstSetupAt).toLocaleDateString(),
+                    })}
                   >
                     <span className="material-symbols-outlined text-[11px]">schedule</span>
-                    {formatTimeSince(firstSetupAt)} since setup
+                    {t("hermesSinceSetup", { time: formatTimeSince(firstSetupAt) })}
                   </span>
                 )}
               </h3>
@@ -281,13 +359,14 @@ export default function HermesAgentToolCard({
                 Object.keys(selections).length > 0 ||
                 Object.keys(batchStatus?.hermesAgentRoles || {}).length > 0) && (
                 <span className="text-[10px] px-1.5 py-px rounded bg-emerald-500/10 text-emerald-600">
-                  {configuredRolesCount}/{HERMES_ROLES.length} roles
+                  {t("hermesConfiguredRoles", {
+                    configured: configuredRolesCount,
+                    total: HERMES_ROLES.length,
+                  })}
                 </span>
               )}
             </div>
-            <p className="text-xs text-text-muted truncate">
-              {tool?.description || "Advanced multi-role terminal agent (by Nousresearch)"}
-            </p>
+            <p className="text-xs text-text-muted truncate">{t("toolDescriptions.hermes-agent")}</p>
           </div>
         </div>
         <span
@@ -309,14 +388,14 @@ export default function HermesAgentToolCard({
               loading={isLoading}
             >
               <span className="material-symbols-outlined text-[14px] mr-1">refresh</span>
-              Refresh all
+              {t("refreshAll")}
             </Button>
           </div>
 
           {/* Quick apply row — consistent small action pills */}
           {activeProviders?.[0]?.models?.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="text-text-muted">Quick apply same model to all roles:</span>
+              <span className="text-text-muted">{t("hermesQuickApply")}</span>
               {activeProviders[0].models.slice(0, 6).map((m: any) => {
                 const modelValue = typeof m === "string" ? m : m?.value || m?.name;
                 if (!modelValue) return null;
@@ -325,7 +404,7 @@ export default function HermesAgentToolCard({
                     key={modelValue}
                     onClick={() => applyToAll(modelValue)}
                     className="px-2 py-0.5 rounded border border-border bg-surface hover:bg-bg-secondary text-text-main transition-colors"
-                    title={`Apply ${modelValue} to every role`}
+                    title={t("hermesApplyModelToAll", { model: modelValue })}
                   >
                     {modelValue}
                   </button>
@@ -346,12 +425,17 @@ export default function HermesAgentToolCard({
               // Badge logic per user's spec:
               // - If user has selected something in this session (pending): show as via OmniRoute
               // - Else if current from disk: show real provider name + "(not OmniRoute)" or "OmniRoute"
-              let badge: { label: string; pending: boolean } | null = null;
+              let badge: { label: string; pending: boolean; outsideOmniRoute: boolean } | null =
+                null;
 
               if (sel) {
                 // pending change made via the Select modal / quick apply → will be routed via OmniRoute
                 const prov = sel.provider || "OmniRoute";
-                badge = { label: `${prov} (via OmniRoute)`, pending: true };
+                badge = {
+                  label: t("hermesViaOmniRoute", { provider: prov }),
+                  pending: true,
+                  outsideOmniRoute: false,
+                };
               } else if (current) {
                 const isOmni =
                   current?.provider === "omniroute" ||
@@ -359,10 +443,14 @@ export default function HermesAgentToolCard({
                   (current?.base_url || "").includes("localhost");
 
                 if (isOmni) {
-                  badge = { label: "OmniRoute", pending: false };
+                  badge = { label: "OmniRoute", pending: false, outsideOmniRoute: false };
                 } else {
-                  const realProvider = current.provider || "Other";
-                  badge = { label: `${realProvider} (not OmniRoute)`, pending: false };
+                  const realProvider = current.provider || t("other");
+                  badge = {
+                    label: t("hermesNotOmniRoute", { provider: realProvider }),
+                    pending: false,
+                    outsideOmniRoute: true,
+                  };
                 }
               }
 
@@ -370,9 +458,9 @@ export default function HermesAgentToolCard({
                 <div key={role.id} className="flex items-start justify-between gap-3 py-1">
                   {/* Left: role label + subtitle (now has room so long descriptions stay on one line) */}
                   <div className="min-w-0 pr-3">
-                    <div className="font-medium text-sm text-text-main">{role.label}</div>
+                    <div className="font-medium text-sm text-text-main">{t(role.labelKey)}</div>
                     <div className="text-[10px] leading-tight text-text-muted">
-                      {role.description}
+                      {t(role.descriptionKey)}
                     </div>
                   </div>
 
@@ -392,7 +480,7 @@ export default function HermesAgentToolCard({
                     {badge && (
                       <div
                         className={`text-[10px] px-1.5 py-px rounded shrink-0 ${
-                          badge.label.includes("not OmniRoute")
+                          badge.outsideOmniRoute
                             ? "bg-amber-500/10 text-amber-600"
                             : "bg-emerald-500/10 text-emerald-600"
                         }`}
@@ -408,7 +496,7 @@ export default function HermesAgentToolCard({
                       onClick={() => setModalRole(role.id)}
                       disabled={isLoadingAny}
                     >
-                      Select
+                      {t("select")}
                     </Button>
 
                     {sel && (
@@ -423,9 +511,9 @@ export default function HermesAgentToolCard({
                           });
                         }}
                         disabled={isLoadingAny}
-                        title="Remove this role from pending changes"
+                        title={t("hermesRemovePendingRole")}
                       >
-                        Clear
+                        {t("clear")}
                       </Button>
                     )}
                   </div>
@@ -452,7 +540,7 @@ export default function HermesAgentToolCard({
               loading={isSaving}
             >
               <span className="material-symbols-outlined text-[14px] mr-1">save</span>
-              Apply to Hermes Agent
+              {t("hermesApply")}
             </Button>
 
             <Button
@@ -467,13 +555,12 @@ export default function HermesAgentToolCard({
               loading={isPreviewLoading}
             >
               <span className="material-symbols-outlined text-[14px] mr-1">visibility</span>
-              Preview
+              {t("preview")}
             </Button>
 
             {Object.keys(selections).length > 0 && (
               <span className="text-xs text-text-muted ml-1">
-                {Object.keys(selections).length} role
-                {Object.keys(selections).length === 1 ? "" : "s"} will be updated
+                {t("hermesRolesWillUpdate", { count: Object.keys(selections).length })}
               </span>
             )}
 
@@ -486,7 +573,7 @@ export default function HermesAgentToolCard({
           {previewYaml && (
             <div className="mt-2">
               <div className="text-[10px] font-medium text-text-muted mb-1.5 flex items-center gap-1.5">
-                <span>Preview — will write to ~/.hermes/config.yaml</span>
+                <span>{t("hermesPreviewPath")}</span>
               </div>
               <pre className="p-4 bg-bg-secondary rounded-lg border border-border overflow-auto max-h-80 text-xs">
                 <code className="font-mono whitespace-pre text-text-main">{previewYaml}</code>
@@ -495,7 +582,7 @@ export default function HermesAgentToolCard({
           )}
 
           <p className="text-xs text-text-muted -mt-2">
-            Saves the selected models for each role into <code>~/.hermes/config.yaml</code>.
+            {t("hermesSaveDescription")} <code>~/.hermes/config.yaml</code>.
           </p>
         </div>
       )}
@@ -517,6 +604,8 @@ export default function HermesAgentToolCard({
         }}
         showCombos={true}
         activeProviders={activeProviders}
+        alwaysIncludeProviders={HERMES_AGENT_ZERO_CONFIG_PROVIDERS}
+        modelAliases={modelAliases}
       />
     </Card>
   );

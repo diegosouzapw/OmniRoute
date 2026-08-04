@@ -6,15 +6,15 @@ import { persist } from "zustand/middleware";
 interface EmailPrivacyState {
   /** When true, all email addresses are shown in full (unmasked). Default: false (masked). */
   emailsVisible: boolean;
-  /** Toggle the global email visibility state. */
-  toggleEmailVisibility: () => void;
+  /** Set the global email visibility state. */
+  setEmailsVisible: (visible: boolean) => void;
 }
 
 const useEmailPrivacyStore = create<EmailPrivacyState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       emailsVisible: false,
-      toggleEmailVisibility: () => set({ emailsVisible: !get().emailsVisible }),
+      setEmailsVisible: (visible) => set({ emailsVisible: visible }),
     }),
     {
       name: "omniroute-email-privacy",

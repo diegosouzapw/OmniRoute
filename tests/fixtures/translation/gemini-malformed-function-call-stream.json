@@ -1,0 +1,144 @@
+{
+  "name": "gemini-malformed-function-call-live-incident",
+  "description": "Real raw Gemini streaming response chunks captured from a live incident (dashboard log id 1784489701456-d8c0e9, 2026-07-19) where the model attempted to chain multiple tool calls into one malformed invocation and Gemini's own parser rejected it with finishReason MALFORMED_FUNCTION_CALL instead of a real functionCall part. Content has been sanitized: real file paths, personal automation project details, and job-search site URLs were replaced with generic placeholders. Structure (chunk count, field shapes, thought-then-empty-transition-then-malformed-finish sequence) is preserved exactly as captured, including the long opaque thoughtSignature blob (its exact bytes are irrelevant — only its presence/shape matters — so it has been shortened for fixture readability).",
+  "chunks": [
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "**Initiating the Workflow**\n\nI've initiated the workflow, focusing on running `run_search.py`. The preliminary step is complete. Now, I'm fetching the initial target sites, specifically `site-a.example`, `site-b.example`, and `site-c.example`, as specified to begin the search.\n\n\n",
+                "thought": true
+              }
+            ],
+            "role": "model"
+          },
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 24512,
+        "totalTokenCount": 24512,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 24512 }],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-malformed-001"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "**Expanding the Search Parameters**\n\nI'm now expanding the search to include `site-d.example` and `site-e.example` in my `web_fetch` operation. My next steps are to filter the results against the state file and score them based on matching criteria. I will then post high matches to the results channel, update the state, and log the results.\n\n\n",
+                "thought": true
+              }
+            ],
+            "role": "model"
+          },
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 24512,
+        "totalTokenCount": 24512,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 24512 }],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-malformed-001"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "**Analyzing the Results**\n\nI'm now analyzing the output from the initial web fetch. I will check the data against processed_ids, filter for specific categories, and proceed with scoring based on these parameters. I'll then prepare to post high matches to the specified results channel, update the search state, and log the results.\n\n\n",
+                "thought": true
+              }
+            ],
+            "role": "model"
+          },
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 24512,
+        "totalTokenCount": 24512,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 24512 }],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-malformed-001"
+    },
+    {
+      "candidates": [
+        {
+          "content": { "parts": [{ "text": "" }], "role": "model" },
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 24512,
+        "candidatesTokenCount": 167,
+        "totalTokenCount": 25738,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 24512 }],
+        "thoughtsTokenCount": 1059,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-malformed-001"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "",
+                "thoughtSignature": "FIXTURE_PLACEHOLDER_THOUGHT_SIGNATURE_OPAQUE_BASE64_BLOB_TRUNCATED_FOR_READABILITY_the_real_value_is_several_kb_of_base64_and_carries_no_meaning_for_this_test=="
+              }
+            ],
+            "role": "model"
+          },
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 24512,
+        "candidatesTokenCount": 167,
+        "totalTokenCount": 25738,
+        "cachedContentTokenCount": 19504,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 24512 }],
+        "thoughtsTokenCount": 1059,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-malformed-001"
+    },
+    {
+      "candidates": [
+        {
+          "content": { "parts": [{ "text": "" }], "role": "model" },
+          "finishReason": "MALFORMED_FUNCTION_CALL",
+          "index": 0,
+          "finishMessage": "Malformed function call: call:default_api:exec{command: cd /home/user/workspace && venv/bin/python run_search.py , web_fetch \"https://site-a.example/jobs\", web_fetch \"https://site-b.example/careers\", web_fetch \"https://site-c.example/jobs\", web_fetch \"https://site-d.example/jobs\", web_fetch \"https://site-e.example/careers\" ,reason: Executing the search workflow: running the scraper and fetching the target sites. }"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 24512,
+        "candidatesTokenCount": 167,
+        "totalTokenCount": 25738,
+        "cachedContentTokenCount": 19504,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 24512 }],
+        "thoughtsTokenCount": 1059,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-malformed-001"
+    }
+  ]
+}

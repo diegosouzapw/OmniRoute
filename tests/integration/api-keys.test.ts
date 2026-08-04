@@ -278,10 +278,15 @@ test("POST /api/keys triggers cloud sync when cloud mode is enabled", async () =
       })
     );
     const body = (await response.json()) as any;
-    const syncPayload = JSON.parse(calls[0].options.body);
 
     assert.equal(response.status, 201);
     assert.equal(body.name, "Cloud Synced Key");
+
+    // #6570: cloud sync is fire-and-forget so it no longer blocks the
+    // response — give the background task a moment to run before asserting
+    // it happened.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const syncPayload = JSON.parse(calls[0].options.body);
     assert.equal(calls.length, 1);
     assert.match(String(calls[0].url), /^http:\/\/cloud\.example\/sync\//);
     assert.ok(Array.isArray(syncPayload.providers));
@@ -348,8 +353,13 @@ test("POST /api/keys still succeeds when cloud sync fails after creation", async
 
     assert.equal(response.status, 201);
     assert.equal(body.name, "Cloud Failure Tolerated");
-    assert.equal(syncAttempts, 1);
     assert.equal(stored?.name, "Cloud Failure Tolerated");
+
+    // #6570: cloud sync is fire-and-forget so it no longer blocks the
+    // response — give the background task a moment to run before asserting
+    // the (failed) sync attempt happened and was tolerated.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.equal(syncAttempts, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }

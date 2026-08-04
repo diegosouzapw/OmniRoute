@@ -89,11 +89,13 @@ export default function PluginsPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
+      </div>
+
+      <div className="flex items-center justify-end">
         <Button onClick={handleScan} disabled={scanning}>
           {scanning ? t("scanning") : t("scanForPlugins")}
         </Button>
       </div>
-
       {plugins.length === 0 ? (
         <EmptyState
           title={t("noPlugins")}

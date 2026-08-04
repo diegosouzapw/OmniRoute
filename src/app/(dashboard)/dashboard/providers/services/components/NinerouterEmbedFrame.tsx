@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
@@ -11,6 +12,7 @@ const NAME = "9router";
  * CSP exception (`frame-ancestors 'self'`) is applied to this proxy path in next.config.mjs.
  */
 export function NinerouterEmbedFrame() {
+  const t = useTranslations("embeddedServices");
   const { data } = useServiceStatus(NAME);
   const [expanded, setExpanded] = useState(false);
 
@@ -27,7 +29,7 @@ export function NinerouterEmbedFrame() {
       >
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px] text-text-muted">web</span>
-          9Router Web UI
+          {t("webUi")}
           <a
             href="/dashboard/providers/services/9router/embed/"
             target="_blank"
@@ -35,7 +37,7 @@ export function NinerouterEmbedFrame() {
             className="text-xs font-normal text-primary hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
-            open in new tab
+            {t("openNewTab")}
           </a>
         </div>
         <span className="material-symbols-outlined text-[16px] text-text-muted">
@@ -46,7 +48,7 @@ export function NinerouterEmbedFrame() {
       {expanded && (
         <iframe
           src="/dashboard/providers/services/9router/embed/"
-          title="9Router Web UI"
+          title={t("webUi")}
           className="h-[600px] w-full border-t border-border"
           sandbox="allow-scripts allow-same-origin allow-forms"
         />

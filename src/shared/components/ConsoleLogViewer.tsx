@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 /**
  * Console Log Viewer — Real-time application log viewer.
@@ -45,6 +45,7 @@ const LEVEL_BG: Record<string, string> = {
 const POLL_INTERVAL = 5000; // 5 seconds
 
 export default function ConsoleLogViewer() {
+  const locale = useLocale();
   const t = useTranslations("loggers");
   const tv = useTranslations("logs.consoleViewer");
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -79,9 +80,12 @@ export default function ConsoleLogViewer() {
 
   // Initial fetch + polling
   useEffect(() => {
-    fetchLogs();
+    const initialFetch = setTimeout(() => void fetchLogs(), 0);
     const interval = setInterval(fetchLogs, POLL_INTERVAL);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialFetch);
+      clearInterval(interval);
+    };
   }, [fetchLogs]);
 
   // Auto-scroll to bottom on new logs
@@ -107,7 +111,7 @@ export default function ConsoleLogViewer() {
   const formatTime = (ts: string) => {
     try {
       const d = new Date(ts);
-      return d.toLocaleTimeString("en-US", {
+      return d.toLocaleTimeString(locale, {
         hour12: false,
         hour: "2-digit",
         minute: "2-digit",
@@ -153,7 +157,7 @@ export default function ConsoleLogViewer() {
         <select
           value={levelFilter}
           onChange={(e) => setLevelFilter(e.target.value)}
-          aria-label="Filter by log level"
+          aria-label={tv("filterByLevel")}
           className="px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] focus:outline-2 focus:outline-[var(--color-accent)]"
         >
           <option value="all">{t("allLevels")}</option>
@@ -166,17 +170,17 @@ export default function ConsoleLogViewer() {
         {/* Search */}
         <input
           type="text"
-          placeholder="Search logs..."
+          placeholder={tv("searchPlaceholder")}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          aria-label="Search log entries"
+          aria-label={tv("searchAria")}
           className="flex-1 min-w-[200px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
         />
 
         {/* Auto-scroll toggle */}
         <button
           onClick={() => setAutoScroll(!autoScroll)}
-          title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
+          title={autoScroll ? tv("disableAutoScroll") : tv("enableAutoScroll")}
           className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
             autoScroll
               ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
@@ -186,7 +190,7 @@ export default function ConsoleLogViewer() {
           <span className="material-symbols-outlined text-[16px] align-middle mr-1">
             {autoScroll ? "vertical_align_bottom" : "lock"}
           </span>
-          Auto-scroll
+          {tv("autoScroll")}
         </button>
 
         {/* Refresh */}
@@ -201,13 +205,13 @@ export default function ConsoleLogViewer() {
         {/* Status */}
         <div className="flex items-center gap-2 ml-auto text-xs text-[var(--color-text-muted)]">
           <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span>{filteredLogs.length} entries</span>
+          <span>{tv("entryCount", { count: filteredLogs.length })}</span>
           <span className="text-[var(--color-text-muted)]/50">•</span>
-          <span>Last 1h</span>
+          <span>{tv("lastHour")}</span>
           {lastUpdated && (
             <>
               <span className="text-[var(--color-text-muted)]/50">•</span>
-              <span>Updated {lastUpdated.toLocaleTimeString()}</span>
+              <span>{tv("updatedAt", { time: lastUpdated.toLocaleTimeString(locale) })}</span>
             </>
           )}
         </div>
@@ -221,9 +225,7 @@ export default function ConsoleLogViewer() {
         >
           <span className="material-symbols-outlined text-[16px] align-middle mr-2">error</span>
           {error}
-          <span className="text-xs ml-2 opacity-70">
-            — Make sure the application is writing logs to file (APP_LOG_TO_FILE=true)
-          </span>
+          <span className="text-xs ml-2 opacity-70">— {tv("fileLoggingRequired")}</span>
         </div>
       )}
 
@@ -233,7 +235,7 @@ export default function ConsoleLogViewer() {
         className="rounded-xl border border-[var(--color-border)] bg-[#0d1117] overflow-auto font-mono text-xs leading-relaxed"
         style={{ maxHeight: "calc(100vh - 340px)", minHeight: "400px" }}
         role="log"
-        aria-label="Application console logs"
+        aria-label={tv("consoleAria")}
         aria-live="polite"
       >
         {/* Header bar */}
@@ -241,7 +243,9 @@ export default function ConsoleLogViewer() {
           <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
           <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
           <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
-          <span className="ml-3 text-[#8b949e] text-[11px]">OmniRoute — Application Console</span>
+          <span className="ml-3 text-[#8b949e] text-[11px]">
+            OmniRoute — {tv("applicationConsole")}
+          </span>
         </div>
 
         {/* Log entries */}
@@ -252,9 +256,7 @@ export default function ConsoleLogViewer() {
                 terminal
               </span>
               <p>{t("noLogEntries")}</p>
-              <p className="text-[10px] mt-1 opacity-60">
-                Ensure APP_LOG_TO_FILE=true is set in your .env file
-              </p>
+              <p className="text-[10px] mt-1 opacity-60">{tv("emptyFileLoggingHint")}</p>
             </div>
           ) : (
             filteredLogs.map((entry, idx) => {
@@ -316,7 +318,7 @@ export default function ConsoleLogViewer() {
               <span className="material-symbols-outlined text-[24px] animate-spin block mb-2">
                 progress_activity
               </span>
-              Loading logs...
+              {t("loadingLogs")}
             </div>
           )}
         </div>

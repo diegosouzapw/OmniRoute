@@ -6,6 +6,8 @@ const {
   normalizeSessionCookieHeader,
   stripCookieInputPrefix,
   buildGrokCookieHeader,
+  buildQwenCookieHeader,
+  extractQwenToken,
 } = await import("../../src/lib/providers/webCookieAuth.ts");
 
 test("stripCookieInputPrefix removes 'cookie:' and 'bearer ' prefixes", () => {
@@ -69,9 +71,30 @@ test("buildGrokCookieHeader: single sso= pair emits only sso", () => {
   assert.equal(buildGrokCookieHeader("sso=eyJ0eXAi.abc"), "sso=eyJ0eXAi.abc");
 });
 
-test("buildGrokCookieHeader: full cookie blob forwards both sso and sso-rw", () => {
+test("buildGrokCookieHeader: full cookie blob forwards sso, sso-rw and cf_clearance", () => {
   const blob = "cf_clearance=zzz; sso=AAA.bbb; sso-rw=CCC.ddd; other=1";
-  assert.equal(buildGrokCookieHeader(blob), "sso=AAA.bbb; sso-rw=CCC.ddd");
+  assert.equal(buildGrokCookieHeader(blob), "sso=AAA.bbb; sso-rw=CCC.ddd; cf_clearance=zzz");
+});
+
+// #5350 — forward the Cloudflare cookies (cf_clearance + __cf_bm) when the pasted
+// blob carries them, matching the real browser request (parity with AIClient2API).
+test("buildGrokCookieHeader: forwards sso, sso-rw, cf_clearance and __cf_bm (order-independent)", () => {
+  const blob = "i18nextLng=en; __cf_bm=BM; sso=SSO; sso-rw=RW; cf_clearance=CF; x-userid=U";
+  const header = buildGrokCookieHeader(blob);
+  assert.match(header, /(?:^|;\s*)sso=SSO(?:;|$)/);
+  assert.match(header, /(?:^|;\s*)sso-rw=RW(?:;|$)/);
+  assert.match(header, /(?:^|;\s*)cf_clearance=CF(?:;|$)/);
+  assert.match(header, /(?:^|;\s*)__cf_bm=BM(?:;|$)/);
+});
+
+test("buildGrokCookieHeader: bare sso emits no phantom cf_clearance/__cf_bm keys", () => {
+  assert.equal(buildGrokCookieHeader("sso=SSO"), "sso=SSO");
+  assert.doesNotMatch(buildGrokCookieHeader("sso=SSO"), /cf_clearance|__cf_bm/);
+});
+
+test("buildGrokCookieHeader: forwards __cf_bm even when cf_clearance is absent", () => {
+  const blob = "foo=1; __cf_bm=BM; sso=AAA.bbb";
+  assert.equal(buildGrokCookieHeader(blob), "sso=AAA.bbb; __cf_bm=BM");
 });
 
 test("buildGrokCookieHeader: order-independent — sso-rw before sso in the blob", () => {
@@ -86,4 +109,30 @@ test("buildGrokCookieHeader: blob with sso but no sso-rw emits only sso", () => 
 test("buildGrokCookieHeader: blob without sso returns empty string", () => {
   assert.equal(buildGrokCookieHeader("foo=1; sso-rw=CCC.ddd; bar=2"), "");
   assert.equal(buildGrokCookieHeader(""), "");
+});
+
+test("buildQwenCookieHeader: passes through a full DevTools cookie blob", () => {
+  const blob = "cna=ABC; token=jwt.tok; ssxmod_itna=1-XYZ; ssxmod_itna2=1-QRS";
+  assert.equal(buildQwenCookieHeader(blob), blob);
+});
+
+test("buildQwenCookieHeader: strips a leading 'Cookie:' prefix", () => {
+  assert.equal(buildQwenCookieHeader("Cookie: cna=ABC; token=jwt"), "cna=ABC; token=jwt");
+});
+
+test("buildQwenCookieHeader: a bare token (no cookie pairs) yields no cookie header", () => {
+  assert.equal(buildQwenCookieHeader("eyJ0eXAi.abc.def"), "");
+  assert.equal(buildQwenCookieHeader(""), "");
+});
+
+test("extractQwenToken: pulls the token= value out of a cookie blob", () => {
+  assert.equal(extractQwenToken("cna=ABC; token=jwt.tok; ssxmod_itna=1-XYZ"), "jwt.tok");
+});
+
+test("extractQwenToken: returns a bare token unchanged", () => {
+  assert.equal(extractQwenToken("eyJ0eXAi.abc.def"), "eyJ0eXAi.abc.def");
+});
+
+test("extractQwenToken: a cookie blob without a token cookie yields empty string", () => {
+  assert.equal(extractQwenToken("cna=ABC; ssxmod_itna=1-XYZ"), "");
 });

@@ -168,8 +168,10 @@ test("combo agent middleware covers system override, tool filtering, tag strippi
     "openai/gpt-4o"
   );
 
-  assert.equal(result.pinnedModel, "anthropic/claude-sonnet-4-6");
-  assert.equal(result.body.model, "anthropic/claude-sonnet-4-6");
+  // PR #3399: server-side session pinning replaced <omniModel> tag extraction;
+  // pinnedModel is now always null from applyComboAgentMiddleware.
+  assert.equal(result.pinnedModel, null);
+  assert.equal(result.body.model, "combo/default");
   assert.deepEqual(result.body.messages, [
     { role: "system", content: "combo system" },
     { role: "user", content: "hello" },
@@ -180,6 +182,32 @@ test("combo agent middleware covers system override, tool filtering, tag strippi
   const passthrough = comboAgentMiddleware.applyComboAgentMiddleware(body, null, "openai/gpt-4o");
   assert.equal(passthrough.pinnedModel, null);
   assert.equal(passthrough.body, body);
+});
+
+test("combo agent middleware preserves Responses API input and instructions", () => {
+  const body = {
+    model: "combo/default",
+    input: "Reply with exactly: pong",
+  };
+
+  const unchanged = comboAgentMiddleware.applyComboAgentMiddleware(
+    body,
+    { context_cache_protection: true },
+    "openai/gpt-4o"
+  );
+  assert.deepEqual(unchanged.body, body);
+  assert.equal(Object.hasOwn(unchanged.body, "messages"), false);
+
+  const overridden = comboAgentMiddleware.applyComboAgentMiddleware(
+    { ...body, instructions: "client instruction" },
+    { system_message: "combo instruction" },
+    "openai/gpt-4o"
+  );
+  assert.deepEqual(overridden.body, {
+    ...body,
+    instructions: "combo instruction",
+  });
+  assert.equal(Object.hasOwn(overridden.body, "messages"), false);
 });
 
 test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and reset", async () => {

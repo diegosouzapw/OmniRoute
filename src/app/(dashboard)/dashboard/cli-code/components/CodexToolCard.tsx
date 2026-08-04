@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { normalizeCodexBaseUrl } from "@/shared/utils/codexBaseUrl";
+import { isApplyDisabled, isResetDisabled } from "./codexButtonState";
+import { CODEX_DEFAULT_MODELS } from "./codexToolOptions";
 
 export default function CodexToolCard({
   tool,
@@ -27,16 +29,7 @@ export default function CodexToolCard({
   const [message, setMessage] = useState(null);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gpt-5.5");
-  const CODEX_DEFAULT_MODELS = [
-    "gpt-5.5",
-    "gpt-5.3-codex",
-    "gpt-5.4",
-    "gpt-5.2-codex",
-    "gpt-5.1-codex-max",
-    "gpt-5.2",
-    "gpt-5.1-codex-mini",
-  ];
+  const [selectedModel, setSelectedModel] = useState("gpt-5.6-sol");
   const [modelMappings, setModelMappings] = useState<Record<string, string>>({});
   const [reasoningEffort, setReasoningEffort] = useState("xhigh");
   const [wireApi, setWireApi] = useState("chat");
@@ -596,7 +589,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                     type="text"
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    placeholder="gpt-5.5"
+                    placeholder="gpt-5.6-sol"
                     className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                   {selectedModel && (
@@ -613,7 +606,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                 {/* Reasoning Effort */}
                 <div className="flex items-center gap-2">
                   <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                    Reasoning Effort
+                    {t("reasoningEffort")}
                   </span>
                   <span className="material-symbols-outlined text-text-muted text-[14px]">
                     arrow_forward
@@ -623,18 +616,20 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                     onChange={(e) => setReasoningEffort(e.target.value)}
                     className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                   >
-                    <option value="none">None</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="xhigh">XHigh</option>
+                    <option value="none">{t("effortNone")}</option>
+                    <option value="low">{t("effortLow")}</option>
+                    <option value="medium">{t("effortMedium")}</option>
+                    <option value="high">{t("effortHigh")}</option>
+                    <option value="xhigh">{t("effortExtraHigh")}</option>
+                    <option value="max">{t("effortMax")}</option>
+                    <option value="ultra">{t("effortUltra")}</option>
                   </select>
                 </div>
 
                 {/* Wire API */}
                 <div className="flex items-center gap-2">
                   <span className="w-32 shrink-0 text-sm font-semibold text-text-main text-right">
-                    Wire API
+                    {t("wireApi")}
                   </span>
                   <span className="material-symbols-outlined text-text-muted text-[14px]">
                     arrow_forward
@@ -652,7 +647,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                 <div className="h-px bg-border/50 my-2"></div>
 
                 <div className="text-[11px] text-text-muted mb-2 font-medium uppercase tracking-wider text-right">
-                  Model Aliases ([notice.model_migrations])
+                  {t("modelAliases")} ([notice.model_migrations])
                 </div>
                 {CODEX_DEFAULT_MODELS.map((defaultModel) => (
                   <div key={defaultModel} className="flex items-center gap-2 group">
@@ -678,7 +673,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                       onChange={(e) =>
                         setModelMappings({ ...modelMappings, [defaultModel]: e.target.value })
                       }
-                      placeholder={`Route ${defaultModel} to...`}
+                      placeholder={t("routeModelPlaceholder", { model: defaultModel })}
                       className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                     />
                     {modelMappings[defaultModel] && (
@@ -714,7 +709,12 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                   variant="primary"
                   size="sm"
                   onClick={handleApplySettings}
-                  disabled={!selectedApiKey || !selectedModel}
+                  disabled={isApplyDisabled({
+                    selectedModel,
+                    selectedApiKey,
+                    cloudEnabled,
+                    apiKeys,
+                  })}
                   loading={applying}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">save</span>
@@ -724,7 +724,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                   variant="outline"
                   size="sm"
                   onClick={handleResetSettings}
-                  disabled={!codexStatus.hasOmniRoute}
+                  disabled={isResetDisabled({ restoring })}
                   loading={restoring}
                 >
                   <span className="material-symbols-outlined text-[14px] mr-1">restore</span>

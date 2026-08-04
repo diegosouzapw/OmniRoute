@@ -55,6 +55,8 @@ omniroute restart
 - `--max-restarts <n>`
 - `--tray`
 - `--no-tray`
+- `--tls-cert <path>`
+- `--tls-key <path>`
 
 **Example:**
 
@@ -84,7 +86,7 @@ npm install -g omniroute          # npm registry
 # or: use the binary bundled with the desktop app
 ```
 
-Requires Node.js ≥20.20.2, ≥22.22.2, or ≥24.
+Requires Node.js ≥22.22.2 or ≥24.
 
 Verify:
 

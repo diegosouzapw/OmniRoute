@@ -1,0 +1,18 @@
+[
+  "deepseek-ai/deepseek-v4-pro",
+  "google/gemma-4-31b-it",
+  "minimaxai/minimax-m2.7",
+  "mistralai/devstral-2-123b-instruct-2512",
+  "mistralai/mistral-large-3-675b-instruct-2512",
+  "mistralai/mistral-small-4-119b-2603",
+  "nvidia/nemotron-3-super-120b-a12b",
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "poolside/laguna-xs-2.1",
+  "qwen/qwen3.5-122b-a10b",
+  "qwen/qwen3.5-397b-a17b",
+  "stepfun-ai/step-3.5-flash",
+  "thinkingmachines/inkling",
+  "z-ai/glm-5.1",
+  "z-ai/glm-5.2"
+]

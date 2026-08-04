@@ -328,6 +328,7 @@ describe("cliproxy — response shapes", () => {
       assert.ok("installedVersion" in b, "cliproxy status must include installedVersion");
       assert.ok("updateAvailable" in b, "cliproxy status must include updateAvailable");
       assert.ok("autoStart" in b, "cliproxy status must include autoStart");
+      assert.ok("providerExpose" in b, "cliproxy status must include providerExpose");
       assert.ok(typeof b.updateAvailable === "boolean", "updateAvailable must be boolean");
     });
   });

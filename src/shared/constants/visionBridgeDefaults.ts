@@ -17,6 +17,11 @@ const FORCED_VISION_BRIDGE_MODELS = new Set<string>([
   "opencode-go/qwen3.5-plus",
   "opencode-zen/deepseek-v4-flash",
   "opencode-zen/deepseek-v4-pro",
+  // tokenrouter provider: upstream models overstate vision support.
+  // Force Vision Bridge so images are routed through the configured
+  // vision model instead of being passed through to text-only backends.
+  "tokenrouter/deepseek-v4-pro",
+  "tokenrouter/deepseek-v4-flash",
 ]);
 
 export function isVisionBridgeForcedModel(model: string | null | undefined): boolean {

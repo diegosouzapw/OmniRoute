@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 // in CI even though the module evaluation is well-formed.
 import { APIKEY_PROVIDERS, OAUTH_PROVIDERS } from "../../src/shared/constants/providers.ts";
 import { validateProviderApiKey } from "../../src/lib/providers/validation.ts";
+import { BAILIAN_CODING_PLAN_MODELS } from "../../open-sse/config/providers/registry/bailian-coding-plan/index.ts";
 import {
   validateBody,
   createProviderSchema,
@@ -21,7 +22,7 @@ test("APIKEY_PROVIDERS includes bailian-coding-plan", () => {
   const provider = APIKEY_PROVIDERS["bailian-coding-plan"];
   assert.equal(provider.id, "bailian-coding-plan", "Provider id should be 'bailian-coding-plan'");
   assert.equal(provider.alias, "bcp", "Provider alias should be 'bcp'");
-  assert.ok(provider.name, "Provider should have a name");
+  assert.equal(provider.name, "Alibaba Token Plan");
 });
 
 test("bailian-coding-plan not in OAUTH_PROVIDERS", () => {
@@ -124,6 +125,28 @@ test("createProviderSchema rejects baseUrl with non-string value", () => {
   assert.equal(validation.success, false, "Should reject non-string baseUrl");
 });
 
+test("createProviderSchema rejects non-boolean Codex context1m request default", () => {
+  const validation = validateBody(createProviderSchema, {
+    provider: "codex",
+    apiKey: "sk-test-key",
+    name: "Test Codex",
+    providerSpecificData: {
+      requestDefaults: {
+        context1m: "yes",
+      },
+    },
+  });
+
+  assert.equal(validation.success, false, "Should reject non-boolean context1m");
+  if (!validation.success && typeof validation.error === "object" && validation.error !== null) {
+    const details = Array.isArray(validation.error.details) ? validation.error.details : [];
+    assert.ok(
+      details.some((detail) => String(detail.message || "").includes("context1m")),
+      "Error should mention context1m"
+    );
+  }
+});
+
 test("updateProviderConnectionSchema accepts valid baseUrl in providerSpecificData", () => {
   const validation = validateBody(updateProviderConnectionSchema, {
     providerSpecificData: {
@@ -223,22 +246,34 @@ test("getStaticModelsForProvider returns correct model IDs for bailian-coding-pl
   }
 
   const expectedIds = [
-    "qwen3.6-plus",
-    "qwen3.5-plus",
-    "qwen3-max-2026-01-23",
-    "kimi-k2.5",
-    "glm-5",
-    "MiniMax-M2.5",
+    "qwen3.8-max-preview",
+    "qwen3.7-max",
+    "qwen3.7-plus",
+    "qwen3.6-flash",
+    "glm-5.2",
+    "deepseek-v4-pro",
   ];
 
   const actualIds = models.map((m) => m.id);
+  assert.deepEqual(actualIds, expectedIds);
+});
 
-  for (const expectedId of expectedIds) {
-    assert.ok(actualIds.includes(expectedId), `Should include model: ${expectedId}`);
-  }
-
-  // Verify no extra models
-  assert.equal(actualIds.length, expectedIds.length, "Should have exactly the expected models");
+test("bailian-coding-plan models match the documented reasoning and vision capabilities", () => {
+  assert.deepEqual(
+    BAILIAN_CODING_PLAN_MODELS.map(({ id, supportsReasoning, supportsVision }) => ({
+      id,
+      supportsReasoning,
+      supportsVision: supportsVision === true,
+    })),
+    [
+      { id: "qwen3.8-max-preview", supportsReasoning: true, supportsVision: true },
+      { id: "qwen3.7-max", supportsReasoning: true, supportsVision: false },
+      { id: "qwen3.7-plus", supportsReasoning: true, supportsVision: true },
+      { id: "qwen3.6-flash", supportsReasoning: true, supportsVision: true },
+      { id: "glm-5.2", supportsReasoning: true, supportsVision: false },
+      { id: "deepseek-v4-pro", supportsReasoning: true, supportsVision: false },
+    ]
+  );
 });
 
 test("getStaticModelsForProvider returns models with correct structure", () => {
@@ -267,13 +302,26 @@ test("getStaticModelsForProvider returns undefined for non-static providers", ()
 });
 
 test("getStaticModelsForProvider returns local image catalogs for image-only providers", () => {
-  const models = getStaticModelsForProvider("xai");
+  // nanobanana has IMAGE_PROVIDERS rows but no chat registry models — specialty
+  // must still surface them. Chat+image providers (xai/lmarena/openai) keep
+  // image models exclusively in IMAGE_PROVIDERS (not the chat specialty list).
+  const models = getStaticModelsForProvider("nanobanana");
 
-  assert.ok(models, "xAI should expose local image models");
-  assert.deepEqual(
-    models.map((model) => model.id),
-    ["grok-imagine-image-quality", "grok-imagine-image"]
-  );
+  assert.ok(models, "nanobanana should expose local image models");
+  assert.ok(models.length >= 1);
+  assert.ok(models.every((m) => m.supportedEndpoints?.includes("images")));
+});
+
+test("getStaticModelsForProvider does not dump IMAGE_PROVIDERS into chat specialty", () => {
+  for (const provider of ["lmarena", "openai", "xai"]) {
+    const models = getStaticModelsForProvider(provider) || [];
+    assert.ok(
+      !models.some((m) => m.supportedEndpoints?.includes("images")),
+      `${provider} chat specialty must not include image-only models`
+    );
+  }
+  const lmarena = getStaticModelsForProvider("lmarena") || [];
+  assert.ok(!lmarena.some((m) => String(m.id).includes("flux")));
 });
 
 test("getStaticModelsForProvider returns models for other static providers", () => {

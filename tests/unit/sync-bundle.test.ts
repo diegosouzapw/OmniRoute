@@ -81,6 +81,7 @@ test("config sync bundle is deterministic, strips auth settings, and ignores vol
   assert.equal(first.bundle.settings.cloudEnabled, undefined);
   assert.equal(first.bundle.providerConnections[0].apiKey, "sk-live-secret");
   assert.equal(first.bundle.modelAliases["smart-default"], "openai/gpt-4o-mini");
+  assert.deepEqual(first.bundle.reasoningRoutingRules, []);
 
   await providersDb.updateProviderConnection((connection as any).id, {
     lastError: "temporary upstream failure",
@@ -98,4 +99,27 @@ test("config sync bundle is deterministic, strips auth settings, and ignores vol
   const afterConfigChange = await syncBundle.buildConfigSyncEnvelope();
   assert.notEqual(afterConfigChange.version, first.version);
   assert.equal(afterConfigChange.bundle.providerConnections[0].defaultModel, "gpt-4.1-mini");
+});
+
+test("reasoning sync reconciliation disables dangling references and reports conflicts", () => {
+  const result = syncBundle.reconcileReasoningRulesForSync(
+    [
+      { id: "valid", scope: "global", targetKind: "keep", enabled: true },
+      {
+        id: "dangling",
+        scope: "apiKey",
+        apiKeyId: "missing-key",
+        targetKind: "combo",
+        targetComboId: "missing-combo",
+        enabled: true,
+      },
+    ],
+    { apiKeyIds: [], comboIds: [], connectionIds: [] }
+  );
+
+  assert.equal(result.rules[0].enabled, true);
+  assert.equal(result.rules[1].enabled, false);
+  assert.deepEqual(result.conflicts, [
+    { ruleId: "dangling", missing: ["apiKeyId", "targetComboId"] },
+  ]);
 });

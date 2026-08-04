@@ -70,6 +70,45 @@ export function resolveDataDir({ isCloud = false }: { isCloud?: boolean } = {}):
   return getDefaultDataDir();
 }
 
+/**
+ * Resolve the data directory and guarantee it is writable.
+ *
+ * Unlike {@link resolveDataDir} (a pure, side-effect-free path resolver used by
+ * many callers), this variant probes the resolved directory by attempting to
+ * create it. When a configured `DATA_DIR` is not writable (`EACCES`/`EPERM`),
+ * it falls back to the default user directory so the app keeps working instead
+ * of crashing on an unwritable, operator-supplied path. Any other error (e.g.
+ * `ENOTDIR`, `ENOSPC`) still propagates.
+ *
+ * Use this only at the single startup site that owns directory creation
+ * (currently `db/core.ts`); everywhere else keep using the pure resolver.
+ */
+export function resolveWritableDataDir({ isCloud = false }: { isCloud?: boolean } = {}): string {
+  const resolved = resolveDataDir({ isCloud });
+
+  // Cloud/serverless never owns a writable home dir; leave its sentinel alone.
+  if (isCloud) return resolved;
+
+  // No explicit override → already the default user dir; nothing to fall back to.
+  const configured = normalizeConfiguredPath(process.env.DATA_DIR);
+  if (!configured) return resolved;
+
+  try {
+    fs.mkdirSync(resolved, { recursive: true });
+    return resolved;
+  } catch (err: unknown) {
+    const code = (err as NodeJS.ErrnoException | null)?.code;
+    if (code === "EACCES" || code === "EPERM") {
+      const fallback = getDefaultDataDir();
+      console.warn(
+        `[DATA_DIR] '${resolved}' is not writable (${code}) → falling back to '${fallback}'`
+      );
+      return fallback;
+    }
+    throw err;
+  }
+}
+
 export function isSamePath(a: string | null | undefined, b: string | null | undefined): boolean {
   if (!a || !b) return false;
   const normalizedA = path.resolve(a);

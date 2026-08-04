@@ -25,5 +25,8 @@
     "base_url": "URL پایه سرور OmniRoute",
     "context": "زمینه/پروفایل سرور برای این دستور",
     "lang": "تنظیم زبان نمایش CLI (OMNIROUTE_LANG را نادیده می‌گیرد)"
+  },
+  "redis": {
+    "description": "راه‌اندازی کانتینر Redis محلی با یک کلیک (Podman یا Docker) برای حافظه پنهان و ردیابی سهمیه OmniRoute"
   }
 }

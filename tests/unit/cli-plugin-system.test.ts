@@ -186,9 +186,9 @@ test("exemplo omniroute-cmd-hello existe e tem register()", () => {
   assert.ok(src.includes("export const meta"), "deve exportar meta");
 });
 
-test("docs/dev/plugins.md existe", () => {
-  const docPath = join(ROOT, "docs", "dev", "plugins.md");
-  assert.ok(existsSync(docPath), "docs/dev/plugins.md deve existir");
+test("docs/frameworks/PLUGINS.md existe", () => {
+  const docPath = join(ROOT, "docs", "frameworks", "PLUGINS.md");
+  assert.ok(existsSync(docPath), "docs/frameworks/PLUGINS.md deve existir");
   const src = readFileSync(docPath, "utf8");
   assert.ok(src.includes("omniroute-cmd"), "deve mencionar omniroute-cmd");
   assert.ok(src.includes("register(program, ctx)"), "deve documentar a API register");

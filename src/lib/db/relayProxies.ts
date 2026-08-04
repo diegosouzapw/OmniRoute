@@ -153,8 +153,7 @@ export function getRelayTokens(): RelayToken[] {
 export function getRelayToken(id: string): RelayToken | null {
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(id) as
-    | RelayTokenRow
-    | undefined;
+    RelayTokenRow | undefined;
   if (!row) return null;
   return { ...(rowToCamel(row) as unknown as RelayToken), enabled: row.enabled === 1 };
 }
@@ -235,16 +234,22 @@ export function toggleRelayToken(id: string, enabled: boolean): RelayToken | nul
 
 // ── Usage / Rate Limit ───────────────────────────────────────────────────────
 
-export function checkRateLimit(tokenId: string): {
+export function checkRateLimit(
+  tokenId: string,
+  existingToken?: RelayToken
+): {
   allowed: boolean;
   remaining: number;
   resetIn: number;
 } {
   const db = getDbInstance();
-  const token = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(tokenId) as
-    | RelayTokenRow
-    | undefined;
-  if (!token) return { allowed: false, remaining: 0, resetIn: 0 };
+  let token = existingToken;
+  if (!token) {
+    const row = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(tokenId) as
+      RelayTokenRow | undefined;
+    if (!row) return { allowed: false, remaining: 0, resetIn: 0 };
+    token = rowToCamel(row) as unknown as RelayToken;
+  }
 
   const now = Math.floor(Date.now() / 1000);
   const minuteWindow = Math.floor(now / 60) * 60;
@@ -258,7 +263,7 @@ export function checkRateLimit(tokenId: string): {
     .get(tokenId, minuteWindow) as { request_count: number; cost: number } | undefined;
 
   const minuteCount = minuteRow?.request_count || 0;
-  if (minuteCount >= token.max_requests_per_minute) {
+  if (minuteCount >= token.maxRequestsPerMinute) {
     return { allowed: false, remaining: 0, resetIn: 60 - (now % 60) };
   }
 
@@ -270,13 +275,13 @@ export function checkRateLimit(tokenId: string): {
     .get(tokenId, dayWindow) as { total: number } | undefined;
 
   const dayCount = dayRow?.total || 0;
-  if (dayCount >= token.max_requests_per_day) {
+  if (dayCount >= token.maxRequestsPerDay) {
     return { allowed: false, remaining: 0, resetIn: 86400 - (now % 86400) };
   }
 
   const remaining = Math.min(
-    token.max_requests_per_minute - minuteCount,
-    token.max_requests_per_day - dayCount
+    token.maxRequestsPerMinute - minuteCount,
+    token.maxRequestsPerDay - dayCount
   );
 
   return { allowed: true, remaining, resetIn: 60 - (now % 60) };

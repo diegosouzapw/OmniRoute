@@ -1,10 +1,23 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Card from "@/shared/components/Card";
-import { normalizePlanTier, resolvePlanValue, worstStatus, type CardStatus } from "./utils";
+import type { GrokBillingStatus } from "@/shared/utils/grokBilling";
+import { pickDisplayValue } from "@/shared/utils/maskEmail";
+import {
+  normalizePlanTier,
+  resolvePlanValue,
+  worstStatus,
+  filterQuotasByVisibility,
+  getHiddenQuotaRows,
+  computeCanEditCutoff,
+  computeCanRedeemResetCredit,
+  hasQuotaCutoffOverrides,
+  type CardStatus,
+} from "./utils";
 import QuotaCardHeader from "./parts/QuotaCardHeader";
 import QuotaCardExpanded from "./parts/QuotaCardExpanded";
+import ProviderUsdCostModal from "./ProviderUsdCostModal";
 
 const STATUS_BORDER: Record<CardStatus, string> = {
   critical: "#ef4444",
@@ -13,6 +26,8 @@ const STATUS_BORDER: Record<CardStatus, string> = {
   empty: "transparent",
 };
 
+const EMPTY_QUOTAS: any[] = [];
+
 interface QuotaCardProps {
   connection: any;
   quota:
@@ -20,6 +35,8 @@ interface QuotaCardProps {
         quotas?: any[];
         plan?: string | null;
         message?: string | null;
+        billing?: GrokBillingStatus | null;
+        raw?: { billing?: GrokBillingStatus | null };
         stale?: { since?: string; reason?: string } | null;
       }
     | undefined;
@@ -30,6 +47,15 @@ interface QuotaCardProps {
   providerLabel: string;
   onRefresh: () => void;
   onOpenCutoff: () => void;
+  onOpenResetCredits?: () => void;
+  onToggleActive: (nextActive: boolean) => void;
+  togglingActive: boolean;
+  redeemingResetCredit?: boolean;
+  loadingResetCredits?: boolean;
+  /** Per-operator quota row visibility (upstream 9router#2371 port). */
+  quotaVisibility?: Record<string, { hidden?: string[] }>;
+  onHideQuota?: (quota: any) => void;
+  onShowQuota?: (quota: any) => void;
 }
 
 export default function QuotaCard({
@@ -42,31 +68,69 @@ export default function QuotaCard({
   providerLabel,
   onRefresh,
   onOpenCutoff,
+  onOpenResetCredits,
+  onToggleActive,
+  togglingActive,
+  redeemingResetCredit = false,
+  loadingResetCredits = false,
+  quotaVisibility,
+  onHideQuota,
+  onShowQuota,
 }: QuotaCardProps) {
-  const quotas = quota?.quotas ?? [];
+  const isActive = connection.isActive ?? true;
+  const [costModalOpen, setCostModalOpen] = useState(false);
+  const rawQuotas = quota?.quotas ?? EMPTY_QUOTAS;
+  const quotas = useMemo(
+    () => filterQuotasByVisibility(connection.provider, rawQuotas, quotaVisibility),
+    [connection.provider, rawQuotas, quotaVisibility]
+  );
+  const hiddenQuotaRows = useMemo(
+    () => getHiddenQuotaRows(connection.provider, rawQuotas, quotaVisibility),
+    [connection.provider, rawQuotas, quotaVisibility]
+  );
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
   const tierMeta = useMemo(
     () =>
       normalizePlanTier(
-        resolvePlanValue(quota?.plan ?? null, connection.providerSpecificData ?? null)
+        resolvePlanValue(
+          quota?.plan ?? null,
+          connection.providerSpecificData ?? null,
+          connection.provider
+        )
       ),
-    [quota?.plan, connection.providerSpecificData]
+    [quota?.plan, connection.providerSpecificData, connection.provider]
   );
   const resolvedPlan = useMemo(
-    () => resolvePlanValue(quota?.plan ?? null, connection.providerSpecificData ?? null),
-    [quota?.plan, connection.providerSpecificData]
+    () =>
+      resolvePlanValue(
+        quota?.plan ?? null,
+        connection.providerSpecificData ?? null,
+        connection.provider
+      ),
+    [quota?.plan, connection.providerSpecificData, connection.provider]
+  );
+  const accountLabel = useMemo(
+    () =>
+      pickDisplayValue(
+        [connection.name, connection.displayName, connection.email],
+        emailsVisible,
+        connection.provider
+      ) ||
+      connection.id ||
+      connection.provider,
+    [connection, emailsVisible]
   );
 
-  const overrides = (connection.quotaWindowThresholds as Record<string, number> | null) || null;
-  const hasOverrides = !!overrides && Object.keys(overrides).length > 0;
+  const hasOverrides = hasQuotaCutoffOverrides(connection);
   const hasStaleData = !!quota?.stale;
   const displayRefreshedAt = quota?.stale?.since || refreshedAt;
-  const canEditCutoff = quotas.some((q: any) => q && typeof q.name === "string" && !q.isCredits);
+  const canEditCutoff = computeCanEditCutoff(quotas);
+  const canRedeemResetCredit = computeCanRedeemResetCredit(connection.provider, quotas);
 
   return (
     <Card
       padding="none"
-      className="flex flex-col overflow-hidden"
+      className={`flex flex-col overflow-hidden transition-opacity ${isActive ? "" : "opacity-60"}`}
       style={{ borderLeft: `3px solid ${STATUS_BORDER[cardStatus]}` }}
     >
       <QuotaCardHeader
@@ -77,20 +141,39 @@ export default function QuotaCard({
         resolvedPlan={resolvedPlan}
         emailsVisible={emailsVisible}
         hasStaleData={hasStaleData}
-        refreshing={loading}
-        onRefresh={onRefresh}
-        onOpenCutoff={onOpenCutoff}
-        hasCutoffOverrides={hasOverrides}
+        onToggleActive={onToggleActive}
+        togglingActive={togglingActive}
       />
       <QuotaCardExpanded
         quotas={quotas}
+        providerId={connection.provider}
         loading={loading}
         error={error}
+        message={quota?.message ?? null}
+        billing={
+          connection.provider === "grok-cli" ? (quota?.billing ?? quota?.raw?.billing) : null
+        }
         refreshedAt={displayRefreshedAt}
         hasStaleData={hasStaleData}
         onRefresh={onRefresh}
         onOpenCutoff={onOpenCutoff}
+        onOpenCost={() => setCostModalOpen(true)}
+        onOpenResetCredits={onOpenResetCredits}
+        hiddenQuotaRows={hiddenQuotaRows}
+        onHideQuota={onHideQuota}
+        onShowQuota={onShowQuota}
         canEditCutoff={canEditCutoff}
+        hasCutoffOverrides={hasOverrides}
+        canRedeemResetCredit={canRedeemResetCredit}
+        redeemingResetCredit={redeemingResetCredit}
+        loadingResetCredits={loadingResetCredits}
+      />
+      <ProviderUsdCostModal
+        isOpen={costModalOpen}
+        onClose={() => setCostModalOpen(false)}
+        connection={connection}
+        providerLabel={providerLabel}
+        accountLabel={accountLabel}
       />
     </Card>
   );

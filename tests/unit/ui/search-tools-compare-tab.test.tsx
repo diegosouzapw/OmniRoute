@@ -7,9 +7,11 @@ import type { SearchProviderCatalogItem } from "../../../src/shared/schemas/sear
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-}));
+// next-intl: no local mock — falls through to the real-EN-text default mock in
+// tests/_setup/vitestUiPolyfills.ts. CompareTab renders `{count}`/`{overlap}`
+// interpolated copy (search.maxCompareProviders, search.overlapSummary) that the
+// previous `(key) => key` mock rendered as the raw key, never matching this file's
+// literal-text assertions.
 
 vi.mock("next/link", () => ({
   default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) =>
@@ -270,12 +272,13 @@ describe("CompareTab", () => {
       await new Promise((r) => setTimeout(r, 150));
     });
 
-    // Check that the table exists and contains overlap info
-    const table = el.querySelector("table");
-    if (table) {
+    // The results panel renders as a div-based side-by-side layout (not a <table>) —
+    // the overlap summary footer lives inside [data-testid='compare-results'].
+    const resultsPanel = el.querySelector("[data-testid='compare-results']");
+    if (resultsPanel) {
       // URL overlap row should contain a fraction like "1/2"
-      const tableText = table.textContent ?? "";
-      expect(tableText).toMatch(/URL overlap|\d+\/\d+/);
+      const panelText = resultsPanel.textContent ?? "";
+      expect(panelText).toMatch(/in common|\d+\/\d+/);
     } else {
       // Loading state is still active — acceptable
       expect(el.querySelector("[data-testid='compare-loading']")).toBeTruthy();

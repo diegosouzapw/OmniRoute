@@ -1,0 +1,41 @@
+### GET /v1/models autenticado retorna catálogo
+GET {{baseUrl}}/v1/models
+Authorization: Bearer {{apiKey}}
+
+?? status == 200
+?? js response.parsedBody.data.length > 0
+
+### chat completions non-stream com modelo do tier crítico
+POST {{baseUrl}}/v1/chat/completions
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "model": "{{smokeModel}}",
+  "messages": [{ "role": "user", "content": "Reply with exactly: OK" }],
+  "max_tokens": 5,
+  "stream": false
+}
+
+?? status == 200
+?? js response.parsedBody.choices[0].message.content.length > 0
+
+### management sem credencial é rejeitado (401)
+# /v1/models pode ser público (REQUIRE_API_KEY off na VPS), então o teste de auth
+# usa a superfície de management, que exige credencial sempre.
+GET {{baseUrl}}/api/keys
+
+?? status == 401
+
+### management com bearer inválido é rejeitado (403)
+GET {{baseUrl}}/api/keys
+Authorization: Bearer or-invalid-key-homolog
+
+?? status == 403
+
+### health é público e saudável
+# httpYac trata o lado direito de `==` como literal — sem aspas.
+GET {{baseUrl}}/api/monitoring/health
+
+?? status == 200
+?? js response.parsedBody.status == healthy

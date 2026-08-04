@@ -24,7 +24,9 @@ function makeTmpPlugin(name: string, manifest: Record<string, unknown> = {}) {
 }
 
 function cleanup(name: string) {
-  try { db.deletePlugin(name); } catch {}
+  try {
+    db.deletePlugin(name);
+  } catch {}
 }
 
 describe("pluginManager lifecycle", () => {
@@ -37,7 +39,9 @@ describe("pluginManager lifecycle", () => {
     getDbInstance();
     // Clean up test plugins
     for (const name of testPlugins) {
-      try { db.deletePlugin(name); } catch {}
+      try {
+        db.deletePlugin(name);
+      } catch {}
     }
     testPlugins.length = 0;
   });
@@ -73,6 +77,10 @@ describe("pluginManager lifecycle", () => {
         const dbRow = db.getPluginByName("activate-test");
         assert.equal(dbRow!.status, "active");
       } finally {
+        // deactivate() is the only path that reaches the loader's cleanup() and kills
+        // the plugin's child process — without it the child outlives the test and its
+        // IPC channel keeps this process's event loop alive after the suite finishes.
+        await mod.pluginManager.deactivate("activate-test").catch(() => {});
         rmSync(dir.split("/").slice(0, -1).join("/"), { recursive: true, force: true });
       }
     });

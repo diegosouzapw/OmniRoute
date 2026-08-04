@@ -83,6 +83,7 @@ export function startMcpHeartbeat(config: {
   timer = setInterval(() => {
     void tick();
   }, intervalMs);
+  if (typeof timer === "object" && "unref" in timer) timer.unref?.();
 
   return () => {
     if (stopped) return;

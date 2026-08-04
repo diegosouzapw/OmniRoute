@@ -1,6 +1,5 @@
-import { afterEach, describe, it } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert";
-import { deleteFile, listFiles } from "@/lib/localDb";
 
 // Helper functions from batchProcessor.ts
 function parseBatchWindowSeconds(window: string | null | undefined): number {
@@ -18,15 +17,6 @@ function parseBatchWindowSeconds(window: string | null | undefined): number {
 }
 
 describe("Batch Processor - File Expiration", () => {
-  afterEach(() => {
-    const allFiles = listFiles({ limit: 1000 });
-    for (const f of allFiles) {
-      if (f.filename?.includes("test-batch-")) {
-        deleteFile(f.id);
-      }
-    }
-  });
-
   describe("getBatchOutputExpiresAt logic", () => {
     it("should calculate output expiration as 30 days from batch completion", () => {
       const completedAt = Math.floor(Date.now() / 1000) - 5 * 24 * 60 * 60; // 5 days ago

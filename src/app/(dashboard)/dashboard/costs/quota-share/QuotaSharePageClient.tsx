@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
-import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { maskEmailLikeValue } from "@/shared/utils/maskEmail";
 import type { QuotaPool } from "@/lib/quota/dimensions";
@@ -136,8 +135,8 @@ export default function QuotaSharePageClient() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [plans, setPlans] = useState<Record<string, PlanInfo>>({});
-  const [, setSideLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
+  const [removeError, setRemoveError] = useState<string | null>(null);
   const [editing, setEditing] = useState<QuotaPool | null>(null);
 
   // ── Group state ───────────────────────────────────────────────────────────
@@ -149,8 +148,9 @@ export default function QuotaSharePageClient() {
 
   // ── Fetch side data once on mount ─────────────────────────────────────────
 
-  useMemo(() => {
-    setSideLoading(true);
+  useEffect(() => {
+    let cancelled = false;
+
     Promise.all([
       fetch("/api/providers/client")
         .then((r) => (r.ok ? r.json() : null))
@@ -163,6 +163,8 @@ export default function QuotaSharePageClient() {
         .catch(() => null),
     ])
       .then(([connsData, keysData, plansData]) => {
+        if (cancelled) return;
+
         const conns: Connection[] = Array.isArray(connsData?.connections)
           ? connsData.connections
           : [];
@@ -177,36 +179,43 @@ export default function QuotaSharePageClient() {
             dimensions: PlanDimension[];
             source: "auto" | "manual";
           }>) {
-            if (p.connectionId) planMap[p.connectionId] = { dimensions: p.dimensions, source: p.source };
+            if (p.connectionId)
+              planMap[p.connectionId] = { dimensions: p.dimensions, source: p.source };
           }
           setPlans(planMap);
         }
       })
       .catch(() => {
         // fail open — side data not critical
-      })
-      .finally(() => {
-        setSideLoading(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ── Fetch groups ──────────────────────────────────────────────────────────
 
-  const fetchGroups = useCallback(async () => {
+  const fetchGroups = useCallback(async (options?: { signal?: AbortSignal }) => {
     try {
-      const res = await fetch("/api/quota/groups");
+      const res = await fetch("/api/quota/groups", { signal: options?.signal });
       if (res.ok) {
         const data = (await res.json()) as { groups: QuotaGroup[] };
+        if (options?.signal?.aborted) return;
         setGroups(Array.isArray(data.groups) ? data.groups : []);
       }
     } catch {
+      if (options?.signal?.aborted) return;
       // fail open — groups list not critical
     }
   }, []);
 
   useEffect(() => {
-    void fetchGroups();
+    const controller = new AbortController();
+    void Promise.resolve().then(() => fetchGroups({ signal: controller.signal }));
+    return () => {
+      controller.abort();
+    };
   }, [fetchGroups]);
 
   // ── Group actions ─────────────────────────────────────────────────────────
@@ -233,7 +242,10 @@ export default function QuotaSharePageClient() {
   }, [newGroupInput, fetchGroups]);
 
   const handleRenameGroup = useCallback(async () => {
-    const name = prompt(t("groupNamePrompt"), groups.find((g) => g.id === selectedGroupId)?.name ?? "");
+    const name = prompt(
+      t("groupNamePrompt"),
+      groups.find((g) => g.id === selectedGroupId)?.name ?? ""
+    );
     if (!name?.trim()) return;
     setRenaming(true);
     try {
@@ -365,10 +377,31 @@ export default function QuotaSharePageClient() {
 
   // ── Mutations ─────────────────────────────────────────────────────────────
 
+  /**
+   * A failed delete must never look like a click that did nothing. Without the
+   * response check the page just revalidated and left the card in place, so a
+   * 401 from an expired session, a 500 or a dropped request were all
+   * indistinguishable from "I misclicked" — and the operator would click again.
+   */
   const handleRemovePool = useCallback(
     async (id: string) => {
       if (!confirm(t("removeConfirm"))) return;
-      await fetch(`/api/quota/pools/${id}`, { method: "DELETE" });
+      setRemoveError(null);
+      try {
+        const res = await fetch(`/api/quota/pools/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const detail = await res
+            .json()
+            .then((b) => b?.error?.message || b?.error || b?.message)
+            .catch(() => null);
+          setRemoveError(detail ? `${t("removeFailed")} — ${detail}` : t("removeFailed"));
+          return;
+        }
+      } catch {
+        // Network-level failure: there is no response to read.
+        setRemoveError(t("removeFailed"));
+        return;
+      }
       await mutate();
     },
     [mutate, t]
@@ -378,6 +411,25 @@ export default function QuotaSharePageClient() {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Falha ao remover: dispensável, mas nunca silenciosa. */}
+      {removeError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-[12px] text-red-700 dark:text-red-200"
+        >
+          <span className="material-symbols-outlined text-[16px] text-red-500 shrink-0">error</span>
+          <span className="flex-1">{removeError}</span>
+          <button
+            type="button"
+            onClick={() => setRemoveError(null)}
+            aria-label={t("dismiss")}
+            className="shrink-0 text-red-500 hover:text-red-400 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
@@ -388,7 +440,6 @@ export default function QuotaSharePageClient() {
           <p className="text-sm text-text-muted mt-0.5">{t("description")}</p>
         </div>
         <div className="flex items-center gap-2">
-          <EmailPrivacyToggle />
           <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
             <span className="material-symbols-outlined text-[14px] mr-1">add</span>
             {t("newPool")}
@@ -398,7 +449,9 @@ export default function QuotaSharePageClient() {
 
       {/* Beta banner — scoped to this page only */}
       <div className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-200">
-        <span className="material-symbols-outlined text-[16px] text-amber-500 shrink-0">science</span>
+        <span className="material-symbols-outlined text-[16px] text-amber-500 shrink-0">
+          science
+        </span>
         <span className="flex-1">
           <span className="font-semibold">{t("betaTitle")}</span> — {t("betaText")}
         </span>
@@ -439,7 +492,10 @@ export default function QuotaSharePageClient() {
               onChange={(e) => setNewGroupInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") void handleCreateGroup();
-                if (e.key === "Escape") { setShowNewGroupInput(false); setNewGroupInput(""); }
+                if (e.key === "Escape") {
+                  setShowNewGroupInput(false);
+                  setNewGroupInput("");
+                }
               }}
               placeholder={t("groupNamePrompt")}
               autoFocus
@@ -455,7 +511,10 @@ export default function QuotaSharePageClient() {
             </button>
             <button
               type="button"
-              onClick={() => { setShowNewGroupInput(false); setNewGroupInput(""); }}
+              onClick={() => {
+                setShowNewGroupInput(false);
+                setNewGroupInput("");
+              }}
               className="text-xs px-2 py-1 rounded border border-border text-text-muted hover:text-text-main transition-colors"
             >
               {t("cancel")}
@@ -541,7 +600,12 @@ export default function QuotaSharePageClient() {
           {groupsToRender.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-surface py-10 text-center">
               <p className="text-sm text-text-muted">{t("emptyDescription")}</p>
-              <Button variant="primary" size="sm" className="mt-3" onClick={() => setCreateOpen(true)}>
+              <Button
+                variant="primary"
+                size="sm"
+                className="mt-3"
+                onClick={() => setCreateOpen(true)}
+              >
                 <span className="material-symbols-outlined text-[14px] mr-1">add</span>
                 {t("newPool")}
               </Button>
@@ -549,8 +613,7 @@ export default function QuotaSharePageClient() {
           ) : (
             groupsToRender.map((g) => {
               const groupPools = pools.filter(
-                (p) =>
-                  ((p as unknown as { groupId?: string }).groupId ?? "group-demo") === g.id
+                (p) => ((p as unknown as { groupId?: string }).groupId ?? "group-demo") === g.id
               );
               return (
                 <div key={g.id} className="flex flex-col gap-3">
@@ -643,7 +706,9 @@ export default function QuotaSharePageClient() {
         connections={connections}
         apiKeys={apiKeys}
         plans={plans}
-        existingPoolConnectionIds={new Set(pools.flatMap((p) => p.connectionIds ?? [p.connectionId]))}
+        existingPoolConnectionIds={
+          new Set(pools.flatMap((p) => p.connectionIds ?? [p.connectionId]))
+        }
         connectionPoolName={connectionPoolName}
         groups={groups}
         selectedGroupId={selectedGroupId}

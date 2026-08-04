@@ -6,6 +6,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Button } from "@/shared/components";
 
 const NAME = "9router";
@@ -34,34 +35,38 @@ export function paginateModels(
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function NinerouterModelList() {
+  const t = useTranslations("embeddedServices");
   const [models, setModels] = useState<ServiceModel[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchModels = useCallback(async (refresh = false) => {
-    if (refresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    setError(null);
-    try {
-      const url = `/api/services/${NAME}/models${refresh ? "?refresh=true" : ""}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = await res.json();
-      const data: ServiceModel[] = Array.isArray(body?.data) ? body.data : [];
-      setModels(data);
-      setPage(1);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load models");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const fetchModels = useCallback(
+    async (refresh = false) => {
+      if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+      try {
+        const url = `/api/services/${NAME}/models${refresh ? "?refresh=true" : ""}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const body = await res.json();
+        const data: ServiceModel[] = Array.isArray(body?.data) ? body.data : [];
+        setModels(data);
+        setPage(1);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : t("modelsLoadFailed"));
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [t]
+  );
 
   useEffect(() => {
     void fetchModels(false);
@@ -78,11 +83,9 @@ export function NinerouterModelList() {
             <span className="material-symbols-outlined text-cyan-500 text-xl">list</span>
           </div>
           <div>
-            <h3 className="font-medium text-sm">Available Models</h3>
+            <h3 className="font-medium text-sm">{t("availableModels")}</h3>
             <p className="text-xs text-text-muted">
-              {loading
-                ? "Loading…"
-                : `${models.length} model${models.length !== 1 ? "s" : ""} discovered`}
+              {loading ? t("modelsLoading") : t("modelsDiscovered", { count: models.length })}
             </p>
           </div>
         </div>
@@ -98,10 +101,10 @@ export function NinerouterModelList() {
               <span className="material-symbols-outlined animate-spin text-[12px]">
                 progress_activity
               </span>
-              Refreshing…
+              {t("refreshing")}
             </span>
           ) : (
-            "Refresh now"
+            t("refreshNow")
           )}
         </Button>
       </div>
@@ -114,9 +117,7 @@ export function NinerouterModelList() {
       )}
 
       {!loading && models.length === 0 && !error && (
-        <p className="text-xs text-text-muted text-center py-4">
-          No models found. Click &quot;Refresh now&quot; to sync from the running service.
-        </p>
+        <p className="text-xs text-text-muted text-center py-4">{t("noModels")}</p>
       )}
 
       {visibleModels.length > 0 && (
@@ -129,7 +130,7 @@ export function NinerouterModelList() {
               <code className="text-xs font-mono text-text truncate">{model.id}</code>
               {model.available === false && (
                 <span className="ml-2 text-[10px] font-medium text-text-muted bg-bg-subtle px-1.5 py-0.5 rounded shrink-0">
-                  unavailable
+                  {t("unavailable")}
                 </span>
               )}
             </div>
@@ -141,7 +142,7 @@ export function NinerouterModelList() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
           <span className="text-xs text-text-muted">
-            Page {page} of {totalPages}
+            {t("pageOf", { page, total: totalPages })}
           </span>
           <div className="flex gap-1.5">
             <button
@@ -149,14 +150,14 @@ export function NinerouterModelList() {
               disabled={page <= 1}
               className="px-2 py-1 text-xs rounded border border-border disabled:opacity-40 hover:bg-bg-subtle transition-colors"
             >
-              Prev
+              {t("previous")}
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
               className="px-2 py-1 text-xs rounded border border-border disabled:opacity-40 hover:bg-bg-subtle transition-colors"
             >
-              Next
+              {t("next")}
             </button>
           </div>
         </div>

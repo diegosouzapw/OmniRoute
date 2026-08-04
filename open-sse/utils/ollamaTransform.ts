@@ -1,4 +1,5 @@
 import { CORS_HEADERS } from "./cors.ts";
+import { getReadableReasoningValue } from "./reasoningFields.ts";
 
 type PendingToolCall = {
   id?: string;
@@ -38,25 +39,45 @@ export function transformToOllama(response, model) {
             const parsed = JSON.parse(data);
             const delta = parsed.choices?.[0]?.delta || {};
             const content = delta.content || "";
+            const thinking = getReadableReasoningValue(delta);
             const toolCalls = delta.tool_calls;
 
             if (toolCalls) {
               for (const tc of toolCalls) {
                 const idx = tc.index;
 
+                const toolCallId = tc.id != null ? String(tc.id) : tc.id;
+
                 // T37: Prevent merging tool_calls on same index if ID changes
-                if (pendingToolCalls[idx] && tc.id && pendingToolCalls[idx].id !== tc.id) {
+                if (
+                  pendingToolCalls[idx] &&
+                  toolCallId &&
+                  pendingToolCalls[idx].id !== toolCallId
+                ) {
                   completedToolCalls.push(pendingToolCalls[idx]);
                   delete pendingToolCalls[idx];
                 }
 
                 if (!pendingToolCalls[idx]) {
-                  pendingToolCalls[idx] = { id: tc.id, function: { name: "", arguments: "" } };
+                  pendingToolCalls[idx] = {
+                    id: toolCallId,
+                    function: { name: "", arguments: "" },
+                  };
                 }
                 if (tc.function?.name) pendingToolCalls[idx].function.name += tc.function.name;
                 if (tc.function?.arguments)
                   pendingToolCalls[idx].function.arguments += tc.function.arguments;
               }
+            }
+
+            if (thinking) {
+              const ollama =
+                JSON.stringify({
+                  model,
+                  message: { role: "assistant", content: "", thinking },
+                  done: false,
+                }) + "\n";
+              controller.enqueue(new TextEncoder().encode(ollama));
             }
 
             if (content) {

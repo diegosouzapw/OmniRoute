@@ -2,7 +2,7 @@
  * T-07 — embed proxy route handler tests.
  *
  * Tests GET/POST/PUT/PATCH/DELETE handlers in
- * /dashboard/providers/services/[name]/embed/[...path]/route.ts.
+ * /dashboard/providers/services/[name]/embed/[[...path]]/route.ts.
  *
  * Uses registerSupervisor to inject fake supervisors (ESM live bindings
  * can't be reassigned, so direct module patching is not possible).
@@ -21,7 +21,7 @@ import {
   DELETE,
   HEAD,
   OPTIONS,
-} from "../../../src/app/(dashboard)/dashboard/providers/services/[name]/embed/[...path]/route.ts";
+} from "../../../src/app/(dashboard)/dashboard/providers/services/[name]/embed/[[...path]]/route.ts";
 
 const originalFetch = globalThis.fetch;
 

@@ -1,6 +1,7 @@
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getUnifiedModelsResponse } from "@/app/api/v1/models/catalog";
 import { INTERNAL_PROXY_ERROR, getCatalogDiagnosticsHeaders } from "@/lib/modelMetadataRegistry";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 /**
  * GET /api/models/catalog
@@ -38,6 +39,7 @@ export async function GET(request: Request) {
         name: model.name || model.root || model.id,
         type: model.type || "chat",
         custom: model.custom === true,
+        ...(model.free === true ? { free: true } : {}),
         ...(model.capabilities ? { capabilities: model.capabilities } : {}),
         ...(typeof model.context_length === "number"
           ? { context_length: model.context_length }
@@ -71,7 +73,7 @@ export async function GET(request: Request) {
     return Response.json(
       {
         error: {
-          message: (error as any).message,
+          message: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
           type: "server_error",
           code: INTERNAL_PROXY_ERROR,
         },

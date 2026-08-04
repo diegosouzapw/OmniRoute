@@ -19,6 +19,8 @@ interface TopBarControlsProps {
   onHostChange: (h: string | undefined) => void;
   onAgentChange: (a: AgentId | undefined) => void;
   onStatusChange: (s: ListFilters["status"]) => void;
+  liveOnly: boolean;
+  onToggleLive: () => void;
   paused: boolean;
   onPause: () => void;
   onResume: () => void;
@@ -39,13 +41,14 @@ interface TopBarControlsProps {
   onSessionDelete: (id: string) => void;
 }
 
-
 export function TopBarControls({
   filters,
   onProfileChange,
   onHostChange,
   onAgentChange,
   onStatusChange,
+  liveOnly,
+  onToggleLive,
   paused,
   onPause,
   onResume,
@@ -78,7 +81,7 @@ export function TopBarControls({
       {/* Profile selector */}
       <div
         role="radiogroup"
-        aria-label="Traffic profile"
+        aria-label={t("trafficProfile")}
         className="flex items-center gap-1 rounded border border-border bg-surface p-0.5"
       >
         {PROFILE_IDS.map((id) => (
@@ -90,9 +93,7 @@ export function TopBarControls({
             onClick={() => onProfileChange(id)}
             className={cn(
               "px-2 py-0.5 text-xs rounded focus-ring",
-              profile === id
-                ? "bg-blue-600 text-white"
-                : "text-text-muted hover:text-text-main"
+              profile === id ? "bg-blue-600 text-white" : "text-text-muted hover:text-text-main"
             )}
           >
             {profileLabels[id]}
@@ -112,9 +113,7 @@ export function TopBarControls({
       {/* Status filter */}
       <select
         value={filters.status ?? ""}
-        onChange={(e) =>
-          onStatusChange((e.target.value as ListFilters["status"]) || undefined)
-        }
+        onChange={(e) => onStatusChange((e.target.value as ListFilters["status"]) || undefined)}
         className="rounded border border-border bg-bg-subtle px-2 py-1 text-xs text-text-main focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
         <option value="">{t("anyStatus")}</option>
@@ -124,6 +123,25 @@ export function TopBarControls({
         <option value="5xx">5xx</option>
         <option value="error">error</option>
       </select>
+
+      {/* Live (in-flight) toggle — Gap 5 */}
+      <button
+        type="button"
+        onClick={onToggleLive}
+        aria-pressed={liveOnly}
+        title={t("liveOnly")}
+        className={cn(
+          "inline-flex items-center gap-1 rounded border px-2 py-1 text-xs focus-ring",
+          liveOnly
+            ? "border-green-500/50 bg-green-500/15 text-green-500"
+            : "border-border text-text-muted hover:text-text-main"
+        )}
+      >
+        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+          sensors
+        </span>
+        {t("liveOnly")}
+      </button>
 
       {/* Action buttons */}
       <button

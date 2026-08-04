@@ -5,7 +5,6 @@ export const FORMATS = {
   OPENAI_RESPONSE: "openai-response",
   CLAUDE: "claude",
   GEMINI: "gemini",
-  GEMINI_CLI: "gemini-cli",
   CODEX: "codex",
   ANTIGRAVITY: "antigravity",
   KIRO: "kiro",

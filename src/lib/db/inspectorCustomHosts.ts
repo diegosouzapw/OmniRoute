@@ -3,8 +3,8 @@
  * CRUD operations for inspector_custom_hosts table.
  */
 
-import { getDbInstance } from "./core";
-import type { InspectorCustomHostRow } from "./_rowTypes";
+import { getDbInstance } from "./core.ts";
+import type { InspectorCustomHostRow } from "./_rowTypes.ts";
 
 // SQLite stores booleans as integers
 interface InspectorCustomHostDbRow {
@@ -33,9 +33,7 @@ export function listCustomHosts(opts?: { enabledOnly?: boolean }): InspectorCust
 
   const rows = enabledOnly
     ? (db
-        .prepare(
-          "SELECT * FROM inspector_custom_hosts WHERE enabled = 1 ORDER BY host ASC"
-        )
+        .prepare("SELECT * FROM inspector_custom_hosts WHERE enabled = 1 ORDER BY host ASC")
         .all() as InspectorCustomHostDbRow[])
     : (db
         .prepare("SELECT * FROM inspector_custom_hosts ORDER BY host ASC")

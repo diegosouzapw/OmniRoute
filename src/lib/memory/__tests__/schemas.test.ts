@@ -24,6 +24,12 @@ describe("Memory Schemas", () => {
     metadata: { updatedAt: new Date() },
   };
 
+  test("exports runtime schemas", () => {
+    expect(typeof MemoryConfigSchema.safeParse).toBe("function");
+    expect(typeof MemoryCreateInputSchema.safeParse).toBe("function");
+    expect(typeof MemoryUpdateInputSchema.safeParse).toBe("function");
+  });
+
   test("MemoryConfigSchema validation", () => {
     expect(MemoryConfigSchema.parse(validConfig)).toBeDefined();
     const invalidConfig = { ...validConfig, maxTokens: -1 };
@@ -38,7 +44,7 @@ describe("Memory Schemas", () => {
 
   test("MemoryUpdateInputSchema validation", () => {
     expect(MemoryUpdateInputSchema.parse(validUpdateInput)).toBeDefined();
-    const invalidUpdate = { key: "test" };
+    const invalidUpdate = { key: "" };
     expect(() => MemoryUpdateInputSchema.parse(invalidUpdate)).toThrow();
   });
 });

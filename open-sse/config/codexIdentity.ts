@@ -69,6 +69,37 @@ export function applyCodexClientIdentityHeaders(
   });
 }
 
+/**
+ * #3697: detect the Codex CLI as the request *client* (not the routed provider) from
+ * request headers, so the model-echo shim can fire regardless of which upstream provider
+ * ultimately serves the request (e.g. `codex/gpt-5.5-xhigh` routed through a combo).
+ * Mirrors the `originator`/User-Agent detection proven in `isCodexModelCatalogClient`
+ * (PR #3481, `src/app/api/v1/models/catalogRequest.ts`) — Codex CLI sends an `originator`
+ * header of `codex_exec`/`codex_cli_rs` and a matching `codex_*` User-Agent — but works off
+ * a plain headers bag (`Headers` or a header-name→value record) instead of a `Request`,
+ * since chatCore's `clientRawRequest.headers` is not always a `Request`.
+ */
+export function isCodexOriginatedHeaders(
+  headers: Headers | Record<string, unknown> | null | undefined
+): boolean {
+  const getHeader = (name: string): string => {
+    if (headers instanceof Headers) {
+      return headers.get(name)?.toLowerCase() ?? "";
+    }
+    if (headers && typeof headers === "object") {
+      for (const [key, value] of Object.entries(headers as Record<string, unknown>)) {
+        if (key.toLowerCase() === name && typeof value === "string") {
+          return value.toLowerCase();
+        }
+      }
+    }
+    return "";
+  };
+
+  if (getHeader("originator").startsWith("codex")) return true;
+  return getHeader("user-agent").startsWith("codex");
+}
+
 export function applyCodexClientMetadata(
   body: Record<string, unknown>,
   identity?: CodexClientIdentity | null

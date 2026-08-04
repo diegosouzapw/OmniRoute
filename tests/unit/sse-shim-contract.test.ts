@@ -46,6 +46,14 @@ test("src/sse model shim keeps parseModel behavior aligned with open-sse core", 
   }
 });
 
+test("src/sse model shim exposes the active model helper surface", async () => {
+  const srcModel = await import("../../src/sse/services/model.ts");
+
+  for (const helper of ["parseModel", "getModelInfo", "getCombo", "getComboForModel"]) {
+    assert.equal(typeof srcModel[helper], "function", `${helper} should stay exported`);
+  }
+});
+
 test("src/sse service wrappers delegate to open-sse and shared infrastructure", () => {
   const tokenRefreshSource = readProjectFile("src/sse/services/tokenRefresh.ts");
   const modelSource = readProjectFile("src/sse/services/model.ts");

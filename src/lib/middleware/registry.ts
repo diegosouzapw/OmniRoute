@@ -12,6 +12,8 @@
  *   - Skip remaining hooks
  */
 
+import * as vm from "vm";
+
 import {
   type HookMiddleware,
   type HookConfig,
@@ -51,18 +53,116 @@ function getRegistryState() {
 
 // ── Compile hook code into middleware function ────────────────────────────
 
+/**
+ * Max wall-clock time a single operator-authored hook may run.
+ * Synchronous runaway loops are cut off by the `vm` timeout; async work that
+ * never settles is cut off by the Promise.race guard below.
+ */
+const HOOK_EXECUTION_TIMEOUT_MS = 5000;
+
+/**
+ * Build the minimal, capability-free context object exposed to hook code.
+ *
+ * TRUST MODEL: Node's `vm` is NOT a hard security boundary (it shares the host
+ * V8 heap and prototype-chain escapes exist). Its purpose here is to remove
+ * *ambient* authority — hook code compiled from `HookConfig.code` must not see
+ * `process`, `require`, `global`/`globalThis`, `fetch`, `Buffer`, timers, or
+ * the module scope. Only the request `context` and pure/deterministic globals
+ * are reachable, so a hook cannot read `process.env`, spawn processes, open
+ * sockets, or `require()` arbitrary modules. Combined with the operator-only
+ * write path (hooks are authored locally), this closes the `new Function()`
+ * ambient-authority exposure (Hard Rule #3 / SonarCloud S1523).
+ */
+function createHookSandbox(context: PreRequestHookContext): Record<string, unknown> {
+  return {
+    context,
+    // Pure / deterministic globals only — no I/O, no ambient authority.
+    JSON,
+    Math,
+    Date,
+    Array,
+    Object,
+    String,
+    Number,
+    Boolean,
+    RegExp,
+    Error,
+    TypeError,
+    RangeError,
+    SyntaxError,
+    URIError,
+    Map,
+    Set,
+    WeakMap,
+    WeakSet,
+    Symbol,
+    Promise,
+    parseInt,
+    parseFloat,
+    isNaN,
+    isFinite,
+    URL,
+    URLSearchParams,
+    // Deliberately absent: process, require, module, exports, global,
+    // globalThis, fetch, Buffer, setTimeout/setInterval, __dirname, __filename.
+  };
+}
+
 function compileHookCode(code: string, hookName: string): HookMiddleware {
+  // Compile-once: parse the source into a reusable vm.Script. This throws on
+  // syntax errors at registration time (preserving the original behavior) and
+  // is cached in the returned closure so each execution only pays for a fresh
+  // minimal context, not re-parsing.
+  let script: vm.Script;
   try {
-    // Wrap in async function that returns HookResult
-    // eslint-disable-next-line no-new-func
-    const fn = new Function("context", `return (async () => { ${code} })();`) as (
-      context: PreRequestHookContext
-    ) => Promise<HookResult>;
-    return fn;
+    script = new vm.Script(`(async () => { ${code} })();`, {
+      filename: `omniroute-hook:${hookName}`,
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Compilation error";
     throw new Error(`Failed to compile hook "${hookName}": ${message}`);
   }
+
+  return async (context: PreRequestHookContext): Promise<HookResult> => {
+    const sandbox = createHookSandbox(context);
+    const vmContext = vm.createContext(sandbox, {
+      codeGeneration: { strings: false, wasm: false },
+    });
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      // The `vm` timeout only interrupts *synchronous* runaway code; the
+      // Promise.race below bounds async work that never settles.
+      const execution: unknown = script.runInContext(vmContext, {
+        timeout: HOOK_EXECUTION_TIMEOUT_MS,
+      });
+
+      const timeoutGuard = new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => {
+          reject(
+            new Error(`Hook "${hookName}" timed out after ${HOOK_EXECUTION_TIMEOUT_MS}ms`)
+          );
+        }, HOOK_EXECUTION_TIMEOUT_MS);
+      });
+
+      const result = await Promise.race([Promise.resolve(execution), timeoutGuard]);
+      return (result ?? {}) as HookResult;
+    } catch (err: unknown) {
+      // Errors thrown from inside the vm context use the context's own
+      // constructors, so they are not `instanceof` the host Error. Normalize
+      // to a host Error carrying a readable message so callers/observability
+      // classify it correctly.
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === "object" && err !== null && "message" in err
+            ? String((err as { message: unknown }).message)
+            : String(err);
+      throw new Error(message);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  };
 }
 
 // ── Default context factory ──────────────────────────────────────────────

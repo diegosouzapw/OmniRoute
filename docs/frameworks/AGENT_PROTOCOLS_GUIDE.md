@@ -1,13 +1,13 @@
 ---
 title: "Agent Protocols Guide"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Agent Protocols Guide
 
 > **Source:** `src/lib/{a2a,acp,cloudAgent}/`, `src/app/api/{a2a,acp,cloud}/`, `src/app/api/v1/agents/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute exposes three different agent-related surfaces. They look similar at first glance but solve different problems. Use this page to pick the right one.
 
@@ -17,7 +17,7 @@ OmniRoute exposes three different agent-related surfaces. They look similar at f
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------- | -------------------- |
 | **A2A — Agent-to-Agent**      | Cross-agent collaboration with peer agents that speak the A2A protocol                                                                     | JSON-RPC 2.0 over HTTP      | A2A v0.3 (open spec) |
 | **ACP — CLI Agents Registry** | Detecting / registering / launching CLI coding agents installed on the user's machine (Cursor, Cline, Codex CLI, Claude Code, Aider, etc.) | HTTP REST                   | OmniRoute-specific   |
-| **Cloud Agents**              | Submitting long-running coding tasks to external cloud services (Codex Cloud, Devin, Jules)                                                | HTTP REST + DB-backed tasks | OmniRoute-specific   |
+| **Cloud Agents**              | Submitting long-running coding tasks to external cloud services (Codex Cloud, Devin, Jules, Cursor Cloud)                                  | HTTP REST + DB-backed tasks | OmniRoute-specific   |
 
 The three are independent — pick any subset.
 
@@ -56,13 +56,14 @@ Do you need a cloud service to do work outside this machine (Codex Cloud / Devin
 - `tasks/get` — read task by ID
 - `tasks/cancel` — cancel a running task
 
-### Built-in skills (5)
+### Built-in skills (6)
 
 - `smart-routing` — route a prompt through the optimal combo
 - `quota-management` — report per-provider quota state
 - `provider-discovery` — list installed providers with capabilities
 - `cost-analysis` — estimate cost of a request/conversation
 - `health-report` — aggregate breaker/cooldown/lockout state per provider
+- `list-capabilities` — enumerate the agent's available skills and metadata
 
 ### Deep dive
 

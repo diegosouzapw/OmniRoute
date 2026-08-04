@@ -124,6 +124,10 @@ async function initUnixTray(options: TrayOptions): Promise<TrayInstance | null> 
   const systray = new SysTray({
     menu: {
       icon: getIconBase64(),
+      // isTemplateIcon: false on darwin — the bundled icon.png is a full-color
+      // RGBA logo; template mode would render it as a solid white square
+      // because macOS template icons only use the alpha channel. (PR #1080)
+      isTemplateIcon: false,
       title: "OmniRoute",
       tooltip: `OmniRoute :${options.port}`,
       items: menuItems.map((it) => ({
@@ -175,6 +179,8 @@ async function initUnixTray(options: TrayOptions): Promise<TrayInstance | null> 
     setTooltip: () => {
       /* systray2 does not support runtime tooltip change */
     },
-    destroy: () => systray.kill(),
+    // Pass false so systray2's kill does NOT call process.exit(0) before the
+    // rest of cleanup (server SIGKILL, MITM/tunnel cleanup) runs. (PR #1080)
+    destroy: () => systray.kill(false),
   };
 }

@@ -186,7 +186,7 @@ test("deletePool removes pool and allocation rows from DB", () => {
   poolsDb.deletePool(pool.id);
 
   assert.equal(poolsDb.getPool(pool.id), null, "getPool should return null after delete");
-  const allPools = poolsDb.listPools();
+  const { items: allPools } = poolsDb.listPools();
   assert.ok(
     !allPools.some((p) => p.id === pool.id),
     "listPools should not contain the deleted pool"

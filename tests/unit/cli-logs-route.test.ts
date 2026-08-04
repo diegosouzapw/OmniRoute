@@ -35,9 +35,7 @@ const lines = [
 ];
 fs.writeFileSync(logPath, lines.join("\n") + "\n", "utf-8");
 
-const { GET } = await import(
-  "../../src/app/api/cli-tools/logs/route.ts"
-);
+const { GET } = await import("../../src/app/api/cli-tools/logs/route.ts");
 
 test.before(async () => {
   await updateSettings({ requireLogin: false });
@@ -148,7 +146,14 @@ test("log-streamer.ts calls /api/cli-tools/logs (correct URL, not the missing ro
   globalThis.fetch = (async (url: string) => {
     captured.push(typeof url === "string" ? url : String(url));
     // Return a mock Response with a body so the stream doesn't error immediately
-    return new Response(new ReadableStream({ start(c) { c.close(); } }), { status: 200 });
+    return new Response(
+      new ReadableStream({
+        start(c) {
+          c.close();
+        },
+      }),
+      { status: 200 }
+    );
   }) as typeof fetch;
 
   try {
@@ -169,5 +174,43 @@ test("log-streamer.ts calls /api/cli-tools/logs (correct URL, not the missing ro
   assert.ok(
     !captured.some((u) => u.includes("/api/logs/console")),
     "log-streamer should not call /api/logs/console"
+  );
+});
+
+test("log-streamer forwards auth headers to fetch (regression: 401 against authed servers)", async () => {
+  const { createLogStream } = await import("../../src/lib/cli-helper/log-streamer.ts");
+  let capturedInit: RequestInit | undefined;
+  const origFetch = globalThis.fetch;
+
+  globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+    capturedInit = init;
+    return new Response(
+      new ReadableStream({
+        start(c) {
+          c.close();
+        },
+      }),
+      { status: 200 }
+    );
+  }) as typeof fetch;
+
+  try {
+    const { stream, stop } = createLogStream({
+      baseUrl: "http://localhost:20128",
+      headers: { authorization: "Bearer test-token" },
+    });
+    const reader = stream.getReader();
+    await reader.read().catch(() => {});
+    stop();
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+
+  assert.ok(capturedInit, "fetch should receive an init object");
+  const headers = new Headers(capturedInit!.headers);
+  assert.equal(
+    headers.get("authorization"),
+    "Bearer test-token",
+    "createLogStream must forward the provided auth headers to fetch"
   );
 });

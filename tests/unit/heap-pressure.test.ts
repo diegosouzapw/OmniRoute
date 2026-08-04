@@ -1,6 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { computeHeapPressureThresholdMb } from "../../open-sse/utils/heapPressure.ts";
+import {
+  checkHeapPressureGuard,
+  computeHeapPressureThresholdMb,
+} from "../../open-sse/utils/heapPressure.ts";
 
 // Regression guard for the v3.8.8 "Service temporarily unavailable due to resource
 // pressure" outage: a fixed 200MB threshold sat below the app's ~260MB working set,
@@ -44,5 +47,35 @@ describe("computeHeapPressureThresholdMb", () => {
         `override ${JSON.stringify(bad)} must fall back to auto-calibration`
       );
     }
+  });
+});
+
+// Extracted from chatCore's handleChatCore (god-file decomposition, first leaf). The SET of
+// behaviours below is byte-identical to the previous inline guard.
+describe("checkHeapPressureGuard", () => {
+  it("returns null (proceed) when heap usage is at or below the threshold", () => {
+    assert.equal(checkHeapPressureGuard(100, 256), null);
+    assert.equal(checkHeapPressureGuard(256, 256), null, "boundary: == threshold proceeds");
+  });
+
+  it("returns a 503 shed result when heap usage exceeds the threshold", async () => {
+    const guard = checkHeapPressureGuard(300, 256);
+    assert.ok(guard, "must shed above threshold");
+    assert.equal(guard.success, false);
+    assert.equal(guard.status, 503);
+    assert.equal(guard.response.status, 503);
+    assert.equal(guard.response.headers.get("Retry-After"), "5");
+    assert.equal(guard.response.headers.get("Content-Type"), "application/json");
+    const payload = await guard.response.json();
+    assert.equal(payload.error.code, "heap_pressure");
+    assert.equal(payload.error.type, "server_error");
+  });
+
+  it("never leaks the heap figure to the client response (Hard Rule #12)", async () => {
+    const guard = checkHeapPressureGuard(987, 256);
+    assert.ok(guard);
+    const text = JSON.stringify(await guard.response.clone().json()) + (guard.error ?? "");
+    assert.ok(!text.includes("987"), "the measured heap MB must not appear in the client payload");
+    assert.ok(!/\bMB\b/.test(text), "no heap-size detail should reach the client");
   });
 });

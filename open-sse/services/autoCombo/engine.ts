@@ -11,8 +11,8 @@
 
 import {
   scorePool,
-  validateWeights,
   DEFAULT_WEIGHTS,
+  normalizeScoringWeights,
   type ScoringWeights,
   type ProviderCandidate,
   type ScoredProvider,
@@ -30,9 +30,37 @@ export interface AutoComboConfig {
   weights: ScoringWeights;
   modePack?: string;
   budgetCap?: number; // max cost per request in USD
+  /**
+   * Policy applied when EVERY candidate exceeds `budgetCap` (#3470):
+   *   - "cheapest" (default): fall back to the globally cheapest candidate, even
+   *     though it still exceeds the cap (existing/legacy behavior).
+   *   - "strict": refuse to select — `selectProvider()` throws `BudgetExceededError`
+   *     so the caller can surface a clear cost-exceeds-budget response instead of
+   *     silently overspending.
+   */
+  budgetFallback?: "cheapest" | "strict";
   explorationRate: number; // 0.05 = 5% exploratory
   /** If set, RouterStrategy name to use for selection ('rules' | 'cost' | 'latency') */
   routerStrategy?: string;
+}
+
+/**
+ * Thrown by `selectProvider()` when `budgetFallback: "strict"` is set and no
+ * candidate (including the cheapest) fits within `budgetCap` (#3470). Callers
+ * should catch this and surface a cost-exceeds-budget response — never let it
+ * propagate as an unhandled 500.
+ */
+export class BudgetExceededError extends Error {
+  constructor(
+    public readonly budgetCap: number,
+    public readonly cheapestCostUsd: number
+  ) {
+    super(
+      `No candidate fits within the configured budget cap of $${budgetCap.toFixed(4)} ` +
+        `(cheapest available candidate costs $${cheapestCostUsd.toFixed(4)})`
+    );
+    this.name = "BudgetExceededError";
+  }
 }
 
 export interface SelectionResult {
@@ -82,12 +110,15 @@ class ScoreTierRotator {
     const tiers = groupIntoTiers(candidates);
     const best = candidates[0].score;
     const worst = candidates[candidates.length - 1].score;
-    if (tiers.top.length > 0 && (best - worst) >= CLEAR_WINNER_THRESHOLD) {
+    if (tiers.top.length > 0 && best - worst >= CLEAR_WINNER_THRESHOLD) {
       return this.pickFromPool(tiers.top);
     }
     const prefs = tierPreferencesForName(this.comboName);
-    const chosen = chooseTierWeighted(tiers, prefs, (pool) => this.pickFromPool(pool), () =>
-      this.advance(tiers, prefs, candidates)
+    const chosen = chooseTierWeighted(
+      tiers,
+      prefs,
+      (pool) => this.pickFromPool(pool),
+      () => this.advance(tiers, prefs, candidates)
     );
     return chosen;
   }
@@ -220,7 +251,7 @@ export function selectProvider(
     const pack = getModePack(config.modePack);
     if (pack) weights = pack;
   }
-  if (!validateWeights(weights)) weights = DEFAULT_WEIGHTS;
+  weights = normalizeScoringWeights(weights);
 
   // Filter out excluded providers
   const excluded: string[] = [];
@@ -293,6 +324,12 @@ export function selectProvider(
         const cheapest = [...candidates_].sort(
           (a, b) => estimatedCostFor(a) - estimatedCostFor(b)
         )[0];
+        if (config.budgetFallback === "strict") {
+          throw new BudgetExceededError(
+            config.budgetCap,
+            cheapest ? estimatedCostFor(cheapest) : 0
+          );
+        }
         if (cheapest) selected = cheapest;
       }
     }

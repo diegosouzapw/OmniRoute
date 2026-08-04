@@ -125,11 +125,20 @@ test("decodeExecServerEvent recognizes shell_args (field 2) with command + worki
     execId: "exec-s",
     command: "ls -la",
     workingDir: "/tmp",
+    timeout: 0,
+    isBackground: false,
+    hardTimeout: 0,
   });
 });
 
-test("decodeExecServerEvent recognizes shell_stream_args (field 14)", () => {
-  const variant = Buffer.concat([stringField(1, "tail -f x"), stringField(2, "/var/log")]);
+test("decodeExecServerEvent preserves shell_stream timeout and background semantics", () => {
+  const variant = Buffer.concat([
+    stringField(1, "tail -f x"),
+    stringField(2, "/var/log"),
+    varintField(3, 5_000),
+    varintField(11, 1),
+    varintField(14, 7_000),
+  ]);
   const esm = buildExecServerMessage(9, "exec-ss", 14, variant);
   const event = decodeExecServerEvent(buildAgentServerMessage(esm));
   assert.deepEqual(event, {
@@ -138,6 +147,9 @@ test("decodeExecServerEvent recognizes shell_stream_args (field 14)", () => {
     execId: "exec-ss",
     command: "tail -f x",
     workingDir: "/var/log",
+    timeout: 5_000,
+    isBackground: true,
+    hardTimeout: 7_000,
   });
 });
 
@@ -151,6 +163,9 @@ test("decodeExecServerEvent recognizes background_shell_spawn (field 16)", () =>
     execId: "exec-bg",
     command: "node server",
     workingDir: "/app",
+    timeout: 0,
+    isBackground: false,
+    hardTimeout: 0,
   });
 });
 

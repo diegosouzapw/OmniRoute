@@ -35,10 +35,7 @@ interface StatCardProps {
   color: "blue" | "green" | "red" | "purple" | "amber" | "cyan";
 }
 
-const COLOR_MAP: Record<
-  StatCardProps["color"],
-  { shell: string; icon: string }
-> = {
+const COLOR_MAP: Record<StatCardProps["color"], { shell: string; icon: string }> = {
   blue: { shell: "bg-blue-500/10", icon: "text-blue-500" },
   green: { shell: "bg-green-500/10", icon: "text-green-500" },
   red: { shell: "bg-red-500/10", icon: "text-red-500" },
@@ -92,7 +89,7 @@ export default function MonitorTab({ onGoToTranslate }: MonitorTabProps) {
         return fallback;
       }
     },
-    [t],
+    [t]
   );
 
   const [events, setEvents] = useState<TranslationEvent[]>([]);
@@ -136,9 +133,8 @@ export default function MonitorTab({ onGoToTranslate }: MonitorTabProps) {
   const successCount = events.filter((e) => e.status === "success").length;
   const errorCount = events.filter((e) => e.status === "error").length;
   const comboCount = events.filter((e) => e.isComboRouted).length;
-  const uniqueEndpoints = new Set(
-    events.map((e) => e.routeEndpoint ?? e.endpoint).filter(Boolean),
-  ).size;
+  const uniqueEndpoints = new Set(events.map((e) => e.routeEndpoint ?? e.endpoint).filter(Boolean))
+    .size;
   const avgLatency =
     events.length > 0
       ? Math.round(events.reduce((sum, e) => sum + (e.latency ?? 0), 0) / events.length)
@@ -160,7 +156,7 @@ export default function MonitorTab({ onGoToTranslate }: MonitorTabProps) {
         <p>
           {translateOrFallback(
             "monitorOriginHint",
-            "Eventos gerados pelo Translate ou pelo pipeline principal aparecem aqui em tempo real.",
+            "Eventos gerados pelo Translate ou pelo pipeline principal aparecem aqui em tempo real."
           )}
         </p>
       </div>
@@ -269,12 +265,12 @@ export default function MonitorTab({ onGoToTranslate }: MonitorTabProps) {
             <div data-testid="monitor-empty-state">
               <EmptyState
                 icon="📊"
-                title={translateOrFallback("noTranslations", "Nenhuma tradução ainda")}
+                title={translateOrFallback("noTranslations", "No translations yet")}
                 description={translateOrFallback(
                   "monitorEmptyCta",
-                  "Volte para a aba Translate e envie um request — ele aparecerá aqui.",
+                  "Go back to the Translate tab and send a request. It will appear here."
                 )}
-                actionLabel={translateOrFallback("monitorOpenTranslateButton", "Ir para Translate")}
+                actionLabel={translateOrFallback("monitorOpenTranslateButton", "Go to Translate")}
                 onAction={onGoToTranslate ?? null}
               />
             </div>
@@ -284,9 +280,7 @@ export default function MonitorTab({ onGoToTranslate }: MonitorTabProps) {
                 <thead>
                   <tr className="text-left text-xs text-text-muted border-b border-border">
                     <th className="pb-2 pr-4">{t("time")}</th>
-                    <th className="pb-2 pr-4">
-                      {translateOrFallback("routeDetails", "Route")}
-                    </th>
+                    <th className="pb-2 pr-4">{translateOrFallback("routeDetails", "Route")}</th>
                     <th className="pb-2 pr-4">{t("source")}</th>
                     <th className="pb-2 pr-4">{t("target")}</th>
                     <th className="pb-2 pr-4">{t("model")}</th>

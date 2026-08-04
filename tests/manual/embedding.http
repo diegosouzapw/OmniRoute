@@ -17,7 +17,7 @@ Authorization: Bearer {{OMNIROUTE_API_KEY}}
 Content-Type: application/json
 
 {
-  "model": "mistral/mistral-embed",
+  "model": "llama-embeddings/default",
   "input": "The food was delicious and the waiter was very attentive."
 }
 

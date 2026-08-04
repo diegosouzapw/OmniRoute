@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { SearchProviderCatalogItem } from "@/shared/schemas/searchTools";
 
+const MAX_COMPARE_PROVIDERS = 4; // D22: cap at 4 providers running in parallel
+
 export interface CompareResult {
   provider: string;
   latency: number;
@@ -35,16 +37,12 @@ function computeOverlap(urlsA: string[], urlsB: string[]): string {
 
 function getBestIndex(values: number[], higherIsBetter = false): number {
   if (values.length === 0) return -1;
-  return higherIsBetter
-    ? values.indexOf(Math.max(...values))
-    : values.indexOf(Math.min(...values));
+  return higherIsBetter ? values.indexOf(Math.max(...values)) : values.indexOf(Math.min(...values));
 }
 
 function getWorstIndex(values: number[], higherIsBetter = false): number {
   if (values.length === 0) return -1;
-  return higherIsBetter
-    ? values.indexOf(Math.min(...values))
-    : values.indexOf(Math.max(...values));
+  return higherIsBetter ? values.indexOf(Math.min(...values)) : values.indexOf(Math.max(...values));
 }
 
 /** Build a map of url → count across all compare results to find overlaps */
@@ -61,7 +59,7 @@ function buildUrlCountMap(allResults: CompareResult[]): Map<string, number> {
 export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
   const t = useTranslations("search");
   const activeSearchProviders = providers.filter(
-    (p) => p.kind === "search" && p.status === "configured",
+    (p) => p.kind === "search" && p.status === "configured"
   );
 
   const [query, setQuery] = useState("");
@@ -73,12 +71,13 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
   const toggleProvider = useCallback((id: string) => {
     setSelectedProviderIds((prev) => {
       if (prev.includes(id)) return prev.filter((p) => p !== id);
+      if (prev.length >= MAX_COMPARE_PROVIDERS) return prev;
       return [...prev, id];
     });
   }, []);
 
   const selectAll = useCallback(() => {
-    setSelectedProviderIds(activeSearchProviders.map((p) => p.id));
+    setSelectedProviderIds(activeSearchProviders.slice(0, MAX_COMPARE_PROVIDERS).map((p) => p.id));
   }, [activeSearchProviders]);
 
   const clearAll = useCallback(() => {
@@ -112,7 +111,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
               responseSize: 0,
               urls: [],
               results: [],
-              error: data?.error?.message ?? `Error ${res.status}`,
+              error: data?.error?.message ?? t("httpError", { status: res.status }),
             } as CompareResult;
           }
 
@@ -140,10 +139,10 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
             responseSize: 0,
             urls: [],
             results: [],
-            error: err instanceof Error ? err.message : "Failed",
+            error: err instanceof Error ? err.message : t("failed"),
           } as CompareResult;
         }
-      }),
+      })
     );
 
     const resolved = settled.map((s) =>
@@ -157,8 +156,8 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
             responseSize: 0,
             urls: [],
             results: [],
-            error: "Request failed",
-          } as CompareResult),
+            error: t("requestFailed"),
+          } as CompareResult)
     );
     setResults(resolved);
     setLoading(false);
@@ -169,7 +168,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
       const totalCost = valid.reduce((sum, r) => sum + r.cost, 0);
       onMetrics?.(minLatency, totalCost);
     }
-  }, [query, selectedProviderIds, onMetrics]);
+  }, [query, selectedProviderIds, onMetrics, t]);
 
   // Compute best/worst indices for column header coloring
   const validResults = results.filter((r) => !r.error);
@@ -188,15 +187,12 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
         className="flex flex-col items-center justify-center flex-1 py-16 text-center"
         data-testid="compare-no-providers"
       >
-        <span className="text-3xl mb-3" aria-hidden="true">⚖</span>
-        <p className="text-sm text-text-muted mb-2">
-          Nenhum provider de search ativo — configure em Providers →
-        </p>
-        <Link
-          href="/dashboard/providers"
-          className="text-accent text-sm hover:underline"
-        >
-          Configurar providers
+        <span className="text-3xl mb-3" aria-hidden="true">
+          ⚖
+        </span>
+        <p className="text-sm text-text-muted mb-2">{t("noActiveProviderDescription")}</p>
+        <Link href="/dashboard/providers" className="text-accent text-sm hover:underline">
+          {t("configureProviders")}
         </Link>
       </div>
     );
@@ -210,7 +206,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
           htmlFor="compare-query"
           className="block text-[10px] font-semibold text-text-muted uppercase tracking-wider"
         >
-          Query para comparar
+          {t("compareQuery")}
         </label>
         <div className="flex gap-2">
           <input
@@ -218,7 +214,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="artificial intelligence trends 2026"
+            placeholder={t("compareQueryPlaceholder")}
             className="flex-1 bg-bg-alt border border-border rounded-lg px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30"
             onKeyDown={(e) => {
               if (e.key === "Enter") void handleRun();
@@ -231,15 +227,15 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
             disabled={loading || selectedProviderIds.length === 0 || !query.trim()}
             data-testid="run-compare-button"
           >
-            {loading ? "Comparando..." : "Comparar"}
+            {loading ? t("compareRunning") : t("compareRun")}
           </button>
         </div>
 
-        {/* Provider picker — no cap */}
+        {/* Provider picker — capped at MAX_COMPARE_PROVIDERS (D22) */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[10px] text-text-muted">
-              Providers ({selectedProviderIds.length} selected):
+              {t("selectedProviders", { count: selectedProviderIds.length })}
             </p>
             <div className="flex gap-2">
               <button
@@ -247,20 +243,26 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                 onClick={selectAll}
                 data-testid="select-all-providers"
               >
-                Select all
+                {t("selectAll")}
               </button>
               <button
                 className="text-[10px] px-2 py-0.5 rounded border border-border text-text-muted hover:text-text-main hover:border-primary/30 transition-colors"
                 onClick={clearAll}
                 data-testid="clear-providers"
               >
-                Clear
+                {t("clear")}
               </button>
             </div>
           </div>
+          {selectedProviderIds.length >= MAX_COMPARE_PROVIDERS && (
+            <p className="text-warning text-[10px] mb-2">
+              {t("maxCompareProviders", { count: MAX_COMPARE_PROVIDERS })}
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             {activeSearchProviders.map((p) => {
               const selected = selectedProviderIds.includes(p.id);
+              const atCap = !selected && selectedProviderIds.length >= MAX_COMPARE_PROVIDERS;
               return (
                 <button
                   key={p.id}
@@ -269,8 +271,10 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                     selected
                       ? "bg-primary/15 text-primary border-primary/30"
                       : "text-text-muted border-border hover:text-text-main hover:border-primary/30",
+                    atCap ? "opacity-40 cursor-not-allowed" : "",
                   ].join(" ")}
                   onClick={() => toggleProvider(p.id)}
+                  disabled={atCap}
                   data-testid={`provider-toggle-${p.id}`}
                   aria-pressed={selected}
                 >
@@ -302,7 +306,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
         >
           <div className="px-4 py-2.5 bg-bg-alt border-b border-border">
             <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-              Results — &ldquo;{query}&rdquo;
+              {t("compareResults", { query })}
             </span>
           </div>
           <div className="overflow-x-auto">
@@ -332,7 +336,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                           <span className={isBestCost ? "text-emerald-400 font-medium" : ""}>
                             ${cr.cost.toFixed(4)}
                           </span>
-                          <span>{cr.resultCount} results</span>
+                          <span>{t("resultCount", { count: cr.resultCount })}</span>
                           <span>{formatBytes(cr.responseSize)}</span>
                         </div>
                       )}
@@ -346,7 +350,7 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                         </div>
                       ) : cr.results.length === 0 ? (
                         <div className="p-3">
-                          <p className="text-xs text-text-muted">No results</p>
+                          <p className="text-xs text-text-muted">{t("noResults")}</p>
                         </div>
                       ) : (
                         cr.results.map((r, idx) => {
@@ -357,8 +361,8 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                                 {isShared && (
                                   <span
                                     className="text-emerald-400 text-[11px] mt-0.5 shrink-0"
-                                    title="in common with another provider"
-                                    aria-label="in common"
+                                    title={t("sharedResultTitle")}
+                                    aria-label={t("sharedResult")}
                                   >
                                     ⭐
                                   </span>
@@ -397,16 +401,11 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
                   const baseUrls = results[0]?.urls ?? [];
                   return (
                     <span key={cr.provider}>
-                      <span className="font-medium text-text-main">
-                        {results[0]?.provider.replace("-search", "")}
-                      </span>
-                      {" vs "}
-                      <span className="font-medium text-text-main">
-                        {cr.provider.replace("-search", "")}
-                      </span>
-                      {": "}
-                      {cr.error ? "—" : computeOverlap(baseUrls, cr.urls)}{" "}
-                      in common
+                      {t("overlapSummary", {
+                        first: results[0]?.provider.replace("-search", "") ?? "",
+                        second: cr.provider.replace("-search", ""),
+                        overlap: cr.error ? "—" : computeOverlap(baseUrls, cr.urls),
+                      })}
                     </span>
                   );
                 })}
@@ -422,13 +421,11 @@ export default function CompareTab({ providers, onMetrics }: CompareTabProps) {
           className="flex flex-col items-center justify-center flex-1 py-12 text-center"
           data-testid="compare-empty-state"
         >
-          <span className="text-3xl mb-3" aria-hidden="true">⚖</span>
-          <p className="text-sm text-text-muted mb-1">
-            Select providers and enter a query to compare
-          </p>
-          <p className="text-xs text-text-muted">
-            Results will be shown side by side with latency, cost, and URL overlap
-          </p>
+          <span className="text-3xl mb-3" aria-hidden="true">
+            ⚖
+          </span>
+          <p className="text-sm text-text-muted mb-1">{t("compareEmptyTitle")}</p>
+          <p className="text-xs text-text-muted">{t("compareEmptyDescription")}</p>
         </div>
       )}
     </div>

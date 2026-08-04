@@ -4,6 +4,7 @@ import { ZodError } from "zod";
 
 const { SearchProviderCatalogItemSchema, SearchProviderCatalogResponseSchema, ScrapeResultSchema } =
   await import("../../src/shared/schemas/searchTools.ts");
+const searchToolsModule = await import("../../src/shared/schemas/searchTools.ts");
 
 // ── SearchProviderCatalogItemSchema ───────────────────────────────────────────
 
@@ -158,6 +159,11 @@ test("SearchProviderCatalogResponseSchema: empty providers array is valid", () =
 test("SearchProviderCatalogResponseSchema: invalid — providers not array", () => {
   const result = SearchProviderCatalogResponseSchema.safeParse({ providers: "not-array" });
   assert.ok(!result.success, "non-array providers should fail");
+});
+
+test("SearchProviderCatalogResponseSchemaFull alias is not exported", () => {
+  assert.equal("SearchProviderCatalogResponseSchemaFull" in searchToolsModule, false);
+  assert.equal(typeof searchToolsModule.SearchProviderCatalogResponseSchema.safeParse, "function");
 });
 
 // ── ScrapeResultSchema ────────────────────────────────────────────────────────

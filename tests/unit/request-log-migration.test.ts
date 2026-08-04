@@ -61,7 +61,11 @@ test("archives legacy request log layout into a zip and removes old files", asyn
   const archiveFilename = await migrations.archiveLegacyRequestLogs();
 
   assert.match(archiveFilename || "", /_legacy-request-logs\.zip$/);
-  assert.equal(fs.existsSync(LEGACY_LOGS_DIR), false);
+  // DATA_DIR/logs itself is preserved (not recursively removed) because it is shared
+  // with the live app logger's own logs/application subdirectory since #6234 — only the
+  // individual legacy entries inside it are archived-then-deleted (#6799).
+  assert.equal(fs.existsSync(LEGACY_LOGS_DIR), true);
+  assert.equal(fs.existsSync(path.join(LEGACY_LOGS_DIR, "session-a")), false);
   assert.equal(fs.existsSync(LEGACY_CALL_LOGS_DIR), false);
   assert.equal(fs.existsSync(LEGACY_SUMMARY_FILE), false);
   assert.equal(fs.existsSync(MARKER_PATH), true);

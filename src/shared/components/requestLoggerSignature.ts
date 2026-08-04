@@ -25,6 +25,24 @@ export function shouldAutoRefresh(recording: boolean, limit: number, pageSize: n
 }
 
 /**
+ * Whether the infinite-scroll sentinel becoming visible should actually grow the
+ * window (`loadMore`). The `IntersectionObserver` sentinel uses a 200px rootMargin,
+ * so it is already intersecting on mount whenever the first page does not fill the
+ * scroll container — which fired a "ghost" loadMore with no user interaction, pushing
+ * `limit` past `pageSize` and permanently pausing auto-refresh
+ * ({@link shouldAutoRefresh}). Gating on a real prior scroll (`hasScrolled`) keeps the
+ * default first-page view polling and only expands the window on genuine scroll. (#4269)
+ */
+export function shouldTriggerInfiniteScroll(params: {
+  isIntersecting: boolean;
+  hasMore: boolean;
+  loading: boolean;
+  hasScrolled: boolean;
+}): boolean {
+  return params.isIntersecting && params.hasMore && !params.loading && params.hasScrolled;
+}
+
+/**
  * Change-detection signature over the log rows. Captures id + status + duration
  * + tokens_out so in-progress updates (a request finishing, duration/token
  * growth) still trigger a re-render, while an identical snapshot is skipped

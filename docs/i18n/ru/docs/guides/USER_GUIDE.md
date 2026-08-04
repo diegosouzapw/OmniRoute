@@ -26,7 +26,6 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 | ------------------- | ----------------- | ----------- | ---------------- | -------------------- |
 | **💳 SUBSCRIPTION** | Claude Code (Pro) | $20/mo      | 5h + weekly      | Already subscribed   |
 |                     | Codex (Plus/Pro)  | $20-200/mo  | 5h + weekly      | OpenAI users         |
-|                     | Gemini CLI        | **FREE**    | 180K/mo + 1K/day | Everyone!            |
 |                     | GitHub Copilot    | $10-19/mo   | Monthly          | GitHub users         |
 | **🔑 API KEY**      | DeepSeek          | Pay per use | None             | Cheap reasoning      |
 |                     | Groq              | Pay per use | None             | Ultra-fast inference |
@@ -45,7 +44,6 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 |                     | Qwen              | $0          | Unlimited        | 3 models free        |
 |                     | Kiro              | $0          | Unlimited        | Claude free          |
 
-**💡 Pro Tip:** Start with Gemini CLI (180K free/month) + Qoder (unlimited free) combo = $0 cost!
 
 ---
 
@@ -71,9 +69,8 @@ vs. $20 + hitting limits = frustration
 
 ```
 Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
-  3. qw/qwen3-coder-plus       (unlimited free)
+  1. if/kimi-k2-thinking       (unlimited free)
+  2. qw/qwen3-coder-plus       (unlimited free)
 
 Monthly cost: $0
 Quality: Production-ready models
@@ -142,19 +139,7 @@ Models:
   cx/gpt-5.1-codex-max
 ```
 
-#### Gemini CLI (FREE 180K/month!)
 
-```bash
-Dashboard → Providers → Connect Gemini CLI
-→ Google OAuth
-→ 180K completions/month + 1K/day
-
-Models:
-  gc/gemini-3-flash-preview
-  gc/gemini-2.5-pro
-```
-
-**Best Value:** Huge free tier! Use this before paid tiers.
 
 #### GitHub Copilot
 
@@ -244,9 +229,8 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. gc/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2-thinking (unlimited)
-  3. qw/qwen3-coder-plus (unlimited)
+  1. if/kimi-k2-thinking (unlimited)
+  2. qw/qwen3-coder-plus (unlimited)
 
 Cost: $0 forever!
 ```
@@ -558,7 +542,6 @@ For the full environment variable reference, see the [README](../README.md).
 
 **Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
 
-**Gemini CLI (`gc/`)** — FREE: `gc/gemini-3-flash-preview`, `gc/gemini-2.5-pro`
 
 **GitHub Copilot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
 

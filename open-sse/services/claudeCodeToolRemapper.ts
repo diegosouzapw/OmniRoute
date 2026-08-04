@@ -57,14 +57,41 @@ function trackToolName(
   getRequestToolNameMap(body).set(titleCaseName, originalName);
 }
 
+/**
+ * Names of Anthropic server-side tools declared in this request's tools[].
+ * A server tool's `name` is a reserved literal validated against its `type`
+ * (web_search_20250305 ⇒ "web_search", bash_20250124 ⇒ "bash", …), so every
+ * rewrite below must leave both the declaration AND any history/tool_choice
+ * reference to it untouched — renaming only one side produces
+ * `Tool 'WebSearch' not found in provided tools` (history renamed, tools[]
+ * preserved) or `tools.N.<type>.name: Input should be '<literal>'` (tools[]
+ * renamed).
+ */
+function collectServerToolNames(tools: unknown): Set<string> {
+  const names = new Set<string>();
+  if (!Array.isArray(tools)) return names;
+  for (const tool of tools) {
+    const t = tool as Record<string, unknown> | null;
+    if (t && isAnthropicServerToolType(t.type) && typeof t.name === "string") {
+      names.add(t.name);
+    }
+  }
+  return names;
+}
+
 export function remapToolNamesInRequest(body: Record<string, unknown>): boolean {
   let hasLowercase = false;
   let hasTitleCase = false;
+  const serverToolNames = collectServerToolNames(body.tools);
 
   // Remap tool definitions
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(tools)) {
     for (const tool of tools) {
+      if (!tool) continue;
+      // Server tools (bash_20250124 / web_search_20250305 / …) keep their
+      // type-bound literal name.
+      if (isAnthropicServerToolType(tool.type)) continue;
       const name = String(tool.name || "");
       if (TOOL_RENAME_MAP[name]) {
         const mapped = TOOL_RENAME_MAP[name];
@@ -85,6 +112,7 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
       if (!Array.isArray(content)) continue;
       for (const block of content) {
         if (block.type === "tool_use" && typeof block.name === "string") {
+          if (serverToolNames.has(block.name)) continue;
           const mapped = TOOL_RENAME_MAP[block.name];
           if (mapped) {
             const originalName = block.name;
@@ -101,7 +129,11 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
 
   // Remap tool_choice
   const toolChoice = body.tool_choice as Record<string, unknown> | undefined;
-  if (toolChoice?.type === "tool" && typeof toolChoice.name === "string") {
+  if (
+    toolChoice?.type === "tool" &&
+    typeof toolChoice.name === "string" &&
+    !serverToolNames.has(toolChoice.name)
+  ) {
     const mapped = TOOL_RENAME_MAP[toolChoice.name];
     if (mapped) {
       const originalName = toolChoice.name;
@@ -194,7 +226,35 @@ function toPascalCaseToolName(name: string): string {
 export function needsThirdPartyCloak(name: string): boolean {
   if (!name) return false;
   if (CLAUDE_BUILTIN_TOOL_NAMES.has(name)) return false;
+  // `mcp__<server>__<tool>` names are genuine Claude Code MCP tool names that
+  // Anthropic accepts natively. Cloaking them to PascalCase is unnecessary and,
+  // via round-trip asymmetry (a history tool_use keeping the original name while
+  // tools[] is cloaked), produces "Tool reference 'mcp__…' not found in available
+  // tools" 400s on the native claude OAuth path. Leave the MCP namespace alone.
+  if (name.startsWith("mcp__")) return false;
   return /[a-z]/.test(name.charAt(0)) || name.includes("_") || name.includes("-");
+}
+
+/**
+ * Anthropic server-side tool types whose `name` is a reserved literal that the
+ * Messages API validates exactly (e.g. type `web_search_20250305` REQUIRES
+ * `name: "web_search"`). These look like third-party harness tools to the name
+ * cloak (`web_search` has a `_`, fails the PascalCase test) so without this
+ * guard the cloak rewrites the name to `WebSearch` and Anthropic 400s with
+ * `tools.N.web_search_20250305.name: Input should be 'web_search'`.
+ *
+ * Detection mirrors the codebase's existing convention: a versioned built-in
+ * tool type carries an 8-digit date suffix (`web_search_20250305`,
+ * `code_execution_20250522`, `bash_20250124`, …) — see
+ * `stripVersionedToolModelPrefix` in executors/base.ts. The non-versioned
+ * aliases (`web_search`, `web_search_preview`) are covered explicitly.
+ */
+const VERSIONED_SERVER_TOOL_TYPE = /^[a-z][a-z0-9_]*_\d{8}$/;
+const NON_VERSIONED_SERVER_TOOL_TYPES = new Set(["web_search", "web_search_preview"]);
+
+export function isAnthropicServerToolType(type: unknown): boolean {
+  if (typeof type !== "string" || type.length === 0) return false;
+  return VERSIONED_SERVER_TOOL_TYPE.test(type) || NON_VERSIONED_SERVER_TOOL_TYPES.has(type);
 }
 
 export interface CloakOptions {
@@ -220,6 +280,11 @@ export function cloakThirdPartyToolNames(
   const shouldCloak = (name: string): boolean =>
     needsThirdPartyCloak(name) && !(options?.skip ? options.skip(name) : false);
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
+  // Reserved literal names of declared server tools — never cloaked, neither
+  // in tools[] (guarded below) nor in message-history / tool_choice references
+  // (renaming only the reference yields "Tool 'WebSearch' not found in
+  // provided tools").
+  const serverToolNames = collectServerToolNames(tools);
 
   const used = new Set<string>();
   if (Array.isArray(tools)) {
@@ -246,7 +311,9 @@ export function cloakThirdPartyToolNames(
     // subagents->SubDispatch, session_status->CheckStatus, webfetch->WebFetch, …
     // Then harness-canonical (read_file->Read), then a generic PascalCase.
     const base =
-      TOOL_RENAME_MAP[original] ?? HARNESS_CANONICAL_MAP[original] ?? toPascalCaseToolName(original);
+      TOOL_RENAME_MAP[original] ??
+      HARNESS_CANONICAL_MAP[original] ??
+      toPascalCaseToolName(original);
     let alias = base;
     let suffix = 2;
     while (alias !== original && used.has(alias)) {
@@ -265,6 +332,11 @@ export function cloakThirdPartyToolNames(
   // not corrupt an input body that may be logged or replayed on fallback).
   if (Array.isArray(tools)) {
     body.tools = tools.map((tool) => {
+      // Never rewrite the reserved name of an Anthropic server-side tool — its
+      // `type` (web_search_20250305, …) binds the API to an exact `name`.
+      if (tool && isAnthropicServerToolType(tool.type)) {
+        return tool;
+      }
       if (tool && typeof tool.name === "string" && shouldCloak(tool.name)) {
         return { ...tool, name: aliasFor(tool.name) };
       }
@@ -282,6 +354,7 @@ export function cloakThirdPartyToolNames(
         if (
           block?.type === "tool_use" &&
           typeof block.name === "string" &&
+          !serverToolNames.has(block.name) &&
           shouldCloak(block.name)
         ) {
           changed = true;
@@ -297,6 +370,7 @@ export function cloakThirdPartyToolNames(
   if (
     toolChoice?.type === "tool" &&
     typeof toolChoice.name === "string" &&
+    !serverToolNames.has(toolChoice.name) &&
     shouldCloak(toolChoice.name)
   ) {
     body.tool_choice = { ...toolChoice, name: aliasFor(toolChoice.name) };

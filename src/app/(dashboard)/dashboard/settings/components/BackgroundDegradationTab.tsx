@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/shared/components";
+import { Card, ModelSelectField, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
 export default function BackgroundDegradationTab() {
@@ -120,19 +120,12 @@ export default function BackgroundDegradationTab() {
               "Automatically use cheaper models for background utility tasks"}
           </p>
         </div>
-        <button
-          onClick={() => save({ enabled: !config.enabled })}
+        <Toggle
+          checked={config.enabled}
+          onChange={(enabled) => save({ enabled })}
           disabled={loading || saving}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            config.enabled ? "bg-sky-500" : "bg-white/10"
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-              config.enabled ? "translate-x-6" : "translate-x-1"
-            }`}
-          />
-        </button>
+          ariaLabel={t("enableDegradation") || "Enable Background Degradation"}
+        />
       </div>
 
       {/* Stats */}
@@ -160,21 +153,21 @@ export default function BackgroundDegradationTab() {
 
             {/* Add new mapping */}
             <div className="flex items-center gap-2 mb-3">
-              <input
-                type="text"
-                placeholder={t("premiumModel") || "Premium model"}
-                value={newFrom}
-                onChange={(e) => setNewFrom(e.target.value)}
-                className="flex-1 px-3 py-2 rounded-lg text-sm bg-surface border border-border/50 focus:border-sky-500/50 focus:outline-none"
-              />
+              <div className="flex-1">
+                <ModelSelectField
+                  value={newFrom}
+                  onChange={setNewFrom}
+                  placeholder={t("premiumModel") || "Premium model"}
+                />
+              </div>
               <span className="text-text-muted text-lg">→</span>
-              <input
-                type="text"
-                placeholder={t("cheapModel") || "Cheap model"}
-                value={newTo}
-                onChange={(e) => setNewTo(e.target.value)}
-                className="flex-1 px-3 py-2 rounded-lg text-sm bg-surface border border-border/50 focus:border-sky-500/50 focus:outline-none"
-              />
+              <div className="flex-1">
+                <ModelSelectField
+                  value={newTo}
+                  onChange={setNewTo}
+                  placeholder={t("cheapModel") || "Cheap model"}
+                />
+              </div>
               <button
                 onClick={addMapping}
                 disabled={saving || !newFrom.trim() || !newTo.trim()}

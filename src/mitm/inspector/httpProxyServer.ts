@@ -19,6 +19,7 @@ import { randomUUID } from "node:crypto";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { sanitizeHeaders } from "../sanitizeHeaders.ts";
 import { maskSecret } from "../maskSecrets.ts";
+import { applyIdleTimeout, MITM_IDLE_TIMEOUT_MS } from "../socketTimeouts.ts";
 import { globalTrafficBuffer } from "./buffer.ts";
 import type { InterceptedRequest } from "./types.ts";
 
@@ -237,6 +238,13 @@ function handleConnect(
 export function startHttpProxyServer(port: number = DEFAULT_PORT): Promise<HttpProxyServerHandle> {
   return new Promise((resolve, reject) => {
     const server = http.createServer();
+
+    // Bound request/idle lifetimes + reap idle sockets so hung tunnels cannot
+    // exhaust file descriptors under load (Gap 10).
+    server.requestTimeout = MITM_IDLE_TIMEOUT_MS * 5;
+    server.headersTimeout = MITM_IDLE_TIMEOUT_MS;
+    server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS;
+    server.on("connection", (socket) => applyIdleTimeout(socket));
 
     server.on("request", (req, res) => handleHttp(req, res));
     server.on("connect", (req, socket, head) => handleConnect(req, socket as net.Socket, head));

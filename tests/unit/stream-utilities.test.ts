@@ -91,6 +91,57 @@ test("createPassthroughStreamWithLogger omits [DONE] for Responses clients", asy
   assert.doesNotMatch(result, /data: \[DONE\]/);
 });
 
+test("createPassthroughStreamWithLogger separates K3 thinking tags", async () => {
+  const transform = createPassthroughStreamWithLogger(
+    "kimi-coding",
+    null,
+    null,
+    "k3",
+    null,
+    null,
+    null,
+    null,
+    null,
+    "openai"
+  );
+  const writer = transform.writable.getWriter();
+  const encoder = new TextEncoder();
+
+  await writer.write(
+    encoder.encode(
+      'data: {"id":"chatcmpl_1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"<think>reasoning"},"finish_reason":null}]}\n\n'
+    )
+  );
+  await writer.write(
+    encoder.encode(
+      'data: {"id":"chatcmpl_1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"</think>final answer"},"finish_reason":null}]}\n\n'
+    )
+  );
+  await writer.close();
+
+  const reader = transform.readable.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value);
+  }
+
+  const payloads = result
+    .split("\n")
+    .filter((line) => line.startsWith("data: {") && line !== "data: [DONE]")
+    .map((line) => JSON.parse(line.slice(6)));
+  const visible = payloads.map((payload) => payload.choices?.[0]?.delta?.content || "").join("");
+  const reasoning = payloads
+    .map((payload) => payload.choices?.[0]?.delta?.reasoning_content || "")
+    .join("");
+
+  assert.equal(visible, "final answer");
+  assert.equal(reasoning, "reasoning");
+  assert.doesNotMatch(result, /<\/?think>/);
+});
+
 test("createPassthroughStreamWithLogger synthesizes reasoning summary events from reasoning output items", async () => {
   const transform = createPassthroughStreamWithLogger(
     "codex",
@@ -133,7 +184,16 @@ test("createPassthroughStreamWithLogger synthesizes reasoning summary events fro
   assert.match(result, /event: response\.output_item\.done/);
 });
 
-test("createPassthroughStreamWithLogger shows a placeholder for encrypted reasoning items", async () => {
+// Reconciles #7095 (xz-dev — chat clients never saw ANY signal that Codex was
+// reasoning when the upstream Responses API exposed only encrypted private
+// reasoning) with #7176 (JxnLexn — mutating `item.summary` with a fabricated
+// placeholder corrupted the response item forwarded downstream, discarding the
+// `encrypted_content` shape Codex needs for follow-up requests). Both goals are
+// satisfied simultaneously: the client-facing synthetic delta/part events still
+// carry the placeholder text, but the forwarded `response.output_item.done`
+// payload is untouched — `encrypted_content` survives and no `summary` is
+// fabricated onto the wire item.
+test("createPassthroughStreamWithLogger shows a placeholder for encrypted reasoning items without mutating the forwarded item", async () => {
   const transform = createPassthroughStreamWithLogger(
     "codex",
     null,
@@ -169,10 +229,75 @@ test("createPassthroughStreamWithLogger shows a placeholder for encrypted reason
     result += decoder.decode(value);
   }
 
+  // #7095: chat clients still see the placeholder via the synthetic events.
   assert.match(result, /event: response\.reasoning_summary_text\.delta/);
   assert.match(result, /Codex is reasoning/);
-  assert.match(result, /"summary":\[\{"type":"summary_text","text":"Codex is reasoning/);
+
+  // #7176: the forwarded response.output_item.done payload is untouched —
+  // encrypted_content survives intact and no fabricated `summary` is present.
+  assert.match(result, /"encrypted_content":"enc_opaque_state"/);
+  assert.doesNotMatch(result, /"summary":/);
   assert.match(result, /event: response\.output_item\.done/);
+});
+
+// Companion guard for the test above. The output_item.done line is echoed
+// verbatim, so a re-introduced `item.summary` mutation would NOT surface there.
+// It does surface here: the reasoning item is captured into
+// passthroughResponsesOutputItems and re-serialized into the response.completed
+// snapshot when upstream sends an empty `output` (store: false). This is the
+// path that actually fails if the mutation comes back — it is what makes the
+// #7176 half of the reconciliation enforceable rather than incidental.
+test("createPassthroughStreamWithLogger backfills completed output with encrypted reasoning unmutated", async () => {
+  const transform = createPassthroughStreamWithLogger(
+    "codex",
+    null,
+    null,
+    "gpt-5.5-low",
+    null,
+    null,
+    null,
+    null,
+    null,
+    "openai-responses"
+  );
+
+  const writer = transform.writable.getWriter();
+  await writer.write(
+    new TextEncoder().encode(
+      [
+        "event: response.output_item.done",
+        'data: {"type":"response.output_item.done","response_id":"resp_reasoning_3","output_index":0,"item":{"id":"rs_resp_reasoning_3_0","type":"reasoning","encrypted_content":"enc_opaque_state"}}',
+        "",
+        "event: response.completed",
+        'data: {"type":"response.completed","response":{"id":"resp_reasoning_3","model":"gpt-5.5-low","status":"completed","output":[],"usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2}}}',
+        "",
+      ].join("\n")
+    )
+  );
+  await writer.close();
+
+  const reader = transform.readable.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value);
+  }
+
+  // The placeholder still reached the client (#7095).
+  assert.match(result, /event: response\.reasoning_summary_text\.delta/);
+  assert.match(result, /Codex is reasoning/);
+
+  // The item re-serialized into the completed snapshot carries the original
+  // encrypted_content and never a fabricated summary (#7176).
+  const completed = result
+    .split(/\n\n+/)
+    .find((block) => block.includes('"type":"response.completed"'));
+  assert.ok(completed, "expected a response.completed event on the wire");
+  assert.match(completed, /"encrypted_content":"enc_opaque_state"/);
+  assert.doesNotMatch(completed, /"summary":/);
 });
 
 test("createPassthroughStreamWithLogger backfills completed output from function_call arguments events", async () => {

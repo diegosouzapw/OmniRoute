@@ -9,6 +9,7 @@ import { randomUUID } from "node:crypto";
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { buildBedrockNativeConverseUrl, resolveBedrockRegion } from "../config/bedrock.ts";
+import * as prl from "../utils/providerRequestLogging.ts";
 
 const encoder = new TextEncoder();
 
@@ -365,6 +366,10 @@ export function openAIToBedrockConverse(model, body) {
   const toolConfig = toolConfigFromOpenAI(request.tools, request.tool_choice);
   if (toolConfig) payload.toolConfig = toolConfig;
 
+  if (request.additionalModelRequestFields !== undefined) {
+    payload.additionalModelRequestFields = request.additionalModelRequestFields;
+  }
+
   return payload;
 }
 
@@ -631,7 +636,7 @@ export class BedrockExecutor extends BaseExecutor {
     });
   }
 
-  async execute({ model, body, stream, credentials, signal }) {
+  async execute({ model, body, stream, credentials, signal, log }) {
     const url = this.buildUrl(model, stream, 0, credentials);
     const headers = this.buildHeaders(credentials);
 
@@ -661,6 +666,13 @@ export class BedrockExecutor extends BaseExecutor {
 
     try {
       const client = this.createClient(credentials);
+      await prl.captureCurrentProviderRequest(
+        url,
+        headers,
+        transformedBody,
+        JSON.stringify(transformedBody),
+        log
+      );
       if (stream) {
         const output = await client.send(new ConverseStreamCommand(transformedBody), {
           abortSignal: signal || undefined,

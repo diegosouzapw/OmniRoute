@@ -75,13 +75,24 @@ export class CloudflareAIExecutor extends BaseExecutor {
     // shape (`[{ type:"text", text }]`) with HTTP 400 (#2539). Flatten text parts to a string.
     if (!Array.isArray(body.messages)) return body;
 
+    // #6390: the endpoint has no way to carry image/non-text parts once flattened to a
+    // string, so previously any non-text part (e.g. image_url) was silently mapped to ""
+    // and the image quietly disappeared from the outgoing request. Refuse instead of
+    // silently dropping data — this throws a plain Error which the caller (chatCore.ts)
+    // already routes through buildErrorBody()/sanitizeErrorMessage() before it reaches
+    // the client, matching the existing buildUrl() missing-accountId error above.
     const flattenContent = (content: unknown): unknown => {
       if (typeof content === "string" || !Array.isArray(content)) return content;
       return content
         .map((part) => {
           if (!part || typeof part !== "object") return "";
           const p = part as Record<string, unknown>;
-          return p.type === "text" && typeof p.text === "string" ? p.text : "";
+          if (p.type === "text" && typeof p.text === "string") return p.text;
+          throw new Error(
+            "Cloudflare Workers AI chat endpoint does not accept image/non-text content parts " +
+              `(got type "${typeof p.type === "string" ? p.type : "unknown"}"). ` +
+              "Remove image/file attachments or route this request to a vision-capable provider."
+          );
         })
         .join("");
     };

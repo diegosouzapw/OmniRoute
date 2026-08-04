@@ -1,0 +1,64 @@
+#!/usr/bin/with-contenv bash
+
+# wayland entrypoint
+if [[ "${PIXELFLUX_WAYLAND,,}" == "true" ]]; then
+  SOCKET_PATH="${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY:-wayland-1}"
+  echo "[svc-de] Wayland mode: Waiting for socket at ${SOCKET_PATH}..."
+  while [ ! -e "${SOCKET_PATH}" ]; do
+    sleep 0.5
+  done
+  echo "[svc-de] ${SOCKET_PATH} found launching de"
+  cd $HOME
+  # OmniRoute: bridge Chromium DevTools (127.0.0.1:9222) to 0.0.0.0:9223.
+  ( sleep 8; python3 /usr/local/bin/cdp-bridge.py >/proc/1/fd/2 2>&1 ) &
+  exec s6-setuidgid abc \
+    /bin/bash /defaults/startwm_wayland.sh &
+  PID=$!
+  echo "$PID" > /de-pid
+  wait "$PID"
+  exit 1
+fi
+
+# wait for X to be running
+while true; do
+  if xset q &>/dev/null; then
+    break
+  fi
+  sleep .5
+done
+
+# set resolution before starting apps
+RESOLUTION_WIDTH=${SELKIES_MANUAL_WIDTH:-1024}
+RESOLUTION_HEIGHT=${SELKIES_MANUAL_HEIGHT:-768}
+if [ "$RESOLUTION_WIDTH" = "0" ]; then RESOLUTION_WIDTH=1024; fi
+if [ "$RESOLUTION_HEIGHT" = "0" ]; then RESOLUTION_HEIGHT=768; fi
+MODELINE=$(s6-setuidgid abc cvt "${RESOLUTION_WIDTH}" "${RESOLUTION_HEIGHT}" | grep "Modeline" | sed 's/^.*Modeline //')
+MODELINE_ARGS=$(echo "$MODELINE" | tr -d '"')
+MODELINE_NAME=$(echo "$MODELINE_ARGS" | awk '{print $1}')
+if ! s6-setuidgid abc xrandr | grep -q "$MODELINE_NAME"; then
+  s6-setuidgid abc xrandr --newmode $MODELINE_ARGS
+  s6-setuidgid abc xrandr --addmode screen "$MODELINE_NAME"
+  s6-setuidgid abc xrandr --output screen --mode "$MODELINE_NAME" --dpi 96
+fi
+
+# set xresources
+if [ -f "${HOME}/.Xresources" ]; then
+  if ! grep -q "breeze_cursors" "${HOME}/.Xresources"; then
+    echo "Xcursor.theme: breeze_cursors" > "${HOME}/.Xresources"
+  fi
+  xrdb "${HOME}/.Xresources"
+else
+  echo "Xcursor.theme: breeze_cursors" > "${HOME}/.Xresources"
+  xrdb "${HOME}/.Xresources"
+fi
+chown abc:abc "${HOME}/.Xresources"
+chmod 777 /tmp/selkies*
+
+# run
+cd $HOME
+# OmniRoute: bridge Chromium DevTools (127.0.0.1:9222) to 0.0.0.0:9223.
+( sleep 8; python3 /usr/local/bin/cdp-bridge.py >/proc/1/fd/2 2>&1 ) &
+exec s6-setuidgid abc \
+  /bin/bash /defaults/startwm.sh &
+PID=$!
+echo "$PID" > /de-pid

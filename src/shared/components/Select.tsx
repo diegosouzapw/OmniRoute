@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 
 interface SelectOption {
@@ -22,7 +23,7 @@ export default function Select({
   options = [],
   value,
   onChange,
-  placeholder = "Select an option",
+  placeholder,
   error,
   hint,
   disabled = false,
@@ -33,6 +34,7 @@ export default function Select({
   children,
   ...props
 }: SelectProps) {
+  const t = useTranslations("common");
   const generatedId = useId();
   const selectId = externalId || generatedId;
   const errorId = error ? `${selectId}-error` : undefined;
@@ -62,9 +64,9 @@ export default function Select({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cn(
-            "w-full py-2 px-3 pr-10 text-sm text-text-main",
-            "bg-surface border border-black/10 dark:border-white/10 rounded-md appearance-none",
-            "focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none",
+            "w-full py-2 px-3 pe-10 text-sm text-text-main",
+            "bg-surface border border-black/10 dark:border-white/10 rounded-control appearance-none",
+            "focus:ring-1 focus:ring-accent/30 focus:border-accent/50 focus:outline-none",
             "transition-all disabled:opacity-50 disabled:cursor-not-allowed",
             "text-[16px] sm:text-sm",
             error ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : "",
@@ -72,9 +74,9 @@ export default function Select({
           )}
           {...props}
         >
-          {!children && placeholder && (
+          {!children && (placeholder ?? t("selectOption")) && (
             <option value="" disabled className="bg-surface text-text-muted">
-              {placeholder}
+              {placeholder ?? t("selectOption")}
             </option>
           )}
           {!children &&
@@ -86,7 +88,7 @@ export default function Select({
           {children}
         </select>
         <div
-          className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-text-muted"
+          className="absolute inset-y-0 end-0 flex items-center pe-3 pointer-events-none text-text-muted"
           aria-hidden="true"
         >
           <span className="material-symbols-outlined text-[20px]">expand_more</span>

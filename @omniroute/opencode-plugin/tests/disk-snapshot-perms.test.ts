@@ -40,7 +40,7 @@ test("defaultDiskSnapshotWriter writes an owner-only (no group/other) snapshot",
   process.env.OPENCODE_DATA_DIR = tmp;
 
   try {
-    await defaultDiskSnapshotWriter("perm-test", makeEntry());
+    await defaultDiskSnapshotWriter("perm-test", makeEntry(), "test-snapshot-identity");
 
     const file = diskSnapshotPath("perm-test");
     assert.ok(fs.existsSync(file), "snapshot file should be written");

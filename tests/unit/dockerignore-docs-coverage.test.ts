@@ -24,7 +24,7 @@ const DOCKERIGNORE = path.resolve(REPO_ROOT, ".dockerignore");
 // Sourced from src/app/docs/lib/docs-auto-generated.ts.
 const REQUIRED_DOCS = [
   "docs/README.md",
-  "docs/PROVIDERS.md",
+  "docs/providers/CLAUDE_WEB.md",
   "docs/routing/AUTO-COMBO.md",
   "docs/guides/SETUP_GUIDE.md",
   "docs/guides/TROUBLESHOOTING.md",

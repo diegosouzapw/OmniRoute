@@ -5,7 +5,7 @@ import {
 } from "@/lib/localDb";
 import { AGY_CONFIG } from "@/lib/oauth/constants/oauth";
 import {
-  getAntigravityHeaders,
+  getAntigravityContentHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { extractCodeAssistOnboardTierId } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
@@ -23,7 +23,7 @@ function toNonEmptyString(value: unknown): string | null {
 }
 
 /**
- * Error carrying an HTTP status + machine code, mirroring GeminiAuthFileError so the
+ * Error carrying an HTTP status + machine code so the
  * agy-auth routes can translate it to a clean response (never a raw stack trace).
  */
 export class AgyAuthFileError extends Error {
@@ -63,9 +63,9 @@ export interface CreateAgyConnectionOptions {
 // ──── Parse & validate ────────────────────────────────────────────────────────
 
 /**
- * Parse the Antigravity CLI (`agy`) token file. Unlike gemini-cli's flat
- * `oauth_creds.json`, the agy file nests the token under `.token`, uses an ISO `expiry`
- * string, and has NO `id_token`. A flat top-level shape is accepted as a fallback.
+ * Parse the Antigravity CLI (`agy`) token file. It nests the token under `.token`,
+ * uses an ISO `expiry` string, and has NO `id_token`. A flat top-level shape is
+ * accepted as a fallback.
  */
 export function parseAndValidateAgyToken(raw: unknown): ParsedAgyAuth {
   const doc = toRecord(raw);
@@ -140,7 +140,7 @@ export async function enrichWithAntigravityBackend(
   const loadController = new AbortController();
   const loadTimer = setTimeout(() => loadController.abort(), 8000);
   try {
-    const headers = getAntigravityHeaders("loadCodeAssist", parsed.accessToken);
+    const headers = getAntigravityContentHeaders("cli", parsed.accessToken);
     const metadata = getAntigravityLoadCodeAssistMetadata();
     for (const endpoint of AGY_CONFIG.loadCodeAssistEndpoints) {
       try {
@@ -216,6 +216,7 @@ export async function createConnectionFromAgyToken(
         testStatus: "active",
         providerSpecificData: {
           ...toRecord(existing.providerSpecificData),
+          clientProfile: "cli",
           tokenType: enriched.tokenType,
           authMethod: enriched.authMethod,
           projectId: enriched.projectId ?? toRecord(existing.providerSpecificData).projectId,
@@ -247,6 +248,7 @@ export async function createConnectionFromAgyToken(
     isActive: true,
     testStatus: "active",
     providerSpecificData: {
+      clientProfile: "cli",
       tokenType: enriched.tokenType,
       authMethod: enriched.authMethod,
       projectId: enriched.projectId,

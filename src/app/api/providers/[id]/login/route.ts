@@ -1,62 +1,74 @@
-import { NextResponse } from "next/server";
-import { getProviderConnectionById, updateProviderConnection } from "@/models";
+/**
+ * POST /api/providers/[id]/login
+ *
+ * Web-cookie provider login endpoint. Launches a Playwright browser,
+ * navigates to the provider's login page, polls for session tokens,
+ * and persists extracted credentials to the provider connection.
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { getCachedProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
-export const runtime = "nodejs";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
+// ─── POST: Start login flow ────────────────────────────────────────────────
 
 export async function POST(
-  request: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-): Promise<Response> {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
+): Promise<NextResponse> {
+  const auth = await requireManagementAuth(req);
+  if (auth) return auth;
 
   const { id } = await params;
-  const connection = await getProviderConnectionById(id);
-  if (!connection) {
+  const provider = await getCachedProviderConnectionById(id);
+  if (!provider) {
     return NextResponse.json({ success: false, error: "Provider not found" }, { status: 404 });
   }
-  if (connection.provider !== "conol-web" && connection.provider !== "cnl") {
-    return NextResponse.json(
-      { success: false, error: "Browser sign-in is not supported for this provider" },
-      { status: 400 }
-    );
-  }
 
-  const body = await request.json().catch(() => ({}));
-  const timeout = isRecord(body) ? body.timeout : undefined;
+  const body = await req.json().catch(() => ({}));
+  const timeout = typeof body.timeout === "number" ? body.timeout : undefined;
 
   try {
-    const { startConolBrowserLogin } = await import(
-      "@omniroute/open-sse/services/conolBrowserLogin.ts"
+    // Dynamic import — InAppLoginService depends on Playwright (heavy)
+    const { inAppLoginService } = await import(
+      "@omniroute/open-sse/services/inAppLoginService.ts"
     );
-    const result = await startConolBrowserLogin(timeout);
-    if (!result.success || !result.credentials) {
-      return NextResponse.json(result, { status: 400 });
+
+    const result = await inAppLoginService.startLogin(id, { timeout });
+
+    // Persist credentials if extraction succeeded
+    if (result.success && result.credentials) {
+      try {
+        const credentialsStr = JSON.stringify(result.credentials);
+        await updateProviderConnection(id, {
+          api_key: credentialsStr,
+          provider_specific_data: result.credentials,
+        });
+
+        return NextResponse.json({
+          success: true,
+          credentials: result.credentials,
+          persisted: true,
+        });
+      } catch (err) {
+        // Hard Rule #12: never put raw err.message/stack in a response body.
+        const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
+        return NextResponse.json(
+          { success: false, error: `Extracted but failed to persist: ${msg}` },
+          { status: 500 }
+        );
+      }
     }
 
-    const providerSpecificData = isRecord(connection.providerSpecificData)
-      ? { ...connection.providerSpecificData, ...result.credentials }
-      : { ...result.credentials };
-    await updateProviderConnection(id, {
-      apiKey: JSON.stringify(result.credentials),
-      providerSpecificData,
+    return NextResponse.json(result, {
+      status: result.success ? 200 : 400,
     });
-
-    return NextResponse.json({
-      success: true,
-      credentials: result.credentials,
-      persisted: true,
-    });
-  } catch (error) {
-    const message = sanitizeErrorMessage(error instanceof Error ? error.message : error);
+  } catch (err) {
+    // Hard Rule #12: never put raw err.message/stack in a response body.
+    const msg = sanitizeErrorMessage(err instanceof Error ? err.message : err);
     return NextResponse.json(
-      { success: false, error: `Login endpoint error: ${message}` },
+      { success: false, error: `Login endpoint error: ${msg}` },
       { status: 500 }
     );
   }

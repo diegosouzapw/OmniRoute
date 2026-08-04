@@ -4,19 +4,19 @@
 
 ---
 
-Thank you for your interest in contributing! This guide covers everything you need to get started.
+感谢你对 OmniRoute 的关注！本文档将引导你从零开始参与项目贡献。
 
 ---
 
-## Development Setup
+## 开发环境搭建
 
-### Prerequisites
+### 前置条件
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **Node.js** `>=22.22.3 <23` 或 `>=24.0.0 <27`（推荐：24 LTS）
 - **npm** 10+
 - **Git**
 
-### Clone & Install
+### 克隆与安装
 
 ```bash
 git clone https://github.com/diegosouzapw/OmniRoute.git
@@ -24,288 +24,350 @@ cd OmniRoute
 npm install
 ```
 
-### Environment Variables
+### 环境变量
 
 ```bash
-# Create your .env from the template
+# 根据模板创建 .env 文件
 cp .env.example .env
 
-# Generate required secrets
+# 生成必需的密钥
 echo "JWT_SECRET=$(openssl rand -base64 48)" >> .env
 echo "API_KEY_SECRET=$(openssl rand -hex 32)" >> .env
 ```
 
-Key variables for development:
+开发环境关键变量：
 
-| Variable               | Development Default      | Description           |
-| ---------------------- | ------------------------ | --------------------- |
-| `PORT`                 | `20128`                  | Server port           |
-| `NEXT_PUBLIC_BASE_URL` | `http://localhost:20128` | Base URL for frontend |
-| `JWT_SECRET`           | (generate above)         | JWT signing secret    |
-| `INITIAL_PASSWORD`     | `CHANGEME`               | First login password  |
-| `APP_LOG_LEVEL`        | `info`                   | Log verbosity level   |
+| 变量                     | 开发环境默认值           | 说明               |
+| ------------------------ | ------------------------ | ------------------ |
+| `PORT`                   | `20128`                  | 服务器端口         |
+| `NEXT_PUBLIC_BASE_URL`   | `http://localhost:20128` | 前端 Base URL      |
+| `JWT_SECRET`             | （通过上方命令生成）     | JWT 签名密钥       |
+| `INITIAL_PASSWORD`       | `CHANGEME`               | 首次登录密码       |
+| `APP_LOG_LEVEL`          | `info`                   | 日志详细级别       |
 
-### Dashboard Settings
+### 控制台设置
 
-The dashboard provides UI toggles for features that can also be configured via environment variables:
+控制台为部分功能提供了界面开关，这些功能也可通过环境变量配置：
 
-| Setting Location    | Toggle             | Description                    |
-| ------------------- | ------------------ | ------------------------------ |
-| Settings → Advanced | Debug Mode         | Enable debug request logs (UI) |
-| Settings → General  | Sidebar Visibility | Show/hide sidebar sections     |
+| 设置位置       | 开关               | 说明                         |
+| -------------- | ------------------ | ---------------------------- |
+| 设置 → 高级    | 调试模式           | 启用调试请求日志（界面端）   |
+| 设置 → 常规    | 侧边栏可见性       | 显示/隐藏侧边栏分区          |
 
-These settings are stored in the database and persist across restarts, overriding env var defaults when set.
+这些设置存储在数据库中，重启后仍然有效，设置后会覆盖环境变量的默认值。
 
-### Running Locally
+### 本地运行
 
 ```bash
-# Development mode (hot reload)
+# 开发模式（热重载）
 npm run dev
 
-# Production build
-npm run build
+# 生产构建
+npm run build    # next build → .build/next/ 然后 assembleStandalone → dist/
 npm run start
 
-# Common port configuration
+# 发布构建（清理重建 + HEAD 哨兵 — 部署必需）
+npm run build:release   # rm -rf .build dist && build + 写入 dist/BUILD_SHA
+
+# 常用端口配置
 PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
 ```
 
-Default URLs:
+### 构建产物布局
 
-- **Dashboard**: `http://localhost:20128/dashboard`
-- **API**: `http://localhost:20128/v1`
+| 目录      | 内容                                                                         | 版本追踪 |
+| --------- | ---------------------------------------------------------------------------- | -------- |
+| `src/`    | 应用源码（TypeScript / TSX）                                                 | 是       |
+| `.build/` | 中间产物 — `next build` 输出（已 gitignore，`distDir = .build/next`）        | 否       |
+| `dist/`   | 可交付的打包产物 — 由 `assembleStandalone` 组装（已 gitignore）              | 否       |
+
+构建流水线为单次执行：
+
+```
+npm run build
+  └─ next build → .build/next/standalone  （Next.js 输出）
+  └─ assembleStandalone()                 （复制 standalone + static + public + 本地原生资产）
+       └─ 输出: dist/                     （server.js, .next/static/, public/, node_modules/）
+```
+
+`npm run build:release` 会额外清理上述两个目录，并写入
+`dist/BUILD_SHA`（= `git rev-parse --short HEAD`）作为部署完整性哨兵。
+
+> **VPS 部署说明：** 远程镜像目录 `/usr/lib/node_modules/omniroute/app/`
+> 保持不变。部署脚本会将 `dist/` 的内容 rsync 到该目录中。
+> 仅仓库内的构建输出路径发生了变动（`app/` → `dist/`）。
+
+默认地址：
+
+- **控制台**：`http://localhost:20128/dashboard`
+- **API**：`http://localhost:20128/v1`
 
 ---
 
-## Git Workflow
+## Git 工作流
 
-> ⚠️ **NEVER commit directly to `main`.** Always use feature branches.
+> ⚠️ **切勿直接提交到 `main` 分支。** 始终使用功能分支。
 
 ```bash
 git checkout -b feat/your-feature-name
-# ... make changes ...
-git commit -m "feat: describe your change"
+# ... 进行修改 ...
+git commit -m "feat: 描述你的改动"
 git push -u origin feat/your-feature-name
-# Open a Pull Request on GitHub
+# 在 GitHub 上发起 Pull Request
 ```
 
-### Branch Naming
+### 分支命名
 
-| Prefix      | Purpose                   |
-| ----------- | ------------------------- |
-| `feat/`     | New features              |
-| `fix/`      | Bug fixes                 |
-| `refactor/` | Code restructuring        |
-| `docs/`     | Documentation changes     |
-| `test/`     | Test additions/fixes      |
-| `chore/`    | Tooling, CI, dependencies |
+| 前缀        | 用途                   |
+| ----------- | ---------------------- |
+| `feat/`     | 新功能                 |
+| `fix/`      | Bug 修复               |
+| `refactor/` | 代码重构               |
+| `docs/`     | 文档修改               |
+| `test/`     | 测试新增/修复          |
+| `chore/`    | 工具链、CI、依赖项     |
 
-### Commit Messages
+### 提交信息
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
 
 ```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update SECURITY.md with PII protection
-test: add observability unit tests
-refactor(db): consolidate rate limit tables
+feat: 为服务商调用添加熔断器
+fix: 解决 JWT 密钥校验的边界情况
+docs: 更新 SECURITY.md 增加 PII 保护内容
+test: 添加可观测性单元测试
+refactor(db): 合并速率限制相关数据表
 ```
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+作用域（v3.8）：`db`、`sse`、`oauth`、`dashboard`、`api`、`cli`、`docker`、`ci`、`mcp`、`a2a`、`memory`、`skills`、`cloud-agent`、`guardrails`、`compression`、`auto-combo`、`resilience`、`providers`、`executors`、`translator`、`domain`、`authz`。
 
 ---
 
-## Running Tests
+## 运行测试
 
 ```bash
-# All tests (unit + vitest + ecosystem + e2e)
+# 全部测试（unit + vitest + ecosystem + e2e）
 npm run test:all
 
-# Single test file (Node.js native test runner — most tests use this)
+# 单个测试文件（Node.js 原生测试运行器 — 大多数测试使用此方式）
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# Vitest（MCP server、autoCombo、缓存）
 npm run test:vitest
 
-# E2E tests (requires Playwright)
+# E2E 测试（需要 Playwright）
 npm run test:e2e
 
-# Protocol clients E2E (MCP transports, A2A)
+# 协议客户端 E2E（MCP 传输、A2A）
 npm run test:protocols:e2e
 
-# Ecosystem compatibility tests
+# 生态兼容性测试
 npm run test:ecosystem
 
-# Coverage (60% min statements/lines/functions/branches)
+# 覆盖率关卡：60% 语句/行/函数/分支
 npm run test:coverage
 npm run coverage:report
 
-# Lint + format check
+# 代码检查 + 格式检查
 npm run lint
 npm run check
+
+# 关卡验证的线上 Combo 冒烟测试（需要 VPS 访问权限 + 真实服务商积分）
+# 会打到真实服务商 — 会产生少量费用。不在 CI 中运行。缺少关卡条件时优雅跳过。
+# 需要：ssh root@192.168.0.15 访问权限（从 VPS 拉取只读数据库快照）。
+RUN_COMBO_LIVE=1 npm run test:combo:live
+
+# 第三阶段 VPS 线上冒烟 — 纯 Node ESM 脚本，直接打到线上 .15 服务器。
+# 需要：ssh root@192.168.0.15 访问权限（通过 SSH sqlite 创建/销毁 Combo）。
+# 会打到真实服务商（少量费用）。仅创建/删除 __live_test__* 开头的 Combo。不在 CI 中运行。
+# .15 上 REQUIRE_API_KEY=false 所以无需 API Key，但会遵循 COMBO_LIVE_BASE_URL / COMBO_LIVE_API_KEY 设置。
+npm run test:combo:live:vps              # 7 个 HTTP 场景（priority/round-robin/weighted/cost/fusion/auto + health）
+npm run test:combo:live:vps:failover     # 额外增加跨服务商容灾切换场景（共 8 个）
 ```
 
-Coverage notes:
+覆盖率说明：
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
-- If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
-- `npm run test:coverage:legacy` preserves the older metric for historical comparison
-- See `docs/ops/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
+- `npm run test:coverage` 衡量主要单元测试套件的源码覆盖率，排除 `tests/**`，包含 `open-sse/**`
+- Pull Request 必须将覆盖率关口维持在 **60%+**（语句/行/函数/分支）
+- 如果 PR 修改了 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的生产代码，必须在同一 PR 中添加或更新自动化测试
+- `npm run coverage:report` 打印最近一次覆盖率运行后的逐文件详细报告
+- `npm run test:coverage:legacy` 保留旧版指标，用于历史对比
+- 分阶段覆盖率提升路线图请参阅 `docs/ops/COVERAGE_PLAN.md`
 
-### Pull Request Requirements
+### Pull Request 要求
 
-Before opening or merging a PR:
+发起或合并 PR 前：
 
-- Run `npm run test:unit`
-- Run `npm run test:coverage`
-- Ensure the coverage gate stays at **60%+** for all metrics
-- Include the changed or added test files in the PR description when production code changed
-- Check the SonarQube result on the PR when the project secrets are configured in CI
+- 运行 `npm run test:unit`
+- 运行 `npm run test:coverage`
+- 确保覆盖率关口维持在 **60%+**（语句/行/函数/分支）
+- 涉及生产代码变更时，在 PR 描述中包含新增或修改的测试文件
+- 在 CI 中配置了项目密钥的情况下，检查 PR 上的 SonarQube 结果
 
-Current test status: **122 unit test files** covering:
+当前测试状态：**122 个单元测试文件**，覆盖范围包括：
 
-- Provider translators and format conversion
-- Rate limiting, circuit breaker, and resilience
-- Semantic cache, idempotency, progress tracking
-- Database operations and schema (21 DB modules)
-- OAuth flows and authentication
-- API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
-- Memory and Skills systems
+- 服务商翻译器与格式转换
+- 速率限制、熔断器与容灾
+- 语义缓存、幂等性、进度追踪
+- 数据库操作与 Schema（21 个 DB 模块）
+- OAuth 流程与认证
+- API 端点校验（Zod v4）
+- MCP Server 工具与权限域管控
+- 记忆与技能系统
 
 ---
 
-## Code Style
+## 代码风格
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
-- **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
-- **Zod validation** — Use Zod v4 schemas for all API input validation
-- **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
+- **ESLint** — 提交前运行 `npm run lint`
+- **Prettier** — 提交时通过 `lint-staged` 自动格式化（2 空格、分号、双引号、100 字符宽、es5 尾逗号）
+- **TypeScript** — 所有 `src/` 代码使用 `.ts`/`.tsx`；`open-sse/` 使用 `.ts`/`.js`；用 TSDoc 编写文档（`@param`、`@returns`、`@throws`）
+- **禁止 `eval()`** — ESLint 执行 `no-eval`、`no-implied-eval`、`no-new-func` 规则
+- **Zod 校验** — 所有 API 输入校验使用 Zod v4 Schema
+- **命名规范**：文件 = camelCase/kebab-case，组件 = PascalCase，常量 = UPPER_SNAKE
 
 ---
 
-## Project Structure
+## 项目结构
 
 ```
-src/                        # TypeScript (.ts / .tsx)
+src/                        # TypeScript（.ts / .tsx）
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Dashboard pages (23 sections)
-│   ├── api/                # API routes (51 directories)
-│   └── login/              # Auth pages (.tsx)
-├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
-├── lib/                    # Core business logic (.ts)
-│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
-│   ├── acp/                # Agent Communication Protocol registry
-│   ├── compliance/         # Compliance policy engine
-│   ├── db/                 # SQLite database layer (21 modules + 16 migrations)
-│   ├── memory/             # Persistent conversational memory
-│   ├── oauth/              # OAuth providers, services, and utilities
-│   ├── skills/             # Extensible skill framework
-│   ├── usage/              # Usage tracking and cost calculation
-│   └── localDb.ts          # Re-export layer only — never add logic here
-├── middleware/              # Request middleware (promptInjectionGuard)
-├── mitm/                   # MITM proxy (cert, DNS, target routing)
+│   ├── (dashboard)/        # 控制台页面（23 个分区）
+│   ├── api/                # API 路由（51 个目录）
+│   └── login/              # 认证页面（.tsx）
+├── domain/                 # 策略引擎（policyEngine、comboResolver、costRules 等）
+├── lib/                    # 核心业务逻辑（.ts）
+│   ├── a2a/                # Agent-to-Agent v0.3 协议服务器
+│   ├── acp/                # Agent Communication Protocol 注册中心
+│   ├── compliance/         # 合规策略引擎
+│   ├── db/                 # SQLite 数据库层（21 个模块 + 16 次迁移）
+│   ├── memory/             # 持久化会话记忆
+│   ├── oauth/              # OAuth 服务商、服务与工具
+│   ├── skills/             # 可扩展技能框架
+│   ├── usage/              # 用量追踪与成本计算
+│   └── localDb.ts          # 仅作 re-export 层 — 切勿在此添加逻辑
+├── middleware/              # 请求中间件（promptInjectionGuard）
+├── mitm/                   # MITM 代理（证书、DNS、目标路由）
 ├── shared/
-│   ├── components/         # React components (.tsx)
-│   ├── constants/          # Provider definitions (60+), MCP scopes, routing strategies
-│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
-│   └── validation/         # Zod v4 schemas
-└── sse/                    # SSE proxy pipeline
+│   ├── components/         # React 组件（.tsx）
+│   ├── constants/          # 服务商定义（177 个）、MCP 权限域、14 种路由策略
+│   ├── utils/              # 熔断器、清洗器、认证辅助函数
+│   └── validation/         # Zod v4 Schema
+└── sse/                    # SSE 代理流水线
 
-open-sse/                   # @omniroute/open-sse workspace
-├── executors/              # 14 provider-specific request executors
-├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
-├── mcp-server/             # MCP server (25 tools, 3 transports, 10 scopes)
-├── services/               # 36+ services (combo, autoCombo, rateLimitManager, etc.)
-├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Responses API transformer
-└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
+open-sse/                   # @omniroute/open-sse 工作区
+├── executors/              # 14 个服务商专用请求执行器
+├── handlers/               # 11 个请求处理器（chat、responses、embeddings、images 等）
+├── mcp-server/             # MCP Server（25 个工具、3 种传输、10 个权限域）
+├── services/               # 36+ 个服务（combo、autoCombo、rateLimitManager 等）
+├── translator/             # 格式翻译器（OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama）
+├── transformer/            # Responses API 变换器
+└── utils/                  # 22 个工具模块（stream、TLS、proxy、logging）
 
-electron/                   # Electron desktop app (cross-platform)
+electron/                   # Electron 桌面应用（跨平台）
 
 tests/
-├── unit/                   # Node.js test runner (122 test files)
-├── integration/            # Integration tests
-├── e2e/                    # Playwright tests
-├── security/               # Security tests
-├── translator/             # Translator-specific tests
-└── load/                   # Load tests
+├── unit/                   # Node.js 测试运行器（1,574 个测试文件）
+├── integration/            # 集成测试
+├── e2e/                    # Playwright 测试
+├── security/               # 安全测试
+├── translator/             # 翻译器专项测试
+└── load/                   # 负载测试
 
-docs/                       # Documentation
-├── ARCHITECTURE.md         # System architecture
-├── API_REFERENCE.md        # All endpoints
-├── USER_GUIDE.md           # Provider setup, CLI integration
-├── TROUBLESHOOTING.md      # Common issues
-├── MCP-SERVER.md           # MCP server (25 tools)
-├── A2A-SERVER.md           # A2A agent protocol
-├── AUTO-COMBO.md           # Auto-combo engine
-├── CLI-TOOLS.md            # CLI tools integration
-├── COVERAGE_PLAN.md        # Test coverage improvement plan
-├── openapi.yaml            # OpenAPI specification
-└── adr/                    # Architecture Decision Records
+docs/
+├── adr/                     # 架构决策记录
+├── architecture/            # 系统架构与容灾
+├── comparison/              # OmniRoute 与竞品对比
+├── compression/             # 压缩指南与规则
+├── dev/                     # 开发指南
+├── diagrams/                # 架构图
+├── frameworks/              # MCP、A2A、OpenCode、记忆、技能
+├── guides/                  # 用户指南、Docker、配置、故障排查
+├── i18n/                    # 国际化 README 翻译
+├── marketing/               # 营销材料
+├── ops/                     # 部署、代理、覆盖率、发布
+├── providers/               # 服务商文档
+├── reference/               # API 参考、环境变量、CLI 工具、免费层
+├── releases/                # 发布说明
+├── routing/                 # Auto-Combo 引擎、推理回放
+├── screenshots/             # 控制台截图
+├── security/                # 安全护栏、合规、隐身、Token
+└── specs/                   # 设计规格
 ```
 
 ---
 
-## Adding a New Provider
+## 添加新服务商
 
-### Step 1: Register Provider Constants
+### 步骤一：注册服务商常量
 
-Add to `src/shared/constants/providers.ts` — Zod-validated at module load.
+在 `src/shared/constants/providers.ts` 中添加条目 — 模块加载时通过 Zod 校验。
 
-### Step 2: Add Executor (if custom logic needed)
+### 步骤二：添加执行器（如需自定义逻辑）
 
-Create executor in `open-sse/executors/your-provider.ts` extending the base executor.
+在 `open-sse/executors/your-provider.ts` 中创建执行器，继承基础执行器。
 
-### Step 3: Add Translator (if non-OpenAI format)
+### 步骤三：添加翻译器（如非 OpenAI 格式）
 
-Create request/response translators in `open-sse/translator/`.
+在 `open-sse/translator/` 中创建请求/响应翻译器。
 
-### Step 4: Add OAuth Config (if OAuth-based)
+### 步骤四：添加 OAuth 配置（如为 OAuth 类服务商）
 
-Add OAuth credentials in `src/lib/oauth/constants/oauth.ts` and service in `src/lib/oauth/services/`.
+在 `src/lib/oauth/constants/oauth.ts` 中添加 OAuth 凭证，在 `src/lib/oauth/services/` 中添加服务。
 
-### Step 5: Register Models
+如果上游服务商在其公开的 CLI / 浏览器打包产物中分发了公开的 OAuth client_id/secret 或 Firebase Web API Key，**不要**将其作为字符串字面量嵌入代码。应使用 `open-sse/utils/publicCreds.ts` 中的 `resolvePublicCred()`，并在 `EMBEDDED_DEFAULTS` 中添加掩码字节条目。完整的强制工作流程参见 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)。
 
-Add model definitions in `open-sse/config/providerRegistry.ts`.
+在处理器/执行器内部，发往客户端的错误消息必须经过 `open-sse/utils/error.ts` 中的 `buildErrorBody()` / `sanitizeErrorMessage()` 处理 — 切勿在 Response body 中放入原始的 `err.stack` 或 `err.message`。参见 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)。
 
-### Step 6: Add Tests
+### 步骤五：注册模型
 
-Write unit tests in `tests/unit/` covering at minimum:
+在 `open-sse/config/providerRegistry.ts` 中添加模型定义。
 
-- Provider registration
-- Request/response translation
-- Error handling
+### 步骤六：添加测试
 
----
+在 `tests/unit/` 中编写单元测试，至少覆盖：
 
-## Pull Request Checklist
-
-- [ ] Tests pass (`npm test`)
-- [ ] Linting passes (`npm run lint`)
-- [ ] Build succeeds (`npm run build`)
-- [ ] TypeScript types added for new public functions and interfaces
-- [ ] No hardcoded secrets or fallback values
-- [ ] All inputs validated with Zod schemas
-- [ ] CHANGELOG updated (if user-facing change)
-- [ ] Documentation updated (if applicable)
+- 服务商注册
+- 请求/响应翻译
+- 错误处理
 
 ---
 
-## Releasing
+## Pull Request 检查清单
 
-Releases are managed via the `/generate-release` workflow. When a new GitHub Release is created, the package is **automatically published to npm** via GitHub Actions.
+- [ ] 测试通过（`npm test`）
+- [ ] 代码检查通过（`npm run lint`）
+- [ ] 构建成功（`npm run build`）
+- [ ] 为新增的公开函数与接口添加了 TypeScript 类型
+- [ ] 无硬编码的密钥或兜底值
+- [ ] 公开的上游凭证通过 `resolvePublicCred()` 嵌入（参见 [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)），严禁字面量形式
+- [ ] 错误响应通过 `buildErrorBody()` / `sanitizeErrorMessage()` 处理 — Response body 中不含原始堆栈信息（参见 [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md)）
+- [ ] Shell 命令（`exec` / `spawn`）通过 `env` 传递运行时值，禁止使用字符串插值
+- [ ] 所有输入使用 Zod Schema 校验
+- [ ] CHANGELOG 已更新（如有面向用户的变更）
+- [ ] 文档已更新（如适用）
+- [ ] 未新增 CodeQL / 密钥扫描告警，或每条告警均已附技术说明予以忽略，并引用相关的 `docs/security/` 文档
+- [ ] 产生子进程的路由（`/api/mcp/`、`/api/cli-tools/runtime/`）已在 `src/server/authz/routeGuard.ts` 中分类为 `isLocalOnlyPath()` — 参见 [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] 提交信息中不含 `Co-Authored-By` 尾部字段 — 提交必须仅出现在仓库所有者的 Git 身份下（Hard Rule #16）
 
 ---
 
-## Getting Help
+## 发布
 
-- **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
-- **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
-- **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADRs**: See `docs/adr/` for architectural decision records
+发布通过 `/generate-release` 工作流管理。当新的 GitHub Release 创建时，包会通过 GitHub Actions **自动发布到 npm**。
+
+VPS 部署时，请使用 `npm run build:release`（而非 `npm run build`）— 它会执行清理重建，
+将打包产物组装到 `dist/`，并写入 `dist/BUILD_SHA` 哨兵文件。
+然后使用 `/deploy-vps-*-cc` 技能，将 `dist/` rsync 到远端 `app/` 目录。
+
+---
+
+## 获取帮助
+
+- **架构**：参见 [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
+- **API 参考**：参见 [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **安全文档**：[`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md)、[`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md)、[`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md)、[`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **运维文档**：[`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **问题反馈**：[github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
+- **架构决策记录**：参见 `docs/adr/` 目录

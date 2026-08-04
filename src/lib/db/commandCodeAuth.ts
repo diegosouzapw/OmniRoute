@@ -207,14 +207,3 @@ export function consumeCommandCodeAuthSecret(
     };
   })() as ConsumedCommandCodeAuthSecret | null;
 }
-
-export function cleanupExpiredCommandCodeAuthSessions(now = nowIso()): number {
-  const result = db()
-    .prepare(
-      `UPDATE command_code_auth_sessions
-       SET status = 'expired', updated_at = ?
-       WHERE status IN ('pending', 'received') AND expires_at <= ?`
-    )
-    .run(now, now);
-  return result.changes ?? 0;
-}

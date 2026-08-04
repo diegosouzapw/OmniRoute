@@ -1,5 +1,7 @@
 // Gemini helper functions for translator
 
+import { safeParseJSON } from "./jsonUtil.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 // Unsupported JSON Schema constraints that should be removed for Antigravity.
@@ -10,7 +12,19 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   "maxLength",
   "exclusiveMinimum",
   "exclusiveMaximum",
-  "pattern",
+  // `multipleOf` is not part of the Gemini/antigravity OpenAPI 3.0 schema subset;
+  // leaving it in function_declarations triggers a hard upstream 400
+  // ("Unknown name \"multipleOf\""). `minimum`/`maximum` ARE accepted and kept.
+  "multipleOf",
+  // OpenAI "strict" tool-calling mode embeds `strict: true/false` directly inside
+  // a function's `parameters` schema (RubyLLM and other OpenAI-convention clients
+  // do this by default). Gemini's function_declarations schema doesn't recognize
+  // it and 400s the same way ("Unknown name \"strict\" ... Cannot find field").
+  "strict",
+  // NOTE: `pattern` is intentionally NOT in this set. Antigravity (Gemini-derived
+  // surface) accepts `pattern` on string constraints, and glob/grep/file-search
+  // tools depend on it to express their argument regex. Removing it produced
+  // upstream 400s and wrong-tool semantics (decolua/9router#1368).
   "minItems",
   "maxItems",
   "format",
@@ -81,14 +95,33 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
 
 export const UNSUPPORTED_SCHEMA_CONSTRAINTS = [...GEMINI_UNSUPPORTED_SCHEMA_KEYS];
 
-// Default safety settings
+// Default safety settings for the standard Gemini API surface.
+//
+// HARM_CATEGORY_CIVIC_INTEGRITY is intentionally NOT included here (#8231): the
+// dynamic validation on some models/endpoints rejects it with a hard 400
+// (`safety_settings[N]: element predicate failed`), taking down every request
+// through that model. The Antigravity/Cloud Code surface already worked around
+// this for #5003 (see ANTIGRAVITY_UNSUPPORTED_SAFETY_CATEGORIES in
+// open-sse/executors/antigravity.ts) — this drops the same category from the
+// standard-path default so behavior is consistent across Gemini surfaces. A
+// caller that explicitly supplies safetySettings (including one that itself
+// requests CIVIC_INTEGRITY) is still honored as-is — only this unconditional
+// default is scoped down.
 export const DEFAULT_SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "OFF" },
   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "OFF" },
   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "OFF" },
   { category: "HARM_CATEGORY_HARASSMENT", threshold: "OFF" },
-  { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "OFF" },
 ];
+
+function normalizeAudioMimeType(format: unknown): string {
+  const normalized =
+    typeof format === "string" && format.trim() ? format.trim().toLowerCase() : "wav";
+  if (normalized === "mp3") {
+    return "audio/mpeg";
+  }
+  return `audio/${normalized}`;
+}
 
 // Convert OpenAI content to Gemini parts
 export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
@@ -101,6 +134,30 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
       const rec = toRecord(item);
       if (rec.type === "text") {
         parts.push({ text: rec.text });
+      } else if (rec.type === "input_audio" || rec.type === "audio") {
+        const audio = toRecord(rec.input_audio || rec.audio);
+        if (typeof audio.data === "string" && audio.data) {
+          parts.push({
+            inlineData: {
+              mimeType: normalizeAudioMimeType(audio.format),
+              data: audio.data.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, ""),
+            },
+          });
+        }
+      } else if (rec.type === "audio_url") {
+        // OpenAI-style audio_url (data: URI). Mirrors the image_url data-URL
+        // parser below but produces an audio inlineData part (#913).
+        const audioUrl = toRecord(rec.audio_url);
+        const url = typeof audioUrl.url === "string" ? audioUrl.url : "";
+        if (url.startsWith("data:")) {
+          const commaIndex = url.indexOf(",");
+          if (commaIndex !== -1) {
+            const mimePart = url.substring(5, commaIndex); // skip "data:"
+            const data = url.substring(commaIndex + 1);
+            const mimeType = mimePart.split(";")[0] || "audio/wav";
+            parts.push({ inlineData: { mimeType, data } });
+          }
+        }
       } else {
         // 1. Handle Gemini native inline_data injected into OpenAI arrays (e.g. Cherry Studio)
         const geminiInline = toRecord(rec.inline_data || rec.inlineData);
@@ -130,17 +187,35 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
 
         // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."}).
         //    Also accept the Responses-API shape {"type":"input_file","file_data":"JVBER...","filename":...}
-        //    so PDFs sent as `input_file` reach Gemini instead of being silently dropped (#2515).
+        //    AND the OpenAI Chat Completions shape
+        //    {"type":"file","file":{"filename":...,"file_data":"data:<mime>;base64,..."}} so PDFs and
+        //    videos reach Gemini instead of being silently dropped (#2515). Gemini reads
+        //    application/pdf and video/* natively via inlineData, exactly like images.
         const file = toRecord(rec.file);
         const doc = toRecord(rec.document);
-        const rawDataStr = rec.data || rec.file_data || file?.data || doc?.data;
-        const mimeTypeFallback =
-          rec.mime_type || rec.media_type || file?.mime_type || doc?.mime_type || "application/pdf";
+        const rawDataStr =
+          rec.data || rec.file_data || file?.data || file?.file_data || doc?.data || doc?.file_data;
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
+          // Prefer the mime embedded in the data: URI (e.g. application/pdf, video/mp4) so
+          // documents and videos are not mislabeled as the fallback; the fallback applies
+          // only to bare base64 that carries no data: prefix.
+          let mimeType =
+            rec.mime_type ||
+            rec.media_type ||
+            file?.mime_type ||
+            doc?.mime_type ||
+            "application/pdf";
+          if (rawDataStr.startsWith("data:")) {
+            const commaIndex = rawDataStr.indexOf(",");
+            if (commaIndex !== -1) {
+              const parsedMime = rawDataStr.substring(5, commaIndex).split(";")[0];
+              if (parsedMime) mimeType = parsedMime;
+            }
+          }
           const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
           parts.push({
             inlineData: {
-              mimeType: String(mimeTypeFallback),
+              mimeType: String(mimeType),
               data: rawData,
             },
           });
@@ -158,6 +233,8 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
         // translation layers as an alternative to `rec.image_url` (#2807).
         const fileData =
           (typeof rec.file_url === "string" ? rec.file_url : undefined) ||
+          // AI SDK-style image part: { type: "image", image: "data:...;base64,..." } (#1330)
+          (typeof rec.image === "string" ? rec.image : undefined) ||
           imageUrl?.url ||
           imageObj?.url ||
           fileUrl?.url ||
@@ -175,24 +252,15 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
             });
           }
         } else if (typeof fileData === "string" && /^https?:\/\//i.test(fileData)) {
-          // Remote URLs cannot be passed directly to Gemini's inlineData (which
-          // requires base64). Fetching + encoding would require making this
-          // function async, which is a breaking change for sync callers (#2807).
-          // Until that refactor lands, warn loudly instead of silently dropping
-          // so users can see WHY their vision request failed.
-          // Strip query string before logging to avoid leaking auth tokens
-          // (signed URLs, SAS tokens, etc.) embedded in query parameters.
-          let safeUrl: string;
-          try {
-            const parsed = new URL(fileData);
-            safeUrl = parsed.origin + parsed.pathname;
-          } catch {
-            safeUrl = fileData.split("?")[0];
-          }
-          console.warn(
-            `[geminiHelper] Dropped remote image URL (Gemini inlineData requires base64): ${safeUrl}` +
-              ` - encode the image as a data: URI client-side until #2807 async fetch lands.`
-          );
+          // Remote URLs cannot be embedded as inlineData (which requires base64),
+          // but Gemini's Part schema natively accepts `fileData: { fileUri }` for
+          // HTTP/HTTPS sources — the model fetches the asset itself. Pass the URL
+          // through instead of dropping it (#2807; ported from upstream PR #344).
+          // The MIME type is intentionally `image/*` because we do not block on
+          // a HEAD request to sniff it; Gemini infers the concrete type on fetch.
+          parts.push({
+            fileData: { fileUri: fileData, mimeType: "image/*" },
+          });
         }
       }
     }
@@ -214,14 +282,9 @@ export function extractTextContent(content: unknown): string {
   return "";
 }
 
-// Try parse JSON safely
+// Try parse JSON safely (null fallback on parse error; re-export keeps legacy API).
 export function tryParseJSON(str: unknown): unknown {
-  if (typeof str !== "string") return str;
-  try {
-    return JSON.parse(str);
-  } catch {
-    return null;
-  }
+  return safeParseJSON(str, null);
 }
 
 // Generate request ID
@@ -331,19 +394,29 @@ function removeUnsupportedKeywords(obj: unknown, keywords: Set<string>): void {
     for (const item of obj) {
       removeUnsupportedKeywords(item, keywords);
     }
-  } else {
-    const record = obj as JsonRecord;
-    // Delete unsupported keys at current level
-    for (const key of Object.keys(record)) {
-      if (keywords.has(key) || key.startsWith("x-")) {
-        delete record[key];
-      }
+    return;
+  }
+
+  const record = obj as JsonRecord;
+  // Delete unsupported *constraint* keywords at the current schema level.
+  for (const key of Object.keys(record)) {
+    if (keywords.has(key) || key.startsWith("x-")) {
+      delete record[key];
     }
-    // Recurse into remaining values
-    for (const value of Object.values(record)) {
-      if (value && typeof value === "object") {
-        removeUnsupportedKeywords(value, keywords);
+  }
+  // Recurse into remaining values. `properties` is a map keyed by arbitrary,
+  // user-defined property NAMES — a tool may legitimately declare a property
+  // called `pattern`, `enum`, `minLength`, etc. Descend into each property's
+  // subschema, but never run keyword-deletion against the property names
+  // themselves, or glob/grep-style tools lose their `pattern` argument (#1368).
+  for (const [key, value] of Object.entries(record)) {
+    if (!value || typeof value !== "object") continue;
+    if (key === "properties" && !Array.isArray(value)) {
+      for (const subSchema of Object.values(value as JsonRecord)) {
+        removeUnsupportedKeywords(subSchema, keywords);
       }
+    } else {
+      removeUnsupportedKeywords(value, keywords);
     }
   }
 }

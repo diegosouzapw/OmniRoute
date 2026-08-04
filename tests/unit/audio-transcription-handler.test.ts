@@ -359,6 +359,143 @@ test("handleAudioTranscription returns an error when AssemblyAI reports a termin
   }
 });
 
+test("handleAudioTranscription routes Rev AI uploads and polls until transcribed", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls = [];
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    calls.push({ url: stringUrl, method: options?.method || "GET" });
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs") {
+      assert.equal(options.method, "POST");
+      assert.ok(options.body instanceof Uint8Array);
+      const bodyText = new TextDecoder().decode(options.body);
+      assert.ok(bodyText.includes('name="media"'));
+      assert.ok(bodyText.includes('name="options"'));
+      assert.ok(bodyText.includes('"transcriber":"machine"'));
+      return new Response(JSON.stringify({ id: "job-1", status: "in_progress" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs/job-1") {
+      return new Response(JSON.stringify({ id: "job-1", status: "transcribed" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs/job-1/transcript") {
+      assert.equal(options.headers.Accept, "text/plain");
+      return new Response("hello from rev ai", {
+        status: 200,
+        headers: { "content-type": "text/plain" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "rev-ai/machine");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "revai-key" },
+    });
+
+    assert.deepEqual(await response.json(), { text: "hello from rev ai" });
+    assert.deepEqual(
+      calls.map((entry) => entry.url),
+      [
+        "https://api.rev.ai/speechtotext/v1/jobs",
+        "https://api.rev.ai/speechtotext/v1/jobs/job-1",
+        "https://api.rev.ai/speechtotext/v1/jobs/job-1/transcript",
+      ]
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleAudioTranscription returns an error when Rev AI reports a failed job", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs") {
+      return new Response(JSON.stringify({ id: "job-2", status: "in_progress" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.rev.ai/speechtotext/v1/jobs/job-2") {
+      return new Response(
+        JSON.stringify({ id: "job-2", status: "failed", failure_detail: "corrupt audio" }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "rev-ai/machine");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "revai-key" },
+    });
+    const payload = (await response.json()) as { error: { message: string } };
+
+    assert.equal(response.status, 500);
+    assert.equal(payload.error.message, "corrupt audio");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleAudioTranscription surfaces Rev AI job-submission errors without polling", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ error: "Invalid access token" }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "rev-ai/machine");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "bad-key" },
+    });
+    const payload = (await response.json()) as { error: { message: string } };
+
+    assert.equal(response.status, 401);
+    assert.equal(payload.error.message, "Invalid access token");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleAudioTranscription routes HuggingFace providers with raw audio uploads", async () => {
   const originalFetch = globalThis.fetch;
   let capturedUrl;
@@ -522,4 +659,165 @@ test("buildMultipartBody uses application/octet-stream for unknown MIME types", 
 
   const bodyText = new TextDecoder().decode(body);
   assert.ok(bodyText.includes("Content-Type: application/octet-stream"));
+});
+
+test("handleAudioTranscription routes Gladia uploads and polls result_url until done", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls = [];
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    calls.push({ url: stringUrl, method: options?.method || "GET", headers: options?.headers });
+
+    if (stringUrl === "https://api.gladia.io/v2/upload") {
+      assert.equal(options.headers["x-gladia-key"], "gladia-key");
+      assert.match(options.headers["Content-Type"], /^multipart\/form-data; boundary=/);
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {
+      const payload = JSON.parse(String(options.body || "{}"));
+      assert.deepEqual(payload, {
+        audio_url: "https://upload.gladia.io/audio.wav",
+        model: "solaria-1",
+      });
+      return new Response(
+        JSON.stringify({ id: "job-1", result_url: "https://api.gladia.io/v2/pre-recorded/job-1" }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    if (stringUrl === "https://api.gladia.io/v2/pre-recorded/job-1") {
+      return new Response(
+        JSON.stringify({
+          status: "done",
+          result: { transcription: { full_transcript: "gladia result" } },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "gladia/solaria-1");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "gladia-key" },
+    });
+
+    assert.deepEqual(await response.json(), { text: "gladia result" });
+    assert.deepEqual(
+      calls.map((entry) => entry.url),
+      [
+        "https://api.gladia.io/v2/upload",
+        "https://api.gladia.io/v2/pre-recorded",
+        "https://api.gladia.io/v2/pre-recorded/job-1",
+      ]
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleAudioTranscription returns an error when Gladia reports a terminal failure", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  globalThis.setTimeout = immediateTimeout;
+  globalThis.fetch = async (url) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.gladia.io/v2/upload") {
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {
+      return new Response(
+        JSON.stringify({ id: "job-2", result_url: "https://api.gladia.io/v2/pre-recorded/job-2" }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    if (stringUrl === "https://api.gladia.io/v2/pre-recorded/job-2") {
+      return new Response(JSON.stringify({ status: "error", error_code: "invalid_audio_format" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "gladia/solaria-1");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "gladia-key" },
+    });
+    const payload = (await response.json()) as ErrorPayload;
+
+    assert.equal(response.status, 500);
+    assert.equal(payload.error.message, "invalid_audio_format");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test("handleAudioTranscription rejects Gladia jobs missing a result_url", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async (url) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.gladia.io/v2/upload") {
+      return new Response(JSON.stringify({ audio_url: "https://upload.gladia.io/audio.wav" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl === "https://api.gladia.io/v2/pre-recorded") {
+      return new Response(JSON.stringify({ id: "job-3" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "gladia/solaria-1");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "gladia-key" },
+    });
+    const payload = (await response.json()) as ErrorPayload;
+
+    assert.equal(response.status, 502);
+    assert.equal(payload.error.message, "Gladia did not return a result_url");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

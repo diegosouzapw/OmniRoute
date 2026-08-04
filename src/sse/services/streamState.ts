@@ -216,12 +216,3 @@ export function archiveStream(requestId) {
 export function getActiveStreams() {
   return Array.from(activeStreams.values()).map((t) => t.getSummary());
 }
-
-/**
- * Get recent completed streams.
- * @param {number} [limit=20]
- * @returns {Array<Object>}
- */
-export function getRecentCompletedStreams(limit = 20) {
-  return completedStreams.slice(-limit);
-}

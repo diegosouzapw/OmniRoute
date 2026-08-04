@@ -28,7 +28,10 @@ async function removeQuotaCombosGuarded(poolId: string): Promise<void> {
     const { removeQuotaCombosForPool } = await import("@/lib/quota/quotaCombos");
     await removeQuotaCombosForPool(poolId);
   } catch (err) {
-    console.warn("[quota-pools] removeQuotaCombosForPool failed (non-fatal):", (err as Error)?.message);
+    console.warn(
+      "[quota-pools] removeQuotaCombosForPool failed (non-fatal):",
+      (err as Error)?.message
+    );
   }
 }
 
@@ -115,9 +118,9 @@ function assertSingleProvider(connectionIds: string[]): void {
   const db = getDb();
   const placeholders = connectionIds.map(() => "?").join(",");
   const rows = db
-    .prepare<{ provider: string }>(
-      `SELECT DISTINCT provider FROM provider_connections WHERE id IN (${placeholders})`
-    )
+    .prepare<{
+      provider: string;
+    }>(`SELECT DISTINCT provider FROM provider_connections WHERE id IN (${placeholders})`)
     .all(...connectionIds);
   const providers = rows.map((r) => r.provider).filter(Boolean);
   if (new Set(providers).size > 1) {
@@ -144,11 +147,25 @@ interface AllocationRow {
   policy: string;
 }
 
+const VALID_POLICIES: ReadonlySet<string> = new Set<Policy>(["hard", "soft", "burst"]);
+
+/**
+ * Fail-safe policy normalization at the DB read boundary. A column value outside
+ * `hard | soft | burst` (corrupted/legacy row, or a value inserted while the
+ * table CHECK constraint was bypassed) is coerced to the most restrictive
+ * policy, `hard`, instead of being trusted via a raw `as Policy` cast. This
+ * prevents an unknown policy from reaching the fair-share engine, where it would
+ * otherwise be a silent fail-OPEN (issue #10).
+ */
+function normalizePolicy(value: string): Policy {
+  return VALID_POLICIES.has(value) ? (value as Policy) : "hard";
+}
+
 function rowToAllocation(row: AllocationRow): PoolAllocation {
   const alloc: PoolAllocation = {
     apiKeyId: row.api_key_id,
     weight: row.weight,
-    policy: row.policy as Policy,
+    policy: normalizePolicy(row.policy),
   };
   if (row.cap_value != null) alloc.capValue = row.cap_value;
   if (row.cap_unit != null) alloc.capUnit = row.cap_unit as QuotaUnit;
@@ -184,6 +201,55 @@ function rowToPool(row: PoolRow, allocations: PoolAllocation[]): QuotaPool {
   };
 }
 
+function batchBuildPools(rows: PoolRow[]): QuotaPool[] {
+  if (rows.length === 0) return [];
+  const poolIds = rows.map((r) => r.id);
+  const ph = poolIds.map(() => "?").join(",");
+  const db = getDb();
+
+  // Batch allocations: 1 query for all pools
+  const allocRows = db
+    .prepare<AllocationRow>(
+      `SELECT pool_id, api_key_id, weight, cap_value, cap_unit, policy FROM quota_allocations WHERE pool_id IN (${ph})`
+    )
+    .all(...poolIds);
+  const allocsByPool = new Map<string, AllocationRow[]>();
+  for (const row of allocRows) {
+    const list = allocsByPool.get(row.pool_id);
+    if (list) {
+      list.push(row);
+    } else {
+      allocsByPool.set(row.pool_id, [row]);
+    }
+  }
+
+  // Batch connections: 1 query for all pools
+  const connRows = db
+    .prepare<{ pool_id: string; connection_id: string }>(
+      `SELECT pool_id, connection_id FROM quota_pool_connections WHERE pool_id IN (${ph}) ORDER BY created_at ASC`
+    )
+    .all(...poolIds);
+  const connsByPool = new Map<string, string[]>();
+  for (const row of connRows) {
+    const list = connsByPool.get(row.pool_id);
+    if (list) {
+      list.push(row.connection_id);
+    } else {
+      connsByPool.set(row.pool_id, [row.connection_id]);
+    }
+  }
+
+  return rows.map((row) => ({
+    id: row.id,
+    connectionId: row.connection_id,
+    connectionIds: connsByPool.get(row.id) || [row.connection_id],
+    name: row.name,
+    groupId: row.group_id || "group-demo",
+    createdAt: row.created_at,
+    allocations: (allocsByPool.get(row.id) || []).map(rowToAllocation),
+  }));
+}
+
 function getAllocations(poolId: string): PoolAllocation[] {
   const rows = getDb()
     .prepare<AllocationRow>(
@@ -194,12 +260,7 @@ function getAllocations(poolId: string): PoolAllocation[] {
 }
 
 function makeId(): string {
-  // Use Web Crypto UUID (available in Node ≥19 globally; also available in browsers)
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-  // Fallback: timestamp + random (extremely unlikely to collide in tests)
-  return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+  return crypto.randomUUID();
 }
 
 // ---------------------------------------------------------------------------
@@ -210,25 +271,51 @@ function makeId(): string {
  * List all quota pools that belong to a specific group.
  * Returns an empty array when no pools match the given groupId.
  */
-export function getPoolsByGroup(groupId: string): QuotaPool[] {
+export function getPoolsByGroup(groupId: string, limit?: number, offset?: number): QuotaPool[] {
+  let sql =
+    "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE group_id = ? ORDER BY created_at ASC";
+  const params: unknown[] = [groupId];
+  if (limit !== undefined && limit > 0) {
+    sql += " LIMIT ?";
+    params.push(limit);
+    if (offset !== undefined) {
+      sql += " OFFSET ?";
+      params.push(offset);
+    }
+  }
   const rows = getDb()
-    .prepare<PoolRow>(
-      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE group_id = ? ORDER BY created_at ASC"
-    )
-    .all(groupId);
-  return rows.map((row) => rowToPool(row, getAllocations(row.id)));
+    .prepare<PoolRow>(sql)
+    .all(...params);
+  return batchBuildPools(rows);
 }
 
 /**
  * List all quota pools with their allocations.
  */
-export function listPools(): QuotaPool[] {
+export function listPools(options?: { limit?: number; offset?: number }): {
+  items: QuotaPool[];
+  total: number;
+} {
+  const limit = options?.limit;
+  const offset = options?.offset;
+  let sql =
+    "SELECT id, connection_id, name, group_id, created_at FROM quota_pools ORDER BY created_at ASC";
+  const params: unknown[] = [];
+  if (limit !== undefined && limit > 0) {
+    sql += " LIMIT ?";
+    params.push(limit);
+    if (offset !== undefined) {
+      sql += " OFFSET ?";
+      params.push(offset);
+    }
+  }
   const rows = getDb()
-    .prepare<PoolRow>(
-      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools ORDER BY created_at ASC"
-    )
-    .all();
-  return rows.map((row) => rowToPool(row, getAllocations(row.id)));
+    .prepare<PoolRow>(sql)
+    .all(...params);
+  const totalRow = getDb().prepare("SELECT count(*) as cnt FROM quota_pools").get() as {
+    cnt: number;
+  };
+  return { items: batchBuildPools(rows), total: totalRow.cnt };
 }
 
 /**
@@ -236,10 +323,12 @@ export function listPools(): QuotaPool[] {
  */
 export function getPool(id: string): QuotaPool | null {
   const row = getDb()
-    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
+    .prepare<PoolRow>(
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+    )
     .get(id);
   if (!row) return null;
-  return rowToPool(row, getAllocations(row.id));
+  return batchBuildPools([row])[0];
 }
 
 /**
@@ -268,7 +357,9 @@ export function createPool(input: PoolCreate): QuotaPool {
   const database = getDb();
   const doCreate = database.transaction(() => {
     database
-      .prepare("INSERT INTO quota_pools (id, connection_id, name, group_id, created_at) VALUES (?, ?, ?, ?, ?)")
+      .prepare(
+        "INSERT INTO quota_pools (id, connection_id, name, group_id, created_at) VALUES (?, ?, ?, ?, ?)"
+      )
       .run(id, primaryConnectionId, input.name, groupId, now);
 
     const insertConn = database.prepare(
@@ -298,7 +389,13 @@ export function createPool(input: PoolCreate): QuotaPool {
   doCreate();
 
   const result = rowToPool(
-    { id, connection_id: primaryConnectionId, name: input.name, group_id: groupId, created_at: now },
+    {
+      id,
+      connection_id: primaryConnectionId,
+      name: input.name,
+      group_id: groupId,
+      created_at: now,
+    },
     getAllocations(id)
   );
 
@@ -317,7 +414,9 @@ export function createPool(input: PoolCreate): QuotaPool {
 export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
   const database = getDb();
   const existing = database
-    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
+    .prepare<PoolRow>(
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+    )
     .get(id);
   if (!existing) return null;
 
@@ -340,9 +439,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
     if (input.connectionIds !== undefined && input.connectionIds.length > 0) {
       const newPrimary = input.connectionIds[0];
       // Replace join rows.
-      database
-        .prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?")
-        .run(id);
+      database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
       const insertConn = database.prepare(
         "INSERT OR IGNORE INTO quota_pool_connections (pool_id, connection_id) VALUES (?, ?)"
       );
@@ -350,9 +447,7 @@ export function updatePool(id: string, input: PoolUpdate): QuotaPool | null {
         insertConn.run(id, connId);
       }
       // Sync primary column.
-      database
-        .prepare("UPDATE quota_pools SET connection_id = ? WHERE id = ?")
-        .run(newPrimary, id);
+      database.prepare("UPDATE quota_pools SET connection_id = ? WHERE id = ?").run(newPrimary, id);
       existing.connection_id = newPrimary;
     }
 
@@ -399,13 +494,15 @@ export function deletePool(id: string): boolean {
   const doDelete = database.transaction(() => {
     database.prepare("DELETE FROM quota_pool_connections WHERE pool_id = ?").run(id);
     // Prune this pool id from every key's allowed_quotas JSON array.
-    database.prepare(
-      `UPDATE api_keys SET allowed_quotas = COALESCE(
+    database
+      .prepare(
+        `UPDATE api_keys SET allowed_quotas = COALESCE(
          (SELECT json_group_array(value) FROM json_each(api_keys.allowed_quotas) WHERE value != ?),
          '[]')
        WHERE allowed_quotas IS NOT NULL AND allowed_quotas != '[]'
          AND EXISTS (SELECT 1 FROM json_each(api_keys.allowed_quotas) WHERE value = ?)`
-    ).run(id, id);
+      )
+      .run(id, id);
     return database.prepare("DELETE FROM quota_pools WHERE id = ?").run(id);
   });
   const result = doDelete();
@@ -451,10 +548,23 @@ export function deletePool(id: string): boolean {
 export function upsertAllocations(poolId: string, allocations: PoolAllocation[]): void {
   const database = getDb();
 
+  // Normalize: when all weights are 0, distribute equally so the pool is usable
+  // without requiring a manual re-save. Persists the normalized weights.
+  const totalWeight = allocations.reduce(
+    (s, a) => s + (Number.isFinite(a.weight) ? a.weight : 0),
+    0
+  );
+  const normalizedAllocations =
+    totalWeight === 0 && allocations.length > 0
+      ? allocations.map((a) => ({ ...a, weight: 100 / allocations.length }))
+      : allocations;
+
   // Resolve the target pool's group so we can propagate to siblings.
   // Defensive: fall back to [poolId] (single-pool semantics) if pool not found.
   const targetPool = database
-    .prepare<PoolRow>("SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?")
+    .prepare<PoolRow>(
+      "SELECT id, connection_id, name, group_id, created_at FROM quota_pools WHERE id = ?"
+    )
     .get(poolId);
 
   // Collect all pools in the group (includes the target pool itself).
@@ -475,9 +585,8 @@ export function upsertAllocations(poolId: string, allocations: PoolAllocation[])
        VALUES (?, ?, ?, ?, ?, ?)`
     );
     for (const pid of poolIdsInGroup) {
-      // Replace allocations for this pool.
       database.prepare("DELETE FROM quota_allocations WHERE pool_id = ?").run(pid);
-      for (const alloc of allocations) {
+      for (const alloc of normalizedAllocations) {
         insert.run(
           pid,
           alloc.apiKeyId,

@@ -39,21 +39,6 @@ export function formatDuration(ms: number | null | undefined) {
 }
 
 /**
- * Format an ISO date to a full date+time string (pt-BR locale).
- * @param {string} iso - ISO 8601 date string
- * @returns {string}
- */
-export function formatDateTime(iso: string | null | undefined) {
-  try {
-    if (!iso) return "-";
-    const d = new Date(iso);
-    return d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false });
-  } catch {
-    return iso;
-  }
-}
-
-/**
  * Mask a string by showing only start and end characters.
  * @param {string} value - Value to mask
  * @param {number} start - Number of characters to show at start (default: 2)
@@ -112,16 +97,6 @@ export function formatApiKeyLabel(
 }
 
 /**
- * Mask a sensitive key for log output.
- * @param {string} key - API key or token to mask
- * @returns {string}
- */
-export function maskKey(key: string | null | undefined) {
-  if (!key || key.length < 8) return "***";
-  return `${key.slice(0, 4)}...${key.slice(-4)}`;
-}
-
-/**
  * Format large numbers with K/M/B suffixes.
  * @param {number} n - Number to format
  * @returns {string}
@@ -159,55 +134,6 @@ export function formatCost(usd: number | null | undefined): string {
 export const fmtCost = formatCost;
 
 /**
- * Format a USD cost for display using abbreviated K/M/B/T suffixes.
- * Sub-cent values show additional precision.
- *   - Values >= 1T are shown as $X.XT
- *   - Values >= 1B are shown as $X.XB
- *   - Values >= 1M are shown as $X.XM
- *   - Values >= 1K are shown as $X.XK
- *   - Otherwise shown as $X.XX
- * @param {number} usd - Cost in USD
- * @returns {string}
- */
-export function formatCostAbbreviated(usd: number | null | undefined): string {
-  const value = Number(usd || 0);
-  if (!Number.isFinite(value) || value === 0) return "$0";
-  const abs = Math.abs(value);
-  if (abs < 0.01) {
-    if (value < 0) {
-      return `-$${Math.abs(value).toFixed(6)}`;
-    }
-    return `$${value.toFixed(6)}`;
-  }
-  let divisor: number, suffix: string;
-  if (abs >= 1_000_000_000_000) {
-    divisor = 1_000_000_000_000;
-    suffix = "T";
-  } else if (abs >= 1_000_000_000) {
-    divisor = 1_000_000_000;
-    suffix = "B";
-  } else if (abs >= 1_000_000) {
-    divisor = 1_000_000;
-    suffix = "M";
-  } else if (abs >= 1_000) {
-    divisor = 1_000;
-    suffix = "K";
-  } else {
-    if (value < 0) {
-      return `-$${Math.abs(value).toFixed(2)}`;
-    }
-    return `$${value.toFixed(2)}`;
-  }
-  const abbreviated = abs / divisor;
-  let formatted = abbreviated.toFixed(1);
-  if (formatted.includes(".")) {
-    formatted = formatted.replace(/\.?0+$/, "");
-  }
-  const sign = value < 0 ? "-" : "";
-  return `${sign}$${formatted}${suffix}`;
-}
-
-/**
  * Truncate a URL for compact display.
  * @param {string} url - Full URL
  * @param {number} max - Maximum characters (default: 50)
@@ -230,4 +156,45 @@ export function truncateUrl(url: string | null | undefined, max = 50) {
  */
 export function safePercentage(value: unknown): number | undefined {
   return typeof value === "number" && isFinite(value) ? value : undefined;
+}
+
+/**
+ * Format a reset countdown as a human-readable string: "2h 35m" or "4m 30s".
+ * Returns null if resetAt is in the past or not set.
+ *
+ * Lives here (client-safe utils) — not in db/providers/rateLimit — so client
+ * components can render a cooldown countdown without dragging the server-only
+ * DB barrel (better-sqlite3/ioredis → node:net) into the browser bundle.
+ * `rateLimit.ts` re-exports this for its server callers.
+ */
+export function formatResetCountdown(resetAt: string | number | null | undefined): string | null {
+  if (!resetAt) return null;
+  const resetTime = typeof resetAt === "number" ? resetAt : new Date(resetAt).getTime();
+  if (isNaN(resetTime)) return null;
+  const diffMs = resetTime - Date.now();
+  if (diffMs <= 0) return null;
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
+/**
+ * Coerces a persisted log `error` field into safe display text. It is
+ * legitimate for this field to be a structured object (e.g. `{ code,
+ * message }`) — only the RENDER needs to be a string, never the persisted
+ * artifact itself. Used by RequestLoggerDetail to avoid React error #31
+ * ("Objects are not valid as a React child") when rendering it. See #7845.
+ */
+export function formatErrorForDisplay(err: unknown): string | null {
+  if (err == null) return null;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err, null, 2);
+  } catch {
+    return String(err);
+  }
 }

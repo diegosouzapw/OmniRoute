@@ -19,6 +19,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdtemp, open, unlink, rmdir, stat } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { buildNativeTlsClientOptions } from "./tlsClientDownloadDir.ts";
 
 let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
@@ -131,7 +132,7 @@ async function getClient(): Promise<{
         // Native mode loads the shared library directly via koffi, avoiding the
         // managed sidecar's localhost HTTP calls that OmniRoute's global fetch
         // proxy patch interferes with.
-        const client = new TLSClient({ runtimeMode: "native" }) as {
+        const client = new TLSClient(buildNativeTlsClientOptions()) as {
           start: () => Promise<void>;
           request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike>;
         };
@@ -203,23 +204,19 @@ export interface TlsFetchOptions {
 }
 
 import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+import { resolveTlsClientProxyUrl } from "./tlsClientProxy.ts";
 
 /**
  * Resolve the proxy URL for a tls-client request. Per-call value wins;
  * otherwise we use the standard proxy fetch resolution which reads from
  * the dashboard AsyncLocalStorage context or falls back to env vars.
+ *
+ * Fail-closed: if resolution throws (e.g. a configured socks5 proxy with
+ * ENABLE_SOCKS5_PROXY=false), this rethrows rather than returning undefined —
+ * undefined would let the native binding connect directly and leak the real IP.
  */
 function resolveProxyUrl(perCall: string | undefined): string | undefined {
-  if (perCall && perCall.length > 0) return perCall;
-  try {
-    const proxyInfo = resolveProxyForRequest("https://www.perplexity.ai");
-    if (proxyInfo && proxyInfo.proxyUrl) {
-      return proxyInfo.proxyUrl;
-    }
-  } catch {
-    // Ignore resolution errors
-  }
-  return undefined;
+  return resolveTlsClientProxyUrl("https://www.perplexity.ai", perCall, resolveProxyForRequest);
 }
 
 export interface TlsFetchResult {

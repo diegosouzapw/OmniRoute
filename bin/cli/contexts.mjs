@@ -36,8 +36,25 @@ export function saveContexts(cfg) {
   } catch {}
 }
 
+/**
+ * Resolve the active context for a CLI invocation.
+ *
+ * Canonical schema is `{ currentContext, contexts }` (written by
+ * `omniroute contexts ...`). For backward compatibility we also read the legacy
+ * `{ activeProfile, profiles }` shape and a bare top-level `baseUrl` — older
+ * configs and `api.mjs::getBaseUrl` used those before remote-mode unified the
+ * store. `overrideName` (from `--context`/`OMNIROUTE_CONTEXT`) wins when set.
+ *
+ * A context may carry `{ baseUrl, accessToken?, apiKey?, scope?, description? }`.
+ * `accessToken` is the scoped CLI access token (preferred); `apiKey` is the
+ * legacy inference key kept for back-compat.
+ */
 export function resolveActiveContext(overrideName) {
   const cfg = loadContexts();
-  const name = overrideName || cfg.currentContext || "default";
-  return cfg.contexts?.[name] || cfg.contexts?.default || { baseUrl: "http://localhost:20128" };
+  const contexts = cfg.contexts || cfg.profiles || {};
+  const name = overrideName || cfg.currentContext || cfg.activeProfile || "default";
+  const found = contexts[name] || contexts.default;
+  if (found) return found;
+  if (cfg.baseUrl) return { baseUrl: cfg.baseUrl };
+  return { baseUrl: `http://localhost:${process.env.PORT || "20128"}` };
 }

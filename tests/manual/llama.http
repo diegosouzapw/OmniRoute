@@ -1,0 +1,43 @@
+###
+# @name List model directly from llama-cpp provider
+GET http://{{llama-address}}/v1/models
+Authorization: Bearer {{LLAMACPP_API_KEY}}
+
+###
+# @name List all models
+GET {{omniroute-address}}/models
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+###
+# @name Send a standard OpenAI chat request directly to llama-cpp provider
+POST http://{{llama-address}}/chat/completions
+Authorization: Bearer {{LLAMACPP_API_KEY}}
+
+{
+  "model": "unsloth/gemma-4-26B-A4B-it-GGUF:UD-IQ2_M",
+  "stream": true,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tell me a joke."
+    }
+  ]
+}
+
+###
+# @name Send a standard OpenAI chat request to this llama-cpp provider
+POST {{omniroute-address}}/v1/chat/completions
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+{
+  "model": "llamacpp/unsloth/gemma-4-26B-A4B-it-GGUF:UD-IQ2_M",
+  "stream": true,
+  "messages": [
+    {
+      "role": "user",
+      "content": "Tell me a joke."
+    }
+  ]
+}
+###

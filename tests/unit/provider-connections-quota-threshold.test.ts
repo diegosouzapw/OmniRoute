@@ -162,3 +162,26 @@ test("updateProviderConnectionSchema rejects out-of-range values", () => {
     assert.equal(result.success, false, `expected window5h=${v} to be rejected`);
   }
 });
+
+test("provider quota visibility defaults to visible and persists explicit changes", async () => {
+  const created = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "apikey",
+    name: "Codex Visibility",
+    apiKey: "sk-visibility",
+  });
+  assert.equal(created.quotaVisible, true);
+
+  const hidden = await providersDb.updateProviderConnection(created.id, { quotaVisible: false });
+  assert.equal(hidden.quotaVisible, false);
+  assert.equal((await providersDb.getProviderConnectionById(created.id)).quotaVisible, false);
+
+  const visible = await providersDb.updateProviderConnection(created.id, { quotaVisible: true });
+  assert.equal(visible.quotaVisible, true);
+  assert.equal((await providersDb.getProviderConnectionById(created.id)).quotaVisible, true);
+});
+
+test("updateProviderConnectionSchema accepts only boolean quota visibility", () => {
+  assert.equal(updateProviderConnectionSchema.safeParse({ quotaVisible: false }).success, true);
+  assert.equal(updateProviderConnectionSchema.safeParse({ quotaVisible: "false" }).success, false);
+});

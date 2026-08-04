@@ -1,8 +1,9 @@
-import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
+import { runWithProxyContext, getOriginalFetch } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { FetchTimeoutError, fetchWithTimeout } from "@/shared/utils/fetchTimeout";
 import {
   OutboundUrlGuardError,
   type OutboundUrlGuardMode,
+  parseAndValidateNonMetadataUrl,
   parseAndValidatePublicUrl,
   parseOutboundUrl,
 } from "@/shared/network/outboundUrlGuard";
@@ -30,6 +31,10 @@ export interface SafeOutboundFetchOptions extends RequestInit {
   retry?: SafeOutboundFetchRetryOptions | false;
   guard?: SafeOutboundFetchGuard;
   proxyConfig?: unknown;
+  /** Bypass the global proxy/TLS patched fetch and use the native Node.js
+   *  fetch directly. Use when a provider endpoint has compatibility issues
+   *  with the undici dispatcher layer. */
+  bypassProxyPatch?: boolean;
 }
 
 type SafeOutboundFetchPresetMap = {
@@ -51,7 +56,7 @@ export const SAFE_OUTBOUND_FETCH_PRESETS: SafeOutboundFetchPresetMap = {
     },
   },
   validationWrite: {
-    timeoutMs: 7000,
+    timeoutMs: 15000,
     allowRedirect: false,
     retry: false,
   },
@@ -153,10 +158,16 @@ function normalizeUrl(input: string | URL) {
 }
 
 function applyUrlGuard(targetUrl: URL, guard: SafeOutboundFetchGuard, method: string) {
-  if (guard !== "public-only") return;
+  if (guard === "none") return;
 
   try {
-    parseAndValidatePublicUrl(targetUrl);
+    // "public-only" rejects every private host; "block-metadata" (#5066) allows private/LAN
+    // hosts but still rejects cloud-metadata / link-local endpoints.
+    if (guard === "block-metadata") {
+      parseAndValidateNonMetadataUrl(targetUrl);
+    } else {
+      parseAndValidatePublicUrl(targetUrl);
+    }
   } catch (error) {
     if (error instanceof OutboundUrlGuardError) {
       throw new SafeOutboundFetchError(error.message, {
@@ -264,6 +275,7 @@ export async function safeOutboundFetch(url: string | URL, options: SafeOutbound
     retry,
     guard = "none",
     proxyConfig,
+    bypassProxyPatch = false,
     signal,
     ...fetchOptions
   } = options;
@@ -282,11 +294,15 @@ export async function safeOutboundFetch(url: string | URL, options: SafeOutbound
           redirect,
           signal,
           timeoutMs,
+          // When bypassing the proxy patch, use the original native fetch directly.
+          fetchFn: bypassProxyPatch ? getOriginalFetch() : undefined,
         });
 
-      const response = proxyConfig
-        ? await runWithProxyContext(proxyConfig, executeFetch)
-        : await executeFetch();
+      const response = bypassProxyPatch
+        ? await executeFetch()
+        : proxyConfig
+          ? await runWithProxyContext(proxyConfig, executeFetch)
+          : await executeFetch();
 
       if (!allowRedirect && response.status >= 300 && response.status < 400) {
         const location = response.headers.get("location");

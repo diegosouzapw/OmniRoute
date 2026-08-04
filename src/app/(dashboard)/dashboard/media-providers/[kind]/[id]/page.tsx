@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { resolveProviderServiceKinds } from "@omniroute/open-sse/config/mediaServiceKinds.ts";
 import type { MediaKind } from "../../components/mediaKinds";
 import { MEDIA_KINDS } from "../../components/mediaKinds";
 import MediaProviderPageClient from "./MediaProviderPageClient";
@@ -42,9 +43,14 @@ export default async function MediaProviderDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Validate that the provider declares this kind
-  const serviceKinds = provider.serviceKinds as string[] | undefined;
-  if (!Array.isArray(serviceKinds) || !serviceKinds.includes(validKind)) {
+  // Validate that the provider supports this kind — declared serviceKinds unioned
+  // with the media kinds derived from the backend registries (must mirror the
+  // listing filter in ../page.tsx, otherwise a listed provider would 404 on click).
+  const serviceKinds = resolveProviderServiceKinds(
+    provider.id,
+    provider.serviceKinds as string[] | undefined
+  );
+  if (!serviceKinds.includes(validKind)) {
     notFound();
   }
 

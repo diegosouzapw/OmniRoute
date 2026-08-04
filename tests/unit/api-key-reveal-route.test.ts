@@ -10,6 +10,7 @@ process.env.API_KEY_SECRET = "test-api-key-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const featureFlagsDb = await import("../../src/lib/db/featureFlags.ts");
 const listRoute = await import("../../src/app/api/keys/route.ts");
 const revealRoute = await import("../../src/app/api/keys/[id]/reveal/route.ts");
 
@@ -112,6 +113,20 @@ test("GET /api/keys/[id]/reveal rejects requests when reveal is disabled", async
 
 test("GET /api/keys/[id]/reveal returns the full key when reveal is enabled", async () => {
   process.env.ALLOW_API_KEY_REVEAL = "true";
+  const created = await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
+  const request = new Request(`http://localhost/api/keys/${created.id}/reveal`);
+
+  const response = await revealRoute.GET(request, {
+    params: Promise.resolve({ id: created.id }),
+  });
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.key, created.key);
+});
+
+test("GET /api/keys/[id]/reveal honors the ALLOW_API_KEY_REVEAL feature flag override", async () => {
+  featureFlagsDb.setFeatureFlagOverride("ALLOW_API_KEY_REVEAL", "true");
   const created = await apiKeysDb.createApiKey("Primary Key", MACHINE_ID);
   const request = new Request(`http://localhost/api/keys/${created.id}/reveal`);
 

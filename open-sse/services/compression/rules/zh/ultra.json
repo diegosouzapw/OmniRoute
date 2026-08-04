@@ -1,0 +1,55 @@
+{
+  "language": "zh",
+  "category": "ultra",
+  "rules": [
+    {
+      "name": "zh_ultra_modal_particles",
+      "pattern": "(?:吗|呢|吧|啊|呀|嘛)(?=[。，！？、\\s]|$)",
+      "flags": "g",
+      "replacement": "",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "zh_ultra_database_abbreviation",
+      "pattern": "数据库",
+      "replacement": "DB",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "zh_ultra_application_abbreviation",
+      "pattern": "应用程序",
+      "replacement": "app",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "zh_ultra_dependency_abbreviation",
+      "pattern": "依赖关系",
+      "replacement": "dep",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "zh_ultra_config_file_abbreviation",
+      "pattern": "配置文件",
+      "replacement": "cfg",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "zh_ultra_function_abbreviation",
+      "pattern": "函数",
+      "replacement": "fn",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    }
+  ]
+}

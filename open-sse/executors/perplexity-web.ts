@@ -6,44 +6,33 @@
  * completions format and Perplexity's internal protocol.
  */
 
-import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { BaseExecutor, type ExecuteInput, type ProviderCredentials } from "./base.ts";
 import {
   tlsFetchPerplexity,
   isCloudflareChallenge,
   TlsClientUnavailableError,
   type TlsFetchResult,
 } from "../services/perplexityTlsClient.ts";
-
-const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
-const PPLX_API_VERSION = "client-1.11.0";
-// Firefox 148 — must match the `firefox_148` TLS profile used by perplexityTlsClient.
-// A mismatched UA vs TLS fingerprint is itself a Cloudflare bot signal (issue #2459).
-const PPLX_USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0";
-
-const MODEL_MAP: Record<string, [string, string]> = {
-  "pplx-auto": ["concise", "pplx_pro"],
-  "pplx-sonar": ["copilot", "experimental"],
-  "pplx-gpt": ["copilot", "gpt54"],
-  "pplx-gemini": ["copilot", "gemini31pro_high"],
-  "pplx-sonnet": ["copilot", "claude46sonnet"],
-  "pplx-opus": ["copilot", "claude46opus"],
-  "pplx-nemotron": ["copilot", "nv_nemotron_3_super"],
-};
-
-const THINKING_MAP: Record<string, string> = {
-  "pplx-gpt": "gpt54_thinking",
-  "pplx-sonnet": "claude46sonnetthinking",
-  "pplx-opus": "claude46opusthinking",
-};
-
-const CITATION_RE = /\[\d+\]/g;
-const GROK_TAG_RE = /<grok:[^>]*>.*?<\/grok:[^>]*>/gs;
-const GROK_SELF_RE = /<grok:[^>]*\/>/g;
-const XML_DECL_RE = /<[?]xml[^?]*[?]>/g;
-const RESPONSE_TAG_RE = /<\/?response\b[^>]*>/gi;
-const MULTI_SPACE = / {2,}/g;
-const MULTI_NL = /\n{3,}/g;
+import { prepareToolMessages } from "../translator/webTools.ts";
+import { buildToolModeResponse } from "./chatgptWebTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
+import {
+  buildSessionCookieHeader,
+  mergeRefreshedCookie,
+} from "../utils/nextAuthCookie.ts";
+import {
+  PPLX_SSE_ENDPOINT,
+  PPLX_USER_AGENT,
+  PPLX_STREAM_EOF_SYMBOL,
+  MODEL_MAP,
+  THINKING_MAP,
+  cleanResponse,
+  parseOpenAIMessages,
+  buildPplxRequestBody,
+  buildQuery,
+  extractContent,
+  sseChunk,
+} from "./perplexity-web/protocol.ts";
 
 // ─── Session continuity ─────────────────────────────────────────────────────
 
@@ -104,328 +93,6 @@ function sessionStore(
     }
     if (oldestKey) sessionCache.delete(oldestKey);
   }
-}
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-function cleanResponse(text: string, strip = true): string {
-  let t = text;
-  t = t.replace(XML_DECL_RE, "");
-  t = t.replace(CITATION_RE, "");
-  t = t.replace(GROK_TAG_RE, "");
-  t = t.replace(GROK_SELF_RE, "");
-  t = t.replace(RESPONSE_TAG_RE, "");
-  if (strip) {
-    t = t.replace(MULTI_SPACE, " ");
-    t = t.replace(MULTI_NL, "\n\n");
-    t = t.trim();
-  }
-  return t;
-}
-
-// ─── SSE types ──────────────────────────────────────────────────────────────
-
-interface PplxBlock {
-  intended_usage?: string;
-  markdown_block?: {
-    answer?: string;
-    chunks?: string[];
-    progress?: string;
-    chunk_starting_offset?: number;
-  };
-  web_result_block?: {
-    web_results?: Array<{ url?: string; name?: string; snippet?: string }>;
-  };
-  plan_block?: {
-    steps?: Array<{
-      step_type?: string;
-      search_web_content?: { queries?: Array<{ query?: string }> };
-      read_results_content?: { urls?: string[] };
-    }>;
-    goals?: Array<{ description?: string }>;
-  };
-}
-
-interface PplxStreamEvent {
-  status?: string;
-  final?: boolean;
-  text?: string;
-  blocks?: PplxBlock[];
-  backend_uuid?: string;
-  web_results?: Array<{ url?: string; name?: string }>;
-  error_code?: string;
-  error_message?: string;
-  display_model?: string;
-}
-
-// ─── SSE parsing ────────────────────────────────────────────────────────────
-
-async function* readPplxSseEvents(
-  body: ReadableStream<Uint8Array>,
-  signal?: AbortSignal | null
-): AsyncGenerator<PplxStreamEvent> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let dataLines: string[] = [];
-
-  function flush(): PplxStreamEvent | null | "done" {
-    if (dataLines.length === 0) return null;
-    const payload = dataLines.join("\n");
-    dataLines = [];
-    const trimmed = payload.trim();
-    if (!trimmed || trimmed === "[DONE]") return "done";
-    try {
-      return JSON.parse(trimmed) as PplxStreamEvent;
-    } catch {
-      return null;
-    }
-  }
-
-  try {
-    while (true) {
-      if (signal?.aborted) return;
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      while (true) {
-        const idx = buffer.indexOf("\n");
-        if (idx < 0) break;
-        const rawLine = buffer.slice(0, idx);
-        buffer = buffer.slice(idx + 1);
-        const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
-
-        if (line === "") {
-          const parsed = flush();
-          if (parsed === "done") return;
-          if (parsed) yield parsed;
-          continue;
-        }
-        if (line.startsWith("data:")) {
-          dataLines.push(line.slice(5).trimStart());
-        }
-        if (line === "event: end_of_stream") {
-          return;
-        }
-      }
-    }
-
-    buffer += decoder.decode();
-    if (buffer.trim().startsWith("data:")) {
-      dataLines.push(buffer.trim().slice(5).trimStart());
-    }
-    const tail = flush();
-    if (tail && tail !== "done") yield tail;
-  } finally {
-    reader.releaseLock();
-  }
-}
-
-// ─── OpenAI → Perplexity translation ────────────────────────────────────────
-
-interface ParsedMessages {
-  systemMsg: string;
-  history: Array<{ role: string; content: string }>;
-  currentMsg: string;
-}
-
-function parseOpenAIMessages(messages: Array<Record<string, unknown>>): ParsedMessages {
-  let systemMsg = "";
-  const history: Array<{ role: string; content: string }> = [];
-
-  for (const msg of messages) {
-    let role = String(msg.role || "user");
-    if (role === "developer") role = "system";
-
-    let content = "";
-    if (typeof msg.content === "string") {
-      content = msg.content;
-    } else if (Array.isArray(msg.content)) {
-      content = (msg.content as Array<Record<string, unknown>>)
-        .filter((c) => c.type === "text")
-        .map((c) => String(c.text || ""))
-        .join(" ");
-    }
-    if (!content.trim()) continue;
-
-    if (role === "system") {
-      systemMsg += content + "\n";
-    } else if (role === "user" || role === "assistant") {
-      history.push({ role, content });
-    }
-  }
-
-  let currentMsg = "";
-  if (history.length > 0 && history[history.length - 1].role === "user") {
-    currentMsg = history.pop()!.content;
-  }
-
-  return { systemMsg, history, currentMsg };
-}
-
-function buildPplxRequestBody(
-  query: string,
-  mode: string,
-  modelPref: string,
-  followUpUuid: string | null
-): Record<string, unknown> {
-  const tz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
-
-  return {
-    query_str: query,
-    params: {
-      query_str: query,
-      search_focus: "internet",
-      mode,
-      model_preference: modelPref,
-      sources: ["web"],
-      attachments: [],
-      frontend_uuid: crypto.randomUUID(),
-      frontend_context_uuid: crypto.randomUUID(),
-      version: PPLX_API_VERSION,
-      language: "en-US",
-      timezone: tz,
-      search_recency_filter: null,
-      is_incognito: true,
-      use_schematized_api: true,
-      last_backend_uuid: followUpUuid,
-    },
-  };
-}
-
-function buildQuery(parsed: ParsedMessages, followUpUuid: string | null): string {
-  if (followUpUuid) return parsed.currentMsg;
-
-  const obj: Record<string, unknown> = {};
-  if (parsed.systemMsg.trim()) {
-    obj.instructions = [
-      parsed.systemMsg.trim(),
-      "You have built-in web search. Answer questions directly using search results.",
-    ];
-  }
-  if (parsed.history.length > 0) {
-    obj.history = parsed.history;
-  }
-  if (parsed.currentMsg) {
-    obj.query = parsed.currentMsg;
-  } else if (parsed.history.length === 0) {
-    obj.query = "";
-  }
-  const json = JSON.stringify(obj);
-  return json.length > 96000 ? json.slice(-96000) : json;
-}
-
-// ─── Content extraction ─────────────────────────────────────────────────────
-
-interface ContentChunk {
-  delta?: string;
-  answer?: string;
-  backendUuid?: string;
-  thinking?: string;
-  error?: string;
-  done?: boolean;
-}
-
-async function* extractContent(
-  eventStream: ReadableStream<Uint8Array>,
-  signal?: AbortSignal | null
-): AsyncGenerator<ContentChunk> {
-  let fullAnswer = "";
-  let backendUuid: string | null = null;
-  let seenLen = 0;
-  const seenThinking = new Set<string>();
-
-  for await (const event of readPplxSseEvents(eventStream, signal)) {
-    if (event.error_code || event.error_message) {
-      yield {
-        error: event.error_message || `Perplexity error: ${event.error_code}`,
-        done: true,
-      };
-      return;
-    }
-
-    if (event.backend_uuid) backendUuid = event.backend_uuid;
-
-    const blocks = event.blocks ?? [];
-    for (const block of blocks) {
-      const usage = block.intended_usage ?? "";
-
-      // Thinking: search steps
-      if (usage === "pro_search_steps" && block.plan_block?.steps) {
-        for (const step of block.plan_block.steps) {
-          if (step.step_type === "SEARCH_WEB") {
-            for (const q of step.search_web_content?.queries ?? []) {
-              const qr = q.query ?? "";
-              if (qr && !seenThinking.has(qr)) {
-                seenThinking.add(qr);
-                yield { thinking: `Searching: ${qr}`, backendUuid: backendUuid ?? undefined };
-              }
-            }
-          } else if (step.step_type === "READ_RESULTS") {
-            for (const u of (step.read_results_content?.urls ?? []).slice(0, 3)) {
-              if (u && !seenThinking.has(u)) {
-                seenThinking.add(u);
-                yield { thinking: `Reading: ${u}`, backendUuid: backendUuid ?? undefined };
-              }
-            }
-          }
-        }
-      }
-
-      // Thinking: plan goals
-      if (usage === "plan" && block.plan_block?.goals) {
-        for (const goal of block.plan_block.goals) {
-          const desc = goal.description ?? "";
-          if (desc && !seenThinking.has(desc)) {
-            seenThinking.add(desc);
-            yield { thinking: desc, backendUuid: backendUuid ?? undefined };
-          }
-        }
-      }
-
-      // Content: markdown blocks
-      if (!usage.includes("markdown")) continue;
-      const mb = block.markdown_block;
-      if (!mb) continue;
-      const chunks = mb.chunks ?? [];
-      if (chunks.length === 0) continue;
-
-      if (mb.progress === "DONE") {
-        fullAnswer = chunks.join("");
-      } else {
-        const chunkText = chunks.join("");
-        const cumulative = fullAnswer + chunkText;
-        if (cumulative.length > seenLen) {
-          const delta = cumulative.slice(seenLen);
-          fullAnswer = cumulative;
-          seenLen = cumulative.length;
-          yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
-        }
-      }
-    }
-
-    // Fallback: text field
-    if (blocks.length === 0 && event.text) {
-      const t = event.text.trim();
-      if (t.length > seenLen) {
-        const delta = t.slice(seenLen);
-        fullAnswer = t;
-        seenLen = t.length;
-        yield { delta, answer: fullAnswer, backendUuid: backendUuid ?? undefined };
-      }
-    }
-
-    if (event.final || event.status === "COMPLETED") break;
-  }
-
-  yield { delta: "", answer: fullAnswer, backendUuid: backendUuid ?? undefined, done: true };
-}
-
-// ─── OpenAI SSE format ──────────────────────────────────────────────────────
-
-function sseChunk(data: unknown): string {
-  return `data: ${JSON.stringify(data)}\n\n`;
 }
 
 function buildStreamingResponse(
@@ -579,7 +246,9 @@ function buildStreamingResponse(
           );
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } finally {
-          try { controller.close(); } catch {}
+          try {
+            controller.close();
+          } catch {}
         }
       },
     },
@@ -603,12 +272,28 @@ async function buildNonStreamingResponse(
   for await (const chunk of extractContent(eventStream, signal)) {
     if (chunk.backendUuid) respBackendUuid = chunk.backendUuid;
     if (chunk.error) {
-      return new Response(
-        JSON.stringify({
-          error: { message: chunk.error, type: "upstream_error", code: "PPLX_ERROR" },
-        }),
-        { status: 502, headers: { "Content-Type": "application/json" } }
-      );
+      // Quota exhaustion → 429 + reset_seconds so OmniRoute marks rate_limited_until
+      // and VibeProxy limit badges / rotation skip parse the same shape as model_cooldown.
+      const isQuota =
+        chunk.errorCode === "quota_exhausted" ||
+        /quota exhausted/i.test(chunk.error) ||
+        (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0);
+      const status = isQuota ? 429 : 502;
+      const code = chunk.errorCode || (isQuota ? "quota_exhausted" : "PPLX_ERROR");
+      const type = isQuota ? "quota_exhausted" : "upstream_error";
+      const errBody: Record<string, unknown> = {
+        message: chunk.error,
+        type,
+        code,
+      };
+      if (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0) {
+        errBody.reset_seconds = chunk.resetSeconds;
+      }
+      const respHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (typeof chunk.resetSeconds === "number" && chunk.resetSeconds > 0) {
+        respHeaders["Retry-After"] = String(chunk.resetSeconds);
+      }
+      return new Response(JSON.stringify({ error: errBody }), { status, headers: respHeaders });
     }
     if (chunk.thinking) {
       thinkingParts.push(chunk.thinking);
@@ -649,6 +334,27 @@ async function buildNonStreamingResponse(
   );
 }
 
+async function persistRotatedSessionCookie(
+  cookie: string,
+  setCookieHeader: string | null,
+  credentials: ProviderCredentials,
+  onCredentialsRefreshed: ExecuteInput["onCredentialsRefreshed"],
+  log: ExecuteInput["log"]
+): Promise<void> {
+  if (!onCredentialsRefreshed) return;
+  try {
+    const refreshed = mergeRefreshedCookie(cookie, setCookieHeader);
+    if (refreshed && refreshed !== cookie) {
+      await onCredentialsRefreshed({ ...credentials, apiKey: refreshed });
+    }
+  } catch (err) {
+    log?.warn?.(
+      "PPLX-WEB",
+      `Failed to persist refreshed cookie: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
+}
+
 // ─── Executor ───────────────────────────────────────────────────────────────
 
 export class PerplexityWebExecutor extends BaseExecutor {
@@ -656,11 +362,10 @@ export class PerplexityWebExecutor extends BaseExecutor {
     super("perplexity-web", { id: "perplexity-web", baseUrl: PPLX_SSE_ENDPOINT });
   }
 
-  async execute({ model, body, stream, credentials, signal, log }: ExecuteInput) {
-    const messages = (body as Record<string, unknown>).messages as
-      | Array<Record<string, unknown>>
-      | undefined;
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+  async execute({ model, body, stream, credentials, signal, log, onCredentialsRefreshed }: ExecuteInput) {
+    const bodyObj = (body || {}) as Record<string, unknown>;
+    const rawMessages = bodyObj.messages as Array<Record<string, unknown>> | undefined;
+    if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
       const errResp = new Response(
         JSON.stringify({
           error: { message: "Missing or empty messages array", type: "invalid_request" },
@@ -670,8 +375,12 @@ export class PerplexityWebExecutor extends BaseExecutor {
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers: {}, transformedBody: body };
     }
 
+    const { hasTools, requestedTools, effectiveMessages } = prepareToolMessages(
+      bodyObj,
+      rawMessages as Array<{ role: string; content: unknown }>
+    );
+
     // Resolve thinking mode
-    const bodyObj = body as Record<string, unknown>;
     const thinking =
       bodyObj.thinking === true ||
       (bodyObj.reasoning_effort != null && bodyObj.reasoning_effort !== "none");
@@ -679,7 +388,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
     let pplxMode: string;
     let modelPref: string;
     if (thinking && THINKING_MAP[model]) {
-      pplxMode = "copilot";
+      pplxMode = "search";
       modelPref = THINKING_MAP[model];
       log?.info?.("PPLX-WEB", `Thinking mode → ${model} using ${modelPref}`);
     } else if (MODEL_MAP[model]) {
@@ -691,7 +400,7 @@ export class PerplexityWebExecutor extends BaseExecutor {
     }
 
     // Parse messages and check session continuity
-    const parsed = parseOpenAIMessages(messages);
+    const parsed = parseOpenAIMessages(effectiveMessages);
     const followUpUuid = sessionLookup(parsed.history);
     if (followUpUuid) {
       log?.info?.("PPLX-WEB", `Session continue: ${followUpUuid.slice(0, 12)}...`);
@@ -709,7 +418,15 @@ export class PerplexityWebExecutor extends BaseExecutor {
     }
 
     // Build Perplexity request
-    const pplxBody = buildPplxRequestBody(query, pplxMode, modelPref, followUpUuid);
+    const requestId = crypto.randomUUID();
+    const pplxBody = buildPplxRequestBody(
+      query,
+      parsed.currentMsg,
+      pplxMode,
+      modelPref,
+      followUpUuid,
+      requestId
+    );
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -717,14 +434,19 @@ export class PerplexityWebExecutor extends BaseExecutor {
       Origin: "https://www.perplexity.ai",
       Referer: "https://www.perplexity.ai/",
       "User-Agent": PPLX_USER_AGENT,
-      "X-App-ApiClient": "default",
-      "X-App-ApiVersion": PPLX_API_VERSION,
+      // Current app request headers (replaced the stale X-App-ApiVersion/X-App-ApiClient pair,
+      // which the new endpoint no longer expects and which contributed to HTTP 400).
+      "x-perplexity-request-endpoint": PPLX_SSE_ENDPOINT,
+      "x-perplexity-request-reason": "ask-query-state-provider",
+      "x-perplexity-request-try-number": "1",
+      "x-request-id": requestId,
     };
 
+    const cookieBlob = credentials.apiKey ?? "";
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
-    } else if (credentials.apiKey) {
-      headers["Cookie"] = `__Secure-next-auth.session-token=${credentials.apiKey}`;
+    } else if (cookieBlob) {
+      headers["Cookie"] = buildSessionCookieHeader(cookieBlob);
     }
 
     log?.info?.(
@@ -744,7 +466,8 @@ export class PerplexityWebExecutor extends BaseExecutor {
         body: JSON.stringify(pplxBody),
         signal: signal ?? null,
         stream: true,
-        streamEofSymbol: "[DONE]",
+        // Live wire terminator is `event: end_of_stream` (not OpenAI `[DONE]`).
+        streamEofSymbol: PPLX_STREAM_EOF_SYMBOL,
       });
     } catch (err) {
       const isTlsUnavail = err instanceof TlsClientUnavailableError;
@@ -753,8 +476,8 @@ export class PerplexityWebExecutor extends BaseExecutor {
         JSON.stringify({
           error: {
             message: isTlsUnavail
-              ? `Perplexity TLS client unavailable: ${(err as Error).message}`
-              : `Perplexity connection failed: ${err instanceof Error ? err.message : String(err)}`,
+              ? `Perplexity TLS client unavailable: ${sanitizeErrorMessage((err as Error).message)}`
+              : `Perplexity connection failed: ${sanitizeErrorMessage(err instanceof Error ? err.message : String(err))}`,
             type: "upstream_error",
           },
         }),
@@ -790,6 +513,37 @@ export class PerplexityWebExecutor extends BaseExecutor {
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
     }
 
+    // If the TLS client buffered the body (looksLikeSse false-negative, or a
+    // non-streaming error page), promote a text body that still looks like SSE
+    // into a ReadableStream so extractContent can recover the answer.
+    if (!response.body && response.text) {
+      const buffered = response.text;
+      if (/^(?:\s*)(?:data|event|id|retry):/im.test(buffered) || buffered.includes("\ndata:")) {
+        const encoder = new TextEncoder();
+        response = {
+          ...response,
+          body: new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(encoder.encode(buffered));
+              controller.close();
+            },
+          }),
+          text: null,
+        };
+      } else {
+        const errResp = new Response(
+          JSON.stringify({
+            error: {
+              message: `Perplexity returned non-SSE body: ${sanitizeErrorMessage(buffered.slice(0, 240))}`,
+              type: "upstream_error",
+            },
+          }),
+          { status: 502, headers: { "Content-Type": "application/json" } }
+        );
+        return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
+      }
+    }
+
     if (!response.body) {
       const errResp = new Response(
         JSON.stringify({
@@ -800,12 +554,45 @@ export class PerplexityWebExecutor extends BaseExecutor {
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
     }
 
+    // Surface any rotated session-token back to the caller so the DB credential
+    // is refreshed — mirrors chatgpt-web.ts exchangeSession + onCredentialsRefreshed.
+    if (cookieBlob) {
+      await persistRotatedSessionCookie(
+        cookieBlob,
+        response.headers.get("set-cookie"),
+        credentials,
+        onCredentialsRefreshed,
+        log
+      );
+    }
+
     // Build OpenAI-compatible response
     const cid = `chatcmpl-pplx-${crypto.randomUUID().slice(0, 12)}`;
     const created = Math.floor(Date.now() / 1000);
 
+    // Tool mode buffers the full completion (no live token streaming) and
+    // converts <tool> text into real tool_calls — even when the caller asked
+    // for a streaming response — mirroring chatgpt-web's toolMode (#5240,
+    // #5927). Without this, streaming requests (the default for agentic
+    // coding clients) never emitted a tool_calls SSE delta.
     let finalResponse: Response;
-    if (stream) {
+    if (hasTools) {
+      const bufferedJson = await buildNonStreamingResponse(
+        response.body,
+        model,
+        cid,
+        created,
+        parsed.history,
+        parsed.currentMsg,
+        signal
+      );
+      finalResponse = await buildToolModeResponse(bufferedJson, requestedTools, stream, {
+        cid,
+        created,
+        model,
+        idSeed: "pplx",
+      });
+    } else if (stream) {
       const sseStream = buildStreamingResponse(
         response.body,
         model,

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { openaiToAntigravityRequest, openaiToGeminiCLIRequest, openaiToGeminiRequest } =
+const { openaiToAntigravityRequest, openaiToCloudCodeGeminiRequest, openaiToGeminiRequest } =
   await import("../../open-sse/translator/request/openai-to-gemini.ts");
 const { getRequestTranslator } = await import("../../open-sse/translator/registry.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
@@ -14,11 +14,12 @@ const {
   tryParseJSON,
 } = await import("../../open-sse/translator/helpers/geminiHelper.ts");
 const { ANTIGRAVITY_DEFAULT_SYSTEM } = await import("../../open-sse/config/constants.ts");
-const { clearGeminiThoughtSignatures } = await import(
-  "../../open-sse/services/geminiThoughtSignatureStore.ts"
-);
+const { clearGeminiThoughtSignatures } =
+  await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 
 type UnknownRecord = Record<string, unknown>;
+type GeminiRequestWithConfig = { generationConfig: UnknownRecord };
+type GeminiRequestWithSystem = { systemInstruction: { role?: unknown; parts?: unknown } };
 
 test.beforeEach(() => {
   clearGeminiThoughtSignatures();
@@ -54,31 +55,49 @@ function getFunctionDeclarationParameters(parameters: unknown) {
 }
 
 test("OpenAI -> Gemini helper converts text, images and files into Gemini parts", () => {
-  // Suppress warn emitted for the remote https://example.com/skip.png URL in the
-  // fixture below — that warn is expected and tested separately. Suppressing here
-  // keeps stderr clean so CI does not flag spurious output.
-  const originalWarn = console.warn;
-  console.warn = () => {};
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "text", text: "Hello" },
-      { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
-      { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
-      { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
-      { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
-      { type: "file_url", file_url: { url: "not-a-data-url" } },
-    ]);
+  const parts = convertOpenAIContentToParts([
+    { type: "text", text: "Hello" },
+    { type: "image_url", image_url: { url: "data:image/png;base64,abc" } },
+    { type: "file_url", file_url: { url: "data:application/pdf;base64,Zm9v" } },
+    { type: "document", document: { url: "data:text/plain;base64,YmFy" } },
+    { type: "image_url", image_url: { url: "https://example.com/skip.png" } },
+    { type: "file_url", file_url: { url: "not-a-data-url" } },
+  ]);
 
-    assert.deepEqual(parts, [
-      { text: "Hello" },
-      { inlineData: { mimeType: "image/png", data: "abc" } },
-      { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
-      { inlineData: { mimeType: "text/plain", data: "YmFy" } },
-    ]);
-    assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
-  } finally {
-    console.warn = originalWarn;
-  }
+  // Remote http(s) URLs are no longer dropped — they pass through as Gemini
+  // `fileData: { fileUri }` so the model fetches the asset itself (#4373, ported
+  // from upstream PR #344). A non-data, non-http string ("not-a-data-url") is
+  // still dropped (no inlineData/fileData part).
+  assert.deepEqual(parts, [
+    { text: "Hello" },
+    { inlineData: { mimeType: "image/png", data: "abc" } },
+    { inlineData: { mimeType: "application/pdf", data: "Zm9v" } },
+    { inlineData: { mimeType: "text/plain", data: "YmFy" } },
+    { fileData: { fileUri: "https://example.com/skip.png", mimeType: "image/*" } },
+  ]);
+  assert.deepEqual(convertOpenAIContentToParts("raw text"), [{ text: "raw text" }]);
+});
+
+test("OpenAI -> Gemini does not inject default maxOutputTokens for unknown caps", () => {
+  const withoutRequestLimit = openaiToGeminiRequest(
+    "gemini-2.5-pro",
+    { messages: [{ role: "user", content: "Hello" }] },
+    false
+  );
+  assert.equal(
+    (withoutRequestLimit as GeminiRequestWithConfig).generationConfig.maxOutputTokens,
+    undefined
+  );
+
+  const withRequestLimit = openaiToGeminiRequest(
+    "gemini-2.5-pro",
+    { messages: [{ role: "user", content: "Hello" }], max_tokens: 32000 },
+    false
+  );
+  assert.equal(
+    (withRequestLimit as GeminiRequestWithConfig).generationConfig.maxOutputTokens,
+    32000
+  );
 });
 
 test("OpenAI -> Gemini helper cleans complex JSON Schema structures for Gemini compatibility", () => {
@@ -242,11 +261,9 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     false
   );
 
-  assert.equal((result as any).systemInstruction.role, "system");
-  assert.deepEqual((result as any).systemInstruction.parts, [
-    { text: "Rule A" },
-    { text: "Rule B" },
-  ]);
+  const systemInstruction = (result as GeminiRequestWithSystem).systemInstruction;
+  assert.equal(systemInstruction.role, "system");
+  assert.deepEqual(systemInstruction.parts, [{ text: "Rule A" }, { text: "Rule B" }]);
   assert.equal(result.contents[0].role, "user");
   assert.deepEqual(result.contents[0].parts, [
     { text: "What is the weather?" },
@@ -275,12 +292,13 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     response: { result: { temp: 20 } },
   });
 
-  assert.equal((result as any).generationConfig.maxOutputTokens, 2222);
-  assert.equal((result as any).generationConfig.temperature, 0.3);
-  assert.equal((result as any).generationConfig.topP, 0.9);
-  assert.deepEqual((result as any).generationConfig.stopSequences, ["DONE"]);
-  assert.equal((result as any).generationConfig.responseMimeType, "application/json");
-  const responseSchema = (result as any).generationConfig.responseSchema as {
+  const generationConfig = (result as GeminiRequestWithConfig).generationConfig;
+  assert.equal(generationConfig.maxOutputTokens, 2222);
+  assert.equal(generationConfig.temperature, 0.3);
+  assert.equal(generationConfig.topP, 0.9);
+  assert.deepEqual(generationConfig.stopSequences, ["DONE"]);
+  assert.equal(generationConfig.responseMimeType, "application/json");
+  const responseSchema = generationConfig.responseSchema as {
     properties: { answer: { type: string; enum?: string[] } };
   };
   assert.equal(responseSchema.properties.answer.type, "string");
@@ -317,8 +335,8 @@ test("OpenAI -> Gemini request preserves custom safety settings and handles syst
   assert.deepEqual(result.contents[0].parts, [{ text: "Only rules" }]);
 });
 
-test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool names", () => {
-  const result = openaiToGeminiCLIRequest(
+test("OpenAI -> Cloud Code Gemini adds thinking config and normalizes namespaced tool names", () => {
+  const result = openaiToCloudCodeGeminiRequest(
     "gemini-2.5-pro",
     {
       messages: [
@@ -367,34 +385,6 @@ test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool n
   );
   assert.ok(responseTurn, "expected a function response turn");
   assert.equal(getFunctionResponse(responseTurn.parts[0]).name, "weather");
-});
-
-test("OpenAI -> Gemini CLI wraps Cloud Code envelope with native top-level and request keys", async () => {
-  const { getRequestTranslator } = await import("../../open-sse/translator/registry.ts");
-  const { FORMATS } = await import("../../open-sse/translator/formats.ts");
-  await import("../../open-sse/translator/request/openai-to-gemini.ts");
-
-  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
-  assert.ok(translate, "expected Gemini CLI translator to be registered");
-
-  const result = translate(
-    "models/gemini-2.5-flash",
-    { messages: [{ role: "user", content: "Hello" }] },
-    true,
-    { projectId: "projects/demo" }
-  ) as UnknownRecord;
-  const request = result.request as UnknownRecord;
-
-  assert.deepEqual(Object.keys(result), ["model", "project", "user_prompt_id", "request"]);
-  assert.equal(result.model, "gemini-2.5-flash");
-  assert.equal(result.project, "projects/demo");
-  assert.equal(typeof result.user_prompt_id, "string");
-  assert.equal(result.userAgent, undefined);
-  assert.equal(result.requestId, undefined);
-  assert.equal(result.requestType, undefined);
-  assert.equal(typeof request.session_id, "string");
-  assert.equal(request.sessionId, undefined);
-  assert.ok(Array.isArray(request.contents));
 });
 
 test("OpenAI -> Gemini request sanitizes long MCP tool names and strips unsupported schema fields", () => {
@@ -527,33 +517,8 @@ test("OpenAI -> Gemini helper IDs and JSON parsing stay in the expected format",
   assert.equal(tryParseJSON("not-json"), null as any);
 });
 
-test("OpenAI -> Gemini CLI wraps requests like native Cloud Code", () => {
-  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
-  assert.ok(translate, "expected Gemini CLI translator registration");
-
-  const envelope = translate(
-    "gemini-3-flash-preview",
-    {
-      messages: [{ role: "user", content: "Hello" }],
-      reasoning_effort: "high",
-    },
-    true,
-    { projectId: "project-1" }
-  ) as any;
-
-  assert.equal(envelope.model, "gemini-3-flash-preview");
-  assert.equal(envelope.userAgent, undefined);
-  assert.equal(envelope.requestId, undefined);
-  assert.equal(envelope.request.sessionId, undefined);
-  assert.match(envelope.request.session_id, /^[0-9a-f-]{36}$/i);
-  assert.equal(envelope.user_prompt_id, envelope.request.session_id);
-});
-
-test("OpenAI -> Gemini CLI emits native Cloud Code functionResponse output", () => {
-  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
-  assert.ok(translate, "expected Gemini CLI translator registration");
-
-  const envelope = translate(
+test("OpenAI -> Cloud Code Gemini emits native functionResponse result", () => {
+  const request = openaiToCloudCodeGeminiRequest(
     "gemini-3-flash-preview",
     {
       messages: [
@@ -575,18 +540,17 @@ test("OpenAI -> Gemini CLI emits native Cloud Code functionResponse output", () 
         },
       ],
     },
-    true,
-    { projectId: "project-1" }
+    true
   ) as any;
 
-  const toolTurn = envelope.request.contents.find(
+  const toolTurn = request.contents.find(
     (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.ok(toolTurn, "expected Gemini CLI tool response turn");
+  assert.ok(toolTurn, "expected Cloud Code Gemini tool response turn");
   assert.deepEqual(getFunctionResponse(toolTurn.parts[0]), {
     id: "read_file_123_0",
     name: "read_file",
-    response: { output: "The answer is capybara-4729." },
+    response: { result: { result: "The answer is capybara-4729." } },
   });
 });
 
@@ -618,13 +582,12 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
     "model",
     "userAgent",
     "requestType",
-    "enabledCreditTypes",
   ]);
   assert.equal(result.userAgent, "antigravity");
   assert.equal(result.requestType, "agent");
   assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
   assert.match(result.request.sessionId, /^-?\d+$/);
-  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
+  assert.equal(result.enabledCreditTypes, undefined);
   assert.equal(result.request.generationConfig.topK, 40);
   assert.equal(result.request.generationConfig.topP, 1.0);
   assert.equal(
@@ -688,34 +651,30 @@ test("OpenAI -> Antigravity Gemini omits signature-less historical tool calls an
     false,
     "signature-less historical call must not use executable textual tool-call markers"
   );
+  // With skip_thought_signature_validator bypass, functionCall IS emitted natively
   assert.equal(
     modelTurn?.parts.some((part) => part.functionCall) ?? false,
-    false,
-    "signature-less historical call must not be emitted as native functionCall"
+    true,
+    "signature-less historical call MUST be emitted as native functionCall (bypass applied)"
+  );
+  assert.equal(
+    modelTurn?.parts.some((part) => part.thoughtSignature === "skip_thought_signature_validator") ??
+      false,
+    true,
+    "the bypass sentinel must be injected as thoughtSignature"
   );
 
   const toolTurn = result.request.contents.find(
-    (content) =>
-      content.role === "user" &&
-      content.parts.some(
-        (part) =>
-          typeof part.text === "string" &&
-          part.text.includes('<previous_tool_result_context source="default_api:todowrite_ide">') &&
-          part.text.includes("[]")
-      )
+    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.ok(toolTurn, "expected signature-less tool response to be preserved as safe context");
-  assert.equal(
-    toolTurn.parts.some(
-      (part) => typeof part.text === "string" && part.text.includes("[Tool response:")
-    ),
-    false,
-    "signature-less historical response must not use executable textual tool-response markers"
+  assert.ok(
+    toolTurn,
+    "expected signature-less tool response to be preserved as native functionResponse (bypass applied)"
   );
   assert.equal(
     toolTurn.parts.some((part) => part.functionResponse),
-    false,
-    "signature-less historical response must not be emitted as native functionResponse"
+    true,
+    "signature-less historical response MUST be emitted as native functionResponse (bypass applied)"
   );
 });
 
@@ -757,33 +716,20 @@ test("OpenAI -> Antigravity preserves multiple signature-less historical tool re
     { projectId: "proj-antigravity-gemini" } as any
   );
 
-  const text = JSON.stringify(result.request.contents);
+  // With skip_thought_signature_validator bypass: native functionCall + functionResponse expected
+  const modelTurn = result.request.contents.find(
+    (c) => c.role === "model" && c.parts.some((p) => p.functionCall)
+  );
+  assert.ok(modelTurn, "expected native functionCall turns");
   assert.equal(
-    text.includes("Historical tool-call record only"),
-    false,
-    "signature-less calls must not be emitted as visible historical text"
-  );
-  assert.equal(
-    text.includes("Tool arguments JSON"),
-    false,
-    "signature-less call arguments must not be emitted as visible text"
-  );
-  assert.ok(
-    text.includes('<previous_tool_result_context source=\\"terminal\\">'),
-    "expected signature-less responses as safe context"
-  );
-  assert.ok(
-    text.includes("data/db.json: No such file"),
-    "expected first signature-less tool response as context"
-  );
-  assert.ok(
-    text.includes("storage.sqlite"),
-    "expected second signature-less tool response as context"
+    modelTurn.parts.filter((p) => p.functionCall).length,
+    2,
+    "expected 2 functionCall parts"
   );
   assert.equal(
-    result.request.contents.some((content) => content.parts.some((part) => part.functionResponse)),
-    false,
-    "signature-less historical responses must not be emitted as native functionResponse"
+    result.request.contents.some((c) => c.parts.some((p) => p.functionResponse)),
+    true,
+    "signature-less historical responses MUST be emitted as native functionResponse (bypass applied)"
   );
 });
 
@@ -860,17 +806,12 @@ test("OpenAI -> Antigravity escapes signature-less tool response context content
     { projectId: "proj-antigravity-gemini" } as any
   );
 
-  const text = JSON.stringify(result.request.contents);
-  assert.ok(text.includes("reader&quot;&gt;&lt;x&gt;"), "source attribute must be escaped");
-  assert.ok(
-    text.includes("before &lt;/previous_tool_result_context&gt;&lt;evil&gt; after"),
-    "context content must escape tag-like tool output"
+  // With skip_thought_signature_validator bypass: native functionResponse is emitted
+  // The legacy XML escaping is no longer needed since we send native functionResponse
+  const toolResponseTurn = result.request.contents.find(
+    (c) => c.role === "user" && c.parts.some((p) => p.functionResponse)
   );
-  assert.equal(
-    text.includes("before </previous_tool_result_context><evil> after"),
-    false,
-    "raw context-closing content must not be emitted"
-  );
+  assert.ok(toolResponseTurn, "expected native functionResponse turn");
 });
 
 test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schema", () => {
@@ -917,7 +858,7 @@ test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schem
   assert.equal(result.project, "proj-claude");
   assert.equal(result.userAgent, "antigravity");
   assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
-  assert.deepEqual((result as any).enabledCreditTypes, ["GOOGLE_ONE_AI"]);
+  assert.equal(result.enabledCreditTypes, undefined);
   assert.equal(result.request.systemInstruction.parts[0].text, ANTIGRAVITY_DEFAULT_SYSTEM);
   assert.equal(result.request.systemInstruction.parts[1].text, "Project rules");
   assert.equal((result as any).request?.generationConfig.maxOutputTokens, undefined);
@@ -1134,59 +1075,38 @@ test("convertOpenAIContentToParts handles rec.image with nested {url} as base64 
   assert.equal((inline as any).inlineData.mimeType, "image/png");
 });
 
-test("convertOpenAIContentToParts warns and drops remote http(s) URLs (#2807 - until async refactor)", () => {
-  const originalWarn = console.warn;
-  const warnings: string[] = [];
-  console.warn = (...args: unknown[]) => {
-    warnings.push(args.map(String).join(" "));
-  };
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
-    ]);
-    const inline = parts.find((p) => (p as any).inlineData);
-    assert.equal(
-      inline,
-      undefined,
-      "remote URL still cannot be encoded into inlineData (sync function) - that's expected"
-    );
-    assert.ok(
-      warnings.some((w) => /Dropped remote image URL/i.test(w) && /example\.com\/cat\.png/.test(w)),
-      `expected a warning naming the dropped URL, got: ${JSON.stringify(warnings)}`
-    );
-  } finally {
-    console.warn = originalWarn;
-  }
+test("convertOpenAIContentToParts passes remote http(s) image_url URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
+  const parts = convertOpenAIContentToParts([
+    { type: "image_url", image_url: { url: "https://example.com/cat.png" } },
+  ]);
+  // Remote URLs cannot be base64-inlined by this synchronous function, but Gemini's
+  // Part schema accepts `fileData: { fileUri }` for HTTP/HTTPS sources — so the URL
+  // is passed through (the model fetches it) instead of being dropped (#4373).
+  assert.equal(
+    parts.find((p) => (p as any).inlineData),
+    undefined,
+    "remote URL is not base64-inlined (sync function)"
+  );
+  assert.deepEqual(parts, [
+    { fileData: { fileUri: "https://example.com/cat.png", mimeType: "image/*" } },
+  ]);
 });
 
-test("convertOpenAIContentToParts warns and drops rec.image remote http(s) URLs (#2807)", () => {
+test("convertOpenAIContentToParts passes remote rec.image http(s) URLs through as fileData (#4373; was warn-and-drop #2807)", () => {
   // rec.image is the alternative content shape emitted by MCP tool wrappers and
-  // LangChain shim layers. Remote URLs in this shape must also hit the warn-and-drop
-  // branch rather than being silently ignored.
-  const originalWarn = console.warn;
-  const warnings: string[] = [];
-  console.warn = (...args: unknown[]) => {
-    warnings.push(args.map(String).join(" "));
-  };
-  try {
-    const parts = convertOpenAIContentToParts([
-      { type: "image", image: { url: "https://example.com/remote.png" } },
-    ]);
-    const inline = parts.find((p) => (p as any).inlineData);
-    assert.equal(
-      inline,
-      undefined,
-      "rec.image remote URL must not produce an inlineData part (sync function cannot fetch)"
-    );
-    assert.ok(
-      warnings.some(
-        (w) => /Dropped remote image URL/i.test(w) && /example\.com\/remote\.png/.test(w)
-      ),
-      `expected a warning naming the dropped rec.image URL, got: ${JSON.stringify(warnings)}`
-    );
-  } finally {
-    console.warn = originalWarn;
-  }
+  // LangChain shim layers. Remote URLs in this shape now also pass through as
+  // Gemini `fileData: { fileUri }` (#4373) instead of being dropped.
+  const parts = convertOpenAIContentToParts([
+    { type: "image", image: { url: "https://example.com/remote.png" } },
+  ]);
+  assert.equal(
+    parts.find((p) => (p as any).inlineData),
+    undefined,
+    "rec.image remote URL is not base64-inlined (sync function cannot fetch)"
+  );
+  assert.deepEqual(parts, [
+    { fileData: { fileUri: "https://example.com/remote.png", mimeType: "image/*" } },
+  ]);
 });
 
 // Regression for #2504: with credentials._signatureNamespace set, a previously-cached
@@ -1234,7 +1154,27 @@ test("OpenAI -> Gemini request maps reasoning_effort to thinkingConfig", () => {
 
   assert.ok((result as any).generationConfig.thinkingConfig, "expected thinkingConfig");
   assert.equal((result as any).generationConfig.thinkingConfig.includeThoughts, true);
+  // gemini-2.0-flash-thinking carries no registry cap, so the raw 32768 base is
+  // passed through unchanged (capThinkingBudget no-ops without a thinkingBudgetCap).
   assert.equal((result as any).generationConfig.thinkingConfig.thinkingBudget, 32768);
+});
+
+// Regression for #3842: reasoning_effort=high must not exceed a Gemini model's real
+// thinking-budget cap. gemini-2.5-flash's true upstream max is 24576; sending 32768
+// makes the upstream return HTTP 400. The modelSpecs thinkingBudgetCap now clamps it
+// at the capThinkingBudget chokepoint, matching the thinkingLevel=high path (24576).
+test("OpenAI -> Gemini reasoning_effort=high stays within gemini-2.5-flash cap (#3842)", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "Solve this complex puzzle" }],
+      reasoning_effort: "high",
+    },
+    false
+  ) as any;
+  const budget = result.generationConfig.thinkingConfig.thinkingBudget;
+  assert.ok(budget <= 24576, `expected <= 24576 (real cap), got ${budget}`);
+  assert.equal(budget, 24576);
 });
 
 test("OpenAI -> Gemini request maps google_search tool", () => {
@@ -1252,4 +1192,424 @@ test("OpenAI -> Gemini request maps google_search tool", () => {
     (result as any).tools.some((t: any) => t.googleSearch),
     "expected googleSearch tool"
   );
+});
+
+// Regression: historical tool-call text must use compact [tool_history_call:] format,
+// not the old multi-line "Historical tool-call record only..." that leaked into output.
+test("text-mode assistant tool_calls produce [tool_history_call:] format, not the old leaky text", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        { role: "user", content: "What is the weather?" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_tc001",
+              type: "function",
+              function: { name: "get_weather", arguments: '{"location":"Tokyo"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_tc001",
+          content: '{"temp":"22°C"}',
+        },
+        { role: "user", content: "Summarize" },
+      ],
+    },
+    false,
+    null,
+    { signaturelessToolCallMode: "text" }
+  );
+
+  const body = JSON.stringify(result);
+  assert.ok(
+    body.includes("[tool_history_call: get_weather]"),
+    "expected compact [tool_history_call:] format for text-mode tool calls"
+  );
+  assert.ok(
+    body.includes("[tool_history_result: get_weather]"),
+    "expected compact [tool_history_result:] format for text-mode tool responses"
+  );
+  assert.equal(
+    body.includes("Historical tool-call record only"),
+    false,
+    "old leaky 'Historical tool-call record only' text must NOT appear"
+  );
+  assert.equal(
+    body.includes("Historical tool-response record only"),
+    false,
+    "old leaky 'Historical tool-response record only' text must NOT appear"
+  );
+});
+
+test("text-mode tool calls without credentials produce compact format, no thoughtSignature derail", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        { role: "user", content: "Run a tool" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_tc002",
+              type: "function",
+              function: { name: "search_web", arguments: '{"q":"latest news"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_tc002",
+          content: "Some results",
+        },
+        { role: "user", content: "Tell me more" },
+      ],
+    },
+    false,
+    null, // no credentials — no thought signatures at all
+    { signaturelessToolCallMode: "text" }
+  );
+
+  const body = JSON.stringify(result);
+  assert.ok(body.includes("[tool_history_call: search_web]"), "compact format without credentials");
+  assert.ok(
+    body.includes("[tool_history_result: search_web]"),
+    "compact format for tool response without credentials"
+  );
+});
+
+test("native-mode assistant tool_calls produce functionCall parts, not text labels", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        { role: "user", content: "Get weather" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_nat001",
+              type: "function",
+              function: { name: "get_weather", arguments: '{"location":"Paris"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_nat001",
+          content: '{"temp":"18°C"}',
+        },
+        { role: "user", content: "Now what?" },
+      ],
+    },
+    false,
+    null,
+    { signaturelessToolCallMode: "native" }
+  );
+
+  const modelTurn = result.contents.find(
+    (c) => c.role === "model" && c.parts?.some((p) => p.functionCall)
+  );
+  assert.ok(modelTurn, "expected model turn with functionCall in native mode");
+  const body = JSON.stringify(result);
+  assert.equal(
+    body.includes("[tool_history_call:"),
+    false,
+    "native mode must NOT produce text labels"
+  );
+});
+
+// Integration: registered translator (OPENAI -> GEMINI) uses context-mode for
+// signature-less tool calls (post-#3688 fix: "native" → "context" registration).
+// A signature-less functionCall must be omitted from native parts and represented
+// as context text so the standard Gemini API does not return HTTP 400.
+// For a SIGNED call (signature in store) native parts must still be emitted — see
+// the "keeps native functionCall+thoughtSignature when signature is present" test.
+test("registered OPENAI->GEMINI translator uses context-mode for signature-less tool calls, not text labels or native bare functionCall", () => {
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
+  assert.ok(typeof translate === "function", "registered translator must be a function");
+
+  // No signature in store (cleared by beforeEach) — context-mode fallback applies.
+  const result = translate(
+    "gemini-2.0-flash",
+    {
+      messages: [
+        { role: "user", content: "Look up weather" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_reg001",
+              type: "function",
+              function: { name: "get_weather", arguments: '{"location":"Berlin"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_reg001",
+          content: '{"temp":"15°C","condition":"cloudy"}',
+        },
+        { role: "user", content: "Short summary" },
+      ],
+    },
+    false
+  ) as any;
+
+  const body = JSON.stringify(result);
+  // Context mode: signature-less functionCall must NOT appear as a native part.
+  assert.equal(
+    body.includes('"functionCall"'),
+    false,
+    "registered translator must NOT emit bare native functionCall parts for signature-less calls (would trigger HTTP 400)"
+  );
+  assert.equal(
+    body.includes('"functionResponse"'),
+    false,
+    "registered translator must NOT emit native functionResponse for signature-less calls"
+  );
+  // Old leaky text labels must never appear.
+  assert.equal(
+    body.includes("Historical tool-call record only"),
+    false,
+    "old leaky format must NOT appear in registered translator output"
+  );
+  assert.equal(
+    body.includes("Historical tool-response record only"),
+    false,
+    "old leaky response format must NOT appear"
+  );
+  assert.equal(
+    body.includes("[tool_history_call:"),
+    false,
+    "text-label format must NOT be used by registered GEMINI translator"
+  );
+  // Context-mode: tool result must appear as <previous_tool_result_context> block.
+  assert.ok(
+    body.includes("previous_tool_result_context"),
+    "signature-less tool result must be represented as context text block"
+  );
+});
+
+// Regression for #3688: standard Gemini (AI Studio) returns HTTP 400
+// "Function call is missing a thought_signature" when a multi-turn conversation
+// includes a functionCall whose signature was not captured (process restart / TTL
+// expiry / never stored). The standard GEMINI registration must use "context" mode
+// so signature-less tool calls are omitted from the native parts and represented as
+// context text, avoiding the 400 while preserving conversational continuity.
+test("registered OPENAI->GEMINI translator falls back to context mode for signatureless tool calls (#3688)", () => {
+  // Signature store is cleared by beforeEach — no stored signature for call_3688.
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
+  assert.ok(typeof translate === "function", "registered translator must be a function");
+
+  const result = translate(
+    "gemini-2.5-pro-preview",
+    {
+      messages: [
+        { role: "user", content: "Run a tool" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: "call_3688_missing_sig",
+              type: "function",
+              function: { name: "bash", arguments: '{"cmd":"ls /tmp"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_3688_missing_sig",
+          content: "file-a.txt\nfile-b.txt",
+        },
+        { role: "user", content: "What files did you see?" },
+      ],
+    },
+    false,
+    { _signatureNamespace: "conn-3688-test" }
+  ) as any;
+
+  const body = JSON.stringify(result);
+
+  // (a) NO functionCall part lacking a thoughtSignature must appear.
+  // A functionCall without a thoughtSignature is the exact payload that triggers
+  // Gemini's HTTP 400 "Function call is missing a thought_signature".
+  const modelTurn = result.contents.find(
+    (c: any) => c.role === "model" && c.parts?.some((p: any) => p.functionCall)
+  );
+  assert.equal(
+    modelTurn,
+    undefined,
+    "standard GEMINI translator must NOT emit a functionCall part when thoughtSignature is absent (would trigger HTTP 400)"
+  );
+
+  // (b) The tool call/result must be represented as context/text fallback instead.
+  // In "context" mode the response is wrapped in <previous_tool_result_context> tags.
+  assert.ok(
+    body.includes("previous_tool_result_context"),
+    "signature-less tool result must be represented as a context text block when signature is absent"
+  );
+  assert.ok(
+    body.includes("file-a.txt"),
+    "context text block must contain the tool response content"
+  );
+});
+
+// Happy-path: when thoughtSignature IS present in the store, the registered
+// OPENAI->GEMINI translator must still emit native functionCall + thoughtSignature
+// (no regression on the signed-signature path fixed by #2504).
+test("registered OPENAI->GEMINI translator keeps native functionCall+thoughtSignature when signature is present (#2504 no-regression)", async () => {
+  const { buildGeminiThoughtSignatureKey, storeGeminiThoughtSignature } =
+    await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
+  const ns = "conn-3688-signed-happy";
+  const toolId = "call_3688_signed";
+  storeGeminiThoughtSignature(buildGeminiThoughtSignatureKey(ns, toolId), "SIG_3688_HAPPY_PATH");
+
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI);
+  const result = translate(
+    "gemini-2.5-pro-preview",
+    {
+      messages: [
+        { role: "user", content: "Run a tool" },
+        {
+          role: "assistant",
+          content: null,
+          tool_calls: [
+            {
+              id: toolId,
+              type: "function",
+              function: { name: "bash", arguments: '{"cmd":"echo hi"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: toolId, content: "hi" },
+        { role: "user", content: "What did it say?" },
+      ],
+    },
+    false,
+    { _signatureNamespace: ns }
+  ) as any;
+
+  const body = JSON.stringify(result);
+
+  // The functionCall part WITH the thoughtSignature must be present.
+  assert.ok(
+    body.includes("SIG_3688_HAPPY_PATH"),
+    "cached thoughtSignature must be re-attached to the functionCall (happy-path regression check)"
+  );
+  assert.ok(
+    body.includes('"functionCall"'),
+    "signed tool call must be emitted as native functionCall (not context text)"
+  );
+  assert.ok(
+    body.includes('"functionResponse"'),
+    "signed tool response must be emitted as native functionResponse"
+  );
+  assert.equal(
+    body.includes("previous_tool_result_context"),
+    false,
+    "signed tool call must NOT fall back to context text"
+  );
+});
+
+// Regression for #3842: thinking.budget_tokens on the explicit Claude-format path
+// must be capped by the model's thinkingBudgetCap, matching the reasoning_effort path.
+test("OpenAI -> Gemini thinking.budget_tokens is capped by model thinkingBudgetCap (#3842)", () => {
+  // gemini-2.5-flash has thinkingBudgetCap: 24576
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "think hard" }],
+      thinking: { type: "enabled", budget_tokens: 50000 },
+    },
+    false
+  ) as any;
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 24576);
+  assert.equal(result.generationConfig.thinkingConfig.includeThoughts, true);
+});
+
+test("OpenAI -> Gemini thinking.budget_tokens=0 disables thinking after cap", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "no thinking" }],
+      thinking: { type: "enabled", budget_tokens: 0 },
+    },
+    false
+  ) as any;
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 0);
+  assert.equal(result.generationConfig.thinkingConfig.includeThoughts, false);
+});
+
+test("OpenAI -> Gemini thinking.budget_tokens below cap passes through", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: "some thinking" }],
+      thinking: { type: "enabled", budget_tokens: 8192 },
+    },
+    false
+  ) as any;
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 8192);
+  assert.equal(result.generationConfig.thinkingConfig.includeThoughts, true);
+});
+
+// Guard: models with thinkingBudgetCap=0 (e.g. gemini-3-flash) must NOT
+// receive thinkingConfig even when the caller explicitly sends budget_tokens.
+test("OpenAI -> Gemini skips thinkingConfig for model with thinkingBudgetCap=0", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-3-flash",
+    {
+      messages: [{ role: "user", content: "hello" }],
+      thinking: { type: "enabled", budget_tokens: 5000 },
+    },
+    false
+  ) as any;
+  assert.equal(
+    result.generationConfig.thinkingConfig,
+    undefined,
+    "gemini-3-flash (thinkingBudgetCap:0) must not receive thinkingConfig"
+  );
+});
+
+// Guard: models with thinkingBudgetCap=0 (e.g. gemini-3-flash) still receive
+// thinkingConfig on the reasoning_effort path, clamped to budget 0 / includeThoughts
+// false — matching the pre-#6943 native-defaults contract (see
+// translator-openai-to-gemini-defaults.test.ts). Omitting thinkingConfig entirely
+// here would crash callers that read `.thinkingConfig.thinkingBudget` unconditionally.
+test("OpenAI -> Gemini clamps reasoning_effort thinkingConfig to 0 for model with thinkingBudgetCap=0", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-3-flash",
+    {
+      messages: [{ role: "user", content: "hello" }],
+      reasoning_effort: "high",
+    },
+    false
+  ) as any;
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 0);
+  assert.equal(result.generationConfig.thinkingConfig.includeThoughts, false);
+});
+
+// Guard: models not in MODEL_SPECS (thinkingBudgetCap=undefined) default to allowed.
+test("OpenAI -> Gemini allows thinkingConfig for unknown model (no spec)", () => {
+  const result = openaiToGeminiRequest(
+    "some-unknown-gemini-model",
+    {
+      messages: [{ role: "user", content: "hello" }],
+      thinking: { type: "enabled", budget_tokens: 5000 },
+    },
+    false
+  ) as any;
+  assert.equal(result.generationConfig.thinkingConfig.thinkingBudget, 5000);
+  assert.equal(result.generationConfig.thinkingConfig.includeThoughts, true);
 });

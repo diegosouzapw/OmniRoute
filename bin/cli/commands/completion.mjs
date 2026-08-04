@@ -15,7 +15,11 @@ function readCache() {
   try {
     const raw = JSON.parse(readFileSync(cachePath(), "utf8"));
     if (raw && typeof raw.ts === "number" && Date.now() - raw.ts < CACHE_TTL_MS) return raw;
-  } catch {}
+  } catch (err) {
+    if (process.env.OMNIROUTE_DEBUG_COMPLETION) {
+      console.error("[omniroute completion] readCache failed:", err?.message ?? err);
+    }
+  }
   return null;
 }
 
@@ -41,12 +45,20 @@ async function refreshCache(opts = {}) {
       const j = await mr.value.json();
       models = (Array.isArray(j) ? j : j.data || []).map((m) => m.id).filter(Boolean);
     }
-  } catch {}
+  } catch (err) {
+    if (process.env.OMNIROUTE_DEBUG_COMPLETION) {
+      console.error("[omniroute completion] refreshCache failed:", err?.message ?? err);
+    }
+  }
   const data = { combos, providers, models, ts: Date.now() };
   try {
     mkdirSync(dirname(cachePath()), { recursive: true });
     writeFileSync(cachePath(), JSON.stringify(data));
-  } catch {}
+  } catch (err) {
+    if (process.env.OMNIROUTE_DEBUG_COMPLETION) {
+      console.error("[omniroute completion] writeCache failed:", err?.message ?? err);
+    }
+  }
   return data;
 }
 

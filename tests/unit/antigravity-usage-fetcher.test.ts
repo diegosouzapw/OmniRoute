@@ -282,4 +282,51 @@ describe("getUsageForProvider (antigravity in fetcher.ts)", () => {
       mockFetch.mock.restore();
     }
   });
+
+  it("does not proactively spend Google One AI credits in retry mode", async () => {
+    const previousCreditsMode = process.env.ANTIGRAVITY_CREDITS;
+    const calls: Array<{ url: string; body: string }> = [];
+    const fetcherModule = await import("../../src/lib/usage/fetcher.ts");
+    const { getUsageForProvider } = fetcherModule;
+
+    const mockFetch = mock.method(global, "fetch", async (input, init) => {
+      const url = input instanceof Request ? input.url : String(input);
+      calls.push({ url, body: typeof init?.body === "string" ? init.body : "" });
+
+      if (url.includes(":streamGenerateContent")) {
+        return new Response("data: [DONE]\n\n", {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        });
+      }
+
+      if (url.includes(":fetchAvailableModels")) {
+        return new Response(JSON.stringify({ models: {} }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+
+    try {
+      process.env.ANTIGRAVITY_CREDITS = "retry";
+      await getUsageForProvider({
+        ...connectionBase,
+        id: "retry-mode-no-proactive-probe",
+        projectId: "test-project",
+      });
+
+      assert.equal(calls.filter((call) => call.url.includes(":streamGenerateContent")).length, 0);
+      assert.equal(calls.filter((call) => call.url.includes(":fetchAvailableModels")).length, 1);
+    } finally {
+      mockFetch.mock.restore();
+      if (previousCreditsMode === undefined) {
+        delete process.env.ANTIGRAVITY_CREDITS;
+      } else {
+        process.env.ANTIGRAVITY_CREDITS = previousCreditsMode;
+      }
+    }
+  });
 });

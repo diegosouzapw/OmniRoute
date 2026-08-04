@@ -37,5 +37,3 @@ export const ScrapeResultSchema = z.object({
   screenshot_url: z.string().nullable(),
 });
 export type ScrapeResult = z.infer<typeof ScrapeResultSchema>;
-
-export const SearchProviderCatalogResponseSchemaFull = SearchProviderCatalogResponseSchema;

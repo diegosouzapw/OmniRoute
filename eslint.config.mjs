@@ -1,24 +1,93 @@
 import nextVitals from "eslint-config-next/core-web-vitals";
 import tseslint from "typescript-eslint";
 
+// #7879: bar NEW local `toNumber` definitions outside the canonical helper.
+// Pre-existing definitions (~51 across the codebase) are frozen via
+// config/quality/eslint-suppressions.json and migrated tier-by-tier; only a
+// genuinely NEW `function toNumber`/`const toNumber = ...` should fail.
+const TO_NUMBER_RESTRICTION = {
+  selector: "FunctionDeclaration[id.name='toNumber'], VariableDeclarator[id.name='toNumber']",
+  message:
+    "New local `toNumber` definitions are barred — import `toNumber` from " +
+    "`@/shared/utils/numeric` instead (#7879). See that module's JSDoc for the " +
+    "canonical coercion shape and the `toNumberOrNull`/`toNumberArray` variants.",
+};
+
+const LOCAL_DB_IMPORT_RESTRICTION = {
+  regex: "^(?:@/lib/localDb(?:\\.ts)?|(?:\\.\\.?/)+(?:lib/)?localDb(?:\\.ts)?)$",
+  message:
+    "The localDb compatibility barrel is restricted — import the owning domain module " +
+    "from `@/lib/db/` instead.",
+};
+
+const EXECUTOR_IMPORT_RESTRICTION = {
+  regex: "^(?:@omniroute/)?open-sse/executors(?:/|$)",
+  message:
+    "Executor implementations must stay behind an open-sse handler or service boundary.",
+};
+
+const PROP_TYPES_RESTRICTION = {
+  name: "prop-types",
+  message: "PropTypes are deprecated. Use TypeScript types/interfaces instead.",
+};
+
+const IMPORT_BOUNDARY_RESTRICTIONS = {
+  paths: [PROP_TYPES_RESTRICTION],
+  patterns: [LOCAL_DB_IMPORT_RESTRICTION],
+};
+
 /** @type {import("eslint").Linter.Config[]} */
 const eslintConfig = [
   ...nextVitals,
+  // Pacote 4 (plano mestre testes+CI, 2026-07-04) — zero-warning policy: TODA regra roda
+  // como "error" e a dívida pré-existente vive congelada por arquivo+regra em
+  // config/quality/eslint-suppressions.json (ESLint bulk suppressions nativo). Violação
+  // NOVA = vermelho no ato (lint-staged no pre-commit + job lint-guard no fast path);
+  // o drift de +41/+88 warnings/ciclo que era rebaselinado às cegas na release morre no
+  // PR que o introduz. Aperto do baseline: npx eslint . --prune-suppressions
+  // --suppressions-location config/quality/eslint-suppressions.json (na release).
+  {
+    // Escopo = onde os presets do next registram estes plugins (bloco global sem `files`
+    // atingiria scripts/*.mjs sem o plugin react-hooks e explodiria o flat config).
+    files: ["src/**/*.{ts,tsx,js,jsx}"],
+    rules: {
+      "react-hooks/exhaustive-deps": "error",
+      "@next/next/no-img-element": "error",
+      "import/no-anonymous-default-export": "error",
+    },
+  },
   // FASE-02: Security rules (strict everywhere)
   {
     rules: {
       "no-eval": "error",
       "no-implied-eval": "error",
       "no-new-func": "error",
+      "no-restricted-imports": ["error", IMPORT_BOUNDARY_RESTRICTIONS],
+    },
+  },
+  // G14: DB internals may use the compatibility barrel while it is decomposed; all
+  // other source files must import the owning src/lib/db domain module directly.
+  {
+    files: ["src/lib/db/**/*.{ts,tsx,js,jsx}"],
+    rules: {
       "no-restricted-imports": [
         "error",
         {
-          paths: [
-            {
-              name: "prop-types",
-              message: "PropTypes are deprecated. Use TypeScript types/interfaces instead.",
-            },
-          ],
+          paths: [PROP_TYPES_RESTRICTION],
+        },
+      ],
+    },
+  },
+  // G14: App routes/components must delegate provider execution through handlers or
+  // services instead of reaching into executor implementations.
+  {
+    files: ["src/app/**/*.{ts,tsx,js,jsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          ...IMPORT_BOUNDARY_RESTRICTIONS,
+          patterns: [LOCAL_DB_IMPORT_RESTRICTION, EXECUTOR_IMPORT_RESTRICTION],
         },
       ],
     },
@@ -32,14 +101,33 @@ const eslintConfig = [
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-syntax": [
-        "warn",
+        "error",
         {
           selector:
             "CallExpression[callee.property.name='includes'][callee.object.callee.property.name='toLowerCase']",
           message:
             "Türkçe-güvenli arama için matchesSearch() kullan (@/shared/utils/turkishText). Ham toLowerCase().includes() İ/ı karakterlerini bozar.",
         },
+        TO_NUMBER_RESTRICTION,
       ],
+    },
+  },
+  // #7879: same toNumber restriction for the rest of src/ and open-sse/ — kept
+  // as a separate block (via `ignores`) so it does not clobber the
+  // app/components-scoped rule array above (flat config replaces a rule's
+  // options entirely per matching file, it does not merge arrays).
+  {
+    files: ["src/**/*.ts", "open-sse/**/*.ts"],
+    ignores: ["src/app/**", "src/components/**"],
+    rules: {
+      "no-restricted-syntax": ["error", TO_NUMBER_RESTRICTION],
+    },
+  },
+  // Canonical helper module itself is exempt from its own restriction.
+  {
+    files: ["src/shared/utils/numeric.ts"],
+    rules: {
+      "no-restricted-syntax": "off",
     },
   },
   // Relaxed rules for open-sse and tests (incremental adoption)
@@ -49,7 +137,7 @@ const eslintConfig = [
       "@typescript-eslint": tseslint.plugin,
     },
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
       "@next/next/no-assign-module-variable": "off",
       "react-hooks/rules-of-hooks": "off",
     },
@@ -72,6 +160,10 @@ const eslintConfig = [
       // Dependencies
       "node_modules/**",
       ".worktrees/**",
+      // Nested git worktrees created by review/resolve skills live under
+      // .claude/ (gitignored). They hold other sessions' in-progress work and
+      // their files move mid-scan, so never lint them from the main checkout.
+      ".claude/**",
       ".omnivscodeagent/**",
       // VS Code extension and its large test fixtures
       "vscode-extension/**",

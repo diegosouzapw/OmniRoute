@@ -18,7 +18,13 @@ export interface MemorySettings {
 }
 
 export const DEFAULT_MEMORY_SETTINGS: MemorySettings = {
-  enabled: true,
+  // Off by default: enabling memory injects up to `maxTokens` (~2k) of retrieved
+  // context into every chat request, which is billed — a surprising cost for new
+  // installs and for clients that manage their own context. Opt in explicitly via
+  // Settings → Memory (the UI warns about the token cost). Per-request opt-out is
+  // also available via the `x-omniroute-no-memory` header. See
+  // _tasks/PRD-2026-06-19-no-memory-header.md.
+  enabled: false,
   maxTokens: 2000,
   retentionDays: 30,
   strategy: "hybrid",

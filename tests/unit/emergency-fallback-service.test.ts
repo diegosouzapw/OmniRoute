@@ -1,8 +1,55 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
-const { EMERGENCY_FALLBACK_CONFIG, shouldUseFallback, isFallbackDecision } =
-  await import("../../open-sse/services/emergencyFallback.ts");
+const previousDataDir = process.env.DATA_DIR;
+const previousDisableSqliteAutoBackup = process.env.DISABLE_SQLITE_AUTO_BACKUP;
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-emergency-fallback-service-"));
+process.env.DATA_DIR = tmpDir;
+process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
+
+const core = await import("../../src/lib/db/core.ts");
+
+const {
+  EMERGENCY_FALLBACK_CONFIG,
+  shouldUseFallback,
+  isFallbackDecision,
+  resetEmergencyFallbackEnvCache,
+} = await import("../../open-sse/services/emergencyFallback.ts");
+
+function restoreEnv(name: string, value: string | undefined) {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}
+
+function resetTestState() {
+  core.resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.mkdirSync(tmpDir, { recursive: true });
+  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  resetEmergencyFallbackEnvCache();
+}
+
+test.beforeEach(() => {
+  resetTestState();
+});
+
+test.afterEach(() => {
+  delete process.env.OMNIROUTE_EMERGENCY_FALLBACK;
+  resetEmergencyFallbackEnvCache();
+});
+
+test.after(() => {
+  core.resetDbInstance();
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  restoreEnv("DATA_DIR", previousDataDir);
+  restoreEnv("DISABLE_SQLITE_AUTO_BACKUP", previousDisableSqliteAutoBackup);
+});
 
 test("shouldUseFallback returns disabled when the feature flag is off", () => {
   const result = shouldUseFallback(402, "payment required", false, {

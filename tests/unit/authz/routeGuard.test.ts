@@ -26,6 +26,17 @@ test("isLocalOnlyPath: regular management routes are not local-only", () => {
   assert.equal(isLocalOnlyPath("/api/providers"), false);
 });
 
+test("isLocalOnlyPath: spawn-capable system/db-backups routes are local-only (6A.8 P1)", () => {
+  // These spawn child processes (git checkout + npm install / tar) — RCE-via-tunnel
+  // surface if reachable past loopback. Classified after the route-guard gate found them.
+  assert.equal(isLocalOnlyPath("/api/system/version"), true);
+  assert.equal(isLocalOnlyPath("/api/db-backups/exportAll"), true);
+  // Sibling routes that do NOT spawn remain reachable (scope kept minimal).
+  assert.equal(isLocalOnlyPath("/api/system/env/repair"), false);
+  assert.equal(isLocalOnlyPath("/api/db-backups/export"), false);
+  assert.equal(isLocalOnlyPath("/api/db-backups/import"), false);
+});
+
 test("isLocalOnlyBypassableByManageScope: /api/mcp/ prefix is bypassable", () => {
   assert.equal(isLocalOnlyBypassableByManageScope("/api/mcp/"), true);
   assert.equal(isLocalOnlyBypassableByManageScope("/api/mcp/stream"), true);
@@ -178,6 +189,25 @@ test("isLocalOnlyBypassableByManageScope: /api/services/* is NOT bypassable (spa
   assert.equal(isLocalOnlyBypassableByManageScope("/api/services/"), false);
 });
 
+// Hard Rule #17 — Mux (coder/mux) embedded service (spawns child processes via
+// runNpm install + node server spawn): every /api/services/mux/* route MUST be
+// classified local-only, same as every other embedded service under this prefix.
+test("isLocalOnlyPath: /api/services/mux/* is local-only (Hard Rule #17)", () => {
+  assert.equal(isLocalOnlyPath("/api/services/mux/install"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/start"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/stop"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/restart"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/update"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/status"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/auto-start"), true);
+  assert.equal(isLocalOnlyPath("/api/services/mux/logs"), true);
+});
+
+test("isLocalOnlyBypassableByManageScope: /api/services/mux/* is NOT bypassable (spawn-capable)", () => {
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/services/mux/start"), false);
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/services/mux/install"), false);
+});
+
 test("management policy rejects /api/services/ from non-localhost (status 403)", async () => {
   const ctx = makeCtx("/api/services/9router/start", { host: "evil.tunnel.io" });
   const outcome = await managementPolicy.evaluate(ctx);
@@ -187,10 +217,16 @@ test("management policy rejects /api/services/ from non-localhost (status 403)",
 
 test("management policy allows /api/services/ from localhost with valid CLI token", async () => {
   const token = getMachineTokenSync();
-  const ctx = makeCtx("/api/services/9router/status", {
-    host: "localhost",
-    [CLI_TOKEN_HEADER]: token,
-  });
+  // Locality comes from the real peer (socket), never from the spoofable Host
+  // header — same setup as the /api/mcp/ sibling test above (peer-stamp model).
+  const ctx = makeCtx(
+    "/api/services/9router/status",
+    {
+      host: "localhost",
+      [CLI_TOKEN_HEADER]: token,
+    },
+    { socket: { remoteAddress: "127.0.0.1" } }
+  );
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, true);
 });
@@ -255,10 +291,15 @@ test("management policy rejects /api/copilot/chat from non-localhost without aut
 
 test("management policy allows /api/copilot/chat from localhost with valid CLI token", async () => {
   const token = getMachineTokenSync();
-  const ctx = makeCtx("/api/copilot/chat", {
-    host: "localhost",
-    [CLI_TOKEN_HEADER]: token,
-  });
+  // Same peer-stamp setup as above: locality requires a loopback peer, not Host.
+  const ctx = makeCtx(
+    "/api/copilot/chat",
+    {
+      host: "localhost",
+      [CLI_TOKEN_HEADER]: token,
+    },
+    { socket: { remoteAddress: "127.0.0.1" } }
+  );
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, true);
 });

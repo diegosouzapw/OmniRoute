@@ -122,10 +122,10 @@ test("sanitizeReasoningEffortForProvider passes through body without reasoning_e
   assert.deepEqual(result, body);
 });
 
-test("sanitizeReasoningEffortForProvider clamps xhigh to high for unsupported providers", () => {
+test("sanitizeReasoningEffortForProvider preserves xhigh unless explicitly unsupported", () => {
   const body = { reasoning_effort: "xhigh" };
   const result = base.sanitizeReasoningEffortForProvider(body, "openai", "gpt-4o") as any;
-  assert.equal(result.reasoning_effort, "high");
+  assert.equal(result.reasoning_effort, "xhigh");
 });
 
 test("sanitizeReasoningEffortForProvider preserves high effort", () => {

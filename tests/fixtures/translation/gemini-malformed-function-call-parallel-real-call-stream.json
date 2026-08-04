@@ -1,0 +1,98 @@
+{
+  "name": "gemini-malformed-function-call-parallel-real-call-live-incident",
+  "description": "Real raw Gemini streaming response chunks captured from a live incident (dashboard log id 1784589106014-2a42f8, 2026-07-20) — a follow-up to gemini-malformed-function-call-stream.json. Unlike that fixture (no real functionCall at all), THIS incident shows Gemini emitting a REAL, valid functionCall in the same turn where it ALSO attempts a separate malformed multi-call and finishes the candidate with finishReason MALFORMED_FUNCTION_CALL. An earlier version of the fix skipped synthesizing a failure signal whenever a real tool call already existed, which silently discarded the malformed attempt's information in exactly this case. Content sanitized: personal file paths replaced with generic placeholders. Tool name genericized (real incident used a self-referential 'check status of this agent' tool named after the client itself). Structure (chunk count, field shapes, thoughtSignature split across chunks) preserved exactly as captured.",
+  "chunks": [
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "text": "**Re-evaluating the approach**\n\nI've hit a roadblock with the status request; the previous attempt was unsuccessful and subsequently aborted. I'm now reassessing the current strategy, and considering how to proceed. I'll need to explore alternative methods, or perhaps inform the user of the limitations I'm facing at this time.\n\n\n",
+                "thought": true
+              }
+            ],
+            "role": "model"
+          },
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 34579,
+        "totalTokenCount": 34579,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 34579 }],
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-parallel-001"
+    },
+    {
+      "candidates": [
+        {
+          "content": {
+            "parts": [
+              {
+                "functionCall": {
+                  "name": "check_status",
+                  "args": { "message": "status" },
+                  "id": "zgtP7IsV"
+                },
+                "thoughtSignature": "FIXTURE_PLACEHOLDER_THOUGHT_SIGNATURE_OPAQUE_BASE64_BLOB_TRUNCATED_FOR_READABILITY=="
+              }
+            ],
+            "role": "model"
+          },
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 34579,
+        "candidatesTokenCount": 15,
+        "totalTokenCount": 35035,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 34579 }],
+        "thoughtsTokenCount": 441,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-parallel-001"
+    },
+    {
+      "candidates": [
+        {
+          "content": { "parts": [{ "text": "" }], "role": "model" },
+          "index": 0
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 34579,
+        "candidatesTokenCount": 58,
+        "totalTokenCount": 35078,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 34579 }],
+        "thoughtsTokenCount": 441,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-parallel-001"
+    },
+    {
+      "candidates": [
+        {
+          "content": { "parts": [{ "text": "" }], "role": "model" },
+          "finishReason": "MALFORMED_FUNCTION_CALL",
+          "index": 0,
+          "finishMessage": "Malformed function call: call:default_api:exec{command: df -h /home/user/workspace }\n call:default_api:cron{action: status } }"
+        }
+      ],
+      "usageMetadata": {
+        "promptTokenCount": 34579,
+        "candidatesTokenCount": 58,
+        "totalTokenCount": 35078,
+        "promptTokensDetails": [{ "modality": "TEXT", "tokenCount": 34579 }],
+        "thoughtsTokenCount": 441,
+        "serviceTier": "standard"
+      },
+      "modelVersion": "gemini-3.1-flash-lite",
+      "responseId": "resp-fixture-parallel-001"
+    }
+  ]
+}

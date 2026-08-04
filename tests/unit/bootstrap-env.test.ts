@@ -70,14 +70,14 @@ test("bootstrapEnv strips matching quotes from env values", () => {
     fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(
       path.join(dataDir, "server.env"),
-      'JWT_SECRET="jwt-from-server-env"\nCLAUDE_USER_AGENT="claude-cli/2.1.145 (external, cli)"\n',
+      'JWT_SECRET="jwt-from-server-env"\nCLAUDE_USER_AGENT="claude-cli/2.1.219 (external, cli)"\n',
       "utf8"
     );
 
     const env = bootstrapEnv({ quiet: true });
 
     assert.equal(env.JWT_SECRET, "jwt-from-server-env");
-    assert.equal(env.CLAUDE_USER_AGENT, "claude-cli/2.1.145 (external, cli)");
+    assert.equal(env.CLAUDE_USER_AGENT, "claude-cli/2.1.219 (external, cli)");
   });
 });
 
@@ -117,6 +117,30 @@ test("bootstrapEnv fails closed when existing database cannot be inspected", () 
     fs.mkdirSync(path.join(dataDir, "storage.sqlite"), { recursive: true });
 
     assert.throws(() => bootstrapEnv({ quiet: true }), /Unable to inspect existing database/);
+  });
+});
+
+test("bootstrapEnv ignores blank process.env values that would override persisted secrets (#6824)", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    fs.mkdirSync(dataDir, { recursive: true });
+
+    // Persisted secrets in server.env
+    fs.writeFileSync(
+      path.join(dataDir, "server.env"),
+      "STORAGE_ENCRYPTION_KEY=persisted-key\nJWT_SECRET=persisted-jwt\n",
+      "utf8"
+    );
+
+    // Simulate Docker `-e STORAGE_ENCRYPTION_KEY=` — sets an empty string
+    process.env.STORAGE_ENCRYPTION_KEY = "";
+    process.env.JWT_SECRET = "";
+
+    const env = bootstrapEnv({ quiet: true });
+
+    // Empty process.env values must NOT override persisted secrets
+    assert.equal(env.STORAGE_ENCRYPTION_KEY, "persisted-key");
+    assert.equal(env.JWT_SECRET, "persisted-jwt");
   });
 });
 

@@ -212,8 +212,8 @@ test("shouldSanitizeForGemini: google-vertex/gemini-1.5-flash → true", () => {
   assert.equal(shouldSanitizeForGemini({ model: "google-vertex/gemini-1.5-flash" }), true);
 });
 
-test("shouldSanitizeForGemini: gemini-cli/gemini-2.5-pro → true (real OmniRoute alias)", () => {
-  assert.equal(shouldSanitizeForGemini({ model: "gemini-cli/gemini-2.5-pro" }), true);
+test("shouldSanitizeForGemini: gemini/gemini-2.5-pro → true", () => {
+  assert.equal(shouldSanitizeForGemini({ model: "gemini/gemini-2.5-pro" }), true);
 });
 
 test("shouldSanitizeForGemini: claude-sonnet-4 → false", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, lazy, Suspense } from "react";
+import { useTranslations } from "next-intl";
 import type { ScrapeResult as ScrapeResultType } from "@/shared/schemas/searchTools";
 
 /** D21 — cap at 256 KB to avoid freezing the renderer */
@@ -8,10 +9,7 @@ const CONTENT_CAP_BYTES = 256 * 1024;
 
 // Lazy-load MarkdownMessage to avoid increasing initial bundle size
 const MarkdownMessage = lazy(
-  () =>
-    import(
-      "@/app/(dashboard)/dashboard/playground/components/MarkdownMessage"
-    ),
+  () => import("@/app/(dashboard)/dashboard/playground/components/MarkdownMessage")
 );
 
 interface ScrapeResultProps {
@@ -26,14 +24,13 @@ function formatBytes(bytes: number): string {
 }
 
 export default function ScrapeResult({ result, latencyMs }: ScrapeResultProps) {
+  const t = useTranslations("search");
   const [mode, setMode] = useState<"markdown" | "raw">("markdown");
   const [rawModalOpen, setRawModalOpen] = useState(false);
 
   const contentSize = new TextEncoder().encode(result.content).length;
   const isTruncated = contentSize > CONTENT_CAP_BYTES;
-  const displayContent = isTruncated
-    ? result.content.slice(0, CONTENT_CAP_BYTES)
-    : result.content;
+  const displayContent = isTruncated ? result.content.slice(0, CONTENT_CAP_BYTES) : result.content;
 
   return (
     <div className="space-y-3" data-testid="scrape-result">
@@ -42,23 +39,23 @@ export default function ScrapeResult({ result, latencyMs }: ScrapeResultProps) {
         <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
           {result.provider && (
             <span>
-              Provider:{" "}
+              {`${t("provider")}: `}
               <span className="font-medium text-text-main">{result.provider}</span>
             </span>
           )}
           {latencyMs != null && (
             <span>
-              Latência:{" "}
+              {`${t("latency")}: `}
               <span className="font-medium text-text-main">{latencyMs}ms</span>
             </span>
           )}
           <span>
-            Tamanho:{" "}
+            {`${t("size")}: `}
             <span className="font-medium text-text-main">{formatBytes(contentSize)}</span>
           </span>
           {result.links.length > 0 && (
             <span>
-              Links:{" "}
+              {`${t("links")}: `}
               <span className="font-medium text-text-main">{result.links.length}</span>
             </span>
           )}
@@ -76,7 +73,7 @@ export default function ScrapeResult({ result, latencyMs }: ScrapeResultProps) {
             onClick={() => setMode("markdown")}
             data-testid="toggle-markdown"
           >
-            Preview
+            {t("scrapePreview")}
           </button>
           <button
             className={[
@@ -88,7 +85,7 @@ export default function ScrapeResult({ result, latencyMs }: ScrapeResultProps) {
             onClick={() => setMode("raw")}
             data-testid="toggle-raw"
           >
-            Raw
+            {t("scrapeRaw")}
           </button>
         </div>
       </div>
@@ -119,15 +116,13 @@ export default function ScrapeResult({ result, latencyMs }: ScrapeResultProps) {
           className="flex items-center justify-between p-3 bg-warning/10 border border-warning/30 rounded-lg text-xs text-warning"
           data-testid="truncation-warning"
         >
-          <span>
-            Conteúdo truncado a 256 KB (tamanho original: {formatBytes(contentSize)})
-          </span>
+          <span>{t("contentTruncated", { size: formatBytes(contentSize) })}</span>
           <button
             className="ml-3 text-xs px-2 py-1 rounded bg-warning/20 text-warning hover:bg-warning/30 transition-colors"
             onClick={() => setRawModalOpen(true)}
             data-testid="view-raw-button"
           >
-            Ver raw completo
+            {t("viewFullRaw")}
           </button>
         </div>
       )}
@@ -152,7 +147,7 @@ export default function ScrapeResult({ result, latencyMs }: ScrapeResultProps) {
           value={displayContent}
           className="w-full h-64 bg-surface border border-border rounded-lg p-3 text-xs text-text-main font-mono resize-none focus:outline-none"
           data-testid="raw-content"
-          aria-label="Raw scraped content"
+          aria-label={t("rawScrapedContent")}
         />
       )}
 
@@ -165,12 +160,12 @@ export default function ScrapeResult({ result, latencyMs }: ScrapeResultProps) {
           <div className="bg-surface border border-border rounded-xl shadow-2xl w-[90vw] max-w-4xl h-[80vh] flex flex-col">
             <div className="flex justify-between items-center px-4 py-3 border-b border-border">
               <span className="text-sm font-semibold text-text-main">
-                Raw content — {formatBytes(contentSize)}
+                {t("rawContent", { size: formatBytes(contentSize) })}
               </span>
               <button
                 className="text-text-muted hover:text-text-main"
                 onClick={() => setRawModalOpen(false)}
-                aria-label="Close raw content modal"
+                aria-label={t("closeRawModal")}
               >
                 ✕
               </button>

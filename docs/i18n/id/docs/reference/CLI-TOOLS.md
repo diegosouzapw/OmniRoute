@@ -1,86 +1,86 @@
-# CLI Tools Setup Guide — OmniRoute (Bahasa Indonesia)
+# Panduan Pengaturan Alat CLI — OmniRoute (Bahasa Indonesia)
 
 🌐 **Languages:** 🇺🇸 [English](../../../../docs/CLI-TOOLS.md) · 🇸🇦 [ar](../../ar/docs/CLI-TOOLS.md) · 🇧🇬 [bg](../../bg/docs/CLI-TOOLS.md) · 🇧🇩 [bn](../../bn/docs/CLI-TOOLS.md) · 🇨🇿 [cs](../../cs/docs/CLI-TOOLS.md) · 🇩🇰 [da](../../da/docs/CLI-TOOLS.md) · 🇩🇪 [de](../../de/docs/CLI-TOOLS.md) · 🇪🇸 [es](../../es/docs/CLI-TOOLS.md) · 🇮🇷 [fa](../../fa/docs/CLI-TOOLS.md) · 🇫🇮 [fi](../../fi/docs/CLI-TOOLS.md) · 🇫🇷 [fr](../../fr/docs/CLI-TOOLS.md) · 🇮🇳 [gu](../../gu/docs/CLI-TOOLS.md) · 🇮🇱 [he](../../he/docs/CLI-TOOLS.md) · 🇮🇳 [hi](../../hi/docs/CLI-TOOLS.md) · 🇭🇺 [hu](../../hu/docs/CLI-TOOLS.md) · 🇮🇩 [id](../../id/docs/CLI-TOOLS.md) · 🇮🇹 [it](../../it/docs/CLI-TOOLS.md) · 🇯🇵 [ja](../../ja/docs/CLI-TOOLS.md) · 🇰🇷 [ko](../../ko/docs/CLI-TOOLS.md) · 🇮🇳 [mr](../../mr/docs/CLI-TOOLS.md) · 🇲🇾 [ms](../../ms/docs/CLI-TOOLS.md) · 🇳🇱 [nl](../../nl/docs/CLI-TOOLS.md) · 🇳🇴 [no](../../no/docs/CLI-TOOLS.md) · 🇵🇭 [phi](../../phi/docs/CLI-TOOLS.md) · 🇵🇱 [pl](../../pl/docs/CLI-TOOLS.md) · 🇵🇹 [pt](../../pt/docs/CLI-TOOLS.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/CLI-TOOLS.md) · 🇷🇴 [ro](../../ro/docs/CLI-TOOLS.md) · 🇷🇺 [ru](../../ru/docs/CLI-TOOLS.md) · 🇸🇰 [sk](../../sk/docs/CLI-TOOLS.md) · 🇸🇪 [sv](../../sv/docs/CLI-TOOLS.md) · 🇰🇪 [sw](../../sw/docs/CLI-TOOLS.md) · 🇮🇳 [ta](../../ta/docs/CLI-TOOLS.md) · 🇮🇳 [te](../../te/docs/CLI-TOOLS.md) · 🇹🇭 [th](../../th/docs/CLI-TOOLS.md) · 🇹🇷 [tr](../../tr/docs/CLI-TOOLS.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/CLI-TOOLS.md) · 🇵🇰 [ur](../../ur/docs/CLI-TOOLS.md) · 🇻🇳 [vi](../../vi/docs/CLI-TOOLS.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/CLI-TOOLS.md)
 
 ---
 
-This guide explains how to install and configure all supported AI coding CLI tools
-to use **OmniRoute** as the unified backend, giving you centralized key management,
-cost tracking, model switching, and request logging across every tool.
+Panduan ini menjelaskan cara menginstal dan mengonfigurasi semua alat CLI coding AI yang didukung
+untuk menggunakan **OmniRoute** sebagai backend terpadu, memberikan manajemen kunci terpusat,
+pelacakan biaya, pergantian model, dan pencatatan permintaan di semua alat.
 
 ---
 
-## How It Works
+## Cara Kerjanya
 
 ```
 Claude / Codex / OpenCode / Cline / KiloCode / Continue / Kiro / Cursor / Copilot
            │
-           ▼  (all point to OmniRoute)
+           ▼  (semua mengarah ke OmniRoute)
     http://YOUR_SERVER:20128/v1
            │
-           ▼  (OmniRoute routes to the right provider)
+           ▼  (OmniRoute meneruskan ke penyedia yang tepat)
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 ```
 
-**Benefits:**
+**Manfaat:**
 
-- One API key to manage all tools
-- Cost tracking across all CLIs in the dashboard
-- Model switching without reconfiguring every tool
-- Works locally and on remote servers (VPS)
+- Satu API key untuk mengelola semua alat
+- Pelacakan biaya di semua CLI melalui dashboard
+- Pergantian model tanpa mengonfigurasi ulang setiap alat
+- Berjalan secara lokal maupun di server jarak jauh (VPS)
 
 ---
 
-## Supported Tools (Dashboard Source of Truth)
+## Alat yang Didukung (Sumber Kebenaran Dashboard)
 
-The dashboard cards in `/dashboard/cli-tools` are generated from `src/shared/constants/cliTools.ts`.
-Current list (v3.0.0-rc.16):
+Kartu dashboard di `/dashboard/cli-tools` dibuat dari `src/shared/constants/cliTools.ts`.
+Daftar saat ini (v3.0.0-rc.16):
 
-| Tool               | ID            | Command    | Setup Mode | Install Method |
-| ------------------ | ------------- | ---------- | ---------- | -------------- |
-| **Claude Code**    | `claude`      | `claude`   | env        | npm            |
-| **OpenAI Codex**   | `codex`       | `codex`    | custom     | npm            |
-| **Factory Droid**  | `droid`       | `droid`    | custom     | bundled/CLI    |
-| **OpenClaw**       | `openclaw`    | `openclaw` | custom     | bundled/CLI    |
-| **Cursor**         | `cursor`      | app        | guide      | desktop app    |
-| **Cline**          | `cline`       | `cline`    | custom     | npm            |
-| **Kilo Code**      | `kilo`        | `kilocode` | custom     | npm            |
-| **Continue**       | `continue`    | extension  | guide      | VS Code        |
-| **Antigravity**    | `antigravity` | internal   | mitm       | OmniRoute      |
-| **GitHub Copilot** | `copilot`     | extension  | custom     | VS Code        |
-| **OpenCode**       | `opencode`    | `opencode` | guide      | npm            |
-| **Kiro AI**        | `kiro`        | app/cli    | mitm       | desktop/CLI    |
-| **Qwen Code**      | `qwen`        | `qwen`     | custom     | npm            |
+| Alat               | ID            | Perintah   | Mode Pengaturan | Metode Instalasi |
+| ------------------ | ------------- | ---------- | --------------- | ---------------- |
+| **Claude Code**    | `claude`      | `claude`   | env             | npm              |
+| **OpenAI Codex**   | `codex`       | `codex`    | custom          | npm              |
+| **Factory Droid**  | `droid`       | `droid`    | custom          | bundled/CLI      |
+| **OpenClaw**       | `openclaw`    | `openclaw` | custom          | bundled/CLI      |
+| **Cursor**         | `cursor`      | app        | guide           | desktop app      |
+| **Cline**          | `cline`       | `cline`    | custom          | npm              |
+| **Kilo Code**      | `kilo`        | `kilocode` | custom          | npm              |
+| **Continue**       | `continue`    | extension  | guide           | VS Code          |
+| **Antigravity**    | `antigravity` | internal   | mitm            | OmniRoute        |
+| **GitHub Copilot** | `copilot`     | extension  | custom          | VS Code          |
+| **OpenCode**       | `opencode`    | `opencode` | guide           | npm              |
+| **Kiro AI**        | `kiro`        | app/cli    | mitm            | desktop/CLI      |
+| **Qwen Code**      | `qwen`        | `qwen`     | custom          | npm              |
 
-### CLI fingerprint sync (Agents + Settings)
+### Sinkronisasi fingerprint CLI (Agents + Pengaturan)
 
-`/dashboard/agents` and `Settings > CLI Fingerprint` use `src/shared/constants/cliCompatProviders.ts`.
-This keeps provider IDs aligned with CLI cards and legacy IDs.
+`/dashboard/agents` dan `Settings > CLI Fingerprint` menggunakan `src/shared/constants/cliCompatProviders.ts`.
+Ini menjaga ID penyedia tetap selaras dengan kartu CLI dan ID lama.
 
-| CLI ID                                                                                               | Fingerprint Provider ID |
+| CLI ID                                                                                               | ID Penyedia Fingerprint |
 | ---------------------------------------------------------------------------------------------------- | ----------------------- |
 | `kilo`                                                                                               | `kilocode`              |
 | `copilot`                                                                                            | `github`                |
 | `claude` / `codex` / `antigravity` / `kiro` / `cursor` / `cline` / `opencode` / `droid` / `openclaw` | same ID                 |
 
-Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
+ID lama yang masih diterima untuk kompatibilitas: `copilot`, `kimi-coding`, `qwen`.
 
 ---
 
-## Step 1 — Get an OmniRoute API Key
+## Langkah 1 — Dapatkan API Key OmniRoute
 
-1. Open the OmniRoute dashboard → **API Manager** (`/dashboard/api-manager`)
-2. Click **Create API Key**
-3. Give it a name (e.g. `cli-tools`) and select all permissions
-4. Copy the key — you'll need it for every CLI below
+1. Buka dashboard OmniRoute → **API Manager** (`/dashboard/api-manager`)
+2. Klik **Create API Key**
+3. Beri nama (misalnya `cli-tools`) dan pilih semua izin
+4. Salin kunci tersebut — Anda akan membutuhkannya untuk setiap CLI di bawah
 
-> Your key looks like: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
+> Kunci Anda terlihat seperti: `sk-xxxxxxxxxxxxxxxx-xxxxxxxxx`
 
 ---
 
-## Step 2 — Install CLI Tools
+## Langkah 2 — Instal Alat CLI
 
-All npm-based tools require Node.js 18+:
+Semua alat berbasis npm memerlukan Node.js 18+:
 
 ```bash
 # Claude Code (Anthropic)
@@ -104,7 +104,7 @@ curl -fsSL https://cli.kiro.dev/install | bash
 export PATH="$HOME/.local/bin:$PATH"   # add to ~/.bashrc
 ```
 
-**Verify:**
+**Verifikasi:**
 
 ```bash
 claude --version     # 2.x.x
@@ -117,9 +117,9 @@ kiro-cli --version   # 1.x.x
 
 ---
 
-## Step 3 — Set Global Environment Variables
+## Langkah 3 — Tetapkan Variabel Lingkungan Global
 
-Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
+Tambahkan ke `~/.bashrc` (atau `~/.zshrc`), lalu jalankan `source ~/.bashrc`:
 
 ```bash
 # OmniRoute Universal Endpoint
@@ -131,20 +131,20 @@ export GEMINI_BASE_URL="http://localhost:20128/v1"
 export GEMINI_API_KEY="sk-your-omniroute-key"
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain,
-> e.g. `http://192.168.0.15:20128`.
+> Untuk **server jarak jauh**, ganti `localhost:20128` dengan IP atau domain server,
+> misalnya `http://192.168.0.15:20128`.
 
 ---
 
-## Step 4 — Configure Each Tool
+## Langkah 4 — Konfigurasi Setiap Alat
 
 ### Claude Code
 
 ```bash
-# Via CLI:
+# Melalui CLI:
 claude config set --global api-base-url http://localhost:20128/v1
 
-# Or create ~/.claude/settings.json:
+# Atau buat ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
   "apiBaseUrl": "http://localhost:20128/v1",
@@ -153,7 +153,7 @@ mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 EOF
 ```
 
-**Test:** `claude "say hello"`
+**Uji:** `claude "say hello"`
 
 ---
 
@@ -167,7 +167,7 @@ apiBaseUrl: http://localhost:20128/v1
 EOF
 ```
 
-**Test:** `codex "what is 2+2?"`
+**Uji:** `codex "what is 2+2?"`
 
 ---
 
@@ -181,13 +181,13 @@ api_key = "sk-your-omniroute-key"
 EOF
 ```
 
-**Test:** `opencode`
+**Uji:** `opencode`
 
 ---
 
-### Cline (CLI or VS Code)
+### Cline (CLI atau VS Code)
 
-**CLI mode:**
+**Mode CLI:**
 
 ```bash
 mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
@@ -199,22 +199,22 @@ mkdir -p ~/.cline/data && cat > ~/.cline/data/globalState.json << EOF
 EOF
 ```
 
-**VS Code mode:**
-Cline extension settings → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
+**Mode VS Code:**
+Pengaturan ekstensi Cline → API Provider: `OpenAI Compatible` → Base URL: `http://localhost:20128/v1`
 
-Or use the OmniRoute dashboard → **CLI Tools → Cline → Apply Config**.
+Atau gunakan dashboard OmniRoute → **CLI Tools → Cline → Apply Config**.
 
 ---
 
-### KiloCode (CLI or VS Code)
+### KiloCode (CLI atau VS Code)
 
-**CLI mode:**
+**Mode CLI:**
 
 ```bash
 kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 ```
 
-**VS Code settings:**
+**Pengaturan VS Code:**
 
 ```json
 {
@@ -223,11 +223,11 @@ kilocode --api-base http://localhost:20128/v1 --api-key sk-your-omniroute-key
 }
 ```
 
-Or use the OmniRoute dashboard → **CLI Tools → KiloCode → Apply Config**.
+Atau gunakan dashboard OmniRoute → **CLI Tools → KiloCode → Apply Config**.
 
 ---
 
-### Continue (VS Code Extension)
+### Continue (Ekstensi VS Code)
 
 Edit `~/.continue/config.yaml`:
 
@@ -241,18 +241,18 @@ models:
     default: true
 ```
 
-Restart VS Code after editing.
+Mulai ulang VS Code setelah mengedit.
 
 ---
 
 ### Kiro CLI (Amazon)
 
 ```bash
-# Login to your AWS/Kiro account:
+# Login ke akun AWS/Kiro Anda:
 kiro-cli login
 
-# The CLI uses its own auth — OmniRoute is not needed as backend for Kiro CLI itself.
-# Use kiro-cli alongside OmniRoute for other tools.
+# CLI ini menggunakan autentikasinya sendiri — OmniRoute tidak diperlukan sebagai backend untuk Kiro CLI itu sendiri.
+# Gunakan kiro-cli bersama OmniRoute untuk alat lainnya.
 kiro-cli status
 ```
 
@@ -260,9 +260,9 @@ kiro-cli status
 
 ### Qwen Code (Alibaba)
 
-Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
+Qwen Code mendukung endpoint API yang kompatibel dengan OpenAI melalui variabel lingkungan atau `settings.json`.
 
-**Option 1: Environment variables (`~/.qwen/.env`)**
+**Opsi 1: Variabel lingkungan (`~/.qwen/.env`)**
 
 ```bash
 mkdir -p ~/.qwen && cat > ~/.qwen/.env << EOF
@@ -272,7 +272,7 @@ OPENAI_MODEL="auto"
 EOF
 ```
 
-**Option 2: `settings.json` with model providers**
+**Opsi 2: `settings.json` dengan penyedia model**
 
 ```json
 // ~/.qwen/settings.json
@@ -294,7 +294,7 @@ EOF
 }
 ```
 
-**Option 3: Inline CLI flags**
+**Opsi 3: Flag CLI langsung**
 
 ```bash
 OPENAI_BASE_URL="http://localhost:20128/v1" \
@@ -303,76 +303,76 @@ OPENAI_MODEL="auto" \
 qwen
 ```
 
-> For a **remote server** replace `localhost:20128` with the server IP or domain.
+> Untuk **server jarak jauh**, ganti `localhost:20128` dengan IP atau domain server.
 
-**Test:** `qwen "say hello"`
+**Uji:** `qwen "say hello"`
 
-### Cursor (Desktop App)
+### Cursor (Aplikasi Desktop)
 
-> **Note:** Cursor routes requests through its cloud. For OmniRoute integration,
-> enable **Cloud Endpoint** in OmniRoute Settings and use your public domain URL.
+> **Catatan:** Cursor merutekan permintaan melalui cloudnya sendiri. Untuk integrasi OmniRoute,
+> aktifkan **Cloud Endpoint** di Pengaturan OmniRoute dan gunakan URL domain publik Anda.
 
-Via GUI: **Settings → Models → OpenAI API Key**
+Melalui GUI: **Settings → Models → OpenAI API Key**
 
 - Base URL: `https://your-domain.com/v1`
-- API Key: your OmniRoute key
+- API Key: kunci OmniRoute Anda
 
 ---
 
-## Dashboard Auto-Configuration
+## Konfigurasi Otomatis Dashboard
 
-The OmniRoute dashboard automates configuration for most tools:
+Dashboard OmniRoute mengotomatiskan konfigurasi untuk sebagian besar alat:
 
-1. Go to `http://localhost:20128/dashboard/cli-tools`
-2. Expand any tool card
-3. Select your API key from the dropdown
-4. Click **Apply Config** (if tool is detected as installed)
-5. Or copy the generated config snippet manually
-
----
-
-## Built-in Agents: Droid & OpenClaw
-
-**Droid** and **OpenClaw** are AI agents built directly into OmniRoute — no installation needed.
-They run as internal routes and use OmniRoute's model routing automatically.
-
-- Access: `http://localhost:20128/dashboard/agents`
-- Configure: same combos and providers as all other tools
-- No API key or CLI install required
+1. Buka `http://localhost:20128/dashboard/cli-tools`
+2. Perluas kartu alat mana pun
+3. Pilih API key Anda dari menu tarik-turun
+4. Klik **Apply Config** (jika alat terdeteksi telah terinstal)
+5. Atau salin cuplikan konfigurasi yang dihasilkan secara manual
 
 ---
 
-## Available API Endpoints
+## Agen Bawaan: Droid & OpenClaw
 
-| Endpoint                   | Description                   | Use For                     |
-| -------------------------- | ----------------------------- | --------------------------- |
-| `/v1/chat/completions`     | Standard chat (all providers) | All modern tools            |
-| `/v1/responses`            | Responses API (OpenAI format) | Codex, agentic workflows    |
-| `/v1/completions`          | Legacy text completions       | Older tools using `prompt:` |
-| `/v1/embeddings`           | Text embeddings               | RAG, search                 |
-| `/v1/images/generations`   | Image generation              | GPT-Image, Flux, etc.       |
-| `/v1/audio/speech`         | Text-to-speech                | ElevenLabs, OpenAI TTS      |
-| `/v1/audio/transcriptions` | Speech-to-text                | Deepgram, AssemblyAI        |
+**Droid** dan **OpenClaw** adalah agen AI yang dibangun langsung ke dalam OmniRoute — tidak perlu instalasi.
+Keduanya berjalan sebagai rute internal dan menggunakan perutean model OmniRoute secara otomatis.
+
+- Akses: `http://localhost:20128/dashboard/agents`
+- Konfigurasi: combo dan penyedia yang sama seperti semua alat lainnya
+- Tidak memerlukan API key atau instalasi CLI
+
+---
+
+## Endpoint API yang Tersedia
+
+| Endpoint                   | Deskripsi                         | Digunakan Untuk             |
+| -------------------------- | --------------------------------- | --------------------------- |
+| `/v1/chat/completions`     | Chat standar (semua penyedia)     | Semua alat modern           |
+| `/v1/responses`            | Responses API (format OpenAI)     | Codex, alur kerja agentik   |
+| `/v1/completions`          | Penyelesaian teks lama            | Alat lama yang menggunakan `prompt:` |
+| `/v1/embeddings`           | Embedding teks                    | RAG, pencarian              |
+| `/v1/images/generations`   | Pembuatan gambar                  | GPT-Image, Flux, dll.       |
+| `/v1/audio/speech`         | Teks ke ucapan                    | ElevenLabs, OpenAI TTS      |
+| `/v1/audio/transcriptions` | Ucapan ke teks                    | Deepgram, AssemblyAI        |
 
 ---
 
 ## Pemecahan Masalah
 
-| Error                     | Cause                   | Fix                                        |
-| ------------------------- | ----------------------- | ------------------------------------------ |
-| `Connection refused`      | OmniRoute not running   | `pm2 start omniroute`                      |
-| `401 Unauthorized`        | Wrong API key           | Check in `/dashboard/api-manager`          |
-| `No combo configured`     | No active routing combo | Set up in `/dashboard/combos`              |
-| `invalid model`           | Model not in catalog    | Use `auto` or check `/dashboard/providers` |
-| CLI shows "not installed" | Binary not in PATH      | Check `which <command>`                    |
-| `kiro-cli: not found`     | Not in PATH             | `export PATH="$HOME/.local/bin:$PATH"`     |
+| Error                     | Penyebab                          | Solusi                                     |
+| ------------------------- | --------------------------------- | ------------------------------------------ |
+| `Connection refused`      | OmniRoute tidak berjalan          | `pm2 start omniroute`                      |
+| `401 Unauthorized`        | API key salah                     | Periksa di `/dashboard/api-manager`        |
+| `No combo configured`     | Tidak ada combo perutean aktif    | Atur di `/dashboard/combos`                |
+| `invalid model`           | Model tidak ada dalam katalog     | Gunakan `auto` atau periksa `/dashboard/providers` |
+| CLI menampilkan "not installed" | Biner tidak ada di PATH    | Periksa `which <command>`                  |
+| `kiro-cli: not found`     | Tidak ada di PATH                 | `export PATH="$HOME/.local/bin:$PATH"`     |
 
 ---
 
-## Quick Setup Script (One Command)
+## Skrip Pengaturan Cepat (Satu Perintah)
 
 ```bash
-# Install all CLIs and configure for OmniRoute (replace with your key and server URL)
+# Instal semua CLI dan konfigurasi untuk OmniRoute (ganti dengan kunci dan URL server Anda)
 OMNIROUTE_URL="http://localhost:20128/v1"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
@@ -381,7 +381,7 @@ npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocod
 # Kiro CLI
 apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | bash
 
-# Write configs
+# Tulis konfigurasi
 mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
 
 cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"

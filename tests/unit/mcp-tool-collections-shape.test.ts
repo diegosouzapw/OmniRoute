@@ -22,6 +22,7 @@ import assert from "node:assert/strict";
 const { memoryTools } = await import("../../open-sse/mcp-server/tools/memoryTools.ts");
 const { skillTools } = await import("../../open-sse/mcp-server/tools/skillTools.ts");
 const { compressionTools } = await import("../../open-sse/mcp-server/tools/compressionTools.ts");
+const { poolTools } = await import("../../open-sse/mcp-server/tools/poolTools.ts");
 
 type McpToolDef = {
   name: string;
@@ -35,6 +36,7 @@ const COLLECTIONS: Record<string, Record<string, McpToolDef>> = {
   memoryTools: memoryTools as unknown as Record<string, McpToolDef>,
   skillTools: skillTools as unknown as Record<string, McpToolDef>,
   compressionTools: compressionTools as unknown as Record<string, McpToolDef>,
+  poolTools: poolTools as unknown as Record<string, McpToolDef>,
 };
 
 for (const [collectionName, collection] of Object.entries(COLLECTIONS)) {

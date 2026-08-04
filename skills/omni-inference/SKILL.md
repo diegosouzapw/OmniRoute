@@ -27,6 +27,17 @@ curl -X POST https://localhost:20128/api/v1/chat/completions \
   -d '{}'
 ```
 
+### GET /api/v1/ws
+
+Chat completion over WebSocket (handshake + upgrade)
+
+OpenAI-compatible chat over a WebSocket connection. `GET` with `?handshake=1` returns the connection descriptor (auth path, message protocol and live-event channels) as JSON; a plain `GET` without an Upgrade returns `426 Upgrade Required`. After upgrading, the client exchanges JSON frames — `{type:"request", id, payload:{model, messages}}` to start a completion and `{type:"cancel", id}` to abort it. A separate live channel (default port `LIVE_WS_PORT=20129`, path `/live`) streams dashboard events on the `requests`, `combo` and `credentials` topics with a 15s heartbeat. Requires an API key.
+
+```bash
+curl https://localhost:20128/api/v1/ws \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ### POST /api/v1/providers/{provider}/chat/completions
 
 Create chat completion (provider-specific)
@@ -208,9 +219,138 @@ curl https://localhost:20128/api/v1/providers/{provider}/models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/v1/management/proxy-subscriptions
+
+List proxy subscriptions
+
+Lists all operator-supplied proxy subscription links. Also starts the background auto-refresh scheduler (idempotent) so enabled subscriptions stay in sync. Credentials embedded in `url` are redacted in the response.
+
+```bash
+curl https://localhost:20128/api/v1/management/proxy-subscriptions \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/v1/management/proxy-subscriptions
+
+Create a proxy subscription
+
+Creates a subscription record. If `mode` is `rule`, at least one entry in `ruleProviders` is required. `updateIntervalMinutes` defaults to 60 and `enabled` defaults to `false` when omitted or not exactly `true`.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/management/proxy-subscriptions \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/v1/management/proxy-subscriptions/{id}
+
+Get a proxy subscription
+
+```bash
+curl https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PATCH /api/v1/management/proxy-subscriptions/{id}
+
+Update a proxy subscription
+
+Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).
+
+```bash
+curl -X PATCH https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/v1/management/proxy-subscriptions/{id}
+
+Delete a proxy subscription
+
+Removes the subscription record and unbinds/drops its synced proxy_registry rows.
+
+```bash
+curl -X DELETE https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/v1/management/proxy-subscriptions/{id}/nodes
+
+Get a subscription's last-parsed node summary
+
+Returns the last-parsed node list without re-fetching the (possibly slow) subscription URL.
+
+```bash
+curl https://localhost:20128/api/v1/management/proxy-subscriptions/{id}/nodes \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/v1/management/proxy-subscriptions/{id}/refresh
+
+Refresh a proxy subscription
+
+Re-fetches and re-parses the subscription URL, syncs its nodes into `proxy_registry`, and (re)binds the pool.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/management/proxy-subscriptions/{id}/refresh \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/v1/ocr
+
+Document OCR
+
+Mistral OCR–compatible document OCR endpoint. Accepts a JSON body referencing a document/image and returns extracted text. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/ocr \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/v1/audio/translations
+
+Translate audio to English
+
+OpenAI Whisper–compatible audio translation (multipart/form-data). Unlike `/api/v1/audio/transcriptions`, output is always English regardless of the source language. Success responses carry the `X-OmniRoute-*` cost-telemetry headers.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/audio/translations \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/v1/providers/suggested-models
+
+Suggested media models
+
+Read-only server-side proxy to the public HuggingFace Hub models search API, used by the dashboard to suggest models for a media provider kind without exposing an HF token client-side. Never accepts or returns credentials.
+
+```bash
+curl https://localhost:20128/api/v1/providers/suggested-models \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/v1/provider-plugin-manifest
+
+Provider plugin manifest
+
+Returns the manifest describing installed provider plugins.
+
+```bash
+curl https://localhost:20128/api/v1/provider-plugin-manifest \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
-See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/reference/openapi.yaml` for detailed request/response schemas.
+See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.
 
 <!-- skill:custom-start -->
 <!-- Aggregated from: omniroute-chat, omniroute-image, omniroute-tts, omniroute-stt, omniroute-embeddings, omniroute-web-search, omniroute-web-fetch -->

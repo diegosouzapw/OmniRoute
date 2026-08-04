@@ -30,7 +30,7 @@ export interface ProviderCredentials {
 }
 
 export interface ModelInfo {
-  /** Canonical provider ID (e.g., "claude", "gemini-cli") */
+  /** Canonical provider ID (e.g., "claude", "antigravity") */
   provider: string;
   /** Model identifier (e.g., "claude-opus-4-6") */
   model: string;
@@ -136,4 +136,25 @@ export interface UsageData {
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
+}
+
+// ============ Lib gap: Transformer.cancel ============
+
+declare global {
+  /**
+   * The WHATWG Streams standard defines `transformer.cancel(reason)`, invoked when
+   * the readable side is cancelled (for us: an SSE client disconnecting). Node
+   * implements it — verified on v24 — but `lib.dom.d.ts` still omits it from
+   * `Transformer`, so every `new TransformStream({ ..., cancel() {} })` in the
+   * codebase fails with TS2353 ("'cancel' does not exist in type 'Transformer'").
+   *
+   * These `cancel` handlers are load-bearing: they clear heartbeat/progress
+   * intervals and idle timers on disconnect. Deleting them to satisfy the checker
+   * would leak a timer per abandoned stream, so the type is patched instead.
+   *
+   * Remove once the bundled lib declares it.
+   */
+  interface Transformer<I = unknown, O = unknown> {
+    cancel?: (reason?: unknown) => void | PromiseLike<void>;
+  }
 }

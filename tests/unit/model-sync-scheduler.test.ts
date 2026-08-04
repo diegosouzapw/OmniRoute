@@ -130,6 +130,157 @@ test("modelSyncScheduler: internal auth headers validate only for scheduler requ
   assert.equal(isModelSyncInternalRequest(externalRequest), false);
 });
 
+test("modelSyncScheduler resolves only loopback origins and uses the dashboard port", async () => {
+  const previous = {
+    OMNIROUTE_PORT: process.env.OMNIROUTE_PORT,
+    PORT: process.env.PORT,
+    DASHBOARD_PORT: process.env.DASHBOARD_PORT,
+    BASE_URL: process.env.BASE_URL,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    OMNIROUTE_BASE_PATH: process.env.OMNIROUTE_BASE_PATH,
+    OMNIROUTE_INTERNAL_SCHEME: process.env.OMNIROUTE_INTERNAL_SCHEME,
+    OMNIROUTE_TLS_CERT: process.env.OMNIROUTE_TLS_CERT,
+    OMNIROUTE_TLS_KEY: process.env.OMNIROUTE_TLS_KEY,
+  };
+  process.env.OMNIROUTE_PORT = "20128";
+  process.env.PORT = "22128";
+  process.env.DASHBOARD_PORT = "22128";
+  process.env.BASE_URL = "https://attacker.example";
+  delete process.env.NEXT_PUBLIC_BASE_URL;
+  delete process.env.NEXT_PUBLIC_APP_URL;
+  process.env.OMNIROUTE_BASE_PATH = "/omniroute/";
+  delete process.env.OMNIROUTE_INTERNAL_SCHEME;
+  delete process.env.OMNIROUTE_TLS_CERT;
+  delete process.env.OMNIROUTE_TLS_KEY;
+
+  try {
+    const scheduler = await loadScheduler("trusted-loopback-origin");
+    assert.equal(scheduler.getModelSyncInternalBaseUrl(), "http://127.0.0.1:22128/omniroute");
+    assert.equal(
+      scheduler.resolveModelSyncInternalBaseUrl("https://attacker.example/steal"),
+      "http://127.0.0.1:22128/omniroute"
+    );
+    assert.equal(
+      scheduler.resolveModelSyncInternalBaseUrl("http://127.0.0.1:7777/nested/path"),
+      "http://127.0.0.1:22128/omniroute"
+    );
+    assert.equal(
+      scheduler.resolveModelSyncInternalBaseUrl("http://0.0.0.0:7777/nested/path"),
+      "http://127.0.0.1:22128/omniroute"
+    );
+    assert.equal(
+      scheduler.resolveModelSyncInternalBaseUrl("http://user:pass@localhost:7777"),
+      "http://127.0.0.1:22128/omniroute"
+    );
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
+test("modelSyncScheduler does not infer the internal listener scheme from public URLs", async () => {
+  const previous = {
+    DASHBOARD_PORT: process.env.DASHBOARD_PORT,
+    BASE_URL: process.env.BASE_URL,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    OMNIROUTE_INTERNAL_SCHEME: process.env.OMNIROUTE_INTERNAL_SCHEME,
+    OMNIROUTE_TLS_CERT: process.env.OMNIROUTE_TLS_CERT,
+    OMNIROUTE_TLS_KEY: process.env.OMNIROUTE_TLS_KEY,
+  };
+  process.env.DASHBOARD_PORT = "22128";
+  process.env.BASE_URL = "https://attacker.example";
+  process.env.NEXT_PUBLIC_BASE_URL = "file:///tmp/not-http";
+  process.env.NEXT_PUBLIC_APP_URL = "https://localhost:7777/ignored";
+  delete process.env.OMNIROUTE_INTERNAL_SCHEME;
+  delete process.env.OMNIROUTE_TLS_CERT;
+  delete process.env.OMNIROUTE_TLS_KEY;
+
+  try {
+    const scheduler = await loadScheduler("safe-loopback-fallback");
+    assert.equal(scheduler.getModelSyncInternalBaseUrl(), "http://127.0.0.1:22128");
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
+test("modelSyncScheduler uses the listener-declared TLS scheme without trusting candidates", async () => {
+  const previous = {
+    DASHBOARD_PORT: process.env.DASHBOARD_PORT,
+    BASE_URL: process.env.BASE_URL,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    OMNIROUTE_BASE_PATH: process.env.OMNIROUTE_BASE_PATH,
+    OMNIROUTE_INTERNAL_SCHEME: process.env.OMNIROUTE_INTERNAL_SCHEME,
+    OMNIROUTE_TLS_CERT: process.env.OMNIROUTE_TLS_CERT,
+    OMNIROUTE_TLS_KEY: process.env.OMNIROUTE_TLS_KEY,
+  };
+  process.env.DASHBOARD_PORT = "22128";
+  process.env.BASE_URL = "https://attacker.example";
+  delete process.env.NEXT_PUBLIC_BASE_URL;
+  delete process.env.NEXT_PUBLIC_APP_URL;
+  process.env.OMNIROUTE_BASE_PATH = "/omniroute";
+  process.env.OMNIROUTE_INTERNAL_SCHEME = "https";
+  delete process.env.OMNIROUTE_TLS_CERT;
+  delete process.env.OMNIROUTE_TLS_KEY;
+
+  try {
+    const scheduler = await loadScheduler("trusted-native-tls");
+    assert.equal(
+      scheduler.resolveModelSyncInternalBaseUrl("https://attacker.example:7777/steal"),
+      "https://localhost:22128/omniroute"
+    );
+    assert.equal(
+      scheduler.resolveModelSyncInternalBaseUrl("https://127.0.0.1:7777/nested/path"),
+      "https://localhost:22128/omniroute"
+    );
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+
+test("modelSyncScheduler pins HTTPS transport to IPv4 while retaining localhost SNI", async () => {
+  const scheduler = await loadScheduler("pinned-loopback-tls-connector");
+  let forwardedOptions: Record<string, unknown> | undefined;
+  const connector = scheduler.createPinnedModelSyncTlsConnector((options, callback) => {
+    forwardedOptions = options;
+    callback(new Error("stop before socket creation"), null);
+  });
+
+  connector(
+    {
+      hostname: "localhost",
+      host: "localhost:22128",
+      protocol: "https:",
+      port: "22128",
+    },
+    () => undefined
+  );
+
+  assert.equal(forwardedOptions?.hostname, "127.0.0.1");
+  assert.equal(forwardedOptions?.servername, "localhost");
+});
+
+test("runtime launchers publish the actual internal listener scheme", () => {
+  const runNext = fs.readFileSync(path.join(process.cwd(), "scripts/dev/run-next.mjs"), "utf8");
+  const standalone = fs.readFileSync(
+    path.join(process.cwd(), "scripts/dev/standalone-server-ws.mjs"),
+    "utf8"
+  );
+
+  assert.match(runNext, /OMNIROUTE_INTERNAL_SCHEME\s*=\s*["']http["']/);
+  assert.match(standalone, /OMNIROUTE_INTERNAL_SCHEME\s*=\s*tlsOptions\s*\?\s*["']https["']/);
+});
+
 test("initCloudSync: startup initialization also starts model sync scheduler", () => {
   const filePath = path.join(process.cwd(), "src/lib/initCloudSync.ts");
   const source = fs.readFileSync(filePath, "utf8");
@@ -224,8 +375,10 @@ test("modelSyncScheduler starts once, honors env interval and syncs only active 
     await timers.timeouts[0].fn();
 
     assert.equal(fetchCalls.length, 1);
+    assert.match(fetchCalls[0].url, /^http:\/\/127\.0\.0\.1:20128\//);
     assert.match(fetchCalls[0].url, /\/api\/providers\/.*\/sync-models$/);
     assert.equal(fetchCalls[0].options.method, "POST");
+    assert.equal(fetchCalls[0].options.redirect, "error");
     assert.equal(fetchCalls[0].options.headers["Content-Type"], "application/json");
     assert.equal(
       fetchCalls[0].options.headers[scheduler.getModelSyncInternalAuthHeaderName()],

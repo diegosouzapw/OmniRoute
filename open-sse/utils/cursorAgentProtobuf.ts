@@ -18,6 +18,25 @@
 
 import zlib from "node:zlib";
 import crypto from "node:crypto";
+import { decodeNativeTodoWriteCompletion } from "./cursorAgentProtobuf/nativeTodoWrite.ts";
+import {
+  WT_VARINT,
+  WT_LEN,
+  encodeVarint,
+  encodeTag,
+  encodeBytes,
+  encodeString,
+  encodeMessage,
+  encodeUInt32Field,
+  encodeBoolField,
+  encodeDoubleField,
+  decodeVarint,
+  checkedLen,
+  decodeFields,
+  findField,
+  decodeStringField,
+  decodeVarintField,
+} from "./cursorAgentProtobuf/wire.ts";
 
 // ─── Field numbers (from agent.proto descriptor) ───────────────────────────
 
@@ -25,6 +44,7 @@ const ACM_RUN_REQUEST = 1; // AgentClientMessage.run_request
 
 const ARR_CONVERSATION_STATE = 1; // AgentRunRequest.conversation_state
 const ARR_ACTION = 2; // AgentRunRequest.action
+const ARR_MODEL_DETAILS = 3; // AgentRunRequest.model_details (ModelDetails, msg 88)
 const ARR_CONVERSATION_ID = 5; // AgentRunRequest.conversation_id
 const ARR_MCP_TOOLS = 4; // AgentRunRequest.mcp_tools (empty placeholder required)
 const ARR_REQUESTED_MODEL = 9; // AgentRunRequest.requested_model
@@ -64,6 +84,15 @@ const DIM_HEIGHT = 2; // SelectedImage.Dimension.height (int32)
 
 const RM_MODEL_ID = 1; // RequestedModel.model_id
 const RM_PARAMETERS = 3; // RequestedModel.parameters [repeated]
+
+// ModelDetails (msg 88) — the model envelope cursor-agent actually uses to resolve
+// pinned model variants. Field numbers pinned from the cursor-agent descriptor (and
+// CLIProxyAPIPlus's cursor proto). #3714: pinned Claude/GPT *thinking* variants returned
+// an empty turn when sent only via RequestedModel (field 9) with a bare model_id; the
+// working reference sends them as ModelDetails with all three string fields set.
+const MD_MODEL_ID = 1; // ModelDetails.model_id
+const MD_DISPLAY_MODEL_ID = 3; // ModelDetails.display_model_id
+const MD_DISPLAY_NAME = 4; // ModelDetails.display_name
 
 const RMP_ID = 1; // RequestedModel.ModelParameter.id
 const RMP_VALUE = 2; // RequestedModel.ModelParameter.value
@@ -139,6 +168,9 @@ const ESM_WRITE_SHELL_STDIN_ARGS = 23;
 const ARG_PATH = 1; // ReadArgs.path / WriteArgs.path / DeleteArgs.path / LsArgs.path
 const ARG_SHELL_COMMAND = 1; // ShellArgs.command
 const ARG_SHELL_WORKING_DIR = 2; // ShellArgs.working_directory
+const ARG_SHELL_TIMEOUT = 3; // ShellArgs.timeout
+const ARG_SHELL_IS_BACKGROUND = 11; // ShellArgs.is_background
+const ARG_SHELL_HARD_TIMEOUT = 14; // ShellArgs.hard_timeout
 const ARG_FETCH_URL = 1; // FetchArgs.url
 
 // KvServerMessage / KvClientMessage
@@ -215,125 +247,6 @@ const LIST_VALUES = 1; // ListValue.values = repeated Value
 const MAP_KEY = 1;
 const MAP_VALUE = 2;
 
-// ─── Wire-type constants ───────────────────────────────────────────────────
-
-const WT_VARINT = 0;
-const WT_LEN = 2;
-
-// ─── Primitive encoders ────────────────────────────────────────────────────
-
-function encodeVarint(value: number | bigint): Buffer {
-  let v = typeof value === "bigint" ? value : BigInt(value);
-  const bytes: number[] = [];
-  while (v > 0x7fn) {
-    bytes.push(Number(v & 0x7fn) | 0x80);
-    v >>= 7n;
-  }
-  bytes.push(Number(v));
-  return Buffer.from(bytes);
-}
-
-function encodeTag(fieldNumber: number, wireType: number): Buffer {
-  return encodeVarint((fieldNumber << 3) | wireType);
-}
-
-function encodeBytes(fieldNumber: number, value: Buffer | Uint8Array): Buffer {
-  const buf = Buffer.isBuffer(value) ? value : Buffer.from(value);
-  return Buffer.concat([encodeTag(fieldNumber, WT_LEN), encodeVarint(buf.length), buf]);
-}
-
-function encodeString(fieldNumber: number, value: string): Buffer {
-  return encodeBytes(fieldNumber, Buffer.from(value, "utf8"));
-}
-
-function encodeMessage(fieldNumber: number, parts: Buffer[]): Buffer {
-  const inner = Buffer.concat(parts);
-  return Buffer.concat([encodeTag(fieldNumber, WT_LEN), encodeVarint(inner.length), inner]);
-}
-
-function encodeUInt32Field(fieldNumber: number, value: number): Buffer {
-  return Buffer.concat([encodeTag(fieldNumber, WT_VARINT), encodeVarint(value)]);
-}
-
-function encodeBoolField(fieldNumber: number, value: boolean): Buffer {
-  return Buffer.concat([encodeTag(fieldNumber, WT_VARINT), encodeVarint(value ? 1 : 0)]);
-}
-
-function encodeDoubleField(fieldNumber: number, value: number): Buffer {
-  // wire type 1 = 64-bit fixed (double)
-  const buf = Buffer.alloc(8);
-  buf.writeDoubleLE(value, 0);
-  return Buffer.concat([encodeTag(fieldNumber, 1), buf]);
-}
-
-// ─── Primitive decoders ────────────────────────────────────────────────────
-
-function decodeVarint(buf: Buffer, offset: number): [bigint, number] {
-  let result = 0n;
-  let shift = 0n;
-  let pos = offset;
-  while (pos < buf.length) {
-    const byte = buf[pos++];
-    result |= BigInt(byte & 0x7f) << shift;
-    if ((byte & 0x80) === 0) return [result, pos];
-    shift += 7n;
-  }
-  throw new Error("varint truncated");
-}
-
-type Field =
-  | { fieldNumber: number; wireType: 0; varint: bigint }
-  | { fieldNumber: number; wireType: 2; bytes: Buffer };
-
-/**
- * Validate a length-delimited field's declared length against the bytes that
- * actually remain in the buffer. Cursor's frames are well-formed, but a
- * corrupted or hostile upstream could declare a length that overruns the
- * buffer; without this guard `Buffer.subarray` silently clamps to EOF and a
- * truncated tool argument (or any nested message) is decoded as empty/partial
- * data instead of being recognized as malformed. Throwing lets the caller —
- * `processFrame`, wrapped in driveH2's per-frame try/catch — skip the bad
- * frame rather than act on corrupted fields. Also rejects absurd lengths that
- * would not fit a JS safe integer.
- */
-function checkedLen(len: bigint, pos: number, buf: Buffer): number {
-  if (len < 0n || len > BigInt(buf.length - pos)) {
-    throw new Error(
-      `length-delimited field overruns buffer (len=${len}, remaining=${buf.length - pos})`
-    );
-  }
-  return Number(len);
-}
-
-function decodeFields(buf: Buffer): Field[] {
-  const fields: Field[] = [];
-  let pos = 0;
-  while (pos < buf.length) {
-    const [tag, np] = decodeVarint(buf, pos);
-    pos = np;
-    const fieldNumber = Number(tag >> 3n);
-    const wireType = Number(tag & 0x7n);
-    if (wireType === WT_VARINT) {
-      const [v, np2] = decodeVarint(buf, pos);
-      pos = np2;
-      fields.push({ fieldNumber, wireType: 0, varint: v });
-    } else if (wireType === WT_LEN) {
-      const [len, np2] = decodeVarint(buf, pos);
-      pos = np2;
-      const lenN = checkedLen(len, pos, buf);
-      fields.push({ fieldNumber, wireType: 2, bytes: buf.subarray(pos, pos + lenN) });
-      pos += lenN;
-    } else if (wireType === 5) {
-      pos += 4;
-    } else if (wireType === 1) {
-      pos += 8;
-    } else {
-      throw new Error(`unsupported wireType ${wireType}`);
-    }
-  }
-  return fields;
-}
-
 // ─── Connect-RPC framing ───────────────────────────────────────────────────
 
 const FLAG_NONE = 0x00;
@@ -392,14 +305,54 @@ export function normalizeCursorModelId(modelId: string): string {
   return alias ?? id;
 }
 
+// #7289: pinned Claude/GPT model ids carry an effort/reasoning suffix
+// (e.g. "claude-opus-4-8-high", "gpt-5.5-high"). cursor's server has no route
+// for the suffixed id — it only accepts the base id plus an out-of-band
+// ModelParameter. Ground truth captured from the real cursor-agent client:
+// Claude ids surface the suffix as {id:"effort", value:<suffix>}, GPT ids as
+// {id:"reasoning", value:<suffix>}. "-fast"/"-thinking" are separate toggles
+// (already handled elsewhere / not covered by this suffix set) and must not
+// be misread as an effort value.
+const CURSOR_EFFORT_SUFFIXES = ["low", "medium", "high", "xhigh", "max"] as const;
+
+/**
+ * If `normalized` starts with `prefix` and ends with one of the known effort
+ * suffixes, split it into the base model id plus a `{id: paramId, value}`
+ * ModelParameter. Returns null when no known suffix matches, leaving the id
+ * untouched (e.g. "claude-2.5" with no suffix, or an unrecognized tail).
+ */
+function splitCursorEffortSuffix(
+  normalized: string,
+  prefix: string,
+  paramId: string
+): { modelId: string; parameters: Array<{ id: string; value: string }> } | null {
+  if (!normalized.startsWith(prefix)) {
+    return null;
+  }
+  for (const suffix of CURSOR_EFFORT_SUFFIXES) {
+    const marker = `-${suffix}`;
+    if (normalized.endsWith(marker) && normalized.length > prefix.length + marker.length) {
+      return {
+        modelId: normalized.slice(0, -marker.length),
+        parameters: [{ id: paramId, value: suffix }],
+      };
+    }
+  }
+  return null;
+}
+
 /**
  * cursor-agent rewrites model ids before putting them on the wire:
- *   "auto"            → RequestedModel { model_id: "default" }
- *   "composer-2-fast" → RequestedModel { model_id: "composer-2",
- *                                        parameters: [{id: "fast", value: "true"}] }
+ *   "auto"                 → RequestedModel { model_id: "default" }
+ *   "composer-2-fast"      → RequestedModel { model_id: "composer-2",
+ *                                             parameters: [{id: "fast", value: "true"}] }
+ *   "claude-opus-4-8-high" → RequestedModel { model_id: "claude-opus-4-8",
+ *                                             parameters: [{id: "effort", value: "high"}] }
+ *   "gpt-5.5-high"         → RequestedModel { model_id: "gpt-5.5",
+ *                                             parameters: [{id: "reasoning", value: "high"}] }
  *
- * Other ids (e.g. "claude-4.6-sonnet-medium") are passed through verbatim
- * after spelling-variant normalization (see normalizeCursorModelId).
+ * Other ids are passed through verbatim after spelling-variant normalization
+ * (see normalizeCursorModelId).
  */
 export function resolveRequestedModel(modelId: string): {
   modelId: string;
@@ -416,6 +369,14 @@ export function resolveRequestedModel(modelId: string): {
       modelId: normalized.slice(0, -"-fast".length),
       parameters: [{ id: "fast", value: "true" }],
     };
+  }
+  const claudeSplit = splitCursorEffortSuffix(normalized, "claude-", "effort");
+  if (claudeSplit) {
+    return claudeSplit;
+  }
+  const gptSplit = splitCursorEffortSuffix(normalized, "gpt-", "reasoning");
+  if (gptSplit) {
+    return gptSplit;
   }
   return { modelId: normalized, parameters: [] };
 }
@@ -537,9 +498,7 @@ export function encodeAgentRunRequest(input: AgentRunInput): Buffer {
   const selectedContextParts: Buffer[] = [];
   if (input.images && input.images.length > 0) {
     for (const img of input.images) {
-      selectedContextParts.push(
-        encodeMessage(SC_SELECTED_IMAGES, [encodeSelectedImageBody(img)])
-      );
+      selectedContextParts.push(encodeMessage(SC_SELECTED_IMAGES, [encodeSelectedImageBody(img)]));
     }
   }
   // The empty selected_context placeholder and mode=1 match cursor-agent's
@@ -581,6 +540,17 @@ export function encodeAgentRunRequest(input: AgentRunInput): Buffer {
   }
   const requestedModel = encodeMessage(ARR_REQUESTED_MODEL, rmParts);
 
+  // ModelDetails { model_id, display_model_id, display_name } — all set to the resolved
+  // model id. #3714: RequestedModel (field 9) alone resolves server-routed ids
+  // (auto → default, composer-*) but pinned Claude/GPT *thinking* variants returned an
+  // empty turn without this envelope. cursor-agent's working wire format sends both, so
+  // we keep RequestedModel (preserves the -fast `parameters` it carries) and add this.
+  const modelDetails = encodeMessage(ARR_MODEL_DETAILS, [
+    encodeString(MD_MODEL_ID, modelId),
+    encodeString(MD_DISPLAY_MODEL_ID, modelId),
+    encodeString(MD_DISPLAY_NAME, modelId),
+  ]);
+
   // mcp_tools: McpTools envelope at field 4 of AgentRunRequest. Each tool
   // is packed inside the envelope at field 1 (repeated McpToolDefinition).
   // Empty placeholder for non-tool calls (the field is observably required
@@ -596,6 +566,7 @@ export function encodeAgentRunRequest(input: AgentRunInput): Buffer {
   const agentRunRequest = [
     conversationState,
     action,
+    modelDetails,
     mcpToolsBlock,
     encodeString(ARR_CONVERSATION_ID, conversationId),
     requestedModel,
@@ -627,26 +598,17 @@ export type DecodedDelta =
   | { kind: "heartbeat" }
   | { kind: "tool_call_started" }
   | { kind: "tool_call_completed" }
+  | {
+      kind: "native_todo_write";
+      toolCallId: string;
+      merge: boolean;
+      todos: Array<{
+        content: string;
+        status: "pending" | "in_progress" | "completed" | "cancelled";
+      }>;
+    }
   | { kind: "kv_server_message" }
   | { kind: "unknown"; field: number };
-
-function findField(fields: Field[], fieldNumber: number): Field | undefined {
-  return fields.find((f) => f.fieldNumber === fieldNumber);
-}
-
-function decodeStringField(buf: Buffer, fieldNumber: number): string {
-  const fields = decodeFields(buf);
-  const f = findField(fields, fieldNumber);
-  if (f && f.wireType === 2) return f.bytes.toString("utf8");
-  return "";
-}
-
-function decodeVarintField(buf: Buffer, fieldNumber: number): number {
-  const fields = decodeFields(buf);
-  const f = findField(fields, fieldNumber);
-  if (f && f.wireType === 0) return Number(f.varint);
-  return 0;
-}
 
 export function decodeAgentServerMessage(payload: Buffer): DecodedDelta[] {
   const out: DecodedDelta[] = [];
@@ -676,6 +638,10 @@ export function decodeAgentServerMessage(payload: Buffer): DecodedDelta[] {
           out.push({ kind: "tool_call_started" });
           break;
         case IU_TOOL_CALL_COMPLETED:
+          if (update.wireType === 2) {
+            const todoWrite = decodeNativeTodoWriteCompletion(update.bytes);
+            if (todoWrite) out.push(todoWrite);
+          }
           out.push({ kind: "tool_call_completed" });
           break;
         case IU_TOKEN_DELTA:
@@ -765,7 +731,7 @@ export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
 
     if (getBlobArgs) {
       // GetBlobArgs { blob_id (1): bytes }
-      let blobId = Buffer.alloc(0);
+      let blobId: Buffer = Buffer.alloc(0);
       for (const f of decodeFields(getBlobArgs)) {
         if (f.fieldNumber === GBA_BLOB_ID && f.wireType === 2) {
           blobId = f.bytes;
@@ -775,8 +741,8 @@ export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
     }
     if (setBlobArgs) {
       // SetBlobArgs { blob_id (1): bytes, blob_data (2): bytes }
-      let blobId = Buffer.alloc(0);
-      let blobData = Buffer.alloc(0);
+      let blobId: Buffer = Buffer.alloc(0);
+      let blobData: Buffer = Buffer.alloc(0);
       for (const f of decodeFields(setBlobArgs)) {
         if (f.fieldNumber === SBA_BLOB_ID && f.wireType === 2) {
           blobId = f.bytes;
@@ -814,6 +780,9 @@ export type ExecServerEvent =
       execId: string;
       command: string;
       workingDir: string;
+      timeout: number;
+      isBackground: boolean;
+      hardTimeout: number;
     }
   | {
       kind: "exec_shell_stream";
@@ -821,6 +790,9 @@ export type ExecServerEvent =
       execId: string;
       command: string;
       workingDir: string;
+      timeout: number;
+      isBackground: boolean;
+      hardTimeout: number;
     }
   | {
       kind: "exec_bg_shell";
@@ -828,6 +800,9 @@ export type ExecServerEvent =
       execId: string;
       command: string;
       workingDir: string;
+      timeout: number;
+      isBackground: boolean;
+      hardTimeout: number;
     }
   | { kind: "exec_fetch"; execMsgId: number; execId: string; url: string }
   | { kind: "exec_write_shell_stdin"; execMsgId: number; execId: string }
@@ -840,6 +815,34 @@ export type ExecServerEvent =
       // args populated by Phase 5 (decodeMcpArgs); empty {} until then.
       args: Record<string, unknown>;
     };
+
+type DecodedShellArgs = {
+  command: string;
+  workingDir: string;
+  timeout: number;
+  isBackground: boolean;
+  hardTimeout: number;
+};
+
+function decodeShellArgs(payload: Buffer): DecodedShellArgs {
+  const decoded: DecodedShellArgs = {
+    command: decodeStringField(payload, ARG_SHELL_COMMAND),
+    workingDir: decodeStringField(payload, ARG_SHELL_WORKING_DIR),
+    timeout: 0,
+    isBackground: false,
+    hardTimeout: 0,
+  };
+  for (const field of decodeFields(payload)) {
+    if (field.wireType !== 0) continue;
+    if (field.fieldNumber === ARG_SHELL_TIMEOUT) decoded.timeout = Number(field.varint);
+    else if (field.fieldNumber === ARG_SHELL_IS_BACKGROUND) {
+      decoded.isBackground = field.varint !== 0n;
+    } else if (field.fieldNumber === ARG_SHELL_HARD_TIMEOUT) {
+      decoded.hardTimeout = Number(field.varint);
+    }
+  }
+  return decoded;
+}
 
 export function decodeExecServerEvent(payload: Buffer): ExecServerEvent | null {
   for (const top of decodeFields(payload)) {
@@ -902,30 +905,33 @@ export function decodeExecServerEvent(payload: Buffer): ExecServerEvent | null {
         return { kind: "exec_grep", execMsgId, execId };
       case ESM_DIAGNOSTICS_ARGS:
         return { kind: "exec_diagnostics", execMsgId, execId };
-      case ESM_SHELL_ARGS:
+      case ESM_SHELL_ARGS: {
+        const shell = decodeShellArgs(variantBytes);
         return {
           kind: "exec_shell",
           execMsgId,
           execId,
-          command: decodeStringField(variantBytes, ARG_SHELL_COMMAND),
-          workingDir: decodeStringField(variantBytes, ARG_SHELL_WORKING_DIR),
+          ...shell,
         };
-      case ESM_SHELL_STREAM_ARGS:
+      }
+      case ESM_SHELL_STREAM_ARGS: {
+        const shell = decodeShellArgs(variantBytes);
         return {
           kind: "exec_shell_stream",
           execMsgId,
           execId,
-          command: decodeStringField(variantBytes, ARG_SHELL_COMMAND),
-          workingDir: decodeStringField(variantBytes, ARG_SHELL_WORKING_DIR),
+          ...shell,
         };
-      case ESM_BACKGROUND_SHELL_SPAWN:
+      }
+      case ESM_BACKGROUND_SHELL_SPAWN: {
+        const shell = decodeShellArgs(variantBytes);
         return {
           kind: "exec_bg_shell",
           execMsgId,
           execId,
-          command: decodeStringField(variantBytes, ARG_SHELL_COMMAND),
-          workingDir: decodeStringField(variantBytes, ARG_SHELL_WORKING_DIR),
+          ...shell,
         };
+      }
       case ESM_FETCH_ARGS:
         return {
           kind: "exec_fetch",

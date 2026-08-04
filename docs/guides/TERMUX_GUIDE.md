@@ -1,7 +1,7 @@
 ---
 title: "Termux Headless Setup"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.49
+lastUpdated: 2026-07-25
 ---
 
 # Termux Headless Setup
@@ -15,10 +15,10 @@ Install Termux from F-Droid or GitHub releases, then update packages and install
 ```bash
 pkg update
 pkg upgrade
-pkg install nodejs-lts python build-essential git
+pkg install nodejs python build-essential git
 ```
 
-> **Node.js version:** OmniRoute requires Node `>=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <27` (per `engines` in `package.json`). Termux's `nodejs-lts` typically ships Node 20 LTS, which is compatible. If `node --version` reports an older line, install `pkg install nodejs` (current) and verify the major matches a supported range.
+> **Node.js version:** OmniRoute requires Node `>=22.22.2 <23 || >=24.0.0 <27` (matches `engines` in `package.json` / `SUPPORTED_NODE_RANGE`). Termux's `nodejs-lts` typically ships Node 20 LTS, which is **no longer supported** — install `pkg install nodejs` (current) instead and verify `node --version` reports a 22.x/24.x+ line.
 
 If native package compilation fails, rerun the `pkg install` command above and then retry the OmniRoute install.
 
@@ -129,12 +129,35 @@ omniroute
 
 ## Troubleshooting
 
+### Unsupported platform: android (every request returns HTTP 500)
+
+**Symptom:** `omniroute` / `omniroute serve` prints `✔ OmniRoute is running!`, but every dashboard or API request returns a bare `500 Internal Server Error`. `~/.omniroute/logs/application/app.log` stays empty, `APP_LOG_LEVEL=debug` prints nothing useful, and the response body is plain text (`Internal Server Error`) with no JSON detail.
+
+**Cause:** Some Termux/Node builds report `process.platform === "android"`. Next.js `getCacheDirectory()` does not handle that platform: it requires `~/.cache` (or a generic tmp dir) to _already_ exist, otherwise it fails while loading the instrumentation hook with:
+
+```text
+Error: An error occurred while loading instrumentation hook: Unsupported platform: android
+```
+
+Because the hook never loads, logging never starts — the 500 looks completely undiagnosable. OmniRoute creates `~/.cache` (and sets `XDG_CACHE_HOME` when unset) in the CLI entrypoint before Next.js starts so this probe succeeds on Android/Termux.
+
+**Supported resolution (no package patching):**
+
+```bash
+mkdir -p ~/.cache
+omniroute serve
+```
+
+On current OmniRoute builds the CLI does this automatically on Android/Termux — a fresh `npx -y omniroute@latest` / global install should not require the manual step. If you still see the error after upgrading, create `~/.cache` once as above and restart.
+
+**Do not** patch `dist/server.js` to force `process.platform = "linux"`. That kind of package patch is overwritten on every reinstall/upgrade and is unnecessary once the cache directory exists.
+
 ### better-sqlite3 Build Errors
 
 Install the Termux build toolchain:
 
 ```bash
-pkg install nodejs-lts python build-essential
+pkg install nodejs python build-essential
 ```
 
 Then rerun:

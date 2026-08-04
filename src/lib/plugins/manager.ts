@@ -13,7 +13,7 @@ import { randomUUID } from "crypto";
 import { logger } from "../../../open-sse/utils/logger.ts";
 import { getDefaultPluginDir, scanPluginDir } from "./scanner";
 import { loadPlugin, type LoadedPlugin } from "./loader";
-import { registerHook, unregisterHooks } from "./hooks";
+import { registerHook, unregisterHooks, emitHook, type HookHandler, type Plugin } from "./hooks";
 import {
   insertPlugin,
   getPluginByName,
@@ -27,6 +27,17 @@ import {
 import type { PluginManifestWithDefaults } from "./manifest";
 
 const log = logger("PLUGIN_MANAGER");
+
+type LifecycleHookName = Extract<
+  keyof Plugin,
+  | "onRequest"
+  | "onResponse"
+  | "onError"
+  | "onInstall"
+  | "onActivate"
+  | "onDeactivate"
+  | "onUninstall"
+>;
 
 /**
  * Compare two semver strings. Returns positive if a > b, negative if a < b, 0 if equal.
@@ -207,6 +218,10 @@ class PluginManager {
         manifest.hooks.onRequest && "onRequest",
         manifest.hooks.onResponse && "onResponse",
         manifest.hooks.onError && "onError",
+        manifest.hooks.onInstall && "onInstall",
+        manifest.hooks.onActivate && "onActivate",
+        manifest.hooks.onDeactivate && "onDeactivate",
+        manifest.hooks.onUninstall && "onUninstall",
       ].filter(Boolean) as string[],
       permissions: manifest.requires.permissions,
       pluginDir: destDir,
@@ -214,6 +229,11 @@ class PluginManager {
     });
 
     log.info("manager.installed", { name, version: manifest.version });
+
+    // Fire onInstall lifecycle hook
+    if (manifest.hooks.onInstall) {
+      await emitHook("onInstall", { name, version: manifest.version, manifest });
+    }
 
     // Auto-activate if enabledByDefault
     if (manifest.enabledByDefault) {
@@ -328,6 +348,10 @@ class PluginManager {
         manifest.hooks.onRequest && "onRequest",
         manifest.hooks.onResponse && "onResponse",
         manifest.hooks.onError && "onError",
+        manifest.hooks.onInstall && "onInstall",
+        manifest.hooks.onActivate && "onActivate",
+        manifest.hooks.onDeactivate && "onDeactivate",
+        manifest.hooks.onUninstall && "onUninstall",
       ].filter(Boolean) as string[],
       permissions: manifest.requires.permissions,
       pluginDir: destDir,
@@ -349,7 +373,12 @@ class PluginManager {
   async activate(name: string): Promise<void> {
     const row = getPluginByName(name);
     if (!row) throw new Error(`Plugin '${name}' not found`);
-    if (row.status === "active") return;
+    // Guard on in-memory state, not DB status. DB status survives a restart but
+    // loadedPlugins/hooks do not, so a DB-only check makes activate() a no-op for
+    // every plugin already marked active — including the loadAll() boot path, whose
+    // whole job is reloading exactly those. Hooks being fail-open, the plugin then
+    // silently enforces nothing while the UI still reports it as active.
+    if (row.status === "active" && this.loadedPlugins.has(name)) return;
 
     const manifest = JSON.parse(row.manifest) as PluginManifestWithDefaults;
 
@@ -364,7 +393,7 @@ class PluginManager {
     const resolvedEntry = await realpath(entryPoint).catch(() => null);
     if (
       !resolvedEntry ||
-      (!resolvedEntry.startsWith(resolvedPluginDir + "/") && resolvedEntry !== resolvedPluginDir)
+      (!resolvedEntry.startsWith(resolvedPluginDir + sep) && resolvedEntry !== resolvedPluginDir)
     ) {
       throw new Error(`Plugin '${name}' entry point escapes plugin directory`);
     }
@@ -372,17 +401,29 @@ class PluginManager {
     try {
       const loaded = await loadPlugin(entryPoint, manifest);
 
-      // Register hooks individually via registerHook
-      const hookNames = ["onRequest", "onResponse", "onError"] as const;
+      const hookNames: LifecycleHookName[] = [
+        "onRequest",
+        "onResponse",
+        "onError",
+        "onInstall",
+        "onActivate",
+        "onDeactivate",
+        "onUninstall",
+      ];
       for (const hookName of hookNames) {
         const handler = loaded.plugin[hookName];
         if (typeof handler === "function") {
-          registerHook(hookName, name, handler as (payload: unknown) => void | Promise<void>);
+          registerHook(hookName, name, handler as HookHandler);
         }
       }
 
       this.loadedPlugins.set(name, loaded);
       updatePluginStatus(name, "active");
+
+      // Fire onActivate lifecycle hook
+      if (manifest.hooks.onActivate) {
+        await emitHook("onActivate", { name, version: manifest.version, manifest });
+      }
 
       log.info("manager.activated", { name });
     } catch (err: any) {
@@ -393,9 +434,22 @@ class PluginManager {
   }
 
   /**
-   * Deactivate a plugin — unregister hooks, update DB.
+   * Deactivate a plugin — fire onDeactivate, unregister hooks, update DB.
+   *
+   * IMPORTANT: onDeactivate MUST fire BEFORE unregisterHooks(name) so the
+   * plugin's own onDeactivate handler is still registered and can execute
+   * cleanup logic. See PR #3473 review finding.
    */
   async deactivate(name: string): Promise<void> {
+    const row = getPluginByName(name);
+    const manifest = row ? (JSON.parse(row.manifest) as PluginManifestWithDefaults) : null;
+
+    // Fire onDeactivate lifecycle hook BEFORE unregistering — plugin's handlers
+    // are still registered at this point so its own onDeactivate can run.
+    if (manifest?.hooks.onDeactivate) {
+      await emitHook("onDeactivate", { name, version: manifest.version, manifest });
+    }
+
     const loaded = this.loadedPlugins.get(name);
     if (loaded) {
       unregisterHooks(name);
@@ -404,6 +458,7 @@ class PluginManager {
     }
 
     updatePluginStatus(name, "inactive");
+
     log.info("manager.deactivated", { name });
   }
 
@@ -414,9 +469,16 @@ class PluginManager {
     const row = getPluginByName(name);
     if (!row) throw new Error(`Plugin '${name}' not found`);
 
+    const manifest = JSON.parse(row.manifest) as PluginManifestWithDefaults;
+
     // Deactivate first if active
     if (row.status === "active") {
       await this.deactivate(name);
+    }
+
+    // Fire onUninstall lifecycle hook (before deleting files)
+    if (manifest.hooks.onUninstall) {
+      await emitHook("onUninstall", { name, version: manifest.version, manifest });
     }
 
     // CRITICAL-2: Assert the pluginDir from DB is within our managed pluginDir root
@@ -463,6 +525,10 @@ class PluginManager {
               discovered.manifest.hooks.onRequest && "onRequest",
               discovered.manifest.hooks.onResponse && "onResponse",
               discovered.manifest.hooks.onError && "onError",
+              discovered.manifest.hooks.onInstall && "onInstall",
+              discovered.manifest.hooks.onActivate && "onActivate",
+              discovered.manifest.hooks.onDeactivate && "onDeactivate",
+              discovered.manifest.hooks.onUninstall && "onUninstall",
             ].filter(Boolean) as string[],
             permissions: discovered.manifest.requires.permissions,
             pluginDir: discovered.pluginDir,

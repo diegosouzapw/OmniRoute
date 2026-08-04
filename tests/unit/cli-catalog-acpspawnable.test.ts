@@ -12,16 +12,15 @@ const ACP_SPAWNABLE_IDS = [
   "codex",
   "claude",
   "goose",
-  "gemini-cli",
   "openclaw",
   "aider",
   "opencode",
   "cline",
-  "qwen",
   "forge",
   "interpreter",
   "cursor-cli",
   "warp",
+  "qwen",
 ];
 
 for (const id of ACP_SPAWNABLE_IDS) {
@@ -45,6 +44,7 @@ const NOT_ACP_SPAWNABLE_IDS = [
   "roo",
   "jcode",
   "deepseek-tui",
+  "codewhale",
   "smelt",
   "pi",
   "hermes-agent",

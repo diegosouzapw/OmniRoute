@@ -324,6 +324,22 @@ function invalidateSocketCache() {
   _cachedActiveSocketTimestamp = 0;
 }
 
+/**
+ * Build the `tailscale up` argument list. When an auth key is provided (e.g. from
+ * the `TAILSCALE_AUTHKEY` env var) it is passed via `--auth-key=` so a
+ * pre-authenticated / headless daemon logs in non-interactively instead of waiting
+ * for (and timing out on) an interactive auth URL. (#1263) The key is an argv
+ * element passed to `spawn(binary, args)` with no shell, so it is not shell-interpolated.
+ */
+export function tailscaleUpArgs(hostname?: string, authKey?: string): string[] {
+  return [
+    "up",
+    "--accept-routes",
+    ...(hostname ? [`--hostname=${hostname}`] : []),
+    ...(authKey ? [`--auth-key=${authKey}`] : []),
+  ];
+}
+
 async function buildTailscaleArgs(...args: string[]) {
   if (IS_WINDOWS) return args;
   const socket = await getActiveSocketPath();
@@ -619,11 +635,8 @@ export async function startTailscaleLogin({
   }
 
   const resolvedHostname = toNonEmptyString(hostname) || (await getDefaultHostname());
-  const spawnArgs = await buildTailscaleArgs(
-    "up",
-    "--accept-routes",
-    ...(resolvedHostname ? [`--hostname=${resolvedHostname}`] : [])
-  );
+  const authKey = toNonEmptyString(process.env.TAILSCALE_AUTHKEY);
+  const spawnArgs = await buildTailscaleArgs(...tailscaleUpArgs(resolvedHostname, authKey));
 
   return new Promise((resolve, reject) => {
     const child = spawn(resolution.binaryPath as string, spawnArgs, {

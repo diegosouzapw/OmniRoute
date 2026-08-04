@@ -1,0 +1,37 @@
+[
+  {
+    "name": "openai-to-claude/basic-chat",
+    "sourceFormat": "openai",
+    "targetFormat": "claude",
+    "input": {
+      "model": "claude-opus-4-5",
+      "messages": [{ "role": "user", "content": "hi" }]
+    }
+  },
+  {
+    "name": "openai-to-claude/with-system",
+    "sourceFormat": "openai",
+    "targetFormat": "claude",
+    "input": {
+      "model": "claude-sonnet-4-6",
+      "messages": [
+        { "role": "system", "content": "You are a helpful assistant." },
+        { "role": "user", "content": "Hello!" }
+      ],
+      "max_tokens": 1024
+    }
+  },
+  {
+    "name": "openai-to-claude/multi-turn",
+    "sourceFormat": "openai",
+    "targetFormat": "claude",
+    "input": {
+      "model": "claude-haiku-4-5",
+      "messages": [
+        { "role": "user", "content": "What is 2+2?" },
+        { "role": "assistant", "content": "4" },
+        { "role": "user", "content": "And 3+3?" }
+      ]
+    }
+  }
+]

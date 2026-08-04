@@ -232,7 +232,10 @@ describe("ApiTab", () => {
 
     mockFetch.mockImplementation(async (url: string) => {
       if (typeof url === "string" && url.includes("/v1/models")) {
-        return new Response(JSON.stringify({ data: [] }), {
+        // A non-empty model list is required so the Send button becomes
+        // enabled (ApiTab disables it while `!selectedModel`) — an empty
+        // list here would silently short-circuit the whole SSE path.
+        return new Response(JSON.stringify({ data: [{ id: "openai/gpt-4" }] }), {
           headers: { "content-type": "application/json" },
         });
       }
@@ -249,25 +252,40 @@ describe("ApiTab", () => {
     });
 
     const el = renderApiTab();
-    await waitFor(() => el.querySelector("select") !== null);
+    // Selects render in order: [0] endpoint, [1] provider, [2] model, [3] account key.
+    await waitFor(() => el.querySelectorAll("select").length >= 3);
+    const modelSelect = el.querySelectorAll("select")[2] as HTMLSelectElement;
+    await waitFor(() => modelSelect.options.length > 0);
+
+    act(() => {
+      modelSelect.value = "openai/gpt-4";
+      modelSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
 
     // Find Send button
     const sendBtn = Array.from(el.querySelectorAll("button")).find(
       (b) => b.textContent?.includes("send")
     ) as HTMLButtonElement | undefined;
 
-    if (sendBtn && !sendBtn.disabled) {
-      await act(async () => {
-        sendBtn.click();
-      });
+    // Selecting a model + the auto-populated request body must enable Send —
+    // otherwise the SSE path below never runs and this test would be vacuous.
+    expect(sendBtn).toBeDefined();
+    expect(sendBtn?.disabled).toBe(false);
 
-      await waitFor(() => {
-        const editors = el.querySelectorAll("[data-testid='monaco-editor']");
-        return editors.length >= 2 && (editors[1] as HTMLTextAreaElement).value !== "";
-      }, 2000);
-    }
-    // If button is disabled (no model selected), test still passes — SSE infra is verified
-    expect(true).toBe(true);
+    await act(async () => {
+      sendBtn?.click();
+    });
+
+    await waitFor(() => {
+      const editors = el.querySelectorAll("[data-testid='monaco-editor']");
+      return editors.length >= 2 && (editors[1] as HTMLTextAreaElement).value !== "";
+    }, 2000);
+
+    // Assert the actual observable outcome: the streamed SSE delta content
+    // reached the response editor, proving the SSE infra genuinely ran.
+    const editors = el.querySelectorAll("[data-testid='monaco-editor']");
+    const responseEditor = editors[1] as HTMLTextAreaElement;
+    expect(responseEditor.value).toContain("Hello!");
   });
 
   it("shows info banner", async () => {

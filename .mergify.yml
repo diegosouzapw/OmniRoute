@@ -1,0 +1,74 @@
+# Mergify merge queue — WS3.4/D5 of the v3.8.49 quality/velocity master plan.
+#
+# WHY: ~85-100 active PR authors/month and 300+ PRs/week peaks, all merged by ONE
+# identity. The manual merge-train validated batches by hand; this queue automates
+# it with batching + automatic batch bisection (a red batch of N costs ~log2(N)
+# revalidations instead of N). Mergify Open Source plan: free, unlimited, public repo.
+#
+# GOVERNANCE (non-negotiable, mirrors CLAUDE.md Hard Rules #21/#22 + the owner's
+# pre-merge ⭐ gate):
+#   • A PR enters the queue ONLY via the `queue` label — applied by the owner (or a
+#     session acting for the owner) AFTER the pre-merge ⭐ report/decision. The label
+#     IS the merge approval; Mergify only executes it.
+#   • During a release-freeze (open issue labeled `release-freeze`), do NOT label PRs
+#     targeting the frozen branch — the freeze is a human-honored coordination signal
+#     the queue cannot see. Retarget to the active release/vX+1 first (Hard Rule #21).
+#   • Never label a PR another session is actively working (Hard Rule #22b).
+#   • Fallback path if Mergify misbehaves or the OSS plan changes: the manual
+#     merge-train runbook (docs/ops/MERGE_TRAIN.md) — remove labels, proceed by hand.
+
+# Auto-enqueue (current Mergify model, 2026): auto_merge_conditions in
+# merge_protections_settings — the rules-based queue action / autoqueue path is
+# deprecated (EOL 2026-07-16). The owner-applied `queue` label IS the approval.
+merge_protections_settings:
+  auto_merge_conditions:
+    - label = queue
+
+queue_rules:
+  - name: release
+    # Any current or future release branch — the reason GitHub's native queue was
+    # rejected (no wildcard support on personal-account repos).
+    queue_conditions:
+      - base~=^release/v\d+\.\d+\.\d+$
+      - label=queue
+      - -draft
+      - -conflict
+    # "Everything that ran is green, nothing still running, AND the always-on
+    # anchor check succeeded" — robust to the path-filtered fast-gates (docs-only
+    # PRs skip code jobs; matrix shard names vary) while never fail-open: a PR with
+    # zero checks cannot vacuously merge, because `Merge integrity` runs on EVERY
+    # non-draft PR (quality.yml) and must be an affirmative success. Review approval
+    # is intentionally NOT a condition here: the owner-applied `queue` label IS the
+    # approval in this repo's single-maintainer model (see governance header).
+    merge_conditions:
+      # "Zero failures" — EXCEPT the advisory "Build (advisory)" job (quality.yml):
+      # continue-on-error by design, and its GH-hosted Turbopack build hangs
+      # recurrently mid-"Creating an optimized production build" (100% failure rate
+      # across every sampled PR since the job was added 2026-07-27, always killed by
+      # a runner timeout/shutdown signal, never a real compile error). Any OTHER
+      # failure still blocks (anti-fail-open kept). The prior dast-smoke exception
+      # (#7225) was dropped here: dast-smoke's hang (#7226) has been dormant for
+      # weeks (0 failures in the last 30 runs; 2 all-time, none since 2026-07-13) —
+      # carrying its tolerance forward would mask problems it no longer causes.
+      - or:
+          - "#check-failure=0"
+          - and:
+              - "#check-failure=1"
+              - check-failure=Build (advisory)
+      - "#check-pending=0"
+      - "#check-success>=1"
+      - check-success=Merge integrity (changelog + generated skills)
+    # NO batching: 'Merge Queue Batch' requires a paid Mergify tier (live finding
+    # 2026-07-15 — the queue command fails with "Cannot use Merge Queue batch" on
+    # the free plan). Serial queue (1 PR at a time) still automates the train.
+    # Squash keeps the one-commit-per-PR history the CHANGELOG reconciliation expects.
+    merge_method: squash
+
+pull_request_rules:
+  - name: clean up the queue label after merge
+    conditions:
+      - merged
+    actions:
+      label:
+        remove:
+          - queue

@@ -1,13 +1,13 @@
 ---
 title: "Tunnels Guide"
-version: 3.8.2
-lastUpdated: 2026-05-13
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Tunnels Guide
 
 > **Source of truth:** `src/lib/{cloudflaredTunnel,ngrokTunnel,tailscaleTunnel}.ts`, `src/app/api/tunnels/`
-> **Last updated:** 2026-05-13 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 
 OmniRoute can expose its local server (`http://localhost:20128`) to the public
 internet via three tunnel backends. This is useful for:
@@ -217,6 +217,11 @@ When you expose OmniRoute through a tunnel, the dashboard and OAuth flows must
 build callback URLs against the **public** hostname, not `localhost`. Otherwise
 the OAuth provider redirects the user back to a URL its servers cannot reach,
 and the handshake fails.
+
+Dashboard edits and settings saves do not require pinning the tunnel hostname in
+`NEXT_PUBLIC_BASE_URL`. The authenticated dashboard sends same-origin unsafe
+requests with a session-bound CSRF token, so ephemeral Cloudflare Quick Tunnel
+hosts can still be used for normal UI management after logging in.
 
 Set:
 

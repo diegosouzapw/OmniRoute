@@ -31,7 +31,7 @@ export default function ErrorPageScaffold({
 
   return (
     <main
-      className="min-h-screen bg-bg text-text-main flex items-center justify-center px-6 py-12"
+      className="min-h-screen text-text-main flex items-center justify-center px-6 py-12"
       role="main"
       aria-labelledby="error-page-title"
     >

@@ -1,0 +1,269 @@
+<svg viewBox="0 0 1200 650" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute request flow — auto-fallback cascade across 4 provider tiers">
+  <defs>
+    <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#e54d5e" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGlow" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.13"/>
+      <stop offset="60%" stop-color="#6366f1" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cardGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#161b22" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#161b22" stop-opacity="1"/>
+    </linearGradient>
+
+    <!-- request path: IDE → router -->
+    <path id="pIn" d="M 600,92 L 600,170"/>
+    <!-- fan-out: router → 4 tiers -->
+    <path id="pT1" d="M 420,290 C 420,332 162,330 162,370"/>
+    <path id="pT2" d="M 540,290 C 540,336 454,336 454,370"/>
+    <path id="pT3" d="M 660,290 C 660,336 746,336 746,370"/>
+    <path id="pT4" d="M 780,290 C 780,332 1038,330 1038,370"/>
+    <!-- cascade arrows under the tier cards -->
+    <path id="pC1" d="M 180,548 L 428,548"/>
+    <path id="pC2" d="M 472,548 L 720,548"/>
+    <path id="pC3" d="M 764,548 L 1012,548"/>
+    <linearGradient id="gradBrand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e54d5e"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <pattern id="gridPaper" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="650" fill="#0b0e14"/>
+  <rect width="1200" height="650" fill="url(#gridPaper)"/>
+  <rect width="1200" height="650" fill="url(#bgGlow)"/>
+
+  <!-- ═══ IDE / CLI card ═══ -->
+  <rect x="330" y="28" width="540" height="64" rx="14" fill="url(#cardGrad)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <g transform="translate(362, 60)" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M -8 -7 L -1 0 L -8 7"/>
+    <line x1="3" y1="7" x2="11" y2="7"/>
+  </g>
+  <text x="392" y="55" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" font-weight="700" fill="#F7F6FC">Your IDE / CLI</text>
+  <text x="392" y="76" font-family="Consolas, 'Courier New', monospace" font-size="11" fill="#a1a1aa"><tspan fill="#8b5cf6">Claude Code · Cursor · Cline</tspan> · every AI tool</text>
+  <circle cx="838" cy="60" r="4" fill="#8b5cf6">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- request pipe + endpoint label -->
+  <use href="#pIn" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="3 5" opacity="0.4"/>
+  <text x="614" y="137" font-family="Consolas, 'Courier New', monospace" font-size="11" fill="#8b5cf6">http://localhost:20128/v1</text>
+  <g fill="#a78bfa">
+    <circle r="3.2">
+      <animateMotion dur="1.6s" repeatCount="indefinite" begin="0s"><mpath href="#pIn"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.6s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.2">
+      <animateMotion dur="1.6s" repeatCount="indefinite" begin="0.55s"><mpath href="#pIn"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.6s" begin="0.55s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="3.2">
+      <animateMotion dur="1.6s" repeatCount="indefinite" begin="1.1s"><mpath href="#pIn"/></animateMotion>
+      <animate attributeName="opacity" values="0;1;1;0" dur="1.6s" begin="1.1s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- ═══ Router card ═══ -->
+  <rect x="240" y="170" width="720" height="120" rx="14" fill="url(#cardGrad)" stroke="#8b5cf6" stroke-width="1.2" stroke-opacity="0.45"/>
+  <!-- mini hub glyph -->
+  <g transform="translate(258, 188)">
+    <circle cx="42" cy="42" r="34" fill="none" stroke="#e54d5e" stroke-width="1" opacity="0.35" stroke-dasharray="3 7">
+      <animateTransform attributeName="transform" type="rotate" from="0 42 42" to="360 42 42" dur="30s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="42" cy="42" r="24" fill="url(#hubGlow)">
+      <animate attributeName="r" values="22;30;22" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+    <g stroke="#e54d5e" stroke-width="5" stroke-linecap="round" fill="none">
+      <line x1="22" y1="42" x2="38" y2="42"/>
+      <path d="M 39 42 C 52 42, 54 26, 66 24"/>
+      <path d="M 39 42 C 54 42, 56 42, 68 42"/>
+      <path d="M 39 42 C 52 42, 54 58, 66 60"/>
+    </g>
+    <circle cx="39" cy="42" r="5" fill="#f7f6fc">
+      <animate attributeName="opacity" values="1;0.7;1" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <text x="364" y="216" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="20" font-weight="800" fill="url(#gradBrand)">OmniRoute — Smart Router</text>
+  <text x="364" y="243" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa"><tspan fill="#8b5cf6">RTK + Caveman compression</tspan> · <tspan fill="#8b5cf6">18 routing strategies</tspan></text>
+  <text x="364" y="264" font-family="Consolas, 'Courier New', monospace" font-size="11.5" fill="#a1a1aa">Circuit breakers · TLS stealth · MCP · A2A · Guardrails</text>
+
+  <!-- fan-out topology (always visible) -->
+  <g stroke="#6366f1" stroke-width="1.2" fill="none" stroke-dasharray="3 5" opacity="0.35">
+    <use href="#pT1"/><use href="#pT2"/><use href="#pT3"/><use href="#pT4"/>
+  </g>
+
+  <!-- ═══ Act-windowed request dots: router → active tier ═══
+       16s cycle · act1 0–.23 · act2 .25–.48 · act3 .50–.73 · act4 .75–.985 -->
+  <g fill="#8b5cf6">
+    <g>
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.23;0.27;0.96;1" dur="16s" repeatCount="indefinite"/>
+      <circle r="3.5">
+        <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#pT1"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="3.5">
+        <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.7s"><mpath href="#pT1"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.7s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+    <g>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.24;0.28;0.48;0.52;1" dur="16s" repeatCount="indefinite"/>
+      <circle r="3.5">
+        <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#pT2"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="3.5">
+        <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.7s"><mpath href="#pT2"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.7s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+    <g>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.49;0.53;0.73;0.77;1" dur="16s" repeatCount="indefinite"/>
+      <circle r="3.5">
+        <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#pT3"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="3.5">
+        <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.7s"><mpath href="#pT3"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.7s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+    <g>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.74;0.78;0.985;1" dur="16s" repeatCount="indefinite"/>
+      <circle r="3.5">
+        <animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#pT4"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+      </circle>
+      <circle r="3.5">
+        <animateMotion dur="1.4s" repeatCount="indefinite" begin="0.7s"><mpath href="#pT4"/></animateMotion>
+        <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" begin="0.7s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+  </g>
+
+  <!-- ═══ TIER 1 · SUBSCRIPTION ═══ -->
+  <g transform="translate(31, 370)">
+    <rect width="262" height="140" rx="14" fill="url(#cardGrad)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <rect width="262" height="140" rx="14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0.9">
+      <animate attributeName="stroke-opacity" values="0.9;0.9;0;0;0.9" keyTimes="0;0.23;0.27;0.96;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="18" y="30" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">TIER 1 · SUBSCRIPTION</text>
+    <circle cx="240" cy="26" r="4.5">
+      <animate attributeName="fill" values="#22c55e;#22c55e;#ef4444;#ef4444;#22c55e" keyTimes="0;0.23;0.28;0.985;1" dur="16s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.45;1" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <line x1="18" y1="44" x2="244" y2="44" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#F7F6FC">
+      <text x="18" y="70">Claude Code</text>
+      <text x="18" y="94">Codex</text>
+      <text x="18" y="118">Copilot</text>
+    </g>
+  </g>
+
+  <!-- ═══ TIER 2 · API KEY ═══ -->
+  <g transform="translate(323, 370)">
+    <rect width="262" height="140" rx="14" fill="url(#cardGrad)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <rect width="262" height="140" rx="14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0">
+      <animate attributeName="stroke-opacity" values="0;0;0.9;0.9;0;0" keyTimes="0;0.24;0.28;0.48;0.52;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="18" y="30" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">TIER 2 · API KEY</text>
+    <circle cx="240" cy="26" r="4.5">
+      <animate attributeName="fill" values="#71717a;#71717a;#22c55e;#22c55e;#ef4444;#ef4444;#71717a" keyTimes="0;0.24;0.28;0.48;0.53;0.985;1" dur="16s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <line x1="18" y1="44" x2="244" y2="44" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#F7F6FC">
+      <text x="18" y="70">DeepSeek</text>
+      <text x="18" y="94">Groq</text>
+      <text x="18" y="118">xAI</text>
+    </g>
+  </g>
+
+  <!-- ═══ TIER 3 · CHEAP ═══ -->
+  <g transform="translate(615, 370)">
+    <rect width="262" height="140" rx="14" fill="url(#cardGrad)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <rect width="262" height="140" rx="14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0">
+      <animate attributeName="stroke-opacity" values="0;0;0.9;0.9;0;0" keyTimes="0;0.49;0.53;0.73;0.77;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="18" y="30" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">TIER 3 · CHEAP</text>
+    <circle cx="240" cy="26" r="4.5">
+      <animate attributeName="fill" values="#71717a;#71717a;#22c55e;#22c55e;#ef4444;#ef4444;#71717a" keyTimes="0;0.49;0.53;0.73;0.78;0.985;1" dur="16s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <line x1="18" y1="44" x2="244" y2="44" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#F7F6FC">
+      <text x="18" y="70">GLM <tspan font-family="Consolas, monospace" font-size="12" fill="#8b5cf6">$0.5</tspan></text>
+      <text x="18" y="94">MiniMax <tspan font-family="Consolas, monospace" font-size="12" fill="#8b5cf6">$0.2</tspan></text>
+    </g>
+  </g>
+
+  <!-- ═══ TIER 4 · FREE ═══ -->
+  <g transform="translate(907, 370)">
+    <rect width="262" height="140" rx="14" fill="url(#cardGrad)" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <rect width="262" height="140" rx="14" fill="none" stroke="#22c55e" stroke-width="1.4" stroke-opacity="0">
+      <animate attributeName="stroke-opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.74;0.78;0.985;1" dur="16s" repeatCount="indefinite"/>
+    </rect>
+    <text x="18" y="30" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="#a78bfa">TIER 4 · FREE</text>
+    <circle cx="240" cy="26" r="4.5" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.45;1" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <line x1="18" y1="44" x2="244" y2="44" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#F7F6FC">
+      <text x="18" y="70">Kiro</text>
+      <text x="18" y="94">Qoder</text>
+      <text x="18" y="118">Pollinations</text>
+    </g>
+  </g>
+
+  <!-- ═══ Cascade arrows + transition labels ═══ -->
+  <g stroke="#71717a" stroke-width="1.2" fill="none" stroke-dasharray="3 5" opacity="0.7">
+    <use href="#pC1"/><use href="#pC2"/><use href="#pC3"/>
+  </g>
+  <polygon points="428,544 436,548 428,552" fill="#71717a"/>
+  <polygon points="720,544 728,548 720,552" fill="#71717a"/>
+  <polygon points="1012,544 1020,548 1012,552" fill="#71717a"/>
+
+  <text x="304" y="536" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2" font-weight="700" fill="#71717a" text-anchor="middle">
+    quota out?
+    <animate attributeName="fill" values="#71717a;#71717a;#ef4444;#ef4444;#71717a;#71717a" keyTimes="0;0.21;0.23;0.29;0.32;1" dur="16s" repeatCount="indefinite"/>
+  </text>
+  <text x="596" y="536" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2" font-weight="700" fill="#71717a" text-anchor="middle">
+    budget hit?
+    <animate attributeName="fill" values="#71717a;#71717a;#ef4444;#ef4444;#71717a;#71717a" keyTimes="0;0.46;0.48;0.54;0.57;1" dur="16s" repeatCount="indefinite"/>
+  </text>
+  <text x="888" y="536" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2" font-weight="700" fill="#71717a" text-anchor="middle">
+    budget hit?
+    <animate attributeName="fill" values="#71717a;#71717a;#ef4444;#ef4444;#71717a;#71717a" keyTimes="0;0.71;0.73;0.79;0.82;1" dur="16s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- coral hand-off dots riding the cascade arrows at each transition -->
+  <circle r="3.5" fill="#ef4444">
+    <animateMotion dur="16s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.235;0.27;1"><mpath href="#pC1"/></animateMotion>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.235;0.245;0.265;0.275;1" dur="16s" repeatCount="indefinite"/>
+  </circle>
+  <circle r="3.5" fill="#ef4444">
+    <animateMotion dur="16s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.485;0.52;1"><mpath href="#pC2"/></animateMotion>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.485;0.495;0.515;0.525;1" dur="16s" repeatCount="indefinite"/>
+  </circle>
+  <circle r="3.5" fill="#ef4444">
+    <animateMotion dur="16s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.735;0.77;1"><mpath href="#pC3"/></animateMotion>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.735;0.745;0.765;0.775;1" dur="16s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ALWAYS ON badge under Tier 4 -->
+  <g transform="translate(986, 566)">
+    <rect width="104" height="24" rx="12" fill="#161b22" stroke="#22c55e" stroke-width="1" stroke-opacity="0.6"/>
+    <circle cx="16" cy="12" r="3" fill="#22c55e">
+      <animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/>
+    </circle>
+    <text x="60" y="16" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="2" font-weight="700" fill="#22c55e">ALWAYS ON</text>
+  </g>
+
+  <!-- footer -->
+  <text x="600" y="625" font-family="Consolas, 'Courier New', monospace" font-size="11" letter-spacing="4" font-weight="700" fill="#71717a" text-anchor="middle">AUTO-FALLBACK CASCADE · NEVER STOP CODING</text>
+</svg>

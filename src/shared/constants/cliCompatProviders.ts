@@ -7,8 +7,6 @@ export const IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS = [
   "codex",
   "github",
   "antigravity",
-  "gemini-cli",
-  "qwen",
 ] as const;
 
 export const CLI_COMPAT_DISPLAY_PROVIDER_IDS = [
@@ -16,8 +14,6 @@ export const CLI_COMPAT_DISPLAY_PROVIDER_IDS = [
   "codex",
   "copilot",
   "antigravity",
-  "gemini-cli",
-  "qwen",
 ] as const;
 
 /**
@@ -82,13 +78,5 @@ export const CLI_COMPAT_PROVIDER_DISPLAY: Record<
   antigravity: {
     name: "Antigravity",
     description: "Google Antigravity IDE compatibility",
-  },
-  "gemini-cli": {
-    name: "Gemini CLI",
-    description: "Google Gemini CLI compatibility",
-  },
-  qwen: {
-    name: "Qwen Code / Qoder",
-    description: "Qwen Code and Qoder CLI compatibility",
   },
 };

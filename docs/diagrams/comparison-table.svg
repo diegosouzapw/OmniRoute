@@ -1,0 +1,138 @@
+<svg viewBox="0 0 1200 780" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison table: OmniRoute versus 9router, OpenRouter, CLIProxyAPI and LiteLLM across 13 capabilities. OmniRoute is the only one with the full set: 290 providers, 90+ free providers built-in, 19 routing strategies, 12-engine token compression, a built-in MCP server with 104 tools, A2A protocol, persistent memory, guardrails, cloud agents, TLS fingerprint stealth, desktop/Termux/PWA, 43 UI locales and 100% MIT self-hosted. 9router has free providers, RTK compression and translation but no MCP, A2A, memory, guardrails, cloud agents or stealth. OpenRouter is a hosted SaaS with 400+ models, guardrails and a hosted MCP but is not self-hosted and lacks A2A, memory, cloud agents and stealth. CLIProxyAPI is a light OAuth proxy with two routing strategies. LiteLLM has 100+ providers, A2A and extensive guardrails but no memory, compression, free tier, stealth or cloud agents.">
+  <desc>Static-header comparison table where each capability row fades in top to bottom; the OmniRoute column is highlighted and shows a check or a leading value in every row, while competitors show a mix of checks, partials and crosses.</desc>
+  <defs>
+    <pattern id="gC" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.05" stroke-width="1"/></pattern>
+    <radialGradient id="gGlow" cx="30%" cy="10%" r="60%"><stop offset="0%" stop-color="#7ee787" stop-opacity="0.10"/><stop offset="60%" stop-color="#00cec9" stop-opacity="0.04"/><stop offset="100%" stop-color="#6366f1" stop-opacity="0"/></radialGradient>
+    <g id="yes"><circle r="11" fill="#7ee787" fill-opacity="0.14"/><path d="M -5 0.3 L -1.6 3.7 L 5.4 -4" stroke="#7ee787" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <g id="no"><circle r="11" fill="#6e7681" fill-opacity="0.10"/><path d="M -3.8 -3.8 L 3.8 3.8 M 3.8 -3.8 L -3.8 3.8" stroke="#6e7681" stroke-width="2.1" stroke-linecap="round"/></g>
+    <g id="mid"><circle r="11" fill="#fdcb6e" fill-opacity="0.13"/><path d="M -4.6 0 L 4.6 0" stroke="#fdcb6e" stroke-width="2.4" stroke-linecap="round"/></g>
+  </defs>
+  <rect width="1200" height="780" fill="#0b0e14"/>
+  <rect width="1200" height="780" fill="url(#gC)"/>
+  <rect width="1200" height="780" fill="url(#gGlow)"/>
+  <text x="44" y="54" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#7ee787">WHAT SETS OMNIROUTE APART</text>
+  <line x1="330" y1="49" x2="1156" y2="49" stroke="#232b38" stroke-width="1.5"/>
+  <text x="44" y="96" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="23" font-weight="600" fill="#c9d1d9">Every router does routing. <tspan fill="#7ee787" font-weight="800">OmniRoute does the whole platform.</tspan></text>
+  <rect x="352" y="126" width="176" height="606" rx="12" fill="#7ee787" fill-opacity="0.07" stroke="#7ee787" stroke-opacity="0.5" stroke-width="1.5"/>
+  <text x="440" y="150" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15.5" font-weight="800" fill="#7ee787">OmniRoute</text>
+  <text x="604" y="150" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="14" font-weight="600" fill="#8b949e">9router</text>
+  <text x="760" y="150" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="14" font-weight="600" fill="#8b949e">OpenRouter</text>
+  <text x="916" y="150" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="14" font-weight="600" fill="#8b949e">CLIProxyAPI</text>
+  <text x="1080" y="150" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="14" font-weight="600" fill="#8b949e">LiteLLM</text>
+  <line x1="44" y1="162" x2="1156" y2="162" stroke="#232b38" stroke-width="1.5"/>
+  <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif">
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.15s" fill="freeze"/>
+      <text x="44" y="196" font-size="14.5" fill="#c9d1d9">Providers</text>
+      <text x="440" y="196" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15" font-weight="800" fill="#7ee787">290</text>
+      <text x="604" y="196" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">40+</text>
+      <text x="760" y="196" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">400+*</text>
+      <text x="916" y="196" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">~5</text>
+      <text x="1080" y="196" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">100+</text>
+    </g>
+    <rect x="36" y="212" width="1128" height="42" rx="6" fill="#ffffff" fill-opacity="0.02"/>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.24s" fill="freeze"/>
+      <text x="44" y="238" font-size="14.5" fill="#c9d1d9">Free providers built-in</text>
+      <text x="440" y="238" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15" font-weight="800" fill="#7ee787">90+</text>
+      <use href="#yes" x="604" y="233"/>
+      <use href="#mid" x="760" y="233"/>
+      <use href="#no" x="916" y="233"/>
+      <use href="#no" x="1080" y="233"/>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.33s" fill="freeze"/>
+      <text x="44" y="280" font-size="14.5" fill="#c9d1d9">Routing strategies</text>
+      <text x="440" y="280" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15" font-weight="800" fill="#7ee787">19</text>
+      <text x="604" y="280" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">2</text>
+      <text x="760" y="280" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">3</text>
+      <text x="916" y="280" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">2</text>
+      <text x="1080" y="280" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">6</text>
+    </g>
+    <rect x="36" y="296" width="1128" height="42" rx="6" fill="#ffffff" fill-opacity="0.02"/>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.42s" fill="freeze"/>
+      <text x="44" y="322" font-size="14.5" fill="#c9d1d9">Token compression</text>
+      <text x="440" y="322" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15" font-weight="800" fill="#7ee787">12 eng</text>
+      <use href="#yes" x="604" y="317"/>
+      <use href="#mid" x="760" y="317"/>
+      <use href="#no" x="916" y="317"/>
+      <use href="#no" x="1080" y="317"/>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.51s" fill="freeze"/>
+      <text x="44" y="364" font-size="14.5" fill="#c9d1d9">Built-in MCP server (own tools)</text>
+      <text x="440" y="364" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15" font-weight="800" fill="#7ee787">104</text>
+      <use href="#no" x="604" y="359"/>
+      <use href="#mid" x="760" y="359"/>
+      <use href="#no" x="916" y="359"/>
+      <use href="#mid" x="1080" y="359"/>
+    </g>
+    <rect x="36" y="380" width="1128" height="42" rx="6" fill="#ffffff" fill-opacity="0.02"/>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.60s" fill="freeze"/>
+      <text x="44" y="406" font-size="14.5" fill="#c9d1d9">A2A agent protocol</text>
+      <use href="#yes" x="440" y="401"/>
+      <use href="#no" x="604" y="401"/>
+      <use href="#no" x="760" y="401"/>
+      <use href="#no" x="916" y="401"/>
+      <use href="#yes" x="1080" y="401"/>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.69s" fill="freeze"/>
+      <text x="44" y="448" font-size="14.5" fill="#c9d1d9">Persistent memory</text>
+      <use href="#yes" x="440" y="443"/>
+      <use href="#no" x="604" y="443"/>
+      <use href="#no" x="760" y="443"/>
+      <use href="#no" x="916" y="443"/>
+      <use href="#no" x="1080" y="443"/>
+    </g>
+    <rect x="36" y="464" width="1128" height="42" rx="6" fill="#ffffff" fill-opacity="0.02"/>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.78s" fill="freeze"/>
+      <text x="44" y="490" font-size="14.5" fill="#c9d1d9">Guardrails (PII / injection)</text>
+      <use href="#yes" x="440" y="485"/>
+      <use href="#no" x="604" y="485"/>
+      <use href="#yes" x="760" y="485"/>
+      <use href="#no" x="916" y="485"/>
+      <use href="#yes" x="1080" y="485"/>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.87s" fill="freeze"/>
+      <text x="44" y="532" font-size="14.5" fill="#c9d1d9">Cloud agents (Codex/Devin/Jules)</text>
+      <use href="#yes" x="440" y="527"/>
+      <use href="#no" x="604" y="527"/>
+      <use href="#no" x="760" y="527"/>
+      <use href="#no" x="916" y="527"/>
+      <use href="#no" x="1080" y="527"/>
+    </g>
+    <rect x="36" y="548" width="1128" height="42" rx="6" fill="#ffffff" fill-opacity="0.02"/>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="0.96s" fill="freeze"/>
+      <text x="44" y="574" font-size="14.5" fill="#c9d1d9">TLS fingerprint stealth (JA3/JA4)</text>
+      <use href="#yes" x="440" y="569"/>
+      <use href="#no" x="604" y="569"/>
+      <use href="#no" x="760" y="569"/>
+      <use href="#no" x="916" y="569"/>
+      <use href="#no" x="1080" y="569"/>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="1.05s" fill="freeze"/>
+      <text x="44" y="616" font-size="14.5" fill="#c9d1d9">Desktop · Termux · PWA</text>
+      <use href="#yes" x="440" y="611"/>
+      <use href="#mid" x="604" y="611"/>
+      <use href="#mid" x="760" y="611"/>
+      <use href="#mid" x="916" y="611"/>
+      <use href="#mid" x="1080" y="611"/>
+    </g>
+    <rect x="36" y="632" width="1128" height="42" rx="6" fill="#ffffff" fill-opacity="0.02"/>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="1.14s" fill="freeze"/>
+      <text x="44" y="658" font-size="14.5" fill="#c9d1d9">i18n UI locales</text>
+      <text x="440" y="658" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15" font-weight="800" fill="#7ee787">43</text>
+      <text x="604" y="658" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">6</text>
+      <use href="#no" x="760" y="653"/>
+      <use href="#no" x="916" y="653"/>
+      <use href="#no" x="1080" y="653"/>
+    </g>
+    <g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="1.23s" fill="freeze"/>
+      <text x="44" y="700" font-size="14.5" fill="#c9d1d9">Self-hosted · 100% MIT</text>
+      <text x="440" y="700" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="15" font-weight="800" fill="#7ee787">MIT</text>
+      <text x="604" y="700" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">MIT</text>
+      <use href="#no" x="760" y="695"/>
+      <text x="916" y="700" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#8b949e">MIT</text>
+      <text x="1080" y="700" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13.5" font-weight="600" fill="#fdcb6e">open-core</text>
+    </g>
+  </g>
+  <line x1="44" y1="728" x2="1156" y2="728" stroke="#232b38" stroke-width="1.5"/>
+  <text x="44" y="750" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">full &#8226; partial &#8226; none&#160;&#160;·&#160;&#160;*OpenRouter counts models &amp; is a hosted SaaS, not self-hosted.</text>
+  <text x="1156" y="750" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" letter-spacing="1.5" fill="#71717a">verified from each project's docs</text>
+</svg>

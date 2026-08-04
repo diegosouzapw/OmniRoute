@@ -27,6 +27,21 @@ interface AttemptState {
 
 const attempts: Map<string, AttemptState> = new Map();
 
+// Above this many tracked IPs, opportunistically drop entries whose window has elapsed and
+// that are not currently locked. Without this the map only ever grew (entries were deleted
+// only on a *successful* login), so every distinct IP that ever failed a login leaked a
+// permanent entry — unbounded under distributed brute-force. Expired/unlocked entries are
+// already treated as "allowed", so removing them never changes a guard decision.
+const PRUNE_THRESHOLD = 256;
+
+function pruneExpiredAttempts(now: number): void {
+  for (const [key, state] of attempts) {
+    const windowElapsed = now - state.firstAttemptAt > WINDOW_MS;
+    const notLocked = !state.lockedUntil || state.lockedUntil <= now;
+    if (windowElapsed && notLocked) attempts.delete(key);
+  }
+}
+
 export interface GuardDecision {
   allowed: boolean;
   retryAfterSeconds?: number;
@@ -65,6 +80,10 @@ export function recordLoginFailure(
   if (!options.enabled) return { allowed: true };
   const key = clientKey(rawIp);
   const now = nowMs();
+
+  // Keep the map from growing without bound as distinct IPs fail logins over time.
+  if (attempts.size > PRUNE_THRESHOLD) pruneExpiredAttempts(now);
+
   const existing = attempts.get(key);
 
   if (!existing || now - existing.firstAttemptAt > WINDOW_MS) {
@@ -97,6 +116,11 @@ export function clearLoginAttempts(rawIp: string | null | undefined): void {
 
 export function resetLoginGuardForTests(): void {
   attempts.clear();
+}
+
+/** Test-only: current number of tracked IP entries. */
+export function getLoginGuardSizeForTests(): number {
+  return attempts.size;
 }
 
 export const LOGIN_GUARD_TUNABLES = Object.freeze({

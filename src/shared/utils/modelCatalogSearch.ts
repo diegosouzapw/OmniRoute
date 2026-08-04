@@ -1,4 +1,4 @@
-export type ModelCatalogSource = "system" | "custom" | "imported" | "fallback" | "alias";
+export type ModelCatalogSource = "system" | "custom" | "imported" | "fallback" | "alias" | "auto";
 
 type ModelCatalogTarget = {
   modelId?: string | null;
@@ -24,6 +24,8 @@ export function normalizeModelCatalogSource(source?: string | null): ModelCatalo
   }
   if (normalized === "fallback") return "fallback";
   if (normalized === "alias") return "alias";
+  // Models discovered live from a custom provider's upstream `/models` endpoint.
+  if (normalized === "auto") return "auto";
   if (normalized === "custom" || normalized === "manual") {
     return "custom";
   }
@@ -41,6 +43,8 @@ export function getModelCatalogSourceLabel(source?: string | null): string {
       return "Fallback";
     case "alias":
       return "Alias";
+    case "auto":
+      return "Auto";
     case "system":
     default:
       return "Built-in";
@@ -57,6 +61,8 @@ function getModelCatalogSourceSearchText(source?: string | null): string {
       return "fallback compatible";
     case "alias":
       return "alias shortcut";
+    case "auto":
+      return "auto fetched discovered upstream";
     case "system":
     default:
       return "built-in builtin official catalog";

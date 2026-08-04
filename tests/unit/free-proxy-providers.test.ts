@@ -29,13 +29,14 @@ test.after(() => {
 
 // ── Registry ─────────────────────────────────────────────────────────────────
 
-test("getAllProviders returns exactly 3 providers", () => {
+test("getAllProviders returns exactly 4 providers", () => {
   const providers = getAllProviders();
-  assert.equal(providers.length, 3);
+  assert.equal(providers.length, 4);
   const ids = providers.map((p) => p.id);
   assert.ok(ids.includes("1proxy"));
   assert.ok(ids.includes("proxifly"));
   assert.ok(ids.includes("iplocate"));
+  assert.ok(ids.includes("webshare"));
 });
 
 test("getProvider returns the correct provider by id", () => {
@@ -232,4 +233,41 @@ test("IplocateProvider.sync returns disabled error when not enabled", async () =
   assert.ok(result.errors.some((e) => e.includes("disabled")));
 
   process.env.FREE_PROXY_IPLOCATE_ENABLED = original ?? "";
+});
+
+test("IplocateProvider.sync parses the plain-text ip:port lists (.txt, not .json) (#5595)", async () => {
+  const original = process.env.FREE_PROXY_IPLOCATE_ENABLED;
+  const originalFetch = globalThis.fetch;
+  process.env.FREE_PROXY_IPLOCATE_ENABLED = "true";
+  await reset();
+
+  const seenUrls: string[] = [];
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    seenUrls.push(String(input));
+    // The iplocate/free-proxy-list repo serves one `ip:port` per line (no JSON).
+    // Include a blank line and a comment to exercise line-skipping.
+    const body = "103.173.141.10:8080\n8.211.49.86:9028\n\n# comment line\n";
+    return new Response(body, { status: 200, headers: { "content-type": "text/plain" } });
+  }) as typeof fetch;
+
+  try {
+    const p = getProvider("iplocate")!;
+    const result = await p.sync();
+    // RED before the fix: the URL ended in `.json` and `res.json()` threw on the
+    // plain-text payload → every protocol errored and 0 proxies were parsed.
+    assert.ok(
+      seenUrls.length > 0 && seenUrls.every((u) => u.endsWith(".txt")),
+      `expected .txt URLs, got: ${seenUrls.join(", ")}`
+    );
+    assert.ok(result.fetched > 0, `expected proxies parsed from the txt list, got ${result.fetched}`);
+    const items = await p.list({ limit: 50 });
+    assert.ok(
+      items.some((i) => i.host === "103.173.141.10" && i.port === 8080),
+      "parsed ip:port must be stored"
+    );
+    assert.ok(items.every((i) => i.source === "iplocate"));
+  } finally {
+    globalThis.fetch = originalFetch;
+    process.env.FREE_PROXY_IPLOCATE_ENABLED = original ?? "";
+  }
 });

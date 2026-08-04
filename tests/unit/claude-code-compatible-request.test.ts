@@ -183,6 +183,80 @@ test("buildClaudeCodeCompatibleRequest prefers existing Claude top-level system 
   ]);
 });
 
+test("buildClaudeCodeCompatibleRequest can request summarized thinking display", () => {
+  const defaultPayload = buildClaudeCodeCompatibleRequest({
+    normalizedBody: {
+      messages: [{ role: "user", content: "hello" }],
+    },
+    model: "claude-opus-4-8",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+  });
+  assert.deepEqual(defaultPayload.thinking, { type: "adaptive" });
+
+  const summarizedDefault = buildClaudeCodeCompatibleRequest({
+    normalizedBody: {
+      messages: [{ role: "user", content: "hello" }],
+    },
+    model: "claude-opus-4-8",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+    summarizeThinking: true,
+  });
+  assert.deepEqual(summarizedDefault.thinking, {
+    type: "adaptive",
+    display: "summarized",
+  });
+
+  const summarizedExistingThinking = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      thinking: { type: "adaptive" },
+    },
+    normalizedBody: {
+      messages: [{ role: "user", content: "hello" }],
+    },
+    model: "claude-opus-4-8",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+    summarizeThinking: true,
+  });
+  assert.deepEqual(summarizedExistingThinking.thinking, {
+    type: "adaptive",
+    display: "summarized",
+  });
+
+  const explicitDisplay = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      thinking: { type: "adaptive", display: "omitted" },
+    },
+    normalizedBody: {
+      messages: [{ role: "user", content: "hello" }],
+    },
+    model: "claude-opus-4-8",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+    summarizeThinking: true,
+  });
+  assert.deepEqual(explicitDisplay.thinking, {
+    type: "adaptive",
+    display: "omitted",
+  });
+
+  const disabledThinking = buildClaudeCodeCompatibleRequest({
+    sourceBody: {
+      thinking: { type: "disabled" },
+    },
+    normalizedBody: {
+      messages: [{ role: "user", content: "hello" }],
+    },
+    model: "claude-opus-4-8",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+    summarizeThinking: true,
+  });
+  assert.deepEqual(disabledThinking.thinking, { type: "disabled" });
+});
+
 test("buildClaudeCodeCompatibleRequest does not duplicate an existing default system skeleton", () => {
   const payload = buildClaudeCodeCompatibleRequest({
     claudeBody: {

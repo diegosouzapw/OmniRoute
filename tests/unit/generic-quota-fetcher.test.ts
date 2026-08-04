@@ -76,6 +76,31 @@ test("convertUsageToQuotaInfo clamps remainingPercentage outside 0-100", () => {
   assert.equal(result!.windows!.b.percentUsed, 1);
 });
 
+test("convertUsageToQuotaInfo ignores a window whose fraction was not reported by upstream (#6295)", () => {
+  // Antigravity sets fractionReported:false and defaults remainingPercentage
+  // to 0 when a model's usage fraction isn't returned upstream. That must
+  // NOT be treated as "100% used" — the window should be skipped entirely.
+  const result = convertUsageToQuotaInfo({
+    quotas: {
+      unreported_model: { remainingPercentage: 0, fractionReported: false, resetAt: null },
+    },
+  });
+  assert.equal(result, null);
+});
+
+test("convertUsageToQuotaInfo does not let an unreported window inflate worstPercent (#6295)", () => {
+  const result = convertUsageToQuotaInfo({
+    quotas: {
+      reported_low: { remainingPercentage: 80, fractionReported: true, resetAt: null },
+      unreported_model: { remainingPercentage: 0, fractionReported: false, resetAt: null },
+    },
+  });
+  assert.ok(result);
+  assert.deepEqual(Object.keys(result!.windows || {}), ["reported_low"]);
+  assert.equal(result!.percentUsed, 0.2);
+  assert.equal(result!.limitReached, false);
+});
+
 test("registerGenericQuotaFetchers registers Claude, GLM, and OpenCode Go via the generic adapter", () => {
   registerGenericQuotaFetchers();
   // Claude has no bespoke fetcher → should be registered.

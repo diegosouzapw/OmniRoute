@@ -31,9 +31,19 @@ describe("Phase 3 — AggressiveConfig types", () => {
       "aggressive",
       "ultra",
       "rtk",
+      "codex-responses",
       "stacked",
     ];
-    assert.deepEqual(modes, ["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"]);
+    assert.deepEqual(modes, [
+      "off",
+      "lite",
+      "standard",
+      "aggressive",
+      "ultra",
+      "rtk",
+      "codex-responses",
+      "stacked",
+    ]);
   });
 
   it("DEFAULT_AGGRESSIVE_CONFIG has correct threshold defaults", () => {

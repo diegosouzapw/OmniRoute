@@ -6,10 +6,13 @@
  *   2. omniroute_pool_sessions — List per-session details for a provider's pool
  *   3. omniroute_pool_reset    — Shut down and recreate a pool
  *   4. omniroute_pool_warm     — Warm up a pool to a target session count
+ *   5. omniroute_pool_health   — Aggregated pool health with breaker state and issues
  */
 
 import { z } from "zod";
 import { PoolRegistry } from "../../services/sessionPool/poolRegistry.ts";
+import { getWebSessionPoolHealth } from "../../services/webSessionPoolHealth.ts";
+import { getBrowserPoolMetrics } from "../../services/browserPool.ts";
 
 // ─── Input Schemas ─────────────────────────────────────────────────────────
 
@@ -37,6 +40,13 @@ export const poolWarmInput = z.object({
     .max(50)
     .default(6)
     .describe("Target session count (1–50)"),
+});
+
+export const poolHealthInput = z.object({
+  provider: z
+    .string()
+    .optional()
+    .describe("Provider name (e.g. 'pollinations'). Omit to list all pools"),
 });
 
 // ─── Handlers ──────────────────────────────────────────────────────────────
@@ -124,6 +134,23 @@ export async function handlePoolWarm(
   };
 }
 
+export async function handlePoolHealth(
+  args: z.infer<typeof poolHealthInput>,
+): Promise<Record<string, unknown>> {
+  const report = getWebSessionPoolHealth(args.provider);
+  return report as unknown as Record<string, unknown>;
+}
+
+export const browserPoolStatusInput = z.object({});
+
+/**
+ * Handle browser_pool_status tool (#3368 PR7): return the stealth browser
+ * pool's live status plus cumulative lifecycle telemetry.
+ */
+export async function handleBrowserPoolStatus(): Promise<Record<string, unknown>> {
+  return getBrowserPoolMetrics();
+}
+
 // ─── Tool Registry ─────────────────────────────────────────────────────────
 
 export const poolTools = {
@@ -131,6 +158,7 @@ export const poolTools = {
     name: "omniroute_pool_status",
     description:
       "Returns session pool status for a specific provider or all providers. Includes session counts by state (active/cooldown/dead), request totals, success rate, and throughput.",
+    scopes: ["read:health"],
     inputSchema: poolStatusInput,
     handler: (args: z.infer<typeof poolStatusInput>) => handlePoolStatus(args),
   },
@@ -138,6 +166,7 @@ export const poolTools = {
     name: "omniroute_pool_sessions",
     description:
       "Lists all sessions in a provider's pool with per-session details: fingerprint, status, request counts, inflight, cooldown remaining, and age.",
+    scopes: ["read:health"],
     inputSchema: poolSessionsInput,
     handler: (args: z.infer<typeof poolSessionsInput>) => handlePoolSessions(args),
   },
@@ -145,6 +174,7 @@ export const poolTools = {
     name: "omniroute_pool_reset",
     description:
       "Shuts down and removes all sessions for a provider's pool. A new pool will be created automatically on the next request.",
+    scopes: ["write:resilience"],
     inputSchema: poolResetInput,
     handler: (args: z.infer<typeof poolResetInput>) => handlePoolReset(args),
   },
@@ -152,7 +182,24 @@ export const poolTools = {
     name: "omniroute_pool_warm",
     description:
       "Warms a session pool to the specified session count (1–50). Sessions beyond the current count are created with fresh browser fingerprints.",
+    scopes: ["write:resilience"],
     inputSchema: poolWarmInput,
     handler: (args: z.infer<typeof poolWarmInput>) => handlePoolWarm(args),
+  },
+  omniroute_pool_health: {
+    name: "omniroute_pool_health",
+    description:
+      "Returns aggregated web-session pool health: pool stats + circuit breaker state + per-session details + health status (healthy/degraded/down) + issues list.",
+    scopes: ["read:health"],
+    inputSchema: poolHealthInput,
+    handler: (args: z.infer<typeof poolHealthInput>) => handlePoolHealth(args),
+  },
+  omniroute_browser_pool_status: {
+    name: "omniroute_browser_pool_status",
+    description:
+      "Returns the stealth browser pool's live status (enabled, active contexts, browser running, stealth available, idle age) plus cumulative lifecycle telemetry: browser launches/failures, context create/reuse/evict/release counts, context-create failures, and shutdowns with the last reason.",
+    scopes: ["read:health"],
+    inputSchema: browserPoolStatusInput,
+    handler: () => handleBrowserPoolStatus(),
   },
 };

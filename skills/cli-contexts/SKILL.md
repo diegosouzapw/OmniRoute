@@ -227,6 +227,9 @@ Add a new context
 
 - `--api-key <k>`
 - `--api-key-stdin`
+- `--access-token <t>`
+- `--access-token-stdin`
+- `--scope <s>`
 - `--description <d>`
 
 **Example:**
@@ -247,7 +250,11 @@ omniroute contexts use <name>
 
 ### `contexts current`
 
-Show current active context name
+Show the active context (server, auth, scope)
+
+**Flags:**
+
+- `--name-only`
 
 **Example:**
 

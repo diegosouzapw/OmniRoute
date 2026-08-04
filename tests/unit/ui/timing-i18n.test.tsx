@@ -5,7 +5,7 @@
  * Round-3 F-I18N translated ConversationTab/StatsTab/StatsCharts but missed
  * TimingTab (5 labels) and TimingWaterfall (2 labels). Round-4 closed the gap.
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

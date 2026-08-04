@@ -13,8 +13,10 @@
  * Prerequisites when running for real:
  *   - npm is in PATH
  *   - Network access to registry.npmjs.org
- *   - Ports 20130 (9router) and 8317 (cliproxy) are available
+ *   - Ports 20130 (9router), 8317 (cliproxy), and 8080 (bifrost) are available
  *   - DATA_DIR is writable
+ *   - Bifrost lazily downloads its Go binary from downloads.getmaxim.ai on first
+ *     start, so the bifrost block additionally needs network access to that host.
  */
 
 import { describe, it } from "node:test";
@@ -241,6 +243,86 @@ describe("cliproxy — full lifecycle (opt-in, RUN_SERVICES_INT=1)", () => {
   it("STEP 5: status returns stopped after stop", async (t) => {
     if (maybeSkip(t)) return;
     const final = await waitForState("/api/services/cliproxy/status", "stopped", 15_000);
+    assert.equal((final as Record<string, unknown>).state, "stopped");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// bifrost lifecycle
+// ---------------------------------------------------------------------------
+
+describe("bifrost — full lifecycle (opt-in, RUN_SERVICES_INT=1)", () => {
+  it("STEP 1: install bifrost (latest)", async (t) => {
+    if (maybeSkip(t)) return;
+    const { status, body } = await apiPost("/api/services/bifrost/install", {
+      version: "latest",
+    });
+    assert.ok(
+      status === 200,
+      `Expected 200 from install, got ${status}: ${JSON.stringify(body).slice(0, 300)}`
+    );
+    const b = body as Record<string, unknown>;
+    assert.ok(b.ok === true, "install response must have ok:true");
+    assert.ok(
+      typeof b.installedVersion === "string",
+      "install response must have installedVersion"
+    );
+    assert.ok(typeof b.durationMs === "number", "install response must have durationMs");
+  });
+
+  it("STEP 2: verify status is stopped after install", async (t) => {
+    if (maybeSkip(t)) return;
+    const { status, body } = await apiGet("/api/services/bifrost/status");
+    assert.equal(status, 200);
+    const b = body as Record<string, unknown>;
+    assert.equal(b.state, "stopped", `Expected stopped state after install, got: ${b.state}`);
+    assert.ok(
+      typeof b.installedVersion === "string",
+      "installedVersion should be set after install"
+    );
+  });
+
+  it("STEP 3: start bifrost", async (t) => {
+    if (maybeSkip(t)) return;
+    const { status, body } = await apiPost("/api/services/bifrost/start");
+    assert.ok(
+      status === 200,
+      `Expected 200 from start, got ${status}: ${JSON.stringify(body).slice(0, 300)}`
+    );
+    const b = body as Record<string, unknown>;
+    assert.ok(
+      ["starting", "running"].includes(b.state as string),
+      `Expected starting or running, got: ${b.state}`
+    );
+  });
+
+  it("STEP 4: wait for bifrost to become healthy (≤60s — Go binary download on first start)", async (t) => {
+    if (maybeSkip(t)) return;
+    // First start lazily downloads the Go binary, so allow a longer window than
+    // the 9router/cliproxy blocks (30s). Confirms open question §2b/§6 (Windows +
+    // headless boot) against a real download.
+    const finalStatus = await waitForState("/api/services/bifrost/status", "running", 60_000);
+    const b = finalStatus as Record<string, unknown>;
+    assert.equal(b.state, "running");
+    assert.equal(b.health, "healthy");
+    assert.ok(typeof b.pid === "number", "pid must be a number when running");
+    assert.equal(b.port, 8080, "bifrost must report its default port 8080");
+  });
+
+  it("STEP 5: stop bifrost", async (t) => {
+    if (maybeSkip(t)) return;
+    const { status, body } = await apiPost("/api/services/bifrost/stop");
+    assert.equal(status, 200);
+    const b = body as Record<string, unknown>;
+    assert.ok(
+      ["stopping", "stopped"].includes(b.state as string),
+      `Expected stopping or stopped, got: ${b.state}`
+    );
+  });
+
+  it("STEP 6: status returns stopped after stop", async (t) => {
+    if (maybeSkip(t)) return;
+    const final = await waitForState("/api/services/bifrost/status", "stopped", 15_000);
     assert.equal((final as Record<string, unknown>).state, "stopped");
   });
 });

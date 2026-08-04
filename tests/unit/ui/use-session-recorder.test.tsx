@@ -4,7 +4,7 @@
  * Verifies that during recording, new traffic WS events trigger
  * POST to /api/tools/traffic-inspector/sessions/{id}/requests.
  */
-import { describe, it, before, after } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";

@@ -5,6 +5,10 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { vercelDeploySchema } from "@/shared/validation/freeProxySchemas";
 import { createProxy } from "@/lib/localDb";
 import { encrypt } from "@/lib/db/encryption";
+// Shared SSRF-safe relay-path resolver — the same pure guard embedded in the
+// Deno Deploy worker. Both edge relays must enforce identical path validation,
+// so they import one source of truth rather than diverging copies.
+import { resolveRelayTarget } from "../deno-deploy/route";
 
 const VERCEL_API_BASE = process.env.VERCEL_API_BASE || "https://api.vercel.com";
 const POLL_INTERVAL_MS = 3000;
@@ -15,7 +19,14 @@ function buildRelayFunction(relayAuth: string): string {
   // The runtime SSRF guard is inlined into the edge function (cannot import
   // Node-side helpers from the Edge runtime); it blocks RFC1918, loopback,
   // link-local, IPv6 ULA, and embedded credentials on the x-relay-target host.
+  // `resolveRelayTarget` (shared with the Deno worker) closes the x-relay-path
+  // host-confusion hole and is embedded verbatim via Function#toString. It is
+  // bound to a LITERAL const name (not a bare declaration) so the hardcoded
+  // call site below resolves even when the SWC-minified standalone build mangles
+  // the source function's own name in `.toString()` output (#6149).
   return `export const config = { runtime: "edge" };
+
+const resolveRelayTarget = ${resolveRelayTarget.toString()};
 
 function isPrivateHostname(h) {
   if (!h) return true;
@@ -63,9 +74,13 @@ export default async function handler(req) {
     return new Response("forbidden x-relay-target (private/loopback host)", { status: 403 });
   }
   const relayPath = req.headers.get("x-relay-path") || "/";
+  const resolved = resolveRelayTarget(target, relayPath);
+  if (!resolved.ok) {
+    return new Response(resolved.reason, { status: resolved.status });
+  }
   const headers = new Headers(req.headers);
   ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach(h => headers.delete(h));
-  const upstream = await fetch(target.replace(/\\/$/, "") + relayPath, {
+  const upstream = await fetch(resolved.url, {
     method: req.method,
     headers,
     body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
@@ -73,6 +88,100 @@ export default async function handler(req) {
   });
   return new Response(upstream.body, { status: upstream.status, headers: upstream.headers });
 }`;
+}
+
+/**
+ * Test-only hook exposing the generated Vercel worker source so the SSRF
+ * regression test can assert it no longer string-concatenates the relay path
+ * and embeds the shared `resolveRelayTarget` guard. Not part of the route
+ * contract.
+ */
+export const __buildRelayFunctionForTest = buildRelayFunction;
+
+/**
+ * Disable Vercel project SSO/Deployment Protection so the relay is publicly
+ * reachable. The PATCH response was previously fired-and-forgotten
+ * (`.catch(() => {})`, no `res.ok` check) — if Vercel rejects or no-ops the
+ * request (plan does not allow disabling protection, an under-scoped token,
+ * etc.), the relay still got saved and activated as a healthy proxy pool,
+ * and later requests through it failed with an undiagnosed
+ * `403 Access denied` from Vercel's own deployment protection. Callers must
+ * now check `.ok` and surface the failure instead of assuming success.
+ */
+async function disableSsoProtection(
+  vercelApiBase: string,
+  projectId: string,
+  token: string
+): Promise<{ ok: boolean; status?: number }> {
+  try {
+    const res = await fetch(`${vercelApiBase}/v9/projects/${projectId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ssoProtection: null }),
+    });
+    return { ok: res.ok, status: res.status };
+  } catch {
+    return { ok: false };
+  }
+}
+
+/**
+ * Test-only hook exposing `disableSsoProtection` so the regression test can
+ * assert the PATCH response is checked instead of silently swallowed. Not
+ * part of the route contract.
+ */
+export const __disableSsoProtectionForTest = disableSsoProtection;
+
+/**
+ * Builds the sanitized error response for a rejected Vercel deployment
+ * request. Extracted from POST to keep the handler's cognitive complexity
+ * within the ratchet — parses the canonical `{ error: { message } } }` shape
+ * and never forwards raw upstream error text (may contain project IDs, team
+ * slugs, deployment hashes or internal Vercel error strings).
+ */
+async function buildDeployErrorResponse(deployRes: Response) {
+  let upstreamMessage = "Vercel API rejected the deployment";
+  try {
+    const parsed = (await deployRes.json().catch(() => null)) as {
+      error?: { message?: string };
+    } | null;
+    const candidate = parsed?.error?.message;
+    if (typeof candidate === "string" && candidate.trim()) {
+      upstreamMessage = candidate.trim().slice(0, 200);
+    }
+  } catch {
+    /* fall through to generic message */
+  }
+  return createErrorResponse({
+    status: deployRes.status,
+    message: `Vercel deployment failed: ${upstreamMessage}`,
+    type: "upstream_error",
+  });
+}
+
+/**
+ * Disables Vercel SSO/Deployment Protection for the deployed project and
+ * returns a caller-facing warning when it could not be disabled. Extracted
+ * from POST to keep the handler's cognitive complexity within the ratchet.
+ * See `disableSsoProtection` doc comment for the bug this guards against.
+ */
+async function resolveSsoProtectionWarning(
+  projectId: string | undefined,
+  vercelApiBase: string,
+  token: string
+): Promise<string | undefined> {
+  if (!projectId) return undefined;
+  const ssoResult = await disableSsoProtection(vercelApiBase, projectId, token);
+  if (ssoResult.ok) return undefined;
+  return (
+    "Could not disable Vercel Deployment Protection (SSO) for this project" +
+    (ssoResult.status ? ` (status ${ssoResult.status})` : "") +
+    ". Requests through this relay may fail with a 403 Access denied from " +
+    "Vercel until protection is disabled manually in the Vercel dashboard."
+  );
 }
 
 async function pollDeployment(deploymentApiUrl: string, token: string): Promise<"READY" | "ERROR"> {
@@ -148,27 +257,9 @@ export async function POST(request: Request) {
     });
 
     if (!deployRes.ok) {
-      // Avoid forwarding 200 bytes of raw Vercel error text — it may contain
-      // project IDs, team slugs, deployment hashes or internal Vercel error
-      // strings. Parse the canonical { error: { message } } shape and surface
-      // only the human-readable message (or a generic fallback).
-      let upstreamMessage = "Vercel API rejected the deployment";
-      try {
-        const parsed = (await deployRes.json().catch(() => null)) as {
-          error?: { message?: string };
-        } | null;
-        const candidate = parsed?.error?.message;
-        if (typeof candidate === "string" && candidate.trim()) {
-          upstreamMessage = candidate.trim().slice(0, 200);
-        }
-      } catch {
-        /* fall through to generic message */
-      }
-      return createErrorResponse({
-        status: deployRes.status,
-        message: `Vercel deployment failed: ${upstreamMessage}`,
-        type: "upstream_error",
-      });
+      // Avoid forwarding raw Vercel error text — it may contain project IDs,
+      // team slugs, deployment hashes or internal Vercel error strings.
+      return buildDeployErrorResponse(deployRes);
     }
 
     const deployment = (await deployRes.json()) as {
@@ -185,17 +276,17 @@ export async function POST(request: Request) {
       });
     }
 
-    // Disable Vercel SSO protection so the relay is publicly accessible
-    if (deployment.projectId) {
-      await fetch(`${VERCEL_API_BASE}/v9/projects/${deployment.projectId}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ssoProtection: null }),
-      }).catch(() => {});
-    }
+    // Disable Vercel SSO protection so the relay is publicly accessible.
+    // The PATCH response is checked — if Vercel rejects/no-ops it (plan
+    // doesn't allow disabling protection, under-scoped token, etc.) the
+    // relay is still deployed and saved, but the caller is warned so a
+    // later `403 Access denied` can be diagnosed as Vercel-side deployment
+    // protection rather than an upstream provider rejection.
+    const ssoProtectionWarning = await resolveSsoProtectionWarning(
+      deployment.projectId,
+      VERCEL_API_BASE,
+      token
+    );
 
     // Poll until READY
     const deploymentApiUrl = `${VERCEL_API_BASE}/v13/deployments/${deployment.id}`;
@@ -231,6 +322,7 @@ export async function POST(request: Request) {
       success: true,
       relayUrl: `https://${deployment.url}`,
       poolProxyId: poolProxy?.id,
+      ...(ssoProtectionWarning ? { ssoProtectionWarning } : {}),
     });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Vercel deploy failed");

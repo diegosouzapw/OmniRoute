@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
-import { getSettings } from "@/lib/localDb";
+import { classifyIpScope } from "@/lib/ipUtils";
+import { getCachedSettings } from "@/lib/localDb";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
 import {
@@ -48,7 +49,20 @@ export async function POST(request) {
       );
     }
 
-    const rawBody = await request.json();
+    let rawBody;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return NextResponse.json(
+        {
+          error: {
+            message: "Invalid request",
+            details: [{ field: "body", message: "Invalid JSON body" }],
+          },
+        },
+        { status: 400 }
+      );
+    }
 
     // Zod validation
     const validation = validateBody(loginSchema, rawBody);
@@ -59,7 +73,7 @@ export async function POST(request) {
     if (!password) {
       return NextResponse.json({ error: "Invalid password payload" }, { status: 400 });
     }
-    const settings = await getSettings();
+    const settings = await getCachedSettings();
     const bruteForceEnabled = settings.bruteForceProtection !== false;
     const clientIp = auditContext.ipAddress || null;
 
@@ -129,6 +143,9 @@ export async function POST(request) {
         secure: useSecureCookie,
         sameSite: "lax",
         path: "/",
+        // 30 days — bound the cookie lifetime to the JWT's 30d expiry so the browser
+        // drops it on the same schedule the token stops being valid (Seg3 hardening).
+        maxAge: 60 * 60 * 24 * 30,
       });
 
       logAuditEvent({
@@ -152,6 +169,11 @@ export async function POST(request) {
 
     const failureDecision = recordLoginFailure(clientIp, { enabled: bruteForceEnabled });
 
+    // #8336: tag the origin scope so the audit view can distinguish a mistyped
+    // password from the host itself / the LAN (loopback / private) from a
+    // genuinely external attempt, instead of every failure reading as intrusion.
+    const sourceScope = classifyIpScope(auditContext.ipAddress);
+
     logAuditEvent({
       action: "auth.login.failed",
       actor: "anonymous",
@@ -160,7 +182,12 @@ export async function POST(request) {
       status: "failed",
       ipAddress: auditContext.ipAddress || undefined,
       requestId: auditContext.requestId,
-      metadata: { reason: "invalid_password", lockedOut: failureDecision.allowed === false },
+      metadata: {
+        reason: "invalid_password",
+        lockedOut: failureDecision.allowed === false,
+        sourceScope,
+        internalOrigin: sourceScope === "loopback" || sourceScope === "private",
+      },
     });
 
     if (!failureDecision.allowed) {

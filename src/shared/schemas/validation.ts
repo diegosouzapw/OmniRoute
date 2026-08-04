@@ -80,9 +80,19 @@ export const resilienceProfileSchema = z.object({
   provider: z.string().min(1),
   circuitBreaker: z
     .object({
-      failureThreshold: z.number().int().min(1).max(100).default(5),
+      failureThreshold: z.number().int().min(1).max(1000).default(5),
+      degradationThreshold: z.number().int().min(1).max(1000).default(3),
       resetTimeoutMs: z.number().int().min(1000).max(600000).default(30000),
       halfOpenMax: z.number().int().min(1).max(10).default(1),
+    })
+    .superRefine((value, ctx) => {
+      if (value.failureThreshold > 1 && value.degradationThreshold >= value.failureThreshold) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "degradationThreshold must be lower than failureThreshold",
+          path: ["degradationThreshold"],
+        });
+      }
     })
     .optional(),
   backoff: z

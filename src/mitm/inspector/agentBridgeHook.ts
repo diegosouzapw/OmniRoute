@@ -78,6 +78,24 @@ export async function recordRequestStart(
   };
   if (opts.sessionId) intercepted.sessionId = opts.sessionId;
 
+  // Best-effort process attribution (Linux only; no-op elsewhere). The proxy's
+  // inbound socket remotePort is the client process's local ephemeral port,
+  // which is what appears in that process's /proc/net/tcp local_address. Never
+  // blocks capture — any failure leaves pid/processName unset. (Gap 1.)
+  try {
+    const { attributeProcess } = await import("./processAttribution.ts");
+    const remotePort = opts.req.socket?.remotePort;
+    if (typeof remotePort === "number") {
+      const info = attributeProcess(remotePort);
+      if (info) {
+        intercepted.pid = info.pid;
+        intercepted.processName = info.processName;
+      }
+    }
+  } catch {
+    // attribution is best-effort — never block capture
+  }
+
   globalTrafficBuffer.push(intercepted);
   return intercepted;
 }
@@ -91,7 +109,10 @@ export function recordRequestComplete(
   opts: RecordRequestCompleteOpts
 ): void {
   intercepted.status = opts.status;
-  intercepted.responseHeaders = opts.responseHeaders;
+  // SECURITY_AUDIT M6: mask secret-bearing upstream response headers (Set-Cookie,
+  // Authorization, …) before they land in inspector JSON. The request side already
+  // sanitizes (line ~69); the response side was storing headers verbatim.
+  intercepted.responseHeaders = sanitizeHeaders(opts.responseHeaders);
   intercepted.responseBody =
     opts.responseBody != null ? maskSecret(opts.responseBody) : null;
   intercepted.responseSize = opts.responseSize;

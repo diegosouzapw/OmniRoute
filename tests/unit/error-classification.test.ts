@@ -22,7 +22,6 @@ test("getProviderCategory: OAuth providers return 'oauth'", () => {
 });
 
 test("getProviderCategory: API key providers return 'apikey'", () => {
-  assert.equal(getProviderCategory("gemini-cli"), "apikey");
   assert.equal(getProviderCategory("groq"), "apikey");
   assert.equal(getProviderCategory("fireworks"), "apikey");
   assert.equal(getProviderCategory("cerebras"), "apikey");
@@ -45,6 +44,7 @@ test("getProviderProfile: OAuth provider returns oauth profile", () => {
   assert.equal(profile.useUpstreamRetryHints, false);
   assert.equal(profile.maxBackoffSteps, PROVIDER_PROFILES.oauth.maxBackoffLevel);
   assert.equal(profile.failureThreshold, PROVIDER_PROFILES.oauth.circuitBreakerThreshold);
+  assert.equal(profile.degradationThreshold, PROVIDER_PROFILES.oauth.degradationThreshold);
   assert.equal(profile.resetTimeoutMs, PROVIDER_PROFILES.oauth.circuitBreakerReset);
   assert.equal(profile.transientCooldown, PROVIDER_PROFILES.oauth.transientCooldown);
   assert.equal(
@@ -62,6 +62,7 @@ test("getProviderProfile: API provider returns apikey profile", () => {
   assert.equal(profile.useUpstreamRetryHints, true);
   assert.equal(profile.maxBackoffSteps, PROVIDER_PROFILES.apikey.maxBackoffLevel);
   assert.equal(profile.failureThreshold, PROVIDER_PROFILES.apikey.circuitBreakerThreshold);
+  assert.equal(profile.degradationThreshold, PROVIDER_PROFILES.apikey.degradationThreshold);
   assert.equal(profile.resetTimeoutMs, PROVIDER_PROFILES.apikey.circuitBreakerReset);
   assert.equal(profile.transientCooldown, PROVIDER_PROFILES.apikey.transientCooldown);
   assert.equal(
@@ -97,13 +98,21 @@ test("502 transient: exponential backoff doubles until the configured max backof
     assert.equal(result.newBackoffLevel, level + 1);
     assert.equal(result.reason, RateLimitReason.SERVER_ERROR);
   }
+  // #8396: the scaled cooldown is now clamped by capScaledCooldownMs
+  // (open-sse/services/accountFallback/cooldownCap.ts). With no provider the
+  // ceiling is BACKOFF_CONFIG.max, so the doubling stops there instead of
+  // running on to transientInitial * 32.
+  assert.ok(
+    COOLDOWN_MS.transientInitial * 32 > BACKOFF_CONFIG.max,
+    "precondition: the 6th step must exceed the cap, or this test proves nothing"
+  );
   assert.deepEqual(cooldowns, [
     COOLDOWN_MS.transientInitial,
     COOLDOWN_MS.transientInitial * 2,
     COOLDOWN_MS.transientInitial * 4,
     COOLDOWN_MS.transientInitial * 8,
     COOLDOWN_MS.transientInitial * 16,
-    COOLDOWN_MS.transientInitial * 32,
+    BACKOFF_CONFIG.max,
   ]);
 });
 
@@ -188,11 +197,10 @@ test("parseRetryFromErrorText: parses will reset after variant", () => {
 
 // ─── T06: Keyword Matching for Long Cooldowns ────────────────────────────────
 
-// Fix #2321: QUOTA_EXHAUSTED text now sets the upstream cooldown duration even when
-// useUpstreamRetryHints = false (e.g., OAuth providers like antigravity). The generic
-// upstream-retry-hint opt-in only governs transient rate-limit hints; subscription
-// quota resets always carry a definite recovery time, so the text is always honored.
-test("quota reset text is honored for oauth providers even when generic retry hints are disabled", () => {
+// Fix #1308 / #4429: QUOTA_EXHAUSTED text can provide a precise upstream reset
+// window, but the operator's upstream retry hint setting must still decide
+// whether that window is used for cooldowns.
+test("quota reset text is ignored for oauth providers when upstream retry hints are disabled", () => {
   const result = checkFallbackError(
     429,
     "Your quota will reset after 27h41m36s",
@@ -201,10 +209,13 @@ test("quota reset text is honored for oauth providers even when generic retry hi
     "antigravity",
     null
   );
-  // 27*3600 + 41*60 + 36 = 99696 seconds = 99696000 ms
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 99696000);
-  assert.equal(result.usedUpstreamRetryHint, true);
+  assert.notEqual(result.cooldownMs, 99696000);
+  assert.ok(
+    result.cooldownMs < 5 * 60 * 1000,
+    `expected local short cooldown, got ${result.cooldownMs}ms`
+  );
+  assert.equal(result.usedUpstreamRetryHint, false);
   assert.equal(result.reason, "quota_exhausted");
 });
 
@@ -234,8 +245,14 @@ test("subscription quota uses long cooldown when upstream retry hints are disabl
 test("high transient backoff levels clamp to the configured maxBackoffSteps", () => {
   const result = checkFallbackError(502, "", BACKOFF_CONFIG.maxLevel + 5, null, null);
   assert.equal(result.newBackoffLevel, BACKOFF_CONFIG.maxLevel);
+  // #8396: the level still clamps at maxLevel, but the resulting duration is
+  // additionally capped — unclamped this would be ~45.5h, which is the blackout
+  // that PR removed.
   assert.equal(
     result.cooldownMs,
-    COOLDOWN_MS.transientInitial * Math.pow(2, BACKOFF_CONFIG.maxLevel)
+    Math.min(
+      COOLDOWN_MS.transientInitial * Math.pow(2, BACKOFF_CONFIG.maxLevel),
+      BACKOFF_CONFIG.max
+    )
   );
 });

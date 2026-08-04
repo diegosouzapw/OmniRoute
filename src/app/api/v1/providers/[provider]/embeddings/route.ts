@@ -2,7 +2,7 @@ import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/er
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
-  getProviderCredentials,
+  getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
   extractApiKey,
   isValidApiKey,
@@ -71,7 +71,7 @@ export async function POST(request, { params }) {
     }
   }
 
-  const credentials = await getProviderCredentials(providerEntry.id);
+  const credentials = await getProviderCredentialsWithQuotaPreflight(providerEntry.id);
   if (!credentials) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, `No credentials for provider: ${rawProvider}`);
   }

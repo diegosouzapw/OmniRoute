@@ -20,6 +20,7 @@ test("PoolCreateSchema defaults allocations to []", () => {
   const r = PoolCreateSchema.safeParse({ connectionId: "c", name: "Pool" });
   assert.ok(r.success);
   assert.deepEqual(r.data?.allocations, []);
+  assert.equal(r.data?.connectionId, "c");
 });
 
 test("PoolCreateSchema rejects empty name", () => {

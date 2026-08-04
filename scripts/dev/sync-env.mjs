@@ -19,7 +19,23 @@ import { dirname, join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 
-const require = createRequire(import.meta.url);
+/**
+ * Resolve the repository/package root that holds `.env` / `.env.example`.
+ *
+ * When this module is statically bundled into a Next.js standalone route,
+ * `import.meta.url` is frozen to the build-machine path
+ * (`file:///home/runner/.../sync-env.mjs`) and `fileURLToPath` can throw at
+ * runtime. Callers (e.g. the env-repair route) pass an explicit `rootDir`;
+ * when they don't, fall back to `process.cwd()` instead of crashing. (#5006)
+ */
+function resolveRootDir(rootDir) {
+  if (rootDir) return rootDir;
+  try {
+    return dirname(dirname(fileURLToPath(import.meta.url)));
+  } catch {
+    return process.cwd();
+  }
+}
 
 const CRYPTO_SECRETS = {
   JWT_SECRET: () => randomBytes(64).toString("hex"),
@@ -68,6 +84,11 @@ function hasEncryptedCredentials(dataDir) {
   if (!existsSync(dbPath)) return false;
 
   try {
+    // Resolve `require` lazily here (not at module top-level): when this file is
+    // bundled into a standalone route, a top-level `createRequire(import.meta.url)`
+    // throws during module evaluation and 500s the whole route (#5006). Inside this
+    // guarded block, any failure simply returns false (the safe default below).
+    const require = createRequire(import.meta.url);
     const Database = require("better-sqlite3");
     const db = new Database(dbPath, { readonly: true, fileMustExist: true });
     try {
@@ -170,7 +191,7 @@ function parseExampleEntries(content, scope = "full") {
 }
 
 export function getEnvSyncPlan({ rootDir, scope = "full" } = {}) {
-  const root = rootDir || dirname(dirname(fileURLToPath(import.meta.url)));
+  const root = resolveRootDir(rootDir);
   const envExamplePath = join(root, ".env.example");
   const envPath = join(root, ".env");
 
@@ -237,7 +258,7 @@ function replaceBlankSecret(content, key, value) {
 
 export function syncEnv({ rootDir, quiet = false, scope = "full" } = {}) {
   const log = quiet ? () => {} : (message) => process.stderr.write(`[sync-env] ${message}\n`);
-  const root = rootDir || dirname(dirname(fileURLToPath(import.meta.url)));
+  const root = resolveRootDir(rootDir);
   const envExamplePath = join(root, ".env.example");
   const envPath = join(root, ".env");
 

@@ -4,8 +4,14 @@ import {
   decodeExecServerEvent,
   decodeProtobufValue,
   jsonSchemaToProtobufValue,
+  openAIToolsToMcpDefs,
 } from "../../open-sse/utils/cursorAgentProtobuf";
-import { newStreamCtx, processFrame, CursorExecutor } from "../../open-sse/executors/cursor";
+import {
+  newStreamCtx,
+  processFrame,
+  CursorExecutor,
+  inferCursorClientPlatform,
+} from "../../open-sse/executors/cursor";
 
 // ─── Wire-format helpers ───────────────────────────────────────────────────
 
@@ -60,6 +66,39 @@ function buildMcpArgsEvent(
     lenPrefixed(11, mca),
   ]);
   return lenPrefixed(2, esm);
+}
+
+// AgentServerMessage { exec_server_message (2): ESM { shell_stream_args (14) } }
+function buildShellStreamEvent(
+  execMsgId: number,
+  execId: string,
+  command: string,
+  workingDir: string
+): Buffer {
+  const shellArgs = Buffer.concat([stringField(1, command), stringField(2, workingDir)]);
+  const esm = Buffer.concat([
+    varintField(1, execMsgId),
+    stringField(15, execId),
+    lenPrefixed(14, shellArgs),
+  ]);
+  return lenPrefixed(2, esm);
+}
+
+function buildNativeTodoCompletedEvent(
+  toolCallId: string,
+  todos: Array<{ content: string; status: number }>,
+  merge = false
+): Buffer {
+  const todoArgs = Buffer.concat([
+    ...todos.map((todo) =>
+      lenPrefixed(1, Buffer.concat([stringField(2, todo.content), varintField(3, todo.status)]))
+    ),
+    varintField(2, merge ? 1 : 0),
+  ]);
+  const todoDetails = lenPrefixed(1, todoArgs);
+  const toolCall = lenPrefixed(9, todoDetails);
+  const completed = Buffer.concat([stringField(1, toolCallId), lenPrefixed(2, toolCall)]);
+  return lenPrefixed(1, lenPrefixed(3, completed));
 }
 
 // ─── decodeProtobufValue round-trip tests ──────────────────────────────────
@@ -235,6 +274,166 @@ test("processFrame doesn't emit tool_calls for the same exec_id twice", () => {
   assert.equal(ctx.toolCalls.length, 1);
 });
 
+test("processFrame bridges Cursor shell_stream to an external tool call and cold resume", () => {
+  const emitted: string[] = [];
+  const writes: Buffer[] = [];
+  const ctx = newStreamCtx("claude-fable-5-thinking-xhigh", (s) => emitted.push(s));
+  const mcpTools = openAIToolsToMcpDefs([
+    {
+      type: "function",
+      function: {
+        name: "pty_spawn",
+        description: "Spawn a PTY",
+        parameters: {
+          type: "object",
+          properties: {
+            command: { type: "string" },
+            args: { type: "array", items: { type: "string" } },
+            workdir: { type: "string" },
+            description: { type: "string" },
+            notifyOnExit: { type: "boolean" },
+          },
+          required: ["command", "args", "description"],
+        },
+      },
+    },
+  ]);
+  const h2Req = {
+    write(data: Buffer) {
+      writes.push(Buffer.from(data));
+      return true;
+    },
+  } as unknown as import("http2").ClientHttp2Stream;
+
+  processFrame(
+    buildShellStreamEvent(1, "exec-shell", "mktemp -d /tmp/probe-XXXXXX", "/tmp"),
+    ctx,
+    new Set(),
+    { h2Req, mcpTools, clientPlatform: "posix" }
+  );
+
+  assert.equal(ctx.endReason, "tool_calls");
+  assert.equal(ctx.requiresColdResume, true);
+  assert.equal(ctx.pendingToolCalls.size, 0, "bridged calls must not attempt ExecMcpResult resume");
+  assert.equal(ctx.toolCalls.length, 1);
+  assert.equal(ctx.toolCalls[0].name, "pty_spawn");
+  assert.deepEqual(JSON.parse(ctx.toolCalls[0].argumentsJson), {
+    command: "/bin/sh",
+    args: ["-lc", "mktemp -d /tmp/probe-XXXXXX"],
+    workdir: "/tmp",
+    description: "Run Cursor-requested shell command",
+    notifyOnExit: true,
+  });
+  assert.equal(emitted.length, 3, "role + tool init + tool args chunks");
+  assert.equal(writes.length, 1, "native Cursor shell request must receive a typed rejection");
+  assert.ok(writes[0].includes(Buffer.from("Tool not available in this environment", "utf8")));
+});
+
+test("processFrame bridges a complete native TodoWrite merge once and forces a cold resume", () => {
+  const emitted: string[] = [];
+  const ctx = newStreamCtx("claude-fable-5-thinking-xhigh", (s) => emitted.push(s));
+  const mcpTools = openAIToolsToMcpDefs([
+    {
+      type: "function",
+      function: {
+        name: "todowrite",
+        parameters: {
+          type: "object",
+          properties: {
+            todos: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  content: { type: "string" },
+                  status: { type: "string" },
+                  priority: { type: "string" },
+                },
+                required: ["content", "status", "priority"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["todos"],
+          additionalProperties: false,
+        },
+      },
+    },
+  ]);
+  const payload = buildNativeTodoCompletedEvent(
+    "toolu_todo_process",
+    [
+      { content: "Inspect files", status: 3 },
+      { content: "Write report", status: 2 },
+    ],
+    true
+  );
+  const acked = new Set<string>();
+
+  const opts = {
+    mcpTools,
+    todoHistory: [
+      { content: "Inspect files", priority: "high" },
+      { content: "Write report", priority: "medium" },
+    ],
+  };
+  processFrame(payload, ctx, acked, opts);
+  processFrame(payload, ctx, acked, opts);
+
+  assert.equal(ctx.endReason, "tool_calls");
+  assert.equal(ctx.requiresColdResume, true);
+  assert.equal(ctx.pendingToolCalls.size, 0);
+  assert.equal(ctx.toolCalls.length, 1, "duplicate native completion frames must be deduplicated");
+  assert.equal(ctx.toolCalls[0].name, "todowrite");
+  assert.deepEqual(JSON.parse(ctx.toolCalls[0].argumentsJson), {
+    todos: [
+      { content: "Inspect files", status: "completed", priority: "high" },
+      { content: "Write report", status: "in_progress", priority: "medium" },
+    ],
+  });
+  assert.equal(emitted.length, 3, "role + tool init + tool args chunks");
+});
+
+test("infers the client platform from explicit environment metadata, not command text", () => {
+  assert.equal(
+    inferCursorClientPlatform([{ role: "system", content: "Client platform: win32" }]),
+    "windows"
+  );
+  assert.equal(
+    inferCursorClientPlatform([{ role: "system", content: "Client platform: linux" }]),
+    "posix"
+  );
+  assert.equal(
+    inferCursorClientPlatform([{ role: "user", content: "Run echo C:\\temp" }]),
+    undefined,
+    "user command text must not influence platform selection"
+  );
+  assert.equal(
+    inferCursorClientPlatform([
+      {
+        role: "system",
+        content: "Build software for Windows and Linux. Client platform: linux",
+      },
+    ]),
+    "posix",
+    "unlabelled platform words must not override explicit metadata"
+  );
+  assert.equal(
+    inferCursorClientPlatform([
+      { role: "system", content: "Document Windows paths, but execute commands carefully." },
+    ]),
+    undefined
+  );
+  assert.equal(
+    inferCursorClientPlatform([
+      { role: "system", content: "Client platform: windows\nPlatform: linux" },
+    ]),
+    undefined,
+    "conflicting metadata must fail closed"
+  );
+  assert.equal(inferCursorClientPlatform([{ role: "user", content: "Run echo hello" }]), undefined);
+});
+
 // ─── Tool-commit directive (ported from composer-api) ──────────────────────
 //
 // transformRequest() returns the encoded Connect-RPC body; the UserMessage.text
@@ -287,7 +486,10 @@ test("transformRequest honors CURSOR_TOOL_DIRECTIVE=0 opt-out", () => {
       {}
     ) as Uint8Array;
     const text = Buffer.from(body).toString("utf8");
-    assert.ok(!text.includes("you MUST issue the actual tool call"), "directive suppressed by opt-out");
+    assert.ok(
+      !text.includes("you MUST issue the actual tool call"),
+      "directive suppressed by opt-out"
+    );
   } finally {
     if (prev === undefined) delete process.env.CURSOR_TOOL_DIRECTIVE;
     else process.env.CURSOR_TOOL_DIRECTIVE = prev;
@@ -308,7 +510,10 @@ test("tool_choice:'none' drops tools and the directive", () => {
     tools: [weatherTool],
     tool_choice: "none",
   });
-  assert.ok(!text.includes("you MUST issue the actual tool call"), "no directive when tool_choice none");
+  assert.ok(
+    !text.includes("you MUST issue the actual tool call"),
+    "no directive when tool_choice none"
+  );
   assert.ok(!text.includes("web_search"), "tool not advertised when tool_choice none");
 });
 

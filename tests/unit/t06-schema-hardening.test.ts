@@ -9,6 +9,7 @@ import {
   v1EmbeddingsSchema,
   providerChatCompletionSchema,
   v1CountTokensSchema,
+  intelligenceSyncRequestSchema,
   pricingSyncRequestSchema,
   updateTaskRoutingSchema,
   taskRoutingActionSchema,
@@ -130,6 +131,21 @@ test("pricingSyncRequestSchema accepts dryRun-only requests", () => {
     dryRun: true,
   });
   assert.equal(validation.success, true);
+});
+
+test("intelligenceSyncRequestSchema accepts dryRun-only requests", () => {
+  const validation = validateBody(intelligenceSyncRequestSchema, {
+    dryRun: true,
+  });
+  assert.equal(validation.success, true);
+});
+
+test("intelligenceSyncRequestSchema rejects unknown properties", () => {
+  const validation = validateBody(intelligenceSyncRequestSchema, {
+    dryRun: true,
+    source: "unexpected",
+  });
+  assert.equal(validation.success, false);
 });
 
 test("updateTaskRoutingSchema rejects empty payloads", () => {

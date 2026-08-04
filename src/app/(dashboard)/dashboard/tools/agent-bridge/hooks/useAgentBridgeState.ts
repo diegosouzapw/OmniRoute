@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AgentBridgePageData } from "../AgentBridgePageClient";
+import { normalizeAgentBridgeState } from "../normalizeState";
 
 interface UseAgentBridgeStateOptions {
   initialData: AgentBridgePageData;
@@ -39,7 +40,9 @@ export function useAgentBridgeState({
         signal: ctrl.signal,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as AgentBridgePageData;
+      // #3318: normalize the /state response so a key mismatch can't leave
+      // serverState undefined and crash the page on the next render.
+      const json = normalizeAgentBridgeState(await res.json());
       if (!ctrl.signal.aborted) setData(json);
     } catch (err) {
       if (!ctrl.signal.aborted) {

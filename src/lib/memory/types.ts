@@ -25,6 +25,10 @@ export interface Memory {
   createdAt: Date;
   updatedAt: Date;
   expiresAt: Date | null;
+  /** TV6 typed-decay telemetry: how many times this memory has been injected into a prompt. */
+  accessCount: number;
+  /** TV6 typed-decay telemetry: timestamp of the most recent injection (re-bases the decay clock). */
+  lastAccessedAt: Date | null;
 }
 
 /**

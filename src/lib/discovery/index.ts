@@ -11,6 +11,11 @@
  */
 
 import { logger } from "../../../open-sse/utils/logger.ts";
+import {
+  upsertDiscoveryResult as dbUpsertDiscoveryResult,
+  getDiscoveryResults as dbGetDiscoveryResults,
+  type DiscoveryResult as DbDiscoveryResult,
+} from "../db/discoveryResults";
 
 const log = logger("DISCOVERY");
 
@@ -102,13 +107,24 @@ export async function scanProvider(
   ];
 }
 
-// ── Results ──
+// ── Results (Reporter — Phase 2) ──
 
 /**
- * Get discovery results. Phase 1 stub — returns empty array.
+ * Persist a discovery finding to the `discovery_results` table via the DB
+ * module. Uniqueness is keyed on `(providerId, method, endpoint)`, so
+ * re-discovering the same endpoint updates the existing row. Returns the
+ * persisted row (with its id).
  */
-export function getDiscoveryResults(_providerId?: string): DiscoveryResult[] {
-  return [];
+export function persistDiscoveryResult(result: DiscoveryResult): DiscoveryResult {
+  return dbUpsertDiscoveryResult(result as DbDiscoveryResult) as DiscoveryResult;
+}
+
+/**
+ * Get discovery results from the DB, optionally filtered to one provider.
+ * Newest findings first.
+ */
+export function getDiscoveryResults(providerId?: string): DiscoveryResult[] {
+  return dbGetDiscoveryResults(providerId) as DiscoveryResult[];
 }
 
 // ── Config ──

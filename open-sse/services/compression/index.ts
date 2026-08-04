@@ -10,6 +10,7 @@ export type {
   RtkConfig,
   RtkIntensity,
   RtkRawOutputRetention,
+  CodexResponsesConfig,
   CompressionEngineId,
   CompressionLanguageConfig,
   CompressionPipelineStep,
@@ -27,6 +28,7 @@ export {
   DEFAULT_RTK_CONFIG,
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_AGGRESSIVE_CONFIG,
+  DEFAULT_CODEX_RESPONSES_CONFIG,
 } from "./types.ts";
 
 export {
@@ -81,9 +83,11 @@ export {
   selectCompressionStrategy,
   getEffectiveMode,
   applyCompression,
+  applyCompressionAsync,
   checkComboOverride,
   shouldAutoTrigger,
   applyStackedCompression,
+  applyStackedCompressionAsync,
 } from "./strategySelector.ts";
 
 export type {
@@ -111,6 +115,7 @@ export {
   clearCompressionEngineRegistry,
 } from "./engines/registry.ts";
 export { registerBuiltinCompressionEngines } from "./engines/index.ts";
+export { codexResponsesEngine } from "./engines/codexResponses/index.ts";
 
 export { applyRtkCompression, processRtkText, rtkEngine } from "./engines/rtk/index.ts";
 export {
@@ -135,7 +140,6 @@ export {
   detectCodeLanguage,
   normalizeCodeLanguage,
   stripCode,
-  stripCodeComments,
 } from "./engines/rtk/codeStripper.ts";
 export type { CodeLanguage, CodeStripperOptions } from "./engines/rtk/codeStripper.ts";
 
@@ -150,8 +154,15 @@ export { compressAggressive } from "./aggressive.ts";
 
 export { STOPWORDS, FORCE_PRESERVE_RE, scoreToken, pruneByScore } from "./ultraHeuristic.ts";
 
-export type { SLMInterface, UltraCompressResult } from "./ultra.ts";
-export { createSLMStub, ultraCompress } from "./ultra.ts";
+export type { UltraCompressResult } from "./ultra.ts";
+export { ultraCompress } from "./ultra.ts";
+export { ultraCompressHeuristic } from "./ultra.ts";
+export type { UltraTier } from "./ultra.ts";
+export {
+  slmAvailable,
+  runLlmlinguaUltra,
+  prewarmLlmlinguaUltra,
+} from "./engines/llmlingua/ultraEntry.ts";
 
 export type { UltraConfig } from "./types.ts";
 export { DEFAULT_ULTRA_CONFIG } from "./types.ts";

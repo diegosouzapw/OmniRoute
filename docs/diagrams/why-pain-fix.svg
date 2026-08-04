@@ -1,0 +1,107 @@
+<svg viewBox="0 0 1200 664" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Why OmniRoute — stop juggling 10 dashboards, dead API keys and surprise bills. Ten daily pains and how OmniRoute fixes each: subscription quota expiring unused — maximize subscriptions, track quota and use every token before reset. Rate limits stopping you mid-coding — 4-tier auto-fallback from Subscription to API to Cheap to Free in milliseconds. Tool outputs like git diff, grep and logs burning tokens — RTK + Caveman compression saves 15 to 95 percent of eligible tokens per request. Expensive APIs at 20 to 50 dollars per month per provider — cost-optimized routing to the cheapest viable model. Each AI tool wanting its own setup — one endpoint, every tool, one dashboard. AI blocked in your country — 3-level proxy plus TLS fingerprint stealth. Dead keys and banned accounts killing your flow — 3-layer resilience with circuit breakers, key cooldown and model lockout. One subscription shared by a whole team — key pools with fair-share quotas per member enforced in the hot path. Prompts routed through someone else's cloud — local-first, runs on your machine with AES-256-GCM encrypted keys. No idea where tokens and money go — live analytics with usage, quota, savings and p95 latency per provider.">
+  <desc>Animated comparison ledger: ten pain-versus-fix rows are fully readable on the first frame; a soft green highlight sweeps down the rows in a continuous cycle.</desc>
+  <defs>
+    <pattern id="gridPaperW" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bgGlowW" cx="76%" cy="12%" r="55%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.10"/>
+      <stop offset="55%" stop-color="#8b5cf6" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="664" fill="#0b0e14"/>
+  <rect width="1200" height="664" fill="url(#gridPaperW)"/>
+  <rect width="1200" height="664" fill="url(#bgGlowW)"/>
+
+  <!-- header -->
+  <text x="40" y="56" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#a78bfa">WHY OMNIROUTE</text>
+  <line x1="172" y1="51" x2="1160" y2="51" stroke="#232b38" stroke-width="1.5"/>
+  <text x="40" y="100" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="23" font-weight="600" fill="#c9d1d9">Stop juggling <tspan fill="#f87171" font-weight="800">10 dashboards</tspan>, <tspan fill="#fdcb6e" font-weight="800">dead API keys</tspan>, and <tspan fill="#e17055" font-weight="800">surprise bills</tspan>.</text>
+
+  <!-- column headers -->
+  <g transform="translate(48,138)" stroke="#f87171" stroke-width="2.4" fill="none" stroke-linecap="round">
+    <line x1="0" y1="0" x2="11" y2="11"/><line x1="11" y1="0" x2="0" y2="11"/>
+  </g>
+  <text x="72" y="149" font-family="Consolas, 'Courier New', monospace" font-size="12.5" letter-spacing="2" fill="#f87171">THE DAILY PAIN</text>
+  <g transform="translate(632,137)" stroke="#7ee787" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 0,7 L 4.5,11.5 L 13,2"/>
+  </g>
+  <text x="660" y="149" font-family="Consolas, 'Courier New', monospace" font-size="12.5" letter-spacing="2" fill="#7ee787">HOW OMNIROUTE FIXES IT</text>
+  <line x1="40" y1="166" x2="1160" y2="166" stroke="#232b38" stroke-width="1.5"/>
+
+  <!-- sweeping row highlight (invisible on the first frame) -->
+  <rect x="40" y="170" width="1120" height="46" fill="#7ee787" opacity="0">
+    <animate attributeName="y" calcMode="discrete" values="170;216;262;308;354;400;446;492;538;584" keyTimes="0;0.1;0.2;0.3;0.4;0.5;0.6;0.7;0.8;0.9" dur="15s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;0.055;0.055;0" keyTimes="0;0.015;0.985;1" dur="15s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- rows -->
+  <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="14.5">
+    <!-- row separators -->
+    <g stroke="#232b38" stroke-width="1">
+      <line x1="40" y1="216" x2="1160" y2="216"/><line x1="40" y1="262" x2="1160" y2="262"/>
+      <line x1="40" y1="308" x2="1160" y2="308"/><line x1="40" y1="354" x2="1160" y2="354"/>
+      <line x1="40" y1="400" x2="1160" y2="400"/><line x1="40" y1="446" x2="1160" y2="446"/>
+      <line x1="40" y1="492" x2="1160" y2="492"/><line x1="40" y1="538" x2="1160" y2="538"/>
+      <line x1="40" y1="584" x2="1160" y2="584"/>
+    </g>
+    <line x1="612" y1="170" x2="612" y2="630" stroke="#232b38" stroke-width="1"/>
+
+    <!-- pain markers -->
+    <g stroke="#f87171" stroke-opacity="0.85" stroke-width="2" fill="none" stroke-linecap="round">
+      <g transform="translate(48,188)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,234)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,280)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,326)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,372)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,418)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,464)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,510)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,556)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+      <g transform="translate(48,602)"><line x1="0" y1="0" x2="8" y2="8"/><line x1="8" y1="0" x2="0" y2="8"/></g>
+    </g>
+    <!-- fix markers -->
+    <g stroke="#7ee787" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <g transform="translate(632,187)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,233)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,279)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,325)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,371)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,417)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,463)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,509)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,555)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+      <g transform="translate(632,601)"><path d="M 0,6 L 4,10 L 11.5,1.5"/></g>
+    </g>
+
+    <!-- pain column -->
+    <g fill="#c9d1d9">
+      <text x="72" y="197">Subscription quota expires unused every month</text>
+      <text x="72" y="243">Rate limits stop you mid-coding</text>
+      <text x="72" y="289">Tool outputs (git diff, grep, logs) burn tokens</text>
+      <text x="72" y="335">Expensive APIs — $20–50/mo per provider</text>
+      <text x="72" y="381">Each AI tool wants its own setup</text>
+      <text x="72" y="427">AI blocked in your country</text>
+      <text x="72" y="473">Dead keys and banned accounts kill your flow</text>
+      <text x="72" y="519">One subscription, a whole team fighting over it</text>
+      <text x="72" y="565">Your prompts routed through someone else's cloud</text>
+      <text x="72" y="611">No idea where tokens and money go</text>
+    </g>
+
+    <!-- fix column -->
+    <g fill="#a1a1aa">
+      <text x="660" y="197"><tspan font-weight="700" fill="#7ee787">Maximize subscriptions</tspan> — track quota, use every token before reset</text>
+      <text x="660" y="243"><tspan font-weight="700" fill="#7ee787">4-tier auto-fallback</tspan> — Subscription → API → Cheap → Free, in ms</text>
+      <text x="660" y="289"><tspan font-weight="700" fill="#7ee787">RTK + Caveman compression</tspan> — save 15–95% eligible tokens</text>
+      <text x="660" y="335"><tspan font-weight="700" fill="#7ee787">Cost-optimized routing</tspan> — auto-route to the cheapest viable model</text>
+      <text x="660" y="381"><tspan font-weight="700" fill="#7ee787">One endpoint</tspan> — every tool, one config, one dashboard</text>
+      <text x="660" y="427"><tspan font-weight="700" fill="#7ee787">3-level proxy + TLS stealth</tspan> — use AI from anywhere</text>
+      <text x="660" y="473"><tspan font-weight="700" fill="#7ee787">3-layer resilience</tspan> — circuit breakers, key cooldown, model lockout</text>
+      <text x="660" y="519"><tspan font-weight="700" fill="#7ee787">Key pools</tspan> — fair-share quotas per member, hot-path enforced</text>
+      <text x="660" y="565"><tspan font-weight="700" fill="#7ee787">Local-first</tspan> — your machine, keys encrypted (AES-256-GCM)</text>
+      <text x="660" y="611"><tspan font-weight="700" fill="#7ee787">Live analytics</tspan> — usage, quota, savings &amp; p95 latency per provider</text>
+    </g>
+  </g>
+</svg>

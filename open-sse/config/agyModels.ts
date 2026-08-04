@@ -1,25 +1,51 @@
 // Antigravity CLI (`agy`) model catalog.
 //
-// These IDs were pinned directly from the live `:fetchAvailableModels` endpoint
+// These models are pinned from the live `:fetchAvailableModels` endpoint
 // (https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels) using a
-// real `agy` consumer-OAuth token on 2026-05-29. They are the exact upstream model IDs
-// the Antigravity backend accepts — no alias remapping is required (unlike the
-// `antigravity` provider, whose catalog used display IDs that needed remapping).
+// real `agy` consumer-OAuth token. The public catalog exposes the upstream Gemini 3.6
+// and 3.5 Flash ids verbatim; the shared Antigravity executor dispatches them unchanged.
 //
 // The `agy` provider reuses the `antigravity` executor/translator (identical backend),
-// but ships its OWN catalog so it can expose models the `antigravity` provider's static
-// list omits — notably the Claude models (`claude-opus-4-6-thinking`, `claude-sonnet-4-6`),
-// which `:fetchAvailableModels` reports as user-callable with quota even though the
-// `antigravity` catalog comment assumes they 404. Tab-completion models
+// but keeps its own catalog so the CLI and IDE model surfaces can evolve independently.
+// Both currently expose the same callable Claude/Gemini/GPT set. Tab-completion models
 // (`tab_flash_lite_preview`, `tab_jump_flash_lite_preview`) are intentionally excluded —
 // they are not chat-callable.
 
 export const AGY_PUBLIC_MODELS = Object.freeze([
-  // Claude (Antigravity backend) — the headline differentiator for this provider.
+  // Gemini 3.6 Flash tiers. The live endpoint selects High by default and advertises
+  // all three ids to both the IDE 2.1.1 and CLI 1.1.x clients.
+  {
+    id: "gemini-3.6-flash-high",
+    name: "Gemini 3.6 Flash (High)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.6-flash-medium",
+    name: "Gemini 3.6 Flash (Medium)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.6-flash-low",
+    name: "Gemini 3.6 Flash (Low)",
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  // Claude (Antigravity backend).
   {
     id: "claude-opus-4-6-thinking",
     name: "Claude Opus 4.6 (Thinking)",
-    contextLength: 200000,
+    contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
     supportsVision: true,
@@ -28,15 +54,15 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
   {
     id: "claude-sonnet-4-6",
     name: "Claude Sonnet 4.6 (Thinking)",
-    contextLength: 200000,
+    contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
     supportsVision: true,
     toolCalling: true,
   },
-  // Gemini 3.x
+  // Gemini 3.1 Pro
   {
-    id: "gemini-3.1-pro-high",
+    id: "gemini-pro-agent",
     name: "Gemini 3.1 Pro (High)",
     contextLength: 1048576,
     maxOutputTokens: 65535,
@@ -54,26 +80,8 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
     toolCalling: true,
   },
   {
-    id: "gemini-pro-agent",
-    name: "Gemini 3.1 Pro (Agent)",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
     id: "gemini-3-flash-agent",
-    name: "Gemini 3.5 Flash (Agent)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3-flash",
-    name: "Gemini 3 Flash",
+    name: "Gemini 3.5 Flash (High)",
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
@@ -82,17 +90,19 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
   },
   {
     id: "gemini-3.5-flash-low",
-    name: "Gemini 3.5 Flash (Low)",
+    name: "Gemini 3.5 Flash (Medium)",
     contextLength: 1048576,
     maxOutputTokens: 65536,
+    supportsReasoning: true,
     supportsVision: true,
     toolCalling: true,
   },
   {
     id: "gemini-3.5-flash-extra-low",
-    name: "Gemini 3.5 Flash (Extra Low)",
+    name: "Gemini 3.5 Flash (Low)",
     contextLength: 1048576,
     maxOutputTokens: 65536,
+    supportsReasoning: true,
     supportsVision: true,
     toolCalling: true,
   },
@@ -103,15 +113,13 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
     maxOutputTokens: 65535,
     toolCalling: true,
   },
-  { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
   // Gemini 2.5
   {
-    id: "gemini-2.5-pro",
-    name: "Gemini 2.5 Pro",
+    id: "gemini-2.5-flash-thinking",
+    name: "Gemini 2.5 Flash Thinking",
     contextLength: 1048576,
     maxOutputTokens: 65535,
     supportsReasoning: true,
-    supportsVision: true,
     toolCalling: true,
   },
   {
@@ -119,14 +127,6 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
     name: "Gemini 2.5 Flash",
     contextLength: 1048576,
     maxOutputTokens: 65535,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-2.5-flash-thinking",
-    name: "Gemini 2.5 Flash Thinking",
-    contextLength: 1048576,
-    maxOutputTokens: 65535,
-    supportsReasoning: true,
     toolCalling: true,
   },
   {
@@ -148,6 +148,7 @@ export const AGY_PUBLIC_MODELS = Object.freeze([
 ]);
 
 const AGY_PUBLIC_MODEL_IDS = new Set(AGY_PUBLIC_MODELS.map((model) => model.id));
+const AGY_NON_CHAT_MODEL_IDS = new Set(["tab_flash_lite_preview", "tab_jump_flash_lite_preview"]);
 
 const AGY_CLIENT_VISIBLE_MODEL_NAMES = Object.freeze(
   AGY_PUBLIC_MODELS.reduce<Record<string, string>>((acc, model) => {
@@ -162,4 +163,8 @@ export function getClientVisibleAgyModelName(modelId: string, fallbackName?: str
 
 export function isUserCallableAgyModelId(modelId: string): boolean {
   return !!modelId && AGY_PUBLIC_MODEL_IDS.has(modelId);
+}
+
+export function isDiscoverableAgyModelId(modelId: string): boolean {
+  return !!modelId && !AGY_NON_CHAT_MODEL_IDS.has(modelId);
 }

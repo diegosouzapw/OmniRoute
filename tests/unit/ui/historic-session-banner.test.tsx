@@ -1,7 +1,7 @@
 /**
  * Tests for HistoricSessionBanner — render with sessionName/null + backToLive callback
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 
 // Pure logic tests — no DOM needed (no next-intl in node:test runner)

@@ -2,33 +2,41 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 // Dynamic imports to pick up ESM modules with tsx
-const { getCatalog, getSkillById, filterCatalog, computeCoverage, refreshCatalog, API_SKILL_IDS, CLI_SKILL_IDS } =
-  await import("../../src/lib/agentSkills/catalog.ts");
+const {
+  getCatalog,
+  getSkillById,
+  filterCatalog,
+  computeCoverage,
+  refreshCatalog,
+  API_SKILL_IDS,
+  CLI_SKILL_IDS,
+} = await import("../../src/lib/agentSkills/catalog.ts");
+const agentSkillsConstants = await import("../../src/shared/constants/agentSkills.ts");
 
 // ─── Counts ───────────────────────────────────────────────────────────────────
 
-test("getCatalog() returns exactly 42 entries", () => {
+test("getCatalog() returns exactly 45 entries", () => {
   refreshCatalog();
   const catalog = getCatalog();
-  assert.equal(catalog.length, 42, `Expected 42 but got ${catalog.length}`);
+  assert.equal(catalog.length, 45, `Expected 45 but got ${catalog.length}`);
 });
 
-test("API_SKILL_IDS has exactly 22 entries", () => {
-  assert.equal(API_SKILL_IDS.length, 22);
+test("API_SKILL_IDS has exactly 23 entries", () => {
+  assert.equal(API_SKILL_IDS.length, 23);
 });
 
 test("CLI_SKILL_IDS has exactly 20 entries", () => {
-  assert.equal(CLI_SKILL_IDS.length, 20);
+  assert.equal(CLI_SKILL_IDS.length, 21);
 });
 
 test("getCatalog() contains exactly 22 api skills", () => {
   const apiSkills = getCatalog().filter((s) => s.category === "api");
-  assert.equal(apiSkills.length, 22);
+  assert.equal(apiSkills.length, 23);
 });
 
-test("getCatalog() contains exactly 20 cli skills", () => {
+test("getCatalog() contains exactly 21 cli skills", () => {
   const cliSkills = getCatalog().filter((s) => s.category === "cli");
-  assert.equal(cliSkills.length, 20);
+  assert.equal(cliSkills.length, 21);
 });
 
 // ─── ID format ────────────────────────────────────────────────────────────────
@@ -36,11 +44,7 @@ test("getCatalog() contains exactly 20 cli skills", () => {
 test("all skill IDs match regex ^[a-z][a-z0-9-]*$", () => {
   const ID_REGEX = /^[a-z][a-z0-9-]*$/;
   for (const skill of getCatalog()) {
-    assert.match(
-      skill.id,
-      ID_REGEX,
-      `Skill ID "${skill.id}" does not match expected format`,
-    );
+    assert.match(skill.id, ID_REGEX, `Skill ID "${skill.id}" does not match expected format`);
   }
 });
 
@@ -50,7 +54,7 @@ test("all skill IDs are unique (no duplicates)", () => {
   assert.equal(
     uniqueIds.size,
     ids.length,
-    `Duplicate IDs found: ${ids.filter((id, i) => ids.indexOf(id) !== i).join(", ")}`,
+    `Duplicate IDs found: ${ids.filter((id, i) => ids.indexOf(id) !== i).join(", ")}`
   );
 });
 
@@ -67,17 +71,23 @@ test("all skills have rawUrl and githubUrl as valid GitHub URLs", () => {
   for (const skill of getCatalog()) {
     assert.ok(
       skill.rawUrl.startsWith("https://raw.githubusercontent.com/"),
-      `Skill ${skill.id}: rawUrl "${skill.rawUrl}" is not a GitHub raw URL`,
+      `Skill ${skill.id}: rawUrl "${skill.rawUrl}" is not a GitHub raw URL`
     );
     assert.ok(
       skill.githubUrl.startsWith("https://github.com/"),
-      `Skill ${skill.id}: githubUrl "${skill.githubUrl}" is not a GitHub blob URL`,
+      `Skill ${skill.id}: githubUrl "${skill.githubUrl}" is not a GitHub blob URL`
     );
     assert.ok(
       skill.rawUrl.endsWith("/SKILL.md"),
-      `Skill ${skill.id}: rawUrl does not end with /SKILL.md`,
+      `Skill ${skill.id}: rawUrl does not end with /SKILL.md`
     );
   }
+});
+
+test("agent skills constants expose URL builders without the unused repository URL", () => {
+  assert.equal(typeof agentSkillsConstants.getAgentSkillRawUrl, "function");
+  assert.equal(typeof agentSkillsConstants.getAgentSkillBlobUrl, "function");
+  assert.equal("AGENT_SKILLS_REPO_URL" in agentSkillsConstants, false);
 });
 
 test("api skills have area matching API_SKILL_IDS derived IDs", () => {
@@ -85,7 +95,11 @@ test("api skills have area matching API_SKILL_IDS derived IDs", () => {
   for (const id of API_SKILL_IDS) {
     const skill = catalog.find((s) => s.id === id);
     assert.ok(skill, `API skill ID "${id}" not found in catalog`);
-    assert.equal(skill!.category, "api", `Skill "${id}" expected category api, got ${skill!.category}`);
+    assert.equal(
+      skill!.category,
+      "api",
+      `Skill "${id}" expected category api, got ${skill!.category}`
+    );
   }
 });
 
@@ -94,7 +108,11 @@ test("cli skills have area matching CLI_SKILL_IDS derived IDs", () => {
   for (const id of CLI_SKILL_IDS) {
     const skill = catalog.find((s) => s.id === id);
     assert.ok(skill, `CLI skill ID "${id}" not found in catalog`);
-    assert.equal(skill!.category, "cli", `Skill "${id}" expected category cli, got ${skill!.category}`);
+    assert.equal(
+      skill!.category,
+      "cli",
+      `Skill "${id}" expected category cli, got ${skill!.category}`
+    );
   }
 });
 
@@ -134,17 +152,17 @@ test("getSkillById('') returns null", () => {
 
 // ─── filterCatalog ────────────────────────────────────────────────────────────
 
-test("filterCatalog({ category: 'api' }) returns 22 api skills", () => {
+test("filterCatalog({ category: 'api' }) returns 23 api skills", () => {
   const skills = filterCatalog({ category: "api" });
-  assert.equal(skills.length, 22);
+  assert.equal(skills.length, 23);
   for (const s of skills) {
     assert.equal(s.category, "api");
   }
 });
 
-test("filterCatalog({ category: 'cli' }) returns 20 cli skills", () => {
+test("filterCatalog({ category: 'cli' }) returns 21 cli skills", () => {
   const skills = filterCatalog({ category: "cli" });
-  assert.equal(skills.length, 20);
+  assert.equal(skills.length, 21);
   for (const s of skills) {
     assert.equal(s.category, "cli");
   }
@@ -167,9 +185,9 @@ test("filterCatalog({ area: 'nonexistent' }) returns empty array", () => {
   assert.equal(skills.length, 0);
 });
 
-test("filterCatalog({}) returns full catalog (42 entries)", () => {
+test("filterCatalog({}) returns full catalog (45 entries)", () => {
   const skills = filterCatalog({});
-  assert.equal(skills.length, 42);
+  assert.equal(skills.length, 45);
 });
 
 // ─── refreshCatalog ───────────────────────────────────────────────────────────
@@ -191,24 +209,27 @@ test("computeCoverage() returns valid SkillCoverage shape", () => {
   const cov = computeCoverage();
 
   assert.ok(typeof cov.api === "object");
-  assert.equal(cov.api.total, 22);
+  assert.equal(cov.api.total, 23);
   assert.ok(typeof cov.api.have === "number");
-  assert.ok(cov.api.have >= 0 && cov.api.have <= 22);
+  assert.ok(cov.api.have >= 0 && cov.api.have <= 23);
 
   assert.ok(typeof cov.cli === "object");
-  assert.equal(cov.cli.total, 20);
+  assert.equal(cov.cli.total, 21);
   assert.ok(typeof cov.cli.have === "number");
-  assert.ok(cov.cli.have >= 0 && cov.cli.have <= 20);
+  assert.ok(cov.cli.have >= 0 && cov.cli.have <= 21);
 
-  assert.equal(cov.totalSkills, cov.api.have + cov.cli.have);
+  assert.equal(cov.totalSkills, cov.api.have + cov.cli.have + (cov.config?.have ?? 0));
 
   // generatedAt must be a valid ISO datetime string
-  assert.ok(!isNaN(Date.parse(cov.generatedAt)), `generatedAt "${cov.generatedAt}" is not a valid ISO date`);
+  assert.ok(
+    !isNaN(Date.parse(cov.generatedAt)),
+    `generatedAt "${cov.generatedAt}" is not a valid ISO date`
+  );
 });
 
 test("computeCoverage() api.have + cli.have = totalSkills", () => {
   const cov = computeCoverage();
-  assert.equal(cov.totalSkills, cov.api.have + cov.cli.have);
+  assert.equal(cov.totalSkills, cov.api.have + cov.cli.have + (cov.config?.have ?? 0));
 });
 
 // ─── Cache behaviour ─────────────────────────────────────────────────────────
@@ -226,14 +247,14 @@ test("API_SKILL_IDS first entry is omni-auth", () => {
   assert.equal(API_SKILL_IDS[0], "omni-auth");
 });
 
-test("API_SKILL_IDS last entry is omni-inference", () => {
-  assert.equal(API_SKILL_IDS[API_SKILL_IDS.length - 1], "omni-inference");
+test("API_SKILL_IDS last entry is omni-github-skills", () => {
+  assert.equal(API_SKILL_IDS[API_SKILL_IDS.length - 1], "omni-github-skills");
 });
 
 test("CLI_SKILL_IDS first entry is cli-serve", () => {
   assert.equal(CLI_SKILL_IDS[0], "cli-serve");
 });
 
-test("CLI_SKILL_IDS last entry is cli-setup", () => {
-  assert.equal(CLI_SKILL_IDS[CLI_SKILL_IDS.length - 1], "cli-setup");
+test("CLI_SKILL_IDS last entry is cli-skill-collector", () => {
+  assert.equal(CLI_SKILL_IDS[CLI_SKILL_IDS.length - 1], "cli-skill-collector");
 });

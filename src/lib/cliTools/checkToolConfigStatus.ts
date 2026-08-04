@@ -2,6 +2,7 @@
 
 import fs from "fs/promises";
 import { getCliPrimaryConfigPath } from "@/shared/services/cliRuntime";
+import { hasOmniRouteQwenCodeConfig } from "@/shared/services/qwenCodeConfig";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
 const { apiPort } = getRuntimePorts();
@@ -67,17 +68,8 @@ export async function checkToolConfigStatus(
         return (config?.env as Record<string, unknown>)?.ANTHROPIC_BASE_URL
           ? "configured"
           : "not_configured";
-      case "qwen": {
-        // Check modelProviders for OmniRoute entries
-        const mp = config?.modelProviders;
-        if (!mp) return "not_configured";
-        const qwenConfigStr = JSON.stringify(mp).toLowerCase();
-        return qwenConfigStr.includes("omniroute") ||
-          qwenConfigStr.includes(`localhost:${apiPort}`) ||
-          qwenConfigStr.includes(`127.0.0.1:${apiPort}`)
-          ? "configured"
-          : "not_configured";
-      }
+      case "qwen":
+        return hasOmniRouteQwenCodeConfig(config) ? "configured" : "not_configured";
       case "droid":
       case "openclaw":
       case "cline":

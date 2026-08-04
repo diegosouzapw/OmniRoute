@@ -10,10 +10,15 @@
  */
 
 import { createConnection } from "node:net";
+import { stripIpv6Brackets } from "@omniroute/open-sse/utils/proxyFamily";
 
 // Configurable via env vars
 const FAST_FAIL_TIMEOUT_MS = parseInt(process.env.PROXY_FAST_FAIL_TIMEOUT_MS ?? "2000", 10);
 const HEALTH_CACHE_TTL_MS = parseInt(process.env.PROXY_HEALTH_CACHE_TTL_MS ?? "30000", 10);
+const UNHEALTHY_CACHE_TTL_MS = parseInt(
+  process.env.PROXY_HEALTH_UNHEALTHY_CACHE_TTL_MS ?? "2000",
+  10
+);
 
 interface ProxyHealthEntry {
   healthy: boolean;
@@ -23,6 +28,10 @@ interface ProxyHealthEntry {
 
 // In-memory cache: proxyUrl → health entry
 const proxyHealthCache = new Map<string, ProxyHealthEntry>();
+const proxyHealthInflight = new Map<string, Promise<boolean>>();
+
+type TcpCheck = (host: string, port: number, timeoutMs: number) => Promise<boolean>;
+let tcpCheckImpl: TcpCheck = tcpCheck;
 
 /**
  * T14: Perform a fast TCP check to see if a proxy host:port is reachable.
@@ -56,7 +65,7 @@ export async function isProxyReachable(
     return false;
   }
 
-  const host = url.hostname;
+  const host = stripIpv6Brackets(url.hostname);
   const port = parseInt(url.port || defaultPortForScheme(url.protocol), 10);
 
   if (!host || isNaN(port)) {
@@ -68,9 +77,28 @@ export async function isProxyReachable(
     return false;
   }
 
-  const healthy = await tcpCheck(host, port, timeoutMs);
-  proxyHealthCache.set(proxyUrl, { healthy, checkedAt: Date.now(), ttlMs: cacheTtlMs });
-  return healthy;
+  const existingProbe = proxyHealthInflight.get(proxyUrl);
+  if (existingProbe) {
+    return existingProbe;
+  }
+
+  const probe = tcpCheckImpl(host, port, timeoutMs).then((healthy) => {
+    proxyHealthCache.set(proxyUrl, {
+      healthy,
+      checkedAt: Date.now(),
+      ttlMs: healthy ? cacheTtlMs : Math.min(cacheTtlMs, UNHEALTHY_CACHE_TTL_MS),
+    });
+    return healthy;
+  });
+
+  proxyHealthInflight.set(proxyUrl, probe);
+  try {
+    return await probe;
+  } finally {
+    if (proxyHealthInflight.get(proxyUrl) === probe) {
+      proxyHealthInflight.delete(proxyUrl);
+    }
+  }
 }
 
 /**
@@ -89,6 +117,7 @@ export function getCachedProxyHealth(proxyUrl: string): boolean | null {
  */
 export function invalidateProxyHealth(proxyUrl: string): void {
   proxyHealthCache.delete(proxyUrl);
+  proxyHealthInflight.delete(proxyUrl);
 }
 
 /**
@@ -137,4 +166,8 @@ function tcpCheck(host: string, port: number, timeoutMs: number): Promise<boolea
       resolve(false);
     });
   });
+}
+
+export function __setProxyHealthTcpCheckForTesting(check: TcpCheck | null): void {
+  tcpCheckImpl = check ?? tcpCheck;
 }

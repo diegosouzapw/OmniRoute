@@ -3,6 +3,11 @@ import assert from "node:assert/strict";
 
 const { wizardDestinationSchema, wizardCsvMappingSchema, csvToJsonlInputSchema } =
   await import("../../../../src/lib/batches/schemas.ts");
+const { BATCH_SUPPORTED_PROVIDERS } = await import("../../../../src/lib/batches/types.ts");
+
+test("batch types module keeps the supported providers catalog exported", () => {
+  assert.deepEqual(BATCH_SUPPORTED_PROVIDERS, ["openai", "anthropic", "gemini"]);
+});
 
 // ── wizardDestinationSchema ──────────────────────────────────────────────────
 

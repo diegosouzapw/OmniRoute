@@ -80,9 +80,33 @@ const KNOWN_PLANS: Record<string, KnownPlanShape> = {
     provider: "xiaomi-mimo",
     dimensions: [{ unit: "tokens", window: "monthly", limit: 4_100_000_000 }],
   },
+  // Xiaomi MiMo Token Plan (token-plan-sgp): same MONTHLY allowance with no
+  // balance API as the regular account plan. Adjust in the Wizard's "Limite"
+  // step when the connection is on a different plan.
+  "xiaomi-mimo-token-plan": {
+    provider: "xiaomi-mimo-token-plan",
+    dimensions: [{ unit: "tokens", window: "monthly", limit: 4_100_000_000 }],
+  },
   alibaba: {
     provider: "alibaba",
     dimensions: [{ unit: "requests", window: "monthly", limit: 90_000 }],
+  },
+  // Grok Build (xAI) — rate limits from x-ratelimit-* headers:
+  // Daily: 864 requests, 18M tokens (from API headers)
+  // Weekly: derived from daily * 7
+  // #6844: this static estimate is now the fallback used only when the live
+  // grok-cli quota fetcher (open-sse/services/grokCliQuotaFetcher.ts) returns
+  // null (both credentials missing and upstream fetch/parse failures fail
+  // open to this static plan) — the shared weekly percent-based credit pool
+  // it estimates is not observable from local request/token counters alone.
+  "grok-cli": {
+    provider: "grok-cli",
+    dimensions: [
+      { unit: "requests", window: "daily", limit: 864 },
+      { unit: "tokens", window: "daily", limit: 18_000_000 },
+      { unit: "requests", window: "weekly", limit: 6048 },
+      { unit: "tokens", window: "weekly", limit: 126_000_000 },
+    ],
   },
 };
 

@@ -16,6 +16,7 @@ export const HIGH_LEVEL_ACTIONS = [
   "provider.credentials.updated",
   "provider.credentials.revoked",
   "provider.credentials.batch_revoked",
+  "provider.credentials.batch_updated",
   "provider.credentials.bulk_created",
   "provider.credentials.bulk_imported",
   "provider.credentials.imported",
@@ -48,8 +49,6 @@ export const HIGH_LEVEL_ACTIONS = [
   "quota.plan.updated",
   "quota.store.driver_changed",
 ] as const;
-
-export type HighLevelAction = (typeof HIGH_LEVEL_ACTIONS)[number];
 
 const SET: ReadonlySet<string> = new Set<string>(HIGH_LEVEL_ACTIONS);
 

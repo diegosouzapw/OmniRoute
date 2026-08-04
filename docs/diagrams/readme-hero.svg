@@ -1,0 +1,87 @@
+<svg viewBox="0 0 1200 548" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute hero: Never stop coding. Every AI tool to 290 providers — 90+ free — through one endpoint. Claude Code, Codex, Cursor, Cline, Copilot and Antigravity into free Claude, GPT and Gemini with auto-fallback. RTK + Caveman stacked compression saves 15 to 95 percent of tokens — about 89 percent average on tool-heavy sessions — so you never hit limits. Stats: 290 AI providers, 90+ free tiers, about 1.53B free tokens per month, 15 to 95 percent token savings, 19 routing strategies, zero dollars to start.">
+  <desc>Animated hero card: a pulse travels the divider line and a compression bar demo repeatedly shrinks a prompt by up to 95 percent; all headline content is static and readable on the first frame.</desc>
+  <defs>
+    <pattern id="gridPaperH" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bgGlowH" cx="24%" cy="20%" r="55%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.14"/>
+      <stop offset="55%" stop-color="#8b5cf6" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gradBrandH" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e54d5e"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <path id="dividerPathH" d="M 48,252 L 1152,252"/>
+  </defs>
+
+  <rect width="1200" height="548" fill="#0b0e14"/>
+  <rect width="1200" height="548" fill="url(#gridPaperH)"/>
+  <rect width="1200" height="548" fill="url(#bgGlowH)"/>
+
+  <!-- kicker -->
+  <text x="48" y="66" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#a78bfa">OMNIROUTE — THE FREE AI GATEWAY</text>
+  <text x="1152" y="66" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" letter-spacing="1.5" fill="#71717a">ONE ENDPOINT · /v1</text>
+
+  <!-- tagline -->
+  <text x="48" y="138" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="60" font-weight="800" fill="#e9edf3">Never stop coding<tspan fill="#a855f7">.</tspan></text>
+
+  <!-- subheadline -->
+  <text x="48" y="184" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="25" font-weight="600" fill="#c9d1d9">Every AI tool → <tspan fill="#a78bfa" font-weight="800">290 providers</tspan> — <tspan fill="#7ee787" font-weight="800">90+ free</tspan> — through one endpoint.</text>
+
+  <!-- plug line -->
+  <text x="48" y="222" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16.5" fill="#a1a1aa">Claude Code · Codex · Cursor · Cline · Copilot · Antigravity&#160;&#160;→&#160;&#160;<tspan fill="#7ee787" font-weight="700">FREE</tspan> Claude / GPT / Gemini · auto-fallback</text>
+
+  <!-- divider + traveling pulse -->
+  <line x1="48" y1="252" x2="1152" y2="252" stroke="#232b38" stroke-width="1.5"/>
+  <circle r="4" fill="url(#gradBrandH)" opacity="0">
+    <animateMotion dur="6s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+      <mpath href="#dividerPathH"/>
+    </animateMotion>
+    <animate attributeName="opacity" values="0;0.9;0.9;0" keyTimes="0;0.08;0.6;0.75" dur="6s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- compression band -->
+  <g>
+    <rect x="48" y="284" width="1104" height="132" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <text x="76" y="314" font-family="Consolas, 'Courier New', monospace" font-size="11" letter-spacing="2" fill="#e17055">RTK + CAVEMAN · STACKED COMPRESSION</text>
+    <text x="76" y="346" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="22" font-weight="800" fill="#e9edf3">Save 15–95% tokens</text>
+    <!-- live bar demo -->
+    <rect x="76" y="364" width="640" height="12" rx="6" fill="#0b0e14" stroke="#232b38" stroke-width="1"/>
+    <rect x="76" y="364" width="640" height="12" rx="6" fill="#e17055">
+      <animate attributeName="width" values="640;640;70;70;640" keyTimes="0;0.12;0.5;0.88;1" dur="8s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1"/>
+    </rect>
+    <text x="76" y="402" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13" fill="#a1a1aa">your prompt
+      <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;0.12;0.35;0.88;1" dur="8s" repeatCount="indefinite" calcMode="discrete"/>
+    </text>
+    <text x="76" y="402" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13" font-weight="700" fill="#e17055" opacity="0">−89% avg on tool-heavy sessions
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.35;0.36;0.88;1" dur="8s" repeatCount="indefinite" calcMode="discrete"/>
+    </text>
+    <text x="1124" y="340" text-anchor="end" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="16" font-weight="700" fill="#e9edf3">never hit limits</text>
+    <text x="1124" y="364" text-anchor="end" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="13" fill="#a1a1aa">auto-fallback keeps you coding</text>
+    <text x="1124" y="402" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">$ npm i -g omniroute</text>
+  </g>
+
+  <!-- stat chips -->
+  <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" text-anchor="middle">
+    <rect x="48" y="448" width="172" height="52" rx="12" fill="#161b22" stroke="#6c5ce7" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="134" y="471" font-size="17" font-weight="800" fill="#a78bfa">290</text>
+    <text x="134" y="490" font-size="11" fill="#a1a1aa">AI PROVIDERS</text>
+    <rect x="234" y="448" width="172" height="52" rx="12" fill="#161b22" stroke="#22c55e" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="320" y="471" font-size="17" font-weight="800" fill="#7ee787">90+</text>
+    <text x="320" y="490" font-size="11" fill="#a1a1aa">FREE TIERS</text>
+    <rect x="420" y="448" width="172" height="52" rx="12" fill="#161b22" stroke="#22c55e" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="506" y="471" font-size="17" font-weight="800" fill="#7ee787">~1.53B</text>
+    <text x="506" y="490" font-size="11" fill="#a1a1aa">FREE TOKENS / MO</text>
+    <rect x="606" y="448" width="172" height="52" rx="12" fill="#161b22" stroke="#e17055" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="692" y="471" font-size="17" font-weight="800" fill="#e17055">15–95%</text>
+    <text x="692" y="490" font-size="11" fill="#a1a1aa">TOKEN SAVINGS</text>
+    <rect x="792" y="448" width="172" height="52" rx="12" fill="#161b22" stroke="#0984e3" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="878" y="471" font-size="17" font-weight="800" fill="#74b9ff">19</text>
+    <text x="878" y="490" font-size="11" fill="#a1a1aa">ROUTING STRATEGIES</text>
+    <rect x="978" y="448" width="174" height="52" rx="12" fill="#161b22" stroke="#fdcb6e" stroke-opacity="0.55" stroke-width="1.5"/>
+    <text x="1065" y="471" font-size="17" font-weight="800" fill="#fdcb6e">$0</text>
+    <text x="1065" y="490" font-size="11" fill="#a1a1aa">TO START</text>
+  </g>
+</svg>

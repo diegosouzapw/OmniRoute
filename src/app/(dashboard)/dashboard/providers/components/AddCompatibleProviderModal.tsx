@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Badge, Button, Input, Modal, Select } from "@/shared/components";
+import {
+  CLIENT_IDENTITY_PROFILE_OPTIONS,
+  getClientIdentityProfileHeaders,
+} from "@/shared/constants/clientIdentityProfiles";
 
 type CompatibleMode = "openai" | "anthropic" | "cc";
 type CompatibleProviderNode = { id: string } & Record<string, unknown>;
@@ -23,6 +27,8 @@ interface CompatibleFormState {
   baseUrl: string;
   chatPath: string;
   modelsPath: string;
+  iconUrl: string;
+  clientIdentityProfile: string;
 }
 
 const CC_DEFAULT_CHAT_PATH = "/v1/messages?beta=true";
@@ -75,6 +81,8 @@ function createInitialForm(mode: CompatibleMode): CompatibleFormState {
     baseUrl: defaults.baseUrl,
     chatPath: defaults.chatPath,
     modelsPath: "",
+    iconUrl: "",
+    clientIdentityProfile: "default",
   };
 }
 
@@ -90,8 +98,11 @@ export default function AddCompatibleProviderModal({
   const [formData, setFormData] = useState<CompatibleFormState>(() => createInitialForm(mode));
   const [submitting, setSubmitting] = useState(false);
   const [checkKey, setCheckKey] = useState("");
+  const [checkModelId, setCheckModelId] = useState("");
   const [validating, setValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<"success" | "failed" | null>(null);
+  const [validationResult, setValidationResult] = useState<
+    null | { valid: boolean; error?: string | null; method?: string | null }
+  >(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const apiTypeOptions = useMemo(
@@ -178,6 +189,13 @@ export default function AddCompatibleProviderModal({
       if (defaults.hasApiType) body.apiType = formData.apiType;
       if (defaults.hasModelsPath) body.modelsPath = formData.modelsPath || "";
       if (defaults.compatMode) body.compatMode = defaults.compatMode;
+      body.iconUrl = formData.iconUrl.trim();
+      // Merge the selected identity profile's preset headers into the SAME
+      // `customHeaders` field the node already persists (see
+      // src/lib/db/providers/nodes.ts + open-sse/executors/default.ts
+      // `applyCustomHeaders`) — no separate profile field, no new pipeline.
+      const identityHeaders = getClientIdentityProfileHeaders(formData.clientIdentityProfile);
+      if (Object.keys(identityHeaders).length > 0) body.customHeaders = identityHeaders;
 
       const res = await fetch("/api/provider-nodes", {
         method: "POST",
@@ -209,6 +227,8 @@ export default function AddCompatibleProviderModal({
         body.compatMode = defaults.compatMode;
         body.chatPath = formData.chatPath || CC_DEFAULT_CHAT_PATH;
       }
+      const trimmedModelId = checkModelId.trim();
+      if (trimmedModelId) body.modelId = trimmedModelId;
 
       const res = await fetch("/api/provider-nodes/validate", {
         method: "POST",
@@ -216,9 +236,13 @@ export default function AddCompatibleProviderModal({
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      setValidationResult(data.valid ? "success" : "failed");
+      setValidationResult({
+        valid: !!data.valid,
+        error: data.error ?? null,
+        method: data.method ?? null,
+      });
     } catch {
-      setValidationResult("failed");
+      setValidationResult({ valid: false, error: "Network error" });
     } finally {
       setValidating(false);
     }
@@ -267,6 +291,13 @@ export default function AddCompatibleProviderModal({
           placeholder={baseUrlPlaceholder}
           hint={baseUrlHint}
         />
+        <Input
+          label={t("iconUrlLabel")}
+          value={formData.iconUrl}
+          onChange={(e) => setFormData({ ...formData, iconUrl: e.target.value })}
+          placeholder="https://example.com/logo.png"
+          hint={t("iconUrlHint")}
+        />
 
         <button
           type="button"
@@ -301,6 +332,13 @@ export default function AddCompatibleProviderModal({
                 hint={t("modelsPathHint")}
               />
             )}
+            <Select
+              label={t("clientIdentityLabel")}
+              options={CLIENT_IDENTITY_PROFILE_OPTIONS.map((option) => ({ ...option }))}
+              value={formData.clientIdentityProfile}
+              onChange={(e) => setFormData({ ...formData, clientIdentityProfile: e.target.value })}
+              hint={t("clientIdentityHint")}
+            />
           </div>
         )}
 
@@ -322,10 +360,26 @@ export default function AddCompatibleProviderModal({
             </Button>
           </div>
         </div>
+        <Input
+          label={t("testModelIdLabel")}
+          value={checkModelId}
+          onChange={(e) => setCheckModelId(e.target.value)}
+          placeholder={t("testModelIdPlaceholder")}
+          hint={t("testModelIdHint")}
+        />
         {validationResult && (
-          <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? t("valid") : t("invalid")}
-          </Badge>
+          <div className="flex flex-col gap-1">
+            <Badge variant={validationResult.valid ? "success" : "error"}>
+              {validationResult.valid ? t("valid") : t("invalid")}
+            </Badge>
+            {validationResult.error && (
+              <span
+                className={`text-sm ${validationResult.valid ? "text-text-muted" : "text-red-500"}`}
+              >
+                {validationResult.error}
+              </span>
+            )}
+          </div>
         )}
 
         <div className="flex gap-2">

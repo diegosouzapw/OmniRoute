@@ -20,7 +20,16 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => {
+    const messages: Record<string, string> = {
+      "comparison.thisPage": "This page",
+      "comparison.open": "Open →",
+      "comparison.code.title": "Code tool",
+      "comparison.agent.title": "Broad autonomous agent",
+      "comparison.acp.title": "CLI used as backend by Omni",
+    };
+    return (key: string) => messages[key] ?? key;
+  },
 }));
 
 // ── Import after mocks ────────────────────────────────────────────────────────
@@ -46,8 +55,9 @@ function renderCard(currentType: CliConceptType): HTMLElement {
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-    true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
 afterEach(() => {
@@ -62,36 +72,34 @@ afterEach(() => {
 describe("CliComparisonCard", () => {
   it("renders 3 columns for all types", () => {
     const container = renderCard("code");
-    // Each column shows a title key — code, agent, acp
-    expect(container.textContent).toContain("comparison.code.title");
-    expect(container.textContent).toContain("comparison.agent.title");
-    expect(container.textContent).toContain("comparison.acp.title");
+    expect(container.textContent).toContain("Code tool");
+    expect(container.textContent).toContain("Broad autonomous agent");
+    expect(container.textContent).toContain("CLI used as backend by Omni");
   });
 
-  it("shows Esta página badge for currentType=code column", () => {
+  it("shows current page badge for currentType=code column", () => {
     const container = renderCard("code");
-    // thisPage key gets rendered as "comparison.thisPage ✓"
-    expect(container.textContent).toContain("comparison.thisPage");
+    expect(container.textContent).toContain("This page");
     expect(container.textContent).toContain("✓");
   });
 
-  it("shows Esta página badge for currentType=agent column", () => {
+  it("shows current page badge for currentType=agent column", () => {
     const container = renderCard("agent");
-    expect(container.textContent).toContain("comparison.thisPage");
+    expect(container.textContent).toContain("This page");
     expect(container.textContent).toContain("✓");
   });
 
-  it("shows Esta página badge for currentType=acp column", () => {
+  it("shows current page badge for currentType=acp column", () => {
     const container = renderCard("acp");
-    expect(container.textContent).toContain("comparison.thisPage");
+    expect(container.textContent).toContain("This page");
     expect(container.textContent).toContain("✓");
   });
 
-  it("renders Ver → links for the non-current columns", () => {
+  it("renders Open → links for the non-current columns", () => {
     const container = renderCard("code");
     const links = container.querySelectorAll("a");
     const texts = Array.from(links).map((a) => a.textContent);
-    const verLinks = texts.filter((t) => t?.includes("Ver →"));
+    const verLinks = texts.filter((t) => t?.includes("Open →"));
     // 2 non-current columns → 2 links
     expect(verLinks).toHaveLength(2);
   });

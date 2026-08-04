@@ -90,29 +90,3 @@ export function parseApiKey(
 
   return null;
 }
-
-/**
- * Verify API key CRC (only for new format)
- * @param {string} apiKey
- * @returns {boolean}
- */
-export function verifyApiKeyCrc(apiKey: string): boolean {
-  const parsed = parseApiKey(apiKey);
-  if (!parsed) return false;
-
-  // Old format doesn't have CRC, always valid if parsed
-  if (!parsed.isNewFormat) return true;
-
-  // New format already verified in parseApiKey
-  return true;
-}
-
-/**
- * Check if API key is new format (contains machineId)
- * @param {string} apiKey
- * @returns {boolean}
- */
-export function isNewFormatKey(apiKey: string): boolean {
-  const parsed = parseApiKey(apiKey);
-  return parsed?.isNewFormat === true;
-}

@@ -271,6 +271,14 @@ describe("a11yAudit", () => {
     assert.equal(report.total, 0);
   });
 
+  it("should not export the removed contrast compliance wrapper", async () => {
+    const audit = await import("../../src/shared/utils/a11yAudit.ts");
+    assert.equal("checkContrast" in audit, false);
+    assert.equal(typeof audit.getContrastRatio, "function");
+    assert.equal(typeof audit.auditHTML, "function");
+    assert.equal(typeof audit.generateReport, "function");
+  });
+
   it("should export WCAG rules", () => {
     assert.ok(WCAG_RULES.ARIA_LABEL);
     assert.ok(WCAG_RULES.COLOR_CONTRAST);

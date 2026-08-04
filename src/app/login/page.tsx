@@ -13,13 +13,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [hasPassword, setHasPassword] = useState(null);
   const [setupComplete, setSetupComplete] = useState(null);
+  const [oidcEnabled, setOidcEnabled] = useState<boolean | null>(null);
   const [mounted, setMounted] = useState(false);
   const [nodeVersion, setNodeVersion] = useState(null);
   const [nodeCompatible, setNodeCompatible] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    setMounted(true);
+    const raf = requestAnimationFrame(() => setMounted(true));
     async function checkAuth() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -42,14 +43,17 @@ export default function LoginPage() {
           }
           setHasPassword(!!data.hasPassword);
           setSetupComplete(!!data.setupComplete);
+          setOidcEnabled(!!data.oidcEnabled);
         } else {
           setHasPassword(true);
           setSetupComplete(true);
+          setOidcEnabled(false);
         }
       } catch (err) {
         clearTimeout(timeoutId);
         setHasPassword(true);
         setSetupComplete(true);
+        setOidcEnabled(false);
       }
     }
     checkAuth();
@@ -118,10 +122,9 @@ export default function LoginPage() {
         </div>
       </div>
     ) : null;
-
-  if (hasPassword === null || setupComplete === null) {
+  if (hasPassword === null || setupComplete === null || oidcEnabled === null) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
         {nodeWarningBanner}
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
@@ -136,7 +139,7 @@ export default function LoginPage() {
 
   if (!hasPassword && !setupComplete) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
         {nodeWarningBanner}
         <div
           className={`w-full max-w-md transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
@@ -174,7 +177,7 @@ export default function LoginPage() {
 
   if (!hasPassword && setupComplete) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-bg p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
         {nodeWarningBanner}
         <div
           className={`w-full max-w-md transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
@@ -213,11 +216,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg">
+    <div className="min-h-screen flex flex-col">
       {nodeWarningBanner && (
         <div className="flex justify-center pt-6 px-6">{nodeWarningBanner}</div>
       )}
-      <div className="flex-1 flex bg-bg">
+      <div className="flex-1 flex">
         <div className="flex-1 flex items-center justify-center p-6">
           <div
             className={`w-full max-w-sm transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
@@ -265,6 +268,18 @@ export default function LoginPage() {
                 {t("continue")}
               </Button>
             </form>
+            {oidcEnabled && (
+              <div className="mt-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full h-11 text-sm font-medium"
+                  onClick={() => (window.location.href = "/api/auth/oidc/login")}
+                >
+                  {t("continueWithOidc") || "Continue with OIDC"}
+                </Button>
+              </div>
+            )}
 
             <div className="mt-6 pt-6 border-t border-border">
               <a

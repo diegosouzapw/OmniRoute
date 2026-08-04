@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { calculatePercentage, formatQuotaLabel, getBarColor, topQuotas } from "../utils";
+import { formatQuotaLabel, getBarColor, getQuotaRemainingPercentage, topQuotas } from "../utils";
 import QuotaMiniBar from "../QuotaMiniBar";
+import { translateUsageOrFallback } from "../i18nFallback";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
@@ -16,6 +17,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 
 interface Props {
   quotas: any[];
+  providerId?: string;
   /** When > MAX_VISIBLE, render "+N more" hint. */
   maxVisible?: number;
   loading: boolean;
@@ -26,6 +28,7 @@ interface Props {
 const MAX_VISIBLE_DEFAULT = 3;
 
 function QuotaRow({ q }: { q: any }) {
+  const t = useTranslations("usage");
   if (q.isCredits) {
     const colors = getBarColor(q.remainingPercentage ?? 0);
     const sym = CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? "";
@@ -34,17 +37,22 @@ function QuotaRow({ q }: { q: any }) {
       maximumFractionDigits: 2,
     });
     return (
-      <div className="flex items-center justify-between gap-2 py-0.5">
-        <span className="text-[11px] text-text-main truncate flex items-center gap-1">
-          <span
-            className="material-symbols-outlined text-[12px] shrink-0"
-            style={{ color: colors.text }}
-          >
-            paid
+      <div className="flex min-h-[28px] items-center justify-between gap-2 py-1">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[11px] leading-none text-text-main">
+          <span className="inline-flex size-5 shrink-0 items-center justify-center">
+            <span
+              className="material-symbols-outlined text-[13px] leading-none"
+              style={{ color: colors.text }}
+            >
+              paid
+            </span>
           </span>
-          {formatQuotaLabel(q.name) || "Credits"}
+          <span className="truncate leading-none">{formatQuotaLabel(q.name) || "Credits"}</span>
         </span>
-        <span className="text-[11px] font-bold tabular-nums" style={{ color: colors.text }}>
+        <span
+          className="inline-flex h-5 shrink-0 items-center text-[11px] font-bold leading-none tabular-nums"
+          style={{ color: colors.text }}
+        >
           {sym}
           {amount}
         </span>
@@ -52,9 +60,7 @@ function QuotaRow({ q }: { q: any }) {
     );
   }
 
-  const pctRaw = q.unlimited
-    ? 100
-    : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+  const pctRaw = getQuotaRemainingPercentage(q);
   const pct = Math.round(pctRaw);
   const colors = getBarColor(pct);
   const label = q.displayName || formatQuotaLabel(q.name);
@@ -67,7 +73,7 @@ function QuotaRow({ q }: { q: any }) {
           className="text-[11px] font-bold tabular-nums shrink-0"
           style={{ color: colors.text }}
         >
-          {q.unlimited ? "∞" : `${pct}%`}
+          {q.unlimited ? "∞" : translateUsageOrFallback(t, "percentLeft", `${pct}% left`, { pct })}
         </span>
       </div>
       {!q.unlimited && <QuotaMiniBar percent={pct} />}
@@ -77,6 +83,7 @@ function QuotaRow({ q }: { q: any }) {
 
 export default function QuotaCardBody({
   quotas,
+  providerId,
   maxVisible = MAX_VISIBLE_DEFAULT,
   loading,
   error,
@@ -116,7 +123,7 @@ export default function QuotaCardBody({
     return <div className="px-3 py-3 text-[11px] text-text-muted italic">{t("noQuotaData")}</div>;
   }
 
-  const visible = topQuotas(quotas, maxVisible);
+  const visible = topQuotas(quotas, maxVisible, providerId);
   const hidden = Math.max(0, quotas.length - visible.length);
 
   return (

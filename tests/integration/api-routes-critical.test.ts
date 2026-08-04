@@ -484,6 +484,9 @@ test("critical routes: settings proxy covers global fallback and socks5 gating",
   const getLegacyGlobalProxy = await settingsProxyRoute.GET(
     new Request("http://localhost/api/settings/proxy?level=global")
   );
+  // SOCKS5 is now enabled by default (opt-out via ENABLE_SOCKS5_PROXY); set it false
+  // explicitly to exercise the disabled-rejection path (an unset env now means enabled).
+  process.env.ENABLE_SOCKS5_PROXY = "false";
   const socksDisabled = await settingsProxyRoute.PUT(
     makeRequest("http://localhost/api/settings/proxy", {
       method: "PUT",

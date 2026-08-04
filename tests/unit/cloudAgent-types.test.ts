@@ -1,10 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { CLOUD_AGENT_STATUS, CloudAgentStatusSchema } =
-  await import("../../src/lib/cloudAgent/types.ts");
-const { CreateCloudAgentTaskSchema, UpdateCloudAgentTaskSchema } =
-  await import("../../src/lib/cloudAgent/types.ts");
+const cloudAgentTypes = await import("../../src/lib/cloudAgent/types.ts");
+const { CLOUD_AGENT_STATUS, CloudAgentStatusSchema } = cloudAgentTypes;
+const { CreateCloudAgentTaskSchema, UpdateCloudAgentTaskSchema } = cloudAgentTypes;
 const { isCloudAgentProvider, getAgent, getAvailableAgents } =
   await import("../../src/lib/cloudAgent/registry.ts");
 
@@ -15,6 +14,21 @@ test("CLOUD_AGENT_STATUS has correct values", () => {
   assert.strictEqual(CLOUD_AGENT_STATUS.COMPLETED, "completed");
   assert.strictEqual(CLOUD_AGENT_STATUS.FAILED, "failed");
   assert.strictEqual(CLOUD_AGENT_STATUS.CANCELLED, "cancelled");
+});
+
+test("cloud agent types module exposes the request validation schemas", () => {
+  const expectedRuntimeExports = [
+    "CLOUD_AGENT_STATUS",
+    "CloudAgentSourceSchema",
+    "CloudAgentStatusSchema",
+    "CloudAgentTaskOptionsSchema",
+    "CreateCloudAgentTaskSchema",
+    "UpdateCloudAgentTaskSchema",
+  ];
+
+  for (const key of expectedRuntimeExports) {
+    assert.equal(key in cloudAgentTypes, true, `${key} should stay exported`);
+  }
 });
 
 test("CloudAgentStatusSchema validates valid statuses", () => {
@@ -131,7 +145,8 @@ test("getAvailableAgents returns all registered agents", () => {
   assert.strictEqual(agents.includes("jules"), true);
   assert.strictEqual(agents.includes("devin"), true);
   assert.strictEqual(agents.includes("codex-cloud"), true);
-  assert.strictEqual(agents.length, 3);
+  assert.strictEqual(agents.includes("cursor-cloud"), true);
+  assert.strictEqual(agents.length, 4);
 });
 
 test("getAgent returns correct agent for valid providerId", () => {

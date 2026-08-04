@@ -41,10 +41,38 @@ test("classify429: Antigravity 'Individual quota reached' body returns 'quota_ex
     "Resets in 164h27m24s.";
   assert.equal(looksLikeQuotaExhausted(body), true);
   assert.equal(classify429({ status: 429, body }), "quota_exhausted");
-  assert.equal(
-    classify429({ status: 429, body: { error: { message: body } } }),
-    "quota_exhausted"
-  );
+  assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
+});
+
+test("classify429: Google RESOURCE_EXHAUSTED with a billing-period reset is quota exhausted", () => {
+  const body = "Resource has been exhausted (e.g. check quota). (reset after 24h)";
+  assert.equal(looksLikeQuotaExhausted(body), true);
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: { error: { message: body } } }), "quota_exhausted");
+});
+
+test("classify429: Google RESOURCE_EXHAUSTED without a reset remains a rate limit", () => {
+  const body = "Resource has been exhausted (e.g. check quota).";
+  assert.equal(looksLikeQuotaExhausted(body), false);
+  assert.equal(classify429({ status: 429, body }), "rate_limit");
+});
+
+test("classify429: Antigravity INSUFFICIENT_G1_CREDITS_BALANCE body returns 'quota_exhausted'", () => {
+  const body = {
+    error: {
+      code: 429,
+      message: "Resource has been exhausted (e.g. check quota).",
+      status: "RESOURCE_EXHAUSTED",
+      details: [
+        {
+          "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+          reason: "INSUFFICIENT_G1_CREDITS_BALANCE",
+        },
+      ],
+    },
+  };
+  assert.equal(looksLikeQuotaExhausted(body), true);
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
 });
 
 test("classify429: Antigravity quota patterns do not over-match plain rate limits", () => {
@@ -134,6 +162,63 @@ test("looksLikeQuotaExhausted: rejects empty / null / non-quota text", () => {
   assert.equal(looksLikeQuotaExhausted(""), false);
   assert.equal(looksLikeQuotaExhausted("rate limit, please retry in 60s"), false);
   assert.equal(looksLikeQuotaExhausted("server error 500"), false);
+});
+
+test("classify429: Modal-hosted endpoint 'usage limit reached' body returns 'quota_exhausted'", () => {
+  // Real body observed from a self-hosted Modal OpenAI-compatible endpoint:
+  // {"error":"usage limit reached"} - a bare string value, no "message"/
+  // "daily"/"quota" wording, so none of the prior patterns matched and the
+  // 429 fell through to a 60s rate_limit cooldown. Combo round-robin's
+  // per-conversation session stickiness (#3825) then kept re-targeting the
+  // same exhausted connection on every turn of a long-running session.
+  const body = { error: "usage limit reached" };
+  assert.equal(looksLikeQuotaExhausted(body), true);
+  assert.equal(classify429({ status: 429, body }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: JSON.stringify(body) }), "quota_exhausted");
+  // Case variation must also match.
+  assert.equal(
+    classify429({ status: 429, body: { error: "USAGE LIMIT REACHED" } }),
+    "quota_exhausted"
+  );
+  // Whitespace around JSON object must also match (bodyToText does not trim).
+  assert.equal(
+    classify429({ status: 429, body: ' { "error" : "usage limit reached" } ' }),
+    "quota_exhausted"
+  );
+  // Extra sibling fields must still match.
+  assert.equal(
+    classify429({
+      status: 429,
+      body: { error: "usage limit reached", code: "RESOURCE_EXHAUSTED" },
+    }),
+    "quota_exhausted"
+  );
+  // Trailing punctuation/whitespace must still match.
+  assert.equal(classify429({ status: 429, body: { error: "usage limit reached." } }), "quota_exhausted");
+  assert.equal(classify429({ status: 429, body: { error: "usage limit reached " } }), "quota_exhausted");
+});
+
+test("classify429: qualified transient 'usage limit reached' messages stay rate_limit", () => {
+  // The Modal pattern requires the "error" JSON key with exactly "usage
+  // limit reached" as its value - anything else is a transient rate limit
+  // and must NOT be locked out long-term.
+  assert.equal(
+    classify429({ status: 429, body: "Per-minute usage limit reached, retry in 60s." }),
+    "rate_limit"
+  );
+  assert.equal(
+    classify429({ status: 429, body: { error: { message: "RPM usage limit reached" } } }),
+    "rate_limit"
+  );
+  // Bare string body (no JSON "error" key) must NOT match.
+  assert.equal(classify429({ status: 429, body: "usage limit reached" }), "rate_limit");
+  // Different JSON key (not "error") must NOT match.
+  assert.equal(classify429({ status: 429, body: { detail: "usage limit reached" } }), "rate_limit");
+  // Qualified value under the "error" key must NOT match.
+  assert.equal(
+    classify429({ status: 429, body: { error: "Per-minute usage limit reached" } }),
+    "rate_limit"
+  );
 });
 
 test("ambiguous 'daily rate limit' messages classify as quota_exhausted (intentional)", () => {

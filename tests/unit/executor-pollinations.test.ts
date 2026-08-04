@@ -40,3 +40,59 @@ test("PollinationsExecutor.transformRequest is a passthrough for alias models", 
   const body = { model: "claude", messages: [{ role: "user", content: "hello" }] };
   assert.equal(executor.transformRequest("claude", body, true, {}), body);
 });
+
+test("PollinationsExecutor enhances 401 errors for premium models with actionable guidance", async () => {
+  const executor = new PollinationsExecutor();
+
+  // Mock super.execute (BaseExecutor.prototype.execute) to throw a 401
+  const origBaseExec = Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute;
+  Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute = async function () {
+    const err = new Error("Authentication required. Please provide an API key via Authorization header (Bearer token) or ?key= query parameter.");
+    (err as any).status = 401;
+    throw err;
+  };
+
+  try {
+    await executor.execute({
+      model: "claude",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {},
+    });
+    assert.fail("Should have thrown");
+  } catch (err: any) {
+    assert.equal(err.status, 401);
+    assert.match(err.message, /Pollinations model "claude" requires an API key/);
+    assert.match(err.message, /enter\.pollinations\.ai/);
+    assert.match(err.message, /Free keyless models/);
+  } finally {
+    Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute = origBaseExec;
+  }
+});
+
+test("PollinationsExecutor passes through 401 errors for non-premium models", async () => {
+  const executor = new PollinationsExecutor();
+
+  const origBaseExec = Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute;
+  Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute = async function () {
+    const err = new Error("Authentication required");
+    (err as any).status = 401;
+    throw err;
+  };
+
+  try {
+    await executor.execute({
+      model: "openai",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: {},
+    });
+    assert.fail("Should have thrown");
+  } catch (err: any) {
+    assert.equal(err.status, 401);
+    // Free models should NOT get the enhanced message
+    assert.doesNotMatch(err.message, /requires an API key/);
+  } finally {
+    Object.getPrototypeOf(Object.getPrototypeOf(executor)).execute = origBaseExec;
+  }
+});

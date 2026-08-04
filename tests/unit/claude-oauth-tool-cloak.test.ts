@@ -13,11 +13,13 @@ import assert from "node:assert/strict";
 import {
   cloakThirdPartyToolNames,
   needsThirdPartyCloak,
+  isAnthropicServerToolType,
 } from "../../open-sse/services/claudeCodeToolRemapper.ts";
 import {
   sanitizeClaudeToolSchema,
   sanitizeClaudeToolSchemas,
 } from "../../open-sse/translator/helpers/schemaCoercion.ts";
+import { stripVersionedToolModelPrefix } from "../../open-sse/executors/base.ts";
 
 type AnyRecord = Record<string, unknown>;
 const schemaOf = (tools: unknown, i = 0): AnyRecord =>
@@ -105,6 +107,48 @@ describe("cloakThirdPartyToolNames", () => {
     assert.equal(needsThirdPartyCloak("TodoWrite"), false);
     assert.equal(needsThirdPartyCloak("read_file"), true);
     assert.equal(needsThirdPartyCloak("mixture_of_agents"), true);
+  });
+
+  it("needsThirdPartyCloak leaves mcp__ namespace untouched (#4861)", () => {
+    // Genuine Claude Code MCP names Anthropic accepts natively; cloaking them
+    // caused round-trip "Tool reference 'mcp__…' not found" 400s on claude OAuth.
+    assert.equal(needsThirdPartyCloak("mcp__filesystem__read_file"), false);
+    assert.equal(needsThirdPartyCloak("mcp__github__create_issue"), false);
+    assert.equal(needsThirdPartyCloak("mcp__server"), false);
+  });
+
+  it("preserves the reserved name of a versioned Anthropic server tool", () => {
+    const body: AnyRecord = {
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],
+    };
+    cloakThirdPartyToolNames(body);
+    // Anthropic requires tools.N.web_search_20250305.name === "web_search".
+    assert.equal((body.tools as AnyRecord[])[0].name, "web_search");
+    // No reverse-map entry needed because nothing was cloaked.
+    assert.equal((body._toolNameMap as Map<string, string> | undefined)?.has("WebSearch") ?? false, false);
+  });
+
+  it("still cloaks a genuine third-party tool sitting next to a server tool", () => {
+    const body: AnyRecord = {
+      tools: [
+        { type: "web_search_20250305", name: "web_search" },
+        { name: "mixture_of_agents" },
+      ],
+    };
+    cloakThirdPartyToolNames(body);
+    assert.equal((body.tools as AnyRecord[])[0].name, "web_search");
+    assert.equal((body.tools as AnyRecord[])[1].name, "MixtureOfAgents");
+  });
+
+  it("isAnthropicServerToolType detects versioned + non-versioned server tools", () => {
+    assert.equal(isAnthropicServerToolType("web_search_20250305"), true);
+    assert.equal(isAnthropicServerToolType("code_execution_20250522"), true);
+    assert.equal(isAnthropicServerToolType("web_search"), true);
+    assert.equal(isAnthropicServerToolType("web_search_preview"), true);
+    // Not server tools — must remain cloakable.
+    assert.equal(isAnthropicServerToolType("mixture_of_agents"), false);
+    assert.equal(isAnthropicServerToolType("Bash"), false);
+    assert.equal(isAnthropicServerToolType(undefined), false);
   });
 });
 
@@ -268,5 +312,52 @@ describe("review fixes — established aliases + kill-switch", () => {
       if (prev === undefined) delete process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK;
       else process.env.CLAUDE_DISABLE_TOOL_NAME_CLOAK = prev;
     }
+  });
+});
+
+describe("native claude OAuth path — versioned built-in tool model prefix stripping", () => {
+  // Exercises the REAL production helper from base.ts (not a re-implementation),
+  // so reverting the fix in base.ts breaks these assertions.
+  it("strips cc/ prefix from advisor_20260301 model field", () => {
+    const tools: AnyRecord[] = [
+      { type: "advisor_20260301", name: "advisor", model: "cc/claude-opus-4-8" },
+      { type: "bash_20250124", name: "Bash", model: "kiro/claude-opus-4.8" },
+      { name: "Read", input_schema: { type: "object", properties: {} } },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "claude-opus-4-8", "cc/ prefix stripped from advisor model");
+    assert.equal(tools[1].model, "claude-opus-4.8", "kiro/ prefix stripped from bash model");
+    assert.equal("model" in tools[2], false, "regular tool untouched");
+  });
+
+  it("strips multi-segment prefix (claude/claude-sonnet-4-6) from versioned tool model", () => {
+    const tools: AnyRecord[] = [
+      { type: "bash_20250124", name: "Bash", model: "claude/claude-sonnet-4-6" },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "claude-sonnet-4-6");
+  });
+
+  it("leaves bare model on versioned tool unchanged", () => {
+    const tools: AnyRecord[] = [
+      { type: "advisor_20260301", name: "advisor", model: "claude-opus-4-8" },
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "claude-opus-4-8");
+  });
+
+  it("leaves non-versioned tool types untouched even with a prefixed model", () => {
+    const tools: AnyRecord[] = [
+      { type: "custom", name: "x", model: "cc/claude-opus-4-8" },
+      { type: "advisor_2026", name: "y", model: "cc/claude-opus-4-8" }, // not 8 digits
+    ];
+    stripVersionedToolModelPrefix(tools);
+    assert.equal(tools[0].model, "cc/claude-opus-4-8", "non-versioned type untouched");
+    assert.equal(tools[1].model, "cc/claude-opus-4-8", "short date suffix untouched");
+  });
+
+  it("is a no-op for non-array input", () => {
+    assert.doesNotThrow(() => stripVersionedToolModelPrefix(undefined));
+    assert.doesNotThrow(() => stripVersionedToolModelPrefix({ tools: [] }));
   });
 });

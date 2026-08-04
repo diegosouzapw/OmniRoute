@@ -1,5 +1,9 @@
 import { handleModeration } from "@omniroute/open-sse/handlers/moderations.ts";
-import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
+import {
+  getProviderCredentialsWithQuotaPreflight,
+  clearRecoveredProviderState,
+} from "@/sse/services/auth";
+import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import { parseModerationModel } from "@omniroute/open-sse/config/moderationRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -27,7 +31,7 @@ export async function OPTIONS() {
  * POST /v1/moderations — content moderation
  * OpenAI Moderations API compatible.
  */
-export async function POST(request) {
+async function postHandler(request, context) {
   let rawBody;
   try {
     rawBody = await request.json();
@@ -51,7 +55,7 @@ export async function POST(request) {
 
   // Default to openai if no provider prefix
   const resolvedProvider = provider || "openai";
-  const credentials = await getProviderCredentials(resolvedProvider);
+  const credentials = await getProviderCredentialsWithQuotaPreflight(resolvedProvider);
   if (!credentials) {
     return errorResponse(
       HTTP_STATUS.BAD_REQUEST,
@@ -68,3 +72,5 @@ export async function POST(request) {
   }
   return response;
 }
+
+export const POST = withInjectionGuard(postHandler);

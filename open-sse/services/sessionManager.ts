@@ -12,6 +12,8 @@ interface SessionEntry {
   lastActive: number;
   requestCount: number;
   connectionId: string | null;
+  /** Timestamp when the last tool_calls finish_reason was emitted (cross-request TTFT tracking) */
+  lastToolFinishAt?: number;
 }
 
 interface SessionFingerprintOptions {
@@ -160,6 +162,29 @@ export function touchSession(sessionId: string | null, connectionId: string | nu
       connectionId,
     });
   }
+}
+
+/**
+ * Persist the tool-finish timestamp so Request 2 (the follow-up after tool execution)
+ * can measure cross-request TTFT.
+ */
+export function markToolFinish(sessionId: string | null): void {
+  if (!sessionId) return;
+  const session = sessions.get(sessionId);
+  if (session) session.lastToolFinishAt = Date.now();
+}
+
+/**
+ * Consume the previously persisted tool-finish timestamp (one-shot: clears after read).
+ * Returns null if no pending timestamp or session not found.
+ */
+export function consumeToolFinishTime(sessionId: string | null): number | null {
+  if (!sessionId) return null;
+  const session = sessions.get(sessionId);
+  if (!session?.lastToolFinishAt) return null;
+  const ts = session.lastToolFinishAt;
+  session.lastToolFinishAt = undefined;
+  return ts;
 }
 
 /**

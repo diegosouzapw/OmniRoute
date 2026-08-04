@@ -29,6 +29,7 @@ export function SetupWizard({
   onDnsToggle,
 }: SetupWizardProps) {
   const t = useTranslations("agentBridge");
+  const tc = useTranslations("common");
   const [step, setStep] = useState<Step>("verify");
   const [enablingDns, setEnablingDns] = useState(false);
 
@@ -54,9 +55,9 @@ export function SetupWizard({
   };
 
   const steps: { id: Step; label: string }[] = [
-    { id: "verify", label: t("wizardStep1Label") || "Verify" },
-    { id: "dns", label: t("wizardStep2Label") || "DNS" },
-    { id: "mappings", label: t("wizardStep3Label") || "Mappings" },
+    { id: "verify", label: t("wizardStep1Label") },
+    { id: "dns", label: t("wizardStep2Label") },
+    { id: "mappings", label: t("wizardStep3Label") },
   ];
 
   const stepIndex = steps.findIndex((s) => s.id === step);
@@ -71,20 +72,17 @@ export function SetupWizard({
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border/30">
           <div className="flex items-center gap-3">
-            <span
-              className="material-symbols-outlined text-[20px]"
-              style={{ color: target.color }}
-            >
+            <span className="material-symbols-outlined text-[20px]" style={{ color: target.color }}>
               {target.icon}
             </span>
             <div>
               <h3 className="text-sm font-semibold text-text-main">
-                {t("wizardTitle") || "Setup wizard"} — {target.name}
+                {t("wizardTitle")} — {target.name}
               </h3>
-              <p className="text-xs text-text-muted">{t("wizardSubtitle") || "3-step setup"}</p>
+              <p className="text-xs text-text-muted">{t("wizardSubtitle")}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close">
+          <button type="button" onClick={onClose} aria-label={tc("close")}>
             <span className="material-symbols-outlined text-[18px] text-text-muted hover:text-text-main">
               close
             </span>
@@ -115,9 +113,7 @@ export function SetupWizard({
               >
                 {s.label}
               </span>
-              {i < steps.length - 1 && (
-                <div className="flex-1 h-px bg-border/30 ml-1" />
-              )}
+              {i < steps.length - 1 && <div className="flex-1 h-px bg-border/30 ml-1" />}
             </div>
           ))}
         </div>
@@ -126,9 +122,7 @@ export function SetupWizard({
         <div className="px-5 py-5 flex flex-col gap-4 min-h-[180px]">
           {step === "verify" && (
             <div className="flex flex-col gap-3">
-              <p className="text-sm text-text-muted">
-                {t("wizardStep1Desc") || "Confirm the server is running and the certificate is installed."}
-              </p>
+              <p className="text-sm text-text-muted">{t("wizardStep1Desc")}</p>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-sm">
                   <span
@@ -137,10 +131,8 @@ export function SetupWizard({
                     {serverRunning ? "check_circle" : "cancel"}
                   </span>
                   <span>
-                    {t("wizardServerCheck") || "AgentBridge server"}{" "}
-                    {serverRunning
-                      ? t("wizardRunning") || "running"
-                      : t("wizardNotRunning") || "not running"}
+                    {t("wizardServerCheck")}{" "}
+                    {serverRunning ? t("wizardRunning") : t("wizardNotRunning")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
@@ -150,10 +142,8 @@ export function SetupWizard({
                     {certTrusted ? "verified_user" : "warning"}
                   </span>
                   <span>
-                    {t("wizardCertCheck") || "Certificate"}{" "}
-                    {certTrusted
-                      ? t("wizardTrusted") || "trusted"
-                      : t("wizardNotTrusted") || "not yet trusted — use Trust Cert button"}
+                    {t("wizardCertCheck")}{" "}
+                    {certTrusted ? t("wizardTrusted") : t("wizardNotTrusted")}
                   </span>
                 </div>
               </div>
@@ -162,7 +152,7 @@ export function SetupWizard({
               {target.setupTutorial.steps.length > 0 && (
                 <div className="mt-2 p-3 rounded-lg bg-surface/50 border border-border/30">
                   <p className="text-xs font-medium text-text-muted mb-2">
-                    {t("wizardTutorialTitle") || "Setup instructions:"}
+                    {t("wizardTutorialTitle")}
                   </p>
                   <ol className="flex flex-col gap-1">
                     {target.setupTutorial.steps.map((step, i) => (
@@ -179,9 +169,7 @@ export function SetupWizard({
 
           {step === "dns" && (
             <div className="flex flex-col gap-3">
-              <p className="text-sm text-text-muted">
-                {t("wizardStep2Desc") || "The following entries will be added to /etc/hosts to redirect traffic through AgentBridge:"}
-              </p>
+              <p className="text-sm text-text-muted">{t("wizardStep2Desc")}</p>
               <div className="rounded-lg bg-surface/50 border border-border/30 p-3 font-mono text-xs flex flex-col gap-1">
                 {target.hosts.map((host) => (
                   <div key={host} className="text-text-muted">
@@ -192,7 +180,7 @@ export function SetupWizard({
               {dnsEnabled && (
                 <div className="flex items-center gap-2 text-sm text-emerald-500">
                   <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                  {t("wizardDnsAlreadyEnabled") || "DNS already enabled for this agent"}
+                  {t("wizardDnsAlreadyEnabled")}
                 </div>
               )}
             </div>
@@ -202,13 +190,9 @@ export function SetupWizard({
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 text-emerald-500">
                 <span className="material-symbols-outlined text-[20px]">check_circle</span>
-                <p className="text-sm font-medium">
-                  {t("wizardStep3Success") || "Agent is configured!"}
-                </p>
+                <p className="text-sm font-medium">{t("wizardStep3Success")}</p>
               </div>
-              <p className="text-sm text-text-muted">
-                {t("wizardStep3Desc") || "You can now configure model mappings in the agent card. Restart the IDE to apply changes."}
-              </p>
+              <p className="text-sm text-text-muted">{t("wizardStep3Desc")}</p>
             </div>
           )}
         </div>
@@ -224,7 +208,7 @@ export function SetupWizard({
             }}
             className="rounded-lg border border-border/50 bg-card px-4 py-2 text-sm text-text-muted hover:bg-surface transition-colors"
           >
-            {step === "verify" ? t("cancel") || "Cancel" : t("back") || "Back"}
+            {step === "verify" ? t("cancel") : t("back")}
           </button>
 
           <div className="flex gap-2">
@@ -234,7 +218,7 @@ export function SetupWizard({
                 onClick={() => setStep("dns")}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
               >
-                {t("next") || "Next"}{" "}
+                {t("next")}{" "}
                 <span className="material-symbols-outlined text-[14px] ml-1">arrow_forward</span>
               </button>
             )}
@@ -247,7 +231,7 @@ export function SetupWizard({
                     onClick={() => setStep("mappings")}
                     className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
                   >
-                    {t("next") || "Next"}
+                    {t("next")}
                   </button>
                 ) : (
                   <button
@@ -256,9 +240,7 @@ export function SetupWizard({
                     disabled={enablingDns}
                     className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
                   >
-                    {enablingDns
-                      ? t("enablingDns") || "Enabling…"
-                      : t("wizardEnableDns") || "Add /etc/hosts entries"}
+                    {enablingDns ? t("enablingDns") : t("wizardEnableDns")}
                   </button>
                 )}
               </>
@@ -270,7 +252,7 @@ export function SetupWizard({
                 onClick={onClose}
                 className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-400 transition-colors"
               >
-                {t("done") || "Done"}
+                {t("done")}
               </button>
             )}
           </div>

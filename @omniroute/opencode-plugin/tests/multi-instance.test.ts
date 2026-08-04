@@ -38,8 +38,8 @@ test("multi-instance: two plugin invocations bind to their own providerId", asyn
     baseURL: "https://b.example/v1",
   });
 
-  assert.equal(a.auth?.provider, "omniroute-prod");
-  assert.equal(b.auth?.provider, "omniroute-preprod");
+  assert.equal(a.auth?.provider, "opencode-omniroute-prod");
+  assert.equal(b.auth?.provider, "opencode-omniroute-preprod");
 });
 
 test("multi-instance: hook objects + nested arrays are independent references", async () => {
@@ -70,8 +70,8 @@ test("multi-instance: identical opts twice still yield independent objects", asy
   assert.notEqual(first.auth, second.auth);
   assert.notEqual(first.auth?.methods, second.auth?.methods);
   // Same provider id is fine — what matters is no shared mutable state.
-  assert.equal(first.auth?.provider, "twin");
-  assert.equal(second.auth?.provider, "twin");
+  assert.equal(first.auth?.provider, "opencode-twin");
+  assert.equal(second.auth?.provider, "opencode-twin");
 });
 
 test("multi-instance: mutating instance A's auth.methods does not affect instance B", async () => {
@@ -132,5 +132,5 @@ test("multi-instance: invalid opts on one instance does not poison the other", a
     providerId: "recovered",
     baseURL: "https://ok.example/v1",
   });
-  assert.equal(ok.auth?.provider, "recovered");
+  assert.equal(ok.auth?.provider, "opencode-recovered");
 });

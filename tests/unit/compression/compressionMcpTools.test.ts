@@ -23,6 +23,7 @@ const {
 } = await import("../../../open-sse/mcp-server/schemas/tools.ts");
 const { maybeCompressMcpDescription, resetMcpDescriptionCompressionStats } =
   await import("../../../open-sse/mcp-server/descriptionCompressor.ts");
+const { updateCompressionSettings } = await import("../../../src/lib/db/compression.ts");
 
 describe("compression MCP tool schemas", () => {
   it("uses canonical read/write compression scopes", () => {
@@ -164,6 +165,22 @@ describe("compression MCP RTK/combo tools", () => {
     assert.equal(result.success, true);
     assert.equal(result.settings.defaultMode, "rtk");
     assert.equal((result.settings.rtkConfig as { intensity?: string }).intensity, "aggressive");
+  });
+
+  it("selects codex-responses in the authoritative engine toggle map", async () => {
+    await updateCompressionSettings({
+      engines: {
+        rtk: { enabled: true, level: "standard" },
+        "codex-responses": { enabled: false },
+      },
+    });
+
+    const result = await handleSetCompressionEngine({ engine: "codex-responses" });
+    const engines = result.settings.engines as Record<string, { enabled?: boolean }>;
+
+    assert.equal(result.settings.defaultMode, "codex-responses");
+    assert.equal(engines["codex-responses"]?.enabled, true);
+    assert.equal(engines.rtk?.enabled, false);
   });
 
   it("lists compression combos", async () => {

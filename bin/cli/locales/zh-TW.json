@@ -1,0 +1,1262 @@
+{
+  "common": {
+    "error": "錯誤：{message}",
+    "serverOffline": "OmniRoute 伺服器已離線。請啟動：omniroute serve",
+    "authRequired": "需要認證。請設定 OMNIROUTE_API_KEY 或執行：omniroute setup",
+    "rateLimited": "請求超出限制。請在 {seconds}s 後重試。",
+    "timeout": "請求在 {ms}ms 後超時。",
+    "success": "完成。",
+    "yes": "是",
+    "no": "否",
+    "confirm": "確定嗎？（是/否）",
+    "dryRun": "【模擬】將執行：{action}",
+    "cancelled": "已取消。",
+    "jsonOpt": "以 JSON 格式輸出",
+    "yesOpt": "跳過確認"
+  },
+  "program": {
+    "description": "OmniRoute — 具有自動故障轉移的智慧 AI 路由器",
+    "version": "列印版本並退出",
+    "output": "輸出格式（table, json, jsonl, csv）",
+    "quiet": "禁止非必要輸出",
+    "no_color": "停用彩色輸出",
+    "timeout": "HTTP 請求超時（毫秒）",
+    "api_key": "OmniRoute 伺服器的 API 金鑰",
+    "base_url": "OmniRoute 伺服器的基礎 URL",
+    "context": "此命令使用的伺服器上下文/配置檔案",
+    "lang": "設定 CLI 顯示語言（覆蓋 OMNIROUTE_LANG）"
+  },
+  "setup": {
+    "title": "OmniRoute 設定",
+    "passwordPrompt": "管理員密碼",
+    "providerPrompt": "預設提供者（留空跳過）",
+    "done": "設定完成",
+    "passwordSet": "管理員密碼已配置",
+    "providerSet": "提供者已配置：{name}",
+    "testingProvider": "正在測試提供者連線：{name}",
+    "testPassed": "提供者測試通過",
+    "testFailed": "提供者測試失敗：{error}",
+    "loginEnabled": "登入：已啟用（密碼已更新）",
+    "loginDisabled": "登入：已停用",
+    "providerInfo": "提供者：{info}"
+  },
+  "doctor": {
+    "title": "OmniRoute 診斷",
+    "dbOk": "資料庫：正常（{path}）",
+    "dbMissing": "資料庫：未初始化 — 執行 omniroute setup",
+    "portOk": "埠 {port}：可用",
+    "portConflict": "埠 {port}：已被其他程序佔用",
+    "encryptionOk": "加密金鑰：已配置",
+    "encryptionMissing": "加密金鑰缺失 — 執行 omniroute setup",
+    "allGood": "所有檢查通過。",
+    "warnings": "{count} 個警告 — 見上文。"
+  },
+  "providers": {
+    "title": "提供者",
+    "noProviders": "未配置提供者。執行：omniroute setup",
+    "testing": "正在測試 {name}...",
+    "available": "{count} 個提供者可用",
+    "connected": "已連線",
+    "disconnected": "未連線",
+    "validationFailed": "驗證失敗：{error}",
+    "metrics": {
+      "description": "顯示提供者效能指標（延遲、成功率、成本）",
+      "provider": "按提供者 ID 篩選",
+      "connection_id": "按連線 ID 篩選",
+      "period": "時間範圍：1h|6h|24h|7d|30d（預設：24h）",
+      "metric": "關注特定指標欄位",
+      "sort": "按欄位排序（降序）",
+      "limit": "最大行數（預設：50）",
+      "watch": "每 5 秒重新整理（即時模式）",
+      "compare": "逗號分隔的提供者 ID，並排比較"
+    },
+    "metric_single": {
+      "description": "獲取特定連線的單個指標值"
+    },
+    "rotate": {
+      "description": "輪換提供者連線的上游 API 金鑰",
+      "newKeyOpt": "新 API 金鑰值（避免使用：優先使用 --from-env）",
+      "fromEnvOpt": "從環境變數 VAR 讀取新金鑰",
+      "oauthOpt": "改為觸發 OAuth 重新認證流程",
+      "skipTestOpt": "跳過輪換後的連通性測試",
+      "dryRunOpt": "預覽將要更改的內容而不寫入",
+      "confirmPrompt": "替換連線 \"{name}\" ({id}) 的 API 金鑰？[y/N] ",
+      "dryRunResult": "【模擬】將輪換 \"{name}\" ({id}) 的金鑰。未做任何更改。",
+      "oauthHint": "OAuth 連線 — 執行：omniroute oauth {provider}",
+      "envVarEmpty": "環境變數 {var} 未設定或為空。",
+      "success": "已為 \"{name}\" 輪換金鑰。執行 providers test {id} 驗證。",
+      "testPassed": "輪換後測試通過。",
+      "testFailed": "輪換後測試失敗：{error}"
+    },
+    "status": {
+      "description": "顯示所有提供者連線的金鑰健康狀態（期限、過期、冷卻）",
+      "providerOpt": "按提供者名稱篩選",
+      "header": "ID         提供者       名稱                     過期狀態  測試狀態  冷卻至",
+      "noData": "沒有可用的提供者連線資料。",
+      "requiresServer": "providers status 需要 OmniRoute 伺服器正在執行。"
+    }
+  },
+  "keys": {
+    "title": "API 金鑰",
+    "addDescription": "為提供者新增或更新 API 金鑰",
+    "listDescription": "列出所有已配置的 API 金鑰",
+    "removeDescription": "移除提供者的 API 金鑰",
+    "regenerateDescription": "重新生成 OmniRoute API 金鑰",
+    "revokeDescription": "撤銷 OmniRoute API 金鑰",
+    "revealDescription": "顯示未掩碼的 API 金鑰值",
+    "usageDescription": "顯示 API 金鑰的最近使用情況",
+    "usageLimitOpt": "最近請求數",
+    "rotateDescription": "生成新金鑰並使舊金鑰失效",
+    "graceOpt": "舊金鑰失效前的寬限期（毫秒）",
+    "stdinOpt": "從標準輸入讀取 API 金鑰而不是引數",
+    "added": "已為 {provider} 新增金鑰。",
+    "removed": "金鑰已移除。",
+    "listed": "{count} 個金鑰。",
+    "noKeys": "未配置金鑰。",
+    "noUsage": "未找到使用資料。",
+    "confirmRemove": "移除金鑰 {id}？",
+    "confirmRegenerate": "重新生成金鑰 {id}？",
+    "confirmRevoke": "撤銷金鑰 {id}？",
+    "confirmRotate": "輪換金鑰 {id}？（舊金鑰將在寬限期後失效）",
+    "regenerated": "已重新生成。新金鑰：{key}",
+    "revoked": "金鑰 {id} 已撤銷。",
+    "rotated": "金鑰 {id} 已輪換。新金鑰 ID：{newId}",
+    "revealWarning": "⚠ 這將顯示完整的未掩碼金鑰。請確保您的螢幕不被人看到。",
+    "providerRequired": "需要提供者。",
+    "keyRequired": "需要 API 金鑰。",
+    "stdinEmpty": "未通過標準輸入提供 API 金鑰。",
+    "unknownProvider": "未知提供者：{provider}",
+    "policy": {
+      "title": "金鑰策略",
+      "showDescription": "顯示金鑰的速率/成本策略",
+      "setDescription": "設定金鑰的速率/成本策略",
+      "rateLimitOpt": "每分鐘最大請求數",
+      "maxCostOpt": "每日最大成本（美元）",
+      "allowedModelsOpt": "逗號分隔的允許模型列表",
+      "nothingToSet": "未提供策略欄位。使用 --rate-limit、--max-cost 或 --allowed-models。",
+      "updated": "策略已更新。"
+    },
+    "expiration": {
+      "title": "金鑰過期",
+      "listDescription": "列出即將過期的金鑰",
+      "daysOpt": "顯示 N 天內過期的金鑰",
+      "none": "{days} 天內沒有金鑰過期。",
+      "listTitle": "{days} 天內過期的金鑰："
+    }
+  },
+  "stream": {
+    "description": "使用 SSE 檢查模式流式傳輸聊天響應",
+    "file": "從檔案讀取提示",
+    "stdin": "從標準輸入讀取提示",
+    "model": "模型 ID（預設：auto）",
+    "system": "系統提示",
+    "combo": "強制指定組合名稱",
+    "max_tokens": "響應最大權杖數",
+    "responses_api": "使用 /v1/responses 而不是 /v1/chat/completions",
+    "raw": "列印接收到的原始 SSE 行",
+    "debug": "在 stderr 中列印每塊的時間資訊",
+    "save": "將所有 SSE 事件儲存到 .jsonl 檔案",
+    "error": {
+      "empty_prompt": "錯誤：需要提供提示（位置引數、--file 或 --stdin）"
+    }
+  },
+  "usage": {
+    "description": "使用分析、預算、配額和日誌",
+    "analytics": {
+      "description": "顯示彙總使用分析",
+      "period": "時間範圍：1d|7d|30d|90d|ytd|all（預設：30d）",
+      "provider": "按提供者 ID 篩選"
+    },
+    "budget": {
+      "description": "管理成本預算",
+      "set": {
+        "scope": "預算範圍（預設：全域性）",
+        "period": "預算週期：daily|weekly|monthly（預設：monthly）"
+      }
+    },
+    "quota": {
+      "description": "顯示提供者配額使用情況",
+      "provider": "按提供者 ID 篩選",
+      "check": "顯示新請求是否有可用配額"
+    },
+    "logs": {
+      "description": "顯示請求呼叫日誌",
+      "limit": "返回的日誌條目數（預設：100）",
+      "search": "篩選日誌的搜尋查詢",
+      "since": "返回自此時間戳以來的日誌",
+      "follow": "持續跟蹤新的日誌條目",
+      "api_key": "按 API 金鑰篩選日誌"
+    },
+    "utilization": {
+      "description": "顯示 API 金鑰利用率指標",
+      "api_key": "按 API 金鑰篩選"
+    },
+    "history": {
+      "description": "顯示請求歷史",
+      "limit": "歷史條目數（預設：100）"
+    },
+    "proxy_logs": {
+      "description": "顯示代理級請求日誌",
+      "limit": "代理日誌條目數（預設：100）"
+    }
+  },
+  "cost": {
+    "description": "按提供者、模型、組合或 API 金鑰顯示成本報告",
+    "period": "時間範圍：1d|7d|30d|90d|ytd|all（預設：30d）",
+    "since": "開始日期（ISO 格式，例如 2026-01-01）— 覆蓋 --period",
+    "until": "結束日期（ISO 格式）",
+    "group_by": "按以下方式分組：provider|model|api-key|combo|day（預設：provider）",
+    "api_key_filter": "按特定 API 金鑰篩選",
+    "limit": "顯示的最大行數（預設：100）"
+  },
+  "simulate": {
+    "description": "模擬路由（空執行）— 顯示將選擇哪些提供者而不呼叫上游",
+    "file": "從 JSON 檔案載入完整請求體",
+    "model": "模型 ID（預設：auto）",
+    "combo": "強制指定組合名稱",
+    "reasoning": "推理努力級別（low|medium|high）",
+    "thinking": "擴充套件思維權杖預算",
+    "explain": "在 stderr 中列印回退樹和成本範圍",
+    "noCombo": "未找到匹配的組合。使用以下命令配置：omniroute combo create"
+  },
+  "chat": {
+    "description": "向 OmniRoute 傳送一次性聊天提示",
+    "file": "從檔案讀取提示",
+    "stdin": "從標準輸入讀取提示",
+    "system": "系統提示",
+    "model": "模型 ID（預設：auto）",
+    "max_tokens": "響應最大權杖數",
+    "temperature": "取樣溫度（0–2）",
+    "top_p": "Top-p 核取樣",
+    "reasoning_effort": "推理努力級別（low|medium|high）",
+    "thinking_budget": "擴充套件思維權杖預算",
+    "combo": "強制指定組合名稱",
+    "responses_api": "使用 /v1/responses 而不是 /v1/chat/completions",
+    "stream": "增量流式傳輸響應",
+    "no_history": "不儲存到 ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "錯誤：需要提供提示（位置引數、--file 或 --stdin）"
+    }
+  },
+  "serve": {
+    "description": "啟動 OmniRoute 伺服器（預設操作）",
+    "starting": "正在啟動 OmniRoute 伺服器（埠 {port}）...",
+    "ready": "就緒地址：http://localhost:{port}",
+    "stopping": "正在停止伺服器（PID {pid}）...",
+    "stopped": "伺服器已停止。",
+    "notRunning": "伺服器未在執行。",
+    "port": "監聽埠（預設：20128）",
+    "no_open": "不自動開啟瀏覽器",
+    "daemon": "以後臺守護程序方式執行伺服器",
+    "log": "內聯顯示伺服器日誌",
+    "no_recovery": "停用崩潰自動重啟（除錯模式）",
+    "max_restarts": "30 秒內的最大崩潰重啟次數（預設：2）",
+    "tray": "顯示系統托盤圖示（僅桌面，選擇加入）",
+    "no_tray": "停用系統托盤圖示"
+  },
+  "backup": {
+    "title": "備份",
+    "description": "建立 OmniRoute 資料備份",
+    "creating": "正在建立備份...",
+    "done": "備份已儲存至 {path}",
+    "noFiles": "沒有可備份的檔案（資料庫未初始化）",
+    "failed": "備份失敗：{error}",
+    "restoring": "正在從 {path} 恢復...",
+    "restored": "恢復完成。",
+    "restoreDescription": "從備份恢復",
+    "listTitle": "可用備份",
+    "noBackups": "未找到備份。",
+    "notFound": "未找到備份：{name}",
+    "confirmRestore": "用 {ts} 的備份覆蓋當前資料？",
+    "createDescription": "建立 OmniRoute 資料備份",
+    "nameOpt": "自定義備份名稱",
+    "cloudOpt": "將備份上傳到雲端儲存",
+    "encryptOpt": "使用 AES-256-GCM 加密備份",
+    "keyFileOpt": "包含加密密碼的檔案路徑",
+    "excludeOpt": "排除匹配模式的檔案（可重複）",
+    "retentionOpt": "僅保留最近 N 個備份",
+    "passphrasePrompt": "加密密碼：",
+    "noPassphrase": "加密備份需要密碼。",
+    "cloudFailed": "警告：雲上傳失敗。本地備份已儲存。",
+    "cloudUploaded": "雲備份已上傳：{url}",
+    "auto": {
+      "title": "備份計劃",
+      "enableDescription": "啟用定時自動備份",
+      "disableDescription": "停用定時自動備份",
+      "statusDescription": "顯示當前備份計劃狀態",
+      "cronOpt": "計劃 cron 表示式（預設：每天凌晨 3 點）",
+      "enabled": "已啟用自動備份（cron：{cron}）。",
+      "hint": "  計劃由 omniroute serve 啟動時讀取。",
+      "disabled": "已停用自動備份。",
+      "notConfigured": "未配置備份計劃。"
+    }
+  },
+  "health": {
+    "description": "檢查伺服器健康狀態和元件狀態",
+    "noServer": "伺服器未執行。啟動：omniroute serve",
+    "title": "健康狀態",
+    "status": "狀態：{status}",
+    "uptime": "執行時間：{uptime}",
+    "requests": "請求數（24h）：{count}",
+    "cost": "成本（24h）："
+  },
+  "quota": {
+    "description": "顯示提供者配額使用情況",
+    "noServer": "伺服器未執行。啟動：omniroute serve",
+    "noData": "沒有可用的配額資訊。"
+  },
+  "cache": {
+    "description": "管理響應快取",
+    "noServer": "伺服器未執行。啟動：omniroute serve",
+    "cleared": "快取已清除。",
+    "clearFailed": "清除快取失敗。"
+  },
+  "redis": {
+    "description": "一鍵啟動本地 Redis 容器（Podman 或 Docker），用於 OmniRoute 快取和配額跟蹤"
+  },
+  "test": {
+    "description": "測試提供者連線",
+    "noServer": "伺服器未執行。啟動：omniroute serve",
+    "testing": "正在測試 {provider} / {model}...",
+    "passed": "連線成功！",
+    "failed": "連線失敗：{error}",
+    "allProvidersOpt": "測試所有已配置的提供者",
+    "latencyOpt": "顯示延遲測量值（平均/最小/最大 毫秒）",
+    "repeatOpt": "重複測試 N 次並彙總結果",
+    "compareOpt": "逗號分隔的要比較的模型（例如 gpt-4o,claude-3-5-sonnet）",
+    "saveOpt": "將結果儲存到 JSON 檔案",
+    "saved": "結果已儲存至 {path}",
+    "compareTitle": "模型比較",
+    "compareMinTwo": "--compare 需要至少兩個模型（逗號分隔）",
+    "noProviders": "未配置提供者。新增：omniroute keys add"
+  },
+  "update": {
+    "checking": "正在檢查更新...",
+    "upToDate": "已是最新版本（{version}）。",
+    "available": "有可用更新：{current} → {latest}",
+    "installing": "正在安裝 {latest}...",
+    "done": "已更新至 {latest}。重啟伺服器以生效。"
+  },
+  "mcp": {
+    "title": "MCP 伺服器",
+    "running": "MCP 伺服器正在執行（{transport}）",
+    "stopped": "MCP 伺服器已停止。",
+    "restarted": "MCP 伺服器已重啟。",
+    "call": {
+      "description": "直接呼叫 MCP 工具",
+      "args": "JSON 引數物件（內聯）",
+      "args_file": "JSON 引數檔案路徑",
+      "stream": "使用流式端點（/api/mcp/stream）",
+      "scope": "所需作用域（可重複，例如 read:health）"
+    },
+    "scopes": {
+      "description": "列出可用的 MCP 作用域",
+      "tool": "顯示特定工具所需的作用域"
+    },
+    "tools": {
+      "description": "檢查 MCP 工具",
+      "list": {
+        "description": "列出所有 MCP 工具",
+        "scope": "按作用域篩選"
+      },
+      "info": {
+        "description": "顯示 MCP 工具的後設資料"
+      },
+      "schema": {
+        "description": "顯示 MCP 工具的輸入/輸出 JSON 模式",
+        "io": "模式型別：input|output（預設：input）"
+      }
+    },
+    "audit": {
+      "description": "MCP 審計日誌（audit --source mcp 的別名）"
+    }
+  },
+  "a2a": {
+    "skills": {
+      "description": "從代理卡片列出可用的 A2A 技能"
+    },
+    "invoke": {
+      "description": "呼叫 A2A 技能並返回任務 ID",
+      "input": "JSON 輸入物件",
+      "input_file": "JSON 輸入檔案路徑",
+      "wait": "等待任務完成後返回",
+      "timeout": "等待完成的超時時間（毫秒，預設：60000）"
+    },
+    "tasks": {
+      "description": "管理 A2A 任務",
+      "list": {
+        "status": "按狀態篩選",
+        "skill": "按技能 ID 篩選"
+      },
+      "watch": {
+        "description": "輪詢任務狀態直至完成"
+      },
+      "stream": {
+        "description": "通過 SSE 流式傳輸任務執行事件"
+      },
+      "logs": {
+        "description": "顯示任務訊息和產物"
+      }
+    }
+  },
+  "policy": {
+    "description": "管理 OmniRoute 授權策略",
+    "list": {
+      "description": "列出策略",
+      "kind": "按型別篩選（allow|deny|rate-limit|cost-cap）",
+      "scope": "按作用域篩選（global|api-key|provider）"
+    },
+    "get": {
+      "description": "按 ID 獲取策略詳情"
+    },
+    "create": {
+      "description": "從 JSON 檔案建立策略",
+      "file": "策略 JSON 檔案路徑"
+    },
+    "update": {
+      "description": "從 JSON 檔案更新策略",
+      "file": "策略 JSON 檔案路徑"
+    },
+    "delete": {
+      "description": "按 ID 刪除策略",
+      "yes": "跳過確認提示"
+    },
+    "evaluate": {
+      "description": "空執行策略評估（退出碼 0=允許，4=拒絕）",
+      "api_key": "要評估的 API 金鑰",
+      "action": "要檢查的操作（例如 chat, embed, admin）",
+      "resource": "資源路徑或識別符號",
+      "context": "作為 JSON 物件的額外上下文"
+    },
+    "export": {
+      "description": "將所有策略匯出到 JSON 檔案"
+    },
+    "import": {
+      "description": "從 JSON 檔案匯入策略",
+      "overwrite": "覆蓋具有相同 ID 的現有策略"
+    }
+  },
+  "compression": {
+    "description": "配置和檢查 OmniRoute 壓縮管道",
+    "status": {
+      "description": "顯示當前壓縮狀態和設定"
+    },
+    "configure": {
+      "description": "配置壓縮設定",
+      "engine": "壓縮引擎（caveman|rtk|hybrid|none）",
+      "caveman_agg": "Caveman 激程序度 0.0–1.0",
+      "rtk_budget": "RTK 權杖預算",
+      "language_pack": "要啟用的語言包"
+    },
+    "engine": {
+      "description": "獲取或設定活動壓縮引擎"
+    },
+    "combos": {
+      "description": "管理壓縮組合統計"
+    },
+    "rules": {
+      "description": "管理壓縮規則",
+      "add": {
+        "pattern": "要匹配的模式（正則或 field:pattern）",
+        "action": "操作：drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "列出可用的壓縮語言包"
+    },
+    "preview": {
+      "description": "預覽壓縮對請求的效果",
+      "file": "請求 JSON 檔案路徑"
+    }
+  },
+  "tunnel": {
+    "title": "隧道",
+    "listDescription": "列出活動隧道",
+    "createDescription": "建立隧道",
+    "created": "隧道已建立：{url}",
+    "stopped": "隧道已停止。",
+    "confirmStop": "停止隧道 {id}？",
+    "stopDescription": "停止隧道",
+    "statusDescription": "顯示隧道的詳細狀態",
+    "logsDescription": "顯示隧道日誌",
+    "infoDescription": "顯示隧道的配置詳情",
+    "rotateDescription": "生成新的隧道 URL",
+    "tailOpt": "顯示的日誌行數",
+    "typeRequired": "需要隧道型別。",
+    "noLogs": "沒有可用日誌。",
+    "notAvailable": "隧道資訊不可用。",
+    "noTunnels": "沒有活動隧道。",
+    "infoTitle": "隧道資訊：{type}",
+    "rotated": "隧道 URL 已輪換：{url}",
+    "confirmRotate": "輪換隧道 {type}？（將生成新 URL）"
+  },
+  "stop": {
+    "description": "停止 OmniRoute 伺服器",
+    "stopping": "正在停止伺服器（PID {pid}）...",
+    "stopped": "伺服器已停止。",
+    "notRunning": "沒有伺服器在執行。",
+    "portFallback": "未找到 PID 檔案，嘗試通過埠停止..."
+  },
+  "restart": {
+    "description": "重啟 OmniRoute 伺服器",
+    "restarting": "正在重啟 OmniRoute 伺服器..."
+  },
+  "dashboard": {
+    "description": "在瀏覽器中開啟 OmniRoute 儀表盤",
+    "opening": "正在開啟儀表盤：{url}",
+    "urlOnly": "僅列印儀表盤 URL，不開啟瀏覽器",
+    "tui": "開啟互動式 TUI 儀表盤（終端 UI，7 個標籤頁）"
+  },
+  "models": {
+    "description": "列出可用模型（需要伺服器）",
+    "search": "按 ID、名稱、提供者或描述篩選模型",
+    "noServer": "伺服器未執行。啟動：omniroute serve",
+    "noModels": "未找到模型。"
+  },
+  "audit": {
+    "description": "訪問合規和 MCP 審計日誌",
+    "source": "日誌來源：all|compliance|mcp（預設：all）",
+    "since": "返回自此時間戳以來的條目（ISO 8601）",
+    "until": "返回直至此時間戳的條目（ISO 8601）",
+    "tail": {
+      "description": "顯示最近的審計日誌條目",
+      "follow": "持續跟蹤新條目（2 秒輪詢）",
+      "limit": "顯示的最大條目數（預設：100）"
+    },
+    "search": {
+      "description": "按關鍵詞搜尋審計日誌條目",
+      "limit": "最大結果數（預設：200）",
+      "actor": "按參與者 ID 篩選",
+      "action": "按操作名稱篩選"
+    },
+    "export": {
+      "description": "將審計日誌匯出到檔案",
+      "format": "輸出格式：jsonl|csv（預設：jsonl）"
+    },
+    "stats": {
+      "description": "顯示審計日誌統計",
+      "period": "時間範圍：1d|7d|30d（預設：7d）"
+    },
+    "get": {
+      "description": "按 ID 獲取單個審計日誌條目"
+    }
+  },
+  "skills": {
+    "description": "管理 OmniRoute 技能（沙箱、內建、自定義、混合、skillssh）",
+    "list": {
+      "description": "列出已安裝的技能",
+      "type": "按型別篩選（sandbox|custom|builtin|hybrid|skillssh）",
+      "enabled": "僅顯示已啟用的技能",
+      "disabled": "僅顯示已停用的技能",
+      "api_key": "按 API 金鑰篩選"
+    },
+    "get": {
+      "description": "按 ID 獲取技能詳情"
+    },
+    "install": {
+      "description": "從檔案或 URL 安裝技能",
+      "from_file": "技能 JSON 定義檔案路徑",
+      "from_url": "遠端技能定義的 URL",
+      "type": "技能型別（sandbox|custom|hybrid）",
+      "enable": "安裝後啟用技能"
+    },
+    "enable": {
+      "description": "按 ID 啟用技能"
+    },
+    "disable": {
+      "description": "按 ID 停用技能",
+      "yes": "跳過確認提示"
+    },
+    "delete": {
+      "description": "按 ID 刪除技能",
+      "yes": "跳過確認提示"
+    },
+    "execute": {
+      "description": "按 ID 執行技能",
+      "input": "JSON 輸入物件",
+      "input_file": "JSON 輸入檔案路徑",
+      "timeout": "執行超時時間（毫秒，預設：30000）"
+    },
+    "executions": {
+      "description": "列出技能執行歷史",
+      "skill": "按技能 ID 篩選",
+      "limit": "最大結果數（預設：50）",
+      "status": "按狀態篩選（running|completed|failed）"
+    },
+    "skillssh": {
+      "description": "管理通過 SSH 安裝的技能"
+    },
+    "marketplace": {
+      "description": "瀏覽和安裝市場中的技能"
+    },
+    "mp": {
+      "search": {
+        "description": "搜尋市場包",
+        "category": "按類別篩選",
+        "tag": "按標籤篩選",
+        "limit": "最大結果數（預設：30）",
+        "sort": "排序方式：downloads|rating|recent"
+      },
+      "info": {
+        "description": "顯示包詳情和說明文件"
+      },
+      "install": {
+        "description": "安裝市場包",
+        "version": "包版本（預設：latest）",
+        "enable": "安裝後啟用",
+        "yes": "跳過確認提示"
+      },
+      "categories": {
+        "description": "列出市場類別"
+      },
+      "featured": {
+        "description": "顯示推薦市場包"
+      }
+    }
+  },
+  "memory": {
+    "description": "管理 OmniRoute 對話記憶（FTS5 + 向量）",
+    "search": {
+      "description": "按語義查詢搜尋記憶條目",
+      "type": "按記憶型別篩選（user|feedback|project|reference）",
+      "limit": "最大結果數（預設：20）",
+      "api_key": "按 API 金鑰篩選",
+      "token_budget": "限制結果中的總權杖數"
+    },
+    "add": {
+      "description": "新增新的記憶條目",
+      "content": "記憶文本內容",
+      "file": "從檔案讀取內容",
+      "type": "記憶型別（預設：user）",
+      "metadata": "JSON 後設資料物件",
+      "api_key": "關聯到 API 金鑰"
+    },
+    "clear": {
+      "description": "刪除匹配篩選條件的記憶條目",
+      "type": "按型別篩選",
+      "older": "刪除早於指定時長的條目（30d, 6m, 1y）",
+      "api_key": "按 API 金鑰篩選",
+      "yes": "跳過確認提示"
+    },
+    "list": {
+      "description": "列出記憶條目（不按搜尋排名）",
+      "type": "按型別篩選",
+      "limit": "最大結果數（預設：100）",
+      "api_key": "按 API 金鑰篩選"
+    },
+    "get": {
+      "description": "按 ID 獲取單個記憶條目"
+    },
+    "delete": {
+      "description": "按 ID 刪除記憶條目",
+      "yes": "跳過確認提示"
+    },
+    "health": {
+      "description": "顯示記憶子系統健康狀態（FTS5 + Qdrant）"
+    }
+  },
+  "oauth": {
+    "description": "管理 OAuth 提供者連線",
+    "providers": {
+      "description": "列出支援 OAuth 的提供者及其流程型別"
+    },
+    "start": {
+      "description": "為提供者啟動 OAuth 授權流程",
+      "provider": "提供者 ID（gemini, copilot, cursor, ...）",
+      "no_browser": "僅列印 URL — 不開啟瀏覽器",
+      "import_system": "從本地系統配置自動匯入憑據",
+      "social": "社交登入提供者（google|github）— kiro 需要",
+      "timeout": "等待授權超時時間（毫秒，預設：300000）"
+    },
+    "status": {
+      "description": "列出活動的 OAuth 連線",
+      "provider": "按提供者 ID 篩選"
+    },
+    "revoke": {
+      "description": "撤銷 OAuth 連線",
+      "provider": "要撤銷的提供者 ID",
+      "connection_id": "按 ID 撤銷特定連線",
+      "yes": "跳過確認提示"
+    }
+  },
+  "cloud": {
+    "description": "管理雲 AI 代理任務（codex, devin, jules）",
+    "agents": {
+      "description": "列出可用的雲代理"
+    },
+    "agent": {
+      "description": "管理 {agent} 雲代理任務",
+      "auth": {
+        "description": "通過 OAuth 授權 {agent}"
+      }
+    },
+    "task": {
+      "description": "管理雲代理任務",
+      "create": {
+        "description": "建立新的代理任務",
+        "title": "任務標題（預設為提示的前 80 個字元）",
+        "prompt": "任務提示文本",
+        "prompt_file": "從檔案讀取提示",
+        "repo": "要克隆的任務倉庫 URL",
+        "branch": "要使用的分支名稱",
+        "metadata": "JSON 後設資料物件"
+      },
+      "list": {
+        "description": "列出代理任務",
+        "status": "按狀態篩選（running|completed|failed|cancelled）",
+        "limit": "最大結果數（預設：50）"
+      },
+      "get": {
+        "description": "按 ID 獲取任務詳情"
+      },
+      "status": {
+        "description": "列印任務狀態（running|completed|failed|cancelled）"
+      },
+      "cancel": {
+        "description": "取消執行中的任務",
+        "yes": "跳過確認提示"
+      },
+      "approve": {
+        "description": "批准代理計劃開始執行"
+      },
+      "message": {
+        "description": "向執行中的任務傳送訊息"
+      }
+    },
+    "sources": {
+      "description": "列出任務產生的原始檔"
+    }
+  },
+  "eval": {
+    "description": "管理評估套件和執行",
+    "suites": {
+      "description": "管理評估套件",
+      "list": {
+        "description": "列出評估套件"
+      },
+      "get": {
+        "description": "按 ID 獲取評估套件詳情"
+      },
+      "create": {
+        "description": "從 JSON 檔案建立評估套件",
+        "file": "套件定義 JSON 檔案路徑"
+      }
+    },
+    "run": {
+      "description": "為套件啟動評估執行",
+      "model": "要評估的模型 ID（預設：auto）",
+      "combo": "強制指定組合名稱",
+      "concurrency": "併發樣本數（預設：4）",
+      "tag": "標記此次執行以便後續篩選",
+      "watch": "觀察執行進度直至完成"
+    },
+    "list": {
+      "description": "列出評估執行",
+      "suite": "按套件 ID 篩選",
+      "status": "按狀態篩選",
+      "since": "返回自此時間戳以來的執行",
+      "limit": "最大結果數（預設：50）"
+    },
+    "get": {
+      "description": "按 ID 獲取評估執行詳情"
+    },
+    "results": {
+      "description": "顯示評估執行的樣本結果",
+      "failed": "僅顯示失敗的樣本"
+    },
+    "cancel": {
+      "description": "取消正在執行的評估",
+      "yes": "跳過確認提示"
+    },
+    "scorecard": {
+      "description": "顯示已完成評估執行的記分卡"
+    }
+  },
+  "webhooks": {
+    "description": "管理 OmniRoute Webhook",
+    "events": {
+      "description": "列出所有可用的 Webhook 事件型別"
+    },
+    "list": {
+      "description": "列出已配置的 Webhook"
+    },
+    "get": {
+      "description": "按 ID 獲取 Webhook 詳情"
+    },
+    "add": {
+      "description": "註冊新的 Webhook",
+      "url": "目標 URL",
+      "events": "逗號分隔的事件型別列表",
+      "secret": "HMAC 簽名金鑰",
+      "header": "額外的標頭（key=value 格式，可重複）",
+      "no_enabled": "以停用狀態建立 Webhook"
+    },
+    "update": {
+      "description": "更新現有 Webhook",
+      "enabled": "設定啟用狀態（true|false）"
+    },
+    "remove": {
+      "description": "刪除 Webhook",
+      "yes": "跳過確認提示"
+    },
+    "test": {
+      "description": "向 Webhook 傳送測試事件",
+      "event": "要模擬的事件型別（預設：request.completed）"
+    }
+  },
+  "files": {
+    "description": "管理檔案（上傳、列出、獲取、下載、刪除）",
+    "list": {
+      "purpose": "按用途篩選",
+      "limit": "最大結果數"
+    },
+    "get": {
+      "description": "獲取檔案後設資料"
+    },
+    "upload": {
+      "description": "上傳檔案",
+      "purpose": "檔案用途（batch, assistants, fine-tune）"
+    },
+    "content": {
+      "description": "下載檔案內容",
+      "out": "儲存到路徑（預設：stdout）"
+    },
+    "delete": {
+      "yes": "跳過確認"
+    }
+  },
+  "batches": {
+    "description": "管理相容 OpenAI 的批次作業",
+    "list": {
+      "status": "按狀態篩選",
+      "limit": "最大結果數"
+    },
+    "create": {
+      "description": "建立批次作業",
+      "inputFile": "輸入檔案 ID",
+      "endpoint": "目標端點",
+      "window": "完成視窗",
+      "metadata": "新增後設資料 key=value"
+    },
+    "submit": {
+      "description": "上傳 JSONL 檔案並建立批次作業",
+      "jsonl": "JSONL 檔案路徑",
+      "endpoint": "目標端點",
+      "wait": "等待完成"
+    },
+    "cancel": {
+      "yes": "跳過確認"
+    },
+    "wait": {
+      "timeout": "超時時間（毫秒）"
+    },
+    "output": {
+      "out": "將輸出儲存到路徑"
+    },
+    "errors": {
+      "out": "將錯誤儲存到路徑"
+    }
+  },
+  "translator": {
+    "description": "在 LLM 格式之間轉換請求體",
+    "detect": {
+      "description": "檢測請求體格式"
+    },
+    "translate": {
+      "description": "將請求體從一種格式轉換為另一種格式"
+    },
+    "send": {
+      "description": "轉換併發送到上游"
+    },
+    "stream": {
+      "description": "流式轉換請求體"
+    },
+    "from": "源格式（openai|anthropic|gemini|cohere）",
+    "to": "目標格式（openai|anthropic|gemini|cohere）",
+    "file": "請求體 JSON 檔案路徑",
+    "out": "將輸出儲存到檔案",
+    "model": "覆蓋模型",
+    "history": {
+      "limit": "最大結果數"
+    }
+  },
+  "pricing": {
+    "description": "管理模型定價資料",
+    "sync": {
+      "description": "從上游同步價格",
+      "provider": "按提供者篩選",
+      "force": "強制重新同步"
+    },
+    "list": {
+      "provider": "按提供者篩選",
+      "model": "按模型篩選",
+      "limit": "最大結果數"
+    },
+    "defaults": {
+      "description": "管理預設定價",
+      "input": "每 1M 權杖的輸入成本（美元）",
+      "output": "每 1M 權杖的輸出成本（美元）",
+      "cacheRead": "每 1M 權杖的快取讀取成本（美元）",
+      "cacheWrite": "每 1M 權杖的快取寫入成本（美元）"
+    },
+    "diff": {
+      "description": "顯示與上游價格的差異",
+      "model": "按模型篩選"
+    }
+  },
+  "resilience": {
+    "description": "檢查和管理彈性機制",
+    "status": {
+      "provider": "按提供者篩選"
+    },
+    "breakers": {
+      "provider": "按提供者篩選"
+    },
+    "cooldowns": {
+      "provider": "按提供者篩選",
+      "connectionId": "按連線 ID 篩選"
+    },
+    "lockouts": {
+      "provider": "按提供者篩選",
+      "model": "按模型篩選"
+    },
+    "reset": {
+      "description": "重置斷路器/冷卻狀態",
+      "provider": "要重置的提供者",
+      "connectionId": "要重置的連線 ID",
+      "model": "要重置鎖定狀態的模型",
+      "allCooldowns": "重置提供者的所有冷卻",
+      "yes": "跳過確認"
+    },
+    "profile": {
+      "description": "管理彈性配置檔案",
+      "name": "配置檔名稱"
+    },
+    "config": {
+      "description": "管理彈性配置",
+      "threshold": "失敗閾值",
+      "resetTimeout": "重置超時（毫秒）",
+      "baseCooldown": "基礎冷卻時間（毫秒）"
+    }
+  },
+  "nodes": {
+    "description": "管理提供者節點（端點）",
+    "list": {
+      "provider": "按提供者篩選",
+      "enabled": "僅顯示已啟用的節點"
+    },
+    "add": {
+      "provider": "提供者名稱",
+      "baseUrl": "節點的基礎 URL",
+      "name": "節點名稱",
+      "weight": "負載均衡權重",
+      "region": "區域標籤",
+      "authHeader": "自定義認證標頭（key=value）"
+    },
+    "update": {
+      "baseUrl": "新的基礎 URL",
+      "name": "新名稱",
+      "weight": "新權重",
+      "region": "新區域",
+      "enabled": "啟用或停用（true|false）"
+    },
+    "remove": {
+      "yes": "跳過確認"
+    },
+    "validate": {
+      "baseUrl": "要驗證的 URL",
+      "provider": "要驗證的提供者"
+    },
+    "test": {
+      "description": "向節點發送測試請求"
+    },
+    "metrics": {
+      "description": "顯示節點指標",
+      "period": "時間範圍（例如 24h, 7d）"
+    }
+  },
+  "context": {
+    "description": "配置上下文工程管道（Caveman, RTK）",
+    "analytics": {
+      "period": "時間範圍（例如 7d, 30d）"
+    },
+    "caveman": {
+      "description": "管理 Caveman 上下文壓縮器",
+      "config": {
+        "description": "顯示或更新 Caveman 配置",
+        "aggressiveness": "激程序度 0.0–1.0",
+        "maxShrinkPct": "最大壓縮百分比",
+        "preserveTags": "要保留的逗號分隔標籤"
+      }
+    },
+    "rtk": {
+      "description": "管理 RTK 上下文最佳化器",
+      "config": {
+        "description": "顯示或更新 RTK 配置",
+        "tokenBudget": "RTK 權杖預算",
+        "reservePct": "保留百分比"
+      },
+      "filters": {
+        "description": "管理 RTK 過濾器",
+        "pattern": "過濾器模式（正則）",
+        "priority": "過濾器優先順序（預設：100）",
+        "action": "過濾器操作：drop|shrink|replace",
+        "yes": "跳過確認"
+      },
+      "test": {
+        "file": "請求 JSON 檔案路徑"
+      }
+    },
+    "combos": {
+      "description": "上下文感知的組合管理"
+    }
+  },
+  "sessions": {
+    "description": "檢查和管理活動會話",
+    "list": {
+      "user": "按使用者篩選",
+      "kind": "按型別篩選（dashboard|api-key|mcp|a2a）",
+      "active": "僅顯示活動會話",
+      "limit": "最大結果數（預設：100）"
+    },
+    "expire": {
+      "yes": "跳過確認"
+    },
+    "expireAll": {
+      "user": "要過期其會話的使用者",
+      "yes": "跳過確認"
+    }
+  },
+  "tags": {
+    "description": "管理資源標籤",
+    "add": {
+      "color": "標籤顏色（十六進位制或名稱）",
+      "description": "標籤描述"
+    },
+    "remove": {
+      "yes": "跳過確認"
+    },
+    "assign": {
+      "tag": "標籤名稱",
+      "to": "目標資源，格式為 type:id（例如 provider:openai）"
+    },
+    "unassign": {
+      "tag": "標籤名稱",
+      "from": "來源資源，格式為 type:id"
+    }
+  },
+  "openapi": {
+    "description": "訪問和測試 OmniRoute OpenAPI 規範",
+    "dump": {
+      "description": "將 OpenAPI 規範輸出到 stdout 或檔案",
+      "format": "輸出格式：yaml|json（預設：yaml）",
+      "out": "儲存到檔案路徑"
+    },
+    "validate": {
+      "description": "驗證 OpenAPI 規範"
+    },
+    "try": {
+      "description": "通過規範測試 API 端點",
+      "method": "HTTP 方法（預設：GET）",
+      "body": "請求體 JSON 檔案路徑",
+      "query": "查詢引數 key=value（可重複）",
+      "header": "標頭 key=value（可重複）"
+    },
+    "endpoints": {
+      "description": "列出所有 API 端點",
+      "search": "按路徑或摘要篩選"
+    },
+    "paths": {
+      "description": "列出所有 API 路徑"
+    }
+  },
+  "combo": {
+    "title": "組合",
+    "switched": "當前組合：{name}",
+    "created": "組合已建立：{name}",
+    "deleted": "組合已刪除：{name}",
+    "noCombos": "未配置組合。",
+    "confirmDelete": "刪除組合 {name}？",
+    "suggest": {
+      "description": "使用 AI 評分為任務推薦最佳組合",
+      "task": "任務描述",
+      "maxCost": "每次請求的最大成本（美元）",
+      "maxLatencyMs": "最大延遲（毫秒）",
+      "weights": "JSON 評分權重，例如 {\"latency\":0.7,\"cost\":0.3}",
+      "top": "要顯示的候選數（預設：5）",
+      "explain": "將理由列印到 stderr",
+      "switch": "啟用排名最高的組合"
+    }
+  },
+  "oneproxy": {
+    "description": "管理 OneProxy 上游代理池",
+    "stats": {
+      "provider": "按提供者篩選",
+      "period": "時間範圍（預設：24h）"
+    },
+    "fetch": {
+      "description": "從代理池獲取代理",
+      "count": "要獲取的代理數（預設：1）",
+      "type": "代理型別：http|socks5（預設：http）"
+    },
+    "rotate": {
+      "description": "強制輪換代理",
+      "provider": "要輪換的提供者",
+      "connectionId": "要輪換的特定連線 ID"
+    },
+    "config": {
+      "description": "顯示或更新 OneProxy 配置",
+      "enabled": "啟用代理池（true|false）",
+      "poolSize": "池大小",
+      "providerSource": "代理提供者的 URL",
+      "rotationPolicy": "輪換策略：sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "列出當前代理池及指標"
+    }
+  },
+  "open": {
+    "description": "在瀏覽器中開啟特定的 OmniRoute 儀表盤頁面",
+    "url": "僅列印 URL，不開啟瀏覽器"
+  },
+  "telemetry": {
+    "description": "訪問聚合遙測資料",
+    "summary": {
+      "description": "顯示聚合遙測摘要",
+      "period": "時間範圍：24h|7d|30d（預設：24h）",
+      "compareTo": "與上一時期比較"
+    },
+    "export": {
+      "description": "將遙測事件匯出到 JSONL",
+      "out": "輸出檔案路徑（預設：telemetry.jsonl）",
+      "period": "匯出時間範圍（預設：7d）"
+    }
+  },
+  "sync": {
+    "description": "在 OmniRoute 例項之間同步配置",
+    "push": {
+      "description": "將配置推送到雲或遠端例項",
+      "target": "目標（cloud 或 context:name）",
+      "bundle": "要同步的包部分",
+      "dryRun": "預覽但不應用"
+    },
+    "pull": {
+      "description": "從雲或遠端拉取配置",
+      "source": "來源（cloud 或 context:name）",
+      "merge": "與現有配置合併",
+      "replace": "替換現有配置",
+      "dryRun": "預覽但不應用"
+    },
+    "diff": {
+      "source": "源上下文",
+      "target": "目標上下文"
+    },
+    "bundle": {
+      "description": "將配置匯出為包檔案",
+      "include": "要包含的部分（逗號分隔）"
+    },
+    "import": {
+      "description": "匯入包檔案",
+      "dryRun": "驗證但不應用"
+    },
+    "initialize": {
+      "fromCloud": "從雲備份初始化"
+    },
+    "tokens": {
+      "description": "管理同步權杖",
+      "create": {
+        "name": "權杖名稱",
+        "scope": "權杖作用域",
+        "ttl": "權杖有效期（例如 30d）"
+      },
+      "revoke": {
+        "yes": "跳過確認"
+      }
+    },
+    "resolve": {
+      "description": "互動式解決同步衝突"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "管理伺服器上下文/配置檔案（新增、使用、列出、顯示、移除、重新命名、匯出、匯入）"
+    },
+    "lang": {
+      "description": "管理 CLI 顯示語言",
+      "getDescription": "顯示當前活動的語言程式碼",
+      "setDescription": "設定顯示語言並儲存到配置",
+      "listDescription": "列出所有可用語言",
+      "listTitle": "可用語言",
+      "current": "語言：{code}（{name}）",
+      "saved": "語言已設定為 {code}（{name}）。",
+      "noCode": "需要語言程式碼。執行 omniroute config lang list 檢視可用程式碼。",
+      "unknown": "未知語言程式碼：{code}。執行 omniroute config lang list 檢視可用程式碼。",
+      "alreadySet": "語言已設定為 {code}。",
+      "envHint": "提示：您也可以在環境中設定 OMNIROUTE_LANG={code}。"
+    }
+  },
+  "completion": {
+    "description": "生成或安裝 Shell 補全指令碼",
+    "zsh": "列印 zsh 補全指令碼",
+    "bash": "列印 bash 補全指令碼",
+    "fish": "列印 fish 補全指令碼",
+    "install": "為檢測到的 Shell 全域性安裝補全指令碼",
+    "refresh": "重新整理組合/提供者/模型快取"
+  },
+  "logs": {
+    "description": "流式傳輸或匯出請求日誌",
+    "follow": "即時流式傳輸日誌",
+    "filter": "按級別篩選（error,warn,info）— 逗號分隔",
+    "lines": "要獲取的行數",
+    "timeout": "連線超時（毫秒）",
+    "baseUrl": "OmniRoute API 基礎 URL",
+    "requestId": "按請求 ID 篩選",
+    "apiKey": "按 API 金鑰篩選",
+    "combo": "按組合名稱篩選",
+    "status": "按 HTTP 狀態碼篩選",
+    "durationMin": "最小請求持續時間（毫秒）",
+    "durationMax": "最大請求持續時間（毫秒）",
+    "export": "將日誌儲存到檔案（json/jsonl/csv）",
+    "exported": "日誌已儲存至 {path}",
+    "stopped": "日誌流已停止。",
+    "streamError": "日誌流錯誤：{message}"
+  },
+  "tray": {
+    "description": "控制系統托盤圖示",
+    "show": "顯示托盤圖示（如果伺服器使用 --tray 執行）",
+    "hide": "隱藏托盤圖示",
+    "quit": "通過托盤退出 OmniRoute"
+  },
+  "autostart": {
+    "description": "管理 OmniRoute 開機自啟（Linux：systemd 使用者服務）",
+    "enable": "啟用開機自啟",
+    "disable": "停用開機自啟",
+    "status": "顯示自啟狀態",
+    "toggle": "切換開機自啟"
+  },
+  "runtime": {
+    "description": "管理本地執行時依賴",
+    "check": "檢查執行時目錄中本地依賴的狀態",
+    "repair": "重新安裝執行時目錄中的本地依賴",
+    "repair_force": "即使有效也強制重新安裝",
+    "clean": "刪除執行時目錄（釋放磁碟空間）",
+    "clean_yes": "跳過確認"
+  },
+  "repl": {
+    "description": "與 LLM 互動式多輪 REPL",
+    "model": "要使用的模型（預設：auto）",
+    "combo": "要使用的組合名稱",
+    "system": "系統提示",
+    "resume": "按名稱恢復儲存的會話"
+  },
+  "plugin": {
+    "description": "管理 CLI 外掛（omniroute-cmd-*）",
+    "list": "列出已安裝的外掛",
+    "install": "從 npm 或本地路徑安裝外掛",
+    "remove": "刪除已安裝的外掛",
+    "info": "顯示已安裝外掛的詳情",
+    "search": "搜尋 npm 登錄檔中的可用外掛",
+    "update": "更新已安裝的外掛",
+    "scaffold": "搭建新的外掛模板"
+  }
+}

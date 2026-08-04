@@ -10,15 +10,16 @@ test("analytics page exposes the restored analytics tab shell", () => {
   const source = readSource("src/app/(dashboard)/dashboard/analytics/page.tsx");
 
   assert.ok(source.includes('role="tablist"'));
-  assert.ok(source.includes('aria-label="Analytics sections"'));
-  for (const label of [
-    "Overview",
-    "Evals",
-    "Search",
-    "Utilization",
-    "Combo Health",
-    "Route Trace",
+  assert.ok(source.includes('aria-label={t("sectionsAria")}'));
+  for (const [labelKey, label] of [
+    ["overview", "Overview"],
+    ["evals", "Evals"],
+    ["search", "Search"],
+    ["utilization", "Utilization"],
+    ["comboHealth", "Combo Health"],
+    ["routeTrace", "Route Trace"],
   ]) {
+    assert.ok(source.includes('labelKey: "' + labelKey + '"'));
     assert.ok(source.includes('label: "' + label + '"'));
   }
   for (const tabId of [
@@ -36,28 +37,46 @@ test("analytics page exposes the restored analytics tab shell", () => {
 test("endpoint page keeps APIs, MCP, and A2A as in-page tabs", () => {
   const source = readSource("src/app/(dashboard)/dashboard/endpoint/EndpointPageClient.tsx");
 
-  assert.ok(source.includes('type EndpointTab = "apis" | "mcp" | "a2a"'));
-  for (const label of ["APIs", "MCP", "A2A"]) {
-    assert.ok(source.includes('label: "' + label + '"'));
+  assert.ok(source.includes('type EndpointTab = "apis" | "mcp" | "a2a" | "context-sources"'));
+  for (const labelKey of ["tabApis", "tabMcp", "tabA2a", "tabContextSources"]) {
+    assert.ok(source.includes('labelKey: "' + labelKey + '"'));
   }
+  assert.ok(source.includes("label: t(tab.labelKey)"));
+  assert.ok(source.includes('aria-label={t("endpointSections")}'));
   assert.ok(source.includes('useState<EndpointTab>("apis")'));
   assert.ok(source.includes('activeEndpointTab === "mcp" ? <McpDashboardPage /> : null'));
   assert.ok(source.includes('activeEndpointTab === "a2a" ? <A2ADashboardPage /> : null'));
+  assert.ok(source.includes('activeEndpointTab === "context-sources"'));
 });
 
-test("settings root renders the General, Appearance, and Resilience tab panel", () => {
-  const pageSource = readSource("src/app/(dashboard)/dashboard/settings/page.tsx");
-  const clientSource = readSource("src/app/(dashboard)/dashboard/settings/SettingsPageClient.tsx");
+test("endpoint page exposes context-sources tab with Notion and Obsidian source cards", () => {
+  const source = readSource("src/app/(dashboard)/dashboard/endpoint/EndpointPageClient.tsx");
 
-  assert.ok(pageSource.includes("return <SettingsPageClient initialTab={normalizeTab(tab)} />"));
+  // Verify context-sources is part of the EndpointTab type contract
+  assert.ok(source.includes('type EndpointTab = "apis" | "mcp" | "a2a" | "context-sources"'));
+
+  // Verify context-sources tab label is in ENDPOINT_TABS
   assert.ok(
-    clientSource.includes('export type SettingsTab = "general" | "appearance" | "resilience"')
+    source.includes('{ value: "context-sources", labelKey: "tabContextSources", icon: "database" }')
   );
-  for (const label of ["General", "Appearance", "Resilience"]) {
-    assert.ok(clientSource.includes('label: "' + label + '"'));
-  }
-  assert.ok(clientSource.includes('role="tabpanel"'));
-  assert.ok(clientSource.includes("aria-label={activeLabel}"));
+
+  // Verify both source card components are imported
+  assert.ok(source.includes('import NotionSourceCard from "./components/NotionSourceCard"'));
+  assert.ok(source.includes('import ObsidianSourceCard from "./components/ObsidianSourceCard"'));
+
+  // Verify both components are rendered in the context-sources conditional block
+  assert.ok(source.includes('activeEndpointTab === "context-sources" ? ('));
+  assert.ok(source.includes("<NotionSourceCard />"));
+  assert.ok(source.includes("<ObsidianSourceCard />"));
+});
+
+test("settings root redirects to section pages instead of rendering a tab shell", () => {
+  const pageSource = readSource("src/app/(dashboard)/dashboard/settings/page.tsx");
+
+  assert.ok(pageSource.includes('import { redirect } from "next/navigation"'));
+  assert.ok(pageSource.includes('general: "/dashboard/settings/general"'));
+  assert.ok(pageSource.includes('resilience: "/dashboard/settings/resilience"'));
+  assert.ok(pageSource.includes("redirect(resolveSettingsRoute(tab))"));
 });
 
 test("provider limit status chips use English fallback labels", () => {

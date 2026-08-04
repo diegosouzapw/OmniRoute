@@ -9,6 +9,9 @@ import { maskSecret } from "./maskSecrets";
 const SECRET_HEADER_NAMES = new Set([
   "authorization",
   "cookie",
+  // `set-cookie` is the RESPONSE-side credential header — upstream session/CSRF
+  // cookies must be masked too, else they leak verbatim into inspector JSON.
+  "set-cookie",
   "x-api-key",
   "api-key",
   "bearer",
@@ -45,7 +48,10 @@ export function sanitizeHeaders(
 
     // Mask secret header values
     if (isSecretHeader(lowerKey)) {
-      result[lowerKey] = maskSecret(strValue);
+      // `set-cookie` carries an entire session/CSRF cookie value that maskSecret's
+      // format heuristics (Bearer / sk- / ≥40-char) do NOT catch, so it would leak
+      // verbatim into inspector JSON — fully redact it (SECURITY_AUDIT M6).
+      result[lowerKey] = lowerKey === "set-cookie" ? "[REDACTED]" : maskSecret(strValue);
     } else {
       result[lowerKey] = strValue;
     }

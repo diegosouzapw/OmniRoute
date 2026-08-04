@@ -70,16 +70,3 @@ export function startProviderLimitsSyncScheduler(): void {
     startupTimer.unref?.();
   })();
 }
-
-export function stopProviderLimitsSyncScheduler(): void {
-  if (startupTimer) {
-    clearTimeout(startupTimer);
-    startupTimer = null;
-  }
-
-  if (schedulerTimer) {
-    clearInterval(schedulerTimer);
-    schedulerTimer = null;
-    console.log("[ProviderLimitsSync] Scheduler stopped");
-  }
-}

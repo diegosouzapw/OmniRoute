@@ -93,10 +93,13 @@ test("supportsBulkApiKey: false for OAuth/multi-field/web-session providers", ()
   assert.equal(supportsBulkApiKey("deepseek-web"), false);
   assert.equal(supportsBulkApiKey("qoder"), false);
   assert.equal(supportsBulkApiKey("azure"), false);
-  assert.equal(supportsBulkApiKey("cloudflare-ai"), false);
   assert.equal(supportsBulkApiKey("google-pse-search"), false);
   assert.equal(supportsBulkApiKey("command-code"), false);
   assert.equal(supportsBulkApiKey("ollama-local"), false);
+});
+
+test("supportsBulkApiKey: true for cloudflare-ai (bulk 3-field accountId support, #6174)", () => {
+  assert.equal(supportsBulkApiKey("cloudflare-ai"), true);
 });
 
 test("supportsBulkApiKey: false for non-string/empty input", () => {

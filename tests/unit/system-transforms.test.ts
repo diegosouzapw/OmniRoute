@@ -353,7 +353,7 @@ test("setSystemTransformsConfig accepts per-provider shape and merges defaults f
     providers: {
       gemini: {
         enabled: true,
-        pipeline: [{ kind: "obfuscate_words", words: ["gemini-cli"] }],
+        pipeline: [{ kind: "obfuscate_words", words: ["gemini"] }],
       },
     },
   });
@@ -446,11 +446,13 @@ const UI_DEFAULTS_SNAPSHOT = {
             "@earendil-works/pi-coding-agent",
             "/.pi/",
             "Pi documentation (read only when the user asks about pi itself",
+            "hermes-agent.nousresearch.com",
+            "github.com/NousResearch/hermes-agent",
           ],
         },
         {
           kind: "drop_paragraph_if_starts_with",
-          prefixes: ["You are OpenCode", "You are Open WebUI"],
+          prefixes: ["You are OpenCode", "You are Open WebUI", "You are Hermes Agent"],
         },
         {
           kind: "replace_text",
@@ -481,6 +483,8 @@ const UI_DEFAULTS_SNAPSHOT = {
             "codecompanion",
             "openwebui",
             "open-webui",
+            "hermes-agent",
+            "hermes",
           ],
           targets: ["system", "messages", "tools"],
         },
@@ -538,6 +542,7 @@ const UI_DEFAULTS_SNAPSHOT = {
           entrypoint: "sdk-cli",
           versionFormat: "ex-machina",
           cchAlgo: "sha256-first-user",
+          buildRevision: "1f2",
         },
       ],
     },

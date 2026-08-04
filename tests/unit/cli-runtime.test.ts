@@ -71,20 +71,60 @@ test("buildEnvWithRuntime preserva NODE_PATH existente", async () => {
   assert.ok(env.NODE_PATH.includes("/existing/path"), "NODE_PATH original deve ser preservado");
 });
 
-test("isBetterSqliteBinaryValid detecta ELF magic bytes (Linux)", async () => {
+test("isBetterSqliteBinaryValid rejeita binário com magic bytes válidos mas ABI incompatível (regressão #2493)", async () => {
+  // Regression for upstream 9router#2493: a binary that only "looks" native (correct ELF/Mach-O/PE
+  // header) but was built for a different Node ABI (NODE_MODULE_VERSION) must NOT be reported as
+  // valid — loading it crashes the process (segfault) instead of triggering a rebuild.
   const { getRuntimeNodeModules, isBetterSqliteBinaryValid } =
     await import("../../bin/cli/runtime/nativeDeps.mjs");
   const nm = getRuntimeNodeModules();
   const buildDir = join(nm, "better-sqlite3", "build", "Release");
   mkdirSync(buildDir, { recursive: true });
   const binary = join(buildDir, "better_sqlite3.node");
-  const buf = Buffer.from([0x7f, 0x45, 0x4c, 0x46, 0x00, 0x00, 0x00, 0x00]);
+  const { platform } = await import("node:os");
+  const os = platform();
+  // Correct file-format magic bytes for the current OS, but not a real, loadable native addon —
+  // this is exactly what the old magic-bytes-only check let through.
+  const magicByPlatform = {
+    linux: [0x7f, 0x45, 0x4c, 0x46],
+    darwin: [0xcf, 0xfa, 0xed, 0xfe],
+    win32: [0x4d, 0x5a],
+  };
+  const magic = magicByPlatform[os] ?? magicByPlatform.linux;
+  const buf = Buffer.concat([Buffer.from(magic), Buffer.alloc(64, 0)]);
   writeFileSync(binary, buf);
   const result = isBetterSqliteBinaryValid();
-  const { platform } = await import("node:os");
-  if (platform() === "linux") {
-    assert.equal(result, true, "ELF magic bytes devem ser válidos no Linux");
+  assert.equal(
+    result,
+    false,
+    "binário com header válido mas ABI/conteúdo incompatível deve ser inválido"
+  );
+  rmSync(join(nm, "better-sqlite3"), { recursive: true, force: true });
+});
+
+test("isBetterSqliteBinaryValid aceita um binário nativo real e carregável", async () => {
+  const { getRuntimeNodeModules, isBetterSqliteBinaryValid } =
+    await import("../../bin/cli/runtime/nativeDeps.mjs");
+  const { existsSync, copyFileSync } = await import("node:fs");
+  const realBinary = join(
+    process.cwd(),
+    "node_modules",
+    "better-sqlite3",
+    "build",
+    "Release",
+    "better_sqlite3.node"
+  );
+  if (!existsSync(realBinary)) {
+    // Ambient runtime without a compiled better-sqlite3 binary — nothing to assert here.
+    return;
   }
+  const nm = getRuntimeNodeModules();
+  const buildDir = join(nm, "better-sqlite3", "build", "Release");
+  mkdirSync(buildDir, { recursive: true });
+  const binary = join(buildDir, "better_sqlite3.node");
+  copyFileSync(realBinary, binary);
+  const result = isBetterSqliteBinaryValid();
+  assert.equal(result, true, "um binário real, compatível com o Node atual, deve ser válido");
   rmSync(join(nm, "better-sqlite3"), { recursive: true, force: true });
 });
 

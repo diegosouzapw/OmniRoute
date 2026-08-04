@@ -1,0 +1,22 @@
+# .trivyignore — accepted-risk suppressions for the container image scan
+#
+# Policy (see docs/security/SUPPLY_CHAIN.md):
+#   - The Trivy steps in .github/workflows/docker-publish.yml run with
+#     `ignore-unfixed: true`, so vulnerabilities WITHOUT a published fix are
+#     already excluded from both the blocking CRITICAL gate and the advisory
+#     Security-tab upload. You do NOT need an entry here for an unfixable
+#     base-image OS CVE — it will not be reported.
+#   - This file is the single auditable home for the rare case where a *fixable*
+#     CVE must be temporarily accepted (e.g. the upstream fix is not yet in the
+#     pinned base tag, or the affected package/binary is provably unreachable
+#     from the proxy request surface and rebuilding now is not justified).
+#
+# Format — one CVE id per line, each with a justification comment and, where
+# possible, an expiry, e.g.:
+#   # CVE-XXXX-YYYY — <why accepted>; revisit on next base-image bump (YYYY-MM-DD)
+#   CVE-XXXX-YYYY
+#
+# Keep this list SHORT and reviewed every release. Prefer fixing (rebuild on a
+# patched base / bump the dep) over suppressing. Stale entries are debt.
+#
+# (No accepted-risk suppressions at present — ignore-unfixed covers the noise.)

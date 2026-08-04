@@ -9,10 +9,15 @@
 
 ## Validation
 
+Choose the change type and focused loop from the
+[Contribution Golden Path](../docs/dev/CONTRIBUTION_GOLDEN_PATH.md). The full unit suite,
+Vitest, the 60% coverage gate, and the production build all run in CI on this PR (#8329):
+
+- [ ] Change type: provider / routing / UI / i18n / CLI / DB / build-deploy / other
+- [ ] Focused tests and category gates from the golden path
 - [ ] `npm run lint`
-- [ ] `npm run test:unit`
-- [ ] `npm run test:coverage`
-- [ ] Coverage is still `>= 60%` for statements, lines, functions, and branches
+- [ ] Reconciled with the current active release base; focused checks rerun afterward
+- [ ] Production-code changes include a new or updated automated test in this PR
 - [ ] SonarQube PR analysis is green or any remaining issues are explicitly documented below
 
 ## Tests Added Or Updated

@@ -2,7 +2,7 @@
  * Asserts that StatsTab lazy-loads StatsCharts via next/dynamic (ssr: false)
  * and does NOT statically import anything from "recharts".
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

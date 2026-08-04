@@ -17,6 +17,28 @@ async function confirm(msg) {
   return /^y(es)?$/i.test(answer);
 }
 
+/**
+ * Shared repair action used by both `omniroute runtime repair` and the
+ * top-level `omniroute repair` alias. Reinstalls better-sqlite3 into the
+ * user-writable runtime directory via the existing engine — no hand-rolled
+ * npm-rebuild spawn. Exits with code 1 on failure.
+ */
+async function runRepairAction(opts, cmd) {
+  const globalOpts = cmd.optsWithGlobals();
+  await withSpinner(
+    "Repairing native deps",
+    async () => ensureBetterSqliteRuntime({ silent: true, force: opts.force }),
+    globalOpts
+  );
+  const ok = hasModule("better-sqlite3") && isBetterSqliteBinaryValid();
+  if (ok) {
+    process.stdout.write("✓ better-sqlite3 repaired OK\n");
+  } else {
+    process.stderr.write("✗ Repair failed — check npm availability\n");
+    process.exit(1);
+  }
+}
+
 export function registerRuntime(program) {
   const runtime = program
     .command("runtime")
@@ -41,21 +63,17 @@ export function registerRuntime(program) {
     .command("repair")
     .description("Reinstall native deps in runtime directory")
     .option("--force", "Force reinstall even if valid")
-    .action(async (opts, cmd) => {
-      const globalOpts = cmd.optsWithGlobals();
-      await withSpinner(
-        "Repairing native deps",
-        async () => ensureBetterSqliteRuntime({ silent: true, force: opts.force }),
-        globalOpts
-      );
-      const ok = hasModule("better-sqlite3") && isBetterSqliteBinaryValid();
-      if (ok) {
-        process.stdout.write("✓ better-sqlite3 repaired OK\n");
-      } else {
-        process.stderr.write("✗ Repair failed — check npm availability\n");
-        process.exit(1);
-      }
-    });
+    .action(runRepairAction);
+
+  // Top-level discoverability alias: `omniroute repair` invokes the SAME action
+  // as `omniroute runtime repair` (no duplicated logic). Surfaced in the
+  // native-error / startup hints so users with a broken better-sqlite3 binding
+  // have a single self-heal command that works without a C++ toolchain.
+  program
+    .command("repair")
+    .description("Repair native deps (alias for `runtime repair`)")
+    .option("--force", "Force reinstall even if valid")
+    .action(runRepairAction);
 
   runtime
     .command("clean")

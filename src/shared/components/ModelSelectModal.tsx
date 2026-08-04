@@ -3,6 +3,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
+import {
+  buildPassthroughAliasModels,
+  buildNodeAliasModels,
+  shouldConfirmSelectAll,
+} from "./modelSelectModalHelpers";
 import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import {
@@ -17,6 +22,7 @@ import {
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
+import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 
 // Provider order: OAuth first, then no-auth, then API Key (matches dashboard/providers)
 const PROVIDER_ORDER = [
@@ -29,20 +35,59 @@ type ModelSelectModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (model: unknown) => void;
+  /**
+   * Optional toggle callback — when set, clicking a model already in
+   * `addedModelValues` invokes this instead of `onSelect`, so the modal acts
+   * as an in-place add/remove toggle. Ported from upstream PR
+   * decolua/9router#889 (Fajar Hidayat).
+   */
+  onDeselect?: (model: unknown) => void;
+  /**
+   * Batch add for "Select all" — callers that keep the modal open (combo
+   * builder) must use this instead of looping `onSelect`, because each
+   * single-add handler closes over the same models snapshot.
+   */
+  onSelectMany?: (models: unknown[]) => void;
+  /**
+   * Batch remove for "Unselect all" — same stale-state reason as onSelectMany.
+   */
+  onDeselectMany?: (models: unknown[]) => void;
   selectedModel?: string;
   selectedModels?: string[];
-  activeProviders?: Array<{ provider: string }>;
+  activeProviders?: Array<{
+    provider: string;
+    id?: string | number;
+    // Present on real connection objects (see fetchConnections() callers);
+    // consumed by hasEligibleConnectionForModel() for the "configured only"
+    // filter toggle below (#8219 dashboard-typecheck fix — the prop type was
+    // too narrow for the field the new filter actually reads).
+    providerSpecificData?: unknown;
+  }>;
   title?: string;
   modelAliases?: Record<string, string>;
   addedModelValues?: string[];
   multiSelect?: boolean;
   showCombos?: boolean;
+  alwaysIncludeProviders?: string[] | null;
+  /**
+   * When true, picking a model does NOT auto-close the modal — the caller must close
+   * explicitly. A "Done" button is rendered in the modal footer so the user has a clear
+   * way to confirm they are finished adding entries. Useful in combo creation, where the
+   * user typically adds several models in a row. Mutually exclusive with `multiSelect`
+   * (which renders its own Clear + Done footer driven by `selectedModels`).
+   * Inspired by upstream PR decolua/9router#1031. Combined with `onDeselect`, this also
+   * enables the toggle-style deselection from upstream PR decolua/9router#889.
+   */
+  keepOpenOnSelect?: boolean;
 };
 
 export default function ModelSelectModal({
   isOpen,
   onClose,
   onSelect,
+  onDeselect,
+  onSelectMany,
+  onDeselectMany,
   selectedModel,
   selectedModels = [],
   activeProviders = [],
@@ -51,13 +96,33 @@ export default function ModelSelectModal({
   addedModelValues = [],
   multiSelect = false,
   showCombos = true,
+  alwaysIncludeProviders = [],
+  keepOpenOnSelect = false,
 }: ModelSelectModalProps) {
   const t = useTranslations("common");
   const resolvedTitle = title ?? t("selectModel");
+  const labelOrFallback = (key: string, fallback: string, values?: Record<string, unknown>) =>
+    typeof (t as { has?: (k: string) => boolean }).has === "function" &&
+    (t as { has: (k: string) => boolean }).has(key)
+      ? (t as unknown as (k: string, v?: Record<string, unknown>) => string)(key, values)
+      : fallback;
   const [searchQuery, setSearchQuery] = useState("");
   const [combos, setCombos] = useState<any[]>([]);
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [customModels, setCustomModels] = useState<Record<string, any>>({});
+  // Models discovered live from a custom provider's upstream `/models` endpoint,
+  // keyed by provider id. Merged into the alias/custom/fallback list below and
+  // tagged with the `auto` source badge. Ported from upstream PR
+  // decolua/9router#2018 (Hamsa_M).
+  const [showConfiguredOnly, setShowConfiguredOnly] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("modelSelectShowConfiguredOnly") === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("modelSelectShowConfiguredOnly", String(showConfiguredOnly));
+  }, [showConfiguredOnly]);
+  const [fetchedModels, setFetchedModels] = useState<Record<string, any[]>>({});
 
   const fetchCombos = async () => {
     try {
@@ -107,10 +172,73 @@ export default function ModelSelectModal({
     if (isOpen) fetchCustomModels();
   }, [isOpen]);
 
+  // Fetch the live model catalog for one custom provider from its connection's
+  // upstream `/models` endpoint. Returns the model array, or null on any failure.
+  const fetchProviderModels = async (providerId: string): Promise<any[] | null> => {
+    try {
+      // Find the connection id for this provider — the route is keyed by connection.
+      const connection = activeProviders.find((p) => p.provider === providerId);
+      if (!connection?.id) return null;
+
+      const res = await fetch(`/api/providers/${connection.id}/models`);
+      if (!res.ok) {
+        console.warn(`Failed to fetch models for ${providerId}: ${res.status}`);
+        return null;
+      }
+      const data = await res.json();
+      return data.models || [];
+    } catch (error) {
+      console.error(`Error fetching models for ${providerId}:`, error);
+      return null;
+    }
+  };
+
+  // When the modal opens, dynamically load models for every connected custom
+  // (openai-/anthropic-compatible) provider in parallel.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+
+    const loadCustomProviderModels = async () => {
+      const customProviderIds = activeProviders
+        .filter(
+          (p) => isOpenAICompatibleProvider(p.provider) || isAnthropicCompatibleProvider(p.provider)
+        )
+        .map((p) => p.provider);
+
+      if (customProviderIds.length === 0) return;
+
+      const fetched: Record<string, any[]> = {};
+      await Promise.all(
+        customProviderIds.map(async (providerId) => {
+          const models = await fetchProviderModels(providerId);
+          if (models && models.length > 1) {
+            fetched[providerId] = models;
+          }
+        })
+      );
+
+      if (!cancelled) setFetchedModels(fetched);
+    };
+
+    loadCustomProviderModels();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, activeProviders]);
+
   const allProviders = useMemo(
     () => ({ ...OAUTH_PROVIDERS, ...NOAUTH_PROVIDERS, ...APIKEY_PROVIDERS }),
     []
   );
+  const alwaysIncludeProvidersKey = Array.isArray(alwaysIncludeProviders)
+    ? alwaysIncludeProviders
+        .filter((providerId) => typeof providerId === "string" && providerId)
+        .join("\0")
+    : "";
 
   // Group models by provider with priority order
   const groupedModels = useMemo(() => {
@@ -118,10 +246,14 @@ export default function ModelSelectModal({
 
     // Get all active provider IDs from connections
     const activeConnectionIds = activeProviders.map((p) => p.provider);
+    const explicitProviderIds = alwaysIncludeProvidersKey
+      ? alwaysIncludeProvidersKey.split("\0")
+      : [];
 
     // Only show connected providers (including both standard and custom)
     const providerIdsToShow = new Set([
-      ...activeConnectionIds, // Only connected providers
+      ...activeConnectionIds, // Connected providers
+      ...explicitProviderIds, // Zero-config providers required by specific clients
     ]);
 
     // Sort by PROVIDER_ORDER
@@ -137,18 +269,21 @@ export default function ModelSelectModal({
       const isCustomProvider =
         isOpenAICompatibleProvider(providerId) || isAnthropicCompatibleProvider(providerId);
 
-      // Get user-added custom models for this provider (if any)
-      const providerCustomModels = customModels[providerId] || [];
+      // Get user-added custom models for this provider (if any), excluding
+      // any explicitly hidden by the operator (#7156 — the legacy picker
+      // must respect the same isHidden flag the Precision Builder and
+      // /v1/models catalog already honor).
+      const providerCustomModels = (customModels[providerId] || []).filter((cm) => !cm.isHidden);
 
       if (providerInfo.passthroughModels) {
-        const aliasModels = Object.entries(modelAliases as Record<string, string>)
-          .filter(([, fullModel]: [string, string]) => fullModel.startsWith(`${alias}/`))
-          .map(([aliasName, fullModel]: [string, string]) => ({
-            id: fullModel.replace(`${alias}/`, ""),
-            name: aliasName,
-            value: fullModel,
-            source: "alias",
-          }));
+        // Passthrough aliases are stored prefixed by the canonical providerId
+        // (e.g. "github/gpt-4"), not the public alias (e.g. "gh/"), so we must
+        // filter/strip by providerId — matching the sibling custom-provider
+        // branch below. (port: decolua/9router#485)
+        const aliasModels = buildPassthroughAliasModels(
+          modelAliases as Record<string, string>,
+          providerId
+        );
 
         // Merge custom models for passthrough providers
         const customEntries = providerCustomModels
@@ -179,14 +314,11 @@ export default function ModelSelectModal({
         const displayName = matchedNode?.name || providerInfo.name;
         const nodePrefix = matchedNode?.prefix || providerId; // Consider a more user-friendly fallback if providerId is a UUID
 
-        const nodeModels = Object.entries(modelAliases as Record<string, string>)
-          .filter(([, fullModel]: [string, string]) => fullModel.startsWith(`${providerId}/`))
-          .map(([aliasName, fullModel]: [string, string]) => ({
-            id: fullModel.replace(`${providerId}/`, ""),
-            name: aliasName,
-            value: `${nodePrefix}/${fullModel.replace(`${providerId}/`, "")}`,
-            source: "alias",
-          }));
+        const nodeModels = buildNodeAliasModels(
+          modelAliases as Record<string, string>,
+          providerId,
+          nodePrefix
+        );
 
         const fallbackEntries = (
           getCompatibleFallbackModels(providerId, providerCustomModels) || []
@@ -215,7 +347,29 @@ export default function ModelSelectModal({
             source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
           }));
 
-        const allModels = [...nodeModels, ...fallbackEntries, ...customEntries];
+        // Models discovered live from the provider's upstream `/models` endpoint.
+        // Deduped against alias, fallback, and user-added custom models; tagged
+        // with the `auto` source so the badge reads "auto".
+        const fetchedEntries = (fetchedModels[providerId] || [])
+          .map((m) => {
+            const id = m.id || m.slug || m.model || m.name;
+            return {
+              id,
+              name: m.name || m.displayName || id,
+              value: `${nodePrefix}/${id}`,
+              isFetched: true,
+              source: "auto",
+            };
+          })
+          .filter(
+            (fm) =>
+              fm.id &&
+              !nodeModels.some((nm) => nm.id === fm.id) &&
+              !fallbackEntries.some((fbm) => fbm.id === fm.id) &&
+              !customEntries.some((cm) => cm.id === fm.id)
+          );
+
+        const allModels = [...nodeModels, ...fallbackEntries, ...customEntries, ...fetchedEntries];
 
         if (allModels.length > 0) {
           groups[providerId] = {
@@ -262,7 +416,15 @@ export default function ModelSelectModal({
     });
 
     return groups;
-  }, [activeProviders, modelAliases, allProviders, providerNodes, customModels]);
+  }, [
+    activeProviders,
+    alwaysIncludeProvidersKey,
+    modelAliases,
+    allProviders,
+    providerNodes,
+    customModels,
+    fetchedModels,
+  ]);
 
   // Filter combos by search query
   const filteredCombos = useMemo(() => {
@@ -300,6 +462,82 @@ export default function ModelSelectModal({
     return filtered;
   }, [groupedModels, searchQuery]);
 
+  // Filter models by connection eligibility when toggle is on
+  const connectionFilteredGroups = useMemo(() => {
+    if (!showConfiguredOnly) return filteredGroups;
+
+    const result: Record<string, any> = {};
+    Object.entries(filteredGroups).forEach(([providerId, group]: [string, any]) => {
+      const providerConnections = activeProviders.filter((p: any) => p.provider === providerId);
+      if (providerConnections.length === 0) return;
+
+      const eligibleModels = group.models.filter((model: any) =>
+        hasEligibleConnectionForModel(providerConnections, model.id)
+      );
+      if (eligibleModels.length > 0) {
+        result[providerId] = { ...group, models: eligibleModels };
+      }
+    });
+    return result;
+  }, [filteredGroups, showConfiguredOnly, activeProviders]);
+
+  // Flat list of currently visible provider models (respects search + configured-only).
+  // Used by Select all / Unselect all — does not include the Combos section.
+  const visibleModels = useMemo(() => {
+    const models: any[] = [];
+    Object.values(connectionFilteredGroups).forEach((group: any) => {
+      if (Array.isArray(group?.models)) {
+        models.push(...group.models);
+      }
+    });
+    return models;
+  }, [connectionFilteredGroups]);
+
+  const addedModelValueSet = useMemo(() => new Set(addedModelValues), [addedModelValues]);
+
+  const allVisibleSelected =
+    visibleModels.length > 0 &&
+    visibleModels.every(
+      (model) => typeof model?.value === "string" && addedModelValueSet.has(model.value)
+    );
+
+  const showSelectAllToggle =
+    keepOpenOnSelect &&
+    !multiSelect &&
+    typeof onSelectMany === "function" &&
+    typeof onDeselectMany === "function" &&
+    visibleModels.length > 0;
+
+  const handleToggleSelectAllVisible = () => {
+    if (!showSelectAllToggle) return;
+    if (allVisibleSelected) {
+      const toRemove = visibleModels.filter(
+        (model) => typeof model?.value === "string" && addedModelValueSet.has(model.value)
+      );
+      if (toRemove.length > 0) onDeselectMany!(toRemove);
+      return;
+    }
+    const toAdd = visibleModels.filter(
+      (model) => typeof model?.value === "string" && !addedModelValueSet.has(model.value)
+    );
+    if (toAdd.length === 0) return;
+    // Guard against a single click adding hundreds of models (e.g. with
+    // "Show configured only" off) — see modelSelectModalHelpers.ts (#8526).
+    if (
+      shouldConfirmSelectAll(toAdd.length) &&
+      !confirm(
+        labelOrFallback(
+          "selectAllConfirm",
+          `Add ${toAdd.length} models to this combo?`,
+          { count: toAdd.length }
+        )
+      )
+    ) {
+      return;
+    }
+    onSelectMany!(toAdd);
+  };
+
   const resolvedSelectedModels = multiSelect
     ? selectedModels
     : selectedModel
@@ -309,12 +547,49 @@ export default function ModelSelectModal({
   const isValueSelected = (value: string) => resolvedSelectedModels.includes(value);
 
   const handleSelect = (model: any) => {
-    onSelect(model);
-    if (!multiSelect) {
+    // Upstream PR decolua/9router#889: when the model is already in
+    // `addedModelValues` AND a deselect callback was supplied, the click acts
+    // as an in-place remove instead of a duplicate add.
+    const candidateValue =
+      typeof model?.value === "string"
+        ? model.value
+        : typeof model?.name === "string"
+          ? model.name
+          : typeof model === "string"
+            ? model
+            : "";
+    const isAdded = candidateValue ? addedModelValues.includes(candidateValue) : false;
+
+    if (isAdded && onDeselect) {
+      onDeselect(model);
+    } else {
+      onSelect(model);
+    }
+
+    // Legacy single-pick auto-closes; multiSelect or keepOpenOnSelect keep the
+    // modal open so the user can toggle several entries in a row.
+    if (!multiSelect && !keepOpenOnSelect) {
       onClose();
       setSearchQuery("");
     }
   };
+
+  // Footer "Done" button for single-select callers that opted out of auto-close
+  // (e.g. combo creation, where users add several models in a row). Skipped when
+  // `multiSelect` is on — that mode renders its own Clear + Done footer below the body.
+  const doneFooter =
+    keepOpenOnSelect && !multiSelect ? (
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          setSearchQuery("");
+        }}
+        className="w-full px-3 py-2 text-sm font-medium rounded border border-primary bg-primary text-white hover:bg-primary/90 transition-colors"
+      >
+        {t("done")}
+      </button>
+    ) : null;
 
   return (
     <Modal
@@ -326,6 +601,7 @@ export default function ModelSelectModal({
       title={resolvedTitle}
       size="md"
       className="p-4!"
+      footer={doneFooter}
     >
       {/* Search - compact */}
       <div className="mb-3">
@@ -343,12 +619,40 @@ export default function ModelSelectModal({
         </div>
       </div>
 
+      <div className="mt-1.5 mb-2 flex items-center justify-between gap-2">
+        <label className="flex items-center gap-1.5 text-xs text-text-muted cursor-pointer min-w-0">
+          <input
+            type="checkbox"
+            checked={showConfiguredOnly}
+            onChange={(e) => setShowConfiguredOnly(e.target.checked)}
+            className="rounded border-border"
+          />
+          <span className="truncate">{t("showConfiguredOnly")}</span>
+        </label>
+
+        {showSelectAllToggle && (
+          <button
+            type="button"
+            onClick={handleToggleSelectAllVisible}
+            data-testid="model-select-toggle-all-visible"
+            className="shrink-0 px-2 py-1 text-xs font-medium rounded border border-border bg-surface text-text-main hover:border-primary/50 hover:bg-primary/5 transition-colors"
+          >
+            {allVisibleSelected
+              ? labelOrFallback("unselectAll", "Unselect all")
+              : labelOrFallback("selectAll", "Select all")}
+            <span className="ml-1 text-[10px] text-text-muted font-normal">
+              ({visibleModels.length})
+            </span>
+          </button>
+        )}
+      </div>
+
       {/* Models grouped by provider - compact */}
-      <div className="max-h-[300px] overflow-y-auto space-y-3">
+      <div className="max-h-[300px] overflow-y-auto space-y-3 isolate">
         {/* Combos section - always first */}
         {showCombos && filteredCombos.length > 0 && (
           <div>
-            <div className="flex items-center gap-1.5 mb-1.5 sticky top-0 bg-surface py-0.5">
+            <div className="flex items-center gap-1.5 mb-1.5 sticky top-0 z-10 bg-surface py-1">
               <span className="material-symbols-outlined text-primary text-[14px]">layers</span>
               <span className="text-xs font-medium text-primary">{t("combos")}</span>
               <span className="text-[10px] text-text-muted">({filteredCombos.length})</span>
@@ -380,11 +684,14 @@ export default function ModelSelectModal({
         )}
 
         {/* Provider models */}
-        {Object.entries(filteredGroups).map(([providerId, group]: [string, any]) => (
+        {Object.entries(connectionFilteredGroups).map(([providerId, group]: [string, any]) => (
           <div key={providerId}>
-            {/* Provider header */}
-            <div className="flex items-center gap-1.5 mb-1.5 sticky top-0 bg-surface py-0.5">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: group.color }} />
+            {/* Provider header — z-10 + opaque bg so scrolling chips don't bleed through */}
+            <div className="flex items-center gap-1.5 mb-1.5 sticky top-0 z-10 bg-surface py-1">
+              <div
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: group.color }}
+              />
               <span className="text-xs font-medium text-primary">{group.name}</span>
               <span className="text-[10px] text-text-muted">({group.models.length})</span>
             </div>
@@ -422,7 +729,7 @@ export default function ModelSelectModal({
           </div>
         ))}
 
-        {Object.keys(filteredGroups).length === 0 && filteredCombos.length === 0 && (
+        {Object.keys(connectionFilteredGroups).length === 0 && filteredCombos.length === 0 && (
           <div className="text-center py-4 text-text-muted">
             <span className="material-symbols-outlined text-2xl mb-1 block">search_off</span>
             <p className="text-xs">{t("noModelsFound")}</p>

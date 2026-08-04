@@ -50,11 +50,15 @@ export const RERANK_PROVIDERS = {
     ],
   },
 
+  // Voyage AI is NOT Cohere-compatible: uses `top_k` (not `top_n`), rejects empty-string
+  // documents, and returns `{data:[{relevance_score,index}]}` instead of `{results:[…]}`.
+  // The `voyage` format adapter in open-sse/handlers/rerank.ts handles both directions (#7809).
   "voyage-ai": {
     id: "voyage-ai",
     baseUrl: "https://api.voyageai.com/v1/rerank",
     authType: "apikey",
     authHeader: "bearer",
+    format: "voyage",
     models: [
       { id: "rerank-2.5", name: "Rerank 2.5" },
       { id: "rerank-2.5-lite", name: "Rerank 2.5 Lite" },
@@ -69,6 +73,57 @@ export const RERANK_PROVIDERS = {
     models: [
       { id: "jina-reranker-v3", name: "Jina Reranker v3" },
       { id: "jina-reranker-m0", name: "Jina Reranker m0" },
+    ],
+  },
+
+  // SiliconFlow rerank is Cohere-compatible (POST /v1/rerank, {model,query,documents}). The
+  // reranker models arrive in /v1/models via live model-sync; without this entry the rerank
+  // router rejected them with "Invalid rerank model" (#5332). Model IDs keep their vendor slash
+  // (e.g. "Qwen/Qwen3-Reranker-8B") — parseRerankModel splits on the FIRST slash, so it's safe.
+  siliconflow: {
+    id: "siliconflow",
+    baseUrl: "https://api.siliconflow.com/v1/rerank",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "Qwen/Qwen3-Reranker-8B", name: "Qwen3 Reranker 8B" },
+      { id: "Qwen/Qwen3-Reranker-4B", name: "Qwen3 Reranker 4B" },
+      { id: "Qwen/Qwen3-Reranker-0.6B", name: "Qwen3 Reranker 0.6B" },
+      { id: "BAAI/bge-reranker-v2-m3", name: "BGE Reranker v2 m3" },
+    ],
+  },
+
+  // OpenRouter exposes a separate, Cohere-compatible POST /api/v1/rerank endpoint
+  // (not surfaced by its live /v1/models feed, which contains 0 rerank ids — confirmed
+  // by direct curl). Model IDs keep their vendor slash (e.g. "cohere/rerank-4-pro");
+  // parseRerankModel splits on the FIRST slash, so 3-segment ids resolve safely, same
+  // as siliconflow above. Seeded by hand and must be maintained here as OpenRouter adds
+  // more rerank models (#6574).
+  openrouter: {
+    id: "openrouter",
+    baseUrl: "https://openrouter.ai/api/v1/rerank",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "cohere/rerank-4-pro", name: "Cohere Rerank 4 Pro (via OpenRouter)" },
+      { id: "cohere/rerank-4-fast", name: "Cohere Rerank 4 Fast (via OpenRouter)" },
+      { id: "cohere/rerank-v3.5", name: "Cohere Rerank v3.5 (via OpenRouter)" },
+    ],
+  },
+
+  // DeepInfra rerank is NOT Cohere-shaped: POST /v1/inference/<MODEL> with {queries:[q],documents}
+  // returning {scores:[…]} (one score per document, positional). The `deepinfra` format adapter in
+  // open-sse/handlers/rerank.ts builds the per-model URL and maps scores → Cohere results (#5332).
+  deepinfra: {
+    id: "deepinfra",
+    baseUrl: "https://api.deepinfra.com/v1/inference",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "deepinfra",
+    models: [
+      { id: "Qwen/Qwen3-Reranker-8B", name: "Qwen3 Reranker 8B" },
+      { id: "Qwen/Qwen3-Reranker-4B", name: "Qwen3 Reranker 4B" },
+      { id: "Qwen/Qwen3-Reranker-0.6B", name: "Qwen3 Reranker 0.6B" },
     ],
   },
 };

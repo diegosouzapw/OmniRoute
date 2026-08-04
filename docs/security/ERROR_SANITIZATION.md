@@ -1,14 +1,14 @@
 ---
 title: "Error Message Sanitization"
-version: 3.8.2
-lastUpdated: 2026-05-14
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
 # Error Message Sanitization
 
 > **Source of truth:** `open-sse/utils/error.ts` — `sanitizeErrorMessage`, `buildErrorBody`, `createErrorResult`
 > **Tests:** `tests/unit/error-message-sanitization.test.ts`
-> **Last updated:** 2026-05-14 — v3.8.0
+> **Last updated:** 2026-06-28 — v3.8.40
 > **Audience:** Any engineer touching error responses (HTTP routes, SSE streams, executors, MCP handlers).
 > **Status:** **MANDATORY** for every code path that returns an error message to a client.
 
@@ -124,12 +124,12 @@ const safe = String(err).split("\n")[0];
 - `sanitizeErrorMessage` handles `null`/`undefined`/`Error` instance inputs safely.
 - `buildErrorBody` never exposes stack traces in its `message` field.
 
-When adding a new route or executor, copy the assertion pattern from this file. The coverage gate (`npm run test:coverage`) enforces ≥75% statements/lines/functions and ≥70% branches — error paths must be covered.
+When adding a new route or executor, copy the assertion pattern from this file. The coverage gate (`npm run test:coverage`) enforces ≥60% statements/lines/functions/branches — error paths must be covered.
 
 ## Related controls
 
 - `js/stack-trace-exposure` CodeQL alerts in `.github/security` should always be **either** fixed via these helpers **or** dismissed with a comment citing this doc.
-- The `pino` redaction config (`src/lib/log/redaction.ts` — if present) handles structured log redaction separately. This doc covers only the response-message surface.
+- The `pino` redaction config (`src/shared/utils/logRedaction.ts`) handles structured log redaction separately. This doc covers only the response-message surface.
 - Upstream-header denylist (`src/shared/constants/upstreamHeaders.ts`) covers header leakage — keep both files aligned when adding a new exfiltration concern.
 
 ## Upstream details passthrough
@@ -137,6 +137,11 @@ When adding a new route or executor, copy the assertion pattern from this file. 
 `buildErrorBody` accepts an optional third argument `upstreamDetails` (raw
 parsed body from the upstream provider). When provided, it is sanitized by
 `sanitizeUpstreamDetails` before inclusion in the response as `upstream_details`.
+
+An optional fourth argument `classification` (`{ type?: string; code?: string }`)
+preserves an explicit error type/code instead of re-deriving both from the
+status-code table — used when the caller already classified the failure (e.g.
+HTTP 499 → `client_disconnected`).
 
 Sanitization rules applied to `upstreamDetails`:
 

@@ -142,6 +142,30 @@ test("execute (non-stream) parses <tool> reply into OpenAI tool_calls", async ()
   }
 });
 
+test("execute (non-stream) parses bare JSON reply into OpenAI tool_calls", async () => {
+  const mock = installMock('{"name":"getWeather","arguments":{"city":"Paris"}}');
+  try {
+    const executor = new DeepSeekWebExecutor();
+    const result = await executor.execute({
+      model: "default",
+      body: { messages: [{ role: "user", content: "weather?" }], tools: TOOLS },
+      stream: false,
+      credentials: { apiKey: "tkn-tools-bare-json" },
+      signal: AbortSignal.timeout(10000),
+    });
+    assert.ok(result.response.ok);
+    const json = JSON.parse(await result.response.text());
+    const choice = json.choices[0];
+    assert.equal(choice.finish_reason, "tool_calls");
+    assert.equal(choice.message.tool_calls.length, 1);
+    assert.equal(choice.message.tool_calls[0].function.name, "get_weather");
+    assert.deepEqual(JSON.parse(choice.message.tool_calls[0].function.arguments), { city: "Paris" });
+    assert.equal(choice.message.content, null, "bare JSON tool call is stripped from content");
+  } finally {
+    mock.restore();
+  }
+});
+
 test("execute (stream) emits tool_calls + finish_reason tool_calls in the SSE", async () => {
   const mock = installMock(TOOL_REPLY);
   try {

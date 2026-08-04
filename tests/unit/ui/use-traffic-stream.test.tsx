@@ -1,7 +1,7 @@
 /**
  * Tests for useTrafficStream — WebSocket snapshot/new/update/clear + reconnect backoff
  */
-import { describe, it, before, after, mock } from "node:test";
+import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";

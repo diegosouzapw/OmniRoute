@@ -13,6 +13,8 @@ test("featureDisabledError carries the featureName", async () => {
   assert.equal(err.featureName, "my-feature");
   assert.match(err.message, /my-feature/);
   assert.match(err.message, /minimal/);
+  assert.equal("OMNIROUTE_BUILD_PROFILE" in mod, false);
+  assert.equal("IS_MINIMAL_BUILD" in mod, false);
 });
 
 test("install.stub.ts: installCert / uninstallCert throw FeatureDisabledError", async () => {

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { resolveProviderServiceKinds } from "@omniroute/open-sse/config/mediaServiceKinds.ts";
 import type { MediaKind } from "../components/mediaKinds";
 import { MEDIA_KINDS } from "../components/mediaKinds";
 import MediaProviderKindNav from "../components/MediaProviderKindNav";
@@ -28,10 +29,14 @@ export default async function MediaProviderKindPage({ params }: PageProps) {
   const validKind = kind as MediaKind;
   const t = await getTranslations("media");
 
-  // Filter providers that support this kind
+  // Filter providers that support this kind. Membership is the union of the
+  // explicitly declared serviceKinds and the media kinds derived from the
+  // backend registries (audio/video/music/image/embedding) — see
+  // resolveProviderServiceKinds. This keeps the UI in lockstep with the backend
+  // without hand-maintaining serviceKinds on every media provider.
   const matchingProviders = Object.values(AI_PROVIDERS).filter((p) => {
-    const serviceKinds = (p as Record<string, unknown>).serviceKinds as string[] | undefined;
-    return Array.isArray(serviceKinds) && serviceKinds.includes(validKind);
+    const entry = p as Record<string, unknown> & { id: string; serviceKinds?: string[] };
+    return resolveProviderServiceKinds(entry.id, entry.serviceKinds).includes(validKind);
   });
 
   const kindLabel = t(`kinds.${validKind}`);
@@ -66,7 +71,7 @@ export default async function MediaProviderKindPage({ params }: PageProps) {
                 href={`/dashboard/media-providers/${validKind}/${p.id}`}
                 className="group"
               >
-                <div className="rounded-xl border border-border bg-bg-card p-3 hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer h-full flex flex-col gap-2">
+                <div className="rounded-xl border border-border bg-bg-card p-3 hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/40 transition-colors cursor-pointer h-full flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <div
                       className="size-7 rounded-lg flex items-center justify-center shrink-0"

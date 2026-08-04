@@ -1,5 +1,5 @@
 /**
- * catalog.ts — single source of truth for the 42-entry Agent Skills catalog.
+ * catalog.ts — single source of truth for the 43-entry Agent Skills catalog.
  *
  * Consumers: REST routes (/api/agent-skills/*), MCP tools, A2A skill, Generator.
  * Do NOT import this from UI components directly — use the REST API instead.
@@ -8,7 +8,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { AgentSkill, SkillCoverage, SkillMarkdown } from "./types";
-import { CURATED_SKILLS, getAgentSkillRawUrl, getAgentSkillBlobUrl } from "@/shared/constants/agentSkills";
+import {
+  CURATED_SKILLS,
+  getAgentSkillRawUrl,
+  getAgentSkillBlobUrl,
+} from "@/shared/constants/agentSkills";
 
 // ── Canonical ID lists (D28) ────────────────────────────────────────────────
 
@@ -36,7 +40,11 @@ export const API_SKILL_IDS: readonly string[] = [
   "omni-agents-a2a",
   "omni-version-manager",
   "omni-inference",
+  "omni-github-skills",
 ] as const;
+
+/** Config skill IDs. */
+export const CONFIG_SKILL_IDS: readonly string[] = ["config-codex-cli"] as const;
 
 /** 20 canonical CLI skill IDs, in spec order. */
 export const CLI_SKILL_IDS: readonly string[] = [
@@ -60,6 +68,7 @@ export const CLI_SKILL_IDS: readonly string[] = [
   "cli-eval",
   "cli-plugins-skills",
   "cli-setup",
+  "cli-skill-collector",
 ] as const;
 
 // ── Module-scope cache ──────────────────────────────────────────────────────
@@ -68,9 +77,7 @@ let _cache: AgentSkill[] | null = null;
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function buildFullSkill(
-  curated: (typeof CURATED_SKILLS)[number],
-): AgentSkill {
+function buildFullSkill(curated: (typeof CURATED_SKILLS)[number]): AgentSkill {
   return {
     ...curated,
     endpoints: curated.category === "api" ? [] : undefined,
@@ -87,7 +94,7 @@ function deriveCatalog(): AgentSkill[] {
 // ── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Returns the full catalog (42 entries). Cached in module scope after first call.
+ * Returns the full catalog (43 entries). Cached in module scope after first call.
  * Safe to call multiple times — re-derives only after `refreshCatalog()`.
  */
 export function getCatalog(): AgentSkill[] {
@@ -129,7 +136,7 @@ export function computeCoverage(): SkillCoverage {
       entries
         .filter((e) => e.isDirectory())
         .filter((e) => fs.existsSync(path.join(skillsDir, e.name, "SKILL.md")))
-        .map((e) => e.name),
+        .map((e) => e.name)
     );
   } catch {
     // Directory doesn't exist yet — zero coverage
@@ -138,11 +145,16 @@ export function computeCoverage(): SkillCoverage {
 
   const apiHave = catalog.filter((s) => s.category === "api" && presentIds.has(s.id)).length;
   const cliHave = catalog.filter((s) => s.category === "cli" && presentIds.has(s.id)).length;
+  const configTotal = CONFIG_SKILL_IDS.length;
+  const configHave = catalog.filter((s) => s.category === "config" && presentIds.has(s.id)).length;
 
   return {
-    api: { have: apiHave, total: 22 },
-    cli: { have: cliHave, total: 20 },
-    totalSkills: apiHave + cliHave,
+    // Totals derive from the id lists — hardcoded 23/20 went stale the first
+    // time the catalog grew (cli-skill-collector registration, 2026-07-15).
+    api: { have: apiHave, total: API_SKILL_IDS.length },
+    cli: { have: cliHave, total: CLI_SKILL_IDS.length },
+    config: { have: configHave, total: configTotal },
+    totalSkills: apiHave + cliHave + configHave,
     generatedAt: new Date().toISOString(),
   };
 }
@@ -190,9 +202,8 @@ export async function fetchSkillMarkdown(id: string): Promise<SkillMarkdown> {
   }
 
   const response = await fetch(skill.rawUrl, {
-    // @ts-expect-error — Next.js extended fetch options
     next: { revalidate: 3600 },
-  });
+  } as unknown as RequestInit);
 
   if (!response.ok) {
     throw new Error(`GitHub raw fetch failed: HTTP ${response.status} for ${skill.rawUrl}`);

@@ -117,3 +117,22 @@ test("validateApiKey updates last_used_at for persisted keys", async () => {
   assert.ok(row?.last_used_at, "last_used_at should be set on successful validation");
   assert.ok(Date.parse(row.last_used_at) > 0, "last_used_at should be an ISO timestamp");
 });
+
+test("getApiKeyMetadata returns proxyId for a key with proxy_id set", async () => {
+  const created = await makeKey("proxy-test", "machine-proxy");
+
+  const ok = await apiKeysDb.updateApiKeyPermissions(created.id, { proxyId: "test-proxy-id" });
+  assert.equal(ok, true);
+
+  const metadata = await apiKeysDb.getApiKeyMetadata(created.key);
+  assert.ok(metadata);
+  assert.equal(metadata!.proxyId, "test-proxy-id");
+});
+
+test("getApiKeyMetadata returns proxyId null for a key without proxy_id", async () => {
+  const created = await makeKey("no-proxy-test", "machine-no-proxy");
+
+  const metadata = await apiKeysDb.getApiKeyMetadata(created.key);
+  assert.ok(metadata);
+  assert.equal(metadata!.proxyId, null);
+});

@@ -51,6 +51,9 @@ const IGNORE_FROM_CODE = new Set([
   "CI",
   "GITHUB_ACTIONS",
   "RUNNER_OS",
+  // Quality-gate harness knobs (optional cache/report paths for CI scripts — not product config).
+  "ESLINT_RESULTS_JSON",
+  "COMPLEXITY_ESLINT_REPORT",
   // Agent environment / system execution paths.
   "PROJECT_ROOT",
   "ARTIFACTS_DIR",
@@ -58,6 +61,9 @@ const IGNORE_FROM_CODE = new Set([
   "APPDATA",
   "LOCALAPPDATA",
   "XDG_CONFIG_HOME",
+  // XDG Base Directory cache root — read (never defined by OmniRoute) so the
+  // Android/Termux serve path can honor an operator-set cache location (#8519).
+  "XDG_CACHE_HOME",
   "USERPROFILE",
   "PREFIX",
   // X11 display server — set by the OS/session manager, not OmniRoute config.
@@ -69,15 +75,56 @@ const IGNORE_FROM_CODE = new Set([
   "NEXT_DIST_DIR",
   "NEXT_PHASE",
   "NEXT_RUNTIME",
+  // Set/read by Next.js's own dev server (next-dev-server.js) when the turbopack
+  // bundler is active — framework-internal. The OmniRoute-facing knob is
+  // OMNIROUTE_USE_TURBOPACK (scripts/dev/run-next.mjs), which IS documented.
+  "TURBOPACK",
   "NODE_TEST_CONTEXT",
   "VITEST",
   // Instruction snippet shown to users (Traffic Inspector HttpProxySnippetCard) — not OmniRoute config.
   "NODE_TLS_REJECT_UNAUTHORIZED",
+  // Claude Code's own auth env var — read from the CLI environment to detect
+  // existing auth and written into the generated Claude Code settings (so the CLI
+  // points at OmniRoute). A downstream client-tool var, not an OmniRoute server
+  // input (src/shared/services/claudeCliConfig.ts, api/cli-tools/claude-settings).
+  "ANTHROPIC_AUTH_TOKEN",
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // CI passes BASE_REF=${{ github.base_ref }} to the OpenAPI breaking-change gate
+  // (scripts/check/check-openapi-breaking.mjs) — a build/check signal, not OmniRoute runtime config.
+  "BASE_REF",
+  // Same class as BASE_REF above: the `changes` job passes these four to the
+  // self-targeting-PR guard (scripts/check/check-pr-self-target.mjs) so it can compare a PR's
+  // head against its base. CI-only signals from github.head_ref / github.base_ref /
+  // pull_request.{head,base}.sha — never OmniRoute runtime config, and meaningless in a .env.
+  "HEAD_REF",
+  "HEAD_SHA",
+  "BASE_SHA",
+  // Escape hatch for the test-masking gate's release-scale skip
+  // (scripts/check/check-test-masking.mjs): above ~300 changed test files the per-file diff
+  // subchecks are skipped, and this raises that cap for anyone who wants the full pass anyway.
+  // A gate tuning knob, not application configuration.
+  "TEST_MASKING_MAX_CHANGED_TESTS",
+  // PR body injected by GitHub Actions into the pr-evidence gate (github.event.pull_request.body);
+  // a CI-only signal, never an OmniRoute runtime config (Phase 7.10).
+  "PR_BODY",
   // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
   "OMNIROUTE_DISABLE_CLI_TOKEN",
+  // Gated combo live-smoke harness (scripts/test/_vpsClient.mjs) — override the VPS HTTP
+  // smoke target host/key. Test/CI-only signals with safe defaults
+  // ("http://192.168.0.15:20128" / null), never OmniRoute runtime config (#5151).
+  "COMBO_LIVE_BASE_URL",
+  "COMBO_LIVE_API_KEY",
+  // Homologation E2E suite (npm run homolog) vars — configured via the dedicated
+  // .env.homolog file (template: .env.homolog.example), never in the runtime .env.
+  // Test/ops-only signals against the homologation VPS, same class as COMBO_LIVE_*.
+  // See docs/ops/HOMOLOGATION.md.
+  "HOMOLOG_BASE_URL",
+  "HOMOLOG_ADMIN_PASSWORD",
+  "HOMOLOG_API_KEY",
+  "HOMOLOG_CRITICAL_PROVIDERS",
+  "HOMOLOG_EXPECT_VERSION",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
   // Headless CLI execution flag for Electron.
@@ -109,6 +156,12 @@ const IGNORE_FROM_CODE = new Set([
   "QA_LOCALES",
   "QA_REPORT_SUFFIX",
   "QA_ROUTES",
+  // Post-publish verifier (scripts/release/verify-published.mjs): env passed INTO the
+  // clean Docker container script (Hard Rule #13 env-option pattern) — release tooling
+  // internals, never OmniRoute runtime config.
+  "VERIFY_DEADLINE_S",
+  "VERIFY_PORT",
+  "VERIFY_VERSION",
   // Doctor diagnostic flags (no runtime behavior yet — placeholders).
   "OMNIROUTE_DOCTOR_HOST",
   "OMNIROUTE_DOCTOR_LIVENESS_URL",
@@ -117,10 +170,17 @@ const IGNORE_FROM_CODE = new Set([
   // Test-only opt-out: instructs bin/omniroute.mjs to skip auto-loading the
   // repository .env so isolation tests get a deterministic environment.
   "OMNIROUTE_CLI_SKIP_REPO_ENV",
+  // Eval-harness only: operator-supplied provider credentials JSON read by the
+  // opt-in `npm run eval:compression` CLI (scripts/compression-eval/index.ts).
+  // A dev/ops measurement tool, never OmniRoute runtime config.
+  "OMNIROUTE_EVAL_CREDENTIALS",
   // Build-time only: set by `build:release` (git short SHA) and read by
   // write-build-sha.mjs to stamp dist/BUILD_SHA — injected by the build, never
   // configured by users in .env.
   "OMNIROUTE_BUILD_SHA",
+  // Listener-owned self-fetch transport signal. The HTTP/HTTPS launchers set
+  // this before application imports; it is not user-configurable product env.
+  "OMNIROUTE_INTERNAL_SCHEME",
   // Source typo / placeholder.
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).
@@ -131,6 +191,12 @@ const IGNORE_FROM_CODE = new Set([
   // NVIDIA diagnostic/test helpers used only by ad-hoc scripts.
   "NVIDIA_BASE_URL",
   "NVIDIA_MODEL",
+  // XDG standard data directory — set by OS/desktop session, not OmniRoute config.
+  // Read by setup-open-code.mjs to locate platform-specific OpenCode data dir.
+  "XDG_DATA_HOME",
+  // Test-only override: points setup-open-code.mjs at a fixture plugin dir without
+  // requiring the real bundled plugin to be built.
+  "OMNIROUTE_OPENCODE_PLUGIN_DIR",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
@@ -156,6 +222,10 @@ const DOC_ONLY_ALLOWLIST = new Set([
   "IFLOW_OAUTH_CLIENT_SECRET",
   // Source-code constants accidentally captured by the doc regex.
   "CLI_COMPAT_OMITTED_PROVIDER_IDS",
+  // The stream-recovery tuning object in open-sse/config/constants.ts (`STREAM_RECOVERY.HOLDBACK_MS`
+  // etc.) — documented for reference; the real operator-facing env vars are STREAM_RECOVERY_ENABLED /
+  // STREAM_RECOVERY_MIDSTREAM_ENABLED (both in .env.example). The bare prefix is not an env var.
+  "STREAM_RECOVERY",
   // Sample default values that look like SHOUTY_NAMES (not env vars).
   "CHANGEME",
   // Legacy aliases — present in docs as "would be aliases" but read-only
@@ -167,6 +237,12 @@ const DOC_ONLY_ALLOWLIST = new Set([
   "REQUEST_RETRY",
   "SKILLS_EXECUTION_TIMEOUT_MS",
   "SKILLS_SANDBOX_DOCKER_IMAGE",
+  // Source-code constants referenced in the docs narrative for the local
+  // endpoints / route-guard classification (PR-3 in #3932).
+  "LOCAL_ONLY_API_PREFIXES",
+  // SQL keyword mentioned in the new VACUUM scheduler docs (#4437).
+  // The check's regex picks up the bare word in description text.
+  "VACUUM",
 ]);
 
 // Vars present in .env.example but intentionally absent from ENVIRONMENT.md.
@@ -176,7 +252,7 @@ const ENV_ONLY_ALLOWLIST = new Set([
   "CODEX_REFRESH_SPACING_MS",
   "DEBUG",
   "HEAP_PRESSURE_THRESHOLD_MB",
-  "OMNIRROUTE_TRACE",
+  "OMNIROUTE_TRACE",
   "PII_TEST_BYPASS_MIN_WINDOW",
   "PII_WINDOW_SIZE",
   "TRAE_STREAM_TIMEOUT_MS",

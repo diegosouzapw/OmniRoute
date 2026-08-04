@@ -18,7 +18,6 @@ export const SkillsShSearchResponseSchema = z.object({
   duration_ms: z.number().optional(),
 });
 
-export type SkillsShSkill = z.infer<typeof SkillsShSkillSchema>;
 export type SkillsShSearchResponse = z.infer<typeof SkillsShSearchResponseSchema>;
 
 const SKILLSSH_BASE_URL = "https://skills.sh/api";

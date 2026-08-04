@@ -8,6 +8,7 @@
  */
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, isCloud, isBuildPhase } from "./db/core";
+import { ensureProxyLogsColumns } from "./db/schemaColumns";
 
 const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
@@ -29,6 +30,10 @@ interface ProxyLogEntry {
   provider: string | null;
   targetUrl: string | null;
   clientIp: string | null;
+  /** Outbound/egress IP the upstream actually saw (null until probed). The
+   * historical clientIp is the INBOUND IP (x-forwarded-for); egressIp answers
+   * "by which IP is this account leaving" — critical for rotating providers. */
+  egressIp: string | null;
   latencyMs: number;
   error: string | null;
   connectionId: string | null;
@@ -60,6 +65,9 @@ function loadFromDb() {
   if (!shouldPersistToDisk) return;
   try {
     const db = getDbInstance();
+    // Self-heal the proxy_logs schema before reading/writing (migration 134
+    // guarantees egress_ip on every migrated DB; this covers restored/odd states).
+    ensureProxyLogsColumns(db);
     const rows = db
       .prepare("SELECT * FROM proxy_logs ORDER BY timestamp DESC LIMIT ?")
       .all(MAX_IN_MEMORY_ENTRIES) as any[];
@@ -77,6 +85,7 @@ function loadFromDb() {
         provider: row.provider || null,
         targetUrl: row.target_url || null,
         clientIp: row.public_ip || null,
+        egressIp: row.egress_ip || null,
         latencyMs: row.latency_ms || 0,
         error: row.error || null,
         connectionId: row.connection_id || null,
@@ -109,6 +118,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
     provider: entry.provider || null,
     targetUrl: entry.targetUrl || null,
     clientIp: entry.clientIp ?? entry.publicIp ?? null,
+    egressIp: entry.egressIp ?? null,
     latencyMs: entry.latencyMs || 0,
     error: entry.error || null,
     connectionId: entry.connectionId || null,
@@ -116,6 +126,16 @@ export function logProxyEvent(entry: ProxyLogInput) {
     account: entry.account || null,
     tlsFingerprint: entry.tlsFingerprint || false,
   };
+
+  // Structured egress line so the operator can confirm, in the proxy logs, which
+  // IP each account is entering (clientIp) and leaving (egressIp) by.
+  if (log.proxy || log.egressIp) {
+    console.log(
+      `[ProxyEgress] ${log.provider || "-"}/${log.account || "-"} ` +
+        `in=${log.clientIp || "?"} out=${log.egressIp || "?"} ` +
+        `proxy=${log.level}${log.proxy ? `:${log.proxy.host}` : ""} status=${log.status}`
+    );
+  }
 
   // 1. In-memory ring buffer (newest first)
   proxyLogs.unshift(log);
@@ -129,10 +149,10 @@ export function logProxyEvent(entry: ProxyLogInput) {
       const db = getDbInstance();
       db.prepare(
         `INSERT INTO proxy_logs (id, timestamp, status, proxy_type, proxy_host, proxy_port,
-          level, level_id, provider, target_url, public_ip, latency_ms, error,
+          level, level_id, provider, target_url, public_ip, egress_ip, latency_ms, error,
           connection_id, combo_id, account, tls_fingerprint)
         VALUES (@id, @timestamp, @status, @proxyType, @proxyHost, @proxyPort,
-          @level, @levelId, @provider, @targetUrl, @clientIp, @latencyMs, @error,
+          @level, @levelId, @provider, @targetUrl, @clientIp, @egressIp, @latencyMs, @error,
           @connectionId, @comboId, @account, @tlsFingerprint)`
       ).run({
         id: log.id,
@@ -146,6 +166,7 @@ export function logProxyEvent(entry: ProxyLogInput) {
         provider: log.provider,
         targetUrl: log.targetUrl,
         clientIp: log.clientIp,
+        egressIp: log.egressIp,
         latencyMs: log.latencyMs,
         error: log.error,
         connectionId: log.connectionId,
@@ -198,6 +219,7 @@ export function getProxyLogs(filters: ProxyLogFilters = {}) {
         (l.provider || "").toLowerCase().includes(q) ||
         (l.targetUrl || "").toLowerCase().includes(q) ||
         (l.clientIp || "").toLowerCase().includes(q) ||
+        (l.egressIp || "").toLowerCase().includes(q) ||
         (l.level || "").toLowerCase().includes(q) ||
         (l.error || "").toLowerCase().includes(q) ||
         (l.account || "").toLowerCase().includes(q)
@@ -221,15 +243,4 @@ export function clearProxyLogs() {
       console.warn("[proxyLogger] Failed to clear DB:", err.message);
     }
   }
-}
-
-// ──────────────── Stats ────────────────
-
-export function getProxyLogStats() {
-  const total = proxyLogs.length;
-  const success = proxyLogs.filter((l) => l.status === "success").length;
-  const error = proxyLogs.filter((l) => l.status === "error").length;
-  const timeout = proxyLogs.filter((l) => l.status === "timeout").length;
-  const direct = proxyLogs.filter((l) => l.level === "direct").length;
-  return { total, success, error, timeout, direct };
 }
