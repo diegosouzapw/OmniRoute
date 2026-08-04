@@ -49,6 +49,11 @@ tags:
     description: Provider connection management
   - name: Provider Nodes
     description: Provider node configuration
+  - name: Proxy Subscriptions
+    description: >-
+      Operator-supplied proxy subscription links (Karing-style). Nodes are fetched,
+      parsed, and synced into the provider/account pool on create, refresh, or the
+      background scheduler tick.
   - name: API Keys
     description: API key management
   - name: Combos
@@ -2563,6 +2568,273 @@ paths:
         "200":
           description: Ollama model tags
 
+  # ─── Proxy Subscriptions ───────────────────────────────────────
+
+  /api/v1/management/proxy-subscriptions:
+    get:
+      tags: [Proxy Subscriptions]
+      summary: List proxy subscriptions
+      description: >-
+        Lists all operator-supplied proxy subscription links. Also starts the
+        background auto-refresh scheduler (idempotent) so enabled subscriptions
+        stay in sync. Credentials embedded in `url` are redacted in the response.
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Subscription list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProxySubscription"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+    post:
+      tags: [Proxy Subscriptions]
+      summary: Create a proxy subscription
+      description: >-
+        Creates a subscription record. If `mode` is `rule`, at least one entry in
+        `ruleProviders` is required. `updateIntervalMinutes` defaults to 60 and
+        `enabled` defaults to `false` when omitted or not exactly `true`.
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, url]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                url:
+                  type: string
+                  minLength: 1
+                mode:
+                  type: string
+                  enum: [global, rule]
+                  default: global
+                ruleProviders:
+                  type: array
+                  items:
+                    type: string
+                  description: Required (non-empty) when mode is "rule".
+                localCoreEndpoint:
+                  type: string
+                  nullable: true
+                updateIntervalMinutes:
+                  type: integer
+                  default: 60
+                enabled:
+                  type: boolean
+                  default: false
+      responses:
+        "201":
+          description: Created subscription (url redacted)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProxySubscription"
+        "400":
+          description: Missing name/url, or ruleProviders empty while mode is "rule"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+
+  /api/v1/management/proxy-subscriptions/{id}:
+    get:
+      tags: [Proxy Subscriptions]
+      summary: Get a proxy subscription
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Subscription detail (url redacted)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProxySubscription"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+        "404":
+          description: Subscription not found
+    patch:
+      tags: [Proxy Subscriptions]
+      summary: Update a proxy subscription
+      description: >-
+        Partial update — only fields present in the body are changed
+        (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                url:
+                  type: string
+                mode:
+                  type: string
+                  enum: [global, rule]
+                ruleProviders:
+                  type: array
+                  items:
+                    type: string
+                localCoreEndpoint:
+                  type: string
+                  nullable: true
+                updateIntervalMinutes:
+                  type: integer
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Updated subscription (url redacted)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProxySubscription"
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+        "404":
+          description: Subscription not found
+    delete:
+      tags: [Proxy Subscriptions]
+      summary: Delete a proxy subscription
+      description: Removes the subscription record and unbinds/drops its synced proxy_registry rows.
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+        "404":
+          description: Subscription not found
+
+  /api/v1/management/proxy-subscriptions/{id}/nodes:
+    get:
+      tags: [Proxy Subscriptions]
+      summary: Get a subscription's last-parsed node summary
+      description: >-
+        Returns the last-parsed node list without re-fetching the (possibly slow)
+        subscription URL.
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Last-parsed node summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  mode:
+                    type: string
+                    enum: [global, rule]
+                  enabled:
+                    type: boolean
+                  status:
+                    type: string
+                    enum: [ok, error, empty]
+                  error:
+                    type: string
+                    nullable: true
+                  lastFetchedAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  nodes:
+                    type: array
+                    items: {}
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+        "404":
+          description: Subscription not found
+
+  /api/v1/management/proxy-subscriptions/{id}/refresh:
+    post:
+      tags: [Proxy Subscriptions]
+      summary: Refresh a proxy subscription
+      description: >-
+        Re-fetches and re-parses the subscription URL, syncs its nodes into
+        `proxy_registry`, and (re)binds the pool.
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Sync result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscriptionId:
+                    type: string
+                  nodes:
+                    type: integer
+                  needsCore:
+                    type: integer
+                  boundProxies:
+                    type: integer
+                  status:
+                    type: string
+                    enum: [ok, error, empty]
+                  error:
+                    type: string
+                    nullable: true
+                  applied:
+                    type: boolean
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
+        "404":
+          description: Subscription not found
+
   # ─── Usage & Analytics ─────────────────────────────────────────
 
   /api/usage/analytics:
@@ -2676,6 +2948,201 @@ paths:
       responses:
         "200":
           description: Updated budget configuration
+
+  /api/usage/cache-health:
+    get:
+      tags: [Usage]
+      summary: Get prompt-cache health summary
+      description: |
+        Summarizes the `write/read` cache ratio from `call_logs` for a time window:
+        distribution (p50/p90/p99/max of cache-write tokens), warm/cold/rewrite/uncached
+        call counts, the "heavy write" outlier share (10x the window median, floored at
+        1024 tokens — Anthropic's cache-creation minimum), and a per-model breakdown.
+        Only successful (`status = 200`) calls with a non-null cache column are counted.
+      parameters:
+        - name: range
+          in: query
+          schema:
+            type: string
+            enum: [1h, 24h, 7d, 30d]
+            default: 24h
+        - name: model
+          in: query
+          description: Filter to one model or requested-model alias (1-200 chars).
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+      responses:
+        "200":
+          description: Cache health summary for the requested window
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCalls:
+                    type: integer
+                  cacheReadTotal:
+                    type: integer
+                  cacheWriteTotal:
+                    type: integer
+                  writeReadRatio:
+                    type: number
+                  warmCalls:
+                    type: integer
+                  coldCalls:
+                    type: integer
+                  rewriteCalls:
+                    type: integer
+                  uncachedCalls:
+                    type: integer
+                  writeP50:
+                    type: integer
+                  writeP90:
+                    type: integer
+                  writeP99:
+                    type: integer
+                  writeMax:
+                    type: integer
+                  heavyWriteCalls:
+                    type: integer
+                  heavyWriteCallShare:
+                    type: number
+                  heavyWriteTokenShare:
+                    type: number
+                  heavyWriteThreshold:
+                    type: integer
+                  verdict:
+                    type: string
+                    enum: [healthy, degraded, thrash, no-data]
+                  byModel:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        model:
+                          type: string
+                        calls:
+                          type: integer
+                        cacheReadTotal:
+                          type: integer
+                        cacheWriteTotal:
+                          type: integer
+                        writeReadRatio:
+                          type: number
+                        heavyWriteCalls:
+                          type: integer
+                  timeRange:
+                    type: string
+                  since:
+                    type: string
+                    format: date-time
+                  truncated:
+                    type: boolean
+                    description: True when the window held more than 5000 rows and only the newest were summarized.
+        "400":
+          description: Invalid query parameters
+
+  /api/usage/model-latency-stats:
+    get:
+      tags: [Usage]
+      summary: Get per-model/provider latency statistics
+      description: >-
+        Aggregates `usage_history` rows into per-(provider, model) latency stats
+        (avg/p50/p95/p99, std-dev, TTFT, tokens/sec) over a rolling window. Falls
+        back from successful-only to all-sample rows when the successful count is
+        below `minSamples`.
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - name: windowHours
+          in: query
+          schema:
+            type: number
+            minimum: 0
+            exclusiveMinimum: true
+            maximum: 720
+            default: 24
+        - name: minSamples
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: maxRows
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50000
+            default: 10000
+        - name: provider
+          in: query
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+        - name: model
+          in: query
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+      responses:
+        "200":
+          description: Latency stats keyed by provider/model, plus the window used
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        provider:
+                          type: string
+                        model:
+                          type: string
+                        key:
+                          type: string
+                        totalRequests:
+                          type: integer
+                        successfulRequests:
+                          type: integer
+                        successRate:
+                          type: number
+                        avgLatencyMs:
+                          type: number
+                        p50LatencyMs:
+                          type: number
+                        p95LatencyMs:
+                          type: number
+                        p99LatencyMs:
+                          type: number
+                        latencyStdDev:
+                          type: number
+                        windowHours:
+                          type: number
+                        avgTtftMs:
+                          type: number
+                        avgE2ELatencyMs:
+                          type: number
+                        avgTokensPerSecond:
+                          type: number
+                  windowHours:
+                    type: number
+                  generatedAt:
+                    type: string
+                    format: date-time
+        "400":
+          description: Invalid query parameters
+        "401":
+          $ref: "#/components/responses/ManagementAuthenticationRequired"
+        "403":
+          $ref: "#/components/responses/ManagementInvalidToken"
 
   # ─── Pricing ───────────────────────────────────────────────────
 
@@ -4096,6 +4563,49 @@ paths:
       responses:
         "200":
           description: Session cleared
+
+  /api/auth/oidc/login:
+    get:
+      tags: [System]
+      summary: Start OIDC login for the dashboard admin gate
+      description: |
+        Builds an authorization URL from the configured OIDC issuer/client (discovered
+        via `{issuer}/.well-known/openid-configuration`, falling back to `{issuer}/authorize`),
+        sets a short-lived `oidc_state` cookie, and redirects the browser. Password login
+        remains available as a fallback while OIDC is enabled.
+      responses:
+        "302":
+          description: Redirect to the identity provider's authorization endpoint
+        "400":
+          description: OIDC is not configured (missing issuer, client id/secret, or disabled)
+
+  /api/auth/oidc/callback:
+    get:
+      tags: [System]
+      summary: Complete OIDC login for the dashboard admin gate
+      description: |
+        Validates the `state` cookie, exchanges the authorization `code` for tokens,
+        verifies the ID token against the issuer's JWKS (audience = client id), and —
+        if `oidcAllowedSubjects` is configured — checks the token's `sub`/`email` against
+        that allowlist. On success it mints the same 30-day `auth_token` dashboard-session
+        JWT used by password login and redirects to `/dashboard`.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: >-
+            Redirect to `/dashboard` on success, or to
+            `/login?oidc_error={missing_code|invalid_state|not_configured|token_exchange|token_response|no_id_token|subject_not_allowed|id_token_invalid|server_misconfigured}`
+            on failure.
 
   /api/init:
     get:
@@ -7180,6 +7690,61 @@ components:
           example: model
         owned_by:
           type: string
+
+    ProxySubscription:
+      type: object
+      description: >-
+        An operator-supplied proxy subscription link (Karing-style). `url` is
+        redacted (credentials stripped) whenever the record is returned by the API.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+          description: Redacted subscription URL.
+        enabled:
+          type: boolean
+        mode:
+          type: string
+          enum: [global, rule]
+        ruleProviders:
+          type: array
+          items:
+            type: string
+          nullable: true
+        localCoreEndpoint:
+          type: string
+          nullable: true
+        updateIntervalMinutes:
+          type: integer
+        lastFetchedAt:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [ok, error, empty]
+        error:
+          type: string
+          nullable: true
+        lastNodes:
+          type: array
+          items: {}
+          nullable: true
+        lastErrorAt:
+          type: string
+          format: date-time
+          nullable: true
+        consecutiveFailures:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
     ProviderConnection:
       type: object

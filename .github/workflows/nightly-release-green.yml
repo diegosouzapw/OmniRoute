@@ -143,7 +143,8 @@ jobs:
             MODE="--with-build --full-ci"
           fi
           echo "[release-green] mode: $MODE (event: $EVENT_NAME)"
-          # shellcheck disable=SC2086 — MODE is an intentional flag list
+          # MODE is an intentional flag list, so word-splitting is wanted here
+          # shellcheck disable=SC2086
           node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
             1> release-green.json 2> release-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"
@@ -248,7 +249,8 @@ jobs:
             MODE="--with-build --full-ci"
           fi
           echo "[main-green] mode: $MODE (event: $EVENT_NAME)"
-          # shellcheck disable=SC2086 — MODE is an intentional flag list
+          # MODE is an intentional flag list, so word-splitting is wanted here
+          # shellcheck disable=SC2086
           node scripts/quality/validate-release-green.mjs --json --hermetic $MODE \
             1> main-green.json 2> main-green.log
           echo "exit=$?" >> "$GITHUB_OUTPUT"

@@ -218,7 +218,11 @@ export default function RequestLoggerDetail({
   const [unblocking, setUnblocking] = useState(false);
   const [cleared, setCleared] = useState(false);
 
-  const errorText = (detail?.error || log.error) ?? "";
+  // #7920 gave this component formatErrorForDisplay for structured error objects, but the
+  // #8213 combo/cooldown checks below went straight to the raw field and call
+  // .toLowerCase() on it — which throws the moment `error` is an object. Same helper,
+  // same normalization, one source of truth.
+  const errorText = formatErrorForDisplay(detail?.error || log.error) ?? "";
   const isCombo503 =
     log.status === 503 && errorText.toLowerCase().includes("all targets exhausted");
   const isModelCooldown = !isCombo503 && errorText.toLowerCase().includes("cooling down");

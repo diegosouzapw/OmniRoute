@@ -4,11 +4,14 @@
 // upstream target format: apiFormat==="responses" forces OpenAI Responses; otherwise the model's
 // registry target format, then the custom-model override, then the provider default. Returns both
 // `alias` (reused downstream when stripping the alias/ prefix off the upstream model) and
-// `targetFormat`. Asserted against the inline composition so the delegation stays byte-identical.
+// `targetFormat`.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { resolveChatCoreTargetFormat } from "../../open-sse/handlers/chatCore/targetFormat.ts";
-import { PROVIDER_ID_TO_ALIAS, getModelTargetFormat } from "../../open-sse/config/providerModels.ts";
+import {
+  PROVIDER_ID_TO_ALIAS,
+  getModelTargetFormat,
+} from "../../open-sse/config/providerModels.ts";
 import { getTargetFormat } from "../../open-sse/services/provider.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
 
@@ -24,7 +27,9 @@ function expected(
   const targetFormat =
     apiFormat === "responses"
       ? FORMATS.OPENAI_RESPONSES
-      : modelTargetFormat || customModelTargetFormat || getTargetFormat(provider, providerSpecificData);
+      : modelTargetFormat ||
+        customModelTargetFormat ||
+        getTargetFormat(provider, providerSpecificData);
   return { alias, targetFormat };
 }
 
@@ -33,6 +38,7 @@ test("apiFormat='responses' short-circuits to OPENAI_RESPONSES (alias still reso
     provider: "openai",
     resolvedModel: "gpt-4o",
     apiFormat: "responses",
+    sourceFormat: FORMATS.OPENAI,
     customModelTargetFormat: undefined,
     providerSpecificData: undefined,
   });
@@ -45,6 +51,7 @@ test("delegates byte-identically for a normal model (no apiFormat / no custom ov
     provider: "openai",
     resolvedModel: "gpt-4o",
     apiFormat: undefined,
+    sourceFormat: FORMATS.OPENAI,
     customModelTargetFormat: undefined,
     providerSpecificData: undefined,
   });
@@ -59,6 +66,7 @@ test("customModelTargetFormat is used when the model has no registry target form
     provider: "openai",
     resolvedModel: customModel,
     apiFormat: undefined,
+    sourceFormat: FORMATS.OPENAI,
     customModelTargetFormat: "claude",
     providerSpecificData: undefined,
   });
@@ -71,10 +79,23 @@ test("falls back to getTargetFormat(provider) when neither model nor custom form
     provider: "openai",
     resolvedModel: customModel,
     apiFormat: undefined,
+    sourceFormat: FORMATS.OPENAI,
     customModelTargetFormat: undefined,
     providerSpecificData: undefined,
   });
   assert.equal(r.targetFormat, getTargetFormat("openai", undefined));
+});
+
+test("AgentRouter explicit connection protocol overrides the inferred inbound protocol", () => {
+  const r = resolveChatCoreTargetFormat({
+    provider: "agentrouter",
+    resolvedModel: "gpt-5.6-sol",
+    apiFormat: undefined,
+    sourceFormat: FORMATS.OPENAI_RESPONSES,
+    customModelTargetFormat: undefined,
+    providerSpecificData: { targetFormat: FORMATS.CLAUDE },
+  });
+  assert.equal(r.targetFormat, FORMATS.CLAUDE);
 });
 
 test("unmapped provider → alias falls back to the provider id", () => {
@@ -82,6 +103,7 @@ test("unmapped provider → alias falls back to the provider id", () => {
     provider: "some-unmapped-provider",
     resolvedModel: "x",
     apiFormat: "responses",
+    sourceFormat: FORMATS.OPENAI,
     customModelTargetFormat: undefined,
     providerSpecificData: undefined,
   });

@@ -135,7 +135,17 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
 // Thin wrapper for call sites that only have the full request URL (not the bare endpoint
 // path chatCore already threads) — single source of truth stays detectFormatFromEndpoint.
 export function detectFormatFromUrl(body, requestUrl) {
-  return detectFormatFromEndpoint(body, new URL(requestUrl).pathname);
+  const rawUrl = typeof requestUrl === "string" ? requestUrl : "";
+  let pathname = rawUrl;
+  try {
+    // Supplying a base URL keeps relative client endpoints (for example,
+    // `/v1/messages`) valid while preserving pathname-only detection.
+    pathname = new URL(rawUrl || "/", "http://omniroute.local").pathname;
+  } catch {
+    // Fall back to the raw value; detectFormatFromEndpoint is intentionally
+    // safe for unknown or malformed paths.
+  }
+  return detectFormatFromEndpoint(body, pathname);
 }
 
 // Detect request format from body structure
@@ -193,7 +203,7 @@ export function detectFormat(body) {
       if (firstContent?.type === "text" && !body.model?.includes("/")) {
         // Could be Claude or OpenAI multimodal
         // Check for Claude-specific fields
-        if (body.system || body.anthropic_version) {
+        if (body.system || body.anthropic_version || body["anthropic-version"]) {
           return "claude";
         }
         // Check if image format is Claude (source.type) vs OpenAI (image_url.url)
@@ -216,7 +226,7 @@ export function detectFormat(body) {
 
     // If content is string, it's likely OpenAI (Claude also supports this)
     // Check for other Claude-specific indicators
-    if (body.system !== undefined || body.anthropic_version) {
+    if (body.system !== undefined || body.anthropic_version || body["anthropic-version"]) {
       return "claude";
     }
 

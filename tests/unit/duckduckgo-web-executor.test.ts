@@ -1,6 +1,11 @@
-import { describe, it, mock } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { DuckDuckGoWebExecutor, DUCKDUCKGO_BASE } from "../../open-sse/executors/duckduckgo-web.ts";
+import { FETCH_TIMEOUT_MS } from "../../open-sse/config/constants.ts";
+import {
+  DuckDuckGoWebExecutor,
+  DUCKDUCKGO_BASE,
+  STATUS_URL,
+} from "../../open-sse/executors/duckduckgo-web.ts";
 
 describe("DuckDuckGoWebExecutor", () => {
   describe("class instantiation", () => {
@@ -16,18 +21,26 @@ describe("DuckDuckGoWebExecutor", () => {
 
     it("should have testConnection method", () => {
       const executor = new DuckDuckGoWebExecutor();
-      assert.equal(typeof executor.testConnection, "function", "testConnection should be a function");
+      assert.equal(
+        typeof executor.testConnection,
+        "function",
+        "testConnection should be a function"
+      );
     });
 
     it("should export DUCKDUCKGO_BASE constant", () => {
-      assert.equal(DUCKDUCKGO_BASE, "https://duckduckgo.com", "DUCKDUCKGO_BASE should be correct URL");
+      assert.equal(
+        DUCKDUCKGO_BASE,
+        "https://duckduckgo.com",
+        "DUCKDUCKGO_BASE should be correct URL"
+      );
     });
   });
 
   describe("execute method validation", () => {
     it("should reject empty messages array", async () => {
       const executor = new DuckDuckGoWebExecutor();
-      
+
       const response = await executor.execute({
         model: "gpt-4o-mini",
         messages: [],
@@ -36,14 +49,14 @@ describe("DuckDuckGoWebExecutor", () => {
 
       assert.ok(response instanceof Response, "should return Response");
       assert.equal(response.status, 400, "should return 400 for empty messages");
-      
+
       const body = await response.json();
       assert.ok(body.error, "error response should have error field");
     });
 
     it("should accept non-empty messages array", async () => {
       const executor = new DuckDuckGoWebExecutor();
-      
+
       // This will fail due to network, but should pass input validation
       try {
         const response = await executor.execute({
@@ -62,7 +75,7 @@ describe("DuckDuckGoWebExecutor", () => {
 
     it("should handle missing model parameter", async () => {
       const executor = new DuckDuckGoWebExecutor();
-      
+
       try {
         await executor.execute({
           model: undefined,
@@ -70,7 +83,10 @@ describe("DuckDuckGoWebExecutor", () => {
           stream: false,
         } as any);
       } catch (error) {
-        assert.ok(error instanceof Error || error instanceof Response, "should handle missing model");
+        assert.ok(
+          error instanceof Error || error instanceof Response,
+          "should handle missing model"
+        );
       }
     });
   });
@@ -78,7 +94,7 @@ describe("DuckDuckGoWebExecutor", () => {
   describe("testConnection method", () => {
     it("should return boolean", async () => {
       const executor = new DuckDuckGoWebExecutor();
-      
+
       try {
         const result = await executor.testConnection({});
         assert.equal(typeof result, "boolean", "testConnection should return boolean");
@@ -88,18 +104,31 @@ describe("DuckDuckGoWebExecutor", () => {
       }
     });
 
-    it("should complete within timeout", async () => {
-      const executor = new DuckDuckGoWebExecutor();
-      const startTime = Date.now();
-      
-      try {
-        await executor.testConnection({});
-      } catch (error) {
-        // Expected to fail or timeout
-      }
-      
-      const elapsed = Date.now() - startTime;
-      assert.ok(elapsed < 35000, `testConnection should complete within 35 seconds, took ${elapsed}ms`);
+    it("should abort the status request when its timeout expires", async (t) => {
+      t.mock.timers.enable({ apis: ["setTimeout"] });
+      let requestSignal: AbortSignal | null = null;
+
+      t.mock.method(globalThis, "fetch", async (input, init) => {
+        assert.equal(String(input), STATUS_URL);
+        assert.equal(init?.method, "GET");
+        requestSignal = init?.signal ?? null;
+
+        return new Promise<Response>((_resolve, reject) => {
+          requestSignal?.addEventListener("abort", () => reject(requestSignal?.reason), {
+            once: true,
+          });
+        });
+      });
+
+      const resultPromise = new DuckDuckGoWebExecutor().testConnection({});
+      assert.ok(requestSignal, "status fetch should receive an AbortSignal");
+      assert.equal(requestSignal.aborted, false);
+
+      t.mock.timers.tick(FETCH_TIMEOUT_MS);
+
+      assert.equal(requestSignal.aborted, true);
+      assert.equal(requestSignal.reason?.name, "TimeoutError");
+      assert.equal(await resultPromise, false);
     });
   });
 
@@ -107,10 +136,10 @@ describe("DuckDuckGoWebExecutor", () => {
     it("should handle AbortSignal", async () => {
       const executor = new DuckDuckGoWebExecutor();
       const controller = new AbortController();
-      
+
       // Abort immediately
       controller.abort();
-      
+
       const response = await executor.execute({
         model: "gpt-4o-mini",
         body: { messages: [{ role: "user", content: "test" }] },
@@ -124,7 +153,7 @@ describe("DuckDuckGoWebExecutor", () => {
 
     it("should support streaming parameter", async () => {
       const executor = new DuckDuckGoWebExecutor();
-      
+
       try {
         // Test with stream: true
         const response1 = await executor.execute({
@@ -151,7 +180,7 @@ describe("DuckDuckGoWebExecutor", () => {
   describe("error handling", () => {
     it("should handle network timeouts gracefully", async () => {
       const executor = new DuckDuckGoWebExecutor();
-      
+
       try {
         const response = await executor.execute({
           model: "gpt-4o-mini",
@@ -169,7 +198,7 @@ describe("DuckDuckGoWebExecutor", () => {
 
     it("should return valid error responses with JSON", async () => {
       const executor = new DuckDuckGoWebExecutor();
-      
+
       const response = await executor.execute({
         model: "gpt-4o-mini",
         messages: [],
@@ -179,7 +208,7 @@ describe("DuckDuckGoWebExecutor", () => {
       assert.equal(response.status, 400);
       const contentType = response.headers.get("content-type");
       assert.ok(contentType?.includes("application/json"), "error response should be JSON");
-      
+
       const body = await response.json();
       assert.ok(body.error, "error response should have error object");
       assert.ok(body.error.message, "error should have message");
@@ -198,7 +227,11 @@ describe("DuckDuckGoWebExecutor", () => {
       const { getExecutor } = await import("../../open-sse/executors/index.ts");
       const executor = getExecutor("duckduckgo-web");
       assert.ok(executor, "executor should be registered in index");
-      assert.equal(typeof executor.execute, "function", "registered executor should have execute method");
+      assert.equal(
+        typeof executor.execute,
+        "function",
+        "registered executor should have execute method"
+      );
     });
   });
 });

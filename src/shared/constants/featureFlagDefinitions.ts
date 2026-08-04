@@ -409,6 +409,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     requiresRestart: false,
     warningLevel: "info",
   },
+  {
+    key: "EXPOSE_FUNCTIONAL_GATEWAY_MIRRORS",
+    label: "Functional Gateway Mirrors",
+    description:
+      "Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally.",
+    descriptionI18nKey: "featureFlagExposeFunctionalGatewayMirrorsDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
 
   // ──────────────── CLI (5) ────────────────
   {

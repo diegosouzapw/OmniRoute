@@ -64,8 +64,8 @@ test("getKnownPlan('') returns null", () => {
   assert.equal(getKnownPlan(""), null);
 });
 
-test("knownProviders() returns exactly 11 entries", () => {
-  assert.equal(knownProviders().length, 11);
+test("knownProviders() returns exactly 12 entries", () => {
+  assert.equal(knownProviders().length, 12);
 });
 
 test("knownProviders() includes the full registry set", () => {

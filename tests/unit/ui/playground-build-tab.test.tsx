@@ -4,9 +4,11 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-}));
+// next-intl: no local mock — falls through to the real-EN-text default mock in
+// tests/_setup/vitestUiPolyfills.ts. Most assertions below already check real English
+// copy ("Add tool", "JSON mode", "JSON schema for parameters"); the section-header
+// checks are updated alongside this to match ("toolsLabel" -> "Tools",
+// "structuredOutputLabel" -> "Structured Output").
 
 vi.mock("remark-gfm", () => ({ default: () => {} }));
 vi.mock("react-markdown", () => ({
@@ -71,14 +73,16 @@ function renderBuildTab(config = BASE_CONFIG): HTMLDivElement {
 //   step 2 — configure tools and/or the JSON schema, depending on the mode
 //   step 3 — run + toolbar badges + prompt textarea
 //
-// next-intl is mocked as a key pass-through above, so every translated label
-// renders as its raw i18n key (e.g. "nextButton", "modeToolsTitle").
+// next-intl renders real production copy (see tests/_setup/vitestUiPolyfills.ts), so
+// these helpers locate buttons by their actual en.json text
+// (playground.build.nextButton = "Next", .modeJsonTitle = "JSON", etc.) rather than by
+// raw i18n key.
 
 type BuildMode = "tools" | "json" | "both";
 
 function clickNext(el: HTMLDivElement): void {
   const nextBtn = Array.from(el.querySelectorAll("button")).find((b) =>
-    b.textContent?.includes("nextButton"),
+    b.textContent?.includes("Next"),
   ) as HTMLButtonElement;
   act(() => {
     nextBtn.click();
@@ -89,9 +93,9 @@ function selectMode(el: HTMLDivElement, mode: BuildMode): void {
   // Step 1's default mode is already "tools" — only click a mode card when a
   // different mode is required.
   if (mode === "tools") return;
-  const key = mode === "json" ? "modeJsonTitle" : "modeBothTitle";
+  const label = mode === "json" ? "JSON" : "Tools + JSON";
   const card = Array.from(el.querySelectorAll("button")).find((b) =>
-    b.textContent?.includes(key),
+    b.textContent?.includes(label),
   ) as HTMLButtonElement;
   act(() => {
     card.click();
@@ -124,7 +128,7 @@ describe("BuildTab", () => {
     const el = renderBuildTab();
     goToStep3(el);
     const runBtn = Array.from(el.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("runButton"),
+      b.textContent?.includes("Run"),
     );
     expect(runBtn).not.toBeUndefined();
   });
@@ -132,14 +136,14 @@ describe("BuildTab", () => {
   it("renders Function calling section", () => {
     const el = renderBuildTab();
     goToStep2(el, "tools");
-    expect(el.textContent).toContain("toolsLabel");
+    expect(el.textContent).toContain("Tools");
     expect(el.textContent).toContain("Add tool");
   });
 
   it("renders Structured output section", () => {
     const el = renderBuildTab();
     goToStep2(el, "json");
-    expect(el.textContent).toContain("structuredOutputLabel");
+    expect(el.textContent).toContain("Structured Output");
     expect(el.textContent).toContain("JSON mode");
   });
 
@@ -255,10 +259,10 @@ describe("BuildTab", () => {
     const promptTextarea = el.querySelector("textarea") as HTMLTextAreaElement;
     act(() => setInputValue(promptTextarea, "Run this tool"));
 
-    // Click Run (label is "runButton" via mocked t())
+    // Click Run (playground.build.runButton = "Run" in en.json)
     const runBtns = el.querySelectorAll("button");
     const runBtn = Array.from(runBtns).find(
-      (b) => b.textContent?.includes("runButton"),
+      (b) => b.textContent?.includes("Run"),
     ) as HTMLButtonElement;
     await act(async () => { runBtn.click(); });
     await act(async () => {

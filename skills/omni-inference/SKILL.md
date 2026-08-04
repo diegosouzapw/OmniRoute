@@ -219,6 +219,87 @@ curl https://localhost:20128/api/v1/providers/{provider}/models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
+### GET /api/v1/management/proxy-subscriptions
+
+List proxy subscriptions
+
+Lists all operator-supplied proxy subscription links. Also starts the background auto-refresh scheduler (idempotent) so enabled subscriptions stay in sync. Credentials embedded in `url` are redacted in the response.
+
+```bash
+curl https://localhost:20128/api/v1/management/proxy-subscriptions \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/v1/management/proxy-subscriptions
+
+Create a proxy subscription
+
+Creates a subscription record. If `mode` is `rule`, at least one entry in `ruleProviders` is required. `updateIntervalMinutes` defaults to 60 and `enabled` defaults to `false` when omitted or not exactly `true`.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/management/proxy-subscriptions \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/v1/management/proxy-subscriptions/{id}
+
+Get a proxy subscription
+
+```bash
+curl https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PATCH /api/v1/management/proxy-subscriptions/{id}
+
+Update a proxy subscription
+
+Partial update — only fields present in the body are changed (name/url/mode/ruleProviders/localCoreEndpoint/updateIntervalMinutes/enabled).
+
+```bash
+curl -X PATCH https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### DELETE /api/v1/management/proxy-subscriptions/{id}
+
+Delete a proxy subscription
+
+Removes the subscription record and unbinds/drops its synced proxy_registry rows.
+
+```bash
+curl -X DELETE https://localhost:20128/api/v1/management/proxy-subscriptions/{id} \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/v1/management/proxy-subscriptions/{id}/nodes
+
+Get a subscription's last-parsed node summary
+
+Returns the last-parsed node list without re-fetching the (possibly slow) subscription URL.
+
+```bash
+curl https://localhost:20128/api/v1/management/proxy-subscriptions/{id}/nodes \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/v1/management/proxy-subscriptions/{id}/refresh
+
+Refresh a proxy subscription
+
+Re-fetches and re-parses the subscription URL, syncs its nodes into `proxy_registry`, and (re)binds the pool.
+
+```bash
+curl -X POST https://localhost:20128/api/v1/management/proxy-subscriptions/{id}/refresh \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
 ### POST /api/v1/ocr
 
 Document OCR

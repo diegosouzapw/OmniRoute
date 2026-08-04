@@ -47,6 +47,7 @@ export async function GET(request: Request) {
 
   try {
     const url = new URL(request.url);
+    const provider = url.searchParams.get("provider")?.trim();
     const limitValue = url.searchParams.get("limit");
     const offsetValue = url.searchParams.get("offset");
     const parsedLimit = limitValue ? Number.parseInt(limitValue, 10) : undefined;
@@ -55,9 +56,10 @@ export async function GET(request: Request) {
       Number.isInteger(parsedLimit) && parsedLimit && parsedLimit > 0 ? parsedLimit : undefined;
     const offset =
       Number.isInteger(parsedOffset) && parsedOffset && parsedOffset > 0 ? parsedOffset : 0;
+    const filter = provider ? { provider } : {};
 
-    const connections = await getProviderConnections({}, limit, offset);
-    const total = getProviderConnectionsCount();
+    const connections = await getProviderConnections(filter, limit, offset);
+    const total = getProviderConnectionsCount(filter);
     const revealKeys = isApiKeyRevealEnabled();
 
     // Hide or mask sensitive fields

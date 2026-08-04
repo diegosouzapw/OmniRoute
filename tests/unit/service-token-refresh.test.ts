@@ -9,13 +9,16 @@ describe("tokenRefresh helpers", () => {
       assert.equal(mod.getRefreshLeadMs("codex"), 5 * 60 * 1000);
       assert.equal(mod.getRefreshLeadMs("openai"), 5 * 60 * 1000);
       assert.equal(mod.getRefreshLeadMs("claude"), 5 * 60 * 1000);
-      assert.equal(mod.getRefreshLeadMs("iflow"), 24 * 60 * 60 * 1000);
       assert.equal(mod.getRefreshLeadMs("antigravity"), 15 * 60 * 1000);
     });
 
     it("falls back to TOKEN_EXPIRY_BUFFER_MS for unknown providers", () => {
       assert.equal(mod.getRefreshLeadMs("unknown-provider"), mod.TOKEN_EXPIRY_BUFFER_MS);
       assert.equal(mod.getRefreshLeadMs(""), mod.TOKEN_EXPIRY_BUFFER_MS);
+      // `iflow` was removed from the product; its 24h entry outlived it in the TTL map.
+      // Asserted here rather than deleted from the "known providers" case above, so a
+      // silent reintroduction of the entry turns this red instead of passing unnoticed.
+      assert.equal(mod.getRefreshLeadMs("iflow"), mod.TOKEN_EXPIRY_BUFFER_MS);
     });
 
     it("honors a positive per-connection refreshLeadMs override", () => {
