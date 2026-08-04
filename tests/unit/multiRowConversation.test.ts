@@ -124,3 +124,84 @@ test("buildMultiRowConversation: a later row that is NOT a superset (malformed/a
 test("buildMultiRowConversation: empty rows array returns an empty transcript", () => {
   assert.deepEqual(buildMultiRowConversation([]), []);
 });
+
+test("buildMultiRowConversation: a truncated request body (>8KB, dropped by truncateForLog) shows a placeholder instead of silently only the response", () => {
+  // Live bug: a request with a long real history (332 messages) got its
+  // requestBody replaced by open-sse/handlers/chatCore/logTruncation.ts's
+  // truncateForLog() with a bare {_truncated, _originalBytes, messageCount,
+  // ...} summary once it crossed ~8KB — which is the norm, not the
+  // exception, for any conversation with real substance. Before this fix,
+  // buildRequestTurns() found nothing to parse and the transcript silently
+  // rendered only that row's own response — looking exactly like "just the
+  // last line" of what was actually a long chain.
+  const rows = [
+    {
+      id: "big",
+      timestamp: "2026-01-01T10:00:00.000Z",
+      requestBody: {
+        _truncated: true,
+        _originalBytes: 263193,
+        model: "big-pickle",
+        stream: true,
+        messageCount: 332,
+      },
+      responseBody: { choices: [{ message: { role: "assistant", content: "final reply" } }] },
+    },
+  ];
+
+  const turns = buildMultiRowConversation(rows);
+  assert.equal(turns.length, 2, "expected a placeholder turn plus the response turn");
+  assert.equal(turns[0].role, "system");
+  assert.equal(turns[0].sourceCallLogId, "big");
+  assert.match(turns[0].blocks[0].type === "text" ? turns[0].blocks[0].text : "", /332/);
+  assert.equal(turns[1].role, "assistant");
+});
+
+test("buildMultiRowConversation: a truncated row's messageCount keeps a LATER real row's delta bookkeeping correct", () => {
+  const rows = [
+    {
+      id: "big",
+      timestamp: "2026-01-01T10:00:00.000Z",
+      requestBody: {
+        _truncated: true,
+        _originalBytes: 263193,
+        messageCount: 5,
+      },
+      responseBody: { choices: [{ message: { role: "assistant", content: "reply1" } }] },
+    },
+    {
+      // Real history: the 5 earlier (unrecoverable) messages + reply1 (6) +
+      // one genuinely new user turn (7 total). Only that new turn + this
+      // row's own response should render — not the 5 unrecoverable messages
+      // re-counted as "new" just because their content was never seen.
+      id: "next",
+      timestamp: "2026-01-01T10:01:00.000Z",
+      requestBody: {
+        messages: [
+          { role: "user", content: "m1" },
+          { role: "assistant", content: "m2" },
+          { role: "user", content: "m3" },
+          { role: "assistant", content: "m4" },
+          { role: "user", content: "m5" },
+          { role: "assistant", content: "reply1" },
+          { role: "user", content: "one more thing" },
+        ],
+      },
+      responseBody: { choices: [{ message: { role: "assistant", content: "reply2" } }] },
+    },
+  ];
+
+  const turns = buildMultiRowConversation(rows);
+  const nextRowTurns = turns.filter((t) => t.sourceCallLogId === "next");
+  assert.equal(
+    nextRowTurns.length,
+    2,
+    `expected exactly the one new user turn + this row's response, got: ${JSON.stringify(nextRowTurns)}`
+  );
+  assert.equal(nextRowTurns[0].role, "user");
+  assert.equal(
+    nextRowTurns[0].blocks[0].type === "text" ? nextRowTurns[0].blocks[0].text : "",
+    "one more thing"
+  );
+  assert.equal(nextRowTurns[1].role, "assistant");
+});

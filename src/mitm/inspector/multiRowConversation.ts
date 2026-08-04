@@ -34,6 +34,26 @@ export interface LoadedCallLogRow {
   responseBody: unknown;
 }
 
+/**
+ * open-sse/handlers/chatCore/logTruncation.ts::truncateForLog() replaces a
+ * request body over ~8KB with a bare summary — {_truncated, _originalBytes,
+ * messageCount, ...} — dropping `messages`/`input` entirely to bound
+ * in-memory logging cost. Any real conversation with substantial history
+ * hits this on nearly every row, so buildRequestTurns() legitimately returns
+ * zero turns for it: there is nothing left to parse. Without this check the
+ * transcript would silently render only the response for that row (looking
+ * exactly like "just the last line" of a long chain), and — worse — every
+ * SUBSEQUENT row's delta slicing would be computed against the wrong
+ * previousTotal (0 instead of the row's real turn count), corrupting the
+ * rest of the reconstruction too.
+ */
+function truncatedMessageCount(body: unknown): number | null {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+  const record = body as Record<string, unknown>;
+  if (record._truncated !== true) return null;
+  return typeof record.messageCount === "number" ? record.messageCount : 0;
+}
+
 function rowAsInterceptedRequest(row: LoadedCallLogRow): InterceptedRequest {
   return {
     id: row.id,
@@ -62,16 +82,39 @@ export function buildMultiRowConversation(rows: LoadedCallLogRow[]): Conversatio
   const turns: ConversationTurn[] = [];
 
   for (const row of rows) {
-    const reqTurns = buildRequestTurns(row.requestBody) ?? [];
-    const sliceStart = Math.max(0, Math.min(previousTotal, reqTurns.length));
-    const newRequestTurns = reqTurns.slice(sliceStart);
+    const truncatedCount = truncatedMessageCount(row.requestBody);
+    const reqTurns = truncatedCount === null ? (buildRequestTurns(row.requestBody) ?? []) : [];
+    const effectiveReqTurnCount = truncatedCount ?? reqTurns.length;
+    const sliceStart = Math.max(0, Math.min(previousTotal, effectiveReqTurnCount));
     const respTurns = buildResponseTurns(rowAsInterceptedRequest(row));
 
-    for (const turn of [...newRequestTurns, ...respTurns]) {
+    if (truncatedCount !== null) {
+      const newCount = Math.max(0, effectiveReqTurnCount - sliceStart);
+      if (newCount > 0) {
+        turns.push({
+          role: "system",
+          blocks: [
+            {
+              type: "text",
+              text: `${newCount} message${newCount === 1 ? "" : "s"} not shown — the request body was too large to log.`,
+            },
+          ],
+          sourceCallLogId: row.id,
+          timestamp: row.timestamp,
+        });
+      }
+    } else {
+      const newRequestTurns = reqTurns.slice(sliceStart);
+      for (const turn of newRequestTurns) {
+        turns.push({ ...turn, sourceCallLogId: row.id, timestamp: row.timestamp });
+      }
+    }
+
+    for (const turn of respTurns) {
       turns.push({ ...turn, sourceCallLogId: row.id, timestamp: row.timestamp });
     }
 
-    previousTotal = reqTurns.length + respTurns.length;
+    previousTotal = effectiveReqTurnCount + respTurns.length;
   }
 
   return turns;

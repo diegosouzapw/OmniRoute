@@ -1,4 +1,4 @@
--- 134_agentic_conversations.sql
+-- 135_agentic_conversations.sql
 -- Stable multi-turn conversation tracking for /v1/chat/completions and
 -- /v1/responses. Clients resend the full growing message/input history on
 -- every turn; this table lets us detect "request N's history is request
