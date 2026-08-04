@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "İçe aktarılacak yeni model yok — tüm modeller zaten kayıt defterinde veya özel modeller listesinde",
     "skippingExistingModels": "{count} mevcut model atlanıyor",
     "autoSync": "Otomatik Senkronizasyon",
+    "autoSyncShort": "Senkronize Et",
     "autoSyncTooltip": "Model listesini her 24 saatte bir otomatik olarak yenileyin (MODEL_SYNC_INTERVAL_HOURS aracılığıyla yapılandırılabilir)",
     "autoSyncEnabled": "Otomatik senkronizasyon etkin — modeller periyodik olarak yenilenecek",
     "autoSyncDisabled": "Otomatik senkronizasyon devre dışı bırakıldı",
     "autoSyncToggleFailed": "Otomatik senkronizasyon durumu değiştirilemedi",
+    "autoSyncPartialFailure": "Otomatik senkronizasyon bazı bağlantılar için güncellendi, ancak hepsi değil",
     "clearAllModels": "Tüm Modelleri Temizle",
     "clearAllModelsConfirm": "Bu sağlayıcının tüm modellerini kaldırmak istediğinizden emin misiniz? Bu geri alınamaz.",
     "clearAllModelsSuccess": "Tüm modeller temizlendi",
@@ -12182,5 +12184,6 @@
     "cta": "Kimi Code Edin",
     "partnerLinkNote": "Ortaklık bağlantısı",
     "dismissAriaLabel": "Kapat"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

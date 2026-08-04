@@ -14,9 +14,9 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     icon: "savings",
     color: "#31f889",
     textIcon: "CI",
-    website: "https://cheaperinference.com",
+    website: "https://cheaperinference.com/?utm_source=omniroute",
     apiHint:
-      "Create an API key at https://cheaperinference.com (needs the `inference` scope), then paste the ir_live_… token here.",
+      "Create an API key at https://cheaperinference.com/?utm_source=omniroute (needs the `inference` scope), then paste the ir_live_… token here.",
     passthroughModels: true,
   },
   "charm-hyper": {

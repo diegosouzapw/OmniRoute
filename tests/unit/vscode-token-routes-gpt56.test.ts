@@ -39,6 +39,52 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("vscode models route preserves gateway-owned Ollama Cloud effort tiers", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "hashed-password",
+    requireAuthForModels: true,
+  });
+  await providersDb.createProviderConnection({
+    provider: "ollama-cloud",
+    authType: "apikey",
+    name: "ollama-cloud-vscode-efforts",
+    apiKey: "ollama-test-key",
+    isActive: true,
+    testStatus: "active",
+    providerSpecificData: {},
+  });
+  const key = await apiKeysDb.createApiKey(
+    "vscode-ollama-cloud-efforts",
+    "machine-vscode-ollama-cloud-efforts"
+  );
+  const vscodeModelsRoute = await import("../../src/app/api/v1/vscode/[token]/models/route.ts");
+
+  const response = await vscodeModelsRoute.GET(
+    new Request(`http://localhost/api/v1/vscode/${encodeURIComponent(key.key)}/models`)
+  );
+  const body = (await response.json()) as {
+    data?: Array<{
+      id?: string;
+      root?: string;
+      supportsReasoningEffort?: string[];
+      supportedReasoningEfforts?: string[];
+      defaultReasoningEffort?: string;
+      capabilities?: { effort_tiers?: string[] };
+    }>;
+  };
+  const model = (body.data || []).find(
+    (entry) => entry.root === "gpt-oss:20b" || entry.id === "ollamacloud/gpt-oss:20b"
+  );
+
+  assert.equal(response.status, 200);
+  assert.ok(model, "missing Ollama Cloud GPT-OSS model");
+  assert.deepEqual(model.capabilities?.effort_tiers, ["low", "medium", "high"]);
+  assert.deepEqual(model.supportsReasoningEffort, ["low", "medium", "high"]);
+  assert.deepEqual(model.supportedReasoningEfforts, ["low", "medium", "high"]);
+  assert.equal(model.defaultReasoningEffort, "low");
+});
+
 test("vscode raw models route exposes native GPT-5.6 IDs and effort tiers", async () => {
   await settingsDb.updateSettings({
     requireLogin: true,

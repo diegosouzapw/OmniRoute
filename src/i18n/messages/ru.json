@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "Нет новых моделей для импорта — все модели уже есть в реестре или списке пользовательских моделей",
     "skippingExistingModels": "Пропуск {count} существующих моделей",
     "autoSync": "Автосинхронизация",
+    "autoSyncShort": "Синхронизация",
     "autoSyncTooltip": "Автоматически обновляет список моделей каждые 24 часа (настраивается через MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Автосинхронизация включена — модели будут периодически обновляться",
     "autoSyncDisabled": "Автосинхронизация отключена",
     "autoSyncToggleFailed": "Не удалось переключить автосинхронизацию",
+    "autoSyncPartialFailure": "Автосинхронизация обновлена для некоторых подключений, но не всех",
     "clearAllModels": "Очистить все модели",
     "clearAllModelsConfirm": "Вы уверены, что хотите удалить все модели для этого провайдера?",
     "clearAllModelsSuccess": "Все модели очищены",
@@ -12182,5 +12184,6 @@
     "cta": "Получить Kimi Code",
     "partnerLinkNote": "Партнерская ссылка",
     "dismissAriaLabel": "Закрыть"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }
