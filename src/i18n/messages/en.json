@@ -3305,6 +3305,7 @@
     "weightStability": "Stability",
     "weightTierPriority": "Tier",
     "weightCacheAffinity": "Cache Hit Affinity",
+    "weightSessionAvailability": "Session Availability",
     "reviewIntelligentTitle": "Intelligent Routing Config",
     "strategyRecommendations": {
       "priority": {

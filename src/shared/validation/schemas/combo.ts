@@ -87,6 +87,7 @@ export const scoringWeightsSchema = z
     specificityMatch: z.number().min(0).max(1).optional().default(0.05),
     contextAffinity: z.number().min(0).max(1).optional().default(0.08),
     cacheAffinity: z.number().min(0).max(1).optional().default(0),
+    sessionAvailability: z.number().min(0).max(1).optional().default(0.05),
     resetWindowAffinity: z.number().min(0).max(1).optional().default(0),
   })
   .optional();

@@ -14,9 +14,7 @@ import { decrypt } from "../encryption";
 type JsonRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as JsonRecord)
-    : {};
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
 function toStringOrNull(value: unknown): string | null {
@@ -41,6 +39,7 @@ function toNullableNumber(value: unknown): number | null {
 export interface ProviderConnectionView {
   id: string;
   provider: string;
+  authType: string | null;
   email: string | null;
   isActive: boolean;
   rateLimitedUntil: string | null;
@@ -79,6 +78,7 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
   return {
     id: toStringOrNull(row.id) || "",
     provider: toStringOrNull(row.provider) || "",
+    authType: toStringOrNull(row.authType),
     email: toStringOrNull(row.email),
     isActive: row.isActive === true,
     rateLimitedUntil: toStringOrNull(row.rateLimitedUntil),
@@ -98,9 +98,7 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
     lastErrorType: toStringOrNull(row.lastErrorType),
     lastErrorSource: toStringOrNull(row.lastErrorSource),
     errorCode:
-      typeof row.errorCode === "string" || typeof row.errorCode === "number"
-        ? row.errorCode
-        : null,
+      typeof row.errorCode === "string" || typeof row.errorCode === "number" ? row.errorCode : null,
     backoffLevel: toNumber(row.backoffLevel, 0),
     maxConcurrent: toNullableNumber(row.maxConcurrent),
     quotaWindowThresholds,
@@ -115,9 +113,7 @@ export function toProviderConnection(value: unknown): ProviderConnectionView {
  *
  * Non-credential reads hit the already-coerced view directly at zero cost.
  */
-export function createLazyConnectionView(
-  row: Record<string, unknown>
-): ProviderConnectionView {
+export function createLazyConnectionView(row: Record<string, unknown>): ProviderConnectionView {
   const base = toProviderConnection(row);
   let decrypted: Record<string, null | string> | undefined;
 
@@ -153,9 +149,7 @@ const CREDENTIAL_FIELDS = new Set(["apiKey", "accessToken", "refreshToken", "idT
  * without any caller changes. The typed createLazyConnectionView remains
  * available for new code that wants a structured view.
  */
-export function createLazyRowProxy(
-  row: Record<string, unknown>
-): Record<string, unknown> {
+export function createLazyRowProxy(row: Record<string, unknown>): Record<string, unknown> {
   let decrypted: Record<string, string | null | undefined> | undefined;
 
   const ensureDecrypted = () => {
@@ -179,8 +173,7 @@ export function createLazyRowProxy(
         return () => {
           const result: Record<string, unknown> = {};
           for (const key of Object.keys(target)) {
-            result[key] =
-              CREDENTIAL_FIELDS.has(key) ? ensureDecrypted()[key] : target[key];
+            result[key] = CREDENTIAL_FIELDS.has(key) ? ensureDecrypted()[key] : target[key];
           }
           return result;
         };
