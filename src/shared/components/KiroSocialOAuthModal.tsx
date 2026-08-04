@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Modal from "./Modal";
 import Button from "./Button";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+import { getNextKiroSocialPollInterval } from "@/lib/oauth/kiroSocialPoll";
 
 type KiroSocialOAuthModalProps = {
   isOpen: boolean;
@@ -26,10 +27,28 @@ export default function KiroSocialOAuthModal({
   const [error, setError] = useState<string | null>(null);
   const [userCode, setUserCode] = useState("");
   const [authUrl, setAuthUrl] = useState("");
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSuccessRef = useRef(onSuccess);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
 
   useEffect(() => {
     if (!isOpen || !provider) return;
+    let cancelled = false;
+
+    const stopPolling = () => {
+      if (pollRef.current) clearTimeout(pollRef.current);
+      pollRef.current = null;
+    };
+
+    const fail = (message: string) => {
+      stopPolling();
+      if (cancelled) return;
+      setError(message);
+      setStep("error");
+    };
 
     const initAuth = async () => {
       try {
@@ -38,6 +57,7 @@ export default function KiroSocialOAuthModal({
 
         const res = await fetch(`/api/oauth/kiro/social-authorize?provider=${provider}`);
         const data = await res.json();
+        if (cancelled) return;
 
         if (!res.ok) {
           throw new Error(data.error || "Failed to start authorization");
@@ -47,8 +67,23 @@ export default function KiroSocialOAuthModal({
         setAuthUrl(data.authUrl || "");
         setStep("polling");
 
-        const interval = (data.interval || 5) * 1000;
-        pollRef.current = setInterval(async () => {
+        const baseIntervalMs = Math.max(1, Number(data.interval) || 5) * 1000;
+        let currentIntervalMs = baseIntervalMs;
+        const expiresAt = Date.now() + Math.max(1, Number(data.expiresIn) || 300) * 1000;
+
+        const schedule = (delayMs: number) => {
+          if (cancelled) return;
+          pollRef.current = setTimeout(poll, delayMs);
+        };
+
+        const poll = async () => {
+          pollRef.current = null;
+          if (cancelled) return;
+          if (Date.now() >= expiresAt) {
+            fail("Authorization expired. Start the login flow again.");
+            return;
+          }
+
           try {
             const pollRes = await fetch("/api/oauth/kiro/social-exchange", {
               method: "POST",
@@ -56,36 +91,44 @@ export default function KiroSocialOAuthModal({
               body: JSON.stringify({ deviceCode: data.deviceCode, provider, targetProvider }),
             });
             const pollData = await pollRes.json();
+            if (cancelled) return;
 
             if (pollData.success) {
-              if (pollRef.current) clearInterval(pollRef.current);
-              pollRef.current = null;
+              stopPolling();
               setStep("success");
-              onSuccess?.();
+              onSuccessRef.current?.();
+              return;
             }
+
+            if (!pollData.pending) {
+              fail(pollData.error || "Authorization failed");
+              return;
+            }
+
+            currentIntervalMs = getNextKiroSocialPollInterval(currentIntervalMs, pollData.error);
+            schedule(currentIntervalMs);
           } catch {
-            // Network error, keep polling
+            schedule(currentIntervalMs);
           }
-        }, interval);
+        };
+
+        schedule(baseIntervalMs);
       } catch (err: any) {
-        setError(err.message);
-        setStep("error");
+        fail(err.message);
       }
     };
 
     initAuth();
 
     return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
+      cancelled = true;
+      stopPolling();
     };
-  }, [isOpen, provider]);
+  }, [isOpen, provider, targetProvider]);
 
   const handleClose = () => {
     if (pollRef.current) {
-      clearInterval(pollRef.current);
+      clearTimeout(pollRef.current);
       pollRef.current = null;
     }
     onClose();

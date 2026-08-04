@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
 import { Button, Modal } from "@/shared/components";
 
@@ -41,6 +42,7 @@ export default function ImportGrokCliAuthModal({
   onSuccess,
 }: ImportGrokCliAuthModalProps) {
   const notify = useNotificationStore();
+  const t = useTranslations("providers");
   const [tab, setTab] = useState<"upload" | "paste">("upload");
   const [parsedJson, setParsedJson] = useState<unknown>(null);
   const [detectedEmail, setDetectedEmail] = useState<string | null>(null);
@@ -58,9 +60,7 @@ export default function ImportGrokCliAuthModal({
     setHasRefreshToken(false);
     const result = parseGrokJson(json);
     if (!result.valid) {
-      setParseError(
-        "Not a valid Grok Build auth.json. Expected an object with a key containing a JWT."
-      );
+      setParseError(t("grokInvalidAuth"));
       return;
     }
     setDetectedEmail(result.email);
@@ -76,7 +76,7 @@ export default function ImportGrokCliAuthModal({
       try {
         handlePreview(JSON.parse(ev.target?.result as string));
       } catch {
-        setParseError("Could not parse JSON");
+        setParseError(t("grokParseFailed"));
       }
     };
     reader.readAsText(file);
@@ -94,7 +94,7 @@ export default function ImportGrokCliAuthModal({
     try {
       handlePreview(JSON.parse(text));
     } catch {
-      setParseError("Could not parse JSON");
+      setParseError(t("grokParseFailed"));
       setParsedJson(null);
     }
   }
@@ -111,24 +111,26 @@ export default function ImportGrokCliAuthModal({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Failed to import");
+        setError(data.error || t("grokImportFailed"));
         return;
       }
-      notify.success("Grok Build connection imported successfully");
+      notify.success(t("grokImportSuccess"));
       onSuccess();
     } catch {
-      setError("Failed to import Grok Build auth");
+      setError(t("grokImportFailed"));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Modal isOpen onClose={onClose} title="Import Grok Build Auth" size="md">
+    <Modal isOpen onClose={onClose} title={t("grokImportTitle")} size="md">
       <div className="flex flex-col gap-4">
         <p className="text-sm text-text-muted">
-          Import your Grok Build <code>~/.grok/auth.json</code> file. You can get it by running{" "}
-          <code>grok login</code> in your terminal.
+          {t.rich("grokImportDescription", {
+            authPath: (chunks) => <code>{chunks}</code>,
+            command: (chunks) => <code>{chunks}</code>,
+          })}
         </p>
 
         {/* Tab toggle */}
@@ -137,13 +139,13 @@ export default function ImportGrokCliAuthModal({
             className={`text-sm px-3 py-1 rounded-t ${tab === "upload" ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
             onClick={() => setTab("upload")}
           >
-            Upload file
+            {t("grokUploadFile")}
           </button>
           <button
             className={`text-sm px-3 py-1 rounded-t ${tab === "paste" ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
             onClick={() => setTab("paste")}
           >
-            Paste JSON
+            {t("grokPasteJson")}
           </button>
         </div>
 
@@ -179,22 +181,19 @@ export default function ImportGrokCliAuthModal({
           <div className="flex flex-col gap-3">
             <div className="bg-green-500/10 border border-green-500/20 rounded-md p-3">
               <p className="text-sm text-green-400">
-                Valid Grok Build token detected{detectedEmail ? ` (${detectedEmail})` : ""}
+                {t("grokValidToken")}
+                {detectedEmail ? ` (${detectedEmail})` : ""}
               </p>
               {hasRefreshToken && (
-                <p className="text-xs text-green-500 mt-1">
-                  Refresh token included — automatic token renewal enabled
-                </p>
+                <p className="text-xs text-green-500 mt-1">{t("grokRefreshIncluded")}</p>
               )}
               {!hasRefreshToken && (
-                <p className="text-xs text-amber-400 mt-1">
-                  No refresh token found — you will need to re-import when the token expires
-                </p>
+                <p className="text-xs text-amber-400 mt-1">{t("grokRefreshMissing")}</p>
               )}
             </div>
             <input
               type="text"
-              placeholder="Connection name (optional)"
+              placeholder={t("grokConnectionName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full p-2 text-sm bg-input border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
@@ -208,10 +207,10 @@ export default function ImportGrokCliAuthModal({
         {/* Buttons */}
         <div className="flex gap-2">
           <Button onClick={handleSubmit} fullWidth disabled={!parsedJson || loading}>
-            {loading ? "Saving…" : "Save Connection"}
+            {loading ? t("grokSaving") : t("grokSaveConnection")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </div>

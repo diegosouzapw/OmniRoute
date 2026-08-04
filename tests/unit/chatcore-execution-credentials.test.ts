@@ -79,6 +79,22 @@ test("non azure/oci providers never get apiType forcing", () => {
   assert.equal(psd._omnirouteForceResponsesUpstream, undefined);
 });
 
+test("AgentRouter threads the resolved Responses protocol only into execution credentials", () => {
+  const credentials = { providerSpecificData: { apiKeyHealth: {} } };
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "agentrouter",
+    targetFormat: RESPONSES,
+    credentials,
+  }) as Record<string, unknown>;
+
+  assert.deepEqual(out.providerSpecificData, {
+    apiKeyHealth: {},
+    targetFormat: RESPONSES,
+  });
+  assert.deepEqual(credentials.providerSpecificData, { apiKeyHealth: {} });
+});
+
 test("ccSessionId is threaded into providerSpecificData when present", () => {
   const out = resolveExecutionCredentials({
     ...base,
@@ -95,4 +111,41 @@ test("missing providerSpecificData defaults to an empty object", () => {
     credentials: { connectionId: "c1" },
   }) as Record<string, unknown>;
   assert.deepEqual(out.providerSpecificData, {});
+});
+
+test("Kimi execution credentials carry the discovered protocol and thinking policy", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "kimi-coding",
+    targetFormat: "claude",
+    modelInfo: {
+      supportsThinking: true,
+      alwaysThinking: true,
+      supportedThinkingEfforts: ["low", "medium", "high"],
+      defaultThinkingEffort: "medium",
+    },
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.equal(psd._omnirouteKimiTargetFormat, "claude");
+  assert.deepEqual(psd._omnirouteKimiThinking, {
+    supportsThinking: true,
+    alwaysThinking: true,
+    supportedThinkingEfforts: ["low", "medium", "high"],
+    defaultThinkingEffort: "medium",
+  });
+});
+
+test("Kimi Code k3 exposes its documented efforts from the offline policy before model import", () => {
+  const out = resolveExecutionCredentials({
+    ...base,
+    provider: "kimi-coding",
+    targetFormat: "claude",
+    modelInfo: { model: "k3" },
+  }) as Record<string, unknown>;
+  const psd = out.providerSpecificData as Record<string, unknown>;
+  assert.deepEqual(psd._omnirouteKimiThinking, {
+    supportsThinking: true,
+    supportedThinkingEfforts: ["low", "high", "max"],
+    defaultThinkingEffort: "max",
+  });
 });

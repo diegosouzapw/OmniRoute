@@ -2,6 +2,8 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
+import messages from "../../../src/i18n/messages/en.json";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -15,7 +17,11 @@ function mountInContainer(ui: React.ReactElement): HTMLElement {
   const root = createRoot(container);
   roots.push(root);
   act(() => {
-    root.render(ui);
+    root.render(
+      <NextIntlClientProvider locale="en" messages={{ contextCombos: messages.contextCombos }}>
+        {ui}
+      </NextIntlClientProvider>
+    );
   });
   return container;
 }
@@ -119,58 +125,62 @@ describe("CompressionHub", () => {
   // that the master toggle/mode selector/reorder buttons no longer render, is
   // covered by compressionHub-active-selector.test.tsx.
 
-  it("INVARIANT #1: no per-layer control issues a PUT/POST to /api/context/combos/default", { timeout: 20000 }, async () => {
-    const comboWrites: { method: string }[] = [];
-    const json = (body: unknown, status = 200) =>
-      new Response(JSON.stringify(body), {
-        status,
-        headers: { "Content-Type": "application/json" },
-      });
-    vi.spyOn(globalThis, "fetch").mockImplementation(
-      async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = input.toString();
-        if (url.includes("/api/context/combos/default")) {
-          if (init?.method === "PUT" || init?.method === "POST") {
-            comboWrites.push({ method: init.method });
+  it(
+    "INVARIANT #1: no per-layer control issues a PUT/POST to /api/context/combos/default",
+    { timeout: 20000 },
+    async () => {
+      const comboWrites: { method: string }[] = [];
+      const json = (body: unknown, status = 200) =>
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { "Content-Type": "application/json" },
+        });
+      vi.spyOn(globalThis, "fetch").mockImplementation(
+        async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = input.toString();
+          if (url.includes("/api/context/combos/default")) {
+            if (init?.method === "PUT" || init?.method === "POST") {
+              comboWrites.push({ method: init.method });
+            }
+            return json({ id: "default", name: "Default", pipeline: [{ engine: "rtk" }] });
           }
-          return json({ id: "default", name: "Default", pipeline: [{ engine: "rtk" }] });
+          if (url.includes("/api/settings/compression")) {
+            return json({ enabled: true, defaultMode: "stacked" });
+          }
+          if (url.includes("/api/compression/engines")) {
+            return json(enginePayload());
+          }
+          if (url.includes("/api/context/combos") || url.includes("/api/combos")) {
+            return json({ combos: [] });
+          }
+          if (url.includes("/api/compression/language-packs")) {
+            return json({ packs: [] });
+          }
+          return json({}, 404);
         }
-        if (url.includes("/api/settings/compression")) {
-          return json({ enabled: true, defaultMode: "stacked" });
-        }
-        if (url.includes("/api/compression/engines")) {
-          return json(enginePayload());
-        }
-        if (url.includes("/api/context/combos") || url.includes("/api/combos")) {
-          return json({ combos: [] });
-        }
-        if (url.includes("/api/compression/language-packs")) {
-          return json({ packs: [] });
-        }
-        return json({}, 404);
-      }
-    );
+      );
 
-    const { default: CompressionHub } =
-      await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
+      const { default: CompressionHub } =
+        await import("../../../src/app/(dashboard)/dashboard/context/combos/CompressionHub");
 
-    let container!: HTMLElement;
-    await act(async () => {
-      container = mountInContainer(<CompressionHub />);
-    });
-    await flush();
-
-    // Click every on/off switch in the Hub (master + any layer controls that remain).
-    const switches = Array.from(container.querySelectorAll('[role="switch"]'));
-    for (const sw of switches) {
+      let container!: HTMLElement;
       await act(async () => {
-        (sw as HTMLElement).click();
+        container = mountInContainer(<CompressionHub />);
       });
       await flush();
-    }
 
-    expect(comboWrites).toHaveLength(0);
-  });
+      // Click every on/off switch in the Hub (master + any layer controls that remain).
+      const switches = Array.from(container.querySelectorAll('[role="switch"]'));
+      for (const sw of switches) {
+        await act(async () => {
+          (sw as HTMLElement).click();
+        });
+        await flush();
+      }
+
+      expect(comboWrites).toHaveLength(0);
+    }
+  );
 });
 
 describe("CompressionCombosPageClient", () => {

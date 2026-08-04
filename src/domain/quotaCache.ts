@@ -14,7 +14,7 @@
  */
 
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
-import { getProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
+import { getCachedProviderConnectionById, resolveProxyForConnection } from "@/lib/localDb";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import {
@@ -24,6 +24,7 @@ import {
 } from "@/lib/db/quotaSnapshots";
 import { recordProviderQuotaResetEventIfChanged } from "@/lib/db/quotaResetEvents";
 import { getCodexQuotaWindowFilterForModel } from "@omniroute/open-sse/config/codexQuotaScopes.ts";
+import { getAntigravityQuotaFamily } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -58,11 +59,41 @@ const REFRESH_INTERVAL_MS = 60 * 1000; // Background tick every 1 minute
 export const DEFAULT_QUOTA_THRESHOLD_PERCENT = 99;
 
 // ─── State ──────────────────────────────────────────────────────────────────
+//
+// #8065 — Next.js `output: "standalone"` builds can load this module from
+// independent webpack chunks (e.g. the instrumentation-hook-started
+// `providerLimitsSyncScheduler` write path vs an API-route/SSE-handler read
+// path such as `auth.ts::evaluateQuotaLimitPolicy()`) — each gets its OWN
+// top-level module state, so a bare module-scope `Map` silently splits the
+// cache in two. Anchor all mutable state on `globalThis` so every chunk
+// shares one instance. Mirrors the identical fix already applied for
+// `src/lib/pricingSync.ts` (commit de9d748dac, #6325) and the same pattern in
+// `src/lib/credentialHealth/cache.ts`.
 
-const cache = new Map<string, QuotaCacheEntry>();
+interface QuotaCacheState {
+  cache: Map<string, QuotaCacheEntry>;
+  refreshingSet: Set<string>;
+  refreshTimer: ReturnType<typeof setInterval> | null;
+  tickRunning: boolean;
+}
+
+declare global {
+  var __omnirouteQuotaCacheState: QuotaCacheState | undefined;
+}
+
+function getState(): QuotaCacheState {
+  if (!globalThis.__omnirouteQuotaCacheState) {
+    globalThis.__omnirouteQuotaCacheState = {
+      cache: new Map(),
+      refreshingSet: new Set(),
+      refreshTimer: null,
+      tickRunning: false,
+    };
+  }
+  return globalThis.__omnirouteQuotaCacheState;
+}
+
 const MAX_CONCURRENT_REFRESHES = 5;
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
-let tickRunning = false;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -202,19 +233,41 @@ function normalizeQuotas(rawQuotas: Record<string, any>): Record<string, QuotaIn
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 export function __clearForTests() {
-  cache.clear();
+  getState().cache.clear();
 }
 
-export function isQuotaExhaustedForRequest(
+function isAntigravityQuotaExhausted(
   connectionId: string,
-  provider: string,
-  requestedModel: string | null = null
+  entry: QuotaCacheEntry,
+  requestedModel: string | null
 ): boolean {
-  if (!isAccountQuotaExhausted(connectionId)) return false;
-  if (provider !== "codex" || !requestedModel) return true;
-  const entry = getQuotaCache(connectionId);
-  const quotaNames = Object.keys(entry?.quotas || {});
-  if (quotaNames.length === 0) return true;
+  if (!requestedModel) return entry.exhausted;
+  const quotaNames = Object.keys(entry.quotas || {});
+  if (quotaNames.length === 0) return entry.exhausted;
+  const requestedFamily = getAntigravityQuotaFamily(requestedModel);
+  const cleanRequestedModel = requestedModel.replace(/^(antigravity|agy)\//, "");
+  const matchingWindows = quotaNames.filter((windowName) => {
+    if (requestedFamily === "other") {
+      return windowName.replace(/^(antigravity|agy)\//, "") === cleanRequestedModel;
+    }
+    return getAntigravityQuotaFamily(windowName) === requestedFamily;
+  });
+  return (
+    matchingWindows.length > 0 &&
+    matchingWindows.every(
+      (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+    )
+  );
+}
+
+function isCodexQuotaExhausted(
+  connectionId: string,
+  entry: QuotaCacheEntry,
+  requestedModel: string | null
+): boolean {
+  if (!requestedModel) return entry.exhausted;
+  const quotaNames = Object.keys(entry.quotas || {});
+  if (quotaNames.length === 0) return entry.exhausted;
   const filterWindow = getCodexQuotaWindowFilterForModel(requestedModel);
   const scopedWindowNames = quotaNames.filter((windowName) => filterWindow?.(windowName));
   return (
@@ -223,6 +276,40 @@ export function isQuotaExhaustedForRequest(
       (windowName) => getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
     )
   );
+}
+
+function isStandardQuotaExhausted(entry: QuotaCacheEntry, now: number): boolean {
+  if (!entry.exhausted) return false;
+  const age = now - entry.fetchedAt;
+  if (!entry.nextResetAt && age > EXHAUSTED_TTL_MS) return false;
+  return true;
+}
+
+export function isQuotaExhaustedForRequest(
+  connectionId: string,
+  provider: string,
+  requestedModel: string | null = null
+): boolean {
+  const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  if (!entry) return false;
+
+  const now = Date.now();
+  const advanced = advancedWindowResetAt(entry, now);
+  if (advanced) {
+    entry.exhausted = false;
+    return false;
+  }
+
+  if (provider === "antigravity" || provider === "agy") {
+    return isAntigravityQuotaExhausted(connectionId, entry, requestedModel);
+  }
+
+  if (provider === "codex") {
+    return isCodexQuotaExhausted(connectionId, entry, requestedModel);
+  }
+
+  // Standard (non-per-model-quota) providers: check connection-wide aggregate
+  return isStandardQuotaExhausted(entry, now);
 }
 
 /**
@@ -237,7 +324,7 @@ export function setQuotaCache(
   const exhausted = isExhausted(quotas);
   // #4438 — capture the prior entry BEFORE overwriting the cache so we can skip
   // redundant snapshot writes for idle connections whose quota didn't change.
-  const prior = cache.get(connectionId);
+  const prior = getState().cache.get(connectionId);
   const entry: QuotaCacheEntry = {
     connectionId,
     provider,
@@ -246,7 +333,7 @@ export function setQuotaCache(
     exhausted,
     nextResetAt: exhausted ? earliestResetAt(quotas) : null,
   };
-  cache.set(connectionId, entry);
+  getState().cache.set(connectionId, entry);
 
   if (entry && rawQuotas) {
     for (const [windowKey, quotaInfo] of Object.entries(rawQuotas)) {
@@ -298,10 +385,11 @@ export function setQuotaCache(
  * Get cached quota entry (returns null if not cached).
  */
 export function getQuotaCache(connectionId: string): QuotaCacheEntry | null {
-  return cache.get(connectionId) || null;
+  return getState().cache.get(connectionId) || null;
 }
 
 function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry | null {
+  const { cache } = getState();
   if (cache.has(connectionId)) return cache.get(connectionId) || null;
 
   let snapshots;
@@ -315,7 +403,6 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
   const quotas: Record<string, QuotaInfo> = {};
   let provider = "";
   let fetchedAt = 0;
-  let exhausted = false;
   let windowDurationMs: number | null = null;
 
   for (const snapshot of snapshots) {
@@ -336,7 +423,6 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
       ),
       resetAt: camelSnapshot.nextResetAt ?? snapshot.next_reset_at ?? null,
     };
-    exhausted = exhausted || (camelSnapshot.isExhausted ?? snapshot.is_exhausted) === 1;
     const snapshotWindowDurationMs =
       camelSnapshot.windowDurationMs ?? snapshot.window_duration_ms ?? null;
     if (snapshotWindowDurationMs && snapshotWindowDurationMs > 0) {
@@ -348,6 +434,7 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
   }
 
   if (Object.keys(quotas).length === 0) return null;
+  const exhausted = isExhausted(quotas);
 
   const entry: QuotaCacheEntry = {
     connectionId,
@@ -367,7 +454,7 @@ function hydrateQuotaCacheFromSnapshots(connectionId: string): QuotaCacheEntry |
  * Returns false if no cache entry exists (unknown = assume available).
  */
 export function isAccountQuotaExhausted(connectionId: string): boolean {
-  const entry = cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
   if (!entry.exhausted) return false;
 
@@ -399,7 +486,7 @@ export function getQuotaWindowStatus(
   windowName: string,
   thresholdPercent = DEFAULT_QUOTA_THRESHOLD_PERCENT
 ): QuotaWindowStatus | null {
-  const entry = cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
+  const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return null;
 
   const now = Date.now();
@@ -434,7 +521,7 @@ export function getQuotaWindowStatus(
  * Uses 5-minute fixed TTL since we don't know the actual resetAt.
  */
 export function markAccountExhaustedFrom429(connectionId: string, provider: string) {
-  cache.set(connectionId, {
+  getState().cache.set(connectionId, {
     connectionId,
     provider,
     quotas: {},
@@ -446,14 +533,13 @@ export function markAccountExhaustedFrom429(connectionId: string, provider: stri
 
 // ─── Background Refresh ─────────────────────────────────────────────────────
 
-const refreshingSet = new Set<string>();
-
 async function refreshEntry(entry: QuotaCacheEntry) {
+  const { cache, refreshingSet } = getState();
   if (refreshingSet.has(entry.connectionId)) return;
   refreshingSet.add(entry.connectionId);
 
   try {
-    const connection = await getProviderConnectionById(entry.connectionId);
+    const connection = await getCachedProviderConnectionById(entry.connectionId);
     if (!connection || connection.authType !== "oauth" || !connection.isActive) {
       cache.delete(entry.connectionId);
       return;
@@ -490,13 +576,14 @@ function needsRefresh(entry: QuotaCacheEntry, now: number): boolean {
 }
 
 async function backgroundRefreshTick() {
-  if (tickRunning) return;
-  tickRunning = true;
+  const state = getState();
+  if (state.tickRunning) return;
+  state.tickRunning = true;
 
   try {
     cleanupOldSnapshots();
     const now = Date.now();
-    const pending = [...cache.values()].filter((e) => needsRefresh(e, now));
+    const pending = [...state.cache.values()].filter((e) => needsRefresh(e, now));
 
     // Refresh in batches to avoid thundering herd
     for (let i = 0; i < pending.length; i += MAX_CONCURRENT_REFRESHES) {
@@ -504,7 +591,7 @@ async function backgroundRefreshTick() {
       await Promise.allSettled(batch.map(refreshEntry));
     }
   } finally {
-    tickRunning = false;
+    state.tickRunning = false;
   }
 }
 
@@ -512,18 +599,20 @@ async function backgroundRefreshTick() {
  * Start the background refresh timer.
  */
 export function startBackgroundRefresh() {
-  if (refreshTimer) return;
-  refreshTimer = setInterval(backgroundRefreshTick, REFRESH_INTERVAL_MS);
-  refreshTimer?.unref?.();
+  const state = getState();
+  if (state.refreshTimer) return;
+  state.refreshTimer = setInterval(backgroundRefreshTick, REFRESH_INTERVAL_MS);
+  state.refreshTimer?.unref?.();
 }
 
 /**
  * Stop the background refresh timer.
  */
 export function stopBackgroundRefresh() {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;
+  const state = getState();
+  if (state.refreshTimer) {
+    clearInterval(state.refreshTimer);
+    state.refreshTimer = null;
   }
 }
 
@@ -539,6 +628,7 @@ export function getQuotaCacheStats() {
     ageMs: number;
   }> = [];
 
+  const { cache } = getState();
   for (const entry of cache.values()) {
     entries.push({
       connectionId: entry.connectionId.slice(0, 8) + "...",

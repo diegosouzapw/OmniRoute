@@ -237,7 +237,7 @@ test("getProviderDisplayName: prefers node metadata and simplifies compatible ID
     "Friendly Node"
   );
   assert.equal(
-    getProviderDisplayName("anthropic-compatible-responses-02669115-2545-4896-b003-cb4dac09d441", {
+    getProviderDisplayName("anthropic-compatible-02669115-2545-4896-b003-cb4dac09d441", {
       name: " ",
       prefix: "Anthropic Prefix",
     }),
@@ -248,8 +248,18 @@ test("getProviderDisplayName: prefers node metadata and simplifies compatible ID
     "Compatible (openai)"
   );
   assert.equal(
-    getProviderDisplayName("anthropic-compatible-responses-02669115-2545-4896-b003-cb4dac09d441"),
+    getProviderDisplayName("openai-compatible-responses-02669115-2545-4896-b003-cb4dac09d441"),
+    "Compatible (openai)"
+  );
+  // Segment-less anthropic-compatible ids (the actual generated shape, #8326) now
+  // resolve to a friendly label too, instead of falling through to the raw ID.
+  assert.equal(
+    getProviderDisplayName("anthropic-compatible-02669115-2545-4896-b003-cb4dac09d441"),
     "Compatible (anthropic)"
+  );
+  assert.equal(
+    getProviderDisplayName("anthropic-compatible-cc-02669115-2545-4896-b003-cb4dac09d441"),
+    "CC Compatible"
   );
   assert.equal(getProviderDisplayName(undefined), "Unknown Provider");
   assert.equal(getProviderDisplayName("plain-provider-id"), "plain-provider-id");

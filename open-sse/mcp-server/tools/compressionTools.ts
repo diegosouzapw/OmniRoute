@@ -4,6 +4,7 @@
  * Tools:
  *   1. omniroute_compression_status   — Get compression config, analytics, and cache stats
  *   2. omniroute_compression_configure — Update compression settings
+ *   3. CCR lifecycle tools             — Store, retrieve, inspect, list, delete, and stats
  */
 
 import { logToolCall } from "../audit.ts";
@@ -241,8 +242,23 @@ import {
   setCompressionEngineInput,
   listCompressionCombosInput,
   compressionComboStatsInput,
+  ccrStoreInput,
+  ccrRetrieveInput,
+  ccrInspectInput,
+  ccrListInput,
+  ccrDeleteInput,
+  ccrStatsInput,
 } from "../schemas/tools.ts";
-import { handleCcrRetrieve } from "../../services/compression/engines/ccr/index.ts";
+import {
+  MAX_CCR_MCP_FULL_BYTES,
+  buildCcrReference,
+  deleteCcrBlock,
+  getCcrStoreStats,
+  handleCcrRetrieve,
+  inspectCcrBlock,
+  listCcrBlocks,
+  tryStoreBlock,
+} from "../../services/compression/engines/ccr/index.ts";
 import {
   listRtkCommandSamples,
   discoverRepeatedNoise,
@@ -252,47 +268,199 @@ import {
 import { resolveCallerScopeContext } from "../scopeEnforcement.ts";
 import { resolveMcpCallerApiKeyId } from "../mcpCallerIdentity.ts";
 
-const ccrRetrieveInput = z.object({
-  hash: z
-    .string()
-    .min(6)
-    .max(64)
-    .describe("24-hex content hash from a [CCR retrieve hash=<hash>] marker"),
-  mode: z
-    .enum(["full", "head", "tail", "lines", "grep", "stats"])
-    .optional()
-    .describe("Retrieval mode: full (default) | head | tail | lines | grep | stats"),
-  n: z.number().int().positive().max(10000).optional().describe("head/tail: number of lines"),
-  start: z.number().int().positive().optional().describe("lines: 1-indexed inclusive start"),
-  end: z.number().int().positive().optional().describe("lines: 1-indexed inclusive end"),
-  pattern: z.string().max(512).optional().describe("grep: regex (validated safe; ReDoS-rejected)"),
-  unique: z.boolean().optional().describe("grep: dedupe matching lines"),
-});
+async function resolveCcrPrincipal(
+  extra: McpToolExtraLike | undefined,
+  scopes: readonly string[]
+): Promise<string | undefined> {
+  const apiKeyPrincipal = await resolveMcpCallerApiKeyId();
+  if (apiKeyPrincipal) return apiKeyPrincipal;
+  const { callerId } = resolveCallerScopeContext(extra, scopes);
+  return callerId === "anonymous" ? undefined : callerId;
+}
+
+export function buildCcrStoreAuditInput(args: z.infer<typeof ccrStoreInput>) {
+  return {
+    bytes: Buffer.byteLength(args.content, "utf8"),
+    contentType: args.contentType,
+    ttlSeconds: args.ttlSeconds,
+  };
+}
+
+export async function handleCcrStoreTool(
+  args: z.infer<typeof ccrStoreInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["write:compression"]);
+  const result = tryStoreBlock(args.content, principal, {
+    contentType: args.contentType,
+    source: "mcp",
+    ttlSeconds: args.ttlSeconds,
+  });
+  const auditInput = buildCcrStoreAuditInput(args);
+  if (!result.stored) {
+    const output = { stored: false as const, reason: result.reason };
+    await logToolCall(
+      "omniroute_ccr_store",
+      auditInput,
+      output,
+      Date.now() - start,
+      false,
+      result.reason
+    );
+    return output;
+  }
+  const output = {
+    stored: true as const,
+    reference: buildCcrReference(result.hash, result.metadata.chars),
+    metadata: result.metadata,
+  };
+  await logToolCall("omniroute_ccr_store", auditInput, output, Date.now() - start, true);
+  return output;
+}
+
+export async function handleCcrRetrieveTool(
+  args: z.infer<typeof ccrRetrieveInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["read:compression"]);
+  const metadata = inspectCcrBlock(args.hash, principal);
+  if (!metadata) {
+    const output = { found: false as const, error: "CCR block not found or expired" };
+    await logToolCall(
+      "omniroute_ccr_retrieve",
+      args,
+      output,
+      Date.now() - start,
+      false,
+      "NOT_FOUND"
+    );
+    return output;
+  }
+  if ((!args.mode || args.mode === "full") && metadata.bytes > MAX_CCR_MCP_FULL_BYTES) {
+    const output = {
+      found: true as const,
+      tooLargeForFull: true as const,
+      metadata,
+      suggestedModes: ["head", "tail", "lines", "grep", "stats"] as const,
+    };
+    await logToolCall("omniroute_ccr_retrieve", args, output, Date.now() - start, true);
+    return output;
+  }
+  const queried = handleCcrRetrieve(args, principal);
+  const refreshedMetadata = inspectCcrBlock(args.hash, principal) ?? metadata;
+  const output =
+    "content" in queried
+      ? { found: true as const, metadata: refreshedMetadata, content: queried.content }
+      : { found: true as const, metadata: refreshedMetadata, error: queried.error };
+  await logToolCall(
+    "omniroute_ccr_retrieve",
+    args,
+    {
+      ...output,
+      ...(typeof output.content === "string"
+        ? { content: `[${Buffer.byteLength(output.content, "utf8")} bytes]` }
+        : {}),
+    },
+    Date.now() - start,
+    !("error" in output),
+    "error" in output ? "INVALID_QUERY" : undefined
+  );
+  return output;
+}
+
+export async function handleCcrInspectTool(
+  args: z.infer<typeof ccrInspectInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["read:compression"]);
+  const metadata = inspectCcrBlock(args.hash, principal);
+  const output = metadata
+    ? { found: true as const, reference: buildCcrReference(args.hash, metadata.chars), metadata }
+    : { found: false as const };
+  await logToolCall("omniroute_ccr_inspect", args, output, Date.now() - start, Boolean(metadata));
+  return output;
+}
+
+export async function handleCcrListTool(
+  args: z.infer<typeof ccrListInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["read:compression"]);
+  const result = listCcrBlocks(principal, args);
+  const output = {
+    ...result,
+    entries: result.entries.map((metadata) => ({
+      reference: buildCcrReference(metadata.hash, metadata.chars),
+      metadata,
+    })),
+  };
+  await logToolCall("omniroute_ccr_list", args, output, Date.now() - start, true);
+  return output;
+}
+
+export async function handleCcrDeleteTool(
+  args: z.infer<typeof ccrDeleteInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["write:compression"]);
+  const output = { deleted: deleteCcrBlock(args.hash, principal) };
+  await logToolCall("omniroute_ccr_delete", args, output, Date.now() - start, true);
+  return output;
+}
+
+export async function handleCcrStatsTool(
+  args: z.infer<typeof ccrStatsInput>,
+  extra?: McpToolExtraLike
+) {
+  const start = Date.now();
+  const principal = await resolveCcrPrincipal(extra, ["read:compression"]);
+  const output = getCcrStoreStats(principal);
+  await logToolCall("omniroute_ccr_stats", args, output, Date.now() - start, true);
+  return output;
+}
 
 export async function handleSetCompressionEngine(
   args: z.infer<typeof setCompressionEngineInput>
 ): Promise<{ success: boolean; settings: Record<string, unknown> }> {
   const updates: Record<string, unknown> = { enabled: true };
+  const current = await getCompressionSettings();
   if (args.engine) {
     updates.defaultMode = args.engine === "caveman" ? "standard" : args.engine;
-    if (args.engine === "off") updates.enabled = false;
+    if (args.engine === "off") {
+      updates.enabled = false;
+    } else if (args.engine !== "stacked") {
+      const selectedEngine = args.engine === "caveman" ? "caveman" : args.engine;
+      updates.engines = Object.fromEntries(
+        Object.entries(current.engines).map(([id, toggle]) => [
+          id,
+          {
+            ...toggle,
+            enabled: id === selectedEngine,
+            ...(id === "caveman" && args.cavemanIntensity ? { level: args.cavemanIntensity } : {}),
+            ...(id === "rtk" && args.rtkIntensity ? { level: args.rtkIntensity } : {}),
+          },
+        ])
+      );
+    }
   }
   if (args.cavemanIntensity) {
-    const current = await getCompressionSettings();
     updates.cavemanConfig = {
       ...(current.cavemanConfig ?? {}),
       intensity: args.cavemanIntensity,
     };
   }
   if (args.rtkIntensity) {
-    const current = await getCompressionSettings();
     updates.rtkConfig = {
       ...(current.rtkConfig ?? {}),
       intensity: args.rtkIntensity,
     };
   }
   if (args.outputMode !== undefined) {
-    const current = await getCompressionSettings();
     updates.cavemanOutputMode = {
       ...(current.cavemanOutputMode ?? {}),
       enabled: args.outputMode,
@@ -323,12 +491,24 @@ export async function handleCompressionComboStats(
 // T07 — RTK learn/discover exposed via MCP (read-only; suggestions only). Mines the opt-in
 // raw-output sample store, exactly like the /api/context/rtk/{discover,learn} routes.
 const rtkDiscoverInput = z.object({
-  limit: z.number().int().positive().max(2000).optional().describe("Max samples to scan (default 500)"),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(2000)
+    .optional()
+    .describe("Max samples to scan (default 500)"),
 });
 
 const rtkLearnInput = z.object({
   command: z.string().min(1).max(500).describe("The command to learn an RTK filter draft for"),
-  limit: z.number().int().positive().max(2000).optional().describe("Max samples to scan (default 500)"),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(2000)
+    .optional()
+    .describe("Max samples to scan (default 500)"),
 });
 
 function resolveSampleLimit(limit?: number): number {
@@ -401,6 +581,14 @@ export const compressionTools = {
     handler: (args: z.infer<typeof compressionComboStatsInput>) =>
       handleCompressionComboStats(args),
   },
+  omniroute_ccr_store: {
+    name: "omniroute_ccr_store",
+    description:
+      "Store verbatim content in the caller-isolated in-memory CCR store and return a ccr:// reference plus the compatible CCR marker. Entries expire automatically and are not persisted across restarts.",
+    scopes: ["write:compression"],
+    inputSchema: ccrStoreInput,
+    handler: handleCcrStoreTool,
+  },
   omniroute_ccr_retrieve: {
     name: "omniroute_ccr_retrieve",
     description:
@@ -411,22 +599,36 @@ export const compressionTools = {
       "Scope: read:compression. Always available (sticky-on).",
     scopes: ["read:compression"],
     inputSchema: ccrRetrieveInput,
-    handler: async (args: z.infer<typeof ccrRetrieveInput>, extra?: McpToolExtraLike) => {
-      // Retrieve must use the SAME principal the CCR store used at compression time:
-      // `String(apiKeyInfo.id)` (chatCore → getApiKeyMetadata(rawKey)). On MCP HTTP
-      // transports the raw key lives in httpAuthContext (not in extra.authInfo, since
-      // OmniRoute auth is API-key not OAuth-clientId) — resolve it to the same key id
-      // so the block is found. Without this the caller resolved to "anonymous" and the
-      // store-key never matched (#5649). Cross-tenant IDOR stays closed: a different
-      // key → different id → miss; no key → undefined → anonymous bucket only.
-      const apiKeyPrincipal = await resolveMcpCallerApiKeyId();
-      if (apiKeyPrincipal) {
-        return handleCcrRetrieve(args, apiKeyPrincipal);
-      }
-      // Fallback (unchanged): OAuth clientId / session scope context, then anonymous.
-      const { callerId } = resolveCallerScopeContext(extra, ["read:compression"]);
-      return handleCcrRetrieve(args, callerId === "anonymous" ? undefined : callerId);
-    },
+    handler: handleCcrRetrieveTool,
+  },
+  omniroute_ccr_inspect: {
+    name: "omniroute_ccr_inspect",
+    description: "Inspect metadata for a caller-owned CCR block without returning its content.",
+    scopes: ["read:compression"],
+    inputSchema: ccrInspectInput,
+    handler: handleCcrInspectTool,
+  },
+  omniroute_ccr_list: {
+    name: "omniroute_ccr_list",
+    description: "List paginated metadata for CCR blocks owned by the current caller.",
+    scopes: ["read:compression"],
+    inputSchema: ccrListInput,
+    handler: handleCcrListTool,
+  },
+  omniroute_ccr_delete: {
+    name: "omniroute_ccr_delete",
+    description: "Delete a caller-owned block from the in-memory CCR store.",
+    scopes: ["write:compression"],
+    inputSchema: ccrDeleteInput,
+    handler: handleCcrDeleteTool,
+  },
+  omniroute_ccr_stats: {
+    name: "omniroute_ccr_stats",
+    description:
+      "Return caller-scoped CCR entry and byte usage, lifecycle counters, and in-memory store limits.",
+    scopes: ["read:compression"],
+    inputSchema: ccrStatsInput,
+    handler: handleCcrStatsTool,
   },
   omniroute_rtk_discover: {
     name: "omniroute_rtk_discover",

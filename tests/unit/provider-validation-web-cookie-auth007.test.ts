@@ -56,9 +56,13 @@ test("should_return_AUTH_007_when_models_endpoint_returns_403", async () => {
   assert.equal(result.error, "SESSION_EXPIRED");
 });
 
-test("should_return_valid_when_models_endpoint_returns_200", async () => {
-  // A non-401/403 status from the /models probe means the cookie was accepted,
-  // so the session is treated as valid.
+test("should_return_unsupported_when_models_endpoint_returns_200_for_a_conversation_baseUrl", async () => {
+  // #7857: chatgpt-web's registry baseUrl is a conversation endpoint
+  // ("https://chatgpt.com/backend-api/conversation"), not a real API root, so
+  // "${baseUrl}/models" is a path that never existed upstream. A 200 from that
+  // nonsense path (e.g. a login-page SPA shell) is not a meaningful auth signal and
+  // is indistinguishable from a genuinely valid session — it must be reported as
+  // unsupported, not silently accepted as valid.
   mockFetch(200, JSON.stringify({ ok: true, data: [] }));
 
   const result = await validateWebCookieProvider({
@@ -68,7 +72,8 @@ test("should_return_valid_when_models_endpoint_returns_200", async () => {
   });
 
   assert.equal(fetchCalls, 1, "the /models probe must be the mocked fetch, not the live network");
-  assert.equal(result.valid, true);
+  assert.equal(result.valid, false);
+  assert.equal(result.unsupported, true);
 });
 
 test("should_return_unsupported_when_provider_not_in_registry", async () => {

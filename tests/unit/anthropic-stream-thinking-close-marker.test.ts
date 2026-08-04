@@ -38,8 +38,8 @@ function newState() {
   };
 }
 
-test("claudeToOpenAIResponse emits </think> close marker on message finish (deferred from content_block_stop)", () => {
-  const state = newState();
+test("claudeToOpenAIResponse emits </think> on finish when suppressThinkClose=false (#4633 opt-in)", () => {
+  const state = { ...newState(), suppressThinkClose: false };
 
   // Open thinking block.
   claudeToOpenAIResponse(
@@ -99,6 +99,36 @@ test("claudeToOpenAIResponse emits </think> close marker on message finish (defe
 
   // pendingThinkClose must be cleared after flush.
   assert.equal(state.pendingThinkClose, false, "pendingThinkClose must be cleared after flush");
+});
+
+test("claudeToOpenAIResponse suppresses </think> on finish when suppressThinkClose=true (#8245)", () => {
+  const state = { ...newState(), suppressThinkClose: true };
+
+  claudeToOpenAIResponse(
+    { type: "content_block_start", index: 0, content_block: { type: "thinking", thinking: "" } },
+    state
+  );
+  claudeToOpenAIResponse(
+    {
+      type: "content_block_delta",
+      index: 0,
+      delta: { type: "thinking_delta", thinking: "Plan first." },
+    },
+    state
+  );
+  claudeToOpenAIResponse({ type: "content_block_stop", index: 0 }, state);
+  assert.equal(state.pendingThinkClose, true);
+
+  const finishChunks = claudeToOpenAIResponse(
+    { type: "message_delta", delta: { stop_reason: "end_turn" }, usage: { output_tokens: 5 } },
+    state
+  );
+  const arr = Array.isArray(finishChunks) ? finishChunks : [];
+  const hasCloseMarker = arr.some(
+    (chunk) => chunk?.choices?.[0]?.delta?.content === "</think>"
+  );
+  assert.equal(hasCloseMarker, false, "marker must not leak under #8245 default policy");
+  assert.equal(state.pendingThinkClose, false, "pendingThinkClose must still be cleared");
 });
 
 test("claudeToOpenAIResponse does not emit </think> on stop of non-thinking blocks", () => {

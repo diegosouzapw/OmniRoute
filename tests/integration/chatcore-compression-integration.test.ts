@@ -167,23 +167,28 @@ test("chatCore integration: disabled prompt compression leaves combo override re
     },
   });
 
+  // Body stays BELOW the reactive-compaction threshold (70% of the window): #8595/#8560
+  // decoupled REACTIVE compaction from the `enabled` switch, so a larger body is legitimately
+  // pruned even with compression off. Under test here: `enabled: false` makes resolveBasePlan()
+  // (compression/strategySelector.ts) return mode "off" before it ever reads comboOverrides.
   const body = {
     model: "combo/disabled-compression-combo",
     stream: false,
     messages: [
       { role: "system", content: "You are helpful." },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}First long turn.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(300)}First long turn.` },
       { role: "assistant", content: "Response 1" },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}Second long turn.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(300)}Second long turn.` },
       { role: "assistant", content: "Response 2" },
-      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}Final question.` },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(300)}Final question.` },
     ],
   };
   const contextLimit = getTokenLimit(provider, model);
   const proactiveThreshold = Math.floor(contextLimit * 0.7);
+  const estimatedBodyTokens = estimateTokens(JSON.stringify(body.messages));
   assert.ok(
-    estimateTokens(JSON.stringify(body.messages)) > proactiveThreshold,
-    "Test body should exceed proactive compression threshold"
+    estimatedBodyTokens > 0 && estimatedBodyTokens < proactiveThreshold,
+    `Body tokens must stay below the reactive-compaction threshold (${proactiveThreshold}): ${estimatedBodyTokens}`
   );
 
   let capturedBody: { messages?: Array<{ role?: string; content?: string }> } | null = null;
@@ -570,8 +575,7 @@ test("chatCore integration: combo requests run proactive compression before Kiro
 
     // Ensure request was translated to Kiro shape (messages are not sent directly upstream).
     const conversationState = capturedTranslatedBody?.conversationState as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     assert.ok(conversationState, "Kiro translated request should include conversationState");
 
     const history = Array.isArray(conversationState?.history)
@@ -584,8 +588,7 @@ test("chatCore integration: combo requests run proactive compression before Kiro
 
     const currentMessage = conversationState?.currentMessage as Record<string, unknown> | undefined;
     const userInputMessage = currentMessage?.userInputMessage as
-      | Record<string, unknown>
-      | undefined;
+      Record<string, unknown> | undefined;
     const currentContent =
       typeof userInputMessage?.content === "string" ? userInputMessage.content : "";
     assert.match(currentContent, /Please summarize everything\./);

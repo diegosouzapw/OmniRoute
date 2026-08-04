@@ -2,14 +2,11 @@
 
 // Combos screen = Compression Hub (top) + named-combos manager (below).
 //
-// IMPORTANT (hydration): no `useTranslations` here. The earlier combos redesign
-// failed to hydrate on the production build and the only structural difference from
-// the engine pages was a page-level `useTranslations`. Strings are literal English,
-// matching `EngineConfigPage` / `CompressionHub`, both of which hydrate cleanly.
-
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { STACKED_PIPELINE_ENGINE_INTENSITIES } from "@/shared/validation/compressionConfigSchemas";
 import { CompressionPipelineEditor } from "@/shared/components/compression/CompressionPipelineEditor";
+import { ComboCompressionModeSelect } from "@/shared/components/compression/ComboCompressionModeSelect";
 import CompressionHub from "./CompressionHub";
 
 type PipelineStep = { engine: string; intensity?: string };
@@ -23,7 +20,11 @@ type CompressionCombo = {
   outputModeIntensity: string;
   isDefault: boolean;
 };
-type RoutingCombo = { id?: string; name?: string };
+type RoutingCombo = {
+  id?: string;
+  name?: string;
+  config?: { compressionMode?: string } | null;
+};
 type LanguagePack = { language: string; ruleCount: number };
 
 const EMPTY_PIPELINE: PipelineStep[] = [
@@ -36,6 +37,7 @@ const EMPTY_PIPELINE: PipelineStep[] = [
 const ENGINE_INTENSITIES: Record<string, readonly string[]> = STACKED_PIPELINE_ENGINE_INTENSITIES;
 
 function NamedCombosManager() {
+  const t = useTranslations("contextCombos");
   const [combos, setCombos] = useState<CompressionCombo[]>([]);
   const [routingCombos, setRoutingCombos] = useState<RoutingCombo[]>([]);
   const [languagePacks, setLanguagePacks] = useState<LanguagePack[]>([]);
@@ -49,6 +51,7 @@ function NamedCombosManager() {
   const [assignmentIds, setAssignmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [activeComboId, setActiveComboId] = useState<string | null>(null);
+  const [compressionEnabled, setCompressionEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = () => {
@@ -70,7 +73,10 @@ function NamedCombosManager() {
       .catch(() => {});
     fetch("/api/settings/compression")
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setActiveComboId(data?.activeComboId ?? null))
+      .then((data) => {
+        setActiveComboId(data?.activeComboId ?? null);
+        setCompressionEnabled(Boolean(data?.enabled));
+      })
       .catch(() => {});
   }, []);
 
@@ -109,11 +115,11 @@ function NamedCombosManager() {
   const saveCombo = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Enter a combo name before saving.");
+      setError(t("nameRequired"));
       return;
     }
     if (pipeline.length === 0) {
-      setError("Add at least one pipeline step before saving.");
+      setError(t("pipelineRequired"));
       return;
     }
     setError(null);
@@ -137,7 +143,7 @@ function NamedCombosManager() {
       );
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        setError(body?.error || `Failed to save combo (HTTP ${res.status}).`);
+        setError(body?.error || t("saveComboFailed", { status: res.status }));
         return;
       }
       const combo = await res.json();
@@ -154,7 +160,7 @@ function NamedCombosManager() {
   };
 
   const deleteCombo = async (combo: CompressionCombo) => {
-    if (!confirm(`Delete combo "${combo.name}"?`)) return;
+    if (!confirm(t("deleteNamedConfirm", { name: combo.name }))) return;
     const res = await fetch(`/api/context/combos/${combo.id}`, { method: "DELETE" });
     if (res.ok) refresh();
   };
@@ -176,10 +182,8 @@ function NamedCombosManager() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-lg font-semibold text-text-main">Named combos</h2>
-        <p className="text-sm text-text-muted">
-          Save different pipelines and assign them to specific routing combos.
-        </p>
+        <h2 className="text-lg font-semibold text-text-main">{t("namedCombos")}</h2>
+        <p className="text-sm text-text-muted">{t("namedCombosDescription")}</p>
       </div>
 
       <section className="rounded-lg border border-border bg-surface p-4">
@@ -187,13 +191,13 @@ function NamedCombosManager() {
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Combo name"
+            placeholder={t("comboNamePlaceholder")}
             className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
           />
           <input
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="Description"
+            placeholder={t("descriptionPlaceholder")}
             className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text-main"
           />
         </div>
@@ -208,7 +212,7 @@ function NamedCombosManager() {
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-text-main">Language packs</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text-main">{t("languagePacks")}</h3>
             <div className="space-y-2 text-sm text-text-main">
               {languagePacks.map((pack) => (
                 <label key={pack.language} className="flex items-center justify-between gap-2">
@@ -226,43 +230,51 @@ function NamedCombosManager() {
             </div>
           </div>
           <div className="space-y-2 text-sm text-text-main">
-            <h3 className="text-sm font-semibold text-text-main">Output mode</h3>
+            <h3 className="text-sm font-semibold text-text-main">{t("outputMode")}</h3>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={outputMode}
                 onChange={(event) => setOutputMode(event.target.checked)}
               />
-              Enabled
+              {t("enabled")}
             </label>
             <select
               value={outputModeIntensity}
               onChange={(event) => setOutputModeIntensity(event.target.value)}
               className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm"
             >
-              <option value="lite">lite</option>
-              <option value="full">full</option>
-              <option value="ultra">ultra</option>
+              <option value="lite">{t("intensityLite")}</option>
+              <option value="full">{t("intensityFull")}</option>
+              <option value="ultra">{t("intensityUltra")}</option>
             </select>
           </div>
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-text-main">Assign to routing</h3>
+            <h3 className="mb-2 text-sm font-semibold text-text-main">{t("assignToRouting")}</h3>
             <div className="max-h-44 space-y-2 overflow-auto text-sm text-text-main">
               {routingCombos.length === 0 ? (
-                <p className="text-xs text-text-muted">No routing combos available.</p>
+                <p className="text-xs text-text-muted">{t("noAssignments")}</p>
               ) : (
                 routingCombos.map((combo) => {
                   const id = combo.id ?? combo.name ?? "";
                   if (!id) return null;
                   return (
-                    <label key={id} className="flex items-center justify-between gap-2">
-                      <span className="truncate">{combo.name ?? id}</span>
-                      <input
-                        type="checkbox"
-                        checked={assignmentIds.includes(id)}
-                        onChange={(event) => toggleAssignment(id, event.target.checked)}
+                    <div key={id} className="flex items-center justify-between gap-2">
+                      <label className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                        <span className="truncate">{combo.name ?? id}</span>
+                        <input
+                          type="checkbox"
+                          checked={assignmentIds.includes(id)}
+                          onChange={(event) => toggleAssignment(id, event.target.checked)}
+                        />
+                      </label>
+                      <ComboCompressionModeSelect
+                        combo={{ id, config: combo.config }}
+                        disabled={!compressionEnabled}
+                        title="Compression override"
+                        className="w-24 shrink-0 rounded-lg border border-border bg-bg px-2 py-1 text-xs text-text-main disabled:opacity-50"
                       />
-                    </label>
+                    </div>
                   );
                 })
               )}
@@ -282,14 +294,14 @@ function NamedCombosManager() {
             disabled={saving}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
           >
-            {editingId ? "Save" : "Create combo"}
+            {editingId ? t("save") : t("createCombo")}
           </button>
           {editingId && (
             <button
               onClick={resetForm}
               className="rounded-lg border border-border px-4 py-2 text-sm text-text-main"
             >
-              Cancel
+              {t("cancel")}
             </button>
           )}
         </div>
@@ -308,7 +320,7 @@ function NamedCombosManager() {
                   data-testid={`active-badge-${combo.id}`}
                   className="rounded-full bg-green-500/10 px-2 py-1 text-xs font-medium text-green-500"
                 >
-                  ● Active
+                  ● {t("active")}
                 </span>
               )}
             </div>
@@ -324,21 +336,21 @@ function NamedCombosManager() {
               ))}
             </div>
             <p className="mt-3 text-xs text-text-muted">
-              Language packs: {combo.languagePacks.join(", ")}
+              {t("languagePacksList", { packs: combo.languagePacks.join(", ") })}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 onClick={() => editCombo(combo)}
                 className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-main"
               >
-                Edit
+                {t("editCombo")}
               </button>
               {!combo.isDefault && (
                 <button
                   onClick={() => deleteCombo(combo)}
                   className="rounded-lg border border-danger/40 px-3 py-1.5 text-xs text-danger"
                 >
-                  Delete
+                  {t("deleteCombo")}
                 </button>
               )}
             </div>

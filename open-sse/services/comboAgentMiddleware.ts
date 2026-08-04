@@ -180,16 +180,24 @@ export function applyComboAgentMiddleware(
 ): { body: Record<string, unknown>; pinnedModel: string | null } {
   if (!comboConfig) return { body, pinnedModel: null };
 
-  let messages: Message[] = Array.isArray(body.messages) ? [...body.messages] : [];
+  const hasMessages = Array.isArray(body.messages);
+  const isResponsesRequest =
+    Object.prototype.hasOwnProperty.call(body, "input") ||
+    Object.prototype.hasOwnProperty.call(body, "instructions");
+  const systemMessage =
+    typeof comboConfig.system_message === "string" && comboConfig.system_message.trim()
+      ? comboConfig.system_message
+      : null;
+  let messages: Message[] = hasMessages ? [...(body.messages as Message[])] : [];
   let pinnedModel: string | null = null;
 
   // Context cache pinning is handled server-side in combo.ts via
   // session_model_history. No client-side <omniModel> tag extraction needed.
   pinnedModel = null;
 
-  // 2. System message override
-  if (comboConfig.system_message && comboConfig.system_message.trim()) {
-    messages = applySystemMessageOverride(messages, comboConfig.system_message);
+  // 2. System message override. Responses API uses top-level instructions instead of messages.
+  if (systemMessage && !isResponsesRequest) {
+    messages = applySystemMessageOverride(messages, systemMessage);
   }
 
   // 3. Tool filter
@@ -206,7 +214,8 @@ export function applyComboAgentMiddleware(
   return {
     body: {
       ...body,
-      messages,
+      ...(isResponsesRequest && systemMessage ? { instructions: systemMessage } : {}),
+      ...(hasMessages ? { messages } : {}),
       ...(filteredTools !== body.tools && { tools: filteredTools }),
     },
     pinnedModel,

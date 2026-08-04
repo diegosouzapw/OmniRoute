@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "../core";
 import { selectProviderNodeForConnection } from "../providerNodeSelect";
 import { backupDbFile } from "../backup";
+import { invalidateDbCache } from "../readCache";
 import { toRecord, type JsonRecord } from "./columns";
 
 interface StatementLike<TRow = unknown> {
@@ -18,7 +19,7 @@ interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
 }
 
-export async function getProviderNodes(filter: JsonRecord = {}) {
+export async function getProviderNodes(filter: JsonRecord = {}, limit?: number, offset?: number) {
   const db = getDbInstance() as unknown as DbLike;
   let sql = "SELECT * FROM provider_nodes";
   const params: Record<string, unknown> = {};
@@ -27,8 +28,28 @@ export async function getProviderNodes(filter: JsonRecord = {}) {
     sql += " WHERE type = @type";
     params.type = filter.type;
   }
+  sql += " ORDER BY id ASC";
+  if (limit !== undefined) {
+    sql += " LIMIT @limit OFFSET @offset";
+    params.limit = limit;
+    params.offset = offset ?? 0;
+  }
 
   return db.prepare(sql).all(params).map(rowToCamel);
+}
+
+export function getProviderNodesCount(filter: JsonRecord = {}): number {
+  const db = getDbInstance() as unknown as DbLike;
+  let sql = "SELECT count(*) as cnt FROM provider_nodes";
+  const params: Record<string, unknown> = {};
+
+  if (filter.type) {
+    sql += " WHERE type = @type";
+    params.type = filter.type;
+  }
+
+  const row = db.prepare(sql).get(params) as { cnt: number };
+  return row.cnt;
 }
 
 export async function getProviderNodeById(id: string) {
@@ -79,6 +100,7 @@ export async function createProviderNode(data: JsonRecord) {
   ).run(node);
 
   backupDbFile("pre-write");
+  invalidateDbCache("nodes");
 
   const result: JsonRecord = { ...node };
   if (customHeadersJson) {
@@ -142,6 +164,7 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
   });
 
   backupDbFile("pre-write");
+  invalidateDbCache("nodes");
 
   const result: JsonRecord = { ...merged };
   const storedJson = merged["customHeadersJson"] as string | null;
@@ -165,5 +188,6 @@ export async function deleteProviderNode(id: string) {
 
   db.prepare("DELETE FROM provider_nodes WHERE id = ?").run(id);
   backupDbFile("pre-write");
+  invalidateDbCache("nodes");
   return rowToCamel(existing);
 }

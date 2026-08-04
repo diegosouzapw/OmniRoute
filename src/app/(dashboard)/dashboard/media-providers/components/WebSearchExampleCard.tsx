@@ -21,7 +21,7 @@ function extractError(data: unknown): string | null {
   return null;
 }
 
-function SearchResultRenderer(data: unknown) {
+function SearchResultRenderer(data: unknown, fallbackTitle: (number: number) => string) {
   if (!data || typeof data !== "object") {
     return <pre className="text-xs p-3 text-text-main">{JSON.stringify(data, null, 2)}</pre>;
   }
@@ -33,7 +33,7 @@ function SearchResultRenderer(data: unknown) {
   return (
     <div className="flex flex-col divide-y divide-border">
       {(results as Array<Record<string, unknown>>).map((item, i) => {
-        const title = typeof item.title === "string" ? item.title : `Result ${i + 1}`;
+        const title = typeof item.title === "string" ? item.title : fallbackTitle(i + 1);
         const url = typeof item.url === "string" ? item.url : null;
         const snippet =
           typeof item.snippet === "string"
@@ -66,7 +66,7 @@ export function WebSearchExampleCard({ providerId }: Props) {
   const t = useTranslations("miniPlayground");
   const { apiKey } = useApiKey();
 
-  const [query, setQuery] = useState<string>("What is OmniRoute AI gateway?");
+  const [query, setQuery] = useState<string>(() => t("webSearchSample"));
   const [numResults, setNumResults] = useState<number>(5);
   const [running, setRunning] = useState<boolean>(false);
   const [result, setResult] = useState<{ data: unknown; latencyMs: number } | undefined>();
@@ -109,7 +109,7 @@ export function WebSearchExampleCard({ providerId }: Props) {
         setResult({ data, latencyMs });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : t("requestFailed"));
     } finally {
       setRunning(false);
     }
@@ -117,14 +117,16 @@ export function WebSearchExampleCard({ providerId }: Props) {
 
   return (
     <PlaygroundCard
-      kindLabel="Web Search"
+      kindLabel={t("webSearch")}
       apiEndpoint={ENDPOINT_PATH}
       onRun={handleRun}
       curlSnippet={curlSnippet}
       running={running}
       result={result}
       error={error}
-      resultRenderer={SearchResultRenderer}
+      resultRenderer={(data) =>
+        SearchResultRenderer(data, (number) => t("searchResultFallback", { number }))
+      }
     >
       {/* Query */}
       <div>
@@ -133,7 +135,7 @@ export function WebSearchExampleCard({ providerId }: Props) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="What is OmniRoute AI gateway?"
+          placeholder={t("webSearchSample")}
           className="w-full rounded-md border border-border bg-bg-subtle text-sm px-2 py-1.5 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
         />
       </div>

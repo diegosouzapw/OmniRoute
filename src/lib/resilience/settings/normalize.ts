@@ -20,6 +20,7 @@ import type {
   ProviderCooldownSettings,
   QuotaPreflightSettings,
   StreamRecoverySettings,
+  ProviderQuotaOverrideSettings,
 } from "./types";
 
 export function asRecord(value: unknown): JsonRecord {
@@ -107,6 +108,10 @@ export function normalizeRequestQueueSettings(
     min: 1,
     max: 24 * 60 * 60 * 1000,
   });
+  const maxQueueDepth = toInteger(record.maxQueueDepth, fallback.maxQueueDepth, {
+    min: 0,
+    max: 100_000,
+  });
 
   return {
     autoEnableApiKeyProviders: toBoolean(
@@ -117,6 +122,7 @@ export function normalizeRequestQueueSettings(
     minTimeBetweenRequestsMs,
     concurrentRequests,
     maxWaitMs,
+    maxQueueDepth,
   };
 }
 
@@ -289,6 +295,14 @@ export function normalizeWaitForCooldownSettings(
     max: 300,
   });
   const maxRetries = toInteger(record.maxRetries, fallback.maxRetries, { min: 0, max: 10 });
+  const maxRetryWaitMs = maxRetryWaitSec * 1000;
+  // Cumulative cap across all waits for one request (#7360 follow-up) — mirrors
+  // comboCooldownWait.budgetMs. Floored at maxRetryWaitMs so at least one wait
+  // can always fire; ceiling matches the same 5-minute give-up point.
+  const budgetMs = toInteger(record.budgetMs, fallback.budgetMs, {
+    min: maxRetryWaitMs,
+    max: 5 * 60 * 1000,
+  });
   const enabled =
     toBoolean(record.enabled, fallback.enabled) && maxRetries > 0 && maxRetryWaitSec > 0;
 
@@ -296,7 +310,8 @@ export function normalizeWaitForCooldownSettings(
     enabled,
     maxRetries,
     maxRetryWaitSec,
-    maxRetryWaitMs: maxRetryWaitSec * 1000,
+    maxRetryWaitMs,
+    budgetMs,
   };
 }
 
@@ -305,10 +320,15 @@ export function normalizeComboCooldownWaitSettings(
   fallback: ComboCooldownWaitSettings
 ): ComboCooldownWaitSettings {
   const record = asRecord(next);
-  // Hard ceiling of 30s on a single wait — this layer only ever exists for
-  // SHORT transient cooldowns; anything longer should fall through to the
-  // existing 429 crystallization (and the cross-request cooldown layers).
-  const maxWaitMs = toInteger(record.maxWaitMs, fallback.maxWaitMs, { min: 0, max: 30000 });
+  // Hard ceiling of 5 minutes on a single wait (#7360 follow-up — raised from
+  // 90s now that streaming clients get an immediate synthetic keep-alive
+  // event via withEarlyStreamKeepalive, so a long wait no longer risks a
+  // client-side first-byte timeout). This layer exists for transient cooldowns
+  // (including Gemini-class TPM/RPM windows, which report ~60s retry-after
+  // live); anything the upstream itself reports as longer than this should
+  // fall through to the existing 429 crystallization (and the cross-request
+  // cooldown layers).
+  const maxWaitMs = toInteger(record.maxWaitMs, fallback.maxWaitMs, { min: 0, max: 300000 });
   const maxAttempts = toInteger(record.maxAttempts, fallback.maxAttempts, { min: 0, max: 10 });
   // Budget can never be smaller than a single wait, otherwise no wait could
   // ever fire; floor it at maxWaitMs.
@@ -356,4 +376,39 @@ export function normalizeStreamRecoverySettings(
     enabled: toBoolean(record.enabled, fallback.enabled),
     continueMidStream: toBoolean(record.continueMidStream, fallback.continueMidStream),
   };
+}
+
+// #6846 Phase 1: parse a single provider's { rpm?, concurrency? } override entry,
+// dropping non-positive/non-finite fields so a malformed value falls back to that
+// provider's static default rather than disabling its budget outright (0 would
+// mean "no cap" for rpm, mirroring the resolveRpm/resolveMaxConcurrent convention
+// elsewhere in this file).
+function normalizeProviderQuotaOverrideEntry(raw: unknown): ProviderQuotaOverrideSettings | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const record = raw as Record<string, unknown>;
+  const out: ProviderQuotaOverrideSettings = {};
+  const rpm = typeof record.rpm === "number" ? record.rpm : Number(record.rpm);
+  if (Number.isFinite(rpm) && rpm > 0) out.rpm = Math.trunc(rpm);
+  const concurrency = typeof record.concurrency === "number" ? record.concurrency : Number(record.concurrency);
+  if (Number.isFinite(concurrency) && concurrency > 0) out.concurrency = Math.trunc(concurrency);
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+/**
+ * #6846 Phase 1: per-provider RPM/concurrency override map (currently only
+ * consumed for `nvidia`). Accepts an explicit object or falls back; drops
+ * providers whose value isn't a valid override object.
+ */
+export function normalizeProviderQuotaOverrides(
+  next: unknown,
+  fallback: Record<string, ProviderQuotaOverrideSettings>
+): Record<string, ProviderQuotaOverrideSettings> {
+  const rawProviders = asRecord(next ?? fallback);
+  const out: Record<string, ProviderQuotaOverrideSettings> = {};
+  for (const [provider, entry] of Object.entries(rawProviders)) {
+    if (!provider) continue;
+    const normalized = normalizeProviderQuotaOverrideEntry(entry);
+    if (normalized) out[provider] = normalized;
+  }
+  return out;
 }

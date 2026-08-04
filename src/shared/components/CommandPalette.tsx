@@ -147,19 +147,26 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
 
   const grouped = useMemo<PaletteGroup[]>(() => {
     const groups: PaletteGroup[] = [];
+    const sectionById = new Map<string, PaletteGroup>();
     filtered.forEach((item, flatIndex) => {
-      let section = groups[groups.length - 1];
-      if (!section || section.sectionId !== item.sectionId) {
+      // Look up the section/subgroup by id across the whole list, not just the
+      // previous item — a section's children can interleave root items and
+      // groups (e.g. "omni-proxy" has a trailing root item after its groups),
+      // which would otherwise produce two separate "_root" subgroups sharing
+      // the same React key.
+      let section = sectionById.get(item.sectionId);
+      if (!section) {
         section = {
           sectionId: item.sectionId,
           sectionLabel: item.sectionLabel,
           subgroups: [],
         };
+        sectionById.set(item.sectionId, section);
         groups.push(section);
       }
       const itemSubgroupId = item.subgroupId ?? null;
-      let subgroup = section.subgroups[section.subgroups.length - 1];
-      if (!subgroup || subgroup.subgroupId !== itemSubgroupId) {
+      let subgroup = section.subgroups.find((sg) => sg.subgroupId === itemSubgroupId);
+      if (!subgroup) {
         subgroup = {
           subgroupId: itemSubgroupId,
           subgroupLabel: item.subgroupLabel ?? null,

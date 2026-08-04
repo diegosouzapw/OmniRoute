@@ -31,8 +31,13 @@ type KeyHealthLog = {
 export function recordKeyHealthStatus(
   status: number,
   creds: Record<string, unknown> | null | undefined,
-  log?: KeyHealthLog
+  log?: KeyHealthLog,
+  transport?: string
 ): void {
+  // CLIProxyAPI owns a shared external credential pool. Its auth failures cannot be
+  // attributed to the native OmniRoute connection selected before proxy dispatch.
+  if (transport === "cliproxyapi") return;
+
   const connId = creds?.connectionId as string | undefined;
   if (!connId) return;
 

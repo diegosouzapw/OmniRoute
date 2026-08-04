@@ -39,6 +39,7 @@ import { claudeToOpenAIResponse } from "../translator/response/claude-to-openai.
 import { geminiToOpenAIResponse } from "../translator/response/gemini-to-openai.ts";
 import { openaiResponsesToOpenAIResponse } from "../translator/response/openai-responses.ts";
 import { ZED_HEADERS, resolveZedModels, zedLlmFetch, type ZedCredentials } from "../shared/zedAuth.ts";
+import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 
 const ZED_PROVIDER = {
   anthropic: "Anthropic",
@@ -116,8 +117,18 @@ function createErrorChunk(model: string, message: string): Record<string, unknow
   };
 }
 
+/**
+ * The single controller capability these SSE helpers use. They only ever enqueue —
+ * never `close()`, never read `desiredSize` — so typing them by that one method lets
+ * the same code serve both stream kinds. The wider
+ * `ReadableStreamDefaultController` annotation rejected every call site, because the
+ * helpers are driven from a TransformStream and `TransformStreamDefaultController`
+ * has no `close()`.
+ */
+type SseEnqueueTarget = Pick<ReadableStreamDefaultController<Uint8Array>, "enqueue">;
+
 function enqueueSseObject(
-  controller: ReadableStreamDefaultController<Uint8Array>,
+  controller: SseEnqueueTarget,
   encoder: TextEncoder,
   chunk: unknown
 ): void {
@@ -162,20 +173,46 @@ function normalizeStatus(status: unknown): Record<string, unknown> | null {
   return null;
 }
 
+/**
+ * Resolves `</think>` close-marker suppression from the incoming client
+ * headers / response format, extracted from `ZedHostedExecutor.execute` to
+ * keep that method's cyclomatic complexity under the project cap.
+ */
+function resolveZedSuppressThinkClose(
+  clientHeaders: ExecuteInput["clientHeaders"],
+  clientResponseFormat: ExecuteInput["clientResponseFormat"]
+): boolean {
+  return resolveSuppressThinkClose({
+    userAgent: clientHeaders?.["user-agent"] ?? clientHeaders?.["User-Agent"] ?? null,
+    thinkingMarkerHeader:
+      clientHeaders?.[THINKING_MARKER_HEADER] ??
+      clientHeaders?.["x-omniroute-thinking-marker"] ??
+      null,
+    clientResponseFormat: clientResponseFormat ?? null,
+  });
+}
+
 function wrapZedCompletionStream(
   response: Response,
   provider: ZedProviderName,
-  model: string
+  model: string,
+  options?: { suppressThinkClose?: boolean }
 ): Response {
   if (!response.ok || !response.body) return response;
 
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   const state = initProviderState(provider, model);
+  if (options?.suppressThinkClose) {
+    // Responses API clients (and UA/header-opted-out clients) must not see the
+    // textual `</think>` close marker — same policy chatCore applies (#4633 /
+    // #5245 / kimi-coding stray marker on /v1/responses).
+    state.suppressThinkClose = true;
+  }
   let buffer = "";
   let done = false;
 
-  const finish = (controller: ReadableStreamDefaultController<Uint8Array>) => {
+  const finish = (controller: SseEnqueueTarget) => {
     if (done) return;
     const finalChunk = convertProviderEvent(provider, null, state);
     enqueueSseObject(controller, encoder, finalChunk);
@@ -183,7 +220,7 @@ function wrapZedCompletionStream(
     done = true;
   };
 
-  const processLine = (line: string, controller: ReadableStreamDefaultController<Uint8Array>) => {
+  const processLine = (line: string, controller: SseEnqueueTarget) => {
     if (done) return;
     const payload = unwrapZedLine(line);
     if (!payload) return;
@@ -272,7 +309,16 @@ export class ZedHostedExecutor extends BaseExecutor {
     }
   }
 
-  async execute({ model, body, stream, credentials, signal, log }: ExecuteInput): Promise<{
+  async execute({
+    model,
+    body,
+    stream,
+    credentials,
+    signal,
+    log,
+    clientHeaders,
+    clientResponseFormat,
+  }: ExecuteInput): Promise<{
     response: Response;
     url: string;
     headers: Record<string, string>;
@@ -307,7 +353,15 @@ export class ZedHostedExecutor extends BaseExecutor {
       },
     });
 
-    const wrapped = response.ok ? wrapZedCompletionStream(response, provider, model) : response;
+    // The Anthropic backend converts Claude events to OpenAI chunks inside
+    // wrapZedCompletionStream, bypassing chatCore's marker policy — resolve
+    // `</think>` close-marker suppression here from the client format /
+    // headers (same policy as chatCore / GLM, #5245 / kimi-coding leak).
+    const suppressThinkClose = resolveZedSuppressThinkClose(clientHeaders, clientResponseFormat);
+
+    const wrapped = response.ok
+      ? wrapZedCompletionStream(response, provider, model, { suppressThinkClose })
+      : response;
     return {
       response: wrapped,
       url: `${(this.config as Record<string, unknown>)?.llmBaseUrl || "https://cloud.zed.dev"}/completions`,

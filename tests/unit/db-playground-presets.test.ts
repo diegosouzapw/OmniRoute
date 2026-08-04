@@ -100,7 +100,7 @@ test("create → list → get → update (partial) → delete → get returns nu
   assert.ok(typeof preset.created_at === "string" && preset.created_at.length > 0);
 
   // LIST — should contain the created preset
-  const list = presetsDb.listPlaygroundPresets();
+  const { items: list } = presetsDb.listPlaygroundPresets();
   assert.equal(list.length, 1);
   assert.equal(list[0].id, preset.id);
 
@@ -255,7 +255,7 @@ test("listPlaygroundPresets returns newest first", () => {
     params: {},
   });
 
-  const list = presetsDb.listPlaygroundPresets();
+  const { items: list } = presetsDb.listPlaygroundPresets();
   assert.equal(list.length, 2);
   // When timestamps are identical, both rows are present; just verify both ids are there
   const ids = list.map((p) => p.id);

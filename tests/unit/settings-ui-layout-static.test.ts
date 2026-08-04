@@ -1,14 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-
-function readSrc(path: string): string {
-  return readFileSync(join(ROOT, path), "utf8");
-}
+import { readSrc } from "../_helpers/readSrc";
 
 function assertInOrder(source: string, labels: string[]) {
   let lastIndex = -1;
@@ -34,6 +27,9 @@ test("Usage Token Buffer lives in AI settings instead of General storage", () =>
   );
 
   assert.match(aiPage, /UsageTokenBufferTab/);
+  // Anchor: the storage tab component itself, so the negative guard below cannot
+  // pass against a file that was moved, renamed, or split apart.
+  assert.match(generalStorage, /export default function SystemStorageTab\(/);
   assert.doesNotMatch(generalStorage, /storageUsageTokenBuffer/);
 });
 

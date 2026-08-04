@@ -223,13 +223,13 @@ export default function ResultsPanel({
           <span className="text-2xl mb-3" aria-hidden="true">
             🔌
           </span>
-          <p className="text-sm text-text-muted mb-2">No active search provider</p>
+          <p className="text-sm text-text-muted mb-2">{t("noActiveProvider")}</p>
           <Link
             href="/dashboard/providers"
             className="text-accent text-sm hover:underline font-medium"
             data-testid="configure-providers-link"
           >
-            Configure more providers →
+            {t("configureMoreProviders")} →
           </Link>
         </div>
       )}

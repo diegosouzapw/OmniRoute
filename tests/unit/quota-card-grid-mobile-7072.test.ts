@@ -10,9 +10,17 @@
 // the overflowing button/label text is clipped instead of wrapping.
 //
 // This regression guard parses QuotaCardGrid.tsx's JSX via the TypeScript
-// compiler API and asserts the per-group card grid's className restores an
-// unprefixed `grid-cols-1` mobile fallback, while keeping the #6815 density
-// gains (grid-cols-2 at `sm:` and up).
+// compiler API and asserts the per-group card grid's className guarantees a
+// single column on mobile-width viewports — the BEHAVIOR that fixes #7072 —
+// rather than one specific token. Two implementations satisfy this:
+//   1. Breakpoint-driven (#7194): an unprefixed `grid-cols-1` token forces a
+//      single column below `sm:`, widening at larger breakpoints.
+//   2. Container-driven (#7027): an arbitrary-value
+//      `grid-cols-[repeat(auto-fit,minmax(min(100%,Npx),1fr))]` template
+//      where the minimum track width is wide enough that a second track
+//      cannot fit on any realistic phone viewport.
+// Either way, reverting to the pre-#7072 forced `grid-cols-2` (no
+// unprefixed 1-column fallback, no auto-fit) must fail this guard.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -63,17 +71,61 @@ function extractDivClassNames(sourcePath: string): string[] {
   return classNames;
 }
 
+// Minimum track width (px) below which two auto-fit columns could plausibly
+// fit side by side on a real phone viewport (narrowest common width ~320px).
+// Requiring the min track to clear this bar keeps auto-fit implementations
+// honest about the same guarantee the breakpoint model gives explicitly.
+const MIN_MOBILE_SAFE_TRACK_PX = 200;
+
+function assertSingleColumnMobileFallback(cardGridClassName: string): void {
+  const tokens = cardGridClassName.split(/\s+/);
+
+  // Breakpoint-driven layout (#7194 style): an unprefixed `grid-cols-N`
+  // token controls the base (mobile-first, <640px) column count directly.
+  const unprefixedGridCols = tokens.find((t) => /^grid-cols-\d+$/.test(t));
+  if (unprefixedGridCols) {
+    assert.equal(
+      unprefixedGridCols,
+      "grid-cols-1",
+      `breakpoint-driven grid must keep an unprefixed grid-cols-1 mobile fallback, got className="${cardGridClassName}"`
+    );
+    return;
+  }
+
+  // Container-driven layout (#7027 style): an arbitrary-value auto-fit grid
+  // template computes column count from available width, not a breakpoint.
+  const autoFitToken = tokens.find(
+    (t) => t.startsWith("grid-cols-[") && t.includes("auto-fit") && t.includes("minmax(")
+  );
+  assert.ok(
+    autoFitToken,
+    `expected either an unprefixed grid-cols-1 mobile fallback or a repeat(auto-fit, minmax(...)) ` +
+      `container grid, got className="${cardGridClassName}"`
+  );
+
+  const minTrackMatch =
+    autoFitToken!.match(/minmax\(min\(100%,(\d+)px\)/) ?? autoFitToken!.match(/minmax\((\d+)px/);
+  assert.ok(
+    minTrackMatch,
+    `expected the auto-fit grid's minmax() to specify a numeric minimum track width, got "${autoFitToken}"`
+  );
+  const minTrackPx = Number(minTrackMatch![1]);
+
+  // A second card-wide column can only appear once the container is at
+  // least 2x the minimum track width. Requiring the track minimum to clear
+  // MIN_MOBILE_SAFE_TRACK_PX guards against reintroducing #7072's forced
+  // 2-column-on-mobile clipping via an undersized auto-fit track.
+  assert.ok(
+    minTrackPx >= MIN_MOBILE_SAFE_TRACK_PX,
+    `auto-fit min track width too small (${minTrackPx}px) — two columns could fit on a mobile ` +
+      `viewport, reintroducing the #7072 clipping regression`
+  );
+}
+
 test("QuotaCardGrid (#7072) — per-group card grid keeps a single-column mobile fallback", () => {
   const classNames = extractDivClassNames(COMPONENT_PATH);
   const cardGridClassName = classNames.find((c) => /\bgrid\b/.test(c) && /grid-cols-/.test(c));
   assert.ok(cardGridClassName, "expected to find the per-group card grid's className");
 
-  const tokens = cardGridClassName!.split(/\s+/);
-  const unprefixedGridCols = tokens.find((t) => /^grid-cols-\d+$/.test(t));
-  assert.equal(
-    unprefixedGridCols,
-    "grid-cols-1",
-    `expected unprefixed grid-cols-1 (mobile fallback), got className="${cardGridClassName}"`
-  );
-  assert.match(cardGridClassName!, /\bsm:grid-cols-2\b/, "expected sm:grid-cols-2 to be preserved");
+  assertSingleColumnMobileFallback(cardGridClassName!);
 });

@@ -10,7 +10,7 @@ export interface PreparedStatement {
 }
 
 export interface SqliteAdapter {
-  readonly driver: "better-sqlite3" | "node:sqlite" | "sql.js";
+  readonly driver: "better-sqlite3" | "node:sqlite" | "bun:sqlite" | "sql.js";
   readonly open: boolean;
   readonly name: string;
 

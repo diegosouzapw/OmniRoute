@@ -100,6 +100,12 @@ interface AccountState {
   expiresAt: number;
   cooldownUntil: number;
   consecutiveFails: number;
+  /**
+   * #3837/#5521: the account's resolved proxy, or `null` when none is configured.
+   * Always present (never `undefined`) so callers can read `acct.proxy` directly —
+   * syncAccountsFromCredentials() writes it on every account on every sync.
+   */
+  proxy: AccountProxyConfig["proxy"];
 }
 
 function parseJwtExp(jwt: string): number {
@@ -164,7 +170,11 @@ async function bootstrapJwt(
 
   const url = `${baseUrl}${BOOTSTRAP_PATH}`;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), BOOTSTRAP_TIMEOUT_MS);
+  const timer = setTimeout(() => {
+    const err = new Error(`mimocode bootstrap timeout after ${BOOTSTRAP_TIMEOUT_MS}ms`);
+    err.name = "TimeoutError";
+    controller.abort(err);
+  }, BOOTSTRAP_TIMEOUT_MS);
   const onSignal = signal ? () => controller.abort(signal.reason) : null;
   if (signal && onSignal) signal.addEventListener("abort", onSignal, { once: true });
 

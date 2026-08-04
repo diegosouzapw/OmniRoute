@@ -37,7 +37,6 @@ describe("Cache Control Policy", () => {
       assert.equal(providerSupportsCaching("claude"), true);
       assert.equal(providerSupportsCaching("anthropic"), true);
       assert.equal(providerSupportsCaching("zai"), true);
-      assert.equal(providerSupportsCaching("qwen"), true);
       assert.equal(providerSupportsCaching("deepseek"), true);
       // #3088 — Xiaomi MiMo supports prompt caching; cache_control breakpoints
       // sent by Claude Code (via cc-switch) must be preserved, not stripped.
@@ -156,96 +155,68 @@ describe("Cache Control Policy", () => {
       );
     });
 
-    test("rejects combo with non-deterministic strategy (weighted)", () => {
-      assert.equal(
-        shouldPreserveCacheControl({
-          userAgent: "claude-code/0.1.0",
-          isCombo: true,
-          comboStrategy: "weighted",
-          targetProvider: "claude",
-        }),
-        false
-      );
-    });
+    // Client cache_control markers are preserved for EVERY combo strategy, not
+    // only the "deterministic" ones. Rewriting a caching-aware client's markers
+    // never beats preserving them: on a stable target the client's breakpoints
+    // advance deterministically turn-over-turn (the proxy heuristic recomputes
+    // positions and thrashes the provider prompt cache — observed in production
+    // as ~200k cache_write per turn on qtSd/ quota-share combos), and on a
+    // target switch both approaches miss equally.
+    for (const strategy of [
+      "weighted",
+      "round-robin",
+      "random",
+      "fill-first",
+      "p2c",
+      "least-used",
+      "strict-random",
+      "quota-share",
+    ]) {
+      test(`preserves for combo with ${strategy} strategy (markers win over routing strategy)`, () => {
+        assert.equal(
+          shouldPreserveCacheControl({
+            userAgent: "claude-code/0.1.0",
+            isCombo: true,
+            comboStrategy: strategy as Parameters<
+              typeof shouldPreserveCacheControl
+            >[0]["comboStrategy"],
+            targetProvider: "claude",
+          }),
+          true
+        );
+      });
+    }
 
-    test("rejects combo with non-deterministic strategy (round-robin)", () => {
-      assert.equal(
-        shouldPreserveCacheControl({
-          userAgent: "claude-code/0.1.0",
-          isCombo: true,
-          comboStrategy: "round-robin",
-          targetProvider: "claude",
-        }),
-        false
-      );
-    });
-
-    test("rejects combo with non-deterministic strategy (random)", () => {
-      assert.equal(
-        shouldPreserveCacheControl({
-          userAgent: "claude-code/0.1.0",
-          isCombo: true,
-          comboStrategy: "random",
-          targetProvider: "claude",
-        }),
-        false
-      );
-    });
-
-    test("rejects combo with fill-first strategy", () => {
-      assert.equal(
-        shouldPreserveCacheControl({
-          userAgent: "claude-code/0.1.0",
-          isCombo: true,
-          comboStrategy: "fill-first",
-          targetProvider: "claude",
-        }),
-        false
-      );
-    });
-
-    test("rejects combo with p2c strategy", () => {
-      assert.equal(
-        shouldPreserveCacheControl({
-          userAgent: "claude-code/0.1.0",
-          isCombo: true,
-          comboStrategy: "p2c",
-          targetProvider: "claude",
-        }),
-        false
-      );
-    });
-
-    test("rejects combo with least-used strategy", () => {
-      assert.equal(
-        shouldPreserveCacheControl({
-          userAgent: "claude-code/0.1.0",
-          isCombo: true,
-          comboStrategy: "least-used",
-          targetProvider: "claude",
-        }),
-        false
-      );
-    });
-
-    test("rejects combo with strict-random strategy", () => {
-      assert.equal(
-        shouldPreserveCacheControl({
-          userAgent: "claude-code/0.1.0",
-          isCombo: true,
-          comboStrategy: "strict-random",
-          targetProvider: "claude",
-        }),
-        false
-      );
-    });
-
-    test("rejects combo with null strategy", () => {
+    test("preserves for combo with null strategy (strategy is irrelevant to preservation)", () => {
       assert.equal(
         shouldPreserveCacheControl({
           userAgent: "claude-code/0.1.0",
           isCombo: true,
           comboStrategy: null,
+          targetProvider: "claude",
+        }),
+        true
+      );
+    });
+
+    test("still rejects combo when the provider does not support caching", () => {
+      assert.equal(
+        shouldPreserveCacheControl({
+          userAgent: "claude-code/0.1.0",
+          isCombo: true,
+          comboStrategy: "quota-share",
+          targetProvider: "gemini",
+        }),
+        false
+      );
+    });
+
+    test("still rejects combo for non-caching-aware clients", () => {
+      assert.equal(
+        shouldPreserveCacheControl({
+          userAgent: "curl/7.68.0",
+          isCombo: true,
+          comboStrategy: "quota-share",
           targetProvider: "claude",
         }),
         false

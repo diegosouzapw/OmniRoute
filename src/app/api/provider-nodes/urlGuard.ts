@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import {
   OutboundUrlGuardError,
-  getProviderValidationGuard,
   parseAndValidateNonMetadataUrl,
   parseAndValidatePublicUrl,
   parseOutboundUrl,
 } from "@/shared/network/outboundUrlGuard";
+import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 
 function guardProviderNodeBaseUrl(baseUrl: string): void {
   const guard = getProviderValidationGuard();

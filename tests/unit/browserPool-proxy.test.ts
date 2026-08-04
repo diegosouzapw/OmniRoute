@@ -1,6 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { resolvePlaywrightProxy } from "../../open-sse/services/browserPool.ts";
+import {
+  resolveBrowserContextProxy,
+  resolvePlaywrightProxy,
+} from "../../open-sse/services/browserPool.ts";
 
 describe("resolvePlaywrightProxy", () => {
   it("returns undefined when no proxy is configured", async () => {
@@ -83,5 +86,22 @@ describe("resolvePlaywrightProxy", () => {
       },
     });
     assert.strictEqual(capturedKey, "gemini-web");
+  });
+
+  it("allows a scoped context key to use its stable provider key for proxy lookup", async () => {
+    let capturedKey = "";
+    const proxy = await resolveBrowserContextProxy(
+      "claude-web:account-scope",
+      { proxyProviderKey: "claude-web" },
+      {
+        resolveProxy: async (id) => {
+          capturedKey = id;
+          return { type: "http", host: "proxy.example.com", port: 8080 };
+        },
+      }
+    );
+
+    assert.equal(capturedKey, "claude-web");
+    assert.deepEqual(proxy, { server: "http://proxy.example.com:8080" });
   });
 });

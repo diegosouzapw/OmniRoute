@@ -7,6 +7,8 @@
 
 import ProviderPlaygroundPanel from "./ProviderPlaygroundPanel";
 import ProviderParamFilterSection from "./ProviderParamFilterSection";
+import ProviderInterceptionSection from "./ProviderInterceptionSection";
+import ProviderCcAliasSection from "./ProviderCcAliasSection";
 
 export default function ProviderExtraPanels({ providerId }: { providerId: string }) {
   return (
@@ -16,6 +18,12 @@ export default function ProviderExtraPanels({ providerId }: { providerId: string
 
       {/* Param filters — denylist/allowlist config per provider/model (#6625) */}
       <ProviderParamFilterSection providerId={providerId} />
+
+      {/* Web search/fetch tool interception toggles (#3384/#7339) */}
+      <ProviderInterceptionSection providerId={providerId} />
+
+      {/* Claude Code discovery-alias gate — provider/model on/off/inherit */}
+      <ProviderCcAliasSection providerId={providerId} />
     </>
   );
 }

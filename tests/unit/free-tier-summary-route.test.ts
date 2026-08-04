@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { FREE_CATALOG_CURATED_AT } from "@omniroute/open-sse/config/freeModelCatalog.data.ts";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-freetier-route-"));
 
@@ -49,4 +50,19 @@ test("GET /api/free-tier/summary excludeTosAvoid filters models", async () => {
   // With tos-avoid excluded, modelCount must still be positive
   assert.ok(body.modelCount >= 1);
   assert.equal(typeof body.usedThisMonth, "number");
+});
+
+test("summary reports the catalog curation date, not a build timestamp", async () => {
+  const res = await GET(new Request("http://localhost/api/free-tier/summary"));
+  const body = await res.json();
+
+  // Must be the hand-maintained constant, never a file mtime: a standalone
+  // build rewrites timestamps on deploy, which would advertise a stale catalog
+  // as freshly updated.
+  assert.equal(body.catalogUpdatedAt, FREE_CATALOG_CURATED_AT);
+  assert.ok(!Number.isNaN(Date.parse(body.catalogUpdatedAt)), "must be a parsable date");
+  assert.ok(
+    Date.parse(body.catalogUpdatedAt) <= Date.now(),
+    "curation date cannot be in the future"
+  );
 });

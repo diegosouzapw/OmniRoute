@@ -430,7 +430,6 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   assert.equal(searchProvider?.name, providers.SEARCH_PROVIDERS["brave-search"].name);
   assert.equal(youcomSearchProvider?.category, "search");
   assert.equal(youcomSearchProvider?.name, providers.SEARCH_PROVIDERS["youcom-search"].name);
-
   assert.equal(audioProvider?.category, "audio");
   assert.equal(audioProvider?.name, providers.AUDIO_ONLY_PROVIDERS.assemblyai.name);
   assert.equal(awsPollyProvider?.category, "audio");
@@ -1079,7 +1078,6 @@ test("connectionMatchesProviderCard counts a dual-auth provider's PAT (apikey) c
     connectionMatchesProviderCard({ provider: "qoder", authType: "oauth" }, "qoder", "oauth"),
     true
   );
-
   // A normal OAuth-only provider must NOT count an apikey connection on its OAuth card.
   assert.equal(
     connectionMatchesProviderCard({ provider: "claude", authType: "apikey" }, "claude", "oauth"),

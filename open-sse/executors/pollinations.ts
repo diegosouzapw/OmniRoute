@@ -79,7 +79,9 @@ export class PollinationsExecutor extends BaseExecutor {
       const result = await super.execute(input);
 
       if (session && pool) {
-        const status = result.response.status;
+        // execute() contracts for `Response | { response, ... }`; both arms carry the
+        // status this pool bookkeeping needs.
+        const status = (result instanceof Response ? result : result.response).status;
         if (status === 429) {
           pool.reportCooldown(session);
         } else if (status >= 500) {

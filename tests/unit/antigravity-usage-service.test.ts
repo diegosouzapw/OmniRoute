@@ -35,7 +35,7 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
         ok: true,
         json: async () => ({
           models: {
-            "gemini-3.5-flash-high": {
+            "gemini-3-flash-agent": {
               quotaInfo: {
                 remainingFraction: undefined,
                 resetTime: "2026-05-26T00:00:00Z",
@@ -51,8 +51,8 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-3.5-flash-high"];
-        assert.ok(quota, "should have quota for gemini-3.5-flash-high");
+        const quota = result.quotas["gemini-3-flash-agent"];
+        assert.ok(quota, "should have quota for gemini-3-flash-agent");
         assert.equal(quota.remainingPercentage, 0, "remaining should be 0%");
         assert.equal(quota.unlimited, false, "should not be unlimited");
         assert.equal(quota.used > 0, true, "used should be > 0 when quota is exhausted");
@@ -69,7 +69,7 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
         ok: true,
         json: async () => ({
           models: {
-            "gemini-3.5-flash-high": {
+            "gemini-3-flash-agent": {
               quotaInfo: {
                 remainingFraction: 0,
                 resetTime: "2026-05-26T00:00:00Z",
@@ -88,8 +88,8 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-3.5-flash-high"];
-        assert.ok(quota, "should have quota for gemini-3.5-flash-high");
+        const quota = result.quotas["gemini-3-flash-agent"];
+        assert.ok(quota, "should have quota for gemini-3-flash-agent");
         assert.equal(quota.remainingPercentage, 0, "remaining should be 0%");
         assert.equal(quota.unlimited, false, "should not be unlimited");
       }
@@ -105,7 +105,7 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
         ok: true,
         json: async () => ({
           models: {
-            "gemini-3.5-flash-high": {
+            "gemini-3-flash-agent": {
               quotaInfo: {
                 remainingFraction: 1.0,
                 resetTime: "2026-05-26T00:00:00Z",
@@ -124,8 +124,8 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-3.5-flash-high"];
-        assert.ok(quota, "should have quota for gemini-3.5-flash-high");
+        const quota = result.quotas["gemini-3-flash-agent"];
+        assert.ok(quota, "should have quota for gemini-3-flash-agent");
         assert.equal(quota.remainingPercentage, 100, "remaining should be 100%");
         assert.equal(quota.unlimited, false, "should not be unlimited (has resetTime)");
       }
@@ -176,7 +176,7 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
         ok: true,
         json: async () => ({
           models: {
-            "gemini-3.5-flash-high": {
+            "gemini-3-flash-agent": {
               quotaInfo: {
                 remainingFraction: 0.5,
                 resetTime: "2026-05-26T00:00:00Z",
@@ -195,8 +195,8 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-3.5-flash-high"];
-        assert.ok(quota, "should have quota for gemini-3.5-flash-high");
+        const quota = result.quotas["gemini-3-flash-agent"];
+        assert.ok(quota, "should have quota for gemini-3-flash-agent");
         assert.equal(quota.remainingPercentage, 50, "remaining should be 50%");
         assert.equal(quota.unlimited, false, "should not be unlimited");
       }
@@ -212,7 +212,7 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
         ok: true,
         json: async () => ({
           models: {
-            "gemini-3.5-flash-high": {
+            "gemini-3-flash-agent": {
               quotaInfo: {
                 remainingFraction: 1.5,
                 resetTime: "2026-05-26T00:00:00Z",
@@ -231,8 +231,8 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-3.5-flash-high"];
-        assert.ok(quota, "should have quota for gemini-3.5-flash-high");
+        const quota = result.quotas["gemini-3-flash-agent"];
+        assert.ok(quota, "should have quota for gemini-3-flash-agent");
         assert.equal(quota.remainingPercentage, 100, "remaining should be clamped to 100%");
         assert.equal(quota.unlimited, false, "should not be unlimited (has resetTime)");
       }
@@ -248,7 +248,7 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
         ok: true,
         json: async () => ({
           models: {
-            "gemini-3.5-flash-high": {
+            "gemini-3-flash-agent": {
               quotaInfo: {
                 remainingFraction: -0.5,
                 resetTime: "2026-05-26T00:00:00Z",
@@ -267,8 +267,8 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-3.5-flash-high"];
-        assert.ok(quota, "should have quota for gemini-3.5-flash-high");
+        const quota = result.quotas["gemini-3-flash-agent"];
+        assert.ok(quota, "should have quota for gemini-3-flash-agent");
         assert.equal(quota.remainingPercentage, 0, "remaining should be clamped to 0%");
         assert.equal(quota.unlimited, false, "should not be unlimited");
       }

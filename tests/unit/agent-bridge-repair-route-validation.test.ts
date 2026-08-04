@@ -1,7 +1,8 @@
 /**
  * POST /api/tools/agent-bridge/repair validates its body with RepairBodySchema
- * via safeParse (route validation gate t06) and falls back to the cached sudo
- * password when none is supplied. These tests pin that schema contract. (Gap 7.)
+ * via safeParse (route validation gate t06) and rejects privileged repair when
+ * no sudo password is supplied or cached (#7836). These tests pin that schema
+ * contract. (Gap 7.)
  */
 import test from "node:test";
 import assert from "node:assert/strict";

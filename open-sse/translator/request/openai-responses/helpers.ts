@@ -49,9 +49,21 @@ export function imageUrlToText(value: unknown): string {
   return toString(record.url);
 }
 
-export function normalizeResponsesReasoningEffort(value: unknown): string {
+const CODEX_GPT_5_6_MODEL_PATTERN =
+  /^gpt-5\.6-(?:sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/;
+
+function supportsNativeMaxReasoningEffort(model: unknown): boolean {
+  const normalizedModel = toString(model)
+    .trim()
+    .toLowerCase()
+    .replace(/^(?:codex|cx)\//, "");
+  return CODEX_GPT_5_6_MODEL_PATTERN.test(normalizedModel);
+}
+
+export function normalizeResponsesReasoningEffort(value: unknown, model?: unknown): string {
   const effort = toString(value).toLowerCase();
-  return effort === "max" ? "xhigh" : effort;
+  if (effort !== "max") return effort;
+  return supportsNativeMaxReasoningEffort(model) ? "max" : "xhigh";
 }
 
 export function shouldRequestClaudeSummarizedThinking(value: unknown): boolean {

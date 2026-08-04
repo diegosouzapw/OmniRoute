@@ -12,6 +12,7 @@ process.env.API_KEY_SECRET = "test-usage-analytics-secret";
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const analyticsRoute = await import("../../src/app/api/usage/analytics/route.ts");
 
@@ -144,7 +145,7 @@ test("GET /api/usage/analytics resolves Codex GPT-5.5 pricing through provider a
 
   assert.equal(response.status, 200);
   assertClose(body.summary.totalCost, 0.02);
-  assert.equal(body.byProvider[0].provider, "codex");
+  assert.equal(body.byProvider[0].provider, "OpenAI Codex");
   assertClose(body.byProvider[0].cost, 0.02);
   assert.equal(body.byModel[0].model, "gpt-5.5");
   assertClose(body.byModel[0].cost, 0.02);
@@ -324,9 +325,12 @@ test("GET /api/usage/analytics includes byAccount array with cost data", async (
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(body.byAccount));
   assert.ok(body.byAccount.length > 0);
-  assert.equal(body.byAccount[0].account, "test-conn");
-  assert.equal(typeof body.byAccount[0].cost, "number");
-  assertClose(body.byAccount[0].cost, body.summary.totalCost);
+  assert.ok(body.byAccount.every((row) => row.account === "test-conn"));
+  assert.ok(body.byAccount.every((row) => typeof row.cost === "number"));
+  assertClose(
+    body.byAccount.reduce((sum, row) => sum + row.cost, 0),
+    body.summary.totalCost
+  );
 });
 
 test("GET /api/usage/analytics includes cost by API key", async () => {
@@ -347,8 +351,15 @@ test("GET /api/usage/analytics does not double-count raw and aggregated rows", a
   const db = core.getDbInstance();
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
+  // The raw/aggregated split boundary is retention.usageHistory (365 days by
+  // default — see cleanupUsageHistory in src/lib/db/cleanup.ts, which rolls up
+  // and deletes usage_history rows using that exact setting). Read it live
+  // instead of hardcoding 30 days so this fixture stays valid regardless of
+  // the configured retention window.
+  const { getUserDatabaseSettings } = await import("../../src/lib/db/databaseSettings.ts");
+  const rawRetentionDays = getUserDatabaseSettings().retention.usageHistory;
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 30);
+  cutoffDate.setDate(cutoffDate.getDate() - rawRetentionDays);
   const olderDate = new Date(cutoffDate);
   olderDate.setDate(olderDate.getDate() - 1);
   const olderDateStr = olderDate.toISOString().split("T")[0];

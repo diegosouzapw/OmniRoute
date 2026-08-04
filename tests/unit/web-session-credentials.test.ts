@@ -15,14 +15,19 @@ test("web session credential metadata covers every web-cookie provider", () => {
 });
 
 test("web session credential metadata identifies cookie, token, and no-auth providers", () => {
-  // Grok needs BOTH sso and sso-rw cookies (#3180)
-  assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("grok-web"), {
-    kind: "cookie",
-    credentialName: "sso + sso-rw",
-    placeholder: "sso=...; sso-rw=...",
-    acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "sso", "sso-rw"],
-  });
+  // Grok needs BOTH sso and sso-rw cookies (#3180). #7567 added the proactive
+  // cf_clearance/User-Agent hint — assert its intent, don't freeze operator copy.
+  {
+    const req = webSessionCredentials.getWebSessionCredentialRequirement("grok-web");
+    assert.ok(req && req.kind === "cookie");
+    assert.equal(req.credentialName, "sso + sso-rw");
+    assert.equal(req.placeholder, "sso=...; sso-rw=...");
+    assert.equal(req.acceptsFullCookieHeader, true);
+    assert.deepEqual(req.storageKeys, ["cookie", "sso", "sso-rw"]);
+    assert.equal(req.hintKey, "grokWebCookieHint");
+    assert.ok(typeof req.hintFallback === "string" && /cf_clearance/.test(req.hintFallback));
+    assert.ok(/User-Agent/.test(req.hintFallback));
+  }
   assert.deepEqual(webSessionCredentials.getWebSessionCredentialRequirement("copilot-web"), {
     kind: "token",
     credentialName: "access_token",

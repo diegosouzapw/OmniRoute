@@ -112,7 +112,7 @@ async function testOneProxy(proxy: {
 }
 
 async function sweep(): Promise<void> {
-  const proxies = await listProxies({ includeSecrets: false });
+  const { items: proxies } = await listProxies({ includeSecrets: false });
   if (proxies.length === 0) return;
 
   const failureMap = getFailureMap();

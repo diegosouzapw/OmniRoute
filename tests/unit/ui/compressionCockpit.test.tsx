@@ -2,6 +2,8 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
+import messages from "../../../src/i18n/messages/en.json";
 import type { CompressionRunModel } from "@/app/(dashboard)/dashboard/compression/studio/compressionFlowModel";
 
 // ── Polyfill ResizeObserver (required by ReactFlow) ───────────────────────
@@ -41,7 +43,14 @@ function mount(ui: React.ReactElement): HTMLElement {
   containers.push(container);
   const root = createRoot(container);
   act(() => {
-    root.render(ui);
+    root.render(
+      <NextIntlClientProvider
+        locale="en"
+        messages={{ compressionStudio: messages.compressionStudio }}
+      >
+        {ui}
+      </NextIntlClientProvider>
+    );
   });
   return container;
 }

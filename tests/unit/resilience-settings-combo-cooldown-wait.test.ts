@@ -16,12 +16,12 @@ function cloneDefaults(): ResilienceSettings {
   return structuredClone(DEFAULT_RESILIENCE_SETTINGS);
 }
 
-test("default comboCooldownWait is conservative (on, 5s ceiling, 2 attempts, 8s budget)", () => {
+test("default comboCooldownWait covers Gemini-class TPM/RPM waits (on, 90s ceiling, 5 attempts, 300s/5min budget)", () => {
   const s = cloneDefaults().comboCooldownWait;
   assert.equal(s.enabled, true);
-  assert.equal(s.maxWaitMs, 5000);
-  assert.equal(s.maxAttempts, 2);
-  assert.equal(s.budgetMs, 8000);
+  assert.equal(s.maxWaitMs, 90000);
+  assert.equal(s.maxAttempts, 5);
+  assert.equal(s.budgetMs, 300000);
 });
 
 test("resolveResilienceSettings returns the default block when nothing is stored", () => {
@@ -49,8 +49,8 @@ test("mergeResilienceSettings round-trips a partial patch", () => {
   });
   assert.equal(merged.comboCooldownWait.maxWaitMs, 2000);
   // Unspecified fields keep the current value.
-  assert.equal(merged.comboCooldownWait.maxAttempts, 2);
-  assert.equal(merged.comboCooldownWait.budgetMs, 8000);
+  assert.equal(merged.comboCooldownWait.maxAttempts, 5);
+  assert.equal(merged.comboCooldownWait.budgetMs, 300000);
   assert.equal(merged.comboCooldownWait.enabled, true);
 });
 
@@ -66,11 +66,11 @@ test("enabled is forced false when maxWaitMs or maxAttempts is zero", () => {
   assert.equal(b.comboCooldownWait.enabled, false);
 });
 
-test("maxWaitMs is clamped to the 30s hard ceiling", () => {
+test("maxWaitMs is clamped to the 5-minute hard ceiling", () => {
   const merged = mergeResilienceSettings(cloneDefaults(), {
     comboCooldownWait: { maxWaitMs: 999_999 },
   });
-  assert.equal(merged.comboCooldownWait.maxWaitMs, 30000);
+  assert.equal(merged.comboCooldownWait.maxWaitMs, 300000);
 });
 
 test("budgetMs can never drop below a single maxWaitMs", () => {
@@ -96,7 +96,7 @@ test("garbage values fall back to the current numbers", () => {
       budgetMs: undefined,
     },
   });
-  assert.equal(merged.comboCooldownWait.maxWaitMs, 5000);
-  assert.equal(merged.comboCooldownWait.maxAttempts, 2);
-  assert.equal(merged.comboCooldownWait.budgetMs, 8000);
+  assert.equal(merged.comboCooldownWait.maxWaitMs, 90000);
+  assert.equal(merged.comboCooldownWait.maxAttempts, 5);
+  assert.equal(merged.comboCooldownWait.budgetMs, 300000);
 });

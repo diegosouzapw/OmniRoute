@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSettings, updateSettings } from "@/lib/localDb";
+import { getCachedSettings, getSettings, updateSettings } from "@/lib/localDb";
 import {
   buildLegacyResilienceCompat,
   mergeResilienceSettings,
@@ -121,7 +121,7 @@ async function syncRuntimeSettings(resilienceSettings: ResilienceSettings) {
  */
 export async function GET() {
   try {
-    const settings = await getSettings();
+    const settings = await getCachedSettings();
     const resilience = resolveResilienceSettings(settings);
 
     return NextResponse.json({

@@ -7,6 +7,11 @@ import {
   DEFAULT_RTK_CONFIG,
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
 } from "./types.ts";
+import {
+  countTextTokens,
+  isCodexTokenizerContext,
+  tokenizerContextFromBody,
+} from "../../../src/shared/utils/tiktokenCounter.ts";
 import { anthropicImageTokens, ANTHROPIC_IMAGE_BLOCK_OVERHEAD_TOKENS } from "omniglyph";
 
 const CHARS_PER_TOKEN = 4;
@@ -29,9 +34,7 @@ function isAnthropicPngImageBlock(value: unknown): value is AnthropicImageBlock 
   const source = block.source as Record<string, unknown> | undefined;
   if (!source || typeof source !== "object") return false;
   return (
-    source.type === "base64" &&
-    source.media_type === "image/png" &&
-    typeof source.data === "string"
+    source.type === "base64" && source.media_type === "image/png" && typeof source.data === "string"
   );
 }
 
@@ -119,17 +122,24 @@ function blankImageBlocksAndSumImageTokens(body: Record<string, unknown>): {
 export function estimateCompressionTokens(text: string | object | null | undefined): number {
   if (!text) return 0;
   if (typeof text === "string") {
-    return Math.ceil(text.length / CHARS_PER_TOKEN);
+    return charTokensOf(text);
   }
   try {
+    const tokenizerContext = tokenizerContextFromBody(text);
+    const useExactTokenizer = isCodexTokenizerContext(tokenizerContext);
     const { clone, imageTokens } = blankImageBlocksAndSumImageTokens(
       text as Record<string, unknown>
     );
     if (imageTokens === 0) {
-      // No recognized image blocks — byte-identical to the legacy behavior.
-      return Math.ceil(JSON.stringify(text).length / CHARS_PER_TOKEN);
+      // Keep the legacy character estimate for generic payloads. Codex payloads use
+      // the model-appropriate tokenizer so their compression stats match hard budgets.
+      return useExactTokenizer
+        ? countTextTokens(JSON.stringify(text), tokenizerContext)
+        : charTokensOf(text);
     }
-    return Math.ceil(JSON.stringify(clone).length / CHARS_PER_TOKEN) + imageTokens;
+    return useExactTokenizer
+      ? countTextTokens(JSON.stringify(clone), tokenizerContext) + imageTokens
+      : charTokensOf(clone) + imageTokens;
   } catch {
     // Non-serializable/unexpected shape → fall back to the legacy char-count,
     // never throw out of an estimator.

@@ -86,6 +86,7 @@ export const scoringWeightsSchema = z
     tierAffinity: z.number().min(0).max(1).optional().default(0.05),
     specificityMatch: z.number().min(0).max(1).optional().default(0.05),
     contextAffinity: z.number().min(0).max(1).optional().default(0.08),
+    cacheAffinity: z.number().min(0).max(1).optional().default(0),
     resetWindowAffinity: z.number().min(0).max(1).optional().default(0),
   })
   .optional();
@@ -114,6 +115,7 @@ export const compressionModeSchema = z.enum([
   "ultra",
   "rtk",
   "stacked",
+  "codex-responses",
   "omniglyph",
 ]);
 
@@ -286,7 +288,8 @@ export const createComboSchema = z.object({
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
   config: comboRuntimeConfigSchema.optional(),
-  allowedProviders: z.array(z.string().max(200)).optional(),
+  allowedProviders: z.array(z.string().trim().min(1).max(200)).max(100).optional(),
+  allowedModelFamilies: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
   system_message: z.string().max(50000).optional(),
   tool_filter_regex: z.string().max(1000).optional(),
   context_cache_protection: z.boolean().optional(),
@@ -344,7 +347,8 @@ export const updateComboSchema = z
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
     isActive: z.boolean().optional(),
-    allowedProviders: z.array(z.string().max(200)).optional(),
+    allowedProviders: z.array(z.string().trim().min(1).max(200)).max(100).optional(),
+    allowedModelFamilies: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
     system_message: z.string().max(50000).optional(),
     tool_filter_regex: z.string().max(1000).optional(),
     context_cache_protection: z.boolean().optional(),
@@ -365,6 +369,7 @@ export const updateComboSchema = z
       value.config === undefined &&
       value.isActive === undefined &&
       value.allowedProviders === undefined &&
+      value.allowedModelFamilies === undefined &&
       value.system_message === undefined &&
       value.tool_filter_regex === undefined &&
       value.context_cache_protection === undefined &&

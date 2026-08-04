@@ -139,16 +139,37 @@ export interface ComboCooldownLockInfo {
   remainingMs: number;
 }
 
+/** Minimal combo-target shape this helper inspects. */
+export interface ComboCooldownTarget {
+  provider?: string | null;
+  connectionId?: string | null;
+  /**
+   * The target's own model. Heterogeneous combos (priority, weighted,
+   * round-robin, …) hold a DIFFERENT model per target, so the lock lookup must
+   * be keyed on each target's own model — keying every lookup on the first
+   * target's model would miss every other target's lock and silently degrade
+   * the reason allow-list to "no lock found".
+   */
+  modelStr?: string | null;
+}
+
 export interface ResolveComboCooldownDecisionInput {
   /** Combo targets to inspect for an active short lock. */
-  targets: ReadonlyArray<{ provider?: string | null; connectionId?: string | null }>;
+  targets: ReadonlyArray<ComboCooldownTarget>;
   /** Earliest retry-after the loop crystallized (string | number | Date | null). */
   earliestRetryAfter: unknown;
   attempt: number;
   budgetLeftMs: number;
   settings: ComboCooldownWaitSettings;
-  /** Per-target lock lookup (getModelLockoutInfo bound to the request model). */
-  lookupLock: (provider: string, connectionId: string) => ComboCooldownLockInfo | null;
+  /**
+   * Per-target lock lookup (getModelLockoutInfo). Receives the target itself so
+   * the caller can key the lookup on that target's own model.
+   */
+  lookupLock: (
+    provider: string,
+    connectionId: string,
+    target: ComboCooldownTarget
+  ) => ComboCooldownLockInfo | null;
   /** Derives the wait (ms) from the retry-after hint (computeClosestRetryAfter). */
   computeWaitMs: (retryAfter: unknown) => number | null;
 }
@@ -199,7 +220,7 @@ export function resolveComboCooldownWaitDecision(
     const provider = typeof target.provider === "string" ? target.provider : "";
     if (!provider) continue;
     const connectionId = typeof target.connectionId === "string" ? target.connectionId : "";
-    const info = lookupLock(provider, connectionId);
+    const info = lookupLock(provider, connectionId, target);
     if (!info) continue;
     const remainingMs =
       typeof info.remainingMs === "number" && Number.isFinite(info.remainingMs)

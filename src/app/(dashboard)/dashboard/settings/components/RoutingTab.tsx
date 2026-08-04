@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card, Collapsible, Input, Select, Toggle } from "@/shared/components";
+import ModelSelectField from "@/shared/components/ModelSelectField";
 import { useTranslations } from "next-intl";
 import { useNotificationStore } from "@/store/notificationStore";
 import {
@@ -11,6 +12,7 @@ import {
 } from "@/shared/constants/cliCompatProviders";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { compareTr } from "@/shared/utils/turkishText";
+import { HERMES } from "./systemTransformsHermesDefaults";
 
 // Provider keys (mirror of open-sse/services/systemTransforms.ts).
 const PROVIDER_CLAUDE = "claude";
@@ -79,6 +81,8 @@ const DEFAULT_OBFUSCATE_WORDS = [
   "codecompanion",
   "openwebui",
   "open-webui",
+  "hermes-agent",
+  "hermes",
 ];
 
 // Mirror of DEFAULT_SYSTEM_TRANSFORMS_CONFIG from open-sse/services/systemTransforms.ts.
@@ -95,11 +99,12 @@ const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
             ...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS,
             ...OPENWEBUI_PARAGRAPH_ANCHORS,
             ...PI_PARAGRAPH_ANCHORS,
+            ...HERMES.anchors,
           ],
         },
         {
           kind: "drop_paragraph_if_starts_with",
-          prefixes: [...DEFAULT_IDENTITY_PREFIXES, "You are Open WebUI"],
+          prefixes: [...DEFAULT_IDENTITY_PREFIXES, "You are Open WebUI", ...HERMES.prefixes],
         },
         ...DEFAULT_TEXT_REPLACEMENTS.map((r) => ({
           kind: "replace_text" as const,
@@ -166,6 +171,7 @@ const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
           entrypoint: "sdk-cli",
           versionFormat: "ex-machina",
           cchAlgo: "sha256-first-user",
+          buildRevision: "1f2",
         },
       ],
     },
@@ -1502,18 +1508,12 @@ export default function RoutingTab() {
                 "When a request includes a native web_search tool, route the whole request to this model instead of the default — useful for providers that don't implement Anthropic's web_search server tool. Leave blank to disable."}
             </p>
             <div className="mt-3">
-              <Input
-                value={
-                  typeof settings.webSearchRouteModel === "string"
-                    ? settings.webSearchRouteModel
-                    : ""
-                }
-                onChange={(e) => updateSetting({ webSearchRouteModel: e.target.value })}
-                placeholder={
-                  t("webSearchRoutePlaceholder") || "e.g. openrouter,anthropic/claude-3.5-sonnet"
-                }
+              <ModelSelectField
+                value={String(settings.webSearchRouteModel ?? "")}
+                onChange={(v) => updateSetting({ webSearchRouteModel: v })}
+                placeholder={t("webSearchRoutePlaceholder") || "Search or select a model…"}
                 disabled={loading}
-                aria-label={t("webSearchRouteTitle") || "Web search routing model"}
+                ariaLabel={t("webSearchRouteTitle") || "Web search routing model"}
               />
             </div>
           </div>

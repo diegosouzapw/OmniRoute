@@ -8,6 +8,10 @@ export interface ProviderModel {
   displayId?: string;
   object?: string;
   owned_by?: string;
+  /** Catalog model type, e.g. "chat", "audio", "image". */
+  type?: string;
+  /** Audio subtype, e.g. "transcription" or "speech". */
+  subtype?: string;
 }
 
 interface UseProviderModelsResult {

@@ -2,6 +2,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+// ─── Response JSON shapes (real types derived from OpenAI-compatible bodies) ─
+
+interface PplxChatCompletionJson {
+  id: string;
+  object: string;
+  choices: Array<{
+    message: { role: string; content: string };
+    finish_reason: string;
+  }>;
+  usage: { total_tokens: number };
+}
+
+interface PplxErrorJson {
+  error: { message: string };
+}
+
 // ─── Import the executor and its dependencies ──────────────────────────────
 
 const { PerplexityWebExecutor } = await import("../../open-sse/executors/perplexity-web.ts");
@@ -13,7 +29,7 @@ const { __setTlsFetchOverrideForTesting, TlsClientUnavailableError } =
 // global fetch. Install one persistent bridge so the tests below can keep stubbing
 // globalThis.fetch (returning a Response) and have it surface as a TlsFetchResult.
 __setTlsFetchOverrideForTesting(async (url, opts) => {
-  const res = await (globalThis.fetch as any)(url, opts);
+  const res = await (globalThis.fetch as typeof fetch)(url, opts);
   return {
     status: res.status,
     headers: res.headers,
@@ -128,7 +144,7 @@ test("Non-streaming: simple text response", async () => {
     });
 
     assert.equal(result.response.status, 200);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxChatCompletionJson;
     assert.equal(json.object, "chat.completion");
     assert.equal(json.choices[0].message.role, "assistant");
     assert.equal(json.choices[0].message.content, "Hello, world!");
@@ -160,7 +176,7 @@ test("Non-streaming: strips citations from response", async () => {
   try {
     const executor = new PerplexityWebExecutor();
     const result = await executor.execute({
-      model: "pplx-gpt",
+      model: "pplx-sonar",
       body: { messages: [{ role: "user", content: "meaning of life" }], stream: false },
       stream: false,
       credentials: { apiKey: "test-cookie" },
@@ -168,7 +184,7 @@ test("Non-streaming: strips citations from response", async () => {
       log: null,
     });
 
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxChatCompletionJson;
     assert.ok(!json.choices[0].message.content.includes("[1]"));
     assert.ok(!json.choices[0].message.content.includes("[2]"));
     assert.ok(!json.choices[0].message.content.includes("[3]"));
@@ -474,7 +490,7 @@ test("Error: 401 returns auth error message", async () => {
     });
 
     assert.equal(result.response.status, 401);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.ok(json.error.message.includes("auth failed"));
     assert.ok(json.error.message.includes("session-token"));
   } finally {
@@ -487,7 +503,7 @@ test("Error: 429 returns rate limit message", async () => {
   try {
     const executor = new PerplexityWebExecutor();
     const result = await executor.execute({
-      model: "pplx-gpt",
+      model: "pplx-sonar",
       body: { messages: [{ role: "user", content: "hi" }] },
       stream: false,
       credentials: { apiKey: "test-cookie" },
@@ -496,7 +512,7 @@ test("Error: 429 returns rate limit message", async () => {
     });
 
     assert.equal(result.response.status, 429);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.ok(json.error.message.includes("rate limited"));
   } finally {
     restore();
@@ -517,7 +533,7 @@ test("Error: fetch failure returns 502", async () => {
     });
 
     assert.equal(result.response.status, 502);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.ok(json.error.message.includes("ECONNREFUSED"));
   } finally {
     restore();
@@ -536,7 +552,7 @@ test("Error: empty messages returns 400", async () => {
   });
 
   assert.equal(result.response.status, 400);
-  const json = (await result.response.json()) as any;
+  const json = (await result.response.json()) as PplxErrorJson;
   assert.ok(json.error.message.includes("Missing or empty messages"));
 });
 
@@ -572,7 +588,7 @@ test("Non-streaming: Perplexity stream error returns 502", async () => {
     });
 
     assert.equal(result.response.status, 502);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.ok(json.error.message.includes("Too many requests"));
   } finally {
     restore();
@@ -765,7 +781,7 @@ test("Auth: JWT auth sends Authorization Bearer header", async () => {
 
 // ─── Test: Model mapping ────────────────────────────────────────────────────
 
-test("Model mapping: pplx-gpt sends current GPT-5.5 internal preference", async () => {
+test("Model mapping: GPT-5.6 Terra sends its current internal preference", async () => {
   let capturedBody = null;
   const original = globalThis.fetch;
   globalThis.fetch = async (url, opts) => {
@@ -789,7 +805,7 @@ test("Model mapping: pplx-gpt sends current GPT-5.5 internal preference", async 
   try {
     const executor = new PerplexityWebExecutor();
     await executor.execute({
-      model: "pplx-gpt",
+      model: "pplx-gpt-5.6-terra",
       body: { messages: [{ role: "user", content: "test" }], stream: false },
       stream: false,
       credentials: { apiKey: "test" },
@@ -797,8 +813,56 @@ test("Model mapping: pplx-gpt sends current GPT-5.5 internal preference", async 
       log: null,
     });
 
-    assert.equal(capturedBody.params.model_preference, "gpt55");
+    assert.equal(capturedBody.params.model_preference, "gpt56_terra");
     assert.equal(capturedBody.params.mode, "search");
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("Model mapping: pplx-sonar maps to turbo/copilot (live browser default)", async () => {
+  let capturedBody = null;
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    capturedBody = JSON.parse(opts.body);
+    return new Response(
+      mockPplxStream([
+        {
+          blocks: [
+            {
+              intended_usage: "markdown",
+              markdown_block: { chunks: ["ok"], progress: "DONE" },
+            },
+          ],
+          status: "COMPLETED",
+        },
+      ]),
+      { status: 200, headers: { "Content-Type": "text/event-stream" } }
+    );
+  };
+
+  try {
+    const executor = new PerplexityWebExecutor();
+    await executor.execute({
+      model: "pplx-sonar",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "test" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(capturedBody.params.model_preference, "turbo");
+    assert.equal(capturedBody.params.mode, "copilot");
+    assert.equal(capturedBody.params.supports_tool_approval_modal, true);
+    assert.ok(
+      capturedBody.params.supported_block_use_cases.includes("workflow_widgets"),
+      "payload must advertise workflow_widgets like the live browser"
+    );
+    assert.ok(
+      capturedBody.params.supported_block_use_cases.includes("navigation_results"),
+      "payload must advertise navigation_results like the live browser"
+    );
   } finally {
     globalThis.fetch = original;
   }
@@ -841,44 +905,173 @@ test("Model mapping: thinking mode uses thinking variant", async () => {
     });
 
     assert.equal(capturedBody.params.model_preference, "claude50sonnetthinking");
+    // Thinking variants still go through mode "search" (THINKING_MAP path).
     assert.equal(capturedBody.params.mode, "search");
   } finally {
     globalThis.fetch = original;
   }
 });
 
-// ─── Test: Provider registry ────────────────────────────────────────────────
+// ─── Test: Live multi-step stream (no COMPLETED; text_completed + diffs) ────
 
-test("Provider registry: perplexity-web is registered with correct models", async () => {
-  const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
+test("Live multi-step: reconstructs answer without status COMPLETED", async () => {
+  // Mirrors Chrome 150 / copilot multi-step capture: PENDING frames with
+  // ask_text + ask_text_0_markdown diff_block chunks, text_completed:true,
+  // never status COMPLETED. Parser must still return the answer, and plan
+  // goals delivered as RFC-6902 diff patches (not a materialized plan_block)
+  // must still surface as reasoning_content.
+  const pplxEvents = [
+    {
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "plan",
+          diff_block: {
+            field: "plan_block",
+            patches: [
+              {
+                op: "replace",
+                path: "",
+                value: {
+                  progress: "IN_PROGRESS",
+                  goals: [{ id: "0", description: "Greeting the user", final: false }],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: {
+            field: "markdown_block",
+            patches: [
+              { op: "replace", path: "", value: { progress: "IN_PROGRESS", chunks: ["Hello "] } },
+            ],
+          },
+        },
+        {
+          intended_usage: "ask_text",
+          diff_block: {
+            field: "markdown_block",
+            patches: [
+              { op: "replace", path: "", value: { progress: "IN_PROGRESS", chunks: ["Hello "] } },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      text_completed: true,
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/1", value: "there." }],
+          },
+        },
+        {
+          intended_usage: "ask_text",
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/1", value: "there." }],
+          },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      final: true,
+      text: '[{"step_type":"INITIAL_QUERY","content":{"query":"hello"}}]',
+    },
+  ];
 
-  const models = PROVIDER_MODELS["pplx-web"];
-  assert.ok(models, "pplx-web should be in PROVIDER_MODELS");
-  assert.ok(models.length === 10, `Expected 10 models, got ${models.length}`);
+  const restore = mockFetch(200, pplxEvents);
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-opus",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
 
-  const modelIds = models.map((m) => m.id);
-  assert.ok(modelIds.includes("pplx-auto"));
-  assert.ok(modelIds.includes("pplx-gpt"));
-  assert.ok(modelIds.includes("pplx-gpt-5.4"));
-  assert.ok(modelIds.includes("pplx-sonnet"));
-  assert.ok(modelIds.includes("pplx-opus"));
-  assert.ok(modelIds.includes("pplx-gemini"));
-  assert.ok(modelIds.includes("pplx-nemotron"));
-  assert.ok(modelIds.includes("pplx-sonar"));
-  assert.ok(modelIds.includes("pplx-kimi"));
-  assert.ok(modelIds.includes("pplx-glm"));
+    assert.equal(result.response.status, 200);
+    const json = JSON.parse(await result.response.text());
+    assert.equal(json.choices[0].message.content, "Hello there.");
+    // Plan goals via diff_block should surface as reasoning_content
+    assert.ok(
+      String(json.choices[0].message.reasoning_content || "").includes("Greeting the user")
+    );
+  } finally {
+    restore();
+  }
 });
 
-test("Provider registry: every advertised perplexity-web model has an explicit internal mapping", async () => {
-  const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
-  const { MODEL_MAP } = await import("../../open-sse/executors/perplexity-web/protocol.ts");
+test("Advanced-model quota upsell with empty answer surfaces clear error", async () => {
+  const pplxEvents = [
+    {
+      status: "PENDING",
+      upsell_information: {
+        name: "advanced_models_quota_low",
+        upsell_type: "UPGRADE_TO_PRO",
+        title: "No advanced model uses left this week",
+        description: "Upgrade to Perplexity Max",
+      },
+      blocks: [
+        {
+          intended_usage: "plan",
+          diff_block: {
+            field: "plan_block",
+            patches: [
+              {
+                op: "replace",
+                path: "",
+                value: { goals: [{ description: "Hello, how can I assist you?" }] },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    { status: "PENDING", final: true, text_completed: true },
+  ];
 
-  const missing = PROVIDER_MODELS["pplx-web"].filter((model) => !MODEL_MAP[model.id]);
-  assert.deepEqual(
-    missing.map((model) => model.id),
-    [],
-    "all advertised Perplexity Web models should map to an explicit model_preference"
-  );
+  const restore = mockFetch(200, pplxEvents);
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-opus",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 429);
+    const json = JSON.parse(await result.response.text());
+    assert.match(String(json.error?.message || ""), /quota exhausted/i);
+    assert.match(String(json.error?.message || ""), /No advanced model uses left/i);
+    assert.match(String(json.error?.message || ""), /reset after/i);
+    assert.equal(json.error?.code, "quota_exhausted");
+    assert.equal(json.error?.type, "quota_exhausted");
+    assert.ok(
+      typeof json.error?.reset_seconds === "number" && json.error.reset_seconds >= 3600,
+      "reset_seconds should be a multi-hour weekly-quota cooldown"
+    );
+    assert.equal(result.response.headers.get("Retry-After"), String(json.error.reset_seconds));
+  } finally {
+    restore();
+  }
 });
 
 // ─── Test: Fallback text field ──────────────────────────────────────────────
@@ -898,11 +1091,174 @@ test("Non-streaming: falls back to text field when no blocks", async () => {
       log: null,
     });
 
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxChatCompletionJson;
     assert.ok(json.choices[0].message.content.includes("Fallback answer text"));
   } finally {
     restore();
   }
+});
+
+// Live COMPLETED frame carries the answer only in a double-encoded FINAL step
+// blob (no markdown_block / diff_block). Without this fallback the executor
+// returns empty content → chatCore 502 "Provider returned empty content".
+test("Non-streaming: recovers answer from COMPLETED FINAL text step-blob", async () => {
+  const answerObj = {
+    answer: "Hi Bilal — nice to meet you! How can I help today?",
+    chunks: ["Hi Bilal — ", "nice to meet ", "you! How can I ", "help to", "day?"],
+    web_results: [],
+  };
+  const pplxEvents = [
+    {
+      status: "COMPLETED",
+      final: true,
+      final_sse_message: true,
+      blocks: [],
+      text: JSON.stringify([
+        { step_type: "INITIAL_QUERY", content: { query: "hello" } },
+        { step_type: "FINAL", content: { answer: JSON.stringify(answerObj) } },
+      ]),
+    },
+  ];
+
+  const restore = mockFetch(200, pplxEvents);
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-sonar",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 200);
+    const json = (await result.response.json()) as {
+      choices: Array<{ message: { content: string } }>;
+    };
+    assert.equal(
+      json.choices[0].message.content,
+      "Hi Bilal — nice to meet you! How can I help today?"
+    );
+  } finally {
+    restore();
+  }
+});
+
+// Mirrors the Jul 2026 browser capture: dual ask_text + ask_text_0_markdown
+// tracks stream the same chunks via diff_block; parser must not double-count
+// and must assemble the full answer.
+test("Schematized API: dual ask_text tracks do not double-count", async () => {
+  const pplxEvents = [
+    {
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: {
+            field: "markdown_block",
+            patches: [
+              {
+                op: "replace",
+                path: "",
+                value: { progress: "IN_PROGRESS", chunks: ["Hi Bilal — "] },
+              },
+            ],
+          },
+        },
+        {
+          intended_usage: "ask_text",
+          diff_block: {
+            field: "markdown_block",
+            patches: [
+              {
+                op: "replace",
+                path: "",
+                value: { progress: "IN_PROGRESS", chunks: ["Hi Bilal — "] },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      status: "PENDING",
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/1", value: "nice to meet you!" }],
+          },
+        },
+        {
+          intended_usage: "ask_text",
+          diff_block: {
+            field: "markdown_block",
+            patches: [{ op: "add", path: "/chunks/1", value: "nice to meet you!" }],
+          },
+        },
+      ],
+    },
+    {
+      status: "COMPLETED",
+      final: true,
+      blocks: [
+        {
+          intended_usage: "ask_text_0_markdown",
+          markdown_block: {
+            progress: "DONE",
+            answer: "Hi Bilal — nice to meet you!",
+            chunks: ["Hi Bilal — nice to meet you!"],
+          },
+        },
+      ],
+    },
+  ];
+
+  const restore = mockFetch(200, pplxEvents);
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-sonar",
+      body: { messages: [{ role: "user", content: "hello" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 200);
+    const json = (await result.response.json()) as {
+      choices: Array<{ message: { content: string } }>;
+    };
+    assert.equal(json.choices[0].message.content, "Hi Bilal — nice to meet you!");
+  } finally {
+    restore();
+  }
+});
+
+// Unit: extractAnswerFromFinalText pure helper
+test("extractAnswerFromFinalText: double-encoded FINAL step blob", async () => {
+  const { extractAnswerFromFinalText } = await import(
+    "../../open-sse/executors/perplexity-web/protocol.ts"
+  );
+  const text = JSON.stringify([
+    { step_type: "INITIAL_QUERY", content: { query: "hello" } },
+    {
+      step_type: "FINAL",
+      content: {
+        answer: JSON.stringify({
+          answer: "Recovered from blob",
+          chunks: ["Recovered ", "from blob"],
+        }),
+      },
+    },
+  ]);
+  assert.equal(extractAnswerFromFinalText(text), "Recovered from blob");
+  assert.equal(extractAnswerFromFinalText("plain text answer"), "plain text answer");
+  assert.equal(extractAnswerFromFinalText(null), null);
+  assert.equal(extractAnswerFromFinalText(""), null);
 });
 
 // ─── Test: Request URL and headers ──────────────────────────────────────────
@@ -968,7 +1324,7 @@ test("Error: Cloudflare 403 challenge returns a distinct (non-cookie) error", as
     });
 
     assert.equal(result.response.status, 403);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.match(json.error.message, /Cloudflare/i);
     assert.ok(!/session-token/i.test(json.error.message), "must not blame the cookie");
   } finally {
@@ -990,7 +1346,7 @@ test("Error: TlsClientUnavailableError returns 502 with install hint", async () 
     });
 
     assert.equal(result.response.status, 502);
-    const json = (await result.response.json()) as any;
+    const json = (await result.response.json()) as PplxErrorJson;
     assert.match(json.error.message, /TLS client unavailable/i);
   } finally {
     restore();

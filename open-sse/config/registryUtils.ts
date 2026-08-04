@@ -127,6 +127,8 @@ export function buildAuthHeaders(
       return { "xi-api-key": token };
     case "x-api-key":
       return { "x-api-key": token };
+    case "x-gladia-key":
+      return { "x-gladia-key": token };
     case "bearer":
     default:
       return { Authorization: `Bearer ${token}` };

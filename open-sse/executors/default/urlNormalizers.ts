@@ -17,8 +17,13 @@ export function normalizeDataRobotChatUrl(baseUrl) {
   return buildDataRobotChatUrl(baseUrl);
 }
 
-export function normalizeAzureAiChatUrl(baseUrl: string, apiType: "chat" | "responses" = "chat") {
-  return buildAzureAiChatUrl(baseUrl, apiType);
+export function normalizeAzureAiChatUrl(
+  baseUrl: string,
+  apiType: "chat" | "responses" = "chat",
+  model?: string,
+  apiVersion?: string
+) {
+  return buildAzureAiChatUrl(baseUrl, apiType, model, apiVersion);
 }
 
 export function normalizeWatsonxChatUrl(baseUrl: string) {

@@ -35,6 +35,13 @@ export interface RejectedRequestUsageInput {
   connectionId?: string | null;
   /** When the request started, for the duration/latency columns. */
   startTime?: number;
+  /**
+   * The client's original request body (already cloned/bounded via
+   * cloneLogPayload by the caller). Rejected-before-dispatch requests never
+   * reach the normal handleChatCore logging path, so without this the
+   * dashboard log detail had no request to inspect — see #7360 follow-up.
+   */
+  requestBody?: unknown;
 }
 
 export async function recordRejectedRequestUsage(input: RejectedRequestUsageInput): Promise<void> {
@@ -53,6 +60,7 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
     apiKeyName = null,
     connectionId = undefined,
     startTime,
+    requestBody = null,
   } = input;
 
   const now = Date.now();
@@ -71,6 +79,7 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
     duration,
     tokens: {},
     error: error || null,
+    requestBody,
     comboName,
     comboStepId,
     comboExecutionKey,
@@ -95,4 +104,43 @@ export async function recordRejectedRequestUsage(input: RejectedRequestUsageInpu
     comboStrategy: comboName || null,
     endpoint: endpoint || "/v1/chat/completions",
   }).catch(() => {});
+}
+
+/**
+ * Builds a readable "provider" summary for a combo-exhausted rejection from the
+ * combo's own configured model list — the response's combo diagnostics don't
+ * reliably cover every skip reason (e.g. a model-level resilience lockout skip
+ * never touches the exhaustedProviders/exhaustedConnections diagnostic sets in
+ * combo.ts), so this reads the combo config directly instead: it's always
+ * available and always reflects what the combo was actually set up to try.
+ * Falls back to "-" when there's nothing usable (no models, or the combo is
+ * built entirely from combo-ref/nested-combo steps with no direct model).
+ */
+export function summarizeComboAttemptedModels(models: unknown): string {
+  if (!Array.isArray(models)) return "-";
+  const modelStrings = models
+    .map((entry) =>
+      entry && typeof entry === "object" && typeof (entry as { model?: unknown }).model === "string"
+        ? (entry as { model: string }).model
+        : null
+    )
+    .filter((entry): entry is string => Boolean(entry));
+  return modelStrings.length > 0 ? modelStrings.join(", ") : "-";
+}
+
+/**
+ * Provider label for a REJECTED combo request (#8867).
+ *
+ * summarizeComboAttemptedModels() joins every attempted model, which is right for
+ * diagnostics but wrong for `call_logs.provider`: the logs page builds its quick-filter
+ * pills from that column, so one failed `auto/gemma` turned into a chip listing a dozen
+ * models and flooded the filter row. Keep it short and categorical instead — `auto` for
+ * auto/* requests, otherwise the combo's own name.
+ */
+export function resolveRejectedComboProvider(
+  model: string | null | undefined,
+  comboName: string | null | undefined
+): string {
+  if (typeof model === "string" && model.startsWith("auto/")) return "auto";
+  return comboName || "combo";
 }

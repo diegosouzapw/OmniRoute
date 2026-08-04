@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { runSingleModelTest } from "@/lib/api/modelTestRunner";
+import { DEFAULT_MODEL_TEST_TIMEOUT_MS, runSingleModelTest } from "@/lib/api/modelTestRunner";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 import { getSettings } from "@/lib/db/settings";
 import { isFreeModel, providerHasFreeModels } from "@/shared/utils/freeModels";
@@ -12,8 +12,7 @@ const testModelSchema = z.object({
   connectionId: z.string().min(1).optional(),
 });
 
-const SINGLE_TEST_TIMEOUT_MS = 20_000;
-
+const NVIDIA_SINGLE_TEST_TIMEOUT_MS = 180_000;
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
@@ -67,7 +66,11 @@ export async function POST(request: Request) {
       providerId,
       modelId,
       ...(connectionId ? { connectionId } : {}),
-      timeoutMs: SINGLE_TEST_TIMEOUT_MS,
+      timeoutMs:
+        providerId.trim().toLowerCase() === "nvidia"
+          ? NVIDIA_SINGLE_TEST_TIMEOUT_MS
+          : DEFAULT_MODEL_TEST_TIMEOUT_MS,
+      streamChat: true,
     });
 
     if (result.status === "ok") {

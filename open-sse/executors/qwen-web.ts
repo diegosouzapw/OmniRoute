@@ -67,6 +67,7 @@ const MODEL_ALIASES: Record<string, string> = {
 };
 
 const DEFAULT_MODEL = "qwen3.7-max";
+const REQUIRED_THINKING_MODELS = new Set(["qwen3.8-max-preview"]);
 
 function mapModel(modelId: string): string {
   return MODEL_ALIASES[modelId] || modelId;
@@ -93,7 +94,7 @@ export class QwenWebExecutor extends BaseExecutor {
     super("qwen-web", { id: "qwen-web", baseUrl: BASE_URL });
   }
 
-  private buildHeaders(
+  private buildApiHeaders(
     token: string,
     cookieHeader: string,
     chatId?: string
@@ -138,7 +139,7 @@ export class QwenWebExecutor extends BaseExecutor {
     try {
       const newChatRes = await fetch(CHATS_NEW_URL, {
         method: "POST",
-        headers: this.buildHeaders(token, cookieHeader),
+        headers: this.buildApiHeaders(token, cookieHeader),
         body: JSON.stringify({
           title: "New Chat",
           models: [modelId],
@@ -185,7 +186,7 @@ export class QwenWebExecutor extends BaseExecutor {
     try {
       upstream = await fetch(completionUrl, {
         method: "POST",
-        headers: this.buildHeaders(token, cookieHeader, chatId),
+        headers: this.buildApiHeaders(token, cookieHeader, chatId),
         body: JSON.stringify(msgPayload),
         signal,
       });
@@ -250,7 +251,7 @@ export class QwenWebExecutor extends BaseExecutor {
         },
       }),
       url: completionUrl,
-      headers: this.buildHeaders(token, cookieHeader, chatId),
+      headers: this.buildApiHeaders(token, cookieHeader, chatId),
       transformedBody: msgPayload,
     };
   }
@@ -297,7 +298,8 @@ export class QwenWebExecutor extends BaseExecutor {
     requestedModel: string
   ): Record<string, unknown> {
     const fid = uuid();
-    const enableThinking = /think|reason|r1/i.test(requestedModel);
+    const enableThinking =
+      REQUIRED_THINKING_MODELS.has(modelId) || /think|reason|r1/i.test(requestedModel);
     const featureConfig: Record<string, unknown> = {
       thinking_enabled: enableThinking,
       output_schema: "phase",

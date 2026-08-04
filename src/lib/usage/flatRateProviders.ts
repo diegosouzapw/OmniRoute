@@ -39,7 +39,8 @@ const FLAT_RATE_SUBSCRIPTION_PROVIDER_IDS: ReadonlySet<string> = new Set([
   "kimi-coding", // Kimi Coding plan (OAuth)
   "kimi-coding-apikey", // Kimi Coding plan (API-key auth, still flat-rate)
   "xiaomi-mimo", // Xiaomi MiMo plan (issue: "MiMo Token Plan")
-  "bailian-coding-plan", // Alibaba Coding Plan
+  "bailian-coding-plan", // Alibaba Token Plan (legacy provider ID)
+  "qwen-cloud-token-plan", // Qwen Cloud Token Plan
   "glm", // GLM Coding plan
   "glm-cn", // GLM Coding (China) plan
 ]);

@@ -42,6 +42,10 @@ describe("usageAnalytics/sources — buildUnifiedSource", () => {
     );
     assert.equal(unifiedParams.rawCutoff, "2024-06-15");
     assert.equal(unifiedParams.rawCutoffDate, "2024-06-15");
+    // Regression: unified source must surface a `requests` column in both legs
+    // so COUNT(*)→SUM(requests) counts actual requests, not row count.
+    assert.ok(unifiedSource.includes("1 as requests"), "raw leg must surface requests column");
+    assert.ok(unifiedSource.includes("total_requests as requests"), "aggregated leg must surface total_requests as requests");
   });
 
   it("drops the aggregated leg when an api-key filter is active (raw-only)", () => {
@@ -57,10 +61,11 @@ describe("usageAnalytics/sources — buildUnifiedSource", () => {
       !unifiedSource.includes("daily_usage_summary"),
       "aggregated leg must be absent once an api-key filter scopes the query to raw rows"
     );
-    // raw leg floors at @since (not @rawCutoff) and carries the api-key params
+    // Regression: raw-only fallback must also surface the requests column.
+    assert.ok(unifiedSource.includes("1 as requests"), "raw-only fallback must surface requests column");
+    assert.equal(unifiedParams.rawCutoff, undefined);
     assert.equal(unifiedParams.since, "2024-06-01T00:00:00.000Z");
     assert.equal(unifiedParams.apiKey0, "k1");
-    assert.equal(unifiedParams.rawCutoff, undefined);
   });
 
   it("buildPresetUnifiedSource returns the unifiedSource/unifiedParams shape", () => {
@@ -116,6 +121,50 @@ describe("usageAnalytics.ts public API surface", () => {
   it("loses no public runtime function in the split", () => {
     const missing = expectedFns.filter((n) => typeof host[n] !== "function");
     assert.deepEqual(missing, [], `missing: ${missing.join(", ")}`);
+  });
+});
+
+// ── 4. Regression: COUNT(*) → SUM(requests) in all query functions ──────────
+// Verifies the fix without needing a DB driver — the function source must
+// contain SUM(requests), not COUNT(*), so aggregated rows with total_requests>1
+// are counted correctly instead of as 1-per-row.
+
+describe("usageAnalytics queries use SUM(requests) not COUNT(*)", () => {
+  const queriesUsingCount = [
+    "getUsageSummary",
+    "getDailyUsage",
+    "getModelUsageRows",
+    "getProviderUsageRows",
+    "getServiceTierUsageRows",
+  ];
+
+  for (const fn of queriesUsingCount) {
+    it(`${fn} uses SUM(requests) not COUNT(*)`, () => {
+      const src = host[fn].toString();
+      assert.ok(src.includes("SUM(requests)"), `${fn} must use SUM(requests) for correct aggregated row counting`);
+      assert.ok(!src.match(/COUNT\(\*\)/), `${fn} must not use COUNT(*) which undercounts aggregated rows`);
+    });
+  }
+
+  it("getWeeklyPatternRows inner subquery uses SUM(requests)", () => {
+    const src = host.getWeeklyPatternRows.toString();
+    assert.ok(src.includes("SUM(requests)"), "getWeeklyPatternRows inner subquery must use SUM(requests)");
+  });
+
+  it("getUsageSummary uses SUM(CASE WHEN success=1 THEN requests ELSE 0 END) for successfulRequests", () => {
+    const src = host.getUsageSummary.toString();
+    assert.ok(
+      src.includes("SUM(CASE WHEN success = 1 THEN requests ELSE 0 END)"),
+      "successfulRequests must weight by requests, not count 1-per-row"
+    );
+  });
+
+  it("getModelUsageRows uses SUM(CASE WHEN success=1 THEN requests ELSE 0 END) for successfulRequests", () => {
+    const src = host.getModelUsageRows.toString();
+    assert.ok(
+      src.includes("SUM(CASE WHEN success = 1 THEN requests ELSE 0 END)"),
+      "successfulRequests must weight by requests, not count 1-per-row"
+    );
   });
 });
 

@@ -16,10 +16,13 @@ const {
 } = await import("../../src/shared/constants/modelSpecs.ts");
 
 test("T31: antigravity static catalog exposes client-visible Gemini preview IDs", () => {
-  // Antigravity exposes preview aliases to clients even though the upstream
-  // still accepts its internal model identifiers.
+  // Antigravity exposes client-visible Gemini IDs even though the upstream still
+  // accepts its internal model identifiers. #8013 (align official clients / callable
+  // catalog) retired the `gemini-3-pro-preview` alias, so assert the current
+  // client-visible top flash tier instead.
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
-  assert.ok(staticIds.includes("gemini-3-pro-preview"));
+  assert.ok(staticIds.includes("gemini-3.6-flash-high"));
+  assert.ok(!staticIds.includes("gemini-3-pro-preview"));
   // #3303 (agy parity, discussion #3184): the Gemini + Claude budget tiers ARE
   // client-visible on the Antigravity OAuth backend (Claude was never removed).
   assert.ok(staticIds.includes("gemini-3.1-pro-low"));
@@ -52,6 +55,7 @@ test("T34: max output tokens are capped by model spec", () => {
   assert.equal(capMaxOutputTokens("gemini-3-flash", 131072), 65536);
   assert.equal(capMaxOutputTokens("gemini-3-flash"), 65536);
   assert.equal(capMaxOutputTokens("gemini-3.1-pro-high", 131072), 65535);
+  assert.equal(capMaxOutputTokens("claude-opus-5", 200000), 128000);
   assert.equal(capMaxOutputTokens("claude-opus-4-8", 200000), 128000);
   assert.equal(capMaxOutputTokens("claude-opus-4-7", 200000), 128000);
   assert.equal(capMaxOutputTokens("anthropic.claude-sonnet-4-6", 200000), 64000);
@@ -67,6 +71,8 @@ test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup",
   assert.equal(getModelSpec("gemini-3-flash-preview").maxOutputTokens, 65536);
   assert.equal(getModelSpec("gemini-3.1-pro-preview").maxOutputTokens, 65535);
   assert.equal(getModelSpec("gemini-3.1-pro-preview-customtools").maxOutputTokens, 65535);
+  assert.equal(getModelSpec("claude-opus-5").contextWindow, 1000000);
+  assert.equal(getModelSpec("anthropic.claude-opus-5").maxOutputTokens, 128000);
   assert.equal(getModelSpec("claude-opus-4-7").contextWindow, 1000000);
   assert.equal(getModelSpec("claude-opus-4.8").maxOutputTokens, 128000);
   assert.equal(getModelSpec("claude-opus-4.7").maxOutputTokens, 128000);
@@ -96,6 +102,11 @@ test("opencode-go family: context/output caps match upstream provider docs", () 
   // Qwen3.x Plus / Max: 1M context, 65K output (Bailian)
   assert.equal(getModelSpec("qwen3-max").contextWindow, 1000000);
   assert.equal(getModelSpec("qwen3-max").maxOutputTokens, 65536);
+  assert.equal(getModelSpec("qwen3.8-max-preview").contextWindow, 1000000);
+  assert.equal(getModelSpec("qwen3.8-max-preview").maxOutputTokens, 65536);
+  assert.equal(getModelSpec("qwen3.8-max-preview").supportsThinking, true);
+  assert.equal(getModelSpec("qwen3.8-max-preview").supportsTools, true);
+  assert.equal(getModelSpec("qwen3.8-max-preview").supportsVision, true);
   assert.equal(getModelSpec("qwen3.7-max").contextWindow, 1000000);
   assert.equal(getModelSpec("qwen3-max-2026-01-23").contextWindow, 1000000);
   assert.equal(getModelSpec("qwen3.6-plus").contextWindow, 1000000);
@@ -132,6 +143,7 @@ test("opencode-go family: capMaxOutputTokens grants full upstream budget", () =>
   // Without explicit specs these models would fall back to __default__ (8192).
   // Assert they now receive the real upstream cap.
   assert.equal(capMaxOutputTokens("qwen3-max", 100000), 65536);
+  assert.equal(capMaxOutputTokens("qwen3.8-max-preview", 100000), 65536);
   assert.equal(capMaxOutputTokens("qwen3.7-max", 100000), 65536);
   assert.equal(capMaxOutputTokens("qwen3-max-2026-01-23", 100000), 65536);
   assert.equal(capMaxOutputTokens("kimi-k2.5", 300000), 262144);

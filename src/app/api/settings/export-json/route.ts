@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getSettings,
   getProviderConnections,
-  getProviderNodes,
+  getCachedProviderNodes,
   getCombos,
   getApiKeys,
 } from "@/lib/localDb";
@@ -69,7 +69,7 @@ export async function GET(request: Request) {
     const { password: _pw, requireLogin: _rl, ...safeSettings } = rawSettings;
 
     const providerConnections = await getProviderConnections();
-    const providerNodes = await getProviderNodes();
+    const providerNodes = await getCachedProviderNodes();
     const combosRaw = await getCombos();
     const apiKeys = await getApiKeys();
 

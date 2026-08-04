@@ -355,6 +355,30 @@ test("createDisconnectAwareStream keeps newlines escaped for Claude SSE errors",
   assert.doesNotMatch(text, /^claude line two/m);
 });
 
+// #7699/#7816 — heuristic is scoped to FORMATS.CLAUDE (/v1/messages); a
+// plain non-Claude completion with no [DONE]/message_stop must pass through.
+test("createDisconnectAwareStream does not append a synthetic error to a plain non-SSE OpenAI completion", async () => {
+  const transformStream = {
+    readable: new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode("plain forwarded bytes, no completion marker"));
+        controller.close();
+      },
+    }),
+    writable: { getWriter: () => ({ abort() {} }) },
+  };
+
+  const stream = createDisconnectAwareStream(
+    transformStream,
+    createStreamController({ clientResponseFormat: FORMATS.OPENAI })
+  );
+  const text = await readStreamText(stream);
+
+  assert.equal(text, "plain forwarded bytes, no completion marker");
+  assert.doesNotMatch(text, /event: error/);
+  assert.doesNotMatch(text, /"finish_reason":"error"/);
+});
+
 test("createDisconnectAwareStream cancel propagates disconnect reason and aborts the writer", async () => {
   let aborted = false;
   let disconnectEvent = null;

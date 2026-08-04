@@ -170,6 +170,19 @@ export async function validateOpenAILikeProvider({
       return { valid: false, error: `Provider unavailable (${chatRes.status})` };
     }
 
+    // #7284: A 429 on the chat probe means the key is accepted but this connection
+    // is rate/concurrency limited (e.g. always-throttled free tiers like opencode-zen).
+    // Keep valid:true (the key works) but surface a warning so the connection Test
+    // does not read as an unqualified green when real traffic will hit 429s.
+    // Mirrors validateBedrockProvider's existing 429 precedent above.
+    if (chatRes.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        warning: "Provider accepted the key but is rate limited (429)",
+      };
+    }
+
     return { valid: true, error: null };
   } catch (error: any) {
     return toValidationErrorResult(error);

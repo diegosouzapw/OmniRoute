@@ -4,11 +4,16 @@ import {
   getComboByName,
   getComboById,
   getComboByNameInsensitive,
-  getProviderNodes,
+  getCachedProviderNodes,
   getCustomModels,
 } from "@/lib/localDb";
 import { getCachedSettings } from "@/lib/localDb";
-import { parseModel, getModelInfoCore } from "@omniroute/open-sse/services/model.ts";
+import { getSyncedAvailableModels } from "@/lib/db/models";
+import {
+  parseModel,
+  getModelInfoCore,
+  splitSyncedEffortSuffix,
+} from "@omniroute/open-sse/services/model.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
 
 export { parseModel };
@@ -34,16 +39,41 @@ function getReservedProviderPrefixes(): Set<string> {
 }
 
 /**
- * Build a combined model alias map that merges both alias stores:
+ * Fold `settings.wildcardAliases` ({pattern,target}[]) — the store the Settings
+ * UI's "Wildcard Pattern" mode writes to (ModelAliasesUnified.tsx::addWildcardAlias
+ * -> PATCH /api/settings) — into `pattern -> target` map entries so the T13
+ * wildcard step in getModelInfoCore() (which treats every key of the merged alias
+ * map as a candidate glob pattern) can see them (#7693). Without this the
+ * feature persists but is never consulted at request time.
+ */
+function buildWildcardAliasMap(settings: Record<string, unknown>): Record<string, unknown> {
+  const wildcardEntries = Array.isArray(settings.wildcardAliases)
+    ? (settings.wildcardAliases as Array<{ pattern?: unknown; target?: unknown }>)
+    : [];
+  const wildcardMap: Record<string, unknown> = {};
+  for (const entry of wildcardEntries) {
+    if (entry && typeof entry.pattern === "string" && typeof entry.target === "string") {
+      wildcardMap[entry.pattern] = entry.target;
+    }
+  }
+  return wildcardMap;
+}
+
+/**
+ * Build a combined model alias map that merges all alias stores:
  * 1. DB-namespace aliases (key_value WHERE namespace='modelAliases') — set via
  *    /api/models/alias/ and seeded at startup.
- * 2. Settings-based aliases (settings.modelAliases) — set via the Settings UI and
+ * 2. Settings-based exact aliases (settings.modelAliases) — set via the Settings UI and
  *    /api/settings/model-aliases/ (stored as a JSON blob in namespace='settings').
+ * 3. Settings-based wildcard aliases (settings.wildcardAliases) — set via the Settings
+ *    UI's "Wildcard Pattern" mode, PATCH /api/settings (#7693).
  *
- * Settings-based aliases take priority so that UI configuration always wins.
- * Without this merge, aliases configured via the Settings UI were never consulted
- * during provider routing, causing provider inference (e.g. /^gpt-/ → openai) to
- * silently override them (issue #2618 / #2208).
+ * Settings-based exact aliases take priority over DB-namespace aliases so that UI
+ * configuration always wins. Without this merge, aliases configured via the Settings
+ * UI were never consulted during provider routing, causing provider inference (e.g.
+ * /^gpt-/ → openai) to silently override them (issue #2618 / #2208). Wildcard entries
+ * are folded in last: they are keyed by pattern string (containing `*`/`?`), which
+ * cannot collide with a real model id, so ordering never affects exact-alias lookups.
  */
 async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
   const [dbAliases, settings] = await Promise.all([
@@ -58,30 +88,147 @@ async function getCombinedModelAliases(): Promise<Record<string, unknown>> {
       ? (settings.modelAliases as Record<string, unknown>)
       : {};
 
-  // Settings-based aliases win over DB-namespace aliases on key collision
-  return { ...dbAliases, ...settingsAliases };
+  const wildcardMap = buildWildcardAliasMap(settings);
+
+  return { ...dbAliases, ...settingsAliases, ...wildcardMap };
 }
 
 /**
- * Look up custom-model metadata from the DB in a single read:
+ * Look up per-model metadata from custom and API-synced catalogs:
  *  - apiFormat: "responses" when the model is configured for the Responses API.
  *  - targetFormat: the optional per-model wire format override (#2905).
  */
-async function lookupCustomModelMeta(
+type RuntimeModelMeta = {
+  apiFormat?: string;
+  targetFormat?: string;
+  supportsThinking?: boolean;
+  alwaysThinking?: boolean;
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
+  // #7694: set when `modelId` carried a `-{effort}` suffix resolved against a synced
+  // model's own `supportedThinkingEfforts` (see `resolveSyncedModelIdAndEffort` below).
+  // Threaded through to `handleChatCore` -> `applyDefaultReasoningEffort` so the suffix
+  // becomes `reasoning_effort` only when the request itself carries no reasoning field.
+  resolvedThinkingEffort?: string;
+};
+
+// Providers that already own a native `-{effort}` suffix mechanism — never
+// double-resolve the generic synced suffix on top of theirs (#7694, mirrors the
+// catalog-side skip list in `open-sse/utils/syncedEffortVariants.ts`).
+const SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES = ["codex", "kimi"];
+
+function isSyncedEffortSkippedProvider(providerId: string): boolean {
+  return SYNCED_EFFORT_SKIP_PROVIDER_PREFIXES.some((prefix) => providerId.startsWith(prefix));
+}
+
+/**
+ * #7694: when `modelId` has no direct synced-model match, try stripping a trailing
+ * `-{effort}` token by testing it against each candidate synced model's OWN declared
+ * `supportedThinkingEfforts` (`splitSyncedEffortSuffix`) — never a blind/global effort
+ * list, so a model id that legitimately ends in an effort-like token is left untouched
+ * unless some synced model's real tier list says otherwise. Returns the original
+ * `modelId` with `effort: null` when nothing matches or the provider already owns its
+ * own suffix mechanism.
+ */
+function resolveSyncedModelIdAndEffort(
+  providerId: string,
+  modelId: string,
+  syncedModels: unknown
+): { modelId: string; effort: string | null } {
+  if (isSyncedEffortSkippedProvider(providerId) || !Array.isArray(syncedModels)) {
+    return { modelId, effort: null };
+  }
+  if (findSyncedModelMeta(syncedModels, modelId)) return { modelId, effort: null };
+
+  for (const candidate of syncedModels as Array<{ id?: unknown; supportedThinkingEfforts?: unknown }>) {
+    if (typeof candidate?.id !== "string" || !Array.isArray(candidate.supportedThinkingEfforts)) {
+      continue;
+    }
+    const attempt = splitSyncedEffortSuffix(
+      modelId,
+      candidate.supportedThinkingEfforts as string[]
+    );
+    if (attempt.effort && attempt.baseModel === candidate.id) {
+      return { modelId: attempt.baseModel, effort: attempt.effort };
+    }
+  }
+  return { modelId, effort: null };
+}
+
+function findCustomModelMeta(models: unknown, modelId: string): any {
+  if (!Array.isArray(models)) return undefined;
+  return (
+    models.find((model: any) => model.id === modelId) ??
+    models.find(
+      (model: any) =>
+        typeof model.id === "string" && model.id.toLowerCase() === modelId.toLowerCase()
+    )
+  );
+}
+
+function findSyncedModelMeta(models: unknown, modelId: string): any {
+  return Array.isArray(models) ? models.find((model: any) => model.id === modelId) : undefined;
+}
+
+function resolveRuntimeFormats(customMatch: any, syncedMatch: any): RuntimeModelMeta {
+  const apiFormat =
+    customMatch?.apiFormat === "responses" || syncedMatch?.apiFormat === "responses"
+      ? "responses"
+      : undefined;
+  const targetFormat =
+    typeof customMatch?.targetFormat === "string"
+      ? customMatch.targetFormat
+      : typeof syncedMatch?.targetFormat === "string"
+        ? syncedMatch.targetFormat
+        : undefined;
+  return { ...(apiFormat ? { apiFormat } : {}), ...(targetFormat ? { targetFormat } : {}) };
+}
+
+function copySyncedThinkingMetadata(metadata: RuntimeModelMeta, syncedMatch: any): void {
+  if (typeof syncedMatch?.supportsThinking === "boolean") {
+    metadata.supportsThinking = syncedMatch.supportsThinking;
+  }
+  if (syncedMatch?.alwaysThinking === true) metadata.alwaysThinking = true;
+  if (Array.isArray(syncedMatch?.supportedThinkingEfforts)) {
+    metadata.supportedThinkingEfforts = syncedMatch.supportedThinkingEfforts;
+  }
+  if (typeof syncedMatch?.defaultThinkingEffort === "string") {
+    metadata.defaultThinkingEffort = syncedMatch.defaultThinkingEffort;
+  }
+}
+
+function buildRuntimeModelMeta(customMatch: any, syncedMatch: any): RuntimeModelMeta {
+  const metadata = resolveRuntimeFormats(customMatch, syncedMatch);
+  copySyncedThinkingMetadata(metadata, syncedMatch);
+  return metadata;
+}
+
+async function lookupModelMeta(
   providerId: string,
   modelId: string
-): Promise<{ apiFormat?: string; targetFormat?: string }> {
+): Promise<{ modelId: string; metadata: RuntimeModelMeta }> {
   try {
-    const models = await getCustomModels(providerId);
-    if (!Array.isArray(models)) return {};
-    const match = models.find((m: any) => m.id === modelId);
-    if (!match) return {};
-    return {
-      apiFormat: match.apiFormat === "responses" ? "responses" : undefined,
-      targetFormat: typeof match.targetFormat === "string" ? match.targetFormat : undefined,
-    };
+    const [customModels, syncedModels] = await Promise.all([
+      getCustomModels(providerId),
+      getSyncedAvailableModels(providerId),
+    ]);
+    // #7694: no direct match on the raw modelId? try a synced-declared `-{effort}`
+    // suffix before falling back to the literal id, so `<prefix>/<model>-<tier>`
+    // resolves to the real base model + a resolved effort.
+    const { modelId: resolvedModelId, effort } = resolveSyncedModelIdAndEffort(
+      providerId,
+      modelId,
+      syncedModels
+    );
+    // #7364: exact match first; retain the case-insensitive custom-model fallback
+    // while also consulting the API-synced catalog for Kimi runtime metadata.
+    const customMatch = findCustomModelMeta(customModels, resolvedModelId);
+    const syncedMatch = findSyncedModelMeta(syncedModels, resolvedModelId);
+    const metadata = buildRuntimeModelMeta(customMatch, syncedMatch);
+    if (effort) metadata.resolvedThinkingEffort = effort;
+    return { modelId: resolvedModelId, metadata };
   } catch {
-    return {};
+    return { modelId, metadata: {} };
   }
 }
 
@@ -108,20 +255,11 @@ export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
   const { extendedContext } = parsed;
 
-  const attachCustomApiFormat = async (info: any) => {
+  const attachRuntimeModelMeta = async (info: any) => {
     if (!info?.provider || !info?.model) return info;
-    const { apiFormat, targetFormat } = await lookupCustomModelMeta(
-      String(info.provider),
-      String(info.model)
-    );
-    if (apiFormat || targetFormat) {
-      return {
-        ...info,
-        ...(apiFormat && { apiFormat }),
-        ...(targetFormat && { targetFormat }),
-      };
-    }
-    return info;
+    const { modelId, metadata } = await lookupModelMeta(String(info.provider), String(info.model));
+    const resolvedInfo = modelId !== info.model ? { ...info, model: modelId } : info;
+    return Object.keys(metadata).length > 0 ? { ...resolvedInfo, ...metadata } : resolvedInfo;
   };
 
   // Check custom provider nodes first (for both alias and non-alias formats)
@@ -144,7 +282,7 @@ export async function getModelInfo(modelStr) {
       // Match by node.prefix (user-defined alias) OR node.id (internal UUID id stored by
       // combo steps), so that combo targets using the internal node id still resolve
       // correctly (#2778).
-      const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
+      const openaiNodes = await getCachedProviderNodes({ type: "openai-compatible" });
       const matchedOpenAI = openaiNodes.find(
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
@@ -153,21 +291,20 @@ export async function getModelInfo(modelStr) {
           parsed.model as string,
           matchedOpenAI.prefix
         );
-        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+        const { modelId, metadata } = await lookupModelMeta(
           matchedOpenAI.id as string,
           normalizedModel
         );
         return {
           provider: matchedOpenAI.id,
-          model: normalizedModel,
+          model: modelId,
           extendedContext,
-          ...(apiFormat && { apiFormat }),
-          ...(targetFormat && { targetFormat }),
+          ...metadata,
         };
       }
 
       // Check Anthropic Compatible nodes
-      const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
+      const anthropicNodes = await getCachedProviderNodes({ type: "anthropic-compatible" });
       const matchedAnthropic = anthropicNodes.find(
         (node) => node.prefix === prefixToCheck || node.id === prefixToCheck
       );
@@ -176,16 +313,15 @@ export async function getModelInfo(modelStr) {
           parsed.model as string,
           matchedAnthropic.prefix
         );
-        const { apiFormat, targetFormat } = await lookupCustomModelMeta(
+        const { modelId, metadata } = await lookupModelMeta(
           matchedAnthropic.id as string,
           normalizedModel
         );
         return {
           provider: matchedAnthropic.id,
-          model: normalizedModel,
+          model: modelId,
           extendedContext,
-          ...(apiFormat && { apiFormat }),
-          ...(targetFormat && { targetFormat }),
+          ...metadata,
         };
       }
     }
@@ -204,10 +340,10 @@ export async function getModelInfo(modelStr) {
   }
 
   if (!parsed.isAlias) {
-    return await attachCustomApiFormat(await getModelInfoCore(modelStr, null));
+    return await attachRuntimeModelMeta(await getModelInfoCore(modelStr, null));
   }
 
-  return await attachCustomApiFormat(await getModelInfoCore(modelStr, getCombinedModelAliases));
+  return await attachRuntimeModelMeta(await getModelInfoCore(modelStr, getCombinedModelAliases));
 }
 
 /**

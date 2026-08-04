@@ -93,6 +93,25 @@ test("connection-level 5xx with a connectionId poisons exhaustedConnections (#17
   assert.equal(s.exhaustedProviders.size, 0);
 });
 
+test("request-scoped failed-response 502 does not exhaust the connection", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 502, headers: null },
+    fallbackResult: {},
+    errorText: "upstream reported a failed response without usable output",
+    structuredError: {
+      code: "upstream_response_failed",
+      type: "upstream_response_error",
+    },
+    sets: s,
+  });
+
+  assert.equal(exhausted, false);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.exhaustedConnections.size, 0);
+});
+
 test("connection-level 5xx without a connectionId poisons exhaustedProviders (#1731)", () => {
   const s = sets();
   applyComboTargetExhaustion(target({ connectionId: null }), {
@@ -362,4 +381,126 @@ test("gemini 524 DOES exhaust connection (cloudflare timeout)", () => {
     sets: s,
   });
   assert.equal(s.exhaustedConnections.has("gemini:gemini-key-abc"), true);
+});
+
+// #8133/#8137: auth-level failures (401/403) mean THAT connection's credentials are bad.
+// When the target carries a connectionId, only that connection is marked exhausted — sibling
+// connections on the same provider must stay eligible (#8137: whole-provider exhaustion wrongly
+// skipped healthy sibling connections). Only fall back to whole-provider exhaustion when no
+// connectionId is available.
+test("401 auth failure marks only that connection exhausted, not the whole provider (#8137)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 401 },
+    fallbackResult: {},
+    errorText: "Missing API key.",
+    sets: s,
+  });
+  assert.equal(exhausted, true);
+  assert.equal(
+    s.exhaustedProviders.size,
+    0,
+    "must NOT exhaust the whole provider when a connectionId is present"
+  );
+  assert.ok(
+    s.exhaustedConnections.has("test-dedup-provider:conn-1"),
+    "must exhaust the specific connection"
+  );
+  assert.equal(s.transientRateLimitedProviders.size, 0);
+});
+
+test("403 forbidden marks only that connection exhausted, not the whole provider (#8137)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target(), {
+    ...baseOpts,
+    result: { status: 403 },
+    fallbackResult: {},
+    errorText: "Forbidden.",
+    sets: s,
+  });
+  assert.equal(exhausted, true);
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.ok(s.exhaustedConnections.has("test-dedup-provider:conn-1"));
+});
+
+test("401 without a connectionId falls back to whole-provider exhaustion (#8133)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target({ connectionId: null }), {
+    ...baseOpts,
+    result: { status: 401 },
+    fallbackResult: {},
+    errorText: "Missing API key.",
+    sets: s,
+  });
+  assert.equal(exhausted, true);
+  assert.ok(
+    s.exhaustedProviders.has("test-dedup-provider"),
+    "no connectionId to scope to — must fall back to whole-provider"
+  );
+  assert.equal(s.exhaustedConnections.size, 0);
+});
+
+test("401 on unknown provider does NOT mark anything (guard)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(target({ provider: "unknown" }), {
+    ...baseOpts,
+    result: { status: 401 },
+    fallbackResult: {},
+    errorText: "Missing API key.",
+    sets: s,
+  });
+  assert.equal(exhausted, false, "unknown provider must not be marked exhausted");
+  assert.equal(s.exhaustedProviders.size, 0);
+  assert.equal(s.exhaustedConnections.size, 0);
+});
+
+test("401 on per-model-quota provider marks only the failing connection (auth is connection-scoped, not model-specific)", () => {
+  const s = sets();
+  const exhausted = applyComboTargetExhaustion(
+    target({ provider: "gemini", connectionId: "gemini-conn-1" }),
+    {
+      ...baseOpts,
+      result: { status: 401 },
+      fallbackResult: {},
+      errorText: "Missing API key.",
+      rawModel: "gemini-2.0-flash",
+      sets: s,
+    }
+  );
+  assert.equal(exhausted, true);
+  assert.equal(s.exhaustedProviders.size, 0, "must not exhaust the whole provider");
+  assert.ok(
+    s.exhaustedConnections.has("gemini:gemini-conn-1"),
+    "auth failure is scoped to the failing connection"
+  );
+});
+
+// #8137 regression: a SIBLING connection on the SAME provider must NOT be skipped when a
+// DIFFERENT connection on that provider returned 401/403 — proves the fix at the call-site
+// level (getExhaustedTargetSkipReason-style check), not just the raw Set contents above.
+test("sibling connection on the same provider is NOT skipped after a different connection's 401 (#8137)", () => {
+  const s = sets();
+  const failingTarget = target({ provider: "test-dedup-provider", connectionId: "conn-1" });
+  const siblingTarget = target({ provider: "test-dedup-provider", connectionId: "conn-2" });
+
+  applyComboTargetExhaustion(failingTarget, {
+    ...baseOpts,
+    result: { status: 401 },
+    fallbackResult: {},
+    errorText: "Missing API key.",
+    sets: s,
+  });
+
+  // Whole-provider check (what the OLD buggy code would have used) must be false.
+  assert.equal(s.exhaustedProviders.has(siblingTarget.provider), false);
+  // Connection-level check for the sibling's OWN connection must also be false — it was never
+  // marked, so combo routing must still consider it eligible.
+  assert.equal(
+    s.exhaustedConnections.has(`${siblingTarget.provider}:${siblingTarget.connectionId}`),
+    false,
+    "sibling connection must remain eligible after a different connection's auth failure"
+  );
+  // The failing connection itself IS marked.
+  assert.ok(s.exhaustedConnections.has(`${failingTarget.provider}:${failingTarget.connectionId}`));
 });

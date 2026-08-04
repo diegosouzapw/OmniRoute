@@ -54,12 +54,13 @@ async function postHandler(request, context) {
   }
   const body = validation.data;
 
-  // Auth check
+  // Auth check — when REQUIRE_API_KEY=false, ignore presented invalid keys
+  // so anonymous access works the same as all other client APIs (#7785).
   const apiKeyRaw = extractApiKey(request);
   if (isRequireApiKeyEnabled() && !apiKeyRaw) {
     return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
   }
-  if (apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {
+  if (isRequireApiKeyEnabled() && apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {
     return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
   }
 

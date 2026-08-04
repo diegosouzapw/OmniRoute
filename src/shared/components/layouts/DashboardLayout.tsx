@@ -13,6 +13,7 @@ import {
   installDashboardCsrfFetch,
   prefetchDashboardCsrfToken,
 } from "@/shared/utils/dashboardCsrf";
+import { installBasePathFetch } from "@/shared/utils/basePathFetch";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
@@ -21,14 +22,15 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const isElectron = useIsElectron();
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof globalThis.window === "undefined") return false;
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
     try {
-      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
+      if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true") {
+        setTimeout(() => setCollapsed(true), 0);
+      }
+    } catch {}
+  }, []);
 
   const isMacElectron =
     isElectron &&
@@ -46,9 +48,15 @@ export default function DashboardLayout({ children }) {
   }, [isMacElectron]);
 
   useInsertionEffect(() => {
+    // basePath rewrite must wrap native fetch first so CSRF's originalFetch
+    // chain (and bare `fetch("/api/...")` call sites) hit the subpath.
+    const uninstallBasePathFetch = installBasePathFetch();
     const uninstallDashboardCsrfFetch = installDashboardCsrfFetch();
     void prefetchDashboardCsrfToken();
-    return uninstallDashboardCsrfFetch;
+    return () => {
+      uninstallDashboardCsrfFetch();
+      uninstallBasePathFetch();
+    };
   }, []);
 
   useEffect(() => {

@@ -26,8 +26,11 @@ export async function GET(request: Request): Promise<Response> {
   if (authError) return authError;
 
   try {
-    const pools = listPools();
-    return NextResponse.json({ pools });
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.has("limit") ? Number(searchParams.get("limit")) : undefined;
+    const offset = searchParams.has("offset") ? Number(searchParams.get("offset")) : 0;
+    const result = listPools(limit !== undefined ? { limit, offset } : undefined);
+    return NextResponse.json({ pools: result.items, total: result.total });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to list pools";
     return NextResponse.json(buildErrorBody(500, message), { status: 500 });

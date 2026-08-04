@@ -56,6 +56,9 @@ test("POST /api/providers auto-sync uses the trusted internal origin (not reques
 });
 
 test("POST /api/sync/initialize never forwards the client Origin to model sync", () => {
+  // Anchor: the route handler itself, so the SSRF guards below cannot pass against a
+  // file that was moved, renamed, or split apart.
+  assert.match(syncInitializeRouteSrc, /export async function POST\(/);
   assert.doesNotMatch(
     syncInitializeRouteSrc,
     /request\.headers\.get\(["']origin["']\)/,

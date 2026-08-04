@@ -4,15 +4,21 @@
  *
  * Extracted from handleChatCore's request-setup compression path: persist the per-run compression
  * analytics row (cost saved, RTK raw-output pointers) plus the per-engine breakdown of a stacked
- * run. Returns the write promise (the caller assigns it to compressionAnalyticsWritePromise) and
- * swallows its own errors — best-effort, off the hot path, never throws into a request. Behaviour
- * is byte-identical to the previous inline block. Split into small builders so each stays under the
- * complexity cap.
+ * run. Returns the write promise so the caller can finish persistence before dispatching the
+ * upstream request. Errors remain best-effort and never throw into a request, but they are logged
+ * at warning level so a broken analytics path is observable. Split into small builders so each
+ * stays under the complexity cap.
  */
 
 import { type CompressionStats } from "../../services/compression/stats.ts";
 
-type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
+type LoggerLike =
+  | {
+      debug?: (...args: unknown[]) => void;
+      warn?: (...args: unknown[]) => void;
+    }
+  | null
+  | undefined;
 
 type WriteOpts = {
   stats: CompressionStats;
@@ -29,6 +35,12 @@ type WriteOpts = {
 };
 
 type RtkPointer = { id?: string | null; bytes?: number | null };
+
+type CalculateCost = typeof import("@/lib/usage/costCalculator").calculateCost;
+
+type WriteDependencies = {
+  calculateCost?: CalculateCost;
+};
 
 function buildRtkPointerFields(rtkPointers: RtkPointer[]) {
   return {
@@ -109,7 +121,7 @@ export function writeCompressionSkip(opts: WriteOpts, skipReason: string): Promi
         skip_reason: skipReason,
       });
     } catch (err) {
-      opts.log?.debug?.(
+      opts.log?.warn?.(
         "COMPRESSION",
         "Compression skip-analytics write skipped: " +
           (err instanceof Error ? err.message : String(err))
@@ -118,29 +130,42 @@ export function writeCompressionSkip(opts: WriteOpts, skipReason: string): Promi
   })();
 }
 
-export function writeCompressionAnalytics(opts: WriteOpts): Promise<void> {
+export function writeCompressionAnalytics(
+  opts: WriteOpts,
+  dependencies: WriteDependencies = {}
+): Promise<void> {
   return (async () => {
     try {
-      const { insertCompressionAnalyticsRow, insertCompressionEngineBreakdown } = await import(
-        "@/lib/db/compressionAnalytics"
-      );
-      const { calculateCost } = await import("@/lib/usage/costCalculator");
+      const { insertCompressionAnalyticsRow, insertCompressionEngineBreakdown } =
+        await import("@/lib/db/compressionAnalytics");
       const { stats } = opts;
       const tokensSaved = Math.max(0, stats.originalTokens - stats.compressedTokens);
       const rtkPointers = (stats.rtkRawOutputPointers ?? []) as RtkPointer[];
-      const estimatedUsdSaved = await calculateCost(
-        opts.provider ?? "",
-        opts.effectiveModel ?? "",
-        { input: tokensSaved },
-        { serviceTier: opts.effectiveServiceTier }
+      let estimatedUsdSaved = 0;
+      try {
+        const calculateCost =
+          dependencies.calculateCost ?? (await import("@/lib/usage/costCalculator")).calculateCost;
+        estimatedUsdSaved = await calculateCost(
+          opts.provider ?? "",
+          opts.effectiveModel ?? "",
+          { input: tokensSaved },
+          { serviceTier: opts.effectiveServiceTier }
+        );
+      } catch (err) {
+        opts.log?.debug?.(
+          "COMPRESSION",
+          "Compression cost estimate skipped: " + (err instanceof Error ? err.message : String(err))
+        );
+      }
+      insertCompressionAnalyticsRow(
+        buildAnalyticsRow(opts, tokensSaved, rtkPointers, estimatedUsdSaved)
       );
-      insertCompressionAnalyticsRow(buildAnalyticsRow(opts, tokensSaved, rtkPointers, estimatedUsdSaved));
       const breakdownRows = buildEngineBreakdownRows(stats, opts.skillRequestId);
       if (breakdownRows.length > 0) {
         insertCompressionEngineBreakdown(breakdownRows);
       }
     } catch (err) {
-      opts.log?.debug?.(
+      opts.log?.warn?.(
         "COMPRESSION",
         "Compression analytics write skipped: " + (err instanceof Error ? err.message : String(err))
       );

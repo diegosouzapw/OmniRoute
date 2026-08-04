@@ -3,16 +3,16 @@ import { withInjectionGuard } from "@/middleware/promptInjectionGuard";
 import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
 } from "@/sse/services/auth";
 import {
   parseImageModel,
   getImageProvider,
   getImageModelEntry,
+  modalitiesRequireImageInput,
 } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import { isAllRateLimitedCredentials } from "@/app/api/v1/_shared/rateLimit";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
@@ -26,6 +26,8 @@ import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { calculateModalCost } from "@/lib/usage/costCalculator";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { getSpecialtyModelsResponse } from "@/app/api/v1/_shared/specialtyCatalog";
+import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
+import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +105,11 @@ async function postHandler(request, context) {
   const body = validation.data;
   const startTime = Date.now();
 
+  // Authenticate before policy enforcement. Policy checks intentionally allow
+  // keyless local mode and assume the route has already rejected invalid keys.
+  const authRejection = await enforceClientApiRouteAuth(request);
+  if (authRejection) return authRejection;
+
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
@@ -150,7 +157,13 @@ async function postHandler(request, context) {
   const imageModelEntry = getImageModelEntry(body.model);
   const inputModalities = imageModelEntry?.inputModalities || ["text"];
   const requiresPrompt = inputModalities.includes("text");
-  const requiresImageInput = inputModalities.includes("image");
+  // imageRequired is an explicit registry override for models that list "text" among
+  // their modalities (they accept a prompt) but mechanically require an input image
+  // regardless — e.g. Stability AI's dedicated edit/control/upscale endpoints. Without
+  // it, modalitiesRequireImageInput() would infer "image optional" for any model that
+  // also lists "text", which is wrong for those.
+  const requiresImageInput =
+    Boolean(imageModelEntry?.imageRequired) || modalitiesRequireImageInput(inputModalities);
   const hasPrompt = typeof body.prompt === "string" && body.prompt.trim().length > 0;
   const hasImageInput = hasImageGenerationInput(body);
 
@@ -202,6 +215,14 @@ async function postHandler(request, context) {
         credentials.retryAfterHuman
       );
     }
+  } else if (providerConfig && providerConfig.authType === "none") {
+    // #6928: best-effort per-connection base-URL override lookup for local
+    // no-auth media providers (ComfyUI). A connection is optional here — unlike
+    // the authType !== "none" branch above, we never 400 when none exists.
+    const localCredentials = await getProviderCredentialsWithQuotaPreflight(provider);
+    if (localCredentials && !isAllRateLimitedCredentials(localCredentials)) {
+      credentials = localCredentials;
+    }
   }
 
   // Resolve proxy for the connection if credentials exist (#1904)
@@ -215,14 +236,21 @@ async function postHandler(request, context) {
   }
 
   const generateImage = () =>
-    handleImageGeneration({
-      body,
-      credentials,
-      log,
-      ...(isCustomModel && { resolvedProvider: provider }),
-      signal: request.signal,
-      clientHeaders: publicBaseUrlHeaders(request.headers),
-    });
+    runWithCallLogApiKeyContext(
+      {
+        apiKeyId: policy.apiKeyInfo?.id ?? null,
+        apiKeyName: policy.apiKeyInfo?.name ?? null,
+      },
+      () =>
+        handleImageGeneration({
+          body,
+          credentials,
+          log,
+          ...(isCustomModel && { resolvedProvider: provider }),
+          signal: request.signal,
+          clientHeaders: publicBaseUrlHeaders(request.headers),
+        })
+    );
 
   // Execute with proxy context when available, direct otherwise (#1904)
   const result = await (credentials?.connectionId

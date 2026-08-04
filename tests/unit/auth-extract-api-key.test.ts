@@ -90,6 +90,48 @@ test("extractApiKey accepts Anthropic-Version (TitleCase) header", () => {
   assert.equal(extractApiKey(req), "sk-titlecase-version");
 });
 
+test("extractApiKey returns the key from x-goog-api-key when Authorization and x-api-key are absent (#7034)", () => {
+  const req = makeRequest({ "x-goog-api-key": "sk-goog-native" });
+  assert.equal(extractApiKey(req), "sk-goog-native");
+});
+
+test("extractApiKey accepts uppercase X-Goog-Api-Key header casing (#7034)", () => {
+  const req = makeRequest({ "X-Goog-Api-Key": "sk-goog-uppercase" });
+  assert.equal(extractApiKey(req), "sk-goog-uppercase");
+});
+
+test("extractApiKey trims surrounding whitespace from x-goog-api-key value (#7034)", () => {
+  const req = makeRequest({ "x-goog-api-key": "   sk-goog-padded   " });
+  assert.equal(extractApiKey(req), "sk-goog-padded");
+});
+
+test("extractApiKey returns null when x-goog-api-key contains only whitespace (#7034)", () => {
+  const req = makeRequest({ "x-goog-api-key": "   " });
+  assert.equal(extractApiKey(req), null);
+});
+
+test("extractApiKey prefers Bearer over x-goog-api-key when both are present (#7034)", () => {
+  const req = makeRequest({
+    Authorization: "Bearer sk-bearer-wins",
+    "x-goog-api-key": "sk-goog-loser",
+  });
+  assert.equal(extractApiKey(req), "sk-bearer-wins");
+});
+
+test("extractApiKey prefers x-api-key (with anthropic-version) over x-goog-api-key when both are present (#7034)", () => {
+  const req = makeRequest({
+    "x-api-key": "sk-anthropic-wins",
+    "x-goog-api-key": "sk-goog-loser",
+    ...ANTHROPIC,
+  });
+  assert.equal(extractApiKey(req), "sk-anthropic-wins");
+});
+
+test("extractApiKey does not require anthropic-version for the x-goog-api-key fallback (#7034)", () => {
+  const req = makeRequest({ "x-goog-api-key": "sk-goog-no-version-needed" });
+  assert.equal(extractApiKey(req), "sk-goog-no-version-needed");
+});
+
 test("extractApiKey extracts a path-scoped token from /api/v1/vscode/<token>/...", () => {
   const req = new Request("https://omniroute.test/api/v1/vscode/sk-test-path-token/models");
   assert.equal(extractApiKey(req), "sk-test-path-token");

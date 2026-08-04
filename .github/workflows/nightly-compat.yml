@@ -66,12 +66,25 @@ jobs:
         with:
           ref: ${{ needs.resolve-branch.outputs.target }}
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: "26"
           cache: npm
       - uses: ./.github/actions/npm-ci-retry
+      # #8090 — this is the ONLY Node 26 build in the whole CI matrix (ci.yml pins
+      # CI_NODE_VERSION=24). It failed every nightly with the runner-reclaimed
+      # signature ("The runner has received a shutdown signal" / "The operation was
+      # canceled", no exit code) always at the same Turbopack compile phase — a
+      # classic OOM kill on the memory-constrained ubuntu-latest runner. Turbopack's
+      # native (Rust, off-V8-heap) allocation is NOT bounded by --max-old-space-size
+      # and peaks far higher than webpack on this large module graph (#6409), and is
+      # heavier still under Node 26. Use the documented webpack fallback here: it still
+      # validates that the app *builds* on Node 26 (the point of this compat job) at a
+      # much lower memory peak. Turbopack-on-Node-24 stays covered by ci.yml's build
+      # job. See docs/reference/ENVIRONMENT.md (OMNIROUTE_USE_TURBOPACK) and #6409.
       - run: npm run build
+        env:
+          OMNIROUTE_USE_TURBOPACK: "0"
 
   compat-tests:
     name: Node ${{ matrix.node }} Compat Tests (${{ matrix.shard }}/4)
@@ -93,7 +106,7 @@ jobs:
         with:
           ref: ${{ needs.resolve-branch.outputs.target }}
           persist-credentials: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
           cache: npm

@@ -145,6 +145,14 @@ test("6A.8 P1 RESOLVED: spawn-capable system/db-backups routes are classified lo
   assert.equal(isLocalOnlyPath("/api/db-backups/exportAll"), true);
 });
 
+test("#7948: /api/acp/agents (transitive execFileSync via registry) is classified local-only", () => {
+  // /api/acp/agents is spawn-capable only transitively (route.ts imports
+  // src/lib/acp/registry.ts, which calls execFileSync) — the source-scan
+  // subcheck above only greps the route file itself, so it cannot catch this
+  // class of gap. This assertion is the direct regression guard for #7948.
+  assert.equal(isLocalOnlyPath("/api/acp/agents"), true);
+});
+
 test("6A.8: spawn-capable routes in SPAWN_CAPABLE_ROUTE_ROOTS are still all classified local-only", async () => {
   // The original subcheck (SPAWN_CAPABLE_ROUTE_ROOTS) must still pass.
   // This test is a regression guard — the new source-scan does not break the old check.

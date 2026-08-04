@@ -6,7 +6,12 @@
 import { z } from "zod";
 import { installCertResult, uninstallCert, checkCertInstalled } from "@/mitm/cert/install";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
-import { getCachedPassword } from "@/mitm/manager";
+import { getCachedPassword, setCachedPassword } from "@/mitm/manager";
+import {
+  isMitmSudoPasswordRequired,
+  normalizeMitmSudoPasswordInput,
+  resolveMitmSudoPassword,
+} from "@/mitm/sudoGate";
 import path from "path";
 import fs from "fs";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
@@ -37,8 +42,14 @@ export async function GET(): Promise<Response> {
 export async function POST(request: Request): Promise<Response> {
   const raw = await request.json().catch(() => ({}));
   const parsed = CertTrustBodySchema.safeParse(raw);
-  const sudoPassword =
-    (parsed.success ? parsed.data.sudoPassword : undefined) ?? getCachedPassword() ?? "";
+  const sudoPassword = resolveMitmSudoPassword(
+    parsed.success ? parsed.data.sudoPassword : undefined,
+    getCachedPassword()
+  );
+
+  if (isMitmSudoPasswordRequired(sudoPassword)) {
+    return createErrorResponse({ status: 400, message: "Missing sudoPassword" });
+  }
 
   try {
     const crtPath = certPath();
@@ -50,6 +61,12 @@ export async function POST(request: Request): Promise<Response> {
     }
     const result = await installCertResult(sudoPassword, crtPath);
     if (result.installed) {
+      const suppliedPassword = parsed.success
+        ? normalizeMitmSudoPasswordInput(parsed.data.sudoPassword)
+        : "";
+      if (process.platform !== "win32" && suppliedPassword) {
+        setCachedPassword(suppliedPassword);
+      }
       const trusted = await checkCertInstalled(crtPath);
       return Response.json({ ok: true, trusted });
     }
@@ -83,8 +100,14 @@ export async function POST(request: Request): Promise<Response> {
 export async function DELETE(request: Request): Promise<Response> {
   const raw = await request.json().catch(() => ({}));
   const parsed = CertTrustBodySchema.safeParse(raw);
-  const sudoPassword =
-    (parsed.success ? parsed.data.sudoPassword : undefined) ?? getCachedPassword() ?? "";
+  const sudoPassword = resolveMitmSudoPassword(
+    parsed.success ? parsed.data.sudoPassword : undefined,
+    getCachedPassword()
+  );
+
+  if (isMitmSudoPasswordRequired(sudoPassword)) {
+    return createErrorResponse({ status: 400, message: "Missing sudoPassword" });
+  }
 
   try {
     const crtPath = certPath();
@@ -93,6 +116,12 @@ export async function DELETE(request: Request): Promise<Response> {
       return Response.json({ ok: true, trusted: false });
     }
     await uninstallCert(sudoPassword, crtPath);
+    const suppliedPassword = parsed.success
+      ? normalizeMitmSudoPasswordInput(parsed.data.sudoPassword)
+      : "";
+    if (process.platform !== "win32" && suppliedPassword) {
+      setCachedPassword(suppliedPassword);
+    }
     const trusted = await checkCertInstalled(crtPath);
     return Response.json({ ok: true, trusted });
   } catch (err) {

@@ -1,17 +1,24 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { KiroService } from "@/lib/oauth/services/kiro";
-import { createProviderConnection, isCloudEnabled } from "@/models";
+import {
+  createProviderConnection,
+  getProviderConnections,
+  updateProviderConnection,
+  isCloudEnabled,
+} from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { KIRO_CONFIG } from "@/lib/oauth/constants/oauth";
+import { findKiroConnectionByIdentity } from "@/lib/oauth/kiroConnectionIdentity";
+import { classifyKiroSocialPoll } from "@/lib/oauth/kiroSocialPoll";
 
 const socialExchangeSchema = z.object({
   deviceCode: z.string().min(1, "Missing deviceCode or provider"),
-  provider: z.string().min(1, "Missing deviceCode or provider"),
-  targetProvider: z.string().optional(),
+  provider: z.enum(["google", "github"]),
+  targetProvider: z.enum(["kiro", "amazon-q"]).optional(),
 });
 
 /**
@@ -57,19 +64,25 @@ export async function POST(request: Request) {
     });
 
     const data = await response.json();
+    const poll = classifyKiroSocialPoll(response.ok, response.status, data);
 
-    if (!response.ok || data.error === "authorization_pending" || data.error === "slow_down") {
+    if (poll.kind === "pending") {
       return NextResponse.json({
+        success: false,
         pending: true,
-        error: data.error || "authorization_pending",
+        error: poll.error,
       });
     }
 
-    if (!data.accessToken && !data.refreshToken) {
-      return NextResponse.json({
-        pending: true,
-        error: data.error || "no_tokens",
-      });
+    if (poll.kind === "error") {
+      return NextResponse.json(
+        {
+          success: false,
+          pending: false,
+          error: poll.error,
+        },
+        { status: poll.status }
+      );
     }
 
     const kiroService = new KiroService();
@@ -84,16 +97,30 @@ export async function POST(request: Request) {
       providerSpecificData.profileArn = data.profileArn;
     }
 
-    const connection: any = await createProviderConnection({
-      provider: targetProvider || "kiro",
-      authType: "oauth",
+    const resolvedProvider = targetProvider || "kiro";
+    const record = {
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
       expiresAt: new Date(Date.now() + (data.expiresIn || 3600) * 1000).toISOString(),
       email: email || null,
       providerSpecificData,
       testStatus: "active",
+      isActive: true,
+    };
+    const existing = await getProviderConnections({ provider: resolvedProvider });
+    const match = findKiroConnectionByIdentity(existing, {
+      authType: "oauth",
+      profileArn: data.profileArn,
+      email,
     });
+    const connection: any =
+      typeof match?.id === "string"
+        ? await updateProviderConnection(match.id, record)
+        : await createProviderConnection({
+            provider: resolvedProvider,
+            authType: "oauth",
+            ...record,
+          });
 
     await syncToCloudIfEnabled();
 

@@ -17,7 +17,7 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (237 providers, 75 executors)
+- OpenAI-compatible API surface for CLI/tools (271 providers, 86 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
@@ -175,7 +175,7 @@ flowchart LR
     end
 
     subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qwen/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P1[OAuth Providers\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
         P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
         P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
     end
@@ -481,7 +481,7 @@ the global circuit breaker / connection cooldown / model lockout layers:
 - Antigravity 429 engine: `open-sse/services/antigravity429Engine.ts` (rotates
   identity, scrubs response headers, drives credits/version tracking via
   `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`,
-  `antigravityIdentity.ts`, `antigravityObfuscation.ts`, `antigravityVersion.ts`)
+  `antigravityIdentity.ts`, `antigravityVersion.ts`)
 - ModelScope quota policy: `open-sse/services/modelscopePolicy.ts`
 - Claude Code CCH (Compatibility Channel Handshake): `open-sse/services/claudeCodeCCH.ts`,
   plus `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
@@ -948,7 +948,6 @@ All other providers (including custom compatible nodes) use the `DefaultExecutor
 | GitHub Copilot    | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
 | Cursor            | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
 | Kiro              | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
-| Qwen              | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
 | Qoder             | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
 | Kilo Code         | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
 | Cline             | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |

@@ -5,13 +5,36 @@
 
 import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 
-// Map an upstream request URL to the provider id it targets. Mirrors the URL
-// shapes asserted in combo-routing-e2e.test.ts. Extend as providers are added.
+// Map an upstream request URL to the provider id it targets.
+//
+// Classification is by HOST, not by path shape. Path shapes are ambiguous in
+// both directions now that the catalog has hundreds of providers:
+//   - `/chat/completions` is served by dozens of OpenAI-compatible upstreams
+//     (e.g. https://opencode.ai/zen/v1/chat/completions), so matching on it
+//     mislabelled other providers as "openai";
+//   - OpenAI itself dispatches the GPT-5.6 family to `/v1/responses`, so its
+//     own calls stopped matching and came back "unknown".
+// The host is what actually identifies the upstream, so we key on that.
+//
+// Unrecognised hosts return `host:<hostname>` rather than a bare "unknown", so
+// an unexpected dispatch names itself in the assertion message instead of
+// forcing a debugging round-trip.
+const PROVIDER_BY_HOST: Record<string, string> = {
+  "api.openai.com": "openai",
+  "api.anthropic.com": "claude",
+  "generativelanguage.googleapis.com": "gemini",
+  "chatgpt.com": "codex",
+  "auth.openai.com": "codex",
+};
+
 export function providerFromUrl(url: string): string {
-  if (url.includes("?beta=true")) return "claude";
-  if (url.endsWith("generateContent") || url.includes(":generateContent")) return "gemini";
-  if (url.includes("/chat/completions")) return "openai";
-  return "unknown";
+  let host: string;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return "unknown";
+  }
+  return PROVIDER_BY_HOST[host] ?? `host:${host}`;
 }
 
 export type DispatchCall = {

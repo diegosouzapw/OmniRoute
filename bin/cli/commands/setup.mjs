@@ -26,6 +26,7 @@ function wantsProviderSetup(opts) {
 
 async function resolvePassword(opts, prompt, nonInteractive) {
   if (opts.password) return opts.password;
+  if (process.env.INITIAL_PASSWORD) return process.env.INITIAL_PASSWORD;
   if (nonInteractive) return "";
 
   const answer = await prompt.ask("Set an admin password now? [y/N]", "N");

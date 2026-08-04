@@ -13,11 +13,17 @@
 
 import { getModelContextLimit } from "../../../src/lib/modelCapabilities";
 import { getComboModelString, normalizeComboStep } from "../../../src/lib/combos/steps.ts";
+import {
+  getProviderByAlias,
+  getProviderById,
+} from "../../../src/shared/constants/providers.ts";
 import { estimateTokens } from "../contextManager.ts";
 import { getResolvedModelCapabilities } from "../modelCapabilities.ts";
 import { parseModel } from "../model.ts";
 import { dedupeTargetsByExecutionKey, isRecord } from "./comboData.ts";
 import { getTargetProvider, MAX_COMBO_DEPTH } from "./comboPredicates.ts";
+import { evaluateContextLimit } from "./contextOverrideGate.ts";
+import { hasEstimableContent } from "./knownContextOverflow.ts";
 import {
   normalizeModelEntry,
   orderTargetsForWeightedFallback,
@@ -33,6 +39,22 @@ import type {
   ResolvedComboTarget,
   ResolvedComboUnit,
 } from "./types.ts";
+
+/**
+ * #8488 / #5240: web-cookie (and similar) providers honestly advertise
+ * registry toolCalling:false but still run the prompt-emulated tool shim.
+ * Combo tools filters must keep those targets eligible so fail-closed does
+ * not regress emulation-only combos (e.g. all chatgpt-web).
+ */
+export function providerSupportsEmulatedToolCalling(
+  providerIdOrAlias: string | null | undefined
+): boolean {
+  if (!providerIdOrAlias) return false;
+  const provider =
+    getProviderById(providerIdOrAlias) || getProviderByAlias(providerIdOrAlias) || null;
+  if (!provider || typeof provider !== "object") return false;
+  return (provider as { toolCalling?: unknown }).toolCalling === "emulated";
+}
 
 function toTrimmedString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
@@ -409,7 +431,7 @@ export function getModelContextLimitForModelString(modelStr: string) {
   return getModelContextLimit(provider, model);
 }
 
-type RequestCompatibilityRequirements = {
+export type RequestCompatibilityRequirements = {
   requiresTools: boolean;
   requiresVision: boolean;
   requiresStructuredOutput: boolean;
@@ -438,7 +460,7 @@ function requestRequiresStructuredOutput(body: Record<string, unknown>): boolean
 function estimateRequestInputTokens(body: Record<string, unknown>): number {
   const estimatePayload: Record<string, unknown> = {};
   for (const key of ["messages", "input", "tools", "functions", "response_format"]) {
-    if (body[key] !== undefined) estimatePayload[key] = body[key];
+    if (hasEstimableContent(body[key])) estimatePayload[key] = body[key];
   }
   return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
 }
@@ -460,7 +482,7 @@ function valueContainsImagePart(value: unknown, depth = 0): boolean {
   return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
 }
 
-function deriveRequestCompatibilityRequirements(
+export function deriveRequestCompatibilityRequirements(
   body: Record<string, unknown>
 ): RequestCompatibilityRequirements {
   const estimatedInputTokens = estimateRequestInputTokens(body);
@@ -486,25 +508,49 @@ function exceedsKnownOutputLimit(
   return maxOutputTokens < requestedOutputTokens;
 }
 
-function getKnownContextLimit(capabilities: {
-  maxInputTokens?: number | null;
-  contextWindow?: number | null;
-}): number | null {
-  return capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
-}
-
 function hasKnownCompatibleContextLimit(
   target: ResolvedComboTarget,
-  requiredContextTokens: number
+  requirements: RequestCompatibilityRequirements
 ): boolean {
-  if (requiredContextTokens <= 0) return false;
+  if (requirements.requiredContextTokens <= 0) return false;
   const capabilities = getResolvedModelCapabilities(target.modelStr);
-  const contextLimit = getKnownContextLimit(capabilities);
-  return contextLimit !== null && contextLimit >= requiredContextTokens;
+  return evaluateContextLimit(capabilities, requirements, target.modelStr) === true;
 }
 
 function hasOnlyContextWindowFailures(reasons: string[]): boolean {
   return reasons.length > 0 && reasons.every((reason) => reason === "context_window");
+}
+
+/**
+ * #8332: vision is a hard requirement, not a soft preference — a target whose vision
+ * support is not confirmed can never succeed on an image_url request. Callers
+ * reconsidering compat-rejected targets (fallback tiers, degrade-to-unfiltered) MUST
+ * exclude these via this predicate.
+ */
+export function isVisionIncompatibleTarget(
+  target: ResolvedComboTarget,
+  requirements: RequestCompatibilityRequirements
+): boolean {
+  if (!requirements.requiresVision) return false;
+  const capabilities = getResolvedModelCapabilities(target.modelStr);
+  return capabilities.supportsVision !== true;
+}
+
+/**
+ * Builds the #6238 last-resort fallback candidate set: ranked targets the compat
+ * pre-filter rejected, minus anything rejected for vision (#8332 — see
+ * isVisionIncompatibleTarget).
+ */
+export function computeCompatRejectedTargets(
+  rankedTargets: ResolvedComboTarget[],
+  compatKeptTargets: ResolvedComboTarget[],
+  body: Record<string, unknown>
+): ResolvedComboTarget[] {
+  const requirements = deriveRequestCompatibilityRequirements(body);
+  const keptSet = new Set(compatKeptTargets);
+  return rankedTargets.filter(
+    (target) => !keptSet.has(target) && !isVisionIncompatibleTarget(target, requirements)
+  );
 }
 
 function getTargetCompatibilityFailures(
@@ -516,7 +562,9 @@ function getTargetCompatibilityFailures(
 
   if (
     requirements.requiresTools &&
-    (capabilities.supportsTools === false || !capabilities.toolCalling)
+    (capabilities.supportsTools === false || !capabilities.toolCalling) &&
+    // #5240: prompt-emulated tool providers remain eligible under fail-closed.
+    !providerSupportsEmulatedToolCalling(target.provider)
   ) {
     failures.push("tools");
   }
@@ -525,8 +573,8 @@ function getTargetCompatibilityFailures(
   // support is *confirmed* (`=== true`). Treat `false` AND `null` (unknown) as
   // incompatible: an unknown-capability model receiving the image is exactly how
   // a text-only model (e.g. ministral) ended up answering "image not provided".
-  // The caller keeps all targets when none qualify, so combos with no
-  // confirmed-vision member still behave as before.
+  // #8488: when none qualify the filter fails closed (empty list) unless the
+  // operator opts into compatFilterFailOpen.
   if (requirements.requiresVision && capabilities.supportsVision !== true) {
     failures.push("vision");
   }
@@ -539,23 +587,88 @@ function getTargetCompatibilityFailures(
     failures.push("output_tokens");
   }
 
-  const contextLimit = getKnownContextLimit(capabilities);
-  if (
-    requirements.requiredContextTokens > 0 &&
-    contextLimit !== null &&
-    contextLimit < requirements.requiredContextTokens
-  ) {
+  const contextVerdict = evaluateContextLimit(capabilities, requirements, target.modelStr);
+  if (requirements.requiredContextTokens > 0 && contextVerdict === false) {
     failures.push("context_window");
   }
 
   return failures;
 }
 
+export type CompatFilterOptions = {
+  /**
+   * Opt-in legacy behavior (#8488): when every target fails a hard capability
+   * requirement (tools / vision / structured_output), restore the full pool
+   * instead of returning an empty list. Default is fail-closed.
+   */
+  failOpen?: boolean;
+};
+
+const HARD_COMPAT_REASONS = new Set(["tools", "vision", "structured_output"]);
+
+function hasHardCapabilityFailure(reasons: string[]): boolean {
+  return reasons.some((reason) => HARD_COMPAT_REASONS.has(reason));
+}
+
+/**
+ * Summarize a capability-filter exhaustion for a 400-class combo error (#8488).
+ * Returns null when the empty pool is not attributable to hard requirements.
+ */
+export function describeCapabilityFilterExhaustion(
+  targets: ResolvedComboTarget[],
+  body: Record<string, unknown>,
+  comboName?: string
+): {
+  unmet: string[];
+  excluded: Array<{ provider: string; model: string; reason: string }>;
+  message: string;
+  terminalReason: string;
+} | null {
+  if (targets.length === 0) return null;
+  const requirements = deriveRequestCompatibilityRequirements(body);
+  const rejected = targets.map((target) => ({
+    target,
+    reasons: getTargetCompatibilityFailures(target, requirements),
+  }));
+  const unmet = Array.from(
+    new Set(rejected.flatMap((entry) => entry.reasons.filter((r) => HARD_COMPAT_REASONS.has(r))))
+  );
+  if (unmet.length === 0) return null;
+
+  const primary = unmet.includes("tools")
+    ? "tools"
+    : unmet.includes("vision")
+      ? "vision"
+      : unmet[0];
+  const toolCount = Array.isArray(body.tools) ? body.tools.length : 0;
+  const name = comboName && comboName.trim().length > 0 ? comboName : "this combo";
+  let message: string;
+  if (primary === "tools") {
+    message = `No target in combo ${name} supports tool calling; request carried ${toolCount} tools`;
+  } else if (primary === "vision") {
+    message = `No target in combo ${name} has confirmed vision support for this image request`;
+  } else {
+    message = `No target in combo ${name} supports structured output for this request`;
+  }
+
+  return {
+    unmet,
+    excluded: rejected.map((entry) => ({
+      provider: entry.target.provider,
+      model: entry.target.modelStr,
+      reason: entry.reasons.join("+") || primary,
+    })),
+    message,
+    terminalReason: "capability_mismatch",
+  };
+}
+
 export function filterTargetsByRequestCompatibility(
   targets: ResolvedComboTarget[],
   body: Record<string, unknown>,
   log: ComboLogger,
-  label = "Context-aware fallback"
+  label = "Context-aware fallback",
+  options?: CompatFilterOptions
 ): ResolvedComboTarget[] {
   if (targets.length === 0) return targets;
   const requirements = deriveRequestCompatibilityRequirements(body);
@@ -584,7 +697,7 @@ export function filterTargetsByRequestCompatibility(
   );
   if (requirements.requiredContextTokens > 0 && rejectedForContextWindow) {
     const knownContextCompatible = compatible.filter((target) =>
-      hasKnownCompatibleContextLimit(target, requirements.requiredContextTokens)
+      hasKnownCompatibleContextLimit(target, requirements)
     );
 
     if (knownContextCompatible.length > 0 && knownContextCompatible.length < compatible.length) {
@@ -633,17 +746,55 @@ export function filterTargetsByRequestCompatibility(
 
   if (compatible.length === targets.length) return targets;
   if (compatible.length === 0) {
-    log.warn(
-      "COMBO",
-      `${label}: all ${targets.length} targets were filtered by request requirements; preserving strategy order`
-    );
+    const hardRejected = rejected.some((entry) => hasHardCapabilityFailure(entry.reasons));
+    const failOpen = options?.failOpen === true;
+
     log.debug?.(
       "COMBO",
       `${label}: rejected targets ${rejected
         .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
         .join(", ")}`
     );
-    return targets;
+
+    // #8332: vision is never safe to guess — never resurrect vision-rejected targets.
+    if (requirements.requiresVision) {
+      const visionSafe = targets.filter(
+        (target) => !isVisionIncompatibleTarget(target, requirements)
+      );
+      if (visionSafe.length === 0) {
+        log.warn(
+          "COMBO",
+          `${label}: all ${targets.length} targets lack confirmed vision; failing closed (#8488)`
+        );
+        return [];
+      }
+      if (failOpen) {
+        log.warn(
+          "COMBO",
+          `${label}: all targets filtered; compatFilterFailOpen restoring non-vision-rejected pool`
+        );
+        return visionSafe;
+      }
+      return visionSafe;
+    }
+
+    // Context/output-only exhaustion keeps the legacy fail-open path — the honest
+    // answer is the existing context_length_exceeded gate, not a capability error.
+    if (!hardRejected || failOpen) {
+      log.warn(
+        "COMBO",
+        `${label}: all ${targets.length} targets were filtered by request requirements; preserving strategy order`
+      );
+      return targets;
+    }
+
+    // #8488: tools / structured_output — fail closed instead of dispatching to a
+    // target already known to be incompatible.
+    log.warn(
+      "COMBO",
+      `${label}: all ${targets.length} targets were filtered by hard request requirements; failing closed`
+    );
+    return [];
   }
 
   log.info(

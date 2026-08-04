@@ -2,6 +2,8 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
+import messages from "../../../src/i18n/messages/en.json";
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -15,7 +17,11 @@ function mountInContainer(ui: React.ReactElement): HTMLElement {
   const root = createRoot(container);
   roots.push(root);
   act(() => {
-    root.render(ui);
+    root.render(
+      <NextIntlClientProvider locale="en" messages={{ contextCombos: messages.contextCombos }}>
+        {ui}
+      </NextIntlClientProvider>
+    );
   });
   return container;
 }

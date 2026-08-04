@@ -7,7 +7,8 @@ import {
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
-import { getProviderValidationGuard, isPrivateHost } from "@/shared/network/outboundUrlGuard";
+import { isPrivateHost } from "@/shared/network/outboundUrlGuard";
+import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
 import { selectProxyForValidation } from "@omniroute/open-sse/services/proxyAutoSelector.ts";
 
 /**
@@ -90,6 +91,57 @@ export function isSecurityBlockError(error: unknown): boolean {
     }
   }
   return false;
+}
+
+// #7542 — web-cookie providers whose registry `baseUrl` is a POST-only streaming/completion
+// endpoint (no real `/models` listing API), so the generic `/models` probe in
+// validateWebCookieProvider() gets a redirect instead of a definitive 200/401/403. A blocked
+// redirect there is not a session-expiry signal — the endpoint just isn't shaped for the probe
+// — so it should degrade to "unsupported" the same way the discovery path already does for
+// REDIRECT_BLOCKED (#6267's buildDiscoveryErrorFallbackResponse).
+//
+// Scoped to `lmarena` only (root-caused and regression-tested for #7542): the other web-cookie
+// providers sharing a POST-only baseUrl shape (doubao-web, huggingchat, yuanbao-web,
+// zenmux-free, zai-web) have not been individually verified to actually redirect on this probe
+// rather than 404/405 — do not add them here without a proven repro per provider (see
+// #7542 plan-file, "Risks").
+const WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE = new Set(["lmarena"]);
+
+// #7857 — web-cookie providers whose registry `baseUrl` is a conversation/completion
+// endpoint, not a real API root (e.g. huggingchat's baseUrl is
+// "https://huggingface.co/chat/conversation", not "https://huggingface.co"). Appending
+// `/models` to these produces a path the upstream never served, so its status
+// (200/404/405/429/redirect/login-HTML) carries no meaningful auth signal — it is NOT
+// distinguishable from a genuinely valid session. A 401/403 from the same probe IS still
+// treated as a real SESSION_EXPIRED signal (some of these hosts auth-gate every path,
+// including nonexistent ones), so providers here still get probed; only the non-401/403
+// branch is short-circuited to the honest "unsupported" result instead of `valid: true`.
+// lmarena is deliberately NOT in this set — it already degrades via the
+// WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE/REDIRECT_BLOCKED path above (#7542).
+export const WEB_COOKIE_PROVIDERS_WITHOUT_MODELS_API = new Set([
+  "huggingchat",
+  "chatgpt-web",
+  "grok-web",
+  "notion-web",
+  "t3-web",
+  "yuanbao-web",
+  "copilot-web",
+  "copilot-m365-web",
+]);
+
+export function toWebCookieValidationErrorResult(provider: string, error: unknown) {
+  if (
+    error instanceof SafeOutboundFetchError &&
+    error.code === "REDIRECT_BLOCKED" &&
+    WEB_COOKIE_PROVIDERS_WITH_UNRELIABLE_MODELS_PROBE.has(provider)
+  ) {
+    return {
+      valid: false,
+      error: "Provider validation not supported",
+      unsupported: true as const,
+    };
+  }
+  return toValidationErrorResult(error);
 }
 
 export function toValidationErrorResult(error: unknown) {

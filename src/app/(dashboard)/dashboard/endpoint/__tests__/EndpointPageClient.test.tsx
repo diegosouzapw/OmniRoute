@@ -186,7 +186,59 @@ describe("EndpointPageClient", () => {
       cleanupCallbacks.pop()?.();
     }
     document.body.innerHTML = "";
+    vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+  });
+
+  it("shows the public browser endpoint before the runtime local endpoint", async () => {
+    vi.stubEnv("NEXT_PUBLIC_BASE_URL", "http://localhost:20128");
+    vi.stubGlobal("location", { origin: "https://api.example.com" });
+
+    fetchMock.mockImplementation((input: RequestInfo | URL) => {
+      const path = getRequestPath(input);
+      if (path === "/api/settings") {
+        return Promise.resolve(
+          jsonResponse({
+            cloudEnabled: false,
+            cloudConfigured: false,
+            hideEndpointCloudflaredTunnel: true,
+            hideEndpointTailscaleFunnel: true,
+            hideEndpointNgrokTunnel: true,
+          })
+        );
+      }
+      if (path === "/api/network/info") {
+        return Promise.resolve(
+          jsonResponse({
+            localUrl: "http://localhost:20131/v1",
+            lanUrls: [],
+            tailscaleIpUrl: null,
+          })
+        );
+      }
+      if (path === "/v1/models") return Promise.resolve(jsonResponse({ data: [] }));
+      if (path === "/api/mcp/status") return Promise.resolve(jsonResponse({ online: false }));
+      if (path === "/api/a2a/status") {
+        return Promise.resolve(jsonResponse({ status: "ok", tasks: { activeStreams: 0 } }));
+      }
+      if (path === "/api/search/providers") {
+        return Promise.resolve(jsonResponse({ providers: [] }));
+      }
+      if (path === "/api/cli-tools/keys") return Promise.resolve(jsonResponse({ keys: [] }));
+      throw new Error(`Unexpected request: ${path}`);
+    });
+
+    renderEndpointPage();
+
+    await waitForText("https://api.example.com/v1");
+    await waitForText("http://localhost:20131/v1");
+
+    const displayedUrls = Array.from(document.body.querySelectorAll("code")).map(
+      (element) => element.textContent
+    );
+    expect(displayedUrls.indexOf("https://api.example.com/v1")).toBeLessThan(
+      displayedUrls.indexOf("http://localhost:20131/v1")
+    );
   });
 
   it("renders the endpoint shell before models finish and skips hidden tunnel probes", async () => {

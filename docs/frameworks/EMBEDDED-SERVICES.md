@@ -618,6 +618,30 @@ Add a `ServiceEntry` to the `SERVICES` array in `src/lib/services/bootstrap.ts`:
 
 Extend `buildSpawnArgsFactory()` to handle `cfg.tool === "myservice"`.
 
+#### Pluggable provider-plugin contract (Phase 1, #7333)
+
+`src/lib/services/providerPlugins/` introduces a `ServiceProviderPlugin` contract that
+packages a backend's `bootstrap.ts` `ServiceEntry` fields and `serviceBackends.ts`
+manifest-template fields into one object, instead of the same backend's shape being
+expressed separately in two unrelated files. As of this writing **only `9router` is
+migrated** — `bootstrap.ts` derives its `SERVICES[]` entry from
+`getServiceProviderPlugin("9router")` (`src/lib/services/providerPlugins/registry.ts`),
+throwing a startup error if the plugin is ever missing. `cliproxy`, `mux`, and `bifrost`
+remain on the pre-existing inline `SERVICES[]` literals unchanged.
+
+`open-sse/config/providerPluginManifest.ts` also gained an additive
+`createServiceBackendManifestEntry(pluginId, template)` helper that builds a well-formed
+`ProviderPluginManifestEntry` from a `SERVICE_BACKEND_MANIFEST_TEMPLATE` entry — it is
+**not** wired into any live request path yet (neither `generateProviderPluginManifestFromRegistry()`
+nor `/v1/providers/[provider]/models`); that remains a follow-up once the contract is
+proven for a second backend.
+
+Deferred to follow-up PRs, tracked under issue #7333: migrating `cliproxyapi` through the
+same registry, generalizing `mux`/`bifrost` into the `ServiceBackendPluginId` union,
+folding the executor-routing special-casing (`open-sse/executors/index.ts`,
+`open-sse/handlers/chatCore/executorProxy.ts`) into the plugin contract, and wiring
+`createServiceBackendManifestEntry()` into a live manifest/models code path.
+
 ### Step 3 — Add migration and DB seed
 
 Ensure the service has a row in `version_manager` via a migration in

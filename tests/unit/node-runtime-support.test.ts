@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   SUPPORTED_NODE_RANGE,
@@ -81,4 +82,12 @@ test("CLI runtime support stays aligned with the shared runtime policy", () => {
   assert.deepEqual(getCliNodeRuntimeSupport("24.1.0"), getNodeRuntimeSupport("24.1.0"));
   assert.deepEqual(getCliNodeRuntimeSupport("22.22.2"), getNodeRuntimeSupport("22.22.2"));
   assert.equal(getCliNodeRuntimeWarning("27.1.0"), getNodeRuntimeWarning("27.1.0"));
+});
+
+test("package.json engines.node equals SUPPORTED_NODE_RANGE (install gate == runtime gate)", () => {
+  // Regression guard for #7446: npm consults `engines.node` at install time while the
+  // runtime rejects anything outside SUPPORTED_NODE_RANGE. If the two drift, npm installs
+  // OmniRoute on a Node version the runtime then refuses to run (the Node 22.0.0–22.22.1 gap).
+  const pkg = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
+  assert.equal(pkg.engines.node, SUPPORTED_NODE_RANGE);
 });

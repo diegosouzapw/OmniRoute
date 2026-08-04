@@ -116,9 +116,10 @@ export async function getAccessToken(sa: ServiceAccount): Promise<string> {
 }
 
 const PARTNER_MODELS = new Set([
-  "claude-3-5-sonnet",
-  "claude-3-opus",
-  "claude-3-haiku",
+  // Generic prefix, not pinned to a version: every Claude model on Vertex is an Anthropic
+  // partner model, never a Google-publisher one. Pinned prefixes (e.g. "claude-3-5-sonnet")
+  // silently break every time Anthropic ships a new generation — see issue #1985.
+  "claude-",
   "deepseek-v3",
   "deepseek-v3.2",
   "deepseek-v4",

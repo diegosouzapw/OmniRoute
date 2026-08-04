@@ -10,6 +10,11 @@ import { getCachedPassword, setCachedPassword } from "@/mitm/manager";
 import { installCertResult, checkCertInstalled } from "@/mitm/cert/install";
 import { generateCert } from "@/mitm/cert/generate";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
+import {
+  isMitmSudoPasswordRequired,
+  normalizeMitmSudoPasswordInput,
+  resolveMitmSudoPassword,
+} from "@/mitm/sudoGate";
 import path from "path";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { createErrorResponse } from "@/lib/api/errorResponse";
@@ -55,13 +60,17 @@ export async function POST(request: Request): Promise<Response> {
 
   const { action } = parsed.data;
   const raw = body as Record<string, unknown>;
-  const sudoPassword =
-    typeof raw.sudoPassword === "string" ? raw.sudoPassword : (getCachedPassword() ?? "");
+  const sudoPassword = resolveMitmSudoPassword(
+    typeof raw.sudoPassword === "string" ? raw.sudoPassword : undefined,
+    getCachedPassword()
+  );
   const rawApiKey = typeof raw.apiKey === "string" ? raw.apiKey : "";
 
   try {
     if (action === "start") {
-      if (sudoPassword) setCachedPassword(sudoPassword);
+      const suppliedPassword =
+        typeof raw.sudoPassword === "string" ? normalizeMitmSudoPasswordInput(raw.sudoPassword) : "";
+      if (suppliedPassword) setCachedPassword(suppliedPassword);
       const apiKey = await resolveRouterApiKey(rawApiKey);
       const { startMitm } = await import("@/mitm/manager.runtime");
       const result = await startMitm(apiKey, sudoPassword);
@@ -90,10 +99,17 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     if (action === "trust-cert") {
+      if (isMitmSudoPasswordRequired(sudoPassword)) {
+        return createErrorResponse({ status: 400, message: "Missing sudoPassword" });
+      }
       const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
-      const pwd = sudoPassword || getCachedPassword() || "";
-      const result = await installCertResult(pwd, certPath);
+      const result = await installCertResult(sudoPassword, certPath);
       if (result.installed) {
+        const suppliedPassword =
+          typeof raw.sudoPassword === "string" ? normalizeMitmSudoPasswordInput(raw.sudoPassword) : "";
+        if (process.platform !== "win32" && suppliedPassword) {
+          setCachedPassword(suppliedPassword);
+        }
         const trusted = await checkCertInstalled(certPath);
         return Response.json({ ok: true, trusted });
       }

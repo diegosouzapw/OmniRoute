@@ -89,7 +89,8 @@ test("postExchange returns before onboarding finishes (fire-and-forget — never
 test("postExchange stays timeout-bounded when loadCodeAssist/userinfo stall (no infinite hang)", async () => {
   globalThis.fetch = (async (url: unknown, init?: { signal?: AbortSignal }) => {
     const u = String(url);
-    if (u.includes("userinfo") || u.includes("loadCodeAssist")) return stalledFetch(init);
+    if (u.includes("userinfo") || u.includes("loadCodeAssist") || u.includes("onboardUser"))
+      return stalledFetch(init);
     return jsonRes({});
   }) as typeof fetch;
 
@@ -97,8 +98,122 @@ test("postExchange stays timeout-bounded when loadCodeAssist/userinfo stall (no 
   const result = await antigravity.postExchange({ access_token: "tok" } as never);
   const elapsed = Date.now() - start;
 
-  // userInfo + loadCodeAssist are AbortSignal.timeout(8s)-bounded (one shared
-  // deadline each), so the worst case is ~16s — never an infinite hang.
-  assert.ok(elapsed < 22000, `postExchange must be timeout-bounded; took ${elapsed}ms`);
+  // userInfo + loadCodeAssist + onboardUser(attempt) are each AbortSignal.timeout(8s)-bounded.
+  // When loadCodeAssist stalls → projectId empty → else-branch attempts onboardUser (also 8s).
+  // Worst case: 8 + 8 + 8 = 24s. With onboarding retry of loadCodeAssist also stalling: still
+  // within the 8s shared deadline of the retry. Never an infinite hang.
+  assert.ok(elapsed < 30000, `postExchange must be timeout-bounded; took ${elapsed}ms`);
   assert.equal(result.projectId, "", "no project when loadCodeAssist times out");
+});
+
+// ---------------------------------------------------------------------------
+// Tests for the empty-projectId onboarding path (fix for #5193 regression of #2541).
+//
+// When loadCodeAssist returns empty projectId (no pre-existing Cloud Code project),
+// postExchange MUST attempt onboarding inline (not fire-and-forget) so the project
+// gets created and discovered within the same login flow.
+//
+// Flip-proof: remove the `else` branch in postExchange and these tests fail —
+// projectId stays empty because onboarding never runs.
+
+test("postExchange attempts onboarding when projectId is empty and returns discovered projectId", async () => {
+  // loadCodeAssist returns no project → onboarding should be attempted inline
+  // → retry loadCodeAssist returns the newly created project.
+  let loadCodeAssistCallCount = 0;
+  let onboardUserCalled = false;
+
+  globalThis.fetch = (async (url: unknown) => {
+    const u = String(url);
+    if (u.includes("userinfo")) return jsonRes({ email: "new-user@example.com" });
+    if (u.includes("loadCodeAssist")) {
+      loadCodeAssistCallCount++;
+      // First call: no project (triggers onboarding). Second call: project found.
+      if (loadCodeAssistCallCount === 1) {
+        return jsonRes({
+          cloudaicompanionProject: null,
+          allowedTiers: [{ id: "legacy-tier", isDefault: true }],
+        });
+      }
+      return jsonRes({
+        cloudaicompanionProject: "new-project-456",
+        allowedTiers: [{ id: "legacy-tier", isDefault: true }],
+      });
+    }
+    if (u.includes("onboardUser")) {
+      onboardUserCalled = true;
+      return jsonRes({ done: true });
+    }
+    return jsonRes({});
+  }) as typeof fetch;
+
+  const result = await antigravity.postExchange({ access_token: "tok" } as never);
+
+  assert.ok(onboardUserCalled, "onboardUser must be called when projectId is empty");
+  assert.equal(
+    loadCodeAssistCallCount,
+    2,
+    "loadCodeAssist must be called twice: initial (empty) + retry after onboarding"
+  );
+  assert.equal(
+    result.projectId,
+    "new-project-456",
+    "projectId discovered after onboarding + retry"
+  );
+});
+
+test("postExchange falls back to empty projectId when onboardUser fails", async () => {
+  // loadCodeAssist returns no project → onboarding attempted but fails →
+  // projectId remains empty (graceful degradation, never throws).
+  let onboardUserCalled = false;
+
+  globalThis.fetch = (async (url: unknown) => {
+    const u = String(url);
+    if (u.includes("userinfo")) return jsonRes({ email: "user@example.com" });
+    if (u.includes("loadCodeAssist")) {
+      return jsonRes({
+        cloudaicompanionProject: null,
+        allowedTiers: [{ id: "legacy-tier", isDefault: true }],
+      });
+    }
+    if (u.includes("onboardUser")) {
+      onboardUserCalled = true;
+      return jsonRes({ error: "PERMISSION_DENIED" }, 403);
+    }
+    return jsonRes({});
+  }) as typeof fetch;
+
+  const result = await antigravity.postExchange({ access_token: "tok" } as never);
+
+  assert.ok(onboardUserCalled, "onboardUser must still be attempted even if it may fail");
+  assert.equal(
+    result.projectId,
+    "",
+    "projectId stays empty when onboarding fails (graceful degradation)"
+  );
+});
+
+test("postExchange is timeout-bounded during onboarding attempt (empty projectId)", async () => {
+  // loadCodeAssist returns no project → onboarding stalls → timeout kicks in →
+  // postExchange returns empty projectId within ~8s (not infinite hang).
+  globalThis.fetch = (async (url: unknown, init?: { signal?: AbortSignal }) => {
+    const u = String(url);
+    if (u.includes("userinfo")) return jsonRes({ email: "user@example.com" });
+    if (u.includes("loadCodeAssist")) {
+      return jsonRes({
+        cloudaicompanionProject: null,
+        allowedTiers: [{ id: "legacy-tier", isDefault: true }],
+      });
+    }
+    if (u.includes("onboardUser")) {
+      return stalledFetch(init);
+    }
+    return jsonRes({});
+  }) as typeof fetch;
+
+  const start = Date.now();
+  const result = await antigravity.postExchange({ access_token: "tok" } as never);
+  const elapsed = Date.now() - start;
+
+  assert.ok(elapsed < 22000, `onboarding attempt must be timeout-bounded; took ${elapsed}ms`);
+  assert.equal(result.projectId, "", "projectId stays empty when onboarding times out");
 });

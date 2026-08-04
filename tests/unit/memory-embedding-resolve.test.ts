@@ -93,6 +93,57 @@ describe("resolveEmbeddingSource", () => {
     assert.strictEqual(res.model, "openai/text-embedding-3-small");
   });
 
+  // #8074 — remote resolution must surface registry dimensions so sqlite-vec
+  // can create `vec_memories` before the first embed/upsert.
+  it("explicit 'remote' + known registry model => dimensions from embeddingRegistry (#8074)", () => {
+    const res = resolveEmbeddingSource(
+      makeSettings({
+        embeddingSource: "remote",
+        embeddingProviderModel: "openai/text-embedding-3-small",
+      })
+    );
+    assert.strictEqual(res.dimensions, 1536);
+    assert.ok(
+      res.signature.endsWith(":1536"),
+      `signature should include dim=1536, got: ${res.signature}`
+    );
+    assert.ok(
+      res.reason.includes("dim=1536"),
+      `reason should mention dim=1536, got: ${res.reason}`
+    );
+  });
+
+  it("auto + known nvidia model => dimensions from embeddingRegistry (#8074)", () => {
+    const res = resolveEmbeddingSource(
+      makeSettings({
+        embeddingSource: "auto",
+        embeddingProviderModel: "nvidia/nv-embedqa-e5-v5",
+      })
+    );
+    assert.strictEqual(res.source, "remote");
+    assert.strictEqual(res.dimensions, 1024);
+    assert.ok(
+      res.signature.endsWith(":1024"),
+      `signature should include dim=1024, got: ${res.signature}`
+    );
+  });
+
+  it("explicit 'remote' + unknown custom model => dimensions null (lazy probe) (#8074)", () => {
+    const res = resolveEmbeddingSource(
+      makeSettings({
+        embeddingSource: "remote",
+        // Not in EMBEDDING_PROVIDERS — keep the lazy-probe path.
+        embeddingProviderModel: "openai-compatible-local/my-custom-embed",
+      })
+    );
+    assert.strictEqual(res.source, "remote");
+    assert.strictEqual(res.dimensions, null);
+    assert.ok(
+      res.reason.includes("dim=unknown"),
+      `reason should mention dim=unknown, got: ${res.reason}`
+    );
+  });
+
   it("explicit 'static' + staticEnabled=true => source static", () => {
     const res = resolveEmbeddingSource(
       makeSettings({

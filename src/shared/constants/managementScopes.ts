@@ -21,6 +21,29 @@ export const MANAGE_SCOPE = "manage";
 export const MANAGEMENT_API_KEY_SCOPES = new Set<string>(["manage", "admin"]);
 
 /**
+ * Narrow, additive scope (#7895) that grants a non-loopback caller ONLY the
+ * `/api/mcp/` LOCAL_ONLY carve-out (see `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES`
+ * in `src/server/authz/routeGuard.ts`) — it does NOT grant broader management
+ * API access. Deliberately kept OUT of `MANAGEMENT_API_KEY_SCOPES`, mirroring the
+ * existing narrow-additive-scope precedent (`SELF_USAGE_SCOPE`,
+ * `API_KEY_BYPASS_PROVIDER_QUOTA_SCOPE`). A key holding `manage`/`admin` still
+ * passes the carve-out unchanged; `mcp:connect` is an alternative, lower-privilege
+ * path for remote MCP-only callers.
+ */
+export const MCP_CONNECT_SCOPE = "mcp:connect";
+
+/**
+ * Check whether any of the given scopes authorizes the `/api/mcp/` LOCAL_ONLY
+ * carve-out specifically — i.e. either a full management scope (`manage`/`admin`)
+ * or the narrow `mcp:connect` scope. Use this ONLY for the `/api/mcp/` bypass
+ * check; every other management route must keep using `hasManageScope`.
+ */
+export function hasMcpConnectOrManageScope(scopes: readonly string[] = []): boolean {
+  if (hasManageScope(scopes)) return true;
+  return scopes.includes(MCP_CONNECT_SCOPE);
+}
+
+/**
  * Check whether any of the given scopes authorizes management API access.
  */
 export function hasManageScope(scopes: readonly string[] = []): boolean {

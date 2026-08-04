@@ -23,10 +23,14 @@ const { checkFallbackError } = await import("../../open-sse/services/accountFall
 const { RateLimitReason } = await import("../../open-sse/config/constants.ts");
 const {
   incrementRequestCount,
+  incrementTokenUsage,
   getDailyRequestCount,
   getMinuteRequestCount,
+  getMinuteTokenCount,
   isRpdExhausted,
   isRpmExhausted,
+  isTpmExhausted,
+  classifyGeminiQuotaMetricFromText,
   resetCounters,
 } = await import("../../open-sse/services/geminiRateLimitTracker.ts");
 
@@ -140,18 +144,19 @@ test("Gemini 2.5 Flash both RPM and RPD hit: RPD check runs first → QUOTA_EXHA
   assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
 });
 
-// ── Scenario 5: Gemma 4 — 15 RPM hit, 1500 RPD not hit → RATE_LIMIT_EXCEEDED ─
+// ── Scenario 5: 16 RPM hit (RPD=500 untouched) → RATE_LIMIT_EXCEEDED ─────────
 
-test("Gemma 4 15 RPM hit (RPD=1500 untouched): 429 classifies as RATE_LIMIT_EXCEEDED", () => {
-  for (let i = 0; i < 15; i++) incrementRequestCount("gemini/gemma-4-31b-it");
-  assert.equal(isRpmExhausted("gemini/gemma-4-31b-it"), true);
-  assert.equal(isRpdExhausted("gemini/gemma-4-31b-it"), false);
+test("16 RPM hit (RPD<500 untouched): 429 classifies as RATE_LIMIT_EXCEEDED", () => {
+  // gemini-3.1-flash-lite: RPM=15, RPD=500
+  for (let i = 0; i < 16; i++) incrementRequestCount("gemini-3.1-flash-lite");
+  assert.equal(isRpmExhausted("gemini-3.1-flash-lite"), true);
+  assert.equal(isRpdExhausted("gemini-3.1-flash-lite"), false);
 
   const result = checkFallbackError(
     429,
     GEMINI_429_BODY,
     0,
-    "gemini/gemma-4-31b-it",
+    "gemini-3.1-flash-lite",
     "gemini",
     null,
     PROFILE
@@ -210,25 +215,25 @@ test("resetCounters clears both RPM and RPD exhaustion", () => {
   assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
 });
 
-// ── Scenario 8: RPD exhaustion with Gemma 4 (high RPD, never hit with 15 RPM) ─
+// ── Scenario 8: RPD exhaustion overrides RPM classification ───────────────────
 
-test("Gemma 4 1500 RPD exhaustion overrides RPM classification", () => {
-  // Pump 1500 daily requests to exhaust RPD
-  for (let i = 0; i < 1500; i++) incrementRequestCount("gemini/gemma-4-31b-it");
-  assert.equal(isRpdExhausted("gemini/gemma-4-31b-it"), true);
-  assert.equal(isRpmExhausted("gemini/gemma-4-31b-it"), true); // 1500 >> 15 RPM
+test("RPD exhaustion overrides RPM classification (RPD checked first)", () => {
+  // gemini-2.5-flash: RPM=5, RPD=20 — 25 requests exhausts both
+  for (let i = 0; i < 25; i++) incrementRequestCount("gemini-2.5-flash");
+  assert.equal(isRpdExhausted("gemini-2.5-flash"), true);
+  assert.equal(isRpmExhausted("gemini-2.5-flash"), true);
 
   const result = checkFallbackError(
     429,
     GEMINI_429_BODY,
     0,
-    "gemini/gemma-4-31b-it",
+    "gemini-2.5-flash",
     "gemini",
     null,
     PROFILE
   );
 
-  // RPD check runs first
+  // RPD check runs first in the if-chain
   assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
 });
 
@@ -250,4 +255,138 @@ test("Unknown Gemini model without published limits falls through to generic 429
   );
 
   assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
+});
+
+// ── Scenario 10: TPM exhausted, RPD not exhausted → RATE_LIMIT_EXCEEDED ──────
+
+test("Gemini 3.1 Flash Lite 250001 tokens (TPM threshold): 429 classifies as RATE_LIMIT_EXCEEDED", () => {
+  // gemini-3.1-flash-lite: TPM=250000, RPD=500
+  incrementTokenUsage("gemini-3.1-flash-lite", 250001);
+  assert.equal(isTpmExhausted("gemini-3.1-flash-lite"), true);
+  assert.equal(isRpdExhausted("gemini-3.1-flash-lite"), false);
+
+  const result = checkFallbackError(
+    429,
+    GEMINI_429_BODY,
+    0,
+    "gemini-3.1-flash-lite",
+    "gemini",
+    null,
+    PROFILE
+  );
+
+  assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
+});
+
+// ── Scenario 11: TPM + RPD both exhausted → RPD first → QUOTA_EXHAUSTED ───────
+
+test("Gemini 2.5 Flash TPM and RPD both hit: RPD takes priority → QUOTA_EXHAUSTED", () => {
+  // gemini-2.5-flash: TPM=250000, RPD=20
+  for (let i = 0; i < 25; i++) incrementRequestCount("gemini-2.5-flash");
+  incrementTokenUsage("gemini-2.5-flash", 250001);
+  assert.equal(isTpmExhausted("gemini-2.5-flash"), true);
+  assert.equal(isRpdExhausted("gemini-2.5-flash"), true);
+
+  const result = checkFallbackError(
+    429,
+    GEMINI_429_BODY,
+    0,
+    "gemini-2.5-flash",
+    "gemini",
+    null,
+    PROFILE
+  );
+
+  // RPD check runs first → QUOTA_EXHAUSTED
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+// ── Scenario 11b: real upstream TPM 429 with ZERO local counter state (#7360) ─
+//
+// Reproduces the live bug: a request rejected by Google before it ever
+// completes never calls incrementTokenUsage, so isTpmExhausted() reads false
+// at classification time even though Google's own error explicitly names the
+// per-minute input-token metric. The text-based classifier must catch this
+// when the local counters are blind.
+
+const REAL_GEMINI_TPM_429_BODY =
+  "You exceeded your current quota, please check your plan and billing details. " +
+  "For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. " +
+  "To monitor your current usage, head to: https://ai.dev/rate-limit.\n" +
+  "* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, " +
+  "limit: 16000, model: gemma-4-31b\n" +
+  "Please retry in 57.992793655s.";
+
+test("classifyGeminiQuotaMetricFromText: real TPM error text → 'tpm'", () => {
+  assert.equal(classifyGeminiQuotaMetricFromText(REAL_GEMINI_TPM_429_BODY), "tpm");
+});
+
+test("classifyGeminiQuotaMetricFromText: RPD-style metric text → 'rpd'", () => {
+  const body =
+    "Quota exceeded for metric: generativelanguage.googleapis.com/" +
+    "generate_content_free_tier_requests_per_day, limit: 20";
+  assert.equal(classifyGeminiQuotaMetricFromText(body), "rpd");
+});
+
+test("classifyGeminiQuotaMetricFromText: RPM-style metric text → 'rpm'", () => {
+  const body =
+    "Quota exceeded for metric: generativelanguage.googleapis.com/" +
+    "generate_content_free_tier_requests, limit: 5";
+  assert.equal(classifyGeminiQuotaMetricFromText(body), "rpm");
+});
+
+test("classifyGeminiQuotaMetricFromText: no recognizable metric → null", () => {
+  assert.equal(classifyGeminiQuotaMetricFromText(GEMINI_429_BODY), null);
+  assert.equal(classifyGeminiQuotaMetricFromText(null), null);
+  assert.equal(classifyGeminiQuotaMetricFromText(""), null);
+});
+
+test("Real Gemma-4 TPM 429 body with ZERO local counter state → RATE_LIMIT_EXCEEDED, not QUOTA_EXHAUSTED", () => {
+  // No incrementTokenUsage/incrementRequestCount calls — this reproduces a
+  // request rejected before it could ever contribute to the local counters.
+  assert.equal(
+    isTpmExhausted("gemma-4-31b-it"),
+    false,
+    "local counter is blind, as in the live bug"
+  );
+  assert.equal(isRpdExhausted("gemma-4-31b-it"), false);
+
+  const result = checkFallbackError(
+    429,
+    REAL_GEMINI_TPM_429_BODY,
+    0,
+    "gemma-4-31b-it",
+    "gemini",
+    null,
+    PROFILE
+  );
+
+  assert.equal(
+    result.reason,
+    RateLimitReason.RATE_LIMIT_EXCEEDED,
+    "the error text's own metric name must override the blind local counter"
+  );
+  assert.equal(result.shouldFallback, true);
+});
+
+// ── Scenario 12: TPM tracking and query ───────────────────────────────────────
+
+test("incrementTokenUsage tracks per-minute token consumption correctly", () => {
+  incrementTokenUsage("gemini-2.5-flash", 50000);
+  incrementTokenUsage("gemini-2.5-flash", 75000);
+  assert.equal(getMinuteTokenCount("gemini-2.5-flash"), 125000);
+
+  // Distinct model counters are independent
+  incrementTokenUsage("gemini-2.5-flash-lite", 200000);
+  assert.equal(getMinuteTokenCount("gemini-2.5-flash-lite"), 200000);
+  assert.equal(getMinuteTokenCount("gemini-2.5-flash"), 125000);
+});
+
+// ── Scenario 13: resetCounters clears TPM state too ───────────────────────────
+
+test("resetCounters clears token counters", () => {
+  incrementTokenUsage("gemini-2.5-flash", 250001);
+  assert.equal(isTpmExhausted("gemini-2.5-flash"), true);
+  resetCounters();
+  assert.equal(isTpmExhausted("gemini-2.5-flash"), false);
 });

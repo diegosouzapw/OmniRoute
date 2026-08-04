@@ -58,11 +58,11 @@ export default function KiroOAuthWrapper({
     setIdcConfig(null);
   };
 
-  const handleSocialSuccess = () => {
+  const handleSocialSuccess = useCallback(() => {
     setAuthMethod(null);
     setSocialProvider(null);
     onSuccess?.();
-  };
+  }, [onSuccess]);
 
   const handleDeviceSuccess = () => {
     setAuthMethod(null);

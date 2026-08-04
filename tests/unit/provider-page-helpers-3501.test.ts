@@ -79,6 +79,12 @@ test("base-url helpers run without throwing (transitive imports present)", () =>
   assert.doesNotThrow(() => isBaseUrlConfigurableProvider(null));
 });
 
+test("#6928 comfyui is a configurable-base-url provider with the localhost:8188 default", () => {
+  assert.equal(isBaseUrlConfigurableProvider("comfyui"), true);
+  assert.equal(getProviderBaseUrlDefault("comfyui"), "http://localhost:8188");
+  assert.equal(getProviderBaseUrlPlaceholder("comfyui"), "http://localhost:8188");
+});
+
 test("routing-tags / excluded-models parse + format round-trip", () => {
   assert.deepEqual(parseRoutingTagsInput("a, b ,c"), ["a", "b", "c"]);
   assert.equal(parseRoutingTagsInput("   "), undefined);

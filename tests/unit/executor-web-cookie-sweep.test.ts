@@ -17,7 +17,7 @@
  * The duckduckgo-web executor was the first known case. To prevent any
  * future executor from regressing on the same contract, this sweep test
  * imports every executor in `WEB_COOKIE_PROVIDERS` + `NOAUTH_PROVIDERS`
- * (20 web-cookie + 2 noauth = 22 total), calls `execute()` with a minimal
+ * (26 web-cookie + 2 noauth = 28 total), calls `execute()` with a minimal
  * but valid input, and asserts the wrapper shape. Tests use the
  * pre-aborted signal path or empty-creds path so no real upstream call
  * is needed.
@@ -116,7 +116,7 @@ function assertExecutorWrapperShape(
 }
 
 describe("web-cookie + noauth executor wrapper contract sweep", () => {
-  describe("WEB_COOKIE_PROVIDERS (20)", () => {
+  describe("WEB_COOKIE_PROVIDERS (26)", () => {
     for (const providerId of WEB_COOKIE_IDS) {
       it(`${providerId} executor returns wrapper shape`, async () => {
         const executor = getExecutor(providerId);

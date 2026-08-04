@@ -36,6 +36,21 @@ test("parseEslintJson tolerates a leading non-JSON banner", () => {
   assert.equal(parseEslintJson("no json here"), null);
 });
 
+test("parseEslintJson tolerates ESLint's trailing unpruned-suppressions stderr sentence (#7837)", () => {
+  // ESLint 9.x's `--suppressions-location` feature prints the valid `--format json` report to
+  // stdout first, then — if the suppressions file has stale/"unpruned" entries — appends this
+  // exact sentence to stderr and exits 2. The gate concatenates stdout+stderr, so
+  // parseEslintJson() must recover the JSON report even with this trailing text glued on.
+  const eslintJsonReport = JSON.stringify([
+    { filePath: "open-sse/executors/example.ts", errorCount: 0, warningCount: 0, messages: [] },
+  ]);
+  const stderrTail =
+    "There are suppressions left that do not occur anymore. Consider re-running the command with `--prune-suppressions`.\n";
+  assert.deepEqual(parseEslintJson(eslintJsonReport + stderrTail), [
+    { filePath: "open-sse/executors/example.ts", errorCount: 0, warningCount: 0, messages: [] },
+  ]);
+});
+
 test("parseCognitiveCount reads the gate's count (en + pt)", () => {
   assert.equal(parseCognitiveCount("[cognitive-complexity] 797 function(s) exceed the threshold (15)."), 797);
   assert.equal(parseCognitiveCount("[cognitive-complexity] REGRESSÃO — 801 violações > baseline 797"), 801);

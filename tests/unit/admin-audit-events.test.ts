@@ -17,6 +17,8 @@ const loginRoute = await import("../../src/app/api/auth/login/route.ts");
 const logoutRoute = await import("../../src/app/api/auth/logout/route.ts");
 const providersRoute = await import("../../src/app/api/providers/route.ts");
 const providerByIdRoute = await import("../../src/app/api/providers/[id]/route.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 const originalGetLoginCookieStore = loginRoute.authRouteInternals.getCookieStore;
 const originalGetLogoutCookieStore = logoutRoute.logoutRouteInternals.getCookieStore;
 
@@ -119,7 +121,14 @@ test("auth login route records failed password attempts", async () => {
   assert.equal(event.actor, "anonymous");
   assert.equal(event.status, "failed");
   assert.equal(event.requestId, "req-auth-failed");
-  assert.deepEqual(event.metadata, { reason: "invalid_password", lockedOut: false });
+  // The request above carries a public x-forwarded-for (198.51.100.22), so the
+  // origin tagging added here must classify it as public / non-internal.
+  assert.deepEqual(event.metadata, {
+    reason: "invalid_password",
+    lockedOut: false,
+    sourceScope: "public",
+    internalOrigin: false,
+  });
 });
 
 test("provider create/update/delete routes emit sanitized credential audit events", async () => {
@@ -199,4 +208,48 @@ test("provider create/update/delete routes emit sanitized credential audit event
   assert.equal(revokedEvent.target, "openai:Primary OpenAI Updated");
   assert.equal(revokedEvent.status, "success");
   assert.equal("apiKey" in (revokedEvent.metadata as any).connection, false);
+});
+
+test("deleting the final provider connection removes imported models but preserves manual models", async () => {
+  const first = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "First",
+    apiKey: "first-key",
+  });
+  const second = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Second",
+    apiKey: "second-key",
+  });
+  await modelsDb.addCustomModel("openai", "manual-model", "Manual", "manual");
+  await modelsDb.addCustomModel("openai", "imported-model", "Imported", "imported");
+  await modelsDb.addCustomModel("openai", "api-sync-model", "API Sync", "api-sync");
+  await modelsDb.addCustomModel("openai", "auto-sync-model", "Auto Sync", "auto-sync");
+
+  const deleteConnection = async (id: string) =>
+    providerByIdRoute.DELETE(
+      await makeManagementSessionRequest(`http://localhost/api/providers/${id}`, {
+        method: "DELETE",
+      }),
+      { params: Promise.resolve({ id }) }
+    );
+
+  assert.equal((await deleteConnection(first.id)).status, 200);
+  assert.deepEqual(
+    (await modelsDb.getCustomModels("openai")).map((model: { id: string }) => model.id),
+    ["manual-model", "imported-model", "api-sync-model", "auto-sync-model"]
+  );
+
+  assert.equal((await deleteConnection(second.id)).status, 200);
+  assert.deepEqual(await modelsDb.getCustomModels("openai"), [
+    {
+      id: "manual-model",
+      name: "Manual",
+      source: "manual",
+      apiFormat: "chat-completions",
+      supportedEndpoints: ["chat"],
+    },
+  ]);
 });

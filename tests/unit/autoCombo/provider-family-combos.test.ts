@@ -122,9 +122,26 @@ describe("auto/<family> materialization (#6453)", () => {
 
     assert.equal(combo.id, "auto/glm");
     assert.equal(combo.strategy, "auto");
-    const providerIds = combo.models.map((m) => m.providerId).sort();
-    assert.deepEqual(providerIds, ["glm", "zai"]);
-    assert.ok(combo.models.every((m) => m.model.endsWith("glm-5.2")));
+    // Dedupe to the provider SET: since #7928 the candidate pool is a
+    // connections × models Cartesian product, so a provider that serves several
+    // glm-5.2-bearing models now contributes one candidate per model rather than
+    // exactly one row. The #6453 invariant is which providers span the family,
+    // not the per-provider candidate count.
+    const providerIds = [...new Set(combo.models.map((m) => m.providerId))].sort();
+    // Includes the always-on `auggie` no-auth candidate: its registry (v0.32.0 CLI
+    // model ids) advertises a literal "glm-5.2" model, and — same as the
+    // "degrades gracefully" test below documents for opencode/minimax — a
+    // no-auth backend that genuinely serves a family model IS a legitimate
+    // member of the family pool, not just credentialed provider_connections rows.
+    assert.deepEqual(providerIds, ["auggie", "glm", "zai"]);
+    // Every candidate must be a glm-family model (the Cartesian pool now surfaces
+    // each backend's full glm line-up, not only the glm-5.2 default), and the
+    // connected openai/gpt-4o-mini backend must be excluded — same family
+    // invariant the "degrades gracefully" case asserts for auto/minimax.
+    assert.ok(
+      combo.models.every((m) => detectModelFamily(m.model) === "glm"),
+      "every auto/glm candidate must be a glm-family model, never the connected openai one"
+    );
   });
 
   it("resolves auto/zai to ONLY the zai-provider connection (provider-override family)", async () => {
@@ -147,7 +164,15 @@ describe("auto/<family> materialization (#6453)", () => {
 
     assert.equal(combo.id, "auto/zai");
     const providerIds = combo.models.map((m) => m.providerId);
-    assert.deepEqual(providerIds, ["zai"]);
+    // The provider-override invariant: auto/zai must include ONLY the zai
+    // provider and exclude the connected-but-unrelated glm connection. Since
+    // #7928's Cartesian pool, zai contributes one candidate per zai model, so
+    // assert the set is exactly {zai} rather than a single row.
+    assert.ok(providerIds.length > 0, "auto/zai must materialize at least one zai candidate");
+    assert.ok(
+      providerIds.every((p) => p === "zai"),
+      "auto/zai must include ONLY zai-provider models, never the connected glm connection"
+    );
   });
 
   it("degrades gracefully to the family subset, excluding connected-but-unrelated providers", async () => {

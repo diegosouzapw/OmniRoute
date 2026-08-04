@@ -1,10 +1,11 @@
 import {
   EMBEDDING_PROVIDERS,
   buildDynamicEmbeddingProvider,
+  getEmbeddingDimension,
   type EmbeddingProviderNodeRow,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getProviderCredentials } from "@/sse/services/auth";
-import { getProviderNodes } from "@/lib/localDb";
+import { getCachedProviderNodes } from "@/lib/localDb";
 import type { MemorySettingsExtended } from "@/shared/schemas/memory";
 import type {
   EmbeddingResolution,
@@ -41,6 +42,31 @@ function makeSignature(
 }
 
 /**
+ * Look up a remote model's vector size from the embedding registry.
+ * Returns null when the model is unknown / has no recorded dimensions so
+ * callers can keep the lazy-probe path (#8074).
+ */
+function resolveRemoteDimensions(model: string): number | null {
+  const dim = getEmbeddingDimension(model);
+  return typeof dim === "number" ? dim : null;
+}
+
+/** Build the remote EmbeddingResolution used by both explicit + auto paths. */
+function remoteResolution(model: string, reasonPrefix: string): EmbeddingResolution {
+  const dimensions = resolveRemoteDimensions(model);
+  return {
+    source: "remote",
+    model,
+    dimensions,
+    signature: makeSignature("remote", model, dimensions),
+    reason:
+      dimensions !== null
+        ? `${reasonPrefix}: ${model} (dim=${dimensions})`
+        : `${reasonPrefix}: ${model} (dim=unknown, will probe at embed time)`,
+  };
+}
+
+/**
  * Resolve which embedding source is active for the given settings (D4).
  * Pure: no heavy I/O. Provider key check done via synchronous registry lookup.
  */
@@ -61,14 +87,9 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
     }
     // We can't do async here, so we report it as potentially available
     // and the caller will attempt embed + get no_key error on failure.
-    // For resolution purposes, mark as remote (will fail at embed time if no key).
-    return {
-      source: "remote",
-      model,
-      dimensions: null,
-      signature: makeSignature("remote", model, null),
-      reason: `remote provider configured: ${model}`,
-    };
+    // Dimensions come from the embedding registry when known so sqlite-vec
+    // can create `vec_memories` before the first embed (#8074).
+    return remoteResolution(model, "remote provider configured");
   }
 
   if (source === "static") {
@@ -123,13 +144,8 @@ export function resolveEmbeddingSource(settings: MemorySettingsExtended): Embedd
         // We defer the actual hasKey check to listEmbeddingProviders (async).
         // For resolveEmbeddingSource (sync), we report "possibly remote" when model is set.
         // If no key, embed will return EmbeddingError{reason:"no_key"}.
-        return {
-          source: "remote",
-          model: providerModel,
-          dimensions: null,
-          signature: makeSignature("remote", providerModel, null),
-          reason: `auto: provider ${providerId} configured`,
-        };
+        // Dimensions are resolved from the registry when known (#8074).
+        return remoteResolution(providerModel, `auto: provider ${providerId} configured`);
       }
     }
 
@@ -217,7 +233,7 @@ export async function listEmbeddingProviders(): Promise<EmbeddingProviderListing
   // Get dynamic local providers
   let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
   try {
-    const nodes = (await getProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
+    const nodes = (await getCachedProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
     dynamicProviders = (Array.isArray(nodes) ? nodes : [])
       .filter((n) => {
         const validTypes = ["chat", "responses", "embeddings"];

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { PROVIDERS } from "../config/constants.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
+import { resolveAlternateFormat } from "../config/providers/alternateFormats.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -131,6 +132,22 @@ export function detectFormatFromEndpoint(body, endpointPath = "") {
   return detectFormat(body);
 }
 
+// Thin wrapper for call sites that only have the full request URL (not the bare endpoint
+// path chatCore already threads) — single source of truth stays detectFormatFromEndpoint.
+export function detectFormatFromUrl(body, requestUrl) {
+  const rawUrl = typeof requestUrl === "string" ? requestUrl : "";
+  let pathname = rawUrl;
+  try {
+    // Supplying a base URL keeps relative client endpoints (for example,
+    // `/v1/messages`) valid while preserving pathname-only detection.
+    pathname = new URL(rawUrl || "/", "http://omniroute.local").pathname;
+  } catch {
+    // Fall back to the raw value; detectFormatFromEndpoint is intentionally
+    // safe for unknown or malformed paths.
+  }
+  return detectFormatFromEndpoint(body, pathname);
+}
+
 // Detect request format from body structure
 export function detectFormat(body) {
   // OpenAI Responses API:
@@ -186,7 +203,7 @@ export function detectFormat(body) {
       if (firstContent?.type === "text" && !body.model?.includes("/")) {
         // Could be Claude or OpenAI multimodal
         // Check for Claude-specific fields
-        if (body.system || body.anthropic_version) {
+        if (body.system || body.anthropic_version || body["anthropic-version"]) {
           return "claude";
         }
         // Check if image format is Claude (source.type) vs OpenAI (image_url.url)
@@ -209,7 +226,7 @@ export function detectFormat(body) {
 
     // If content is string, it's likely OpenAI (Claude also supports this)
     // Check for other Claude-specific indicators
-    if (body.system !== undefined || body.anthropic_version) {
+    if (body.system !== undefined || body.anthropic_version || body["anthropic-version"]) {
       return "claude";
     }
 
@@ -431,7 +448,13 @@ export function getTargetFormat(provider, providerSpecificData = null) {
   }
   // Registry-driven format lookup
   const entry = getRegistryEntry(provider);
-  if (entry) return entry.format || "openai";
+  if (entry) {
+    // Per-connection override (providerSpecificData.targetFormat), only valid
+    // when it matches an alternate declared by the provider.
+    const alternate = resolveAlternateFormat(entry, providerSpecificData);
+    if (alternate) return alternate.format;
+    return entry.format || "openai";
+  }
   const config = getProviderConfig(provider);
   return config.format || "openai";
 }

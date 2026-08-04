@@ -41,10 +41,7 @@ export interface WindowsPreviousState {
   netshOutput: string;
 }
 
-export type PreviousState =
-  | MacOsPreviousState
-  | LinuxPreviousState
-  | WindowsPreviousState;
+export type PreviousState = MacOsPreviousState | LinuxPreviousState | WindowsPreviousState;
 
 export interface ApplyResult {
   platform: Platform;
@@ -67,7 +64,7 @@ function defaultExec(
   options: ExecFileOptions = {}
 ): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    execFile(file, args, options, (err, stdout, stderr) => {
+    execFile(file, args, { windowsHide: true, ...options }, (err, stdout, stderr) => {
       if (err) {
         reject(err);
         return;
@@ -152,12 +149,7 @@ async function macosApply(port: number): Promise<MacOsPreviousState> {
 async function macosRevert(state: MacOsPreviousState): Promise<void> {
   const service = state.service;
   if (state.http.enabled && state.http.host && state.http.port) {
-    await execImpl("networksetup", [
-      "-setwebproxy",
-      service,
-      state.http.host,
-      state.http.port,
-    ]);
+    await execImpl("networksetup", ["-setwebproxy", service, state.http.host, state.http.port]);
   } else {
     await execImpl("networksetup", ["-setwebproxystate", service, "off"]);
   }
@@ -186,10 +178,7 @@ async function readGsetting(key: string): Promise<string> {
   }
 }
 
-async function readGsubsetting(
-  scheme: string,
-  key: string
-): Promise<string> {
+async function readGsubsetting(scheme: string, key: string): Promise<string> {
   try {
     // HR#13: concat (not template) — scheme is a hardcoded "http"|"https" constant.
     const { stdout } = await execImpl("gsettings", [
@@ -232,20 +221,10 @@ async function linuxRevert(state: LinuxPreviousState): Promise<void> {
     await execImpl("gsettings", ["set", "org.gnome.system.proxy.http", "port", state.httpPort]);
   }
   if (state.httpsHost) {
-    await execImpl("gsettings", [
-      "set",
-      "org.gnome.system.proxy.https",
-      "host",
-      state.httpsHost,
-    ]);
+    await execImpl("gsettings", ["set", "org.gnome.system.proxy.https", "host", state.httpsHost]);
   }
   if (state.httpsPort) {
-    await execImpl("gsettings", [
-      "set",
-      "org.gnome.system.proxy.https",
-      "port",
-      state.httpsPort,
-    ]);
+    await execImpl("gsettings", ["set", "org.gnome.system.proxy.https", "port", state.httpsPort]);
   }
 }
 
@@ -308,8 +287,7 @@ export async function revert(previousState: PreviousState | unknown): Promise<vo
   try {
     if (platform === "macos") await macosRevert(state as unknown as MacOsPreviousState);
     else if (platform === "linux") await linuxRevert(state as unknown as LinuxPreviousState);
-    else if (platform === "windows")
-      await windowsRevert(state as unknown as WindowsPreviousState);
+    else if (platform === "windows") await windowsRevert(state as unknown as WindowsPreviousState);
   } catch (err) {
     throw new Error(sanitizeErrorMessage(err) || "system proxy revert failed");
   }

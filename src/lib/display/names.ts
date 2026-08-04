@@ -12,6 +12,13 @@
  * @module lib/display/names
  */
 
+import { isCompatibleProviderConnectionId } from "@/shared/utils/compatibleProviderId";
+import {
+  isClaudeCodeCompatibleProvider,
+  isOpenAICompatibleProvider,
+  isAnthropicCompatibleProvider,
+} from "@/shared/constants/providers";
+
 export interface ConnectionLike {
   id?: string | null;
   name?: string | null;
@@ -59,14 +66,11 @@ export function getProviderDisplayName(
   if (providerNode?.prefix?.trim()) return providerNode.prefix.trim();
   if (!providerId) return "Unknown Provider";
 
-  // Simplify dynamic compatible provider IDs
-  const match = providerId.match(
-    /^(openai|anthropic)-compatible-(?:chat|responses)-[0-9a-f-]{10,}$/i
-  );
-  if (match) return `Compatible (${match[1]})`;
-
-  if (/^anthropic-compatible-cc-[0-9a-f-]{10,}$/i.test(providerId)) {
-    return "CC Compatible";
+  // Simplify dynamic compatible provider IDs (all 4 generated shapes — #8326)
+  if (isCompatibleProviderConnectionId(providerId)) {
+    if (isClaudeCodeCompatibleProvider(providerId)) return "CC Compatible";
+    if (isOpenAICompatibleProvider(providerId)) return "Compatible (openai)";
+    if (isAnthropicCompatibleProvider(providerId)) return "Compatible (anthropic)";
   }
 
   return providerId;

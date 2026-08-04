@@ -287,6 +287,10 @@ async function runKiroUsageAttempts(
   return { sawAuthError, errors, lastHttpFailure };
 }
 
+function supportsProfilelessKiroUsage(authMethod?: string): boolean {
+  return authMethod === "builder-id";
+}
+
 /**
  * Kiro (AWS CodeWhisperer) Usage
  */
@@ -297,6 +301,7 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
         ? providerSpecificData.authMethod
         : undefined;
     const isApiKey = authMethod === "api_key";
+    const supportsProfilelessUsage = supportsProfilelessKiroUsage(authMethod);
     let profileArn =
       typeof providerSpecificData?.profileArn === "string"
         ? providerSpecificData.profileArn
@@ -313,11 +318,14 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
     // exist); its profile lives in eu-central-1 (or us-east-1) and the SSO token works cross-region
     // against it. Without this, the quota card previously showed nothing ("no limits") for such
     // accounts because the single-region lookup at q.{idcRegion} always failed.
-    if (!profileArn && accessToken) {
+    // Builder ID sessions can call GetUsageLimits without a profile ARN. Their
+    // ListAvailableProfiles request may be denied even while profile-less quota requests work, so
+    // skip discovery only when the stored identity proves this is Builder ID.
+    if (!profileArn && accessToken && !supportsProfilelessUsage) {
       profileArn = await discoverKiroProfileArnAcrossRegions(accessToken, storedRegion);
     }
 
-    if (!profileArn && !isApiKey) {
+    if (!profileArn && !isApiKey && !supportsProfilelessUsage) {
       return { message: "Kiro connected. Profile ARN not available for quota tracking." };
     }
 
@@ -384,9 +392,7 @@ export async function getKiroUsage(accessToken?: string, providerSpecificData?: 
     // HTTP-status failure (most informative) over a network-level error.
     throw new Error(
       outcome.lastHttpFailure ||
-        (errors.length > 0
-          ? errors[errors.length - 1]
-          : "no usage endpoint responded")
+        (errors.length > 0 ? errors[errors.length - 1] : "no usage endpoint responded")
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

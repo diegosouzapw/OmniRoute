@@ -28,6 +28,31 @@ test("voyage-ai embedding registry exposes current embedding models", () => {
   assert.ok(all.length >= 3);
 });
 
+// #7351: voyage-multilingual-3.5 does not exist in the Voyage AI API — it was
+// added to the registry by mistake and caused HTTP 400 on every test/request.
+// voyage-multilingual-2 is the real model and was missing from the registry.
+test("#7351 voyage-ai registry does not list non-existent voyage-multilingual-3.5", () => {
+  const provider = getEmbeddingProvider("voyage-ai");
+  assert.ok(provider);
+  assert.ok(
+    !provider.models.some((model) => model.id === "voyage-multilingual-3.5"),
+    "voyage-multilingual-3.5 must not be in the registry — it does not exist in the Voyage AI API"
+  );
+});
+
+test("#7351 voyage-ai registry includes voyage-multilingual-2 (real model)", () => {
+  const provider = getEmbeddingProvider("voyage-ai");
+  assert.ok(provider);
+  assert.ok(provider.models.some((model) => model.id === "voyage-multilingual-2"));
+});
+
+test("#7351 voyage-ai registry includes voyage-3.5 and voyage-3.5-lite", () => {
+  const provider = getEmbeddingProvider("voyage-ai");
+  assert.ok(provider);
+  assert.ok(provider.models.some((model) => model.id === "voyage-3.5"));
+  assert.ok(provider.models.some((model) => model.id === "voyage-3.5-lite"));
+});
+
 test("voyage-ai and jina-ai rerank registries expose supported models", () => {
   const voyage = getRerankProvider("voyage-ai");
   const jina = getRerankProvider("jina-ai");

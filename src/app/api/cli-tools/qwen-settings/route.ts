@@ -1,119 +1,112 @@
 "use server";
 
+import fs from "node:fs/promises";
+import path from "node:path";
+import pino from "pino";
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
-import os from "os";
+
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
+import { getApiKeyById } from "@/lib/db/apiKeys";
+import { deleteCliToolLastConfigured, saveCliToolLastConfigured } from "@/lib/db/cliToolState";
+import { createMultiBackup } from "@/shared/services/backupService";
+import {
+  hasOmniRouteQwenCodeConfig,
+  mergeQwenCodeEnv,
+  mergeQwenCodeSettings,
+  removeQwenCodeEnv,
+  removeQwenCodeSettings,
+} from "@/shared/services/qwenCodeConfig";
 import {
   ensureCliConfigWriteAllowed,
-  getCliPrimaryConfigPath,
+  getCliConfigPaths,
   getCliRuntimeStatus,
 } from "@/shared/services/cliRuntime";
-import { createBackup } from "@/shared/services/backupService";
-import { saveCliToolLastConfigured, deleteCliToolLastConfigured } from "@/lib/db/cliToolState";
-import { cliModelConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-import { getApiKeyById } from "@/lib/localDb";
+import { cliModelConfigSchema } from "@/shared/validation/schemas";
 
-const getQwenSettingsPath = () => getCliPrimaryConfigPath("qwen");
-const getQwenDir = () => path.dirname(getQwenSettingsPath());
-const getQwenEnvPath = () => path.join(getQwenDir(), ".env");
+const logger = pino({ name: "qwen-code-settings-api" });
 
-// Read current settings.json
-const readSettings = async () => {
+const getPaths = (): { settings: string; env: string } => {
+  const paths = getCliConfigPaths("qwen");
+  if (!paths?.settings || !paths.env) throw new Error("Qwen Code config paths are unavailable");
+  return { settings: paths.settings, env: paths.env };
+};
+
+const readTextIfPresent = async (filePath: string): Promise<string> => {
   try {
-    const settingsPath = getQwenSettingsPath();
-    const content = await fs.readFile(settingsPath, "utf-8");
-    return JSON.parse(content);
-  } catch (error: any) {
-    if (error.code === "ENOENT") return null;
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return "";
     throw error;
   }
 };
 
-// Read current .env file
-const readEnv = async () => {
+const fileExists = async (filePath: string): Promise<boolean> => {
   try {
-    const envPath = getQwenEnvPath();
-    return await fs.readFile(envPath, "utf-8");
-  } catch (error: any) {
-    if (error.code === "ENOENT") return "";
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const readSettings = async (filePath: string): Promise<Record<string, unknown>> => {
+  const text = await readTextIfPresent(filePath);
+  if (!text.trim()) return {};
+
+  const parsed: unknown = JSON.parse(text);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Qwen Code settings.json must contain a JSON object");
+  }
+  return parsed as Record<string, unknown>;
+};
+
+const writeAtomic = async (filePath: string, content: string, mode?: number): Promise<void> => {
+  const tempPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await fs.writeFile(tempPath, content, { encoding: "utf8", mode });
+    if (mode !== undefined) await fs.chmod(tempPath, mode);
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    await fs.unlink(tempPath).catch(() => {});
     throw error;
   }
 };
 
-// Check if settings has OmniRoute config
-const hasOmniRouteConfig = (settings: any) => {
-  if (!settings || !settings.modelProviders) return false;
-  const openai = settings.modelProviders.openai;
-  if (!Array.isArray(openai)) return false;
-  return openai.some((p: any) => {
-    if (p.name?.includes("OmniRoute") || p.id === "omniroute") return true;
-    if (!p.baseUrl) return false;
-    try {
-      const urlObj = new URL(p.baseUrl);
-      const host = urlObj.hostname;
-      const isDashScope =
-        host === "dashscope.aliyuncs.com" || host.endsWith(".dashscope.aliyuncs.com");
-      const isOpenAI = host === "api.openai.com" || host.endsWith(".openai.com");
-      return !isDashScope && !isOpenAI;
-    } catch {
-      return true; // invalid URLs are treated as custom endpoints
-    }
-  });
-};
-
-// GET - Check Qwen CLI and read current settings
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<Response> {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
 
   try {
-    const runtime = await getCliRuntimeStatus("qwen");
-
-    if (!runtime.installed || !runtime.runnable) {
-      return NextResponse.json({
-        installed: runtime.installed,
-        runnable: runtime.runnable,
-        command: runtime.command,
-        commandPath: runtime.commandPath,
-        runtimeMode: runtime.runtimeMode,
-        reason: runtime.reason,
-        settings: null,
-        message:
-          runtime.installed && !runtime.runnable
-            ? "Qwen Code CLI is installed but not runnable"
-            : "Qwen Code CLI is not installed",
-      });
-    }
-
-    const settings = await readSettings();
+    const configPaths = getPaths();
+    const [runtime, settings] = await Promise.all([
+      getCliRuntimeStatus("qwen"),
+      readSettings(configPaths.settings),
+    ]);
 
     return NextResponse.json({
-      installed: runtime.installed,
-      runnable: runtime.runnable,
-      command: runtime.command,
-      commandPath: runtime.commandPath,
-      runtimeMode: runtime.runtimeMode,
-      reason: runtime.reason,
+      ...runtime,
       settings,
-      hasOmniRoute: hasOmniRouteConfig(settings),
-      settingsPath: getQwenSettingsPath(),
-      envPath: getQwenEnvPath(),
+      hasOmniRoute: hasOmniRouteQwenCodeConfig(settings),
+      settingsPath: configPaths.settings,
+      envPath: configPaths.env,
     });
   } catch (error) {
-    console.log("Error checking qwen settings:", error);
-    return NextResponse.json({ error: "Failed to check qwen settings" }, { status: 500 });
+    logger.error({ err: error }, "Failed to read Qwen Code settings");
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)) },
+      { status: 500 }
+    );
   }
 }
 
-// POST - Write OmniRoute config to settings.json + .env
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
 
-  let rawBody;
+  let rawBody: unknown;
   try {
     rawBody = await request.json();
   } catch {
@@ -128,228 +121,91 @@ export async function POST(request: Request) {
     );
   }
 
+  const validation = validateBody(cliModelConfigSchema, rawBody);
+  if (isValidationFailure(validation)) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  const writeGuard = ensureCliConfigWriteAllowed();
+  if (writeGuard) return NextResponse.json({ error: writeGuard }, { status: 403 });
+
   try {
-    const writeGuard = ensureCliConfigWriteAllowed();
-    if (writeGuard) {
-      return NextResponse.json({ error: writeGuard }, { status: 403 });
-    }
-
-    // Extract keyId BEFORE validation — Zod strips unknown fields
-    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
-
-    const validation = validateBody(cliModelConfigSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    let { baseUrl, apiKey, model } = validation.data;
-
-    // Resolve real key from DB by ID
+    const configPaths = getPaths();
+    const bodyRecord = rawBody as Record<string, unknown>;
+    const keyId = typeof bodyRecord.keyId === "string" ? bodyRecord.keyId.trim() : "";
+    let apiKey = validation.data.apiKey || "";
     if (keyId) {
-      try {
-        const keyRecord = await getApiKeyById(keyId);
-        if (keyRecord?.key) apiKey = keyRecord.key as string;
-      } catch {
-        /* non-critical */
-      }
+      const keyRecord = await getApiKeyById(keyId);
+      if (keyRecord?.key) apiKey = keyRecord.key;
     }
+    if (!apiKey) apiKey = "sk_omniroute";
 
-    const resolvedApiKey = apiKey || "sk_omniroute";
-    const resolvedModel = model || "coder-model";
-    const normalizedBaseUrl = String(baseUrl || "")
-      .trim()
-      .replace(/\/+$/, "");
-    const qwenDir = getQwenDir();
-    const settingsPath = getQwenSettingsPath();
-    const envPath = getQwenEnvPath();
-
-    // Ensure directory exists
-    await fs.mkdir(qwenDir, { recursive: true });
-
-    // Backup current settings before modifying
-    await createBackup("qwen", settingsPath);
-
-    // --- Write API keys to ~/.qwen/.env ---
-    let envContent = await readEnv();
-    const envLines = envContent.split("\n").filter((line) => {
-      // Remove old OmniRoute-related keys we're about to write
-      return (
-        !line.startsWith("OPENAI_API_KEY=") &&
-        !line.startsWith("ANTHROPIC_API_KEY=") &&
-        !line.startsWith("GEMINI_API_KEY=")
-      );
+    const [existingSettings, existingEnv] = await Promise.all([
+      readSettings(configPaths.settings),
+      readTextIfPresent(configPaths.env),
+    ]);
+    const nextSettings = mergeQwenCodeSettings(existingSettings, {
+      baseUrl: validation.data.baseUrl,
+      model: validation.data.model,
     });
+    const nextEnv = mergeQwenCodeEnv(existingEnv, apiKey);
 
-    envLines.push(`OPENAI_API_KEY=${resolvedApiKey}`);
-    envLines.push(`ANTHROPIC_API_KEY=${resolvedApiKey}`);
-    envLines.push(`GEMINI_API_KEY=${resolvedApiKey}`);
+    await fs.mkdir(path.dirname(configPaths.settings), { recursive: true, mode: 0o700 });
+    await createMultiBackup("qwen", [configPaths.settings, configPaths.env]);
+    await writeAtomic(configPaths.settings, `${JSON.stringify(nextSettings, null, 2)}\n`);
+    await writeAtomic(configPaths.env, nextEnv, 0o600);
 
-    await fs.writeFile(envPath, envLines.join("\n").trim() + "\n", "utf-8");
-
-    // --- Write modelProviders to settings.json ---
-    let existingConfig: Record<string, any> = {};
-    try {
-      const raw = await fs.readFile(settingsPath, "utf-8");
-      existingConfig = JSON.parse(raw);
-    } catch {
-      // File doesn't exist or invalid JSON
-    }
-
-    if (!existingConfig.modelProviders) existingConfig.modelProviders = {};
-
-    // openai provider — primary, supports all models via OmniRoute
-    const openaiEntry = {
-      id: resolvedModel,
-      name: `${resolvedModel} (OmniRoute)`,
-      envKey: "OPENAI_API_KEY",
-      baseUrl: normalizedBaseUrl,
-      generationConfig: {
-        contextWindowSize: 200000,
-      },
-    };
-
-    if (!existingConfig.modelProviders.openai) existingConfig.modelProviders.openai = [];
-    const openaiProviders = existingConfig.modelProviders.openai;
-    const openaiIdx = openaiProviders.findIndex(
-      (p: any) => p && (p.baseUrl === normalizedBaseUrl || p.id === "omniroute")
-    );
-    if (openaiIdx >= 0) {
-      openaiProviders[openaiIdx] = openaiEntry;
-    } else {
-      openaiProviders.push(openaiEntry);
-    }
-
-    // anthropic provider — for Claude models via OmniRoute
-    const anthropicEntry = {
-      id: "claude-sonnet-4-6",
-      name: "Claude Sonnet 4.6 (OmniRoute)",
-      envKey: "ANTHROPIC_API_KEY",
-      baseUrl: normalizedBaseUrl,
-      generationConfig: {
-        contextWindowSize: 200000,
-      },
-    };
-
-    if (!existingConfig.modelProviders.anthropic) existingConfig.modelProviders.anthropic = [];
-    const anthropicProviders = existingConfig.modelProviders.anthropic;
-    const anthropicIdx = anthropicProviders.findIndex(
-      (p: any) => p && p.baseUrl === normalizedBaseUrl
-    );
-    if (anthropicIdx >= 0) {
-      anthropicProviders[anthropicIdx] = anthropicEntry;
-    } else {
-      anthropicProviders.push(anthropicEntry);
-    }
-
-    // gemini provider — for Gemini models via OmniRoute
-    const geminiEntry = {
-      id: "gemini-3-flash",
-      name: "Gemini 3 Flash (OmniRoute)",
-      envKey: "GEMINI_API_KEY",
-      baseUrl: normalizedBaseUrl,
-    };
-
-    if (!existingConfig.modelProviders.gemini) existingConfig.modelProviders.gemini = [];
-    const geminiProviders = existingConfig.modelProviders.gemini;
-    const geminiIdx = geminiProviders.findIndex((p: any) => p && p.baseUrl === normalizedBaseUrl);
-    if (geminiIdx >= 0) {
-      geminiProviders[geminiIdx] = geminiEntry;
-    } else {
-      geminiProviders.push(geminiEntry);
-    }
-
-    await fs.writeFile(settingsPath, JSON.stringify(existingConfig, null, 2), "utf-8");
-
-    // Persist last-configured timestamp
     try {
       saveCliToolLastConfigured("qwen");
-    } catch {
-      /* non-critical */
+    } catch (error) {
+      logger.warn({ err: error }, "Failed to save Qwen Code configuration timestamp");
     }
 
     return NextResponse.json({
       success: true,
-      message: "Qwen Code config saved successfully!",
-      settingsPath,
-      envPath,
+      message: "Qwen Code now routes through OmniRoute",
+      settingsPath: configPaths.settings,
+      envPath: configPaths.env,
     });
   } catch (error) {
-    console.log("Error updating qwen settings:", error);
-    return NextResponse.json({ error: "Failed to update qwen settings" }, { status: 500 });
+    logger.error({ err: error }, "Failed to update Qwen Code settings");
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)) },
+      { status: 500 }
+    );
   }
 }
 
-// DELETE - Remove OmniRoute config from settings.json and .env
-export async function DELETE(request: Request) {
+export async function DELETE(request: Request): Promise<Response> {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
 
+  const writeGuard = ensureCliConfigWriteAllowed();
+  if (writeGuard) return NextResponse.json({ error: writeGuard }, { status: 403 });
+
   try {
-    const writeGuard = ensureCliConfigWriteAllowed();
-    if (writeGuard) {
-      return NextResponse.json({ error: writeGuard }, { status: 403 });
-    }
+    const configPaths = getPaths();
+    const [settingsExists, envExists, existingSettings, existingEnv] = await Promise.all([
+      fileExists(configPaths.settings),
+      fileExists(configPaths.env),
+      readSettings(configPaths.settings),
+      readTextIfPresent(configPaths.env),
+    ]);
+    const nextSettings = removeQwenCodeSettings(existingSettings);
+    const nextEnv = removeQwenCodeEnv(existingEnv);
 
-    const settingsPath = getQwenSettingsPath();
-    const envPath = getQwenEnvPath();
-
-    // Backup current settings before resetting
-    await createBackup("qwen", settingsPath);
-
-    // --- Clean settings.json ---
-    let existingConfig: Record<string, any> = {};
-    try {
-      const raw = await fs.readFile(settingsPath, "utf-8");
-      existingConfig = JSON.parse(raw);
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
-        return NextResponse.json({
-          success: true,
-          message: "No settings file to reset",
-        });
+    if (settingsExists || envExists) {
+      await createMultiBackup("qwen", [configPaths.settings, configPaths.env]);
+      if (settingsExists) {
+        await writeAtomic(configPaths.settings, `${JSON.stringify(nextSettings, null, 2)}\n`);
       }
-      throw error;
+      if (envExists) await writeAtomic(configPaths.env, nextEnv, 0o600);
     }
 
-    // Remove OmniRoute entries from each provider type
-    const providerTypes = ["openai", "anthropic", "gemini"];
-    for (const type of providerTypes) {
-      if (Array.isArray(existingConfig.modelProviders?.[type])) {
-        existingConfig.modelProviders[type] = existingConfig.modelProviders[type].filter(
-          (p: any) => !p.name?.includes("OmniRoute") && p.id !== "omniroute"
-        );
-        // Remove empty provider arrays
-        if (existingConfig.modelProviders[type].length === 0) {
-          delete existingConfig.modelProviders[type];
-        }
-      }
-    }
-
-    // Clean up empty modelProviders
-    if (existingConfig.modelProviders && Object.keys(existingConfig.modelProviders).length === 0) {
-      delete existingConfig.modelProviders;
-    }
-
-    await fs.writeFile(settingsPath, JSON.stringify(existingConfig, null, 2), "utf-8");
-
-    // --- Clean .env ---
-    const RESET_ENV_KEYS = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY"];
-
-    try {
-      let envContent = await fs.readFile(envPath, "utf-8");
-      const envLines = envContent
-        .split("\n")
-        .filter((line) => !RESET_ENV_KEYS.some((key) => line.startsWith(`${key}=`)));
-
-      await fs.writeFile(envPath, envLines.join("\n").trim() + "\n", "utf-8");
-    } catch {
-      // .env doesn't exist — nothing to clean
-    }
-
-    // Clear last-configured timestamp
     try {
       deleteCliToolLastConfigured("qwen");
-    } catch {
-      /* non-critical */
+    } catch (error) {
+      logger.warn({ err: error }, "Failed to clear Qwen Code configuration timestamp");
     }
 
     return NextResponse.json({
@@ -357,7 +213,10 @@ export async function DELETE(request: Request) {
       message: "OmniRoute settings removed from Qwen Code",
     });
   } catch (error) {
-    console.log("Error resetting qwen settings:", error);
-    return NextResponse.json({ error: "Failed to reset qwen settings" }, { status: 500 });
+    logger.error({ err: error }, "Failed to reset Qwen Code settings");
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)) },
+      { status: 500 }
+    );
   }
 }

@@ -39,6 +39,32 @@ Verified by `isDashboardSessionAuthenticated()` in `src/shared/utils/apiAuth.ts`
 
 Some management routes accept **either** mode: cookie OR `Bearer <key>` when the API key has the `manage` (or `admin`) scope. This is what enables the "configurable via API calls" workflow added in v3.8.
 
+#### Optional OIDC login gate (#6973)
+
+The dashboard admin login also supports an **opt-in** OIDC (OpenID Connect) flow
+alongside the default password login — password login is never removed, only
+supplemented:
+
+- Disabled unless `settings.oidcEnabled === true` **and** `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` are all configured (Settings → Auth).
+  `GET /api/auth/oidc/login` returns `400` otherwise.
+- `GET /api/auth/oidc/login` discovers the `authorization_endpoint` from the
+  issuer's `/.well-known/openid-configuration` (falls back to
+  `<issuer>/authorize`), builds the redirect URI from the incoming request
+  (`x-forwarded-proto`-aware), and redirects to the IdP with a random `state`
+  stored in an `httpOnly` `oidc_state` cookie.
+- `GET /api/auth/oidc/callback` validates `state`, exchanges the authorization
+  code, and verifies the ID token's signature via the issuer's JWKS
+  (`jose`'s `createRemoteJWKSet`, cached per JWKS URI) with `issuer`/`audience`
+  checks. An optional `oidcAllowedSubjects` allowlist matches the token's
+  `sub` claim or its `email` claim — the email claim is only honored when
+  `email_verified === true`, so an unverified email at the IdP can never pass
+  the gate.
+- On success it mints the **exact same** 30-day `auth_token` JWT the password
+  login issues (`src/app/api/auth/login/route.ts`), so the rest of the
+  dashboard session pipeline (auto-refresh, cookie flags) is unchanged —
+  OIDC only replaces how the cookie gets minted, not what it grants.
+
 ## Route Classes
 
 `src/server/authz/types.ts` defines three classes; any route that cannot be classified deterministically falls back to `MANAGEMENT`.

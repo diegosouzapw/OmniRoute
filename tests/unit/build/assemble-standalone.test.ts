@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   assembleStandalone,
+  patchTurbopackChunks,
   syncStandaloneNativeAssets,
   syncStandaloneExtraModules,
 } from "../../../scripts/build/assembleStandalone.mjs";
@@ -39,6 +40,9 @@ function seedSidecarSources(root: string) {
     "node_modules/pino-pretty/index.js",
     "node_modules/split2/index.js",
     "node_modules/playwright-core/index.js",
+    "node_modules/sql.js/package.json",
+    "node_modules/sql.js/dist/sql-wasm.js",
+    "node_modules/sql.js/dist/sql-wasm.wasm",
     "node_modules/sqlite-vec/index.js",
     "node_modules/sqlite-vec-linux-x64/vec0.so",
     "src/lib/db/migrations/001_init.sql",
@@ -94,6 +98,26 @@ test("assembleStandalone copies standalone + static + public + sidecars into out
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
+test("patchTurbopackChunks restores canonical external package names in a custom distDir", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "assemble-hash-strip-"));
+  const chunkDir = path.join(tmp, ".build", "next", "server", "chunks");
+  const chunkPath = path.join(chunkDir, "instrumentation.js");
+  fs.mkdirSync(chunkDir, { recursive: true });
+  fs.writeFileSync(
+    chunkPath,
+    'require("ws-a972e7ffa40ff725"); require("@ngrok/ngrok-0f98e1294a0b09d5");'
+  );
+
+  const result = patchTurbopackChunks(tmp, ".build/next");
+  const patched = fs.readFileSync(chunkPath, "utf8");
+
+  assert.deepEqual(result, { patchedFiles: 1, patchedMatches: 2 });
+  assert.match(patched, /require\("ws"\)/);
+  assert.match(patched, /require\("@ngrok\/ngrok"\)/);
+  assert.doesNotMatch(patched, /-[0-9a-f]{16}/);
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
 // Drift guard: the async path (syncStandaloneNativeAssets / syncStandaloneExtraModules,
 // used by build-next-isolated) and the sync path (assembleStandalone copyNatives, used by
 // prepublish/electron) must copy the SAME sidecar tree. After the single-source refactor
@@ -141,6 +165,13 @@ test("async and sync sidecar copy paths produce identical bundle trees", async (
     asyncTree.includes("src/mitm/tproxy/native/build/Release/transparent.node"),
     "TPROXY transparent.node copied into the standalone bundle"
   );
+  for (const sqlJsFile of [
+    "node_modules/sql.js/package.json",
+    "node_modules/sql.js/dist/sql-wasm.js",
+    "node_modules/sql.js/dist/sql-wasm.wasm",
+  ]) {
+    assert.ok(asyncTree.includes(sqlJsFile), `sql.js runtime file copied: ${sqlJsFile}`);
+  }
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

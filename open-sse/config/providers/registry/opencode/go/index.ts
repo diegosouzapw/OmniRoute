@@ -17,14 +17,25 @@ export const opencode_goProvider: RegistryEntry = {
     // glm-5.2 is now advertised and Kimi chat traffic must route through
     // `kimi-k2.7-code` (the live API rejects the plain `kimi-k2.7` alias for
     // `/chat/completions`, even though the docs config example uses it).
-    { id: "glm-5.2", name: "GLM-5.2" },
+    // GLM-5.2 — base model + effort-tier aliases (#6922).
+    // OpencodeExecutor rewrites the alias to the canonical id and injects
+    // reasoning_effort, mirroring the deepseek-v4-pro-* pattern.
+    { id: "glm-5.2", name: "GLM-5.2", supportsReasoning: true },
+    { id: "glm-5.2-high", name: "GLM-5.2 (high effort)", supportsReasoning: true },
+    { id: "glm-5.2-max", name: "GLM-5.2 (max effort)", supportsReasoning: true },
     { id: "glm-5.1", name: "GLM-5.1" },
     { id: "glm-5", name: "GLM-5" },
     { id: "kimi-k2.7-code", name: "Kimi K2.7 Code" },
     { id: "kimi-k2.6", name: "Kimi K2.6" },
     { id: "kimi-k2.5", name: "Kimi K2.5" },
-    { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro" },
-    { id: "mimo-v2.5", name: "MiMo-V2.5" },
+    // #8353: Kimi K3 base + max-effort alias from the OpenCode Go registry.
+    { id: "kimi-k3", name: "Kimi K3", supportsReasoning: true },
+    { id: "kimi-k3-max", name: "Kimi K3 (max effort)", supportsReasoning: true },
+    // MiMo-V2.5 — base model + effort-tier aliases (#6922).
+    { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", supportsReasoning: true },
+    { id: "mimo-v2.5", name: "MiMo-V2.5", supportsReasoning: true },
+    { id: "mimo-v2.5-high", name: "MiMo-V2.5 (high effort)", supportsReasoning: true },
+    { id: "mimo-v2.5-max", name: "MiMo-V2.5 (max effort)", supportsReasoning: true },
     // #3110: MiniMax M3 via OpenCode Go tier
     {
       id: "minimax-m3",
@@ -42,10 +53,84 @@ export const opencode_goProvider: RegistryEntry = {
     // Issue #2822: These models are text-only — mark supportsVision: false
     // so combo routing skips them when the request contains image blocks,
     // preventing image content from reaching a vision-incapable upstream.
+    // #8353: effort-tier aliases from the OpenCode Go registry.
     { id: "qwen3.7-max", name: "Qwen3.7 Max", targetFormat: "claude", supportsVision: false },
+    {
+      id: "qwen3.7-max-high",
+      name: "Qwen3.7 Max (high effort)",
+      targetFormat: "claude",
+      supportsVision: false,
+      supportsReasoning: true,
+    },
+    {
+      id: "qwen3.7-max-max",
+      name: "Qwen3.7 Max (max effort)",
+      targetFormat: "claude",
+      supportsVision: false,
+      supportsReasoning: true,
+    },
+    {
+      id: "qwen3.7-plus",
+      name: "Qwen3.7 Plus",
+      targetFormat: "claude",
+      supportsVision: false,
+    },
+    {
+      id: "qwen3.7-plus-high",
+      name: "Qwen3.7 Plus (high effort)",
+      targetFormat: "claude",
+      supportsVision: false,
+      supportsReasoning: true,
+    },
+    {
+      id: "qwen3.7-plus-max",
+      name: "Qwen3.7 Plus (max effort)",
+      targetFormat: "claude",
+      supportsVision: false,
+      supportsReasoning: true,
+    },
     { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", supportsVision: false },
+    {
+      id: "qwen3.6-plus-high",
+      name: "Qwen3.6 Plus (high effort)",
+      targetFormat: "claude",
+      supportsVision: false,
+      supportsReasoning: true,
+    },
+    {
+      id: "qwen3.6-plus-max",
+      name: "Qwen3.6 Plus (max effort)",
+      targetFormat: "claude",
+      supportsVision: false,
+      supportsReasoning: true,
+    },
     { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude", supportsVision: false },
+    // #8353: hy3 is the Go-tier base id (distinct from hy3-preview / hy3-free).
+    { id: "hy3", name: "Hunyuan3", contextLength: 256000, supportsReasoning: true },
+    {
+      id: "hy3-none",
+      name: "Hunyuan3 (none effort)",
+      contextLength: 256000,
+      supportsReasoning: true,
+    },
+    {
+      id: "hy3-low",
+      name: "Hunyuan3 (low effort)",
+      contextLength: 256000,
+      supportsReasoning: true,
+    },
+    {
+      id: "hy3-high",
+      name: "Hunyuan3 (high effort)",
+      contextLength: 256000,
+      supportsReasoning: true,
+    },
     { id: "hy3-preview", name: "Hunyuan3 Preview" },
+    // #8353: Grok 4.5 + effort tiers from the OpenCode Go registry.
+    { id: "grok-4.5", name: "Grok 4.5", supportsReasoning: true },
+    { id: "grok-4.5-low", name: "Grok 4.5 (low effort)", supportsReasoning: true },
+    { id: "grok-4.5-medium", name: "Grok 4.5 (medium effort)", supportsReasoning: true },
+    { id: "grok-4.5-high", name: "Grok 4.5 (high effort)", supportsReasoning: true },
     { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", supportsReasoning: true },
     // OpencodeExecutor rewrites these aliases to the canonical upstream id and injects reasoning_effort.
     { id: "deepseek-v4-pro-low", name: "DeepSeek V4 Pro (low effort)", supportsReasoning: true },
@@ -57,5 +142,16 @@ export const opencode_goProvider: RegistryEntry = {
     { id: "deepseek-v4-pro-high", name: "DeepSeek V4 Pro (high effort)", supportsReasoning: true },
     { id: "deepseek-v4-pro-max", name: "DeepSeek V4 Pro (max effort)", supportsReasoning: true },
     { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", supportsReasoning: true },
+    // #8353: DeepSeek V4 Flash effort tiers from the OpenCode Go registry.
+    {
+      id: "deepseek-v4-flash-high",
+      name: "DeepSeek V4 Flash (high effort)",
+      supportsReasoning: true,
+    },
+    {
+      id: "deepseek-v4-flash-max",
+      name: "DeepSeek V4 Flash (max effort)",
+      supportsReasoning: true,
+    },
   ],
 };

@@ -11,6 +11,7 @@ delete process.env.INITIAL_PASSWORD;
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const { safeResolveProxy } = await import("../../src/sse/handlers/chatHelpers.ts");
 
 test.after(async () => {
   core.resetDbInstance();
@@ -48,4 +49,45 @@ test("control: resolveProxyForConnection('noauth', ...) still honors the GLOBAL 
   const resolved = await settingsDb.resolveProxyForConnection("noauth", undefined);
   assert.equal(resolved?.proxy?.host, "10.0.0.1");
   assert.equal(resolved?.level, "global");
+});
+
+test("resolveProxyForConnection keeps provider-level no-auth proxies isolated", async () => {
+  core.getDbInstance();
+  await settingsDb.deleteProxyForLevel("global", null);
+  await settingsDb.setProxyForLevel("provider", "mimocode", {
+    type: "http",
+    host: "127.0.0.2",
+    port: 8889,
+  });
+  await settingsDb.setProxyForLevel("provider", "theoldllm", {
+    type: "http",
+    host: "127.0.0.3",
+    port: 8890,
+  });
+
+  const mimocode = await settingsDb.resolveProxyForConnection("noauth", undefined, "mimocode");
+  const theOldLlm = await settingsDb.resolveProxyForConnection("noauth", undefined, "theoldllm");
+
+  assert.equal(mimocode?.proxy?.host, "127.0.0.2");
+  assert.equal(theOldLlm?.proxy?.host, "127.0.0.3");
+});
+
+test("safeResolveProxy keeps the synthetic no-auth connection provider-specific", async () => {
+  core.getDbInstance();
+  await settingsDb.setProxyForLevel("provider", "mimocode", {
+    type: "http",
+    host: "127.0.0.4",
+    port: 8891,
+  });
+  await settingsDb.setProxyForLevel("provider", "theoldllm", {
+    type: "http",
+    host: "127.0.0.5",
+    port: 8892,
+  });
+
+  const mimocode = await safeResolveProxy("noauth", undefined, "mimocode");
+  const theOldLlm = await safeResolveProxy("noauth", undefined, "theoldllm");
+
+  assert.equal(mimocode?.proxy?.host, "127.0.0.4");
+  assert.equal(theOldLlm?.proxy?.host, "127.0.0.5");
 });

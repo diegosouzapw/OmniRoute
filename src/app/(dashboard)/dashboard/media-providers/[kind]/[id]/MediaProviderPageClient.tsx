@@ -36,7 +36,11 @@ interface MediaProviderPageClientProps {
   freeNote?: string;
 }
 
-function renderPlayground(kind: MediaKind, providerId: string) {
+function renderPlayground(
+  kind: MediaKind,
+  providerId: string,
+  imageToTextCopy: { title: string; description: React.ReactNode }
+) {
   switch (kind) {
     case "embedding":
       return <EmbeddingExampleCard providerId={providerId} />;
@@ -62,15 +66,9 @@ function renderPlayground(kind: MediaKind, providerId: string) {
         <div className="flex flex-col gap-2 border border-dashed border-border rounded-xl p-6">
           <div className="flex items-center gap-2 text-text-muted">
             <span className="material-symbols-outlined text-[20px]">image_search</span>
-            <h3 className="text-sm font-medium">Image to Text</h3>
+            <h3 className="text-sm font-medium">{imageToTextCopy.title}</h3>
           </div>
-          <p className="text-xs text-text-muted">
-            Inline playground for Image-to-Text will be available when{" "}
-            <code className="font-mono bg-bg-subtle px-1 rounded">
-              /api/v1/images/understanding
-            </code>{" "}
-            is implemented.
-          </p>
+          <p className="text-xs text-text-muted">{imageToTextCopy.description}</p>
         </div>
       );
     default:
@@ -117,6 +115,15 @@ export default function MediaProviderPageClient({
 
   return (
     <div className="flex flex-col gap-6">
+      {activeKind === "stt" && providerId === "openrouter" && (
+        <div className="text-xs text-text-muted border border-border rounded-lg p-3 flex items-start gap-2">
+          <span className="material-symbols-outlined text-[16px] text-blue-500 mt-0.5">info</span>
+          <span>
+            <strong>Existing connection:</strong> OpenRouter speech-to-text models use your
+            configured OpenRouter connection. No separate credential is required.
+          </span>
+        </div>
+      )}
       <MediaProviderHeader
         providerId={providerId}
         providerName={providerName}
@@ -179,7 +186,7 @@ export default function MediaProviderPageClient({
                 <span className="text-sm font-medium flex-1 truncate">{conn.name ?? conn.id}</span>
                 {conn.isActive === false && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted">
-                    disabled
+                    {t("disabled")}
                   </span>
                 )}
               </div>
@@ -189,7 +196,12 @@ export default function MediaProviderPageClient({
       </div>
 
       {/* Playground */}
-      {renderPlayground(activeKind, providerId)}
+      {renderPlayground(activeKind, providerId, {
+        title: t("imageToText"),
+        description: t.rich("imageToTextComingSoon", {
+          code: (chunks) => <code className="font-mono bg-bg-subtle px-1 rounded">{chunks}</code>,
+        }),
+      })}
     </div>
   );
 }

@@ -9,32 +9,30 @@
 export {
   // Provider Connections
   getProviderConnections,
+  getProviderConnectionsCount,
   getProviderConnectionById,
   createProviderConnection,
   updateProviderConnection,
+  resetConnectionBackoff,
   clearConnectionErrorIfUnchanged,
+  touchConnectionLastUsed,
   deleteProviderConnection,
   deleteProviderConnections,
   deleteProviderConnectionsByProvider,
   reorderProviderConnections,
   cleanupProviderConnections,
-
-  // Provider Nodes
   getProviderNodes,
+  getProviderNodesCount,
   getProviderNodeById,
   resolveProviderNodeForConnection,
   createProviderNode,
   updateProviderNode,
   deleteProviderNode,
-
   // T05: Rate-limit DB persistence (survives token refresh)
   setConnectionRateLimitUntil,
   isConnectionRateLimited,
   getRateLimitedConnections,
-
-  // T05 startup recovery: clear stale transient cooldowns left by a prior crash
   clearStaleCrashCooldowns,
-
   // T13: Stale quota display fix (zero out usage after window resets)
   getEffectiveQuotaUsage,
   formatResetCountdown,
@@ -67,10 +65,10 @@ export {
   getModelIsHidden,
   setModelIsHidden,
   getHiddenModelsByProvider,
-
   // Synced Available Models
   getSyncedAvailableModels,
   getAllSyncedAvailableModels,
+  getActiveProvidersWithSyncedModel,
   replaceSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForProvider,
@@ -82,6 +80,7 @@ export type { ModelCompatPerProtocol, ModelCompatPatch, SyncedAvailableModel } f
 export {
   // Combos
   getCombos,
+  getCombosCount,
   getComboById,
   getComboByName,
   getComboByNameInsensitive,
@@ -97,8 +96,8 @@ export * from "./db/compressionRunTelemetry";
 export * from "./db/modelContextOverrides";
 
 export {
-  // API Keys
   getApiKeys,
+  getApiKeysCount,
   getApiKeyById,
   createApiKey,
   deleteApiKey,
@@ -136,6 +135,7 @@ export type {
 export {
   // Settings
   getSettings,
+  getSettingsRevision,
   updateSettings,
   isCloudEnabled,
 
@@ -238,6 +238,9 @@ export {
   getCachedSettings,
   getCachedPricing,
   getCachedProviderConnections,
+  getCachedRawProviderConnections,
+  getCachedProviderConnectionById,
+  getCachedProviderNodes,
   getCachedLKGP,
   setCachedLKGP,
   invalidateDbCache,
@@ -312,7 +315,8 @@ export type { FileRecord } from "./db/files";
 export type { BatchItemCheckpoint, BatchRecord } from "./db/batches";
 
 export type { ModelComboMapping } from "./db/modelComboMappings";
-
+export * from "./db/reasoningRoutingRules";
+export * from "./db/autoCandidateOverrides";
 export {
   // Webhooks
   getWebhooks,
@@ -680,7 +684,7 @@ export {
   listApiKeyContextSources,
 } from "./db/apiKeyContextSources";
 export type { ApiKeyContextSource } from "./db/apiKeyContextSources";
-
+export * from "./db/localCorpus";
 export { sumUsageTokensThisMonth } from "./db/usageSummary";
 
 export {
@@ -802,3 +806,6 @@ export { markConnectionRateLimitedUntil, clearConnectionRateLimit } from "./db/p
 export * from "./db/paramFilters";
 export * from "./db/interceptionRules"; // Per-model web-search/web-fetch interception rules (#3384)
 export * from "./db/relayProbeStats"; // Relay probe latency/health stats (#6909)
+export * from "./db/ccDiscoveryAliases"; // Claude Code discovery-alias gate (flag + per-provider/model overrides)
+export * from "./db/ccDiscoveryMetrics"; // Claude Code discovery-alias usage counters (alias requests + discovery hits)
+export * from "./db/functionalGatewayMirrors"; // Functional-gateway mirror gate (flag + per-provider/model overrides)

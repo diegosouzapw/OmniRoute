@@ -290,6 +290,56 @@ export async function validateAzureOpenAIProvider({ apiKey, providerSpecificData
   return { valid: false, error: `Validation failed: ${response.status}` };
 }
 
+function extractTargetDeployments(psd: Record<string, unknown>): string[] {
+  const deployments: string[] = [];
+
+  if (Array.isArray(psd.deployments)) {
+    for (const d of psd.deployments) {
+      if (typeof d === "string" && d.trim()) deployments.push(d.trim());
+      else if (
+        d &&
+        typeof d === "object" &&
+        typeof (d as any).id === "string" &&
+        (d as any).id.trim()
+      ) {
+        deployments.push((d as any).id.trim());
+      }
+    }
+  }
+
+  if (Array.isArray(psd.models)) {
+    for (const m of psd.models) {
+      if (typeof m === "string" && m.trim()) deployments.push(m.trim());
+      else if (
+        m &&
+        typeof m === "object" &&
+        typeof (m as any).id === "string" &&
+        (m as any).id.trim()
+      ) {
+        deployments.push((m as any).id.trim());
+      }
+    }
+  }
+
+  if (Array.isArray(psd.validationModelIds)) {
+    for (const id of psd.validationModelIds) {
+      if (typeof id === "string" && id.trim()) deployments.push(id.trim());
+    }
+  }
+
+  if (typeof psd.validationModelId === "string" && psd.validationModelId.trim()) {
+    const split = psd.validationModelId
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    for (const s of split) {
+      if (!deployments.includes(s)) deployments.push(s);
+    }
+  }
+
+  return Array.from(new Set(deployments));
+}
+
 export async function validateAzureAiProvider({ apiKey, providerSpecificData = {} }: any) {
   const rawBaseUrl = normalizeBaseUrl(providerSpecificData.baseUrl) || AZURE_AI_DEFAULT_BASE_URL;
   const modelsUrl = buildAzureAiModelsUrl(rawBaseUrl);
@@ -301,6 +351,7 @@ export async function validateAzureAiProvider({ apiKey, providerSpecificData = {
     providerSpecificData
   );
 
+  let modelsEndpointOk = false;
   try {
     const response = await validationRead(modelsUrl, {
       method: "GET",
@@ -308,83 +359,131 @@ export async function validateAzureAiProvider({ apiKey, providerSpecificData = {
     });
 
     if (response.ok) {
-      return { valid: true, error: null, method: "azure_ai_models" };
-    }
-
-    if (response.status === 401 || response.status === 403) {
+      modelsEndpointOk = true;
+    } else if (response.status === 401 || response.status === 403) {
       return { valid: false, error: "Invalid API key" };
-    }
-
-    if (response.status === 429) {
-      return {
-        valid: true,
-        error: null,
-        method: "azure_ai_models",
-        warning: "Rate limited, but credentials are valid",
-      };
+    } else if (response.status === 429) {
+      modelsEndpointOk = true;
     }
   } catch {
     // Fall through to chat probe when /models is unavailable.
   }
 
-  const validationModelId =
-    typeof providerSpecificData.validationModelId === "string"
-      ? providerSpecificData.validationModelId.trim()
-      : "";
+  const targetDeployments = extractTargetDeployments(providerSpecificData);
 
-  if (!validationModelId) {
+  if (targetDeployments.length === 0) {
+    if (modelsEndpointOk) {
+      return { valid: true, error: null, method: "azure_ai_models" };
+    }
     return {
       valid: false,
       error: "Endpoint /models unavailable. Provide a Model ID to validate via /chat/completions.",
     };
   }
 
-  const chatUrl = buildAzureAiChatUrl(
-    rawBaseUrl,
-    providerSpecificData.apiType === "responses" ? "responses" : "chat"
-  );
-  const chatBody =
-    providerSpecificData.apiType === "responses"
-      ? {
-          model: validationModelId,
-          input: "test",
-          max_output_tokens: 1,
-        }
+  const apiType = providerSpecificData.apiType === "responses" ? "responses" : "chat";
+  const apiVersion =
+    typeof providerSpecificData.apiVersion === "string" && providerSpecificData.apiVersion.trim()
+      ? providerSpecificData.apiVersion.trim()
+      : "2024-12-01-preview";
+
+  const probeOne = async (deploymentId: string) => {
+    const chatUrl = buildAzureAiChatUrl(rawBaseUrl, apiType, deploymentId, apiVersion);
+    const chatBody =
+      apiType === "responses"
+        ? {
+            model: deploymentId,
+            input: "test",
+            max_output_tokens: 1,
+          }
+        : {
+            model: deploymentId,
+            messages: [{ role: "user", content: "test" }],
+            max_tokens: 1,
+          };
+
+    try {
+      const response = await validationWrite(chatUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(chatBody),
+      });
+
+      if (
+        response.ok ||
+        response.status === 400 ||
+        response.status === 422 ||
+        response.status === 429
+      ) {
+        return { deploymentId, valid: true, status: "ok", error: null };
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        return { deploymentId, valid: false, status: "auth_error", error: "Invalid API key" };
+      }
+
+      if (response.status === 404) {
+        return { deploymentId, valid: false, status: "not_found", error: "Deployment not found" };
+      }
+
+      return {
+        deploymentId,
+        valid: false,
+        status: "error",
+        error: `Provider unavailable (${response.status})`,
+      };
+    } catch (error: any) {
+      const errRes = toValidationErrorResult(error);
+      return {
+        deploymentId,
+        valid: false,
+        status: "error",
+        error: errRes.error || "Connection failed",
+      };
+    }
+  };
+
+  const settled = await Promise.allSettled(targetDeployments.map(probeOne));
+  const deploymentResults = settled.map((res, i) =>
+    res.status === "fulfilled"
+      ? res.value
       : {
-          model: validationModelId,
-          messages: [{ role: "user", content: "test" }],
-          max_tokens: 1,
-        };
+          deploymentId: targetDeployments[i],
+          valid: false,
+          status: "error",
+          error: "Connection test failed",
+        }
+  );
 
-  try {
-    const response = await validationWrite(chatUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(chatBody),
-    });
+  const validCount = deploymentResults.filter((r) => r.valid).length;
+  const totalCount = deploymentResults.length;
+  const hasAnyValid = validCount > 0 || modelsEndpointOk;
 
-    if (
-      response.ok ||
-      response.status === 400 ||
-      response.status === 404 ||
-      response.status === 422 ||
-      response.status === 429
-    ) {
-      return { valid: true, error: null, method: "azure_ai_chat_probe" };
-    }
-
-    if (response.status === 401 || response.status === 403) {
-      return { valid: false, error: "Invalid API key" };
-    }
-
-    if (response.status >= 500) {
-      return { valid: false, error: `Provider unavailable (${response.status})` };
-    }
-  } catch (error: any) {
-    return toValidationErrorResult(error);
+  if (!hasAnyValid) {
+    const firstErr = deploymentResults.find((r) => r.error)?.error || "Connection failed";
+    return {
+      valid: false,
+      error: firstErr,
+      method: "azure_ai_chat_probe",
+      deployments: deploymentResults,
+    };
   }
 
-  return { valid: false, error: "Connection failed while testing Azure AI Foundry" };
+  const warning =
+    validCount < totalCount
+      ? `${totalCount - validCount} of ${totalCount} deployment(s) failed connection test.`
+      : null;
+
+  return {
+    valid: true,
+    error: null,
+    warning,
+    method:
+      modelsEndpointOk && targetDeployments.length === 0
+        ? "azure_ai_models"
+        : "azure_ai_chat_probe",
+    deployments: deploymentResults,
+  };
 }
 
 export async function validateWatsonxProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -666,4 +765,3 @@ export async function validateSapProvider({ apiKey, providerSpecificData = {} }:
 
   return { valid: false, error: "Connection failed while testing SAP Generative AI Hub" };
 }
-

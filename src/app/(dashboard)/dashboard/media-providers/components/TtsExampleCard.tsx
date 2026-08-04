@@ -33,7 +33,7 @@ export function TtsExampleCard({ providerId }: Props) {
   const [model, setModel] = useState<string>("");
   const [voice, setVoice] = useState<string>("alloy");
   const [speed, setSpeed] = useState<string>("1.0");
-  const [inputText, setInputText] = useState<string>("Hello, this is a text-to-speech test.");
+  const [inputText, setInputText] = useState<string>(() => t("ttsSample"));
   const [running, setRunning] = useState<boolean>(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioSize, setAudioSize] = useState<number | null>(null);
@@ -92,7 +92,7 @@ export function TtsExampleCard({ providerId }: Props) {
       setAudioSize(blob.size);
       setLatencyMs(elapsed);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Request failed");
+      setError(err instanceof Error ? err.message : t("requestFailed"));
     } finally {
       setRunning(false);
     }
@@ -113,7 +113,7 @@ export function TtsExampleCard({ providerId }: Props) {
   const renderAudio = () => (
     <div className="p-3 flex flex-col gap-2">
       <audio controls src={audioUrl!} className="w-full">
-        Your browser does not support audio.
+        {t("browserAudioUnsupported")}
       </audio>
       <div className="flex items-center gap-2">
         {audioSize !== null && (
@@ -135,7 +135,7 @@ export function TtsExampleCard({ providerId }: Props) {
 
   return (
     <PlaygroundCard
-      kindLabel="Text to Speech"
+      kindLabel={t("textToSpeech")}
       apiEndpoint={ENDPOINT_PATH}
       onRun={handleRun}
       curlSnippet={curlSnippet}
@@ -197,7 +197,7 @@ export function TtsExampleCard({ providerId }: Props) {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           rows={2}
-          placeholder="Hello, this is a text-to-speech test."
+          placeholder={t("ttsSample")}
           className="w-full rounded-md border border-border bg-bg-subtle text-sm px-2 py-1.5 text-text-main focus:outline-none focus:ring-1 focus:ring-primary resize-none"
         />
       </div>

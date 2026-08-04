@@ -11,6 +11,7 @@ type HeaderInput =
   | undefined;
 
 export type RequestPipelinePayloads = {
+  routeDecision?: JsonRecord;
   clientRawRequest?: JsonRecord;
   openaiRequest?: JsonRecord;
   providerRequest?: JsonRecord;
@@ -27,6 +28,7 @@ export type RequestPipelinePayloads = {
 type RequestLogger = {
   sessionPath: null;
   logClientRawRequest: (endpoint: unknown, body: unknown, headers?: HeaderInput) => void;
+  logRouteDecision: (decision: unknown) => void;
   logOpenAIRequest: (body: unknown) => void;
   logTargetRequest: (url: unknown, headers: HeaderInput, body: unknown) => void;
   logProviderResponse: (
@@ -100,9 +102,26 @@ function createEmptyStreamChunks() {
   };
 }
 
+const TRUNCATED_ARRAY_MARKER = "_omniroute_truncated_array";
+const TRUNCATED_KEYS_MARKER = "_omniroute_truncated_keys";
+
+function isTruncatedArrayMarker(value: unknown): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    (value as JsonRecord)[TRUNCATED_ARRAY_MARKER] === true
+  );
+}
+
 function truncateLogString(value: string, maxLength = MAX_LOG_STRING_LENGTH): string {
   if (value.length <= maxLength) return value;
-  return `${value.slice(0, Math.floor(maxLength / 2))}\n[...truncated ${value.length - maxLength} chars...]\n${value.slice(-Math.ceil(maxLength / 2))}`;
+  // The marker has to fit INSIDE the budget (#7847): keeping maxLength characters and then
+  // adding the marker produced a result longer than maxLength, so re-bounding an already
+  // bounded string truncated it a second time and the function was not idempotent.
+  const marker = `\n[...truncated ${value.length - maxLength} chars...]\n`;
+  const keep = Math.max(0, maxLength - marker.length);
+  return `${value.slice(0, Math.floor(keep / 2))}${marker}${value.slice(-Math.ceil(keep / 2))}`;
 }
 
 /**
@@ -122,9 +141,23 @@ export function cloneBoundedForLog(value: unknown, depth = 0, key: string | null
   if (value === null || value === undefined) return value;
   if (typeof value === "string") return truncateLogString(value);
   if (typeof value !== "object") return value;
+  // Binary/opaque byte views (Uint8Array, Buffer, DataView, ...) are not
+  // "real" arrays to Array.isArray(); without this guard they fall through
+  // to the generic-object branch below and get expanded into one JS key per
+  // decoded byte instead of being treated as an opaque buffer (see #7297).
+  if (ArrayBuffer.isView(value)) {
+    return `[binary ${(value as ArrayBufferView).byteLength} bytes]`;
+  }
   if (depth >= 6) return "[MaxDepth]";
 
   if (Array.isArray(value)) {
+    // Idempotence (#7847): an already-bounded array is [marker, ...tail] — MAX_LOG_ARRAY_ITEMS + 1
+    // entries, which is over the limit. Re-truncating it would drop the marker plus one real
+    // item and rewrite originalLength with the truncated length (25 instead of the true 800), so
+    // the log would misreport how much was cut. Keep the original marker, re-bound only the tail.
+    if (isTruncatedArrayMarker(value[0])) {
+      return [value[0], ...value.slice(1).map((item) => cloneBoundedForLog(item, depth + 1))];
+    }
     const exempt = key === "tools";
     const shouldTruncate = !exempt && value.length > MAX_LOG_ARRAY_ITEMS;
     const source = shouldTruncate ? value.slice(-MAX_LOG_ARRAY_ITEMS) : value;
@@ -132,7 +165,7 @@ export function cloneBoundedForLog(value: unknown, depth = 0, key: string | null
     if (shouldTruncate) {
       return [
         {
-          _omniroute_truncated_array: true,
+          [TRUNCATED_ARRAY_MARKER]: true,
           originalLength: value.length,
           retainedTailItems: MAX_LOG_ARRAY_ITEMS,
         },
@@ -143,12 +176,19 @@ export function cloneBoundedForLog(value: unknown, depth = 0, key: string | null
   }
 
   const result: JsonRecord = {};
-  const entries = Object.entries(value as JsonRecord);
+  // Idempotence (#7847): our own marker key must not be counted as payload, or a re-bounded
+  // object would push a real key out to make room for it and report `1` dropped instead of 20.
+  const carriedDropped = (value as JsonRecord)[TRUNCATED_KEYS_MARKER];
+  const carried = typeof carriedDropped === "number" ? carriedDropped : 0;
+  const entries = Object.entries(value as JsonRecord).filter(
+    ([k]) => !(carried > 0 && k === TRUNCATED_KEYS_MARKER)
+  );
   for (const [k, item] of entries.slice(0, MAX_LOG_OBJECT_KEYS)) {
     result[k] = cloneBoundedForLog(item, depth + 1, k);
   }
-  if (entries.length > MAX_LOG_OBJECT_KEYS) {
-    result._omniroute_truncated_keys = entries.length - MAX_LOG_OBJECT_KEYS;
+  const dropped = Math.max(0, entries.length - MAX_LOG_OBJECT_KEYS) + carried;
+  if (dropped > 0) {
+    result[TRUNCATED_KEYS_MARKER] = dropped;
   }
   return result;
 }
@@ -302,9 +342,13 @@ export async function createRequestLogger(
   const chunkMethods = makeStreamChunkMethods(options, captureStreamChunks);
 
   if (options.enabled === false) {
+    let routeDecision: JsonRecord | null = null;
     return {
       sessionPath: null,
       logClientRawRequest() {},
+      logRouteDecision(decision) {
+        routeDecision = cloneBoundedForLog(decision) as JsonRecord;
+      },
       logOpenAIRequest() {},
       logTargetRequest() {},
       logProviderResponse() {},
@@ -314,7 +358,7 @@ export async function createRequestLogger(
       appendConvertedChunk: chunkMethods.appendConvertedChunk,
       logError() {},
       getPipelinePayloads() {
-        return null;
+        return routeDecision ? { routeDecision } : null;
       },
     };
   }
@@ -333,6 +377,10 @@ export async function createRequestLogger(
         headers: maskSensitiveHeaders(headers),
         body: cloneBoundedForLog(body),
       };
+    },
+
+    logRouteDecision(decision) {
+      payloads.routeDecision = cloneBoundedForLog(decision) as JsonRecord;
     },
 
     logOpenAIRequest(body) {

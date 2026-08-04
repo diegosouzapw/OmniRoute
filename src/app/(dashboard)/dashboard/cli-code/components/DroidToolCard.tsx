@@ -486,7 +486,7 @@ export default function DroidToolCard({
                         onClick={() => addModel()}
                         disabled={!modelInput.trim() || modelList.includes(modelInput.trim())}
                         className="px-2 py-1.5 rounded border bg-surface border-border hover:border-primary text-xs shrink-0 disabled:opacity-50"
-                        title="Add model"
+                        title={t("addModel")}
                       >
                         <span className="material-symbols-outlined text-[14px]">add</span>
                       </button>

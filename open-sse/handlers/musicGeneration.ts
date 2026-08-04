@@ -22,9 +22,15 @@ import {
   pollComfyResult,
   fetchComfyOutput,
   extractComfyOutputFiles,
+  resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { saveCallLog } from "@/lib/usageDb";
-import { getKieCallbackUrl, isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
+import {
+  getKieCallbackUrl,
+  getKieTaskId,
+  isJsonObject,
+  parseKieResultJson,
+} from "../utils/kieTask.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
 function normalizeKieSunoModel(model: string): string {
@@ -119,7 +125,16 @@ export async function handleMusicGeneration({ body, credentials, log }) {
   }
 
   if (providerConfig.format === "comfyui") {
-    return handleComfyUIMusicGeneration({ model, provider, providerConfig, body, log });
+    return handleComfyUIMusicGeneration({
+      model,
+      provider,
+      providerConfig: {
+        ...providerConfig,
+        baseUrl: resolveComfyUiBaseUrl(credentials, providerConfig.baseUrl),
+      },
+      body,
+      log,
+    });
   }
 
   if (providerConfig.format === "kie-music") {
@@ -331,7 +346,7 @@ async function handleKieMusicGeneration({
   try {
     const endpoint = new URL(url).pathname;
     const createData = await kieExecutor.createTask({ baseUrl, token, payload, endpoint });
-    const taskId = createData?.data?.taskId || createData?.taskId;
+    const taskId = getKieTaskId(createData);
     if (!taskId) {
       const errorMessage =
         createData?.msg ||

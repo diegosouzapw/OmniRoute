@@ -1,6 +1,7 @@
 import { isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth.ts";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
 import { extractApiKey } from "@/sse/services/auth.ts";
+import { extractGoogApiKeyHeader } from "@/sse/services/googApiKeyAuth.ts";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 
@@ -20,6 +21,7 @@ function isWsHandshake(ctx: PolicyContext): boolean {
 function extractBearer(request: Request): string | null {
   const raw = request.headers.get("authorization") ?? request.headers.get("Authorization");
   const xApiKey = request.headers.get("x-api-key") ?? request.headers.get("X-Api-Key");
+  const xGoogApiKey = extractGoogApiKeyHeader(request.headers);
   if (raw) {
     const trimmed = raw.trim();
     if (trimmed.toLowerCase().startsWith("bearer ")) {
@@ -35,6 +37,13 @@ function extractBearer(request: Request): string | null {
 
   if (xApiKey) {
     return xApiKey.trim() || null;
+  }
+
+  // Issue #7034: gemini-cli (and any @google/genai-based client) sends its
+  // key via x-goog-api-key exclusively — accept it unconditionally, same
+  // shape as the x-api-key fallback above.
+  if (xGoogApiKey) {
+    return xGoogApiKey;
   }
 
   return extractApiKey(request);

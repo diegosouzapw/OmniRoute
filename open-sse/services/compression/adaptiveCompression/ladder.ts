@@ -25,8 +25,8 @@ export const DEFAULT_LADDER: LadderStage[] = [
  * engines that ship in `open-sse/services/compression/engines/index.ts` but are not part
  * of DEFAULT_LADDER: `ccr` and `llmlingua` are intentionally excluded from the AUTOMATIC
  * ladder (see DEFAULT_LADDER doc comment) yet must still rank correctly when an operator
- * adds them via `ladderOverride` — same for `ionizer`, `relevance`, `llm`, and
- * `read-lifecycle`. Placement follows each engine's documented `stackPriority` in
+ * adds them via `ladderOverride` — same for `ionizer`, `relevance`, `llm`, `read-lifecycle`,
+ * and `codex-responses`. Placement follows each engine's documented `stackPriority` in
  * `engineCatalog.ts` / its own module header, interpolated onto the existing 7-tier scale
  * (the `lite` exception — ranked after `headroom` despite a lower stackPriority — is a
  * pre-existing, deliberate design call and is left untouched).
@@ -36,6 +36,7 @@ const AGGRESSIVENESS: Record<string, number> = {
   "session-dedup": 10, // stackPriority 3 — lossless cross-turn dedup
   ccr: 15, // stackPriority 4 — reversible retrieval marker, only if it shrinks
   rtk: 20, // stackPriority 10 — command-output filtering
+  "codex-responses": 22, // stackPriority 12 (#8010) — conservative Responses tool-output compression
   ionizer: 25, // stackPriority 13 — tabular row sampling (lighter than headroom)
   headroom: 30, // stackPriority 15 — tabular JSON compaction
   lite: 40, // pri 5, but cheap prose pass (pre-existing reorder, kept as-is)
@@ -64,6 +65,7 @@ const REDUCTION_FACTOR: Record<string, number> = {
   "session-dedup": 0.95,
   ccr: 0.9, // conservative: only replaces a block when the marker is shorter than it
   rtk: 0.85,
+  "codex-responses": 0.84, // stackPriority 12 (#8010) — lossless-first, bounded diagnostic trims
   ionizer: 0.83, // row sampling, lighter than headroom's full tabular compaction
   headroom: 0.8,
   lite: 0.92,

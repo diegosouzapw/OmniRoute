@@ -72,6 +72,27 @@ test("repairMitmState POSTs /repair and returns the repaired list", async () => 
     assert.deepEqual(result.repaired, ["dns", "system-proxy"]);
     assert.equal(f.calls[0].url, "/api/tools/agent-bridge/repair");
     assert.equal(f.calls[0].init?.method, "POST");
+    assert.equal(f.calls[0].init?.body, JSON.stringify({}));
+  } finally {
+    f.restore();
+  }
+});
+
+test("repairMitmState forwards sudoPassword in the POST body", async () => {
+  const f = stubFetch(() => ({ ok: true, body: { ok: true, repaired: ["dns"] } }));
+  try {
+    await repairMitmState("hunter2");
+    assert.equal(f.calls[0].init?.body, JSON.stringify({ sudoPassword: "hunter2" }));
+  } finally {
+    f.restore();
+  }
+});
+
+test("removeCaCert forwards sudoPassword in the DELETE body", async () => {
+  const f = stubFetch(() => ({ ok: true, body: { ok: true, trusted: false } }));
+  try {
+    await removeCaCert("hunter2");
+    assert.equal(f.calls[0].init?.body, JSON.stringify({ sudoPassword: "hunter2" }));
   } finally {
     f.restore();
   }

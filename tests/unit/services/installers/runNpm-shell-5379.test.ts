@@ -52,6 +52,16 @@ test("buildNpmExecOptions: carries cwd, timeout and maxBuffer through", () => {
   assert.equal(opts.maxBuffer, 10 * 1024 * 1024);
 });
 
+// Regression for #8131 — windowsHide: true must be set on every execFile/spawn
+// options object so Windows does not flash a transient conhost.exe/cmd window
+// for the npm child process runNpm() spawns.
+test("buildNpmExecOptions: windowsHide is always true regardless of platform", () => {
+  for (const platform of ["win32", "linux", "darwin", "freebsd"] as NodeJS.Platform[]) {
+    const opts = buildNpmExecOptions(platform, { timeoutMs: 1000 });
+    assert.equal(opts.windowsHide, true, `${platform} must set windowsHide: true (#8131)`);
+  }
+});
+
 test("SERVICE_VERSION_PATTERN: accepts dist-tags and semver", () => {
   for (const v of ["latest", "next", "1.2.3", "1.2.3-beta.1", "1.2.3+build.5", "0.4.59"]) {
     assert.ok(SERVICE_VERSION_PATTERN.test(v), `${v} should be valid`);

@@ -16,8 +16,11 @@ import {
   handshakeError,
   handshakeFrame,
   isCompletionFrame,
+  isUpdateFrame,
   keepaliveFrame,
   parseFrame,
+  resolveChatInvocationOverrides,
+  resolveToneForModel,
   splitFrames,
 } from "./copilot-m365-frames.ts";
 
@@ -42,6 +45,19 @@ function sseChunk(model: string, delta: JsonRecord, finishReason: string | null 
   })}\n\n`;
 }
 
+/**
+ * Describe an unrecognized `type:1 target:update` frame by its top-level argument keys
+ * only (#7858 AC: log shape, never content/tokens/cookies) so the next unrecognized-shape
+ * report arrives with the data needed to add a handler.
+ */
+function describeUpdateFrameShape(frame: Record<string, unknown> | null): string | null {
+  if (!isUpdateFrame(frame) || !frame) return null;
+  const args = frame.arguments;
+  const first = Array.isArray(args) ? (args[0] as Record<string, unknown> | undefined) : undefined;
+  if (!first) return null;
+  return Object.keys(first).join(",");
+}
+
 function errorResponse(message: string, status = 502): Response {
   return new Response(JSON.stringify({ error: { message } }), {
     status,
@@ -58,6 +74,7 @@ export class CopilotM365WebExecutor extends BaseExecutor {
     wsUrl: string;
     prompt: string;
     model: string;
+    tier?: string;
     signal?: AbortSignal;
     log?: ExecutorLog | null;
   }): Promise<ReadableStream<Uint8Array>> {
@@ -96,6 +113,21 @@ export class CopilotM365WebExecutor extends BaseExecutor {
               controller.enqueue(
                 encoder.encode(sseChunk(input.model, { content: finalResultMessage }))
               );
+            } else if (!previousText && !finalResultMessage) {
+              // #7858 — a turn that completed with no content in ANY known shape is
+              // indistinguishable, from the outside, from a genuine successful-but-empty
+              // reply. Fail loudly instead of a silent `stop`, per Hard Rule #12.
+              const tierNote = input.tier ? `resolved tier: ${input.tier}` : "resolved tier: individual (default)";
+              const message = sanitizeErrorMessage(
+                `Microsoft 365 Copilot turn completed with no content in any known frame ` +
+                  `shape (${tierNote}). Possible causes: an unrecognized frame shape for ` +
+                  `this tenant, or a misconfigured tier.`
+              );
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ error: { message } })}\n\n`)
+              );
+              controller.close();
+              return;
             }
             controller.enqueue(encoder.encode(sseChunk(input.model, {}, "stop")));
             controller.enqueue(encoder.encode("data: [DONE]\n\n"));
@@ -135,6 +167,10 @@ export class CopilotM365WebExecutor extends BaseExecutor {
 
             const sendChat = () => {
               ws?.send(keepaliveFrame());
+              const overrides = resolveChatInvocationOverrides(input.tier);
+              // Model-driven tone (#7872) wins over the tier default; a bare/unknown id
+              // keeps the tier tone resolved above.
+              const tone = resolveToneForModel(input.model) ?? overrides.tone;
               ws?.send(
                 encodeFrame(
                   buildChatInvocation({
@@ -142,6 +178,8 @@ export class CopilotM365WebExecutor extends BaseExecutor {
                     traceId,
                     sessionId,
                     isStartOfSession: true,
+                    ...overrides,
+                    tone,
                   })
                 )
               );
@@ -179,6 +217,13 @@ export class CopilotM365WebExecutor extends BaseExecutor {
                 }
 
                 const { delta, next } = accumulateBotContent(previousText, frame);
+                if (!delta && next === previousText) {
+                  // #7858 AC2/AC3 — log unrecognized-shape update frames by KEY only, so
+                  // the next report ships the data needed to add a handler without a
+                  // manual capture round-trip. Never log message content, tokens, cookies.
+                  const shape = describeUpdateFrameShape(frame);
+                  if (shape) log?.debug?.("M365_WS", `unrecognized update frame keys: ${shape}`);
+                }
                 previousText = next;
                 if (delta) {
                   controller.enqueue(encoder.encode(sseChunk(input.model, { content: delta })));
@@ -265,6 +310,7 @@ export class CopilotM365WebExecutor extends BaseExecutor {
         wsUrl,
         prompt,
         model,
+        tier: connectionParams.tier,
         signal: input.signal ?? undefined,
         log: input.log,
       });

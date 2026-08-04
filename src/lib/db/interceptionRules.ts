@@ -201,3 +201,28 @@ export function resolveInterceptSearch(
 
   return rules.interceptSearch;
 }
+
+/**
+ * Resolve the effective `interceptFetch` override for a provider/model pair.
+ *
+ * Precedence: per-model rule > provider-level rule > undefined (no override — the
+ * caller should fall back to the existing native-bypass defaults). Structural twin of
+ * resolveInterceptSearch above (#7339 / Phase 3 of #3384).
+ */
+export function resolveInterceptFetch(
+  provider: string | null | undefined,
+  model: string | null | undefined
+): boolean | undefined {
+  const normalizedProvider = toNormalizedString(provider);
+  if (!normalizedProvider) return undefined;
+
+  const rules = getInterceptionRules(normalizedProvider);
+  if (!rules) return undefined;
+
+  const normalizedModel = toNormalizedString(model);
+  if (normalizedModel && rules.models?.[normalizedModel]?.interceptFetch !== undefined) {
+    return rules.models[normalizedModel].interceptFetch;
+  }
+
+  return rules.interceptFetch;
+}

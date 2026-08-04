@@ -110,6 +110,33 @@ curl -X POST https://localhost:20128/api/usage/budget \
   -d '{}'
 ```
 
+### GET /api/usage/cache-health
+
+Get prompt-cache health summary
+
+Summarizes the `write/read` cache ratio from `call_logs` for a time window:
+distribution (p50/p90/p99/max of cache-write tokens), warm/cold/rewrite/uncached
+call counts, the "heavy write" outlier share (10x the window median, floored at
+1024 tokens — Anthropic's cache-creation minimum), and a per-model breakdown.
+Only successful (`status = 200`) calls with a non-null cache column are counted.
+
+
+```bash
+curl https://localhost:20128/api/usage/cache-health \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### GET /api/usage/model-latency-stats
+
+Get per-model/provider latency statistics
+
+Aggregates `usage_history` rows into per-(provider, model) latency stats (avg/p50/p95/p99, std-dev, TTFT, tokens/sec) over a rolling window. Falls back from successful-only to all-sample rows when the successful count is below `minSamples`.
+
+```bash
+curl https://localhost:20128/api/usage/model-latency-stats \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
 ## Payloads
 
 See the full OpenAPI specification at `GET /api/openapi/spec` or `docs/openapi.yaml` for detailed request/response schemas.

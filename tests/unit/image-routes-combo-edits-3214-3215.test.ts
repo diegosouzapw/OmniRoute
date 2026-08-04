@@ -24,6 +24,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const { resolveImageBaseUrl } = await import("../../open-sse/handlers/imageGeneration.ts");
 const {
   parseDataUrl,
+  validateCodexImageEditReference,
+  validateCodexImageEditReferences,
   extractImageEditInputFromJson,
   resolveSingleImageComboTarget,
   resolveImageRouteModel,
@@ -68,7 +70,7 @@ test("resolveImageBaseUrl falls back when no node base URL is configured", () =>
   );
 });
 
-test("parseDataUrl decodes a base64 data URL", () => {
+test("parseDataUrl decodes canonical base64 and rejects malformed payloads", () => {
   const png = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
   const parsed = parseDataUrl(`data:image/png;base64,${png.toString("base64")}`);
   assert.ok(parsed);
@@ -76,16 +78,49 @@ test("parseDataUrl decodes a base64 data URL", () => {
   assert.deepEqual([...parsed!.bytes], [...png]);
   assert.equal(parseDataUrl("not-a-data-url"), null);
   assert.equal(parseDataUrl(`data:image/png;base64,`), null);
+  assert.equal(parseDataUrl("data:image/png;base64,%%%="), null);
+  assert.equal(parseDataUrl("data:image/png;base64,AQI"), null);
 });
 
-test("extractImageEditInputFromJson reads model/prompt and the first data-URL image", () => {
+test("validateCodexImageEditReference enforces MIME, magic bytes, and decoded size", () => {
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1]);
+  assert.equal(validateCodexImageEditReference({ bytes: png, mime: "image/png" }), null);
+  assert.match(
+    validateCodexImageEditReference({ bytes: png, mime: "image/jpeg" }) || "",
+    /does not match/i
+  );
+  assert.match(
+    validateCodexImageEditReference({ bytes: png, mime: "image/svg+xml" }) || "",
+    /PNG, JPEG, or WebP/i
+  );
+  assert.match(
+    validateCodexImageEditReference({ bytes: png, mime: "image/png" }, 8) || "",
+    /exceeds/i
+  );
+});
+
+test("validateCodexImageEditReferences bounds count and aggregate decoded bytes", () => {
+  const png = {
+    bytes: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1]),
+    mime: "image/png",
+  };
+  assert.equal(validateCodexImageEditReferences([png, png], 8, 32), null);
+  assert.match(validateCodexImageEditReferences(Array(9).fill(png), 8, 1024) ?? "", /at most 8/i);
+  assert.match(validateCodexImageEditReferences([png, png], 8, 16) ?? "", /total.*limit/i);
+});
+
+test("extractImageEditInputFromJson preserves all valid data-URL images and first-image compatibility", () => {
   const png = Buffer.from([1, 2, 3, 4]);
+  const jpeg = Buffer.from([5, 6, 7, 8]);
   const out = extractImageEditInputFromJson({
     model: "image",
     prompt: "make it blue",
     size: "1024x1024",
     response_format: "b64_json",
-    images: [{ image_url: `data:image/webp;base64,${png.toString("base64")}` }],
+    images: [
+      { image_url: `data:image/webp;base64,${png.toString("base64")}` },
+      `data:image/jpeg;base64,${jpeg.toString("base64")}`,
+    ],
   });
   assert.equal(out.model, "image");
   assert.equal(out.prompt, "make it blue");
@@ -93,6 +128,13 @@ test("extractImageEditInputFromJson reads model/prompt and the first data-URL im
   assert.equal(out.responseFormat, "b64_json");
   assert.equal(out.imageMime, "image/webp");
   assert.deepEqual([...(out.imageBytes ?? [])], [...png]);
+  assert.equal(out.images.length, 2);
+  assert.equal(out.imageInputCount, 2);
+  assert.deepEqual(
+    out.images.map((image) => image.mime),
+    ["image/webp", "image/jpeg"]
+  );
+  assert.deepEqual([...out.images[1].bytes], [...jpeg]);
 
   // also accepts a top-level `image` data URL string
   const out2 = extractImageEditInputFromJson({
@@ -100,6 +142,18 @@ test("extractImageEditInputFromJson reads model/prompt and the first data-URL im
     image: `data:image/png;base64,${png.toString("base64")}`,
   });
   assert.ok(out2.imageBytes && out2.imageBytes.length === 4);
+  assert.equal(out2.images.length, 1);
+  assert.equal(out2.imageInputCount, 1);
+
+  const malformed = extractImageEditInputFromJson({ images: ["not-a-data-url"] });
+  assert.equal(malformed.images.length, 0);
+  assert.equal(malformed.imageInputCount, 1);
+
+  const malformedTypes = extractImageEditInputFromJson({
+    images: [`data:image/png;base64,${png.toString("base64")}`, null, 7, false],
+  });
+  assert.equal(malformedTypes.images.length, 1);
+  assert.equal(malformedTypes.imageInputCount, 4);
 });
 
 test("resolveImageRouteModel resolves a bare combo/alias to its single image target", async () => {

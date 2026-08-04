@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
-import { getSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/localDb";
 import {
   ensurePersistentManagementPasswordHash,
   getStoredManagementPassword,
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     }
     const { password, name, scope, expiresInDays } = validation.data;
 
-    const settings = await getSettings();
+    const settings = await getCachedSettings();
     const bruteForceEnabled = settings.bruteForceProtection !== false;
     const clientIp = auditContext.ipAddress || null;
 

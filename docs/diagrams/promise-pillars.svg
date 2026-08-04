@@ -1,0 +1,139 @@
+<svg viewBox="0 0 1200 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The OmniRoute promise: one endpoint, 290 providers — never stop building, OmniRoute picks the cheapest one that works. Six pillars. Never hit limits: auto-fallback across 290 providers in milliseconds, quota out means the next provider takes over with zero downtime. Save up to 95 percent of tokens: RTK plus Caveman stacked compression cuts 15 to 95 percent of eligible tokens, about 89 percent average on tool-heavy sessions. Zero dollars to start: 90+ providers with a free tier, 40+ free forever — Qoder, Pollinations, Cloudflare, SiliconFlow — no card needed. Every tool works: 33 coding agents including Claude Code, Codex, Cursor, Cline, Copilot and Antigravity through one config. One endpoint: OpenAI, Claude, Gemini and Responses API translation — point any tool at /v1 and it just works. Production-grade: circuit breakers, TLS stealth, MCP with 104 tools, A2A, memory, guardrails, evals — 25,000+ tests.">
+  <desc>Animated promise card: six pillar tiles fade in in reading order, then a soft colored border highlight sweeps from tile to tile in a continuous cycle.</desc>
+  <defs>
+    <pattern id="gridPaperP" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bgGlowP" cx="70%" cy="14%" r="55%">
+      <stop offset="0%" stop-color="#e54d5e" stop-opacity="0.12"/>
+      <stop offset="55%" stop-color="#8b5cf6" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="540" fill="#0b0e14"/>
+  <rect width="1200" height="540" fill="url(#gridPaperP)"/>
+  <rect width="1200" height="540" fill="url(#bgGlowP)"/>
+
+  <!-- header -->
+  <g>
+    <text x="40" y="58" font-family="Consolas, 'Courier New', monospace" font-size="13" letter-spacing="2.5" fill="#a78bfa">THE PROMISE</text>
+    <line x1="150" y1="53" x2="1160" y2="53" stroke="#232b38" stroke-width="1.5"/>
+  </g>
+  <g>
+    <text x="40" y="100" font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif" font-size="23" font-weight="600" fill="#c9d1d9">One endpoint. <tspan fill="#a78bfa" font-weight="800">290 providers.</tspan> Never stop building — OmniRoute picks <tspan fill="#7ee787" font-weight="700">the cheapest one that works</tspan>.</text>
+  </g>
+
+  <g font-family="Inter, 'Segoe UI', Arial, Helvetica, system-ui, sans-serif">
+
+    <!-- cell 1: never hit limits (blue) -->
+    <g>
+      <rect x="40" y="130" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="40" y="130" width="360" height="164" rx="14" fill="none" stroke="#74b9ff" stroke-width="1.5" opacity="0">
+        <animate attributeName="opacity" values="0;0.9;0;0" keyTimes="0;0.055;0.12;1" dur="12s" begin="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="40" y="146" width="4" height="132" rx="2" fill="#0984e3"/>
+      <g transform="translate(66,152)" stroke="#74b9ff" stroke-width="2.4" fill="none" stroke-linecap="round">
+        <circle cx="11" cy="11" r="10.5"/>
+        <line x1="3.9" y1="3.9" x2="18.1" y2="18.1"/>
+      </g>
+      <text x="102" y="170" font-size="18" font-weight="800" fill="#74b9ff">Never hit limits</text>
+      <text x="66" y="204" font-size="13.5" fill="#a1a1aa">Auto-fallback across 290 providers in</text>
+      <text x="66" y="226" font-size="13.5" fill="#a1a1aa">milliseconds. Quota out? The next provider</text>
+      <text x="66" y="248" font-size="13.5" fill="#a1a1aa">takes over — zero downtime.</text>
+    </g>
+
+    <!-- cell 2: save tokens (orange) -->
+    <g>
+      <rect x="420" y="130" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="420" y="130" width="360" height="164" rx="14" fill="none" stroke="#e17055" stroke-width="1.5" opacity="0">
+        <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.167;0.222;0.287;1" dur="12s" begin="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="420" y="146" width="4" height="132" rx="2" fill="#e17055"/>
+      <g transform="translate(446,152)" stroke="#e17055" stroke-width="2.4" fill="none" stroke-linecap="round">
+        <circle cx="5.5" cy="5.5" r="4"/>
+        <circle cx="16.5" cy="16.5" r="4"/>
+        <line x1="19" y1="3" x2="3" y2="19"/>
+      </g>
+      <text x="482" y="170" font-size="18" font-weight="800" fill="#e17055">Save up to 95% tokens</text>
+      <text x="446" y="204" font-size="13.5" fill="#a1a1aa">RTK + Caveman stacked compression cuts</text>
+      <text x="446" y="226" font-size="13.5" fill="#a1a1aa">15–95% of eligible tokens — ~89% average</text>
+      <text x="446" y="248" font-size="13.5" fill="#a1a1aa">on tool-heavy sessions.</text>
+    </g>
+
+    <!-- cell 3: $0 to start (gold) -->
+    <g>
+      <rect x="800" y="130" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="800" y="130" width="360" height="164" rx="14" fill="none" stroke="#fdcb6e" stroke-width="1.5" opacity="0">
+        <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.334;0.389;0.454;1" dur="12s" begin="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="800" y="146" width="4" height="132" rx="2" fill="#fdcb6e"/>
+      <g transform="translate(826,152)" stroke="#fdcb6e" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 2,9.5 L 2,3 A 1,1 0 0 1 3,2 L 9.5,2 L 20,12.5 A 1.6,1.6 0 0 1 20,14.8 L 14.8,20 A 1.6,1.6 0 0 1 12.5,20 Z"/>
+        <circle cx="6.6" cy="6.6" r="1.4" fill="#fdcb6e" stroke="none"/>
+      </g>
+      <text x="862" y="170" font-size="18" font-weight="800" fill="#fdcb6e">$0 to start</text>
+      <text x="826" y="204" font-size="13.5" fill="#a1a1aa">90+ providers with a free tier, 40+ free</text>
+      <text x="826" y="226" font-size="13.5" fill="#a1a1aa">forever — Qoder, Pollinations, Cloudflare,</text>
+      <text x="826" y="248" font-size="13.5" fill="#a1a1aa">SiliconFlow… No card needed.</text>
+    </g>
+
+    <!-- cell 4: every tool works (violet) -->
+    <g>
+      <rect x="40" y="314" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="40" y="314" width="360" height="164" rx="14" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0">
+        <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.5;0.555;0.62;1" dur="12s" begin="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="40" y="330" width="4" height="132" rx="2" fill="#8b5cf6"/>
+      <g transform="translate(66,336)" stroke="#a78bfa" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 6,2 L 6,7 M 14,2 L 14,7"/>
+        <path d="M 3.5,7 L 16.5,7 L 16.5,11.5 A 6.5,6.5 0 0 1 10,18 A 6.5,6.5 0 0 1 3.5,11.5 Z"/>
+        <path d="M 10,18 L 10,22"/>
+      </g>
+      <text x="102" y="354" font-size="18" font-weight="800" fill="#a78bfa">Every tool works</text>
+      <text x="66" y="388" font-size="13.5" fill="#a1a1aa">33 coding agents — Claude Code, Codex,</text>
+      <text x="66" y="410" font-size="13.5" fill="#a1a1aa">Cursor, Cline, Copilot, Antigravity —</text>
+      <text x="66" y="432" font-size="13.5" fill="#a1a1aa">through one config.</text>
+    </g>
+
+    <!-- cell 5: one endpoint (cyan) -->
+    <g>
+      <rect x="420" y="314" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="420" y="314" width="360" height="164" rx="14" fill="none" stroke="#00cec9" stroke-width="1.5" opacity="0">
+        <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.667;0.722;0.787;1" dur="12s" begin="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="420" y="330" width="4" height="132" rx="2" fill="#00cec9"/>
+      <g transform="translate(446,336)" stroke="#00cec9" stroke-width="2.2" fill="none" stroke-linecap="round">
+        <path d="M 2,3 L 13,8.5 M 2,11 L 13,11 M 2,19 L 13,13.5"/>
+        <circle cx="18.5" cy="11" r="3.2" fill="#00cec9" stroke="none"/>
+      </g>
+      <text x="482" y="354" font-size="18" font-weight="800" fill="#00cec9">One endpoint</text>
+      <text x="446" y="388" font-size="13.5" fill="#a1a1aa">OpenAI ↔ Claude ↔ Gemini ↔ Responses API</text>
+      <text x="446" y="410" font-size="13.5" fill="#a1a1aa">translation. Point any tool at /v1 —</text>
+      <text x="446" y="432" font-size="13.5" fill="#a1a1aa">it just works.</text>
+    </g>
+
+    <!-- cell 6: production-grade (green) -->
+    <g>
+      <rect x="800" y="314" width="360" height="164" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+      <rect x="800" y="314" width="360" height="164" rx="14" fill="none" stroke="#7ee787" stroke-width="1.5" opacity="0">
+        <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.834;0.889;0.954;1" dur="12s" begin="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="800" y="330" width="4" height="132" rx="2" fill="#22c55e"/>
+      <g transform="translate(826,336)" stroke="#7ee787" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M 11,1.5 L 19.5,5 L 19.5,11 C 19.5,16.5 16,19.8 11,21.5 C 6,19.8 2.5,16.5 2.5,11 L 2.5,5 Z"/>
+        <path d="M 7,11 L 10,14 L 15.4,8.2"/>
+      </g>
+      <text x="862" y="354" font-size="18" font-weight="800" fill="#7ee787">Production-grade</text>
+      <text x="826" y="388" font-size="13.5" fill="#a1a1aa">Circuit breakers, TLS stealth, MCP (104</text>
+      <text x="826" y="410" font-size="13.5" fill="#a1a1aa">tools), A2A, memory, guardrails, evals —</text>
+      <text x="826" y="432" font-size="13.5" fill="#a1a1aa">25,000+ tests.</text>
+    </g>
+  </g>
+
+  <!-- footer -->
+  <g>
+    <text x="40" y="516" font-family="Consolas, 'Courier New', monospace" font-size="12" fill="#71717a">$ npm i -g omniroute&#160;&#160;·&#160;&#160;point your tool at http://localhost:20128/v1&#160;&#160;·&#160;&#160;$0</text>
+    <text x="1160" y="516" text-anchor="end" font-family="Consolas, 'Courier New', monospace" font-size="12" letter-spacing="1.5" fill="#71717a">MIT · OPEN SOURCE</text>
+  </g>
+</svg>

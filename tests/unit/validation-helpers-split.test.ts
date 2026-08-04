@@ -39,8 +39,15 @@ test("re-exported guards are the same function objects as transport's", () => {
 test("urlHelpers: normalizeBaseUrl trims + strips trailing slash; addModelsSuffix swaps endpoints", () => {
   assert.equal(urls.normalizeBaseUrl("  https://api.x.com/v1/  "), "https://api.x.com/v1");
   assert.equal(urls.normalizeBaseUrl(123 as unknown as string), ""); // non-string guard (#2463)
-  assert.equal(urls.addModelsSuffix("https://api.x.com/v1/chat/completions"), "https://api.x.com/v1/models");
+  assert.equal(
+    urls.addModelsSuffix("https://api.x.com/v1/chat/completions"),
+    "https://api.x.com/v1/models"
+  );
   assert.equal(urls.addModelsSuffix("https://api.x.com/v1/models"), "https://api.x.com/v1/models");
+  assert.equal(
+    urls.addModelsSuffix("https://api.kimi.com/coding/v1/messages?beta=true"),
+    "https://api.kimi.com/coding/v1/models"
+  );
 });
 
 test("headers: buildBearerHeaders sets Authorization; builders vary the scheme", () => {

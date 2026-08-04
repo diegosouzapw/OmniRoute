@@ -1,4 +1,6 @@
 import { computeFreeModelTotals } from "@omniroute/open-sse/config/freeModelCatalog.ts";
+import { FREE_CATALOG_CURATED_AT } from "@omniroute/open-sse/config/freeModelCatalog.data.ts";
+import { listNoCredentialProviders } from "@/shared/utils/providerCredentialRequirement";
 import { sumUsageTokensThisMonth } from "@/lib/db/usageSummary";
 
 const CORS = {
@@ -20,6 +22,10 @@ export async function GET(req: Request): Promise<Response> {
     ...totals,
     usedThisMonth,
     remaining: Math.max(0, totals.steadyRecurringTokens - usedThisMonth),
+    catalogUpdatedAt: FREE_CATALOG_CURATED_AT,
+    // Computed here, not in the component: deriving it client-side would pull
+    // the whole provider REGISTRY into the browser bundle.
+    noCredentialProviders: listNoCredentialProviders(),
   };
   return new Response(JSON.stringify(body), {
     status: 200,

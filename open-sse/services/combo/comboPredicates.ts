@@ -8,6 +8,10 @@
 
 import { errorResponse } from "../../utils/error.ts";
 import { parseModel } from "../model.ts";
+import { isSelfInflictedUpstreamTimeout } from "../../handlers/chatCore/cooldownClassification.ts";
+import { isLocalStreamLifecycleError } from "@/shared/utils/circuitBreaker";
+import { CONTEXT_OVERFLOW_PATTERNS, MODEL_ACCESS_DENIED_PATTERNS } from "../accountFallback.ts";
+import { isResourceNotFoundResponse } from "../errorClassifier.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
@@ -129,7 +133,11 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  * failure (#1731 / #2743 gap-d). This is the consumer side of `skipProviderBreaker`:
  *
  * - Stream-readiness failures (pre-flight zombie/ping probes) never count as provider
- *   failures — they are a connection-readiness signal, not an upstream outage.
+ *   failures — they are a connection-readiness signal, not an upstream outage. EXCEPT a
+ *   STREAM_EARLY_EOF (`isStreamEarlyEof`): there the upstream returned HTTP 200, opened the
+ *   SSE stream and then hung up without a single non-ping event, which is a genuine upstream
+ *   failure. Excluding it made a provider-wide outage invisible to the breaker — see the
+ *   STREAM_EARLY_EOF section of RESILIENCE_GUIDE.md.
  * - Only whole-provider failure statuses (408/500/502/503/504) count. A plain rate-limit
  *   429 is deliberately EXCLUDED — it belongs to connection cooldown / model lockout scope
  *   (a genuine quota/token-limit 429 is handled there), NOT the whole-provider breaker. This
@@ -138,24 +146,133 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  *   this intentionally differs from `isProviderFailureCode` (accountFallback.ts), which
  *   INCLUDES 429 for connection-cooldown purposes and must not be changed here.
  * - When the next combo target is on the SAME provider, don't trip the provider breaker:
- *   a different model on that provider may still succeed.
+ *   a different model on that provider may still succeed. #8376: EXCEPT when the failure
+ *   itself is a transport-level "proxy unreachable" event (`isProxyUnreachable`) — a dead
+ *   upstream proxy poisons every account on that provider identically, so a different
+ *   model on the same provider will fail the exact same way. Without this override a
+ *   homogeneous same-provider combo pool never trips the breaker and instead burns every
+ *   attempt against the same dead proxy until it hits the 503 max-retry limit.
  * - G-02 / #2743: when the fallback result carries `skipProviderBreaker` (an embedded
  *   service supervisor outage signalled via `X-Omni-Fallback-Hint: connection_cooldown`)
  *   apply connection cooldown ONLY — never trip the whole-provider breaker.
+ *
+ * #7907/#7908: also skip the breaker trip when the failure is a local stream lifecycle
+ * event (client-side abort — `request_signal_aborted`, "Client disconnected: ...", or an
+ * AbortError with no upstream status, which defaults to 502). Otherwise a client abort mid
+ * combo-target-loop still trips the whole-provider breaker exactly like a genuine upstream
+ * failure would, undermining the same #4602 policy `shouldSkipConnDisable()` already applies
+ * to connection-level cooldown.
  *
  * Pure predicate so the breaker decision is unit-testable without the full combo harness.
  */
 export function shouldRecordProviderBreakerFailure(args: {
   isStreamReadinessFailure: boolean;
+  /** True when the failure is specifically a STREAM_EARLY_EOF (upstream hung up after
+   * HTTP 200). Overrides the `isStreamReadinessFailure` exemption only; every other
+   * AND-term below still gates the trip. */
+  isStreamEarlyEof?: boolean;
   status: number;
   sameProviderNext: boolean;
   skipProviderBreaker?: boolean;
+  requestScopedFailure?: boolean;
+  error?: unknown;
+  /** #8376: transport-level "proxy unreachable" signal — overrides the `sameProviderNext`
+   * exemption only; every other AND-term still gates the trip. */
+  isProxyUnreachable?: boolean;
 }): boolean {
   return (
-    !args.isStreamReadinessFailure &&
+    (!args.isStreamReadinessFailure || args.isStreamEarlyEof === true) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
-    !args.sameProviderNext &&
-    !args.skipProviderBreaker
+    (!args.sameProviderNext || args.isProxyUnreachable === true) &&
+    !args.skipProviderBreaker &&
+    !args.requestScopedFailure &&
+    !isLocalStreamLifecycleError(args.error)
+  );
+}
+
+const REQUEST_SCOPED_UPSTREAM_ERROR_CODES = new Set([
+  "context_length_exceeded",
+  "upstream_empty_response",
+  "upstream_response_failed",
+]);
+
+/** Request/model-specific failures must not poison provider-wide resilience state. */
+export function isRequestScopedUpstreamFailure(error?: {
+  code?: string | null;
+  type?: string | null;
+}): boolean {
+  const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
+  const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
+  return REQUEST_SCOPED_UPSTREAM_ERROR_CODES.has(code) || type === "context_length_exceeded";
+}
+
+/** Request-scoped classification that also has access to the HTTP body. */
+export function isComboRequestScopedFailure(
+  status: number,
+  errorText: string,
+  error?: { code?: string | null; type?: string | null }
+): boolean {
+  return (
+    isRequestScopedUpstreamFailure(error) ||
+    (status === 404 && isResourceNotFoundResponse(errorText))
+  );
+}
+
+const INPUT_BOUND_ERROR_CODES = new Set(["context_length_exceeded", "context_window_exceeded"]);
+
+/**
+ * #8375: Whether an upstream error is input-bound — i.e. determined solely by the
+ * request content, not by the provider/account state. A context_length_exceeded
+ * for a 159K-token input will fail on every account of that same model, so the
+ * combo loop should propagate the error immediately instead of retrying.
+ */
+export function isInputBoundRequestFailure(error?: {
+  code?: string | null;
+  type?: string | null;
+}): boolean {
+  const code = typeof error?.code === "string" ? error.code.toLowerCase() : "";
+  const type = typeof error?.type === "string" ? error.type.toLowerCase() : "";
+  return INPUT_BOUND_ERROR_CODES.has(code) || type === "context_length_exceeded";
+}
+
+/**
+ * #7177: whether handleSingleModelChat should skip the connection-level cooldown
+ * (markAccountUnavailable) for a failed attempt — client disconnects, a 401 when the
+ * connection has extra keys to rotate through, a known request-scoped upstream failure
+ * (e.g. context overflow — not a connection health signal), a plugin refusing the
+ * request (our own policy, not a provider fault — see below), or our own
+ * self-inflicted timeout all mean the connection itself is healthy and should not be
+ * cooled down.
+ *
+ * A plugin block (`plugin_block`) is our own policy decision, not the provider
+ * rejecting us. Banning the account here would let a working security plugin destroy
+ * the connection it protects — one block would ban the provider for every later
+ * request, valid ones included — and would trigger a pointless retry loop across other
+ * accounts the plugin would refuse identically.
+ */
+export function shouldSkipConnDisable(
+  result: {
+    status: number;
+    errorCode?: string | null;
+    errorType?: string | null;
+    error?: unknown;
+  },
+  is401: boolean,
+  hasExtraKeys: boolean,
+  provider: string
+): boolean {
+  return (
+    result.status === 499 ||
+    result.errorCode === "client_disconnected" ||
+    result.errorType === "client_disconnected" ||
+    // Client abort surfaced as a bare error (no statusCode → defaults to 502):
+    // a local lifecycle event, not a provider failure (#4602 policy).
+    isLocalStreamLifecycleError(result.error) ||
+    result.errorCode === "plugin_block" ||
+    result.errorType === "plugin_block" ||
+    (is401 && hasExtraKeys) ||
+    isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) ||
+    isSelfInflictedUpstreamTimeout(result.status, result.errorType, provider)
   );
 }
 
@@ -200,6 +317,28 @@ export function isStreamReadinessFailureErrorBody(errorBody: unknown): boolean {
 }
 
 /**
+ * A STREAM_EARLY_EOF specifically: the upstream accepted the request (HTTP 200), opened the
+ * SSE stream, then closed it before emitting a single non-ping event.
+ *
+ * This is deliberately NOT the same signal as STREAM_READINESS_TIMEOUT. The readiness probe
+ * is a pre-flight liveness check on a connection we have not committed to yet, so failing it
+ * says "this connection looks stale", not "this provider is failing". An early EOF is the
+ * opposite: the provider took the request and then failed to serve it, which is an upstream
+ * failure by any reasonable definition.
+ *
+ * `isStreamReadinessFailureErrorBody` still covers both codes because the transient-retry and
+ * semaphore-cooldown paths in combo.ts want identical treatment for both. Only the
+ * whole-provider circuit breaker needs to tell them apart — see
+ * `shouldRecordProviderBreakerFailure`.
+ */
+export function isStreamEarlyEofErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "STREAM_EARLY_EOF";
+}
+
+/**
  * A local per-API-key token-limit breach surfaces as a 429 tagged with
  * errorCode "TOKEN_LIMIT_EXCEEDED" (see chatCore.ts Tier 2 early return). This
  * is NOT an upstream rate limit, so the combo loop must not cool the shared
@@ -222,4 +361,100 @@ export function toRecordedTarget(target: ResolvedComboTarget) {
     connectionId: target.connectionId,
     label: target.label,
   };
+}
+
+export function clampPercent(value: number): number {
+  if (!Number.isFinite(value)) return 100;
+  return Math.max(0, Math.min(100, value));
+}
+
+export function quotaRemainingPercentFromQuota(quota: unknown): number {
+  if (!quota || typeof quota !== "object") return 100;
+  const record = quota as Record<string, unknown>;
+  if (record.limitReached === true) return 0;
+
+  const windows = record.windows;
+  if (windows && typeof windows === "object" && !Array.isArray(windows)) {
+    let minRemaining: number | null = null;
+    for (const windowInfo of Object.values(windows as Record<string, unknown>)) {
+      if (!windowInfo || typeof windowInfo !== "object") continue;
+      const percentUsed = Number((windowInfo as Record<string, unknown>).percentUsed);
+      if (!Number.isFinite(percentUsed)) continue;
+      const remaining = clampPercent((1 - percentUsed) * 100);
+      minRemaining = minRemaining === null ? remaining : Math.min(minRemaining, remaining);
+    }
+    if (minRemaining !== null) return minRemaining;
+  }
+
+  const percentUsed = Number(record.percentUsed);
+  if (Number.isFinite(percentUsed)) return clampPercent((1 - percentUsed) * 100);
+  return 100;
+}
+
+export const QUOTA_BLOCKING_CONNECTION_STATUSES = new Set([
+  "banned",
+  "credits_exhausted",
+  "deactivated",
+  "expired",
+  "rate_limited",
+]);
+
+export function normalizeConnectionStatus(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+export function hasFutureRateLimitUntil(value: unknown): boolean {
+  if (value == null || value === "") return false;
+  const time = new Date(String(value)).getTime();
+  return Number.isFinite(time) && time > Date.now();
+}
+
+export function getConnectionStatusQuotaCutoffReason(
+  connection: Record<string, unknown> | undefined
+): string | undefined {
+  if (!connection) return undefined;
+  const status = normalizeConnectionStatus(connection.testStatus);
+  if (QUOTA_BLOCKING_CONNECTION_STATUSES.has(status)) return status;
+  if (status === "unavailable" && hasFutureRateLimitUntil(connection.rateLimitedUntil)) {
+    return "rate_limited";
+  }
+  return undefined;
+}
+
+/** @param {string} errorText */
+export function isContextOverflow400(errorText: string | null | undefined): boolean {
+  const text = String(errorText || "");
+  if (!text) return false;
+  return (
+    /\bcontext.*(?:length_exceeded|too long|overflow|exceeded|window|limit)\b/i.test(text) ||
+    /exceeds.*context/i.test(text) ||
+    /your input exceeds/i.test(text) ||
+    CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(text))
+  );
+}
+
+/** @param {string} errorText */
+export function isParamValidation400(errorText: string | null | undefined): boolean {
+  const text = String(errorText || "");
+  if (!text) return false;
+  return (
+    /\bmax_tokens\b.*(?:illegal|must|range|invalid)/i.test(text) ||
+    /\bparameter is illegal\b/i.test(text) ||
+    /\bis illegal.*range\b/i.test(text)
+  );
+}
+
+/**
+ * #5249 / #2101: model-scoped 400s must NEVER stop the combo.
+ */
+export function isModelScoped400(errorText: string | null | undefined): boolean {
+  const text = String(errorText || "");
+  if (!text) return false;
+  if (MODEL_ACCESS_DENIED_PATTERNS.some((p) => p.test(text))) return true;
+  return (
+    /\bmodel\b[\s\S]{0,80}?\b(?:not\s+supported|unsupported|unknown|unavailable)\b/i.test(text) ||
+    /\b(?:not\s+supported|unsupported|unknown)\b[\s\S]{0,80}?\bmodel\b/i.test(text) ||
+    /\bunsupported_api_for_model\b/i.test(text) ||
+    /\bdoes\s+not\s+support\s+(?:the\s+)?responses\s+api\b/i.test(text)
+  );
 }

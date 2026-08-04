@@ -2,9 +2,7 @@
  * TDD regression for #3931 (Problem #3, diagnosed by @thezukiru in discussion
  * #3895): the `qwen-web` cookie provider had no entry in PROVIDER_MODELS_CONFIG
  * (`src/app/api/providers/[id]/models/route.ts`), so the model-discovery page
- * returned nothing for it. The OAuth fallback at the top of the handler only
- * fires for `provider === "qwen" && authType === "oauth"`, so qwen-web fell
- * through to the no-config branch.
+ * returned nothing for it, so qwen-web fell through to the no-config branch.
  *
  * (Problem #1 — the validator bare-token false-positive — was already fixed in
  * the merged PR #3958; Problem #2 — empty stream from WAF bot-detection on the

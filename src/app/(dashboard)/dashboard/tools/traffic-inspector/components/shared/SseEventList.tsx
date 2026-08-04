@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { SseEvent } from "@/mitm/inspector/sseMerger";
 
 interface SseEventListProps {
@@ -7,6 +8,7 @@ interface SseEventListProps {
 }
 
 export function SseEventList({ events }: SseEventListProps) {
+  const t = useTranslations("trafficInspector");
   return (
     <div className="flex flex-col gap-1 font-mono text-xs overflow-auto max-h-full">
       {events.map((ev, i) => (
@@ -16,9 +18,7 @@ export function SseEventList({ events }: SseEventListProps) {
           <span className="text-text-main break-all">{ev.data}</span>
         </div>
       ))}
-      {events.length === 0 && (
-        <p className="text-text-muted italic">No SSE events</p>
-      )}
+      {events.length === 0 && <p className="text-text-muted italic">{t("noSseEvents")}</p>}
     </div>
   );
 }

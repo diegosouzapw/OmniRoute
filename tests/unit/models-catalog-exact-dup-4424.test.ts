@@ -1,107 +1,128 @@
-import test from "node:test";
 import assert from "node:assert/strict";
-
-// #4424 follow-up — `/v1/models` must not emit the same id twice (OpenAI clients key
-// by id and break on exact-duplicate ids). The reporter observed `codex/gpt-5.5`,
-// `veo-free/seedance`, `veo-free/veo` each listed twice. A final dedupe keyed by the
-// model's listing identity `(id, type, subtype)` collapses true exact dupes (keep-first)
-// while preserving the ONE intentional same-id case: audio models that list both a
-// transcription and a speech entry under the same id (distinguished by `subtype`).
-
+import { describe, it } from "node:test";
 import { dedupeExactCatalogIds } from "../../src/app/api/v1/models/catalogDedupe.ts";
 
-test("collapses an exact-duplicate id to a single entry (keep first)", () => {
-  const input = [
-    { id: "codex/gpt-5.5", owned_by: "codex", root: "gpt-5.5", context_length: 200000 },
-    { id: "codex/gpt-5.5", owned_by: "codex", root: "gpt-5.5", context_length: 200000 },
-  ];
-  const out = dedupeExactCatalogIds(input);
-  assert.equal(out.length, 1);
-  assert.equal(out[0].id, "codex/gpt-5.5");
-  assert.equal(out[0].context_length, 200000);
-});
+describe("dedupeExactCatalogIds (#4424 / #8015)", () => {
+  it("drops exact same-surface duplicates and keeps the first row", () => {
+    const models = [
+      { id: "codex/gpt-5.5", owned_by: "codex", root: "gpt-5.5", context_length: 200000 },
+      { id: "codex/gpt-5.5", owned_by: "codex", root: "gpt-5.5", context_length: 100000 },
+    ];
+    const out = dedupeExactCatalogIds(models);
+    assert.equal(out.length, 1);
+    assert.equal(out[0]?.context_length, 200000);
+  });
 
-test("collapses the reporter's two distinct duplicated ids to two unique entries", () => {
-  const input = [
-    { id: "veo-free/seedance", owned_by: "veo-free", root: "seedance", type: "video" },
-    { id: "veo-free/veo", owned_by: "veo-free", root: "veo", type: "video" },
-    { id: "veo-free/seedance", owned_by: "veo-free", root: "seedance", type: "video" },
-    { id: "veo-free/veo", owned_by: "veo-free", root: "veo", type: "video" },
-  ];
-  const out = dedupeExactCatalogIds(input);
-  assert.equal(out.length, 2);
-  assert.deepEqual(
-    out.map((m) => m.id),
-    ["veo-free/seedance", "veo-free/veo"]
-  );
-});
+  it("drops generic chat siblings when a typed specialty row exists for the same id", () => {
+    const models = [
+      {
+        id: "openai/whisper-1",
+        owned_by: "openai",
+        context_length: 128000,
+        capabilities: { tool_calling: true, reasoning: true },
+      },
+      {
+        id: "openai/whisper-1",
+        owned_by: "openai",
+        type: "audio",
+        subtype: "transcription",
+      },
+      {
+        id: "veo-free/veo",
+        owned_by: "veo-free",
+        context_length: 128000,
+        capabilities: { tool_calling: true, reasoning: true },
+      },
+      {
+        id: "veo-free/veo",
+        owned_by: "veo-free",
+        type: "video",
+      },
+      {
+        id: "openai/omni-moderation-latest",
+        owned_by: "openai",
+        context_length: 128000,
+      },
+      {
+        id: "openai/omni-moderation-latest",
+        owned_by: "openai",
+        type: "moderation",
+      },
+    ];
+    const out = dedupeExactCatalogIds(models);
+    assert.deepEqual(
+      out.map((m) => [m.id, m.type, m.subtype]),
+      [
+        ["openai/whisper-1", "audio", "transcription"],
+        ["veo-free/veo", "video", undefined],
+        ["openai/omni-moderation-latest", "moderation", undefined],
+      ]
+    );
+  });
 
-test("preserves intentional same-id audio variants (transcription vs speech)", () => {
-  const input = [
-    { id: "prov/whisper", owned_by: "prov", root: "whisper", type: "audio", subtype: "transcription" },
-    { id: "prov/whisper", owned_by: "prov", root: "whisper", type: "audio", subtype: "speech" },
-  ];
-  const out = dedupeExactCatalogIds(input);
-  assert.equal(out.length, 2);
-  assert.deepEqual(
-    out.map((m) => m.subtype).sort(),
-    ["speech", "transcription"]
-  );
-});
+  it("preserves intentional audio transcription + speech surfaces under the same id", () => {
+    const models = [
+      { id: "openai/gpt-4o-mini-tts", type: "audio", subtype: "transcription" },
+      { id: "openai/gpt-4o-mini-tts", type: "audio", subtype: "speech" },
+      // generic sibling must still be dropped
+      { id: "openai/gpt-4o-mini-tts", context_length: 128000 },
+    ];
+    const out = dedupeExactCatalogIds(models);
+    assert.equal(out.length, 2);
+    assert.deepEqual(
+      out.map((m) => m.subtype),
+      ["transcription", "speech"]
+    );
+  });
 
-test("keeps distinct ids untouched", () => {
-  const input = [
-    { id: "a/m1", type: "chat" },
-    { id: "b/m2", type: "chat" },
-    { id: "c/m3", type: "chat" },
-  ];
-  const out = dedupeExactCatalogIds(input);
-  assert.equal(out.length, 3);
-});
+  it("does not collapse distinct public ids or account-looking fields on kept rows", () => {
+    const models = [
+      { id: "a/one", account_id: "acct-1", type: "video" },
+      { id: "a/two", account_id: "acct-2", type: "video" },
+      { id: "a/one", account_id: "acct-9", type: "video" },
+    ];
+    const out = dedupeExactCatalogIds(models);
+    assert.equal(out.length, 2);
+    assert.equal(out[0]?.account_id, "acct-1");
+    assert.equal(out[1]?.id, "a/two");
+  });
 
-test("keeps the FIRST occurrence's metadata, drops the later dupe", () => {
-  const input = [
-    { id: "x/dup", name: "First", capabilities: { vision: true } },
-    { id: "x/dup", name: "Second" },
-  ];
-  const out = dedupeExactCatalogIds(input);
-  assert.equal(out.length, 1);
-  assert.equal(out[0].name, "First");
-  assert.deepEqual(out[0].capabilities, { vision: true });
-});
+  it("passes through empty/single-element arrays and id-less rows", () => {
+    assert.deepEqual(dedupeExactCatalogIds([]), []);
+    const one = [{ id: "only" }];
+    assert.equal(dedupeExactCatalogIds(one), one);
+    const mixed = [{ name: "no-id" }, { id: "x" }, { id: "x" }];
+    const out = dedupeExactCatalogIds(mixed);
+    assert.equal(out.length, 2);
+    assert.equal((out[0] as { name?: string }).name, "no-id");
+  });
 
-test("a dup that differs only by type is NOT collapsed (distinct listing identity)", () => {
-  const input = [
-    { id: "p/m", type: "chat" },
-    { id: "p/m", type: "embedding" },
-  ];
-  const out = dedupeExactCatalogIds(input);
-  assert.equal(out.length, 2);
-});
+  it("preserves the relative order of kept entries across distinct ids", () => {
+    const models = [
+      { id: "p/e", owned_by: "p" },
+      { id: "p/d", owned_by: "p" },
+      { id: "p/c", owned_by: "p" },
+      { id: "p/b", owned_by: "p" },
+      { id: "p/a", owned_by: "p" },
+    ];
+    const out = dedupeExactCatalogIds(models);
+    assert.equal(out.length, 5);
+    assert.deepEqual(
+      out.map((m) => m.id),
+      ["p/e", "p/d", "p/c", "p/b", "p/a"]
+    );
+  });
 
-test("preserves relative order of kept entries", () => {
-  const input = [
-    { id: "first/a", type: "chat" },
-    { id: "dup/x", type: "chat" },
-    { id: "second/b", type: "chat" },
-    { id: "dup/x", type: "chat" },
-    { id: "third/c", type: "chat" },
-  ];
-  const out = dedupeExactCatalogIds(input);
-  assert.deepEqual(
-    out.map((m) => m.id),
-    ["first/a", "dup/x", "second/b", "third/c"]
-  );
-});
-
-test("empty and single-element inputs pass through", () => {
-  assert.deepEqual(dedupeExactCatalogIds([]), []);
-  const one = [{ id: "only/one" }];
-  assert.equal(dedupeExactCatalogIds(one).length, 1);
-});
-
-test("entries missing an id are passed through unchanged (never grouped)", () => {
-  const input = [{ foo: 1 } as { id?: string }, { foo: 2 } as { id?: string }];
-  const out = dedupeExactCatalogIds(input);
-  assert.equal(out.length, 2);
+  it("never groups two distinct id-less entries together", () => {
+    const models = [
+      { name: "alpha", type: "video" },
+      { name: "beta", type: "audio" },
+    ];
+    const out = dedupeExactCatalogIds(models);
+    assert.equal(out.length, 2);
+    assert.deepEqual(
+      out.map((m) => (m as { name?: string }).name),
+      ["alpha", "beta"]
+    );
+  });
 });

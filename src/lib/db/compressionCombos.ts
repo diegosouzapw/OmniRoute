@@ -68,6 +68,7 @@ const KNOWN_ENGINE_IDS = [
   "ccr",
   "llmlingua",
   "relevance",
+  "codex-responses",
 ];
 
 function normalizePipeline(value: unknown): CompressionPipelineStep[] {
@@ -413,6 +414,7 @@ const ENGINE_STACK_PRIORITY: Record<string, number> = {
   aggressive: 30,
   llmlingua: 35,
   ultra: 40,
+  "codex-responses": 12,
 };
 
 export function setEngineInDefaultCombo(

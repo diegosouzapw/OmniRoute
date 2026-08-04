@@ -30,7 +30,10 @@ export default function AppearanceTab() {
   }, [isElectron]);
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<{
+    target: "logo" | "favicon";
+    message: string;
+  } | null>(null);
   const [customThemeColor, setCustomThemeColor] = useState(customColor || "#3b82f6");
   const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
     customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`
@@ -189,9 +192,7 @@ export default function AppearanceTab() {
             <p className="font-medium">
               {getSettingsLabel("homePinProviderQuotaToHome", "Pin Information to Home Page")}
             </p>
-            <p className="text-sm text-text-muted">
-              Choose which sections to pin to the top of the Home page.
-            </p>
+            <p className="text-sm text-text-muted">{t("homePinnedSectionsDesc")}</p>
           </div>
 
           <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
@@ -450,7 +451,7 @@ export default function AppearanceTab() {
                   disabled={loading || !autoRefreshProviderQuota}
                   className="h-10 w-28 px-3 rounded-lg bg-surface border border-border text-sm text-text-main focus:outline-none focus:border-primary disabled:opacity-50"
                 />
-                <span className="text-xs text-text-muted">seconds</span>
+                <span className="text-xs text-text-muted">{t("seconds")}</span>
               </div>
             </div>
           </div>
@@ -591,7 +592,7 @@ export default function AppearanceTab() {
                       const file = e.target.files?.[0];
                       if (file) {
                         if (file.size > 500 * 1024) {
-                          setUploadError("Logo file must be less than 500KB");
+                          setUploadError({ target: "logo", message: t("logoFileTooLarge") });
                           return;
                         }
                         const validTypes = [
@@ -602,15 +603,13 @@ export default function AppearanceTab() {
                           "image/webp",
                         ];
                         if (!validTypes.includes(file.type)) {
-                          setUploadError(
-                            "Invalid file type. Please upload PNG, JPG, SVG, GIF, or WebP."
-                          );
+                          setUploadError({ target: "logo", message: t("invalidLogoFileType") });
                           return;
                         }
                         setUploadError(null);
                         const reader = new FileReader();
                         reader.onerror = () => {
-                          setUploadError("Failed to read file");
+                          setUploadError({ target: "logo", message: t("failedToReadFile") });
                         };
                         reader.onload = (event) => {
                           const base64 = event.target?.result as string;
@@ -634,7 +633,9 @@ export default function AppearanceTab() {
                   {t("resetLogo")}
                 </Button>
               </div>
-              {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
+              {uploadError?.target === "logo" && (
+                <p className="text-sm text-red-500">{uploadError.message}</p>
+              )}
               {(settings.customLogoBase64 || settings.customLogoUrl) && (
                 <div className="mt-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg">
                   <p className="text-xs text-text-muted mb-2">{t("logoPreview")}</p>
@@ -685,7 +686,10 @@ export default function AppearanceTab() {
                       const file = e.target.files?.[0];
                       if (file) {
                         if (file.size > 50 * 1024) {
-                          setUploadError("Favicon file must be less than 50KB");
+                          setUploadError({
+                            target: "favicon",
+                            message: t("faviconFileTooLarge"),
+                          });
                           return;
                         }
                         const validTypes = [
@@ -696,15 +700,16 @@ export default function AppearanceTab() {
                           "image/webp",
                         ];
                         if (!validTypes.includes(file.type)) {
-                          setUploadError(
-                            "Invalid file type. Please upload PNG, ICO, SVG, GIF, or WebP."
-                          );
+                          setUploadError({
+                            target: "favicon",
+                            message: t("invalidFaviconFileType"),
+                          });
                           return;
                         }
                         setUploadError(null);
                         const reader = new FileReader();
                         reader.onerror = () => {
-                          setUploadError("Failed to read file");
+                          setUploadError({ target: "favicon", message: t("failedToReadFile") });
                         };
                         reader.onload = (event) => {
                           const base64 = event.target?.result as string;
@@ -728,8 +733,8 @@ export default function AppearanceTab() {
                   {t("resetFavicon")}
                 </Button>
               </div>
-              {uploadError && !uploadError.includes("Logo") && (
-                <p className="text-sm text-red-500">{uploadError}</p>
+              {uploadError?.target === "favicon" && (
+                <p className="text-sm text-red-500">{uploadError.message}</p>
               )}
               {(settings.customFaviconBase64 || settings.customFaviconUrl) && (
                 <div className="mt-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg">
@@ -746,11 +751,8 @@ export default function AppearanceTab() {
             {isElectron && (
               <div className="flex items-center justify-between pt-4 border-t border-border">
                 <div>
-                  <p className="font-medium">Start on Login</p>
-                  <p className="text-xs text-text-muted mt-0.5">
-                    Automatically launch OmniRoute on system startup and run silently in the
-                    background tray.
-                  </p>
+                  <p className="font-medium">{t("startOnLogin")}</p>
+                  <p className="text-xs text-text-muted mt-0.5">{t("startOnLoginDesc")}</p>
                 </div>
                 <Toggle
                   checked={autostartEnabled}

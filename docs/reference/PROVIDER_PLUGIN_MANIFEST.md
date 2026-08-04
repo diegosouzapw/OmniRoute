@@ -21,6 +21,14 @@ OmniRoute advertises that URL to Bifrost and CLIProxyAPI via the
 `OMNIROUTE_PROVIDER_MANIFEST_URL` when the sidecar needs a public or container
 network URL instead of the local request origin.
 
+## Refreshing the Manifest
+
+The HTTP endpoint returns `Cache-Control: public, max-age=60` and a strong
+`ETag`. A sidecar should retain the last validated manifest and send its ETag
+in `If-None-Match` when refreshing. A `304 Not Modified` response has no body;
+the sidecar keeps its cached manifest. If no validated cached manifest exists,
+the sidecar must issue an unconditional request instead of accepting a `304`.
+
 ## Goal
 
 Move provider metadata toward a plugin contract so the hot request path can

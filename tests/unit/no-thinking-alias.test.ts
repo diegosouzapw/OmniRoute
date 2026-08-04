@@ -59,7 +59,7 @@ test("applyNoThinkingAlias rewrites the model and disables thinking (Claude form
   assert.ok(!("reasoning_effort" in body), "reasoning_effort must be stripped");
 });
 
-test("applyNoThinkingAlias strips reasoning fields without a thinking block (OpenAI format)", () => {
+test("applyNoThinkingAlias expresses reasoning_effort:none without a thinking block (OpenAI format)", () => {
   const body: Record<string, unknown> = {
     model: "no-think/openai/gpt-5.4",
     reasoning_effort: "high",
@@ -70,8 +70,11 @@ test("applyNoThinkingAlias strips reasoning fields without a thinking block (Ope
   assert.equal(res.applied, true);
   assert.equal(body.model, "openai/gpt-5.4");
   assert.ok(!("thinking" in body), "no Claude thinking block on an OpenAI body");
-  assert.ok(!("reasoning_effort" in body), "reasoning_effort must be stripped");
-  assert.ok(!("reasoning" in body), "reasoning must be stripped");
+  // #6879: a thinks-by-default OpenAI-shape model must carry reasoning_effort:"none"
+  // explicitly (not merely have the field deleted), so suppression actually takes
+  // effect downstream; the Responses-shaped `reasoning` object is still dropped.
+  assert.equal(body.reasoning_effort, "none", "reasoning_effort must express none, not be stripped");
+  assert.ok(!("reasoning" in body), "reasoning object must be dropped");
 });
 
 test("applyNoThinkingAlias is a no-op for plain models", () => {

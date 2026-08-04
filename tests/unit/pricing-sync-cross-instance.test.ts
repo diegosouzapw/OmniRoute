@@ -44,7 +44,8 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("getSyncStatus reflects a sync performed by a different module instance", async () => {
+test("manual sync history remains visible without advertising a disabled future sync", async () => {
+  delete process.env.PRICING_SYNC_ENABLED;
   globalThis.fetch = async () =>
     new Response(JSON.stringify(buildLiteLLMFixture()), {
       status: 200,
@@ -72,9 +73,21 @@ test("getSyncStatus reflects a sync performed by a different module instance", a
   );
   assert.ok(status.lastSyncModelCount > 0, "persisted model count should be non-zero");
   assert.notEqual(status.lastSync, null, "should read lastSync from persisted state");
-  assert.notEqual(
+  assert.equal(status.enabled, false);
+  assert.equal(
     status.nextSync,
     null,
-    "nextSync must be computed from persisted state, not the local (unset) syncTimer"
+    "manual sync history must not advertise a future run when automatic sync is disabled"
   );
+
+  process.env.PRICING_SYNC_ENABLED = "false";
+  const explicitlyDisabledStatus = pricingSyncB.getSyncStatus();
+  assert.equal(explicitlyDisabledStatus.enabled, false);
+  assert.equal(explicitlyDisabledStatus.nextSync, null);
+
+  process.env.PRICING_SYNC_ENABLED = "true";
+  const enabledStatus = pricingSyncB.getSyncStatus();
+  assert.equal(enabledStatus.enabled, true);
+  assert.notEqual(enabledStatus.nextSync, null);
+  delete process.env.PRICING_SYNC_ENABLED;
 });

@@ -218,7 +218,7 @@ test("database settings reader normalizes legacy negative cache size to the posi
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('databaseSettings', ?, ?)"
   ).run("optimization.cacheSize", JSON.stringify(-2000));
 
-  assert.equal(databaseSettings.getUserDatabaseSettings().optimization.cacheSize, 16384);
+  assert.equal(databaseSettings.getUserDatabaseSettings().optimization.cacheSize, 65536);
 });
 
 test("purgeDetailedLogs deletes request_detail_logs", async () => {

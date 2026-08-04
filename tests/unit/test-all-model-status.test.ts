@@ -47,8 +47,19 @@ test("rate-limited / timeout failures show 'error' but are NOT auto-hidden", () 
     status: "error",
     shouldHide: false,
   });
+  assert.deepEqual(evaluateTestAllEntry({ status: "error", isTransient: true }, true), {
+    status: "error",
+    shouldHide: false,
+  });
   // Toggle off → still not hidden, of course.
   assert.deepEqual(evaluateTestAllEntry({ status: "error", rateLimited: true }, false), {
+    status: "error",
+    shouldHide: false,
+  });
+});
+
+test("slow batch probes remain visible and unconfirmed", () => {
+  assert.deepEqual(evaluateTestAllEntry({ status: "slow", isTimeout: true }, true), {
     status: "error",
     shouldHide: false,
   });

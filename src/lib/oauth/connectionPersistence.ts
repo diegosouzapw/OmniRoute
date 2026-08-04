@@ -19,12 +19,65 @@ import { syncToCloud } from "@/lib/cloudSync";
  * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).
  * Handles null/undefined safely and different-length strings.
  */
-function safeEqual(a: string | null | undefined, b: string | null | undefined): boolean {
+export function safeEqual(a: string | null | undefined, b: string | null | undefined): boolean {
   if (a == null || b == null) return a === b;
   const ba = Buffer.from(String(a));
   const bb = Buffer.from(String(b));
   if (ba.length !== bb.length) return false;
   return timingSafeEqual(ba, bb);
+}
+
+/**
+ * #7737: does this existing Codex connection represent the SAME account as the
+ * incoming login? Prefer workspaceId when either side has one (Team plans).
+ * When NEITHER side has a workspaceId (Personal-plan logins, or two accounts
+ * that both lack a Team workspace), a bare email match is not enough to prove
+ * it's the same account — two different ChatGPT accounts can share an email
+ * alias. Require chatgptUserId to agree; otherwise treat it as a distinct
+ * account so the caller falls through to createProviderConnection (which
+ * already does this same disambiguation, added under #6706).
+ */
+function isSameCodexAccount(
+  existingProviderData: Record<string, any> | null | undefined,
+  incomingProviderData: Record<string, any> | null | undefined
+): boolean {
+  const incomingWorkspace = incomingProviderData?.workspaceId;
+  const existingWorkspace = existingProviderData?.workspaceId;
+  if (incomingWorkspace || existingWorkspace) {
+    return safeEqual(existingWorkspace, incomingWorkspace);
+  }
+  const incomingUserId = incomingProviderData?.chatgptUserId;
+  const existingUserId = existingProviderData?.chatgptUserId;
+  return Boolean(incomingUserId) && safeEqual(existingUserId, incomingUserId);
+}
+
+/**
+ * Find the existing OAuth connection (if any) that an incoming token payload
+ * should be merged into, shared by every OAuth-completion call site
+ * (persistOAuthConnection, and the exchange/poll/poll-callback branches in
+ * `src/app/api/oauth/[provider]/[action]/route.ts`). Matches by explicit
+ * connectionId first, then by same email + auth type — with Codex requiring
+ * workspaceId/chatgptUserId agreement (#7737) to avoid silently overwriting
+ * a different Codex account that merely shares an email.
+ */
+export function findExistingOAuthConnectionMatch(
+  existing: Array<Record<string, any>>,
+  provider: string,
+  tokenData: Record<string, any>,
+  connectionId?: string
+): Record<string, any> | undefined {
+  return existing.find((c) => {
+    if (c.id && safeEqual(connectionId, c.id)) return true;
+    // Email dedup only when the payload actually carries an email. Without this
+    // guard `safeEqual(undefined, undefined)` is true, so an email-less payload
+    // would false-match the first email-less connection of the provider.
+    if (!tokenData.email) return false;
+    if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
+    if (provider === "codex") {
+      return isSameCodexAccount(c.providerSpecificData, tokenData.providerSpecificData);
+    }
+    return true;
+  });
 }
 
 /**
@@ -81,18 +134,14 @@ export async function persistOAuthConnection(
     : null;
 
   let connection: any;
-  if (tokenData.email) {
+  // A connectionId is an explicit "update THIS connection" signal (token refresh
+  // / re-auth of a known connection); honor it even when the payload has no
+  // top-level email. Some providers (e.g. GitHub Copilot) keep identity under
+  // providerSpecificData, so gating dedup on tokenData.email alone created a
+  // duplicate connection on every refresh (#8059).
+  if (connectionId || tokenData.email) {
     const existing = await getProviderConnections({ provider });
-    const match = existing.find((c: any) => {
-      if (c.id && safeEqual(connectionId, c.id)) return true;
-      if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
-      // For Codex, also check workspaceId to avoid overwriting a different workspace.
-      if (provider === "codex" && tokenData.providerSpecificData?.workspaceId) {
-        const existingWorkspace = c.providerSpecificData?.workspaceId;
-        return safeEqual(existingWorkspace, tokenData.providerSpecificData.workspaceId);
-      }
-      return true;
-    });
+    const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
     const matchId = typeof match?.id === "string" ? match.id : null;
     if (matchId) {
       connection = await updateProviderConnection(matchId, {

@@ -3,14 +3,15 @@ import { createMDX } from "fumadocs-mdx/next";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mitmManagerAliasFor } from "./scripts/build/mitm-stub-flag.mjs";
+import { normalizeBasePath } from "./scripts/build/normalizeBasePath.mjs";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".build/next";
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const scriptSrc =
   process.env.NODE_ENV === "development"
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
-    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:";
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://static.cloudflareinsights.com"
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://static.cloudflareinsights.com";
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -101,7 +102,14 @@ const nextConfig = {
   // before route matching, so authz classification (classifyRoute/isLocalOnlyPath)
   // keeps operating on un-prefixed paths — see src/server/authz/pipeline.ts for
   // the two redirect call sites that re-add it via `request.nextUrl.basePath`.
-  basePath: process.env.OMNIROUTE_BASE_PATH || "",
+  basePath: normalizeBasePath(process.env.OMNIROUTE_BASE_PATH),
+  // Client-visible mirror of basePath for fetch/EventSource rewriting under reverse
+  // proxies (installBasePathFetch), and for client display helpers (useDisplayBaseUrl)
+  // that append the subpath to window.location.origin when building curl/endpoint
+  // examples. Empty by default (root deploys unchanged).
+  env: {
+    NEXT_PUBLIC_OMNIROUTE_BASE_PATH: normalizeBasePath(process.env.OMNIROUTE_BASE_PATH),
+  },
   distDir,
   // Turbopack config: redirect native modules to stubs at build time
   turbopack: {
@@ -238,6 +246,10 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
+    // sql.js WASM is resolved at runtime via createRequire(); Next's static
+    // analysis can't follow _require.resolve("sql.js/package.json") and spams
+    // build warnings.  Externalizing silences them without changing behaviour.
+    "sql.js",
     // sqlite-vec ships a native vec0.so loaded at runtime via createRequire().
     // Turbopack otherwise tries to bundle the .so and fails with "Unknown module
     // type"; externalizing it keeps the require at runtime (like better-sqlite3).

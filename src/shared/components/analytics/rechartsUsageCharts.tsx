@@ -78,7 +78,7 @@ function DailyTrendChartBody({ chartData, hasCost }) {
           <Bar
             dataKey={t("chartInput")}
             stackId="a"
-            fill="var(--primary)"
+            fill="var(--color-primary)"
             opacity={0.7}
             radius={[0, 0, 0, 0]}
             animationDuration={600}

@@ -84,29 +84,37 @@ export function getQuotaSnapshots(opts: {
   }
 }
 
+/**
+ * Returns the single latest snapshot row for each distinct `window_key`
+ * ever observed for this connection.
+ *
+ * Deliberately NOT a "most recent N rows across all windows" query: a
+ * connection with many quota windows where only a subset actively churn
+ * (frequent writes as they drain) and the rest stay idle/healthy (a single
+ * old row each, thanks to the #4438 no-op-write dedup) would otherwise have
+ * its recent-rows slice flooded entirely by the hot windows, silently
+ * evicting the idle windows from rehydration (#8431). Scoping "latest" PER
+ * window_key via a window function keeps every window visible regardless of
+ * how skewed the write frequency is across windows.
+ */
 export function getLatestQuotaSnapshotsForConnection(connectionId: string): QuotaSnapshotRow[] {
   const db = getDbInstance() as unknown as DbLike;
 
   try {
     const rows = db
       .prepare(
-        `SELECT * FROM quota_snapshots
-         WHERE connection_id = ?
-         ORDER BY created_at DESC
-         LIMIT 200`
+        `SELECT * FROM (
+           SELECT *, ROW_NUMBER() OVER (
+             PARTITION BY window_key ORDER BY created_at DESC, id DESC
+           ) AS rn
+           FROM quota_snapshots
+           WHERE connection_id = ?
+         )
+         WHERE rn = 1`
       )
       .all(connectionId);
-    const latestByWindow = new Map<string, QuotaSnapshotRow>();
 
-    for (const row of rows) {
-      const snapshot = rowToCamel(row) as unknown as QuotaSnapshotRow;
-      const windowKey =
-        (snapshot as unknown as { windowKey?: string }).windowKey ?? snapshot.window_key;
-      if (!windowKey || latestByWindow.has(windowKey)) continue;
-      latestByWindow.set(windowKey, snapshot);
-    }
-
-    return [...latestByWindow.values()];
+    return rows.map((row) => rowToCamel(row) as unknown as QuotaSnapshotRow);
   } catch (err: any) {
     if (err?.message?.includes("no such table")) {
       return [];

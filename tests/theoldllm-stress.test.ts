@@ -40,32 +40,30 @@ describe("TheOldLlmExecutor", () => {
     assert.strictEqual(headers["Content-Type"], "application/json");
     assert.ok(
       headers["User-Agent"].includes("Chrome/"),
-      `expected Chrome UA, got ${headers["User-Agent"]}`,
+      `expected Chrome UA, got ${headers["User-Agent"]}`
     );
     assert.ok(
       headers["User-Agent"].includes("Mozilla/5.0"),
-      `expected Mozilla UA, got ${headers["User-Agent"]}`,
+      `expected Mozilla UA, got ${headers["User-Agent"]}`
     );
   });
 
   it("maps model aliases to upstream slugs", () => {
     const cases: Record<string, string> = {
       "gpt-5.4": "GPT_5_4",
-      "GPT_5_3": "GPT_5_3",
-      "gpt_5_2": "GPT_5_2",
+      GPT_5_3: "GPT_5_3",
+      gpt_5_2: "GPT_5_2",
       "gpt-4o": "GPT_4O",
       "claude-4.6-opus": "CLAUDE_4_6_OPUS",
       "claude sonnet 4": "CLAUDE_4_6_SONNET",
-      "claude_haiku_3_5": "CLAUDE_4_5_HAIKU",
+      claude_haiku_3_5: "CLAUDE_4_5_HAIKU",
       "weird-model": "GPT_5_4",
     };
 
-    const transformRequest = (executor as any).transformRequest.bind(
-      executor,
-    ) as (
+    const transformRequest = (executor as any).transformRequest.bind(executor) as (
       model: string,
       body: Record<string, unknown>,
-      stream: boolean,
+      stream: boolean
     ) => Record<string, unknown>;
 
     for (const [model, expected] of Object.entries(cases)) {
@@ -73,7 +71,7 @@ describe("TheOldLlmExecutor", () => {
       assert.strictEqual(
         updated.model,
         expected,
-        `model ${model} mapped to ${expected}, got ${updated.model}`,
+        `model ${model} mapped to ${expected}, got ${updated.model}`
       );
     }
   });
@@ -89,7 +87,7 @@ describe("TheOldLlmExecutor", () => {
           error: () => {},
           debug: () => {},
         }),
-        true,
+        true
       );
 
       globalThis.fetch = async () => makeResponse(401) as any;
@@ -100,7 +98,7 @@ describe("TheOldLlmExecutor", () => {
           error: () => {},
           debug: () => {},
         }),
-        false,
+        false
       );
     } finally {
       globalThis.fetch = originalFetch;
@@ -112,15 +110,10 @@ describe("TheOldLlmExecutor", () => {
     warmTokenCache();
     try {
       let calls = 0;
-      const responses = [
-        () => makeResponse(401, MOCK_ERR),
-        () => makeResponse(200, MOCK_SSE),
-      ];
+      const responses = [() => makeResponse(401, MOCK_ERR), () => makeResponse(200, MOCK_SSE)];
 
       globalThis.fetch = async () =>
-        responses[
-          calls++ < responses.length ? calls - 1 : responses.length - 1
-        ]() as any;
+        responses[calls++ < responses.length ? calls - 1 : responses.length - 1]() as any;
 
       const result = await executor.execute({
         model: "gpt-5.4",
@@ -141,6 +134,45 @@ describe("TheOldLlmExecutor", () => {
     } finally {
       globalThis.fetch = originalFetch;
       clearTokenCache();
+    }
+  });
+
+  it("does not retry a Vercel egress denial as a stale request token", async () => {
+    const originalFetch = globalThis.fetch;
+    try {
+      let calls = 0;
+      globalThis.fetch = async () => {
+        calls++;
+        return new Response(
+          JSON.stringify({ error: { code: "403", message: "Forbidden", id: "fra1::test" } }),
+          {
+            status: 403,
+            headers: {
+              "content-type": "application/json",
+              "x-vercel-mitigated": "deny",
+            },
+          }
+        );
+      };
+
+      const result = await executor.execute({
+        model: "gpt-5.4",
+        body: { messages: [{ role: "user", content: "ping" }] },
+        stream: true,
+        signal: null,
+        credentials: {},
+        log: { debug() {}, info() {}, warn() {}, error() {} },
+      });
+
+      assert.strictEqual(calls, 1);
+      assert.strictEqual(result.response.status, 403);
+      const json = (await result.response.json()) as {
+        error?: { code?: string; message?: string };
+      };
+      assert.strictEqual(json.error?.code, "THEOLDLLM_VERCEL_MITIGATED");
+      assert.match(json.error?.message || "", /residential.*proxy/i);
+    } finally {
+      globalThis.fetch = originalFetch;
     }
   });
 
@@ -202,7 +234,7 @@ describe("TheOldLlmExecutor", () => {
             warn: () => {},
             error: () => {},
           },
-        }),
+        })
       );
 
       await Promise.all(requests);

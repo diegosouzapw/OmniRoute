@@ -110,12 +110,24 @@ export default function ModelAliasesUnified() {
     if (!fromValue.trim() || !toValue.trim()) return;
     setSaving(true);
     try {
-      const updated = [...wildcardAliases, { pattern: fromValue.trim(), target: toValue.trim() }];
+      const settingsRes = await fetch("/api/settings", { cache: "no-store" });
+      if (!settingsRes.ok) throw new Error("Failed to load current settings");
+      const settingsData = await settingsRes.json();
+      const revision =
+        typeof settingsData.settingsRevision === "number" ? settingsData.settingsRevision : 0;
+      const currentWildcards = Array.isArray(settingsData.wildcardAliases)
+        ? settingsData.wildcardAliases
+        : wildcardAliases;
+      const updated = [
+        ...currentWildcards,
+        { pattern: fromValue.trim(), target: toValue.trim() },
+      ];
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wildcardAliases: updated }),
+        body: JSON.stringify({ wildcardAliases: updated, expectedRevision: revision }),
       });
+      if (res.status === 409) throw new Error("Settings conflict — refresh and retry");
       if (!res.ok) throw new Error("Failed to save wildcard alias");
       setWildcardAliases(updated);
       setFromValue("");
@@ -132,12 +144,21 @@ export default function ModelAliasesUnified() {
   const removeWildcardAlias = async (index: number) => {
     setSaving(true);
     try {
-      const updated = wildcardAliases.filter((_, currentIndex) => currentIndex !== index);
+      const settingsRes = await fetch("/api/settings", { cache: "no-store" });
+      if (!settingsRes.ok) throw new Error("Failed to load current settings");
+      const settingsData = await settingsRes.json();
+      const revision =
+        typeof settingsData.settingsRevision === "number" ? settingsData.settingsRevision : 0;
+      const currentWildcards = Array.isArray(settingsData.wildcardAliases)
+        ? settingsData.wildcardAliases
+        : wildcardAliases;
+      const updated = currentWildcards.filter((_, currentIndex) => currentIndex !== index);
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wildcardAliases: updated }),
+        body: JSON.stringify({ wildcardAliases: updated, expectedRevision: revision }),
       });
+      if (res.status === 409) throw new Error("Settings conflict — refresh and retry");
       if (!res.ok) throw new Error("Failed to remove wildcard alias");
       setWildcardAliases(updated);
       showStatus("success", translateOrFallback(t, "saved", "Saved"));

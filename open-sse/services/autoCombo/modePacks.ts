@@ -88,6 +88,26 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     resetWindowAffinity: 0,
     connectionDensity: 0.05,
   },
+  // Chaos mode — priority: health > stability > taskFit > latency.
+  // Selects top-N healthy providers for parallel dispatch. Favors providers with
+  // closed circuit breakers, low latency variance, and high task fitness.
+  // quota weight reduced (chaos fans out in parallel, quota diversity is secondary
+  // to picking the most stable providers); connectionDensity boosted slightly to
+  // prefer providers with multiple accounts (more resilient to per-account rate limits).
+  "chaos-mode": {
+    quota: 0.05,
+    health: 0.42,
+    costInv: 0.02,
+    latencyInv: 0.03,
+    taskFit: 0.2,
+    stability: 0.18,
+    tierPriority: 0.02,
+    tierAffinity: 0,
+    specificityMatch: 0,
+    contextAffinity: 0.03,
+    resetWindowAffinity: 0,
+    connectionDensity: 0.05,
+  },
 };
 
 /**

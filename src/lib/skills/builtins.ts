@@ -1,5 +1,6 @@
 import { SkillHandler } from "./types";
 import { executeWebSearch } from "@/lib/search/executeWebSearch";
+import { executeWebFetch } from "./webFetchExecution";
 import { resolveDataDir } from "@/lib/dataPaths";
 import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { sandboxRunner, type SandboxConfig } from "./sandbox";
@@ -382,6 +383,47 @@ export const builtinSkills: Record<string, SkillHandler> = {
       usage: search.cached ? { queries_used: 0, search_cost_usd: 0 } : search.data.usage,
       metrics: search.data.metrics,
       cached: search.cached,
+      context: context.apiKeyId,
+    };
+  },
+
+  web_fetch: async (input, context) => {
+    const {
+      url,
+      format,
+      depth,
+      wait_for_selector,
+      include_metadata,
+      provider,
+    } = input as {
+      url: string;
+      format?: "markdown" | "html" | "links" | "screenshot";
+      depth?: 0 | 1 | 2;
+      wait_for_selector?: string;
+      include_metadata?: boolean;
+      provider?: string;
+    };
+    if (!url || typeof url !== "string") {
+      throw new Error("Missing required field: url");
+    }
+    const fetched = await executeWebFetch({
+      url,
+      format,
+      depth,
+      wait_for_selector,
+      include_metadata,
+      provider,
+      ruleProvider: context.provider ?? null,
+      ruleModel: context.model ?? null,
+    });
+    return {
+      success: true,
+      provider: fetched.provider,
+      url: fetched.url,
+      content: fetched.content,
+      links: fetched.links,
+      metadata: fetched.metadata,
+      screenshot_url: fetched.screenshot_url,
       context: context.apiKeyId,
     };
   },

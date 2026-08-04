@@ -64,7 +64,8 @@ test("computeAdvertisedLimits returns MAX of candidates' known context windows",
     "virtualFactory should export computeAdvertisedLimits()"
   );
 
-  // gemini has registry defaultContextLength=1048576; claude has 200000.
+  // gemini has registry defaultContextLength=1048576; claude-sonnet-4-6 has 1000000 (#7129:
+  // 1M GA per Anthropic docs) -- gemini's binary-1M window still wins as the MAX.
   const result = computeAdvertisedLimits([
     { provider: "claude", model: "claude-sonnet-4-6" },
     { provider: "gemini", model: "gemini-2.5-pro" },
@@ -171,7 +172,10 @@ test("resolveComboContextLimit regression: claude target must not be compressed 
     model: "claude-sonnet-4-6",
     comboTargetLimits: [8000],
   });
-  assert.equal(result.limit, 200000);
+  // #7129: claude-sonnet-4-6's own registry limit is 1M GA (was 200000) -- the point of this
+  // regression test is that the target's OWN limit wins over the 8k sibling, not the specific
+  // magic number, so the expectation tracks the registry's current (correct) value.
+  assert.equal(result.limit, 1000000);
   assert.equal(result.source, "target");
 });
 

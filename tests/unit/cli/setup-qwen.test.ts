@@ -1,28 +1,85 @@
-import { test } from "node:test";
+import test from "node:test";
 import assert from "node:assert/strict";
-import { resolveQwenTarget, buildQwenSettings } from "../../../bin/cli/commands/setup-qwen.mjs";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
-test("resolveQwenTarget ensures /v1", () => {
-  assert.equal(resolveQwenTarget({ remote: "http://vps:20128" }).baseUrl, "http://vps:20128/v1");
+import { resolveQwenTarget, runSetupQwenCommand } from "../../../bin/cli/commands/setup-qwen.mjs";
+
+test("resolveQwenTarget normalizes a remote endpoint to the OpenAI /v1 base", () => {
+  assert.deepEqual(resolveQwenTarget({ remote: "https://omni.example/", apiKey: "sk-explicit" }), {
+    baseUrl: "https://omni.example/v1",
+    apiKey: "sk-explicit",
+  });
 });
-test("resolveQwenTarget: explicit --api-key wins", () => {
-  assert.equal(resolveQwenTarget({ remote: "http://x:20128", apiKey: "sk-x" }).apiKey, "sk-x");
-});
-test("buildQwenSettings adds an openai modelProvider (baseUrl /v1, envKey), sets model", () => {
-  const s = buildQwenSettings({}, { baseUrl: "http://vps:20128/v1", model: "glm/glm-5.2" });
-  const p = s.modelProviders.find((x) => x.id === "omniroute");
-  assert.equal(p.authType, "openai");
-  assert.equal(p.baseUrl, "http://vps:20128/v1");
-  assert.equal(p.envKey, "OMNIROUTE_API_KEY");
-  assert.equal(s.model, "glm/glm-5.2");
-  assert.equal(s.selectedProvider, "omniroute");
-});
-test("buildQwenSettings de-dupes the omniroute provider + preserves others", () => {
-  const s = buildQwenSettings(
-    { modelProviders: [{ id: "other" }, { id: "omniroute", baseUrl: "old" }], theme: "dark" },
-    { baseUrl: "http://x/v1", model: "m" }
+
+test("setup-qwen writes current V4 settings and only its dedicated env key", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-setup-qwen-"));
+  const settingsPath = path.join(tempDir, "settings.json");
+  const envPath = path.join(tempDir, ".env");
+  await fs.writeFile(
+    settingsPath,
+    JSON.stringify({
+      ui: { theme: "dark" },
+      modelProviders: {
+        openai: [
+          {
+            id: "personal",
+            envKey: "OPENAI_API_KEY",
+            baseUrl: "https://api.openai.com/v1",
+          },
+        ],
+      },
+    })
   );
-  assert.equal(s.modelProviders.filter((p) => p.id === "omniroute").length, 1);
-  assert.ok(s.modelProviders.some((p) => p.id === "other"));
-  assert.equal(s.theme, "dark");
+  await fs.writeFile(envPath, "OPENAI_API_KEY=keep-me\n");
+
+  try {
+    const code = await runSetupQwenCommand({
+      remote: "http://router:20128",
+      apiKey: "sk-qwen-dedicated",
+      model: "qwen/qwen3.8-max-preview",
+      configPath: settingsPath,
+      envPath,
+      yes: true,
+    });
+    assert.equal(code, 0);
+
+    const settings = JSON.parse(await fs.readFile(settingsPath, "utf8"));
+    assert.equal(settings.ui.theme, "dark");
+    assert.equal(Array.isArray(settings.modelProviders.openai), true);
+    assert.equal(settings.modelProviders.openai.length, 2);
+    assert.deepEqual(settings.modelProviders.openai[1], {
+      id: "qwen/qwen3.8-max-preview",
+      name: "qwen/qwen3.8-max-preview (OmniRoute)",
+      envKey: "OMNIROUTE_API_KEY",
+      baseUrl: "http://router:20128/v1",
+    });
+    assert.equal(JSON.stringify(settings).includes("sk-qwen-dedicated"), false);
+
+    const env = await fs.readFile(envPath, "utf8");
+    assert.match(env, /^OPENAI_API_KEY=keep-me$/m);
+    assert.match(env, /^OMNIROUTE_API_KEY="sk-qwen-dedicated"$/m);
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("setup-qwen does not overwrite an invalid settings file", async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-setup-qwen-bad-"));
+  const settingsPath = path.join(tempDir, "settings.json");
+  await fs.writeFile(settingsPath, "{ invalid JSON");
+
+  try {
+    const code = await runSetupQwenCommand({
+      remote: "http://router:20128",
+      model: "model-id",
+      configPath: settingsPath,
+      yes: true,
+    });
+    assert.equal(code, 1);
+    assert.equal(await fs.readFile(settingsPath, "utf8"), "{ invalid JSON");
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
 });

@@ -85,13 +85,60 @@ function buildPercentageQuota(window: JsonRecord, displayName?: string): CodexUs
   };
 }
 
-function findCodexSparkRateLimit(data: JsonRecord): JsonRecord {
+// A window whose duration is >= this is a weekly (or longer) window; <= the
+// session threshold is a short rolling ("session") window. ChatGPT reports the
+// window length in `limit_window_seconds`, so labels can follow the real
+// duration instead of assuming primary=session / secondary=weekly by position.
+const WEEKLY_MIN_WINDOW_SECONDS = 6 * 24 * 3600; // >= ~6d
+const SESSION_MAX_WINDOW_SECONDS = 6 * 3600; // <= ~6h
+
+/**
+ * A never-started window: `used_percent === 0` and the reset still spans the
+ * entire window (`reset_after_seconds >= limit_window_seconds`). ChatGPT
+ * advertises latent per-feature ceilings (e.g. the spark bucket) to accounts
+ * that have never used them; such a window recomputes its reset as
+ * `now + full_window` on every fetch and is not actionable, so callers skip it.
+ */
+function isLatentWindow(window: JsonRecord): boolean {
+  const usedPercent = toNumber(getFieldValue(window, "used_percent", "usedPercent"), NaN);
+  const limitWindow = toNumber(
+    getFieldValue(window, "limit_window_seconds", "limitWindowSeconds"),
+    0
+  );
+  const resetAfter = toNumber(
+    getFieldValue(window, "reset_after_seconds", "resetAfterSeconds"),
+    0
+  );
+  return usedPercent === 0 && limitWindow > 0 && resetAfter >= limitWindow;
+}
+
+/**
+ * Derive a duration-accurate label from the window's `limit_window_seconds`, so
+ * e.g. a 7-day `primary_window` is labeled "Weekly" rather than "Session".
+ * Returns undefined for durations that don't clearly map to either bucket.
+ */
+function windowDurationLabel(window: JsonRecord): "Session" | "Weekly" | undefined {
+  const limitWindow = toNumber(
+    getFieldValue(window, "limit_window_seconds", "limitWindowSeconds"),
+    0
+  );
+  if (limitWindow <= 0) return undefined;
+  if (limitWindow >= WEEKLY_MIN_WINDOW_SECONDS) return "Weekly";
+  if (limitWindow <= SESSION_MAX_WINDOW_SECONDS) return "Session";
+  return undefined;
+}
+
+function findCodexSparkRateLimit(data: JsonRecord): {
+  rateLimit: JsonRecord;
+  /** The spark limit's own `limit_name` from the payload, when present. */
+  limitName?: string;
+} {
   const additionalRateLimits = getFieldValue(
     data,
     "additional_rate_limits",
     "additionalRateLimits"
   );
-  if (!Array.isArray(additionalRateLimits)) return {};
+  if (!Array.isArray(additionalRateLimits)) return { rateLimit: {} };
 
   for (const entryValue of additionalRateLimits) {
     const entry = toRecord(entryValue);
@@ -107,10 +154,18 @@ function findCodexSparkRateLimit(data: JsonRecord): JsonRecord {
         getFieldValue(entry, "model_id", "modelId")
       )
     ) {
-      return toRecord(getFieldValue(entry, "rate_limit", "rateLimit"));
+      const rawLimitName = getFieldValue(entry, "limit_name", "limitName");
+      const limitName =
+        typeof rawLimitName === "string" && rawLimitName.trim().length > 0
+          ? rawLimitName.trim()
+          : undefined;
+      return {
+        rateLimit: toRecord(getFieldValue(entry, "rate_limit", "rateLimit")),
+        ...(limitName ? { limitName } : {}),
+      };
     }
   }
-  return {};
+  return { rateLimit: {} };
 }
 
 /**
@@ -198,12 +253,27 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
   const bankedResetCredits = parseBankedResetCredits(data);
   const rateLimitReachedType = parseRateLimitReachedType(data);
 
+  // The `session`/`weekly` keys carry routing semantics (combo quota scoring,
+  // preflight, cooldowns) and stay position-based. Only the display label is
+  // corrected from the real window duration, so a `primary_window` that is
+  // actually a 7-day window shows "Weekly" instead of "Session".
   const primaryWindow = toRecord(getFieldValue(rateLimit, "primary_window", "primaryWindow"));
-  if (Object.keys(primaryWindow).length > 0) quotas.session = buildPercentageQuota(primaryWindow);
+  if (Object.keys(primaryWindow).length > 0) {
+    const primaryLabel = windowDurationLabel(primaryWindow);
+    quotas.session = buildPercentageQuota(
+      primaryWindow,
+      primaryLabel === "Weekly" ? primaryLabel : undefined
+    );
+  }
 
   const secondaryWindow = toRecord(getFieldValue(rateLimit, "secondary_window", "secondaryWindow"));
-  if (Object.keys(secondaryWindow).length > 0)
-    quotas.weekly = buildPercentageQuota(secondaryWindow);
+  if (Object.keys(secondaryWindow).length > 0) {
+    const secondaryLabel = windowDurationLabel(secondaryWindow);
+    quotas.weekly = buildPercentageQuota(
+      secondaryWindow,
+      secondaryLabel === "Session" ? secondaryLabel : undefined
+    );
+  }
 
   // Resolve the code-review rate limit block. ChatGPT Codex exposes the same
   // information under two different shapes depending on the plan tier
@@ -240,24 +310,29 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
     quotas.code_review_weekly = buildPercentageQuota(codeReviewSecondaryWindow);
   }
 
-  const sparkRateLimit = findCodexSparkRateLimit(data);
+  const spark = findCodexSparkRateLimit(data);
+  const sparkRateLimit = spark.rateLimit;
+  // Prefer the payload's own `limit_name` so the label tracks whatever OpenAI
+  // reports (e.g. as the spark model version bumps) rather than a hardcoded
+  // constant; fall back to the constant when the field is absent.
+  const sparkDisplayName = spark.limitName || CODEX_SPARK_DISPLAY_NAME;
   const sparkPrimaryWindow = toRecord(
     getFieldValue(sparkRateLimit, "primary_window", "primaryWindow")
   );
-  if (Object.keys(sparkPrimaryWindow).length > 0) {
-    quotas[CODEX_SPARK_QUOTA_SESSION] = buildPercentageQuota(
-      sparkPrimaryWindow,
-      CODEX_SPARK_DISPLAY_NAME
-    );
+  // Skip latent (never-used, full-window) spark ceilings so they don't render as
+  // a permanent 100% row with a meaningless always-full reset. Once the account
+  // actually uses the spark model the window is no longer latent and appears.
+  if (Object.keys(sparkPrimaryWindow).length > 0 && !isLatentWindow(sparkPrimaryWindow)) {
+    quotas[CODEX_SPARK_QUOTA_SESSION] = buildPercentageQuota(sparkPrimaryWindow, sparkDisplayName);
   }
 
   const sparkSecondaryWindow = toRecord(
     getFieldValue(sparkRateLimit, "secondary_window", "secondaryWindow")
   );
-  if (Object.keys(sparkSecondaryWindow).length > 0) {
+  if (Object.keys(sparkSecondaryWindow).length > 0 && !isLatentWindow(sparkSecondaryWindow)) {
     quotas[CODEX_SPARK_QUOTA_WEEKLY] = buildPercentageQuota(
       sparkSecondaryWindow,
-      `${CODEX_SPARK_DISPLAY_NAME} Weekly`
+      `${sparkDisplayName} Weekly`
     );
   }
 

@@ -6,11 +6,17 @@ const {
   getDefaultComboConfig,
   resolveComboTargetTimeoutMs,
   DEFAULT_COMBO_TARGET_TIMEOUT_MS,
+  COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS,
+  isComboCooldownWaitEligible,
+  resolveComboTargetTimeoutMsForCombo,
   resolveComboQueueDepth,
 } = await import("../../open-sse/services/comboConfig.ts");
 const { createComboSchema, updateComboDefaultsSchema } =
   await import("../../src/shared/validation/schemas.ts");
 const { MAX_TIMER_TIMEOUT_MS } = await import("../../src/shared/utils/runtimeTimeouts.ts");
+const { ROUTING_STRATEGY_VALUES, INTERNAL_ROUTING_STRATEGY_VALUES } =
+  await import("../../src/shared/constants/routingStrategies.ts");
+const ALL_COMBO_STRATEGIES = [...ROUTING_STRATEGY_VALUES, ...INTERNAL_ROUTING_STRATEGY_VALUES];
 
 test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   const first = getDefaultComboConfig();
@@ -316,6 +322,49 @@ test("resolveComboTargetTimeoutMs falls back to the saner combo default when uns
   assert.equal(resolveComboTargetTimeoutMs({}, 600000), 600000);
   // Disabled upstream timeout (0 = unbounded) stays unbounded even with a default present.
   assert.equal(resolveComboTargetTimeoutMs({}, 0, 120000), 0);
+});
+
+// #7360 / #7301: any strategy with comboCooldownWait enabled waits out cooldowns for up
+// to comboCooldownWait.budgetMs, so the per-target timeout floor must cover that budget
+// (DEFAULT_COMBO_TARGET_TIMEOUT_MS alone would cut a long wait short into a 524).
+test("isComboCooldownWaitEligible engages for every strategy when the feature is enabled", () => {
+  for (const strategy of ALL_COMBO_STRATEGIES) {
+    assert.equal(isComboCooldownWaitEligible(strategy, { enabled: true }), true);
+    assert.equal(isComboCooldownWaitEligible(strategy, { enabled: false }), false);
+  }
+});
+
+test("resolveComboTargetTimeoutMsForCombo raises the floor to cover the cooldown-wait budget when enabled", () => {
+  const comboCooldownWait = { enabled: true, budgetMs: 130000 };
+  const floor = 130000 + COMBO_TARGET_TIMEOUT_WAIT_BUFFER_MS;
+  const disabled = { enabled: false, budgetMs: 130000 };
+
+  // Feature on: floor is budget + buffer for every strategy; off: 120s default.
+  for (const strategy of ALL_COMBO_STRATEGIES) {
+    assert.equal(
+      resolveComboTargetTimeoutMsForCombo({}, 600000, strategy, comboCooldownWait),
+      floor
+    );
+    assert.equal(
+      resolveComboTargetTimeoutMsForCombo({}, 600000, strategy, disabled),
+      DEFAULT_COMBO_TARGET_TIMEOUT_MS
+    );
+  }
+
+  // A small budget below the 120s default never lowers the floor.
+  assert.equal(
+    resolveComboTargetTimeoutMsForCombo({}, 600000, "auto", { enabled: true, budgetMs: 5000 }),
+    DEFAULT_COMBO_TARGET_TIMEOUT_MS
+  );
+
+  // Explicit per-combo targetTimeoutMs still wins over the derived floor.
+  assert.equal(
+    resolveComboTargetTimeoutMsForCombo({ targetTimeoutMs: 45000 }, 600000, "auto", comboCooldownWait),
+    45000
+  );
+
+  // The derived floor is still capped at the upstream ceiling.
+  assert.equal(resolveComboTargetTimeoutMsForCombo({}, 100000, "auto", comboCooldownWait), 100000);
 });
 
 test("combo timeout schema rejects values beyond the safe timer limit", () => {

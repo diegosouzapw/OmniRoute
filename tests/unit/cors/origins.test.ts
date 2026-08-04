@@ -174,6 +174,51 @@ describe("cors/origins.applyCorsHeaders", () => {
     assert.match(res.headers.get("Vary") || "", /Origin/);
   });
 
+  it("CLIENT_API: appends Vary: Accept-Encoding on a 2xx relaxForTokenAuth response (#6737)", () => {
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/v1/models");
+    applyCorsHeaders(res, req, true);
+    assert.match(res.headers.get("Vary") || "", /Accept-Encoding/);
+  });
+
+  it("CLIENT_API: combines with Vary: Origin into a single comma-joined header (#6737)", () => {
+    process.env.CORS_ALLOWED_ORIGINS = "https://app.example.com";
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/v1/models", {
+      headers: { Origin: "https://app.example.com" },
+    });
+    applyCorsHeaders(res, req, true);
+    const varyValues = res.headers.getSetCookie ? res.headers.get("Vary") : res.headers.get("Vary");
+    assert.equal(varyValues, "Origin, Accept-Encoding");
+    assert.equal([...res.headers.entries()].filter(([k]) => k.toLowerCase() === "vary").length, 1);
+  });
+
+  it("MANAGEMENT: does not append Vary: Accept-Encoding (relax off) (#6737)", () => {
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/keys");
+    applyCorsHeaders(res, req);
+    assert.doesNotMatch(res.headers.get("Vary") || "", /Accept-Encoding/);
+    applyCorsHeaders(res, req, false);
+    assert.doesNotMatch(res.headers.get("Vary") || "", /Accept-Encoding/);
+  });
+
+  it("204 response: does not append Vary: Accept-Encoding even with relaxForTokenAuth (#6737)", () => {
+    const res = new NextResponse(null, { status: 204 });
+    const req = new Request("https://server.example.com/api/v1/models", {
+      method: "OPTIONS",
+    });
+    applyCorsHeaders(res, req, true);
+    assert.doesNotMatch(res.headers.get("Vary") || "", /Accept-Encoding/);
+  });
+
+  it("CLIENT_API: appends Vary: Accept-Encoding even without an Origin header (#6737)", () => {
+    const res = NextResponse.json({ ok: true });
+    const req = new Request("https://server.example.com/api/v1/models");
+    applyCorsHeaders(res, req, true);
+    assert.equal(res.headers.get("Access-Control-Allow-Origin"), "*");
+    assert.match(res.headers.get("Vary") || "", /Accept-Encoding/);
+  });
+
   it("reflects requested headers from Access-Control-Request-Headers preflight", () => {
     process.env.CORS_ALLOWED_ORIGINS = "https://app.example.com";
     const res = NextResponse.json({ ok: true });

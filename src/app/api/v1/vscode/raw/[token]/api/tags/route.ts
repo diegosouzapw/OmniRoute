@@ -14,6 +14,7 @@ import {
 } from "@/app/api/v1/vscode/raw/[token]/reasoningMetadata";
 import { parseVscodeServiceTierVariantModelId } from "@/app/api/v1/vscode/raw/[token]/serviceTierVariants";
 import { withPathTokenApiKey } from "@/app/api/v1/vscode/raw/[token]/tokenizedRequest";
+import { isUsableChatModel } from "@/app/api/v1/vscode/[token]/usableChatModel";
 
 type OpenAiCatalogModel = {
 	id?: string;
@@ -57,35 +58,6 @@ async function selectPreferredModels(models: OpenAiCatalogModel[]) {
 
 	const codexModels = models.filter(isCodexOwnedModel);
 	return codexModels.length > 0 ? codexModels : models;
-}
-
-function isUsableChatModel(model: OpenAiCatalogModel) {
-	if (typeof model.owned_by === "string" && model.owned_by.trim().toLowerCase() === "combo") {
-		return false;
-	}
-	if (typeof model.parent === "string" && model.parent.length > 0) return false;
-	if (typeof model.type === "string" && model.type !== "chat") return false;
-
-	const apiFormat = typeof model.api_format === "string" ? model.api_format : "chat-completions";
-	if (apiFormat !== "chat-completions") return false;
-
-	if (
-		Array.isArray(model.supported_endpoints) &&
-		model.supported_endpoints.length > 0 &&
-		!model.supported_endpoints.includes("chat")
-	) {
-		return false;
-	}
-
-	if (
-		Array.isArray(model.output_modalities) &&
-		model.output_modalities.length > 0 &&
-		!model.output_modalities.includes("text")
-	) {
-		return false;
-	}
-
-	return true;
 }
 
 function getOllamaModelFamily(model: OpenAiCatalogModel, canonicalFamily?: string | null) {

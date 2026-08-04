@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface FeatureFlagCardProps {
   flag: {
     key: string;
@@ -20,43 +22,37 @@ interface FeatureFlagCardProps {
 
 const CATEGORY_STYLES: Record<
   FeatureFlagCardProps["flag"]["category"],
-  { bg: string; border: string; text: string; label: string }
+  { bg: string; border: string; text: string }
 > = {
   security: {
     bg: "bg-red-50 dark:bg-red-500/15",
     border: "border-red-200 dark:border-red-500/20",
     text: "text-red-700 dark:text-red-300",
-    label: "Security",
   },
   network: {
     bg: "bg-sky-50 dark:bg-blue-500/15",
     border: "border-sky-200 dark:border-blue-500/20",
     text: "text-sky-700 dark:text-blue-300",
-    label: "Network",
   },
   policies: {
     bg: "bg-amber-50 dark:bg-amber-500/15",
     border: "border-amber-200 dark:border-amber-500/20",
     text: "text-amber-700 dark:text-amber-300",
-    label: "Policies",
   },
   runtime: {
     bg: "bg-violet-50 dark:bg-purple-500/15",
     border: "border-violet-200 dark:border-purple-500/20",
     text: "text-violet-700 dark:text-purple-300",
-    label: "Runtime",
   },
   cli: {
     bg: "bg-emerald-50 dark:bg-green-500/15",
     border: "border-emerald-200 dark:border-green-500/20",
     text: "text-emerald-700 dark:text-green-300",
-    label: "CLI",
   },
   health: {
     bg: "bg-cyan-50 dark:bg-cyan-500/15",
     border: "border-cyan-200 dark:border-cyan-500/20",
     text: "text-cyan-700 dark:text-cyan-300",
-    label: "Health",
   },
 };
 
@@ -97,12 +93,35 @@ function Spinner() {
   );
 }
 
+/**
+ * `EXPOSE_CC_DISCOVERY_ALIASES` resolves with env-wins-over-db precedence (see
+ * db/ccDiscoveryAliases.ts::getCcAliasGlobalState), the opposite of every other
+ * flag — so a plain ENV badge could be misread as "toggle it off here" when the
+ * environment variable is what is actually forcing it on. Renders nothing for
+ * any other flag or source.
+ */
+function EnvPrecedenceWarning({
+  flag,
+  text,
+}: {
+  flag: FeatureFlagCardProps["flag"];
+  text: string;
+}) {
+  if (flag.key !== "EXPOSE_CC_DISCOVERY_ALIASES" || flag.source !== "env") return null;
+  return (
+    <p className="mb-3 rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+      {text}
+    </p>
+  );
+}
+
 export default function FeatureFlagCard({
   flag,
   onToggle,
   onReset,
   saving = false,
 }: FeatureFlagCardProps) {
+  const t = useTranslations("featureFlags");
   const enabled = flag.type === "boolean" ? isEnabled(flag.effectiveValue) : false;
   const category = CATEGORY_STYLES[flag.category];
   const source = SOURCE_STYLES[flag.source];
@@ -121,10 +140,10 @@ export default function FeatureFlagCard({
       {/* Top row: category badge + toggle/select */}
       <div className="flex items-center justify-between mb-3">
         <span
-          aria-label={`Category: ${flag.category}`}
+          aria-label={t("categoryLabel", { category: t(`categories.${flag.category}`) })}
           className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${category.bg} ${category.border} ${category.text}`}
         >
-          {category.label}
+          {t(`categories.${flag.category}`)}
         </span>
 
         <div className="flex items-center gap-2">
@@ -158,7 +177,7 @@ export default function FeatureFlagCard({
             >
               {(flag.enumValues ?? []).map((val) => (
                 <option key={val} value={val} className="bg-card text-text-primary">
-                  {val}
+                  {t.has(`enumValues.${val}`) ? t(`enumValues.${val}`) : val}
                 </option>
               ))}
             </select>
@@ -173,20 +192,20 @@ export default function FeatureFlagCard({
         </span>
 
         {flag.warningLevel === "caution" && (
-          <span className="text-sm text-amber-500 dark:text-amber-300" aria-label="Caution">
+          <span className="text-sm text-amber-500 dark:text-amber-300" aria-label={t("caution")}>
             ⚠️
           </span>
         )}
         {flag.warningLevel === "danger" && (
-          <span className="text-sm animate-pulse" aria-label="Danger">
+          <span className="text-sm animate-pulse" aria-label={t("danger")}>
             🔴
           </span>
         )}
         {flag.requiresRestart && (
           <span
             className="rounded border border-slate-300 bg-slate-50 px-1 text-[10px] text-slate-600 dark:border-slate-400/30 dark:bg-transparent dark:text-slate-300"
-            title="Requires restart"
-            aria-label="Requires restart"
+            title={t("requiresRestart")}
+            aria-label={t("requiresRestart")}
           >
             restart
           </span>
@@ -196,10 +215,12 @@ export default function FeatureFlagCard({
       {/* Description */}
       <p className="mb-3 line-clamp-2 text-xs text-text-muted">{flag.description}</p>
 
+      <EnvPrecedenceWarning flag={flag} text={t("ccDiscoveryAliasesEnvWarning")} />
+
       {/* Bottom row: source badge + reset button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-text-muted">Source:</span>
+          <span className="text-xs text-text-muted">{t("source")}:</span>
           <span
             className={`inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-xs font-medium ${source.bg} ${source.border} ${source.text}`}
           >
@@ -209,7 +230,7 @@ export default function FeatureFlagCard({
 
         {flag.source === "db" && (
           <button
-            aria-label={`Reset ${flag.label} to default`}
+            aria-label={t("resetFlag", { label: flag.label })}
             disabled={saving}
             onClick={() => onReset(flag.key)}
             className="inline-flex items-center gap-1 rounded text-xs text-text-muted transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -217,7 +238,7 @@ export default function FeatureFlagCard({
             <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
               refresh
             </span>
-            Reset
+            {t("reset")}
           </button>
         )}
       </div>

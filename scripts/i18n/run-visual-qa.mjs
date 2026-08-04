@@ -10,7 +10,7 @@ const DATE = new Date().toISOString().slice(0, 10);
 const BASE_URL = process.env.QA_BASE_URL || "http://localhost:20128";
 const REPORT_SUFFIX = process.env.QA_REPORT_SUFFIX ? `-${process.env.QA_REPORT_SUFFIX}` : "";
 
-const DEFAULT_LOCALES = ["es", "fr", "de", "ja", "ar"];
+const DEFAULT_LOCALES = ["es", "fr", "de", "ja", "ar", "zh-CN"];
 const RTL_LOCALES = new Set(["ar", "he"]);
 
 const ROUTES = [

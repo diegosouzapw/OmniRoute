@@ -18,10 +18,51 @@ import {
   isControlPlaneProxyDirectFallbackEnabled,
   isFeatureFlagEnabled,
 } from "@/shared/utils/featureFlags";
-import { findWorkingProxy } from "./proxyFallback.ts";
-
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
+}
+
+// #8376: transport-level connect-failure codes that mean "the configured upstream
+// proxy (or the target itself, for direct egress) is unreachable" — as opposed to an
+// ordinary upstream HTTP error. Read `.code` first (stable across undici/node
+// versions); native fetch wraps the real socket error in `.cause`, so fall back to
+// `.cause.code` when the top-level error is a bare "fetch failed" TypeError.
+const PROXY_UNREACHABLE_ERROR_CODES = new Set([
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "ENETUNREACH",
+  "EHOSTUNREACH",
+  "EPIPE",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_SOCKET",
+]);
+
+function isProxyUnreachableError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = (err as { code?: unknown }).code;
+  if (typeof code === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(code)) return true;
+  const cause = (err as { cause?: unknown }).cause;
+  const causeCode =
+    cause && typeof cause === "object" ? (cause as { code?: unknown }).code : undefined;
+  if (typeof causeCode === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(causeCode)) return true;
+  const msg = (err as Error).message;
+  return typeof msg === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(msg);
+}
+/**
+ * #8376: tag a connect-failure error with a stable `.code`/`.errorCode` BEFORE it is
+ * rethrown, so chatCore's catch block (and, through the response body, the combo
+ * provider-breaker predicate) can classify it as "proxy unreachable" instead of
+ * falling through to a generic 502 that never trips the whole-provider breaker on a
+ * homogeneous same-provider combo pool. No-op when the error isn't connect-shaped.
+ */
+function tagProxyUnreachable<T>(err: T): T {
+  if (isProxyUnreachableError(err)) {
+    const e = err as Error & { code?: string; errorCode?: string };
+    e.code = "PROXY_UNREACHABLE";
+    e.errorCode = "proxy_unreachable";
+  }
+  return err;
 }
 
 /** Per-request tracking of whether TLS fingerprint was used */
@@ -106,7 +147,6 @@ export function describeFetchCause(err: unknown): string {
   }
   return parts.join(" | ") || String(err);
 }
-
 
 function isStreamLikeBody(body: unknown): boolean {
   return (
@@ -296,6 +336,19 @@ export function resolveProxyForRequest(targetUrl) {
   return { source: "direct", proxyUrl: null };
 }
 
+/**
+ * A caller-initiated abort/timeout is not a proxy transport failure — it must
+ * not be misreported as one. Prefer `signal.aborted` because
+ * `AbortController.abort(reason)` may surface a custom Error rather than a
+ * standard AbortError/TimeoutError name.
+ * Ported from decolua/9router#2589 (`isCallerAbort`).
+ */
+function isCallerAbort(error: unknown, signal: AbortSignal | null | undefined): boolean {
+  if (signal?.aborted === true) return true;
+  const name = (error as { name?: unknown } | null)?.name;
+  return name === "AbortError" || name === "TimeoutError";
+}
+
 function getTargetUrl(input) {
   if (typeof input === "string") return input;
   if (input && typeof input.url === "string") return input.url;
@@ -342,9 +395,11 @@ export async function runWithProxyContext(
       }
       const err = new Error(`[Proxy Fast-Fail] Proxy unreachable: ${proxyLabel}`) as Error & {
         code?: string;
+        errorCode?: string;
         statusCode?: number;
       };
       err.code = "PROXY_UNREACHABLE";
+      err.errorCode = "proxy_unreachable";
       err.statusCode = 503;
       throw err;
     }
@@ -497,6 +552,7 @@ async function patchedFetch(
         // Prefer the .code property when available (more stable across undici
         // versions than message-string matching); fall back to substring match
         // for errors that lack a structured code.
+        tagProxyUnreachable(dispatcherError);
         const errCode = (dispatcherError as { code?: unknown })?.code;
         if (
           msg.includes("fetch failed") ||
@@ -519,7 +575,7 @@ async function patchedFetch(
             if (dispatcherError instanceof Error) {
               (dispatcherError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
             }
-            throw dispatcherError;
+            throw tagProxyUnreachable(dispatcherError);
           }
 
           // All attempts exhausted — try proxy fallback before native fetch
@@ -531,6 +587,7 @@ async function patchedFetch(
               // ignore
             }
             if (targetHostname) {
+              const { findWorkingProxy } = await import("./proxyFallback.ts");
               const fallbackProxyUrl = await findWorkingProxy(targetHostname, targetUrl);
               if (fallbackProxyUrl) {
                 try {
@@ -561,9 +618,11 @@ async function patchedFetch(
             if (nativeError instanceof Error) {
               (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
             }
+            tagProxyUnreachable(nativeError);
             throw nativeError;
           }
         }
+        tagProxyUnreachable(dispatcherError);
         throw dispatcherError;
       }
     }
@@ -614,8 +673,12 @@ async function patchedFetch(
       dispatcher,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`[ProxyFetch] Proxy request failed (${source}, fail-closed): ${message}`);
+    // A caller abort/timeout must propagate unchanged and without a noisy
+    // "Proxy request failed" log — it's not a proxy transport failure.
+    if (!isCallerAbort(error, options?.signal)) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[ProxyFetch] Proxy request failed (${source}, fail-closed): ${message}`);
+    }
     throw error;
   }
 }

@@ -11,6 +11,7 @@
 
 import { useNotificationStore } from "@/store/notificationStore";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 const ICONS = {
   success: "✓",
@@ -67,6 +68,7 @@ const COLORS = {
 };
 
 function Toast({ notification, onDismiss }) {
+  const t = useTranslations("common");
   const [isExiting, setIsExiting] = useState(false);
 
   const handleDismiss = () => {
@@ -142,7 +144,7 @@ function Toast({ notification, onDismiss }) {
             e.stopPropagation();
             handleDismiss();
           }}
-          aria-label="Dismiss notification"
+          aria-label={t("dismissNotification")}
           style={{
             background: "none",
             border: "none",

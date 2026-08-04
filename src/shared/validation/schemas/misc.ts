@@ -207,3 +207,8 @@ export const confirmedAccountSchema = z.object({
 });
 
 export type ConfirmedAccount = z.infer<typeof confirmedAccountSchema>;
+
+export const paginationSchema = z.object({
+  offset: z.coerce.number().int().min(0).optional(),
+  limit: z.coerce.number().int().min(0).max(200).optional(),
+});

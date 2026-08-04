@@ -130,6 +130,7 @@ export function isTextualReasoningTagNativeRoute(providerId: string, modelId: st
     /deepseek[-_/]?r1\b/.test(routeId) ||
     /r1[-_/]?distill\b/.test(routeId) ||
     /(?:^|[/:_-])qwq(?:[/._:-]|$)/.test(routeId) ||
+    /(?:^|[/_-])k3(?:[/._:-]|$)/.test(modelId) ||
     // 9router#2231: MiniMax M3 leaks raw <think>...</think> into `content` on its
     // OpenAI-format provider tiers (trae, huggingchat, bazaarlink, ollama-cloud,
     // opencode, cline, opencode-zen, codebuddy-cn). The direct minimax/minimax-cn

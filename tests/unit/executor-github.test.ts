@@ -161,7 +161,13 @@ test("GithubExecutor.transformRequest sanitizes Anthropic-shape content parts (t
     ],
   };
 
-  const result = executor.transformRequest("claude-sonnet-4.6", body, true, {});
+  // Use an unregistered claude-* id (not "claude-sonnet-4.6"/etc.) so
+  // getModelTargetFormat("gh", ...) resolves to null and this stays on the
+  // /chat/completions path this test targets. Registered claude-* ids now
+  // carry targetFormat:"claude" (native /v1/messages — port of
+  // decolua/9router#2608, see github-copilot-claude-native-messages.test.ts)
+  // and intentionally skip this sanitization.
+  const result = executor.transformRequest("claude-sonnet-4", body, true, {});
 
   // user message keeps text + image_url parts untouched
   assert.equal(result.messages[0].content[0].type, "text");

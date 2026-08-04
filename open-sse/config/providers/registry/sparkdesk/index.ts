@@ -5,16 +5,19 @@ export const sparkdeskProvider: RegistryEntry = {
   alias: "sparkdesk",
   format: "openai",
   executor: "default",
-  baseUrl: "https://spark-api.xf-yun.com/v3.1/chat/completions",
+  baseUrl: "https://spark-api-open.xf-yun.com/v1/chat/completions",
   authType: "apikey",
   authHeader: "bearer",
-  // Sweep 2026-06-19: confirmed exact HTTP `domain` values against the official
-  // xfyun.cn Spark docs. `spark-x` was rejected — it lives on a separate /v2 (X1.5) /
-  // /x2 (X2) endpoint and would 404 on this /v3.1 base.
+  // `spark-api-open.xf-yun.com` is Spark's OpenAI-compatible HTTP endpoint (Bearer
+  // APIPassword). `spark-api.xf-yun.com` is the WebSocket host — `wss://.../v3.1/chat`
+  // etc., authenticated with an HMAC-SHA256 signature, not a bearer token — so it
+  // cannot serve this `format: "openai"` / `authHeader: "bearer"` entry.
+  // Model ids are the `domain` values accepted by the HTTP endpoint. `spark-x` is
+  // rejected: it lives on separate /v2 (X1.5) and /x2 (X2) endpoints.
   models: [
     { id: "4.0Ultra", name: "Spark 4.0 Ultra", contextLength: 32768 },
     { id: "generalv3", name: "Spark Pro", contextLength: 8192 },
     { id: "pro-128k", name: "Spark Pro 128K", contextLength: 131072 },
-    { id: "general", name: "General" },
+    { id: "lite", name: "Spark Lite", contextLength: 4096 },
   ],
 };

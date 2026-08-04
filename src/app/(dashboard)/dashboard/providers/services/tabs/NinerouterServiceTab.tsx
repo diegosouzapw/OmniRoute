@@ -29,10 +29,7 @@ export function NinerouterServiceTab() {
     <div className="space-y-4">
       <ServiceStatusCard name={NAME} />
       <ServiceLifecycleButtons name={NAME} />
-      <AutoStartToggle
-        name={NAME}
-        description="Launch 9Router automatically when OmniRoute starts"
-      />
+      <AutoStartToggle name={NAME} />
       <ApiKeyField name={NAME} serviceLabel="9Router" showReveal={true} />
       <NinerouterProviderExposureCard />
       <NinerouterModelList />

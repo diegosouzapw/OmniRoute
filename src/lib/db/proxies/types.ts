@@ -27,6 +27,8 @@ export interface ProxyRegistryRecord {
   status: string;
   source: string;
   family: string;
+  /** Set when this registry row was synced from a proxy subscription (#subscription-feature). */
+  subscriptionId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -53,6 +55,8 @@ export interface ProxyPayload {
   status?: string;
   source?: string;
   family?: string;
+  /** Optional link to a proxy subscription that created this row (#subscription-feature). */
+  subscriptionId?: string | null;
 }
 
 export interface ProxyAssignmentPayload {

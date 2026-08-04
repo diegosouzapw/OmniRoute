@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "locale": "zh-TW",
+  "description": "Canonical Traditional Chinese (zh-TW) terminology for recurring OmniRoute concepts. Consumed by scripts/i18n/check-glossary-consistency.mjs (drift gate) and scripts/i18n/generate-multilang.mjs (post-translation normalization) — this file is the single source of truth for both. Two failure modes are covered: (1) simplified->traditional conversions that pick the wrong homophone character (儀錶板 for dashboard, 上遊 for upstream, 後臺 for background), and (2) mainland-habit vocabulary that converts to valid traditional characters but is not what TW/HK readers use (默認 vs 預設, 緩存 vs 快取). Concepts whose `synonyms` array is empty are seeded for documentation only — enforcement is deferred because the synonym is also a legitimate rendering of an unrelated concept in today's catalog. `blockedPrefixes` suppresses a synonym match when it is preceded by one of the listed characters, so a term can be enforced even when its string also appears inside an unrelated compound.",
+  "terms": {
+    "default": {
+      "canonical": "預設",
+      "synonyms": ["默認"]
+    },
+    "memory": {
+      "canonical": "記憶體",
+      "synonyms": ["內存"]
+    },
+    "dashboard": {
+      "canonical": "儀表板",
+      "synonyms": ["儀錶板"]
+    },
+    "link": {
+      "canonical": "連結",
+      "synonyms": ["鏈接"]
+    },
+    "documentation": {
+      "canonical": "文件",
+      "synonyms": ["文檔"]
+    },
+    "cache": {
+      "canonical": "快取",
+      "synonyms": ["緩存"]
+    },
+    "module": {
+      "canonical": "模組",
+      "synonyms": ["模塊"]
+    },
+    "call": {
+      "canonical": "呼叫",
+      "synonyms": ["調用"]
+    },
+    "string": {
+      "canonical": "字串",
+      "synonyms": ["字符串"]
+    },
+    "global": {
+      "canonical": "全域",
+      "synonyms": ["全局"]
+    },
+    "provider": {
+      "canonical": "提供者",
+      "synonyms": ["供應商", "提供商"]
+    },
+    "response": {
+      "canonical": "回應",
+      "synonyms": ["響應"]
+    },
+    "upstream": {
+      "canonical": "上游",
+      "synonyms": ["上遊"]
+    },
+    "background": {
+      "canonical": "後台",
+      "synonyms": ["後臺"]
+    },
+    "inactive": {
+      "canonical": "未啟用",
+      "synonyms": ["不活躍"]
+    },
+    "type": {
+      "canonical": "類型",
+      "synonyms": ["型別"],
+      "blockedPrefixes": ["模", "本"],
+      "note": "型別 is the correct rendering for a programming data type (基本型別) and is also the cross-boundary substring of 模型別名 (model alias) — both prefixes are blocked so only UI 'type' labels normalize to 類型."
+    },
+    "code": {
+      "canonical": "程式碼",
+      "synonyms": [],
+      "note": "Enforcement deferred: 代碼 is the correct rendering of 'code' in 控制代碼 (handle), 語系代碼 (locale code), 結束代碼 (exit code) and 錯誤代碼 (error code), all of which the catalog uses legitimately today. Only the unambiguous source-code compound 代碼庫 -> 程式碼庫 is normalized, by hand, never by a blanket rule."
+    },
+    "project": {
+      "canonical": "專案",
+      "synonyms": [],
+      "note": "Enforcement deferred: 項目 is also the correct rendering of 'item' (依賴項目, 必要項目, 共通項目), which dominates real usage. Only 項目概覽 -> 專案概覽 is normalized by hand."
+    }
+  }
+}

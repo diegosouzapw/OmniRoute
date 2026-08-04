@@ -15,12 +15,91 @@ function isHttpUrl(value: string): boolean {
 
 const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh", "max"]);
 const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fast", "flex"]);
+const CACHE_PASSTHROUGH_VALUES = new Set(["strip", "openai-format", "claude-format"]);
+
+// #6880 — per-connection prompt-cache capability override, extracted so
+// validateProviderSpecificData() stays under the complexity gate.
+function validateCacheBlock(data: Record<string, unknown>, ctx: z.RefinementCtx): void {
+  const cache = data.cache;
+  if (cache === undefined) return;
+  if (!cache || typeof cache !== "object" || Array.isArray(cache)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.cache must be an object",
+      path: ["cache"],
+    });
+    return;
+  }
+  const cacheRecord = cache as Record<string, unknown>;
+  const supportsPromptCaching = cacheRecord.supportsPromptCaching;
+  if (supportsPromptCaching !== undefined && typeof supportsPromptCaching !== "boolean") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.cache.supportsPromptCaching must be a boolean",
+      path: ["cache", "supportsPromptCaching"],
+    });
+  }
+  const cacheControlPassthrough = cacheRecord.cacheControlPassthrough;
+  if (
+    cacheControlPassthrough !== undefined &&
+    (typeof cacheControlPassthrough !== "string" ||
+      !CACHE_PASSTHROUGH_VALUES.has(cacheControlPassthrough))
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        'providerSpecificData.cache.cacheControlPassthrough must be one of "strip", "openai-format", "claude-format"',
+      path: ["cache", "cacheControlPassthrough"],
+    });
+  }
+}
+
+/**
+ * gheUrl must parse and use HTTPS. Shared by the Zod refinement above and by the
+ * OAuth route's raw entry points (searchParams / device-flow extraData), so a
+ * malformed or non-HTTPS enterprise URL is rejected before any upstream fetch.
+ */
+export function isValidGheUrl(raw: string): boolean {
+  try {
+    return new URL(raw).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export function validateProviderSpecificData(
   data: Record<string, unknown> | undefined,
   ctx: z.RefinementCtx
 ): void {
   if (!data) return;
+
+  const gheUrl = data.gheUrl;
+  if (gheUrl !== undefined) {
+    if (typeof gheUrl !== "string") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "providerSpecificData.gheUrl must be a string",
+        path: ["gheUrl"],
+      });
+    } else {
+      try {
+        const parsed = new URL(gheUrl);
+        if (parsed.protocol !== "https:") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "providerSpecificData.gheUrl must use HTTPS",
+            path: ["gheUrl"],
+          });
+        }
+      } catch {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "providerSpecificData.gheUrl must be a valid HTTPS URL",
+          path: ["gheUrl"],
+        });
+      }
+    }
+  }
 
   const baseUrl = data.baseUrl;
   if (baseUrl !== undefined && (typeof baseUrl !== "string" || !isHttpUrl(baseUrl))) {
@@ -163,6 +242,8 @@ export function validateProviderSpecificData(
     }
   }
 
+  validateCacheBlock(data, ctx);
+
   const consoleApiKey = data.consoleApiKey;
   if (consoleApiKey !== undefined && consoleApiKey !== null && typeof consoleApiKey !== "string") {
     ctx.addIssue({
@@ -176,6 +257,22 @@ export function validateProviderSpecificData(
       code: z.ZodIssueCode.custom,
       message: "providerSpecificData.consoleApiKey must be at most 10000 characters",
       path: ["consoleApiKey"],
+    });
+  }
+
+  const newApiUserId = data.newApiUserId;
+  if (newApiUserId !== undefined && newApiUserId !== null && typeof newApiUserId !== "string") {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.newApiUserId must be a string",
+      path: ["newApiUserId"],
+    });
+  }
+  if (typeof newApiUserId === "string" && newApiUserId.length > 256) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.newApiUserId must be at most 256 characters",
+      path: ["newApiUserId"],
     });
   }
 
@@ -339,14 +436,10 @@ export function validateProviderSpecificData(
   const clientProfile = data.clientProfile;
   if (clientProfile !== undefined && clientProfile !== null) {
     const normalized = typeof clientProfile === "string" ? clientProfile.trim().toLowerCase() : "";
-    if (
-      typeof clientProfile !== "string" ||
-      !["ide", "harness", "cli", "sdk"].includes(normalized)
-    ) {
+    if (typeof clientProfile !== "string" || !["ide", "cli"].includes(normalized)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "providerSpecificData.clientProfile must be ide, harness, cli, or sdk (cli/sdk map to harness)",
+        message: "providerSpecificData.clientProfile must be ide or cli",
         path: ["clientProfile"],
       });
     }

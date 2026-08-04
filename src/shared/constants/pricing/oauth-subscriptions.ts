@@ -3,6 +3,7 @@
  * Pure data; merged by default-pricing.ts via spread (god-file decomposition; semantic split).
  */
 import {
+  CLAUDE_OPUS_5_PRICING,
   GPT_5_3_CODEX_PRICING,
   GPT_5_5_PRICING,
   GPT_5_6_LUNA_PRICING,
@@ -19,6 +20,7 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 50.0,
       cache_creation: 12.5,
     },
+    "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "claude-opus-4-8": {
       input: 5.0,
       output: 25.0,
@@ -180,46 +182,6 @@ export const DEFAULT_PRICING_OAUTH = {
       cache_creation: 1.0,
     },
   },
-  qw: {
-    "qwen3-coder-plus": {
-      input: 1.0,
-      output: 4.0,
-      cached: 0.5,
-      reasoning: 6.0,
-      cache_creation: 1.0,
-    },
-    // Next-generation Qwen Coder tier (added Mar 2026)
-    "qwen3-coder-next": {
-      input: 2.0,
-      output: 8.0,
-      cached: 1.0,
-      reasoning: 12.0,
-      cache_creation: 2.0,
-    },
-    "qwen3-coder-flash": {
-      input: 0.5,
-      output: 2.0,
-      cached: 0.25,
-      reasoning: 3.0,
-      cache_creation: 0.5,
-    },
-    "vision-model": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-    // Qwen3.5/3.6 Coder Model — ported from upstream 9router PR #156 (zx07).
-    // Priced identically to the vision tier per upstream defaults.
-    "coder-model": {
-      input: 1.5,
-      output: 6.0,
-      cached: 0.75,
-      reasoning: 9.0,
-      cache_creation: 1.5,
-    },
-  },
   if: {
     "qwen3-coder-plus": {
       input: 1.0,
@@ -315,27 +277,20 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 18.0,
       cache_creation: 2.0,
     },
-    "gemini-3.1-pro-high": {
-      input: 4.0,
-      output: 18.0,
-      cached: 0.5,
-      reasoning: 27.0,
-      cache_creation: 4.0,
-    },
-    "gemini-3-flash": {
+    // Antigravity 2.0.4+ exposes Gemini 3.5 Flash as three public client ids
+    // (see ANTIGRAVITY_PUBLIC_MODELS in open-sse/config/antigravityModelAliases.ts):
+    //   gemini-3.5-flash-extra-low → "Gemini 3.5 Flash (Low)"
+    //   gemini-3-flash-agent   → "Gemini 3.5 Flash (High)"
+    //   gemini-3.5-flash-low   → "Gemini 3.5 Flash (Medium)"
+    // Without these rows, getPricingForModel("ag", id) returns null and downstream
+    // cost and quota calculations silently fall back to $0.
+    "gemini-3.5-flash-extra-low": {
       input: 0.5,
       output: 3.0,
       cached: 0.03,
       reasoning: 4.5,
       cache_creation: 0.5,
     },
-    // Antigravity 2.0.4+ exposes Gemini 3.5 Flash as three public client ids
-    // (see ANTIGRAVITY_PUBLIC_MODELS in open-sse/config/antigravityModelAliases.ts):
-    //   gemini-3-flash-agent   → "Gemini 3.5 Flash (High)"
-    //   gemini-3.5-flash-low   → "Gemini 3.5 Flash (Medium)"
-    // Both bill at the same per-MTok rates as legacy `gemini-3-flash` above —
-    // without these rows, getPricingForModel("ag", id) returned null and downstream
-    // cost / quota calculations silently fell back to $0.
     "gemini-3-flash-agent": {
       input: 0.5,
       output: 3.0,
@@ -350,14 +305,40 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 4.5,
       cache_creation: 0.5,
     },
-    // `gemini-pro-agent` is the Antigravity v1.23+ Agent-mode alias for the
-    // Gemini 3.1 Pro (High) tier — bills at the same rates as `gemini-3.1-pro-high`.
+    // `gemini-pro-agent` is the callable Antigravity id for Gemini 3.1 Pro (High).
     "gemini-pro-agent": {
       input: 4.0,
       output: 18.0,
       cached: 0.5,
       reasoning: 27.0,
       cache_creation: 4.0,
+    },
+    // Gemini 3.6 Flash (released 2026-07-21) - three tier variants like 3.5 Flash
+    // (see ANTIGRAVITY_PUBLIC_MODELS / MODEL_SPECS which already carry the catalog
+    // entries). Without these rows, getPricingForModel("ag", id) returns null and
+    // downstream cost and quota calculations silently fall back to $0.
+    // Pricing: $1.50 input / $7.50 output / $0.15 cached per MTok. Thinking tokens
+    // billed at output rate.
+    "gemini-3.6-flash-low": {
+      input: 1.5,
+      output: 7.5,
+      cached: 0.15,
+      reasoning: 7.5,
+      cache_creation: 1.5,
+    },
+    "gemini-3.6-flash-medium": {
+      input: 1.5,
+      output: 7.5,
+      cached: 0.15,
+      reasoning: 7.5,
+      cache_creation: 1.5,
+    },
+    "gemini-3.6-flash-high": {
+      input: 1.5,
+      output: 7.5,
+      cached: 0.15,
+      reasoning: 7.5,
+      cache_creation: 1.5,
     },
     "claude-sonnet-4-6": {
       input: 3.0,
@@ -382,6 +363,7 @@ export const DEFAULT_PRICING_OAUTH = {
     },
   },
   gh: {
+    "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "gpt-5": {
       input: 3.0,
       output: 12.0,
@@ -468,13 +450,6 @@ export const DEFAULT_PRICING_OAUTH = {
     },
   },
   kiro: {
-    "claude-fable-5": {
-      input: 15.0,
-      output: 75.0,
-      cached: 7.5,
-      reasoning: 112.5,
-      cache_creation: 15.0,
-    },
     "claude-sonnet-4.5": {
       input: 3.0,
       output: 15.0,
@@ -488,42 +463,6 @@ export const DEFAULT_PRICING_OAUTH = {
       cached: 0.25,
       reasoning: 2.5,
       cache_creation: 0.5,
-    },
-    // Models from issue #334
-    "claude-sonnet-4": {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
-    },
-    "claude-opus-4.8": {
-      input: 15.0,
-      output: 75.0,
-      cached: 7.5,
-      reasoning: 75.0,
-      cache_creation: 15.0,
-    },
-    "claude-opus-4.7": {
-      input: 15.0,
-      output: 75.0,
-      cached: 7.5,
-      reasoning: 75.0,
-      cache_creation: 15.0,
-    },
-    "claude-opus-4.6": {
-      input: 15.0,
-      output: 75.0,
-      cached: 7.5,
-      reasoning: 75.0,
-      cache_creation: 15.0,
-    },
-    "claude-sonnet-4.6": {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
     },
     "claude-sonnet-5": {
       input: 3.0,
@@ -576,21 +515,10 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 8.0,
       cache_creation: 2.0,
     },
-    // Kiro "Auto" pricing — retained for both the upstream "auto" id and the
-    // local "auto-kiro" selector. The translator maps auto-kiro back to auto.
-    auto: {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
-    },
-    "auto-kiro": {
-      input: 3.0,
-      output: 15.0,
-      cached: 1.5,
-      reasoning: 15.0,
-      cache_creation: 3.0,
-    },
+    // Kiro's GPT-5.6 family (kiro.dev/changelog/models, 2026-07-14) — same
+    // per-tier rates the codex/openai aliases already bill at.
+    "gpt-5.6-sol": GPT_5_6_SOL_PRICING,
+    "gpt-5.6-terra": GPT_5_6_TERRA_PRICING,
+    "gpt-5.6-luna": GPT_5_6_LUNA_PRICING,
   },
 };

@@ -137,7 +137,7 @@ test("recordModelLockoutFailure honors a multi-day exactCooldownMs (under 30-day
     429,
     0,
     makeProfile(),
-    { exactCooldownMs }
+    { exactCooldownMs, maxCooldownMs: exactCooldownMs + 1 }
   );
 
   assert.equal(lockout.cooldownMs, exactCooldownMs);
@@ -901,9 +901,6 @@ test("recordModelLockoutFailure sets cooldown until tomorrow 0:00 for quota_exha
     tomorrow.setHours(0, 0, 0, 0);
     const expectedMsUntilTomorrow = tomorrow.getTime() - now;
 
-    // Account for timezone offset: function uses local time, test env may use UTC
-    const timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
-
     // Record failure with quota_exhausted reason
     const result = recordModelLockoutFailure(
       provider,
@@ -911,17 +908,12 @@ test("recordModelLockoutFailure sets cooldown until tomorrow 0:00 for quota_exha
       model,
       "quota_exhausted",
       429,
-      0, // fallbackCooldownMs should be overridden to ms until tomorrow
+      0,
       profile
     );
 
     // Verify the cooldown is set to ms until tomorrow 0:00 (with tolerance)
-    // The cooldown should be close to expectedMsUntilTomorrow
-    const tolerance = 60 * 1000; // 1 minute tolerance
-    // Calculate difference between actual and expected values
     const diff = Math.abs(result.cooldownMs - expectedMsUntilTomorrow);
-
-    // Allow ±5 minutes tolerance (300,000 ms)
     assert.ok(
       diff <= 300_000,
       `cooldown should be ms until tomorrow 0:00 (expected ${expectedMsUntilTomorrow}ms, got ${result.cooldownMs}ms, diff ${diff}ms)`
@@ -1276,7 +1268,6 @@ test("Gemini RPM 429: recordModelLockoutFailure uses exponential backoff for rat
 });
 
 test("Gemini RPD (quota_exhausted) still triggers midnight lockout in recordModelLockoutFailure", () => {
-  // Regression: real daily quota exhaustion must still produce midnight reset
   const originalNow = Date.now;
   const testDate = new Date();
   testDate.setHours(12, 0, 0, 0);

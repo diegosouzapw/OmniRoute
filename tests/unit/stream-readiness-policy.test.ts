@@ -144,3 +144,108 @@ test("preserves zero timeout so readiness checks can be disabled", () => {
   assert.equal(result.timeoutMs, 0);
   assert.deepEqual(result.reasons, ["disabled"]);
 });
+
+test("bumps small requests to third-party Claude-format replicas (Minimax M3, ZAI, bailian, agentrouter) — guards against #3825-class false 504s on long reasoning warm-ups", () => {
+  // Provider registry lists Minimax with `format: "claude"` — the readiness budget
+  // must fire UNCONDITIONALLY for those replicas, like the codex_gpt_5_5_high
+  // bump, because their reasoning warm-ups routinely exceed the default 80s window.
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "minimax",
+    model: "MiniMax-M3",
+    body: { messages: items(3), tools: tools(2) },
+  });
+
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(
+    result.reasons.includes("claude_format_heavy_reasoning"),
+    `expected claude_format_heavy_reasoning in reasons, got ${JSON.stringify(result.reasons)}`
+  );
+});
+
+test("bumps ZAI (claude-format replica) readiness budget the same way", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "zai",
+    model: "GLM-5",
+    body: { messages: items(3), tools: tools(2) },
+  });
+
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("claude_format_heavy_reasoning"));
+});
+
+test("does NOT bump official Anthropic first-party providers (claude/anthropic) — they have stable cold starts", () => {
+  const claudeResult = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "claude",
+    model: "claude-opus-4.5",
+    body: { messages: items(3), tools: tools(2) },
+  });
+
+  const anthropicResult = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "anthropic",
+    model: "claude-sonnet-4.5",
+    body: { messages: items(3), tools: tools(2) },
+  });
+
+  assert.equal(claudeResult.timeoutMs, 80_000);
+  assert.equal(anthropicResult.timeoutMs, 80_000);
+  assert.ok(!claudeResult.reasons.includes("claude_format_heavy_reasoning"));
+  assert.ok(!anthropicResult.reasons.includes("claude_format_heavy_reasoning"));
+});
+
+test("does NOT bump OpenAI / non-Claude providers", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "openai",
+    model: "gpt-5",
+    body: { messages: items(3), tools: tools(2) },
+  });
+
+  assert.equal(result.timeoutMs, 80_000);
+  assert.ok(!result.reasons.includes("claude_format_heavy_reasoning"));
+});
+
+test("does NOT double-bump when codex-high reasoning and Claude-format replica both match", () => {
+  // Belt-and-braces guard: even if someone extends the codex detection to
+  // Claude-format providers later, the readiness bump must not stack.
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "minimax",
+    model: "MiniMax-M3-high",
+    body: { messages: items(3), tools: tools(2), reasoning_effort: "high" },
+  });
+
+  // Should be bumped by exactly one reason — claude_format_heavy_reasoning —
+  // because minimax is not a codex provider, the codex_* path never fires.
+  assert.equal(result.timeoutMs, 110_000);
+  assert.ok(result.reasons.includes("claude_format_heavy_reasoning"));
+  assert.ok(!result.reasons.includes("codex_gpt_5_5_high_reasoning"));
+});
+
+test("caps Claude-format replica bump at the configured maxTimeoutMs", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    maxTimeoutMs: 100_000,
+    provider: "minimax",
+    model: "MiniMax-M3",
+    body: { messages: items(500), tools: tools(20), instructions: "x".repeat(800_000) },
+  });
+
+  assert.equal(result.timeoutMs, 100_000);
+  assert.ok(result.reasons.includes("claude_format_heavy_reasoning"));
+});
+
+test("treats unknown provider names as non-Claude-format (no false positives)", () => {
+  const result = resolveStreamReadinessTimeout({
+    baseTimeoutMs: 80_000,
+    provider: "not-a-real-provider",
+    model: "anything",
+    body: { messages: items(3) },
+  });
+
+  assert.equal(result.timeoutMs, 80_000);
+  assert.ok(!result.reasons.includes("claude_format_heavy_reasoning"));
+});

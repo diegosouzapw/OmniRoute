@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
+import { getCachedProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
@@ -21,7 +21,7 @@ export async function POST(
   if (auth) return auth;
 
   const { id } = await params;
-  const provider = await getProviderConnectionById(id);
+  const provider = await getCachedProviderConnectionById(id);
   if (!provider) {
     return NextResponse.json({ success: false, error: "Provider not found" }, { status: 404 });
   }

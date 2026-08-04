@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import { useState } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -16,6 +16,7 @@ import {
 } from "@/shared/constants/providers";
 
 import { CategoryDot } from "./CategoryDot";
+import { isCheaperInferenceProviderId, isKimiPartnerProviderId } from "../featuredProviders";
 
 interface ProviderStats {
   total?: number;
@@ -73,6 +74,7 @@ interface ProviderCardProps {
   stats: ProviderStats;
   authType?: string;
   onToggle: (active: boolean) => void;
+  onCardClick?: (id: string) => void;
 }
 
 const DOT_COLORS: Record<string, string> = {
@@ -151,17 +153,51 @@ function getStatusDisplay(
   return parts;
 }
 
-export default function ProviderCard({
-  providerId,
-  provider,
-  stats,
-  authType = "apikey",
-  onToggle,
-}: ProviderCardProps) {
+export type ProviderCardHandle = {
+  highlight: () => void;
+  getProviderId(): string;
+  scrollIntoView: (options?: ScrollIntoViewOptions) => void;
+};
+
+const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function ProviderCard(
+  { providerId, provider, stats, authType = "apikey", onToggle, onCardClick },
+  ref
+) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const tp = useTranslations("miniPlayground");
   const [testExpanded, setTestExpanded] = useState<boolean>(false);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const linkElementRef = useRef<HTMLAnchorElement>(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getProviderId() {
+        return providerId;
+      },
+      highlight() {
+        const el = innerRef.current;
+        if (!el) return;
+        linkElementRef.current?.focus();
+        const surface = linkElementRef.current?.firstElementChild;
+        surface?.animate(
+          [
+            { backgroundColor: "rgba(59,130,246,0.22)" },
+            { backgroundColor: "rgba(59,130,246,0.08)" },
+            { backgroundColor: "transparent" },
+          ],
+          { duration: 3000, easing: "ease-in-out" }
+        );
+      },
+      scrollIntoView() {
+        const el = innerRef.current;
+        if (!el) return;
+        el.scrollIntoView({ behavior: "auto", block: "center" });
+      },
+    }),
+    [providerId, innerRef, linkElementRef]
+  );
 
   // Show the Test button for LLM providers (when serviceKinds includes "llm"
   // OR when the provider has no explicit serviceKinds but is a regular LLM provider
@@ -187,6 +223,11 @@ export default function ProviderCard({
   const isCompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId) && !isCcCompatible;
+  // Open Source Friend highlights (Kimi 2026-07, Cheaper Inference 2026-07): UI-only
+  // accents, see featuredProviders.ts — never affect routing/fallback order.
+  const isKimiPartner = isKimiPartnerProviderId(provider.id || providerId);
+  const isCheaperInferencePartner = isCheaperInferenceProviderId(provider.id || providerId);
+  const isSponsorPartner = isKimiPartner || isCheaperInferencePartner;
   const codexServiceTierLabel =
     stats.codexServiceTier === "flex"
       ? providerText(t, "codexTierFlexLabel", "Flex")
@@ -210,6 +251,41 @@ export default function ProviderCard({
         {codexServiceTierLabel}
       </span>
     ) : null;
+
+  // Kimi (Moonshot AI) official-partnership badge — literal brand-blue Tailwind
+  // arbitrary values must stay in sync with KIMI_BRAND_COLOR (featuredProviders.ts).
+  const kimiOfficialSupporterChip = isKimiPartner ? (
+    <span
+      key="kimi-official-supporter"
+      className="inline-flex items-center gap-0.5 rounded-full border border-[#1783FF]/30 bg-[#1783FF]/10 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide leading-none text-[#1067CC] dark:text-[#7CB8FF]"
+      title={providerText(
+        t,
+        "kimiOfficialSupporterTooltip",
+        "Kimi (Moonshot AI) is OmniRoute's founding Open Source Friend"
+      )}
+    >
+      <span className="material-symbols-outlined text-[10px] leading-none">verified</span>
+      {providerText(t, "kimiOfficialSupporterBadge", "Founding Friend")}
+    </span>
+  ) : null;
+
+  // Cheaper Inference Open Source Friend badge — brand green (#31f889) with a dark
+  // foreground (the green is too bright for white text). Literal Tailwind arbitrary
+  // values must stay in sync with CHEAPERINFERENCE_BRAND_COLOR (featuredProviders.ts).
+  const cheaperInferenceSupporterChip = isCheaperInferencePartner ? (
+    <span
+      key="cheaperinference-supporter"
+      className="inline-flex items-center gap-0.5 rounded-full border border-[#31f889]/40 bg-[#31f889]/15 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide leading-none text-[#0b7a45] dark:text-[#5CF0A6]"
+      title={providerText(
+        t,
+        "cheaperInferenceSupporterTooltip",
+        "Cheaper Inference backs OmniRoute as an Open Source Friend"
+      )}
+    >
+      <span className="material-symbols-outlined text-[10px] leading-none">verified</span>
+      {providerText(t, "cheaperInferenceSupporterBadge", "Open Source Friend")}
+    </span>
+  ) : null;
 
   const dotLabels: Record<string, string> = {
     free: tc("free"),
@@ -239,12 +315,36 @@ export default function ProviderCard({
     onToggle(allDisabled);
   };
 
+  const handleCardClick = useCallback(() => {
+    onCardClick?.(providerId);
+  }, [onCardClick, providerId]);
+
   return (
-    <div className="flex flex-col h-full">
-      <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
+    <div ref={innerRef} id={`provider-${providerId}`} className="flex flex-col h-full">
+      <Link
+        ref={linkElementRef}
+        href={`/dashboard/providers/${providerId}`}
+        className="group flex-1 flex flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/60"
+        onClick={handleCardClick}
+      >
         <Card
           padding="xs"
-          className={`h-full flex flex-col hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/40 transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
+          className={`h-full flex flex-col hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer ${
+            isKimiPartner
+              ? // Kimi (Moonshot AI) official-partnership accent — official Kimi blue
+                // (#1783FF) border (2px, clearly legible) + a subtle whole-card tint
+                // (inset shadow — avoids clobbering Card's own bg-surface via
+                // twMerge) + soft outer glow. Kept identical in light/dark since it
+                // is a raw (non-token) brand hex, not a theme color. Keep the hex in
+                // sync with KIMI_BRAND_COLOR (featuredProviders.ts).
+                "border-2 border-[#1783FF]/70 hover:border-[#1783FF]/90 shadow-[inset_0_0_0_100px_rgba(23,131,255,0.035),0_4px_16px_-4px_rgba(23,131,255,0.45)]"
+              : isCheaperInferencePartner
+                ? // Cheaper Inference Open Source Friend accent — same construction in
+                  // its brand green (#31f889 = rgb(49,248,137)). Keep in sync with
+                  // CHEAPERINFERENCE_BRAND_COLOR (featuredProviders.ts).
+                  "border-2 border-[#31f889]/70 hover:border-[#31f889]/90 shadow-[inset_0_0_0_100px_rgba(49,248,137,0.035),0_4px_16px_-4px_rgba(49,248,137,0.45)]"
+                : "hover:border-primary/40"
+          } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >
           <div className="flex flex-col gap-2 h-full">
             {/* Row 1 — Identity: icon + full name + risk/category indicators */}
@@ -316,8 +416,11 @@ export default function ProviderCard({
             {((provider.serviceKinds && provider.serviceKinds.length > 0) ||
               isCompatible ||
               isCcCompatible ||
-              isAnthropicCompatible) && (
+              isAnthropicCompatible ||
+              isSponsorPartner) && (
               <div className="flex flex-wrap items-center gap-1">
+                {kimiOfficialSupporterChip}
+                {cheaperInferenceSupporterChip}
                 {provider.serviceKinds?.map((k) => (
                   <span
                     key={k}
@@ -389,7 +492,7 @@ export default function ProviderCard({
                     <Toggle
                       size="xs"
                       checked={!allDisabled}
-                      onChange={() => {}}
+                      onChange={undefined}
                       title={allDisabled ? t("enableProvider") : t("disableProvider")}
                     />
                   </div>
@@ -428,4 +531,6 @@ export default function ProviderCard({
       )}
     </div>
   );
-}
+});
+
+export default ProviderCard;

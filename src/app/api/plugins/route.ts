@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
   const url = new URL(request.url);
-  const statusResult = StatusSchema.safeParse(url.searchParams.get("status"));
+  const statusResult = StatusSchema.safeParse(url.searchParams.get("status") ?? undefined);
   if (!statusResult.success) {
     return NextResponse.json(
       { error: "Invalid status value", details: statusResult.error.issues },

@@ -231,3 +231,25 @@ export function clearSessionModelHistoryForCombo(comboName: string): number {
     .run(comboName);
   return result.changes ?? 0;
 }
+
+/**
+ * Clear the session model history pin for ONE session on a given combo, leaving
+ * every other session's pin on that same combo untouched.
+ *
+ * Unlike clearSessionModelHistoryForCombo() (combo-wide — used when the combo's
+ * model targets themselves change and every pin is stale), this is the
+ * session-scoped variant used by the consecutive-failure auto-clear path
+ * (open-sse/services/combo/failureTracker.ts::recordComboFailure), where only
+ * the failing session's pin should be dropped.
+ *
+ * @param sessionId - The session identifier whose pin should be cleared.
+ * @param comboName - The combo name.
+ * @returns The number of deleted entries.
+ */
+export function deleteSessionModelHistory(sessionId: string, comboName: string): number {
+  const db = getDbInstance() as unknown as DbLike;
+  const result = db
+    .prepare("DELETE FROM session_model_history WHERE session_id = ? AND combo_name = ?")
+    .run(sessionId, comboName);
+  return result.changes ?? 0;
+}

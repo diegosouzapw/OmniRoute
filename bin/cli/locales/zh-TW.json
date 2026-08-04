@@ -29,16 +29,16 @@
   "setup": {
     "title": "OmniRoute 設定",
     "passwordPrompt": "管理員密碼",
-    "providerPrompt": "預設提供商（留空跳過）",
+    "providerPrompt": "預設提供者（留空跳過）",
     "done": "設定完成",
     "passwordSet": "管理員密碼已配置",
-    "providerSet": "提供商已配置：{name}",
-    "testingProvider": "正在測試提供商連線：{name}",
-    "testPassed": "提供商測試通過",
-    "testFailed": "提供商測試失敗：{error}",
+    "providerSet": "提供者已配置：{name}",
+    "testingProvider": "正在測試提供者連線：{name}",
+    "testPassed": "提供者測試通過",
+    "testFailed": "提供者測試失敗：{error}",
     "loginEnabled": "登入：已啟用（密碼已更新）",
     "loginDisabled": "登入：已停用",
-    "providerInfo": "提供商：{info}"
+    "providerInfo": "提供者：{info}"
   },
   "doctor": {
     "title": "OmniRoute 診斷",
@@ -52,29 +52,29 @@
     "warnings": "{count} 個警告 — 見上文。"
   },
   "providers": {
-    "title": "提供商",
-    "noProviders": "未配置提供商。執行：omniroute setup",
+    "title": "提供者",
+    "noProviders": "未配置提供者。執行：omniroute setup",
     "testing": "正在測試 {name}...",
-    "available": "{count} 個提供商可用",
+    "available": "{count} 個提供者可用",
     "connected": "已連線",
     "disconnected": "未連線",
     "validationFailed": "驗證失敗：{error}",
     "metrics": {
-      "description": "顯示提供商效能指標（延遲、成功率、成本）",
-      "provider": "按提供商 ID 篩選",
+      "description": "顯示提供者效能指標（延遲、成功率、成本）",
+      "provider": "按提供者 ID 篩選",
       "connection_id": "按連線 ID 篩選",
       "period": "時間範圍：1h|6h|24h|7d|30d（預設：24h）",
       "metric": "關注特定指標欄位",
       "sort": "按欄位排序（降序）",
       "limit": "最大行數（預設：50）",
       "watch": "每 5 秒重新整理（即時模式）",
-      "compare": "逗號分隔的提供商 ID，並排比較"
+      "compare": "逗號分隔的提供者 ID，並排比較"
     },
     "metric_single": {
       "description": "獲取特定連線的單個指標值"
     },
     "rotate": {
-      "description": "輪換提供商連線的上游 API 金鑰",
+      "description": "輪換提供者連線的上游 API 金鑰",
       "newKeyOpt": "新 API 金鑰值（避免使用：優先使用 --from-env）",
       "fromEnvOpt": "從環境變數 VAR 讀取新金鑰",
       "oauthOpt": "改為觸發 OAuth 重新認證流程",
@@ -89,18 +89,18 @@
       "testFailed": "輪換後測試失敗：{error}"
     },
     "status": {
-      "description": "顯示所有提供商連線的金鑰健康狀態（期限、過期、冷卻）",
-      "providerOpt": "按提供商名稱篩選",
-      "header": "ID         提供商       名稱                     過期狀態  測試狀態  冷卻至",
-      "noData": "沒有可用的提供商連線資料。",
+      "description": "顯示所有提供者連線的金鑰健康狀態（期限、過期、冷卻）",
+      "providerOpt": "按提供者名稱篩選",
+      "header": "ID         提供者       名稱                     過期狀態  測試狀態  冷卻至",
+      "noData": "沒有可用的提供者連線資料。",
       "requiresServer": "providers status 需要 OmniRoute 伺服器正在執行。"
     }
   },
   "keys": {
     "title": "API 金鑰",
-    "addDescription": "為提供商新增或更新 API 金鑰",
+    "addDescription": "為提供者新增或更新 API 金鑰",
     "listDescription": "列出所有已配置的 API 金鑰",
-    "removeDescription": "移除提供商的 API 金鑰",
+    "removeDescription": "移除提供者的 API 金鑰",
     "regenerateDescription": "重新生成 OmniRoute API 金鑰",
     "revokeDescription": "撤銷 OmniRoute API 金鑰",
     "revealDescription": "顯示未掩碼的 API 金鑰值",
@@ -122,10 +122,10 @@
     "revoked": "金鑰 {id} 已撤銷。",
     "rotated": "金鑰 {id} 已輪換。新金鑰 ID：{newId}",
     "revealWarning": "⚠ 這將顯示完整的未掩碼金鑰。請確保您的螢幕不被人看到。",
-    "providerRequired": "需要提供商。",
+    "providerRequired": "需要提供者。",
     "keyRequired": "需要 API 金鑰。",
     "stdinEmpty": "未通過標準輸入提供 API 金鑰。",
-    "unknownProvider": "未知提供商：{provider}",
+    "unknownProvider": "未知提供者：{provider}",
     "policy": {
       "title": "金鑰策略",
       "showDescription": "顯示金鑰的速率/成本策略",
@@ -151,7 +151,7 @@
     "model": "模型 ID（預設：auto）",
     "system": "系統提示",
     "combo": "強制指定組合名稱",
-    "max_tokens": "響應最大令牌數",
+    "max_tokens": "響應最大權杖數",
     "responses_api": "使用 /v1/responses 而不是 /v1/chat/completions",
     "raw": "列印接收到的原始 SSE 行",
     "debug": "在 stderr 中列印每塊的時間資訊",
@@ -165,7 +165,7 @@
     "analytics": {
       "description": "顯示彙總使用分析",
       "period": "時間範圍：1d|7d|30d|90d|ytd|all（預設：30d）",
-      "provider": "按提供商 ID 篩選"
+      "provider": "按提供者 ID 篩選"
     },
     "budget": {
       "description": "管理成本預算",
@@ -175,8 +175,8 @@
       }
     },
     "quota": {
-      "description": "顯示提供商配額使用情況",
-      "provider": "按提供商 ID 篩選",
+      "description": "顯示提供者配額使用情況",
+      "provider": "按提供者 ID 篩選",
       "check": "顯示新請求是否有可用配額"
     },
     "logs": {
@@ -201,7 +201,7 @@
     }
   },
   "cost": {
-    "description": "按提供商、模型、組合或 API 金鑰顯示成本報告",
+    "description": "按提供者、模型、組合或 API 金鑰顯示成本報告",
     "period": "時間範圍：1d|7d|30d|90d|ytd|all（預設：30d）",
     "since": "開始日期（ISO 格式，例如 2026-01-01）— 覆蓋 --period",
     "until": "結束日期（ISO 格式）",
@@ -210,12 +210,12 @@
     "limit": "顯示的最大行數（預設：100）"
   },
   "simulate": {
-    "description": "模擬路由（空執行）— 顯示將選擇哪些提供商而不呼叫上游",
+    "description": "模擬路由（空執行）— 顯示將選擇哪些提供者而不呼叫上游",
     "file": "從 JSON 檔案載入完整請求體",
     "model": "模型 ID（預設：auto）",
     "combo": "強制指定組合名稱",
     "reasoning": "推理努力級別（low|medium|high）",
-    "thinking": "擴充套件思維令牌預算",
+    "thinking": "擴充套件思維權杖預算",
     "explain": "在 stderr 中列印回退樹和成本範圍",
     "noCombo": "未找到匹配的組合。使用以下命令配置：omniroute combo create"
   },
@@ -225,11 +225,11 @@
     "stdin": "從標準輸入讀取提示",
     "system": "系統提示",
     "model": "模型 ID（預設：auto）",
-    "max_tokens": "響應最大令牌數",
+    "max_tokens": "響應最大權杖數",
     "temperature": "取樣溫度（0–2）",
     "top_p": "Top-p 核取樣",
     "reasoning_effort": "推理努力級別（low|medium|high）",
-    "thinking_budget": "擴充套件思維令牌預算",
+    "thinking_budget": "擴充套件思維權杖預算",
     "combo": "強制指定組合名稱",
     "responses_api": "使用 /v1/responses 而不是 /v1/chat/completions",
     "stream": "增量流式傳輸響應",
@@ -301,7 +301,7 @@
     "cost": "成本（24h）："
   },
   "quota": {
-    "description": "顯示提供商配額使用情況",
+    "description": "顯示提供者配額使用情況",
     "noServer": "伺服器未執行。啟動：omniroute serve",
     "noData": "沒有可用的配額資訊。"
   },
@@ -315,12 +315,12 @@
     "description": "一鍵啟動本地 Redis 容器（Podman 或 Docker），用於 OmniRoute 快取和配額跟蹤"
   },
   "test": {
-    "description": "測試提供商連線",
+    "description": "測試提供者連線",
     "noServer": "伺服器未執行。啟動：omniroute serve",
     "testing": "正在測試 {provider} / {model}...",
     "passed": "連線成功！",
     "failed": "連線失敗：{error}",
-    "allProvidersOpt": "測試所有已配置的提供商",
+    "allProvidersOpt": "測試所有已配置的提供者",
     "latencyOpt": "顯示延遲測量值（平均/最小/最大 毫秒）",
     "repeatOpt": "重複測試 N 次並彙總結果",
     "compareOpt": "逗號分隔的要比較的模型（例如 gpt-4o,claude-3-5-sonnet）",
@@ -328,7 +328,7 @@
     "saved": "結果已儲存至 {path}",
     "compareTitle": "模型比較",
     "compareMinTwo": "--compare 需要至少兩個模型（逗號分隔）",
-    "noProviders": "未配置提供商。新增：omniroute keys add"
+    "noProviders": "未配置提供者。新增：omniroute keys add"
   },
   "update": {
     "checking": "正在檢查更新...",
@@ -445,7 +445,7 @@
       "description": "配置壓縮設定",
       "engine": "壓縮引擎（caveman|rtk|hybrid|none）",
       "caveman_agg": "Caveman 激程序度 0.0–1.0",
-      "rtk_budget": "RTK 令牌預算",
+      "rtk_budget": "RTK 權杖預算",
       "language_pack": "要啟用的語言包"
     },
     "engine": {
@@ -509,7 +509,7 @@
   },
   "models": {
     "description": "列出可用模型（需要伺服器）",
-    "search": "按 ID、名稱、提供商或描述篩選模型",
+    "search": "按 ID、名稱、提供者或描述篩選模型",
     "noServer": "伺服器未執行。啟動：omniroute serve",
     "noModels": "未找到模型。"
   },
@@ -621,7 +621,7 @@
       "type": "按記憶型別篩選（user|feedback|project|reference）",
       "limit": "最大結果數（預設：20）",
       "api_key": "按 API 金鑰篩選",
-      "token_budget": "限制結果中的總令牌數"
+      "token_budget": "限制結果中的總權杖數"
     },
     "add": {
       "description": "新增新的記憶條目",
@@ -656,25 +656,25 @@
     }
   },
   "oauth": {
-    "description": "管理 OAuth 提供商連線",
+    "description": "管理 OAuth 提供者連線",
     "providers": {
-      "description": "列出支援 OAuth 的提供商及其流程型別"
+      "description": "列出支援 OAuth 的提供者及其流程型別"
     },
     "start": {
-      "description": "為提供商啟動 OAuth 授權流程",
-      "provider": "提供商 ID（gemini, copilot, cursor, ...）",
+      "description": "為提供者啟動 OAuth 授權流程",
+      "provider": "提供者 ID（gemini, copilot, cursor, ...）",
       "no_browser": "僅列印 URL — 不開啟瀏覽器",
       "import_system": "從本地系統配置自動匯入憑據",
-      "social": "社交登入提供商（google|github）— kiro 需要",
+      "social": "社交登入提供者（google|github）— kiro 需要",
       "timeout": "等待授權超時時間（毫秒，預設：300000）"
     },
     "status": {
       "description": "列出活動的 OAuth 連線",
-      "provider": "按提供商 ID 篩選"
+      "provider": "按提供者 ID 篩選"
     },
     "revoke": {
       "description": "撤銷 OAuth 連線",
-      "provider": "要撤銷的提供商 ID",
+      "provider": "要撤銷的提供者 ID",
       "connection_id": "按 ID 撤銷特定連線",
       "yes": "跳過確認提示"
     }
@@ -884,20 +884,20 @@
     "description": "管理模型定價資料",
     "sync": {
       "description": "從上游同步價格",
-      "provider": "按提供商篩選",
+      "provider": "按提供者篩選",
       "force": "強制重新同步"
     },
     "list": {
-      "provider": "按提供商篩選",
+      "provider": "按提供者篩選",
       "model": "按模型篩選",
       "limit": "最大結果數"
     },
     "defaults": {
       "description": "管理預設定價",
-      "input": "每 1M 令牌的輸入成本（美元）",
-      "output": "每 1M 令牌的輸出成本（美元）",
-      "cacheRead": "每 1M 令牌的快取讀取成本（美元）",
-      "cacheWrite": "每 1M 令牌的快取寫入成本（美元）"
+      "input": "每 1M 權杖的輸入成本（美元）",
+      "output": "每 1M 權杖的輸出成本（美元）",
+      "cacheRead": "每 1M 權杖的快取讀取成本（美元）",
+      "cacheWrite": "每 1M 權杖的快取寫入成本（美元）"
     },
     "diff": {
       "description": "顯示與上游價格的差異",
@@ -907,25 +907,25 @@
   "resilience": {
     "description": "檢查和管理彈性機制",
     "status": {
-      "provider": "按提供商篩選"
+      "provider": "按提供者篩選"
     },
     "breakers": {
-      "provider": "按提供商篩選"
+      "provider": "按提供者篩選"
     },
     "cooldowns": {
-      "provider": "按提供商篩選",
+      "provider": "按提供者篩選",
       "connectionId": "按連線 ID 篩選"
     },
     "lockouts": {
-      "provider": "按提供商篩選",
+      "provider": "按提供者篩選",
       "model": "按模型篩選"
     },
     "reset": {
       "description": "重置斷路器/冷卻狀態",
-      "provider": "要重置的提供商",
+      "provider": "要重置的提供者",
       "connectionId": "要重置的連線 ID",
       "model": "要重置鎖定狀態的模型",
-      "allCooldowns": "重置提供商的所有冷卻",
+      "allCooldowns": "重置提供者的所有冷卻",
       "yes": "跳過確認"
     },
     "profile": {
@@ -940,13 +940,13 @@
     }
   },
   "nodes": {
-    "description": "管理提供商節點（端點）",
+    "description": "管理提供者節點（端點）",
     "list": {
-      "provider": "按提供商篩選",
+      "provider": "按提供者篩選",
       "enabled": "僅顯示已啟用的節點"
     },
     "add": {
-      "provider": "提供商名稱",
+      "provider": "提供者名稱",
       "baseUrl": "節點的基礎 URL",
       "name": "節點名稱",
       "weight": "負載均衡權重",
@@ -965,7 +965,7 @@
     },
     "validate": {
       "baseUrl": "要驗證的 URL",
-      "provider": "要驗證的提供商"
+      "provider": "要驗證的提供者"
     },
     "test": {
       "description": "向節點發送測試請求"
@@ -993,7 +993,7 @@
       "description": "管理 RTK 上下文最佳化器",
       "config": {
         "description": "顯示或更新 RTK 配置",
-        "tokenBudget": "RTK 令牌預算",
+        "tokenBudget": "RTK 權杖預算",
         "reservePct": "保留百分比"
       },
       "filters": {
@@ -1091,7 +1091,7 @@
   "oneproxy": {
     "description": "管理 OneProxy 上游代理池",
     "stats": {
-      "provider": "按提供商篩選",
+      "provider": "按提供者篩選",
       "period": "時間範圍（預設：24h）"
     },
     "fetch": {
@@ -1101,14 +1101,14 @@
     },
     "rotate": {
       "description": "強制輪換代理",
-      "provider": "要輪換的提供商",
+      "provider": "要輪換的提供者",
       "connectionId": "要輪換的特定連線 ID"
     },
     "config": {
       "description": "顯示或更新 OneProxy 配置",
       "enabled": "啟用代理池（true|false）",
       "poolSize": "池大小",
-      "providerSource": "代理提供商的 URL",
+      "providerSource": "代理提供者的 URL",
       "rotationPolicy": "輪換策略：sticky|per-request|periodic"
     },
     "pool": {
@@ -1163,11 +1163,11 @@
       "fromCloud": "從雲備份初始化"
     },
     "tokens": {
-      "description": "管理同步令牌",
+      "description": "管理同步權杖",
       "create": {
-        "name": "令牌名稱",
-        "scope": "令牌作用域",
-        "ttl": "令牌有效期（例如 30d）"
+        "name": "權杖名稱",
+        "scope": "權杖作用域",
+        "ttl": "權杖有效期（例如 30d）"
       },
       "revoke": {
         "yes": "跳過確認"
@@ -1201,7 +1201,7 @@
     "bash": "列印 bash 補全指令碼",
     "fish": "列印 fish 補全指令碼",
     "install": "為檢測到的 Shell 全域性安裝補全指令碼",
-    "refresh": "重新整理組合/提供商/模型快取"
+    "refresh": "重新整理組合/提供者/模型快取"
   },
   "logs": {
     "description": "流式傳輸或匯出請求日誌",

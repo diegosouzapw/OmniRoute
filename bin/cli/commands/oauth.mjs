@@ -7,7 +7,6 @@ const PROVIDERS_WITH_OAUTH = [
   { id: "gemini", name: "Google Gemini", flow: "browser" },
   { id: "antigravity", name: "Antigravity", flow: "browser" },
   { id: "windsurf", name: "Windsurf", flow: "browser" },
-  { id: "qwen", name: "Qwen Code", flow: "browser" },
   { id: "cursor", name: "Cursor", flow: "import" },
   { id: "zed", name: "Zed", flow: "import" },
   { id: "kiro", name: "Amazon Kiro", flow: "social" },

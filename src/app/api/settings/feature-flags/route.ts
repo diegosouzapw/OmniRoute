@@ -10,9 +10,11 @@ import {
   clearAllFeatureFlagOverrides,
 } from "@/lib/db/featureFlags";
 import { resolveAllFeatureFlags } from "@/shared/utils/featureFlags";
+import { getCcAliasGlobalState } from "@/lib/db/ccDiscoveryAliases";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const ACTIVE_VALUES = new Set(["true", "1", "yes"]);
+const CC_DISCOVERY_ALIASES_FLAG_KEY = "EXPOSE_CC_DISCOVERY_ALIASES";
 
 function isActive(value: string): boolean {
   return ACTIVE_VALUES.has(value);
@@ -30,19 +32,43 @@ export async function GET(request: NextRequest) {
   try {
     const resolved = resolveAllFeatureFlags();
 
-    const flags = resolved.map(({ key, effectiveValue, source, definition }) => ({
-      key,
-      label: definition.label,
-      description: definition.description,
-      category: definition.category,
-      type: definition.type,
-      enumValues: definition.enumValues ?? null,
-      defaultValue: definition.defaultValue,
-      effectiveValue,
-      source,
-      requiresRestart: definition.requiresRestart,
-      warningLevel: definition.warningLevel,
-    }));
+    const flags = resolved.map(({ key, effectiveValue, source, definition }) => {
+      // EXPOSE_CC_DISCOVERY_ALIASES resolves with env-wins-over-db precedence
+      // (see db/ccDiscoveryAliases.ts::getCcAliasGlobalState) — the opposite of
+      // resolveAllFeatureFlags' generic db-wins-over-env order. Override the
+      // reported effectiveValue/source with the gate's own resolution so the
+      // dashboard never shows a source that doesn't match actual gate behavior.
+      if (key === CC_DISCOVERY_ALIASES_FLAG_KEY) {
+        const gateState = getCcAliasGlobalState();
+        return {
+          key,
+          label: definition.label,
+          description: definition.description,
+          category: definition.category,
+          type: definition.type,
+          enumValues: definition.enumValues ?? null,
+          defaultValue: definition.defaultValue,
+          effectiveValue: gateState.enabled ? "true" : "false",
+          source: gateState.source,
+          requiresRestart: definition.requiresRestart,
+          warningLevel: definition.warningLevel,
+        };
+      }
+
+      return {
+        key,
+        label: definition.label,
+        description: definition.description,
+        category: definition.category,
+        type: definition.type,
+        enumValues: definition.enumValues ?? null,
+        defaultValue: definition.defaultValue,
+        effectiveValue,
+        source,
+        requiresRestart: definition.requiresRestart,
+        warningLevel: definition.warningLevel,
+      };
+    });
 
     const total = flags.length;
     const active = flags.filter((f) => isActive(f.effectiveValue)).length;

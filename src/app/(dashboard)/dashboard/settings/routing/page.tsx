@@ -8,6 +8,7 @@ import ComboDefaultsTab from "../components/ComboDefaultsTab";
 import FallbackChainsEditor from "../components/FallbackChainsEditor";
 import ModelAliasesUnified from "../components/ModelAliasesUnified";
 import BackgroundDegradationTab from "../components/BackgroundDegradationTab";
+import ReasoningRoutingRules from "@/shared/components/ReasoningRoutingRules";
 
 export default function SettingsRoutingPage() {
   const t = useTranslations("settings");
@@ -16,6 +17,7 @@ export default function SettingsRoutingPage() {
       <p className="text-sm text-text-muted">{t("routingSettingsIntro")}</p>
       <RoutingStrategyCard />
       <ComboDefaultsTab />
+      <ReasoningRoutingRules />
       <ModelAliasesUnified />
       <FallbackChainsEditor />
       <ModelRoutingSection />

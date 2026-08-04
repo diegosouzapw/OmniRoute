@@ -14,6 +14,8 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { listPlaygroundPresets, createPlaygroundPreset } from "@/lib/db/playgroundPresets";
 import { PlaygroundPresetCreateSchema } from "@/shared/schemas/playground";
 import { isRequireApiKeyEnabled } from "@/shared/utils/featureFlags";
+import { paginationSchema } from "@/shared/validation/schemas";
+import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -63,8 +65,21 @@ export async function GET(request: Request): Promise<Response> {
   if (authError) return authError;
 
   try {
-    const presets = listPlaygroundPresets();
-    return new Response(JSON.stringify({ presets }), {
+    const { searchParams } = new URL(request.url);
+    const raw = {
+      offset: searchParams.get("offset") || undefined,
+      limit: searchParams.get("limit") || undefined,
+    } satisfies { offset?: string; limit?: string };
+    const validation = validateBody(paginationSchema, raw);
+    if (isValidationFailure(validation)) {
+      return new Response(JSON.stringify(validation.error), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
+      });
+    }
+    const { limit, offset } = validation.data;
+    const result = listPlaygroundPresets(limit !== undefined ? { limit, offset } : undefined);
+    return new Response(JSON.stringify({ presets: result.items, total: result.total }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...CORS_HEADERS },
     });

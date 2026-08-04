@@ -1,5 +1,5 @@
 # ── Common base with runtime deps ──────────────────────────────────────────
-FROM node:24-trixie-slim AS base
+FROM node:26-trixie-slim AS base
 WORKDIR /app
 
 # `apt-get upgrade` pulls the security-patched versions of the Debian (trixie)
@@ -8,8 +8,8 @@ WORKDIR /app
 # that already have a fix published in trixie. CVEs without an upstream fix yet
 # (local-only TOCTOU, etc.) remain until the distro patches them and the image
 # is rebuilt; none are reachable from the proxy's request surface at runtime.
-RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=shared \
-  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
@@ -29,8 +29,8 @@ FROM base AS builder
 
 # Build tools for native module compilation
 # apt-get update needed here because base's rm -rf clears the shared cache
-RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=shared \
-  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=shared \
+RUN --mount=type=cache,id=apt-cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,id=apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
@@ -65,11 +65,25 @@ RUN test -f package-lock.json \
 # node-gyp comes from npm's own bundled copy (deterministic, already in the image)
 # instead of `npx --yes`, which would install an arbitrary registry version
 # on-demand and run its lifecycle scripts (Sonar docker:S6505).
+#
+# tls-client-node (chatgpt-web/claude-web/grok-web/lmarena/perplexity-web TLS
+# impersonation) hits the same --ignore-scripts wall: its own postinstall.js
+# fetches a platform .so/.dylib/.dll from the bogdanfinn/tls-client GitHub
+# Releases API and is never invoked when npm ci skips lifecycle scripts. Unlike
+# better-sqlite3 above, that script never throws on failure — it only
+# `console.warn`s and exits 0 — so a rate-limited or offline build would
+# otherwise succeed silently with an empty bin/ and only fail at first request
+# in production (TlsClientUnavailableError, #7802). Run it explicitly here so
+# a broken/rate-limited fetch fails the BUILD loudly instead of shipping a
+# broken image.
 RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
   npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
   && (cd node_modules/better-sqlite3 \
       && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild) \
-  && node -e "require('better-sqlite3')(':memory:').close()"
+  && node -e "require('better-sqlite3')(':memory:').close()" \
+  && node node_modules/tls-client-node/scripts/postinstall.js \
+  && (test -n "$(find node_modules/tls-client-node/bin -mindepth 1 -print -quit 2>/dev/null)" \
+      || (echo "tls-client-node native binary missing after postinstall — GitHub API fetch likely rate-limited or failed (#7802)" >&2 && exit 1))
 
 # Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
 # TurbopackInternalError panic ("entered unreachable code: there must be a path to a
@@ -80,6 +94,11 @@ RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
 # escape hatch: `--build-arg`/-e OMNIROUTE_USE_TURBOPACK=0.
 # See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
 ENV OMNIROUTE_USE_TURBOPACK=1
+
+# Next.js basePath is fixed at build time; pass OMNIROUTE_BASE_PATH here when the
+# image should serve under a reverse-proxy subpath without a runtime patch.
+ARG OMNIROUTE_BASE_PATH=""
+ENV OMNIROUTE_BASE_PATH=$OMNIROUTE_BASE_PATH
 
 # Docker containers cannot run the MITM/Agent-Bridge stack (no host DNS/cert
 # access), so keep @/mitm/manager on the graceful stub (#3390). This flag is

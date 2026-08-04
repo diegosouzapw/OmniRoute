@@ -22,14 +22,27 @@ export interface ModelSpec {
   // Model ONLY supports adaptive thinking: manual extended thinking was removed. Sending
   // `thinking.type:"enabled"` or any `thinking.budget_tokens` returns HTTP 400; reasoning
   // is steered exclusively by `output_config.effort` (low/medium/high/xhigh/max). True for
-  // Claude Opus 4.7 and later (Opus 4.7/4.8, Fable 5). Per Anthropic's migration guide
-  // (2026-05-19): "Any request that tries to set a fixed thinking budget gets a 400 error."
+  // Claude Opus 4.7 and later (Opus 4.7/4.8/5, Fable 5). Per Anthropic's migration guide,
+  // any request that tries to set a fixed thinking budget gets a 400 error.
   adaptiveThinkingOnly?: boolean;
+  // Highest effort accepted while `thinking.type:"disabled"` is present. Claude Opus 5
+  // rejects disabled thinking with xhigh/max, while accepting it through high.
+  maxEffortWhenThinkingDisabled?: "high";
   // Explicit operator override for the no-thinking gateway alias (Fase 8.1). When unset,
   // the catalog auto-advertises a `no-think/…` variant for
   // Claude-family thinking-capable models that honor `disabled`. Set `true` to force the
   // variant on for any other model, or `false` to suppress it. See open-sse/utils/noThinkingAlias.ts.
   noThinkingAlias?: boolean;
+  // Per-model default reasoning effort (#6879). When the incoming request carries no
+  // `reasoning_effort` / `reasoning` / `thinking` field of any shape, the resolved
+  // upstream model's `defaultReasoningEffort` is injected as `reasoning_effort` on the
+  // OpenAI-format dispatch path before the request leaves the gateway. An explicit
+  // client value — including one forwarded verbatim through a combo leg — always wins;
+  // this is a no-op for it. Unset preserves current behavior (no injection). Lets an
+  // operator strip-by-default a thinks-by-default model (measured: gemini-flash-lite
+  // burns ~277 reasoning tokens on a plain request; `reasoning_effort:"none"` → 0)
+  // without patching every client. See open-sse/services/defaultReasoningEffort.ts.
+  defaultReasoningEffort?: "none" | "low" | "medium" | "high";
 }
 
 const BEDROCK_CLAUDE_ALIASES = (...modelIds: string[]) => [
@@ -68,7 +81,19 @@ const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
 const GPT_5_6_MODEL_SPEC = {
   maxOutputTokens: 128000,
   contextWindow: 1050000,
+  // Reserve 32K for visible response: thinking + response must both fit
+  // under maxOutputTokens. A cap equal to maxOutputTokens leaves zero room
+  // for the actual response when thinking consumes the full budget.
+  thinkingBudgetCap: 96000,
   supportsThinking: true,
+  supportsTools: true,
+  supportsVision: true,
+} satisfies ModelSpec;
+
+const GEMINI_35_FLASH_MODEL_SPEC = {
+  maxOutputTokens: 65536,
+  contextWindow: 1048576,
+  supportsThinking: false,
   supportsTools: true,
   supportsVision: true,
 } satisfies ModelSpec;
@@ -137,13 +162,23 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
-  "gemini-3.5-flash-low": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    supportsThinking: false,
-    supportsTools: true,
-    supportsVision: true,
+  "gemini-3.5-flash-extra-low": {
+    ...GEMINI_35_FLASH_MODEL_SPEC,
+    thinkingBudgetCap: 0,
   },
+  "gemini-3.5-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3-flash-agent": {
+    ...GEMINI_35_FLASH_MODEL_SPEC,
+    thinkingBudgetCap: 0,
+  },
+
+  // ── Gemini 3.6 Flash (Antigravity live tiers) ───────────────────
+  // The model id itself selects the upstream 10k/4k/1k reasoning tier. Antigravity
+  // still rejects client-supplied thinking parameters, so keep the explicit-parameter
+  // capability aligned with the existing Gemini 3.5 tier ids.
+  "gemini-3.6-flash-high": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-medium": { ...GEMINI_35_FLASH_MODEL_SPEC },
+  "gemini-3.6-flash-low": { ...GEMINI_35_FLASH_MODEL_SPEC },
 
   // ── Gemini 3 Flash series ───────────────────────────────────────
   "gemini-3-flash": {
@@ -168,6 +203,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     aliases: [
+      "gemini-pro-agent",
       "gemini-3.1-pro-high",
       "gemini-3-pro-high",
       "gemini-3-pro-preview",
@@ -190,11 +226,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
 
   // ── Gemini 3.5 Flash ─────────────────────────────────────────────
   "gemini-3.5-flash": {
-    maxOutputTokens: 65536,
-    contextWindow: 1048576,
-    supportsThinking: false,
-    supportsTools: true,
-    supportsVision: true,
+    ...GEMINI_35_FLASH_MODEL_SPEC,
     aliases: ["gemini-3.5-flash-high"],
   },
 
@@ -213,6 +245,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-5": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -234,6 +267,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-6": {
     maxOutputTokens: 64000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -305,6 +339,20 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: BEDROCK_CLAUDE_ALIASES("claude-fable-5"),
   },
 
+  // ── Claude Opus 5 ───────────────────────────────────────────────
+  "claude-opus-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    maxEffortWhenThinkingDisabled: "high",
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-opus-5"),
+  },
+
   // ── Claude Opus 4.8 ─────────────────────────────────────────────
   "claude-opus-4-8": {
     maxOutputTokens: 128000,
@@ -324,6 +372,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-5-20250929": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -334,20 +383,34 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-haiku-4-5-20251001": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    thinkingBudgetCap: 62000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
     aliases: ["claude-haiku-4.5"],
   },
 
-  // ── Kimi K2.6 (Moonshot Kimi Code OAuth — 262K native) ──────────
-  "kimi-k2.6": {
-    maxOutputTokens: 262144,
-    contextWindow: 262144,
+  // ── Kimi K3 (Moonshot API — 1M context/output, native vision) ────
+  // `k3` is the Kimi Coding / kimi-coding-apikey wire id (#8250).
+  "kimi-k3": {
+    maxOutputTokens: 1048576,
+    contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
+    aliases: ["k3"],
+  },
+
+  // ── Kimi K2.6 (Moonshot API — 262K native) ──────────────────────
+  "kimi-k2.6": {
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    thinkingBudgetCap: 32768,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["kimi-k2.6-thinking"],
   },
 
   // ── Kimi K2.7 Code (Moonshot — 262K native, parity with K2.6) ───
@@ -356,16 +419,18 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "kimi-k2.7-code": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
-    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking"],
+    aliases: ["kimi-k2.7", "kimi-k2.7-code-thinking", "kimi-k2.7-code-highspeed"],
   },
 
   // ── Kimi K2.5 (Moonshot — 262K native, parity with K2.6) ────────
   "kimi-k2.5": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -376,14 +441,24 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3-max": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
     aliases: ["qwen3.7-max", "qwen3-max-2026-01-23"],
   },
+  "qwen3.8-max-preview": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -391,6 +466,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "qwen3.5-plus": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -435,18 +511,21 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "glm-5.2": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5.2-high": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5.2-max": {
     maxOutputTokens: 131072,
     contextWindow: 1000000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -455,12 +534,14 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "glm-5.1": {
     maxOutputTokens: 128000,
     contextWindow: 200000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
   "glm-5": {
     maxOutputTokens: 128000,
     contextWindow: 200000,
+    thinkingBudgetCap: 38912,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -471,6 +552,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m3": {
     maxOutputTokens: 512000,
     contextWindow: 1048576,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M3", "MiniMaxAI/MiniMax-M3"],
@@ -480,6 +562,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m2.7": {
     maxOutputTokens: 131072,
     contextWindow: 204800,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M2.7", "MiniMaxAI/MiniMax-M2.7"],
@@ -487,6 +570,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "minimax-m2.5": {
     maxOutputTokens: 131072,
     contextWindow: 200000,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
     aliases: ["MiniMax-M2.5"],
@@ -496,12 +580,17 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "deepseek-v4-pro": {
     maxOutputTokens: 384000,
     contextWindow: 1000000,
+    // Reserve 4K for visible response: thinking + response must both fit
+    // under maxOutputTokens. A cap equal to maxOutputTokens leaves zero room
+    // for the actual response when thinking consumes the full budget.
+    thinkingBudgetCap: 380000,
     supportsThinking: true,
     supportsTools: true,
   },
   "deepseek-v4-flash": {
     maxOutputTokens: 384000,
     contextWindow: 1000000,
+    thinkingBudgetCap: 380000,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -510,6 +599,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "hy3-preview": {
     maxOutputTokens: 262144,
     contextWindow: 262144,
+    thinkingBudgetCap: 32768,
     supportsThinking: true,
     supportsTools: true,
   },
@@ -518,26 +608,83 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   __default__: {},
 };
 
+// #8697-adjacent: getCanonicalModelSpecId() re-scanned Object.keys/entries(MODEL_SPECS)
+// up to 3 times per call (exact ci, alias ci, prefix) — the top hotspot in a full
+// catalog-rebuild profile once the pricing-path bottlenecks were fixed. MODEL_SPECS is
+// a static module constant (never mutated at runtime), so the lowercase index below is
+// built once, lazily, on first use and never invalidated. Iteration order for the
+// prefix-match candidates is preserved exactly (same Object.keys() insertion order) so
+// resolution outcomes for ambiguous prefixes are unchanged.
+let modelSpecIndex: {
+  exactCi: Map<string, string>;
+  aliasCi: Map<string, string>;
+  aliasExact: Map<string, string>;
+  prefixCandidates: Array<[lowerKey: string, canonical: string]>;
+} | null = null;
+
+function getModelSpecIndex() {
+  if (modelSpecIndex) return modelSpecIndex;
+  const exactCi = new Map<string, string>();
+  const aliasCi = new Map<string, string>();
+  const aliasExact = new Map<string, string>();
+  const prefixCandidates: Array<[string, string]> = [];
+  for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
+    const lowerCanonical = canonical.toLowerCase();
+    if (!exactCi.has(lowerCanonical)) exactCi.set(lowerCanonical, canonical);
+    for (const alias of spec.aliases || []) {
+      const lowerAlias = alias.toLowerCase();
+      if (!aliasCi.has(lowerAlias)) aliasCi.set(lowerAlias, canonical);
+      if (!aliasExact.has(alias)) aliasExact.set(alias, canonical);
+    }
+    if (canonical !== "__default__") prefixCandidates.push([lowerCanonical, canonical]);
+  }
+  modelSpecIndex = { exactCi, aliasCi, aliasExact, prefixCandidates };
+  return modelSpecIndex;
+}
+
+/**
+ * Exact + alias case-insensitive lookup only (no prefix phase) — shared by
+ * modelCapabilities.ts's getStaticSpecCanonicalModelId(), which tries multiple id
+ * candidates and never wanted prefix matching. Reuses the same lazy index as
+ * getCanonicalModelSpecId() below instead of each caller maintaining its own cache
+ * over the same static MODEL_SPECS table.
+ *
+ * Contract: returns `null` for `__default__` (never a real canonical id), for an
+ * unrecognized `modelId`, or for an empty string. Matching is case-insensitive on
+ * both the canonical id and its aliases; there is no prefix-matching phase (unlike
+ * getCanonicalModelSpecId() below) — callers that need prefix matching should use
+ * that function instead.
+ */
+export function findModelSpecIdByExactOrAlias(modelId: string): string | null {
+  const lower = modelId.toLowerCase();
+  const index = getModelSpecIndex();
+  const exactHit = index.exactCi.get(lower);
+  if (exactHit && exactHit !== "__default__") return exactHit;
+  const aliasHit = index.aliasCi.get(lower);
+  if (aliasHit && aliasHit !== "__default__") return aliasHit;
+  return null;
+}
+
 export function getCanonicalModelSpecId(modelId: string): string | null {
   if (MODEL_SPECS[modelId]) return modelId;
 
   // Case-insensitive lookups: upstream model ids are often capitalized
   // (e.g. "MiniMax-M2.7") while specs/aliases use lowercase ids (#3141).
   const lower = modelId.toLowerCase();
+  const index = getModelSpecIndex();
 
   // Exact match (case-insensitive)
-  for (const canonical of Object.keys(MODEL_SPECS)) {
-    if (canonical.toLowerCase() === lower) return canonical;
-  }
+  const exactHit = index.exactCi.get(lower);
+  if (exactHit) return exactHit;
 
   // Buscas por alias (case-insensitive)
-  for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-    if (spec.aliases?.some((alias) => alias.toLowerCase() === lower)) return canonical;
-  }
+  const aliasHit = index.aliasCi.get(lower);
+  if (aliasHit) return aliasHit;
 
-  // Prefix matching (case-insensitive)
-  for (const key of Object.keys(MODEL_SPECS)) {
-    if (key !== "__default__" && lower.startsWith(key.toLowerCase())) return key;
+  // Prefix matching (case-insensitive) — same insertion-order iteration as before,
+  // first match wins.
+  for (const [lowerKey, canonical] of index.prefixCandidates) {
+    if (lower.startsWith(lowerKey)) return canonical;
   }
 
   return null;
@@ -619,14 +766,24 @@ export function isAdaptiveThinkingOnly(modelId: string | null | undefined): bool
   return getModelSpec(modelId)?.adaptiveThinkingOnly === true;
 }
 
+export function getMaxEffortWhenThinkingDisabled(
+  modelId: string | null | undefined
+): "high" | null {
+  if (typeof modelId !== "string" || modelId.length === 0) return null;
+  return getModelSpec(modelId)?.maxEffortWhenThinkingDisabled ?? null;
+}
+
 export function capThinkingBudget(modelId: string, budget: number): number {
   const cap = getModelSpec(modelId)?.thinkingBudgetCap ?? budget;
   return Math.min(budget, cap);
 }
 
+// #8697-adjacent: rescanned Object.entries(MODEL_SPECS) on every call, unconditionally
+// once per model in a catalog rebuild — verified 1:1 call ratio (no early
+// short-circuit). Case-sensitive exact match (Array.includes(), no .toLowerCase()) —
+// deliberately NOT reusing the case-insensitive aliasCi index above, which would
+// silently broaden matches and change behavior.
 export function resolveModelAlias(modelId: string): string {
-  for (const [canonical, spec] of Object.entries(MODEL_SPECS)) {
-    if (spec.aliases?.includes(modelId)) return canonical;
-  }
-  return modelId;
+  const hit = getModelSpecIndex().aliasExact.get(modelId);
+  return hit ?? modelId;
 }

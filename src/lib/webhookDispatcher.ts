@@ -6,7 +6,7 @@
 
 import crypto from "crypto";
 import { encrypt, decrypt } from "./db/encryption";
-import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuard";
+import { parseAndValidateWebhookUrl } from "@/shared/network/outboundUrlGuardPolicy";
 import type { WebhookEvent } from "./webhooks/eventDescriptions";
 
 export type { WebhookEvent };

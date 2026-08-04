@@ -1,22 +1,23 @@
 import {
-  getAllProviderLimitsCache,
   getProviderConnectionById,
   getProviderConnections,
+  updateProviderConnection,
+} from "@/lib/db/providers";
+import { getSettings, resolveProxyForConnection, updateSettings } from "@/lib/db/settings";
+import {
+  getAllProviderLimitsCache,
   getProviderLimitsCache,
-  getSettings,
-  resolveProxyForConnection,
   setProviderLimitsCache,
   setProviderLimitsCacheBatch,
-  updateProviderConnection,
-  updateSettings,
   type ProviderLimitsCacheEntry,
-} from "@/lib/localDb";
+} from "@/lib/db/providerLimits";
 import { syncToCloud } from "@/lib/cloudSync";
 import { setQuotaCache } from "@/domain/quotaCache";
 import { buildClaudeExtraUsageConnectionUpdate } from "@/lib/providers/claudeExtraUsage";
 import { clearRecoveredProviderState } from "@/sse/services/auth";
 import { getMachineId } from "@/shared/utils/machine";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { mergeProviderLimitsCacheEntry, toProviderLimitsCacheEntry } from "./providerLimitsCache";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { getUsageForProvider } from "@omniroute/open-sse/services/usage.ts";
 import {
@@ -35,7 +36,7 @@ import {
   normalizeUsageQuotasForProvider,
   sanitizeUsageQuotasForProvider,
 } from "./providerLimits/quotaNormalize";
-
+import { syncInChunksWithSpacing } from "./providerLimits/chunkedSpacingSync";
 type JsonRecord = Record<string, unknown>;
 type SyncSource = "manual" | "scheduled";
 
@@ -79,27 +80,20 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   // Qoder connections are PAT-based (authType "apikey"); the usage fetcher
   // exchanges the PAT for a job token and reads openapi.qoder.sh/user/status.
   "qoder",
+  "promptql", // PromptQL playground JWT → getCreditSummary USD credits
+  "pql",
+  // Adobe Firefly: web-cookie / JWT stored as apikey → credits/balance
+  "adobe-firefly",
+  "firefly",
+  // HyperAgent session cookie → billing/usage creditBlocks
+  "hyperagent",
+  "ha",
+  "firecrawl",
 ]);
 const DEFAULT_PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES = 70;
 const PROVIDER_LIMITS_AUTO_SYNC_SETTING_KEY = "provider_limits_auto_sync_last_run";
 const DEFAULT_PROVIDER_LIMITS_POST_USAGE_REFRESH_DELAY_MS = 5_000;
 const pendingPostUsageRefreshes = new Set<string>();
-
-function toProviderLimitsCacheEntry(
-  usage: JsonRecord,
-  source: SyncSource,
-  fetchedAt = new Date().toISOString()
-): ProviderLimitsCacheEntry {
-  const value = Number(usage.bankedResetCredits);
-  return {
-    quotas: isRecord(usage.quotas) ? usage.quotas : null,
-    plan: usage.plan ?? null,
-    message: typeof usage.message === "string" ? usage.message : null,
-    fetchedAt,
-    source,
-    bankedResetCredits: Number.isFinite(value) ? value : undefined,
-  };
-}
 
 function getProviderLimitsPostUsageRefreshDelayMs(): number {
   const raw = Number(process.env.PROVIDER_LIMITS_POST_USAGE_REFRESH_DELAY_MS ?? "");
@@ -432,6 +426,13 @@ export async function maybeClearRecoveredQuotaState(
 ): Promise<ProviderConnectionLike> {
   if (!hasUsableQuota(usage)) return connection;
   if (isTerminalStatusForQuotaRecovery(connection.testStatus)) return connection;
+  if (
+    connection.lastErrorType === "quota_exhausted" &&
+    connection.rateLimitedUntil &&
+    new Date(connection.rateLimitedUntil).getTime() > Date.now()
+  ) {
+    return connection;
+  }
 
   const hasTransientState =
     connection.testStatus === "unavailable" ||
@@ -616,15 +617,18 @@ export function getProviderLimitsSyncIntervalMs(): number {
 const DEFAULT_PROVIDER_LIMITS_SYNC_SPACING_MS = 1500;
 
 /**
- * Spacing (ms) between consecutive OAuth provider-limits fetches in a bulk sync.
+ * Spacing (ms) applied between consecutive provider-limits fetch batches in a
+ * bulk sync, for BOTH the OAuth and local/API-key paths.
  *
  * OAuth providers (Codex/Claude/Kimi-coding/…) are fetched ONE AT A TIME with
  * this gap so a single host never bursts several simultaneous usage/refresh
  * requests to the same upstream — bursts read as automated traffic and
  * contribute to session termination / anomaly flags (and, for rotating-token
- * providers, to the Auth0 family-revocation race). Stateless API-key providers
- * keep the fast concurrent path. Tunable via `PROVIDER_LIMITS_SYNC_SPACING_MS`;
- * set to `"0"` to opt out.
+ * providers, to the Auth0 family-revocation race). Local/API-key connections
+ * (e.g. Ollama) keep their fast in-chunk concurrent path, but the gap is now
+ * also applied BETWEEN concurrency chunks so a local endpoint isn't hit by a
+ * simultaneous refresh burst either (#6916). Tunable via
+ * `PROVIDER_LIMITS_SYNC_SPACING_MS`; set to `"0"` to opt out on either path.
  */
 export function getProviderLimitsSyncSpacingMs(): number {
   const rawEnv = process.env.PROVIDER_LIMITS_SYNC_SPACING_MS;
@@ -632,8 +636,6 @@ export function getProviderLimitsSyncSpacingMs(): number {
   const raw = Number(rawEnv);
   return Number.isFinite(raw) && raw >= 0 ? raw : DEFAULT_PROVIDER_LIMITS_SYNC_SPACING_MS;
 }
-
-const syncDelay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export async function getLastProviderLimitsAutoSyncTime(): Promise<string | null> {
   try {
@@ -873,30 +875,32 @@ export async function fetchAndPersistProviderLimits(
     allowRotatingRefresh: opts.allowRotatingRefresh,
   });
   const newCache = toProviderLimitsCacheEntry(usage, source);
+  const previous = getProviderLimitsCache(connectionId);
+  const cache = mergeProviderLimitsCacheEntry(connection.provider, newCache, previous);
 
   // Don't persist error-only entries (429 etc.) — would wipe prior good cache.
   // Serve the prior entry instead; only successful fetches update the cache.
-  const fetchFailed = !newCache.quotas && newCache.message;
-  if (fetchFailed) {
-    const previous = getProviderLimitsCache(connectionId);
-    if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
-      const staleUsage: JsonRecord = {
-        ...usage,
-        quotas: previous.quotas,
-        plan: previous.plan ?? usage.plan ?? null,
-        bankedResetCredits: previous.bankedResetCredits,
-        message: null,
-        _stale: true,
-        _staleSince: previous.fetchedAt,
-        _staleReason: newCache.message,
-      };
-      return { connection, usage: staleUsage, cache: previous };
-    }
-    return { connection, usage, cache: newCache };
+  if (cache === previous && newCache.message) {
+    const staleUsage: JsonRecord = {
+      ...usage,
+      quotas: previous.quotas,
+      plan: previous.plan ?? usage.plan ?? null,
+      bankedResetCredits: previous.bankedResetCredits,
+      billing: previous.billing,
+      message: null,
+      _stale: true,
+      _staleSince: previous.fetchedAt,
+      _staleReason: newCache.message,
+    };
+    return { connection, usage: staleUsage, cache: previous };
   }
 
-  setProviderLimitsCache(connectionId, newCache);
-  return { connection, usage, cache: newCache };
+  const mergedUsage: JsonRecord = {
+    ...usage,
+    ...(cache.billing ? { billing: cache.billing } : {}),
+  };
+  setProviderLimitsCache(connectionId, cache);
+  return { connection, usage: mergedUsage, cache };
 }
 
 export async function syncAllProviderLimits(
@@ -925,14 +929,9 @@ export async function syncAllProviderLimits(
   ) => {
     if (result.status === "fulfilled") {
       const { cache } = result.value;
-      // Don't persist error-only entries; show prior cache or pass through.
-      if (!cache.quotas && cache.message) {
-        const previous = getProviderLimitsCache(connectionId);
-        if (previous?.quotas && Object.keys(previous.quotas).length > 0) {
-          caches[connectionId] = previous;
-        } else {
-          caches[connectionId] = cache;
-        }
+      const previous = getProviderLimitsCache(connectionId);
+      if (cache === previous) {
+        caches[connectionId] = cache;
         return;
       }
       cacheEntries.push({ connectionId, entry: cache });
@@ -951,35 +950,32 @@ export async function syncAllProviderLimits(
     const { usage } = await fetchLiveProviderLimitsWithOptions(connection.id, {
       forceRefresh,
     });
-    const cache = toProviderLimitsCacheEntry(usage, source);
+    const nextCache = toProviderLimitsCacheEntry(usage, source);
+    const cache = mergeProviderLimitsCacheEntry(connection.provider, nextCache, existingCache);
     return { connectionId: connection.id, cache };
   };
 
-  // OAuth connections are processed STRICTLY SEQUENTIALLY with a spacing gap so a
-  // single host never bursts simultaneous usage/refresh requests to the same
-  // upstream (anomaly/session-termination guard; see getProviderLimitsSyncSpacingMs).
-  // Stateless API-key connections keep the fast chunked-concurrent path.
+  // OAuth connections are processed STRICTLY SEQUENTIALLY (chunk size 1) with a
+  // spacing gap so a single host never bursts simultaneous usage/refresh
+  // requests to the same upstream (anomaly/session-termination guard; see
+  // getProviderLimitsSyncSpacingMs). Local/API-key connections keep their fast
+  // in-chunk concurrent path, spaced BETWEEN chunks (#6916).
   const oauthConnections = connections.filter((c) => c.authType === "oauth");
   const otherConnections = connections.filter((c) => c.authType !== "oauth");
   const spacingMs = getProviderLimitsSyncSpacingMs();
 
-  for (let i = 0; i < otherConnections.length; i += concurrency) {
-    const chunk = otherConnections.slice(i, i + concurrency);
-    const results = await Promise.allSettled(chunk.map(fetchOne));
+  const recordChunk = (
+    chunk: ProviderConnectionLike[],
+    results: PromiseSettledResult<{ connectionId: string; cache: ProviderLimitsCacheEntry }>[]
+  ) => {
     results.forEach((result, index) => {
       const connectionId = chunk[index]?.id;
       if (connectionId) recordResult(connectionId, result);
     });
-  }
+  };
 
-  for (let i = 0; i < oauthConnections.length; i++) {
-    const connection = oauthConnections[i];
-    const [result] = await Promise.allSettled([fetchOne(connection)]);
-    recordResult(connection.id, result);
-    if (spacingMs > 0 && i < oauthConnections.length - 1) {
-      await syncDelay(spacingMs);
-    }
-  }
+  await syncInChunksWithSpacing(otherConnections, concurrency, spacingMs, fetchOne, recordChunk);
+  await syncInChunksWithSpacing(oauthConnections, 1, spacingMs, fetchOne, recordChunk);
 
   if (cacheEntries.length > 0) {
     setProviderLimitsCacheBatch(cacheEntries);

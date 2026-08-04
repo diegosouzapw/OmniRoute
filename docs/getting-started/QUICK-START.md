@@ -71,7 +71,19 @@ You can use OmniRoute **without paying anything** by connecting a free provider.
 
 ---
 
-## Step 4: Point Your IDE to OmniRoute
+## Step 4: Verify It Works
+
+From [API Keys](http://localhost:20128/dashboard/api-manager), create a new key. Store this key since it will not appear again. Do note that this key is for tools to access OmniRoute, not to access upstream providers.
+
+```bash
+curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
+```
+
+You should see your connected models listed.
+
+---
+
+## Step 5: Point Your IDE or CLI to OmniRoute
 
 In your IDE or CLI tool, set:
 
@@ -83,15 +95,50 @@ Model:    auto
 
 That's it! Your IDE now uses OmniRoute with automatic provider selection.
 
----
+### IDE Example: VSCode/Continue.dev
 
-## Step 5: Verify It Works
+1. In VSCode, install the [Continue.dev](https://marketplace.visualstudio.com/items?itemName=Continue.continue) extension.
+2. Update your `~/.continue/config.yaml` to add the following lines:
 
-```bash
-curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
+```
+  - name: OmniRoute - Auto
+    provider: openai
+    model: auto
+    apiBase: http://localhost:20128/v1
+    apiKey: <YOUR_KEY>
 ```
 
-You should see your connected models listed.
+3. In the Continue.dev chat pane, select `OmniRoute - Auto` and you will make requests to OmniRoute.
+4. (Optional) Exercise for the reader - have your IDE update the `config.yaml` with all the other prebuilt configurations 😊
+
+### CLI Example: Codex CLI
+
+1. In your operating system, set the environment variable persistently.
+   For macOS/Linux (add to your `~/.bashrc` or `~/.zshrc`):
+
+```bash
+export OMNIROUTE_API_KEY="<YOUR_KEY>"
+```
+
+For Windows (Command Prompt):
+
+```
+setx OMNIROUTE_API_KEY <YOUR_KEY>
+```
+
+2. Now let's launch Codex, but configured for OmniRoute. Run:
+
+```
+omniroute launch-codex --model auto
+```
+
+You can do this manually via `codex` and command line parameters to specify endpoint and api key, but with the above command, OmniRoute takes care of everything for you.
+
+3. The CLI should be sending requests to OmniRoute now.
+
+### Confirm your tool is routing to OmniRoute
+
+You can see the details of the request by clicking [Monitoring/Logs](http://localhost:20128/dashboard/logs) from the left sidebar. Clicking through shows you more details. As a side note, you can see what info gets sent up from your favorite harness. This is helpful from an educational and debugging perspective.
 
 ---
 
@@ -131,5 +178,5 @@ OmniRoute automatically skips failed providers and tries the next one. You don't
 ## Need Help?
 
 - **[Troubleshooting](./TROUBLESHOOTING.md)** — Common issues and fixes
-- **[Discord](https://discord.gg/EkzRkpzKYt)** — Community support
+- **[Discord](https://discord.gg/U47eFqAXCn)** — Community support
 - **[GitHub Issues](https://github.com/diegosouzapw/OmniRoute/issues)** — Report bugs

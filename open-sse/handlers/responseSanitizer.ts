@@ -2,6 +2,7 @@ import {
   copyOpenAICompatibleReasoningFields,
   getReadableReasoningValue,
 } from "../utils/reasoningFields.ts";
+import { stripInternalReasoningPlaceholder } from "../utils/reasoningPlaceholder.ts";
 import { normalizeOpenAICompatibleFinishReason } from "../utils/finishReason.ts";
 import {
   collapseExcessiveNewlines,
@@ -27,8 +28,12 @@ const ALLOWED_USAGE_FIELDS = new Set([
   "prompt_tokens",
   "completion_tokens",
   "total_tokens",
+  "cached_tokens",
   "prompt_tokens_details",
   "completion_tokens_details",
+  // Keep through sanitize → applyClientUsageBuffer so heuristic web usage is
+  // not inflated by the default USAGE_TOKEN_BUFFER (2000).
+  "estimated",
 ]);
 const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
   "input_tokens",
@@ -391,7 +396,9 @@ function sanitizeChoice(
 
 function sanitizeMessageContent(msgRecord: JsonRecord, options: ParseOptions = {}): JsonRecord {
   if (typeof msgRecord.content === "string") {
-    const strippedContent = stripInternalToolEnvelopeText(msgRecord.content);
+    const strippedContent = stripInternalReasoningPlaceholder(
+      stripInternalToolEnvelopeText(msgRecord.content)
+    );
     const nativeReasoning = getReadableReasoningValue(msgRecord);
     const { content, thinking } =
       options.parseTextualReasoningTags === true && !nativeReasoning
@@ -514,11 +521,9 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
   }
 
   const inputDetails = toRecord(normalized.input_tokens_details) || {};
-  if (
-    normalized.cache_read_input_tokens !== undefined &&
-    inputDetails.cached_tokens === undefined
-  ) {
-    inputDetails.cached_tokens = normalized.cache_read_input_tokens;
+  const cachedTokens = normalized.cached_tokens ?? normalized.cache_read_input_tokens;
+  if (cachedTokens !== undefined && inputDetails.cached_tokens === undefined) {
+    inputDetails.cached_tokens = cachedTokens;
   }
   if (
     normalized.cache_creation_input_tokens !== undefined &&
@@ -840,7 +845,9 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
     return [
       {
         type: "output_text",
-        text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(content)),
+        text: collapseExcessiveNewlines(
+          stripInternalReasoningPlaceholder(stripInternalToolEnvelopeText(content))
+        ),
         annotations: [],
       },
     ];
@@ -855,7 +862,9 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
         if (typeof part === "string") {
           return {
             type: "output_text",
-            text: collapseExcessiveNewlines(stripInternalToolEnvelopeText(part)),
+            text: collapseExcessiveNewlines(
+              stripInternalReasoningPlaceholder(stripInternalToolEnvelopeText(part))
+            ),
             annotations: [],
           };
         }
@@ -872,7 +881,9 @@ function sanitizeResponsesMessageContent(content: unknown): JsonRecord[] {
           ...partRecord,
           type: "output_text",
           text: collapseExcessiveNewlines(
-            stripInternalToolEnvelopeText(toString(partRecord.text) || "")
+            stripInternalReasoningPlaceholder(
+              stripInternalToolEnvelopeText(toString(partRecord.text) || "")
+            )
           ),
           annotations: Array.isArray(partRecord.annotations) ? partRecord.annotations : [],
         };
@@ -998,6 +1009,23 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
   const eventType = toString(parsedRecord.type) || "";
   if (eventType.startsWith("response.") || parsedRecord.object === "response") {
     return sanitizeResponsesStreamingEvent(parsedRecord);
+  }
+
+  // #8271: Anthropic-native streaming events (content_block_delta with
+  // text_delta / thinking_delta) bypass the OpenAI choices[].delta.content
+  // path below. Strip zero-width characters from their text payloads so
+  // U+200D and friends don't leak to the client on the Messages API.
+  if (eventType === "content_block_delta") {
+    const deltaRecord = toRecord(parsedRecord.delta);
+    if (deltaRecord) {
+      if (typeof deltaRecord.text === "string") {
+        deltaRecord.text = stripZeroWidthText(deltaRecord.text);
+      }
+      if (typeof deltaRecord.thinking === "string") {
+        deltaRecord.thinking = stripZeroWidthText(deltaRecord.thinking);
+      }
+    }
+    return parsedRecord;
   }
 
   // Build sanitized chunk

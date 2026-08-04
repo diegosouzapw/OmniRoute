@@ -293,8 +293,61 @@ function localCatalogModelToCodexDiscoveryModel(
 }
 
 /**
+ * Capacity limits (input/output token caps) merge CONSERVATIVELY: the smaller
+ * of the pinned local-catalog value and the live-discovery value wins, never
+ * the larger. Overpromising context lets a request run past what the account
+ * can actually serve — the upstream truncates mid-conversation and can burn a
+ * combo fallback. Underpromising only leaves capacity on the table, which is
+ * a performance loss, not a broken request. When only one side has a value,
+ * that value passes through unchanged (nothing to reconcile).
+ *
+ * This is the ONE deliberate exception to "live wins on overlapping fields"
+ * below — name/apiFormat/supportedEndpoints/supportsThinking/supportsVision
+ * etc. still take the live value unconditionally. Don't extend this
+ * conservative rule to other fields without updating the policy comment on
+ * mergeCodexLiveModelsWithLocalCatalog (#7012).
+ */
+function mergeCapacityLimitConservatively(
+  pinnedValue: number | undefined,
+  liveValue: number | undefined
+): number | undefined {
+  if (typeof pinnedValue === "number" && typeof liveValue === "number") {
+    return Math.min(pinnedValue, liveValue);
+  }
+  return typeof liveValue === "number" ? liveValue : pinnedValue;
+}
+
+function mergeLiveAndLocalCodexModel(
+  liveModel: CodexDiscoveryModel,
+  localModel: CodexDiscoveryModel
+): CodexDiscoveryModel {
+  const merged: CodexDiscoveryModel = { ...localModel, ...liveModel };
+  const inputTokenLimit = mergeCapacityLimitConservatively(
+    localModel.inputTokenLimit,
+    liveModel.inputTokenLimit
+  );
+  const outputTokenLimit = mergeCapacityLimitConservatively(
+    localModel.outputTokenLimit,
+    liveModel.outputTokenLimit
+  );
+  if (typeof inputTokenLimit === "number") {
+    merged.inputTokenLimit = inputTokenLimit;
+  } else {
+    delete merged.inputTokenLimit;
+  }
+  if (typeof outputTokenLimit === "number") {
+    merged.outputTokenLimit = outputTokenLimit;
+  } else {
+    delete merged.outputTokenLimit;
+  }
+  return merged;
+}
+
+/**
  * Live/GitHub discovery is the source of truth for "what exists".
  * Explicit filters (denylist / predicates) are the policy layer for "what we show".
+ * Live wins on overlapping fields, EXCEPT capacity limits (input/output token
+ * caps) — those merge conservatively, see mergeCapacityLimitConservatively.
  * Do NOT reintroduce curated-only allowlisting as the default path (#6862 / #6859).
  */
 export function mergeCodexLiveModelsWithLocalCatalog(
@@ -312,7 +365,10 @@ export function mergeCodexLiveModelsWithLocalCatalog(
     if (!localModel.id) continue;
     const normalizedLocal = localCatalogModelToCodexDiscoveryModel(localModel);
     const existing = merged.get(localModel.id);
-    merged.set(localModel.id, existing ? { ...normalizedLocal, ...existing } : normalizedLocal);
+    merged.set(
+      localModel.id,
+      existing ? mergeLiveAndLocalCodexModel(existing, normalizedLocal) : normalizedLocal
+    );
   }
 
   return Array.from(merged.values());

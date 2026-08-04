@@ -22,9 +22,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildStaticProviderEntry,
   createOmniRouteProviderHook,
   mapRawModelToModelV2,
   resolveOmniRoutePluginOptions,
+  type OmniRouteRawCombo,
 } from "../src/index.js";
 
 /**
@@ -95,5 +97,45 @@ test("#6859: createOmniRouteProviderHook end-to-end — catalog keys/providerID 
   assert.ok(
     !model.providerID.startsWith("opencode-"),
     "the OC-gate prefix must never leak into ModelV2.providerID"
+  );
+});
+
+// #7976: buildStaticProviderEntry (the STATIC provider() config-hook path,
+// exercised when the plugin writes `opencode.json` up front rather than
+// registering the dynamic `provider.models()` hook) never received the
+// #6859 fix. OC dispatches a static-catalog `models` map key verbatim as
+// the `model` field of the outbound request — only the top-level
+// `provider["<id>"]` segment is stripped for routing — so a bare-slug combo
+// key built with the OC-gated `providerId` reaches OmniRoute's server
+// doubled and fails credential lookup for the nonexistent provider
+// `opencode-omniroute`. Confirmed against the issue's own curl repro
+// (`model: "opencode-omniroute/hermes-smart-stack"` → "No active
+// credentials for provider: opencode-omniroute").
+test("#7976: buildStaticProviderEntry keys bare-slug combo ids with the unprefixed omnirouteProviderId (no double OC-gate prefix)", () => {
+  const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
+  assert.equal(resolved.providerId, "opencode-omniroute");
+  assert.equal(resolved.omnirouteProviderId, "omniroute");
+
+  const combo = {
+    id: "combo-abc123",
+    name: "Hermes Smart Stack",
+    isHidden: false,
+    models: [],
+  } as unknown as OmniRouteRawCombo;
+
+  const block = buildStaticProviderEntry(
+    [],
+    [combo],
+    resolved,
+    "https://or.example/v1",
+    "sk-test"
+  );
+
+  assert.deepEqual(Object.keys(block.models), ["omniroute/hermes-smart-stack"]);
+  assert.equal(
+    block.models["opencode-omniroute/hermes-smart-stack"],
+    undefined,
+    "combo key must not carry the OC-gate-prefixed providerId — it doubles up once " +
+      "OC dispatches it verbatim as the `model` field"
   );
 });

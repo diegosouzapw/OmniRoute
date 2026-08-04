@@ -6,11 +6,20 @@
  */
 
 import { LMARENA_DIRECT_IMAGE_MODELS } from "./providers/registry/lmarena/directModels.ts";
+import { SEGMIND_IMAGE_PROVIDER } from "./providers/registry/segmind/imageModels.ts";
+import { KIE_IMAGE_MODELS } from "./providers/registry/kie/imageModels.ts";
+import { FREEPIK_IMAGE_PROVIDER } from "./providers/registry/freepik/index.ts";
+import { STABILITY_AI_IMAGE_MODELS } from "./providers/registry/stability-ai/imageModels.ts";
+import { GEMINI_IMAGEN_PROVIDER } from "./providers/registry/gemini/imageModels.ts";
+import { CHEAPERINFERENCE_IMAGE_PROVIDER } from "./providers/registry/cheaperinference/imageModels.ts";
 
 interface ImageModelEntry {
   id: string;
   name: string;
   inputModalities?: string[];
+  // See STABILITY_AI_IMAGE_MODELS for why this exists: some models accept "text"
+  // but mechanically require an image regardless.
+  imageRequired?: boolean;
   description?: string;
   isMarket?: boolean;
 }
@@ -35,6 +44,7 @@ interface ImageModelAliasEntry {
   name: string;
   listInCatalog: boolean;
   inputModalities?: string[];
+  imageRequired?: boolean;
   description?: string;
 }
 
@@ -123,7 +133,39 @@ function findImageModelConfig(providerId, modelId) {
   return provider.models.find((model) => model.id === modelId) || null;
 }
 
+// Kept out of getImageModelEntry() (which sits at the complexity-ratchet cap) — an
+// alias can override imageRequired directly, else it falls back to its target
+// model's own flag. Consumers coerce the result with Boolean(), so no `?? false`.
+function resolveAliasImageRequired(alias, modelConfig) {
+  return alias.imageRequired ?? modelConfig?.imageRequired;
+}
+
 export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
+  "qwen-cloud-token-plan": {
+    id: "qwen-cloud-token-plan",
+    alias: "qct",
+    baseUrl:
+      "https://token-plan.ap-southeast-1.maas.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "qwen-token-plan-image",
+    models: [
+      {
+        id: "wan2.7-image",
+        name: "Wan 2.7 Image",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "wan2.7-image-pro",
+        name: "Wan 2.7 Image Pro",
+        inputModalities: ["text", "image"],
+      },
+    ],
+    // Both models share 1K/2K support. The Pro model also accepts explicit 4K
+    // dimensions, which callers can still pass through the permissive request schema.
+    supportedSizes: ["1024x1024", "2048x2048"],
+  },
+
   openai: {
     id: "openai",
     baseUrl: "https://api.openai.com/v1/images/generations",
@@ -166,6 +208,18 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     format: "chatgpt-web",
     models: [{ id: "gpt-5.5", name: "GPT-5.5 Instant (ChatGPT Web Image)" }],
     supportedSizes: ["1024x1024", "1024x1536", "1536x1024"],
+  },
+
+  "microsoft-designer-web": {
+    id: "microsoft-designer-web",
+    alias: "msdesigner",
+    baseUrl:
+      "https://designerapp.officeapps.live.com/designerapp/DallE.ashx?action=GetDallEImagesCogSci",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "designer-web",
+    models: [{ id: "dall-e-3", name: "DALL-E 3 (Microsoft Designer Web)" }],
+    supportedSizes: ["1024x1024", "1792x1024", "1024x1792"],
   },
 
   xai: {
@@ -266,6 +320,10 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1024x1024"],
   },
 
+  // Google AI Studio Imagen family — dedicated :predict endpoint, not generateContent.
+  // See providers/registry/gemini/imageModels.ts for the full rationale.
+  gemini: GEMINI_IMAGEN_PROVIDER,
+
   //Curruntly no models serving
   nebius: {
     id: "nebius",
@@ -311,44 +369,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "kie-image",
-    models: [
-      { id: "gpt4o-image", name: "KIE 4o Image" },
-      { id: "seedream/4.5-text-to-image", name: "Seedream 4.5", isMarket: true },
-      { id: "seedream/4.5-edit", name: "Seedream 4.5 Edit", isMarket: true },
-      { id: "seedream/5.0-lite-text-to-image", name: "Seedream 5.0 Lite", isMarket: true },
-      { id: "seedream/5.0-lite-image-to-image", name: "Seedream 5.0 Lite I2I", isMarket: true },
-      { id: "z-image/4.0-text-to-image", name: "Z-Image v4.0", isMarket: true },
-      { id: "z-image/4.5-text-to-image", name: "Z-Image v4.5", isMarket: true },
-      { id: "google-imagen/imagen4-fast", name: "Imagen 4 Fast", isMarket: true },
-      { id: "google-imagen/imagen4-ultra", name: "Imagen 4 Ultra", isMarket: true },
-      { id: "google-imagen/imagen4", name: "Imagen 4", isMarket: true },
-      { id: "google-imagen/nano-banana-2", name: "Nano Banana 2", isMarket: true },
-      { id: "google-imagen/nano-banana", name: "Nano Banana", isMarket: true },
-      { id: "google-imagen/nano-banana-pro", name: "Nano Banana Pro", isMarket: true },
-      { id: "google-imagen/nano-banana-edit", name: "Nano Banana Edit", isMarket: true },
-      { id: "flux/2-pro-image-to-image", name: "Flux 2 Pro I2I", isMarket: true },
-      { id: "flux/2-pro-text-to-image", name: "Flux 2 Pro T2I", isMarket: true },
-      { id: "flux/2-image-to-image", name: "Flux 2 I2I", isMarket: true },
-      { id: "flux/2-text-to-image", name: "Flux 2 T2I", isMarket: true },
-      { id: "flux/kontext", name: "Flux Kontext", isMarket: true },
-      { id: "grok-imagine/text-to-image", name: "Grok Imagine T2I", isMarket: true },
-      { id: "grok-imagine/image-to-image", name: "Grok Imagine I2I", isMarket: true },
-      { id: "gpt/gpt-image-1.5-text-to-image", name: "GPT Image 1.5 T2I", isMarket: true },
-      { id: "gpt/gpt-image-1.5-image-to-image", name: "GPT Image 1.5 I2I", isMarket: true },
-      { id: "gpt/gpt-image-2-text-to-image", name: "GPT Image 2 T2I", isMarket: true },
-      { id: "gpt/gpt-image-2-image-to-image", name: "GPT Image 2 I2I", isMarket: true },
-      { id: "ideogram/v3-text-to-image", name: "Ideogram v3", isMarket: true },
-      { id: "ideogram/v3-edit", name: "Ideogram v3 Edit", isMarket: true },
-      { id: "ideogram/v3-remix", name: "Ideogram v3 Remix", isMarket: true },
-      { id: "ideogram/v3-reframe", name: "Ideogram v3 Reframe", isMarket: true },
-      { id: "qwen/text-to-image", name: "Qwen T2I", isMarket: true },
-      { id: "qwen/image-to-image", name: "Qwen I2I", isMarket: true },
-      { id: "qwen/image-edit", name: "Qwen Edit", isMarket: true },
-      { id: "qwen2/image-edit", name: "Qwen2 Edit", isMarket: true },
-      { id: "qwen2/text-to-image", name: "Qwen2 T2I", isMarket: true },
-      { id: "wan/2.7-image", name: "Wan 2.7 Image", isMarket: true },
-      { id: "wan/2.7-image-pro", name: "Wan 2.7 Image Pro", isMarket: true },
-    ],
+    models: KIE_IMAGE_MODELS,
     supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4"],
   },
 
@@ -361,6 +382,21 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     format: "haiper-image",
     models: [{ id: "gen2", name: "Gen 2 Image" }],
     supportedSizes: ["16:9", "9:16", "1:1", "4:3", "3:4"],
+  },
+  // #2482: MiniMax already has entries in musicRegistry/audioRegistry/videoRegistry,
+  // but was missing an image provider entirely, so MiniMax image-model requests
+  // fell through the format dispatch below to a 400/unmatched-format response.
+  minimax: {
+    id: "minimax",
+    baseUrl: "https://api.minimax.io/v1/image_generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "minimax-image",
+    models: [
+      { id: "image-01", name: "MiniMax Image-01" },
+      { id: "image-01-live", name: "MiniMax Image-01 Live" },
+    ],
+    supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "1024x1024"],
   },
   leonardo: {
     id: "leonardo",
@@ -386,6 +422,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     ],
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
   },
+  freepik: FREEPIK_IMAGE_PROVIDER,
   sdwebui: {
     id: "sdwebui",
     baseUrl: "http://localhost:7860/sdapi/v1/txt2img",
@@ -479,32 +516,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "stability-ai",
-    models: [
-      { id: "stable-image-ultra", name: "Stable Image Ultra" },
-      { id: "stable-image-core", name: "Stable Image Core" },
-      { id: "sd3.5-large-turbo", name: "sd3.5-large-turbo" },
-      { id: "sd3.5-large", name: "sd3.5-large" },
-      { id: "sd3.5-medium", name: "sd3.5-medium" },
-      { id: "sd3.5-flash", name: "sd3.5-flash" },
-      { id: "erase", name: "Erase", inputModalities: ["image"] },
-      { id: "inpaint", name: "Inpaint", inputModalities: ["text", "image"] },
-      { id: "outpaint", name: "Outpaint", inputModalities: ["text", "image"] },
-      { id: "remove-background", name: "Remove Background", inputModalities: ["image"] },
-      { id: "search-and-replace", name: "Search and Replace", inputModalities: ["text", "image"] },
-      { id: "search-and-recolor", name: "Search and Recolor", inputModalities: ["text", "image"] },
-      {
-        id: "replace-background-and-relight",
-        name: "Replace Background and Relight",
-        inputModalities: ["text", "image"],
-      },
-      { id: "creative", name: "Creative Upscale", inputModalities: ["text", "image"] },
-      { id: "fast", name: "Fast Upscale", inputModalities: ["image"] },
-      { id: "conservative", name: "Conservative Upscale", inputModalities: ["image"] },
-      { id: "sketch", name: "Sketch Control", inputModalities: ["text", "image"] },
-      { id: "structure", name: "Structure Control", inputModalities: ["text", "image"] },
-      { id: "style", name: "Style Control", inputModalities: ["text", "image"] },
-      { id: "style-transfer", name: "Style Transfer", inputModalities: ["text", "image"] },
-    ],
+    models: STABILITY_AI_IMAGE_MODELS,
     supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
   },
 
@@ -554,6 +566,9 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     models: [{ id: "topaz-enhance", name: "topaz-enhance", inputModalities: ["image"] }],
     supportedSizes: ["1024x1024"],
   },
+
+  // Segmind (#6656): 200+ models, `POST /v1/{model}`, x-api-key, raw image bytes.
+  segmind: SEGMIND_IMAGE_PROVIDER,
   nanogpt: {
     id: "nanogpt",
     baseUrl: "https://nano-gpt.com/api/v1/images/generations",
@@ -624,7 +639,9 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   // beyond this seed list.
   huggingface: {
     id: "huggingface",
-    baseUrl: "https://api-inference.huggingface.co/models",
+    // HF retired api-inference.huggingface.co; text-to-image now routes through
+    // router.huggingface.co with the hf-inference provider pinned in the path.
+    baseUrl: "https://router.huggingface.co/hf-inference/models",
     authType: "apikey",
     authHeader: "bearer",
     format: "huggingface-image",
@@ -648,6 +665,173 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     format: "openai",
     models: LMARENA_DIRECT_IMAGE_MODELS,
     supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
+  },
+
+  // Adobe Firefly (unofficial) — IMS access_token (clio-playground-web) or browser
+  // Cookie from firefly.adobe.com. Async 3P image generate + poll.
+  // Model list = static fallback from models/discovery capture; live discovery
+  // refreshes via resolveAdobeFireflyCatalog when credentials work.
+  "adobe-firefly": {
+    id: "adobe-firefly",
+    alias: "firefly",
+    baseUrl: "https://firefly-3p.ff.adobe.io/v2/3p-images/generate-async",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "adobe-firefly-image",
+    models: [
+      {
+        id: "nano-banana-pro",
+        name: "Firefly Gemini 3.0 (Nano Banana Pro)",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "nano-banana",
+        name: "Firefly Gemini 2.5 (Nano Banana)",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "nano-banana-2",
+        name: "Firefly Gemini 3.1 (Nano Banana 2)",
+        inputModalities: ["text", "image"],
+      },
+      { id: "gpt-image-2", name: "Firefly GPT Image 2", inputModalities: ["text", "image"] },
+      { id: "gpt-image", name: "Firefly GPT Image 2", inputModalities: ["text", "image"] },
+      { id: "gpt-image-1.5", name: "Firefly GPT Image 1.5", inputModalities: ["text", "image"] },
+      { id: "flux-2", name: "Firefly Flux 2", inputModalities: ["text", "image"] },
+      { id: "flux-pro", name: "Firefly Flux 1.1 Pro", inputModalities: ["text", "image"] },
+      { id: "flux-ultra", name: "Firefly Flux 1.1 Ultra", inputModalities: ["text", "image"] },
+      { id: "seedream-4", name: "Firefly Seedream 4.0", inputModalities: ["text", "image"] },
+      {
+        id: "seedream-5-lite",
+        name: "Firefly Seedream 5.0 Lite",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "runway-gen4-image",
+        name: "Firefly Runway Gen-4 Image",
+        inputModalities: ["text", "image"],
+      },
+    ],
+    supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4", "1024x1024", "1792x1024", "1024x1792"],
+  },
+
+  // Cheaper Inference (OSS-sponsor gateway). Declared AFTER adobe-firefly on
+  // purpose: it shares the nano-banana-pro / nano-banana-2 ids, and parseImageModel
+  // resolves a bare id by first-match over this object's iteration order, so
+  // Firefly keeps the bare ids and these are prefix-only. See the module for the
+  // full collision note.
+  cheaperinference: CHEAPERINFERENCE_IMAGE_PROVIDER,
+
+  // Keep Bailian Coding Plan after existing duplicate model owners so adding
+  // explicit `bailian-coding-plan/` and `bcp/` routes does not change
+  // historical bare-model routing.
+  "bailian-coding-plan": {
+    id: "bailian-coding-plan",
+    alias: "bcp",
+    baseUrl:
+      "https://coding-intl.dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "bailian-coding-plan-image",
+    models: [
+      {
+        id: "wan2.7-image",
+        name: "Wan 2.7 Image",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "wan2.7-image-pro",
+        name: "Wan 2.7 Image Pro",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "qwen-image-2.0",
+        name: "Qwen Image 2.0",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "qwen-image-2.0-pro",
+        name: "Qwen Image 2.0 Pro",
+        inputModalities: ["text", "image"],
+      },
+    ],
+    supportedSizes: ["1024x1024", "2048x2048"],
+  },
+
+  // Keep Alibaba after existing duplicate model owners so adding explicit
+  // `alibaba/` and `ali/` routes does not change historical bare-model routing.
+  alibaba: {
+    id: "alibaba",
+    alias: "ali",
+    baseUrl:
+      "https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "alibaba-image",
+    models: [
+      {
+        id: "qwen-image-3.0-pro",
+        name: "Qwen Image 3.0 Pro",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "qwen-image-2.0-pro-2026-06-22",
+        name: "Qwen Image 2.0 Pro (2026-06-22)",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "qwen-image-2.0",
+        name: "Qwen Image 2.0",
+        inputModalities: ["text", "image"],
+      },
+      { id: "z-image-turbo", name: "Z-Image Turbo" },
+      { id: "wan2.6-t2i", name: "Wan 2.6 T2I" },
+    ],
+    supportedSizes: ["1024x1024", "1280x1280", "2048x2048"],
+  },
+
+  // Keep regular Qwen Cloud isolated from Alibaba, Bailian Coding Plan, and
+  // Qwen Cloud Token Plan. Explicit `qwen-cloud/` or `qwc/` routes use only
+  // the regular Qwen Cloud connection and its regional DashScope endpoint.
+  "qwen-cloud": {
+    id: "qwen-cloud",
+    alias: "qwc",
+    baseUrl:
+      "https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "qwen-cloud-image",
+    models: [
+      {
+        id: "wan2.7-image-pro",
+        name: "Wan 2.7 Image Pro",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "wan2.7-image",
+        name: "Wan 2.7 Image",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "qwen-image-3.0-pro",
+        name: "Qwen Image 3.0 Pro",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "qwen-image-2.0-pro-2026-06-22",
+        name: "Qwen Image 2.0 Pro (2026-06-22)",
+        inputModalities: ["text", "image"],
+      },
+      {
+        id: "qwen-image-2.0-2026-03-03",
+        name: "Qwen Image 2.0 (2026-03-03)",
+        inputModalities: ["text", "image"],
+      },
+      { id: "z-image-turbo", name: "Z-Image Turbo" },
+    ],
+    // 1K/2K are shared by the whole catalog. Wan 2.7 Image Pro callers can
+    // still pass supported 4K dimensions through the permissive request schema.
+    supportedSizes: ["1024x1024", "2048x2048"],
   },
 };
 
@@ -770,6 +954,7 @@ export function getImageModelEntry(modelStr) {
       provider: alias.provider,
       model: alias.model,
       inputModalities: alias.inputModalities || modelConfig?.inputModalities || ["text"],
+      imageRequired: resolveAliasImageRequired(alias, modelConfig),
       description: alias.description || modelConfig?.description || undefined,
     };
   }
@@ -784,6 +969,18 @@ export function getImageModelEntry(modelStr) {
     provider,
     model,
     inputModalities: modelConfig.inputModalities || ["text"],
+    imageRequired: modelConfig.imageRequired,
     description: modelConfig.description || undefined,
   };
+}
+
+/**
+ * An image input is only MANDATORY for edit-only models — those whose modalities
+ * are `["image"]` with no `"text"`. Models listing both `["text", "image"]` accept
+ * an image but can also run pure text-to-image, so they must NOT be gated on an
+ * image input (that gate previously blocked 41 dual-modality t2i models).
+ */
+export function modalitiesRequireImageInput(inputModalities) {
+  const list = Array.isArray(inputModalities) ? inputModalities : ["text"];
+  return list.includes("image") && !list.includes("text");
 }

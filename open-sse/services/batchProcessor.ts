@@ -57,7 +57,7 @@ export function initBatchProcessor() {
     } finally {
       isProcessing = false;
     }
-  }, 10000); // Poll every 10s
+  }, 10000).unref(); // Poll every 10s; unref'd so it never keeps the process alive
   return pollInterval;
 }
 

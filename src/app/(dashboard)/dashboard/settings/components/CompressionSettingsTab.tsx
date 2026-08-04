@@ -7,7 +7,8 @@ import CompressionTokenSaverCard, {
   type CompressionTokenSaverConfig,
 } from "./CompressionTokenSaverCard";
 
-type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "stacked";
+type CompressionMode =
+  "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "codex-responses" | "stacked";
 type CavemanIntensity = "lite" | "full" | "ultra";
 type RtkIntensity = "minimal" | "standard" | "aggressive";
 
@@ -29,6 +30,17 @@ interface CavemanOutputModeConfig {
 interface RtkConfig {
   enabled: boolean;
   intensity: RtkIntensity;
+}
+
+interface CodexResponsesConfig {
+  enabled: boolean;
+  minBytes: number;
+  maxOutputBytes: number;
+  maxCandidateBytes: number;
+  maxLines: number;
+  minSearchMatches: number;
+  minLogLines: number;
+  preserveToolNames: string[];
 }
 
 interface AggressiveConfig {
@@ -71,6 +83,7 @@ interface CompressionConfig extends CompressionTokenSaverConfig {
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
   rtkConfig?: RtkConfig;
+  codexResponsesConfig?: CodexResponsesConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
 }
@@ -122,6 +135,12 @@ const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: 
     icon: "filter_list",
   },
   {
+    value: "codex-responses",
+    labelKey: "compressionModeCodexResponses",
+    descKey: "compressionModeCodexResponsesDesc",
+    icon: "data_object",
+  },
+  {
     value: "stacked",
     labelKey: "compressionModeStacked",
     descKey: "compressionModeStackedDesc",
@@ -160,6 +179,16 @@ export default function CompressionSettingsTab() {
     rtkConfig: {
       enabled: true,
       intensity: "standard",
+    },
+    codexResponsesConfig: {
+      enabled: false,
+      minBytes: 512,
+      maxOutputBytes: 2 * 1024 * 1024,
+      maxCandidateBytes: 512 * 1024,
+      maxLines: 160,
+      minSearchMatches: 8,
+      minLogLines: 24,
+      preserveToolNames: ["Read", "Glob", "Grep", "Write", "Edit", "WebSearch", "WebFetch"],
     },
     aggressive: {
       thresholds: { fullSummary: 5, moderate: 3, light: 2, verbatim: 2 },
@@ -380,10 +409,7 @@ export default function CompressionSettingsTab() {
                 }
                 onChange={(e) =>
                   save({
-                    preserveSystemPromptMode: e.target.value as
-                      | "always"
-                      | "whenNoCache"
-                      | "never",
+                    preserveSystemPromptMode: e.target.value as "always" | "whenNoCache" | "never",
                   })
                 }
                 className="w-36 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
@@ -439,92 +465,90 @@ export default function CompressionSettingsTab() {
               </div>
 
               <>
-                  <div className="space-y-2">
-                    <p className="text-sm text-text-muted">{t("compressionRoles")}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {ROLE_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => toggleCavemanRole(opt.value)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                            config.cavemanConfig!.compressRoles.includes(opt.value)
-                              ? "border-blue-500/50 bg-blue-500/10 text-blue-400"
-                              : "border-border/50 text-text-muted hover:border-border"
-                          }`}
-                        >
-                          {t(opt.labelKey)}
-                        </button>
-                      ))}
-                    </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-text-muted">{t("compressionRoles")}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {ROLE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => toggleCavemanRole(opt.value)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                          config.cavemanConfig!.compressRoles.includes(opt.value)
+                            ? "border-blue-500/50 bg-blue-500/10 text-blue-400"
+                            : "border-border/50 text-text-muted hover:border-border"
+                        }`}
+                      >
+                        {t(opt.labelKey)}
+                      </button>
+                    ))}
                   </div>
+                </div>
 
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-text-muted">{t("compressionMinLength")}</span>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100000}
-                      value={config.cavemanConfig.minMessageLength}
-                      onChange={(e) =>
-                        save({
-                          cavemanConfig: {
-                            ...config.cavemanConfig!,
-                            minMessageLength: parseInt(e.target.value) || 50,
-                          },
-                        })
-                      }
-                      className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
-                    />
-                  </label>
+                <label className="flex items-center justify-between">
+                  <span className="text-sm text-text-muted">{t("compressionMinLength")}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100000}
+                    value={config.cavemanConfig.minMessageLength}
+                    onChange={(e) =>
+                      save({
+                        cavemanConfig: {
+                          ...config.cavemanConfig!,
+                          minMessageLength: parseInt(e.target.value) || 50,
+                        },
+                      })
+                    }
+                    className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+                  />
+                </label>
 
-                  {/* Caveman intensity (level) is set in the panel
+                {/* Caveman intensity (level) is set in the panel
                       (/dashboard/context/settings); kept out of this tab to avoid a
                       duplicate level control. */}
 
-                  <div className="space-y-2">
-                    <p className="text-sm text-text-muted">{t("compressionSkipRules")}</p>
-                    <p className="text-xs text-text-muted">{t("compressionSkipRulesDesc")}</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                      {ruleMetadata.map((rule) => (
-                        <button
-                          key={rule.name}
-                          onClick={() => toggleCavemanRule(rule.name)}
-                          title={`${rule.category} · ${rule.context} · ${(rule.intensities ?? [rule.minIntensity]).join("/")}`}
-                          className={`px-2 py-1 rounded text-xs border transition-all ${
-                            config.cavemanConfig!.skipRules.includes(rule.name)
-                              ? "border-red-500/50 bg-red-500/10 text-red-400 line-through"
-                              : "border-border/50 text-text-muted hover:border-border"
-                          }`}
-                        >
-                          {rule.name.replace(/_/g, " ")}
-                        </button>
-                      ))}
-                    </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-text-muted">{t("compressionSkipRules")}</p>
+                  <p className="text-xs text-text-muted">{t("compressionSkipRulesDesc")}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    {ruleMetadata.map((rule) => (
+                      <button
+                        key={rule.name}
+                        onClick={() => toggleCavemanRule(rule.name)}
+                        title={`${rule.category} · ${rule.context} · ${(rule.intensities ?? [rule.minIntensity]).join("/")}`}
+                        className={`px-2 py-1 rounded text-xs border transition-all ${
+                          config.cavemanConfig!.skipRules.includes(rule.name)
+                            ? "border-red-500/50 bg-red-500/10 text-red-400 line-through"
+                            : "border-border/50 text-text-muted hover:border-border"
+                        }`}
+                      >
+                        {rule.name.replace(/_/g, " ")}
+                      </button>
+                    ))}
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <p className="text-sm text-text-muted">{t("compressionPreservePatterns")}</p>
-                    <p className="text-xs text-text-muted">
-                      {t("compressionPreservePatternsDesc")}
-                    </p>
-                    <textarea
-                      value={(config.cavemanConfig.preservePatterns ?? []).join("\n")}
-                      onChange={(e) => {
-                        const patterns = e.target.value
-                          .split("\n")
-                          .map((p) => p.trim())
-                          .filter(Boolean);
-                        save({
-                          cavemanConfig: {
-                            ...config.cavemanConfig!,
-                            preservePatterns: patterns,
-                          },
-                        });
-                      }}
-                      placeholder="https?://\S+\n```[\s\S]*?```"
-                      className="w-full min-h-[80px] px-3 py-2 text-sm rounded-lg border border-border bg-surface text-text-main font-mono resize-y"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-text-muted">{t("compressionPreservePatterns")}</p>
+                  <p className="text-xs text-text-muted">{t("compressionPreservePatternsDesc")}</p>
+                  <textarea
+                    value={(config.cavemanConfig.preservePatterns ?? []).join("\n")}
+                    onChange={(e) => {
+                      const patterns = e.target.value
+                        .split("\n")
+                        .map((p) => p.trim())
+                        .filter(Boolean);
+                      save({
+                        cavemanConfig: {
+                          ...config.cavemanConfig!,
+                          preservePatterns: patterns,
+                        },
+                      });
+                    }}
+                    placeholder="https?://\S+\n```[\s\S]*?```"
+                    className="w-full min-h-[80px] px-3 py-2 text-sm rounded-lg border border-border bg-surface text-text-main font-mono resize-y"
+                  />
+                </div>
               </>
             </div>
           )}

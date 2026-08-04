@@ -9,7 +9,8 @@
  */
 
 import { spawn } from "child_process";
-import { writeFile, rm, readFile } from "fs/promises";
+import { writeFile, readFile } from "fs/promises";
+import { rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID, createHash } from "crypto";
@@ -21,6 +22,13 @@ const log = logger("PLUGIN_LOADER");
 
 const DEFAULT_HOOK_TIMEOUT = 10_000;
 const SIGKILL_GRACE_MS = 3_000;
+
+// #8395: stdout/stderr forwarding hygiene — cap how much of a plugin's own console
+// output we relay per stream, so a runaway/misbehaving plugin can't flood memory or
+// the log sink. Mirrors the per-plugin rate-limit hygiene already used for hooks
+// (hooks.ts::isRateLimited).
+const MAX_FORWARDED_LINES_PER_STREAM = 500;
+const MAX_FORWARDED_LINE_LENGTH = 4_000;
 
 /**
  * Compute a `sha256-<base64>` integrity hash of the given source string.
@@ -38,16 +46,71 @@ export interface LoadedPlugin {
   cleanup: () => void;
 }
 
+/**
+ * #8395: forward a plugin child process's stdout/stderr to the parent's structured
+ * logger, line-buffered. Without this, plugin console.log/console.error output is
+ * silently discarded at the OS level (the child is spawned with that stream set to
+ * "ignore"), even though the plugin's hook handlers do run correctly over IPC.
+ * Caps total forwarded lines per stream to avoid a runaway plugin flooding the log.
+ */
+function forwardChildOutput(
+  stream: NodeJS.ReadableStream | null,
+  pluginName: string,
+  level: "info" | "error"
+): void {
+  if (!stream) return;
+
+  let buffer = "";
+  let forwardedLines = 0;
+
+  stream.on("data", (chunk: Buffer) => {
+    buffer += chunk.toString("utf-8");
+    let newlineIndex = buffer.indexOf("\n");
+    while (newlineIndex !== -1) {
+      const line = buffer.slice(0, newlineIndex).trim();
+      buffer = buffer.slice(newlineIndex + 1);
+
+      if (line.length > 0 && forwardedLines < MAX_FORWARDED_LINES_PER_STREAM) {
+        forwardedLines++;
+        const truncated =
+          line.length > MAX_FORWARDED_LINE_LENGTH
+            ? `${line.slice(0, MAX_FORWARDED_LINE_LENGTH)}…`
+            : line;
+        log[level]("plugin.output", { name: pluginName, line: truncated });
+      }
+
+      newlineIndex = buffer.indexOf("\n");
+    }
+  });
+}
+
+/**
+ * Delete the generated host script synchronously. An async unlink loses the race
+ * against process exit — under `node --test --test-force-exit` the runner exits
+ * before the promise settles, leaking one temp .mjs per plugin load.
+ */
+function removeHostScript(path: string): void {
+  try {
+    rmSync(path, { force: true });
+  } catch {
+    // Best-effort: a leftover temp script is harmless; a throw from an exit handler is not.
+  }
+}
+
 // ── Plugin host script (runs in child process over IPC) ──
 // Uses process.send()/process.on("message") — NOT worker_threads.
 // Written as .mjs to force ESM execution regardless of package.json.
 
 const PLUGIN_HOST_SCRIPT = `
 import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 const require = createRequire(import.meta.url);
 
+// pathToFileURL: on Windows a bare absolute path ("C:\\\\...") makes import()
+// throw ERR_UNSUPPORTED_ESM_URL_SCHEME ("C:" is parsed as a URL scheme), so no
+// plugin could ever load. file:// URLs work on every platform.
 const pluginPath = process.argv[2];
-const plugin = await import(pluginPath);
+const plugin = await import(pathToFileURL(pluginPath).href);
 const exports = plugin.default || plugin;
 
 // Send ready signal
@@ -133,9 +196,17 @@ export async function loadPlugin(
   };
 
   const child = spawn(process.execPath, ["--no-warnings", hostScriptPath, entryPoint], {
+    windowsHide: true,
     env,
-    stdio: ["ignore", "ignore", "ignore", "ipc"],
+    // #8395: stdout/stderr must be piped (not "ignore") so the plugin's own
+    // console.log/console.error output — the SDK's documented logging pattern
+    // (sdk.ts) — is observable on the parent side instead of discarded at the OS
+    // level. See forwardChildOutput() below.
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
   });
+
+  forwardChildOutput(child.stdout, manifest.name, "info");
+  forwardChildOutput(child.stderr, manifest.name, "error");
 
   // Track pending calls with timeout support
   const pendingCalls: Map<
@@ -179,7 +250,7 @@ export async function loadPlugin(
       pending.reject(new Error(`Plugin process exited with code ${code}`));
     }
     pendingCalls.clear();
-    rm(hostScriptPath, { force: true }).catch(() => {});
+    removeHostScript(hostScriptPath);
   });
 
   // Call a hook in the child process with timeout + SIGTERM + SIGKILL escalation
@@ -301,7 +372,7 @@ export async function loadPlugin(
       } catch {}
     }, SIGKILL_GRACE_MS);
     child.once("exit", () => clearTimeout(killTimer));
-    rm(hostScriptPath, { force: true }).catch(() => {});
+    removeHostScript(hostScriptPath);
     log.info("loader.cleanup", { name: manifest.name });
   };
 
@@ -313,7 +384,13 @@ export async function loadPlugin(
  * Uses allowlist approach — only pass explicitly safe vars.
  */
 function getFilteredEnv(permissions: Permission[]): Record<string, string> {
-  const safeKeys = ["PATH", "HOME", "USER", "LANG", "LC_ALL", "NODE_ENV"];
+  // SystemRoot/windir are not optional on Windows: node aborts during
+  // InitializeOncePerProcessInternal ("Assertion failed: ncrypto::CSPRNG") before
+  // running any script, because its CSPRNG lives under %SystemRoot%. Without these
+  // the child dies instantly, every hook times out, and — hooks being fail-open —
+  // plugins silently stop applying. They carry no secrets.
+  const platformKeys = process.platform === "win32" ? ["SystemRoot", "windir"] : [];
+  const safeKeys = ["PATH", "HOME", "USER", "LANG", "LC_ALL", "NODE_ENV", ...platformKeys];
   const extendedSafeKeys = [...safeKeys, "PORT", "HOSTNAME", "TZ", "TMPDIR"];
   const allowedKeys = permissions.includes("env") ? extendedSafeKeys : safeKeys;
   const env: Record<string, string> = {};

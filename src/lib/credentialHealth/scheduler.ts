@@ -24,6 +24,7 @@ import {
   initCredentialCache,
 } from "@/lib/credentialHealth/cache";
 import { emit } from "@/lib/events/eventBus";
+import { isAutomatedTestProcess } from "@/shared/utils/testProcess";
 
 // ── Config ────────────────────────────────────────────────────────────────
 
@@ -66,14 +67,6 @@ function isBuildProcess(): boolean {
   return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
 
-function isAutomatedTestProcess(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    (process.env.NODE_ENV === "test" ||
-      process.env.VITEST !== undefined ||
-      process.argv.some((arg) => arg.includes("test")))
-  );
-}
 
 function isCredentialHealthCheckDisabled(): boolean {
   if (isBuildProcess() || isAutomatedTestProcess()) return true;

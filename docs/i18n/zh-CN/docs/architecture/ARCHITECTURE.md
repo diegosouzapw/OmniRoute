@@ -479,7 +479,7 @@ FSM 状态转换反馈到 Auto Combo 的评分中，使后台/自动化任务偏
 
 - Antigravity 429 引擎：`open-sse/services/antigravity429Engine.ts`（轮换
   身份、清洗响应头，通过 `antigravityCredits.ts`、`antigravityHeaderScrub.ts`、
-  `antigravityHeaders.ts`、`antigravityIdentity.ts`、`antigravityObfuscation.ts`、
+  `antigravityHeaders.ts`、`antigravityIdentity.ts`、
   `antigravityVersion.ts` 驱动积分/版本追踪）
 - ModelScope 配额策略：`open-sse/services/modelscopePolicy.ts`
 - Claude Code CCH（兼容通道握手）：`open-sse/services/claudeCodeCCH.ts`，

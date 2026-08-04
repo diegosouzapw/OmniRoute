@@ -16,15 +16,13 @@ export function BypassProviderQuotaToggle({
   onToggle: () => void;
 }) {
   const tc = useTranslations("common");
+  const t = useTranslations("apiManager");
 
   return (
     <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
       <div className="flex flex-col gap-1 pr-2">
-        <p className="text-sm font-medium text-text-main">Bypass provider quota cutoffs</p>
-        <p className="text-xs text-text-muted">
-          Allows this key to ignore upstream provider/account cutoff policy during routing. API key
-          USD quotas still apply.
-        </p>
+        <p className="text-sm font-medium text-text-main">{t("bypassProviderQuota")}</p>
+        <p className="text-xs text-text-muted">{t("bypassProviderQuotaDescription")}</p>
       </div>
       <button
         type="button"

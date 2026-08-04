@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/shared/components";
+import { useTranslations } from "next-intl";
 
 export function UsageLimitSettings({
   enabled,
@@ -21,15 +22,13 @@ export function UsageLimitSettings({
   onDailyLimitUsdChange: (value: string) => void;
   onWeeklyLimitUsdChange: (value: string) => void;
 }) {
+  const t = useTranslations("usageLimits");
   return (
     <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium text-text-main">USD usage quota</p>
-          <p className="text-xs text-text-muted">
-            Blocks this key with a 400 API error after its local USD spend reaches the configured
-            daily or weekly quota.
-          </p>
+          <p className="text-sm font-medium text-text-main">{t("usdUsageQuota")}</p>
+          <p className="text-xs text-text-muted">{t("usdUsageQuotaDescription")}</p>
         </div>
         <button
           type="button"
@@ -48,7 +47,7 @@ export function UsageLimitSettings({
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-text-muted mb-1 block">Daily quota (USD)</label>
+          <label className="text-xs text-text-muted mb-1 block">{t("dailyQuotaUsd")}</label>
           <Input
             type="number"
             min={0}
@@ -59,7 +58,7 @@ export function UsageLimitSettings({
           />
         </div>
         <div>
-          <label className="text-xs text-text-muted mb-1 block">Weekly quota (USD)</label>
+          <label className="text-xs text-text-muted mb-1 block">{t("weeklyQuotaUsd")}</label>
           <Input
             type="number"
             min={0}
@@ -70,10 +69,7 @@ export function UsageLimitSettings({
           />
         </div>
       </div>
-      <p className="mt-2 text-[11px] text-text-muted">
-        Weekly quota follows the cached Claude weekly reset when available; otherwise it falls back
-        to a rolling 7 day window. Daily quota uses the Fortaleza calendar day.
-      </p>
+      <p className="mt-2 text-[11px] text-text-muted">{t("quotaWindowDescription")}</p>
     </div>
   );
 }

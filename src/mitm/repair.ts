@@ -5,6 +5,7 @@ import { removeDNSEntry, removeDNSEntries } from "./dns/dnsConfig.ts";
 import { uninstallCert } from "./cert/install.ts";
 import { ALL_TARGETS } from "./targets/index.ts";
 import { listCustomHosts } from "@/lib/db/inspectorCustomHosts.ts";
+import { getGheCopilotHosts } from "@/lib/db/providers.ts";
 import { createLogger } from "@/shared/utils/logger.ts";
 
 const log = createLogger("mitm-repair");
@@ -21,6 +22,9 @@ export function collectManagedHosts(): string[] {
   const hosts = new Set<string>();
   for (const target of ALL_TARGETS) {
     for (const h of target.hosts) hosts.add(h);
+    if (target.id === "ghe-copilot") {
+      for (const h of getGheCopilotHosts()) hosts.add(h);
+    }
   }
   try {
     for (const ch of listCustomHosts()) hosts.add(ch.host);

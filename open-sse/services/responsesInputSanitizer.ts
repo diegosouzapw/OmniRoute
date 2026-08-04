@@ -67,7 +67,11 @@ function sanitizeContentPart(part: unknown, role: string): unknown {
 
   if (record.type === "image_url") {
     const url = imageUrlToText(record.image_url);
-    if (role === "user") {
+    // `output_text` is only a legal content-part type on assistant-role OUTPUT
+    // items. Every other role (user, system, developer, ...) is input-side and
+    // must use `input_image` -- otherwise the Codex/Responses backend rejects
+    // the replayed history with "Invalid value: 'output_text'" (#8089).
+    if (role !== "assistant") {
       const next: JsonRecord = { type: "input_image", image_url: url };
       const image = toRecord(record.image_url);
       if (image?.detail !== undefined) next.detail = image.detail;
@@ -92,6 +96,29 @@ function sanitizeMessageContent(record: JsonRecord): JsonRecord {
   return { ...record, content };
 }
 
+function sanitizeNestedOutputPart(part: unknown): unknown {
+  const record = toRecord(part);
+  if (!record) return part;
+
+  // `output` on replayed items is an input-side container. Its content uses
+  // input content-part types even when the enclosing item originated from an
+  // assistant/tool response. Converting an image placeholder to output_text
+  // here makes Codex reject the request with the inverse 400.
+  if (record.type === "output_text" || record.type === "refusal") {
+    const next: JsonRecord = { ...record, type: "input_text" };
+    if (typeof next.text !== "string") {
+      next.text = typeof record.refusal === "string" ? record.refusal : "";
+    }
+    delete next.annotations;
+    delete next.logprobs;
+    delete next.obfuscation;
+    delete next.refusal;
+    return next;
+  }
+
+  return sanitizeContentPart(part, "user");
+}
+
 function sanitizeOutputContent(record: JsonRecord): JsonRecord {
   if (!Array.isArray(record.output)) return record;
 
@@ -99,8 +126,7 @@ function sanitizeOutputContent(record: JsonRecord): JsonRecord {
   // Responses input. In that shape OpenAI validates `input[n].output[m].type`
   // against output content part types, so legacy Chat-style `image_url` parts
   // must be normalized here too, not only in message.content.
-  const role = record.type === "function_call_output" ? "user" : "assistant";
-  const output = record.output.map((part) => sanitizeContentPart(part, role));
+  const output = record.output.map(sanitizeNestedOutputPart);
   return { ...record, output };
 }
 

@@ -49,6 +49,7 @@ test("kiro.requestDeviceCode returns resolved region for IDC token endpoint", as
     });
 
     assert.equal(result._region, "ap-southeast-1");
+    assert.equal(result._authMethod, "idc");
     assert.equal(result._clientId, "client-ap");
     assert.equal(result._clientSecret, "secret-ap");
 
@@ -80,13 +81,19 @@ test("kiro.pollToken uses region provided by extraData", async () => {
       { tokenUrl: "https://oidc.us-east-1.amazonaws.com/token" },
       "device-code",
       null,
-      { _clientId: "cid", _clientSecret: "csecret", _region: "ap-southeast-1" }
+      {
+        _clientId: "cid",
+        _clientSecret: "csecret",
+        _region: "ap-southeast-1",
+        _authMethod: "idc",
+      }
     );
 
     assert.equal(requestedUrl, "https://oidc.ap-southeast-1.amazonaws.com/token");
     assert.equal(result.ok, true);
     assert.equal(result.data.access_token, "access");
     assert.equal(result.data._region, "ap-southeast-1");
+    assert.equal(result.data._authMethod, "idc");
   } finally {
     global.fetch = originalFetch;
   }
@@ -100,6 +107,7 @@ test("kiro.mapTokens persists region into providerSpecificData", () => {
     _clientId: "cid",
     _clientSecret: "csec",
     _region: "ap-southeast-1",
+    _authMethod: "idc",
   });
 
   assert.equal(mapped.accessToken, "at");
@@ -108,6 +116,7 @@ test("kiro.mapTokens persists region into providerSpecificData", () => {
   assert.equal(mapped.providerSpecificData.clientId, "cid");
   assert.equal(mapped.providerSpecificData.clientSecret, "csec");
   assert.equal(mapped.providerSpecificData.region, "ap-southeast-1");
+  assert.equal(mapped.providerSpecificData.authMethod, "idc");
 });
 
 test("kiro.mapTokens defaults region to undefined when not provided", () => {
@@ -120,4 +129,5 @@ test("kiro.mapTokens defaults region to undefined when not provided", () => {
   });
 
   assert.equal(mapped.providerSpecificData.region, undefined);
+  assert.equal(mapped.providerSpecificData.authMethod, "builder-id");
 });

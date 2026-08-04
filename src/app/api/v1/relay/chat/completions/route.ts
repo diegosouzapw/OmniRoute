@@ -21,6 +21,7 @@ import {
 import {
   getBifrostRoutingConfig,
   getRoutingFallbackHeader,
+  getRoutingFallbackReasonHeader,
   resolveRelayRoutingBackend,
   shouldTryBifrostForRequest,
   type BifrostRoutingConfig,
@@ -378,6 +379,12 @@ export async function POST(request: Request) {
       // #5526 helper gates emission (auto + enabled); #5519 dynamic cooldown/error
       // reason wins as the value when set, else falls back to the static "bifrost".
       newHeaders.set("X-Routing-Fallback", bifrostFallbackReason ?? routingFallback);
+      // #6872: stable, machine-readable companion header — one of the 4 enum
+      // reason codes, or unset when the legacy value has no specific reason.
+      const fallbackReasonCode = getRoutingFallbackReasonHeader(bifrostFallbackReason);
+      if (fallbackReasonCode) {
+        newHeaders.set("X-Routing-Fallback-Reason", fallbackReasonCode);
+      }
     }
 
     return new Response(response.body, {

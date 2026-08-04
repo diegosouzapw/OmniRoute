@@ -5,10 +5,11 @@
  * Pure builder extracted from handleChatCore: derives the per-execution credentials object from the
  * resolved request context. Applies the native-Codex passthrough endpoint override, forces
  * apiType=responses (and the responses-upstream marker) for Azure AI Foundry / OCI when the model
- * routes to the OpenAI Responses format, and threads the Claude Code session id when present.
- * Side-effect-free; behaviour is byte-identical to the previous inline closure.
+ * routes to the OpenAI Responses format, synchronizes AgentRouter's per-request alternate protocol,
+ * and threads the Claude Code session id when present. Side-effect-free.
  */
 
+import { getKimiCodeStaticThinkingPolicy } from "../../config/providers/registry/kimi/coding/runtime.ts";
 import { FORMATS } from "../../translator/formats.ts";
 
 type CredentialsLike =
@@ -19,6 +20,57 @@ type CredentialsLike =
   | null
   | undefined;
 
+function buildKimiThinkingMetadata(
+  modelInfo: Record<string, unknown> | null | undefined,
+  staticThinkingPolicy: ReturnType<typeof getKimiCodeStaticThinkingPolicy>
+): Record<string, unknown> {
+  const { supportsThinking, supportedThinkingEfforts, defaultThinkingEffort } =
+    resolveKimiThinkingPolicyValues(modelInfo, staticThinkingPolicy);
+  const metadata: Record<string, unknown> = {};
+
+  if (typeof supportsThinking === "boolean") metadata.supportsThinking = supportsThinking;
+  if (modelInfo?.alwaysThinking === true || staticThinkingPolicy?.alwaysThinking === true) {
+    metadata.alwaysThinking = true;
+  }
+  if (supportedThinkingEfforts) metadata.supportedThinkingEfforts = supportedThinkingEfforts;
+  if (defaultThinkingEffort) metadata.defaultThinkingEffort = defaultThinkingEffort;
+  return metadata;
+}
+
+function resolveKimiThinkingPolicyValues(
+  modelInfo: Record<string, unknown> | null | undefined,
+  staticThinkingPolicy: ReturnType<typeof getKimiCodeStaticThinkingPolicy>
+) {
+  const supportsThinking =
+    typeof modelInfo?.supportsThinking === "boolean"
+      ? modelInfo.supportsThinking
+      : staticThinkingPolicy?.supportsThinking;
+  const supportedThinkingEfforts = Array.isArray(modelInfo?.supportedThinkingEfforts)
+    ? modelInfo.supportedThinkingEfforts
+    : staticThinkingPolicy?.supportedThinkingEfforts;
+  const defaultThinkingEffort =
+    typeof modelInfo?.defaultThinkingEffort === "string"
+      ? modelInfo.defaultThinkingEffort
+      : staticThinkingPolicy?.defaultThinkingEffort;
+  return { supportsThinking, supportedThinkingEfforts, defaultThinkingEffort };
+}
+
+function applyKimiExecutionMetadata(
+  providerSpecificData: Record<string, unknown>,
+  provider: string | null | undefined,
+  targetFormat: string,
+  modelInfo: Record<string, unknown> | null | undefined
+): void {
+  if (provider !== "kimi-coding" && provider !== "kimi-coding-apikey") return;
+
+  const staticThinkingPolicy = getKimiCodeStaticThinkingPolicy(modelInfo?.model);
+  providerSpecificData._omnirouteKimiTargetFormat = targetFormat;
+  providerSpecificData._omnirouteKimiThinking = buildKimiThinkingMetadata(
+    modelInfo,
+    staticThinkingPolicy
+  );
+}
+
 export function resolveExecutionCredentials(opts: {
   credentials: CredentialsLike;
   nativeCodexPassthrough: boolean;
@@ -26,9 +78,17 @@ export function resolveExecutionCredentials(opts: {
   targetFormat: string;
   provider: string | null | undefined;
   ccSessionId: string | null;
+  modelInfo?: Record<string, unknown> | null;
 }) {
-  const { credentials, nativeCodexPassthrough, endpointPath, targetFormat, provider, ccSessionId } =
-    opts;
+  const {
+    credentials,
+    nativeCodexPassthrough,
+    endpointPath,
+    targetFormat,
+    provider,
+    ccSessionId,
+    modelInfo,
+  } = opts;
 
   const nextCredentials = nativeCodexPassthrough
     ? { ...credentials, requestEndpointPath: endpointPath }
@@ -68,6 +128,29 @@ export function resolveExecutionCredentials(opts: {
   if (targetFormat === FORMATS.OPENAI_RESPONSES && provider === "github") {
     providerSpecificData.targetFormat = targetFormat;
   }
+
+  // #7364: "zai"/"glm-coding-apikey" default to the Anthropic Messages wire format
+  // (registry format:"claude"), but a per-model targetFormat override (custom-model
+  // dropdown, #2905) can resolve targetFormat to "openai" — e.g. for a vision model
+  // like glm-4.6v that the operator wants routed through the OpenAI-compatible
+  // endpoint. DefaultExecutor.buildUrl()'s "zai" branch has no other way to see that
+  // override, so surface it on providerSpecificData for buildUrl to read.
+  if (targetFormat === FORMATS.OPENAI && (provider === "zai" || provider === "glm-coding-apikey")) {
+    providerSpecificData.targetFormat = targetFormat;
+  }
+
+  // AgentRouter exposes Claude, OpenAI Chat, and OpenAI Responses on distinct URLs with distinct
+  // auth schemes. Keep the executor's URL/header resolution synchronized with chatCore's resolved
+  // per-request protocol without persisting the inferred selection back to the connection.
+  if (
+    provider === "agentrouter" &&
+    (targetFormat === FORMATS.OPENAI || targetFormat === FORMATS.OPENAI_RESPONSES)
+  ) {
+    providerSpecificData.targetFormat = targetFormat;
+  }
+
+  applyKimiExecutionMetadata(providerSpecificData, provider, targetFormat, modelInfo);
+
 
   const withApiType = {
     ...nextCredentials,

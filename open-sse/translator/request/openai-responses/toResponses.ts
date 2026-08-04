@@ -49,6 +49,32 @@ function mapChatResponseFormatToResponsesText(body: JsonRecord, result: JsonReco
   result.text = { ...existingText, format };
 }
 
+// Convert a Chat-Completions content block (string or text-part array) into the
+// Responses API `input_text` part array used by message input items.
+function buildResponsesTextParts(content: unknown): unknown[] {
+  if (typeof content === "string") {
+    return [{ type: "input_text", text: content }];
+  }
+  if (Array.isArray(content)) {
+    const parts: unknown[] = [];
+    for (const partValue of content) {
+      // A bare string inside the content array is a real text instruction
+      // (e.g. a harness-injected system reminder), not a structured part.
+      // Silently dropping it lost the instruction (#6954 follow-up).
+      if (typeof partValue === "string") {
+        parts.push({ type: "input_text", text: partValue });
+        continue;
+      }
+      const part = toRecord(partValue);
+      if (part.type === "text" || typeof part.text === "string") {
+        parts.push({ type: "input_text", text: toString(part.text) });
+      }
+    }
+    return parts.length > 0 ? parts : [{ type: "input_text", text: "" }];
+  }
+  return [{ type: "input_text", text: "" }];
+}
+
 export function openaiToOpenAIResponsesRequest(
   model: unknown,
   body: unknown,
@@ -83,7 +109,19 @@ export function openaiToOpenAIResponsesRequest(
       if (!hasSystemMessage) {
         result.instructions = typeof msg.content === "string" ? msg.content : "";
         hasSystemMessage = true;
+        continue;
       }
+      // Mid-conversation system/developer turns (e.g. harness-injected reminders
+      // from Claude Code) must survive as developer-role input items. The
+      // Responses API supports the `developer` role for exactly this; mapping
+      // them to `assistant` misattributes harness instructions as model output,
+      // and silently dropping them loses them entirely (#6954).
+      input.push({
+        type: "message",
+        role: "developer",
+        content: buildResponsesTextParts(msg.content),
+        status: "completed",
+      });
       continue;
     }
 
@@ -148,6 +186,7 @@ export function openaiToOpenAIResponsesRequest(
         type: "message",
         role: "user",
         content,
+        status: "completed",
       });
     }
 
@@ -186,6 +225,7 @@ export function openaiToOpenAIResponsesRequest(
           type: "message",
           role: "assistant",
           content: outputContent,
+          status: "completed",
         });
       }
 
@@ -204,6 +244,7 @@ export function openaiToOpenAIResponsesRequest(
             call_id: clampCallId(toString(toolCall.id).trim() || generateToolCallId()),
             name: fnName,
             arguments: toString(fn.arguments, "{}"),
+            status: "completed",
           });
         }
       }
@@ -218,6 +259,7 @@ export function openaiToOpenAIResponsesRequest(
             call_id: clampCallId(`call_${fnName}`),
             name: fnName,
             arguments: toString(fc.arguments, "{}"),
+            status: "completed",
           });
         }
       }
@@ -239,6 +281,7 @@ export function openaiToOpenAIResponsesRequest(
                   return c;
                 })
               : String(msg.content ?? ""),
+        status: "completed",
       });
     }
 
@@ -248,6 +291,7 @@ export function openaiToOpenAIResponsesRequest(
         type: "function_call_output",
         call_id: clampCallId(`call_${toString(msg.name)}`),
         output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
+        status: "completed",
       });
     }
   }
@@ -343,7 +387,7 @@ export function openaiToOpenAIResponsesRequest(
   if (root.reasoning !== undefined) {
     result.reasoning = root.reasoning;
   } else if (root.reasoning_effort !== undefined) {
-    const effort = normalizeResponsesReasoningEffort(root.reasoning_effort);
+    const effort = normalizeResponsesReasoningEffort(root.reasoning_effort, model ?? root.model);
     if (effort && effort !== "none") {
       // Effort-only chat request: default a reasoning summary so the upstream
       // streams thinking back (see the constant's note above).

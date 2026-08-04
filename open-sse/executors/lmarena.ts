@@ -73,11 +73,13 @@ export class LMArenaExecutor extends BaseExecutor {
     super("lmarena", { format: "openai", ...providerConfig });
   }
 
-  protected buildUrl(_model: string, _credentials: unknown): string {
+  // Public to match BaseExecutor.buildUrl — a subclass may widen visibility but not
+  // narrow it. This was masked behind the buildHeaders TS2416 until that one cleared.
+  buildUrl(_model: string, _credentials: unknown): string {
     return LMARENA_STREAM_URL;
   }
 
-  protected buildHeaders(
+  protected buildRequestHeaders(
     _model: string,
     credentials: unknown,
     _body: unknown
@@ -91,7 +93,7 @@ export class LMArenaExecutor extends BaseExecutor {
     return headers;
   }
 
-  protected transformRequest(body: unknown, model: string, credentials?: unknown): unknown {
+  transformRequest(body: unknown, model: string, credentials?: unknown): unknown {
     const openaiBody = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
     const messages = Array.isArray(openaiBody.messages)
       ? (openaiBody.messages as OpenAIMessage[])
@@ -115,7 +117,7 @@ export class LMArenaExecutor extends BaseExecutor {
   async execute(input: ExecuteInput) {
     const { model, body, stream, credentials, signal, log } = input;
     const url = this.buildUrl(model, credentials);
-    const headers = this.buildHeaders(model, credentials, body);
+    const headers = this.buildRequestHeaders(model, credentials, body);
     const cookie = readLMArenaCookie(credentials);
 
     if (!cookie) {

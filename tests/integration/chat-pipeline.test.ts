@@ -14,8 +14,8 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
-const callLogsDb = await import("../../src/lib/usage/callLogs.ts");
 const readCacheDb = await import("../../src/lib/db/readCache.ts");
+const { getLatestCallLog, getResponsesCallLogs } = await import("./_chatPipelineCallLogs.ts");
 const { invalidateMemorySettingsCache } = await import("../../src/lib/memory/settings.ts");
 const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
@@ -59,6 +59,7 @@ type SeedApiKeyOptions = {
   name?: string;
   noLog?: boolean;
   allowedConnections?: string[];
+  allowedCombos?: string[];
   allowedModels?: string[];
 };
 
@@ -400,12 +401,14 @@ async function seedApiKey({
   name = "chat-pipeline-key",
   noLog = false,
   allowedConnections,
+  allowedCombos,
   allowedModels,
 }: SeedApiKeyOptions = {}) {
   const key = await apiKeysDb.createApiKey(name, "machine-test");
   const updates: Record<string, unknown> = {};
   if (noLog) updates.noLog = true;
   if (allowedConnections) updates.allowedConnections = allowedConnections;
+  if (allowedCombos) updates.allowedCombos = allowedCombos;
   if (allowedModels) updates.allowedModels = allowedModels;
   if (Object.keys(updates).length > 0) {
     await apiKeysDb.updateApiKeyPermissions(key.id, updates);
@@ -489,18 +492,6 @@ async function waitFor(fn, timeoutMs = 1500) {
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
   return null;
-}
-
-async function getLatestCallLog() {
-  const rows = await callLogsDb.getCallLogs({ limit: 5 });
-  if (!Array.isArray(rows) || rows.length === 0) return null;
-  return callLogsDb.getCallLogById(rows[0].id);
-}
-
-async function getResponsesCallLogs() {
-  const rows = await callLogsDb.getCallLogs({ limit: 200 });
-  if (!Array.isArray(rows) || rows.length === 0) return [];
-  return rows.filter((row) => row.path === "/v1/responses");
 }
 
 test.beforeEach(async () => {

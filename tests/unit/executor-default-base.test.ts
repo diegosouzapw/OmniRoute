@@ -74,10 +74,9 @@ test("BaseExecutor: legacy openai-compatible providers honor providerSpecificDat
   assert.equal(url, "https://proxy.example/v1/responses");
 });
 
-test("DefaultExecutor.buildUrl handles Gemini, Claude and Qwen variants", () => {
+test("DefaultExecutor.buildUrl handles Gemini and Claude variants", () => {
   const gemini = new DefaultExecutor("gemini");
   const claude = new DefaultExecutor("claude");
-  const qwen = new DefaultExecutor("qwen");
 
   assert.equal(
     gemini.buildUrl("gemini-2.5-flash", false),
@@ -88,13 +87,6 @@ test("DefaultExecutor.buildUrl handles Gemini, Claude and Qwen variants", () => 
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse"
   );
   assert.equal(claude.buildUrl("claude-sonnet-4", true), `${PROVIDERS.claude.baseUrl}?beta=true`);
-  assert.equal(qwen.buildUrl("qwen3-coder", true), "https://portal.qwen.ai/v1/chat/completions");
-  assert.equal(
-    qwen.buildUrl("qwen3-coder", true, 0, {
-      providerSpecificData: { resourceUrl: "custom.qwen.ai" },
-    }),
-    "https://custom.qwen.ai/v1/chat/completions"
-  );
 });
 
 test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compatible providers", () => {
@@ -530,22 +522,6 @@ test("DefaultExecutor.buildHeaders handles Snowflake PATs and GigaChat access to
   assert.equal(gigachatHeaders.Authorization, "Bearer gigachat-token");
 });
 
-test("DefaultExecutor.buildHeaders strips DashScope headers for Qwen API keys and preserves them for OAuth", () => {
-  const executor = new DefaultExecutor("qwen");
-
-  const apiKeyHeaders = executor.buildHeaders({ apiKey: "dash-key" }, true);
-  const oauthHeaders = executor.buildHeaders({ accessToken: "oauth-token" }, true);
-
-  assert.equal(apiKeyHeaders.Authorization, "Bearer dash-key");
-  assert.equal(
-    Object.keys(apiKeyHeaders).some((key) => key.toLowerCase().startsWith("x-dashscope-")),
-    false
-  );
-  assert.equal(oauthHeaders.Authorization, "Bearer oauth-token");
-  assert.equal(oauthHeaders["X-Dashscope-AuthType"], "qwen-oauth");
-  assert.equal(oauthHeaders["X-Dashscope-CacheControl"], "enable");
-});
-
 test("DefaultExecutor.buildHeaders rotates extra API keys and builds Claude Code compatible headers", () => {
   const openai = new DefaultExecutor("openai");
   const cc = new DefaultExecutor("anthropic-compatible-cc-test");
@@ -669,6 +645,23 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
       },
       extendedContext: true,
     });
+    await cc.execute({
+      model: "claude-opus-5",
+      body: {
+        model: "claude-opus-5",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          ccSessionId: "session-1",
+          requestDefaults: { context1m: true },
+        },
+      },
+      extendedContext: true,
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -676,14 +669,20 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
   assert.equal(calls[0].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
   assert.equal(
     calls[0].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
-    false
+    true
   );
-  assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
+  assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
   assert.equal(
     calls[1].headers["anthropic-beta"].includes(CLAUDE_CODE_COMPATIBLE_REDACT_THINKING_BETA),
     true
   );
-  assert.equal(calls[2].headers["anthropic-beta"], undefined);
+  // claude-sonnet-4-6 GA'd 1M context (2026-02-17) and was added to CONTEXT_1M_SUPPORTED_MODELS
+  // by #7129; a non-CC anthropic-compatible target with extendedContext:true now legitimately
+  // gets the context-1m beta header (shouldForwardExtendedContext in base.ts), same as any other
+  // 1M-capable model.
+  assert.equal(calls[2].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
+  // Opus 5 has a native 1M window and must not receive the legacy context beta.
+  assert.equal(calls[3].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
 });
 
 test("DefaultExecutor.execute reports the exact serialized provider request before fetch", async () => {
@@ -998,19 +997,6 @@ test("DefaultExecutor.transformRequest strips stream_options from Anthropic-comp
   assert.notEqual(anthropicResult, anthropicBody);
   assert.equal((anthropicResult as any).stream_options, undefined);
   assert.equal((ccResult as any).stream_options, undefined);
-});
-
-test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for Qwen thinking", () => {
-  const executor = new DefaultExecutor("qwen");
-  const body = {
-    messages: [{ role: "user", content: "hi" }],
-    thinking: { type: "enabled" },
-    tool_choice: { type: "function", function: { name: "pwd" } },
-  };
-  const result = executor.transformRequest("qwen3-coder-plus", body, true, {});
-
-  assert.notEqual(result, body);
-  assert.equal((result as any).tool_choice, "auto");
 });
 
 // Port of decolua/9router#1343: openai-compatible-* providers (DeepSeek / Ollama /
@@ -1483,10 +1469,12 @@ test("DefaultExecutor.execute does not produce duplicate anthropic-version heade
   const executor = new DefaultExecutor("claude");
   const originalFetch = globalThis.fetch;
   let capturedHeaders: Record<string, string> = {};
+  let capturedBody = "";
 
   globalThis.fetch = async (_url, init = {}) => {
     // Capture raw headers without normalisation so case-variant duplicate keys are visible.
     capturedHeaders = (init.headers as Record<string, string>) || {};
+    capturedBody = String(init.body ?? "");
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -1519,4 +1507,12 @@ test("DefaultExecutor.execute does not produce duplicate anthropic-version heade
   );
   assert.equal(versionKeys.length, 1, "Duplicate anthropic-version header keys found");
   assert.equal(capturedHeaders[versionKeys[0]], "2023-06-01");
+  assert.equal(capturedHeaders["X-Stainless-Runtime-Version"], "v26.3.0");
+  assert.equal(capturedHeaders["X-Stainless-Package-Version"], "0.94.0");
+
+  const sentBody = JSON.parse(capturedBody) as { system?: Array<{ text?: string }> };
+  assert.match(
+    sentBody.system?.[0]?.text ?? "",
+    /^x-anthropic-billing-header: cc_version=2\.1\.220\.1f2; cc_entrypoint=cli; cch=[0-9a-f]{5};$/
+  );
 });

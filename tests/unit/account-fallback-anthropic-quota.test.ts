@@ -10,6 +10,8 @@ import assert from "node:assert/strict";
 
 const { classifyErrorText, parseRetryFromErrorText, checkFallbackError, getProviderProfile } =
   await import("../../open-sse/services/accountFallback.ts");
+const { isSubscriptionQuotaText } =
+  await import("../../open-sse/services/quotaTextCooldowns.ts");
 const { RateLimitReason } = await import("../../open-sse/config/constants.ts");
 
 test("#2321 classifyErrorText flags 'Usage Limit Reached' as QUOTA_EXHAUSTED", () => {
@@ -32,6 +34,12 @@ test("#2321 classifyErrorText still returns RATE_LIMIT_EXCEEDED for generic rate
   // transient so we don't lock accounts for an hour after a normal burst.
   const out = classifyErrorText("rate_limit_exceeded: too many requests");
   assert.equal(out, RateLimitReason.RATE_LIMIT_EXCEEDED);
+});
+
+test("Claude native account rate-limit text is subscription quota only for Claude", () => {
+  const text = "This request would exceed your account's rate limit. Please try again later.";
+  assert.equal(isSubscriptionQuotaText(text.toLowerCase(), "claude"), true);
+  assert.equal(isSubscriptionQuotaText(text.toLowerCase(), "antigravity"), false);
 });
 
 test("#2321 parseRetryFromErrorText extracts an ISO timestamp", () => {
@@ -68,6 +76,18 @@ test("#2321 checkFallbackError returns ~1h cooldown for OAuth 429 + Usage Limit 
     out.cooldownMs >= 5 * 60 * 1000,
     `expected long cooldown (>=5min), got ${out.cooldownMs}ms`
   );
+});
+
+test("Claude native account rate-limit text gets subscription quota cooldown", () => {
+  const out = checkFallbackError(
+    429,
+    "This request would exceed your account's rate limit. Please try again later.",
+    0,
+    null,
+    "claude"
+  );
+  assert.equal(out.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.ok(out.cooldownMs >= 5 * 60 * 1000, `expected long cooldown, got ${out.cooldownMs}ms`);
 });
 
 test("#2321 checkFallbackError ignores ISO timestamp when upstream retry hints are disabled", () => {

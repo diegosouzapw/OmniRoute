@@ -51,7 +51,7 @@ Add `contextRequirements` to your combo's runtime config:
 - **Type**: `"strict"` | `"lenient"`
 - **Default**: `"lenient"`
 - **Description**: How to handle models with unknown context window limits
-  - `"strict"`: Excludes models with unknown context limits
+  - `"strict"`: Excludes models with unknown context limits when a known-good target remains; fail-opens to unknowns if the pool would otherwise be empty (#8786)
   - `"lenient"`: Includes models with unknown context limits
 
 ## Behavior
@@ -77,8 +77,13 @@ When `minContextWindow` is set:
 **Strict mode**:
 
 - ✅ Includes models with context >= minContextWindow
-- ❌ Excludes models with unknown context limits
+- ❌ Excludes models with unknown context limits (when at least one known-good target remains)
 - ❌ Excludes models with context < minContextWindow
+- ⚠️ **Fail-open (#8786)**: if strict filtering would empty the pool and at least one
+  unknown-context target exists, those unknowns are restored instead of returning
+  `404 Combo has no executable targets`. Known-too-small targets are never resurrected.
+  When the pool is still empty (every known target is below `minContextWindow`), the
+  API returns `terminalReason: "context_requirements_exhausted"` with a recovery hint.
 
 ### Sorting Logic
 

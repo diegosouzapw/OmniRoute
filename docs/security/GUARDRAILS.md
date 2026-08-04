@@ -20,14 +20,15 @@ request. Blocking is an explicit decision (`block: true`), never an accident.
 
 ## Built-in Guardrails
 
-The registry auto-loads three guardrails in priority order on import
+The registry auto-loads four guardrails in priority order on import
 (see `registry.ts` → `registerDefaultGuardrails()`):
 
-| Priority | Name               | Stage(s)       | File                 |
-| -------- | ------------------ | -------------- | -------------------- |
-| `5`      | `vision-bridge`    | `preCall`      | `visionBridge.ts`    |
-| `10`     | `pii-masker`       | `pre` + `post` | `piiMasker.ts`       |
-| `20`     | `prompt-injection` | `preCall`      | `promptInjection.ts` |
+| Priority | Name                 | Stage(s)       | File                  |
+| -------- | -------------------- | -------------- | --------------------- |
+| `5`      | `vision-bridge`       | `preCall`      | `visionBridge.ts`     |
+| `10`     | `pii-masker`          | `pre` + `post` | `piiMasker.ts`        |
+| `20`     | `prompt-injection`    | `preCall`      | `promptInjection.ts`  |
+| `95`     | `credential-masker`   | `pre` + `post` | `credentialMasker.ts` |
 
 Lower priority numbers run **first**.
 
@@ -60,12 +61,13 @@ exposes a `deps` constructor option so tests can inject fake `getSettings` and
 
 Runs on **both** stages.
 
-- **`preCall`** clones the payload, walks `system`, `messages`, and `input`
-  arrays, and applies `processPII()` (from `@/shared/utils/inputSanitizer`) to
-  string `content`/`text` fields. When `PII_REDACTION_ENABLED=true` **and**
-  `INPUT_SANITIZER_MODE=redact`, detected PII is stripped/redacted in the
-  outbound payload. Otherwise the call records detection counts without
-  rewriting content.
+- **`preCall`** clones the payload, walks `system`, `messages`, `input`, and
+  `prompt` (including plain string items), and applies `processPII()` (from
+  `@/shared/utils/inputSanitizer`) to string `content`/`text` fields. When
+  `PII_REDACTION_ENABLED=true`, detected PII is redacted in the outbound
+  payload. This is independent of `INPUT_SANITIZER_MODE` (which only controls
+  prompt-injection policy). When redaction is off, the call records detection
+  counts without rewriting content.
 - **`postCall`** deep-clones the response, runs `sanitizePIIResponse()` plus
   the Responses-API-shape masker (`maskResponsesOutput` — covers
   `output_text` and `output[].content[].text`). If any redaction occurs, the
@@ -83,8 +85,8 @@ options:
 | Setting         | Env var                                         | Default | Effect                                  |
 | --------------- | ----------------------------------------------- | ------- | --------------------------------------- |
 | Enabled         | `INPUT_SANITIZER_ENABLED`                       | `true`  | When `false`, guardrail short-circuits. |
-| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE` | `warn`  | `block`, `warn`, or `log`.              |
-| Block threshold | `blockThreshold` option                         | `high`  | Minimum severity required to block.     |
+| Mode            | `INJECTION_GUARD_MODE` / `INPUT_SANITIZER_MODE` | `warn`  | Injection policy: `block`, `warn`, or `log`. (`redact` is accepted for back-compat but does **not** strip injection text; request PII rewrite is controlled by `PII_REDACTION_ENABLED`.) |
+| Block threshold | `blockThreshold` option / `INPUT_SANITIZER_BLOCK_THRESHOLD` (alias `INJECTION_GUARD_BLOCK_THRESHOLD`) | `high`  | Minimum severity required to block. Medium is observe-only at default. |
 
 **Mode precedence** (`getMode`): caller `options.mode` →
 `INJECTION_GUARD_MODE` **DB feature-flag override** (Dashboard → Settings →
@@ -116,6 +118,36 @@ joined prompt text — `MAX_INJECTION_SCAN_BYTES = 16 * 1024` (16 384 bytes) in
 the pattern loop. Injection directives sit near the top of an input, so this
 caps regex CPU/GC on multi-hundred-KB payloads without weakening detection (cf.
 #3932, #4041).
+
+### Credential Masker (`credentialMasker.ts`)
+
+Runs on **both** stages, last in the default chain (priority `95`). Redacts
+well-known API-key / secret-token patterns from the outbound payload (message
+content, tool-call arguments, tool results) **and** the provider response, so a
+credential pasted into a prompt (or echoed back by a tool result) is not leaked
+to the upstream provider or back to the client.
+
+- **Opt-in only**, same convention as PII redaction (Hard Rule #20-adjacent):
+  disabled unless `settings.credentialRedactionEnabled === true` **or**
+  `CREDENTIAL_REDACTION_ENABLED=true`. With it off, the guardrail is a no-op —
+  it never blocks and never rewrites.
+- `redactCredentials()` walks the full payload/response tree (`walkValue()`,
+  prototype-pollution-safe, cycle-safe via `WeakSet`) and replaces matches with
+  a `[REDACTED:<type>]` placeholder, cloning only the branches that actually
+  changed.
+- `CREDENTIAL_PATTERNS` covers LLM provider keys (OpenAI, OpenAI-proj,
+  Anthropic, Google, Hugging Face, Replicate), VCS/SaaS tokens (GitHub, Slack,
+  Linear, Notion, npm, Postman, Discord), payment keys (Stripe, Square), cloud
+  keys (AWS access key, Twilio, SendGrid, Mailgun), private keys / JWTs,
+  credential-bearing connection strings (`mongodb://user:pass@...`, etc.), and
+  a generic `Authorization`/`x-api-key`/`api-key`/`apikey` header-value
+  pattern. Header-shaped keys (`authorization`, `x-api-key`, `api-key`,
+  `apikey`) are redacted structurally (value only, scheme prefix like
+  `Bearer `/`Basic ` preserved) rather than via the generic text regex.
+- The guardrail never blocks; it only rewrites (`modifiedPayload` /
+  `modifiedResponse`) and annotates (`meta.credentialsRedacted`, `meta.count`).
+
+Regression guard: `tests/unit/credential-masker-guardrail.test.ts`.
 
 ## Base Contract (`base.ts`)
 
@@ -223,9 +255,11 @@ Environment variables read by the built-in guardrails:
 | Variable                              | Used by                          | Effect                                                                                           |
 | ------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `INPUT_SANITIZER_ENABLED`             | `prompt-injection`               | Set `false` to disable detection entirely.                                                       |
-| `INPUT_SANITIZER_MODE`                | `prompt-injection`, `pii-masker` | Shared mode: `warn`, `block`, `log`, or `redact`.                                                |
+| `INPUT_SANITIZER_MODE`                | `prompt-injection`               | Injection policy: `warn`, `block`, or `log`. Legacy value `redact` does not rewrite injection text. |
 | `INJECTION_GUARD_MODE`                | `prompt-injection`               | Mode for the injection guard; also a DB feature flag that **overrides** the env vars (DB > ENV). |
-| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true` + mode `redact`, request PII is stripped.                                            |
+| `INPUT_SANITIZER_BLOCK_THRESHOLD`     | `prompt-injection`               | Minimum severity that `MODE=block` rejects: `high` (default), `medium`, or `low`.                |
+| `INJECTION_GUARD_BLOCK_THRESHOLD`     | `prompt-injection`               | Legacy alias for `INPUT_SANITIZER_BLOCK_THRESHOLD`.                                              |
+| `PII_REDACTION_ENABLED`               | `pii-masker`                     | When `true`, request PII is redacted (independent of injection mode).                            |
 | `PII_RESPONSE_SANITIZATION` / `_MODE` | `pii-masker` (downstream)        | Controls response-side masker behavior.                                                          |
 
 The Vision Bridge reads runtime config from the DB-backed settings store

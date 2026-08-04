@@ -39,7 +39,7 @@ test("arePrivateProviderUrlsAllowed honors DB override = 'true' even when env is
   await withEnv("false", async () => {
     await withDbOverride("true", async () => {
       const { arePrivateProviderUrlsAllowed } =
-        await import("../../src/shared/network/outboundUrlGuard.ts");
+        await import("../../src/shared/network/outboundUrlGuardPolicy.ts");
       assert.equal(
         arePrivateProviderUrlsAllowed(),
         true,
@@ -53,7 +53,7 @@ test("arePrivateProviderUrlsAllowed returns false when DB override = 'false' and
   await withEnv(undefined, async () => {
     await withDbOverride("false", async () => {
       const { arePrivateProviderUrlsAllowed } =
-        await import("../../src/shared/network/outboundUrlGuard.ts");
+        await import("../../src/shared/network/outboundUrlGuardPolicy.ts");
       assert.equal(arePrivateProviderUrlsAllowed(), false);
     });
   });
@@ -63,7 +63,7 @@ test("arePrivateProviderUrlsAllowed honors env = 'true' when DB has no override"
   await withEnv("true", async () => {
     await withDbOverride(undefined, async () => {
       const { arePrivateProviderUrlsAllowed } =
-        await import("../../src/shared/network/outboundUrlGuard.ts");
+        await import("../../src/shared/network/outboundUrlGuardPolicy.ts");
       assert.equal(arePrivateProviderUrlsAllowed(), true);
     });
   });
@@ -73,7 +73,7 @@ test("arePrivateProviderUrlsAllowed default (no env, no DB) returns false", asyn
   await withEnv(undefined, async () => {
     await withDbOverride(undefined, async () => {
       const { arePrivateProviderUrlsAllowed } =
-        await import("../../src/shared/network/outboundUrlGuard.ts");
+        await import("../../src/shared/network/outboundUrlGuardPolicy.ts");
       assert.equal(arePrivateProviderUrlsAllowed(), false);
     });
   });

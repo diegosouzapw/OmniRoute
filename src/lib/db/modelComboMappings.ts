@@ -9,6 +9,7 @@
 
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance } from "./core";
+import { globToRegex } from "@/shared/utils/globPattern";
 
 // ──────────────────────────────────────────────────────────
 // Types
@@ -39,23 +40,6 @@ interface MappingRow {
 }
 
 // ──────────────────────────────────────────────────────────
-// Glob → RegExp conversion
-// ──────────────────────────────────────────────────────────
-
-/**
- * Convert a simple glob pattern to a RegExp.
- * Supports `*` (any characters) and `?` (single character).
- * Case-insensitive matching.
- */
-function globToRegex(pattern: string): RegExp {
-  const escaped = pattern
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&") // escape regex specials
-    .replace(/\*/g, ".*") // * → .*
-    .replace(/\?/g, "."); // ? → .
-  return new RegExp(`^${escaped}$`, "i");
-}
-
-// ──────────────────────────────────────────────────────────
 // Row mapping
 // ──────────────────────────────────────────────────────────
 
@@ -81,19 +65,29 @@ function rowToMapping(row: MappingRow): ModelComboMapping {
  * List all model-combo mappings, joined with combo name.
  * Ordered by priority descending (highest first).
  */
-export async function getModelComboMappings(): Promise<ModelComboMapping[]> {
+export async function getModelComboMappings(options?: {
+  limit?: number;
+  offset?: number;
+}): Promise<{ items: ModelComboMapping[]; total: number }> {
   const db = getDbInstance();
-  const rows = db
-    .prepare(
-      `SELECT m.id, m.pattern, m.combo_id, c.name AS combo_name,
-              m.priority, m.enabled, m.description,
-              m.created_at, m.updated_at
-       FROM model_combo_mappings m
-       LEFT JOIN combos c ON c.id = m.combo_id
-       ORDER BY m.priority DESC, m.created_at ASC`
-    )
-    .all() as MappingRow[];
-  return rows.map(rowToMapping);
+  const limit = options?.limit;
+  const offset = options?.offset ?? 0;
+  let sql = `SELECT m.id, m.pattern, m.combo_id, c.name AS combo_name,
+            m.priority, m.enabled, m.description,
+            m.created_at, m.updated_at
+     FROM model_combo_mappings m
+     LEFT JOIN combos c ON c.id = m.combo_id
+     ORDER BY m.priority DESC, m.created_at ASC`;
+  const params: unknown[] = [];
+  if (limit !== undefined) {
+    sql += " LIMIT ? OFFSET ?";
+    params.push(limit, offset);
+  }
+  const rows = db.prepare(sql).all(...params) as MappingRow[];
+  const totalRow = db.prepare("SELECT count(*) as cnt FROM model_combo_mappings").get() as {
+    cnt: number;
+  };
+  return { items: rows.map(rowToMapping), total: totalRow.cnt };
 }
 
 /**

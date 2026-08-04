@@ -10,9 +10,9 @@ lastUpdated: 2026-06-28
 >
 > 数据来源：`open-sse/mcp-server/schemas/tools.ts`（34 个基础工具）+ `memoryTools.ts`（3）+ `skillTools.ts`（4）+ `agentSkillTools.ts`（3）+ `poolTools.ts`（6）+ `gamificationTools.ts`（8）+ `pluginTools.ts`（8）+ `notionTools.ts`（6）+ `obsidianTools.ts`（22）= **94**（`TOTAL_MCP_TOOL_COUNT`）。工具注册和权限域绑定逻辑见 `open-sse/mcp-server/server.ts`。
 
-![MCP tool inventory (94 tools by category)](../diagrams/exported/mcp-tools-94.svg)
+![MCP tool inventory (104 tools by category)](../diagrams/exported/mcp-tools-104.svg)
 
-> 来源：[diagrams/mcp-tools-94.mmd](../diagrams/mcp-tools-94.mmd)（通过 `npm run docs:render-diagrams` 重新生成）。
+> 来源：[diagrams/mcp-tools-104.mmd](../diagrams/mcp-tools-104.mmd)（通过 `npm run docs:render-diagrams` 重新生成）。
 
 ## 安装
 

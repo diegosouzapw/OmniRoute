@@ -47,6 +47,20 @@ function isLoopbackHostname(hostname: string): boolean {
   return /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i.test(hostname);
 }
 
+function upgradeLoopbackToPublic(redirectUri: string, publicBaseUrl: string): string {
+  try {
+    const requested = new URL(redirectUri);
+    if (!isLoopbackHostname(requested.hostname)) {
+      return redirectUri;
+    }
+    const callbackPath =
+      requested.pathname && requested.pathname !== "/" ? requested.pathname : "/callback";
+    return `${publicBaseUrl}${callbackPath}${requested.search}`;
+  } catch {
+    return redirectUri;
+  }
+}
+
 /**
  * Google providers default to loopback redirects so the embedded public
  * credentials keep working on out-of-the-box local installs. When operators
@@ -68,10 +82,22 @@ export function resolveBrowserOAuthRedirectUri(
   }
 
   const publicBaseUrl =
-    normalizeBaseUrl(env.NEXT_PUBLIC_BASE_URL) || normalizeBaseUrl(env.OMNIROUTE_PUBLIC_BASE_URL);
+    normalizeBaseUrl(env?.NEXT_PUBLIC_BASE_URL) || normalizeBaseUrl(env?.OMNIROUTE_PUBLIC_BASE_URL);
 
   if (!publicBaseUrl) {
     return redirectUri;
+  }
+
+  // Web application OAuth client type allows non-loopback redirect URIs.
+  // When the operator sets ANTIGRAVITY_OAUTH_CLIENT_TYPE=web with custom
+  // credentials, upgrade the loopback redirect so remote deployments work
+  // without SSH tunneling. Non-web client types fall through to the
+  // existing custom-credentials upgrade path below.
+  if (GOOGLE_BROWSER_PROVIDERS.has(providerName)) {
+    const clientType = (env?.ANTIGRAVITY_OAUTH_CLIENT_TYPE || "").toLowerCase().trim();
+    if (clientType === "web") {
+      return upgradeLoopbackToPublic(redirectUri, publicBaseUrl);
+    }
   }
 
   try {
@@ -79,10 +105,7 @@ export function resolveBrowserOAuthRedirectUri(
     if (!isLoopbackHostname(requested.hostname)) {
       return redirectUri;
     }
-
-    const callbackPath =
-      requested.pathname && requested.pathname !== "/" ? requested.pathname : "/callback";
-    return `${publicBaseUrl}${callbackPath}${requested.search}`;
+    return upgradeLoopbackToPublic(redirectUri, publicBaseUrl);
   } catch {
     return redirectUri;
   }
@@ -110,7 +133,7 @@ export function getProvider(name) {
  */
 export function generateAuthData(providerName, redirectUri) {
   const provider = getProvider(providerName);
-  const pkce = generatePKCE();
+  const pkce = generatePKCE(provider.pkceVerifierBytes || 32);
   let codeVerifier = pkce.codeVerifier;
   const { codeChallenge, state } = pkce;
 
@@ -136,16 +159,22 @@ export function generateAuthData(providerName, redirectUri) {
       flowType: provider.flowType,
       fixedPort: provider.fixedPort,
       callbackPath: provider.callbackPath || "/callback",
+      callbackHost: provider.callbackHost || "localhost",
       supported: false,
       error,
     };
   }
 
   let authUrl;
-  if (provider.flowType === "device_code") {
-    authUrl = null;
-  } else if (provider.flowType === "authorization_code_pkce") {
+  // Capability check (not a bare flowType equality) so a provider can carry
+  // flowType "device_code" as its primary/default flow AND still expose a
+  // browser PKCE login as an additional method (#7013 grok-cli rework):
+  // grokCli keeps flowType "device_code" but sets supportsBrowserPkce so this
+  // branch still builds its PKCE authUrl for the "Browser Login" method.
+  if (provider.flowType === "authorization_code_pkce" || provider.supportsBrowserPkce) {
     authUrl = provider.buildAuthUrl(provider.config, redirectUri, state, codeChallenge);
+  } else if (provider.flowType === "device_code") {
+    authUrl = null;
   } else {
     const built = provider.buildAuthUrl(provider.config, redirectUri, state);
     // Some non-PKCE "authorization_code" providers (e.g. zed-hosted) need to
@@ -176,6 +205,7 @@ export function generateAuthData(providerName, redirectUri) {
     flowType: provider.flowType,
     fixedPort: provider.fixedPort,
     callbackPath: provider.callbackPath || "/callback",
+    callbackHost: provider.callbackHost || "localhost",
   };
 }
 
@@ -248,7 +278,7 @@ export async function pollForToken(providerName, deviceCode, codeVerifier, extra
     if (result.data.access_token) {
       let extra = null;
       if (provider.postExchange) {
-        extra = await provider.postExchange(result.data);
+        extra = await provider.postExchange(result.data, extraData || undefined);
       }
       return { success: true, tokens: provider.mapTokens(result.data, extra) };
     } else {

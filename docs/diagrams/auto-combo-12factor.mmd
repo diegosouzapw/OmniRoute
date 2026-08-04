@@ -1,11 +1,11 @@
-%% Auto-Combo 12-factor scoring
+%% Auto-Combo 13-factor scoring
 %% Reflects: open-sse/services/autoCombo/scoring.ts (DEFAULT_WEIGHTS, sum = 1.0)
-%% v3.8.40
+%% v3.8.49
 flowchart TB
   Request["Incoming request"] --> Candidates["Eligible candidates<br/>(provider × model × account)"]
   Candidates --> Score["Compute composite score<br/>per candidate"]
 
-  subgraph Factors["12-factor scoring weights (sum = 1.0)"]
+  subgraph Factors["13-factor scoring weights (sum = 1.0)"]
     f1["health (0.20)"]
     f2["quota (0.15)"]
     f3["costInv (0.15)"]
@@ -17,7 +17,8 @@ flowchart TB
     f9["specificityMatch (0.05)"]
     f10["contextAffinity (0.05)"]
     f11["connectionDensity (0.05)"]
-    f12["resetWindowAffinity (0.00)"]
+    f12["cacheAffinity (0.00)"]
+    f13["resetWindowAffinity (0.00)"]
   end
 
   Score --> Factors

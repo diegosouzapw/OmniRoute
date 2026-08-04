@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { KiroService } from "@/lib/oauth/services/kiro";
-import { createProviderConnection, isCloudEnabled, resolveProxyForProvider } from "@/models";
+import {
+  createProviderConnection,
+  getProviderConnections,
+  updateProviderConnection,
+  isCloudEnabled,
+  resolveProxyForProvider,
+} from "@/models";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { kiroImportSchema } from "@/shared/validation/schemas";
@@ -8,6 +14,7 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
+import { findKiroConnectionByIdentity } from "@/lib/oauth/kiroConnectionIdentity";
 import {
   emailFromExternalIdpToken,
   isExternalIdpAuthMethod,
@@ -34,6 +41,23 @@ async function requireOAuthImportAuth(request: Request) {
   if (!(await isAuthRequired(request))) return null;
   if (await isAuthenticated(request)) return null;
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
+
+async function upsertImportedKiroConnection(
+  targetProvider: string,
+  record: Record<string, unknown>,
+  identity: { profileArn?: unknown; clientId?: unknown; email?: unknown; name?: unknown }
+) {
+  const existing = await getProviderConnections({ provider: targetProvider });
+  const match = findKiroConnectionByIdentity(existing, { authType: "oauth", ...identity });
+  if (typeof match?.id === "string") {
+    return updateProviderConnection(match.id, record);
+  }
+  return createProviderConnection({
+    provider: targetProvider,
+    authType: "oauth",
+    ...record,
+  } as any);
 }
 
 /**
@@ -95,9 +119,7 @@ export async function POST(request: Request) {
       const email =
         emailFromExternalIdpToken(refreshed.accessToken) ||
         kiroService.extractEmailFromJWT(refreshed.accessToken);
-      const connection: any = await createProviderConnection({
-        provider: targetProvider,
-        authType: "oauth",
+      const record = {
         accessToken: refreshed.accessToken,
         refreshToken: refreshed.refreshToken || refreshToken.trim(),
         expiresAt: new Date(Date.now() + (refreshed.expiresIn || 3600) * 1000).toISOString(),
@@ -112,7 +134,13 @@ export async function POST(request: Request) {
           region: region || "us-east-1",
         },
         testStatus: "active",
-      } as any);
+        isActive: true,
+      };
+      const connection: any = await upsertImportedKiroConnection(targetProvider, record, {
+        profileArn,
+        clientId,
+        email,
+      });
       await syncToCloudIfEnabled();
       return NextResponse.json({
         success: true,
@@ -150,8 +178,11 @@ export async function POST(request: Request) {
       // Validate and refresh token (through proxy if configured).
       // validateImportToken also calls registerClient() to obtain a per-connection OIDC
       // client pair so multiple Kiro accounts do not share a single backend session (#2328).
+      // When only `clientId` is known (no matching secret was found by auto-import),
+      // forward it as a hint so the AWS SSO cache lookup matches the token's own
+      // registration instead of guessing via region/latest-expiry (#1253).
       tokenData = await runWithProxyContext(proxy, () =>
-        kiroService.validateImportToken(refreshToken.trim(), region)
+        kiroService.validateImportToken(refreshToken.trim(), region, clientId)
       );
     }
 
@@ -162,29 +193,34 @@ export async function POST(request: Request) {
     const resolvedProfileArn = (tokenData as any).profileArn || null;
 
     // Save to database
-    const connection: any = await createProviderConnection({
-      provider: targetProvider,
-      authType: "oauth",
+    const providerSpecificData = {
+      profileArn: resolvedProfileArn,
+      authMethod: resolvedAuthMethod,
+      provider: isIdc ? "Enterprise" : "Imported",
+      ...(tokenData.clientId
+        ? {
+            clientId: tokenData.clientId,
+            clientSecret: tokenData.clientSecret,
+            region: region || "us-east-1",
+            ...(tokenData.clientSecretExpiresAt
+              ? { clientSecretExpiresAt: tokenData.clientSecretExpiresAt }
+              : {}),
+          }
+        : {}),
+    };
+    const record = {
       accessToken: tokenData.accessToken,
       refreshToken: tokenData.refreshToken || refreshToken.trim(),
       expiresAt: new Date(Date.now() + (tokenData.expiresIn || 3600) * 1000).toISOString(),
       email: email || null,
-      providerSpecificData: {
-        profileArn: resolvedProfileArn,
-        authMethod: resolvedAuthMethod,
-        provider: isIdc ? "Enterprise" : "Imported",
-        ...(tokenData.clientId
-          ? {
-              clientId: tokenData.clientId,
-              clientSecret: tokenData.clientSecret,
-              region: region || "us-east-1",
-              ...(tokenData.clientSecretExpiresAt
-                ? { clientSecretExpiresAt: tokenData.clientSecretExpiresAt }
-                : {}),
-            }
-          : {}),
-      },
+      providerSpecificData,
       testStatus: "active",
+      isActive: true,
+    };
+    const connection: any = await upsertImportedKiroConnection(targetProvider, record, {
+      profileArn: resolvedProfileArn,
+      clientId: providerSpecificData.clientId,
+      email,
     });
 
     // Auto sync to Cloud if enabled

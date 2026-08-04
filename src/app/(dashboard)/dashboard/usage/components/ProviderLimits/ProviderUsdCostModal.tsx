@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface ProviderWindowCostRow {
   apiKeyKey: string;
@@ -55,10 +56,10 @@ function formatUsd(value: number | null | undefined): string {
   }).format(numeric);
 }
 
-function formatDateTime(value: string | null | undefined): string {
-  if (!value) return "unknown";
+function formatDateTime(value: string | null | undefined, fallback: string): string {
+  if (!value) return fallback;
   const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return "unknown";
+  if (!Number.isFinite(date.getTime())) return fallback;
   return date.toLocaleString([], {
     month: "short",
     day: "2-digit",
@@ -79,6 +80,7 @@ export default function ProviderUsdCostModal({
   providerLabel,
   accountLabel,
 }: Props) {
+  const t = useTranslations("usageLimits");
   const [payload, setPayload] = useState<ProviderWindowCostPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export default function ProviderUsdCostModal({
         if (alive) setPayload(data);
       } catch (loadError) {
         if (alive) {
-          setError(loadError instanceof Error ? loadError.message : "Failed to load USD costs");
+          setError(loadError instanceof Error ? loadError.message : t("loadUsdCostsFailed"));
           setPayload(null);
         }
       } finally {
@@ -115,7 +117,7 @@ export default function ProviderUsdCostModal({
     return () => {
       alive = false;
     };
-  }, [isOpen, connection?.id, connection?.provider]);
+  }, [isOpen, connection?.id, connection?.provider, t]);
 
   const maxCost = useMemo(
     () => Math.max(...(payload?.rows || []).map((row) => row.costUsd), 0),
@@ -139,7 +141,7 @@ export default function ProviderUsdCostModal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
           <div>
-            <h2 className="m-0 text-lg font-semibold text-text-main">USD Cost</h2>
+            <h2 className="m-0 text-lg font-semibold text-text-main">{t("usdCost")}</h2>
             <p className="mt-1 text-xs text-text-muted">
               {providerLabel} · {accountLabel || connection?.id}
             </p>
@@ -148,7 +150,7 @@ export default function ProviderUsdCostModal({
             type="button"
             onClick={onClose}
             className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-bg-subtle text-text-main hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
-            aria-label="Close"
+            aria-label={t("close")}
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
@@ -160,7 +162,7 @@ export default function ProviderUsdCostModal({
               <span className="material-symbols-outlined animate-spin text-[16px]">
                 progress_activity
               </span>
-              Loading USD costs
+              {t("loadingUsdCosts")}
             </div>
           ) : error ? (
             <div className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-500">
@@ -171,14 +173,16 @@ export default function ProviderUsdCostModal({
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                 <div className="rounded-md border border-border bg-bg-subtle px-3 py-2">
-                  <div className="text-[10px] uppercase tracking-wide text-text-muted">Used</div>
+                  <div className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {t("used")}
+                  </div>
                   <div className="mt-1 text-lg font-semibold tabular-nums text-text-main">
                     {formatUsd(payload.totalCostUsd)}
                   </div>
                 </div>
                 <div className="rounded-md border border-border bg-bg-subtle px-3 py-2">
                   <div className="text-[10px] uppercase tracking-wide text-text-muted">
-                    Quota used
+                    {t("quotaUsed")}
                   </div>
                   <div className="mt-1 text-lg font-semibold tabular-nums text-text-main">
                     {formatPercent(payload.quotaUsedPercent)}
@@ -186,7 +190,7 @@ export default function ProviderUsdCostModal({
                 </div>
                 <div className="rounded-md border border-border bg-bg-subtle px-3 py-2">
                   <div className="text-[10px] uppercase tracking-wide text-text-muted">
-                    Est. 100%
+                    {t("estimatedFullQuota")}
                   </div>
                   <div className="mt-1 text-lg font-semibold tabular-nums text-text-main">
                     {payload.estimatedFullQuotaUsd === null
@@ -195,7 +199,9 @@ export default function ProviderUsdCostModal({
                   </div>
                 </div>
                 <div className="rounded-md border border-border bg-bg-subtle px-3 py-2">
-                  <div className="text-[10px] uppercase tracking-wide text-text-muted">Rows</div>
+                  <div className="text-[10px] uppercase tracking-wide text-text-muted">
+                    {t("rows")}
+                  </div>
                   <div className="mt-1 text-lg font-semibold tabular-nums text-text-main">
                     {payload.rows.length}
                   </div>
@@ -205,22 +211,22 @@ export default function ProviderUsdCostModal({
               <div className="rounded-md border border-border bg-surface px-3 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-muted">
                   <span>
-                    Window: {formatDateTime(payload.windowStartAt)} →{" "}
-                    {formatDateTime(payload.windowResetAt)}
+                    {t("window")}: {formatDateTime(payload.windowStartAt, t("unknown"))} →{" "}
+                    {formatDateTime(payload.windowResetAt, t("unknown"))}
                   </span>
                   <span>
                     {payload.windowStartSource === "recorded_reset_event"
-                      ? `From recorded ${payload.quotaName || "weekly quota"} reset`
+                      ? t("fromRecordedReset", { quota: payload.quotaName || t("weeklyQuota") })
                       : payload.windowStartSource === "observed_snapshot_reset"
-                        ? `From observed ${payload.quotaName || "weekly quota"} reset`
+                        ? t("fromObservedReset", { quota: payload.quotaName || t("weeklyQuota") })
                         : payload.windowSource === "provider_weekly_reset"
-                          ? `From ${payload.quotaName || "weekly quota"} reset`
-                          : "Fallback rolling 7d"}
+                          ? t("fromReset", { quota: payload.quotaName || t("weeklyQuota") })
+                          : t("fallbackRollingDaysShort", { days: 7 })}
                   </span>
                 </div>
                 <div className="mt-3 flex flex-col gap-2">
                   <div className="flex items-center justify-between gap-3 text-xs">
-                    <span className="font-medium text-text-main">Quota estimator</span>
+                    <span className="font-medium text-text-main">{t("quotaEstimator")}</span>
                     <span className="tabular-nums text-text-main">
                       {simulatedPercent}% ={" "}
                       {simulatedUsd === null ? "n/a" : formatUsd(simulatedUsd)}
@@ -241,7 +247,7 @@ export default function ProviderUsdCostModal({
 
               {payload.rows.length === 0 ? (
                 <div className="rounded-md border border-border px-3 py-8 text-center text-sm text-text-muted">
-                  No API key usage in this provider window.
+                  {t("noApiKeyUsage")}
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
@@ -258,8 +264,10 @@ export default function ProviderUsdCostModal({
                               {row.apiKeyName}
                             </div>
                             <div className="mt-0.5 text-[11px] text-text-muted">
-                              {row.requests.toLocaleString()} requests ·{" "}
-                              {row.totalTokens.toLocaleString()} tokens
+                              {t("requestTokenCounts", {
+                                requests: row.requests.toLocaleString(),
+                                tokens: row.totalTokens.toLocaleString(),
+                              })}
                             </div>
                           </div>
                           <div className="text-right">
@@ -272,7 +280,9 @@ export default function ProviderUsdCostModal({
                                 {row.limitPeriod ? ` ${row.limitPeriod}` : ""}
                               </div>
                             ) : (
-                              <div className="mt-0.5 text-[11px] text-text-muted">No USD limit</div>
+                              <div className="mt-0.5 text-[11px] text-text-muted">
+                                {t("noUsdLimit")}
+                              </div>
                             )}
                           </div>
                         </div>

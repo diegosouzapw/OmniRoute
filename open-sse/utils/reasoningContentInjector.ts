@@ -30,9 +30,41 @@ const THINKING_MODEL_PATTERNS: RegExp[] = [
   /\bmimo\b/i, // xiaomi-tokenplan mimo family (e.g. xiaomi-tokenplan/mimo-v2.5-pro)
 ];
 
+const AUTHENTIC_REASONING_MODEL_PATTERN = /(?:^|\/)kimi-k(?:3|2\.7-code)(?:$|-)/i;
+
+/**
+ * Native Moonshot K3/K2.7 replay must use the original reasoning content.
+ * A fabricated placeholder changes preserved-thinking history and is not a
+ * valid substitute when the client and reasoning cache both lack the field.
+ */
+export function requiresAuthenticReasoningContent(provider: unknown, model: unknown): boolean {
+  const normalizedProvider = String(provider ?? "")
+    .trim()
+    .toLowerCase();
+  const normalizedModel = String(model ?? "").trim();
+  return (
+    (normalizedProvider === "moonshot" || normalizedProvider === "kimi") &&
+    AUTHENTIC_REASONING_MODEL_PATTERN.test(normalizedModel)
+  );
+}
+
 export function isThinkingMessageModel(model: string | undefined | null): boolean {
   if (!model || typeof model !== "string") return false;
   return THINKING_MODEL_PATTERNS.some((re) => re.test(model));
+}
+
+export function shouldInjectReasoningContentPlaceholder(
+  provider: unknown,
+  model: string | undefined | null
+): boolean {
+  const normalizedProvider = String(provider ?? "")
+    .trim()
+    .toLowerCase();
+  return (
+    (normalizedProvider === "moonshot" || normalizedProvider === "kimi") &&
+    !requiresAuthenticReasoningContent(normalizedProvider, model) &&
+    isThinkingMessageModel(model)
+  );
 }
 
 function hasNonEmptyReasoningContent(message: JsonRecord): boolean {

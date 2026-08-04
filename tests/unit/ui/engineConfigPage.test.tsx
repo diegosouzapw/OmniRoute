@@ -201,8 +201,10 @@ describe("EngineConfigPage", () => {
       await Promise.resolve();
     });
 
-    // EngineConfigForm should render the "Min rows" field label from the schema
-    expect(container.textContent).toContain("Min rows");
+    // EngineConfigForm prefers the i18n label (compressionEngineConfig.fields.minRows.label
+    // in en.json) over the mocked schema's own "Min rows" when a translation exists — see
+    // EngineConfigPage.tsx's `t.has(labelKey) ? t(labelKey) : field.label`.
+    expect(container.textContent).toContain("Minimum rows to compact");
   });
 
   it("keeps detailed config but renders no engine enable checkbox", async () => {
@@ -222,7 +224,8 @@ describe("EngineConfigPage", () => {
     // The on/off enable toggle (a checkbox with data-toggle="enable") is gone; the
     // detailed config form (the schema fields minus `enabled`) still renders.
     expect(container.querySelector("input[type='checkbox'][data-toggle='enable']")).toBeNull();
-    expect(container.textContent).toContain("Min rows");
+    // See the i18n-label-override note above (compressionEngineConfig.fields.minRows.label).
+    expect(container.textContent).toContain("Minimum rows to compact");
     expect(container.textContent).toContain("Configuration");
   });
 
@@ -416,5 +419,85 @@ describe("EngineConfigPage", () => {
     // Component should still be mounted (not crashed)
     expect(container).toBeTruthy();
     expect(container.parentNode).toBeTruthy();
+  });
+
+  it("#8056: headroom minRows is persistable — Save PUTs headroom:{minRows:5}", async () => {
+    const settingsPuts: { body: Record<string, unknown> }[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input.toString();
+        if (url.includes("/api/compression/engines")) {
+          return new Response(JSON.stringify(ENGINE_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        if (url.includes("/api/settings/compression")) {
+          if (init?.method === "PUT") {
+            settingsPuts.push({ body: JSON.parse(init.body as string) });
+          }
+          return new Response(
+            JSON.stringify({
+              enabled: true,
+              engines: { headroom: { enabled: true } },
+              headroom: { minRows: 8 },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } }
+          );
+        }
+        if (url.includes("/api/context/analytics/engine")) {
+          return new Response(JSON.stringify(ANALYTICS_PAYLOAD), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(JSON.stringify({}), { status: 404 });
+      }
+    );
+
+    const { EngineConfigPage } =
+      await import("../../../src/shared/components/compression/EngineConfigPage");
+    let container!: HTMLElement;
+    await act(async () => {
+      container = mountInContainer(<EngineConfigPage engineId="headroom" />);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Persistable engines show Save (not the "no per-engine override" notice).
+    expect(container.querySelector("[data-testid='no-detail-store-notice']")).toBeNull();
+    const saveBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Save") || b.textContent?.includes("Salvar")
+    );
+    expect(saveBtn).toBeTruthy();
+
+    // Change minRows 8 → 5 in the number input (React 19 needs native setter).
+    const numberInput = container.querySelector("input[type='number']") as HTMLInputElement | null;
+    expect(numberInput).toBeTruthy();
+    await act(async () => {
+      if (!numberInput) return;
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value"
+      )?.set;
+      nativeInputValueSetter?.call(numberInput, "5");
+      numberInput.dispatchEvent(new Event("input", { bubbles: true }));
+      numberInput.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    await act(async () => {
+      saveBtn?.click();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(settingsPuts.length).toBeGreaterThan(0);
+    const headroomPut = settingsPuts.find(
+      (c) => typeof c.body.headroom === "object" && c.body.headroom !== null
+    );
+    expect(headroomPut).toBeDefined();
+    expect((headroomPut!.body.headroom as { minRows?: number }).minRows).toBe(5);
   });
 });

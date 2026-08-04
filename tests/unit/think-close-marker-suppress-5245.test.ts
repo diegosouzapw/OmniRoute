@@ -10,11 +10,11 @@ const {
   THINKING_MARKER_HEADER,
 } = await import("../../open-sse/utils/thinkCloseMarker.ts");
 
-// #5245: when translating a Claude-native stream to OpenAI shape,
-// claude-to-openai.ts emits a textual `</think>` close marker (by design, for
-// Claude Code / Cursor — #4633). Clients that render it verbatim (OpenCode)
-// want it suppressed. `state.suppressThinkClose` gates the emission; default
-// (unset/false) preserves the #4633 behaviour.
+// #5245 / #8245: when translating a Claude-native stream to OpenAI shape,
+// claude-to-openai.ts can emit a textual `</think>` close marker. Production
+// policy (#8245) suppresses it by default via resolveSuppressThinkClose;
+// `state.suppressThinkClose` gates emission in the translator. unset/false
+// still emits at the translator layer (opt-in path for header `on`).
 
 function newState(extra: Record<string, unknown> = {}) {
   return { toolCalls: new Map(), toolNameMap: new Map(), ...extra } as Record<string, unknown>;
@@ -123,30 +123,29 @@ test("shouldSuppressThinkCloseMarker: suppresses for OpenCode, preserves CC/Curs
 
 // ── translator gating ────────────────────────────────────────────────────────
 
-test("claude-to-openai: default emits the </think> marker before the first text (#4633 preserved)", () => {
-  const contents = contentChunks(runThinkThenText(newState()));
-  assert.ok(contents.includes("</think>"), "marker must be emitted by default");
-  assert.ok(contents.includes("169"), "real text still emitted");
-  // marker comes before the real text
-  assert.ok(contents.indexOf("</think>") < contents.indexOf("169"));
-});
-
-test("claude-to-openai: suppressThinkClose drops the </think> marker but keeps the text (#5245)", () => {
+test("claude-to-openai: suppressThinkClose (production default #8245) drops marker before text", () => {
   const contents = contentChunks(runThinkThenText(newState({ suppressThinkClose: true })));
   assert.ok(!contents.includes("</think>"), "marker must be suppressed");
   assert.ok(contents.includes("169"), "real text still emitted");
 });
 
-// ── finish-flush path (L197-207, toolCalls.size === 0) ───────────────────────
-
-test("claude-to-openai: finish-flush emits </think> by default for thinking-only response (#4633)", () => {
-  const contents = contentChunks(runThinkOnlyThenFinish(newState()));
-  assert.ok(contents.includes("</think>"), "marker must be emitted at finish by default");
+test("claude-to-openai: suppressThinkClose=false (header on) emits marker before text (#4633 opt-in)", () => {
+  const contents = contentChunks(runThinkThenText(newState({ suppressThinkClose: false })));
+  assert.ok(contents.includes("</think>"), "marker must be emitted when opted in");
+  assert.ok(contents.includes("169"), "real text still emitted");
+  assert.ok(contents.indexOf("</think>") < contents.indexOf("169"));
 });
 
-test("claude-to-openai: finish-flush suppressed under suppressThinkClose (#5312)", () => {
+// ── finish-flush path (L197-207, toolCalls.size === 0) ───────────────────────
+
+test("claude-to-openai: finish-flush suppressed under suppressThinkClose (#8245 default)", () => {
   const contents = contentChunks(runThinkOnlyThenFinish(newState({ suppressThinkClose: true })));
   assert.ok(!contents.includes("</think>"), "marker must be suppressed at finish");
+});
+
+test("claude-to-openai: finish-flush emits </think> when suppressThinkClose=false (#4633 opt-in)", () => {
+  const contents = contentChunks(runThinkOnlyThenFinish(newState({ suppressThinkClose: false })));
+  assert.ok(contents.includes("</think>"), "marker must be emitted at finish when opted in");
 });
 
 // ── header signal resolution (x-omniroute-thinking-marker — #5312) ───────────
@@ -163,22 +162,26 @@ test("thinkingMarkerHeaderSignal: off → suppress, on → keep, absent/unknown 
   assert.equal(thinkingMarkerHeaderSignal(undefined), null);
 });
 
-test("resolveSuppressThinkClose: header opts in (Cursor) and overrides the UA allowlist", () => {
+test("resolveSuppressThinkClose: default suppresses; header on opts into marker (#8245)", () => {
   // header constant is the documented wire name
   assert.equal(THINKING_MARKER_HEADER, "x-omniroute-thinking-marker");
-  // Cursor's UA is NOT in the allowlist → marker kept by default (orphan </think>, #5312)…
-  assert.equal(resolveSuppressThinkClose({ userAgent: "cursor-agent/0.5" }), false);
-  // …but `off` opts in to suppression regardless of UA.
+  // #8245: Chat Completions default suppresses for every UA (incl. Cursor / Claude Code).
+  assert.equal(resolveSuppressThinkClose({ userAgent: "cursor-agent/0.5" }), true);
+  assert.equal(resolveSuppressThinkClose({ userAgent: "claude-code/1.0" }), true);
+  assert.equal(resolveSuppressThinkClose({ userAgent: "opencode/1.0" }), true);
+  assert.equal(resolveSuppressThinkClose({ userAgent: "OpenAI/JS 6.26.0" }), true);
+  // Explicit `off` is also suppress.
   assert.equal(
     resolveSuppressThinkClose({ userAgent: "cursor-agent/0.5", thinkingMarkerHeader: "off" }),
     true
   );
-  // `on` force-keeps even for an allowlisted (OpenCode) UA.
+  // `on` force-keeps for legacy content-scanning clients (#4633 opt-in).
   assert.equal(
     resolveSuppressThinkClose({ userAgent: "opencode/1.0", thinkingMarkerHeader: "on" }),
     false
   );
-  // No header → defers to UA policy (OpenCode suppressed, unknown kept).
-  assert.equal(resolveSuppressThinkClose({ userAgent: "opencode/1.0" }), true);
-  assert.equal(resolveSuppressThinkClose({ userAgent: "claude-code/1.0" }), false);
+  assert.equal(
+    resolveSuppressThinkClose({ userAgent: "claude-code/1.0", thinkingMarkerHeader: "on" }),
+    false
+  );
 });

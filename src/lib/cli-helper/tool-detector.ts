@@ -3,22 +3,22 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { getCurrentHermesAgentRoles } from "./config-generator/hermes-agent";
-import { getCachedLoginShellPath, mergeShellPath } from "../../shared/services/loginShellPath";
+import {
+  getLookupEnv,
+  locateCommand,
+  shouldUseShellForCommand,
+} from "../../shared/services/cliRuntime";
 
 const execFileAsync = promisify(execFile);
 let execFileImpl = execFileAsync;
-
-// #3321: macOS GUI/Electron truncates PATH, so `which`/`--version` probes miss Homebrew/
-// nvm/volta CLIs and the doctor reports them "not installed". Build a lookup env enriched
-// with the login-shell PATH (darwin-only, cached, fail-safe → returns process.env elsewhere).
-function detectorEnv(): NodeJS.ProcessEnv {
-  const loginShellPath = getCachedLoginShellPath();
-  if (!loginShellPath) return process.env;
-  return { ...process.env, PATH: mergeShellPath(process.env.PATH || "", loginShellPath) };
-}
+let locateCommandImpl = locateCommand;
 
 export function __setExecFileImpl(fn: typeof execFileAsync): void {
   execFileImpl = fn;
+}
+
+export function __setLocateCommandImpl(fn: typeof locateCommand): void {
+  locateCommandImpl = fn;
 }
 
 export interface DetectedTool {
@@ -79,17 +79,52 @@ function isConfigured(content: string, baseUrl: string): boolean {
   );
 }
 
+// #968/#7279: on native Windows, npm installs CLI wrappers (claude/codex/opencode/…)
+// as .cmd/.bat shims. Node's CVE-2024-27980 hardening makes execFile()/spawn() reject
+// those without `shell: true`, and the `which` fallback below doesn't exist natively
+// on Windows (no WSL/git-bash) — so both probes threw, both were swallowed, and an
+// installed CLI was reported as absent. Reuse cliRuntime.ts's `locateCommand`
+// (already win32-aware since #968: `where.exe` + `.cmd`/`.exe`/`.bat`/`.com`
+// preference) for existence/path, then probe `--version` with `shell: true` when the
+// resolved binary needs it. If this drifts again, check cliRuntime.ts first.
+async function detectBinaryWindows(
+  binary: string,
+  env: NodeJS.ProcessEnv
+): Promise<{ installed: boolean; version?: string }> {
+  const located = await locateCommandImpl(binary, env);
+  if (!located.installed || !located.commandPath) return { installed: false };
+
+  try {
+    const useShell = shouldUseShellForCommand(located.commandPath);
+    const { stdout } = await execFileImpl(located.commandPath, ["--version"], {
+      timeout: 5000,
+      env,
+      ...(useShell ? { shell: true } : {}),
+    });
+    return { installed: true, version: stdout.trim().replace(/^v/, "") };
+  } catch {
+    // Binary exists on PATH but the --version probe failed (unusual flag, slow
+    // startup, etc.) — still report it as installed since locateCommand confirmed it.
+    return { installed: true };
+  }
+}
+
 async function detectBinary(name: string): Promise<{ installed: boolean; version?: string }> {
   const binary = BINARY_NAMES[name] || name;
-  const env = detectorEnv();
+  const env = getLookupEnv();
+
+  if (process.platform === "win32") {
+    return detectBinaryWindows(binary, env);
+  }
+
   try {
     const { stdout } = await execFileImpl(binary, ["--version"], { timeout: 5000, env });
     const version = stdout.trim().replace(/^v/, "");
     return { installed: true, version };
   } catch {
     try {
-      // Try `which` as fallback
-      const { stdout } = await execFileAsync("which", [binary], { timeout: 5000, env });
+      // Try `which` as fallback (routed through execFileImpl so it stays mockable)
+      const { stdout } = await execFileImpl("which", [binary], { timeout: 5000, env });
       if (stdout.trim()) {
         return { installed: true };
       }

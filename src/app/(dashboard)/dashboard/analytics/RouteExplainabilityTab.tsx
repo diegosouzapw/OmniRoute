@@ -223,6 +223,7 @@ function ExplainabilitySkeleton() {
 }
 
 function FactorCard({ factor }: { factor: ExplanationFactor }) {
+  const t = useTranslations("analytics");
   const contributionPct = Math.round(factor.contribution * 100);
   const weightPct = Math.round(factor.weight * 100);
 
@@ -241,16 +242,17 @@ function FactorCard({ factor }: { factor: ExplanationFactor }) {
         <div className="h-full rounded-full bg-primary" style={{ width: `${contributionPct}%` }} />
       </div>
       <div className="mt-2 text-xs text-text-muted">
-        Weight {weightPct}% · {factor.details}
+        {t("routeWeight", { weight: weightPct })} · {factor.details}
       </div>
     </div>
   );
 }
 
 function TargetTimeline({ targets }: { targets: ExplainTarget[] }) {
+  const t = useTranslations("analytics");
   const nodeMap = useProviderNodeMap();
   if (targets.length === 0) {
-    return <div className="text-sm text-text-muted">No related target evidence persisted yet.</div>;
+    return <div className="text-sm text-text-muted">{t("routeNoRelatedEvidence")}</div>;
   }
 
   return (
@@ -269,16 +271,16 @@ function TargetTimeline({ targets }: { targets: ExplainTarget[] }) {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="truncate text-sm font-medium text-text-main">
-                  {resolveProviderName(target.provider, nodeMap)} / {target.model || "unknown"}
+                  {resolveProviderName(target.provider, nodeMap)} / {target.model || t("unknown")}
                 </span>
                 {target.outcome === "selected" ? (
                   <Badge variant="primary" size="sm">
-                    Selected
+                    {t("selected")}
                   </Badge>
                 ) : null}
               </div>
               <div className="mt-1 text-xs text-text-muted">
-                {formatDate(target.timestamp)} · {target.comboStepId || "no step id"}
+                {formatDate(target.timestamp)} · {target.comboStepId || t("routeNoStepId")}
               </div>
               <div className="mt-1 text-xs text-text-muted">{target.reason}</div>
             </div>
@@ -295,11 +297,14 @@ function TargetTimeline({ targets }: { targets: ExplainTarget[] }) {
   );
 }
 
-function replayAlignmentLabel(alignment: NonNullable<DecisionReplay["recompute"]>["alignment"]) {
-  if (alignment === "matches_recomputed_top_target") return "Matches current top target";
-  if (alignment === "differs_from_recomputed_top_target") return "Differs from current top";
-  if (alignment === "runtime_target_missing_from_recompute") return "Target missing now";
-  return "Not combo routed";
+function replayAlignmentLabel(
+  alignment: NonNullable<DecisionReplay["recompute"]>["alignment"],
+  t: ReturnType<typeof useTranslations>
+) {
+  if (alignment === "matches_recomputed_top_target") return t("routeMatchesTopTarget");
+  if (alignment === "differs_from_recomputed_top_target") return t("routeDiffersFromTop");
+  if (alignment === "runtime_target_missing_from_recompute") return t("routeTargetMissingNow");
+  return t("routeNotComboRouted");
 }
 
 function replayAlignmentVariant(alignment: NonNullable<DecisionReplay["recompute"]>["alignment"]) {
@@ -310,28 +315,28 @@ function replayAlignmentVariant(alignment: NonNullable<DecisionReplay["recompute
 }
 
 function WhyThisTargetCard({ replay }: { replay: DecisionReplay | undefined }) {
+  const t = useTranslations("analytics");
   const nodeMap = useProviderNodeMap();
   if (!replay) return null;
   const recompute = replay.recompute;
   const candidates = recompute?.candidates ?? [];
 
   return (
-    <Card
-      title="Why this target?"
-      subtitle="Exact runtime metadata plus read-only scoring replay"
-      icon="psychology"
-    >
+    <Card title={t("routeWhyTarget")} subtitle={t("routeWhyTargetSubtitle")} icon="psychology">
       <div className="flex flex-col gap-4">
         <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-text-main">Exact runtime log</div>
+              <div className="text-sm font-semibold text-text-main">
+                {t("routeExactRuntimeLog")}
+              </div>
               <div className="mt-1 truncate text-xs text-text-muted">
                 {resolveProviderName(replay.runtime.provider, nodeMap)} /{" "}
-                {replay.runtime.model || "unknown"}
+                {replay.runtime.model || t("unknown")}
               </div>
               <div className="mt-1 text-xs text-text-muted">
-                {formatDate(replay.runtime.timestamp)} · {replay.runtime.comboStepId || "no step"}
+                {formatDate(replay.runtime.timestamp)} ·{" "}
+                {replay.runtime.comboStepId || t("routeNoStep")}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -339,7 +344,7 @@ function WhyThisTargetCard({ replay }: { replay: DecisionReplay | undefined }) {
                 HTTP {replay.runtime.status || "n/a"}
               </Badge>
               <Badge variant="success" size="sm">
-                call_logs exact
+                {t("routeCallLogsExact")}
               </Badge>
             </div>
           </div>
@@ -349,25 +354,27 @@ function WhyThisTargetCard({ replay }: { replay: DecisionReplay | undefined }) {
           <div className="rounded-lg border border-black/5 bg-black/2 p-4 dark:border-white/5 dark:bg-white/2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-text-main">Read-only recompute</div>
+                <div className="text-sm font-semibold text-text-main">
+                  {t("routeReadOnlyRecompute")}
+                </div>
                 <div className="mt-1 text-xs text-text-muted">
                   {recompute.comboName} · {recompute.strategy} · {recompute.timeRange} /{" "}
                   {recompute.horizon}
                 </div>
               </div>
               <Badge variant={replayAlignmentVariant(recompute.alignment)} size="sm">
-                {replayAlignmentLabel(recompute.alignment)}
+                {replayAlignmentLabel(recompute.alignment, t)}
               </Badge>
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               <RouteMetric
                 icon="leaderboard"
-                label="Runtime rank now"
+                label={t("routeRuntimeRankNow")}
                 value={recompute.runtimeSelectedRank ? `#${recompute.runtimeSelectedRank}` : "n/a"}
               />
               <RouteMetric
                 icon="score"
-                label="Runtime score now"
+                label={t("routeRuntimeScoreNow")}
                 value={
                   recompute.runtimeSelectedScore !== null
                     ? `${Math.round(recompute.runtimeSelectedScore * 100)}%`
@@ -376,14 +383,14 @@ function WhyThisTargetCard({ replay }: { replay: DecisionReplay | undefined }) {
               />
               <RouteMetric
                 icon="looks_one"
-                label="Would select now"
+                label={t("routeWouldSelectNow")}
                 value={recompute.recomputedSelectedExecutionKey || "n/a"}
               />
             </div>
           </div>
         ) : (
           <div className="rounded-lg border border-warning/20 bg-warning/10 p-4 text-sm text-text-muted">
-            No combo candidate ranking can be recomputed for this request.
+            {t("routeNoRecomputeCandidates")}
           </div>
         )}
 
@@ -408,12 +415,12 @@ function WhyThisTargetCard({ replay }: { replay: DecisionReplay | undefined }) {
                       </span>
                       {candidate.isRuntimeSelected ? (
                         <Badge variant="primary" size="sm">
-                          Runtime
+                          {t("runtime")}
                         </Badge>
                       ) : null}
                       {candidate.wouldSelectNow ? (
                         <Badge variant="success" size="sm">
-                          Top now
+                          {t("routeTopNow")}
                         </Badge>
                       ) : null}
                     </div>
@@ -467,7 +474,7 @@ export default function RouteExplainabilityTab({
           signal,
           cache: "no-store",
         });
-        if (!response.ok) throw new Error("Failed to fetch request logs");
+        if (!response.ok) throw new Error(t("routeFetchLogsFailed"));
         const data = (await response.json()) as CallLogOption[];
         setLogs(data);
         setSelectedId((current) => {
@@ -480,35 +487,38 @@ export default function RouteExplainabilityTab({
         setError(null);
       } catch (fetchError) {
         if ((fetchError as Error).name === "AbortError") return;
-        setError(fetchError instanceof Error ? fetchError.message : "Failed to fetch request logs");
+        setError(fetchError instanceof Error ? fetchError.message : t("routeFetchLogsFailed"));
         setLogs([]);
       } finally {
         if (!signal?.aborted) setLogsLoading(false);
       }
     },
-    [initialRequestId]
+    [initialRequestId, t]
   );
 
-  const fetchExplanation = useCallback(async (requestId: string, signal?: AbortSignal) => {
-    if (!requestId) return;
-    setExplanationLoading(true);
-    try {
-      const response = await fetch(`/api/usage/route-explain/${encodeURIComponent(requestId)}`, {
-        signal,
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Failed to explain route");
-      const data = (await response.json()) as RouteExplainabilityResponse;
-      setExplanation(data);
-      setError(null);
-    } catch (fetchError) {
-      if ((fetchError as Error).name === "AbortError") return;
-      setError(fetchError instanceof Error ? fetchError.message : "Failed to explain route");
-      setExplanation(null);
-    } finally {
-      if (!signal?.aborted) setExplanationLoading(false);
-    }
-  }, []);
+  const fetchExplanation = useCallback(
+    async (requestId: string, signal?: AbortSignal) => {
+      if (!requestId) return;
+      setExplanationLoading(true);
+      try {
+        const response = await fetch(`/api/usage/route-explain/${encodeURIComponent(requestId)}`, {
+          signal,
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error(t("routeExplainFailed"));
+        const data = (await response.json()) as RouteExplainabilityResponse;
+        setExplanation(data);
+        setError(null);
+      } catch (fetchError) {
+        if ((fetchError as Error).name === "AbortError") return;
+        setError(fetchError instanceof Error ? fetchError.message : t("routeExplainFailed"));
+        setExplanation(null);
+      } finally {
+        if (!signal?.aborted) setExplanationLoading(false);
+      }
+    },
+    [t]
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -569,7 +579,7 @@ export default function RouteExplainabilityTab({
             {logs.map((log) => (
               <option key={log.id} value={log.id}>
                 {formatDate(log.timestamp)} · HTTP {log.status} ·{" "}
-                {log.comboName || resolveProviderName(log.provider, nodeMap) || "direct"} ·{" "}
+                {log.comboName || resolveProviderName(log.provider, nodeMap) || t("direct")} ·{" "}
                 {log.model || log.requestedModel || log.id}
               </option>
             ))}
@@ -583,7 +593,7 @@ export default function RouteExplainabilityTab({
         <Card className="p-8">
           <div className="flex flex-col items-center justify-center gap-3 text-center">
             <span className="material-symbols-outlined text-[40px] text-error">route_off</span>
-            <div className="font-medium text-text-main">Unable to load route explanation</div>
+            <div className="font-medium text-text-main">{t("routeUnableToLoad")}</div>
             <div className="text-sm text-text-muted">{error}</div>
             <button
               type="button"
@@ -591,7 +601,7 @@ export default function RouteExplainabilityTab({
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
             >
               <span className="material-symbols-outlined text-[18px]">refresh</span>
-              Retry
+              {t("retry")}
             </button>
           </div>
         </Card>
@@ -601,10 +611,9 @@ export default function RouteExplainabilityTab({
         <Card className="p-10">
           <div className="flex flex-col items-center justify-center gap-4 text-center">
             <span className="material-symbols-outlined text-[40px] text-text-muted/70">route</span>
-            <div className="text-base font-medium text-text-main">No request logs available</div>
+            <div className="text-base font-medium text-text-main">{t("routeNoRequestLogs")}</div>
             <div className="max-w-md text-sm text-text-muted">
-              Send traffic through OmniRoute first. Route explanations are generated from persisted
-              structured call logs.
+              {t("routeNoRequestLogsDescription")}
             </div>
           </div>
         </Card>
@@ -614,7 +623,7 @@ export default function RouteExplainabilityTab({
         <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
           <div className="flex flex-col gap-6">
             <Card
-              title="Decision summary"
+              title={t("routeDecisionSummary")}
               subtitle={selectedLog?.id || explanation.requestId}
               icon="alt_route"
             >
@@ -635,47 +644,53 @@ export default function RouteExplainabilityTab({
                           : "default"
                     }
                   >
-                    {explanation.confidence} confidence
+                    {t("routeConfidence", { confidence: explanation.confidence })}
                   </Badge>
                 </div>
                 <p className="text-sm text-text-muted">{explanation.summary}</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <RouteMetric
                     icon="analytics"
-                    label="Route score"
+                    label={t("routeScore")}
                     value={`${Math.round(explanation.score * 100)}%`}
                   />
                   <RouteMetric
                     icon="timer"
-                    label="Latency"
+                    label={t("latency")}
                     value={formatDuration(explanation.latencyActual)}
                   />
                   <RouteMetric
                     icon="task_alt"
-                    label="Recent success"
+                    label={t("routeRecentSuccess")}
                     value={`${explanation.targetStats.successRate}%`}
                   />
                   <RouteMetric
                     icon="bolt"
-                    label="Avg target latency"
+                    label={t("routeAvgTargetLatency")}
                     value={formatDuration(explanation.targetStats.avgLatencyMs)}
                   />
                 </div>
               </div>
             </Card>
 
-            <Card title="Selected target" icon="my_location">
+            <Card title={t("routeSelectedTarget")} icon="my_location">
               <div className="grid gap-3 text-sm">
                 {[
-                  ["Provider", resolveProviderName(explanation.selectedTarget.provider, nodeMap)],
-                  ["Model", explanation.selectedTarget.model || "n/a"],
-                  ["Account", explanation.selectedTarget.account || "n/a"],
-                  ["Connection", explanation.selectedTarget.connectionId || "n/a"],
-                  ["Combo", explanation.comboUsed || "Direct"],
-                  ["Step", explanation.selectedTarget.comboStepId || "n/a"],
                   [
-                    "Tokens",
-                    `${explanation.selectedTarget.tokensIn.toLocaleString()} in · ${explanation.selectedTarget.tokensOut.toLocaleString()} out`,
+                    t("provider"),
+                    resolveProviderName(explanation.selectedTarget.provider, nodeMap),
+                  ],
+                  [t("model"), explanation.selectedTarget.model || t("notAvailable")],
+                  [t("account"), explanation.selectedTarget.account || t("notAvailable")],
+                  [t("connection"), explanation.selectedTarget.connectionId || t("notAvailable")],
+                  [t("combo"), explanation.comboUsed || t("direct")],
+                  [t("routeStep"), explanation.selectedTarget.comboStepId || t("notAvailable")],
+                  [
+                    t("tokens"),
+                    t("routeTokenCounts", {
+                      input: explanation.selectedTarget.tokensIn.toLocaleString(),
+                      output: explanation.selectedTarget.tokensOut.toLocaleString(),
+                    }),
                   ],
                 ].map(([label, value]) => (
                   <div
@@ -693,7 +708,7 @@ export default function RouteExplainabilityTab({
 
             <WhyThisTargetCard replay={explanation.decisionReplay} />
 
-            <Card title="Evidence" icon="fact_check">
+            <Card title={t("routeEvidence")} icon="fact_check">
               <div className="flex flex-col gap-2">
                 {explanation.evidence.map((item) => (
                   <div
@@ -711,11 +726,7 @@ export default function RouteExplainabilityTab({
           </div>
 
           <div className="flex flex-col gap-6">
-            <Card
-              title="Routing factors"
-              subtitle="Weighted signals used for this explanation"
-              icon="schema"
-            >
+            <Card title={t("routeFactors")} subtitle={t("routeFactorsSubtitle")} icon="schema">
               <div className="grid gap-3 lg:grid-cols-2">
                 {explanation.decision.factors.map((factor) => (
                   <FactorCard key={factor.name} factor={factor} />
@@ -724,15 +735,15 @@ export default function RouteExplainabilityTab({
             </Card>
 
             <Card
-              title="Fallback and target timeline"
-              subtitle="Inferred from persisted call logs around this request"
+              title={t("routeFallbackTimeline")}
+              subtitle={t("routeFallbackTimelineSubtitle")}
               icon="timeline"
             >
               <TargetTimeline targets={explanation.relatedTargets} />
             </Card>
 
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card title="Recommendations" icon="tips_and_updates">
+              <Card title={t("routeRecommendations")} icon="tips_and_updates">
                 <ul className="flex flex-col gap-2 text-sm text-text-muted">
                   {explanation.recommendations.map((item) => (
                     <li key={item} className="flex items-start gap-2">
@@ -745,7 +756,7 @@ export default function RouteExplainabilityTab({
                 </ul>
               </Card>
 
-              <Card title="Limitations" icon="info">
+              <Card title={t("routeLimitations")} icon="info">
                 {explanation.limitations.length > 0 ? (
                   <ul className="flex flex-col gap-2 text-sm text-text-muted">
                     {explanation.limitations.map((item) => (
@@ -758,9 +769,7 @@ export default function RouteExplainabilityTab({
                     ))}
                   </ul>
                 ) : (
-                  <div className="text-sm text-text-muted">
-                    No known limitations for this explanation.
-                  </div>
+                  <div className="text-sm text-text-muted">{t("routeNoKnownLimitations")}</div>
                 )}
               </Card>
             </div>

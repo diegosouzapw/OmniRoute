@@ -12,6 +12,7 @@ import { getDbInstance } from "../db/core";
 import { collectReferencedArtifacts, selectCallLogIdsBefore } from "./callLogsBoundedQueries";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
+import { getCallLogApiKeyContext } from "./callLogApiKeyContext";
 import {
   getLoggedInputTokens,
   getLoggedOutputTokens,
@@ -88,10 +89,12 @@ type CallLogSummaryRow = {
   has_response_body: number | null;
   has_pipeline_details: number | null;
   request_summary: string | null;
+  provider_node_name?: string | null;
   provider_node_prefix?: string | null;
   resolved_account?: string | null;
   correlation_id?: string | null;
   model_pinned?: number | null;
+  session_tag?: string | null;
 };
 
 const RESOLVED_ACCOUNT_SQL = "COALESCE(NULLIF(pc.name, ''), NULLIF(pc.email, ''), cl.account)";
@@ -471,9 +474,27 @@ export function trimCallLogsToMaxRows(maxRows = getCallLogsTableMaxRows()) {
   return { deletedRows, deletedArtifacts };
 }
 
+function resolveProviderDisplay(
+  provider: string | null,
+  nodeName: string | null,
+  nodePrefix: string | null
+): string | null {
+  const rawProvider = toStringOrNull(provider);
+  if (!rawProvider) return null;
+
+  const name = toStringOrNull(nodeName)?.trim();
+  if (name) return name;
+
+  const prefix = toStringOrNull(nodePrefix)?.trim();
+  if (prefix) return prefix;
+
+  return null;
+}
+
 function mapSummaryRow(row: CallLogSummaryRow) {
   const detailState = normalizeDetailState(row.detail_state);
   const provider = row.provider;
+  const nodeName = row.provider_node_name ?? null;
   const nodePrefix = row.provider_node_prefix ?? null;
   return {
     id: row.id,
@@ -484,6 +505,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     model: row.model,
     requestedModel: applyNodePrefix(row.requested_model, provider, nodePrefix),
     provider,
+    providerDisplay: resolveProviderDisplay(provider, nodeName, nodePrefix),
     account: row.resolved_account || row.account,
     connectionId: row.connection_id,
     duration: toNumber(row.duration),
@@ -515,6 +537,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
     hasPipelineDetails: toNumber(row.has_pipeline_details) === 1,
     correlationId: row.correlation_id || null,
     modelPinned: toNumber(row.model_pinned) === 1,
+    sessionTag: row.session_tag || null,
   };
 }
 
@@ -550,7 +573,12 @@ export async function saveCallLog(entry: any) {
   if (!shouldPersistToDisk) return;
 
   try {
-    const apiKeyId = entry.apiKeyId || null;
+    const apiKeyContext = getCallLogApiKeyContext();
+    // `||` (not `??`): an empty-string apiKeyId/apiKeyName is "unattributed",
+    // same as before this fallback existed — it must not be persisted verbatim
+    // nor block the request-scoped context.
+    const apiKeyId = entry.apiKeyId || apiKeyContext?.apiKeyId || null;
+    const apiKeyName = entry.apiKeyName || apiKeyContext?.apiKeyName || null;
     const noLogEnabled = Boolean(entry.noLog) || (apiKeyId ? isNoLog(apiKeyId) : false);
 
     const protectedRequestBody = noLogEnabled ? null : protectPayloadForLog(entry.requestBody);
@@ -597,13 +625,14 @@ export async function saveCallLog(entry: any) {
       sourceFormat: entry.sourceFormat || null,
       targetFormat: entry.targetFormat || null,
       apiKeyId,
-      apiKeyName: entry.apiKeyName || null,
+      apiKeyName,
       comboName: entry.comboName || null,
       comboStepId: toStringOrNull(entry.comboStepId),
       comboExecutionKey:
         toStringOrNull(entry.comboExecutionKey) || toStringOrNull(entry.comboStepId),
       correlationId: entry.correlationId || null,
       modelPinned: entry.modelPinned ? 1 : 0,
+      sessionTag: entry.sessionTag || null,
     };
 
     const requestSummary = noLogEnabled
@@ -652,7 +681,7 @@ export async function saveCallLog(entry: any) {
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
-        correlation_id, model_pinned
+        correlation_id, model_pinned, session_tag
       )
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
@@ -663,7 +692,7 @@ export async function saveCallLog(entry: any) {
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
-        @correlationId, @modelPinned
+        @correlationId, @modelPinned, @sessionTag
       )
     `
     ).run({
@@ -737,11 +766,27 @@ if (shouldPersistToDisk && process.env.NODE_ENV !== "test") {
   scheduleCallLogRotation();
 }
 
+/**
+ * Pushes a `column LIKE %value%` condition (mirrors the correlationId/sessionTag substring-match
+ * precedent). Extracted so getCallLogs stays under the max-lines-per-function ratchet — #8249.
+ */
+function pushLikeFilter(
+  conditions: string[],
+  params: Record<string, unknown>,
+  column: string,
+  paramKey: string,
+  value: unknown
+) {
+  if (!value) return;
+  conditions.push(`cl.${column} LIKE @${paramKey}`);
+  params[paramKey] = `%${value}%`;
+}
+
 export async function getCallLogs(filter: any = {}) {
   const db = getDbInstance();
   let sql = `
     SELECT cl.*,
-      pn.prefix AS provider_node_prefix,
+      pn.name AS provider_node_name, pn.prefix AS provider_node_prefix,
       ${RESOLVED_ACCOUNT_SQL} AS resolved_account
     FROM call_logs cl
     LEFT JOIN provider_nodes pn ON pn.id = cl.provider
@@ -780,10 +825,8 @@ export async function getCallLogs(filter: any = {}) {
     conditions.push("(cl.api_key_name LIKE @apiKeyQ OR cl.api_key_id LIKE @apiKeyQ)");
     params.apiKeyQ = `%${filter.apiKey}%`;
   }
-  if (filter.correlationId) {
-    conditions.push("cl.correlation_id LIKE @correlationId");
-    params.correlationId = `%${filter.correlationId}%`;
-  }
+  pushLikeFilter(conditions, params, "correlation_id", "correlationId", filter.correlationId);
+  pushLikeFilter(conditions, params, "session_tag", "sessionTag", filter.sessionTag);
   if (filter.combo) {
     conditions.push("cl.combo_name IS NOT NULL");
   }
@@ -828,6 +871,7 @@ export async function getCallLogById(id: string) {
   const row = db
     .prepare(
       `SELECT cl.*,
+        pn.name AS provider_node_name,
         pn.prefix AS provider_node_prefix,
         ${RESOLVED_ACCOUNT_SQL} AS resolved_account
        FROM call_logs cl

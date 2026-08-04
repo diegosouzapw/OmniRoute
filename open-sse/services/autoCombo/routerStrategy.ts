@@ -41,6 +41,7 @@ export interface RoutingDecision {
   reason: string;
   candidatesConsidered: number;
   finalScore: number;
+  connectionId?: string;
 }
 
 export interface RouterStrategy {
@@ -103,6 +104,7 @@ class RulesStrategyImpl implements RouterStrategy {
       reason: `RulesStrategy: score=${best.score.toFixed(3)} (quota=${best.factors.quota.toFixed(2)}, health=${best.factors.health.toFixed(2)}, cost=${best.factors.costInv.toFixed(2)}, taskFit=${best.factors.taskFit.toFixed(2)})`,
       candidatesConsidered: ranked.length,
       finalScore: best.score,
+      connectionId: best.connectionId,
     };
   }
 }

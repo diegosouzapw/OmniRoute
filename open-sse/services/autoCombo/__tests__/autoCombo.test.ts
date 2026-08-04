@@ -195,10 +195,12 @@ describe("Self-Healing", () => {
 });
 
 describe("Mode Packs", () => {
-  it("should have 5 mode packs", () => {
+  it("should have 6 mode packs", () => {
     // #4235 Phase B added reliability-first (for the `:reliable` tier).
-    expect(getModePackNames()).toHaveLength(5);
+    // chaos-mode added for the `auto/chaos` parallel-dispatch variant.
+    expect(getModePackNames()).toHaveLength(6);
     expect(getModePackNames()).toContain("reliability-first");
+    expect(getModePackNames()).toContain("chaos-mode");
   });
 
   it("reliability-first should prioritize health and stability", () => {
@@ -620,6 +622,12 @@ describe("Task Fitness DB Resolution Chain", () => {
     expect(() => invalidateFitnessCache()).not.toThrow();
   });
 
+  it("resolution chain: static table matches longest pattern first (gpt-4o-mini vs gpt-4o)", () => {
+    // gpt-4o-mini must match "gpt-4o-mini" (0.8) rather than earlier "gpt-4o" (0.9)
+    const score = getTaskFitness("gpt-4o-mini", "coding");
+    expect(score).toBe(0.8);
+  });
+
   it("resolution chain: static table takes priority over wildcard for known models", () => {
     // "claude-sonnet" is in the static table with coding=0.95
     // It does NOT match "coder" wildcard because the static table is checked first
@@ -646,5 +654,12 @@ describe("Task Fitness DB Resolution Chain", () => {
     const upperScore = getTaskFitness("claude-sonnet", "CODING");
     const lowerScore = getTaskFitness("claude-sonnet", "coding");
     expect(upperScore).toBe(lowerScore);
+  });
+
+  it("normalizes -free model suffix when looking up fitness table and wildcard boosts", () => {
+    const baseResult = getTaskFitnessWithSource("claude-sonnet", "coding");
+    const freeResult = getTaskFitnessWithSource("claude-sonnet-free", "coding");
+    expect(freeResult.source).toBe(baseResult.source);
+    expect(freeResult.score).toBe(baseResult.score);
   });
 });

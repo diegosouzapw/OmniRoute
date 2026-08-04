@@ -16,7 +16,9 @@ test("#3321: Cline catalog exposes the verified OpenRouter free additions", () =
   assert.ok(minimax, "cline must expose minimax/minimax-m3");
   assert.equal(minimax.contextLength, 1048576);
 
-  const nemotron = byId.get("nvidia/nemotron-3-ultra-550b-a55b");
-  assert.ok(nemotron, "cline must expose nvidia/nemotron-3-ultra-550b-a55b");
-  assert.equal(nemotron.contextLength, 1048576);
+  // Upstream OpenRouter id carries the `:free` variant suffix (confirmed against the
+  // real OpenRouter free lineup) — 1M context, not 1048576.
+  const nemotron = byId.get("nvidia/nemotron-3-ultra-550b-a55b:free");
+  assert.ok(nemotron, "cline must expose nvidia/nemotron-3-ultra-550b-a55b:free");
+  assert.equal(nemotron.contextLength, 1000000);
 });

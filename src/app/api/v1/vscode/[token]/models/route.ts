@@ -25,6 +25,7 @@ import {
 	parseVscodeServiceTierVariantModelId,
 } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
 import { getFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/[token]/familyFirstModelIds";
+import { isUsableChatModel } from "@/app/api/v1/vscode/[token]/usableChatModel";
 
 type CatalogModelEntry = {
 	id?: string;
@@ -72,31 +73,12 @@ type EnrichModelForVscodeOptions = {
 	preserveNativeId?: boolean;
 };
 
-function isUsableChatModel(model: CatalogModelEntry) {
-	if (typeof model.owned_by === "string" && model.owned_by.trim().toLowerCase() === "combo") {
-		return false;
-	}
-	if (typeof model.parent === "string" && model.parent.length > 0) return false;
-	if (typeof model.type === "string" && model.type !== "chat") return false;
-	if (typeof model.api_format === "string" && model.api_format !== "chat-completions") {
-		return false;
-	}
-	if (
-		Array.isArray(model.supported_endpoints) &&
-		model.supported_endpoints.length > 0 &&
-		!model.supported_endpoints.includes("chat")
-	) {
-		return false;
-	}
-	if (
-		Array.isArray(model.output_modalities) &&
-		model.output_modalities.length > 0 &&
-		!model.output_modalities.includes("text")
-	) {
-		return false;
-	}
-
-	return true;
+function usesResponsesApi(model: CatalogModelEntry) {
+	return (
+		model.api_format === "responses" ||
+		model.api_format === "openai-responses" ||
+		model.supported_endpoints?.includes("responses") === true
+	);
 }
 
 function getModelImportReasoningEffortValues(model: VscodeCatalogModel, reasoningEffortValues: string[]) {
@@ -230,9 +212,10 @@ export function enrichModelForVscode(
 		name: options.preserveNativeId
 			? getVscodeRawModelDisplayName(presentationModel)
 			: getVscodeModelDisplayName(presentationModel),
-		url: reasoningEffortValues
-			? `${tokenBaseUrl}/responses#models.ai.azure.com`
-			: `${tokenBaseUrl}/chat/completions#models.ai.azure.com`,
+		url:
+			reasoningEffortValues || usesResponsesApi(model)
+				? `${tokenBaseUrl}/responses#models.ai.azure.com`
+				: `${tokenBaseUrl}/chat/completions#models.ai.azure.com`,
 		toolCalling: resolvedCapabilities.toolCalling === true,
 		vision: resolvedCapabilities.supportsVision === true,
 		maxInputTokens:

@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.8.49",
+  "version": "3.8.50",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -28,7 +28,7 @@
     "electron-updater": "^6.8.9"
   },
   "devDependencies": {
-    "electron": "^43.1.0",
+    "electron": "^43.2.0",
     "electron-builder": "^26.15.3"
   },
   "overrides": {
@@ -60,6 +60,7 @@
       "processTree.js",
       "sqlite-inspection.js",
       "lib/resolveServerEntry.js",
+      "lib/resolveNodeHelper.js",
       "package.json",
       "node_modules/**/*"
     ],

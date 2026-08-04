@@ -17,6 +17,11 @@ import { getAppLogFilePath } from "../logEnv";
 import { protectPayloadForLog } from "../logPayloads";
 import { sanitizePII } from "../piiSanitizer";
 import { writeCallArtifact, type CallLogArtifact } from "./callLogArtifacts";
+import {
+  resolveImportedUsageAccountIdentity,
+  resolveOrphanedUsageAccountIdentity,
+  resolveUsageAccountIdentity,
+} from "./accountIdentity";
 
 export const shouldPersistToDisk = !isCloud && !isBuildPhase;
 
@@ -308,20 +313,32 @@ export function migrateUsageJsonToSqlite() {
         console.log(`[usageDb] Migrating ${history.length} usage entries from JSON → SQLite...`);
 
         const insert = db.prepare(`
-          INSERT INTO usage_history (provider, model, connection_id, api_key_id, api_key_name,
-            tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-            status, success, latency_ms, ttft_ms, error_code, combo_strategy, timestamp)
-          VALUES (@provider, @model, @connectionId, @apiKeyId, @apiKeyName,
-            @tokensInput, @tokensOutput, @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
-            @status, @success, @latencyMs, @ttftMs, @errorCode, @comboStrategy, @timestamp)
+          INSERT INTO usage_history (provider, model, connection_id, account_key, account_label,
+            account_label_priority, api_key_id, api_key_name, tokens_input, tokens_output,
+            tokens_cache_read, tokens_cache_creation, tokens_reasoning, status, success, latency_ms,
+            ttft_ms, error_code, combo_strategy, timestamp)
+          VALUES (@provider, @model, @connectionId, @accountKey, @accountLabel,
+            @accountLabelPriority, @apiKeyId, @apiKeyName, @tokensInput, @tokensOutput,
+            @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @status, @success,
+            @latencyMs, @ttftMs, @errorCode, @comboStrategy, @timestamp)
         `);
+        const findConnection = db.prepare("SELECT * FROM provider_connections WHERE id = ?");
 
         const tx = db.transaction(() => {
           for (const entry of history) {
+            const connectionId = entry.connectionId || entry.connection_id || null;
+            const connection = connectionId ? findConnection.get(connectionId) : null;
+            const fallbackIdentity = connection
+              ? resolveUsageAccountIdentity(connection)
+              : resolveOrphanedUsageAccountIdentity(entry.provider, connectionId);
+            const identity = resolveImportedUsageAccountIdentity(entry, fallbackIdentity);
             insert.run({
               provider: entry.provider || null,
               model: entry.model || null,
-              connectionId: entry.connectionId || null,
+              connectionId,
+              accountKey: identity.accountKey,
+              accountLabel: identity.accountLabel,
+              accountLabelPriority: identity.accountLabelPriority,
               apiKeyId: entry.apiKeyId || null,
               apiKeyName: entry.apiKeyName || null,
               tokensInput:

@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 import {
-  clearAntigravityVersionCache,
-  seedAntigravityVersionCache,
+  clearAntigravityVersionCaches,
+  seedAntigravityIdeVersionCache,
+  seedAntigravityCliVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 
 // Ports decolua/9router#2461: a non-ok (e.g. 403) Antigravity upstream response in the
@@ -15,13 +16,14 @@ import {
 // end up surfaced verbatim in the client-visible error message, corrupting it (reporters
 // saw literal control-byte garbage after "[ERROR] [403]:").
 test.afterEach(() => {
-  clearAntigravityVersionCache();
+  clearAntigravityVersionCaches();
 });
 
 test("AntigravityExecutor.execute (stream=true) sanitizes a non-ok upstream body instead of piping raw bytes", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
-  seedAntigravityVersionCache("2026.04.17-test");
+  seedAntigravityIdeVersionCache("2026.04.17-test");
+  seedAntigravityCliVersionCache("2026.04.17-test");
 
   // Simulate a gzip-compressed 403 body (magic bytes 0x1f 0x8b), the exact shape
   // reported upstream — reading it as text without decoding produces garbage.

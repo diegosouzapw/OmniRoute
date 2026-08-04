@@ -4,8 +4,8 @@
  *
  * Extracted from handleChatCore's execute() closure: prepares the body actually sent upstream for a
  * given target model. Pins the model id, applies the configured payload rules, truncates the tool
- * list to the provider's effective limit, backfills a default `user` for Qwen OAuth requests, and
- * injects an OpenAI `prompt_cache_key` for caching-capable providers. Pure with respect to handler
+ * list to the provider's effective limit and injects an OpenAI `prompt_cache_key` for
+ * caching-capable providers. Pure with respect to handler
  * state (returns a fresh body, only logs as a side effect); behaviour is byte-identical to the
  * previous inline block. Split into small private steps so each stays under the complexity cap.
  */
@@ -15,12 +15,24 @@ import {
   resolvePayloadRuleProtocols,
 } from "../../services/payloadRules.ts";
 import { getEffectiveToolLimit, getKnownToolLimit } from "../../services/toolLimitDetector.ts";
-import { providerSupportsCaching } from "../../utils/cacheControlPolicy.ts";
+import {
+  providerSupportsCaching,
+  resolveConnectionCacheOverride,
+  type ConnectionCacheOverride,
+} from "../../utils/cacheControlPolicy.ts";
 import { FORMATS } from "../../translator/formats.ts";
+import { sanitizeRequestForResolvedTarget } from "../../services/targetRequestSanitizer.ts";
 
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 type Body = Record<string, unknown>;
-type CredentialsLike = { apiKey?: unknown; accessToken?: unknown } | null | undefined;
+type CredentialsLike =
+  | {
+      apiKey?: unknown;
+      accessToken?: unknown;
+      providerSpecificData?: Record<string, unknown> | null;
+    }
+  | null
+  | undefined;
 
 function buildAppliedRulesSummary(
   applied: Array<{ type: string; path: string; value?: unknown }>
@@ -75,36 +87,16 @@ function truncateToolList(
   return bodyToSend;
 }
 
-// Qwen OAuth rejects requests without a non-empty `user` field. Some minimal OpenAI-compatible
-// clients omit it, so we backfill a stable default only for OAuth mode (API key mode is unaffected).
-function backfillQwenOAuthUser(
-  bodyToSend: Body,
-  provider: string | null | undefined,
-  credentials: CredentialsLike,
-  log?: LoggerLike
-): Body {
-  const hasValidQwenUser = typeof bodyToSend.user === "string" && bodyToSend.user.trim().length > 0;
-  const isQwenOAuthRequest =
-    provider === "qwen" &&
-    !credentials?.apiKey &&
-    typeof credentials?.accessToken === "string" &&
-    credentials.accessToken.trim().length > 0;
-  if (isQwenOAuthRequest && !hasValidQwenUser) {
-    bodyToSend = { ...bodyToSend, user: "omniroute-qwen-oauth" };
-    log?.debug?.("QWEN", "Injected fallback user for OAuth request");
-  }
-  return bodyToSend;
-}
-
 // Inject prompt_cache_key only for providers that support it.
 async function injectPromptCacheKey(
   bodyToSend: Body,
   provider: string | null | undefined,
-  targetFormat: string
+  targetFormat: string,
+  connectionCacheOverride: ConnectionCacheOverride | null
 ): Promise<Body> {
   if (
     targetFormat === FORMATS.OPENAI &&
-    providerSupportsCaching(provider) &&
+    providerSupportsCaching(provider, undefined, connectionCacheOverride) &&
     !bodyToSend.prompt_cache_key &&
     Array.isArray(bodyToSend.messages) &&
     !["nvidia", "codex", "xai"].includes(provider)
@@ -160,9 +152,19 @@ export async function prepareUpstreamBody(opts: {
     );
   }
 
+  bodyToSend = sanitizeRequestForResolvedTarget(bodyToSend, {
+    provider,
+    model: payloadRuleModel,
+    log,
+  });
   bodyToSend = truncateToolList(bodyToSend, provider, bypassDefaultToolLimit ?? false, log);
-  bodyToSend = backfillQwenOAuthUser(bodyToSend, provider, credentials, log);
-  bodyToSend = await injectPromptCacheKey(bodyToSend, provider, targetFormat);
+  const connectionCacheOverride = resolveConnectionCacheOverride(credentials?.providerSpecificData);
+  bodyToSend = await injectPromptCacheKey(
+    bodyToSend,
+    provider,
+    targetFormat,
+    connectionCacheOverride
+  );
 
   return bodyToSend;
 }

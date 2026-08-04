@@ -13,6 +13,7 @@ import assert from "node:assert/strict";
 
 const { opencode_goProvider } =
   await import("../../open-sse/config/providers/registry/opencode/go/index.ts");
+const { getResolvedModelCapabilities } = await import("../../src/lib/modelCapabilities.ts");
 
 function modelIds(): string[] {
   return (opencode_goProvider.models ?? []).map((m) => m.id);
@@ -50,4 +51,14 @@ test("opencode-go preserves the pre-existing minimax-m3 and qwen routing via tar
   );
   assert.equal(byId.get("minimax-m3")?.targetFormat, "claude");
   assert.equal(byId.get("qwen3.7-max")?.targetFormat, "claude");
+});
+
+test("opencode-go hy3 variants expose their context window to combo compatibility filtering", () => {
+  for (const modelId of ["hy3", "hy3-none", "hy3-low", "hy3-high"]) {
+    assert.equal(
+      getResolvedModelCapabilities(`opencode-go/${modelId}`).contextWindow,
+      256000,
+      `${modelId} should resolve a 256K context window`
+    );
+  }
 });

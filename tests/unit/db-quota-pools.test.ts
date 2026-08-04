@@ -85,7 +85,7 @@ test("listPools returns all pools in creation order", () => {
   poolsDb.createPool({ connectionId: "c1", name: "First" });
   poolsDb.createPool({ connectionId: "c2", name: "Second" });
 
-  const pools = poolsDb.listPools();
+  const { items: pools } = poolsDb.listPools();
   assert.equal(pools.length, 2);
   assert.equal(pools[0].name, "First");
   assert.equal(pools[1].name, "Second");

@@ -91,7 +91,7 @@ describe("Pipeline Wiring — instrumentation-node.ts", () => {
     // or it never runs in production. initArenaEloSync self-gates through the feature flag
     // resolver so ARENA_ELO_SYNC_ENABLED and dashboard overrides still apply.
     assert.match(src, /initArenaEloSync/);
-    assert.match(src, /const started = await initArenaEloSync\(\)/);
+    assert.match(src, /m\.initArenaEloSync\(\)/);
   });
 
   it("should initialize pricing + models.dev sync on the live startup path (self-gated, opt-in)", () => {

@@ -8,6 +8,8 @@
  * affects the request. Behaviour is byte-identical to the previous inline block.
  */
 
+import type { ConnectionCacheOverride } from "../../utils/cacheControlPolicy.ts";
+
 type LoggerLike = { debug?: (...args: unknown[]) => void } | null | undefined;
 
 export function recordCompressionCacheStats(args: {
@@ -17,6 +19,7 @@ export function recordCompressionCacheStats(args: {
   effectiveModel: string | null | undefined;
   mode: string;
   stats: { originalTokens: number; compressedTokens: number };
+  connectionCacheOverride?: ConnectionCacheOverride | null;
   log?: LoggerLike;
 }): void {
   void (async () => {
@@ -27,6 +30,7 @@ export function recordCompressionCacheStats(args: {
         provider: args.provider,
         targetFormat: args.targetFormat,
         model: args.effectiveModel,
+        connectionCacheOverride: args.connectionCacheOverride ?? null,
       });
       const tokensSavedCompression = Math.max(
         0,

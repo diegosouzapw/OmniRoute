@@ -1,38 +1,55 @@
-# OmniRoute A2A Server Documentation (Polski)
-
-🌐 **Languages:** 🇺🇸 [English](../../../../docs/A2A-SERVER.md) · 🇸🇦 [ar](../../ar/docs/A2A-SERVER.md) · 🇧🇬 [bg](../../bg/docs/A2A-SERVER.md) · 🇧🇩 [bn](../../bn/docs/A2A-SERVER.md) · 🇨🇿 [cs](../../cs/docs/A2A-SERVER.md) · 🇩🇰 [da](../../da/docs/A2A-SERVER.md) · 🇩🇪 [de](../../de/docs/A2A-SERVER.md) · 🇪🇸 [es](../../es/docs/A2A-SERVER.md) · 🇮🇷 [fa](../../fa/docs/A2A-SERVER.md) · 🇫🇮 [fi](../../fi/docs/A2A-SERVER.md) · 🇫🇷 [fr](../../fr/docs/A2A-SERVER.md) · 🇮🇳 [gu](../../gu/docs/A2A-SERVER.md) · 🇮🇱 [he](../../he/docs/A2A-SERVER.md) · 🇮🇳 [hi](../../hi/docs/A2A-SERVER.md) · 🇭🇺 [hu](../../hu/docs/A2A-SERVER.md) · 🇮🇩 [id](../../id/docs/A2A-SERVER.md) · 🇮🇹 [it](../../it/docs/A2A-SERVER.md) · 🇯🇵 [ja](../../ja/docs/A2A-SERVER.md) · 🇰🇷 [ko](../../ko/docs/A2A-SERVER.md) · 🇮🇳 [mr](../../mr/docs/A2A-SERVER.md) · 🇲🇾 [ms](../../ms/docs/A2A-SERVER.md) · 🇳🇱 [nl](../../nl/docs/A2A-SERVER.md) · 🇳🇴 [no](../../no/docs/A2A-SERVER.md) · 🇵🇭 [phi](../../phi/docs/A2A-SERVER.md) · 🇵🇱 [pl](../../pl/docs/A2A-SERVER.md) · 🇵🇹 [pt](../../pt/docs/A2A-SERVER.md) · 🇧🇷 [pt-BR](../../pt-BR/docs/A2A-SERVER.md) · 🇷🇴 [ro](../../ro/docs/A2A-SERVER.md) · 🇷🇺 [ru](../../ru/docs/A2A-SERVER.md) · 🇸🇰 [sk](../../sk/docs/A2A-SERVER.md) · 🇸🇪 [sv](../../sv/docs/A2A-SERVER.md) · 🇰🇪 [sw](../../sw/docs/A2A-SERVER.md) · 🇮🇳 [ta](../../ta/docs/A2A-SERVER.md) · 🇮🇳 [te](../../te/docs/A2A-SERVER.md) · 🇹🇭 [th](../../th/docs/A2A-SERVER.md) · 🇹🇷 [tr](../../tr/docs/A2A-SERVER.md) · 🇺🇦 [uk-UA](../../uk-UA/docs/A2A-SERVER.md) · 🇵🇰 [ur](../../ur/docs/A2A-SERVER.md) · 🇻🇳 [vi](../../vi/docs/A2A-SERVER.md) · 🇨🇳 [zh-CN](../../zh-CN/docs/A2A-SERVER.md)
-
+---
+title: "Dokumentacja serwera A2A OmniRoute"
+version: 3.8.40
+lastUpdated: 2026-06-28
 ---
 
-> Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent
+# Dokumentacja serwera A2A OmniRoute
 
-## Agent Discovery
+> Agent-to-Agent Protocol v0.3 — OmniRoute jako inteligentny agent routingu
+
+Powierzchnia A2A ma dwie twarze:
+
+- **JSON-RPC 2.0** pod `POST /a2a` (kanoniczny punkt wejścia, zdefiniowany w `src/app/a2a/route.ts`).
+- **REST** pod `/api/a2a/*` dla dashboardów i narzędzi (status, lista zadań, anulowanie).
+
+Zadania są śledzone przez `A2ATaskManager` (`src/lib/a2a/taskManager.ts`, domyślny TTL 5 minut). Skills są dysponowane przez `A2A_SKILL_HANDLERS` w `src/lib/a2a/taskExecution.ts`.
+
+## Odkrywanie agenta
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
 ```
 
-Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements.
+Zwraca Agent Card opisującą możliwości OmniRoute, skills oraz wymagania uwierzytelniania.
+
+Pole `version` w Agent Card pochodzi z `process.env.npm_package_version` (zob. `src/app/.well-known/agent.json/route.ts:13`), więc pozostaje automatycznie zsynchronizowane z `package.json` przy każdym release.
 
 ---
 
-## Authentication
+## Uwierzytelnianie
 
-All `/a2a` requests require an API key via the `Authorization` header:
+Wszystkie żądania `/a2a` wymagają klucza API w nagłówku `Authorization`:
 
 ```
 Authorization: Bearer YOUR_OMNIROUTE_API_KEY
 ```
 
-If no API key is configured on the server, authentication is bypassed.
+Jeśli na serwerze nie skonfigurowano klucza API, uwierzytelnianie jest pomijane.
+
+## Włączanie
+
+A2A jest sterowane przełącznikiem **Endpoints → A2A** i domyślnie jest wyłączone. Gdy jest wyłączone,
+`GET /api/a2a/status` raportuje `status: "disabled"` oraz `online: false`; wywołania JSON-RPC do
+`POST /a2a` zwracają HTTP 503 z kodem błędu JSON-RPC `-32000`.
 
 ---
 
-## JSON-RPC 2.0 Methods
+## Metody JSON-RPC 2.0
 
-### `message/send` — Synchronous Execution
+### `message/send` — wykonanie synchroniczne
 
-Sends a message to a skill and waits for the complete response.
+Wysyła wiadomość do skillu i czeka na pełną odpowiedź.
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -50,7 +67,7 @@ curl -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**Response:**
+**Odpowiedź:**
 
 ```json
 {
@@ -71,9 +88,9 @@ curl -X POST http://localhost:20128/a2a \
 }
 ```
 
-### `message/stream` — SSE Streaming
+### `message/stream` — streaming SSE
 
-Same as `message/send` but returns Server-Sent Events for real-time streaming.
+Tak samo jak `message/send`, ale zwraca Server-Sent Events do streamingu w czasie rzeczywistym.
 
 ```bash
 curl -N -X POST http://localhost:20128/a2a \
@@ -90,7 +107,7 @@ curl -N -X POST http://localhost:20128/a2a \
   }'
 ```
 
-**SSE Events:**
+**Zdarzenia SSE:**
 
 ```
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"working"},"chunk":{"type":"text","content":"..."}}}
@@ -100,7 +117,7 @@ data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","s
 data: {"jsonrpc":"2.0","method":"message/stream","params":{"task":{"id":"...","state":"completed"},"metadata":{...}}}
 ```
 
-### `tasks/get` — Query Task Status
+### `tasks/get` — zapytanie o status zadania
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -109,7 +126,7 @@ curl -X POST http://localhost:20128/a2a \
   -d '{"jsonrpc":"2.0","id":"2","method":"tasks/get","params":{"taskId":"TASK_UUID"}}'
 ```
 
-### `tasks/cancel` — Cancel a Task
+### `tasks/cancel` — anulowanie zadania
 
 ```bash
 curl -X POST http://localhost:20128/a2a \
@@ -120,16 +137,93 @@ curl -X POST http://localhost:20128/a2a \
 
 ---
 
-## Available Skills
+## Dostępne skills
 
-| Skill              | Description                                                                                                                     |
-| :----------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `smart-routing`    | Routes prompts through OmniRoute's intelligent pipeline. Returns response with routing explanation, cost, and resilience trace. |
-| `quota-management` | Answers natural-language queries about provider quotas, suggests free combos, and provides quota rankings.                      |
+OmniRoute udostępnia 6 skills A2A podpiętych w `src/lib/a2a/taskExecution.ts::A2A_SKILL_HANDLERS`. Każdy moduł skillu znajduje się w `src/lib/a2a/skills/`.
+
+| Skill              | ID                   | Opis                                                                                                                   | Tagi                       | Przykłady                              |
+| :----------------- | :------------------- | :--------------------------------------------------------------------------------------------------------------------- | :------------------------- | :------------------------------------- |
+| Smart Routing      | `smart-routing`      | Kieruje prompt przez optymalny provider/combo, używając silnika combo + scoringu OmniRoute                             | routing, providers         | "Route this prompt via the best model" |
+| Quota Management   | `quota-management`   | Raportuje stan quota per provider; pomaga decydować, kiedy throttlować/przełączać                                      | quota, providers           | "Check quota for anthropic"            |
+| Provider Discovery | `provider-discovery` | Listuje zainstalowanych providerów z możliwościami, flagami free-tier i statusem OAuth                                 | providers, discovery       | "What providers are available?"        |
+| Cost Analysis      | `cost-analysis`      | Szacuje koszt żądania/rozmowy na podstawie katalogu + niedawnego usage                                                 | cost, usage                | "Estimate cost for this conversation"  |
+| Health Report      | `health-report`      | Agreguje stan circuit breakera, cooldown i lockout per provider                                                        | health, resilience         | "Show health status of all providers"  |
+| List Capabilities  | `list-capabilities`  | Zwraca pełny 42-elementowy katalog Agent Skills jako tabelę markdown z raw URL-ami SKILL.md do wstrzykiwania kontekstu | catalog, discovery, skills | "List all OmniRoute capabilities"      |
+
+> Uwaga: opis Agent Card obecnie reklamuje „36+ providers” (`src/app/.well-known/agent.json/route.ts:26` oraz `:55`). Faktyczny katalog urósł do 180+ providerów — ten string powinien zostać zaktualizowany w osobnej zmianie (śledzone jako osobne TODO w docs/kodzie; tutaj nie modyfikowane).
+
+### Szczegóły skillu `list-capabilities`
+
+Skill `list-capabilities` jest szczególnie przydatny dla zewnętrznych agentów, które muszą odkryć, co OmniRoute udostępnia, zanim wyślą wywołania API. Zwraca ustrukturyzowany artefakt w postaci tabeli markdown:
+
+```
+| ID | Name | Category | Area | Endpoints/Commands | Raw URL |
+| --- | --- | --- | --- | --- | --- |
+| omni-auth | Auth & Sessions | api | auth | POST /api/auth/login, ... | https://raw.githubusercontent.com/... |
+...
+```
+
+Każdy wiersz zawiera kolumnę `rawUrl`, dzięki czemu agenci mogą od razu pobrać pełny SKILL.md. Pole `metadata.totalSkills` ma zawsze wartość `42`. Implementacja: `src/lib/a2a/skills/listCapabilities.ts`. Zobacz też [AGENT-SKILLS.md](./AGENT-SKILLS.md).
 
 ---
 
-## Task Lifecycle
+## REST API (pomocnicze)
+
+Endpoint JSON-RPC `/a2a` jest kanonicznym punktem wejścia A2A. Poniższe endpointy REST zapewniają dostęp pomocniczy dla dashboardów i zewnętrznych narzędzi:
+
+| Endpoint                     | Method | Opis                                  | Auth                   |
+| :--------------------------- | :----- | :------------------------------------ | :--------------------- |
+| `/api/a2a/status`            | GET    | Status serwera, zarejestrowane skills | (public)               |
+| `/api/a2a/tasks`             | GET    | Lista zadań z filtrami                | management             |
+| `/api/a2a/tasks/[id]`        | GET    | Pobierz zadanie po ID                 | management             |
+| `/api/a2a/tasks/[id]/cancel` | POST   | Anuluj działające zadanie             | management             |
+| `/.well-known/agent.json`    | GET    | Agent Card (odkrywanie A2A)           | (public, cached 3600s) |
+
+---
+
+## Dodawanie nowego skillu
+
+1. **Utwórz plik skillu:** `src/lib/a2a/skills/<your-skill>.ts`
+
+   Wyeksportuj funkcję asynchroniczną `(task: A2ATask) => Promise<{ artifacts, metadata }>`. Naśladuj kształt istniejących skills, np. `smartRouting.ts`.
+
+2. **Zarejestruj handler:** w `src/lib/a2a/taskExecution.ts` dodaj wpis do `A2A_SKILL_HANDLERS`:
+
+   ```typescript
+   export const A2A_SKILL_HANDLERS = {
+     // ...existing skills
+     "your-skill": async (task) => {
+       const skillModule = await import("./skills/yourSkill");
+       return skillModule.executeYourSkill(task);
+     },
+   };
+   ```
+
+3. **Udostępnij w Agent Card:** w `src/app/.well-known/agent.json/route.ts` dołącz do tablicy `skills`:
+
+   ```json
+   {
+     "id": "your-skill",
+     "name": "Your Skill",
+     "description": "Brief, intent-focused description",
+     "tags": ["routing", "quota"],
+     "examples": ["Sample natural-language invocation"]
+   }
+   ```
+
+4. **Napisz testy:** `tests/unit/a2a-<your-skill>.test.ts`. Pokryj happy path + error path.
+
+5. **Udokumentuj** nowy skill w tabeli `Available Skills` w tym pliku.
+
+---
+
+## TTL zadania
+
+Zadania wygasają po `ttlMinutes` (domyślnie 5 min) — skonfigurowane w konstruktorze `A2ATaskManager` pod `src/lib/a2a/taskManager.ts:82`. Aby dostosować, sforkuj instancjonowanie `A2ATaskManager` i przekaż inną wartość (np. `new A2ATaskManager(15)` dla TTL 15 minut). Interwał w tle zamiata wygasłe zadania co 60 sekund.
+
+---
+
+## Cykl życia zadania
 
 ```
 submitted → working → completed
@@ -137,25 +231,26 @@ submitted → working → completed
                     → cancelled
 ```
 
-- Tasks expire after 5 minutes (configurable)
-- Terminal states: `completed`, `failed`, `cancelled`
-- Event log tracks every state transition
+- Zadania wygasają domyślnie po 5 minutach (zob. [TTL zadania](#ttl-zadania))
+- Stany terminalne: `completed`, `failed`, `cancelled`
+- Dziennik zdarzeń śledzi każde przejście stanu
 
 ---
 
-## Error Codes
+## Kody błędów
 
-| Code   | Meaning                        |
-| :----- | :----------------------------- |
-| -32700 | Parse error (invalid JSON)     |
-| -32600 | Invalid request / Unauthorized |
-| -32601 | Method or skill not found      |
-| -32602 | Invalid params                 |
-| -32603 | Internal error                 |
+| Kod    | Znaczenie                            |
+| :----- | :----------------------------------- |
+| -32700 | Błąd parsowania (nieprawidłowy JSON) |
+| -32600 | Nieprawidłowe żądanie / Unauthorized |
+| -32601 | Nie znaleziono metody lub skillu     |
+| -32602 | Nieprawidłowe params                 |
+| -32603 | Błąd wewnętrzny                      |
+| -32000 | Endpoint A2A jest wyłączony          |
 
 ---
 
-## Integration Examples
+## Przykłady integracji
 
 ### Python (requests)
 

@@ -59,7 +59,7 @@ test("batch-delete removes multiple existing proxies in one request", async () =
   assert.equal(body.deleted, 2);
   assert.equal(body.failed, 0);
   // Both are actually gone from the store.
-  const remaining = await proxiesDb.listProxies({ includeSecrets: false });
+  const { items: remaining } = await proxiesDb.listProxies({ includeSecrets: false });
   assert.equal(remaining.filter((p) => p.id === a.id || p.id === b.id).length, 0);
 });
 

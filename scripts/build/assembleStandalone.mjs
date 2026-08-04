@@ -178,6 +178,21 @@ const EXTRA_MODULE_ENTRIES = [
     dest: ["build", "bootstrap-env.mjs"],
   },
   {
+    label: "normalizeBasePath helper",
+    src: ["scripts", "build", "normalizeBasePath.mjs"],
+    dest: ["build", "normalizeBasePath.mjs"],
+  },
+  {
+    label: "docker basePath entrypoint",
+    src: ["scripts", "docker", "ensure-docker-base-path.mjs"],
+    dest: ["docker", "ensure-docker-base-path.mjs"],
+  },
+  {
+    label: "docker basePath patcher",
+    src: ["scripts", "docker", "patch-standalone-base-path.mjs"],
+    dest: ["docker", "patch-standalone-base-path.mjs"],
+  },
+  {
     label: "healthcheck script",
     src: ["scripts", "dev", "healthcheck.mjs"],
     dest: ["healthcheck.mjs"],
@@ -187,6 +202,22 @@ const EXTRA_MODULE_ENTRIES = [
     label: "playwright-core (dynamic import by gemini-web executor)",
     src: ["node_modules", "playwright-core"],
     dest: ["node_modules", "playwright-core"],
+  },
+  {
+    // esbuild's `--packages=external` leaves `undici` as a static top-level ESM
+    // import in the compiled MCP server bundle (dist/open-sse/mcp-server/server.js),
+    // resolved at module-link time. Next.js's standalone output-file tracer (nft)
+    // sometimes emits a hollow dist/node_modules/undici/ (package.json only), which
+    // SHADOWS the fully-populated sibling node_modules/undici and crashes
+    // `omniroute --mcp` at startup. See #7701.
+    label: "undici (MCP server static import — #7701)",
+    src: ["node_modules", "undici"],
+    dest: ["node_modules", "undici"],
+  },
+  {
+    label: "sql.js WASM fallback runtime",
+    src: ["node_modules", "sql.js"],
+    dest: ["node_modules", "sql.js"],
   },
   {
     label: "sqlite-vec wrapper (vector memory - loaded at runtime via createRequire)",

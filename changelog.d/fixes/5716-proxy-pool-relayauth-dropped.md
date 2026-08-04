@@ -1,1 +1,0 @@
-- fix(providers): preserve relayAuth for vercel/deno/cloudflare relay proxies referenced by-id from the no-auth-provider Proxy Pool dropdown (#5716)

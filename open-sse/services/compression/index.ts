@@ -10,6 +10,7 @@ export type {
   RtkConfig,
   RtkIntensity,
   RtkRawOutputRetention,
+  CodexResponsesConfig,
   CompressionEngineId,
   CompressionLanguageConfig,
   CompressionPipelineStep,
@@ -27,6 +28,7 @@ export {
   DEFAULT_RTK_CONFIG,
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_AGGRESSIVE_CONFIG,
+  DEFAULT_CODEX_RESPONSES_CONFIG,
 } from "./types.ts";
 
 export {
@@ -113,6 +115,7 @@ export {
   clearCompressionEngineRegistry,
 } from "./engines/registry.ts";
 export { registerBuiltinCompressionEngines } from "./engines/index.ts";
+export { codexResponsesEngine } from "./engines/codexResponses/index.ts";
 
 export { applyRtkCompression, processRtkText, rtkEngine } from "./engines/rtk/index.ts";
 export {

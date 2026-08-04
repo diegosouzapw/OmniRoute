@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import * as os from "node:os";
 
 // Antigravity and Windsurf public defaults come from
 // open-sse/utils/publicCreds.ts — no env override needed in this suite.
@@ -8,7 +9,6 @@ Object.assign(process.env, {
   CLAUDE_OAUTH_CLIENT_ID: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
   CODEX_OAUTH_CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
   GITLAB_DUO_OAUTH_CLIENT_ID: "gitlab-duo-client-id",
-  QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
   KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
   KIMI_CODING_DEVICE_ID: "test-kimi-device-id",
   GITHUB_OAUTH_CLIENT_ID: "Iv1.b507a08c87ecfe98",
@@ -30,18 +30,19 @@ const {
   CODEBUDDY_CN_CONFIG,
   ZED_CONFIG,
   CURSOR_CONFIG,
+  GHE_COPILOT_CONFIG,
   GITHUB_CONFIG,
   GITLAB_DUO_CONFIG,
-  GROK_CLI_CONFIG,
+  GROK_BUILD_OAUTH_CONFIG,
   KILOCODE_CONFIG,
   KIMI_CODING_CONFIG,
   KIRO_CONFIG,
   OAUTH_TIMEOUT,
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
-  QWEN_CONFIG,
   TRAE_CONFIG,
   WINDSURF_CONFIG,
+  XAI_OAUTH_CONFIG,
   ZED_HOSTED_CONFIG,
 } = oauthModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
@@ -54,9 +55,9 @@ const EXPECTED_PROVIDER_KEYS = [
   "antigravity",
   "agy",
   "qoder",
-  "qwen",
   "kimi-coding",
   "github",
+  "ghe-copilot",
   "gitlab-duo",
   "kiro",
   "amazon-q",
@@ -68,6 +69,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "windsurf",
   "devin-cli",
   "grok-cli",
+  "xai-oauth",
   "codebuddy-cn",
   "zed",
   "zed-hosted",
@@ -86,9 +88,9 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   antigravity: ANTIGRAVITY_CONFIG,
   agy: AGY_CONFIG,
   qoder: QODER_CONFIG,
-  qwen: QWEN_CONFIG,
   "kimi-coding": KIMI_CODING_CONFIG,
   github: GITHUB_CONFIG,
+  "ghe-copilot": GHE_COPILOT_CONFIG,
   "gitlab-duo": GITLAB_DUO_CONFIG,
   kiro: KIRO_CONFIG,
   "amazon-q": KIRO_CONFIG,
@@ -99,7 +101,8 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
   trae: TRAE_CONFIG,
-  "grok-cli": GROK_CLI_CONFIG,
+  "grok-cli": GROK_BUILD_OAUTH_CONFIG,
+  "xai-oauth": XAI_OAUTH_CONFIG,
   "codebuddy-cn": CODEBUDDY_CN_CONFIG,
   zed: ZED_CONFIG,
   "zed-hosted": ZED_HOSTED_CONFIG,
@@ -122,9 +125,10 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   antigravity: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   agy: ["authorizeUrl", "tokenUrl", "userInfoUrl", "scopes", "clientId"],
   qoder: ["extraParams"],
-  qwen: ["deviceCodeUrl", "tokenUrl", "scope", "clientId"],
   "kimi-coding": ["deviceCodeUrl", "tokenUrl", "clientId"],
   github: ["deviceCodeUrl", "tokenUrl", "userInfoUrl", "copilotTokenUrl", "clientId"],
+  // GHE Copilot derives its URLs at runtime from the per-connection gheUrl — only static fields.
+  "ghe-copilot": ["clientId", "scopes", "apiVersion", "userAgent"],
   "gitlab-duo": [
     "baseUrl",
     "authorizeUrl",
@@ -144,6 +148,11 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
+  // prettier-ignore
+  "xai-oauth": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
+  // prettier-ignore
+  "grok-cli": ["authorizeUrl", "tokenUrl", "scope", "codeChallengeMethod", "clientId", "loopbackPort", "callbackPath", "callbackHost"],
+  // prettier-ignore
   "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
 };
 
@@ -303,18 +312,6 @@ test("all provider endpoint URLs use HTTPS when a URL is configured", () => {
   }
 });
 
-test("Qwen OAuth uses qwen.ai (not chat.qwen.ai) for device/token URLs — upstream PR #683 / decolua issue #572", () => {
-  // The legacy host `chat.qwen.ai` started returning errors; the correct authoritative
-  // host for Qwen's device-code OAuth endpoints is `qwen.ai`. Regression guard for the
-  // port of decolua/9router#683 (closes decolua issue #572).
-  const deviceUrl = new URL(QWEN_CONFIG.deviceCodeUrl);
-  const tokenUrl = new URL(QWEN_CONFIG.tokenUrl);
-  assert.equal(deviceUrl.hostname, "qwen.ai", "deviceCodeUrl must use qwen.ai");
-  assert.equal(tokenUrl.hostname, "qwen.ai", "tokenUrl must use qwen.ai");
-  assert.equal(deviceUrl.pathname, "/api/v1/oauth2/device/code");
-  assert.equal(tokenUrl.pathname, "/api/v1/oauth2/token");
-});
-
 test("browser-based providers expose buildAuthUrl and return provider-specific auth URLs", () => {
   const redirectUri = "http://localhost:43121/callback";
   const state = "state-123";
@@ -351,7 +348,10 @@ test("zed-hosted buildAuthUrl returns {authUrl, codeVerifier, redirectUri} carry
 
 test("generateAuthData honors an object-returning buildAuthUrl (zed-hosted) without breaking string-returning providers", async () => {
   const oauthHelpers = await import("../../src/lib/oauth/providers.ts");
-  const zedAuthData = oauthHelpers.generateAuthData("zed-hosted", "http://localhost:20128/callback");
+  const zedAuthData = oauthHelpers.generateAuthData(
+    "zed-hosted",
+    "http://localhost:20128/callback"
+  );
   assert.equal(zedAuthData.flowType, "authorization_code");
   assert.ok(zedAuthData.authUrl.startsWith("https://zed.dev/native_app_signin?"));
   assert.ok(zedAuthData.codeVerifier.startsWith("zed-rsa-pkcs1:"));
@@ -443,7 +443,7 @@ test("Google OAuth callbacks stay on localhost when no custom credentials are co
 });
 
 test("device and import-token providers expose the flow-specific fields expected by their configs", () => {
-  const deviceProviders = ["qwen", "kimi-coding", "github", "kiro", "amazon-q", "kilocode"];
+  const deviceProviders = ["kimi-coding", "github", "kiro", "amazon-q", "kilocode"];
 
   for (const providerId of deviceProviders) {
     const provider = PROVIDERS[providerId];
@@ -551,8 +551,11 @@ test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichme
     (_url, init: any = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.match(init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
-      assert.equal(init.headers["X-Goog-Api-Client"], undefined);
+      assert.match(
+        init.headers["User-Agent"],
+        /^antigravity\/2\.1\.1 [^ ]+\/[^ ]+ google-api-nodejs-client\/10\.3\.0$/
+      );
+      assert.equal(init.headers["X-Goog-Api-Client"], "gl-node/22.21.1");
       assert.deepEqual(
         JSON.parse(String(init.body)).metadata,
         getAntigravityLoadCodeAssistMetadata()
@@ -566,8 +569,11 @@ test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichme
     (_url, init: any = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.match(init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
-      assert.equal(init.headers["X-Goog-Api-Client"], undefined);
+      assert.match(
+        init.headers["User-Agent"],
+        /^antigravity\/2\.1\.1 [^ ]+\/[^ ]+ google-api-nodejs-client\/10\.3\.0$/
+      );
+      assert.equal(init.headers["X-Goog-Api-Client"], "gl-node/22.21.1");
       assert.deepEqual(
         JSON.parse(String(init.body)).metadata,
         getAntigravityLoadCodeAssistMetadata()
@@ -599,6 +605,7 @@ test("Antigravity runs mocked browser OAuth exchanges and post-exchange enrichme
   // no longer updates the returned projectId synchronously — matching the 9router web
   // flow, which also returns the loadCodeAssist project id.
   assert.equal(antigravityMapped.projectId, "anti-project");
+  assert.equal(antigravityMapped.providerSpecificData.clientProfile, "ide");
 });
 
 test("Qoder enabled mode exchanges tokens and loads profile metadata through mocked endpoints", async () => {
@@ -655,34 +662,18 @@ test("Qoder enabled mode exchanges tokens and loads profile metadata through moc
   }
 });
 
-test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", async () => {
-  const qwenIdToken = createJwt({
-    email: "qwen@example.com",
-    name: "Qwen User",
-  });
-
+test("Kimi Coding executes mocked device-code flow and token mapping", async () => {
   useFetchSequence([
-    jsonResponse({
-      device_code: "qwen-device",
-      user_code: "QWEN123",
-      verification_uri: "https://chat.qwen.ai/activate",
-      expires_in: 300,
-      interval: 5,
-    }),
-    jsonResponse({
-      access_token: createJwt({ sub: "qwen-subject" }),
-      refresh_token: "qwen-refresh",
-      expires_in: 3600,
-      id_token: qwenIdToken,
-      resource_url: "https://chat.qwen.ai/resource",
-    }),
     (url, init) => {
       const params = init.body;
       assert.equal(String(url), KIMI_CODING_CONFIG.deviceCodeUrl);
       assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
-      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_code_cli");
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
-      assert.ok(init.headers["X-Msh-Os-Version"]);
+      assert.equal(init.headers["X-Msh-Os-Version"], os.release());
+      if (os.type() === "Windows_NT") {
+        assert.equal(init.headers["X-Msh-Device-Model"], `Windows ${os.release()} ${os.arch()}`);
+      }
 
       return jsonResponse({
         device_code: "kimi-device",
@@ -699,7 +690,7 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
       assert.equal(params.get("client_id"), KIMI_CODING_CONFIG.clientId);
       assert.equal(params.get("device_code"), "kimi-device");
       assert.equal(params.get("grant_type"), "urn:ietf:params:oauth:grant-type:device_code");
-      assert.equal(init.headers["X-Msh-Platform"], "kimi_cli");
+      assert.equal(init.headers["X-Msh-Platform"], "kimi_code_cli");
       assert.equal(init.headers["X-Msh-Device-Id"], "test-kimi-device-id");
 
       return jsonResponse({
@@ -712,10 +703,6 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
     },
   ]);
 
-  const qwenDevice = await PROVIDERS.qwen.requestDeviceCode(QWEN_CONFIG, "challenge-123");
-  const qwenPoll = await PROVIDERS.qwen.pollToken(QWEN_CONFIG, qwenDevice.device_code, "verifier");
-  const qwenMapped = PROVIDERS.qwen.mapTokens(qwenPoll.data);
-
   const kimiDevice = await PROVIDERS["kimi-coding"].requestDeviceCode(KIMI_CODING_CONFIG);
   const kimiPoll = await PROVIDERS["kimi-coding"].pollToken(
     KIMI_CODING_CONFIG,
@@ -723,9 +710,6 @@ test("Qwen and Kimi Coding execute mocked device-code flows and token mapping", 
   );
   const kimiMapped = PROVIDERS["kimi-coding"].mapTokens(kimiPoll.data);
 
-  assert.equal(qwenMapped.email, "qwen@example.com");
-  assert.equal(qwenMapped.displayName, "Qwen User");
-  assert.equal(qwenMapped.providerSpecificData.resourceUrl, "https://chat.qwen.ai/resource");
   assert.equal(kimiMapped.accessToken, "kimi-access");
   assert.equal(kimiMapped.tokenType, "Bearer");
   assert.equal(

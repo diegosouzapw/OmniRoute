@@ -50,9 +50,21 @@ export async function runReindexBatch(
     return { processed: 0, errors: 0 };
   }
 
-  // Ensure the vector table is ready before processing
+  // Ensure the vector table is ready before processing. ensureReady() returns
+  // `{ ready: false }` (without throwing) when dimensions are still unknown —
+  // abort the batch in that case so we don't burn embed credits upserting into
+  // a missing `vec_memories` table (#8074).
   try {
-    await vec.ensureReady(resolution);
+    const ready = await vec.ensureReady(resolution);
+    if (!ready.ready) {
+      log.warn("memory.reindex.ensure_ready.skipped", {
+        reason: ready.reason,
+        pending: queue.length,
+        model: resolution.model,
+        dimensions: resolution.dimensions,
+      });
+      return { processed: 0, errors: 0 };
+    }
   } catch (err: unknown) {
     log.warn("memory.reindex.ensure_ready.fail", {
       error: sanitizeErrorMessage(err instanceof Error ? err.message : String(err)),

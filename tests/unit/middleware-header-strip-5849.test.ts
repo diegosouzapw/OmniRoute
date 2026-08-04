@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   buildStreamingResponseHeaders,
   isNextMiddlewareControlHeader,
+  MAX_FORWARDED_UPSTREAM_RESPONSE_HEADER_BYTES,
   stripNextMiddlewareControlHeaders,
 } from "@omniroute/open-sse/handlers/chatCore/responseHeaders.ts";
 
@@ -21,6 +22,11 @@ const MIDDLEWARE_HEADERS: [string, string][] = [
   ["x-middleware-set-cookie", "a=b"],
   ["x-middleware-request-foo", "bar"],
 ];
+
+function getHeaderValue(headers: Record<string, string>, name: string): string | undefined {
+  const entry = Object.entries(headers).find(([key]) => key.toLowerCase() === name.toLowerCase());
+  return entry?.[1];
+}
 
 test("isNextMiddlewareControlHeader matches the whole x-middleware-* family (case-insensitive)", () => {
   for (const [name] of MIDDLEWARE_HEADERS) {
@@ -49,6 +55,84 @@ test("streaming path: buildStreamingResponseHeaders strips x-middleware-* and pr
   const requestIdKey = Object.keys(out).find((k) => k.toLowerCase() === "x-request-id");
   assert.ok(requestIdKey, "x-request-id must be preserved");
   assert.equal(out[requestIdKey as string], "req-123");
+});
+test("streaming path strips oversized and credential-bearing upstream response headers", () => {
+  const upstream = new Headers({
+    "x-request-id": "req-oversized-guard",
+    "x-upstream-diagnostic": "x".repeat(MAX_FORWARDED_UPSTREAM_RESPONSE_HEADER_BYTES),
+    "set-cookie": "session=upstream-secret; HttpOnly",
+  });
+
+  const warnings: unknown[][] = [];
+  const out = buildStreamingResponseHeaders(
+    upstream,
+    {},
+    {
+      warn: (...args: unknown[]) => warnings.push(args),
+    }
+  );
+  const lowerKeys = Object.keys(out).map((key) => key.toLowerCase());
+  assert.ok(lowerKeys.includes("x-request-id"));
+  assert.ok(!lowerKeys.includes("x-upstream-diagnostic"));
+  assert.ok(!lowerKeys.includes("set-cookie"));
+  assert.equal(warnings.length, 1);
+  assert.ok(!JSON.stringify(warnings).includes("session=upstream-secret"));
+});
+
+test("streaming path bounds the aggregate size of many small upstream response headers", () => {
+  const upstream = new Headers({ "x-request-id": "req-many-small-headers" });
+  for (let index = 0; index < 40; index += 1) {
+    upstream.set(`x-upstream-diagnostic-${index.toString().padStart(2, "0")}`, "x".repeat(32));
+  }
+
+  const out = buildStreamingResponseHeaders(upstream, {}, null);
+  const upstreamEntries = Object.entries(out).filter(
+    ([name]) =>
+      name.toLowerCase().startsWith("x-upstream-") || name.toLowerCase() === "x-request-id"
+  );
+  const forwardedBytes = upstreamEntries.reduce(
+    (total, [name, value]) => total + Buffer.byteLength(`${name}: ${value}\r\n`),
+    0
+  );
+
+  assert.ok(forwardedBytes <= MAX_FORWARDED_UPSTREAM_RESPONSE_HEADER_BYTES);
+  assert.ok(upstreamEntries.length < 41, "at least one small header must be dropped");
+  assert.equal(getHeaderValue(out, "x-request-id"), "req-many-small-headers");
+});
+
+test("streaming path prioritizes request and rate-limit headers over diagnostics", () => {
+  const upstream = new Headers();
+  for (let index = 0; index < 20; index += 1) {
+    upstream.set(`a-diagnostic-${index.toString().padStart(2, "0")}`, "x".repeat(48));
+  }
+  upstream.set("retry-after", "30");
+  upstream.set("x-ratelimit-remaining-requests", "12");
+  upstream.set("x-request-id", "req-priority");
+
+  const out = buildStreamingResponseHeaders(upstream, {}, null);
+
+  assert.equal(getHeaderValue(out, "x-request-id"), "req-priority");
+  assert.equal(getHeaderValue(out, "retry-after"), "30");
+  assert.equal(getHeaderValue(out, "x-ratelimit-remaining-requests"), "12");
+});
+
+test("streaming path strips hop-by-hop and spoofed OmniRoute headers", () => {
+  const upstream = new Headers({
+    connection: "keep-alive, x-remove-me",
+    "keep-alive": "timeout=5",
+    "proxy-authenticate": "Basic realm=upstream",
+    "x-remove-me": "connection-scoped",
+    "x-omniroute-provider": "spoofed-provider",
+    "x-request-id": "req-safe",
+  });
+
+  const out = buildStreamingResponseHeaders(upstream, {}, null);
+
+  assert.equal(getHeaderValue(out, "x-request-id"), "req-safe");
+  assert.ok(!Object.keys(out).some((name) => name.toLowerCase() === "keep-alive"));
+  assert.ok(!Object.keys(out).some((name) => name.toLowerCase() === "proxy-authenticate"));
+  assert.ok(!Object.keys(out).some((name) => name.toLowerCase() === "x-remove-me"));
+  assert.ok(!Object.values(out).includes("spoofed-provider"));
 });
 
 test("non-streaming JSON path: stripNextMiddlewareControlHeaders removes the family, keeps the rest", () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { useDisplayBaseUrl } from "@/shared/hooks";
@@ -62,7 +62,7 @@ export default function ApiEndpointsTab() {
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30"
             title={t("badgeLoopbackTooltip")}
           >
-            LOCAL
+            {t("badgeLocal")}
           </span>
         )}
         {ep.alwaysProtected && (
@@ -70,7 +70,7 @@ export default function ApiEndpointsTab() {
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/15 text-red-500 border border-red-500/30"
             title={t("badgeAlwaysProtectedTooltip")}
           >
-            PROTECTED
+            {t("badgeProtected")}
           </span>
         )}
         {ep.internal && (
@@ -78,7 +78,7 @@ export default function ApiEndpointsTab() {
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-500/15 text-gray-400 border border-gray-500/30"
             title={t("badgeInternalTooltip")}
           >
-            INTERNAL
+            {t("badgeInternal")}
           </span>
         )}
       </div>
@@ -109,7 +109,7 @@ export default function ApiEndpointsTab() {
   const [useManualKey, setUseManualKey] = useState(false);
   const selectedApiKey = availableApiKeys.find((apiKey) => apiKey.id === selectedApiKeyId) || null;
 
-  const loadCatalog = async () => {
+  const loadCatalog = useCallback(async () => {
     try {
       const res = await fetch("/api/openapi/spec");
       if (res.ok) {
@@ -120,13 +120,13 @@ export default function ApiEndpointsTab() {
       const message =
         body && typeof body.error === "string"
           ? body.error
-          : `API catalog request failed with HTTP ${res.status}`;
+          : t("catalogLoadFailed", { status: res.status });
       return { data: null, error: message };
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load API catalog";
+      const message = error instanceof Error ? error.message : t("catalogLoadFailedGeneric");
       return { data: null, error: message };
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,7 +140,7 @@ export default function ApiEndpointsTab() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadCatalog]);
 
   // Load API keys for Try It functionality. The list endpoint returns masked
   // keys; the selected key is revealed only when sending a Try It request.
@@ -148,7 +148,7 @@ export default function ApiEndpointsTab() {
     let cancelled = false;
     fetch("/api/keys?limit=100", { credentials: "same-origin" })
       .then(async (res) => {
-        if (!res.ok) throw new Error(`Failed to load API keys (${res.status})`);
+        if (!res.ok) throw new Error(t("apiKeysLoadFailed", { status: res.status }));
         return res.json();
       })
       .then((data) => {
@@ -166,13 +166,15 @@ export default function ApiEndpointsTab() {
       .catch((error) => {
         if (!cancelled) {
           setAvailableApiKeys([]);
-          setApiKeyLoadError(error instanceof Error ? error.message : "Failed to load API keys");
+          setApiKeyLoadError(
+            error instanceof Error ? error.message : t("apiKeysLoadFailedGeneric")
+          );
         }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   // Filter endpoints
   const filteredEndpoints = useMemo(() => {
@@ -245,13 +247,13 @@ export default function ApiEndpointsTab() {
     if (!res.ok) {
       throw new Error(
         res.status === 403
-          ? "API key reveal is disabled (ALLOW_API_KEY_REVEAL). Change it in the feature flag page or paste an API key manually."
-          : `Failed to reveal API key (${res.status})`
+          ? t("apiKeyRevealDisabled")
+          : t("apiKeyRevealFailed", { status: res.status })
       );
     }
     const data = await res.json();
     if (!data?.key || typeof data.key !== "string") {
-      throw new Error("API key reveal returned an invalid response");
+      throw new Error(t("apiKeyRevealInvalid"));
     }
     setRevealedApiKeys((current) => ({ ...current, [selectedApiKey.id]: data.key }));
     return data.key;
@@ -274,7 +276,7 @@ export default function ApiEndpointsTab() {
         if (apiKeyForRequest) {
           headers["Authorization"] = `Bearer ${apiKeyForRequest}`;
         } else {
-          throw new Error("API key is required for this endpoint.");
+          throw new Error(t("apiKeyRequired"));
         }
       }
 
@@ -291,12 +293,12 @@ export default function ApiEndpointsTab() {
       if (res.ok) setTryResult(await res.json());
       else {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Request failed (${res.status})`);
+        throw new Error(err.error || t("requestFailed", { status: res.status }));
       }
     } catch (err: any) {
       setTryResult({
         status: 0,
-        statusText: "Error",
+        statusText: t("errorStatus"),
         headers: {},
         body: { error: err.message },
         latencyMs: 0,
@@ -333,7 +335,10 @@ export default function ApiEndpointsTab() {
                   </span>
                 </div>
                 <p className="text-xs text-text-muted mt-0.5">
-                  {catalog.endpoints.length} endpoints across {allTags.length} categories
+                  {t("catalogStats", {
+                    endpoints: catalog.endpoints.length,
+                    categories: allTags.length,
+                  })}
                 </p>
               </div>
             </div>
@@ -375,7 +380,7 @@ export default function ApiEndpointsTab() {
                   {t("apiEndpointsCatalogUnavailable")}
                 </h3>
                 <p className="text-xs text-text-muted mt-1">
-                  {catalogError || "The OpenAPI specification could not be loaded."}
+                  {catalogError || t("catalogUnavailableDescription")}
                 </p>
                 <a
                   href="/api/openapi/spec"
@@ -385,7 +390,7 @@ export default function ApiEndpointsTab() {
                            bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                  Open JSON response
+                  {t("openJsonResponse")}
                 </a>
               </div>
             </div>
@@ -421,7 +426,7 @@ export default function ApiEndpointsTab() {
                       : "bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main"
                   }`}
               >
-                All
+                {t("all")}
               </button>
               {allTags.slice(0, 8).map((tag) => (
                 <button
@@ -439,7 +444,7 @@ export default function ApiEndpointsTab() {
               ))}
               {allTags.length > 8 && (
                 <span className="px-2 py-1 text-[10px] text-text-muted">
-                  +{allTags.length - 8} more
+                  {t("more", { count: allTags.length - 8 })}
                 </span>
               )}
             </div>
@@ -475,7 +480,7 @@ export default function ApiEndpointsTab() {
                       ? "bg-amber-500/10 text-amber-500"
                       : "bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main"
                   }`}
-                title="Show/hide internal routes (hidden by default)"
+                title={t("showInternalTooltip")}
               >
                 {showInternal ? t("hideInternal") : t("showInternal")}
               </button>
@@ -553,7 +558,7 @@ export default function ApiEndpointsTab() {
                                     <span className="material-symbols-outlined text-[12px] text-amber-500">
                                       lock
                                     </span>
-                                    Bearer Auth
+                                    {t("bearerAuth")}
                                   </span>
                                 )}
                                 {ep.requestBody && (
@@ -561,11 +566,11 @@ export default function ApiEndpointsTab() {
                                     <span className="material-symbols-outlined text-[12px]">
                                       description
                                     </span>
-                                    Request Body
+                                    {t("requestBody")}
                                   </span>
                                 )}
                                 <span className="flex items-center gap-1">
-                                  Responses: {ep.responses.join(", ")}
+                                  {t("responses")}: {ep.responses.join(", ")}
                                 </span>
                               </div>
                             </div>
@@ -585,14 +590,14 @@ export default function ApiEndpointsTab() {
                               <span className="material-symbols-outlined text-[12px]">
                                 {isTrying ? "close" : "play_arrow"}
                               </span>
-                              {isTrying ? "Close" : "Try It"}
+                              {isTrying ? t("close") : t("tryIt")}
                             </button>
                           </div>
 
                           {/* curl example */}
                           <div className="rounded-lg bg-black/5 dark:bg-black/30 p-3">
                             <p className="text-[9px] font-semibold text-text-muted uppercase tracking-wider mb-1">
-                              Example
+                              {t("example")}
                             </p>
                             <code className="text-[11px] font-mono text-text-main break-all">
                               curl -X {ep.method} {baseUrl}
@@ -611,14 +616,14 @@ export default function ApiEndpointsTab() {
                                 <div>
                                   <div className="flex items-center justify-between mb-1">
                                     <label className="text-[9px] font-semibold text-text-muted uppercase tracking-wider">
-                                      API Key
+                                      {t("apiKey")}
                                     </label>
                                     <button
                                       type="button"
                                       onClick={() => setUseManualKey(!useManualKey)}
                                       className="text-[9px] text-primary hover:underline"
                                     >
-                                      {useManualKey ? "Switch to Selection" : "Enter Manually"}
+                                      {useManualKey ? t("switchToSelection") : t("enterManually")}
                                     </button>
                                   </div>
 
@@ -627,7 +632,7 @@ export default function ApiEndpointsTab() {
                                       type="password"
                                       value={manualApiKey}
                                       onChange={(e) => setManualApiKey(e.target.value)}
-                                      placeholder="Paste your API key here"
+                                      placeholder={t("pasteApiKey")}
                                       className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-black/10
                                                dark:border-white/10 bg-white dark:bg-black/30 focus:outline-none
                                                focus:ring-1 focus:ring-primary"
@@ -648,8 +653,7 @@ export default function ApiEndpointsTab() {
                                     </select>
                                   ) : (
                                     <p className="text-[11px] text-amber-500">
-                                      {apiKeyLoadError ||
-                                        "No active API keys found. Toggle manual entry to paste one."}
+                                      {apiKeyLoadError || t("noActiveApiKeys")}
                                     </p>
                                   )}
                                 </div>
@@ -657,7 +661,7 @@ export default function ApiEndpointsTab() {
                               {ep.method !== "GET" && (
                                 <div>
                                   <label className="text-[9px] font-semibold text-text-muted uppercase tracking-wider">
-                                    Request Body (JSON)
+                                    {t("requestBodyJson")}
                                   </label>
                                   <textarea
                                     value={tryBody}
@@ -679,7 +683,7 @@ export default function ApiEndpointsTab() {
                                 <span className="material-symbols-outlined text-[14px]">
                                   {trying ? "hourglass_empty" : "send"}
                                 </span>
-                                {trying ? "Sending..." : "Send Request"}
+                                {trying ? t("sending") : t("sendRequest")}
                               </button>
 
                               {tryResult && (
@@ -733,7 +737,7 @@ export default function ApiEndpointsTab() {
                   data_object
                 </span>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  Data Schemas
+                  {t("dataSchemas")}
                 </h3>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/5 dark:bg-white/5 text-text-muted">
                   {catalog.schemas.length}

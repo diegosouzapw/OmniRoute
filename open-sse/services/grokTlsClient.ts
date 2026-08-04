@@ -21,6 +21,7 @@ import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { mkdtemp, open, unlink, rmdir, stat } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { buildNativeTlsClientOptions } from "./tlsClientDownloadDir.ts";
 
 let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
@@ -133,7 +134,7 @@ async function getClient(): Promise<{
         // Native mode loads the shared library directly via koffi, avoiding the
         // managed sidecar's localhost HTTP calls that OmniRoute's global fetch
         // proxy patch interferes with.
-        const client = new TLSClient({ runtimeMode: "native" }) as {
+        const client = new TLSClient(buildNativeTlsClientOptions()) as {
           start: () => Promise<void>;
           request: (url: string, opts: Record<string, unknown>) => Promise<TlsResponseLike>;
         };

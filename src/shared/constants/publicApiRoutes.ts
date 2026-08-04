@@ -2,6 +2,7 @@ const PUBLIC_API_ROUTE_PREFIXES = [
   "/api/auth/login",
   "/api/auth/logout",
   "/api/auth/status",
+  "/api/auth/oidc/",
   "/api/init",
   "/api/v1/",
   "/api/sync/bundle",

@@ -1256,7 +1256,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, { initialSelectedId?: 
                       text: "#fff",
                       label: compatLabel || (log.provider || "-").toUpperCase(),
                     };
-                    const providerLabel = compatLabel || providerColor.label;
+                    const providerLabel = log.providerDisplay || compatLabel || providerColor.label;
                     const isError = !isActive && log.status >= 400;
                     const cacheSourceMeta = getCacheSourceMeta(log.cacheSource);
                     const isSemanticCache = cacheSourceMeta?.key === "semantic";

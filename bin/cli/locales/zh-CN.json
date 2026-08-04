@@ -29,16 +29,16 @@
   "setup": {
     "title": "OmniRoute 设置",
     "passwordPrompt": "管理员密码",
-    "providerPrompt": "默认提供商（留空跳过）",
+    "providerPrompt": "默认提供者（留空跳过）",
     "done": "设置完成",
     "passwordSet": "管理员密码已配置",
-    "providerSet": "提供商已配置：{name}",
-    "testingProvider": "正在测试提供商连接：{name}",
-    "testPassed": "提供商测试通过",
-    "testFailed": "提供商测试失败：{error}",
+    "providerSet": "提供者已配置：{name}",
+    "testingProvider": "正在测试提供者连接：{name}",
+    "testPassed": "提供者测试通过",
+    "testFailed": "提供者测试失败：{error}",
     "loginEnabled": "登录：已启用（密码已更新）",
     "loginDisabled": "登录：已禁用",
-    "providerInfo": "提供商：{info}"
+    "providerInfo": "提供者：{info}"
   },
   "doctor": {
     "title": "OmniRoute 诊断",
@@ -52,29 +52,29 @@
     "warnings": "{count} 个警告 — 见上文。"
   },
   "providers": {
-    "title": "提供商",
-    "noProviders": "未配置提供商。运行：omniroute setup",
+    "title": "提供者",
+    "noProviders": "未配置提供者。运行：omniroute setup",
     "testing": "正在测试 {name}...",
-    "available": "{count} 个提供商可用",
+    "available": "{count} 个提供者可用",
     "connected": "已连接",
     "disconnected": "未连接",
     "validationFailed": "验证失败：{error}",
     "metrics": {
-      "description": "显示提供商性能指标（延迟、成功率、成本）",
-      "provider": "按提供商 ID 筛选",
+      "description": "显示提供者性能指标（延迟、成功率、成本）",
+      "provider": "按提供者 ID 筛选",
       "connection_id": "按连接 ID 筛选",
       "period": "时间范围：1h|6h|24h|7d|30d（默认：24h）",
       "metric": "关注特定指标字段",
       "sort": "按字段排序（降序）",
       "limit": "最大行数（默认：50）",
       "watch": "每 5 秒刷新（实时模式）",
-      "compare": "逗号分隔的提供商 ID，并排比较"
+      "compare": "逗号分隔的提供者 ID，并排比较"
     },
     "metric_single": {
       "description": "获取特定连接的单个指标值"
     },
     "rotate": {
-      "description": "轮换提供商连接的上游 API 密钥",
+      "description": "轮换提供者连接的上游 API 密钥",
       "newKeyOpt": "新 API 密钥值（避免使用：优先使用 --from-env）",
       "fromEnvOpt": "从环境变量 VAR 读取新密钥",
       "oauthOpt": "改为触发 OAuth 重新认证流程",
@@ -89,18 +89,18 @@
       "testFailed": "轮换后测试失败：{error}"
     },
     "status": {
-      "description": "显示所有提供商连接的密钥健康状态（期限、过期、冷却）",
-      "providerOpt": "按提供商名称筛选",
-      "header": "ID         提供商       名称                     过期状态  测试状态  冷却至",
-      "noData": "没有可用的提供商连接数据。",
+      "description": "显示所有提供者连接的密钥健康状态（期限、过期、冷却）",
+      "providerOpt": "按提供者名称筛选",
+      "header": "ID         提供者       名称                     过期状态  测试状态  冷却至",
+      "noData": "没有可用的提供者连接数据。",
       "requiresServer": "providers status 需要 OmniRoute 服务器正在运行。"
     }
   },
   "keys": {
     "title": "API 密钥",
-    "addDescription": "为提供商添加或更新 API 密钥",
+    "addDescription": "为提供者添加或更新 API 密钥",
     "listDescription": "列出所有已配置的 API 密钥",
-    "removeDescription": "移除提供商的 API 密钥",
+    "removeDescription": "移除提供者的 API 密钥",
     "regenerateDescription": "重新生成 OmniRoute API 密钥",
     "revokeDescription": "撤销 OmniRoute API 密钥",
     "revealDescription": "显示未掩码的 API 密钥值",
@@ -122,10 +122,10 @@
     "revoked": "密钥 {id} 已撤销。",
     "rotated": "密钥 {id} 已轮换。新密钥 ID：{newId}",
     "revealWarning": "⚠ 这将显示完整的未掩码密钥。请确保您的屏幕不被人看到。",
-    "providerRequired": "需要提供商。",
+    "providerRequired": "需要提供者。",
     "keyRequired": "需要 API 密钥。",
     "stdinEmpty": "未通过标准输入提供 API 密钥。",
-    "unknownProvider": "未知提供商：{provider}",
+    "unknownProvider": "未知提供者：{provider}",
     "policy": {
       "title": "密钥策略",
       "showDescription": "显示密钥的速率/成本策略",
@@ -165,7 +165,7 @@
     "analytics": {
       "description": "显示汇总使用分析",
       "period": "时间范围：1d|7d|30d|90d|ytd|all（默认：30d）",
-      "provider": "按提供商 ID 筛选"
+      "provider": "按提供者 ID 筛选"
     },
     "budget": {
       "description": "管理成本预算",
@@ -175,8 +175,8 @@
       }
     },
     "quota": {
-      "description": "显示提供商配额使用情况",
-      "provider": "按提供商 ID 筛选",
+      "description": "显示提供者配额使用情况",
+      "provider": "按提供者 ID 筛选",
       "check": "显示新请求是否有可用配额"
     },
     "logs": {
@@ -201,7 +201,7 @@
     }
   },
   "cost": {
-    "description": "按提供商、模型、组合或 API 密钥显示成本报告",
+    "description": "按提供者、模型、组合或 API 密钥显示成本报告",
     "period": "时间范围：1d|7d|30d|90d|ytd|all（默认：30d）",
     "since": "开始日期（ISO 格式，例如 2026-01-01）— 覆盖 --period",
     "until": "结束日期（ISO 格式）",
@@ -210,7 +210,7 @@
     "limit": "显示的最大行数（默认：100）"
   },
   "simulate": {
-    "description": "模拟路由（空运行）— 显示将选择哪些提供商而不调用上游",
+    "description": "模拟路由（空运行）— 显示将选择哪些提供者而不调用上游",
     "file": "从 JSON 文件加载完整请求体",
     "model": "模型 ID（默认：auto）",
     "combo": "强制指定组合名称",
@@ -301,7 +301,7 @@
     "cost": "成本（24h）："
   },
   "quota": {
-    "description": "显示提供商配额使用情况",
+    "description": "显示提供者配额使用情况",
     "noServer": "服务器未运行。启动：omniroute serve",
     "noData": "没有可用的配额信息。"
   },
@@ -315,12 +315,12 @@
     "description": "一键启动本地 Redis 容器（Podman 或 Docker），用于 OmniRoute 缓存和配额跟踪"
   },
   "test": {
-    "description": "测试提供商连接",
+    "description": "测试提供者连接",
     "noServer": "服务器未运行。启动：omniroute serve",
     "testing": "正在测试 {provider} / {model}...",
     "passed": "连接成功！",
     "failed": "连接失败：{error}",
-    "allProvidersOpt": "测试所有已配置的提供商",
+    "allProvidersOpt": "测试所有已配置的提供者",
     "latencyOpt": "显示延迟测量值（平均/最小/最大 毫秒）",
     "repeatOpt": "重复测试 N 次并汇总结果",
     "compareOpt": "逗号分隔的要比较的模型（例如 gpt-4o,claude-3-5-sonnet）",
@@ -328,7 +328,7 @@
     "saved": "结果已保存至 {path}",
     "compareTitle": "模型比较",
     "compareMinTwo": "--compare 需要至少两个模型（逗号分隔）",
-    "noProviders": "未配置提供商。添加：omniroute keys add"
+    "noProviders": "未配置提供者。添加：omniroute keys add"
   },
   "update": {
     "checking": "正在检查更新...",
@@ -509,7 +509,7 @@
   },
   "models": {
     "description": "列出可用模型（需要服务器）",
-    "search": "按 ID、名称、提供商或描述筛选模型",
+    "search": "按 ID、名称、提供者或描述筛选模型",
     "noServer": "服务器未运行。启动：omniroute serve",
     "noModels": "未找到模型。"
   },
@@ -656,25 +656,25 @@
     }
   },
   "oauth": {
-    "description": "管理 OAuth 提供商连接",
+    "description": "管理 OAuth 提供者连接",
     "providers": {
-      "description": "列出支持 OAuth 的提供商及其流程类型"
+      "description": "列出支持 OAuth 的提供者及其流程类型"
     },
     "start": {
-      "description": "为提供商启动 OAuth 授权流程",
-      "provider": "提供商 ID（gemini, copilot, cursor, ...）",
+      "description": "为提供者启动 OAuth 授权流程",
+      "provider": "提供者 ID（gemini, copilot, cursor, ...）",
       "no_browser": "仅打印 URL — 不打开浏览器",
       "import_system": "从本地系统配置自动导入凭据",
-      "social": "社交登录提供商（google|github）— kiro 需要",
+      "social": "社交登录提供者（google|github）— kiro 需要",
       "timeout": "等待授权超时时间（毫秒，默认：300000）"
     },
     "status": {
       "description": "列出活动的 OAuth 连接",
-      "provider": "按提供商 ID 筛选"
+      "provider": "按提供者 ID 筛选"
     },
     "revoke": {
       "description": "撤销 OAuth 连接",
-      "provider": "要撤销的提供商 ID",
+      "provider": "要撤销的提供者 ID",
       "connection_id": "按 ID 撤销特定连接",
       "yes": "跳过确认提示"
     }
@@ -884,11 +884,11 @@
     "description": "管理模型定价数据",
     "sync": {
       "description": "从上游同步价格",
-      "provider": "按提供商筛选",
+      "provider": "按提供者筛选",
       "force": "强制重新同步"
     },
     "list": {
-      "provider": "按提供商筛选",
+      "provider": "按提供者筛选",
       "model": "按模型筛选",
       "limit": "最大结果数"
     },
@@ -907,25 +907,25 @@
   "resilience": {
     "description": "检查和管理弹性机制",
     "status": {
-      "provider": "按提供商筛选"
+      "provider": "按提供者筛选"
     },
     "breakers": {
-      "provider": "按提供商筛选"
+      "provider": "按提供者筛选"
     },
     "cooldowns": {
-      "provider": "按提供商筛选",
+      "provider": "按提供者筛选",
       "connectionId": "按连接 ID 筛选"
     },
     "lockouts": {
-      "provider": "按提供商筛选",
+      "provider": "按提供者筛选",
       "model": "按模型筛选"
     },
     "reset": {
       "description": "重置断路器/冷却状态",
-      "provider": "要重置的提供商",
+      "provider": "要重置的提供者",
       "connectionId": "要重置的连接 ID",
       "model": "要重置锁定状态的模型",
-      "allCooldowns": "重置提供商的所有冷却",
+      "allCooldowns": "重置提供者的所有冷却",
       "yes": "跳过确认"
     },
     "profile": {
@@ -940,13 +940,13 @@
     }
   },
   "nodes": {
-    "description": "管理提供商节点（端点）",
+    "description": "管理提供者节点（端点）",
     "list": {
-      "provider": "按提供商筛选",
+      "provider": "按提供者筛选",
       "enabled": "仅显示已启用的节点"
     },
     "add": {
-      "provider": "提供商名称",
+      "provider": "提供者名称",
       "baseUrl": "节点的基础 URL",
       "name": "节点名称",
       "weight": "负载均衡权重",
@@ -965,7 +965,7 @@
     },
     "validate": {
       "baseUrl": "要验证的 URL",
-      "provider": "要验证的提供商"
+      "provider": "要验证的提供者"
     },
     "test": {
       "description": "向节点发送测试请求"
@@ -1091,7 +1091,7 @@
   "oneproxy": {
     "description": "管理 OneProxy 上游代理池",
     "stats": {
-      "provider": "按提供商筛选",
+      "provider": "按提供者筛选",
       "period": "时间范围（默认：24h）"
     },
     "fetch": {
@@ -1101,14 +1101,14 @@
     },
     "rotate": {
       "description": "强制轮换代理",
-      "provider": "要轮换的提供商",
+      "provider": "要轮换的提供者",
       "connectionId": "要轮换的特定连接 ID"
     },
     "config": {
       "description": "显示或更新 OneProxy 配置",
       "enabled": "启用代理池（true|false）",
       "poolSize": "池大小",
-      "providerSource": "代理提供商的 URL",
+      "providerSource": "代理提供者的 URL",
       "rotationPolicy": "轮换策略：sticky|per-request|periodic"
     },
     "pool": {
@@ -1201,7 +1201,7 @@
     "bash": "打印 bash 补全脚本",
     "fish": "打印 fish 补全脚本",
     "install": "为检测到的 Shell 全局安装补全脚本",
-    "refresh": "刷新组合/提供商/模型缓存"
+    "refresh": "刷新组合/提供者/模型缓存"
   },
   "logs": {
     "description": "流式传输或导出请求日志",

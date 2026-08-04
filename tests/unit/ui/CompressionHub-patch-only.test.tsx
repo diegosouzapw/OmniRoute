@@ -17,6 +17,8 @@ import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { NextIntlClientProvider } from "next-intl";
+import messages from "../../../src/i18n/messages/en.json";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -43,9 +45,7 @@ import CompressionHub from "../../../src/app/(dashboard)/dashboard/context/combo
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getLastPutBody(): Record<string, unknown> | null {
-  const putCall = [...fetchCalls].reverse().find(
-    (c) => c.init?.method === "PUT"
-  );
+  const putCall = [...fetchCalls].reverse().find((c) => c.init?.method === "PUT");
   if (!putCall) return null;
   return JSON.parse(putCall.init.body as string);
 }
@@ -95,13 +95,19 @@ describe("CompressionHub — PUT sends patch only, not full settings", () => {
   });
 
   afterEach(() => {
-    act(() => { root.unmount(); });
+    act(() => {
+      root.unmount();
+    });
     document.body.removeChild(container);
   });
 
   it("sends only the changed field when activeComboId is updated", async () => {
     await act(async () => {
-      root.render(<CompressionHub />);
+      root.render(
+        <NextIntlClientProvider locale="en" messages={{ contextCombos: messages.contextCombos }}>
+          <CompressionHub />
+        </NextIntlClientProvider>
+      );
     });
 
     // Find the combo selector and change it to "c1"
@@ -131,7 +137,11 @@ describe("CompressionHub — PUT sends patch only, not full settings", () => {
 
   it("sends only the toggle field when contextEditing is toggled", async () => {
     await act(async () => {
-      root.render(<CompressionHub />);
+      root.render(
+        <NextIntlClientProvider locale="en" messages={{ contextCombos: messages.contextCombos }}>
+          <CompressionHub />
+        </NextIntlClientProvider>
+      );
     });
 
     // Find the context editing toggle button

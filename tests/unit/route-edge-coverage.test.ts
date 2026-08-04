@@ -1202,7 +1202,7 @@ test("embeddings route handles responses provider nodes, invalid local nodes, an
     );
     assert.equal(localResponse.status, 200);
     assert.equal(fetchCalls[0].url, "http://localhost:7790/v1/embeddings");
-
+    localDb.invalidateDbCache("nodes");
     const remoteResponse = await withPrepareOverride(
       "SELECT * FROM provider_nodes",
       ({ statement }) =>

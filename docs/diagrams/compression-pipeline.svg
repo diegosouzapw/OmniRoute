@@ -1,0 +1,217 @@
+<svg viewBox="0 0 1200 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OmniRoute compression pipeline: a client request of 10,000 tokens passes through 12 stacked engines — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra, OmniGlyph — and reaches the provider at about 1,080 tokens, up to 95% saved. The default stacked combo runs RTK then Caveman (average 89.2%, range 78.4–94.6%). Code, URLs and JSON are always preserved byte-perfect.">
+  <defs>
+    <pattern id="gridPaperZ" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="bgGlowZ" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="funnelZ" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#22c55e" stop-opacity="0.14"/>
+    </linearGradient>
+    <path id="pTokZ" d="M 245,230 L 955,230"/>
+  </defs>
+
+  <rect width="1200" height="460" fill="#0b0e14"/>
+  <rect width="1200" height="460" fill="url(#gridPaperZ)"/>
+  <rect width="1200" height="460" fill="url(#bgGlowZ)"/>
+
+
+  <!-- ═══ Client card ═══ -->
+  <rect x="70" y="160" width="175" height="130" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <text x="90" y="190" font-family="Consolas, 'Courier New', monospace" font-size="10" letter-spacing="2.5" font-weight="700" fill="#a78bfa">CLIENT</text>
+  <text x="90" y="222" font-family="Consolas, 'Courier New', monospace" font-size="18" font-weight="800" fill="#F7F6FC">10,000 tok</text>
+  <text x="90" y="246" font-family="Consolas, 'Courier New', monospace" font-size="10" fill="#71717a">prompt &#183; tools &#183; history</text>
+  <circle cx="222" cy="186" r="4" fill="#8b5cf6">
+    <animate attributeName="opacity" values="1;0.4;1" dur="2.2s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ═══ Pipeline container ═══ -->
+  <rect x="285" y="112" width="630" height="230" rx="14" fill="#161b22" stroke="#8b5cf6" stroke-width="1.2" stroke-opacity="0.4"/>
+  <text x="600" y="140" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="10.5" letter-spacing="2.5" font-weight="700" fill="url(#gradBrandZ)">OMNIROUTE COMPRESSION &#8212; 12 ENGINES</text>
+  <linearGradient id="gradBrandZ" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#e54d5e"/>
+    <stop offset="100%" stop-color="#a855f7"/>
+  </linearGradient>
+
+  <!-- token funnel: wide in, thin out -->
+  <path d="M 245,208 L 285,210 L 915,226 L 955,227 L 955,233 L 915,234 L 285,250 L 245,252 Z" fill="url(#funnelZ)"/>
+
+  <!-- ═══ Token dots: 5 leave, 4 evaporate at engines, 1 arrives · plus the code token that always survives ═══ -->
+  <g fill="#a78bfa">
+    <!-- dies at engine 1 -->
+    <circle r="4">
+      <animateMotion dur="8s" repeatCount="indefinite" keyPoints="0;0;0.12;0.12" keyTimes="0;0.08;0.13;1" calcMode="linear"><mpath href="#pTokZ"/></animateMotion>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.08;0.09;0.125;0.14;1" dur="8s" repeatCount="indefinite"/>
+    </circle>
+    <!-- dies at engine 3 (RTK) -->
+    <circle r="4">
+      <animateMotion dur="8s" repeatCount="indefinite" keyPoints="0;0;0.29;0.29" keyTimes="0;0.085;0.22;1" calcMode="linear"><mpath href="#pTokZ"/></animateMotion>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.085;0.095;0.215;0.23;1" dur="8s" repeatCount="indefinite"/>
+    </circle>
+    <!-- dies at engine 6 (Caveman) -->
+    <circle r="4">
+      <animateMotion dur="8s" repeatCount="indefinite" keyPoints="0;0;0.50;0.50" keyTimes="0;0.09;0.355;1" calcMode="linear"><mpath href="#pTokZ"/></animateMotion>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.09;0.10;0.35;0.365;1" dur="8s" repeatCount="indefinite"/>
+    </circle>
+    <!-- dies at engine 10 (Aggressive) -->
+    <circle r="4">
+      <animateMotion dur="8s" repeatCount="indefinite" keyPoints="0;0;0.81;0.81" keyTimes="0;0.095;0.49;1" calcMode="linear"><mpath href="#pTokZ"/></animateMotion>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.095;0.105;0.485;0.50;1" dur="8s" repeatCount="indefinite"/>
+    </circle>
+    <!-- the survivor: shrinks and reaches the provider -->
+    <circle r="4">
+      <animateMotion dur="8s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.10;0.60;1" calcMode="linear"><mpath href="#pTokZ"/></animateMotion>
+      <animate attributeName="r" values="4;4;2.4;2.4" keyTimes="0;0.10;0.60;1" dur="8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.10;0.11;0.60;0.64;1" dur="8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- code token: passes through untouched -->
+  <g>
+    <animateMotion dur="8s" repeatCount="indefinite" keyPoints="0;0;1;1" keyTimes="0;0.14;0.64;1" calcMode="linear"><mpath href="#pTokZ"/></animateMotion>
+    <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.14;0.15;0.64;0.68;1" dur="8s" repeatCount="indefinite"/>
+    <rect x="-5" y="-5" width="10" height="10" rx="2" fill="none" stroke="#22c55e" stroke-width="1.4"/>
+    <text y="3" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="7" font-weight="700" fill="#22c55e">{}</text>
+  </g>
+
+
+  <!-- 12 engine cells -->
+  <g font-family="Consolas, 'Courier New', monospace" text-anchor="middle">
+    <!-- 1 Session-Dedup -->
+    <g transform="translate(302,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.10;0.13;0.17;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">1</text>
+      <text x="23" y="56" font-size="8" fill="#a1a1aa">Session</text>
+      <text x="23" y="68" font-size="8" fill="#a1a1aa">Dedup</text>
+    </g>
+    <!-- 2 CCR -->
+    <g transform="translate(352,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.145;0.175;0.215;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">2</text>
+      <text x="23" y="62" font-size="8" fill="#a1a1aa">CCR</text>
+    </g>
+    <!-- 3 Lite -->
+    <g transform="translate(402,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.19;0.22;0.26;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">3</text>
+      <text x="23" y="62" font-size="8" fill="#a1a1aa">Lite</text>
+    </g>
+    <!-- 4 RTK (default stack) -->
+    <g transform="translate(452,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#e54d5e" stroke-opacity="0.55" stroke-width="1.2"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#e54d5e" stroke-width="1.6" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;1;0;0" keyTimes="0;0.235;0.265;0.305;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#e54d5e">4</text>
+      <text x="23" y="62" font-size="8.5" font-weight="700" fill="#F7F6FC">RTK</text>
+    </g>
+    <!-- 5 Responses Tool Output -->
+    <g transform="translate(502,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.28;0.31;0.35;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">5</text>
+      <text x="23" y="56" font-size="7.5" fill="#a1a1aa">Responses</text>
+      <text x="23" y="68" font-size="7.5" fill="#a1a1aa">Tool Out</text>
+    </g>
+    <!-- 6 Headroom -->
+    <g transform="translate(552,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.325;0.355;0.395;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">6</text>
+      <text x="23" y="62" font-size="7.5" fill="#a1a1aa">Headroom</text>
+    </g>
+    <!-- 7 Relevance -->
+    <g transform="translate(602,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.37;0.40;0.44;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">7</text>
+      <text x="23" y="62" font-size="7.5" fill="#a1a1aa">Relevance</text>
+    </g>
+    <!-- 8 Caveman (default stack) -->
+    <g transform="translate(652,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#e54d5e" stroke-opacity="0.55" stroke-width="1.2"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#e54d5e" stroke-width="1.6" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;1;0;0" keyTimes="0;0.415;0.445;0.485;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#e54d5e">8</text>
+      <text x="23" y="62" font-size="8" font-weight="700" fill="#F7F6FC">Caveman</text>
+    </g>
+    <!-- 9 Aggressive -->
+    <g transform="translate(702,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.46;0.49;0.53;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">9</text>
+      <text x="23" y="62" font-size="7.5" fill="#a1a1aa">Aggressive</text>
+    </g>
+    <!-- 10 LLMLingua-2 -->
+    <g transform="translate(752,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.50;0.53;0.57;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">10</text>
+      <text x="23" y="56" font-size="8" fill="#a1a1aa">LLM</text>
+      <text x="23" y="68" font-size="8" fill="#a1a1aa">Lingua-2</text>
+    </g>
+    <!-- 11 Ultra -->
+    <g transform="translate(802,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.54;0.57;0.61;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">11</text>
+      <text x="23" y="62" font-size="8" fill="#a1a1aa">Ultra</text>
+    </g>
+    <!-- 12 OmniGlyph -->
+    <g transform="translate(852,168)">
+      <rect width="46" height="86" rx="8" fill="#1c2230" stroke="#ffffff" stroke-opacity="0.08"/>
+      <rect width="46" height="86" rx="8" fill="none" stroke="#8b5cf6" stroke-width="1.4" stroke-opacity="0">
+        <animate attributeName="stroke-opacity" values="0;0;0.9;0;0" keyTimes="0;0.575;0.605;0.645;1" dur="8s" repeatCount="indefinite"/>
+      </rect>
+      <text x="23" y="30" font-size="13" font-weight="800" fill="#71717a">12</text>
+      <text x="23" y="62" font-size="7.5" fill="#a1a1aa">OmniGlyph</text>
+    </g>
+  </g>
+
+  <!-- default stack bracket -->
+  <path d="M 475,262 L 475,272 L 675,272 L 675,262" fill="none" stroke="#e54d5e" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="575" y="288" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" fill="#e54d5e">default stack: RTK &#8594; Caveman</text>
+
+  <!-- preservation note -->
+  <text x="600" y="326" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" fill="#22c55e" opacity="0.85">{ } code &#183; URLs &#183; JSON &#8212; always preserved byte-perfect</text>
+
+  <!-- ═══ Provider card ═══ -->
+  <rect x="955" y="160" width="175" height="130" rx="14" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+  <text x="975" y="190" font-family="Consolas, 'Courier New', monospace" font-size="10" letter-spacing="2.5" font-weight="700" fill="#a78bfa">PROVIDER</text>
+  <text x="975" y="222" font-family="Consolas, 'Courier New', monospace" font-size="18" font-weight="800" fill="#F7F6FC">~1,080 tok</text>
+  <g transform="translate(975,236)">
+    <rect width="132" height="22" rx="11" fill="none" stroke="#22c55e" stroke-width="1" stroke-opacity="0.6"/>
+    <text x="66" y="15" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="9.5" letter-spacing="1" font-weight="700" fill="#22c55e">
+      <animate attributeName="opacity" values="0.75;0.75;1;1;0.75" keyTimes="0;0.58;0.62;0.78;1" dur="8s" repeatCount="indefinite"/>up to 95% saved</text>
+  </g>
+
+  <!-- ═══ Savings math badge ═══ -->
+  <g transform="translate(600,404)">
+    <rect x="-268" y="-16" width="536" height="30" rx="15" fill="#161b22" stroke="#ffffff" stroke-opacity="0.08"/>
+    <text y="4" text-anchor="middle" font-family="Consolas, 'Courier New', monospace" font-size="11" fill="#a1a1aa">combined = 1 &#8722; (1&#8722;RTK)&#215;(1&#8722;Caveman) &#8594; avg <tspan fill="#22c55e" font-weight="700">89.2%</tspan> &#183; range <tspan fill="#22c55e">78.4&#8211;94.6%</tspan></text>
+  </g>
+</svg>

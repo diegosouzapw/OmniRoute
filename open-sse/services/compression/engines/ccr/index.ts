@@ -26,8 +26,8 @@
  *     does not affect another's (cross-tenant state drift protection).
  *
  * Memory bound:
- *   - Both `ccrStore` and `retrievalCounts` are capped at MAX_CCR_ENTRIES
- *     entries using FIFO eviction (Map insertion-order guarantees).
+ *   - Entries are capped by count, global bytes, per-principal bytes, block bytes and TTL.
+ *   - Expired and least-recently-used entries are removed before a store is rejected.
  *
  * Conservative guards:
  *   - Never touch `role: "system"`.
@@ -39,6 +39,7 @@
 import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
 import { queryBlock, type CcrQuery } from "./ccrQuery.ts";
+import { injectCcrProtocolInstruction } from "./protocolInstruction.ts";
 import type {
   CompressionEngine,
   CompressionEngineApplyOptions,
@@ -60,12 +61,69 @@ const RETRIEVAL_THRESHOLD = 3;
  * ramp (only the >= threshold cliff remains — the legacy binary behavior).
  */
 const RETRIEVAL_RAMP_FACTOR_DEFAULT = 2;
-/**
- * Maximum number of entries in each bounded store.
- * When inserting beyond this cap, the oldest entry (Map insertion order) is evicted.
- * 5 000 entries × ~2 KB average ≈ 10 MB upper bound for each map.
- */
+/** Maximum number of entries in the principal-scoped, LRU-ordered store. */
 export const MAX_CCR_ENTRIES = 5_000;
+export const MAX_CCR_BLOCK_BYTES = 2 * 1024 * 1024;
+export const MAX_CCR_PRINCIPAL_BYTES = 16 * 1024 * 1024;
+export const MAX_CCR_GLOBAL_BYTES = 64 * 1024 * 1024;
+export const DEFAULT_CCR_TTL_SECONDS = 24 * 60 * 60;
+export const MAX_CCR_TTL_SECONDS = 7 * 24 * 60 * 60;
+export const MAX_CCR_MCP_FULL_BYTES = 256 * 1024;
+
+export type CcrEntrySource = "compression" | "mcp" | "ionizer" | "session-dedup";
+
+export interface CcrEntryMetadata {
+  hash: string;
+  bytes: number;
+  chars: number;
+  lines: number;
+  contentType: string;
+  source: CcrEntrySource;
+  createdAt: number;
+  lastAccessedAt: number;
+  expiresAt: number;
+  retrievalCount: number;
+}
+
+type CcrEntry = Omit<CcrEntryMetadata, "retrievalCount"> & {
+  principalId: string;
+  content: string;
+};
+
+export interface StoreCcrBlockOptions {
+  contentType?: string;
+  source?: CcrEntrySource;
+  ttlSeconds?: number;
+  now?: number;
+}
+
+export type StoreCcrBlockResult =
+  | { stored: true; hash: string; metadata: CcrEntryMetadata }
+  | {
+      stored: false;
+      hash: string;
+      reason: "block_too_large" | "principal_budget_exceeded" | "global_budget_exceeded";
+    };
+
+export interface CcrStoreStats {
+  storage: "memory";
+  entries: number;
+  bytes: number;
+  limits: {
+    maxEntries: number;
+    maxBlockBytes: number;
+    maxPrincipalBytes: number;
+    maxGlobalBytes: number;
+    defaultTtlSeconds: number;
+    maxTtlSeconds: number;
+    maxMcpFullBytes: number;
+  };
+  lifecycle: {
+    expiredEvictions: number;
+    capacityEvictions: number;
+    rejectedStores: number;
+  };
+}
 
 // ─── principal-scoped, bounded content store ──────────────────────────────────
 
@@ -73,9 +131,12 @@ export const MAX_CCR_ENTRIES = 5_000;
  * Store key = `${principalId ?? "__anon__"} ${contentHash}`.
  * Using a compound key scopes data to the principal that stored it.
  */
-const ccrStore = new Map<string, string>();
-/** Retrieval counter store — same scoping as ccrStore. */
+const ccrStore = new Map<string, CcrEntry>();
 const retrievalCounts = new Map<string, number>();
+const principalBytesMap = new Map<string, number>();
+let ccrTotalBytes = 0;
+type CcrLifecycleCounters = CcrStoreStats["lifecycle"];
+const lifecycleByPrincipal = new Map<string, CcrLifecycleCounters>();
 
 /** Sentinel used when no principalId is provided. */
 const ANON = "__anon__";
@@ -84,18 +145,88 @@ function buildStoreKey(hash: string, principalId?: string): string {
   return `${principalId ?? ANON} ${hash}`;
 }
 
-/**
- * Insert a value into a bounded Map, evicting the oldest entry when over the cap.
- */
-function boundedSet<V>(map: Map<string, V>, key: string, value: V): void {
-  if (!map.has(key) && map.size >= MAX_CCR_ENTRIES) {
-    // Map preserves insertion order — the first iterator result is the oldest entry.
-    const firstKey = map.keys().next().value;
-    if (firstKey !== undefined) {
-      map.delete(firstKey);
+function readLifecycleCounters(principalId: string): CcrLifecycleCounters {
+  return (
+    lifecycleByPrincipal.get(principalId) ?? {
+      expiredEvictions: 0,
+      capacityEvictions: 0,
+      rejectedStores: 0,
     }
+  );
+}
+
+function mutableLifecycleCounters(principalId: string): CcrLifecycleCounters {
+  const existing = lifecycleByPrincipal.get(principalId);
+  if (existing) return existing;
+  const counters = { expiredEvictions: 0, capacityEvictions: 0, rejectedStores: 0 };
+  lifecycleByPrincipal.set(principalId, counters);
+  return counters;
+}
+
+function publicMetadata(entry: CcrEntry): CcrEntryMetadata {
+  const { principalId: _principalId, content: _content, ...metadata } = entry;
+  return {
+    ...metadata,
+    retrievalCount: retrievalCounts.get(buildStoreKey(entry.hash, entry.principalId)) ?? 0,
+  };
+}
+
+function setRetrievalCount(key: string, count: number): void {
+  if (!retrievalCounts.has(key) && retrievalCounts.size >= MAX_CCR_ENTRIES) {
+    const oldestKey = retrievalCounts.keys().next().value;
+    if (oldestKey !== undefined) retrievalCounts.delete(oldestKey);
   }
-  map.set(key, value);
+  retrievalCounts.delete(key);
+  retrievalCounts.set(key, count);
+}
+
+function removeEntry(key: string, reason?: "expired" | "capacity"): boolean {
+  const entry = ccrStore.get(key);
+  if (!entry) return false;
+  ccrStore.delete(key);
+  ccrTotalBytes = Math.max(0, ccrTotalBytes - entry.bytes);
+  const remainingPrincipalBytes = Math.max(
+    0,
+    (principalBytesMap.get(entry.principalId) ?? 0) - entry.bytes
+  );
+  if (remainingPrincipalBytes === 0) principalBytesMap.delete(entry.principalId);
+  else principalBytesMap.set(entry.principalId, remainingPrincipalBytes);
+  const counters = mutableLifecycleCounters(entry.principalId);
+  if (reason === "expired") counters.expiredEvictions++;
+  if (reason === "capacity") counters.capacityEvictions++;
+  return true;
+}
+
+function purgeExpired(now = Date.now()): void {
+  for (const [key, entry] of ccrStore) {
+    if (entry.expiresAt <= now) removeEntry(key, "expired");
+  }
+}
+
+function getActiveEntry(key: string, now = Date.now()): CcrEntry | null {
+  const entry = ccrStore.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= now) {
+    removeEntry(key, "expired");
+    return null;
+  }
+  return entry;
+}
+
+function principalBytes(principalId: string): number {
+  return principalBytesMap.get(principalId) ?? 0;
+}
+
+function evictOldestMatching(predicate: (entry: CcrEntry) => boolean): boolean {
+  for (const [key, entry] of ccrStore) {
+    if (predicate(entry)) return removeEntry(key, "capacity");
+  }
+  return false;
+}
+
+function normalizeTtlSeconds(value: number | undefined): number {
+  if (!Number.isFinite(value) || value === undefined) return DEFAULT_CCR_TTL_SECONDS;
+  return Math.max(60, Math.min(MAX_CCR_TTL_SECONDS, Math.floor(value)));
 }
 
 /**
@@ -107,26 +238,114 @@ function hashContent(text: string): string {
   return crypto.createHash("sha256").update(text).digest("hex").slice(0, 24);
 }
 
+function rejectStore(
+  hash: string,
+  owner: string,
+  reason: Exclude<StoreCcrBlockResult, { stored: true }>["reason"]
+): StoreCcrBlockResult {
+  mutableLifecycleCounters(owner).rejectedStores++;
+  return { stored: false, hash, reason };
+}
+
+function enforcePrincipalBudget(owner: string, bytes: number): boolean {
+  while (
+    principalBytes(owner) + bytes > MAX_CCR_PRINCIPAL_BYTES &&
+    evictOldestMatching((entry) => entry.principalId === owner)
+  ) {
+    // Evict the owner's least-recently-used entries until this block fits.
+  }
+  return principalBytes(owner) + bytes <= MAX_CCR_PRINCIPAL_BYTES;
+}
+
+function enforceGlobalBudget(bytes: number): boolean {
+  while (
+    (ccrStore.size >= MAX_CCR_ENTRIES || ccrTotalBytes + bytes > MAX_CCR_GLOBAL_BYTES) &&
+    evictOldestMatching(() => true)
+  ) {
+    // Enforce both entry and global byte caps with LRU eviction.
+  }
+  return ccrTotalBytes + bytes <= MAX_CCR_GLOBAL_BYTES;
+}
+
 /**
  * Store a block in the CCR store under the given principal.
  * Returns the 24-hex content hash (for embedding in the marker).
  */
-export function storeBlock(text: string, principalId?: string): string {
+export function tryStoreBlock(
+  text: string,
+  principalId?: string,
+  options: StoreCcrBlockOptions = {}
+): StoreCcrBlockResult {
   const hash = hashContent(text);
+  const owner = principalId ?? ANON;
   const key = buildStoreKey(hash, principalId);
-  if (!ccrStore.has(key)) {
-    boundedSet(ccrStore, key, text);
+  const now = options.now ?? Date.now();
+  purgeExpired(now);
+
+  const existing = ccrStore.get(key);
+  if (existing) {
+    existing.lastAccessedAt = now;
+    existing.expiresAt = now + normalizeTtlSeconds(options.ttlSeconds) * 1000;
+    ccrStore.delete(key);
+    ccrStore.set(key, existing);
+    return { stored: true, hash, metadata: publicMetadata(existing) };
   }
-  return hash;
+
+  const bytes = Buffer.byteLength(text, "utf8");
+  if (bytes > MAX_CCR_BLOCK_BYTES) {
+    return rejectStore(hash, owner, "block_too_large");
+  }
+
+  if (!enforcePrincipalBudget(owner, bytes)) {
+    return rejectStore(hash, owner, "principal_budget_exceeded");
+  }
+
+  if (!enforceGlobalBudget(bytes)) {
+    return rejectStore(hash, owner, "global_budget_exceeded");
+  }
+
+  const ttlSeconds = normalizeTtlSeconds(options.ttlSeconds);
+  const entry: CcrEntry = {
+    hash,
+    principalId: owner,
+    content: text,
+    bytes,
+    chars: text.length,
+    lines: text.length === 0 ? 0 : text.split("\n").length,
+    contentType: options.contentType?.trim().slice(0, 128) || "text/plain",
+    source: options.source ?? "compression",
+    createdAt: now,
+    lastAccessedAt: now,
+    expiresAt: now + ttlSeconds * 1000,
+  };
+  ccrStore.set(key, entry);
+  ccrTotalBytes += bytes;
+  principalBytesMap.set(owner, principalBytes(owner) + bytes);
+  return { stored: true, hash, metadata: publicMetadata(entry) };
+}
+
+export function storeBlock(
+  text: string,
+  principalId?: string,
+  options: StoreCcrBlockOptions = {}
+): string {
+  const result = tryStoreBlock(text, principalId, options);
+  if (!result.stored) throw new RangeError(`CCR store rejected block: ${result.reason}`);
+  return result.hash;
 }
 
 /**
  * Retrieve the verbatim block for a given hash and principal.
  * Returns null if not found or if the principal does not match the stored key.
  */
-export function retrieveBlock(hash: string, principalId?: string): string | null {
+export function retrieveBlock(hash: string, principalId?: string, now = Date.now()): string | null {
   const key = buildStoreKey(hash, principalId);
-  return ccrStore.get(key) ?? null;
+  const entry = getActiveEntry(key, now);
+  if (!entry) return null;
+  entry.lastAccessedAt = now;
+  ccrStore.delete(key);
+  ccrStore.set(key, entry);
+  return entry.content;
 }
 
 /**
@@ -134,7 +353,7 @@ export function retrieveBlock(hash: string, principalId?: string): string | null
  */
 export function recordRetrieval(hash: string, principalId?: string): void {
   const key = buildStoreKey(hash, principalId);
-  boundedSet(retrievalCounts, key, (retrievalCounts.get(key) ?? 0) + 1);
+  setRetrievalCount(key, (retrievalCounts.get(key) ?? 0) + 1);
 }
 
 /**
@@ -182,6 +401,65 @@ export function resolveRetrievalRampFactor(env: NodeJS.ProcessEnv = process.env)
 export function resetCcrStore(): void {
   ccrStore.clear();
   retrievalCounts.clear();
+  principalBytesMap.clear();
+  ccrTotalBytes = 0;
+  lifecycleByPrincipal.clear();
+}
+
+export function inspectCcrBlock(
+  hash: string,
+  principalId?: string,
+  now = Date.now()
+): CcrEntryMetadata | null {
+  const entry = getActiveEntry(buildStoreKey(hash, principalId), now);
+  return entry ? publicMetadata(entry) : null;
+}
+
+export function listCcrBlocks(
+  principalId?: string,
+  options: { offset?: number; limit?: number; now?: number } = {}
+): { entries: CcrEntryMetadata[]; total: number; offset: number; limit: number; hasMore: boolean } {
+  purgeExpired(options.now);
+  const owner = principalId ?? ANON;
+  const offset = Math.max(0, Math.floor(options.offset ?? 0));
+  const limit = Math.max(1, Math.min(100, Math.floor(options.limit ?? 25)));
+  const all: CcrEntryMetadata[] = [];
+  for (const entry of ccrStore.values()) {
+    if (entry.principalId === owner) all.push(publicMetadata(entry));
+  }
+  all.reverse();
+  return {
+    entries: all.slice(offset, offset + limit),
+    total: all.length,
+    offset,
+    limit,
+    hasMore: offset + limit < all.length,
+  };
+}
+
+export function deleteCcrBlock(hash: string, principalId?: string, _now = Date.now()): boolean {
+  return removeEntry(buildStoreKey(hash, principalId));
+}
+
+export function getCcrStoreStats(principalId?: string, now = Date.now()): CcrStoreStats {
+  purgeExpired(now);
+  const owner = principalId ?? ANON;
+  const entries = Array.from(ccrStore.values()).filter((entry) => entry.principalId === owner);
+  return {
+    storage: "memory",
+    entries: entries.length,
+    bytes: entries.reduce((sum, entry) => sum + entry.bytes, 0),
+    limits: {
+      maxEntries: MAX_CCR_ENTRIES,
+      maxBlockBytes: MAX_CCR_BLOCK_BYTES,
+      maxPrincipalBytes: MAX_CCR_PRINCIPAL_BYTES,
+      maxGlobalBytes: MAX_CCR_GLOBAL_BYTES,
+      defaultTtlSeconds: DEFAULT_CCR_TTL_SECONDS,
+      maxTtlSeconds: MAX_CCR_TTL_SECONDS,
+      maxMcpFullBytes: MAX_CCR_MCP_FULL_BYTES,
+    },
+    lifecycle: { ...readLifecycleCounters(owner) },
+  };
 }
 
 // ─── MCP tool handler (pure function) ────────────────────────────────────────
@@ -226,8 +504,40 @@ type MessageLike = {
 /**
  * Build a CCR marker string for a block.
  */
-function buildMarker(hash: string, charCount: number): string {
+export function buildCcrMarker(hash: string, charCount: number): string {
   return `[CCR retrieve hash=${hash} chars=${charCount}]`;
+}
+
+export function buildCcrReference(
+  hash: string,
+  charCount: number
+): {
+  hash: string;
+  uri: string;
+  marker: string;
+} {
+  return { hash, uri: `ccr://${hash}`, marker: buildCcrMarker(hash, charCount) };
+}
+
+/**
+ * #7746 guard: how many leading characters of the original block to keep in front
+ * of the marker. `maybeCcrReplace` treats an entire message/part as ONE candidate
+ * block (see module docstring), so a bare marker alone would silently discard the
+ * ENTIRE prompt for any caller that cannot resolve `omniroute_ccr_retrieve`
+ * (every plain OpenAI-compatible client — it is only ever exposed as an MCP tool).
+ * Keeping a short, human-readable preamble means the model still sees the start
+ * of the user's intent even when the marker itself is unreachable, while the full
+ * text remains verbatim-retrievable by hash for MCP-capable callers.
+ */
+const MARKER_PREAMBLE_CHARS = 200;
+
+/**
+ * Build the text that replaces a compressed block: a short preamble of the
+ * original content followed by the retrieve marker, never the marker alone.
+ */
+function buildCcrReplacementText(text: string, marker: string): string {
+  const preamble = text.slice(0, MARKER_PREAMBLE_CHARS).trimEnd();
+  return `${preamble}… ${marker}`;
 }
 
 /**
@@ -254,15 +564,19 @@ function maybeCcrReplace(
     return { text, replaced: false, hash: null };
   }
 
-  const marker = buildMarker(hash, text.length);
+  const marker = buildCcrMarker(hash, text.length);
+  // #7746: never leave a caller with ONLY the bare marker — keep a short preamble
+  // so the original prompt is not silently, totally unreachable for non-MCP callers.
+  const replacement = buildCcrReplacementText(text, marker);
 
   // Only replace if it actually shrinks
-  if (marker.length >= text.length) {
+  if (replacement.length >= text.length) {
     return { text, replaced: false, hash: null };
   }
 
-  storeBlock(text, principalId);
-  return { text: marker, replaced: true, hash };
+  const stored = tryStoreBlock(text, principalId, { source: "compression" });
+  if (!stored.stored) return { text, replaced: false, hash: null };
+  return { text: replacement, replaced: true, hash };
 }
 
 /**
@@ -279,6 +593,20 @@ function processMessages(
   const result = messages.map((msg) => {
     if (msg.role === "system") return { ...msg };
 
+    // H-fix1: skip tool outputs (OpenAI `role:"tool"` and Anthropic user
+    // messages whose content is exclusively `tool_result` parts). When
+    // OmniRoute is used as a chat-completion PROVIDER, the upstream LLM has no
+    // way to call `omniroute_ccr_retrieve` and expand markers — replacing tool
+    // outputs with `[CCR retrieve hash=…]` placeholders therefore breaks the agent
+    // loop. Preserve tool outputs verbatim so the LLM can keep reasoning.
+    if (msg.role === "tool") return { ...msg };
+    if (msg.role === "user" && Array.isArray(msg.content)) {
+      const parts = msg.content as Array<Record<string, unknown>>;
+      if (parts.length > 0 && parts.every((p) => p?.["type"] === "tool_result")) {
+        return { ...msg };
+      }
+    }
+
     if (typeof msg.content === "string") {
       const { text, replaced } = maybeCcrReplace(msg.content, minChars, principalId, rampFactor);
       if (replaced) {
@@ -291,7 +619,7 @@ function processMessages(
     if (Array.isArray(msg.content)) {
       let changed = false;
       const newContent = msg.content.map((part) => {
-        if (part["type"] !== "text" || typeof part["text"] !== "string") return part;
+        if (part?.["type"] !== "text" || typeof part?.["text"] !== "string") return part;
         const { text, replaced } = maybeCcrReplace(
           part["text"] as string,
           minChars,
@@ -432,7 +760,11 @@ export const ccrEngine: CompressionEngine = {
       return { body, compressed: false, stats: null };
     }
 
-    const newBody: Record<string, unknown> = { ...body, messages: newMessages };
+    // #8033: teach MCP-capable callers the marker → omniroute_ccr_retrieve contract
+    // (once per session; never told to non-MCP callers who cannot reach the tool).
+    const messagesWithProtocol = injectCcrProtocolInstruction(newMessages, body);
+
+    const newBody: Record<string, unknown> = { ...body, messages: messagesWithProtocol };
     const durationMs = Math.round(performance.now() - start);
     const stats = createCompressionStats(
       body,

@@ -395,6 +395,7 @@ export async function executeChatWithBreaker({
   trafficType = "production",
   correlationId = null,
   modelPinned = false,
+  routingComboId = null,
 }: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
   const normalizedTrafficType: TrafficType =
@@ -432,6 +433,7 @@ export async function executeChatWithBreaker({
             trafficType: normalizedTrafficType,
             correlationId,
             modelPinned,
+            routingComboId,
             onCredentialsRefreshed: async (newCreds: any) => {
               await updateProviderCredentials(credentials.connectionId, {
                 accessToken: newCreds.accessToken,
@@ -457,7 +459,8 @@ export async function executeChatWithBreaker({
               if (
                 Number(failure?.status) === 499 ||
                 failure?.code === "client_disconnected" ||
-                failure?.type === "client_disconnected"
+                failure?.type === "client_disconnected" ||
+                isLocalStreamLifecycleError(failure?.message ?? failure) // client abort, #4602
               ) {
                 return;
               }
@@ -566,7 +569,8 @@ export function handleNoCredentials(
   provider: string,
   model: string,
   lastError: string | null,
-  lastStatus: number | null
+  lastStatus: number | null,
+  candidateAliases?: readonly string[]
 ) {
   if (credentials?.allRateLimited) {
     const errorMsg = lastError || credentials.lastError || "Unavailable";
@@ -587,12 +591,9 @@ export function handleNoCredentials(
       return modelCooldownResponse({
         model: cooldownModel,
         retryAfter: credentials.retryAfter,
-        retryAfterAt:
-          typeof credentials.retryAfter === "string" ? credentials.retryAfter : null,
+        retryAfterAt: typeof credentials.retryAfter === "string" ? credentials.retryAfter : null,
         credentialsCoolingCount:
-          typeof credentials.connectionsCount === "number"
-            ? credentials.connectionsCount
-            : null,
+          typeof credentials.connectionsCount === "number" ? credentials.connectionsCount : null,
       });
     }
 
@@ -642,7 +643,22 @@ export function handleNoCredentials(
     // all disabled. log level is `warn` rather than `error` because zero active
     // credentials is an expected operator-driven state, not a server fault.
     log.warn("AUTH", `No active credentials for provider: ${provider}`);
-    return errorResponse(HTTP_STATUS.NOT_FOUND, `No active credentials for provider: ${provider}`);
+    // #FIX: surface the candidate aliases (from resolveModelOrError) so the
+    // operator can pick a working provider/model prefix instead of guessing.
+    // Without this, "No active credentials for provider: kiro" leaves the
+    // user staring at a wall — most bugs in this area are actually "wrong
+    // provider was picked", not "the provider is broken".
+    const hint =
+      Array.isArray(candidateAliases) && candidateAliases.length > 0
+        ? ` Try one of: ${candidateAliases
+            .slice(0, 3)
+            .map((a) => `${a}/${model}`)
+            .join(", ")}.`
+        : "";
+    return errorResponse(
+      HTTP_STATUS.NOT_FOUND,
+      `No active credentials for provider: ${provider}.${hint}`
+    );
   }
   log.warn("CHAT", "No more accounts available", { provider });
   return errorResponse(
@@ -680,11 +696,6 @@ export function shouldRetryStreamEarlyEof(
   return errorCode === "STREAM_EARLY_EOF" && attempt < STREAM_EARLY_EOF_MAX_RETRIES;
 }
 
-/**
- * Proxy-resolution failure policy. Default: fail-closed (rethrow) so a request
- * with an assigned-but-unresolvable proxy never silently egresses on the real IP.
- * Opt back into the legacy DIRECT fallback with PROXY_FAIL_OPEN=true.
- */
 export function decideProxyResolutionFailure(
   err: unknown,
   env: { PROXY_FAIL_OPEN?: string } = process.env
@@ -701,14 +712,21 @@ export function decideProxyResolutionFailure(
   throw err instanceof Error ? err : new Error(String(err));
 }
 
-export async function safeResolveProxy(connectionId: string, apiKeyId?: string) {
+export async function safeResolveProxy(
+  connectionId: string,
+  apiKeyId?: string,
+  providerId?: string
+) {
   try {
-    const resolved = await resolveProxyForConnection(connectionId, apiKeyId);
+    const resolved = await resolveProxyForConnection(connectionId, apiKeyId, providerId);
     // #6246: a connection that resolves to DIRECT only because its assigned proxy
     // is dead/inactive must fail closed — egressing on the real IP leaks it. Reuse
     // the existing proxy-resolution-failure policy (blocks by default; PROXY_FAIL_OPEN
     // opts back into direct). Explicit "proxy off" is not a leak (see the guard).
-    if (!(resolved as { proxy?: unknown } | null)?.proxy && hasBlockingProxyAssignment(connectionId)) {
+    if (
+      !(resolved as { proxy?: unknown } | null)?.proxy &&
+      hasBlockingProxyAssignment(connectionId, providerId)
+    ) {
       return decideProxyResolutionFailure(
         Object.assign(
           new Error(

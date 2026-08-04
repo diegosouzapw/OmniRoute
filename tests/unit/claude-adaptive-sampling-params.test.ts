@@ -1,5 +1,5 @@
 /**
- * Claude Opus 4.7+/Fable 5 sampling-param strip + adaptive-only flag.
+ * Claude Opus 4.7+/Opus 5/Fable 5 sampling-param strip + adaptive-only flag.
  *
  * Anthropic's Opus 4.7+ generation rejects non-default `temperature`/`top_p`/`top_k` with a
  * 400 (sampling is fixed; reasoning is steered by output_config.effort). These tests pin both
@@ -15,7 +15,7 @@ import { isAdaptiveThinkingOnly } from "../../src/shared/constants/modelSpecs.ts
 const SAMPLING = ["temperature", "top_p", "top_k"];
 
 test("claude registry strips temperature/top_p/top_k for Opus 4.7+/Fable 5", () => {
-  for (const model of ["claude-opus-4-8", "claude-opus-4-7", "claude-fable-5"]) {
+  for (const model of ["claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-fable-5"]) {
     const unsupported = getUnsupportedParams("claude", model);
     for (const param of SAMPLING) {
       assert.ok(
@@ -26,10 +26,12 @@ test("claude registry strips temperature/top_p/top_k for Opus 4.7+/Fable 5", () 
   }
 });
 
-test("anthropic registry (dotted ids) strips sampling params for Opus 4.7", () => {
-  const unsupported = getUnsupportedParams("anthropic", "claude-opus-4.7");
-  for (const param of SAMPLING) {
-    assert.ok(unsupported.includes(param), `claude-opus-4.7 must list ${param} as unsupported`);
+test("anthropic registry strips sampling params for current adaptive Opus models", () => {
+  for (const model of ["claude-opus-5", "claude-opus-4.8", "claude-opus-4.7"]) {
+    const unsupported = getUnsupportedParams("anthropic", model);
+    for (const param of SAMPLING) {
+      assert.ok(unsupported.includes(param), `${model} must list ${param} as unsupported`);
+    }
   }
 });
 
@@ -52,7 +54,7 @@ test("pre-4.7 Claude models still accept sampling params (regression guard)", ()
 });
 
 test("isAdaptiveThinkingOnly is true only for Opus 4.7+/Fable 5", () => {
-  for (const model of ["claude-opus-4-8", "claude-opus-4-7", "claude-fable-5"]) {
+  for (const model of ["claude-opus-5", "claude-opus-4-8", "claude-opus-4-7", "claude-fable-5"]) {
     assert.equal(isAdaptiveThinkingOnly(model), true, `${model} is adaptive-only`);
   }
   for (const model of [
@@ -68,5 +70,6 @@ test("isAdaptiveThinkingOnly is true only for Opus 4.7+/Fable 5", () => {
 });
 
 test("isAdaptiveThinkingOnly resolves Bedrock/dated aliases", () => {
+  assert.equal(isAdaptiveThinkingOnly("anthropic.claude-opus-5"), true);
   assert.equal(isAdaptiveThinkingOnly("anthropic.claude-opus-4-8"), true);
 });

@@ -171,6 +171,30 @@ test("percentage-only quotas hide redundant usage counts while counted quotas ke
   assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(counted[0]), true);
 });
 
+test("Firecrawl over-plan quota displays remaining credits against the plan baseline", () => {
+  const parsed = providerLimitUtils.parseQuotaData("firecrawl", {
+    quotas: {
+      monthly: {
+        used: 0,
+        total: 1000,
+        remaining: 1450,
+        remainingPercentage: 145,
+        extraCreditsInferred: 450,
+        overPlan: true,
+      },
+    },
+  });
+
+  assert.equal(parsed.length, 1);
+  assert.equal(parsed[0].used, 0);
+  assert.equal(parsed[0].total, 1000);
+  assert.equal(parsed[0].remaining, 1450);
+  assert.equal(providerLimitUtils.getQuotaRemainingPercentage(parsed[0]), 145);
+  assert.equal(parsed[0].extraCreditsInferred, 450);
+  assert.equal(parsed[0].overPlan, true);
+  assert.equal(providerLimitUtils.shouldShowQuotaUsageCount(parsed[0]), true);
+});
+
 test("Codex banked reset credits parse as an integer reset-credit counter", () => {
   const parsed = providerLimitUtils.parseQuotaData("codex", {
     quotas: {
@@ -335,7 +359,21 @@ test("usage namespace includes Provider Limits UI translation keys", () => {
     "forceRefresh",
     "resetCreditsLabel",
     "redeemResetCredit",
+    "manageResetCredits",
+    "viewResetCredits",
+    "resetCreditsModalTitle",
+    "resetCreditsModalExplainer",
+    "resetCreditsLoadFailed",
+    "resetCreditsDetailsUnavailable",
+    "noResetCreditsAvailable",
+    "resetCreditDefaultTitle",
+    "resetCreditExpiresFirst",
+    "resetCreditExpiresAt",
+    "resetCreditNoExpiry",
+    "redeemThisResetCredit",
+    "confirmRedeemResetCreditTitle",
     "confirmRedeemResetCredit",
+    "confirmRedeemResetCreditButton",
     "resetCreditRedeemed",
     "resetCreditRedeemFailed",
   ]) {

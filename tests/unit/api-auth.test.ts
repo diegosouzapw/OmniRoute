@@ -344,6 +344,37 @@ test("isAuthRequired stays enabled when INITIAL_PASSWORD is present", async () =
 
   delete process.env.INITIAL_PASSWORD;
 });
+test("isAuthRequired stays enabled when OIDC is fully configured (replaces password for gate)", async () => {
+  await localDb.updateSettings({
+    requireLogin: true,
+    password: "",
+    oidcEnabled: true,
+    oidcIssuer: "https://idp.example.com",
+    oidcClientId: "client-123",
+    oidcClientSecret: "secret-xyz",
+  });
+
+  const result = await apiAuth.isAuthRequired();
+  assert.equal(result, true);
+});
+
+test("isAuthRequired treats partial OIDC config as not configured (bootstrap behavior preserved)", async () => {
+  await localDb.updateSettings({
+    requireLogin: true,
+    password: "",
+    oidcEnabled: true,
+    oidcIssuer: "https://idp.example.com",
+    // missing clientId + clientSecret
+  });
+
+  // On loopback without full config → bootstrap allowed
+  assert.equal(await apiAuth.isAuthRequired(new Request("http://localhost/api/providers")), false);
+  // Remote still requires auth
+  assert.equal(
+    await apiAuth.isAuthRequired(new Request("https://example.com/api/providers")),
+    true
+  );
+});
 
 test("getApiKeyMetadata recognizes OMNIROUTE_API_KEY environment variable", async () => {
   const envKey = "sk-test-env-key-" + Date.now();

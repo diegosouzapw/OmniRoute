@@ -87,8 +87,9 @@ async function mountHook(): Promise<{
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-    true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
 });
 
 afterEach(() => {
@@ -165,7 +166,11 @@ describe("useToolBatchStatuses", () => {
       await new Promise((r) => setTimeout(r, 50));
     });
 
-    expect((mockFetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(callsAfterMount);
+    expect((mockFetch as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(
+      callsAfterMount
+    );
+    const calls = (mockFetch as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls.at(-1)?.[0]).toBe("/api/cli-tools/all-statuses?refresh=true");
   });
 
   it("registers focus event listener on mount", async () => {

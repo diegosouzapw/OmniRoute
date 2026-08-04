@@ -31,6 +31,9 @@ const WS_QUERY_TOKEN_KEYS = ["api_key", "token", "access_token"];
 const textDecoder = new TextDecoder();
 const DEFAULT_MAX_WS_BUFFER_BYTES = 16 * 1024 * 1024;
 const DEFAULT_MAX_WS_MESSAGE_BYTES = 16 * 1024 * 1024;
+// #7388: sentinel turn key for session-ending terminal events that don't carry
+// a `response.id` (prepare failure, upstream error/close, connect failure).
+const SESSION_TERMINAL_TURN_KEY = "__session_terminal__";
 
 class WebSocketInputTooLargeError extends Error {
   constructor(message, reason = "message_too_large") {
@@ -414,8 +417,16 @@ class ResponsesWsSession {
     this.upstream = null;
     this.upstreamReady = null;
     this.firstResponseBody = null;
+    this.currentRequestBody = null;
     this.preparedContext = null;
-    this.historyLogged = false;
+    // #7388: logging must be scoped per logical turn (one `response.create`
+    // through its terminal event), not once for the lifetime of the WS
+    // connection — a single boolean here silently dropped every turn after
+    // the first on a reused connection. Terminal events carry a
+    // `response.id` we can key on; session-ending failure paths (prepare
+    // failure, upstream error/close, connect failure) don't, so they fall
+    // back to a session-scoped sentinel key that still logs exactly once.
+    this.loggedTurnIds = new Set();
     this.lastSeenAt = Date.now();
 
     this.pingTimer = setInterval(() => {
@@ -568,6 +579,52 @@ class ResponsesWsSession {
     await this.forwardClientMessage(message);
   }
 
+  // #8052: shared by ensureUpstream() (first turn — also owns socket creation) and
+  // forwardClientMessage() (subsequent turns on a reused connection). Calls the internal
+  // "prepare" action — auth/policy/memory/reasoning-routing/compression — and refreshes
+  // preparedContext, but never touches this.upstream/this.upstreamReady; the caller decides
+  // whether a new upstream socket is needed.
+  async runPrepare(message, responseBody) {
+    const prepared = await callInternal(this.fetchImpl, this.baseUrl, this.bridgeSecret, "prepare", {
+      requestUrl: this.requestUrl,
+      headers: getAuthHeaders(this.requestUrl, this.requestHeaders),
+      message,
+      response: responseBody,
+    });
+
+    if (!prepared.ok) {
+      const message2 =
+        prepared.json?.error?.message ||
+        prepared.json?.message ||
+        prepared.text ||
+        "Codex WS prepare failed";
+      const code = prepared.json?.error?.code || "codex_ws_prepare_failed";
+      const error = new Error(message2);
+      error.code = code;
+      error.status = prepared.status;
+      throw error;
+    }
+
+    this.preparedContext = {
+      upstreamUrl: toStringOrNull(prepared.json?.upstreamUrl),
+      connectionId: toStringOrNull(prepared.json?.connectionId),
+      account: toStringOrNull(prepared.json?.account),
+      provider: toStringOrNull(prepared.json?.provider) || "codex",
+      model: toStringOrNull(prepared.json?.model) || toStringOrNull(responseBody.model),
+      requestedModel: toStringOrNull(responseBody.model),
+      reasoningRouting:
+        prepared.json?.reasoningRouting &&
+        typeof prepared.json.reasoningRouting === "object" &&
+        !Array.isArray(prepared.json.reasoningRouting)
+          ? prepared.json.reasoningRouting
+          : null,
+      serviceTier:
+        toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
+    };
+
+    return prepared;
+  }
+
   async ensureUpstream(firstMessage) {
     if (this.upstreamReady) return this.upstreamReady;
 
@@ -577,43 +634,9 @@ class ResponsesWsSession {
         throw new Error("First Responses WebSocket message must be response.create");
       }
       this.firstResponseBody ||= responseBody;
+      this.currentRequestBody = responseBody;
 
-      const prepared = await callInternal(
-        this.fetchImpl,
-        this.baseUrl,
-        this.bridgeSecret,
-        "prepare",
-        {
-          requestUrl: this.requestUrl,
-          headers: getAuthHeaders(this.requestUrl, this.requestHeaders),
-          message: firstMessage,
-          response: responseBody,
-        }
-      );
-
-      if (!prepared.ok) {
-        const message =
-          prepared.json?.error?.message ||
-          prepared.json?.message ||
-          prepared.text ||
-          "Codex WS prepare failed";
-        const code = prepared.json?.error?.code || "codex_ws_prepare_failed";
-        const error = new Error(message);
-        error.code = code;
-        error.status = prepared.status;
-        throw error;
-      }
-
-      this.preparedContext = {
-        upstreamUrl: toStringOrNull(prepared.json?.upstreamUrl),
-        connectionId: toStringOrNull(prepared.json?.connectionId),
-        account: toStringOrNull(prepared.json?.account),
-        provider: toStringOrNull(prepared.json?.provider) || "codex",
-        model: toStringOrNull(prepared.json?.model) || toStringOrNull(responseBody.model),
-        requestedModel: toStringOrNull(responseBody.model),
-        serviceTier:
-          toStringOrNull(responseBody.service_tier) || toStringOrNull(responseBody.serviceTier),
-      };
+      const prepared = await this.runPrepare(firstMessage, responseBody);
 
       const wsOptions = {
         // #5591: chrome_149 is not a wreq-js 2.3.1 profile (max chrome_147); the
@@ -681,6 +704,21 @@ class ResponsesWsSession {
         upstream.send(jsonStringifySafe(firstMessage));
         return;
       }
+      // #7388: a reused WS connection forwards subsequent response.create
+      // turns straight through (ensureUpstream() only runs once); track each
+      // turn's own request body so persistHistory() attaches the right
+      // clientRequest instead of always the first turn's.
+      const nextTurnBody = getResponseCreatePayload(message);
+      if (nextTurnBody !== null) {
+        this.currentRequestBody = nextTurnBody;
+        // #8052: a reused connection must re-run "prepare" (auth/policy/memory/
+        // reasoning-routing/compression) for every logical turn, not just the first —
+        // otherwise every turn after the first bypasses the whole pipeline. This reuses
+        // the already-established upstream transport; it must NOT recreate the socket.
+        const prepared = await this.runPrepare(message, nextTurnBody);
+        this.upstream.send(jsonStringifySafe(withPreparedResponseCreate(message, prepared.json.response)));
+        return;
+      }
       this.upstream.send(jsonStringifySafe(message));
     } catch (error) {
       const code = error?.code || "upstream_websocket_connect_failed";
@@ -705,8 +743,17 @@ class ResponsesWsSession {
     terminalMessage = null,
     responseBody = null,
   } = {}) {
-    if (this.historyLogged || !this.firstResponseBody) return;
-    this.historyLogged = true;
+    if (!this.firstResponseBody) return;
+    // #7388: key the "already logged" guard per logical turn instead of once
+    // per WS connection. Terminal events from a real response carry
+    // `response.id` — use it so each turn on a reused connection logs
+    // independently, while the same id firing twice (retries) still logs
+    // exactly once. Session-ending failure paths (prepare failure, upstream
+    // error/close, connect failure) don't carry a response id — they end the
+    // session, so they share one sentinel key and still log exactly once.
+    const turnId = toStringOrNull(terminalMessage?.response?.id) || SESSION_TERMINAL_TURN_KEY;
+    if (this.loggedTurnIds.has(turnId)) return;
+    this.loggedTurnIds.add(turnId);
 
     const finishedAt = Date.now();
     try {
@@ -723,7 +770,7 @@ class ResponsesWsSession {
         success,
         errorCode,
         errorMessage,
-        clientRequest: this.firstResponseBody,
+        clientRequest: this.currentRequestBody || this.firstResponseBody,
         terminalMessage,
         responseBody,
         sourceFormat: "openai-responses",

@@ -19,14 +19,14 @@
  * shrinking (Quality Gate / #3501).
  */
 
-import { getProviderConnectionById } from "../../../src/lib/db/providers";
+import { getCachedProviderConnectionById } from "@/lib/localDb";
 import { effectiveMaxConcurrency } from "./comboPredicates.ts";
 import type { ResolvedComboTarget } from "./types.ts";
 
 /** Read a connection's positive `maxConcurrent`, or null when unset / <= 0 / on error. */
 export async function lookupPositiveCap(connectionId: string): Promise<number | null> {
   try {
-    const conn = await getProviderConnectionById(connectionId);
+    const conn = await getCachedProviderConnectionById(connectionId);
     const raw = (conn as { maxConcurrent?: number | null } | null)?.maxConcurrent;
     return typeof raw === "number" && Number.isFinite(raw) && raw > 0 ? raw : null;
   } catch {

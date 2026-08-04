@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { getModelInfoCore } from "../../open-sse/services/model.ts";
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
+import { FREE_MODEL_BUDGETS } from "../../open-sse/config/freeModelCatalog.data.ts";
 import { getStaticModelsForProvider } from "../../src/lib/providers/staticModels.ts";
 
 test("T28: gemini AI Studio catalog includes current preview models", () => {
@@ -19,22 +20,45 @@ test("T28: gemini AI Studio catalog includes current preview models", () => {
   assert.equal(geminiIds[0], "gemini-3.1-pro-preview", "preserve the existing Gemini default");
 });
 
-test("T28: antigravity static catalog exposes client-visible Gemini tier IDs", () => {
+test("T28: antigravity static catalog exposes only callable Gemini tier IDs", () => {
   const staticIds = (getStaticModelsForProvider("antigravity") || []).map((m) => m.id);
 
-  assert.ok(staticIds.includes("gemini-3-pro-preview"));
+  assert.ok(!staticIds.includes("gemini-3-pro-preview"));
+  assert.ok(staticIds.includes("gemini-3.6-flash-high"));
+  assert.ok(staticIds.includes("gemini-3.6-flash-medium"));
+  assert.ok(staticIds.includes("gemini-3.6-flash-low"));
+  assert.ok(staticIds.includes("gemini-3.5-flash-extra-low"));
   assert.ok(staticIds.includes("gemini-3.5-flash-low"));
-  assert.ok(staticIds.includes("gemini-3.5-flash-medium"));
-  assert.ok(staticIds.includes("gemini-3.5-flash-high"));
+  assert.ok(staticIds.includes("gemini-3-flash-agent"));
+  assert.ok(!staticIds.includes("gemini-3.5-flash-medium"));
+  assert.ok(!staticIds.includes("gemini-3.5-flash-high"));
   assert.ok(staticIds.includes("gemini-3.1-pro-low"));
-  assert.ok(staticIds.includes("gemini-3.1-pro-high"));
+  assert.ok(!staticIds.includes("gemini-3.1-pro-high"));
+  assert.ok(staticIds.includes("gemini-pro-agent"));
   // Legacy aliases that were never client-visible stay absent.
   assert.ok(!staticIds.includes("gemini-3-pro-high"));
   assert.ok(!staticIds.includes("gemini-3-flash-preview"));
-  assert.ok(!staticIds.includes("gemini-3-flash-agent"));
   assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5"));
   assert.ok(!staticIds.includes("gemini-claude-sonnet-4-5-thinking"));
   assert.ok(!staticIds.includes("gemini-claude-opus-4-5-thinking"));
+});
+
+test("T28: agy free-model metadata labels upstream Gemini 3.6 tier IDs", () => {
+  const flashNames = Object.fromEntries(
+    FREE_MODEL_BUDGETS.filter(
+      (entry) =>
+        entry.provider === "agy" &&
+        ["gemini-3.6-flash-low", "gemini-3.6-flash-medium", "gemini-3.6-flash-high"].includes(
+          entry.modelId
+        )
+    ).map((entry) => [entry.modelId, entry.displayName])
+  );
+
+  assert.deepEqual(flashNames, {
+    "gemini-3.6-flash-low": "Gemini 3.6 Flash (Low)",
+    "gemini-3.6-flash-medium": "Gemini 3.6 Flash (Medium)",
+    "gemini-3.6-flash-high": "Gemini 3.6 Flash (High)",
+  });
 });
 
 test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias compatibility", async () => {
@@ -51,11 +75,9 @@ test("T28: github registry exposes Gemini 3.1 Pro Preview and keeps legacy alias
   assert.equal(legacy.model, "gemini-3.1-pro-preview");
 });
 
-test("T28: qwen registry uses native chat.qwen.ai base URL", () => {
-  assert.equal(
-    REGISTRY.qwen.baseUrl,
-    "https://chat.qwen.ai/api/v1/services/aigc/text-generation/generation"
-  );
+test("T28: qwen OAuth registry entry is retired; qwen-web keeps the native chat.qwen.ai URL", () => {
+  assert.equal(REGISTRY.qwen, undefined);
+  assert.equal(REGISTRY["qwen-web"].baseUrl, "https://chat.qwen.ai/api/v2/chat/completions");
 });
 
 test("T28: lmarena registry seeds Direct-chat Text/search; image models in IMAGE_PROVIDERS", async () => {

@@ -22,9 +22,8 @@ import assert from "node:assert/strict";
 
 const mod = await import("../../open-sse/executors/v0-vercel-web.ts");
 const { ClaudeWebExecutor } = await import("../../open-sse/executors/claude-web.ts");
-const { __setTlsFetchOverrideForTesting } = await import(
-  "../../open-sse/services/claudeTlsClient.ts"
-);
+const { __setTlsFetchOverrideForTesting } =
+  await import("../../open-sse/services/claudeTlsClient.ts");
 
 function sseUpstream(events: string[]): Response {
   const encoder = new TextEncoder();
@@ -128,8 +127,8 @@ describe("#6662 repro — claude-web drops thinking_delta reasoning_content", ()
       body: { messages: [{ role: "user", content: "Solve 17*23" }] },
       stream: true,
       credentials: {
-        // cf_clearance present up front so normalizeClaudeSessionCookieWithAutoRefresh
-        // takes the fast path and never attempts a real Turnstile solve in-test.
+        // The direct transport forwards the supplied cookie as-is. This fixture
+        // stays entirely local through the injected TLS response.
         apiKey: "sessionKey=fake-session; cf_clearance=fake-clearance",
         orgId: "org-test",
         conversationId: "conv-test",

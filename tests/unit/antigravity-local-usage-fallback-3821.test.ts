@@ -3,11 +3,11 @@
  * stale full `fetchAvailableModels` bucket (used=0) with real consumption summed from
  * `usage_history`, flipping quotaSource to "localUsageHistory". Every prior #3604 test
  * mocks only the HTTP layer, so the model-id match against usage_history.model was never
- * exercised end-to-end. This seeds a real usage_history row keyed by the CLIENT tier id
+ * exercised end-to-end. This seeds a real usage_history row keyed by the upstream/public id
  * the fallback queries and asserts the flip — the regression guard for the id contract.
  *
- * Contract note: the fallback queries `usage_history WHERE model = <client tier id>`
- * (e.g. gemini-3.5-flash-high), so the executor MUST log usage under that same client id
+ * Contract note: the fallback queries `usage_history WHERE model = <public model id>`
+ * (e.g. gemini-3-flash-agent), so the executor MUST log usage under that same model id
  * for the fallback to fire. This test pins exactly that join.
  */
 import test from "node:test";
@@ -40,12 +40,14 @@ test("Antigravity fetchAvailableModels(used=0) → localUsageHistory when usage_
   const resetTime = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   const seededTimestamp = new Date(Date.now() - 30 * 60 * 1000).toISOString(); // within window
 
-  // Seed a usage_history row keyed by the CLIENT tier id the fallback queries.
-  const db = core.getDbInstance() as unknown as { prepare: (sql: string) => { run: (...a: unknown[]) => unknown } };
+  // Seed a usage_history row keyed by the public upstream id the fallback queries.
+  const db = core.getDbInstance() as unknown as {
+    prepare: (sql: string) => { run: (...a: unknown[]) => unknown };
+  };
   db.prepare(
     `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, tokens_reasoning, success, timestamp)
      VALUES (?, ?, ?, ?, ?, ?, 1, ?)`
-  ).run("antigravity", "gemini-3.5-flash-high", "conn-local-1", 1000, 1500, 500, seededTimestamp);
+  ).run("antigravity", "gemini-3-flash-agent", "conn-local-1", 1000, 1500, 500, seededTimestamp);
   // Total seeded tokens = 3000 → ceil(3000/1000) = 3 units used.
 
   globalThis.fetch = (async (input: any) => {
@@ -59,7 +61,7 @@ test("Antigravity fetchAvailableModels(used=0) → localUsageHistory when usage_
       ok: true,
       json: async () => ({
         models: {
-          "gemini-3.5-flash-high": {
+          "gemini-3-flash-agent": {
             quotaInfo: { remainingFraction: 1.0, resetTime },
           },
         },
@@ -77,8 +79,8 @@ test("Antigravity fetchAvailableModels(used=0) → localUsageHistory when usage_
 
   const result = await getUsageForProvider(connection, { forceRefresh: true });
   assert.ok(result && "quotas" in result, "should return quotas");
-  const quota = (result as any).quotas["gemini-3.5-flash-high"];
-  assert.ok(quota, "should have the gemini-3.5-flash-high quota");
+  const quota = (result as any).quotas["gemini-3-flash-agent"];
+  assert.ok(quota, "should have the gemini-3-flash-agent quota");
   assert.equal(quota.quotaSource, "localUsageHistory", "stale full bucket replaced by local usage");
   assert.equal(quota.used, 3, "3000 seeded tokens → 3 units used");
 });
@@ -97,7 +99,7 @@ test("Antigravity stays fetchAvailableModels when usage_history has no matching 
       ok: true,
       json: async () => ({
         models: {
-          "gemini-3.5-flash-high": { quotaInfo: { remainingFraction: 1.0, resetTime } },
+          "gemini-3-flash-agent": { quotaInfo: { remainingFraction: 1.0, resetTime } },
         },
       }),
     } as Response;
@@ -112,7 +114,7 @@ test("Antigravity stays fetchAvailableModels when usage_history has no matching 
   };
 
   const result = await getUsageForProvider(connection, { forceRefresh: true });
-  const quota = (result as any).quotas["gemini-3.5-flash-high"];
+  const quota = (result as any).quotas["gemini-3-flash-agent"];
   assert.ok(quota, "should have the quota");
   assert.equal(quota.quotaSource, "fetchAvailableModels", "no local rows → keep the catalog view");
   assert.equal(quota.used, 0, "full bucket stays at 0 used");

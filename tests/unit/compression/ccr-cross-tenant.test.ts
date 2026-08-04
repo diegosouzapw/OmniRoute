@@ -184,9 +184,9 @@ describe("ccr security: [MEDIUM] scoped retrieval feedback (shouldSkipCompressio
   });
 });
 
-// ─── bounded memory (FIFO eviction) ──────────────────────────────────────────
+// ─── bounded memory (LRU eviction) ───────────────────────────────────────────
 
-describe("ccr security: [MEDIUM] bounded memory (FIFO eviction)", () => {
+describe("ccr security: [MEDIUM] bounded memory (LRU eviction)", () => {
   beforeEach(() => resetCcrStore());
 
   it("MAX_CCR_ENTRIES is exported and positive", () => {
@@ -194,7 +194,7 @@ describe("ccr security: [MEDIUM] bounded memory (FIFO eviction)", () => {
     assert.ok(MAX_CCR_ENTRIES > 0, "MAX_CCR_ENTRIES must be positive");
   });
 
-  it("FIFO eviction: oldest entry is evicted when cap is reached", () => {
+  it("LRU eviction: least-recently-used entry is evicted when cap is reached", () => {
     const principal = "evictionTest";
 
     // Fill to exactly cap with unique blocks
@@ -205,7 +205,10 @@ describe("ccr security: [MEDIUM] bounded memory (FIFO eviction)", () => {
       storeBlock(`eviction block ${i} ${"y".repeat(30)}`, principal);
     }
 
-    // Confirm first block is present before overflow
+    const secondText = `eviction block 1 ${"y".repeat(30)}`;
+    const secondHash = contentHash(secondText);
+
+    // Touch the first block so the second one becomes least recently used.
     assert.equal(
       retrieveBlock(firstHash, principal),
       firstText,
@@ -215,12 +218,13 @@ describe("ccr security: [MEDIUM] bounded memory (FIFO eviction)", () => {
     // Insert one more unique block — should evict the first (oldest) entry
     storeBlock(`eviction overflow block ${"z".repeat(50)}`, principal);
 
-    // First block should now be gone
+    // The untouched second block should now be gone; the recently used first remains.
     assert.equal(
-      retrieveBlock(firstHash, principal),
+      retrieveBlock(secondHash, principal),
       null,
-      "[MEDIUM] FIFO eviction: oldest block must be evicted when cap is reached"
+      "[MEDIUM] LRU eviction: least-recently-used block must be evicted when cap is reached"
     );
+    assert.equal(retrieveBlock(firstHash, principal), firstText);
   });
 
   it("store does not grow unboundedly beyond MAX_CCR_ENTRIES distinct principals", () => {

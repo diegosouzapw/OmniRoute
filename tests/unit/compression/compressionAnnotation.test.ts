@@ -31,7 +31,18 @@ describe("formatCompressionAnnotation", () => {
 
   it("aggregates rulesApplied counts deterministically", () => {
     const stats = makeStats({
-      rulesApplied: ["filler", "filler", "filler", "filler", "filler", "filler", "filler", "filler", "dedup", "dedup"],
+      rulesApplied: [
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "filler",
+        "dedup",
+        "dedup",
+      ],
       techniquesUsed: ["caveman"],
     });
     const result = formatCompressionAnnotation(stats);
@@ -50,7 +61,10 @@ describe("formatCompressionAnnotation", () => {
     });
     const value = `standard; source=auto; ${formatCompressionAnnotation(stats)}`;
     for (const ch of value) {
-      assert.ok(ch.codePointAt(0)! <= 0xff, `non-latin1 char ${JSON.stringify(ch)} in header value: ${value}`);
+      assert.ok(
+        ch.codePointAt(0)! <= 0xff,
+        `non-latin1 char ${JSON.stringify(ch)} in header value: ${value}`
+      );
     }
     // Must not throw at real Headers/Response construction.
     assert.doesNotThrow(() => new Headers({ "X-OmniRoute-Compression": value }));
@@ -66,7 +80,10 @@ describe("formatCompressionAnnotation", () => {
     const result = formatCompressionAnnotation(stats);
     const fillerIdx = result.indexOf("fillerx3");
     const dedupIdx = result.indexOf("dedupx1");
-    assert.ok(fillerIdx < dedupIdx, `filler (count=3) should appear before dedup (count=1): ${result}`);
+    assert.ok(
+      fillerIdx < dedupIdx,
+      `filler (count=3) should appear before dedup (count=1): ${result}`
+    );
   });
 
   it("is deterministic (same input → same output)", () => {
@@ -75,6 +92,41 @@ describe("formatCompressionAnnotation", () => {
       techniquesUsed: [],
     });
     assert.equal(formatCompressionAnnotation(stats), formatCompressionAnnotation(stats));
+  });
+
+  it("bounds high-cardinality rule telemetry before it reaches an HTTP response header", () => {
+    const stats = makeStats({
+      rulesApplied: Array.from(
+        { length: 1_000 },
+        (_, index) => `rtk:custom-filter:${index.toString().padStart(4, "0")}`
+      ),
+      techniquesUsed: ["rtk-filter"],
+    });
+
+    const annotation = formatCompressionAnnotation(stats);
+    assert.ok(
+      Buffer.byteLength(annotation) <= 768,
+      `annotation is ${Buffer.byteLength(annotation)} bytes`
+    );
+    assert.ok(annotation.endsWith(", ..."), `expected truncation marker in: ${annotation}`);
+    assert.doesNotThrow(
+      () => new Response(null, { headers: { "X-OmniRoute-Compression": annotation } })
+    );
+  });
+
+  it("replaces non-ASCII and control characters before constructing the header", () => {
+    const annotation = formatCompressionAnnotation(
+      makeStats({ rulesApplied: ["rtk:one\r\nx-injected: yes", "rtk:two\u0000", "rtk:café"] })
+    );
+
+    assert.doesNotMatch(annotation, /[^\x20-\x7e]/);
+    assert.ok(
+      annotation.includes("rtk:caf?x1"),
+      `expected a sanitized rule name in: ${annotation}`
+    );
+    assert.doesNotThrow(
+      () => new Response(null, { headers: { "X-OmniRoute-Compression": annotation } })
+    );
   });
 
   it("prefix mode; source=X is never mutated by appending the annotation", () => {

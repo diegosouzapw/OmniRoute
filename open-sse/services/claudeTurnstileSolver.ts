@@ -10,7 +10,11 @@
  * 6. Returns fresh cookie for tls-client-node
  */
 
-import { chromium, type Browser, type Page } from "playwright";
+import type { Browser, Page } from "playwright";
+import {
+  CLAUDE_WEB_FINGERPRINT,
+  CLAUDE_WEB_FINGERPRINT_VERSION,
+} from "../config/claudeWebFingerprint.ts";
 
 const CLAUDE_WEB_URL = "https://claude.ai";
 const CHALLENGE_TIMEOUT = 60000; // 60s to solve challenge
@@ -80,11 +84,12 @@ export async function solveTurnstile(options?: {
   let page: Page | null = null;
 
   try {
-    // Launch headless browser
+    // Launch headless browser (lazy import — avoids crashing platforms
+    // playwright-core doesn't support, e.g. Termux/Android, on module load)
+    const { chromium } = await import("playwright");
     browser = await chromium.launch({ headless });
     const context = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+      userAgent: CLAUDE_WEB_FINGERPRINT.userAgent,
       viewport: { width: 1280, height: 720 },
       ignoreHTTPSErrors: process.env.OMNIROUTE_TURNSTILE_IGNORE_TLS_ERRORS === "true",
     });
@@ -147,7 +152,7 @@ export async function getCfClearanceToken(options?: {
   force?: boolean;
   headless?: boolean;
 }): Promise<string> {
-  const cacheKey = "claude-cf-clearance";
+  const cacheKey = `claude-cf-clearance-${CLAUDE_WEB_FINGERPRINT_VERSION}`;
   const cached = tokenCache.get(cacheKey);
 
   if (cfClearanceTokenOverride) {
@@ -191,7 +196,7 @@ export function getCacheStatus(): {
   hasCached: boolean;
   expiresIn?: number;
 } {
-  const cacheKey = "claude-cf-clearance";
+  const cacheKey = `claude-cf-clearance-${CLAUDE_WEB_FINGERPRINT_VERSION}`;
   const cached = tokenCache.get(cacheKey);
 
   if (!cached) {

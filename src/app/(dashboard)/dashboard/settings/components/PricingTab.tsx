@@ -516,7 +516,9 @@ export default function PricingTab() {
                     }`}
                   />
                   <span className="text-xs text-text-main font-medium">
-                    {syncStatus?.enabled ? t("syncEnabled") : t("syncDisabled")}
+                    {syncStatus?.enabled
+                      ? t("pricingAutoSyncEnabled")
+                      : t("pricingAutoSyncDisabled")}
                   </span>
                 </div>
               </div>
@@ -588,11 +590,11 @@ export default function PricingTab() {
           </div>
 
           <FilterSelect
-            label="Coverage"
+            label={t("pricingCoverage")}
             value={coverageFilter}
             onChange={(v) => setCoverageFilter(v as CoverageFilter)}
             options={[
-              { value: "all", label: `All (${allProviders.length})` },
+              { value: "all", label: `${t("pricingAll")} (${allProviders.length})` },
               { value: "lt50", label: "<50%" },
               { value: "gte50lt100", label: "50–99%" },
               { value: "full", label: "100%" },
@@ -600,26 +602,29 @@ export default function PricingTab() {
           />
 
           <FilterSelect
-            label="Auth"
+            label={t("pricingAuth")}
             value={authFilter}
             onChange={(v) => setAuthFilter(v as AuthFilter)}
             options={[
-              { value: "all", label: "All" },
+              { value: "all", label: t("pricingAll") },
               { value: "oauth", label: `OAuth (${authCounts.oauth})` },
               { value: "apikey", label: `API Key (${authCounts.apikey})` },
-              { value: "unknown", label: `Unknown (${authCounts.unknown})` },
+              {
+                value: "unknown",
+                label: `${t("pricingAuthUnknown")} (${authCounts.unknown})`,
+              },
             ]}
           />
 
           <FilterSelect
-            label="Sort"
+            label={t("pricingSort")}
             value={sortKey}
             onChange={(v) => setSortKey(v as SortKey)}
             options={[
-              { value: "modelsDesc", label: "Most models" },
-              { value: "coverageDesc", label: "Highest coverage" },
-              { value: "coverageAsc", label: "Lowest coverage" },
-              { value: "nameAsc", label: "Name (A–Z)" },
+              { value: "modelsDesc", label: t("pricingMostModels") },
+              { value: "coverageDesc", label: t("pricingHighestCoverage") },
+              { value: "coverageAsc", label: t("pricingLowestCoverage") },
+              { value: "nameAsc", label: t("pricingNameAscending") },
             ]}
           />
         </div>
@@ -636,7 +641,7 @@ export default function PricingTab() {
             }`}
           >
             <span className="material-symbols-outlined text-[14px]">warning</span>
-            Coverage gaps ({coverageGapCount})
+            {t("pricingCoverageGaps")} ({coverageGapCount})
           </button>
           {(searchQuery ||
             coverageFilter !== "all" ||
@@ -655,12 +660,16 @@ export default function PricingTab() {
               className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-bg-subtle text-xs text-text-muted hover:text-text-main cursor-pointer"
             >
               <span className="material-symbols-outlined text-[14px]">close</span>
-              Clear filters
+              {t("pricingClearFilters")}
             </button>
           )}
           <span className="text-text-muted ml-auto">
-            Showing {displayProviders.length} of {totalFiltered}
-            {totalFiltered !== allProviders.length && ` (filtered from ${allProviders.length})`}
+            {t("pricingShowingProviders", {
+              visible: displayProviders.length,
+              total: totalFiltered,
+            })}
+            {totalFiltered !== allProviders.length &&
+              ` ${t("pricingFilteredFrom", { count: allProviders.length })}`}
           </span>
         </div>
       </div>
@@ -697,8 +706,10 @@ export default function PricingTab() {
             className="mt-2 mx-auto px-4 py-2 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-sm text-text-main cursor-pointer flex items-center gap-1.5"
           >
             <span className="material-symbols-outlined text-[16px]">expand_more</span>
-            Show {Math.min(VISIBLE_INCREMENT, totalFiltered - visibleCount)} more (
-            {totalFiltered - visibleCount} remaining)
+            {t("pricingShowMoreProviders", {
+              count: Math.min(VISIBLE_INCREMENT, totalFiltered - visibleCount),
+              remaining: totalFiltered - visibleCount,
+            })}
           </button>
         )}
       </div>

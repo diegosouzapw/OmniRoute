@@ -83,7 +83,7 @@ describe("detectCachingContext", () => {
       {
         tools: [{ name: "lookup", cache_control: { type: "ephemeral" } }],
       },
-      { provider: "qwen", targetFormat: "claude" }
+      { provider: "bailian-coding-plan", targetFormat: "claude" }
     );
 
     assert.equal(ctx.hasCacheControl, true);

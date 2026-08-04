@@ -24,7 +24,7 @@ async function resetStorage() {
   } else {
     process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = originalAllowPrivateProviderUrls;
   }
-  antigravityVersion.clearAntigravityVersionCache();
+  antigravityVersion.clearAntigravityVersionCaches();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -572,7 +572,18 @@ test("provider models route prefers the remote OpenRouter /models API over stati
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(seenUrls, ["https://openrouter.ai/api/v1/models"]);
-  assert.deepEqual(body.models, [{ id: "openai/gpt-4.1", name: "GPT-4.1 via OpenRouter" }]);
+  // #6976 — OpenRouter's live /v1/models never lists embeddings/rerank (they live
+  // on dedicated endpoints), so the curated specialty catalog is folded into the
+  // live-discovery response additively; static IMAGE models stay excluded
+  // (hasChatRegistry is true for openrouter — see staticModels.ts).
+  const ids = body.models.map((m: { id: string }) => m.id);
+  assert.ok(ids.includes("openai/gpt-4.1"), "live-fetched chat model is preserved");
+  assert.ok(ids.includes("baai/bge-m3"), "curated embedding is merged in");
+  assert.ok(ids.includes("cohere/rerank-v3.5"), "curated rerank is merged in");
+  assert.ok(
+    !ids.some((id: string) => id.includes("gpt-5.4-image")),
+    "static image models stay excluded from the chat+specialty catalog"
+  );
 });
 
 test("provider models route returns the local catalog for embedding and rerank providers", async () => {
@@ -916,7 +927,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
     apiKey: null,
   });
   const seenUrls: string[] = [];
-  antigravityVersion.seedAntigravityVersionCache("1.22.2");
+  antigravityVersion.seedAntigravityIdeVersionCache("1.22.2");
 
   globalThis.fetch = async (url, init = {}) => {
     const urlString = String(url);
@@ -933,13 +944,24 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
     assert.equal(init.method, "POST");
     assert.equal(init.headers.Authorization, "Bearer ag-access");
-    assert.match(init.headers["User-Agent"], /^Antigravity\/1\.22\.2 /);
+    assert.match(init.headers["User-Agent"], /^antigravity\/ide\/1\.22\.2 /);
     assert.equal(init.headers["x-goog-api-client"], undefined);
     // Use a model id that is in the current user-callable Antigravity allowlist, otherwise
     // filterUserCallableAntigravityModels() drops it and discovery silently yields 0 models
     // → the route falls back to local_catalog instead of returning the remote (api) list.
     return Response.json({
-      models: [{ id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash" }],
+      models: [
+        { id: "gemini-3.1-pro-high", displayName: "Gemini 3.1 Pro (High)" },
+        { id: "gemini-pro-agent", displayName: "Gemini 3.1 Pro (High)" },
+        { id: "gemini-3.6-flash-high", displayName: "upstream-3.6-high" },
+        { id: "gemini-3.6-flash-medium", displayName: "upstream-3.6-medium" },
+        { id: "gemini-3.6-flash-low", displayName: "upstream-3.6-low" },
+        { id: "gemini-3.5-flash-extra-low", displayName: "upstream-low" },
+        { id: "gemini-3.5-flash-low", displayName: "upstream-medium" },
+        { id: "gemini-3-flash-agent", displayName: "upstream-high" },
+        { id: "gemini-3.5-flash-high", displayName: "retired-friendly-high" },
+        { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash" },
+      ],
     });
   };
 
@@ -960,7 +982,43 @@ test("provider models route retries Antigravity discovery endpoints before retur
     "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
     "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
   ]);
-  assert.deepEqual(body.models, [{ id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" }]);
+  assert.deepEqual(body.models, [
+    { id: "gemini-pro-agent", name: "Gemini 3.1 Pro (High)" },
+    { id: "gemini-3.6-flash-high", name: "Gemini 3.6 Flash (High)" },
+    { id: "gemini-3.6-flash-medium", name: "Gemini 3.6 Flash (Medium)" },
+    { id: "gemini-3.6-flash-low", name: "Gemini 3.6 Flash (Low)" },
+    { id: "gemini-3.5-flash-extra-low", name: "Gemini 3.5 Flash (Low)" },
+    { id: "gemini-3.5-flash-low", name: "Gemini 3.5 Flash (Medium)" },
+    { id: "gemini-3-flash-agent", name: "Gemini 3.5 Flash (High)" },
+    { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+  ]);
+});
+
+test("provider models route discovers newly announced agy models without exposing internal models", async () => {
+  const connection = await seedConnection("agy", { authType: "oauth", accessToken: "agy-access" });
+  antigravityVersion.seedAntigravityIdeVersionCache("1.22.2");
+  antigravityVersion.seedAntigravityCliVersionCache("1.22.2");
+  globalThis.fetch = async (url) => {
+    if (String(url).includes("/v1internal:loadCodeAssist")) {
+      return new Response("nope", { status: 503 });
+    }
+    return Response.json({
+      models: {
+        "gemini-new-live-tier": { displayName: "Gemini New Live Tier" },
+        tab_flash_lite_preview: { displayName: "Tab Flash Lite" },
+        "internal-eval-model": { displayName: "Internal Eval", isInternal: true },
+      },
+    });
+  };
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as {
+    source: string;
+    models: Array<{ id: string; name: string }>;
+  };
+
+  assert.equal(response.status, 200);
+  assert.equal(body.source, "api");
+  assert.deepEqual(body.models, [{ id: "gemini-new-live-tier", name: "Gemini New Live Tier" }]);
 });
 
 test("provider models route falls back through all Antigravity discovery endpoints when needed", async () => {
@@ -988,22 +1046,19 @@ test("provider models route falls back through all Antigravity discovery endpoin
     "https://cloudcode-pa.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
   ]);
-  assert.ok(body.models.some((model) => model.id === "gemini-3-pro-preview"));
-});
-
-test("provider models route returns the local catalog for OAuth-backed Qwen connections", async () => {
-  const connection = await seedConnection("qwen", {
-    authType: "oauth",
-    accessToken: "qwen-access",
-    apiKey: null,
-  });
-
-  const response = await callRoute(connection.id);
-  const body = (await response.json()) as any;
-
-  assert.equal(response.status, 200);
-  assert.equal(body.source, "local_catalog");
-  assert.ok(Array.isArray(body.models));
+  assert.equal(
+    body.models.some((model) => model.id === "gemini-3.1-pro-high"),
+    false
+  );
+  assert.ok(body.models.some((model) => model.id === "gemini-pro-agent"));
+  assert.equal(
+    body.models.some((model) => model.id === "gemini-3-pro-preview"),
+    false
+  );
+  assert.equal(
+    body.models.some((model) => model.id === "gemini-2.5-computer-use-preview-10-2025"),
+    false
+  );
 });
 
 test("provider models route filters hidden models from the static Claude catalog when requested", async () => {
@@ -1712,7 +1767,7 @@ test("provider models route uses provider-specific auth headers for Kimi Coding"
     assert.equal(init.headers.Authorization, undefined);
 
     return Response.json({
-      data: [{ id: "kimi-k2.5", name: "Kimi K2.5" }],
+      data: [{ id: "kimi-k2.5", display_name: "Kimi K2.5" }],
     });
   };
 
@@ -1721,5 +1776,8 @@ test("provider models route uses provider-specific auth headers for Kimi Coding"
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "kimi-coding");
-  assert.deepEqual(body.models, [{ id: "kimi-k2.5", name: "Kimi K2.5" }]);
+  assert.deepEqual(
+    body.models.map(({ id, name }) => ({ id, name })),
+    [{ id: "kimi-k2.5", name: "Kimi K2.5" }]
+  );
 });

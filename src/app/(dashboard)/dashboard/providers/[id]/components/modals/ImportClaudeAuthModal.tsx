@@ -202,7 +202,7 @@ export function ImportClaudeAuthModal({ onClose, onSuccess }: ImportClaudeAuthMo
           newEntries.push({
             name: file.name,
             json: null,
-            parseError: "Not valid JSON",
+            parseError: t("claudeImportInvalidJson"),
             email: null,
           });
         }
@@ -225,18 +225,30 @@ export function ImportClaudeAuthModal({ onClose, onSuccess }: ImportClaudeAuthMo
       if (Array.isArray(arr)) {
         setBulkEntries(
           arr.map((item, i) => ({
-            name: `entry ${i + 1}`,
+            name: t("claudeImportEntryName", { number: i + 1 }),
             json: item,
             parseError: null,
             email: null,
           }))
         );
       } else {
-        setBulkEntries([{ name: "entry 1", json: arr, parseError: null, email: null }]);
+        setBulkEntries([
+          {
+            name: t("claudeImportEntryName", { number: 1 }),
+            json: arr,
+            parseError: null,
+            email: null,
+          },
+        ]);
       }
     } catch {
       setBulkEntries([
-        { name: "parse error", json: null, parseError: "Invalid JSON", email: null },
+        {
+          name: t("claudeImportParseError"),
+          json: null,
+          parseError: t("claudeImportInvalidJson"),
+          email: null,
+        },
       ]);
     }
   };
@@ -289,7 +301,7 @@ export function ImportClaudeAuthModal({ onClose, onSuccess }: ImportClaudeAuthMo
     try {
       const validEntries = bulkEntries.filter((e) => e.json !== null);
       if (validEntries.length === 0) {
-        notify.error("No valid entries to import");
+        notify.error(t("claudeImportNoValidEntries"));
         return;
       }
       const res = await fetch("/api/providers/claude-auth/import-bulk", {
@@ -462,7 +474,7 @@ export function ImportClaudeAuthModal({ onClose, onSuccess }: ImportClaudeAuthMo
                   type="text"
                   value={singleName}
                   onChange={(e) => setSingleName(e.target.value)}
-                  placeholder="My Claude account"
+                  placeholder={t("providerDetailMyClaudeAccountPlaceholder")}
                   className="w-full rounded border border-border bg-bg-subtle px-2 py-1.5 text-xs text-text-main"
                 />
               </div>
@@ -692,7 +704,7 @@ export function ApplyClaudeAuthModal({
           <code className="block rounded bg-sidebar px-2 py-1.5 text-xs font-mono text-text-main">
             ~/.claude/.credentials.json
           </code>
-          <p className="mt-1 text-xs text-text-muted">Path is auto-detected per OS (Linux/Mac).</p>
+          <p className="mt-1 text-xs text-text-muted">{t("providerDetailPathAutoDetected")}</p>
         </div>
         <div>
           <div className="text-xs uppercase text-text-muted mb-1">{backupLabel}</div>

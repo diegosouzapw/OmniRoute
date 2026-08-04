@@ -115,6 +115,67 @@ test("expandAutoComboCandidatePool falls through to active connections when cand
   assert.ok(openaiTargets.length > 0, "expected openai targets to be expanded");
 });
 
+test('expandAutoComboCandidatePool is a no-op when the combo references other combos via kind:"combo-ref" entries', async () => {
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "OpenAI",
+    apiKey: "sk-test-openai",
+    defaultModel: "gpt-4o-mini",
+  });
+
+  const seed = [
+    {
+      kind: "model" as const,
+      stepId: "anthropic/claude-3-5-sonnet",
+      executionKey: "anthropic/claude-3-5-sonnet",
+      modelStr: "anthropic/claude-3-5-sonnet",
+      provider: "anthropic",
+      providerId: "anthropic",
+      connectionId: null,
+      weight: 1,
+      label: null,
+    },
+  ];
+
+  // An "auto" combo delegating to a "priority" sub-combo via a combo-ref entry:
+  // expanding to every model of every active provider (openai included) would
+  // defeat the point of the combo-ref constraint, so the resolved
+  // eligibleTargets must be returned unchanged (#COMBO-REF).
+  const result = await combo.expandAutoComboCandidatePool(seed, {
+    config: {},
+    models: [{ kind: "combo-ref", ref: "priority-subcombo" }],
+  });
+
+  assert.equal(result.length, 1, "combo-ref guard must prevent provider-wide expansion");
+  assert.equal(result[0].modelStr, "anthropic/claude-3-5-sonnet");
+  assert.ok(
+    !result.some((t) => t.provider === "openai"),
+    "no openai targets should have been pulled in despite an active openai connection"
+  );
+});
+
+test("expandAutoComboCandidatePool is a no-op when the operator has populated models[] (no candidatePool)", async () => {
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "OpenAI",
+    apiKey: "sk-test-openai",
+    defaultModel: "gpt-4o-mini",
+  });
+
+  const result = await combo.expandAutoComboCandidatePool([], {
+    config: {},
+    models: ["openai/gpt-4o-mini"],
+  });
+
+  // When the operator has populated models[] with explicit entries
+  // (whether plain strings or records), the function must return the
+  // seed unchanged rather than expanding to every model of every
+  // active provider (which would silently inject unapproved models).
+  assert.equal(result.length, 0, "populated models[] must short-circuit provider-wide expansion");
+});
+
 test("expandAutoComboCandidatePool does not duplicate an already-present modelStr", async () => {
   await providersDb.createProviderConnection({
     provider: "openai",

@@ -1,5 +1,7 @@
 import { FREE_MODEL_BUDGETS } from "@omniroute/open-sse/config/freeModelCatalog";
 import { resolveProviderId } from "@/shared/constants/providers";
+import { globToRegex } from "@/shared/utils/globPattern";
+import { AI_MODELS } from "@/shared/constants/models";
 
 /**
  * Free-model detection shared between the "import only free models" connection
@@ -109,4 +111,55 @@ export function selectModelsForImport<T extends FreeModelCandidate>(
   const models = fetchedModels.filter((m) => isFreeModel(provider, m));
   const freeFilterEmpty = fetchedModels.length > 0 && models.length === 0;
   return { models, freeFilterEmpty };
+}
+
+// ──────────────────────────────────────────────────────────
+// hidePaidModels save-time validation (#6540)
+// ──────────────────────────────────────────────────────────
+
+export type PaidModelTargetVerdict = "paid" | "free" | "unknown";
+
+/**
+ * Classify a settings-style model string ("provider/model" or
+ * "provider,model") as paid/free/unknown against the documented free
+ * catalog. Fails open ("unknown") for anything that doesn't cleanly parse
+ * into a (provider, model) pair, or whose provider isn't in the free
+ * catalog at all — this covers aliases, combo names, and custom/synced
+ * rows, mirroring the exemptions `catalog.ts`'s `shouldHidePaid` already
+ * makes for those row types.
+ */
+export function isPaidModelTarget(value: string): PaidModelTargetVerdict {
+  if (typeof value !== "string" || value.trim() === "") return "unknown";
+  const separator = value.includes("/") ? "/" : value.includes(",") ? "," : null;
+  if (!separator) return "unknown";
+  const [provider, ...rest] = value.split(separator);
+  const model = rest.join(separator);
+  if (!provider || !model) return "unknown";
+  if (!providerHasFreeModels(provider)) return "unknown";
+  return isFreeModel(provider, { id: model }) ? "free" : "paid";
+}
+
+/**
+ * Whether a glob `pattern` (as used by `ModelRoutingSection`'s per-model
+ * combo mappings) resolves ONLY to paid models in the catalog. Fails open
+ * (returns `false`) when the pattern matches nothing recognizable, or when
+ * at least one match is free — only an all-paid match set is flagged, so a
+ * mixed-catalog pattern is never blocked.
+ */
+export function matchesOnlyPaidModels(pattern: string): boolean {
+  if (typeof pattern !== "string" || pattern.trim() === "") return false;
+  let regex: RegExp;
+  try {
+    regex = globToRegex(pattern);
+  } catch {
+    return false;
+  }
+  let matched = false;
+  for (const m of AI_MODELS) {
+    const fullId = `${m.provider}/${m.model}`;
+    if (!regex.test(fullId)) continue;
+    matched = true;
+    if (isFreeModel(m.provider, { id: m.model })) return false;
+  }
+  return matched;
 }

@@ -2,17 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
-import { DEFAULT_SAFETY_SETTINGS } from "../../open-sse/translator/helpers/geminiHelper.ts";
 import { openaiToAntigravityRequest } from "../../open-sse/translator/request/openai-to-gemini.ts";
 
-// Regression for #5003: the Antigravity (Google Cloud Code) request builder explicitly set
-// `safetySettings: undefined`, which `JSON.stringify` drops entirely. With no safetySettings
-// reaching Cloud Code, Google applies its server-side safety defaults that false-flag benign
-// technical prompts as `prohibited_content` (HTTP 200 with a blocked body that combo failover
-// treats as terminal). Antigravity still needs explicit all-OFF safety settings,
-// but Cloud Code rejects HARM_CATEGORY_CIVIC_INTEGRITY on the v1internal endpoint.
+// Safety policy belongs to the caller and provider. OmniRoute may remove categories the
+// Cloud Code endpoint rejects, but it must not silently weaken safety by synthesizing all-OFF.
 
-test("transformRequest defaults safetySettings to all-OFF when none supplied (#5003)", async () => {
+test("transformRequest omits safetySettings when none are supplied", async () => {
   const executor = new AntigravityExecutor();
   const body = {
     request: {
@@ -27,13 +22,10 @@ test("transformRequest defaults safetySettings to all-OFF when none supplied (#5
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   const innerRequest = result.request as Record<string, unknown>;
-  const antigravitySafetySettings = DEFAULT_SAFETY_SETTINGS.filter(
-    (setting) => setting.category !== "HARM_CATEGORY_CIVIC_INTEGRITY"
-  );
-  assert.deepEqual(
-    innerRequest.safetySettings,
-    antigravitySafetySettings,
-    "safetySettings must default to all-OFF entries accepted by Cloud Code"
+  assert.equal(
+    "safetySettings" in innerRequest,
+    false,
+    "missing caller safety settings must stay absent"
   );
 });
 
@@ -61,6 +53,21 @@ test("transformRequest honors caller-supplied safetySettings accepted by Cloud C
     innerRequest.safetySettings,
     [{ category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" }],
     "caller-supplied safetySettings should preserve accepted entries and drop rejected ones"
+  );
+});
+
+test("OpenAI Antigravity translation omits safetySettings when the caller omits them", () => {
+  const translated = openaiToAntigravityRequest(
+    "gemini-2.5-flash",
+    { messages: [{ role: "user", content: "hi" }] },
+    true,
+    { projectId: "project-1" }
+  );
+
+  assert.equal(
+    translated.request.safetySettings,
+    undefined,
+    "generic Gemini safety defaults must not leak into the Antigravity envelope"
   );
 });
 

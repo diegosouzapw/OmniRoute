@@ -30,11 +30,24 @@ export async function GET() {
     const requireLogin = settings.requireLogin !== false;
     const hasPassword = hasManagementPasswordConfigured(settings);
     const setupComplete = !!settings.setupComplete;
-    return NextResponse.json({ requireLogin, hasPassword, setupComplete, ...nodeInfo });
+    const oidcEnabled = !!settings.oidcEnabled;
+    return NextResponse.json({
+      requireLogin,
+      hasPassword,
+      setupComplete,
+      oidcEnabled,
+      ...nodeInfo,
+    });
   } catch (error) {
     console.error("[API] Error fetching require-login settings:", error);
     return NextResponse.json(
-      { requireLogin: true, hasPassword: true, setupComplete: true, ...nodeInfo },
+      {
+        requireLogin: true,
+        hasPassword: true,
+        setupComplete: true,
+        oidcEnabled: false,
+        ...nodeInfo,
+      },
       { status: 200 }
     );
   }

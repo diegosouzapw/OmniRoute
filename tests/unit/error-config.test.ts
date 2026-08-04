@@ -27,6 +27,19 @@ test("errorConfig exposes centralized client-facing status metadata", () => {
   });
 });
 
+test("errorConfig maps 499 to client_disconnected (not invalid_request_error)", () => {
+  assert.deepEqual(ERROR_TYPES[499], {
+    type: "client_disconnected",
+    code: "client_disconnected",
+  });
+  assert.deepEqual(getErrorInfo(499), {
+    type: "client_disconnected",
+    code: "client_disconnected",
+  });
+  assert.equal(DEFAULT_ERROR_MESSAGES[499], "Client disconnected");
+  assert.equal(getDefaultErrorMessage(499), "Client disconnected");
+});
+
 test("errorConfig resolves text rules before status rules", () => {
   const textRule = matchErrorRuleByText("Rate limit reached");
   assert.equal(textRule?.id, "rate_limit");

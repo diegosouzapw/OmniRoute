@@ -32,11 +32,24 @@ import type { FailureKind } from "./classify429";
  * own ReadableStream controller). It carries no `statusCode`, so it defaults to
  * HTTP 502 and would otherwise trip the provider circuit breaker — blacklisting
  * the entire Codex provider for a bug that lives in our bridge, not upstream.
- * Use this with the breaker's `isFailure` option so the bridge error is ignored
- * by the provider breaker while genuine upstream 5xx failures still count.
+ *
+ * The same policy applies to CLIENT-side aborts: when the caller drops the
+ * connection mid-stream (combo race loser, model switch, tab close), the
+ * in-flight leg surfaces `request_signal_aborted` / `Client disconnected` /
+ * `AbortError` with no upstream status. Counting those as provider failures
+ * cascades one user action into provider cooldowns (`lastErrorCode=null`,
+ * `lastError=undefined`) and can dead-end a combo on its last resort target.
+ *
+ * Use this with the breaker's `isFailure` option so local lifecycle errors are
+ * ignored by the provider breaker while genuine upstream 5xx failures still count.
  */
 export function isLocalStreamLifecycleError(error: unknown): boolean {
   if (!error) return false;
+  const errName =
+    typeof (error as { name?: unknown }).name === "string"
+      ? ((error as { name: string }).name as string)
+      : "";
+  if (errName === "AbortError") return true;
   const message =
     typeof error === "string"
       ? error
@@ -44,7 +57,12 @@ export function isLocalStreamLifecycleError(error: unknown): boolean {
         ? ((error as { message: string }).message as string)
         : "";
   if (!message) return false;
-  return /controller is already closed/i.test(message);
+  return (
+    /controller is already closed/i.test(message) ||
+    /request_signal_aborted/i.test(message) ||
+    /client disconnected/i.test(message) ||
+    /operation was aborted/i.test(message)
+  );
 }
 
 export const STATE = {

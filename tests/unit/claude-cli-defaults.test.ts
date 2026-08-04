@@ -6,11 +6,15 @@ test("getClaudeCodeDefaultModels returns expected default models", () => {
   const models = getClaudeCodeDefaultModels();
 
   // They should be non-empty strings because providerRegistry is populated statically
+  assert.ok(typeof models.fable === "string");
   assert.ok(typeof models.opus === "string");
   assert.ok(typeof models.sonnet === "string");
   assert.ok(typeof models.haiku === "string");
 
   // Check that the returned IDs match the expected patterns
+  if (models.fable) {
+    assert.match(models.fable, /fable/i);
+  }
   if (models.opus) {
     assert.match(models.opus, /opus/i);
   }

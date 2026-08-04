@@ -131,7 +131,12 @@ async function vertexError(res: Response): Promise<VertexHttpError> {
 }
 
 /** Wrap raw little-endian 16-bit PCM mono samples in a minimal WAV container. */
-export function pcmToWav(pcm: Buffer, sampleRate = 24000, channels = 1, bitsPerSample = 16): Buffer {
+export function pcmToWav(
+  pcm: Buffer,
+  sampleRate = 24000,
+  channels = 1,
+  bitsPerSample = 16
+): Buffer<ArrayBuffer> {
   const blockAlign = (channels * bitsPerSample) / 8;
   const byteRate = sampleRate * blockAlign;
   const header = Buffer.alloc(44);
@@ -190,7 +195,7 @@ function extractText(data: unknown): string {
 export async function vertexGenerateSpeech(
   credentials: VertexMediaCredentials,
   options: { model: string; input: string; voice?: string }
-): Promise<{ audio: Buffer; contentType: string }> {
+): Promise<{ audio: Buffer<ArrayBuffer>; contentType: string }> {
   const auth = await resolveVertexAuth(credentials);
   const { url, headers } = buildModelRequest(auth, options.model, "generateContent");
   const payload = {

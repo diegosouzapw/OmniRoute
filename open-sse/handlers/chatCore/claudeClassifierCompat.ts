@@ -44,8 +44,10 @@ function extractSystemTexts(body: Record<string, unknown> | null | undefined): s
  * - `mode === "always"`: short-circuits every Claude-format request (operator has
  *   decided every `/v1/messages` call through this route is the classifier).
  * - `mode === "auto"`: only short-circuits when the request carries the classifier's
- *   system-prompt marker OR lists `</block>` as a stop sequence — the two
- *   independent signals Claude Code's own classifier request relies on.
+ *   system-prompt marker. `</block>` in `stop_sequences` is corroborating evidence but
+ *   is never sufficient alone — the marker is the strong, classifier-unique signal;
+ *   an unrelated app that happens to use `</block>` as a markup stop token must not be
+ *   swallowed by the shim (#8189).
  */
 export function shouldDefaultAllowClassifier(
   sourceFormat: string,
@@ -55,11 +57,6 @@ export function shouldDefaultAllowClassifier(
   if (mode !== "auto" && mode !== "always") return false;
   if (sourceFormat !== FORMATS.CLAUDE) return false;
   if (mode === "always") return true;
-
-  const stopSequences = Array.isArray(body?.stop_sequences)
-    ? (body!.stop_sequences as unknown[])
-    : [];
-  if (stopSequences.includes("</block>")) return true;
 
   return extractSystemTexts(body).some((text) => text.includes(SECURITY_MONITOR_MARKER));
 }

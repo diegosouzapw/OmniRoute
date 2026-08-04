@@ -131,6 +131,52 @@ test("discoverKiroProfileArn returns undefined for empty profiles or non-ok resp
   }
 });
 
+test("getKiroUsage fetches Builder ID quotas without a profile ARN", async () => {
+  const originalFetch = globalThis.fetch;
+  const authMethods = ["builder-id"];
+  const requests: Array<{ target: string; body: Record<string, unknown> }> = [];
+
+  globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+    const headers = init?.headers as Record<string, string>;
+    const target = String(headers?.["x-amz-target"] || "");
+    const body = JSON.parse(String(init?.body || "{}")) as Record<string, unknown>;
+    requests.push({ target, body });
+    return new Response(
+      JSON.stringify({
+        subscriptionInfo: { subscriptionTitle: "Kiro Pro" },
+        usageBreakdownList: [
+          {
+            resourceType: "AGENTIC_REQUEST",
+            currentUsageWithPrecision: 3,
+            usageLimitWithPrecision: 10,
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  }) as typeof fetch;
+
+  try {
+    for (const authMethod of authMethods) {
+      const result = (await getKiroUsage("profileless-token", {
+        authMethod,
+        region: "us-east-1",
+      })) as { plan?: string; quotas?: Record<string, { used: number; total: number }> };
+      assert.equal(result.plan, "Kiro Pro");
+      assert.equal(result.quotas?.agentic_request.used, 3);
+      assert.equal(result.quotas?.agentic_request.total, 10);
+    }
+
+    assert.equal(requests.length, authMethods.length);
+    for (const request of requests) {
+      assert.equal(request.target, "AmazonCodeWhispererService.GetUsageLimits");
+      assert.equal("profileArn" in request.body, false);
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 // Regression: when a Kiro account added via Google/GitHub social-auth (authMethod "imported"
 // with provider "Google" or "Github" — set by /api/oauth/kiro/social-exchange/route.ts) has its
 // token rejected by the AWS CodeWhisperer quota API (401/403), surface a clear "auth expired,

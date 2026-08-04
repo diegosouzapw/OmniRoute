@@ -9,6 +9,11 @@ const CHECKPOINT_INTERVAL_MS = 60_000;
 let _sqlJsLib: Awaited<ReturnType<(typeof import("sql.js"))["default"]>> | null = null;
 
 function resolveSqlJsWasmPath(): string {
+  // The standalone assembler copies the complete sql.js package into
+  // <bundle>/node_modules/sql.js. Every packaged server launcher sets cwd to that
+  // bundle directory, so the JavaScript entrypoint and its sibling WASM share one
+  // explicit runtime contract instead of relying on a require.resolve call that
+  // webpack can rewrite. The second path retains direct-source compatibility.
   const candidatePaths = [
     path.join(process.cwd(), "node_modules", "sql.js", "dist", "sql-wasm.wasm"),
     path.join(
@@ -28,7 +33,11 @@ function resolveSqlJsWasmPath(): string {
     }
   }
 
-  return candidatePaths[0];
+  throw new Error(
+    `[sqljsAdapter] Packaged sql.js runtime is incomplete: sql-wasm.wasm was not found. Checked:\n${candidatePaths.join(
+      "\n"
+    )}`
+  );
 }
 
 /**
@@ -84,8 +93,16 @@ function toBindValue(params: unknown[]): unknown[] | Record<string, unknown> | u
 
 async function loadSqlJs(): Promise<typeof _sqlJsLib> {
   if (_sqlJsLib) return _sqlJsLib;
-  const initSqlJs = ((await import("sql.js")) as { default: (typeof import("sql.js"))["default"] })
-    .default;
+  // Use a non-literal specifier so the bundler doesn't try to statically
+  // resolve sql.js (and its package.json) during the build phase.
+  // sql.js is an optional/fallback adapter — only needed at runtime when
+  // better-sqlite3 and node:sqlite are both unavailable.
+  const moduleName = "sql." + "js";
+  const mod = (await import(
+    /* webpackIgnore: true */
+    moduleName
+  )) as { default: (typeof import("sql.js"))["default"] };
+  const initSqlJs = mod.default;
   const wasmPath = resolveSqlJsWasmPath();
 
   _sqlJsLib = await initSqlJs({
@@ -200,6 +217,16 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
   }, CHECKPOINT_INTERVAL_MS);
   (checkpointTimer as unknown as NodeJS.Timeout).unref?.();
 
+  const flush = (): void => {
+    if (dirty)
+      try {
+        persist();
+      } catch {}
+  };
+  process.on("beforeExit", flush);
+  process.on("SIGINT", flush);
+  process.on("SIGTERM", flush);
+
   function gracefulClose(): void {
     clearInterval(checkpointTimer as unknown as NodeJS.Timeout);
     if (saveTimer) clearTimeout(saveTimer);
@@ -211,17 +238,13 @@ export async function createSqlJsAdapter(filePath: string): Promise<SqliteAdapte
       db.close();
     } catch {}
     _isOpen = false;
+    // Without this, a closed adapter's whole closure (raw sql.js Database +
+    // buffers) stays pinned in memory forever by these 3 process-level
+    // listeners, compounding the OOM every failed boot leaves behind (#7494).
+    process.removeListener("beforeExit", flush);
+    process.removeListener("SIGINT", flush);
+    process.removeListener("SIGTERM", flush);
   }
-
-  const flush = (): void => {
-    if (dirty)
-      try {
-        persist();
-      } catch {}
-  };
-  process.on("beforeExit", flush);
-  process.on("SIGINT", flush);
-  process.on("SIGTERM", flush);
 
   return {
     driver: "sql.js",

@@ -18,7 +18,7 @@ export const CANONICAL_EFFORT_VALUES = ["none", "low", "medium", "high", "xhigh"
 
 export type CanonicalEffort = (typeof CANONICAL_EFFORT_VALUES)[number];
 
-/** Add provider-native GPT-5.6 effort levels without widening the global request vocabulary. */
+/** Use provider-native GPT-5.6 effort levels without widening the global request vocabulary. */
 export function extendCodexGpt56EffortValues(
   provider: string | null | undefined,
   model: string | null | undefined,
@@ -39,8 +39,8 @@ export function extendCodexGpt56EffortValues(
   );
   if (!match) return values;
 
-  const additions = match[1] === "luna" ? ["max"] : ["max", "ultra"];
-  return [...new Set([...values, ...additions])];
+  const nativeValues = ["low", "medium", "high", "xhigh", "max"];
+  return match[1] === "luna" ? nativeValues : [...nativeValues, "ultra"];
 }
 
 /**

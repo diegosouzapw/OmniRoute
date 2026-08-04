@@ -6,6 +6,7 @@
 
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { getProviderConnectionsCount } from "./providers";
 import { type JsonRecord, asRecord, toNonEmptyString, getKeyValue } from "./models/shared";
 import {
   readCompatList,
@@ -238,6 +239,49 @@ export async function replaceCustomModels(
   return merged;
 }
 
+/**
+ * Remove provider-level models created by discovery/import while preserving
+ * models the user added manually. Returns the removed model IDs.
+ */
+export async function deleteImportedCustomModels(providerId: string): Promise<string[]> {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'customModels' AND key = ?")
+    .get(providerId);
+  const value = getKeyValue(row).value;
+  if (!value) return [];
+
+  const parsed = JSON.parse(value);
+  if (!Array.isArray(parsed)) return [];
+
+  const removed: JsonRecord[] = [];
+  const retained = parsed.filter((model: JsonRecord) => {
+    const source = typeof model?.source === "string" ? model.source.trim().toLowerCase() : "manual";
+    const imported = source === "imported" || source === "api-sync" || source === "auto-sync";
+    if (imported) removed.push(model);
+    return !imported;
+  });
+  if (removed.length === 0) return [];
+
+  if (retained.length === 0) {
+    db.prepare("DELETE FROM key_value WHERE namespace = 'customModels' AND key = ?").run(
+      providerId
+    );
+  } else {
+    db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'customModels' AND key = ?").run(
+      JSON.stringify(retained),
+      providerId
+    );
+  }
+
+  const removedIds = removed.flatMap((model) =>
+    typeof model.id === "string" && model.id ? [model.id] : []
+  );
+  for (const modelId of removedIds) removeModelCompatOverride(providerId, modelId);
+  backupDbFile("pre-write");
+  return removedIds;
+}
+
 export async function removeCustomModel(providerId: string, modelId: string) {
   const db = getDbInstance();
   const row = db
@@ -279,11 +323,18 @@ export interface SyncedAvailableModel {
   name: string;
   source: "imported";
   apiFormat?: string;
+  targetFormat?: string;
+  upstreamProtocol?: string;
   supportedEndpoints?: string[];
+  supportedThinkingEfforts?: string[];
+  defaultThinkingEffort?: string;
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
+  alwaysThinking?: boolean;
+  supportsTools?: boolean;
+  supportsVideo?: boolean;
   // #4264: image-input capability captured at sync time (e.g. OpenRouter
   // `architecture.input_modalities`/`modality`) so the catalog can surface vision.
   supportsVision?: boolean;
@@ -321,7 +372,23 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
     ...(toNonEmptyString(record.apiFormat)
       ? { apiFormat: toNonEmptyString(record.apiFormat)! }
       : {}),
+    ...(toNonEmptyString(record.targetFormat)
+      ? { targetFormat: toNonEmptyString(record.targetFormat)! }
+      : {}),
+    ...(toNonEmptyString(record.upstreamProtocol)
+      ? { upstreamProtocol: toNonEmptyString(record.upstreamProtocol)! }
+      : {}),
     ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
+    ...(Array.isArray(record.supportedThinkingEfforts)
+      ? {
+          supportedThinkingEfforts: record.supportedThinkingEfforts.filter(
+            (effort): effort is string => typeof effort === "string" && effort.length > 0
+          ),
+        }
+      : {}),
+    ...(toNonEmptyString(record.defaultThinkingEffort)
+      ? { defaultThinkingEffort: toNonEmptyString(record.defaultThinkingEffort)! }
+      : {}),
     ...(typeof record.inputTokenLimit === "number"
       ? { inputTokenLimit: record.inputTokenLimit }
       : {}),
@@ -329,7 +396,12 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
       ? { outputTokenLimit: record.outputTokenLimit }
       : {}),
     ...(typeof record.description === "string" ? { description: record.description } : {}),
-    ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+    ...(typeof record.supportsThinking === "boolean"
+      ? { supportsThinking: record.supportsThinking }
+      : {}),
+    ...(record.alwaysThinking === true ? { alwaysThinking: true } : {}),
+    ...(typeof record.supportsTools === "boolean" ? { supportsTools: record.supportsTools } : {}),
+    ...(typeof record.supportsVideo === "boolean" ? { supportsVideo: record.supportsVideo } : {}),
     ...(record.supportsVision === true ? { supportsVision: true } : {}),
   };
 }
@@ -448,6 +520,39 @@ export async function getAllSyncedAvailableModels(): Promise<
 }
 
 /**
+ * Find active providers whose synchronized catalog contains an exact model ID.
+ *
+ * This keeps request-time inference aligned with the same connection-scoped
+ * syncedAvailableModels data used by /v1/models without loading every model list
+ * into application memory for each request.
+ */
+export async function getActiveProvidersWithSyncedModel(modelId: string): Promise<string[]> {
+  if (!modelId) return [];
+
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      `SELECT DISTINCT pc.provider AS provider
+       FROM provider_connections pc
+       JOIN key_value kv
+         ON kv.namespace = 'syncedAvailableModels'
+        AND kv.key = pc.provider || ':' || pc.id
+       JOIN json_each(CASE WHEN json_valid(kv.value) THEN kv.value ELSE '[]' END) synced_model
+       WHERE pc.is_active = 1
+         AND COALESCE(
+           json_extract(synced_model.value, '$.id'),
+           json_extract(synced_model.value, '$.name'),
+           json_extract(synced_model.value, '$.model')
+         ) = ?`
+    )
+    .all(modelId) as Array<{ provider?: unknown }>;
+
+  return rows
+    .map((row) => row.provider)
+    .filter((provider): provider is string => typeof provider === "string" && provider.length > 0);
+}
+
+/**
  * Replace the model list for a specific connection.
  * Key format: '<providerId>:<connectionId>'
  */
@@ -550,6 +655,29 @@ export async function deleteSyncedAvailableModelsForConnection(
   );
   backupDbFile("pre-write");
   return getSyncedAvailableModels(providerId);
+}
+
+/**
+ * Clean model state after a provider connection has been deleted. Imported
+ * provider-level models are removed only when no sibling connection remains.
+ */
+export async function cleanupProviderModelsAfterConnectionDelete(
+  providerId: string,
+  connectionId: string
+): Promise<{
+  remainingConnections: number;
+  removedImportedModelIds: string[];
+  remainingSyncedModels: SyncedAvailableModel[];
+}> {
+  const remainingSyncedModels = await deleteSyncedAvailableModelsForConnection(
+    providerId,
+    connectionId
+  );
+  const remainingConnections = getProviderConnectionsCount({ provider: providerId });
+  const removedImportedModelIds =
+    remainingConnections === 0 ? await deleteImportedCustomModels(providerId) : [];
+
+  return { remainingConnections, removedImportedModelIds, remainingSyncedModels };
 }
 
 /**
@@ -705,10 +833,22 @@ function getCustomModelRow(providerId: string, modelId: string): JsonRecord | nu
   try {
     const models = JSON.parse(value) as unknown;
     if (!Array.isArray(models)) return null;
-    const m = models.find((x: unknown) => {
+    const isIdMatch = (x: unknown, id: string): boolean => {
       if (!x || typeof x !== "object" || Array.isArray(x)) return false;
-      return (x as { id?: string }).id === modelId;
-    }) as JsonRecord | undefined;
+      return (x as { id?: string }).id === id;
+    };
+    // #7364: exact match first; case-insensitive fallback so "glm-4.6V" resolves a
+    // custom model saved as "glm-4.6v" (see lookupCustomModelMeta in
+    // src/sse/services/model.ts for the sibling lookup this mirrors).
+    const m = (models.find((x: unknown) => isIdMatch(x, modelId)) ??
+      models.find(
+        (x: unknown) =>
+          x &&
+          typeof x === "object" &&
+          !Array.isArray(x) &&
+          typeof (x as { id?: string }).id === "string" &&
+          ((x as { id: string }).id as string).toLowerCase() === modelId.toLowerCase()
+      )) as JsonRecord | undefined;
     return m ?? null;
   } catch {
     return null;

@@ -1,7 +1,7 @@
 ---
 title: "Claude Code CLI — Configuration with OmniRoute"
 version: 3.8.40
-lastUpdated: 2026-06-28
+lastUpdated: 2026-07-24
 ---
 
 # Claude Code CLI — Configuration with OmniRoute
@@ -47,6 +47,81 @@ endpoint with environment variables (it has no `--base-url` flag):
 `omniroute launch` sets all of these for you: it resolves the base URL + token
 from the active context (so `omniroute connect <vps>` then `omniroute launch`
 just works), health-checks the server, and execs `claude`.
+
+---
+
+## Discovery aliases — surface non-Claude models in the `/model` picker
+
+Claude Code's gateway model discovery only lists ids that begin with `claude`
+or `anthropic`, so with `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` the native
+`/model` picker normally shows **only** OmniRoute's Claude/Anthropic models — a
+`kimi/kimi-k2.6` or `glm/glm-5.2` never appears, even though it routes fine.
+
+OmniRoute can mirror any enabled model (and combo) under a `claude/…` id so it
+passes that filter and shows up in the picker:
+
+```
+kimi/kimi-k2.6            →  claude/kimi/kimi-k2.6      "Kimi K2.6 (OmniRoute)"
+glm/glm-5.2              →  claude/glm/glm-5.2         "GLM 5.2 (OmniRoute)"
+<combo "custo-otimizado"> →  claude/combo/custo-otimizado
+```
+
+When you pick one of these in Claude Code, OmniRoute strips the `claude/` wrapper
+back to the real id before routing — a genuine `claude/<real-claude-model>` id
+(the actual Claude OAuth provider) is always left untouched.
+
+**This is off by default** and controlled by a three-level gate (most specific
+wins), so a plain OmniRoute never doubles its catalog for clients that don't use
+Claude Code:
+
+| Level    | Where                                                                  |
+| -------- | ---------------------------------------------------------------------- |
+| Model    | Provider detail page → per-model "Expose in Claude Code" toggle        |
+| Provider | Provider detail page → provider-level toggle (covers all its models)   |
+| Global   | Settings → Feature Flags → `EXPOSE_CC_DISCOVERY_ALIASES` (default off) |
+
+The `EXPOSE_CC_DISCOVERY_ALIASES` environment variable forces the global level on
+and takes precedence over the dashboard override (the Feature Flags screen shows
+an "active via environment variable" note when it does). Per-provider and
+per-model toggles refine from there — e.g. global off + Kimi provider on exposes
+only Kimi's models.
+
+> ⚠️ **Window mismatch on non-Claude models.** Claude Code assumes a 200K context
+> window for any id it doesn't recognize (it can't read a real window from
+> `/v1/models`). For a model with a larger window (e.g. Kimi K2's 256K), set
+> `CLAUDE_CODE_AUTO_COMPACT_WINDOW` to a value below the model's real window so
+> auto-compaction doesn't fire prematurely. The generated profiles above already
+> do this per model.
+
+---
+
+## Onboarding block on the dashboard
+
+The Claude tool card (**Dashboard → CLI Code**) renders the exact `settings.json` fragment
+for this instance, next to the discovery-alias info button, with a copy button:
+
+```jsonc
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://<your OmniRoute>:20128",
+    "ANTHROPIC_AUTH_TOKEN": "<your OmniRoute API key>",
+    "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1",
+  },
+}
+```
+
+The base URL is the one resolved by the card (including a custom override you typed), already
+normalized — no `/v1` suffix, no trailing slash. **The key is never rendered**: the block ships a
+placeholder, so a screenshot or a pasted snippet cannot leak one. Paste your key over it.
+
+Add `CLAUDE_CODE_AUTO_COMPACT_WINDOW` under the same `env` block for any model whose real
+context window is not 200K — Claude Code assumes 200K for every id it does not recognize, so
+auto-compaction otherwise fires at the wrong point (see the warning in the previous section).
+The snippet builder accepts that value too, so a caller that knows the target model's window
+can emit it directly.
+
+Source: `src/shared/services/claudeCliConfig.ts::buildClaudeDiscoverySettingsSnippet` (pure
+builder, unit-tested) rendered by `ClaudeGatewayOnboardingBlock`.
 
 ---
 
@@ -140,9 +215,19 @@ extra flags needed. Override per-invocation with `--remote` / `--api-key`.
 handles this for you.
 
 **`/model` picker is empty / missing gateway models** — needs Claude Code
-v2.1.129+ and `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`. Only `claude*` /
+v2.1.219+ and `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`. Only `claude*` /
 `anthropic*` model IDs appear in the picker; force any other model with
 `ANTHROPIC_MODEL=<id>` (this is what profiles do).
+
+**`400 Ambiguous model 'claude-…'`** — Claude Code always sends **unprefixed**
+model IDs (e.g. `claude-opus-4-8`), so when both the Claude Code (`cc/…`) and
+Claude (`claude/…`) providers are connected the bare id matches two routes and
+OmniRoute refuses to guess. Fix it either way: pin a prefixed id with
+`ANTHROPIC_MODEL=cc/claude-opus-4-8`, or enable **Prefer Claude Code for
+unprefixed Claude models** — the toggle on the Claude provider page, or
+`OMNIROUTE_PREFER_CLAUDE_CODE_FOR_UNPREFIXED_CLAUDE_MODELS=true` (default off;
+see [Environment](../reference/ENVIRONMENT.md)) — which routes bare `claude-*`
+IDs to Claude Code instead. Explicit provider prefixes always win.
 
 **Auth errors** — the profile holds no token. Use `omniroute launch --profile`
 (injects it) or export `ANTHROPIC_AUTH_TOKEN`.

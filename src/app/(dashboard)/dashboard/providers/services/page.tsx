@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/shared/utils/cn";
 import { CliproxyServiceTab } from "./tabs/CliproxyServiceTab";
 import { NinerouterServiceTab } from "./tabs/NinerouterServiceTab";
@@ -17,6 +18,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 export default function ServicesPage() {
+  const t = useTranslations("embeddedServices");
   const sp = useSearchParams();
   const router = useRouter();
   const active = (sp.get("tab") ?? "cliproxy") as Tab;
@@ -28,11 +30,8 @@ export default function ServicesPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-xl font-semibold text-text-primary">Embedded Services</h1>
-        <p className="text-sm text-text-muted mt-1">
-          External engines managed on demand — CLIProxyAPI, 9Router, Mux, and Bifrost. Accessible on
-          loopback only.
-        </p>
+        <h1 className="text-xl font-semibold text-text-primary">{t("title")}</h1>
+        <p className="text-sm text-text-muted mt-1">{t("description")}</p>
       </header>
 
       {/* Tab strip */}
