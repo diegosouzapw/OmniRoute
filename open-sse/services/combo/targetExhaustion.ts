@@ -60,6 +60,7 @@ export type ApplyComboTargetExhaustionOptions = {
   rawModel: string;
   isTokenLimitBreach: boolean;
   allAccountsRateLimited: boolean;
+  requestScopedFailure: boolean;
   sets: ComboExhaustionSets;
   log: ComboLogger;
   tag: string;
@@ -108,12 +109,25 @@ function isProviderQuotaExhausted(
   provider: string | null | undefined,
   opts: Pick<
     ApplyComboTargetExhaustionOptions,
-    "rawModel" | "fallbackResult" | "structuredError" | "errorText" | "allAccountsRateLimited"
+    | "rawModel"
+    | "fallbackResult"
+    | "structuredError"
+    | "errorText"
+    | "allAccountsRateLimited"
+    | "requestScopedFailure"
   >
 ): boolean {
-  const { rawModel, fallbackResult, structuredError, errorText, allAccountsRateLimited } = opts;
+  const {
+    rawModel,
+    fallbackResult,
+    structuredError,
+    errorText,
+    allAccountsRateLimited,
+    requestScopedFailure,
+  } = opts;
   return (
     Boolean(provider && provider !== "unknown") &&
+    !(requestScopedFailure || isRequestScopedUpstreamFailure(structuredError)) &&
     !hasPerModelQuota(provider as string, rawModel) &&
     (isProviderExhaustedReason(fallbackResult) ||
       classifyErrorText(structuredError?.code || errorText) === RateLimitReason.QUOTA_EXHAUSTED ||
@@ -143,7 +157,17 @@ function markTransientOrConnectionLevel(
   target: ResolvedComboTarget,
   opts: ApplyComboTargetExhaustionOptions
 ): void {
-  const { result, errorText, rawModel, isTokenLimitBreach, sets, log, tag, structuredError } = opts;
+  const {
+    result,
+    errorText,
+    rawModel,
+    isTokenLimitBreach,
+    requestScopedFailure,
+    sets,
+    log,
+    tag,
+    structuredError,
+  } = opts;
   const provider = target.provider;
   if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
     sets.transientRateLimitedProviders.add(provider);
@@ -155,6 +179,7 @@ function markTransientOrConnectionLevel(
     log,
     tag,
     rawModel,
+    requestScopedFailure,
     structuredError,
   });
 }
@@ -198,16 +223,25 @@ function markConnectionLevelExhaustion(
   target: ResolvedComboTarget,
   opts: Pick<
     ApplyComboTargetExhaustionOptions,
-    "result" | "errorText" | "sets" | "log" | "tag" | "rawModel" | "structuredError"
+    | "result"
+    | "errorText"
+    | "sets"
+    | "log"
+    | "tag"
+    | "rawModel"
+    | "requestScopedFailure"
+    | "structuredError"
   >
 ): void {
-  const { result, errorText, sets, log, tag, rawModel, structuredError } = opts;
+  const { result, errorText, sets, log, tag, rawModel, requestScopedFailure, structuredError } =
+    opts;
   const provider = target.provider;
   if (
     !provider ||
     provider === "unknown" ||
     !CONNECTION_LEVEL_ERROR_STATUSES.includes(result.status) ||
     isProviderCircuitOpenResult(result, errorText) ||
+    requestScopedFailure ||
     isRequestScopedUpstreamFailure(structuredError) ||
     // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
     // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)

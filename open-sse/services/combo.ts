@@ -1557,7 +1557,7 @@ export async function handleComboChat({
                       : undefined,
                 }
               : undefined;
-          const scopedFailure = isScopedFailure(result.status, errorText, structuredError);
+          const scopedFailure = isScopedFailure(result, errorText, structuredError);
 
           // #8375: input-bound request-scoped failures (context_length_exceeded) are
           // deterministic for the same input — retrying on other accounts of the same
@@ -1638,6 +1638,7 @@ export async function handleComboChat({
             rawModel,
             isTokenLimitBreach,
             allAccountsRateLimited: false,
+            requestScopedFailure: scopedFailure,
             sets: { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders },
             log,
             tag: "COMBO",
@@ -1729,6 +1730,7 @@ export async function handleComboChat({
           const isTransient =
             !isStreamReadinessFailure &&
             !isTokenLimitBreach &&
+            !scopedFailure &&
             [408, 429, 500, 502, 503, 504].includes(result.status);
           if (retry < maxRetries && isTransient && !providerExhausted) {
             if (
@@ -2783,7 +2785,7 @@ async function handleRoundRobinCombo({
                     : undefined,
               }
             : undefined;
-        const scopedFailure = isScopedFailure(result.status, errorText, structuredError);
+        const scopedFailure = isScopedFailure(result, errorText, structuredError);
         const fallbackResult = checkFallbackError(
           result.status,
           errorText,
@@ -2822,6 +2824,7 @@ async function handleRoundRobinCombo({
           rawModel: parseModel(modelStr).model || modelStr,
           isTokenLimitBreach,
           allAccountsRateLimited: isAllAccountsRateLimited,
+          requestScopedFailure: scopedFailure,
           sets: { exhaustedProviders, exhaustedConnections, transientRateLimitedProviders },
           log,
           tag: "COMBO-RR",
@@ -2855,6 +2858,7 @@ async function handleRoundRobinCombo({
         const isTransient =
           !isStreamReadinessFailure &&
           !isTokenLimitBreach &&
+          !scopedFailure &&
           [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient && !providerExhausted) {
           continue;
