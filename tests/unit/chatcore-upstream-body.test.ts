@@ -229,18 +229,31 @@ test("preserves the full tool list when within the grok-cli limit", async () => 
     targetFormat: "claude",
     credentials: null,
   });
+  assert.ok(Array.isArray(out.tools));
   assert.equal(out.tools.length, 150);
 });
 
-test("never injects prompt_cache_key for an excluded provider (codex)", async () => {
-  const out = await prepareUpstreamBody({
-    translatedBody: { model: "gpt-5-codex", messages: [{ role: "user", content: "hi" }] },
+test("injects a stable prompt_cache_key for Codex automatic prefix caching", async () => {
+  const request = {
+    model: "gpt-5-codex",
+    messages: [
+      { role: "system", content: "stable coding instructions" },
+      { role: "user", content: "fix this" },
+    ],
+  };
+  const opts = {
+    translatedBody: request,
     modelToCall: "gpt-5-codex",
     provider: "codex",
     targetFormat: "openai",
     credentials: null,
-  });
-  assert.equal(out.prompt_cache_key, undefined);
+  };
+
+  const first = await prepareUpstreamBody(opts);
+  const second = await prepareUpstreamBody(opts);
+
+  assert.match(String(first.prompt_cache_key), /^omni-[0-9a-f]{32}$/);
+  assert.equal(second.prompt_cache_key, first.prompt_cache_key);
 });
 
 test("never injects prompt_cache_key when the target format is not OpenAI", async () => {

@@ -99,7 +99,7 @@ async function injectPromptCacheKey(
     providerSupportsCaching(provider, undefined, connectionCacheOverride) &&
     !bodyToSend.prompt_cache_key &&
     Array.isArray(bodyToSend.messages) &&
-    !["nvidia", "codex", "xai"].includes(provider)
+    !["nvidia", "xai"].includes(provider)
   ) {
     const { generatePromptCacheKey } = await import("@/lib/promptCache");
     const cacheKey = generatePromptCacheKey(bodyToSend.messages);
