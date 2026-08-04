@@ -2,6 +2,7 @@ import { retrieveMemories } from "@/lib/memory/retrieval";
 import { getMemorySettings, DEFAULT_MEMORY_SETTINGS, toMemoryRetrievalConfig } from "@/lib/memory/settings";
 import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
 import { injectSkills } from "@/lib/skills/injection";
+import { skillRegistry } from "@/lib/skills/registry";
 import { FORMATS } from "../../translator/formats.ts";
 import { detectCachingContext } from "../../services/compression/cachingAware.ts";
 
@@ -138,6 +139,12 @@ export async function injectMemoryAndSkills({
   }
 
   if (memoryOwnerId && memorySettings?.skillsEnabled) {
+    // Ensure the registry cache is warm before listing: on a cold/fresh
+    // process skills that exist only in the DB would be missed (false
+    // negative -> silent skip). loadFromDatabase() is a no-op when the cache
+    // is already warm (TTL = 60 s), so repeated calls are cheap. Mirrors the
+    // pattern in src/lib/skills/interception.ts (#2815).
+    await skillRegistry.loadFromDatabase(memoryOwnerId);
     const existingTools = Array.isArray(body.tools) ? body.tools : [];
     const mergedTools = injectSkills({
       provider: getSkillsProviderForFormat(sourceFormat),

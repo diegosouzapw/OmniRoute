@@ -122,6 +122,17 @@ function safeMarkNeedsReindex(id: string, needs: boolean): void {
 function scheduleVectorUpsert(id: string, content: string): void {
   setImmediate(async () => {
     try {
+      // The upsert is fire-and-forget and embeddings are slow (potion loads
+      // lazily). Health-check verification (and user deletes) can remove the
+      // memory before this callback runs — skip quietly instead of spamming
+      // "memory not found" warnings every sweep interval.
+      const db = getDbInstance();
+      const exists = db.prepare("SELECT rowid FROM memories WHERE id = ?").get(id);
+      if (!exists) {
+        log.debug("memory.vec.upsert.skipped_deleted", { id });
+        return;
+      }
+
       const settings = await getMemorySettings();
       const resolution = resolveEmbeddingSource(settings);
       if (!resolution.source) return;

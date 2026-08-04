@@ -1,4 +1,4 @@
-export type SkillCategory = "api" | "cli" | "config";
+export type SkillCategory = "api" | "cli" | "config" | "external";
 
 export type SkillArea =
   // API areas (22)
@@ -49,7 +49,9 @@ export type SkillArea =
   | "cli-eval"
   | "cli-plugins-skills"
   | "cli-setup"
-  | "cli-skill-collector";
+  | "cli-skill-collector"
+  // External (third-party) skills
+  | "external";
 
 export interface AgentSkill {
   id: string; // canonical id (e.g. "omni-providers", "cli-serve")

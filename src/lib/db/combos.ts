@@ -27,6 +27,20 @@ function getSortOrder(value: unknown): number | null {
   return typeof row.sort_order === "number" ? row.sort_order : null;
 }
 
+function getComboId(value: unknown): string | null {
+  const row = asRecord(value);
+  return typeof row.id === "string" && row.id.trim().length > 0 ? row.id : null;
+}
+
+function withRowId(payload: string, row: JsonRecord): JsonRecord {
+  const parsed = withSortOrder(payload, getSortOrder(row));
+  const comboId = getComboId(row);
+  if (comboId && typeof parsed.id !== "string") {
+    parsed.id = comboId;
+  }
+  return parsed;
+}
+
 function withSortOrder(payload: string, sortOrder: number | null): JsonRecord {
   const parsed = JSON.parse(payload) as JsonRecord;
   if (typeof sortOrder === "number") {
@@ -71,7 +85,7 @@ function normalizeStoredCombo(
 function parseComboRow(row: unknown): JsonRecord | null {
   const payload = getSerializedData(row);
   if (!payload) return null;
-  const parsed = withSortOrder(payload, getSortOrder(row));
+  const parsed = withRowId(payload, asRecord(row));
   // Merge deduplicated column values back into the record
   const record = asRecord(row);
   if (record.context_cache_protection !== undefined && record.context_cache_protection !== null) {
@@ -96,7 +110,7 @@ function getNextSortOrder() {
 export async function getCombos(limit?: number, offset?: number) {
   const db = getDbInstance();
   let sql =
-    "SELECT data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC";
+    "SELECT id, data, sort_order, context_cache_protection FROM combos ORDER BY sort_order ASC, name COLLATE NOCASE ASC";
   const params: unknown[] = [];
   if (limit !== undefined) {
     sql += " LIMIT ? OFFSET ?";
@@ -128,7 +142,7 @@ export function getCombosCount(): number {
 export async function getComboById(id: string) {
   const db = getDbInstance();
   const row = db
-    .prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?")
+    .prepare("SELECT id, data, sort_order, context_cache_protection FROM combos WHERE id = ?")
     .get(id);
   const combo = parseComboRow(row);
   if (!combo) return null;
@@ -138,7 +152,7 @@ export async function getComboById(id: string) {
 export async function getComboByName(name: string) {
   const db = getDbInstance();
   const row = db
-    .prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ?")
+    .prepare("SELECT id, data, sort_order, context_cache_protection FROM combos WHERE name = ?")
     .get(name);
   const combo = parseComboRow(row);
   if (!combo) return null;
@@ -154,7 +168,7 @@ export async function getComboByNameInsensitive(name: string) {
   const db = getDbInstance();
   const row = db
     .prepare(
-      "SELECT data, sort_order, context_cache_protection FROM combos WHERE name = ? COLLATE NOCASE"
+      "SELECT id, data, sort_order, context_cache_protection FROM combos WHERE name = ? COLLATE NOCASE"
     )
     .get(name);
   const combo = parseComboRow(row);
@@ -199,7 +213,7 @@ export async function createCombo(data: JsonRecord) {
 export async function updateCombo(id: string, data: JsonRecord) {
   const db = getDbInstance();
   const existing = db
-    .prepare("SELECT data, sort_order, context_cache_protection FROM combos WHERE id = ?")
+    .prepare("SELECT id, data, sort_order, context_cache_protection FROM combos WHERE id = ?")
     .get(id);
   if (!existing) return null;
 
@@ -378,9 +392,7 @@ export async function cleanupComboConnectionRefs(connectionId: string) {
         changed = true;
       }
       if (Array.isArray(out.allowedConnectionIds)) {
-        const filtered = out.allowedConnectionIds.filter(
-          (id: string) => id !== connectionId
-        );
+        const filtered = out.allowedConnectionIds.filter((id: string) => id !== connectionId);
         if (filtered.length !== out.allowedConnectionIds.length) {
           out = { ...out, allowedConnectionIds: filtered };
           changed = true;

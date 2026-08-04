@@ -25,30 +25,74 @@ interface GeminiTool {
   parameters: Record<string, unknown>;
 }
 
+// Provider tool/function names must match ^[a-zA-Z0-9_-]+$ (OpenAI, DeepSeek,
+// Groq, etc.). Skill identifiers are name@version (and names may contain any
+// characters), so encode identifiers that would violate the pattern into a
+// reversible base64url form. decodeSkillToolName() must be applied on the way
+// back in interception before resolving against the registry.
+const SKILL_TOOL_NAME_PREFIX = "omr_skill_";
+
+export function encodeSkillToolName(name: string, version: string): string {
+  const identifier = `${name}@${version}`;
+  if (/^[a-zA-Z0-9_-]+$/.test(identifier)) {
+    return identifier;
+  }
+  return `${SKILL_TOOL_NAME_PREFIX}${Buffer.from(identifier, "utf8").toString("base64url")}`;
+}
+
+export function decodeSkillToolName(toolName: string): string {
+  if (!toolName.startsWith(SKILL_TOOL_NAME_PREFIX)) {
+    return toolName;
+  }
+  try {
+    return Buffer.from(toolName.slice(SKILL_TOOL_NAME_PREFIX.length), "base64url").toString("utf8");
+  } catch {
+    return toolName;
+  }
+}
+
+// Skills store a flat JSON Schema record ({ "text": { "type": "string" } }),
+// but Gemini (function_declarations[].parameters) and Anthropic
+// (input_schema) require a full object schema with a properties wrapper.
+// Normalize to { "type": "object", "properties": {...} } when the stored
+// schema is a bare property map.
+function normalizeInputSchema(input: Record<string, unknown>): Record<string, unknown> {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    return input ?? {};
+  }
+  if (typeof input.type === "string") {
+    return input;
+  }
+  return {
+    type: "object",
+    properties: input,
+  };
+}
+
 function skillToOpenAI(skill: Skill): OpenAITool {
   return {
     type: "function",
     function: {
-      name: `${skill.name}@${skill.version}`,
+      name: encodeSkillToolName(skill.name, skill.version),
       description: skill.description,
-      parameters: skill.schema.input,
+      parameters: normalizeInputSchema(skill.schema.input),
     },
   };
 }
 
 function skillToClaude(skill: Skill): ClaudeTool {
   return {
-    name: `${skill.name}@${skill.version}`,
+    name: encodeSkillToolName(skill.name, skill.version),
     description: skill.description,
-    input_schema: skill.schema.input,
+    input_schema: normalizeInputSchema(skill.schema.input),
   };
 }
 
 function skillToGemini(skill: Skill): GeminiTool {
   return {
-    name: `${skill.name}@${skill.version}`,
+    name: encodeSkillToolName(skill.name, skill.version),
     description: skill.description,
-    parameters: skill.schema.input,
+    parameters: normalizeInputSchema(skill.schema.input),
   };
 }
 
