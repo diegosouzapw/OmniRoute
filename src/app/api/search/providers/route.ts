@@ -30,7 +30,7 @@ const FETCH_PROVIDERS: FetchProviderDef[] = [
     id: "firecrawl",
     name: "Firecrawl",
     costPerQuery: 0.002,
-    freeMonthlyQuota: 500,
+    freeMonthlyQuota: 1000,
     fetchFormats: ["markdown", "html", "links", "screenshot"],
   },
   {

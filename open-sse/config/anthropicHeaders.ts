@@ -1,3 +1,12 @@
+import {
+  CLAUDE_CODE_CLIENT_BILLING_VERSION,
+  CLAUDE_CODE_CLIENT_BUILD_REVISION,
+  CLAUDE_CODE_CLIENT_VERSION,
+  CLAUDE_CODE_RUNTIME_VERSION,
+  CLAUDE_CODE_SDK_PACKAGE_VERSION,
+  getClaudeCodeUserAgent,
+} from "@/shared/constants/claudeCodeClient";
+
 export const ANTHROPIC_VERSION_HEADER = "2023-06-01";
 
 const ANTHROPIC_BETA_BASE = Object.freeze([
@@ -34,9 +43,17 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
  * claude.ai backend on top of OmniRoute's own set. Kept to betas the backend
  * actually accepts and that OmniRoute does not otherwise emit — so a blind
  * passthrough cannot reintroduce the over-sending fingerprint/rejection bugs
- * (#3415, #2454). Currently: deferred-tool negotiation (#3974).
+ * (#3415, #2454). Currently: deferred-tool negotiation (#3974) and the
+ * client's own `[1m]` long-context negotiation (context-1m). selectBetaFlags
+ * deliberately emits context-1m only for Opus (never FORCE it — long-context
+ * credit gate); forwarding it when the CLIENT negotiated it matches what real
+ * Claude Code sends for `/model <id>[1m]` and is required for >200K-context
+ * requests on models/accounts where the beta is enforced.
  */
-export const FORWARDABLE_CLIENT_BETAS = Object.freeze(["tool-search-tool-2025-10-19"]);
+export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
+  "tool-search-tool-2025-10-19",
+  "context-1m-2025-08-07",
+]);
 
 /**
  * Union an `anthropic-beta` comma-list with the allowlisted client-negotiated
@@ -121,7 +138,9 @@ export function normalizeAnthropicHeaderVariants(headers: Record<string, string>
   }
 }
 
-export const CLAUDE_CLI_VERSION = "2.1.207";
-export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
-export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.94.0";
-export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = "v24.3.0";
+export const CLAUDE_CLI_VERSION = CLAUDE_CODE_CLIENT_VERSION;
+export const CLAUDE_CLI_BUILD_REVISION = CLAUDE_CODE_CLIENT_BUILD_REVISION;
+export const CLAUDE_CLI_BILLING_VERSION = CLAUDE_CODE_CLIENT_BILLING_VERSION;
+export const CLAUDE_CLI_USER_AGENT = getClaudeCodeUserAgent("cli");
+export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = CLAUDE_CODE_SDK_PACKAGE_VERSION;
+export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = CLAUDE_CODE_RUNTIME_VERSION;

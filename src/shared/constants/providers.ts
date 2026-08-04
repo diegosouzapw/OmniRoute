@@ -438,6 +438,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "nanogpt",
   "deepseek",
   "xiaomi-mimo",
+  "xiaomi-mimo-token-plan",
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
@@ -449,6 +450,13 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "firefly",
   "hyperagent",
   "ha",
+  // xAI OAuth (Grok) weekly quota (id + public alias, same pattern as ha/agy)
+  "xai-oauth",
+  "xao",
+  // Grok Build subscription, billing credits, and auto top-up status
+  "grok-cli",
+  // Firecrawl team credits (GET /v2/team/credit-usage)
+  "firecrawl",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

@@ -381,6 +381,13 @@ curl -X POST http://localhost:20128/api/db-backups/restore \
 omniroute backup auto enable --cron "0 2 * * *" --retention 7
 ```
 
+The schedule is executed server-side by a background job that ticks every 30 seconds
+(default) and evaluates the cron expression against local server time.
+
+| Variable                                    | Default | Description                                                                                                   |
+| ------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BACKUP_SCHEDULE_JOB_INTERVAL_MS` | `30000` | Tick interval in ms (min `5000`). Must be shorter than 60 s to reliably land inside the matching cron minute. |
+
 ### SQLite Hot Backup
 
 For zero-downtime backup of a live DB:

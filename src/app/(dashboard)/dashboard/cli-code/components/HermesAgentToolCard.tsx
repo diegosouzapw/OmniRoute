@@ -19,14 +19,14 @@ const HERMES_ROLES: Role[] = [
   },
   { id: "vision", labelKey: "hermesRoleVision", descriptionKey: "hermesRoleVisionDesc" },
   {
-    id: "compression",
-    labelKey: "hermesRoleCompression",
-    descriptionKey: "hermesRoleCompressionDesc",
-  },
-  {
     id: "web_extract",
     labelKey: "hermesRoleWebExtract",
     descriptionKey: "hermesRoleWebExtractDesc",
+  },
+  {
+    id: "compression",
+    labelKey: "hermesRoleCompression",
+    descriptionKey: "hermesRoleCompressionDesc",
   },
   {
     id: "skills_hub",
@@ -37,6 +37,45 @@ const HERMES_ROLES: Role[] = [
     id: "approval",
     labelKey: "hermesRoleApproval",
     descriptionKey: "hermesRoleApprovalDesc",
+  },
+  { id: "mcp", labelKey: "hermesRoleMcp", descriptionKey: "hermesRoleMcpDesc" },
+  {
+    id: "title_generation",
+    labelKey: "hermesRoleTitleGeneration",
+    descriptionKey: "hermesRoleTitleGenerationDesc",
+  },
+  {
+    id: "memory_query_rewrite",
+    labelKey: "hermesRoleMemoryQueryRewrite",
+    descriptionKey: "hermesRoleMemoryQueryRewriteDesc",
+  },
+  {
+    id: "tts_audio_tags",
+    labelKey: "hermesRoleTtsAudioTags",
+    descriptionKey: "hermesRoleTtsAudioTagsDesc",
+  },
+  {
+    id: "triage_specifier",
+    labelKey: "hermesRoleTriageSpecifier",
+    descriptionKey: "hermesRoleTriageSpecifierDesc",
+  },
+  {
+    id: "kanban_decomposer",
+    labelKey: "hermesRoleKanbanDecomposer",
+    descriptionKey: "hermesRoleKanbanDecomposerDesc",
+  },
+  {
+    id: "profile_describer",
+    labelKey: "hermesRoleProfileDescriber",
+    descriptionKey: "hermesRoleProfileDescriberDesc",
+  },
+  { id: "goal_judge", labelKey: "hermesRoleGoalJudge", descriptionKey: "hermesRoleGoalJudgeDesc" },
+  { id: "curator", labelKey: "hermesRoleCurator", descriptionKey: "hermesRoleCuratorDesc" },
+  { id: "monitor", labelKey: "hermesRoleMonitor", descriptionKey: "hermesRoleMonitorDesc" },
+  {
+    id: "background_review",
+    labelKey: "hermesRoleBackgroundReview",
+    descriptionKey: "hermesRoleBackgroundReviewDesc",
   },
 ];
 

@@ -9,6 +9,31 @@ import assert from "node:assert/strict";
 const mod = await import("../../open-sse/executors/notion-web.ts");
 const { getModelsByProviderId } = await import("../../open-sse/config/providerModels.ts");
 const { WEB_COOKIE_PROVIDERS } = await import("../../src/shared/constants/providers/web-cookie.ts");
+const { __setTlsFetchOverrideForTesting } = await import(
+  "../../open-sse/services/notionTlsClient.ts"
+);
+
+/** Mock the Chrome-JA3 path used by sendNotionInferenceRequest (not global fetch). */
+function installNotionTlsMock(
+  handler: (url: string, opts: { headers?: Record<string, string>; body?: string }) => Promise<{
+    status: number;
+    text: string;
+  }>
+): () => void {
+  __setTlsFetchOverrideForTesting(async (url, options) => {
+    const r = await handler(url, {
+      headers: options.headers as Record<string, string> | undefined,
+      body: options.body,
+    });
+    return {
+      status: r.status,
+      headers: new Headers(),
+      text: r.text,
+      body: null,
+    };
+  });
+  return () => __setTlsFetchOverrideForTesting(null);
+}
 
 describe("NotionWebExecutor — registry consistency", () => {
   it("is present in WEB_COOKIE_PROVIDERS with the expected shape", () => {
@@ -76,7 +101,7 @@ describe("NotionWebExecutor — instantiation & auth errors", () => {
 /** Cookie with space_id so execute() does not need a live getSpaces call. */
 const COOKIE_WITH_SPACE = "token_v2=xyz; space_id=space-1; notion_user_id=user-1";
 
-describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
+describe("NotionWebExecutor — upstream translation (mocked TLS fetch)", () => {
   it("posts createThread + config/context/user and returns a chat.completion", async () => {
     const executor = new mod.NotionWebExecutor();
     let capturedUrl = "";
@@ -87,36 +112,33 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       spaceId?: string;
       transcript: Array<{ type: string; value: unknown }>;
     } | null = null;
-    const originalFetch = globalThis.fetch;
-    try {
-      globalThis.fetch = (async (url: string | URL, opts: RequestInit) => {
-        capturedUrl = String(url);
-        capturedHeaders = opts.headers as Record<string, string>;
-        capturedBody = JSON.parse(String(opts.body));
-        // Modern record-map response (live shape 2026-07-19).
-        const ndjson = [
-          JSON.stringify({ type: "patch-start", data: { s: [] } }),
-          JSON.stringify({
-            type: "record-map",
-            recordMap: {
-              thread_message: {
-                m1: {
+    const restore = installNotionTlsMock(async (url, opts) => {
+      capturedUrl = url;
+      capturedHeaders = opts.headers || {};
+      capturedBody = JSON.parse(String(opts.body));
+      const ndjson = [
+        JSON.stringify({ type: "patch-start", data: { s: [] } }),
+        JSON.stringify({
+          type: "record-map",
+          recordMap: {
+            thread_message: {
+              m1: {
+                value: {
                   value: {
-                    value: {
-                      step: {
-                        type: "agent-inference",
-                        value: [{ type: "text", content: '<lang primary="en-US"/>Hello there!' }],
-                      },
+                    step: {
+                      type: "agent-inference",
+                      value: [{ type: "text", content: '<lang primary="en-US"/>Hello there!' }],
                     },
                   },
                 },
               },
             },
-          }),
-        ].join("\n");
-        return new Response(ndjson, { status: 200 });
-      }) as typeof fetch;
-
+          },
+        }),
+      ].join("\n");
+      return { status: 200, text: ndjson };
+    });
+    try {
       const result = await executor.execute({
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -129,7 +151,6 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       assert.equal(capturedHeaders.Cookie, COOKIE_WITH_SPACE);
       assert.equal(capturedHeaders["x-notion-space-id"], "space-1");
       assert.equal(capturedHeaders["x-notion-active-user-header"], "user-1");
-      // Browser fingerprint headers to reduce Cloudflare challenges.
       assert.ok(capturedHeaders["sec-ch-ua"], "sec-ch-ua should be present");
       assert.ok(capturedHeaders["sec-fetch-dest"], "sec-fetch-dest should be present");
       assert.ok(capturedHeaders["sec-fetch-mode"], "sec-fetch-mode should be present");
@@ -141,7 +162,6 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       assert.equal(capturedBody.createThread, true);
       assert.ok(typeof capturedBody.threadId === "string" && capturedBody.threadId.length > 0);
       assert.equal(capturedBody.spaceId, "space-1");
-      // Transcript: config + context + user (system would fold into context).
       assert.equal(capturedBody.transcript[0].type, "config");
       assert.equal(capturedBody.transcript[1].type, "context");
       assert.equal(capturedBody.transcript[2].type, "user");
@@ -153,10 +173,9 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
         choices: Array<{ message: { content: string } }>;
       };
       assert.equal(json.object, "chat.completion");
-      // Lang tag stripped; final assistant text kept.
       assert.equal(json.choices[0].message.content, "Hello there!");
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 
@@ -165,14 +184,11 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
     let capturedBody: {
       transcript: Array<{ type: string; value?: { model?: string } }>;
     } | null = null;
-    const originalFetch = globalThis.fetch;
+    const restore = installNotionTlsMock(async (_url, opts) => {
+      capturedBody = JSON.parse(String(opts.body));
+      return { status: 200, text: JSON.stringify({ value: [["ok"]] }) };
+    });
     try {
-      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
-        capturedBody = JSON.parse(String(opts.body));
-        return new Response(JSON.stringify({ value: [["ok"]] }), { status: 200 });
-      }) as typeof fetch;
-
-      // Legacy food codename still accepted for power users / cached clients.
       await executor.execute({
         model: "orange-mousse",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -187,7 +203,7 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       assert.equal(capturedBody.transcript[1].type, "context");
       assert.equal(capturedBody.transcript[2].type, "user");
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 
@@ -196,14 +212,11 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
     let capturedBody: {
       transcript: Array<{ type: string; value?: { model?: string } }>;
     } | null = null;
-    let responseModel = "";
-    const originalFetch = globalThis.fetch;
+    const restore = installNotionTlsMock(async (_url, opts) => {
+      capturedBody = JSON.parse(String(opts.body));
+      return { status: 200, text: JSON.stringify({ value: [["ok"]] }) };
+    });
     try {
-      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
-        capturedBody = JSON.parse(String(opts.body));
-        return new Response(JSON.stringify({ value: [["ok"]] }), { status: 200 });
-      }) as typeof fetch;
-
       const result = await executor.execute({
         model: "notion-web/gpt-5.6-sol",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -214,14 +227,11 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
 
       assert.ok(capturedBody);
       assert.equal(capturedBody.transcript[0].type, "config");
-      // Wire protocol still uses the food codename.
       assert.equal(capturedBody.transcript[0].value?.model, "orange-mousse");
-      // Response echoes the client-facing real model name.
       const json = (await result.response.json()) as { model?: string };
-      responseModel = json.model || "";
-      assert.equal(responseModel, "gpt-5.6-sol");
+      assert.equal(json.model || "", "gpt-5.6-sol");
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 
@@ -230,13 +240,11 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
     let capturedBody: {
       transcript: Array<{ type: string; value?: { model?: string } }>;
     } | null = null;
-    const originalFetch = globalThis.fetch;
+    const restore = installNotionTlsMock(async (_url, opts) => {
+      capturedBody = JSON.parse(String(opts.body));
+      return { status: 200, text: JSON.stringify({ value: [["ok"]] }) };
+    });
     try {
-      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
-        capturedBody = JSON.parse(String(opts.body));
-        return new Response(JSON.stringify({ value: [["ok"]] }), { status: 200 });
-      }) as typeof fetch;
-
       const result = await executor.execute({
         model: "fable-5",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -250,20 +258,18 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       const json = (await result.response.json()) as { model?: string };
       assert.equal(json.model, "fable-5");
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 
   it("accepts a full cookie header verbatim (already containing token_v2=)", async () => {
     const executor = new mod.NotionWebExecutor();
     let capturedHeaders: Record<string, string> = {};
-    const originalFetch = globalThis.fetch;
+    const restore = installNotionTlsMock(async (_url, opts) => {
+      capturedHeaders = opts.headers || {};
+      return { status: 200, text: JSON.stringify({ value: [["ok"]] }) };
+    });
     try {
-      globalThis.fetch = (async (_url: string | URL, opts: RequestInit) => {
-        capturedHeaders = opts.headers as Record<string, string>;
-        return new Response(JSON.stringify({ value: [["ok"]] }), { status: 200 });
-      }) as typeof fetch;
-
       await executor.execute({
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -274,19 +280,17 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
 
       assert.equal(capturedHeaders.Cookie, "token_v2=xyz; space_id=abc-def");
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 
   it("returns a pseudo-streamed SSE response with [DONE] when stream=true", async () => {
     const executor = new mod.NotionWebExecutor();
-    const originalFetch = globalThis.fetch;
+    const restore = installNotionTlsMock(async () => ({
+      status: 200,
+      text: JSON.stringify({ value: [["Streamed reply"]] }),
+    }));
     try {
-      globalThis.fetch = (async () =>
-        new Response(JSON.stringify({ value: [["Streamed reply"]] }), {
-          status: 200,
-        })) as typeof fetch;
-
       const result = await executor.execute({
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -300,17 +304,17 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       assert.match(text, /Streamed reply/);
       assert.match(text, /data: \[DONE\]/);
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 
   it("returns 502 when Notion sends no parseable text (endpoint drift)", async () => {
     const executor = new mod.NotionWebExecutor();
-    const originalFetch = globalThis.fetch;
+    const restore = installNotionTlsMock(async () => ({
+      status: 200,
+      text: "not-json\n{}",
+    }));
     try {
-      globalThis.fetch = (async () =>
-        new Response("not-json\n{}", { status: 200 })) as typeof fetch;
-
       const result = await executor.execute({
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -320,16 +324,14 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       } as never);
       assert.equal(result.response.status, 502);
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 
   it("returns a sanitized 403 error without leaking raw upstream error text shape", async () => {
     const executor = new mod.NotionWebExecutor();
-    const originalFetch = globalThis.fetch;
+    const restore = installNotionTlsMock(async () => ({ status: 403, text: "Forbidden" }));
     try {
-      globalThis.fetch = (async () => new Response("Forbidden", { status: 403 })) as typeof fetch;
-
       const result = await executor.execute({
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -343,21 +345,18 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       };
       assert.match(errBody.error.message, /session expired|invalid/i);
       assert.equal(errBody.error.code, "HTTP_403");
-      // No stack trace / file path leakage (Hard Rule #12).
       assert.ok(!errBody.error.message.includes("at /"));
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
     }
   });
 
-  it("returns 502 with a sanitized message when the fetch itself throws", async () => {
+  it("returns 502 with a sanitized message when the TLS fetch itself throws", async () => {
     const executor = new mod.NotionWebExecutor();
-    const originalFetch = globalThis.fetch;
+    const restore = installNotionTlsMock(async () => {
+      throw new Error("getaddrinfo ENOTFOUND www.notion.so at /some/internal/path.ts:42");
+    });
     try {
-      globalThis.fetch = (async () => {
-        throw new Error("getaddrinfo ENOTFOUND www.notion.so at /some/internal/path.ts:42");
-      }) as typeof fetch;
-
       const result = await executor.execute({
         model: "notion-ai",
         body: { messages: [{ role: "user", content: "hi" }] },
@@ -369,7 +368,44 @@ describe("NotionWebExecutor — upstream translation (mocked fetch)", () => {
       const errBody = (await result.response.json()) as { error: { message: string } };
       assert.ok(!errBody.error.message.includes("at /some/internal/path.ts"));
     } finally {
-      globalThis.fetch = originalFetch;
+      restore();
+    }
+  });
+
+  it("surfaces nested patch-start temporarily-unavailable as a typed error (not empty-body 502)", async () => {
+    const executor = new mod.NotionWebExecutor();
+    const restore = installNotionTlsMock(async () => ({
+      status: 200,
+      text: JSON.stringify({
+        type: "patch-start",
+        data: {
+          s: [
+            {
+              type: "error",
+              message: "Something went wrong. Please try again later.",
+              subType: "temporarily-unavailable",
+              isRetryable: false,
+            },
+          ],
+        },
+        version: 1,
+      }),
+    }));
+    try {
+      const result = await executor.execute({
+        model: "notion-ai",
+        body: { messages: [{ role: "user", content: "hi" }] },
+        stream: false,
+        credentials: { apiKey: COOKIE_WITH_SPACE },
+        signal: null,
+      } as never);
+      // Nested temporarily-unavailable is treated as retryable → may land as 503 after retry.
+      assert.ok([502, 503].includes(result.response.status));
+      const errBody = (await result.response.json()) as { error: { message: string } };
+      assert.match(errBody.error.message, /temporarily-unavailable|went wrong/i);
+      assert.ok(!/No response from Notion AI/i.test(errBody.error.message));
+    } finally {
+      restore();
     }
   });
 });

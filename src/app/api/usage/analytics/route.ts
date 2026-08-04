@@ -347,10 +347,10 @@ export async function GET(request: Request) {
       }
     }
 
-    // Compute the raw-data cutoff: rows older than this may have been rolled up to
-    // daily_usage_summary and deleted from usage_history.
+    // Raw-data cutoff: must match cleanupUsageHistory's rollup/delete boundary —
+    // retention.usageHistory (src/lib/db/cleanup.ts), NOT aggregation.rawDataRetentionDays.
     const dbSettings = getUserDatabaseSettings();
-    const rawRetentionDays = dbSettings.aggregation?.rawDataRetentionDays ?? 30;
+    const rawRetentionDays = dbSettings.retention?.usageHistory ?? 30;
     const rawCutoff = new Date();
     rawCutoff.setDate(rawCutoff.getDate() - rawRetentionDays);
     const rawCutoffIso = rawCutoff.toISOString();
@@ -590,7 +590,10 @@ export async function GET(request: Request) {
         normalizeModelName,
         computeCostFromPricing
       );
-      const key = `${provider}::${short}`;
+      // Keyed by model name alone (not provider) — the table renders one row per
+      // model, so the same model served via multiple provider connections/accounts
+      // must be merged here rather than producing duplicate `key={m.model}` rows.
+      const key = short;
       const existing = modelMap.get(key) || {
         model: short,
         provider,

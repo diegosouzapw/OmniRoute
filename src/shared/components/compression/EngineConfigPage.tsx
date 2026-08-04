@@ -21,14 +21,17 @@ interface EngineEntry {
 // Engines whose detailed config has a dedicated sub-object in the compression
 // settings store. The on/off + level for ALL engines now live in the panel
 // (/dashboard/context/settings, the `engines` map); only these have a place to
-// persist the extra per-engine fields edited on this page. Other structural
-// engines (lite, session-dedup, ccr, llmlingua, relevance) still have no
-// dedicated sub-object — their page keeps the detail form + preview but has
-// nothing extra to persist yet.
+// persist the extra per-engine fields edited on this page. session-dedup and ccr
+// joined headroom in #8388 (they previously rendered a real, editable detail form
+// with no Save affordance — edits vanished on reload). Other structural engines
+// (lite, llmlingua, relevance) still have no dedicated sub-object — their page
+// keeps the detail form + preview but has nothing extra to persist yet.
 const SETTINGS_SUBOBJECT: Record<string, string> = {
   aggressive: "aggressive",
   ultra: "ultra",
   headroom: "headroom",
+  "session-dedup": "sessionDedup",
+  ccr: "ccr",
 };
 
 interface CompressionSettings {

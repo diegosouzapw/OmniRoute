@@ -77,6 +77,92 @@ test("GeminiBusinessExecutor.execute returns 400 when no user message is provide
   assert.ok(text.includes("No user message found"));
 });
 
+// ─── Upstream request path ──────────────────────────────────────────────────
+
+/**
+ * Regression guard: `execute()` built its fetch options with `combineAbortSignals(...)`,
+ * a function that exists nowhere in the codebase (the module imports `mergeAbortSignals`
+ * and never used it). Evaluating the options object threw `ReferenceError` *before* fetch
+ * was called; the surrounding try/catch turned that into a generic 502 "network error",
+ * so every Gemini Business request failed while looking like an upstream outage.
+ *
+ * It went unnoticed because `open-sse/tsconfig.json` could not be type-checked (the
+ * deprecated `baseUrl` aborted the run with TS5101) and `typecheck:core` only covers a
+ * curated 26-file allowlist that excludes this executor.
+ */
+test("GeminiBusinessExecutor.execute reaches the upstream fetch and passes an abort signal", async () => {
+  const ex = new GeminiBusinessExecutor();
+  const originalFetch = globalThis.fetch;
+  let fetchCalled = false;
+  let receivedSignal: unknown;
+
+  // Same wire shape the parseStreamResponse tests below use: inner[4][0] is a
+  // [metadata, text_list] pair. An empty body would take the "returned no text" 502
+  // branch and mask what this test is actually asserting.
+  const inner = new Array(80).fill(null);
+  inner[4] = [[null, ["Hello from Gemini Business"]]];
+  const upstreamBody = `[["wrb.fr", null, ${JSON.stringify(JSON.stringify(inner))}]]`;
+
+  globalThis.fetch = (async (_url: unknown, init?: { signal?: unknown }) => {
+    fetchCalled = true;
+    receivedSignal = init?.signal;
+    return new Response(upstreamBody, { status: 200 });
+  }) as typeof globalThis.fetch;
+
+  try {
+    const result = await ex.execute({
+      model: "gemini-2.5-pro",
+      body: { messages: [{ role: "user", content: "hello" }] },
+      stream: false,
+      credentials: { apiKey: "__Secure-1PSID=fake; __Secure-1PSIDTS=fake" },
+      signal: new AbortController().signal,
+    });
+
+    assert.equal(fetchCalled, true, "execute() must reach the upstream fetch");
+    assert.ok(
+      receivedSignal instanceof AbortSignal,
+      "the upstream fetch must receive a combined AbortSignal"
+    );
+    assert.notEqual(
+      result.response.status,
+      502,
+      "a ReferenceError while building fetch options must not surface as an upstream 502"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GeminiBusinessExecutor.execute still applies a timeout when the caller passes no signal", async () => {
+  const ex = new GeminiBusinessExecutor();
+  const originalFetch = globalThis.fetch;
+  let receivedSignal: unknown;
+
+  globalThis.fetch = (async (_url: unknown, init?: { signal?: unknown }) => {
+    receivedSignal = init?.signal;
+    return new Response("", { status: 200 });
+  }) as typeof globalThis.fetch;
+
+  try {
+    // `ExecuteInput.signal` is `AbortSignal | null | undefined`; mergeAbortSignals()
+    // requires two real signals, so the null case must fall back to the timeout alone.
+    await ex.execute({
+      model: "gemini-2.5-pro",
+      body: { messages: [{ role: "user", content: "hello" }] },
+      stream: false,
+      credentials: { apiKey: "__Secure-1PSID=fake; __Secure-1PSIDTS=fake" },
+      signal: null,
+    });
+
+    assert.ok(
+      receivedSignal instanceof AbortSignal,
+      "a timeout signal must still be applied when the caller supplies none"
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 // ─── parseStreamResponse ────────────────────────────────────────────────────
 
 test("parseStreamResponse extracts text from a single wrb.fr chunk", () => {

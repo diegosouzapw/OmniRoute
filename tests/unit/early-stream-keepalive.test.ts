@@ -5,7 +5,7 @@ import {
   withEarlyStreamKeepalive,
   ANTHROPIC_PING_FRAME,
   OPENAI_KEEPALIVE_FRAME,
-  OPENAI_STARTUP_THINKING_FRAME,
+  OPENAI_STARTUP_FRAME,
   RESPONSES_STARTUP_THINKING_FRAME,
   OPENAI_CHAT_ERROR_FRAME,
   OPENAI_RESPONSES_ERROR_FRAME,
@@ -101,24 +101,14 @@ test("slow handler emits the custom OpenAI keepalive chunk before the body", asy
   assert.match(body, /data: \[DONE\]/);
 });
 
-// #7360 follow-up: many clients time out waiting for the first SSE byte, and
-// during a long Gemini rate-limit cooldown wait there's nothing real to send
-// yet — OPENAI_STARTUP_THINKING_FRAME gives them a real, visible "we're still
-// working on it" reasoning delta instead of an empty/no-op keepalive.
-test("OPENAI_STARTUP_THINKING_FRAME is a reasoning_content delta chunk with the expected text", () => {
-  const decoded = new TextDecoder().decode(OPENAI_STARTUP_THINKING_FRAME);
+test("OPENAI_STARTUP_FRAME is a parseable empty delta", () => {
+  const decoded = new TextDecoder().decode(OPENAI_STARTUP_FRAME);
   assert.match(decoded, /^data: /);
   assert.doesNotMatch(decoded, /^:/, "must not be an SSE comment");
 
   const payload = JSON.parse(decoded.slice("data: ".length).trim());
   assert.equal(payload.object, "chat.completion.chunk");
-  assert.deepEqual(payload.choices, [
-    {
-      index: 0,
-      delta: { reasoning_content: "OmniRoute: got request, sending to provider" },
-      finish_reason: null,
-    },
-  ]);
+  assert.deepEqual(payload.choices, [{ index: 0, delta: {}, finish_reason: null }]);
 });
 
 test("slow handler emits startupFrame once, then falls back to keepaliveFrame on later ticks", async () => {
@@ -133,17 +123,13 @@ test("slow handler emits startupFrame once, then falls back to keepaliveFrame on
     thresholdMs: 20,
     intervalMs: 250,
     keepaliveFrame: OPENAI_KEEPALIVE_FRAME,
-    startupFrame: OPENAI_STARTUP_THINKING_FRAME,
+    startupFrame: OPENAI_STARTUP_FRAME,
   });
 
   const body = await readAll(result);
   const frames = body.split("\n\n").filter(Boolean);
   const firstPayload = JSON.parse(frames[0].slice("data: ".length));
-  assert.equal(
-    firstPayload.choices[0].delta.reasoning_content,
-    "OmniRoute: got request, sending to provider",
-    "the very first frame must carry the startup thinking text"
-  );
+  assert.deepEqual(firstPayload.choices[0].delta, {});
 
   // At least one subsequent keepalive tick should have fired before the real
   // body arrived (interval 30ms, handler resolves at 150ms) — those ticks use

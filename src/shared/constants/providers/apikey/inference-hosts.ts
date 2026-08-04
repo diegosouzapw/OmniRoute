@@ -29,7 +29,8 @@ export const APIKEY_PROVIDERS_INFERENCE = {
     textIcon: "OV",
     website: "https://openvecta.com",
     hasFree: true,
-    freeNote: "Free credits on signup for OpenAI-compatible inference across LLMs, embeddings, and reasoning models",
+    freeNote:
+      "Free credits on signup for OpenAI-compatible inference across LLMs, embeddings, and reasoning models",
   },
   fireworks: {
     id: "fireworks",
@@ -292,6 +293,9 @@ export const APIKEY_PROVIDERS_INFERENCE = {
       "One-time signup trial credits for decentralized GPU inference (no recurring free plan). No credit card required.",
     passthroughModels: true,
     authHint: "Get API key at monsterapi.ai",
+    isDeprecated: true,
+    deprecationReason:
+      "Monster API shuttered operations on 2026-06-30. Use alternative OpenAI-compatible providers.",
   },
   modelscope: {
     id: "modelscope",

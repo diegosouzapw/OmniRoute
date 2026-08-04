@@ -13,7 +13,11 @@
 
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
 import { parseModel } from "./model.ts";
-import { CONTEXT_OVERFLOW_REGEX, containsModelUnavailableMessage } from "./errorClassifier.ts";
+import {
+  CONTEXT_OVERFLOW_REGEX,
+  containsModelUnavailableMessage,
+  isResourceNotFoundResponse,
+} from "./errorClassifier.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 
 // ── Model Family Definitions ─────────────────────────────────────────────────
@@ -78,6 +82,7 @@ const MODEL_FAMILIES: Record<string, string[]> = {
   "claude-fable-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"],
 
   // Claude Opus family
+  "claude-opus-5": ["claude-opus-4-8", "claude-opus-4-7", "claude-sonnet-5"],
   "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-5"],
   "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-5"],
   "claude-opus-4-6": ["claude-opus-4-6-thinking", "claude-opus-4-5-20251101", "claude-sonnet-5"],
@@ -125,7 +130,7 @@ const MODEL_UNAVAILABLE_FRAGMENTS = [
  * itself is not available, not a transient server error.
  */
 export function isModelUnavailableError(status: number, errorMessage: string): boolean {
-  if (status === 404) return true;
+  if (status === 404) return !isResourceNotFoundResponse(errorMessage);
   if (status !== 400 && status !== 403) return false;
 
   const msg = errorMessage.toLowerCase();

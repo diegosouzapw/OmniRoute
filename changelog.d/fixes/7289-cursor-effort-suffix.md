@@ -1,1 +1,0 @@
-- fix(sse): split effort/reasoning suffix off pinned Claude/GPT model ids before sending to cursor's server (#7289)

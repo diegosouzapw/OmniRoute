@@ -1,1 +1,0 @@
-- fix(routing): honor eye-icon hidden models for no-auth providers in auto-combo candidate pools (#7620)

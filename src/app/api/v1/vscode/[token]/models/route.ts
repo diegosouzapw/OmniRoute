@@ -25,6 +25,7 @@ import {
 	parseVscodeServiceTierVariantModelId,
 } from "@/app/api/v1/vscode/[token]/serviceTierVariants";
 import { getFamilyFirstPublishedModelId } from "@/app/api/v1/vscode/[token]/familyFirstModelIds";
+import { isUsableChatModel } from "@/app/api/v1/vscode/[token]/usableChatModel";
 
 type CatalogModelEntry = {
 	id?: string;
@@ -72,53 +73,12 @@ type EnrichModelForVscodeOptions = {
 	preserveNativeId?: boolean;
 };
 
-const TEXT_GENERATION_API_FORMATS = new Set([
-	"chat-completions",
-	"responses",
-	"openai-responses",
-]);
-
 function usesResponsesApi(model: CatalogModelEntry) {
 	return (
 		model.api_format === "responses" ||
 		model.api_format === "openai-responses" ||
 		model.supported_endpoints?.includes("responses") === true
 	);
-}
-
-function excludesChatAndResponsesEndpoints(model: CatalogModelEntry) {
-	return (
-		Array.isArray(model.supported_endpoints) &&
-		model.supported_endpoints.length > 0 &&
-		!model.supported_endpoints.includes("chat") &&
-		!model.supported_endpoints.includes("responses")
-	);
-}
-
-function excludesTextOutputModality(model: CatalogModelEntry) {
-	return (
-		Array.isArray(model.output_modalities) &&
-		model.output_modalities.length > 0 &&
-		!model.output_modalities.includes("text")
-	);
-}
-
-function isUsableChatModel(model: CatalogModelEntry) {
-	if (typeof model.owned_by === "string" && model.owned_by.trim().toLowerCase() === "combo") {
-		return false;
-	}
-	if (typeof model.parent === "string" && model.parent.length > 0) return false;
-	if (typeof model.type === "string" && model.type !== "chat") return false;
-	if (
-		typeof model.api_format === "string" &&
-		!TEXT_GENERATION_API_FORMATS.has(model.api_format)
-	) {
-		return false;
-	}
-	if (excludesChatAndResponsesEndpoints(model)) return false;
-	if (excludesTextOutputModality(model)) return false;
-
-	return true;
 }
 
 function getModelImportReasoningEffortValues(model: VscodeCatalogModel, reasoningEffortValues: string[]) {

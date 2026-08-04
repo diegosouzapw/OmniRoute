@@ -120,6 +120,7 @@ export function openaiToOpenAIResponsesRequest(
         type: "message",
         role: "developer",
         content: buildResponsesTextParts(msg.content),
+        status: "completed",
       });
       continue;
     }
@@ -185,6 +186,7 @@ export function openaiToOpenAIResponsesRequest(
         type: "message",
         role: "user",
         content,
+        status: "completed",
       });
     }
 
@@ -223,6 +225,7 @@ export function openaiToOpenAIResponsesRequest(
           type: "message",
           role: "assistant",
           content: outputContent,
+          status: "completed",
         });
       }
 
@@ -241,6 +244,7 @@ export function openaiToOpenAIResponsesRequest(
             call_id: clampCallId(toString(toolCall.id).trim() || generateToolCallId()),
             name: fnName,
             arguments: toString(fn.arguments, "{}"),
+            status: "completed",
           });
         }
       }
@@ -255,6 +259,7 @@ export function openaiToOpenAIResponsesRequest(
             call_id: clampCallId(`call_${fnName}`),
             name: fnName,
             arguments: toString(fc.arguments, "{}"),
+            status: "completed",
           });
         }
       }
@@ -276,6 +281,7 @@ export function openaiToOpenAIResponsesRequest(
                   return c;
                 })
               : String(msg.content ?? ""),
+        status: "completed",
       });
     }
 
@@ -285,6 +291,7 @@ export function openaiToOpenAIResponsesRequest(
         type: "function_call_output",
         call_id: clampCallId(`call_${toString(msg.name)}`),
         output: typeof msg.content === "string" ? msg.content : String(msg.content ?? ""),
+        status: "completed",
       });
     }
   }

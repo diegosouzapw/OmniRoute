@@ -49,11 +49,23 @@ const EFFORT_LEVELS = ["low", "medium", "high", "max"] as const;
  *   low/medium are not supported on the OpenAI transport)
  * - mimo-v2.5: high/max only (same reasoning; Xiaomi MiMo does not document
  *   low/medium effort tiers)
+ * - #8353 OpenCode Go registry effort variants (exact suffix sets from
+ *   `opencode models opencode-go --verbose`; MiniMax M3 excluded — different
+ *   thinking-mode mapping):
+ *   deepseek-v4-flash high/max; grok-4.5 low/medium/high; hy3 none/low/high;
+ *   kimi-k3 max; qwen3.6-plus / qwen3.7-max / qwen3.7-plus high/max
  */
 const EFFORT_TIERS: Record<string, readonly string[]> = {
   "deepseek-v4-pro": EFFORT_LEVELS,
+  "deepseek-v4-flash": ["high", "max"],
   "glm-5.2": ["high", "max"],
   "mimo-v2.5": ["high", "max"],
+  "grok-4.5": ["low", "medium", "high"],
+  hy3: ["none", "low", "high"],
+  "kimi-k3": ["max"],
+  "qwen3.6-plus": ["high", "max"],
+  "qwen3.7-max": ["high", "max"],
+  "qwen3.7-plus": ["high", "max"],
 };
 
 /**
@@ -251,7 +263,11 @@ export class OpencodeExecutor extends BaseExecutor {
     model?: string
   ) {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
-    const key = credentials?.apiKey || credentials?.accessToken;
+    // #8467: honor Extra API Keys rotation via BaseExecutor.resolveEffectiveKey.
+    // Fall back to accessToken only when no apiKey/extras resolve to a key.
+    const key = credentials
+      ? this.resolveEffectiveKey(credentials) || credentials.accessToken
+      : undefined;
 
     if (key) {
       if (this._requestFormat === "claude") {
@@ -326,13 +342,11 @@ export class OpencodeExecutor extends BaseExecutor {
     ) {
       delete (modifiedBody as Record<string, unknown>).client_metadata;
     }
-    if (
-      modifiedBody &&
-      typeof modifiedBody === "object" &&
-      Array.isArray(modifiedBody.tools) &&
-      modifiedBody.tools.length > 128
-    ) {
-      modifiedBody.tools = modifiedBody.tools.slice(0, 128);
+    if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
+      const mb = modifiedBody as Record<string, unknown>;
+      if (Array.isArray(mb.tools) && mb.tools.length > 128) {
+        mb.tools = mb.tools.slice(0, 128);
+      }
     }
     if (modifiedBody && typeof modifiedBody === "object" && !Array.isArray(modifiedBody)) {
       const mb = modifiedBody as Record<string, unknown>;

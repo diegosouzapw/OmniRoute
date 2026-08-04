@@ -4,6 +4,11 @@
 // Credentials: IMS access_token (JWT, client_id clio-playground-web) or full
 // Cookie header from firefly.adobe.com. Cookie → IMS check/v6/token with
 // client_id clio-playground-web (Express projectx_webapp fallback).
+//
+// Reference images (Media page / OpenAI edit aliases):
+//   1) POST raw bytes → firefly-3p /v2/storage/image → { images:[{ id }] }
+//   2) generate-async with referenceBlobs:[{ id, usage:"general"|"subject" }]
+// See web_providers/adobe_atach_images.txt for live captures.
 
 import { sanitizeErrorMessage } from "../../../utils/error.ts";
 import { saveImageErrorResult, saveImageSuccessResult } from "../../imageGeneration.ts";
@@ -11,6 +16,8 @@ import {
   AdobeFireflyError,
   adobeFireflyGenerateImage,
   resolveAdobeAccessToken,
+  resolveAdobeSourceImageIds,
+  resolveAdobeImageModel,
 } from "../../../services/adobeFireflyClient.ts";
 
 function normalizePositiveNumber(value: unknown, fallback: number): number {
@@ -40,6 +47,9 @@ export async function handleAdobeFireflyImageGeneration({
     timeout_ms?: unknown;
     image?: unknown;
     image_url?: unknown;
+    image_urls?: unknown;
+    images?: unknown;
+    [key: string]: unknown;
   };
   credentials: { apiKey?: string; accessToken?: string };
   log?: { info?: (...args: unknown[]) => void; error?: (...args: unknown[]) => void };
@@ -77,9 +87,27 @@ export async function handleAdobeFireflyImageGeneration({
         ? credentials.accessToken
         : undefined);
 
+    // Cap uploads by model family (matches MediaViewModel GetSourceImageLimit).
+    const { id: resolvedId } = resolveAdobeImageModel(model);
+    const maxRefs =
+      resolvedId.includes("nano-banana") || resolvedId.includes("gpt-image")
+        ? 4
+        : 2;
+
+    const sourceImageIds = await resolveAdobeSourceImageIds({
+      accessToken,
+      body,
+      max: maxRefs,
+      sessionCookie,
+      prompt,
+      fetchImpl,
+      log,
+    });
+
     log?.info?.(
       "IMAGE",
-      `${provider}/${model} (adobe-firefly) | prompt: "${prompt.slice(0, 60)}${prompt.length > 60 ? "..." : ""}"`
+      `${provider}/${model} (adobe-firefly) | prompt: "${prompt.slice(0, 60)}${prompt.length > 60 ? "..." : ""}"` +
+        (sourceImageIds.length ? ` | refs: ${sourceImageIds.length}` : "")
     );
 
     const result = await adobeFireflyGenerateImage({
@@ -92,6 +120,7 @@ export async function handleAdobeFireflyImageGeneration({
       seed: Number.isFinite(seed as number) ? (seed as number) : undefined,
       negativePrompt:
         typeof body.negative_prompt === "string" ? body.negative_prompt : undefined,
+      sourceImageIds: sourceImageIds.length ? sourceImageIds : undefined,
       sessionCookie,
       timeoutMs,
       fetchImpl,

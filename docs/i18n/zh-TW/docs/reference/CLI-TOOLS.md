@@ -10,11 +10,11 @@ lastUpdated: 2026-06-28
 
 OmniRoute 整合了三類 CLI 工具，分別對應三個專屬儀表板頁面：
 
-| 頁面             | 路由                       | 概念                                                         | 數量             |
-| ---------------- | -------------------------- | ------------------------------------------------------------ | ---------------- |
-| **CLI 程式碼工具** | `/dashboard/cli-code`      | 指向 OmniRoute 的程式碼工具（客戶端 → CLI → OmniRoute → 提供商） | 21               |
-| **CLI 代理工具**   | `/dashboard/cli-agents`    | 指向 OmniRoute 的自動代理工具（相同流程，範圍更廣）            | 6                |
-| **ACP 代理**       | `/dashboard/acp-agents`    | OmniRoute 透過 stdio/ACP 以反向流程衍生的 CLI                | 參見註冊表       |
+| 頁面               | 路由                    | 概念                                                             | 數量       |
+| ------------------ | ----------------------- | ---------------------------------------------------------------- | ---------- |
+| **CLI 程式碼工具** | `/dashboard/cli-code`   | 指向 OmniRoute 的程式碼工具（客戶端 → CLI → OmniRoute → 提供者） | 21         |
+| **CLI 代理工具**   | `/dashboard/cli-agents` | 指向 OmniRoute 的自動代理工具（相同流程，範圍更廣）              | 6          |
+| **ACP 代理**       | `/dashboard/acp-agents` | OmniRoute 透過 stdio/ACP 以反向流程衍生的 CLI                    | 參見註冊表 |
 
 舊版路由透過 308 重新導向：`/dashboard/cli-tools` → `/dashboard/cli-code`，`/dashboard/agents` → `/dashboard/acp-agents`。
 
@@ -29,7 +29,7 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose /
            ▼  （全部指向 OmniRoute）
     http://YOUR_SERVER:20128/v1
            │
-           ▼  （OmniRoute 路由至對應提供商）
+           ▼  （OmniRoute 路由至對應提供者）
     Anthropic / OpenAI / Gemini / DeepSeek / Groq / Mistral / ...
 
 ACP 代理（反向衍生流程）：
@@ -68,14 +68,14 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 
 每個條目包含以下欄位（定義於 `src/shared/schemas/cliCatalog.ts`）：
 
-| 欄位                                             | 型別                                                         | 說明                                      |
-| ------------------------------------------------ | ------------------------------------------------------------ | ----------------------------------------- |
-| `category`                                       | `"code" \| "agent"`                                           | 工具顯示在哪個頁面                        |
-| `vendor`                                         | `string`                                                     | 工具來源（"Anthropic"、"OSS (P. Gauthier)"） |
-| `acpSpawnable`                                   | `boolean`                                                    | 也可用作 ACP 代理（顯示徽章）             |
-| `baseUrlSupport`                                 | `"full" \| "partial" \| "none"`                               | 自訂端點支援程度。`"none"` = MITM 待辦事項 |
-| `configType`                                     | `"env" \| "custom" \| "guide" \| "custom-builder" \| "mitm"` | 設定機制                                   |
-| `id`、`name`、`color`、`description`、`docsUrl` | 標準                                                         | 核心顯示欄位                               |
+| 欄位                                            | 型別                                                         | 說明                                         |
+| ----------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------- |
+| `category`                                      | `"code" \| "agent"`                                          | 工具顯示在哪個頁面                           |
+| `vendor`                                        | `string`                                                     | 工具來源（"Anthropic"、"OSS (P. Gauthier)"） |
+| `acpSpawnable`                                  | `boolean`                                                    | 也可用作 ACP 代理（顯示徽章）                |
+| `baseUrlSupport`                                | `"full" \| "partial" \| "none"`                              | 自訂端點支援程度。`"none"` = MITM 待辦事項   |
+| `configType`                                    | `"env" \| "custom" \| "guide" \| "custom-builder" \| "mitm"` | 設定機制                                     |
+| `id`、`name`、`color`、`description`、`docsUrl` | 標準                                                         | 核心顯示欄位                                 |
 
 `baseUrlSupport: "none"` 的條目**不會**顯示在儀表板頁面上 — 它們會註冊在 MITM 待辦事項中，屬於 plan 11 的範疇（參見 `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md`）。
 
@@ -85,33 +85,33 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 
 所有出現在 `/dashboard/cli-code` 的工具。`baseUrlSupport: none` 的工具會透過 MITM 或手動指南而非自訂基礎 URL 來連接：
 
-| id             | 名稱                | 供應商                   | baseUrlSupport | configType      | acpSpawnable |
-| -------------- | ------------------- | ------------------------ | -------------- | --------------- | ------------ |
-| claude         | Claude Code         | Anthropic                | full           | env             | true         |
-| codex          | OpenAI Codex CLI    | OpenAI                   | full           | custom          | true         |
-| cline          | Cline               | OSS（前 Claude Dev）     | full           | custom          | true         |
-| kilo           | Kilo Code           | Kilo-Org                 | full           | custom          | false        |
-| roo            | Roo Code            | Roo（OSS）               | full           | guide           | false        |
-| continue       | Continue            | continue.dev             | full           | guide           | false        |
-| aider          | Aider               | OSS（P. Gauthier）       | full           | guide           | true         |
-| forge          | ForgeCode           | Antinomy HQ              | full           | custom          | true         |
-| jcode          | jcode               | 1jehuang（OSS）          | full           | custom          | false        |
-| deepseek-tui   | DeepSeek TUI        | Hunter Bown（OSS）       | full           | custom          | false        |
-| codewhale      | CodeWhale           | Hmbown（OSS）            | full           | custom          | false        |
-| opencode       | OpenCode            | Anomaly（前 SST）        | full           | guide           | true         |
-| droid          | Factory Droid       | Factory AI               | partial        | guide           | false        |
-| copilot        | GitHub Copilot CLI  | GitHub/MS                | full           | custom          | false        |
-| cursor-cli     | Cursor CLI          | Anysphere                | partial        | guide           | true         |
-| smelt          | Smelt               | leonardcser（OSS）       | full           | custom          | false        |
-| pi             | Pi（pi-coding-agent） | M. Zechner（OSS）        | full           | custom          | false        |
-| grok-build     | Grok Build          | xAI                      | full           | custom          | false        |
-| crush          | Crush               | OSS（Charm）             | full           | custom          | false        |
-| qwen           | Qwen Code           | Alibaba                  | full           | guide           | true         |
-| cursor         | Cursor              | Anysphere                | none           | guide           | false        |
-| antigravity    | Antigravity         | Google                   | none           | mitm            | false        |
-| hermes         | Hermes              | Nous Research            | none           | guide           | false        |
-| kiro           | Kiro AI             | Amazon                   | none           | mitm            | false        |
-| custom         | 自訂 CLI            | —                        | full           | custom-builder  | false        |
+| id           | 名稱                  | 提供者               | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | --------------------- | -------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code           | Anthropic            | full           | env            | true         |
+| codex        | OpenAI Codex CLI      | OpenAI               | full           | custom         | true         |
+| cline        | Cline                 | OSS（前 Claude Dev） | full           | custom         | true         |
+| kilo         | Kilo Code             | Kilo-Org             | full           | custom         | false        |
+| roo          | Roo Code              | Roo（OSS）           | full           | guide          | false        |
+| continue     | Continue              | continue.dev         | full           | guide          | false        |
+| aider        | Aider                 | OSS（P. Gauthier）   | full           | guide          | true         |
+| forge        | ForgeCode             | Antinomy HQ          | full           | custom         | true         |
+| jcode        | jcode                 | 1jehuang（OSS）      | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI          | Hunter Bown（OSS）   | full           | custom         | false        |
+| codewhale    | CodeWhale             | Hmbown（OSS）        | full           | custom         | false        |
+| opencode     | OpenCode              | Anomaly（前 SST）    | full           | guide          | true         |
+| droid        | Factory Droid         | Factory AI           | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI    | GitHub/MS            | full           | custom         | false        |
+| cursor-cli   | Cursor CLI            | Anysphere            | partial        | guide          | true         |
+| smelt        | Smelt                 | leonardcser（OSS）   | full           | custom         | false        |
+| pi           | Pi（pi-coding-agent） | M. Zechner（OSS）    | full           | custom         | false        |
+| grok-build   | Grok Build            | xAI                  | full           | custom         | false        |
+| crush        | Crush                 | OSS（Charm）         | full           | custom         | false        |
+| qwen         | Qwen Code             | Alibaba              | full           | guide          | true         |
+| cursor       | Cursor                | Anysphere            | none           | guide          | false        |
+| antigravity  | Antigravity           | Google               | none           | mitm           | false        |
+| hermes       | Hermes                | Nous Research        | none           | guide          | false        |
+| kiro         | Kiro AI               | Amazon               | none           | mitm           | false        |
+| custom       | 自訂 CLI              | —                    | full           | custom-builder | false        |
 
 `baseUrlSupport: "partial"` 的工具會在儀表板卡片上顯示「⚠ 基礎 URL 部分支援」徽章。
 
@@ -121,16 +121,16 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 
 出現在 `/dashboard/cli-agents` 的自動代理工具：
 
-| id           | 名稱                | 供應商                    | baseUrlSupport | acpSpawnable |
-| ------------ | ------------------- | ------------------------- | -------------- | ------------ |
-| hermes-agent | Hermes Agent        | Nous Research             | full           | false        |
-| openclaw     | OpenClaw            | OSS（P. Steinberger）     | full           | true         |
-| goose        | Goose               | Block / Linux Foundation  | full           | true         |
-| interpreter  | Open Interpreter    | OSS                       | full           | true         |
-| warp         | Warp AI             | Warp Inc.                 | partial        | true         |
-| agent-deck   | Agent Deck          | asheshgoplani（OSS）      | full           | false        |
-| omp          | Oh My Pi            | OSS                       | full           | true         |
-| letta        | Letta CLI           | Letta                     | full           | false        |
+| id           | 名稱             | 提供者                   | baseUrlSupport | acpSpawnable |
+| ------------ | ---------------- | ------------------------ | -------------- | ------------ |
+| hermes-agent | Hermes Agent     | Nous Research            | full           | false        |
+| openclaw     | OpenClaw         | OSS（P. Steinberger）    | full           | true         |
+| goose        | Goose            | Block / Linux Foundation | full           | true         |
+| interpreter  | Open Interpreter | OSS                      | full           | true         |
+| warp         | Warp AI          | Warp Inc.                | partial        | true         |
+| agent-deck   | Agent Deck       | asheshgoplani（OSS）     | full           | false        |
+| omp          | Oh My Pi         | OSS                      | full           | true         |
+| letta        | Letta CLI        | Letta                    | full           | false        |
 
 ---
 
@@ -144,12 +144,12 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 
 以下 CLI 原生不支援自訂基礎 URL，**不會列出**在 CLI 程式碼工具或 CLI 代理工具頁面中。它們是 plan 11 中 MITM 攔截的候選對象：
 
-| CLI                   | 原因                                              |
-| --------------------- | ------------------------------------------------- |
-| windsurf              | BYOK 僅限特定 Claude 模型 + 企業 URL/Token        |
-| amp                   | 封閉生態系統（Sourcegraph）                        |
-| amazon-q / kiro-cli   | AWS SSO 認證，無自訂 URL                          |
-| cowork                | Anthropic Desktop，無可設定的端點                  |
+| CLI                 | 原因                                       |
+| ------------------- | ------------------------------------------ |
+| windsurf            | BYOK 僅限特定 Claude 模型 + 企業 URL/Token |
+| amp                 | 封閉生態系統（Sourcegraph）                |
+| amazon-q / kiro-cli | AWS SSO 認證，無自訂 URL                   |
+| cowork              | Anthropic Desktop，無可設定的端點          |
 
 完整交叉參考請參閱 `_tasks/features-v3.8.6/refactorpages/_orchestration/_plan11-mitm-backlog.md`。
 
@@ -193,16 +193,16 @@ interface ToolBatchStatus {
 
 `configType: "custom"` 的新工具擁有專屬的設定 API 路由：
 
-| 路由                                              | 工具                                |
-| ------------------------------------------------- | ----------------------------------- |
-| `POST /api/cli-tools/forge-settings`              | ForgeCode（.forge.toml）            |
-| `POST /api/cli-tools/jcode-settings`              | jcode（--base-url 旗標）            |
-| `POST /api/cli-tools/deepseek-tui-settings`       | DeepSeek TUI（OPENAI_BASE_URL，舊版） |
-| `POST /api/cli-tools/codewhale-settings`          | CodeWhale（OPENAI_BASE_URL，主要 + 舊版 `~/.deepseek` 同步） |
-| `POST /api/cli-tools/smelt-settings`              | Smelt                               |
-| `POST /api/cli-tools/pi-settings`                 | Pi 程式碼代理                        |
-| `POST /api/cli-tools/grok-build-settings`         | Grok Build（~/.grok/config.toml，`[model.omniroute]`） |
-| `POST /api/cli-tools/qwen-settings`               | Qwen Code（`~/.qwen/settings.json` + 專用 `.env` 金鑰） |
+| 路由                                        | 工具                                                         |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `POST /api/cli-tools/forge-settings`        | ForgeCode（.forge.toml）                                     |
+| `POST /api/cli-tools/jcode-settings`        | jcode（--base-url 旗標）                                     |
+| `POST /api/cli-tools/deepseek-tui-settings` | DeepSeek TUI（OPENAI_BASE_URL，舊版）                        |
+| `POST /api/cli-tools/codewhale-settings`    | CodeWhale（OPENAI_BASE_URL，主要 + 舊版 `~/.deepseek` 同步） |
+| `POST /api/cli-tools/smelt-settings`        | Smelt                                                        |
+| `POST /api/cli-tools/pi-settings`           | Pi 程式碼代理                                                |
+| `POST /api/cli-tools/grok-build-settings`   | Grok Build（~/.grok/config.toml，`[model.omniroute]`）       |
+| `POST /api/cli-tools/qwen-settings`         | Qwen Code（`~/.qwen/settings.json` + 專用 `.env` 金鑰）      |
 
 所有路由都使用 `sanitizeErrorMessage()` 處理錯誤回應（硬性規則 #12）。
 
@@ -229,20 +229,20 @@ interface ToolBatchStatus {
 
 ### 共用 UI 元件（`src/shared/components/cli/`）
 
-| 檔案                     | 用途                                           |
-| ------------------------ | ---------------------------------------------- |
-| `CliToolCard.tsx`        | 智慧型狀態卡片（偵測 + 設定 + 端點）           |
-| `CliConceptCard.tsx`     | 各頁面概念說明卡片                             |
-| `CliComparisonCard.tsx`  | 三欄 CLI 類型比較卡片                          |
-| `BaseUrlSelect.tsx`      | 端點下拉選單（本機/雲端/自訂）                 |
-| `ApiKeySelect.tsx`       | API 金鑰選擇器                                 |
-| `ManualConfigModal.tsx`  | 可複製的設定片段模態框                         |
+| 檔案                    | 用途                                 |
+| ----------------------- | ------------------------------------ |
+| `CliToolCard.tsx`       | 智慧型狀態卡片（偵測 + 設定 + 端點） |
+| `CliConceptCard.tsx`    | 各頁面概念說明卡片                   |
+| `CliComparisonCard.tsx` | 三欄 CLI 類型比較卡片                |
+| `BaseUrlSelect.tsx`     | 端點下拉選單（本機/雲端/自訂）       |
+| `ApiKeySelect.tsx`      | API 金鑰選擇器                       |
+| `ManualConfigModal.tsx` | 可複製的設定片段模態框               |
 
 ### 共用 Hook（`src/shared/hooks/cli/`）
 
-| 檔案                         | 用途                                        |
-| ---------------------------- | ------------------------------------------- |
-| `useToolBatchStatuses.ts`    | 擷取 `/api/cli-tools/all-statuses`，管理載入/重新整理狀態 |
+| 檔案                      | 用途                                                      |
+| ------------------------- | --------------------------------------------------------- |
+| `useToolBatchStatuses.ts` | 擷取 `/api/cli-tools/all-statuses`，管理載入/重新整理狀態 |
 
 ---
 
@@ -250,12 +250,12 @@ interface ToolBatchStatus {
 
 plan 14 F9 中新增的命名空間：
 
-| 命名空間      | 用途                                        |
-| ------------- | ------------------------------------------- |
-| `cliCommon`   | 共用字串（卡片標籤、概念/比較文字、詳細頁面標籤） |
-| `cliCode`     | CLI 程式碼工具頁面字串                      |
-| `cliAgents`   | CLI 代理工具頁面字串                        |
-| `acpAgents`   | ACP 代理頁面字串                            |
+| 命名空間    | 用途                                              |
+| ----------- | ------------------------------------------------- |
+| `cliCommon` | 共用字串（卡片標籤、概念/比較文字、詳細頁面標籤） |
+| `cliCode`   | CLI 程式碼工具頁面字串                            |
+| `cliAgents` | CLI 代理工具頁面字串                              |
+| `acpAgents` | ACP 代理頁面字串                                  |
 
 已提供完整的巴西葡萄牙文（PT-BR）和英文（EN）翻譯。其他 39 種語言會透過 `src/i18n/request.ts` 中的命名空間層級合併自動回退為英文。
 
@@ -524,13 +524,13 @@ kiro-cli status
 
 ## 10. 內部 OmniRoute CLI
 
-`omniroute` 二進位檔提供用於伺服器生命週期管理、設定、診斷和提供商管理的指令。進入點：`bin/omniroute.mjs`。
+`omniroute` 二進位檔提供用於伺服器生命週期管理、設定、診斷和提供者管理的指令。進入點：`bin/omniroute.mjs`。
 
 ```bash
 omniroute                              # 啟動伺服器（預設通訊埠 20128）
 omniroute setup                        # 互動式設定精靈
 omniroute doctor                       # 檢查設定、資料庫、通訊埠、執行環境
-omniroute providers list               # 已設定的提供商連線
+omniroute providers list               # 已設定的提供者連線
 omniroute providers test-all           # 測試每個作用中連線
 omniroute reset-password               # 重設管理員密碼
 omniroute logs                         # 串流要求日誌
@@ -548,15 +548,15 @@ omniroute setup --password '<value>'   # 直接設定管理員密碼
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # 一氣呵成新增並測試提供商
+  --test-provider                      # 一氣呵成新增並測試提供者
 ```
 
 非互動式設定可識別的環境變數：
 
-| 變數                 | 用途                                      |
-| -------------------- | ----------------------------------------- |
-| `OMNIROUTE_API_KEY`  | 提供商 API 金鑰（透過 Commander `.env()` 繫結至 `--api-key`） |
-| `DATA_DIR`           | 覆寫 OmniRoute 資料目錄                   |
+| 變數                | 用途                                                          |
+| ------------------- | ------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | 提供者 API 金鑰（透過 Commander `.env()` 繫結至 `--api-key`） |
+| `DATA_DIR`          | 覆寫 OmniRoute 資料目錄                                       |
 
 所有其他非互動式輸入皆以旗標傳遞（非環境變數）：
 `--password`、`--provider`、`--provider-name`、`--provider-base-url`、`--default-model`
@@ -576,15 +576,15 @@ doctor 會執行以下檢查：`Config`、`Database`、`Storage/encryption`、
 `Port availability`、`Node runtime`、`Native binary`（better-sqlite3）、
 `Memory` 和 `Server liveness`。若有任一檢查結果為 `fail`，則以非零退出碼結束。
 
-### 提供商管理
+### 提供者管理
 
 ```bash
-omniroute providers available                       # OmniRoute 提供商目錄
+omniroute providers available                       # OmniRoute 提供者目錄
 omniroute providers available --search openai       # 依 ID/名稱/別名/類別過濾目錄
 omniroute providers available --category api-key    # 依類別過濾（api-key、oauth、free 等）
 omniroute providers available --json                # 機器可讀的 JSON
 
-omniroute providers list                            # 已設定的提供商連線
+omniroute providers list                            # 已設定的提供者連線
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # 測試一個已設定的連線
@@ -629,8 +629,8 @@ omniroute status                       # 完整的執行時期狀態
 omniroute logs                         # 串流要求日誌（--json、--search、--follow）
 omniroute config show                  # 顯示目前設定
 
-omniroute provider list                # 列出可用提供商（providers list 的別名）
-omniroute provider add                 # 將 OmniRoute 註冊為工具上的提供商
+omniroute provider list                # 列出可用提供者（providers list 的別名）
+omniroute provider add                 # 將 OmniRoute 註冊為工具上的提供者
 omniroute keys add | list | remove     # 管理 API 金鑰
 omniroute models [provider]            # 列出模型（--json、--search）
 omniroute combo list | switch | create | delete
@@ -639,7 +639,7 @@ omniroute backup                       # 快照設定 + 資料庫
 omniroute restore                      # 從先前的快照還原
 
 omniroute health                       # 詳細健康狀態（斷路器、快取、記憶體）
-omniroute quota                        # 提供商配額使用情況
+omniroute quota                        # 提供者配額使用情況
 omniroute cache                        # 快取狀態
 omniroute cache clear                  # 清除語意 + 簽章快取
 
@@ -649,36 +649,36 @@ omniroute a2a status | card            # A2A 伺服器狀態 / 代理卡片
 omniroute tunnel list | create | stop  # 管理通道（cloudflare/tailscale/ngrok）
 omniroute env show | get <k> | set <k> <v>  # 檢查 / 設定環境變數（暫時性）
 
-omniroute test                         # 提供商連線冒煙測試
+omniroute test                         # 提供者連線冒煙測試
 omniroute update                       # 檢查更新
 omniroute completion                   # 產生 Shell 補全
 ```
 
 ### 常用旗標
 
-| 旗標                | 說明                                      |
-| ------------------- | ----------------------------------------- |
-| `--no-open`         | 啟動時不自動開啟瀏覽器                    |
-| `--port <n>`        | 覆寫 API 通訊埠（預設 20128）             |
-| `--mcp`             | 以 MCP 伺服器模式透過 stdio 執行（用於 IDE）|
-| `--non-interactive` | CI 模式（無提示；從環境變數/旗標讀取）    |
-| `--json`            | 機器可讀的 JSON 輸出（doctor、providers 等）|
-| `--help`、`-h`      | 顯示指令專屬說明                          |
-| `--version`、`-v`   | 顯示已安裝版本                            |
+| 旗標                | 說明                                         |
+| ------------------- | -------------------------------------------- |
+| `--no-open`         | 啟動時不自動開啟瀏覽器                       |
+| `--port <n>`        | 覆寫 API 通訊埠（預設 20128）                |
+| `--mcp`             | 以 MCP 伺服器模式透過 stdio 執行（用於 IDE） |
+| `--non-interactive` | CI 模式（無提示；從環境變數/旗標讀取）       |
+| `--json`            | 機器可讀的 JSON 輸出（doctor、providers 等） |
+| `--help`、`-h`      | 顯示指令專屬說明                             |
+| `--version`、`-v`   | 顯示已安裝版本                               |
 
 ---
 
 ## 可用 API 端點
 
-| 端點                        | 說明              | 用途                    |
-| --------------------------- | ----------------- | ----------------------- |
-| `/v1/chat/completions`      | 標準聊天（所有提供商）| 所有現代工具            |
-| `/v1/responses`             | Responses API（OpenAI 格式）| Codex、代理工作流程    |
-| `/v1/completions`           | 舊版文字補全      | 使用 `prompt:` 的較舊工具 |
-| `/v1/embeddings`            | 文字嵌入          | RAG、搜尋               |
-| `/v1/images/generations`    | 圖片生成          | GPT-Image、Flux 等      |
-| `/v1/audio/speech`          | 文字轉語音        | ElevenLabs、OpenAI TTS  |
-| `/v1/audio/transcriptions`  | 語音轉文字        | Deepgram、AssemblyAI    |
+| 端點                       | 說明                         | 用途                      |
+| -------------------------- | ---------------------------- | ------------------------- |
+| `/v1/chat/completions`     | 標準聊天（所有提供者）       | 所有現代工具              |
+| `/v1/responses`            | Responses API（OpenAI 格式） | Codex、代理工作流程       |
+| `/v1/completions`          | 舊版文字補全                 | 使用 `prompt:` 的較舊工具 |
+| `/v1/embeddings`           | 文字嵌入                     | RAG、搜尋                 |
+| `/v1/images/generations`   | 圖片生成                     | GPT-Image、Flux 等        |
+| `/v1/audio/speech`         | 文字轉語音                   | ElevenLabs、OpenAI TTS    |
+| `/v1/audio/transcriptions` | 語音轉文字                   | Deepgram、AssemblyAI      |
 
 可直接貼上的 Token 化 OmniRoute URL 範例：
 
@@ -697,12 +697,12 @@ Ollama 聊天：http://localhost:20128/api/v1/vscode/«redacted:sk-…»/api/cha
 
 ## 故障排除
 
-| 錯誤                                           | 原因                      | 解決方式                                        |
-| ---------------------------------------------- | ------------------------- | ----------------------------------------------- |
-| `Connection refused`                           | OmniRoute 未執行          | `omniroute serve`                               |
-| `401 Unauthorized`                             | API 金鑰錯誤              | 在 `/dashboard/api-manager` 中檢查              |
-| `No combo configured`                          | 無作用中路由組合          | 在 `/dashboard/combos` 中設定                   |
-| CLI 顯示「not installed」                        | 二進位檔不在 PATH 中      | 檢查 `which <command>`                          |
-| 儀表板在安裝後顯示「not detected」               | 快取過期                  | 點選儀表板中的「⟳ 重新整理偵測」                 |
-| 舊連結 `/dashboard/cli-tools`                   | v3.8.6 之前的書籤         | 自動重新導向至 `/dashboard/cli-code`（308）     |
-| 舊連結 `/dashboard/agents`                      | v3.8.6 之前的書籤         | 自動重新導向至 `/dashboard/acp-agents`（308）   |
+| 錯誤                               | 原因                 | 解決方式                                      |
+| ---------------------------------- | -------------------- | --------------------------------------------- |
+| `Connection refused`               | OmniRoute 未執行     | `omniroute serve`                             |
+| `401 Unauthorized`                 | API 金鑰錯誤         | 在 `/dashboard/api-manager` 中檢查            |
+| `No combo configured`              | 無作用中路由組合     | 在 `/dashboard/combos` 中設定                 |
+| CLI 顯示「not installed」          | 二進位檔不在 PATH 中 | 檢查 `which <command>`                        |
+| 儀表板在安裝後顯示「not detected」 | 快取過期             | 點選儀表板中的「⟳ 重新整理偵測」              |
+| 舊連結 `/dashboard/cli-tools`      | v3.8.6 之前的書籤    | 自動重新導向至 `/dashboard/cli-code`（308）   |
+| 舊連結 `/dashboard/agents`         | v3.8.6 之前的書籤    | 自動重新導向至 `/dashboard/acp-agents`（308） |

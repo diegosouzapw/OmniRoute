@@ -53,11 +53,25 @@ test("cliRuntime enumerates qodercli.cmd under %APPDATA%\\npm on Windows", () =>
   );
 });
 
-test("shouldUseShellForCommand: true for a .cmd wrapper, false for the bare name (Windows)", () => {
+test("resolveQoderCliInvocation requests shell for explicit bare command CLI_QODER_BIN on Windows (#8590)", async () => {
   setPlatform("win32");
-  const cmdPath = path.join(os.homedir(), "AppData", "Roaming", "npm", "qodercli.cmd");
-  assert.equal(cliRuntime.shouldUseShellForCommand(cmdPath), true);
-  assert.equal(cliRuntime.shouldUseShellForCommand("qodercli"), false);
+  process.env.CLI_QODER_BIN = "custom-qoder";
+
+  const invocation = await qoderResolve.resolveQoderCliInvocation("custom-qoder", {
+    getStatus: async () => ({
+      installed: false,
+      runnable: false,
+      command: "qodercli",
+      commandPath: null,
+      reason: "not_found",
+      runtimeMode: "auto",
+      requiresBinary: true,
+    }),
+  });
+
+  assert.equal(invocation.command, "custom-qoder");
+  assert.equal(invocation.useShell, true);
+  delete process.env.CLI_QODER_BIN;
 });
 
 test("resolveQoderCliInvocation picks the absolute .cmd path + shell when cliRuntime finds it", async () => {
@@ -83,7 +97,7 @@ test("resolveQoderCliInvocation picks the absolute .cmd path + shell when cliRun
   assert.notEqual(invocation.command, "qodercli");
 });
 
-test("resolveQoderCliInvocation falls back to the bare command when cliRuntime finds nothing", async () => {
+test("resolveQoderCliInvocation falls back to bare command + requests shell for bare name on Windows (#8590)", async () => {
   setPlatform("win32");
   delete process.env.CLI_QODER_BIN;
 
@@ -100,8 +114,8 @@ test("resolveQoderCliInvocation falls back to the bare command when cliRuntime f
   });
 
   assert.equal(invocation.command, "qodercli");
-  // A bare name is not a .cmd/.bat, so no shell is requested.
-  assert.equal(invocation.useShell, false);
+  // Bare name on Windows requires shell: true so cmd.exe can resolve qodercli.cmd / qodercli.bat / qodercli.exe on PATH (#8590)
+  assert.equal(invocation.useShell, true);
 });
 
 test("resolveQoderCliInvocation is inert on non-Windows (no shell, resolved path honored)", async () => {

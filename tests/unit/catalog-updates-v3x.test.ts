@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { getModelsByProviderId } from "../../open-sse/config/providerModels.ts";
 import { resolveCanonicalProviderModel } from "../../open-sse/services/model.ts";
+import { getStaticModelsForProvider } from "../../src/lib/providers/staticModels.ts";
 import { DEFAULT_PRICING } from "../../src/shared/constants/pricing.ts";
 
 test("Pollinations catalog mirrors the current public text model lineup", () => {
@@ -64,6 +65,34 @@ test("Fable 5 catalog exposes claude-fable-5 in cc — but NOT via Kiro (fabrica
     false,
     "kiro must NOT expose claude-fable-5 (fabricated)"
   );
+});
+
+test("Opus 5 catalog is limited to verified first-party, web, and Copilot providers", () => {
+  for (const providerId of ["claude", "github", "claude-web", "anthropic"]) {
+    const model = getModelsByProviderId(providerId).find((entry) => entry.id === "claude-opus-5");
+    assert.ok(model, `${providerId} must expose claude-opus-5`);
+  }
+
+  const claude = getModelsByProviderId("claude").find((entry) => entry.id === "claude-opus-5");
+  assert.equal(claude?.contextLength, 1000000);
+  assert.equal(claude?.maxOutputTokens, 128000);
+  assert.ok(
+    getStaticModelsForProvider("claude")?.some((entry) => entry.id === "claude-opus-5"),
+    "claude OAuth discovery must expose claude-opus-5"
+  );
+
+  const github = getModelsByProviderId("github").find((entry) => entry.id === "claude-opus-5");
+  assert.equal(github?.targetFormat, "claude");
+
+  const kiroIds = new Set(getModelsByProviderId("kiro").map((entry) => entry.id));
+  assert.equal(kiroIds.has("claude-opus-5"), false, "do not fabricate Kiro availability");
+
+  const pricing = DEFAULT_PRICING as Record<string, Record<string, unknown>>;
+  for (const providerId of ["cc", "gh", "anthropic"]) {
+    const price = pricing[providerId]["claude-opus-5"] as { input: number; output: number };
+    assert.equal(price.input, 5.0, `${providerId} Opus 5 input price`);
+    assert.equal(price.output, 25.0, `${providerId} Opus 5 output price`);
+  }
 });
 
 test("Sonnet 5 catalog exposes claude-sonnet-5 across cc/kiro/anthropic/blackbox with Sonnet-tier pricing", () => {

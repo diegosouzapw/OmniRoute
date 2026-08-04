@@ -62,7 +62,11 @@ export async function tinyfishFetch(opts: TinyFishFetchOptions): Promise<WebFetc
   };
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TINYFISH_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => {
+    const err = new Error(`tinyfish-fetch timeout after ${TINYFISH_TIMEOUT_MS}ms`);
+    err.name = "TimeoutError";
+    controller.abort(err);
+  }, TINYFISH_TIMEOUT_MS);
 
   try {
     const response = await fetch(TINYFISH_FETCH_URL, {

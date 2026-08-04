@@ -113,9 +113,18 @@ function getTimeString() {
 }
 
 /**
- * Add buffer tokens to usage to prevent context errors
+ * Compute the context-window safety margin for a usage object, WITHOUT touching the
+ * client-visible/metering fields (prompt_tokens/input_tokens/total_tokens).
+ *
+ * #8331: the buffer used to be added directly into those fields, so a real 69-token
+ * request was reported to the client as 2069 while call_logs/the raw upstream body kept
+ * the true 69 — a metering/billing discrepancy. The safety margin this function computes
+ * is intentionally scoped to context-fit/CLI-headroom use only (see module docstring
+ * above); it is surfaced here as separate `context_budget_*` fields so it never gets
+ * confused with reported token accounting again. `filterUsageForFormat()` does not
+ * allow-list these fields, so they are stripped before any response reaches a client.
  * @param {object} usage - Usage object (supported format)
- * @returns {object} Usage with buffer added
+ * @returns {object} Usage with context_budget_* fields added (metering fields unchanged)
  */
 export function addBufferToUsage(usage) {
   if (!usage || typeof usage !== "object") return usage;
@@ -134,20 +143,21 @@ export function addBufferToUsage(usage) {
 
   // Claude format
   if (result.input_tokens !== undefined) {
-    result.input_tokens += buffer;
+    result.context_budget_input_tokens = result.input_tokens + buffer;
   }
 
   // OpenAI format
   if (result.prompt_tokens !== undefined) {
-    result.prompt_tokens += buffer;
+    result.context_budget_prompt_tokens = result.prompt_tokens + buffer;
   }
 
-  // Calculate or update total_tokens
+  // Calculate or update the context-budget total
   if (result.total_tokens !== undefined) {
-    result.total_tokens += buffer;
+    result.context_budget_total_tokens = result.total_tokens + buffer;
   } else if (result.prompt_tokens !== undefined && result.completion_tokens !== undefined) {
-    // Calculate total_tokens if not exists
+    // Calculate total_tokens if not exists (real value — not buffered)
     result.total_tokens = result.prompt_tokens + result.completion_tokens;
+    result.context_budget_total_tokens = result.total_tokens + buffer;
   }
 
   return result;

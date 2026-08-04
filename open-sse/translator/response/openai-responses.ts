@@ -7,6 +7,7 @@ import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
+import { getReadableReasoningValue } from "../../utils/reasoningFields.ts";
 import {
   isInternalReasoningPlaceholder,
   stripInternalReasoningPlaceholder,
@@ -80,9 +81,7 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     return flushEvents(state);
   }
 
-  // Capture usage from all chunks that carry it (usage-only chunks OR final chunks with finish_reason)
-  // Normalize Chat Completions format (prompt_tokens/completion_tokens) to Responses API format
-  // (input_tokens/output_tokens) so response.completed always has the fields Codex expects.
+  // Normalize usage from any chunk so response.completed has Responses token fields.
   if (chunk.usage) {
     const u = chunk.usage;
     const input_tokens = u.input_tokens ?? u.prompt_tokens ?? 0;
@@ -193,9 +192,10 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
     });
   }
 
-  if (delta.reasoning_content && !isInternalReasoningPlaceholder(delta.reasoning_content)) {
+  const reasoning = getReadableReasoningValue(delta);
+  if (reasoning && !isInternalReasoningPlaceholder(reasoning)) {
     startReasoning(state, emit, idx);
-    emitReasoningDelta(state, emit, delta.reasoning_content);
+    emitReasoningDelta(state, emit, reasoning);
   }
   // Strip the internal reasoning placeholder if the model echoed it
   // through ordinary content (#8081). Only the text-content emission is
@@ -636,6 +636,17 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
     // superseded-call eviction where a new call replaced this one at the same index).
     if (recordAsCompleted) {
       recordCompletedItem(state, normalizedIndex, funcItem);
+      // Mirror into the shared state.toolCalls map (populated by the other response
+      // translators) so stream.ts's completion-log summary reports finish_reason
+      // "tool_calls" and message.tool_calls instead of "stop" with no tool calls.
+      if (state.toolCalls instanceof Map) {
+        state.toolCalls.set(idx, {
+          id: callId,
+          index: normalizedIndex,
+          type: isCustomTool ? "custom_tool_call" : "function",
+          function: { name: funcItem.name, arguments: args },
+        });
+      }
     }
 
     state.funcItemDone[idx] = true;

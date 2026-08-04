@@ -171,15 +171,15 @@ flyctl deploy
 
 以下變數建議用於 Fly Secrets：
 
-| 變數                          | 建議           | 說明                                |
-| ----------------------------- | -------------- | ----------------------------------- |
-| `API_KEY_SECRET`              | 必填           | 用於 API 金鑰產生與驗證             |
-| `JWT_SECRET`                  | 必填           | 用於登入工作階段和 JWT 簽章         |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | 生產環境必填   | WebSocket 橋接認證密鑰              |
-| `STORAGE_ENCRYPTION_KEY`      | 強烈建議       | 靜態加密敏感連線資訊                |
-| `MACHINE_ID_SALT`             | 建議           | 產生穩定的機器識別碼                |
-| `INITIAL_PASSWORD`            | 可選           | 首次部署時設定初始後端密碼          |
-| OAuth/API 私有憑證            | 視需要而定     | 外部平台認證配置                    |
+| 變數                         | 建議         | 說明                        |
+| ---------------------------- | ------------ | --------------------------- |
+| `API_KEY_SECRET`             | 必填         | 用於 API 金鑰產生與驗證     |
+| `JWT_SECRET`                 | 必填         | 用於登入工作階段和 JWT 簽章 |
+| `OMNIROUTE_WS_BRIDGE_SECRET` | 生產環境必填 | WebSocket 橋接認證密鑰      |
+| `STORAGE_ENCRYPTION_KEY`     | 強烈建議     | 靜態加密敏感連線資訊        |
+| `MACHINE_ID_SALT`            | 建議         | 產生穩定的機器識別碼        |
+| `INITIAL_PASSWORD`           | 可選         | 首次部署時設定初始後端密碼  |
+| OAuth/API 私有憑證           | 視需要而定   | 外部平台認證配置            |
 
 ### 6.2 目前專案的建議值
 
@@ -195,7 +195,7 @@ flyctl deploy
 
 ### 6.3 OAuth 回呼 URL 配置
 
-如果您需要在 Fly.io 部署上啟用基於 OAuth 的提供商（例如 Antigravity、Gemini、Cursor），請確保以下兩點：
+如果您需要在 Fly.io 部署上啟用基於 OAuth 的提供者（例如 Antigravity、Gemini、Cursor），請確保以下兩點：
 
 1. **將 `NEXT_PUBLIC_BASE_URL` 設定為您的公開 HTTPS 網域**
 
@@ -205,9 +205,9 @@ flyctl deploy
 
    如果您使用自訂網域，請替換為對應的網域（例如 `https://omniroute.yourdomain.com`）。
 
-2. **在提供商控制台中配置回呼 URL**
+2. **在提供者控制台中配置回呼 URL**
 
-   所有 OAuth 提供商共用單一回呼路徑 `/callback` — 沒有每個提供商的獨立回呼路由：
+   所有 OAuth 提供者共用單一回呼路徑 `/callback` — 沒有每個提供者的獨立回呼路由：
 
    ```text
    <NEXT_PUBLIC_BASE_URL>/callback
@@ -216,7 +216,7 @@ flyctl deploy
    例如，不論是 Gemini、Antigravity、Cursor 或 GitLab Duo：
    - `https://omniroute.fly.dev/callback`
 
-   如果 `NEXT_PUBLIC_BASE_URL` 與註冊在提供商的回呼 URL 不符，OAuth 流程將在瀏覽器重新導向步驟失敗。
+   如果 `NEXT_PUBLIC_BASE_URL` 與註冊在提供者的回呼 URL 不符，OAuth 流程將在瀏覽器重新導向步驟失敗。
 
 ---
 

@@ -8,6 +8,26 @@ import {
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
 
+/**
+ * What a Copilot credential refresh resolves to.
+ *
+ * `refreshCredentials()` returns one of three shapes — the raw GitHub token pair, that pair
+ * plus the minted Copilot token, or the Copilot token folded onto the existing credentials —
+ * and `null` when nothing could be refreshed. Left to inference, the union of those literals
+ * is narrower than the contract subclasses actually honor: `GheCopilotExecutor` carries a
+ * wider `providerSpecificData` (it also records the enterprise proxy URL) and omits
+ * `expiresIn`, which made a valid override fail with TS2416. Every field is therefore
+ * optional here — callers already treat them as such.
+ */
+export interface RefreshedCopilotCredentials {
+  accessToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  copilotToken?: string;
+  copilotTokenExpiresAt?: string | number;
+  providerSpecificData?: Record<string, unknown>;
+}
+
 export class GithubExecutor extends BaseExecutor {
   constructor() {
     super("github", PROVIDERS.github);
@@ -250,7 +270,10 @@ export class GithubExecutor extends BaseExecutor {
 
   async execute(input: ExecuteInput) {
     const result = await super.execute(input);
-    if (!result || !result.response) return result;
+    // BaseExecutor.execute() is typed as the union it contracts for; the bare-Response
+    // arm has nothing to materialize, which is what the existing `!result.response`
+    // guard already meant.
+    if (result instanceof Response || !result?.response) return result;
 
     if (!input.stream) {
       // wreq-js clone/text semantics consume the original response body. Materialize
@@ -364,7 +387,7 @@ export class GithubExecutor extends BaseExecutor {
     }
   }
 
-  async refreshCredentials(credentials, log) {
+  async refreshCredentials(credentials, log): Promise<RefreshedCopilotCredentials | null> {
     let copilotResult = await this.refreshCopilotToken(credentials.accessToken, log);
 
     if (!copilotResult && credentials.refreshToken) {

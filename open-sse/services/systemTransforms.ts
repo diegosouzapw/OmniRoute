@@ -96,6 +96,9 @@ export const DEFAULT_OBFUSCATE_WORDS = [
   // Open WebUI additions
   "openwebui",
   "open-webui",
+  // Hermes additions (#8350)
+  "hermes-agent",
+  "hermes",
 ];
 
 /**
@@ -117,6 +120,19 @@ export const PI_PARAGRAPH_ANCHORS = [
   "/.pi/",
   "Pi documentation (read only when the user asks about pi itself",
 ];
+
+/**
+ * Hermes (NousResearch/hermes-agent) paragraph anchors — the doc-link
+ * paragraph injected by `agent/prompt_builder.py` on the upstream CLI.
+ * Added on top of the other anchor lists for #8350.
+ */
+export const HERMES_PARAGRAPH_ANCHORS = [
+  "hermes-agent.nousresearch.com",
+  "github.com/NousResearch/hermes-agent",
+];
+
+/** Hermes identity paragraph prefixes ("You are Hermes Agent, ..."). */
+export const HERMES_IDENTITY_PREFIXES = ["You are Hermes Agent"];
 
 // ────────────────────────────────────────────────────────────────────────────
 // Per-provider defaults.
@@ -164,12 +180,18 @@ export const DEFAULT_CLAUDE_PIPELINE: TransformOp[] = [
       ...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS,
       ...OPENWEBUI_PARAGRAPH_ANCHORS,
       ...PI_PARAGRAPH_ANCHORS,
+      ...HERMES_PARAGRAPH_ANCHORS,
     ],
   },
-  // Drop "You are OpenCode" + "You are Open WebUI" identity paragraphs.
+  // Drop "You are OpenCode" + "You are Open WebUI" + "You are Hermes Agent"
+  // identity paragraphs.
   {
     kind: "drop_paragraph_if_starts_with",
-    prefixes: [...DEFAULT_IDENTITY_PREFIXES, ...OPENWEBUI_IDENTITY_PREFIXES],
+    prefixes: [
+      ...DEFAULT_IDENTITY_PREFIXES,
+      ...OPENWEBUI_IDENTITY_PREFIXES,
+      ...HERMES_IDENTITY_PREFIXES,
+    ],
   },
   // Replace the "Here is some useful information about the environment you are
   // running in:" billing-gate trigger phrase + the "if OpenCode honestly"

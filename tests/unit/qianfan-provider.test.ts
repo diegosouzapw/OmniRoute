@@ -26,7 +26,7 @@ test("qianfan registers Baidu ERNIE as an OpenAI-compatible API key provider", (
 
   assert.ok(APIKEY_PROVIDERS.qianfan, "qianfan should be visible in API key providers");
   assert.equal(APIKEY_PROVIDERS.qianfan.name, "Baidu Qianfan");
-  assert.equal(APIKEY_PROVIDERS.qianfan.website, "https://cloud.baidu.com/product/wenxinworkshop");
+  assert.equal(APIKEY_PROVIDERS.qianfan.website, "https://cloud.baidu.com/product-s/qianfan_home");
   assert.equal(APIKEY_PROVIDERS.qianfan.passthroughModels, undefined);
 
   assert.equal(PROVIDERS.qianfan.baseUrl, registryEntry.baseUrl);

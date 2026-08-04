@@ -1,1 +1,0 @@
-- fix(sse): project non-streaming JSON responses back to the Gemini/Antigravity `{response:{candidates}}` envelope instead of leaking the raw OpenAI `choices[]` shape, so tool calls are no longer dropped for Gemini-family clients on the JSON path (#7255) (thanks @warelik)

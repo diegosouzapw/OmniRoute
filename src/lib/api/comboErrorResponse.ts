@@ -32,6 +32,7 @@ export type ComboErrorCode =
   | "COMBO_005" // DAG cycle / depth overflow
   | "COMBO_006" // managed by Quota Share (409)
   | "COMBO_007" // not found (404)
+  | "COMBO_008" // provider / model family invariant violation
   | "VALID_001" // generic invalid body
   | "VALID_002" // missing required field
   | "INTERNAL_001"; // fallback

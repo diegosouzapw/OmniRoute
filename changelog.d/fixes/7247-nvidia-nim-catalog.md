@@ -1,1 +1,0 @@
-- **fix(nvidia):** expand NIM chat model catalog with newly-observed models. (thanks @spacesky-cell)

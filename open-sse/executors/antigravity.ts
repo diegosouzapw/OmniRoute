@@ -23,6 +23,7 @@ import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/cr
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import { getMitmAlias } from "@/lib/db/models";
 import { ensureAntigravityProjectAssigned } from "../services/antigravityProjectBootstrap.ts";
+import { persistDiscoveredAntigravityProjectId } from "../services/antigravityProjectPersist.ts";
 import {
   resolveAntigravityModelId,
   getAntigravityModelFallbacks,
@@ -541,7 +542,16 @@ export class AntigravityExecutor extends BaseExecutor {
         getAntigravityClientProfile(credentials),
         signal
       );
-      if (discovered) projectId = discovered;
+      if (discovered) {
+        projectId = discovered;
+        // #8491: persist the recovered id so it survives the next token refresh
+        // or process restart instead of being silently rediscovered every time.
+        await persistDiscoveredAntigravityProjectId(
+          credentials.connectionId,
+          discovered,
+          credentials.providerSpecificData
+        );
+      }
     }
 
     if (!projectId) {
@@ -740,14 +750,49 @@ export class AntigravityExecutor extends BaseExecutor {
       const tokens = (await response.json()) as Record<string, unknown>;
       log?.info?.("TOKEN", "Antigravity refreshed");
 
+      const newAccessToken =
+        typeof tokens.access_token === "string" ? tokens.access_token : undefined;
+
+      // Discover projectId if the stored value is empty. The initial OAuth exchange
+      // may have failed to populate it (network timeout, account not yet onboarded to
+      // Gemini Code Assist). The runtime transformRequest path already does this, but
+      // a proactive discovery here prevents 422 errors on the next request when the
+      // per-token memoization cache is invalidated by the new access token.
+      let projectId = credentials.projectId?.trim() || "";
+      if (!projectId && newAccessToken) {
+        try {
+          const discovered = await ensureAntigravityProjectAssigned(
+            newAccessToken,
+            fetch,
+            getAntigravityClientProfile(credentials),
+            AbortSignal.timeout(8_000)
+          );
+          if (discovered) {
+            projectId = discovered;
+            await persistDiscoveredAntigravityProjectId(
+              credentials.connectionId,
+              discovered,
+              credentials.providerSpecificData
+            );
+            const okMsg = `Antigravity projectId discovered during refresh: ${discovered}`;
+            log?.info?.("TOKEN", okMsg);
+          }
+        } catch (discoveryError) {
+          // Best-effort: if discovery fails, the runtime path will retry on next request.
+          const msg =
+            discoveryError instanceof Error ? discoveryError.message : String(discoveryError);
+          log?.warn?.("TOKEN", `Antigravity projectId discovery during refresh failed: ${msg}`);
+        }
+      }
+
       return {
-        accessToken: typeof tokens.access_token === "string" ? tokens.access_token : undefined,
+        accessToken: newAccessToken,
         refreshToken:
           typeof tokens.refresh_token === "string" && tokens.refresh_token
             ? tokens.refresh_token
             : credentials.refreshToken,
         expiresIn: typeof tokens.expires_in === "number" ? tokens.expires_in : undefined,
-        projectId: credentials.projectId,
+        projectId,
         // Preserve providerSpecificData so a projectId stored there survives the refresh
         // (the onCredentialsRefreshed DB write) instead of being dropped → 422 (#2480).
         providerSpecificData: credentials.providerSpecificData,

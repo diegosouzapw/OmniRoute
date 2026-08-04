@@ -1,7 +1,7 @@
 import { isLocalStreamLifecycleError } from "../../shared/utils/circuitBreaker";
 import { isRequestScopedUpstreamFailure } from "./comboFailureLogging";
 
-const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
+export const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
 // #7907/#7908: single-model breaker trip bypasses the `isFailure` option (only applies
 // inside `breaker.execute()`), so it needs its own `isLocalStreamLifecycleError` guard —
@@ -31,4 +31,23 @@ export function isAntigravityMissingProjectError(
     result.errorCode === "missing_project_id" &&
     result.errorType === "oauth_missing_project_id"
   );
+}
+
+/**
+ * Keep stream-readiness routing decisions on the stable gate diagnostic.
+ * The operator-facing error can contain arbitrary upstream words such as
+ * "quota" or "retry after", which must not change account/combo classification.
+ */
+export function resolveStreamReadinessClassificationError(
+  result: {
+    classificationError?: unknown;
+    error?: unknown;
+    errorCode?: unknown;
+  },
+  fallback = "Antigravity stream ended before useful content"
+): string {
+  for (const value of [result.classificationError, result.error, result.errorCode]) {
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return fallback;
 }

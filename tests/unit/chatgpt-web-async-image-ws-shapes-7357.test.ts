@@ -225,3 +225,221 @@ test("#7357: async image_gen pointer delivered via update_content.messages[] sho
     else process.env.OMNIROUTE_CGPT_WEB_IMAGE_TIMEOUT_MS = previousTimeout;
   }
 });
+
+// Fake WebSocket that opens cleanly then closes without ever delivering a
+// frame — the case where register-websocket succeeds but the celsius socket
+// itself yields nothing (Cloudflare edge drops it, or the browser TLS
+// fingerprint mismatch upstream expects breaks the exchange silently). This
+// is a *clean* close (no error event), so waitForImageViaWebSocket()
+// resolves with `errored: false` and pollForAsyncImage() does not retry the
+// socket — it falls through to the conversation-poll fallback.
+class EmptyCloseWebSocket extends EventEmitter {
+  url: string;
+  onopen: (() => void) | null = null;
+  onmessage: ((ev: { data: string }) => void) | null = null;
+  onerror: ((ev: unknown) => void) | null = null;
+  onclose: (() => void) | null = null;
+  static instances: EmptyCloseWebSocket[] = [];
+
+  constructor(url: string) {
+    super();
+    this.url = url;
+    EmptyCloseWebSocket.instances.push(this);
+    setTimeout(() => {
+      this.onopen?.();
+      setTimeout(() => this.onclose?.(), 5);
+    }, 5);
+  }
+
+  close() {}
+}
+
+const STALE_POINTER = "file-service://file-stale-7357";
+const NEWEST_POINTER = "file-service://file-newest-7357";
+
+test(
+  "#7357: conversation-poll fallback recovers the image and prefers the newest " +
+    "message when the websocket path closes without delivering a frame",
+  async () => {
+    __resetChatGptWebCachesForTesting();
+    const previousWebSocket = (globalThis as Record<string, unknown>).WebSocket;
+    const previousTimeout = process.env.OMNIROUTE_CGPT_WEB_IMAGE_TIMEOUT_MS;
+    // Keep the websocket wait short so the test doesn't burn real time
+    // waiting for the (intentionally empty) socket to time out.
+    process.env.OMNIROUTE_CGPT_WEB_IMAGE_TIMEOUT_MS = "300";
+    (globalThis as Record<string, unknown>).WebSocket = EmptyCloseWebSocket;
+
+    let conversationPollCalls = 0;
+
+    __setTlsFetchOverrideForTesting(async (url, opts = {}) => {
+      const u = String(url);
+      const method = opts.method || "GET";
+      if ((u === "https://chatgpt.com/" || u === "https://chatgpt.com") && method === "GET") {
+        return {
+          status: 200,
+          headers: makeHeaders({ "Content-Type": "text/html" }),
+          text: '<html data-build="prod-test"><script src="https://cdn.oaistatic.com/main.js"></script></html>',
+          body: null,
+        };
+      }
+      if (u.includes("/api/auth/session")) {
+        return {
+          status: 200,
+          headers: makeHeaders({ "Content-Type": "application/json" }),
+          text: JSON.stringify({
+            accessToken: "jwt-7357-poll",
+            expires: new Date(Date.now() + 3600_000).toISOString(),
+            user: { id: "u-7357-poll" },
+          }),
+          body: null,
+        };
+      }
+      if (u.includes("/backend-api/sentinel/chat-requirements")) {
+        return {
+          status: 200,
+          headers: makeHeaders({ "Content-Type": "application/json" }),
+          text: JSON.stringify({ token: "t", proofofwork: { required: false } }),
+          body: null,
+        };
+      }
+      if (u.endsWith("/backend-api/f/conversation") || u.endsWith("/backend-api/conversation")) {
+        return {
+          status: 200,
+          headers: makeHeaders({ "Content-Type": "text/event-stream" }),
+          text: asyncImageGenSseText(),
+          body: null,
+        };
+      }
+      if (u.includes("/backend-api/celsius/ws/user")) {
+        return {
+          status: 200,
+          headers: makeHeaders({ "Content-Type": "application/json" }),
+          text: JSON.stringify({ websocket_url: "wss://chatgpt.com/fake-celsius-socket" }),
+          body: null,
+        };
+      }
+      // GET /backend-api/conversation/<id> — the conversation-poll fallback
+      // fetchConversationDetail() hits once the websocket yields nothing.
+      // The mapping carries TWO tool messages with image pointers at
+      // different create_time — the fallback must pick the newer one.
+      if (
+        u === `https://chatgpt.com/backend-api/conversation/${CONVERSATION_ID}` &&
+        method === "GET"
+      ) {
+        conversationPollCalls++;
+        return {
+          status: 200,
+          headers: makeHeaders({ "Content-Type": "application/json" }),
+          text: JSON.stringify({
+            mapping: {
+              "node-stale": {
+                message: {
+                  id: "img-msg-stale",
+                  author: { role: "tool", name: "t2uay3k.sj1i4kz" },
+                  content: {
+                    content_type: "multimodal_text",
+                    parts: [
+                      {
+                        content_type: "image_asset_pointer",
+                        asset_pointer: STALE_POINTER,
+                        width: 1024,
+                        height: 1024,
+                      },
+                    ],
+                  },
+                  status: "finished_successfully",
+                  create_time: 1000,
+                },
+              },
+              "node-newest": {
+                message: {
+                  id: "img-msg-newest",
+                  author: { role: "tool", name: "t2uay3k.sj1i4kz" },
+                  content: {
+                    content_type: "multimodal_text",
+                    parts: [
+                      {
+                        content_type: "image_asset_pointer",
+                        asset_pointer: NEWEST_POINTER,
+                        width: 1024,
+                        height: 1024,
+                      },
+                    ],
+                  },
+                  status: "finished_successfully",
+                  create_time: 2000,
+                },
+              },
+            },
+          }),
+          body: null,
+        };
+      }
+      if (u.match(/\/backend-api\/files\/[^/]+\/download/)) {
+        const fileId = u.match(/\/backend-api\/files\/([^/]+)\/download/)?.[1] ?? "unknown";
+        return {
+          status: 200,
+          headers: makeHeaders({ "Content-Type": "application/json" }),
+          text: JSON.stringify({
+            download_url: `https://chatgpt.com/backend-api/estuary/content?id=${fileId}`,
+          }),
+          body: null,
+        };
+      }
+      if (u.startsWith("https://chatgpt.com/backend-api/estuary/content")) {
+        const pngBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+        return {
+          status: 200,
+          headers: makeHeaders({ "Content-Type": "image/png" }),
+          text: `data:image/png;base64,${pngBytes.toString("base64")}`,
+          body: null,
+        };
+      }
+      return { status: 404, headers: makeHeaders(), text: "not mocked", body: null };
+    });
+
+    try {
+      const executor = new ChatGptWebExecutor();
+      const result = await executor.execute({
+        model: "gpt-5.5",
+        body: {
+          messages: [{ role: "user", content: "generate an image of a kitten" }],
+        },
+        stream: false,
+        credentials: { apiKey: "test-session-cookie" },
+        signal: AbortSignal.timeout(20_000),
+        log: null,
+      });
+
+      assert.equal(result.response.status, 200, "executor itself does not error");
+      const json = await result.response.json();
+      const content = String(json?.choices?.[0]?.message?.content || "");
+
+      assert.ok(
+        EmptyCloseWebSocket.instances.length >= 1,
+        "a WebSocket connection was opened and closed without a frame"
+      );
+      assert.ok(
+        conversationPollCalls >= 1,
+        "the conversation-poll fallback was invoked after the websocket yielded nothing"
+      );
+
+      assert.match(
+        content,
+        /!\[image\]\([^)]*\/v1\/chatgpt-web\/image\/[a-f0-9]+\)/,
+        "conversation-poll fallback should have recovered the image the websocket lost"
+      );
+      assert.equal(
+        json.x_image_resolution_failed,
+        undefined,
+        "resolution succeeded — no unresolved-pointer flag expected"
+      );
+    } finally {
+      __setTlsFetchOverrideForTesting(null);
+      if (previousWebSocket === undefined) delete (globalThis as Record<string, unknown>).WebSocket;
+      else (globalThis as Record<string, unknown>).WebSocket = previousWebSocket;
+      if (previousTimeout === undefined) delete process.env.OMNIROUTE_CGPT_WEB_IMAGE_TIMEOUT_MS;
+      else process.env.OMNIROUTE_CGPT_WEB_IMAGE_TIMEOUT_MS = previousTimeout;
+    }
+  }
+);

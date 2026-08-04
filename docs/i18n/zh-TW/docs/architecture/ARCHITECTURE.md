@@ -13,39 +13,39 @@ _最後更新：2026-06-28_
 ## 執行摘要
 
 OmniRoute 是一個建構於 Next.js 上的本地 AI 路由閘道與儀表板。
-它提供單一的 OpenAI 相容端點（`/v1/*`），並透過轉換、備援、令牌刷新與用量追蹤，將流量路由至多個上游供應商。
+它提供單一的 OpenAI 相容端點（`/v1/*`），並透過轉換、備援、令牌刷新與用量追蹤，將流量路由至多個上游提供者。
 
 核心能力：
 
-- OpenAI 相容的 API 表面，適用於 CLI/工具（268 個供應商、84 個執行器）
-- 跨供應商格式的請求/回應轉換
+- OpenAI 相容的 API 表面，適用於 CLI/工具（268 個提供者、84 個執行器）
+- 跨提供者格式的請求/回應轉換
 - 模型組合備援（多模型序列）
-- 結構化組合步驟（`供應商 + 模型 + 連線`），支援執行期依 `compositeTiers` 排序
-- 帳戶層級備援（每個供應商多帳戶）
+- 結構化組合步驟（`提供者 + 模型 + 連線`），支援執行期依 `compositeTiers` 排序
+- 帳戶層級備援（每個提供者多帳戶）
 - 主要聊天路徑中的配額預檢與配額感知 P2C 帳戶選擇
-- OAuth + API 金鑰供應商連線管理（19 個 OAuth 供應商模組）
-- 透過 `/v1/embeddings` 生成嵌入向量（6 個供應商、9 個模型）
-- 透過 `/v1/images/generations` 生成圖片（10+ 個供應商、20+ 個模型）
-- 透過 `/v1/audio/transcriptions` 進行語音轉錄（7 個供應商）
-- 透過 `/v1/audio/speech` 進行文字轉語音（10 個供應商）
+- OAuth + API 金鑰提供者連線管理（19 個 OAuth 提供者模組）
+- 透過 `/v1/embeddings` 生成嵌入向量（6 個提供者、9 個模型）
+- 透過 `/v1/images/generations` 生成圖片（10+ 個提供者、20+ 個模型）
+- 透過 `/v1/audio/transcriptions` 進行語音轉錄（7 個提供者）
+- 透過 `/v1/audio/speech` 進行文字轉語音（10 個提供者）
 - 透過 `/v1/videos/generations` 生成影片（ComfyUI + SD WebUI）
 - 透過 `/v1/music/generations` 生成音樂（ComfyUI）
-- 透過 `/v1/search` 進行網路搜尋（5 個供應商）
+- 透過 `/v1/search` 進行網路搜尋（5 個提供者）
 - 透過 `/v1/moderations` 進行內容審核
 - 透過 `/v1/rerank` 進行重新排序
 - Think 標籤解析（`<think>...</think>`）用於推理模型
 - 回應淨化處理，確保嚴格的 OpenAI SDK 相容性
-- 角色正規化（developer→system, system→user）以實現跨供應商相容性
+- 角色正規化（developer→system, system→user）以實現跨提供者相容性
 - 結構化輸出轉換（json_schema → Gemini responseSchema）
-- 供應商、金鑰、別名、組合、設定、定價的本地持久化（26 個 DB 模組）
+- 提供者、金鑰、別名、組合、設定、定價的本地持久化（26 個 DB 模組）
 - 用量/成本追蹤與請求記錄
 - 選用雲端同步，支援多裝置/狀態同步
 - 用於 API 存取控制的 IP 允許清單/封鎖清單
 - 思考預算管理（透傳/自動/自訂/自適應）
 - 全域系統提示注入
 - 工作階段追蹤與指紋辨識
-- 每個帳戶的增強速率限制，附供應商特定設定檔
-- 用於供應商韌性的斷路器模式
+- 每個帳戶的增強速率限制，附提供者特定設定檔
+- 用於提供者韌性的斷路器模式
 - 使用互斥鎖防止驚群效應
 - 基於簽章的請求去重快取
 - 領域層：成本規則、備援政策、鎖定政策
@@ -57,7 +57,7 @@ OmniRoute 是一個建構於 Next.js 上的本地 AI 路由閘道與儀表板。
 - 關聯 ID（X-Request-Id）實現端到端追蹤
 - 合規稽核記錄，可依 API 金鑰選擇退出
 - 用於 LLM 品質保證的評估框架
-- 健康狀態儀表板，即時顯示供應商斷路器狀態
+- 健康狀態儀表板，即時顯示提供者斷路器狀態
 - MCP 伺服器（87 個工具）支援 3 種傳輸方式（stdio/SSE/Streamable HTTP）
 - A2A 伺服器（JSON-RPC 2.0 + SSE）含技能與任務生命週期
 - 記憶系統（提取、注入、檢索、摘要）
@@ -66,23 +66,23 @@ OmniRoute 是一個建構於 Next.js 上的本地 AI 路由閘道與儀表板。
 - 提示注入防護中介軟體
 - 提示壓縮管線，含 Caveman、RTK、堆疊管線、壓縮組合、語言套件與分析功能
 - ACP（代理通訊協定）註冊表
-- 模組化 OAuth 供應商（19 個獨立模組，位於 `src/lib/oauth/providers/`）
+- 模組化 OAuth 提供者（19 個獨立模組，位於 `src/lib/oauth/providers/`）
 - 解除安裝/完整解除安裝指令碼
 - OAuth 環境修復動作
 - WebSocket 橋接，供 OpenAI 相容的 WS 客戶端使用（`/v1/ws`）
 - 同步令牌管理（簽發/撤銷，ETag 版本化設定套件下載）
-- GLM Thinking（`glmt`）第一級供應商預設
-- 混合令牌計數（供應商端 `/messages/count_tokens` 搭配估算備援）
+- GLM Thinking（`glmt`）第一級提供者預設
+- 混合令牌計數（提供者端 `/messages/count_tokens` 搭配估算備援）
 - 模型別名自動播種（啟動時 30+ 跨代理方言正規化）
 - 安全的外送請求，含 SSRF 防護、私人 URL 封鎖與可設定的重試
 - 具冷卻感知的聊天重試，含可設定的 `requestRetry` 與 `maxRetryIntervalSec`
 - 啟動時使用 Zod 進行執行環境驗證
-- 合規稽核 v2，含分頁、供應商 CRUD 事件與 SSRF 封鎖驗證記錄
+- 合規稽核 v2，含分頁、提供者 CRUD 事件與 SSRF 封鎖驗證記錄
 
 主要執行模型：
 
 - `src/app/api/*` 下的 Next.js 應用路由同時實作儀表板 API 與相容性 API
-- `src/sse/*` + `open-sse/*` 中的共用 SSE/路由核心負責供應商執行、轉換、串流、備援與用量
+- `src/sse/*` + `open-sse/*` 中的共用 SSE/路由核心負責提供者執行、轉換、串流、備援與用量
 
 ## 參考圖表
 
@@ -105,7 +105,7 @@ v3.8.0 平台的標準版本控制 Mermaid 原始檔位於
 
 - 本地閘道執行環境
 - 儀表板管理 API
-- 供應商驗證與令牌刷新
+- 提供者驗證與令牌刷新
 - 請求轉換與 SSE 串流
 - 本地狀態 + 用量持久化
 - 選用雲端同步協調
@@ -113,16 +113,16 @@ v3.8.0 平台的標準版本控制 Mermaid 原始檔位於
 ### 不涵蓋範圍
 
 - `NEXT_PUBLIC_CLOUD_URL` 背後的雲端服務實作
-- 本地程序外的供應商 SLA/控制平面
+- 本地程序外的提供者 SLA/控制平面
 - 外部 CLI 二進位檔案本身（Claude CLI、Codex CLI 等）
 
 ## 儀表板表面（目前版本）
 
 `src/app/(dashboard)/dashboard/` 下的主要頁面：
 
-- `/dashboard` — 快速入門 + 供應商概覽
+- `/dashboard` — 快速入門 + 提供者概覽
 - `/dashboard/endpoint` — 端點代理 + MCP + A2A + API 端點分頁
-- `/dashboard/providers` — 供應商連線與憑證
+- `/dashboard/providers` — 提供者連線與憑證
 - `/dashboard/combos` — 組合策略、範本、逐步建置器、模型路由規則、手動持久化排序
 - `/dashboard/auto-combo` — 自動組合引擎：評分權重、模式套件、虛擬工廠預設、遙測
 - `/dashboard/costs` — 成本彙總與定價檢視
@@ -141,7 +141,7 @@ v3.8.0 平台的標準版本控制 Mermaid 原始檔位於
 - `/dashboard/system` — 執行時期診斷、版本資訊、環境驗證表面
 - `/dashboard/onboarding` — 新安裝的首次執行設定精靈
 - `/dashboard/media` — 圖片/影片/音樂測試區
-- `/dashboard/search-tools` — 搜尋供應商測試與歷史記錄
+- `/dashboard/search-tools` — 搜尋提供者測試與歷史記錄
 - `/dashboard/health` — 運行時間、斷路器、速率限制、配額監控工作階段
 - `/dashboard/logs` — 請求/代理/稽核/主控台記錄
 - `/dashboard/settings` — 系統設定分頁（一般、路由、組合預設等）
@@ -174,9 +174,9 @@ flowchart LR
         UDB[(用量表格 + 記錄工件)]
     end
 
-    subgraph Upstreams[上游供應商]
-        P1[OAuth 供應商\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
-        P2[API 金鑰供應商\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
+    subgraph Upstreams[上游提供者]
+        P1[OAuth 提供者\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P2[API 金鑰提供者\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
         P3[相容節點\nOpenAI 相容 / Anthropic 相容]
     end
 
@@ -218,20 +218,20 @@ flowchart LR
 - `src/app/api/v1/messages/route.ts`
 - `src/app/api/v1/responses/route.ts`
 - `src/app/api/v1/models/route.ts` — 包含 `custom: true` 的自訂模型
-- `src/app/api/v1/embeddings/route.ts` — 嵌入向量生成（6 個供應商）
-- `src/app/api/v1/images/generations/route.ts` — 圖片生成（4+ 個供應商，含 Antigravity/Nebius）
+- `src/app/api/v1/embeddings/route.ts` — 嵌入向量生成（6 個提供者）
+- `src/app/api/v1/images/generations/route.ts` — 圖片生成（4+ 個提供者，含 Antigravity/Nebius）
 - `src/app/api/v1/messages/count_tokens/route.ts`
-- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — 專屬的每個供應商聊天
-- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — 專屬的每個供應商嵌入
-- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — 專屬的每個供應商圖片
+- `src/app/api/v1/providers/[provider]/chat/completions/route.ts` — 專屬的每個提供者聊天
+- `src/app/api/v1/providers/[provider]/embeddings/route.ts` — 專屬的每個提供者嵌入
+- `src/app/api/v1/providers/[provider]/images/generations/route.ts` — 專屬的每個提供者圖片
 - `src/app/api/v1beta/models/route.ts`
 - `src/app/api/v1beta/models/[...path]/route.ts`
 
 管理領域：
 
 - 驗證/設定：`src/app/api/auth/*`、`src/app/api/settings/*`
-- 供應商/連線：`src/app/api/providers*`
-- 供應商節點：`src/app/api/provider-nodes*`
+- 提供者/連線：`src/app/api/providers*`
+- 提供者節點：`src/app/api/provider-nodes*`
 - 自訂模型：`src/app/api/provider-models`（GET/POST/DELETE）
 - 模型目錄：`src/app/api/models/route.ts`（GET）
 - 代理設定：`src/app/api/settings/proxy`（GET/PUT/DELETE）+ `src/app/api/settings/proxy/test`（POST）
@@ -246,8 +246,8 @@ flowchart LR
 - 壓縮：`src/app/api/settings/compression`、`src/app/api/compression/*` 與 `src/app/api/context/*`
 - 工作階段：`src/app/api/sessions`（GET）
 - 速率限制：`src/app/api/rate-limits`（GET）
-- 韌性：`src/app/api/resilience`（GET/PATCH）— 請求佇列、連線冷卻、供應商斷路器、等待冷卻設定
-- 韌性重置：`src/app/api/resilience/reset`（POST）— 重置供應商斷路器
+- 韌性：`src/app/api/resilience`（GET/PATCH）— 請求佇列、連線冷卻、提供者斷路器、等待冷卻設定
+- 韌性重置：`src/app/api/resilience/reset`（POST）— 重置提供者斷路器
 - 快取統計：`src/app/api/cache/stats`（GET/DELETE）
 - 遙測：`src/app/api/telemetry/summary`（GET）
 - 預算：`src/app/api/usage/budget`（GET/POST）
@@ -256,7 +256,7 @@ flowchart LR
 - 評估：`src/app/api/evals`（GET/POST）、`src/app/api/evals/[suiteId]`（GET）
 - 政策：`src/app/api/policies`（GET/POST）
 - 同步令牌：`src/app/api/sync/tokens`（GET/POST）、`src/app/api/sync/tokens/[id]`（GET/DELETE）
-- 設定套件：`src/app/api/sync/bundle`（GET，設定/供應商/組合/金鑰的 ETag 版本化快照）
+- 設定套件：`src/app/api/sync/bundle`（GET，設定/提供者/組合/金鑰的 ETag 版本化快照）
 - WebSocket：`src/app/api/v1/ws/route.ts` — OpenAI 相容 WS 客戶端的升級處理器
 
 ## 2) SSE + 轉換核心
@@ -265,8 +265,8 @@ flowchart LR
 
 - 入口：`src/sse/handlers/chat.ts`
 - 核心協調：`open-sse/handlers/chatCore.ts`
-- 供應商執行轉接器：`open-sse/executors/*`
-- 格式偵測/供應商設定：`open-sse/services/provider.ts`
+- 提供者執行轉接器：`open-sse/executors/*`
+- 格式偵測/提供者設定：`open-sse/services/provider.ts`
 - 模型解析/解析：`src/sse/services/model.ts`、`open-sse/services/model.ts`
 - 帳戶備援邏輯：`open-sse/services/accountFallback.ts`
 - 轉換註冊表：`open-sse/translator/index.ts`
@@ -274,9 +274,9 @@ flowchart LR
 - 用量提取/正規化：`open-sse/utils/usageTracking.ts`
 - Think 標籤解析器：`open-sse/utils/thinkTagParser.ts`
 - 嵌入處理器：`open-sse/handlers/embeddings.ts`
-- 嵌入供應商註冊表：`open-sse/config/embeddingRegistry.ts`
+- 嵌入提供者註冊表：`open-sse/config/embeddingRegistry.ts`
 - 圖片生成處理器：`open-sse/handlers/imageGeneration.ts`
-- 圖片供應商註冊表：`open-sse/config/imageRegistry.ts`
+- 圖片提供者註冊表：`open-sse/config/imageRegistry.ts`
 - 回應淨化：`open-sse/handlers/responseSanitizer.ts`
 - 角色正規化：`open-sse/services/roleNormalizer.ts`
 
@@ -293,13 +293,13 @@ flowchart LR
 - 速率限制管理：`open-sse/services/rateLimitManager.ts`
 - 斷路器：`src/shared/utils/circuitBreaker.ts`
 - 上下文交接：`open-sse/services/contextHandoff.ts` — 用於上下文轉接策略的交接摘要產生與注入
-- 壓縮：`open-sse/services/compression/*` — 供應商轉換前的主動壓縮；包含 Caveman 規則、RTK 過濾器、堆疊管線、壓縮組合、統計資料與驗證
+- 壓縮：`open-sse/services/compression/*` — 提供者轉換前的主動壓縮；包含 Caveman 規則、RTK 過濾器、堆疊管線、壓縮組合、統計資料與驗證
 - Codex 配額擷取器：`open-sse/services/codexQuotaFetcher.ts` — 擷取 Codex 配額用於上下文轉接交接決策
 - 具冷卻感知的重試：`src/sse/services/cooldownAwareRetry.ts` — 每個模型的冷卻重試，具可設定的 `requestRetry` / `maxRetryIntervalSec`
-- 安全外送請求：`src/shared/network/safeOutboundFetch.ts` — 受防護的供應商/模型請求，含 SSRF 防護、私人 URL 封鎖、重試與逾時
-- 外送 URL 防護：`src/shared/network/outboundUrlGuard.ts` — 驗證供應商 URL 是否位於私人/本地 CIDR 範圍
-- 供應商請求預設值：`open-sse/services/providerRequestDefaults.ts` — 供應商層級的 `maxTokens`、`temperature`、`thinkingBudgetTokens` 預設值
-- GLM 供應商常數：`open-sse/config/glmProvider.ts` — 共用的 GLM 模型、配額 URL、GLMT 逾時/預設值
+- 安全外送請求：`src/shared/network/safeOutboundFetch.ts` — 受防護的提供者/模型請求，含 SSRF 防護、私人 URL 封鎖、重試與逾時
+- 外送 URL 防護：`src/shared/network/outboundUrlGuard.ts` — 驗證提供者 URL 是否位於私人/本地 CIDR 範圍
+- 提供者請求預設值：`open-sse/services/providerRequestDefaults.ts` — 提供者層級的 `maxTokens`、`temperature`、`thinkingBudgetTokens` 預設值
+- GLM 提供者常數：`open-sse/config/glmProvider.ts` — 共用的 GLM 模型、配額 URL、GLMT 逾時/預設值
 - Antigravity 上游：`open-sse/config/antigravityUpstream.ts` — 基礎 URL 與探索路徑常數
 - Codex 客戶端常數：`open-sse/config/codexClient.ts` — 版本化的使用者代理與客戶端版本值
 - 模型別名播種：`src/lib/modelAliasSeed.ts` — 啟動時播種 30+ 跨代理方言別名
@@ -319,10 +319,10 @@ flowchart LR
 - 評估執行器：`src/lib/evals/evalRunner.ts`
 - 領域狀態持久化：`src/lib/db/domainState.ts` — 備援鏈、預算、成本歷史、鎖定狀態、斷路器的 SQLite CRUD
 
-OAuth 供應商模組（`src/lib/oauth/providers/` 下的 16 個個別檔案）：
+OAuth 提供者模組（`src/lib/oauth/providers/` 下的 16 個個別檔案）：
 
 - 註冊表索引：`src/lib/oauth/providers/index.ts`
-- 個別供應商：`claude.ts`、`codex.ts`、`gemini.ts`、`antigravity.ts`、`agy.ts`、`qoder.ts`、`qwen.ts`、`kimi-coding.ts`、`github.ts`、`kiro.ts`、`cursor.ts`、`kilocode.ts`、`cline.ts`、`windsurf.ts`、`gitlab-duo.ts`、`trae.ts`
+- 個別提供者：`claude.ts`、`codex.ts`、`gemini.ts`、`antigravity.ts`、`agy.ts`、`qoder.ts`、`qwen.ts`、`kimi-coding.ts`、`github.ts`、`kiro.ts`、`cursor.ts`、`kilocode.ts`、`cline.ts`、`windsurf.ts`、`gitlab-duo.ts`、`trae.ts`
 - 薄包裝層：`src/lib/oauth/providers.ts` — 從個別模組重新匯出
 
 ## 5) 嵌入式服務（v3.8.4）
@@ -341,7 +341,7 @@ OmniRoute 可以安裝、監督並路由至本地運行的 AI 工具程序，
   `child_process.spawn`，持有 5 MB 環形緩衝區用於 SSE 記錄串流、健康狀態
   探測迴圈、原子操作鎖與 SIGTERM→SIGKILL 優雅關機。
   `bootstrap.ts` 在程序啟動時連接所有已設定的服務。
-- **供應商/執行器**（`open-sse/executors/ninerouter.ts`）— 9Router 以真實供應商型態
+- **提供者/執行器**（`open-sse/executors/ninerouter.ts`）— 9Router 以真實提供者型態
   暴露。模型前綴為 `9router/{sub}/{model}`，每 5 分鐘從 9Router 的 `/v1/models` 端點同步一次。
 
 深入探討：`docs/frameworks/EMBEDDED-SERVICES.md`
@@ -367,7 +367,7 @@ OmniRoute 可以安裝、監督並路由至本地運行的 AI 工具程序，
 - **9 因子評分**：成本、p95 延遲、成功率、配額餘裕、鎖定
   接近度、斷路器狀態、近期失敗、模型可用性與標籤親和性。
 - **虛擬工廠**在沒有相符的命名組合時實例化暫時組合，
-  從健康活躍的供應商連線中篩選候選者。
+  從健康活躍的提供者連線中篩選候選者。
 - **自動前綴**：`auto/coding`、`auto/cheap`、`auto/fast`、`auto/offline`、
   `auto/smart`、`auto/lkgp` — 每個都有調整過的權重設定檔。
 - **4 種模式套件**：coding、fast、cheap、smart — 以預設權重
@@ -422,7 +422,7 @@ Jules）包裝在統一的 DB 支援任務生命週期後方。所有任務建�
 - 組合解析器：`src/domain/comboResolver.ts` — 將組合名稱、`auto/*` 前綴與萬用字元模型目標解析為具體執行計畫
 - 連線/模型規則連接器：`src/domain/connectionModelRules.ts`
 - 模型可用性快照：`src/domain/modelAvailability.ts`
-- 供應商到期追蹤：`src/domain/providerExpiration.ts`
+- 提供者到期追蹤：`src/domain/providerExpiration.ts`
 - 配額快取：`src/domain/quotaCache.ts`
 - 降級狀態：`src/domain/degradation.ts`
 - 設定稽核：`src/domain/configAudit.ts`
@@ -441,7 +441,7 @@ Jules）包裝在統一的 DB 支援任務生命週期後方。所有任務建�
 - 斷言輔助：`src/server/authz/assertAuth.ts`
 - 請求上下文：`src/server/authz/context.ts`
 
-公開路由與管理路由之間有嚴格邊界：代理/冷卻 API 與供應商變更需要管理驗證（缺少時回傳 HTTP 401）。
+公開路由與管理路由之間有嚴格邊界：代理/冷卻 API 與提供者變更需要管理驗證（缺少時回傳 HTTP 401）。
 
 完整的路由分類規則，請參閱
 [`docs/architecture/AUTHZ_GUIDE.md`](./AUTHZ_GUIDE.md)。
@@ -457,9 +457,9 @@ Jules）包裝在統一的 DB 支援任務生命週期後方。所有任務建�
 
 FSM 轉換結果饋入自動組合的評分，對背景/自動化任務偏向較便宜的模型，對互動式規劃/審查輪次偏向較強的模型。
 
-### G. 供應商專屬韌性
+### G. 提供者專屬韌性
 
-數個供應商配備了專用的韌性與隱匿模組，建構在全域斷路器 / 連線冷卻 / 模型鎖定層之上：
+數個提供者配備了專用的韌性與隱匿模組，建構在全域斷路器 / 連線冷卻 / 模型鎖定層之上：
 
 - Antigravity 429 引擎：`open-sse/services/antigravity429Engine.ts`（輪換身分、清除回應標頭、透過 `antigravityCredits.ts`、`antigravityHeaderScrub.ts`、`antigravityHeaders.ts`、`antigravityIdentity.ts`、`antigravityObfuscation.ts`、`antigravityVersion.ts` 驅動點數/版本追蹤）
 - ModelScope 配額政策：`open-sse/services/modelscopePolicy.ts`
@@ -474,12 +474,12 @@ FSM 轉換結果饋入自動組合的評分，對背景/自動化任務偏向較
 
 ### H. Webhook、推理快取、讀取快取
 
-- **Webhook** — 用於供應商/帳戶/任務事件的外送調度。
+- **Webhook** — 用於提供者/帳戶/任務事件的外送調度。
   - 調度器：`src/lib/webhookDispatcher.ts`
   - 儲存：`webhooks` SQLite 表格（透過 `src/lib/db/webhooks.ts`）
   - 儀表板：`/dashboard/webhooks`（訂閱、秘密、重試歷史）
   - 事件分類與重試語意，請參閱 [`docs/frameworks/WEBHOOKS.md`](../frameworks/WEBHOOKS.md)。
-- **推理快取** — 為會發出思考令牌的供應商（Claude、GLMT 等）提供可重播的推理區塊，讓連續輪次可以跳過重新思考。
+- **推理快取** — 為會發出思考令牌的提供者（Claude、GLMT 等）提供可重播的推理區塊，讓連續輪次可以跳過重新思考。
   - DB 層：`src/lib/db/reasoningCache.ts`
   - 服務層：`open-sse/services/reasoningCache.ts`
   - 重播語意，請參閱 [`docs/routing/REASONING_REPLAY.md`](../routing/REASONING_REPLAY.md)。
@@ -513,9 +513,9 @@ FSM 轉換結果饋入自動組合的評分，對背景/自動化任務偏向較
 
 - 儀表板 Cookie 驗證：`src/proxy.ts`、`src/app/api/auth/login/route.ts`
 - API 金鑰生成/驗證：`src/shared/utils/apiKey.ts`
-- 供應商秘密儲存在 `providerConnections` 項目中
-- 透過 `open-sse/utils/proxyFetch.ts`（環境變數）與 `open-sse/utils/networkProxy.ts`（可針對每個供應商或全域設定）支援外送代理
-- SSRF / 外送 URL 防護：`src/shared/network/outboundUrlGuard.ts` — 封鎖所有供應商呼叫的私人/迴路/鏈結本地範圍
+- 提供者秘密儲存在 `providerConnections` 項目中
+- 透過 `open-sse/utils/proxyFetch.ts`（環境變數）與 `open-sse/utils/networkProxy.ts`（可針對每個提供者或全域設定）支援外送代理
+- SSRF / 外送 URL 防護：`src/shared/network/outboundUrlGuard.ts` — 封鎖所有提供者呼叫的私人/迴路/鏈結本地範圍
 - 執行時期環境驗證：`src/lib/env/runtimeEnv.ts` — 所有環境變數的 Zod 架構，以啟動錯誤/警告形式呈現
 - 同步令牌：`src/lib/db/syncTokens.ts` — 用於設定套件下載端點的範圍限定令牌；由 `sync_tokens` SQLite 表格支援（遷移 `024_create_sync_tokens.sql`）
 - WebSocket 握手驗證：`src/lib/ws/handshake.ts` — 透過 API 金鑰或工作階段 Cookie 驗證 WS 升級請求
@@ -538,8 +538,8 @@ sequenceDiagram
     participant Core as open-sse/handlers/chatCore
     participant Model as 模型解析器
     participant Auth as 憑證選擇器
-    participant Exec as 供應商執行器
-    participant Prov as 上游供應商
+    participant Exec as 提供者執行器
+    participant Prov as 上游提供者
     participant Stream as 串流轉換器
     participant Usage as usageDb
 
@@ -583,12 +583,12 @@ flowchart TD
     B -- 否 --> D[單一模型路徑]
 
     C --> E[嘗試模型 N]
-    E --> F[解析供應商/模型]
+    E --> F[解析提供者/模型]
     D --> F
 
     F --> G[選擇帳戶憑證]
     G --> H{憑證可用？}
-    H -- 否 --> I[回傳供應商不可用]
+    H -- 否 --> I[回傳提供者不可用]
     H -- 是 --> J[執行請求]
 
     J --> K{成功？}
@@ -597,14 +597,14 @@ flowchart TD
 
     M -- 否 --> N[回傳錯誤]
     M -- 是 --> O[標記帳戶不可用並冷卻]
-    O --> P{供應商還有其他帳戶？}
+    O --> P{提供者還有其他帳戶？}
     P -- 是 --> G
     P -- 否 --> Q{在組合中有下一個模型？}
     Q -- 是 --> E
     Q -- 否 --> R[回傳全部不可用]
 ```
 
-備援決策由 `open-sse/services/accountFallback.ts` 根據狀態碼與錯誤訊息啟發式驅動。組合路由增加了一層額外防護：供應商範圍的 400 錯誤（如上游內容封鎖與角色驗證失敗）被視為模型本地錯誤，以便後續組合目標仍可執行。
+備援決策由 `open-sse/services/accountFallback.ts` 根據狀態碼與錯誤訊息啟發式驅動。組合路由增加了一層額外防護：提供者範圍的 400 錯誤（如上游內容封鎖與角色驗證失敗）被視為模型本地錯誤，以便後續組合目標仍可執行。
 
 ## OAuth 入門與令牌刷新生命週期
 
@@ -613,10 +613,10 @@ sequenceDiagram
     autonumber
     participant UI as 儀表板 UI
     participant OAuth as /api/oauth/[provider]/[action]
-    participant ProvAuth as 供應商驗證伺服器
+    participant ProvAuth as 提供者驗證伺服器
     participant DB as localDb
     participant Test as /api/providers/[id]/test
-    participant Exec as 供應商執行器
+    participant Exec as 提供者執行器
 
     UI->>OAuth: GET authorize 或 device-code
     OAuth->>ProvAuth: 建立驗證/裝置流程
@@ -797,7 +797,7 @@ flowchart LR
     end
 
     subgraph External[外部服務]
-        Providers[AI 供應商]
+        Providers[AI 提供者]
         SyncCloud[雲端同步服務]
     end
 
@@ -816,8 +816,8 @@ flowchart LR
 ### 路由與 API 模組
 
 - `src/app/api/v1/*`、`src/app/api/v1beta/*`：相容性 API
-- `src/app/api/v1/providers/[provider]/*`：專屬的每個供應商路由（聊天、嵌入、圖片）
-- `src/app/api/providers*`：供應商 CRUD、驗證、測試
+- `src/app/api/v1/providers/[provider]/*`：專屬的每個提供者路由（聊天、嵌入、圖片）
+- `src/app/api/providers*`：提供者 CRUD、驗證、測試
 - `src/app/api/provider-nodes*`：自訂相容節點管理
 - `src/app/api/provider-models`：自訂模型管理（CRUD）
 - `src/app/api/models/route.ts`：模型目錄 API（別名 + 自訂模型）
@@ -851,7 +851,7 @@ flowchart LR
 
 - `src/sse/handlers/chat.ts`：請求解析、組合處理、帳戶選擇迴圈
 - `open-sse/handlers/chatCore.ts`：轉換、執行器調度、重試/刷新處理、串流設定
-- `open-sse/executors/*`：供應商特定的網路與格式行為
+- `open-sse/executors/*`：提供者特定的網路與格式行為
 
 ### 轉換註冊表與格式轉換器
 
@@ -869,109 +869,109 @@ flowchart LR
 - `src/lib/localDb.ts`：DB 模組的相容性重新匯出
 - `src/lib/usageDb.ts`：基於 SQLite 表格的用量歷史/呼叫記錄外觀
 
-## 供應商執行器覆蓋範圍（策略模式）
+## 提供者執行器覆蓋範圍（策略模式）
 
-每個供應商都有一個專門的執行器，繼承自 `BaseExecutor`（位於 `open-sse/executors/base.ts`），提供 URL 建置、標頭建構、指數退避重試、憑證刷新鉤子與 `execute()` 協調方法。
+每個提供者都有一個專門的執行器，繼承自 `BaseExecutor`（位於 `open-sse/executors/base.ts`），提供 URL 建置、標頭建構、指數退避重試、憑證刷新鉤子與 `execute()` 協調方法。
 
-| 執行器 | 供應商 | 特殊處理 |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `DefaultExecutor` | OpenAI、Claude、Gemini、Qwen、OpenRouter、GLM、Kimi、MiniMax、DeepSeek、Groq、xAI、Mistral、Perplexity、Together、Fireworks、Cerebras、Cohere、NVIDIA 等 | 每個供應商的動態 URL/標頭設定 |
-| `AntigravityExecutor` | Google Antigravity | 自訂專案/工作階段 ID、Retry-After 解析、429 混淆 |
-| `AzureOpenAIExecutor` | Azure OpenAI | 基於部署的路由、api-version 查詢強制 |
-| `BlackboxWebExecutor` | Blackbox AI（網頁模式） | 含 TLS 指紋模擬的網頁工作階段反向 |
-| `ChatGPTWebExecutor` | ChatGPT 網頁 | TLS 客戶端 + 工作階段 Cookie 管理（`chatgptTlsClient.ts`） |
-| `ClaudeIdentityExecutor` | Claude.ai（CCH 路徑） | 約束 + 工具重新對應管線、指紋塑造 |
-| `CliProxyApiExecutor` | CLIProxyAPI 相容供應商 | 自訂驗證與協定處理 |
-| `CloudflareAiExecutor` | Cloudflare Workers AI | 帳戶 ID 注入、基於 Neurons 的用量追蹤 |
-| `CodexExecutor` | OpenAI Codex | 注入系統指令、強制推理努力 |
-| `CommandCodeExecutor` | Command Code | OAuth + 每個工作階段的標頭輪換 |
-| `CursorExecutor` | Cursor IDE | ConnectRPC 協定、Protobuf 編碼、透過 checksum 的請求簽署 |
-| `DevinCliExecutor` | Devin CLI | 透過雲端代理模組的 Devin 任務生命週期橋接 |
-| `GithubExecutor` | GitHub Copilot | Copilot 令牌刷新、模擬 VSCode 標頭 |
-| `GitlabExecutor` | GitLab Duo | GitLab OAuth + 專案範圍路由 |
-| `GlmExecutor` | Z.AI GLM（含 `glmt` 預設） | 思考預算感知、GLMT 預設常數 |
-| `GrokWebExecutor` | xAI Grok 網頁 | 網頁工作階段反向、模式選擇（think/standard） |
-| `KieExecutor` | KIE | 自訂令牌簽發，含輪換的工作階段錨點 |
-| `KiroExecutor` | AWS CodeWhisperer/Kiro | AWS EventStream 二進位格式 → SSE 轉換 |
-| `MuseSparkWebExecutor` | Muse Spark（網頁） | 含圖片訊息橋接的網頁工作階段反向 |
-| `NlpCloudExecutor` | NLP Cloud | 供應商特定的請求主體形式 |
-| `OpenCodeExecutor` | OpenCode | AI SDK 相容供應商設定 |
-| `PerplexityWebExecutor` | Perplexity 網頁 | 用於聊天延續的網頁工作階段反向 |
-| `PetalsExecutor` | Petals 分散式推理 | 去中心化群組路由 |
-| `PollinationsExecutor` | Pollinations AI | 無需 API 金鑰、速率限制請求 |
-| `PuterExecutor` | Puter | 基於瀏覽器的供應商整合 |
-| `QoderExecutor` | Qoder AI | PAT 與 OAuth 支援、多模型免費方案 |
-| `VertexExecutor` | Google Vertex AI | 服務帳戶驗證、基於區域的端點 |
-| `WindsurfExecutor` | Windsurf（Codeium） | Codeium OAuth + 工作階段令牌刷新 |
+| 執行器                   | 提供者                                                                                                                                                   | 特殊處理                                                   |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `DefaultExecutor`        | OpenAI、Claude、Gemini、Qwen、OpenRouter、GLM、Kimi、MiniMax、DeepSeek、Groq、xAI、Mistral、Perplexity、Together、Fireworks、Cerebras、Cohere、NVIDIA 等 | 每個提供者的動態 URL/標頭設定                              |
+| `AntigravityExecutor`    | Google Antigravity                                                                                                                                       | 自訂專案/工作階段 ID、Retry-After 解析、429 混淆           |
+| `AzureOpenAIExecutor`    | Azure OpenAI                                                                                                                                             | 基於部署的路由、api-version 查詢強制                       |
+| `BlackboxWebExecutor`    | Blackbox AI（網頁模式）                                                                                                                                  | 含 TLS 指紋模擬的網頁工作階段反向                          |
+| `ChatGPTWebExecutor`     | ChatGPT 網頁                                                                                                                                             | TLS 客戶端 + 工作階段 Cookie 管理（`chatgptTlsClient.ts`） |
+| `ClaudeIdentityExecutor` | Claude.ai（CCH 路徑）                                                                                                                                    | 約束 + 工具重新對應管線、指紋塑造                          |
+| `CliProxyApiExecutor`    | CLIProxyAPI 相容提供者                                                                                                                                   | 自訂驗證與協定處理                                         |
+| `CloudflareAiExecutor`   | Cloudflare Workers AI                                                                                                                                    | 帳戶 ID 注入、基於 Neurons 的用量追蹤                      |
+| `CodexExecutor`          | OpenAI Codex                                                                                                                                             | 注入系統指令、強制推理努力                                 |
+| `CommandCodeExecutor`    | Command Code                                                                                                                                             | OAuth + 每個工作階段的標頭輪換                             |
+| `CursorExecutor`         | Cursor IDE                                                                                                                                               | ConnectRPC 協定、Protobuf 編碼、透過 checksum 的請求簽署   |
+| `DevinCliExecutor`       | Devin CLI                                                                                                                                                | 透過雲端代理模組的 Devin 任務生命週期橋接                  |
+| `GithubExecutor`         | GitHub Copilot                                                                                                                                           | Copilot 令牌刷新、模擬 VSCode 標頭                         |
+| `GitlabExecutor`         | GitLab Duo                                                                                                                                               | GitLab OAuth + 專案範圍路由                                |
+| `GlmExecutor`            | Z.AI GLM（含 `glmt` 預設）                                                                                                                               | 思考預算感知、GLMT 預設常數                                |
+| `GrokWebExecutor`        | xAI Grok 網頁                                                                                                                                            | 網頁工作階段反向、模式選擇（think/standard）               |
+| `KieExecutor`            | KIE                                                                                                                                                      | 自訂令牌簽發，含輪換的工作階段錨點                         |
+| `KiroExecutor`           | AWS CodeWhisperer/Kiro                                                                                                                                   | AWS EventStream 二進位格式 → SSE 轉換                      |
+| `MuseSparkWebExecutor`   | Muse Spark（網頁）                                                                                                                                       | 含圖片訊息橋接的網頁工作階段反向                           |
+| `NlpCloudExecutor`       | NLP Cloud                                                                                                                                                | 提供者特定的請求主體形式                                   |
+| `OpenCodeExecutor`       | OpenCode                                                                                                                                                 | AI SDK 相容提供者設定                                      |
+| `PerplexityWebExecutor`  | Perplexity 網頁                                                                                                                                          | 用於聊天延續的網頁工作階段反向                             |
+| `PetalsExecutor`         | Petals 分散式推理                                                                                                                                        | 去中心化群組路由                                           |
+| `PollinationsExecutor`   | Pollinations AI                                                                                                                                          | 無需 API 金鑰、速率限制請求                                |
+| `PuterExecutor`          | Puter                                                                                                                                                    | 基於瀏覽器的提供者整合                                     |
+| `QoderExecutor`          | Qoder AI                                                                                                                                                 | PAT 與 OAuth 支援、多模型免費方案                          |
+| `VertexExecutor`         | Google Vertex AI                                                                                                                                         | 服務帳戶驗證、基於區域的端點                               |
+| `WindsurfExecutor`       | Windsurf（Codeium）                                                                                                                                      | Codeium OAuth + 工作階段令牌刷新                           |
 
-所有其他供應商（包括自訂相容節點）使用 `DefaultExecutor`。
+所有其他提供者（包括自訂相容節點）使用 `DefaultExecutor`。
 
-## 供應商相容性矩陣
+## 提供者相容性矩陣
 
-> **注意：** 以下矩陣為 OmniRoute v3.8.0 中 237 個已註冊供應商的代表性樣本。
+> **注意：** 以下矩陣為 OmniRoute v3.8.0 中 237 個已註冊提供者的代表性樣本。
 > 完整且持續更新的清單，請參閱
 > [`docs/reference/PROVIDER_REFERENCE.md`](../reference/PROVIDER_REFERENCE.md)（自動產生）或
 > `src/shared/constants/providers.ts`（載入時經 Zod 驗證）中的權威來源。
 
-| 供應商 | 格式 | 驗證 | 串流 | 非串流 | 令牌刷新 | 用量 API |
-| ----------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
-| Claude | claude | API 金鑰 / OAuth | ✅ | ✅ | ✅ | ⚠️ 僅管理員 |
-| Gemini | gemini | API 金鑰 / OAuth | ✅ | ✅ | ✅ | ⚠️ Cloud Console |
-| Antigravity | antigravity | OAuth | ✅ | ✅ | ✅ | ✅ 完整配額 API |
-| OpenAI | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Codex | openai-responses | OAuth | ✅ 強制 | ❌ | ✅ | ✅ 速率限制 |
-| GitHub Copilot | openai | OAuth + Copilot 令牌 | ✅ | ✅ | ✅ | ✅ 配額快照 |
-| Cursor | cursor | 自訂 checksum | ✅ | ✅ | ❌ | ❌ |
-| Kiro | kiro | AWS SSO OIDC | ✅ (EventStream) | ❌ | ✅ | ✅ 用量限制 |
-| Qoder | openai | OAuth / PAT | ✅ | ✅ | ✅ | ⚠️ 每次請求 |
-| Kilo Code | openai | OAuth | ✅ | ✅ | ✅ | ❌ |
-| Cline | openai | OAuth | ✅ | ✅ | ✅ | ❌ |
-| Kimi Coding | openai | OAuth | ✅ | ✅ | ✅ | ❌ |
-| OpenRouter | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| GLM/Kimi/MiniMax | claude | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| DeepSeek | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Groq | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| xAI（Grok） | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Mistral | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Perplexity | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Together AI | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Fireworks AI | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Cerebras | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Cohere | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| NVIDIA NIM | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Cloudflare AI | openai | API 令牌 + 帳戶 ID | ✅ | ✅ | ❌ | ❌ |
-| Pollinations | openai | 無（無需金鑰） | ✅ | ✅ | ❌ | ❌ |
-| Scaleway AI | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| LongCat | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Ollama Cloud | openai | API 金鑰（選用） | ✅ | ✅ | ❌ | ❌ |
-| HuggingFace | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Nebius | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| SiliconFlow | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Hyperbolic | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Vertex AI | gemini | 服務帳戶 | ✅ | ✅ | ✅ | ⚠️ Cloud Console |
-| Puter | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Command Code | openai | OAuth | ✅ | ✅ | ✅ | ⚠️ 每次請求 |
-| Z.AI / GLM | openai | API 金鑰 / OAuth | ✅ | ✅ | ❌ | ❌ |
-| GLMT（預設） | claude | API 金鑰 | ✅ | ✅ | ❌ | ⚠️ 每次請求 |
-| Kimi Coding | openai | OAuth / API 金鑰 | ✅ | ✅ | ✅ | ❌ |
-| KIE | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Windsurf | openai | OAuth（Codeium） | ✅ | ✅ | ✅ | ⚠️ 每次請求 |
-| GitLab Duo | openai | OAuth（GitLab） | ✅ | ✅ | ✅ | ❌ |
-| Devin CLI | openai | OAuth | ✅ | ✅ | ✅ | ✅ 任務 API |
-| Codex Cloud | openai-responses | OAuth | ✅ | ❌ | ✅ | ✅ 速率限制 |
-| Jules | openai | OAuth | ✅ | ✅ | ✅ | ✅ 任務 API |
-| AgentRouter | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| ChatGPT-Web | openai | 工作階段 Cookie + TLS | ✅ | ✅ | ❌ | ❌ |
-| Grok-Web | openai | 工作階段 Cookie | ✅ | ✅ | ❌ | ❌ |
-| Perplexity-Web | openai | 工作階段 Cookie | ✅ | ✅ | ❌ | ❌ |
-| BlackBox-Web | openai | 工作階段 Cookie + TLS | ✅ | ✅ | ❌ | ❌ |
-| Muse-Spark-Web | openai | 工作階段 Cookie | ✅ | ✅ | ❌ | ❌ |
-| ModelScope | openai | API 金鑰 | ✅ | ✅ | ❌ | ⚠️ 配額政策 |
-| BazaarLink | openai | API 金鑰 | ✅ | ✅ | ❌ | ❌ |
-| Petals | openai | 無 | ✅ | ✅ | ❌ | ❌ |
-| Qoder | openai | OAuth / PAT | ✅ | ✅ | ✅ | ⚠️ 每次請求 |
-| OpenCode（Go/Zen） | openai | OAuth | ✅ | ✅ | ✅ | ❌ |
-| CLIProxyAPI | openai | 自訂 | ✅ | ✅ | ❌ | ❌ |
+| 提供者             | 格式             | 驗證                  | 串流             | 非串流 | 令牌刷新 | 用量 API         |
+| ------------------ | ---------------- | --------------------- | ---------------- | ------ | -------- | ---------------- |
+| Claude             | claude           | API 金鑰 / OAuth      | ✅               | ✅     | ✅       | ⚠️ 僅管理員      |
+| Gemini             | gemini           | API 金鑰 / OAuth      | ✅               | ✅     | ✅       | ⚠️ Cloud Console |
+| Antigravity        | antigravity      | OAuth                 | ✅               | ✅     | ✅       | ✅ 完整配額 API  |
+| OpenAI             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Codex              | openai-responses | OAuth                 | ✅ 強制          | ❌     | ✅       | ✅ 速率限制      |
+| GitHub Copilot     | openai           | OAuth + Copilot 令牌  | ✅               | ✅     | ✅       | ✅ 配額快照      |
+| Cursor             | cursor           | 自訂 checksum         | ✅               | ✅     | ❌       | ❌               |
+| Kiro               | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌     | ✅       | ✅ 用量限制      |
+| Qoder              | openai           | OAuth / PAT           | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
+| Kilo Code          | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
+| Cline              | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
+| Kimi Coding        | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
+| OpenRouter         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| GLM/Kimi/MiniMax   | claude           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| DeepSeek           | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Groq               | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| xAI（Grok）        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Mistral            | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Perplexity         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Together AI        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Fireworks AI       | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Cerebras           | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Cohere             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| NVIDIA NIM         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Cloudflare AI      | openai           | API 令牌 + 帳戶 ID    | ✅               | ✅     | ❌       | ❌               |
+| Pollinations       | openai           | 無（無需金鑰）        | ✅               | ✅     | ❌       | ❌               |
+| Scaleway AI        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| LongCat            | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Ollama Cloud       | openai           | API 金鑰（選用）      | ✅               | ✅     | ❌       | ❌               |
+| HuggingFace        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Nebius             | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| SiliconFlow        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Hyperbolic         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Vertex AI          | gemini           | 服務帳戶              | ✅               | ✅     | ✅       | ⚠️ Cloud Console |
+| Puter              | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Command Code       | openai           | OAuth                 | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
+| Z.AI / GLM         | openai           | API 金鑰 / OAuth      | ✅               | ✅     | ❌       | ❌               |
+| GLMT（預設）       | claude           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 每次請求      |
+| Kimi Coding        | openai           | OAuth / API 金鑰      | ✅               | ✅     | ✅       | ❌               |
+| KIE                | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Windsurf           | openai           | OAuth（Codeium）      | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
+| GitLab Duo         | openai           | OAuth（GitLab）       | ✅               | ✅     | ✅       | ❌               |
+| Devin CLI          | openai           | OAuth                 | ✅               | ✅     | ✅       | ✅ 任務 API      |
+| Codex Cloud        | openai-responses | OAuth                 | ✅               | ❌     | ✅       | ✅ 速率限制      |
+| Jules              | openai           | OAuth                 | ✅               | ✅     | ✅       | ✅ 任務 API      |
+| AgentRouter        | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| ChatGPT-Web        | openai           | 工作階段 Cookie + TLS | ✅               | ✅     | ❌       | ❌               |
+| Grok-Web           | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
+| Perplexity-Web     | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
+| BlackBox-Web       | openai           | 工作階段 Cookie + TLS | ✅               | ✅     | ❌       | ❌               |
+| Muse-Spark-Web     | openai           | 工作階段 Cookie       | ✅               | ✅     | ❌       | ❌               |
+| ModelScope         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ⚠️ 配額政策      |
+| BazaarLink         | openai           | API 金鑰              | ✅               | ✅     | ❌       | ❌               |
+| Petals             | openai           | 無                    | ✅               | ✅     | ❌       | ❌               |
+| Qoder              | openai           | OAuth / PAT           | ✅               | ✅     | ✅       | ⚠️ 每次請求      |
+| OpenCode（Go/Zen） | openai           | OAuth                 | ✅               | ✅     | ✅       | ❌               |
+| CLIProxyAPI        | openai           | 自訂                  | ✅               | ✅     | ❌       | ❌               |
 
 ## 格式轉換覆蓋範圍
 
@@ -996,7 +996,7 @@ flowchart LR
 來源格式 → OpenAI（樞紐）→ 目標格式
 ```
 
-轉換根據來源負載形狀與供應商目標格式動態選擇。
+轉換根據來源負載形狀與提供者目標格式動態選擇。
 
 轉換管線中的其他處理層：
 
@@ -1007,29 +1007,29 @@ flowchart LR
 
 ## 支援的 API 端點
 
-| 端點 | 格式 | 處理器 |
-| -------------------------------------------------- | ------------------ | ------------------------------------------------------------------- |
-| `POST /v1/chat/completions` | OpenAI Chat | `src/sse/handlers/chat.ts` |
-| `POST /v1/messages` | Claude Messages | 相同處理器（自動偵測） |
-| `POST /v1/responses` | OpenAI Responses | `open-sse/handlers/responsesHandler.ts` |
-| `POST /v1/embeddings` | OpenAI Embeddings | `open-sse/handlers/embeddings.ts` |
-| `GET /v1/embeddings` | 模型列表 | API 路由 |
-| `POST /v1/images/generations` | OpenAI Images | `open-sse/handlers/imageGeneration.ts` |
-| `GET /v1/images/generations` | 模型列表 | API 路由 |
-| `POST /v1/providers/{provider}/chat/completions` | OpenAI Chat | 專屬每個供應商，含模型驗證 |
-| `POST /v1/providers/{provider}/embeddings` | OpenAI Embeddings | 專屬每個供應商，含模型驗證 |
-| `POST /v1/providers/{provider}/images/generations` | OpenAI Images | 專屬每個供應商，含模型驗證 |
-| `POST /v1/messages/count_tokens` | Claude Token Count | API 路由 |
-| `GET /v1/models` | OpenAI Models list | API 路由（聊天 + 嵌入 + 圖片 + 自訂模型） |
-| `GET /api/models/catalog` | 目錄 | 所有模型按供應商 + 類型分組 |
-| `POST /v1beta/models/*:streamGenerateContent` | Gemini 原生 | API 路由 |
-| `GET/PUT/DELETE /api/settings/proxy` | 代理設定 | 網路代理設定 |
-| `POST /api/settings/proxy/test` | 代理連線 | 代理健康/連線測試端點 |
-| `GET/POST/DELETE /api/provider-models` | Provider Models | 支援自訂與受管可用模型的供應商模型中繼資料 |
+| 端點                                               | 格式               | 處理器                                     |
+| -------------------------------------------------- | ------------------ | ------------------------------------------ |
+| `POST /v1/chat/completions`                        | OpenAI Chat        | `src/sse/handlers/chat.ts`                 |
+| `POST /v1/messages`                                | Claude Messages    | 相同處理器（自動偵測）                     |
+| `POST /v1/responses`                               | OpenAI Responses   | `open-sse/handlers/responsesHandler.ts`    |
+| `POST /v1/embeddings`                              | OpenAI Embeddings  | `open-sse/handlers/embeddings.ts`          |
+| `GET /v1/embeddings`                               | 模型列表           | API 路由                                   |
+| `POST /v1/images/generations`                      | OpenAI Images      | `open-sse/handlers/imageGeneration.ts`     |
+| `GET /v1/images/generations`                       | 模型列表           | API 路由                                   |
+| `POST /v1/providers/{provider}/chat/completions`   | OpenAI Chat        | 專屬每個提供者，含模型驗證                 |
+| `POST /v1/providers/{provider}/embeddings`         | OpenAI Embeddings  | 專屬每個提供者，含模型驗證                 |
+| `POST /v1/providers/{provider}/images/generations` | OpenAI Images      | 專屬每個提供者，含模型驗證                 |
+| `POST /v1/messages/count_tokens`                   | Claude Token Count | API 路由                                   |
+| `GET /v1/models`                                   | OpenAI Models list | API 路由（聊天 + 嵌入 + 圖片 + 自訂模型）  |
+| `GET /api/models/catalog`                          | 目錄               | 所有模型按提供者 + 類型分組                |
+| `POST /v1beta/models/*:streamGenerateContent`      | Gemini 原生        | API 路由                                   |
+| `GET/PUT/DELETE /api/settings/proxy`               | 代理設定           | 網路代理設定                               |
+| `POST /api/settings/proxy/test`                    | 代理連線           | 代理健康/連線測試端點                      |
+| `GET/POST/DELETE /api/provider-models`             | Provider Models    | 支援自訂與受管可用模型的提供者模型中繼資料 |
 
 ## 繞過處理器
 
-繞過處理器（`open-sse/utils/bypassHandler.ts`）攔截來自 Claude CLI 的已知「一次性」請求 — 暖機 ping、標題提取與令牌計數 — 並在不消耗上游供應商令牌的情況下回傳**偽造回應**。僅在 `User-Agent` 包含 `claude-cli` 時觸發。
+繞過處理器（`open-sse/utils/bypassHandler.ts`）攔截來自 Claude CLI 的已知「一次性」請求 — 暖機 ping、標題提取與令牌計數 — 並在不消耗上游提供者令牌的情況下回傳**偽造回應**。僅在 `User-Agent` 包含 `claude-cli` 時觸發。
 
 ## 請求記錄與工件
 
@@ -1042,22 +1042,22 @@ flowchart LR
 
 ## 故障模式與韌性
 
-## 1) 帳戶/供應商可用性
+## 1) 帳戶/提供者可用性
 
 - 可重試的上游故障時進行連線冷卻
 - 在請求失敗前進行帳戶備援
-- 當前模型/供應商路徑耗盡時的組合模型備援
+- 當前模型/提供者路徑耗盡時的組合模型備援
 
 ## 2) 令牌到期
 
-- 對可刷新的供應商進行預檢查與重試刷新
+- 對可刷新的提供者進行預檢查與重試刷新
 - 核心路徑中刷新嘗試後的 401/403 重試
 
 ## 3) 串流安全
 
 - 具斷線感知的串流控制器
 - 具串流結束 flush 與 `[DONE]` 處理的轉換串流
-- 供應商用量中繼資料遺失時的用量估算備援
+- 提供者用量中繼資料遺失時的用量估算備援
 
 ## 4) 雲端同步降級
 
@@ -1071,8 +1071,8 @@ flowchart LR
 
 ## 6) SSRF / 外送 URL 防護
 
-- `src/shared/network/outboundUrlGuard.ts` 在請求到達供應商執行器前封鎖所有私人/迴路/鏈結本地目標 URL
-- 供應商模型探索與驗證路由使用 `src/shared/network/safeOutboundFetch.ts`，該函數在每個外送請求前應用防護
+- `src/shared/network/outboundUrlGuard.ts` 在請求到達提供者執行器前封鎖所有私人/迴路/鏈結本地目標 URL
+- 提供者模型探索與驗證路由使用 `src/shared/network/safeOutboundFetch.ts`，該函數在每個外送請求前應用防護
 - 防護錯誤以 `URL_GUARD_BLOCKED` 呈現，附 HTTP 422，並透過 `providerAudit.ts` 記錄到合規稽核軌跡
 
 ## 可觀測性與操作訊號
@@ -1091,7 +1091,7 @@ flowchart LR
 
 - 從客戶端接收到的原始請求
 - 實際發送給上游的轉換後請求
-- 重建為 JSON 的供應商回應；串流回應壓縮為最終摘要加上串流中繼資料
+- 重建為 JSON 的提供者回應；串流回應壓縮為最終摘要加上串流中繼資料
 - OmniRoute 回傳的最終客戶端回應；串流回應以相同壓縮摘要形式儲存
 
 ## 安全敏感邊界
@@ -1099,7 +1099,7 @@ flowchart LR
 - JWT 秘密（`JWT_SECRET`）保護儀表板工作階段 Cookie 驗證/簽署
 - 初始密碼（`INITIAL_PASSWORD`）應明確設定，用於首次執行佈建
 - API 金鑰 HMAC 秘密（`API_KEY_SECRET`）保護產生的本地 API 金鑰格式
-- 供應商秘密（API 金鑰/令牌）持久化在本地 DB 中，應在檔案系統層級保護
+- 提供者秘密（API 金鑰/令牌）持久化在本地 DB 中，應在檔案系統層級保護
 - 雲端同步端點依賴 API 金鑰驗證 + 機器 ID 語意
 
 ## 環境與執行時期矩陣
@@ -1124,9 +1124,9 @@ flowchart LR
 3. 啟用時請求記錄器寫入完整標頭/主體；請將記錄目錄視為敏感資訊。
 4. 雲端行為取決於正確的 `NEXT_PUBLIC_BASE_URL` 與雲端端點可達性。
 5. `open-sse/` 目錄以 `@omniroute/open-sse` **npm workspace 套件**形式發布。原始碼透過 `@omniroute/open-sse/...` 匯入（由 Next.js `transpilePackages` 解析）。本文件中的檔案路徑為求一致仍使用目錄名稱 `open-sse/`。
-6. 儀表板中的圖表使用 **Recharts**（基於 SVG）實現可存取、互動式的分析視覺化（模型用量長條圖、含成功率的供應商 breakdown 表格）。
+6. 儀表板中的圖表使用 **Recharts**（基於 SVG）實現可存取、互動式的分析視覺化（模型用量長條圖、含成功率的提供者 breakdown 表格）。
 7. E2E 測試使用 **Playwright**（`tests/e2e/`），透過 `npm run test:e2e` 執行。單元測試使用 **Node.js test runner**（`tests/unit/`），透過 `npm run test:unit` 執行。`src/` 下的原始碼為 **TypeScript**（`.ts`/`.tsx`）；`open-sse/` workspace 保持 JavaScript（`.js`）。
-8. 設定頁面分為 7 個分頁：一般、外觀、AI、安全性、路由、韌性、進階。韌性頁面僅設定請求佇列、連線冷卻、供應商斷路器與等待冷卻行為；斷路器執行時期狀態顯示在健康狀態頁面上。
+8. 設定頁面分為 7 個分頁：一般、外觀、AI、安全性、路由、韌性、進階。韌性頁面僅設定請求佇列、連線冷卻、提供者斷路器與等待冷卻行為；斷路器執行時期狀態顯示在健康狀態頁面上。
 9. **上下文轉接**策略（`context-relay`）分跨兩層：`combo.ts` 決定是否應產生交接，`chat.ts` 在帳戶解析後注入交接。交接資料存在 `context_handoffs` SQLite 表格中。這種拆分是有意為之，因為只有 `chat.ts` 知道實際帳戶是否已變更。
 10. **代理強制**現在是全方位的：`tokenHealthCheck.ts` 根據連線解析代理，`/api/providers/validate` 使用 `runWithProxyContext`，而 `proxyFetch.ts` 使用 `undici.fetch()` 以在 Node 22 上維持調度器相容性。
 11. **Node.js 執行時期政策偵測**：`/api/settings/require-login` 回傳 `nodeVersion` 與 `nodeCompatible` 欄位。當執行時期超出支援的安全 Node.js 版本範圍時，登入頁面會顯示警告橫幅。

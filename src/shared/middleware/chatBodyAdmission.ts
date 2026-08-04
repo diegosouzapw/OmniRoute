@@ -30,6 +30,23 @@ const CHAT_MAX_HEAVY_IN_FLIGHT = parsePositiveInt(
   1
 );
 
+export const CHAT_HEAVY_MESSAGE_COUNT = parsePositiveInt(
+  process.env.OMNIROUTE_CHAT_HEAVY_MESSAGE_COUNT,
+  200
+);
+export const CHAT_HEAVY_TOOL_COUNT = parsePositiveInt(
+  process.env.OMNIROUTE_CHAT_HEAVY_TOOL_COUNT,
+  64
+);
+export const CHAT_HEAVY_ESTIMATED_TOKENS = parsePositiveInt(
+  process.env.OMNIROUTE_CHAT_HEAVY_ESTIMATED_TOKENS,
+  32_000
+);
+export const CHAT_HARD_MAX_MESSAGES = parsePositiveInt(
+  process.env.OMNIROUTE_CHAT_HARD_MAX_MESSAGES,
+  800
+);
+
 export interface ChatAdmissionLease {
   readonly released: boolean;
   release(): void;
@@ -76,6 +93,10 @@ export type ChatRequestAdmission =
   | { admit: true; request: Request; lease: ChatAdmissionLease | null }
   | { admit: false; response: Response };
 
+export type ChatStructureAdmission =
+  | { admit: true; lease: ChatAdmissionLease | null }
+  | { admit: false; response: Response };
+
 function rejectionResponse(status: 413 | 503, hardMaxBytes: number): Response {
   const isPayload = status === 413;
   const headers: Record<string, string> = {
@@ -97,6 +118,124 @@ function rejectionResponse(status: 413 | 503, hardMaxBytes: number): Response {
     }),
     { status, headers }
   );
+}
+
+function structuralRejectionResponse(status: 413 | 503, maxMessages: number): Response {
+  const historyLimit = status === 413;
+  const headers: Record<string, string> = {
+    ...CORS_HEADERS,
+    "Content-Type": "application/json",
+  };
+  if (!historyLimit) headers["Retry-After"] = "1";
+
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: historyLimit
+          ? `Chat history exceeds the ${maxMessages}-message limit; compact the conversation and retry.`
+          : "Structurally heavy chat request capacity is busy; retry shortly.",
+        type: historyLimit ? "payload_too_large" : "server_error",
+        code: historyLimit ? "chat_history_too_large" : "chat_admission_busy",
+        reason: historyLimit ? "message_limit" : "structure_limit",
+      },
+    }),
+    { status, headers }
+  );
+}
+
+type TokenEstimate = { tokens: number; exhausted: boolean };
+
+function conservativeStringTokens(value: string, remaining: number): number {
+  let tokens = 0;
+  for (const character of value) {
+    tokens += character.codePointAt(0)! < 0x80 ? 0.25 : 1;
+    if (tokens >= remaining) return remaining;
+  }
+  return tokens;
+}
+
+function estimateStructureTokens(value: unknown, limit: number): TokenEstimate {
+  let tokens = 0;
+  let visited = 0;
+  const maxNodes = 10_000;
+  const stack: Array<{ value: unknown; depth: number }> = [{ value, depth: 0 }];
+  while (stack.length > 0 && tokens < limit && visited < maxNodes) {
+    const current = stack.pop();
+    if (!current) break;
+    visited += 1;
+    if (typeof current.value === "string") {
+      tokens += conservativeStringTokens(current.value, limit - tokens);
+      continue;
+    }
+    if (!current.value || typeof current.value !== "object") continue;
+    if (current.depth >= 12) return { tokens, exhausted: true };
+
+    const remainingNodes = maxNodes - visited - stack.length;
+    if (Array.isArray(current.value)) {
+      if (current.value.length > remainingNodes) return { tokens, exhausted: true };
+      for (const child of current.value) stack.push({ value: child, depth: current.depth + 1 });
+      continue;
+    }
+
+    let children = 0;
+    for (const key in current.value) {
+      if (!Object.hasOwn(current.value, key)) continue;
+      children += 1;
+      if (children > remainingNodes) return { tokens, exhausted: true };
+      tokens += conservativeStringTokens(key, limit - tokens);
+      if (tokens >= limit) return { tokens: limit, exhausted: false };
+      stack.push({
+        value: (current.value as Record<string, unknown>)[key],
+        depth: current.depth + 1,
+      });
+    }
+  }
+  return { tokens, exhausted: stack.length > 0 && tokens < limit };
+}
+
+export function admitChatStructure(
+  body: unknown,
+  lease: ChatAdmissionLease | null,
+  options: {
+    controller?: ChatAdmissionController;
+    maxMessages?: number;
+    heavyMessages?: number;
+    heavyTools?: number;
+    heavyTokens?: number;
+  } = {}
+): ChatStructureAdmission {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { admit: true, lease };
+
+  const record = body as Record<string, unknown>;
+  const messages = Array.isArray(record.messages) ? record.messages : [];
+  const tools = Array.isArray(record.tools) ? record.tools : [];
+  const maxMessages = options.maxMessages ?? CHAT_HARD_MAX_MESSAGES;
+  if (messages.length > maxMessages) {
+    return { admit: false, response: structuralRejectionResponse(413, maxMessages) };
+  }
+
+  const heavyMessages = options.heavyMessages ?? CHAT_HEAVY_MESSAGE_COUNT;
+  const heavyTools = options.heavyTools ?? CHAT_HEAVY_TOOL_COUNT;
+  const heavyTokens = options.heavyTokens ?? CHAT_HEAVY_ESTIMATED_TOKENS;
+  const countHeavy = messages.length >= heavyMessages || tools.length >= heavyTools;
+  if (!countHeavy && lease) return { admit: true, lease };
+
+  const messageEstimate = estimateStructureTokens(messages, heavyTokens);
+  const toolEstimate = messageEstimate.exhausted
+    ? { tokens: 0, exhausted: true }
+    : estimateStructureTokens(tools, heavyTokens - messageEstimate.tokens);
+  const estimatedTokens = Math.min(heavyTokens, messageEstimate.tokens + toolEstimate.tokens);
+  const heavy =
+    countHeavy ||
+    messageEstimate.exhausted ||
+    toolEstimate.exhausted ||
+    estimatedTokens >= heavyTokens;
+  if (!heavy || lease) return { admit: true, lease };
+
+  const acquired = (options.controller ?? defaultAdmissionController).tryAcquireHeavy();
+  return acquired
+    ? { admit: true, lease: acquired }
+    : { admit: false, response: structuralRejectionResponse(503, maxMessages) };
 }
 
 function parseContentLength(header: string | null): number | null {

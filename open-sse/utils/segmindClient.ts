@@ -31,6 +31,19 @@ export type SegmindRequestResult =
   | { ok: true; buffer: Buffer; contentType: string }
   | { ok: false; status: number; error: string };
 
+/**
+ * `open-sse` compiles with `strictNullChecks: false`, where `ok: true | false`
+ * narrows the positive branch but leaves the negative one as the whole union —
+ * so `if (!result.ok)` cannot reach `status`/`error`. A predicate rather than a
+ * retag because this type is exported and its `ok` shape is the published
+ * contract of `segmindRequest()`.
+ */
+export function isSegmindFailure(
+  result: SegmindRequestResult
+): result is Extract<SegmindRequestResult, { ok: false }> {
+  return !result.ok;
+}
+
 async function logSegmindFailure(
   opts: SegmindRequestOptions,
   status: number,

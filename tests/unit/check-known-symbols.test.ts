@@ -21,7 +21,10 @@ import {
   type ExecutorLike,
 } from "../../scripts/check/check-known-symbols.ts";
 import { reportStaleEntries } from "../../scripts/check/lib/allowlist.mjs";
-import { ROUTING_STRATEGY_VALUES } from "../../src/shared/constants/routingStrategies.ts";
+import {
+  ROUTING_STRATEGY_VALUES,
+  INTERNAL_ROUTING_STRATEGY_VALUES,
+} from "../../src/shared/constants/routingStrategies.ts";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,6 +50,22 @@ test("extractHandledStrategies ignores non-matching comparisons", () => {
   const src = 'if (mode === "fast") {}\nif (strategy == "loose") {}\nif (strategy === "auto") {}';
   // `mode ===` and the loose `==` must not match; only the strict strategy compare.
   assert.deepEqual([...extractHandledStrategies(src)], ["auto"]);
+});
+
+test('extractHandledStrategies counts the `strategy !== "..."` early-return guard (#3501)', () => {
+  // The god-file decomposition turns `if (strategy === "X") { ...body... }` into a
+  // `tryXDispatch()` leaf whose guard is the inverted early return. Same dispatch
+  // branch, inverted form — the gate must not report it as canonicalNotHandled.
+  const src = [
+    'export async function tryFusionDispatch() { if (strategy !== "fusion") return null; }',
+    'export async function tryPipelineDispatch() { if (strategy !== "pipeline") return null; }',
+  ].join("\n");
+  assert.deepEqual([...extractHandledStrategies(src)].sort(), ["fusion", "pipeline"]);
+});
+
+test("extractHandledStrategies still rejects loose inequality", () => {
+  // Widening `===` to `[!=]==` must not accidentally admit the loose `!=`.
+  assert.deepEqual([...extractHandledStrategies('if (strategy != "loose") return null;')], []);
 });
 
 test("diffComboStrategies: no mismatch when dispatch + implicit defaults cover canonical exactly", () => {
@@ -85,6 +104,23 @@ test("diffComboStrategies: an implicit-default string handled in dispatch is not
   const result = diffComboStrategies(canonical, handled, implicit);
   assert.deepEqual(result.canonicalNotHandled, []);
   assert.deepEqual(result.handledNotCanonical, []);
+});
+
+test("combo dispatch registry (runtime import) covers the canonical strategy set exactly (G1)", async () => {
+  // G1: the handled set must come from a runtime-imported enumeration in the combo
+  // dispatch module — NOT from regex-scanning `strategy === "..."` literals in source.
+  // This proves a canonical strategy added without a dispatch-entry is still caught.
+  const { HANDLED_COMBO_STRATEGIES } =
+    await import("../../open-sse/services/combo/strategyDispatch.ts");
+  const handled = new Set(HANDLED_COMBO_STRATEGIES);
+  const canonical = [
+    ...(ROUTING_STRATEGY_VALUES as readonly string[]),
+    ...(INTERNAL_ROUTING_STRATEGY_VALUES as readonly string[]),
+  ];
+  // An empty implicit-defaults map: every handled strategy is genuinely dispatched.
+  const result = diffComboStrategies(canonical, handled, {});
+  assert.deepEqual(result.canonicalNotHandled, [], "canonical strategy without dispatch entry");
+  assert.deepEqual(result.handledNotCanonical, [], "handled string that is not canonical");
 });
 
 // ───────────────────────────────────────────────────────────────────────────

@@ -98,6 +98,7 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId | "omni-skills",
   "settings-security": "settingsSecurityDescription",
   "settings-routing": "settingsRoutingDescription",
   "settings-resilience": "settingsResilienceDescription",
+  "settings-cache": "settingsCacheDescription",
   "settings-advanced": "settingsAdvancedDescription",
   // Proxy sub-pages
   "mitm-proxy": "mitmProxyDescription",

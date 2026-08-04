@@ -2,14 +2,17 @@
  * Claude adaptive-thinking normalization — `normalizeClaudeAdaptiveThinking`.
  *
  * Claude Opus 4.7+/Fable 5 removed manual extended thinking: `thinking.type:"enabled"` and
- * any `thinking.budget_tokens` return HTTP 400 (Anthropic migration guide, 2026-05-19).
+ * any `thinking.budget_tokens` return HTTP 400.
  * These tests pin the final guard that collapses any manual thinking that reached the
  * dispatch point to `{type:"adaptive"}`, while leaving non-adaptive-only models and
  * already-adaptive bodies untouched.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeClaudeAdaptiveThinking } from "../../open-sse/services/claudeAdaptiveThinking.ts";
+import {
+  normalizeClaudeAdaptiveThinking,
+  normalizeClaudeDisabledThinkingEffort,
+} from "../../open-sse/services/claudeAdaptiveThinking.ts";
 
 test("manual thinking:{type:'enabled', budget_tokens} → adaptive, budget dropped (Opus 4.8)", () => {
   const body = {
@@ -35,6 +38,51 @@ test("type:'enabled' with no budget still flips to adaptive (manual mode is gone
   const body = { model: "claude-fable-5", messages: [], thinking: { type: "enabled" } };
   const result = normalizeClaudeAdaptiveThinking(body, "claude-fable-5");
   assert.deepEqual(result.thinking, { type: "adaptive" });
+});
+
+test("Opus 5 manual thinking is adaptive and drops fixed budgets", () => {
+  const body = {
+    model: "claude-opus-5",
+    messages: [],
+    thinking: { type: "enabled", budget_tokens: 64000 },
+  };
+  const result = normalizeClaudeAdaptiveThinking(body, "claude-opus-5");
+  assert.deepEqual(result.thinking, { type: "adaptive" });
+});
+
+test("direct Anthropic API providers clamp Opus 5 disabled thinking to high effort", () => {
+  for (const provider of ["anthropic", "claude"]) {
+    for (const effort of ["xhigh", "max"]) {
+      const body = {
+        model: "claude-opus-5",
+        thinking: { type: "disabled" },
+        output_config: { effort, format: "compact" },
+      };
+      const result = normalizeClaudeDisabledThinkingEffort(body, "claude-opus-5", provider);
+      assert.deepEqual(result.thinking, { type: "disabled" });
+      assert.deepEqual(result.output_config, { effort: "high", format: "compact" });
+    }
+  }
+});
+
+test("GitHub Copilot and Claude Web do not inherit the Anthropic API effort cap", () => {
+  for (const provider of ["github", "claude-web"]) {
+    const body = {
+      model: "claude-opus-5",
+      thinking: { type: "disabled" },
+      output_config: { effort: "max" },
+    };
+    assert.equal(normalizeClaudeDisabledThinkingEffort(body, "claude-opus-5", provider), body);
+  }
+});
+
+test("direct Anthropic API leaves Opus 5 disabled thinking at high effort untouched", () => {
+  const body = {
+    model: "claude-opus-5",
+    thinking: { type: "disabled" },
+    output_config: { effort: "high" },
+  };
+  assert.equal(normalizeClaudeDisabledThinkingEffort(body, "claude-opus-5", "anthropic"), body);
 });
 
 test("thinking:{type:'adaptive'} is returned UNTOUCHED (same reference)", () => {

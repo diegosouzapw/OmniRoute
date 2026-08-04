@@ -5,6 +5,7 @@ import { CodexExecutor } from "@omniroute/open-sse/executors/codex.ts";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { authorizeWebSocketHandshake, extractWsTokenFromRequest } from "@/lib/ws/handshake";
 import { getModelInfo } from "@/sse/services/model";
+import { resolveCcDiscoveryAliasStrip } from "@/lib/ccDiscoveryAliasResolve";
 import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { checkAndRefreshToken } from "@/sse/services/tokenRefresh";
@@ -399,10 +400,17 @@ async function resolveCodexRequestContext(body: JsonRecord) {
   const authRequest = getAuthRequest(body);
   const apiKey = extractWsTokenFromRequest(authRequest);
   const responseBody = isRecord(body.response) ? body.response : {};
-  const requestedModel =
+  const rawRequestedModel =
     typeof responseBody.model === "string" && responseBody.model.trim()
       ? responseBody.model.trim()
       : "gpt-5.5";
+  // cc discovery alias (`claude/<provider>/<model>`, `claude/combo/<name>`):
+  // resolve back to the real id before provider/policy resolution — the shared
+  // resolver used by src/sse/handlers/chat.ts. This WS bridge never goes through
+  // handleChat, so without this a Claude Code client selecting a mirrored model
+  // over the Codex Responses WS transport would fail as an unknown model.
+  const ccAliasStrip = await resolveCcDiscoveryAliasStrip(rawRequestedModel);
+  const requestedModel = ccAliasStrip.stripped ? ccAliasStrip.model : rawRequestedModel;
   const policyResult = await enforceCodexWsApiKeyPolicy(authRequest, apiKey, requestedModel);
   if (policyResult.rejection) return { error: policyResult.rejection };
   const metadata =

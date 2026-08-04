@@ -401,7 +401,12 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
   ): Promise<boolean> {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      const ddgTestMs = FETCH_TIMEOUT_MS;
+      const timeout = setTimeout(() => {
+        const err = new Error(`duckduckgo-web testConnection timeout after ${ddgTestMs}ms`);
+        err.name = "TimeoutError";
+        controller.abort(err);
+      }, ddgTestMs);
 
       const mergedSignal = signal
         ? AbortSignal.any([signal, controller.signal])
@@ -429,12 +434,13 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
     }
   }
 
-  async execute(input: ExecuteInput): Promise<{
-    response: Response;
-    url: string;
-    headers: Record<string, string>;
-    transformedBody: unknown;
-  }> {
+  // No explicit return type, matching BaseExecutor and the other ~38 executors: this
+  // method legitimately returns either a bare `Response` (error paths, processResponse)
+  // or the richer `{ response, url, headers, transformedBody }` capture object.
+  // `normalizeExecutorResult()` accepts exactly that union and wraps the bare form, so
+  // pinning the signature to only the object shape was wrong — it reported 14 valid
+  // `return` statements as errors.
+  async execute(input: ExecuteInput) {
     const { model, body, stream, signal, upstreamExtraHeaders } = input;
     const upstreamModel = normalizeDuckDuckGoModel(model);
     const bodyObj = (body || {}) as Record<string, unknown>;
@@ -517,7 +523,12 @@ export class DuckDuckGoWebExecutor extends BaseExecutor {
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      const ddgExecMs = FETCH_TIMEOUT_MS;
+      const timeout = setTimeout(() => {
+        const err = new Error(`duckduckgo-web execute timeout after ${ddgExecMs}ms`);
+        err.name = "TimeoutError";
+        controller.abort(err);
+      }, ddgExecMs);
       const mergedSignal = signal
         ? AbortSignal.any([signal, controller.signal])
         : controller.signal;

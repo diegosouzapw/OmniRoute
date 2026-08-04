@@ -550,10 +550,10 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
   // DeepSeek native API: map flat prompt_cache_hit_tokens into input_tokens_details
   if (
     normalized.prompt_cache_hit_tokens !== undefined &&
-    !normalized.input_tokens_details?.cached_tokens
+    !toRecord(normalized.input_tokens_details)?.cached_tokens
   ) {
     normalized.input_tokens_details = {
-      ...(normalized.input_tokens_details as Record<string, unknown> || {}),
+      ...(toRecord(normalized.input_tokens_details) || {}),
       cached_tokens: normalized.prompt_cache_hit_tokens,
     };
   }
@@ -562,10 +562,10 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
   if (
     normalized.cache_read_input_tokens !== undefined &&
     normalized.cache_read_input_tokens !== 0 &&
-    !normalized.input_tokens_details?.cached_tokens
+    !toRecord(normalized.input_tokens_details)?.cached_tokens
   ) {
     normalized.input_tokens_details = {
-      ...(normalized.input_tokens_details as Record<string, unknown> || {}),
+      ...(toRecord(normalized.input_tokens_details) || {}),
       cached_tokens: normalized.cache_read_input_tokens,
     };
   }
@@ -1059,6 +1059,23 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
   const eventType = toString(parsedRecord.type) || "";
   if (eventType.startsWith("response.") || parsedRecord.object === "response") {
     return sanitizeResponsesStreamingEvent(parsedRecord);
+  }
+
+  // #8271: Anthropic-native streaming events (content_block_delta with
+  // text_delta / thinking_delta) bypass the OpenAI choices[].delta.content
+  // path below. Strip zero-width characters from their text payloads so
+  // U+200D and friends don't leak to the client on the Messages API.
+  if (eventType === "content_block_delta") {
+    const deltaRecord = toRecord(parsedRecord.delta);
+    if (deltaRecord) {
+      if (typeof deltaRecord.text === "string") {
+        deltaRecord.text = stripZeroWidthText(deltaRecord.text);
+      }
+      if (typeof deltaRecord.thinking === "string") {
+        deltaRecord.thinking = stripZeroWidthText(deltaRecord.thinking);
+      }
+    }
+    return parsedRecord;
   }
 
   // Build sanitized chunk

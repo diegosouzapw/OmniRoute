@@ -394,6 +394,13 @@ const LOGS_GROUP: SidebarItemGroup = {
       subtitleKey: "consoleLogsSubtitle",
       icon: "terminal",
     },
+    {
+      id: "logs-timeline",
+      href: "/dashboard/logs/timeline",
+      i18nKey: "logsTimeline",
+      subtitleKey: "logsTimelineSubtitle",
+      icon: "view_timeline",
+    },
   ],
 };
 
@@ -695,6 +702,13 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "settingsFeatureFlags",
     subtitleKey: "settingsFeatureFlagsSubtitle",
     icon: "flag",
+  },
+  {
+    id: "settings-cache",
+    href: "/dashboard/settings/cache",
+    i18nKey: "settingsCache",
+    subtitleKey: "settingsCacheSubtitle",
+    icon: "memory",
   },
   {
     id: "settings-sidebar",

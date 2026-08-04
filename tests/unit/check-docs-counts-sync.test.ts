@@ -46,7 +46,7 @@ const strictCheck = {
   actual: 226,
   docKey: "providers",
   strict: true,
-  files: ["README.md", "AGENTS.md"],
+  files: ["README.md", "CLAUDE.md"],
 };
 
 test("no drift when every file mentions the real count", () => {
@@ -55,11 +55,11 @@ test("no drift when every file mentions the real count", () => {
   assert.equal(soft, 0);
 });
 
-test("STRICT drift is counted when a file omits the real count", () => {
+test("STRICT drift is counted when a user-facing document omits the real count", () => {
   const { strict, soft } = tally([strictCheck], (f) =>
     f === "README.md" ? "we have 226 providers" : "we have 177 providers"
   );
-  assert.equal(strict, 1, "AGENTS.md (177) should register one strict drift");
+  assert.equal(strict, 1, "CLAUDE.md (177) should register one strict drift");
   assert.equal(soft, 0);
 });
 
@@ -148,7 +148,7 @@ test("free-tier gate passes when a file carries no headline at all", () => {
 
 // --- Generic numeric-claim gate (engines / MCP tools / scopes / CLI) --------
 // Extends the same drift guard to the counts that silently drifted in v3.8.49:
-// 10→11 engines, 94→104 MCP tools, 30→31 scopes, 26→33 CLI tools.
+// 11→12 engines, 94→104 MCP tools, 30→31 scopes, 26→33 CLI tools.
 import { makeNumberClaimValidator } from "../../scripts/check/check-docs-counts-sync.mjs";
 
 const makeValidator = makeNumberClaimValidator as (
@@ -182,12 +182,12 @@ test("MCP-tools gate ignores per-module counts and the CLI catalog total", () =>
 });
 
 test("compression-engines and CLI-tools gates catch their v3.8.49 drift", () => {
-  const eng = makeValidator(11, {
+  const eng = makeValidator(12, {
     what: "compression engines",
     pattern: /(\d+)[-\s](?:engine stack|composable engines|stacked engines)/gi,
   });
-  assert.equal(eng("11-engine stack").ok, true);
-  assert.equal(eng("10-engine stack").ok, false);
+  assert.equal(eng("12-engine stack").ok, true);
+  assert.equal(eng("11-engine stack").ok, false);
 
   const cli = makeValidator(33, {
     what: "CLI tools",

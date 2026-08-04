@@ -68,3 +68,9 @@ test("non-401 / non-2xx status does not touch key health", () => {
   recordKeyHealthStatus(500, creds(conn), noopLog);
   assert.equal(getAllKeyHealth()[`${conn}:primary`], undefined);
 });
+
+test("CPA pool failures do not poison the selected native connection key", () => {
+  const conn = "kh-cpa-pool-isolation";
+  recordKeyHealthStatus(401, creds(conn), noopLog, "cliproxyapi");
+  assert.equal(getAllKeyHealth()[`${conn}:primary`], undefined);
+});

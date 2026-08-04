@@ -1,1 +1,0 @@
-- fix(sse): give keyless Pollinations image requests the same anonymous fingerprint-pool fallback the chat path already uses, instead of a real upstream 401 (#8085)

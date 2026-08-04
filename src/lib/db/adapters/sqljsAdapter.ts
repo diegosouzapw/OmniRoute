@@ -1,16 +1,19 @@
 // src/lib/db/adapters/sqljsAdapter.ts
 import fs from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
 import type { SqliteAdapter, PreparedStatement, RunResult } from "./types";
 
 const SAVE_DEBOUNCE_MS = 100;
 const CHECKPOINT_INTERVAL_MS = 60_000;
-const _require = createRequire(import.meta.url);
 
 let _sqlJsLib: Awaited<ReturnType<(typeof import("sql.js"))["default"]>> | null = null;
 
 function resolveSqlJsWasmPath(): string {
+  // The standalone assembler copies the complete sql.js package into
+  // <bundle>/node_modules/sql.js. Every packaged server launcher sets cwd to that
+  // bundle directory, so the JavaScript entrypoint and its sibling WASM share one
+  // explicit runtime contract instead of relying on a require.resolve call that
+  // webpack can rewrite. The second path retains direct-source compatibility.
   const candidatePaths = [
     path.join(process.cwd(), "node_modules", "sql.js", "dist", "sql-wasm.wasm"),
     path.join(
@@ -24,26 +27,6 @@ function resolveSqlJsWasmPath(): string {
     ),
   ];
 
-  // Global Bun installs do not use the application's cwd as the package root.
-  // Resolve the actual JavaScript entrypoint so sql.js can find its sibling WASM
-  // asset when OmniRoute is launched from ~/.bun/install/global.
-  try {
-    const sqlJsEntry = _require.resolve("sql.js");
-    candidatePaths.push(path.join(path.dirname(sqlJsEntry), "sql-wasm.wasm"));
-  } catch {}
-  // #8135: Use a dynamic expression to avoid Next.js bundler's static analysis
-  // producing a "Can't resolve 'sql.js/package.json'" build warning. The package.json
-  // resolution is only needed for the WASM path, and the try/catch is still required
-  // at runtime since sql.js is an optional dependency.
-  try {
-    const pkgName = "sql.js" + "/package.json";
-    const sqlJsPackage = _require.resolve(pkgName);
-    candidatePaths.push(
-      path.join(path.dirname(sqlJsPackage), "dist", "sql-wasm.wasm"),
-      path.join(path.dirname(sqlJsPackage), "sql-wasm.wasm")
-    );
-  } catch {}
-
   for (const candidatePath of candidatePaths) {
     if (fs.existsSync(candidatePath)) {
       return candidatePath;
@@ -51,7 +34,9 @@ function resolveSqlJsWasmPath(): string {
   }
 
   throw new Error(
-    `[sqljsAdapter] Could not locate sql-wasm.wasm. Checked:\n${candidatePaths.join("\n")}`
+    `[sqljsAdapter] Packaged sql.js runtime is incomplete: sql-wasm.wasm was not found. Checked:\n${candidatePaths.join(
+      "\n"
+    )}`
   );
 }
 

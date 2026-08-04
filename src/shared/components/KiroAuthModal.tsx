@@ -34,11 +34,17 @@ export default function KiroAuthModal({
   const [importing, setImporting] = useState(false);
   const [importingApiKey, setImportingApiKey] = useState(false);
   const [autoDetecting, setAutoDetecting] = useState(false);
-  const [autoDetected, setAutoDetected] = useState(false);
-  // IDC/organization credentials returned by auto-import when the SSO cache token
-  // has a clientIdHash. Spread into the import POST body so the regional OIDC
-  // endpoint is used for token refresh instead of the social path (#2059).
-  const [idcCredentials, setIdcCredentials] = useState<Record<string, string> | null>(null);
+
+  useEffect(() => {
+    if (isOpen) return;
+    setSelectedMethod(null);
+    setIdcStartUrl("");
+    setIdcRegion("us-east-1");
+    setRefreshToken("");
+    setApiKey("");
+    setApiKeyRegion("us-east-1");
+    setError(null);
+  }, [isOpen]);
 
   // Auto-detect token when import method is selected
   useEffect(() => {
@@ -47,8 +53,6 @@ export default function KiroAuthModal({
     const autoDetect = async () => {
       setAutoDetecting(true);
       setError(null);
-      setAutoDetected(false);
-      setIdcCredentials(null);
 
       try {
         const res = await fetch(
@@ -57,18 +61,9 @@ export default function KiroAuthModal({
         const data = await res.json();
 
         if (data.found) {
-          setRefreshToken(data.refreshToken);
-          setAutoDetected(true);
-          // Store IDC/organization credentials if present in the auto-detect response
-          if (data.clientId && data.clientSecret) {
-            setIdcCredentials({
-              clientId: data.clientId,
-              clientSecret: data.clientSecret,
-              ...(data.region ? { region: data.region } : {}),
-              ...(data.authMethod ? { authMethod: data.authMethod } : {}),
-              ...(data.profileArn ? { profileArn: data.profileArn } : {}),
-            });
-          }
+          onMethodSelect("import");
+          onClose();
+          return;
         } else {
           setError(data.error || "Could not auto-detect token");
         }
@@ -80,7 +75,7 @@ export default function KiroAuthModal({
     };
 
     autoDetect();
-  }, [providerId, selectedMethod, isOpen]);
+  }, [providerId, selectedMethod, isOpen, onMethodSelect, onClose]);
 
   const handleMethodSelect = (method) => {
     setSelectedMethod(method);
@@ -109,7 +104,6 @@ export default function KiroAuthModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             refreshToken: refreshToken.trim(),
-            ...(idcCredentials || {}),
           }),
         }
       );
@@ -121,9 +115,10 @@ export default function KiroAuthModal({
       }
 
       // Success - close modal
+      onMethodSelect("import");
       onClose();
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Import failed");
     } finally {
       setImporting(false);
     }
@@ -330,68 +325,6 @@ export default function KiroAuthModal({
           </div>
         )}
 
-        {/* Social Login Info (Google) */}
-        {selectedMethod === "social-google" && (
-          <div className="space-y-4">
-            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
-              <div className="flex gap-2">
-                <span className="material-symbols-outlined text-amber-600 dark:text-amber-400">
-                  info
-                </span>
-                <div className="flex-1 text-sm">
-                  <p className="font-medium text-amber-900 dark:text-amber-100 mb-1">
-                    Manual Callback Required
-                  </p>
-                  <p className="text-amber-800 dark:text-amber-200">
-                    After login, you&apos;ll need to copy the callback URL from your browser and
-                    paste it back here.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={() => handleSocialLogin("google")} fullWidth>
-                Continue with Google
-              </Button>
-              <Button onClick={handleBack} variant="ghost" fullWidth>
-                Back
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Social Login Info (GitHub) */}
-        {selectedMethod === "social-github" && (
-          <div className="space-y-4">
-            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
-              <div className="flex gap-2">
-                <span className="material-symbols-outlined text-amber-600 dark:text-amber-400">
-                  info
-                </span>
-                <div className="flex-1 text-sm">
-                  <p className="font-medium text-amber-900 dark:text-amber-100 mb-1">
-                    Manual Callback Required
-                  </p>
-                  <p className="text-amber-800 dark:text-amber-200">
-                    After login, you&apos;ll need to copy the callback URL from your browser and
-                    paste it back here.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={() => handleSocialLogin("github")} fullWidth>
-                Continue with GitHub
-              </Button>
-              <Button onClick={handleBack} variant="ghost" fullWidth>
-                Back
-              </Button>
-            </div>
-          </div>
-        )}
-
         {/* Import Token */}
         {selectedMethod === "import" && (
           <div className="space-y-4">
@@ -413,22 +346,8 @@ export default function KiroAuthModal({
             {/* Form (shown after auto-detect completes) */}
             {!autoDetecting && (
               <>
-                {/* Success message if auto-detected */}
-                {autoDetected && (
-                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800">
-                    <div className="flex gap-2">
-                      <span className="material-symbols-outlined text-green-600 dark:text-green-400">
-                        check_circle
-                      </span>
-                      <p className="text-sm text-green-800 dark:text-green-200">
-                        Token auto-detected from {providerLabel} successfully!
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 {/* Info message if not auto-detected */}
-                {!autoDetected && !error && (
+                {!error && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex gap-2">
                       <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">
@@ -447,6 +366,7 @@ export default function KiroAuthModal({
                     Refresh Token <span className="text-red-500">*</span>
                   </label>
                   <Input
+                    type="password"
                     value={refreshToken}
                     onChange={(e) => setRefreshToken(e.target.value)}
                     placeholder="Token will be auto-filled..."
@@ -485,6 +405,7 @@ export default function KiroAuthModal({
                 API Key <span className="text-red-500">*</span>
               </label>
               <Input
+                type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder={`Paste your ${providerLabel} API key...`}

@@ -7,9 +7,10 @@ import {
   buildKiroModelsEndpoints,
   fetchKiroAvailableModels,
   clearKiroModelCache,
+  isObsoleteKiroModelAlias,
 } from "../../open-sse/services/kiroModels.ts";
 
-const FALLBACK = [{ id: "auto-kiro", name: "Auto" }, { id: "claude-sonnet-4.6" }];
+const FALLBACK = [{ id: "claude-sonnet-4.5" }, { id: "deepseek-3.2" }];
 
 beforeEach(() => {
   clearKiroModelCache();
@@ -75,14 +76,7 @@ test("fetchKiroAvailableModels: simple (Builder ID) account, us-east-1, origin-o
   });
 
   assert.equal(result.source, "api");
-  assert.deepEqual(result.models.map((m) => m.id).sort(), [
-    "auto",
-    "auto-thinking",
-    "claude-sonnet-4.6",
-    "claude-sonnet-4.6-agentic",
-    "claude-sonnet-4.6-thinking",
-    "claude-sonnet-4.6-thinking-agentic",
-  ]);
+  assert.deepEqual(result.models.map((m) => m.id).sort(), ["auto", "claude-sonnet-4.6"]);
   assert.deepEqual(calls, [
     "https://q.us-east-1.amazonaws.com/ListAvailableModels?origin=AI_EDITOR",
   ]);
@@ -106,12 +100,7 @@ test("fetchKiroAvailableModels: IAM Identity Center account, region-matched endp
   assert.equal(result.source, "api");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    [
-      "claude-opus-4.8",
-      "claude-opus-4.8-thinking",
-      "claude-opus-4.8-agentic",
-      "claude-opus-4.8-thinking-agentic",
-    ]
+    ["claude-opus-4.8"]
   );
   assert.equal(
     calls[0],
@@ -142,17 +131,64 @@ test("fetchKiroAvailableModels: retries with profileArn when origin-only fails",
   assert.equal(result.source, "api");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    [
-      "claude-sonnet-4.6",
-      "claude-sonnet-4.6-thinking",
-      "claude-sonnet-4.6-agentic",
-      "claude-sonnet-4.6-thinking-agentic",
-    ]
+    ["claude-sonnet-4.6"]
   );
   // origin-only attempted first, then profileArn retry.
   assert.equal(calls.length, 2);
   assert.ok(calls[0].endsWith("?origin=AI_EDITOR"));
   assert.ok(calls[1].includes("profileArn=arn%3Aaws%3Acodewhisperer"));
+});
+
+test("fetchKiroAvailableModels only exposes a functional Thinking alias", async () => {
+  const fetchImpl = (async () =>
+    jsonResponse({
+      models: [
+        { modelId: "claude-sonnet-5" },
+        { modelId: "claude-sonnet-4.5" },
+        { modelId: "deepseek-3.2" },
+      ],
+    })) as unknown as typeof fetch;
+
+  const result = await fetchKiroAvailableModels({
+    accessToken: "tok",
+    providerSpecificData: { authMethod: "builder-id" },
+    fetchImpl,
+  });
+
+  assert.deepEqual(
+    result.models.map((model) => model.id),
+    ["claude-sonnet-5", "claude-sonnet-5-thinking", "claude-sonnet-4.5", "deepseek-3.2"]
+  );
+});
+
+test("isObsoleteKiroModelAlias filters stale cached aliases", () => {
+  assert.equal(isObsoleteKiroModelAlias("auto-kiro"), true);
+  assert.equal(isObsoleteKiroModelAlias("claude-sonnet-5-agentic"), true);
+  assert.equal(isObsoleteKiroModelAlias("claude-sonnet-4.5-thinking"), true);
+  assert.equal(isObsoleteKiroModelAlias("claude-sonnet-5-thinking"), false);
+  assert.equal(isObsoleteKiroModelAlias("claude-sonnet-4.5"), false);
+});
+
+test("fetchKiroAvailableModels sends auth-method headers for API key and External IdP", async () => {
+  const seen: Array<Headers> = [];
+  const fetchImpl = (async (_url: string, init?: RequestInit) => {
+    seen.push(new Headers(init?.headers));
+    return jsonResponse({ models: [{ modelId: "claude-sonnet-5" }] });
+  }) as unknown as typeof fetch;
+
+  await fetchKiroAvailableModels({
+    accessToken: "api-key",
+    providerSpecificData: { authMethod: "api_key", clientId: "api-client" },
+    fetchImpl,
+  });
+  await fetchKiroAvailableModels({
+    accessToken: "external-token",
+    providerSpecificData: { authMethod: "external_idp", clientId: "external-client" },
+    fetchImpl,
+  });
+
+  assert.equal(seen[0].get("tokentype"), "API_KEY");
+  assert.equal(seen[1].get("tokentype"), "EXTERNAL_IDP");
 });
 
 test("fetchKiroAvailableModels: falls back to static catalog when no token", async () => {
@@ -164,7 +200,7 @@ test("fetchKiroAvailableModels: falls back to static catalog when no token", asy
   assert.equal(result.source, "fallback");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    ["auto-kiro", "claude-sonnet-4.6"]
+    ["claude-sonnet-4.5", "deepseek-3.2"]
   );
 });
 
@@ -180,6 +216,6 @@ test("fetchKiroAvailableModels: falls back when every upstream attempt fails", a
   assert.equal(result.source, "fallback");
   assert.deepEqual(
     result.models.map((m) => m.id),
-    ["auto-kiro", "claude-sonnet-4.6"]
+    ["claude-sonnet-4.5", "deepseek-3.2"]
   );
 });

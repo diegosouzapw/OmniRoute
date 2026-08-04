@@ -336,7 +336,7 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Variable                 | Default Value                                 | When to Update                                                |
 | ------------------------ | --------------------------------------------- | ------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.145 (external, cli)`          | When Anthropic releases a new CLI version                     |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.219 (external, cli)`          | When Anthropic releases a new CLI version                     |
 | `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | When OpenAI updates the Codex CLI                             |
 | `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override Codex client version independently of full UA string |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | When GitHub Copilot Chat updates                              |

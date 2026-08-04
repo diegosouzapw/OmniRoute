@@ -139,10 +139,12 @@ export class MoonshotExecutor extends DefaultExecutor {
     stream: boolean,
     credentials: ProviderCredentials
   ): unknown {
-    return normalizeMoonshotRequest(
+    const normalized = normalizeMoonshotRequest(
       model,
       super.transformRequest(model, body, stream, credentials)
     );
+    const record = asRecord(normalized);
+    return stream && this.provider === "kimi" && record ? { ...record, stream: true } : normalized;
   }
 }
 

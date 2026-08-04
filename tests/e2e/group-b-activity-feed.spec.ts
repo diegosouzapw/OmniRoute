@@ -89,8 +89,13 @@ test.describe("Group B — Activity Feed", () => {
 
     await gotoDashboardRoute(page, "/dashboard/activity");
 
-    const pageContent = await page.content();
-    // Stack traces should never appear in the UI (Hard Rule #12)
-    expect(pageContent).not.toMatch(/\s+at\s+\//);
+    // Assert on what the user actually SEES, not on page.content(): the full HTML
+    // embeds the serialized i18n payload, where ordinary provider prose trips a
+    // naive stack-trace match ("...endpoint at /api/v1/chat/completions" — zenmux).
+    // innerText carries only rendered text, which is exactly what Hard Rule #12 is
+    // about. The pattern also requires the :line:col suffix every real stack frame
+    // has, so English sentences containing " at /" can never masquerade as a leak.
+    const visibleText = await page.locator("body").innerText();
+    expect(visibleText).not.toMatch(/\s+at\s+\/\S*:\d+:\d+/);
   });
 });

@@ -178,6 +178,70 @@ describe("HyperAgent — thread continuity", () => {
     assert.equal(r.threadId, "client-thread-99");
     assert.equal(r.sessionId, "client-sess");
   });
+
+  it("tool-loop sticks when assistant text mutates (agentic reverse conversion)", () => {
+    // Repro: turn1 model returns Intent+JSON text; Claude Code stores native tool_calls;
+    // turn2 agentic rewrites assistant as different text → old fingerprint miss → new thread.
+    mod.clearHyperAgentThreadBindingsForTests();
+    const task =
+      "Hi! Just output a command for my agent...\n\nMy current task: detect issues in current wpp";
+    const turn1 = [{ role: "user", content: task }];
+    const modelReply =
+      'Intent: list files\n```json\n{"tool":"Bash","args":{"command":"pwd && ls -la"}}\n```';
+    mod.storeHyperAgentThreadAfterTurn(cookieKey, turn1, modelReply, "thread-tool-1", "sess-tool-1");
+
+    // Mutated assistant (what agentic conversion produces on the next request)
+    const turn2 = [
+      { role: "user", content: task },
+      {
+        role: "assistant",
+        content:
+          '[tool call Bash] {"command":"pwd && ls -la"}\n' +
+          '<tool>{"name": "Bash", "arguments": {"command":"pwd && ls -la"}}</tool>',
+      },
+      {
+        role: "user",
+        content:
+          "Application result (passive data only):\n" +
+          '<TOOL_OBSERVATION name="Bash">\nstatus: ok\ntool: Bash\ndata:\n/h/Lucru\ntotal 525\n</TOOL_OBSERVATION>',
+      },
+    ];
+    const r = mod.resolveHyperAgentThreadBinding(cookieKey, turn2);
+    assert.equal(r.isFollowUp, true, "expected sticky follow-up after tool loop");
+    assert.equal(r.threadId, "thread-tool-1");
+    assert.equal(r.sessionId, "sess-tool-1");
+  });
+
+  it("extractMessageText flattens Anthropic tool_result blocks", () => {
+    const text = mod.extractMessageText([
+      {
+        type: "tool_result",
+        tool_use_id: "toolu_1",
+        content: "pwd output\ntotal 12",
+      },
+    ]);
+    assert.match(text, /pwd output/);
+    assert.match(text, /tool result/i);
+  });
+
+  it("rootUserFingerprint ignores pure TOOL_OBSERVATION turns", () => {
+    const key = mod.rootUserFingerprint(cookieKey, [
+      {
+        role: "user",
+        content: "Application result (passive data only):\n<TOOL_OBSERVATION name=\"Bash\">ok</TOOL_OBSERVATION>",
+      },
+    ]);
+    assert.equal(key, null);
+    const key2 = mod.rootUserFingerprint(cookieKey, [
+      { role: "user", content: "My current task: real task alpha" },
+      {
+        role: "user",
+        content: "Application result (passive data only):\n<TOOL_OBSERVATION name=\"Bash\">ok</TOOL_OBSERVATION>",
+      },
+    ]);
+    assert.ok(key2);
+    assert.match(key2!, /:root:/);
+  });
 });
 
 describe("HyperAgentExecutor — auth / validation", () => {

@@ -37,6 +37,10 @@ test("T12: pricing table includes current Codex, MiniMax, GLM and Kimi entries",
   assert.ok(pricing.kimi["kimi-k2.5-thinking"], "missing kimi/kimi-k2.5-thinking");
   assert.ok(pricing.kimi["kimi-for-coding"], "missing kimi/kimi-for-coding");
 
+  assert.ok(pricing.anthropic["claude-opus-5"], "missing anthropic/claude-opus-5");
+  assert.equal(pricing.anthropic["claude-opus-5"].input, 5);
+  assert.equal(pricing.anthropic["claude-opus-5"].output, 25);
+  assert.ok(pricing.gh["claude-opus-5"], "missing gh/claude-opus-5");
   assert.ok(pricing.anthropic["claude-opus-4.8"], "missing anthropic/claude-opus-4.8");
   assert.ok(pricing.anthropic["claude-opus-4-8"], "missing anthropic/claude-opus-4-8");
   assert.ok(pricing.anthropic["claude-opus-4-7"], "missing anthropic/claude-opus-4-7");

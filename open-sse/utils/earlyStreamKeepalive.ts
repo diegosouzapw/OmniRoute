@@ -34,27 +34,9 @@ const KEEPALIVE_FRAME = ENCODER.encode(": omniroute-keepalive\n\n");
 export const OPENAI_KEEPALIVE_FRAME = ENCODER.encode(
   'data: {"id":"omniroute-keepalive","object":"chat.completion.chunk","created":0,"model":"omniroute","choices":[{"index":0,"delta":{},"finish_reason":null}]}\n\n'
 );
-// #7360 follow-up: the FIRST frame of the slow path carries visible content
-// instead of an empty delta, framed as a reasoning/thinking chunk (the same
-// shape OmniRoute already emits for real upstream reasoning — see
-// open-sse/translator/response/claude-to-openai.ts's createChunk) so
-// reasoning-aware clients render it instead of silently ignoring it. This is
-// what lets OmniRoute safely wait out a longer Gemini rate-limit cooldown
-// (see comboCooldownWait/waitForCooldown budgetMs) without the client's own
-// first-event/idle-read timeout firing — the client sees a real byte
-// immediately, it just says we're still working on it.
-const STARTUP_THINKING_TEXT = "OmniRoute: got request, sending to provider";
-export const OPENAI_STARTUP_THINKING_FRAME = ENCODER.encode(
-  `data: ${JSON.stringify({
-    id: "omniroute-keepalive",
-    object: "chat.completion.chunk",
-    created: 0,
-    model: "omniroute",
-    choices: [
-      { index: 0, delta: { reasoning_content: STARTUP_THINKING_TEXT }, finish_reason: null },
-    ],
-  })}\n\n`
-);
+// The first slow-path frame must be a valid OpenAI chunk without creating
+// visible reasoning that clients persist into the conversation.
+export const OPENAI_STARTUP_FRAME = OPENAI_KEEPALIVE_FRAME;
 // Anthropic Messages-format keepalive: a REAL `ping` SSE event, not a comment.
 // Anthropic clients (Claude Code, the Anthropic SDK) reset their stream/first-token
 // watchdog on real SSE events but ignore SSE comments (`: ...`), so on a slow first
@@ -70,6 +52,7 @@ export const ANTHROPIC_PING_FRAME = ENCODER.encode('event: ping\ndata: {"type":"
 // response.created lifecycle from scratch; this placeholder item never
 // carries a response_id and isn't meant to be continued.
 const RESPONSES_STARTUP_ITEM_ID = "rs_omniroute_keepalive";
+const STARTUP_THINKING_TEXT = "OmniRoute: got request, sending to provider";
 export const RESPONSES_STARTUP_THINKING_FRAME = ENCODER.encode(
   [
     {
@@ -187,7 +170,15 @@ export type EarlyStreamKeepaliveOptions = {
   errorFrame?: Uint8Array;
 };
 
-type SettledHandler = { ok: true; response: Response } | { ok: false; error: unknown };
+/**
+ * Tagged with a string rather than an `ok: true | false` boolean: this workspace compiles
+ * with `strictNullChecks: false`, where a boolean-literal discriminant narrows the positive
+ * branch but not the negative one — so reading `.error` off the rejected arm did not
+ * type-check. A string discriminant narrows both branches under the same settings.
+ */
+type SettledHandler =
+  | { status: "fulfilled"; response: Response }
+  | { status: "rejected"; error: unknown };
 
 export async function withEarlyStreamKeepalive(
   handlerPromise: Promise<Response>,
@@ -209,8 +200,8 @@ export async function withEarlyStreamKeepalive(
   // Settle into a tagged result so neither race branch leaves an unhandled
   // rejection when the threshold timer wins.
   const settled: Promise<SettledHandler> = handlerPromise.then(
-    (response) => ({ ok: true as const, response }),
-    (error) => ({ ok: false as const, error })
+    (response) => ({ status: "fulfilled" as const, response }),
+    (error) => ({ status: "rejected" as const, error })
   );
 
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -224,8 +215,9 @@ export async function withEarlyStreamKeepalive(
 
   if (raced.kind === "settled") {
     // Fast path — return verbatim, or rethrow so the route's normal error handling runs.
-    if (raced.result.ok) return raced.result.response;
-    throw raced.result.error;
+    const result = raced.result;
+    if (result.status === "fulfilled") return result.response;
+    throw result.error;
   }
 
   // Slow path — open the SSE stream now and keep it warm until the handler resolves.
@@ -287,13 +279,13 @@ export async function withEarlyStreamKeepalive(
         if (aborted) {
           // The synthetic keepalive response can be cancelled before the handler resolves.
           // Cancel the eventual real response so its upstream work and lifecycle hooks finish.
-          if (result.ok && result.response.body) {
+          if (result.status === "fulfilled" && result.response.body) {
             await result.response.body.cancel().catch(() => undefined);
           }
           return;
         }
 
-        if (!result.ok) {
+        if (result.status === "rejected") {
           // Handler rejected — emit a generic error frame (never the raw error/stack).
           controller.enqueue(errorFrame);
         } else {

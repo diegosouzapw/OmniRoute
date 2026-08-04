@@ -258,11 +258,12 @@ export function getProviderCategory(provider: string): "oauth" | "apikey" {
 }
 
 /**
- * Derive the latest opus/sonnet/haiku model IDs from the `claude` registry entry.
+ * Derive the latest fable/opus/sonnet/haiku model IDs from the `claude` registry entry.
  * Picks the first model whose ID matches each family pattern — registry order
  * determines precedence, so newer models should be listed first.
  */
 export function getClaudeCodeDefaultModels(): {
+  fable: string;
   opus: string;
   sonnet: string;
   haiku: string;
@@ -270,6 +271,7 @@ export function getClaudeCodeDefaultModels(): {
   const models = REGISTRY.claude?.models ?? [];
   const find = (pattern: RegExp) => models.find((m) => pattern.test(m.id))?.id ?? "";
   return {
+    fable: find(/fable/i),
     opus: find(/opus/i),
     sonnet: find(/sonnet/i),
     haiku: find(/haiku/i),

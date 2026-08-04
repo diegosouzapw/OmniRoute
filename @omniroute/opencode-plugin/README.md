@@ -10,7 +10,8 @@ This plugin solves that by:
 
 - Fetching `/v1/models` and `/api/combos` **at OpenCode startup, in Node.js** — no CORS, no WebView restrictions
 - Emitting the provider block **dynamically** in the plugin's `config`/`provider` hook — so `opencode.json` only needs the plugin entry, not a static `provider.omniroute`
-- Re-fetching on a configurable TTL (default 5 min), so new models / combo changes in the OmniRoute UI appear without restarting OpenCode
+- Re-fetching on a configurable TTL (default 5 min) **and** background auto-discovery while OpenCode is running (`autoSyncIntervalMs`, default 5 min), so new models / combo changes appear without restarting OpenCode
+- Exposing a force-refresh path (`omniroute_sync_models` tool + `/omni-sync` command template) equivalent to Pi `/omni sync`
 - Computing `limit.context` for combos as `min(member.context_length)` from the live catalog (no more `null` values that cause 4K-token truncation)
 - **Auto-pickup of `interleaved` capability** for thinking models (merged via PR #3138)
 
@@ -73,6 +74,9 @@ Peer dep: `@opencode-ai/plugin` (managed by your OpenCode install).
       {
         "providerId": "omniroute",
         "baseURL": "https://or.example.com",
+        // Background re-discovery while OpenCode is running (Pi parity).
+        // Default 300000 (5 min). Minimum 60000. Set 0 to disable.
+        "autoSyncIntervalMs": 300000,
       },
     ],
   ],
@@ -87,6 +91,27 @@ opencode auth login --provider omniroute
 > ⚠ Use the `--provider` flag explicitly. `opencode auth login omniroute` is parsed as a positional `url` argument by current OC releases (≤1.15.5) and fails with `fetch() URL is invalid`. Tracked upstream.
 
 Restart OpenCode. `/models` lists the full live catalog. Variants (`-low`, `-medium`, `-high`, `-thinking`) and combos appear as first-class IDs — OmniRoute is the source of truth, no client-side synthesis.
+
+### Live catalog refresh (auto + force)
+
+While OpenCode is running, the plugin keeps the model catalog fresh in two ways:
+
+| Mechanism | Default | What it does |
+| --- | --- | --- |
+| `modelCacheTtl` | `300000` (5 min) | On-demand TTL: next provider/models hook after expiry re-fetches `/v1/models` |
+| `autoSyncIntervalMs` | `300000` (5 min) | Background timer: proactively invalidates + re-fetches while the harness is running. Min `60000`. Set `0` to disable background polling (TTL still applies) |
+
+**Force sync now** (Pi `/omni sync` equivalent) — OpenCode has no Pi-style slash-command registration API, so the plugin wires both a tool and command templates:
+
+1. **Tool:** `omniroute_sync_models` — invalidates in-memory + disk caches, re-fetches `GET /v1/models` (and combos/enrichment when enabled), returns `{ ok, count, ... }`.
+2. **Command templates** (type these in OpenCode):
+   - `/omni-sync` — asks the agent to call `omniroute_sync_models` and report the result
+   - `/omni-autosync` — asks the agent to report current `autoSyncIntervalMs` / `modelCacheTtl` status
+
+```text
+/omni-sync
+/omni-autosync
+```
 
 ## Multi-instance (prod + preprod side-by-side)
 

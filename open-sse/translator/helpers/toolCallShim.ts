@@ -53,8 +53,13 @@ function sanitizeReadArgs(args: Record<string, unknown>): void {
   }
 
   if (typeof args.limit === "number") {
-    if (args.limit > READ_MAX_LIMIT) args.limit = READ_MAX_LIMIT;
-    if (args.limit < 1) delete args.limit;
+    // Read into a local: assigning back to `args.limit` (declared `unknown`) resets the
+    // `typeof` narrowing, so the second comparison would no longer see a number. The two
+    // branches are mutually exclusive (READ_MAX_LIMIT is 2000), so testing the original
+    // value keeps the behavior identical.
+    const limit = args.limit;
+    if (limit > READ_MAX_LIMIT) args.limit = READ_MAX_LIMIT;
+    if (limit < 1) delete args.limit;
   }
   if (typeof args.offset === "number" && args.offset < 0) args.offset = 0;
 

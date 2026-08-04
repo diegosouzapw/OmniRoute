@@ -21,6 +21,22 @@ import { networkInterfaces } from "node:os";
 
 const DEFAULT_HOSTS = ["127.0.0.1", "localhost", "::1"];
 const DEFAULT_TIMEOUT_MS = 4000;
+const DEFAULT_HEALTH_PATH = "/api/monitoring/health";
+
+function normalizeBasePath(value) {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  if (!trimmed || trimmed === "/") return "";
+  if (!trimmed.startsWith("/") || /[?#\\]/.test(trimmed)) return "";
+  const segments = trimmed.split("/").filter(Boolean);
+  if (segments.some((segment) => segment === "." || segment === "..")) return "";
+  return `/${segments.join("/")}`;
+}
+
+/** Prefixes the health route with the configured Next.js basePath. */
+export function resolveHealthPath(basePathValue) {
+  const basePath = normalizeBasePath(basePathValue);
+  return basePath ? `${basePath}${DEFAULT_HEALTH_PATH}` : DEFAULT_HEALTH_PATH;
+}
 
 /**
  * Get the primary non-loopback IPv4 address (container internal IP).
@@ -45,10 +61,11 @@ function getContainerInternalIP() {
  * Build the health URL for a host, bracketing IPv6 literals (e.g. `::1`).
  * @param {string} host
  * @param {string|number} port
+ * @param {string} healthPath path to probe, including any basePath prefix
  */
-function healthUrl(host, port) {
+function healthUrl(host, port, healthPath = DEFAULT_HEALTH_PATH) {
   const hostPart = host.includes(":") ? `[${host}]` : host;
-  return `http://${hostPart}:${port}/api/monitoring/health`;
+  return `http://${hostPart}:${port}${healthPath}`;
 }
 
 /**
@@ -62,6 +79,7 @@ function healthUrl(host, port) {
  * @param {string[]} [opts.hosts]
  * @param {typeof fetch} [opts.fetchImpl]
  * @param {number} [opts.timeoutMs]
+ * @param {string} [opts.healthPath]
  * @returns {Promise<string>} the host that succeeded
  */
 export async function probeHealth({
@@ -69,11 +87,12 @@ export async function probeHealth({
   hosts = DEFAULT_HOSTS,
   fetchImpl = fetch,
   timeoutMs = DEFAULT_TIMEOUT_MS,
+  healthPath = DEFAULT_HEALTH_PATH,
 } = {}) {
   let lastError = new Error("no hosts to probe");
   for (const host of hosts) {
     try {
-      const res = await fetchImpl(healthUrl(host, port), {
+      const res = await fetchImpl(healthUrl(host, port, healthPath), {
         signal: AbortSignal.timeout(timeoutMs),
       });
       if (res.ok) return host;
@@ -96,7 +115,8 @@ async function main() {
   }
 
   try {
-    await probeHealth({ port, hosts });
+    const healthPath = resolveHealthPath(process.env.OMNIROUTE_BASE_PATH);
+    await probeHealth({ port, hosts, healthPath });
     process.exit(0);
   } catch (err) {
     // Surface the failure so `docker inspect ... .State.Health[].Output` is

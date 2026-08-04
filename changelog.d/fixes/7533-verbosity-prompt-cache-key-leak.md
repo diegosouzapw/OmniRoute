@@ -1,1 +1,0 @@
-- fix(sse): gate `verbosity`/`prompt_cache_key` on OpenAI destination during Responses->Chat translation, stopping the leak to non-OpenAI upstreams like NVIDIA (#7533)

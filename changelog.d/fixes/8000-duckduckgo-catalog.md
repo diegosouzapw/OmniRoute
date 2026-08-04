@@ -1,1 +1,0 @@
-- fix(providers): refresh duckduckgo-web free model catalog to Duck.ai's current wire ids, fixing 400 ERR_BAD_REQUEST (#8000)

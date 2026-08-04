@@ -16,12 +16,19 @@ import {
   type AutoCategory,
   type AutoTier,
 } from "./suffixComposition";
+import type { AutoVariant } from "./autoPrefix";
 import { buildFamilyCandidateFilter, type ModelFamily } from "./modelFamily";
 import { getHiddenModelsByProvider } from "@/models";
 import { filterPaidOnlyCandidates } from "./paidModelFilter";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import { filterExcludedCandidates } from "./candidateOverrides";
 import { getExcludedConnectionIds } from "@/lib/db/autoCandidateOverrides";
+import {
+  filterResilienceBlockedCandidates,
+  SYNTHETIC_NOAUTH_CONNECTION_ID as RESILIENCE_NOAUTH_CONNECTION_ID,
+  type ConnectionResilienceView,
+} from "./resilienceCandidateFilter";
+import type { ChaosTuning } from "./chaosEngine";
 
 /** #4235 Phase B: optional category/tier overlay for `auto/<category>:<tier>` combos.
  * #6453: optional `family` overlay for `auto/<family>` combos (e.g. `auto/glm`) —
@@ -90,6 +97,12 @@ type VirtualAutoCombo = AutoComboConfig & {
       explorationRate: number;
       routerStrategy: string;
     };
+    chaos?: {
+      enabled: true;
+      panelSize: number;
+      judgeModel?: string;
+      tuning: ChaosTuning;
+    };
   };
 };
 
@@ -132,7 +145,7 @@ function hasUsableConnectionCredential(conn: VirtualFactoryConn): boolean {
   return hasApiKey || hasUsableOAuthToken(conn) || hasProviderSpecificSessionData(conn);
 }
 
-const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
+const SYNTHETIC_NOAUTH_CONNECTION_ID = RESILIENCE_NOAUTH_CONNECTION_ID;
 
 // Allowlist of no-auth (keyless) providers permitted to enter the `auto`/`auto-*`
 // candidate pool. Narrowed to the backends verified to answer without any
@@ -142,11 +155,23 @@ const SYNTHETIC_NOAUTH_CONNECTION_ID = "noauth";
 // and the others are unreliable. The excluded providers stay fully usable via
 // direct `<alias>/<model>` calls — they are just kept OUT of auto-routing until
 // re-verified. Re-add an id here to bring it back into every auto/* pool.
+//
+// Scope (operator decision 2026-07-24, refs #8183/#6453/#7032): this allowlist
+// targets public-HTTP-egress reliability for the category/tier and flat-variant
+// `auto/*` pools (auto/best-free, auto/coding:fast, ...). It does NOT apply to
+// `auto/<family>` pools (auto/glm, auto/zai, ...) — a family combo is an
+// identity selector ("whatever genuinely serves GLM"), not a reliability-curated
+// pool, so it admits any no-auth backend that genuinely serves the family (e.g.
+// auggie, a local CLI subprocess with zero HTTP egress, belongs in auto/glm
+// regardless of this list). See the `bypassAllowlist` param below.
 const AUTO_COMBO_NOAUTH_ALLOWLIST = new Set<string>(["opencode", "felo-web"]);
 
-function isChatAutoComboNoAuthProvider(providerDef: NoAuthProviderDefinition): boolean {
+function isChatAutoComboNoAuthProvider(
+  providerDef: NoAuthProviderDefinition,
+  bypassAllowlist: boolean
+): boolean {
   if (providerDef.noAuth !== true) return false;
-  if (!AUTO_COMBO_NOAUTH_ALLOWLIST.has(providerDef.id)) return false;
+  if (!bypassAllowlist && !AUTO_COMBO_NOAUTH_ALLOWLIST.has(providerDef.id)) return false;
   if (!Array.isArray(providerDef.serviceKinds) || providerDef.serviceKinds.length === 0)
     return true;
   return providerDef.serviceKinds.includes("llm");
@@ -157,13 +182,14 @@ function getNoAuthCandidates(
   blockedProviders: Set<string>,
   disabledNoAuthProviders: Set<string>,
   noAuthProviderSpecificData: Map<string, Record<string, unknown> | null | undefined>,
-  hiddenModelsMap: Map<string, Set<string>>
+  hiddenModelsMap: Map<string, Set<string>>,
+  bypassAllowlist: boolean
 ): VirtualAutoComboCandidate[] {
   const registry = getProviderRegistry();
   const candidates: VirtualAutoComboCandidate[] = [];
 
   for (const providerDef of Object.values(NOAUTH_PROVIDERS) as NoAuthProviderDefinition[]) {
-    if (!isChatAutoComboNoAuthProvider(providerDef)) continue;
+    if (!isChatAutoComboNoAuthProvider(providerDef, bypassAllowlist)) continue;
 
     const providerId = providerDef.id;
     if (!providerId || excludedProviders.has(providerId)) continue;
@@ -385,9 +411,30 @@ export async function createVirtualAutoCombo(
       blockedProviders,
       disabledNoAuthProviders,
       noAuthProviderSpecificData,
-      hiddenModelsMap
+      hiddenModelsMap,
+      // #6453/#8183 (operator decision 2026-07-24): auto/<family> combos are an
+      // identity selector, not a reliability-curated pool — bypass the no-auth
+      // allowlist gate so any backend that genuinely serves the family (e.g.
+      // auggie for auto/glm) is admitted. Category/tier and flat-variant pools
+      // (spec.family unset) keep the allowlist gate intact.
+      Boolean(spec?.family)
     )
   );
+
+  // #7623: honor existing model lockouts + connection cooldown/terminal state so
+  // auto/* never advertises models the dispatch path would immediately skip.
+  const connectionsById = new Map<string, ConnectionResilienceView>();
+  for (const conn of [...connections, ...disabledNoAuthConnections]) {
+    connectionsById.set(conn.id, conn);
+  }
+  const resilienceFilteredPool = filterResilienceBlockedCandidates(
+    candidatePool,
+    connectionsById
+  );
+  if (resilienceFilteredPool !== candidatePool) {
+    candidatePool.length = 0;
+    candidatePool.push(...resilienceFilteredPool);
+  }
 
   // #6512 (follow-up to #6328/#6495): when the operator opts into `hidePaidModels`,
   // exclude paid-only backends from EVERY `auto/*` candidate pool — not just the
@@ -570,11 +617,35 @@ export async function createVirtualAutoCombo(
     routerStrategy,
   };
 
-  // Chaos mode fans out to the top-N most stable models in parallel. We cap the
-  // panel size so a single IDE request doesn't fan out to dozens of providers.
+  // Chaos mode fans out to the top-N most stable models in parallel. Panel size
+  // is capped to keep a single IDE request from fanning out to dozens of providers;
+  // operators can override via env var OMNIROUTE_CHAOS_MAX_PANEL (default 5).
+  //
+  // Provider diversity: when multiple candidates from the same provider exist, only
+  // the highest-scored model per provider is included. This prevents a single
+  // provider from monopolizing the panel and gives the IDE truly diverse answers.
   const isChaos = variant === "chaos";
-  const CHAOS_MAX_PANEL = 5;
-  const chaosModels = isChaos ? models.slice(0, CHAOS_MAX_PANEL) : models;
+  const CHAOS_MAX_PANEL = (() => {
+    const env = process.env.OMNIROUTE_CHAOS_MAX_PANEL;
+    const parsed = env ? parseInt(env, 10) : 5;
+    return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 10) : 5;
+  })();
+  let chaosModels: typeof models;
+  if (isChaos) {
+    // Deduplicate by provider: keep first occurrence per provider (models are
+    // already scored/sorted by health + stability from scoring).
+    const seenProviders = new Set<string>();
+    const diverse: typeof models = [];
+    for (const m of models) {
+      if (seenProviders.has(m.providerId)) continue;
+      seenProviders.add(m.providerId);
+      diverse.push(m);
+      if (diverse.length >= CHAOS_MAX_PANEL) break;
+    }
+    chaosModels = diverse.length > 0 ? diverse : models.slice(0, CHAOS_MAX_PANEL);
+  } else {
+    chaosModels = models;
+  }
 
   const advertisedLimits = computeAdvertisedLimits(effectivePool);
 
@@ -582,7 +653,7 @@ export async function createVirtualAutoCombo(
     id: `virtual-auto-${variant || "default"}`,
     name: `Auto ${variant || "Default"}`,
     type: "auto",
-    strategy: isChaos ? "fusion" : "auto",
+    strategy: "auto",
     models: chaosModels,
     candidatePool: providerPool,
     weights,
@@ -599,6 +670,11 @@ export async function createVirtualAutoCombo(
               enabled: true,
               panelSize: chaosModels.length,
               judgeModel: chaosModels[0]?.model,
+              tuning: {
+                panelHardTimeoutMs:
+                  Number(process.env.OMNIROUTE_CHAOS_PANEL_TIMEOUT_MS) || undefined,
+                minPanel: Number(process.env.OMNIROUTE_CHAOS_MIN_PANEL) || undefined,
+              },
             },
           }
         : {}),

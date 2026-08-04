@@ -88,9 +88,9 @@ Applied to: `system` blocks, all `messages[].content`, and `tools[].description`
 
 For third-party Anthropic relays that only accept "real Claude Code" traffic:
 
-- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.207 (external, sdk-cli)"`
+- `CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.219 (external, sdk-cli)"`
 - `CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0"`
-- `CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0"`
+- `CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v26.3.0"`
 - `anthropic-beta = "claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24"` by default
 - The per-connection "Enable redact-thinking beta" toggle adds `redact-thinking-2026-02-12` when a CC Compatible upstream specifically requires redacted thinking streams
 - The per-connection "Enable summarized thinking display" toggle stores `providerSpecificData.requestDefaults.summarizeThinking` and adds `display: "summarized"` to CC Compatible thinking requests that did not already set a display mode
@@ -212,7 +212,7 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 
 | Variable                 | Default                                                         |
 | ------------------------ | --------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.207 (external, cli)`                            |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.219 (external, cli)`                            |
 | `CODEX_USER_AGENT`       | `codex-cli/0.142.0 (Windows 10.0.26200; x64)`                   |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.54.0`                                      |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 linux/arm64 google-api-nodejs-client/10.3.0` |

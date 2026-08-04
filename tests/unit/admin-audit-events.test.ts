@@ -121,7 +121,14 @@ test("auth login route records failed password attempts", async () => {
   assert.equal(event.actor, "anonymous");
   assert.equal(event.status, "failed");
   assert.equal(event.requestId, "req-auth-failed");
-  assert.deepEqual(event.metadata, { reason: "invalid_password", lockedOut: false });
+  // The request above carries a public x-forwarded-for (198.51.100.22), so the
+  // origin tagging added here must classify it as public / non-internal.
+  assert.deepEqual(event.metadata, {
+    reason: "invalid_password",
+    lockedOut: false,
+    sourceScope: "public",
+    internalOrigin: false,
+  });
 });
 
 test("provider create/update/delete routes emit sanitized credential audit events", async () => {

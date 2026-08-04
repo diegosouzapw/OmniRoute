@@ -38,6 +38,14 @@ export const claudeProvider: RegistryEntry = {
       unsupportedParams: ["temperature", "top_p", "top_k"],
     },
     {
+      id: "claude-opus-5",
+      name: "Claude Opus 5",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportsXHighEffort: true,
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
+    {
       id: "claude-opus-4-8",
       name: "Claude Opus 4.8",
       contextLength: 1000000,

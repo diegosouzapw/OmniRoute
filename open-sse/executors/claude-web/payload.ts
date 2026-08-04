@@ -176,6 +176,7 @@ export function wantsExtendedThinking(body: Record<string, unknown>): boolean {
 }
 
 const CLAUDE_WEB_REASONING_EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
+const CLAUDE_WEB_OPUS_5_MODEL = "claude-opus-5";
 
 /**
  * Resolve the caller's explicit reasoning level into the effort values
@@ -251,12 +252,26 @@ function createConversationParams(model: string) {
   };
 }
 
+function resolveClaudeWebThinkingMode(
+  model: string,
+  reasoningEffort: ReturnType<typeof resolveClaudeWebReasoningEffort>
+): { effort: string; thinkingMode: string } {
+  if (model.trim().toLowerCase() === CLAUDE_WEB_OPUS_5_MODEL) {
+    return { effort: reasoningEffort ?? "high", thinkingMode: "auto" };
+  }
+  if (reasoningEffort) {
+    return { effort: reasoningEffort, thinkingMode: "extended" };
+  }
+  return { effort: "low", thinkingMode: "off" };
+}
+
 function buildClaudeWebPayload(
   body: Record<string, unknown>,
   model: string,
   reasoningEffort: ReturnType<typeof resolveClaudeWebReasoningEffort>,
   turn: ClaudeWebTurnFields
 ): ClaudeWebRequestPayload {
+  const thinking = resolveClaudeWebThinkingMode(model, reasoningEffort);
   return {
     prompt: turn.prompt,
     model,
@@ -270,11 +285,11 @@ function buildClaudeWebPayload(
     },
     ...(turn.parentMessageUuid ? { parent_message_uuid: turn.parentMessageUuid } : {}),
     attachments: [],
-    effort: reasoningEffort ?? "low",
+    effort: thinking.effort,
     files: [],
     sync_sources: [],
     rendering_mode: "messages",
-    thinking_mode: reasoningEffort ? "extended" : "off",
+    thinking_mode: thinking.thinkingMode,
     ...(turn.toolStates ? { tool_states: turn.toolStates } : {}),
     ...(turn.isNewConversation
       ? { create_conversation_params: createConversationParams(model) }

@@ -28,6 +28,7 @@ import {
   decideStep,
   mergeStackStep,
 } from "./stackedStepCore.ts";
+import { resolveStepDetailConfig } from "./stepDetailConfig.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine, getEngineEntry } from "./engines/registry.ts";
 import { codexResponsesEngine } from "./engines/codexResponses/index.ts";
@@ -736,13 +737,12 @@ function buildStepOptions(
   step: CompressionPipelineStep,
   options?: StackOptions
 ): CompressionEngineApplyOptions {
-  // Headroom detail (minRows) lives on settings.headroom, not only on step.config.
-  // Merge it so the stacked runner honors the dashboard value (#8056). Explicit
-  // step.config still wins so combo pipelines can override per step.
-  const headroomDetail =
-    step.engine === "headroom" ? (options?.config?.headroom ?? {}) : {};
+  // Detail sub-objects (headroom.minRows #8056; sessionDedup/ccr #8388) live on
+  // settings.<engine>, not only on step.config. Merge them so the stacked runner
+  // honors the dashboard value. Explicit step.config still wins so combo pipelines
+  // can override per step. See resolveStepDetailConfig (stepDetailConfig.ts).
   const stepConfig: Record<string, unknown> = {
-    ...headroomDetail,
+    ...resolveStepDetailConfig(step.engine, options?.config),
     ...(step.config ?? {}),
     ...(step.intensity ? { intensity: step.intensity } : {}),
   };

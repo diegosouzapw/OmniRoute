@@ -360,22 +360,26 @@ test("Chat -> Responses converts messages, tool calls, tool outputs, tools and p
         { type: "input_image", image_url: "https://example.com/cat.png", detail: "high" },
         { type: "input_file", file_data: "abc", filename: "doc.txt" },
       ],
+      status: "completed",
     },
     {
       type: "message",
       role: "assistant",
       content: [{ type: "output_text", text: "Done" }],
+      status: "completed",
     },
     {
       type: "function_call",
       call_id: "call_1",
       name: "read_file",
       arguments: '{"path":"/tmp/a"}',
+      status: "completed",
     },
     {
       type: "function_call_output",
       call_id: "call_1",
       output: [{ type: "input_text", text: "ok" }],
+      status: "completed",
     },
   ]);
   assert.deepEqual((result as any).tools, [
@@ -520,6 +524,7 @@ test("Chat -> Responses converts assistant image_url history parts to output_tex
         { type: "output_text", text: "I inspected the screenshot." },
         { type: "output_text", text: "[Image: https://example.com/scope.png]" },
       ],
+      status: "completed",
     },
   ]);
   assert.equal(JSON.stringify(result).includes('"image_url"'), false);

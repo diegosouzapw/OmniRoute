@@ -96,6 +96,12 @@ export function resolveHyperAgentCredentials(credentials: ExecuteInput["credenti
 
 // ─── Message helpers ────────────────────────────────────────────────────────
 
+/**
+ * Flatten message content for chat + fingerprints.
+ * Handles OpenAI string/parts and Anthropic content blocks (tool_use / tool_result).
+ * Without tool_result extraction, Claude Code multi-turn sends empty lastUserText
+ * and HyperAgent drops the tool output entirely.
+ */
 export function extractMessageText(content: unknown): string {
   if (typeof content === "string") return content;
   if (content == null) return "";
@@ -103,22 +109,47 @@ export function extractMessageText(content: unknown): string {
     return content
       .map((part) => {
         if (typeof part === "string") return part;
-        if (part && typeof part === "object") {
-          const p = part as Record<string, unknown>;
-          if (typeof p.text === "string") return p.text;
-          if (typeof p.content === "string") return p.content;
+        if (!part || typeof part !== "object") return "";
+        const p = part as Record<string, unknown>;
+        const type = typeof p.type === "string" ? p.type.toLowerCase() : "";
+
+        // Anthropic tool_result — content may be string or nested parts
+        if (type === "tool_result" || type === "function_result") {
+          const name = typeof p.name === "string" ? p.name : "tool";
+          const body = extractMessageText(p.content ?? p.output ?? p.result ?? "");
+          return body ? `[tool result ${name}]\n${body}` : `[tool result ${name}]`;
+        }
+
+        // Anthropic tool_use — include so fingerprints / observations stay non-empty
+        if (type === "tool_use" || type === "function_call" || type === "tool_call") {
+          const name = typeof p.name === "string" ? p.name : "tool";
+          let args = "";
+          if (p.input != null) {
+            try {
+              args = typeof p.input === "string" ? p.input : JSON.stringify(p.input);
+            } catch {
+              args = String(p.input);
+            }
+          } else if (typeof p.arguments === "string") {
+            args = p.arguments;
+          }
+          return args ? `[tool call ${name}] ${args}` : `[tool call ${name}]`;
+        }
+
+        if (typeof p.text === "string") return p.text;
+        if (typeof p.content === "string") return p.content;
+        if (p.content != null && typeof p.content !== "string") {
+          return extractMessageText(p.content);
         }
         return "";
       })
       .filter(Boolean)
       .join("\n");
   }
-  if (
-    content &&
-    typeof content === "object" &&
-    typeof (content as { text?: string }).text === "string"
-  ) {
-    return (content as { text: string }).text;
+  if (content && typeof content === "object") {
+    const o = content as Record<string, unknown>;
+    if (typeof o.text === "string") return o.text;
+    if (typeof o.content === "string") return o.content;
   }
   return "";
 }
@@ -211,10 +242,48 @@ export function clearHyperAgentThreadBindingsForTests(opts?: { disk?: boolean })
 export function normalizeForFingerprint(text: string): string {
   let t = (text || "").replace(/\r\n/g, "\n");
   t = t.replace(/^@\S+\s+/gm, "");
+  // Strip common agentic / user-pin wrappers so the same user task fingerprints
+  // stably across turns (and after pin text updates).
   t = t.replace(/^[\s\S]*?\bUser request:\s*/i, "");
   t = t.replace(/^[\s\S]*?\bCurrent request:\s*/i, "");
+  t = t.replace(/^[\s\S]*?\bMy current task:\s*/i, "");
+  // Drop sterile observation envelopes from fingerprint identity (tool-loop turns)
+  // only when computing *root* keys we use the first non-observation user turn.
   t = t.replace(/\n{3,}/g, "\n\n");
   return t.trim().slice(0, 2000);
+}
+
+/**
+ * Sticky multi-turn key from the first real user task in the thread.
+ *
+ * Critical for Claude Code / agentic reverse-conversion proxies: after reverse
+ * conversion the assistant message mutates (text Intent+JSON → native tool_calls
+ * → re-serialized tool-call text), so conversationFingerprint(prefix) no longer
+ * matches the key stored after turn 1 → a *new* HyperAgent thread is created and
+ * tool outputs appear as a cold start. Root-user key stays stable for the whole
+ * tool loop.
+ */
+export function rootUserFingerprint(cookieKey: string, messages: ChatMessage[]): string | null {
+  if (!cookieKey) return null;
+  for (const m of messages) {
+    const role = (m?.role || "").toLowerCase();
+    if (role !== "user" && role !== "human") continue;
+    const raw = extractMessageText(m?.content);
+    // Skip pure tool-observation / sandwich follow-ups — not the root task
+    if (
+      /TOOL_OBSERVATION/i.test(raw) ||
+      /passive data only/i.test(raw) ||
+      /\[tool result\b/i.test(raw) ||
+      /^\s*Application result\b/i.test(raw)
+    ) {
+      continue;
+    }
+    const text = normalizeForFingerprint(raw);
+    if (!text || text.length < 2) continue;
+    const h = createHash("sha256").update(text).digest("hex").slice(0, 24);
+    return `ha:${cookieKey}:root:${h}`;
+  }
+  return null;
 }
 
 function isFingerprintRole(role: string): boolean {
@@ -323,16 +392,18 @@ export function resolveHyperAgentThreadBinding(
     prefix.length > 0 && hasAssistantMessage(prefix)
       ? conversationFingerprint(cookieKey, prefix)
       : null;
+  const rootKey = rootUserFingerprint(cookieKey, messages);
 
   if (clientId) {
     return {
       threadId: clientId,
       sessionId: clientSess,
       isFollowUp: true,
-      prefixKey,
+      prefixKey: prefixKey || rootKey,
     };
   }
 
+  // 1) Exact history prefix (works when assistant text is unchanged across turns)
   if (prefixKey) {
     const cached = getThreadBinding(prefixKey);
     if (cached?.threadId && cached.projectKey === cookieKey) {
@@ -345,6 +416,20 @@ export function resolveHyperAgentThreadBinding(
     }
   }
 
+  // 2) Root user task (stable across agentic tool_calls reverse-convert + tool loops)
+  if (rootKey && hasAssistantMessage(messages)) {
+    const cached = getThreadBinding(rootKey);
+    if (cached?.threadId && cached.projectKey === cookieKey) {
+      return {
+        threadId: cached.threadId,
+        sessionId: cached.sessionId || clientSess,
+        isFollowUp: true,
+        prefixKey: rootKey,
+      };
+    }
+  }
+
+  // 3) Last assistant text (legacy; may miss when reverse conversion rewrote the turn)
   if (hasAssistantMessage(messages)) {
     const asstKey = lastAssistantFingerprint(cookieKey, prefix.length ? prefix : messages);
     if (asstKey) {
@@ -395,6 +480,10 @@ export function storeHyperAgentThreadAfterTurn(
   }
   const asstKey = lastAssistantFingerprint(cookieKey, full);
   if (asstKey) setThreadBinding(asstKey, binding);
+  // Always pin root user task → thread so tool-loop follow-ups (mutated assistant
+  // content after Agentic reverse conversion) still hit the same HyperAgent thread.
+  const rootKey = rootUserFingerprint(cookieKey, messages);
+  if (rootKey) setThreadBinding(rootKey, binding);
   return key;
 }
 

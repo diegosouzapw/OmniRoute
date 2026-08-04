@@ -1,1 +1,0 @@
-- fix(oauth): stop Codex OAuth completion from collapsing distinct accounts that share an email but have no workspaceId, by requiring chatgptUserId agreement before merging (#7737)

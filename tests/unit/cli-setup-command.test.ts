@@ -165,3 +165,78 @@ test("setup command can test provider and persist active status", async () => {
     assert.equal(provider.last_error, null);
   });
 });
+
+test("setup command reads the admin password from INITIAL_PASSWORD when --password is not set", async () => {
+  const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+  await withTempEnv(async (dataDir) => {
+    process.env.INITIAL_PASSWORD = "env-var-secret";
+
+    const loggedLines: string[] = [];
+    const originalConsoleLog = console.log;
+    console.log = (...args: unknown[]) => {
+      loggedLines.push(args.map(String).join(" "));
+    };
+
+    try {
+      const { runSetupCommand } = await import("../../bin/cli/commands/setup.mjs");
+
+      const exitCode = await runSetupCommand({ nonInteractive: true });
+
+      assert.equal(exitCode, 0);
+
+      const db = new Database(path.join(dataDir, "storage.sqlite"));
+      const rows = db
+        .prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'")
+        .all() as Array<{ key: string; value: string }>;
+      const settings = Object.fromEntries(rows.map((row) => [row.key, JSON.parse(row.value)]));
+      db.close();
+
+      assert.equal(settings.requireLogin, true);
+      assert.equal(await bcrypt.compare("env-var-secret", settings.password as string), true);
+
+      // The raw password must never be echoed to stdout while resolving/setting it.
+      assert.ok(
+        !loggedLines.some((line) => line.includes("env-var-secret")),
+        "INITIAL_PASSWORD value must not be logged during setup"
+      );
+    } finally {
+      console.log = originalConsoleLog;
+    }
+  });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+});
+
+test("setup command prioritizes an explicit --password flag over INITIAL_PASSWORD", async () => {
+  const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
+  await withTempEnv(async (dataDir) => {
+    process.env.INITIAL_PASSWORD = "env-var-should-lose";
+
+    const { runSetupCommand } = await import("../../bin/cli/commands/setup.mjs");
+
+    const exitCode = await runSetupCommand({
+      nonInteractive: true,
+      password: "flag-should-win",
+    });
+
+    assert.equal(exitCode, 0);
+
+    const db = new Database(path.join(dataDir, "storage.sqlite"));
+    const passwordRow = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = 'password'")
+      .get() as { value: string };
+    db.close();
+
+    const storedHash = JSON.parse(passwordRow.value) as string;
+    assert.equal(await bcrypt.compare("flag-should-win", storedHash), true);
+    assert.equal(await bcrypt.compare("env-var-should-lose", storedHash), false);
+  });
+  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+  }
+});

@@ -1,1 +1,0 @@
-- fix(sse): combo failover now detects OpenAI-shape streams truncated without `finish_reason`/`[DONE]` (#7285)

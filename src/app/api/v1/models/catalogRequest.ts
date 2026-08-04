@@ -66,3 +66,14 @@ export function isCodexModelCatalogClient(request: Request): boolean {
   const userAgent = headers.get("user-agent")?.toLowerCase() ?? "";
   return userAgent.startsWith("codex");
 }
+
+/**
+ * Detect a `GET /v1/models` catalog request coming from the Claude Code CLI,
+ * for the cc-discovery usage metric only (never changes the response shape).
+ * Reuses the same `claude-cli` User-Agent substring check as
+ * open-sse/utils/bypassHandler.ts's `handleBypassRequest`.
+ */
+export function isCcDiscoveryModelCatalogClient(request: Request): boolean {
+  const userAgent = request.headers.get("user-agent")?.toLowerCase() ?? "";
+  return userAgent.includes("claude-cli");
+}

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import os from "node:os";
 import { t } from "../i18n.mjs";
 import { resolveActiveContext } from "../contexts.mjs";
+import { quoteShellArgs } from "../utils/winShellArgs.mjs";
 
 function stripTrailingSlash(value) {
   let s = String(value);
@@ -91,6 +92,34 @@ export function resolveLaunchTarget(opts = {}) {
 }
 
 /**
+ * #8246: on Windows, npm installs claude as a `.cmd` shim — spawn() without a
+ * shell cannot resolve PATHEXT shims (and Node refuses to exec `.cmd` directly
+ * since CVE-2024-27980), so the Windows path must go through cmd.exe.
+ *
+ * @param {NodeJS.Platform|string} platform
+ * @returns {{ command: string, shell: true|undefined }}
+ */
+export function resolveClaudeSpawn(platform) {
+  return platform === "win32"
+    ? { command: "claude.cmd", shell: true }
+    : { command: "claude", shell: undefined };
+}
+
+/**
+ * `shell: true` makes Node join argv with plain spaces and no escaping (the
+ * DEP0190 warning), so `-p "two words"` used to reach claude as `-p two` plus
+ * three stray positional arguments. Quote the args ourselves on that path.
+ * Off Windows there is no shell, so argv is passed through untouched.
+ *
+ * @param {string[]} args
+ * @param {NodeJS.Platform|string} platform
+ * @returns {string[]}
+ */
+export function quoteClaudeArgs(args, platform) {
+  return quoteShellArgs(args, platform);
+}
+
+/**
  * @param {{port?:string, remote?:string, token?:string, apiKey?:string, profile?:string, claudeHome?:string}} opts
  * @param {string[]} claudeArgs  pass-through args for the claude binary
  * @returns {Promise<number>} exit code
@@ -106,10 +135,10 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
     if (!res.ok) throw new Error(`status ${res.status}`);
   } catch {
     console.error(
-      (t("launch.notRunning") || "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'.").replace(
-        "{port}",
-        baseUrl
-      )
+      (
+        t("launch.notRunning") ||
+        "OmniRoute is not reachable at {port}. Start it with 'omniroute serve'."
+      ).replace("{port}", baseUrl)
     );
     return 1;
   }
@@ -120,7 +149,13 @@ export async function runLaunchCommand(opts = {}, claudeArgs = []) {
   const env = buildClaudeEnv(process.env, baseUrl, authToken, { configDir });
 
   return await new Promise((resolve) => {
-    const child = spawn("claude", claudeArgs, { env, stdio: "inherit" });
+    const { command, shell } = resolveClaudeSpawn(process.platform);
+    const child = spawn(command, quoteClaudeArgs(claudeArgs, process.platform), {
+      env,
+      stdio: "inherit",
+      shell,
+      ...(process.platform === "win32" ? { windowsHide: true } : {}),
+    });
     child.on("error", (err) => {
       if (err && err.code === "ENOENT") {
         console.error(t("launch.notFound") || "The 'claude' CLI was not found in PATH.");
@@ -142,14 +177,20 @@ export function registerLaunch(program) {
     )
     .option("--port <port>", t("serve.port") || "Proxy port", "20128")
     .option("--remote <url>", "Remote OmniRoute base URL (overrides --port and the active context)")
-    .option("--profile <name>", "Claude Code profile to use (CLAUDE_CONFIG_DIR ~/.claude/profiles/<name>)")
+    .option(
+      "--profile <name>",
+      "Claude Code profile to use (CLAUDE_CONFIG_DIR ~/.claude/profiles/<name>)"
+    )
     .option("--token <token>", t("launch.token") || "Token Claude sends (ANTHROPIC_AUTH_TOKEN)")
     .option("--api-key <key>", "Alias for --token (OmniRoute access token / API key)")
     .allowUnknownOption(true)
     .allowExcessArguments(true)
     .argument("[claudeArgs...]", "arguments passed through to the claude binary")
     .action(async (claudeArgs, opts) => {
-      const exitCode = await runLaunchCommand(opts, claudeArgs ?? []);
-      if (exitCode !== 0) process.exit(exitCode);
+      // process.exit() here aborted the process with a libuv assertion on
+      // Windows (`!(handle->flags & UV_HANDLE_CLOSING)`, async.c:94): it tears
+      // the loop down while the inherited stdio handles of the just-exited
+      // child are still closing. Setting exitCode lets the loop drain first.
+      process.exitCode = await runLaunchCommand(opts, claudeArgs ?? []);
     });
 }

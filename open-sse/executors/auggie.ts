@@ -150,6 +150,19 @@ export async function initAuggieModels(
 type AuggieModelResolution = { ok: true; model: string } | { ok: false; error: string };
 
 /**
+ * This workspace compiles with `strictNullChecks: false`, where a boolean-literal
+ * discriminant narrows the positive branch but not the negative one — so `!r.ok` alone
+ * leaves `r` as the full union and reading `.error` fails. An explicit type predicate
+ * narrows under those settings without retagging the union (which is public API here:
+ * `resolveAuggieModel` is exported and its tests deep-equal the `{ ok: true, ... }` shape).
+ */
+function isAuggieModelFailure(
+  resolution: AuggieModelResolution
+): resolution is Extract<AuggieModelResolution, { ok: false }> {
+  return !resolution.ok;
+}
+
+/**
  * Validate + resolve the requested model against the registry allowlist.
  * Rejects flag-smuggling (leading "-") and any id not declared in the registry.
  * An empty/absent model resolves to the registry's first (default) model.
@@ -384,7 +397,7 @@ export class AuggieExecutor extends BaseExecutor {
     await initAuggieModels(signal);
     // Argument-injection defense: never forward an unvalidated model into the argv.
     const modelResolution = resolveAuggieModel(model);
-    if (!modelResolution.ok) {
+    if (isAuggieModelFailure(modelResolution)) {
       const response = wantsStream
         ? buildAuggieSseError(modelResolution.error)
         : errorResponse(400, modelResolution.error);

@@ -4,8 +4,6 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
 } from "@/sse/services/auth";
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import * as log from "@/sse/utils/logger";
@@ -13,6 +11,8 @@ import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { enforceClientApiRouteAuth } from "@/shared/utils/clientApiRouteAuth";
+import { runWithCallLogApiKeyContext } from "@/lib/usage/callLogApiKeyContext";
 
 /**
  * Handle CORS preflight
@@ -55,6 +55,9 @@ export async function POST(request, { params }) {
     body.model = `${rawProvider}/${body.model}`;
   }
 
+  const authRejection = await enforceClientApiRouteAuth(request);
+  if (authRejection) return authRejection;
+
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
@@ -84,7 +87,13 @@ export async function POST(request, { params }) {
     );
   }
 
-  const result = await handleImageGeneration({ body, credentials, log });
+  const result = await runWithCallLogApiKeyContext(
+    {
+      apiKeyId: policy.apiKeyInfo?.id ?? null,
+      apiKeyName: policy.apiKeyInfo?.name ?? null,
+    },
+    () => handleImageGeneration({ body, credentials, log })
+  );
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);

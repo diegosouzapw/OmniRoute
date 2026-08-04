@@ -1,1 +1,0 @@
-- **fix(executors):** Codex Responses Lite requests force serial tool calls required by the upstream API ([#7171](https://github.com/diegosouzapw/OmniRoute/pull/7171)) — thanks @fenix007

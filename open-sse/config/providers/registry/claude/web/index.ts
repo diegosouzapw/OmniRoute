@@ -10,6 +10,15 @@ export const claude_webProvider: RegistryEntry = {
   authHeader: "cookie",
   models: [
     { id: "claude-fable-5", name: "Claude Fable 5 (web)", toolCalling: false },
+    {
+      id: "claude-opus-5",
+      name: "Claude Opus 5 (web)",
+      toolCalling: false,
+      supportsReasoning: true,
+      supportsVision: true,
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+    },
     { id: "claude-opus-4-8", name: "Claude Opus 4.8 (web)", toolCalling: false },
     { id: "claude-opus-4-7", name: "Claude Opus 4.7 (web)", toolCalling: false },
     { id: "claude-opus-4-6", name: "Claude Opus 4.6 (web)", toolCalling: false },

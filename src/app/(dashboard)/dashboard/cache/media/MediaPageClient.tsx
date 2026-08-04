@@ -10,7 +10,7 @@ import {
   AUDIO_SPEECH_PROVIDERS,
   AUDIO_TRANSCRIPTION_PROVIDERS,
 } from "@omniroute/open-sse/config/audioRegistry.ts";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { toProviderModels, type ProviderModelGroup } from "./mediaProviderModels";
 
 type Modality = "image" | "video" | "music" | "speech" | "transcription";
 type GenerationResult = {
@@ -19,27 +19,6 @@ type GenerationResult = {
   timestamp: number;
   audioUrl?: string;
 };
-type MediaModelConfig = { id: string; name: string };
-type MediaProviderConfig = { id: string; models: MediaModelConfig[] };
-type ProviderModelGroup = {
-  id: string;
-  name: string;
-  models: { id: string; name: string }[];
-};
-
-const PROVIDER_METADATA = AI_PROVIDERS as Record<string, { name?: string }>;
-
-function toProviderModels(registry: Record<string, MediaProviderConfig>): ProviderModelGroup[] {
-  return Object.entries(registry).map(([providerId, config]) => ({
-    id: providerId,
-    name: PROVIDER_METADATA[providerId]?.name || config.id || providerId,
-    models: config.models.map((model) => ({
-      id: model.id.startsWith(`${providerId}/`) ? model.id : `${providerId}/${model.id}`,
-      name: model.name,
-    })),
-  }));
-}
-
 const IMAGE_PROVIDER_MODELS = toProviderModels(IMAGE_PROVIDERS);
 const VIDEO_PROVIDER_MODELS = toProviderModels(VIDEO_PROVIDERS);
 const MUSIC_PROVIDER_MODELS = toProviderModels(MUSIC_PROVIDERS);

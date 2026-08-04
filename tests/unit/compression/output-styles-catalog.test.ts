@@ -7,8 +7,8 @@ import {
   type OutputStyle,
 } from "../../../open-sse/services/compression/outputStyles/catalog.ts";
 
-test("catalog seeds terse-prose, less-code, terse-cjk with all three levels", () => {
-  for (const id of ["terse-prose", "less-code", "terse-cjk"]) {
+test("catalog seeds terse-prose, less-code, ponytail, terse-cjk with all three levels", () => {
+  for (const id of ["terse-prose", "less-code", "ponytail", "terse-cjk"]) {
     const meta = outputStyleMeta(id);
     assert.ok(meta, `${id} present`);
     assert.equal(typeof meta.label, "string");

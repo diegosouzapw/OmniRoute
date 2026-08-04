@@ -13,6 +13,15 @@ import { getDefaultPricing } from "../../src/shared/constants/pricing.ts";
 //   - cache hit (cached)   = 0.1x input
 //   - reasoning tokens are billed at the OUTPUT rate
 
+test("cc/claude-opus-5 matches Anthropic Opus 5 pricing", () => {
+  const p = getDefaultPricing().cc["claude-opus-5"];
+  assert.equal(p.input, 5.0);
+  assert.equal(p.output, 25.0);
+  assert.equal(p.cached, 0.5);
+  assert.equal(p.reasoning, 25.0);
+  assert.equal(p.cache_creation, 6.25);
+});
+
 test("cc/claude-opus-4-6 matches Anthropic Opus 4.6 pricing", () => {
   const p = getDefaultPricing().cc["claude-opus-4-6"];
   assert.equal(p.input, 5.0);

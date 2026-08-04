@@ -187,7 +187,11 @@ async function directFetch(
   signal?: AbortSignal | null
 ): Promise<Response> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 120_000);
+  const timer = setTimeout(() => {
+    const err = new Error("theoldllm timeout after 120000ms");
+    err.name = "TimeoutError";
+    controller.abort(err);
+  }, 120_000);
   const onSignal = signal ? () => controller.abort(signal.reason) : undefined;
   signal?.addEventListener("abort", onSignal!, { once: true });
 

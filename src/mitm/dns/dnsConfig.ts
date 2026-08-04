@@ -257,6 +257,19 @@ export function checkDNSEntry(): boolean {
 }
 
 /**
+ * Check whether ALL hosts for the given agent are present in /etc/hosts.
+ * Falls back to the Antigravity legacy hosts when `agentId` is omitted or
+ * unknown, via `resolveHostsForAgent()` — so callers get the same host set
+ * that `addDNSEntry`/`removeDNSEntry` already use for that agent. Used by
+ * `getMitmStatus()` to answer "are THIS agent's hosts spoofed?" instead of
+ * always checking the Antigravity-only set (#8466).
+ */
+export function checkDNSEntryForAgent(agentId?: string): boolean {
+  const hostsContent = readHostsFile();
+  return resolveHostsForAgent(agentId).every((h) => hasHostEntry(hostsContent, h));
+}
+
+/**
  * Add DNS entries for the Antigravity default hosts, or for a specific agent
  * when `agentId` is provided.
  * Delegates to `addDNSEntries` — backward compat wrapper.

@@ -143,3 +143,33 @@ test("runJsonMigration normalizes legacy combo strategy names at the import boun
   assert.equal(byId.get("combo-usage").config.strategy, "context-optimized");
   assert.equal(byId.get("combo-unknown").strategy, "priority");
 });
+
+
+test("runJsonMigration rejects invalid combo invariants atomically", () => {
+  const db = core.getDbInstance();
+
+  assert.throws(
+    () =>
+      runJsonMigration(db, {
+        settings: { importedBeforeFailure: true },
+        combos: [
+          {
+            id: "invalid-import-combo",
+            name: "invalid-import-combo",
+            allowedProviders: ["github"],
+            allowedModelFamilies: ["gpt"],
+            models: [{ provider: "zai", model: "zai/glm-5" }],
+          },
+        ],
+      }),
+    /target 1 \(zai\/glm-5\) violates its invariant/
+  );
+
+  assert.equal(db.prepare("SELECT COUNT(*) count FROM combos").get().count, 0);
+  assert.equal(
+    db
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get("settings", "importedBeforeFailure"),
+    undefined
+  );
+});

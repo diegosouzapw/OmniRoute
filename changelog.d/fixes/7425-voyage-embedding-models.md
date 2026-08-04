@@ -1,1 +1,0 @@
-- fix(embeddings): remove the non-existent `voyage-multilingual-3.5` from the embedding registry and add the missing Voyage models (#7425 — thanks @kamenkadmitry)

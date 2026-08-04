@@ -40,7 +40,10 @@ function validEvents(): Array<Record<string, unknown>> {
     {
       type: "content_block_delta",
       index: 0,
-      delta: { type: "thinking_summary_delta", summary: "summary" },
+      delta: {
+        type: "thinking_summary_delta",
+        summary: { summary: "summary" },
+      },
     },
     { type: "content_block_stop", index: 0 },
     { type: "content_block_start", index: 1, content_block: { type: "text" } },

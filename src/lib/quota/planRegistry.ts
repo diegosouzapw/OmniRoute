@@ -80,6 +80,13 @@ const KNOWN_PLANS: Record<string, KnownPlanShape> = {
     provider: "xiaomi-mimo",
     dimensions: [{ unit: "tokens", window: "monthly", limit: 4_100_000_000 }],
   },
+  // Xiaomi MiMo Token Plan (token-plan-sgp): same MONTHLY allowance with no
+  // balance API as the regular account plan. Adjust in the Wizard's "Limite"
+  // step when the connection is on a different plan.
+  "xiaomi-mimo-token-plan": {
+    provider: "xiaomi-mimo-token-plan",
+    dimensions: [{ unit: "tokens", window: "monthly", limit: 4_100_000_000 }],
+  },
   alibaba: {
     provider: "alibaba",
     dimensions: [{ unit: "requests", window: "monthly", limit: 90_000 }],

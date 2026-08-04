@@ -1,7 +1,7 @@
 ---
 title: "Termux Headless Setup"
-version: 3.8.40
-lastUpdated: 2026-06-28
+version: 3.8.49
+lastUpdated: 2026-07-25
 ---
 
 # Termux Headless Setup
@@ -128,6 +128,29 @@ omniroute
 - MITM/system certificate features may require Android-level trust-store work outside Termux.
 
 ## Troubleshooting
+
+### Unsupported platform: android (every request returns HTTP 500)
+
+**Symptom:** `omniroute` / `omniroute serve` prints `✔ OmniRoute is running!`, but every dashboard or API request returns a bare `500 Internal Server Error`. `~/.omniroute/logs/application/app.log` stays empty, `APP_LOG_LEVEL=debug` prints nothing useful, and the response body is plain text (`Internal Server Error`) with no JSON detail.
+
+**Cause:** Some Termux/Node builds report `process.platform === "android"`. Next.js `getCacheDirectory()` does not handle that platform: it requires `~/.cache` (or a generic tmp dir) to _already_ exist, otherwise it fails while loading the instrumentation hook with:
+
+```text
+Error: An error occurred while loading instrumentation hook: Unsupported platform: android
+```
+
+Because the hook never loads, logging never starts — the 500 looks completely undiagnosable. OmniRoute creates `~/.cache` (and sets `XDG_CACHE_HOME` when unset) in the CLI entrypoint before Next.js starts so this probe succeeds on Android/Termux.
+
+**Supported resolution (no package patching):**
+
+```bash
+mkdir -p ~/.cache
+omniroute serve
+```
+
+On current OmniRoute builds the CLI does this automatically on Android/Termux — a fresh `npx -y omniroute@latest` / global install should not require the manual step. If you still see the error after upgrading, create `~/.cache` once as above and restart.
+
+**Do not** patch `dist/server.js` to force `process.platform = "linux"`. That kind of package patch is overwritten on every reinstall/upgrade and is unnecessary once the cache directory exists.
 
 ### better-sqlite3 Build Errors
 

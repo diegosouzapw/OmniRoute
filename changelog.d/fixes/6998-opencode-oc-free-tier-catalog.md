@@ -1,1 +1,0 @@
-- fix(providers): refresh OpenCode (`oc`) free-tier model catalog — 6 delisted IDs replaced with the 4 currently-live free models (#6998)

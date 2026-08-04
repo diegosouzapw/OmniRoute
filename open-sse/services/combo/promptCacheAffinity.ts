@@ -238,6 +238,34 @@ export function expandPromptCacheAffinityTargetsFromConnections(
 }
 
 /**
+ * #8370: decide whether the strategy-selected first target must be re-pinned
+ * ahead of a global, cross-model prompt-cache-affinity reorder.
+ *
+ * `priority`, `fill-first`, and `lkgp` are deterministic, operator-ordered
+ * strategies: their first target is a meaningful choice (explicit priority
+ * order, first-available slot, last-known-good pin) that a rendezvous-hash
+ * reorder must not silently override, even though affinity is still free to
+ * pick among the remaining/fallback targets. `quota-share` and `weighted`
+ * were already protected before this fix; session stickiness and an explicit
+ * auto-router pin remain independently protected via their own flags.
+ */
+export function shouldProtectOriginalFirst(
+  stickyStuck: boolean,
+  autoUsedExplicitRouter: boolean,
+  strategy: string
+): boolean {
+  return (
+    stickyStuck ||
+    autoUsedExplicitRouter ||
+    strategy === "quota-share" ||
+    strategy === "weighted" ||
+    strategy === "priority" ||
+    strategy === "fill-first" ||
+    strategy === "lkgp"
+  );
+}
+
+/**
  * Order eligible targets using rendezvous hashing. The original order is used
  * as the final tie-breaker, so targets sharing one account identity remain
  * stable without using modelStr as the affinity identity.

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
+import { classifyIpScope } from "@/lib/ipUtils";
 import { getCachedSettings } from "@/lib/localDb";
 import { SignJWT } from "jose";
 import { cookies } from "next/headers";
@@ -168,6 +169,11 @@ export async function POST(request) {
 
     const failureDecision = recordLoginFailure(clientIp, { enabled: bruteForceEnabled });
 
+    // #8336: tag the origin scope so the audit view can distinguish a mistyped
+    // password from the host itself / the LAN (loopback / private) from a
+    // genuinely external attempt, instead of every failure reading as intrusion.
+    const sourceScope = classifyIpScope(auditContext.ipAddress);
+
     logAuditEvent({
       action: "auth.login.failed",
       actor: "anonymous",
@@ -176,7 +182,12 @@ export async function POST(request) {
       status: "failed",
       ipAddress: auditContext.ipAddress || undefined,
       requestId: auditContext.requestId,
-      metadata: { reason: "invalid_password", lockedOut: failureDecision.allowed === false },
+      metadata: {
+        reason: "invalid_password",
+        lockedOut: failureDecision.allowed === false,
+        sourceScope,
+        internalOrigin: sourceScope === "loopback" || sourceScope === "private",
+      },
     });
 
     if (!failureDecision.allowed) {

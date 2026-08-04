@@ -1,1 +1,0 @@
-- **feat(sse):** preserve `tools`/`tool_choice` for tool-bearing requests through fusion combos — bypass panel synthesis and route straight to the judge with tools intact (#6771 — thanks @chirag127).

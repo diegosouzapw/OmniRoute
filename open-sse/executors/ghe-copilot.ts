@@ -38,15 +38,36 @@ export class GheCopilotExecutor extends GithubExecutor {
       (typeof psd?.copilotApiUrl === "string" ? psd.copilotApiUrl : undefined) ||
       (typeof psd?.copilotProxyUrl === "string" ? psd.copilotProxyUrl : undefined);
     if (apiOrProxy) {
-      const base = apiOrProxy.replace(/\/+$/, "");
+      const base = apiOrProxy.replace(/\/chat\/completions\/?$/, "").replace(/\/responses\/?$/, "").replace(/\/+$/, "");
       return base.endsWith("/chat/completions") ? base : `${base}/chat/completions`;
     }
     const gheUrl = psd?.gheUrl as string | undefined;
     if (!gheUrl) {
       throw new Error("GHE Copilot executor requires gheUrl in providerSpecificData");
     }
-    const base = gheUrl.replace(/\/$/, "");
+    const base = gheUrl.replace(/\/chat\/completions\/?$/, "").replace(/\/responses\/?$/, "").replace(/\/+$/, "");
     return base.endsWith("/chat/completions") ? base : `${base}/chat/completions`;
+  }
+
+  /**
+   * Derive the base URL for /responses from gheUrl in providerSpecificData.
+   * Appends /responses if not already present.
+   */
+  private getResponsesBase(credentials: ProviderCredentials | null): string {
+    const psd = credentials?.providerSpecificData;
+    const apiOrProxy =
+      (typeof psd?.copilotApiUrl === "string" ? psd.copilotApiUrl : undefined) ||
+      (typeof psd?.copilotProxyUrl === "string" ? psd.copilotProxyUrl : undefined);
+    if (apiOrProxy) {
+      const base = apiOrProxy.replace(/\/chat\/completions\/?$/, "").replace(/\/responses\/?$/, "").replace(/\/+$/, "");
+      return `${base}/responses`;
+    }
+    const gheUrl = psd?.gheUrl as string | undefined;
+    if (!gheUrl) {
+      throw new Error("GHE Copilot executor requires gheUrl in providerSpecificData");
+    }
+    const base = gheUrl.replace(/\/chat\/completions\/?$/, "").replace(/\/responses\/?$/, "").replace(/\/+$/, "");
+    return `${base}/responses`;
   }
 
   /**
@@ -60,10 +81,14 @@ export class GheCopilotExecutor extends GithubExecutor {
   }
 
   override buildUrl(model: string, stream: boolean, urlIndex = 0, credentials: ProviderCredentials | null = null): string {
-    // GHE Copilot proxy only reliably serves /chat/completions. Route every
-    // model there (including ones flagged openai-responses) and let the
-    // Responses→Chat transformer handle the format. Going to /responses on the
-    // GHE proxy returns a bare 404 ("404 page not found").
+    const bareModel = this.stripPrefix(model);
+    const targetFormat = getModelTargetFormat("ghe-copilot", bareModel);
+    if (
+      (targetFormat === "openai-responses" || /codex/i.test(bareModel)) &&
+      this.supportsResponsesEndpoint(bareModel)
+    ) {
+      return this.getResponsesBase(credentials);
+    }
     return this.getChatCompletionsBase(credentials);
   }
 

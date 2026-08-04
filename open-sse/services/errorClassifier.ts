@@ -4,6 +4,7 @@ import {
   isDailyQuotaExhausted,
   isOAuthInvalidToken,
 } from "./accountFallback.ts";
+import { isSubscriptionQuotaText } from "./quotaTextCooldowns.ts";
 import { getProviderCategory, getRegistryEntry } from "../config/providerRegistry.ts";
 
 // Terminal stop signals where an empty content payload is still a legitimate,
@@ -124,6 +125,30 @@ function responseBodyToString(responseBody: unknown): string {
   return "";
 }
 
+// A provider can return 404 for request-scoped resources (Files API ids,
+// response items, uploads, etc.). These failures describe the request payload,
+// not provider/model health. Keep every expression bounded to avoid ReDoS on
+// upstream-controlled error bodies.
+const RESOURCE_NOT_FOUND_PATTERNS = [
+  /\bfiles?\b[^\n]{0,160}\b(?:not found|does not exist)\b/i,
+  /\b(?:not found|does not exist)\b[^\n]{0,160}\bfiles?\b/i,
+  /\b(?:input[_ -]?file|file[_ -]?id|item|response|vector[_ -]?store|upload)\b[^\n]{0,160}\b(?:not found|does not exist)\b/i,
+  /\b(?:not found|does not exist)\b[^\n]{0,160}\b(?:input[_ -]?file|file[_ -]?id|item|response|vector[_ -]?store|upload)\b/i,
+  /\bfile-[a-z0-9_-]+\b[^\n]{0,160}\b(?:not found|does not exist)\b/i,
+];
+
+/**
+ * Whether an upstream error identifies a missing request-scoped resource.
+ *
+ * Resource signals intentionally take precedence over an outer
+ * `code: "model_not_found"` because compatibility layers may synthesize that
+ * code from the HTTP status before preserving the upstream file error.
+ */
+export function isResourceNotFoundResponse(responseBody: unknown): boolean {
+  const body = responseBodyToString(responseBody);
+  return RESOURCE_NOT_FOUND_PATTERNS.some((pattern) => pattern.test(body));
+}
+
 function shouldPreserveQuotaSignalsFor429(provider?: string | null): boolean {
   if (!provider) return true;
   return getProviderCategory(provider) === "oauth";
@@ -136,15 +161,16 @@ export function classifyProviderError(
 ): string | null {
   const bodyStr = responseBodyToString(responseBody);
   const creditsExhausted = isCreditsExhausted(bodyStr);
+  const subscriptionQuotaExhausted = isSubscriptionQuotaText(bodyStr.toLowerCase());
   const accountDeactivated = isAccountDeactivated(bodyStr);
   const oauthInvalid = isOAuthInvalidToken(bodyStr);
   const preserveQuota429 = shouldPreserveQuotaSignalsFor429(provider);
 
-  if (creditsExhausted && [400, 402, 403].includes(statusCode)) {
+  if ((creditsExhausted || subscriptionQuotaExhausted) && [400, 402, 403].includes(statusCode)) {
     return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
-  if (creditsExhausted && statusCode === 429 && preserveQuota429) {
+  if ((creditsExhausted || subscriptionQuotaExhausted) && statusCode === 429 && preserveQuota429) {
     return PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED;
   }
 
@@ -162,8 +188,11 @@ export function classifyProviderError(
   // falls through to `return null`, so no cooldown/lockout is applied and the
   // retry/backoff loop keeps hammering the dead endpoint until the upstream
   // rate-limits it (404 + 429 storm). Classify as MODEL_NOT_FOUND so the model
-  // gets locked via the cooldown layer and retries stop. (#6827)
+  // gets locked via the cooldown layer and retries stop. Request-scoped
+  // resource errors are excluded because retrying another account/model cannot
+  // make an unknown file/item id valid. (#6827)
   if (statusCode === 404) {
+    if (isResourceNotFoundResponse(responseBody)) return null;
     return PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND;
   }
 
@@ -232,8 +261,18 @@ export function classifyProviderError(
   }
   if (statusCode >= 500) return PROVIDER_ERROR_TYPES.SERVER_ERROR;
 
-  if (statusCode === 400 && isContextOverflow(bodyStr)) {
-    return PROVIDER_ERROR_TYPES.CONTEXT_OVERFLOW;
+  if (statusCode === 400) {
+    if (isContextOverflow(bodyStr)) {
+      return PROVIDER_ERROR_TYPES.CONTEXT_OVERFLOW;
+    }
+    // Some providers (e.g. Antigravity's Pro-fallback chain, #8136) return a
+    // plain 400 for a model that is no longer available, instead of 404/401.
+    // Without this check the error falls through to `return null`, so
+    // lockModel() never fires and the same dead model gets retried on every
+    // request. Detect the phrasing here, same as the 401 branch above (#7268).
+    if (containsModelUnavailableMessage(bodyStr)) {
+      return PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND;
+    }
   }
 
   return null;

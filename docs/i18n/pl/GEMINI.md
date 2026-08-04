@@ -1,25 +1,50 @@
-# Security and Cleanliness Rules for AI Assistants (Polski)
+# Zasady bezpieczeństwa i porządku dla asystentów AI
 
-🌐 **Languages:** 🇺🇸 [English](../../../GEMINI.md) · 🇸🇦 [ar](../ar/GEMINI.md) · 🇧🇬 [bg](../bg/GEMINI.md) · 🇧🇩 [bn](../bn/GEMINI.md) · 🇨🇿 [cs](../cs/GEMINI.md) · 🇩🇰 [da](../da/GEMINI.md) · 🇩🇪 [de](../de/GEMINI.md) · 🇪🇸 [es](../es/GEMINI.md) · 🇮🇷 [fa](../fa/GEMINI.md) · 🇫🇮 [fi](../fi/GEMINI.md) · 🇫🇷 [fr](../fr/GEMINI.md) · 🇮🇳 [gu](../gu/GEMINI.md) · 🇮🇱 [he](../he/GEMINI.md) · 🇮🇳 [hi](../hi/GEMINI.md) · 🇭🇺 [hu](../hu/GEMINI.md) · 🇮🇩 [id](../id/GEMINI.md) · 🇮🇹 [it](../it/GEMINI.md) · 🇯🇵 [ja](../ja/GEMINI.md) · 🇰🇷 [ko](../ko/GEMINI.md) · 🇮🇳 [mr](../mr/GEMINI.md) · 🇲🇾 [ms](../ms/GEMINI.md) · 🇳🇱 [nl](../nl/GEMINI.md) · 🇳🇴 [no](../no/GEMINI.md) · 🇵🇭 [phi](../phi/GEMINI.md) · 🇵🇱 [pl](../pl/GEMINI.md) · 🇵🇹 [pt](../pt/GEMINI.md) · 🇧🇷 [pt-BR](../pt-BR/GEMINI.md) · 🇷🇴 [ro](../ro/GEMINI.md) · 🇷🇺 [ru](../ru/GEMINI.md) · 🇸🇰 [sk](../sk/GEMINI.md) · 🇸🇪 [sv](../sv/GEMINI.md) · 🇰🇪 [sw](../sw/GEMINI.md) · 🇮🇳 [ta](../ta/GEMINI.md) · 🇮🇳 [te](../te/GEMINI.md) · 🇹🇭 [th](../th/GEMINI.md) · 🇹🇷 [tr](../tr/GEMINI.md) · 🇺🇦 [uk-UA](../uk-UA/GEMINI.md) · 🇵🇰 [ur](../ur/GEMINI.md) · 🇻🇳 [vi](../vi/GEMINI.md) · 🇨🇳 [zh-CN](../zh-CN/GEMINI.md)
+> **Zakres:** reguły dla agentów opartych na Gemini. Dla Claude Code zobacz `CLAUDE.md`. Dla innych asystentów AI zobacz `AGENTS.md`.
 
----
+## 1. Umieszczanie plików i organizacja
 
-## 1. File Placement & Organization
+- **Pliki testowe**: WSZYSTKIE testy jednostkowe, integracyjne, ekosystemowe lub pliki Vitest MUSZĄ być umieszczane wyłącznie w katalogu `tests/` (np. `tests/unit/`, `tests/integration/`). NIGDY nie twórz plików testowych w katalogu głównym projektu (`/`).
+- **Skrypty i narzędzia pomocnicze**: WSZYSTKIE skrypty konserwacyjne, debugujące, generujące lub eksperymentalne (`.cjs`, `.mjs`, `.js`, `.ts`) MUSZĄ być umieszczane wyłącznie w jednym z podkatalogów `scripts/` (`build/`, `dev/`, `check/`, `docs/`, `i18n/`, `ad-hoc/`). Kod jednorazowy lub eksperymentalny trafia do `scripts/ad-hoc/`. NIGDY nie wrzucaj luźnych skryptów do katalogu głównego projektu (`/`) ani do katalogu najwyższego poziomu `scripts/`.
 
-- **Test Files**: ALL unit tests, integration tests, ecosystem tests, or Vitest files MUST strictly be placed within the `tests/` directory (e.g., `tests/unit/`, `tests/integration/`). NEVER create test files in the project root (`/`).
-- **Scripts and Utilities**: ALL maintenance, debugging, generation, or experimental scripts (`.cjs`, `.mjs`, `.js`, `.ts`) MUST be placed strictly inside the `scripts/` directory or `scripts/scratch/` for temporary one-offs. NEVER dump loose scripts in the project root (`/`).
+**Katalog główny projektu MOŻE ZAWIERAĆ WYŁĄCZNIE:**
 
-**The Project Root MUST ONLY CONTAIN:**
+- Pliki konfiguracyjne (`vitest.config.ts`, `next.config.mjs`, `eslint.config.mjs`, `tsconfig*.json`, `playwright.config.ts`, `prettier.config.mjs`, `postcss.config.mjs`, `sonar-project.properties`, `fly.toml`, `docker-compose*.yml`, `Dockerfile`)
+- Pliki zależności (`package.json`, `package-lock.json`)
+- Pliki dokumentacji (`README.md`, `CHANGELOG.md`, `LICENSE`, `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `llm.txt`, `Tuto_Qdrant.md`)
+- Pliki CI/CD oraz definicje ignorowania (`.gitignore`, `.dockerignore`, `.npmignore`, `.npmrc`, `.node-version`, `.nvmrc`, `.env.example`)
 
-- Configuration files (`vitest.config.ts`, `next.config.mjs`, `eslint.config.mjs`, etc.)
-- Dependency files (`package.json`, `package-lock.json`)
-- Documentation files (`README.md`, `CHANGELOG.md`, `AGENTS.md`)
-- CI/CD files and ignore definitions (`.gitignore`, `.dockerignore`)
+Tworząc _jakiekolwiek_ testy walidacyjne lub jednorazowe skrypty logiczne, domyślnie używaj katalogów `scripts/ad-hoc/` lub `tests/unit/` w zależności od celu. Nie zaśmiecaj kontekstu katalogu głównego `/`.
 
-When creating _any_ validation tests or one-off logic scripts, default to using `scripts/scratch/` or the `tests/unit/` directories according to your goals. Do not pollute the `/` root context.
+## 2. Twarde reguły (odzwierciedlenie `CLAUDE.md`)
 
-## 2. VPS Dashboard Credentials
+1. **Nigdy nie commituj sekretów ani poświadczeń.** Używaj `.env` (generowanego automatycznie z `.env.example`) lub sejfu. Hasła, sekrety OAuth, klucze API oraz wartości Cookie nigdy nie mogą pojawiać się w commitowanych plikach.
+2. **Nigdy nie dodawaj logiki do `src/lib/localDb.ts`.** To wyłącznie barrel re-eksportów.
+3. **Nigdy nie używaj `eval()`, `new Function()` ani żadnej formy implied eval.** ESLint tego egzekwuje.
+4. **Nigdy nie commituj bezpośrednio do `main`.** Używaj gałęzi `feat/`, `fix/`, `refactor/`, `docs/`, `test/` lub `chore/`.
+5. **Nigdy nie pisz surowego SQL w trasach** — zawsze przechodź przez moduły domenowe `src/lib/db/`.
+6. **Nigdy nie połykaj cicho błędów w strumieniach SSE** — propaguj je albo czysto przerwij strumień.
+7. **Nigdy nie omijaj hooków Husky** (`--no-verify`, `--no-gpg-sign`) bez wyraźnej zgody operatora.
+8. **Zawsze waliduj dane wejściowe schematami Zod** z `src/shared/validation/schemas.ts`.
+9. **Zawsze dołączaj testy przy zmianach w kodzie produkcyjnym** (`src/`, `open-sse/`, `electron/`, `bin/`).
+10. **Pokrycie musi pozostać** ≥ 60 % statements / lines / functions / branches — oficjalna bramka CI (`npm run test:coverage`). Bazowa wartość ratchet w `quality-baseline.json` może zamrozić wyższy próg; nigdy go nie obniżaj.
 
-| Environment | URL                       | Password |
-| ----------- | ------------------------- | -------- |
-| Local VPS   | http://192.168.0.15:20128 | 123456   |
+## 3. Nawigacja po bazie kodu
+
+| Zadanie                     | Przeczytaj najpierw                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zrozumienie bazy kodu       | `docs/architecture/REPOSITORY_MAP.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Przegląd architektury       | `docs/architecture/ARCHITECTURE.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Dokumentacja inżynierska    | `docs/architecture/CODEBASE_DOCUMENTATION.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Dodanie funkcji             | `CONTRIBUTING.md` + odpowiadający `docs/<area>.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Pogłębione analizy obszarów | `docs/frameworks/SKILLS.md`, `docs/frameworks/MEMORY.md`, `docs/frameworks/EVALS.md`, `docs/security/GUARDRAILS.md`, `docs/security/COMPLIANCE.md`, `docs/frameworks/CLOUD_AGENT.md`, `docs/frameworks/MCP-SERVER.md`, `docs/frameworks/A2A-SERVER.md`, `docs/architecture/AUTHZ_GUIDE.md`, `docs/architecture/RESILIENCE_GUIDE.md`, `docs/routing/AUTO-COMBO.md`, `docs/frameworks/WEBHOOKS.md`, `docs/routing/REASONING_REPLAY.md`, `docs/security/STEALTH_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`, `docs/guides/ELECTRON_GUIDE.md`, `docs/reference/PROVIDER_REFERENCE.md` |
+| Przebieg wydania            | `docs/ops/RELEASE_CHECKLIST.md`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+
+## 4. Dostęp do lokalnego środowiska deweloperskiego
+
+Dashboard jest dostępny pod wybranym przez operatora adresem URL/portem (domyślnie `http://localhost:20128`). Poświadczenia są specyficzne dla operatora:
+
+- **Początkowe hasło administratora** jest odczytywane ze zmiennej środowiskowej `INITIAL_PASSWORD` przy pierwszej instalacji (domyślnie `CHANGEME` w `.env.example`; zmień je natychmiast po pierwszym logowaniu).
+- **Lokalne VPS / współdzielone środowiska deweloperskie**: zapytaj operatora o URL i aktualne poświadczenia — znajdują się w jego osobistym sejfie, NIE w tym repozytorium.
+
+> Wszelkie poświadczenia zauważone w poprzedniej wersji tego pliku były wartościami demonstracyjnymi spoza produkcji; traktuj je jako skompromitowane i nie używaj ich ponownie.

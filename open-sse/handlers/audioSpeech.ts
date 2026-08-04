@@ -618,7 +618,7 @@ async function handleXiaomiMimoSpeech(providerConfig, body, modelId, token, cred
  * `base_resp.status_code` (0 = success).
  * Port of decolua/9router#1043 by toanalien <toanalien@gmail.com>.
  */
-function hexToBytes(audioHex) {
+function hexToBytes(audioHex): Uint8Array<ArrayBuffer> {
   const clean = typeof audioHex === "string" ? audioHex.trim() : "";
   if (!clean) throw new Error("MiniMax TTS returned no audio");
   if (clean.length % 2 !== 0 || !/^[0-9a-f]+$/i.test(clean)) {
@@ -684,7 +684,7 @@ async function handleMinimaxSpeech(providerConfig, body, modelId, token) {
   }
 
   const audioField = (data.data as Record<string, unknown> | undefined)?.audio;
-  let bytes: Uint8Array;
+  let bytes: Uint8Array<ArrayBuffer>;
   try {
     bytes = hexToBytes(audioField);
   } catch (err) {

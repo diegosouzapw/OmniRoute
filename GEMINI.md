@@ -27,7 +27,7 @@ When creating _any_ validation tests or one-off logic scripts, default to using 
 7. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval.
 8. **Always validate inputs with Zod schemas** from `src/shared/validation/schemas.ts`.
 9. **Always include tests when changing production code** (`src/`, `open-sse/`, `electron/`, `bin/`).
-10. **Coverage must stay** ≥ 75 % statements / 75 % lines / 75 % functions / 70 % branches (real measured: ~82 %).
+10. **Coverage must stay** ≥ 60 % statements / lines / functions / branches — the official CI gate (`npm run test:coverage`). The ratchet baseline in `quality-baseline.json` may freeze a higher floor; never regress it.
 
 ## 3. Codebase navigation
 

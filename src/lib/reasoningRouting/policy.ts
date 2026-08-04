@@ -127,7 +127,7 @@ function detectThinkingBudget(
   thinking: JsonRecord,
   thinkingConfig: JsonRecord
 ): boolean {
-  return [
+  const budgetFields: Array<[JsonRecord, string]> = [
     [thinking, "budget_tokens"],
     [thinking, "budgetTokens"],
     [reasoning, "budget_tokens"],
@@ -137,7 +137,8 @@ function detectThinkingBudget(
     [body, "thinkingBudget"],
     [thinkingConfig, "thinkingBudget"],
     [thinkingConfig, "thinking_budget"],
-  ].some(([record, key]) => hasNumericField(record, key));
+  ];
+  return budgetFields.some(([record, key]) => hasNumericField(record, key));
 }
 
 function hasReasoningSignal(
@@ -503,7 +504,7 @@ export function attachReasoningRuleDirective(
   decision: ReasoningRuleDecision
 ): JsonRecord {
   const source = asRecord(bodyInput);
-  const body = {
+  const body: JsonRecord = {
     ...source,
     model: decision.rule.scope === "connection" ? source.model : decision.targetModel,
   };

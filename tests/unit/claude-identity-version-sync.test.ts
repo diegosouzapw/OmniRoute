@@ -1,10 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Claude-Code identity version is hand-bumped in lockstep across several modules
-// (2.1.158 → .187 → .195 → .207 …). A silent partial bump makes one surface advertise a stale
-// `claude-cli/<version>` and can break Anthropic identity gating. This guard fails on drift.
-// (quota-share-hardening Phase 2 — gaps v3.8.42.)
+// Claude-Code identity aliases are consumed across several transports. They now
+// resolve through one captured profile; this guard protects the compatibility
+// exports and their generated User-Agent strings from drift.
 const claudeIdentity = await import("../../open-sse/executors/claudeIdentity.ts");
 const ccBridge = await import("../../open-sse/services/ccBridgeTransforms.ts");
 const claudeCompat = await import("../../open-sse/services/claudeCodeCompatible.ts");
@@ -13,7 +12,7 @@ const glmProvider = await import("../../open-sse/config/glmProvider.ts");
 
 const CANONICAL = claudeIdentity.CLAUDE_CODE_VERSION;
 
-// "claude-cli/2.1.207 (external, sdk-cli)" → "2.1.207". String ops only — never a RegExp over
+// "claude-cli/2.1.219 (external, sdk-cli)" → "2.1.219". String ops only — never a RegExp over
 // the value, per the project's anti-ReDoS contract.
 function versionFromUserAgent(userAgent: string): string {
   const afterSlash = userAgent.split("claude-cli/")[1] ?? "";

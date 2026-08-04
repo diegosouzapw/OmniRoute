@@ -15,8 +15,13 @@
  *     known-multimodal families (pixtral, llava, qwen-vl, gpt-4o, …) resolve to
  *     `true` when there is no synced/registry/spec data.
  *  B) the combo filter treats anything that is not confirmed `=== true` as
- *     vision-incompatible for image requests, while the existing
- *     "keep all when none qualify" fallback prevents any regression.
+ *     vision-incompatible for image requests. Unlike the other requirement
+ *     dimensions (tools, structured output, context window), the "keep all when
+ *     none qualify" degrade-to-unfiltered safety net does NOT apply to vision
+ *     (#8332): dispatching an image body to a confirmed-non-vision model can
+ *     never succeed upstream, so a combo with zero confirmed-vision members must
+ *     return no targets for an image request rather than resurrecting a
+ *     guaranteed-to-fail one.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -95,14 +100,23 @@ test("image request: combo drops the non-vision target, keeps the vision target"
   assert.ok(!ids.includes("mistral/ministral-14b-latest"), "non-vision target must be dropped");
 });
 
-test("image request with NO confirmed-vision target: keep all (fallback, no regression)", () => {
-  const out = filterTargetsByRequestCompatibility(
-    [target("mistral/ministral-14b-latest"), target("groq/llama-3.1-8b-instant")],
-    imageBody,
-    noopLog
-  );
-  assert.equal(out.length, 2, "must not strip every target when none is confirmed vision");
-});
+test(
+  "image request with NO confirmed-vision target: strip all (#8332 — never dispatch " +
+    "an image body to a confirmed-non-vision target, even as a last resort)",
+  () => {
+    const out = filterTargetsByRequestCompatibility(
+      [target("mistral/ministral-14b-latest"), target("groq/llama-3.1-8b-instant")],
+      imageBody,
+      noopLog
+    );
+    assert.equal(
+      out.length,
+      0,
+      "an image request with zero confirmed-vision targets must yield no executable targets, " +
+        "not a guaranteed-to-fail dispatch to a text-only model"
+    );
+  }
+);
 
 test("text-only request: targets are untouched by the vision filter", () => {
   const out = filterTargetsByRequestCompatibility(

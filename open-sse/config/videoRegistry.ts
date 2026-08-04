@@ -27,6 +27,36 @@ interface VideoProvider {
 }
 
 export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
+  "qwen-cloud-token-plan": {
+    id: "qwen-cloud-token-plan",
+    alias: "qct",
+    baseUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/api/v1",
+    statusUrl: "https://token-plan.ap-southeast-1.maas.aliyuncs.com/api/v1/tasks",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "dashscope-video",
+    models: [
+      { id: "happyhorse-1.1-i2v", name: "HappyHorse 1.1 I2V" },
+      { id: "happyhorse-1.1-t2v", name: "HappyHorse 1.1 T2V" },
+      { id: "happyhorse-1.1-r2v", name: "HappyHorse 1.1 R2V" },
+    ],
+  },
+
+  "bailian-coding-plan": {
+    id: "bailian-coding-plan",
+    alias: "bcp",
+    baseUrl: "https://coding-intl.dashscope.aliyuncs.com/api/v1",
+    statusUrl: "https://coding-intl.dashscope.aliyuncs.com/api/v1/tasks",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "dashscope-video",
+    models: [
+      { id: "happyhorse-1.1-i2v", name: "HappyHorse 1.1 I2V" },
+      { id: "happyhorse-1.1-t2v", name: "HappyHorse 1.1 T2V" },
+      { id: "happyhorse-1.1-r2v", name: "HappyHorse 1.1 R2V" },
+    ],
+  },
+
   vertex: {
     id: "vertex",
     baseUrl: "https://us-central1-aiplatform.googleapis.com/v1",
@@ -221,7 +251,37 @@ export const VIDEO_PROVIDERS: Record<string, VideoProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "dashscope-video",
-    models: [{ id: "wan2.7-t2v", name: "Wan 2.7 T2V" }],
+    models: [
+      { id: "happyhorse-1.1-i2v", name: "HappyHorse 1.1 I2V" },
+      { id: "happyhorse-1.1-t2v", name: "HappyHorse 1.1 T2V" },
+      { id: "happyhorse-1.1-r2v", name: "HappyHorse 1.1 R2V" },
+      { id: "happyhorse-1.0-video-edit", name: "HappyHorse 1.0 Video Edit" },
+      { id: "wan2.7-i2v-2026-04-25", name: "Wan 2.7 I2V (2026-04-25)" },
+      { id: "wan2.6-i2v-flash", name: "Wan 2.6 I2V Flash" },
+      { id: "wan2.7-t2v-2026-06-12", name: "Wan 2.7 T2V (2026-06-12)" },
+      { id: "wan2.7-r2v-2026-06-12", name: "Wan 2.7 R2V (2026-06-12)" },
+      { id: "wan2.7-videoedit", name: "Wan 2.7 Video Edit" },
+    ],
+  },
+
+  "qwen-cloud": {
+    id: "qwen-cloud",
+    alias: "qwc",
+    baseUrl: "https://dashscope-intl.aliyuncs.com/api/v1",
+    statusUrl: "https://dashscope-intl.aliyuncs.com/api/v1/tasks",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "dashscope-video",
+    models: [
+      { id: "happyhorse-1.1-i2v", name: "HappyHorse 1.1 I2V" },
+      { id: "happyhorse-1.1-t2v", name: "HappyHorse 1.1 T2V" },
+      { id: "happyhorse-1.1-r2v", name: "HappyHorse 1.1 R2V" },
+      { id: "happyhorse-1.0-video-edit", name: "HappyHorse 1.0 Video Edit" },
+      { id: "wan2.7-t2v", name: "Wan 2.7 T2V" },
+      { id: "wan2.7-i2v", name: "Wan 2.7 I2V" },
+      { id: "wan2.7-r2v-2026-06-12", name: "Wan 2.7 R2V (2026-06-12)" },
+      { id: "wan2.7-videoedit", name: "Wan 2.7 Video Edit" },
+    ],
   },
 
   // Segmind video generation (#6656). Same `POST /v1/{model}` REST shape as

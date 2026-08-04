@@ -9,7 +9,9 @@
  * modeled on the `chatglm-web` credential entry (#4056) and the `doubao-web` /
  * `venice-web` cookie executors.
  *
- * Endpoint: POST https://chat.z.ai/api/chat/completions
+ * Endpoint: POST https://chat.z.ai/api/v2/chat/completions
+ *           (the older unversioned `/api/chat/completions` path is stale and
+ *           404s model-independently as of 2026-07 — see #8014)
  * Auth:     full Cookie header from chat.z.ai (must contain the `token` JWT).
  *           Sent both as `Cookie` and as `Authorization: Bearer <token>` —
  *           the SPA's own fetch client sets both, and stripping either one
@@ -29,7 +31,7 @@ import {
 } from "../utils/error.ts";
 
 const BASE_URL = "https://chat.z.ai";
-const CHAT_URL = `${BASE_URL}/api/chat/completions`;
+const CHAT_URL = `${BASE_URL}/api/v2/chat/completions`;
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 

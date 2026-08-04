@@ -98,13 +98,21 @@ test("502 transient: exponential backoff doubles until the configured max backof
     assert.equal(result.newBackoffLevel, level + 1);
     assert.equal(result.reason, RateLimitReason.SERVER_ERROR);
   }
+  // #8396: the scaled cooldown is now clamped by capScaledCooldownMs
+  // (open-sse/services/accountFallback/cooldownCap.ts). With no provider the
+  // ceiling is BACKOFF_CONFIG.max, so the doubling stops there instead of
+  // running on to transientInitial * 32.
+  assert.ok(
+    COOLDOWN_MS.transientInitial * 32 > BACKOFF_CONFIG.max,
+    "precondition: the 6th step must exceed the cap, or this test proves nothing"
+  );
   assert.deepEqual(cooldowns, [
     COOLDOWN_MS.transientInitial,
     COOLDOWN_MS.transientInitial * 2,
     COOLDOWN_MS.transientInitial * 4,
     COOLDOWN_MS.transientInitial * 8,
     COOLDOWN_MS.transientInitial * 16,
-    COOLDOWN_MS.transientInitial * 32,
+    BACKOFF_CONFIG.max,
   ]);
 });
 
@@ -237,8 +245,14 @@ test("subscription quota uses long cooldown when upstream retry hints are disabl
 test("high transient backoff levels clamp to the configured maxBackoffSteps", () => {
   const result = checkFallbackError(502, "", BACKOFF_CONFIG.maxLevel + 5, null, null);
   assert.equal(result.newBackoffLevel, BACKOFF_CONFIG.maxLevel);
+  // #8396: the level still clamps at maxLevel, but the resulting duration is
+  // additionally capped — unclamped this would be ~45.5h, which is the blackout
+  // that PR removed.
   assert.equal(
     result.cooldownMs,
-    COOLDOWN_MS.transientInitial * Math.pow(2, BACKOFF_CONFIG.maxLevel)
+    Math.min(
+      COOLDOWN_MS.transientInitial * Math.pow(2, BACKOFF_CONFIG.maxLevel),
+      BACKOFF_CONFIG.max
+    )
   );
 });

@@ -161,6 +161,24 @@ export const headroomConfigSchema = z
   })
   .strict();
 
+// Session Dedup / CCR detail settings (#8388 — sibling gap to headroom/#8056: the
+// EngineConfigPage detail form was renderable but PUT bodies had no slot to persist
+// into). Ranges mirror SESSION_DEDUP_SCHEMA / CCR_SCHEMA (engines/session-dedup,
+// engines/ccr) so the validation layer stays in lockstep with the engine's own bounds.
+export const sessionDedupConfigSchema = z
+  .object({
+    minBlockChars: z.number().int().min(1).max(100000).optional(),
+    fuzzy: z.boolean().optional(),
+  })
+  .strict();
+
+export const ccrConfigSchema = z
+  .object({
+    minChars: z.number().int().min(100).max(1_000_000).optional(),
+    retrievalRampFactor: z.number().min(1).max(100).optional(),
+  })
+  .strict();
+
 const noConfigSchema = z.object({}).strict();
 
 // Structural engines (session-dedup / ccr / headroom / relevance / llmlingua) do not
@@ -344,6 +362,8 @@ export const compressionSettingsUpdateSchema = z
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
     headroom: headroomConfigSchema.optional(),
+    sessionDedup: sessionDedupConfigSchema.optional(),
+    ccr: ccrConfigSchema.optional(),
     contextBudget: contextBudgetConfigSchema.optional(),
     contextEditing: contextEditingConfigSchema.optional(),
     liveZone: z.object({ enabled: z.boolean() }).strict().optional(),

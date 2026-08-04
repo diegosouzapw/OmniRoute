@@ -5,6 +5,7 @@ import WebSocket from "ws";
 import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./base.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { prepareToolMessages, buildToolAwareResult } from "../translator/webTools.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
   normalizeSessionCookieHeader,
   normalizeSessionCookieHeaders,
@@ -12,9 +13,8 @@ import {
 import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
-// Meta rebranded the chat product from "Abra" to "Ecto"; the session cookie
-// `abra_sess` was replaced by `ecto_1_sess`. `normalizeSessionCookieHeader`
-// only uses this constant when the user pastes a bare cookie value with no
+// Meta rebranded "Abra" to "Ecto"; `abra_sess` became `ecto_1_sess`.
+// `normalizeSessionCookieHeader` only uses this constant for bare values with no
 // `name=` prefix; full cookie lines (with any cookie names) pass through
 // untouched, so users who paste their entire DevTools cookie line still work.
 const META_AI_DEFAULT_COOKIE = "ecto_1_sess";
@@ -522,7 +522,7 @@ function buildErrorResponse(status: number, message: string, code?: string | nul
   return new Response(
     JSON.stringify({
       error: {
-        message,
+        message: sanitizeErrorMessage(message),
         type: "upstream_error",
         ...(code ? { code } : {}),
       },
@@ -906,6 +906,15 @@ function buildWsUrl(authorization: string, requestId: string): string {
 
 type GraphqlResult = { ok: true } | { ok: false; error: string };
 
+/**
+ * Narrows the failure arm. Under this workspace's `strictNullChecks: false`, a
+ * boolean-literal discriminant narrows the positive branch but not the negative one, so
+ * `!result.ok` leaves the full union and `.error` is unreachable to the checker.
+ */
+function isGraphqlFailure(result: GraphqlResult): result is Extract<GraphqlResult, { ok: false }> {
+  return !result.ok;
+}
+
 async function graphqlPost(
   docId: string,
   variables: Record<string, unknown>,
@@ -942,7 +951,9 @@ async function graphqlPost(
   } catch (err) {
     return {
       ok: false,
-      error: `${label} fetch failed: ${err instanceof Error ? err.message : String(err)}`,
+      error: `${label} fetch failed: ${sanitizeErrorMessage(
+        err instanceof Error ? err.message : String(err)
+      )}`,
     };
   }
 }
@@ -1313,7 +1324,7 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       "Warmup",
       signal
     );
-    if (!warmupResult.ok) {
+    if (isGraphqlFailure(warmupResult)) {
       evictContinuationIfNeeded(cached, continuationCacheKey);
       log?.error?.("MUSE-SPARK-WEB", `Warmup failed: ${warmupResult.error}`);
       return errorResult(502, warmupResult.error, "meta_ai_warmup_failed", {}, body);
@@ -1327,7 +1338,7 @@ export class MuseSparkWebExecutor extends BaseExecutor {
       "Mode switch",
       signal
     );
-    if (!modeResult.ok) {
+    if (isGraphqlFailure(modeResult)) {
       evictContinuationIfNeeded(cached, continuationCacheKey);
       log?.error?.("MUSE-SPARK-WEB", `Mode switch failed: ${modeResult.error}`);
       return errorResult(502, modeResult.error, "meta_ai_mode_switch_failed", {}, body);

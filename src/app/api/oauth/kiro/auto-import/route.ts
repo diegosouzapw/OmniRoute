@@ -12,6 +12,7 @@ import {
 import { syncToCloud } from "@/lib/cloudSync";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { KiroService } from "@/lib/oauth/services/kiro";
+import { findKiroConnectionByIdentity } from "@/lib/oauth/kiroConnectionIdentity";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import {
   emailFromExternalIdpToken,
@@ -73,6 +74,7 @@ async function tryKiroCliSqlite(): Promise<{
   clientSecret?: string;
   region?: string;
   profileArn?: string;
+  authMethod?: "builder-id" | "idc";
   source?: string;
 }> {
   // Build list of candidate DB paths to probe in order.
@@ -111,8 +113,7 @@ async function tryKiroCliSqlite(): Promise<{
         for (const table of ["auth_kv", "ItemTable", "storage"]) {
           try {
             const row = db.prepare(`SELECT value FROM ${table} WHERE key = ?`).get(key) as
-              | { value: string }
-              | undefined;
+              { value: string } | undefined;
             if (row?.value) {
               try {
                 tokenData = JSON.parse(row.value);
@@ -139,8 +140,7 @@ async function tryKiroCliSqlite(): Promise<{
         for (const table of ["auth_kv", "ItemTable", "storage"]) {
           try {
             const row = db.prepare(`SELECT value FROM ${table} WHERE key = ?`).get(key) as
-              | { value: string }
-              | undefined;
+              { value: string } | undefined;
             if (row?.value) {
               try {
                 regData = JSON.parse(row.value);
@@ -192,6 +192,7 @@ async function tryKiroCliSqlite(): Promise<{
         clientSecret: regData?.client_secret,
         region,
         profileArn,
+        authMethod: resolveKiroCliAuthMethod(profileArn),
       };
     } finally {
       try {
@@ -417,6 +418,12 @@ export function deriveKiroConnectionName(opts: {
   return `Kiro (${r})`;
 }
 
+export function resolveKiroCliAuthMethod(
+  profileArn: string | null | undefined
+): "builder-id" | "idc" {
+  return profileArn ? "idc" : "builder-id";
+}
+
 type ProviderConnectionLike = {
   id?: unknown;
   providerSpecificData?: unknown;
@@ -434,17 +441,7 @@ export function findKiroConnectionByProfileArn(
   connections: ProviderConnectionLike[],
   profileArn: string | undefined
 ): ProviderConnectionLike | null {
-  if (!profileArn) return null;
-  for (const conn of connections) {
-    const psd = conn.providerSpecificData;
-    if (psd && typeof psd === "object" && !Array.isArray(psd)) {
-      const stored = (psd as Record<string, unknown>).profileArn;
-      if (typeof stored === "string" && stored === profileArn) {
-        return conn;
-      }
-    }
-  }
-  return null;
+  return findKiroConnectionByIdentity(connections, { profileArn });
 }
 
 // ── Save to OmniRoute DB ──────────────────────────────────────────────────────
@@ -505,10 +502,12 @@ async function saveAndRespond(
       if (profileArn) providerSpecificData.profileArn = profileArn;
 
       const existingConnections = await getProviderConnections({ provider: targetProvider });
-      const existingByArn = findKiroConnectionByProfileArn(
-        existingConnections,
-        profileArn || undefined
-      );
+      const existingByArn = findKiroConnectionByIdentity(existingConnections, {
+        authType: "oauth",
+        profileArn,
+        clientId: result.clientId,
+        email,
+      });
       const record = {
         accessToken: refreshed.accessToken,
         refreshToken: refreshed.refreshToken || result.refreshToken!,
@@ -547,13 +546,12 @@ async function saveAndRespond(
     let expiresAt = result.expiresAt;
     let profileArn = result.profileArn;
 
-    // Determine authMethod: prefer the value from the SSO cache token (e.g. "idc")
-    // so that kiroService.refreshToken() takes the correct OIDC path for IDC tokens
-    // (#2059). Fall back to "kiro-cli" for the SQLite path and "imported" for plain
-    // social SSO cache tokens (no clientIdHash → no IDC client creds).
+    // `kiro-cli` identifies where credentials came from, not the account type. Persist
+    // the actual auth method so IdC accounts still use their profile ARN and Builder ID
+    // accounts keep the profile-less flow.
     const resolvedAuthMethod =
       result.source === "kiro-cli-sqlite"
-        ? "kiro-cli"
+        ? result.authMethod || resolveKiroCliAuthMethod(profileArn)
         : result.clientId
           ? result.authMethod || "idc"
           : "imported";
@@ -618,7 +616,12 @@ async function saveAndRespond(
     // just refresh its tokens instead of inserting a new row. This prevents the
     // duplicate-row accumulation reported in #3615 (4 rows after 6 days).
     const existingConnections = await getProviderConnections({ provider: targetProvider });
-    const existingByArn = findKiroConnectionByProfileArn(existingConnections, profileArn);
+    const existingByArn = findKiroConnectionByIdentity(existingConnections, {
+      authType: "oauth",
+      profileArn,
+      clientId: providerSpecificData.clientId,
+      email,
+    });
 
     if (existingByArn && typeof existingByArn.id === "string") {
       await updateProviderConnection(existingByArn.id, {

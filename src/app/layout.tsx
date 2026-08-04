@@ -9,6 +9,7 @@ import { getSettings } from "@/lib/db/settings";
 import type { Viewport } from "next";
 import { PwaRegister } from "@/shared/components/PwaRegister";
 import { LocaleAutoDetect } from "@/shared/components/LocaleAutoDetect";
+import { BasePathNetworkProvider } from "@/shared/components/BasePathNetworkProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -142,9 +143,11 @@ export default async function RootLayout({ children }) {
           {t("skipToContent")}
         </a>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <PwaRegister />
-          <LocaleAutoDetect />
-          <ThemeProvider>{children}</ThemeProvider>
+          <BasePathNetworkProvider>
+            <PwaRegister />
+            <LocaleAutoDetect />
+            <ThemeProvider>{children}</ThemeProvider>
+          </BasePathNetworkProvider>
         </NextIntlClientProvider>
       </body>
     </html>

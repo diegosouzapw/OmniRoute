@@ -8,6 +8,7 @@ import {
   GPT_5_6_SOL_PRICING,
   GPT_5_6_TERRA_PRICING,
   CLAUDE_FABLE_5_PRICING,
+  CLAUDE_OPUS_5_PRICING,
   CLAUDE_OPUS_4_PRICING,
   CLAUDE_SONNET_4_PRICING,
   CLAUDE_OPUS_46_PRICING,
@@ -212,6 +213,7 @@ export const DEFAULT_PRICING_FRONTIER = {
     // Intentional duplicates of dot-notation variants (e.g. claude-opus-4.6)
     // to cover hyphen-notation IDs (claude-opus-4-6) used by some clients
     "claude-fable-5": CLAUDE_FABLE_5_PRICING,
+    "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
     "claude-opus-4.8": CLAUDE_OPUS_4_PRICING,
     "claude-opus-4-8": CLAUDE_OPUS_4_PRICING,

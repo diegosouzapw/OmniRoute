@@ -7,5 +7,7 @@ import { sanitizeToolId } from "../../helpers/schemaCoercion.ts";
 // that guard and silently fabricate a tool_result that can never match a tool_use.
 export function sanitizeToolResultId(rawId: unknown): string | null {
   if (!rawId) return null;
-  return sanitizeToolId(rawId);
+  // sanitizeToolId() takes a string; a non-string id would previously reach `.replace()`
+  // and throw. Coerce instead so a numeric id (some clients send one) sanitizes normally.
+  return sanitizeToolId(typeof rawId === "string" ? rawId : String(rawId));
 }

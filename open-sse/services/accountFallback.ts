@@ -12,6 +12,7 @@ import {
   matchErrorRuleByText,
   matchErrorRuleByStatus,
   serviceSupervisorCooldown,
+  isNimFunctionDegraded,
 } from "../config/errorConfig.ts";
 import { getProviderErrorRuleMatch } from "../config/providerErrorRules.ts";
 import * as rot from "./rotationConfig.ts";
@@ -55,7 +56,8 @@ import {
 import { parseDayGranularityResetMs, shouldPreserveQuotaSignals } from "./quotaResetParsing.ts";
 import { evictLockoutOverflow } from "./accountFallback/lockoutEviction.ts";
 export { MODEL_LOCKOUT_EVICTION_CAP } from "./accountFallback/lockoutEviction.ts";
-
+import { capScaledCooldownMs } from "./accountFallback/cooldownCap.ts";
+import { resolveApiKeyForbiddenFallback } from "./accountFallback/nonRetryableUpstream.ts";
 export type ProviderProfile = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
@@ -241,10 +243,18 @@ const MODEL_ACCESS_AMBIGUOUS_TYPES = new Set([
 
 // Model access patterns — the account does not have access to the requested model
 // but a different account (e.g. PRO vs free tier) may support it.
-const MODEL_ACCESS_DENIED_PATTERNS = [
+// Exported so combo.ts #2101 can exempt model-scoped 400s from the body-specific
+// stop guard (#5249): "model not supported" must advance to the next combo target
+// even when the message also contains wrapper words like "invalid" / "bad request".
+export const MODEL_ACCESS_DENIED_PATTERNS = [
   /\binvalid model\b/i,
   /\bmodel.*not.*(?:available|found|supported|accessible)\b/i,
   /\bmodel.*(?:does not exist|doesn't exist)\b/i,
+  // "does not support" / "unsupported model" — GitHub Copilot / OpenAI-compatible
+  // often phrase model rejection this way without the "is not supported" word order.
+  /\bmodel\b[\s\S]{0,80}?\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b/i,
+  /\b(?:does\s+not\s+support|doesn't\s+support|unsupported)\b[\s\S]{0,80}?\bmodel\b/i,
+  /\bunsupported\s+model\b/i,
   /\baccess.*denied.*model\b/i,
   /\bmodel.*access.*denied\b/i,
   /\bplease select a different model\b/i,
@@ -578,7 +588,22 @@ export function recordModelLockoutFailure(
   status: number,
   fallbackCooldownMs: number,
   profile: ProviderProfile | null = null,
-  options: { exactCooldownMs?: number | null; maxCooldownMs?: number } = {}
+  options: {
+    exactCooldownMs?: number | null;
+    maxCooldownMs?: number;
+    /**
+     * #6863 vs #7940: set true only when `exactCooldownMs` came from an actual
+     * upstream signal (Retry-After header, X-RateLimit-Reset, or a reset parsed
+     * from the error body — i.e. `usedUpstreamRetryHint`/`quotaResetHintMs` from
+     * `checkFallbackError`). Such a reset is honored exactly, even past
+     * `maxCooldownMs` — a real "Resets in 92h" must not be clamped down to
+     * minutes, or the router hammers 429 against quota that is known not to be
+     * back yet. Leave false/omitted for SYNTHETIC estimates (the quota_exhausted
+     * until-midnight default below, plain exponential backoff) — those stay
+     * capped, per #7940.
+     */
+    exactCooldownIsUpstreamReset?: boolean;
+  } = {}
 ) {
   ensureCleanupTimer();
   const key = getModelLockKey(provider, connectionId, model, reason, status);
@@ -601,15 +626,18 @@ export function recordModelLockoutFailure(
   const failureCount = withinWindow ? previous.failureCount + 1 : 1;
 
   const baseCooldownMs = getModelLockBaseCooldown(status, fallbackCooldownMs, profile);
-  // Cap both exponential backoff and exact cooldowns (e.g. daily-quota
-  // until-midnight) against maxCooldownMs so user-configured caps are honored.
+  // Cap both exponential backoff and computed exact cooldowns (e.g. daily-quota
+  // until-midnight, #7940/#7980) against maxCooldownMs so user-configured caps are
+  // honored — EXCEPT an authoritative parsed upstream reset (#6863, e.g. Antigravity
+  // "Resets in 92h27m28s"), which the upstream told us to wait and must be honored
+  // exactly, never clamped down to maxCooldownMs.
   const maxCooldownMs =
     typeof options.maxCooldownMs === "number" && options.maxCooldownMs > 0
       ? options.maxCooldownMs
       : null;
   const cooldownMs =
     typeof options.exactCooldownMs === "number" && options.exactCooldownMs > 0
-      ? maxCooldownMs !== null
+      ? maxCooldownMs !== null && !options.exactCooldownIsUpstreamReset
         ? Math.min(options.exactCooldownMs, maxCooldownMs)
         : options.exactCooldownMs
       : Math.min(
@@ -1423,9 +1451,14 @@ export function checkFallbackError(
       typeof profile?.baseCooldownMs === "number" && profile.baseCooldownMs >= 0
         ? profile.baseCooldownMs
         : COOLDOWN_MS.transientInitial;
+    // #8396: cap against profile.maxCooldownMs, mirroring the model-lockout path.
     return {
       baseCooldownMs,
-      cooldownMs: getScaledCooldown(baseCooldownMs, level + 1, maxBackoffSteps),
+      cooldownMs: capScaledCooldownMs(
+        getScaledCooldown(baseCooldownMs, level + 1, maxBackoffSteps),
+        profile?.maxCooldownMs,
+        BACKOFF_CONFIG.max
+      ),
       newBackoffLevel: Math.min(level + 1, maxBackoffSteps),
     };
   }
@@ -1511,8 +1544,8 @@ export function checkFallbackError(
       }
     }
 
-    // T10 (sub2api #1169): Credits/quota exhausted — long cooldown, distinct from rate limit
-    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr)) {
+    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped.
+    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr) && !isCompatibleProvider(provider)) {
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
@@ -1545,7 +1578,8 @@ export function checkFallbackError(
       const subResult = buildSubscriptionQuotaFallback(
         errorStr,
         getUpstreamRetryHintMs,
-        parseRetryFromErrorText
+        parseRetryFromErrorText,
+        provider
       );
       if (subResult) return subResult;
     }
@@ -1591,7 +1625,7 @@ export function checkFallbackError(
       !errorStr.toLowerCase().includes("hour quota") &&
       !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
-      return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
+      return resolveApiKeyForbiddenFallback(errorStr, buildRetryableFallback, RateLimitReason.AUTH_ERROR);
     }
   }
 
@@ -1689,8 +1723,8 @@ export function checkFallbackError(
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
     const isParamValidation = PARAM_VALIDATION_PATTERNS.some((p) => p.test(errorStr));
     const isModelAccessDenied = isModelAccessDeniedStructured || matchesModelAccessPattern;
-
-    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied) {
+    const isNimDegraded = isNimFunctionDegraded(errorStr);
+    if (isOverflow || isMalformed || isParamValidation || isModelAccessDenied || isNimDegraded) {
       return {
         shouldFallback: true,
         cooldownMs: 0,

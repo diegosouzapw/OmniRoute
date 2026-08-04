@@ -411,9 +411,11 @@ export class KimiExecutor extends DefaultExecutor {
     const record = asRecord(cleanedBody);
     if (!record) return cleanedBody;
     const policy = getThinkingPolicy(credentials);
-    return resolveKimiProtocol(credentials, record) === "claude"
-      ? normalizeAnthropicRequest(record, policy)
-      : normalizeOpenAIRequest(record, stream, policy);
+    const normalized =
+      resolveKimiProtocol(credentials, record) === "claude"
+        ? normalizeAnthropicRequest(record, policy)
+        : normalizeOpenAIRequest(record, stream, policy);
+    return stream ? { ...normalized, stream: true } : normalized;
   }
 }
 

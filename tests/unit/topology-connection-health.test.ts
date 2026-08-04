@@ -37,19 +37,52 @@ test("HomeProviderTopologySection forwards the status field on each provider", (
 });
 
 test("ProviderTopology renders a connection-health base layer under the traffic signals", () => {
-  // Traffic (live/recent/error) must still take precedence over the static health colour.
+  // Live traffic and traffic errors still take precedence over the static health colour,
+  // but `last` (most recently routed) must NOT: it used to null out `healthy`, and since
+  // the node had no `last` visual the just-used provider rendered as idle grey with an
+  // amber edge — less connected-looking than an untouched peer. Health owns the border,
+  // recency owns the dot.
   assert.match(
     providerTopologySrc,
-    /const healthy =\s*!active && !trafficError && !last && !healthError && p\.status === "active"/,
-    "healthy is only shown when there is no stronger traffic signal"
+    /const healthy =\s*!active && !trafficError && !healthError && p\.status === "active"/,
+    "healthy must survive the last-used annotation"
+  );
+  assert.doesNotMatch(
+    providerTopologySrc,
+    /const healthy =[^;]*!last/,
+    "last-used must not suppress the health colour"
+  );
+  assert.match(
+    providerTopologySrc,
+    /const healthError =\s*!active && !trafficError && p\.status === "error"/,
+    "healthError must survive the last-used annotation"
   );
   assert.match(
     providerTopologySrc,
     /edgeStyle\(active, last, error, healthy\)/,
     "the healthy state must reach the edge palette"
   );
+
   // The node must render the health state (green border / static dot) — a non-pulsing dot
   // distinguishes "connected" from "active".
   assert.match(providerTopologySrc, /pulse=\{active \|\| error\}/);
-  assert.match(providerTopologySrc, /active \|\| error \|\| healthy/);
+  assert.match(providerTopologySrc, /active \|\| error \|\| healthy \|\| last/);
+});
+
+test("ProviderTopology marks the last-routed provider with an amber dot, not a grey node", () => {
+  assert.match(
+    providerTopologySrc,
+    /const AMBER = FLOW_EDGE_COLORS\.last/,
+    "recency reuses the shared amber from the edge palette"
+  );
+  assert.match(
+    providerTopologySrc,
+    /const dotColor = active \? color : last \? AMBER : GREEN/,
+    "the dot encodes recency while the border keeps encoding health"
+  );
+  assert.match(
+    providerTopologySrc,
+    /borderColor: error \? RED : active \? color : healthy \? GREEN : "var\(--color-border\)"/,
+    "border stays health-driven — grey is reserved for genuinely idle/unconfigured"
+  );
 });

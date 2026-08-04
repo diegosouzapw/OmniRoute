@@ -1,1 +1,0 @@
-- fix(api): classify `/api/acp/agents` as loopback-only to close an RCE-via-tunnel gap in the ACP custom-agent registry (#7948)

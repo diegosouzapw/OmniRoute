@@ -430,7 +430,6 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   assert.equal(searchProvider?.name, providers.SEARCH_PROVIDERS["brave-search"].name);
   assert.equal(youcomSearchProvider?.category, "search");
   assert.equal(youcomSearchProvider?.name, providers.SEARCH_PROVIDERS["youcom-search"].name);
-
   assert.equal(audioProvider?.category, "audio");
   assert.equal(audioProvider?.name, providers.AUDIO_ONLY_PROVIDERS.assemblyai.name);
   assert.equal(awsPollyProvider?.category, "audio");

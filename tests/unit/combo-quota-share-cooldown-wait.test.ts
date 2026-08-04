@@ -9,8 +9,8 @@
  *  2. A 403 (quota_exhausted, locked until midnight) → NO wait, the 403/429 is
  *     propagated immediately (the helper's critical exclusion).
  *  3. Client abort DURING the wait → 499 "Request aborted".
- *  4. strategy="priority" (non quota-share) → unchanged: the 429 is propagated
- *     immediately with NO wait.
+ *  4. strategy="priority" (and every other strategy) also waits out a SHORT
+ *     transient 429 when comboCooldownWait is enabled — same decision helper.
  *  5. comboCooldownWait disabled in settings → unchanged: 429 propagated, no wait.
  *
  * The waits use a real (short) cooldown so the real setTimeout in

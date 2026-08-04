@@ -52,10 +52,24 @@ function canonicalProviderFamily(providerId: string): AlibabaProviderFamily | nu
   return null;
 }
 
+const SLASH_CHAR_CODE = 47;
+
+/**
+ * Strip every trailing "/" in linear time.
+ *
+ * Deliberately not a regex: `/\/+$/` has no left anchor, so the engine retries at
+ * every start offset and each attempt re-walks the slash run before failing `$` —
+ * quadratic on an endpoint made of many slashes (CodeQL js/polynomial-redos).
+ * Connection base URLs are operator-supplied, so they reach this trim directly.
+ */
+function stripTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === SLASH_CHAR_CODE) end--;
+  return end === value.length ? value : value.slice(0, end);
+}
+
 function normalizeEndpoint(value: string): string {
-  return value
-    .trim()
-    .replace(/\/+$/, "")
+  return stripTrailingSlashes(value.trim())
     .replace(/\/(?:chat\/completions|messages)$/i, "")
     .toLowerCase();
 }
@@ -138,9 +152,24 @@ export function resolveAlibabaProviderModelsUrl(
   providerSpecificData?: unknown,
   fallback = ""
 ): string {
-  const baseUrl = resolveAlibabaProviderBaseUrl(providerId, providerSpecificData, fallback)
-    .trim()
-    .replace(/\/+$/, "")
-    .replace(/\/(?:chat\/completions|messages|models)$/i, "");
+  const baseUrl = stripTrailingSlashes(
+    resolveAlibabaProviderBaseUrl(providerId, providerSpecificData, fallback).trim()
+  ).replace(/\/(?:chat\/completions|messages|models)$/i, "");
   return baseUrl ? `${baseUrl}/models` : "";
+}
+
+/**
+ * Resolve the dedicated Alibaba-family media API root from the connection's
+ * regional OpenAI/Anthropic-compatible endpoint.
+ */
+export function resolveAlibabaProviderMediaBaseUrl(
+  providerId: string,
+  providerSpecificData?: unknown,
+  fallback = ""
+): string {
+  return stripTrailingSlashes(
+    resolveAlibabaProviderBaseUrl(providerId, providerSpecificData, fallback).trim()
+  )
+    .replace(/\/compatible-mode\/v1(?:\/(?:chat\/completions|models))?$/i, "/api/v1")
+    .replace(/\/apps\/anthropic(?:\/v1)?(?:\/messages)?$/i, "/api/v1");
 }

@@ -253,6 +253,10 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       db.exec("ALTER TABLE call_logs ADD COLUMN model_pinned INTEGER DEFAULT 0");
       console.log("[DB] Added call_logs.model_pinned column");
     }
+    if (!columnNames.has("session_tag")) {
+      db.exec("ALTER TABLE call_logs ADD COLUMN session_tag TEXT DEFAULT NULL");
+      console.log("[DB] Added call_logs.session_tag column");
+    }
 
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_call_logs_requested_model ON call_logs(requested_model)"
@@ -262,9 +266,26 @@ export function ensureCallLogsColumns(db: SqliteDatabase) {
       "CREATE INDEX IF NOT EXISTS idx_cl_combo_target ON call_logs(combo_name, combo_execution_key, timestamp)"
     );
     db.exec("CREATE INDEX IF NOT EXISTS idx_cl_correlation_id ON call_logs(correlation_id)");
+    db.exec("CREATE INDEX IF NOT EXISTS idx_cl_session_tag ON call_logs(session_tag)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify call_logs schema:", message);
+  }
+}
+
+export function ensureProxyLogsColumns(db: SqliteDatabase) {
+  try {
+    const columns = db.prepare("PRAGMA table_info(proxy_logs)").all() as Array<{
+      name?: string;
+    }>;
+    const columnNames = new Set(columns.map((column) => String(column.name ?? "")));
+    if (!columnNames.has("egress_ip")) {
+      db.exec("ALTER TABLE proxy_logs ADD COLUMN egress_ip TEXT");
+      console.log("[DB] Added proxy_logs.egress_ip column");
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("[DB] Failed to verify proxy_logs schema:", message);
   }
 }
 

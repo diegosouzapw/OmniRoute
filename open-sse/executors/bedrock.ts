@@ -366,6 +366,10 @@ export function openAIToBedrockConverse(model, body) {
   const toolConfig = toolConfigFromOpenAI(request.tools, request.tool_choice);
   if (toolConfig) payload.toolConfig = toolConfig;
 
+  if (request.additionalModelRequestFields !== undefined) {
+    payload.additionalModelRequestFields = request.additionalModelRequestFields;
+  }
+
   return payload;
 }
 

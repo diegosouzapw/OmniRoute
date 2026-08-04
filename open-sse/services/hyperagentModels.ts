@@ -19,40 +19,56 @@ export interface HyperAgentModel {
   subagent: "fable" | "opus" | "sonnet" | "haiku";
   /** Agent runtime for Claude family models. */
   runtimeId?: string;
+  /** Context window for OmniRoute getTokenLimit / compression (Claude-family → 1M). */
+  contextLength?: number;
 }
+
+/** Default context for Fable / Opus / Sonnet on HyperAgent (1M tokens). */
+export const HYPERAGENT_DEFAULT_CONTEXT_LENGTH = 1_000_000;
 
 /** Valid selectable models (live-validated). */
 export const HYPERAGENT_FALLBACK_MODELS: HyperAgentModel[] = [
-  { id: "fable-latest", name: "Fable 5", subagent: "fable", runtimeId: "claude-agents-sdk" },
+  {
+    id: "fable-latest",
+    name: "Fable 5",
+    subagent: "fable",
+    runtimeId: "claude-agents-sdk",
+    contextLength: HYPERAGENT_DEFAULT_CONTEXT_LENGTH,
+  },
   {
     id: "claude-fable-5",
     name: "Claude Fable 5",
     subagent: "fable",
     runtimeId: "claude-agents-sdk",
+    contextLength: HYPERAGENT_DEFAULT_CONTEXT_LENGTH,
   },
   {
     id: "opus-latest",
     name: "Claude Opus Latest",
     subagent: "opus",
     runtimeId: "claude-agents-sdk",
+    contextLength: HYPERAGENT_DEFAULT_CONTEXT_LENGTH,
   },
   {
     id: "claude-opus-4-8",
     name: "Claude Opus 4.8",
     subagent: "opus",
     runtimeId: "claude-agents-sdk",
+    contextLength: HYPERAGENT_DEFAULT_CONTEXT_LENGTH,
   },
   {
     id: "sonnet-latest",
     name: "Claude Sonnet Latest",
     subagent: "sonnet",
     runtimeId: "claude-agents-sdk",
+    contextLength: HYPERAGENT_DEFAULT_CONTEXT_LENGTH,
   },
   {
     id: "claude-sonnet-5",
     name: "Claude Sonnet 5",
     subagent: "sonnet",
     runtimeId: "claude-agents-sdk",
+    contextLength: HYPERAGENT_DEFAULT_CONTEXT_LENGTH,
   },
 ];
 

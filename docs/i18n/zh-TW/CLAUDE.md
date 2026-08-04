@@ -4,7 +4,7 @@
 
 ---
 
-該文件為在此代碼庫中使用 Claude Code (claude.ai/code) 提供指導。
+該文件為在此程式碼庫中使用 Claude Code (claude.ai/code) 提供指導。
 
 ## 快速開始
 
@@ -26,7 +26,7 @@ npm run check:cycles           # 檢測循環依賴
 # 單個測試文件（Node.js 原生測試運行器 — 大多數測試）
 node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest（MCP 伺服器，autoCombo，緩存）
+# Vitest（MCP 伺服器，autoCombo，快取）
 npm run test:vitest
 
 # 所有測試套件
@@ -37,7 +37,7 @@ npm run test:all
 
 ---
 
-## 項目概覽
+## 專案概覽
 
 **OmniRoute** — 統一的 AI 代理/路由器。一個端點，160+ LLM 提供者，自動回退。
 
@@ -47,14 +47,14 @@ npm run test:all
 | 處理程序   | `open-sse/handlers/`    | 請求處理（聊天、嵌入等）                                         |
 | 執行器     | `open-sse/executors/`   | 特定提供者的 HTTP 調度                                           |
 | 轉換器     | `open-sse/translator/`  | 格式轉換（OpenAI↔Claude↔Gemini）                                 |
-| 轉換器     | `open-sse/transformer/` | 響應 API ↔ 聊天完成                                              |
-| 服務       | `open-sse/services/`    | 組合路由、速率限制、緩存等                                       |
-| 資料庫     | `src/lib/db/`           | SQLite 域模塊（45+ 文件，55 次遷移）                             |
+| 轉換器     | `open-sse/transformer/` | 回應 API ↔ 聊天完成                                              |
+| 服務       | `open-sse/services/`    | 組合路由、速率限制、快取等                                       |
+| 資料庫     | `src/lib/db/`           | SQLite 域模組（45+ 文件，55 次遷移）                             |
 | 域/策略    | `src/domain/`           | 策略引擎、成本規則、回退邏輯                                     |
-| MCP 伺服器 | `open-sse/mcp-server/`  | 37 個工具（30 基礎 + 3 內存 + 4 技能），3 個傳輸，大約 13 個範圍 |
+| MCP 伺服器 | `open-sse/mcp-server/`  | 37 個工具（30 基礎 + 3 記憶 + 4 技能），3 個傳輸，大約 13 個範圍 |
 | A2A 伺服器 | `src/lib/a2a/`          | JSON-RPC 2.0 代理協議                                            |
 | 技能       | `src/lib/skills/`       | 可擴展的技能框架                                                 |
-| 內存       | `src/lib/memory/`       | 持久化對話內存                                                   |
+| 記憶       | `src/lib/memory/`       | 持久化對話記憶                                                   |
 
 Monorepo: `src/`（Next.js 16 應用），`open-sse/`（流媒體引擎工作區），`electron/`（桌面應用），`tests/`，`bin/`（CLI 入口點）。
 
@@ -66,17 +66,17 @@ Monorepo: `src/`（Next.js 16 應用），`open-sse/`（流媒體引擎工作區
 客戶端 → /v1/chat/completions (Next.js 路由)
   → CORS → Zod 驗證 → 認證? → 策略檢查 → 提示注入保護
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → 緩存檢查 → 速率限制 → 組合路由?
-      → resolveComboTargets() → 針對每個目標調用 handleSingleModel()
+    → 快取檢查 → 速率限制 → 組合路由?
+      → resolveComboTargets() → 針對每個目標呼叫 handleSingleModel()
     → translateRequest() → getExecutor() → executor.execute()
-      → fetch() 上遊 → 重試 w/ 回退
-    → 響應翻譯 → SSE 流或 JSON
+      → fetch() 上游 → 重試 w/ 回退
+    → 回應翻譯 → SSE 流或 JSON
     → 如果是 Responses API: responsesTransformer.ts TransformStream
 ```
 
-API 路由遵循一致的模式：`路由 → CORS 預檢 → Zod 請求體驗證 → 可選認證 (extractApiKey/isValidApiKey) → API 密鑰策略執行 → 處理程序委派 (open-sse)`。沒有全局的 Next.js 中間件 — 攔截是路由特定的。
+API 路由遵循一致的模式：`路由 → CORS 預檢 → Zod 請求體驗證 → 可選認證 (extractApiKey/isValidApiKey) → API 密鑰策略執行 → 處理程序委派 (open-sse)`。沒有全域的 Next.js 中間件 — 攔截是路由特定的。
 
-**組合路由** (`open-sse/services/combo.ts`): 14 種策略（優先級、加權、優先填充、輪詢、P2C、隨機、最少使用、成本優化、重置感知、嚴格隨機、自動、lkgp、上下文優化、上下文中繼）。每個目標調用 `handleSingleModel()`，該函數用每個目標的錯誤處理和電路斷路器檢查包裝 `handleChatCore()`。有關 9 因子自動組合評分的資訊，請參見 `docs/routing/AUTO-COMBO.md`，有關 3 層彈性的資訊，請參見 `docs/architecture/RESILIENCE_GUIDE.md`。
+**組合路由** (`open-sse/services/combo.ts`): 14 種策略（優先級、加權、優先填充、輪詢、P2C、隨機、最少使用、成本優化、重置感知、嚴格隨機、自動、lkgp、上下文優化、上下文中繼）。每個目標呼叫 `handleSingleModel()`，該函數用每個目標的錯誤處理和電路斷路器檢查包裝 `handleChatCore()`。有關 9 因子自動組合評分的資訊，請參見 `docs/routing/AUTO-COMBO.md`，有關 3 層彈性的資訊，請參見 `docs/architecture/RESILIENCE_GUIDE.md`。
 
 ---
 
@@ -91,7 +91,7 @@ OmniRoute 有三種相關但不同的臨時故障機制。在調試路由行為�
 
 **範圍**: 整個提供者，例如 `glm`、`openai`、`anthropic`。
 
-**目的**: 停止向一個在上遊/服務級別反覆失敗的提供者發送流量，以便一個不健康的提供者不會減慢每個請求的速度。
+**目的**: 停止向一個在上游/服務級別反覆失敗的提供者發送流量，以便一個不健康的提供者不會減慢每個請求的速度。
 
 **實現**:
 
@@ -104,10 +104,10 @@ OmniRoute 有三種相關但不同的臨時故障機制。在調試路由行為�
 **狀態**:
 
 - `CLOSED`: 允許正常流量。
-- `OPEN`: 提供者暫時被阻止；調用者會收到提供者電路打開的響應，或者組合路由跳過到另一個目標。
+- `OPEN`: 提供者暫時被阻止；呼叫者會收到提供者電路打開的回應，或者組合路由跳過到另一個目標。
 - `HALF_OPEN`: 重置超時已過；允許探測請求。成功關閉斷路器，失敗再次打開。
 
-**默認值** (`open-sse/config/constants.ts`):
+**預設值** (`open-sse/config/constants.ts`):
 
 - OAuth 提供者: 閾值 `3`，重置超時 `60s`。
 - API 密鑰提供者: 閾值 `5`，重置超時 `30s`。
@@ -121,7 +121,7 @@ OmniRoute 有三種相關但不同的臨時故障機制。在調試路由行為�
 
 不要因正常的帳戶/密鑰/模型錯誤（如大多數 `401`、`403` 或 `429` 情況）而觸發整個提供者斷路器。這些通常屬於連接冷卻或模型鎖定。除非被歸類為終端提供者/帳戶錯誤，否則通用 API 密鑰提供者的 `403` 應該是可恢復的。
 
-斷路器使用懶惰恢復，而不是後臺定時器。當 `OPEN` 過期時，像 `getStatus()`、`canExecute()` 和 `getRetryAfterMs()` 這樣的讀取會將狀態刷新為 `HALF_OPEN`，以便儀錶板和組合候選構建器不會永遠排除一個過期的提供者。
+斷路器使用懶惰恢復，而不是後台定時器。當 `OPEN` 過期時，像 `getStatus()`、`canExecute()` 和 `getRetryAfterMs()` 這樣的讀取會將狀態刷新為 `HALF_OPEN`，以便儀表板和組合候選構建器不會永遠排除一個過期的提供者。
 
 ### 連接冷卻
 
@@ -155,11 +155,11 @@ new Date(rateLimitedUntil).getTime() > Date.now();
 
 冷卻也是懶惰的：當 `rateLimitedUntil` 在過去時，連接再次變得合格。在成功使用時，`clearAccountError()` 會清除 `testStatus`、`rateLimitedUntil`、錯誤欄位和 `backoffLevel`。
 
-默認連接冷卻行為：
+預設連接冷卻行為：
 
 - OAuth 基礎冷卻: `5s`。
 - API 密鑰基礎冷卻: `3s`。
-- API 密鑰 `429` 應優先考慮上遊重試提示（`Retry-After`、重置頭或可解析的重置文本），如果可用。
+- API 密鑰 `429` 應優先考慮上游重試提示（`Retry-After`、重置頭或可解析的重置文本），如果可用。
 - 重複的可恢復故障使用指數回退：
 
 ```ts
@@ -187,26 +187,26 @@ baseCooldownMs * 2 ** failureIndex;
 ### 調試指導
 
 - 如果一個提供者的所有密鑰都被跳過，請檢查提供者斷路器狀態和每個連接的 `rateLimitedUntil`/`testStatus`。
-- 如果一個提供者在重置窗口後似乎被永久排除，請檢查代碼是否在讀取原始 `state` 而不是使用 `getStatus()`/`canExecute()`。
+- 如果一個提供者在重置窗口後似乎被永久排除，請檢查程式碼是否在讀取原始 `state` 而不是使用 `getStatus()`/`canExecute()`。
 - 如果一個提供者密鑰失敗但其他密鑰應該有效，請優先考慮連接冷卻而不是提供者斷路器。
 - 如果只有一個模型失敗，請優先考慮模型鎖定而不是連接冷卻。
 - 如果一個狀態應該自我恢復，它應該有一個未來的時間戳/重置超時和一個讀取路徑來刷新過期狀態。永久狀態需要手動憑據或設定更改。
 
 ## 關鍵約定
 
-### 代碼風格
+### 程式碼風格
 
 - **2個空格**，分號，雙引號，100字符寬度，es5尾隨逗號（通過lint-staged和Prettier強制執行）
 - **導入**：外部 → 內部（`@/`，`@omniroute/open-sse`）→ 相對
 - **命名**：文件=camelCase/kebab，組件=PascalCase，常量=UPPER_SNAKE
 - **ESLint**：`no-eval`，`no-implied-eval`，`no-new-func` = 在任何地方都報錯；`no-explicit-any` = 在`open-sse/`和`tests/`中警告
-- **TypeScript**：`strict: false`，目標ES2022，模塊esnext，解析器為打包器。優先使用顯式類型。
+- **TypeScript**：`strict: false`，目標ES2022，模組esnext，解析器為打包器。優先使用顯式類型。
 
 ### 資料庫
 
-- **始終**通過`src/lib/db/`域模塊 — **絕不**在路由或處理程序中編寫原始SQL
+- **始終**通過`src/lib/db/`域模組 — **絕不**在路由或處理程序中編寫原始SQL
 - **絕不**在`src/lib/localDb.ts`中添加邏輯（僅為重新導出層）
-- **絕不**從`localDb.ts`進行桶導入 — 而是導入特定的`db/`模塊
+- **絕不**從`localDb.ts`進行桶導入 — 而是導入特定的`db/`模組
 - DB單例：`getDbInstance()`來自`src/lib/db/core.ts`（WAL日誌記錄）
 - 遷移：`src/lib/db/migrations/` — 版本化的SQL文件，冪等，在事務中運行
 
@@ -221,11 +221,11 @@ baseCooldownMs * 2 ** failureIndex;
 - **絕不**使用`eval()`，`new Function()`或隱式eval
 - 使用Zod模式驗證所有輸入
 - 在靜態存儲中加密憑據（AES-256-GCM）
-- 上遊頭部拒絕列表：`src/shared/constants/upstreamHeaders.ts` — 編輯時保持清理、Zod模式和單元測試一致
-- **公共上遊憑據**（Gemini/Antigravity/Windsurf風格的OAuth client_id/secret + 從公共CLI提取的Firebase Web密鑰）：**必須**通過`resolvePublicCred()`嵌入，來自`open-sse/utils/publicCreds.ts` — **絕不**作為字符串字面量。請參見`docs/security/PUBLIC_CREDS.md`以獲取強制模式。
-- **錯誤響應**（HTTP / SSE / 執行器 / MCP處理程序）：**必須**通過`buildErrorBody()`或`sanitizeErrorMessage()`路由，來自`open-sse/utils/error.ts` — **絕不**將原始`err.stack`或`err.message`放入響應體中。請參見`docs/security/ERROR_SANITIZATION.md`。
-- **從變量構建的Shell命令**：在調用`exec()`/`spawn()`時，如果腳本需要運行時值，通過`env`選項傳遞（自動進行Shell轉義） — **絕不**將不受信任/外部路徑字符串插入腳本體中。參考：`src/mitm/cert/install.ts::updateNssDatabases`。
-- **默認安全庫**（[tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)）：在添加新的安全敏感表面時，優先使用Helmet.js、DOMPurify、ssrf-req-filter、safe-regex、Google Tink，而不是自定義實現。
+- 上游頭部拒絕列表：`src/shared/constants/upstreamHeaders.ts` — 編輯時保持清理、Zod模式和單元測試一致
+- **公共上游憑據**（Gemini/Antigravity/Windsurf風格的OAuth client_id/secret + 從公共CLI提取的Firebase Web密鑰）：**必須**通過`resolvePublicCred()`嵌入，來自`open-sse/utils/publicCreds.ts` — **絕不**作為字串字面量。請參見`docs/security/PUBLIC_CREDS.md`以獲取強制模式。
+- **錯誤回應**（HTTP / SSE / 執行器 / MCP處理程序）：**必須**通過`buildErrorBody()`或`sanitizeErrorMessage()`路由，來自`open-sse/utils/error.ts` — **絕不**將原始`err.stack`或`err.message`放入回應體中。請參見`docs/security/ERROR_SANITIZATION.md`。
+- **從變量構建的Shell命令**：在呼叫`exec()`/`spawn()`時，如果腳本需要運行時值，通過`env`選項傳遞（自動進行Shell轉義） — **絕不**將不受信任/外部路徑字串插入腳本體中。參考：`src/mitm/cert/install.ts::updateNssDatabases`。
+- **預設安全庫**（[tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)）：在添加新的安全敏感表面時，優先使用Helmet.js、DOMPurify、ssrf-req-filter、safe-regex、Google Tink，而不是自定義實現。
 
 ---
 
@@ -236,9 +236,9 @@ baseCooldownMs * 2 ** failureIndex;
 1. 在`src/shared/constants/providers.ts`中註冊（加載時進行Zod驗證）
 2. 如果需要自定義邏輯，則在`open-sse/executors/`中添加執行器（擴展`BaseExecutor`）
 3. 如果是非OpenAI格式，則在`open-sse/translator/`中添加翻譯器
-4. 如果基於OAuth，則在`src/lib/oauth/constants/oauth.ts`中添加OAuth設定 — 如果上遊CLI提供公共client_id/secret，則通過`resolvePublicCred()`嵌入（見`docs/security/PUBLIC_CREDS.md`），**絕不**作為字面量
+4. 如果基於OAuth，則在`src/lib/oauth/constants/oauth.ts`中添加OAuth設定 — 如果上游CLI提供公共client_id/secret，則通過`resolvePublicCred()`嵌入（見`docs/security/PUBLIC_CREDS.md`），**絕不**作為字面量
 5. 在`open-sse/config/providerRegistry.ts`中註冊模型
-6. 在`tests/unit/`中編寫測試（如果添加了新的嵌入默認，則包括publicCreds形狀斷言）
+6. 在`tests/unit/`中編寫測試（如果添加了新的嵌入預設，則包括publicCreds形狀斷言）
 
 ### 添加新API路由
 
@@ -246,10 +246,10 @@ baseCooldownMs * 2 ** failureIndex;
 2. 創建`route.ts`，包含`GET`/`POST`處理程序
 3. 遵循模式：CORS → Zod主體驗證 → 可選身份驗證 → 處理程序委託
 4. 處理程序放在`open-sse/handlers/`中（從那裡導入，而不是內聯）
-5. 錯誤響應使用`buildErrorBody()` / `errorResponse()`來自`open-sse/utils/error.ts`（自動清理 — 絕不將`err.stack`或`err.message`原樣放入主體中）。請參見`docs/security/ERROR_SANITIZATION.md`。
-6. 添加測試 — 包括至少一個斷言，確保錯誤響應不洩露堆棧跟蹤（`!body.error.message.includes("at /")`）
+5. 錯誤回應使用`buildErrorBody()` / `errorResponse()`來自`open-sse/utils/error.ts`（自動清理 — 絕不將`err.stack`或`err.message`原樣放入主體中）。請參見`docs/security/ERROR_SANITIZATION.md`。
+6. 添加測試 — 包括至少一個斷言，確保錯誤回應不洩露堆棧跟蹤（`!body.error.message.includes("at /")`）
 
-### 添加新DB模塊
+### 添加新DB模組
 
 1. 創建`src/lib/db/yourModule.ts` — 從`./core.ts`導入`getDbInstance`
 2. 導出您的域表的CRUD函數
@@ -262,7 +262,7 @@ baseCooldownMs * 2 ** failureIndex;
 1. 在`open-sse/mcp-server/tools/`中添加工具定義，包含Zod輸入模式 + 異步處理程序
 2. 在工具集中註冊（通過`createMcpServer()`連接）
 3. 分配給適當的範圍
-4. 編寫測試（工具調用記錄到`mcp_audit`表中）
+4. 編寫測試（工具呼叫記錄到`mcp_audit`表中）
 
 ### 添加新A2A技能
 
@@ -283,16 +283,16 @@ baseCooldownMs * 2 ** failureIndex;
 
 ### 添加新護欄 / 評估 / 技能 / Webhook事件
 
-- 護欄：`src/lib/guardrails/` → 文檔：`docs/security/GUARDRAILS.md`
-- 評估套件：`src/lib/evals/` → 文檔：`docs/frameworks/EVALS.md`
-- 技能（沙盒）：`src/lib/skills/` → 文檔：`docs/frameworks/SKILLS.md`
-- Webhook事件：`src/lib/webhookDispatcher.ts` → 文檔：`docs/frameworks/WEBHOOKS.md`
+- 護欄：`src/lib/guardrails/` → 文件：`docs/security/GUARDRAILS.md`
+- 評估套件：`src/lib/evals/` → 文件：`docs/frameworks/EVALS.md`
+- 技能（沙盒）：`src/lib/skills/` → 文件：`docs/frameworks/SKILLS.md`
+- Webhook事件：`src/lib/webhookDispatcher.ts` → 文件：`docs/frameworks/WEBHOOKS.md`
 
-## 參考文檔
+## 參考文件
 
 對於任何非平凡的更改，請先閱讀相應的深入分析：
 
-| 領域                            | 文檔                                                              |
+| 領域                            | 文件                                                              |
 | ------------------------------- | ----------------------------------------------------------------- |
 | 倉庫導航                        | `docs/architecture/REPOSITORY_MAP.md`                             |
 | 架構                            | `docs/architecture/ARCHITECTURE.md`                               |
@@ -301,10 +301,10 @@ baseCooldownMs * 2 ** failureIndex;
 | 彈性（3種機制）                 | `docs/architecture/RESILIENCE_GUIDE.md`                           |
 | 推理重放                        | `docs/routing/REASONING_REPLAY.md`                                |
 | 技能框架                        | `docs/frameworks/SKILLS.md`                                       |
-| 內存系統（FTS5 + Qdrant）       | `docs/frameworks/MEMORY.md`                                       |
+| 記憶系統（FTS5 + Qdrant）       | `docs/frameworks/MEMORY.md`                                       |
 | 雲代理                          | `docs/frameworks/CLOUD_AGENT.md`                                  |
 | 保護措施（PII / 注入 / 視覺）   | `docs/security/GUARDRAILS.md`                                     |
-| 公共上遊憑證（Gemini等）        | `docs/security/PUBLIC_CREDS.md`                                   |
+| 公共上游憑證（Gemini等）        | `docs/security/PUBLIC_CREDS.md`                                   |
 | 錯誤資訊清理                    | `docs/security/ERROR_SANITIZATION.md`                             |
 | 評估                            | `docs/frameworks/EVALS.md`                                        |
 | 合規 / 審計                     | `docs/security/COMPLIANCE.md`                                     |
@@ -333,11 +333,11 @@ baseCooldownMs * 2 ** failureIndex;
 | 覆蓋門限                | `npm run test:coverage` (75/75/75/70 — 語句/行/函數/分支) |
 | 覆蓋報告                | `npm run coverage:report`                                 |
 
-**PR 規則**：如果您更改了 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的生產代碼，您必須在同一 PR 中包含或更新測試。
+**PR 規則**：如果您更改了 `src/`、`open-sse/`、`electron/` 或 `bin/` 中的正式程式碼，您必須在同一 PR 中包含或更新測試。
 
-**測試層級偏好**：單元測試優先 → 集成測試（多模塊或資料庫狀態） → E2E（僅限 UI/工作流）。在修復之前或同時將錯誤重現編碼為自動化測試。
+**測試層級偏好**：單元測試優先 → 集成測試（多模組或資料庫狀態） → E2E（僅限 UI/工作流）。在修復之前或同時將錯誤重現編碼為自動化測試。
 
-**Copilot 覆蓋政策**：當 PR 更改生產代碼且覆蓋率低於 75%（語句/行/函數）或 70%（分支）時，不僅僅報告 — 添加或更新測試，重新運行覆蓋門限，然後請求確認。在 PR 報告中包含運行的命令、已更改的測試文件和最終覆蓋結果。
+**Copilot 覆蓋政策**：當 PR 更改正式程式碼且覆蓋率低於 75%（語句/行/函數）或 70%（分支）時，不僅僅報告 — 添加或更新測試，重新運行覆蓋門限，然後請求確認。在 PR 報告中包含運行的命令、已更改的測試文件和最終覆蓋結果。
 
 ---
 
@@ -364,10 +364,10 @@ git push -u origin feat/your-feature
 ## 環境
 
 - **運行時**：Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
-- **TypeScript**：5.9+，目標 ES2022，模塊 esnext，解析器 bundler
+- **TypeScript**：5.9+，目標 ES2022，模組 esnext，解析器 bundler
 - **路徑別名**：`@/*` → `src/`，`@omniroute/open-sse` → `open-sse/`，`@omniroute/open-sse/*` → `open-sse/*`
-- **默認埠**：20128（API + 儀錶板在同一埠）
-- **數據目錄**：`DATA_DIR` 環境變量，默認為 `~/.omniroute/`
+- **預設埠**：20128（API + 儀表板在同一埠）
+- **數據目錄**：`DATA_DIR` 環境變量，預設為 `~/.omniroute/`
 - **關鍵環境變量**：`PORT`、`JWT_SECRET`、`API_KEY_SECRET`、`INITIAL_PASSWORD`、`REQUIRE_API_KEY`、`APP_LOG_LEVEL`
 - 設置：`cp .env.example .env` 然後生成 `JWT_SECRET` (`openssl rand -base64 48`) 和 `API_KEY_SECRET` (`openssl rand -hex 32`)
 
@@ -379,15 +379,15 @@ git push -u origin feat/your-feature
 2. 永遠不要在 `localDb.ts` 中添加邏輯
 3. 永遠不要使用 `eval()` / `new Function()` / 隱式 eval
 4. 永遠不要直接提交到 `main`
-5. 永遠不要在路由中編寫原始 SQL — 使用 `src/lib/db/` 模塊
+5. 永遠不要在路由中編寫原始 SQL — 使用 `src/lib/db/` 模組
 6. 永遠不要在 SSE 流中靜默吞噬錯誤
 7. 始終使用 Zod 模式驗證輸入
-8. 更改生產代碼時始終包含測試
+8. 更改正式程式碼時始終包含測試
 9. 覆蓋率必須保持在 ≥75%（語句、行、函數）/ ≥70%（分支）。當前測量：~82%。
 10. 在沒有明確操作員批准的情況下，永遠不要繞過 Husky 鉤子（`--no-verify`，`--no-gpg-sign`）。
-11. 永遠不要將公共上遊 OAuth client_id/secret 或 Firebase Web 密鑰作為字符串文字嵌入 — 始終通過 `resolvePublicCred()` 處理（`open-sse/utils/publicCreds.ts`）。參見 `docs/security/PUBLIC_CREDS.md`。
-12. 永遠不要在 HTTP / SSE / 執行器響應中返回原始 `err.stack` / `err.message` — 始終通過 `buildErrorBody()` 或 `sanitizeErrorMessage()` 路由（`open-sse/utils/error.ts`）。參見 `docs/security/ERROR_SANITIZATION.md`。
-13. 永遠不要將外部路徑或運行時值字符串插值到傳遞給 `exec()`/`spawn()` 的 shell 腳本中 — 應通過 `env` 選項傳遞。參考：`src/mitm/cert/install.ts::updateNssDatabases`。
-14. 永遠不要在沒有 (a) 首先檢查上述模式文檔以查看幫助程序是否適用，以及 (b) 在駁回評論中記錄技術理由的情況下駁回 CodeQL / Secret-Scanning 警報。先例：在已經通過 `sanitizeErrorMessage()` 路由的調用站點上引發的 `js/stack-trace-exposure` 是已知的 CodeQL 限制（自定義清理程序未被識別） — 駁回為 `false positive`，引用 `docs/security/ERROR_SANITIZATION.md`。
+11. 永遠不要將公共上游 OAuth client_id/secret 或 Firebase Web 密鑰作為字串文字嵌入 — 始終通過 `resolvePublicCred()` 處理（`open-sse/utils/publicCreds.ts`）。參見 `docs/security/PUBLIC_CREDS.md`。
+12. 永遠不要在 HTTP / SSE / 執行器回應中返回原始 `err.stack` / `err.message` — 始終通過 `buildErrorBody()` 或 `sanitizeErrorMessage()` 路由（`open-sse/utils/error.ts`）。參見 `docs/security/ERROR_SANITIZATION.md`。
+13. 永遠不要將外部路徑或運行時值字串插值到傳遞給 `exec()`/`spawn()` 的 shell 腳本中 — 應通過 `env` 選項傳遞。參考：`src/mitm/cert/install.ts::updateNssDatabases`。
+14. 永遠不要在沒有 (a) 首先檢查上述模式文件以查看幫助程序是否適用，以及 (b) 在駁回評論中記錄技術理由的情況下駁回 CodeQL / Secret-Scanning 警報。先例：在已經通過 `sanitizeErrorMessage()` 路由的呼叫站點上引發的 `js/stack-trace-exposure` 是已知的 CodeQL 限制（自定義清理程序未被識別） — 駁回為 `false positive`，引用 `docs/security/ERROR_SANITIZATION.md`。
 15. 永遠不要暴露生成子進程的路由（`/api/mcp/`、`/api/cli-tools/runtime/`），而不在 `src/server/authz/routeGuard.ts` 中進行 `isLocalOnlyPath()` 分類。迴環強制執行在任何身份驗證檢查之前無條件發生 — 通過隧道洩露的 JWT 不能觸發進程生成。參見 `docs/security/ROUTE_GUARD_TIERS.md`。
 16. 切勿在提交消息中包含將 AI 助手、LLM 或自動化帳戶作為作者的 `Co-Authored-By` 尾部（例如包含 "Claude"、"GPT"、"Copilot"、"Bot" 的名稱；`anthropic.com` / `openai.com` / 機器人擁有的 `noreply.github.com` 地址上的電子郵件）。這類尾部會將 commit 歸屬路由到 GitHub 上的機器人帳戶，從而在 PR 歷史中隱藏真正的作者 (`diegosouzapw`)。人類協作者——包括 upstream PR 作者和被移植到 OmniRoute 的 issue 報告者——可以並且應該使用標準的 `Co-authored-by: Name <email>` 尾部進行署名；upstream-port 工作流（`/port-upstream-features`、`/port-upstream-issues`）依賴於此。

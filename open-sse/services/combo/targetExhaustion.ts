@@ -44,7 +44,7 @@ const AUTH_LEVEL_ERROR_STATUSES = [401, 403];
 // same-provider leg via #1731v2). It is a model-level transient failure: advance to the next
 // leg, leaving the rest of that provider's legs eligible.
 function isEmptyContentFailure(status: number, errorText: string): boolean {
-  return status === 502 && /empty content/i.test(errorText);
+  return status === 502 && (/empty content/i.test(errorText) || /empty response/i.test(errorText));
 }
 
 export type ComboExhaustionSets = {
@@ -128,7 +128,10 @@ function markProviderQuotaExhaustion(
   const { sets, log, tag, exhaustedLogLevel } = opts;
   sets.exhaustedProviders.add(provider);
   const emit = exhaustedLogLevel === "debug" ? log.debug : log.info;
-  emit?.(tag, `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`);
+  emit?.(
+    tag,
+    `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
+  );
 }
 
 /**
@@ -140,13 +143,20 @@ function markTransientOrConnectionLevel(
   target: ResolvedComboTarget,
   opts: ApplyComboTargetExhaustionOptions
 ): void {
-  const { result, errorText, rawModel, isTokenLimitBreach, sets, log, tag, structuredError } =
-    opts;
+  const { result, errorText, rawModel, isTokenLimitBreach, sets, log, tag, structuredError } = opts;
   const provider = target.provider;
   if (result.status === 429 && !isTokenLimitBreach && provider && provider !== "unknown") {
     sets.transientRateLimitedProviders.add(provider);
   }
-  markConnectionLevelExhaustion(target, { result, errorText, sets, log, tag, rawModel, structuredError });
+  markConnectionLevelExhaustion(target, {
+    result,
+    errorText,
+    sets,
+    log,
+    tag,
+    rawModel,
+    structuredError,
+  });
 }
 
 /**

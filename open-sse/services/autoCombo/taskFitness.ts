@@ -239,6 +239,11 @@ function loadModelCapabilities(): Record<string, ModelCapRow> | null {
 
   try {
     const db = getDbInstance();
+    const tableExists = db
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='model_capabilities'")
+      .get();
+    if (!tableExists) return null;
+
     const rows = db.prepare("SELECT * FROM model_capabilities").all() as Record<string, unknown>[];
     const cache: Record<string, ModelCapRow> = {};
 
@@ -292,12 +297,34 @@ export function getModelsDevTierFitness(model: string, taskType: string): number
 
 // ─── Resolution chain ───────────────────────────────────────────────────
 
-function lookupStaticFitnessTable(normalizedModel: string, normalizedTask: string): number | null {
+/**
+ * Resolve a model id against the static fitness table, LONGEST PATTERN FIRST (#8603).
+ *
+ * The shadowing itself is already fixed on `release/v3.8.49` (9f5be229b): matching used
+ * to return the first `String.includes` hit in declaration order, so a shorter pattern
+ * declared earlier shadowed a model's own, more specific row — `FITNESS_TABLE.coding`
+ * declares `"gpt-4o": 0.9` before `"gpt-4o-mini": 0.8`, so `gpt-4o-mini` inherited the
+ * flagship's 0.9 and its own row was unreachable (same for `deepseek-v3.2` vs
+ * `deepseek-v3`). The length-ranked scan below is that upstream fix, unchanged.
+ *
+ * What this PR adds is only the exported seam: the surrounding resolution chain hits the
+ * DB (user_override / arena_elo / models.dev tier) before reaching layer 4, so pinning
+ * the ordering guarantee through `getTaskFitness` would depend on DB fixture state.
+ * `taskFitness-pattern-order-8603.test.ts` calls this directly instead.
+ */
+export function getStaticFitnessTableScore(model: string, taskType: string): number | null {
+  const normalizedModel = model.toLowerCase();
+  const normalizedTask = taskType.toLowerCase();
   const table = FITNESS_TABLE[normalizedTask] || FITNESS_TABLE.default;
-  for (const [pattern, score] of Object.entries(table)) {
+  const sortedEntries = Object.entries(table).sort((a, b) => b[0].length - a[0].length);
+  for (const [pattern, score] of sortedEntries) {
     if (normalizedModel.includes(pattern)) return score;
   }
   return null;
+}
+
+function lookupStaticFitnessTable(normalizedModel: string, normalizedTask: string): number | null {
+  return getStaticFitnessTableScore(normalizedModel, normalizedTask);
 }
 
 function lookupWildcardBoosts(normalizedModel: string, normalizedTask: string): number {

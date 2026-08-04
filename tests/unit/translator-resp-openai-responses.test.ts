@@ -18,6 +18,43 @@ function collectEvents(chunks) {
   return events;
 }
 
+test("OpenAI -> Responses: accepts the reasoning alias without duplicating the canonical field", () => {
+  const events = collectEvents([
+    {
+      id: "chatcmpl-1",
+      model: "gpt-oss:20b",
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning: "alias ", reasoning_content: "canonical " },
+          finish_reason: null,
+        },
+      ],
+    },
+    {
+      id: "chatcmpl-1",
+      model: "gpt-oss:20b",
+      choices: [{ index: 0, delta: { reasoning: "continued" }, finish_reason: null }],
+    },
+    {
+      id: "chatcmpl-1",
+      model: "gpt-oss:20b",
+      choices: [{ index: 0, delta: { content: "answer" }, finish_reason: "stop" }],
+      usage: { prompt_tokens: 1, completion_tokens: 2, total_tokens: 3 },
+    },
+  ]);
+
+  assert.deepEqual(
+    events
+      .filter((event) => event.event === "response.reasoning_summary_text.delta")
+      .map((event) => event.data.delta),
+    ["canonical ", "continued"]
+  );
+  const completed = events.find((event) => event.event === "response.completed").data.response;
+  assert.equal(completed.output[0].summary[0].text, "canonical continued");
+  assert.equal(completed.output[1].content[0].text, "answer");
+});
+
 test("OpenAI -> Responses: emits lifecycle, reasoning, text, tool calls and completed usage", () => {
   const events = collectEvents([
     {
@@ -95,6 +132,57 @@ test("OpenAI -> Responses: emits lifecycle, reasoning, text, tool calls and comp
   assert.equal(completed.data.response.usage.output_tokens, 7);
   assert.equal(completed.data.response.usage.total_tokens, 12);
   assert.equal(completed.data.response.usage.input_tokens_details.cached_tokens, 2);
+});
+
+// Regression guard for the OpenRouter/nemotron "reasoning_content + tool_calls in the
+// final chunk" case reported via the /dashboard/logs/timeline UI: the SSE events sent to
+// the client were always correct, but stream.ts's completion-log summary builder
+// (open-sse/utils/stream.ts) reads the shared `state.toolCalls` Map — populated by the
+// openai-to-claude / claude-to-openai / gemini-to-openai translators — to report
+// finish_reason and message.tool_calls in the persisted call-log. This translator alone
+// tracked tool calls in its own funcCallIds/funcNames/funcArgsBuf bookkeeping without
+// ever writing to the shared Map, so every openai->openai-responses translated stream
+// with a tool call was logged as finish_reason "stop" with no tool_calls, even though the
+// client received the tool call correctly.
+test("OpenAI -> Responses: closing a tool call also records it in the shared state.toolCalls map", () => {
+  const state = initState(FORMATS.OPENAI_RESPONSES);
+  const chunks = [
+    {
+      id: "chatcmpl-4",
+      model: "nvidia/nemotron",
+      choices: [{ index: 0, delta: { reasoning_content: "thinking" }, finish_reason: null }],
+    },
+    {
+      id: "chatcmpl-4",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call-abc123",
+                type: "function",
+                function: { name: "openclaw", arguments: '{"message":"hi"}' },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+      usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    },
+  ];
+
+  for (const chunk of chunks) {
+    openaiToOpenAIResponsesResponse(chunk, state);
+  }
+
+  assert.equal(state.toolCalls.size, 1, "state.toolCalls should carry the completed tool call");
+  const recorded = [...state.toolCalls.values()][0];
+  assert.equal(recorded.id, "call-abc123");
+  assert.equal(recorded.function.name, "openclaw");
+  assert.equal(recorded.function.arguments, '{"message":"hi"}');
 });
 
 test("OpenAI -> Responses: flush on null closes text content and emits response.completed", () => {

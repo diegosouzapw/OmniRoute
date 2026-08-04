@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 //      400 and rate-limit as 429 (instead of rewriting everything to 502).
 
 const { checkFallbackError } = await import("../../open-sse/services/accountFallback.ts");
-const { isContextOverflow400, isParamValidation400 } = await import(
+const { isContextOverflow400, isParamValidation400, isModelScoped400 } = await import(
   "../../open-sse/services/combo.ts"
 );
 const { normalizeUpstreamFailure } = await import(
@@ -38,6 +38,16 @@ test("#4519 combo guard: a genuinely body-specific 400 is NOT classified as over
   const malformed = "Invalid JSON: unexpected token at position 12";
   assert.equal(isContextOverflow400(malformed), false);
   assert.equal(isParamValidation400(malformed), false);
+  assert.equal(isModelScoped400(malformed), false);
+});
+
+test("#5249 combo guard: model-not-supported is model-scoped (must advance, not stop)", () => {
+  assert.equal(isModelScoped400("requested model is not supported"), true);
+  assert.equal(isModelScoped400("invalid_request_error: model claude-fable-5 is not supported"), true);
+  assert.equal(isModelScoped400("Bad Request: The model is not supported"), true);
+  // still not overflow/param — those are separate advance reasons
+  assert.equal(isContextOverflow400("model is not supported"), false);
+  assert.equal(isParamValidation400("model is not supported"), false);
 });
 
 test("#4519 normalizeUpstreamFailure preserves context_length_exceeded as 400", () => {

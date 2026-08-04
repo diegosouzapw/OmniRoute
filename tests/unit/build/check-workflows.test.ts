@@ -33,6 +33,11 @@ const evaluateZizmor = evaluateZizmorRatchet as (
   baseline: number
 ) => RatchetVerdict;
 const readZizmorBaseline = readBaselineZizmorValue as (p?: string) => number | null;
+const qualityWorkflowPath = new URL("../../../.github/workflows/quality.yml", import.meta.url);
+
+function readQualityWorkflow(): string {
+  return fs.readFileSync(qualityWorkflowPath, "utf8");
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // parseActionlintOutput
@@ -307,4 +312,38 @@ test("readBaselineZizmorValue: invalid JSON returns null (does not throw)", () =
   withTmpBaseline("{ broken", (p) => {
     assert.equal(readZizmorBaseline(p), null);
   });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// quality.yml — release PR build gate regression coverage (#7307)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test("#7307 quality.yml adds an advisory production build for release PR code changes", () => {
+  const source = readQualityWorkflow();
+  const buildJob = source.match(/\n  build:\n[\s\S]*?\n  # Docs\/OpenAPI contract gates only/);
+
+  assert.match(source, /pull_request:\n\s+branches: \["release\/\*\*"\]/);
+  assert.ok(buildJob, "quality.yml must define the build job before docs-gates");
+  assert.match(buildJob[0], /name: Build \(advisory\)/);
+  assert.match(buildJob[0], /needs: changes/);
+  assert.match(buildJob[0], /needs\.changes\.outputs\.code == 'true'/);
+  assert.match(buildJob[0], /github\.event\.pull_request\.draft == false/);
+  assert.match(buildJob[0], /startsWith\(github\.head_ref, 'mergify\/merge-queue\/'\)/);
+  assert.match(
+    buildJob[0],
+    /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/
+  );
+  assert.match(buildJob[0], /fromJSON\('\["self-hosted","omni-release"\]'\) \|\| 'ubuntu-latest'/);
+  assert.match(buildJob[0], /continue-on-error: true/);
+  assert.match(buildJob[0], /uses: actions\/checkout@[0-9a-f]{40} # v7/);
+  assert.match(buildJob[0], /uses: actions\/setup-node@[0-9a-f]{40} # v7/);
+  assert.match(buildJob[0], /uses: \.\/\.github\/actions\/npm-ci-retry/);
+  assert.match(buildJob[0], /npm run check:node-runtime/);
+  assert.match(buildJob[0], /npm run build/);
+  assert.match(buildJob[0], /OMNIROUTE_USE_TURBOPACK: "1"/);
+  assert.doesNotMatch(buildJob[0], /actions\/upload-artifact/);
+  assert.match(
+    buildJob[0],
+    /remove\s+# continue-on-error after the production-build signal is stable/
+  );
 });

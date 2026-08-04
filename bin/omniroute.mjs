@@ -145,6 +145,15 @@ function loadEnvFile() {
 
 loadEnvFile();
 
+// Next.js has no android branch in getCacheDirectory(): if ~/.cache (and tmp)
+// do not already exist it aborts the instrumentation hook, and every request
+// then returns a silent HTTP 500 even though the CLI still looks "running".
+// Create the cache dir (and set XDG_CACHE_HOME when unset) before serve/Next.
+{
+  const { ensureAndroidCacheDir } = await import("./cli/utils/ensureAndroidCacheDir.mjs");
+  ensureAndroidCacheDir();
+}
+
 // Generate STORAGE_ENCRYPTION_KEY if not set (persisted to ~/.omniroute/.env)
 // This ensures the key survives across upgrades and is not regenerated on each install.
 // See: https://github.com/diegosouzapw/OmniRoute/issues/1622

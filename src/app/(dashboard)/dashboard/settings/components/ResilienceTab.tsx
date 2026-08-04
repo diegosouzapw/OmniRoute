@@ -702,10 +702,10 @@ function ComboCooldownWaitCard({
     setDraft(value);
   }, [value]);
 
-  const title = t("resilienceComboCooldownWaitTitle") || "Quota-share combo cooldown wait";
+  const title = t("resilienceComboCooldownWaitTitle") || "Combo cooldown wait";
   const desc =
     t("resilienceComboCooldownWaitDesc") ||
-    "For quota-share combos only: wait out a short transient cooldown and re-dispatch instead of returning a 429 immediately. Never waits on quota_exhausted.";
+    "For all combo strategies: wait out a short transient cooldown and re-dispatch instead of returning a 429 immediately. Never waits on quota_exhausted.";
 
   return (
     <Card className="p-6">
@@ -738,7 +738,7 @@ function ComboCooldownWaitCard({
               label={t("resilienceEnableServerWait") || "Enabled"}
               description={
                 t("resilienceComboCooldownWaitToggleDesc") ||
-                "Quota-share combos only; never waits on quota_exhausted."
+                "All combo strategies; never waits on quota_exhausted."
               }
               checked={draft.enabled}
               onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}

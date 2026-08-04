@@ -49,14 +49,14 @@ export function getUsageSummary(unifiedSource: string, params: AnalyticsParams):
     .prepare(
       `
       SELECT
-        COUNT(*) as totalRequests,
+        COALESCE(SUM(requests), 0) as totalRequests,
         COALESCE(SUM(tokens_input), 0) as promptTokens,
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
         COUNT(DISTINCT model) as uniqueModels,
         COUNT(DISTINCT COALESCE(NULLIF(account_key, ''), NULLIF(connection_id, ''))) as uniqueAccounts,
         COUNT(DISTINCT COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''))) as uniqueApiKeys,
-        COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
+        COALESCE(SUM(CASE WHEN success = 1 THEN requests ELSE 0 END), 0) as successfulRequests,
         COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
         COALESCE(MIN(timestamp), '') as firstRequest,
         COALESCE(MAX(timestamp), '') as lastRequest
@@ -101,7 +101,7 @@ export function getDailyUsage(unifiedSource: string, params: AnalyticsParams): D
       `
       SELECT
         DATE(timestamp) as date,
-        COUNT(*) as requests,
+        COALESCE(SUM(requests), 0) as requests,
         COALESCE(SUM(tokens_input), 0) as promptTokens,
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
@@ -215,7 +215,7 @@ export function getModelUsageRows(unifiedSource: string, params: AnalyticsParams
         LOWER(model) as model,
         LOWER(provider) as provider,
         COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-        COUNT(*) as requests,
+        COALESCE(SUM(requests), 0) as requests,
         COALESCE(SUM(tokens_input), 0) as promptTokens,
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
@@ -223,7 +223,7 @@ export function getModelUsageRows(unifiedSource: string, params: AnalyticsParams
         COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
         COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
         COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
-        COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
+        COALESCE(SUM(CASE WHEN success = 1 THEN requests ELSE 0 END), 0) as successfulRequests,
         COALESCE(MAX(timestamp), '') as lastUsed
       FROM ${unifiedSource} AS _u
       GROUP BY LOWER(model), LOWER(provider), serviceTier
@@ -298,12 +298,12 @@ export function getProviderUsageRows(
       `
       SELECT
         LOWER(provider) as provider,
-        COUNT(*) as requests,
+        COALESCE(SUM(requests), 0) as requests,
         COALESCE(SUM(tokens_input), 0) as promptTokens,
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
         COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
-        COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests
+        COALESCE(SUM(CASE WHEN success = 1 THEN requests ELSE 0 END), 0) as successfulRequests
       FROM ${unifiedSource} AS _u
       GROUP BY LOWER(provider)
       ORDER BY requests DESC
@@ -553,7 +553,7 @@ export function getServiceTierUsageRows(
         LOWER(provider) as provider,
         LOWER(model) as model,
         COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-        COUNT(*) as requests,
+        COALESCE(SUM(requests), 0) as requests,
         COALESCE(SUM(tokens_input), 0) as promptTokens,
         COALESCE(SUM(tokens_output), 0) as completionTokens,
         COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
@@ -633,7 +633,7 @@ export function getWeeklyPatternRows(
         SELECT
           DATE(timestamp) as date,
           strftime('%w', timestamp) as dayOfWeek,
-          COUNT(*) as requests,
+          COALESCE(SUM(requests), 0) as requests,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM ${unifiedSource} AS _u
         GROUP BY DATE(timestamp), strftime('%w', timestamp)

@@ -3,6 +3,7 @@ import { unwrapClinepassEnvelope } from "./clinepassEnvelope.ts";
 import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
+import { buildPassthroughErrorResponse } from "./upstreamErrorPassthrough.ts";
 
 /**
  * Sanitize an error message to prevent stack trace exposure in API responses.
@@ -103,16 +104,25 @@ export function sanitizeUpstreamDetails(value: unknown, depth = 0): unknown {
   return null;
 }
 
+/** Optional caller classification; when set, wins over status-derived defaults. */
+export type ErrorBodyClassification = {
+  type?: string;
+  code?: string;
+};
+
 /**
  * Build OpenAI-compatible error response body. Message is always sanitized
  * so callers do not need to remember to strip stack traces themselves.
  * Optional third argument `upstreamDetails` (raw parsed provider body) is
  * sanitized by sanitizeUpstreamDetails before inclusion as `upstream_details`.
+ * Optional fourth argument `classification` preserves an explicit type/code
+ * instead of re-deriving both from the status-code table.
  */
 export function buildErrorBody(
   statusCode: number,
   message: string,
-  upstreamDetails?: unknown
+  upstreamDetails?: unknown,
+  classification?: ErrorBodyClassification
 ): ErrorResponseBody {
   const errorInfo = getErrorInfo(statusCode);
   const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
@@ -120,8 +130,8 @@ export function buildErrorBody(
   const body: ErrorResponseBody = {
     error: {
       message: safeMessage,
-      type: errorInfo.type,
-      code: errorInfo.code,
+      type: classification?.type ?? errorInfo.type,
+      code: classification?.code ?? errorInfo.code,
     },
   };
 
@@ -520,7 +530,8 @@ export function createErrorResult(
   retryAfterMs: number | null = null,
   errorCode?: string,
   errorType?: string,
-  upstreamDetails?: unknown
+  upstreamDetails?: unknown,
+  opts?: { passthrough?: boolean }
 ) {
   const body = buildErrorBody(statusCode, message, upstreamDetails);
   if (errorCode) {
@@ -566,6 +577,22 @@ export function createErrorResult(
   // Add retryAfterMs if available (for Antigravity quota errors)
   if (retryAfterMs) {
     result.retryAfterMs = retryAfterMs;
+  }
+
+  // Opt-in relay of the verbatim upstream error body (Claude Code auto-recover
+  // contract — see upstreamErrorPassthrough.ts). Only swaps `result.response`;
+  // `result.error`/`rawMessage`/`errorType`/`errorCode` stay untouched so
+  // server-side classification (checkFallbackError, combo retry logic, etc.)
+  // never sees a different value depending on this flag.
+  if (opts?.passthrough) {
+    const passthroughResponse = buildPassthroughErrorResponse(
+      statusCode,
+      upstreamDetails,
+      retryAfterMs ? { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } : undefined
+    );
+    if (passthroughResponse) {
+      result.response = passthroughResponse;
+    }
   }
 
   return result;

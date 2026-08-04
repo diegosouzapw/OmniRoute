@@ -1,1 +1,0 @@
-- fix(providers): Gemini Web connection test now accepts the expected 302 redirect instead of failing with 'Redirect blocked' (#7859)

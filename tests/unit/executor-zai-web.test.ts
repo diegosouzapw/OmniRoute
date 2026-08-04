@@ -120,7 +120,7 @@ describe("ZaiWebExecutor", () => {
         signal: null,
       });
 
-      assert.equal(capturedUrl, "https://chat.z.ai/api/chat/completions");
+      assert.equal(capturedUrl, "https://chat.z.ai/api/v2/chat/completions");
       const headers = capturedInit?.headers as Record<string, string>;
       assert.equal(headers.Cookie, "token=abc123; foo=bar");
       assert.equal(headers.Authorization, "Bearer abc123");

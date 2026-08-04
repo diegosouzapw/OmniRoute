@@ -78,18 +78,15 @@ export function registerBackup(program) {
       if (exitCode !== 0) process.exit(exitCode);
     });
 
-  // Legacy: `omniroute backup` without subcommand still creates a backup
+  // Legacy: `omniroute backup` without a subcommand still creates a backup
+  // (documented as the canonical usage in USER_GUIDE.md / CLI-TOOLS.md /
+  // AGENT-SKILLS.md). No flags are declared here — declaring the same
+  // option names as `create`/`auto enable` here previously shadowed them
+  // (#8512), and no doc shows `omniroute backup` invoked with flags.
   backup.action(async (opts) => {
     const exitCode = await runBackupCommand(opts);
     if (exitCode !== 0) process.exit(exitCode);
   });
-  backup
-    .option("--name <name>", t("backup.nameOpt"))
-    .option("--cloud", t("backup.cloudOpt"))
-    .option("--encrypt", t("backup.encryptOpt"))
-    .option("--key-file <path>", t("backup.keyFileOpt"))
-    .option("--exclude <pattern>", t("backup.excludeOpt"), (v, prev = []) => [...prev, v], [])
-    .option("--retention <n>", t("backup.retentionOpt"), parseInt);
 }
 
 export function registerRestore(program) {

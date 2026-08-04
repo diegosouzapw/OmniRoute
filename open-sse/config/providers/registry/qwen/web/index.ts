@@ -19,7 +19,7 @@ export const qwen_webProvider: RegistryEntry = {
     {
       id: "qwen3.8-max-preview",
       name: "Qwen3.8 Max Preview",
-      toolCalling: true,
+      toolCalling: false,
       supportsReasoning: true,
       supportsVision: true,
       contextLength: 1_000_000,
@@ -28,7 +28,7 @@ export const qwen_webProvider: RegistryEntry = {
     {
       id: "qwen3.7-max",
       name: "Qwen3.7 Max",
-      toolCalling: true,
+      toolCalling: false,
       supportsReasoning: true,
       supportsVision: false,
       contextLength: 1_000_000,
@@ -37,7 +37,7 @@ export const qwen_webProvider: RegistryEntry = {
     {
       id: "qwen3.7-plus",
       name: "Qwen3.7 Plus",
-      toolCalling: true,
+      toolCalling: false,
       supportsReasoning: true,
       supportsVision: true,
       contextLength: 1_000_000,
@@ -46,7 +46,7 @@ export const qwen_webProvider: RegistryEntry = {
     {
       id: "qwen3.6-plus",
       name: "Qwen3.6 Plus",
-      toolCalling: true,
+      toolCalling: false,
       supportsReasoning: true,
       supportsVision: true,
       contextLength: 1_000_000,

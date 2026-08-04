@@ -24,6 +24,7 @@ import { kieExecutor } from "../executors/kie.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { ChatGptWebExecutor } from "../executors/chatgpt-web.ts";
+import type { ExecutorLog, ProviderCredentials } from "../executors/base.ts";
 import { getChatGptImage, findChatGptImageBySha256 } from "../services/chatgptImageCache.ts";
 import { createHash } from "node:crypto";
 import { saveCallLog } from "@/lib/usageDb";
@@ -31,6 +32,7 @@ import { sleep } from "../utils/sleep.ts";
 import {
   getKieErrorMessage,
   getKieErrorStatus,
+  getKieTaskId,
   isJsonObject,
   parseKieResultJson,
 } from "../utils/kieTask.ts";
@@ -73,10 +75,14 @@ import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmin
 import { handleDesignerWebImageGeneration } from "./imageGeneration/providers/designerWeb.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
 import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
 } from "./imageGeneration/pollinationsAnonAuth.ts";
+
+// Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
+export { handleAdobeFireflyImageGeneration };
 
 interface KieImageOptions {
   model: string;
@@ -621,6 +627,22 @@ export async function handleImageGeneration({
     });
   }
 
+  if (
+    providerConfig.format === "alibaba-image" ||
+    providerConfig.format === "qwen-cloud-image" ||
+    providerConfig.format === "qwen-token-plan-image" ||
+    providerConfig.format === "bailian-coding-plan-image"
+  ) {
+    return handleAlibabaImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
 }
 
@@ -737,7 +759,7 @@ async function handleKieImageGeneration({
       payload,
       endpoint,
     });
-    const taskId = createData?.data?.taskId || createData?.taskId;
+    const taskId = getKieTaskId(createData);
 
     if (!taskId) {
       const errorMessage =
@@ -1256,11 +1278,11 @@ export async function handleImageEdit({
 }: {
   provider: string;
   model: string;
-  body: Record<string, any>;
+  body: Record<string, unknown>;
   imageBytes: Buffer;
   imageMime?: string; // accepted for symmetry with route layer; not used
-  credentials: any;
-  log: any;
+  credentials: ProviderCredentials | null | undefined;
+  log: ExecutorLog | null | undefined;
   signal?: AbortSignal | null;
   clientHeaders?: Record<string, string> | null;
 }) {

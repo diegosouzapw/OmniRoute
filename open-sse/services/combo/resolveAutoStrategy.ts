@@ -1,4 +1,4 @@
-import { errorResponse, unavailableResponse } from "../../utils/error.ts";
+import { errorResponse, unavailableResponse, errorResponseWithComboDiagnostics } from "../../utils/error.ts";
 import { BudgetExceededError, selectProvider as selectAutoProvider } from "../autoCombo/engine.ts";
 import {
   resolveRequestModePack,
@@ -17,7 +17,10 @@ import { supportsToolCalling } from "../modelCapabilities.ts";
 import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
 import { parseAutoConfig } from "./autoConfig.ts";
 import { dedupeTargetsByExecutionKey } from "./comboData.ts";
-import { getModelContextLimitForModelString } from "./comboStructure.ts";
+import {
+  getModelContextLimitForModelString,
+  providerSupportsEmulatedToolCalling,
+} from "./comboStructure.ts";
 import {
   calculatePromptCacheAffinityScores,
   promptCacheTargetIdentity,
@@ -56,7 +59,7 @@ export interface ResolveAutoStrategyDeps {
   body: Record<string, unknown>;
   combo: ComboLike;
   settings: Record<string, unknown> | null | undefined;
-  config: { complexityAwareRouting?: boolean };
+  config: { complexityAwareRouting?: boolean; compatFilterFailOpen?: boolean };
   relayOptions?: {
     bypassProviderQuotaPolicy?: boolean;
     sessionId?: string | null;
@@ -105,16 +108,48 @@ export async function resolveAutoStrategyOrder(
 
   const requestHasTools = Array.isArray(body?.tools) && body.tools.length > 0;
   let eligibleTargets = [...orderedTargets];
+  const compatFilterFailOpen =
+    config?.compatFilterFailOpen === true ||
+    (settings as { compatFilterFailOpen?: unknown } | null | undefined)?.compatFilterFailOpen ===
+      true;
 
   if (requestHasTools) {
-    const filtered = eligibleTargets.filter((target) => supportsToolCalling(target.modelStr));
+    // Keep #5240 prompt-emulation providers (toolCalling:"emulated") even when
+    // registry/capability rows honestly report toolCalling:false.
+    const filtered = eligibleTargets.filter(
+      (target) =>
+        supportsToolCalling(target.modelStr) ||
+        providerSupportsEmulatedToolCalling(target.provider)
+    );
     if (filtered.length > 0) {
       eligibleTargets = filtered;
-    } else {
+    } else if (compatFilterFailOpen) {
       log.warn(
         "COMBO",
-        "Auto strategy: all candidates filtered by tool-calling policy, falling back to full pool"
+        "Auto strategy: all candidates filtered by tool-calling policy, falling back to full pool (compatFilterFailOpen)"
       );
+    } else {
+      // #8488: fail closed with an explicit compatibility error instead of
+      // re-admitting tool-incapable targets.
+      const toolCount = Array.isArray(body.tools) ? body.tools.length : 0;
+      return {
+        earlyResponse: errorResponseWithComboDiagnostics(
+          400,
+          `No target in combo ${combo.name} supports tool calling; request carried ${toolCount} tools`,
+          {
+            poolSize: eligibleTargets.length,
+            attempted: 0,
+            excluded: eligibleTargets.map((target) => ({
+              provider: target.provider,
+              model: target.modelStr,
+              reason: "tools",
+            })),
+            attemptOrder: [],
+            terminalReason: "capability_mismatch",
+          },
+          { code: "capability_mismatch", type: "invalid_request_error" }
+        ),
+      };
     }
   }
 
@@ -141,12 +176,32 @@ export async function resolveAutoStrategyOrder(
         `Auto strategy: context-window filter kept ${filteredByContext.length}/${eligibleTargets.length} candidates (est. ${estimatedInputTokens} tokens)`
       );
       eligibleTargets = filteredByContext;
-    } else {
+    } else if (compatFilterFailOpen) {
       log.warn(
         "COMBO",
-        `Auto strategy: all candidates filtered by context-window policy (est. ${estimatedInputTokens} tokens), falling back to full pool`
+        `Auto strategy: all candidates filtered by context-window policy (est. ${estimatedInputTokens} tokens), falling back to full pool (compatFilterFailOpen)`
       );
-      // eligibleTargets intentionally unchanged — same fallback contract as tool-calling filter
+    } else {
+      // #8488: every candidate has a known limit below the estimate — surface
+      // context_length_exceeded rather than dispatching oversized targets.
+      return {
+        earlyResponse: errorResponseWithComboDiagnostics(
+          400,
+          `Request requires approximately ${estimatedInputTokens} tokens, but every auto-strategy candidate in combo ${combo.name} has a smaller known context limit`,
+          {
+            poolSize: eligibleTargets.length,
+            attempted: 0,
+            excluded: eligibleTargets.map((target) => ({
+              provider: target.provider,
+              model: target.modelStr,
+              reason: "context_window",
+            })),
+            attemptOrder: [],
+            terminalReason: "context_length_exceeded",
+          },
+          { code: "context_length_exceeded", type: "invalid_request_error" }
+        ),
+      };
     }
 
     eligibleTargets = await expandAutoComboCandidatePool(eligibleTargets, combo);

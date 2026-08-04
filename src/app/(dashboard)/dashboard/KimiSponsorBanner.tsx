@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { APP_CONFIG } from "@/shared/constants/appConfig";
@@ -15,6 +15,9 @@ const KIMI_CODING_AFF_URL = "https://www.kimi.com/code?aff=omniroute";
 // offer/copy ever changes materially enough to warrant re-showing it to
 // users who already dismissed the previous version.
 const DISMISS_STORAGE_KEY = "omniroute-kimi-sponsor-banner-dismissed-v1";
+// Same-tab signal for the dismiss button, since writing localStorage doesn't
+// fire a "storage" event in the tab that wrote it.
+const DISMISS_EVENT = "omniroute:kimi-sponsor-banner-dismissed";
 
 function isNotDismissed(): boolean {
   try {
@@ -24,18 +27,31 @@ function isNotDismissed(): boolean {
   }
 }
 
+function subscribe(callback: () => void) {
+  window.addEventListener(DISMISS_EVENT, callback);
+  return () => window.removeEventListener(DISMISS_EVENT, callback);
+}
+
+// SSR has no localStorage, so the server always renders the banner visible;
+// useSyncExternalStore reconciles that against the real client-side value
+// right after hydration (mirroring useTheme's systemPrefersDark pattern),
+// with no hydration mismatch and no setState-in-effect.
+function getServerSnapshot() {
+  return true;
+}
+
 /**
  * Dismissable banner announcing the Kimi (Moonshot AI) official OmniRoute
  * partnership on the dashboard home page. Self-contained: reads the app's own
  * version (APP_CONFIG.version) to decide whether it is still inside the
  * agreed display window (see kimiSponsorBannerGate.ts) and persists dismissal via
- * localStorage, mirroring RiskNoticeBanner's lazy-useState pattern. The
- * logomark reuses <ProviderIcon providerId="moonshot" .../> so it stays
- * theme-aware for free via the THEMED_SVGS wiring in ProviderIcon.tsx.
+ * localStorage. The logomark reuses <ProviderIcon providerId="moonshot" .../>
+ * so it stays theme-aware for free via the THEMED_SVGS wiring in
+ * ProviderIcon.tsx.
  */
 export default function KimiSponsorBanner() {
   const t = useTranslations("kimiSponsorBanner");
-  const [visible, setVisible] = useState<boolean>(isNotDismissed);
+  const visible = useSyncExternalStore(subscribe, isNotDismissed, getServerSnapshot);
 
   if (!visible || !shouldShowKimiSponsorBanner(APP_CONFIG.version)) {
     return null;
@@ -47,7 +63,7 @@ export default function KimiSponsorBanner() {
     } catch {
       // ignore — worst case the banner reappears next visit
     }
-    setVisible(false);
+    window.dispatchEvent(new Event(DISMISS_EVENT));
   };
 
   return (

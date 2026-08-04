@@ -5,13 +5,32 @@ import { ensureSettingsSchema, hashManagementPassword, updateSettings } from "./
 
 async function loadSqlite() {
   if (process.versions.bun) {
-    return (await import("bun:sqlite")).Database;
+    return { Database: (await import("bun:sqlite")).Database };
   }
   try {
-    return (await import("better-sqlite3")).default;
-  } catch {
-    throw new Error("better-sqlite3 is not installed. Run npm install before using setup.");
+    return { Database: (await import("better-sqlite3")).default };
+  } catch (error) {
+    return { error };
   }
+}
+
+// #7586: unlike the real server (src/lib/db/adapters/driverFactory.ts::tryOpenSync),
+// this CLI helper historically had NO fallback beyond better-sqlite3 — so on any
+// machine where better-sqlite3's native binary is unavailable (Windows without a
+// prebuilt addon, etc.), every `omniroute doctor` DB check reported a false FAIL
+// even when the actual server was healthy via its own (correct) driver cascade.
+// Reuse that same cascade here instead of re-deriving it.
+async function openWithSyncDriverFallback(dbPath, options, importError) {
+  try {
+    const { tryOpenSync } = await import("../../src/lib/db/adapters/driverFactory.ts");
+    const adapter = tryOpenSync(dbPath, options);
+    if (adapter) {
+      return adapter;
+    }
+  } catch {
+    // fall through to the original better-sqlite3 error below
+  }
+  throw createSqliteNativeError(importError);
 }
 
 function openBunSqlite(Database, dbPath, options) {
@@ -91,19 +110,25 @@ export function createSqliteNativeError(error) {
 }
 
 async function openSqliteDatabase(dbPath, options = {}) {
-  const Database = await loadSqlite();
+  const loaded = await loadSqlite();
   if (process.versions.bun) {
     if (options.fileMustExist && !fs.existsSync(dbPath)) {
       throw new Error(`SQLite file does not exist: ${dbPath}`);
     }
-    options = options.readonly
+    const bunOptions = options.readonly
       ? { readonly: true }
       : { readwrite: true, create: options.fileMustExist !== true };
+    try {
+      return openBunSqlite(loaded.Database, dbPath, bunOptions);
+    } catch (error) {
+      throw createSqliteNativeError(error);
+    }
+  }
+  if (loaded.error) {
+    return openWithSyncDriverFallback(dbPath, options, loaded.error);
   }
   try {
-    return process.versions.bun
-      ? openBunSqlite(Database, dbPath, options)
-      : new Database(dbPath, options);
+    return new loaded.Database(dbPath, options);
   } catch (error) {
     throw createSqliteNativeError(error);
   }

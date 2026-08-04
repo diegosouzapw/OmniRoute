@@ -18,6 +18,7 @@
 
 import zlib from "node:zlib";
 import crypto from "node:crypto";
+import { decodeNativeTodoWriteCompletion } from "./cursorAgentProtobuf/nativeTodoWrite.ts";
 import {
   WT_VARINT,
   WT_LEN,
@@ -35,7 +36,6 @@ import {
   findField,
   decodeStringField,
   decodeVarintField,
-  type Field,
 } from "./cursorAgentProtobuf/wire.ts";
 
 // ─── Field numbers (from agent.proto descriptor) ───────────────────────────
@@ -598,6 +598,15 @@ export type DecodedDelta =
   | { kind: "heartbeat" }
   | { kind: "tool_call_started" }
   | { kind: "tool_call_completed" }
+  | {
+      kind: "native_todo_write";
+      toolCallId: string;
+      merge: boolean;
+      todos: Array<{
+        content: string;
+        status: "pending" | "in_progress" | "completed" | "cancelled";
+      }>;
+    }
   | { kind: "kv_server_message" }
   | { kind: "unknown"; field: number };
 
@@ -629,6 +638,10 @@ export function decodeAgentServerMessage(payload: Buffer): DecodedDelta[] {
           out.push({ kind: "tool_call_started" });
           break;
         case IU_TOOL_CALL_COMPLETED:
+          if (update.wireType === 2) {
+            const todoWrite = decodeNativeTodoWriteCompletion(update.bytes);
+            if (todoWrite) out.push(todoWrite);
+          }
           out.push({ kind: "tool_call_completed" });
           break;
         case IU_TOKEN_DELTA:
@@ -718,7 +731,7 @@ export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
 
     if (getBlobArgs) {
       // GetBlobArgs { blob_id (1): bytes }
-      let blobId = Buffer.alloc(0);
+      let blobId: Buffer = Buffer.alloc(0);
       for (const f of decodeFields(getBlobArgs)) {
         if (f.fieldNumber === GBA_BLOB_ID && f.wireType === 2) {
           blobId = f.bytes;
@@ -728,8 +741,8 @@ export function decodeKvServerEvent(payload: Buffer): KvServerEvent | null {
     }
     if (setBlobArgs) {
       // SetBlobArgs { blob_id (1): bytes, blob_data (2): bytes }
-      let blobId = Buffer.alloc(0);
-      let blobData = Buffer.alloc(0);
+      let blobId: Buffer = Buffer.alloc(0);
+      let blobData: Buffer = Buffer.alloc(0);
       for (const f of decodeFields(setBlobArgs)) {
         if (f.fieldNumber === SBA_BLOB_ID && f.wireType === 2) {
           blobId = f.bytes;

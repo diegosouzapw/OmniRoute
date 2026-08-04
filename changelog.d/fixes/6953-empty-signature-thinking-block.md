@@ -1,1 +1,0 @@
-- fix(sse): stop forwarding empty-signature thinking blocks verbatim to Anthropic-native legs, which permanently poisoned combo fallback (#6953)

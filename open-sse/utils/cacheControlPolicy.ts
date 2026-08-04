@@ -4,10 +4,14 @@
  * Determines when to preserve client-side prompt caching headers (cache_control)
  * vs. applying OmniRoute's own caching strategy.
  *
- * Client-side caching (e.g., Claude Code) should be preserved when:
+ * Client-side caching (e.g., Claude Code) is preserved when:
  * 1. Client is Claude Code or similar caching-aware client
- * 2. Request will hit a deterministic target (single model or deterministic combo strategy)
- * 3. Provider supports prompt caching (Anthropic, etc.)
+ * 2. Provider supports prompt caching (Anthropic, etc.)
+ *
+ * Combo membership / routing strategy no longer gates preservation: rewriting a
+ * caching-aware client's markers produced per-request breakpoint positions that
+ * thrashed the provider prompt cache, while preserving them is never worse
+ * (see shouldPreserveCacheControl).
  */
 
 import type { RoutingStrategyValue } from "../../src/shared/constants/routingStrategies";
@@ -231,17 +235,28 @@ export function isDeterministicStrategy(
 /**
  * Determine if client-side cache_control headers should be preserved
  *
+ * Auto mode preserves for every caching-aware client talking to a
+ * caching-capable provider — regardless of combo membership or routing
+ * strategy. The old gate (combos only preserved on "deterministic"
+ * strategies) forced OmniRoute to strip the client's markers and re-derive
+ * breakpoints per request; the re-derived positions are not stable
+ * turn-over-turn, which thrashed the provider prompt cache (observed in
+ * production as ~200k cache_write tokens per turn on quota-share combos).
+ * Preserving the client's markers is never worse than rewriting them: on a
+ * stable target the client's breakpoints advance deterministically, and on a
+ * target switch both approaches miss equally.
+ *
  * @param userAgent - User-Agent header from the request
- * @param isCombo - Whether this is a combo model
- * @param comboStrategy - The combo's routing strategy (if applicable)
+ * @param isCombo - Whether this is a combo model (kept for callers/telemetry;
+ *   no longer gates preservation)
+ * @param comboStrategy - The combo's routing strategy (kept for
+ *   callers/telemetry; no longer gates preservation)
  * @param targetProvider - The target provider for the request
  * @param settings - Cache control settings from database (optional)
  * @returns true if cache_control should be preserved, false if OmniRoute should manage it
  */
 export function shouldPreserveCacheControl({
   userAgent,
-  isCombo,
-  comboStrategy,
   targetProvider,
   targetFormat,
   settings,
@@ -263,24 +278,13 @@ export function shouldPreserveCacheControl({
     return false;
   }
 
-  // Auto mode: use automatic detection (existing logic)
-  // Must be a caching-aware client
+  // Auto mode: must be a caching-aware client…
   if (!isClaudeCodeClient(userAgent)) {
     return false;
   }
 
-  // Target provider must support caching
-  if (!providerSupportsCaching(targetProvider, targetFormat, connectionCacheOverride)) {
-    return false;
-  }
-
-  // Single model: always preserve (deterministic)
-  if (!isCombo) {
-    return true;
-  }
-
-  // Combo: only preserve if strategy is deterministic
-  return isDeterministicStrategy(comboStrategy);
+  // …talking to a provider that supports prompt caching.
+  return providerSupportsCaching(targetProvider, targetFormat, connectionCacheOverride);
 }
 
 /**

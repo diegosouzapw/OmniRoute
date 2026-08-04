@@ -97,6 +97,19 @@ test("openAIToBedrockConverse avoids duplicate Bedrock toolUse ids from mixed to
   assert.equal(payload.messages[2].content[0].toolResult.toolUseId, "call_dup");
 });
 
+test("openAIToBedrockConverse preserves additionalModelRequestFields", () => {
+  const payload = openAIToBedrockConverse("anthropic.claude-3-7-sonnet-20250219-v1:0", {
+    messages: [{ role: "user", content: "Hello" }],
+    additionalModelRequestFields: {
+      thinking: { type: "enabled", budget_tokens: 2048 },
+    },
+  });
+
+  assert.deepStrictEqual(payload.additionalModelRequestFields, {
+    thinking: { type: "enabled", budget_tokens: 2048 },
+  });
+});
+
 test("openAIToBedrockConverse drops duplicate pending tool call ids", () => {
   const payload = openAIToBedrockConverse("anthropic.claude-sonnet-4-6", {
     messages: [

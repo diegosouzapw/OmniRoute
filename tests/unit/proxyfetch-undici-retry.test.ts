@@ -240,6 +240,29 @@ test("#4252 describeFetchCause falls back to String(err) when nothing is structu
   assert.equal(describeFetchCause("boom"), "boom");
 });
 
+test("#8788 tagProxyUnreachable tags UND_ERR_SOCKET errors as PROXY_UNREACHABLE", async () => {
+  const socketErr = Object.assign(new Error("socket closed"), { code: "UND_ERR_SOCKET" });
+  await assert.rejects(
+    proxyFetch(
+      "https://example.invalid/socket-test",
+      { method: "GET" },
+      {
+        undiciFetch: async () => {
+          throw socketErr;
+        },
+        nativeFetch: async () => {
+          throw socketErr;
+        },
+      }
+    ),
+    (err: Error & { code?: string; errorCode?: string }) => {
+      assert.equal(err.code, "PROXY_UNREACHABLE");
+      assert.equal(err.errorCode, "proxy_unreachable");
+      return true;
+    }
+  );
+});
+
 test("#4252 both undici AND native fetch fail → rejects fast with cause detail attached", async () => {
   const dispErr = Object.assign(new Error("fetch failed"), {
     code: "UND_ERR_SOCKET",

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { classifyProviderError, PROVIDER_ERROR_TYPES } =
+const { classifyProviderError, isResourceNotFoundResponse, PROVIDER_ERROR_TYPES } =
   await import("../../open-sse/services/errorClassifier.ts");
 
 test("classifyProviderError: 401 + account_deactivated => ACCOUNT_DEACTIVATED", () => {
@@ -26,6 +26,20 @@ test("classifyProviderError: 400 + billing signal => QUOTA_EXHAUSTED", () => {
   const result = classifyProviderError(400, {
     error: { message: "insufficient_quota: exceeded your current quota" },
   });
+  assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
+});
+
+test("classifyProviderError: Kimi billing-cycle 403 => QUOTA_EXHAUSTED", () => {
+  const result = classifyProviderError(
+    403,
+    {
+      error: {
+        message:
+          "You've reached your usage limit for this billing cycle. Your quota will be refreshed in the next cycle.",
+      },
+    },
+    "kimi-coding"
+  );
   assert.equal(result, PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED);
 });
 
@@ -132,10 +146,35 @@ test("classifyProviderError: 404 => MODEL_NOT_FOUND", () => {
 });
 
 test("classifyProviderError: 404 with provider => MODEL_NOT_FOUND", () => {
-  const result = classifyProviderError(
-    404,
-    { error: { message: "Not Found" } },
-    "v0-vercel"
-  );
+  const result = classifyProviderError(404, { error: { message: "Not Found" } }, "v0-vercel");
   assert.equal(result, PROVIDER_ERROR_TYPES.MODEL_NOT_FOUND);
+});
+
+test("classifyProviderError: Files API 404 is request-scoped, not MODEL_NOT_FOUND", () => {
+  const body = {
+    error: {
+      message: "[404]: Files [file-be30851bd1614656872e725e] were not found",
+      type: "invalid_request_error",
+      // A compatibility layer may derive this from the HTTP status before the
+      // upstream file message is inspected. The resource signal must win.
+      code: "model_not_found",
+    },
+  };
+
+  assert.equal(isResourceNotFoundResponse(body), true);
+  assert.equal(classifyProviderError(404, body, "codex"), null);
+});
+
+test("classifyProviderError: other request-resource 404 shapes do not poison model health", () => {
+  const bodies = [
+    { error: { message: "input_file file_id does not exist" } },
+    { error: { message: "Response resp_123 was not found" } },
+    { error: { message: "vector_store vs_123 not found" } },
+    "Upload upload_123 does not exist",
+  ];
+
+  for (const body of bodies) {
+    assert.equal(isResourceNotFoundResponse(body), true);
+    assert.equal(classifyProviderError(404, body, "openai"), null);
+  }
 });

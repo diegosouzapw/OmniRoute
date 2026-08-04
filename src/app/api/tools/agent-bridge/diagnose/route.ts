@@ -37,9 +37,10 @@ function probeTcp(port: number, host = "127.0.0.1", timeoutMs = 1500): Promise<b
   });
 }
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
   try {
-    const status = await getMitmStatus();
+    const agentId = new URL(request.url).searchParams.get("agentId") ?? undefined;
+    const status = await getMitmStatus(agentId);
     const certPath = path.join(resolveMitmDataDir(), "mitm", "server.crt");
     const certExists = fs.existsSync(certPath);
     const certTrusted = certExists ? await checkCertInstalled(certPath) : false;

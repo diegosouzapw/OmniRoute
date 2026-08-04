@@ -90,6 +90,35 @@ function withFamilyDefault(value: ProxyValue): ProxyValue {
 
 // ──────────────── Settings ────────────────
 
+/** Internal key_value row — not exposed as a user-facing settings field. */
+export const SETTINGS_REVISION_KEY = "_settingsRevision";
+
+export class SettingsRevisionConflictError extends Error {
+  readonly code = "SETTINGS_REVISION_CONFLICT" as const;
+
+  constructor(public readonly currentRevision: number) {
+    super("Settings revision mismatch");
+    this.name = "SettingsRevisionConflictError";
+  }
+}
+
+function readSettingsRevision(db: ReturnType<typeof getDbInstance>): number {
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = ?")
+    .get(SETTINGS_REVISION_KEY) as { value?: string } | undefined;
+  if (!row?.value) return 0;
+  try {
+    const parsed = JSON.parse(row.value) as unknown;
+    return typeof parsed === "number" && Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function getSettingsRevision(): Promise<number> {
+  return readSettingsRevision(getDbInstance());
+}
+
 /**
  * #7274: read-fallback for the codexSessionAffinityTtlMs -> sessionAffinityTtlMs
  * rename. Migration 124 already backfills the new key from any pre-existing
@@ -165,7 +194,13 @@ export async function getSettings() {
     codexServiceTier: { enabled: false },
     claudeFastMode: {
       enabled: false,
-      supportedModels: ["claude-fable-5", "claude-opus-4-8", "claude-opus-4-7", "claude-opus-4-6"],
+      supportedModels: [
+        "claude-fable-5",
+        "claude-opus-5",
+        "claude-opus-4-8",
+        "claude-opus-4-7",
+        "claude-opus-4-6",
+      ],
     },
     // #7274: renamed from codexSessionAffinityTtlMs — session affinity now
     // applies to any provider, not just Codex. No default here on purpose:
@@ -211,7 +246,7 @@ export async function getSettings() {
     const record = toRecord(row);
     const key = typeof record.key === "string" ? record.key : null;
     const rawValue = typeof record.value === "string" ? record.value : null;
-    if (!key || rawValue === null) continue;
+    if (!key || rawValue === null || key.startsWith("_")) continue;
     try {
       settings[key] = JSON.parse(rawValue);
     } catch {
@@ -240,7 +275,10 @@ export async function getSettings() {
   return settings;
 }
 
-export async function updateSettings(updates: Record<string, unknown>) {
+export async function updateSettings(
+  updates: Record<string, unknown>,
+  options?: { expectedRevision?: number }
+) {
   // Detect first-time setup completion before we overwrite settings.
   let setupJustCompleted = false;
   if (updates.setupComplete === true) {
@@ -257,10 +295,18 @@ export async function updateSettings(updates: Record<string, unknown>) {
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', ?, ?)"
   );
   const tx = db.transaction(() => {
+    const currentRevision = readSettingsRevision(db);
+    if (
+      options?.expectedRevision !== undefined &&
+      options.expectedRevision !== currentRevision
+    ) {
+      throw new SettingsRevisionConflictError(currentRevision);
+    }
     for (const [key, value] of Object.entries(updates)) {
       const toStore = key === "oidcClientSecret" ? encrypt(value as string) : value;
       insert.run(key, JSON.stringify(toStore));
     }
+    insert.run(SETTINGS_REVISION_KEY, JSON.stringify(currentRevision + 1));
   });
   tx();
   backupDbFile("pre-write");
@@ -523,8 +569,10 @@ export async function resolveProxyForConnection(
 
   // Step 2: API key-level proxy (only if per-key proxy is enabled globally or per-connection)
   if (apiKeyId) {
-    // Check if per-key proxy is allowed: globally OR per-connection
-    const perKeyEnabled = globalPerKeyProxyEnabled || connectionPerKeyProxyEnabled;
+    // Check if per-key proxy is allowed: the global toggle is a true override —
+    // when it is off, no connection's per-key assignment may apply, regardless
+    // of that connection's own per_key_proxy_enabled flag (#8385).
+    const perKeyEnabled = globalPerKeyProxyEnabled && connectionPerKeyProxyEnabled;
 
     if (perKeyEnabled) {
       try {

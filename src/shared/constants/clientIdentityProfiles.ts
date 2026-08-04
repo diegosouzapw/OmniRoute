@@ -14,6 +14,9 @@
  * header) tries to set — no new precedence logic is needed here.
  */
 
+import { getClaudeCodeUserAgent } from "./claudeCodeClient";
+import { getCodexCliRsHeaders } from "./codexClient";
+
 export interface ClientIdentityProfile {
   readonly id: string;
   readonly label: string;
@@ -30,7 +33,7 @@ const CLAUDE_CLI_PROFILE: ClientIdentityProfile = Object.freeze({
   id: "claude-cli",
   label: "Claude CLI",
   headers: Object.freeze({
-    "User-Agent": "claude-cli/2.1.207 (external, cli)",
+    "User-Agent": getClaudeCodeUserAgent("cli"),
     "X-App": "cli",
   }),
 });
@@ -38,10 +41,7 @@ const CLAUDE_CLI_PROFILE: ClientIdentityProfile = Object.freeze({
 const CODEX_CLI_PROFILE: ClientIdentityProfile = Object.freeze({
   id: "codex-cli",
   label: "Codex CLI",
-  headers: Object.freeze({
-    "User-Agent": "codex_cli_rs/0.144.1",
-    originator: "codex_cli_rs",
-  }),
+  headers: Object.freeze(getCodexCliRsHeaders()),
 });
 
 const GEMINI_CLI_PROFILE: ClientIdentityProfile = Object.freeze({

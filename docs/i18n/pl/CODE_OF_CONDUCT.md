@@ -1,132 +1,131 @@
-# Contributor Covenant Code of Conduct (Polski)
+# Contributor Covenant Code of Conduct
 
-🌐 **Languages:** 🇺🇸 [English](../../../CODE_OF_CONDUCT.md) · 🇸🇦 [ar](../ar/CODE_OF_CONDUCT.md) · 🇧🇬 [bg](../bg/CODE_OF_CONDUCT.md) · 🇧🇩 [bn](../bn/CODE_OF_CONDUCT.md) · 🇨🇿 [cs](../cs/CODE_OF_CONDUCT.md) · 🇩🇰 [da](../da/CODE_OF_CONDUCT.md) · 🇩🇪 [de](../de/CODE_OF_CONDUCT.md) · 🇪🇸 [es](../es/CODE_OF_CONDUCT.md) · 🇮🇷 [fa](../fa/CODE_OF_CONDUCT.md) · 🇫🇮 [fi](../fi/CODE_OF_CONDUCT.md) · 🇫🇷 [fr](../fr/CODE_OF_CONDUCT.md) · 🇮🇳 [gu](../gu/CODE_OF_CONDUCT.md) · 🇮🇱 [he](../he/CODE_OF_CONDUCT.md) · 🇮🇳 [hi](../hi/CODE_OF_CONDUCT.md) · 🇭🇺 [hu](../hu/CODE_OF_CONDUCT.md) · 🇮🇩 [id](../id/CODE_OF_CONDUCT.md) · 🇮🇹 [it](../it/CODE_OF_CONDUCT.md) · 🇯🇵 [ja](../ja/CODE_OF_CONDUCT.md) · 🇰🇷 [ko](../ko/CODE_OF_CONDUCT.md) · 🇮🇳 [mr](../mr/CODE_OF_CONDUCT.md) · 🇲🇾 [ms](../ms/CODE_OF_CONDUCT.md) · 🇳🇱 [nl](../nl/CODE_OF_CONDUCT.md) · 🇳🇴 [no](../no/CODE_OF_CONDUCT.md) · 🇵🇭 [phi](../phi/CODE_OF_CONDUCT.md) · 🇵🇱 [pl](../pl/CODE_OF_CONDUCT.md) · 🇵🇹 [pt](../pt/CODE_OF_CONDUCT.md) · 🇧🇷 [pt-BR](../pt-BR/CODE_OF_CONDUCT.md) · 🇷🇴 [ro](../ro/CODE_OF_CONDUCT.md) · 🇷🇺 [ru](../ru/CODE_OF_CONDUCT.md) · 🇸🇰 [sk](../sk/CODE_OF_CONDUCT.md) · 🇸🇪 [sv](../sv/CODE_OF_CONDUCT.md) · 🇰🇪 [sw](../sw/CODE_OF_CONDUCT.md) · 🇮🇳 [ta](../ta/CODE_OF_CONDUCT.md) · 🇮🇳 [te](../te/CODE_OF_CONDUCT.md) · 🇹🇭 [th](../th/CODE_OF_CONDUCT.md) · 🇹🇷 [tr](../tr/CODE_OF_CONDUCT.md) · 🇺🇦 [uk-UA](../uk-UA/CODE_OF_CONDUCT.md) · 🇵🇰 [ur](../ur/CODE_OF_CONDUCT.md) · 🇻🇳 [vi](../vi/CODE_OF_CONDUCT.md) · 🇨🇳 [zh-CN](../zh-CN/CODE_OF_CONDUCT.md)
+## Nasze zobowiązanie
 
----
+My, jako członkowie, współtwórcy i liderzy, zobowiązujemy się, aby udział w naszej
+społeczności był wolny od nękania dla każdego, bez względu na wiek, budowę
+ciała, widoczną lub niewidoczną niepełnosprawność, pochodzenie etniczne, cechy płciowe, tożsamość
+i ekspresję płciową, poziom doświadczenia, wykształcenie, status społeczno-ekonomiczny,
+narodowość, wygląd zewnętrzny, rasę, religię ani tożsamość
+i orientację seksualną.
 
-## Our Pledge
+Zobowiązujemy się działać i wchodzić w interakcje w sposób sprzyjający otwartej, przyjaznej,
+zróżnicowanej, inkluzywnej i zdrowej społeczności.
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+## Nasze standardy
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+Przykłady zachowań, które przyczyniają się do pozytywnego środowiska w naszej
+społeczności, obejmują:
 
-## Our Standards
+- Okazywanie empatii i życzliwości wobec innych osób
+- Szanowanie odmiennych opinii, punktów widzenia i doświadczeń
+- Udzielanie i z wdziękiem przyjmowanie konstruktywnej informacji zwrotnej
+- Przyjmowanie odpowiedzialności i przepraszanie osób, których dotyczą nasze błędy,
+  oraz uczenie się na podstawie doświadczenia
+- Skupianie się na tym, co jest najlepsze nie tylko dla nas jako jednostek, ale dla
+  całej społeczności
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+Przykłady niedopuszczalnych zachowań obejmują:
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+- Używanie seksualizowanego języka lub obrazów oraz seksualne zainteresowanie lub
+  zaloty jakiegokolwiek rodzaju
+- Trollowanie, obraźliwe lub poniżające komentarze oraz ataki osobiste lub polityczne
+- Publiczne lub prywatne nękanie
+- Publikowanie prywatnych informacji innych osób, takich jak adres fizyczny lub
+  e-mail, bez ich wyraźnej zgody
+- Inne zachowania, które w uzasadniony sposób można uznać za niestosowne w
+  środowisku profesjonalnym
 
-Examples of unacceptable behavior include:
+## Obowiązki w zakresie egzekwowania
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+Liderzy społeczności są odpowiedzialni za wyjaśnianie i egzekwowanie naszych standardów
+akceptowalnego zachowania oraz podejmą odpowiednie i sprawiedliwe działania naprawcze w
+odpowiedzi na każde zachowanie, które uznają za niestosowne, groźne, obraźliwe
+lub szkodliwe.
 
-## Enforcement Responsibilities
+Liderzy społeczności mają prawo i obowiązek usuwać, edytować lub odrzucać
+komentarze, commity, kod, edycje wiki, zgłoszenia (issues) i inne wkłady, które nie
+są zgodne z niniejszym Kodeksem postępowania, oraz będą komunikować powody decyzji
+moderacyjnych, gdy jest to właściwe.
 
-Community leaders are responsible for clarifying and enforcing our standards of
-acceptable behavior and will take appropriate and fair corrective action in
-response to any behavior that they deem inappropriate, threatening, offensive,
-or harmful.
+## Zakres
 
-Community leaders have the right and responsibility to remove, edit, or reject
-comments, commits, code, wiki edits, issues, and other contributions that are
-not aligned to this Code of Conduct, and will communicate reasons for moderation
-decisions when appropriate.
+Niniejszy Kodeks postępowania ma zastosowanie we wszystkich przestrzeniach społeczności, a także wtedy, gdy
+osoba oficjalnie reprezentuje społeczność w przestrzeniach publicznych.
+Przykłady reprezentowania naszej społeczności obejmują używanie oficjalnego adresu e-mail,
+publikowanie za pośrednictwem oficjalnego konta w mediach społecznościowych lub występowanie jako wyznaczony
+przedstawiciel na wydarzeniu online lub offline.
 
-## Scope
+## Egzekwowanie
 
-This Code of Conduct applies within all community spaces, and also applies when
-an individual is officially representing the community in public spaces.
-Examples of representing our community include using an official e-mail address,
-posting via an official social media account, or acting as an appointed
-representative at an online or offline event.
+Przypadki obraźliwego, nękającego lub w inny sposób niedopuszczalnego zachowania mogą być
+zgłaszane liderom społeczności odpowiedzialnym za egzekwowanie poprzez otwarcie
+prywatnego powiadomienia bezpieczeństwa (security advisory) pod adresem
+<https://github.com/diegosouzapw/OmniRoute/security/advisories/new>
+lub poprzez wysłanie e-maila do opiekuna projektu na adres diegosouza.pw@outlook.com.
+W przypadku incydentów związanych z bezpieczeństwem zobacz [`SECURITY.md`](SECURITY.md).
+Wszystkie skargi będą niezwłocznie i sprawiedliwie rozpatrywane oraz badane.
 
-## Enforcement
+Wszyscy liderzy społeczności są zobowiązani do poszanowania prywatności i bezpieczeństwa
+osoby zgłaszającej jakikolwiek incydent.
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-.
-All complaints will be reviewed and investigated promptly and fairly.
+## Wytyczne dotyczące egzekwowania
 
-All community leaders are obligated to respect the privacy and security of the
-reporter of any incident.
+Liderzy społeczności będą stosować się do poniższych Wytycznych dotyczących wpływu na społeczność przy ustalaniu
+konsekwencji za każde działanie, które uznają za naruszenie niniejszego Kodeksu postępowania:
 
-## Enforcement Guidelines
+### 1. Korekta
 
-Community leaders will follow these Community Impact Guidelines in determining
-the consequences for any action they deem in violation of this Code of Conduct:
+**Wpływ na społeczność**: Użycie niestosownego języka lub inne zachowanie uznane za
+nieprofesjonalne lub niepożądane w społeczności.
 
-### 1. Correction
+**Konsekwencja**: Prywatne, pisemne ostrzeżenie od liderów społeczności, zapewniające
+jasność co do charakteru naruszenia oraz wyjaśnienie, dlaczego
+zachowanie było niestosowne. Może zostać zażądane publiczne przeprosiny.
 
-**Community Impact**: Use of inappropriate language or other behavior deemed
-unprofessional or unwelcome in the community.
+### 2. Ostrzeżenie
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate. A public apology may be requested.
+**Wpływ na społeczność**: Naruszenie poprzez pojedynczy incydent lub serię
+działań.
 
-### 2. Warning
+**Konsekwencja**: Ostrzeżenie z konsekwencjami za kontynuowanie zachowania. Brak
+interakcji z zaangażowanymi osobami, w tym nieproszonych interakcji z
+osobami egzekwującymi Kodeks postępowania, przez określony czas. Obejmuje to
+unikanie interakcji w przestrzeniach społeczności, a także w kanałach zewnętrznych,
+takich jak media społecznościowe. Naruszenie tych warunków może prowadzić do tymczasowego lub
+trwałego banu.
 
-**Community Impact**: A violation through a single incident or series
-of actions.
+### 3. Tymczasowy ban
 
-**Consequence**: A warning with consequences for continued behavior. No
-interaction with the people involved, including unsolicited interaction with
-those enforcing the Code of Conduct, for a specified period of time. This
-includes avoiding interactions in community spaces as well as external channels
-like social media. Violating these terms may lead to a temporary or
-permanent ban.
+**Wpływ na społeczność**: Poważne naruszenie standardów społeczności, w tym
+trwałe niestosowne zachowanie.
 
-### 3. Temporary Ban
+**Konsekwencja**: Tymczasowy ban na wszelkie interakcje lub publiczną
+komunikację ze społecznością przez określony czas. W tym okresie nie są dozwolone
+żadne publiczne ani prywatne interakcje z zaangażowanymi osobami, w tym nieproszone
+interakcje z osobami egzekwującymi Kodeks postępowania.
+Naruszenie tych warunków może prowadzić do trwałego banu.
 
-**Community Impact**: A serious violation of community standards, including
-sustained inappropriate behavior.
+### 4. Trwały ban
 
-**Consequence**: A temporary ban from any sort of interaction or public
-communication with the community for a specified period of time. No public or
-private interaction with the people involved, including unsolicited interaction
-with those enforcing the Code of Conduct, is allowed during this period.
-Violating these terms may lead to a permanent ban.
+**Wpływ na społeczność**: Wykazywanie wzorca naruszania standardów
+społeczności, w tym trwałego niestosownego zachowania, nękania
+osoby lub agresji wobec grup osób bądź ich dyskredytowania.
 
-### 4. Permanent Ban
+**Konsekwencja**: Trwały ban na wszelkie publiczne interakcje w ramach
+społeczności.
 
-**Community Impact**: Demonstrating a pattern of violation of community
-standards, including sustained inappropriate behavior, harassment of an
-individual, or aggression toward or disparagement of classes of individuals.
+## Atrybucja
 
-**Consequence**: A permanent ban from any sort of public interaction within
-the community.
+Niniejszy Kodeks postępowania jest adaptacją [Contributor Covenant][homepage],
+wersja 2.1, dostępnej pod adresem
+https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
 
-## Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant][homepage],
-version 2.0, available at
-https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
-
-Community Impact Guidelines were inspired by [Mozilla's code of conduct
+Wytyczne dotyczące wpływu na społeczność zostały zainspirowane przez [Mozilla's code of conduct
 enforcement ladder](https://github.com/mozilla/diversity).
 
 [homepage]: https://www.contributor-covenant.org
 
-For answers to common questions about this code of conduct, see the FAQ at
-https://www.contributor-covenant.org/faq. Translations are available at
+Odpowiedzi na często zadawane pytania dotyczące tego kodeksu postępowania znajdują się w FAQ pod adresem
+https://www.contributor-covenant.org/faq. Tłumaczenia są dostępne pod adresem
 https://www.contributor-covenant.org/translations.

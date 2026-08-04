@@ -70,6 +70,18 @@ test("resolveEffectiveKey: returns accessToken when apiKey is undefined", () => 
   assert.equal(result, undefined);
 });
 
+test("resolveEffectiveKey: empty primary + extras returns an extra key (#8467)", () => {
+  const executor = new TestExecutor();
+  const credentials = {
+    apiKey: "",
+    connectionId: "preamble-empty-primary",
+    providerSpecificData: { extraApiKeys: ["sk-extra-only"] } as Record<string, unknown>,
+  };
+  const result = executor.publicResolveEffectiveKey(credentials);
+  assert.equal(result, "sk-extra-only");
+  assert.equal(credentials.providerSpecificData.selectedKeyId, "extra_0");
+});
+
 // ---------------------------------------------------------------------------
 // buildHeadersPreamble tests
 // ---------------------------------------------------------------------------

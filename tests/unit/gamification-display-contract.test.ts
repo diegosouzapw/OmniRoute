@@ -33,6 +33,9 @@ test("profile renders mapped icons and localized badge criteria", () => {
 });
 
 test("token page no longer contains known raw English controls", () => {
+  // Anchor: the page component itself, so the raw-copy guards below cannot pass
+  // against a file that was moved, renamed, or split apart.
+  assert.match(tokensSource, /export default function TokensPage\(/);
   for (const rawText of [
     "Send Tokens",
     "Create Invite",

@@ -851,6 +851,34 @@ test("v1 models catalog includes synced non-Gemini provider models from discover
   assert.equal(syncedModel.context_length, 262144);
 });
 
+test("v1 models catalog retains registered effort aliases beside synced OpenCode Go bases", async () => {
+  const connection = await seedConnection("opencode-go", {
+    name: "opencode-go-effort-aliases",
+    apiKey: "go-key",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", connection.id, [
+    {
+      id: "hy3",
+      name: "Hunyuan3",
+      source: "imported",
+      supportedEndpoints: ["chat"],
+    },
+  ]);
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as { data: Array<{ id: string }> };
+  const ids = body.data.map((item: { id: string }) => item.id);
+
+  assert.equal(response.status, 200);
+  assert.ok(ids.includes("opencode-go/hy3"));
+  assert.ok(ids.includes("opencode-go/hy3-none"));
+  assert.ok(ids.includes("opencode-go/hy3-low"));
+  assert.ok(ids.includes("opencode-go/hy3-high"));
+});
+
 test("v1 models catalog advertises GLM-5.2 provider aliases with hosted context limits", async () => {
   const hfConnection = await seedConnection("huggingface", {
     name: "huggingface-glm52",

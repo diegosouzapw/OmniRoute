@@ -130,6 +130,7 @@ test("curated Copilot allowlist contains the final approved model ids only", () 
     [...GITHUB_COPILOT_MODEL_ALLOWLIST],
     [
       "claude-fable-5",
+      "claude-opus-5",
       "claude-opus-4.8-fast",
       "claude-opus-4.8",
       "claude-opus-4.7",
@@ -159,7 +160,7 @@ test("curated Copilot allowlist contains the final approved model ids only", () 
 });
 
 test("newly approved Copilot models survive live and fallback discovery", async () => {
-  const expected = ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"];
+  const expected = ["claude-opus-5", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"];
   const live = parseGitHubCopilotModels({ data: expected.map((id) => ({ id, name: id })) });
   assert.deepEqual(
     live.map((model) => model.id),

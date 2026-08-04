@@ -122,6 +122,7 @@ export function synthOpenAIErrorChunk(opts: {
     error: {
       message: safeMessage,
       type: "upstream_empty_response",
+      code: "upstream_empty_response",
     },
   };
   return `data: ${JSON.stringify(body)}\n\n`;

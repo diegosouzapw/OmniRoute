@@ -150,13 +150,18 @@ export class GeminiBusinessExecutor extends BaseExecutor {
       headers["Authorization"] = computeSapisidHash(sapisid, baseOrigin);
     }
 
+    // Cap the upstream call, and honor the caller's cancellation when there is one.
+    // `ExecuteInput.signal` is optional while mergeAbortSignals() needs two real signals,
+    // so fall back to the timeout alone — same guard the other web executors use.
+    const timeoutSignal = AbortSignal.timeout(GEMINI_BUSINESS_FETCH_TIMEOUT_MS);
+
     let response: Response;
     try {
       response = await fetch(streamUrl, {
         method: "POST",
         headers,
         body: formBody.toString(),
-        signal: combineAbortSignals(signal, AbortSignal.timeout(GEMINI_BUSINESS_FETCH_TIMEOUT_MS)),
+        signal: signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal,
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "fetch failed";

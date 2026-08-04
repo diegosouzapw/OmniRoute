@@ -74,7 +74,7 @@ test("Responses -> Chat merges additional_tools into the universal tool conversi
   ]);
   assert.deepEqual(
     result.tools.map((tool) => tool.function?.name),
-    ["exec", "wait", "spawn_agent"]
+    ["exec", "wait", "collaboration__spawn_agent"]
   );
   assert.deepEqual(result.tools[0].function.parameters, {
     type: "object",

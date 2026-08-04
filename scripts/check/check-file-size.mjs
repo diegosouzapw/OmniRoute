@@ -5,7 +5,10 @@
 //  - arquivo congelado: só pode ENCOLHER (nunca crescer);
 //  - arquivo NOVO (fora do baseline): não pode passar do CAP.
 // Assim o próximo arquivo de 12.760 linhas é impossível, e os 91 atuais só melhoram.
-// --update ratcheta o baseline para baixo (encolhimentos + remove quem caiu < cap).
+// --update ratcheta o baseline para baixo: encolhimentos + remove toda entrada que
+// já cabe no cap, inclusive quem NÃO encolheu nesta rodada (loc === frozen[file]).
+// Antes a remoção só acontecia dentro do ramo de encolhimento, então uma entrada
+// igual ao próprio teto ficava presa no baseline para sempre — ver #8584.
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -27,21 +30,30 @@ const SKIP_DIRS = new Set(["node_modules", "dist-electron", ".next", ".build", "
 
 /**
  * Avalia LOC atuais contra o baseline congelado.
- * @returns {{violations: string[], improvements: [string, number][]}}
+ *
+ * `redundant` (#8584): entrada que NAO precisa mais existir — o arquivo esta
+ * exatamente no valor congelado E ja cabe no cap de arquivo novo. Antes, a
+ * remocao do baseline so acontecia dentro do ramo de `improvements`
+ * (loc < frozen), entao uma entrada igual ao proprio teto nunca saia da lista,
+ * por mais abaixo do cap que estivesse (3 casos reais no v3.8.49).
+ *
+ * @returns {{violations: string[], improvements: [string, number][], redundant: string[]}}
  */
 export function evaluateFileSizes(currentLocByFile, frozen, cap) {
   const violations = [];
   const improvements = [];
+  const redundant = [];
   for (const [file, loc] of Object.entries(currentLocByFile)) {
     if (file in frozen) {
       if (loc > frozen[file])
         violations.push(`${file}: ${loc} > congelado ${frozen[file]} (não pode crescer)`);
       else if (loc < frozen[file]) improvements.push([file, loc]);
+      else if (loc <= cap) redundant.push(file);
     } else if (loc > cap) {
       violations.push(`${file}: ${loc} > cap ${cap} (arquivo novo acima do limite)`);
     }
   }
-  return { violations, improvements };
+  return { violations, improvements, redundant };
 }
 
 function countLines(file) {
@@ -105,40 +117,57 @@ function main() {
   const cap = baseline.cap;
   const frozen = baseline.frozen || {};
   const current = collectLoc();
-  const { violations, improvements } = evaluateFileSizes(current, frozen, cap);
+  const { violations, improvements, redundant } = evaluateFileSizes(current, frozen, cap);
 
   // Test-file gate (Layer 1 anti-reinflation): same shrink-only + new-≤cap semantics,
   // reusing evaluateFileSizes against the testFrozen baseline + testCap.
   const testCap = baseline.testCap;
   const testFrozen = baseline.testFrozen || {};
   const currentTests = collectTestLoc();
-  const { violations: testViolations, improvements: testImprovements } =
-    typeof testCap === "number"
-      ? evaluateFileSizes(currentTests, testFrozen, testCap)
-      : { violations: [], improvements: [] };
+  const {
+    violations: testViolations,
+    improvements: testImprovements,
+    redundant: testRedundant,
+  } = typeof testCap === "number"
+    ? evaluateFileSizes(currentTests, testFrozen, testCap)
+    : { violations: [], improvements: [], redundant: [] };
 
   if (UPDATE) {
     let changed = false;
-    if (violations.length === 0 && improvements.length) {
+    if (violations.length === 0 && (improvements.length || redundant.length)) {
       for (const [file, loc] of improvements) {
         if (loc <= cap)
           delete frozen[file]; // caiu para dentro do cap → sai do baseline
         else frozen[file] = loc; // continua grande mas encolheu → trava no novo valor
       }
+      // #8584: entradas que já cabem no cap sem terem encolhido nesta rodada
+      // (loc === frozen[file]) também saem — antes ficavam presas para sempre.
+      for (const file of redundant) delete frozen[file];
       baseline.frozen = Object.fromEntries(Object.entries(frozen).sort());
       changed = true;
-      console.log(`[file-size] baseline ratcheado: ${improvements.length} arquivo(s) encolheram`);
+      console.log(
+        `[file-size] baseline ratcheado: ${improvements.length} arquivo(s) encolheram` +
+          (redundant.length ? `, ${redundant.length} entrada(s) redundante(s) removida(s)` : "")
+      );
     }
-    if (typeof testCap === "number" && testViolations.length === 0 && testImprovements.length) {
+    if (
+      typeof testCap === "number" &&
+      testViolations.length === 0 &&
+      (testImprovements.length || testRedundant.length)
+    ) {
       for (const [file, loc] of testImprovements) {
         if (loc <= testCap)
           delete testFrozen[file]; // caiu para dentro do testCap → sai do baseline
         else testFrozen[file] = loc; // continua grande mas encolheu → trava no novo valor
       }
+      for (const file of testRedundant) delete testFrozen[file];
       baseline.testFrozen = Object.fromEntries(Object.entries(testFrozen).sort());
       changed = true;
       console.log(
-        `[test-file-size] baseline ratcheado: ${testImprovements.length} arquivo(s) de teste encolheram`
+        `[test-file-size] baseline ratcheado: ${testImprovements.length} arquivo(s) de teste encolheram` +
+          (testRedundant.length
+            ? `, ${testRedundant.length} entrada(s) redundante(s) removida(s)`
+            : "")
       );
     }
     if (changed) fs.writeFileSync(BASELINE_PATH, JSON.stringify(baseline, null, 2) + "\n");

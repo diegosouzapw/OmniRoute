@@ -12,6 +12,7 @@ import {
   isAlibabaRegionalProvider,
   normalizeAlibabaProviderRegion,
   resolveAlibabaProviderBaseUrl,
+  resolveAlibabaProviderMediaBaseUrl,
   resolveAlibabaProviderModelsUrl,
 } from "../../src/shared/constants/alibabaProviderRegions.ts";
 import { APIKEY_PROVIDERS } from "../../src/shared/constants/providers.ts";
@@ -301,4 +302,57 @@ test("dashboard folds legacy China connections into the unified Alibaba card", (
   ]) {
     assert.equal(isAlibabaRegionalProvider(providerId), true);
   }
+});
+
+/**
+ * Regression guard for CodeQL `js/polynomial-redos` (alerts #765/#766).
+ *
+ * The trailing-slash trim used to be `/\/+$/`. That regex has no left anchor, so
+ * the engine retries the match at every start offset and each attempt walks the
+ * whole run of slashes before failing `$` — O(n^2) on a connection baseUrl made
+ * of many slashes. Measured on the vulnerable version: 10k slashes = 102ms,
+ * 30k = 968ms, 60k = 4028ms (clean quadratic). The linear strip runs in <1ms.
+ *
+ * `providerSpecificData.baseUrl` is operator-supplied config, so this input
+ * reaches the trim through isFamilyPresetUrl() -> normalizeEndpoint() and
+ * through both resolve*Url() helpers.
+ */
+test("trailing-slash normalization is linear on pathological slash runs (ReDoS guard)", () => {
+  const pathological = { baseUrl: `${"/".repeat(60_000)}x` };
+  const budgetMs = 500;
+
+  const started = performance.now();
+  resolveAlibabaProviderModelsUrl("alibaba", pathological);
+  resolveAlibabaProviderMediaBaseUrl("alibaba", pathological);
+  resolveAlibabaProviderBaseUrl("alibaba", pathological);
+  const elapsed = performance.now() - started;
+
+  assert.ok(
+    elapsed < budgetMs,
+    `trailing-slash trim must stay linear; took ${elapsed.toFixed(0)}ms (budget ${budgetMs}ms). ` +
+      "A quadratic trim (/\\/+$/) takes seconds on this input."
+  );
+});
+
+test("trailing-slash normalization keeps its exact behavior", () => {
+  // Every trailing slash is removed (not a bounded subset), and only trailing ones.
+  const withSlashes = { baseUrl: "https://example.test/v1////" };
+  assert.equal(
+    resolveAlibabaProviderModelsUrl("alibaba", withSlashes),
+    "https://example.test/v1/models"
+  );
+
+  // Interior slashes are preserved.
+  const interior = { baseUrl: "https://example.test//deep//path/" };
+  assert.equal(
+    resolveAlibabaProviderBaseUrl("alibaba", interior),
+    "https://example.test//deep//path/"
+  );
+  assert.equal(
+    resolveAlibabaProviderModelsUrl("alibaba", interior),
+    "https://example.test//deep//path/models"
+  );
+
+  // A string that is nothing but slashes collapses to empty.
+  assert.equal(resolveAlibabaProviderModelsUrl("alibaba", { baseUrl: "////" }), "");
 });

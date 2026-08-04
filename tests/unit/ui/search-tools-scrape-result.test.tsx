@@ -6,9 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-}));
+// next-intl: no local mock — falls through to the real-EN-text default mock in
+// tests/_setup/vitestUiPolyfills.ts. ScrapeResult's `aria-label={t("closeRawModal")}`
+// and the "256 KB" truncation copy need the real production strings — the previous
+// `(key) => key` mock rendered raw keys instead, so `[aria-label='Close raw content
+// modal']` never matched and the truncation-warning text check failed.
 
 // Lazy import of MarkdownMessage via ScrapeResult's dynamic import — mock it
 vi.mock(

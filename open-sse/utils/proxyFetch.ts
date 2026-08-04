@@ -22,6 +22,49 @@ function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
 }
 
+// #8376: transport-level connect-failure codes that mean "the configured upstream
+// proxy (or the target itself, for direct egress) is unreachable" — as opposed to an
+// ordinary upstream HTTP error. Read `.code` first (stable across undici/node
+// versions); native fetch wraps the real socket error in `.cause`, so fall back to
+// `.cause.code` when the top-level error is a bare "fetch failed" TypeError.
+const PROXY_UNREACHABLE_ERROR_CODES = new Set([
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "ENETUNREACH",
+  "EHOSTUNREACH",
+  "EPIPE",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_SOCKET",
+]);
+
+function isProxyUnreachableError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const code = (err as { code?: unknown }).code;
+  if (typeof code === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(code)) return true;
+  const cause = (err as { cause?: unknown }).cause;
+  const causeCode =
+    cause && typeof cause === "object" ? (cause as { code?: unknown }).code : undefined;
+  if (typeof causeCode === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(causeCode)) return true;
+  const msg = (err as Error).message;
+  return typeof msg === "string" && PROXY_UNREACHABLE_ERROR_CODES.has(msg);
+}
+/**
+ * #8376: tag a connect-failure error with a stable `.code`/`.errorCode` BEFORE it is
+ * rethrown, so chatCore's catch block (and, through the response body, the combo
+ * provider-breaker predicate) can classify it as "proxy unreachable" instead of
+ * falling through to a generic 502 that never trips the whole-provider breaker on a
+ * homogeneous same-provider combo pool. No-op when the error isn't connect-shaped.
+ */
+function tagProxyUnreachable<T>(err: T): T {
+  if (isProxyUnreachableError(err)) {
+    const e = err as Error & { code?: string; errorCode?: string };
+    e.code = "PROXY_UNREACHABLE";
+    e.errorCode = "proxy_unreachable";
+  }
+  return err;
+}
+
 /** Per-request tracking of whether TLS fingerprint was used */
 type TlsFingerprintStore = { used: boolean };
 const tlsFingerprintContext = new AsyncLocalStorage<TlsFingerprintStore>();
@@ -104,7 +147,6 @@ export function describeFetchCause(err: unknown): string {
   }
   return parts.join(" | ") || String(err);
 }
-
 
 function isStreamLikeBody(body: unknown): boolean {
   return (
@@ -353,9 +395,11 @@ export async function runWithProxyContext(
       }
       const err = new Error(`[Proxy Fast-Fail] Proxy unreachable: ${proxyLabel}`) as Error & {
         code?: string;
+        errorCode?: string;
         statusCode?: number;
       };
       err.code = "PROXY_UNREACHABLE";
+      err.errorCode = "proxy_unreachable";
       err.statusCode = 503;
       throw err;
     }
@@ -508,6 +552,7 @@ async function patchedFetch(
         // Prefer the .code property when available (more stable across undici
         // versions than message-string matching); fall back to substring match
         // for errors that lack a structured code.
+        tagProxyUnreachable(dispatcherError);
         const errCode = (dispatcherError as { code?: unknown })?.code;
         if (
           msg.includes("fetch failed") ||
@@ -530,7 +575,7 @@ async function patchedFetch(
             if (dispatcherError instanceof Error) {
               (dispatcherError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
             }
-            throw dispatcherError;
+            throw tagProxyUnreachable(dispatcherError);
           }
 
           // All attempts exhausted — try proxy fallback before native fetch
@@ -573,9 +618,11 @@ async function patchedFetch(
             if (nativeError instanceof Error) {
               (nativeError as Error & { proxyFetchDetail?: string }).proxyFetchDetail = detail;
             }
+            tagProxyUnreachable(nativeError);
             throw nativeError;
           }
         }
+        tagProxyUnreachable(dispatcherError);
         throw dispatcherError;
       }
     }

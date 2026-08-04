@@ -1,8 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { GheCopilotExecutor } from "../../open-sse/executors/ghe-copilot.ts";
+import { gheCopilotProvider } from "../../open-sse/config/providers/registry/ghe-copilot/index.ts";
 import { GHE_COPILOT_TARGET } from "../../src/mitm/targets/ghe-copilot.ts";
 import type { ProviderCredentials } from "../../open-sse/executors/base.ts";
+
+test("GHE Copilot registry exposes Claude Opus 5", () => {
+  const opus5 = gheCopilotProvider.models.find((model) => model.id === "claude-opus-5");
+
+  assert.deepStrictEqual(opus5, {
+    id: "claude-opus-5",
+    name: "Claude Opus 5",
+    contextLength: 1000000,
+    maxOutputTokens: 64000,
+    unsupportedParams: ["temperature", "top_p", "top_k"],
+  });
+});
 
 test("GHE_COPILOT_TARGET has correct id and patterns", () => {
   assert.strictEqual(GHE_COPILOT_TARGET.id, "ghe-copilot");
@@ -36,7 +49,33 @@ test("buildUrl uses gheUrl for responses endpoint with codex model", () => {
     providerSpecificData: { gheUrl: "https://ghe.company.com" },
   };
   const url = executor.buildUrl("gpt-4o-codex", true, 0, credentials);
-  assert.strictEqual(url, "https://ghe.company.com/chat/completions");
+  assert.strictEqual(url, "https://ghe.company.com/responses");
+});
+
+test("buildUrl uses responses endpoint for gpt-5.4-mini and gpt-5.6-sol", () => {
+  const executor = new GheCopilotExecutor({
+    gheUrl: "https://ghe.company.com",
+    clientId: "test-client",
+    clientSecret: "test-secret",
+  });
+  const credentials: ProviderCredentials = {
+    providerSpecificData: { gheUrl: "https://ghe.company.com" },
+  };
+  assert.strictEqual(executor.buildUrl("gpt-5.4-mini", true, 0, credentials), "https://ghe.company.com/responses");
+  assert.strictEqual(executor.buildUrl("ghe-copilot/gpt-5.6-sol", true, 0, credentials), "https://ghe.company.com/responses");
+});
+
+test("buildUrl uses chat/completions endpoint for claude and gemini models", () => {
+  const executor = new GheCopilotExecutor({
+    gheUrl: "https://ghe.company.com",
+    clientId: "test-client",
+    clientSecret: "test-secret",
+  });
+  const credentials: ProviderCredentials = {
+    providerSpecificData: { gheUrl: "https://ghe.company.com" },
+  };
+  assert.strictEqual(executor.buildUrl("claude-opus-5", true, 0, credentials), "https://ghe.company.com/chat/completions");
+  assert.strictEqual(executor.buildUrl("gemini-3.5-flash", true, 0, credentials), "https://ghe.company.com/chat/completions");
 });
 
 test("buildUrl handles gheUrl with trailing slash", () => {

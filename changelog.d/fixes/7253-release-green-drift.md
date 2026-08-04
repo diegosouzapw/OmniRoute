@@ -1,1 +1,0 @@
-- fix(docs): correct stale `/api/version` and migration-125 references + realign `no-explicit-any` suppression counts drifted by base-red realignment commits (#7253)
