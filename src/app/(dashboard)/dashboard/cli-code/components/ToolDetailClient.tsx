@@ -133,10 +133,55 @@ export default function ToolDetailClient({ toolId, category }: ToolDetailClientP
           });
         }
       });
+
+      if (providerModels.length === 0) {
+        const prefix =
+          typeof conn.providerSpecificData?.prefix === "string" &&
+          conn.providerSpecificData.prefix.trim()
+            ? conn.providerSpecificData.prefix.trim()
+            : alias;
+        const fallbackModels: Array<{ id: string; name: string }> = [];
+        const addFallbackModel = (model: any) => {
+          const id = typeof model?.id === "string" ? model.id.trim() : "";
+          if (!id || fallbackModels.some((candidate) => candidate.id === id)) return;
+          fallbackModels.push({
+            id,
+            name: typeof model?.name === "string" && model.name.trim() ? model.name.trim() : id,
+          });
+        };
+
+        if (typeof conn.defaultModel === "string" && conn.defaultModel.trim()) {
+          addFallbackModel({ id: conn.defaultModel });
+        }
+        if (Array.isArray(conn.providerSpecificData?.customModels)) {
+          conn.providerSpecificData.customModels.forEach(addFallbackModel);
+        }
+        if (fallbackModels.length === 0 && conn.testStatus === "active") {
+          addFallbackModel({ id: "model-id", name: `${prefix}/model-id` });
+        }
+
+        fallbackModels.forEach((model) => {
+          const modelValue = `${prefix}/${model.id}`;
+          if (seenModels.has(modelValue)) return;
+          seenModels.add(modelValue);
+          models.push({
+            value: modelValue,
+            label: modelValue,
+            provider: conn.provider,
+            alias: prefix,
+            connectionName: conn.name,
+            modelId: model.id,
+          });
+        });
+      }
     });
 
     const activeAliases = new Set(
-      activeProviders.map((c) => PROVIDER_ID_TO_ALIAS[c.provider] || c.provider)
+      activeProviders.flatMap((connection) => {
+        const alias = PROVIDER_ID_TO_ALIAS[connection.provider] || connection.provider;
+        const prefix = connection.providerSpecificData?.prefix;
+        return typeof prefix === "string" && prefix.trim() ? [alias, prefix.trim()] : [alias];
+      })
     );
     const activeProviderIds = new Set(activeProviders.map((c) => c.provider));
     dynamicModels.forEach((dm) => {

@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "No new models to import — all models are already in the registry or custom models list",
     "skippingExistingModels": "Skipping {count} existing models",
     "autoSync": "Auto-Sync",
+    "autoSyncShort": "Sync",
     "autoSyncTooltip": "Automatically refresh model list every 24h (configurable via MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Auto-sync enabled — models will refresh periodically",
     "autoSyncDisabled": "Auto-sync disabled",
     "autoSyncToggleFailed": "Failed to toggle auto-sync",
+    "autoSyncPartialFailure": "Auto-sync updated for some connections, but not all",
     "clearAllModels": "Clear All Models",
     "clearAllModelsConfirm": "Are you sure you want to remove all models for this provider? This cannot be undone.",
     "clearAllModelsSuccess": "All models cleared",
@@ -5976,6 +5978,8 @@
     "lmarenaWebCookieHint": "arena.ai کھولیں، سائن ان کریں، پھر نیٹ ورک کی درخواست سے مکمل Cookie ہیڈر کاپی کریں۔ arena-auth-prod-v1.0 اور arena-auth-prod-v1.1 (اور اگر مزید چنکس موجود ہوں تو انہیں بھی) شامل کریں، ترجیحاً cf_clearance کے ساتھ۔ صرف خالی arena-auth-prod-v1 کوکی پیسٹ نہ کریں۔ اختیاری: providerSpecificData.recaptchaV3Token اگر create-evaluation اب بھی 403 واپس کرتا ہے۔",
     "kimiOfficialSupporterBadge": "بانی دوست",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) OmniRoute کا بانی اوپن سورس دوست ہے",
+    "cheaperInferenceSupporterBadge": "اوپن سورس دوست",
+    "cheaperInferenceSupporterTooltip": "‏Cheaper Inference اوپن سورس دوست کے طور پر OmniRoute کی حمایت کرتی ہے",
     "kimiPartnerLinkNote": "پارٹنر لنک — آپ کے لیے بغیر کسی اضافی قیمت کے OmniRoute کو سپورٹ کرتا ہے",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12184,6 @@
     "cta": "Kimi Code حاصل کریں",
     "partnerLinkNote": "پارٹنر لنک",
     "dismissAriaLabel": "خارج کریں"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

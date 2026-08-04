@@ -48,6 +48,7 @@ export interface RegistryModel {
   aliases?: readonly string[];
   toolCalling?: boolean;
   supportsReasoning?: boolean;
+  supportedThinkingEfforts?: readonly string[];
   supportsVision?: boolean;
   supportsXHighEffort?: boolean;
   maxOutputTokens?: number;

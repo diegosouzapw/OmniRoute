@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "אין דגמים חדשים לייבוא — כל הדגמים כבר קיימים ברישום או ברשימת הדגמים המותאמים",
     "skippingExistingModels": "מדלג על {count} דגמים קיימים",
     "autoSync": "סנכרון אוטומטי",
+    "autoSyncShort": "סנכרון",
     "autoSyncTooltip": "רענן אוטומטית את רשימת הדגמים כל 24 שעות (ניתן להגדרה באמצעות MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "סנכרון אוטומטי מופעל - הדגמים יתרעננו מעת לעת",
     "autoSyncDisabled": "הסנכרון האוטומטי מושבת",
     "autoSyncToggleFailed": "החלפת הסנכרון האוטומטי נכשלה",
+    "autoSyncPartialFailure": "הסנכרון האוטומטי עודכן עבור חלק מהחיבורים, אך לא כולם",
     "clearAllModels": "נקה את כל הדגמים",
     "clearAllModelsConfirm": "האם אתה בטוח שברצונך להסיר את כל הדגמים עבור ספק זה? לא ניתן לבטל זאת.",
     "clearAllModelsSuccess": "כל הדגמים נוקו",
@@ -5976,6 +5978,8 @@
     "lmarenaWebCookieHint": "פתח את arena.ai, התחבר, ולאחר מכן העתק את כותרת ה-Cookie המלאה מבקשת Network. כלול את arena-auth-prod-v1.0 ואת arena-auth-prod-v1.1 (וחלקים נוספים אם קיימים), רצוי עם cf_clearance. אל תדביק רק את עוגיית arena-auth-prod-v1 הריקה. אופציונלי: providerSpecificData.recaptchaV3Token אם create-evaluation עדיין מחזיר 403.",
     "kimiOfficialSupporterBadge": "חבר מייסד",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) הוא חבר הקוד הפתוח המייסד של OmniRoute",
+    "cheaperInferenceSupporterBadge": "ידיד קוד פתוח",
+    "cheaperInferenceSupporterTooltip": "‏Cheaper Inference תומכת ב-OmniRoute כידידת קוד פתוח",
     "kimiPartnerLinkNote": "קישור שותף — תומך ב-OmniRoute ללא עלות נוספת עבורך",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12184,6 @@
     "cta": "קבל את Kimi Code",
     "partnerLinkNote": "קישור שותף",
     "dismissAriaLabel": "התעלם"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

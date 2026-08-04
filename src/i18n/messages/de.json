@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "Keine neuen Modelle zum Importieren — alle Modelle sind bereits in der Registry oder der Liste benutzerdefinierter Modelle",
     "skippingExistingModels": "Überspringe {count} vorhandene Modelle",
     "autoSync": "Auto-Sync",
+    "autoSyncShort": "Sync",
     "autoSyncTooltip": "Modellliste automatisch alle 24 Stunden aktualisieren (konfigurierbar über MODEL_SYNC_INTERVAL_HOURS)",
     "autoSyncEnabled": "Auto-Sync aktiviert — Modelle werden regelmäßig aktualisiert",
     "autoSyncDisabled": "Auto-Sync deaktiviert",
     "autoSyncToggleFailed": "Auto-Sync umschalten fehlgeschlagen",
+    "autoSyncPartialFailure": "Auto-Sync für einige Verbindungen aktualisiert, aber nicht alle",
     "clearAllModels": "Alle Modelle löschen",
     "clearAllModelsConfirm": "Möchten Sie wirklich alle Modelle für diesen Anbieter löschen?",
     "clearAllModelsSuccess": "Alle Modelle gelöscht",
@@ -5976,6 +5978,8 @@
     "lmarenaWebCookieHint": "Öffnen Sie arena.ai, melden Sie sich an und kopieren Sie dann den vollständigen Cookie-Header aus einer Netzwerkanfrage. Fügen Sie arena-auth-prod-v1.0 und arena-auth-prod-v1.1 (und weitere Chunks, falls vorhanden) hinzu, vorzugsweise mit cf_clearance. Fügen Sie nicht nur das leere arena-auth-prod-v1-Cookie ein. Optional: providerSpecificData.recaptchaV3Token, falls create-evaluation weiterhin 403 zurückgibt.",
     "kimiOfficialSupporterBadge": "Gründungsfreund",
     "kimiOfficialSupporterTooltip": "Kimi (Moonshot AI) ist OmniRoutes Gründungs-Open-Source-Freund",
+    "cheaperInferenceSupporterBadge": "Open-Source-Freund",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference unterstützt OmniRoute als Open-Source-Freund",
     "kimiPartnerLinkNote": "Partnerlink — unterstützt OmniRoute ohne zusätzliche Kosten für Sie",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12184,6 @@
     "cta": "Kimi Code holen",
     "partnerLinkNote": "Partnerlink",
     "dismissAriaLabel": "Schließen"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

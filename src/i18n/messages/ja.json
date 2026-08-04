@@ -4973,10 +4973,12 @@
     "noNewModelsToImport": "インポートする新しいモデルはありません — すべてのモデルは既にレジストリまたはカスタムモデルリストにあります",
     "skippingExistingModels": "{count}件の既存モデルをスキップ",
     "autoSync": "自動同期",
+    "autoSyncShort": "同期",
     "autoSyncTooltip": "24時間ごとにモデルリストを自動更新（MODEL_SYNC_INTERVAL_HOURSで設定可能）",
     "autoSyncEnabled": "自動同期有効 — モデルは定期的に更新されます",
     "autoSyncDisabled": "自動同期無効",
     "autoSyncToggleFailed": "自動同期の切り替えに失敗",
+    "autoSyncPartialFailure": "自動同期が一部の接続で更新されましたが、すべてではありません",
     "clearAllModels": "すべてのモデルを削除",
     "clearAllModelsConfirm": "このプロバイダーのすべてのモデルを削除してもよろしいですか？",
     "clearAllModelsSuccess": "すべてのモデルを削除しました",
@@ -5976,6 +5978,8 @@
     "lmarenaWebCookieHint": "arena.aiを開いてサインインし、ネットワークリクエストからCookieヘッダー全体をコピーします。arena-auth-prod-v1.0とarena-auth-prod-v1.1（および存在する場合はそれ以降のチャンク）を含め、できればcf_clearanceも一緒に含めてください。空のarena-auth-prod-v1クッキーのみを貼り付けないでください。オプション: create-evaluationが依然として403を返す場合はproviderSpecificData.recaptchaV3Token。",
     "kimiOfficialSupporterBadge": "創設フレンド",
     "kimiOfficialSupporterTooltip": "Kimi（Moonshot AI）は OmniRoute の創設オープンソースフレンドです",
+    "cheaperInferenceSupporterBadge": "オープンソースフレンド",
+    "cheaperInferenceSupporterTooltip": "Cheaper Inference は OmniRoute をオープンソースフレンドとして支援しています",
     "kimiPartnerLinkNote": "パートナーリンク — 追加費用なしで OmniRoute をサポートします",
     "ccAliasSectionTitle": "__MISSING__:Expose in Claude Code (claude/…)",
     "ccAliasSectionHint": "__MISSING__:Advertise this provider's models under claude/&lt;provider&gt;/&lt;model&gt; mirror ids so Claude Code's gateway model discovery can list them. Off by default — enabling this doubles catalog entries for all clients.",
@@ -12180,5 +12184,6 @@
     "cta": "Kimi Code を取得",
     "partnerLinkNote": "パートナーリンク",
     "dismissAriaLabel": "閉じる"
-  }
+  },
+  "featureFlagExposeFunctionalGatewayMirrorsDescription": "__MISSING__:Advertise <gateway-alias>/<model> mirror ids on /v1/models for models whose canonical owner has no active credential but a passthrough gateway with an active credential routes them. Warning: adds catalog entries for all clients when enabled globally."
 }

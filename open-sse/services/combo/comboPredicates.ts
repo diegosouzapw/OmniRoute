@@ -133,7 +133,11 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  * failure (#1731 / #2743 gap-d). This is the consumer side of `skipProviderBreaker`:
  *
  * - Stream-readiness failures (pre-flight zombie/ping probes) never count as provider
- *   failures — they are a connection-readiness signal, not an upstream outage.
+ *   failures — they are a connection-readiness signal, not an upstream outage. EXCEPT a
+ *   STREAM_EARLY_EOF (`isStreamEarlyEof`): there the upstream returned HTTP 200, opened the
+ *   SSE stream and then hung up without a single non-ping event, which is a genuine upstream
+ *   failure. Excluding it made a provider-wide outage invisible to the breaker — see the
+ *   STREAM_EARLY_EOF section of RESILIENCE_GUIDE.md.
  * - Only whole-provider failure statuses (408/500/502/503/504) count. A plain rate-limit
  *   429 is deliberately EXCLUDED — it belongs to connection cooldown / model lockout scope
  *   (a genuine quota/token-limit 429 is handled there), NOT the whole-provider breaker. This
@@ -163,6 +167,10 @@ const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
  */
 export function shouldRecordProviderBreakerFailure(args: {
   isStreamReadinessFailure: boolean;
+  /** True when the failure is specifically a STREAM_EARLY_EOF (upstream hung up after
+   * HTTP 200). Overrides the `isStreamReadinessFailure` exemption only; every other
+   * AND-term below still gates the trip. */
+  isStreamEarlyEof?: boolean;
   status: number;
   sameProviderNext: boolean;
   skipProviderBreaker?: boolean;
@@ -173,7 +181,7 @@ export function shouldRecordProviderBreakerFailure(args: {
   isProxyUnreachable?: boolean;
 }): boolean {
   return (
-    !args.isStreamReadinessFailure &&
+    (!args.isStreamReadinessFailure || args.isStreamEarlyEof === true) &&
     PROVIDER_BREAKER_FAILURE_STATUSES.has(args.status) &&
     (!args.sameProviderNext || args.isProxyUnreachable === true) &&
     !args.skipProviderBreaker &&
@@ -306,6 +314,28 @@ export function isStreamReadinessFailureErrorBody(errorBody: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const code = (error as Record<string, unknown>).code;
   return code === "STREAM_READINESS_TIMEOUT" || code === "STREAM_EARLY_EOF";
+}
+
+/**
+ * A STREAM_EARLY_EOF specifically: the upstream accepted the request (HTTP 200), opened the
+ * SSE stream, then closed it before emitting a single non-ping event.
+ *
+ * This is deliberately NOT the same signal as STREAM_READINESS_TIMEOUT. The readiness probe
+ * is a pre-flight liveness check on a connection we have not committed to yet, so failing it
+ * says "this connection looks stale", not "this provider is failing". An early EOF is the
+ * opposite: the provider took the request and then failed to serve it, which is an upstream
+ * failure by any reasonable definition.
+ *
+ * `isStreamReadinessFailureErrorBody` still covers both codes because the transient-retry and
+ * semaphore-cooldown paths in combo.ts want identical treatment for both. Only the
+ * whole-provider circuit breaker needs to tell them apart — see
+ * `shouldRecordProviderBreakerFailure`.
+ */
+export function isStreamEarlyEofErrorBody(errorBody: unknown): boolean {
+  if (!errorBody || typeof errorBody !== "object") return false;
+  const error = (errorBody as Record<string, unknown>).error;
+  if (!error || typeof error !== "object") return false;
+  return (error as Record<string, unknown>).code === "STREAM_EARLY_EOF";
 }
 
 /**

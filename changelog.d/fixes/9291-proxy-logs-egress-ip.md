@@ -1,0 +1,1 @@
+- **fix(db):** persist the account egress IP into `proxy_logs.egress_ip` (migration 134 + schema reconciler) so real traffic stays attributable to the actual node/IP even after restart — the egress IP was previously computed and logged but silently dropped from persistence ([#9291](https://github.com/diegosouzapw/OmniRoute/pull/9291)) — thanks @maxmad64bis

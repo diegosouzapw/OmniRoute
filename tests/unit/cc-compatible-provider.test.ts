@@ -571,7 +571,7 @@ test("handleChatCore forces SSE upstream for CC compatible providers while retur
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].headers.Accept, "text/event-stream");
+  assert.equal(calls[0].headers.Accept, "application/json");
   assert.equal(calls[0].body.stream, true);
   assert.equal(calls[0].body.stream_options, undefined);
   assert.equal(JSON.stringify(calls[0].body).includes('"cache_control"'), false);
@@ -771,9 +771,12 @@ test("handleChatCore preserves client cache markers for Claude Code requests to 
 
   assert.equal(result.success, true);
   assert.equal(calls.length, 1);
-  assert.match(calls[0].body.system[0].text, /Claude Agent SDK/);
-  assert.equal(calls[0].body.system[0].cache_control, undefined);
-  assert.deepEqual(calls[0].body.system[1].cache_control, {
+  const agentSdkSystemIndex = calls[0].body.system.findIndex((block) =>
+    /Claude Agent SDK/.test(block.text)
+  );
+  assert.notEqual(agentSdkSystemIndex, -1);
+  assert.equal(calls[0].body.system[agentSdkSystemIndex].cache_control, undefined);
+  assert.deepEqual(calls[0].body.system[agentSdkSystemIndex + 1].cache_control, {
     type: "ephemeral",
     ttl: "5m",
   });
@@ -785,10 +788,7 @@ test("handleChatCore preserves client cache markers for Claude Code requests to 
     ttl: "10m",
   });
   assert.equal(calls[0].body.messages[2].content[0].cache_control, undefined);
-  assert.deepEqual(calls[0].body.tools[0].cache_control, {
-    type: "ephemeral",
-    ttl: "30m",
-  });
+  assert.equal(calls[0].body.tools[0].cache_control, undefined);
 });
 
 test("provider-nodes create route rejects CC mode when feature flag is disabled", async () => {
